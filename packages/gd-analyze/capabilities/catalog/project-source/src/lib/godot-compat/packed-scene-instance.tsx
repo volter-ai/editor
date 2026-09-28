@@ -21,15 +21,14 @@ import { type ComponentType, createContext, createElement, Fragment, type ReactN
 import { Group, type Object3D } from 'three';
 import { godot_node_add_unmounted, godot_node_adopt, godot_node_object, godot_node_stand_in } from './node';
 
-/** A scene component, with the script class of its root when the root has one. */
-export type GodotSceneComponent = ComponentType<Record<string, unknown>> & {
-  readonly rootScript?: new (native: object) => object;
-};
+/** A scene component. */
+export type GodotSceneComponent = ComponentType<Record<string, unknown>>;
 
-/** A project scene as a resource: its path and the scene component written for it. */
+/** A project scene as a resource: its path, the scene component written for it and its root's script. */
 export interface PackedScene {
   readonly resource_path: string;
   readonly component: GodotSceneComponent;
+  readonly rootScript: (new (native: object) => object) | undefined;
 }
 
 const PRELOADED = new Map<string, PackedScene>();
@@ -42,10 +41,14 @@ const PRELOADED = new Map<string, PackedScene>();
  * @godot PackedScene (protocol)
  * @source core/io/resource_loader.cpp:801
  */
-export function godot_packed_scene_preload(path: string, component: GodotSceneComponent): PackedScene {
+export function godot_packed_scene_preload(
+  path: string,
+  component: GodotSceneComponent,
+  rootScript?: new (native: object) => object,
+): PackedScene {
   let scene = PRELOADED.get(path);
   if (scene === undefined) {
-    scene = Object.freeze({ resource_path: path, component });
+    scene = Object.freeze({ resource_path: path, component, rootScript });
     PRELOADED.set(path, scene);
   }
   return scene;
@@ -85,7 +88,7 @@ export function instantiate(self: PackedScene, edit_state = 0): unknown {
   void edit_state;
   const standIn = new Group();
   godot_node_adopt(standIn, { kind: 'spatial' });
-  const Script = self.component.rootScript;
+  const Script = self.rootScript;
   const instance = Script === undefined ? undefined : new Script(standIn);
   if (instance !== undefined) godot_node_adopt(standIn, { binding: { owner: instance } });
   PENDING.set(standIn, { scene: self, standIn, instance, container: undefined, mounted: undefined });

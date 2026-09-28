@@ -2467,11 +2467,16 @@ export function lowerOfficialExpression(
             arguments: [
               { kind: 'literal-expression', value: node.resolvedPath },
               { kind: 'identifier-expression', name: local },
+              // The root's script class: `instantiate()` makes its instance before the scene mounts.
+              ...(scene.rootScript === undefined ? [] : [{ kind: 'identifier-expression' as const, name: scene.rootScript.name }]),
             ],
             span: span(context.script, node),
           },
           [
             ...requirements,
+            ...(scene.rootScript?.module === undefined
+              ? []
+              : [{ kind: 'project-import-requirement' as const, module: scene.rootScript.module, imported: scene.rootScript.name, local: scene.rootScript.name, typeOnly: false }]),
             {
               kind: 'compat-import-requirement',
               module: 'lib/godot-compat/packed-scene-instance',

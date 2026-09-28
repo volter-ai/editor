@@ -208,7 +208,9 @@ export class LoweringContext {
     /** The AnimationTree a scene node expression holds in each scene, with its parameters, where its graph is known. */
     readonly treeParameters?: (nodeId: number) => readonly { readonly at: string; readonly parameters: ReadonlySet<string> }[],
     /** The scene component a project scene's resource path is written as, and where to import it from. */
-    readonly packedScene?: (resPath: string) => { readonly name: string; readonly module: string } | undefined,
+    readonly packedScene?: (
+      resPath: string,
+    ) => { readonly name: string; readonly module: string; readonly rootScript?: { readonly name: string; readonly module?: string } } | undefined,
     /** The parts of an engine class's TS type (`native-types.ts`), most derived first. */
     readonly nativeType?: (className: string) => readonly GodotNativeTypePart[],
     /** The nodes whose datatype `is T` narrowing gave (`type-test-narrowing`). */

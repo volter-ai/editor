@@ -1001,8 +1001,6 @@ export function idiomaticSceneSourceFile(
       },
     );
   }
-  const rootClass = scene.root.scriptInstance?.generatedClass;
-  const rootScript = rootClass === undefined ? undefined : emission.scripts.get(rootClass.modulePath + rootClass.exportName)?.local;
   const reactNames = [
     ...(emission.autoloads === undefined ? [] : ['createContext', 'useContext']),
     ...(emission.refNames.size === 0 ? [] : ['useRef']),
@@ -1138,20 +1136,6 @@ export function idiomaticSceneSourceFile(
           },
         ],
       },
-      // The root's script class, which `instantiate()` makes the instance of before the scene mounts.
-      ...(rootScript === undefined
-        ? []
-        : [
-            {
-              kind: 'expression-statement' as const,
-              expression: {
-                kind: 'assignment-expression' as const,
-                operator: '=' as const,
-                target: { kind: 'property-expression' as const, object: { kind: 'identifier-expression' as const, name: scene.exportName }, property: 'rootScript' },
-                value: { kind: 'identifier-expression' as const, name: rootScript },
-              },
-            },
-          ]),
     ],
   };
 }

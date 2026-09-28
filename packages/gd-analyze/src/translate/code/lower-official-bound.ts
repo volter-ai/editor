@@ -562,11 +562,21 @@ function lowerScript(
     (resPath) => scriptMemberNames(project, resPath),
     (nodeId) => treeParametersOf(project, sceneNodes.get(nodeId) ?? []),
     (resPath) => {
-      if (!/\.t?scn$/u.test(resPath) || !project.documents.scenes.some((scene) => scene.resPath === resPath && scene.sourceKind === 'packed-scene')) return undefined;
+      const scene = project.documents.scenes.find((entry) => entry.resPath === resPath && entry.sourceKind === 'packed-scene');
+      if (!/\.t?scn$/u.test(resPath) || scene === undefined) return undefined;
       const from = path.posix.dirname(`src/scripts/${fileName(source.resPath)}`);
       let module = path.posix.relative(from, godotSceneTargetPath(resPath).replace(/\.tsx$/u, ''));
       if (!module.startsWith('.')) module = `./${module}`;
-      return { name: godotSceneExportName(resPath), module };
+      // The scene root's script class, which `instantiate()` makes the instance of.
+      const rootScriptPath = scene.nodes.find((node) => node.nodePath === '.')?.scriptResPath;
+      const rootTarget = rootScriptPath === undefined ? undefined : project.scripts.find((entry) => entry.resPath === rootScriptPath);
+      const rootScript =
+        rootTarget === undefined
+          ? undefined
+          : rootTarget.resPath === source.resPath
+            ? { name: className(source) }
+            : { name: className(rootTarget), module: scriptModule(source.resPath, rootTarget.resPath) };
+      return { name: godotSceneExportName(resPath), module, ...(rootScript === undefined ? {} : { rootScript }) };
     },
     nativeType,
     new Set(source.refinedTypes.filter((entry) => entry.rule === 'type-test-narrowing').map((entry) => entry.nodeId)),
