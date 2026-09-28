@@ -235,8 +235,12 @@ export function get_flip_faces(self: PrimitiveMesh): boolean {
  * The stored surface as a three `BufferGeometry`. Godot's front faces wind clockwise on screen:
  * the Compatibility renderer draws right-side up with `glFrontFace(GL_CW)`
  * (`drivers/gles3/rasterizer_scene_gles3.cpp:2557`), and three's front faces wind
- * counter-clockwise, so each triangle is drawn with its last two indices exchanged; the vertex data
- * is Godot's stored data unchanged.
+ * counter-clockwise, so each triangle is drawn with its last two indices exchanged. The UVs are put
+ * in three's convention, as an ArrayMesh's data is (`scene-families.ts`): Godot's origin is the
+ * image's top row and three's the bottom row, so `v` becomes `1 - v` and a material samples the
+ * image as three uploads it (`godot_base_material_3d_scene_map`). The tangents are Godot's: their
+ * sign makes the bitangent point up the image in both (`scene-families.ts` says why). The rest of
+ * the vertex data is Godot's stored data unchanged.
  *
  * @godot PrimitiveMesh (protocol)
  * @source servers/rendering/rendering_server.cpp:1511
@@ -253,41 +257,11 @@ export function godot_primitive_mesh_geometry(self: PrimitiveMesh): BufferGeomet
     new BufferAttribute(new Float32Array(stored.normals.flatMap((v) => [v.x, v.y, v.z])), 3),
   );
   geometry.setAttribute('tangent', new BufferAttribute(new Float32Array(stored.tangents), 4));
-  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(stored.uvs.flatMap((v) => [v.x, v.y])), 2));
+  geometry.setAttribute('uv', new BufferAttribute(new Float32Array(stored.uvs.flatMap((v) => [v.x, f32(1 - v.y)])), 2));
   const index: number[] = [];
   for (let i = 0; i + 2 < stored.indices.length; i += 3) {
     index.push(stored.indices[i] as number, stored.indices[i + 2] as number, stored.indices[i + 1] as number);
   }
   geometry.setIndex(index);
-  return geometry;
-}
-
-const UV_TOP = new WeakSet<object>();
-
-/**
- * Puts a three primitive geometry's UV origin at the image's top row, as Godot's primitives put
- * theirs (`primitive_meshes.cpp`: `v` runs from the top edge down; `PlaneMesh` stores `1 - v`
- * for its far edge to be the image's top) and every other geometry the game draws does: three's
- * `PlaneGeometry`, `BoxGeometry`, `SphereGeometry` and `CylinderGeometry` put it at the bottom
- * row, so each `v` becomes `1 - v`, once for a geometry however often R3F reports its update. Every
- * texture is then uploaded unflipped (`godot_base_material_3d_map`). The geometry is returned.
- *
- * What this makes match is the direction `v` runs, not the whole layout. The plane, quad and sphere
- * then lay the image as Godot's do. The cylinder does not: Godot puts its side in the image's top
- * half (`v * 0.5`) and its caps in the bottom half (the top cap a circle about (0.25, 0.75), the
- * bottom one about (0.75, 0.75)), where three's side spans the whole image and each cap samples the
- * whole image about its centre. Only the side's direction, top row at the top, is Godot's.
- *
- * @godot PrimitiveMesh (protocol)
- * @source scene/resources/3d/primitive_meshes.cpp:1478
- */
-export function godot_primitive_mesh_uv_top<Geometry extends BufferGeometry>(geometry: Geometry): Geometry {
-  if (UV_TOP.has(geometry)) return geometry;
-  UV_TOP.add(geometry);
-  const uv = geometry.getAttribute('uv') as BufferAttribute | undefined;
-  if (uv !== undefined) {
-    for (let i = 0; i < uv.count; i += 1) uv.setY(i, 1 - uv.getY(i));
-    uv.needsUpdate = true;
-  }
   return geometry;
 }

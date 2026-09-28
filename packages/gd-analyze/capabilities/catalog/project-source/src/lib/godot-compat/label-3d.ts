@@ -18,7 +18,6 @@ import { construct as color, type Color } from './color';
 import { get_ascent, get_height, godot_font_css, godot_font_default, godot_font_measure, godot_font_wrap } from './font';
 import { godot_node_entity } from './node';
 import { godot_message_queue_push } from './object';
-import { godot_primitive_mesh_uv_top } from './primitive-mesh';
 import { godot_visual_instance_3d_aabb } from './visual-instance-3d';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector3, type Vector3 } from './vector3';
@@ -103,8 +102,7 @@ function draw(mesh: Mesh, state: Label3DState, text: ReturnType<typeof shape>): 
   const width = Math.max(1, Math.ceil(text.width) + margin * 2);
   const height = Math.max(1, Math.ceil(text.height) + margin * 2);
   mesh.geometry.dispose();
-  // The quad's UVs and the canvas's upload put the image's top row at v 0, as every geometry drawn does.
-  const geometry = godot_primitive_mesh_uv_top(new PlaneGeometry(width * px, height * px));
+  const geometry = new PlaneGeometry(width * px, height * px);
   geometry.translate(x0 - margin * px + (width * px) / 2, y0 + margin * px - (height * px) / 2, 0);
   mesh.geometry = geometry;
   const material = mesh.material as MeshBasicMaterial;
@@ -127,7 +125,6 @@ function draw(mesh: Mesh, state: Label3DState, text: ReturnType<typeof shape>): 
   material.map?.dispose();
   const texture = new ThreeCanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
-  texture.flipY = false;
   material.map = texture;
   material.needsUpdate = true;
 }

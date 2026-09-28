@@ -64,12 +64,10 @@ function resourceModules(resource: TargetGodotSceneResourcePlan): readonly strin
       return ['animation-tree'];
     case 'array-mesh':
       return ['array-mesh'];
-    // The function the plan stamped for the geometry to be handed once made, as emit prints it:
-    // every facing of a plane, a sphere and a cylinder go through compat (the UV origin at the top row).
+    // The function the plan stamped for a plane to be handed once made, as emit prints it: its turn
+    // to a facing other than three's own.
     case 'plane':
-    case 'sphere':
-    case 'cylinder':
-      return [idiom.made.module];
+      return idiom.made === undefined ? [] : [idiom.made.module];
     case 'material':
       return [...(idiom.factory === undefined ? [] : [idiom.factory.module]), ...idiom.props.flatMap((prop) => (prop.value.kind === 'compat' ? [prop.value.module] : []))];
     default:

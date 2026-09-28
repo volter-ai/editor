@@ -38,8 +38,12 @@ export type GodotSceneMaterialPropValue =
   | { readonly kind: 'linear-color'; readonly components: readonly number[] }
   /** A three constant (`AdditiveBlending`, `DoubleSide`). */
   | { readonly kind: 'three'; readonly name: string }
-  /** A planned texture resource sampled with the material's filter and repeat. */
-  | { readonly kind: 'map'; readonly texture: string; readonly filter: number; readonly repeat: boolean; readonly srgb: boolean }
+  /**
+   * A planned texture resource sampled with the material's filter and repeat; `model` when the
+   * material draws on an imported model's own geometry, whose UVs are the file's (glTF's origin is
+   * the image's top row), so the texture is sampled as the model's own images are.
+   */
+  | { readonly kind: 'map'; readonly texture: string; readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true }
   /** The Godot-only values compat reads back, as `userData`. */
   | { readonly kind: 'user-data'; readonly entries: readonly { readonly key: string; readonly value: number | boolean | readonly number[] }[] }
   /** A compat function the material is handed once made (`onUpdate`). */
@@ -77,6 +81,16 @@ export const GODOT_DEFAULT_MATERIAL_IDIOM: GodotSceneMaterialIdiom = {
     { name: 'metalness', value: { kind: 'literal', value: 0.2 } },
   ],
 };
+
+/**
+ * The material as it draws on an imported model's own geometry (an external material the importer
+ * swaps in, a surface override on a model's mesh): its textures sampled as the model's own images
+ * are. The same idiom when it samples no texture.
+ */
+export function godotModelMaterialIdiom(idiom: GodotSceneMaterialIdiom): GodotSceneMaterialIdiom {
+  if (!idiom.props.some((prop) => prop.value.kind === 'map')) return idiom;
+  return { ...idiom, props: idiom.props.map((prop) => (prop.value.kind === 'map' ? { name: prop.name, value: { ...prop.value, model: true } } : prop)) };
+}
 
 /** The Compatibility shader's `srgb_to_linear` (`tonemap_inc.glsl:22`), in single precision. */
 function srgbToLinear(value: number): number {
@@ -165,17 +179,16 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     if (roughnessTexture !== undefined) props.push({ name: 'roughnessMap', value: { kind: 'map', texture: roughnessTexture, filter, repeat, srgb: false } });
   }
   // No `normal_texture` (`TEXTURE_NORMAL`, 4) is planned yet. The lane that adds it as three's
-  // `normalMap` must flip its green channel, `normalScale.y` negative, wherever the geometry has no
-  // `tangent` attribute: three's primitives have none, nor an ArrayMesh without ARRAY_TANGENT.
-  // Three then derives the bitangent from the screen-space derivative of `v`
-  // (`getTangentFrame`, `normal_fragment_begin.glsl.js:30` in three 0.180), and with every
-  // geometry's `v` running down the image and textures uploaded unflipped (`flipY` false) it points
-  // down the image, the opposite of Godot's. That is GLTFLoader's rule for the same convention
-  // (`normalScale.y *= -1`, and `clearcoatNormalScale.y *= -1` for a physical material's clearcoat
-  // normal map, `GLTFLoader.js:3583-3586`), so the lane flips both; a geometry with tangents
-  // carries their sign and needs no flip. `normalScale` is the material's and the tangents are the
-  // geometry's, so one Godot material drawn on geometries of both kinds is two three materials,
-  // split by whether the geometry has tangents (or every geometry is given tangents).
+  // `normalMap` needs no flip on three's own geometry (its primitives, an ArrayMesh's data, a
+  // script's primitive mesh): their `v` runs up the image and textures upload with three's `flipY`,
+  // so the bitangent three derives without a `tangent` attribute (`getTangentFrame`,
+  // `normal_fragment_begin.glsl.js:30` in three 0.180) points up the image, as Godot's does, and an
+  // ArrayMesh's tangents keep Godot's sign, which points it up too (`scene-families.ts`,
+  // `godotArrayMeshData`). The model variant (`godotModelMaterialIdiom`) is the one to flip: on a
+  // model's glTF UVs `v` runs down the image, so without tangents the derived bitangent points down
+  // and `normalScale.y` goes negative, as GLTFLoader does for the same case (`normalScale.y *= -1`,
+  // and `clearcoatNormalScale.y *= -1` for a clearcoat normal map, `GLTFLoader.js:3583-3586`); a
+  // model surface with tangents carries glTF's sign and needs no flip.
   if (!unshaded && bool('set_feature', 0) === true) {
     const emission = components('set_emission') ?? [0, 0, 0, 1];
     const energy = num('set_emission_energy_multiplier') ?? 1;

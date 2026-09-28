@@ -42,6 +42,7 @@
 
 import {
   AdditiveBlending,
+  type BufferGeometry,
   BackSide,
   type Blending,
   DoubleSide,
@@ -105,6 +106,8 @@ export interface BaseMaterial3D {
 }
 
 const THREE_MATERIAL = new WeakMap<BaseMaterial3D, Material>();
+/** The material as it draws on an imported model's surface, where one has been asked for. */
+const MODEL_MATERIAL = new WeakMap<BaseMaterial3D, Material>();
 
 /**
  * A material's parameters at `BaseMaterial3D`'s initial values (`material.cpp:3908`).
@@ -155,20 +158,10 @@ const VARIANT_OF = new WeakMap<Texture, Texture>();
 /**
  * A texture as a material samples it: one three texture per sampler state over the same image (its
  * `texture_filter`, `FLAG_USE_TEXTURE_REPEAT` and `gl_set_filter`/`gl_set_repeat`; mipmaps only when
- * the image has them). A colour texture (`source_color`, the albedo) is decoded from sRGB; a data
- * texture (roughness) is not.
- *
- * Every geometry the game draws puts its UV origin at the image's top row, as Godot's and glTF's do
- * (an imported model's, an ArrayMesh's, and three's primitive geometries, whose UVs
- * `godot_primitive_mesh_uv_top` flips as they are made), so every image is uploaded unflipped
- * (`flipY` false, as three's GLTFLoader uploads a model's). With `view`, the loader's own view of
- * the image in a model's material (a second UV set, a texture transform) is kept.
- *
- * @godot BaseMaterial3D (protocol)
- * @source drivers/gles3/storage/texture_storage.h:255
+ * the image has them), uploaded with `flipY` as the geometry's UVs need.
  */
-export function godot_base_material_3d_map(texture: Texture, filter: number, repeat: boolean, srgb = true, view?: Texture): Texture {
-  const key = `${String(filter)}:${String(repeat)}:${String(srgb)}`;
+function sampledMap(texture: Texture, filter: number, repeat: boolean, flipY: boolean, srgb: boolean): Texture {
+  const key = `${String(filter)}:${String(repeat)}:${String(flipY)}:${String(srgb)}`;
   let variants = MAPS.get(texture);
   if (variants === undefined) {
     variants = new Map();
@@ -183,7 +176,7 @@ export function godot_base_material_3d_map(texture: Texture, filter: number, rep
     // The variant is the same texture resource: its image is the texture's.
     godot_texture_2d_image(map, () => get_image(texture));
   }
-  map.flipY = false;
+  map.flipY = flipY;
   const mipmapped = texture.mipmaps !== undefined && texture.mipmaps.length > 1;
   const nearest = filter === 0 || filter === 2 || filter === 4;
   map.magFilter = nearest ? NearestFilter : LinearFilter;
@@ -193,6 +186,35 @@ export function godot_base_material_3d_map(texture: Texture, filter: number, rep
   map.colorSpace = srgb ? SRGBColorSpace : NoColorSpace;
   map.generateMipmaps = false;
   map.needsUpdate = true;
+  return map;
+}
+
+/**
+ * A texture sampled as a material of the scene samples it (its `texture_filter` and
+ * `FLAG_USE_TEXTURE_REPEAT`), on three's own geometry: three's primitives, an ArrayMesh's data and a
+ * script's primitive mesh, whose UVs are three's (the origin at the image's bottom row), so the
+ * image is uploaded as three uploads any image (`flipY`). A colour texture (`source_color`, the
+ * albedo) is decoded from sRGB; a data texture (roughness) is not.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source drivers/gles3/storage/texture_storage.h:255
+ */
+export function godot_base_material_3d_scene_map(texture: Texture, filter: number, repeat: boolean, srgb = true): Texture {
+  return sampledMap(texture, filter, repeat, true, srgb);
+}
+
+/**
+ * A texture sampled as an imported model's material samples it (the `texture_filter` and
+ * `FLAG_USE_TEXTURE_REPEAT` the importer set from the glTF sampler), on the model's own geometry,
+ * whose UVs are glTF's (the origin at the image's top row), so the image is uploaded unflipped, as
+ * three's GLTFLoader uploads a model's. With `view`, the loader's own view of the image in a model's
+ * material (a second UV set, a texture transform) is kept.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source modules/gltf/gltf_document.cpp:3056
+ */
+export function godot_base_material_3d_model_map(texture: Texture, filter: number, repeat: boolean, srgb = true, view?: Texture): Texture {
+  const map = sampledMap(texture, filter, repeat, false, srgb);
   // A second UV set or a texture transform is the slot's own: its own view of the same image.
   if (view === undefined || (view.channel === 0 && view.offset.x === 0 && view.offset.y === 0 && view.rotation === 0 && view.repeat.x === 1 && view.repeat.y === 1)) return map;
   const own = map.clone();
@@ -218,8 +240,8 @@ export function godot_base_material_3d_map_texture(map: Texture): Texture {
   return VARIANT_OF.get(map) ?? map;
 }
 
-/** The parameters onto a three material of the class the shading mode selects. */
-function apply(self: BaseMaterial3D, target: Material): void {
+/** The parameters onto a three material of the class the shading mode selects, for a model's surface or three's geometry. */
+function apply(self: BaseMaterial3D, target: Material, model: boolean): void {
   const shaded = target as MeshStandardMaterial;
   if (!((shaded.color as unknown) instanceof ThreeColor)) shaded.color = new ThreeColor();
   shaded.color.setRGB(
@@ -238,7 +260,9 @@ function apply(self: BaseMaterial3D, target: Material): void {
   applyExtra(self, target);
   const albedo = self.textures[TEXTURE_ALBEDO] ?? null;
   (target as MeshStandardMaterial).map =
-    albedo === null ? null : godot_base_material_3d_map(albedo, self.texture_filter, self.flags[FLAG_USE_TEXTURE_REPEAT] === true);
+    albedo === null
+      ? null
+      : (model ? godot_base_material_3d_model_map : godot_base_material_3d_scene_map)(albedo, self.texture_filter, self.flags[FLAG_USE_TEXTURE_REPEAT] === true);
   if (target instanceof MeshStandardMaterial) {
     target.metalness = self.metallic;
     target.roughness = self.roughness;
@@ -286,12 +310,13 @@ function threeColor(value: unknown): ThreeColor {
  * Godot material per three material, so every node that shares it shares the Godot resource, its
  * parameters read back from what the scene states (the albedo from the colour, the albedo texture
  * from the map with its sampler, transparency, blending, shading, metallic, roughness, emission),
- * its setters drawing onto that same three material.
+ * its setters drawing onto that same three material. `model` when the scene draws it on an
+ * imported model's surface (`godot_base_material_3d_on_model`).
  *
  * @godot BaseMaterial3D (protocol)
  * @source scene/resources/material.cpp:3908
  */
-export function godot_base_material_3d_of(target: Material): BaseMaterial3D {
+export function godot_base_material_3d_of(target: Material, model = false): BaseMaterial3D {
   const existing = OF_THREE.get(target);
   if (existing !== undefined) return existing;
   const self = godot_base_material_3d_initial();
@@ -358,7 +383,7 @@ export function godot_base_material_3d_of(target: Material): BaseMaterial3D {
     extra.specular = f32(physical.reflectivity);
     if (physical.specularIntensity === 0) extra.specular_mode = SPECULAR_DISABLED;
   }
-  THREE_MATERIAL.set(self, target);
+  (model ? MODEL_MATERIAL : THREE_MATERIAL).set(self, target);
   OF_THREE.set(target, self);
   return self;
 }
@@ -373,28 +398,59 @@ function threeClassOf(self: BaseMaterial3D): typeof MeshBasicMaterial | typeof M
 }
 
 /**
- * The three material this material draws as, kept in step with its parameters.
+ * The three material this material draws as, kept in step with its parameters: on three's own
+ * geometry, or with `model` on an imported model's surface, whose UVs put the image the other way
+ * up, so there it is a second three material whose textures are the model's
+ * (`godot_base_material_3d_model_map`).
  *
  * @godot BaseMaterial3D (protocol)
  * @source scene/resources/material.cpp:3908
  */
-export function godot_base_material_3d_three(self: BaseMaterial3D): Material {
-  let target = THREE_MATERIAL.get(self);
+export function godot_base_material_3d_three(self: BaseMaterial3D, model = false): Material {
+  const held = model ? MODEL_MATERIAL : THREE_MATERIAL;
+  let target = held.get(self);
   const Class = threeClassOf(self);
   if (target === undefined || target.constructor !== Class) {
     // The material it replaces is let go of as three's are (a reflections volume material lets go
     // of the probes with it).
     target?.dispose();
     target = new Class();
-    THREE_MATERIAL.set(self, target);
+    held.set(self, target);
   }
-  apply(self, target);
+  apply(self, target, model);
   return target;
 }
 
 function changed(self: BaseMaterial3D): void {
   const target = THREE_MATERIAL.get(self);
-  if (target !== undefined) apply(self, target);
+  if (target !== undefined) apply(self, target, false);
+  const onModel = MODEL_MATERIAL.get(self);
+  if (onModel !== undefined) apply(self, onModel, true);
+}
+
+/** The geometries an imported model's loader made, whose UVs are glTF's. */
+const MODEL_GEOMETRY = new WeakSet<BufferGeometry>();
+
+/**
+ * Marks the geometries of a loaded model (`GodotImportedScene`): their UVs are glTF's, so a
+ * material drawn on them samples its textures as the model's own images are.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source modules/gltf/gltf_document.cpp:3056
+ */
+export function godot_base_material_3d_model_geometry(geometry: BufferGeometry): void {
+  MODEL_GEOMETRY.add(geometry);
+}
+
+/**
+ * Whether a geometry is an imported model's (`godot_base_material_3d_model_geometry`), so a
+ * material drawn on it is its model variant (`godot_base_material_3d_three`).
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source modules/gltf/gltf_document.cpp:3056
+ */
+export function godot_base_material_3d_on_model(geometry: BufferGeometry): boolean {
+  return MODEL_GEOMETRY.has(geometry);
 }
 
 /**

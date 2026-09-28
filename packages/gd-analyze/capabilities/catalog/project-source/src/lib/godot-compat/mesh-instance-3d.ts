@@ -13,11 +13,13 @@
  * A scene's `<mesh>` is three's own geometry and material, as the scene states them. Its surface
  * materials are the node's overrides (three does not tell an override from the mesh's own
  * material), which a script reads and sets. It has no mesh resource: `get_mesh` on it fails by
- * name until a script sets one (`set_mesh`), after which the node draws that resource.
+ * name until a script sets one (`set_mesh`), after which the node draws that resource. On an
+ * imported model's own surface (a geometry its loader marked, `godot_base_material_3d_on_model`), a
+ * material draws as its model variant, its textures sampled as the model's images are.
  */
 
 import { BufferAttribute, BufferGeometry, type Material, type Mesh } from 'three';
-import { type BaseMaterial3D, godot_base_material_3d_initial, godot_base_material_3d_of, godot_base_material_3d_three } from './base-material-3d';
+import { type BaseMaterial3D, godot_base_material_3d_initial, godot_base_material_3d_of, godot_base_material_3d_on_model, godot_base_material_3d_three } from './base-material-3d';
 import { construct as color } from './color';
 import type { ArrayMesh } from './array-mesh';
 import { godot_mesh_surfaces, type GodotMeshSurface } from './mesh';
@@ -83,7 +85,7 @@ function stateOf(self: Mesh): MeshInstanceState {
     const materials = self.material === undefined ? [] : Array.isArray(self.material) ? self.material : [self.material];
     const scene = self.geometry !== undefined && Object.keys(self.geometry.attributes).length > 0;
     state = scene
-      ? { mesh: null, overrides: materials.map((material) => godot_base_material_3d_of(material)), scene: true }
+      ? { mesh: null, overrides: materials.map((material) => godot_base_material_3d_of(material, godot_base_material_3d_on_model(self.geometry))), scene: true }
       : { mesh: null, overrides: [] };
     STATE.set(self, state);
   }
@@ -96,7 +98,8 @@ const NOTHING = new BufferGeometry().setAttribute('position', new BufferAttribut
 function draw(self: Mesh, state: MeshInstanceState): void {
   if (state.scene === true) {
     const current = Array.isArray(self.material) ? self.material : [self.material];
-    const materials = state.overrides.map((material, surface) => (material === null ? (current[surface] as Material) : godot_base_material_3d_three(material)));
+    const model = godot_base_material_3d_on_model(self.geometry);
+    const materials = state.overrides.map((material, surface) => (material === null ? (current[surface] as Material) : godot_base_material_3d_three(material, model)));
     self.material = materials.length === 1 ? (materials[0] as Material) : materials;
     return;
   }

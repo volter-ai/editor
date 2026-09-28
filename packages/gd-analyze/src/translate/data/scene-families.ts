@@ -547,17 +547,28 @@ export function godotArrayMeshRefusal(mesh: TargetGodotArrayMeshPlan): string | 
 }
 
 /**
- * The surfaces converted at import into three's winding: each triangle's last two indices exchanged
- * (Godot's front faces wind clockwise, `glFrontFace(GL_CW)`), the surfaces' arrays joined and a group
- * per surface drawing its material. UVs and tangents are Godot's as they are: every geometry the game
- * draws puts its UV origin at the image's top row, as Godot and glTF do (compat's
- * `godot_base_material_3d_map`).
+ * The surfaces converted at import into three's conventions: each triangle's last two indices
+ * exchanged (Godot's front faces wind clockwise, `glFrontFace(GL_CW)`), UVs with their origin at the
+ * image's bottom row (three's; Godot's is the top row, so `v` becomes `1 - v`, and a material samples
+ * the image as three uploads it, compat's `godot_base_material_3d_scene_map`), the surfaces' arrays
+ * joined and a group per surface drawing its material.
+ *
+ * The tangents are Godot's as they are, sign included. Both renderers make the bitangent
+ * `cross(normal, tangent) * w` and read a normal map's green channel along it (Godot's `scene.glsl`
+ * vertex stage and `normal_map` blend; three's `normal_vertex` and the `tbn` of
+ * `normal_fragment_begin`), and both want it pointing up the image: Godot stores mikktspace's
+ * bitangent negated (`SurfaceTool::mikktSetTSpaceDefault`), so with its `v` running down the image
+ * `w` makes it point up; three's own `computeTangents` makes it point along its `v`, which runs up the
+ * image. Flipping `v` changes which way `v` runs, not which way is up on the surface, so `w` keeps its
+ * sign. (Where there are no tangents, three derives the bitangent from `v` itself, `getTangentFrame`,
+ * and three's `v` running up gives the same direction.)
  */
 export function godotArrayMeshData(mesh: TargetGodotArrayMeshPlan): GodotArrayMeshData {
-  const joined = (name: keyof TargetGodotArrayMeshPlan['surfaces'][number]['arrays']) => {
+  const joined = (name: keyof TargetGodotArrayMeshPlan['surfaces'][number]['arrays'], map: (values: readonly number[]) => number[] = (values) => [...values]) => {
     if (mesh.surfaces.every((surface) => surface.arrays[name] === undefined)) return undefined;
-    return mesh.surfaces.flatMap((surface) => [...(surface.arrays[name] as readonly number[])]);
+    return mesh.surfaces.flatMap((surface) => map(surface.arrays[name] as readonly number[]));
   };
+  const flipV = (values: readonly number[]) => values.map((value, i) => (i % 2 === 1 ? f32(1 - value) : value));
   const index: number[] = [];
   const groups: { start: number; count: number; materialIndex: number }[] = [];
   let base = 0;
@@ -574,8 +585,8 @@ export function godotArrayMeshData(mesh: TargetGodotArrayMeshPlan): GodotArrayMe
   const normal = joined('normal');
   const tangent = joined('tangent');
   const color = joined('color');
-  const uv = joined('tex_uv');
-  const uv1 = joined('tex_uv2');
+  const uv = joined('tex_uv', flipV);
+  const uv1 = joined('tex_uv2', flipV);
   return {
     position: joined('vertex') ?? [],
     ...(normal === undefined ? {} : { normal }),

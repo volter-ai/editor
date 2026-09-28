@@ -10,9 +10,9 @@ import { godotSceneSubnodes } from '../data/scene-document-plan';
  * - A primitive mesh is three's matching geometry with Godot's parameters: a `PlaneMesh`/`QuadMesh`
  *   three's plane, a `SphereMesh` three's sphere of `rings + 1` bands (Godot's builder makes
  *   `rings + 2` rows of vertices) turned a quarter to Godot's columns, a `CylinderMesh` three's
- *   cylinder of `rings + 1` height segments. Each is handed, once made, the compat function the plan
- *   stamped on its idiom (`made`: a plane's turn to its orientation, the UV origin at the top row).
- *   Three lays a cylinder's UVs out its own way (`cylinder-uv-layout`) and gives a sphere's pole
+ *   cylinder of `rings + 1` height segments, each with three's own UVs. A plane is handed, once made,
+ *   the compat function the plan stamped on its idiom (`made`: its turn to a facing other than
+ *   three's). Three lays a cylinder's UVs out its own way (`cylinder-uv-layout`) and gives a sphere's pole
  *   vertices the `u` half a segment on (`sphere-pole-u`).
  * - An `ArrayMesh` is a `<bufferGeometry>` whose attributes come from the mesh's data file
  *   (`data/scene-families.ts` writes it in three's conventions), a group per surface.
@@ -205,7 +205,7 @@ function assetUrl(resPath: string): string {
 function textureHook(
   emission: FamilyEmission,
   texture: TargetGodotSceneResourcePlan,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true },
 ): string {
   const load = texture.load;
   if (load === undefined) throw new Error(`${texture.key}: a texture that is not an imported image`);
@@ -220,9 +220,9 @@ export function importedTextureHook(
   emission: FamilyEmission,
   resourceKey: string,
   load: NonNullable<TargetGodotSceneResourcePlan['load']>,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true },
 ): string {
-  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}`}`;
+  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}:${String(sampler.model === true)}`}`;
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
   const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
@@ -247,6 +247,7 @@ export function importedTextureHook(
                   { key: 'filter', value: literal(sampler.filter) },
                   { key: 'repeat', value: literal(sampler.repeat) },
                   ...(sampler.srgb ? [] : [{ key: 'srgb', value: literal(false) }]),
+                  ...(sampler.model === true ? [{ key: 'model', value: literal(true) }] : []),
                 ],
               },
             ]),
@@ -269,7 +270,7 @@ function arrayMeshData(emission: FamilyEmission, resource: TargetGodotSceneResou
   return local;
 }
 
-/** The compat function the plan stamped for a primitive geometry to be handed once made. */
+/** The compat function the plan stamped for a plane geometry to be handed once made. */
 function geometryMade(emission: FamilyEmission, stamp: GodotSceneGeometryMade): string {
   return useCompat(emission, stamp.module, stamp.exportName);
 }
@@ -284,7 +285,7 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
       const size = componentsValue(setterValue(set, 'set_size')) ?? idiom.size;
       const segments = [num('set_subdivide_width', 0) + 1, num('set_subdivide_depth', 0) + 1];
       const args = segments.some((value) => value !== 1) ? [size[0] as number, size[1] as number, ...segments] : [size[0] as number, size[1] as number];
-      return element('planeGeometry', [attribute('args', numbers(args)), attribute('onUpdate', identifier(geometryMade(emission, idiom.made)))]);
+      return element('planeGeometry', [attribute('args', numbers(args)), ...(idiom.made === undefined ? [] : [attribute('onUpdate', identifier(geometryMade(emission, idiom.made)))])]);
     }
     case 'sphere':
       // Godot's column `u` lies at (sin 2πu, cos 2πu) in XZ, three's at (-cos φ, sin φ): three's
@@ -297,7 +298,6 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
             { kind: 'binary-expression', operator: '/', left: { kind: 'property-expression', object: identifier('Math'), property: 'PI' }, right: literal(2) },
           ],
         }),
-        attribute('onUpdate', identifier(geometryMade(emission, idiom.made))),
       ]);
     case 'cylinder': {
       const open = boolValue(setterValue(set, 'set_cap_top')) === false;
@@ -312,7 +312,6 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
             ],
           },
         ),
-        attribute('onUpdate', identifier(geometryMade(emission, idiom.made))),
       ]);
     }
     case 'array-mesh': {
@@ -364,8 +363,8 @@ function materialProps(emission: FamilyEmission, idiom: GodotSceneMaterialIdiom,
       case 'map': {
         const texture = emission.resources.get(value.texture);
         if (texture === undefined) throw new Error(`${value.texture}: a texture the scene does not plan`);
-        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb };
-        return { name, value: identifier(texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, value.filter, value.repeat) : textureHook(emission, texture, sampler)) };
+        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb, ...(value.model === true ? { model: true as const } : {}) };
+        return { name, value: identifier(texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, value.filter, value.repeat, value.model === true) : textureHook(emission, texture, sampler)) };
       }
       case 'user-data':
         return {
@@ -636,7 +635,7 @@ function sharedGeometry(emission: FamilyEmission, resource: TargetGodotSceneReso
     const child = geometry(emission, resource) as TargetTsJsxChild & { readonly tag: string; readonly attributes: readonly TargetTsJsxAttribute[] };
     const args = child.attributes.find((entry) => entry.kind === 'jsx-expression-attribute' && entry.name === 'args');
     const idiom = resource.idiom;
-    const stamp = idiom !== undefined && 'made' in idiom ? idiom.made : undefined;
+    const stamp = idiom?.kind === 'plane' ? idiom.made : undefined;
     const three = child.tag.charAt(0).toUpperCase() + child.tag.slice(1);
     emission.three.add(three);
     const construct: TargetTsExpression = {
@@ -894,9 +893,10 @@ export function familyInstanceProps(
 
 /**
  * A GradientTexture2D a material samples: its image made from the properties the scene states, as
- * three's texture sampled with the material's filter and repeat, declared once in the module.
+ * three's texture sampled with the material's filter and repeat (as a model's own images are, on a
+ * model's geometry), declared once in the module.
  */
-function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResourcePlan, filter: number, repeat: boolean): string {
+function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResourcePlan, filter: number, repeat: boolean, model: boolean): string {
   const image: TargetTsExpression = {
     kind: 'call-expression',
     callee: identifier(useCompat(emission, 'gradient-texture-2d', 'godot_gradient_texture_2d_texture')),
@@ -904,10 +904,10 @@ function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResource
   };
   const made: TargetTsExpression = {
     kind: 'call-expression',
-    callee: identifier(useCompat(emission, 'base-material-3d', 'godot_base_material_3d_map')),
+    callee: identifier(useCompat(emission, 'base-material-3d', model ? 'godot_base_material_3d_model_map' : 'godot_base_material_3d_scene_map')),
     arguments: [image, literal(filter), literal(repeat)],
   };
-  return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}`, `${stemOf(texture.key)} map`, made, []);
+  return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}:${String(model)}`, `${stemOf(texture.key)} map`, made, []);
 }
 
 /** A particle system's mesh as the three geometry and material it draws, declared once in the module. */
