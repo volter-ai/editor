@@ -75,7 +75,7 @@ function importedTextures(project: BoundGodotProject, composition: DirectGodotPr
     for (const child of godotSceneSubnodes(node)) walk(child);
   };
   for (const scene of composition.scenes) walk(scene.root);
-  return [...project.documents.textures, ...project.documents.sounds, ...project.documents.cubemaps]
+  return [...project.documents.textures, ...project.documents.sounds, ...project.documents.oggVorbis, ...project.documents.cubemaps]
     .filter((file) => paths.has(file.resPath))
     .map((file) => ({ resPath: file.resPath, sourceDigest: file.sourceDigest, bytes: file.bytes }));
 }

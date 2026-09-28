@@ -303,6 +303,8 @@ export interface BoundGodotProjectDocuments {
   readonly textures: readonly BoundGodotTextureDocument[];
   /** Sounds Godot's `wav` importer imports: the source bytes and the importer's options. */
   readonly sounds: readonly BoundGodotSoundDocument[];
+  /** Sounds the `oggvorbisstr` importer imports, decoded by the browser. */
+  readonly oggVorbis: readonly BoundGodotOggVorbisDocument[];
   /** Each `.gdshader` as the pinned Godot's own shader frontend read it (`bound-shader.ts`). */
   readonly shaders: readonly GodotBoundShader[];
   /** Each engine sky material class's own generated shaders, read by the same frontend. */
@@ -325,6 +327,15 @@ export interface BoundGodotSoundDocument {
   readonly sourceDigest: string;
   readonly bytes: Uint8Array;
   readonly importParams: GodotWavImportParams;
+}
+
+/** A sound imported as an `AudioStreamOggVorbis` (`[remap] importer="oggvorbisstr"`), with its loop options. */
+export interface BoundGodotOggVorbisDocument {
+  readonly resPath: string;
+  readonly sourceDigest: string;
+  readonly bytes: Uint8Array;
+  readonly loop: boolean;
+  readonly loopOffset: number;
 }
 
 /** An image imported as a `CompressedTexture2D` (`[remap] importer="texture"`). */
@@ -692,6 +703,24 @@ function boundDocuments(
         const entry = snapshot.entryByResPath(sidecar.sourceFile);
         if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
         return [{ resPath: sidecar.sourceFile, sourceDigest: entry.digest, bytes: snapshot.bytesByResPath(sidecar.sourceFile), importParams: sidecar.wavImport }];
+      }),
+    ),
+    oggVorbis: unique(
+      'ogg-vorbis',
+      decoded.imports.flatMap((sidecar) => {
+        if (sidecar.importer !== 'oggvorbisstr' || sidecar.resourceType !== 'AudioStreamOggVorbis') return [];
+        if (sidecar.sourceFile === undefined) return [];
+        const entry = snapshot.entryByResPath(sidecar.sourceFile);
+        if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
+        return [
+          {
+            resPath: sidecar.sourceFile,
+            sourceDigest: entry.digest,
+            bytes: snapshot.bytesByResPath(sidecar.sourceFile),
+            loop: sidecar.audioLoop ?? false,
+            loopOffset: sidecar.audioLoopOffset ?? 0,
+          },
+        ];
       }),
     ),
     resources: unique(

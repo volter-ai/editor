@@ -461,11 +461,12 @@ export function readImportSidecar(file: GodotTextFile): ImportSidecar {
       : undefined;
   const bitmapThreshold = importer === 'bitmap' ? asNumber(params?.properties['threshold']) : undefined;
   const bitmapCreateFrom = importer === 'bitmap' ? asNumber(params?.properties['create_from']) : undefined;
-  const audioLoopValue = importer === 'ogg_vorbis' || importer === 'mp3'
+  // Godot 4's Ogg importer is `oggvorbisstr`; Godot 3's was `ogg_vorbis`.
+  const audioLoopValue = importer === 'ogg_vorbis' || importer === 'oggvorbisstr' || importer === 'mp3'
     ? params?.properties['loop']
     : undefined;
   const audioLoop = audioLoopValue?.kind === 'bool' ? audioLoopValue.value : undefined;
-  const audioLoopOffset = importer === 'ogg_vorbis' || importer === 'mp3'
+  const audioLoopOffset = importer === 'ogg_vorbis' || importer === 'oggvorbisstr' || importer === 'mp3'
     ? asNumber(params?.properties['loop_offset'])
     : undefined;
   const storeInSubdirValue = params?.properties['external_files/store_in_subdir'];

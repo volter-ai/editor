@@ -12,6 +12,7 @@
     "src/lib/godot-compat/area-3d.ts",
     "src/lib/godot-compat/array-mesh.ts",
     "src/lib/godot-compat/array.ts",
+    "src/lib/godot-compat/audio-stream-ogg-vorbis.ts",
     "src/lib/godot-compat/audio-stream-player-3d.ts",
     "src/lib/godot-compat/audio-stream-player.ts",
     "src/lib/godot-compat/audio-stream-randomizer.ts",

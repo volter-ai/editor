@@ -19,6 +19,12 @@ export const GODOT_4_7_AUDIO_RESOURCE_RULES: readonly (GodotSceneResourceRule & 
   },
   {
     sourceRevision: REVISION,
+    className: 'AudioStreamOggVorbis',
+    construct: { module: 'lib/godot-compat/audio-stream-ogg-vorbis', exportName: 'godot_audio_stream_ogg_vorbis_load' },
+    source: { file: 'modules/vorbis/audio_stream_ogg_vorbis.cpp', symbol: 'AudioStreamOggVorbis::load_from_buffer', line: 581 },
+  },
+  {
+    sourceRevision: REVISION,
     className: 'AudioStreamRandomizer',
     construct: { module: 'lib/godot-compat/audio-stream-randomizer', exportName: 'godot_audio_stream_randomizer_new' },
     source: { file: 'servers/audio/audio_stream.cpp', symbol: 'AudioStreamRandomizer::AudioStreamRandomizer', line: 788 },
