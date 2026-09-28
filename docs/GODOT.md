@@ -205,10 +205,13 @@ skips the frame or unmounts the game.
    own version (`direct-project-data-plan.ts`, read through the monorepo's `node_modules`, which
    link the workspace packages; never the newest on npm), so after a merge that moves those versions the import refuses with "frozen
    package-lock.json … ranges differ from the planned merge", and the frozen import lock
-   (`toolchain/package-lock.json`) is re-resolved, now at `^0.5.76`. The recipe:
-   - rebuild `package.json` from the lock's own root entry, with each `@volter/*` range moved to
-     that package's workspace version (the root lists only the 0.5.x lockstep packages;
-     `blender-engine` and `editor-blender` come in transitively at their own 0.1.x versions);
+   (`toolchain/package-lock.json`) is re-resolved (at `^0.5.76`, then `^0.5.77`). The recipe:
+   - rebuild `package.json` from the lock's own root entry, with each range set as the plan sets
+     it (`plannedPackageManifest`): each `@volter/*` range to that package's workspace version,
+     and every other range to the game template's (`packages/game-editor/template/package.json`),
+     which a merge from `main` can move too (`ztrack` at 0.5.77). The root lists only the 0.5.x
+     lockstep packages; `blender-engine` and `editor-blender` come in transitively at their own
+     0.1.x versions;
    - add the template's `overrides` (`packages/game-editor/template/package.json`, which pins
      drei's `stats-gl`), since a lock's root entry does not record them;
    - run `npm@11 install --package-lock-only` over the previous lock, which keeps npm's libc
