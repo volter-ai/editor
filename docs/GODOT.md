@@ -279,15 +279,16 @@ with no check of the shapes the review hunts.
    - Row 5: the output is what a three.js or R3F developer would write, with no generated
      dispatchers or helpers and nothing for tooling.
    - Ruling 2: no record, capture or comparison of Godot's output is kept.
-2. A lane lands on `godot` on the cheap checks (typecheck, the imports of every game that
-   imports, the headless probe, the ratchet), with no review of its own (owner, 2026-09-28: "stop
-   it with the excessive reviewing - do more coding less reviewing. Review when everything is done
-   (or on the regular regression checks) not all the time"). The reviews are the periodic one
-   (after 30 lane commits, docs/GODOT-REVIEW.md) and the one when the work is done, before the
-   games' acceptance walks.
-3. A periodic review's `regressed` verdict means the change does not land (docs/GODOT-REVIEW.md).
-   Its findings are fixed and the review re-run before more of the lane lands. New game work waits
-   until the verdict is `holds` or `pass`.
+2. A lane lands on `godot` unverified: while any code of the slate remains to be written, nothing
+   is tested or reviewed (company AGENTS.md, "test and review only at the very end", owner
+   2026-09-28, which overrides the per-lane checks this section once set; see
+   `company-layer/games/log/2026-09-28-godot-lane-postmortem.md`). The pre-commit hooks (the
+   compat contract, the ratchet) still run, as they take seconds. When the slate is written,
+   verification runs once: the imports of every game, the headless probe, one review by
+   docs/GODOT-REVIEW.md, then the blind walks. Their findings reopen the slate.
+3. The slate is the board card's done-when (the games walked blind, the lane merged, its fixes on
+   main and released). Work that does not serve it, the emitted game's shape track included, waits
+   for the owner to ask for it.
 4. The rows that fail by the emitted game's shape (rows 4 and 5) are their own track
    (§The emitted game's shape), not a lane's side effect.
 
