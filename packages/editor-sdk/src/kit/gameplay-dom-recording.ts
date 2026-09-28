@@ -171,9 +171,8 @@ export function startGameplayDomRecording(
     nextAssetSequence += 1;
     assetsByDataUrl.set(dataUrl, name);
     enqueue(`replay asset ${name}`, async () => {
-      // The workbench's CSP quite correctly omits `data:` from connect-src, so
-      // fetching the URL is forbidden even though the bytes are already in
-      // this document. Decode the base64 locally and upload only the Blob.
+      // The bytes are already in this document: decode the base64 locally and
+      // upload only the Blob rather than fetching the URL.
       const asset = decodeImageDataUrl(dataUrl);
       assetBytes += asset.size;
       await appendGameplayRecordingAsset(sink, name, asset);
