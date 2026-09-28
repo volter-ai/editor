@@ -260,6 +260,16 @@ interface PreparedAssignmentTarget {
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
 }
 
+/** An array index counted from the end when negative: `i < 0 ? a.length + i : i`. */
+function fromEnd(array: TargetTsExpression, index: TargetTsExpression): TargetTsExpression {
+  return {
+    kind: 'conditional-expression',
+    condition: { kind: 'binary-expression', operator: '<', left: index, right: { kind: 'literal-expression', value: 0 } },
+    whenTrue: { kind: 'binary-expression', operator: '+', left: { kind: 'property-expression', object: array, property: 'length' }, right: index },
+    whenFalse: index,
+  };
+}
+
 function prepareAssignmentTarget(
   context: LoweringContext,
   node: GodotBoundNode,
@@ -302,6 +312,18 @@ function prepareAssignmentTarget(
     }
     const indexNode = context.node(node.index, node);
     const index = materialize(context, lower(context, indexNode));
+    if (godotBuiltinSubscriptShape(baseNode.datatype)?.kind === 'array-element' && !(indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int' && Number(indexNode.value.value) >= 0)) {
+      // Variant indexing counts a negative index from the end (`VariantIndexedSetGet_Array::set`,
+      // core/variant/variant_setget.cpp): the index, evaluated once, is settled to its place.
+      const requirements = context.structural(node, 'subscript-element', [baseNode, indexNode], 'subscript-element:array');
+      const place = materialize(context, expression(fromEnd(base.value, index.value)));
+      return {
+        beforeAssigned: base.before,
+        afterAssigned: [...index.before, ...place.before],
+        target: { kind: 'element-expression', object: base.value, index: place.value, span: span(context.script, node) },
+        requirements: [...requirements, ...base.requirements, ...index.requirements],
+      };
+    }
     const requirements = context.structural(node, 'subscript-element', [baseNode, indexNode]);
     return {
       beforeAssigned: base.before,
@@ -445,23 +467,14 @@ function nativeMemberReceiver(context: LoweringContext, node: GodotBoundNode, me
 
 /**
  * Whether an object read as a member's base is a variable TS types as `T | null`: one Godot clears
- * to null (declared with no initializer, or `@onready`). A member read or call on null is Godot's
- * runtime error (`OPCODE_GET_NAMED`, `gdscript_vm.cpp:1260`; `OPCODE_CALL`, `:1903`), so the read
+ * to null (declared with no initializer, or `@onready`), as analysis resolved the read to its
+ * declaration (`nullable-variables.ts`). A member read or call on null is Godot's runtime error (`OPCODE_GET_NAMED`, `gdscript_vm.cpp:1260`; `OPCODE_CALL`, `:1903`), so the read
  * states the object as present (`value!`) and a null one throws where Godot errs.
  */
 function nullableObject(context: LoweringContext, node: GodotBoundNode): boolean {
   const datatype = node.datatype;
-  if (node.kind !== 'IDENTIFIER' || datatype.metaType || (datatype.kind !== 'CLASS' && datatype.kind !== 'NATIVE')) return false;
-  if (node.source !== 'MEMBER_VARIABLE' && node.source !== 'INHERITED_VARIABLE' && node.source !== 'LOCAL_VARIABLE') return false;
-  const root = context.script.nodes[context.script.rootNodeId];
-  const members = new Set(root?.kind === 'CLASS' ? root.members : []);
-  // An inherited member is declared in another script: it may be either.
-  if (node.source === 'INHERITED_VARIABLE') return true;
-  return context.script.nodes.some((candidate) => {
-    if (candidate.kind !== 'VARIABLE' || members.has(candidate.id) !== (node.source === 'MEMBER_VARIABLE')) return false;
-    const identifier = context.script.nodes[candidate.identifier];
-    return identifier?.kind === 'IDENTIFIER' && identifier.name === node.name && (candidate.initializer < 0 || candidate.onready);
-  });
+  if (datatype.metaType || (datatype.kind !== 'CLASS' && datatype.kind !== 'NATIVE')) return false;
+  return context.nullableReads.has(node.id);
 }
 
 /**
@@ -1430,17 +1443,21 @@ function numericCall(name: string, argument: TargetTsExpression): TargetTsExpres
   return { kind: 'call-expression', callee: { kind: 'identifier-expression', name }, arguments: [argument] };
 }
 
-/** The one built-in type a plain value has: its switch result, else its datatype. */
+/** The one built-in type a plain value has, as analysis typed it: its one type where an int-or-float variable reaches it, else its own. */
 function plainType(context: LoweringContext, node: GodotBoundNode): string | undefined {
   const types = context.numericTypes(node);
   if (types !== undefined) return types.size === 1 ? [...types][0] : undefined;
-  if (node.datatype.kind === 'ENUM') return 'int';
-  return node.datatype.kind === 'BUILTIN' && !node.datatype.metaType ? node.datatype.builtinType : undefined;
+  return context.plainNumericType(node);
 }
 
 /** A plain int or float stored into an int-or-float place: tagged by its type (`numeric-tag`). */
-export function numericTag(context: LoweringContext, site: GodotBoundNode, valueNode: GodotBoundNode, value: LoweredExpression): LoweredExpression {
-  const type = plainType(context, valueNode);
+export function numericTag(
+  context: LoweringContext,
+  site: GodotBoundNode,
+  valueNode: GodotBoundNode,
+  value: LoweredExpression,
+  type: string | undefined = plainType(context, valueNode),
+): LoweredExpression {
   const name = godotNumericTag(type)?.tag;
   if (name === undefined) {
     return context.refuse(valueNode, `a ${type ?? valueNode.datatype.display} value stored into an int-or-float variable: only an int or a float is tagged`);
@@ -1573,8 +1590,7 @@ export function lowerOfficialExpression(
         );
       });
       return context.withOverrides(overrides, () => {
-        const types = context.numericTypes(node);
-        const type = node.kind === 'ASSIGNMENT' ? undefined : types === undefined || types.size !== 1 ? undefined : [...types][0];
+        const type = context.numericBranchType(node, choice);
         if (type === undefined || type === 'unknown') {
           return context.refuse(node, `the operator table has no result for ${choice.join(' and ')} here`);
         }
@@ -1677,7 +1693,7 @@ export function lowerOfficialExpression(
     let stored: LoweredExpression;
     const requirements: OfficialBoundLoweringRequirement[] = [];
     if (context.isNumericVariable(assignee)) {
-      stored = isTagged ? value : numericTag(context, node, { ...valueNode, datatype: builtinDatatype([...types][0] as string) } as GodotBoundNode, value);
+      stored = isTagged ? value : numericTag(context, node, { ...valueNode, datatype: builtinDatatype([...types][0] as string) } as GodotBoundNode, value, [...types][0]);
     } else if (isTagged) {
       // A tagged number into a typed place converts (`write_assign_with_conversion`): an int place
       // truncates a float (`Variant::operator int64_t`), a float place takes either as its value.

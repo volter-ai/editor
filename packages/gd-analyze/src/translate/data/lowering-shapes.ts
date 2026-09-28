@@ -91,14 +91,38 @@ export function godotBuiltinCopied(datatype: GodotBoundDatatype): boolean {
   return datatype.kind === 'BUILTIN' && !datatype.metaType && !SHARED_BUILTINS.has(datatype.builtinType);
 }
 
-/** Whether `await` on a value of this datatype awaits a Signal's next emission (`OPCODE_AWAIT`, gdscript_vm.cpp:2563), as a promise. */
-export function godotAwaitsEmission(datatype: GodotBoundDatatype): boolean {
-  return datatype.kind === 'BUILTIN' && !datatype.metaType && datatype.builtinType === 'Signal';
+/**
+ * What a built-in type's values do where lowering's shape depends on the type itself, by the
+ * built-in type (the value's datatype as analysis gives it). A type absent from the table takes
+ * none of these shapes and is stated as its TS type.
+ */
+interface GodotBuiltinShape {
+  /** `await` on the value awaits a Signal's next emission (`OPCODE_AWAIT`, gdscript_vm.cpp:2563), as a promise. */
+  readonly awaits?: true;
+  /** `for v in x` counts from 0 below x (`OPCODE_ITERATE_BEGIN_INT`, gdscript_vm.cpp). */
+  readonly iteratesRange?: true;
+  /** False where the type names no value lowering can state as a TS type (Nil, an untyped value). */
+  readonly stated?: false;
 }
 
-/** Whether `for v in x` over a value of this datatype counts from 0 below x (`OPCODE_ITERATE_BEGIN_INT`, gdscript_vm.cpp). */
+const BUILTIN_SHAPES: Readonly<Record<string, GodotBuiltinShape>> = {
+  Nil: { stated: false },
+  Signal: { awaits: true },
+  int: { iteratesRange: true },
+};
+
+function builtinShape(datatype: GodotBoundDatatype): GodotBuiltinShape | undefined {
+  return datatype.kind === 'BUILTIN' ? BUILTIN_SHAPES[datatype.builtinType] : undefined;
+}
+
+/** Whether `await` on a value of this datatype awaits a Signal's next emission, as a promise. */
+export function godotAwaitsEmission(datatype: GodotBoundDatatype): boolean {
+  return !datatype.metaType && builtinShape(datatype)?.awaits === true;
+}
+
+/** Whether `for v in x` over a value of this datatype counts from 0 below x. */
 export function godotIteratesRange(datatype: GodotBoundDatatype): boolean {
-  return datatype.kind === 'BUILTIN' && datatype.builtinType === 'int';
+  return builtinShape(datatype)?.iteratesRange === true;
 }
 
 /**
@@ -189,9 +213,9 @@ export function godotNumericStoresAs(from: string | undefined, to: string | unde
   return from === to || NUMERIC_WIDENING.has(`${String(from)}>${String(to)}`);
 }
 
-/** Whether a datatype names a value lowering can state as a TS type: an object, or a built-in other than Nil. */
+/** Whether a datatype names a value lowering can state as a TS type: an object, or a built-in the table does not mark unstated. */
 export function godotStatedValueType(datatype: GodotBoundDatatype): boolean {
-  return datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || (datatype.kind === 'BUILTIN' && datatype.builtinType !== 'Nil');
+  return datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || (datatype.kind === 'BUILTIN' && builtinShape(datatype)?.stated !== false);
 }
 
 /** Opaque literals written as their text: a NodePath is its path text (`NodePath::operator String`), which `Node.get_node` walks. */

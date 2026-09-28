@@ -8,9 +8,9 @@ import type {
   BoundGodotScriptField,
   BoundGodotSourceScript,
 } from '../../analyze/bound-project';
-import { OPERATOR_SPELLING } from '../../analyze/project-setting-types';
+import { refinedProgram } from '../../analyze/refined-types';
 import type { GodotApiDump } from '../../analyze/api-dump';
-import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
+import type { GodotBoundNode } from '../../godot-frontend/bound-program';
 import type { ImportedSoundKind } from '../../analyze/resource-loads';
 import type { GodotValue } from '../../read/godot-value';
 import { GODOT_CODE_RESOURCE_LOADS, godotImportedAssetUrl } from '../data/code-resource-loads';
@@ -462,43 +462,6 @@ export function implicitReadyChain(
 }
 
 /**
- * The official program with the Variant values analysis typed from project facts
- * (`project-setting-type`) given that built-in type, so lowering selects rules and bindings for the
- * value the call returns at run time. Every other node is the official frontend's, unchanged.
- */
-function refinedProgram(source: BoundGodotSourceScript): GodotBoundScript {
-  if (source.settingTypes.length === 0 && source.refinedTypes.length === 0) return source.program;
-  const types = new Map(source.settingTypes.map((entry) => [entry.nodeId, entry.builtinType] as const));
-  const refined = new Map(source.refinedTypes.map((entry) => [entry.nodeId, entry.datatype] as const));
-  return {
-    ...source.program,
-    nodes: source.program.nodes.map((node) => {
-      const datatype = refined.get(node.id);
-      if (datatype !== undefined) return { ...node, datatype } as GodotBoundNode;
-      const builtinType = types.get(node.id);
-      if (builtinType === undefined) return node;
-      return {
-        ...node,
-        datatype: {
-          ...node.datatype,
-          kind: 'BUILTIN',
-          typeSource: 'INFERRED',
-          display: builtinType,
-          builtinType,
-          nativeType: '',
-          enumType: '',
-          scriptPath: '',
-          className: '',
-          metaType: false,
-          containerTypes: [],
-          enumValues: [],
-        },
-      } as GodotBoundNode;
-    }),
-  };
-}
-
-/**
  * The parameters of the AnimationTree at each scene node, where its `tree_root` is a blend graph of
  * the same document the translation reads (`godotAnimationNodeData`).
  */
@@ -602,13 +565,12 @@ function lowerScript(
   nativeMethods: NativeMethodLookup | undefined,
   nativeType: ((className: string) => readonly GodotNativeTypePart[]) | undefined,
   nativeSignalOwner?: (className: string, signal: string) => string | undefined,
-  operatorResult?: (left: string, operator: number, right: string | undefined) => string | undefined,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
   readonly requirements: ClosedOfficialBoundRequirements;
 } {
-  const script = refinedProgram(source);
+  const script = refinedProgram(source.program, source.settingTypes, source.refinedTypes);
   const sceneNodes = new Map(source.refinedTypes.flatMap((entry) => (entry.sceneNodes === undefined ? [] : [[entry.nodeId, entry.sceneNodes] as const])));
   const root = script.nodes[script.rootNodeId];
   if (root?.kind !== 'CLASS') {
@@ -672,9 +634,9 @@ function lowerScript(
     new Map(source.scriptCalls.flatMap((entry) => (entry.scripts === undefined ? [] : [[entry.nodeId, entry.scripts] as const]))),
     nativeSignalOwner,
     source.numericVariants,
-    operatorResult,
   );
   context.resourceLoads = resourceLoadTargets(project, source);
+  context.nullableReads = new Set((source.nullableVariables ?? []).flatMap((entry) => entry.reads));
   if (root.abstract) {
     context.recover(undefined, () =>
       context.refuse(root, 'abstract script classes need a target declaration recipe'),
@@ -808,17 +770,6 @@ export const GODOT_FORWARDED_SETTERS: Readonly<Record<string, string>> = {
   'Control.size': 'set_size',
 };
 
-/** Godot's operator table (`Variant::get_operator_return_type`): `left op right`'s result type. */
-export function operatorResultLookup(apiDump: GodotApiDump): (left: string, operator: number, right: string | undefined) => string | undefined {
-  const builtins = new Map((apiDump.builtinClasses ?? []).map((entry) => [entry.name, entry] as const));
-  return (left, operator, right) => {
-    const spelling = OPERATOR_SPELLING[operator];
-    if (spelling === undefined) return undefined;
-    const found = builtins.get(left)?.operatorSignatures?.find((entry) => entry.name === spelling && entry.rightType === right)?.returnType;
-    return found === undefined || found === 'Variant' ? undefined : found;
-  };
-}
-
 /** The engine class up a class's chain that declares a signal (`ClassDB::has_signal`). */
 export function nativeSignalLookup(apiDump: GodotApiDump): (className: string, signal: string) => string | undefined {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
@@ -892,7 +843,6 @@ export function lowerOfficialBoundProgram(
   const nativeMethods = apiDump === undefined ? undefined : nativeMethodLookup(apiDump);
   const nativeType = apiDump === undefined ? undefined : (className: string) => godotNativeTypeParts(apiDump, className);
   const nativeSignalOwner = apiDump === undefined ? undefined : nativeSignalLookup(apiDump);
-  const operatorResult = apiDump === undefined ? undefined : operatorResultLookup(apiDump);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -913,7 +863,6 @@ export function lowerOfficialBoundProgram(
         nativeMethods,
         nativeType,
         nativeSignalOwner,
-        operatorResult,
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);

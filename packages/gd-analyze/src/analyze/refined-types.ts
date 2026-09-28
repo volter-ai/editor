@@ -914,3 +914,44 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
   }
   return [...refined.values()].filter((entry): entry is BoundGodotRefinedType => entry !== null).sort((a, b) => a.nodeId - b.nodeId);
 }
+
+/**
+ * The official program with the Variant values analysis typed from project facts
+ * (`project-setting-type`) given that built-in type, so lowering selects rules and bindings for the
+ * value the call returns at run time. Every other node is the official frontend's, unchanged.
+ */
+export function refinedProgram(
+  program: GodotBoundScript,
+  settingTypes: readonly { readonly nodeId: number; readonly builtinType: string }[],
+  refinedTypes: readonly { readonly nodeId: number; readonly datatype: GodotBoundDatatype }[],
+): GodotBoundScript {
+  if (settingTypes.length === 0 && refinedTypes.length === 0) return program;
+  const types = new Map(settingTypes.map((entry) => [entry.nodeId, entry.builtinType] as const));
+  const refined = new Map(refinedTypes.map((entry) => [entry.nodeId, entry.datatype] as const));
+  return {
+    ...program,
+    nodes: program.nodes.map((node) => {
+      const datatype = refined.get(node.id);
+      if (datatype !== undefined) return { ...node, datatype } as GodotBoundNode;
+      const builtinType = types.get(node.id);
+      if (builtinType === undefined) return node;
+      return {
+        ...node,
+        datatype: {
+          ...node.datatype,
+          kind: 'BUILTIN',
+          typeSource: 'INFERRED',
+          display: builtinType,
+          builtinType,
+          nativeType: '',
+          enumType: '',
+          scriptPath: '',
+          className: '',
+          metaType: false,
+          containerTypes: [],
+          enumValues: [],
+        },
+      } as GodotBoundNode;
+    }),
+  };
+}

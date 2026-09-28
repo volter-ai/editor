@@ -4,11 +4,12 @@ import type { ImportedClip } from '../read/gltf-animation-import';
 import { connectedCallables } from './connected-callables';
 import { containerProjectIndex } from './container-types';
 import { type BoundGodotResourceLoad, type ImportedSoundKind, resourceLoads } from './resource-loads';
+import { type BoundGodotNullableVariable, nullableVariables } from './nullable-variables';
 import { memberKey, typeMembers } from './member-types';
-import { numericVariants, type ScriptNumericVariants } from './numeric-variants';
+import { numericNodeTypes, numericVariants, operatorResultTable, type ScriptNumericVariants } from './numeric-variants';
 import type { GltfExternalImage } from '../read/gltf-document';
 import { parameterKey, type ParameterTypeInputs, typeFunctionParameters } from './parameter-types';
-import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
+import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes, refinedProgram } from './refined-types';
 import * as path from 'node:path';
 import type {
   GodotBoundClassNode,
@@ -82,6 +83,8 @@ export interface BoundGodotSourceScript {
   readonly numericVariants?: ScriptNumericVariants;
   /** `load(path)` calls whose paths the program fixes (`resource-loads.ts`). */
   readonly resourceLoads?: readonly BoundGodotResourceLoad[];
+  /** The variables Godot clears to null that this script reads (`nullable-variables.ts`). */
+  readonly nullableVariables?: readonly BoundGodotNullableVariable[];
 }
 
 export interface BoundGodotScriptFieldAttachmentValue {
@@ -1375,6 +1378,7 @@ export function bindGodotProject(
   };
   let parameterTypes = typeFunctionParameters(parameterInputs);
   // Every untyped variable holding an int at some times and a float at others (`numeric-variants.ts`).
+  const operatorResult = operatorResultTable(apiDump.parsed);
   const numericByScript = numericVariants({
     programs: code.scripts,
     scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
@@ -1445,6 +1449,10 @@ export function bindGodotProject(
             : [],
     ),
   );
+  const nullableByScript = nullableVariables({
+    programs: code.scripts,
+    scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
+  });
   const loadsByScript = resourceLoads({
     programs: code.scripts,
     refined: (resPath, nodeId) => refinedFinal.get(resPath)?.get(nodeId),
@@ -1486,6 +1494,18 @@ export function bindGodotProject(
         .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter' || entry.rule === 'member-assignment-type' || entry.rule === 'scene-node-receiver' || entry.rule === 'container-element-type' || entry.rule === 'record-field-type' || entry.rule === 'local-assignment-type')
         .map((entry) => [entry.nodeId, { datatype: entry.datatype }] as const),
     );
+    const settingTypes = typeProjectSettingValues({
+      program,
+      projectSettings: decoded.authoredSettings,
+      apiDump: apiDump.parsed,
+    });
+    // The types of the values the script's int-or-float variables reach, over the program as refined.
+    const variants = numericByScript.get(program.resPath);
+    const refined = variants === undefined ? undefined : refinedProgram(program, settingTypes, refinedTypes);
+    const scriptNumericVariants: ScriptNumericVariants | undefined =
+      variants === undefined || refined === undefined
+        ? undefined
+        : { ...variants, nodeTypes: numericNodeTypes({ program: refined, variants, operatorResult }) };
     const callReceiverFacts = (
       bound: GodotBoundScript,
       placed: readonly BoundGodotScriptAttachment[],
@@ -1542,15 +1562,10 @@ export function bindGodotProject(
       fields: scriptFields(program, attachments),
       ...callReceiverFacts(program, attachments),
       refinedTypes,
-      ...(numericByScript.has(program.resPath)
-        ? { numericVariants: numericByScript.get(program.resPath) as ScriptNumericVariants }
-        : {}),
+      ...(scriptNumericVariants === undefined ? {} : { numericVariants: scriptNumericVariants }),
       ...(loadsByScript.has(program.resPath) ? { resourceLoads: loadsByScript.get(program.resPath) as readonly BoundGodotResourceLoad[] } : {}),
-      settingTypes: typeProjectSettingValues({
-        program,
-        projectSettings: decoded.authoredSettings,
-        apiDump: apiDump.parsed,
-      }),
+      ...(nullableByScript.has(program.resPath) ? { nullableVariables: nullableByScript.get(program.resPath) as readonly BoundGodotNullableVariable[] } : {}),
+      settingTypes,
     };
   });
   const projectClasses: BoundProjectSceneClass[] = scripts.flatMap((script) => {
