@@ -101,7 +101,11 @@ interface GodotBuiltinShape {
   readonly awaits?: true;
   /** `for v in x` counts from 0 below x (`OPCODE_ITERATE_BEGIN_INT`, gdscript_vm.cpp). */
   readonly iteratesRange?: true;
-  /** False where the built-in type names no value lowering can state as a TS type (Nil). An untyped value is not a built-in and never reaches this table (`godotStatedValueType`). */
+  /**
+   * False where lowering never asserts a value of the type as its TS type (Nil: its datatype rule
+   * states it as `null`, the one value TS already gives it, so a cast adds nothing). An untyped
+   * value is not a built-in and never reaches this table (`godotStatedValueType`).
+   */
   readonly stated?: false;
   /**
    * As a function's return type, the type is `-> void`: the analyzer resolves `void` to Nil
@@ -205,7 +209,7 @@ export function godotNumericStoresAs(from: string | undefined, to: string | unde
   return from === to || NUMERIC_WIDENING.has(`${String(from)}>${String(to)}`);
 }
 
-/** Whether a datatype names a value lowering can state as a TS type: an object, or a built-in the table does not mark unstated. */
+/** Whether lowering asserts a value of this datatype as its TS type: an object, or a built-in the table does not mark unstated. */
 export function godotStatedValueType(datatype: GodotBoundDatatype): boolean {
   return datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || (datatype.kind === 'BUILTIN' && builtinShape(datatype)?.stated !== false);
 }

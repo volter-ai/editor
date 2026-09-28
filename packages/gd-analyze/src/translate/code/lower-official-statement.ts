@@ -697,7 +697,10 @@ function lowerMethod(context: LoweringContext, node: GodotBoundFunctionNode): Lo
       : lowerOfficialSuite(context, bodyNode),
   );
   const parameters = lowerOfficialParameters(context, node);
-  // `-> void` returns nothing, though the analyzer types it Nil as it types a null value.
+  // `-> void` returns nothing, though the analyzer types it Nil as it types a null value. The
+  // datatype rules are keyed by the datatype alone, and a Nil return type and a Nil value share
+  // one (`BUILTIN:null`, stated `null`), so no datatype rule can say `void` here; the keyword needs
+  // no import, so the rule's only requirement, a type import, has nothing to carry.
   const result =
     returnTypeNode === undefined
       ? undefined

@@ -770,10 +770,11 @@ function dictionaryPlace(
   const rule = context.selectRule(node, ['subscript-element:dictionary'], [element.baseNode, element.indexNode], ['binding']);
   const getter = dictionaryMethod(context, node, element.shape, 'getter');
   const setter = dictionaryMethod(context, node, element.shape, 'setter');
-  const object = materialize(context, lower(context, element.baseNode));
+  const object = storeBase(context, element.baseNode, lower(context, element.baseNode));
   const key = materialize(context, lower(context, element.indexNode));
   return {
-    before: [...object.before, ...key.before],
+    before: object.before,
+    afterAssigned: key.before,
     read: bindingCall(context, node, getter, [object.value, key.value]),
     write: (value) => bindingCall(context, node, setter, [object.value, key.value, value]),
     requirements: [...rule.requirements, ...object.requirements, ...key.requirements, ...getter.requirements, ...setter.requirements],
@@ -817,10 +818,7 @@ function valueElementPlace(
   if (setUse.target.use.kind !== 'call' || setUse.target.use.sourceReceiver !== 'first-argument') {
     return context.refuse(node, `element write ${setUse.target.localName} does not take the array first`);
   }
-  const current =
-    base.read.kind === 'identifier-expression'
-      ? { before: [] as readonly TargetTsStatement[], value: base.read }
-      : materialize(context, expression(base.read));
+  const current = placeBase(context, baseNode, base);
   const index = materialize(context, lower(context, indexNode));
   const constant = indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int' && Number(indexNode.value.value) >= 0;
   // A compound store reads the element first; `with_indexed` drops the store where it is absent.
@@ -831,7 +829,8 @@ function valueElementPlace(
       : { kind: 'call-expression', callee: { kind: 'property-expression', object: current.value, property: 'at' }, arguments: [index.value], span: span(context.script, node) },
   };
   return {
-    before: [...base.before, ...current.before, ...index.before],
+    before: current.before,
+    afterAssigned: index.before,
     read,
     write: (value) => base.write(bindingCall(context, node, setUse, [current.value, index.value, value])),
     requirements: [...base.requirements, ...rule, ...index.requirements, ...setUse.requirements],
@@ -847,13 +846,53 @@ function arrayElementRead(value: TargetTsExpression): boolean {
 /**
  * An assignable place. Godot writes a member of a built-in value by writing the whole value back
  * (`v.x = e` is `v = v with x`), through a native property by its setter, and evaluates the base
- * chain once, before the assigned value.
+ * chain once, before the assigned value, then the value, then the final key
+ * (`GDScriptCompiler::_parse_assignment`, gdscript_compiler.cpp:1124 and :1133).
  */
 interface AssignablePlace {
+  /** The base chain, evaluated before the assigned value. */
   readonly before: readonly TargetTsStatement[];
+  /** The final key, evaluated after the assigned value and before the store. */
+  readonly afterAssigned: readonly TargetTsStatement[];
   readonly read: TargetTsExpression;
   readonly write: (value: TargetTsExpression) => TargetTsExpression;
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
+}
+
+/**
+ * Whether a base is a slot Godot stores into directly: a local, a parameter, or a script member
+ * (lowering refuses a member with accessors). Godot takes such a base's address, not a copy
+ * (`_parse_assignment`; only a member with a setter is copied to a temporary), so the store reads
+ * it after the value and sees a value that reassigned it. Any other base is copied before the value.
+ */
+function slotBase(node: GodotBoundNode): boolean {
+  return (
+    node.kind === 'IDENTIFIER' &&
+    (node.source === 'LOCAL_VARIABLE' ||
+      node.source === 'FUNCTION_PARAMETER' ||
+      node.source === 'LOCAL_ITERATOR' ||
+      node.source === 'LOCAL_BIND' ||
+      node.source === 'MEMBER_VARIABLE')
+  );
+}
+
+/** A store's base value: a slot read where the store writes, anything else copied before the value. */
+function storeBase(context: LoweringContext, node: GodotBoundNode, plan: LoweredExpression): LoweredExpression {
+  const inline = plan.before.length === 0 && plan.after.length === 0 && (plan.value.kind === 'identifier-expression' || plan.value.kind === 'property-expression');
+  return inline && slotBase(node) ? plan : materialize(context, plan);
+}
+
+/**
+ * The value a written-back place's base holds, with the base chain before it: the base's own final
+ * key belongs to the chain, so it is evaluated before the assigned value too.
+ */
+function placeBase(context: LoweringContext, node: GodotBoundNode, base: AssignablePlace): LoweredExpression {
+  const chain = [...base.before, ...base.afterAssigned];
+  if (base.read.kind === 'identifier-expression' || (chain.length === 0 && slotBase(node))) {
+    return { before: chain, value: base.read, after: [], requirements: [] };
+  }
+  const copied = materialize(context, expression(base.read));
+  return { ...copied, before: [...chain, ...copied.before] };
 }
 
 function valueAttributeTarget(
@@ -886,6 +925,7 @@ function assignablePlace(
     });
     return {
       before: object.before,
+      afterAssigned: [],
       read: call('godot_animation_tree_parameter', [object.value, name]),
       write: (value) => call('godot_animation_tree_set_parameter', [object.value, name, value]),
       requirements: [...rule.requirements, ...object.requirements, treeProtocol('godot_animation_tree_parameter'), treeProtocol('godot_animation_tree_set_parameter')],
@@ -907,6 +947,7 @@ function assignablePlace(
     }
     return {
       before: target.beforeAssigned,
+      afterAssigned: [],
       read: target.target,
       write: (value) => ({
         kind: 'assignment-expression',
@@ -938,6 +979,7 @@ function assignablePlace(
     const read = materialize(context, expression(bindingCall(context, node, getter, [])));
     return {
       before: read.before,
+      afterAssigned: [],
       read: read.value,
       write: (value) => bindingCall(context, node, setter, [value]),
       requirements: [...rule.requirements, ...getter.requirements, ...setter.requirements],
@@ -957,6 +999,7 @@ function assignablePlace(
     const read = materialize(context, expression(bindingCall(context, node, getter, [object.value])));
     return {
       before: [...object.before, ...read.before],
+      afterAssigned: [],
       read: read.value,
       write: (value) => bindingCall(context, node, setter, [object.value, value]),
       requirements: [
@@ -982,12 +1025,10 @@ function assignablePlace(
   if (setUse.target.use.kind !== 'call' || setUse.target.use.sourceReceiver !== 'first-argument') {
     return context.refuse(node, `member write ${setUse.target.localName} does not take the value first`);
   }
-  const current =
-    base.read.kind === 'identifier-expression'
-      ? { before: [] as readonly TargetTsStatement[], value: base.read }
-      : materialize(context, expression(base.read));
+  const current = placeBase(context, baseNode, base);
   return {
-    before: [...base.before, ...current.before],
+    before: current.before,
+    afterAssigned: [],
     read: {
       kind: 'property-expression',
       object: current.value,
@@ -1122,6 +1163,7 @@ function inheritedNativePlace(
   const self = selfNative(context, targetNode);
   return {
     before: [],
+    afterAssigned: [],
     // Read only by a compound write, which resolved the getter above.
     read: getter === undefined ? self : bindingCall(context, targetNode, getter, [self]),
     write: (value) => bindingCall(context, targetNode, setter, [self, value]),
@@ -1147,7 +1189,7 @@ function assignment(
     const value = materialize(context, assigned);
     const stored = settle(context, combine === undefined ? expression(value.value) : combine(place.read, value.value));
     return {
-      before: [...place.before, ...value.before, ...stored.before],
+      before: [...place.before, ...value.before, ...place.afterAssigned, ...stored.before],
       value: place.write(stored.value),
       after: [],
       requirements: [...ownRequirements, ...place.requirements, ...value.requirements, ...stored.requirements],
