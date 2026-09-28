@@ -21,9 +21,9 @@ import type { Object3D } from 'three';
 import { godot_audio_context } from './audio-stream';
 import * as P from './audio-stream-player';
 import { godot_camera_3d_of_viewport } from './camera-3d';
-import { godot_node_entity } from './node';
+import { godot_node_entity, godot_node_set_internal_physics } from './node';
 import { get_global_transform } from './node-3d';
-import { godot_tree, godot_tree_root } from './scene-tree';
+import { godot_tree_root } from './scene-tree';
 import type { ReactElement } from 'react';
 import { Group } from 'three';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
@@ -119,7 +119,9 @@ export function godot_audio_stream_player_3d_mount(entity: Object3D): void {
     pan(entity, spatial);
     return spatial.panner;
   });
-  godot_tree().physics_frame.connect(() => pan(entity, spatial));
+  // Panned in the node's own internal physics processing (`NOTIFICATION_INTERNAL_PHYSICS_PROCESS`,
+  // audio_stream_player_3d.cpp:281), which its component runs (`advances`).
+  godot_node_set_internal_physics(entity, () => pan(entity, spatial));
 }
 
 /**
@@ -370,6 +372,7 @@ const AUDIO_STREAM_PLAYER_3D = {
   classes: ['AudioStreamPlayer3D', 'Node3D', 'Node', 'Object'],
   spatial: true,
   mount: godot_audio_stream_player_3d_mount,
+  advances: true,
   props: new Map<string, GodotElementProp<Object3D>>([
     ...P.godot_audio_player_props({
       stream: (entity, value: object | null) => set_stream(entity, value),

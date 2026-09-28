@@ -49,7 +49,6 @@ const clock = {
   inPhysics: false,
   processTime: 0,
   physicsTime: 0,
-  reloadPending: false,
   reload: undefined as (() => void) | undefined,
 };
 /** What one creator owns: the timers and tweens its script made. */
@@ -58,6 +57,7 @@ interface Owned {
   tweens: Tween[];
 }
 /** The creator's own record of what it made, held on the instance as a component holds its tweens. */
+let reloadQueued = false;
 const OWNED = Symbol('godot.owned');
 type Owner = { [OWNED]?: Owned };
 function ownedBy(creator: object): Owned {
@@ -257,17 +257,13 @@ export function godot_tree_process_begin(delta: number): void {
 }
 
 /**
- * A process frame ends: a pending scene change (`scene/main/scene_tree.cpp:725`), then `Engine`
- * counts the frame (`main/main.cpp:5115`).
+ * A process frame ends: `Engine` counts the frame (`main/main.cpp:5115`). A scene change is
+ * JavaScript's own deferral (`reload_current_scene`).
  *
  * @godot SceneTree (protocol)
  * @source scene/main/scene_tree.cpp:725
  */
 export function godot_tree_process_end(): void {
-  if (clock.reloadPending) {
-    clock.reloadPending = false;
-    clock.reload?.();
-  }
   clock.processFrames += 1;
   godot_input_frame(clock.physicsFrames, clock.processFrames, false);
 }
@@ -353,8 +349,10 @@ export function get_frame(self: SceneTree): number {
 }
 
 /**
- * With no current scene (no host reload registered) `ERR_UNCONFIGURED`; otherwise the host's reload
- * runs where Godot flushes a scene change, in the next process frame, and `OK` is returned.
+ * With no current scene (no host reload registered) `ERR_UNCONFIGURED`; otherwise the scene is
+ * reloaded once the current work is done, as JavaScript defers (a microtask, as `queue_delete`
+ * is), where Godot swaps it in its next process pass (`scene/main/scene_tree.cpp:1673`), and `OK`
+ * is returned. Two calls in one frame reload once.
  *
  * @godot SceneTree.reload_current_scene
  * @source scene/main/scene_tree.cpp:1747
@@ -362,6 +360,12 @@ export function get_frame(self: SceneTree): number {
 export function reload_current_scene(self: SceneTree): number {
   void self;
   if (clock.reload === undefined) return 3;
-  clock.reloadPending = true;
+  if (!reloadQueued) {
+    reloadQueued = true;
+    queueMicrotask(() => {
+      reloadQueued = false;
+      clock.reload?.();
+    });
+  }
   return 0;
 }

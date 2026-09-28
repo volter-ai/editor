@@ -17,8 +17,7 @@
 
 import type { Object3D } from 'three';
 import { get_length as streamLength, godot_audio_context, godot_audio_stream_start } from './audio-stream';
-import { godot_node_adopt, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
-import { godot_tree } from './scene-tree';
+import { godot_node_adopt, godot_node_entity, godot_node_set_internal_process, godot_node_tree_signal, is_inside_tree } from './node';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import type { ReactElement } from 'react';
 import { Group } from 'three';
@@ -100,7 +99,9 @@ export function godot_audio_player_mount(entity: Object3D, output: GodotAudioPla
   godot_node_tree_signal(entity, 'tree_entered').connect(() => {
     if (state.autoplay) play(entity, 0);
   });
-  godot_tree().process_frame.connect(() => process(state));
+  // Ended playbacks are noticed in the node's own internal processing (`NOTIFICATION_INTERNAL_PROCESS`,
+  // audio_stream_player_internal.cpp:107), which its component runs (`advances`).
+  godot_node_set_internal_process(entity, () => process(state));
   return state;
 }
 
@@ -425,6 +426,7 @@ const AUDIO_STREAM_PLAYER = {
   classes: ['AudioStreamPlayer', 'Node', 'Object'],
   spatial: false,
   mount: godot_audio_stream_player_mount,
+  advances: true,
   props: new Map<string, GodotElementProp<Object3D>>(
     godot_audio_player_props({
       stream: (entity, value: object | null) => set_stream(entity, value),
