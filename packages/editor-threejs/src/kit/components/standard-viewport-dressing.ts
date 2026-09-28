@@ -553,6 +553,8 @@ function fadingFloorMaterial(): THREE.MeshStandardMaterial {
 }
 
 export class StagePresentationRig {
+  /** What the scene held at the last `resolveSource`: which of its parts take over the view's. */
+  private takeover: Readonly<Partial<Record<SceneTakeover, boolean>>> = {};
   private readonly group = new THREE.Group();
   private readonly ambient = new THREE.AmbientLight(0xffffff, 0);
   private lights: { readonly light: THREE.DirectionalLight; readonly spec: StudioLight }[] = [];
@@ -634,8 +636,9 @@ export class StagePresentationRig {
     this.floor.material.color.set(presentation.overlays.floor.color);
     const preset = studioPreset(lighting.studioPreset);
     if (preset !== this.preset) this.build(preset);
-    this.source = lighting.source;
-    this.group.visible = lighting.source === 'studio';
+    // The source by the view's rule and what the scene last held (`resolveSource`): an `auto`
+    // view whose scene has its own lights stays dark.
+    this.resolveSource(this.takeover);
     // A stage whose render pipeline owns the tone (the game world's) passes `tone: false`.
     if (options.tone !== false) {
       renderer.toneMapping = documentToneMapping ?? TONE_MAPPERS[lighting.tone.mapper];
@@ -953,6 +956,7 @@ export class StagePresentationRig {
    * (the kit's rule, Godot's preview); without `auto` the view's source stands (Blender, Unity).
    */
   resolveSource(scene: Readonly<Partial<Record<SceneTakeover, boolean>>>): 'studio' | 'preview' | 'scene' {
+    this.takeover = scene;
     const lighting = this.presentation?.lighting;
     let source: 'studio' | 'preview' | 'scene' = lighting?.source ?? 'studio';
     if (lighting?.auto && source !== 'scene' && lighting.auto.takeover.some((part) => scene[part] === true)) {
