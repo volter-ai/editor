@@ -403,6 +403,13 @@ emitter prints:
 5. **An animation is three's.** AnimationPlayer's tracks are `AnimationClip`s on three's
    `AnimationMixer` (drei's `useAnimations` idiom) over real object properties. The
    `animationBindings` dispatch table goes.
+   Landed for imported models: a model's AnimationPlayer the scene adds no library to plays the
+   glTF's own clips on three's `AnimationMixer` (`animation-clips.ts`), advanced from the model's
+   element's own frame, with the AnimationPlayer API over it; an AnimationTree over such a player
+   drives the clips' actions each frame from its blend tree (Blend2, filtered by track, and
+   TimeScale). Still on the transcribed mixer: a scene's own animation libraries (their value
+   tracks on Godot properties and their method tracks) and a model's player the scene adds a
+   library to.
 6. **The world is a scene.** Settings and the input map are plain data. Input is the page's DOM
    events. The world is `<Physics>` holding the main scene, with no hooks of compat's in it.
    Landed for drawing: each canvas item or layer draws itself onto the root Window's canvas layer
