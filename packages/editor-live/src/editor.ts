@@ -10,6 +10,7 @@ import type {
   AssetPreviewSource,
   CaptureDimensions,
   DocumentLookOutcome,
+  StageFrameCostReading,
   EditorChromeCapture,
   EditorChromeCaptureOptions,
   EditorClient,
@@ -302,6 +303,17 @@ export class LiveEditor {
     readonly revolutions?: number;
   }): Promise<DocumentLookOutcome> {
     return this.#client.turntableDocument(options);
+  }
+
+  /**
+   * What a frame of the open 3D document's stage costs when nothing caps it: `frames` of the
+   * stage's own frame back to back, each waited out on the GPU (median, p95, min ms), the canvas
+   * with its device pixel ratio, what was drawn after culling against what the scene holds, and
+   * the draw mode. `stage` names another stage by its id (a split's second area,
+   * `<documentId>#area-2`).
+   */
+  async frameCost(options?: { readonly frames?: number; readonly stage?: string }): Promise<StageFrameCostReading> {
+    return this.#client.frameCostDocument(options);
   }
 
   async view(preset: ViewPreset): Promise<void> {

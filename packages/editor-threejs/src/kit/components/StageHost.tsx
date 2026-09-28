@@ -80,6 +80,7 @@ import {
   recordViewportFirstFrame,
 } from '@volter/editor-sdk/kit/viewport-activation-timings';
 import { bindViewportRig, runViewportFrame } from '../../viewport-door';
+import type { StageFrameCost } from '../../viewport-api';
 import {
   notifyWorkspaceDocumentSelectionChanged,
   openWorkspaceDocuments,
@@ -2089,6 +2090,54 @@ export function Object3DDocumentViewport({
         };
 
         host.frame = animate;
+        /**
+         * THE FRAME WITHOUT THE DISPLAY'S CAP (`ViewportRig.frameCost`): this stage's own `animate`,
+         * resumed so it draws, run back to back and each waited out on the GPU with a one-pixel
+         * read, which a real frame never does; the first frame warms and is not counted.
+         */
+        const measureFrameCost = (frames: number): StageFrameCost => {
+          if (!renderer) throw new Error('This stage has no renderer yet.');
+          const activeRenderer = renderer;
+          const gl = activeRenderer.getContext();
+          const pixel = new Uint8Array(4);
+          const times: number[] = [];
+          for (let index = 0; index <= frames; index++) {
+            const start = performance.now();
+            animate(start, true);
+            gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+            if (index > 0) times.push(performance.now() - start);
+          }
+          const drawn = { calls: activeRenderer.info.render.calls, triangles: activeRenderer.info.render.triangles };
+          let meshes = 0;
+          let sceneTriangles = 0;
+          host.scene.traverseVisible((object) => {
+            const mesh = object as THREE.Mesh;
+            if (!mesh.isMesh || !mesh.geometry) return;
+            meshes++;
+            const index = mesh.geometry.getIndex();
+            const count = index ? index.count : (mesh.geometry.getAttribute('position')?.count ?? 0);
+            sceneTriangles += Math.floor(count / 3) * ((mesh as THREE.InstancedMesh).count ?? 1);
+          });
+          const sorted = [...times].sort((a, b) => a - b);
+          const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
+          const size = activeRenderer.getDrawingBufferSize(new THREE.Vector2());
+          const ratio = activeRenderer.getPixelRatio();
+          const round = (value: number) => Math.round(value * 100) / 100;
+          return {
+            frames,
+            medianMs: round(at(0.5)),
+            p95Ms: round(at(0.95)),
+            minMs: round(sorted[0] ?? 0),
+            width: size.x,
+            height: size.y,
+            cssWidth: round(size.x / ratio),
+            cssHeight: round(size.y / ratio),
+            devicePixelRatio: ratio,
+            drawn,
+            scene: { meshes, triangles: sceneTriangles },
+            drawMode: viewPresentation(documentId).drawMode,
+          };
+        };
         rendererSessionRef.current = host.rendererSession;
         if (!host.initialized) {
           if (!chromeless) {
@@ -2110,6 +2159,7 @@ export function Object3DDocumentViewport({
                   drawCamera: () => host.session?.camera() ?? viewport.camera,
                   orbit: viewport.orbitControls,
                   scene: host.scene,
+                  frameCost: (frames) => measureFrameCost(frames),
                 },
                 () => null,
                 (kind, object) => viewport.setHelper(kind, object),
