@@ -59,8 +59,8 @@ const clock = {
 export interface GodotHostClock {
   readonly elapsedTime: number;
 }
-/** The host's clock, which the world hands compat (`godot_tree_attach_clock`). */
-let hostClock: GodotHostClock | undefined;
+/** The host's clock and physics world, which the world hands compat (`godot_tree_attach_host`). */
+let host: { readonly clock: GodotHostClock; readonly world: { readonly timestep: number } } | undefined;
 /**
  * The frame starts last read from the host's clock: the current one and the one before it. The
  * clock's `elapsedTime` (seconds) changes once per frame, at its start, in both of R3F's frame
@@ -70,8 +70,6 @@ let hostClock: GodotHostClock | undefined;
  * library's edges, `input.ts`), so it is never more than a frame behind.
  */
 const read = { start: Number.NaN, previous: 0 };
-/** Where the physics world's step is read: registered by the physics side (`collision-object-3d.ts`). */
-let physicsWorld: () => { readonly timestep: number } | undefined = () => undefined;
 
 /** What one creator owns: the timers and tweens its script made. */
 interface Owned {
@@ -136,26 +134,18 @@ export function godot_tree_on_reload(handler: (() => void) | undefined): void {
 }
 
 /**
- * Hands compat the host's clock (R3F's); the returned call releases it.
+ * Hands compat the host's clock (R3F's) and its physics world (Rapier's, whose `timestep` is the
+ * physics step's delta); the returned call releases them.
  *
  * @godot SceneTree (protocol)
  * @source main/main.cpp:4951
  */
-export function godot_tree_attach_clock(clock: GodotHostClock): () => void {
-  hostClock = clock;
+export function godot_tree_attach_host(clock: GodotHostClock, world: { readonly timestep: number }): () => void {
+  const attached = { clock, world };
+  host = attached;
   return () => {
-    if (hostClock === clock) hostClock = undefined;
+    if (host === attached) host = undefined;
   };
-}
-
-/**
- * Registers where the physics world's step is read (the `<Physics>` world compat is handed).
- *
- * @godot SceneTree (protocol)
- * @source main/main.cpp:4973
- */
-export function godot_tree_physics_world(world: () => { readonly timestep: number } | undefined): void {
-  physicsWorld = world;
 }
 
 /**
@@ -167,7 +157,7 @@ export function godot_tree_physics_world(world: () => { readonly timestep: numbe
  * @source main/main.cpp:4951
  */
 export function godot_tree_frame(): { readonly start: number; readonly delta: number } {
-  const start = hostClock?.elapsedTime ?? 0;
+  const start = host?.clock.elapsedTime ?? 0;
   if (start !== read.start) {
     read.previous = Number.isNaN(read.start) ? 0 : read.start;
     read.start = start;
@@ -209,7 +199,7 @@ function setting(name: string, fallback: number): number {
  * @source scene/main/scene_tree.h:362
  */
 export function godot_tree_process_delta(physics: boolean): number {
-  if (physics) return physicsWorld()?.timestep ?? 1 / setting('physics/common/physics_ticks_per_second', 60);
+  if (physics) return host?.world.timestep ?? 1 / setting('physics/common/physics_ticks_per_second', 60);
   return godot_process_delta(godot_tree_frame().delta);
 }
 
