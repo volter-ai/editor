@@ -23,7 +23,14 @@ export async function control(command: string, verb: string, argument?: string, 
     const state = await client.getState();
     // A genuinely headless session has no document owner to flush. A present
     // but unresponsive tab is different: try its barrier and refuse on failure.
-    if (state.connected || (state.tabs?.length ?? 0) > 0) {
+    // A page whose command listener never attached (a refused startup's page, a
+    // load that never finished) owns no documents either: asking it to flush
+    // waited out the relay and refused, leaving the server and its page running
+    // with nothing left that could stop them.
+    const tabs = state.tabs ?? [];
+    const flushable =
+      tabs.length > 0 ? tabs.some((tab) => tab.commandListener !== 'not attached') : state.connected === true;
+    if (flushable) {
       try {
         await client.prepareClose();
       } catch (error) {
