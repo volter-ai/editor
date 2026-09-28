@@ -25,6 +25,7 @@ import { godotSceneSubnodes } from '../data/scene-document-plan';
  * - An imported image is `useGodotTexture(url, importOptions, sampler)`: loaded and processed as
  *   Godot's importer does, sampled as the material's filter and repeat flag select.
  */
+import { hexColor } from '../data/scene-light-idioms';
 import * as path from 'node:path';
 import type {
   TargetTsExpression,
@@ -38,6 +39,7 @@ import type { GodotSceneNodeIdiomForm } from '../data/scene-node-idioms';
 import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
 import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
+export { hexColor };
 import { GODOT_DEFAULT_MATERIAL_IDIOM, type GodotSceneMaterialIdiom } from '../data/scene-material-idioms';
 
 const f32 = Math.fround;
@@ -77,11 +79,6 @@ function identifier(name: string): TargetTsExpression {
   return { kind: 'identifier-expression', name };
 }
 
-/** A Godot colour's components as the sRGB hex three reads (`#rrggbb`). */
-export function hexColor(components: readonly number[]): string {
-  const channel = (value: number) => Math.round(Math.min(Math.max(value, 0), 1) * 255).toString(16).padStart(2, '0');
-  return `#${components.slice(0, 3).map(channel).join('')}`;
-}
 
 export function numberValue(value: TargetGodotSceneValue | undefined): number | undefined {
   return value?.kind === 'number' ? value.value : undefined;
@@ -975,7 +972,7 @@ export function familyElement(
           ...light.props.map((prop) =>
             prop.value.kind === 'numbers'
               ? attribute(prop.name, numbers(prop.value.values))
-              : prop.name === 'castShadow' && prop.value.value === true
+              : prop.value.kind === 'flag'
                 ? flag(prop.name)
                 : attribute(prop.name, literal(prop.value.value)),
           ),

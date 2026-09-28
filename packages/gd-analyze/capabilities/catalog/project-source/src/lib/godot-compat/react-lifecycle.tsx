@@ -163,7 +163,7 @@ export function godot_node_script_signal(self: object, name: string): GodotSigna
 export function useGodotScript<Instance extends object>(
   ref: RefObject<object | null>,
   ScriptClass: new (native: object) => Instance,
-  exported?: { readonly [Field in keyof Instance]?: Instance[Field] | GodotNodeReference },
+  exported?: { readonly [Field in keyof Instance]?: Instance[Field] extends object | null ? Instance[Field] | GodotNodeReference : Instance[Field] },
   autoloads?: Readonly<Record<string, RefObject<object | null> | undefined>>,
 ): RefObject<Instance | null> {
   const script = useRef<Instance | null>(null);

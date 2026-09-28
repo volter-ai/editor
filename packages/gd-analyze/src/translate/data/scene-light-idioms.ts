@@ -24,7 +24,9 @@ import type { TargetGodotSceneSetterPlan, TargetGodotSceneValue } from './scene-
 /** A light prop's value, as emit prints it. */
 export type GodotSceneLightPropValue =
   | { readonly kind: 'literal'; readonly value: number | boolean | string }
-  | { readonly kind: 'numbers'; readonly values: readonly number[] };
+  | { readonly kind: 'numbers'; readonly values: readonly number[] }
+  /** A boolean prop stated as present (`castShadow`). */
+  | { readonly kind: 'flag' };
 
 /** The three light a scene's light node is, with its props in order. */
 export interface GodotSceneLightPlan {
@@ -49,7 +51,7 @@ const number = (entry: TargetGodotSceneValue | undefined) => (entry?.kind === 'n
 const literal = (entry: number | boolean | string): GodotSceneLightPropValue => ({ kind: 'literal', value: entry });
 
 /** A Godot colour's components as the sRGB hex three reads (`#rrggbb`). */
-function hexColor(components: readonly number[]): string {
+export function hexColor(components: readonly number[]): string {
   const channel = (entry: number) => Math.round(Math.min(Math.max(entry, 0), 1) * 255).toString(16).padStart(2, '0');
   return `#${components.slice(0, 3).map(channel).join('')}`;
 }
@@ -75,7 +77,7 @@ export function godotSceneLightPlan(setters: readonly TargetGodotSceneSetterPlan
     const reach = FOLLOWED_REACH;
     const size = 2048;
     props.push(
-      { name: 'castShadow', value: literal(true) },
+      { name: 'castShadow', value: { kind: 'flag' } },
       { name: 'shadow-bias', value: literal(-param(15, 0.1) / 100) },
       { name: 'shadow-normalBias', value: literal((param(14, 2) * 2 * reach) / size) },
       { name: 'shadow-mapSize', value: { kind: 'numbers', values: [size, size] } },
@@ -95,7 +97,7 @@ export function godotSceneLightPlan(setters: readonly TargetGodotSceneSetterPlan
     props,
     authored: {
       ...(color === undefined ? {} : { color }),
-      params: setters.flatMap((setter) => (setter.setter.exportName === 'set_param' && typeof setter.index === 'number' ? [{ index: setter.index, value: number(setter.value) ?? 0 }] : [])),
+      params: setters.flatMap((setter) => (setter.setter.exportName === 'set_param' && setter.index !== undefined ? [{ index: Number(setter.index), value: number(setter.value) ?? 0 }] : [])),
       shadow,
       skyMode,
       ...(blend?.kind === 'bool' && blend.value ? { blendSplits: true as const } : {}),
