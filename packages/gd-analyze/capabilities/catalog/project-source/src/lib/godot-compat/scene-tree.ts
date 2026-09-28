@@ -27,7 +27,6 @@
  */
 
 import { godot_input_frame } from './input';
-import { godot_collision_object_colliders } from './collision-object-3d';
 import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_leave, godot_node_set_queued } from './node';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { createSignal, type GodotSignal } from './signal';
@@ -335,9 +334,7 @@ export function create_tween(self: SceneTree, creator: object): Tween {
 export function queue_delete(self: SceneTree, object: object): void {
   void self;
   godot_node_set_queued(object);
-  for (const entity of godot_node_leave(object)) {
-    for (const collider of godot_collision_object_colliders(entity)) collider.setEnabled(false);
-  }
+  godot_node_leave(object);
   queueMicrotask(() => {
     if (!godot_node_is_freed(object)) godot_node_free(object);
   });

@@ -1113,23 +1113,35 @@ export function godot_node_set_queued(object: object): void {
  * A node queued for deletion and its subtree take no further part until they are freed: no more
  * callbacks or advancing (`godot_node_processes`, `godot_node_advance`), as Godot, which frees
  * the node at the end of the physics step or process frame it was queued in
- * (`scene/main/scene_tree.cpp:660`, `:725`), never calls them again. Returns the subtree's nodes.
+ * (`scene/main/scene_tree.cpp:660`, `:725`), never calls them again; each class takes its own part
+ * out (`godot_node_observe_leave`).
  *
  * @godot Node (protocol)
  * @source scene/main/scene_tree.cpp:660
  */
-export function godot_node_leave(object: object): readonly object[] {
-  const left: object[] = [];
+export function godot_node_leave(object: object): void {
   const visit = (entity: object): void => {
     const state = NODE.get(entity);
-    if (state !== undefined) {
+    if (state !== undefined && !state.leaving) {
       state.leaving = true;
-      left.push(entity);
+      for (const observer of LEAVE_OBSERVERS) observer(entity);
     }
     for (const child of (entity as Object3D).children ?? []) visit(child);
   };
   visit(entityOf(object));
-  return left;
+}
+
+const LEAVE_OBSERVERS: ((entity: object) => void)[] = [];
+
+/**
+ * Tells `observer` of each node that leaves play (`godot_node_leave`), so a class can take its own
+ * part out (a collision object its colliders).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:660
+ */
+export function godot_node_observe_leave(observer: (entity: object) => void): void {
+  if (!LEAVE_OBSERVERS.includes(observer)) LEAVE_OBSERVERS.push(observer);
 }
 
 /**

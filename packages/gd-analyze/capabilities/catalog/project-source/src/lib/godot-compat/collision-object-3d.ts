@@ -18,7 +18,7 @@
 import type { Collider, RigidBody, World } from '@dimforge/rapier3d-compat';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { type Object3D, Quaternion, Vector3 as ThreeVector3 } from 'three';
-import { godot_node_class_reader, godot_node_entity } from './node';
+import { godot_node_class_reader, godot_node_entity, godot_node_observe_leave } from './node';
 import { godot_node_3d_observe_local } from './node-3d';
 
 export type CollisionObjectKind = 'static' | 'character' | 'rigid' | 'area';
@@ -160,6 +160,12 @@ export function godot_collision_object_colliders(object: object): readonly Colli
   if (body === undefined) return [];
   return Array.from({ length: body.numColliders() }, (_, index) => body.collider(index));
 }
+
+// A collision object queued for deletion collides no more (`godot_node_leave`), as Godot frees it
+// at the end of the step it was queued in.
+godot_node_observe_leave((entity) => {
+  for (const collider of godot_collision_object_colliders(entity)) collider.setEnabled(false);
+});
 
 /**
  * The node's kind, from its Rapier body's type.
