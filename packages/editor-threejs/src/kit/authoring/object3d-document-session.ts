@@ -1540,6 +1540,11 @@ export class Object3DDocumentSession {
       this.composer?.setSize(this.renderWidth, this.renderHeight, false);
       target.dispose();
       sceneTarget.dispose();
+      // AND THE VIEW IS DRAWN AGAIN. Sizing the composer clears what the view showed, and a stage
+      // that draws on demand had nothing asking it to: on the browser-substrate page every photograph
+      // (Save Screenshot, an agent's get_viewport_screenshot) left the viewport a flat grey until the
+      // pointer next moved over it (measured 2026-09-28: stddev 0 across the view, restored on hover).
+      invalidateStages();
     }
   }
 
