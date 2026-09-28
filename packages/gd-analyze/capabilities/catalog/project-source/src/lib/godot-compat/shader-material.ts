@@ -14,8 +14,11 @@ import type { Shader } from './shader';
 export interface ShaderMaterial {
   shader: Shader | null;
   readonly parameters: Map<string, unknown>;
-  /** Called when a parameter changes, by the three material drawing this one. */
-  changed?: (name: string, value: unknown) => void;
+  /**
+   * Called when a parameter changes: each drawing of this material (its three material, a sky's
+   * radiance) adds its own listener while it draws and removes it when undone.
+   */
+  readonly listeners: Set<(name: string, value: unknown) => void>;
 }
 
 /**
@@ -25,7 +28,7 @@ export interface ShaderMaterial {
  * @source scene/resources/material.cpp:545
  */
 export function construct(): ShaderMaterial {
-  return { shader: null, parameters: new Map() };
+  return { shader: null, parameters: new Map(), listeners: new Set() };
 }
 
 /**
@@ -53,7 +56,7 @@ export function get_shader(self: ShaderMaterial): Shader | null {
 export function set_shader_parameter(self: ShaderMaterial, name: string, value: unknown): void {
   if (value === null || value === undefined) self.parameters.delete(name);
   else self.parameters.set(name, value);
-  self.changed?.(name, value);
+  for (const listener of self.listeners) listener(name, value);
 }
 
 /**

@@ -26,12 +26,14 @@
  * AUTHORS.md); Copyright (c) 2007-2014 Juan Linietsky, Ariel Manzur; MIT License. S4AO (Stupid
  * Simple Screen Space Ambient Occlusion) by Jonathan Dummer (O1S).
  *
- * Named deviations: `post-buffer-precision` (the internal and glow buffers are half-float targets
- * holding the 10-bit values Godot's `GL_RGB10_A2` stores, each quantized as Godot's store rounds
- * it, then held to half-float precision); `reverse-z-depth` (Godot's depth buffer is reverse-Z,
- * three's is not: S4AO reads `1.0 - depth` of three's 24-bit depth, which rounds differently from
- * the reverse-Z value Godot stores). The effect writes its colour linear, decoded exactly from the
- * sRGB Godot writes, for `postprocessing`'s output encoding to write it again (`srgb-output`).
+ * Where this differs from Godot:
+ * - the internal and glow buffers are half-float targets holding the 10-bit values Godot's
+ *   `GL_RGB10_A2` stores, each quantized as Godot's store rounds it, then held to half-float
+ *   precision;
+ * - Godot's depth buffer is reverse-Z and three's is not: S4AO reads `1.0 - depth` of three's
+ *   24-bit depth, which rounds differently from the reverse-Z value Godot stores;
+ * - the effect writes its colour linear, decoded exactly from the sRGB Godot writes, and
+ *   `postprocessing`'s output encoding writes it as sRGB again with the exact transfer function.
  */
 
 import { Effect, EffectAttribute } from 'postprocessing';

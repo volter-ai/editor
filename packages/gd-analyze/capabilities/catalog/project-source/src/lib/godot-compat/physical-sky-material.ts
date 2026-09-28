@@ -250,6 +250,7 @@ export function construct(shaders: GodotPhysicalSkyShaders): PhysicalSkyMaterial
   const self: PhysicalSkyMaterial = {
     shader: null,
     parameters: new Map(),
+    listeners: new Set(),
     rayleigh: 0,
     mie: 0,
     mie_eccentricity: 0,

@@ -273,8 +273,9 @@ function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string
   if (shader.shaderType !== 'sky') return `shader_type ${shader.shaderType} is not lowered`;
   const lowered = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
   if (typeof lowered === 'string') return lowered;
-  // The sky render modes (`material_storage.cpp:1562`): debanding is drawn; `disable_fog` agrees
-  // with a sky the fog never covers (`fog-model`); the half- and quarter-resolution passes are not.
+  // The sky render modes (`material_storage.cpp:1562`): debanding is drawn; `disable_fog` changes
+  // nothing, since the fog is never drawn on the sky (`world-environment.ts`); the half- and
+  // quarter-resolution passes are not.
   const unsupported = shader.tree.renderModes.find((mode) => mode !== 'use_debanding' && mode !== 'disable_fog');
   if (unsupported !== undefined) return `render_mode ${unsupported} is not drawn`;
   return {

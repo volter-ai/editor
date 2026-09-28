@@ -39,6 +39,7 @@ export function construct(shaders: GodotPanoramaSkyShaders): PanoramaSkyMaterial
   const self: PanoramaSkyMaterial = {
     shader: shaders.filterOn,
     parameters: new Map(),
+    listeners: new Set(),
     panorama: null,
     filter: true,
     energy_multiplier: 1,
