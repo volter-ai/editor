@@ -64,6 +64,7 @@ import {
   type CommandListenerHealth,
   commandListenerHealth,
   DESKTOP_FRAME_ORIGIN,
+  editorAllowedHosts,
   isAllowedEditorOrigin,
   RELAY_DELIVERY_ACK_MS,
   RELAY_DELIVERY_MAX_WAIT_MS,
@@ -1395,9 +1396,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       // both read the event stream and push control frames. `EventSource`
       // on the same path is refused by the browser's own CORS, which is why
       // the GET form does not need it. Same predicate as the mutating-route
-      // gate above, including its VOLTER_EDITOR_HOST escape.
-      const host = process.env['VOLTER_EDITOR_HOST'];
-      if (!isAllowedEditorOrigin(headerValue(request, 'origin'), host ? [host] : [])) {
+      // gate above, including the hosts its host allows (`editorAllowedHosts`).
+      if (!isAllowedEditorOrigin(headerValue(request, 'origin'), editorAllowedHosts())) {
         return 'Cross-origin request rejected.';
       }
       const shareRequest = {
