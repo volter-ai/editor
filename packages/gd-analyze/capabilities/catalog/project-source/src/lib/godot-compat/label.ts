@@ -2,17 +2,17 @@
  * @godot-class Label
  * @role BINDING
  *
- * Godot 4.7's `Label` (`scene/gui/label.cpp`, revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`):
- * its text split into paragraphs at `\n`, each shaped in the font (`font.ts`, Godot's text-server
- * arithmetic over the font file) and broken into lines by the autowrap mode; its minimum size, line
- * count, line and character rectangles are Godot's (`_shape`, `_update_visible`,
- * `get_layout_data`, `_get_line_rect`). It is bound onto the page as SVG text: each line drawn by
- * the browser in the same font, its baseline where Godot puts it.
+ * Godot 4.7's `Label` (`scene/gui/label.cpp`, revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`)
+ * bound onto DOM text: its text split into paragraphs at `\n`, each wrapped by the autowrap mode at
+ * the node's width (`font.ts`, measured by the browser), and drawn as the node's element's content,
+ * one line per row in the Label's CSS font, size, colour, outline (`-webkit-text-stroke`) and shadow
+ * (`text-shadow`), aligned by `text-align` and a flex column. Its minimum size is its widest line by
+ * its lines' heights with the line and paragraph spacing between them.
  *
- * The font is the settings' font file, else the default theme's (`font.ts`, `label.cpp:118`);
- * `LabelSettings` gives the size, colours, spacing and outline. Not bound: `uppercase`, visible characters, `max_lines_visible`, `lines_skipped`,
- * clipping and overrun trimming, tab stops, `HORIZONTAL_ALIGNMENT_FILL` justification and
- * right-to-left text.
+ * The font is the settings' font file, else the default theme's (`label.cpp:118`), at the settings'
+ * size, else the default theme's 16. Not bound: `uppercase`, visible characters,
+ * `max_lines_visible`, `lines_skipped`, clipping and overrun trimming, tab stops and right-to-left
+ * text.
  */
 
 import type { Object3D } from 'three';
@@ -26,20 +26,8 @@ import {
   set_v_size_flags,
   update_minimum_size,
 } from './control';
-import {
-  get_height,
-  godot_font_autowrap_flags,
-  godot_font_is_space,
-  godot_font_default,
-  godot_font_line_breaks,
-  godot_font_shape,
-  godot_font_substr,
-  godot_font_width,
-  type GodotFont,
-  type ShapedText,
-} from './font';
+import { get_height, godot_font_css, godot_font_default, godot_font_measure, godot_font_wrap, type GodotFont } from './font';
 import type { LabelSettings } from './label-settings';
-import { godot_font_file_face } from './font-file';
 import { godot_node_entity, is_inside_tree } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import { construct as vector2, type Vector2 } from './vector2';
@@ -69,10 +57,12 @@ interface LabelState {
   readonly invalidate: () => void;
 }
 
-interface Paragraph {
-  /** Where the paragraph starts in the text, in code points. */
+interface Line {
+  readonly text: string;
+  /** Where the line starts in the Label's text, in characters. */
   readonly start: number;
-  readonly lines: readonly ShapedText[];
+  /** Whether the line ends its paragraph. */
+  readonly last: boolean;
 }
 
 const LABELS = new WeakMap<Object3D, LabelState>();
@@ -85,8 +75,7 @@ function stateOf(self: object, member: string): LabelState {
 
 /** The settings' font, else the theme's (`label.cpp:118`). */
 function font(state: LabelState): GodotFont {
-  const file = state.settings?.font ?? null;
-  return file === null ? godot_font_default() : godot_font_file_face(file);
+  return state.settings?.font ?? godot_font_default();
 }
 
 function fontSize(state: LabelState): number {
@@ -101,67 +90,52 @@ function paragraphSpacing(entity: Object3D, state: LabelState): number {
   return Math.trunc(state.settings !== null ? state.settings.paragraphSpacing : get_theme_constant(entity, 'paragraph_spacing'));
 }
 
-function fontHeight(state: LabelState): number {
-  return Math.trunc(get_height(font(state), fontSize(state)));
+/** Every line's height: the font's, rounded up. */
+function lineHeight(state: LabelState): number {
+  return Math.ceil(get_height(font(state), fontSize(state)));
 }
 
-/** A line's height as the Label spaces lines: its ascent and descent raised to the font height. */
-function lineHeight(line: ShapedText, fontH: number): number {
-  const sum = line.ascent + line.descent;
-  return sum < fontH ? fontH : sum;
+function measure(state: LabelState, text: string): number {
+  return godot_font_measure(font(state), text, fontSize(state));
 }
 
-/** `_shape` (`label.cpp:144`): the paragraphs and their lines at the node's width. */
-function shape(entity: Object3D, state: LabelState): Paragraph[] {
-  let width = Math.trunc(get_size(entity).x);
+/** The lines of the text at the node's width (its maximum width when wrapping), paragraph by paragraph. */
+function lines(entity: Object3D, state: LabelState): Line[] {
+  let width = get_size(entity).x;
   const maxWidth = godot_control_maximum_size(entity).x;
-  if (state.autowrapMode !== AUTOWRAP_OFF && maxWidth > 0) width = Math.max(1, Math.trunc(maxWidth));
-  const flags = godot_font_autowrap_flags(state.autowrapMode);
-  const face = font(state);
-  const paragraphs: Paragraph[] = [];
+  if (state.autowrapMode !== AUTOWRAP_OFF && maxWidth > 0) width = Math.max(1, maxWidth);
+  const out: Line[] = [];
   let start = 0;
-  for (const part of state.text.split('\n')) {
-    const shaped = godot_font_shape(face, `${part}​`, fontSize(state));
-    const breaks = godot_font_line_breaks(shaped, width, flags);
-    const lines: ShapedText[] = [];
-    for (let i = 0; i < breaks.length; i += 2) lines.push(godot_font_substr(shaped, breaks[i] as number, breaks[i + 1] as number));
-    paragraphs.push({ start, lines });
-    start += Array.from(part).length + 1;
+  for (const paragraph of state.text.split('\n')) {
+    const wrapped = state.autowrapMode === AUTOWRAP_OFF ? [paragraph] : godot_font_wrap(font(state), paragraph, fontSize(state), width, state.autowrapMode);
+    let cursor = 0;
+    wrapped.forEach((text, i) => {
+      const at = Math.max(cursor, paragraph.indexOf(text, cursor));
+      out.push({ text, start: start + Array.from(paragraph.slice(0, at)).length, last: i === wrapped.length - 1 });
+      cursor = at + text.length;
+    });
+    start += Array.from(paragraph).length + 1;
   }
-  return paragraphs;
-}
-
-/** `shaped_text_get_size` of a line: its width rounded up. */
-function lineWidth(line: ShapedText): number {
-  return Math.ceil(godot_font_width(line.glyphs));
+  return out;
 }
 
 /**
- * `get_minimum_size` (`label.cpp:991`) after `_shape` and `_update_visible` (`label.cpp:366`): no
- * text is one line high; otherwise the widest line (1 when wrapping) and the lines' heights with
- * the line spacing between them and the paragraph spacing after each paragraph.
+ * The minimum size (`get_minimum_size`, `label.cpp:991`): the widest line (1 when wrapping, which
+ * follows the width it is given) by the lines' heights with the spacing between them, at least one
+ * line high.
  */
 function minimumSize(entity: Object3D): Vector2 {
   const state = LABELS.get(entity) as LabelState;
-  const fontH = fontHeight(state);
-  const paragraphs = shape(entity, state);
+  const lineH = lineHeight(state);
+  const all = state.text.length === 0 ? [] : lines(entity, state);
   let width = 1;
+  for (const line of all) width = Math.max(width, Math.ceil(measure(state, line.text)));
   let height = 0;
-  if (state.text.length === 0) {
-    height = fontH;
-    for (const paragraph of paragraphs) for (const line of paragraph.lines) height = Math.max(height, Math.ceil(line.ascent + line.descent));
-  } else {
-    width = 0;
-    for (const paragraph of paragraphs) for (const line of paragraph.lines) width = Math.max(width, lineWidth(line));
-    const spacing = lineSpacing(entity, state);
-    const paragraphGap = paragraphSpacing(entity, state);
-    for (const paragraph of paragraphs) {
-      for (const line of paragraph.lines) height += lineHeight(line, fontH) + spacing;
-      height += paragraphGap;
-    }
-    if (height > 0) height -= spacing + paragraphGap;
-  }
-  height = Math.max(height, fontH);
+  const spacing = lineSpacing(entity, state);
+  const paragraphGap = paragraphSpacing(entity, state);
+  for (const line of all) height += lineH + spacing + (line.last ? paragraphGap : 0);
+  if (height > 0) height -= spacing + paragraphGap;
+  height = Math.max(height, lineH);
   return state.autowrapMode !== AUTOWRAP_OFF ? vector2(1, height) : vector2(width, height);
 }
 
@@ -220,8 +194,7 @@ export function get_text(self: object): string {
 }
 
 /**
- * The settings; a change to them reshapes the text (`_invalidate`), which updates the minimum size
- * when next shaped (`label.cpp:364`).
+ * The settings; a change to them updates the minimum size.
  *
  * @godot Label.set_label_settings
  * @source scene/gui/label.cpp:1168
@@ -280,7 +253,7 @@ export function get_vertical_alignment(self: object): number {
 }
 
 /**
- * The lines are broken again at the next shaping, which updates the minimum size.
+ * The lines are wrapped again, which updates the minimum size.
  *
  * @godot Label.set_autowrap_mode
  * @source scene/gui/label.cpp:41
@@ -310,23 +283,34 @@ export function get_line_count(self: object): number {
   const entity = godot_node_entity(self) as Object3D;
   const state = stateOf(self, 'get_line_count');
   if (!is_inside_tree(entity)) return 1;
-  return shape(entity, state).reduce((count, paragraph) => count + paragraph.lines.length, 0);
+  return lines(entity, state).length;
 }
 
 /**
- * The height of line `p_line`, or with no line the tallest line and at least the font height.
+ * The height of a line: the font's.
  *
  * @godot Label.get_line_height
  * @source scene/gui/label.cpp:117
  */
-export function get_line_height(self: object, p_line = -1): number {
-  const entity = godot_node_entity(self) as Object3D;
-  const state = stateOf(self, 'get_line_height');
-  const fontH = fontHeight(state);
-  const lines = shape(entity, state).flatMap((paragraph) => paragraph.lines);
-  if (p_line >= 0 && p_line < lines.length) return Math.trunc(lineHeight(lines[p_line] as ShapedText, fontH));
-  if (lines.length > 0) return lines.reduce((h, line) => Math.max(h, Math.ceil(line.ascent + line.descent)), fontH);
-  return fontH;
+export function get_line_height(self: object, _p_line = -1): number {
+  return lineHeight(stateOf(self, 'get_line_height'));
+}
+
+/** How many of the lines fit the node's height. */
+function visibleCount(entity: Object3D, state: LabelState, all: readonly Line[]): number {
+  const height = get_size(entity).y;
+  const lineH = lineHeight(state);
+  const spacing = lineSpacing(entity, state);
+  const paragraphGap = paragraphSpacing(entity, state);
+  let total = 0;
+  let visible = 0;
+  for (const line of all) {
+    total += lineH + spacing;
+    if (total > Math.ceil(height + spacing)) break;
+    visible += 1;
+    if (line.last) total += paragraphGap;
+  }
+  return visible;
 }
 
 /**
@@ -338,84 +322,41 @@ export function get_line_height(self: object, p_line = -1): number {
 export function get_visible_line_count(self: object): number {
   const entity = godot_node_entity(self) as Object3D;
   const state = stateOf(self, 'get_visible_line_count');
-  return layoutData(entity, state, shape(entity, state)).visible;
+  return visibleCount(entity, state, lines(entity, state));
 }
 
-/**
- * `get_layout_data` (`label.cpp:538`): how many lines fit the height, and the first line's offset
- * and the spacing between lines by the vertical alignment.
- */
-function layoutData(entity: Object3D, state: LabelState, paragraphs: readonly Paragraph[]): { readonly visible: number; readonly offsetY: number; readonly spacing: number } {
-  const size = get_size(entity);
-  const fontH = fontHeight(state);
-  const spacing = lineSpacing(entity, state);
+/** Each visible line with its top in the node, by the vertical alignment. */
+function placedLines(entity: Object3D, state: LabelState): { readonly line: Line; readonly top: number }[] {
+  const all = lines(entity, state);
+  const visible = all.slice(0, visibleCount(entity, state, all));
+  const lineH = lineHeight(state);
+  let spacing = lineSpacing(entity, state);
   const paragraphGap = paragraphSpacing(entity, state);
-  let total = 0;
-  let visible = 0;
-  for (const paragraph of paragraphs) {
-    for (const line of paragraph.lines) {
-      total = Math.fround(total + lineHeight(line, fontH) + spacing);
-      if (total > Math.ceil(size.y + spacing)) break;
-      visible += 1;
-    }
-    total = Math.fround(total + paragraphGap);
-  }
-  total = 0;
-  let index = 0;
-  for (const paragraph of paragraphs) {
-    const end = Math.min(paragraph.lines.length, visible - index);
-    if (end <= 0) break;
-    for (let i = 0; i < end; i += 1) total = Math.fround(total + lineHeight(paragraph.lines[i] as ShapedText, fontH) + spacing);
-    total = Math.fround(total + paragraphGap);
-    index += paragraph.lines.length;
-  }
-  let vbegin = 0;
-  let vsep = 0;
-  if (visible > 0) {
-    const content = Math.fround(total - spacing - paragraphGap);
-    if (state.verticalAlignment === ALIGNMENT_CENTER) vbegin = Math.trunc(Math.fround(Math.fround(size.y - content) / 2));
-    else if (state.verticalAlignment === ALIGNMENT_END) vbegin = Math.trunc(Math.fround(size.y - content));
-    else if (state.verticalAlignment === ALIGNMENT_FILL && visible > 1) vsep = Math.trunc(Math.fround(Math.fround(size.y - content) / (visible - 1)));
-  }
-  return { visible, offsetY: vbegin, spacing: spacing + vsep };
+  let content = 0;
+  for (const line of visible) content += lineH + spacing + (line.last ? paragraphGap : 0);
+  content -= spacing + paragraphGap;
+  const free = get_size(entity).y - content;
+  let top = 0;
+  if (state.verticalAlignment === ALIGNMENT_CENTER) top = Math.trunc(free / 2);
+  else if (state.verticalAlignment === ALIGNMENT_END) top = Math.trunc(free);
+  else if (state.verticalAlignment === ALIGNMENT_FILL && visible.length > 1) spacing += Math.trunc(free / (visible.length - 1));
+  return visible.map((line) => {
+    const placed = { line, top };
+    top += lineH + spacing + (line.last ? paragraphGap : 0);
+    return placed;
+  });
 }
 
-/** `_get_line_rect` (`label.cpp:488`): the line's offset by the horizontal alignment, and size. */
-function lineRect(entity: Object3D, state: LabelState, line: ShapedText): Rect2 {
-  const size = get_size(entity);
-  const width = lineWidth(line);
-  const height = lineHeight(line, fontHeight(state));
-  let x = 0;
-  if (state.horizontalAlignment === ALIGNMENT_CENTER) x = Math.trunc(Math.trunc(size.x - width) / 2);
-  else if (state.horizontalAlignment === ALIGNMENT_END) x = Math.trunc(size.x - width);
-  return rect2(x, 0, width, height);
-}
-
-/** Each visible line with its rectangle in the node: where it is drawn. */
-function placedLines(entity: Object3D, state: LabelState): { readonly paragraph: Paragraph; readonly line: ShapedText; readonly rect: Rect2; readonly ascent: number }[] {
-  const paragraphs = shape(entity, state);
-  const { visible, offsetY, spacing } = layoutData(entity, state, paragraphs);
-  const fontH = fontHeight(state);
-  const placed: { readonly paragraph: Paragraph; readonly line: ShapedText; readonly rect: Rect2; readonly ascent: number }[] = [];
-  let y = offsetY;
-  let index = 0;
-  for (const paragraph of paragraphs) {
-    for (const line of paragraph.lines) {
-      if (index >= visible) return placed;
-      const rect = lineRect(entity, state, line);
-      let ascent = line.ascent;
-      if (line.ascent + line.descent < fontH) ascent += (fontH - (line.ascent + line.descent)) / 2;
-      placed.push({ paragraph, line, rect: rect2(rect.position.x, y, rect.size.x, rect.size.y), ascent });
-      y += lineHeight(line, fontH) + spacing;
-      index += 1;
-    }
-    y += paragraphSpacing(entity, state);
-  }
-  return placed;
+/** Where a line of `width` starts by the horizontal alignment. */
+function lineX(entity: Object3D, state: LabelState, width: number): number {
+  const free = get_size(entity).x - width;
+  if (state.horizontalAlignment === ALIGNMENT_CENTER) return Math.trunc(free / 2);
+  if (state.horizontalAlignment === ALIGNMENT_END) return Math.trunc(free);
+  return 0;
 }
 
 /**
- * The rectangle of the character at `p_pos`: its glyph's advance on its line, the line's height.
+ * The rectangle of the character at `p_pos`: its width on its line, the line's height.
  *
  * @godot Label.get_character_bounds
  * @source scene/gui/label.cpp:927
@@ -423,83 +364,77 @@ function placedLines(entity: Object3D, state: LabelState): { readonly paragraph:
 export function get_character_bounds(self: object, p_pos: number): Rect2 {
   const entity = godot_node_entity(self) as Object3D;
   const state = stateOf(self, 'get_character_bounds');
-  for (const { paragraph, line, rect } of placedLines(entity, state)) {
-    let offset = 0;
-    const glyphs = line.glyphs;
-    for (let j = 0; j < glyphs.length; j += 1) {
-      const glyph = glyphs[j] as (typeof glyphs)[number];
-      if (glyph.count > 0 && (glyph.index !== 0 || godot_font_is_space(glyph))) {
-        if (p_pos >= glyph.start + paragraph.start && p_pos < glyph.end + paragraph.start) {
-          let advance = 0;
-          for (let k = 0; k < glyph.count; k += 1) advance = Math.fround(advance + (glyphs[j + k] as (typeof glyphs)[number]).advance);
-          return rect2(Math.fround(rect.position.x + offset), rect.position.y, advance, rect.size.y);
-        }
-      }
-      offset = Math.fround(offset + glyph.advance);
-    }
+  const lineH = lineHeight(state);
+  for (const { line, top } of placedLines(entity, state)) {
+    const characters = Array.from(line.text);
+    const index = p_pos - line.start;
+    if (index < 0 || index >= characters.length) continue;
+    const x = lineX(entity, state, Math.ceil(measure(state, line.text)));
+    const before = measure(state, characters.slice(0, index).join(''));
+    return rect2(x + before, top, measure(state, characters[index] as string), lineH);
   }
   return rect2();
 }
 
-const SVGS = new WeakMap<Object3D, SVGSVGElement>();
+const CONTENT = new WeakMap<Object3D, HTMLDivElement>();
 
 /** CSS `rgba()` of a Color. */
 function css(color: { readonly r: number; readonly g: number; readonly b: number; readonly a: number }): string {
   return `rgba(${String(Math.round(color.r * 255))}, ${String(Math.round(color.g * 255))}, ${String(Math.round(color.b * 255))}, ${String(color.a)})`;
 }
 
+const TEXT_ALIGN = ['left', 'center', 'right', 'justify'] as const;
+
 /**
- * `NOTIFICATION_DRAW` on the page (`label.cpp:749`): an SVG over the node, each visible line a
- * `<text>` at the line's x and baseline (its top plus its ascent), in the default font at the
- * Label's size and colour; an outline is a stroke under the fill whose outer half is the outline
- * size over four (Godot's stroker radius, `text_server_adv.cpp:1512`), tinted by `self_modulate`.
+ * `NOTIFICATION_DRAW` (`label.cpp:749`) on the page: a box over the node holding each visible line
+ * as a row at its top, aligned by `text-align`, in the Label's font, size and colour; an outline is
+ * a text stroke painted under the fill, a shadow a `text-shadow`; tinted by `self_modulate`.
  */
 function draw(entity: Object3D, element: HTMLElement): void {
   const state = LABELS.get(entity) as LabelState;
-  const document = element.ownerDocument;
-  const namespace = 'http://www.w3.org/2000/svg';
-  let svg = SVGS.get(entity);
-  if (svg === undefined) {
-    svg = document.createElementNS(namespace, 'svg') as SVGSVGElement;
-    svg.setAttribute('data-godot-content', '');
-    svg.style.position = 'absolute';
-    svg.style.left = '0px';
-    svg.style.top = '0px';
-    svg.style.overflow = 'visible';
-    SVGS.set(entity, svg);
+  let box = CONTENT.get(entity);
+  if (box === undefined) {
+    box = element.ownerDocument.createElement('div');
+    box.setAttribute('data-godot-content', '');
+    box.style.position = 'absolute';
+    box.style.left = '0px';
+    box.style.top = '0px';
+    box.style.whiteSpace = 'pre';
+    CONTENT.set(entity, box);
   }
-  if (svg.parentElement !== element) element.insertBefore(svg, element.firstChild);
+  if (box.parentElement !== element) element.insertBefore(box, element.firstChild);
   const size = get_size(entity);
-  svg.setAttribute('width', String(size.x));
-  svg.setAttribute('height', String(size.y));
-  svg.style.filter = godot_canvas_item_self_filter(entity, element);
-  while (svg.firstChild !== null) svg.removeChild(svg.firstChild);
   const settings = state.settings;
-  const color = settings?.fontColor ?? { r: 1, g: 1, b: 1, a: 1 };
+  const lineH = lineHeight(state);
+  box.style.width = `${String(size.x)}px`;
+  box.style.height = `${String(size.y)}px`;
+  box.style.font = godot_font_css(font(state), fontSize(state));
+  box.style.lineHeight = `${String(lineH)}px`;
+  box.style.color = css(settings?.fontColor ?? { r: 1, g: 1, b: 1, a: 1 });
+  box.style.textAlign = TEXT_ALIGN[state.horizontalAlignment] ?? 'left';
+  box.style.setProperty('text-align-last', state.horizontalAlignment === ALIGNMENT_FILL ? 'justify' : '');
+  box.style.filter = godot_canvas_item_self_filter(entity, element);
   const outline = settings?.outlineSize ?? 0;
-  const outlineColor = settings?.outlineColor ?? { r: 0, g: 0, b: 0, a: 1 };
-  const codePoints = Array.from(state.text);
-  for (const { paragraph, line, rect, ascent } of placedLines(entity, state)) {
-    const first = line.glyphs[0];
-    const last = line.glyphs[line.glyphs.length - 1];
-    if (first === undefined || last === undefined) continue;
-    const text = codePoints.slice(paragraph.start + first.start, paragraph.start + Math.min(last.end, codePoints.length - paragraph.start)).join('').replace(/​/g, '');
-    const node = document.createElementNS(namespace, 'text');
-    node.setAttribute('x', String(rect.position.x));
-    node.setAttribute('y', String(rect.position.y + ascent));
-    node.setAttribute('font-family', state.settings?.font?.family ?? 'godot-default-font');
-    node.setAttribute('font-size', String(fontSize(state)));
-    node.setAttribute('fill', css(color));
-    node.setAttribute('xml:space', 'preserve');
-    if (outline > 0 && outlineColor.a > 0) {
-      node.setAttribute('stroke', css(outlineColor));
-      node.setAttribute('stroke-width', String(outline / 2));
-      node.setAttribute('stroke-linejoin', 'round');
-      node.setAttribute('paint-order', 'stroke');
-    }
-    node.textContent = text;
-    svg.appendChild(node);
-  }
+  const outlineColor = settings?.outlineColor ?? { r: 1, g: 1, b: 1, a: 1 };
+  const stroke = outline > 0 && outlineColor.a > 0;
+  box.style.setProperty('-webkit-text-stroke', stroke ? `${String(outline / 2)}px ${css(outlineColor)}` : '');
+  box.style.setProperty('paint-order', stroke ? 'stroke fill' : '');
+  const shadow = settings?.shadowColor;
+  box.style.textShadow =
+    settings !== null && shadow !== undefined && shadow.a > 0
+      ? `${String(settings.shadowOffset.x)}px ${String(settings.shadowOffset.y)}px ${String(Math.max(0, settings.shadowSize - 1))}px ${css(shadow)}`
+      : '';
+  box.replaceChildren(
+    ...placedLines(entity, state).map(({ line, top }) => {
+      const row = element.ownerDocument.createElement('div');
+      row.style.position = 'absolute';
+      row.style.left = '0px';
+      row.style.right = '0px';
+      row.style.top = `${String(top)}px`;
+      row.textContent = line.text;
+      return row;
+    }),
+  );
 }
 
 const LABEL = {

@@ -675,12 +675,14 @@ container classes and recomputed at the moments Godot recomputes it. It is drawn
 by `layer`, Control origins snapped to whole pixels as Godot does, `modulate` as an sRGB colour
 filter. The DOM is only where the item is drawn; CSS never lays anything out.
 
-Text is measured as Godot's web export measures it, by its own text server. That is computed
-from the font file's own metrics and kerning. The default font is the Open Sans SemiBold the pinned
-revision embeds (sha256 `55809808…`), read with fontkit; no shaping difference was measured on
-the Latin samples. A shaping difference (ligatures, complex
-scripts) is a recorded `font-shaping` deviation. The browser draws the glyphs inside Godot's
-computed rectangle.
+Text is the browser's. A font is a CSS family registered with the page as a `FontFace`: the
+default theme's Open Sans SemiBold (the file the pinned revision embeds, shipped beside compat)
+and each imported `FontFile`. Compat measures with a 2D canvas context's `measureText` (an em-box
+estimate where there is no canvas, as in jsdom) and wraps by the autowrap mode with a greedy
+word or character break; a Label is drawn as DOM text in its element (CSS font, colour,
+`-webkit-text-stroke` outline, `text-shadow`, `text-align`), a Label3D on a 2D canvas textured
+onto its quad. Godot's text server (FreeType metrics, HarfBuzz shaping, ICU breaks) is not ported
+(`font.ts`, after the `7ba339e1` review).
 
 Input reaches nodes as Godot delivers it: `Viewport.push_input` runs `_input`, then the GUI,
 then shortcut, unhandled-key and unhandled input, in reverse tree order, and stops at

@@ -3,29 +3,19 @@
  * @role BINDING
  *
  * Godot 4.7's `Label3D` (`scene/3d/label_3d.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) bound onto a three `Mesh`: its text is shaped in the
- * default theme font by compat's text server (`font.ts`) and broken into lines with the autowrap
- * mode's flags at its `width` (`_shape`, `label_3d.cpp:454`); each line is placed by the alignments,
- * `offset` and `line_spacing`, in `pixel_size` world units per font pixel, with Godot's AABB
- * (`get_aabb`), recomputed where Godot recomputes it, in a deferred call after a change
- * (`_queue_update`). The mesh is one quad over that AABB whose texture is the page drawing each
- * glyph at the position Godot places it, in the same font, `modulate` and outline; the glyph
- * rasterization is the browser's. The material is unshaded and transparent, double-sided and
- * depth-tested by the draw flags. Billboards, fixed size, alpha cut modes, `uppercase`,
- * `FILL` justification, right-to-left text and a font other than the default are not bound.
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) bound onto a three `Mesh` textured with a 2D canvas the
+ * browser draws the text on: the text in the default theme font (`font.ts`), wrapped by the
+ * autowrap mode at `width`, each line placed by the alignments, `offset` and `line_spacing`, in
+ * `pixel_size` world units per font pixel. The mesh is one quad over the lines' box, redrawn in a
+ * deferred call after a change (`_queue_update`), filled with `modulate` over an outline stroked in
+ * `outline_modulate`; its box is the node's AABB. The material is unshaded and transparent,
+ * double-sided and depth-tested by the draw flags. Billboards, fixed size, alpha cut modes,
+ * `uppercase`, right-to-left text and a font other than the default are not bound.
  */
 
 import { DoubleSide, FrontSide, type Mesh, MeshBasicMaterial, PlaneGeometry, CanvasTexture as ThreeCanvasTexture, SRGBColorSpace } from 'three';
 import { construct as color, type Color } from './color';
-import {
-  godot_font_autowrap_flags,
-  godot_font_default,
-  godot_font_line_breaks,
-  godot_font_shape,
-  godot_font_substr,
-  godot_font_width,
-  type ShapedText,
-} from './font';
+import { get_ascent, get_height, godot_font_css, godot_font_default, godot_font_measure, godot_font_wrap } from './font';
 import { godot_node_entity } from './node';
 import { godot_message_queue_push } from './object';
 import { godot_visual_instance_3d_aabb } from './visual-instance-3d';
@@ -59,7 +49,6 @@ interface Label3DState {
   flags: boolean[];
   pending: boolean;
   aabb: { position: Vector3; size: Vector3 };
-  lines: readonly ShapedText[];
 }
 
 const LABELS = new WeakMap<Mesh, Label3DState>();
@@ -70,119 +59,69 @@ function stateOf(self: object, member: string): Label3DState {
   return state;
 }
 
-/** `AABB::expand_to` (`core/math/aabb.cpp:180`) in single precision. */
-function expandTo(aabb: { position: Vector3; size: Vector3 }, x: number, y: number, z: number): void {
-  const begin = [aabb.position.x, aabb.position.y, aabb.position.z];
-  const end = [f32(aabb.position.x + aabb.size.x), f32(aabb.position.y + aabb.size.y), f32(aabb.position.z + aabb.size.z)];
-  [x, y, z].forEach((value, axis) => {
-    if (value < (begin[axis] as number)) begin[axis] = value;
-    if (value > (end[axis] as number)) end[axis] = value;
-  });
-  aabb.position = vector3(begin[0] as number, begin[1] as number, begin[2] as number);
-  aabb.size = vector3(f32((end[0] as number) - (begin[0] as number)), f32((end[1] as number) - (begin[1] as number)), f32((end[2] as number) - (begin[2] as number)));
-}
-
-const isEmpty = (aabb: { position: Vector3; size: Vector3 }): boolean =>
-  [aabb.position.x, aabb.position.y, aabb.position.z, aabb.size.x, aabb.size.y, aabb.size.z].every((value) => value === 0);
-
-/** `shaped_text_get_size(line).y` (`text_server_adv.cpp:7786`): the ascent plus descent, rounded up. */
-const lineHeight = (line: ShapedText): number => Math.ceil(line.ascent + line.descent);
-
-/**
- * `_shape` (`label_3d.cpp:454`): the lines at `width` by the autowrap flags, then each line's place
- * and the AABB they cover, in world units; returns each line's origin (its top-left) and baseline.
- */
-function shape(state: Label3DState): { readonly x: number; readonly top: number; readonly baseline: number; readonly line: ShapedText }[] {
-  const font = godot_font_default();
-  const shaped = godot_font_shape(font, state.text, state.fontSize);
-  const breaks = godot_font_line_breaks(shaped, state.width, godot_font_autowrap_flags(state.autowrapMode));
-  const lines: ShapedText[] = [];
-  for (let i = 0; i < breaks.length; i += 2) lines.push(godot_font_substr(shaped, breaks[i] as number, breaks[i + 1] as number));
-  state.lines = lines;
-  const px = state.pixelSize;
-  let totalH = 0;
-  for (const line of lines) totalH = f32(totalH + f32(f32(lineHeight(line) + state.lineSpacing) * px));
-  let vbegin = 0;
-  if (state.verticalAlignment === 1) vbegin = f32(f32(totalH - f32(state.lineSpacing * px)) / 2);
-  else if (state.verticalAlignment === 2) vbegin = f32(totalH - f32(state.lineSpacing * px));
-  let offsetY = f32(vbegin + f32(state.offset.y * px));
-  const placed: { x: number; top: number; baseline: number; line: ShapedText }[] = [];
-  state.aabb = { position: vector3(), size: vector3() };
-  for (const line of lines) {
-    // `shaped_text_get_width` (`text_server_adv.cpp:7823`): the advances summed, rounded up.
-    const lineWidth = f32(Math.ceil(godot_font_width(line.glyphs)) * px);
-    let offsetX = 0;
-    if (state.horizontalAlignment === 1 || state.horizontalAlignment === 3) offsetX = f32(-lineWidth / 2);
-    else if (state.horizontalAlignment === 2) offsetX = -lineWidth;
-    offsetX = f32(offsetX + f32(state.offset.x * px));
-    const bottom = f32(offsetY - f32(f32(lineHeight(line) + state.lineSpacing) * px));
-    if (isEmpty(state.aabb)) {
-      state.aabb = { position: vector3(offsetX, offsetY, 0), size: vector3() };
-      expandTo(state.aabb, f32(offsetX + lineWidth), bottom, 0);
-    } else {
-      expandTo(state.aabb, offsetX, offsetY, 0);
-      expandTo(state.aabb, f32(offsetX + lineWidth), bottom, 0);
-    }
-    const top = offsetY;
-    // `shaped_text_get_ascent`/`_descent` are doubles: the step is taken in double, then stored.
-    offsetY = f32(offsetY - line.ascent * px);
-    placed.push({ x: offsetX, top, baseline: offsetY, line });
-    offsetY = f32(offsetY - (line.descent + state.lineSpacing) * px);
-  }
-  return placed;
-}
-
 const css = (c: Color): string => `rgba(${String(Math.round(c.r * 255))}, ${String(Math.round(c.g * 255))}, ${String(Math.round(c.b * 255))}, ${String(c.a)})`;
 
+interface PlacedLine {
+  readonly text: string;
+  /** The line's left edge and baseline in the texture, in font pixels. */
+  readonly x: number;
+  readonly baseline: number;
+}
+
+/** The text's lines placed in font pixels, and the box they cover in world units (`_shape`, `label_3d.cpp:454`). */
+function shape(state: Label3DState): { readonly lines: readonly PlacedLine[]; readonly width: number; readonly height: number } {
+  const font = godot_font_default();
+  const size = state.fontSize;
+  const texts = state.text.split('\n').flatMap((paragraph) => (state.autowrapMode === 0 ? [paragraph] : godot_font_wrap(font, paragraph, size, state.width, state.autowrapMode)));
+  const lineH = Math.ceil(get_height(font, size));
+  const ascent = get_ascent(font, size);
+  const widths = texts.map((text) => Math.ceil(godot_font_measure(font, text, size)));
+  const width = Math.max(0, ...widths);
+  const height = texts.length * (lineH + state.lineSpacing) - state.lineSpacing;
+  const lines = texts.map((text, i) => {
+    const free = width - (widths[i] as number);
+    const x = state.horizontalAlignment === 1 || state.horizontalAlignment === 3 ? free / 2 : state.horizontalAlignment === 2 ? free : 0;
+    return { text, x, baseline: i * (lineH + state.lineSpacing) + ascent };
+  });
+  return { lines, width, height };
+}
+
 /**
- * The quad and its texture: the page draws each glyph where `_generate_glyph_surfaces`
- * (`label_3d.cpp:334`) puts it, the outline under the text.
+ * Places the quad by the alignments and `offset` (the horizontal alignment picks which edge of the
+ * text sits at the origin, the vertical which of top, middle or bottom), and draws the text on its
+ * texture, the outline under the fill.
  */
-function draw(mesh: Mesh, state: Label3DState, placed: ReturnType<typeof shape>): void {
+function draw(mesh: Mesh, state: Label3DState, text: ReturnType<typeof shape>): void {
   const px = state.pixelSize;
   const margin = state.outlineSize;
-  const width = Math.max(1, Math.ceil(state.aabb.size.x / px) + margin * 2);
-  const height = Math.max(1, Math.ceil(state.aabb.size.y / px) + margin * 2);
-  const topEdge = state.aabb.position.y + state.aabb.size.y;
+  const left = state.horizontalAlignment === 1 || state.horizontalAlignment === 3 ? -text.width / 2 : state.horizontalAlignment === 2 ? -text.width : 0;
+  const top = state.verticalAlignment === 1 ? text.height / 2 : state.verticalAlignment === 2 ? text.height : 0;
+  const x0 = (left + state.offset.x) * px;
+  const y0 = (top + state.offset.y) * px;
+  state.aabb = { position: vector3(x0, y0 - text.height * px, 0), size: vector3(text.width * px, text.height * px, 0) };
+  const width = Math.max(1, Math.ceil(text.width) + margin * 2);
+  const height = Math.max(1, Math.ceil(text.height) + margin * 2);
   mesh.geometry.dispose();
   const geometry = new PlaneGeometry(width * px, height * px);
-  geometry.translate(state.aabb.position.x - margin * px + (width * px) / 2, topEdge + margin * px - (height * px) / 2, 0);
+  geometry.translate(x0 - margin * px + (width * px) / 2, y0 + margin * px - (height * px) / 2, 0);
   mesh.geometry = geometry;
   const material = mesh.material as MeshBasicMaterial;
   material.side = state.flags[FLAG_DOUBLE_SIDED] === true ? DoubleSide : FrontSide;
   material.depthTest = state.flags[FLAG_DISABLE_DEPTH_TEST] !== true;
   material.transparent = true;
-  const page = (globalThis as { readonly document?: Document }).document;
-  if (page === undefined) return;
-  const canvas = page.createElement('canvas');
-  canvas.width = width;
-  canvas.height = height;
+  if (typeof OffscreenCanvas !== 'function') return;
+  const canvas = new OffscreenCanvas(width, height);
   const context = canvas.getContext('2d');
   if (context === null) return;
-  context.font = `${String(state.fontSize)}px godot-default-font`;
+  context.font = godot_font_css(godot_font_default(), state.fontSize);
   context.textBaseline = 'alphabetic';
-  for (const pass of [0, 1]) {
-    if (pass === 0 && (state.outlineSize <= 0 || state.outlineModulate.a === 0)) continue;
-    for (const { x, baseline, line } of placed) {
-      let pen = (x - state.aabb.position.x) / px + margin;
-      const y = (topEdge - baseline) / px + margin;
-      for (const glyph of line.glyphs) {
-        const text = String.fromCodePoint(...line.text.slice(glyph.start, glyph.end));
-        if (glyph.index !== 0 && glyph.count > 0) {
-          if (pass === 0) {
-            context.strokeStyle = css(state.outlineModulate);
-            context.lineWidth = state.outlineSize / 2;
-            context.lineJoin = 'round';
-            context.strokeText(text, pen, y);
-          } else {
-            context.fillStyle = css(state.modulate);
-            context.fillText(text, pen, y);
-          }
-        }
-        pen += glyph.advance;
-      }
-    }
-  }
+  context.lineJoin = 'round';
+  context.lineWidth = state.outlineSize / 2;
+  context.strokeStyle = css(state.outlineModulate);
+  context.fillStyle = css(state.modulate);
+  const outlined = state.outlineSize > 0 && state.outlineModulate.a > 0;
+  if (outlined) for (const line of text.lines) context.strokeText(line.text, line.x + margin, line.baseline + margin);
+  for (const line of text.lines) context.fillText(line.text, line.x + margin, line.baseline + margin);
   material.map?.dispose();
   const texture = new ThreeCanvasTexture(canvas);
   texture.colorSpace = SRGBColorSpace;
@@ -228,7 +167,6 @@ export function godot_label_3d_mount(entity: Mesh): void {
     flags: Array.from({ length: FLAG_MAX }, (_, flag) => flag === FLAG_DOUBLE_SIDED),
     pending: false,
     aabb: { position: vector3(), size: vector3() },
-    lines: [],
   };
   LABELS.set(entity, state);
   entity.material = new MeshBasicMaterial({ transparent: true, side: DoubleSide });

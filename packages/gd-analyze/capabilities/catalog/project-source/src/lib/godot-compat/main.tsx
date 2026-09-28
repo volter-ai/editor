@@ -17,7 +17,7 @@ import { useRapier } from '@react-three/rapier';
 import { use, useEffect, useLayoutEffect, useReducer } from 'react';
 import { godot_collision_object_of_collider, godot_physics_attach } from './collision-object-3d';
 import { godot_physics_body_3d_collides } from './physics-body-3d';
-import { godot_font_default, godot_font_default_url, godot_font_load } from './font';
+import { godot_font_default, godot_font_default_url, godot_font_register } from './font';
 import { godot_resource_loader_settled } from './resource-loader';
 import { godot_tree_on_reload } from './scene-tree';
 import { godot_viewport_attach_input, godot_viewport_attach_renderer } from './viewport';
@@ -30,18 +30,9 @@ import './static-body-3d';
 
 let resources: Promise<void> | undefined;
 
-/** The default theme font (measured by compat's text server and registered with the page) and the scenes' imported resources. */
+/** The default theme font (registered with the page as a `FontFace`) and the scenes' imported resources. */
 function loadResources(): Promise<void> {
-  resources ??= (async () => {
-    const bytes = await fetch(godot_font_default_url()).then((response) => response.arrayBuffer());
-    const page = (globalThis as { readonly document?: Document }).document;
-    if (page?.fonts !== undefined && typeof FontFace === 'function') {
-      const face = new FontFace('godot-default-font', bytes.slice(0));
-      page.fonts.add(await face.load());
-    }
-    await godot_resource_loader_settled();
-    godot_font_default(godot_font_load(new Uint8Array(bytes)));
-  })();
+  resources ??= godot_font_register(godot_font_default(), godot_font_default_url()).then(() => godot_resource_loader_settled());
   return resources;
 }
 
