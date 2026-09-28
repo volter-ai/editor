@@ -1827,6 +1827,19 @@ def _drop(path):
         _say("@@VOLTER-WARN the session could not remove its own %s: %r" % (path, error))
 
 
+# HOW OFTEN TO LOOK, by how recently something happened. A present's answer
+# and the next call of a gesture are usually a few milliseconds away, and a
+# fixed 2 ms sleep put a whole sleep into each of them: a no-op execute spent
+# 6-7 ms of its 8-10 ms coming back, most of it the present's `ask` waiting out
+# sleeps on both skews (measured 2026-09-28). Brisk for 50 ms after activity,
+# then the old 2 ms, so an idle session lists its directory no more than before.
+_BRISK_SECONDS = 0.05
+
+
+def _pause(since):
+    time.sleep(0.0002 if time.monotonic() - since < _BRISK_SECONDS else 0.002)
+
+
 def ask(payload):
     """Block until the tab answers. The worker's own thread is free while this
     waits; only the Blender pthread is held, which is where the operator is.
@@ -1843,8 +1856,9 @@ def ask(payload):
     with open(os.path.join(ASK, name + ".done"), "w") as fh:
         fh.write("1")
     marker = os.path.join(REPLY, name + ".done")
+    began = time.monotonic()
     while not os.path.exists(marker):
-        time.sleep(0.002)
+        _pause(began)
     with open(os.path.join(REPLY, name + ".json")) as fh:
         body = fh.read()
     _drop(os.path.join(ASK, name + ".json"))
@@ -4994,6 +5008,7 @@ def _channel_loop():
     # with the session.
     seen = set()
     unacked = []
+    active = 0.0
     while True:
         # A FAILED LISTING IS NOT AN EMPTY ONE. This swallowed every OSError
         # into "no requests", so the one failure that matters -- the process
@@ -5029,7 +5044,7 @@ def _channel_loop():
         names = sorted((n for n in markers if n not in seen),
                        key=lambda n: int(n[: -len(".done")]))
         if not names:
-            time.sleep(0.002)
+            _pause(active)
             continue
         for marker in names:
             seen.add(marker)
@@ -5047,6 +5062,8 @@ def _channel_loop():
             with open(os.path.join(OUT, rid + ".done"), "w") as fh:
                 fh.write("1")
             unacked.append(rid)
+        # From the last answer: the page's next call of a gesture follows it.
+        active = time.monotonic()
 
 
 try:

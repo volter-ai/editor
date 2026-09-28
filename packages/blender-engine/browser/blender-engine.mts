@@ -90,6 +90,14 @@ export interface BlenderFiles {
   /** Null when the path is not there. */
   stat(path: string): Promise<BlenderFileStat | null>;
   unlink(path: string): Promise<void>;
+  /**
+   * Resolves at the next change to this filesystem, when the engine can say
+   * so. The call loop waits on it beside its poll, so an answer is read when
+   * it lands rather than at the next timer: a browser clamps a chain of
+   * `setTimeout(1)` to 4 ms, which was most of a no-op call's return leg
+   * (measured 2026-09-28: 6-7 ms of 8-10). Without it the loop polls alone.
+   */
+  changed?(): Promise<void>;
 }
 
 export interface BlenderEngineOptions {
@@ -406,7 +414,8 @@ export function openSessionChannel(
             'wait on the same missing answer; start a new program with `blender-start {fresh: true}` ' +
             '(`VOLTER_BLENDER_FRESH_SESSION=1` for the battery harness).',
         );
-      await sleep(pollDelay(performance.now() - began));
+      const waited = sleep(pollDelay(performance.now() - began));
+      await (files.changed ? Promise.race([waited, files.changed()]) : waited);
     }
   }
 

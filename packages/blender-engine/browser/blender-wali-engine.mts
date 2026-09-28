@@ -76,6 +76,8 @@ interface BrowserFileSystemLike {
   mkdirSync(path: string, options?: { recursive?: boolean }): void;
   readdirSync(path: string): string[];
   unlinkSync(path: string): void;
+  /** A write or removal, the program's included (its patches land here). */
+  on?(event: 'change' | 'delete', listener: (path: string) => void): unknown;
 }
 
 interface WaliProgram {
@@ -231,7 +233,16 @@ async function sharedRuntime(
 
 /** The program's filesystem, as {@link BlenderFiles}. */
 function programFiles(filesystem: BrowserFileSystemLike): BlenderFiles {
+  // One listener for the engine's life; each wait shares the next change's promise.
+  let next: { promise: Promise<void>; resolve: () => void } | undefined;
+  const wake = (): void => { const waiting = next; next = undefined; waiting?.resolve(); };
+  filesystem.on?.('change', wake);
+  filesystem.on?.('delete', wake);
   return {
+    ...(filesystem.on ? { changed: () => {
+      if (!next) { let resolve!: () => void; const promise = new Promise<void>((done) => { resolve = done; }); next = { promise, resolve }; }
+      return next.promise;
+    } } : {}),
     readFile: (path) => filesystem.readFile(path),
     writeFile: async (path, data) => filesystem.writeFileSync(path, data),
     mkdirTree: async (path) => filesystem.mkdirSync(path, { recursive: true }),
