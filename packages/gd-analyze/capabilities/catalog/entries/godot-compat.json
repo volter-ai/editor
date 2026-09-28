@@ -143,6 +143,7 @@
     "src/lib/godot-compat/tween.ts",
     "src/lib/godot-compat/tweener.ts",
     "src/lib/godot-compat/variant-equal.ts",
+    "src/lib/godot-compat/variant-index.ts",
     "src/lib/godot-compat/variant-stringify.ts",
     "src/lib/godot-compat/variant-truth.ts",
     "src/lib/godot-compat/vector2.ts",

@@ -4984,6 +4984,406 @@
         "kind": "structural",
         "construct": "local-identifier"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "VARIANT:*"
+        ],
+        "resultDatatype": "VARIANT:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "VARIANT:*"
+        ],
+        "resultDatatype": "BUILTIN:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "VARIANT:*"
+        ],
+        "resultDatatype": "ENUM:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "VARIANT:*"
+        ],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "VARIANT:*"
+        ],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "BUILTIN:*"
+        ],
+        "resultDatatype": "VARIANT:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "BUILTIN:*"
+        ],
+        "resultDatatype": "BUILTIN:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "BUILTIN:*"
+        ],
+        "resultDatatype": "ENUM:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "BUILTIN:*"
+        ],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "BUILTIN:*"
+        ],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "ENUM:*"
+        ],
+        "resultDatatype": "VARIANT:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "ENUM:*"
+        ],
+        "resultDatatype": "BUILTIN:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "ENUM:*"
+        ],
+        "resultDatatype": "ENUM:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "ENUM:*"
+        ],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "ENUM:*"
+        ],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "NATIVE:*"
+        ],
+        "resultDatatype": "VARIANT:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "NATIVE:*"
+        ],
+        "resultDatatype": "BUILTIN:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "NATIVE:*"
+        ],
+        "resultDatatype": "ENUM:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "NATIVE:*"
+        ],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "NATIVE:*"
+        ],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "CLASS:*"
+        ],
+        "resultDatatype": "VARIANT:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "CLASS:*"
+        ],
+        "resultDatatype": "BUILTIN:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "CLASS:*"
+        ],
+        "resultDatatype": "ENUM:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "CLASS:*"
+        ],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "SUBSCRIPT",
+        "semanticKey": "subscript-element:variant|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "CLASS:*"
+        ],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "subscript-element"
+      }
     }
   ],
   "datatypes": [

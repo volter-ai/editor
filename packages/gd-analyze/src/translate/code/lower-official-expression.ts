@@ -864,6 +864,42 @@ function dictionaryPlace(
   };
 }
 
+/** An element of an untyped value (`v[k]`), keyed at run time by what `v` holds (`variant-index.ts`). */
+function variantElement(context: LoweringContext, node: GodotBoundNode): Omit<KeyedElement, 'shape'> | undefined {
+  if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
+  const baseNode = context.node(node.base, node);
+  if (baseNode.datatype.kind !== 'VARIANT') return undefined;
+  return { baseNode, indexNode: context.node(node.index, node) };
+}
+
+function variantIndexCall(name: 'godot_variant_get' | 'godot_variant_set', args: readonly TargetTsExpression[], at?: ReturnType<typeof span>): TargetTsExpression {
+  return { kind: 'call-expression', callee: { kind: 'identifier-expression', name }, arguments: [...args], ...(at === undefined ? {} : { span: at }) };
+}
+
+function variantIndexImport(name: 'godot_variant_get' | 'godot_variant_set'): OfficialBoundLoweringRequirement {
+  return { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-index', imported: name, local: name, typeOnly: false };
+}
+
+/** An untyped value's element as a place: read and stored through compat's keyed access. */
+function variantElementPlace(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  element: Omit<KeyedElement, 'shape'>,
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+): AssignablePlace {
+  const rule = context.structural(node, 'subscript-element', [element.baseNode, element.indexNode], 'subscript-element:variant');
+  const object = materialize(context, lower(context, element.baseNode));
+  const key = materialize(context, lower(context, element.indexNode));
+  const at = span(context.script, node);
+  return {
+    before: object.before,
+    afterAssigned: key.before,
+    read: variantIndexCall('godot_variant_get', [object.value, key.value], at),
+    write: (value) => variantIndexCall('godot_variant_set', [object.value, key.value, value], at),
+    requirements: [...rule, ...object.requirements, ...key.requirements, variantIndexImport('godot_variant_get'), variantIndexImport('godot_variant_set')],
+  };
+}
+
 /**
  * An element of a built-in array Godot copies (a PackedStringArray; `lowering-shapes.ts`). Its
  * value is copy-on-write (`Vector<T>`, core/templates/vector.h): `a[i] = e` writes the variable's
@@ -1022,6 +1058,8 @@ function assignablePlace(
   if (element !== undefined) return dictionaryPlace(context, node, element, lower);
   const copiedElement = valueElement(context, node);
   if (copiedElement !== undefined) return valueElementPlace(context, node, copiedElement, lower);
+  const untypedElement = variantElement(context, node);
+  if (untypedElement !== undefined) return variantElementPlace(context, node, untypedElement, lower);
   const attributeTarget = valueAttributeTarget(context, node);
   // The native base's own property as the base of a member write (`transform.basis = b`): read
   // through its getter, written back through its setter.
@@ -1269,7 +1307,7 @@ function assignment(
 ): LoweredExpression {
   const place =
     inheritedNativePlace(context, targetNode, combine !== undefined) ??
-    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined || valueElement(context, targetNode) !== undefined
+    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined || valueElement(context, targetNode) !== undefined || variantElement(context, targetNode) !== undefined
       ? assignablePlace(context, targetNode, lower)
       : undefined);
   if (place !== undefined) {
@@ -2564,6 +2602,21 @@ export function lowerOfficialExpression(
                     span: span(context.script, node),
                   },
             rule,
+          );
+        }
+        if (baseNode.datatype.kind === 'VARIANT') {
+          // An untyped base is keyed by what it holds at run time (`OPCODE_GET_KEYED`).
+          const rule = context.structural(node, 'subscript-element', [baseNode, indexNode], 'subscript-element:variant');
+          // What analysis typed the element as, TS is told (the read itself is untyped).
+          const stated = node.datatype.kind !== 'VARIANT' && godotStatedValueType(node.datatype) ? context.targetType(node) : undefined;
+          return compose(
+            context,
+            [base, lowerExpression(context, indexNode)],
+            ([object, index]) => {
+              const read = variantIndexCall('godot_variant_get', [object as TargetTsExpression, index as TargetTsExpression], span(context.script, node));
+              return stated === undefined ? read : { kind: 'as-expression', expression: read, type: stated.type };
+            },
+            [...rule, variantIndexImport('godot_variant_get'), ...(stated?.requirements ?? [])],
           );
         }
         const requirements = context.structural(node, 'subscript-element', [baseNode, indexNode]);
