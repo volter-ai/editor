@@ -7,6 +7,12 @@
  * exceptions, which the contact filter the world registers (`godot_physics_body_3d_collides`),
  * the character controller and space queries honour; and axis locks, Rapier's enabled translations
  * and rotations on the node's body.
+ *
+ * Rapier keeps one set of locked axes where Godot keeps a body's `locked_axis` beside a rigid
+ * body's `lock_rotation` (which switches it to `BODY_MODE_RIGID_LINEAR`, rigid_body_3d.cpp:295), so
+ * each body's locks are one record here, seeded once from what the scene declared, and every change
+ * writes both to Rapier: a rotation is enabled unless `lock_rotation` holds or its axis is locked.
+ * A body without mass declares no locks (Rapier reads every axis of one as locked).
  */
 
 import { ActiveHooks } from '@dimforge/rapier3d-compat';
@@ -15,8 +21,13 @@ import { godot_node_entity } from './node';
 
 /** Each node's collision exceptions (`PhysicsBody3D::add_collision_exception_with`), both ways. */
 const EXCEPTIONS = new WeakMap<object, Set<object>>();
-/** The node's `locked_axis` bits (`PhysicsServer3D::BodyAxis`). */
-const LOCKED = new WeakMap<object, number>();
+/** A body's locks: its `locked_axis` bits (`PhysicsServer3D::BodyAxis`) and a rigid body's `lock_rotation`. */
+interface Locks {
+  axes: number;
+  rotation: boolean;
+}
+
+const LOCKS = new WeakMap<object, Locks>();
 
 function exceptionsOf(entity: object): Set<object> {
   let set = EXCEPTIONS.get(entity);
@@ -60,6 +71,33 @@ export function remove_collision_exception_with(self: object, body: object): voi
 }
 
 /**
+ * The node's locks, seeded when first asked for from its body: the axes the scene declared
+ * (`enabledRotations` / `enabledTranslations`) and its authored `lock_rotation` (`lockRotations`,
+ * stated in its `userData`), read before anything this module writes.
+ */
+function locksOf(entity: object): Locks {
+  let locks = LOCKS.get(entity);
+  if (locks === undefined) {
+    const body = godot_collision_object_body(entity);
+    const rotation = ((entity as { readonly userData?: Readonly<Record<string, unknown>> }).userData ?? {})['lock_rotation'] === true;
+    // Rapier's authored `lockRotations` hides which rotations the axis locks hold; the plan refuses the pair.
+    const declared = body === undefined || body.mass() === 0 ? 0 : declaredLocks(body) & (rotation ? 7 : 63);
+    locks = { axes: declared, rotation };
+    LOCKS.set(entity, locks);
+  }
+  return locks;
+}
+
+/** Writes the node's locks to its body. */
+function applyLocks(entity: object, locks: Locks): void {
+  const body = godot_collision_object_body(entity);
+  if (body === undefined) return;
+  const { axes, rotation } = locks;
+  body.setEnabledTranslations((axes & 1) === 0, (axes & 2) === 0, (axes & 4) === 0, true);
+  body.setEnabledRotations(!rotation && (axes & 8) === 0, !rotation && (axes & 16) === 0, !rotation && (axes & 32) === 0, true);
+}
+
+/**
  * Sets or clears a `BodyAxis` bit (linear x 1, y 2, z 4; angular x 8, y 16, z 32) of the node's
  * locks, as its Rapier body's enabled translations and rotations.
  *
@@ -68,13 +106,9 @@ export function remove_collision_exception_with(self: object, body: object): voi
  */
 export function set_axis_lock(self: object, axis: number, lock: boolean): void {
   const entity = godot_node_entity(self);
-  const body = godot_collision_object_body(entity);
-  const known = LOCKED.get(entity) ?? (body === undefined ? 0 : declaredLocks(body));
-  const locked = lock ? known | axis : known & ~axis;
-  LOCKED.set(entity, locked);
-  if (body === undefined) return;
-  body.setEnabledTranslations((locked & 1) === 0, (locked & 2) === 0, (locked & 4) === 0, true);
-  body.setEnabledRotations((locked & 8) === 0, (locked & 16) === 0, (locked & 32) === 0, true);
+  const locks = locksOf(entity);
+  locks.axes = lock ? locks.axes | axis : locks.axes & ~axis;
+  applyLocks(entity, locks);
 }
 
 /**
@@ -82,14 +116,33 @@ export function set_axis_lock(self: object, axis: number, lock: boolean): void {
  * @source scene/3d/physics/physics_body_3d.cpp:201
  */
 export function get_axis_lock(self: object, axis: number): boolean {
-  const entity = godot_node_entity(self);
-  const known = LOCKED.get(entity);
-  if (known !== undefined) return (known & axis) !== 0;
-  const body = godot_collision_object_body(entity);
-  return body !== undefined && (declaredLocks(body) & axis) !== 0;
+  return (locksOf(godot_node_entity(self)).axes & axis) !== 0;
 }
 
-/** The locks the scene declared (`enabledRotations` / `enabledTranslations`), read from the body. */
+/**
+ * Locks or frees every rotation of a rigid body (`RigidBody3D.lock_rotation`), its axis locks kept.
+ *
+ * @godot RigidBody3D (protocol)
+ * @source scene/3d/physics/rigid_body_3d.cpp:295
+ */
+export function godot_physics_body_3d_lock_rotation(self: object, lock: boolean): void {
+  const entity = godot_node_entity(self);
+  const locks = locksOf(entity);
+  locks.rotation = lock;
+  applyLocks(entity, locks);
+}
+
+/**
+ * Whether a rigid body's `lock_rotation` holds.
+ *
+ * @godot RigidBody3D (protocol)
+ * @source scene/3d/physics/rigid_body_3d.cpp:311
+ */
+export function godot_physics_body_3d_rotation_locked(self: object): boolean {
+  return locksOf(godot_node_entity(self)).rotation;
+}
+
+/** The locks the scene declared, read from the body's effective mass and inertia. */
 function declaredLocks(body: NonNullable<ReturnType<typeof godot_collision_object_body>>): number {
   const inverse = body.effectiveInvMass();
   const inertia = body.effectiveWorldInvInertia();

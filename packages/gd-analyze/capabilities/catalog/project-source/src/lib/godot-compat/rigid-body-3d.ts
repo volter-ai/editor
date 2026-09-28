@@ -17,6 +17,7 @@ import type { Collider, RigidBody } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import { godot_collision_object_body, godot_collision_object_node, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
 import { godot_node_entity, godot_node_object } from './node';
+import { godot_physics_body_3d_lock_rotation, godot_physics_body_3d_rotation_locked } from './physics-body-3d';
 import { createSignal, type GodotSignal } from './signal';
 import { type BodyContact, type BodyServerState, godot_direct_body_state, type PhysicsDirectBodyState3D } from './physics-direct-body-state-3d';
 import { godot_physics_material_apply, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
@@ -38,9 +39,6 @@ interface RigidState {
   contact_monitor: boolean;
   max_contacts_reported: number;
   contact_count: number;
-  lock_rotation: boolean;
-  /** The rotations the axis locks left enabled when `lock_rotation` locked them all, to restore. */
-  unlocked_rotations: readonly [boolean, boolean, boolean] | null;
   material: PhysicsMaterial | null;
 }
 
@@ -66,13 +64,10 @@ function stateOf(object: object): RigidState {
       contact_monitor: data['contact_monitor'] === true,
       max_contacts_reported: data['max_contacts_reported'] === undefined ? 0 : Number(data['max_contacts_reported']) | 0,
       contact_count: 0,
-      lock_rotation: data['lock_rotation'] === true,
-      unlocked_rotations: null,
       material: data['physics_material_override'] === undefined ? null : godot_physics_material_of(data['physics_material_override'] as Readonly<Record<string, unknown>>),
     };
     RIGID.set(entity, state);
     apply(entity, state);
-    if (state.lock_rotation) lockRotation(entity, state, true);
   }
   return state;
 }
@@ -415,29 +410,7 @@ export function apply_central_impulse(self: object, impulse: Vector3): void {
  * @source scene/3d/physics/rigid_body_3d.cpp:302
  */
 export function set_lock_rotation_enabled(self: object, lock_rotation: boolean): void {
-  const state = stateOf(self);
-  if (state.lock_rotation === lock_rotation) return;
-  state.lock_rotation = lock_rotation;
-  lockRotation(godot_node_entity(self), state, lock_rotation);
-}
-
-/**
- * Locks every rotation of the node's body, or gives the axis locks back their say. Rapier keeps one
- * set of locked axes where Godot keeps `lock_rotation` beside the axis locks (`body_set_axis_lock`),
- * so the rotations the axis locks left enabled are kept while `lock_rotation` holds, and restored.
- */
-function lockRotation(entity: object, state: RigidState, lock: boolean): void {
-  const body = godot_collision_object_body(entity);
-  if (body === undefined) return;
-  if (lock) {
-    const inertia = body.effectiveWorldInvInertia();
-    state.unlocked_rotations = [inertia.m11 !== 0, inertia.m22 !== 0, inertia.m33 !== 0];
-    body.lockRotations(true, true);
-  } else {
-    const [x, y, z] = state.unlocked_rotations ?? [true, true, true];
-    state.unlocked_rotations = null;
-    body.setEnabledRotations(x, y, z, true);
-  }
+  godot_physics_body_3d_lock_rotation(self, lock_rotation);
 }
 
 /**
@@ -445,7 +418,7 @@ function lockRotation(entity: object, state: RigidState, lock: boolean): void {
  * @source scene/3d/physics/rigid_body_3d.cpp:311
  */
 export function is_lock_rotation_enabled(self: object): boolean {
-  return stateOf(self).lock_rotation;
+  return godot_physics_body_3d_rotation_locked(self);
 }
 
 /**

@@ -431,6 +431,12 @@ function bodyProps(
   }
   if (locks.linear.includes(false)) props.set('enabledTranslations', dataExpression(locks.linear));
   if (locks.angular.includes(false)) props.set('enabledRotations', dataExpression(locks.angular));
+  // lock_rotation is Rapier's own `lockRotations`, beside its flag in `userData` for compat: Rapier
+  // merges it with the axis locks, which it then cannot report back, so the pair has no form.
+  if (data['lock_rotation'] === true) {
+    if (locks.angular.includes(false)) throw new Error(`${className}.lock_rotation with an angular axis lock has no idiomatic form`);
+    props.set('lockRotations', literal(true));
+  }
   if (!sensor) {
     // Godot's friction is the smaller of the pair's, its bounce the larger (`combine_friction`,
     // `combine_bounce`, godot_body_pair_3d.cpp:255); a body without a material has friction 1 and
