@@ -571,8 +571,12 @@ function sharedResource(emission: FamilyEmission, resource: TargetGodotSceneReso
   return (emission.uses.get(resource.key) ?? 0) > 1;
 }
 
-/** A local declared once for a shared resource: at module level, or in the component (`useMemo`) over the loaded resources it holds. */
-function declareShared(emission: FamilyEmission, key: string, base: string, made: TargetTsExpression, uses: readonly string[]): string {
+/**
+ * A local declared once for a shared resource: at module level, or in the component (`useMemo`) over
+ * the loaded resources it holds. `disposed`: one the component makes is let go of when it unmounts
+ * or remakes it (a `useEffect` cleanup calling its `dispose()`), as R3F does for an element's.
+ */
+function declareShared(emission: FamilyEmission, key: string, base: string, made: TargetTsExpression, uses: readonly string[], disposed = false): string {
   const existing = emission.shared.get(key);
   if (existing !== undefined) return existing;
   const local = freshLocal(emission, base);
@@ -596,6 +600,24 @@ function declareShared(emission: FamilyEmission, key: string, base: string, made
       ],
     },
   });
+  if (disposed) {
+    emission.react.add('useEffect');
+    emission.hooks.push({
+      kind: 'expression-statement',
+      expression: {
+        kind: 'call-expression',
+        callee: identifier('useEffect'),
+        arguments: [
+          {
+            kind: 'arrow-expression',
+            parameters: [],
+            body: { kind: 'arrow-expression', parameters: [], body: { kind: 'call-expression', callee: { kind: 'property-expression', object: identifier(local), property: 'dispose' }, arguments: [] } },
+          },
+          { kind: 'array-expression', elements: [identifier(local)] },
+        ],
+      },
+    });
+  }
   return local;
 }
 
@@ -634,7 +656,9 @@ function sharedMaterial(emission: FamilyEmission, resource: TargetGodotSceneReso
 
 /**
  * A planned material declared once: `new` its three class with its props, or the `material` of what
- * the plan's factory makes of them, handed to its `onUpdate`.
+ * the plan's factory makes of them, handed to its `onUpdate`. One the component makes (it holds a
+ * loaded texture) is disposed when the component lets it go, as the element it stands for would be;
+ * a factory's material lets go of what its handle holds when it is disposed.
  */
 function declareMaterial(emission: FamilyEmission, key: string, base: string, idiom: GodotSceneMaterialIdiom | undefined, resource?: TargetGodotSceneResourcePlan): string {
   if (idiom === undefined) throw new Error(`${resource?.key ?? key}: ${resource?.className ?? ''} has no three material`);
@@ -658,7 +682,7 @@ function declareMaterial(emission: FamilyEmission, key: string, base: string, id
         };
   // What an element's `onUpdate` does to its material, done once to the declared one.
   const made: TargetTsExpression = onUpdate === undefined ? constructed : { kind: 'call-expression', callee: onUpdate.value, arguments: [constructed] };
-  return declareShared(emission, key, base, made, uses);
+  return declareShared(emission, key, base, made, uses, true);
 }
 
 /** A data file the scene imports, once: its local. */

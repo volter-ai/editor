@@ -551,7 +551,10 @@ interface PlanContext {
   /**
    * Whether any of the project's scenes places a node written as a reflection probe: its lit
    * materials are then the reflections capability's (`scene-material-idioms.ts`), since a probe
-   * lights every geometry inside its box, whichever scene the geometry comes from.
+   * lights every geometry inside its box, whichever scene the geometry comes from. The scenes are
+   * the ones the game can reach: the read phase leaves out every scene nothing loads
+   * (`read/reachability.ts`), over-approximating, so a probe in a scene only a path spelled in a
+   * script reaches still counts, and one in a scene nothing names does not.
    */
   readonly reflected: boolean;
   readonly diagnostics: GodotSceneDocumentDiagnostic[];
@@ -2331,6 +2334,7 @@ export function planGodotSceneDocuments(
     },
     authority,
     scenes: new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const)),
+    // `project.documents.scenes` are the reachable scenes (`read/reachability.ts`).
     reflected: project.documents.scenes.some((scene) => scene.nodes.some((node) => godotSceneNodeIdiom(node.class.nativeName)?.form.kind === 'reflection-probe')),
     diagnostics: [],
   };

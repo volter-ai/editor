@@ -168,9 +168,11 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   // `normalMap` must flip its green channel, `normalScale.y` negative, wherever the geometry has no
   // `tangent` attribute: three's primitives have none, nor an ArrayMesh without ARRAY_TANGENT.
   // Three then derives the bitangent from the screen-space derivative of `v`
-  // (`perturbNormal2Arb`), and with every geometry's `v` running down the image and textures
-  // uploaded unflipped (`flipY` false) it points down the image, the opposite of Godot's. That
-  // is GLTFLoader's rule for the same convention (`normalScale.y *= -1`); a geometry with tangents
+  // (`getTangentFrame`, `normal_fragment_begin.glsl.js:30` in three 0.180), and with every
+  // geometry's `v` running down the image and textures uploaded unflipped (`flipY` false) it points
+  // down the image, the opposite of Godot's. That is GLTFLoader's rule for the same convention
+  // (`normalScale.y *= -1`, and `clearcoatNormalScale.y *= -1` for a physical material's clearcoat
+  // normal map, `GLTFLoader.js:3583-3586`), so the lane flips both; a geometry with tangents
   // carries their sign and needs no flip. `normalScale` is the material's and the tangents are the
   // geometry's, so one Godot material drawn on geometries of both kinds is two three materials,
   // split by whether the geometry has tangents (or every geometry is given tangents).
