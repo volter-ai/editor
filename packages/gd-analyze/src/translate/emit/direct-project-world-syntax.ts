@@ -269,7 +269,7 @@ export function emitDirectGodotWorldSyntax(
       },
     ],
   };
-  // Inside `<Physics>`: the world's wiring, the SceneTree, and the root Window, which delivers the
+  // Inside `<Physics>`: the world's wiring and the root Window, which delivers the
   // page's input and draws its canvas items from its own hooks.
   const gameComponent: TargetTsStatement = {
     kind: 'function-statement',
@@ -278,7 +278,6 @@ export function emitDirectGodotWorldSyntax(
     body: [
       statement(call('useGodotResources')),
       statement(call('useGodotWorld')),
-      statement(call('useGodotTree')),
       { kind: 'variable-statement', declaration: 'const', name: 'generation', initializer: call('useGodotSceneReload') },
       statement(call('useGodotRootWindow')),
       {
@@ -311,7 +310,7 @@ export function emitDirectGodotWorldSyntax(
       namedBindings: [{ imported: directGodotSceneAutoloadContextName(candidate.exportName), local: directGodotSceneAutoloadContextName(candidate.exportName) }],
     })),
     named('./lib/godot-compat/main', ['useGodotResources', 'useGodotSceneReload', 'useGodotWorld']),
-    named('./lib/godot-compat/advance', ['useGodotRootWindow', 'useGodotTree']),
+    named('./lib/godot-compat/advance', ['useGodotRootWindow']),
     ...(hasAutoloads ? [named('./lib/godot-compat/react-lifecycle', ['useGodotScene', 'useGodotScript'])] : []),
     ...[...new Set(hooks.compat.values())].map((module) =>
       named(`./lib/godot-compat/${module}`, [...hooks.compat].filter(([, from]) => from === module).map(([name]) => name)),

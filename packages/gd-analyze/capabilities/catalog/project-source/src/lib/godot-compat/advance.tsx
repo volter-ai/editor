@@ -7,19 +7,17 @@
  * for its internal physics processing, as a three.js component animates itself. The only hooks
  * compat takes from the host, each advancing one node: compat never drives other nodes' work from
  * the frame (docs/GODOT.md §The lane's law, row 4). A node that hands the renderer something each
- * frame (a WorldEnvironment) does it from its own component too (`useGodotDraw`). The SceneTree
- * advances the same way, from the
- * world's component (`useGodotTree`): its own frame counts and signals (timers and tweens are their
- * creators', and a queued deletion JavaScript's deferral, `scene-tree.ts`); and the
- * root Window, a node, from its own (`useGodotRootWindow`): the page's input and its canvas items.
+ * frame (a WorldEnvironment) does it from its own component too (`useGodotDraw`), and so does the
+ * root Window, a node (`useGodotRootWindow`): the page's input and its canvas items. The SceneTree
+ * has no hook: it keeps no clock, and a delta is read from the host when asked (`scene-tree.ts`).
  */
 
 import { useFrame, useThree } from '@react-three/fiber';
-import { useBeforePhysicsStep, useRapier } from '@react-three/rapier';
-import { useLayoutEffect, useRef } from 'react';
+import { useBeforePhysicsStep } from '@react-three/rapier';
+import { useRef } from 'react';
 import { godot_canvas_draw } from './canvas-item';
 import { get_physics_process_delta_time, godot_node_advance, is_inside_tree } from './node';
-import { godot_process_delta, godot_tree_physics_begin, godot_tree_physics_end, godot_tree_process_begin, godot_tree_process_end } from './scene-tree';
+import { godot_process_delta } from './scene-tree';
 import { godot_window_canvas_layer, godot_window_process_events } from './window';
 
 /**
@@ -48,32 +46,6 @@ export function useGodotDraw(entity: object | undefined, draw: () => void): void
   useFrame(() => {
     if (entity !== undefined && is_inside_tree(entity)) current.current();
   });
-}
-
-/**
- * The SceneTree's frames on the host's clock, from the world's component: each Rapier step begins
- * and ends its physics frame, each R3F frame begins and ends its process frame, counting the
- * frames and emitting `physics_frame`/`process_frame` as `SceneTree::physics_process` and
- * `SceneTree::process` do. Registered from a layout effect, the step's begin is its first
- * callback, and the frame's begin runs first by its priority.
- *
- * @godot SceneTree (protocol)
- * @source scene/main/scene_tree.cpp:639
- */
-export function useGodotTree(): void {
-  const rapier = useRapier();
-  useLayoutEffect(() => {
-    const begin = { current: () => godot_tree_physics_begin() };
-    const end = { current: () => godot_tree_physics_end() };
-    rapier.beforeStepCallbacks.add(begin as never);
-    rapier.afterStepCallbacks.add(end as never);
-    return () => {
-      rapier.beforeStepCallbacks.delete(begin as never);
-      rapier.afterStepCallbacks.delete(end as never);
-    };
-  }, [rapier]);
-  useFrame(() => godot_tree_process_begin(), -1);
-  useFrame(() => godot_tree_process_end());
 }
 
 /**

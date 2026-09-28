@@ -388,11 +388,17 @@ The SceneTree's clock, what `useGodotTree` still runs after steps 6 and 7, goes 
 what the corpus uses (the seven Godot 4 games, 2026-09-28):
 - a delta is read from the host, never kept: `get_physics_process_delta_time()` is the physics
   world's own timestep (Rapier's), `get_process_delta_time()` R3F's frame delta, bounded as a
-  script's `_process` delta is (racing's `vehicle.gd` reads the first);
+  script's `_process` delta is (racing's `vehicle.gd` reads the first); the world hands compat
+  R3F's clock and the Rapier world together, and the frame's delta is the change in the clock's
+  `elapsedTime` since the start read before (the root Window reads it every frame);
 - `is_action_just_pressed` and `_released` (eight scripts) are the Input library's own edges:
   an action records when it changed, in the page's time, and "just" is a change since the host's
   current frame began, read from R3F's clock, not from frames the tree counts; where several
-  physics steps run in one frame, it holds for each of them, where Godot holds it for the first;
+  physics steps run in one frame, it holds for each of them, where Godot holds it for the first
+  (built 2026-09-28: the root Window's flush, first in every frame, opens the frame and a microtask
+  closes it when R3F's frame task ends, so a change made between frames, such as `action_press` in
+  `_ready`, belongs to the next frame as in Godot; a press a script makes mid-frame holds for the
+  rest of that frame only, where Godot also holds it for the next physics step);
 - the frame counters (`Engine.get_process_frames`, `get_physics_frames`, `is_in_physics_frame`)
   and the `process_frame` and `physics_frame` signals, which no corpus game uses, are refused by
   name until one does, and then are owned as timers are (the script awaiting or connecting to one
