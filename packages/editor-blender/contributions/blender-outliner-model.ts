@@ -43,6 +43,9 @@ export interface PresentedView {
   blenderSelection(): { readonly selected: readonly string[]; readonly active: string | null };
   /** Where `volter.stage.mode` comes from — see `BlenderRuntimeView.stageMode`. */
   setStageMode(mode: string | null): void;
+  /** A pose moved mid-gesture, drawn by the other views of the model — see
+   *  `BlenderRuntimeView.mirrorPose`. */
+  mirrorPose?(object: THREE.Object3D): void;
 }
 
 const isPresentedView = (value: unknown): value is PresentedView =>

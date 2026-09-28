@@ -1511,6 +1511,8 @@ export function blenderOutlinerAuthoringFor(
       // `matrixWorld`, would sit still with them.
       object.updateMatrix();
       object.updateMatrixWorld(true);
+      // And every other area drawing the model moves with it, as Blender redraws them all.
+      presented()?.mirrorPose?.(object);
     },
     endEdit: async (id): Promise<WriteAck | undefined> => {
       const object = gestureObjects.get(id) ?? objectFor(id);
