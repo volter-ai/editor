@@ -20,6 +20,14 @@
  *   (`scene.glsl:2580`, `:2780`) from the colour converted by `Color::srgb_to_linear` and scaled by
  *   the energy (`rasterizer_scene_gles3.cpp:1618`); three adds its light times
  *   `BRDF_Lambert = albedo / PI`, so the light's intensity is `PI * energy`;
+ * - the sky's radiance is three's `scene.environment`, the sky as drawn captured by three's
+ *   `PMREMGenerator` at the sky's `radiance_size` (`doc/classes/Sky.xml:15`), which three's standard
+ *   and physical materials reflect and are lit by: Godot reflects the sky where the reflected light
+ *   source is the sky, or the background and the background is the sky
+ *   (`reflected_light_source`, `doc/classes/Environment.xml:203`, `:419`), and takes the sky's share
+ *   `ambient_light_sky_contribution` of its ambient from the sky where the ambient source is the
+ *   sky, or the background and the background is the sky (`:60`, `:64`, `:407`); the capture is
+ *   redone when the sky's parameters or its lights change;
  * - the tone mapper is three's own of the same name on the renderer (`toneMapping`, its exposure
  *   `toneMappingExposure`; `environment.h:66`: linear, Reinhard, filmic (three's Cineon, a
  *   filmic curve), ACES, and AgX as three's Neutral, `TONE_MAPPINGS`), where the post pass does
@@ -35,9 +43,11 @@
  *
  * Named deviations: `fog-model` (Godot fogs by `1 - exp(-distance * density)` per vertex, three's
  * `FogExp2` by `1 - exp(-(depth * density)^2)` per fragment; height fog and sun scatter are not
- * drawn, nor fog on the sky); `sky-radiance` (the sky's radiance, which Godot's materials reflect and
- * an ambient source of `SKY` lights with, is not captured: a scene whose ambient comes from the sky
- * refuses, and reflections of it are not drawn); `sky-light-order` (the sky's lights are the
+ * drawn, nor fog on the sky); `sky-irradiance` (three's environment lights a material's reflection
+ * and its diffuse ambient at one intensity, `scene.environmentIntensity`, where Godot sets them
+ * apart: a sky that is reflected also adds its irradiance to the diffuse ambient where Godot's comes
+ * from a colour, or from the sky at a share under 1; a sky that lights the ambient but is not
+ * reflected is reflected at that share); `sky-light-order` (the sky's lights are the
  * visible directional lights in scene-tree order, where Godot takes them in the order they entered
  * the world: the same for authored scenes, possibly different for lights a script adds or moves);
  * `srgb-output` (three writes sRGB with the exact
@@ -67,12 +77,14 @@ import {
   NeutralToneMapping,
   NoToneMapping,
   type PerspectiveCamera,
+  PMREMGenerator,
   ReinhardToneMapping,
-  type Scene,
   ShaderMaterial as ThreeShaderMaterial,
   type Texture,
+  Scene,
   type ToneMapping,
   type WebGLRenderer,
+  type WebGLRenderTarget,
 } from 'three';
 import type { Color } from './color';
 import { type Environment, godot_environment_tonemap_parameters } from './environment';
@@ -92,9 +104,10 @@ function srgbToLinear(value: number): number {
 }
 
 /**
- * The ambient light a scene's environment draws with: its linear colour and three intensity, or
- * null when the environment adds none (`rasterizer_scene_gles3.cpp:1603`); an ambient from the sky
- * throws by name (`sky-radiance`).
+ * The constant ambient light a scene's environment draws with: its linear colour and three
+ * intensity, or null when the environment adds none (`rasterizer_scene_gles3.cpp:1603`). Where the
+ * ambient comes from the sky, this is the colour's share, `1 - ambient_light_sky_contribution`
+ * (`doc/classes/Environment.xml:60`); the sky's share is its radiance (`godot_world_environment_sky_lighting`).
  *
  * @godot Environment (protocol)
  * @source drivers/gles3/rasterizer_scene_gles3.cpp:1603
@@ -107,10 +120,12 @@ export function godot_world_environment_ambient(env: Environment): { readonly co
     const c = env.bg_color;
     return { color: [f32(srgbToLinear(c.r) * env.bg_energy_multiplier), f32(srgbToLinear(c.g) * env.bg_energy_multiplier), f32(srgbToLinear(c.b) * env.bg_energy_multiplier)], intensity: Math.PI };
   }
-  if ((source === 0 && bg === 2) || source === 3) throw new Error('godot-compat: an ambient from the sky is not drawn (sky-radiance).');
-  if (source !== 2) return null;
+  const fromSky = source === 3 || (source === 0 && bg === 2);
+  if (!fromSky && source !== 2) return null;
+  const share = fromSky ? 1 - (godot_world_environment_sky_lighting(env)?.ambient ?? 0) : 1;
+  if (share === 0) return null;
   const c = env.ambient_color;
-  const e = env.ambient_energy;
+  const e = env.ambient_energy * share;
   return { color: [f32(srgbToLinear(c.r) * e), f32(srgbToLinear(c.g) * e), f32(srgbToLinear(c.b) * e)], intensity: Math.PI };
 }
 
@@ -413,6 +428,78 @@ export function godot_sky_material_three(material: ShaderMaterial, energy: numbe
   return three;
 }
 
+/**
+ * How the sky lights a scene's materials: whether they reflect it, and its share of the diffuse
+ * ambient; null when it lights nothing or the environment has no sky material.
+ * - `reflected_light_source` (`doc/classes/Environment.xml:203`): the background (`:419`) reflects
+ *   the sky when the background is the sky, the sky (`:425`) always, disabled (`:422`) never;
+ * - `ambient_light_source` (`:64`): the background (`:407`) takes the ambient from the sky when the
+ *   background is the sky, the sky (`:416`) always, at the share `ambient_light_sky_contribution`
+ *   (`:60`), the rest from the ambient colour.
+ *
+ * @godot Environment (protocol)
+ * @source doc/classes/Environment.xml:203
+ */
+export function godot_world_environment_sky_lighting(env: Environment): { readonly reflection: boolean; readonly ambient: number } | null {
+  if ((env.sky?.sky_material ?? null) === null) return null;
+  const skyBackground = env.bg_mode === 2;
+  const reflection = env.reflection_source === 2 || (env.reflection_source === 0 && skyBackground);
+  const ambient = env.ambient_source === 3 || (env.ambient_source === 0 && skyBackground) ? env.ambient_sky_contribution : 0;
+  return reflection || ambient > 0 ? { reflection, ambient } : null;
+}
+
+/**
+ * The sky's radiance on `scene`: the sky's three material captured into a prefiltered environment
+ * by three's `PMREMGenerator` and set as `scene.environment`, which three's standard and physical
+ * materials reflect and take their diffuse ambient from. Its intensity is 1 where the sky is
+ * reflected, else the sky's ambient share (`sky-irradiance`). The capture is redone before a render
+ * after the sky's parameters or lights change (a `Sky`'s automatic process mode updates its radiance
+ * when the sky changes, `doc/classes/Sky.xml`). Returns what to call before each render of `scene`,
+ * and the undo.
+ */
+function drawSkyRadiance(scene: Scene, gl: WebGLRenderer, env: Environment, sky: ThreeShaderMaterial, lighting: { readonly reflection: boolean; readonly ambient: number }): { readonly frame: () => void; readonly undo: () => void } {
+  const capture = new Scene();
+  const box = new Mesh(new BoxGeometry(1, 1, 1), sky);
+  box.frustumCulled = false;
+  capture.add(box);
+  // `Sky.radiance_size` (`doc/classes/Sky.xml:15`): 32 pixels, doubled per step.
+  const size = 32 * 2 ** Math.min(Math.max(env.sky?.radiance_size ?? 3, 0), 6);
+  const previous = { environment: scene.environment, intensity: scene.environmentIntensity };
+  let target: WebGLRenderTarget | null = null;
+  let captured: string | null = null;
+  let stale = true;
+  const material = env.sky?.sky_material ?? null;
+  const changed = material?.changed;
+  if (material !== null) {
+    material.changed = (name, value) => {
+      changed?.(name, value);
+      stale = true;
+    };
+  }
+  const frame = (): void => {
+    const lights = JSON.stringify(godot_world_environment_sky_lights(scene));
+    if (!stale && lights === captured) return;
+    stale = false;
+    captured = lights;
+    updateSkyLights(sky, scene);
+    const pmrem = new PMREMGenerator(gl);
+    const next = pmrem.fromScene(capture, 0, 0.1, 100, { size });
+    pmrem.dispose();
+    target?.dispose();
+    target = next;
+    scene.environment = next.texture;
+    scene.environmentIntensity = lighting.reflection ? 1 : lighting.ambient;
+  };
+  const undo = (): void => {
+    if (material !== null && changed !== undefined) material.changed = changed;
+    scene.environment = previous.environment;
+    scene.environmentIntensity = previous.intensity;
+    target?.dispose();
+    box.geometry.dispose();
+  };
+  return { frame, undo };
+}
+
 const ENVIRONMENT = new WeakMap<object, Environment | null>();
 
 /**
@@ -476,6 +563,8 @@ interface Drawn {
   readonly worlds: Group[];
   environment: Environment | null;
   undo: () => void;
+  /** What the drawn environment does before each render of the scene. */
+  frame: () => void;
   compiled: boolean;
 }
 
@@ -490,16 +579,22 @@ const DRAWN = new WeakMap<Scene, Drawn>();
 function drawnOf(scene: Scene): Drawn {
   let drawn = DRAWN.get(scene);
   if (drawn === undefined) {
-    const state: Drawn = { worlds: [], environment: null, undo: () => undefined, compiled: false };
+    const state: Drawn = { worlds: [], environment: null, undo: () => undefined, frame: () => undefined, compiled: false };
     drawn = state;
     DRAWN.set(scene, state);
     const previous = scene.onBeforeRender;
     scene.onBeforeRender = (renderer, drawnScene, camera, target, material, group) => {
       previous.call(scene, renderer, drawnScene, camera, target, material, group);
       const env = godot_world_environment_resolve(scene, camera);
-      if (env === state.environment && state.compiled) return;
+      if (env === state.environment && state.compiled) {
+        state.frame();
+        return;
+      }
       state.undo();
-      state.undo = env === null ? () => undefined : drawEnvironment(scene, renderer, env);
+      const drawing = env === null ? { undo: () => undefined, frame: () => undefined } : drawEnvironment(scene, renderer, env);
+      state.undo = drawing.undo;
+      state.frame = drawing.frame;
+      state.frame();
       if (state.compiled) {
         scene.traverse((object) => {
           const materials = (object as { material?: Material | Material[] }).material;
@@ -544,14 +639,19 @@ godot_camera_3d_world_listener((camera, viewport) => {
   if (get_camera_environment(camera) !== null && (viewport as { readonly isScene?: boolean }).isScene === true) drawnOf(viewport as Scene);
 });
 
-/** Draws `env` on `scene` with `gl`; the returned function undoes it. */
-function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): () => void {
+/** Draws `env` on `scene` with `gl`: what to do before each render, and the undo. */
+function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): { readonly frame: () => void; readonly undo: () => void } {
   const undo: (() => void)[] = [];
+  let frame = (): void => undefined;
+  const skyMaterial = env.sky?.sky_material ?? null;
+  const lighting = godot_world_environment_sky_lighting(env);
+  // The sky's three material, drawn as the background, captured as the radiance, or both.
+  const sky = skyMaterial !== null && (env.bg_mode === 2 || lighting !== null) ? godot_sky_material_three(skyMaterial, env.bg_energy_multiplier) : null;
+  if (sky !== null) undo.push(() => sky.dispose());
   // The background.
   if (env.bg_mode === 2) {
-    const sky = env.sky?.sky_material ?? null;
     if (sky !== null) {
-      const box = new Mesh(new BoxGeometry(1, 1, 1), godot_sky_material_three(sky, env.bg_energy_multiplier));
+      const box = new Mesh(new BoxGeometry(1, 1, 1), sky);
       box.frustumCulled = false;
       box.renderOrder = -Number.MAX_SAFE_INTEGER;
       box.onBeforeRender = (_renderer, drawnScene, camera) => {
@@ -564,7 +664,6 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): () 
       undo.push(() => {
         scene.remove(box);
         box.geometry.dispose();
-        (box.material as ThreeShaderMaterial).dispose();
       });
     }
   } else if (env.bg_mode === 1) {
@@ -574,6 +673,12 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): () 
     undo.push(() => {
       scene.background = previous;
     });
+  }
+  // The sky's radiance.
+  if (sky !== null && lighting !== null) {
+    const radiance = drawSkyRadiance(scene, gl, env, sky, lighting);
+    frame = radiance.frame;
+    undo.push(radiance.undo);
   }
   // The ambient light.
   const ambient = godot_world_environment_ambient(env);
@@ -602,7 +707,10 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): () 
     gl.toneMapping = previousMapping;
     gl.toneMappingExposure = previousExposure;
   });
-  return () => {
-    for (const step of undo.reverse()) step();
+  return {
+    frame,
+    undo: () => {
+      for (const step of undo.reverse()) step();
+    },
   };
 }

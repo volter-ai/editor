@@ -484,8 +484,6 @@ export function godotFamilyRefusal(
     case 'Environment': {
       const background = numberOf(setters, 'set_background', 0);
       if (background !== 1 && background !== 2) return `background_mode=${String(background)} is not drawn`;
-      const ambient = numberOf(setters, 'set_ambient_source', 0);
-      if (ambient === 3 || (ambient === 0 && background === 2)) return 'an ambient light from the sky is not drawn (sky-radiance)';
       if (numberOf(setters, 'set_fog_height_density', 0) !== 0) return 'height fog is not drawn';
       if (numberOf(setters, 'set_fog_sun_scatter', 0) !== 0) return 'fog sun scatter is not drawn';
       if (numberOf(setters, 'set_fog_mode', 0) !== 0) return 'depth fog is not drawn';
