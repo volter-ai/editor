@@ -13,7 +13,7 @@
  * are the node's `userData`'s, then its setters'. Moving platforms' velocity is not carried.
  */
 
-import type { Collider, KinematicCharacterController } from '@dimforge/rapier3d-compat';
+import { type Collider, type KinematicCharacterController, QueryFilterFlags } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import { godot_collision_object_body, godot_collision_object_layers, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
 import { godot_node_entity } from './node';
@@ -140,11 +140,14 @@ export function move_and_slide(owner: object): boolean {
   controller.computeColliderMovement(
     collider,
     op_multiply(state.velocity, delta),
+    // Never a sensor. Rapier holds the collider set while it asks the predicate, so the predicate
+    // reads only what JS holds: a collider's `isSensor()` there throws inside Rapier's call on
+    // every step, and the world later fails to free.
+    QueryFilterFlags.EXCLUDE_SENSORS,
     undefined,
-    undefined,
-    // What the character's mask takes; never its own colliders or a sensor.
+    // What the character's mask takes; never its own colliders.
     (other: Collider) => {
-      if (other.isSensor() || other.parent()?.handle === body.handle) return false;
+      if (other.parent()?.handle === body.handle) return false;
       const node = godot_collision_object_of_collider(other);
       return node === undefined || (own.mask & godot_collision_object_layers(node).layer) !== 0;
     },
