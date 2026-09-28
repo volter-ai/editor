@@ -172,7 +172,7 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   if (transparent) literal('transparent', true);
   if (transparency === 2) literal('alphaTest', 0.5);
   if (transparency === 3 || fade === 2 || fade === 3) literal('alphaHash', true);
-  if (transparency !== 0 || proximity || fade !== 0) literal('opacity', albedo?.[3] ?? 1);
+  if (transparency !== 0 || proximity || fade === 1) literal('opacity', albedo?.[3] ?? 1);
   // `DepthDrawMode` (`material.h:235`): `ALWAYS` 1, `DISABLED` 2; three writes depth by default.
   const depthDraw = num('set_depth_draw_mode') ?? 0;
   if (depthDraw === 2 || (depthDraw === 0 && transparent)) literal('depthWrite', false);
@@ -227,6 +227,7 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     data.push({ key: 'distance_fade_mode', value: fade });
     data.push({ key: 'distance_fade_min', value: f32(num('set_distance_fade_min_distance') ?? 0) });
     data.push({ key: 'distance_fade_max', value: f32(num('set_distance_fade_max_distance') ?? 10) });
+    if (transparency === 0) data.push({ key: 'distance_fade_opaque', value: true });
   }
   if (!unshaded) {
     if (diffuseMode !== 0 && diffuseMode !== 3) data.push({ key: 'diffuse_mode', value: diffuseMode });

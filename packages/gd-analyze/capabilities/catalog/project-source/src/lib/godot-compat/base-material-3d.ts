@@ -273,7 +273,7 @@ function apply(self: BaseMaterial3D, target: Material, model: boolean): void {
   target.transparent = self.transparency === TRANSPARENCY_ALPHA || self.transparency === TRANSPARENCY_DEPTH_PRE_PASS || proximity || fade === DISTANCE_FADE_PIXEL_ALPHA;
   target.alphaTest = self.transparency === TRANSPARENCY_ALPHA_SCISSOR ? 0.5 : 0;
   target.alphaHash = self.transparency === TRANSPARENCY_ALPHA_HASH || fade === DISTANCE_FADE_PIXEL_DITHER || fade === DISTANCE_FADE_OBJECT_DITHER;
-  target.opacity = self.transparency !== 0 || proximity || fade !== 0 ? self.albedo.a : 1;
+  target.opacity = self.transparency !== 0 || proximity || fade === DISTANCE_FADE_PIXEL_ALPHA ? self.albedo.a : 1;
   target.blending = blending(self.blend_mode);
   applyExtra(self, target);
   const albedo = self.textures[TEXTURE_ALBEDO] ?? null;
@@ -773,6 +773,7 @@ function applyExtra(self: BaseMaterial3D, target: Material): void {
     distance_fade_mode: extra.distance_fade,
     distance_fade_min: extra.distance_fade_min,
     distance_fade_max: extra.distance_fade_max,
+    distance_fade_opaque: self.transparency === 0,
   });
   godot_base_material_3d_scene_shader(target);
 }
@@ -845,8 +846,8 @@ interface SceneShading {
   readonly keepScale: boolean;
   readonly coloured: boolean;
   readonly proximity: boolean;
-  /** `DistanceFadeMode` with its distances, or undefined when disabled. */
-  readonly fade: readonly [mode: number, min: number, max: number] | undefined;
+  /** `DistanceFadeMode`, and whether a dither's material is otherwise opaque; undefined when disabled. */
+  readonly fade: readonly [mode: number, opaque: boolean] | undefined;
 }
 
 function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
@@ -856,10 +857,7 @@ function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
     keepScale: data['billboard_keep_scale'] === true,
     coloured: data['vertex_color_use_as_albedo'] === true,
     proximity: data['proximity_fade_enabled'] === true,
-    fade:
-      mode === 0
-        ? undefined
-        : [mode, typeof data['distance_fade_min'] === 'number' ? data['distance_fade_min'] : 0, typeof data['distance_fade_max'] === 'number' ? data['distance_fade_max'] : 10],
+    fade: mode === 0 ? undefined : [mode, data['distance_fade_opaque'] === true],
   };
 }
 
@@ -964,6 +962,18 @@ interface ProximityUniforms {
 
 const PROXIMITY = new WeakMap<Material, ProximityUniforms>();
 
+/** Each faded material's distances, which its program reads (`godotFadeMin`, `godotFadeSpan`). */
+const FADE = new WeakMap<Material, { readonly godotFadeMin: { value: number }; readonly godotFadeSpan: { value: number } }>();
+
+function fadeOf(target: Material): { readonly godotFadeMin: { value: number }; readonly godotFadeSpan: { value: number } } {
+  let uniforms = FADE.get(target);
+  if (uniforms === undefined) {
+    uniforms = { godotFadeMin: { value: 0 }, godotFadeSpan: { value: 10 } };
+    FADE.set(target, uniforms);
+  }
+  return uniforms;
+}
+
 function proximityOf(target: Material): ProximityUniforms {
   let uniforms = PROXIMITY.get(target);
   if (uniforms === undefined) {
@@ -1017,30 +1027,28 @@ function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billbo
     )}`;
   }
   if (fade !== undefined) {
-    // Distance fade: the albedo's alpha faded over the view distance (`material.cpp:1834`), the
-    // fragment's own for the pixel modes, the object's origin for object dither; three's hashed
-    // alpha then dithers it. A multimesh instance fades by its mesh's origin.
-    const [fadeMode, min, max] = fade;
+    // Distance fade over the view distance (`material.cpp:1834`): the fragment's own for the pixel
+    // modes, the object's origin for object dither (a multimesh instance fades by its mesh's
+    // origin). Pixel alpha fades the alpha; a dither of an otherwise opaque material is the fade
+    // alone, which three's hashed alpha then dithers, the material's own alpha ignored as Godot's
+    // dither ignores it. A dither beside a transparency mode fades that alpha (Godot discards by the
+    // fade alone and blends the unfaded alpha).
+    const [fadeMode, opaque] = fade;
+    Object.assign(shader.uniforms, fadeOf(target));
     const origin = fadeMode === 3 ? '( modelViewMatrix * vec4( 0.0, 0.0, 0.0, 1.0 ) ).xyz' : 'mvPosition.xyz';
     vertex = `varying vec3 vGodotFadeView;\n${vertex.replace('#include <fog_vertex>', `vGodotFadeView = ${origin};\n#include <fog_vertex>`)}`;
-    const span = Math.abs(max - min) < 1e-6 ? 1e-6 : max - min;
-    fragment = `varying vec3 vGodotFadeView;\n${fragment.replace(
+    fragment = `uniform float godotFadeMin;\nuniform float godotFadeSpan;\nvarying vec3 vGodotFadeView;\n${fragment.replace(
       '#include <alphatest_fragment>',
       [
-        `float godotFade = clamp( ( length( vGodotFadeView ) - ${glslFloat(min)} ) / ${glslFloat(span)}, 0.0, 1.0 );`,
-        'diffuseColor.a *= godotFade * godotFade * ( 3.0 - 2.0 * godotFade );',
+        'float godotFade = clamp( ( length( vGodotFadeView ) - godotFadeMin ) / godotFadeSpan, 0.0, 1.0 );',
+        'godotFade = godotFade * godotFade * ( 3.0 - 2.0 * godotFade );',
+        fadeMode !== 1 && opaque ? 'diffuseColor.a = godotFade;' : 'diffuseColor.a *= godotFade;',
         '#include <alphatest_fragment>',
       ].join('\n'),
     )}`;
   }
   shader.vertexShader = vertex;
   shader.fragmentShader = fragment;
-}
-
-/** A number as a GLSL float literal. */
-function glslFloat(value: number): string {
-  const text = String(value);
-  return /[.e]/u.test(text) ? text : `${text}.0`;
 }
 
 /** The scene draw each material's program was last asked for (its cache key's part), once its hook is on. */
@@ -1086,6 +1094,13 @@ export function godot_base_material_3d_scene_shader<M extends Material>(target: 
     target.onBeforeRender = (renderer, scene, camera, geometry, object, group) => {
       ownRender.call(target, renderer, scene, camera, geometry, object, group);
       const data = target.userData as Readonly<Record<string, unknown>>;
+      if (typeof data['distance_fade_mode'] === 'number' && data['distance_fade_mode'] !== 0) {
+        const min = typeof data['distance_fade_min'] === 'number' ? data['distance_fade_min'] : 0;
+        const max = typeof data['distance_fade_max'] === 'number' ? data['distance_fade_max'] : 10;
+        const uniforms = fadeOf(target);
+        uniforms.godotFadeMin.value = min;
+        uniforms.godotFadeSpan.value = Math.abs(max - min) < 1e-6 ? 1e-6 : max - min;
+      }
       if (data['proximity_fade_enabled'] !== true) return;
       const uniforms = proximityOf(target);
       uniforms.godotProximityDepth.value = sceneDepth(renderer, scene, camera);
