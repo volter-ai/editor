@@ -2977,6 +2977,13 @@ export function lowerOfficialExpression(
         // `value as T` on an object type: the value when its class or script is T, else null
         // (`OPCODE_CAST_TO_NATIVE` / `OPCODE_CAST_TO_SCRIPT`), through the Node protocol.
         const operandNode = context.node(node.operand, node);
+        // A cast analysis proves always holds is the value itself (`provenCasts`), which the typed
+        // read states as the class.
+        if (context.provenCasts.has(node.id)) {
+          const requirements = context.structural(node, 'cast', [operandNode], 'cast:native');
+          const operand = lowerExpression(context, operandNode);
+          return { ...operand, requirements: [...operand.requirements, ...requirements] };
+        }
         const test = objectTypeTest(context, node, node.datatype, 'cast');
         const requirements = context.structural(node, 'cast', [operandNode], `cast:${test.kind}`);
         return compose(

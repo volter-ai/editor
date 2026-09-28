@@ -652,6 +652,7 @@ function lowerScript(
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;
   context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
+  context.provenCasts = new Set(source.provenCasts);
   context.selfNodePaths = new Map(source.selfNodePaths.map((entry) => [entry.nodeId, entry.path] as const));
   const ownNodePaths = nodePaths.scripts.get(source.resPath) ?? [];
   context.nodeFields = new Map(

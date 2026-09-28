@@ -211,6 +211,8 @@ export class LoweringContext {
   globalEnumConstant: GlobalEnumConstantLookup = () => undefined;
   /** The field the scene hands each static node path in (`script-node-paths.ts`), by path; own and inherited. */
   nodeFields: ReadonlyMap<string, string> = new Map();
+  /** The `as Class` casts analysis proves always hold (`provenCasts`). */
+  provenCasts: ReadonlySet<number> = new Set();
   /** The literal path each node reads from self (analyze's `selfNodePaths`), by node. */
   selfNodePaths: ReadonlyMap<number, string> = new Map();
   #temporaryIndex = 0;
