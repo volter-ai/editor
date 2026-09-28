@@ -6,6 +6,7 @@
  * revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`: a `Basis` and a `Vector3 origin`.
  */
 
+import { Matrix4, Quaternion as ThreeQuaternion, Vector3 as ThreeVector3 } from 'three';
 import {
   type Basis,
   construct as basis,
@@ -36,6 +37,13 @@ export interface Transform3D {
 
 function make(b: Basis, origin: Vector3): Transform3D {
   return Object.freeze({ basis: basis(b), origin: vector3(origin) });
+}
+
+/** A transform as three's matrix (a column per basis axis and the origin). */
+function toMatrix(self: Transform3D): Matrix4 {
+  const { x, y, z } = self.basis;
+  const o = self.origin;
+  return new Matrix4().set(x.x, y.x, z.x, o.x, x.y, y.y, z.y, o.y, x.z, y.z, z.z, o.z, 0, 0, 0, 1);
 }
 
 /**
@@ -111,6 +119,28 @@ export function looking_at(
     return construct();
   }
   return make(lookingAtBasis(op_subtract(p_target, o), p_up, p_use_model_front), o);
+}
+
+/**
+ * The transform `weight` of the way to `xform`: each decomposed into scale, rotation and origin
+ * (three's `Matrix4.decompose`), the rotations slerped, the scales and origins lerped, composed
+ * again, as Godot interpolates (`Transform3D::interpolate_with`).
+ *
+ * @godot Transform3D.interpolate_with
+ * @source core/math/transform_3d.cpp:96
+ */
+export function interpolate_with(self: Transform3D, xform: Transform3D, weight: number): Transform3D {
+  const [fromPosition, fromRotation, fromScale] = [new ThreeVector3(), new ThreeQuaternion(), new ThreeVector3()];
+  const [toPosition, toRotation, toScale] = [new ThreeVector3(), new ThreeQuaternion(), new ThreeVector3()];
+  toMatrix(self).decompose(fromPosition, fromRotation, fromScale);
+  toMatrix(xform).decompose(toPosition, toRotation, toScale);
+  const e = new Matrix4().compose(
+    fromPosition.lerp(toPosition, weight),
+    fromRotation.slerp(toRotation, weight).normalize(),
+    fromScale.lerp(toScale, weight),
+  ).elements;
+  const axis = (at: number): Vector3 => vector3(f32(e[at] as number), f32(e[at + 1] as number), f32(e[at + 2] as number));
+  return construct(axis(0), axis(4), axis(8), axis(12));
 }
 
 /**

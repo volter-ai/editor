@@ -19,6 +19,15 @@
  *   or the right operand of the `and`, when nothing reassigns it) is a T; `and`, `or` and `not`
  *   over booleans are booleans (`OperatorEvaluatorAnd`, core/variant/variant_op.cpp).
  *
+ * - `utility-argument-type`: a Variant-returning utility function that returns its argument's type
+ *   (`abs`, `sign`, `floor`, `ceil`, `round`, `clamp`, `lerp`, `snapped`, `wrap`, `min`, `max`,
+ *   core/variant/variant_utility.cpp) returns that type when every value argument has the same
+ *   built-in type (`lerp`'s weight aside).
+ *
+ * - `local-assignment-type`: an untyped local declared once in its function, whose initializer and
+ *   every value assigned to it there have one built-in type, holds that type (GDScript's Variant
+ *   local holds what it was last assigned).
+ *
  * - `engine-virtual-parameter`, `signal-handler-parameter`, `call-site-parameter`: a read of an
  *   untyped parameter is the one datatype every caller of its function passes
  *   (`parameter-types.ts`), assigned nowhere in the function.
@@ -43,7 +52,18 @@ export type GodotAnalysisRuleId =
   | 'signal-handler-parameter'
   | 'call-site-parameter'
   | 'script-method-dispatch'
-  | 'member-assignment-type';
+  | 'member-assignment-type'
+  | 'utility-argument-type'
+  | 'local-assignment-type';
+
+/** The utility functions whose Variant result has their value arguments' type (`utility-argument-type`). */
+const UTILITY_ARGUMENT_TYPED: ReadonlySet<string> = new Set(['abs', 'sign', 'floor', 'ceil', 'round', 'clamp', 'lerp', 'snapped', 'wrap', 'min', 'max']);
+
+/**
+ * The Node lookups that return the node at a path: `get_node`, and `get_node_or_null`, which returns
+ * the same node where the path resolves (scene/main/node.cpp:1966, :1904).
+ */
+const NODE_LOOKUPS: ReadonlySet<string> = new Set(['get_node', 'get_node_or_null']);
 
 export interface BoundGodotRefinedType {
   readonly nodeId: number;
@@ -312,6 +332,41 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
   };
 
   /**
+   * The one built-in type an untyped local holds: declared once in the function that reads it, its
+   * initializer and every value assigned to it there (plain or compound) of that type.
+   */
+  const localAssignedType = (node: Extract<GodotBoundNode, { kind: 'IDENTIFIER' }>): GodotBoundDatatype | undefined => {
+    const scope = program.nodes.find((candidate) => candidate.kind === 'FUNCTION' && within(node, candidate));
+    if (scope === undefined) return undefined;
+    const named = (id: number): boolean => {
+      const identifier = nodes.get(id);
+      return identifier?.kind === 'IDENTIFIER' && identifier.name === node.name;
+    };
+    const declarations = program.nodes.filter((candidate) => candidate.kind === 'VARIABLE' && within(candidate, scope) && named(candidate.identifier));
+    if (declarations.length !== 1) return undefined;
+    const declaration = declarations[0] as Extract<GodotBoundNode, { kind: 'VARIABLE' }>;
+    if (declaration.initializer < 0) return undefined;
+    const values = [
+      declaration.initializer,
+      ...program.nodes.flatMap((candidate) => {
+        if (candidate.kind !== 'ASSIGNMENT' || !within(candidate, scope)) return [];
+        const assignee = nodes.get(candidate.assignee);
+        if (assignee?.kind !== 'IDENTIFIER' || assignee.name !== node.name || assignee.source !== 'LOCAL_VARIABLE') return [];
+        // A compound assignment's value is the operator's result, which keeps the type only when it is typed.
+        return [candidate.operation === 'OP_NONE' ? candidate.assignedValue : candidate.id];
+      }),
+    ];
+    let held: string | undefined;
+    for (const value of values) {
+      const type = datatypeOf(value);
+      const name = type?.kind === 'BUILTIN' && !type.metaType ? type.builtinType : undefined;
+      if (name === undefined || name === 'Nil' || (held !== undefined && held !== name)) return undefined;
+      held = name;
+    }
+    return held === undefined ? undefined : builtinDatatype(held);
+  };
+
+  /**
    * Whether a local is the result of `intersect_ray`: declared, in the function that reads it, by
    * `var name := <space state>.intersect_ray(...)` and never assigned again there.
    */
@@ -455,14 +510,14 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
 
   /**
    * The scene path an expression names, when it names one statically: `$Path` and `%Unique`, self,
-   * and `get_node` of a literal relative path on either.
+   * and `get_node` or `get_node_or_null` of a literal relative path on either.
    */
   const scenePathOf = (id: number): string | undefined => {
     const node = nodes.get(id);
     if (node?.kind === 'GET_NODE') return node.fullPath;
     if (node?.kind === 'SELF') return '.';
     if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE') return onreadyPath(node.name);
-    if (node?.kind !== 'CALL' || node.compilerTarget.kind !== 'native-method' || node.compilerTarget.member !== 'get_node' || node.arguments.length !== 1) return undefined;
+    if (node?.kind !== 'CALL' || node.compilerTarget.kind !== 'native-method' || !NODE_LOOKUPS.has(node.compilerTarget.member) || node.arguments.length !== 1) return undefined;
     const argument = nodes.get(node.arguments[0] as number);
     if (argument?.kind !== 'LITERAL') return undefined;
     const value = argument.value;
@@ -531,7 +586,7 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       ) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
-    } else if (node?.kind === 'CALL' && node.compilerTarget.kind === 'native-method' && node.compilerTarget.member === 'get_node') {
+    } else if (node?.kind === 'CALL' && node.compilerTarget.kind === 'native-method' && NODE_LOOKUPS.has(node.compilerTarget.member)) {
       const own = node.datatype;
       const path = scenePathOf(id);
       const type = path === undefined ? undefined : sceneNode(path);
@@ -594,6 +649,22 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
           : undefined;
       const type = scripted ?? (base === undefined ? undefined : methodReturn(base, node.functionName));
       if (type !== undefined) result = { datatype: type, rule: scripted !== undefined ? 'script-method-dispatch' : 'classdb-method-selection' };
+    } else if (
+      node?.kind === 'CALL' &&
+      node.compilerTarget.kind === 'variant-utility' &&
+      node.datatype.kind === 'VARIANT' &&
+      UTILITY_ARGUMENT_TYPED.has(node.compilerTarget.member)
+    ) {
+      // The value arguments: every one but `lerp`'s weight.
+      const values = node.compilerTarget.member === 'lerp' ? node.arguments.slice(0, 2) : node.arguments;
+      const types = values.map((argument) => {
+        const type = datatypeOf(argument);
+        return type?.kind === 'BUILTIN' && !type.metaType ? type.builtinType : undefined;
+      });
+      const first = types[0];
+      if (first !== undefined && first !== 'Nil' && types.every((type) => type === first)) {
+        result = { datatype: builtinDatatype(first), rule: 'utility-argument-type' };
+      }
     } else if (node?.kind === 'SUBSCRIPT' && !node.isAttribute && node.datatype.kind === 'VARIANT') {
       const base = datatypeOf(node.base);
       const index = datatypeOf(node.index);
@@ -607,6 +678,9 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       const type = narrowed(node);
       if (type !== undefined && (node.datatype.kind === 'VARIANT' || inherits(type.nativeType, node.datatype.nativeType))) {
         result = { datatype: type, rule: 'type-test-narrowing' };
+      } else if (node.source === 'LOCAL_VARIABLE' && node.datatype.kind === 'VARIANT') {
+        const held = localAssignedType(node);
+        if (held !== undefined) result = { datatype: held, rule: 'local-assignment-type' };
       }
     } else if (node?.kind === 'BINARY_OPERATOR' && node.datatype.kind === 'VARIANT') {
       const left = datatypeOf(node.leftOperand);

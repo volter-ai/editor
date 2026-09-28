@@ -23,7 +23,9 @@
  * - tone mapping is the renderer's (`tonemap_inc.glsl`: `color *= exposure`, then the tone mapper
  *   with the parameters `godot_environment_tonemap_parameters` computes) as three's
  *   `CustomToneMapping`, which every tone-mapped three material runs before its output conversion;
- * - fog is three's `FogExp2` of the fog colour (linear, times its energy) and density.
+ * - fog is three's `FogExp2` of the fog colour (linear, times its energy) and density;
+ * - a light that casts shadows is drawn as the renderer's additive pass, encoded to sRGB apart
+ *   from the rest and added (`godot_environment_light_passes_chunks`, three's lighting chunks).
  *
  * The environment drawn is resolved each time a viewport's scene renders, as the renderer resolves
  * it per camera (`RendererSceneCull::_render_get_environment`, renderer_scene_cull.cpp:3722): the
@@ -211,6 +213,87 @@ export function godot_environment_tonemapping_glsl(env: Environment, post = fals
 /** three's own tone mapping chunk, before any environment rewrote its custom function. */
 const TONEMAPPING_CHUNK = ShaderChunk.tonemapping_pars_fragment;
 const CUSTOM_STUB = /vec3 CustomToneMapping\( vec3 color \) \{ return color; \}/;
+
+/** three's own lighting and output chunks, before any environment split its shadowed lights. */
+const LIGHTS_PARS_CHUNK = ShaderChunk.lights_pars_begin;
+const LIGHTS_BEGIN_CHUNK = ShaderChunk.lights_fragment_begin;
+const TONEMAPPING_FRAGMENT_CHUNK = ShaderChunk.tonemapping_fragment;
+/** A light loop's shadowed-index test, up to its `RE_Direct` into the fragment's reflected light. */
+const SHADOWED_DIRECT = /(#if defined\( USE_SHADOWMAP \) && \( UNROLLED_LOOP_INDEX < (NUM_(?:POINT|SPOT|DIR)_LIGHT_SHADOWS) \)[\s\S]*?#endif\s*)RE_Direct\( directLight, ([^;]*), reflectedLight \);/g;
+
+/**
+ * The Compatibility renderer's additive light passes as three's lighting chunks
+ * (`lights_pars_begin`, `lights_fragment_begin`, `tonemapping_fragment`): a light that casts
+ * shadows is not drawn in the base pass (`rasterizer_scene_gles3.cpp:1564`) but in a pass of its
+ * own added onto the frame (`USE_ADDITIVE_LIGHTING`, `:3634`; blended `GL_ONE, GL_ONE`, `:3404`),
+ * and each pass converts its light to sRGB before the sum: the base pass writes
+ * `linear_to_srgb(base * exposure)` (`scene.glsl:2794-2798`), each light's pass
+ * `linear_to_srgb(light * exposure)` (`scene.glsl:3066-3072`), tone-mapped first where no post
+ * pass follows (`APPLY_TONEMAPPING`). three sums every light linearly and encodes once, so each
+ * lit three material here accumulates its shadowed lights' direct light (three orders the lights
+ * that cast shadows first: loop indices below `NUM_*_LIGHT_SHADOWS`) apart from the rest, encodes
+ * each as its pass does, and writes the colour whose encoding is the sum:
+ * - where the post pass follows (`post`), the colour the post pass's buffer pass
+ *   (`environment-post.ts`, `linear_to_srgb(color * exposure)`) encodes to
+ *   `linear_to_srgb(base * exposure) + Σ linear_to_srgb(light * exposure)`: the sum decoded by
+ *   `linear_to_srgb`'s exact inverse, divided by the exposure; the buffer's `GL_RGB10_A2` store
+ *   clamps it there as Godot's does;
+ * - else, `T(base)` and each `T(light)` (three's tone mapping, the environment's) encoded by
+ *   three's output encoding (`srgb-output`), summed, clamped to 1 and decoded, for that encoding
+ *   to write the sum; three's tone mapping is not run again. A tone-mapped channel below 0 (AgX's
+ *   outset matrix makes them of saturated colours) encodes as 0 (`linear_to_srgb` leaves negative
+ *   input undefined, `tonemap_inc.glsl:12`, and floors its result at 0), where three's encoding of
+ *   it is NaN.
+ * A fragment no shadowed light reaches writes its base colour unchanged (the encode and decode
+ * cancel). Named deviation `additive-light-terms`: a shadowed light's clearcoat and sheen are
+ * three's global terms, drawn with the base, and transmission does not attenuate its diffuse.
+ *
+ * @godot Environment (protocol)
+ * @source drivers/gles3/shaders/scene.glsl:2965
+ */
+export function godot_environment_light_passes_chunks(env: Environment, post: boolean): { readonly lights_pars_begin: string; readonly lights_fragment_begin: string; readonly tonemapping_fragment: string } {
+  // At no exposure the post pass's buffer is black whatever the lights: nothing to split.
+  if (post && env.tonemap_exposure === 0) return { lights_pars_begin: LIGHTS_PARS_CHUNK, lights_fragment_begin: LIGHTS_BEGIN_CHUNK, tonemapping_fragment: TONEMAPPING_FRAGMENT_CHUNK };
+  const exposure = glsl(env.tonemap_exposure);
+  const pars = `
+vec3 godotLightPasses = vec3( 0.0 );
+#if ( NUM_DIR_LIGHT_SHADOWS + NUM_POINT_LIGHT_SHADOWS + NUM_SPOT_LIGHT_SHADOWS ) > 0
+#define GODOT_LIGHT_PASSES
+${post ? '#define GODOT_POST_BUFFER\n' : ''}vec3 godot_light_pass( vec3 light ) {
+#ifdef GODOT_POST_BUFFER
+	return max( vec3( 1.055 ) * pow( light * ${exposure}, vec3( 0.416666667 ) ) - vec3( 0.055 ), vec3( 0.0 ) );
+#else
+	#ifdef TONE_MAPPING
+	light = toneMapping( light );
+	#endif
+	return sRGBTransferOETF( vec4( max( light, vec3( 0.0 ) ), 1.0 ) ).rgb;
+#endif
+}
+#endif
+`;
+  const begin = LIGHTS_BEGIN_CHUNK.replace(
+    SHADOWED_DIRECT,
+    (_match, test: string, count: string, args: string) => `${test}#if ( UNROLLED_LOOP_INDEX < ${count} )
+		{
+			ReflectedLight godotPass = ReflectedLight( vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ), vec3( 0.0 ) );
+			RE_Direct( directLight, ${args}, godotPass );
+			godotLightPasses += godot_light_pass( godotPass.directDiffuse + godotPass.directSpecular );
+		}
+		#else
+		RE_Direct( directLight, ${args}, reflectedLight );
+		#endif`,
+  );
+  const output = `
+#if defined( GODOT_LIGHT_PASSES ) && defined( GODOT_POST_BUFFER )
+	gl_FragColor.rgb = pow( ( godot_light_pass( gl_FragColor.rgb ) + godotLightPasses + vec3( 0.055 ) ) / 1.055, vec3( 2.4 ) ) / ${exposure};
+#elif defined( GODOT_LIGHT_PASSES )
+	gl_FragColor.rgb = sRGBTransferEOTF( vec4( min( godot_light_pass( gl_FragColor.rgb ) + godotLightPasses, vec3( 1.0 ) ), 1.0 ) ).rgb;
+#else
+${TONEMAPPING_FRAGMENT_CHUNK}
+#endif
+`;
+  return { lights_pars_begin: `${LIGHTS_PARS_CHUNK}${pars}`, lights_fragment_begin: begin, tonemapping_fragment: output };
+}
 
 /** The sky pass's code around the shader's `sky()` body (`sky.glsl:159`), `COLOR` in sRGB terms. */
 function skyFragment(shader: Shader): string {
@@ -585,8 +668,16 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): () 
   const previousExposure = gl.toneMappingExposure;
   gl.toneMapping = CustomToneMapping;
   gl.toneMappingExposure = env.tonemap_exposure;
+  // The shadowed lights' own passes, composed as the post pass (or its absence) needs them.
+  const passes = godot_environment_light_passes_chunks(env, godot_environment_post_enabled(env));
+  ShaderChunk.lights_pars_begin = passes.lights_pars_begin;
+  ShaderChunk.lights_fragment_begin = passes.lights_fragment_begin;
+  ShaderChunk.tonemapping_fragment = passes.tonemapping_fragment;
   undo.push(() => {
     ShaderChunk.tonemapping_pars_fragment = TONEMAPPING_CHUNK;
+    ShaderChunk.lights_pars_begin = LIGHTS_PARS_CHUNK;
+    ShaderChunk.lights_fragment_begin = LIGHTS_BEGIN_CHUNK;
+    ShaderChunk.tonemapping_fragment = TONEMAPPING_FRAGMENT_CHUNK;
     gl.toneMapping = previousMapping;
     gl.toneMappingExposure = previousExposure;
   });

@@ -76,7 +76,9 @@ export const GODOT_RGB10_STORE_GLSL = `vec3 godot_store_rgb10(vec3 value) {
 /**
  * The buffer pass: the scene's untonemapped colour as Godot's scene shader writes its internal
  * buffer (`scene.glsl:2794-2798`: `color *= exposure; color = linear_to_srgb(color)`; `:3074`:
- * `* luminance_multiplier`), stored in `GL_RGB10_A2`.
+ * `* luminance_multiplier`), stored in `GL_RGB10_A2`. A lit fragment reached by a light that casts
+ * shadows wrote the colour this encodes to its base pass plus that light's additive pass
+ * (`scene.glsl:3072`, `godot_environment_light_passes_chunks` in `world-environment.ts`).
  */
 export const GODOT_BUFFER_FRAGMENT = `precision highp float;
 uniform sampler2D scene_color;
