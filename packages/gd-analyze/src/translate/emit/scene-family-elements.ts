@@ -8,10 +8,12 @@ import { godotSceneSubnodes } from '../data/scene-document-plan';
  * - A `MeshInstance3D` is a `<mesh>` that casts shadows as Godot's default setting does and
  *   receives them as every Godot mesh does, its render layers as three's layer mask.
  * - A primitive mesh is three's matching geometry with Godot's parameters: a `PlaneMesh`/`QuadMesh`
- *   three's plane (turned to Godot's orientation), a `SphereMesh` three's sphere of `rings + 1`
- *   bands (Godot's builder makes `rings + 2` rows of vertices) turned a quarter to Godot's columns, a `CylinderMesh` three's cylinder of
- *   `rings + 1` height segments. Three lays a cylinder's UVs out its own way (`cylinder-uv-layout`)
- *   and gives a sphere's pole vertices the `u` half a segment on (`sphere-pole-u`).
+ *   three's plane, a `SphereMesh` three's sphere of `rings + 1` bands (Godot's builder makes
+ *   `rings + 2` rows of vertices) turned a quarter to Godot's columns, a `CylinderMesh` three's
+ *   cylinder of `rings + 1` height segments. Each is handed, once made, the compat function the plan
+ *   stamped on its idiom (`made`: a plane's turn to its orientation, the UV origin at the top row).
+ *   Three lays a cylinder's UVs out its own way (`cylinder-uv-layout`) and gives a sphere's pole
+ *   vertices the `u` half a segment on (`sphere-pole-u`).
  * - An `ArrayMesh` is a `<bufferGeometry>` whose attributes come from the mesh's data file
  *   (`data/scene-families.ts` writes it in three's conventions), a group per surface.
  * - A `StandardMaterial3D` is the three material element and props the plan gives it
@@ -39,6 +41,7 @@ import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../da
 import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { GODOT_DEFAULT_MATERIAL_IDIOM, type GodotSceneMaterialIdiom } from '../data/scene-material-idioms';
+import type { GodotSceneGeometryMade } from '../data/scene-resource-idioms';
 
 const f32 = Math.fround;
 
@@ -266,12 +269,9 @@ function arrayMeshData(emission: FamilyEmission, resource: TargetGodotSceneResou
   return local;
 }
 
-/**
- * The compat function that puts a three primitive geometry's UV origin at the image's top row, as
- * every geometry the game draws puts it (an ArrayMesh's data, an imported model's).
- */
-function uvTop(emission: FamilyEmission): string {
-  return useCompat(emission, 'primitive-mesh', 'godot_primitive_mesh_uv_top');
+/** The compat function the plan stamped for a primitive geometry to be handed once made. */
+function geometryMade(emission: FamilyEmission, stamp: GodotSceneGeometryMade): string {
+  return useCompat(emission, stamp.module, stamp.exportName);
 }
 
 /** A primitive or array mesh resource as three's geometry element. */
@@ -283,17 +283,8 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
     case 'plane': {
       const size = componentsValue(setterValue(set, 'set_size')) ?? idiom.size;
       const segments = [num('set_subdivide_width', 0) + 1, num('set_subdivide_depth', 0) + 1];
-      // `Orientation` (`primitive_meshes.h:240`): FACE_X 0, FACE_Y 1 (PlaneMesh's), FACE_Z 2 (QuadMesh's, three's own).
-      const orientation = num('set_orientation', idiom.orientation);
-      // Each made with its UV origin at the image's top row, as Godot's (`godot_primitive_mesh_uv_top`).
-      const made =
-        orientation === 1
-          ? useCompat(emission, 'plane-mesh', 'godot_plane_mesh_face_y')
-          : orientation === 0
-            ? useCompat(emission, 'plane-mesh', 'godot_plane_mesh_face_x')
-            : uvTop(emission);
       const args = segments.some((value) => value !== 1) ? [size[0] as number, size[1] as number, ...segments] : [size[0] as number, size[1] as number];
-      return element('planeGeometry', [attribute('args', numbers(args)), attribute('onUpdate', identifier(made))]);
+      return element('planeGeometry', [attribute('args', numbers(args)), attribute('onUpdate', identifier(geometryMade(emission, idiom.made)))]);
     }
     case 'sphere':
       // Godot's column `u` lies at (sin 2πu, cos 2πu) in XZ, three's at (-cos φ, sin φ): three's
@@ -306,7 +297,7 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
             { kind: 'binary-expression', operator: '/', left: { kind: 'property-expression', object: identifier('Math'), property: 'PI' }, right: literal(2) },
           ],
         }),
-        attribute('onUpdate', identifier(uvTop(emission))),
+        attribute('onUpdate', identifier(geometryMade(emission, idiom.made))),
       ]);
     case 'cylinder': {
       const open = boolValue(setterValue(set, 'set_cap_top')) === false;
@@ -321,7 +312,7 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
             ],
           },
         ),
-        attribute('onUpdate', identifier(uvTop(emission))),
+        attribute('onUpdate', identifier(geometryMade(emission, idiom.made))),
       ]);
     }
     case 'array-mesh': {
@@ -622,7 +613,8 @@ function sharedGeometry(emission: FamilyEmission, resource: TargetGodotSceneReso
     }
     const child = geometry(emission, resource) as TargetTsJsxChild & { readonly tag: string; readonly attributes: readonly TargetTsJsxAttribute[] };
     const args = child.attributes.find((entry) => entry.kind === 'jsx-expression-attribute' && entry.name === 'args');
-    const turn = child.attributes.find((entry) => entry.kind === 'jsx-expression-attribute' && entry.name === 'onUpdate');
+    const idiom = resource.idiom;
+    const stamp = idiom !== undefined && 'made' in idiom ? idiom.made : undefined;
     const three = child.tag.charAt(0).toUpperCase() + child.tag.slice(1);
     emission.three.add(three);
     const construct: TargetTsExpression = {
@@ -630,7 +622,7 @@ function sharedGeometry(emission: FamilyEmission, resource: TargetGodotSceneReso
       callee: identifier(three),
       arguments: args?.kind === 'jsx-expression-attribute' && args.value.kind === 'array-expression' ? args.value.elements : [],
     };
-    return turn?.kind === 'jsx-expression-attribute' ? { kind: 'call-expression', callee: turn.value, arguments: [construct] } : construct;
+    return stamp === undefined ? construct : { kind: 'call-expression', callee: identifier(geometryMade(emission, stamp)), arguments: [construct] };
   })();
   return declareShared(emission, resource.key, `${stemOf(resource.key)} geometry`, made, []);
 }

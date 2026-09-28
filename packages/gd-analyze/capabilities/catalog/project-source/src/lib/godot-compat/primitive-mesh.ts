@@ -272,6 +272,12 @@ const UV_TOP = new WeakSet<object>();
  * row, so each `v` becomes `1 - v`, once for a geometry however often R3F reports its update. Every
  * texture is then uploaded unflipped (`godot_base_material_3d_map`). The geometry is returned.
  *
+ * What this makes match is the direction `v` runs, not the whole layout. The plane, quad and sphere
+ * then lay the image as Godot's do. The cylinder does not: Godot puts its side in the image's top
+ * half (`v * 0.5`) and its caps in the bottom half (the top cap a circle about (0.25, 0.75), the
+ * bottom one about (0.75, 0.75)), where three's side spans the whole image and each cap samples the
+ * whole image about its centre. Only the side's direction, top row at the top, is Godot's.
+ *
  * @godot PrimitiveMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:1478
  */

@@ -146,6 +146,14 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     const roughnessTexture = resource('set_texture', 2);
     if (roughnessTexture !== undefined) props.push({ name: 'roughnessMap', value: { kind: 'map', texture: roughnessTexture, filter, repeat, srgb: false } });
   }
+  // No `normal_texture` (`TEXTURE_NORMAL`, 4) is planned yet. The lane that adds it as three's
+  // `normalMap` must flip its green channel, `normalScale.y` negative, wherever the geometry has no
+  // `tangent` attribute: three's primitives have none, nor an ArrayMesh without ARRAY_TANGENT.
+  // Three then derives the bitangent from the screen-space derivative of `v`
+  // (`perturbNormal2Arb`), and with every geometry's `v` running down the image and textures
+  // uploaded unflipped (`flipY` false) it points down the image, the opposite of Godot's. That
+  // is GLTFLoader's rule for the same convention (`normalScale.y *= -1`); a geometry with tangents
+  // carries their sign and needs no flip.
   if (!unshaded && bool('set_feature', 0) === true) {
     const emission = components('set_emission') ?? [0, 0, 0, 1];
     const energy = num('set_emission_energy_multiplier') ?? 1;

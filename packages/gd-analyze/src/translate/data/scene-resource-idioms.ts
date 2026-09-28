@@ -6,16 +6,27 @@
 import type { TargetGodotSceneSetterPlan } from './scene-document-plan';
 import { type GodotSceneMaterialIdiom, godotSceneMaterialIdiom } from './scene-material-idioms';
 
+/**
+ * The compat function a three primitive geometry is handed once made (its `onUpdate`, or the call
+ * around a shared geometry's `new`). Emit prints it and reachability ships its module, both from
+ * this stamp.
+ */
+export interface GodotSceneGeometryMade {
+  readonly module: string;
+  readonly exportName: string;
+}
+
 export type GodotSceneResourceIdiom =
   /**
-   * A PlaneMesh or QuadMesh: three's `planeGeometry`, with the class's default size and facing. A
-   * mesh drawn as a three geometry (`geometry`) is an element's `geometry` and `material` props.
+   * A PlaneMesh or QuadMesh: three's `planeGeometry`, with the class's default size, made facing
+   * its orientation. A mesh drawn as a three geometry (`geometry`) is an element's `geometry` and
+   * `material` props.
    */
-  | { readonly kind: 'plane'; readonly geometry: true; readonly size: readonly [number, number]; readonly orientation: number }
+  | { readonly kind: 'plane'; readonly geometry: true; readonly size: readonly [number, number]; readonly made: GodotSceneGeometryMade }
   /** A SphereMesh: three's `sphereGeometry`. */
-  | { readonly kind: 'sphere'; readonly geometry: true }
+  | { readonly kind: 'sphere'; readonly geometry: true; readonly made: GodotSceneGeometryMade }
   /** A CylinderMesh: three's `cylinderGeometry`. */
-  | { readonly kind: 'cylinder'; readonly geometry: true }
+  | { readonly kind: 'cylinder'; readonly geometry: true; readonly made: GodotSceneGeometryMade }
   /** An ArrayMesh: a `bufferGeometry` over its surfaces' data file. */
   | { readonly kind: 'array-mesh'; readonly geometry: true }
   /** A StandardMaterial3D: the three material and props `scene-material-idioms.ts` plans for it. */
@@ -40,12 +51,29 @@ export type GodotSceneResourceIdiom =
       readonly collider: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
     };
 
+/**
+ * Three's primitives put their UV origin at the image's bottom row; every geometry the game draws
+ * puts it at the top row, as Godot's do, and textures are uploaded unflipped.
+ */
+const UV_TOP: GodotSceneGeometryMade = { module: 'primitive-mesh', exportName: 'godot_primitive_mesh_uv_top' };
+
+/**
+ * A plane's `Orientation` (`primitive_meshes.h:240`) as what makes it: FACE_X 0 and FACE_Y 1 are
+ * three's plane turned by compat, which also puts the UV origin at the top row; FACE_Z 2 is three's
+ * own facing, only its UV origin moved.
+ */
+const PLANE_MADE: readonly GodotSceneGeometryMade[] = [
+  { module: 'plane-mesh', exportName: 'godot_plane_mesh_face_x' },
+  { module: 'plane-mesh', exportName: 'godot_plane_mesh_face_y' },
+  UV_TOP,
+];
+
 const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
-  // `Orientation` (`primitive_meshes.h:240`): FACE_X 0, FACE_Y 1 (PlaneMesh's), FACE_Z 2 (QuadMesh's).
-  PlaneMesh: { kind: 'plane', geometry: true, size: [2, 2], orientation: 1 },
-  QuadMesh: { kind: 'plane', geometry: true, size: [1, 1], orientation: 2 },
-  SphereMesh: { kind: 'sphere', geometry: true },
-  CylinderMesh: { kind: 'cylinder', geometry: true },
+  // A PlaneMesh faces FACE_Y by default, a QuadMesh FACE_Z.
+  PlaneMesh: { kind: 'plane', geometry: true, size: [2, 2], made: PLANE_MADE[1] as GodotSceneGeometryMade },
+  QuadMesh: { kind: 'plane', geometry: true, size: [1, 1], made: UV_TOP },
+  SphereMesh: { kind: 'sphere', geometry: true, made: UV_TOP },
+  CylinderMesh: { kind: 'cylinder', geometry: true, made: UV_TOP },
   ArrayMesh: { kind: 'array-mesh', geometry: true },
   StandardMaterial3D: 'material',
   GradientTexture2D: { kind: 'gradient-texture' },
@@ -72,5 +100,11 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
  */
 export function godotSceneResourceIdiom(className: string, setters: readonly TargetGodotSceneSetterPlan[]): GodotSceneResourceIdiom | undefined {
   const idiom = IDIOMS[className];
-  return idiom === 'material' ? godotSceneMaterialIdiom(setters) : idiom;
+  if (idiom === 'material') return godotSceneMaterialIdiom(setters);
+  if (idiom?.kind === 'plane') {
+    // An authored orientation replaces the class's facing.
+    const orientation = setters.find((setter) => setter.setter.exportName === 'set_orientation')?.value;
+    if (orientation?.kind === 'number') return { ...idiom, made: PLANE_MADE[orientation.value] ?? UV_TOP };
+  }
+  return idiom;
 }

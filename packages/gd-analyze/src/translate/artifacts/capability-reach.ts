@@ -64,12 +64,12 @@ function resourceModules(resource: TargetGodotSceneResourcePlan): readonly strin
       return ['animation-tree'];
     case 'array-mesh':
       return ['array-mesh'];
-    case 'plane': {
-      // Three's plane faces +Z (Godot's FACE_Z, 2); another facing is turned by compat's rotation.
-      const set = resource.setters.find((setter) => setter.setter.exportName === 'set_orientation')?.value;
-      const orientation = set?.kind === 'number' ? set.value : idiom.orientation;
-      return orientation === 2 ? [] : ['plane-mesh'];
-    }
+    // The function the plan stamped for the geometry to be handed once made, as emit prints it:
+    // every facing of a plane, a sphere and a cylinder go through compat (the UV origin at the top row).
+    case 'plane':
+    case 'sphere':
+    case 'cylinder':
+      return [idiom.made.module];
     case 'material':
       return idiom.props.flatMap((prop) => (prop.value.kind === 'compat' ? [prop.value.module] : []));
     default:
