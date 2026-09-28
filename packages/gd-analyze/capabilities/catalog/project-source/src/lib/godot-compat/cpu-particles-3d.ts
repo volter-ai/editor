@@ -485,10 +485,11 @@ export function finished(self: object): GodotSignal<[]> {
 }
 
 /**
- * Whether new particles are emitted; stopping lets the live particles finish their lives. A
- * one-shot system, or one whose particles have all died, starts a new cycle; a running system that
- * is stopped and started again carries on its cycle, so a script that switches a trail off and on
- * each frame keeps a steady trail.
+ * Whether new particles are emitted; stopping lets the live particles finish their lives. A system
+ * whose particles have all died starts a new cycle; one with particles still alive carries on its
+ * cycle (Godot resets its time only once the system is inactive, `cpu_particles_3d.cpp:662`), so a
+ * script that switches a trail off and on each frame keeps a steady trail, and a one-shot switched
+ * on again while its burst still lives does not burst twice (`restart` does that).
  *
  * @godot CPUParticles3D.set_emitting
  * @source scene/3d/cpu_particles_3d.cpp:51
@@ -497,7 +498,7 @@ export function set_emitting(self: object, emitting: boolean): void {
   const e = emitterOf(self, 'set_emitting');
   if (e.emitting === emitting) return;
   e.emitting = emitting;
-  if (emitting && (e.one_shot || !e.particles.some((particle) => particle.alive))) start(e);
+  if (emitting && !e.particles.some((particle) => particle.alive)) start(e);
 }
 
 /**

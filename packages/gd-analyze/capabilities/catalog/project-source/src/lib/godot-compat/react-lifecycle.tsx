@@ -65,7 +65,8 @@ function nodeOf(held: object | null): object | null {
  * The scene a component writes, as the tree has it: its root marked a scene root (the nodes the
  * component mounts below it are its own, which `%Name` and `get_owner` read), the scene seated and
  * entered into the tree once React's commit is done (`godot_node_enter`; a scene a script added is
- * entered by that `add_child`), and exited as React unmounts it. It exits in the layout cleanup,
+ * entered by that `add_child`), exited as React unmounts it, and exited and entered again as a
+ * Suspense boundary hides and reveals it. It exits in the layout cleanup,
  * while its objects still hang under one another: R3F takes a removed subtree apart before passive
  * cleanups run, and a node the exit cannot reach would stay in the tree (a camera still current).
  * Returns the scenes scripts added under its nodes, which the component renders.
@@ -89,13 +90,23 @@ export function useGodotScene(root: RefObject<object | null>): ReactNode {
       mounted = false;
     };
   }, []);
-  useLayoutEffect(
-    () => () => {
+  // A Suspense boundary that hides mounted content runs only layout cleanups, and on reveal only
+  // layout setups: the scene it exited is entered again here, where the passive effect above does
+  // not run twice.
+  const hidden = useRef<object | null>(null);
+  useLayoutEffect(() => {
+    const again = hidden.current;
+    if (again !== null) {
+      hidden.current = null;
+      seated.current = again;
+      godot_node_enter(again);
+    }
+    return () => {
       if (seated.current !== null) godot_node_exit(seated.current);
+      hidden.current = seated.current;
       seated.current = null;
-    },
-    [],
-  );
+    };
+  }, []);
   return createElement(GodotAddedScenes, { root });
 }
 
