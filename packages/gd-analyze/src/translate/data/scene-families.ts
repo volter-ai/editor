@@ -121,6 +121,35 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_param_curve:*',
     'set_particle_flag:*',
     'set_cast_shadows_setting',
+    'set_material_override',
+    ...VISIBILITY_RANGE,
+  ],
+  // `<GodotGPUParticles3D>`: the CPU particles Godot converts it to (`gpu-particles-3d.ts`). What
+  // the conversion does not carry has no prop: sub-emitters, trails, collision, transform
+  // alignment, the amount ratio, interpolation to the end, a skin.
+  GPUParticles3D: [
+    ...GEOMETRY_INSTANCE_3D,
+    'set_emitting',
+    'set_amount',
+    'set_lifetime',
+    'set_one_shot',
+    'set_pre_process_time',
+    'set_speed_scale',
+    'set_explosiveness_ratio',
+    'set_randomness_ratio',
+    'set_use_fixed_seed',
+    'set_seed',
+    'set_fixed_fps',
+    'set_interpolate',
+    'set_fractional_delta',
+    'set_visibility_aabb',
+    'set_use_local_coordinates',
+    'set_draw_order',
+    'set_process_material',
+    'set_draw_passes',
+    'set_draw_pass_mesh:0',
+    'set_material_override',
+    'set_cast_shadows_setting',
     ...VISIBILITY_RANGE,
   ],
   // `<GodotCSGBox3D>`, a box mesh of its size (`csg-box-3d.ts`).
@@ -323,6 +352,30 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ShaderMaterial: ['set_shader', 'set_shader_parameter:*'],
   Shader: [],
   CompressedCubemap: [],
+  // The parameters `CPUParticles3D::convert_from_particles` carries (`cpu_particles_3d.cpp:1484`), the
+  // twelve shared parameters' ranges and curves (`:1532`), and the alpha curve; the rest (turbulence,
+  // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, emission curves,
+  // textures and offsets, ring axis) has no converted form.
+  ParticleProcessMaterial: [
+    'set_direction',
+    'set_spread',
+    'set_flatness',
+    ...Array.from({ length: 12 }, (_, param) => [`set_param_min:${String(param)}`, `set_param_max:${String(param)}`, `set_param_texture:${String(param)}`]).flat(),
+    'set_color',
+    'set_color_ramp',
+    'set_color_initial_ramp',
+    'set_alpha_curve',
+    'set_particle_flag:0',
+    'set_particle_flag:1',
+    'set_particle_flag:2',
+    'set_emission_shape',
+    'set_emission_sphere_radius',
+    'set_emission_box_extents',
+    'set_gravity',
+    'set_lifetime_randomness',
+  ],
+  CurveTexture: ['set_curve', 'set_width'],
+  GradientTexture1D: ['set_gradient', 'set_width'],
   Curve: ['_set_limits', 'set_bake_resolution', '_set_data', 'set_point_count'],
   Gradient: ['set_interpolation_mode', 'set_interpolation_color_space', 'set_offsets', 'set_colors'],
   GradientTexture2D: ['set_gradient', 'set_width', 'set_height', 'set_fill', 'set_fill_from', 'set_fill_to', 'set_repeat'],
@@ -397,6 +450,17 @@ export function godotFamilyRefusal(
       if (numberOf(setters, 'set_fog_sun_scatter', 0) !== 0) return 'fog sun scatter is not drawn';
       if (numberOf(setters, 'set_fog_mode', 0) !== 0) return 'depth fog is not drawn';
       return undefined;
+    }
+    case 'GPUParticles3D': {
+      if (numberOf(setters, 'set_draw_order', 0) !== 0) return 'draw_order other than by index is not drawn';
+      if (numberOf(setters, 'set_draw_passes', 1) !== 1) return 'draw_passes after the first are not drawn';
+      return undefined;
+    }
+    case 'ParticleProcessMaterial': {
+      // `EMISSION_SHAPE_POINTS`, `_DIRECTED_POINTS` (their points are textures the conversion does
+      // not carry) and `_RING` (`particle_process_material.h:88`), which the CPU system does not emit from.
+      const shape = numberOf(setters, 'set_emission_shape', 0);
+      return shape >= 4 ? `emission_shape=${String(shape)} is not emitted from` : undefined;
     }
     case 'StandardMaterial3D': {
       const transparency = numberOf(setters, 'set_transparency', 0);

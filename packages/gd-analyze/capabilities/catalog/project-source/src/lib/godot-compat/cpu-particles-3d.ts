@@ -12,8 +12,11 @@
  * `InstancedMesh` of the particle mesh. Real values are `real_t` (float), times `double`.
  *
  * Drawn: the instance transforms, and each particle's colour and custom values as the per-instance
- * attributes the scene shader's vertex colour and particle billboard read. Not transcribed:
- * the draw orders other than by index, `request_particles_process`, sub-emitters.
+ * attributes the scene shader's vertex colour and particle billboard read, with the node's
+ * material override (`GeometryInstance3D`) in place of the mesh's material when it has one. A
+ * GPUParticles3D is this system, converted (`gpu-particles-3d.ts`); the one parameter of its process
+ * material the conversion does not carry that the system takes is the alpha curve. Not
+ * transcribed: the draw orders other than by index, `request_particles_process`, sub-emitters.
  */
 
 import type { ReactElement } from 'react';
@@ -21,6 +24,7 @@ import { type BufferGeometry, Group, InstancedBufferAttribute, InstancedMesh, ty
 import { godot_base_material_3d_three } from './base-material-3d';
 import { type Color, construct as color } from './color';
 import { type Curve, godot_curve_ensure_default_setup, sample as curveSample } from './curve';
+import { godot_geometry_instance_3d_draws_override, godot_geometry_instance_3d_material_override } from './geometry-instance-3d';
 import { randi } from './global-scope';
 import { type Gradient, sample as gradientSample } from './gradient';
 import { get_process_delta_time, godot_node_foreign, godot_node_set_internal_process, godot_node_tree_signal, is_inside_tree } from './node';
@@ -129,11 +133,15 @@ export interface CPUParticles3D {
   emission_ring_cone_angle: number;
   split_scale: boolean;
   scale_curve: [Curve | null, Curve | null, Curve | null];
+  /** A converted GPUParticles3D's alpha over each particle's life (`alpha_curve`), or none. */
+  alpha_curve: Curve | null;
   gravity: Vector3;
   mesh: PrimitiveMesh | null;
   /** The mesh as three draws it, when the scene states it as three's geometry and material. */
   geometry: BufferGeometry | null;
   material: Material | null;
+  /** The node's material override (`GeometryInstance3D.material_override`), drawn instead of `material`. */
+  material_override: Material | null;
   cast_shadow: boolean;
   inv_emission_transform: T3;
   rng: RandomPCG;
@@ -527,6 +535,8 @@ function particlesProcess(entity: object, s: CPUParticles3D, p_delta: number): v
     const mat3: [V3, V3, V3] = [[0.168, 0.33, -0.497], [-0.328, 0.035, 0.292], [1.25, -1.05, -0.203]].map((r) => r.map(f32)) as [V3, V3, V3];
     const hue: T3 = { rows: [0, 1, 2].map((j) => add(add(mat1[j] as V3, mul(mat2[j] as V3, hue_rot_c)), mul(mat3[j] as V3, hue_rot_s))) as [V3, V3, V3], origin: [0, 0, 0] };
     p.color = s.color_ramp !== null ? colorMul(gradientSample(s.color_ramp, tv), s.color) : s.color;
+    // A converted GPUParticles3D's alpha curve, after the ramp (`particle_process_material.cpp:688`).
+    if (s.alpha_curve !== null) p.color = color(p.color.r, p.color.g, p.color.b, f32(p.color.a * curveSample(s.alpha_curve, tv)));
     // `Basis::xform_inv`: the columns dotted with the vector.
     const rgb: V3 = [p.color.r, p.color.g, p.color.b];
     const inv: V3 = [dot(column(hue, 0), rgb), dot(column(hue, 1), rgb), dot(column(hue, 2), rgb)];
@@ -617,7 +627,7 @@ function draw(entity: object, s: CPUParticles3D): void {
   if (s.drawn === null || s.drawn.count !== count) {
     if (s.drawn !== null) (entity as Object3D).remove(s.drawn);
     const source = s.mesh === null ? null : get_material(s.mesh);
-    const material = s.material ?? (source === null ? undefined : godot_base_material_3d_three(source as never));
+    const material = s.material_override ?? s.material ?? (source === null ? undefined : godot_base_material_3d_three(source as never));
     const own = geometry.clone();
     own.setAttribute('godotInstanceColor', new InstancedBufferAttribute(new Float32Array(count * 4), 4));
     own.setAttribute('godotInstanceCustom', new InstancedBufferAttribute(new Float32Array(count * 4), 4));
@@ -800,10 +810,12 @@ export function godot_cpu_particles_3d_adopt(entity: object): void {
     emission_ring_cone_angle: 90,
     split_scale: false,
     scale_curve: [null, null, null],
+    alpha_curve: null,
     gravity: vector3(0, -9.8, 0),
     mesh: null,
     geometry: null,
     material: null,
+    material_override: null,
     cast_shadow: true,
     inv_emission_transform: identity(),
     rng: godot_random_pcg_new(),
@@ -819,6 +831,12 @@ export function godot_cpu_particles_3d_adopt(entity: object): void {
   s.seed = randi() >>> 0;
   s.parameters_min[PARAM_SCALE] = 1;
   s.parameters_max[PARAM_SCALE] = 1;
+  // The material override draws the instances in place of the mesh's material.
+  godot_geometry_instance_3d_draws_override(entity, (material) => {
+    s.material_override = material;
+    if (s.drawn !== null) (entity as Object3D).remove(s.drawn);
+    s.drawn = null;
+  });
   // `NOTIFICATION_ENTER_TREE` (`:1393`): processing as it emits, a first update before drawing.
   godot_node_tree_signal(entity, 'tree_entered').connect(() => {
     transformChanged(entity, s);
@@ -916,11 +934,27 @@ export function set_lifetime(self: object, lifetime: number): void {
 }
 
 /**
+ * @godot CPUParticles3D.get_lifetime
+ * @source scene/3d/cpu_particles_3d.cpp:142
+ */
+export function get_lifetime(self: object): number {
+  return stateOf(self, 'get_lifetime').lifetime;
+}
+
+/**
  * @godot CPUParticles3D.set_one_shot
  * @source scene/3d/cpu_particles_3d.cpp:100
  */
 export function set_one_shot(self: object, one_shot: boolean): void {
   stateOf(self, 'set_one_shot').one_shot = one_shot;
+}
+
+/**
+ * @godot CPUParticles3D.get_one_shot
+ * @source scene/3d/cpu_particles_3d.cpp:146
+ */
+export function get_one_shot(self: object): boolean {
+  return stateOf(self, 'get_one_shot').one_shot;
 }
 
 /**
@@ -932,6 +966,14 @@ export function set_pre_process_time(self: object, time: number): void {
 }
 
 /**
+ * @godot CPUParticles3D.get_pre_process_time
+ * @source scene/3d/cpu_particles_3d.cpp:150
+ */
+export function get_pre_process_time(self: object): number {
+  return stateOf(self, 'get_pre_process_time').pre_process_time;
+}
+
+/**
  * @godot CPUParticles3D.set_explosiveness_ratio
  * @source scene/3d/cpu_particles_3d.cpp:108
  */
@@ -940,11 +982,27 @@ export function set_explosiveness_ratio(self: object, ratio: number): void {
 }
 
 /**
+ * @godot CPUParticles3D.get_explosiveness_ratio
+ * @source scene/3d/cpu_particles_3d.cpp:154
+ */
+export function get_explosiveness_ratio(self: object): number {
+  return stateOf(self, 'get_explosiveness_ratio').explosiveness_ratio;
+}
+
+/**
  * @godot CPUParticles3D.set_randomness_ratio
  * @source scene/3d/cpu_particles_3d.cpp:112
  */
 export function set_randomness_ratio(self: object, ratio: number): void {
   stateOf(self, 'set_randomness_ratio').randomness_ratio = f32(ratio);
+}
+
+/**
+ * @godot CPUParticles3D.get_randomness_ratio
+ * @source scene/3d/cpu_particles_3d.cpp:158
+ */
+export function get_randomness_ratio(self: object): number {
+  return stateOf(self, 'get_randomness_ratio').randomness_ratio;
 }
 
 /**
@@ -964,11 +1022,27 @@ export function set_use_local_coordinates(self: object, enable: boolean): void {
 }
 
 /**
+ * @godot CPUParticles3D.get_use_local_coordinates
+ * @source scene/3d/cpu_particles_3d.cpp:170
+ */
+export function get_use_local_coordinates(self: object): boolean {
+  return stateOf(self, 'get_use_local_coordinates').local_coords;
+}
+
+/**
  * @godot CPUParticles3D.set_speed_scale
  * @source scene/3d/cpu_particles_3d.cpp:130
  */
 export function set_speed_scale(self: object, scale: number): void {
   stateOf(self, 'set_speed_scale').speed_scale = scale;
+}
+
+/**
+ * @godot CPUParticles3D.get_speed_scale
+ * @source scene/3d/cpu_particles_3d.cpp:174
+ */
+export function get_speed_scale(self: object): number {
+  return stateOf(self, 'get_speed_scale').speed_scale;
 }
 
 /**
@@ -980,11 +1054,27 @@ export function set_fixed_fps(self: object, fps: number): void {
 }
 
 /**
+ * @godot CPUParticles3D.get_fixed_fps
+ * @source scene/3d/cpu_particles_3d.cpp:206
+ */
+export function get_fixed_fps(self: object): number {
+  return stateOf(self, 'get_fixed_fps').fixed_fps;
+}
+
+/**
  * @godot CPUParticles3D.set_fractional_delta
  * @source scene/3d/cpu_particles_3d.cpp:210
  */
 export function set_fractional_delta(self: object, enable: boolean): void {
   stateOf(self, 'set_fractional_delta').fractional_delta = enable;
+}
+
+/**
+ * @godot CPUParticles3D.get_fractional_delta
+ * @source scene/3d/cpu_particles_3d.cpp:214
+ */
+export function get_fractional_delta(self: object): boolean {
+  return stateOf(self, 'get_fractional_delta').fractional_delta;
 }
 
 /**
@@ -1196,6 +1286,14 @@ export function set_use_fixed_seed(self: object, use: boolean): void {
 }
 
 /**
+ * @godot CPUParticles3D.get_use_fixed_seed
+ * @source scene/3d/cpu_particles_3d.cpp:578
+ */
+export function get_use_fixed_seed(self: object): boolean {
+  return stateOf(self, 'get_use_fixed_seed').use_fixed_seed;
+}
+
+/**
  * @godot CPUParticles3D.set_seed
  * @source scene/3d/cpu_particles_3d.cpp:582
  */
@@ -1209,6 +1307,17 @@ export function set_seed(self: object, seed: number): void {
  */
 export function get_seed(self: object): number {
   return stateOf(self, 'get_seed').seed;
+}
+
+/**
+ * A converted GPUParticles3D's alpha curve: each particle's alpha multiplied by the curve at its
+ * life's fraction, after the colour ramp, as its process material's shader does.
+ *
+ * @godot CPUParticles3D (protocol)
+ * @source scene/resources/particle_process_material.cpp:688
+ */
+export function godot_cpu_particles_3d_alpha_curve(self: object, curve: Curve | null): void {
+  stateOf(self, 'alpha_curve').alpha_curve = curve;
 }
 
 /**
@@ -1282,7 +1391,10 @@ const CPU_PARTICLES_3D_ELEMENT: GodotElementClass<Group> = {
     // The mesh as three's geometry and its surface material, as a scene states a drawn mesh.
     ['geometry', (self, value: BufferGeometry) => godot_cpu_particles_3d_draw_with(self, value, undefined)],
     ['material', (self, value: Material) => godot_cpu_particles_3d_draw_with(self, undefined, value)],
+    // A mesh three has no geometry idiom for, as its resource.
+    ['mesh', (self, value: PrimitiveMesh | null) => set_mesh(self, value)],
     ['castShadow', (self, value: number) => godot_cpu_particles_3d_cast_shadow(self, value)],
+    ['materialOverride', (self, value: Material) => godot_geometry_instance_3d_material_override(self, value)],
     ['direction', (self, value: readonly [number, number, number]) => set_direction(self, vector3(...value))],
     ['spread', (self, value: number) => set_spread(self, value)],
     ['flatness', (self, value: number) => set_flatness(self, value)],

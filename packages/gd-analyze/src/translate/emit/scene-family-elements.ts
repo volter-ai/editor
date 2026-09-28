@@ -917,14 +917,17 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
     ...(libraries.length === 0
       ? []
       : [attribute('libraries', { kind: 'object-expression', properties: libraries.map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) })) })]),
-    ...own.flatMap((setter) =>
-      setter.setter.exportName === 'godot_grid_map_set_data'
-        ? [attribute('data', identifier(dataImport(emission, godotGridMapDataPath(emission.targetPath, nodePath), `${nodePath === '.' ? 'grid' : nodePath} cells`)))]
-        : // Particles draw their mesh as three draws a mesh: its geometry and its surface's material.
-          setter.setter.exportName === 'set_mesh' && setter.setter.module.endsWith('/cpu-particles-3d')
-          ? particleMesh(emission, resourceOf(emission, setter.value))
-          : [attribute(godotPropName(setter.propertyName), propValue(emission, setter.value))],
-    ),
+    ...own.flatMap((setter) => {
+      if (setter.setter.exportName === 'godot_grid_map_set_data') {
+        return [attribute('data', identifier(dataImport(emission, godotGridMapDataPath(emission.targetPath, nodePath), `${nodePath === '.' ? 'grid' : nodePath} cells`)))];
+      }
+      const resource = resourceOf(emission, setter.value);
+      // A mesh an element draws (a particle system's) is three's geometry and its surface's material.
+      if (resource !== undefined && DRAWN_MESH_IDIOMS.has(resource.idiom?.kind ?? '')) return particleMesh(emission, resource);
+      // A material an element draws with (a material override) is three's material, as a mesh's is.
+      if (resource?.idiom?.kind === 'standard-material') return [attribute(godotPropName(setter.propertyName), identifier(sharedMaterial(emission, resource)))];
+      return [attribute(godotPropName(setter.propertyName), propValue(emission, setter.value))];
+    }),
     ...(meta.length === 0
       ? []
       : [attribute('meta', { kind: 'object-expression', properties: meta.map((setter) => ({ key: String(setter.index), value: metaValue(emission, setter.value) })) })]),
@@ -966,6 +969,9 @@ function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResource
   };
   return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}`, `${stemOf(texture.key)} map`, made, []);
 }
+
+/** The mesh idioms three draws as a geometry, which an element takes as its `geometry` and `material`. */
+const DRAWN_MESH_IDIOMS: ReadonlySet<string> = new Set(['plane', 'sphere', 'cylinder', 'array-mesh']);
 
 /** A particle system's mesh as the three geometry and material it draws, declared once in the module. */
 function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePlan | undefined): TargetTsJsxAttribute[] {

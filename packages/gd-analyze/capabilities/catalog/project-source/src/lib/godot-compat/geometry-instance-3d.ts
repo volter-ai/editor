@@ -12,14 +12,18 @@
  *
  * Its transparency is stored and read back; the Compatibility renderer (the web's) does not draw it.
  *
+ * Its material override is drawn by the node's own drawing, which says how
+ * (`godot_geometry_instance_3d_draws_override`): a particle system draws its instances with it.
+ *
  * Its visibility range is the Compatibility renderer's cull (`renderer_scene_cull.cpp:2835`): a scene
  * writes it as `<GodotVisibilityRange>` around the node's element, three's `LOD`, which the renderer
  * updates for each camera before drawing.
  */
 
+import { type BaseMaterial3D, godot_base_material_3d_of, godot_base_material_3d_three } from './base-material-3d';
 import { godot_element_callsite } from './node';
 import { type ReactElement, type ReactNode, createElement, useLayoutEffect, useState } from 'react';
-import { Box3, type Camera, LOD, type Object3D, Vector3 } from 'three';
+import { Box3, type Camera, LOD, type Material, type Object3D, Vector3 } from 'three';
 
 const SETTING = new WeakMap<Object3D, number>();
 
@@ -86,6 +90,60 @@ export function get_transparency(self: object): number {
   // A scene states it in the node's `userData` (0 until set, `visual_instance_3d.h:134`).
   const stated = (self as Partial<Object3D>).userData?.['transparency'];
   return TRANSPARENCY.get(self) ?? (typeof stated === 'number' ? stored(stated) : 0);
+}
+
+// --- Material override: drawn by the node's own drawing.
+
+const OVERRIDE = new WeakMap<object, BaseMaterial3D | null>();
+const DRAWS_OVERRIDE = new WeakMap<object, (material: Material | null) => void>();
+
+/**
+ * How a geometry instance draws its material override, as its drawing makes it (a particle system
+ * draws its instances with it); the override it already holds is drawn at once.
+ *
+ * @godot GeometryInstance3D (protocol)
+ * @source scene/3d/visual_instance_3d.cpp:218
+ */
+export function godot_geometry_instance_3d_draws_override(self: object, draw: (material: Material | null) => void): void {
+  DRAWS_OVERRIDE.set(self, draw);
+  const held = OVERRIDE.get(self);
+  if (held !== undefined) draw(held === null ? null : godot_base_material_3d_three(held));
+}
+
+/**
+ * The material every surface of the geometry draws with instead of its own. A node whose drawing
+ * does not draw an override fails by name.
+ *
+ * @godot GeometryInstance3D.set_material_override
+ * @source scene/3d/visual_instance_3d.cpp:218
+ */
+export function set_material_override(self: object, material: BaseMaterial3D | null): void {
+  const draw = DRAWS_OVERRIDE.get(self);
+  if (draw === undefined) throw new Error('godot-compat: GeometryInstance3D.set_material_override is not drawn for this node.');
+  OVERRIDE.set(self, material);
+  draw(material === null ? null : godot_base_material_3d_three(material));
+}
+
+/**
+ * The override as a scene states it: three's material, drawn as it is, and read back as the Godot
+ * material it is (`godot_base_material_3d_of`).
+ *
+ * @godot GeometryInstance3D (protocol)
+ * @source scene/3d/visual_instance_3d.cpp:218
+ */
+export function godot_geometry_instance_3d_material_override(self: object, material: Material): void {
+  const draw = DRAWS_OVERRIDE.get(self);
+  if (draw === undefined) throw new Error('godot-compat: GeometryInstance3D.set_material_override is not drawn for this node.');
+  OVERRIDE.set(self, godot_base_material_3d_of(material));
+  draw(material);
+}
+
+/**
+ * @godot GeometryInstance3D.get_material_override
+ * @source scene/3d/visual_instance_3d.cpp:229
+ */
+export function get_material_override(self: object): BaseMaterial3D | null {
+  return OVERRIDE.get(self) ?? null;
 }
 
 // --- Visibility range: `RendererSceneCull::_visibility_range_check`, as the Compatibility renderer draws it.

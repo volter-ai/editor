@@ -166,6 +166,8 @@ const IDIOMS: Readonly<Record<string, GodotSceneNodeIdiom>> = {
   ),
   GridMap: element('grid-map', 'GridMap', { file: 'modules/gridmap/grid_map.cpp', symbol: 'GridMap::_set (data)', line: 64 }),
   CPUParticles3D: element('cpu-particles-3d', 'CPUParticles3D', ctor('CPUParticles3D', 'scene/3d/cpu_particles_3d.cpp', 1812)),
+  // Written as the CPU particles Godot converts it to (`CPUParticles3D::convert_from_particles`).
+  GPUParticles3D: element('gpu-particles-3d', 'GPUParticles3D', ctor('GPUParticles3D', 'scene/3d/gpu_particles_3d.cpp', 933)),
   Decal: element('decal', 'Decal', ctor('Decal', 'scene/3d/decal.cpp', 294)),
   CSGBox3D: element('csg-box-3d', 'CSGBox3D', { file: 'modules/csg/csg_shape.cpp', symbol: 'CSGBox3D::_bind_methods', line: 1820 }, 'Mesh'),
   WorldEnvironment: element(
