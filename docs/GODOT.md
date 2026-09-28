@@ -667,13 +667,15 @@ because the Compatibility renderer never reads the instance's `force_alpha`
 Environment effects the Compatibility renderer draws only in its post pass (glow, SSAO,
 brightness/contrast/saturation) are `postprocessing`'s own effects in one `EffectComposer`
 (`@react-three/postprocessing`, the library `threejs-runtime` already builds its chain on), mounted
-only when the environment enables one: SSAO is `<N8AO>`, glow `<Bloom>` (mipmap blur,
-screen-blended), the contrast and saturation `<BrightnessContrast>` and `<HueSaturation>`, and the
-tone mapper `<ToneMapping>` (filmic as Hable's curve with Godot's input bias). Decided 2026-09-28
-under ruling 1, replacing a transcription of gles3's `post.glsl`, `glow.glsl` and `s4ao` passes. The
-differences are stated in `world-environment.ts`: N8AO's occlusion is not S4AO's, `glow_bloom` and
-the luminance cap are not carried, brightness is an offset about mid-grey where Godot multiplies,
-and the filmic curve's constants are not Godot's (a filmic scene draws somewhat darker).
+only when the environment enables one, in Godot's order: SSAO `<N8AO>`, glow `<Bloom>` (mipmap blur,
+screen-blended), the tone mapper `<ToneMapping>` with the renderer's own curves (filmic as Cineon,
+AgX as Neutral, so the curve does not change as the post pass turns on), then the adjustments
+`<BrightnessContrast>` and `<HueSaturation>`. Decided 2026-09-28 under ruling 1, replacing a
+transcription of gles3's `post.glsl`, `glow.glsl` and `s4ao` passes. The differences are stated in
+`world-environment.ts`: N8AO's occlusion is not S4AO's; glow thresholds linear luminance where Godot
+thresholds exposed sRGB channels, and `glow_bloom` and the luminance cap are not carried; the
+adjustments mix tone-mapped linear values where Godot mixes sRGB ones, the brightness an offset where
+Godot multiplies; three's filmic and AgX curves are not Godot's.
 Engine-generated shaders (PanoramaSkyMaterial, ProceduralSkyMaterial, PhysicalSkyMaterial) are
 lowered like a project `.gdshader`: the exporter module captures the text Godot generates for each
 variant (`export_engine_shader`) and runs it through the same frontend. The exporter's source patch

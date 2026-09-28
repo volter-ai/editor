@@ -37,14 +37,17 @@
  *   filmic curve), ACES, and AgX as three's Neutral, `TONE_MAPPINGS`) where the environment draws
  *   no post pass;
  * - glow, SSAO and the adjustments, which the web renderer draws in its post pass, are
- *   `postprocessing`'s effects in one `<EffectComposer>`, mounted only when one is enabled: SSAO
- *   `<N8AO>` (radius and intensity; N8AO's occlusion is its own, not Godot's S4AO), glow `<Bloom>`
- *   (mipmap blur over four levels, the bleed threshold and scale as its luminance threshold and
- *   smoothing, screen-blended; `glow_bloom` and the luminance cap are not carried), the contrast
- *   and saturation `<BrightnessContrast>` and `<HueSaturation>` (the same mixes; the brightness, a
- *   multiplier in Godot, is its offset about mid-grey), and the tone mapper `<ToneMapping>`
- *   (Reinhard with Godot's white, filmic as Hable's curve with Godot's input bias, whose constants
- *   differ from Godot's, ACES, AgX);
+ *   `postprocessing`'s effects in one `<EffectComposer>`, mounted only when one is enabled, in
+ *   Godot's order (SSAO, glow, the tone mapper, then the adjustments). SSAO is `<N8AO>` (radius and
+ *   intensity; its occlusion is its own, not Godot's S4AO, and it draws the scene again for its
+ *   depth). Glow is `<Bloom>` (mipmap blur over four levels, the bleed threshold and scale as its
+ *   luminance threshold and smoothing, screen-blended): it thresholds the linear luminance before
+ *   exposure where Godot thresholds the brightest channel of exposed sRGB values (a saturated
+ *   emissive blooms less), and blends on linear values; `glow_bloom` and the luminance cap are not
+ *   carried. The tone mapper is `<ToneMapping>` with the renderer's own curves (above). The
+ *   adjustments are `<BrightnessContrast>` and `<HueSaturation>` after it: the contrast and
+ *   saturation are Godot's mixes, on tone-mapped linear values where Godot mixes sRGB ones, and
+ *   the brightness, a multiplier in Godot, is an offset;
  * - fog is three's `FogExp2` of the fog colour (linear, times its energy) and density.
  *
  * Lighting and the output encoding are three's own: the scene is lit and encoded as three draws
@@ -609,12 +612,18 @@ export function godot_environment_post_enabled(env: Environment): boolean {
 }
 
 /**
- * An environment's post pass as `postprocessing` effects, in the web renderer's order: SSAO, glow
- * (screen-blended, as `post.glsl` blends it), the adjustments, then the tone mapper.
+ * An environment's post pass as `postprocessing` effects: SSAO, glow, the tone mapper, then the
+ * adjustments, which Godot applies after tone mapping (`post.glsl`).
  */
 function postEffects(env: Environment): ReactElement[] {
   const effects: ReactElement[] = [];
-  if (env.ssao_enabled) effects.push(createElement(N8AO, { key: 'ssao', aoRadius: env.ssao_radius, intensity: env.ssao_intensity }));
+  if (env.ssao_enabled) {
+    // N8AO encodes sRGB itself unless told it is not the last pass (`gammaCorrection`).
+    const linear = (pass: { configuration: { gammaCorrection: boolean } } | null) => {
+      if (pass !== null) pass.configuration.gammaCorrection = false;
+    };
+    effects.push(createElement(N8AO, { key: 'ssao', ref: linear as never, aoRadius: env.ssao_radius, intensity: env.ssao_intensity }));
+  }
   if (env.glow_enabled) {
     effects.push(
       createElement(Bloom, {
@@ -628,37 +637,24 @@ function postEffects(env: Environment): ReactElement[] {
       }),
     );
   }
+  effects.push(createElement(ToneMappingEffect, { key: 'tonemap', mode: POST_TONE_MAPPINGS[env.tone_mapper] ?? ToneMappingMode.LINEAR }));
   if (env.adjustment_enabled) {
     // Godot mixes about mid-grey by the contrast and about the luminance by the saturation
     // (`post.glsl`'s `apply_bcs`); these are the same mixes in `postprocessing`'s terms.
     const contrast = env.adjustment_contrast >= 1 ? 1 - 1 / env.adjustment_contrast : env.adjustment_contrast - 1;
     const saturation = env.adjustment_saturation >= 1 ? 1.001 - 1 / env.adjustment_saturation : env.adjustment_saturation - 1;
-    effects.push(createElement(BrightnessContrast, { key: 'bc', brightness: (env.adjustment_brightness - 1) * 0.5, contrast }));
+    effects.push(createElement(BrightnessContrast, { key: 'bc', brightness: env.adjustment_brightness - 1, contrast }));
     effects.push(createElement(HueSaturation, { key: 'saturation', saturation }));
   }
-  effects.push(createElement(ToneMappingEffect, { key: 'tonemap', ...postToneMapping(env) }));
   return effects;
 }
 
 /**
- * The tone mapper as `postprocessing`'s (`environment.h:66`): Reinhard with Godot's white point,
- * filmic as Hable's curve (Godot's filmic scales its input and white by 2, `tonemap_inc.glsl:42`),
- * ACES, AgX; the exposure is the renderer's (`toneMappingExposure`, set with the environment).
+ * The tone mapper as `postprocessing`'s, the same curves the renderer draws without a post pass
+ * (`TONE_MAPPINGS`), so an environment's curve does not change as it turns glow, SSAO or the
+ * adjustments on: linear, Reinhard, filmic as Cineon, ACES, and AgX as Neutral.
  */
-function postToneMapping(env: Environment): { readonly mode: ToneMappingMode; readonly whitePoint?: number } {
-  switch (env.tone_mapper) {
-    case 1:
-      return { mode: ToneMappingMode.REINHARD2, whitePoint: env.tonemap_white };
-    case 2:
-      return { mode: ToneMappingMode.UNCHARTED2, whitePoint: env.tonemap_white * 2 };
-    case 3:
-      return { mode: ToneMappingMode.ACES_FILMIC };
-    case 4:
-      return { mode: ToneMappingMode.AGX };
-    default:
-      return { mode: ToneMappingMode.LINEAR };
-  }
-}
+const POST_TONE_MAPPINGS: readonly ToneMappingMode[] = [ToneMappingMode.LINEAR, ToneMappingMode.REINHARD, ToneMappingMode.CINEON, ToneMappingMode.ACES_FILMIC, ToneMappingMode.NEUTRAL];
 
 /** What a scene draws its environment from, and the environment it drew last. */
 interface Drawn {
@@ -809,8 +805,7 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): { r
   const previousMapping = gl.toneMapping;
   const previousExposure = gl.toneMappingExposure;
   gl.toneMapping = godot_environment_post_enabled(env) ? NoToneMapping : (TONE_MAPPINGS[env.tone_mapper] ?? LinearToneMapping);
-  // The post pass's filmic curve takes Godot's input bias (`tonemap_inc.glsl:42`) as exposure.
-  gl.toneMappingExposure = godot_environment_post_enabled(env) && env.tone_mapper === 2 ? env.tonemap_exposure * 2 : env.tonemap_exposure;
+  gl.toneMappingExposure = env.tonemap_exposure;
   undo.push(() => {
     gl.toneMapping = previousMapping;
     gl.toneMappingExposure = previousExposure;
