@@ -199,7 +199,7 @@ skips the frame or unmounts the game.
    retired `vgai.*` protocol, so its re-pin is open. `main` publishes every push (`38bfb751`), so
    landing `godot` on `main` publishes the public packages whose files differ from `main`'s
    (`git diff --stat origin/main godot -- packages/<name>`; `gd-analyze` is private and never
-   publishes). After the 0.5.76 merge those are `game-editor` and `threejs-runtime`: `main`
+   publishes). Through the 0.5.77 merge those are `game-editor` and `threejs-runtime`: `main`
    already carries the editor's studio-light change (`829ec8eb`).
    Merged with `main` again (0.5.76): the import plan asks for `^` plus each workspace package's
    own version (`direct-project-data-plan.ts`, read through the monorepo's `node_modules`, which
@@ -207,9 +207,12 @@ skips the frame or unmounts the game.
    package-lock.json … ranges differ from the planned merge", and the frozen import lock
    (`toolchain/package-lock.json`) is re-resolved (at `^0.5.76`, then `^0.5.77`). The recipe:
    - rebuild `package.json` from the lock's own root entry, with each range set as the plan sets
-     it (`plannedPackageManifest`): each `@volter/*` range to that package's workspace version,
-     and every other range to the game template's (`packages/game-editor/template/package.json`),
-     which a merge from `main` can move too (`ztrack` at 0.5.77). The root lists only the 0.5.x
+     it (`plannedPackageManifest`): each `@volter/*` range to that package's workspace version;
+     the compat's own packages (`@dimforge/rapier3d-compat`, `@jsquash/webp`, the postprocessing,
+     Rapier and `fast-png` ranges) to the lane's catalog entry
+     (`packages/gd-analyze/capabilities/catalog/entries/godot-compat.json`); every other range to
+     the game template's (`packages/game-editor/template/package.json`), which a merge from `main`
+     can move too (`ztrack` at 0.5.77). The root lists only the 0.5.x
      lockstep packages; `blender-engine` and `editor-blender` come in transitively at their own
      0.1.x versions;
    - add the template's `overrides` (`packages/game-editor/template/package.json`, which pins
@@ -219,8 +222,10 @@ skips the frame or unmounts the game.
    - check it: the 0.5.x editor and game packages are one lockstep set (`@volter/supercode*`,
      pulled in by `editor-core`, versions on its own); no nested copy of the game's runtime
      (`three`, `game-runtime`, `threejs-runtime`), while `editor-core`'s own nested React and R3F
-     copies are expected (`main`'s lock has them too); `stats-gl` unchanged; the libc filters
-     kept; then both typechecks (gd-analyze and its project source), the platformer
+     copies are expected (`main`'s lock has them too), and from `ztrack` 1.5.10 on, the supercode
+     client is nested under `editor-core` too (`ztrack`'s optional peer asks a newer one);
+     `stats-gl` unchanged; the libc filters kept; a few transitive packages may float, so read the
+     list of changed versions; then both typechecks (gd-analyze and its project source), the platformer
      import and its probe.
    Only a version whose whole lockstep set is published resolves: the `@volter` packages pin each
    other exactly, and `game-editor` 0.5.76 sat staged on npm for a while after its release run
