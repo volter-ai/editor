@@ -1,35 +1,55 @@
-# Autopublish: a push to main builds and checks the game release (which lists
-# the modeling release's packages too) and publishes, with provenance, every
-# package of release/game.json whose version npm does not have yet. A release
-# is a version bump on main. Auth is the repository secret NPM_TOKEN (an npm
-# automation token with write on the @volter scope).
+# Autopublish: every push to main releases what it changed. autorelease.mjs
+# moves each changed package (and what pins it exactly) to its next patch
+# version, the release is built and every version npm lacks is published, and
+# the version commit goes back to main. Auth is the repository secret NPM_TOKEN
+# (an npm automation token with write on the @volter scope).
 name: publish
 on:
   push:
     branches: [main]
   workflow_dispatch:
-concurrency: publish
+concurrency:
+  group: publish
+  cancel-in-progress: false
 permissions:
-  contents: read
+  contents: write
   id-token: write
 jobs:
   publish:
     runs-on: ubuntu-latest
     timeout-minutes: 60
+    env:
+      LOCKSTEP: 1
+      PIN_FILES: packages/game-editor/catalog/entries/blender.json packages/game-editor/catalog/entries/music.json
+      VERSION_TEXT: packages/dawproject/src/render.ts=@volter/dawproject
     steps:
       - uses: actions/checkout@v4
+        with:
+          ref: main
+          fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
           node-version: 24
           registry-url: https://registry.npmjs.org
           cache: npm
+      - name: The release's packages, from release/game.json
+        run: |
+          echo "PACKAGES=$(for name in $(node -p "require('./release/game.json').packages.join(' ')"); do grep -l "\"name\": \"$name\"" packages/*/package.json | xargs dirname; done | tr '\n' ' ')" >> "$GITHUB_ENV"
+      - run: git config core.fileMode false
+      - name: Version what changed since its last release
+        id: release
+        run: node .github/autorelease.mjs
+      - if: steps.release.outputs.released
+        name: The lockfile follows the versions
+        run: if [ -f package-lock.json ]; then npm install --package-lock-only --ignore-scripts --no-audit --no-fund; fi
+      - name: The files the release changed
+        run: git diff --name-only > "$RUNNER_TEMP/release-files"
       - name: Which versions npm lacks
         id: check
         run: |
           new=""
-          for name in $(node -p "require('./release/game.json').packages.join(' ')"); do
-            dir="$(grep -l "\"name\": \"$name\"" packages/*/package.json | xargs dirname)"
-            spec="$name@$(node -p "require('./$dir/package.json').version")"
+          for dir in $PACKAGES; do
+            spec="$(node -p "const p=require('./$dir/package.json'); p.name+'@'+p.version")"
             if [ -n "$(npm view "$spec" version 2>/dev/null)" ]; then echo "$spec is published"; else echo "$spec is new"; new="$new $dir"; fi
           done
           echo "new=$new" >> "$GITHUB_OUTPUT"
@@ -39,19 +59,27 @@ jobs:
         run: npm run build:game
       - if: steps.check.outputs.new
         run: npm run check:release:game && npm run check:packed-imports:game
-      # A large package stays "staged" for minutes after its publish, and `npm view`
-      # does not see it yet, so a push inside that window lists it as new again. npm
-      # then answers E409 "previously staged/published": that version IS released.
       - if: steps.check.outputs.new
-        run: |
-          for dir in ${{ steps.check.outputs.new }}; do
-            if ! out="$(cd "$dir" && npm publish --access public --provenance --ignore-scripts 2>&1)"; then
-              echo "$out"
-              echo "$out" | grep -q "Cannot publish over previously" || exit 1
-              echo "$dir: this version is already published or staged"
-            else
-              echo "$out"
-            fi
-          done
+        name: Publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
+        run: |
+          for dir in ${{ steps.check.outputs.new }}; do
+            if ! (cd "$dir" && npm publish --access public --provenance --ignore-scripts 2>"$RUNNER_TEMP/err"); then
+              cat "$RUNNER_TEMP/err"
+              grep -qi 'cannot publish over' "$RUNNER_TEMP/err" || exit 1
+            fi
+          done
+      - name: The version commit goes back to main
+        run: |
+          [ -s "$RUNNER_TEMP/release-files" ] || exit 0
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add $(cat "$RUNNER_TEMP/release-files")
+          git commit -qm "Release $(for dir in $PACKAGES; do git diff --cached --quiet -- "$dir/package.json" || node -p "const p=require('./$dir/package.json'); p.name+'@'+p.version"; done | tr '\n' ' ')"
+          git reset -q --hard HEAD
+          for attempt in 1 2 3 4 5; do
+            if git pull -q --rebase origin main; then git push -q origin HEAD:main && exit 0; else git rebase --abort; fi
+            sleep 5
+          done
+          exit 1

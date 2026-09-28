@@ -2,9 +2,9 @@
 
 Volter Editor 0.5.72 (editor-blender 0.1.13, blender-engine 0.1.11) is published by CI:
 `.github/workflows/publish.yml` builds the game release on every push to main, runs `check:release:game` and
-`check:packed-imports:game`, and publishes with npm provenance every package of
-[release/game.json](release/game.json) whose version npm lacks, so a release is the version commit; a version npm
-is still processing counts as released. From the registry, `npx @volter/game-editor@0.5.72 create reg-game --with
+`check:packed-imports:game`, moves every package of [release/game.json](release/game.json) together to its next
+patch version when any changed, publishes them with npm provenance and commits the versions back to main, so every
+push is released; a version npm is still processing counts as released. From the registry, `npx @volter/game-editor@0.5.72 create reg-game --with
 three,ui` scaffolded a project whose first commit carries no `node_modules` link, and its session read connected,
 no console errors and no mount failures; Play ran and `screenshot` photographed the world with its styled HUD.
 Not re-walked since 0.5.68: music, scene launch and render
