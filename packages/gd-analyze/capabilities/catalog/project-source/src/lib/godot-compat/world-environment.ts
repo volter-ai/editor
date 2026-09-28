@@ -103,7 +103,7 @@ import type { Color } from './color';
 import { type Environment, godot_environment_tonemap_parameters } from './environment';
 import { get_environment as get_camera_environment, godot_camera_3d_world_listener } from './camera-3d';
 import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
-import { godot_node_foreign, godot_node_observe_tree } from './node';
+import { godot_node_foreign, godot_node_is_node, godot_node_observe_child_order, godot_node_observe_tree } from './node';
 import { get_global_basis } from './node-3d';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import type { Shader } from './shader';
@@ -315,7 +315,7 @@ ${lowered.renderModes.includes('use_debanding') ? SKY_DEBANDING : ''}}
  * the post pass draws (`godot_environment_post_enabled`), the composer's render pass draws the sky
  * into its linear input buffer, so the noise lands on linear values before the post pass encodes
  * them (`environment-post.ts`), and is larger near black than Godot's. Godot adds it to the sRGB
- * values in its own buffer, both scaled by `luminance_multiplier`, 0.25 with glow on
+ * values in its own buffer, both scaled by `luminance_multiplier`, 0.25 with glow on a 10-bit target
  * (`rasterizer_scene_gles3.cpp:2465-2469`).
  */
 const SKY_DEBANDING = `	{
@@ -418,23 +418,32 @@ function writeSkyLights(scene: Object3D, lights: readonly DirectionalLight[], sl
   return changed;
 }
 
-/** Whether `object` is a directional light or holds one below it. */
+/** Whether `object` is a directional light, or holds one in the three objects it draws with. */
+function ownsDirectionalLight(object: Object3D): boolean {
+  if ((object as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) return true;
+  return object.children.some((child) => !godot_node_is_node(child) && ownsDirectionalLight(child));
+}
+
+/** Whether `object` or anything below it, node or not, is a directional light. */
 function holdsDirectionalLight(object: Object3D): boolean {
   if ((object as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) return true;
-  const children = (object as { readonly children?: readonly Object3D[] }).children;
-  return Array.isArray(children) && children.some(holdsDirectionalLight);
+  return object.children.some(holdsDirectionalLight);
 }
 
 /**
  * Bumped when a directional light enters, leaves or moves in the tree: a sky's held lights are
  * collected again. Entering, leaving and freeing notify the tree's observers once per node of the
- * subtree (`node.ts`), so there the light itself is seen; `move_child` notifies them with the moved
- * child alone, so a moved node that holds a light counts too. Any other node's coming and going
- * collects nothing.
+ * subtree (`node.ts`), so each node answers only for itself and the non-node objects it draws with
+ * (a model's own lights), and a subtree costs one visit per object. `move_child` notifies with the
+ * moved child alone, so a moved node counts when anything below it is a light. Any other node's
+ * coming and going collects nothing.
  */
 let treeVersion = 0;
 godot_node_observe_tree((entity) => {
-  if (holdsDirectionalLight(entity as Object3D)) treeVersion += 1;
+  if (ownsDirectionalLight(entity as Object3D)) treeVersion += 1;
+});
+godot_node_observe_child_order((_parent, child) => {
+  if (holdsDirectionalLight(child as Object3D)) treeVersion += 1;
 });
 
 /**

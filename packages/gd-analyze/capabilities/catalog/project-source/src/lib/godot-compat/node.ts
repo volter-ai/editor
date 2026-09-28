@@ -674,6 +674,17 @@ export function godot_node_is_freed(object: object): boolean {
   return NODE.get(entityOf(object))?.freed ?? false;
 }
 
+/**
+ * Whether a three object is a Godot node's entity, as opposed to an object a node draws with (a
+ * model's meshes, a helper): the tree's observers are told about each node, never about those.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.h:54
+ */
+export function godot_node_is_node(entity: object): boolean {
+  return NODE.has(entity);
+}
+
 // --- Propagation.
 
 function attach(parent: object, child: object): void {
