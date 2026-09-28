@@ -27,7 +27,7 @@
  */
 
 import { godot_input_frame } from './input';
-import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_leave, godot_node_set_queued } from './node';
+import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_is_leaving, godot_node_leave, godot_node_set_queued } from './node';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { createSignal, type GodotSignal } from './signal';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -186,7 +186,8 @@ function processTweens(owned: Owned, delta: number, physics: boolean): void {
 export function godot_owned_step(creator: object | null, delta: number, physics: boolean): void {
   if (creator === null) return;
   const owned = (creator as Owner)[OWNED];
-  if (owned === undefined) return;
+  // A creator that has left play steps nothing more, as Godot frees it and its tweens.
+  if (owned === undefined || godot_node_is_leaving(creator)) return;
   processTimers(owned, delta, physics);
   processTweens(owned, delta, physics);
 }

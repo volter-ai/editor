@@ -1111,10 +1111,15 @@ export function godot_node_set_queued(object: object): void {
 
 /**
  * A node queued for deletion and its subtree take no further part until they are freed: no more
- * callbacks or advancing (`godot_node_processes`, `godot_node_advance`), as Godot, which frees
- * the node at the end of the physics step or process frame it was queued in
+ * callbacks, input, advancing or owned timers and tweens (`godot_node_processes`,
+ * `godot_node_call_input`, `godot_node_advance`, `godot_owned_step`), as Godot, which frees the
+ * node at the end of the physics step or process frame it was queued in
  * (`scene/main/scene_tree.cpp:660`, `:725`), never calls them again; each class takes its own part
- * out (`godot_node_observe_leave`).
+ * out (`godot_node_observe_leave`). It leaves at once: for the rest of the step or frame it was
+ * queued in, where Godot still runs its later callbacks, lets it collide and delivers it input
+ * (to a node queued by an earlier receiver of the same event), here it does none of these. A
+ * collider re-enabled under a leaving body (a shape set or a CollisionShape3D added after the
+ * queue) is not switched off again.
  *
  * @godot Node (protocol)
  * @source scene/main/scene_tree.cpp:660
@@ -1152,6 +1157,17 @@ export function godot_node_observe_leave(observer: (entity: object) => void): vo
  */
 export function godot_node_is_queued(object: object): boolean {
   return NODE.get(entityOf(object))?.queued ?? false;
+}
+
+/**
+ * Whether a node (by entity or script instance) has left play, queued for deletion itself or under
+ * an ancestor that is (`godot_node_leave`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:660
+ */
+export function godot_node_is_leaving(object: object): boolean {
+  return NODE.get(entityOf(object))?.leaving ?? false;
 }
 
 /**
@@ -1685,7 +1701,7 @@ export function godot_node_listen_input(entity: object, kind: GodotInputKind, li
  */
 export function godot_node_call_input(entity: object, kind: GodotInputKind, event: unknown, handled: () => boolean): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree || !state[kind] || !processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || state.leaving || !state[kind] || !processModeAllows(entity, state, false)) return;
   state.binding?.[kind]?.(event);
   if (!state.insideTree || handled()) return;
   state.internalInput[kind]?.(event);

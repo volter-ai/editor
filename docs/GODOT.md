@@ -364,8 +364,10 @@ emitter prints:
    that difference is never silent. An owner steps its own after its `_process`, where Godot
    steps every timer after every node's, so a timeout's effect on another node's `_process` can
    land a frame apart. `queue_free` takes the node and its subtree out of play at once (no more
-   callbacks, colliders off), as Godot, which frees it at the end of the step or frame it was
-   queued in, never runs or collides it again; it is then freed as JavaScript defers, a microtask
+   callbacks, input, owned timers or tweens, colliders off), as Godot, which frees it at the end
+   of the step or frame it was queued in, never runs or collides it again; at once, where Godot
+   still runs, collides and delivers input to it for the rest of that step or frame. It is then
+   freed as JavaScript defers, a microtask
    as `call_deferred` is, after the frame's draw (R3F runs callbacks, physics steps and draw in one
    task), so it is drawn one frame more than in Godot. There is no deletion queue. The inner
    classes and `Class.new()` nodes of an attached script own timers nobody steps, which the plan
