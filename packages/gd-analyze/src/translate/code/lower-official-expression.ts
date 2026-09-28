@@ -2854,8 +2854,11 @@ export function lowerOfficialExpression(
         // A call of a coroutine (a script function that awaits) is its async method's promise,
         // awaited whatever the function returns.
         const requirements = context.structural(node, 'await', [awaitedNode], awaitedNode.datatype.coroutine ? 'await:coroutine' : 'await');
-        // A coroutine's call is awaited as its promise, even when it returns a Signal: Godot resumes
-        // with the returned value and does not also await it.
+        // A coroutine's call is awaited as its promise, even when it returns a Signal. When the call
+        // suspends, Godot awaits its function state and resumes with the returned value, which it
+        // does not also await. Divergence: a call that returns a Signal without reaching an `await`
+        // (an early return) is no function state in Godot, so the Signal itself is awaited until it
+        // emits; here the promise resolves with the Signal and the caller resumes at once.
         const isSignal = !awaitedNode.datatype.coroutine && godotAwaitsEmission(awaitedNode.datatype);
         return compose(
           context,
