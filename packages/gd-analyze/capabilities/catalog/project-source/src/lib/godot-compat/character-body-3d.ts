@@ -14,7 +14,7 @@
  */
 
 import type { Collider, KinematicCharacterController } from '@dimforge/rapier3d-compat';
-import type { Object3D } from 'three';
+import { type Object3D, Vector3 as ThreeVector3 } from 'three';
 import { godot_collision_object_body, godot_collision_object_layers, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
 import { godot_node_entity } from './node';
 import { get_global_transform } from './node-3d';
@@ -117,10 +117,13 @@ function slide(v: Vector3, n: Vector3): Vector3 {
 
 /**
  * Moves the body by its velocity over one physics step, sliding along what it meets; true when it
- * met something.
+ * met something. The node is at its new place at once, as `move_and_collide` sets its global
+ * transform (`physics_body_3d.cpp:161`): what the script does next (sets its rotation, reads its
+ * position) starts there, and Rapier's step moves the body to the same place.
  *
  * @godot CharacterBody3D.move_and_slide
  * @source scene/3d/physics/character_body_3d.cpp:43
+ * @source scene/3d/physics/physics_body_3d.cpp:161
  */
 export function move_and_slide(owner: object): boolean {
   const state = stateOf(owner, 'move_and_slide');
@@ -147,7 +150,15 @@ export function move_and_slide(owner: object): boolean {
     },
   );
   const moved = controller.computedMovement();
-  body.setNextKinematicTranslation({ x: from.x + moved.x, y: from.y + moved.y, z: from.z + moved.z });
+  const to = { x: from.x + moved.x, y: from.y + moved.y, z: from.z + moved.z };
+  body.setNextKinematicTranslation(to);
+  const place = new ThreeVector3(to.x, to.y, to.z);
+  const parent = (self as Object3D).parent;
+  if (parent !== null) {
+    parent.updateWorldMatrix(true, false);
+    parent.worldToLocal(place);
+  }
+  (self as Object3D).position.copy(place);
   // A character moving away from the floor is not on it, whatever the controller's snap reports.
   const rising = dot(state.velocity, state.up_direction) > 0;
   const flags: CollisionState = { floor: controller.computedGrounded() && !rising && state.motion_mode === MOTION_MODE_GROUNDED, wall: false, ceiling: false };

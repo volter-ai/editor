@@ -229,17 +229,31 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
   const refName = refLocal(emission, node.nodePath, node.name);
   (from === 'three' ? emission.three : emission.rapierTypes).add(type);
   emission.refTypes.set(node.nodePath, from === 'three' ? threeLocal(type) : type);
-  emission.hooks.push({
-    kind: 'variable-statement',
-    declaration: 'const',
-    name: refName,
-    initializer: {
-      kind: 'call-expression',
-      callee: { kind: 'identifier-expression', name: 'useRef' },
-      typeArguments: [{ kind: 'type-reference', name: from === 'three' ? threeLocal(type) : type, arguments: [] }],
-      arguments: [{ kind: 'literal-expression', value: null }],
-    },
-  });
+  const own: TargetTsExpression = {
+    kind: 'call-expression',
+    callee: { kind: 'identifier-expression', name: 'useRef' },
+    typeArguments: [{ kind: 'type-reference', name: from === 'three' ? threeLocal(type) : type, arguments: [] }],
+    arguments: [{ kind: 'literal-expression', value: null }],
+  };
+  if (emission.rootRef && node.nodePath === emission.scene.root.nodePath) {
+    // The root's ref is the instancer's when it passes one, so the instancer holds the root as soon
+    // as the root's element sets it: a `<RigidBody>` sets its body in its own effect, after any
+    // layout-time handle would have read it.
+    let ownName = `own${refName.charAt(0).toUpperCase()}${refName.slice(1)}`;
+    for (let n = 2; emission.family.taken.has(ownName); n += 1) ownName = `own${refName.charAt(0).toUpperCase()}${refName.slice(1)}${String(n)}`;
+    emission.family.taken.add(ownName);
+    emission.hooks.push(
+      { kind: 'variable-statement', declaration: 'const', name: ownName, initializer: own },
+      {
+        kind: 'variable-statement',
+        declaration: 'const',
+        name: refName,
+        initializer: { kind: 'binary-expression', operator: '??', left: { kind: 'identifier-expression', name: 'ref' }, right: { kind: 'identifier-expression', name: ownName } },
+      },
+    );
+  } else {
+    emission.hooks.push({ kind: 'variable-statement', declaration: 'const', name: refName, initializer: own });
+  }
   const script = node.scriptInstance;
   if (script !== undefined) {
     const cls = script.generatedClass;
@@ -1017,33 +1031,9 @@ export function idiomaticSceneSourceFile(
       },
     );
   }
-  // The root's handle for an instancing scene that refers to it (React's `ref` prop).
   const rootRefType = emission.refTypes.get(scene.root.nodePath) ?? 'Object3D';
-  if (emission.rootRef) {
-    emission.hooks.push({
-      kind: 'expression-statement',
-      expression: {
-        kind: 'call-expression',
-        callee: { kind: 'identifier-expression', name: 'useImperativeHandle' },
-        arguments: [
-          { kind: 'identifier-expression', name: 'ref' },
-          {
-            kind: 'arrow-expression',
-            parameters: [],
-            body: {
-              kind: 'as-expression',
-              expression: { kind: 'property-expression', object: { kind: 'identifier-expression', name: emission.nodeRefs.get(scene.root.nodePath) as string }, property: 'current' },
-              type: { kind: 'type-reference', name: rootRefType, arguments: [] },
-            },
-          },
-          { kind: 'array-expression', elements: [] },
-        ],
-      },
-    });
-  }
   const reactNames = [
     ...(emission.autoloads === undefined ? [] : ['createContext', 'useContext']),
-    ...(emission.rootRef ? ['useImperativeHandle'] : []),
     ...(emission.refNames.size === 0 ? [] : ['useRef']),
     ...[...emission.lifecycle.react].sort(),
   ];
@@ -1063,7 +1053,7 @@ export function idiomaticSceneSourceFile(
           {
             kind: 'import-statement' as const,
             module: 'react',
-            namedBindings: [...(emission.rootRef ? ['Ref'] : []), ...(emission.autoloads === undefined ? [] : ['RefObject'])].map((name) => ({ imported: name, local: name })),
+            namedBindings: ['RefObject'].map((name) => ({ imported: name, local: name })),
             typeOnly: true as const,
           },
         ]),
@@ -1179,7 +1169,7 @@ export function idiomaticSceneSourceFile(
                         kind: 'object-type',
                         properties: [
                           ...(emission.rootExports ? [{ name: 'exports', type: { kind: 'type-reference' as const, name: 'Record', arguments: [{ kind: 'keyword-type' as const, keyword: 'string' as const }, { kind: 'keyword-type' as const, keyword: 'unknown' as const }] }, readonly: true as const, optional: true as const }] : []),
-                          ...(emission.rootRef ? [{ name: 'ref', type: { kind: 'type-reference' as const, name: 'Ref', arguments: [{ kind: 'type-reference' as const, name: rootRefType, arguments: [] }] }, readonly: true as const, optional: true as const }] : []),
+                          ...(emission.rootRef ? [{ name: 'ref', type: { kind: 'type-reference' as const, name: 'RefObject', arguments: [{ kind: 'union-type' as const, members: [{ kind: 'type-reference' as const, name: rootRefType, arguments: [] }, { kind: 'literal-type' as const, value: null }] }] }, readonly: true as const, optional: true as const }] : []),
                         ],
                       },
                     ],

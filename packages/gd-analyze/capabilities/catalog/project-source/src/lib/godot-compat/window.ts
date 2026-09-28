@@ -317,7 +317,8 @@ const LAYERS = new WeakMap<HTMLCanvasElement, HTMLElement>();
 /**
  * The element the canvas items draw into (`godot_canvas_draw`): one absolutely placed layer over
  * the canvas in the canvas's parent, scaled from drawing-buffer pixels to the canvas's CSS box and
- * transparent to the pointer, so the page's input reaches the canvas as in the web export.
+ * transparent to the pointer, so the page's input reaches the canvas as in the web export. It
+ * stacks above the canvas, as the web export's canvas items draw over its 3D view.
  *
  * @godot Window (protocol)
  * @source servers/rendering/renderer_canvas_cull.cpp:304
@@ -338,7 +339,11 @@ export function godot_window_canvas_layer(canvas: HTMLCanvasElement): HTMLElemen
   layer.style.top = `${String(canvas.offsetTop)}px`;
   layer.style.width = `${String(canvas.width)}px`;
   layer.style.height = `${String(canvas.height)}px`;
-  const box = canvas.getBoundingClientRect();
-  layer.style.transform = canvas.width > 0 ? `scale(${String(box.width / canvas.width)})` : '';
+  // Over the canvas whatever stacking the page gives it (a positioned canvas with a z-index).
+  const below = Number.parseInt(canvas.ownerDocument.defaultView?.getComputedStyle(canvas).zIndex ?? '', 10);
+  layer.style.zIndex = Number.isNaN(below) ? '' : String(below + 1);
+  // The canvas's CSS width in its own box (`clientWidth`), not its on-screen rect: the layer sits in
+  // the same parent, so a transform on an ancestor (a scaled preview) already applies to both.
+  layer.style.transform = canvas.width > 0 ? `scale(${String(canvas.clientWidth / canvas.width)})` : '';
   return layer;
 }

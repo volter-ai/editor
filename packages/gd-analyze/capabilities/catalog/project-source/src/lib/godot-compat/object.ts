@@ -13,7 +13,7 @@
  * setter or member as a callable, which lowering supplies; it is not dispatched here.
  */
 
-import { godot_node_entity, godot_node_is_freed, godot_node_is_queued } from './node';
+import { godot_node_entity, godot_node_is_freed, godot_node_is_queued, godot_node_object } from './node';
 
 /** Runs `run` after the current work, unless its target has been freed by then. */
 function defer(target: object, run: () => void): void {
@@ -173,10 +173,12 @@ export function godot_object_truthy(value: unknown): boolean {
 export function has_method(self: object, method: string): boolean {
   if (method === 'free') return true;
   if (method.startsWith('$')) return false;
+  // The object's script instance, whether the call names the instance or its native entity (a
+  // node a signal hands over is its entity); an entity with no script has no script functions.
   const entity = godot_node_entity(self);
-  // A native entity has no script functions; a script instance is the object its entity differs from.
-  if (entity === self) return false;
-  let prototype: object | null = self;
+  const script = godot_node_object(entity);
+  if (script === entity) return false;
+  let prototype: object | null = script;
   while (prototype !== null && prototype !== Object.prototype) {
     const descriptor = Object.getOwnPropertyDescriptor(prototype, method);
     if (descriptor !== undefined && typeof descriptor.value === 'function' && method !== 'constructor') return true;
