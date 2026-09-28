@@ -1380,8 +1380,10 @@ function callSymbol(
     case 'builtin-constructor':
       return { ...base, kind: 'builtin-constructor' };
     case 'variant-utility':
-    case 'gdscript-utility':
       return { ...base, kind: 'global' };
+    case 'gdscript-utility':
+      // GDScript's own utilities are not in the API dump and have one signature each: no hash.
+      return { ...base, kind: 'global', signature: 'unhashed' };
     case 'native-method':
     case 'native-static':
       return { ...base, kind: 'native-member' };

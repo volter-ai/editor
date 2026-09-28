@@ -316,7 +316,7 @@ const GODOT_3_GLOBAL_FUNCTIONS: ReadonlySet<string> = new Set([
  * `--dump-extension-api` run walked. Failure direction is the documented one: a global missing
  * from this set surfaces as an unresolved touch, never as silently-dropped game data.
  */
-const GDSCRIPT_4_BUILTIN_FUNCTIONS: readonly string[] = [
+export const GDSCRIPT_4_BUILTIN_FUNCTIONS: readonly string[] = [
   'Color8',
   'assert',
   'char',

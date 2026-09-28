@@ -368,14 +368,16 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
 /**
  * The Variant utility functions whose result over int-or-float values depends on the function
  * itself (`VariantUtilityShape`): `clamp` returns one of its arguments as it is
- * (`variant_utility.cpp:730`), so its result is an argument's own type; `str` stringifies its
- * arguments (`VariantUtilityFunctions::str`), each printed as its own type.
+ * (`variant_utility.cpp:730`), so its result is an argument's own type; `str` and `print` stringify
+ * their arguments (`VariantUtilityFunctions::str`, `::print`), each printed as its own type.
  */
 export type VariantUtilityShape = 'selects-argument' | 'stringifies';
 
 const UTILITY_SHAPES: ReadonlyMap<string, VariantUtilityShape> = new Map([
   ['clamp', 'selects-argument'],
   ['str', 'stringifies'],
+  // `print` joins its arguments' `String` conversions as `str` does (`join_string`, variant_utility.cpp:960).
+  ['print', 'stringifies'],
 ]);
 
 /** A call's utility shape: the Variant utility it calls, where the table gives it one. */

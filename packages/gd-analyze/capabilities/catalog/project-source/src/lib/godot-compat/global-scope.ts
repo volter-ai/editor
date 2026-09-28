@@ -439,6 +439,18 @@ export function str(...args: readonly unknown[]): string {
 }
 
 /**
+ * `print(...)`: the arguments' text joined with nothing between them, printed as one line
+ * (`join_string`, then `print_line`), which on the web is the console's log. Lowering passes each
+ * argument as the text `Variant::stringify` gives it for its analysed type, as it does for `str`.
+ *
+ * @godot @GlobalScope.print
+ * @source core/variant/variant_utility.cpp:960
+ */
+export function print(...args: readonly string[]): void {
+  console.log(args.join(''));
+}
+
+/**
  * `wrapf` for int or float arguments (`Math::wrapf`, `core/math/math_funcs.h:631`): an empty range
  * gives `min`; a result approximately equal to `max` gives `min`. Godot wraps three ints with
  * `wrapi` over values narrowed to `int` (`core/variant/variant_utility.cpp:615`); for int32 values

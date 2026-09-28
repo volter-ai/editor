@@ -3949,6 +3949,156 @@
         "kind": "unary",
         "operator": "!"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:float"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:bool"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:String"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:StringName"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:Vector2"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:Vector2i"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:Vector3"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:Vector3i"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "str-argument|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:Color"
+        ],
+        "resultDatatype": "BUILTIN:null"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "stringify"
+      }
     }
   ],
   "datatypes": [

@@ -8,6 +8,7 @@
 import { readdirSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
+import { GDSCRIPT_4_BUILTIN_FUNCTIONS } from '../../analyze/api-dump';
 import { godotOperandTypes } from '../data/operand-types';
 import { INTERNAL_PROPERTY_SETTERS } from '../data/scene-setters';
 import type { GodotBindingEntry, GodotOfficialSymbolIdentity, GodotTargetBindingUse } from './bindings';
@@ -114,6 +115,9 @@ export function godotCompatBindings(
     const native = classes.get(owner);
     if (owner === '@GlobalScope' && utilities.has(member)) {
       bind('global', hashSignature(utilities.get(member)), { kind: 'call', sourceReceiver: 'absent' });
+    } else if (owner === '@GDScript' && GDSCRIPT_4_BUILTIN_FUNCTIONS.includes(member)) {
+      // GDScript's own utilities are not in the dump, so they carry no hash: one signature each.
+      bind('global', 'unhashed', { kind: 'call', sourceReceiver: 'absent' });
     } else if (builtin !== undefined) {
       const method = builtin.methods?.find((candidate) => candidate.name === member);
       if (member === owner) bind('builtin-constructor', 'unhashed', { kind: 'call', sourceReceiver: 'absent' });
