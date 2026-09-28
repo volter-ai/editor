@@ -63,6 +63,10 @@ const RESOURCES = '/bw';
  *  session's own root, because it belongs to the session's lifetime. */
 const ARENA_PATH = `${SESSION_ROOT}/frame.bin`;
 
+/** The WALI pack's startup copies of the render override, by runtime-relative
+ *  path; `stageRuntime` leaves them out. */
+const PACK_RENDER_OVERRIDES = new Set(['scripts/startup/vgai_three.py', 'scripts/startup/volter_three.py']);
+
 /** The host filesystem seam, in the only shape this file uses. */
 interface BrowserFileSystemLike {
   existsSync(path: string): boolean;
@@ -142,6 +146,17 @@ async function stageRuntime(
         `Blender runtime ${entry.path}: bytes ${offset}..${offset + entry.size} lie outside ` +
           `the ${blob.byteLength}-byte runtime blob`,
       );
+    // THE PACK'S RENDER OVERRIDE IS NOT STAGED. It is the delivery for a bare
+    // `blender -b` with no session: at startup it asks a presenter at its own
+    // directory and waits two seconds for one. This session registers the same
+    // override itself (`session.py`, `VolterRenderEngine`) and answers through
+    // its own channel, so here the module could only wait out those two
+    // seconds (measured 2026-09-27: every boot printed "no presenter answered
+    // at /tmp/vgai-presenter within 2 s").
+    if (PACK_RENDER_OVERRIDES.has(entry.path)) {
+      offset += entry.size;
+      continue;
+    }
     const path = `${RESOURCES}/${entry.path}`;
     filesystem.mkdirSync(path.slice(0, path.lastIndexOf('/')), { recursive: true });
     filesystem.writeFileSync(path, blob.subarray(offset, offset + entry.size));
