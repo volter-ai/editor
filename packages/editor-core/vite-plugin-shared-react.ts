@@ -437,6 +437,30 @@ function exportsTarget(exportsField: unknown, subpath: string): { target: string
   return null;
 }
 
+/**
+ * An ES module entry that only re-exports a CommonJS sibling
+ * (`eventemitter3/index.mjs` is `import EventEmitter from './index.js'`). Served
+ * raw, the browser reaches the CommonJS file and fails to link ("does not
+ * provide an export named 'default'"), so such a package goes through the
+ * optimizer like any CommonJS dependency.
+ */
+function wrapsCommonJs(file: string): boolean {
+  if (!/\.(m?js)$/.test(file)) return false;
+  let source: string;
+  try {
+    source = readFileSync(file, 'utf8');
+  } catch {
+    return false;
+  }
+  for (const [, specifier] of source.matchAll(/\bfrom\s*['"](\.{1,2}\/[^'"]+)['"]/g)) {
+    const target = path.resolve(path.dirname(file), specifier!);
+    if (!/\.c?js$/.test(target) || !existsSync(target)) continue;
+    const text = readFileSync(target, 'utf8');
+    if (/\bmodule\.exports\b/.test(text) && !/^\s*export\s/m.test(text)) return true;
+  }
+  return false;
+}
+
 function dependencyFile(source: string, importerFile: string): DependencyFile | null {
   const bare = splitBareSpecifier(source);
   if (!bare) return null;
@@ -464,7 +488,9 @@ function dependencyFile(source: string, importerFile: string): DependencyFile | 
       if (!chosen) return null;
       const file = path.join(realDir, chosen.target);
       if (!existsSync(file)) return null;
-      const esm = chosen.esm || file.endsWith('.mjs') || (typeModule && !file.endsWith('.cjs')) || /\.(css|json)$/.test(file);
+      const esm =
+        (chosen.esm || file.endsWith('.mjs') || (typeModule && !file.endsWith('.cjs')) || /\.(css|json)$/.test(file)) &&
+        !wrapsCommonJs(file);
       return { file, esm };
     }
     if (path.dirname(dir) === dir) return null;
