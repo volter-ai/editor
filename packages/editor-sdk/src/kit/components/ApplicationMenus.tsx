@@ -322,7 +322,7 @@ export function ApplicationMenus() {
           data-testid="help-learn-home"
           onSelect={choose(() => openLearnLink(LEARN_SITE_URL))}
         >
-          volter Learn
+          Volter Learn
         </MenuItem>
         <MenuItem
           data-testid="help-quick-starts"

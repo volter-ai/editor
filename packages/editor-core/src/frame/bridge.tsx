@@ -1,5 +1,5 @@
 /**
- * THE EDITOR'S ENTRY POINT UNDER THE CODE-OSS FRAME — the volter editor's own app
+ * THE EDITOR'S ENTRY POINT UNDER THE CODE-OSS FRAME — the Volter editor's own app
  * with a VS Code-backed LAYOUT HOST.
  *
  * THIS IS THE EDITOR'S MODULE, IN THE EDITOR'S TREE — forty of its imports are
@@ -369,7 +369,7 @@ export interface VolterDocumentsHandle {
   /**
    * CLOSE one open document — the frame's half of `View: Close Editor`.
    *
-   * A person closing a volter editor is closing the DOCUMENT; without this the
+   * A person closing a Volter editor is closing the DOCUMENT; without this the
    * registry kept reporting it open and active while the workbench had no
    * editor for it, so the editor's `status` command disagreed with the screen and reopening it
    * was a no-op against a registry that never noticed (walk 4, W12). The
@@ -826,7 +826,7 @@ function Workspace({ arrangement, immersivePlay }: WorkspaceProps) {
   // this component first rendered, so its arrival has to be a re-render.
   useSyncExternalStore(subscribeDocumentSlots, documentSlotsSnapshot, documentSlotsSnapshot);
   // …and so does a re-offered PART: the centre's pane is disposed with its group when a person
-  // closes the last volter editor, and the next one hands over a different element (W12).
+  // closes the last Volter editor, and the next one hands over a different element (W12).
   useSyncExternalStore(subscribeParts, partsSnapshot, partsSnapshot);
   useLayoutEffect(() => {
     const stop = installLayoutPolicy({

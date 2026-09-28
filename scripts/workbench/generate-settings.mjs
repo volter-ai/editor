@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------
- *  THE SETTINGS GENERATOR — volter's settings keys, as a `configuration` contribution.
+ *  THE SETTINGS GENERATOR — Volter's settings keys, as a `configuration` contribution.
  *
- *  WORK.md §The core is Code-OSS U7. The volter editor's settings are a Zod document
+ *  WORK.md §The core is Code-OSS U7. The Volter editor's settings are a Zod document
  *  (`packages/project/src/settings/schema.ts`); the configuration service speaks FLAT DOTTED
  *  KEYS. One derivation has to produce both, or the Settings editor shows a key set that
  *  drifts from the one the editor reads — which is invisible rather than loud, because a

@@ -1,6 +1,6 @@
 /**
  * `volter-game-editor add [id...]` / `remove <id...>` / `outdated` — the
- * capability verbs, transferred from volter's `runCapabilityCommand`
+ * capability verbs, transferred from Volter's `runCapabilityCommand`
  * (`packages/volter-cli/src/index.ts`). What you add is a CAPABILITY from this
  * product's catalog (`catalog/`); it becomes ordinary project source on
  * arrival. Bare `add` LISTS every available capability and marks which are

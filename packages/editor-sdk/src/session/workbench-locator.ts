@@ -172,7 +172,7 @@ export function writeWorkbenchDeclaration(projectRoot: string, workbenchDir: str
  * frame. Spelled here so the CLI's launch line and the session's tab bijection
  * cannot disagree about it.
  *
- * `?project=<id>` is the one boot param the volter editor carries; the session's
+ * `?project=<id>` is the one boot param the Volter editor carries; the session's
  * one-origin proxy redirects it to the workbench's own `?folder=`, and
  * `frame-proxy.ts` says why it must be a redirect.
  */

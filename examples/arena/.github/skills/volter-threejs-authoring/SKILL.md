@@ -317,7 +317,7 @@ is `volter-game-editor screenshot`, and the module lane is the asset loop:
    lighting).
 
 > Engine-repo aside — not for game projects. When you are working inside the
-> volter engine checkout itself (no game project, no editor session), the
+> Volter engine checkout itself (no game project, no editor session), the
 > equivalent is `node packages/engine/e2e/turntable/capture.mjs <subject>`,
 > run from the checkout root; it boots and tears down its own server. Point
 > it at your own builder with `capture.mjs file --module

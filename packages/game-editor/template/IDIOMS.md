@@ -11,7 +11,7 @@ Legend: **ERROR** fails every run; **WARN** prints but fails only with
 
 - The source is the document. Three roots are ordinary R3F TSX, Canvas roots
   are ordinary Pixi/React source, and DOM roots are ordinary React. The world
-  node is the entity; no mirror ECS, registration layer, or volter runtime API
+  node is the entity; no mirror ECS, registration layer, or Volter runtime API
   belongs in gameplay components. **LOOK**
 - A DOM HUD is a manifest `dom` root and reads the project's own React
   context/store. A timer repeatedly copying game state into React state is a

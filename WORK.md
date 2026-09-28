@@ -50,7 +50,7 @@ Profiles work; `website` opens its page source in Design.
 
 On the runtime image: a game whose `node_modules` links the checkout's image
 plays (`screenshot` shows the rendered scene), and an Inspector edit writes
-`src/scenes/MainScene.tsx` and undo/redo round-trip it. volter's `arena` example,
+`src/scenes/MainScene.tsx` and undo/redo round-trip it. Volter's `arena` example,
 ported with registry pins and linked to the image, opened on the published
 pinned workbench (hash matched): its `.blend` model and its World (59 entities)
 render; Play runs the three.js world under its React HUD with enemies engaging;

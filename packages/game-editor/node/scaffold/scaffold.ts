@@ -797,7 +797,7 @@ export function resolvePackageRoots(): {
 }
 
 /**
- * The dependency spec for a volter package: a caret range on the version this
+ * The dependency spec for a Volter package: a caret range on the version this
  * engine distribution currently holds.
  *
  * The manifest's exact engine compatibility pin is a separate axis and is not

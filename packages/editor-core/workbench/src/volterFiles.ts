@@ -11,7 +11,7 @@
  *  provider, and WEB + SERVER (the REH) serves the same folder over `vscode-remote://`. A
  *  `volter-session:` provider mounting the session's `/__editor/*` routes would be a SECOND path
  *  to bytes the workbench can already reach — more code, a second cache, and two notions of
- *  when a file changed. So the volter editor CALLS `IFileService`/`ITextFileService` through the
+ *  when a file changed. So the Volter editor CALLS `IFileService`/`ITextFileService` through the
  *  SDK's `files` door, and the session's file routes stay exactly what the STANDALONE shape
  *  speaks. Nothing here registers a provider and nothing here is a core edit.
  *
@@ -45,7 +45,7 @@
  *  older text element is reached, the buffer is the one it expects. Ordering is what makes the
  *  raw apply safe; nothing here reorders anything.
  *
- *  A DIRTY MODEL IS REFUSED BY NAME, never clobbered. The volter editor computes its new source
+ *  A DIRTY MODEL IS REFUSED BY NAME, never clobbered. The Volter editor computes its new source
  *  from the file ON DISK (the session's `/__ui-source/prepare` reads it with `node:fs`), so
  *  writing that over a model holding unsaved keystrokes would silently destroy them. The read
  *  side answers from the MODEL for the same reason — a resolved model is the file's truth in
@@ -83,7 +83,7 @@ export interface VolterFilesBridge {
 	/** Install the frame's file provider on `EditorHost.files`. Called once, after the mount,
 	 *  because the services it needs exist only inside the command's own invocation. */
 	setProvider(provider: VolterFileProvider): void;
-	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it. */
+	/** Say something in the Volter editor's OWN console, where the editor's `console` command reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 }
 

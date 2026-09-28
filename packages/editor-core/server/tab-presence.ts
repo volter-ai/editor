@@ -65,7 +65,7 @@ export type TabRoute = 'project' | 'no-project' | 'unknown';
 /**
  * WHAT KIND OF PAGE this tab is.
  *
- * - `'editor'`  — the volter editor's own page, which is every tab this session
+ * - `'editor'`  — the Volter editor's own page, which is every tab this session
  *   opens itself.
  * - `'vscode'`  — a Code-OSS workbench window running the editor through the
  *   frame (docs/CODE-OSS.md §Boot, DESKTOP). It is a tab like any other under

@@ -1,6 +1,6 @@
 /**
  * The one Godot import operation: a Godot project directory and an output directory in, a complete
- * standalone volter app out.
+ * standalone Volter app out.
  *
  * The output is built in a sibling temporary directory and promoted only after every acceptance
  * seam succeeds. A destination that already exists is user-owned and is never replaced; re-import

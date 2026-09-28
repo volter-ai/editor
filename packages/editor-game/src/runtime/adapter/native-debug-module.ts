@@ -5,7 +5,7 @@
  *
  *   export { debug } from './commands';
  *
- * The command module imports no volter API. Its functions are the application's
+ * The command module imports no Volter API. Its functions are the application's
  * own functions over its own stores; the native adapter merely projects that
  * existing registry onto the session debug/input doors after the root mounts.
  * Loading through the root entry is load-bearing: the functions close over the

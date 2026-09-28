@@ -208,7 +208,7 @@ registerVolterProduct({
 				};
 				timer = mainWindow.setTimeout(() => {
 					stop();
-					reject(new Error(localize('volterModelCoverTimedOut', "Blender did not open a model within {0}s. The engine runs in this tab's worker; the volter session's console (`volter-editor console`) is where it says why.", Math.round(MODEL_OPEN_BUDGET_MS / 1000))));
+					reject(new Error(localize('volterModelCoverTimedOut', "Blender did not open a model within {0}s. The engine runs in this tab's worker; the Volter session's console (`volter-editor console`) is where it says why.", Math.round(MODEL_OPEN_BUDGET_MS / 1000))));
 				}, MODEL_OPEN_BUDGET_MS);
 				unsubscribe = registry.subscribe?.(() => { if (open()) { stop(); resolve(); } });
 				// One more read after subscribing: the document can land between the check

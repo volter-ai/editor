@@ -11,7 +11,7 @@
  * `http://…:5173` can resolve to a FOREIGN application. Measured 2026-08-07:
  * an unrelated process on 5173 was what the editor's tab self-heal opened.
  *
- * **The band.** 20000-20199 is volter's own reserved band: fixed, hand-picked
+ * **The band.** 20000-20199 is Volter's own reserved band: fixed, hand-picked
  * ports that must never be minted for a worktree session. Machine-local
  * allocations start at 20200, so one can never land on this default by chance.
  * 20173 keeps Vite's memorable `173` tail while sitting in a range nothing

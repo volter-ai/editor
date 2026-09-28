@@ -19,13 +19,13 @@
  * dev-server `fs.allow` pipeline `server/dev.ts` already builds for project scripts
  * (T3.3) — so `ReactRootAuthoringAdapter` needs those files instrumented too.
  * `defaultProjectScopeInclude` widens to PROJECT scope, not repo-global: any `.tsx`
- * file outside `node_modules`, EXCEPT the volter tooling/engine source trees this repo
+ * file outside `node_modules`, EXCEPT the Volter tooling/engine source trees this repo
  * itself is built from (`packages/engine/src`, `packages/create-volter-project`,
  * `packages/volter-cli`, `packages/editor-sdk`, and `packages/editor/src` generally —
  * carving OUT `ui-editor/editable-components` so the existing UI-edit-mode surface
  * keeps working unchanged). This does NOT depend on which project happens to be
  * open — `fs.allow` already bounds what Vite can even reach, and this predicate
- * additionally keeps the volter app's OWN react source un-instrumented.
+ * additionally keeps the Volter app's OWN react source un-instrumented.
  *
  * Vendored trees: a vendored GAME's source is STAMPED; every other `/vendor/`
  * tree is not. `data-oid` stamping is what makes a `.tsx` file addressable —
@@ -236,7 +236,7 @@ function nearestManifestExcludesIngestReact(dir: string): boolean {
  * Cap 2 (React visual-edit parity): the scope guard for the `/__ui-source/css` endpoint.
  * A CSS file path (from a stylesheet's `data-vite-dev-id`) is editable iff it is a
  * first-party PROJECT `.css` file — same carve-outs as `defaultProjectScopeInclude`
- * (never node_modules, vendored trees, the volter tooling/engine source, or the editor's
+ * (never node_modules, vendored trees, the Volter tooling/engine source, or the editor's
  * own source). Paths are normalized to forward slashes so a Windows dev-id matches. This
  * is the CSS analogue of the `.tsx` stamping scope: an out-of-scope path must not become
  * writable through a client-supplied `file`.

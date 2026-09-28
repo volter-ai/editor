@@ -241,7 +241,7 @@ export interface CaptureOptions {
    * Same-frame pixels for a canvas this process cannot read back late.
    *
    * A WebGL canvas is only `drawImage`-able after its frame if its context was
-   * created with `preserveDrawingBuffer: true`. Every canvas the volter runtime
+   * created with `preserveDrawingBuffer: true`. Every canvas the Volter runtime
    * mounts sets it; a canvas an INGESTED game created does not, so reading it
    * here — several paint boundaries after its frame — yields black. The caller
    * supplies this when it has a seam that can copy the buffer inside the

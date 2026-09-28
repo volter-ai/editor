@@ -21,7 +21,7 @@
 /** Every keymap the generated extension carries chords for. */
 export const CARRIED_KEYMAP_IDS: readonly string[] = ['volter', 'blender'];
 
-/** Every volter editor action the generated extension binds, without the `volter.` prefix. */
+/** Every Volter editor action the generated extension binds, without the `volter.` prefix. */
 export const CARRIED_ACTION_IDS: readonly string[] = [
 	'canvas.panMode',
 	'canvas.rulerMode',

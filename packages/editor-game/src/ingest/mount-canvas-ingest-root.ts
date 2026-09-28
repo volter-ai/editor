@@ -149,10 +149,10 @@ function publishCanvasIngestSystems(
   setActiveSystems(systems);
   editorConsole.log(
     contractSystems
-      ? `canvas ingest: "${gameName}" declares the volter game contract — ` +
+      ? `canvas ingest: "${gameName}" declares the Volter game contract — ` +
           `${contractSystems.commands?.length ?? 0} commands, ` +
           `${contractSystems.state?.length ?? 0} state providers`
-      : `canvas ingest: "${gameName}" declares no volter game contract — game.commands()/` +
+      : `canvas ingest: "${gameName}" declares no Volter game contract — game.commands()/` +
           'game.state() have nothing to answer and will refuse by naming that',
     'ingest',
   );

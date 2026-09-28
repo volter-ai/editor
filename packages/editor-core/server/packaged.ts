@@ -54,7 +54,7 @@
  * (same file, no copy) — and registered
  * with NO extra scoping beyond their own built-in `defaultProjectScopeInclude`
  * (already project-scoped — see that file's doc comment: excludes
- * `node_modules`, vendored trees, and the volter tooling/engine source, which
+ * `node_modules`, vendored trees, and the Volter tooling/engine source, which
  * this Vite instance never serves anyway since its `root` IS the project).
  *
  * `@vitejs/plugin-react` (`react()`) is DELIBERATELY NOT added here — this

@@ -2,7 +2,7 @@
 name: volter-ingest-existing-game
 description: >
   Take an existing, unmodified web game (three.js, PixiJS, or React) to FULL
-  volter editor integration: mount it through the adapter seam, declare its
+  Volter editor integration: mount it through the adapter seam, declare its
   real capabilities through the game contract, drive every adapter slot to a
   terminal state (implemented, or verified implemented-empty), and prove it
   live through the product's own doors. Use when asked to ingest, adapt,

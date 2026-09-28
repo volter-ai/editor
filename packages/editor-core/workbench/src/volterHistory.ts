@@ -10,7 +10,7 @@
  *
  *  What this file does, and nothing else:
  *
- *  1. PUSHES every edit the volter editor records as an undo element on the workbench's
+ *  1. PUSHES every edit the Volter editor records as an undo element on the workbench's
  *     `IUndoRedoService`, keyed on the FILE it changed — `IResourceUndoRedoElement` for one
  *     file, `IWorkspaceUndoRedoElement` for a transaction spanning several. The editor hands
  *     over project-relative paths (`@volter/editor-sdk/host`'s `history` door) and this file
@@ -80,7 +80,7 @@ export interface VolterHistoryBridge {
 	 *  palette and the editor's `eval` command's undo verb all call the editor's `edit.undo`, and under
 	 *  the frame every one of them has to reach THIS stack. */
 	setDelegate(delegate: { undo(): boolean | Promise<boolean>; redo(): boolean | Promise<boolean>; canUndo(): boolean; canRedo(): boolean; undoLabel(): string | null; redoLabel(): string | null }): void;
-	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it. */
+	/** Say something in the Volter editor's OWN console, where the editor's `console` command reads it. */
 	report(level: 'warn' | 'error', message: string): void;
 }
 

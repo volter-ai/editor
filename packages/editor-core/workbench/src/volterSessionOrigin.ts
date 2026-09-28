@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  volter: WHERE THE SESSION IS, and how a page that is not on its origin talks to it.
  *
- *  The volter editor is served by a the editor's `edit` command session (a Vite dev server plus the
+ *  The Volter editor is served by a the editor's `edit` command session (a Vite dev server plus the
  *  `/__editor/*` routes). In the WEB shape the Code-OSS workbench and that session sit
  *  behind one proxy origin, so every URL the editor writes is same-origin and nothing in
  *  this file does anything. In the DESKTOP shape the workbench page is
@@ -9,7 +9,7 @@
  *  session is `http://127.0.0.1:<port>`. Two origins, unavoidably: a proxy cannot front a
  *  page Electron loads off disk.
  *
- *  So desktop needs two things, and both are here rather than in the volter editor (rule 2:
+ *  So desktop needs two things, and both are here rather than in the Volter editor (rule 2:
  *  zero changes to the editor for the sake of the frame) and rather than in a core service
  *  (rule 1: additive).
  *
@@ -45,7 +45,7 @@ import { IWorkspaceContextService } from '../../../../platform/workspace/common/
 const DESKTOP_PAGE_ORIGIN = 'vscode-file://vscode-app';
 
 /**
- * The origin that serves the volter editor for the folder this workbench has open.
+ * The origin that serves the Volter editor for the folder this workbench has open.
  *
  * Web shape: this page's own origin (the proxy fronts both). Desktop: the port the live
  * session wrote into the project's `.volter/session.json`.
@@ -69,7 +69,7 @@ export async function resolveSessionOrigin(
 	}
 	const folder = workspaceService.getWorkspace().folders[0]?.uri;
 	if (!folder) {
-		throw new Error(`no folder is open, so there is no project whose volter session this ${pageOrigin} page could reach — open the project folder (File > Open Folder)`);
+		throw new Error(`no folder is open, so there is no project whose Volter session this ${pageOrigin} page could reach — open the project folder (File > Open Folder)`);
 	}
 	const sessionFile = joinPath(folder, '.volter', 'session.json');
 	let parsed: { port?: number; url?: string; pid?: number };
@@ -77,7 +77,7 @@ export async function resolveSessionOrigin(
 		const content = await fileService.readFile(sessionFile);
 		parsed = JSON.parse(content.value.toString()) as typeof parsed;
 	} catch (error) {
-		throw new Error(`no live volter session for ${folder.fsPath}: ${sessionFile.fsPath} is not readable (${error instanceof Error ? error.message : String(error)}). Start one with \`volter-editor edit . --no-open\` in that folder.`);
+		throw new Error(`no live Volter session for ${folder.fsPath}: ${sessionFile.fsPath} is not readable (${error instanceof Error ? error.message : String(error)}). Start one with \`volter-editor edit . --no-open\` in that folder.`);
 	}
 	const origin = parsed.url ? new URL(parsed.url).origin : parsed.port ? `http://127.0.0.1:${parsed.port}` : undefined;
 	if (!origin) {
@@ -110,11 +110,11 @@ async function answersSessionDoor(origin: string): Promise<boolean> {
 
 
 /**
- * A `default` Trusted Types policy, so the volter editor's modules can run on this page.
+ * A `default` Trusted Types policy, so the Volter editor's modules can run on this page.
  *
  * The workbench's CSP carries `require-trusted-types-for 'script'`, which is right for a page
  * whose only script author is VS Code: every core sink (`innerHTML`, `new Function`, worker
- * URLs) goes through a NAMED policy. The volter editor is ordinary web code and its
+ * URLs) goes through a NAMED policy. The Volter editor is ordinary web code and its
  * dependencies are too — Font Awesome sets `innerHTML`, Vite's client builds a module
  * through the `Function` constructor — so without a default policy the editor's first render
  * throws "This document requires 'TrustedHTML' assignment" (measured 2026-09-19).
@@ -149,7 +149,7 @@ export function installDefaultTrustedTypesPolicy(): 'installed' | 'not-needed' |
 /**
  * THE FRAME'S PAGE BECOMES A TAB.
  *
- * The volter session counts pages as TABS — one per edited game, extras yield, a lost tab
+ * The Volter session counts pages as TABS — one per edited game, extras yield, a lost tab
  * self-heals, shutdown closes it — and everything it decides comes from what a page's own
  * bootstrap sends: a tab identity, a duplex control channel, and a HEARTBEAT from a dedicated
  * worker that keeps beating while the page's main thread does not. In the editor's own page
@@ -196,7 +196,7 @@ export async function installSessionTabBootstrap(sessionOrigin: string): Promise
 		script.crossOrigin = 'anonymous';
 		script.src = src;
 		script.addEventListener('load', () => resolve());
-		script.addEventListener('error', () => reject(new Error(`the volter session did not serve ${src} — without it this window cannot beat, and the session will report it as a tab that is not running`)));
+		script.addEventListener('error', () => reject(new Error(`the Volter session did not serve ${src} — without it this window cannot beat, and the session will report it as a tab that is not running`)));
 		mainWindow.document.head.appendChild(script);
 	});
 	if (!w['__VOLTER_EDITOR_PRESENCE_BOOTSTRAP__']) {

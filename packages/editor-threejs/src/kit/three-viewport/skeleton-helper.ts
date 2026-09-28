@@ -9,7 +9,7 @@ const SKELETON_CHILD_COLOR = new THREE.Color(0xffb000);
 export function styleEditorSkeletonHelper(helper: THREE.SkeletonHelper): void {
   const colors = helper.geometry.getAttribute('color');
   // SkeletonHelper emits two vertices per bone link. Three's stock pure
-  // blue/green endpoints disappear against volter's dark viewport, especially
+  // blue/green endpoints disappear against Volter's dark viewport, especially
   // in captures. Keep the native helper geometry, but use editor-contrast
   // colors so the inspection affordance is actually visible.
   for (let i = 0; i < colors.count; i += 2) {

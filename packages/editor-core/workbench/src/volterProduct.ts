@@ -2,7 +2,7 @@
  *  THE PRODUCT'S HALF OF THE WORKBENCH CONTRIBUTION — one door, called once, at load.
  *
  *  The kit's contribution (`volter.contribution.ts`) is product-neutral: it hands the workbench's
- *  parts to the volter editor, owns the document pane, the product-declared views, the mount command
+ *  parts to the Volter editor, owns the document pane, the product-declared views, the mount command
  *  and every door's frame half. What it CANNOT know is what the thing being edited is called,
  *  what this product says when it asks for trust, which colour theme its look wears, or what
  *  else this product installs once the bridge is up. Those are the product's, and this is how
@@ -182,7 +182,7 @@ export function volterProduct(): VolterProduct | undefined {
  * wrong, and the only honest thing it can do is say which step did not run.
  */
 export const NO_PRODUCT_REGISTERED =
-	'No volter product is registered in this workbench, so there is nothing to open. The build overlays ' +
+	'No Volter product is registered in this workbench, so there is nothing to open. The build overlays ' +
 	'the editor kit AND one product on the Code-OSS fork at a pin (ARCHITECTURE-CORE §The target shape, ' +
 	'rule 6): run scripts/workbench/overlay.mjs --checkout <fork dir> --product <model-editor|game-editor> ' +
 	'from a volter-engine checkout, then compile the fork again.';

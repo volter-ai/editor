@@ -1,7 +1,7 @@
 /*---------------------------------------------------------------------------------------------
  *  A NOTIFICATION IS THE WORKBENCH'S TOAST — WORK.md §The core is Code-OSS U8.
  *
- *  The volter editor has one door for an event-shaped message to the human: `notify()` in
+ *  The Volter editor has one door for an event-shaped message to the human: `notify()` in
  *  `@editor/editor-notifications`, which `EditorHost.notify` also delegates to. Standalone it
  *  draws a stack of cards at the bottom right; under the frame it is `INotificationService`,
  *  and the editor's own tray is not written at all (the ruling's rule 6 — delete, never

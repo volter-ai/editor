@@ -1,5 +1,5 @@
 /**
- * canvas-react — the `@pixi/react` lane for volter's canvas surface
+ * canvas-react — the `@pixi/react` lane for Volter's canvas surface
  * (`@volter/game-runtime/canvas-react`).
  *
  * The canvas surface is source-as-truth: a canvas root's document IS its

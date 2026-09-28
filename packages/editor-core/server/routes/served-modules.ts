@@ -3,7 +3,7 @@
  * the editor.
  *
  * WHO ASKS. The fork's workbench contribution (docs/CODE-OSS.md). It boots into
- * a VS Code page, hands over its parts, and then needs the volter editor's own
+ * a VS Code page, hands over its parts, and then needs the Volter editor's own
  * entry point to import — the PRODUCT's entry, which mounts the kit's bridge and
  * so swaps the SDK layout host that renders our panels into those parts. The
  * contribution reads `modules[].url` for the id `vscode-bridge`, imports exactly

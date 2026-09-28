@@ -174,7 +174,7 @@ export class VolterDocuments extends Disposable {
 			if (ours) { this.schedule(); }
 		}));
 		// A PERSON'S CLOSE IS THE DOCUMENT'S CLOSE (walk 4, W12). `View: Close Editor` on a
-		// volter editor used to leave the registry reporting that document open and ACTIVE with
+		// Volter editor used to leave the registry reporting that document open and ACTIVE with
 		// no editor anywhere — the editor's `status` command disagreed with the screen, and the next reconcile
 		// simply re-opened the tab. `this.applying` is what tells a person's close from one of
 		// our own: every close this class makes runs inside a pass with that flag set.

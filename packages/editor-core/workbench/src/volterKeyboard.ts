@@ -28,7 +28,7 @@
  *     set; the project's own `editor.keymap` choice stays authoritative and there is
  *     deliberately no second setting.
  *  2. REGISTERS one `volter.<action id>` command per generated action, AT LOAD, dispatching
- *     into the volter editor's own action through the bridge. At load because the extension's
+ *     into the Volter editor's own action through the bridge. At load because the extension's
  *     rules exist from load: a chord must never resolve to a command that is not there. A
  *     command whose action the editor has no live handler for answers by SAYING so in the
  *     session's own console, exactly as it did in U6.
@@ -45,7 +45,7 @@ import { CommandsRegistry } from '../../../../platform/commands/common/commands.
 import { IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { CARRIED_ACTION_IDS, CARRIED_KEYMAP_IDS } from './volterGeneratedKeymaps.js';
 
-// ---- What the bridge hands over. The volter editor's own door (`@volter/editor-sdk/host`'s
+// ---- What the bridge hands over. The Volter editor's own door (`@volter/editor-sdk/host`'s
 // `keyboard` member) reshaped by `bridge.tsx` into the facts this frame needs, so this file
 // imports nothing of the editor.
 
@@ -62,7 +62,7 @@ export interface VolterKeyboardBridge {
 		readonly documentKind: string | null;
 		readonly play: string;
 	};
-	/** Say something in the volter editor's OWN console, where the editor's `console` command reads it —
+	/** Say something in the Volter editor's OWN console, where the editor's `console` command reads it —
 	 *  the frame's refusals belong in the session's ledger, not in a toast. */
 	report(level: 'warn' | 'error', message: string): void;
 }
@@ -74,8 +74,8 @@ export const VolterStageFocused = new RawContextKey<boolean>('volter.stage.focus
 export const VolterStageSurface = new RawContextKey<string>('volter.stage.surface', '', localize('volterStageSurface', "The surface the focused volter stage paints: 'three', 'canvas' (a mounted 2D canvas document), or empty."));
 export const VolterStageMode = new RawContextKey<string>('volter.stage.mode', '', localize('volterStageMode', "The focused volter document's own interaction mode (Blender's object, edit or sculpt), when it reports one."));
 export const VolterDocumentKind = new RawContextKey<string>('volter.document.kind', '', localize('volterDocumentKind', "The kind of the active volter document."));
-export const VolterPlay = new RawContextKey<string>('volter.play', 'stopped', localize('volterPlay', "The volter session's play state: stopped, playing or paused."));
-export const VolterKeymap = new RawContextKey<string>('volter.keymap', '', localize('volterKeymap', "The keymap the open volter project selected (its adapter's editor.keymap). A keymap is a keybinding SET — `extensions/volter-keymaps` contributes one per keymap — and this is what selects it."));
+export const VolterPlay = new RawContextKey<string>('volter.play', 'stopped', localize('volterPlay', "The Volter session's play state: stopped, playing or paused."));
+export const VolterKeymap = new RawContextKey<string>('volter.keymap', '', localize('volterKeymap', "The keymap the open Volter project selected (its adapter's editor.keymap). A keymap is a keybinding SET — `extensions/volter-keymaps` contributes one per keymap — and this is what selects it."));
 
 // ---- The commands, registered AT LOAD.
 //
@@ -105,7 +105,7 @@ for (const id of CARRIED_ACTION_IDS) {
 }
 
 /**
- * Install the one keyboard owner's view of the volter editor: the context keys the generated
+ * Install the one keyboard owner's view of the Volter editor: the context keys the generated
  * keybinding sets are gated on, and the bridge the commands dispatch through. Called once,
  * after the bridge has mounted and handed back its keyboard door.
  */

@@ -266,7 +266,7 @@ captures.
 
 `src/main.ts` mounts the roots the manifest declares for the standalone game,
 and the editor mounts the same entries itself. The source component itself
-stays free of volter runtime context.
+stays free of Volter runtime context.
 
 ## Capabilities and assets
 

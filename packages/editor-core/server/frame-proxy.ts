@@ -274,11 +274,11 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
     const url = new URL(req.url ?? '/', selfOrigin);
     const pathname = url.pathname;
     // THE ONE HOSTED BOOT PARAM, ONTO THE WORKBENCH'S OWN. `?project=<id>` is
-    // what a link to the volter editor carries; the workbench's own boot contract
+    // what a link to the Volter editor carries; the workbench's own boot contract
     // is `?folder=<path>` (`WorkspaceProvider.create`, which reads a bare path
     // against `remoteAuthority`). This is a REDIRECT and not an injected
     // `folderUri`, and the reason was measured (2026-09-19): under this shape
-    // the workbench page is ALSO the volter editor's page, and the editor's boot
+    // the workbench page is ALSO the Volter editor's page, and the editor's boot
     // refuses `?project=` on a session-backed surface by name — "project
     // identity does NOT live in the URL on a local editor"
     // (`assertNoRemovedBootParams`, packages/editor-sdk/src/kit/boot-routing.ts). The

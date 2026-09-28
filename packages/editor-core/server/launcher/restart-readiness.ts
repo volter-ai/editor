@@ -1,6 +1,6 @@
 /**
  * `restart`'s readiness contract — the decision half, kept out of the verb so
- * it reads without a live editor. Transferred from volter's
+ * it reads without a live editor. Transferred from Volter's
  * `packages/editor-core/server/launcher/restart-readiness.ts`.
  *
  * Restart's ack means the session is ready for the NEXT command: the relay
