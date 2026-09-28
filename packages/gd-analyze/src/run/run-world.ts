@@ -136,7 +136,7 @@ try {
   // The page compiles the WebP decoder from its asset URL; here it is handed over, to a project
   // that ships the image binding (compat ships only the modules a project reaches).
   const image = await import('./src/lib/godot-compat/image').catch((error) => {
-    if (error?.code === 'ERR_MODULE_NOT_FOUND' && /godot-compat\\/image['"]/.test(String(error.message))) return undefined;
+    if (error?.code === 'ERR_MODULE_NOT_FOUND' && /godot-compat[\\\\/]image['"]/.test(String(error.message))) return undefined;
     throw error;
   });
   image?.godot_image_webp_module(await WebAssembly.compile(readFileSync(require.resolve('@jsquash/webp/codec/dec/webp_dec.wasm'))));
