@@ -233,16 +233,19 @@ async function sharedRuntime(
 
 /** The program's filesystem, as {@link BlenderFiles}. */
 function programFiles(filesystem: BrowserFileSystemLike): BlenderFiles {
-  // One listener for the engine's life; each wait shares the next change's promise.
-  let next: { promise: Promise<void>; resolve: () => void } | undefined;
-  const wake = (): void => { const waiting = next; next = undefined; waiting?.resolve(); };
+  // One listener for the engine's life, and one waiter per wait: a change ends
+  // every wait in progress, a wait's own timeout ends only it, and either way
+  // it is forgotten.
+  const waiting = new Set<() => void>();
+  const wake = (): void => { for (const done of [...waiting]) done(); };
   filesystem.on?.('change', wake);
   filesystem.on?.('delete', wake);
   return {
-    ...(filesystem.on ? { changed: () => {
-      if (!next) { let resolve!: () => void; const promise = new Promise<void>((done) => { resolve = done; }); next = { promise, resolve }; }
-      return next.promise;
-    } } : {}),
+    ...(filesystem.on ? { changed: (within: number) => new Promise<void>((resolve) => {
+      const done = (): void => { clearTimeout(timer); waiting.delete(done); resolve(); };
+      const timer = setTimeout(done, within);
+      waiting.add(done);
+    }) } : {}),
     readFile: (path) => filesystem.readFile(path),
     writeFile: async (path, data) => filesystem.writeFileSync(path, data),
     mkdirTree: async (path) => filesystem.mkdirSync(path, { recursive: true }),
@@ -287,6 +290,15 @@ export async function startWaliBlenderEngine(
         'BrowserMemoryFileSystem; the WALI pack directory holds a browser-substrate this engine ' +
         'does not know.',
     );
+
+  // THE MODULE LOADS WHILE THE RUNTIME LAYER IS BUILT. Blender's 93 MB module
+  // was fetched and compiled by the program's worker only once the program
+  // ran, after the layer below: measured 2026-09-28, the layer 270-975 ms and
+  // then the module 200-250 ms warm, in series. The substrate's preload fills
+  // the cache the program's worker reads; a substrate without it, or a preload
+  // that fails, leaves the worker to load the module as before.
+  const preload = wali['preloadWaliModule'] as ((url: string, integrity: string) => Promise<void>) | undefined;
+  if (preload && status.integrity) void preload(artifactUrl('blender.wasm'), status.integrity).catch(() => undefined);
 
   const filesystem = new MemoryFileSystem();
   // `out` and `ask` are deliberately absent: `session.py` owns those two and
