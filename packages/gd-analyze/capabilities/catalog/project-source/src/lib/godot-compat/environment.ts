@@ -5,12 +5,9 @@
  * Godot 4.7's `Environment` (`scene/resources/environment.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): the background, ambient light, tone mapping and fog
  * parameters a scene's `WorldEnvironment` draws with, stored and read back as the resource stores
- * them. How the Compatibility renderer draws them on three is `world-environment.ts`'s; the tone
- * mapper's parameters are computed here as the renderer computes them
- * (`RendererEnvironmentStorage::environment_get_tonemap_parameters`,
- * `servers/rendering/storage/environment_storage.cpp:276`). Glow, SSAO and the adjustments are the
- * renderer's post pass (`environment-post.ts`); the parameters that renderer never reads are stored
- * and read back only.
+ * them. How the Compatibility renderer draws them on three is `world-environment.ts`'s. Glow, SSAO and the adjustments are the renderer's post pass, drawn there
+ * as `postprocessing`'s effects; the parameters that renderer never reads are stored and read back
+ * only.
  */
 
 import { construct as color, type Color } from './color';
@@ -42,7 +39,7 @@ export interface Environment {
   fog_height_density: number;
   fog_sky_affect: number;
   fog_mode: number;
-  /** The post pass's parameters (`post-effects.ts`): glow, SSAO and the adjustments. */
+  /** The post pass's parameters (`world-environment.ts`): glow, SSAO and the adjustments. */
   glow_enabled: boolean;
   glow_intensity: number;
   glow_bloom: number;
@@ -550,7 +547,7 @@ const PROPS: ReadonlyMap<string, (self: Environment, value: never) => void> = ne
 ]);
 
 
-// --- The post pass's parameters: drawn by `post-effects.ts` as the Compatibility renderer's post pass.
+// --- The post pass's parameters: drawn by `world-environment.ts` as `postprocessing`'s effects.
 
 /**
  * @godot Environment.set_glow_enabled
@@ -936,67 +933,3 @@ export function godot_environment_new(properties: Readonly<Record<string, unknow
   return self;
 }
 
-/** The tone mapper's parameters (`TonemapParameters`), four floats, and its white. */
-export interface GodotTonemapParameters {
-  readonly white: number;
-  readonly params: readonly [number, number, number, number];
-}
-
-/**
- * The tone mapper's white (`environment_get_white`, `environment_storage.cpp:230`) and parameters
- * (`environment_get_tonemap_parameters`, `:276`) as the Compatibility renderer asks for them: SDR,
- * output max 1, AgX white not limited (`rasterizer_scene_gles3.cpp:2515`). Computed in binary32.
- *
- * @godot Environment (protocol)
- * @source servers/rendering/storage/environment_storage.cpp:276
- */
-export function godot_environment_tonemap_parameters(self: Environment): GodotTonemapParameters {
-  const outputMax = 1;
-  const mapper = self.tone_mapper;
-  const envWhite = mapper === 4 ? self.tonemap_agx_white : self.tonemap_white;
-  let white: number;
-  if (mapper === 0) white = outputMax;
-  else if (mapper === 2 || mapper === 3) white = Math.max(1, envWhite);
-  else if (mapper === 4) white = f32(Math.max(2, envWhite) * outputMax);
-  else white = Math.max(outputMax, envWhite);
-  const params: [number, number, number, number] = [0, 0, 0, 0];
-  if (mapper === 1) {
-    params[0] = f32(f32(white * white) / outputMax);
-  } else if (mapper === 2) {
-    const bias = 2;
-    const A = f32(f32(f32(0.22) * bias) * bias);
-    const B = f32(f32(0.3) * bias);
-    const C = f32(0.1);
-    const D = f32(0.2);
-    const E = f32(0.01);
-    const F = f32(0.3);
-    params[0] = f32(
-      f32(f32(f32(white * f32(f32(A * white) + f32(C * B))) + f32(D * E)) / f32(f32(white * f32(f32(A * white) + B)) + f32(D * F))) - f32(E / F),
-    );
-  } else if (mapper === 3) {
-    const A = f32(0.0245786);
-    const B = f32(0.000090537);
-    const C = f32(0.983729);
-    const D = f32(0.432951);
-    const E = f32(0.238081);
-    const w = f32(white * f32(1.8));
-    params[0] = f32(f32(f32(w * f32(w + A)) - B) / f32(f32(w * f32(f32(C * w) + D)) + E));
-  } else if (mapper === 4) {
-    const crossover = f32(0.18);
-    const shoulderMax = f32(outputMax - crossover);
-    const contrast = self.tonemap_agx_contrast;
-    // `(1.0 / awp_crossover_point) - 1.0` is double arithmetic on a float, then float.
-    const toeA = f32((1.0 / crossover - 1.0) * f32(Math.pow(crossover, contrast)));
-    const denom = f32(f32(Math.pow(crossover, contrast)) + toeA);
-    const slope = f32(f32(f32(contrast * f32(Math.pow(crossover, contrast - 1.0))) * toeA) / f32(denom * denom));
-    let w = f32(white - crossover);
-    w = f32(w * w);
-    w = f32(w / shoulderMax);
-    w = f32(w * slope);
-    params[0] = contrast;
-    params[1] = toeA;
-    params[2] = slope;
-    params[3] = w;
-  }
-  return { white, params };
-}

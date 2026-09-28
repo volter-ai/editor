@@ -363,7 +363,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_fog_sky_affect',
     'set_fog_height',
     'set_fog_height_density',
-    // The post pass (`environment-post.ts`).
+    // The post pass (`world-environment.ts`: postprocessing's effects).
     'set_glow_enabled',
     'set_glow_intensity',
     'set_glow_bloom',

@@ -48,7 +48,6 @@
     "src/lib/godot-compat/dictionary.ts",
     "src/lib/godot-compat/directional-light-3d.ts",
     "src/lib/godot-compat/display-server.ts",
-    "src/lib/godot-compat/environment-post.ts",
     "src/lib/godot-compat/environment.ts",
     "src/lib/godot-compat/float.ts",
     "src/lib/godot-compat/font-file.ts",

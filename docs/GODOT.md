@@ -665,11 +665,15 @@ because the Compatibility renderer never reads the instance's `force_alpha`
 (`drivers/gles3/rasterizer_scene_gles3.cpp:1477`, and `rendering_method.web` is fixed to
 `gl_compatibility`, `main/main.cpp:2644`); the material keeps its opacity.
 Environment effects the Compatibility renderer draws only in its post pass (glow, SSAO,
-brightness/contrast/saturation) are drawn by one `EffectComposer` (`@react-three/postprocessing`,
-the library `threejs-runtime` already builds its chain on), mounted only when the environment
-enables one. Its effect transcribes gles3's own `post.glsl`, `glow.glsl` and `s4ao` passes (vendored
-with Godot's license); the `post-effects` proof evaluates them bit-exact against Godot's shader
-math. Not yet measured at runtime: no proof renders WebGL.
+brightness/contrast/saturation) are `postprocessing`'s own effects in one `EffectComposer`
+(`@react-three/postprocessing`, the library `threejs-runtime` already builds its chain on), mounted
+only when the environment enables one: SSAO is `<N8AO>`, glow `<Bloom>` (mipmap blur,
+screen-blended), the contrast and saturation `<BrightnessContrast>` and `<HueSaturation>`, and the
+tone mapper `<ToneMapping>` (filmic as Hable's curve with Godot's input bias). Decided 2026-09-28
+under ruling 1, replacing a transcription of gles3's `post.glsl`, `glow.glsl` and `s4ao` passes. The
+differences are stated in `world-environment.ts`: N8AO's occlusion is not S4AO's, `glow_bloom` and
+the luminance cap are not carried, brightness is an offset about mid-grey where Godot multiplies,
+and the filmic curve's constants are not Godot's (a filmic scene draws somewhat darker).
 Engine-generated shaders (PanoramaSkyMaterial, ProceduralSkyMaterial, PhysicalSkyMaterial) are
 lowered like a project `.gdshader`: the exporter module captures the text Godot generates for each
 variant (`export_engine_shader`) and runs it through the same frontend. The exporter's source patch

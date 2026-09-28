@@ -34,8 +34,17 @@
  *   moves;
  * - the tone mapper is three's own of the same name on the renderer (`toneMapping`, its exposure
  *   `toneMappingExposure`; `environment.h:66`: linear, Reinhard, filmic (three's Cineon, a
- *   filmic curve), ACES, and AgX as three's Neutral, `TONE_MAPPINGS`), where the post pass does
- *   not tone-map (`environment-post.ts`);
+ *   filmic curve), ACES, and AgX as three's Neutral, `TONE_MAPPINGS`) where the environment draws
+ *   no post pass;
+ * - glow, SSAO and the adjustments, which the web renderer draws in its post pass, are
+ *   `postprocessing`'s effects in one `<EffectComposer>`, mounted only when one is enabled: SSAO
+ *   `<N8AO>` (radius and intensity; N8AO's occlusion is its own, not Godot's S4AO), glow `<Bloom>`
+ *   (mipmap blur over four levels, the bleed threshold and scale as its luminance threshold and
+ *   smoothing, screen-blended; `glow_bloom` and the luminance cap are not carried), the contrast
+ *   and saturation `<BrightnessContrast>` and `<HueSaturation>` (the same mixes; the brightness, a
+ *   multiplier in Godot, is its offset about mid-grey), and the tone mapper `<ToneMapping>`
+ *   (Reinhard with Godot's white, filmic as Hable's curve with Godot's input bias, whose constants
+ *   differ from Godot's, ACES, AgX);
  * - fog is three's `FogExp2` of the fog colour (linear, times its energy) and density.
  *
  * Lighting and the output encoding are three's own: the scene is lit and encoded as three draws
@@ -88,9 +97,9 @@
  */
 
 import { useThree } from '@react-three/fiber';
-import { EffectComposer } from '@react-three/postprocessing';
-import { createElement, Fragment, type ReactElement, type RefObject, useLayoutEffect, useMemo, useRef } from 'react';
-import { GodotPostEffect, godot_environment_post_enabled } from './environment-post';
+import { Bloom, BrightnessContrast, EffectComposer, HueSaturation, N8AO, ToneMapping as ToneMappingEffect } from '@react-three/postprocessing';
+import { BlendFunction, ToneMappingMode } from 'postprocessing';
+import { createElement, Fragment, type ReactElement, type RefObject, useLayoutEffect, useRef } from 'react';
 import {
   ACESFilmicToneMapping,
   AmbientLight,
@@ -121,7 +130,7 @@ import {
   Vector3,
 } from 'three';
 import type { Color } from './color';
-import { type Environment, godot_environment_tonemap_parameters } from './environment';
+import type { Environment } from './environment';
 import { get_environment as get_camera_environment } from './camera-3d';
 import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
 import { useGodotDraw } from './advance';
@@ -177,92 +186,6 @@ export function godot_world_environment_fog(env: Environment): { readonly color:
   const c: Color = env.fog_light_color;
   const e = env.fog_light_energy;
   return { color: [f32(srgbToLinear(c.r) * e), f32(srgbToLinear(c.g) * e), f32(srgbToLinear(c.b) * e)], density: env.fog_density };
-}
-
-/** A GLSL float literal of a binary32 value. */
-function glsl(value: number): string {
-  const text = Number(f32(value).toPrecision(9)).toString();
-  return /[.eE]/.test(text) ? text : `${text}.0`;
-}
-
-/**
- * The post pass's tone mapping (`tonemap_inc.glsl`: `apply_tonemapping`, after `color *=
- * exposure`, `scene.glsl:2794`), the mapper and its parameters fixed into the code.
- *
- * @godot Environment (protocol)
- * @source drivers/gles3/shaders/tonemap_inc.glsl:176
- */
-export function godot_environment_tonemapping_glsl(env: Environment): string {
-  const { params } = godot_environment_tonemap_parameters(env);
-  const p = `vec4(${params.map(glsl).join(', ')})`;
-  const mapper = env.tone_mapper;
-  const body: Readonly<Record<number, string>> = {
-    0: 'return color;',
-    1: `float white_squared = ${glsl(params[0])};
-	vec3 white_squared_color = white_squared * color;
-	return (white_squared_color + color * color) / (white_squared_color + white_squared);`,
-    2: `const float exposure_bias = 2.0f;
-	const float A = 0.22f * exposure_bias * exposure_bias;
-	const float B = 0.30f * exposure_bias;
-	const float C = 0.10f;
-	const float D = 0.20f;
-	const float E = 0.01f;
-	const float F = 0.30f;
-	vec3 color_tonemapped = ((color * (A * color + C * B) + D * E) / (color * (A * color + B) + D * F)) - E / F;
-	return color_tonemapped / ${glsl(params[0])};`,
-    3: `const float exposure_bias = 1.8f;
-	const float A = 0.0245786f;
-	const float B = 0.000090537f;
-	const float C = 0.983729f;
-	const float D = 0.432951f;
-	const float E = 0.238081f;
-	const mat3 rgb_to_rrt = mat3(
-			vec3(0.59719f * exposure_bias, 0.35458f * exposure_bias, 0.04823f * exposure_bias),
-			vec3(0.07600f * exposure_bias, 0.90834f * exposure_bias, 0.01566f * exposure_bias),
-			vec3(0.02840f * exposure_bias, 0.13383f * exposure_bias, 0.83777f * exposure_bias));
-	const mat3 odt_to_rgb = mat3(
-			vec3(1.60475f, -0.53108f, -0.07367f),
-			vec3(-0.10208f, 1.10813f, -0.00605f),
-			vec3(-0.00327f, -0.07276f, 1.07602f));
-	color *= rgb_to_rrt;
-	vec3 color_tonemapped = (color * (color + A) - B) / (color * (C * color + D) + E);
-	color_tonemapped *= odt_to_rgb;
-	return color_tonemapped / ${glsl(params[0])};`,
-    4: `vec4 tonemapper_params = ${p};
-	const mat3 rec709_to_rec2020_agx_inset_matrix = mat3(
-			0.544814746488245, 0.140416948464053, 0.0888104196149096,
-			0.373787398372697, 0.754137554567394, 0.178871756420858,
-			0.0813978551390581, 0.105445496968552, 0.732317823964232);
-	const mat3 agx_outset_rec2020_to_rec709_matrix = mat3(
-			1.96488741169489, -0.299313364904742, -0.164352742528393,
-			-0.855988495690215, 1.32639796461980, -0.238183969428088,
-			-0.108898916004672, -0.0270845997150571, 1.40253671195648);
-	const float output_max_value = 1.0;
-	color = rec709_to_rec2020_agx_inset_matrix * color;
-	const float awp_crossover_point = 0.18;
-	const float awp_shoulder_max = output_max_value - awp_crossover_point;
-	float awp_contrast = tonemapper_params.x;
-	float awp_toe_a = tonemapper_params.y;
-	float awp_slope = tonemapper_params.z;
-	float awp_w = tonemapper_params.w;
-	vec3 s = color - awp_crossover_point;
-	vec3 slope_s = awp_slope * s;
-	s = slope_s * (1.0 + s / awp_w) / (1.0 + (slope_s / awp_shoulder_max));
-	s += awp_crossover_point;
-	vec3 t = pow(color, vec3(awp_contrast));
-	t = t / (t + awp_toe_a);
-	color = mix(s, t, lessThan(color, vec3(awp_crossover_point)));
-	color = min(vec3(output_max_value), color);
-	color = agx_outset_rec2020_to_rec709_matrix * color;
-	return color;`,
-  };
-  const mapped = body[mapper];
-  if (mapped === undefined) throw new Error(`godot-compat: tone mapper ${String(mapper)} is not bound.`);
-  // The post pass's (`post.glsl`): the scene shader already scaled by the exposure.
-  return `vec3 apply_tonemapping( vec3 color ) {
-	${mapper === 0 ? '' : 'color = max(vec3(0.0), color);'}
-	${mapped}
-}`;
 }
 
 /**
@@ -335,8 +258,8 @@ ${lowered.renderModes.includes('use_debanding') ? SKY_DEBANDING : ''}}
  * (`sky.glsl:134`, `:276`). Where the post pass is off, the sky draws straight to three's sRGB
  * output and the noise lands on sRGB values, as Godot's does with `luminance_multiplier` 1. Where
  * the post pass draws (`godot_environment_post_enabled`), the composer's render pass draws the sky
- * into its linear input buffer, so the noise lands on linear values before the post pass encodes
- * them (`environment-post.ts`), and is larger near black than Godot's. Godot adds it to the sRGB
+ * into its linear input buffer, so the noise lands on linear values before the composer encodes
+ * them, and is larger near black than Godot's. Godot adds it to the sRGB
  * values in its own buffer, both scaled by `luminance_multiplier`, 0.25 with glow on a 10-bit target
  * (`rasterizer_scene_gles3.cpp:2465-2469`).
  */
@@ -664,18 +587,77 @@ export function GodotWorldEnvironment({ skyLights = NO_SKY_LIGHTS, ...props }: G
     const state = get();
     drawFrame(scene, node, state.gl, state.camera, lights.current);
   });
-  // Glow, SSAO or the adjustments: the renderer's post pass (`environment-post.ts`), which
-  // `postprocessing`'s composer renders in place of R3F's own frame, without MSAA as Godot's 3D
+  // Glow, SSAO or the adjustments: the web renderer's post pass, as `postprocessing`'s own effects
+  // in one composer, which renders in place of R3F's own frame, without MSAA as Godot's 3D
   // (`rendering/anti_aliasing/quality/msaa_3d`, 0).
   const env = (props['environment'] ?? null) as Environment | null;
-  const post = useMemo(
-    () => (env !== null && godot_environment_post_enabled(env) ? new GodotPostEffect(env, godot_environment_tonemapping_glsl(env), godot_environment_tonemap_parameters(env).white) : null),
-    [env],
-  );
-  if (post === null) return element;
+  if (env === null || !godot_environment_post_enabled(env)) return element;
   // The composer draws the scene through the camera the viewport draws with now (its own default is
   // R3F's camera when it mounts, before the scene's current camera is chosen).
-  return createElement(Fragment, null, element, createElement(EffectComposer, { multisampling: 0, depthBuffer: true, scene, camera, children: createElement('primitive', { object: post }) }));
+  return createElement(Fragment, null, element, createElement(EffectComposer, { multisampling: 0, depthBuffer: true, scene, camera, children: postEffects(env) }));
+}
+
+/**
+ * Whether an environment has the web renderer draw its post pass: glow, SSAO or the adjustments
+ * (`rasterizer_scene_gles3.cpp:2420`).
+ *
+ * @godot Environment (protocol)
+ * @source drivers/gles3/rasterizer_scene_gles3.cpp:2420
+ */
+export function godot_environment_post_enabled(env: Environment): boolean {
+  return env.glow_enabled || env.ssao_enabled || env.adjustment_enabled;
+}
+
+/**
+ * An environment's post pass as `postprocessing` effects, in the web renderer's order: SSAO, glow
+ * (screen-blended, as `post.glsl` blends it), the adjustments, then the tone mapper.
+ */
+function postEffects(env: Environment): ReactElement[] {
+  const effects: ReactElement[] = [];
+  if (env.ssao_enabled) effects.push(createElement(N8AO, { key: 'ssao', aoRadius: env.ssao_radius, intensity: env.ssao_intensity }));
+  if (env.glow_enabled) {
+    effects.push(
+      createElement(Bloom, {
+        key: 'glow',
+        mipmapBlur: true,
+        levels: 4,
+        intensity: env.glow_intensity,
+        luminanceThreshold: env.glow_hdr_bleed_threshold,
+        luminanceSmoothing: env.glow_hdr_bleed_scale,
+        blendFunction: BlendFunction.SCREEN,
+      }),
+    );
+  }
+  if (env.adjustment_enabled) {
+    // Godot mixes about mid-grey by the contrast and about the luminance by the saturation
+    // (`post.glsl`'s `apply_bcs`); these are the same mixes in `postprocessing`'s terms.
+    const contrast = env.adjustment_contrast >= 1 ? 1 - 1 / env.adjustment_contrast : env.adjustment_contrast - 1;
+    const saturation = env.adjustment_saturation >= 1 ? 1.001 - 1 / env.adjustment_saturation : env.adjustment_saturation - 1;
+    effects.push(createElement(BrightnessContrast, { key: 'bc', brightness: (env.adjustment_brightness - 1) * 0.5, contrast }));
+    effects.push(createElement(HueSaturation, { key: 'saturation', saturation }));
+  }
+  effects.push(createElement(ToneMappingEffect, { key: 'tonemap', ...postToneMapping(env) }));
+  return effects;
+}
+
+/**
+ * The tone mapper as `postprocessing`'s (`environment.h:66`): Reinhard with Godot's white point,
+ * filmic as Hable's curve (Godot's filmic scales its input and white by 2, `tonemap_inc.glsl:42`),
+ * ACES, AgX; the exposure is the renderer's (`toneMappingExposure`, set with the environment).
+ */
+function postToneMapping(env: Environment): { readonly mode: ToneMappingMode; readonly whitePoint?: number } {
+  switch (env.tone_mapper) {
+    case 1:
+      return { mode: ToneMappingMode.REINHARD2, whitePoint: env.tonemap_white };
+    case 2:
+      return { mode: ToneMappingMode.UNCHARTED2, whitePoint: env.tonemap_white * 2 };
+    case 3:
+      return { mode: ToneMappingMode.ACES_FILMIC };
+    case 4:
+      return { mode: ToneMappingMode.AGX };
+    default:
+      return { mode: ToneMappingMode.LINEAR };
+  }
 }
 
 /** What a scene draws its environment from, and the environment it drew last. */
@@ -827,7 +809,8 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): { r
   const previousMapping = gl.toneMapping;
   const previousExposure = gl.toneMappingExposure;
   gl.toneMapping = godot_environment_post_enabled(env) ? NoToneMapping : (TONE_MAPPINGS[env.tone_mapper] ?? LinearToneMapping);
-  gl.toneMappingExposure = env.tonemap_exposure;
+  // The post pass's filmic curve takes Godot's input bias (`tonemap_inc.glsl:42`) as exposure.
+  gl.toneMappingExposure = godot_environment_post_enabled(env) && env.tone_mapper === 2 ? env.tonemap_exposure * 2 : env.tonemap_exposure;
   undo.push(() => {
     gl.toneMapping = previousMapping;
     gl.toneMappingExposure = previousExposure;
