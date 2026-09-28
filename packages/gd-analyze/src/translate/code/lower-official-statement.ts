@@ -247,9 +247,13 @@ function lowerCountedRange(
   const argumentNodes = call.arguments.map((id) => context.node(id, call));
   const variable = context.node(node.variable, node);
   // A typed loop variable (`for i: float in range(n)`) takes each int as it is assigned; a place
-  // whose type holds an int as the same number (int, float) is the counter itself.
-  if (node.useConversionAssign && godotBuiltinConverts(builtinDatatype('int'), variable.datatype)) {
-    return context.refuse(node, `a range() loop into a ${variable.datatype.display} variable converts each int, which the counted loop does not`);
+  // whose type holds an int as the same number (an int, a float or an enum) is the counter itself.
+  // Any other type is refused, whatever converting into it would do.
+  const counts =
+    variable.datatype.kind === 'ENUM' ||
+    (variable.datatype.kind === 'BUILTIN' && !variable.datatype.metaType && !godotBuiltinConverts(builtinDatatype('int'), variable.datatype));
+  if (node.useConversionAssign && !counts) {
+    return context.refuse(node, `a range() loop into a ${variable.datatype.display} variable: the counted loop's variable is an int, a float or an enum`);
   }
   const structuralRequirements = context.structural(node, 'for-range', argumentNodes, 'for-range:call');
   const [beginNode, endNode, stepNode] = argumentNodes.length === 1 ? [undefined, argumentNodes[0], undefined] : argumentNodes;
