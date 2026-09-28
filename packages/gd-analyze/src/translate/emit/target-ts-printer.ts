@@ -335,6 +335,11 @@ function expression(value: TargetTsExpression): ts.Expression {
       );
     case 'await-expression':
       return ts.factory.createAwaitExpression(expression(value.expression));
+    case 'postfix-update-expression':
+      return ts.factory.createPostfixUnaryExpression(
+        expression(value.operand),
+        value.operator === '++' ? ts.SyntaxKind.PlusPlusToken : ts.SyntaxKind.MinusMinusToken,
+      );
     case 'arrow-expression':
       return ts.factory.createArrowFunction(
         value.async === true ? [modifier('async')] : undefined,

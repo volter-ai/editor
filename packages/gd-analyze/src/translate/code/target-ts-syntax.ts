@@ -305,6 +305,12 @@ export type TargetTsExpression =
       readonly index: TargetTsExpression;
     })
   | (TargetTsExpressionBase & {
+      /** `operand++` / `operand--`. */
+      readonly kind: 'postfix-update-expression';
+      readonly operator: '++' | '--';
+      readonly operand: TargetTsExpression;
+    })
+  | (TargetTsExpressionBase & {
       readonly kind: 'call-expression';
       readonly callee: TargetTsExpression;
       readonly arguments: readonly TargetTsExpression[];

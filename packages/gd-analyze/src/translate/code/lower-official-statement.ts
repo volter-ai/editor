@@ -24,6 +24,7 @@ import {
   officialBoundSpan,
 } from './official-bound-lowering-context';
 import type { TargetTsClassMember, TargetTsExpression, TargetTsParameter, TargetTsStatement } from './target-ts-syntax';
+import { builtinDatatype } from '../../analyze/refined-types';
 import { godotCountsLoopCall } from '../data/counted-loops';
 import { godotBuiltinConverts, godotIteratesRange, godotReturnsNothing } from '../data/lowering-shapes';
 
@@ -244,6 +245,12 @@ function lowerCountedRange(
   call: Extract<GodotBoundNode, { kind: 'CALL' }>,
 ): LoweredStatements {
   const argumentNodes = call.arguments.map((id) => context.node(id, call));
+  const variable = context.node(node.variable, node);
+  // A typed loop variable (`for i: float in range(n)`) takes each int as it is assigned; a place
+  // whose type holds an int as the same number (int, float) is the counter itself.
+  if (node.useConversionAssign && godotBuiltinConverts(builtinDatatype('int'), variable.datatype)) {
+    return context.refuse(node, `a range() loop into a ${variable.datatype.display} variable converts each int, which the counted loop does not`);
+  }
   const structuralRequirements = context.structural(node, 'for-range', argumentNodes, 'for-range:call');
   const [beginNode, endNode, stepNode] = argumentNodes.length === 1 ? [undefined, argumentNodes[0], undefined] : argumentNodes;
   if (endNode === undefined) return context.refuse(call, 'range() takes one to three arguments');
@@ -251,7 +258,6 @@ function lowerCountedRange(
   if (step === undefined) return context.refuse(stepNode ?? call, 'a range() loop whose step is known only at run time: its comparison depends on the sign');
   if (step === 0) return context.refuse(stepNode ?? call, 'a range() loop with a zero step makes nothing (Godot reports "Step argument is zero!")');
   const name = officialBoundIdentifier(context, node.variable, node);
-  const variable = context.node(node.variable, node);
   const loopNode = context.node(node.loop, node);
   const within = (inner: GodotBoundNode) =>
     (inner.startLine > loopNode.startLine || (inner.startLine === loopNode.startLine && inner.startColumn >= loopNode.startColumn)) &&
@@ -291,7 +297,10 @@ function lowerCountedRange(
           left: read,
           right: limit === undefined ? end.value : { kind: 'identifier-expression', name: limit },
         },
-        update: { kind: 'assignment-expression', operator: step > 0 ? '+=' : '-=', target: read, value: { kind: 'literal-expression', value: Math.abs(step) } },
+        update:
+          Math.abs(step) === 1
+            ? { kind: 'postfix-update-expression', operator: step > 0 ? '++' : '--', operand: read }
+            : { kind: 'assignment-expression', operator: step > 0 ? '+=' : '-=', target: read, value: { kind: 'literal-expression', value: Math.abs(step) } },
         body: body.statements,
         span,
       },
@@ -511,7 +520,6 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
         return lowerIntegerRange(context, node, iterableNode);
       }
       if (
-        !node.useConversionAssign &&
         iterableNode.kind === 'CALL' &&
         iterableNode.compilerTarget.kind === 'gdscript-utility' &&
         godotCountsLoopCall(iterableNode.compilerTarget.owner, iterableNode.compilerTarget.member)
