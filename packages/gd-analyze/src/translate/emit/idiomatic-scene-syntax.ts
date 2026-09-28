@@ -25,6 +25,7 @@ import type {
 } from '../code/target-ts-syntax';
 import { TARGET_TS_SYNTAX_VERSION } from '../code/target-ts-syntax';
 import type {
+  DirectGodotProcessDeltaPlan,
   DirectGodotProjectCompositionPlan,
   DirectGodotSceneDocumentPlan,
   DirectGodotSceneNodePlan,
@@ -166,6 +167,8 @@ interface Emission {
   readonly scriptHooks: (() => TargetTsStatement[])[];
   /** What the scripts' lifecycle hooks import (`script-lifecycle-hooks.ts`). */
   readonly lifecycle: ScriptLifecycleImports;
+  /** The plan's bound on the delta a frame hands `_process`. */
+  readonly processDelta: DirectGodotProcessDeltaPlan;
   /** Whether the colliders being emitted are an area's sensors. */
   readonly sensor: { current: boolean };
   /** What the scene imports from Rapier itself (`@dimforge/rapier3d-compat`). */
@@ -308,7 +311,7 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
               ]),
         ],
       },
-    }, ...scriptLifecycleHooks(scriptName, refName, script.lifecycle, emission.lifecycle)]);
+    }, ...scriptLifecycleHooks(scriptName, refName, script.lifecycle, emission.lifecycle, emission.processDelta)]);
   }
   return [attribute('ref', { kind: 'identifier-expression', name: refName })];
 }
@@ -943,6 +946,7 @@ export function idiomaticSceneSourceFile(
     hooks: [],
     scriptHooks: [],
     lifecycle: { react: new Set(), fiber: new Set(), rapier: new Set(), compat: new Map() },
+    processDelta: project.processDelta,
     sensor: { current: false },
     rapierCore: new Set(),
     refNames: new Set(),

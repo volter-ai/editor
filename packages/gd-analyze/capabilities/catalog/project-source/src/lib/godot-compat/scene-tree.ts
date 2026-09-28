@@ -178,7 +178,9 @@ export function godot_tree_physics_end(): void {
 
 /**
  * A process frame begins: `SceneTree::process` emits `process_frame` before the nodes' `_process`
- * (`scene/main/scene_tree.cpp:688`).
+ * (`scene/main/scene_tree.cpp:688`). Its delta, which `get_process_delta_time` reads, comes already
+ * bounded to the frame's maximum physics steps, as Godot bounds it (`main/main.cpp:4951`,
+ * `useGodotTree`).
  *
  * @godot SceneTree (protocol)
  * @source scene/main/scene_tree.cpp:688

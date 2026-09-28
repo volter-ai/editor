@@ -105,6 +105,19 @@ export interface DirectGodotPhysicsWorldPlan {
   readonly allowedLinearError: number;
 }
 
+/**
+ * The largest delta a frame hands the scripts' `_process`: `max_steps` physics steps at
+ * `ticks_per_second`, from `physics/common/max_physics_steps_per_frame` and
+ * `physics/common/physics_ticks_per_second` (Godot's defaults 8 and 60 when unset). Godot never
+ * advances a frame by more (`main/main.cpp:4951`: a frame due more steps than the maximum drops the
+ * excess from its process step), so a stall, such as a page's first frames while it loads, reaches
+ * `_process` as at most 8/60 s, never as one long delta that throws a bobbing coin out of view.
+ */
+export interface DirectGodotProcessDeltaPlan {
+  readonly maxSteps: number;
+  readonly ticksPerSecond: number;
+}
+
 export interface DirectGodotProjectCompositionPlan {
   readonly version: typeof DIRECT_GODOT_COMPOSITION_PLAN_VERSION;
   readonly snapshotDigest: string;
@@ -115,6 +128,7 @@ export interface DirectGodotProjectCompositionPlan {
   /** The InputMap the world loads after the settings (`Main::setup`, `main/main.cpp:2102`). */
   readonly inputMap: readonly DirectGodotInputActionPlan[];
   readonly physicsWorld: DirectGodotPhysicsWorldPlan;
+  readonly processDelta: DirectGodotProcessDeltaPlan;
   readonly sourceModules: readonly DirectGodotSourceModulePlan[];
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
@@ -624,6 +638,18 @@ function physicsWorld(_project: BoundGodotProject): DirectGodotPhysicsWorldPlan 
   return { allowedLinearError: 0.01 };
 }
 
+/** The process delta's bound from the project's settings (`DirectGodotProcessDeltaPlan`). */
+function processDelta(project: BoundGodotProject): DirectGodotProcessDeltaPlan {
+  const setting = (key: string, fallback: number): number => {
+    const value = project.read.authoredSettings.get(key);
+    return value?.kind === 'number' && value.value > 0 ? value.value : fallback;
+  };
+  return {
+    maxSteps: setting('physics/common/max_physics_steps_per_frame', 8),
+    ticksPerSecond: setting('physics/common/physics_ticks_per_second', 60),
+  };
+}
+
 /** Pure join of already-accepted code and data plans; it performs no source read or emission. */
 /** The classes whose methods take an action by name. */
 const ACTION_CLASSES = new Set(['Input', 'InputMap', 'InputEvent', 'InputEventAction', 'InputEventKey', 'InputEventMouseButton', 'InputEventJoypadButton', 'InputEventJoypadMotion', 'InputEventScreenTouch', 'InputEventMouseMotion', 'InputEventScreenDrag', 'InputEventWithModifiers', 'InputEventFromWindow', 'InputEventMouse']);
@@ -726,6 +752,7 @@ export function planDirectGodotProjectComposition(
       projectSettings: settings,
       inputMap,
       physicsWorld: physics,
+      processDelta: processDelta(project),
       sourceModules: plannedSourceModules,
       scenes: planGodotSceneRefs(composedScenes.map(planGodotSceneSkyLights)),
       scriptAutoloads: autoloads,

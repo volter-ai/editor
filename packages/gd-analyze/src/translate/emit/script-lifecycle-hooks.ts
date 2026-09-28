@@ -1,7 +1,8 @@
 /**
  * A script's frame and input callbacks as its component's own hooks (docs/GODOT.md §The lane's law,
  * order of work 2): `_process` from `useFrame`; `_physics_process` and a RigidBody3D's `_integrate_forces` from
- * `useBeforePhysicsStep` (the step's own `timestep` is the delta); input callbacks from
+ * `useBeforePhysicsStep` (the step's own `timestep` is the delta, fixed, so a stall only adds
+ * steps); input callbacks from
  * `useGodotInput`. `_process` and `_physics_process` run while the node processes
  * (`godot_node_processes`: inside the tree, not turned off by `set_process`, its process mode
  * allowing), as `SceneTree::_process_group` asks each node. Only the hooks the script defines are
@@ -10,8 +11,14 @@
  * own: the scene entering the tree (`useGodotScene`, the component's last effect) runs them,
  * parents entering first and children readying first, once the whole scene's scripts are attached,
  * as `add_child` does.
+ *
+ * `_process` is handed the frame's delta clamped to the plan's bound (`Math.min(delta, 8 / 60)` by
+ * default): Godot never advances a frame by more than its maximum physics steps
+ * (`main/main.cpp:4951`), so a stall reaches the script as at most that, as a three.js game clamps
+ * its frame delta.
  */
 import type { BoundGodotLifecycleEntry } from '../../analyze/bound-project';
+import type { DirectGodotProcessDeltaPlan } from '../data/direct-project-composition-plan';
 import type { TargetTsExpression, TargetTsStatement } from '../code/target-ts-syntax';
 
 /** What the hooks import: React's, R3F's and Rapier's hooks, and compat's (module, name). */
@@ -64,6 +71,23 @@ function whileProcessing(kind: string, script: string, method: string, delta: Ta
   ];
 }
 
+/** `Math.min(delta, maxSteps / ticksPerSecond)`. */
+function clamped(bound: DirectGodotProcessDeltaPlan): TargetTsExpression {
+  return {
+    kind: 'call-expression',
+    callee: { kind: 'property-expression', object: id('Math'), property: 'min' },
+    arguments: [
+      id('delta'),
+      {
+        kind: 'binary-expression',
+        operator: '/',
+        left: { kind: 'literal-expression', value: bound.maxSteps },
+        right: { kind: 'literal-expression', value: bound.ticksPerSecond },
+      },
+    ],
+  };
+}
+
 function hook(name: string, args: readonly TargetTsExpression[]): TargetTsStatement {
   return { kind: 'expression-statement', expression: { kind: 'call-expression', callee: id(name), arguments: args } };
 }
@@ -77,13 +101,15 @@ const INPUT_KINDS: Readonly<Record<string, string>> = {
 
 /**
  * The hook statements for a script held in `script` (a ref to the instance) on the node `node`
- * (its element's ref), given the lifecycle methods the script defines.
+ * (its element's ref), given the lifecycle methods the script defines and the plan's bound on the
+ * process delta.
  */
 export function scriptLifecycleHooks(
   script: string,
   node: string,
   lifecycle: readonly BoundGodotLifecycleEntry[],
   imports: ScriptLifecycleImports,
+  processDelta: DirectGodotProcessDeltaPlan,
 ): TargetTsStatement[] {
   const method = (phase: BoundGodotLifecycleEntry['phase']): string | undefined => lifecycle.find((entry) => entry.phase === phase)?.methodName;
   const statements: TargetTsStatement[] = [];
@@ -92,7 +118,11 @@ export function scriptLifecycleHooks(
     imports.fiber.add('useFrame');
     statements.push(
       hook('useFrame', [
-        { kind: 'arrow-expression', parameters: [{ name: '_' }, { name: 'delta' }], body: whileProcessing('process', script, process, id('delta'), imports) },
+        {
+          kind: 'arrow-expression',
+          parameters: [{ name: '_' }, { name: 'delta' }],
+          body: whileProcessing('process', script, process, clamped(processDelta), imports),
+        },
       ]),
     );
   }

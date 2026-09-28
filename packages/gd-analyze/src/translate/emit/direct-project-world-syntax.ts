@@ -10,6 +10,7 @@ import {
   type TargetTsType,
 } from '../code/target-ts-syntax';
 import type {
+  DirectGodotProcessDeltaPlan,
   DirectGodotProjectCompositionPlan,
   DirectGodotSceneNodePlan,
   DirectGodotScriptAutoloadPlan,
@@ -104,6 +105,7 @@ function autoloadComponent(
   autoload: DirectGodotScriptAutoloadPlan,
   index: number,
   imports: ScriptLifecycleImports,
+  processDelta: DirectGodotProcessDeltaPlan,
 ): TargetTsStatement {
   const node = `$node_autoload_${index}`;
   const script = `$script_autoload_${index}`;
@@ -153,7 +155,7 @@ function autoloadComponent(
           { kind: 'array-expression', elements: [] },
         ]),
       },
-      ...scriptLifecycleHooks(script, node, autoload.lifecycle, imports),
+      ...scriptLifecycleHooks(script, node, autoload.lifecycle, imports, processDelta),
       // The autoload enters the tree once its script is attached (its component's last effect); it
       // renders the scenes its script adds under it.
       { kind: 'variable-statement', declaration: 'const', name: 'addedScenes', initializer: call('useGodotScene', [{ kind: 'identifier-expression', name: node }]) },
@@ -209,7 +211,7 @@ export function emitDirectGodotWorldSyntax(
     .map((candidate) => ({ candidate, references: directGodotSceneAutoloadReferences(candidate.root) }))
     .filter((entry) => entry.references.length > 0);
   const hooks: ScriptLifecycleImports = { react: new Set(), fiber: new Set(), rapier: new Set(), compat: new Map() };
-  const autoloadComponents = composition.scriptAutoloads.map((autoload, index) => autoloadComponent(autoload, index, hooks));
+  const autoloadComponents = composition.scriptAutoloads.map((autoload, index) => autoloadComponent(autoload, index, hooks, composition.processDelta));
   const hasAutoloads = composition.scriptAutoloads.length > 0;
   // `<Physics>` at the project's tick rate and gravity (`physics/common/physics_ticks_per_second`,
   // `physics/3d/default_gravity` along `default_gravity_vector`).
