@@ -13,7 +13,6 @@
  */
 
 import type { BoundGodotProject } from '../../analyze/bound-project';
-import { godotResolveNodePath } from './scene-animation';
 import { type GodotSceneHeldNode, godotSceneHeldNodes, godotSceneSubnodes, type TargetGodotSceneDocumentPlan, type TargetGodotSceneNodePlan } from './scene-document-plan';
 
 /** A static path a script reads and the field its scene hands it in. */
@@ -68,19 +67,41 @@ function sceneNodes(scene: TargetGodotSceneDocumentPlan): readonly TargetGodotSc
   return nodes;
 }
 
+/**
+ * A relative path walked from a node one step at a time, as `Node::get_node` walks it: every node
+ * on the way must be one the scene holds (`A/../B` needs `A`), and `..` above the scene's root
+ * leaves it.
+ */
+function walk(site: Site, from: string, path: string): string | undefined {
+  let at = from;
+  for (const name of path.split('/')) {
+    if (name === '' || name === '.') continue;
+    if (name.startsWith('%')) return undefined;
+    if (name === '..') {
+      if (at === '.') return undefined;
+      at = at.includes('/') ? at.slice(0, at.lastIndexOf('/')) : '.';
+    } else at = at === '.' ? name : `${at}/${name}`;
+    if (!site.nodes.has(at)) return undefined;
+  }
+  return at;
+}
+
 /** The scene node a path names from a site, or undefined when it names none a ref can hold. */
 function resolve(site: Site, path: string): string | undefined {
   if (path.includes(':')) return undefined;
   if (path.startsWith('%')) {
-    // `%Name`: the node of the scene marked unique with that name. A node that is an instance or
-    // a model looks in the scene it instances first (`Node::get_node`, its owned unique nodes),
-    // which this scene does not hold.
-    if (path.includes('/') || site.node.instance !== undefined || site.node.model !== undefined) return undefined;
-    const matches = [...site.nodes.values()].flatMap((held) => (held.kind === 'node' && held.node.unique === true && held.node.name === path.slice(1) ? [held.node] : []));
-    return matches.length === 1 ? matches[0]?.nodePath : undefined;
+    // `%Name`: the node of the scene marked unique with that name, and a path from it
+    // (`%Name/Child`, which may climb out of it with `..`). A node that is an instance or a model
+    // looks in the scene it instances first
+    // (`Node::get_node`, its owned unique nodes), which this scene does not hold.
+    if (site.node.instance !== undefined || site.node.model !== undefined) return undefined;
+    const [unique, ...rest] = path.slice(1).split('/');
+    const matches = [...site.nodes.values()].flatMap((held) => (held.kind === 'node' && held.node.unique === true && held.node.name === unique ? [held.node] : []));
+    const found = matches.length === 1 ? matches[0]?.nodePath : undefined;
+    return found === undefined ? undefined : walk(site, found, rest.join('/'));
   }
-  const target = godotResolveNodePath(site.node.nodePath, path);
-  return target !== undefined && site.nodes.has(target) ? target : undefined;
+  if (path.startsWith('/')) return undefined;
+  return walk(site, site.node.nodePath, path);
 }
 
 /** The path from one scene node to another, as `get_node` takes it (`..` up, then down). */

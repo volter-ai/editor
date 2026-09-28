@@ -331,7 +331,9 @@ emitter prints:
 1. **Static node access is a ref.** `$Path`, `get_node("literal")`, `%Unique` and an `@onready`
    member holding one resolve at plan time to the scene's own refs, handed to the script as
    typed fields. Only a path computed at run time keeps the tree lookup.
-   Landed for `$Path`, `%Unique` and `get_node("literal")` on self (`script-node-paths.ts`,
+   Landed for `$Path`, `%Unique` (and `%Unique/Child`), `get_node("literal")` on self, and a
+   literal `get_node` on a node itself read so (`%CoinCount.get_node("Parallax")` is
+   `%CoinCount/Parallax`) (`script-node-paths.ts`,
    planned from the scene documents before lowering, which reads the plan): a path every node
    running the script (its own or a subclass's) resolves to a node of that node's own scene is a
    `$Path` field, handed over by `useGodotNodeReferences` as an authored node reference is, and
