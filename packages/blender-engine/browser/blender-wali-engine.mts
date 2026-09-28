@@ -251,6 +251,7 @@ type StoreLayerFromIndex = (
  */
 async function installedRuntime(
   fromIndex: StoreLayerFromIndex,
+  hold: ((projectId: string) => Promise<void>) | undefined,
   log: BlenderEngineOptions['log'],
 ): Promise<unknown> {
   const began = performance.now();
@@ -259,10 +260,14 @@ async function installedRuntime(
     throw new Error(`${ARTIFACT_BASE}/runtime.idx answered ${indexAnswer.status}`);
   const text = await indexAnswer.text();
   const index = JSON.parse(text) as RuntimeIndex;
-  // The tree's version is its index: the same files at the same sizes and modes, in the same order.
+  // The tree's version is its index: the same files at the same sizes and modes, in the same order,
+  // and its newest file's time (`runtimeTag`'s validator), so a file rebuilt at the same size is a new version.
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)));
   const tag = [...digest.slice(0, 12)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
   const projectId = `${RUNTIME_STORE_FAMILY}${tag}`;
+  // THIS PAGE HOLDS ITS TREE IN USE from before it is installed to the end of the session, so
+  // another tab installing another version never removes it under this one's runs (ADR-0048).
+  if (hold) await hold(projectId);
   let worker: Worker;
   try {
     worker = new Worker(artifactUrl('wali/browser-wali/tree-store-worker.js'), { type: 'module' });
@@ -270,8 +275,11 @@ async function installedRuntime(
     log('log', `blender: the runtime tree stays in memory: no installer worker (${error instanceof Error ? error.message : String(error)})`);
     return undefined;
   }
+  // A BOUNDED WAIT: an install stalled in another tab (a slow network, a throttled background tab)
+  // holds this tree's installer lock, and this boot takes the shared layer rather than wait on it.
   const answer = await new Promise<{ ok: boolean; installed?: boolean; bytes?: number; error?: string }>((resolve) => {
-    worker.onmessage = (event) => resolve(event.data);
+    const timer = setTimeout(() => resolve({ ok: false, error: `no answer in ${INSTALL_WAIT_MS / 1000} s` }), INSTALL_WAIT_MS);
+    worker.onmessage = (event) => { clearTimeout(timer); resolve(event.data); };
     worker.onerror = (event) => resolve({ ok: false, error: event.message || 'the installer worker failed to start' });
     worker.postMessage({
       projectId,
@@ -295,8 +303,13 @@ async function installedRuntime(
   return layer;
 }
 
-/** Installed runtime trees' store names begin so; installing one removes the others. */
-const RUNTIME_STORE_FAMILY = 'volter-blender-runtime-';
+/**
+ * Installed runtime trees' store names begin so; installing one removes the others that no tab
+ * reads. `tree-` is the substrate's mark of an installed tree (`TREE_STORE_PREFIX`).
+ */
+const RUNTIME_STORE_FAMILY = 'tree-blender-runtime-';
+/** How long a boot waits on the installer before it carries the tree in memory instead. */
+const INSTALL_WAIT_MS = 90_000;
 
 /** The program's filesystem, as {@link BlenderFiles}. */
 function programFiles(filesystem: BrowserFileSystemLike): BlenderFiles {
@@ -384,7 +397,8 @@ export async function startWaliBlenderEngine(
     filesystem.mkdirSync(directory, { recursive: true });
   const fromIndex = layers['sharedFileLayerFromIndex'] as LayerFromIndex | undefined;
   const fromStore = layers['storeFileLayerFromIndex'] as StoreLayerFromIndex | undefined;
-  const runtimeLayer = (fromStore ? await installedRuntime(fromStore, options.log) : undefined)
+  const holdTree = layers['holdTreeStore'] as ((projectId: string) => Promise<void>) | undefined;
+  const runtimeLayer = (fromStore ? await installedRuntime(fromStore, holdTree, options.log) : undefined)
     ?? (fromIndex ? await sharedRuntime(fromIndex, options.log) : undefined);
   if (!runtimeLayer) await stageRuntime(filesystem, options.log);
   filesystem.writeFileSync(SESSION_SCRIPT, sessionPython);
