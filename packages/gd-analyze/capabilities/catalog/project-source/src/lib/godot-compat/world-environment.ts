@@ -10,7 +10,7 @@
  *   direction `cube_normal`, the panorama coordinates by its own `atan2`/`acos` approximations,
  *   `color` and `alpha`, the shader's lowered `sky()` body, then `sky_energy_multiplier` and the
  *   conversion to linear by `srgb_to_linear`'s polynomial), its `LIGHTn_*` built-ins filled each
- *   frame as `_setup_sky` fills the sky's light buffer (`rasterizer_scene_gles3.cpp:741`): up to
+ *   render as `_setup_sky` fills the sky's light buffer (`rasterizer_scene_gles3.cpp:741`): up to
  *   four directional lights the sky sees (sky mode not `LIGHT_ONLY`), each its direction
  *   `basis * (0, 0, 1)` normalized, its energy, its colour as authored and its size in radians,
  *   the rest disabled; a colour background is the scene's
@@ -27,7 +27,7 @@
  *   (`reflected_light_source`, `doc/classes/Environment.xml:203`, `:419`), and takes the sky's share
  *   `ambient_light_sky_contribution` of its ambient from the sky where the ambient source is the
  *   sky, or the background and the background is the sky (`:60`, `:64`, `:407`); the capture is
- *   redone when the sky's parameters or its lights change;
+ *   redone when the sky's parameters or its lights change, not as time passes;
  * - the tone mapper is three's own of the same name on the renderer (`toneMapping`, its exposure
  *   `toneMappingExposure`; `environment.h:66`: linear, Reinhard, filmic (three's Cineon, a
  *   filmic curve), ACES, and AgX as three's Neutral, `TONE_MAPPINGS`), where the post pass does
@@ -41,17 +41,20 @@
  * it per camera (`RendererSceneCull::_render_get_environment`, renderer_scene_cull.cpp:3722): the
  * drawing camera's own (`Camera3D.environment`), else the world's.
  *
- * Named deviations: `fog-model` (Godot fogs by `1 - exp(-distance * density)` per vertex, three's
- * `FogExp2` by `1 - exp(-(depth * density)^2)` per fragment; height fog and sun scatter are not
- * drawn, nor fog on the sky); `sky-irradiance` (three's environment lights a material's reflection
- * and its diffuse ambient at one intensity, `scene.environmentIntensity`, where Godot sets them
- * apart: a sky that is reflected also adds its irradiance to the diffuse ambient where Godot's comes
- * from a colour, or from the sky at a share under 1; a sky that lights the ambient but is not
- * reflected is reflected at that share); `sky-light-order` (the sky's lights are the
- * visible directional lights in scene-tree order, where Godot takes them in the order they entered
- * the world: the same for authored scenes, possibly different for lights a script adds or moves);
- * `srgb-output` (three writes sRGB with the exact
- * transfer function where Godot uses `linear_to_srgb`'s approximation, `tonemap_inc.glsl:14`).
+ * Where three differs from Godot:
+ * - Godot fogs by `1 - exp(-distance * density)` per vertex, three's `FogExp2` by
+ *   `1 - exp(-(depth * density)^2)` per fragment; height fog and sun scatter are not drawn, nor fog
+ *   on the sky;
+ * - three lights reflection and diffuse ambient from one `scene.environmentIntensity`; where Godot
+ *   sets them apart, three's ambient differs. A sky that is reflected also adds its irradiance to
+ *   the diffuse ambient where Godot's ambient is a colour, is the sky at a share under 1, or is
+ *   off (`ambient_light_source` disabled, where Godot adds no ambient at all). A sky that lights
+ *   the ambient but is not reflected is reflected at the ambient's share;
+ * - the sky's lights are the visible directional lights in scene-tree order, where Godot takes them
+ *   in the order they entered the world: the same for authored scenes, possibly different for
+ *   lights a script adds or moves;
+ * - three writes sRGB with the exact transfer function where Godot uses `linear_to_srgb`'s
+ *   approximation (`tonemap_inc.glsl:14`).
  */
 
 import { useThree } from '@react-three/fiber';
@@ -59,29 +62,29 @@ import { EffectComposer } from '@react-three/postprocessing';
 import { createElement, Fragment, type ReactElement, useLayoutEffect, useMemo } from 'react';
 import { GodotPostEffect, godot_environment_post_enabled } from './environment-post';
 import {
+  ACESFilmicToneMapping,
   AmbientLight,
+  BackSide,
   BoxGeometry,
   type Camera,
-  BackSide,
-  Color as ThreeColor,
-  type DirectionalLight,
-  type CubeTexture,
-  ACESFilmicToneMapping,
   CineonToneMapping,
+  Color as ThreeColor,
+  type CubeTexture,
+  type DirectionalLight,
   FogExp2,
   Group,
+  LinearToneMapping,
   type Material,
   Mesh,
-  type Object3D,
-  LinearToneMapping,
   NeutralToneMapping,
   NoToneMapping,
+  type Object3D,
   type PerspectiveCamera,
   PMREMGenerator,
   ReinhardToneMapping,
+  Scene,
   ShaderMaterial as ThreeShaderMaterial,
   type Texture,
-  Scene,
   type ToneMapping,
   type WebGLRenderer,
   type WebGLRenderTarget,
@@ -90,7 +93,7 @@ import type { Color } from './color';
 import { type Environment, godot_environment_tonemap_parameters } from './environment';
 import { get_environment as get_camera_environment, godot_camera_3d_world_listener } from './camera-3d';
 import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
-import { godot_node_foreign } from './node';
+import { godot_node_foreign, godot_node_observe_child_order, godot_node_observe_tree } from './node';
 import { get_global_basis } from './node-3d';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import type { Shader } from './shader';
@@ -297,7 +300,8 @@ ${lowered.renderModes.includes('use_debanding') ? SKY_DEBANDING : ''}}
 
 /**
  * `render_mode use_debanding`: the sky pass's noise added to its sRGB output (`sky.glsl:134`,
- * `:276`), `luminance_multiplier` 1 (named `post-buffer-precision` where the post pass draws).
+ * `:276`), `luminance_multiplier` 1: the sky draws straight to three's output, not to the post
+ * pass's buffers (`environment-post.ts`).
  */
 const SKY_DEBANDING = `	{
 		const vec3 magic = vec3(0.06711056, 0.00583715, 52.9829189);
@@ -318,39 +322,87 @@ export interface GodotWorldSkyLight extends GodotSkyLight {
   readonly direction: readonly [number, number, number];
 }
 
+/** Whether `object` draws in `scene`: it and every node above it up to the scene are visible. */
+function shownIn(object: Object3D, scene: Object3D): boolean {
+  for (let node: Object3D | null = object; node !== null; node = node.parent) {
+    if (!node.visible) return false;
+    if (node === scene) return true;
+  }
+  return false;
+}
+
 /**
- * The directional lights `scene` hands its sky pass, as `_setup_sky` fills the light buffer: the
- * visible ones the sky sees (sky mode not `LIGHT_ONLY`), in scene order, at most four.
+ * The directional lights `scene` hands its sky pass, as `_setup_sky` fills the light buffer: of
+ * `lights`, the scene's directional lights in scene order, the visible ones the sky sees (sky mode
+ * not `LIGHT_ONLY`), at most four.
  *
  * @godot WorldEnvironment (protocol)
  * @source drivers/gles3/rasterizer_scene_gles3.cpp:741
  */
-export function godot_world_environment_sky_lights(scene: Object3D): GodotWorldSkyLight[] {
+export function godot_world_environment_sky_lights(scene: Object3D, lights: readonly DirectionalLight[]): GodotWorldSkyLight[] {
   const f32 = Math.fround;
-  const lights: GodotWorldSkyLight[] = [];
-  const visit = (object: Object3D): void => {
-    if (!object.visible || lights.length >= SKY_LIGHTS) return;
-    if ((object as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) {
-      const sky = godot_light_3d_sky_light(object as DirectionalLight);
-      if (sky !== null) {
-        // `basis.xform(Vector3(0, 0, 1))` is the global basis's z column; `Vector3::normalize`
-        // (`vector3.h:548`) in float.
-        const column = get_global_basis(object).z;
-        const [x, y, z] = [f32(column.x), f32(column.y), f32(column.z)];
-        const length = f32(Math.sqrt(f32(f32(f32(x * x) + f32(y * y)) + f32(z * z))));
-        const direction: [number, number, number] = length === 0 ? [0, 0, 0] : [f32(x / length), f32(y / length), f32(z / length)];
-        lights.push({ ...sky, direction });
-      }
-    }
-    for (const child of object.children) visit(child);
-  };
-  visit(scene);
-  return lights;
+  const sky: GodotWorldSkyLight[] = [];
+  for (const light of lights) {
+    if (sky.length >= SKY_LIGHTS) break;
+    if (!shownIn(light, scene)) continue;
+    const seen = godot_light_3d_sky_light(light);
+    if (seen === null) continue;
+    // `basis.xform(Vector3(0, 0, 1))` is the global basis's z column; `Vector3::normalize`
+    // (`vector3.h:548`) in float.
+    const column = get_global_basis(light).z;
+    const [x, y, z] = [f32(column.x), f32(column.y), f32(column.z)];
+    const length = f32(Math.sqrt(f32(f32(f32(x * x) + f32(y * y)) + f32(z * z))));
+    const direction: [number, number, number] = length === 0 ? [0, 0, 0] : [f32(x / length), f32(y / length), f32(z / length)];
+    sky.push({ ...seen, direction });
+  }
+  return sky;
 }
 
-/** Fills a sky material's light uniforms from `scene`'s sky lights, the rest disabled. */
-function updateSkyLights(three: ThreeShaderMaterial, scene: Object3D): void {
-  const lights = godot_world_environment_sky_lights(scene);
+/** Bumped when a node enters, leaves or moves in the tree: a sky's held lights are collected again. */
+let treeVersion = 0;
+godot_node_observe_tree(() => {
+  treeVersion += 1;
+});
+godot_node_observe_child_order(() => {
+  treeVersion += 1;
+});
+
+/**
+ * A drawing's sky lights, read once per render of `scene`. The scene's directional lights are
+ * collected in scene order when the drawing first renders and again only after the tree changes;
+ * a render reads just those lights, never the rest of the scene.
+ */
+function skyLightsOf(scene: Object3D): () => GodotWorldSkyLight[] {
+  let held: DirectionalLight[] = [];
+  let collected = -1;
+  return () => {
+    if (collected !== treeVersion) {
+      collected = treeVersion;
+      held = [];
+      scene.traverse((object) => {
+        if ((object as { readonly isDirectionalLight?: boolean }).isDirectionalLight === true) held.push(object as DirectionalLight);
+      });
+    }
+    return godot_world_environment_sky_lights(scene, held);
+  };
+}
+
+/** Whether two renders' sky lights are the same, field by field. */
+function sameSkyLights(a: readonly GodotWorldSkyLight[], b: readonly GodotWorldSkyLight[]): boolean {
+  if (a.length !== b.length) return false;
+  return a.every((light, n) => {
+    const other = b[n] as GodotWorldSkyLight;
+    return (
+      light.energy === other.energy &&
+      light.size === other.size &&
+      light.color.every((value, i) => value === other.color[i]) &&
+      light.direction.every((value, i) => value === other.direction[i])
+    );
+  });
+}
+
+/** Fills a sky material's light uniforms from its sky lights, the rest disabled. */
+function updateSkyLights(three: ThreeShaderMaterial, lights: readonly GodotWorldSkyLight[]): void {
   for (let n = 0; n < SKY_LIGHTS; n += 1) {
     const entry = lights[n];
     const set = (name: string, value: unknown) => {
@@ -450,14 +502,22 @@ export function godot_world_environment_sky_lighting(env: Environment): { readon
 
 /**
  * The sky's radiance on `scene`: the sky's three material captured into a prefiltered environment
- * by three's `PMREMGenerator` and set as `scene.environment`, which three's standard and physical
- * materials reflect and take their diffuse ambient from. Its intensity is 1 where the sky is
- * reflected, else the sky's ambient share (`sky-irradiance`). The capture is redone before a render
- * after the sky's parameters or lights change (a `Sky`'s automatic process mode updates its radiance
- * when the sky changes, `doc/classes/Sky.xml`). Returns what to call before each render of `scene`,
- * and the undo.
+ * by three's `PMREMGenerator` (one per drawing, as three's examples make it) and set as
+ * `scene.environment`, which three's standard and physical materials reflect and take their diffuse
+ * ambient from. Its intensity is 1 where the sky is reflected, else the sky's ambient share. The
+ * capture is redone before a render only after the sky's parameters or its lights change: a sky
+ * whose shader reads `TIME` is not recaptured as time passes, where a `Sky`'s automatic process
+ * mode updates such a sky's radiance in real time (`doc/classes/Sky.xml`). Returns what to call
+ * before each render of `scene` with its sky lights, and the undo.
  */
-function drawSkyRadiance(scene: Scene, gl: WebGLRenderer, env: Environment, sky: ThreeShaderMaterial, lighting: { readonly reflection: boolean; readonly ambient: number }): { readonly frame: () => void; readonly undo: () => void } {
+function drawSkyRadiance(
+  scene: Scene,
+  gl: WebGLRenderer,
+  env: Environment,
+  material: ShaderMaterial,
+  sky: ThreeShaderMaterial,
+  lighting: { readonly reflection: boolean; readonly ambient: number },
+): { readonly frame: (lights: readonly GodotWorldSkyLight[]) => void; readonly undo: () => void } {
   const capture = new Scene();
   const box = new Mesh(new BoxGeometry(1, 1, 1), sky);
   box.frustumCulled = false;
@@ -465,36 +525,31 @@ function drawSkyRadiance(scene: Scene, gl: WebGLRenderer, env: Environment, sky:
   // `Sky.radiance_size` (`doc/classes/Sky.xml:15`): 32 pixels, doubled per step.
   const size = 32 * 2 ** Math.min(Math.max(env.sky?.radiance_size ?? 3, 0), 6);
   const previous = { environment: scene.environment, intensity: scene.environmentIntensity };
+  const pmrem = new PMREMGenerator(gl);
   let target: WebGLRenderTarget | null = null;
-  let captured: string | null = null;
+  let captured: readonly GodotWorldSkyLight[] | null = null;
   let stale = true;
-  const material = env.sky?.sky_material ?? null;
-  const changed = material?.changed;
-  if (material !== null) {
-    material.changed = (name, value) => {
-      changed?.(name, value);
-      stale = true;
-    };
-  }
-  const frame = (): void => {
-    const lights = JSON.stringify(godot_world_environment_sky_lights(scene));
-    if (!stale && lights === captured) return;
+  // The sky material's own hook (its uniforms) runs first; the drawing restores it when undone.
+  const changed = material.changed;
+  material.changed = (name, value) => {
+    changed?.(name, value);
+    stale = true;
+  };
+  const frame = (lights: readonly GodotWorldSkyLight[]): void => {
+    if (!stale && captured !== null && sameSkyLights(lights, captured)) return;
     stale = false;
     captured = lights;
-    updateSkyLights(sky, scene);
-    const pmrem = new PMREMGenerator(gl);
     const next = pmrem.fromScene(capture, 0, 0.1, 100, { size });
-    pmrem.dispose();
     target?.dispose();
     target = next;
     scene.environment = next.texture;
     scene.environmentIntensity = lighting.reflection ? 1 : lighting.ambient;
   };
   const undo = (): void => {
-    if (material !== null && changed !== undefined) material.changed = changed;
     scene.environment = previous.environment;
     scene.environmentIntensity = previous.intensity;
     target?.dispose();
+    pmrem.dispose();
     box.geometry.dispose();
   };
   return { frame, undo };
@@ -645,8 +700,17 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): { r
   let frame = (): void => undefined;
   const skyMaterial = env.sky?.sky_material ?? null;
   const lighting = godot_world_environment_sky_lighting(env);
-  // The sky's three material, drawn as the background, captured as the radiance, or both.
-  const sky = skyMaterial !== null && (env.bg_mode === 2 || lighting !== null) ? godot_sky_material_three(skyMaterial, env.bg_energy_multiplier) : null;
+  // The sky's three material, drawn as the background, captured as the radiance, or both. Its
+  // `changed` hook is the drawing's while it draws, and is put back as it was when it is undone.
+  const drawsSky = skyMaterial !== null && (env.bg_mode === 2 || lighting !== null);
+  if (drawsSky) {
+    const hook = skyMaterial.changed;
+    undo.push(() => {
+      if (hook === undefined) delete skyMaterial.changed;
+      else skyMaterial.changed = hook;
+    });
+  }
+  const sky = drawsSky ? godot_sky_material_three(skyMaterial, env.bg_energy_multiplier) : null;
   if (sky !== null) undo.push(() => sky.dispose());
   // The background.
   if (env.bg_mode === 2) {
@@ -654,10 +718,9 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): { r
       const box = new Mesh(new BoxGeometry(1, 1, 1), sky);
       box.frustumCulled = false;
       box.renderOrder = -Number.MAX_SAFE_INTEGER;
-      box.onBeforeRender = (_renderer, drawnScene, camera) => {
+      box.onBeforeRender = (_renderer, _scene, camera) => {
         box.position.setFromMatrixPosition(camera.matrixWorld);
         box.updateMatrixWorld();
-        updateSkyLights(box.material as ThreeShaderMaterial, drawnScene);
       };
       godot_node_foreign(box);
       scene.add(box);
@@ -674,11 +737,17 @@ function drawEnvironment(scene: Scene, gl: WebGLRenderer, env: Environment): { r
       scene.background = previous;
     });
   }
-  // The sky's radiance.
-  if (sky !== null && lighting !== null) {
-    const radiance = drawSkyRadiance(scene, gl, env, sky, lighting);
-    frame = radiance.frame;
-    undo.push(radiance.undo);
+  // The sky's lights, read once per render: the background and the radiance draw with the one
+  // material, and the radiance is captured again only when they change.
+  if (sky !== null && skyMaterial !== null) {
+    const skyLights = skyLightsOf(scene);
+    const radiance = lighting === null ? null : drawSkyRadiance(scene, gl, env, skyMaterial, sky, lighting);
+    if (radiance !== null) undo.push(radiance.undo);
+    frame = () => {
+      const lights = skyLights();
+      updateSkyLights(sky, lights);
+      radiance?.frame(lights);
+    };
   }
   // The ambient light.
   const ambient = godot_world_environment_ambient(env);
