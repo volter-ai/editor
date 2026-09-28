@@ -175,7 +175,8 @@ skips the frame or unmounts the game.
    page's input and draws its canvas items from its own hook (`useGodotRootWindow`, `advance.tsx`).
    Spawning keeps no registry: a scene root's added scenes are that node's own state
    (`godot_node_added_scenes`), and `rootScript` is lowering's argument to `preload`. Ruled from
-   the law, not changed: the SceneTree's timers, tweens and deletion queue stay with the world's
+   the law, not changed (superseded 2026-09-28 by the owner, §The emitted game's shape steps 6
+   and 7): the SceneTree's timers, tweens and deletion queue stay with the world's
    component, because the SceneTree owns them (`SceneTree::process_timers` and `process_tweens`,
    `scene_tree.cpp:793` and `:825`, walk the tree's own lists; a node's tween is only bound to the node for
    pausing and freeing, and a `create_timer` timer outlives the node that made it), and the world
@@ -345,21 +346,30 @@ emitter prints:
 6. **The world is a scene.** Settings and the input map are plain data. Input is the page's DOM
    events. The world is `<Physics>` holding the main scene, with no hooks of compat's in it.
    Timers and tweens are owned by what creates them (the owner, 2026-09-28, superseding the
-   ruling that they stay with the world's component): `node.create_tween()` by that node, and a
-   script's `get_tree().create_tween()` or `create_timer()` by that script's node. The plan
-   records which scripts create them; the owner's component steps them from its own `useFrame`
-   (and physics step), as a three.js component calls a tween library's `update`, and the binding
-   takes its owner as an argument, never from a "current script" held in compat. So there is no
-   tree-wide list and no per-frame scheduler. A tree-created tween or timer therefore stops with
-   its owner, where Godot's outlives a freed node; that is stated where it is bound. `queue_free`
-   of an instantiated scene is React's own deferral, a batched state update committed after the
-   frame's callbacks; there is no deletion queue.
+   ruling that they stay with the world's component): the owner is the script whose code makes
+   one, `create_timer`, `get_tree().create_tween()` and `node.create_tween()` alike; the last is
+   also bound to `node`, for pausing and freeing as in Godot, but it is the creating script's
+   component that steps it, so a node only known at run time needs no component of its own. The
+   plan records which scripts create them; the owner's component steps them from its own
+   `useFrame` (and physics step), as a three.js component calls a tween library's `update`, and
+   the binding takes its owner as an argument (a column of the call-shape table, never a
+   "current script" held in compat). So there is no tree-wide list and no per-frame scheduler. A
+   caller with no component to own them (a static function, a script on a RefCounted or a
+   Resource, a node made by `Class.new()`, which React does not render) is refused by name. A
+   tree-made timer or tween stops with its owner, where Godot's outlives a freed node; an owner
+   that unmounts with a timer still pending and connected reports it (`console.error`), so the
+   difference is never silent. `queue_free` of an instantiated scene is React's own deferral, a
+   batched state update committed after the frame's callbacks; a node written in a scene file is
+   freed as a binding over three's object graph (step 7); there is no deletion queue.
 7. **What stays dynamic is bindings.** A path computed at run time, groups, `add_child` of an
    instantiated scene, `queue_free` and `get_tree()` stay compat's, as bindings over three's
    object graph and React state, not a tree compat keeps, and only where a script uses them. The
    plan records which scenes need them; a scene that doesn't carries none of it. `add_child` of
    an instantiated scene renders into the parent scene's own state, found through the parent
-   scene's component, with no registry of spawners.
+   scene's component, with no registry of spawners. The stand-in `instantiate` makes today (a
+   three `Group` before the scene mounts, which the ledger counts under row 4) is this step's to
+   remove: `instantiate` returns the root's script instance, which a script configures before
+   `add_child`, and the added scene takes that instance as its script when it mounts.
 
 The emitted game is idiomatic three.js, which can still use libraries at its edges (the owner,
 2026-09-28). Compat is such a library, never plumbing: what the game's code calls (a
