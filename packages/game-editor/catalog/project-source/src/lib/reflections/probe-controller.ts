@@ -93,7 +93,7 @@ export function createReflectionProbeMark(
       if (recapture && next.captureMode !== 'manual') {
         revision += 1;
         snapshot = { status: 'queued', lastCapturedAt: snapshot.lastCapturedAt };
-      } else if (previousMode !== 'manual' && snapshot.status !== 'ready') {
+      } else if (next.captureMode === 'manual' && previousMode !== 'manual' && snapshot.status !== 'ready') {
         // Entering Manual never performs an implicit capture. A valid existing
         // result remains valid; otherwise the explicit Recapture button is the
         // only operation that advances the capture revision.
