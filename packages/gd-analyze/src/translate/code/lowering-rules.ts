@@ -209,6 +209,12 @@ export function godotDatatypeTypeKey(datatype: GodotBoundDatatype): string | und
   return type.includes('|') ? undefined : type;
 }
 
+/**
+ * A rule's last input as `*...`: any number of further inputs, each passed through whatever its
+ * datatype (`*`), as a call passes its arguments. Tried last, after every fixed-arity key.
+ */
+export const GODOT_CODE_RULE_REST = '*...';
+
 function godotCodeRuleKey(identity: GodotCodeRuleIdentity): string {
   return [
     identity.sourceRevision,
@@ -233,6 +239,10 @@ export class GodotCodeRuleResolver {
     for (const entry of table.entries) {
       if (entry.source.sourceRevision !== table.sourceRevision) {
         throw new Error(`Godot code rule source revision mismatch: ${entry.source.sourceRevision}`);
+      }
+      const rest = entry.source.inputDatatypes.indexOf(GODOT_CODE_RULE_REST);
+      if (rest !== -1 && rest !== entry.source.inputDatatypes.length - 1) {
+        throw new Error(`Godot code rule ${entry.source.semanticKey}: ${GODOT_CODE_RULE_REST} must be the last input`);
       }
       const key = godotCodeRuleKey(entry.source);
       if (rules.has(key)) throw new Error(`duplicate Godot code rule for ${key}`);
@@ -287,8 +297,23 @@ export class GodotCodeRuleResolver {
           inputDatatypes: identity.inputDatatypes.map(godotDatatypeAny),
           resultDatatype: godotDatatypeAny(identity.resultDatatype),
         }),
-      )
+      ) ??
+      this.#rest(identity)
     );
+  }
+
+  /** The rule whose fixed inputs lead the identity's, the rest each ANY (`GODOT_CODE_RULE_REST`). */
+  #rest(identity: GodotCodeRuleIdentity): GodotCodeRuleEntry | undefined {
+    const inputs = identity.inputDatatypes.map(godotDatatypeAny);
+    const resultDatatype = godotDatatypeAny(identity.resultDatatype);
+    for (let fixed = inputs.length; fixed >= 0; fixed -= 1) {
+      if (fixed < inputs.length && inputs[fixed] !== '*') break;
+      const rule = this.#rules.get(
+        godotCodeRuleKey({ ...identity, inputDatatypes: [...inputs.slice(0, fixed), GODOT_CODE_RULE_REST], resultDatatype }),
+      );
+      if (rule !== undefined) return rule;
+    }
+    return undefined;
   }
 
   datatype(datatype: GodotBoundDatatype): GodotDatatypeRuleEntry | undefined {
