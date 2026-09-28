@@ -62,6 +62,10 @@ export interface Environment {
   glow_levels: number[];
   sdfgi_cascades: number;
   sdfgi_energy: number;
+  ssil_enabled: boolean;
+  ssil_radius: number;
+  ssil_intensity: number;
+  glow_strength: number;
 }
 
 /**
@@ -113,6 +117,10 @@ export function construct(): Environment {
     glow_levels: [0, f32(0.8), f32(0.4), f32(0.1), 0, 0, 0],
     sdfgi_cascades: 4,
     sdfgi_energy: 1,
+    ssil_enabled: false,
+    ssil_radius: 5,
+    ssil_intensity: 1,
+    glow_strength: 1,
   };
 }
 
@@ -533,6 +541,10 @@ const PROPS: ReadonlyMap<string, (self: Environment, value: never) => void> = ne
   ['ssaoHorizon', (self, value: number) => set_ssao_horizon(self, value)],
   ['sdfgiCascades', (self, value: number) => set_sdfgi_cascades(self, value)],
   ['sdfgiEnergy', (self, value: number) => set_sdfgi_energy(self, value)],
+  ['ssilEnabled', (self, value: boolean) => set_ssil_enabled(self, value)],
+  ['ssilRadius', (self, value: number) => set_ssil_radius(self, value)],
+  ['ssilIntensity', (self, value: number) => set_ssil_intensity(self, value)],
+  ['glowStrength', (self, value: number) => set_glow_strength(self, value)],
   // `glow_levels/N` is the level N - 1 (`environment.cpp:1464`).
   ...[1, 2, 3, 4, 5, 6, 7].map((n): [string, (self: Environment, value: never) => void] => [`glowLevels${String(n)}`, (self, value: number) => set_glow_level(self, n - 1, value)]),
 ]);
@@ -750,8 +762,10 @@ export function get_adjustment_saturation(self: Environment): number {
 
 // --- Parameters the Compatibility renderer (the web's) never reads: stored and read back, drawing
 // nothing. Its SSAO pass reads only the intensity and radius (`rasterizer_scene_gles3.cpp:2996`);
-// its glow is fixed levels (`drivers/gles3/effects/glow.cpp`), never the environment's; its SDFGI
-// update is empty (`rasterizer_scene_gles3.h:882`).
+// its glow is fixed levels (`drivers/gles3/effects/glow.cpp`), never the environment's, and reads
+// only the intensity, bloom and HDR bleed of the glow parameters (`rasterizer_scene_gles3.cpp:2972`),
+// never the strength; its SDFGI update is empty (`rasterizer_scene_gles3.h:882`); it implements no
+// SSIL (its only SSIL entry, the quality setter, is empty, `rasterizer_scene_gles3.cpp:1149`).
 
 /**
  * @godot Environment.set_ssao_power
@@ -839,6 +853,70 @@ export function set_sdfgi_energy(self: Environment, energy: number): void {
  */
 export function get_sdfgi_energy(self: Environment): number {
   return self.sdfgi_energy;
+}
+
+/**
+ * @godot Environment.set_ssil_enabled
+ * @source scene/resources/environment.cpp:417
+ */
+export function set_ssil_enabled(self: Environment, enabled: boolean): void {
+  self.ssil_enabled = Boolean(enabled);
+}
+
+/**
+ * @godot Environment.is_ssil_enabled
+ * @source scene/resources/environment.cpp:422
+ */
+export function is_ssil_enabled(self: Environment): boolean {
+  return self.ssil_enabled;
+}
+
+/**
+ * @godot Environment.set_ssil_radius
+ * @source scene/resources/environment.cpp:426
+ */
+export function set_ssil_radius(self: Environment, radius: number): void {
+  self.ssil_radius = f32(radius);
+}
+
+/**
+ * @godot Environment.get_ssil_radius
+ * @source scene/resources/environment.cpp:431
+ */
+export function get_ssil_radius(self: Environment): number {
+  return self.ssil_radius;
+}
+
+/**
+ * @godot Environment.set_ssil_intensity
+ * @source scene/resources/environment.cpp:435
+ */
+export function set_ssil_intensity(self: Environment, intensity: number): void {
+  self.ssil_intensity = f32(intensity);
+}
+
+/**
+ * @godot Environment.get_ssil_intensity
+ * @source scene/resources/environment.cpp:440
+ */
+export function get_ssil_intensity(self: Environment): number {
+  return self.ssil_intensity;
+}
+
+/**
+ * @godot Environment.set_glow_strength
+ * @source scene/resources/environment.cpp:650
+ */
+export function set_glow_strength(self: Environment, strength: number): void {
+  self.glow_strength = f32(strength);
+}
+
+/**
+ * @godot Environment.get_glow_strength
+ * @source scene/resources/environment.cpp:655
+ */
+export function get_glow_strength(self: Environment): number {
+  return self.glow_strength;
 }
 
 /**

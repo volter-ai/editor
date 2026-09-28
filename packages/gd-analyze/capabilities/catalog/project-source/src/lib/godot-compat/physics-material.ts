@@ -4,8 +4,8 @@
  *
  * Godot 4.7's `PhysicsMaterial` resource (`scene/resources/physics_material.{h,cpp}`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a mutable record of its properties, shared by
- * reference, which a body's `physics_material_override` reads (`collision-object-3d.ts` hands its
- * friction and bounce to the body's Rapier colliders).
+ * reference, which a body's `physics_material_override` and a GridMap's `physics_material` read
+ * (their friction and bounce are the Rapier colliders' friction and restitution).
  */
 
 export interface PhysicsMaterial {
@@ -101,12 +101,13 @@ export function is_absorbent(self: PhysicsMaterial): boolean {
 
 /**
  * A PhysicsMaterial of the properties a scene states, by their Godot names (a declared body's
- * `userData.physics_material_override`); an unknown one fails by name.
+ * `userData.physics_material_override`, a GridMap's `physicsMaterial` prop); an unknown one fails
+ * by name.
  *
  * @godot PhysicsMaterial (protocol)
  * @source scene/resources/physics_material.h:36
  */
-export function godot_physics_material_of(data: Readonly<Record<string, unknown>>): PhysicsMaterial {
+export function godot_physics_material_of(data: Readonly<Record<string, unknown>> = {}): PhysicsMaterial {
   const material = construct();
   for (const [key, value] of Object.entries(data)) {
     if (key === 'friction') set_friction(material, Number(value));

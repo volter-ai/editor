@@ -9,8 +9,8 @@
  * cells drawn as one three `InstancedMesh`, and one fixed `@react-three/rapier` body holding each
  * cell's item shapes as colliders at the cell's placement, which the physics protocol registers as
  * the GridMap itself (`get_collider()` is the GridMap, its layers the GridMap's), as Godot attaches
- * its octant bodies to the GridMap (`grid_map.cpp:420`). Octants, baked meshes and navigation are
- * not bound.
+ * its octant bodies to the GridMap (`grid_map.cpp:420`); its physics material is those colliders'
+ * friction and restitution. Octants, baked meshes and navigation are not bound.
  */
 
 import { CapsuleCollider, ConvexHullCollider, CuboidCollider, BallCollider, RigidBody, type RapierRigidBody, TrimeshCollider } from '@react-three/rapier';
@@ -20,6 +20,7 @@ import { construct as basis, type Basis } from './basis';
 import { godot_collision_object_stand_in, set_collision_layer as setBodyLayer, set_collision_mask as setBodyMask } from './collision-object-3d';
 import { godot_mesh_library_connect_changed, godot_mesh_library_item, type MeshLibrary } from './mesh-library';
 import { godot_node_entity } from './node';
+import { godot_physics_material_computed, type PhysicsMaterial } from './physics-material';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import { construct as transform3d, op_multiply, type Transform3D } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
@@ -47,6 +48,7 @@ interface GridMapState {
   cellScale: number;
   layer: number;
   mask: number;
+  material: PhysicsMaterial | null;
   readonly cells: Map<string, Cell>;
   version: number;
   readonly listeners: Set<() => void>;
@@ -87,6 +89,7 @@ export function godot_grid_map_mount(entity: Object3D): void {
     cellScale: 1,
     layer: 1,
     mask: 1,
+    material: null,
     cells: new Map(),
     version: 0,
     listeners: new Set(),
@@ -366,6 +369,28 @@ export function get_collision_mask(self: object): number {
 }
 
 /**
+ * The cells' colliders take the material's friction and bounce, as Godot sets them on each
+ * octant's body (`_update_physics_bodies_characteristics`, `grid_map.cpp:889`); the colliders
+ * redraw with them.
+ *
+ * @godot GridMap.set_physics_material
+ * @source modules/gridmap/grid_map.cpp:234
+ */
+export function set_physics_material(self: object, material: PhysicsMaterial | null): void {
+  const state = stateOf(self, 'set_physics_material');
+  state.material = material;
+  changed(state);
+}
+
+/**
+ * @godot GridMap.get_physics_material
+ * @source modules/gridmap/grid_map.cpp:239
+ */
+export function get_physics_material(self: object): PhysicsMaterial | null {
+  return stateOf(self, 'get_physics_material').material;
+}
+
+/**
  * A coordinate beyond 2^20 fails; a negative item erases the cell; a set cell keeps its place in
  * the map's order. The key keeps each coordinate's low 16 bits, signed (`IndexKey`).
  *
@@ -520,6 +545,7 @@ const GRID_MAP = {
     ['cellScale', (entity, value: number) => set_cell_scale(entity, value)],
     ['collisionLayer', (entity, value: number) => set_collision_layer(entity, value)],
     ['collisionMask', (entity, value: number) => set_collision_mask(entity, value)],
+    ['physicsMaterial', (entity, value: PhysicsMaterial | null) => set_physics_material(entity, value)],
     ['data', (entity, value: readonly number[]) => godot_grid_map_set_data(entity, value)],
   ]),
 };
@@ -582,6 +608,9 @@ function CellBody({ state, entity }: { readonly state: GridMapState; readonly en
     setBodyMask(entity, state.mask);
     return release;
   }, []);
+  // Without a material Godot's octant bodies keep the server's defaults; with one, its computed
+  // friction and bounce (`grid_map.cpp:429`) are each collider's friction and restitution.
+  const surface = state.material === null ? {} : (({ friction, bounce }) => ({ friction, restitution: bounce }))(godot_physics_material_computed(state.material));
   const colliders: ReactElement[] = [];
   for (const cell of state.cells.values()) {
     const entry = state.library === null ? undefined : godot_mesh_library_item(state.library, cell.item);
@@ -597,6 +626,7 @@ function CellBody({ state, entity }: { readonly state: GridMapState; readonly en
             if (collider !== null) shapes.set(collider.handle, shape.shape);
           },
           args: shape.collider.args,
+          ...surface,
           position: [position.x, position.y, position.z],
           quaternion: [rotation.x, rotation.y, rotation.z, rotation.w],
         }),

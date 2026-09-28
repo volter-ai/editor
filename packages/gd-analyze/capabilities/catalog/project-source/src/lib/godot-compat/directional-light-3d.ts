@@ -93,17 +93,18 @@ function followView(light: DirectionalLight): void {
 
 /**
  * A scene's directional light as it mounts: aimed along -Z, and its Godot state the values the
- * scene authors (`godot_light_3d_authored`).
+ * scene authors (`godot_light_3d_authored`, and whether its splits blend).
  *
  * @godot DirectionalLight3D (protocol)
  * @source scene/3d/light_3d.cpp:612
  */
-export function godot_directional_light_3d_authored_prop(authored: GodotLight3DAuthored): (self: DirectionalLight) => void {
+export function godot_directional_light_3d_authored_prop(authored: GodotLight3DAuthored & { readonly blendSplits?: boolean }): (self: DirectionalLight) => void {
   return (self) => {
     godot_directional_light_3d_aim(self);
     if (!AUTHORED.has(self)) {
       AUTHORED.add(self);
       godot_light_3d_authored(self, authored);
+      if (authored.blendSplits !== undefined) BLEND_SPLITS.set(self, authored.blendSplits);
     }
   };
 }
@@ -111,13 +112,16 @@ export function godot_directional_light_3d_authored_prop(authored: GodotLight3DA
 const AUTHORED = new WeakSet<DirectionalLight>();
 
 const SHADOW_MODE = new WeakMap<DirectionalLight, number>();
+const BLEND_SPLITS = new WeakMap<DirectionalLight, boolean>();
 
-// `duplicate` copies the shadow mode; the copy is aimed through a target of its own.
+// `duplicate` copies the shadow mode and split blending; the copy is aimed through a target of its own.
 godot_node_duplicate_state((from, to) => {
   if (!(to instanceof DirectionalLight)) return;
   const copy = to;
   const mode = SHADOW_MODE.get(from as DirectionalLight);
   if (mode !== undefined) SHADOW_MODE.set(copy, mode);
+  const blend = BLEND_SPLITS.get(from as DirectionalLight);
+  if (blend !== undefined) BLEND_SPLITS.set(copy, blend);
   godot_directional_light_3d_aim(copy);
 });
 
@@ -140,6 +144,28 @@ export function set_shadow_mode(self: DirectionalLight, mode: number): void {
  */
 export function get_shadow_mode(self: DirectionalLight): number {
   return SHADOW_MODE.get(self) ?? 2;
+}
+
+/**
+ * Stored: blending blurs the seams between the PSSM splits' maps (`light_3d.cpp:541`), and three
+ * draws the light's shadow into one map that follows the view (`followView`), which has no splits
+ * to blend.
+ *
+ * @godot DirectionalLight3D.set_blend_splits
+ * @source scene/3d/light_3d.cpp:541
+ */
+export function set_blend_splits(self: DirectionalLight, enabled: boolean): void {
+  BLEND_SPLITS.set(self, enabled);
+}
+
+/**
+ * Off until set (`light_3d.cpp:621`).
+ *
+ * @godot DirectionalLight3D.is_blend_splits_enabled
+ * @source scene/3d/light_3d.cpp:546
+ */
+export function is_blend_splits_enabled(self: DirectionalLight): boolean {
+  return BLEND_SPLITS.get(self) ?? false;
 }
 
 /**

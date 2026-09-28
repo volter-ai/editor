@@ -48,6 +48,7 @@ import {
   familyEmission,
   familyImports,
   familyInstanceProps,
+  familyMaterialOverride,
   flag,
   float32Literal,
   importedTextureHook,
@@ -657,7 +658,8 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
   for (const override of model.overrides) {
     const bones = override.setters.filter((setter) => POSE[setter.setter.exportName] !== undefined);
     const layers = override.setters.find((setter) => setter.setter.exportName === 'set_layer_mask');
-    const others = override.setters.filter((setter) => POSE[setter.setter.exportName] === undefined && setter !== layers);
+    const surfaces = override.setters.filter((setter) => setter.setter.exportName === 'set_surface_override_material');
+    const others = override.setters.filter((setter) => POSE[setter.setter.exportName] === undefined && setter !== layers && !surfaces.includes(setter));
     overrides.push({
       key: override.at,
       value: {
@@ -666,6 +668,8 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
           ...bones.map((setter) => ({ key: `bones/${String(setter.index)}/${POSE[setter.setter.exportName] as string}`, value: dataExpression(plainValue(setter.value)) })),
           // A mesh of the model's render layers (compat's `set_layer_mask`).
           ...(layers === undefined ? [] : [{ key: 'layers', value: dataExpression(plainValue(layers.value)) }]),
+          // A mesh of the model's surface materials, the scene's own (three's materials).
+          ...familyMaterialOverride(emission.family, surfaces),
           // An AnimationPlayer of the model: compat's player props (`familyAnimationOverride`).
           ...(others.length === 0 && override.animation === undefined ? [] : familyAnimationOverride(emission.family, override.at, others, override.animation)),
         ],

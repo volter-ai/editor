@@ -1151,6 +1151,30 @@ export function reset_physics_interpolation(self: object): void {
   nodeState(self, 'reset_physics_interpolation');
 }
 
+/** Each node's `physics_interpolation_mode`, `PHYSICS_INTERPOLATION_MODE_INHERIT` (0) until set. */
+const INTERPOLATION_MODE = new WeakMap<NodeState, number>();
+
+/**
+ * Stored in the 2-bit `data.physics_interpolation_mode` field (`scene/main/node.h:247`), so an
+ * out-of-range mode keeps its low two bits. The host draws each node where its last frame left it:
+ * nothing is interpolated between physics ticks, which is what the mode `OFF` (2) asks for and
+ * what `physics/common/physics_interpolation` off (the project default) does for every node.
+ *
+ * @godot Node.set_physics_interpolation_mode
+ * @source scene/main/node.cpp:940
+ */
+export function set_physics_interpolation_mode(self: object, mode: number): void {
+  INTERPOLATION_MODE.set(nodeState(self, 'set_physics_interpolation_mode'), mode & 3);
+}
+
+/**
+ * @godot Node.get_physics_interpolation_mode
+ * @source scene/main/node.h:764
+ */
+export function get_physics_interpolation_mode(self: object): number {
+  return INTERPOLATION_MODE.get(nodeState(self, 'get_physics_interpolation_mode')) ?? 0;
+}
+
 // --- Processing flags and modes.
 
 function effectiveProcessMode(entity: object, state: NodeState): number {

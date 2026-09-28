@@ -23,12 +23,13 @@ export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule 
     ['CapsuleShape3D', 'capsule-shape-3d', 'scene/resources/3d/capsule_shape_3d.cpp', 156],
     ['ConvexPolygonShape3D', 'convex-polygon-shape-3d', 'scene/resources/3d/convex_polygon_shape_3d.cpp', 129],
     ['ConcavePolygonShape3D', 'concave-polygon-shape-3d', 'scene/resources/3d/concave_polygon_shape_3d.cpp', 134],
-    ['PhysicsMaterial', 'physics-material', 'scene/resources/physics_material.h', 36],
+    // A GridMap's `physics_material` is an element prop: the material made from what the scene states.
+    ['PhysicsMaterial', 'physics-material', 'scene/resources/physics_material.h', 36, 'godot_physics_material_of'],
   ] as const
-).map(([className, module, file, line]) => ({
+).map(([className, module, file, line, exportName = 'construct']) => ({
   sourceRevision: REVISION,
   className,
-  construct: { module: `lib/godot-compat/${module}`, exportName: 'construct' },
+  construct: { module: `lib/godot-compat/${module}`, exportName },
   source: { file, symbol: `${className}::${className}`, line },
 }));
 

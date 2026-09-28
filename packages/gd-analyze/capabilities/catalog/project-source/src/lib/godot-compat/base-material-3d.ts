@@ -17,6 +17,13 @@
  * selects in the Compatibility renderer (`drivers/gles3/storage/texture_storage.h:255`, the
  * default `use_nearest_mipmap_filter` off; anisotropy is not bound) and wrapped by its
  * `FLAG_USE_TEXTURE_REPEAT`. The other texture slots are stored and not drawn.
+ *
+ * The shading the Compatibility shader varies per material (`scene.glsl:1635-1700`: the diffuse and
+ * specular modes, rim, backlight, the specular amount) is drawn by patching three's own direct
+ * light term (`godot_base_material_3d_scene_shader`); grow and distance fade by its vertex and
+ * fragment code; the depth draw mode is three's `depthWrite`. The stencil effect parameters are
+ * stored: they draw only through `stencil_mode` (outline or x-ray, `material.cpp:3151`), which is
+ * not bound, so a material's stencil is always disabled and draws nothing (`material.cpp:887`).
  */
 
 import {
@@ -40,6 +47,7 @@ import {
   MultiplyBlending,
   NoColorSpace,
   LinearSRGBColorSpace,
+  ShaderChunk,
   Color as ThreeColor,
   NormalBlending,
   SubtractiveBlending,
@@ -56,9 +64,14 @@ const FLAG_MAX = 25;
 const TEXTURE_ALBEDO = 0;
 const TEXTURE_MAX = 19;
 
-/** `BaseMaterial3D::Feature` (`material.h:209`): `FEATURE_EMISSION` is 0, `FEATURE_ANISOTROPY` 4, of 13. */
+/**
+ * `BaseMaterial3D::Feature` (`material.h:209`): `FEATURE_EMISSION` is 0, `FEATURE_RIM` 2,
+ * `FEATURE_ANISOTROPY` 4, `FEATURE_BACKLIGHT` 9, of 13.
+ */
 const FEATURE_EMISSION = 0;
+const FEATURE_RIM = 2;
 const FEATURE_ANISOTROPY = 4;
+const FEATURE_BACKLIGHT = 9;
 const FEATURE_MAX = 13;
 
 export interface BaseMaterial3D {
@@ -247,6 +260,8 @@ function apply(self: BaseMaterial3D, target: Material): void {
     const { anisotropy, rotation } = anisotropyOf(self);
     target.anisotropy = anisotropy;
     target.anisotropyRotation = rotation;
+    // Three's physical F0 is 0.04 times its specular intensity (`godotSpecularF0`).
+    target.specularIntensity = godot_base_material_3d_specular_intensity(extraOf(self).specular);
   }
   target.needsUpdate = true;
 }
@@ -307,8 +322,30 @@ export function godot_base_material_3d_of(target: Material): BaseMaterial3D {
   if (data['billboard_keep_scale'] === true) self.flags[FLAG_BILLBOARD_KEEP_SCALE] = true;
   if (data['vertex_color_use_as_albedo'] === true) self.flags[FLAG_ALBEDO_FROM_VERTEX_COLOR] = true;
   if (data['vertex_color_is_srgb'] === true) self.flags[FLAG_SRGB_VERTEX_COLOR] = true;
+  if (data['dont_receive_shadows'] === true) self.flags[FLAG_DONT_RECEIVE_SHADOWS] = true;
   if (data['proximity_fade_enabled'] === true) extra.proximity_fade_enabled = true;
   if (typeof data['proximity_fade_distance'] === 'number') extra.proximity_fade_distance = f32(data['proximity_fade_distance']);
+  if (typeof data['depth_draw_mode'] === 'number') extra.depth_draw_mode = data['depth_draw_mode'];
+  if (typeof data['diffuse_mode'] === 'number') extra.diffuse_mode = data['diffuse_mode'];
+  if (typeof data['specular_mode'] === 'number') extra.specular_mode = data['specular_mode'];
+  if (typeof data['specular'] === 'number') extra.specular = f32(data['specular']);
+  if (typeof data['grow'] === 'number') {
+    extra.grow_enabled = true;
+    extra.grow = f32(data['grow']);
+  }
+  if (typeof data['distance_fade_mode'] === 'number') extra.distance_fade = data['distance_fade_mode'];
+  if (typeof data['distance_fade_min'] === 'number') extra.distance_fade_min = f32(data['distance_fade_min']);
+  if (typeof data['distance_fade_max'] === 'number') extra.distance_fade_max = f32(data['distance_fade_max']);
+  if (Array.isArray(data['rim'])) {
+    self.features[FEATURE_RIM] = true;
+    extra.rim = f32(data['rim'][0] as number);
+    extra.rim_tint = f32(data['rim'][1] as number);
+  }
+  if (Array.isArray(data['backlight'])) {
+    self.features[FEATURE_BACKLIGHT] = true;
+    const linear = new ThreeColor(data['backlight'][0] as number, data['backlight'][1] as number, data['backlight'][2] as number).convertLinearToSRGB();
+    extra.backlight = color(f32(linear.r), f32(linear.g), f32(linear.b), 1);
+  }
   if (target instanceof MeshPhysicalMaterial || target.type === 'MeshPhysicalMaterial') {
     const physical = target as MeshPhysicalMaterial;
     self.features[FEATURE_ANISOTROPY] = true;
@@ -562,6 +599,7 @@ export function get_texture_filter(self: BaseMaterial3D): number {
 const FLAG_ALBEDO_FROM_VERTEX_COLOR = 1;
 const FLAG_SRGB_VERTEX_COLOR = 2;
 const FLAG_BILLBOARD_KEEP_SCALE = 5;
+const FLAG_DONT_RECEIVE_SHADOWS = 13;
 
 /** The parameters beyond the shared ones (`material.h`), at their initial values (`material.cpp:3938`). */
 interface Extra {
@@ -572,6 +610,21 @@ interface Extra {
   particles_anim_loop: boolean;
   proximity_fade_enabled: boolean;
   proximity_fade_distance: number;
+  depth_draw_mode: number;
+  diffuse_mode: number;
+  specular_mode: number;
+  specular: number;
+  rim: number;
+  rim_tint: number;
+  backlight: Color;
+  grow_enabled: boolean;
+  grow: number;
+  distance_fade: number;
+  distance_fade_min: number;
+  distance_fade_max: number;
+  stencil_flags: number;
+  stencil_effect_color: Color;
+  stencil_effect_outline_thickness: number;
 }
 
 const EXTRA = new WeakMap<BaseMaterial3D, Extra>();
@@ -587,6 +640,21 @@ function extraOf(self: BaseMaterial3D): Extra {
       particles_anim_loop: false,
       proximity_fade_enabled: false,
       proximity_fade_distance: 1,
+      depth_draw_mode: 0,
+      diffuse_mode: 0,
+      specular_mode: 0,
+      specular: 0.5,
+      rim: 1,
+      rim_tint: 0.5,
+      backlight: color(0, 0, 0, 1),
+      grow_enabled: false,
+      grow: 0,
+      distance_fade: 0,
+      distance_fade_min: 0,
+      distance_fade_max: 10,
+      stencil_flags: 0,
+      stencil_effect_color: color(0, 0, 0, 1),
+      stencil_effect_outline_thickness: f32(0.01),
     };
     EXTRA.set(self, extra);
   }
@@ -602,11 +670,17 @@ const SIDES = [FrontSide, BackSide, DoubleSide] as const;
  * billboard (`godot_base_material_3d_scene_shader`). Proximity fade draws through the alpha pass
  * (`material.cpp:1807`), three's `transparent`; its fade, which samples the scene's depth, is not
  * drawn (`proximity-fade`, a named deviation: three gives a material no depth texture of the scene).
+ * Distance fade's pixel alpha draws through the alpha pass too (`material.cpp:1807`), as does a
+ * material that draws no depth (`rasterizer_scene_gles3.cpp:257`); the depth draw mode is three's
+ * `depthWrite` (`godot_base_material_3d_depth_write`).
  */
 function applyExtra(self: BaseMaterial3D, target: Material): void {
   const extra = extraOf(self);
   target.side = SIDES[extra.cull_mode] ?? FrontSide;
-  if (extra.proximity_fade_enabled) target.transparent = true;
+  if (extra.proximity_fade_enabled || extra.distance_fade === DISTANCE_FADE_PIXEL_ALPHA || extra.depth_draw_mode === DEPTH_DRAW_DISABLED) target.transparent = true;
+  target.depthWrite = godot_base_material_3d_depth_write(extra.depth_draw_mode, target.transparent);
+  const shaded = self.shading_mode !== 0;
+  const srgb = extra.backlight;
   Object.assign(target.userData, {
     billboard_mode: extra.billboard_mode,
     billboard_keep_scale: self.flags[FLAG_BILLBOARD_KEEP_SCALE] === true,
@@ -614,8 +688,51 @@ function applyExtra(self: BaseMaterial3D, target: Material): void {
     vertex_color_is_srgb: self.flags[FLAG_SRGB_VERTEX_COLOR] === true,
     proximity_fade_enabled: extra.proximity_fade_enabled,
     proximity_fade_distance: extra.proximity_fade_distance,
+    depth_draw_mode: extra.depth_draw_mode,
+    diffuse_mode: extra.diffuse_mode,
+    specular_mode: extra.specular_mode,
+    specular: extra.specular,
+    grow: extra.grow_enabled ? extra.grow : undefined,
+    distance_fade_mode: extra.distance_fade,
+    distance_fade_min: extra.distance_fade_min,
+    distance_fade_max: extra.distance_fade_max,
+    rim: shaded && self.features[FEATURE_RIM] === true ? [extra.rim, extra.rim_tint] : undefined,
+    backlight: shaded && self.features[FEATURE_BACKLIGHT] === true ? [srgbToLinear(srgb.r), srgbToLinear(srgb.g), srgbToLinear(srgb.b)] : undefined,
+    dont_receive_shadows: shaded && self.flags[FLAG_DONT_RECEIVE_SHADOWS] === true,
   });
   godot_base_material_3d_scene_shader(target);
+}
+
+/** `BaseMaterial3D::DepthDrawMode` (`material.h:235`) and `DistanceFadeMode` (`:322`) values read here. */
+const DEPTH_DRAW_ALWAYS = 1;
+const DEPTH_DRAW_DISABLED = 2;
+const DISTANCE_FADE_PIXEL_ALPHA = 1;
+const DISTANCE_FADE_OBJECT_DITHER = 3;
+
+/**
+ * Whether a material writes depth, as the Compatibility renderer enables it per pass
+ * (`rasterizer_scene_gles3.cpp:3314`): `DEPTH_DRAW_OPAQUE_ONLY` writes in the opaque pass only (a
+ * material drawn in the alpha pass, three's `transparent`, writes none), `ALWAYS` in every pass,
+ * `DISABLED` never.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source drivers/gles3/rasterizer_scene_gles3.cpp:3314
+ */
+export function godot_base_material_3d_depth_write(mode: number, transparent: boolean): boolean {
+  if (mode === DEPTH_DRAW_ALWAYS) return true;
+  if (mode === DEPTH_DRAW_DISABLED) return false;
+  return !transparent;
+}
+
+/**
+ * Three's physical specular intensity for Godot's specular amount: Godot's dielectric F0 is
+ * `0.16 * specular^2` (`F0`, `scene.glsl`), three's `0.04 * specularIntensity` at its default IOR.
+ *
+ * @godot BaseMaterial3D (protocol)
+ * @source scene/resources/material.cpp:2131
+ */
+export function godot_base_material_3d_specular_intensity(specular: number): number {
+  return f32(4 * specular * specular);
 }
 
 /**
@@ -652,27 +769,133 @@ function billboardChunk(mode: number, keepScale: boolean): string {
   return [...model, ...facing, ...scale, 'vec4 mvPosition = godotModelView * vec4( transformed, 1.0 );', 'gl_Position = projectionMatrix * mvPosition;'].join('\n');
 }
 
+/** A number as a GLSL float literal. */
+function glsl(value: number): string {
+  const text = String(Math.fround(value));
+  return /[.eE]/u.test(text) ? `( ${text} )` : `( ${text}.0 )`;
+}
+
+/** What the scene shader varies for one material, read from its `userData`. */
+interface SceneShading {
+  readonly billboard: number;
+  readonly keepScale: boolean;
+  readonly coloured: boolean;
+  readonly grow: number | undefined;
+  readonly fade: number;
+  readonly fadeMin: number;
+  readonly fadeMax: number;
+  readonly diffuse: number;
+  readonly specularMode: number;
+  readonly specular: number;
+  readonly rim: readonly [number, number] | undefined;
+  readonly backlight: readonly [number, number, number] | undefined;
+  readonly unshadowed: boolean;
+}
+
+function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
+  const number = (key: string, initial: number): number => (typeof data[key] === 'number' ? (data[key] as number) : initial);
+  return {
+    billboard: number('billboard_mode', 0),
+    keepScale: data['billboard_keep_scale'] === true,
+    coloured: data['vertex_color_use_as_albedo'] === true,
+    grow: typeof data['grow'] === 'number' ? data['grow'] : undefined,
+    fade: number('distance_fade_mode', 0),
+    fadeMin: number('distance_fade_min', 0),
+    fadeMax: number('distance_fade_max', 10),
+    diffuse: number('diffuse_mode', 0),
+    specularMode: number('specular_mode', 0),
+    specular: number('specular', 0.5),
+    rim: Array.isArray(data['rim']) ? (data['rim'] as [number, number]) : undefined,
+    backlight: Array.isArray(data['backlight']) ? (data['backlight'] as [number, number, number]) : undefined,
+    unshadowed: data['dont_receive_shadows'] === true,
+  };
+}
+
 /**
- * The material drawn as Godot's scene shader draws its billboard and vertex colour: three's
- * `project_vertex` replaced by the billboard mode's model-view matrix (`material.cpp:1231`), and an
- * instanced draw's `godotInstanceColor` (a particle's `COLOR`) multiplying the albedo and its alpha
- * where the material takes vertex colour as albedo (`albedo_tex *= COLOR`, `material.cpp:1643`).
- * The Compatibility shader converts the product to linear (`SHADER_IS_SRGB`, `scene.glsl:2398`);
- * three's colour is already linear, so the vertex colour is converted by the same polynomial and
- * multiplied (`vertex-colour-linearization`, a named deviation: a product of conversions for the
- * conversion of a product, equal for a white colour and its alpha). Particle animation frames
- * other than one by one are not drawn (the platformer's are one by one). Returns the material.
+ * Three's direct light term (`RE_Direct_Physical`) as the Compatibility shader's `light_compute`
+ * (`scene.glsl:1635-1700`) computes it for this material. Three's light colour is Godot's (both
+ * carry the pi, `light-3d.ts`), and Godot's diffuse light is multiplied by the albedo and one minus
+ * metallic afterwards (`scene.glsl:2778`), which is three's `material.diffuseColor`:
+ * - the diffuse factor: Lambert (Burley's and Lambert's, as three draws both), Lambert wrap
+ *   (`(NdotL + roughness) / (1 + roughness)^2`) or toon (`smoothstep(-roughness, roughness, NdotL)`);
+ * - backlight, `(1/pi - diffuse_brdf_NL) * backlight` (`:1655`);
+ * - rim, `pow(1 - NdotV, (1 - roughness) * 16) * rim * mix(1, albedo, rim_tint)` (`:1659`);
+ * - the specular: three's GGX, none when disabled, or the toon highlight added to the diffuse
+ *   light (`:1670`).
+ */
+function directLightChunk(shading: SceneShading): string {
+  const nl =
+    shading.diffuse === 2
+      ? 'max( 0.0, ( godotNdotL + material.roughness ) / ( ( 1.0 + material.roughness ) * ( 1.0 + material.roughness ) ) )'
+      : shading.diffuse === 3
+        ? 'smoothstep( - material.roughness, max( material.roughness, 0.01 ), godotNdotL )'
+        : 'saturate( godotNdotL )';
+  const diffuse = [
+    'float godotNdotL = dot( geometryNormal, directLight.direction );',
+    `float godotDiffuseNL = ${nl};`,
+    'reflectedLight.directDiffuse += godotDiffuseNL * directLight.color * BRDF_Lambert( material.diffuseColor );',
+    ...(shading.backlight === undefined
+      ? []
+      : [`reflectedLight.directDiffuse += directLight.color * ( 1.0 - godotDiffuseNL ) * vec3( ${shading.backlight.map(glsl).join(', ')} ) * BRDF_Lambert( material.diffuseColor );`]),
+    ...(shading.rim === undefined
+      ? []
+      : [
+          'float godotRimLight = pow( max( 1e-4, 1.0 - max( dot( geometryNormal, geometryViewDir ), 1e-4 ) ), max( 0.0, ( 1.0 - material.roughness ) * 16.0 ) );',
+          `reflectedLight.directDiffuse += godotRimLight * ${glsl(shading.rim[0])} * mix( vec3( 1.0 ), material.diffuseColor, ${glsl(shading.rim[1])} ) * directLight.color * material.diffuseColor;`,
+        ]),
+  ];
+  const ggx = 'reflectedLight.directSpecular += irradiance * BRDF_GGX( directLight.direction, geometryViewDir, geometryNormal, material );';
+  const specular =
+    shading.specularMode === 2
+      ? []
+      : shading.specularMode === 1
+        ? [
+            'vec3 godotR = normalize( - reflect( directLight.direction, geometryNormal ) );',
+            'float godotMid = ( 1.0 - material.roughness ) * ( 1.0 - material.roughness );',
+            'float godotToon = smoothstep( godotMid - material.roughness * 0.5, godotMid + material.roughness * 0.5, dot( godotR, geometryViewDir ) ) * godotMid;',
+            'reflectedLight.directDiffuse += directLight.color * godotToon * material.diffuseColor;',
+          ]
+        : [ggx];
+  const chunk = ShaderChunk.lights_physical_pars_fragment;
+  const lambert = 'reflectedLight.directDiffuse += irradiance * BRDF_Lambert( material.diffuseColor );';
+  if (!chunk.includes(ggx) || !chunk.includes(lambert)) throw new Error('godot-compat: three\'s direct light term is not the one this material patches.');
+  return chunk.replace(ggx, specular.join('\n\t')).replace(lambert, diffuse.join('\n\t'));
+}
+
+/** Whether a material's shading leaves three's direct light term as it is. */
+function plainLight(shading: SceneShading): boolean {
+  return shading.diffuse <= 1 && shading.specularMode === 0 && shading.rim === undefined && shading.backlight === undefined && !shading.unshadowed;
+}
+
+/**
+ * The material drawn as Godot's scene shader draws it where three's own material does not:
+ * - its billboard: three's `project_vertex` replaced by the billboard mode's model-view matrix
+ *   (`material.cpp:1231`);
+ * - vertex colour: an instanced draw's `godotInstanceColor` (a particle's `COLOR`) multiplying the
+ *   albedo and its alpha where the material takes vertex colour as albedo (`albedo_tex *= COLOR`,
+ *   `material.cpp:1643`). The Compatibility shader converts the product to linear
+ *   (`SHADER_IS_SRGB`, `scene.glsl:2398`); three's colour is already linear, so the vertex colour
+ *   is converted by the same polynomial and multiplied (`vertex-colour-linearization`, a named
+ *   deviation: a product of conversions for the conversion of a product, equal for a white colour
+ *   and its alpha). Particle animation frames other than one by one are not drawn;
+ * - grow: the vertex moved along its normal (`VERTEX += NORMAL * grow`, `material.cpp:1429`);
+ * - distance fade (`material.cpp:1831`): the alpha faded from the minimum distance to the maximum
+ *   by the fragment's distance from the camera, or the fragment discarded by Godot's interleaved
+ *   gradient noise against that fade (by the fragment's distance, or the object's origin's);
+ * - its shading: the diffuse and specular modes, rim and backlight (`directLightChunk`), the
+ *   specular amount as three's F0 (`0.16 * specular^2`, three's standard material fixing 0.04),
+ *   and no shadow received where the material disables it (`shadows_disabled`,
+ *   `material.cpp:854`, `scene.glsl:2816`): three's shadow maps left out of its fragment code.
+ * Returns the material.
  *
  * @godot BaseMaterial3D (protocol)
  * @source scene/resources/material.cpp:1231
  */
 export function godot_base_material_3d_scene_shader<M extends Material>(target: M): M {
-  const data = target.userData as Readonly<Record<string, unknown>>;
-  const mode = typeof data['billboard_mode'] === 'number' ? data['billboard_mode'] : 0;
-  const keepScale = data['billboard_keep_scale'] === true;
-  const coloured = data['vertex_color_use_as_albedo'] === true;
-  const key = `godot-scene:${String(mode)}:${String(keepScale)}:${String(coloured)}`;
-  const plain = mode === 0 && !coloured;
+  const shading = shadingOf(target.userData as Readonly<Record<string, unknown>>);
+  const { billboard: mode, keepScale, coloured, grow, fade } = shading;
+  const key = `godot-scene:${JSON.stringify(shading)}`;
+  const plain = mode === 0 && !coloured && grow === undefined && fade === 0 && plainLight(shading) && shading.specular === 0.5;
   if (target.customProgramCacheKey() === key || (plain && target.onBeforeCompile === Material.prototype.onBeforeCompile)) return target;
   if (plain) {
     target.onBeforeCompile = Material.prototype.onBeforeCompile;
@@ -681,13 +904,40 @@ export function godot_base_material_3d_scene_shader<M extends Material>(target: 
     target.onBeforeCompile = (shader) => {
       let vertex = shader.vertexShader;
       let fragment = shader.fragmentShader;
-      if (mode !== 0) vertex = `attribute vec4 godotInstanceCustom;\n${vertex.replace('#include <project_vertex>', billboardChunk(mode, keepScale))}`;
+      if (mode !== 0) vertex = `attribute vec4 godotInstanceCustom;\n${vertex}`;
+      if (grow !== undefined) vertex = vertex.replace('#include <begin_vertex>', `#include <begin_vertex>\ntransformed += normal * ${glsl(grow)};`);
+      const faded =
+        fade === 0
+          ? ''
+          : fade === DISTANCE_FADE_OBJECT_DITHER
+            ? '\nvGodotFadeDistance = length( ( viewMatrix * modelMatrix )[ 3 ].xyz );'
+            : '\nvGodotFadeDistance = length( mvPosition.xyz );';
+      if (mode !== 0 || fade !== 0) vertex = vertex.replace('#include <project_vertex>', `${mode === 0 ? '#include <project_vertex>' : billboardChunk(mode, keepScale)}${faded}`);
+      if (fade !== 0) {
+        vertex = `varying float vGodotFadeDistance;\n${vertex}`;
+        const factor = `clamp( smoothstep( ${glsl(shading.fadeMin)}, ${glsl(shading.fadeMax)}, vGodotFadeDistance ), 0.0, 1.0 )`;
+        const fading =
+          fade === DISTANCE_FADE_PIXEL_ALPHA
+            ? `diffuseColor.a *= ${factor};`
+            : `{\n\tconst vec3 godotMagic = vec3( 0.06711056, 0.00583715, 52.9829189 );\n\tfloat godotFade = ${factor};\n\tif ( godotFade < 0.001 || godotFade < fract( godotMagic.z * fract( dot( gl_FragCoord.xy, godotMagic.xy ) ) ) ) discard;\n}`;
+        fragment = `varying float vGodotFadeDistance;\n${fragment.replace('#include <alphamap_fragment>', `#include <alphamap_fragment>\n${fading}`)}`;
+      }
       if (coloured) {
         vertex = `attribute vec4 godotInstanceColor;\nvarying vec4 vGodotColor;\n${vertex.replace('#include <color_vertex>', '#include <color_vertex>\nvGodotColor = vec4( 1.0 );\n#ifdef USE_INSTANCING\n\tvGodotColor = godotInstanceColor;\n#endif')}`;
         fragment = `varying vec4 vGodotColor;\n${fragment.replace(
           '#include <color_fragment>',
           '#include <color_fragment>\ndiffuseColor *= vec4( vGodotColor.rgb * ( vGodotColor.rgb * ( vGodotColor.rgb * 0.305306011 + 0.682171111 ) + 0.012522878 ), vGodotColor.a );',
         )}`;
+      }
+      if (shading.diffuse > 1 || shading.specularMode !== 0 || shading.rim !== undefined || shading.backlight !== undefined) {
+        fragment = fragment.replace('#include <lights_physical_pars_fragment>', directLightChunk(shading));
+      }
+      if (shading.unshadowed) fragment = `#undef USE_SHADOWMAP\n${fragment}`;
+      if (shading.specular !== 0.5) {
+        fragment = fragment.replace(
+          '#include <lights_physical_fragment>',
+          ShaderChunk.lights_physical_fragment.replace('mix( vec3( 0.04 ), diffuseColor.rgb, metalnessFactor )', `mix( vec3( ${glsl(0.16 * shading.specular * shading.specular)} ), diffuseColor.rgb, metalnessFactor )`),
+        );
       }
       shader.vertexShader = vertex;
       shader.fragmentShader = fragment;
@@ -814,6 +1064,274 @@ export function set_proximity_fade_distance(self: BaseMaterial3D, distance: numb
  */
 export function get_proximity_fade_distance(self: BaseMaterial3D): number {
   return extraOf(self).proximity_fade_distance;
+}
+
+// --- Depth draw, the shading modes, specular amount, rim, backlight, grow and distance fade.
+
+/**
+ * @godot BaseMaterial3D.set_depth_draw_mode
+ * @source scene/resources/material.cpp:2394
+ */
+export function set_depth_draw_mode(self: BaseMaterial3D, mode: number): void {
+  extraOf(self).depth_draw_mode = mode;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_depth_draw_mode
+ * @source scene/resources/material.cpp:2403
+ */
+export function get_depth_draw_mode(self: BaseMaterial3D): number {
+  return extraOf(self).depth_draw_mode;
+}
+
+/**
+ * @godot BaseMaterial3D.set_diffuse_mode
+ * @source scene/resources/material.cpp:2433
+ */
+export function set_diffuse_mode(self: BaseMaterial3D, mode: number): void {
+  extraOf(self).diffuse_mode = mode;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_diffuse_mode
+ * @source scene/resources/material.cpp:2442
+ */
+export function get_diffuse_mode(self: BaseMaterial3D): number {
+  return extraOf(self).diffuse_mode;
+}
+
+/**
+ * @godot BaseMaterial3D.set_specular_mode
+ * @source scene/resources/material.cpp:2446
+ */
+export function set_specular_mode(self: BaseMaterial3D, mode: number): void {
+  extraOf(self).specular_mode = mode;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_specular_mode
+ * @source scene/resources/material.cpp:2455
+ */
+export function get_specular_mode(self: BaseMaterial3D): number {
+  return extraOf(self).specular_mode;
+}
+
+/**
+ * @godot BaseMaterial3D.set_specular
+ * @source scene/resources/material.cpp:2131
+ */
+export function set_specular(self: BaseMaterial3D, specular: number): void {
+  extraOf(self).specular = f32(specular);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_specular
+ * @source scene/resources/material.cpp:2136
+ */
+export function get_specular(self: BaseMaterial3D): number {
+  return extraOf(self).specular;
+}
+
+/**
+ * @godot BaseMaterial3D.set_rim
+ * @source scene/resources/material.cpp:2200
+ */
+export function set_rim(self: BaseMaterial3D, rim: number): void {
+  extraOf(self).rim = f32(rim);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_rim
+ * @source scene/resources/material.cpp:2205
+ */
+export function get_rim(self: BaseMaterial3D): number {
+  return extraOf(self).rim;
+}
+
+/**
+ * @godot BaseMaterial3D.set_rim_tint
+ * @source scene/resources/material.cpp:2209
+ */
+export function set_rim_tint(self: BaseMaterial3D, rim_tint: number): void {
+  extraOf(self).rim_tint = f32(rim_tint);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_rim_tint
+ * @source scene/resources/material.cpp:2214
+ */
+export function get_rim_tint(self: BaseMaterial3D): number {
+  return extraOf(self).rim_tint;
+}
+
+/**
+ * @godot BaseMaterial3D.set_backlight
+ * @source scene/resources/material.cpp:2299
+ */
+export function set_backlight(self: BaseMaterial3D, backlight: Color): void {
+  extraOf(self).backlight = backlight;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_backlight
+ * @source scene/resources/material.cpp:2304
+ */
+export function get_backlight(self: BaseMaterial3D): Color {
+  return extraOf(self).backlight;
+}
+
+/**
+ * @godot BaseMaterial3D.set_grow_enabled
+ * @source scene/resources/material.cpp:2876
+ */
+export function set_grow_enabled(self: BaseMaterial3D, enable: boolean): void {
+  extraOf(self).grow_enabled = enable;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.is_grow_enabled
+ * @source scene/resources/material.cpp:2882
+ */
+export function is_grow_enabled(self: BaseMaterial3D): boolean {
+  return extraOf(self).grow_enabled;
+}
+
+/**
+ * @godot BaseMaterial3D.set_grow
+ * @source scene/resources/material.cpp:2913
+ */
+export function set_grow(self: BaseMaterial3D, amount: number): void {
+  extraOf(self).grow = f32(amount);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_grow
+ * @source scene/resources/material.cpp:2918
+ */
+export function get_grow(self: BaseMaterial3D): number {
+  return extraOf(self).grow;
+}
+
+/**
+ * @godot BaseMaterial3D.set_distance_fade
+ * @source scene/resources/material.cpp:3084
+ */
+export function set_distance_fade(self: BaseMaterial3D, mode: number): void {
+  extraOf(self).distance_fade = mode;
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_distance_fade
+ * @source scene/resources/material.cpp:3090
+ */
+export function get_distance_fade(self: BaseMaterial3D): number {
+  return extraOf(self).distance_fade;
+}
+
+/**
+ * @godot BaseMaterial3D.set_distance_fade_max_distance
+ * @source scene/resources/material.cpp:3094
+ */
+export function set_distance_fade_max_distance(self: BaseMaterial3D, distance: number): void {
+  extraOf(self).distance_fade_max = f32(distance);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_distance_fade_max_distance
+ * @source scene/resources/material.cpp:3099
+ */
+export function get_distance_fade_max_distance(self: BaseMaterial3D): number {
+  return extraOf(self).distance_fade_max;
+}
+
+/**
+ * @godot BaseMaterial3D.set_distance_fade_min_distance
+ * @source scene/resources/material.cpp:3103
+ */
+export function set_distance_fade_min_distance(self: BaseMaterial3D, distance: number): void {
+  extraOf(self).distance_fade_min = f32(distance);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_distance_fade_min_distance
+ * @source scene/resources/material.cpp:3108
+ */
+export function get_distance_fade_min_distance(self: BaseMaterial3D): number {
+  return extraOf(self).distance_fade_min;
+}
+
+// --- The stencil effect, stored: it draws only through `stencil_mode`, which is not bound.
+
+/** `BaseMaterial3D::StencilFlags` (`material.h:338`): read 1, write 2, write on depth fail 4. */
+const STENCIL_FLAG_READ = 1;
+const STENCIL_FLAG_WRITES = 2 | 4;
+
+/**
+ * Reading and writing exclude each other, as the setter enforces them (`material.cpp:3227`).
+ *
+ * @godot BaseMaterial3D.set_stencil_flags
+ * @source scene/resources/material.cpp:3222
+ */
+export function set_stencil_flags(self: BaseMaterial3D, flags: number): void {
+  const extra = extraOf(self);
+  let next = flags;
+  if (next === extra.stencil_flags) return;
+  if ((next & STENCIL_FLAG_READ) !== 0 && (extra.stencil_flags & STENCIL_FLAG_WRITES) !== 0) next &= STENCIL_FLAG_READ;
+  if ((next & STENCIL_FLAG_WRITES) !== 0 && (extra.stencil_flags & STENCIL_FLAG_READ) !== 0) next &= STENCIL_FLAG_WRITES;
+  if ((next & STENCIL_FLAG_READ) !== 0 && (next & STENCIL_FLAG_WRITES) !== 0) next &= STENCIL_FLAG_READ;
+  extra.stencil_flags = next;
+}
+
+/**
+ * @godot BaseMaterial3D.get_stencil_flags
+ * @source scene/resources/material.cpp:3246
+ */
+export function get_stencil_flags(self: BaseMaterial3D): number {
+  return extraOf(self).stencil_flags;
+}
+
+/**
+ * @godot BaseMaterial3D.set_stencil_effect_color
+ * @source scene/resources/material.cpp:3281
+ */
+export function set_stencil_effect_color(self: BaseMaterial3D, value: Color): void {
+  extraOf(self).stencil_effect_color = value;
+}
+
+/**
+ * @godot BaseMaterial3D.get_stencil_effect_color
+ * @source scene/resources/material.cpp:3294
+ */
+export function get_stencil_effect_color(self: BaseMaterial3D): Color {
+  return extraOf(self).stencil_effect_color;
+}
+
+/**
+ * @godot BaseMaterial3D.set_stencil_effect_outline_thickness
+ * @source scene/resources/material.cpp:3298
+ */
+export function set_stencil_effect_outline_thickness(self: BaseMaterial3D, thickness: number): void {
+  extraOf(self).stencil_effect_outline_thickness = f32(thickness);
+}
+
+/**
+ * @godot BaseMaterial3D.get_stencil_effect_outline_thickness
+ * @source scene/resources/material.cpp:3311
+ */
+export function get_stencil_effect_outline_thickness(self: BaseMaterial3D): number {
+  return extraOf(self).stencil_effect_outline_thickness;
 }
 
 // --- Anisotropy.

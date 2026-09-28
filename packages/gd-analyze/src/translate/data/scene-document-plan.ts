@@ -223,7 +223,8 @@ function soundLoad(sound: BoundGodotSoundDocument): TargetGodotImportedLoad | st
 
 /**
  * The importer options of an imported image this translation applies on the page, or why it does
- * not: only lossless compression, the identity channel map, no normal-map, HDR or size processing.
+ * not: only compression the source image stands for (`SOURCE_IMAGE_COMPRESS_MODES`), the identity
+ * channel map, no normal-map, HDR or size processing.
  * An absent option is the importer's default (`resource_importer_texture.cpp:230`).
  */
 /** A shader's lowered code, as compat's `godot_shader_new` receives it. */
@@ -274,10 +275,22 @@ const ENGINE_SHADER_SELECTORS: Readonly<Record<string, (variant: Readonly<Record
   PhysicalSkyMaterial: (variant) => `debanding${variant['use_debanding'] === true ? 1 : 0}Night${variant['night_sky'] === true ? 1 : 0}`,
 };
 
+/**
+ * The importer's `compress/mode` values (`resource_importer_texture.h:45`) the page draws from the
+ * source image: lossless (0) keeps its pixels; VRAM compressed (2) is a block compression of the
+ * same pixels the GPU decodes (S3TC/BPTC or ETC2/ASTC, `resource_importer_texture.cpp:888`), which
+ * the web shows as the image itself, and the page, which has no block encoder, uploads the source
+ * as the lossless path does; VRAM uncompressed (3) is the pixels unchanged. Lossy (1, WebP) and
+ * Basis Universal (4) stay refused: they are the source degraded by an encoder at a quality the
+ * import states, which the page does not reproduce, so the source image would be a different
+ * picture where the quality is low.
+ */
+const SOURCE_IMAGE_COMPRESS_MODES: ReadonlySet<number> = new Set([0, 2, 3]);
+
 /** The `cubemap_texture` importer's options as `useGodotCubemap` applies them, or why they are not. */
 function cubemapLoad(cubemap: BoundGodotCubemapDocument): TargetGodotImportedLoad | string {
   const params = cubemap.importParams;
-  if (params.compressMode !== 0) return `compress/mode=${String(params.compressMode)} is not lossless`;
+  if (!SOURCE_IMAGE_COMPRESS_MODES.has(params.compressMode)) return `compress/mode=${String(params.compressMode)} is not drawn from the source image`;
   if (params.mipmaps) return 'cubemap mipmaps are not generated';
   return { sourceResPath: cubemap.resPath, options: { arrangement: params.arrangement } };
 }
@@ -298,7 +311,7 @@ function externalImagePath(modelResPath: string, uri: string): string | undefine
 
 function textureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
   const params = texture.importParams;
-  if ((params.compressMode ?? 0) !== 0) return `compress/mode=${String(params.compressMode)} is not lossless`;
+  if (!SOURCE_IMAGE_COMPRESS_MODES.has(params.compressMode ?? 0)) return `compress/mode=${String(params.compressMode)} is not drawn from the source image`;
   if (params.channelRemap !== undefined && params.channelRemap.join() !== '0,1,2,3') return 'a channel remap is not applied';
   if (params.normalMapInvertY === true || params.normalMap === 1) return 'normal-map processing is not applied';
   if (params.hdrClampExposure === true) return 'HDR exposure clamping is not applied';
@@ -718,6 +731,9 @@ function planResource(
   for (const [propertyName, value] of Object.entries(data.properties)) {
     // A binary resource stores its null script (`resource_format_binary.cpp` writes every property).
     if (propertyName === 'script' && value.kind === 'null') continue;
+    // A resource's name (`Resource::set_name`, `resource.cpp:189`) is the editor's label for it;
+    // nothing draws or plays it, as an ArrayMesh's or an animation's is not carried either.
+    if (propertyName === 'resource_name') continue;
     const setter = setterPlan(context, `${at}(${key}).${propertyName}`, data.type, propertyName, value, nestedScope);
     if (setter === undefined) ok = false;
     else setters.push(setter);
@@ -1060,12 +1076,17 @@ const GODOT4_PRIMITIVE: Readonly<Record<number, number>> = {
 /**
  * An `ArrayMesh` resource as data: its `_surfaces` decoded by the reader's transcription of
  * `RenderingServer::_get_array_from_surface`, each surface's material planned as a resource. Its
- * other stored properties are its name, the blend-shape mode (no surface carries blend shapes) and
- * a null script; anything else refuses.
+ * other stored properties are its name, the blend-shape mode (no surface carries blend shapes), its
+ * shadow mesh (not drawn: three's shadow pass draws the mesh) and a null script; anything else
+ * refuses.
  */
 function arrayMeshPlan(context: PlanContext, at: string, data: BoundGodotResourceData, scope: string): TargetGodotArrayMeshPlan | undefined {
   for (const [name, value] of Object.entries(data.properties)) {
     if (name === '_surfaces' || name === 'resource_name' || name === 'blend_shape_mode') continue;
+    // The shadow mesh (`ArrayMesh::set_shadow_mesh`, `mesh.cpp:2281`) is a cheaper copy of the same
+    // surfaces the Compatibility renderer draws into the shadow map instead of the mesh
+    // (`rasterizer_scene_gles3.cpp:287`); three's shadow pass draws the mesh itself, the same shape.
+    if (name === 'shadow_mesh') continue;
     if (name === 'script' && value.kind === 'null') continue;
     refuse(context, `${at}.${name}`, `ArrayMesh.${name} is not translated`, 'property', name);
     return undefined;
@@ -1870,6 +1891,8 @@ const BODY_CLASSES = new Set(['StaticBody3D', 'RigidBody3D', 'CharacterBody3D', 
 /** The properties an imported model's element sets on the model's own nodes (bone poses, layers). */
 const MODEL_OVERRIDE_SETTERS = [
   'set_layer_mask',
+  // A mesh of the model's surface materials (compat's imported-scene overrides).
+  'set_surface_override_material',
   'set_bone_pose_position',
   'set_bone_pose_rotation',
   'set_bone_pose_scale',

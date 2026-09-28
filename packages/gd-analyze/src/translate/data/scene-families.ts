@@ -46,14 +46,19 @@ const VISIBILITY_RANGE = [
 const NODE_3D = ['set_visible'];
 // A GeometryInstance3D's `transparency`: stored, never drawn by the web's renderer (`geometry-instance-3d.ts`).
 const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency'];
+// A Node's `physics_interpolation_mode`, which every compat element takes (`useGodotElement`); stored
+// (`node.ts`: nothing is interpolated between physics ticks).
+const NODE_ELEMENT = ['set_physics_interpolation_mode'];
 const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
 
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   MeshInstance3D: [...GEOMETRY_INSTANCE_3D, 'set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
   // Shadow max distance (9), fade start (13), normal bias (14), bias (15), opacity (17), blur (18):
-  // `shadow-mapping`.
-  DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:17', 'set_param:18', 'set_shadow_mode'],
+  // `shadow-mapping`. Split blending and the pancake size (16) are stored: three's one shadow map has
+  // no splits to blend, and its shadow camera spans the whole depth `shadow-mapping` gives it, which
+  // leaves no casters behind its near plane for a pancake to flatten (`renderer_scene_cull.cpp:2339`).
+  DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:16', 'set_param:17', 'set_param:18', 'set_shadow_mode', 'set_blend_splits'],
   OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
   Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask'],
@@ -90,6 +95,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ],
   CPUParticles3D: [
     ...GEOMETRY_INSTANCE_3D,
+    ...NODE_ELEMENT,
     'set_emitting',
     'set_amount',
     'set_lifetime',
@@ -129,6 +135,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   // alignment, the amount ratio, interpolation to the end, a skin.
   GPUParticles3D: [
     ...GEOMETRY_INSTANCE_3D,
+    ...NODE_ELEMENT,
     'set_emitting',
     'set_amount',
     'set_lifetime',
@@ -203,6 +210,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_center_z',
     'set_collision_layer',
     'set_collision_mask',
+    // The cells' colliders' friction and restitution (`grid-map.ts`).
+    'set_physics_material',
     'godot_grid_map_set_data',
   ],
   // The libraries are `libraries/NAME`; the tracks' bindings are resolved at import (`scene-animation.ts`).
@@ -279,6 +288,28 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_particles_anim_loop',
     'set_proximity_fade_enabled',
     'set_proximity_fade_distance',
+    // Depth draw as three's `depthWrite`; the shading modes, specular amount, rim (feature 2),
+    // backlight (feature 9), grow and distance fade as the scene shader (`base-material-3d.ts`).
+    'set_depth_draw_mode',
+    'set_diffuse_mode',
+    'set_specular_mode',
+    'set_specular',
+    'set_feature:2',
+    'set_rim',
+    'set_rim_tint',
+    'set_feature:9',
+    'set_backlight',
+    'set_grow_enabled',
+    'set_grow',
+    'set_distance_fade',
+    'set_distance_fade_min_distance',
+    'set_distance_fade_max_distance',
+    // Shadows not received (`FLAG_DONT_RECEIVE_SHADOWS`), as the scene shader.
+    'set_flag:13',
+    // Stored: the stencil effect draws only through `stencil_mode`, which has no prop.
+    'set_stencil_flags',
+    'set_stencil_effect_color',
+    'set_stencil_effect_outline_thickness',
   ],
   ArrayMesh: [],
   CompressedTexture2D: [],
@@ -299,6 +330,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   PlaceholderTexture2D: ['set_size'],
   CanvasTexture: ['set_diffuse_texture'],
   AudioStreamWAV: [],
+  AudioStreamOggVorbis: [],
   // An environment's background, ambient light, tone mapping and fog (`environment.ts`, `world-environment.ts`).
   Environment: [
     'set_background',
@@ -344,6 +376,10 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_glow_level:*',
     'set_sdfgi_cascades',
     'set_sdfgi_energy',
+    'set_ssil_enabled',
+    'set_ssil_radius',
+    'set_ssil_intensity',
+    'set_glow_strength',
   ],
   Sky: ['set_material', 'set_radiance_size', 'set_process_mode'],
   PanoramaSkyMaterial: ['set_panorama', 'set_filtering_enabled', 'set_energy_multiplier'],

@@ -97,13 +97,17 @@ function libraryOf(tree: GodotImportedSceneTree): AnimationLibrary | undefined {
 }
 
 const BONE_POSE = /^bones\/(\d+)\/(position|rotation|scale)$/u;
+const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/u;
 
 /**
  * One property the instancing scene sets on a node of the model, by its Godot name, through the
  * node's setter: a Skeleton3D's bone poses (`Skeleton3D::_set`, `skeleton_3d.cpp:118`), a
- * VisualInstance3D's render layers (`layers`, `visual_instance_3d.cpp:130`). `adopted` is the
- * model's Godot nodes: a mesh node's per-surface meshes, which the loader made below it and Godot
- * has no node for, draw as that node's instance does, so they take its layers too.
+ * VisualInstance3D's render layers (`layers`, `visual_instance_3d.cpp:130`), a MeshInstance3D's
+ * surface material override (`surface_material_override/N`, `mesh_instance_3d.cpp:73`). `adopted`
+ * is the model's Godot nodes: a mesh node's per-surface meshes, which the loader made below it and
+ * Godot has no node for, draw as that node's instance does, so they take its layers too; the
+ * importer's surfaces are the glTF mesh's primitives in order, which the loader makes the node's
+ * own mesh (one primitive) or its meshes (several), so an override is that mesh's material.
  */
 function applyOverride(entity: Object3D, property: string, value: unknown, adopted: ReadonlySet<Object3D>): void {
   // An AnimationPlayer's properties: its track bindings, libraries, autoplay (`animation-player.ts`).
@@ -121,6 +125,13 @@ function applyOverride(entity: Object3D, property: string, value: unknown, adopt
       }
     };
     surfaces(entity);
+    return;
+  }
+  const surface = SURFACE_OVERRIDE.exec(property);
+  if (surface !== null) {
+    const meshes = (entity as Mesh).isMesh === true ? [entity] : entity.children.filter((child) => !adopted.has(child) && (child as Mesh).isMesh === true);
+    const mesh = meshes[Number(surface[1])] as Mesh | undefined;
+    if (mesh !== undefined && value !== null) mesh.material = value as Material;
     return;
   }
   const bone = BONE_POSE.exec(property);

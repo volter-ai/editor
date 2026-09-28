@@ -401,10 +401,17 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
     props.push(attribute('map', identifier(map)));
   }
   // Proximity fade draws through the alpha pass (`material.cpp:1807`); its fade is not drawn
-  // (`proximity-fade`, base-material-3d.ts).
+  // (`proximity-fade`, base-material-3d.ts). Distance fade's pixel alpha draws through it too, as
+  // does a material that draws no depth (`rasterizer_scene_gles3.cpp:257`).
   const proximity = boolValue(setterValue(set, 'set_proximity_fade_enabled')) === true;
-  if (transparency !== 0 || proximity) props.push(flag('transparent'), attribute('opacity', literal(transparency !== 0 ? (albedo?.[3] ?? 1) : 1)));
+  const fade = numberValue(setterValue(set, 'set_distance_fade')) ?? 0;
+  const depthDraw = numberValue(setterValue(set, 'set_depth_draw_mode')) ?? 0;
+  const transparent = transparency !== 0 || proximity || fade === 1 || depthDraw === 2;
+  if (transparent) props.push(flag('transparent'), attribute('opacity', literal(transparency !== 0 ? (albedo?.[3] ?? 1) : 1)));
   if (transparency === 2) props.push(attribute('alphaTest', literal(0.5)));
+  // The depth draw mode as three's `depthWrite` (`godot_base_material_3d_depth_write`): only the
+  // opaque pass writes depth unless the mode is `ALWAYS`.
+  if (depthDraw === 2 || (transparent && depthDraw !== 1)) props.push(attribute('depthWrite', literal(false)));
   const blending = BLENDING[blend];
   if (blending !== undefined && blending !== '') {
     emission.three.add(blending);
@@ -441,9 +448,40 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
     data.push({ key: 'proximity_fade_enabled', value: literal(true) });
     data.push({ key: 'proximity_fade_distance', value: literal(Math.max(f32(numberValue(setterValue(set, 'set_proximity_fade_distance')) ?? 1), f32(0.01))) });
   }
+  // What the scene shader draws beyond three's own material (`godot_base_material_3d_scene_shader`):
+  // grow, distance fade, and, on a shaded material, the diffuse and specular modes, the specular
+  // amount, rim and backlight. Values the draw ignores (a grow amount without grow, rim or backlight
+  // parameters without their feature, the stencil effect) are not written.
+  const shading: TargetTsObjectProperty[] = [];
+  if (depthDraw !== 0) data.push({ key: 'depth_draw_mode', value: literal(depthDraw) });
+  if (boolValue(setterValue(set, 'set_grow_enabled')) === true) shading.push({ key: 'grow', value: literal(f32(numberValue(setterValue(set, 'set_grow')) ?? 0)) });
+  if (fade !== 0) {
+    shading.push({ key: 'distance_fade_mode', value: literal(fade) });
+    shading.push({ key: 'distance_fade_min', value: literal(f32(numberValue(setterValue(set, 'set_distance_fade_min_distance')) ?? 0)) });
+    shading.push({ key: 'distance_fade_max', value: literal(f32(numberValue(setterValue(set, 'set_distance_fade_max_distance')) ?? 10)) });
+  }
+  const specular = f32(numberValue(setterValue(set, 'set_specular')) ?? 0.5);
+  if (!unshaded) {
+    const diffuseMode = numberValue(setterValue(set, 'set_diffuse_mode')) ?? 0;
+    const specularMode = numberValue(setterValue(set, 'set_specular_mode')) ?? 0;
+    if (diffuseMode !== 0) shading.push({ key: 'diffuse_mode', value: literal(diffuseMode) });
+    if (specularMode !== 0) shading.push({ key: 'specular_mode', value: literal(specularMode) });
+    if (specular !== 0.5) shading.push({ key: 'specular', value: literal(specular) });
+    if (boolValue(setterValue(set, 'set_feature', 2)) === true) {
+      shading.push({ key: 'rim', value: numbers([f32(numberValue(setterValue(set, 'set_rim')) ?? 1), f32(numberValue(setterValue(set, 'set_rim_tint')) ?? 0.5)]) });
+    }
+    if (boolValue(setterValue(set, 'set_flag', 13)) === true) shading.push({ key: 'dont_receive_shadows', value: literal(true) });
+    if (boolValue(setterValue(set, 'set_feature', 9)) === true) {
+      const backlight = componentsValue(setterValue(set, 'set_backlight')) ?? [0, 0, 0, 1];
+      shading.push({ key: 'backlight', value: numbers(backlight.slice(0, 3).map(srgbToLinear)) });
+    }
+  }
+  data.push(...shading);
   if (data.length > 0) props.push(attribute('userData', { kind: 'object-expression', properties: data }));
-  // A billboard or vertex colour draws through Godot's vertex code (`godot_base_material_3d_scene_shader`).
-  if (billboard !== 0 || boolValue(setterValue(set, 'set_flag', 1)) === true) props.push(attribute('onUpdate', identifier(useCompat(emission, 'base-material-3d', 'godot_base_material_3d_scene_shader'))));
+  // A billboard, vertex colour or the shading above draws through Godot's code (`godot_base_material_3d_scene_shader`).
+  if (billboard !== 0 || boolValue(setterValue(set, 'set_flag', 1)) === true || shading.length > 0) {
+    props.push(attribute('onUpdate', identifier(useCompat(emission, 'base-material-3d', 'godot_base_material_3d_scene_shader'))));
+  }
   // Anisotropy (`FEATURE_ANISOTROPY`) draws on three's physical material (`godot_base_material_3d_anisotropy`).
   const anisotropic = !unshaded && boolValue(setterValue(set, 'set_feature', 4)) === true;
   if (anisotropic) {
@@ -451,6 +489,8 @@ function material(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
     const { anisotropy, rotation } = godotAnisotropy(ratio);
     props.push(attribute('anisotropy', literal(anisotropy)));
     if (rotation !== 0) props.push(attribute('anisotropyRotation', literal(rotation)));
+    // Three's physical F0 is 0.04 times its specular intensity (`godot_base_material_3d_specular_intensity`).
+    if (specular !== 0.5) props.push(attribute('specularIntensity', literal(f32(4 * specular * specular))));
   }
   return element(unshaded ? 'meshBasicMaterial' : anisotropic ? 'meshPhysicalMaterial' : 'meshStandardMaterial', props);
 }
@@ -904,6 +944,18 @@ export function familyAnimationOverride(
   ];
 }
 
+/**
+ * An imported model's mesh node as the instancing scene overrides its surface materials
+ * (`<GodotImportedScene overrides>`): each override the scene's material, declared once.
+ */
+export function familyMaterialOverride(emission: FamilyEmission, setters: readonly TargetGodotSceneSetterPlan[]): TargetTsObjectProperty[] {
+  return setters.flatMap((setter) => {
+    const resource = resourceOf(emission, setter.value);
+    if (resource === undefined) return [];
+    return [{ key: `surface_material_override/${String(setter.index)}`, value: identifier(sharedMaterial(emission, resource)) }];
+  });
+}
+
 /** A compat element's props for a node's authored properties (a GridMap's `data` its cells file). */
 function elementProps(emission: FamilyEmission, nodePath: string, setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
   // A mixer's libraries, one `libraries` prop by name (`libraries/NAME`, `AnimationMixer::_set`).
@@ -1072,6 +1124,8 @@ export function familyElement(
                         },
                         { key: 'shadow', value: literal(shadow) },
                         { key: 'skyMode', value: literal(numberValue(setterValue(set, 'set_sky_mode')) ?? 0) },
+                        // Stored, not drawn: three's one shadow map has no splits to blend.
+                        ...(boolValue(setterValue(set, 'set_blend_splits')) === true ? [{ key: 'blendSplits', value: literal(true) }] : []),
                       ],
                     },
                   ],

@@ -37,6 +37,7 @@ import {
   godot_node_listen_input,
   godot_node_scene_root,
   godot_node_seat,
+  set_physics_interpolation_mode,
 } from './node';
 import {
   type GodotSpawn,
@@ -308,8 +309,11 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
         for (const [name, entry] of Object.entries(value as Readonly<Record<string, unknown>>)) set_meta(made, name, entry);
         continue;
       }
-      // A Node3D's `visible`, which every spatial class inherits (`node_3d.cpp:1120`).
-      const set = element.props.get(property) ?? (property === 'visible' && element.classes.includes('Node3D') ? set_visible : undefined);
+      // A Node3D's `visible`, which every spatial class inherits (`node_3d.cpp:1120`), and a Node's
+      // `physics_interpolation_mode`, which every class inherits (`node.cpp:4056`).
+      const set =
+        element.props.get(property) ??
+        (property === 'visible' && element.classes.includes('Node3D') ? set_visible : property === 'physicsInterpolationMode' ? set_physics_interpolation_mode : undefined);
       if (set === undefined) throw new Error(`godot-compat: ${element.classes[0] ?? 'a node'} has no ${property} prop`);
       (set as (entity: Entity, value: unknown) => void)(made, value);
     }
