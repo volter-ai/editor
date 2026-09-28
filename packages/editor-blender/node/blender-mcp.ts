@@ -300,9 +300,14 @@ export async function serveBlenderMcp(
   command: string,
 ): Promise<void> {
   const runtimeIdentity = `Blender ${blenderBundle.blender} (source ${blenderBundle.source}), compiled to WebAssembly and running headless in the editor tab; three.js takes its photographs. Factory bpy.context.scene.render.engine: '${blenderBundle.factoryEngine}'. Documents are .blend. save_as_mainfile records the actual saved path in bpy.data.filepath; open_mainfile reopens it.`;
+  // THE PHOTOGRAPH STAYS IN THE EDITOR. An agent asked to "take a photograph" with no word on where
+  // it goes rendered one, wrote it into the project and ran the OS `open` on it: Preview started
+  // outside the editor. The editor already shows a picture as one of its documents.
+  const photographs = `A photograph is shown to the person in the editor, never in another app: get_viewport_screenshot returns one, and an image file written inside the project opens as an editor document with \`npx ${command} eval 'editor.openAsset("<project-relative path>")'\`. Do not run the OS \`open\` on it.`;
+  const instructions = `${runtimeIdentity}\n${photographs}`;
   const tools = (blenderTools as ToolShape[]).map((tool) =>
     tool.name === 'execute_blender_code'
-      ? { ...tool, description: `${runtimeIdentity}\n${tool.description}` }
+      ? { ...tool, description: `${instructions}\n${tool.description}` }
       : tool,
   );
   const defaults = blenderDefaults as Record<string, string>;
@@ -317,7 +322,7 @@ export async function serveBlenderMcp(
     { name: 'BlenderMCP', version: BLENDER_MCP_VERSION },
     {
       capabilities: { tools: {}, prompts: {} },
-      instructions: runtimeIdentity,
+      instructions,
     },
   );
 
