@@ -17,7 +17,13 @@
  *   `specularIntensity` 0;
  * - what three has no idiom for (rim, backlight, grow, distance and proximity fade, the other
  *   diffuse modes, toon specular, not receiving shadows) is `userData` compat reads back through
- *   the getters, and draws nothing.
+ *   the getters, and draws nothing;
+ * - in a project that places a reflection probe, a standard or physical material is made by the
+ *   game editor's reflections capability (`createVolumeReflectionMaterial`,
+ *   `createVolumeReflectionPhysicalMaterial`) with the same props: Godot draws every geometry inside
+ *   a probe's box with the probe's reflection, whichever scene the geometry comes from, and that
+ *   material is the capability's way to draw one (compat's `reflection-probe.ts` says how the two
+ *   differ). Its probe ceiling is the capability's own: see there for Godot's two per geometry.
  */
 import { hexColor } from './scene-light-idioms';
 import type { TargetGodotSceneSetterPlan, TargetGodotSceneValue } from './scene-document-plan';
@@ -43,7 +49,18 @@ export interface GodotSceneMaterialIdiom {
   readonly kind: 'material';
   readonly element: GodotSceneMaterialElement;
   readonly props: readonly { readonly name: string; readonly value: GodotSceneMaterialPropValue }[];
+  /**
+   * The capability function that makes the material in place of three's class: called with the
+   * props as its parameters, it returns a handle whose `material` is the three material.
+   */
+  readonly factory?: { readonly module: string; readonly exportName: string };
 }
+
+/** The reflections capability's volume material for a lit three material the project's probes light. */
+const REFLECTED: Partial<Record<GodotSceneMaterialElement, NonNullable<GodotSceneMaterialIdiom['factory']>>> = {
+  meshStandardMaterial: { module: 'lib:reflections/index', exportName: 'createVolumeReflectionMaterial' },
+  meshPhysicalMaterial: { module: 'lib:reflections/index', exportName: 'createVolumeReflectionPhysicalMaterial' },
+};
 
 const f32 = Math.fround;
 
@@ -77,12 +94,13 @@ function colour(components: readonly number[]): GodotSceneMaterialPropValue {
 const BLENDING = ['', 'AdditiveBlending', 'SubtractiveBlending', 'MultiplyBlending'] as const;
 
 /**
- * The material a `StandardMaterial3D` with these authored setters is written as.
+ * The material a `StandardMaterial3D` with these authored setters is written as; `reflected`, the
+ * project places a reflection probe.
  *
  * @godot StandardMaterial3D (protocol)
  * @source scene/resources/material.cpp:3908
  */
-export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetterPlan[]): GodotSceneMaterialIdiom {
+export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetterPlan[], reflected = false): GodotSceneMaterialIdiom {
   const value = (exportName: string, index?: number): TargetGodotSceneValue | undefined =>
     setters.find((entry) => entry.setter.exportName === exportName && (index === undefined || entry.index === index))?.value;
   const num = (exportName: string, index?: number): number | undefined => {
@@ -205,5 +223,6 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     if (specular !== 0.5) literal('reflectivity', specular);
     if (specularMode === 2) literal('specularIntensity', 0);
   }
-  return { kind: 'material', element, props };
+  const factory = reflected ? REFLECTED[element] : undefined;
+  return { kind: 'material', element, props, ...(factory === undefined ? {} : { factory }) };
 }

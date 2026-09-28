@@ -11,13 +11,36 @@
  * the box is the probe's `size`, the capture point its `origin_offset`, the near plane 0.01 and the
  * far plane the largest of `max_distance` and the distances from the capture point to the box's
  * faces; box projection projects onto the same box; `UPDATE_ONCE` captures on a change,
- * `UPDATE_ALWAYS` every frame. Where it differs:
- * - Godot draws every geometry inside the box with the probe's
- *   reflection (at most two probes each, `rasterizer_scene_gles3.cpp:1406`); the capability publishes
- *   the capture and binds no material, so the imported scene's materials do not reflect it.
- * - Godot's faces are captured in turn with the far plane grown to each
- *   face's distance so far; the capability captures every face with the largest.
- * - the probe's ambient (interior, ambient mode and colour) is not drawn.
+ * `UPDATE_ALWAYS` every frame.
+ *
+ * What the probe lights: in a project that places a probe, the plan makes every lit material of
+ * its scenes with the capability's volume material (`createVolumeReflectionMaterial`,
+ * `scene-material-idioms.ts`), which reads the probes of the scene that draws it and blends, per
+ * fragment, every probe whose box holds the fragment, with the box projection, falling back to the
+ * scene's environment (the sky, `world-environment.ts`) outside every box, as Godot's
+ * Compatibility renderer does (`drivers/gles3/shaders/scene.glsl:2040`). Where it differs:
+ * - Godot draws a geometry with at most two of the probes its bounds meet, the first two it was
+ *   paired with (`rasterizer_scene_gles3.cpp:1406`, `:3857`). The capability's `maxProbes` is not
+ *   that limit: it caps the probes one material samples in the whole scene (the first it
+ *   registered), and one material is shared by geometry across a level, so a cap of two would leave
+ *   every other probe of the level unsampled. The material takes the capability's ceiling (eight
+ *   per scene), and where three or more boxes overlap, all of them blend.
+ * - The fade at a box's edge: Godot weighs a probe by the product over the three axes of the
+ *   point's distance from that axis's face over `blend_distance` (each clamped to 1, the blend
+ *   distance to the half size), squared (`scene.glsl:2056`); the capability by the distance to the
+ *   nearest face over `blend_distance`, clamped to 1, not squared. And Godot fades a probe that is not interior toward the sky as it
+ *   fades out (`:2084`), so a lone probe's edge blends into the sky; the capability divides by the
+ *   summed weights, so a lone probe draws at full strength up to its box and the sky starts there.
+ * - `intensity` scales the probe's reflection in both (`:2087`). The capability scales the diffuse
+ *   light it takes from the capture by it too, where Godot's probe ambient is not scaled and is
+ *   mixed with the environment's own by its sky contribution (`:2099`, `:2488`); the ambient mode,
+ *   colour and `interior` are not bound, so every probe lights the diffuse from its capture.
+ * - The `reflection_mask` against a geometry's layers (`rasterizer_scene_gles3.cpp:1416`) is not
+ *   bound: every geometry reflects every probe.
+ * - A material the capability did not make (a model's own, one compat makes for a script) does not
+ *   reflect the probes: compat imports no other capability.
+ * - Godot's faces are captured in turn with the far plane grown to each face's distance so far; the
+ *   capability captures every face with the largest.
  */
 
 import type { Object3D } from 'three';

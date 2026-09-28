@@ -632,11 +632,14 @@ function sharedMaterial(emission: FamilyEmission, resource: TargetGodotSceneReso
   return declareMaterial(emission, resource.key, stemOf(resource.key), resource.idiom?.kind === 'material' ? resource.idiom : undefined, resource);
 }
 
-/** A planned material declared once: `new` its three class with its props, handed to its `onUpdate`. */
+/**
+ * A planned material declared once: `new` its three class with its props, or the `material` of what
+ * the plan's factory makes of them, handed to its `onUpdate`.
+ */
 function declareMaterial(emission: FamilyEmission, key: string, base: string, idiom: GodotSceneMaterialIdiom | undefined, resource?: TargetGodotSceneResourcePlan): string {
   if (idiom === undefined) throw new Error(`${resource?.key ?? key}: ${resource?.className ?? ''} has no three material`);
   const three = idiom.element.charAt(0).toUpperCase() + idiom.element.slice(1);
-  emission.three.add(three);
+  if (idiom.factory === undefined) emission.three.add(three);
   const uses: string[] = [];
   const properties = materialProps(emission, idiom, true).map((prop) => {
     if (prop.value.kind === 'identifier-expression' && emission.loaded.has(prop.value.name)) uses.push(prop.value.name);
@@ -644,7 +647,15 @@ function declareMaterial(emission: FamilyEmission, key: string, base: string, id
   });
   const onUpdate = properties.find((property) => property.key === 'onUpdate');
   const own = properties.filter((property) => property !== onUpdate);
-  const constructed: TargetTsExpression = { kind: 'new-expression', callee: identifier(three), arguments: own.length === 0 ? [] : [{ kind: 'object-expression', properties: own }] };
+  const parameters: TargetTsExpression[] = own.length === 0 ? [] : [{ kind: 'object-expression', properties: own }];
+  const constructed: TargetTsExpression =
+    idiom.factory === undefined
+      ? { kind: 'new-expression', callee: identifier(three), arguments: parameters }
+      : {
+          kind: 'property-expression',
+          object: { kind: 'call-expression', callee: identifier(useCompat(emission, idiom.factory.module, idiom.factory.exportName)), arguments: parameters },
+          property: 'material',
+        };
   // What an element's `onUpdate` does to its material, done once to the declared one.
   const made: TargetTsExpression = onUpdate === undefined ? constructed : { kind: 'call-expression', callee: onUpdate.value, arguments: [constructed] };
   return declareShared(emission, key, base, made, uses);
@@ -930,7 +941,9 @@ export function familyElement(
       else children.push(geometry(emission, mesh));
       materials.forEach((resource, surface) => {
         const attach = materials.length === 1 ? [] : [{ kind: 'jsx-string-attribute' as const, name: 'attach', value: `material-${String(surface)}` }];
-        if (resource !== undefined && sharedResource(emission, resource)) {
+        // A material a factory makes has no element: it is declared, as a shared one is.
+        const made = resource?.idiom?.kind === 'material' && resource.idiom.factory !== undefined;
+        if (resource !== undefined && (made || sharedResource(emission, resource))) {
           const local = identifier(sharedMaterial(emission, resource));
           if (materials.length === 1) attributes.push(attribute('material', local));
           else children.push(element('primitive', [attribute('object', local), ...attach]));

@@ -71,7 +71,7 @@ function resourceModules(resource: TargetGodotSceneResourcePlan): readonly strin
     case 'cylinder':
       return [idiom.made.module];
     case 'material':
-      return idiom.props.flatMap((prop) => (prop.value.kind === 'compat' ? [prop.value.module] : []));
+      return [...(idiom.factory === undefined ? [] : [idiom.factory.module]), ...idiom.props.flatMap((prop) => (prop.value.kind === 'compat' ? [prop.value.module] : []))];
     default:
       return [];
   }

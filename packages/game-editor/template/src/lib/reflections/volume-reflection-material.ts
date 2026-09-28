@@ -49,6 +49,7 @@ import {
 } from 'three';
 import {
   acquireReflectionProbeRegistry,
+  type ReflectionProbeObserver,
   type ReflectionProbeRegistryLease,
   type ReflectionProbeRuntime,
 } from './reflection-probe-registry';
@@ -293,6 +294,19 @@ function writeProbeUniforms(
   });
 }
 
+/** The parameters and, when given, the renderer and scene of either factory's two forms. */
+function splitArguments<O>(
+  first: WebGLRenderer | O | undefined,
+  scene: Scene | undefined,
+  options: O | undefined,
+): { readonly bound: Binding | null; readonly options: O | undefined } {
+  const renderer = first as WebGLRenderer | undefined;
+  if (typeof renderer?.render === 'function' && scene !== undefined) {
+    return { bound: { renderer, scene }, options };
+  }
+  return { bound: null, options: first as O | undefined };
+}
+
 /**
  * Create a `MeshStandardMaterial` that blends the scene's reflection probes
  * per fragment. `options` are ordinary material parameters plus `maxProbes`.
@@ -300,21 +314,36 @@ function writeProbeUniforms(
  * The material is this factory's: no existing material is mutated, and only
  * meshes the author assigns it to are affected. Assigning `envMap` later works
  * as usual and takes over the fallback term — the black texture that keeps
- * three's IBL entry points compiled when there is no environment at all is
- * installed behind that property and never replaces an assigned map.
+ * three's IBL entry points compiled when probes apply and there is no
+ * environment at all is installed behind that property and never replaces an
+ * assigned map. Where the scene has no probes the material draws as three's
+ * own.
+ *
+ * Given no `renderer` and `scene` — a material made before either exists, as
+ * a module-level resource is — the material reads the probes of the renderer
+ * and scene that draw it, from its first draw (three's
+ * `Material.onBeforeRender`, which runs before that draw compiles its
+ * program); a draw by another renderer (the canvas remounted) moves it to that
+ * renderer's probes. It lets go of them when it is disposed, taking them up
+ * again if it is drawn after that, or when it is garbage collected: whoever
+ * holds it owns it as they own any three material.
  */
+export function createVolumeReflectionMaterial(
+  options?: VolumeReflectionMaterialOptions,
+): VolumeReflectionMaterialHandle;
 export function createVolumeReflectionMaterial(
   renderer: WebGLRenderer,
   scene: Scene,
-  options: VolumeReflectionMaterialOptions = {},
+  options?: VolumeReflectionMaterialOptions,
+): VolumeReflectionMaterialHandle;
+export function createVolumeReflectionMaterial(
+  first?: WebGLRenderer | VolumeReflectionMaterialOptions,
+  scene?: Scene,
+  options?: VolumeReflectionMaterialOptions,
 ): VolumeReflectionMaterialHandle {
-  const { maxProbes, ...parameters } = options;
-  return ownVolumeReflectionMaterial(
-    renderer,
-    scene,
-    new MeshStandardMaterial(parameters),
-    maxProbes,
-  );
+  const split = splitArguments(first, scene, options);
+  const { maxProbes, ...parameters } = split.options ?? {};
+  return ownVolumeReflectionMaterial(new MeshStandardMaterial(parameters), maxProbes, split.bound);
 }
 
 export interface VolumeReflectionPhysicalMaterialOptions extends MeshPhysicalMaterialParameters {
@@ -323,94 +352,143 @@ export interface VolumeReflectionPhysicalMaterialOptions extends MeshPhysicalMat
 
 /** The same explicit volume effect with Three's physical material controls. */
 export function createVolumeReflectionPhysicalMaterial(
+  options?: VolumeReflectionPhysicalMaterialOptions,
+): VolumeReflectionMaterialHandle<MeshPhysicalMaterial>;
+export function createVolumeReflectionPhysicalMaterial(
   renderer: WebGLRenderer,
   scene: Scene,
-  options: VolumeReflectionPhysicalMaterialOptions = {},
+  options?: VolumeReflectionPhysicalMaterialOptions,
+): VolumeReflectionMaterialHandle<MeshPhysicalMaterial>;
+export function createVolumeReflectionPhysicalMaterial(
+  first?: WebGLRenderer | VolumeReflectionPhysicalMaterialOptions,
+  scene?: Scene,
+  options?: VolumeReflectionPhysicalMaterialOptions,
 ): VolumeReflectionMaterialHandle<MeshPhysicalMaterial> {
-  const { maxProbes, ...parameters } = options;
-  return ownVolumeReflectionMaterial(
-    renderer,
-    scene,
-    new MeshPhysicalMaterial(parameters),
-    maxProbes,
-  );
+  const split = splitArguments(first, scene, options);
+  const { maxProbes, ...parameters } = split.options ?? {};
+  return ownVolumeReflectionMaterial(new MeshPhysicalMaterial(parameters), maxProbes, split.bound);
+}
+
+interface Binding {
+  readonly renderer: WebGLRenderer;
+  readonly scene: Scene;
+}
+
+/**
+ * Observe `registry` through a weak reference to `observer`: once the
+ * material that holds the observer is collected, the next update stops
+ * observing and releases the lease. Module-level on purpose — a closure made
+ * inside the material's own scope would hold that scope, and the material
+ * with it, from the registry.
+ */
+function observeWeakly(
+  lease: ReflectionProbeRegistryLease,
+  observer: WeakRef<ReflectionProbeObserver>,
+): () => void {
+  let stop = (): void => undefined;
+  stop = lease.registry.observe((probes, capturing) => {
+    const live = observer.deref();
+    if (live) {
+      live(probes, capturing);
+      return;
+    }
+    stop();
+    lease.release();
+  });
+  return stop;
 }
 
 function ownVolumeReflectionMaterial<T extends MeshStandardMaterial>(
-  renderer: WebGLRenderer,
-  scene: Scene,
   material: T,
   maxProbes: number | undefined,
+  bound: Binding | null,
 ): VolumeReflectionMaterialHandle<T> {
   const limit = Math.min(MAX_PROBES, Math.max(1, Math.round(maxProbes ?? MAX_PROBES)));
   const sentinel = createIblSentinelTexture();
   let authoredEnvMap = material.envMap;
-  let override: IblOverride | null = null;
-  let installedCount = 0;
   let warnedOverflow = false;
   let eligible: readonly ReflectionProbeRuntime[] = [];
   let isCapturing = false;
-  let lease: ReflectionProbeRegistryLease | null = acquireReflectionProbeRegistry(renderer, scene);
+  let binding: (Binding & { readonly lease: ReflectionProbeRegistryLease; stop: () => void }) | null = null;
+  let override: IblOverride | null = null;
 
   // Three deletes both IBL entry points from a program with no environment at
-  // all, so a probe-only material needs one native input present to keep them.
-  // The author's own value always wins, and `scene.environment` is left to
-  // three whenever it exists.
-  const hasBaseEnvironment = () => Boolean(authoredEnvMap ?? scene.environment);
+  // all, so a material that probes apply to needs one native input present to
+  // keep them. The author's own value always wins, and `scene.environment` is
+  // left to three whenever it exists.
+  const hasBaseEnvironment = () => Boolean(authoredEnvMap ?? binding?.scene.environment);
   Object.defineProperty(material, 'envMap', {
     configurable: true,
     enumerable: true,
-    get: () => authoredEnvMap ?? (scene.environment ? null : sentinel),
+    get: () =>
+      authoredEnvMap ?? (eligible.length === 0 || binding?.scene.environment ? null : sentinel),
     set: (value: Texture | null) => {
       authoredEnvMap = value;
     },
   });
 
-  const uninstall = () => {
-    override?.restore();
-    override = null;
-    installedCount = 0;
+  // The observer, held only by this scope: the registry reaches it weakly.
+  const observe: ReflectionProbeObserver = (probes, capturing) => {
+    isCapturing = capturing;
+    const next = probes.slice(0, limit);
+    if (probes.length > limit && !warnedOverflow) {
+      warnedOverflow = true;
+      // biome-ignore lint/suspicious/noConsole: the uniform arrays have a fixed ceiling; say which probes fell off it.
+      console.warn(
+        `[reflections] "${material.name || 'volume reflection material'}" blends at most ${limit} probes; ${probes.length - limit} more are in the scene and are not sampled.`,
+      );
+    }
+    // The probe count is the declared arrays' length: another count is another program.
+    if (next.length !== eligible.length) material.needsUpdate = true;
+    eligible = next;
+    writeProbeUniforms(override?.shader ?? null, eligible, hasBaseEnvironment(), capturing);
   };
 
-  const install = (count: number) => {
-    uninstall();
-    installedCount = count;
+  const unbind = () => {
+    if (!binding) return;
+    binding.stop();
+    binding.lease.release();
+    binding = null;
+    override?.restore();
+    override = null;
+    eligible = [];
+  };
+
+  const bind = ({ renderer, scene }: Binding) => {
+    unbind();
+    // Installed once per binding: the fragment and the cache key are read at
+    // compile time, so a changed probe count only recompiles.
     override = overrideMaterialIbl(material, {
-      fragment: () => volumeReflectionShader(count),
-      cacheKey: () => `volter-volume-reflections:${count}`,
+      fragment: () =>
+        eligible.length === 0
+          ? ShaderChunk.envmap_physical_pars_fragment
+          : volumeReflectionShader(eligible.length),
+      cacheKey: () => `volter-volume-reflections:${eligible.length}`,
       onCompile: (shader) =>
         writeProbeUniforms(shader, eligible, hasBaseEnvironment(), isCapturing),
     });
+    const lease = acquireReflectionProbeRegistry(renderer, scene);
+    // Bound before observing: the first observation reads the scene's environment.
+    const bound = { renderer, scene, lease, stop: (): void => undefined };
+    binding = bound;
+    bound.stop = observeWeakly(lease, new WeakRef(observe));
   };
 
-  const unobserve = lease.registry.observe(
-    (probes: readonly ReflectionProbeRuntime[], capturing: boolean) => {
-      isCapturing = capturing;
-      eligible = probes.slice(0, limit);
-      if (probes.length > limit && !warnedOverflow) {
-        warnedOverflow = true;
-        // biome-ignore lint/suspicious/noConsole: the uniform arrays have a fixed ceiling; say which probes fell off it.
-        console.warn(
-          `[reflections] "${material.name || 'volume reflection material'}" blends at most ${limit} probes; ${probes.length - limit} more are in the scene and are not sampled.`,
-        );
-      }
-      if (eligible.length !== installedCount) {
-        if (eligible.length === 0) uninstall();
-        else install(eligible.length);
-      }
-      writeProbeUniforms(override?.shader ?? null, eligible, hasBaseEnvironment(), capturing);
-    },
-  );
+  if (bound) {
+    bind(bound);
+  } else {
+    material.onBeforeRender = (renderer, scene) => {
+      if (binding?.renderer !== renderer) bind({ renderer, scene });
+    };
+    material.addEventListener('dispose', unbind);
+  }
 
   return {
     material,
     dispose() {
-      unobserve();
-      uninstall();
+      unbind();
       sentinel.dispose();
       material.dispose();
-      lease?.release();
-      lease = null;
     },
   };
 }

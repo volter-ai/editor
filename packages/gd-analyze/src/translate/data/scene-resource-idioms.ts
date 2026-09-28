@@ -96,11 +96,11 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
 
 /**
  * The idiom a resource of `className` with these authored setters is written as, or undefined when
- * it is constructed (`construct`).
+ * it is constructed (`construct`). `reflected`: the project places a reflection probe.
  */
-export function godotSceneResourceIdiom(className: string, setters: readonly TargetGodotSceneSetterPlan[]): GodotSceneResourceIdiom | undefined {
+export function godotSceneResourceIdiom(className: string, setters: readonly TargetGodotSceneSetterPlan[], reflected = false): GodotSceneResourceIdiom | undefined {
   const idiom = IDIOMS[className];
-  if (idiom === 'material') return godotSceneMaterialIdiom(setters);
+  if (idiom === 'material') return godotSceneMaterialIdiom(setters, reflected);
   if (idiom?.kind === 'plane') {
     // An authored orientation replaces the class's facing.
     const orientation = setters.find((setter) => setter.setter.exportName === 'set_orientation')?.value;

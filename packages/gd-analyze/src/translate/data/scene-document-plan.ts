@@ -529,6 +529,8 @@ function isResourceValue(value: GodotValue): boolean {
 /** The resources of the document being planned, and those its setters have planned so far. */
 interface DocumentResources {
   readonly scene: BoundGodotSceneDocument;
+  /** Whether the project's scenes place a reflection probe (`PlanContext.reflected`). */
+  readonly reflected: boolean;
   readonly planned: Map<string, TargetGodotSceneResourcePlan | null>;
   readonly order: TargetGodotSceneResourcePlan[];
 }
@@ -546,6 +548,12 @@ interface PlanContext {
   readonly scriptSignals: (resPath: string) => ReadonlyMap<string, number>;
   readonly authority: GodotSceneNodeAuthorityResolver;
   readonly scenes: ReadonlyMap<string, BoundGodotSceneDocument>;
+  /**
+   * Whether any of the project's scenes places a node written as a reflection probe: its lit
+   * materials are then the reflections capability's (`scene-material-idioms.ts`), since a probe
+   * lights every geometry inside its box, whichever scene the geometry comes from.
+   */
+  readonly reflected: boolean;
   readonly diagnostics: GodotSceneDocumentDiagnostic[];
 }
 
@@ -1630,7 +1638,7 @@ function relativeTo(path: string, root: string): string {
 }
 
 function planScene(context: PlanContext, scene: BoundGodotSceneDocument): TargetGodotSceneDocumentPlan | undefined {
-  context.document = { scene, planned: new Map(), order: [] };
+  context.document = { scene, reflected: context.reflected, planned: new Map(), order: [] };
   if (scene.sourceKind !== 'packed-scene') return undefined;
   if (!structure(context, scene.resPath, 'authored-order')) return undefined;
   // Instance roots: a node this document copied from another scene's root.
@@ -2030,7 +2038,7 @@ function recordResource(
   key: string,
   resource: TargetGodotSceneResourcePlan,
 ): void {
-  const idiom = godotSceneResourceIdiom(resource.className, resource.setters);
+  const idiom = godotSceneResourceIdiom(resource.className, resource.setters, document.reflected);
   const planned = idiom === undefined ? resource : { ...resource, idiom };
   document.planned.set(key, planned);
   document.order.push(planned);
@@ -2323,6 +2331,7 @@ export function planGodotSceneDocuments(
     },
     authority,
     scenes: new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const)),
+    reflected: project.documents.scenes.some((scene) => scene.nodes.some((node) => godotSceneNodeIdiom(node.class.nativeName)?.form.kind === 'reflection-probe')),
     diagnostics: [],
   };
   const scenes = project.documents.scenes.flatMap((scene) => {

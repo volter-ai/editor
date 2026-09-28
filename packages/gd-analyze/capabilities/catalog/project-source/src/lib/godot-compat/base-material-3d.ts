@@ -32,6 +32,12 @@
  * draws nothing. The stencil effect parameters are stored: they draw only through `stencil_mode`
  * (outline or x-ray, `material.cpp:3151`), which is not bound, so a material's stencil is always
  * disabled and draws nothing (`material.cpp:887`).
+ *
+ * Reflection probes: in a project that places one, a scene's lit material is the game editor's
+ * reflections volume material (the plan's, `scene-material-idioms.ts`; `reflection-probe.ts` says
+ * how it draws a probe), and this module reads and sets it as any three standard material. A
+ * material this module makes itself is three's own class and does not reflect the probes, since
+ * compat imports no other capability; one it replaces is disposed.
  */
 
 import {
@@ -376,6 +382,9 @@ export function godot_base_material_3d_three(self: BaseMaterial3D): Material {
   let target = THREE_MATERIAL.get(self);
   const Class = threeClassOf(self);
   if (target === undefined || target.constructor !== Class) {
+    // The material it replaces is let go of as three's are (a reflections volume material lets go
+    // of the probes with it).
+    target?.dispose();
     target = new Class();
     THREE_MATERIAL.set(self, target);
   }
@@ -762,6 +771,25 @@ function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
   };
 }
 
+/** The scene draw's code in the program three compiles for a material (see below). */
+function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billboard: mode, keepScale, coloured }: SceneShading): void {
+  let vertex = shader.vertexShader;
+  let fragment = shader.fragmentShader;
+  if (mode !== 0) vertex = `attribute vec4 godotInstanceCustom;\n${vertex.replace('#include <project_vertex>', billboardChunk(mode, keepScale))}`;
+  if (coloured) {
+    vertex = `attribute vec4 godotInstanceColor;\nvarying vec4 vGodotColor;\n${vertex.replace('#include <color_vertex>', '#include <color_vertex>\nvGodotColor = vec4( 1.0 );\n#ifdef USE_INSTANCING\n\tvGodotColor = godotInstanceColor;\n#endif')}`;
+    fragment = `varying vec4 vGodotColor;\n${fragment.replace(
+      '#include <color_fragment>',
+      '#include <color_fragment>\ndiffuseColor *= vec4( vGodotColor.rgb * ( vGodotColor.rgb * ( vGodotColor.rgb * 0.305306011 + 0.682171111 ) + 0.012522878 ), vGodotColor.a );',
+    )}`;
+  }
+  shader.vertexShader = vertex;
+  shader.fragmentShader = fragment;
+}
+
+/** The scene draw each material's program was last asked for (its cache key's part), once its hook is on. */
+const SCENE_SHADED = new WeakMap<Material, string>();
+
 /**
  * The material drawn where three's own material does not draw what the scene needs of it:
  * - its billboard: three's `project_vertex` replaced by the billboard mode's model-view matrix
@@ -770,37 +798,32 @@ function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
  *   albedo and its alpha where the material takes vertex colour as albedo (`albedo_tex *= COLOR`,
  *   `material.cpp:1643`), converted to linear as three's colours are. Particle animation frames
  *   other than one by one are not drawn.
- * The material's own program, never three's shared chunks. Returns the material.
+ * The material's own program, never three's shared chunks. The hook goes on once, over whatever
+ * the material already compiles with, and reads the draw from the material's `userData` when three
+ * compiles it, so what composes over it later (the reflections capability's lighting, installed
+ * at a volume material's first draw) keeps it; a change of the draw only recompiles. A material
+ * that never needs it keeps three's own program. Returns the material.
  *
  * @godot BaseMaterial3D (protocol)
  * @source scene/resources/material.cpp:1231
  */
 export function godot_base_material_3d_scene_shader<M extends Material>(target: M): M {
   const shading = shadingOf(target.userData as Readonly<Record<string, unknown>>);
-  const { billboard: mode, keepScale, coloured } = shading;
   const key = `godot-scene:${JSON.stringify(shading)}`;
-  const plain = mode === 0 && !coloured;
-  if (target.customProgramCacheKey() === key || (plain && target.onBeforeCompile === Material.prototype.onBeforeCompile)) return target;
-  if (plain) {
-    target.onBeforeCompile = Material.prototype.onBeforeCompile;
-    target.customProgramCacheKey = Material.prototype.customProgramCacheKey;
-  } else {
-    target.onBeforeCompile = (shader) => {
-      let vertex = shader.vertexShader;
-      let fragment = shader.fragmentShader;
-      if (mode !== 0) vertex = `attribute vec4 godotInstanceCustom;\n${vertex.replace('#include <project_vertex>', billboardChunk(mode, keepScale))}`;
-      if (coloured) {
-        vertex = `attribute vec4 godotInstanceColor;\nvarying vec4 vGodotColor;\n${vertex.replace('#include <color_vertex>', '#include <color_vertex>\nvGodotColor = vec4( 1.0 );\n#ifdef USE_INSTANCING\n\tvGodotColor = godotInstanceColor;\n#endif')}`;
-        fragment = `varying vec4 vGodotColor;\n${fragment.replace(
-          '#include <color_fragment>',
-          '#include <color_fragment>\ndiffuseColor *= vec4( vGodotColor.rgb * ( vGodotColor.rgb * ( vGodotColor.rgb * 0.305306011 + 0.682171111 ) + 0.012522878 ), vGodotColor.a );',
-        )}`;
-      }
-      shader.vertexShader = vertex;
-      shader.fragmentShader = fragment;
+  const shaded = SCENE_SHADED.get(target);
+  if (shaded === key) return target;
+  if (shaded === undefined) {
+    if (shading.billboard === 0 && !shading.coloured) return target;
+    const ownCompile = target.onBeforeCompile;
+    const ownKey = target.customProgramCacheKey;
+    const read = (): SceneShading => shadingOf(target.userData as Readonly<Record<string, unknown>>);
+    target.onBeforeCompile = (shader, renderer) => {
+      ownCompile.call(target, shader, renderer);
+      sceneShade(shader, read());
     };
-    target.customProgramCacheKey = () => key;
+    target.customProgramCacheKey = () => `${ownKey.call(target)}|godot-scene:${JSON.stringify(read())}`;
   }
+  SCENE_SHADED.set(target, key);
   target.needsUpdate = true;
   return target;
 }
