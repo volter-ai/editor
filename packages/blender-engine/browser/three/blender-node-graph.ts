@@ -780,8 +780,14 @@ class Compiler {
       case 'ShaderNodeTexImage': {
         const image = prop<{name: string; revision: number} | null>(node, 'image');
         if (image === null) {
+          // A PICTURE THAT COULD NOT BE READ draws magenta, as Blender draws a missing image
+          // (`session.py::_drop_unreachable_textures` marks it); a node with no image is
           // node_tex_image_empty.
-          body.push(`${outs([0])} = vec4(0.0); ${outs([1])} = 0.0;`);
+          body.push(
+            node.props['image_missing'] === true
+              ? `${outs([0])} = vec4(1.0, 0.0, 1.0, 1.0); ${outs([1])} = 1.0;`
+              : `${outs([0])} = vec4(0.0); ${outs([1])} = 0.0;`,
+          );
           break;
         }
         // node_shader_gpu_tex_image.

@@ -1613,6 +1613,25 @@ class Session:
                      "(`bpy_web_export.cc::write_image`)."
                      % (material.get("name", "?"), name))
 
+            # A MATERIAL'S NODE GRAPH samples its pictures through Image Texture nodes, which
+            # the slots above do not cover: a graph naming a picture that was never sent had
+            # the presenter refuse the whole frame, so a file whose textures are missing did
+            # not open at all (measured on `16-market-courtyard` saved with its textures
+            # outside the project). Blender opens such a file and draws each missing picture
+            # magenta; the node is kept, marked, and the presenter draws it so.
+            graph = material.get("graph")
+            for node in ((graph or {}).get("nodes") or {}).values():
+                props = node.get("props") or {}
+                image = props.get("image")
+                name = image.get("name") if isinstance(image, dict) else None
+                if name is None or name in carried or ("image:" + name) in self._known:
+                    continue
+                props["image"] = None
+                props["image_missing"] = True
+                warn("material %s: the picture %s is not readable in this program (%s), so it "
+                     "draws magenta, as Blender draws a missing image."
+                     % (material.get("name", "?"), name, "a path outside the project, or no pixels"))
+
     def _reconcile_with_presenter(self, answer, frame):
         """THE PRESENTER'S REPORT OUTRANKS THE SESSION'S RECORD.
 
