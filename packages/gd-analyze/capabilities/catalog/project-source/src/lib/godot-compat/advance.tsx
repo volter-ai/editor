@@ -19,30 +19,8 @@ import { useBeforePhysicsStep, useRapier } from '@react-three/rapier';
 import { useLayoutEffect, useRef } from 'react';
 import { godot_canvas_draw } from './canvas-item';
 import { get_physics_process_delta_time, godot_node_advance, is_inside_tree } from './node';
-import { get_setting } from './project-settings';
-import { godot_tree_physics_begin, godot_tree_physics_end, godot_tree_process_begin, godot_tree_process_end } from './scene-tree';
+import { godot_process_delta, godot_tree_physics_begin, godot_tree_physics_end, godot_tree_process_begin, godot_tree_process_end } from './scene-tree';
 import { godot_window_canvas_layer, godot_window_process_events } from './window';
-
-/**
- * The frame's delta as Godot code sees it: at most `max_physics_steps_per_frame` physics ticks
- * (8/60 s by default). Godot never advances a frame by more (`main/main.cpp:4951`: a frame due more
- * steps than the maximum drops the excess from its process step), so a stall, such as a page's
- * first frames while it loads, never reaches a node as one long delta. The emitted scripts'
- * `_process` is handed the same bound, so it and `get_process_delta_time()` agree. A setting that
- * is missing or not positive takes Godot's default, as the engine rejects it (`engine.cpp:63`).
- *
- * The physics steps are not bounded the same way: Rapier steps at its fixed `timeStep` and runs
- * every step due, up to its own half-second clamp (30 steps at 60 Hz), where Godot runs at most
- * `max_physics_steps_per_frame` and drops the rest (`main.cpp:4954`). So after a stall the physics
- * clock runs ahead of the process clock by up to the difference.
- */
-function processDelta(delta: number): number {
-  const setting = (name: string, fallback: number): number => {
-    const value = Number(get_setting(name, fallback));
-    return Number.isFinite(value) && value > 0 ? value : fallback;
-  };
-  return Math.min(delta, setting('physics/common/max_physics_steps_per_frame', 8) / setting('physics/common/physics_ticks_per_second', 60));
-}
 
 /**
  * Runs one node's own internal processing from its component's frame and physics step.
@@ -51,7 +29,7 @@ function processDelta(delta: number): number {
  * @source scene/main/scene_tree.cpp:1219
  */
 export function useGodotAdvance(entity: object): void {
-  useFrame((_, delta) => godot_node_advance(entity, false, processDelta(delta)));
+  useFrame((_, delta) => godot_node_advance(entity, false, godot_process_delta(delta)));
   useBeforePhysicsStep(() => godot_node_advance(entity, true, get_physics_process_delta_time(entity)));
 }
 
@@ -76,8 +54,7 @@ export function useGodotDraw(entity: object | undefined, draw: () => void): void
  * The SceneTree's frames on the host's clock, from the world's component: each Rapier step begins
  * and ends its physics frame, each R3F frame begins and ends its process frame, counting the
  * frames and emitting `physics_frame`/`process_frame` as `SceneTree::physics_process` and
- * `SceneTree::process` do; the process frame's delta is bounded as the
- * scripts' is (`processDelta`). Registered from a layout effect, the step's begin is its first
+ * `SceneTree::process` do. Registered from a layout effect, the step's begin is its first
  * callback, and the frame's begin runs first by its priority.
  *
  * @godot SceneTree (protocol)
@@ -86,7 +63,7 @@ export function useGodotDraw(entity: object | undefined, draw: () => void): void
 export function useGodotTree(): void {
   const rapier = useRapier();
   useLayoutEffect(() => {
-    const begin = { current: (world: { readonly timestep: number }) => godot_tree_physics_begin(world.timestep) };
+    const begin = { current: () => godot_tree_physics_begin() };
     const end = { current: () => godot_tree_physics_end() };
     rapier.beforeStepCallbacks.add(begin as never);
     rapier.afterStepCallbacks.add(end as never);
@@ -95,7 +72,7 @@ export function useGodotTree(): void {
       rapier.afterStepCallbacks.delete(end as never);
     };
   }, [rapier]);
-  useFrame((_, delta) => godot_tree_process_begin(processDelta(delta)), -1);
+  useFrame(() => godot_tree_process_begin(), -1);
   useFrame(() => godot_tree_process_end());
 }
 

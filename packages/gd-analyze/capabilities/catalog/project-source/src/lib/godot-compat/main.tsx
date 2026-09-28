@@ -20,7 +20,7 @@ import { godot_collision_object_of_collider, godot_physics_attach } from './coll
 import { godot_physics_body_3d_collides } from './physics-body-3d';
 import { godot_font_default, godot_font_default_url, godot_font_register } from './font';
 import { godot_resource_loader_settled } from './resource-loader';
-import { godot_tree_on_reload } from './scene-tree';
+import { godot_tree_attach_clock, godot_tree_on_reload } from './scene-tree';
 import { godot_viewport_attach_input, godot_viewport_attach_renderer } from './viewport';
 import { godot_window_attach_input, godot_window_canvas_size, godot_window_set_size } from './window';
 // The body classes' modules register their `is` classes and signals as they load.
@@ -58,6 +58,7 @@ export function useGodotResources(): void {
 export function useGodotWorld(): void {
   const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
+  const clock = useThree((state) => state.clock);
   const size = useThree((state) => state.size);
   const get = useThree((state) => state.get);
   const set = useThree((state) => state.set);
@@ -81,6 +82,7 @@ export function useGodotWorld(): void {
     };
     rapier.filterContactPairHooks.add(exceptions as never);
     const releaseRenderer = godot_viewport_attach_renderer(gl);
+    const releaseClock = godot_tree_attach_clock(clock);
     const releaseInput = godot_window_attach_input(gl.domElement);
     const releaseDispatch = godot_viewport_attach_input(scene);
     const releaseCamera = godot_camera_3d_attach_renderer(scene, (camera) => {
@@ -90,11 +92,12 @@ export function useGodotWorld(): void {
       releaseCamera();
       releaseDispatch();
       releaseInput();
+      releaseClock();
       releaseRenderer();
       rapier.filterContactPairHooks.delete(exceptions as never);
       releasePhysics();
     };
-  }, [scene, gl, rapier, get, set]);
+  }, [scene, gl, clock, rapier, get, set]);
   useLayoutEffect(() => {
     godot_window_set_size(scene, godot_window_canvas_size(gl.domElement));
     godot_camera_3d_viewport_resized(scene);

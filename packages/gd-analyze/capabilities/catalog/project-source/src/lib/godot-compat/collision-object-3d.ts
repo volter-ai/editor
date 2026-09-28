@@ -20,6 +20,7 @@ import RAPIER from '@dimforge/rapier3d-compat';
 import { type Object3D, Quaternion, Vector3 as ThreeVector3 } from 'three';
 import { godot_node_class_reader, godot_node_entity, godot_node_observe_leave } from './node';
 import { godot_node_3d_observe_local } from './node-3d';
+import { godot_tree_physics_world } from './scene-tree';
 
 export type CollisionObjectKind = 'static' | 'character' | 'rigid' | 'area';
 
@@ -54,6 +55,9 @@ export function godot_physics_attach(attached: GodotPhysicsContext): () => void 
 export function godot_physics_world(): World | undefined {
   return context?.world;
 }
+
+// The physics step's delta is the world's own `timestep` (`get_physics_process_delta_time`).
+godot_tree_physics_world(godot_physics_world);
 
 /** A body standing for a node that is not its object (a GridMap's cells), by body handle. */
 const STAND_IN = new Map<number, object>();

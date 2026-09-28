@@ -8,7 +8,10 @@
  * process frame (`useGodotTree`, `advance.tsx`); scripts' own `_process` and `_physics_process`
  * run in between, from their components' hooks. What the tree does around them is what
  * `SceneTree::physics_process` and `SceneTree::process` do: count the frame and emit
- * `physics_frame`/`process_frame`. A queued deletion is JavaScript's own deferral (`queue_delete`).
+ * `physics_frame`/`process_frame`. A delta is read from the host when asked, never kept: a physics
+ * step's is the Rapier world's own `timestep`, a frame's is R3F's, read from its clock
+ * (`godot_tree_frame`) and bounded as a script's `_process` delta is (`godot_process_delta`). A
+ * queued deletion is JavaScript's own deferral (`queue_delete`).
  *
  * Timers and tweens are not the tree's: each belongs to the script instance that made it
  * (`create_timer`, `create_tween`, which take their creator), and that instance's component steps
@@ -28,6 +31,7 @@
 
 import { godot_input_frame } from './input';
 import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_is_leaving, godot_node_leave, godot_node_set_queued } from './node';
+import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { createSignal, type GodotSignal } from './signal';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -49,10 +53,26 @@ const clock = {
   processFrames: 0,
   currentFrame: 0,
   inPhysics: false,
-  processTime: 0,
-  physicsTime: 0,
   reload: undefined as (() => void) | undefined,
 };
+/** What the host's clock is read through: R3F's `THREE.Clock` (`state.clock`). */
+export interface GodotHostClock {
+  readonly elapsedTime: number;
+}
+/** The host's clock, which the world hands compat (`godot_tree_attach_clock`). */
+let hostClock: GodotHostClock | undefined;
+/**
+ * The frame starts last read from the host's clock: the current one and the one before it. The
+ * clock's `elapsedTime` (seconds) changes once per frame, at its start, in both of R3F's frame
+ * loops (its `oldTime` is the page's milliseconds when R3F runs the frame and the previous
+ * frame's seconds when it is advanced by hand), so the frame's delta is the difference between
+ * the two, tracked when read. The root Window reads it at every frame's start (the Input
+ * library's edges, `input.ts`), so it is never more than a frame behind.
+ */
+const read = { start: Number.NaN, previous: 0 };
+/** Where the physics world's step is read: registered by the physics side (`collision-object-3d.ts`). */
+let physicsWorld: () => { readonly timestep: number } | undefined = () => undefined;
+
 /** What one creator owns: the timers and tweens its script made. */
 interface Owned {
   timers: SceneTreeTimer[];
@@ -116,13 +136,81 @@ export function godot_tree_on_reload(handler: (() => void) | undefined): void {
 }
 
 /**
- * The current step's delta: the physics step's or the process frame's.
+ * Hands compat the host's clock (R3F's); the returned call releases it.
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:4951
+ */
+export function godot_tree_attach_clock(clock: GodotHostClock): () => void {
+  hostClock = clock;
+  return () => {
+    if (hostClock === clock) hostClock = undefined;
+  };
+}
+
+/**
+ * Registers where the physics world's step is read (the `<Physics>` world compat is handed).
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:4973
+ */
+export function godot_tree_physics_world(world: () => { readonly timestep: number } | undefined): void {
+  physicsWorld = world;
+}
+
+/**
+ * The host frame as its clock reads now: when the current frame started (its clock's elapsed
+ * seconds, which identifies the frame) and its delta, the time since the frame before it started.
+ * Before the host's first frame both are 0.
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:4951
+ */
+export function godot_tree_frame(): { readonly start: number; readonly delta: number } {
+  const start = hostClock?.elapsedTime ?? 0;
+  if (start !== read.start) {
+    read.previous = Number.isNaN(read.start) ? 0 : read.start;
+    read.start = start;
+  }
+  return { start, delta: Math.max(0, start - read.previous) };
+}
+
+/**
+ * The frame's delta as Godot code sees it: at most `max_physics_steps_per_frame` physics ticks
+ * (8/60 s by default). Godot never advances a frame by more (`main/main.cpp:4951`: a frame due more
+ * steps than the maximum drops the excess from its process step), so a stall, such as a page's
+ * first frames while it loads, never reaches a node as one long delta. The emitted scripts'
+ * `_process` is handed the same bound, so it and `get_process_delta_time()` agree. A setting that
+ * is missing or not positive takes Godot's default, as the engine rejects it (`engine.cpp:63`).
+ *
+ * The physics steps are not bounded the same way: Rapier steps at its fixed `timeStep` and runs
+ * every step due, up to its own half-second clamp (30 steps at 60 Hz), where Godot runs at most
+ * `max_physics_steps_per_frame` and drops the rest (`main.cpp:4954`). So after a stall the physics
+ * clock runs ahead of the process clock by up to the difference.
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:4951
+ */
+export function godot_process_delta(delta: number): number {
+  return Math.min(delta, setting('physics/common/max_physics_steps_per_frame', 8) / setting('physics/common/physics_ticks_per_second', 60));
+}
+
+function setting(name: string, fallback: number): number {
+  const value = Number(get_setting(name, fallback));
+  return Number.isFinite(value) && value > 0 ? value : fallback;
+}
+
+/**
+ * The current step's delta, read from the host: a physics step's is the physics world's own
+ * `timestep` (before the world is attached, one tick of the project's rate), a frame's is R3F's
+ * frame delta, bounded (`godot_process_delta`).
  *
  * @godot SceneTree (protocol)
  * @source scene/main/scene_tree.h:362
  */
 export function godot_tree_process_delta(physics: boolean): number {
-  return physics ? clock.physicsTime : clock.processTime;
+  if (physics) return physicsWorld()?.timestep ?? 1 / setting('physics/common/physics_ticks_per_second', 60);
+  return godot_process_delta(godot_tree_frame().delta);
 }
 
 /**
@@ -222,11 +310,10 @@ export function godot_owned_release(creator: object): void {
  * @godot SceneTree (protocol)
  * @source scene/main/scene_tree.cpp:639
  */
-export function godot_tree_physics_begin(delta: number): void {
+export function godot_tree_physics_begin(): void {
   clock.inPhysics = true;
   clock.physicsFrames += 1;
   clock.currentFrame += 1;
-  clock.physicsTime = delta;
   godot_input_frame(clock.physicsFrames, clock.processFrames, true);
   physicsFrame.emit();
 }
@@ -245,15 +332,12 @@ export function godot_tree_physics_end(): void {
 
 /**
  * A process frame begins: `SceneTree::process` emits `process_frame` before the nodes' `_process`
- * (`scene/main/scene_tree.cpp:688`). Its delta, which `get_process_delta_time` reads, comes already
- * bounded to the frame's maximum physics steps, as Godot bounds it (`main/main.cpp:4951`,
- * `useGodotTree`).
+ * (`scene/main/scene_tree.cpp:688`).
  *
  * @godot SceneTree (protocol)
  * @source scene/main/scene_tree.cpp:688
  */
-export function godot_tree_process_begin(delta: number): void {
-  clock.processTime = delta;
+export function godot_tree_process_begin(): void {
   processFrame.emit();
 }
 
