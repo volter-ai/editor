@@ -467,10 +467,10 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     return local;
   }
   if (idiom?.kind === 'shader-material') {
-    const shaderValue = resource.setters.find((setter) => setter.setter.exportName === 'set_shader')?.value;
+    const shaderValue = resource.setters.find((setter) => setter.collect === 'shader')?.value;
     const shader: TargetTsExpression = shaderValue === undefined ? literal(null) : propValue(emission, shaderValue);
     const parameters = resource.setters
-      .filter((setter) => setter.setter.exportName === 'set_shader_parameter')
+      .filter((setter) => setter.collect === 'shader-parameter')
       .map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) }));
     const uses = [shader, ...parameters.map((parameter) => parameter.value)].flatMap((value) => (value.kind === 'identifier-expression' && emission.loaded.has(value.name) ? [value.name] : []));
     const local = freshLocal(emission, stemOf(key));
@@ -839,12 +839,12 @@ export function familyModelMaterials(emission: FamilyEmission, materials: readon
 /** A compat element's props for a node's authored properties (a GridMap's `data` its cells file). */
 function elementProps(emission: FamilyEmission, nodePath: string, setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJsxAttribute[] {
   // A mixer's libraries, one `libraries` prop by name (`libraries/NAME`, `AnimationMixer::_set`).
-  const libraries = setters.filter((setter) => setter.setter.exportName === 'godot_animation_mixer_set_library');
+  const libraries = setters.filter((setter) => setter.collect === 'libraries');
   // An AnimationTree's parameters, one `parameters` prop by path (`parameters/<path>`).
-  const parameters = setters.filter((setter) => setter.setter.exportName === 'godot_animation_tree_set');
-  const own = setters.filter((setter) => !['set_meta', 'godot_animation_mixer_set_library', 'godot_animation_tree_set'].includes(setter.setter.exportName));
+  const parameters = setters.filter((setter) => setter.collect === 'parameters');
+  const own = setters.filter((setter) => setter.collect === undefined);
   // The node's metadata entries, one `meta` prop (`Object::_set`, `metadata/NAME`).
-  const meta = setters.filter((setter) => setter.setter.exportName === 'set_meta');
+  const meta = setters.filter((setter) => setter.collect === 'meta');
   return [
     ...(libraries.length === 0
       ? []

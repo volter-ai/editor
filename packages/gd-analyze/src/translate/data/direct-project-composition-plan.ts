@@ -2,7 +2,7 @@ import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
 import { godotSceneNodeIdiom } from './scene-node-idioms';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
 import { type GodotSceneBodyProp, planGodotSceneBodies } from './scene-body-idioms';
-import { planGodotSceneSurfaces } from './scene-surface-idioms';
+import { planGodotSceneCollectedSetters, planGodotSceneSurfaces } from './scene-surface-idioms';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
 import type {
@@ -815,7 +815,7 @@ export function planDirectGodotProjectComposition(
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(project);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
-  const bodied = planGodotSceneBodies(planGodotSceneSurfaces(composedScenes), diagnostics);
+  const bodied = planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics);
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
   }

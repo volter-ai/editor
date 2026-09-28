@@ -54,3 +54,38 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
     return { ...scene, resources, root: stamp(scene.root) };
   });
 }
+
+/**
+ * The setters an element or resource collects into one prop, by the prop they join: a mixer's
+ * libraries (`libraries/NAME`, `AnimationMixer::_set`), an AnimationTree's parameters
+ * (`parameters/<path>`), an Object's metadata (`metadata/NAME`, `Object::_set`), and a
+ * ShaderMaterial's shader and its parameters (`shader_parameter/NAME`).
+ */
+const COLLECTED: Readonly<Record<string, NonNullable<TargetGodotSceneSetterPlan['collect']>>> = {
+  godot_animation_mixer_set_library: 'libraries',
+  godot_animation_tree_set: 'parameters',
+  set_meta: 'meta',
+  set_shader: 'shader',
+  set_shader_parameter: 'shader-parameter',
+};
+
+const collected = (setters: readonly TargetGodotSceneSetterPlan[]): readonly TargetGodotSceneSetterPlan[] =>
+  setters.map((entry) => {
+    const collect = COLLECTED[entry.setter.exportName];
+    return collect === undefined ? entry : { ...entry, collect };
+  });
+
+/** The scenes with each collected setter (`COLLECTED`) stamped with the prop it joins. */
+export function planGodotSceneCollectedSetters(scenes: readonly SceneWithoutRefs[]): SceneWithoutRefs[] {
+  return scenes.map((scene) => {
+    const stamp = (node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan => ({
+      ...node,
+      setters: collected(node.setters),
+      // An imported model's own nodes' overrides (an AnimationPlayer of the model's libraries).
+      ...(node.model === undefined ? {} : { model: { ...node.model, overrides: node.model.overrides.map((override) => ({ ...override, setters: collected(override.setters) })) } }),
+      children: node.children.map(stamp),
+      ...(node.placements === undefined ? {} : { placements: node.placements.map((placed) => ({ at: placed.at, node: stamp(placed.node) })) }),
+    });
+    return { ...scene, resources: scene.resources.map((resource) => ({ ...resource, setters: collected(resource.setters) })), root: stamp(scene.root) };
+  });
+}
