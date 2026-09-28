@@ -162,6 +162,18 @@ export function godotDatatypeType(identity: string): string {
 }
 
 /**
+ * The CONTAINER of a datatype identity: a typed Array or Dictionary (`Array[Node]`) is its container
+ * whatever its element types (`BUILTIN:Array[*]`), as its datatype rule is; any other datatype is
+ * its TYPE. A rule keyed by containers holds for a construct whose meaning is the container's own
+ * (iterating an Array's elements), not its elements'.
+ */
+export function godotDatatypeContainer(identity: string): string {
+  const fields = datatypeFields(identity);
+  if (fields[0] !== 'BUILTIN' || fields[10] === 'meta' || fields[13] === '[]') return godotDatatypeType(identity);
+  return `BUILTIN:${fields[3] as string}[*]`;
+}
+
+/**
  * The CLASS of a datatype identity (`BUILTIN:*`, `NATIVE:*`, `ENUM:*`, and `BUILTIN:meta:*` for a
  * meta-type), or the identity itself when it has none. A rule keyed by classes holds for every
  * datatype of the class: it is registered only for constructs whose meaning does not depend on the
@@ -248,6 +260,13 @@ export class GodotCodeRuleResolver {
           ...identity,
           inputDatatypes: identity.inputDatatypes.map(godotDatatypeType),
           resultDatatype: godotDatatypeType(identity.resultDatatype),
+        }),
+      ) ??
+      this.#rules.get(
+        godotCodeRuleKey({
+          ...identity,
+          inputDatatypes: identity.inputDatatypes.map(godotDatatypeContainer),
+          resultDatatype: godotDatatypeContainer(identity.resultDatatype),
         }),
       ) ??
       this.#rules.get(
