@@ -477,24 +477,26 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
     case 'WHILE': {
       const conditionNode = context.node(node.condition, node);
       const structuralRequirements = context.structural(node, 'while', [conditionNode]);
-      const lowered = lowerExpression(context, conditionNode);
-      const condition = lowerTruth(context, conditionNode, lowered);
+      // The condition's truth, lowered once.
+      const condition = lowerTruth(context, conditionNode, lowerExpression(context, conditionNode));
       const body = lowerOfficialSuite(context, context.node(node.loop, node));
+      // A condition that needs statements (its operands', or its truth's own, as a Vector read
+      // once for its members) runs them at the top of each pass, as Godot evaluates it before each
+      // iteration (`GDScriptByteCodeGenerator::write_while`): the loop is `while (true)`, leaving
+      // when the condition fails, so `continue` evaluates it again.
       if (condition.before.length > 0 || condition.after.length > 0) {
-        // A condition that needs statements runs them at the top of each pass, as Godot evaluates
-        // it before each iteration (`GDScriptByteCodeGenerator::write_while`): the loop is
-        // `while (true)`, leaving when the condition fails, so `continue` evaluates it again.
-        const falsehood = settleForStatement(context, lowerTruth(context, conditionNode, lowered, true));
+        const settled = settleForStatement(context, condition);
+        const falsehood: TargetTsExpression = { kind: 'unary-expression', operator: '!', operand: settled.value };
         return {
           statements: [
             {
               kind: 'while-statement',
               condition: { kind: 'literal-expression', value: true },
               body: [
-                ...falsehood.before,
+                ...settled.before,
                 {
                   kind: 'if-statement',
-                  condition: falsehood.value,
+                  condition: falsehood,
                   // biome-ignore lint/suspicious/noThenProperty: TargetTsSyntax names the source branch.
                   then: [{ kind: 'break-statement' }],
                 },
@@ -503,7 +505,7 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
               span: officialBoundSpan(context.script, node),
             },
           ],
-          requirements: [...structuralRequirements, ...falsehood.requirements, ...body.requirements],
+          requirements: [...structuralRequirements, ...settled.requirements, ...body.requirements],
         };
       }
       return {
