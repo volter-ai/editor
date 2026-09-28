@@ -8,7 +8,7 @@
  * draws it.
  */
 
-import { godot_primitive_mesh_describe, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
+import { godot_primitive_mesh_describe, godot_primitive_mesh_unchanged, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -113,6 +113,7 @@ export function construct(): PlaneMesh {
  * @source scene/resources/3d/primitive_meshes.cpp:1531
  */
 export function set_size(self: PlaneMesh, size: Vector2): void {
+  godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_size');
   self.size = vector2(size);
 }
 
@@ -131,6 +132,7 @@ export function get_size(self: PlaneMesh): Vector2 {
  * @source scene/resources/3d/primitive_meshes.cpp:1544
  */
 export function set_subdivide_width(self: PlaneMesh, divisions: number): void {
+  godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_subdivide_width');
   self.subdivide_width = divisions > 0 ? divisions : 0;
 }
 
@@ -147,6 +149,7 @@ export function get_subdivide_width(self: PlaneMesh): number {
  * @source scene/resources/3d/primitive_meshes.cpp:1556
  */
 export function set_subdivide_depth(self: PlaneMesh, divisions: number): void {
+  godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_subdivide_depth');
   self.subdivide_depth = divisions > 0 ? divisions : 0;
 }
 
@@ -165,6 +168,7 @@ export function get_subdivide_depth(self: PlaneMesh): number {
 export function set_center_offset(self: PlaneMesh, offset: Vector3): void {
   const current = self.center_offset;
   if (equalApprox(offset.x, current.x) && equalApprox(offset.y, current.y) && equalApprox(offset.z, current.z)) return;
+  godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_center_offset');
   self.center_offset = offset;
 }
 
@@ -181,6 +185,7 @@ export function get_center_offset(self: PlaneMesh): Vector3 {
  * @source scene/resources/3d/primitive_meshes.cpp:1580
  */
 export function set_orientation(self: PlaneMesh, orientation: number): void {
+  godot_primitive_mesh_unchanged(self, 'PlaneMesh.set_orientation');
   self.orientation = orientation;
 }
 

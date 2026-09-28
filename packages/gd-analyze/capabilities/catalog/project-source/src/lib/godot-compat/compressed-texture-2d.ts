@@ -153,7 +153,8 @@ const SCENE_LOADS = new Map<string, SceneLoad>();
  * A scene's imported image, as a component loads it: the texture of the copied file at `url`,
  * imported with the importer's options once for every scene that uses it (Godot's resource cache),
  * the component suspended until it is; with `sampler`, the variant a material samples (with
- * `model`, on an imported model's own geometry).
+ * `flipY: false`, on an imported model's own geometry, whose images three's GLTFLoader uploads
+ * unflipped).
  *
  * @godot CompressedTexture2D (protocol)
  * @source core/io/resource_loader.cpp:725
@@ -161,7 +162,7 @@ const SCENE_LOADS = new Map<string, SceneLoad>();
 export function useGodotTexture(
   url: string,
   options: GodotTextureImport,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb?: boolean; readonly model?: boolean },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb?: boolean; readonly flipY?: boolean },
 ): Texture {
   const key = `${url}\0${String(options.fixAlphaBorder)}:${String(options.premultAlpha)}:${String(options.mipmaps)}`;
   let load = SCENE_LOADS.get(key);
@@ -179,6 +180,6 @@ export function useGodotTexture(
   use(load.loaded);
   if (sampler === undefined) return load.texture;
   // A material on an imported model's own geometry samples the texture as the model's images are.
-  const sampled = sampler.model === true ? godot_base_material_3d_model_map : godot_base_material_3d_scene_map;
+  const sampled = sampler.flipY === false ? godot_base_material_3d_model_map : godot_base_material_3d_scene_map;
   return sampled(load.texture, sampler.filter, sampler.repeat, sampler.srgb ?? true);
 }

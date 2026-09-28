@@ -204,6 +204,7 @@ export function get_mesh_arrays(self: PrimitiveMesh): MeshArrays {
  * @source scene/resources/3d/primitive_meshes.cpp:304
  */
 export function set_flip_faces(self: PrimitiveMesh, flip: boolean): void {
+  godot_primitive_mesh_unchanged(self, 'PrimitiveMesh.set_flip_faces');
   self.flip_faces = flip;
 }
 
@@ -212,6 +213,7 @@ export function set_flip_faces(self: PrimitiveMesh, flip: boolean): void {
  * @source scene/resources/3d/primitive_meshes.cpp:270
  */
 export function set_material(self: PrimitiveMesh, material: object | null): void {
+  godot_primitive_mesh_unchanged(self, 'PrimitiveMesh.set_material');
   self.material = material;
 }
 
@@ -231,6 +233,22 @@ export function get_flip_faces(self: PrimitiveMesh): boolean {
   return self.flip_faces;
 }
 
+/** The resources whose geometry has been built for drawing. */
+const DRAWN = new WeakSet<PrimitiveMesh>();
+
+/**
+ * A property of a primitive mesh already drawn changes: Godot rebuilds its surface and every node
+ * drawing it redraws (`request_update`, `primitive_meshes.cpp:139`). The drawn geometry is three's
+ * and is not rebuilt from Godot's builders, so the change fails by name rather than leaving the
+ * old shape on screen. A mesh not yet drawn takes its properties freely.
+ *
+ * @godot PrimitiveMesh (protocol)
+ * @source scene/resources/3d/primitive_meshes.cpp:139
+ */
+export function godot_primitive_mesh_unchanged(self: PrimitiveMesh, member: string): void {
+  if (DRAWN.has(self)) throw new Error(`godot-compat: ${member} on a primitive mesh already drawn is not transcribed.`);
+}
+
 /**
  * The stored surface as a three `BufferGeometry`. Godot's front faces wind clockwise on screen:
  * the Compatibility renderer draws right-side up with `glFrontFace(GL_CW)`
@@ -246,6 +264,7 @@ export function get_flip_faces(self: PrimitiveMesh): boolean {
  * @source servers/rendering/rendering_server.cpp:1511
  */
 export function godot_primitive_mesh_geometry(self: PrimitiveMesh): BufferGeometry {
+  DRAWN.add(self);
   const stored = storedSurface(self);
   const geometry = new BufferGeometry();
   geometry.setAttribute(

@@ -247,7 +247,7 @@ export function importedTextureHook(
                   { key: 'filter', value: literal(sampler.filter) },
                   { key: 'repeat', value: literal(sampler.repeat) },
                   ...(sampler.srgb ? [] : [{ key: 'srgb', value: literal(false) }]),
-                  ...(sampler.model === true ? [{ key: 'model', value: literal(true) }] : []),
+                  ...(sampler.model === true ? [{ key: 'flipY', value: literal(false) }] : []),
                 ],
               },
             ]),

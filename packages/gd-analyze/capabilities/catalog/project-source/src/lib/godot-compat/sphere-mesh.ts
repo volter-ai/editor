@@ -8,7 +8,7 @@
  * angles in double (`Math::sin(Math::PI * v)`); `primitive-mesh.ts` stores and draws it.
  */
 
-import { godot_primitive_mesh_describe, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
+import { godot_primitive_mesh_describe, godot_primitive_mesh_unchanged, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
 import { construct as vector2, type Vector2 } from './vector2';
 import { normalized, construct as vector3, type Vector3 } from './vector3';
 
@@ -113,6 +113,7 @@ export function construct(): SphereMesh {
 export function set_radius(self: SphereMesh, radius: number): void {
   const value = f32(radius);
   if (equalApprox(value, self.radius)) return;
+  godot_primitive_mesh_unchanged(self, 'SphereMesh.set_radius');
   self.radius = value;
 }
 
@@ -131,6 +132,7 @@ export function get_radius(self: SphereMesh): number {
 export function set_height(self: SphereMesh, height: number): void {
   const value = f32(height);
   if (equalApprox(self.height, value)) return;
+  godot_primitive_mesh_unchanged(self, 'SphereMesh.set_height');
   self.height = value;
 }
 
@@ -150,6 +152,7 @@ export function get_height(self: SphereMesh): number {
  */
 export function set_radial_segments(self: SphereMesh, segments: number): void {
   if (segments === self.radial_segments || (self.radial_segments === 4 && segments < 4)) return;
+  godot_primitive_mesh_unchanged(self, 'SphereMesh.set_radial_segments');
   self.radial_segments = segments > 4 ? segments : 4;
 }
 
@@ -169,6 +172,7 @@ export function get_radial_segments(self: SphereMesh): number {
  */
 export function set_rings(self: SphereMesh, rings: number): void {
   if (rings === self.rings || rings < 1) return;
+  godot_primitive_mesh_unchanged(self, 'SphereMesh.set_rings');
   self.rings = rings;
 }
 
@@ -185,6 +189,7 @@ export function get_rings(self: SphereMesh): number {
  * @source scene/resources/3d/primitive_meshes.cpp:2167
  */
 export function set_is_hemisphere(self: SphereMesh, hemisphere: boolean): void {
+  godot_primitive_mesh_unchanged(self, 'SphereMesh.set_is_hemisphere');
   self.is_hemisphere = hemisphere;
 }
 

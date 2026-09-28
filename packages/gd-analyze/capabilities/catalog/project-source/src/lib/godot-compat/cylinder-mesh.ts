@@ -8,7 +8,7 @@
  * double; `primitive-mesh.ts` stores and draws it.
  */
 
-import { godot_primitive_mesh_describe, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
+import { godot_primitive_mesh_describe, godot_primitive_mesh_unchanged, type PrimitiveMesh, type PrimitiveMeshArrays } from './primitive-mesh';
 import { construct as vector2, type Vector2 } from './vector2';
 import { normalized, construct as vector3, type Vector3 } from './vector3';
 
@@ -145,6 +145,7 @@ export function construct(): CylinderMesh {
 export function set_top_radius(self: CylinderMesh, radius: number): void {
   const value = f32(radius);
   if (equalApprox(value, self.top_radius)) return;
+  godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_top_radius');
   self.top_radius = value;
 }
 
@@ -163,6 +164,7 @@ export function get_top_radius(self: CylinderMesh): number {
 export function set_bottom_radius(self: CylinderMesh, radius: number): void {
   const value = f32(radius);
   if (equalApprox(value, self.bottom_radius)) return;
+  godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_bottom_radius');
   self.bottom_radius = value;
 }
 
@@ -181,6 +183,7 @@ export function get_bottom_radius(self: CylinderMesh): number {
 export function set_height(self: CylinderMesh, height: number): void {
   const value = f32(height);
   if (equalApprox(value, self.height)) return;
+  godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_height');
   self.height = value;
 }
 
@@ -200,6 +203,7 @@ export function get_height(self: CylinderMesh): number {
  */
 export function set_radial_segments(self: CylinderMesh, segments: number): void {
   if (segments === self.radial_segments) return;
+  godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_radial_segments');
   self.radial_segments = segments > 4 ? segments : 4;
 }
 
@@ -219,6 +223,7 @@ export function get_radial_segments(self: CylinderMesh): number {
  */
 export function set_rings(self: CylinderMesh, rings: number): void {
   if (rings === self.rings || rings < 0) return;
+  godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_rings');
   self.rings = rings;
 }
 
@@ -235,6 +240,7 @@ export function get_rings(self: CylinderMesh): number {
  * @source scene/resources/3d/primitive_meshes.cpp:1374
  */
 export function set_cap_top(self: CylinderMesh, cap: boolean): void {
+  godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_cap_top');
   self.cap_top = cap;
 }
 
@@ -251,6 +257,7 @@ export function is_cap_top(self: CylinderMesh): boolean {
  * @source scene/resources/3d/primitive_meshes.cpp:1387
  */
 export function set_cap_bottom(self: CylinderMesh, cap: boolean): void {
+  godot_primitive_mesh_unchanged(self, 'CylinderMesh.set_cap_bottom');
   self.cap_bottom = cap;
 }
 
