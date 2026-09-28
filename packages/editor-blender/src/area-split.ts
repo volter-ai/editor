@@ -44,3 +44,4 @@ export function subscribeAreaSplit(listener: () => void): () => void {
     listeners.delete(listener);
   };
 }
+

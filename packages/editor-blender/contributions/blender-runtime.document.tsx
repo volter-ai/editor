@@ -61,6 +61,12 @@ import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
+import {
+  documentSecondAreaHeader,
+  setDocumentSecondArea,
+  subscribeDocumentAreas,
+} from '@volter/editor-sdk/kit/document-areas';
+import { createPortal } from 'react-dom';
 import { onViewportStages, viewportStages } from '@volter/editor-threejs/viewport-door';
 import {
   object3DDocumentSession,
@@ -266,7 +272,7 @@ function BlenderModelViewport(props: ToolContributionProps) {
         <BlenderViewportArea {...props} view={view} main />
       </div>
       {second && (
-        <div style={{ ...area, marginTop: 24 + AREA_HEADER }} data-testid="blender-second-area">
+        <div style={area} data-testid="blender-second-area">
           <BlenderViewportArea {...props} documentId={`${documentId}#area-2`} view={second.view} main={false} />
           <SecondAreaChrome documentId={documentId} areaId={`${documentId}#area-2`} notify={props.notify} />
         </div>
@@ -281,9 +287,18 @@ function BlenderModelViewport(props: ToolContributionProps) {
  * header controls its own stage registered, so its shading cells change this area and not the
  * other.
  */
-/** The height of an area's own header row: the document strip's (`volter-dock-document-toolbar`). */
-const AREA_HEADER = 26;
-
+/**
+ * THE SECOND AREA'S OWN HEADER AND SHELF, as each of Blender's areas has them.
+ *
+ * The area is declared to the host as the document's second area
+ * (`@volter/editor-sdk/kit/document-areas`). Its HEADER stands in the document's header row over
+ * this area: the host reserves this area's width at the row's trailing edge, so the first area's
+ * header ends where the first area does, and this renders into the region it draws there: the
+ * editor menus (their View ▸ Area ▸ Close Area closes this area), then THIS area's view, shading
+ * and helpers, the header controls its own stage registered, so its shading cells change this
+ * area and not the other. Its SHELF is an element the host fills with its own tool strip: the
+ * tools belong to the workspace in Blender, not to an area, so both shelves are the one strip.
+ */
 function SecondAreaChrome({
   documentId,
   areaId,
@@ -294,24 +309,40 @@ function SecondAreaChrome({
   readonly notify: ToolContributionProps['notify'];
 }) {
   useSyncExternalStore(subscribeDocumentViewports, documentViewportsVersion, documentViewportsVersion);
+  const header = useSyncExternalStore(subscribeDocumentAreas, () => documentSecondAreaHeader(documentId));
   const HeaderControls = documentViewport(areaId)?.HeaderControls;
+  const shelfRef = useRef<HTMLDivElement>(null);
+  // THE RESERVED WIDTH IS THIS AREA'S: from its stage's left edge (the area bleeds 12 px past its
+  // box, as the stage does) to the row's end, kept as the split or the window moves.
+  useEffect(() => {
+    const shelf = shelfRef.current;
+    const area = shelf?.parentElement;
+    if (!area) return;
+    const measure = (): void =>
+      setDocumentSecondArea(documentId, { headerWidth: area.getBoundingClientRect().width + 12, shelf });
+    measure();
+    const observer = new ResizeObserver(measure);
+    observer.observe(area);
+    return () => {
+      observer.disconnect();
+      setDocumentSecondArea(documentId, null);
+    };
+  }, [documentId]);
   return (
     <>
-      {HeaderControls && (
-        <div
-          className="volter-dock-document-toolbar"
-          data-testid={`document-header:${areaId}`}
-          style={{ position: 'absolute', top: -12 - AREA_HEADER, height: AREA_HEADER, left: -12, right: -12 }}
-        >
-          {/* Blender's area header opens on the same editor menus; they act on the document. */}
-          <div className="volter-dock-document-toolbar-own">
+      <div ref={shelfRef} className="volter-dock-document-shelf" role="toolbar" aria-orientation="vertical" aria-label="Document tools" />
+      {header &&
+        createPortal(
+          <div className="volter-dock-document-toolbar-own" data-testid={`document-header:${areaId}`} style={{ display: 'flex', alignItems: 'center' }}>
             <BlenderObjectModeHeader documentId={documentId} notify={notify} />
-          </div>
-          <Suspense fallback={null}>
-            <HeaderControls documentId={areaId} />
-          </Suspense>
-        </div>
-      )}
+            {HeaderControls && (
+              <Suspense fallback={null}>
+                <HeaderControls documentId={areaId} />
+              </Suspense>
+            )}
+          </div>,
+          header,
+        )}
     </>
   );
 }

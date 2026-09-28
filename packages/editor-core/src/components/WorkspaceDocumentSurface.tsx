@@ -4,6 +4,12 @@ import {
 } from '@volter/editor-sdk/contributions';
 import type { EditorMaterialId } from '@volter/editor-sdk/widgets';
 import { Suspense, useSyncExternalStore } from 'react';
+import { createPortal } from 'react-dom';
+import {
+  documentAreasVersion,
+  documentSecondArea,
+  subscribeDocumentAreas,
+} from '@volter/editor-sdk/kit/document-areas';
 import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
   documentViewport,
@@ -125,6 +131,10 @@ export function WorkspaceDocumentSurface({
         <TransformTools documentId={descriptor.id} />
       </Suspense>
     );
+  // A DOCUMENT SPLIT INTO AREAS lends its second area's shelf (`kit/document-areas`): the same tool
+  // strip is drawn there, the tools being the workspace's and not an area's.
+  useSyncExternalStore(subscribeDocumentAreas, documentAreasVersion, documentAreasVersion);
+  const secondShelf = documentSecondArea(descriptor.id)?.shelf ?? null;
   // THE BAR'S TWO GROUPS, each in a fixed order: the display controls (their slot; the stage's
   // overlay portals them in), the transform tools, then the stage's transform controls
   // (orientation, pivot, snap), which leave the header for the bar where the look puts them
@@ -186,6 +196,9 @@ export function WorkspaceDocumentSurface({
             {barGroup('end')}
           </div>
         ) : null}
+        {chrome && !shelfHidden && secondShelf && transformTools && !toolsOnBar
+          ? createPortal(transformTools, secondShelf)
+          : null}
         {chrome && (
           <DocumentShelfRail documentId={descriptor.id}>
             {(transformTools && !toolsOnBar) || Shelf ? (

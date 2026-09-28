@@ -139,6 +139,7 @@
     "./kit/editor-console": "./src/kit/editor-console.ts",
     "./kit/world-adoption-event": "./src/kit/world-adoption-event.ts",
     "./kit/asset-viewers": "./src/kit/asset-viewers.ts",
+    "./kit/document-areas": "./src/kit/document-areas.ts",
     "./kit/document-viewports": "./src/kit/document-viewports.ts",
     "./kit/inspection-node-media": "./src/kit/inspection-node-media.ts",
     "./kit/asset-thumbnails": "./src/kit/asset-thumbnails.ts",
