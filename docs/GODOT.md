@@ -209,6 +209,71 @@ its members carry over, its emitter wiring waits for step 2), and `evidence --re
 (`godot-stale`, moot once the gate goes).
 
 
+## The emitted game's shape: the track for rows 4 and 5 (2026-09-28)
+
+Rows 4 and 5 fail because of the shape every scene is emitted in, not because of any one lane.
+The platformer's coin is the smallest whole example:
+- `coin.gd` is ten lines;
+- the emitted script reaches its node through
+  `godot_node_entity(Node_get_node(this.$native, "Animation"))`, in `__godot_value_N` temporaries;
+- the emitted scene is written against compat's scene machinery: `useGodotScript` adopting a
+  script instance, `useGodotConnection` with a signal accessor for its own `body_entered`,
+  `useGodotScene` entering the tree, and an `animationBindings` dispatch table.
+
+What a three.js developer would write for the same coin:
+
+```tsx
+export function Coin(props: RigidBodyProps) {
+  const animation = useRef<AnimationPlayer>(null);
+  const taken = useRef(false);
+  return (
+    <RigidBody type="fixed" sensor colliders={false} {...props}
+      onIntersectionEnter={({ other }) => {
+        const player = other.rigidBodyObject?.userData.player;
+        if (taken.current || !player) return;
+        animation.current?.play('take');
+        taken.current = true;
+        player.coins += 1;
+      }}>
+      …meshes, particles, the sound…
+      <AnimationPlayer ref={animation} clips={coinClips} autoplay="spin" />
+    </RigidBody>
+  );
+}
+```
+
+The track moves the output toward that, one construct at a time, each a plan-time decision the
+emitter prints:
+
+1. **Static node access is a ref.** `$Path`, `get_node("literal")`, `%Unique` and an `@onready`
+   member holding one resolve at plan time to the scene's own refs, handed to the script as
+   typed fields. Only a path computed at run time keeps the tree lookup.
+2. **A signal is a prop or a callback.** A scene `[connection]` and an engine signal a body
+   raises (`body_entered`, `area_entered`, `timeout`, `animation_finished`) become the element's
+   event prop, or a callback the element takes, calling the method directly. Only
+   `connect()` with a computed target keeps the signal object.
+3. **A script is the component's own state.** The script class stays a class. The scene makes it
+   with `useMemo`/`useRef`, calls its `_ready` from `useEffect` and its `_process` from `useFrame`
+   directly. The adoption machinery (`useGodotScript`'s pending instances, bindings on the
+   native) goes.
+4. **Values read as written.** A single-use temporary is inlined, so `__godot_value_N` appears only
+   where evaluation order needs a statement.
+5. **An animation is three's.** AnimationPlayer's tracks are `AnimationClip`s on three's
+   `AnimationMixer` (drei's `useAnimations` idiom) over real object properties. The
+   `animationBindings` dispatch table goes.
+6. **The world is a scene.** Settings and the input map are plain data. Input is the page's DOM
+   events. The world is `<Physics>` holding the main scene, with no per-world hooks beyond what
+   a node advancing itself needs.
+7. **What stays a runtime is small and named.** The dynamic tree (`get_node` of a computed path,
+   groups, `add_child` of an instantiated scene, `queue_free`, `get_tree()`) stays compat's,
+   only where a script uses it. The plan records which scenes need it, and a scene that doesn't
+   use it carries none of it.
+
+Each step lands as its own lane under §How a lane lands. The ratchet gains a rule per step once
+the step removes its pattern (compat hooks per emitted scene, `__godot_value_` temporaries,
+`animationBindings` tables), so the output only moves one way. The platformer and basic-scene walks
+are re-run after each step: the behaviour must not change, only the shape.
+
 ## Where it lives
 
 | Path | What it is |
