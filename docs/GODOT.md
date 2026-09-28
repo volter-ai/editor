@@ -279,16 +279,12 @@ with no check of the shapes the review hunts.
    - Row 5: the output is what a three.js or R3F developer would write, with no generated
      dispatchers or helpers and nothing for tooling.
    - Ruling 2: no record, capture or comparison of Godot's output is kept.
-2. Before a lane's commits merge to `godot`, one read-only skeptic who did not write them reviews
-   that lane's commits alone, with this brief: "Review commits `<a>..<b>` in this repository
-   against the section '## The lane's law' of docs/GODOT.md and ARCHITECTURE.md rule 4, read-only.
-   For each finding: file:line, severity (blocker, should-fix or nit) and a one-line fix. End with
-   `MERGE` (no blockers) or `HOLD`." A blocker is fixed before the merge. The merge's first
-   commit on `godot` carries the trailer `Lane-review: MERGE` with the skeptic's should-fixes
-   listed or fixed.
-   Lanes share one checkout and branch, so a push carries every commit on it: before pushing,
-   `git log origin/godot..HEAD` is read and each commit in the range is one whose review said
-   `MERGE` (on 2026-09-28 a push of reviewed commits carried `c83f124c` ahead of its review).
+2. A lane lands on `godot` on the cheap checks (typecheck, the imports of every game that
+   imports, the headless probe, the ratchet), with no review of its own (owner, 2026-09-28: "stop
+   it with the excessive reviewing - do more coding less reviewing. Review when everything is done
+   (or on the regular regression checks) not all the time"). The reviews are the periodic one
+   (after 30 lane commits, docs/GODOT-REVIEW.md) and the one when the work is done, before the
+   games' acceptance walks.
 3. A periodic review's `regressed` verdict means the change does not land (docs/GODOT-REVIEW.md).
    Its findings are fixed and the review re-run before more of the lane lands. New game work waits
    until the verdict is `holds` or `pass`.
