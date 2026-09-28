@@ -831,6 +831,26 @@ function py(name: string): string {
   return JSON.stringify(name);
 }
 
+/** Blender's own name for each operator, as its undo history labels the step (`ot->name`). */
+const operatorNames = new Map<string, string>();
+
+/**
+ * THE STEP'S LABEL IS THE OPERATOR'S OWN NAME, the one Blender's Edit menu shows: Add › Cone is
+ * "Undo Add Cone", not "Undo Blender Python". Asked of Blender, not kept in a table here, because
+ * its names do not follow the menu rows (a Point light is "Add Light").
+ */
+async function operatorLabel(body: string): Promise<string> {
+  const id = /bpy\.ops\.([a-z_]+\.[a-z0-9_]+)\(/.exec(body)?.[1];
+  if (id === undefined) return 'Blender Python';
+  const known = operatorNames.get(id);
+  if (known !== undefined) return known;
+  const answer = await blenderExecute(`import bpy\nprint(bpy.ops.${id}.get_rna_type().name)`, false);
+  const name = answer.error === null ? answer.result.trim() : '';
+  if (name === '') return 'Blender Python';
+  operatorNames.set(id, name);
+  return name;
+}
+
 /**
  * RUN ONE OPERATOR AND SAY WHICH OBJECTS IT MADE.
  *
@@ -849,7 +869,7 @@ function py(name: string): string {
  */
 async function runBlenderOperator(
   body: string,
-  label = 'Blender Python',
+  label?: string,
 ): Promise<{ readonly made: readonly string[]; readonly error: string | null }> {
   const code = [
     'before = {o.name for o in bpy.data.objects}',
@@ -857,7 +877,7 @@ async function runBlenderOperator(
     'made = [o.name for o in bpy.data.objects if o.name not in before]',
     'print("\\n".join(made))',
   ].join('\n');
-  const answer = await blenderExecute(code, true, label);
+  const answer = await blenderExecute(code, true, label ?? (await operatorLabel(body)));
   // THE ENGINE'S REFUSAL, VERBATIM. `session.py::execute` answers with the
   // traceback in `error` rather than raising, and a paraphrase here is how a
   // refusal becomes a shrug.
