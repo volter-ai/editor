@@ -16,12 +16,11 @@
  * with a 3D session, which is exactly where Blender's viewport header carries them too
  * (`DocumentHeaderStrip`'s own note), so repeating them here would be the same control twice in
  * one row. What View owns that no other control does is **Area** (`VIEW3D_MT_view`'s
- * `layout.menu("INFO_MT_area")`, `space_view3d.py:1520`; `space_info.py`'s
- * `INFO_MT_area`): the split that puts a second area beside
- * this one. Blender's standard way to watch the render while modeling is exactly that — split the
- * viewport and set the new area to Rendered shading through the camera — so Vertical Split opens
- * the Render view beside the model (`blender-render-view.tsx`) and Close Area closes it. The other
- * rows of `INFO_MT_area` (Horizontal Split, the new-window, maximize and fullscreen toggles) and
+ * `layout.menu("INFO_MT_area")`, `space_view3d.py:1520`; `space_info.py`'s `INFO_MT_area`): the
+ * split that puts a second area beside this one. Blender's standard way to watch the render while
+ * modeling is exactly that — split the viewport and set the new area to Rendered shading through
+ * the camera — so Vertical Split opens a second 3D viewport beside the model, set up that way
+ * (`blender-runtime.document.tsx`), and Close Area closes it. The other rows of `INFO_MT_area` (Horizontal Split, the new-window, maximize and fullscreen toggles) and
  * the rest of View — the sidebar and tool-shelf toggles, local view, the view-point and view-axis
  * submenus, Frame Selected, Viewport Render — are not drawn.
  *
@@ -58,7 +57,7 @@ import {
   runBlenderObjectOperator,
 } from './blender-outliner-authoring';
 import { blenderOutlinerVersion, subscribeBlenderOutliner } from './blender-outliner-model';
-import { renderViewSplit, setRenderViewSplit, subscribeRenderViewSplit } from '../src/render-view-split';
+import { areaSplit, setAreaSplit, subscribeAreaSplit } from '../src/area-split';
 
 type MenuId = 'view' | 'select' | 'add' | 'object';
 
@@ -266,8 +265,8 @@ export function BlenderObjectModeHeader({
   const addRef = useRef<HTMLDivElement>(null);
   const objectRef = useRef<HTMLDivElement>(null);
   const split = useSyncExternalStore(
-    subscribeRenderViewSplit,
-    () => (documentId === undefined ? false : renderViewSplit(documentId)),
+    subscribeAreaSplit,
+    () => (documentId === undefined ? false : areaSplit(documentId)),
     () => false,
   );
   const handle = blenderOutlinerHandle(documentId);
@@ -350,17 +349,17 @@ export function BlenderObjectModeHeader({
       data-testid="blender-object-mode-menus"
       ref={rootRef}
     >
-      {/* VIEW ▸ AREA — `INFO_MT_area`'s split and close, for the Render view beside the model
-          (this file's header). */}
+      {/* VIEW ▸ AREA — `INFO_MT_area`'s split and close, for the second 3D viewport beside the
+          model (this file's header). */}
       <MenuWord id="view" open={open} setOpen={setOpen} anchorRef={viewRef}>
         <MenuSubmenu label="Area" data-testid="blender-view-area">
           <MenuItem
             data-testid="blender-area-vertical-split"
             disabled={split || documentId === undefined}
-            title={split ? 'The Render view is already beside this area.' : undefined}
+            title={split ? 'This area is already split.' : undefined}
             onSelect={() => {
               setOpen(null);
-              if (documentId !== undefined) setRenderViewSplit(documentId, true);
+              if (documentId !== undefined) setAreaSplit(documentId, true);
             }}
           >
             Vertical Split
@@ -372,7 +371,7 @@ export function BlenderObjectModeHeader({
             title={split ? undefined : 'There is no second area to close.'}
             onSelect={() => {
               setOpen(null);
-              if (documentId !== undefined) setRenderViewSplit(documentId, false);
+              if (documentId !== undefined) setAreaSplit(documentId, false);
             }}
           >
             Close Area

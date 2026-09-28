@@ -26,19 +26,31 @@
 
 // How the `model` stage this document builds behaves (its starting presentation).
 import { blenderViewFieldOfView } from '../src/presentation';
-import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
+import {
+  type BlenderRuntimeView,
+  blenderModelView,
+} from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
 import {
+  documentViewport,
+  documentViewportsVersion,
+  subscribeDocumentViewports,
+} from '@volter/editor-sdk/kit/document-viewports';
+import {
   DOCUMENT_STUDIO_PRESET,
+  setViewPresentation,
   subscribeViewportPresentation,
   viewPresentation,
+  viewPresentationSnapshot,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
+  Suspense,
   useCallback,
   useEffect,
+  useMemo,
   useRef,
   useState,
   useSyncExternalStore,
@@ -46,11 +58,15 @@ import {
 import * as THREE from 'three';
 import { bindModelDocument, blenderExecute, openModelDocumentBlend } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
-import { createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
+import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
-import { BlenderRenderView } from './blender-render-view';
-import { renderViewSplit, subscribeRenderViewSplit } from '../src/render-view-split';
+import { areaSplit, subscribeAreaSplit } from '../src/area-split';
 import { onViewportStages, viewportStages } from '@volter/editor-threejs/viewport-door';
+import {
+  object3DDocumentSession,
+  subscribeObject3DDocumentSessions,
+} from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
+import type { ToolObject3DAuthoringProps } from '@volter/editor-threejs/object3d-contributions';
 
 export const point = 'workspace.document';
 export const title = 'Blender Model';
@@ -96,51 +112,68 @@ export const inspectorBuiltins: readonly string[] = [];
 // Timeline binds a skeleton into the same presented graph and there is exactly
 // one set of presented objects (`blender-runtime-skin.ts`).
 const view = blenderModelView;
-/** THE SUBJECT LINE'S FRAME IS THE ONE ON SCREEN: the skin's playhead, which during playback
- *  runs ahead of `frame_current` (written once, on pause), as Blender's own `(frame)` does. */
-const subjectOfView = () => {
-  const playhead = blenderSkin.playhead();
-  return view.subjectLine(playhead === null ? null : Math.floor(playhead));
-};
-const gridScale = (worldPerDevicePixel: number) => view.gridUnitName(worldPerDevicePixel);
-/** BLENDER'S CAMERA VIEW (`blender-runtime-camera-view.ts`): which camera, and how it fits. */
-const cameraView = {
-  camera: () => view.cameraViewCamera(),
-  zoom: view.cameraViewZoom,
-  pan: view.cameraViewPan,
-  showing: (camera: string | null) => view.setCameraViewShowing(camera),
-  // A LOCKED camera view moves the camera (`ED_view3d_camera_lock_sync`: its scale kept); the
-  // navigation's end is the one step Blender's history records.
-  setPose: (
-    camera: string,
-    position: readonly [number, number, number],
-    quaternion: readonly [number, number, number, number],
-    final: boolean,
-  ) => {
-    const { location, rotation } = view.blenderPose(position, quaternion);
-    return blenderExecute(
-      'from mathutils import Matrix, Quaternion, Vector\n' +
-        `import bpy\nobject = bpy.data.objects[${JSON.stringify(camera)}]\n` +
-        `object.matrix_world = Matrix.LocRotScale(Vector((${location.join(', ')})), ` +
-        `Quaternion((${rotation.join(', ')})), object.matrix_world.to_scale())`,
-      final,
-      'Lock Camera to View',
-    ).then(
-      (answer) => {
-        if (answer.error !== null)
-          editorHost().console.error(`Blender refused the camera's pose: ${answer.error}`, 'blender-camera');
+type AreaView = BlenderRuntimeView;
+
+/** What an area's stage reads from the view it draws, made once per view. */
+interface AreaReads {
+  readonly subject: () => string | null;
+  readonly gridScale: (worldPerDevicePixel: number) => string | null;
+  readonly cameraView: NonNullable<ToolObject3DAuthoringProps['cameraView']>;
+}
+const areaReads = new WeakMap<AreaView, AreaReads>();
+function readsOf(view: AreaView): AreaReads {
+  let reads = areaReads.get(view);
+  if (reads) return reads;
+  reads = {
+    /** THE SUBJECT LINE'S FRAME IS THE ONE ON SCREEN: the skin's playhead, which during playback
+     *  runs ahead of `frame_current` (written once, on pause), as Blender's own `(frame)` does. */
+    subject: () => {
+      const playhead = blenderSkin.playhead();
+      return view.subjectLine(playhead === null ? null : Math.floor(playhead));
+    },
+    gridScale: (worldPerDevicePixel: number) => view.gridUnitName(worldPerDevicePixel),
+    /** BLENDER'S CAMERA VIEW (`blender-runtime-camera-view.ts`): which camera, and how it fits. */
+    cameraView: {
+      camera: () => view.cameraViewCamera(),
+      zoom: view.cameraViewZoom,
+      pan: view.cameraViewPan,
+      showing: (camera: string | null) => view.setCameraViewShowing(camera),
+      // A LOCKED camera view moves the camera (`ED_view3d_camera_lock_sync`: its scale kept); the
+      // navigation's end is the one step Blender's history records.
+      setPose: (
+        camera: string,
+        position: readonly [number, number, number],
+        quaternion: readonly [number, number, number, number],
+        final: boolean,
+      ) => {
+        const { location, rotation } = view.blenderPose(position, quaternion);
+        return blenderExecute(
+          'from mathutils import Matrix, Quaternion, Vector\n' +
+            `import bpy\nobject = bpy.data.objects[${JSON.stringify(camera)}]\n` +
+            `object.matrix_world = Matrix.LocRotScale(Vector((${location.join(', ')})), ` +
+            `Quaternion((${rotation.join(', ')})), object.matrix_world.to_scale())`,
+          final,
+          'Lock Camera to View',
+        ).then(
+          (answer) => {
+            if (answer.error !== null)
+              editorHost().console.error(`Blender refused the camera's pose: ${answer.error}`, 'blender-camera');
+          },
+          (error: unknown) =>
+            editorHost().console.error(`The camera's pose was not written to Blender: ${String(error)}`, 'blender-camera'),
+        );
       },
-      (error: unknown) =>
-        editorHost().console.error(`The camera's pose was not written to Blender: ${String(error)}`, 'blender-camera'),
-    );
-  },
-  view: (
-    camera: string,
-    region: { readonly width: number; readonly height: number },
-    zoom: number,
-    offset: readonly [number, number],
-  ) => view.cameraView(camera, region, zoom, offset),
-};
+      view: (
+        camera: string,
+        region: { readonly width: number; readonly height: number },
+        zoom: number,
+        offset: readonly [number, number],
+      ) => view.cameraView(camera, region, zoom, offset),
+    },
+  };
+  areaReads.set(view, reads);
+  return reads;
+}
 
 export default function BlenderModelDocument(props: ToolContributionProps) {
   const { active, document, documentId, notify, publishContext } = props;
@@ -190,12 +223,108 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
   return <BlenderModelViewport {...props} />;
 }
 
-function BlenderModelViewport({
+/**
+ * THE MODEL DOCUMENT'S AREA: one 3D viewport, and the whole screen unless the area is split
+ * (View ▸ Area ▸ Vertical Split, `src/area-split.ts`). Split, the second area is the same
+ * viewport over a follower of the presented view (`BlenderRuntimeView.follow`), opened as
+ * Blender's standard always-on render preview is set up: Rendered shading, through the scene
+ * camera. Each area has its own stage, shading, navigation and camera view; the model, its
+ * selection and its history are the document's.
+ */
+function BlenderModelViewport(props: ToolContributionProps) {
+  const { documentId } = props;
+  const split = useSyncExternalStore(
+    subscribeAreaSplit,
+    () => (documentId ? areaSplit(documentId) : false),
+    () => false,
+  );
+  const [follower, setFollower] = useState<ReturnType<AreaView['follow']> | null>(null);
+  useEffect(() => {
+    if (!split || !documentId) return;
+    // The area's shading is its CHOICE, the door a shading cell uses, made before its stage binds
+    // so the stage's session takes it; an area whose shading was already chosen keeps it.
+    const secondId = `${documentId}#area-2`;
+    if (viewPresentationSnapshot(secondId).drawMode === undefined)
+      setViewPresentation(secondId, { drawMode: 'rendered' });
+    const second = view.follow();
+    setFollower(second);
+    return () => {
+      setFollower(null);
+      second.dispose();
+    };
+  }, [split, documentId]);
+  if (!documentId) return null;
+  const second = split ? follower : null;
+  // SPLIT, THE TWO AREAS SHARE THE SLOT the stage alone fills otherwise: each stage's root bleeds
+  // 12 px past its positioned parent (`inset: -12px`), so each area is that parent inset by 12,
+  // and the two stand 2 px apart, Blender's gap between areas. Unsplit, both wrappers are
+  // `contents` and the one stage is placed as it always was.
+  const area = { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } as const;
+  return (
+    <div style={second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
+      <div style={second ? area : { display: 'contents' }}>
+        <BlenderViewportArea {...props} view={view} main />
+      </div>
+      {second && (
+        <div style={{ ...area, marginTop: 24 + AREA_HEADER }} data-testid="blender-second-area">
+          <BlenderViewportArea {...props} documentId={`${documentId}#area-2`} view={second.view} main={false} />
+          <SecondAreaChrome documentId={documentId} areaId={`${documentId}#area-2`} notify={props.notify} />
+        </div>
+      )}
+    </div>
+  );
+}
+
+/**
+ * THE SECOND AREA'S OWN HEADER, as each of Blender's areas has one: the editor menus (their
+ * View ▸ Area ▸ Close Area closes this area), then THIS area's view, shading and helpers, the
+ * header controls its own stage registered, so its shading cells change this area and not the
+ * other.
+ */
+/** The height of an area's own header row: the document strip's (`volter-dock-document-toolbar`). */
+const AREA_HEADER = 26;
+
+function SecondAreaChrome({
+  documentId,
+  areaId,
+  notify,
+}: {
+  readonly documentId: string;
+  readonly areaId: string;
+  readonly notify: ToolContributionProps['notify'];
+}) {
+  useSyncExternalStore(subscribeDocumentViewports, documentViewportsVersion, documentViewportsVersion);
+  const HeaderControls = documentViewport(areaId)?.HeaderControls;
+  return (
+    <>
+      {HeaderControls && (
+        <div
+          className="volter-dock-document-toolbar"
+          data-testid={`document-header:${areaId}`}
+          style={{ position: 'absolute', top: -12 - AREA_HEADER, height: AREA_HEADER, left: -12, right: -12 }}
+        >
+          {/* Blender's area header opens on the same editor menus; they act on the document. */}
+          <div className="volter-dock-document-toolbar-own">
+            <BlenderObjectModeHeader documentId={documentId} notify={notify} />
+          </div>
+          <Suspense fallback={null}>
+            <HeaderControls documentId={areaId} />
+          </Suspense>
+        </div>
+      )}
+    </>
+  );
+}
+
+function BlenderViewportArea({
   active,
   document,
   documentId,
   surfaces,
-}: ToolContributionProps) {
+  view,
+  main,
+}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean }) {
+  const reads = readsOf(view);
   const build = useCallback(
     () => ({
       root: view.root,
@@ -211,7 +340,7 @@ function BlenderModelViewport({
       },
       dispose() {},
     }),
-    [],
+    [view],
   );
   const blend = document?.source?.path;
   // Re-read on the engine's frames, the skin's publications and every drawn frame of this stage
@@ -235,15 +364,38 @@ function BlenderModelViewport({
         stopFrame?.();
       };
     },
-    [documentId],
+    [documentId, view],
   );
-  const subject = useSyncExternalStore(subscribeSubject, subjectOfView);
-  // VIEW ▸ AREA ▸ VERTICAL SPLIT: the Render view beside the model (`blender-render-view.tsx`).
-  const split = useSyncExternalStore(
-    subscribeRenderViewSplit,
-    () => (documentId ? renderViewSplit(documentId) : false),
-    () => false,
+  const subject = useSyncExternalStore(subscribeSubject, reads.subject);
+  // THE SECOND AREA'S ROWS MEET ITS OWN GRAPH: the same Outliner, over the view this stage draws.
+  const authoring = useMemo(
+    () => (main ? createBlenderOutlinerAuthoring : blenderOutlinerAuthoringFor(() => view)),
+    [main, view],
   );
+  /**
+   * THE SECOND AREA OPENS AS BLENDER'S RENDER PREVIEW IS SET UP: Rendered shading (chosen as the
+   * area is made, `BlenderModelViewport`) and looking through the scene camera
+   * (`view3d.view_camera`), entered once the stage stands and there is a camera to look through.
+   * Afterwards it is an ordinary area: leaving the camera view or changing the shading is the
+   * person's.
+   */
+  useEffect(() => {
+    if (main || !documentId) return;
+    let entered = false;
+    const enter = (): void => {
+      if (entered) return;
+      const session = object3DDocumentSession(documentId);
+      if (session === null || view.cameraViewCamera() === null) return;
+      entered = session.toggleCameraView();
+    };
+    enter();
+    const stopSessions = subscribeObject3DDocumentSessions(enter);
+    const stopFrames = view.subscribeFrames(enter);
+    return () => {
+      stopSessions();
+      stopFrames();
+    };
+  }, [main, documentId, view]);
   /**
    * THE INSPECTION OVERLAYS ARE HELPERS, and the Helpers menu owns them
    * (WORK.md §Blender in the tab is Blender, "Inspection parity", I4).
@@ -273,7 +425,7 @@ function BlenderModelViewport({
       const stage = viewportStages().find((one) => one.documentId === documentId);
       for (const { kind } of groups) stage?.setHelper(kind, null);
     };
-  }, [documentId]);
+  }, [documentId, view]);
   /**
    * ATTACH THE SKIN TO THIS STAGE'S TRANSPORT.
    *
@@ -286,7 +438,8 @@ function BlenderModelViewport({
    * notification rather than assuming an order.
    */
   useEffect(() => {
-    if (!documentId) return;
+    // The skin poses the presented view's graph; a follower's has no skeleton bound.
+    if (!documentId || !main) return;
     const { transport } = editorHost();
     let detach: (() => void) | null = null;
     const attach = (): void => {
@@ -301,7 +454,7 @@ function BlenderModelViewport({
       stop();
       detach?.();
     };
-  }, [documentId]);
+  }, [documentId, main]);
   /**
    * BLENDER'S RENDERED SHADING IS THE SCENE'S OWN LIGHT. When this stage's view lights by the
    * `scene` (the Rendered shading cell, or the Lighting row's Scene), the presenter holds the viewport
@@ -343,7 +496,7 @@ function BlenderModelViewport({
       view.holdRendered(null);
       view.setWorkbench(false);
     };
-  }, [documentId]);
+  }, [documentId, view]);
   /**
    * SHIFT+RIGHT-CLICK PLACES THE 3D CURSOR, Blender's own chord for
    * `view3d.cursor3d` (`blender_default.py`, `params.cursor_set_event`). The
@@ -403,15 +556,8 @@ function BlenderModelViewport({
   if (!documentId) return null;
   const Surface = surfaces.Object3DAuthoring;
   return (
-    // SPLIT, THE TWO AREAS SHARE THE SLOT the stage alone fills otherwise: the stage's own root
-    // bleeds 12 px past its positioned parent (`inset: -12px`), so the modeling area is that
-    // parent inset by 12 and the Render view starts 2 px past the stage's bleed, Blender's gap
-    // between areas. Unsplit, both wrappers are `contents` and the stage is placed as before.
     <div
-      style={split ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}
-    >
-    <div
-      style={split ? { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } : { display: 'contents' }}
+      style={{ display: 'contents' }}
       onPointerDownCapture={onPointerDownCapture}
       onPointerUpCapture={onPointerUpCapture}
       onPointerCancelCapture={dropCursorPress}
@@ -426,8 +572,8 @@ function BlenderModelViewport({
       // THE OVERLAY'S SUBJECT AND GRID LINES ARE BLENDER'S: the engine composes the subject from
       // the scene (`session.py` `_subject_line`) and names the grid's step in the scene's units.
       {...(subject === null ? {} : { subject })}
-      gridScale={gridScale}
-      cameraView={cameraView}
+      gridScale={reads.gridScale}
+      cameraView={reads.cameraView}
       build={build}
       audit={false}
       // ON A MODEL DOCUMENT THE HIERARCHY IS BLENDER'S OUTLINER, for the same
@@ -438,7 +584,7 @@ function BlenderModelViewport({
       // provider; the default adapter it delegates to still answers everything
       // about the presentation (WORK.md §Blender in the tab is Blender,
       // "Inspection parity", I3).
-      authoring={createBlenderOutlinerAuthoring}
+      authoring={authoring}
       cameraDirection={[0.8187, 0.4458, 0.3617]}
       // FOR A FILE THAT SAVED NO 3D VIEW: Blender's factory Modeling direction, standing back
       // three fits.
@@ -476,8 +622,6 @@ function BlenderModelViewport({
         viewLocked: view.studioLights(),
       }}
     />
-    </div>
-    {split && <BlenderRenderView />}
     </div>
   );
 }

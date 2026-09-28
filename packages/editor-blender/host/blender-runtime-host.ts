@@ -192,9 +192,8 @@ async function displayPhotograph(
 
 /**
  * THE PHOTOGRAPH ITSELF: a prepared snapshot, through `renderCamera`, resolved by the scene's own
- * view transform. `bpy.ops.render.render` and the Render view beside the viewport
- * (`blender-render-view.tsx`) both take their pictures here, so the two cannot disagree.
- * `assertCurrent` throws when the caller's snapshot went stale while the lighting was prepared.
+ * view transform. `assertCurrent` throws when the caller's snapshot went stale while the
+ * lighting was prepared.
  */
 export async function photographSnapshot(
   scene: THREE.Scene,
@@ -248,125 +247,6 @@ export async function photographSnapshot(
   const dataUrl = captureSceneImage(scene, renderCamera, captureOptions);
   if (!dataUrl) throw new Error('Blender render could not capture its image');
   return { base64: dataUrl.slice(dataUrl.indexOf(',') + 1), mimeType: 'image/png' };
-}
-
-/** What the Render view shows: the scene camera's picture, or the render's reason there is none. */
-export type SceneCameraRender =
-  | {
-      readonly kind: 'image';
-      readonly url: string;
-      readonly width: number;
-      readonly height: number;
-      readonly projection: 'perspective' | 'orthographic';
-    }
-  | { readonly kind: 'refused'; readonly reason: string };
-
-/** `session.py::_photograph`'s names for the view transforms the renderer has a curve for. */
-const VIEW_TRANSFORMS: Record<string, RenderRequest['toneMapping']> = {
-  Standard: 'none',
-  AgX: 'agx',
-  Filmic: 'filmic',
-  'Khronos PBR Neutral': 'neutral',
-};
-/** The Render view's longest side, in device pixels: a preview, not the output resolution. */
-const RENDER_VIEW_MAXIMUM_EDGE = 1600;
-
-/**
- * THE RENDER, LIVE: Blender's Rendered shading seen through the scene camera, the view a person
- * splits beside the modeling viewport to watch the render while they model. In Blender that area
- * runs the scene's render engine in the viewport; here three.js is the render engine, so this
- * takes the render's own photograph (`photographSnapshot`, the one `bpy.ops.render.render` takes)
- * of the view's current revision, through the camera a camera view looks through, with the
- * scene's own view transform, look, exposure and film transparency, `session.py::_photograph`'s
- * reading of `scene.view_settings` transcribed. It is fitted to `region` (device pixels) at the
- * render's own shape. Nothing it does is recorded: no Render Result, no history, no engine call
- * but the RNA reads of the scene's colour management.
- */
-export async function renderSceneCamera(
-  view: BlenderRuntimeView,
-  region: { readonly width: number; readonly height: number },
-): Promise<SceneCameraRender> {
-  const refused = (reason: string): SceneCameraRender => ({ kind: 'refused', reason });
-  const camera = view.cameraViewCamera();
-  // The sentence this editor's render gives for the same scene (`session.py::_photograph`).
-  const noCamera = 'The scene has no camera, so there is nothing to render';
-  if (camera === null) return refused(noCamera);
-  // The render's shape: on a square region the camera's frame spans the fitted side.
-  const probe = view.cameraView(camera, { width: 1000, height: 1000 }, 1, [0, 0]);
-  if (probe === null) return refused(noCamera);
-  const aspect = probe.frame.width / probe.frame.height;
-  const scale = Math.min(1, RENDER_VIEW_MAXIMUM_EDGE / Math.max(region.width, region.height));
-  const fitted = Math.min(region.width, region.height * aspect) * scale;
-  const width = Math.max(1, Math.round(fitted));
-  const height = Math.max(1, Math.round(fitted / aspect));
-  const through = view.cameraView(camera, { width, height }, 1, [0, 0]);
-  if (through === null) return refused(noCamera);
-
-  const context = await blenderRnaContext();
-  if (context === null) return refused('Blender is starting');
-  const [viewSettings, renderSettings] = await Promise.all([
-    blenderRna(`${context.scene}.view_settings`),
-    blenderRna(`${context.scene}.render`),
-  ]);
-  const read = (struct: BlenderRnaView | null, identifier: string): unknown =>
-    struct?.kind === 'struct'
-      ? struct.groups.flatMap((group) => group.rows).find((row) => row.identifier === identifier)?.value
-      : undefined;
-  const transform = String(read(viewSettings, 'view_transform'));
-  const toneMapping = VIEW_TRANSFORMS[transform];
-  if (toneMapping === undefined) return refused(`Blender view transform ${transform} has no curve in the renderer`);
-  const look = String(read(viewSettings, 'look') ?? 'None');
-  const exposure = Number(read(viewSettings, 'exposure') ?? 0);
-  const render: RenderRequest = {
-    width,
-    height,
-    fov: 0,
-    toneMapping,
-    exposure: 2 ** (Number.isFinite(exposure) ? exposure : 0),
-    orthographic: through.projection === 'orthographic',
-    transparent: read(renderSettings, 'film_transparent') === true,
-    ...(look === 'None' || look === 'AgX - Base Contrast' ? {} : { look }),
-  };
-
-  const snapshot = view.captureSnapshot();
-  try {
-    const scene = new THREE.Scene();
-    scene.add(snapshot.root);
-    scene.updateMatrixWorld(true);
-    // The render's clipping, fitted to this snapshot from the camera's eye as a render's is.
-    const eye = new THREE.Vector3(...through.position);
-    const bounds = contentWorldBounds(snapshot.root).getBoundingSphere(new THREE.Sphere());
-    const { near, far } = fitClipPlanes(eye.distanceTo(bounds.center), bounds.radius);
-    // THE CAMERA VIEW'S WINDOW, lens shift included (`blenderCameraView`), as the projection.
-    const { left, right, top, bottom } = through.window;
-    let renderCamera: THREE.Camera;
-    if (through.projection === 'orthographic') {
-      renderCamera = new THREE.OrthographicCamera(left, right, top, bottom, near, far);
-    } else {
-      const perspective = new THREE.PerspectiveCamera(
-        THREE.MathUtils.radToDeg(2 * Math.atan((top - bottom) / 2)),
-        (right - left) / (top - bottom),
-        near,
-        far,
-      );
-      perspective.projectionMatrix.makePerspective(left * near, right * near, top * near, bottom * near, near, far);
-      perspective.projectionMatrixInverse.copy(perspective.projectionMatrix).invert();
-      renderCamera = perspective;
-    }
-    renderCamera.position.copy(eye);
-    renderCamera.quaternion.set(...through.quaternion);
-    renderCamera.updateMatrixWorld(true);
-    const picture = await photographSnapshot(scene, renderCamera, snapshot, render);
-    return {
-      kind: 'image',
-      url: `data:${picture.mimeType};base64,${picture.base64}`,
-      width,
-      height,
-      projection: through.projection,
-    };
-  } finally {
-    snapshot.dispose();
-  }
 }
 
 export const BLENDER_RUNTIME_DOCUMENT_ID = 'document:blender:runtime';

@@ -744,6 +744,8 @@ export class BlenderRuntimeView {
    *  showing". Fired after the frame is applied, so a listener that reads
    *  the graph sees the new one. */
   private readonly frameListeners = new Set<() => void>();
+  /** The views drawing this one's frames in a second area ({@link follow}). */
+  private readonly followers = new Set<BlenderRuntimeView>();
 
   /** Subscribe to frames. Returns the unsubscribe. */
   subscribeFrames(listener: () => void): () => void {
@@ -1867,6 +1869,15 @@ export class BlenderRuntimeView {
     // The model moved: whoever is READING the engine (the Properties sections
     // through the RNA door) re-reads now, with the new graph already standing.
     for (const listener of [...this.frameListeners]) listener();
+    // EVERY FOLLOWER TAKES THE SAME FRAME, and one that cannot (it lacks geometry the frame only
+    // references) is rebuilt from everything this view now holds.
+    for (const follower of this.followers) {
+      try {
+        follower.applyFrame(input);
+      } catch {
+        follower.applyFrame(this.fullFrame());
+      }
+    }
     return { ...this.inspect(), held };
   }
 
@@ -1898,7 +1909,10 @@ export class BlenderRuntimeView {
    * disposable geometry cross this boundary; delta-only frames are sufficient.
    * The caller owns this snapshot and must dispose it on every outcome.
    */
-  captureSnapshot() {
+  /** Everything this view holds, as ONE self-contained frame another view can be built from:
+   *  every mesh's resident geometry and every resident image, with no reference to what a
+   *  receiver already holds. */
+  private fullFrame(): Frame {
     const source = this.frame;
     if (!source) throw new Error('Blender capture requires a presented frame');
     // Inspection overlays are not render content. In particular weight-paint
@@ -1976,6 +1990,37 @@ export class BlenderRuntimeView {
         };
       }
     }
+    return frame;
+  }
+
+  /**
+   * A SECOND VIEW OF THE SAME MODEL, for a second area drawing it (Blender's split 3D viewport):
+   * its own graph, because a three.js object has one parent and each area's stage holds its own
+   * root, built from everything this view holds and then handed every frame this one applies, so
+   * the two show one revision. Each view keeps its own shading (Solid in one, Rendered in the
+   * other), its own camera view and its own overlays. Inspection overlays (bones, weights) and a
+   * Timeline pose stay this view's: they are not in a frame another view can be built from.
+   */
+  follow(): { readonly view: BlenderRuntimeView; dispose(): void } {
+    const follower = new BlenderRuntimeView();
+    if (this.frame) follower.applyFrame(this.fullFrame());
+    this.followers.add(follower);
+    let disposed = false;
+    return {
+      view: follower,
+      dispose: () => {
+        if (disposed) return;
+        disposed = true;
+        this.followers.delete(follower);
+        follower.dispose();
+        follower.root.removeFromParent();
+      },
+    };
+  }
+
+  captureSnapshot() {
+    const frame = this.fullFrame();
+    const source = this.frame!;
     const effect = this.createWorldVolumePass();
     const detached = new BlenderRuntimeView();
     detached.photograph = true;
