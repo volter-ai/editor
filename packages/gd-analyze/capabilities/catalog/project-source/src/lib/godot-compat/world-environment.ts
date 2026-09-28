@@ -65,10 +65,13 @@
  *   sky, nor one an imported model carries, nor one a script adds at runtime, nor one authored
  *   `LIGHT_ONLY` that a script later lets the sky see;
  * - a camera's own environment is drawn only in a scene that holds a WorldEnvironment, whose
- *   component draws it, and only for R3F's camera;
- * - the drawing is the node's processing, so while the node's process mode stops it (a paused tree)
- *   the environment stays as last drawn, and a change to it or to the sky's lights shows when it
- *   runs again; Godot's renderer draws a paused world's environment as it stands;
+ *   component draws it, and only for R3F's camera: a game that sets `Camera3D.environment` with no
+ *   WorldEnvironment draws with three's defaults. Knowingly deferred: drawing it needs the camera's
+ *   own component to draw it, which Camera3D's binding does not yet do;
+ * - the environment is drawn each frame the node is inside the tree, whatever its process mode, as
+ *   Godot's renderer draws it (`godot_node_set_internal_draw`); its sky lights are read in that
+ *   frame's order among the scripts' hooks, so a light a script turns later in the same frame shows
+ *   in the next;
  * - a sky light's energy is the light's `light_energy` alone: Godot negates it for a negative light,
  *   multiplies it by `light_intensity_lumens` with physical light units on, and by the camera
  *   attributes' exposure normalization (`rasterizer_scene_gles3.cpp:750-758`); none of these is
@@ -118,7 +121,7 @@ import type { Color } from './color';
 import { type Environment, godot_environment_tonemap_parameters } from './environment';
 import { get_environment as get_camera_environment } from './camera-3d';
 import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
-import { godot_node_foreign, godot_node_set_internal_process } from './node';
+import { godot_node_foreign, godot_node_set_internal_draw } from './node';
 import { get_global_basis } from './node-3d';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import type { Shader } from './shader';
@@ -652,12 +655,12 @@ export function GodotWorldEnvironment({ skyLights = NO_SKY_LIGHTS, ...props }: G
   useLayoutEffect(() => {
     if (node === undefined) return undefined;
     const withdraw = godot_world_environment_register(scene, node);
-    godot_node_set_internal_process(node, () => {
+    godot_node_set_internal_draw(node, () => {
       const state = get();
       drawFrame(scene, node, state.gl, state.camera, lights.current);
     });
     return () => {
-      godot_node_set_internal_process(node, undefined);
+      godot_node_set_internal_draw(node, undefined);
       withdraw();
     };
   }, [node, scene, get]);
