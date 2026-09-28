@@ -123,6 +123,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_cast_shadows_setting',
     ...VISIBILITY_RANGE,
   ],
+  // `<GodotCSGBox3D>`, a box mesh of its size (`csg-box-3d.ts`).
+  CSGBox3D: [...NODE_3D, 'set_size'],
   // `<GodotDecal>`, which draws nothing as the web export's Compatibility renderer (`decal.ts`).
   Decal: [
     ...NODE_3D,

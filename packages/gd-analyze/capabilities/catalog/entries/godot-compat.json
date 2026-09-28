@@ -40,6 +40,7 @@
     "src/lib/godot-compat/convex-polygon-shape-3d.ts",
     "src/lib/godot-compat/cpu-particles-3d.ts",
     "src/lib/godot-compat/curve.ts",
+    "src/lib/godot-compat/csg-box-3d.ts",
     "src/lib/godot-compat/cylinder-mesh.ts",
     "src/lib/godot-compat/decal.ts",
     "src/lib/godot-compat/dictionary.ts",

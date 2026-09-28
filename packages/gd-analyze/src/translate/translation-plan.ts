@@ -149,6 +149,7 @@ function validateInputClosure(
     if (emptyBusLayout(path)) return 'an empty AudioBusLayout, which AudioServer refuses (the Master bus stays)';
     const source = path.endsWith('.import') ? path.slice(0, -'.import'.length) : path;
     if (roots.get(source) === 'application-icon') return 'the application icon (window chrome the page host owns)';
+    if (roots.get(source) === 'boot-splash') return 'the boot splash (shown while the engine loads, main/main.cpp:3928; the page host owns loading)';
     if (referenced.has(source) || roots.has(source) || (source !== path && consumed.has(source))) return undefined;
     return source === path ? 'nothing the game runs names it' : 'the import sidecar of a file nothing the game runs names';
   };

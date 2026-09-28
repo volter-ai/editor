@@ -45,9 +45,11 @@ import {
   Mesh,
   RawShaderMaterial,
   Scene,
+  Sphere,
   type Texture,
   Uniform,
   Vector2,
+  Vector3,
   type WebGLRenderer,
   WebGLRenderTarget,
 } from 'three';
@@ -436,6 +438,9 @@ export class GodotPostEffect extends Effect {
     this.#glow = env.glow_enabled;
     const geometry = new BufferGeometry();
     geometry.setAttribute('position', new BufferAttribute(new Float32Array([-1, -1, 3, -1, -1, 3]), 2));
+    // A full-screen triangle in clip space, never culled: its 2D positions bound no sphere, so it
+    // states an unbounded one.
+    geometry.boundingSphere = new Sphere(new Vector3(), Infinity);
     this.#bufferPass = passMaterial(GODOT_BUFFER_FRAGMENT, {
       scene_color: new Uniform(null),
       exposure: new Uniform(env.tonemap_exposure),
@@ -454,6 +459,7 @@ export class GodotPostEffect extends Effect {
     this.#downsample = passMaterial(godot_glow_fragment('downsample'), glowUniforms());
     this.#upsample = passMaterial(godot_glow_fragment('upsample'), glowUniforms());
     this.#quad = new Mesh(geometry, this.#bufferPass);
+    this.#quad.frustumCulled = false;
     this.#quad.frustumCulled = false;
     this.#scene.add(this.#quad);
     (this.uniforms.get('source_color') as Uniform).value = this.#buffer.texture;
