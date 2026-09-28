@@ -7,12 +7,27 @@
  * revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`. A singleton: its members take no receiver.
  *
  * The module owns Godot's state as module state: the InputMap (actions, deadzones, their events),
- * each action's per-device pressed/strength slots and cache, the just-pressed/released frame
- * stamps, the event buffer, and the Engine frame counters the stamps compare against. It never
- * listens to the DOM. The window turns native events into InputEvent records and hands them to
- * `parse_input_event` and `flush_buffered_events`, the SceneTree stamps each physics step and
- * process frame through `godot_input_frame`, and the world loads the project's `[input]` actions
- * through `godot_input_map_load_json`.
+ * each action's per-device pressed/strength slots and cache, when each last changed, and the event
+ * buffer. It never listens to the DOM. The window turns native events into InputEvent records and
+ * hands them to `parse_input_event`, and flushes them at the start of every host frame
+ * (`flush_buffered_events`, before the physics steps and the scripts' `_process`); the world loads
+ * the project's `[input]` actions through `godot_input_map_load_json`.
+ *
+ * `is_action_just_pressed` and `_released` are the library's own edges, not frames the tree counts
+ * (docs/GODOT.md §The emitted game's shape, "The SceneTree's clock"): an action records when it
+ * changed, as the host frame it changed in, identified by the frame's start on R3F's clock
+ * (`godot_tree_frame`), and "just" is a change since the host's current frame began. A change
+ * made between frames (a script's `action_press` in `_ready` or a deferred call, the debug door)
+ * belongs to the next frame, as Godot's next iteration sees it. A frame is open from the window's
+ * flush, first in every frame, which reads the clock and finds a new start, until the task that
+ * runs it ends: R3F runs a frame's callbacks, physics steps and draw in one task, so a microtask
+ * then closes it. Where Godot counts physics frames and process frames apart, one host
+ * frame holds both, so:
+ * - where several physics steps run in one frame, a change holds for each of them, where Godot
+ *   holds it for the first;
+ * - a change a script makes during a frame holds for the rest of that frame only, where Godot also
+ *   holds it for the next physics step (a press in `_process` is not seen by the next
+ *   `_physics_process`).
  *
  * Events are the records `input-event.ts` describes. Every event is buffered: Godot's
  * `use_accumulated_input` is on, so a mouse motion or screen drag folds into the buffered event
@@ -21,6 +36,7 @@
  */
 
 import { get_device as deviceOf, godot_input_event_accumulate, type InputEventRecord } from './input-event';
+import { godot_tree_frame } from './scene-tree';
 import { construct as vector2, type Vector2 } from './vector2';
 
 const f32 = Math.fround;
@@ -38,8 +54,10 @@ const META = 1 << 27;
 const CTRL = 1 << 28;
 /** `Input::CURSOR_MAX` (`core/input/input.h`): the 17 `CursorShape` values. */
 const CURSOR_MAX = 17;
-/** `UINT64_MAX`, the stamp an action never pressed carries (`core/input/input.h:134`). */
-const NEVER = Number.POSITIVE_INFINITY;
+/** The change time an action never changed carries: no frame starts then. */
+const NEVER = Number.NEGATIVE_INFINITY;
+/** The change time of a change made between frames, until the next frame opens and takes it. */
+const NEXT = Number.POSITIVE_INFINITY;
 
 interface Action {
   readonly deadzone: number;
@@ -53,10 +71,10 @@ interface DeviceState {
 }
 
 interface ActionState {
-  pressedPhysicsFrame: number;
-  pressedProcessFrame: number;
-  releasedPhysicsFrame: number;
-  releasedProcessFrame: number;
+  /** The start of the host frame the action was last pressed in (or `NEXT`, `NEVER`). */
+  pressedAt: number;
+  /** The start of the host frame the action was last released in (or `NEXT`, `NEVER`). */
+  releasedAt: number;
   exact: boolean;
   apiPressed: boolean;
   apiStrength: number;
@@ -75,14 +93,13 @@ const inputMap = new Map<string, Action>();
 const actionStates = new Map<string, ActionState>();
 const buffered: InputEventRecord[] = [];
 const customCursors = new Map<number, { readonly cursor: unknown; readonly hotspot: Vector2 }>();
-const engine = { physicsFrames: 0, processFrames: 0, inPhysics: false };
+/** The host frame as Input last read it: its start, and whether it is still running. */
+const frame = { start: Number.NaN, open: false };
 
 function newState(): ActionState {
   return {
-    pressedPhysicsFrame: NEVER,
-    pressedProcessFrame: NEVER,
-    releasedPhysicsFrame: NEVER,
-    releasedProcessFrame: NEVER,
+    pressedAt: NEVER,
+    releasedAt: NEVER,
     exact: true,
     apiPressed: false,
     apiStrength: 0,
@@ -321,14 +338,8 @@ function parseActions(event: InputEventRecord): void {
     state.exact = actionStatus(event, actionName, true) !== undefined;
     const wasPressed = state.cache.pressed;
     updateActionCache(actionName, state);
-    if (state.cache.pressed && !wasPressed) {
-      state.pressedPhysicsFrame = engine.physicsFrames + 1;
-      state.pressedProcessFrame = engine.processFrames;
-    }
-    if (!state.cache.pressed && wasPressed) {
-      state.releasedPhysicsFrame = engine.physicsFrames + 1;
-      state.releasedProcessFrame = engine.processFrames;
-    }
+    if (state.cache.pressed && !wasPressed) state.pressedAt = changedAt();
+    if (!state.cache.pressed && wasPressed) state.releasedAt = changedAt();
   }
 }
 
@@ -411,29 +422,37 @@ export function godot_input_map_load_json(actions: readonly GodotInputMapActionJ
 }
 
 /**
- * The Engine frame counters the just-pressed stamps compare against: `Main::iteration` increments
- * `physics_frames` and sets `in_physics` around each physics step (`main/main.cpp:4973`) and
- * increments `process_frames` after the process step (`main/main.cpp:5115`).
- *
- * @godot Input (protocol)
- * @source main/main.cpp:4973
+ * The flush reads the host's clock: a frame start it has not seen opens a new frame. The changes
+ * made between frames take it as their time, the debug door's taps pressed in an earlier frame are
+ * released in it (`godot_input_debug`), and it stays open until the task running it ends (a
+ * microtask closes it).
  */
-export function godot_input_frame(physicsFrames: number, processFrames: number, inPhysics: boolean): void {
-  engine.physicsFrames = physicsFrames;
-  engine.processFrames = processFrames;
-  engine.inPhysics = inPhysics;
-  // A debug tap's release, once the physics frame after its press has run (`godot_input_debug`).
-  if (!inPhysics) {
-    for (const [action, frame] of [...debugTaps]) {
-      if (physicsFrames < frame) continue;
-      debugTaps.delete(action);
-      action_release(action);
-    }
+function openFrame(): void {
+  const start = godot_tree_frame().start;
+  if (start === frame.start) return;
+  frame.start = start;
+  frame.open = true;
+  queueMicrotask(() => {
+    if (frame.start === start) frame.open = false;
+  });
+  for (const state of actionStates.values()) {
+    if (state.pressedAt === NEXT) state.pressedAt = start;
+    if (state.releasedAt === NEXT) state.releasedAt = start;
+  }
+  for (const [action, state] of [...debugTaps]) {
+    if (state.pressedAt === start) continue;
+    debugTaps.delete(action);
+    action_release(action);
   }
 }
 
-/** The debug door's taps: action → the physics frame that must run before it is released. */
-const debugTaps = new Map<string, number>();
+/** When a change made now happened: the running frame's start, or `NEXT` between frames. */
+function changedAt(): number {
+  return frame.open ? frame.start : NEXT;
+}
+
+/** The debug door's taps: action → its state, released in the first frame after the one it was pressed in. */
+const debugTaps = new Map<string, ActionState>();
 /** The actions the debug door holds pressed, released by its `clear`. */
 const debugHeld = new Set<string>();
 
@@ -446,8 +465,8 @@ export type GodotDebugInputValueType = 'digital' | 'scalar';
  * for one only joypad axes drive); a digital `true` presses at strength 1, as a key press does;
  * `set` presses the action at the value's strength (`true` is 1) or releases it (a
  * false or non-positive value), as `Input.action_press` / `action_release`; `clear` releases every
- * action it holds; `tap` presses the action and releases it once the next physics frame has run,
- * as a script's `action_press`, `await physics_frame`, `await process_frame`, `action_release`.
+ * action it holds; `tap` presses the action and releases it at the start of the frame after the one
+ * that took the press, so the press holds for one whole frame, its physics steps and its process.
  *
  * @godot Input (protocol)
  * @source core/input/input.cpp:1410
@@ -480,7 +499,7 @@ export function godot_input_debug(): {
     },
     tap: (action) => {
       action_press(action);
-      debugTaps.set(action, engine.physicsFrames + 1);
+      if (inputMap.has(action)) debugTaps.set(action, stateOf(action));
     },
   };
 }
@@ -505,6 +524,7 @@ export function parse_input_event(event: InputEventRecord): void {
  * @source core/input/input.cpp:1568
  */
 export function flush_buffered_events(): void {
+  openFrame();
   while (buffered.length > 0) parseImpl(buffered.shift() as InputEventRecord);
 }
 
@@ -520,8 +540,8 @@ export function is_action_pressed(action: string, exact_match = false): boolean 
 }
 
 /**
- * The press stamp against the current physics frame inside a physics step, else the current process
- * frame (`legacy_just_pressed_behavior` is off by default, `core/input/input.cpp:2364`).
+ * Whether the action was pressed in the host's current frame (the module's header), in its
+ * physics steps and its process alike.
  *
  * @godot Input.is_action_just_pressed
  * @source core/input/input.cpp:419
@@ -531,12 +551,12 @@ export function is_action_just_pressed(action: string, exact_match = false): boo
   const state = actionStates.get(action);
   if (state === undefined) return false;
   if (exact_match && !state.exact) return false;
-  return engine.inPhysics
-    ? state.pressedPhysicsFrame === engine.physicsFrames
-    : state.pressedProcessFrame === engine.processFrames;
+  return state.pressedAt === frame.start;
 }
 
 /**
+ * Whether the action was released in the host's current frame (the module's header).
+ *
  * @godot Input.is_action_just_released
  * @source core/input/input.cpp:476
  */
@@ -545,9 +565,7 @@ export function is_action_just_released(action: string, exact_match = false): bo
   const state = actionStates.get(action);
   if (state === undefined) return false;
   if (exact_match && !state.exact) return false;
-  return engine.inPhysics
-    ? state.releasedPhysicsFrame === engine.physicsFrames
-    : state.releasedProcessFrame === engine.processFrames;
+  return state.releasedAt === frame.start;
 }
 
 /**
@@ -611,7 +629,8 @@ export function get_vector(
 }
 
 /**
- * Presses the action from script: the earliest reaction is the next physics step.
+ * Presses the action from script, a change as any other: in the current frame, or the next one when
+ * pressed between frames.
  *
  * @godot Input.action_press
  * @source core/input/input.cpp:1410
@@ -619,10 +638,7 @@ export function get_vector(
 export function action_press(action: string, strength = 1.0): void {
   if (!inputMap.has(action)) return;
   const state = stateOf(action);
-  if (!state.cache.pressed) {
-    state.pressedPhysicsFrame = engine.physicsFrames + 1;
-    state.pressedProcessFrame = engine.processFrames;
-  }
+  if (!state.cache.pressed) state.pressedAt = changedAt();
   state.exact = true;
   state.apiPressed = true;
   state.apiStrength = clamp(f32(strength), 0, 1);
@@ -641,8 +657,7 @@ export function action_release(action: string): void {
   state.cache.pressed = false;
   state.cache.strength = 0;
   state.cache.rawStrength = 0;
-  state.releasedPhysicsFrame = engine.physicsFrames + 1;
-  state.releasedProcessFrame = engine.processFrames;
+  state.releasedAt = changedAt();
   state.deviceStates.clear();
   state.exact = true;
   state.apiPressed = false;

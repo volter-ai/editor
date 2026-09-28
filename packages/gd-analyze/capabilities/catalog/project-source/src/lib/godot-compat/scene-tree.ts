@@ -29,7 +29,6 @@
  * transcribed (the tree never pauses).
  */
 
-import { godot_input_frame } from './input';
 import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_is_leaving, godot_node_leave, godot_node_set_queued } from './node';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
@@ -304,7 +303,6 @@ export function godot_tree_physics_begin(): void {
   clock.inPhysics = true;
   clock.physicsFrames += 1;
   clock.currentFrame += 1;
-  godot_input_frame(clock.physicsFrames, clock.processFrames, true);
   physicsFrame.emit();
 }
 
@@ -317,7 +315,6 @@ export function godot_tree_physics_begin(): void {
  */
 export function godot_tree_physics_end(): void {
   clock.inPhysics = false;
-  godot_input_frame(clock.physicsFrames, clock.processFrames, false);
 }
 
 /**
@@ -340,7 +337,6 @@ export function godot_tree_process_begin(): void {
  */
 export function godot_tree_process_end(): void {
   clock.processFrames += 1;
-  godot_input_frame(clock.physicsFrames, clock.processFrames, false);
 }
 
 /**

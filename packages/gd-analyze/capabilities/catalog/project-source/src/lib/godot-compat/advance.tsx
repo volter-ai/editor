@@ -77,9 +77,11 @@ export function useGodotTree(): void {
 }
 
 /**
- * The root Window's own processing, from its component's frame: at the start of each frame the
- * page's buffered input becomes events (`OS_Web::main_loop_iterate` then
- * `DisplayServerWeb::process_events`), and each frame it draws its canvas items over the canvas.
+ * The root Window's own processing, from its component's frame: at the start of each frame, before
+ * the physics steps and the scripts' `_process` (its hook runs first, by its priority), the page's
+ * buffered input becomes events (`OS_Web::main_loop_iterate` then
+ * `DisplayServerWeb::process_events`), as Godot's iteration begins; and each frame it draws its
+ * canvas items over the canvas, with the other frame work.
  *
  * @godot Window (protocol)
  * @source platform/web/os_web.cpp:87
@@ -87,8 +89,6 @@ export function useGodotTree(): void {
 export function useGodotRootWindow(): void {
   const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
-  useFrame(() => {
-    godot_window_process_events();
-    godot_canvas_draw(scene, godot_window_canvas_layer(gl.domElement));
-  });
+  useFrame(() => godot_window_process_events(), -1);
+  useFrame(() => godot_canvas_draw(scene, godot_window_canvas_layer(gl.domElement)));
 }
