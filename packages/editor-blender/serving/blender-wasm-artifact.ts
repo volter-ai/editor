@@ -54,10 +54,11 @@
  */
 import { createHash } from 'node:crypto';
 import { createReadStream, existsSync } from 'node:fs';
-import { readdir, readFile, stat } from 'node:fs/promises';
+import { mkdir, readdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { tmpdir } from 'node:os';
 import { dirname, isAbsolute, join, posix, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { brotliDecompressSync } from 'node:zlib';
+import { brotliCompress, brotliDecompressSync, constants as zlibConstants } from 'node:zlib';
 
 export type BlenderSkew = 'emscripten' | 'wali';
 
@@ -345,6 +346,8 @@ export function blenderWasmReadStream(found: BlenderWasmOnDisk): NodeJS.Readable
 
 export interface RuntimeIndex {
   files: { path: string; size: number; mode: number }[];
+  /** The newest file's modification time: with the count and the total size, the blob's validator (`runtimeTag`). */
+  newestMtimeMs?: number;
 }
 
 let cachedRuntimeIndex: { dir: string; index: RuntimeIndex } | null = null;
@@ -363,6 +366,7 @@ export async function runtimeIndex(dir: string): Promise<RuntimeIndex> {
   if (cachedRuntimeIndex?.dir === dir) return cachedRuntimeIndex.index;
   const root = join(dir, BLENDER_WALI_RUNTIME);
   const files: RuntimeIndex['files'] = [];
+  let newest = 0;
   const walk = async (where: string): Promise<void> => {
     for (const entry of (await readdir(where, { withFileTypes: true })).sort((left, right) =>
       left.name < right.name ? -1 : left.name > right.name ? 1 : 0,
@@ -379,13 +383,25 @@ export async function runtimeIndex(dir: string): Promise<RuntimeIndex> {
         size: info.size,
         mode: info.mode & 0o7777,
       });
+      newest = Math.max(newest, info.mtimeMs);
     }
   };
   await walk(root);
   if (files.length === 0) throw new Error(`${root} is empty`);
-  const index = { files };
+  const index = { files, newestMtimeMs: newest };
   cachedRuntimeIndex = { dir, index };
   return index;
+}
+
+/**
+ * THE RUNTIME BLOB'S VALIDATOR, so a warm boot takes it from the HTTP cache.
+ * Without one it was read from 1,317 files and sent again on every boot: the
+ * standalone skew's `.data` payload is one cached file, and this was most of
+ * what the substrate skew's boot spent before Blender ran (2026-09-27).
+ */
+export function runtimeTag(index: RuntimeIndex): string {
+  const total = index.files.reduce((sum, file) => sum + file.size, 0);
+  return `"runtime-${index.files.length}-${total}-${Math.floor(index.newestMtimeMs ?? 0)}"`;
 }
 
 /** Stream the runtime blob: every indexed file's bytes, in index order. */
@@ -446,4 +462,53 @@ export async function substrateModule(
       `"/__editor/blender-wasm/wali/${other.segment}/`,
     );
   return { text };
+}
+
+const compressing = new Map<string, Promise<void>>();
+
+/**
+ * A file as brotli, kept under the system's temporary directory by `key`
+ * once made: its path, or null while it is being made (the first caller
+ * starts it and is answered uncompressed). The substrate skew's artifacts are
+ * past what Chrome keeps in its HTTP cache uncompressed -- `blender.wasm`
+ * 93 MB, the runtime blob 66 -- so every boot fetched them again and compiled
+ * the module again; the standalone skew's go out as brotli (18 MB and 7.7 MB)
+ * and are kept (2026-09-27: brotli, 20 MB and 25 MB).
+ */
+async function brotliCopy(key: string, produce: () => Promise<Buffer>): Promise<string | null> {
+  const path = join(tmpdir(), 'volter-blender-brotli', `${key.replace(/[^\w.-]/g, '')}.br`);
+  try {
+    if ((await stat(path)).isFile()) return path;
+  } catch { /* not made yet */ }
+  if (!compressing.has(path)) {
+    const making = (async () => {
+      const source = await produce();
+      const compressed = await new Promise<Buffer>((resolve, reject) => brotliCompress(source, {
+        params: { [zlibConstants.BROTLI_PARAM_QUALITY]: 9, [zlibConstants.BROTLI_PARAM_SIZE_HINT]: source.byteLength },
+      }, (error, result) => error ? reject(error) : resolve(result)));
+      await mkdir(dirname(path), { recursive: true });
+      const part = `${path}.${process.pid}.part`;
+      await writeFile(part, compressed);
+      await rename(part, path);
+    })().catch(() => undefined).finally(() => compressing.delete(path));
+    compressing.set(path, making);
+  }
+  return null;
+}
+
+/** The runtime blob as brotli (`brotliCopy`), by its validator. */
+export async function runtimeBlobBrotli(dir: string, index: RuntimeIndex): Promise<string | null> {
+  return brotliCopy(`runtime-${runtimeTag(index)}`, async () => {
+    const chunks: Buffer[] = [];
+    await writeRuntimeBlob(dir, (chunk) => void chunks.push(chunk));
+    return Buffer.concat(chunks);
+  });
+}
+
+/** An uncompressed artifact as brotli (`brotliCopy`), by its size and time: the file itself when none is made yet. */
+export async function brotliArtifact(found: BlenderWasmOnDisk): Promise<BlenderWasmOnDisk> {
+  if (found.encoding !== null) return found;
+  const info = await stat(found.path);
+  const path = await brotliCopy(`artifact-${info.size}-${Math.floor(info.mtimeMs)}`, () => readFile(found.path));
+  return path ? { path, size: (await stat(path)).size, encoding: 'br' } : found;
 }

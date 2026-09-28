@@ -27,6 +27,9 @@ import {
   blenderWasmReadStream,
   blenderWasmStatus,
   runtimeIndex,
+  runtimeTag,
+  runtimeBlobBrotli,
+  brotliArtifact,
   substrateModule,
   writeRuntimeBlob,
 } from './blender-wasm-artifact';
@@ -104,13 +107,34 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
     {
       method: 'GET',
       match: /^\/__editor\/blender-wasm\/runtime\.bin$/,
-      handle: async (_req, res) => {
+      handle: async (req, res) => {
         const status = await blenderWasmStatus();
         if (status.skew !== 'wali' || status.dir === null) {
           json(res, { error: 'This editor does not serve the substrate skew of Blender.' }, 404);
           return;
         }
+        // A validator, as the engine's own files have, and brotli once it is
+        // made, as the standalone skew's payload goes out: small enough for
+        // the HTTP cache, so a warm boot is a 304 (`runtimeBlobBrotli`).
+        const index = await runtimeIndex(status.dir);
+        const accepted = String(req.headers['accept-encoding'] ?? '').toLowerCase().includes('br');
+        const compressed = accepted ? await runtimeBlobBrotli(status.dir, index) : null;
+        const tag = runtimeTag(index).replace(/"$/, compressed ? '-br"' : '-identity"');
+        res.setHeader('cache-control', 'no-cache');
+        res.setHeader('etag', tag);
+        res.setHeader('vary', 'accept-encoding');
+        if (req.headers['if-none-match'] === tag) {
+          res.statusCode = 304;
+          res.end();
+          return;
+        }
         res.setHeader('content-type', 'application/octet-stream');
+        if (compressed) {
+          res.setHeader('content-encoding', 'br');
+          res.setHeader('content-length', String((await stat(compressed)).size));
+          createReadStream(compressed).pipe(res);
+          return;
+        }
         await writeRuntimeBlob(status.dir, (chunk) => void res.write(chunk));
         res.end();
       },
@@ -165,11 +189,13 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           res.end(await blenderGlueText(status.dir!));
           return;
         }
-        const found = await blenderWasmOnDisk(status.dir!, file);
-        if (!found) {
+        const onDisk = await blenderWasmOnDisk(status.dir!, file);
+        if (!onDisk) {
           json(res, { error: `${file} vanished from ${status.dir}.` }, 404);
           return;
         }
+        // The substrate skew's module is served as brotli too, made once (`brotliArtifact`).
+        const found = file === BLENDER_WALI_ARTIFACT ? await brotliArtifact(onDisk) : onDisk;
         // A VALIDATOR, SO THE COMPILED ENGINE IS CACHED. Chrome keeps the machine code it
         // compiled from an `instantiateStreaming` response only while that response sits in its
         // HTTP cache, and a response with no validator is never stored (measured: every boot
