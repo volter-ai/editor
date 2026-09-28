@@ -383,7 +383,7 @@ export const LearnMetadataSchema = z
       .optional()
       .describe(
         'Optional Learn-site lesson URL that teaches this project 1:1 ' +
-          '(e.g. https://volter-learn.pages.dev/manual/physics/joints/)',
+          '(e.g. https://example.com/manual/physics/joints/)',
       ),
   })
   .strict()

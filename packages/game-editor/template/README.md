@@ -77,6 +77,3 @@ game is its own code. `package.json` still declares what the game uses, so
 replacing the link with `npm install` gives a standalone installation.
 `npm run volter -- status` reports the product serving the active session.
 
-Learn and manual: https://volter-learn.pages.dev
-
-Hosted editor: https://volter-editor.pages.dev
