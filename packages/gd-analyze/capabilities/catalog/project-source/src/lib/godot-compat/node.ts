@@ -884,15 +884,16 @@ export function add_child(self: object, node: object): void {
   // A parent that is not a node (the group an instantiated scene waits in) is no Godot parent.
   const current = parentEntity(child);
   if (child === parent || (current !== null && NODE.has(current))) return;
-  validateChildName(parent, child);
   // An instantiated scene React has not mounted: React mounts it under the parent (a state update
-  // its scene's component renders), then it enters.
+  // its scene's component renders), then its root's name is made unique and it enters.
   const mounted = addUnmounted?.(parent, child);
   if (mounted !== undefined) {
+    validateChildName(parent, mounted);
     INSERTION.get(parent)?.push(mounted);
     if (stateOf(parent).insideTree && !stateOf(mounted).insideTree) enterTree(mounted, parent);
     return;
   }
+  validateChildName(parent, child);
   attach(parent, child);
   INSERTION.get(parent)?.push(child);
   if (stateOf(parent).insideTree) enterTree(child, parent);
@@ -1523,13 +1524,26 @@ export function godot_node_add_unmounted(handler: (parent: object, child: object
 
 /**
  * The node React mounted for an instantiated scene's root stands for the stand-in the script
- * held until then: every call through either reaches the mounted node.
+ * held until then: every call through either reaches the mounted node. It takes what the script
+ * set on the stand-in before `add_child`, which Godot's instantiated node already held: its name
+ * (which `add_child` then makes unique among its siblings), groups (joining the scene's own), process mode and priorities.
+ * Not carried: a native class test (`as Node3D`) on a script-less stand-in, which has no class
+ * until it mounts.
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:318
  */
 export function godot_node_stand_in(standIn: object, mounted: object): void {
   STANDS_FOR.set(standIn, mounted);
+  const held = NODE.get(standIn);
+  if (held === undefined) return;
+  const state = stateOf(mounted);
+  const name = nameOf(standIn);
+  if (name !== '') (mounted as { name: string }).name = name;
+  for (const group of held.groups) if (!state.groups.includes(group)) state.groups.push(group);
+  if (held.processMode !== PROCESS_MODE_INHERIT) state.processMode = held.processMode;
+  if (held.processPriority !== 0) state.processPriority = held.processPriority;
+  if (held.physicsProcessPriority !== 0) state.physicsProcessPriority = held.physicsProcessPriority;
 }
 
 // --- Input processing.
