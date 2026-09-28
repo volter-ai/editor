@@ -47,7 +47,12 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
   const skeleton = setterValue(node.setters, 'set_skeleton_path');
   const transparency = setterValue(node.setters, 'set_transparency');
   const castShadow = setterValue(node.setters, 'set_cast_shadows_setting');
+  // A node three or Rapier mounts records no Godot class of its own: its classes, nearest first,
+  // which the Node protocol reads for `is`, `as` and its class name.
+  const form = node.idiom?.form.kind;
+  const mounted = node.instance === undefined && node.model === undefined && (form === 'group' || form === 'mesh' || form === 'light' || form === 'camera' || form === 'body' || form === 'reflection-probe');
   return {
+    ...(mounted && node.classes.length > 0 ? { classes: [...node.classes] } : {}),
     ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),
     ...(node.unique === true ? { unique_name_in_owner: true } : {}),
     ...(skeleton?.kind === 'string' ? { skeleton_path: skeleton.value } : {}),

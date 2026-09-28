@@ -459,29 +459,22 @@ export function godot_node_class_reader(reader: (entity: object) => readonly str
   if (!CLASS_READERS.includes(reader)) CLASS_READERS.push(reader);
 }
 
-const CAMERA_3D = Object.freeze(['Camera3D', 'Node3D', 'Node', 'Object']);
-const DIRECTIONAL_LIGHT_3D = Object.freeze(['DirectionalLight3D', 'Light3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object']);
-const MESH_INSTANCE_3D = Object.freeze(['MeshInstance3D', 'GeometryInstance3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object']);
-const NODE_3D = Object.freeze(['Node3D', 'Node', 'Object']);
 
 /**
- * A node's Godot classes: the ones its composition recorded, else the ones its JSX states, read
- * from the three object it mounts (a named camera, directional light or mesh, else a Node3D) or
- * from a module's reader.
+ * A node's Godot classes: the ones its composition recorded, else the ones its scene states in its
+ * `userData` (a node three or Rapier mounts), else a module's reader's.
  */
 function nodeClasses(entity: object): readonly string[] | undefined {
   const recorded = NODE.get(entity)?.classes ?? godot_input_event_classes(entity);
   if (recorded !== undefined) return recorded;
+  // The classes the scene states for a node three or Rapier mounts (its `userData`).
+  const stated = ((entity as { readonly userData?: Readonly<Record<string, unknown>> }).userData ?? {})['classes'];
+  if (Array.isArray(stated)) return stated as readonly string[];
   for (const reader of CLASS_READERS) {
     const read = reader(entity);
     if (read !== undefined) return read;
   }
-  const three = entity as { readonly isObject3D?: boolean; readonly isCamera?: boolean; readonly isDirectionalLight?: boolean; readonly isMesh?: boolean };
-  if (three.isObject3D !== true || nameOf(entity) === '') return undefined;
-  if (three.isCamera === true) return CAMERA_3D;
-  if (three.isDirectionalLight === true) return DIRECTIONAL_LIGHT_3D;
-  if (three.isMesh === true) return MESH_INSTANCE_3D;
-  return NODE_3D;
+  return undefined;
 }
 
 /** The Godot classes of an object's native entity; one with none is an error. */

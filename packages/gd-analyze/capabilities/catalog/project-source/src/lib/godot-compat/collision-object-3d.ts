@@ -18,7 +18,7 @@
 import type { Collider, RigidBody, World } from '@dimforge/rapier3d-compat';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { type Object3D, Quaternion, Vector3 as ThreeVector3 } from 'three';
-import { godot_node_class_reader, godot_node_entity } from './node';
+import { godot_node_entity } from './node';
 import { godot_node_3d_observe_local } from './node-3d';
 
 export type CollisionObjectKind = 'static' | 'character' | 'rigid' | 'area';
@@ -176,18 +176,6 @@ export function godot_collision_object_kind(object: object): CollisionObjectKind
   if (type === RAPIER.RigidBodyType.Fixed) return godot_collision_object_colliders(object).some((collider) => collider.isSensor()) ? 'area' : 'static';
   return 'character';
 }
-
-// A declared body is a node of its kind's class (for `is`).
-const CLASSES: Readonly<Record<CollisionObjectKind, readonly string[]>> = {
-  static: ['StaticBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object'],
-  character: ['CharacterBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object'],
-  rigid: ['RigidBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object'],
-  area: ['Area3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object'],
-};
-godot_node_class_reader((entity) => {
-  const kind = context === undefined ? undefined : godot_collision_object_kind(entity);
-  return kind === undefined ? undefined : CLASSES[kind];
-});
 
 const position = new ThreeVector3();
 const rotation = new Quaternion();

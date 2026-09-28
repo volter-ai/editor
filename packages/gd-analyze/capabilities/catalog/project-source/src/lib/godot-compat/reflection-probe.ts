@@ -51,7 +51,6 @@
  */
 
 import type { Object3D } from 'three';
-import { godot_node_class_reader } from './node';
 import { construct as color, type Color } from './color';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -475,8 +474,3 @@ export function get_update_mode(self: object): number {
 }
 
 // The node's class, for a probe its JSX declares.
-godot_node_class_reader((entity) =>
-  ((entity as Object3D).userData as Record<string, unknown> | undefined)?.['reflectionProbe'] !== undefined
-    ? ['ReflectionProbe', 'VisualInstance3D', 'Node3D', 'Node', 'Object']
-    : undefined,
-);
