@@ -376,16 +376,27 @@ export function openSessionChannel(
       } catch (error) {
         answer = { error: error instanceof Error ? error.message : String(error) };
       }
-      await files.writeFile(`${SESSION_ROOT}/reply/${id}.json`, JSON.stringify(answer ?? null));
-      await files.writeFile(`${SESSION_ROOT}/reply/${id}.done`, '1');
+      // One turn, `.done` second, as a request's two files (see `request`).
+      await Promise.all([
+        files.writeFile(`${SESSION_ROOT}/reply/${id}.json`, JSON.stringify(answer ?? null)),
+        files.writeFile(`${SESSION_ROOT}/reply/${id}.done`, '1'),
+      ]);
       replied.add(id);
     }
   }
 
   async function request(payload: Record<string, unknown>): Promise<unknown> {
     const id = String(++sequence);
-    await files.writeFile(`${SESSION_ROOT}/in/${id}.json`, JSON.stringify(payload));
-    await files.writeFile(`${SESSION_ROOT}/in/${id}.done`, '1');
+    // BOTH WRITES BEGIN IN ONE TURN, `.done` second. Both engines write
+    // synchronously inside `writeFile`, so the order is kept; and the WALI
+    // engine carries one turn's writes to the program as one patch, where an
+    // await between them sent the request as two imports in series, the
+    // second waiting for the first's acknowledgement (measured 2026-09-28:
+    // most of a no-op call's 1.4-1.9 ms inbound leg).
+    await Promise.all([
+      files.writeFile(`${SESSION_ROOT}/in/${id}.json`, JSON.stringify(payload)),
+      files.writeFile(`${SESSION_ROOT}/in/${id}.done`, '1'),
+    ]);
     const began = performance.now();
     for (;;) {
       await serveAsks();
