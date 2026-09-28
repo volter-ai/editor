@@ -99,7 +99,7 @@ interface WaliProgram {
 }
 
 interface RuntimeIndex {
-  files: { path: string; size: number; mode: number }[];
+  files: { path: string; size: number; mode: number; sha256: string }[];
 }
 
 /** The substrate, as modules this editor serves. `@vite-ignore` because the
@@ -261,7 +261,8 @@ async function installedRuntime(
   const text = await indexAnswer.text();
   const index = JSON.parse(text) as RuntimeIndex;
   // The tree's version is its index: the same files at the same sizes and modes, in the same order,
-  // and its newest file's time (`runtimeTag`'s validator), so a file rebuilt at the same size is a new version.
+  // each with its content's SHA-256, so a file rebuilt with different bytes is a new version
+  // whatever its size and time.
   const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)));
   const tag = [...digest.slice(0, 12)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
   const projectId = `${RUNTIME_STORE_FAMILY}${tag}`;

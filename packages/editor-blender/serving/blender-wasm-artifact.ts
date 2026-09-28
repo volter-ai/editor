@@ -355,8 +355,10 @@ export function blenderWasmReadStream(found: BlenderWasmOnDisk): NodeJS.Readable
 // ---- The WALI skew: the runtime tree, and the substrate that runs the program.
 
 export interface RuntimeIndex {
-  files: { path: string; size: number; mode: number }[];
-  /** The newest file's modification time: with the count and the total size, the blob's validator (`runtimeTag`). */
+  /** Each file with its content's SHA-256: a file rebuilt at the same size and an older time is
+   *  still a new file, and everything that names the tree by its index (the tab's OPFS store,
+   *  `runtimeTag`, the compressed blob's cache) must see it. */
+  files: { path: string; size: number; mode: number; sha256: string }[];
   newestMtimeMs?: number;
 }
 
@@ -392,6 +394,7 @@ export async function runtimeIndex(dir: string): Promise<RuntimeIndex> {
         path: relative(root, path).split(/[\\/]/).join(posix.sep),
         size: info.size,
         mode: info.mode & 0o7777,
+        sha256: createHash('sha256').update(await readFile(path)).digest('hex'),
       });
       newest = Math.max(newest, info.mtimeMs);
     }
@@ -410,8 +413,9 @@ export async function runtimeIndex(dir: string): Promise<RuntimeIndex> {
  * what the substrate skew's boot spent before Blender ran (2026-09-27).
  */
 export function runtimeTag(index: RuntimeIndex): string {
-  const total = index.files.reduce((sum, file) => sum + file.size, 0);
-  return `"runtime-${index.files.length}-${total}-${Math.floor(index.newestMtimeMs ?? 0)}"`;
+  const contents = createHash('sha256');
+  for (const file of index.files) contents.update(`${file.path}\0${file.mode}\0${file.sha256}\n`);
+  return `"runtime-${index.files.length}-${contents.digest('hex').slice(0, 24)}"`;
 }
 
 /** Stream the runtime blob: every indexed file's bytes, in index order. */
