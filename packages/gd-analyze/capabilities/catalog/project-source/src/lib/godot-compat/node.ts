@@ -794,8 +794,7 @@ function validateChildName(parent: object, child: object): void {
   const name = nameOf(child);
   const taken = childEntities(parent).some((sibling) => sibling !== child && nameOf(sibling) === name);
   if (name === '' || taken) {
-    const state = stateOf(child);
-    const className = state.classes?.[0] ?? (state.kind === 'node' ? 'Node' : 'Node3D');
+    const className = nodeClasses(child)?.[0] ?? (stateOf(child).kind === 'node' ? 'Node' : 'Node3D');
     (child as { name: string }).name = `@${className}@${String((serial += 1))}`;
   }
 }
@@ -1555,8 +1554,8 @@ export function godot_node_add_unmounted(handler: (parent: object, child: object
  * set on the stand-in before `add_child`, which Godot's instantiated node already held: its name
  * (which `add_child` then makes unique among its siblings), groups (joining the scene's own),
  * process mode and priorities, a `queue_free` (freed with the stand-in's), and the connections to its `ready`, `tree_entered` and
- * `tree_exiting` signals where the scene connected none of its own to that signal (where both
- * did, the scene's are kept and the script's lost). Not carried: a native class test
+ * `tree_exiting` signals, which fire after the scene's own (disconnecting one through the
+ * mounted node does not reach it). Not carried: a native class test
  * (`as Node3D`) on a script-less stand-in, which has no class until it mounts.
  *
  * @godot Node (protocol)
@@ -1574,9 +1573,11 @@ export function godot_node_stand_in(standIn: object, mounted: object): void {
   if (held.processPriority !== 0) state.processPriority = held.processPriority;
   if (held.physicsProcessPriority !== 0) state.physicsProcessPriority = held.physicsProcessPriority;
   if (held.queued) state.queued = true;
-  if (held.ready.signal.hasConnections() && !state.ready.signal.hasConnections()) state.ready = held.ready;
-  if (held.treeEntered.signal.hasConnections() && !state.treeEntered.signal.hasConnections()) state.treeEntered = held.treeEntered;
-  if (held.treeExiting.signal.hasConnections() && !state.treeExiting.signal.hasConnections()) state.treeExiting = held.treeExiting;
+  // The script's connections stay on the stand-in's signals, which the mounted root's now emit.
+  for (const key of ['ready', 'treeEntered', 'treeExiting'] as const) {
+    const connected = held[key];
+    if (connected.signal.hasConnections()) state[key].signal.connect(() => connected.emit());
+  }
 }
 
 // --- Input processing.

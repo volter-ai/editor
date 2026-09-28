@@ -171,9 +171,21 @@ export function godot_packed_scene_claim(pending: GodotPendingScene | undefined,
 }
 
 /**
+ * The parts of the stand-in's transform a script set, as the scene root's props: none for a root
+ * left at the origin (a Control or plain Node root takes no 3D transform).
+ */
+function transformOf(standIn: Object3D): Record<string, unknown> {
+  const props: Record<string, unknown> = {};
+  if (standIn.position.lengthSq() !== 0) props['position'] = standIn.position.toArray();
+  if (standIn.quaternion.w !== 1) props['quaternion'] = standIn.quaternion.toArray();
+  if (standIn.scale.x !== 1 || standIn.scale.y !== 1 || standIn.scale.z !== 1) props['scale'] = standIn.scale.toArray();
+  return props;
+}
+
+/**
  * The added scenes a scene component renders: each its scene component as a portal into the node
- * it was added under, with the stand-in's transform, and the instantiated scene in context for its
- * root to claim.
+ * it was added under, with the transform a script gave the stand-in, and the instantiated scene in
+ * context for its root to claim.
  *
  * @godot PackedScene (protocol)
  * @source scene/main/node.cpp:1711
@@ -187,11 +199,7 @@ export function godot_packed_scene_portals(spawns: readonly GodotSpawn[]): React
         createElement(
           GodotPendingSceneContext.Provider,
           { value: pending },
-          createElement(pending.scene.component, {
-            position: pending.standIn.position.toArray(),
-            quaternion: pending.standIn.quaternion.toArray(),
-            scale: pending.standIn.scale.toArray(),
-          }),
+          createElement(pending.scene.component, transformOf(pending.standIn)),
         ),
         pending.container as Object3D,
       ),
