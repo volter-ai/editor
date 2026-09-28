@@ -202,6 +202,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_ambient_color',
     'set_ambient_color_energy',
   ],
+  Timer: ['set_meta:*', ...NODE_ELEMENT, 'set_wait_time', 'set_one_shot', 'set_autostart', 'set_paused', 'set_ignore_time_scale', 'set_timer_process_callback'],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
   GridMap: [

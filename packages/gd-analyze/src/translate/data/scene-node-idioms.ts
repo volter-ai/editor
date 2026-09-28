@@ -194,6 +194,7 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     ctor('TouchScreenButton', 'scene/2d/physics/touch_screen_button.cpp', 458),
   ),
   Label3D: element('label-3d', 'Label3D', ctor('Label3D', 'scene/3d/label_3d.cpp', 1082), 'Mesh'),
+  Timer: element('timer', 'Timer', ctor('Timer', 'scene/main/timer.cpp', 250)),
   AudioStreamPlayer: element(
     'audio-stream-player',
     'AudioStreamPlayer',

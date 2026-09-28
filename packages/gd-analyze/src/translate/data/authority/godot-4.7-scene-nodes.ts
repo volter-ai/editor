@@ -120,6 +120,25 @@ export const GODOT_4_7_SIGNAL_RULES: readonly (GodotSceneSignalRule & { readonly
     arguments: 0,
     source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (connections)', line: 682 },
   },
+  ...(
+    [
+      ['Timer', 'timeout', 'timer', 'timeout', 0, 'scene/main/timer.cpp', 243],
+      ['AnimatedSprite3D', 'animation_finished', 'animated-sprite-3d', 'animation_finished', 0, 'scene/3d/sprite_3d.cpp', 1484],
+      ['AnimatedSprite3D', 'animation_looped', 'animated-sprite-3d', 'animation_looped', 0, 'scene/3d/sprite_3d.cpp', 1483],
+      ['AnimatedSprite3D', 'frame_changed', 'animated-sprite-3d', 'frame_changed', 0, 'scene/3d/sprite_3d.cpp', 1480],
+      ['CollisionObject2D', 'mouse_entered', 'collision-object-2d', 'mouse_entered', 0, 'scene/2d/physics/collision_object_2d.cpp', 631],
+      ['CollisionObject2D', 'mouse_exited', 'collision-object-2d', 'mouse_exited', 0, 'scene/2d/physics/collision_object_2d.cpp', 632],
+      ['CollisionObject2D', 'input_event', 'collision-object-2d', 'input_event', 3, 'scene/2d/physics/collision_object_2d.cpp', 630],
+      ['GPUParticles2D', 'finished', 'gpu-particles-2d', 'finished', 0, 'scene/2d/gpu_particles_2d.cpp', 928],
+    ] as const
+  ).map(([ownerClass, signal, module, exportName, argumentCount, file, line]) => ({
+    sourceRevision: REVISION,
+    ownerClass,
+    signal,
+    accessor: { module: `lib/godot-compat/${module}`, exportName, named: false },
+    arguments: argumentCount,
+    source: { file, symbol: `${ownerClass}::_bind_methods (${signal})`, line },
+  })),
 ];
 
 /**
