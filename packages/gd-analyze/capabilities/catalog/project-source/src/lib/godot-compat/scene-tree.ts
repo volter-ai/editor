@@ -27,7 +27,8 @@
  */
 
 import { godot_input_frame } from './input';
-import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_set_queued } from './node';
+import { godot_collision_object_colliders } from './collision-object-3d';
+import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_leave, godot_node_set_queued } from './node';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { createSignal, type GodotSignal } from './signal';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -57,18 +58,18 @@ interface Owned {
   timers: SceneTreeTimer[];
   tweens: Tween[];
 }
-const OWNED = new WeakMap<object, Owned>();
+/** The creator's own record of what it made, held on the instance as a component holds its tweens. */
+const OWNED = Symbol('godot.owned');
+type Owner = { [OWNED]?: Owned };
 function ownedBy(creator: object): Owned {
-  // A static function's `this` is its class: no instance, so no component, owns what it makes.
-  if (typeof creator === 'function') {
+  // A static function's `this` is its class (or nothing, called detached): no instance, so no
+  // component, owns what it makes.
+  if (typeof creator !== 'object' || creator === null) {
     throw new Error('godot-compat: a timer or tween made in a static function has no script instance to own it, which is not transcribed.');
   }
-  let owned = OWNED.get(creator);
-  if (owned === undefined) {
-    owned = { timers: [], tweens: [] };
-    OWNED.set(creator, owned);
-  }
-  return owned;
+  const owner = creator as Owner;
+  owner[OWNED] ??= { timers: [], tweens: [] };
+  return owner[OWNED];
 }
 
 /**
@@ -185,7 +186,7 @@ function processTweens(owned: Owned, delta: number, physics: boolean): void {
  */
 export function godot_owned_step(creator: object | null, delta: number, physics: boolean): void {
   if (creator === null) return;
-  const owned = OWNED.get(creator);
+  const owned = (creator as Owner)[OWNED];
   if (owned === undefined) return;
   processTimers(owned, delta, physics);
   processTweens(owned, delta, physics);
@@ -201,9 +202,9 @@ export function godot_owned_step(creator: object | null, delta: number, physics:
  * @source scene/main/scene_tree.cpp:793
  */
 export function godot_owned_release(creator: object): void {
-  const owned = OWNED.get(creator);
+  const owned = (creator as Owner)[OWNED];
   if (owned === undefined) return;
-  OWNED.delete(creator);
+  delete (creator as Owner)[OWNED];
   for (const timer of owned.timers) {
     if (timer.timeout.hasConnections()) {
       console.error('godot-compat: a timer still pending when the script that made it left the tree does not fire; in Godot it would.');
@@ -319,12 +320,14 @@ export function create_tween(self: SceneTree, creator: object): Tween {
 }
 
 /**
- * Queues an object for deletion: marked queued at once (`is_queued_for_deletion`), freed once the
- * current work is done, as JavaScript defers (a microtask, as `call_deferred` is, `object.ts`),
- * unless it was freed first. There is no deletion queue of the tree's own. R3F runs a frame's
- * callbacks and physics steps in one task, so the node is freed after the frame's callbacks; where
- * a stall runs several physics steps in one frame, Godot frees it between them
- * (`scene/main/scene_tree.cpp:660`), here after them.
+ * Queues an object for deletion: marked queued (`is_queued_for_deletion`), and it and its subtree
+ * take no further part at once (`godot_node_leave`: no more callbacks, their colliders off), as
+ * Godot frees it at the end of the physics step or process frame it was queued in
+ * (`scene/main/scene_tree.cpp:660`, `:725`) and so never calls or collides it again. It is freed
+ * once the current work is done, as JavaScript defers (a microtask, as `call_deferred` is,
+ * `object.ts`), unless it was freed first. There is no deletion queue of the tree's own. R3F runs
+ * a frame's callbacks, physics steps and draw in one task, so the node is freed after the frame's
+ * draw, where Godot frees it before: it is drawn one more frame.
  *
  * @godot SceneTree.queue_delete
  * @source scene/main/scene_tree.cpp:1638
@@ -332,6 +335,9 @@ export function create_tween(self: SceneTree, creator: object): Tween {
 export function queue_delete(self: SceneTree, object: object): void {
   void self;
   godot_node_set_queued(object);
+  for (const entity of godot_node_leave(object)) {
+    for (const collider of godot_collision_object_colliders(entity)) collider.setEnabled(false);
+  }
   queueMicrotask(() => {
     if (!godot_node_is_freed(object)) godot_node_free(object);
   });

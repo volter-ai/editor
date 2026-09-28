@@ -269,7 +269,9 @@ function ownsTimedChain(project: BoundGodotProject, modulesByPath: ReadonlyMap<s
 /**
  * A script that makes timers or tweens must run on a node or an autoload, whose component steps
  * them (docs/GODOT.md §The emitted game's shape, step 6): one no attached script or autoload has in
- * its chain (a RefCounted or Resource script, an inner helper) is refused by name.
+ * its chain (a RefCounted or Resource script) is refused by name. The check is per module: an
+ * inner class, or a `Class.new()` node, of an attached script is not caught here, and nothing
+ * steps what it makes.
  */
 function unownedTimed(project: BoundGodotProject, modules: readonly OfficialBoundScriptModulePlan[], diagnostics: DirectGodotCompositionDiagnostic[]): void {
   const held = new Set<string>();

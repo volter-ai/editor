@@ -9,7 +9,8 @@
  * the frame (docs/GODOT.md §The lane's law, row 4). A node that hands the renderer something each
  * frame (a WorldEnvironment) does it from its own component too (`useGodotDraw`). The SceneTree
  * advances the same way, from the
- * world's component (`useGodotTree`): its own frames, timers, tweens and deletion queue; and the
+ * world's component (`useGodotTree`): its own frame counts and signals (timers and tweens are their
+ * creators', and a queued deletion JavaScript's deferral, `scene-tree.ts`); and the
  * root Window, a node, from its own (`useGodotRootWindow`): the page's input and its canvas items.
  */
 
@@ -73,9 +74,9 @@ export function useGodotDraw(entity: object | undefined, draw: () => void): void
 
 /**
  * The SceneTree's frames on the host's clock, from the world's component: each Rapier step begins
- * and ends its physics frame, each R3F frame begins and ends its process frame, so timers, tweens
- * and the deletion queue run after the scripts' own hooks, as `SceneTree::physics_process` and
- * `SceneTree::process` run them after the nodes; the process frame's delta is bounded as the
+ * and ends its physics frame, each R3F frame begins and ends its process frame, counting the
+ * frames and emitting `physics_frame`/`process_frame` as `SceneTree::physics_process` and
+ * `SceneTree::process` do; the process frame's delta is bounded as the
  * scripts' is (`processDelta`). Registered from a layout effect, the step's begin is its first
  * callback, and the frame's begin runs first by its priority.
  *

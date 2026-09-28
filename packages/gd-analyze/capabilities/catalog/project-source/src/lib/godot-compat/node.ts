@@ -76,6 +76,8 @@ interface NodeState {
   readyFirst: boolean;
   readyNotified: boolean;
   queued: boolean;
+  /** Queued for deletion, itself or an ancestor: it takes no further part until it is freed. */
+  leaving: boolean;
   freed: boolean;
   process: boolean;
   physicsProcess: boolean;
@@ -140,6 +142,7 @@ function fresh(): NodeState {
     readyFirst: true,
     readyNotified: false,
     queued: false,
+    leaving: false,
     freed: false,
     process: false,
     physicsProcess: false,
@@ -607,7 +610,7 @@ export function godot_node_set_internal_process(entity: object, process: ((delta
  */
 export function godot_node_advance(entity: object, physics: boolean, delta: number): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree || !processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || state.leaving || !processModeAllows(entity, state, false)) return;
   (physics ? state.internalPhysics : state.internalProcess)?.(delta);
 }
 
@@ -1085,8 +1088,8 @@ export function remove_from_group(self: object, group: string): void {
 }
 
 /**
- * Queues the node on its tree's deletion queue, freed at the end of the current physics step or
- * process frame (`SceneTree::queue_delete`, `scene/main/scene_tree.cpp:1638`).
+ * Queues the node for deletion (`SceneTree::queue_delete`, `scene/main/scene_tree.cpp:1638`): it
+ * takes no further part at once and is freed once the current work is done (`scene-tree.ts`).
  *
  * @godot Node.queue_free
  * @source scene/main/node.cpp:3461
@@ -1104,6 +1107,29 @@ export function queue_free(self: object): void {
  */
 export function godot_node_set_queued(object: object): void {
   stateOf(entityOf(object)).queued = true;
+}
+
+/**
+ * A node queued for deletion and its subtree take no further part until they are freed: no more
+ * callbacks or advancing (`godot_node_processes`, `godot_node_advance`), as Godot, which frees
+ * the node at the end of the physics step or process frame it was queued in
+ * (`scene/main/scene_tree.cpp:660`, `:725`), never calls them again. Returns the subtree's nodes.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:660
+ */
+export function godot_node_leave(object: object): readonly object[] {
+  const left: object[] = [];
+  const visit = (entity: object): void => {
+    const state = NODE.get(entity);
+    if (state !== undefined) {
+      state.leaving = true;
+      left.push(entity);
+    }
+    for (const child of (entity as Object3D).children ?? []) visit(child);
+  };
+  visit(entityOf(object));
+  return left;
 }
 
 /**
@@ -1297,7 +1323,7 @@ export function godot_node_processes(script: object | null, kind: 'process' | 'p
   const own = script === null ? undefined : NATIVE_OF_OWNER.get(script);
   const entity = own === undefined ? undefined : entityOf(own);
   const state = entity === undefined ? undefined : NODE.get(entity);
-  if (entity === undefined || state === undefined || !state.insideTree) return false;
+  if (entity === undefined || state === undefined || !state.insideTree || state.leaving) return false;
   return (kind === 'process' ? state.process : state.physicsProcess) && processModeAllows(entity, state, false);
 }
 
