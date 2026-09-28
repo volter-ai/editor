@@ -462,6 +462,43 @@ export function godotSceneSubnodes<Node extends { readonly children: readonly No
   return [...(node.placements ?? []).map((placed) => placed.node), ...node.children];
 }
 
+/** A node of a scene a ref can hold: a node the scene renders, or one of a model's own. */
+export type GodotSceneHeldNode<Node> = { readonly kind: 'node'; readonly node: Node } | { readonly kind: 'model'; readonly holder: string; readonly at: string };
+
+/**
+ * The nodes of a scene a ref can hold, by path: its own tree and what it places under a model's
+ * nodes (not a collision shape, which is its body's collider), and each imported model's own nodes,
+ * which the model's element hands over by their path in the model (`GodotImportedScene`'s `refs`).
+ */
+export function godotSceneHeldNodes<
+  Node extends {
+    readonly nodePath: string;
+    readonly children: readonly Node[];
+    readonly placements?: readonly { readonly node: Node }[];
+    readonly model?: { readonly nodes: readonly { readonly path: string }[] };
+    readonly idiom?: { readonly form: { readonly kind: string } };
+  },
+>(root: Node): ReadonlyMap<string, GodotSceneHeldNode<Node>> {
+  const held = new Map<string, GodotSceneHeldNode<Node>>();
+  // A path a model's node and a placed node both claim is held by neither: which one `get_node`
+  // finds depends on the order the tree mounts them.
+  const claimed = new Set<string>();
+  const claim = (path: string, entry: GodotSceneHeldNode<Node> | undefined): void => {
+    if (claimed.has(path)) held.delete(path);
+    else if (entry !== undefined) held.set(path, entry);
+    claimed.add(path);
+  };
+  const collect = (node: Node): void => {
+    claim(node.nodePath, node.idiom?.form.kind === 'collider' ? undefined : { kind: 'node', node });
+    for (const inner of node.model?.nodes ?? []) {
+      claim(node.nodePath === '.' ? inner.path : `${node.nodePath}/${inner.path}`, { kind: 'model', holder: node.nodePath, at: inner.path });
+    }
+    for (const child of godotSceneSubnodes(node)) collect(child);
+  };
+  collect(root);
+  return held;
+}
+
 export function godotSceneTargetPath(resPath: string): string {
   return targetPath(resPath);
 }

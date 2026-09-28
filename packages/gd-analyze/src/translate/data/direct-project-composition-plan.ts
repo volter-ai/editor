@@ -20,6 +20,7 @@ import { type DirectGodotInputActionPlan, planDirectGodotInputMap } from './inpu
 import type { GodotSceneNodeIdiom } from './scene-node-idioms';
 import {
   type GodotSceneDocumentPlan,
+  godotSceneHeldNodes,
   godotSceneSubnodes,
   type TargetGodotSceneDocumentPlan,
   type TargetGodotSceneNodePlan,
@@ -498,13 +499,9 @@ function validateAttachedScript(
  * or subpath, or into an instanced scene, is not planned.
  */
 function validateNodeReferences(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>, diagnostics: DirectGodotCompositionDiagnostic[]): void {
-  const own = new Set<string>();
-  const collect = (node: DirectGodotSceneNodePlan): void => {
-    own.add(node.nodePath);
-    // An instance's children here are the ones this document places under it.
-    for (const child of node.children) collect(child);
-  };
-  collect(scene.root);
+  // The nodes a ref can hold (an instance's children here are the ones this document places under
+  // it, a model's the ones it places and its own).
+  const own = godotSceneHeldNodes(scene.root);
   const check = (node: DirectGodotSceneNodePlan): void => {
     for (const field of [...(node.scriptInstance?.fields ?? []), ...(node.instanceExports ?? [])]) {
       if (field.value.kind !== 'node-reference') continue;
@@ -515,7 +512,7 @@ function validateNodeReferences(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'
         continue;
       }
       const target = godotResolveNodePath(node.nodePath, path);
-      if (target !== undefined && !own.has(target)) diagnostics.push({ at, message: `a node reference into an instanced scene (${target}) is not planned` });
+      if (target !== undefined && !own.has(target)) diagnostics.push({ at, message: `a node reference to ${target}, which no ref of this scene holds (inside an instanced scene, or a collision shape), is not planned` });
     }
     for (const child of node.children) check(child);
   };

@@ -8,7 +8,7 @@
  */
 import type { DirectGodotSceneDocumentPlan, DirectGodotSceneNodePlan } from './direct-project-composition-plan';
 import { godotResolveNodePath } from './scene-animation';
-import { godotSceneSubnodes } from './scene-document-plan';
+import { godotSceneHeldNodes, godotSceneSubnodes } from './scene-document-plan';
 
 export interface GodotSceneRefsPlan {
   /** The node paths the scene's component holds refs to. */
@@ -17,6 +17,8 @@ export interface GodotSceneRefsPlan {
   readonly rootRef: boolean;
   /** Whether a scene that instances this one overrides its root script's fields. */
   readonly rootExports: boolean;
+  /** The targets that are an imported model's own nodes: the model's node and the path in it. */
+  readonly modelNodes: readonly { readonly nodePath: string; readonly holder: string; readonly at: string }[];
 }
 
 function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): ReadonlySet<string> {
@@ -51,12 +53,21 @@ export function planGodotSceneRefs(scenes: readonly Omit<DirectGodotSceneDocumen
         return (entry.instance?.sourceResPath === scene.sourceResPath && holds(entry, other)) || godotSceneSubnodes(entry).some(visit);
       })(other.root),
     );
-  return scenes.map((scene) => ({
-    ...scene,
-    refs: {
-      targets: [...(targets.get(scene.sourceResPath) ?? [])].sort(),
-      rootRef: instancedBy(scene, (entry, other) => targets.get(other.sourceResPath)?.has(entry.nodePath) === true),
-      rootExports: scene.root.scriptInstance !== undefined && instancedBy(scene, (entry) => (entry.instanceExports?.length ?? 0) > 0),
-    },
-  }));
+  return scenes.map((scene) => {
+    const held = godotSceneHeldNodes(scene.root);
+    const own = [...(targets.get(scene.sourceResPath) ?? [])].sort();
+    const modelNodes = own.flatMap((nodePath) => {
+      const entry = held.get(nodePath);
+      return entry?.kind === 'model' ? [{ nodePath, holder: entry.holder, at: entry.at }] : [];
+    });
+    return {
+      ...scene,
+      refs: {
+        targets: own,
+        modelNodes,
+        rootRef: instancedBy(scene, (entry, other) => targets.get(other.sourceResPath)?.has(entry.nodePath) === true),
+        rootExports: scene.root.scriptInstance !== undefined && instancedBy(scene, (entry) => (entry.instanceExports?.length ?? 0) > 0),
+      },
+    };
+  });
 }

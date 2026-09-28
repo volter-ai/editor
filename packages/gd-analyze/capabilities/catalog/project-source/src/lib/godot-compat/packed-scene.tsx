@@ -34,7 +34,7 @@
 
 import { godot_geometry_instance_3d_mount } from './geometry-instance-3d';
 import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber';
-import { createContext, createElement, type ReactNode, type Ref, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
+import { createContext, createElement, type ReactNode, type Ref, type RefObject, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
 import { type BufferGeometry, Group, type Material, type Mesh, type Object3D, Texture } from 'three';
 import { type GLTF, GLTFLoader, type GLTFLoaderPlugin } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -364,6 +364,7 @@ export function GodotImportedScene({
   overrides = {},
   images,
   materials,
+  refs,
   children,
   ref,
   ...props
@@ -378,6 +379,8 @@ export function GodotImportedScene({
   readonly images?: Readonly<Record<number, Texture>>;
   /** The importer's external materials: the project's material for each of the file's, by name. */
   readonly materials?: Readonly<Record<string, Material>>;
+  /** The instancing scene's refs to the model's own nodes, by their path in the model, set as the tree mounts. */
+  readonly refs?: Readonly<Record<string, RefObject<Object3D | null>>>;
   readonly children?: ReactNode;
 }) {
   const gltf = useLoader(loaderOf(model, images), src);
@@ -447,6 +450,12 @@ export function GodotImportedScene({
         if (library !== undefined) godot_animation_mixer_set_library(member, '', library);
       }
     }
+    // The instancing scene's refs to the model's nodes, before any of its effects reads them.
+    for (const [at, held] of Object.entries(refs ?? {})) {
+      const member = tree.byPath.get(at);
+      if (member === undefined) throw new Error(`godot-compat: the imported tree has no node ${at}`);
+      (held as { current: Object3D | null }).current = member;
+    }
     // A skeleton's bones are the loader's joint objects, in Godot's bone order.
     for (const node of nodes) {
       if (node.bones === undefined) continue;
@@ -472,6 +481,9 @@ export function GodotImportedScene({
     }
     return () => {
       for (const child of tree.depthOne) entity.remove(child);
+      // The scene's refs hold this tree's nodes only while it is mounted. A script's fields read
+      // them once, so they rely on the tree staying the one built for the model (`LOADERS`).
+      for (const held of Object.values(refs ?? {})) (held as { current: Object3D | null }).current = null;
     };
   }, [tree, nodes, rootClasses]);
   return createElement(

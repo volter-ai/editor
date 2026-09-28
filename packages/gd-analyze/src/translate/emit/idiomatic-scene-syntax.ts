@@ -611,9 +611,37 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
               })),
             }),
           ]),
+      ...modelRefs(emission, node),
     ],
     [...node.children.map((child) => nodeElement(emission, child)), ...placements],
   );
+}
+
+/**
+ * The refs the scene holds to a model's own nodes (`refs.modelNodes`), which the model's element
+ * sets from the tree it builds: `refs={{ "Skeleton/RayFloor": rayFloor }}`.
+ */
+function modelRefs(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxAttribute[] {
+  const held = emission.scene.refs.modelNodes.filter((entry) => entry.holder === node.nodePath);
+  if (held.length === 0) return [];
+  emission.three.add('Object3D');
+  const properties = held.map((entry) => {
+    const refName = refLocal(emission, entry.nodePath, entry.at.slice(entry.at.lastIndexOf('/') + 1));
+    emission.refTypes.set(entry.nodePath, 'Object3D');
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: refName,
+      initializer: {
+        kind: 'call-expression',
+        callee: { kind: 'identifier-expression', name: 'useRef' },
+        typeArguments: [{ kind: 'type-reference', name: 'Object3D', arguments: [] }],
+        arguments: [{ kind: 'literal-expression', value: null }],
+      },
+    });
+    return { key: entry.at, value: { kind: 'identifier-expression' as const, name: refName } };
+  });
+  return [attribute('refs', { kind: 'object-expression', properties })];
 }
 
 function sameSetter(left: TargetGodotSceneSetterPlan, right: TargetGodotSceneSetterPlan): boolean {

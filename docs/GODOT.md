@@ -332,17 +332,19 @@ emitter prints:
    Landed for `$Path`, `%Unique` and `get_node("literal")` on self (`script-node-paths.ts`,
    planned from the scene documents before lowering, which reads the plan): a path every node
    running the script (its own or a subclass's) resolves to a node of that node's own scene is a
-   `$Path` field, declared as the type its reads state, handed over by `useGodotNodeReferences` as an
-   authored node reference is, and the code reads `this.$Path`. The plan records what each node
+   `$Path` field, declared as the type its reads state, handed over by `useGodotNodeReferences`
+   as an authored node reference is, and the code reads `this.$Path`. The plan records what each node
    running a script is handed, and composition hands exactly that. The scene hands a script's
    node fields (`useGodotNodeReferences`) after every one of its `useGodotScript`s, so its effect
    runs once the scene's scripts and its instanced scenes' are attached, and a scripted node's
    field is its script instance, as `get_node` finds it. Authored node references are handed the
    same way, an instancing scene's overrides of an instance root's by the instancing scene, after
-   the instance's own and its own scripts. Still looked up: a path
-   into an imported model's own nodes or what a scene places under them, a collision shape (its
-   body's collider), `%Name` from a node that instances a scene (its own scene's unique names come
-   first), `get_node_or_null` (called for a node that may be gone), a field name lowering
+   the instance's own and its own scripts. A node the scene places under an imported model's
+   node is one of its own; a model's own node is held by the model's element, which sets the
+   scene's ref to it as it builds the model's tree (`GodotImportedScene`'s `refs`). Still looked
+   up: a path into an instanced scene's own nodes, a collision shape (its body's collider),
+   `%Name` from a node that instances a scene (its own scene's unique names come first),
+   `get_node_or_null` (called for a node that may be gone), a field name lowering
    generates, and every path of a script something runs outside a scene (an autoload of the bare
    script, a `new()` of it; every script when code stores a node's script or makes an instance
    of a script it does not know). Differences from Godot: the field is the node the

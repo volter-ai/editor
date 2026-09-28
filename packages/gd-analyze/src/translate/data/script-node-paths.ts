@@ -7,15 +7,15 @@
  * A path becomes a field when every node that runs the script (its own or a subclass's) resolves it
  * to a node of that node's own scene that a ref can hold: the scene's component holds a ref to it
  * and hands it over as it hands an authored node reference (`useGodotScript`). A path computed at
- * run time, one leaving the scene (above its root, absolute, into an instanced scene's or a model's
- * own nodes), one with a property subpath, and every path of a script something runs outside a
+ * run time, one leaving the scene (above its root, absolute, into an instanced scene's own nodes),
+ * a collision shape (its body's collider), one with a property subpath, and every path of a script something runs outside a
  * scene (an autoload of the bare script, `Class.new()`, `set_script`) keep the tree lookup.
  */
 
 import type { BoundGodotProject } from '../../analyze/bound-project';
 import { godotSelfNodePath } from '../../analyze/self-node-paths';
 import { godotResolveNodePath } from './scene-animation';
-import { godotSceneSubnodes, type TargetGodotSceneDocumentPlan, type TargetGodotSceneNodePlan } from './scene-document-plan';
+import { type GodotSceneHeldNode, godotSceneHeldNodes, godotSceneSubnodes, type TargetGodotSceneDocumentPlan, type TargetGodotSceneNodePlan } from './scene-document-plan';
 
 /** A static path a script reads and the field its scene hands it in. */
 export interface GodotScriptNodePath {
@@ -43,8 +43,8 @@ export const EMPTY_SCRIPT_NODE_PATHS: GodotScriptNodePathsPlan = { scripts: new 
 interface Site {
   readonly scene: TargetGodotSceneDocumentPlan;
   readonly node: TargetGodotSceneNodePlan;
-  /** The scene's nodes a ref can hold (`heldNodes`). */
-  readonly nodes: ReadonlyMap<string, TargetGodotSceneNodePlan>;
+  /** The scene's nodes a ref can hold (`godotSceneHeldNodes`). */
+  readonly nodes: ReadonlyMap<string, GodotSceneHeldNode<TargetGodotSceneNodePlan>>;
 }
 
 /**
@@ -60,19 +60,6 @@ function fieldName(path: string): string | undefined {
   return GENERATED_MEMBER.test(name) ? undefined : name;
 }
 
-/**
- * The scene's nodes a ref can hold: its own tree (not what it places under a model's nodes, which
- * a node reference does not reach yet), and not a collision shape, which is its body's collider.
- */
-function heldNodes(scene: TargetGodotSceneDocumentPlan): ReadonlyMap<string, TargetGodotSceneNodePlan> {
-  const nodes = new Map<string, TargetGodotSceneNodePlan>();
-  (function collect(node: TargetGodotSceneNodePlan): void {
-    if (node.idiom?.form.kind !== 'collider') nodes.set(node.nodePath, node);
-    for (const child of node.children) collect(child);
-  })(scene.root);
-  return nodes;
-}
-
 function sceneNodes(scene: TargetGodotSceneDocumentPlan): readonly TargetGodotSceneNodePlan[] {
   const nodes: TargetGodotSceneNodePlan[] = [];
   (function collect(node: TargetGodotSceneNodePlan): void {
@@ -86,11 +73,11 @@ function sceneNodes(scene: TargetGodotSceneDocumentPlan): readonly TargetGodotSc
 function resolve(site: Site, path: string): string | undefined {
   if (path.includes(':')) return undefined;
   if (path.startsWith('%')) {
-    // `%Name`: the node of the scene marked unique with that name. A node that is an instance
-    // looks in the scene it instances first (`Node::get_node`, its owned unique nodes), which this
-    // scene does not hold.
-    if (path.includes('/') || site.node.instance !== undefined) return undefined;
-    const matches = [...site.nodes.values()].filter((node) => node.unique === true && node.name === path.slice(1));
+    // `%Name`: the node of the scene marked unique with that name. A node that is an instance or
+    // a model looks in the scene it instances first (`Node::get_node`, its owned unique nodes),
+    // which this scene does not hold.
+    if (path.includes('/') || site.node.instance !== undefined || site.node.model !== undefined) return undefined;
+    const matches = [...site.nodes.values()].flatMap((held) => (held.kind === 'node' && held.node.unique === true && held.node.name === path.slice(1) ? [held.node] : []));
     return matches.length === 1 ? matches[0]?.nodePath : undefined;
   }
   const target = godotResolveNodePath(site.node.nodePath, path);
@@ -150,7 +137,7 @@ export function planGodotScriptNodePaths(project: BoundGodotProject, scenes: rea
   // A script runs where it or a subclass is attached.
   const sites: Site[] = [];
   for (const scene of scenes) {
-    const nodes = heldNodes(scene);
+    const nodes = godotSceneHeldNodes(scene.root);
     for (const node of sceneNodes(scene)) if (node.scriptResPath !== undefined) sites.push({ scene, node, nodes });
   }
   const outside = scriptsOutsideScenes(project);
