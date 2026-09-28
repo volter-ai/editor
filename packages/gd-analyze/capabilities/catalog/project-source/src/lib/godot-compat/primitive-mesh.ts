@@ -235,32 +235,69 @@ export function get_flip_faces(self: PrimitiveMesh): boolean {
 /** The geometry each primitive mesh resource is drawn with, shared by every node that draws it. */
 const GEOMETRY = new WeakMap<PrimitiveMesh, BufferGeometry>();
 
-/** An attribute holding `values`: the current one refilled when it is the same length, else a new one. */
-function attribute(geometry: BufferGeometry, name: string, values: Float32Array, size: number): void {
-  const current = geometry.getAttribute(name) as BufferAttribute | undefined;
-  if (current !== undefined && current.itemSize === size && current.array.length === values.length) {
-    (current.array as Float32Array).set(values);
-    current.needsUpdate = true;
-    return;
-  }
-  geometry.setAttribute(name, new BufferAttribute(values, size));
+/** Whether `current` can be refilled with `values` in place: same array type, length and item size. */
+function refillable(current: BufferAttribute | null | undefined, values: Float32Array | Uint16Array | Uint32Array, size: number): current is BufferAttribute {
+  return (
+    current !== null &&
+    current !== undefined &&
+    current.itemSize === size &&
+    current.array.length === values.length &&
+    current.array.constructor === values.constructor
+  );
 }
 
-/** A geometry's data made the stored surface's, in place: whatever draws the geometry draws the new surface. */
+/**
+ * A geometry's data made the stored surface's, in place: whatever draws the geometry draws the new
+ * surface. Where every array keeps its length, each buffer is refilled and re-uploaded
+ * (`needsUpdate`). Where the layout changes, the geometry's GL buffers are released first
+ * (`dispose()`, which three answers by deleting them and uploading the new ones on the next draw),
+ * as replacing an attribute alone would leave its old buffer allocated.
+ */
 function fill(geometry: BufferGeometry, stored: PrimitiveMeshArrays): BufferGeometry {
-  attribute(geometry, 'position', new Float32Array(stored.vertices.flatMap((v) => [v.x, v.y, v.z])), 3);
-  attribute(geometry, 'normal', new Float32Array(stored.normals.flatMap((v) => [v.x, v.y, v.z])), 3);
-  attribute(geometry, 'tangent', new Float32Array(stored.tangents), 4);
-  attribute(geometry, 'uv', new Float32Array(stored.uvs.flatMap((v) => [v.x, v.y])), 2);
-  const index: number[] = [];
-  for (let i = 0; i + 2 < stored.indices.length; i += 3) {
-    index.push(stored.indices[i] as number, stored.indices[i + 2] as number, stored.indices[i + 1] as number);
+  const arrays: readonly (readonly [string, Float32Array, number])[] = [
+    ['position', new Float32Array(stored.vertices.flatMap((v) => [v.x, v.y, v.z])), 3],
+    ['normal', new Float32Array(stored.normals.flatMap((v) => [v.x, v.y, v.z])), 3],
+    ['tangent', new Float32Array(stored.tangents), 4],
+    ['uv', new Float32Array(stored.uvs.flatMap((v) => [v.x, v.y])), 2],
+  ];
+  const count = stored.indices.length - (stored.indices.length % 3);
+  const index = stored.vertices.length > 65535 ? new Uint32Array(count) : new Uint16Array(count);
+  for (let i = 0; i < count; i += 3) {
+    index[i] = stored.indices[i] as number;
+    index[i + 1] = stored.indices[i + 2] as number;
+    index[i + 2] = stored.indices[i + 1] as number;
   }
-  geometry.setIndex(index);
+  const inPlace =
+    refillable(geometry.getIndex(), index, 1) &&
+    arrays.every(([name, values, size]) => refillable(geometry.getAttribute(name) as BufferAttribute | undefined, values, size));
+  if (inPlace) {
+    for (const [name, values] of arrays) {
+      const current = geometry.getAttribute(name) as BufferAttribute;
+      (current.array as Float32Array).set(values);
+      current.needsUpdate = true;
+    }
+    const current = geometry.getIndex() as BufferAttribute;
+    (current.array as Uint16Array | Uint32Array).set(index);
+    current.needsUpdate = true;
+  } else {
+    geometry.dispose();
+    for (const [name, values, size] of arrays) geometry.setAttribute(name, new BufferAttribute(values, size));
+    geometry.setIndex(new BufferAttribute(index, 1));
+  }
   geometry.clearGroups();
   geometry.boundingBox = null;
   geometry.boundingSphere = null;
   return geometry;
+}
+
+/** Resources whose drawn geometry awaits its rebuild. */
+const PENDING = new Set<PrimitiveMesh>();
+
+/** Rebuilds a pending resource's geometry now. */
+function update(self: PrimitiveMesh): void {
+  if (!PENDING.delete(self)) return;
+  const geometry = GEOMETRY.get(self);
+  if (geometry !== undefined) fill(geometry, storedSurface(self));
 }
 
 /**
@@ -275,6 +312,7 @@ function fill(geometry: BufferGeometry, stored: PrimitiveMeshArrays): BufferGeom
  * @source servers/rendering/rendering_server.cpp:1511
  */
 export function godot_primitive_mesh_geometry(self: PrimitiveMesh): BufferGeometry {
+  update(self);
   let geometry = GEOMETRY.get(self);
   if (geometry === undefined) {
     geometry = fill(new BufferGeometry(), storedSurface(self));
@@ -285,16 +323,21 @@ export function godot_primitive_mesh_geometry(self: PrimitiveMesh): BufferGeomet
 
 /**
  * A primitive mesh's property changed: its drawn geometry, where it has one, is rebuilt in place
- * (`request_update` then `_update`, `primitive_meshes.cpp:51`, which replace the surface on the
- * mesh's one RID), so every node drawing the resource draws the new surface. Each setter of a
- * property its builder reads calls this.
+ * (`_update`, `primitive_meshes.cpp:51`, which replaces the surface on the mesh's one RID), so
+ * every node drawing the resource draws the new surface. Each setter of a property its builder
+ * reads calls this. As Godot's `request_update` defers `_update` and runs it once for every change
+ * before it (`call_deferred`), the rebuild waits for the end of the running script code (a
+ * microtask), before the next frame draws, and runs once however many setters ran; taking the
+ * geometry (`godot_primitive_mesh_geometry`) rebuilds a pending one first, as Godot's readers
+ * call `_update` when a request is pending.
  *
  * @godot PrimitiveMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:139
  */
 export function godot_primitive_mesh_changed(self: PrimitiveMesh): void {
-  const geometry = GEOMETRY.get(self);
-  if (geometry !== undefined) fill(geometry, storedSurface(self));
+  if (!GEOMETRY.has(self) || PENDING.has(self)) return;
+  PENDING.add(self);
+  queueMicrotask(() => update(self));
 }
 
 /**
@@ -323,7 +366,10 @@ const UV_TOP = new WeakSet<object>();
  * then lay the image as Godot's do. The cylinder does not: Godot puts its side in the image's top
  * half (`v * 0.5`) and its caps in the bottom half (the top cap a circle about (0.25, 0.75), the
  * bottom one about (0.75, 0.75)), where three's side spans the whole image and each cap samples the
- * whole image about its centre. Only the side's direction, top row at the top, is Godot's.
+ * whole image about its centre. Only the side's direction, top row at the top, is Godot's. That
+ * lasts only while the scene's geometry is three's: once a setter of a CylinderMesh read back from
+ * it changes the resource (`godot_primitive_mesh_changed`), the geometry is rebuilt from Godot's
+ * builder and has Godot's layout.
  *
  * @godot PrimitiveMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:1478

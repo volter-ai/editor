@@ -8,9 +8,26 @@
  * (`mesh.ts`, an `ArrayMesh`'s), shared by every instance of that resource, drawn as one geometry
  * with a group per surface; each surface's material is its override, else the mesh's own, else the
  * Compatibility renderer's default material (`rasterizer_scene_gles3.cpp:4624`: albedo 0.6,
- * roughness 0.8, metallic 0.2). A scene's `<mesh>` reads its surface materials back as its
- * overrides (three does not tell an override from the mesh's own material), and its mesh resource
- * back from its three primitive geometry the first time it is asked for, drawn with that geometry.
+ * roughness 0.8, metallic 0.2).
+ *
+ * A scene's `<mesh>` reads its mesh resource back from its three primitive geometry the first time
+ * it is asked for (`get_mesh`, `set_mesh`, the surface overrides), drawn with that geometry, and the
+ * material the scene draws it with back as that resource's own material (`PrimitiveMesh.material`);
+ * its surface override stays empty. Until then, and for a mesh with no primitive form, the scene's
+ * surface materials stand as its overrides.
+ *
+ * Known gaps, both in what the scene states rather than in this module:
+ * - The scene's material for a surface is its override, else the mesh's own, collapsed into one
+ *   three material, so an authored surface override that differs from the mesh's material reads
+ *   back as the mesh's material (the first node read back sets it; a later node sharing the mesh
+ *   whose material differs keeps its own as an override). A surface with neither reads back a
+ *   default-grey StandardMaterial3D where Godot's `mesh.material` is null; it draws the same.
+ *   Telling the three apart needs the plan to stamp which slot each surface's material came from.
+ * - Nodes share a read-back resource only where they share a three geometry, and the scene
+ *   declares one shared geometry only for a mesh several of its nodes draw; a mesh one node of a
+ *   scene draws is that element's own geometry. So two instances of a scene (two `coin.tscn`s)
+ *   read back two SphereMesh resources where Godot shares the scene's one sub-resource, and a
+ *   setter on one changes only that instance.
  */
 
 import { BufferAttribute, BufferGeometry, CylinderGeometry, type Material, type Mesh, PlaneGeometry, SphereGeometry } from 'three';
@@ -97,26 +114,38 @@ const READ = new WeakMap<BufferGeometry, PrimitiveMesh>();
 /**
  * The mesh resource a scene's three primitive geometry draws, read back from it (as a collision
  * shape reads its shape from its collider), or undefined for a geometry with no primitive form (an
- * ArrayMesh's `bufferGeometry`), whose resource is not read back.
+ * ArrayMesh's `bufferGeometry`), whose resource is not read back. A resource read back for the
+ * first time takes `material`, the Godot material of the first node's scene material, as its own.
  */
-function sceneMesh(geometry: BufferGeometry): PrimitiveMesh | undefined {
+function sceneMesh(geometry: BufferGeometry, material: BaseMaterial3D | null): PrimitiveMesh | undefined {
   let mesh = READ.get(geometry);
   if (mesh !== undefined) return mesh;
   if (geometry instanceof PlaneGeometry) mesh = godot_plane_mesh_of(geometry);
   else if (geometry instanceof SphereGeometry) mesh = godot_sphere_mesh_of(geometry);
   else if (geometry instanceof CylinderGeometry) mesh = godot_cylinder_mesh_of(geometry);
-  if (mesh !== undefined) READ.set(geometry, mesh);
+  if (mesh === undefined) return undefined;
+  mesh.material = material;
+  READ.set(geometry, mesh);
   return mesh;
 }
 
-/** A scene's `<mesh>` takes the resource its geometry draws, where one can be read back. */
+/**
+ * A scene's `<mesh>` takes the resource its geometry draws, where one can be read back: its scene
+ * material is the resource's own material, and its override is empty unless its material differs
+ * from the resource's (a node sharing a mesh another node read back first).
+ */
 function readBack(state: MeshInstanceState): void {
   if (state.unread === undefined) return;
-  const mesh = sceneMesh(state.unread);
+  const drawn = state.overrides[0] ?? null;
+  const mesh = sceneMesh(state.unread, drawn);
   if (mesh === undefined) return;
   state.mesh = mesh;
   state.unread = undefined;
+  state.overrides = [drawn === mesh.material ? null : drawn];
 }
+
+/** The geometry a mesh instance without a mesh draws: nothing, with its node and children left as they are. */
+const NOTHING = new BufferGeometry().setAttribute('position', new BufferAttribute(new Float32Array(0), 3));
 
 function draw(self: Mesh, state: MeshInstanceState): void {
   if (state.unread !== undefined) {
@@ -126,7 +155,9 @@ function draw(self: Mesh, state: MeshInstanceState): void {
     return;
   }
   if (state.mesh === null) {
-    self.visible = false;
+    // Godot's `set_base(RID())` stops only this instance's drawing: its visibility, and its
+    // children's drawing, are untouched, so the node draws an empty geometry rather than hiding.
+    self.geometry = NOTHING;
     return;
   }
   const surfaces = godot_mesh_surfaces(state.mesh);
@@ -142,7 +173,6 @@ function draw(self: Mesh, state: MeshInstanceState): void {
     return chosen === null ? defaultMaterial() : godot_base_material_3d_three(chosen);
   });
   self.material = materials.length === 1 ? (materials[0] as Material) : materials;
-  self.visible = true;
 }
 
 /**
@@ -182,6 +212,7 @@ export function get_mesh(self: Mesh): MeshResource | null {
  */
 export function set_surface_override_material(self: Mesh, surface: number, material: BaseMaterial3D | null): void {
   const state = stateOf(self);
+  readBack(state);
   if (surface < 0 || surface >= state.overrides.length) return;
   state.overrides[surface] = material;
   draw(self, state);
@@ -193,6 +224,7 @@ export function set_surface_override_material(self: Mesh, surface: number, mater
  */
 export function get_surface_override_material(self: Mesh, surface: number): BaseMaterial3D | null {
   const state = stateOf(self);
+  readBack(state);
   if (surface < 0 || surface >= state.overrides.length) return null;
   return state.overrides[surface] ?? null;
 }
