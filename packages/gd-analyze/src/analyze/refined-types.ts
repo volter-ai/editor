@@ -26,11 +26,19 @@
  *
  * - `local-assignment-type`: an untyped local declared once in its function, whose initializer and
  *   every value assigned to it there have one built-in type, holds that type (GDScript's Variant
- *   local holds what it was last assigned).
+ *   local holds what it was last assigned). One assigned ints and floats, every read of it compared
+ *   or combined by `+ - *` with a float, holds the float: those read an int as its equal float.
+ *
+ * - `iterated-element-type`: the variable of a `for` over an array literal whose elements have one
+ *   datatype holds that datatype (`OPCODE_ITERATE` assigns each element in turn, gdscript_vm.cpp).
  *
  * - `engine-virtual-parameter`, `signal-handler-parameter`, `call-site-parameter`: a read of an
  *   untyped parameter is the one datatype every caller of its function passes
  *   (`parameter-types.ts`), assigned nowhere in the function.
+ *
+ * - `container-element-type`, `record-field-type`: an element read out of an untyped member Array
+ *   or Dictionary whose every stored value the program shows is that value's datatype, and a key
+ *   read out of a record-shaped element is that key's (`container-types.ts`).
  *
  * Lowering reads the program with these datatypes in place (`refinedProgram`); a node no rule
  * fixes keeps the analyzer's datatype.
@@ -40,6 +48,7 @@ import type { GodotProject, SceneNode } from '../read/godot-types';
 import type { GodotApiDump } from './api-dump';
 import { type CallReceiverAttachment, resolveScenePath } from './call-receivers';
 import type { ParameterType } from './parameter-types';
+import { type ContainerProjectIndex, type ContainerRuleId, containerTypes } from './container-types';
 import { OPERATOR_SPELLING } from './project-setting-types';
 
 /** The analysis rules that fix a datatype the official analyzer left open. */
@@ -54,7 +63,9 @@ export type GodotAnalysisRuleId =
   | 'script-method-dispatch'
   | 'member-assignment-type'
   | 'utility-argument-type'
-  | 'local-assignment-type';
+  | 'local-assignment-type'
+  | 'iterated-element-type'
+  | ContainerRuleId;
 
 /** The utility functions whose Variant result has their value arguments' type (`utility-argument-type`). */
 const UTILITY_ARGUMENT_TYPED: ReadonlySet<string> = new Set(['abs', 'sign', 'floor', 'ceil', 'round', 'clamp', 'lerp', 'snapped', 'wrap', 'min', 'max']);
@@ -99,6 +110,8 @@ export interface RefineInputs {
   readonly memberType?: (name: string) => GodotBoundDatatype | undefined;
   /** What a function of a script's chain returns (its declared or inferred datatype). */
   readonly scriptFunctionReturn?: (resPath: string, fn: string) => GodotBoundDatatype | undefined;
+  /** The project facts `container-types.ts` needs to type an untyped member's elements. */
+  readonly containers?: ContainerProjectIndex;
   /** Why an expression a rule would type stayed untyped, named for the refusal that follows. */
   readonly untyped?: (nodeId: number, reason: string) => void;
 }
@@ -183,6 +196,10 @@ const RAY_RESULT_KEYS: Readonly<Record<string, string>> = {
 const OP_AND = 20;
 const OP_OR = 21;
 const OP_NOT = 23;
+// `Variant::Operator` (core/variant/variant.h): OP_EQUAL through OP_GREATER_EQUAL, then OP_ADD,
+// OP_SUBTRACT and OP_MULTIPLY.
+const COMPARISON_OPERATORS: ReadonlySet<number> = new Set([0, 1, 2, 3, 4, 5]);
+const FLOAT_KEEPING_OPERATORS: ReadonlySet<number> = new Set([6, 7, 8]);
 
 export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefinedType[] {
   const program = inputs.program;
@@ -335,9 +352,18 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
    * The one built-in type an untyped local holds: declared once in the function that reads it, its
    * initializer and every value assigned to it there (plain or compound) of that type.
    */
+  const heldTypes = new Map<string, GodotBoundDatatype | undefined>();
   const localAssignedType = (node: Extract<GodotBoundNode, { kind: 'IDENTIFIER' }>): GodotBoundDatatype | undefined => {
     const scope = program.nodes.find((candidate) => candidate.kind === 'FUNCTION' && within(node, candidate));
     if (scope === undefined) return undefined;
+    const key = `${String(scope.id)}\0${node.name}`;
+    if (!heldTypes.has(key)) {
+      heldTypes.set(key, undefined);
+      heldTypes.set(key, localHeldType(node, scope));
+    }
+    return heldTypes.get(key);
+  };
+  const localHeldType = (node: Extract<GodotBoundNode, { kind: 'IDENTIFIER' }>, scope: GodotBoundNode): GodotBoundDatatype | undefined => {
     const named = (id: number): boolean => {
       const identifier = nodes.get(id);
       return identifier?.kind === 'IDENTIFIER' && identifier.name === node.name;
@@ -356,14 +382,83 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         return [candidate.operation === 'OP_NONE' ? candidate.assignedValue : candidate.id];
       }),
     ];
-    let held: string | undefined;
-    for (const value of values) {
+    // A ternary's value is one of its branches'.
+    const branches = (id: number): number[] => {
+      const value = nodes.get(id);
+      return value?.kind === 'TERNARY_OPERATOR' ? [...branches(value.trueExpression), ...branches(value.falseExpression)] : [id];
+    };
+    const held = new Set<string>();
+    for (const value of values.flatMap(branches)) {
       const type = datatypeOf(value);
       const name = type?.kind === 'BUILTIN' && !type.metaType ? type.builtinType : undefined;
-      if (name === undefined || name === 'Nil' || (held !== undefined && held !== name)) return undefined;
-      held = name;
+      if (name === undefined || name === 'Nil') return undefined;
+      held.add(name);
     }
-    return held === undefined ? undefined : builtinDatatype(held);
+    if (held.size === 1) return builtinDatatype([...held][0] as string);
+    // An int and a float of equal value read alike where every read is compared, or combined by
+    // `+ - *` with a float (Variant's operators convert the int, core/variant/variant_op.h), so
+    // the local holds the float (`sign(x)` then `1`: every value it is read as is the float's).
+    if (held.size !== 2 || !held.has('int') || !held.has('float')) return undefined;
+    const assignees = new Set(program.nodes.flatMap((other) => (other.kind === 'ASSIGNMENT' ? [other.assignee] : [])));
+    const reads = program.nodes.filter(
+      (candidate) =>
+        candidate.kind === 'IDENTIFIER' &&
+        candidate.name === node.name &&
+        candidate.source === 'LOCAL_VARIABLE' &&
+        within(candidate, scope) &&
+        !assignees.has(candidate.id),
+    );
+    const agnostic = reads.every((read) => {
+      const owner = program.nodes.find((candidate) => candidate.kind === 'BINARY_OPERATOR' && (candidate.leftOperand === read.id || candidate.rightOperand === read.id));
+      if (owner?.kind !== 'BINARY_OPERATOR') return false;
+      const other = datatypeOf(owner.leftOperand === read.id ? owner.rightOperand : owner.leftOperand);
+      const otherType = other?.kind === 'BUILTIN' && !other.metaType ? other.builtinType : undefined;
+      if (COMPARISON_OPERATORS.has(owner.variantOperatorId)) return otherType === 'int' || otherType === 'float';
+      return FLOAT_KEEPING_OPERATORS.has(owner.variantOperatorId) && otherType === 'float';
+    });
+    return agnostic ? builtinDatatype('float') : undefined;
+  };
+
+  /** The untyped local a value is stored into (`var name = value`, `name = value`), as a read of it. */
+  const heldLocalOf = (valueId: number): Extract<GodotBoundNode, { kind: 'IDENTIFIER' }> | undefined => {
+    for (const candidate of program.nodes) {
+      if (candidate.kind === 'ASSIGNMENT' && candidate.operation === 'OP_NONE' && candidate.assignedValue === valueId) {
+        const assignee = nodes.get(candidate.assignee);
+        return assignee?.kind === 'IDENTIFIER' && assignee.source === 'LOCAL_VARIABLE' ? assignee : undefined;
+      }
+      if (candidate.kind === 'VARIABLE' && candidate.initializer === valueId) {
+        const identifier = nodes.get(candidate.identifier);
+        return identifier?.kind === 'IDENTIFIER' ? identifier : undefined;
+      }
+    }
+    return undefined;
+  };
+
+  /**
+   * The one datatype of the elements of the array literal a `for` iterates, for its variable, never
+   * assigned in the loop (`for wheel in [wheel_fl, wheel_fr]`: each pass holds one element).
+   */
+  const iteratedElementType = (node: Extract<GodotBoundNode, { kind: 'IDENTIFIER' }>): GodotBoundDatatype | undefined => {
+    const loop = program.nodes.find((candidate) => {
+      if (candidate.kind !== 'FOR' || !within(node, candidate)) return false;
+      const variable = nodes.get(candidate.variable);
+      return variable?.kind === 'IDENTIFIER' && variable.name === node.name;
+    });
+    if (loop?.kind !== 'FOR') return undefined;
+    const list = nodes.get(loop.list);
+    if (list?.kind !== 'ARRAY' || list.elements.length === 0) return undefined;
+    const assigned = program.nodes.some((other) => {
+      if (other.kind !== 'ASSIGNMENT' || !within(other, loop)) return false;
+      const assignee = nodes.get(other.assignee);
+      return assignee?.kind === 'IDENTIFIER' && assignee.name === node.name;
+    });
+    if (assigned) return undefined;
+    const types = list.elements.map((element) => datatypeOf(element));
+    const first = types[0];
+    if (first === undefined || first.metaType || (first.kind !== 'NATIVE' && first.kind !== 'BUILTIN' && first.kind !== 'CLASS')) return undefined;
+    const same = (type: GodotBoundDatatype | undefined) =>
+      type !== undefined && !type.metaType && type.kind === first.kind && type.builtinType === first.builtinType && type.nativeType === first.nativeType && type.scriptPath === first.scriptPath;
+    return types.every(same) ? first : undefined;
   };
 
   /**
@@ -406,6 +501,10 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
    * statically (through an `as` cast), it has no setter and is not exported (an authored value is
    * replaced as the node becomes ready), and no script assigns it again.
    */
+  const isClassMember = (id: number): boolean => {
+    const root = nodes.get(program.rootNodeId);
+    return root?.kind === 'CLASS' && root.members.includes(id);
+  };
   const onready = new Map<string, string | undefined>();
   const onreadyPath = (name: string): string | undefined => {
     if (onready.has(name)) return onready.get(name);
@@ -553,6 +652,11 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     return reassigned ? undefined : inputs.parameterType(fnIdentifier.name, node.name);
   };
 
+  const container =
+    inputs.containers === undefined
+      ? undefined
+      : containerTypes({ program, index: inputs.containers, datatypeOf, refinedOf: (id) => refine(id)?.datatype });
+
   function refine(id: number): BoundGodotRefinedType | undefined {
     if (refined.has(id)) return refined.get(id) ?? undefined;
     refined.set(id, null);
@@ -604,6 +708,12 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       if (type !== undefined && (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType)))) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
+    } else if (node?.kind === 'VARIABLE' && node.datatype.kind === 'VARIANT' && isClassMember(node.id)) {
+      // An untyped `@onready` member is declared as the node it holds, as its reads are.
+      const identifier = nodes.get(node.identifier);
+      const path = identifier?.kind === 'IDENTIFIER' ? onreadyPath(identifier.name) : undefined;
+      const type = path === undefined ? undefined : sceneNode(path);
+      if (type !== undefined) result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
     } else if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE' && node.datatype.kind === 'NATIVE' && !node.datatype.metaType && exportedDeclaration(node.name)) {
       // An exported node reference holds the node every attached scene's NodePath names.
       const own = node.datatype;
@@ -681,6 +791,16 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       } else if (node.source === 'LOCAL_VARIABLE' && node.datatype.kind === 'VARIANT') {
         const held = localAssignedType(node);
         if (held !== undefined) result = { datatype: held, rule: 'local-assignment-type' };
+      } else if (node.source === 'LOCAL_ITERATOR' && node.datatype.kind === 'VARIANT') {
+        const element = iteratedElementType(node);
+        if (element !== undefined) result = { datatype: element, rule: 'iterated-element-type' };
+      }
+    } else if (node?.kind === 'TERNARY_OPERATOR' && node.datatype.kind === 'VARIANT') {
+      // A ternary of an int and a float stored into a local that holds the float (above).
+      const holder = heldLocalOf(node.id);
+      if (holder !== undefined && localAssignedType(holder)?.builtinType === 'float') {
+        const branchTypes = new Set([datatypeOf(node.trueExpression), datatypeOf(node.falseExpression)].map((type) => (type?.kind === 'BUILTIN' ? type.builtinType : undefined)));
+        if (branchTypes.size === 2 && branchTypes.has('int') && branchTypes.has('float')) result = { datatype: builtinDatatype('float'), rule: 'local-assignment-type' };
       }
     } else if (node?.kind === 'BINARY_OPERATOR' && node.datatype.kind === 'VARIANT') {
       const left = datatypeOf(node.leftOperand);
@@ -750,6 +870,10 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       if (returnType !== undefined && returnType !== 'Variant') {
         result = { datatype: builtinDatatype(returnType), rule: 'type-test-narrowing' };
       }
+    }
+    if (result === undefined && (node?.datatype.kind === 'VARIANT' || node?.datatype.kind === 'UNRESOLVED')) {
+      // An element read out of an untyped member container (`container-types.ts`).
+      result = container?.(id);
     }
     if (result === undefined) return undefined;
     const entry: BoundGodotRefinedType = {

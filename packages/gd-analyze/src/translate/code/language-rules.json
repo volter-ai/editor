@@ -1508,6 +1508,32 @@
     {
       "source": {
         "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "local-identifier:LOCAL_ITERATOR|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "local-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "local-identifier:LOCAL_ITERATOR|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "local-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
         "nodeKind": "BINARY_OPERATOR",
         "semanticKey": "operator:OP_LOGIC_AND:20|annotations:[]",
         "inputDatatypes": [
@@ -3663,6 +3689,40 @@
       "target": {
         "kind": "structural",
         "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "TERNARY_OPERATOR",
+        "semanticKey": "ternary|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:bool",
+          "BUILTIN:float",
+          "BUILTIN:int"
+        ],
+        "resultDatatype": "BUILTIN:float"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "ternary"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "TERNARY_OPERATOR",
+        "semanticKey": "ternary|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:bool",
+          "BUILTIN:int",
+          "BUILTIN:float"
+        ],
+        "resultDatatype": "BUILTIN:float"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "ternary"
       }
     }
   ],

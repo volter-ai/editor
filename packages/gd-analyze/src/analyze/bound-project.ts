@@ -1,10 +1,13 @@
 import type { GodotBoundEngineShader, GodotBoundShader } from '../godot-frontend/bound-shader';
 import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-setting-types';
 import type { ImportedClip } from '../read/gltf-animation-import';
+import { connectedCallables } from './connected-callables';
+import { containerProjectIndex } from './container-types';
+import { type BoundGodotResourceLoad, type ImportedSoundKind, resourceLoads } from './resource-loads';
 import { memberKey, typeMembers } from './member-types';
 import { numericVariants, type ScriptNumericVariants } from './numeric-variants';
 import type { GltfExternalImage } from '../read/gltf-document';
-import { parameterKey, typeFunctionParameters } from './parameter-types';
+import { parameterKey, type ParameterTypeInputs, typeFunctionParameters } from './parameter-types';
 import { type BoundGodotRefinedType, type RefinedScriptInfo, refineDatatypes } from './refined-types';
 import * as path from 'node:path';
 import type {
@@ -77,6 +80,8 @@ export interface BoundGodotSourceScript {
   readonly refinedTypes: readonly BoundGodotRefinedType[];
   /** Variables holding an int or a float, as tagged numbers (`numeric-variant`). */
   readonly numericVariants?: ScriptNumericVariants;
+  /** `load(path)` calls whose paths the program fixes (`resource-loads.ts`). */
+  readonly resourceLoads?: readonly BoundGodotResourceLoad[];
 }
 
 export interface BoundGodotScriptFieldAttachmentValue {
@@ -305,6 +310,8 @@ export interface BoundGodotProjectDocuments {
   readonly sounds: readonly BoundGodotSoundDocument[];
   /** Sounds the `oggvorbisstr` importer imports, decoded by the browser. */
   readonly oggVorbis: readonly BoundGodotOggVorbisDocument[];
+  /** Font files the `font_data_dynamic` importer imports as a `FontFile` holding their bytes. */
+  readonly fonts: readonly { readonly resPath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[];
   /** Each `.gdshader` as the pinned Godot's own shader frontend read it (`bound-shader.ts`). */
   readonly shaders: readonly GodotBoundShader[];
   /** Each engine sky material class's own generated shaders, read by the same frontend. */
@@ -723,6 +730,15 @@ function boundDocuments(
         ];
       }),
     ),
+    fonts: unique(
+      'font',
+      decoded.imports.flatMap((sidecar) => {
+        if (sidecar.importer !== 'font_data_dynamic' || sidecar.resourceType !== 'FontFile' || sidecar.sourceFile === undefined) return [];
+        const entry = snapshot.entryByResPath(sidecar.sourceFile);
+        if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
+        return [{ resPath: sidecar.sourceFile, sourceDigest: entry.digest, bytes: snapshot.bytesByResPath(sidecar.sourceFile) }];
+      }),
+    ),
     resources: unique(
       'resource',
       decoded.resources.map((document) => ({
@@ -786,6 +802,14 @@ function normalizedAttachments(
   nodes: ReadonlyMap<string, SceneNode | UnplacedNode>,
 ): readonly BoundGodotScriptAttachment[] {
   const seen = new Set<string>();
+  // A node without a type (an instance, an imported model's root) has its origin's class, as the
+  // scene binder resolves it (`boundSceneNodes`).
+  const classOf = (node: SceneNode | UnplacedNode, depth = 0): string | undefined => {
+    if (node.type !== undefined || depth > 64) return node.type;
+    const origin = node.inheritedNode ?? (node.instanceOf === undefined ? undefined : { documentPath: node.instanceOf, nodePath: '.' });
+    const inherited = origin === undefined ? undefined : nodes.get(`${origin.documentPath}\0${origin.nodePath}`);
+    return inherited === undefined ? undefined : classOf(inherited, depth + 1);
+  };
   return attachments
     .flatMap((attachment): BoundGodotScriptAttachment[] => {
       const nodePath = attachment.nodePath ?? '.';
@@ -802,7 +826,7 @@ function normalizedAttachments(
         {
           documentPath: attachment.documentPath,
           nodePath,
-          ...(node.type === undefined ? {} : { nodeClass: node.type }),
+          ...(classOf(node) === undefined ? {} : { nodeClass: classOf(node) as string }),
           authoredProperties: node.properties,
           nodePathProperties: node.nodePathProperties,
         },
@@ -1307,8 +1331,10 @@ export function bindGodotProject(
     apiDump: apiDump.parsed,
   });
   const numericParameters = new Set<string>();
-  const parameterTypes = typeFunctionParameters({
+  const connected = connectedCallables({ programs: code.scripts, apiDump: apiDump.parsed, scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [] });
+  const parameterInputs: ParameterTypeInputs = {
     numeric: numericParameters,
+    connected,
     memberType: (resPath, name) => {
       for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {
         const found = memberTypes.get(memberKey(scriptPath, name));
@@ -1326,7 +1352,8 @@ export function bindGodotProject(
       .entries()
       .filter((entry) => entry.entryType === 'file' && entry.digest !== undefined && /\.(tscn|tres|escn)$/u.test(entry.relativePath))
       .map((entry) => new TextDecoder().decode(snapshot.bytesByDigest(entry.digest as string))),
-  });
+  };
+  let parameterTypes = typeFunctionParameters(parameterInputs);
   // Every untyped variable holding an int at some times and a float at others (`numeric-variants.ts`).
   const numericByScript = numericVariants({
     programs: code.scripts,
@@ -1346,31 +1373,13 @@ export function bindGodotProject(
     const program = programsByPath.get(resPath);
     return program === undefined ? undefined : firstOnreadyField(program);
   };
-  const scripts = code.scripts.map((program): BoundGodotSourceScript => {
-    const entry = snapshot.entryByResPath(program.resPath);
-    if (
-      entry?.entryType !== 'file' ||
-      entry.kind !== 'source-config' ||
-      entry.digest === undefined ||
-      entry.digest !== program.sourceSha256
-    ) {
-      throw new Error(
-        `${program.resPath}: official script bytes do not match the project snapshot`,
-      );
-    }
-    const scriptInheritance = inheritance.get(program.resPath);
-    if (scriptInheritance === undefined) {
-      throw new Error(`${program.resPath}: official inheritance analysis produced no result`);
-    }
-    const attachments = normalizedAttachments(
-      attachmentsByScript.get(program.resPath) ?? [],
-      sceneNodes.byKey,
-    );
-    const untypedReads: BoundGodotUntypedCall[] = [];
-    const refinedTypes = refineDatatypes({
+  const containers = containerProjectIndex(code.scripts, (resPath) => inheritance.get(resPath)?.scriptAncestors ?? []);
+  const refineProgram = (program: GodotBoundScript, untyped: (nodeId: number, reason: string) => void): ReturnType<typeof refineDatatypes> =>
+    refineDatatypes({
         program,
-        untyped: (nodeId, reason) => untypedReads.push({ nodeId, reason }),
-        attachments,
+        untyped,
+        containers,
+        attachments: normalizedAttachments(attachmentsByScript.get(program.resPath) ?? [], sceneNodes.byKey),
         read: decoded,
         apiDump: apiDump.parsed,
         scriptAt: (documentPath, nodePath) => scriptByNode.get(`${documentPath}\0${nodePath}`),
@@ -1394,11 +1403,66 @@ export function bindGodotProject(
           return undefined;
         },
       });
+  // The parameters again, now that the refinement types arguments the official analyzer left
+  // untyped (a scene node's property passed to a function); the refinement then reads them.
+  const refinedFirst = new Map(
+    code.scripts.map((program) => [program.resPath, new Map(refineProgram(program, () => undefined).map((entry) => [entry.nodeId, entry.datatype] as const))] as const),
+  );
+  parameterTypes = typeFunctionParameters({ ...parameterInputs, refinedType: (resPath, nodeId) => refinedFirst.get(resPath)?.get(nodeId) });
+  // The resources each `load(path)` can load, from every value the program gives `path`.
+  const refinedFinal = new Map(
+    code.scripts.map((program) => [program.resPath, new Map(refineProgram(program, () => undefined).map((entry) => [entry.nodeId, entry.datatype] as const))] as const),
+  );
+  const importedSounds = new Map<string, ImportedSoundKind>(
+    decoded.imports.flatMap((sidecar): [string, ImportedSoundKind][] =>
+      sidecar.sourceFile === undefined
+        ? []
+        : sidecar.importer === 'oggvorbisstr' && sidecar.resourceType === 'AudioStreamOggVorbis'
+          ? [[sidecar.sourceFile, 'ogg-vorbis']]
+          : sidecar.importer === 'wav' && sidecar.resourceType === 'AudioStreamWAV'
+            ? [[sidecar.sourceFile, 'wav']]
+            : [],
+    ),
+  );
+  const loadsByScript = resourceLoads({
+    programs: code.scripts,
+    refined: (resPath, nodeId) => refinedFinal.get(resPath)?.get(nodeId),
+    containers,
+    connected,
+    scenes: decoded.scenes,
+    resources: decoded.resources,
+    scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
+    importedSound: (resPath) => importedSounds.get(resPath),
+    exists: (resPath) => snapshot.entryByResPath(resPath) !== undefined,
+    documentTexts: parameterInputs.documentTexts,
+  });
+  const scripts = code.scripts.map((program): BoundGodotSourceScript => {
+    const entry = snapshot.entryByResPath(program.resPath);
+    if (
+      entry?.entryType !== 'file' ||
+      entry.kind !== 'source-config' ||
+      entry.digest === undefined ||
+      entry.digest !== program.sourceSha256
+    ) {
+      throw new Error(
+        `${program.resPath}: official script bytes do not match the project snapshot`,
+      );
+    }
+    const scriptInheritance = inheritance.get(program.resPath);
+    if (scriptInheritance === undefined) {
+      throw new Error(`${program.resPath}: official inheritance analysis produced no result`);
+    }
+    const attachments = normalizedAttachments(
+      attachmentsByScript.get(program.resPath) ?? [],
+      sceneNodes.byKey,
+    );
+    const untypedReads: BoundGodotUntypedCall[] = [];
+    const refinedTypes = refineProgram(program, (nodeId, reason) => untypedReads.push({ nodeId, reason }));
     // The parameter and member reads the refinement typed (from their callers, their stores, or the
     // scene node an `@onready` member holds), for receiver typing.
     const parameterReads = new Map(
       refinedTypes
-        .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter' || entry.rule === 'member-assignment-type' || entry.rule === 'scene-node-receiver')
+        .filter((entry) => entry.rule === 'engine-virtual-parameter' || entry.rule === 'signal-handler-parameter' || entry.rule === 'call-site-parameter' || entry.rule === 'member-assignment-type' || entry.rule === 'scene-node-receiver' || entry.rule === 'container-element-type' || entry.rule === 'record-field-type' || entry.rule === 'local-assignment-type')
         .map((entry) => [entry.nodeId, { datatype: entry.datatype }] as const),
     );
     const callReceiverFacts = (
@@ -1460,6 +1524,7 @@ export function bindGodotProject(
       ...(numericByScript.has(program.resPath)
         ? { numericVariants: numericByScript.get(program.resPath) as ScriptNumericVariants }
         : {}),
+      ...(loadsByScript.has(program.resPath) ? { resourceLoads: loadsByScript.get(program.resPath) as readonly BoundGodotResourceLoad[] } : {}),
       settingTypes: typeProjectSettingValues({
         program,
         projectSettings: decoded.authoredSettings,

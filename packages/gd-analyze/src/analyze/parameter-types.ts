@@ -25,6 +25,7 @@ import type { SceneDocument } from '../read/godot-types';
 import type { GodotApiDump } from './api-dump';
 import type { GodotAnalysisRuleId } from './refined-types';
 import { resolveScenePath } from './call-receivers';
+import { argumentCountRuns, type ConnectedCallables } from './connected-callables';
 import { apiTypeDatatype } from './refined-types';
 
 export type ParameterRule = Extract<GodotAnalysisRuleId, 'engine-virtual-parameter' | 'signal-handler-parameter' | 'call-site-parameter'>;
@@ -52,6 +53,10 @@ export interface ParameterTypeInputs {
   readonly numeric?: Set<string>;
   /** An untyped member's one stored type (`member-types.ts`), for a member passed as an argument. */
   readonly memberType?: (resPath: string, name: string) => GodotBoundDatatype | undefined;
+  /** An argument's datatype as the refinement fixed it (`refined-types.ts`), where the analyzer left it untyped. */
+  readonly refinedType?: (resPath: string, nodeId: number) => GodotBoundDatatype | undefined;
+  /** Scripts' own signal connections to their functions (`connected-callables.ts`). */
+  readonly connected?: ConnectedCallables;
 }
 
 /** The key of a function's parameter: `resPath`, function name, parameter name. */
@@ -108,7 +113,7 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
     // `has_method("name")` asks whether a method exists (`Object::has_method`); it calls nothing.
     const queried = new Set(program.nodes.flatMap((node) => (node.kind === 'CALL' && node.functionName === 'has_method' && node.arguments.length === 1 ? [node.arguments[0] as number] : [])));
     for (const node of program.nodes) {
-      if (node.kind === 'IDENTIFIER' && node.source === 'MEMBER_FUNCTION' && !callees.has(node.id)) escaped.add(node.name);
+      if (node.kind === 'IDENTIFIER' && node.source === 'MEMBER_FUNCTION' && !callees.has(node.id) && inputs.connected?.accounted.has(`${program.resPath}\0${String(node.id)}`) !== true) escaped.add(node.name);
       if (node.kind === 'LITERAL' && (node.value.kind === 'string' || node.value.kind === 'string-name') && !queried.has(node.id)) escaped.add(node.value.value);
     }
   }
@@ -250,6 +255,13 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
     }
   }
 
+  // A script's own `signal.connect(f)` / `signal.connect(f.bind(…))` calls `f` like a connection.
+  for (const [key, rows] of inputs.connected?.sources ?? []) {
+    const name = key.slice(key.indexOf('\0') + 1);
+    const site = functions.get(name)?.find((entry) => siteKey(entry.resPath, name) === key);
+    for (const row of rows) site?.parameters.forEach((_, index) => add(key, index, { datatype: row[index], rule: 'signal-handler-parameter' }));
+  }
+
   const resolvedTypes = new Map<string, ParameterType>();
   const typeOfArgument = (program: GodotBoundScript, id: number): GodotBoundDatatype | undefined => {
     const node = program.nodes[id];
@@ -265,8 +277,14 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
     }
     // An untyped member's datatype is only its initializer's (a weak type): what it holds is the
     // one type every store gives it (`member-types.ts`), else unknown.
-    if (node.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && node.datatype.typeSource === 'INFERRED') return inputs.memberType?.(program.resPath, node.name);
-    return known(node.datatype) && !node.datatype.metaType ? node.datatype : undefined;
+    if (node.kind === 'IDENTIFIER' && (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') && node.datatype.typeSource === 'INFERRED') {
+      return inputs.memberType?.(program.resPath, node.name) ?? refined(program, id);
+    }
+    return known(node.datatype) && !node.datatype.metaType ? node.datatype : refined(program, id);
+  };
+  const refined = (program: GodotBoundScript, id: number): GodotBoundDatatype | undefined => {
+    const datatype = inputs.refinedType?.(program.resPath, id);
+    return datatype !== undefined && known(datatype) && !datatype.metaType ? datatype : undefined;
   };
 
   const settle = (name: string, sites: readonly FunctionSite[], withCalls: boolean): void => {
@@ -278,6 +296,8 @@ export function typeFunctionParameters(inputs: ParameterTypeInputs): ReadonlyMap
       for (const program of inputs.programs) {
         for (const node of program.nodes) {
           if (node.kind !== 'CALL' || node.functionName !== name) continue;
+          // A call no function of the name can run with its argument count passes them nothing.
+          if (!sites.some((site) => argumentCountRuns(site.program, site.node, node.arguments.length))) continue;
           for (let index = 0; index < count; index += 1) {
             const argument = node.arguments[index];
             if (argument !== undefined) {
