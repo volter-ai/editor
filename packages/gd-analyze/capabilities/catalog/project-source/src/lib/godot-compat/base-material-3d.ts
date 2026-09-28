@@ -26,12 +26,14 @@
  * physical material's `reflectivity` (three's reflectivity is Godot's specular: both make the
  * dielectric F0 `0.16 * specular^2`), specular disabled to its `specularIntensity` 0; the depth draw
  * mode to `depthWrite` (`godot_base_material_3d_depth_write`). Three's lighting draws every lit
- * material: nothing patches its shader chunks. Where three has no idiom (the Lambert, Lambert wrap
- * and Burley diffuse modes beside three's own Lambert, toon specular, rim, backlight, grow, distance
- * and proximity fade, not receiving shadows) the value is stored, read back by its getter, and
- * draws nothing. The stencil effect parameters are stored: they draw only through `stencil_mode`
- * (outline or x-ray, `material.cpp:3151`), which is not bound, so a material's stencil is always
- * disabled and draws nothing (`material.cpp:887`).
+ * material: nothing patches its shader chunks. Proximity fade is three's soft particles: the
+ * material fades by how far in front of the scene's depth it is
+ * (`godot_base_material_3d_scene_shader`). Where three has no idiom (the Lambert, Lambert wrap and
+ * Burley diffuse modes beside three's own Lambert, toon specular, rim, backlight, grow, distance
+ * fade, not receiving shadows) the value is stored, read back by its getter, and draws nothing. The
+ * stencil effect parameters are stored: they draw only through `stencil_mode` (outline or x-ray,
+ * `material.cpp:3151`), which is not bound, so a material's stencil is always disabled and draws
+ * nothing (`material.cpp:887`).
  *
  * Reflection probes: in a project that places one, a scene's lit material is the game editor's
  * reflections volume material (the plan's, `scene-material-idioms.ts`; `reflection-probe.ts` says
@@ -45,6 +47,8 @@ import {
   type BufferGeometry,
   BackSide,
   type Blending,
+  type Camera,
+  DepthTexture,
   DoubleSide,
   ClampToEdgeWrapping,
   FrontSide,
@@ -65,7 +69,12 @@ import {
   LinearSRGBColorSpace,
   Color as ThreeColor,
   NormalBlending,
+  type Scene,
   SubtractiveBlending,
+  UnsignedIntType,
+  Vector2,
+  type WebGLRenderer,
+  WebGLRenderTarget,
 } from 'three';
 import { construct as color, type Color } from './color';
 import { get_image, godot_texture_2d_image } from './texture-2d';
@@ -750,6 +759,8 @@ function applyExtra(self: BaseMaterial3D, target: Material): void {
     billboard_keep_scale: self.flags[FLAG_BILLBOARD_KEEP_SCALE] === true,
     vertex_color_use_as_albedo: self.flags[FLAG_ALBEDO_FROM_VERTEX_COLOR] === true,
     vertex_color_is_srgb: self.flags[FLAG_SRGB_VERTEX_COLOR] === true,
+    proximity_fade_enabled: extra.proximity_fade_enabled,
+    proximity_fade_distance: extra.proximity_fade_distance,
   });
   godot_base_material_3d_scene_shader(target);
 }
@@ -817,6 +828,7 @@ interface SceneShading {
   readonly billboard: number;
   readonly keepScale: boolean;
   readonly coloured: boolean;
+  readonly proximity: boolean;
 }
 
 function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
@@ -824,11 +836,79 @@ function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
     billboard: typeof data['billboard_mode'] === 'number' ? data['billboard_mode'] : 0,
     keepScale: data['billboard_keep_scale'] === true,
     coloured: data['vertex_color_use_as_albedo'] === true,
+    proximity: data['proximity_fade_enabled'] === true,
   };
 }
 
+/** The scene's depth one renderer drew last, for the soft materials drawn after it. */
+interface SceneDepth {
+  readonly target: WebGLRenderTarget;
+  frame: number;
+  camera: Camera | null;
+  drawing: boolean;
+}
+
+const SCENE_DEPTH = new WeakMap<WebGLRenderer, SceneDepth>();
+const depthSize = new Vector2();
+
+/**
+ * The scene's depth as `camera` sees it, drawn into a depth texture once per frame, when the first
+ * soft material is about to draw: the soft-particles pass a three.js developer writes, drawn from
+ * the material's `onBeforeRender` as three's `Reflector` draws its view (shadows kept as they are).
+ * Null while that pass is drawing, so a soft material drawn in it never samples the texture being
+ * written.
+ */
+function sceneDepth(renderer: WebGLRenderer, scene: Scene, camera: Camera): DepthTexture | null {
+  let depth = SCENE_DEPTH.get(renderer);
+  if (depth === undefined) {
+    const texture = new DepthTexture(1, 1, UnsignedIntType);
+    depth = { target: new WebGLRenderTarget(1, 1, { depthTexture: texture, depthBuffer: true }), frame: -1, camera: null, drawing: false };
+    SCENE_DEPTH.set(renderer, depth);
+  }
+  if (depth.drawing) return null;
+  if (depth.frame !== renderer.info.render.frame || depth.camera !== camera) {
+    renderer.getDrawingBufferSize(depthSize);
+    if (depth.target.width !== depthSize.x || depth.target.height !== depthSize.y) depth.target.setSize(depthSize.x, depthSize.y);
+    const current = renderer.getRenderTarget();
+    const shadows = renderer.shadowMap.autoUpdate;
+    const xr = renderer.xr.enabled;
+    renderer.shadowMap.autoUpdate = false;
+    renderer.xr.enabled = false;
+    depth.drawing = true;
+    try {
+      renderer.setRenderTarget(depth.target);
+      renderer.render(scene, camera);
+    } finally {
+      depth.drawing = false;
+      renderer.setRenderTarget(current);
+      renderer.shadowMap.autoUpdate = shadows;
+      renderer.xr.enabled = xr;
+    }
+    depth.frame = renderer.info.render.frame;
+    depth.camera = camera;
+  }
+  return depth.target.depthTexture;
+}
+
+/** A soft material's uniforms: the scene's depth and the fade distance. */
+interface ProximityUniforms {
+  readonly godotProximityDepth: { value: DepthTexture | null };
+  readonly godotProximityDistance: { value: number };
+}
+
+const PROXIMITY = new WeakMap<Material, ProximityUniforms>();
+
+function proximityOf(target: Material): ProximityUniforms {
+  let uniforms = PROXIMITY.get(target);
+  if (uniforms === undefined) {
+    uniforms = { godotProximityDepth: { value: null }, godotProximityDistance: { value: 1 } };
+    PROXIMITY.set(target, uniforms);
+  }
+  return uniforms;
+}
+
 /** The scene draw's code in the program three compiles for a material (see below). */
-function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billboard: mode, keepScale, coloured }: SceneShading): void {
+function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billboard: mode, keepScale, coloured, proximity }: SceneShading, target: Material): void {
   let vertex = shader.vertexShader;
   let fragment = shader.fragmentShader;
   if (mode !== 0) vertex = `attribute vec4 godotInstanceCustom;\n${vertex.replace('#include <project_vertex>', billboardChunk(mode, keepScale))}`;
@@ -837,6 +917,25 @@ function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billbo
     fragment = `varying vec4 vGodotColor;\n${fragment.replace(
       '#include <color_fragment>',
       '#include <color_fragment>\ndiffuseColor *= vec4( vGodotColor.rgb * ( vGodotColor.rgb * ( vGodotColor.rgb * 0.305306011 + 0.682171111 ) + 0.012522878 ), vGodotColor.a );',
+    )}`;
+  }
+  if (proximity) {
+    // The fragment's screen position, its view depth, and the projection terms that turn the
+    // scene's depth back into view depth (a perspective or an orthographic camera alike).
+    Object.assign(shader.uniforms, proximityOf(target));
+    const varyings = 'varying vec4 vGodotClip;\nvarying float vGodotViewZ;\nvarying vec4 vGodotProjection;\n';
+    vertex = `${varyings}${vertex.replace(
+      '#include <fog_vertex>',
+      'vGodotClip = gl_Position;\nvGodotViewZ = mvPosition.z;\nvGodotProjection = vec4( projectionMatrix[ 2 ][ 2 ], projectionMatrix[ 3 ][ 2 ], projectionMatrix[ 2 ][ 3 ], projectionMatrix[ 3 ][ 3 ] );\n#include <fog_vertex>',
+    )}`;
+    fragment = `uniform sampler2D godotProximityDepth;\nuniform float godotProximityDistance;\n${varyings}${fragment.replace(
+      '#include <alphatest_fragment>',
+      [
+        'float godotSceneNdc = texture2D( godotProximityDepth, vGodotClip.xy / vGodotClip.w * 0.5 + 0.5 ).r * 2.0 - 1.0;',
+        'float godotSceneZ = ( vGodotProjection.y - godotSceneNdc * vGodotProjection.w ) / ( godotSceneNdc * vGodotProjection.z - vGodotProjection.x );',
+        'diffuseColor.a *= smoothstep( 0.0, 1.0, ( vGodotViewZ - godotSceneZ ) / godotProximityDistance );',
+        '#include <alphatest_fragment>',
+      ].join('\n'),
     )}`;
   }
   shader.vertexShader = vertex;
@@ -853,7 +952,11 @@ const SCENE_SHADED = new WeakMap<Material, string>();
  * - vertex colour: an instanced draw's `godotInstanceColor` (a particle's `COLOR`) multiplying the
  *   albedo and its alpha where the material takes vertex colour as albedo (`albedo_tex *= COLOR`,
  *   `material.cpp:1643`), converted to linear as three's colours are. Particle animation frames
- *   other than one by one are not drawn.
+ *   other than one by one are not drawn;
+ * - proximity fade: soft particles. The alpha fades to nothing where the fragment comes within the
+ *   fade distance of the scene behind it (`material.cpp:1827`), read from a depth texture of the
+ *   scene drawn once per frame from the material's `onBeforeRender` (`sceneDepth`), as three's
+ *   `Reflector` draws its view.
  * The material's own program, never three's shared chunks. The hook goes on once, over whatever
  * the material already compiles with, and reads the draw from the material's `userData` when three
  * compiles it; over a reflections volume material it wraps the material's own hook, which splices
@@ -869,15 +972,24 @@ export function godot_base_material_3d_scene_shader<M extends Material>(target: 
   const shaded = SCENE_SHADED.get(target);
   if (shaded === key) return target;
   if (shaded === undefined) {
-    if (shading.billboard === 0 && !shading.coloured) return target;
+    if (shading.billboard === 0 && !shading.coloured && !shading.proximity) return target;
     const ownCompile = target.onBeforeCompile;
     const ownKey = target.customProgramCacheKey;
+    const ownRender = target.onBeforeRender;
     const read = (): SceneShading => shadingOf(target.userData as Readonly<Record<string, unknown>>);
     target.onBeforeCompile = (shader, renderer) => {
       ownCompile.call(target, shader, renderer);
-      sceneShade(shader, read());
+      sceneShade(shader, read(), target);
     };
     target.customProgramCacheKey = () => `${ownKey.call(target)}|godot-scene:${JSON.stringify(read())}`;
+    target.onBeforeRender = (renderer, scene, camera, geometry, object, group) => {
+      ownRender.call(target, renderer, scene, camera, geometry, object, group);
+      const data = target.userData as Readonly<Record<string, unknown>>;
+      if (data['proximity_fade_enabled'] !== true) return;
+      const uniforms = proximityOf(target);
+      uniforms.godotProximityDepth.value = sceneDepth(renderer, scene, camera);
+      uniforms.godotProximityDistance.value = typeof data['proximity_fade_distance'] === 'number' ? data['proximity_fade_distance'] : 1;
+    };
   }
   SCENE_SHADED.set(target, key);
   target.needsUpdate = true;

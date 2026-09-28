@@ -15,9 +15,11 @@
  * - the specular amount is the physical material's `reflectivity` (three's reflectivity and Godot's
  *   specular both make the dielectric F0 `0.16 * specular^2`), specular disabled its
  *   `specularIntensity` 0;
- * - what three has no idiom for (rim, backlight, grow, distance and proximity fade, the other
- *   diffuse modes, toon specular, not receiving shadows) is `userData` compat reads back through
- *   the getters, and draws nothing;
+ * - a billboard, vertex colour as albedo and proximity fade (three's soft particles) are
+ *   `userData` compat's `godot_base_material_3d_scene_shader` draws, handed the material once made;
+ * - what three has no idiom for (rim, backlight, grow, distance fade, the other diffuse modes, toon
+ *   specular, not receiving shadows) is `userData` compat reads back through the getters, and
+ *   draws nothing;
  * - in a project that places a reflection probe, a standard or physical material is made by the
  *   game editor's reflections capability (`createVolumeReflectionMaterial`,
  *   `createVolumeReflectionPhysicalMaterial`) with the same props: Godot draws every geometry inside
@@ -207,7 +209,8 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   if (bool('set_flag', 5) === true) data.push({ key: 'billboard_keep_scale', value: true });
   if (coloured) data.push({ key: 'vertex_color_use_as_albedo', value: true });
   if (bool('set_flag', 2) === true) data.push({ key: 'vertex_color_is_srgb', value: true });
-  if (bool('set_proximity_fade_enabled') === true) {
+  const proximity = bool('set_proximity_fade_enabled') === true;
+  if (proximity) {
     data.push({ key: 'proximity_fade_enabled', value: true });
     data.push({ key: 'proximity_fade_distance', value: Math.max(f32(num('set_proximity_fade_distance') ?? 1), f32(0.01)) });
   }
@@ -227,8 +230,8 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     if (bool('set_feature', 9) === true) data.push({ key: 'backlight', value: (components('set_backlight') ?? [0, 0, 0, 1]).slice(0, 3) });
   }
   if (data.length > 0) props.push({ name: 'userData', value: { kind: 'user-data', entries: data } });
-  // A billboard or vertex colour draws through compat (`godot_base_material_3d_scene_shader`).
-  if (billboard !== 0 || coloured) props.push({ name: 'onUpdate', value: { kind: 'compat', module: 'base-material-3d', exportName: 'godot_base_material_3d_scene_shader' } });
+  // A billboard, vertex colour or proximity fade draws through compat (`godot_base_material_3d_scene_shader`).
+  if (billboard !== 0 || coloured || proximity) props.push({ name: 'onUpdate', value: { kind: 'compat', module: 'base-material-3d', exportName: 'godot_base_material_3d_scene_shader' } });
 
   if (element === 'meshPhysicalMaterial') {
     // `godot_base_material_3d_anisotropy`: a negative ratio stretches the highlight across the tangent.
