@@ -465,13 +465,40 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
       const conditionNode = context.node(node.condition, node);
       const structuralRequirements = context.structural(node, 'while', [conditionNode]);
       const condition = lowerTruth(context, conditionNode, lowerExpression(context, conditionNode));
-      if (condition.before.length > 0 || condition.after.length > 0) {
-        return context.refuse(
-          conditionNode,
-          'sequenced while condition needs a loop restructuring the lane does not lower',
-        );
-      }
       const body = lowerOfficialSuite(context, context.node(node.loop, node));
+      if (condition.before.length > 0 || condition.after.length > 0) {
+        // A condition that needs statements runs them at the top of each pass, as Godot evaluates
+        // it before each iteration (`GDScriptByteCodeGenerator::write_while`): the loop is
+        // `while (true)`, leaving when the condition fails, so `continue` evaluates it again.
+        const settled = settleForStatement(context, condition);
+        return {
+          statements: [
+            {
+              kind: 'while-statement',
+              condition: { kind: 'literal-expression', value: true },
+              body: [
+                ...settled.before,
+                {
+                  kind: 'if-statement',
+                  condition: {
+                    kind: 'unary-expression',
+                    operator: '!',
+                    operand:
+                      settled.value.kind === 'identifier-expression' || settled.value.kind === 'call-expression' || settled.value.kind === 'property-expression'
+                        ? settled.value
+                        : { kind: 'parenthesized-expression', expression: settled.value },
+                  },
+                  // biome-ignore lint/suspicious/noThenProperty: TargetTsSyntax names the source branch.
+                  then: [{ kind: 'break-statement' }],
+                },
+                ...body.statements,
+              ],
+              span: officialBoundSpan(context.script, node),
+            },
+          ],
+          requirements: [...structuralRequirements, ...settled.requirements, ...body.requirements],
+        };
+      }
       return {
         statements: [
           {
