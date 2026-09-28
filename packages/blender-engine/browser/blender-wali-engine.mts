@@ -326,6 +326,14 @@ export async function startWaliBlenderEngine(
       VOLTER_EXPORT_BUFFER_PATH: ARENA_PATH,
     },
     ...(runtimeLayer ? { layers: [runtimeLayer] } : {}),
+    // BLENDER'S /tmp IS ITS OWN, as it is in the standalone skew's WasmFS:
+    // what it writes there never crosses to this page, so nothing waits for
+    // the page to take it (browser-substrate `privateRoots`, ADR-0046).
+    // Measured 2026-09-27: published, a `.blend` saved to /tmp cost 11 ms
+    // against the standalone skew's 2, most of it the page taking the file
+    // before Blender's next printed line. The session's channel and the
+    // project live elsewhere and still cross.
+    privateRoots: ['/tmp'],
     threadPoolSize: workers.pool,
     // Blender talks to nothing. The editor's own routes are this worker's, not
     // the program's.
