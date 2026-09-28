@@ -78,7 +78,21 @@ export type OfficialBoundLoweringRequirement =
       readonly imported: string;
       readonly local: string;
       readonly typeOnly: boolean;
+    }
+  | {
+      /** A module-level constant the script's code reads (`const local = initializer;`). */
+      readonly kind: 'module-constant-requirement';
+      readonly local: string;
+      readonly initializer: TargetTsExpression;
     };
+
+/** One resource a `load(path)` yields: the path strings naming it, and its module constant. */
+export interface OfficialBoundResourceLoadTarget {
+  readonly values: readonly string[];
+  readonly local: string;
+  readonly initializer: TargetTsExpression;
+  readonly requirements: readonly OfficialBoundLoweringRequirement[];
+}
 
 export interface OfficialBoundBindingUse {
   readonly target: Exclude<GodotTargetBinding, { readonly kind: 'refusal-binding' }>;
@@ -178,6 +192,8 @@ export const SCRIPT_CLASS_TYPE = '$ScriptClass';
 export const NATIVE_CLASS_TYPE = '$NativeClass';
 
 export class LoweringContext {
+  /** The resources each resolved `load(path)` yields (`resource-loads.ts`), by call node. */
+  resourceLoads: ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> = new Map();
   #temporaryIndex = 0;
   #instanceAutoloadAccess = 0;
   readonly #reservedTargetNames: Set<string>;

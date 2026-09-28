@@ -11,7 +11,9 @@ import type {
 import { OPERATOR_SPELLING } from '../../analyze/project-setting-types';
 import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
+import type { ImportedSoundKind } from '../../analyze/resource-loads';
 import type { GodotValue } from '../../read/godot-value';
+import { GODOT_CODE_RESOURCE_LOADS, godotImportedAssetUrl } from '../data/code-resource-loads';
 import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
 import { godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
 import { safeIdent } from '../target-names';
@@ -35,6 +37,7 @@ import {
   type NativePropertyAccessor,
   type NativePropertyLookup,
   type OfficialBoundLoweringRequirement,
+  type OfficialBoundResourceLoadTarget,
   officialBoundDiagnostic,
   officialBoundSpan,
 } from './official-bound-lowering-context';
@@ -88,6 +91,8 @@ interface ImportDemand {
 
 interface ClosedOfficialBoundRequirements {
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
+  /** The module-level constants the code reads, in name order. */
+  readonly constants: readonly TargetTsStatement[];
   readonly imports: readonly ImportDemand[];
   readonly autoloadReferences: readonly OfficialBoundAutoloadReference[];
   readonly requiredCompatSymbols: readonly string[];
@@ -120,6 +125,7 @@ function mergeOfficialBoundRequirements(
   >();
   const importsByLocal = new Map<string, ImportDemand>();
   const compatSymbols = new Set<string>();
+  const constants = new Map<string, Extract<OfficialBoundLoweringRequirement, { kind: 'module-constant-requirement' }>>();
 
   const addImport = (demand: ImportDemand): void => {
     if (moduleDeclarations.includes(demand.local)) {
@@ -202,6 +208,17 @@ function mergeOfficialBoundRequirements(
         addImport(requirement);
         break;
       }
+      case 'module-constant-requirement': {
+        const prior = constants.get(requirement.local);
+        if (prior !== undefined && !sameValue(prior, requirement)) {
+          context.refuse(owner, `module constant ${requirement.local} is required with two initializers`);
+        }
+        if (moduleDeclarations.includes(requirement.local) || importsByLocal.has(requirement.local)) {
+          context.refuse(owner, `module constant ${requirement.local} collides with a module declaration`);
+        }
+        constants.set(requirement.local, requirement);
+        break;
+      }
       default:
         requirement satisfies never;
     }
@@ -220,8 +237,12 @@ function mergeOfficialBoundRequirements(
       ),
       ...sorted(compatImports.values(), (entry) => `${entry.module}\0${entry.local}`),
       ...sorted(projectImports.values(), (entry) => `${entry.module}\0${entry.local}`),
+      ...sorted(constants.values(), (entry) => entry.local),
     ],
     imports: sorted(importsByLocal.values(), (entry) => `${entry.module}\0${entry.local}`),
+    constants: sorted(constants.values(), (entry) => entry.local).map(
+      (entry): TargetTsStatement => ({ kind: 'variable-statement', declaration: 'const', name: entry.local, initializer: entry.initializer }),
+    ),
     autoloadReferences: sorted(autoloads.values(), (entry) => entry.name),
     requiredCompatSymbols: sorted(compatSymbols, (entry) => entry),
   };
@@ -497,6 +518,54 @@ function treeParametersOf(
   });
 }
 
+/**
+ * The resources each resolved `load(path)` of the script yields (`resource-loads.ts`): per project
+ * file, the path strings naming it and the module constant that loads it once, as Godot's resource
+ * cache holds one resource per path (core/io/resource_loader.cpp:725). A load naming a file no
+ * code-level load makes (`GODOT_CODE_RESOURCE_LOADS`) is left out, and lowering refuses it.
+ */
+function resourceLoadTargets(
+  project: BoundGodotProject,
+  source: BoundGodotSourceScript,
+): ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> {
+  const found = new Map<number, readonly OfficialBoundResourceLoadTarget[]>();
+  for (const load of source.resourceLoads ?? []) {
+    const byPath = new Map<string, { kind: ImportedSoundKind; values: string[] }>();
+    for (const branch of load.branches) {
+      const entry = byPath.get(branch.resPath) ?? { kind: branch.kind, values: [] };
+      entry.values.push(branch.value);
+      byPath.set(branch.resPath, entry);
+    }
+    const targets: OfficialBoundResourceLoadTarget[] = [];
+    for (const [resPath, { kind, values }] of byPath) {
+      const construct = GODOT_CODE_RESOURCE_LOADS[kind];
+      const imported = project.documents.oggVorbis.find((entry) => entry.resPath === resPath);
+      if (construct === undefined || imported === undefined) break;
+      targets.push({
+        values,
+        local: `$load_${resPath.slice('res://'.length).replace(/[^A-Za-z0-9_$]/gu, '_')}`,
+        initializer: {
+          kind: 'call-expression',
+          callee: { kind: 'identifier-expression', name: construct.exportName },
+          arguments: [
+            { kind: 'literal-expression', value: godotImportedAssetUrl(resPath) },
+            {
+              kind: 'object-expression',
+              properties: [
+                { key: 'loop', value: { kind: 'literal-expression', value: imported.loop } },
+                { key: 'loopOffset', value: { kind: 'literal-expression', value: imported.loopOffset } },
+              ],
+            },
+          ],
+        },
+        requirements: [{ kind: 'compat-import-requirement', module: construct.module, imported: construct.exportName, local: construct.exportName, typeOnly: false }],
+      });
+    }
+    if (targets.length === byPath.size) found.set(load.nodeId, targets);
+  }
+  return found;
+}
+
 /** The member variables a project script and its script ancestors declare, or undefined. */
 function scriptMemberNames(project: BoundGodotProject, resPath: string): ReadonlySet<string> | undefined {
   const script = project.scripts.find((entry) => entry.resPath === resPath);
@@ -585,6 +654,7 @@ function lowerScript(
     source.numericVariants,
     operatorResult,
   );
+  context.resourceLoads = resourceLoadTargets(project, source);
   if (root.abstract) {
     context.recover(undefined, () =>
       context.refuse(root, 'abstract script classes need a target declaration recipe'),
@@ -648,6 +718,7 @@ function lowerScript(
       statements: [
         ...imports(requirements.imports),
         ...(carrierRoot === source.resPath ? [NATIVE_CARRIER_TYPE_IMPORT] : []),
+        ...requirements.constants,
         statement,
       ],
     },

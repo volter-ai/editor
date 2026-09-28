@@ -69,6 +69,8 @@ function importedTextures(project: BoundGodotProject, composition: DirectGodotPr
   const paths = new Set(
     composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.load === undefined ? [] : [resource.load.sourceResPath]))),
   );
+  // The sounds a script's `load(path)` loads (`resource-loads.ts`).
+  for (const script of project.scripts) for (const load of script.resourceLoads ?? []) for (const branch of load.branches) paths.add(branch.resPath);
   // An imported model's external images are the project's textures too.
   const walk = (node: DirectGodotProjectCompositionPlan['scenes'][number]['root']): void => {
     for (const image of node.model?.images ?? []) paths.add(image.load.sourceResPath);

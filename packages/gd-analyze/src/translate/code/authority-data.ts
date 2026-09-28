@@ -15,6 +15,7 @@ import {
   GODOT_4_7_CODE_SEED_SOURCE_REVISION,
 } from './authority/godot-4.7-seed';
 import { GODOT_4_7_SCENE_SPAWN_RULES } from './authority/godot-4.7-scene-spawn';
+import { GODOT_4_7_VARIANT_CONTAINER_DATATYPES, GODOT_4_7_VARIANT_CONTAINER_RULES } from './authority/godot-4.7-variant-containers';
 import { GODOT_BINDING_TABLE_VERSION } from './bindings';
 import { godotCompatBindings, godotCompatDatatypes } from './compat-bindings';
 import LANGUAGE_RULES from './language-rules.json' with { type: 'json' };
@@ -55,6 +56,7 @@ export function godotCodeTranslationAuthority(
             ...GODOT_4_7_LANGUAGE_RULES,
             ...GODOT_4_7_AUTOLOAD_REFERENCE_RULES,
             ...GODOT_4_7_SCENE_SPAWN_RULES,
+            ...GODOT_4_7_VARIANT_CONTAINER_RULES,
             ...(LANGUAGE_RULES.rules as readonly GodotCodeRuleEntry[]),
           ]
         : [],
@@ -63,6 +65,7 @@ export function godotCodeTranslationAuthority(
         : [
             ...GODOT_4_7_CODE_SEED_DATATYPES,
             ...GODOT_4_7_LANGUAGE_DATATYPES,
+            ...GODOT_4_7_VARIANT_CONTAINER_DATATYPES,
             ...(LANGUAGE_RULES.datatypes as readonly GodotDatatypeRuleEntry[]),
             ...godotCompatDatatypes(source.revision, apiDump),
           ],

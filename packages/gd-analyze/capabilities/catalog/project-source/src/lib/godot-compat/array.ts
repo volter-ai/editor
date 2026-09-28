@@ -66,3 +66,27 @@ export function pop_front(self: unknown[]): unknown {
   if (self.length === 0) return null;
   return self.shift();
 }
+
+/**
+ * Whether the array holds the value: `find(value) != -1` (`core/variant/array.cpp:497`), whose
+ * `StringLikeVariantComparator` (`core/variant/variant.cpp:3400`) agrees with JS `includes`
+ * (SameValueZero) for objects, strings, bools, null and numbers of one Godot type.
+ *
+ * @godot Array.has
+ * @source core/variant/array.cpp:497
+ */
+export function has(self: readonly unknown[], p_value: unknown): boolean {
+  return self.includes(p_value);
+}
+
+/**
+ * Removes the first element equal to the value, if any (`Vector::erase`,
+ * `core/templates/vector.h:79`).
+ *
+ * @godot Array.erase
+ * @source core/variant/array.cpp:347
+ */
+export function erase(self: unknown[], p_value: unknown): void {
+  const index = self.indexOf(p_value);
+  if (index >= 0) self.splice(index, 1);
+}

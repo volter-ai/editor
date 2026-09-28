@@ -79,7 +79,10 @@ export interface CallReceiverInputs {
   readonly scriptChainMethods?: (resPath: string) => ReadonlySet<string> | undefined;
   /** The project scripts extending a native class whose chain declares a method, sorted. */
   readonly scriptsDeclaring?: (method: string, nativeClass: string) => readonly string[];
-  /** An untyped parameter read's datatype from its function's callers (`parameter-types.ts`). */
+  /**
+   * An untyped read's datatype the refinement fixed: a parameter's from its function's callers
+   * (`parameter-types.ts`), a member's from its stores, an element's from its container.
+   */
   readonly parameterType?: (nodeId: number) => { readonly datatype: GodotBoundNode['datatype'] } | undefined;
 }
 
@@ -373,6 +376,15 @@ export function typeCallReceivers(inputs: CallReceiverInputs): {
         if (datatype.kind === 'NATIVE' && !datatype.metaType) return { kind: 'native', name: datatype.nativeType };
         if (datatype.kind === 'BUILTIN') return typeOfName(datatype.builtinType);
       }
+    }
+    if (
+      (node.kind === 'SUBSCRIPT' || node.kind === 'CALL' || (node.kind === 'IDENTIFIER' && (node.source === 'LOCAL_VARIABLE' || node.source === 'LOCAL_ITERATOR'))) &&
+      node.datatype.kind === 'VARIANT'
+    ) {
+      // An element read out of a member container the analysis typed (`container-types.ts`).
+      const datatype = inputs.parameterType?.(id)?.datatype;
+      if (datatype?.kind === 'NATIVE' && !datatype.metaType) return { kind: 'native', name: datatype.nativeType };
+      if (datatype?.kind === 'BUILTIN' && !datatype.metaType && datatype.builtinType !== 'Nil') return typeOfName(datatype.builtinType);
     }
     if (node.kind === 'SELF' && inputs.self !== undefined) {
       // `self.member()`: the instance is its script chain over its native class.

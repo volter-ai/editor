@@ -417,7 +417,7 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
         node.useConversionAssign ? [iterableNode, variableNode] : [iterableNode],
         node.useConversionAssign ? 'for-of:conversion' : 'for-of:direct-binding',
       );
-      const iterable = settleForStatement(context, lowerExpression(context, iterableNode));
+      const iterable = settleForStatement(context, elementTypedIterable(context, node, iterableNode, lowerExpression(context, iterableNode)));
       const body = lowerOfficialSuite(context, context.node(node.loop, node));
       const name = officialBoundIdentifier(context, node.variable, node);
       let binding = name;
@@ -501,6 +501,9 @@ export function lowerOfficialParameters(
         initializerNode === undefined ? 'required' : 'defaulted'
       }`,
     );
+    if (initializerNode !== undefined && defaultConverts(node, initializerNode)) {
+      context.refuse(node, `a ${initializerNode.datatype.display} default converts into the ${node.datatype.display} parameter, which a JS default does not`);
+    }
     const targetType = context.targetType(node);
     const initializer =
       initializerNode === undefined ? undefined : lowerExpression(context, initializerNode);
@@ -523,6 +526,59 @@ export function lowerOfficialParameters(
     parameters: lowered.map((entry) => entry.parameter),
     requirements: lowered.flatMap((entry) => entry.requirements),
   };
+}
+
+/**
+ * An untyped Array iterated where the analysis typed its elements (`container-types.ts`: every
+ * read of the loop variable holds one datatype) is iterated as an array of that type, so the loop
+ * variable is that type to TypeScript as it is to the analysis.
+ */
+function elementTypedIterable(
+  context: LoweringContext,
+  loop: Extract<GodotBoundNode, { kind: 'FOR' }>,
+  iterableNode: GodotBoundNode,
+  iterable: LoweredExpression,
+): LoweredExpression {
+  const datatype = iterableNode.datatype;
+  if (loop.useConversionAssign || datatype.kind !== 'BUILTIN' || datatype.metaType || datatype.builtinType !== 'Array' || datatype.containerTypes.length > 0) return iterable;
+  const variable = context.node(loop.variable, loop);
+  const body = context.node(loop.loop, loop);
+  const reads = context.script.nodes.filter(
+    (candidate) =>
+      candidate.kind === 'IDENTIFIER' &&
+      variable.kind === 'IDENTIFIER' &&
+      candidate.name === variable.name &&
+      candidate.source === 'LOCAL_ITERATOR' &&
+      candidate.startLine >= body.startLine &&
+      candidate.endLine <= body.endLine,
+  );
+  const first = reads[0];
+  const known = (node: GodotBoundNode) => !node.datatype.metaType && (node.datatype.kind === 'NATIVE' || node.datatype.kind === 'CLASS' || (node.datatype.kind === 'BUILTIN' && node.datatype.builtinType !== 'Nil'));
+  if (first === undefined || !known(first) || !reads.every((read) => read.datatype.display === first.datatype.display && read.datatype.kind === first.datatype.kind) || !context.hasTargetType(first)) {
+    return iterable;
+  }
+  const element = context.targetType(first);
+  return {
+    ...iterable,
+    value: { kind: 'as-expression', expression: iterable.value, type: { kind: 'array-type', element: element.type } },
+    requirements: [...iterable.requirements, ...element.requirements],
+  };
+}
+
+/**
+ * Whether a typed parameter's default converts as the parameter is bound (the typed argument
+ * assignment): a built-in default of another built-in type does, except an int into a float
+ * and a String into a StringName or back, which are the same JS value under compat.
+ */
+function defaultConverts(parameter: GodotBoundNode, initializer: GodotBoundNode): boolean {
+  const to = parameter.datatype;
+  const from = initializer.datatype;
+  if (to.kind !== 'BUILTIN' || to.metaType) return false;
+  const fromType = from.kind === 'ENUM' ? 'int' : from.kind === 'BUILTIN' ? from.builtinType : undefined;
+  if (fromType === to.builtinType) return false;
+  const same = new Set([fromType, to.builtinType]);
+  if ((fromType === 'int' && to.builtinType === 'float') || (same.has('String') && same.has('StringName'))) return false;
+  return true;
 }
 
 /**

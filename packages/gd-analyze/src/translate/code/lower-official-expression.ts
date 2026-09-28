@@ -135,6 +135,9 @@ function expression(
  * The members a built-in's integer index reads, in index order (`variant_setget.cpp:847-857`):
  * the numeric structs' components, and Basis's columns (`get_column`), each its member of that name.
  */
+/** The built-in containers compat holds as JS arrays, whose elements Variant indexing reads. */
+const ARRAY_INDEXED: ReadonlySet<string> = new Set(['Array', 'PackedStringArray']);
+
 const INDEXED_MEMBERS: Readonly<Record<string, readonly string[]>> = {
   Vector2: ['x', 'y'],
   Vector2i: ['x', 'y'],
@@ -623,6 +626,66 @@ function bindingCall(
 }
 
 /**
+ * A Dictionary's element `d[k]`: keyed Variant access (`Variant::get` / `Variant::set` with a key,
+ * core/variant/variant_setget.cpp), which compat's `Dictionary.get` and `Dictionary.set` are.
+ */
+function dictionaryElement(
+  context: LoweringContext,
+  node: GodotBoundNode,
+): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode } | undefined {
+  if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
+  const baseNode = context.node(node.base, node);
+  const datatype = baseNode.datatype;
+  if (datatype.kind !== 'BUILTIN' || datatype.metaType || datatype.builtinType !== 'Dictionary') return undefined;
+  return { baseNode, indexNode: context.node(node.index, node) };
+}
+
+function dictionaryMethod(context: LoweringContext, node: GodotBoundNode, member: 'get' | 'set'): OfficialBoundBindingUse {
+  const method = context.nativeMethod('Dictionary', member);
+  if (method === undefined) return context.refuse(node, `the API dump has no Dictionary.${member}`);
+  const use = context.bindingUse(
+    {
+      sourceRevision: context.sourceRevision,
+      kind: 'builtin-member',
+      owner: 'Dictionary',
+      member,
+      signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}`,
+    },
+    node,
+  );
+  if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+    return context.refuse(node, `binding ${use.target.localName} does not take its receiver first`);
+  }
+  return use;
+}
+
+/** A Dictionary element as a place: read through `Dictionary.get`, written through `Dictionary.set`. */
+function dictionaryPlace(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  element: { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode },
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+): AssignablePlace {
+  const rule = context.selectRule(node, ['subscript-element:dictionary'], [element.baseNode, element.indexNode], ['binding']);
+  const getter = dictionaryMethod(context, node, 'get');
+  const setter = dictionaryMethod(context, node, 'set');
+  const object = materialize(context, lower(context, element.baseNode));
+  const key = materialize(context, lower(context, element.indexNode));
+  return {
+    before: [...object.before, ...key.before],
+    read: bindingCall(context, node, getter, [object.value, key.value]),
+    write: (value) => bindingCall(context, node, setter, [object.value, key.value, value]),
+    requirements: [...rule.requirements, ...object.requirements, ...key.requirements, ...getter.requirements, ...setter.requirements],
+  };
+}
+
+/** Whether a value lowers to a read of an Array element (`a[i]`, `a.at(i)`), which TS types loosely. */
+function arrayElementRead(value: TargetTsExpression): boolean {
+  if (value.kind === 'element-expression') return true;
+  return value.kind === 'call-expression' && value.callee.kind === 'property-expression' && value.callee.property === 'at';
+}
+
+/**
  * An assignable place. Godot writes a member of a built-in value by writing the whole value back
  * (`v.x = e` is `v = v with x`), through a native property by its setter, and evaluates the base
  * chain once, before the assigned value.
@@ -669,6 +732,8 @@ function assignablePlace(
       requirements: [...rule.requirements, ...object.requirements, treeProtocol('godot_animation_tree_parameter'), treeProtocol('godot_animation_tree_set_parameter')],
     };
   }
+  const element = dictionaryElement(context, node);
+  if (element !== undefined) return dictionaryPlace(context, node, element, lower);
   const attributeTarget = valueAttributeTarget(context, node);
   // The native base's own property as the base of a member write (`transform.basis = b`): read
   // through its getter, written back through its setter.
@@ -925,7 +990,7 @@ function assignment(
 ): LoweredExpression {
   const place =
     inheritedNativePlace(context, targetNode, combine !== undefined) ??
-    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined
+    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined
       ? assignablePlace(context, targetNode, lower)
       : undefined);
   if (place !== undefined) {
@@ -1368,7 +1433,9 @@ export function lowerOfficialExpression(
       // the analysis may know it more exactly (`get_setting` of a known setting, a ray's `position`).
       (lowered.value.kind === 'call-expression' &&
         (node.kind === 'CALL' || node.kind === 'SUBSCRIPT' || node.kind === 'BINARY_OPERATOR') &&
-        wideBindingResult(context, lowered.value));
+        wideBindingResult(context, lowered.value)) ||
+      // An Array element is `unknown` (or `T | undefined`) to TS; the analysis states what it is.
+      (node.kind === 'SUBSCRIPT' && arrayElementRead(lowered.value));
     const known = datatype.kind === 'NATIVE' || datatype.kind === 'CLASS' || (datatype.kind === 'BUILTIN' && datatype.builtinType !== 'Nil');
     // (A built-in with no datatype rule of its own keeps the binding's type.)
     if (!typedValue || datatype.metaType || !known || !context.hasTargetType(node)) return lowered;
@@ -2117,6 +2184,37 @@ export function lowerOfficialExpression(
             rule,
           );
         }
+        const element = dictionaryElement(context, node);
+        if (element !== undefined) {
+          const rule = context.selectRule(node, ['subscript-element:dictionary'], [baseNode, indexNode], ['binding']);
+          const use = dictionaryMethod(context, node, 'get');
+          return compose(
+            context,
+            [base, lowerExpression(context, indexNode)],
+            (values) => bindingCall(context, node, use, values),
+            [...rule.requirements, ...use.requirements],
+          );
+        }
+        if (baseNode.datatype.kind === 'BUILTIN' && !baseNode.datatype.metaType && ARRAY_INDEXED.has(baseNode.datatype.builtinType)) {
+          // Variant indexing counts a negative index from the end, as `Array.prototype.at` does; a
+          // constant non-negative index is the element itself.
+          const rule = context.structural(node, 'subscript-element', [baseNode, indexNode], 'subscript-element:array');
+          const constant = indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int' && Number(indexNode.value.value) >= 0;
+          return compose(
+            context,
+            [base, lowerExpression(context, indexNode)],
+            ([object, index]) =>
+              constant
+                ? { kind: 'element-expression', object: object as TargetTsExpression, index: index as TargetTsExpression, span: span(context.script, node) }
+                : {
+                    kind: 'call-expression',
+                    callee: { kind: 'property-expression', object: object as TargetTsExpression, property: 'at' },
+                    arguments: [index as TargetTsExpression],
+                    span: span(context.script, node),
+                  },
+            rule,
+          );
+        }
         const requirements = context.structural(node, 'subscript-element', [baseNode, indexNode]);
         return compose(
           context,
@@ -2143,6 +2241,36 @@ export function lowerOfficialExpression(
         const lowered = argumentNodes.map((argument) =>
           stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
         );
+        const loads = node.compilerTarget.kind === 'gdscript-utility' ? context.resourceLoads.get(node.id) : undefined;
+        if (loads !== undefined && lowered.length === 1) {
+          // `load(path)` over the paths the program fixes: the module constant loading the file a
+          // path names, else null (`ResourceLoader::load` finds no file there).
+          const path = materialize(context, lowered[0] as LoweredExpression);
+          let value: TargetTsExpression = { kind: 'literal-expression', value: null };
+          for (const target of [...loads].reverse()) {
+            const tests = target.values.map((text): TargetTsExpression => ({
+              kind: 'binary-expression',
+              operator: '===',
+              left: path.value,
+              right: { kind: 'literal-expression', value: text },
+            }));
+            const condition = tests.reduce((left, right) => ({ kind: 'binary-expression', operator: '||', left, right }));
+            value = { kind: 'conditional-expression', condition, whenTrue: { kind: 'identifier-expression', name: target.local }, whenFalse: value };
+          }
+          return {
+            before: path.before,
+            value: { kind: 'parenthesized-expression', expression: value, span: span(context.script, node) },
+            after: [],
+            requirements: [
+              ...requirements,
+              ...path.requirements,
+              ...loads.flatMap((target): OfficialBoundLoweringRequirement[] => [
+                ...target.requirements,
+                { kind: 'module-constant-requirement', local: target.local, initializer: target.initializer },
+              ]),
+            ],
+          };
+        }
         const target = callTargetBinding(context, node);
         // `Object.has_method(name)` answers from the script chain first, then ClassDB. Compat answers
         // the script chain (`object.ts`); a name some engine class declares, or one only known at run

@@ -76,3 +76,14 @@ export function keys(self: ReadonlyMap<unknown, unknown>): unknown[] {
 export function get(self: ReadonlyMap<unknown, unknown>, key: unknown, fallback: unknown = null): unknown {
   return self.has(key) ? self.get(key) : fallback;
 }
+
+/**
+ * Stores the value under the key (`d[k] = v` is this, `Variant::set` keyed); returns true.
+ *
+ * @godot Dictionary.set
+ * @source core/variant/dictionary.cpp:202
+ */
+export function set(self: Map<unknown, unknown>, key: unknown, value: unknown): boolean {
+  self.set(key, value);
+  return true;
+}
