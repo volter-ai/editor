@@ -425,15 +425,38 @@ function objectImport(name: string): OfficialBoundLoweringRequirement {
   return { kind: 'compat-import-requirement', module: 'lib/godot-compat/object', imported: name, local: name, typeOnly: false };
 }
 
+/** A read with no effect: a name, `this`, or a member of one, which may be read again. */
+function pureRead(value: TargetTsExpression): boolean {
+  switch (value.kind) {
+    case 'identifier-expression':
+    case 'this-expression':
+      return true;
+    case 'property-expression':
+      return pureRead(value.object);
+    case 'as-expression':
+    case 'non-null-expression':
+    case 'parenthesized-expression':
+      return pureRead(value.expression);
+    default:
+      return false;
+  }
+}
+
 /**
  * The truth of a value GDScript tests (`if v:`, `while v:`, a ternary's condition, `and`, `or`,
  * `not`): `Variant::booleanize`, read as the truth shape of the value's datatype
- * (`lowering-shapes.ts`) gives it, so `if count:` is `if (count !== 0)`.
+ * (`lowering-shapes.ts`) gives it, so `if count:` is `if (count !== 0)` and `not count` is
+ * `count === 0`. `negate` gives the falsehood (`not v`), written at `at` when given.
  */
-export function lowerTruth(context: LoweringContext, node: GodotBoundNode, lowered: LoweredExpression): LoweredExpression {
+export function lowerTruth(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  lowered: LoweredExpression,
+  negate = false,
+  at: ReturnType<typeof span> = span(context.script, node),
+): LoweredExpression {
   const shape = godotTruthShape(node.datatype);
   if (shape === undefined) return context.refuse(node, `the truth of a ${node.datatype.display} value has no lowering`);
-  const at = span(context.script, node);
   const compare = (value: TargetTsExpression, operator: TargetTsBinaryOperator, right: TargetTsExpression): TargetTsExpression => ({
     kind: 'binary-expression',
     operator,
@@ -442,31 +465,41 @@ export function lowerTruth(context: LoweringContext, node: GodotBoundNode, lower
     span: at,
   });
   const zero: TargetTsExpression = { kind: 'literal-expression', value: 0 };
+  const differs: TargetTsBinaryOperator = negate ? '===' : '!==';
+  const call = (name: string, module: string) =>
+    compose(context, [lowered], ([value]) => objectCall(name, [value as TargetTsExpression], negate, at), [
+      { kind: 'compat-import-requirement', module, imported: name, local: name, typeOnly: false },
+    ]);
   switch (shape.kind) {
     case 'boolean':
-      return lowered;
+      return negate
+        ? compose(context, [lowered], ([value]) => ({ kind: 'unary-expression', operator: '!', operand: value as TargetTsExpression, span: at }))
+        : lowered;
     case 'object':
-      return compose(context, [lowered], ([value]) => objectCall('godot_object_truthy', [value as TargetTsExpression], false, at), [objectImport('godot_object_truthy')]);
+      return call('godot_object_truthy', 'lib/godot-compat/object');
     case 'variant':
-      return compose(context, [lowered], ([value]) => objectCall('godot_variant_truthy', [value as TargetTsExpression], false, at), [
-        { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-truth', imported: 'godot_variant_truthy', local: 'godot_variant_truthy', typeOnly: false },
-      ]);
+      return call('godot_variant_truthy', 'lib/godot-compat/variant-truth');
     case 'nonzero':
-      return compose(context, [lowered], ([value]) => compare(value as TargetTsExpression, '!==', zero));
+      return compose(context, [lowered], ([value]) => compare(value as TargetTsExpression, differs, zero));
     case 'nonempty-text':
-      return compose(context, [lowered], ([value]) => compare(value as TargetTsExpression, '!==', { kind: 'literal-expression', value: '' }));
+      return compose(context, [lowered], ([value]) => compare(value as TargetTsExpression, differs, { kind: 'literal-expression', value: '' }));
     case 'nonempty-array':
-      return compose(context, [lowered], ([value]) => compare({ kind: 'property-expression', object: value as TargetTsExpression, property: 'length' }, '>', zero));
+      return compose(context, [lowered], ([value]) =>
+        compare({ kind: 'property-expression', object: value as TargetTsExpression, property: 'length' }, negate ? '===' : '>', zero),
+      );
     case 'nonempty-map':
-      return compose(context, [lowered], ([value]) => compare({ kind: 'property-expression', object: value as TargetTsExpression, property: 'size' }, '>', zero));
+      return compose(context, [lowered], ([value]) =>
+        compare({ kind: 'property-expression', object: value as TargetTsExpression, property: 'size' }, negate ? '===' : '>', zero),
+      );
     case 'nonzero-members': {
-      // The value is read once per member, so anything but a plain name is read once into a local.
+      // The value is read once per member: a name or a member read is read again, anything else
+      // once into a local.
       const settled = settle(context, lowered);
-      const once = settled.value.kind === 'identifier-expression' ? settled : materialize(context, settled);
-      const members = shape.members.map((member) => compare({ kind: 'property-expression', object: once.value, property: member }, '!==', zero));
+      const once = pureRead(settled.value) ? settled : materialize(context, settled);
+      const members = shape.members.map((member) => compare({ kind: 'property-expression', object: once.value, property: member }, differs, zero));
       return {
         ...once,
-        value: members.reduce((left, right) => ({ kind: 'binary-expression', operator: '||', left, right, span: at })),
+        value: members.reduce((left, right) => ({ kind: 'binary-expression', operator: negate ? '&&' : '||', left, right, span: at })),
       };
     }
     default:
@@ -2144,10 +2177,14 @@ export function lowerOfficialExpression(
         }
         if (recipe.kind !== 'unary') return context.refuse(node, 'unreachable unary recipe');
         const operand = lowerExpression(context, operandNode);
+        if (recipe.operator === '!') {
+          // `not` is the falsehood of its operand's truth (`Variant::booleanize`).
+          const falsehood = lowerTruth(context, operandNode, operand, true, span(context.script, node));
+          return { ...falsehood, requirements: [...rule.requirements, ...falsehood.requirements] };
+        }
         return compose(
           context,
-          // `not` tests its operand's truth (`Variant::booleanize`).
-          [recipe.operator === '!' ? lowerTruth(context, operandNode, operand) : operand],
+          [operand],
           ([operand]) => ({
             kind: 'unary-expression',
             operator: recipe.operator,
