@@ -392,6 +392,18 @@ const BODY_DATA: Readonly<Record<string, string>> = {
   set_monitoring: 'monitoring',
 };
 
+/** Rapier's own value of each `<RigidBody>` prop `bodyProps` states only when Godot's differs. */
+const RAPIER_BODY_DEFAULTS: Readonly<Record<string, () => TargetTsExpression>> = {
+  gravityScale: () => literal(1),
+  linearDamping: () => literal(0),
+  angularDamping: () => literal(0),
+  ccd: () => literal(false),
+  enabledTranslations: () => dataExpression([true, true, true]),
+  enabledRotations: () => dataExpression([true, true, true]),
+  lockRotations: () => literal(false),
+  userData: () => dataExpression({}),
+};
+
 /**
  * A body's `<RigidBody>` props from its class and setters (with `resources` for its material):
  * Rapier's own props for what Rapier consumes (type, sensor, friction and bounce with Godot's
@@ -650,8 +662,17 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     const resources = new Map([...instanced.resources, ...emission.scene.resources].map((resource) => [resource.key, resource] as const));
     const shapes = shapeData({ ...emission, resources: new Map(instanced.resources.map((resource) => [resource.key, resource] as const)) }, instanced.root);
     const own = bodyProps(emission, rootClass, rootBody.sensor, instanced.root.setters, new Map(instanced.resources.map((resource) => [resource.key, resource] as const)), shapes, rootData);
-    for (const [prop, value] of bodyProps(emission, rootClass, rootBody.sensor, merged, resources, shapes, data)) {
+    const instance = bodyProps(emission, rootClass, rootBody.sensor, merged, resources, shapes, data);
+    for (const [prop, value] of instance) {
       if (JSON.stringify(own.get(prop)) !== JSON.stringify(value)) overrides.push(attribute(prop, value));
+    }
+    // A prop the prefab states that the instance's values leave out (an override back to Godot's
+    // default) is Rapier's default for it, or the prefab's would stand.
+    for (const prop of own.keys()) {
+      if (instance.has(prop)) continue;
+      const reset = RAPIER_BODY_DEFAULTS[prop];
+      if (reset === undefined) throw new Error(`${at}: clearing the instanced ${rootClass}'s ${prop} has no idiomatic form`);
+      overrides.push(attribute(prop, reset()));
     }
   } else {
     if (stated.setters.length > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
@@ -845,6 +866,8 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...children(),
     ]);
     if (range.length === 0) return drawn;
+    // A root's instancer props and children are the drawn element's, which the range would hold.
+    if (node.nodePath === emission.scene.root.nodePath) throw new Error(`${at}: a scene root with a visibility range has no idiomatic form`);
     return element(
       useCompat(emission, 'geometry-instance-3d', 'GodotVisibilityRange'),
       range.map((entry) => attribute(VISIBILITY_RANGE_PROPS[entry.setter.exportName] as string, dataExpression(plainValue(entry.value)))),

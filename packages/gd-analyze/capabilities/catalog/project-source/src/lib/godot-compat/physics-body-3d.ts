@@ -12,7 +12,7 @@
  * body's `lock_rotation` (which switches it to `BODY_MODE_RIGID_LINEAR`, rigid_body_3d.cpp:295), so
  * each body's locks are one record here, seeded once from what the scene declared, and every change
  * writes both to Rapier: a rotation is enabled unless `lock_rotation` holds or its axis is locked.
- * A body without mass declares no locks (Rapier reads every axis of one as locked).
+ * Only a dynamic body with mass declares locks (Rapier reads every axis of any other as locked).
  */
 
 import { ActiveHooks } from '@dimforge/rapier3d-compat';
@@ -81,7 +81,9 @@ function locksOf(entity: object): Locks {
     const body = godot_collision_object_body(entity);
     const rotation = ((entity as { readonly userData?: Readonly<Record<string, unknown>> }).userData ?? {})['lock_rotation'] === true;
     // Rapier's authored `lockRotations` hides which rotations the axis locks hold; the plan refuses the pair.
-    const declared = body === undefined || body.mass() === 0 ? 0 : declaredLocks(body) & (rotation ? 7 : 63);
+    // Only a dynamic body with mass declares locks: Rapier reads a kinematic, fixed or massless body's
+    // every axis as locked, where Godot's `locked_axis` is clear.
+    const declared = body === undefined || !body.isDynamic() || body.mass() === 0 ? 0 : declaredLocks(body) & (rotation ? 7 : 63);
     locks = { axes: declared, rotation };
     LOCKS.set(entity, locks);
   }
