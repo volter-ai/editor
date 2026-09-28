@@ -800,9 +800,9 @@ const SCENE_SHADED = new WeakMap<Material, string>();
  *   other than one by one are not drawn.
  * The material's own program, never three's shared chunks. The hook goes on once, over whatever
  * the material already compiles with, and reads the draw from the material's `userData` when three
- * compiles it; a reflections volume material takes it as a later-assigned hook and splices its
- * lighting after it, so each keeps the other; a change of the draw only recompiles. A material
- * that never needs it keeps three's own program. Returns the material.
+ * compiles it; over a reflections volume material it wraps the material's own hook, which splices
+ * the probe lighting when this one calls it, so each keeps the other; a change of the draw only
+ * recompiles. A material that never needs it keeps three's own program. Returns the material.
  *
  * @godot BaseMaterial3D (protocol)
  * @source scene/resources/material.cpp:1231
