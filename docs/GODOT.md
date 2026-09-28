@@ -272,7 +272,8 @@ with no check of the shapes the review hunts.
    - Ruling 2: no record, capture or comparison of Godot's output is kept.
 2. No tests and no reviews (owner, 2026-09-28: "NO TESTS NO REVIEWS", "under any circumstance you
    may not test"): a lane lands on `godot` as written. The one review is the regular regression
-   check, docs/GODOT-REVIEW.md after 30 lane commits.
+   check, docs/GODOT-REVIEW.md after 30 lane commits. The one test runs once at the very end, when
+   everything is done (owner: "the only test is at the very end when everything is done").
 3. The slate is the board card's done-when (the games walked blind, the lane merged, its fixes on
    main and released). Work that does not serve it, the emitted game's shape track included, waits
    for the owner to ask for it.
