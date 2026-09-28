@@ -17,27 +17,12 @@
  * measuring instrument, so a Godot 4.6 project is read with the pinned 4.7 frontend and marked.
  * Godot 3 projects are listed as unread, since no Godot 3 frontend exists.
  */
-import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import {
-  chmodSync,
-  existsSync,
-  mkdtempSync,
-  readdirSync,
-  readFileSync,
-  rmSync,
-  writeFileSync,
-} from 'node:fs';
-import { tmpdir } from 'node:os';
+import { existsSync, readdirSync, readFileSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { captureGodotBoundProgram } from '../godot-frontend/run-bound-program';
-import { readGodotProjectSnapshot } from '../read/godot-project';
+import { withCapturedGodotProject } from '../import-project';
 import type { SceneNode } from '../read/godot-types';
-import {
-  captureGodotProjectSnapshot,
-  materializeGodotProjectSnapshot,
-} from '../snapshot/project-snapshot';
 
 const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FIXTURES_DIR = path.join(PACKAGE_DIR, 'test', 'fixtures');
@@ -113,11 +98,11 @@ function sceneClasses(node: SceneNode | undefined, counts: Counts): void {
 }
 
 function engineOf(fixtureDir: string): { major: number; label: string } {
-  const snapshot = captureGodotProjectSnapshot(fixtureDir);
-  return {
-    major: snapshot.engine.major,
-    label: `${String(snapshot.engine.major)} [${snapshot.engine.features.join(', ')}]`,
-  };
+  // `config_version=5` is Godot 4's project file, 4 Godot 3's (`project_settings.cpp`).
+  const text = readFileSync(path.join(fixtureDir, 'project.godot'), 'utf8');
+  const major = /^config_version=5/mu.test(text) ? 4 : 3;
+  const features = /^config\/features=PackedStringArray\(([^)]*)\)/mu.exec(text)?.[1]?.split(',').map((entry) => entry.trim().replace(/^"|"$/gu, '')) ?? [];
+  return { major, label: `${String(major)} [${features.join(', ')}]` };
 }
 
 function readGame(fixture: string, exporter: string, official: string): GameClosure {
@@ -136,19 +121,8 @@ function readGame(fixture: string, exporter: string, official: string): GameClos
   };
   const engine = engineOf(fixtureDir);
   if (engine.major !== 4) return { fixture, engine: engine.label, read: 'unread-godot3', ...empty };
-  const snapshot = captureGodotProjectSnapshot(fixtureDir);
-  const temp = mkdtempSync(path.join(tmpdir(), 'vgai-godot-closure-'));
   try {
-    const projectDir = path.join(temp, 'project');
-    materializeGodotProjectSnapshot(snapshot, projectDir);
-    chmodSync(projectDir, 0o755);
-    // Godot's own import first, by the official editor, so scene preloads of imported assets
-    // resolve. The report measures; it does not pin the editor's revision to the project's.
-    const program = captureGodotBoundProgram({
-      godotBinary: exporter,
-      projectDir,
-      importer: { binary: official, executableSha256: sha256File(official) },
-    });
+    return withCapturedGodotProject(fixtureDir, { boundExporterBinary: exporter, officialBinary: official }, ({ boundProgram: program, decodedProject: project }) => {
     const result: GameClosure = { fixture, engine: engine.label, read: 'read', ...empty };
     const unresolved: string[] = [];
     const untyped: string[] = [];
@@ -186,7 +160,6 @@ function readGame(fixture: string, exporter: string, official: string): GameClos
         }
       }
     }
-    const project = readGodotProjectSnapshot(snapshot);
     for (const scene of project.scenes) {
       if (scene.gltfOrigin !== undefined) continue;
       sceneClasses(scene.root, result.nodeClasses);
@@ -201,6 +174,7 @@ function readGame(fixture: string, exporter: string, official: string): GameClos
       for (const sub of resource.subResources) bump(result.resourceTypes, sub.type);
     }
     return { ...result, unresolvedCalls: unresolved, untypedAttributes: untyped };
+    });
   } catch (error) {
     return {
       fixture,
@@ -209,10 +183,6 @@ function readGame(fixture: string, exporter: string, official: string): GameClos
       error: (error instanceof Error ? error.message.split('\n', 1)[0] : undefined) ?? String(error),
       ...empty,
     };
-  } finally {
-    // The captured tree is read-only, as the import leaves it; restore write to remove it.
-    spawnSync('chmod', ['-R', 'u+w', temp]);
-    rmSync(temp, { recursive: true, force: true });
   }
 }
 

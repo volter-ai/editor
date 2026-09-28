@@ -14,8 +14,7 @@
 import { readdirSync, writeFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { withBoundGodotProject } from '../import-project';
-import { planGodotTranslation } from '../translate/plan';
+import { withPlannedGodotProject } from '../import-project';
 
 const PACKAGE_DIR = path.resolve(path.dirname(fileURLToPath(import.meta.url)), '..', '..');
 const FIXTURES_DIR = path.join(PACKAGE_DIR, 'test', 'fixtures');
@@ -127,15 +126,15 @@ function frontRefusals(error: unknown): Refusal[] {
 function readKit(fixture: string, exporter: string, official: string): KitRefusals {
   process.stdout.write(`refusals: ${fixture}\n`);
   try {
-    return withBoundGodotProject(
+    return withPlannedGodotProject(
       path.join(FIXTURES_DIR, fixture),
       { boundExporterBinary: exporter, officialBinary: official },
-      (boundProject, toolchain): KitRefusals => {
+      (planned, toolchain): KitRefusals => {
         const dump = toolchain.frontend.apiDump.parsed;
         const classes = [...dump.classes.map((entry) => entry.name), ...(dump.builtinClasses ?? []).map((entry) => entry.name)];
-        let plan: ReturnType<typeof planGodotTranslation>;
+        let plan: ReturnType<typeof planned>;
         try {
-          plan = planGodotTranslation(boundProject, toolchain);
+          plan = planned();
         } catch (error) {
           throw new PlanCrash(error);
         }

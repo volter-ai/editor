@@ -167,14 +167,24 @@ export function importGodotProject(
   );
 }
 
+/** The project as the import captures it: its snapshot read, and the official frontend's program. */
+export interface CapturedGodotProject {
+  readonly snapshot: ReturnType<typeof captureGodotProjectSnapshot>;
+  readonly toolchain: GodotImportToolchainSnapshot;
+  readonly boundProgram: ReturnType<typeof captureGodotBoundProgramFromSnapshot>;
+  readonly decodedProject: ReturnType<typeof readGodotProjectSnapshot>;
+}
+
 /**
- * The import's front half: snapshot the project and toolchain, run the official frontend once,
- * read and analyze, and hand the bound project to `use` while its disposable capture exists.
+ * The import's capture: snapshot the project and toolchain, run the official frontend once and
+ * read, handing the result to `use` while its disposable capture exists. The pipeline's phases are
+ * called here and in `importGodotProject` only (docs/GODOT.md §The lane's law, row 1); the reports
+ * observe through this and `withBoundGodotProject`, `withPlannedGodotProject`.
  */
-export function withBoundGodotProject<T>(
+export function withCapturedGodotProject<T>(
   sourceDir: string,
   options: ImportGodotProjectOptions,
-  use: (boundProject: BoundGodotProject, toolchain: GodotImportToolchainSnapshot) => T,
+  use: (captured: CapturedGodotProject) => T,
 ): T {
   const snapshot = captureGodotProjectSnapshot(sourceDir);
   const toolchain = captureGodotImportToolchainSnapshot({
@@ -196,6 +206,22 @@ export function withBoundGodotProject<T>(
       projectDir: capturedProjectDir,
     });
     const decodedProject = readGodotProjectSnapshot(snapshot);
+    return use({ snapshot, toolchain, boundProgram, decodedProject });
+  } finally {
+    if (existsSync(capturedProjectDir)) chmodSync(capturedProjectDir, 0o755);
+    rmSync(snapshotTemp, { recursive: true, force: true });
+  }
+}
+
+/**
+ * The import's front half: the capture, analyzed, handed to `use` while the capture exists.
+ */
+export function withBoundGodotProject<T>(
+  sourceDir: string,
+  options: ImportGodotProjectOptions,
+  use: (boundProject: BoundGodotProject, toolchain: GodotImportToolchainSnapshot) => T,
+): T {
+  return withCapturedGodotProject(sourceDir, options, ({ snapshot, toolchain, boundProgram, decodedProject }) => {
     // Documents the game never loads are not planned (`read/reachability.ts`): reported, with why.
     if (decodedProject.unplanned.length > 0) {
       process.stdout.write(
@@ -211,8 +237,14 @@ export function withBoundGodotProject<T>(
       decodedProject,
     );
     return use(boundProject, toolchain);
-  } finally {
-    if (existsSync(capturedProjectDir)) chmodSync(capturedProjectDir, 0o755);
-    rmSync(snapshotTemp, { recursive: true, force: true });
-  }
+  });
+}
+
+/** The import's plan of the project, made when `use` asks for it, without emitting it: what the reports read. */
+export function withPlannedGodotProject<T>(
+  sourceDir: string,
+  options: ImportGodotProjectOptions,
+  use: (plan: () => ReturnType<typeof planGodotTranslation>, toolchain: GodotImportToolchainSnapshot) => T,
+): T {
+  return withBoundGodotProject(sourceDir, options, (boundProject, toolchain) => use(() => planGodotTranslation(boundProject, toolchain), toolchain));
 }
