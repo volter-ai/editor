@@ -266,14 +266,8 @@ export function emitDirectGodotWorldSyntax(
       },
     ],
   };
-  const useThree = (name: string): TargetTsStatement => ({
-    kind: 'variable-statement',
-    declaration: 'const',
-    name,
-    initializer: call('useThree', [{ kind: 'arrow-expression', parameters: [{ name: 'state' }], body: { kind: 'property-expression', object: id('state'), property: name } }]),
-  });
-  // Inside `<Physics>`: the world's wiring, and each frame the page's input delivered, the frame
-  // counted, the current camera made R3F's and the canvas items drawn.
+  // Inside `<Physics>`: the world's wiring, the SceneTree, and the root Window, which delivers the
+  // page's input and draws its canvas items from its own hooks.
   const gameComponent: TargetTsStatement = {
     kind: 'function-statement',
     name: 'Game',
@@ -283,34 +277,7 @@ export function emitDirectGodotWorldSyntax(
       statement(call('useGodotWorld')),
       statement(call('useGodotTree')),
       { kind: 'variable-statement', declaration: 'const', name: 'generation', initializer: call('useGodotSceneReload') },
-      useThree('scene'),
-      useThree('gl'),
-      useThree('get'),
-      useThree('set'),
-      statement(
-        call('useFrame', [
-          {
-            kind: 'arrow-expression',
-            parameters: [],
-            body: [
-              statement(call('godot_window_process_events')),
-              { kind: 'variable-statement', declaration: 'const', name: 'camera', initializer: call('godot_camera_3d_draw', [id('scene')]) },
-              {
-                kind: 'if-statement',
-                condition: {
-                  kind: 'binary-expression',
-                  operator: '&&',
-                  left: { kind: 'binary-expression', operator: '!==', left: id('camera'), right: { kind: 'literal-expression', value: null } },
-                  right: { kind: 'binary-expression', operator: '!==', left: { kind: 'property-expression', object: call('get'), property: 'camera' }, right: id('camera') },
-                },
-                // biome-ignore lint/suspicious/noThenProperty: TargetTsSyntax names the source branch.
-                then: [statement(call('set', [{ kind: 'object-expression', properties: [{ key: 'camera', value: id('camera') }] }]))],
-              },
-              statement(call('godot_canvas_draw', [id('scene'), call('godot_window_canvas_layer', [{ kind: 'property-expression', object: id('gl'), property: 'domElement' }])])),
-            ],
-          },
-        ]),
-      ),
+      statement(call('useGodotRootWindow')),
       {
         kind: 'return-statement',
         expression: {
@@ -331,7 +298,7 @@ export function emitDirectGodotWorldSyntax(
   const imports: TargetTsStatement[] = [
     named('react', ['Fragment', 'Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
     named('react', ['PropsWithChildren', ...(hasAutoloads ? ['RefObject'] : [])], true),
-    named('@react-three/fiber', ['useFrame', 'useThree', ...hooks.fiber]),
+    ...(hooks.fiber.size === 0 ? [] : [named('@react-three/fiber', [...hooks.fiber])]),
     named('@react-three/rapier', ['Physics', ...hooks.rapier]),
     ...(hasAutoloads ? [named('three', ['Group'], true)] : []),
     { kind: 'import-statement', module: moduleSpecifier(scene.targetPath), namedBindings: [{ imported: scene.exportName, local: scene.exportName }, ...(mainAutoloadReferences.length === 0 ? [] : [{ imported: directGodotSceneAutoloadContextName(scene.exportName), local: directGodotSceneAutoloadContextName(scene.exportName) }])] },
@@ -341,10 +308,7 @@ export function emitDirectGodotWorldSyntax(
       namedBindings: [{ imported: directGodotSceneAutoloadContextName(candidate.exportName), local: directGodotSceneAutoloadContextName(candidate.exportName) }],
     })),
     named('./lib/godot-compat/main', ['useGodotResources', 'useGodotSceneReload', 'useGodotWorld']),
-    named('./lib/godot-compat/advance', ['useGodotTree']),
-    named('./lib/godot-compat/window', ['godot_window_canvas_layer', 'godot_window_process_events']),
-    named('./lib/godot-compat/camera-3d', ['godot_camera_3d_draw']),
-    named('./lib/godot-compat/canvas-item', ['godot_canvas_draw']),
+    named('./lib/godot-compat/advance', ['useGodotRootWindow', 'useGodotTree']),
     ...(hasAutoloads ? [named('./lib/godot-compat/react-lifecycle', ['useGodotScene', 'useGodotScript'])] : []),
     ...[...new Set(hooks.compat.values())].map((module) =>
       named(`./lib/godot-compat/${module}`, [...hooks.compat].filter(([, from]) => from === module).map(([name]) => name)),

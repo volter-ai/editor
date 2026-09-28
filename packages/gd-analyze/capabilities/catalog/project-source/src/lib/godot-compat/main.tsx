@@ -6,12 +6,13 @@
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`), as hooks the emitted world calls: its resources
  * (the default theme font, `Main::setup2`, and the scenes' imported resources), and the world's
  * wiring (`Main::start`: the renderer and the page's input handed to the root window, whose size is
- * the canvas's; the `<Physics>` world handed to compat's physics). Nothing here runs per frame: the
- * world's own `useFrame` and physics-step hooks deliver input, choose the current camera and draw
- * the canvas items, and Rapier steps the physics.
+ * the canvas's; the current camera handed to R3F as it changes; the `<Physics>` world handed to
+ * compat's physics). The root Window is a node like any other: its own hook (`useGodotRootWindow`)
+ * (`advance.tsx`) delivers the page's input and draws its canvas items, and Rapier steps the physics.
  */
 
 import { useThree } from '@react-three/fiber';
+import { godot_camera_3d_attach_renderer, godot_camera_3d_viewport_resized } from './camera-3d';
 import { useRapier } from '@react-three/rapier';
 import { use, useEffect, useLayoutEffect, useReducer } from 'react';
 import { godot_collision_object_of_collider, godot_physics_attach } from './collision-object-3d';
@@ -66,6 +67,8 @@ export function useGodotWorld(): void {
   const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
   const size = useThree((state) => state.size);
+  const get = useThree((state) => state.get);
+  const set = useThree((state) => state.set);
   const rapier = useRapier();
   useLayoutEffect(() => {
     const releasePhysics = godot_physics_attach(rapier);
@@ -81,16 +84,21 @@ export function useGodotWorld(): void {
     const releaseRenderer = godot_viewport_attach_renderer(gl);
     const releaseInput = godot_window_attach_input(gl.domElement);
     const releaseDispatch = godot_viewport_attach_input(scene);
+    const releaseCamera = godot_camera_3d_attach_renderer(scene, (camera) => {
+      if (get().camera !== camera) set({ camera });
+    });
     return () => {
+      releaseCamera();
       releaseDispatch();
       releaseInput();
       releaseRenderer();
       rapier.filterContactPairHooks.delete(exceptions as never);
       releasePhysics();
     };
-  }, [scene, gl, rapier]);
+  }, [scene, gl, rapier, get, set]);
   useLayoutEffect(() => {
     godot_window_set_size(scene, godot_window_canvas_size(gl.domElement));
+    godot_camera_3d_viewport_resized(scene);
   }, [scene, gl, size]);
 }
 

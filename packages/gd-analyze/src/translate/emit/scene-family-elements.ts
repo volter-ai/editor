@@ -1151,6 +1151,8 @@ export function familyElement(
         tag: 'PerspectiveCamera',
         attributes: [
           ...(emission.currentCamera === node.nodePath ? [flag('makeDefault')] : []),
+          // Its aspect and vertical angle are Godot's projection (`camera-3d.ts`), not drei's resize.
+          flag('manual'),
           attribute('fov', literal(property('fov', 75))),
           attribute('near', literal(property('near', 0.05))),
           attribute('far', literal(property('far', 4000))),

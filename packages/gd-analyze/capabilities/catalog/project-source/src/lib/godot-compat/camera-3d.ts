@@ -308,7 +308,13 @@ export function project_ray_origin(self: PerspectiveCamera, p_pos: Vector2): Vec
 /** `Viewport::_camera_3d_set` (`scene/main/viewport.cpp:4750`). */
 function cameraSet(viewport: Object3D, camera: PerspectiveCamera | null): void {
   camerasOf(viewport).camera = camera;
+  if (camera === null) return;
+  writeProjection(camera, stateOf(camera));
+  RENDERERS.get(viewport)?.(camera);
 }
+
+/** What draws each viewport, told the camera it now draws with (`godot_camera_3d_attach_renderer`). */
+const RENDERERS = new Map<Object3D, (camera: PerspectiveCamera) => void>();
 
 /** `Viewport::_camera_3d_make_next_current` (`scene/main/viewport.cpp:4794`). */
 function makeNextCurrent(viewport: Object3D, exclude: PerspectiveCamera): void {
@@ -524,15 +530,30 @@ export function godot_camera_3d_of_viewport(viewport: Object3D): PerspectiveCame
 }
 
 /**
- * The camera `viewport` draws with this frame, its three projection written from its Godot lens
- * and the viewport's size (the renderer computes the projection when it draws the viewport,
- * `servers/rendering/renderer_viewport.cpp`); null when the viewport has none.
+ * Hands `viewport`'s current camera to its renderer, now and whenever another becomes current
+ * (`Viewport::_camera_3d_set`, `viewport.cpp:4766`, gives the renderer the camera it draws with);
+ * the returned call ends it.
+ *
+ * @godot Camera3D (protocol)
+ * @source scene/main/viewport.cpp:4766
+ */
+export function godot_camera_3d_attach_renderer(viewport: Object3D, draw: (camera: PerspectiveCamera) => void): () => void {
+  RENDERERS.set(viewport, draw);
+  const current = godot_camera_3d_of_viewport(viewport);
+  if (current !== null) cameraSet(viewport, current);
+  return () => {
+    if (RENDERERS.get(viewport) === draw) RENDERERS.delete(viewport);
+  };
+}
+
+/**
+ * The viewport's size changed: its current camera's projection follows (the renderer computes the
+ * projection from the viewport's size, `servers/rendering/renderer_viewport.cpp`).
  *
  * @godot Camera3D (protocol)
  * @source scene/3d/camera_3d.cpp:281
  */
-export function godot_camera_3d_draw(viewport: Object3D): PerspectiveCamera | null {
+export function godot_camera_3d_viewport_resized(viewport: Object3D): void {
   const camera = godot_camera_3d_of_viewport(viewport);
   if (camera !== null) writeProjection(camera, stateOf(camera));
-  return camera;
 }

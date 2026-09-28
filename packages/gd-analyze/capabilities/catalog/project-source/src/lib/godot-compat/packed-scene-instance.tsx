@@ -19,7 +19,7 @@
 import { createPortal, flushSync } from '@react-three/fiber';
 import { type ComponentType, createContext, createElement, Fragment, type ReactNode } from 'react';
 import { Group, type Object3D } from 'three';
-import { godot_node_add_unmounted, godot_node_adopt, godot_node_object, godot_node_stand_in } from './node';
+import { type GodotAddedScenes, godot_node_add_unmounted, godot_node_added_scenes, godot_node_adopt, godot_node_object, godot_node_stand_in } from './node';
 
 /** A scene component. */
 export type GodotSceneComponent = ComponentType<Record<string, unknown>>;
@@ -95,12 +95,10 @@ export function instantiate(self: PackedScene, edit_state = 0): unknown {
   return godot_node_object(standIn);
 }
 
-/** The scene components that render what is added under their nodes, by their root. */
-const SPAWNERS = new Map<object, { readonly add: (spawn: GodotSpawn) => void; readonly remove: (spawn: GodotSpawn) => void }>();
-
 /**
- * Registers a scene component as the one that renders the scenes added under its nodes (the
- * nearest scene root at or above the parent); the returned call ends it, as the component unmounts.
+ * Makes a scene component the one that renders the scenes added under its nodes: its root's
+ * added scenes are the component's state (the nearest scene root at or above the parent renders
+ * a scene added under it); the returned call ends it, as the component unmounts.
  *
  * @godot PackedScene (protocol)
  * @source scene/main/node.cpp:1711
@@ -109,27 +107,19 @@ export function godot_packed_scene_spawner(
   root: object,
   update: (change: (spawns: readonly GodotSpawn[]) => readonly GodotSpawn[]) => void,
 ): () => void {
-  const spawner = {
-    add: (spawn: GodotSpawn) => update((spawns) => [...spawns, spawn]),
-    remove: (spawn: GodotSpawn) => update((spawns) => spawns.filter((candidate) => candidate !== spawn)),
+  const added: GodotAddedScenes = {
+    add: (spawn) => update((spawns) => [...spawns, spawn as GodotSpawn]),
+    remove: (spawn) => update((spawns) => spawns.filter((candidate) => candidate !== spawn)),
   };
-  SPAWNERS.set(root, spawner);
+  godot_node_adopt(root, { addedScenes: added });
   return () => {
-    if (SPAWNERS.get(root) === spawner) SPAWNERS.delete(root);
+    if (godot_node_added_scenes(root) === added) godot_node_adopt(root, { addedScenes: null });
   };
 }
 
-/** The spawner whose scene holds `parent`: the nearest scene root at or above it, or for the tree's root, a scene below it. */
-function spawnerOf(parent: Object3D): ReturnType<typeof SPAWNERS.get> {
-  for (let node: Object3D | null = parent; node !== null; node = node.parent) {
-    const spawner = SPAWNERS.get(node);
-    if (spawner !== undefined) return spawner;
-  }
-  for (const child of parent.children) {
-    const spawner = SPAWNERS.get(child);
-    if (spawner !== undefined) return spawner;
-  }
-  return undefined;
+/** The added scenes of the scene holding `parent`, or for the tree's root, of a scene below it. */
+function spawnerOf(parent: Object3D): GodotAddedScenes | undefined {
+  return godot_node_added_scenes(parent) ?? parent.children.map((child) => godot_node_added_scenes(child)).find((found) => found !== undefined);
 }
 
 let serial = 0;

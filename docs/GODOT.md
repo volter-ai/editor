@@ -148,6 +148,19 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
    The headless runner (`gd-analyze run`, `src/run/`) loads one three, as the bundler does
    (`tsx/esm`, and `three` resolved to its module build for `require` too), so it plays what the
    browser plays.
+   After the `d3afcb62` review (2026-09-27): the emitted world runs no frame work. The current
+   camera is handed to R3F when it changes (`godot_camera_3d_attach_renderer`) and its projection
+   written when its lens or the viewport's size changes; the root Window, a node, delivers the
+   page's input and draws its canvas items from its own hook (`useGodotRootWindow`, `advance.tsx`).
+   Spawning keeps no registry: a scene root's added scenes are that node's own state
+   (`godot_node_added_scenes`), and `rootScript` is lowering's argument to `preload`. Ruled from
+   the law, not changed: the SceneTree's timers, tweens and deletion queue stay with the world's
+   component, because the SceneTree owns them (`SceneTree::process_timers` and `process_tweens`,
+   `scene_tree.cpp:793` and `:825`, walk the tree's own lists; a node's tween is only bound to the node for
+   pausing and freeing, and a `create_timer` timer outlives the node that made it), and the world
+   is the SceneTree's component. `add_child` keeps `flushSync` and the stand-in: Godot's
+   `add_child` returns with the child in the tree and readied, and a script configures an
+   instantiated root before adding it.
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
    landed, and CSGBox3D), each accepted by a walk.
 

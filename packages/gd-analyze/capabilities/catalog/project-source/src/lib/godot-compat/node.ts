@@ -99,6 +99,8 @@ interface NodeState {
   owner: object | undefined;
   /** The nodes this node owns with `unique_name_in_owner`, by name (`owned_unique_nodes`). */
   uniqueNodes: Map<string, object>;
+  /** A scene root's: the scenes scripts add under its nodes, as the state of its scene component. */
+  addedScenes: GodotAddedScenes | undefined;
 }
 
 const NODE = new WeakMap<object, NodeState>();
@@ -155,6 +157,7 @@ function fresh(): NodeState {
     classes: undefined,
     owner: undefined,
     uniqueNodes: new Map(),
+    addedScenes: undefined,
     internalPhysics: undefined,
     internalProcess: undefined,
   };
@@ -229,6 +232,26 @@ export function godot_element_callsite(object: object, callsite: unknown): void 
 }
 
 
+/** How a scene root's component adds and removes the scenes scripts add under its nodes. */
+export interface GodotAddedScenes {
+  readonly add: (scene: object) => void;
+  readonly remove: (scene: object) => void;
+}
+
+/**
+ * The added scenes of the scene holding `node`: those of the nearest scene root at or above it.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:1711
+ */
+export function godot_node_added_scenes(node: object): GodotAddedScenes | undefined {
+  for (let current: object | null = node; current !== null; current = parentEntity(current)) {
+    const found = NODE.get(current)?.addedScenes;
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
 /**
  * Registers an entity as a Godot node: `kind` `node` marks a plain Node (non-spatial), the
  * optional binding seats its script, and the optional authority owns its attachment.
@@ -247,9 +270,12 @@ export function godot_node_adopt(
     /** The scene root that owns the node; with `unique`, the owner finds it as `%Name`. */
     readonly owner?: object;
     readonly unique?: boolean;
+    /** A scene root's added scenes (`packed-scene-instance.tsx`); null ends them. */
+    readonly addedScenes?: GodotAddedScenes | null;
   } = {},
 ): object {
   const state = stateOf(entity);
+  if (options.addedScenes !== undefined) state.addedScenes = options.addedScenes ?? undefined;
   if (options.owner !== undefined) {
     state.owner = options.owner;
     if (options.unique === true) stateOf(options.owner).uniqueNodes.set(nameOf(entity), entity);

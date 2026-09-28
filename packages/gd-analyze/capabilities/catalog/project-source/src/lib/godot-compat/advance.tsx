@@ -7,14 +7,17 @@
  * for its internal physics processing, as a three.js component animates itself. The only hooks
  * compat takes from the host, each advancing one node: compat never drives other nodes' work from
  * the frame (docs/GODOT.md §The lane's law, row 4). The SceneTree advances the same way, from the
- * world's component (`useGodotTree`): its own frames, timers, tweens and deletion queue.
+ * world's component (`useGodotTree`): its own frames, timers, tweens and deletion queue; and the
+ * root Window, a node, from its own (`useGodotRootWindow`): the page's input and its canvas items.
  */
 
-import { useFrame } from '@react-three/fiber';
+import { useFrame, useThree } from '@react-three/fiber';
 import { useBeforePhysicsStep, useRapier } from '@react-three/rapier';
 import { useLayoutEffect } from 'react';
+import { godot_canvas_draw } from './canvas-item';
 import { get_physics_process_delta_time, godot_node_advance } from './node';
 import { godot_tree_physics_begin, godot_tree_physics_end, godot_tree_process_begin, godot_tree_process_end } from './scene-tree';
+import { godot_window_canvas_layer, godot_window_process_events } from './window';
 
 /**
  * Runs one node's own internal processing from its component's frame and physics step.
@@ -51,4 +54,21 @@ export function useGodotTree(): void {
   }, [rapier]);
   useFrame((_, delta) => godot_tree_process_begin(delta), -1);
   useFrame(() => godot_tree_process_end());
+}
+
+/**
+ * The root Window's own processing, from its component's frame: at the start of each frame the
+ * page's buffered input becomes events (`OS_Web::main_loop_iterate` then
+ * `DisplayServerWeb::process_events`), and each frame it draws its canvas items over the canvas.
+ *
+ * @godot Window (protocol)
+ * @source platform/web/os_web.cpp:87
+ */
+export function useGodotRootWindow(): void {
+  const scene = useThree((state) => state.scene);
+  const gl = useThree((state) => state.gl);
+  useFrame(() => {
+    godot_window_process_events();
+    godot_canvas_draw(scene, godot_window_canvas_layer(gl.domElement));
+  });
 }
