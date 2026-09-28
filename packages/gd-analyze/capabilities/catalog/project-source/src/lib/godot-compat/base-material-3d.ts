@@ -773,7 +773,7 @@ function applyExtra(self: BaseMaterial3D, target: Material): void {
     distance_fade_mode: extra.distance_fade,
     distance_fade_min: extra.distance_fade_min,
     distance_fade_max: extra.distance_fade_max,
-    distance_fade_opaque: self.transparency === 0,
+    distance_fade_opaque: self.transparency === 0 && !extra.proximity_fade_enabled,
   });
   godot_base_material_3d_scene_shader(target);
 }

@@ -227,7 +227,7 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     data.push({ key: 'distance_fade_mode', value: fade });
     data.push({ key: 'distance_fade_min', value: f32(num('set_distance_fade_min_distance') ?? 0) });
     data.push({ key: 'distance_fade_max', value: f32(num('set_distance_fade_max_distance') ?? 10) });
-    if (transparency === 0) data.push({ key: 'distance_fade_opaque', value: true });
+    if (transparency === 0 && !proximity) data.push({ key: 'distance_fade_opaque', value: true });
   }
   if (!unshaded) {
     if (diffuseMode !== 0 && diffuseMode !== 3) data.push({ key: 'diffuse_mode', value: diffuseMode });
