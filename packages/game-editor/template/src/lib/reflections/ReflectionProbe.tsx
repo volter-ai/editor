@@ -1,8 +1,7 @@
 import { type ThreeElements, useFrame, useThree } from '@react-three/fiber';
-import type { ReflectionProbeConfig } from '@volter/threejs-runtime/adapter/reflection-probe';
 import { type ReactNode, useLayoutEffect, useRef, useState } from 'react';
 import type * as THREE from 'three';
-import { createReflectionProbeMark } from './probe-controller';
+import { createReflectionProbeMark, type VolumeReflectionProbeConfig } from './probe-controller';
 import {
   acquireReflectionProbeRegistry,
   type ReflectionProbeRegistryLease,
@@ -60,6 +59,15 @@ export type ReflectionProbeProps = Omit<ThreeElements['group'], 'children'> & {
   readonly blendDistance?: number;
   readonly priority?: number;
   readonly intensity?: number;
+  /**
+   * The diffuse light the volume material takes from this probe: its capture
+   * (default), the constant `diffuseColor`, or none. See `ReflectionProbeDiffuse`.
+   */
+  readonly diffuse?: 'capture' | 'color' | 'none';
+  /** Scales the probe's diffuse light in the volume material; defaults to `intensity`. */
+  readonly diffuseIntensity?: number;
+  /** Linear RGB of the `color` diffuse. */
+  readonly diffuseColor?: [number, number, number];
   readonly parallaxProjection?: boolean;
   /** Full local-space projection-box dimensions. */
   readonly parallaxSize?: [number, number, number];
@@ -73,6 +81,19 @@ export type ReflectionProbeProps = Omit<ThreeElements['group'], 'children'> & {
   readonly captureShadows?: boolean;
 };
 
+/** The diffuse fields a probe states, leaving out the ones it does not (they keep their defaults). */
+function diffuseConfig(
+  diffuse: ReflectionProbeProps['diffuse'],
+  diffuseIntensity: number | undefined,
+  diffuseColor: [number, number, number] | undefined,
+): Partial<VolumeReflectionProbeConfig> {
+  return {
+    ...(diffuse === undefined ? {} : { diffuse }),
+    ...(diffuseIntensity === undefined ? {} : { diffuseIntensity }),
+    ...(diffuseColor === undefined ? {} : { diffuseColor }),
+  };
+}
+
 export function ReflectionProbe({
   name = 'Reflection Probe',
   children,
@@ -82,6 +103,9 @@ export function ReflectionProbe({
   blendDistance = 1,
   priority = 0,
   intensity = 1,
+  diffuse,
+  diffuseIntensity,
+  diffuseColor,
   parallaxProjection = true,
   parallaxSize = [10, 6, 10],
   parallaxOffset = [0, 0, 0],
@@ -109,6 +133,7 @@ export function ReflectionProbe({
       blendDistance,
       priority,
       intensity,
+      ...diffuseConfig(diffuse, diffuseIntensity, diffuseColor),
       parallaxProjection,
       parallaxSize,
       parallaxOffset,
@@ -121,13 +146,14 @@ export function ReflectionProbe({
       captureShadows,
     }),
   );
-  const config: ReflectionProbeConfig = {
+  const config: VolumeReflectionProbeConfig = {
     shape,
     size,
     radius,
     blendDistance,
     priority,
     intensity,
+    ...diffuseConfig(diffuse, diffuseIntensity, diffuseColor),
     parallaxProjection,
     parallaxSize,
     parallaxOffset,
@@ -149,6 +175,9 @@ export function ReflectionProbe({
     blendDistance,
     priority,
     intensity,
+    diffuse,
+    diffuseIntensity,
+    diffuseColor,
     parallaxProjection,
     parallaxSize,
     parallaxOffset,

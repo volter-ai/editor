@@ -21,20 +21,27 @@
  * Compatibility renderer does (`drivers/gles3/shaders/scene.glsl:2040`). Where it differs:
  * - Godot draws a geometry with at most two of the probes its bounds meet, the first two it was
  *   paired with (`rasterizer_scene_gles3.cpp:1406`, `:3857`). The capability's `maxProbes` is not
- *   that limit: it caps the probes one material samples in the whole scene (the first it
- *   registered), and one material is shared by geometry across a level, so a cap of two would leave
+ *   that limit: it caps the probes one material samples in the whole scene (the ones nearest the
+ *   camera), and one material is shared by geometry across a level, so a cap of two would leave
  *   every other probe of the level unsampled. The material takes the capability's ceiling (eight
- *   per scene), and where three or more boxes overlap, all of them blend.
+ *   per scene, fewer where the GPU's texture units run out), and where three or more boxes
+ *   overlap, all of them blend.
  * - The fade at a box's edge: Godot weighs a probe by the product over the three axes of the
  *   point's distance from that axis's face over `blend_distance` (each clamped to 1, the blend
  *   distance to the half size), squared (`scene.glsl:2056`); the capability by the distance to the
  *   nearest face over `blend_distance`, clamped to 1, not squared. And Godot fades a probe that is not interior toward the sky as it
  *   fades out (`:2084`), so a lone probe's edge blends into the sky; the capability divides by the
  *   summed weights, so a lone probe draws at full strength up to its box and the sky starts there.
- * - `intensity` scales the probe's reflection in both (`:2087`). The capability scales the diffuse
- *   light it takes from the capture by it too, where Godot's probe ambient is not scaled and is
- *   mixed with the environment's own by its sky contribution (`:2099`, `:2488`); the ambient mode,
- *   colour and `interior` are not bound, so every probe lights the diffuse from its capture.
+ * - `intensity` scales the probe's reflection only, as Godot's does (`:2087`); the probe's diffuse
+ *   light is not scaled by it (the capability's `diffuseIntensity` is 1). The ambient mode is the
+ *   capability's `diffuse` (`:2094`): `AMBIENT_DISABLED` lights no diffuse, so the environment's
+ *   stays; `AMBIENT_ENVIRONMENT` lights it from the capture; `AMBIENT_COLOR` from `ambient_color`
+ *   times `ambient_color_energy`, passed as it is, as the Compatibility renderer passes it
+ *   (`rasterizer_scene_gles3.cpp:3849`). Not bound: Godot mixes a probe's diffuse into the
+ *   environment's ambient light by the environment's sky contribution and scales it by the
+ *   environment's ambient energy (`scene.glsl:2488`), and only while the environment has an ambient
+ *   light; the capability takes the probe's diffuse as it is wherever the probe covers a fragment.
+ *   `interior` is not bound either.
  * - The `reflection_mask` against a geometry's layers (`rasterizer_scene_gles3.cpp:1416`) is not
  *   bound: every geometry reflects every probe.
  * - A material the capability did not make (a model's own, one compat makes for a script) does not
@@ -129,6 +136,7 @@ function config(state: ReflectionProbe): Readonly<Record<string, unknown>> {
     shape: 'box',
     size,
     intensity: state.intensity,
+    ...diffuseOf(state),
     blendDistance: state.blend_distance,
     parallaxProjection: state.box_projection,
     parallaxSize: size,
@@ -139,6 +147,21 @@ function config(state: ReflectionProbe): Readonly<Record<string, unknown>> {
     cullMask: state.cull_mask,
     captureShadows: state.enable_shadows,
   };
+}
+
+/**
+ * The probe's ambient mode as the capability's diffuse (`scene.glsl:2094`): `AMBIENT_DISABLED` 0,
+ * `AMBIENT_ENVIRONMENT` 1, `AMBIENT_COLOR` 2 (`reflection_probe.h:44`). Godot does not scale a
+ * probe's ambient by its `intensity`.
+ */
+function diffuseOf(state: ReflectionProbe): Readonly<Record<string, unknown>> {
+  if (state.ambient_mode === 0) return { diffuse: 'none', diffuseIntensity: 1 };
+  if (state.ambient_mode === 2) {
+    const { r, g, b } = state.ambient_color;
+    const energy = state.ambient_color_energy;
+    return { diffuse: 'color', diffuseIntensity: 1, diffuseColor: [f32(r * energy), f32(g * energy), f32(b * energy)] };
+  }
+  return { diffuse: 'capture', diffuseIntensity: 1 };
 }
 
 /**

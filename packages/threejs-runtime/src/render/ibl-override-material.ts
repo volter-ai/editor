@@ -129,7 +129,11 @@ export interface IblOverride {
    * `shader.uniforms`.
    */
   readonly shader: IblOverrideShader | null;
-  /** Put the material's own `onBeforeCompile`/`customProgramCacheKey` back. */
+  /**
+   * Put the material's own `onBeforeCompile`/`customProgramCacheKey` back, if
+   * they are still this override's; once something else has installed its
+   * hooks over it, the override stays (restoring would remove theirs).
+   */
   restore(): void;
 }
 
@@ -149,7 +153,7 @@ export function overrideMaterialIbl(
   const previousCacheKey = material.customProgramCacheKey;
   let compiled: IblOverrideShader | null = null;
 
-  material.onBeforeCompile = (shader, renderer) => {
+  const compile: MeshStandardMaterial['onBeforeCompile'] = (shader, renderer) => {
     previousCompile.call(material, shader, renderer);
     requireChunk(shader.vertexShader, '#include <worldpos_vertex>');
     requireChunk(shader.fragmentShader, '#include <envmap_physical_pars_fragment>');
@@ -167,7 +171,9 @@ export function overrideMaterialIbl(
     compiled = shader;
     options.onCompile?.(shader);
   };
-  material.customProgramCacheKey = () => `${previousCacheKey.call(material)}|${options.cacheKey()}`;
+  const cacheKey = () => `${previousCacheKey.call(material)}|${options.cacheKey()}`;
+  material.onBeforeCompile = compile;
+  material.customProgramCacheKey = cacheKey;
   material.needsUpdate = true;
 
   return {
@@ -176,6 +182,9 @@ export function overrideMaterialIbl(
       return compiled;
     },
     restore() {
+      // A hook installed after this one wraps it: putting the earlier hooks back
+      // would remove that one too, so the override then stays.
+      if (material.onBeforeCompile !== compile || material.customProgramCacheKey !== cacheKey) return;
       material.onBeforeCompile = previousCompile;
       material.customProgramCacheKey = previousCacheKey;
       material.needsUpdate = true;

@@ -3,6 +3,7 @@ export {
   type ReflectionProbeProps,
   type ReflectionProbePublication,
 } from './ReflectionProbe';
+export type { ReflectionProbeDiffuse, VolumeReflectionProbeConfig } from './probe-controller';
 export {
   acquireReflectionProbeRegistry,
   createReflectionProbeRegistry,

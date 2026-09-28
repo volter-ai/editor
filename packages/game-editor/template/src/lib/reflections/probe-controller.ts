@@ -4,6 +4,28 @@ import type {
   ReflectionProbeSnapshot,
 } from '@volter/threejs-runtime/adapter/reflection-probe';
 
+/**
+ * How a probe lights the diffuse term of the volume material that blends it,
+ * carried in its mark's config beside the format-neutral fields. Every field
+ * is optional; left out, a probe lights the diffuse from its capture, scaled
+ * by its `intensity`, as the reflected term is.
+ */
+export interface ReflectionProbeDiffuse {
+  /**
+   * Where the probe's diffuse light comes from: its `capture` (the default), the
+   * constant `color` below, or `none` — the probe lights no diffuse, and a
+   * fragment that only it covers keeps the environment's.
+   */
+  readonly diffuse?: 'capture' | 'color' | 'none';
+  /** Scales the probe's diffuse light. Defaults to the probe's `intensity`. */
+  readonly diffuseIntensity?: number;
+  /** Linear RGB radiance of the `color` diffuse. */
+  readonly diffuseColor?: readonly [number, number, number];
+}
+
+/** A probe's config as the capability's own element states it. */
+export type VolumeReflectionProbeConfig = ReflectionProbeConfig & ReflectionProbeDiffuse;
+
 export interface MutableReflectionProbeMark extends ReflectionProbeMark {
   updateConfig(config: ReflectionProbeConfig): void;
   setCaptureStatus(snapshot: ReflectionProbeSnapshot): void;
