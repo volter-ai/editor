@@ -140,7 +140,8 @@ export function godot_tree_attach_host(world: { readonly timestep: number }): ()
  */
 export function godot_tree_open_frame(frame: { readonly id: number; readonly delta: number }): void {
   read.id = frame.id;
-  read.delta = frame.delta;
+  // A host advanced to an earlier time (a scrubbed preview) is no time at all.
+  read.delta = Math.max(0, frame.delta);
 }
 
 /**
@@ -150,7 +151,7 @@ export function godot_tree_open_frame(frame: { readonly id: number; readonly del
  * @source main/main.cpp:4951
  */
 export function godot_tree_frame(): { readonly id: number; readonly delta: number } {
-  return read;
+  return { id: read.id, delta: read.delta };
 }
 
 /**

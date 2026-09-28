@@ -93,7 +93,7 @@ const inputMap = new Map<string, Action>();
 const actionStates = new Map<string, ActionState>();
 const buffered: InputEventRecord[] = [];
 const customCursors = new Map<number, { readonly cursor: unknown; readonly hotspot: Vector2 }>();
-/** The host frame Input's flush last opened: its id, and whether it is still running. */
+/** The host frame the root Window last opened (`godot_input_frame`): its id, and whether it is still running. */
 const frame = { id: 0, open: false };
 
 function newState(): ActionState {
@@ -555,7 +555,9 @@ export function is_action_just_pressed(action: string, exact_match = false): boo
   const state = actionStates.get(action);
   if (state === undefined) return false;
   if (exact_match && !state.exact) return false;
-  return state.pressedAt === frame.id;
+  // Between frames the current frame is the next one, as Godot's process frame count is until its
+  // iteration ends (`main.cpp:5115`): a press flushed from a page event reads as just pressed there.
+  return state.pressedAt === changedAt();
 }
 
 /**
@@ -569,7 +571,7 @@ export function is_action_just_released(action: string, exact_match = false): bo
   const state = actionStates.get(action);
   if (state === undefined) return false;
   if (exact_match && !state.exact) return false;
-  return state.releasedAt === frame.id;
+  return state.releasedAt === changedAt();
 }
 
 /**
@@ -713,6 +715,13 @@ let cursorVisible = true;
 export function godot_input_attach_canvas(canvas: HTMLCanvasElement | null): void {
   displayCanvas = canvas;
   cursorVisible = true;
+  // A new page's input starts clear: the frame identities are its renderer's own count, which a
+  // new renderer starts again, so nothing stamped by an earlier one may meet them.
+  actionStates.clear();
+  debugTaps.clear();
+  buffered.length = 0;
+  frame.id = 0;
+  frame.open = false;
 }
 
 /** `MouseMode` (`display_server_enums.h`): visible, hidden, captured, confined, confined hidden. */
