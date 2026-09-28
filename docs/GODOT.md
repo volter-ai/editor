@@ -172,6 +172,15 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
    GPU particles are one three.js `InstancedMesh` emitter advanced from the node's own component
    (`7c3f0e5d`); and a reachability phase between emit and materialize keeps the compat modules
    the game's own files reach (`5260df45`).
+   Merged with `main` (2026-09-28, `841f2c07`): `vgai` is retired and every name is Volter
+   (`volter.project.json`, `volter.adapter.ts`, `.volter/`, `VOLTER_*`, the `volter-game-editor`
+   CLI). The rename changed the bound exporter's source, so the 4.7 exporter is rebuilt from the
+   pinned `5b4e0cb0` tree and re-pinned: exporter source `9e93aa85…`, executable `5fba713d…`,
+   stored at `/Volumes/GodotWork/tools/godot-4.7-bound-exporter-volter/` (the old `c8034e90…`
+   binary no longer matches). The 4.6 row was already stale, and its binary still speaks the
+   retired `vgai.*` protocol, so its re-pin is open. The frozen import lock resolves `@volter/*`
+   at `^0.5.74`. `main` publishes every push (`38bfb751`), so landing `godot` on `main` publishes
+   the editor packages it changes (`editor-game`, `editor-threejs`).
 3. Ports resume closest first (`starter-kit-basic-scene`: model images outside the file, now
    landed, and CSGBox3D), each accepted by a walk.
 
