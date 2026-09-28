@@ -82,7 +82,7 @@ export function useGodotWorld(): void {
     };
     rapier.filterContactPairHooks.add(exceptions as never);
     const releaseRenderer = godot_viewport_attach_renderer(gl);
-    const releaseHost = godot_tree_attach_host(clock, rapier.world);
+    const releaseHost = godot_tree_attach_host(rapier.world);
     const releaseInput = godot_window_attach_input(gl.domElement);
     const releaseDispatch = godot_viewport_attach_input(scene);
     const releaseCamera = godot_camera_3d_attach_renderer(scene, (camera) => {

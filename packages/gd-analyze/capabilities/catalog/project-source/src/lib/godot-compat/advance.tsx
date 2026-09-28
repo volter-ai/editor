@@ -61,6 +61,7 @@ export function useGodotDraw(entity: object | undefined, draw: () => void): void
 export function useGodotRootWindow(): void {
   const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
-  useFrame(() => godot_window_process_events(), -1);
+  // The frame's identity is three's own count of the renderer's frames, its delta R3F's.
+  useFrame((state, delta) => godot_window_process_events({ id: state.gl.info.render.frame, delta }), -1);
   useFrame(() => godot_canvas_draw(scene, godot_window_canvas_layer(gl.domElement)));
 }

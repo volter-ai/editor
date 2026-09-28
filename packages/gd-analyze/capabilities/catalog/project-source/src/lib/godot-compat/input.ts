@@ -422,14 +422,19 @@ export function godot_input_map_load_json(actions: readonly GodotInputMapActionJ
 }
 
 /**
- * Each flush opens the host's next frame (`godot_tree_open_frame`), whether or not the host's clock
- * advanced, so the editor's paused game still ends one frame's edges before the next. The changes
- * made between frames take it as their time, the debug door's taps pressed in an earlier frame are
- * released in it (`godot_input_debug`), and it stays open until the task running it ends (a
- * microtask closes it).
+ * Opens the host's frame, as the root Window's frame hook does at each frame's start with the
+ * host's own frame identity and delta (`godot_tree_open_frame`). The changes made between frames
+ * take it as their time, the debug door's taps pressed in an earlier frame are released in it
+ * (`godot_input_debug`), and it stays open until the task running it ends (a microtask closes
+ * it). A flush at any other time (a page event's) opens nothing: what it applies is the next
+ * frame's.
+ *
+ * @godot Input (protocol)
+ * @source platform/web/os_web.cpp:87
  */
-function openFrame(): void {
-  const id = godot_tree_open_frame();
+export function godot_input_frame(host: { readonly id: number; readonly delta: number }): void {
+  godot_tree_open_frame(host);
+  const id = host.id;
   frame.id = id;
   frame.open = true;
   queueMicrotask(() => {
@@ -524,7 +529,6 @@ export function parse_input_event(event: InputEventRecord): void {
  * @source core/input/input.cpp:1568
  */
 export function flush_buffered_events(): void {
-  openFrame();
   while (buffered.length > 0) parseImpl(buffered.shift() as InputEventRecord);
 }
 

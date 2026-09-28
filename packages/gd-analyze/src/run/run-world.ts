@@ -151,9 +151,11 @@ try {
   canvas.height = 540;
   dom.window.document.getElementById('host').appendChild(canvas);
   extend(THREE);
+  // three counts the frames it renders (info.render.frame), which the root Window reads as each
+  // frame's identity: the stand-in counts them as three does.
   const gl = {
-    domElement: canvas, render() {}, setSize() {}, setPixelRatio() {}, getPixelRatio: () => 1,
-    setAnimationLoop() {}, dispose() {}, shadowMap: {}, info: { render: {} }, capabilities: {},
+    domElement: canvas, render() { gl.info.render.frame += 1; }, setSize() {}, setPixelRatio() {}, getPixelRatio: () => 1,
+    setAnimationLoop() {}, dispose() {}, shadowMap: {}, info: { render: { frame: 0 } }, capabilities: {},
     xr: { enabled: false, addEventListener() {}, removeEventListener() {}, setAnimationLoop() {} },
     getContext: () => ({}), toneMapping: 0, toneMappingExposure: 1, outputColorSpace: 'srgb',
   };

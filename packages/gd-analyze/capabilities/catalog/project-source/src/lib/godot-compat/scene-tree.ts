@@ -6,9 +6,9 @@
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) without its main loop or its clock: the host owns
  * both (docs/GODOT.md §The emitted game's shape, "The SceneTree's clock"). Scripts' `_process` and
  * `_physics_process` run from their components' hooks, and nothing here runs per frame. A delta is
- * read from the host when asked, never kept: a physics step's is the Rapier world's own
- * `timestep`, a frame's is R3F's, read from its clock (`godot_tree_frame`) and bounded as a
- * script's `_process` delta is (`godot_process_delta`). The frame counters (`Engine`'s,
+ * the host's: a physics step's is the Rapier world's own `timestep`, a frame's is R3F's, which the
+ * root Window's frame hook hands over with three's frame count as the frame's identity
+ * (`godot_tree_frame`), bounded as a script's `_process` delta is (`godot_process_delta`). The frame counters (`Engine`'s,
  * `get_frame`) and the `process_frame` and `physics_frame` signals are not bound, so the import
  * refuses them by name. A queued deletion is JavaScript's own deferral (`queue_delete`).
  *
@@ -44,22 +44,15 @@ const tree = {
   reload: undefined as (() => void) | undefined,
 };
 
-/** What the host's clock is read through: R3F's `THREE.Clock` (`state.clock`). */
-export interface GodotHostClock {
-  readonly elapsedTime: number;
-}
-/** The host's clock and physics world, which the world hands compat (`godot_tree_attach_host`). */
-let host: { readonly clock: GodotHostClock; readonly world: { readonly timestep: number } } | undefined;
+/** The host's physics world, which the world hands compat (`godot_tree_attach_host`). */
+let host: { readonly world: { readonly timestep: number } } | undefined;
 /**
- * The frame starts last read from the host's clock: the current one and the one before it. The
- * clock's `elapsedTime` (seconds) changes once per frame, at its start, in both of R3F's frame
- * loops (its `oldTime` is the page's milliseconds when R3F runs the frame and the previous
- * frame's seconds when it is advanced by hand), so the frame's delta is the difference between
- * the two, tracked when read. The root Window reads it at every frame's start (the Input
- * library's edges, `input.ts`), so it is never more than a frame behind.
+ * The host frame running now, as the root Window's frame hook hands it over: three's own count of
+ * the renderer's frames (`renderer.info.render.frame`) as its identity, and R3F's delta. Nothing
+ * here counts frames; a frame the host draws without advancing its clock (the editor's paused
+ * game) is still a frame of its own, with a delta of 0.
  */
-/** The host frame the root Window's flush last opened: its id, its clock start and the one before. */
-const read = { id: 0, start: 0, previous: 0 };
+const read = { id: 0, delta: 0 };
 
 /** What one creator owns: the timers and tweens its script made. */
 interface Owned {
@@ -124,14 +117,14 @@ export function godot_tree_on_reload(handler: (() => void) | undefined): void {
 }
 
 /**
- * Hands compat the host's clock (R3F's) and its physics world (Rapier's, whose `timestep` is the
- * physics step's delta); the returned call releases them.
+ * Hands compat the host's physics world (Rapier's, whose `timestep` is the physics step's delta);
+ * the returned call releases it.
  *
  * @godot SceneTree (protocol)
  * @source main/main.cpp:4951
  */
-export function godot_tree_attach_host(clock: GodotHostClock, world: { readonly timestep: number }): () => void {
-  const attached = { clock, world };
+export function godot_tree_attach_host(world: { readonly timestep: number }): () => void {
+  const attached = { world };
   host = attached;
   return () => {
     if (host === attached) host = undefined;
@@ -139,30 +132,25 @@ export function godot_tree_attach_host(clock: GodotHostClock, world: { readonly 
 }
 
 /**
- * Opens the host's next frame, as the root Window's flush does at the start of each one
- * (`Input.flush_buffered_events`): a fresh id whatever the clock says, so a frame the host draws
- * without advancing its clock (the editor's paused game) is still a frame of its own, and its
- * delta is 0.
+ * The host's frame, as the root Window's frame hook hands it over at the frame's start: its
+ * identity and its delta.
  *
  * @godot SceneTree (protocol)
  * @source main/main.cpp:4951
  */
-export function godot_tree_open_frame(): number {
-  read.id += 1;
-  read.previous = read.start;
-  read.start = host?.clock.elapsedTime ?? 0;
-  return read.id;
+export function godot_tree_open_frame(frame: { readonly id: number; readonly delta: number }): void {
+  read.id = frame.id;
+  read.delta = frame.delta;
 }
 
 /**
- * The host frame open now: its id and its delta, the clock time since the frame before it opened
- * (0 before the host's first frame, and while its clock does not advance).
+ * The host frame running now: its identity and its delta (0 before the host's first frame).
  *
  * @godot SceneTree (protocol)
  * @source main/main.cpp:4951
  */
 export function godot_tree_frame(): { readonly id: number; readonly delta: number } {
-  return { id: read.id, delta: Math.max(0, read.start - read.previous) };
+  return read;
 }
 
 /**

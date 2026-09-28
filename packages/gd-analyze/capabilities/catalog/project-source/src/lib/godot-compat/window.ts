@@ -20,7 +20,7 @@
 import type { Object3D } from 'three';
 import { godot_object_signal } from './signal';
 import { godot_audio_resume } from './audio-stream';
-import { flush_buffered_events, godot_input_attach_canvas, parse_input_event } from './input';
+import { flush_buffered_events, godot_input_attach_canvas, godot_input_frame, parse_input_event } from './input';
 import { get_setting } from './project-settings';
 import type { InputEventRecord } from './input-event';
 import { construct as vector2, type Vector2 } from './vector2';
@@ -371,7 +371,8 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
  * @godot Window (protocol)
  * @source platform/web/display_server_web.cpp:1469
  */
-export function godot_window_process_events(): void {
+export function godot_window_process_events(frame: { readonly id: number; readonly delta: number }): void {
+  godot_input_frame(frame);
   const keys = web.keys;
   web.keys = [];
   for (const event of keys) parse_input_event(event);
