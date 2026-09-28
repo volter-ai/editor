@@ -65,27 +65,37 @@ function nodeOf(held: object | null): object | null {
  * The scene a component writes, as the tree has it: its root marked a scene root (the nodes the
  * component mounts below it are its own, which `%Name` and `get_owner` read), the scene seated and
  * entered into the tree once React's commit is done (`godot_node_enter`; a scene a script added is
- * entered by that `add_child`), and exited as React unmounts it. Returns the scenes scripts added
- * under its nodes, which the component renders.
+ * entered by that `add_child`), and exited as React unmounts it. It exits in the layout cleanup,
+ * while its objects still hang under one another: R3F takes a removed subtree apart before passive
+ * cleanups run, and a node the exit cannot reach would stay in the tree (a camera still current).
+ * Returns the scenes scripts added under its nodes, which the component renders.
  *
  * @godot Node (protocol)
  * @source scene/resources/packed_scene.cpp:318
  */
 export function useGodotScene(root: RefObject<object | null>): ReactNode {
   const pending = useContext(GodotPendingSceneContext);
+  const seated = useRef<object | null>(null);
   useEffect(() => {
     const entity = nodeOf(root.current);
     if (entity === null) throw new Error('godot-compat: the root of a scene was not mounted.');
     godot_node_scene_root(entity);
     godot_node_seat(entity);
+    seated.current = entity;
     const added = godot_packed_scene_claim(pending, entity);
     let mounted = true;
     if (!added) queueMicrotask(() => mounted && godot_node_enter(entity));
     return () => {
       mounted = false;
-      godot_node_exit(entity);
     };
   }, []);
+  useLayoutEffect(
+    () => () => {
+      if (seated.current !== null) godot_node_exit(seated.current);
+      seated.current = null;
+    },
+    [],
+  );
   return createElement(GodotAddedScenes, { root });
 }
 
