@@ -141,9 +141,10 @@ export function move_and_slide(owner: object): boolean {
   controller.computeColliderMovement(
     collider,
     op_multiply(state.velocity, delta),
-    // Never a sensor (an area), left out by Rapier's own filter flag. With this change the editor's
-    // Rapier teardown errors stopped (`7bb6b0c6`); a standalone test of rapier3d-compat 0.19.2 does
-    // not reproduce `isSensor()` throwing inside this predicate, so their cause is not pinned down.
+    // Never a sensor (an area), left out by Rapier's own filter flag. When `7bb6b0c6` moved the
+    // sensor test here from the predicate, the editor's Rapier teardown errors stopped; a standalone
+    // test of rapier3d-compat 0.19.2 does not reproduce `isSensor()` throwing inside this predicate,
+    // so their cause is not pinned down.
     QueryFilterFlags.EXCLUDE_SENSORS,
     undefined,
     // What the character's mask takes, never its own colliders, and never a body either of them
