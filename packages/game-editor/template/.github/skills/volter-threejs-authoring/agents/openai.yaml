@@ -1,4 +1,4 @@
 interface:
-  display_name: "VOLTER Three.js Authoring"
+  display_name: "Volter Three.js Authoring"
   short_description: "Build polished native Three.js scenes and assets"
   default_prompt: "Use $volter-threejs-authoring to build and visually refine native Three.js source without introducing a parallel scene model."

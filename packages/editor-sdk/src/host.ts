@@ -36,7 +36,7 @@ import type { ActiveDocumentCapture, CaptureDimensions } from './types';
  *
  * It is here because it is the host's statement about what it serves, and a
  * package may not reach into the host's build tier to read it: the address
- * lived in `packages/editor/vite-plugin-module-doorways.ts`, which serves it,
+ * lived in `packages/editor-core/vite-plugin-module-doorways.ts`, which serves it,
  * and the story runtime imported it back out through a specifier that stepped
  * out of the editor's `src/` entirely. The plugin still OWNS the
  * doorway — what it serves, and why the mount would otherwise get a second
@@ -810,7 +810,7 @@ export interface EditorHostKeyAction {
 
 /**
  * ONE RECORDED EDIT, as whoever owns undo sees it — the SDK's spelling of
- * `packages/editor/src/history/history-delegate.ts`'s `HistoryElement`.
+ * `packages/editor-sdk/src/kit/history/history-delegate.ts`'s `HistoryElement`.
  *
  * It is deliberately an `IResourceUndoRedoElement` (one file) or an
  * `IWorkspaceUndoRedoElement` (several) without naming either: the frame does

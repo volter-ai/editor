@@ -138,7 +138,7 @@ registerWorkspaceDocumentRestorer({
  * THE `tool` ADDRESS (`document-open-registry.ts`) — the other half of the
  * `presentation()` above, so the presenter reaches a contributed document
  * without importing this module. Registered at module load, the shape
- * `packages/game/src/story-documents/three-story-documents.tsx:239` uses.
+ * `packages/editor-game/src/three/story-documents/three-story-documents.tsx:239` uses.
  *
  * SETTLING is the discovery pass this kind opens out of. A cold Vite graph can
  * register the project catalog before its document contribution modules finish

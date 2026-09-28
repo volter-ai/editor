@@ -1,6 +1,6 @@
 # First Person Arena
 
-A premium first-person arena sample built as VOLTER's counterpart to Unreal's
+A premium first-person arena sample built as Volter's counterpart to Unreal's
 First Person template and Arena Shooter variant. It is intentionally a complete,
 bright game slice rather than a mechanics test room.
 

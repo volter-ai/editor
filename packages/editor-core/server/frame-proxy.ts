@@ -281,7 +281,7 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
     // the workbench page is ALSO the volter editor's page, and the editor's boot
     // refuses `?project=` on a session-backed surface by name — "project
     // identity does NOT live in the URL on a local editor"
-    // (`assertNoRemovedBootParams`, packages/editor/src/boot-routing.ts). The
+    // (`assertNoRemovedBootParams`, packages/editor-sdk/src/kit/boot-routing.ts). The
     // redirect hands the page a url both halves accept.
     if (pathname === '/') {
       const id = url.searchParams.get('project');

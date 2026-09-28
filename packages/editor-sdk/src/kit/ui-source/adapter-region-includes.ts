@@ -27,7 +27,7 @@ import ts from 'typescript';
  * literally is reported as {@link AdapterRegionIncludes.unreadable} — never
  * silently treated as "no includes", because a silently dropped declaration is
  * indistinguishable from a declaration that worked, which is the whole failure
- * class this rung exists to end. `packages/editor/src/project-adapter.ts` (the
+ * class this rung exists to end. `packages/editor-sdk/src/kit/project-adapter.ts` (the
  * real loader, which IMPORTS the module) stays the validation authority: this
  * read never accepts anything that loader would reject, it only declines to
  * answer.

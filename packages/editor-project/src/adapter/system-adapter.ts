@@ -627,7 +627,7 @@ export interface AudioAdapter {
    * `[start, end)` OFFLINE and deterministically — the fixed-step sibling of
    * `acquireRecordingStream` above. That one taps the speakers in WALL time,
    * which is exactly what the editor's fixed-step video export
-   * (`packages/editor/src/gameplay-export.ts`) may not do: a paused run that
+   * (`packages/editor-game/src/host/gameplay-export.ts`) may not do: a paused run that
    * is stepped frame by frame emits no real-time audio at all, and anything
    * captured from a live context would vary run to run. This returns PCM for
    * a sim window instead, so identical `(start, end)` on an unchanged score

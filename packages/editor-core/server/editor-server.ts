@@ -676,7 +676,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   // `express.static` + SPA fallback) and none of those routes
   // are owned by this file. Exposed on `/__editor/state` so the CLI's
   // verified-open polling (`waitForVerifiedEditorOpen` in
-  // packages/volter-cli/src/editor-sessions.ts) can tell "the browser tab
+  // packages/editor-core/server/launcher/editor-sessions.ts) can tell "the browser tab
   // arrived and is loading" apart from "the auto-open never reached a
   // browser at all" — the distinction a cold Vite dep-optimize on drvfs
   // needs, since that alone can blow past the old flat 15s timeout on a

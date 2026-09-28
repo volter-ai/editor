@@ -3,7 +3,7 @@
  * reflection helper that rides along with it) the editor's three authoring
  * adapter uses to address the objects of a world whose source carries no
  * serve-time identity stamps
- * (`packages/editor/src/projection/three.ts`, `structuralIdentity`).
+ * (`packages/editor-threejs/src/kit/projection/three.ts`, `structuralIdentity`).
  *
  * Identity: each object gets a **structural-path id** — deterministic from the
  * scene's shape (position in the tree + three.js type + name), so the SAME id

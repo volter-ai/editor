@@ -54,7 +54,7 @@ import type {
 
 // The editor's default origin, spelled out because this package deliberately
 // does not depend on `@volter/editor-project`. `DEFAULT_EDITOR_PORT` in
-// `packages/project/src/manifest/editor-port.ts` is the owner of the number and
+// `packages/editor-project/src/manifest/editor-port.ts` is the owner of the number and
 // of the never-`localhost` rule; keep this in step with it.
 const DEFAULT_URL = 'http://127.0.0.1:20173';
 
@@ -762,7 +762,7 @@ export class EditorClient {
    * the DEFINITION travels with the command (project data — see
    * `AssetPreviewShotSetDefinition`; the CLI resolves it from the registered
    * `project.<set>.previewShots` tool), and the editor's generic
-   * capture engine renders it — see `packages/editor/src/asset-preview.ts`'s
+   * capture engine renders it — see `packages/editor-threejs/src/kit/asset-preview.ts`'s
    * `captureShotSetAssetPreview`. Throws (via `command`'s `{ok:false}`
    * unwrap) with a clear message naming the missing joint(s) when the asset
    * lacks a bone the definition requires.
@@ -1186,7 +1186,7 @@ export class EditorClient {
    * {@link captureActiveDocument} photographs. NOT play-mode gated, and NOT
    * page automation: a target outside the active document's container is
    * refused by name. Design and scope contract:
-   * `packages/editor/src/editor-document-probe.ts`.
+   * `packages/editor-sdk/src/kit/editor-document-probe.ts`.
    */
   async documentProbe(step: DocumentProbeStep): Promise<DocumentProbeResult> {
     return this.command<DocumentProbeResult>({ type: 'document-probe', step });
@@ -1194,7 +1194,7 @@ export class EditorClient {
 
   /**
    * Run a wire-carried step against the ACTIVE document's published context
-   * (`packages/editor/src/document-context-registry.ts`) — the REPL door over
+   * (`packages/editor-sdk/src/kit/document-context-registry.ts`) — the REPL door over
    * an open document, in Edit mode. `src` is the step's own `toString()`;
    * same serialization contract as `page-script` (no closures survive).
    */
@@ -1544,7 +1544,7 @@ export class EditorClient {
     // Every one of this client's twelve routes funnels through here, so this is
     // where "did the editor server answer?" is asked — the same question, and
     // the same JSON-content-type rule, that
-    // `packages/editor/src/editor-server-response.ts` owns on the browser side.
+    // `packages/editor-sdk/src/kit/editor-server-response.ts` owns on the browser side.
     // It is asked again rather than imported because THIS package is published
     // and depends on neither `@volter/editor-project` nor the editor bundle (see
     // `DEFAULT_URL` above for that policy).

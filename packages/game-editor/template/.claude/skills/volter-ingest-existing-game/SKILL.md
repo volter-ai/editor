@@ -30,7 +30,7 @@ orders. Mounting the game is STEP ONE of seven, not the deliverable.
   objects; the navigation slots show the host-computation form (host BFS
   over the game's own public graph, labeled as the host's in so many
   words).
-- The contract shapes: `packages/project/src/adapter/ingest/game-contract.ts`
+- The contract shapes: `packages/editor-project/src/adapter/ingest/game-contract.ts`
   (root · lifecycle · systems.commands/state/hierarchy · systemAdapters) and
   `contract-system-adapters.ts` (the projection that rejects malformed
   claims — a `present` missing required members, or an `empty` without

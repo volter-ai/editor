@@ -31,7 +31,7 @@ import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 
 /** What the registry reports a duplicate against. */
-export const STORY_CAPTURE_COMMAND_SOURCE = 'packages/editor/src/stories/story-capture-command.ts';
+export const STORY_CAPTURE_COMMAND_SOURCE = 'packages/editor-core/src/stories/story-capture-command.ts';
 
 const VERB = 'capture-story-variants';
 

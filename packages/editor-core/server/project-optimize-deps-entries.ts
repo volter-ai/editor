@@ -83,7 +83,7 @@ export const SERVER_ONLY_PREBUNDLE_EXCLUDE: readonly string[] = [
  * (SERVER package) import chain reaches `@colyseus/core` -> `@pm2/io`, a
  * package esbuild's prebundle step cannot resolve an entry for (confirmed
  * empirically, not theoretically: a direct `vite.optimizeDeps` run scoped to
- * `index.html`-style discovery against `packages/editor/template` throws
+ * `index.html`-style discovery against `packages/game-editor/template` throws
  * `Failed to resolve entry for package "@pm2/io"` from inside
  * `@colyseus/core/build/Stats.mjs`'s own `import("@pm2/io")` — this is
  * `packaged.ts`'s ORIGINAL reason for `noDiscovery: true`, verified still

@@ -618,7 +618,7 @@ registerAction2(class extends Action2 {
 					const bridge = served.modules.find(m => m.id === 'vscode-bridge');
 					if (!bridge) {
 						const refused = (served.refusals ?? []).map(r => `${r.id ?? '(document)'}: ${r.message}`).join('; ');
-						throw new Error(`the volter session at ${sessionOrigin} serves no "vscode-bridge" module, so there is no editor to mount. Its serving door is /__editor/served-modules (packages/editor/server/routes/served-modules.ts)${refused ? ` and it refused: ${refused}` : ''}`);
+						throw new Error(`the volter session at ${sessionOrigin} serves no "vscode-bridge" module, so there is no editor to mount. Its serving door is /__editor/served-modules (packages/editor-core/server/routes/served-modules.ts)${refused ? ` and it refused: ${refused}` : ''}`);
 					}
 					const bridgeUrl = `${sessionOrigin}${bridge.url}`;
 					// The serving host owns any development preamble. A packaged product
@@ -809,12 +809,12 @@ for (const { id, wholeGroup } of [
 }
 
 /**
- * A VOLTER PROJECT OPENS AS THE VOLTER EDITOR, with no gesture.
+ * A Volter PROJECT OPENS AS THE Volter EDITOR, with no gesture.
  *
  * the editor's `edit` command IS this workbench: it starts the session, starts this server on
  * the project folder and opens the one tab at it. A person who ran that
  * command has already said which project they are editing and what they want
- * to edit it in — asking them to then find `VOLTER: Open Workspace` in the
+ * to edit it in — asking them to then find `Volter: Open Workspace` in the
  * palette is asking twice, and until the mount runs the page is not one of the
  * session's TABS at all (the bootstrap loads with the mount), so the editor's `status` command
  * reads "no tab", the editor's `eval` command has nothing to reach and the editor's `edit` command reports that
@@ -846,7 +846,7 @@ class VolterProjectAutoOpen implements IWorkbenchContribution {
 		if (!folder) { return; }
 		(async () => {
 			if (!await fileService.exists(joinPath(folder, 'volter.project.json'))) {
-				// NOT A VOLTER PROJECT, so nothing of ours is coming and the product's cover has
+				// NOT A Volter PROJECT, so nothing of ours is coming and the product's cover has
 				// nothing to cover. This contribution is the one that decides that, so it is
 				// the one that takes the cover away — the alternative is a second reader of
 				// `volter.project.json`, and a cover with no owner left over a bare workbench.

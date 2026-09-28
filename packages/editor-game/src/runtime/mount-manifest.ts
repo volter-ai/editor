@@ -250,7 +250,7 @@ export function resolveManifest(raw: unknown): ResolvedGameManifest {
 
 // ---------------------------------------------------------------------------
 // Per-kind entry -> adapter resolution (mirrors `resolveRootBinding`'s
-// per-identity dispatch, `packages/editor/src/binding-resolver.ts`)
+// per-identity dispatch, `packages/editor-game/src/host/binding-resolver.ts`)
 // ---------------------------------------------------------------------------
 
 function resolveThreeAdapter(

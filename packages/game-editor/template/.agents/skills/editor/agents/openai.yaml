@@ -1,4 +1,4 @@
 interface:
-  display_name: "Control the VOLTER Editor"
-  short_description: "Operate and inspect the live VOLTER editor"
-  default_prompt: "Use $editor to open, control, inspect, and verify this game in the VOLTER editor."
+  display_name: "Control the Volter Editor"
+  short_description: "Operate and inspect the live Volter editor"
+  default_prompt: "Use $editor to open, control, inspect, and verify this game in the Volter editor."

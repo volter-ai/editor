@@ -1,8 +1,8 @@
 /**
- * VOLTER host adapter for Supercode's headless client.
+ * Volter host adapter for Supercode's headless client.
  *
  * Supercode owns harness/session/runtime semantics, lifecycle normalization,
- * transcript projection, retries, reconciliation, and concurrency. VOLTER owns
+ * transcript projection, retries, reconciliation, and concurrency. Volter owns
  * authenticated local launch controls and the HTTP/SSE boundary. Native Chat
  * owns presentation and conversation-scoped approval choices. Keep this file as a mapping layer; reusable agent logic
  * belongs in @volter-ai-dev/supercode-client.
@@ -51,7 +51,7 @@ type HeadlessUiSnapshot = Parameters<typeof projectClientSnapshot>[0];
 
 // @volter-ai-dev/supercode-client is an optional runtime peer. The mandatory UI
 // package already declares its exact frontend snapshot contract, so do not
-// shadow that contract with a partial VOLTER interface. The validator loaded
+// shadow that contract with a partial Volter interface. The validator loaded
 // atomically from the runtime peer remains the authority for production data.
 type RuntimeCapabilities = HeadlessUiSnapshot['harnesses'][number]['effective_capabilities'];
 type StructuredLaunch = Omit<NonNullable<HeadlessUiSnapshot['terminalLaunch']>, 'env'> & {
@@ -979,7 +979,7 @@ export class HarnessChatService {
 
 
   /** Dispatch the package-owned messenger intent without translating it into
-   * a second VOLTER action vocabulary. */
+   * a second Volter action vocabulary. */
   async actIntent(intent: SupercodeUiIntent): Promise<HarnessChatSnapshot> {
     await this.ensureController();
     const host = this.remoteHost;

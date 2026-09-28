@@ -68,7 +68,7 @@ export const TAB_HEARTBEAT_INTERVAL_MS = 1_000;
  * reconnection is forever with capped backoff — a heartbeat that gives up is
  * a tab the server will declare departed while the user is looking at it.
  */
-export const TAB_HEARTBEAT_WORKER_SOURCE = `/* volter tab heartbeat — served by packages/editor/server/tab-heartbeat.ts */
+export const TAB_HEARTBEAT_WORKER_SOURCE = `/* volter tab heartbeat — served by packages/editor-core/server/tab-heartbeat.ts */
 'use strict';
 var cfg = null;
 var socket = null;

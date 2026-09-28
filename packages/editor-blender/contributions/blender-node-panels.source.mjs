@@ -63,7 +63,7 @@
  * ## Running it
  *
  * ```
- * node packages/blender/contributions/blender-node-panels.source.mjs \
+ * node packages/editor-blender/contributions/blender-node-panels.source.mjs \
  *   [--checkout <path>] [--check]
  * ```
  * writes (or, with `--check`, verifies) `blender.node-panels.json` beside

@@ -65,7 +65,7 @@ export interface BridgeTransport {
    *    values work here exactly like any ordinary `page.evaluate` callback.
    *  - `RelayTransport` (`relay-transport.ts`) ships `src` over the wire and
    *    reconstructs it with `new Function` INSIDE the editor page, against
-   *    an in-page shim (`packages/editor/src/playwright-shim.ts`) — closure
+   *    an in-page shim (`packages/editor-game/src/host/playwright-shim.ts`) — closure
    *    capture over anything outside the step's own body does NOT survive
    *    that trip (the same limitation class as Playwright's own `evaluate`
    *    serialization).

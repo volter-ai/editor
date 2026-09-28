@@ -3,7 +3,7 @@
  *
  * WHY IT IS A SEPARATE OBJECT, and why the verbs are these, is recorded once
  * in the implementation's header
- * (`packages/editor/src/editor-document-probe.ts`); the short version is that
+ * (`packages/editor-sdk/src/kit/editor-document-probe.ts`); the short version is that
  * `game.page()` is play-mode-gated and rooted at the GAME container, so an
  * editor surface that is not a running game could be neither read nor driven
  * through the product.

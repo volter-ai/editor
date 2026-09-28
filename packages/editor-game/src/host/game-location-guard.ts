@@ -145,6 +145,6 @@ export function refusedNavigationMessage(attempt: string): string {
     `Ingested game attempted to navigate the editor away (${attempt}) — refused. ` +
     "A game running in-realm shares the editor's document, so leaving it would take the " +
     'whole session with it; game code sees a scoped `location` facade whose reads pass ' +
-    'through and whose navigating writes do not (packages/editor/src/game-location-guard.ts).'
+    'through and whose navigating writes do not (packages/editor-game/src/host/game-location-guard.ts).'
   );
 }

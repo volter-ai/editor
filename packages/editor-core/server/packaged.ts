@@ -269,7 +269,7 @@ import { registerSession, unregisterSession } from './session-registry';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 // This file lives directly under the `@volter/editor-core` package root either as
-// `packages/editor/server/packaged.ts` (source, run via tsx) or as the
+// `packages/editor-core/server/packaged.ts` (source, run via tsx) or as the
 // esbuild-bundled `packages/editor/dist-server/packaged.mjs` (`server/` and
 // `dist-server/` are BOTH direct children of the package root) — so
 // `resolve(__dirname, '..')` lands on the package root in either shape.

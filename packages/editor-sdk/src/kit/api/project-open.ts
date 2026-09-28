@@ -148,7 +148,7 @@ export async function browseFolder(title?: string): Promise<string | null> {
   }
 }
 
-/** Inspect an arbitrary local folder without opening it or writing VOLTER files. */
+/** Inspect an arbitrary local folder without opening it or writing Volter files. */
 export async function inspectProjectFolder(
   path: string,
 ): Promise<{ path: string; report: ProjectInspection }> {
@@ -170,7 +170,7 @@ export async function inspectProjectFolder(
   return { path: payload.path, report: payload.report };
 }
 
-/** Add the one-file VOLTER metadata bridge after the user approves an inspection. */
+/** Add the one-file Volter metadata bridge after the user approves an inspection. */
 export async function adaptProjectFolder(
   path: string,
   selection?: { surface?: ProjectInspection['suggestedSurface']; entry?: string },
@@ -230,7 +230,7 @@ export interface ServerProject {
   /** Whether the project ships src/ui/registry.ts (scene-UI project mode, D9). */
   hasUiRegistry?: boolean;
   /** Whether this server is the no-monorepo-checkout packaged runtime
-   *  (`packages/editor/server/packaged.ts`) — see `binding-resolver.ts`'s
+   *  (`packages/editor-core/server/packaged.ts`) — see `binding-resolver.ts`'s
    *  `isPackagedRuntime` for why a react world's mount needs this. */
   packaged?: boolean;
   /** The engine package resolved from this project's own node_modules graph. */

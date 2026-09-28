@@ -137,7 +137,7 @@ export interface AdapterRegion {
    * genuinely undecidable from outside, and this is where the game's author
    * states the answer instead of the host guessing it from the file's bytes.
    *
-   * READER: `packages/editor/src/ui-source/file-region-resolver.ts`'s
+   * READER: `packages/editor-sdk/src/kit/ui-source/file-region-resolver.ts`'s
    * `resolveFileRegion`, consulted BEFORE reach — a declared include wins,
    * because it is a first-party statement about this exact file. Every OID
    * stamping tier, the HMR classifier, the R3F authoring diagnostics and

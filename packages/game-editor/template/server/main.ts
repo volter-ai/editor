@@ -6,11 +6,6 @@
  * through `play + server`, before the game's client half (`src/net/`) joins `game_room`. Both
  * arrive with the `server` addition; a project without it keeps these rooms and has neither.
  *
- * This is the standalone counterpart to the two existing harnesses that already start
- * `startColyseus` (colyseus-setup.ts): the e2e showcase's
- * `startColyseusServer` (packages/editor/e2e/helpers/colyseus.ts) and the
- * unit-test in-process loopback (packages/editor/test/helpers/colyseus-loopback.ts).
- *
  * Run via `npm run server`, which invokes tsx against `server/tsconfig.json`
  * (not the app `tsconfig.json` at the project root) — `@colyseus/schema`'s
  * `@type(...)` decorators are legacy (TC39 stage-2) decorators, which need

@@ -3,7 +3,7 @@
  * registry contract, and the shared machinery every reader was hand-copying.
  *
  * The registry's WRITE half stays with its owner
- * (`packages/editor/server/session-registry.ts`); this module owns the
+ * (`packages/editor-core/server/session-registry.ts`); this module owns the
  * FORMAT: the entry shape, the shape guards, the file path, the
  * liveness-filtered read, the `/__editor/project` answer parser, and the
  * pending-launch coordination. It existed as FOUR drifting copies

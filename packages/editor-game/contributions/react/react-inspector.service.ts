@@ -8,7 +8,7 @@
  *
  * ## Why this is a package and not the host's
  *
- * It was `packages/editor/src/authoring/react-inspector-section.tsx`,
+ * It was the host's `authoring/react-inspector-section.tsx`,
  * registered at module scope and reached by ONE line in the host's entry:
  * `main.tsx:33`, `import './authoring/react-inspector-section';`. A bare
  * side-effect import has no `from`, so the closure gate's walk never followed

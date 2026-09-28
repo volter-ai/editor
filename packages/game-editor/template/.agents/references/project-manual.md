@@ -1,4 +1,4 @@
-# Detailed VOLTER game project reference
+# Detailed Volter game project reference
 
 This is the procedural reference behind the compact project `AGENTS.md`
 router. Load only the section the current decision needs. The source files
@@ -322,7 +322,6 @@ After every slice:
 ```bash
 npm run check-idioms
 npm run typecheck
-npm run validate
 npm run validate-manifest
 npm run --silent volter -- status
 ```

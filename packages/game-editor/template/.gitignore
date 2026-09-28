@@ -61,7 +61,7 @@ dist-server/
 # the very dirty-file count the commit-cadence tripwire reports.
 .volter/tripwire-gate.json
 
-# `volter-game-editor play`'s run logs (logs/play-*.jsonl — see packages/volter-cli/src/index.ts)
+# `volter-game-editor play`'s run logs (logs/play-*.jsonl)
 logs/
 *.jsonl
 

@@ -20,7 +20,7 @@
  * invisible in the one settings UI rather than loud. The walk is over the JSON
  * Schema Zod itself produces (`z.toJSONSchema`) — the SAME derivation
  * `scripts/generate-schema.ts` commits as
- * `packages/project/schemas/volter-settings.schema.json`, which is what the
+ * `packages/editor-project/schemas/volter-settings.schema.json`, which is what the
  * fork's generator reads. One derivation, three consumers: this table, the
  * committed schema a person's editor autocompletes against, and the frame's
  * configuration contribution.

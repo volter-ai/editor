@@ -152,8 +152,8 @@ export class GameRoom extends Room {
   private orbRespawnTicks: number[] = [];
 
   onCreate(options?: { allowDebugCommands?: boolean }) {
-    // Off by default (FROZEN DECISION: env-var OR room-option) — the loopback harness/
-    // the loopback harness (`../loopback.ts`) opt in via the room option; a
+    // Off by default (FROZEN DECISION: env-var OR room-option) — a caller that
+    // creates the room with `allowDebugCommands: true` opts in; a
     // plain `npm run server` boot never accepts debug commands unless
     // VOLTER_ALLOW_DEBUG_COMMANDS is set in its environment.
     const debugCommandsAllowed =

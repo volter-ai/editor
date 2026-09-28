@@ -7,7 +7,7 @@ The schema-as-source-of-truth artifact for the engine's imperative surface — g
 
 ## System Phases
 
-Each frame, systems run in this exact order (from `PHASE_ORDER` in `packages/project/src/core/system-phase.ts`):
+Each frame, systems run in this exact order (from `PHASE_ORDER` in `packages/editor-project/src/core/system-phase.ts`):
 
 | # | Phase | Constant | Description |
 | - | ----- | -------- | ----------- |

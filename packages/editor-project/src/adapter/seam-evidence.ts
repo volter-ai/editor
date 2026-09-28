@@ -156,7 +156,7 @@ export function gradeSeamEvidence(options: {
 }
 
 /** In-memory current-session ledger. It is evidence, not a project file and
- * therefore introduces no VOLTER data format. */
+ * therefore introduces no Volter data format. */
 export class SeamEvidenceLedger {
   readonly #receipts: SeamEvidenceReceipt[] = [];
 

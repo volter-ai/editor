@@ -163,7 +163,7 @@ export interface GameCapture {
   mimeType: 'image/png';
   composite: boolean;
   layers?: { canvases: number; domOverlays: number };
-  /** Degeneracy measure — `packages/editor/src/composite-screenshot.ts`'s
+  /** Degeneracy measure — `packages/editor-sdk/src/kit/composite-screenshot.ts`'s
    *  `measureFlatness`. Absent when pixel readback was unavailable. */
   flatness?: {
     dominantFraction: number;
@@ -304,7 +304,7 @@ export type AssetPreviewSource =
  * identical whatever the entity's surroundings are. `'scene'` photographs the
  * entity where it stands in the live scene, under the scene's own lighting,
  * with the editor's own grid/gizmos/helpers excluded — see
- * `packages/editor/src/asset-preview.ts`'s `captureSceneStageAssetPreview`.
+ * `packages/editor-threejs/src/kit/asset-preview.ts`'s `captureSceneStageAssetPreview`.
  *
  * `'scene'` is an ENTITY-only, four-view option: the relay refuses it by name
  * for an `assetPath` source (a model loaded from disk stands nowhere) and for
@@ -376,7 +376,7 @@ export interface AssetPreviewCapture {
  * exports rendered in the live session's DOM and captured through the same
  * composite leg the game lane uses, as ONE variant sheet per file. `story`
  * narrows to a single export. See
- * `packages/editor/src/stories/story-capture.ts`.
+ * `packages/editor-sdk/src/kit/stories/story-capture.ts`.
  */
 export interface StoryCaptureOptions {
   /** Narrow the sheet to one CSF export name (`--story <export>`). */
@@ -417,7 +417,7 @@ export interface StoryVariantCapture {
  * normalization, both yaw-normalized to face the camera), scored by
  * silhouette IoU with per-view overlay evidence (orange asset / cyan
  * reference / near-white agreement). See
- * `packages/editor/src/asset-compare.ts`.
+ * `packages/editor-threejs/src/kit/asset-compare.ts`.
  */
 export type AssetCompareView = 'front' | 'side';
 
@@ -456,7 +456,7 @@ export interface AssetCompareCapture {
  *
  * The contract lives HERE, in the SDK, because it crosses the editor relay:
  * the capability tool that authors a set, the CLI that ships it across, and
- * `packages/editor/src/asset-preview.ts`'s capture engine that renders it are
+ * `packages/editor-threejs/src/kit/asset-preview.ts`'s capture engine that renders it are
  * three different programs. Each of those used to declare its own copy — five
  * declarations in total — and the copies had already drifted on what a pose
  * step's `radians` is measured FROM. Every side now type-checks against this
@@ -1065,7 +1065,7 @@ export type EditorViewWorkspaceDocumentId = (typeof EDITOR_VIEW_WORKSPACE_DOCUME
  * carrying it round-tripped to nothing).
  *
  * This must equal the editor's live `BUILT_IN_WORKSPACE_UTILITIES`
- * (`packages/editor/src/workspace-core-utilities.ts`). It had drifted to five
+ * (`packages/editor-sdk/src/kit/workspace-core-utilities.ts`). It had drifted to five
  * of thirteen — every id from `generations` onward was unaddressable in a
  * shared view. As above, the SDK cannot import the editor to derive this, so
  * `packages/editor/test/editor-view-address-space.test.ts` asserts the
@@ -1353,7 +1353,7 @@ export type {
 // ---------------------------------------------------------------------------
 //
 // The wire mirror of the editor's own `SerializedInspectionSubject`
-// (`packages/editor/src/inspection/serialize.ts`, which owns the contract and
+// (`packages/editor-sdk/src/kit/inspection/serialize.ts`, which owns the contract and
 // carries the reasoning). `command-listener.ts` annotates its `inspect`
 // payload with this type, so `tsc` checks the two sides against each other on
 // every build rather than letting them drift silently.
@@ -1556,7 +1556,7 @@ export interface StructureOpResult {
 // ---------------------------------------------------------------- hierarchy
 //
 // The wire mirror of the editor's own `SerializedHierarchyPanel`
-// (`packages/editor/src/hierarchy-panel-view.ts`, which owns the contract and
+// (`packages/editor-sdk/src/kit/hierarchy-panel-view.ts`, which owns the contract and
 // carries the reasoning). `command-listener.ts` annotates its `hierarchy`
 // payload with this type, so `tsc` checks the two sides against each other on
 // every build.

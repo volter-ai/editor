@@ -119,7 +119,7 @@ export const ProjectProvenanceSessionSchema = z
  * already ships.
  *
  * Written by `attestExistingProjectOutputs`
- * (`packages/editor/server/project-output-writer.ts`), driven by
+ * (`packages/editor-core/server/project-output-writer.ts`), driven by
  * `scripts/attest-project-output.ts`. The validator spells this literal
  * itself (it is a plain `.mjs` gate and imports no TypeScript); changing it
  * here means changing it there.

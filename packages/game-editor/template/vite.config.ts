@@ -12,7 +12,7 @@ const packageSource = (name: string) =>
 
 /**
  * Run-4 dry-run friction #2 — auto-detect drvfs the SAME way the editor dev
- * server does (`packages/editor/server/server-utils.ts`'s
+ * server does (`packages/editor-core/server/server-utils.ts`'s
  * `resolveWatcherPollOptions`, and `dev.ts`'s own `projectOnDrvfs` check):
  * on WSL, a project living on a Windows drive (`/mnt/<drive>/…`) never fires
  * inotify, so without polling this standalone server (`npm run dev:standalone`)

@@ -297,7 +297,7 @@ export function buildStaticActions(
  *  THE NO-AUTHORING FLOOR IS A MESSAGE, NOT AN ENTITY. `makeNoAuthoringAdapter`
  *  publishes one `role: 'boundary'` row so the panels can say "no authoring
  *  surface" honestly; mapping it like a node put a command literally called
- *  **VOLTER Entity: No authoring adapter** in the palette, whose whole effect is
+ *  **Volter Entity: No authoring adapter** in the palette, whose whole effect is
  *  to select and focus nothing (measured under the frame on a Model document,
  *  U8 walk 3, 2026-09-20). */
 export function buildEntityActions(store: ShellStore): EditorAction[] {

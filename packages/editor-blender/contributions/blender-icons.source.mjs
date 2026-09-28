@@ -10,7 +10,7 @@
  * silhouettes, ~1.3-unit strokes rendered as filled capsules with round ends,
  * no outline around a fill, optical size ~12 units inside the 16 box.
  *
- * Run `node packages/blender/contributions/blender-icons.source.mjs` to rewrite
+ * Run `node packages/editor-blender/contributions/blender-icons.source.mjs` to rewrite
  * the JSON. The JSON is the artifact the style bundle imports; THIS is where a
  * glyph is edited, because a path `d` is not a thing a person edits by hand.
  *

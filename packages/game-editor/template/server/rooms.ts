@@ -1,9 +1,7 @@
 /**
  * Room registry — defines all available Colyseus rooms, passed to
  * `startColyseus({ rooms, ... })` (colyseus-setup.ts) to call server.define()
- * for each. Imported by the e2e showcase harness
- * (packages/editor/e2e/helpers/colyseus.ts) and the unit-test in-process
- * loopback server (packages/editor/test/helpers/colyseus-loopback.ts).
+ * for each.
  */
 
 import { ArenaRoom } from './rooms/arena-room.js';

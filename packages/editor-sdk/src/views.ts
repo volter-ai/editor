@@ -86,7 +86,7 @@ function emit(): void {
  *
  * THE SAME VIEW REGISTERING AGAIN REPLACES ITSELF. A contribution module is
  * evaluated more than once per session by design: the tool loader imports it
- * as `/@fs/<path>?t=<version>` (packages/editor/src/tool-loader.ts) so a
+ * as `/@fs/<path>?t=<version>` (packages/editor-sdk/src/kit/tool-loader.ts) so a
  * project's save re-evaluates it, and a BUNDLED package's contribution is
  * reached by its bare specifier as well — while this registry is ONE table on
  * `globalThis` across

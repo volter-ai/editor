@@ -5,7 +5,7 @@ This directory vendors the published `realism-effects@1.1.2` distribution
 package. The upstream package still imports Three's removed
 `WebGLMultipleRenderTargets` API and has no release compatible with Three r180.
 
-VOLTER's fork contains only the mechanical r180 MRT migration:
+Volter's fork contains only the mechanical r180 MRT migration:
 
 - `WebGLMultipleRenderTargets(width, height, count, options)` becomes
   `WebGLRenderTarget(width, height, { ...options, count })`.

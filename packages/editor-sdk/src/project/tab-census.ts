@@ -98,7 +98,7 @@ export interface TabStallMetrics {
  * A census as a CURRENT page produces it and the server files it.
  *
  * Every field here is guaranteed by a producer that always writes it, and
- * `packages/editor/server/tab-heartbeat.ts`'s `parseCensus` is where that is
+ * `packages/editor-core/server/tab-heartbeat.ts`'s `parseCensus` is where that is
  * checked: a beat frame missing `canvases`, `canvasMB` or `mountEpochs` is
  * rejected outright rather than filed as a partial profile.
  */

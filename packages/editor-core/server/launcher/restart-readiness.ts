@@ -1,7 +1,7 @@
 /**
  * `restart`'s readiness contract — the decision half, kept out of the verb so
  * it reads without a live editor. Transferred from volter's
- * `packages/volter-cli/src/restart-readiness.ts`.
+ * `packages/editor-core/server/launcher/restart-readiness.ts`.
  *
  * Restart's ack means the session is ready for the NEXT command: the relay
  * answers, a tab is attached, and play is running and STILL running a moment

@@ -1,5 +1,5 @@
 /**
- * `/__editor/account/**` — the GLOBAL VOLTER account: sign-in, provider
+ * `/__editor/account/**` — the GLOBAL Volter account: sign-in, provider
  * credentials, plan/credits/checkout, and the sealed development-twin portal.
  *
  * Never project state: every route here answers the same way whether or not a
@@ -17,7 +17,7 @@ import type { RouteContext } from './context';
 export function registerAccountRoutes(router: EditorServerRouter, ctx: RouteContext): void {
   const { account } = ctx;
 
-  // ---- Global VOLTER account (never project state) ----
+  // ---- Global Volter account (never project state) ----
   router.get('/__editor/account', async (_req: Request, res: Response) => {
     try {
       res.json(await account.snapshot());

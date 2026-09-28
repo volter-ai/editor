@@ -1306,7 +1306,7 @@ export function resizeGame(width: number, height: number, pixelRatio?: number): 
  * size exceeded` — not a hypothetical). In the field this window is entered
  * whenever a caller re-issues `play` before the browser has acked the first
  * (a slow scene boot outliving the relay's/SDK's own `play.start` timeout is
- * the documented trigger — `packages/volter-sdk/src/play/transport.ts`'s
+ * the documented trigger — `packages/editor-sdk/src/transport.ts`'s
  * `PLAY_START_TIMEOUT_MS`/`editor-server.ts`'s `PLAY_COMMAND_TIMEOUT_MS` —
  * and `play.start`'s own contract is explicitly "start (or restart)", so a
  * caller retrying after a timeout is using the API as documented, not

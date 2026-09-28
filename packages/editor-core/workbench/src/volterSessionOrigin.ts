@@ -163,7 +163,7 @@ export function installDefaultTrustedTypesPolicy(): 'installed' | 'not-needed' |
  * The fix is NOT to reimplement that bootstrap here: it is a protocol with a server on the
  * other end, and two copies of a protocol drift on the first change. The session SERVES its
  * own — `/__editor/tab-bootstrap.js`, read out of `index.html` by
- * `packages/editor/server/tab-bootstrap.ts` — and this loads it as an ordinary classic
+ * `packages/editor-core/server/tab-bootstrap.ts` — and this loads it as an ordinary classic
  * script from that origin. The script takes its base from its own `src`, so every url it
  * builds (control socket, heartbeat worker, goodbye beacon) points at the session and not at
  * `vscode-file://vscode-app`, and `?surface=vscode` is how the tab table knows to call this

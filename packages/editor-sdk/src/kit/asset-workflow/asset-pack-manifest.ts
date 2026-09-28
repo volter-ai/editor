@@ -9,7 +9,7 @@
  * field: the manifest says what a project IS, a pack says how its reference
  * material was PRODUCED.
  *
- * The file lives beside `volter.project.json` in `packages/editor/template/` and each
+ * The file lives beside `volter.project.json` in `packages/game-editor/template/` and each
  * `examples/<id>/`. A scaffolded user project does not carry it; its record is
  * the ledger (`asset-ledger.ts`, D-AP3).
  *

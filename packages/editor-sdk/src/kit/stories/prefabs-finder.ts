@@ -3,7 +3,7 @@
  * selects, registered beside the story registry it reads.
  *
  * WHY IT READS ITS OWN LEDGER. The algorithm used to be an ENGINE finder
- * (`packages/editor/src/finders/prefabs-from-stories.ts`) whose
+ * (`packages/editor-sdk/src/kit/stories/prefabs-from-stories.ts`) whose
  * `input.stories` the editor's adapter loader filled, which is how the loader
  * came to reach the story registry through a contract field nothing else ever
  * filled. `FinderInput.stories` is gone; the finder gathers its own

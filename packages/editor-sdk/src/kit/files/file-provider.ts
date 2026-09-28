@@ -2,7 +2,7 @@
  * THE PROJECT'S FILES, WRITTEN THROUGH THE WORKBENCH — the provider it
  * installs here, and the window before it lands.
  *
- * `EditorHost.files` is the door (`packages/editor/src/files/`) —
+ * `EditorHost.files` is the door (`packages/editor-sdk/src/kit/files/`) —
  * read/readBytes/write/exists/list/watch over PROJECT-RELATIVE paths, the same
  * spelling the history door hands over, so both resolve against one workspace
  * folder.

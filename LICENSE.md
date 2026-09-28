@@ -6,7 +6,7 @@ it does not replace package or third-party licenses.
 
 | Component | License texts and attribution |
 | --- | --- |
-| Model editor product | [AGPL-3.0-only](packages/model-editor/LICENSE), [Blender-derived GPL material](packages/model-editor/LICENSE-BLENDER), [MIT MCP notice](packages/model-editor/LICENSE-MCP), [NOTICE](packages/editor/NOTICE) |
+| Model editor product | [AGPL-3.0-only](packages/model-editor/LICENSE), [Blender-derived GPL material](packages/model-editor/LICENSE-BLENDER), [MIT MCP notice](packages/model-editor/LICENSE-MCP), [NOTICE](packages/model-editor/NOTICE) |
 | Shared editor host | [AGPL-3.0-only](packages/editor-core/LICENSE), [Apache-2.0 portions](packages/editor-core/NOTICE) |
 | Blender integration | [AGPL/GPL texts](packages/editor-blender/LICENSE) |
 | Blender engine | [GPL-3.0-or-later and third-party notices](packages/blender-engine/LICENSE) |

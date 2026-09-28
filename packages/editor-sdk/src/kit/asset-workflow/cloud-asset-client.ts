@@ -4,7 +4,7 @@
  *
  * GET-only, no `process.env` overrides, no admin routes, no Node imports —
  * so a Vite browser bundle can include it directly. Node's own client
- * (`packages/editor/server/cloud-asset-catalog.ts`) additionally proxies
+ * (`packages/editor-core/server/cloud-asset-catalog.ts`) additionally proxies
  * Poly Haven/ambientcg and reads `VOLTER_CLOUD_ASSET_URL`, so the two clients'
  * FETCHING stays separate; the two clients' idea of what the worker RETURNS
  * does not. This module is where the worker's record shape is declared, and
@@ -206,7 +206,7 @@ export function cloudAssetThumbnailUrl(baseUrl: string | undefined, assetId: str
 
 /** Build the download URL for one file of a hosted asset (`main` when
  *  `dependencyIndex` is omitted, one of its dependencies otherwise) — mirrors
- *  `packages/editor/server/cloud-asset-catalog.ts`'s `cloudAssetObjectUrl`. */
+ *  `packages/editor-core/server/cloud-asset-catalog.ts`'s `cloudAssetObjectUrl`. */
 export function cloudAssetObjectUrl(
   baseUrl: string | undefined,
   assetId: string,
@@ -251,7 +251,7 @@ export function parseCloudAssetObjectUrl(
 
 /** The same slug algorithm the Node Library panel uses for the SSD/cloud
  *  catalog's on-disk destination (`localAssetSlug` in
- *  `packages/editor/server/local-asset-catalog.ts`), rebuilt from the fields
+ *  `packages/editor-core/server/local-asset-catalog.ts`), rebuilt from the fields
  *  the cloud worker's own record already carries (`name`/`familyId`) so the
  *  browser client needs no dependency on the 34,412-asset local catalog. */
 export function cloudAssetSlug(record: Pick<CloudAssetRecord, 'name' | 'familyId'>): string {

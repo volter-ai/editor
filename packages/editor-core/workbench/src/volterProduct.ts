@@ -23,7 +23,7 @@
  *                      game. Trust this folder to open it.")`. A model editor has no game and
  *                      a game editor has no Blender engine in the tab, so the WHOLE sentence is
  *                      the product's; the refusal beside it named the command and is the kit's
- *                      now that the command is `VOLTER: Open Workspace`.
+ *                      now that the command is `Volter: Open Workspace`.
  *    `mount`         — `volterGameSkew.ts`, which the mount command constructed for every product
  *                      because there was only one contribution to construct it from.
  *

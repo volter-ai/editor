@@ -209,7 +209,7 @@ function writeJson(path: string, data: unknown): void {
 
 /**
  * Rewrite a template-authored path like `../../engine/src/foo.d.ts` (relative
- * to `packages/editor/template/`) into a path relative to the *scaffolded*
+ * to `packages/game-editor/template/`) into a path relative to the *scaffolded*
  * project's location, using the already-computed engine-relative path.
  *
  * This is the fix for the tsconfig `files` bug (T3.6): the template's
@@ -394,7 +394,7 @@ export function pinStandaloneDependencyVersions(
  * Project-relative path of the roadmap — and, by owner decision (2026-08-09),
  * the project's WHOLE ztrack issue store.
  *
- * The tracker ships BAKED INTO THE TEMPLATE (`packages/editor/template/`):
+ * The tracker ships BAKED INTO THE TEMPLATE (`packages/game-editor/template/`):
  * `ztrack init --preset spec` was run there once, its installed
  * `.volter/tracker/validation/preset.mts` had the `passed_ac_missing_evidence`
  * gate removed (a game's proof lives in its playtest record, not in a commit
@@ -593,7 +593,7 @@ function assertDevelopmentLog(targetDir: string): void {
   const path = join(targetDir, PROJECT_DEVELOPMENT_LOG_RELATIVE_PATH);
   if (!existsSync(path)) {
     throw new Error(
-      `Scaffolded project is missing ${PROJECT_DEVELOPMENT_LOG_RELATIVE_PATH}; restore it from the VOLTER starter template`,
+      `Scaffolded project is missing ${PROJECT_DEVELOPMENT_LOG_RELATIVE_PATH}; restore it from the Volter starter template`,
     );
   }
 }
@@ -672,7 +672,7 @@ function writeExampleReadme(
   writeFileSync(
     path,
     `# ${projectName}\n\n` +
-      `An editable standalone VOLTER project scaffolded from the \`${exampleId ?? 'example'}\` reference. ` +
+      `An editable standalone Volter project scaffolded from the \`${exampleId ?? 'example'}\` reference. ` +
       'Its gameplay source and assets were copied unchanged; this folder is now your project.\n\n' +
       '```bash\n' +
       'npm run dev                 # open/reuse the visual editor\n' +
@@ -1622,7 +1622,7 @@ export function rewriteViteConfigContent(content: string): string {
 
 /**
  * Guarantees the scaffolded `vite.config.ts` dedupes `react`/`react-dom`
- * (GH #123 — see the matching comment in `packages/editor/template/
+ * (GH #123 — see the matching comment in `packages/game-editor/template/
  * vite.config.ts` for the full dual-React root cause). Called from
  * {@link rewriteViteConfigContent}, which runs for EVERY scaffold path —
  * both the starter template (already ships the dedupe entry as static
@@ -1660,7 +1660,7 @@ export function ensureReactDedupe(content: string): string {
   if (!/resolve:\s*{/.test(content)) return content;
   return content.replace(
     /resolve:\s*{/,
-    "resolve: {\n    // react/react-dom dedupe (GH #123): see packages/editor/template/vite.config.ts's\n" +
+    "resolve: {\n    // react/react-dom dedupe (GH #123): see packages/game-editor/template/vite.config.ts's\n" +
       '    // matching comment for the dual-React-instance root cause this avoids.\n' +
       "    dedupe: ['react', 'react-dom'],",
   );

@@ -5,18 +5,10 @@
  * via SSE.
  *
  * There is no auto-started Colyseus process — this is imported by the
- * standalone `npm run server` entry (server/main.ts) and by two
- * harnesses: the e2e showcase's `startColyseusServer`
- * (packages/editor/e2e/helpers/colyseus.ts, which esbuild-bundles this +
- * rooms.ts to run against a real scaffolded project) and the unit-test
- * in-process loopback server (packages/editor/test/helpers/colyseus-loopback.ts,
- * which imports this directly for headless multiplayer tests).
+ * standalone `npm run server` entry (server/main.ts).
  */
 
 import type { Server as HttpServer } from 'node:http';
-// A LEAF module by design — the browser P2P host must reach the same check
-// without dragging this file's server transport into its bundle. See
-// `declared-room.ts`'s header for the build failure that proved it.
 
 export interface ColyseusOptions {
   /** Room definitions: array of { name, handler }. */

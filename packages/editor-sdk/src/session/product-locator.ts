@@ -103,7 +103,7 @@ export interface ProductIdentity {
    * landed. The supported door is `IWorkbenchConstructionOptions
    * .initialColorTheme`, which is read out of the PAGE CONFIG, before any
    * extension or setting is available; the session's proxy injects it
-   * (`packages/editor/server/frame-proxy.ts`).
+   * (`packages/editor-core/server/frame-proxy.ts`).
    *
    * It is a DECLARATION and not a setting (ARCHITECTURE-CORE §The target
    * shape, rule 8): it says what the product IS, the same way `entry` does, and

@@ -1,6 +1,6 @@
 /**
  * CLI-side reader of the editor session registry. The WRITER is
- * `packages/editor/server/session-registry.ts` (dev.ts registers on listen /
+ * `packages/editor-core/server/session-registry.ts` (dev.ts registers on listen /
  * project switch, unregisters on shutdown); the FORMAT — entry shape,
  * guards, path, liveness-filtered read — lives once in
  * the session-registry format, which this module and both SDK
@@ -438,7 +438,7 @@ export async function waitForEditorPageConnected(
 }
 
 /**
- * Tab bijection (server: packages/editor/server/tab-lifecycle.ts): ask the
+ * Tab bijection (server: packages/editor-core/server/tab-lifecycle.ts): ask the
  * session's server to converge its browser tab to exactly one — focus the
  * blessed tab, wait out a tab that is still arriving, or open one (`open`
  * false means "never open", the caller's --no-open). Two answers come from
@@ -637,7 +637,7 @@ export async function waitForEditorStateAfter(
  * they are being asked — a the editor's `edit` command workbench opens on a folder
  * whose session IS the trust decision, so the only reason it can still be
  * loading is a cold Vite dep-optimize (see the workbench contribution's
- * `connectSessionTab`, packages/editor/workbench/src/volter.contribution.ts). The
+ * `connectSessionTab`, packages/editor-core/workbench/src/volter.contribution.ts). The
  * page says the same thing from its own side: the product's cover carries the
  * product's name and "Opening…" until the editor is there.
  *

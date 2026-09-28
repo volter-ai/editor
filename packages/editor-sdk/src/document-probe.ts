@@ -1,6 +1,6 @@
 /**
  * The wire vocabulary of the EDITOR-SURFACE probe — the scoped editor-chrome
- * door (`packages/editor/src/editor-document-probe.ts` implements it,
+ * door (`packages/editor-sdk/src/kit/editor-document-probe.ts` implements it,
  * `@volter/editor-live`'s `editor.document` binds it, and that module's header carries
  * the design decision and the scope contract).
  *

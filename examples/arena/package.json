@@ -18,7 +18,6 @@
     "postinstall": "node scripts/patch-drei-stats-gl.mjs",
     "check-idioms": "npx tsx check-idioms.ts .",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tools.json",
-    "validate-assets": "npx tsx validate-assets.ts .",
     "validate-manifest": "npx tsx validate-manifest.ts volter.project.json"
   },
   "dependencies": {

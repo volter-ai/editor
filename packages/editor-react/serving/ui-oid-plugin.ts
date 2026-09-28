@@ -14,7 +14,7 @@
  * `include` widening (T6.2 slice 2): the original
  * scope was ONLY `ui-editor/editable-components/*.tsx` (the visual-edit fixture dir,
  * for `UIAuthoringAdapter`/`SourceEditPanel`). A react WORLD's entry graph is a real
- * project's `.tsx` source — the mounted template project (`packages/editor/template/
+ * project's `.tsx` source — the mounted template project (`packages/game-editor/template/
  * src/**`) or an externally-scaffolded project directory reached via the SAME
  * dev-server `fs.allow` pipeline `server/dev.ts` already builds for project scripts
  * (T3.3) — so `ReactRootAuthoringAdapter` needs those files instrumented too.

@@ -90,7 +90,7 @@ export interface ShareGrantRedemption {
 }
 
 /**
- * A redemption that failed because the VOLTER account service could not be
+ * A redemption that failed because the Volter account service could not be
  * reached or answered 5xx — NOT because the grant belongs to a different
  * invitation. The gateway must keep the two apart: an unreachable service is a
  * 502 the participant can retry, while "this invitation does not own that
@@ -530,7 +530,7 @@ function upstreamHeaders(
   return next;
 }
 
-/** The invitee's first impression of VOLTER, and it must survive the gateway's
+/** The invitee's first impression of Volter, and it must survive the gateway's
  * `default-src 'none'` CSP: no external asset, no framework, one inline style
  * block shared by both pages. */
 const SHARE_PAGE_STYLES = `:root{color-scheme:dark}

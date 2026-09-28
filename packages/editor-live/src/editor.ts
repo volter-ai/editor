@@ -108,7 +108,7 @@ export class LiveEditor {
    * The ACTIVE center document's own DOM: read it, click it, key it, paste
    * into it. The one door onto editor chrome that is not play-mode gated, and
    * deliberately scoped to that document alone —
-   * `packages/editor/src/editor-document-probe.ts` carries the design and the
+   * `packages/editor-sdk/src/kit/editor-document-probe.ts` carries the design and the
    * refusal contract. Screenshotting the same subject is
    * {@link LiveEditor.captureActiveDocument}, not a fifth verb here.
    */

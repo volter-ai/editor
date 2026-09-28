@@ -73,7 +73,7 @@ export function openProjectToolDocument(
  * the other half of a `presentation()` above: the CATALOG is a workspace
  * document (`{ kind: 'workspace', id: 'project-tools' }`), one named tool is
  * its own kind (`{ kind: 'project-tool', name }`). Registered at module load,
- * the shape `packages/game/src/story-documents/three-story-documents.tsx:239`
+ * the shape `packages/editor-game/src/three/story-documents/three-story-documents.tsx:239`
  * uses; the presenter addresses both without importing this file.
  */
 registerDocumentOpener<{ readonly id: string }>({

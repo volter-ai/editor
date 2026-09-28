@@ -68,7 +68,7 @@ export type ShareCapability =
   | 'maintain'
   | 'never-share';
 
-/** A verified VOLTER account, as a share participant projects onto the wire. */
+/** A verified Volter account, as a share participant projects onto the wire. */
 export interface ShareAccount {
   id: string;
   email: string;

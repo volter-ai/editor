@@ -321,7 +321,7 @@ Open, with what closes each:
   (CC0) is the finished palette and the General MIDI SoundFont the sketch palette, as the skill
   teaches: VSCO is recorded orchestral instruments with their own articulations and round-robin
   repetitions, which a General MIDI preset has none of; no listening test was run, and a
-  listening verdict against it reopens this. A blind listen began 2026-09-27 (Runhuman, project VOLTER Hosted
+  listening verdict against it reopens this. A blind listen began 2026-09-27 (Runhuman, project Volter Hosted
   Editor; Harbor on each palette, loudness matched, unlabeled, one play order per job;
   volter-listening.aaron-0ed.workers.dev, `/a/` General MIDI first, `/b/` VSCO first): the one verdict in (order a)
   heard the two as "almost the same", both like real musicians, and mildly preferred General MIDI. The renders differ

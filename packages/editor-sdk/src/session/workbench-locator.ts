@@ -288,7 +288,7 @@ function resolveRelease(dir: string): ResolvedWorkbench {
  * has no file that states it, and a stale one would name bytes nobody is
  * running. The PRODUCT is the overlay's own record — a checkout with none has
  * no volter tier in it at all, and that is refused here rather than left to
- * surface as a workbench where `VOLTER: Open Workspace` does not exist.
+ * surface as a workbench where `Volter: Open Workspace` does not exist.
  */
 function resolveSources(dir: string): ResolvedWorkbench {
   let commit: string;

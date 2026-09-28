@@ -978,7 +978,7 @@ let registeredModules = new WeakSet<object>();
 // This file is the ONE sanctioned importer of the engine's finder namespace
 // (`@editor/finders`'s header states the rule), so the registration is
 // here rather than beside the rest of the lane in `stories/story-lane.ts`.
-registerContributedFinder(storyPrefabsFinder, 'packages/editor/src/stories/prefabs-finder.ts');
+registerContributedFinder(storyPrefabsFinder, 'packages/editor-sdk/src/kit/stories/prefabs-finder.ts');
 
 // A contribution pass that changed the finder set re-resolves the table.
 subscribeToolContributions(() => {

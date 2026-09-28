@@ -31,7 +31,7 @@ static func answer() -> int:
 const PROJECT_SOURCE = `config_version=5
 
 [application]
-config/name="VOLTER code authority seed"
+config/name="Volter code authority seed"
 run/main_scene="res://main.tscn"
 
 [rendering]

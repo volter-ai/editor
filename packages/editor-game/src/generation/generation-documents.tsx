@@ -49,7 +49,7 @@ function billingLabel(billing: GenerationBilling): string {
   if (billing.route === 'managed') {
     if (billing.settledCredits !== undefined) return `${billing.settledCredits} credits settled`;
     if (billing.estimatedCredits !== undefined) return `Up to ${billing.estimatedCredits} credits`;
-    return 'VOLTER subscription · estimate unavailable';
+    return 'Volter subscription · estimate unavailable';
   }
   if (billing.settledAmount !== undefined) return `$${billing.settledAmount.toFixed(3)} settled`;
   if (billing.estimatedAmount !== undefined) return `Up to $${billing.estimatedAmount.toFixed(3)}`;

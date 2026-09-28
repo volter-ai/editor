@@ -1,9 +1,9 @@
 ---
 name: editor
-description: Launch, control, inspect, and verify a VOLTER game through its live visual editor. Use for editor sessions, Play mode, selection, hierarchy or inspector work, screenshots, status, logs, restart after setup changes, or the live playtest loop.
+description: Launch, control, inspect, and verify a Volter game through its live visual editor. Use for editor sessions, Play mode, selection, hierarchy or inspector work, screenshots, status, logs, restart after setup changes, or the live playtest loop.
 ---
 
-# Control the VOLTER editor
+# Control the Volter editor
 
 ## Open the observable session
 

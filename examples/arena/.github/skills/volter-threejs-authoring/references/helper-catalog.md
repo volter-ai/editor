@@ -76,7 +76,7 @@ curve pipes, per-material anime profiles, pixel-width silhouette ink,
 distance-faded creases, rigid bone chains, exact-time gait validation, stepped
 pose timing, hard shadows, environment lighting, limited AO/bloom, a subtle
 color composite, and SMAA. Treat these as proven craft techniques and
-candidate copyable helpers, not automatic VOLTER runtime APIs.
+candidate copyable helpers, not automatic Volter runtime APIs.
 
 Its accepted typed source lived in `src/lib/stylized/` and `src/lib/castle/`;
 only `stylized` remains (`volter-game-editor add stylized`, and none of it is in a fresh

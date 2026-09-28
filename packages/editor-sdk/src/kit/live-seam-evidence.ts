@@ -1,6 +1,6 @@
 /** One current-process evidence ledger shared by panels, relay consumers,
  * coverage, status, and Doctor. It is intentionally ephemeral: project source
- * remains truth and no VOLTER evidence sidecar is invented. */
+ * remains truth and no Volter evidence sidecar is invented. */
 
 import { SeamEvidenceLedger, type SeamEvidenceReceipt } from '@volter/editor-project/adapter';
 

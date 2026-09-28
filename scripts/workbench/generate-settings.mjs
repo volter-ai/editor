@@ -7,7 +7,7 @@
  *  drifts from the one the editor reads — which is invisible rather than loud, because a
  *  missing declaration simply means the key is not listed.
  *
- *  WHAT IT READS: `packages/project/schemas/volter-settings.schema.json` — the JSON Schema
+ *  WHAT IT READS: `packages/editor-project/schemas/volter-settings.schema.json` — the JSON Schema
  *  `npm run generate-schema` already commits from that Zod document, and the SAME derivation
  *  `@volter/editor-project/settings/keys` walks at runtime to build the editor's own key table. So this
  *  generator adds no second notion of what a settings key is; it re-spells one that exists,
@@ -42,7 +42,7 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT_PATH = join(REPO_ROOT, 'packages/editor-core/workbench/src/volterGeneratedSettings.ts');
-const SCHEMA_RELATIVE = 'packages/project/schemas/volter-settings.schema.json';
+const SCHEMA_RELATIVE = 'packages/editor-project/schemas/volter-settings.schema.json';
 
 /** The namespace every key carries. `@volter/editor-project/settings/keys`'s SETTINGS_KEY_PREFIX. */
 const PREFIX = 'volter';

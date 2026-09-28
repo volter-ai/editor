@@ -561,7 +561,7 @@ async function mountOneThreeRoot(
  *  pinned to the mount-time `w`/`h` (same as three, until PIXI's own
  *  construction-time resize runs), it self-heals the moment ANY real
  *  `session.resize(rw, rh)` fires — every shipped standalone entry
- *  (`packages/editor/template/src/main.ts`, `examples/tri-world/src/main.ts`)
+ *  (`packages/game-editor/template/src/main.ts`, `examples/tri-world/src/main.ts`)
  *  already calls `session.resize()` unconditionally right after mount, so
  *  this never surfaces as a lasting bug the way three' buffer-only resize
  *  did (never self-healing, by design — see above). */

@@ -5,7 +5,7 @@
  * and the modules beside it) plus one act: point a camera at the translated
  * scene, render into a scene-linear target, read the pixels, run Blender's
  * display transform, answer. The editor performs that act with its own stage
- * and renderer (`packages/blender/host/blender-runtime-host.ts`), which is why
+ * and renderer (`packages/editor-blender/host/blender-runtime-host.ts`), which is why
  * the editor never imports THIS file. A host that has no renderer — a bare
  * page with `@volter/browser-wali`, an Emscripten page, the substrate
  * workbench — attaches one of these to the Blender it started, and the guest's

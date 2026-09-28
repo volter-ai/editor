@@ -69,7 +69,7 @@ export interface PresentAnswer {
  * Read by anything that has to say WHERE a byte came from rather than merely
  * display it — `blender-list-files` answers with it, so the CLI's write-back
  * door can record which session's model a mirrored file was exported from
- * (`packages/volter-cli/src/blender-mcp.ts`, class Mirror). Null until the
+ * (`packages/editor-blender/node/blender-mcp.ts`, class Mirror). Null until the
  * session's first present.
  */
 export interface PresentedState {

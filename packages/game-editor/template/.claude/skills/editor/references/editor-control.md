@@ -39,7 +39,7 @@ npm run --silent volter -- eval --list      # Everything you can drive — ask t
 ```
 
 **Port cross-talk:** the default editor port (5173) is shared across every
-VOLTER project on the machine. `npm run --silent volter -- edit .` never silently retargets a
+Volter project on the machine. `npm run --silent volter -- edit .` never silently retargets a
 DIFFERENT project's already-running editor — if one is already open
 elsewhere, this one starts a second instance on a fresh free port and prints
 that URL instead (use `--switch` to retarget the existing one on purpose).
