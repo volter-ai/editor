@@ -1,6 +1,7 @@
 import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
 import { godotSceneNodeIdiom } from './scene-node-idioms';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
+import { type GodotSceneBodyProp, planGodotSceneBodies } from './scene-body-idioms';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
 import type {
@@ -75,6 +76,12 @@ export type DirectGodotSceneNodePlan = Omit<
    * on the instance, which the instanced component's script takes over its own (`exports`).
    */
   readonly instanceExports?: readonly ScriptFieldValuePlan[];
+  /** The node's Godot-only state, its `userData` (`scene-body-idioms.ts`). */
+  readonly data?: Readonly<Record<string, unknown>>;
+  /** A physics body's `<RigidBody>` props (`scene-body-idioms.ts`). */
+  readonly body?: readonly GodotSceneBodyProp[];
+  /** An instance of a scene rooted in a body: the props its overrides change (`scene-body-idioms.ts`). */
+  readonly bodyOverrides?: readonly GodotSceneBodyProp[];
   readonly children: readonly DirectGodotSceneNodePlan[];
   readonly placements?: readonly { readonly at: string; readonly node: DirectGodotSceneNodePlan }[];
 };
@@ -820,7 +827,7 @@ export function planDirectGodotProjectComposition(
       physicsWorld: physics,
       processDelta: processDelta(project),
       sourceModules: plannedSourceModules,
-      scenes: planGodotSceneRefs(composedScenes.map(planGodotSceneSkyLights)),
+      scenes: planGodotSceneRefs(planGodotSceneBodies(composedScenes).map(planGodotSceneSkyLights)),
       scriptAutoloads: autoloads,
     },
   };

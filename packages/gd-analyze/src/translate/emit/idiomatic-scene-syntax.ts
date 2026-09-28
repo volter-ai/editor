@@ -35,6 +35,7 @@ import { type ScriptLifecycleImports, scriptLifecycleHooks } from './script-life
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { directGodotSceneAutoloadContextName, directGodotSceneAutoloadReferences } from './direct-autoload-syntax';
 import { godotImportedModelDataPath, godotSceneRootClass, godotSceneRootIdiom, godotSceneSubnodes } from '../data/scene-document-plan';
+import { type GodotSceneBodyProp, godotSceneInstanceData } from '../data/scene-body-idioms';
 import type { GodotSceneNodeIdiom } from '../data/scene-node-idioms';
 import { godotResolveNodePath } from '../data/scene-animation';
 import {
@@ -359,135 +360,13 @@ function plainValue(value: TargetGodotSceneValue): unknown {
   throw new Error(`a ${value.kind} value has no idiomatic form`);
 }
 
-/** A PhysicsMaterial resource's properties by their Godot names. */
-function materialData(resource: TargetGodotSceneResourcePlan): Record<string, unknown> {
-  const names: Readonly<Record<string, string>> = { set_friction: 'friction', set_bounce: 'bounce', set_rough: 'rough', set_absorbent: 'absorbent' };
-  return Object.fromEntries(resource.setters.map((entry) => [names[entry.setter.exportName] ?? entry.propertyName, plainValue(entry.value)]));
-}
-
-/** The Godot-only properties a body holds, by their Godot names (its `userData`). */
-const BODY_DATA: Readonly<Record<string, string>> = {
-  set_collision_layer: 'collision_layer',
-  set_collision_mask: 'collision_mask',
-  set_ray_pickable: 'input_ray_pickable',
-  set_mass: 'mass',
-  set_linear_damp_mode: 'linear_damp_mode',
-  set_angular_damp_mode: 'angular_damp_mode',
-  set_lock_rotation_enabled: 'lock_rotation',
-  set_use_custom_integrator: 'custom_integrator',
-  set_contact_monitor: 'contact_monitor',
-  set_max_contacts_reported: 'max_contacts_reported',
-  set_velocity: 'velocity',
-  set_safe_margin: 'safe_margin',
-  set_floor_stop_on_slope_enabled: 'floor_stop_on_slope',
-  set_floor_constant_speed_enabled: 'floor_constant_speed',
-  set_floor_block_on_wall_enabled: 'floor_block_on_wall',
-  set_slide_on_ceiling_enabled: 'slide_on_ceiling',
-  set_motion_mode: 'motion_mode',
-  set_max_slides: 'max_slides',
-  set_floor_max_angle: 'floor_max_angle',
-  set_floor_snap_length: 'floor_snap_length',
-  set_wall_min_slide_angle: 'wall_min_slide_angle',
-  set_up_direction: 'up_direction',
-  set_monitoring: 'monitoring',
-};
-
-/** Rapier's own value of each `<RigidBody>` prop `bodyProps` states only when Godot's differs. */
-const RAPIER_BODY_DEFAULTS: Readonly<Record<string, () => TargetTsExpression>> = {
-  gravityScale: () => literal(1),
-  linearDamping: () => literal(0),
-  angularDamping: () => literal(0),
-  ccd: () => literal(false),
-  enabledTranslations: () => dataExpression([true, true, true]),
-  enabledRotations: () => dataExpression([true, true, true]),
-  lockRotations: () => literal(false),
-  userData: () => dataExpression({}),
-};
-
-/**
- * A body's `<RigidBody>` props from its class and setters (with `resources` for its material):
- * Rapier's own props for what Rapier consumes (type, sensor, friction and bounce with Godot's
- * combine rules, gravity scale, damping, axis locks) and `userData` for the rest by Godot name.
- * `shapes` is its collision shapes' Godot-only settings by collider name.
- */
-function bodyProps(
-  emission: Emission,
-  className: string,
-  sensor: boolean,
-  setters: readonly TargetGodotSceneSetterPlan[],
-  resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>,
-  shapes: Readonly<Record<string, Record<string, unknown>>>,
-  node: Readonly<Record<string, unknown>> = {},
-): Map<string, TargetTsExpression> {
-  const props = new Map<string, TargetTsExpression>();
-  const data: Record<string, unknown> = { ...node };
-  const locks = { linear: [true, true, true], angular: [true, true, true] };
-  let material: TargetGodotSceneResourcePlan | undefined;
-  for (const entry of setters) {
-    const name = entry.setter.exportName;
-    if (name === 'set_axis_lock') {
-      const axis = [1, 2, 4, 8, 16, 32].indexOf(entry.index as number);
-      if (entry.value.kind === 'bool' && entry.value.value) (axis < 3 ? locks.linear : locks.angular)[axis % 3] = false;
-    } else if (name === 'set_gravity_scale') props.set('gravityScale', literal(plainValue(entry.value) as number));
-    else if (name === 'set_linear_damp') props.set('linearDamping', literal(plainValue(entry.value) as number));
-    else if (name === 'set_angular_damp') props.set('angularDamping', literal(plainValue(entry.value) as number));
-    else if (name === 'set_use_continuous_collision_detection') props.set('ccd', literal(plainValue(entry.value) as boolean));
-    else if (name === 'set_physics_material_override') {
-      material = entry.value.kind === 'resource' ? resources.get(entry.value.key) : undefined;
-      if (material !== undefined) data['physics_material_override'] = materialData(material);
-    } else {
-      const key = BODY_DATA[name];
-      if (key === undefined) throw new Error(`${className}.${entry.propertyName} has no idiomatic form`);
-      data[key] = plainValue(entry.value);
-    }
-  }
-  if (locks.linear.includes(false)) props.set('enabledTranslations', dataExpression(locks.linear));
-  if (locks.angular.includes(false)) props.set('enabledRotations', dataExpression(locks.angular));
-  // Rapier merges its locks, so compat reads Godot's own (`locked_axis`, `BodyAxis` bits) from userData.
-  const axes = [...locks.linear, ...locks.angular].reduce((bits, enabled, index) => (enabled ? bits : bits | (1 << index)), 0);
-  if (axes !== 0) data['axis_lock'] = axes;
-  // lock_rotation is Rapier's own `lockRotations`, beside its flag in `userData` for compat: Rapier
-  // merges it with the axis locks, which it then cannot report back, so the pair has no form.
-  if (data['lock_rotation'] === true) {
-    if (locks.angular.includes(false)) throw new Error(`${className}.lock_rotation with an angular axis lock has no idiomatic form`);
-    props.set('lockRotations', literal(true));
-  }
-  if (!sensor) {
-    // Godot's friction is the smaller of the pair's, its bounce the larger (`combine_friction`,
-    // `combine_bounce`, godot_body_pair_3d.cpp:255); a body without a material has friction 1 and
-    // no bounce. A rough or absorbent material's sign (`physics_material.h:55`) is not carried.
-    const computed = material === undefined ? { friction: 1, bounce: 0, absorbent: false } : materialData(material);
-    const friction = Math.abs(Number(computed['friction'] ?? 1));
-    const bounce = computed['absorbent'] === true ? 0 : Math.min(Math.max(Number(computed['bounce'] ?? 0), 0), 1);
-    emission.rapier.add('CoefficientCombineRule');
-    const rule = (value: string): TargetTsExpression => ({
-      kind: 'property-expression',
-      object: { kind: 'identifier-expression', name: 'CoefficientCombineRule' },
-      property: value,
-    });
-    props.set('friction', literal(friction));
-    props.set('frictionCombineRule', rule('Min'));
-    props.set('restitution', literal(bounce));
-    props.set('restitutionCombineRule', rule('Max'));
-  }
-  if (Object.keys(shapes).length > 0) data['shapes'] = shapes;
-  if (Object.keys(data).length > 0) props.set('userData', dataExpression(data));
-  return props;
-}
-
-/** The Godot-only settings of a body's collision shapes, by collider name. */
-function shapeData(emission: Emission, node: DirectGodotSceneNodePlan): Record<string, Record<string, unknown>> {
-  const shapes: Record<string, Record<string, unknown>> = {};
-  for (const child of node.children) {
-    if (child.idiom?.form.kind !== 'collider') continue;
-    const entry: Record<string, unknown> = {};
-    if (setterValue(child.setters, 'set_disabled')?.kind === 'bool' && (setterValue(child.setters, 'set_disabled') as { value: boolean }).value) entry['disabled'] = true;
-    const shape = resourceOf(emission, setterValue(child.setters, 'set_shape'));
-    const backface = shape === undefined ? undefined : setterValue(shape.setters, 'set_backface_collision_enabled');
-    if (backface?.kind === 'bool') entry['backface_collision'] = backface.value;
-    if (Object.keys(entry).length > 0) shapes[child.name] = entry;
-  }
-  return shapes;
+/** A planned `<RigidBody>` prop (`scene-body-idioms.ts`) as the expression that states it. */
+function bodyProp(emission: Emission, prop: GodotSceneBodyProp): TargetTsJsxAttribute {
+  const value = prop.value;
+  if (value.kind === 'literal') return attribute(prop.name, literal(value.value));
+  if (value.kind === 'data') return attribute(prop.name, dataExpression(value.value));
+  emission.rapier.add('CoefficientCombineRule');
+  return attribute(prop.name, { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'CoefficientCombineRule' }, property: value.rule });
 }
 
 
@@ -582,26 +461,9 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
   }
 }
 
-/**
- * A node's Godot-only state the Node protocol seeds from its `userData`: groups and `%Name`; a
- * MeshInstance3D's `skeleton` path, which draws nothing on the unskinned meshes a scene carries
- * (`MeshInstance3D::_resolve_skeleton_path`, mesh_instance_3d.cpp:184; skinned surfaces refuse); a
- * GeometryInstance3D's `transparency` and shadow casting setting.
- */
-function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
-  const skeleton = setterValue(node.setters, 'set_skeleton_path');
-  // A GeometryInstance3D's `transparency`, which the web's renderer never draws (`geometry-instance-3d.ts`).
-  const transparency = setterValue(node.setters, 'set_transparency');
-  // Its shadow casting setting, which three's `castShadow` holds only as on or off.
-  const castShadow = setterValue(node.setters, 'set_cast_shadows_setting');
-  return {
-    ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),
-    ...(node.unique === true ? { unique_name_in_owner: true } : {}),
-    ...(skeleton?.kind === 'string' ? { skeleton_path: skeleton.value } : {}),
-    ...(transparency?.kind === 'number' ? { transparency: transparency.value } : {}),
-    ...(node.siblingIndex === undefined ? {} : { index: node.siblingIndex }),
-    ...(castShadow?.kind === 'number' ? { cast_shadow: castShadow.value } : {}),
-  };
+/** A node's Godot-only state, as the plan stamps it (`scene-body-idioms.ts`). */
+function nodeData(node: DirectGodotSceneNodePlan): Readonly<Record<string, unknown>> {
+  return node.data ?? {};
 }
 
 /** `userData` stating a node's Godot-only state, when it has any. */
@@ -643,13 +505,8 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   const rootIdiom = godotSceneRootIdiom(emission.scenes, instanced.sourceResPath);
   const overrides: TargetTsJsxAttribute[] = [];
   // The instance's groups join its scene root's (`SceneState::instantiate`, packed_scene.cpp:511).
-  const rootData = nodeData(instanced.root);
   const ownData = nodeData(node);
-  const data: Record<string, unknown> = {
-    ...rootData,
-    ...ownData,
-    ...(ownData['groups'] === undefined ? {} : { groups: [...new Set([...((rootData['groups'] ?? []) as string[]), ...(ownData['groups'] as string[])])] }),
-  };
+  const data = godotSceneInstanceData(instanced.root, node);
   // `visible` is the root element's three prop; `transparency` its `userData`'s.
   const stated = withoutSpatial(node);
   overrides.push(...visibleProp(node.setters));
@@ -659,28 +516,8 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     overrides.push(...familyProps);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
   } else if (rootBody !== undefined) {
-    // The overridden values merged over the prefab's own: the props that differ from its root's
-    // (a `userData` always whole, since the element's replaces the prefab's).
-    const merged = [...instanced.root.setters.filter((own) => !node.setters.some((entry) => sameSetter(entry, own))), ...node.setters];
-    const resources = new Map([...instanced.resources, ...emission.scene.resources].map((resource) => [resource.key, resource] as const));
-    const shapes = shapeData({ ...emission, resources: new Map(instanced.resources.map((resource) => [resource.key, resource] as const)) }, instanced.root);
-    const own = bodyProps(emission, rootClass, rootBody.sensor, instanced.root.setters, new Map(instanced.resources.map((resource) => [resource.key, resource] as const)), shapes, rootData);
-    const instance = bodyProps(emission, rootClass, rootBody.sensor, merged, resources, shapes, data);
-    for (const [prop, value] of instance) {
-      if (JSON.stringify(own.get(prop)) !== JSON.stringify(value)) overrides.push(attribute(prop, value));
-    }
-    // A prop the prefab states that the instance's values leave out (an override back to Godot's
-    // default) is Rapier's default for it, or the prefab's would stand.
-    // Rapier applies lockRotations after enabledRotations, and clearing it clears every rotation lock.
-    if (own.has('lockRotations') && !instance.has('lockRotations') && instance.has('enabledRotations')) {
-      throw new Error(`${at}: clearing the instanced ${rootClass}'s lock_rotation beside an angular axis lock has no idiomatic form`);
-    }
-    for (const prop of own.keys()) {
-      if (instance.has(prop)) continue;
-      const reset = RAPIER_BODY_DEFAULTS[prop];
-      if (reset === undefined) throw new Error(`${at}: clearing the instanced ${rootClass}'s ${prop} has no idiomatic form`);
-      overrides.push(attribute(prop, reset()));
-    }
+    // The props the plan found the instance's overrides change (`scene-body-idioms.ts`).
+    overrides.push(...(node.bodyOverrides ?? []).map((prop) => bodyProp(emission, prop)));
   } else {
     if (stated.setters.length > 0) throw new Error(`${at}: overrides on an instanced ${rootClass} have no idiomatic form`);
     if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
@@ -850,7 +687,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
   if (form.kind === 'body') {
     const body = form;
     emission.rapier.add('RigidBody');
-    const props = bodyProps(emission, className, body.sensor, node.setters, emission.resources, shapeData(emission, node), nodeData(node));
+    const props = node.body ?? [];
     return element('RigidBody', [
       name,
       ...nodeRef(emission, node, 'RapierRigidBody', 'rapier'),
@@ -859,7 +696,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...(body.sensor ? [flag('sensor'), ...sensorEvents(emission)] : []),
       ...(body.type === 'dynamic' ? contactEvents(emission) : []),
       ...transform,
-      ...[...props].map(([prop, value]) => attribute(prop, value)),
+      ...props.map((prop) => bodyProp(emission, prop)),
     ], sensorChildren(emission, body.sensor, children));
   }
   const visible = visibleProp(node.setters);
