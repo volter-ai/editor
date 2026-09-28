@@ -21,8 +21,10 @@
  *   three material. So an override slot Godot leaves empty reads back filled, and a mesh's own
  *   material is the first read-back node's, where nodes sharing the mesh drew different ones. A
  *   surface with neither reads back a default-grey StandardMaterial3D where Godot's is null; it
- *   draws the same. Telling them apart needs the plan to stamp which slot each surface's material
- *   came from.
+ *   draws the same. What a script sees: `get_surface_override_material` is never null for a
+ *   read-back node, and a material assigned to the scene mesh's `material` does not show, since
+ *   the kept override draws over it. Telling them apart needs the plan to stamp which slot each
+ *   surface's material came from.
  * - Nodes share a read-back resource only where they share a three geometry, and the scene
  *   declares one shared geometry only for a mesh several of its nodes draw; a mesh one node of a
  *   scene draws is that element's own geometry. So two instances of a scene (two `coin.tscn`s)
@@ -192,9 +194,12 @@ export function set_mesh(self: Mesh, mesh: MeshResource | null): void {
   if (state.mesh === mesh && state.unread === undefined) return;
   state.mesh = mesh;
   state.unread = undefined;
-  // `_mesh_changed` (`mesh_instance_3d.cpp:412`): one override per surface of the new mesh.
-  const count = mesh === null ? 0 : (godot_mesh_surfaces(mesh)?.length ?? 1);
-  state.overrides = Array.from({ length: count }, (_, surface) => state.overrides[surface] ?? null);
+  // `_mesh_changed` (`mesh_instance_3d.cpp:412`): one override per surface of the new mesh. A null
+  // mesh never reaches it (`:137-142`), so the overrides stay for the mesh set after it.
+  if (mesh !== null) {
+    const count = godot_mesh_surfaces(mesh)?.length ?? 1;
+    state.overrides = Array.from({ length: count }, (_, surface) => state.overrides[surface] ?? null);
+  }
   draw(self, state);
 }
 
