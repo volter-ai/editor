@@ -62,7 +62,8 @@ export function useGodotRootWindow(): void {
   const scene = useThree((state) => state.scene);
   const gl = useThree((state) => state.gl);
   // The frame's identity is three's own count of the renderer's frames, its delta R3F's. A renderer
-  // that keeps no count (a host's stand-in) gives each frame R3F's elapsed time as its identity.
+  // that keeps no count (a host's stand-in) gives each frame R3F's elapsed time as its identity,
+  // which repeats while its clock is paused (a press then reads as just pressed until it moves).
   useFrame((state, delta) => godot_window_process_events({ id: state.gl.info?.render?.frame ?? state.clock.elapsedTime, delta }), -1);
   useFrame(() => godot_canvas_draw(scene, godot_window_canvas_layer(gl.domElement)));
 }

@@ -713,16 +713,25 @@ let cursorVisible = true;
  * @source platform/web/js/libs/library_godot_display.js:214
  */
 export function godot_input_attach_canvas(canvas: HTMLCanvasElement | null): void {
+  const previous = lastCanvas;
   displayCanvas = canvas;
   cursorVisible = true;
+  if (canvas === null || canvas === previous) return;
+  lastCanvas = canvas;
   // A new page's input starts clear: the frame identities are its renderer's own count, which a
-  // new renderer starts again, so nothing stamped by an earlier one may meet them.
+  // new renderer starts again, so nothing stamped by an earlier one may meet them. The same canvas
+  // attached again (the world hidden and shown by a Suspense boundary) keeps what is held.
   actionStates.clear();
   debugTaps.clear();
+  debugHeld.clear();
   buffered.length = 0;
   frame.id = 0;
   frame.open = false;
+  godot_tree_open_frame({ id: 0, delta: 0 });
 }
+
+/** The canvas the page's input was last attached from. */
+let lastCanvas: HTMLCanvasElement | null = null;
 
 /** `MouseMode` (`display_server_enums.h`): visible, hidden, captured, confined, confined hidden. */
 const MOUSE_MODE_VISIBLE = 0;

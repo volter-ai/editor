@@ -239,6 +239,7 @@ const web = {
   keys: [] as InputEventRecord[],
   mask: 0,
   insideCanvas: false,
+  canvas: null as HTMLCanvasElement | null,
 };
 
 /**
@@ -268,6 +269,12 @@ function canvasPoint(canvas: HTMLCanvasElement, event: { readonly clientX: numbe
  * @source platform/web/display_server_web.cpp:187
  */
 export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void {
+  // A new canvas hears no key or button the page before it queued or held.
+  if (canvas !== web.canvas) {
+    web.keys = [];
+    web.mask = 0;
+    web.canvas = canvas;
+  }
   godot_input_attach_canvas(canvas);
   const page = canvas.ownerDocument.defaultView as Window;
   const listeners: (readonly [EventTarget, string, EventListener])[] = [];
