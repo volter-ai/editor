@@ -324,6 +324,13 @@ export async function startWaliBlenderEngine(
       VOLTER_SESSION_ROOT: SESSION_ROOT,
       // THE ARENA'S DOOR ON THIS SKEW. See `readArena`.
       VOLTER_EXPORT_BUFFER_PATH: ARENA_PATH,
+      // OPENIMAGEIO'S POOL AT ONE THREAD, as Blender's own are (`-t 1`,
+      // BLENDER_WALI_WORKERS). Its default pool is built at the CPU count
+      // before `-t` reaches it: measured 2026-09-28, nine of the ten threads
+      // this Blender started were OpenImageIO's, idle for the session, each
+      // holding a pool worker (browser-substrate `programs/blender/5.2.0`
+      // README §(f)).
+      OPENIMAGEIO_THREADS: '1',
     },
     ...(runtimeLayer ? { layers: [runtimeLayer] } : {}),
     // BLENDER'S /tmp IS ITS OWN, as it is in the standalone skew's WasmFS:
