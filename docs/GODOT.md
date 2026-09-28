@@ -195,17 +195,24 @@ skips the frame or unmounts the game.
    stored at `/Volumes/GodotWork/tools/godot-4.7-bound-exporter-volter/` (the old `c8034e90…`
    binary no longer matches). The 4.6 row was already stale, and its binary still speaks the
    retired `vgai.*` protocol, so its re-pin is open. `main` publishes every push (`38bfb751`), so
-   landing `godot` on `main` publishes the editor packages it changes (`editor-game`,
-   `editor-threejs`, `game-editor`, `threejs-runtime`).
-   Merged with `main` again (0.5.76): the import plan asks for the repository's own `@volter/*`
-   versions, so after each merge the frozen import lock (`toolchain/package-lock.json`) is
-   re-resolved, now at `^0.5.76`. The recipe:
-   - rebuild `package.json` from the lock's own root entry, with every `@volter/*` range moved
-     to the new version;
+   landing `godot` on `main` publishes the editor packages whose files differ from `main`'s
+   (`git diff --stat origin/main godot -- packages/<name>`; after the 0.5.76 merge those are
+   `game-editor` and `threejs-runtime`, since main already carries the studio-light change).
+   Merged with `main` again (0.5.76): the import plan asks for `^` plus each workspace package's
+   own version (`direct-project-data-plan.ts`, read from the repository's `package.json`s, never
+   the newest on npm), so after a merge that moves those versions the import refuses with "frozen
+   package-lock.json … ranges differ from the planned merge", and the frozen import lock
+   (`toolchain/package-lock.json`) is re-resolved, now at `^0.5.76`. The recipe:
+   - rebuild `package.json` from the lock's own root entry, with each `@volter/*` range moved to
+     that package's workspace version (the root lists only the 0.5.x lockstep packages;
+     `blender-engine` and `editor-blender` come in transitively at their own 0.1.x versions);
    - add the template's `overrides` (`packages/game-editor/template/package.json`, which pins
      drei's `stats-gl`), since a lock's root entry does not record them;
    - run `npm@11 install --package-lock-only` over the previous lock, which keeps npm's libc
-     filters and the `lock-template` name.
+     filters and the `lock-template` name;
+   - check it: one lockstep `@volter` set, no nested runtime copies, `stats-gl` unchanged, the
+     libc filters kept; then both typechecks (gd-analyze and its project source), the platformer
+     import and its probe.
    Only a version whose whole lockstep set is published resolves: the `@volter` packages pin each
    other exactly, and `game-editor` 0.5.76 sat staged on npm for a while after its release run
    reported success.
