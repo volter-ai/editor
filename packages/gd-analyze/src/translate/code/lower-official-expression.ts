@@ -862,8 +862,12 @@ interface AssignablePlace {
 /**
  * Whether a base is a slot Godot stores into directly: a local, a parameter, or a script member
  * (lowering refuses a member with accessors). Godot takes such a base's address, not a copy
- * (`_parse_assignment`; only a member with a setter is copied to a temporary), so the store reads
- * it after the value and sees a value that reassigned it. Any other base is copied before the value.
+ * (`_parse_assignment`; only a member with a setter, or a static variable, is copied to a
+ * temporary), so the store reads it after the value and sees a value that reassigned it. A script
+ * parent's member is a `MEMBER_VARIABLE` too (the analyzer's `reduce_identifier_from_base` walks
+ * the script's base classes), stored through its `member_indices` address as the script's own;
+ * `INHERITED_VARIABLE` is only the native base's property, method or signal, whose property
+ * is written through its setter (`inheritedNativePlace`). Any other base is copied before the value.
  */
 function slotBase(node: GodotBoundNode): boolean {
   return (
