@@ -232,6 +232,110 @@ async function sharedRuntime(
   return layer;
 }
 
+type StoreLayerFromIndex = (
+  root: string,
+  files: RuntimeIndex['files'],
+  store: string,
+  options: { mtimeMs: number; include?: (path: string) => boolean },
+) => unknown;
+
+/**
+ * Blender's runtime tree as a STORE ON THE ORIGIN'S DISK the program reads
+ * (browser-substrate ADR-0048): installed once per version by the
+ * substrate's installer worker, and read file by file as Blender opens them,
+ * a large file by the ranges it reads. The shared layer before it copied all
+ * 96 MB into memory before Blender started (0.9 s of each boot) and held it
+ * for the run; a boot reads 268 of the 2,082 files (measured 2026-09-28).
+ * Undefined, and said, where it cannot be installed: the shared layer then
+ * carries the tree as before.
+ */
+async function installedRuntime(
+  fromIndex: StoreLayerFromIndex,
+  hold: ((projectId: string) => Promise<void>) | undefined,
+  log: BlenderEngineOptions['log'],
+): Promise<unknown> {
+  const began = performance.now();
+  const indexAnswer = await fetch(artifactUrl('runtime.idx'));
+  if (!indexAnswer.ok)
+    throw new Error(`${ARTIFACT_BASE}/runtime.idx answered ${indexAnswer.status}`);
+  const text = await indexAnswer.text();
+  const index = JSON.parse(text) as RuntimeIndex;
+  // The tree's version is its index: the same files at the same sizes and modes, in the same order,
+  // and its newest file's time (`runtimeTag`'s validator), so a file rebuilt at the same size is a new version.
+  const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', new TextEncoder().encode(text)));
+  const tag = [...digest.slice(0, 12)].map((byte) => byte.toString(16).padStart(2, '0')).join('');
+  const projectId = `${RUNTIME_STORE_FAMILY}${tag}`;
+  // THIS PAGE HOLDS ITS TREE IN USE from before it is installed to the end of the session, so
+  // another tab installing another version never removes it under this one's runs (ADR-0048).
+  if (hold) {
+    try {
+      await hold(projectId);
+    } catch (error) {
+      log('log', `blender: the runtime tree stays in memory: it cannot be held in use (${error instanceof Error ? error.message : String(error)})`);
+      return undefined;
+    }
+  }
+  let worker: Worker;
+  try {
+    worker = new Worker(artifactUrl('wali/browser-wali/tree-store-worker.js'), { type: 'module' });
+  } catch (error) {
+    log('log', `blender: the runtime tree stays in memory: no installer worker (${error instanceof Error ? error.message : String(error)})`);
+    return undefined;
+  }
+  // A BOUNDED STALL, NOT A BOUNDED INSTALL: an install stalled in another tab (a throttled background
+  // tab) holds this tree's installer lock, or the network stops. Each batch written restarts the wait,
+  // so a slow link still installs. On a stall this boot carries the tree in memory, and the installer
+  // is left to finish for the next boot rather than stopped halfway.
+  const answer = await new Promise<{ ok: boolean; installed?: boolean; bytes?: number; error?: string }>((resolve) => {
+    let settled = false;
+    const settle = (value: { ok: boolean; installed?: boolean; bytes?: number; error?: string }): void => {
+      if (!settled) { settled = true; resolve(value); }
+    };
+    let timer = setTimeout(() => settle({ ok: false, error: `no progress in ${INSTALL_STALL_MS / 1000} s` }), INSTALL_STALL_MS);
+    worker.onmessage = (event) => {
+      clearTimeout(timer);
+      if (typeof event.data?.progress === 'number') {
+        if (!settled) timer = setTimeout(() => settle({ ok: false, error: `no progress in ${INSTALL_STALL_MS / 1000} s` }), INSTALL_STALL_MS);
+        return;
+      }
+      worker.terminate();
+      settle(event.data);
+    };
+    worker.onerror = (event) => {
+      clearTimeout(timer);
+      worker.terminate();
+      settle({ ok: false, error: event.message || 'the installer worker failed to start' });
+    };
+    worker.postMessage({
+      projectId,
+      family: RUNTIME_STORE_FAMILY,
+      root: RESOURCES,
+      files: index.files,
+      blobUrl: new URL(artifactUrl('runtime.bin'), location.href).href,
+      mtimeMs: Date.now(),
+    });
+  });
+  if (!answer.ok) {
+    log('log', `blender: the runtime tree stays in memory: it could not be installed (${answer.error})`);
+    return undefined;
+  }
+  const layer = fromIndex(RESOURCES, index.files, projectId, {
+    mtimeMs: Date.now(),
+    include: (path) => !PACK_RENDER_OVERRIDES.has(path),
+  });
+  log('log', `blender: Blender's ${index.files.length}-file runtime tree is on disk (${answer.installed ? `installed, ${Math.round((answer.bytes ?? 0) / 1e6)} MB` : 'installed before'}) in ${Math.round(performance.now() - began)} ms`);
+  return layer;
+}
+
+/**
+ * Installed runtime trees' store names begin so; installing one removes the others that no tab
+ * reads. `host-tree.` is the substrate's mark of an installed tree (`TREE_STORE_PREFIX`), which no
+ * project may take.
+ */
+const RUNTIME_STORE_FAMILY = 'host-tree.blender-runtime-';
+/** How long a boot waits on an installer that writes nothing before it carries the tree in memory. */
+const INSTALL_STALL_MS = 20_000;
+
 /** The program's filesystem, as {@link BlenderFiles}. */
 function programFiles(filesystem: BrowserFileSystemLike): BlenderFiles {
   // One listener for the engine's life, and one waiter per wait: a change ends
@@ -317,7 +421,10 @@ export async function startWaliBlenderEngine(
   ])
     filesystem.mkdirSync(directory, { recursive: true });
   const fromIndex = layers['sharedFileLayerFromIndex'] as LayerFromIndex | undefined;
-  const runtimeLayer = fromIndex ? await sharedRuntime(fromIndex, options.log) : undefined;
+  const fromStore = layers['storeFileLayerFromIndex'] as StoreLayerFromIndex | undefined;
+  const holdTree = layers['holdTreeStore'] as ((projectId: string) => Promise<void>) | undefined;
+  const runtimeLayer = (fromStore ? await installedRuntime(fromStore, holdTree, options.log) : undefined)
+    ?? (fromIndex ? await sharedRuntime(fromIndex, options.log) : undefined);
   if (!runtimeLayer) await stageRuntime(filesystem, options.log);
   filesystem.writeFileSync(SESSION_SCRIPT, sessionPython);
 
