@@ -69,8 +69,13 @@ export function useGodotWorld(): void {
     // every other pair a filtered collider meets answers `COMPUTE_IMPULSE`.
     const exceptions = {
       current: (collider1: number, collider2: number) => {
-        const a = godot_collision_object_of_collider(rapier.world.getCollider(collider1));
-        const b = godot_collision_object_of_collider(rapier.world.getCollider(collider2));
+        // A collider the JS side has already removed while Rapier still lists the pair solves as any
+        // other: nothing here may throw inside Rapier's step.
+        const one = rapier.world.getCollider(collider1);
+        const two = rapier.world.getCollider(collider2);
+        if (one === undefined || two === undefined) return SolverFlags.COMPUTE_IMPULSE;
+        const a = godot_collision_object_of_collider(one);
+        const b = godot_collision_object_of_collider(two);
         return a !== undefined && b !== undefined && !godot_physics_body_3d_collides(a, b) ? null : SolverFlags.COMPUTE_IMPULSE;
       },
     };

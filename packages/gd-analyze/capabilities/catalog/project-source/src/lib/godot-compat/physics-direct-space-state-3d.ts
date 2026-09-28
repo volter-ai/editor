@@ -8,7 +8,7 @@
  * takes by each node's layer, bodies or areas as it asks, and nothing it excludes.
  */
 
-import { type Collider, Ray, ShapeType } from '@dimforge/rapier3d-compat';
+import { type Collider, QueryFilterFlags, Ray, ShapeType } from '@dimforge/rapier3d-compat';
 import { godot_collision_object_layers, godot_collision_object_of_collider } from './collision-object-3d';
 import { godot_node_object } from './node';
 import type { PhysicsRayQueryParameters3D } from './physics-ray-query-parameters-3d';
@@ -62,20 +62,21 @@ export function intersect_ray(self: PhysicsDirectSpaceState3D, parameters: Physi
   const admits = (collider: Collider): boolean => {
     const node = godot_collision_object_of_collider(collider);
     if (node === undefined || parameters.exclude.includes(node)) return false;
-    if ((godot_collision_object_layers(node).layer & parameters.collision_mask) === 0) return false;
-    // An area's shapes are Rapier sensors and a body's are not: the collider in hand says which,
-    // without walking the node's body for its kind on every candidate the cast tests.
-    return collider.isSensor() ? parameters.collide_with_areas : parameters.collide_with_bodies;
+    return (godot_collision_object_layers(node).layer & parameters.collision_mask) !== 0;
   };
+  // An area's shapes are Rapier sensors and a body's are not: Rapier's own filter flags leave out
+  // the kind the query does not collide with.
+  const flags =
+    (parameters.collide_with_areas ? 0 : QueryFilterFlags.EXCLUDE_SENSORS) | (parameters.collide_with_bodies ? 0 : QueryFilterFlags.EXCLUDE_SOLIDS);
   if (parameters.hit_from_inside) {
     let inside: Collider | undefined;
     world.intersectionsWithPoint(origin, (collider) => {
       inside = collider;
       return false;
-    }, undefined, undefined, undefined, undefined, (collider) => admits(collider) && startsInside(collider, origin));
+    }, flags, undefined, undefined, undefined, (collider) => admits(collider) && startsInside(collider, origin));
     if (inside !== undefined) return describe(result, inside, vector3(from.x, from.y, from.z), vector3());
   }
-  const hit = world.castRayAndGetNormal(ray, 1, false, undefined, undefined, undefined, undefined, (collider) => admits(collider) && !startsInside(collider, origin));
+  const hit = world.castRayAndGetNormal(ray, 1, false, flags, undefined, undefined, undefined, (collider) => admits(collider) && !startsInside(collider, origin));
   if (hit === null) return result;
   const point = ray.pointAt(hit.timeOfImpact);
   return describe(result, hit.collider, vector3(point.x, point.y, point.z), vector3(hit.normal.x, hit.normal.y, hit.normal.z));

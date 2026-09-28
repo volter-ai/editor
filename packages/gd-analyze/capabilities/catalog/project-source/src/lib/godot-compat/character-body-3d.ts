@@ -17,6 +17,7 @@ import { type Collider, type KinematicCharacterController, QueryFilterFlags } fr
 import type { Object3D } from 'three';
 import { godot_collision_object_body, godot_collision_object_layers, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
 import { godot_node_entity } from './node';
+import { godot_physics_body_3d_collides } from './physics-body-3d';
 import { get_global_transform, set_global_position } from './node-3d';
 import { construct as vector3, dot, length, normalized, op_add, op_divide, op_equal, op_multiply, op_subtract, type Vector3 } from './vector3';
 
@@ -140,16 +141,17 @@ export function move_and_slide(owner: object): boolean {
   controller.computeColliderMovement(
     collider,
     op_multiply(state.velocity, delta),
-    // Never a sensor. Rapier holds the collider set while it asks the predicate, so the predicate
-    // reads only what JS holds: a collider's `isSensor()` there throws inside Rapier's call on
-    // every step, and the world later fails to free.
+    // Never a sensor (an area), left out by Rapier's own filter flag. With this change the editor's
+    // Rapier teardown errors stopped (`7bb6b0c6`); a standalone test of rapier3d-compat 0.19.2 does
+    // not reproduce `isSensor()` throwing inside this predicate, so their cause is not pinned down.
     QueryFilterFlags.EXCLUDE_SENSORS,
     undefined,
-    // What the character's mask takes; never its own colliders.
+    // What the character's mask takes, never its own colliders, and never a body either of them
+    // excepts (`add_collision_exception_with`), as Godot's motion test skips it.
     (other: Collider) => {
       if (other.parent()?.handle === body.handle) return false;
       const node = godot_collision_object_of_collider(other);
-      return node === undefined || (own.mask & godot_collision_object_layers(node).layer) !== 0;
+      return node === undefined || ((own.mask & godot_collision_object_layers(node).layer) !== 0 && godot_physics_body_3d_collides(self, node));
     },
   );
   const moved = controller.computedMovement();
