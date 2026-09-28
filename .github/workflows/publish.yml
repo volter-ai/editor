@@ -39,7 +39,19 @@ jobs:
         run: npm run build:game
       - if: steps.check.outputs.new
         run: npm run check:release:game && npm run check:packed-imports:game
+      # A large package stays "staged" for minutes after its publish, and `npm view`
+      # does not see it yet, so a push inside that window lists it as new again. npm
+      # then answers E409 "previously staged/published": that version IS released.
       - if: steps.check.outputs.new
-        run: for dir in ${{ steps.check.outputs.new }}; do (cd "$dir" && npm publish --access public --provenance --ignore-scripts); done
+        run: |
+          for dir in ${{ steps.check.outputs.new }}; do
+            if ! out="$(cd "$dir" && npm publish --access public --provenance --ignore-scripts 2>&1)"; then
+              echo "$out"
+              echo "$out" | grep -q "Cannot publish over previously" || exit 1
+              echo "$dir: this version is already published or staged"
+            else
+              echo "$out"
+            fi
+          done
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
