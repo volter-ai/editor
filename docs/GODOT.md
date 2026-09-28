@@ -405,6 +405,10 @@ emitter prints:
    `animationBindings` dispatch table goes.
 6. **The world is a scene.** Settings and the input map are plain data. Input is the page's DOM
    events. The world is `<Physics>` holding the main scene, with no hooks of compat's in it.
+   Landed for drawing: each canvas item or layer draws itself onto the root Window's canvas layer
+   from its own component (`useGodotCanvasItem`), placed in its nearest canvas item's element in
+   tree order; compat keeps no list or mirror of them. A canvas item a script makes with
+   `Class.new()` has no component and does not draw.
    Timers and tweens are owned by what creates them (the owner, 2026-09-28, superseding the
    ruling that they stay with the world's component): the owner is the script whose code makes
    one, `create_timer`, `get_tree().create_tween()` and `node.create_tween()` alike; the last is
