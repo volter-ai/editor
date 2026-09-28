@@ -189,6 +189,8 @@ export type NativeMethodLookup = (className: string, method: string) => NativePr
 
 /** A native class's integer constant or enum value, up the ancestry, or undefined. */
 export type NativeConstantLookup = (className: string, name: string) => number | undefined;
+/** A global enum's constant by the enum's name (`MouseButton`, `MOUSE_BUTTON_LEFT`). */
+export type GlobalEnumConstantLookup = (enumName: string, name: string) => number | undefined;
 
 /** A datatype rule's target naming "the class generated for this script datatype". */
 export const SCRIPT_CLASS_TYPE = '$ScriptClass';
@@ -205,6 +207,8 @@ export class LoweringContext {
   nullableDeclarations: ReadonlySet<number> = new Set();
   /** The shape of each call to a Variant utility whose result depends on the function (`VariantUtilityShape`). */
   utilityShapes: ReadonlyMap<number, VariantUtilityShape> = new Map();
+  /** A global enum's constant, from the API dump's `global_enums`. */
+  globalEnumConstant: GlobalEnumConstantLookup = () => undefined;
   #temporaryIndex = 0;
   #instanceAutoloadAccess = 0;
   readonly #reservedTargetNames: Set<string>;

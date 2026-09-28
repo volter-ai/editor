@@ -32,6 +32,7 @@ import {
   type OfficialBoundAutoloadReference,
   type OfficialBoundLoweringDiagnostic,
   type ImplicitReadyChain,
+  type GlobalEnumConstantLookup,
   type NativeConstantLookup,
   type NativeMethodLookup,
   type NativePropertyAccessor,
@@ -567,6 +568,7 @@ function lowerScript(
   nativeMethods: NativeMethodLookup | undefined,
   nativeType: ((className: string) => readonly GodotNativeTypePart[]) | undefined,
   nativeSignalOwner?: (className: string, signal: string) => string | undefined,
+  globalEnumConstant?: GlobalEnumConstantLookup,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -640,6 +642,7 @@ function lowerScript(
   context.resourceLoads = resourceLoadTargets(project, source);
   context.nullableReads = new Set((source.nullableVariables ?? []).flatMap((entry) => entry.reads));
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
+  if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;
   context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
   if (root.abstract) {
     context.recover(undefined, () =>
@@ -823,19 +826,18 @@ export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLooku
 /** ClassDB integer constants and enum values (the dump folds enum values into constants). */
 export function nativeConstantLookup(apiDump: GodotApiDump): NativeConstantLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
-  const globalEnumConstant = globalEnumConstantLookup(apiDump);
   return (className, name) => {
     for (let current = classes.get(className); current !== undefined; ) {
       const value = current.constants[name];
       if (value !== undefined) return value;
       current = current.base_class === '' ? undefined : classes.get(current.base_class);
     }
-    return globalEnumConstant(className, name);
+    return undefined;
   };
 }
 
 /** A global enum's constant (`MouseButton`'s `MOUSE_BUTTON_LEFT`), by the enum's name: no class chain holds it. */
-function globalEnumConstantLookup(apiDump: GodotApiDump): (enumName: string, name: string) => number | undefined {
+function globalEnumConstantLookup(apiDump: GodotApiDump): GlobalEnumConstantLookup {
   const enums = new Map(apiDump.globalEnums.map((entry) => [entry.name, entry.values] as const));
   return (enumName, name) => enums.get(enumName)?.[name];
 }
@@ -854,6 +856,7 @@ export function lowerOfficialBoundProgram(
   const resolved = new GodotCodeTranslationAuthorityResolver(authority);
   const nativeProperties = apiDump === undefined ? undefined : nativePropertyLookup(apiDump);
   const nativeConstants = apiDump === undefined ? undefined : nativeConstantLookup(apiDump);
+  const globalEnumConstant = apiDump === undefined ? undefined : globalEnumConstantLookup(apiDump);
   const nativeMethods = apiDump === undefined ? undefined : nativeMethodLookup(apiDump);
   const nativeType = apiDump === undefined ? undefined : (className: string) => godotNativeTypeParts(apiDump, className);
   const nativeSignalOwner = apiDump === undefined ? undefined : nativeSignalLookup(apiDump);
@@ -877,6 +880,7 @@ export function lowerOfficialBoundProgram(
         nativeMethods,
         nativeType,
         nativeSignalOwner,
+        globalEnumConstant,
       );
       sourceFiles.push(sourceFile);
       scriptModules.push(module);

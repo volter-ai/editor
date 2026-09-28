@@ -2144,7 +2144,7 @@ export function lowerOfficialExpression(
         if (node.source === 'UNDEFINED_SOURCE' && node.datatype.kind === 'ENUM' && !node.datatype.metaType) {
           // A global enum's constant (`MOUSE_BUTTON_LEFT`, of @GlobalScope's `MouseButton`) is its
           // value, as a ClassDB constant is.
-          const value = context.nativeConstant(node.datatype.enumType, node.name);
+          const value = context.globalEnumConstant(node.datatype.enumType, node.name);
           if (value !== undefined) {
             const rule = context.structural(node, 'literal', [], 'literal:native-constant');
             return expression({ kind: 'literal-expression', value, span: span(context.script, node) }, rule);
