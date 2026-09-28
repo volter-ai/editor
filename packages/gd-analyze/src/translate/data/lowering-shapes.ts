@@ -16,11 +16,20 @@ export type GodotCallShape =
    * `has_method(name)`: compat answers from the script chain, so the name must be a literal that no
    * engine class declares (object.cpp:1601).
    */
-  | 'script-chain-method';
+  | 'script-chain-method'
+  /**
+   * A tween or timer made by a script (`create_tween`, `get_tree().create_timer`): owned by the
+   * script that makes it, whose component steps it, so the call hands its creator (`this`) to the
+   * binding right after the receiver (docs/GODOT.md §The emitted game's shape, step 6).
+   */
+  | 'creator-owned';
 
 const CALL_SHAPES: Readonly<Record<string, GodotCallShape>> = {
   'Tween.tween_property': 'tweened-property',
   'Object.has_method': 'script-chain-method',
+  'Node.create_tween': 'creator-owned',
+  'SceneTree.create_tween': 'creator-owned',
+  'SceneTree.create_timer': 'creator-owned',
 };
 
 /** The call shape of the Godot method `owner.member`, if it has one. */

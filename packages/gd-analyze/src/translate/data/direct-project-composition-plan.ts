@@ -48,6 +48,8 @@ export interface DirectGodotScriptInstancePlan {
   readonly generatedClass: DirectGodotGeneratedClass;
   readonly fields: readonly ScriptFieldValuePlan[];
   readonly lifecycle: readonly BoundGodotLifecycleEntry[];
+  /** Whether the script makes timers or tweens, which its component steps. */
+  readonly ownsTimed: boolean;
   readonly autoloadReferences: readonly DirectGodotAutoloadReferencePlan[];
 }
 
@@ -57,6 +59,8 @@ export interface DirectGodotScriptAutoloadPlan {
   readonly scriptResPath: string;
   readonly generatedClass: DirectGodotGeneratedClass;
   readonly lifecycle: readonly BoundGodotLifecycleEntry[];
+  /** Whether the script makes timers or tweens, which its component steps. */
+  readonly ownsTimed: boolean;
   readonly autoloadReferences: readonly DirectGodotAutoloadReferencePlan[];
 }
 
@@ -280,6 +284,7 @@ function scriptInstance(
     generatedClass: targetClass,
     fields: fields.get(key)?.fields ?? [],
     lifecycle: module.lifecycle,
+    ownsTimed: module.ownsTimed,
     autoloadReferences,
   };
 }
@@ -515,6 +520,7 @@ function scriptAutoloads(
       scriptResPath: autoload.resPath,
       generatedClass: targetClass,
       lifecycle: module.lifecycle,
+      ownsTimed: module.ownsTimed,
       autoloadReferences: autoloadReferenceClosure(project, module, modules, diagnostics),
     });
   }

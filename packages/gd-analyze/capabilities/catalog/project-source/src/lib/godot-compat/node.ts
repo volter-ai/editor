@@ -1128,14 +1128,15 @@ export function get_tree(self: object): SceneTree | null {
 }
 
 /**
- * A tween from the tree (the node's, or the one tree when the node is outside it), bound to the
- * node: it runs while the node is inside the tree and can process, and dies when the node is freed.
+ * A tween bound to the node: it runs while the node is inside the tree and can process, and dies
+ * when the node is freed. It is owned by the script that makes it (`creator`), whose component
+ * steps it (`scene-tree.ts`, `godot_owned_step`).
  *
  * @godot Node.create_tween
  * @source scene/main/node.cpp:2619
  */
-export function create_tween(self: object): Tween {
-  return bind_node(treeCreateTween(godot_tree()), native(self, 'create_tween'));
+export function create_tween(self: object, creator: object): Tween {
+  return bind_node(treeCreateTween(godot_tree(), creator), native(self, 'create_tween'));
 }
 
 /**

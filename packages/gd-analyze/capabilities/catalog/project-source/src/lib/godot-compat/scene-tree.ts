@@ -8,7 +8,14 @@
  * process frame (`useGodotTree`, `advance.tsx`); scripts' own `_process` and `_physics_process`
  * run in between, from their components' hooks. What the tree does around them is what
  * `SceneTree::physics_process` and `SceneTree::process` do: count the frame, emit
- * `physics_frame`/`process_frame`, then run timers, tweens and the deletion queue.
+ * `physics_frame`/`process_frame`, then run the deletion queue.
+ *
+ * Timers and tweens are not the tree's: each belongs to the script that made it
+ * (`create_timer`, `create_tween`, which take their creator), and that script's component steps
+ * them from its own frame and physics step (`godot_owned_step`), as a three.js component steps a
+ * tween library (docs/GODOT.md §The emitted game's shape, step 6). Where Godot keeps a tree-made
+ * timer or tween running after the node that made it is freed, here it stops with its creator's
+ * component; and a script's own are stepped after its `_process`, not after every node's.
  *
  * The tree is a record holding its `process_frame` and `physics_frame` signals; its root is the
  * three scene the main scene mounts into, named `root` as Godot's root Window is. Pause is not
@@ -41,9 +48,41 @@ const clock = {
   reloadPending: false,
   reload: undefined as (() => void) | undefined,
 };
-let timers: SceneTreeTimer[] = [];
-let tweens: Tween[] = [];
 const deleteQueue: object[] = [];
+
+/** What one creator owns: the timers and tweens its script made. */
+interface Owned {
+  timers: SceneTreeTimer[];
+  tweens: Tween[];
+}
+const OWNED = new WeakMap<object, Owned>();
+/** The script instances a component holds (`useGodotScript`): the only creators that can own. */
+const HOLDERS = new WeakSet<object>();
+
+/**
+ * A component holds `creator` (a script instance) and will step what it makes: from its mount
+ * until its release (`godot_owned_release`).
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:1768
+ */
+export function godot_owned_hold(creator: object): void {
+  HOLDERS.add(creator);
+}
+
+function ownedBy(creator: object): Owned {
+  if (!HOLDERS.has(creator)) {
+    throw new Error(
+      'godot-compat: a timer or tween made where no component holds the script (a static function, a RefCounted or Resource script, a node made by Class.new()) is not transcribed.',
+    );
+  }
+  let owned = OWNED.get(creator);
+  if (owned === undefined) {
+    owned = { timers: [], tweens: [] };
+    OWNED.set(creator, owned);
+  }
+  return owned;
+}
 
 /**
  * The tree record `Node.get_tree()` returns.
@@ -108,14 +147,14 @@ export function godot_tree_frames(): { readonly physics: number; readonly proces
   return { physics: clock.physicsFrames, process: clock.processFrames, inPhysics: clock.inPhysics };
 }
 
-/** `SceneTree::process_timers` (`scene/main/scene_tree.cpp:793`); timers added during the pass wait. */
-function processTimers(delta: number, physics: boolean): void {
-  const pass = [...timers];
+/** `SceneTree::process_timers` (`scene/main/scene_tree.cpp:793`) over one creator's timers; timers added during the pass wait. */
+function processTimers(owned: Owned, delta: number, physics: boolean): void {
+  const pass = [...owned.timers];
   const done = new Set<SceneTreeTimer>();
   for (const timer of pass) {
     if (godot_timer_advance(timer, delta, physics) === 'done') done.add(timer);
   }
-  timers = timers.filter((timer) => !done.has(timer));
+  if (done.size > 0) owned.timers = owned.timers.filter((timer) => !done.has(timer));
 }
 
 /**
@@ -123,8 +162,8 @@ function processTimers(delta: number, physics: boolean): void {
  * pass began, in creation order, each of this pass's kind and able to process stepped by the
  * frame's delta; one whose step reports it is done is cleared and dropped. The tree never pauses.
  */
-function processTweens(delta: number, physics: boolean): void {
-  const pass = [...tweens];
+function processTweens(owned: Owned, delta: number, physics: boolean): void {
+  const pass = [...owned.tweens];
   const done = new Set<Tween>();
   for (const tween of pass) {
     if (!godot_tween_can_process(tween, false) || physics !== godot_tween_in_physics(tween)) continue;
@@ -133,7 +172,23 @@ function processTweens(delta: number, physics: boolean): void {
       done.add(tween);
     }
   }
-  if (done.size > 0) tweens = tweens.filter((tween) => !done.has(tween));
+  if (done.size > 0) owned.tweens = owned.tweens.filter((tween) => !done.has(tween));
+}
+
+/**
+ * Steps the timers and tweens one creator owns by its frame's delta (or its physics step's):
+ * called from the creator's component, after its own `_process` or `_physics_process`, as
+ * `SceneTree::process` runs them after the nodes (`scene/main/scene_tree.cpp:725`).
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:725
+ */
+export function godot_owned_step(creator: object | null, delta: number, physics: boolean): void {
+  if (creator === null) return;
+  const owned = OWNED.get(creator);
+  if (owned === undefined) return;
+  processTimers(owned, delta, physics);
+  processTweens(owned, delta, physics);
 }
 
 /** `SceneTree::_flush_delete_queue` (`scene/main/scene_tree.cpp:1626`). */
@@ -142,6 +197,28 @@ function flushDeleteQueue(): void {
     const entity = deleteQueue.shift() as object;
     if (!godot_node_is_freed(entity)) godot_node_free(entity);
   }
+}
+
+/**
+ * A creator's component unmounts: the timers and tweens it owns stop with it. Godot keeps a
+ * tree-made timer running after the node that made it is freed; a timer still pending with
+ * anything connected to its `timeout` (a callable or an `await`) is reported, so that difference
+ * is never silent (docs/GODOT.md §The emitted game's shape, step 6).
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:793
+ */
+export function godot_owned_release(creator: object): void {
+  HOLDERS.delete(creator);
+  const owned = OWNED.get(creator);
+  if (owned === undefined) return;
+  OWNED.delete(creator);
+  for (const timer of owned.timers) {
+    if (timer.timeout.hasConnections()) {
+      console.error('godot-compat: a timer still pending when the script that made it left the tree does not fire; in Godot it would.');
+    }
+  }
+  for (const tween of owned.tweens) godot_tween_clear(tween);
 }
 
 /**
@@ -169,8 +246,6 @@ export function godot_tree_physics_begin(delta: number): void {
  * @source scene/main/scene_tree.cpp:660
  */
 export function godot_tree_physics_end(): void {
-  processTimers(clock.physicsTime, true);
-  processTweens(clock.physicsTime, true);
   flushDeleteQueue();
   clock.inPhysics = false;
   godot_input_frame(clock.physicsFrames, clock.processFrames, false);
@@ -202,8 +277,6 @@ export function godot_tree_process_end(): void {
     clock.reloadPending = false;
     clock.reload?.();
   }
-  processTimers(clock.processTime, false);
-  processTweens(clock.processTime, false);
   flushDeleteQueue();
   clock.processFrames += 1;
   godot_input_frame(clock.physicsFrames, clock.processFrames, false);
@@ -220,7 +293,8 @@ export function get_root(self: SceneTree = TREE): object {
 }
 
 /**
- * A timer counted down by process frames (or physics steps), emitting `timeout` once. The Variant
+ * A timer counted down by process frames (or physics steps), emitting `timeout` once, owned by the
+ * script that makes it (`creator`), whose component steps it (`godot_owned_step`). The Variant
  * defaults are `process_always = true`, `process_in_physics = false`, `ignore_time_scale = false`.
  *
  * @godot SceneTree.create_timer
@@ -228,6 +302,7 @@ export function get_root(self: SceneTree = TREE): object {
  */
 export function create_timer(
   self: SceneTree,
+  creator: object,
   time_sec: number,
   process_always = true,
   process_in_physics = false,
@@ -235,21 +310,22 @@ export function create_timer(
 ): SceneTreeTimer {
   void self;
   const timer = godot_timer_create(time_sec, process_always, process_in_physics, ignore_time_scale);
-  timers.push(timer);
+  ownedBy(creator).timers.push(timer);
   return timer;
 }
 
 /**
- * A tween the tree holds and steps in every process pass (or physics pass, by its process mode)
- * that begins after it was made, in creation order, until it finishes or is killed.
+ * A tween owned by the script that makes it (`creator`), whose component steps it in every process
+ * pass (or physics pass, by its process mode) after it was made, in creation order, until it
+ * finishes or is killed.
  *
  * @godot SceneTree.create_tween
  * @source scene/main/scene_tree.cpp:1780
  */
-export function create_tween(self: SceneTree): Tween {
+export function create_tween(self: SceneTree, creator: object): Tween {
   void self;
   const tween = godot_tween_create();
-  tweens.push(tween);
+  ownedBy(creator).tweens.push(tween);
   return tween;
 }
 

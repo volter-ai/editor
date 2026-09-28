@@ -311,7 +311,7 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
               ]),
         ],
       },
-    }, ...scriptLifecycleHooks(scriptName, refName, script.lifecycle, emission.lifecycle, emission.processDelta)]);
+    }, ...scriptLifecycleHooks(scriptName, refName, script.lifecycle, emission.lifecycle, emission.processDelta, script.ownsTimed)]);
   }
   return [attribute('ref', { kind: 'identifier-expression', name: refName })];
 }

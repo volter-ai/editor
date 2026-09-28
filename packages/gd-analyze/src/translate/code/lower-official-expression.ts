@@ -1638,7 +1638,8 @@ function stringifiedArgument(
   const type = datatype.kind === 'BUILTIN' && !datatype.metaType ? datatype.builtinType : undefined;
   const form = type === undefined ? undefined : STRINGIFY[type];
   if (form === undefined) {
-    return context.refuse(argument, `str() of a ${datatype.display} argument: its Variant::stringify form is not transcribed or its type is not settled`);
+    const called = call.kind === 'CALL' ? call.functionName : 'str';
+    return context.refuse(argument, `${called}() of a ${datatype.display} argument: its Variant::stringify form is not transcribed or its type is not settled`);
   }
   const requirements = context.structural(call, 'stringify', [argument], 'str-argument');
   if (form === null) return { ...value, requirements: [...value.requirements, ...requirements] };
@@ -2599,11 +2600,14 @@ export function lowerOfficialExpression(
         const selected = node.compilerTarget.kind === 'native-method' ? node.compilerTarget : context.callReceivers.get(node.id)?.target;
         const shape = selected === undefined ? undefined : godotCallShape(selected.owner, selected.member);
         // A tweened property's object is its native entity, and the property's accessors follow the
-        // call's own arguments (`tweenedProperty`).
+        // call's own arguments (`tweenedProperty`). A timer or tween is owned by the script that makes
+        // it, which the binding takes right after the receiver (`creator-owned`).
         const args =
           shape === 'tweened-property' && lowered[0] !== undefined
             ? [nativeEntity(lowered[0]), ...lowered.slice(1), tweenedProperty(context, node, argumentNodes)]
-            : lowered;
+            : shape === 'creator-owned'
+              ? [expression({ kind: 'this-expression', span: span(context.script, node) }), ...lowered]
+              : lowered;
         if (shape === 'script-chain-method') {
           const argument = argumentNodes[0];
           const name = argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name') ? argument.value.value : undefined;

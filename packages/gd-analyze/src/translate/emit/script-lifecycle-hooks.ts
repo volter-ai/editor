@@ -16,6 +16,10 @@
  * default): Godot never advances a frame by more than its maximum physics steps
  * (`main/main.cpp:4951`), so a stall reaches the script as at most that, as a three.js game clamps
  * its frame delta.
+ *
+ * A script that makes timers or tweens (the plan's `ownsTimed`) steps them from these same hooks,
+ * after its own callback (`godot_owned_step`), as a three.js component steps a tween library: they
+ * are its own, not a tree's (docs/GODOT.md §The emitted game's shape, step 6).
  */
 import type { BoundGodotLifecycleEntry } from '../../analyze/bound-project';
 import type { DirectGodotProcessDeltaPlan } from '../data/direct-project-composition-plan';
@@ -99,10 +103,23 @@ const INPUT_KINDS: Readonly<Record<string, string>> = {
   'unhandled-input': 'unhandledInput',
 };
 
+/** `godot_owned_step(script.current, delta, physics)`: the timers and tweens the script made. */
+function ownedStep(script: string, delta: TargetTsExpression, physics: boolean, imports: ScriptLifecycleImports): TargetTsStatement {
+  imports.compat.set('godot_owned_step', 'scene-tree');
+  return {
+    kind: 'expression-statement',
+    expression: {
+      kind: 'call-expression',
+      callee: id('godot_owned_step'),
+      arguments: [{ kind: 'property-expression', object: id(script), property: 'current' }, delta, { kind: 'literal-expression', value: physics }],
+    },
+  };
+}
+
 /**
  * The hook statements for a script held in `script` (a ref to the instance) on the node `node`
- * (its element's ref), given the lifecycle methods the script defines and the plan's bound on the
- * process delta.
+ * (its element's ref), given the lifecycle methods the script defines, whether it makes timers or
+ * tweens (`ownsTimed`), and the plan's bound on the process delta.
  */
 export function scriptLifecycleHooks(
   script: string,
@@ -110,31 +127,39 @@ export function scriptLifecycleHooks(
   lifecycle: readonly BoundGodotLifecycleEntry[],
   imports: ScriptLifecycleImports,
   processDelta: DirectGodotProcessDeltaPlan,
+  ownsTimed: boolean,
 ): TargetTsStatement[] {
   const method = (phase: BoundGodotLifecycleEntry['phase']): string | undefined => lifecycle.find((entry) => entry.phase === phase)?.methodName;
   const statements: TargetTsStatement[] = [];
   const process = method('process');
-  if (process !== undefined) {
+  if (process !== undefined || ownsTimed) {
     imports.fiber.add('useFrame');
     statements.push(
       hook('useFrame', [
         {
           kind: 'arrow-expression',
           parameters: [{ name: '_' }, { name: 'delta' }],
-          body: whileProcessing('process', script, process, clamped(processDelta), imports),
+          body: [
+            ...(process === undefined ? [] : whileProcessing('process', script, process, clamped(processDelta), imports)),
+            ...(ownsTimed ? [ownedStep(script, clamped(processDelta), false, imports)] : []),
+          ],
         },
       ]),
     );
   }
   const physics = method('physics-process');
-  if (physics !== undefined) {
+  if (physics !== undefined || ownsTimed) {
     imports.rapier.add('useBeforePhysicsStep');
+    const timestep: TargetTsExpression = { kind: 'property-expression', object: id('world'), property: 'timestep' };
     statements.push(
       hook('useBeforePhysicsStep', [
         {
           kind: 'arrow-expression',
           parameters: [{ name: 'world' }],
-          body: whileProcessing('physics', script, physics, { kind: 'property-expression', object: id('world'), property: 'timestep' }, imports),
+          body: [
+            ...(physics === undefined ? [] : whileProcessing('physics', script, physics, timestep, imports)),
+            ...(ownsTimed ? [ownedStep(script, timestep, true, imports)] : []),
+          ],
         },
       ]),
     );

@@ -13,6 +13,7 @@ import type { GodotBoundNode } from '../../godot-frontend/bound-program';
 import type { ImportedSoundKind } from '../../analyze/resource-loads';
 import type { GodotValue } from '../../read/godot-value';
 import { GODOT_CODE_RESOURCE_LOADS, godotImportedAssetUrl } from '../data/code-resource-loads';
+import { godotCallShape } from '../data/lowering-shapes';
 import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
 import { godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
 import { safeIdent } from '../target-names';
@@ -69,6 +70,8 @@ export interface OfficialBoundScriptModulePlan {
   readonly attachments: readonly BoundGodotScriptAttachment[];
   readonly autoloads: readonly BoundGodotScriptAutoload[];
   readonly lifecycle: readonly BoundGodotLifecycleEntry[];
+  /** Whether the script makes timers or tweens, which it owns and its component steps. */
+  readonly ownsTimed: boolean;
   readonly fields: readonly BoundGodotScriptField[];
   readonly autoloadReferences: readonly OfficialBoundAutoloadReference[];
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
@@ -717,6 +720,9 @@ function lowerScript(
       attachments: source.attachments,
       autoloads: source.autoloads,
       lifecycle: source.lifecycle,
+      ownsTimed: requirements.requirements.some(
+        (requirement) => requirement.kind === 'binding-requirement' && godotCallShape(requirement.symbol.owner, requirement.symbol.member) === 'creator-owned',
+      ),
       fields: source.fields,
       autoloadReferences: requirements.autoloadReferences,
       requirements: requirements.requirements,

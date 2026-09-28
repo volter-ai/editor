@@ -155,7 +155,7 @@ function autoloadComponent(
           { kind: 'array-expression', elements: [] },
         ]),
       },
-      ...scriptLifecycleHooks(script, node, autoload.lifecycle, imports, processDelta),
+      ...scriptLifecycleHooks(script, node, autoload.lifecycle, imports, processDelta, autoload.ownsTimed),
       // The autoload enters the tree once its script is attached (its component's last effect); it
       // renders the scenes its script adds under it.
       { kind: 'variable-statement', declaration: 'const', name: 'addedScenes', initializer: call('useGodotScene', [{ kind: 'identifier-expression', name: node }]) },
