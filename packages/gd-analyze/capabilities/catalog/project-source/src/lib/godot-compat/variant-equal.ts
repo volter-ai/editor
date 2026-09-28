@@ -2,15 +2,21 @@
  * @godot-class Variant
  * @role PROTOCOL
  *
- * `==` and `!=` where a script compares an untyped value (`Variant::evaluate` with `OP_EQUAL`,
+ * `==` and `!=` where a script compares an untyped value with another untyped value, or with a
+ * built-in record, Array or Dictionary (`Variant::evaluate` with `OP_EQUAL`,
  * `core/variant/variant_op.cpp`, revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`). Lowering
- * compares typed values directly (`===`, compat's operators); only a value analysis leaves untyped
- * comes here, so the comparison is read from the JS values: values of different kinds are not
- * equal (Godot registers an always-false evaluator for most such pairs, and a release build reads
- * an unregistered pair's result, Nil, as false), an
- * int and a float compare as numbers, text as text, an Object by identity (a freed one equal to
- * null), an Array or Dictionary element by element (`Array::operator==`, `Dictionary::operator==`),
- * and a built-in record member by member.
+ * compares an untyped value with a number, bool or text by `===`, with null or an Object through
+ * `godot_object_equal`; only the rest comes here, compared by the JS values they hold: numbers and
+ * text as themselves, an Object by identity (a freed one equal to null), an Array or Dictionary
+ * element by element (`Array::operator==`, `Dictionary::operator==`), a built-in record member by
+ * member, and values of different kinds as unequal.
+ *
+ * Where Godot differs: a pair of types with no equality evaluator aborts the calling function the
+ * first time that operator runs with them, in a release build too (`OPCODE_OPERATOR`,
+ * modules/gdscript/gdscript_vm.cpp:784-797); here such a pair is unequal (`1 != "a"` is true).
+ * An int and a float inside Arrays compare as numbers (`[1] == [1.0]` is true), and a Vector2 and a
+ * Vector2i with the same members are equal, where Godot's typed comparison of their elements or
+ * values tells the types apart.
  */
 
 import { godot_object_equal } from './object';

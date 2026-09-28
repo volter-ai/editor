@@ -4476,8 +4476,8 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
-        "negate": false
+        "kind": "binary",
+        "operator": "==="
       }
     },
     {
@@ -4492,8 +4492,8 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
-        "negate": false
+        "kind": "binary",
+        "operator": "==="
       }
     },
     {
@@ -4508,8 +4508,8 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
-        "negate": false
+        "kind": "binary",
+        "operator": "==="
       }
     },
     {
@@ -4524,8 +4524,8 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
-        "negate": false
+        "kind": "binary",
+        "operator": "==="
       }
     },
     {
@@ -4540,7 +4540,7 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": false
       }
     },
@@ -4556,7 +4556,7 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": false
       }
     },
@@ -4572,7 +4572,7 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": false
       }
     },
@@ -4588,7 +4588,7 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": false
       }
     },
@@ -4604,7 +4604,7 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": false
       }
     },
@@ -4620,7 +4620,7 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": false
       }
     },
@@ -4636,7 +4636,7 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": false
       }
     },
@@ -4652,7 +4652,7 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": false
       }
     },
@@ -4764,8 +4764,8 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
-        "negate": true
+        "kind": "binary",
+        "operator": "!=="
       }
     },
     {
@@ -4780,8 +4780,8 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
-        "negate": true
+        "kind": "binary",
+        "operator": "!=="
       }
     },
     {
@@ -4796,8 +4796,8 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
-        "negate": true
+        "kind": "binary",
+        "operator": "!=="
       }
     },
     {
@@ -4812,8 +4812,8 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
-        "negate": true
+        "kind": "binary",
+        "operator": "!=="
       }
     },
     {
@@ -4828,7 +4828,7 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": true
       }
     },
@@ -4844,7 +4844,7 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": true
       }
     },
@@ -4860,7 +4860,7 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": true
       }
     },
@@ -4876,7 +4876,7 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": true
       }
     },
@@ -4892,7 +4892,7 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": true
       }
     },
@@ -4908,7 +4908,7 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": true
       }
     },
@@ -4924,7 +4924,7 @@
         "resultDatatype": "VARIANT:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": true
       }
     },
@@ -4940,7 +4940,7 @@
         "resultDatatype": "BUILTIN:*"
       },
       "target": {
-        "kind": "variant-equal",
+        "kind": "object-equal",
         "negate": true
       }
     },
@@ -5396,6 +5396,774 @@
       "target": {
         "kind": "structural",
         "construct": "member-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:int"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:int"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:float"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:float"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:float",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:float",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:bool"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:bool"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:bool",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:bool",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:String"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:String"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:String",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:String",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:StringName"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:StringName"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:StringName",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:StringName",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "==="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:null"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "object-equal",
+        "negate": false
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:null"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "object-equal",
+        "negate": false
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:null",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "object-equal",
+        "negate": false
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_EQUAL:0|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:null",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "object-equal",
+        "negate": false
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:int"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:int"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:float"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:float"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:float",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:float",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:bool"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:bool"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:bool",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:bool",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:String"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:String"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:String",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:String",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:StringName"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:StringName"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:StringName",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:StringName",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "binary",
+        "operator": "!=="
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:null"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "object-equal",
+        "negate": true
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:Variant",
+          "BUILTIN:null"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "object-equal",
+        "negate": true
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:null",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "object-equal",
+        "negate": true
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "BINARY_OPERATOR",
+        "semanticKey": "operator:OP_COMP_NOT_EQUAL:1|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:null",
+          "VARIANT:Variant"
+        ],
+        "resultDatatype": "BUILTIN:bool"
+      },
+      "target": {
+        "kind": "object-equal",
+        "negate": true
       }
     }
   ],
