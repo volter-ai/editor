@@ -14,9 +14,14 @@
  * - A parameter: every caller passes an int or a float, both occurring (`parameter-types.ts`'s
  *   `numeric` output), and every function of that name takes it that way, so each call tags it.
  *
- * A value's types are its literal's, a typed parameter's, a numeric variable's {int, float}, an
- * operator's result over its operands' types, or the frontend's hard built-in type; anything else is
- * unknown and keeps the variable out.
+ * A value's types are its literal's, a typed parameter's, a member's (`member-types.ts`), a
+ * candidate member's types so far, an operator's result over its operands' types, `clamp`'s
+ * arguments' types (it returns one of its arguments as it is, `variant_utility.cpp:730`), or the
+ * frontend's hard built-in type; anything else is unknown and keeps the variable out.
+ *
+ * A member's types are the least set closed under its stores: its initializer's types, then each
+ * store's, a compound store's taken over the member's types found so far (so `coins = 0` and
+ * `coins += 1` leave an int alone, not an int or a float).
  */
 import type { GodotBoundDatatype, GodotBoundNode, GodotBoundScript } from '../godot-frontend/bound-program';
 import type { GodotApiDump } from './api-dump';
@@ -35,6 +40,8 @@ export interface NumericVariantInputs {
   readonly parameterType: (resPath: string, fn: string, parameter: string) => GodotBoundDatatype | undefined;
   /** The parameters every caller passes an int or a float, both occurring (`parameterKey`). */
   readonly numericParameters: ReadonlySet<string>;
+  /** An untyped member's one datatype (`member-types.ts`). */
+  readonly memberType?: (resPath: string, name: string) => GodotBoundDatatype | undefined;
 }
 
 /** What one script lowers as tagged numbers. */
@@ -43,6 +50,12 @@ export interface ScriptNumericVariants {
   readonly variables: readonly number[];
   /** Calls whose arguments at these indexes reach a tagged parameter: the caller tags them. */
   readonly taggedArguments: readonly { readonly callId: number; readonly indexes: readonly number[] }[];
+  /**
+   * Calls whose int-or-float arguments at these indexes reach an engine `float` parameter, which
+   * takes either as its value: `Variant::construct` picks the constructor its arguments convert to
+   * (`variant_construct.cpp:264`) and converts each (`Variant::operator double`, `variant.cpp:1535`).
+   */
+  readonly floatArguments?: readonly { readonly callId: number; readonly indexes: readonly number[] }[];
 }
 
 const NUMERIC: ReadonlySet<string> = new Set(['int', 'float']);
@@ -119,8 +132,9 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
     return undefined;
   };
 
-  // Assume every candidate numeric, then drop those a store shows otherwise, until none drops.
-  const numeric = new Set(members.map((member) => member.key));
+  // Each candidate's types so far (`undefined`: some value it stores is unknown), grown to the least
+  // fixpoint from nothing.
+  const found = new Map<string, Set<string> | undefined>(members.map((member) => [member.key, new Set<string>()]));
   const parameterOf = (program: GodotBoundScript, node: Extract<GodotBoundNode, { kind: 'IDENTIFIER' }>): { key: string; fn: string } | undefined => {
     const scope = enclosingFunction(program, node);
     const fn = scope === undefined ? undefined : identifierName(program, scope.identifier);
@@ -136,7 +150,10 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
     if (node.kind === 'IDENTIFIER') {
       if (node.source === 'MEMBER_VARIABLE' || node.source === 'INHERITED_VARIABLE') {
         const member = memberOf(program, node.name);
-        if (member !== undefined && numeric.has(member.key)) return NUMERIC;
+        if (member !== undefined) return found.get(member.key);
+        const settled = inputs.memberType?.(program.resPath, node.name);
+        const type = settled === undefined ? undefined : builtinOf(settled);
+        if (type !== undefined) return new Set([type]);
       }
       if (node.source === 'FUNCTION_PARAMETER') {
         const parameter = parameterOf(program, node);
@@ -164,6 +181,16 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
       }
       return results;
     }
+    // `clamp(x, min, max)` returns x, min or max as it is (`variant_utility.cpp:730`).
+    if (node.kind === 'CALL' && node.functionName === 'clamp' && node.compilerTarget.kind === 'variant-utility' && node.arguments.length === 3) {
+      const results = new Set<string>();
+      for (const argument of node.arguments) {
+        const types = valueTypes(program, argument, depth + 1);
+        if (types === undefined || ![...types].every((type) => NUMERIC.has(type))) return undefined;
+        for (const type of types) results.add(type);
+      }
+      return results;
+    }
     const type = node.datatype.typeSource === 'ANNOTATED_EXPLICIT' || node.datatype.typeSource === 'ANNOTATED_INFERRED' ? builtinOf(node.datatype) : undefined;
     return type === undefined ? undefined : new Set([type]);
   };
@@ -183,9 +210,11 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
           for (const type of value) all.add(type);
           continue;
         }
-        for (const own of NUMERIC) {
+        const own = found.get(member.key);
+        if (own === undefined) return undefined;
+        for (const ownType of own) {
           for (const type of value) {
-            const result = operatorResult(own, node.variantOperatorId, type);
+            const result = operatorResult(ownType, node.variantOperatorId, type);
             if (result === undefined) return undefined;
             all.add(result);
           }
@@ -197,15 +226,23 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
   for (let changed = true; changed; ) {
     changed = false;
     for (const member of members) {
-      if (!numeric.has(member.key)) continue;
+      const before = found.get(member.key);
+      if (before === undefined) continue;
       const stored = storedTypes(member);
-      const ok = stored !== undefined && stored.size === 2 && [...stored].every((type) => NUMERIC.has(type));
-      if (!ok) {
-        numeric.delete(member.key);
+      if (stored === undefined || [...stored].some((type) => !before.has(type))) {
+        found.set(member.key, stored === undefined ? undefined : new Set([...before, ...stored]));
         changed = true;
       }
     }
   }
+  const numeric = new Set(
+    members
+      .filter((member) => {
+        const types = found.get(member.key);
+        return types !== undefined && types.size === 2 && [...types].every((type) => NUMERIC.has(type));
+      })
+      .map((member) => member.key),
+  );
 
   // Parameters: every function of the name takes it numerically, so every call can tag it.
   const functionsByName = new Map<string, { program: GodotBoundScript; node: Extract<GodotBoundNode, { kind: 'FUNCTION' }> }[]>();
@@ -231,6 +268,24 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
     }
     if (indexes.length > 0) numericIndexes.set(name, indexes);
   }
+
+  // Whether an engine call's parameter at `index` is a float: a built-in constructor's, where one
+  // overload has that many arguments, or an engine method's.
+  const classes = new Map(inputs.apiDump.classes.map((entry) => [entry.name, entry] as const));
+  const floatParameter = (call: Extract<GodotBoundNode, { kind: 'CALL' }>, index: number): boolean | undefined => {
+    const target = call.compilerTarget;
+    if (target.kind === 'builtin-constructor') {
+      const overloads = (builtins.get(target.owner)?.constructors ?? []).filter((entry) => entry.arguments.length === call.arguments.length);
+      return overloads.length === 1 ? overloads[0]?.arguments[index]?.type === 'float' : undefined;
+    }
+    if (target.kind === 'native-method') {
+      for (let current = classes.get(target.owner); current !== undefined; current = current.base_class === '' ? undefined : classes.get(current.base_class)) {
+        const method = current.methods.find((entry) => entry.name === target.member);
+        if (method !== undefined) return method.arguments[index]?.type === 'float';
+      }
+    }
+    return undefined;
+  };
 
   const out = new Map<string, ScriptNumericVariants>();
   for (const program of inputs.programs) {
@@ -265,7 +320,18 @@ export function numericVariants(inputs: NumericVariantInputs): ReadonlyMap<strin
       const reached = indexes?.filter((index) => node.arguments[index] !== undefined);
       return reached === undefined || reached.length === 0 ? [] : [{ callId: node.id, indexes: reached }];
     });
-    if (variables.length > 0 || taggedArguments.length > 0) out.set(program.resPath, { variables: [...new Set(variables)].sort((a, b) => a - b), taggedArguments });
+    const floatArguments = program.nodes.flatMap((node) => {
+      if (node.kind !== 'CALL') return [];
+      const indexes = node.arguments.flatMap((argument, index) => {
+        if (floatParameter(node, index) !== true) return [];
+        const types = valueTypes(program, argument);
+        return types !== undefined && types.size === 2 && [...types].every((type) => NUMERIC.has(type)) ? [index] : [];
+      });
+      return indexes.length === 0 ? [] : [{ callId: node.id, indexes }];
+    });
+    if (variables.length > 0 || taggedArguments.length > 0 || floatArguments.length > 0) {
+      out.set(program.resPath, { variables: [...new Set(variables)].sort((a, b) => a - b), taggedArguments, ...(floatArguments.length > 0 ? { floatArguments } : {}) });
+    }
   }
   return out;
 }

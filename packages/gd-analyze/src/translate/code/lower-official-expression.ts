@@ -404,6 +404,27 @@ function nativeMemberReceiver(context: LoweringContext, node: GodotBoundNode, me
 }
 
 /**
+ * Whether an object read as a member's base is a variable TS types as `T | null`: one Godot clears
+ * to null (declared with no initializer, or `@onready`). A member read or call on null is Godot's
+ * runtime error (`OPCODE_GET_NAMED`, `gdscript_vm.cpp:1260`; `OPCODE_CALL`, `:1903`), so the read
+ * states the object as present (`value!`) and a null one throws where Godot errs.
+ */
+function nullableObject(context: LoweringContext, node: GodotBoundNode): boolean {
+  const datatype = node.datatype;
+  if (node.kind !== 'IDENTIFIER' || datatype.metaType || (datatype.kind !== 'CLASS' && datatype.kind !== 'NATIVE')) return false;
+  if (node.source !== 'MEMBER_VARIABLE' && node.source !== 'INHERITED_VARIABLE' && node.source !== 'LOCAL_VARIABLE') return false;
+  const root = context.script.nodes[context.script.rootNodeId];
+  const members = new Set(root?.kind === 'CLASS' ? root.members : []);
+  // An inherited member is declared in another script: it may be either.
+  if (node.source === 'INHERITED_VARIABLE') return true;
+  return context.script.nodes.some((candidate) => {
+    if (candidate.kind !== 'VARIABLE' || members.has(candidate.id) !== (node.source === 'MEMBER_VARIABLE')) return false;
+    const identifier = context.script.nodes[candidate.identifier];
+    return identifier?.kind === 'IDENTIFIER' && identifier.name === node.name && (candidate.initializer < 0 || candidate.onready);
+  });
+}
+
+/**
  * An object value as the native entity compat's native members take (GODOT.md "Receivers are
  * native"): a script instance's entity, or the object itself (`godot_node_entity`).
  */
@@ -1413,6 +1434,17 @@ export function lowerOfficialExpression(
     // An operand a switch branch reads as one type: the branch's value for it.
     const substituted = context.overrideValue(node);
     if (substituted !== undefined) return expression(substituted);
+    // An int-or-float argument to an engine `float` parameter is read as its value (`numeric-convert`).
+    const floatCall = context.floatArgumentCall(node);
+    if (floatCall !== undefined && tagged(context, node)) {
+      const value = involvesNumeric(context, node) ? lowerNumeric(context, node) : lowerTypedExpression(context, node);
+      const owner = context.rawNode(floatCall, node);
+      return {
+        ...value,
+        value: numericCall('godot_numeric_value', value.value),
+        requirements: [...value.requirements, ...context.structural(owner, 'numeric-convert', [{ ...node, datatype: builtinDatatype('float') } as GodotBoundNode], 'numeric-convert'), numericImport('godot_numeric_value')],
+      };
+    }
     if (involvesNumeric(context, node)) return lowerNumeric(context, node);
     const plain = lowerTypedExpression(context, node);
     // A value passed to a tagged parameter is tagged by its type at the call.
@@ -1563,8 +1595,26 @@ export function lowerOfficialExpression(
     };
   }
 
+  /**
+   * `clamp(x, min, max)` reaching an int-or-float value: compat's clamp over tagged numbers, which
+   * returns x, min or max with its own type (`variant_utility.cpp:730`); plain arguments are tagged.
+   */
+  function numericClamp(context: LoweringContext, node: Extract<GodotBoundNode, { kind: 'CALL' }>): LoweredExpression {
+    const values = node.arguments.map((id) => {
+      const argument = context.rawNode(id, node);
+      return tagged(context, argument) ? lowerExpression(context, argument) : numericTag(context, node, context.node(id, node), lowerExpression(context, context.node(id, node)));
+    });
+    return {
+      before: values.flatMap((value) => value.before),
+      value: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_numeric_clamp' }, arguments: values.map((value) => value.value), span: span(context.script, node) },
+      after: values.flatMap((value) => value.after),
+      requirements: [...values.flatMap((value) => value.requirements), ...context.structural(node, 'numeric-clamp', [], 'numeric-clamp'), numericImport('godot_numeric_clamp')],
+    };
+  }
+
   /** An operation or store that reads or writes an int-or-float variable. */
   function lowerNumeric(context: LoweringContext, node: GodotBoundNode): LoweredExpression {
+    if (node.kind === 'CALL' && node.functionName === 'clamp' && node.compilerTarget.kind === 'variant-utility') return numericClamp(context, node);
     if (node.kind !== 'ASSIGNMENT') return numericSwitch(context, node, operandsOf(node)).lowered;
     const assignee = context.rawNode(node.assignee, node);
     const valueNode = context.rawNode(node.assignedValue, node);
@@ -2138,12 +2188,13 @@ export function lowerOfficialExpression(
         const base = lowerExpression(context, baseNode);
         if (node.isAttribute) {
           const requirements = context.structural(node, 'subscript-attribute', [baseNode]);
+          const nullable = nullableObject(context, baseNode);
           return compose(
             context,
             [base],
             ([object]) => ({
               kind: 'property-expression',
-              object: object as TargetTsExpression,
+              object: nullable ? { kind: 'non-null-expression', expression: object as TargetTsExpression } : (object as TargetTsExpression),
               property: officialBoundPropertyName(context, node.attribute, node),
               span: span(context.script, node),
             }),
@@ -2424,17 +2475,26 @@ export function lowerOfficialExpression(
         return dynamicCall(context, node, callee, args, requirements);
       }
       case 'AWAIT': {
+        // `await signal` suspends the coroutine until the signal's next emission and resumes with
+        // what it emitted (`OPCODE_AWAIT`, `gdscript_vm.cpp:2563`; `GDScriptFunctionState::_signal_callback`,
+        // `gdscript_function.cpp:256`): a promise that one-shot connection resolves.
         const awaitedNode = context.node(node.toAwait, node);
         const requirements = context.structural(node, 'await', [awaitedNode]);
+        const isSignal = awaitedNode.datatype.kind === 'BUILTIN' && awaitedNode.datatype.builtinType === 'Signal' && !awaitedNode.datatype.metaType;
         return compose(
           context,
           [lowerExpression(context, awaitedNode)],
           ([awaited]) => ({
             kind: 'await-expression',
-            expression: awaited as TargetTsExpression,
+            expression: isSignal
+              ? { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'signalToPromise' }, arguments: [awaited as TargetTsExpression] }
+              : (awaited as TargetTsExpression),
             span: span(context.script, node),
           }),
-          requirements,
+          [
+            ...requirements,
+            ...(isSignal ? [{ kind: 'compat-import-requirement', module: 'lib/godot-compat/signal', imported: 'signalToPromise', local: 'signalToPromise', typeOnly: false } as const] : []),
+          ],
         );
       }
       case 'TERNARY_OPERATOR': {

@@ -27,12 +27,20 @@ import { type GodotElementProp, type GodotElementProps, useGodotElement } from '
 const f32 = Math.fround;
 
 interface Playback {
-  readonly startedAt: number;
-  readonly from: number;
-  readonly rate: number;
-  readonly source: AudioBufferSourceNode | null;
+  /** When the source last started, and the stream position it started from. */
+  startedAt: number;
+  from: number;
+  /** The source's rate: the player's `pitch_scale` times the stream's own pitch. */
+  rate: number;
+  readonly streamPitch: number;
+  /** The sounding source; null while paused, or where there is nothing to sound. */
+  source: AudioBufferSourceNode | null;
   readonly gain: GainNode | null;
+  /** Starts a source at a stream position, into the playback's gain. */
+  readonly restart: ((from: number) => AudioBufferSourceNode) | null;
+  readonly loop: { readonly begin: number; readonly end: number } | null;
   active: boolean;
+  paused: boolean;
 }
 
 /** The player state `AudioStreamPlayerInternal` keeps, for both player classes. */
@@ -148,36 +156,43 @@ export function play(self: object, from_position = 0.0): void {
   const state = stateOf(self, 'play');
   if (state.stream === null || !is_inside_tree(self)) return;
   const audio = godot_audio_context();
-  let source: AudioBufferSourceNode | null = null;
   let gain: GainNode | null = null;
-  let rate = state.pitchScale;
+  let streamPitch = 1;
+  let restart: Playback['restart'] = null;
+  let loop: Playback['loop'] = null;
   if (audio !== null) {
     const start = godot_audio_stream_start(state.stream, audio);
     if (start !== null && start.buffer !== null) {
-      source = audio.createBufferSource();
-      source.buffer = start.buffer;
-      if (start.loop !== null) {
-        source.loop = true;
-        source.loopStart = start.loop.begin;
-        source.loopEnd = start.loop.end;
-      }
-      rate = f32(state.pitchScale * start.pitchScale);
-      source.playbackRate.value = rate;
-      gain = audio.createGain();
-      gain.gain.value = f32(dbToLinear(state.volumeDb) * start.volumeScale);
-      source.connect(gain).connect(state.output(audio));
+      const buffer = start.buffer;
+      loop = start.loop;
+      streamPitch = start.pitchScale;
+      const into = audio.createGain();
+      into.gain.value = f32(dbToLinear(state.volumeDb) * start.volumeScale);
+      into.connect(state.output(audio));
+      gain = into;
+      restart = (from) => {
+        const source = audio.createBufferSource();
+        source.buffer = buffer;
+        if (start.loop !== null) {
+          source.loop = true;
+          source.loopStart = start.loop.begin;
+          source.loopEnd = start.loop.end;
+        }
+        source.playbackRate.value = playback.rate;
+        source.connect(into);
+        source.onended = () => {
+          playback.active = false;
+        };
+        source.start(0, from);
+        return source;
+      };
     }
   }
   // `AudioStreamPlaybackWAV::seek` (`audio_stream_wav.cpp:79`): the start clamped into the stream.
   const length = streamLength(state.stream);
   const from = from_position < 0 ? 0 : from_position >= length ? length - 0.001 : from_position;
-  const playback: Playback = { startedAt: audio?.currentTime ?? 0, from, rate, source, gain, active: true };
-  if (source !== null) {
-    source.onended = () => {
-      playback.active = false;
-    };
-    source.start(0, from);
-  }
+  const playback: Playback = { startedAt: audio?.currentTime ?? 0, from, rate: f32(state.pitchScale * streamPitch), streamPitch, source: null, gain, restart, loop, active: true, paused: false };
+  playback.source = restart === null ? null : restart(from);
   state.playbacks.push(playback);
   // `ensure_playback_limit` (`:87`).
   while (state.playbacks.length > state.maxPolyphony) {
@@ -210,11 +225,56 @@ export function is_playing(self: object): boolean {
  * @source scene/audio/audio_stream_player.cpp:140
  */
 export function get_playback_position(self: object): number {
-  const state = stateOf(self, 'get_playback_position');
-  const last = state.playbacks[state.playbacks.length - 1];
-  if (last === undefined) return 0;
+  const last = stateOf(self, 'get_playback_position').playbacks.at(-1);
+  return last === undefined ? 0 : f32(positionOf(last));
+}
+
+/** Where a playback is in its stream: its start plus the audio time since, at its rate, looped. */
+function positionOf(playback: Playback): number {
   const audio = godot_audio_context();
-  return f32(last.from + (audio === null || last.source === null ? 0 : (audio.currentTime - last.startedAt) * last.rate));
+  const position = playback.from + (audio === null || playback.source === null ? 0 : (audio.currentTime - playback.startedAt) * playback.rate);
+  const loop = playback.loop;
+  if (loop === null || position < loop.end || loop.end <= loop.begin) return position;
+  return loop.begin + ((position - loop.begin) % (loop.end - loop.begin));
+}
+
+/**
+ * Pauses or resumes every playback (`AudioStreamPlayerInternal::set_stream_paused`,
+ * `audio_stream_player_internal.cpp:181`): a paused one keeps its place and stays playing, as the
+ * web export's paused sample does; a Web Audio source cannot pause, so pausing stops it where it is
+ * and resuming starts a new one there.
+ *
+ * @godot AudioStreamPlayer.set_stream_paused
+ * @source scene/audio/audio_stream_player.cpp:175
+ */
+export function set_stream_paused(self: object, pause: boolean): void {
+  const audio = godot_audio_context();
+  for (const playback of stateOf(self, 'set_stream_paused').playbacks) {
+    if (!playback.active || playback.paused === pause) continue;
+    playback.paused = pause;
+    if (pause) {
+      playback.from = positionOf(playback);
+      if (playback.source !== null) {
+        playback.source.onended = null;
+        playback.source.stop();
+        playback.source = null;
+      }
+    } else if (playback.restart !== null) {
+      playback.startedAt = audio?.currentTime ?? 0;
+      playback.source = playback.restart(playback.from);
+    }
+  }
+}
+
+/**
+ * Whether the first playback is paused (`AudioStreamPlayerInternal::get_stream_paused`,
+ * `audio_stream_player_internal.cpp:191`); false with none.
+ *
+ * @godot AudioStreamPlayer.get_stream_paused
+ * @source scene/audio/audio_stream_player.cpp:179
+ */
+export function get_stream_paused(self: object): boolean {
+  return stateOf(self, 'get_stream_paused').playbacks[0]?.paused ?? false;
 }
 
 /**
@@ -265,7 +325,14 @@ export function set_pitch_scale(self: object, pitch_scale: number): void {
   if (pitch_scale <= 0) return;
   const state = stateOf(self, 'set_pitch_scale');
   state.pitchScale = f32(pitch_scale);
-  for (const playback of state.playbacks) if (playback.source !== null) playback.source.playbackRate.value = state.pitchScale;
+  const audio = godot_audio_context();
+  for (const playback of state.playbacks) {
+    // The position so far at the old rate, then on at the new one.
+    playback.from = positionOf(playback);
+    playback.startedAt = audio?.currentTime ?? 0;
+    playback.rate = f32(state.pitchScale * playback.streamPitch);
+    if (playback.source !== null) playback.source.playbackRate.value = playback.rate;
+  }
 }
 
 /**

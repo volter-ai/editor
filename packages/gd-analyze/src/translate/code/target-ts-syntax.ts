@@ -342,6 +342,11 @@ export type TargetTsExpression =
       readonly expression: TargetTsExpression;
       readonly type: TargetTsType;
     })
+  | (TargetTsExpressionBase & {
+      /** `expression!`: a value TS types as possibly null that the program reads as an object. */
+      readonly kind: 'non-null-expression';
+      readonly expression: TargetTsExpression;
+    })
   | (TargetTsExpressionBase & TargetTsJsxElementShape & { readonly kind: 'jsx-element-expression' })
   | (TargetTsExpressionBase & {
       readonly kind: 'jsx-fragment-expression';

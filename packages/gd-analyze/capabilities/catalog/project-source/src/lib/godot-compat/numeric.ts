@@ -67,3 +67,18 @@ export function godot_numeric_value(number: GodotNumeric): number {
 export function godot_numeric_to_int(number: GodotNumeric): number {
   return number.int ? number.value : Math.trunc(number.value);
 }
+
+/**
+ * `clamp(x, min, max)` where an argument is an int or a float: x, then min if x is less, then max
+ * if that is greater, each kept with its own type, as the Variant it returns is one of its
+ * arguments (Variant comparison of an int and a float compares their values).
+ *
+ * @godot Variant (protocol)
+ * @source core/variant/variant_utility.cpp:730
+ */
+export function godot_numeric_clamp(value: GodotNumeric, min: GodotNumeric, max: GodotNumeric): GodotNumeric {
+  let result = value;
+  if (result.value < min.value) result = min;
+  if (result.value > max.value) result = max;
+  return result;
+}

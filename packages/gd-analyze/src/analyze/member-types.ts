@@ -6,9 +6,15 @@
  * has a setter, is exported (a scene may store any value), has no initializer, when some value's
  * type is unknown or they disagree, or when a string names it (`set("coins", v)` is reflection the
  * analysis does not follow).
+ *
+ * An exported member (`@export var jump_strength = 7`) is untyped too: the parser gives the
+ * inspector its initializer's type (`export_annotations`, `gdscript_parser.cpp:4745`) and a scene
+ * stores whatever value it authors. It is typed as above when, in addition, every value any scene
+ * authors for a property of its name has the initializer's type.
  */
 import type { GodotBoundDatatype, GodotBoundNode, GodotBoundScript } from '../godot-frontend/bound-program';
 import type { GodotApiDump } from './api-dump';
+import type { GodotValue } from '../read/godot-value';
 import { OPERATOR_SPELLING } from './project-setting-types';
 
 /** The key of a member: its declaring script's path and its name. */
@@ -31,6 +37,16 @@ export interface MemberTypeInputs {
   /** A script's ancestors, nearest first. */
   readonly scriptAncestors: (resPath: string) => readonly string[];
   readonly apiDump: GodotApiDump;
+  /** Every value some scene node authors for a property of this name. */
+  readonly sceneValues?: (name: string) => readonly GodotValue[];
+}
+
+/** The built-in type a scene value is serialized as, where it is a plain one. */
+function sceneValueType(value: GodotValue): string | undefined {
+  if (value.kind === 'number') return value.variantType;
+  if (value.kind === 'bool') return 'bool';
+  if (value.kind === 'string') return 'String';
+  return undefined;
 }
 
 export function typeMembers(inputs: MemberTypeInputs): ReadonlyMap<string, GodotBoundDatatype> {
@@ -87,13 +103,17 @@ export function typeMembers(inputs: MemberTypeInputs): ReadonlyMap<string, Godot
     const family = inputs.programs.filter((other) => other.resPath === program.resPath || inputs.scriptAncestors(other.resPath).includes(program.resPath));
     for (const memberId of root.members) {
       const member = program.nodes[memberId];
-      if (member?.kind !== 'VARIABLE' || member.static || member.exported || member.setter >= 0 || member.datatypeSpecifier >= 0 || member.initializer < 0) continue;
+      if (member?.kind !== 'VARIABLE' || member.static || member.setter >= 0 || member.datatypeSpecifier >= 0 || member.initializer < 0) continue;
       // Untyped (no specifier): the analyzer's datatype is at most its initializer's, a weak one.
       const name = identifierName(program, member.identifier);
       if (name === undefined || spelled.has(name)) continue;
       const initial = program.nodes[member.initializer]?.datatype;
       const candidate = initial !== undefined && known(initial) ? initial : undefined;
       if (candidate === undefined) continue;
+      if (member.exported) {
+        const values = inputs.sceneValues?.(name);
+        if (values === undefined || candidate.kind !== 'BUILTIN' || !values.every((value) => sceneValueType(value) === candidate.builtinType)) continue;
+      }
       const stored: Stored[] = [...(attributeValues.get(name) ?? [])];
       for (const script of family) {
         for (const node of script.nodes) {

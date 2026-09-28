@@ -284,6 +284,7 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
     }
     case 'ASSIGNMENT':
     case 'CALL':
+    case 'AWAIT':
       return expressionStatement(context, node, lowerExpression(context, node));
     case 'RETURN': {
       const valueNode = node.returnValue < 0 ? undefined : context.node(node.returnValue, node);

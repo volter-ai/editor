@@ -648,7 +648,17 @@ function lowerScript(
       return { name: godotSceneExportName(resPath), module, ...(rootScript === undefined ? {} : { rootScript }) };
     },
     nativeType,
-    new Set(source.refinedTypes.filter((entry) => entry.rule === 'type-test-narrowing').map((entry) => entry.nodeId)),
+    new Set(
+      source.refinedTypes
+        .filter((entry) => {
+          if (entry.rule === 'type-test-narrowing') return true;
+          // A member declared as a wider node type that the scenes fix (an exported node
+          // reference): its reads are stated as the node it holds.
+          const declared = source.program.nodes[entry.nodeId];
+          return entry.rule === 'scene-node-receiver' && declared?.kind === 'IDENTIFIER' && declared.source === 'MEMBER_VARIABLE' && declared.datatype.typeSource === 'ANNOTATED_EXPLICIT';
+        })
+        .map((entry) => entry.nodeId),
+    ),
     new Map(source.scriptCalls.flatMap((entry) => (entry.scripts === undefined ? [] : [[entry.nodeId, entry.scripts] as const]))),
     nativeSignalOwner,
     source.numericVariants,

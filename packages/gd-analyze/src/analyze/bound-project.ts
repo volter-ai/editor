@@ -1332,10 +1332,15 @@ export function bindGodotProject(
     return out;
   };
   // Every untyped member's datatype from what the project stores in it (`member-types.ts`).
+  const sceneValuesByName = new Map<string, GodotValue[]>();
+  for (const node of sceneNodes.byKey.values()) {
+    for (const [name, value] of Object.entries(node.properties)) sceneValuesByName.set(name, [...(sceneValuesByName.get(name) ?? []), value]);
+  }
   const memberTypes = typeMembers({
     programs: code.scripts,
     scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [],
     apiDump: apiDump.parsed,
+    sceneValues: (name) => sceneValuesByName.get(name) ?? [],
   });
   const numericParameters = new Set<string>();
   const connected = connectedCallables({ programs: code.scripts, apiDump: apiDump.parsed, scriptAncestors: (resPath) => inheritance.get(resPath)?.scriptAncestors ?? [] });
@@ -1368,6 +1373,7 @@ export function bindGodotProject(
     apiDump: apiDump.parsed,
     parameterType: (resPath, fn, parameter) => parameterTypes.get(parameterKey(resPath, fn, parameter))?.datatype,
     numericParameters,
+    memberType: (resPath, name) => parameterInputs.memberType?.(resPath, name),
   });
   const storedMemberType = (resPath: string, name: string): GodotBoundDatatype | undefined => {
     for (const scriptPath of [resPath, ...(inheritance.get(resPath)?.scriptAncestors ?? [])]) {

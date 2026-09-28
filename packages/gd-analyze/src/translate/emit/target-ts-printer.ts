@@ -350,6 +350,8 @@ function expression(value: TargetTsExpression): ts.Expression {
       return ts.factory.createParenthesizedExpression(expression(value.expression));
     case 'as-expression':
       return ts.factory.createAsExpression(expression(value.expression), typeNode(value.type));
+    case 'non-null-expression':
+      return ts.factory.createNonNullExpression(expression(value.expression));
     case 'jsx-element-expression': {
       return jsxElement(value);
     }

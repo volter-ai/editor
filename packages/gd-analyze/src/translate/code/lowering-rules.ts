@@ -68,6 +68,7 @@ export type GodotStructuralConstruct =
   | 'literal'
   | 'local-identifier'
   | 'member-identifier'
+  | 'numeric-clamp'
   | 'numeric-convert'
   | 'numeric-store'
   | 'numeric-switch'

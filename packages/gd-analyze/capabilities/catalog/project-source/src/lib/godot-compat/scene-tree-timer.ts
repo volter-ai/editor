@@ -86,3 +86,13 @@ export function get_time_left(self: SceneTreeTimer): number {
 export function set_time_left(self: SceneTreeTimer, time: number): void {
   stateOf(self).timeLeft = time;
 }
+
+/**
+ * Emitted once, when the time runs out.
+ *
+ * @godot SceneTreeTimer.timeout
+ * @source scene/main/scene_tree.cpp:81
+ */
+export function timeout(self: SceneTreeTimer): GodotSignal<[]> {
+  return self.timeout;
+}

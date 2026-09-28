@@ -3458,6 +3458,34 @@
     {
       "source": {
         "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "numeric-convert|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:float"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "numeric-convert"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CALL",
+        "semanticKey": "numeric-clamp|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "numeric-clamp"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
         "nodeKind": "SUBSCRIPT",
         "semanticKey": "subscript-attribute:native-signal|annotations:[]",
         "inputDatatypes": [
@@ -3723,6 +3751,34 @@
       "target": {
         "kind": "structural",
         "construct": "ternary"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "FUNCTION",
+        "semanticKey": "function:instance:coroutine|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "function"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "AWAIT",
+        "semanticKey": "await|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:Signal"
+        ],
+        "resultDatatype": "VARIANT:Variant"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "await"
       }
     }
   ],

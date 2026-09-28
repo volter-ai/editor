@@ -239,6 +239,7 @@ export class LoweringContext {
     readonly numericVariants?: {
       readonly variables: readonly number[];
       readonly taggedArguments: readonly { readonly callId: number; readonly indexes: readonly number[] }[];
+      readonly floatArguments?: readonly { readonly callId: number; readonly indexes: readonly number[] }[];
     },
     /** Godot's operator table: the result type of `left op right` (right absent for a unary). */
     readonly operatorResult?: (left: string, operator: number, right: string | undefined) => string | undefined,
@@ -250,6 +251,14 @@ export class LoweringContext {
       for (const index of entry.indexes) {
         const argument = call.arguments[index];
         if (argument !== undefined) this.#taggedArguments.set(argument, entry.callId);
+      }
+    }
+    for (const entry of numericVariants?.floatArguments ?? []) {
+      const call = script.nodes[entry.callId];
+      if (call?.kind !== 'CALL') continue;
+      for (const index of entry.indexes) {
+        const argument = call.arguments[index];
+        if (argument !== undefined) this.#floatArguments.set(argument, entry.callId);
       }
     }
     const allocated = new Set([classIdentifier, ...bindings.targetLocalNames()]);
@@ -383,6 +392,8 @@ export class LoweringContext {
       // Only the switches over the tag take a tagged number; a tagged argument passes on to a
       // tagged parameter as it is.
       if (this.#taggedArguments.get(id) === owner.id && owner.kind === 'CALL') return node;
+      // A tagged argument to an engine `float` parameter converts where it is read.
+      if (this.#floatArguments.get(id) === owner.id && owner.kind === 'CALL') return node;
       this.refuse(
         node,
         `this value is an int or a float (${node.kind === 'IDENTIFIER' ? `the untyped \`${node.name}\` holds both` : 'an operation on such a variable'}), and ${owner.kind} does not switch over the two`,
@@ -403,6 +414,7 @@ export class LoweringContext {
 
   readonly #numericVariables: ReadonlySet<number>;
   readonly #taggedArguments = new Map<number, number>();
+  readonly #floatArguments = new Map<number, number>();
   readonly #overrides = new Map<number, { readonly datatype: GodotBoundNode['datatype']; readonly value: TargetTsExpression }>();
 
   /** Whether a VARIABLE, PARAMETER or IDENTIFIER is an int-or-float variable. */
@@ -413,6 +425,11 @@ export class LoweringContext {
   /** The call a node is a tagged argument of (it reaches a tagged parameter). */
   taggedArgumentCall(node: GodotBoundNode): number | undefined {
     return this.#taggedArguments.get(node.id);
+  }
+
+  /** The call a node is an int-or-float argument of, reaching an engine `float` parameter. */
+  floatArgumentCall(node: GodotBoundNode): number | undefined {
+    return this.#overrides.has(node.id) ? undefined : this.#floatArguments.get(node.id);
   }
 
   /** The value a switch branch substitutes for an operand. */
@@ -457,6 +474,9 @@ export class LoweringContext {
       const children = (node.kind === 'BINARY_OPERATOR' ? [node.leftOperand, node.rightOperand] : [node.operand]).map((id) => this.script.nodes[id]);
       if (children.some((child) => child === undefined)) return undefined;
       if (!children.some((child) => this.numericTypes(child as GodotBoundNode) !== undefined)) return undefined;
+      // `and` and `or` short-circuit to a bool whatever their operands hold (`write_end_and` and
+      // `write_end_or` assign true or false, `gdscript_compiler.cpp:873`, `:889`).
+      if (node.kind === 'BINARY_OPERATOR' && (node.operation === 'OP_LOGIC_AND' || node.operation === 'OP_LOGIC_OR')) return new Set(['bool']);
       const [left, right] = children.map((child) => own(child as GodotBoundNode));
       const results = new Set<string>();
       for (const l of left as ReadonlySet<string>) {
@@ -465,6 +485,13 @@ export class LoweringContext {
         }
       }
       return results;
+    }
+    // `clamp(x, min, max)` returns x, min or max as it is (`variant_utility.cpp:730`).
+    if (node.kind === 'CALL' && node.functionName === 'clamp' && node.compilerTarget.kind === 'variant-utility' && node.arguments.length === 3) {
+      const children = node.arguments.map((id) => this.script.nodes[id]);
+      if (children.some((child) => child === undefined)) return undefined;
+      if (!children.some((child) => this.numericTypes(child as GodotBoundNode) !== undefined)) return undefined;
+      return new Set(children.flatMap((child) => [...own(child as GodotBoundNode)]));
     }
     if (node.kind === 'CALL' && node.functionName === 'str' && node.compilerTarget.kind === 'variant-utility') {
       return node.arguments.some((id) => {
