@@ -19,6 +19,7 @@ import { get_global_transform } from './node-3d';
 import { intersect_ray } from './physics-direct-space-state-3d';
 import { godot_ray_query_new } from './physics-ray-query-parameters-3d';
 import { op_multiply as transform } from './transform-3d';
+import { construct as color, type Color } from './color';
 import { construct as vector3, type Vector3 } from './vector3';
 import { godot_world_3d, godot_world_3d_direct_state } from './world-3d';
 
@@ -32,6 +33,7 @@ interface RayState {
   collideWithBodies: boolean;
   hitFromInside: boolean;
   hitBackFaces: boolean;
+  debugColor: Color;
   collided: boolean;
   against: object | null;
   againstRid: object | null;
@@ -102,6 +104,7 @@ export function godot_ray_cast_3d_adopt(entity: object): void {
     collideWithBodies: true,
     hitFromInside: false,
     hitBackFaces: true,
+    debugColor: color(0, 0, 0, 1),
     collided: false,
     against: null,
     againstRid: null,
@@ -218,6 +221,72 @@ export function set_collide_with_areas(self: object, enabled: boolean): void {
 }
 
 /**
+ * @godot RayCast3D.set_collide_with_bodies
+ * @source scene/3d/physics/ray_cast_3d.cpp:305
+ */
+export function set_collide_with_bodies(self: object, enabled: boolean): void {
+  stateOf(self).collideWithBodies = enabled;
+}
+
+/**
+ * @godot RayCast3D.is_collide_with_bodies_enabled
+ * @source scene/3d/physics/ray_cast_3d.cpp:309
+ */
+export function is_collide_with_bodies_enabled(self: object): boolean {
+  return stateOf(self).collideWithBodies;
+}
+
+/**
+ * @godot RayCast3D.set_hit_from_inside
+ * @source scene/3d/physics/ray_cast_3d.cpp:313
+ */
+export function set_hit_from_inside(self: object, enabled: boolean): void {
+  stateOf(self).hitFromInside = enabled;
+}
+
+/**
+ * @godot RayCast3D.is_hit_from_inside_enabled
+ * @source scene/3d/physics/ray_cast_3d.cpp:317
+ */
+export function is_hit_from_inside_enabled(self: object): boolean {
+  return stateOf(self).hitFromInside;
+}
+
+/**
+ * @godot RayCast3D.set_hit_back_faces
+ * @source scene/3d/physics/ray_cast_3d.cpp:321
+ */
+export function set_hit_back_faces(self: object, enabled: boolean): void {
+  stateOf(self).hitBackFaces = enabled;
+}
+
+/**
+ * @godot RayCast3D.is_hit_back_faces_enabled
+ * @source scene/3d/physics/ray_cast_3d.cpp:325
+ */
+export function is_hit_back_faces_enabled(self: object): boolean {
+  return stateOf(self).hitBackFaces;
+}
+
+/**
+ * Stored: the debug shape is drawn only with visible collision shapes, a debugging option.
+ *
+ * @godot RayCast3D.set_debug_shape_custom_color
+ * @source scene/3d/physics/ray_cast_3d.cpp:447
+ */
+export function set_debug_shape_custom_color(self: object, value: Color): void {
+  stateOf(self).debugColor = value;
+}
+
+/**
+ * @godot RayCast3D.get_debug_shape_custom_color
+ * @source scene/3d/physics/ray_cast_3d.cpp:459
+ */
+export function get_debug_shape_custom_color(self: object): Color {
+  return stateOf(self).debugColor;
+}
+
+/**
  * @godot RayCast3D.set_exclude_parent_body
  * @source scene/3d/physics/ray_cast_3d.cpp:139
  */
@@ -255,6 +324,7 @@ export type GodotRayCast3DProps = Omit<ThreeElements['group'], 'ref'> & {
   readonly collideWithBodies?: boolean;
   readonly hitFromInside?: boolean;
   readonly hitBackFaces?: boolean;
+  readonly debugShapeCustomColor?: readonly [number, number, number, number];
 };
 
 /**
@@ -273,6 +343,7 @@ export function GodotRayCast3D({
   collideWithBodies,
   hitFromInside,
   hitBackFaces,
+  debugShapeCustomColor,
   ...group
 }: GodotRayCast3DProps) {
   const own = useRef<Group>(null);
@@ -288,6 +359,7 @@ export function GodotRayCast3D({
     if (collideWithBodies !== undefined) state.collideWithBodies = collideWithBodies;
     if (hitFromInside !== undefined) state.hitFromInside = hitFromInside;
     if (hitBackFaces !== undefined) state.hitBackFaces = hitBackFaces;
+    if (debugShapeCustomColor !== undefined) state.debugColor = color(...debugShapeCustomColor);
   }, []);
   const refs = (value: Group | null) => {
     own.current = value;

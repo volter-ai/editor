@@ -1843,7 +1843,18 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
   ],
   Area3D: [...COLLISION_OBJECT_SETTERS, 'set_monitoring'],
   CollisionShape3D: ['set_shape', 'set_disabled'],
-  RayCast3D: ['set_visible', 'set_enabled', 'set_target_position', 'set_collision_mask', 'set_exclude_parent_body', 'set_collide_with_areas'],
+  RayCast3D: [
+    'set_visible',
+    'set_enabled',
+    'set_target_position',
+    'set_collision_mask',
+    'set_exclude_parent_body',
+    'set_collide_with_areas',
+    'set_collide_with_bodies',
+    'set_hit_from_inside',
+    'set_hit_back_faces',
+    'set_debug_shape_custom_color',
+  ],
   Marker3D: ['set_visible', 'set_gizmo_extents'],
 };
 const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
