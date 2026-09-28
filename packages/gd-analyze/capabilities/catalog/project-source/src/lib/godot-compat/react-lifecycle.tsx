@@ -222,7 +222,14 @@ export function useGodotInput(
   useEffect(() => {
     const node = nodeOf(ref.current);
     if (node === null) throw new Error('godot-compat: the node an input callback attaches to was not mounted.');
-    return godot_node_listen_input(node, kind, (event) => current.current(event as InputEventRecord));
+    return godot_node_listen_input(node, kind, (event) => {
+      // A script error aborts only this callback; the event carries on (GODOT.md §Order of work).
+      try {
+        current.current(event as InputEventRecord);
+      } catch (error) {
+        console.error(error);
+      }
+    });
   }, []);
 }
 

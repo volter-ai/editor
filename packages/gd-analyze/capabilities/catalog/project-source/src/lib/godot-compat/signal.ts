@@ -305,7 +305,13 @@ export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Ar
             // Godot disconnects one-shot slots BEFORE invoking them. A reference-counted slot
             // decrements one reference and survives until the final reference is released.
             if (options?.oneShot === true) release(identity);
-            listener(...(event as CustomEvent<Args>).detail);
+            // A script error aborts only this handler; the emission carries on to the next one
+            // (GODOT.md §Order of work).
+            try {
+              listener(...(event as CustomEvent<Args>).detail);
+            } catch (error) {
+              console.error(error);
+            }
           },
           { signal: controller.signal },
         );

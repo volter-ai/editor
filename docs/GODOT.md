@@ -103,6 +103,15 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
 
 **Order of work.**
 
+Two conventions hold throughout (the orchestrator's, from the law, 2026-09-28). Where Godot's debug
+and release builds differ, the lane follows the release build, which the originals ship as: an Array
+store outside the array is dropped, since only a debug build reports it (`gdscript_vm.cpp:1084-1098`).
+A script error aborts only the function it is in, and the caller carries on
+(`gdscript_vm.cpp:3963-3993`). So each place that runs a script's callback (a frame or physics hook,
+`_enter_tree`, `_ready`, `_exit_tree`, an input callback, `_integrate_forces`, a signal handler)
+catches what the callback throws and reports it with `console.error`; one failing callback never
+skips the frame or unmounts the game.
+
 1. Retire the evidence gate from the import: bindings are what compat implements, and the plan
    stops reading claims. The claim records, the refresh, liveness and the case files go with it.
    Done: unit 1 (`b11f661e`) derived the bindings from compat; unit 2 deleted the claims and the

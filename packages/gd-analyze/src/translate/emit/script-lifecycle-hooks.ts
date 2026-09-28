@@ -5,9 +5,11 @@
  * `useGodotInput`. `_process` and `_physics_process` run while the node processes
  * (`godot_node_processes`: inside the tree, not turned off by `set_process`, its process mode
  * allowing), as `SceneTree::_process_group` asks each node. Only the hooks the script defines are
- * written. `_enter_tree`, `_ready` and `_exit_tree` are not hooks of their own: the scene entering
- * the tree (`useGodotScene`, the component's last effect) runs them, parents entering first and
- * children readying first, once the whole scene's scripts are attached, as `add_child` does.
+ * written. A script error aborts only its callback (GODOT.md §Order of work): the hook reports it
+ * and the frame or step carries on. `_enter_tree`, `_ready` and `_exit_tree` are not hooks of their
+ * own: the scene entering the tree (`useGodotScene`, the component's last effect) runs them,
+ * parents entering first and children readying first, once the whole scene's scripts are attached,
+ * as `add_child` does.
  */
 import type { BoundGodotLifecycleEntry } from '../../analyze/bound-project';
 import type { TargetTsExpression, TargetTsStatement } from '../code/target-ts-syntax';
@@ -31,7 +33,10 @@ function call(script: string, method: string, args: readonly TargetTsExpression[
   };
 }
 
-/** `if (godot_node_processes(script.current, kind)) script.current?.method(delta);` */
+/**
+ * `if (godot_node_processes(script.current, kind)) try { script.current?.method(delta); } catch
+ * (error) { console.error(error); }`
+ */
 function whileProcessing(kind: string, script: string, method: string, delta: TargetTsExpression, imports: ScriptLifecycleImports): TargetTsStatement[] {
   imports.compat.set('godot_node_processes', 'node');
   return [
@@ -42,7 +47,19 @@ function whileProcessing(kind: string, script: string, method: string, delta: Ta
         callee: id('godot_node_processes'),
         arguments: [{ kind: 'property-expression', object: id(script), property: 'current' }, { kind: 'literal-expression', value: kind }],
       },
-      then: [{ kind: 'expression-statement', expression: call(script, method, [delta]) }],
+      then: [
+        {
+          kind: 'try-statement',
+          body: [{ kind: 'expression-statement', expression: call(script, method, [delta]) }],
+          binding: 'error',
+          handler: [
+            {
+              kind: 'expression-statement',
+              expression: { kind: 'call-expression', callee: { kind: 'property-expression', object: id('console'), property: 'error' }, arguments: [id('error')] },
+            },
+          ],
+        },
+      ],
     },
   ];
 }

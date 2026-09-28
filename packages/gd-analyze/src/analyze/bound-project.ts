@@ -56,6 +56,13 @@ export const BOUND_GODOT_PROJECT_VERSION = 4 as const;
 export interface BoundGodotSourceScript {
   readonly resPath: string;
   readonly sourceDigest: string;
+  /**
+   * The program as the official analyzer typed it. Analysis reads it (every rule in `src/analyze`
+   * types from the analyzer's datatypes), as do the readers of the program's structure alone: the
+   * plan's preloads (`translation-plan.ts`) and input actions (`direct-project-composition-plan.ts`),
+   * and lowering's member lists and declared-type checks (`classMembersOf`, `scriptMemberNames` and
+   * the refined-type filter in `lower-official-bound.ts`). Lowering a body reads `refinedProgram`.
+   */
   readonly program: GodotBoundScript;
   readonly class: BoundGodotScriptClass;
   readonly inheritance: BoundGodotScriptInheritance;
@@ -79,7 +86,7 @@ export interface BoundGodotSourceScript {
   readonly settingTypes: readonly BoundGodotTypedValue[];
   /** Datatypes the project fixes where the analyzer left a node untyped (`refineDatatypes`). */
   readonly refinedTypes: readonly BoundGodotRefinedType[];
-  /** The program with `settingTypes` and `refinedTypes` in place (`refinedProgram`): the one lowering reads. */
+  /** The program with `settingTypes` and `refinedTypes` in place (`refinedProgram`): the one lowering lowers (`lower-official-bound.ts`). */
   readonly refinedProgram: GodotBoundScript;
   /** Calls to the Variant utilities whose result depends on the function (`VariantUtilityShape`). */
   readonly utilityCalls: readonly { readonly nodeId: number; readonly shape: VariantUtilityShape }[];

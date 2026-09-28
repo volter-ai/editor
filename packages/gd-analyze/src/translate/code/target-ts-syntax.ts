@@ -203,6 +203,13 @@ export type TargetTsStatement =
       readonly kind: 'block-statement';
       readonly body: readonly TargetTsStatement[];
     })
+  | (TargetTsStatementBase & {
+      readonly kind: 'try-statement';
+      readonly body: readonly TargetTsStatement[];
+      /** The caught value's name, bound in `handler`. */
+      readonly binding: string;
+      readonly handler: readonly TargetTsStatement[];
+    })
   | (TargetTsStatementBase & { readonly kind: 'break-statement' })
   | (TargetTsStatementBase & { readonly kind: 'continue-statement' })
   | (TargetTsStatementBase & { readonly kind: 'empty-statement' });

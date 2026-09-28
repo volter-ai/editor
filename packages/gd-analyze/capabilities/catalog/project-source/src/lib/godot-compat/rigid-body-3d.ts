@@ -156,7 +156,12 @@ export function godot_rigid_body_3d_integrate(object: object | null, integrate: 
     object: (rid) => rid,
   };
   state.contact_count = server.contacts.length;
-  integrate(godot_direct_body_state(server));
+  // A script error aborts only `_integrate_forces`; the body takes what it set (GODOT.md §Order of work).
+  try {
+    integrate(godot_direct_body_state(server));
+  } catch (error) {
+    console.error(error);
+  }
   body.setLinvel(server.linear_velocity, true);
   body.setAngvel(server.angular_velocity, true);
 }

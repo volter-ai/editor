@@ -255,6 +255,8 @@ interface PreparedAssignmentTarget {
   readonly beforeAssigned: readonly TargetTsStatement[];
   readonly afterAssigned: readonly TargetTsStatement[];
   readonly target: TargetTsExpression;
+  /** Where Godot may drop the store: the store (and a compound's read) happens only when this holds. */
+  readonly guard?: TargetTsExpression;
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
 }
 
@@ -269,29 +271,17 @@ function fromEnd(array: TargetTsExpression, index: TargetTsExpression): TargetTs
 }
 
 /**
- * `if (place < 0 || place >= a.length) throw new RangeError(…)`: a store outside the array is
- * Godot's script error, not a growth (`VariantIndexedSetGet_Array::set`,
- * core/variant/variant_setget.cpp:690; "Out of bounds set index", gdscript_vm.cpp:1095). A place
- * known non-negative checks only the upper bound.
+ * `0 <= place && place < a.length`: whether an Array store lands. A store outside the array is
+ * dropped: `VariantIndexedSetGet_Array::set` refuses it (core/variant/variant_setget.cpp:690), and
+ * only a debug build reports that as an error ("Out of bounds set index", gdscript_vm.cpp:1084-1098,
+ * under `DEBUG_ENABLED`); the release build the originals ship as carries on without storing. A
+ * place known non-negative checks only the upper bound.
  */
-function arrayStoreBoundsCheck(array: TargetTsExpression, index: TargetTsExpression, place: TargetTsExpression, nonNegative: boolean): TargetTsStatement {
-  const above: TargetTsExpression = { kind: 'binary-expression', operator: '>=', left: place, right: { kind: 'property-expression', object: array, property: 'length' } };
-  return {
-    kind: 'if-statement',
-    condition: nonNegative
-      ? above
-      : { kind: 'binary-expression', operator: '||', left: { kind: 'binary-expression', operator: '<', left: place, right: { kind: 'literal-expression', value: 0 } }, right: above },
-    then: [
-      {
-        kind: 'throw-statement',
-        expression: {
-          kind: 'new-expression',
-          callee: { kind: 'identifier-expression', name: 'RangeError' },
-          arguments: [{ kind: 'binary-expression', operator: '+', left: { kind: 'literal-expression', value: 'Out of bounds set index ' }, right: index }],
-        },
-      },
-    ],
-  };
+function arrayStoreInRange(array: TargetTsExpression, place: TargetTsExpression, nonNegative: boolean): TargetTsExpression {
+  const below: TargetTsExpression = { kind: 'binary-expression', operator: '<', left: place, right: { kind: 'property-expression', object: array, property: 'length' } };
+  return nonNegative
+    ? below
+    : { kind: 'binary-expression', operator: '&&', left: { kind: 'binary-expression', operator: '>=', left: place, right: { kind: 'literal-expression', value: 0 } }, right: below };
 }
 
 function prepareAssignmentTarget(
@@ -336,31 +326,34 @@ function prepareAssignmentTarget(
     }
     const indexNode = context.node(node.index, node);
     const index = materialize(context, lower(context, indexNode));
+    const element = (place: TargetTsExpression): TargetTsExpression => ({ kind: 'element-expression', object: base.value, index: place, span: span(context.script, node) });
+    const nonNegative = indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int' && Number(indexNode.value.value) >= 0;
     if (godotBuiltinSubscriptShape(baseNode.datatype)?.kind === 'array-element') {
-      // Variant indexing counts a negative index from the end and refuses one outside the array
-      // (`VariantIndexedSetGet_Array::set`, core/variant/variant_setget.cpp:690): after the base,
-      // then the value, the index is evaluated once, settled to its place against the array's
-      // length, and checked before the store.
+      // Variant indexing counts a negative index from the end and drops a store outside the array
+      // (`arrayStoreInRange`): after the base, then the value, the index is evaluated once and
+      // settled to its place against the array's length.
       const requirements = context.structural(node, 'subscript-element', [baseNode, indexNode], 'subscript-element:array');
-      const nonNegative = indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int' && Number(indexNode.value.value) >= 0;
       const place = nonNegative ? index : materialize(context, expression(fromEnd(base.value, index.value)));
       return {
         beforeAssigned: base.before,
-        afterAssigned: [...index.before, ...(nonNegative ? [] : place.before), arrayStoreBoundsCheck(base.value, index.value, place.value, nonNegative)],
-        target: { kind: 'element-expression', object: base.value, index: place.value, span: span(context.script, node) },
+        afterAssigned: [...index.before, ...(nonNegative ? [] : place.before)],
+        target: element(place.value),
+        guard: arrayStoreInRange(base.value, place.value, nonNegative),
         requirements: [...requirements, ...base.requirements, ...index.requirements],
       };
     }
+    if (baseNode.datatype.kind === 'VARIANT') {
+      // An untyped base is keyed by its value at run time (`OPCODE_SET_KEYED`, gdscript_vm.cpp:988):
+      // an Array would store in range, a Dictionary set the key. Analysis left the value untyped,
+      // so no one store is known.
+      return context.refuse(node, 'an element store into an untyped value, which may be an Array or a Dictionary');
+    }
     const requirements = context.structural(node, 'subscript-element', [baseNode, indexNode]);
+    const target = element(index.value);
     return {
       beforeAssigned: base.before,
       afterAssigned: index.before,
-      target: {
-        kind: 'element-expression',
-        object: base.value,
-        index: index.value,
-        span: span(context.script, node),
-      },
+      target,
       requirements: [...requirements, ...base.requirements, ...index.requirements],
     };
   }
@@ -493,9 +486,9 @@ function nativeMemberReceiver(context: LoweringContext, node: GodotBoundNode, me
 }
 
 /**
- * Whether an object read as a member's base is a variable TS types as `T | null`: one Godot clears
- * to null (declared with no initializer, or `@onready`), as analysis resolved the read to its
- * declaration (`nullable-variables.ts`). A member read or call on null is Godot's runtime error (`OPCODE_GET_NAMED`, `gdscript_vm.cpp:1260`; `OPCODE_CALL`, `:1903`), so the read
+ * Whether an object read as a member's base is a variable TS types as `T | null`: one that holds
+ * null at some time (cleared to null, or initialized with or assigned a value that may be null), as
+ * analysis resolved the read to its declaration (`nullable-variables.ts`). A member read or call on null is Godot's runtime error (`OPCODE_GET_NAMED`, `gdscript_vm.cpp:1260`; `OPCODE_CALL`, `:1903`), so the read
  * states the object as present (`value!`) and a null one throws where Godot errs.
  */
 function nullableObject(context: LoweringContext, node: GodotBoundNode): boolean {
@@ -849,7 +842,7 @@ function assignablePlace(
   if (inherited !== undefined) return inherited;
   if (attributeTarget === undefined) {
     const target = prepareAssignmentTarget(context, node, lower);
-    if (target.afterAssigned.length > 0) {
+    if (target.afterAssigned.length > 0 || target.guard !== undefined) {
       return context.refuse(node, 'an indexed base of a value write-back needs its index settled');
     }
     return {
@@ -1050,7 +1043,8 @@ function prepareCallReference(
   return { before: prepared.before, callee: prepared.value };
 }
 
-type AssignmentCombine = (read: TargetTsExpression, value: TargetTsExpression) => TargetTsExpression;
+/** A compound store's new value from the place's old value and the assigned one; it may need statements of its own. */
+type AssignmentCombine = (read: TargetTsExpression, value: TargetTsExpression) => LoweredExpression;
 
 /** A write to the native base's property (`velocity = v`): its setter on the instance. */
 function inheritedNativePlace(
@@ -1091,29 +1085,35 @@ function assignment(
       : undefined);
   if (place !== undefined) {
     const value = materialize(context, assigned);
+    const stored = settle(context, combine === undefined ? expression(value.value) : combine(place.read, value.value));
     return {
-      before: [...place.before, ...value.before],
-      value: place.write(combine === undefined ? value.value : combine(place.read, value.value)),
+      before: [...place.before, ...value.before, ...stored.before],
+      value: place.write(stored.value),
       after: [],
-      requirements: [...ownRequirements, ...place.requirements, ...value.requirements],
+      requirements: [...ownRequirements, ...place.requirements, ...value.requirements, ...stored.requirements],
     };
   }
   const target = prepareAssignmentTarget(context, targetNode, lower);
   const value = materialize(context, assigned);
-  return {
-    // Godot evaluates the base/intermediate chain, then the RHS, then the final index and old
-    // lvalue. JavaScript's native assignment order differs, so all four phases are explicit.
-    before: [...target.beforeAssigned, ...value.before, ...target.afterAssigned],
-    value: {
-      kind: 'assignment-expression',
-      operator: '=',
-      target: target.target,
-      value: combine === undefined ? value.value : combine(target.target, value.value),
-      span: span(context.script, node),
-    },
-    after: [],
-    requirements: [...ownRequirements, ...target.requirements, ...value.requirements],
-  };
+  // Godot evaluates the base/intermediate chain, then the RHS, then the final index and old
+  // lvalue. JavaScript's native assignment order differs, so all four phases are explicit.
+  const sequenced = [...target.beforeAssigned, ...value.before, ...target.afterAssigned];
+  // Under its guard the place is in range, so a compound's read of it is present.
+  const read: TargetTsExpression = target.guard === undefined ? target.target : { kind: 'non-null-expression', expression: target.target };
+  const stored = settle(context, combine === undefined ? expression(value.value) : combine(read, value.value));
+  const store: TargetTsExpression = { kind: 'assignment-expression', operator: '=', target: target.target, value: stored.value, span: span(context.script, node) };
+  const requirements = [...ownRequirements, ...target.requirements, ...value.requirements, ...stored.requirements];
+  if (target.guard !== undefined) {
+    // A store Godot may drop is a statement under its guard; the expression left is the assigned
+    // value, which a statement drops (`expressionStatement`).
+    return {
+      before: [...sequenced, { kind: 'if-statement', condition: target.guard, then: [...stored.before, { kind: 'expression-statement', expression: store }] }],
+      value: value.value,
+      after: [],
+      requirements,
+    };
+  }
+  return { before: [...sequenced, ...stored.before], value: store, after: [], requirements };
 }
 
 function assignmentBinaryOperator(
@@ -1590,11 +1590,22 @@ export function lowerOfficialExpression(
    * reading the operand as that type. A result that is an int in one branch and a float in another
    * is tagged again; any other result is plain.
    */
-  function numericSwitch(context: LoweringContext, node: GodotBoundNode, operandIds: readonly number[]): { readonly lowered: LoweredExpression; readonly types: ReadonlySet<string> } {
+  function numericSwitch(
+    context: LoweringContext,
+    node: GodotBoundNode,
+    operandIds: readonly number[],
+    given?: ReadonlyMap<number, TargetTsExpression>,
+  ): { readonly lowered: LoweredExpression; readonly types: ReadonlySet<string> } {
     const operands = operandIds.map((id) => context.rawNode(id, node));
     const settled = operands.map((operand) => {
       const isTagged = tagged(context, operand);
-      const value = materialize(context, isTagged ? lowerExpression(context, operand) : lowerExpression(context, context.node(operand.id, node)));
+      const supplied = given?.get(operand.id);
+      const value =
+        supplied === undefined
+          ? materialize(context, isTagged ? lowerExpression(context, operand) : lowerExpression(context, context.node(operand.id, node)))
+          : supplied.kind === 'identifier-expression'
+            ? expression(supplied)
+            : materialize(context, expression(supplied));
       return { operand, isTagged, value };
     });
     const taggedOperands = settled.filter((entry) => entry.isTagged);
@@ -1695,33 +1706,52 @@ export function lowerOfficialExpression(
     if (node.kind !== 'ASSIGNMENT') return numericSwitch(context, node, operandsOf(node)).lowered;
     const assignee = context.rawNode(node.assignee, node);
     const valueNode = context.rawNode(node.assignedValue, node);
-    // The value stored: the plain or tagged value, or a compound's operator switched over the tags
-    // (`a op= b` reads as `a op b`).
-    let value: LoweredExpression;
-    let types: ReadonlySet<string>;
+    const structural = context.structural(node, 'numeric-store', [], 'numeric-store');
     if (node.operation === 'OP_NONE') {
-      value = lowerExpression(context, tagged(context, valueNode) ? valueNode : context.node(valueNode.id, node));
-      types = context.numericTypes(valueNode) ?? new Set([plainType(context, valueNode) ?? 'unknown']);
-    } else {
-      const binary = {
-        ...node,
-        kind: 'BINARY_OPERATOR',
-        leftOperand: node.assignee,
-        rightOperand: node.assignedValue,
-      } as unknown as GodotBoundNode;
-      if (!tagged(context, assignee) && !tagged(context, valueNode)) {
-        return context.refuse(node, 'a compound assignment reaching an int-or-float variable reads neither operand as one');
-      }
-      const switched = numericSwitch(context, binary, [node.assignee, node.assignedValue]);
-      value = switched.lowered;
-      types = switched.types;
+      const value = lowerExpression(context, tagged(context, valueNode) ? valueNode : context.node(valueNode.id, node));
+      const stored = numericStored(context, node, assignee, valueNode, value, context.numericTypes(valueNode) ?? new Set([plainType(context, valueNode) ?? 'unknown']));
+      return assignment(context, node, undefined, assignee, stored, lowerExpression, structural);
     }
+    // A compound (`a op= b` reads as `a op b`) switches its operator over the tags, reading the old
+    // value from the place the store prepares, so the place's base and index are evaluated once.
+    if (!tagged(context, assignee) && !tagged(context, valueNode)) {
+      return context.refuse(node, 'a compound assignment reaching an int-or-float variable reads neither operand as one');
+    }
+    const binary = {
+      ...node,
+      kind: 'BINARY_OPERATOR',
+      leftOperand: node.assignee,
+      rightOperand: node.assignedValue,
+    } as unknown as GodotBoundNode;
+    const value = lowerExpression(context, tagged(context, valueNode) ? valueNode : context.node(valueNode.id, node));
+    return assignment(
+      context,
+      node,
+      (read, assigned) => {
+        const switched = numericSwitch(context, binary, [node.assignee, node.assignedValue], new Map([[assignee.id, read], [valueNode.id, assigned]]));
+        return numericStored(context, node, assignee, valueNode, switched.lowered, switched.types);
+      },
+      assignee,
+      value,
+      lowerExpression,
+      structural,
+    );
+  }
+
+  /** The value an int-or-float store writes into its place: tagged, converted or plain as the place takes it. */
+  function numericStored(
+    context: LoweringContext,
+    node: GodotBoundNode,
+    assignee: GodotBoundNode,
+    valueNode: GodotBoundNode,
+    value: LoweredExpression,
+    types: ReadonlySet<string>,
+  ): LoweredExpression {
     const isTagged = types.size > 1;
-    let stored: LoweredExpression;
-    const requirements: OfficialBoundLoweringRequirement[] = [];
     if (context.isNumericVariable(assignee)) {
-      stored = isTagged ? value : numericTag(context, node, { ...valueNode, datatype: builtinDatatype([...types][0] as string) } as GodotBoundNode, value, [...types][0]);
-    } else if (isTagged) {
+      return isTagged ? value : numericTag(context, node, { ...valueNode, datatype: builtinDatatype([...types][0] as string) } as GodotBoundNode, value, [...types][0]);
+    }
+    if (isTagged) {
       // A tagged number into a typed place converts (`write_assign_with_conversion`): an int place
       // truncates a float (`Variant::operator int64_t`), a float place takes either as its value.
       const place = plainType(context, assignee);
@@ -1729,21 +1759,18 @@ export function lowerOfficialExpression(
       if (name === undefined) {
         return context.refuse(node, `an int-or-float value stored into a ${assignee.datatype.display} place, which no conversion takes`);
       }
-      stored = {
+      return {
         ...value,
         value: numericCall(name, value.value),
         requirements: [...value.requirements, ...context.structural(node, 'numeric-convert', [assignee], 'numeric-convert'), numericImport(name)],
       };
-    } else {
-      const type = [...types][0];
-      const place = plainType(context, assignee);
-      if (!godotNumericStoresAs(type, place)) {
-        return context.refuse(node, `a ${type ?? 'value'} from an int-or-float operation stored into a ${assignee.datatype.display} place`);
-      }
-      stored = value;
     }
-    requirements.push(...context.structural(node, 'numeric-store', [], 'numeric-store'));
-    return assignment(context, node, undefined, assignee, stored, lowerExpression, requirements);
+    const type = [...types][0];
+    const place = plainType(context, assignee);
+    if (!godotNumericStoresAs(type, place)) {
+      return context.refuse(node, `a ${type ?? 'value'} from an int-or-float operation stored into a ${assignee.datatype.display} place`);
+    }
+    return value;
   }
 
   // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: exhaustive official expression union
@@ -2118,7 +2145,7 @@ export function lowerOfficialExpression(
           return assignment(
             context,
             node,
-            (read, value) => bindingCall(context, node, use, [read, value]),
+            (read, value) => expression(bindingCall(context, node, use, [read, value])),
             assigneeNode,
             lowerExpression(context, valueNode),
             lowerExpression,
@@ -2133,12 +2160,7 @@ export function lowerOfficialExpression(
           node,
           binaryOperator === undefined
             ? undefined
-            : (read, value) => ({
-                kind: 'binary-expression',
-                operator: binaryOperator,
-                left: read,
-                right: value,
-              }),
+            : (read, value) => expression({ kind: 'binary-expression', operator: binaryOperator, left: read, right: value }),
           assigneeNode,
           node.operation === 'OP_NONE'
             ? convertedValue(context, assigneeNode, valueNode, lowerExpression(context, valueNode))

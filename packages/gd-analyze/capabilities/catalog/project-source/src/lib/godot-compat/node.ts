@@ -285,9 +285,18 @@ export function godot_node_adopt(
   if (options.authority !== undefined) state.authority = options.authority;
   if (options.binding !== undefined) {
     const owner = options.binding.owner as Record<string, unknown>;
-    // The tree notifications the script answers, its own or a base script's methods.
+    // The tree notifications the script answers, its own or a base script's methods. A script error
+    // aborts only that callback: it is reported and the tree carries on (GODOT.md §Order of work).
     const virtual = (method: string): (() => void) | undefined =>
-      typeof owner[method] === 'function' ? () => (owner[method] as () => void).call(owner) : undefined;
+      typeof owner[method] === 'function'
+        ? () => {
+            try {
+              (owner[method] as () => void).call(owner);
+            } catch (error) {
+              console.error(error);
+            }
+          }
+        : undefined;
     const enterTree = virtual('_enter_tree');
     const ready = virtual('_ready');
     const exitTree = virtual('_exit_tree');

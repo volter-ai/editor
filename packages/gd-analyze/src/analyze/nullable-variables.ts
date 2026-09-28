@@ -1,9 +1,11 @@
 /**
  * The variables that hold null at some time, and the reads of each (`nullable-variable`): a
  * variable declared with no initializer, or `@onready` (whose initializer runs only at `_ready`),
- * holds null until a store (`gdscript_compiler.cpp:2365`, `:2398`), as does one initialized or
- * assigned the `null` literal. A variable of a hard built-in type never holds null (the compiler
- * clears it to its type's default and a `null` store to it does not compile). Lowering types such a
+ * holds null until a store (`gdscript_compiler.cpp:2365`, `:2398`), as does one initialized with or
+ * assigned (by name or as `self.x`) a value that may be null: `null`, a constant holding null, a
+ * `get_node_or_null` call (`Node::get_node_or_null`, scene/main/node.cpp:1904) or a ternary with
+ * such a branch. A variable of a hard built-in type never holds null (the compiler clears it to its
+ * type's default and a `null` store to it does not compile). Lowering types such a
  * declaration `T | null` and states an object read from it as present where Godot errs on null
  * (`OPCODE_GET_NAMED`, `gdscript_vm.cpp:1260`).
  *
@@ -65,7 +67,17 @@ function extent(node: GodotBoundNode): number {
   return (node.endLine - node.startLine) * 100_000 + (node.endColumn - node.startColumn);
 }
 
-const isNullLiteral = (node: GodotBoundNode | undefined) => node?.kind === 'LITERAL' && node.value.kind === 'nil';
+/** Whether a stored value may be null: `null` or a constant holding it, `get_node_or_null`, or a ternary with such a branch. */
+function mayBeNull(program: GodotBoundScript, id: number): boolean {
+  const node = program.nodes[id];
+  if (node === undefined) return false;
+  // The analyzer types `null`, and a constant holding it, as Nil.
+  if (node.datatype.kind === 'BUILTIN' && node.datatype.builtinType === 'Nil' && !node.datatype.metaType) return true;
+  if (node.kind === 'LITERAL') return (node.reduced ? node.reducedValue : node.value).kind === 'nil';
+  if (node.kind === 'CALL') return node.functionName === 'get_node_or_null';
+  if (node.kind === 'TERNARY_OPERATOR') return mayBeNull(program, node.trueExpression) || mayBeNull(program, node.falseExpression);
+  return false;
+}
 
 /** A variable the compiler holds to a built-in type (`var x: int`, `var x := 0`), which is never null. */
 function hardBuiltin(declaration: Variable): boolean {
@@ -94,6 +106,7 @@ export function nullableVariables(inputs: NullableVariableInputs): ReadonlyMap<s
 
   // Each script's IDENTIFIERs resolved to what they name.
   const resolvedByScript = new Map<string, ReadonlyMap<number, Resolved>>();
+  const selfMembersByScript = new Map<string, ReadonlyMap<number, Resolved>>();
   for (const program of inputs.programs) {
     const locals: { readonly declaration: Variable; readonly name: string; readonly block: GodotBoundNode }[] = [];
     for (const node of program.nodes) {
@@ -128,22 +141,37 @@ export function nullableVariables(inputs: NullableVariableInputs): ReadonlyMap<s
         resolved.set(node.id, declaring === undefined || declaration === undefined ? { resPath: program.resPath, name: node.name } : { resPath: declaring, declaration });
       }
     }
+    // `self.x` names the member x of the class `self` is: the innermost class containing it, else
+    // the script's class up its ancestors (a store target; not a read of an IDENTIFIER).
+    const selfMembers = new Map<number, Resolved>();
+    for (const node of program.nodes) {
+      if (node.kind !== 'SUBSCRIPT' || !node.isAttribute || program.nodes[node.base]?.kind !== 'SELF') continue;
+      const name = identifierName(program, node.attribute);
+      if (name === undefined) continue;
+      const inner = innerClassOf(node);
+      const declaring = inner === undefined ? [program.resPath, ...inputs.scriptAncestors(program.resPath)].find((resPath) => rootMembers.get(resPath)?.has(name) === true) : undefined;
+      const declaration = inner !== undefined ? inner.members.get(name) : declaring === undefined ? undefined : rootMembers.get(declaring)?.get(name);
+      if (declaration !== undefined) selfMembers.set(node.id, { resPath: declaring ?? program.resPath, declaration });
+    }
+    selfMembersByScript.set(program.resPath, selfMembers);
     resolvedByScript.set(program.resPath, resolved);
   }
 
-  // The nullable declarations, by script: cleared to null or initialized null, then stored null.
+  // The nullable declarations, by script: cleared to null or initialized with a value that may be
+  // null, then stored one.
   const nullable = new Map<string, Set<Variable>>(inputs.programs.map((program) => [program.resPath, new Set<Variable>()] as const));
   for (const program of inputs.programs) {
     for (const node of program.nodes) {
       if (node.kind !== 'VARIABLE' || hardBuiltin(node)) continue;
-      if (node.initializer < 0 || node.onready || isNullLiteral(program.nodes[node.initializer])) nullable.get(program.resPath)?.add(node);
+      if (node.initializer < 0 || node.onready || mayBeNull(program, node.initializer)) nullable.get(program.resPath)?.add(node);
     }
   }
   for (const program of inputs.programs) {
     const resolved = resolvedByScript.get(program.resPath);
+    const selfMembers = selfMembersByScript.get(program.resPath);
     for (const node of program.nodes) {
-      if (node.kind !== 'ASSIGNMENT' || node.operation !== 'OP_NONE' || !isNullLiteral(program.nodes[node.assignedValue])) continue;
-      const target = resolved?.get(node.assignee);
+      if (node.kind !== 'ASSIGNMENT' || node.operation !== 'OP_NONE' || !mayBeNull(program, node.assignedValue)) continue;
+      const target = resolved?.get(node.assignee) ?? selfMembers?.get(node.assignee);
       if (target !== undefined && 'declaration' in target && !hardBuiltin(target.declaration)) nullable.get(target.resPath)?.add(target.declaration);
     }
   }

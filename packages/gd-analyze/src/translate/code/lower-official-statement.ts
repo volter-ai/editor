@@ -115,14 +115,20 @@ function expressionStatement(
   node: GodotBoundNode,
   plan: LoweredExpression,
 ): LoweredStatements {
+  // A value with no effect of its own (what a store made of statements leaves) is not a statement.
+  const inert = plan.value.kind === 'identifier-expression' || plan.value.kind === 'literal-expression';
   return {
     statements: [
       ...plan.before,
-      {
-        kind: 'expression-statement',
-        expression: plan.value,
-        span: officialBoundSpan(context.script, node),
-      },
+      ...(inert
+        ? []
+        : [
+            {
+              kind: 'expression-statement' as const,
+              expression: plan.value,
+              span: officialBoundSpan(context.script, node),
+            },
+          ]),
       ...plan.after,
     ],
     requirements: plan.requirements,

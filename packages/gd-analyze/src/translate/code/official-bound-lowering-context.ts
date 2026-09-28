@@ -250,7 +250,7 @@ export class LoweringContext {
     readonly numericVariants?: ScriptNumericVariants,
   ) {
     this.#numericVariables = new Set(numericVariants?.variables ?? []);
-    this.#numericNodeTypes = new Map((numericVariants?.nodeTypes ?? []).map((entry) => [entry.nodeId, entry] as const));
+    this.#numericNodeTypes = new Map(numericVariants?.nodeTypes.map((entry) => [entry.nodeId, entry] as const));
     for (const entry of numericVariants?.taggedArguments ?? []) {
       const call = script.nodes[entry.callId];
       if (call?.kind !== 'CALL') continue;

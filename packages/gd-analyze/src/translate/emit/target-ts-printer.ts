@@ -540,6 +540,12 @@ function statement(value: TargetTsStatement): ts.Statement {
       );
     case 'block-statement':
       return ts.factory.createBlock(value.body.map(statement), true);
+    case 'try-statement':
+      return ts.factory.createTryStatement(
+        ts.factory.createBlock(value.body.map(statement), true),
+        ts.factory.createCatchClause(value.binding, ts.factory.createBlock(value.handler.map(statement), true)),
+        undefined,
+      );
     case 'break-statement':
       return ts.factory.createBreakStatement();
     case 'continue-statement':
