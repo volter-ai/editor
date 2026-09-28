@@ -645,7 +645,9 @@ export function godot_node_entity<Value>(object: Value): GodotNativeOf<Value> {
  * @godot Node (protocol)
  * @source scene/main/node.cpp:298
  */
-export function godot_node_free(entity: object): void {
+export function godot_node_free(object: object): void {
+  // A stand-in freed after its scene mounted frees the mounted root.
+  const entity = entityOf(object);
   const state = NODE.get(entity);
   const parent = parentEntity(entity);
   if (parent !== null && NODE.has(parent)) removeChild(parent, entity);
@@ -792,7 +794,8 @@ function validateChildName(parent: object, child: object): void {
   const name = nameOf(child);
   const taken = childEntities(parent).some((sibling) => sibling !== child && nameOf(sibling) === name);
   if (name === '' || taken) {
-    const className = stateOf(child).kind === 'node' ? 'Node' : 'Node3D';
+    const state = stateOf(child);
+    const className = state.classes?.[0] ?? (state.kind === 'node' ? 'Node' : 'Node3D');
     (child as { name: string }).name = `@${className}@${String((serial += 1))}`;
   }
 }
@@ -1551,7 +1554,7 @@ export function godot_node_add_unmounted(handler: (parent: object, child: object
  * held until then: every call through either reaches the mounted node. It takes what the script
  * set on the stand-in before `add_child`, which Godot's instantiated node already held: its name
  * (which `add_child` then makes unique among its siblings), groups (joining the scene's own),
- * process mode and priorities, and the connections to its `ready`, `tree_entered` and
+ * process mode and priorities, a `queue_free` (freed with the stand-in's), and the connections to its `ready`, `tree_entered` and
  * `tree_exiting` signals where the scene connected none of its own to that signal (where both
  * did, the scene's are kept and the script's lost). Not carried: a native class test
  * (`as Node3D`) on a script-less stand-in, which has no class until it mounts.
@@ -1570,6 +1573,7 @@ export function godot_node_stand_in(standIn: object, mounted: object): void {
   if (held.processMode !== PROCESS_MODE_INHERIT) state.processMode = held.processMode;
   if (held.processPriority !== 0) state.processPriority = held.processPriority;
   if (held.physicsProcessPriority !== 0) state.physicsProcessPriority = held.physicsProcessPriority;
+  if (held.queued) state.queued = true;
   if (held.ready.signal.hasConnections() && !state.ready.signal.hasConnections()) state.ready = held.ready;
   if (held.treeEntered.signal.hasConnections() && !state.treeEntered.signal.hasConnections()) state.treeEntered = held.treeEntered;
   if (held.treeExiting.signal.hasConnections() && !state.treeExiting.signal.hasConnections()) state.treeExiting = held.treeExiting;
