@@ -194,9 +194,21 @@ skips the frame or unmounts the game.
    pinned `5b4e0cb0` tree and re-pinned: exporter source `9e93aa85…`, executable `5fba713d…`,
    stored at `/Volumes/GodotWork/tools/godot-4.7-bound-exporter-volter/` (the old `c8034e90…`
    binary no longer matches). The 4.6 row was already stale, and its binary still speaks the
-   retired `vgai.*` protocol, so its re-pin is open. The frozen import lock resolves `@volter/*`
-   at `^0.5.74`. `main` publishes every push (`38bfb751`), so landing `godot` on `main` publishes
-   the editor packages it changes (`editor-game`, `editor-threejs`).
+   retired `vgai.*` protocol, so its re-pin is open. `main` publishes every push (`38bfb751`), so
+   landing `godot` on `main` publishes the editor packages it changes (`editor-game`,
+   `editor-threejs`, `game-editor`, `threejs-runtime`).
+   Merged with `main` again (0.5.76): the import plan asks for the repository's own `@volter/*`
+   versions, so after each merge the frozen import lock (`toolchain/package-lock.json`) is
+   re-resolved, now at `^0.5.76`. The recipe:
+   - rebuild `package.json` from the lock's own root entry, with every `@volter/*` range moved
+     to the new version;
+   - add the template's `overrides` (`packages/game-editor/template/package.json`, which pins
+     drei's `stats-gl`), since a lock's root entry does not record them;
+   - run `npm@11 install --package-lock-only` over the previous lock, which keeps npm's libc
+     filters and the `lock-template` name.
+   Only a version whose whole lockstep set is published resolves: the `@volter` packages pin each
+   other exactly, and `game-editor` 0.5.76 sat staged on npm for a while after its release run
+   reported success.
    Walks compare with Godot's web exports, which render with the Compatibility renderer, while
    the lane draws with three, which lights as Forward+ does. So compat reports `forward_plus` from
    `get_current_rendering_method()`. A game's own Compatibility-only branch (the 3D platformer kit's
