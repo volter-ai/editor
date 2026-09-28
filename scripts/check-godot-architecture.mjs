@@ -27,9 +27,44 @@ const API_DUMP = `${LANE}/vendor/extension-api/godot-4.7-extension_api.json`;
 const dump = JSON.parse(readFileSync(join(root, API_DUMP), 'utf8'));
 const CLASSES = dump.classes.map((entry) => entry.name);
 const NAMES = CLASSES.map((name) => name.replace(/[$^.*+?()[\]{}|\\]/g, '\\$&')).join('|');
+/** Godot's built-in value types (`Array`, `Dictionary`, `Vector3`): lowering selects by them through rule data, never by name. */
+const BUILTINS = (dump.builtin_classes ?? []).map((entry) => entry.name).join('|');
 
 /** Each rule: the row it guards, where it looks, and the code it finds. */
 const RULES = [
+  {
+    // The pipeline's phases called anywhere but `import-project.ts`: a report or runner observes
+    // through its entry points (`withCapturedGodotProject`, `withBoundGodotProject`, …).
+    id: 'phase-call-outside-pipeline',
+    row: 1,
+    dirs: [`${LANE}/src/report`, `${LANE}/src/run`],
+    files: [`${LANE}/src/cli.ts`],
+    pattern: /\b(?:planGodotTranslation|emitGodotTranslation|materializeGodotProjectSnapshot|readGodotProjectSnapshot|captureGodotBoundProgram(?:FromSnapshot)?|bindGodotProject|captureGodotProjectSnapshot)\s*\(/g,
+  },
+  {
+    // Emit deciding by a setter's name: the plan stamps what a setter is (its idiom, slot or
+    // written form) and emit prints it.
+    id: 'emit-setter-name-decision',
+    row: 2,
+    dirs: [EMIT],
+    pattern: /exportName\s*[!=]==\s*'[^']+'|'[^']+'\s*[!=]==\s*[\w.?]*exportName\b/g,
+  },
+  {
+    // Emit walking the project's other scenes to decide something about this one: the plan decides
+    // it (`scene-refs.ts`) and emit prints it.
+    id: 'emit-project-walk',
+    row: 2,
+    dirs: [EMIT],
+    pattern: /\bproject\.scenes\.(?:some|filter|every|flatMap|reduce)\(/g,
+  },
+  {
+    // Lowering comparing a built-in type's name: which shape a type lowers to is rule data
+    // (`language-rules.json`, `lowering-shapes.ts`), not a branch in lowering.
+    id: 'lowering-builtin-name',
+    row: 3,
+    dirs: [LOWERING],
+    pattern: new RegExp(`[!=]==\\s*'(?:${BUILTINS})'|'(?:${BUILTINS})'\\s*[!=]==|\\bnew Set\\(\\[\\s*'(?:${BUILTINS})'`, 'g'),
+  },
   {
     id: 'class-name-switch',
     row: 3,
@@ -109,7 +144,7 @@ const withoutComments = (code) => code.replace(/\/\*[\s\S]*?\*\//g, '').replace(
 /** Every finding as `rule | file | matched text #n`, n counting repeats of the same text in a file. */
 const findings = [];
 for (const rule of RULES) {
-  const files = (rule.files ?? rule.dirs.flatMap((dir) => walk(join(root, dir)).map((file) => relative(root, file)))).filter((file) => !(rule.exclude ?? []).includes(file));
+  const files = [...(rule.files ?? []), ...(rule.dirs ?? []).flatMap((dir) => walk(join(root, dir)).map((file) => relative(root, file)))].filter((file) => !(rule.exclude ?? []).includes(file));
   for (const rel of files) {
     const seen = new Map();
     for (const match of withoutComments(readFileSync(join(root, rel), 'utf8')).matchAll(rule.pattern)) {
