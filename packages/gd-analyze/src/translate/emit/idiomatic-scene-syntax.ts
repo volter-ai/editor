@@ -337,6 +337,8 @@ const BODY_DATA: Readonly<Record<string, string>> = {
   set_collision_mask: 'collision_mask',
   set_ray_pickable: 'input_ray_pickable',
   set_mass: 'mass',
+  set_linear_damp_mode: 'linear_damp_mode',
+  set_angular_damp_mode: 'angular_damp_mode',
   set_lock_rotation_enabled: 'lock_rotation',
   set_use_custom_integrator: 'custom_integrator',
   set_contact_monitor: 'contact_monitor',
@@ -383,6 +385,7 @@ function bodyProps(
     } else if (name === 'set_gravity_scale') props.set('gravityScale', literal(plainValue(entry.value) as number));
     else if (name === 'set_linear_damp') props.set('linearDamping', literal(plainValue(entry.value) as number));
     else if (name === 'set_angular_damp') props.set('angularDamping', literal(plainValue(entry.value) as number));
+    else if (name === 'set_use_continuous_collision_detection') props.set('ccd', literal(plainValue(entry.value) as boolean));
     else if (name === 'set_physics_material_override') {
       material = entry.value.kind === 'resource' ? resources.get(entry.value.key) : undefined;
       if (material !== undefined) data['physics_material_override'] = materialData(material);

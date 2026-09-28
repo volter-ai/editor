@@ -29,6 +29,10 @@ interface RigidState {
   mass: number;
   gravity_scale: number;
   linear_damp: number;
+  angular_damp: number;
+  linear_damp_mode: number;
+  angular_damp_mode: number;
+  continuous_cd: boolean;
   custom_integrator: boolean;
   contact_monitor: boolean;
   max_contacts_reported: number;
@@ -45,10 +49,16 @@ function stateOf(object: object): RigidState {
   let state = RIGID.get(entity);
   if (state === undefined) {
     const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+    // The values the scene authored are the body's own props (`gravityScale`, `linearDamping`, …).
+    const body = godot_collision_object_body(entity);
     state = {
       mass: data['mass'] === undefined ? 1 : f32(Number(data['mass'])),
-      gravity_scale: 1,
-      linear_damp: 0,
+      gravity_scale: body === undefined ? 1 : f32(body.gravityScale()),
+      linear_damp: body === undefined ? 0 : f32(body.linearDamping()),
+      angular_damp: body === undefined ? 0 : f32(body.angularDamping()),
+      linear_damp_mode: data['linear_damp_mode'] === undefined ? 0 : Number(data['linear_damp_mode']),
+      angular_damp_mode: data['angular_damp_mode'] === undefined ? 0 : Number(data['angular_damp_mode']),
+      continuous_cd: body?.isCcdEnabled() ?? false,
       custom_integrator: data['custom_integrator'] === true,
       contact_monitor: data['contact_monitor'] === true,
       max_contacts_reported: data['max_contacts_reported'] === undefined ? 0 : Number(data['max_contacts_reported']) | 0,
@@ -68,6 +78,8 @@ function apply(entity: object, state: RigidState): void {
   if (body === undefined) return;
   body.setGravityScale(state.custom_integrator ? 0 : state.gravity_scale, true);
   body.setLinearDamping(state.custom_integrator ? 0 : state.linear_damp);
+  body.setAngularDamping(state.custom_integrator ? 0 : state.angular_damp);
+  body.enableCcd(state.continuous_cd);
   body.lockRotations(state.lock_rotation, true);
   if (state.material !== null) {
     const { friction, bounce } = godot_physics_material_computed(state.material);
@@ -213,6 +225,81 @@ export function set_linear_damp(self: object, linear_damp: number): void {
  */
 export function get_linear_damp(self: object): number {
   return stateOf(self).linear_damp;
+}
+
+/**
+ * @godot RigidBody3D.set_angular_damp
+ * @source scene/3d/physics/rigid_body_3d.cpp:461
+ */
+export function set_angular_damp(self: object, angular_damp: number): void {
+  const state = stateOf(self);
+  state.angular_damp = f32(angular_damp);
+  apply(godot_node_entity(self), state);
+}
+
+/**
+ * @godot RigidBody3D.get_angular_damp
+ * @source scene/3d/physics/rigid_body_3d.cpp:467
+ */
+export function get_angular_damp(self: object): number {
+  return stateOf(self).angular_damp;
+}
+
+/**
+ * Stored: a damp mode says how an area's damping combines with the body's, and the scene writes
+ * no damping areas, so the body's own damping is what Rapier applies either way.
+ *
+ * @godot RigidBody3D.set_linear_damp_mode
+ * @source scene/3d/physics/rigid_body_3d.cpp:433
+ */
+export function set_linear_damp_mode(self: object, mode: number): void {
+  stateOf(self).linear_damp_mode = mode;
+}
+
+/**
+ * @godot RigidBody3D.get_linear_damp_mode
+ * @source scene/3d/physics/rigid_body_3d.cpp:438
+ */
+export function get_linear_damp_mode(self: object): number {
+  return stateOf(self).linear_damp_mode;
+}
+
+/**
+ * Stored, as the linear mode is.
+ *
+ * @godot RigidBody3D.set_angular_damp_mode
+ * @source scene/3d/physics/rigid_body_3d.cpp:442
+ */
+export function set_angular_damp_mode(self: object, mode: number): void {
+  stateOf(self).angular_damp_mode = mode;
+}
+
+/**
+ * @godot RigidBody3D.get_angular_damp_mode
+ * @source scene/3d/physics/rigid_body_3d.cpp:447
+ */
+export function get_angular_damp_mode(self: object): number {
+  return stateOf(self).angular_damp_mode;
+}
+
+/**
+ * Rapier's continuous collision detection on the body.
+ *
+ * @godot RigidBody3D.set_use_continuous_collision_detection
+ * @source scene/3d/physics/rigid_body_3d.cpp:600
+ */
+export function set_use_continuous_collision_detection(self: object, enable: boolean): void {
+  const state = stateOf(self);
+  state.continuous_cd = Boolean(enable);
+  apply(godot_node_entity(self), state);
+}
+
+/**
+ * @godot RigidBody3D.is_using_continuous_collision_detection
+ * @source scene/3d/physics/rigid_body_3d.cpp:605
+ */
+export function is_using_continuous_collision_detection(self: object): boolean {
+  return stateOf(self).continuous_cd;
 }
 
 /**
