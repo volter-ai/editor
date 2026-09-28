@@ -129,6 +129,7 @@ import { bindPlayRecordingStop, endPlayRecording } from './play-recording';
 import { createReactPlayAuthoringAdapter } from './react-play-live-authoring';
 import { onThreeStore } from '@volter/editor-threejs/kit/three-state';
 import { presentViewportRoots } from '@volter/editor-threejs/viewport-door';
+import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
 
 /** Context needed by the orchestrator (passed from the world root's stage). */
 export interface PlayModeContext {
@@ -1603,6 +1604,7 @@ async function enterPlayModeInner(
   if (!gameContainer.style.contain) {
     gameContainer.style.cssText += GAME_SURFACE_CONTAINMENT_CSS;
   }
+  markGameSurface(gameContainer);
   markGameCssScope(gameContainer);
   setGameSurface(gameContainer);
 
@@ -1967,6 +1969,7 @@ export async function mountAdditionalInstance(
   if (!container.style.contain) {
     container.style.cssText += GAME_SURFACE_CONTAINMENT_CSS;
   }
+  markGameSurface(container);
   markGameCssScope(container);
   setGameSurface(container, mountId);
   const { mountManifestRoots } = await import('../runtime/mount-manifest');

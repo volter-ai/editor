@@ -445,6 +445,7 @@
     "./kit/editor-presentation-notice": "./src/kit/editor-presentation-notice.ts",
     "./kit/editor-view-presentation": "./src/kit/editor-view-presentation.ts",
     "./kit/game-globals-prelude": "./src/kit/game-globals-prelude.ts",
+    "./kit/game-surface-defaults": "./src/kit/game-surface-defaults.ts",
     "./kit/gameplay-export-state": "./src/kit/gameplay-export-state.ts",
     "./kit/hierarchy-panel-view": "./src/kit/hierarchy-panel-view.ts",
     "./kit/inspection/active-subject": "./src/kit/inspection/active-subject.ts",

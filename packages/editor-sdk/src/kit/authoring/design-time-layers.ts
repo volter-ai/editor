@@ -73,6 +73,7 @@ import {
 } from '@volter/editor-sdk/kit/world-pan-state';
 import { isRootHidden, isRootInteractive } from '@volter/editor-sdk/kit/authoring/world-session-state';
 import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
 
 /** D20: Play tears the design-time adapter down, so the selected CSF state
  * must live one level above that adapter to survive Stop's rebuild. Keyed by
@@ -242,9 +243,7 @@ function createLayerElement(
   layer.style.contain = 'layout paint';
   // A project's root renders as it ships: its inherited text properties start from a page's
   // defaults, not the editor's own typography, which would otherwise inherit into it.
-  layer.style.cssText +=
-    'font: initial; color: initial; letter-spacing: normal; word-spacing: normal;' +
-    ' text-align: start; text-indent: 0; text-transform: none; white-space: normal; direction: ltr;';
+  markGameSurface(layer);
   applySessionStyle(layer, worldId, candidate.kind);
   // D4 (spec27 §8 "space-pan" row) — seed this layer with whatever pan is
   // currently in effect (normally none — `mountDesignTimeLayers` resets pan

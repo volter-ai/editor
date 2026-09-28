@@ -49,17 +49,11 @@
  * pane — the one CSS primitive that does this without the side effects of the alternatives
  * (`transform`/`filter` also create the containing block but force a compositing layer and,
  * on the ADOPTED element itself, are exactly the stamp {@link claimHostSurfaceBox} exists to
- * clear).
- *
- * The inherited text properties start from a page's defaults, as the game's `<body>` does
- * when it ships: otherwise the editor's own typography (11px, its line height and colour)
- * inherited into the game's DOM, and a game's text rendered smaller in the editor than in
- * its build.
+ * clear). The inherited text defaults are `markGameSurface`'s
+ * (`@volter/editor-sdk/kit/game-surface-defaults`), at zero specificity so the game's own
+ * page rules win.
  */
-export const GAME_SURFACE_CONTAINMENT_CSS =
-  'contain: layout; font: initial; color: initial; letter-spacing: normal; word-spacing: normal;' +
-  ' text-align: start; text-indent: 0; text-transform: none; white-space: normal;' +
-  ' direction: ltr; cursor: auto; visibility: visible;';
+export const GAME_SURFACE_CONTAINMENT_CSS = 'contain: layout; visibility: visible;';
 
 /** `EventTarget`'s own listener identity is (type, callback, capture) — read
  *  the capture flag out of either options form so the page's registration

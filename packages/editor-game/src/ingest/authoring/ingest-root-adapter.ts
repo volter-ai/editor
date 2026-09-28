@@ -72,6 +72,7 @@ import { claimHostSurfaceBox, hostSurfaceBackingSize } from '../host-surface-box
 import { clearIngestFrameSource } from '../ingest-frame-snapshot';
 import { wireIngestSystems } from '../ingest-render-debug';
 import type { IngestGame } from '../types';
+import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
 
 export interface MountIngestOptions {
   /**
@@ -506,6 +507,7 @@ export async function mountIngestGame(
   const hostEl = document.createElement('div');
   hostEl.id = 'container';
   hostEl.style.cssText = `position:absolute;inset:0;width:100%;height:100%;overflow:hidden;${GAME_SURFACE_CONTAINMENT_CSS}`;
+  markGameSurface(hostEl);
   gameContainer.appendChild(hostEl);
 
   // THE GAME'S PAGE IS THIS BOX, from before its first module runs. A game
