@@ -472,7 +472,7 @@ export function ViewportFurniture({
           header's view control and the Home and numpad-period keys, as Blender's is its View
           menu. The Camera button is not drawn yet: looking through a scene camera is not a
           view this stage has. */}
-      {navigationControls ? (
+      {navigationControls && store.showGizmos ? (
       <div
         data-testid="viewport-navigation"
         role="toolbar"

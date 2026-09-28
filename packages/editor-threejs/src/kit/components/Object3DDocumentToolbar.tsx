@@ -13,6 +13,7 @@ import {
   Button,
   EditorBanner,
   EditorIcon,
+  editorIcons,
   EditorPopover,
   EditorToolbar,
   IconButton,
@@ -430,6 +431,20 @@ export function Object3DDocumentToolbar({
             </Text>
           </label>
         </ViewportDisplayModeMenu>
+        {/* BLENDER'S SHOW GIZMO (`View3D.show_gizmo`), beside Show Overlays as Blender's header
+            has them: this stage's transform and navigation gizmos, apart from its overlays. */}
+        {stage === null ? null : (
+          <Tooltip text={`Gizmos: ${stage.showGizmos ? 'On' : 'Off'}`}>
+            <IconButton
+              aria-label="Toggle gizmos"
+              aria-pressed={stage.showGizmos}
+              size="comfortable"
+              onClick={() => stage.toggleGizmos()}
+            >
+              <EditorIcon icon={editorIcons.viewport.gizmos} size="md" />
+            </IconButton>
+          </Tooltip>
+        )}
         {/* THE EYE WAS THE OVERLAYS CONTROL ALL ALONG — measured by what it
             toggles, which is Grid and Bounds, exactly Blender's Show Overlays
             subject. It takes Blender's mark, and Blender's split toggle+chevron:

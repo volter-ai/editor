@@ -445,6 +445,7 @@ function BlenderViewportArea({
       if (store === null || overlaysOpened.has(store)) return;
       overlaysOpened.add(store);
       if (store.showHelpers) store.toggleHelpers();
+      if (store.showGizmos) store.toggleGizmos();
     };
     opened();
     return subscribeStageStores(opened);

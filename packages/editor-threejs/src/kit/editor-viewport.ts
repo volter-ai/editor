@@ -3165,7 +3165,7 @@ export class EditorViewport {
     // same rationale as the per-notify `applyRootHiddenVisibility` above.
     if (hidden) policy.suppressRootEnvironment(this._scene);
     const gizmoEpoch = this._store.gizmoEpoch;
-    const gizmoSig = `${this._store.shell.showHelpers}|${JSON.stringify(vis)}|${hiddenRootId ?? ''}|${hidden}|${this._threejsToolContextActive}`;
+    const gizmoSig = `${this._store.shell.showHelpers}|${this._store.shell.showGizmos}|${JSON.stringify(vis)}|${hiddenRootId ?? ''}|${hidden}|${this._threejsToolContextActive}`;
     const mapChanged = this._objectMap !== this._lastGizmoObjectMap;
     const settingsChanged = gizmoSig !== this._lastGizmoSig;
     const membershipChanges = mapChanged
@@ -3261,7 +3261,8 @@ export class EditorViewport {
         ? anyChannelWritable(selectedId)
         : (authoring.transforms?.editability?.(selectedId, activeTransformChannel).writable ?? true)
       : false;
-    if (selectedId && selectedTransformWritable) {
+    // Blender's Show Gizmo off draws no transform gizmo, and the selection stays as it is.
+    if (selectedId && selectedTransformWritable && this._store.shell.showGizmos) {
       if (!this._anyGizmoDragging()) {
         if (this._store.shell.pivotMode === 'median-point' && this._store.shell.selectedEntityIds.size > 1) {
           const median = new THREE.Vector3();
@@ -3982,6 +3983,7 @@ export class EditorViewport {
   renderViewCube(renderer: THREE.WebGLRenderer): void {
     if (!this._threeSurfaceShowing) return; // no three stage, no compass (Blender's is persistent on one)
     if (this._navigation === 'hidden') return;
+    if (!this._store.shell.showGizmos) return; // the stage's Show Gizmo is off
     if (this._cameraView) return; // exact camera view owns the viewport
     const w = renderer.domElement.clientWidth;
     const h = renderer.domElement.clientHeight;
@@ -4859,6 +4861,7 @@ export class EditorViewport {
   private _isOverViewCube(clientX: number, clientY: number): boolean {
     // An indicator is only drawn, and a triad has nothing to click: clicks pass to the stage.
     if (this._navigation !== 'interactive' || this._gizmoLook.navigationForm === 'triad') return false;
+    if (!this._store.shell.showGizmos) return false;
     const rect = this._canvas.getBoundingClientRect();
     const x = clientX - rect.left;
     const y = clientY - rect.top;

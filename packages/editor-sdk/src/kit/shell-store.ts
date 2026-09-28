@@ -298,6 +298,9 @@ export class ShellStore implements ShellDocumentState {
   protected _pivotMode: PivotMode = 'active-element';
   protected _gizmoAnchor: GizmoAnchor = 'auto';
   protected _showHelpers = true;
+  /** Blender's Show Gizmo (`View3D.show_gizmo`), one per stage: the transform and navigation
+   *  gizmos, apart from the overlays. */
+  protected _showGizmos = true;
   protected _helperVisibility: HelperVisibility = {
     bounds: false,
     lights: true,
@@ -376,6 +379,9 @@ export class ShellStore implements ShellDocumentState {
   get showHelpers(): boolean {
     return this._showHelpers;
   }
+  get showGizmos(): boolean {
+    return this._showGizmos;
+  }
   get helperVisibility(): Readonly<HelperVisibility> {
     return this._helperVisibility;
   }
@@ -423,6 +429,11 @@ export class ShellStore implements ShellDocumentState {
 
   setGizmoAnchor(anchor: GizmoAnchor): void {
     this._gizmoAnchor = anchor;
+    this._notify();
+  }
+
+  toggleGizmos(): void {
+    this._showGizmos = !this._showGizmos;
     this._notify();
   }
 

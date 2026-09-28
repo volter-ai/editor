@@ -61,6 +61,7 @@ import {
   faUpRightAndDownLeftFromCenter,
   faUsers,
   faVideo,
+  faArrowsUpDownLeftRight,
   faXmark,
 } from '@fortawesome/free-solid-svg-icons';
 
@@ -152,6 +153,8 @@ export const editorIcons = {
     /** A camera view locked to its camera (`VIEW_LOCKED`), and not (`VIEW_UNLOCKED`). */
     cameraLocked: meshGlyph('viewport-camera-locked', faLock),
     cameraUnlocked: meshGlyph('viewport-camera-unlocked', faLockOpen),
+    /** Blender's Show Gizmo toggle (`GIZMO`): the view's transform and navigation gizmos. */
+    gizmos: meshGlyph('viewport-gizmos', faArrowsUpDownLeftRight),
   },
   /**
    * Mesh-modeling operators — the shelf glyphs a modeling document shows
