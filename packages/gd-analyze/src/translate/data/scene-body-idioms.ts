@@ -305,6 +305,15 @@ function colliderPlan(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<str
   return refuse(`${String(unformed)} has no planned collider`), undefined;
 }
 
+/** Whether a column-major transform's basis columns are not at right angles to one another. */
+function sheared(matrix: readonly number[]): boolean {
+  const columns = [0, 1, 2].map((c) => [matrix[c * 4] as number, matrix[c * 4 + 1] as number, matrix[c * 4 + 2] as number]);
+  const length = (v: readonly number[]) => Math.hypot(v[0] as number, v[1] as number, v[2] as number);
+  const dot = (a: readonly number[], b: readonly number[]) => a.reduce((sum, x, i) => sum + x * (b[i] as number), 0);
+  const [cx, cy, cz] = columns as [number[], number[], number[]];
+  return ([[cx, cy], [cx, cz], [cy, cz]] as const).some(([a, b]) => Math.abs(dot(a, b)) > 1e-5 * length(a) * length(b));
+}
+
 /**
  * What an instance's element needs of the scene it instances, so emit reads no other scene: its
  * component (export name, module), its root's class and idiom (through inherited scenes), the
@@ -369,6 +378,9 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       // root has no form for them.
       const rootForm = instance?.rootIdiom?.form.kind;
       if (instance !== undefined && instance.stated > 0 && rootForm !== 'element' && rootForm !== 'body') refuse(`overrides on an instanced ${instance.rootClass ?? 'root'} have no idiomatic form`);
+      // A node's transform is three's position, rotation and scale: one with shear has none.
+      const matrix = node.properties.find((entry) => entry.propertyName === 'transform')?.value as readonly number[] | undefined;
+      if (matrix !== undefined && sheared(matrix)) refuse('a transform with shear has no position, rotation and scale');
       // A root drawn as a family element: its instancer props and children are the element's, which
       // a range would hold. (An instance's or a body's range is its props'.)
       const family = form?.kind === 'element' || form?.kind === 'mesh' || form?.kind === 'light' || form?.kind === 'camera' || form?.kind === 'reflection-probe';

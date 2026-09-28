@@ -77,13 +77,8 @@ function transformAttributes(at: string, matrix: readonly number[] | undefined):
   const e = matrix;
   const columns = [0, 1, 2].map((c) => [e[c * 4] as number, e[c * 4 + 1] as number, e[c * 4 + 2] as number]);
   const length = (v: readonly number[]) => Math.hypot(v[0] as number, v[1] as number, v[2] as number);
-  const dot = (a: readonly number[], b: readonly number[]) => a.reduce((sum, x, i) => sum + x * (b[i] as number), 0);
+  // (The plan refuses a transform with shear, `scene-body-idioms.ts`.)
   const [cx, cy, cz] = columns as [number[], number[], number[]];
-  for (const [a, b] of [[cx, cy], [cx, cz], [cy, cz]] as const) {
-    if (Math.abs(dot(a, b)) > 1e-5 * length(a) * length(b)) {
-      throw new Error(`${at}: a transform with shear has no position, rotation and scale`);
-    }
-  }
   const det =
     (cx[0] as number) * ((cy[1] as number) * (cz[2] as number) - (cz[1] as number) * (cy[2] as number)) -
     (cy[0] as number) * ((cx[1] as number) * (cz[2] as number) - (cz[1] as number) * (cx[2] as number)) +

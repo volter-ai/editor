@@ -174,15 +174,6 @@ function autoloadComponent(
   };
 }
 
-/** The value of a carried engine setting, or its default. */
-function settingNumbers(composition: DirectGodotProjectCompositionPlan, key: string, fallback: readonly number[]): readonly number[] {
-  const value = composition.projectSettings.find((entry) => entry.key === key)?.value;
-  if (value === undefined) return fallback;
-  if (value.kind === 'number') return [value.value];
-  if ('components' in value) return value.components;
-  return fallback;
-}
-
 function moduleSpecifier(target: string): string {
   const withoutExtension = target.replace(/\.[^.]+$/u, '');
   const relative = path.posix.relative('src', withoutExtension);
@@ -205,19 +196,18 @@ export function emitDirectGodotWorldSyntax(
     ...(typeOnly ? { typeOnly: true as const } : {}),
   });
   const mainAutoloadReferences = scene.autoloadReferences ?? [];
-  const otherScenes = composition.scenes
-    .filter((candidate) => candidate !== scene)
-    .map((candidate) => ({ candidate, references: candidate.autoloadReferences ?? [] }))
-    .filter((entry) => entry.references.length > 0);
+  // The scenes the plan found reading autoloads (`autoloadScenes`), each provided them.
+  const otherScenes = composition.autoloadScenes.map((sourceResPath) => {
+    const candidate = composition.scenes.find((entry) => entry.sourceResPath === sourceResPath);
+    if (candidate === undefined) throw new Error(`${sourceResPath}: an autoload scene is absent from composition`);
+    return { candidate, references: candidate.autoloadReferences ?? [] };
+  });
   const hooks: ScriptLifecycleImports = { react: new Set(), fiber: new Set(), rapier: new Set(), compat: new Map() };
   const autoloadComponents = composition.scriptAutoloads.map((autoload, index) => autoloadComponent(autoload, index, hooks, composition.processDelta));
   const hasAutoloads = composition.scriptAutoloads.length > 0;
-  // `<Physics>` at the project's tick rate and gravity (`physics/common/physics_ticks_per_second`,
-  // `physics/3d/default_gravity` along `default_gravity_vector`).
-  const ticks = settingNumbers(composition, 'physics/common/physics_ticks_per_second', [60])[0] ?? 60;
-  const magnitude = settingNumbers(composition, 'physics/3d/default_gravity', [9.8])[0] ?? 9.8;
-  const direction = settingNumbers(composition, 'physics/3d/default_gravity_vector', [0, -1, 0]);
-  const gravity = direction.map((component) => Math.fround(component * magnitude));
+  // `<Physics>` at the tick rate and gravity the plan found (`physicsWorld`).
+  const ticks = composition.physicsWorld.ticksPerSecond;
+  const gravity = composition.physicsWorld.gravity;
   const numbers = (values: readonly number[]): TargetTsExpression => ({ kind: 'array-expression', elements: values.map((value) => ({ kind: 'literal-expression', value })) });
   const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', tag: 'Scene', attributes: [{ kind: 'jsx-string-attribute', name: 'name', value: scene.root.name }], children: [] };
   const autoloadValue = (references: readonly { readonly name: string }[]): TargetTsExpression => ({

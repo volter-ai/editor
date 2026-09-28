@@ -151,6 +151,10 @@ export interface DirectGodotProjectSettingPlan {
 export interface DirectGodotPhysicsWorldPlan {
   /** The contact penetration the solver leaves uncorrected (Rapier's `allowedLinearError`). */
   readonly allowedLinearError: number;
+  /** The physics tick rate (`physics/common/physics_ticks_per_second`): `<Physics timeStep>`'s. */
+  readonly ticksPerSecond: number;
+  /** Gravity (`physics/3d/default_gravity` along `default_gravity_vector`), as single floats. */
+  readonly gravity: readonly number[];
 }
 
 /**
@@ -171,6 +175,8 @@ export interface DirectGodotProjectCompositionPlan {
   readonly snapshotDigest: string;
   readonly sourceRevision: string;
   readonly mainScene: string;
+  /** The scenes other than the main one whose scripts read autoloads: the world provides them. */
+  readonly autoloadScenes: readonly string[];
   /** The settings the world loads before any script runs. */
   readonly projectSettings: readonly DirectGodotProjectSettingPlan[];
   /** The InputMap the world loads after the settings (`Main::setup`, `main/main.cpp:2102`). */
@@ -803,8 +809,20 @@ function projectSettings(
  * Jolt's 0.02 sinks a walking enemy's floor probe where Jolt does not. 0.01 frees the wedged
  * ball and keeps resting bodies on their floors, whichever engine the project names.
  */
-function physicsWorld(_project: BoundGodotProject): DirectGodotPhysicsWorldPlan {
-  return { allowedLinearError: 0.01 };
+function physicsWorld(settings: readonly DirectGodotProjectSettingPlan[]): DirectGodotPhysicsWorldPlan {
+  const numbers = (key: string, fallback: readonly number[]): readonly number[] => {
+    const value = settings.find((entry) => entry.key === key)?.value;
+    if (value === undefined) return fallback;
+    if (value.kind === 'number') return [value.value];
+    if ('components' in value) return value.components;
+    return fallback;
+  };
+  const magnitude = numbers('physics/3d/default_gravity', [9.8])[0] ?? 9.8;
+  return {
+    allowedLinearError: 0.01,
+    ticksPerSecond: numbers('physics/common/physics_ticks_per_second', [60])[0] ?? 60,
+    gravity: numbers('physics/3d/default_gravity_vector', [0, -1, 0]).map((component) => Math.fround(component * magnitude)),
+  };
 }
 
 /** The process delta's bound from the project's settings (`DirectGodotProcessDeltaPlan`). */
@@ -914,7 +932,7 @@ export function planDirectGodotProjectComposition(
   const autoloads = scriptAutoloads(project, modules, diagnostics);
   validateAutoloadReferences(instances, autoloads, diagnostics);
   const settings = projectSettings(project, diagnostics);
-  const physics = physicsWorld(project);
+  const physics = physicsWorld(settings);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
   const bodied = planGodotSceneSignalDelivery(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics), project).map((scene) => {
     const current = scene.cameras?.authored ?? (scene.sourceResPath === mainScene ? scene.cameras?.first : undefined);
@@ -931,6 +949,7 @@ export function planDirectGodotProjectComposition(
       snapshotDigest: project.snapshotDigest,
       sourceRevision: project.authority.revision,
       mainScene,
+      autoloadScenes: bodied.filter((scene) => scene.sourceResPath !== mainScene && (scene.autoloadReferences?.length ?? 0) > 0).map((scene) => scene.sourceResPath),
       projectSettings: settings,
       inputMap,
       physicsWorld: physics,
