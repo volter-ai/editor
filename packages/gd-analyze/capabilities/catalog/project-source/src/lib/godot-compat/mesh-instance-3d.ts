@@ -11,18 +11,18 @@
  * roughness 0.8, metallic 0.2).
  *
  * A scene's `<mesh>` reads its mesh resource back from its three primitive geometry the first time
- * it is asked for (`get_mesh`, `set_mesh`, the surface overrides), drawn with that geometry, and the
- * material the scene draws it with back as that resource's own material (`PrimitiveMesh.material`);
- * its surface override stays empty. Until then, and for a mesh with no primitive form, the scene's
- * surface materials stand as its overrides.
+ * it is asked for (`get_mesh`, `set_mesh`, the surface overrides), drawn with that geometry. The
+ * material the scene draws it with stays its surface override, and the first node read back gives
+ * the resource its own material (`PrimitiveMesh.material`). Until then, and for a mesh with no
+ * primitive form, the scene's surface materials stand as its overrides.
  *
  * Known gaps, both in what the scene states rather than in this module:
  * - The scene's material for a surface is its override, else the mesh's own, collapsed into one
- *   three material, so an authored surface override that differs from the mesh's material reads
- *   back as the mesh's material (the first node read back sets it; a later node sharing the mesh
- *   whose material differs keeps its own as an override). A surface with neither reads back a
- *   default-grey StandardMaterial3D where Godot's `mesh.material` is null; it draws the same.
- *   Telling the three apart needs the plan to stamp which slot each surface's material came from.
+ *   three material. So an override slot Godot leaves empty reads back filled, and a mesh's own
+ *   material is the first read-back node's, where nodes sharing the mesh drew different ones. A
+ *   surface with neither reads back a default-grey StandardMaterial3D where Godot's is null; it
+ *   draws the same. Telling them apart needs the plan to stamp which slot each surface's material
+ *   came from.
  * - Nodes share a read-back resource only where they share a three geometry, and the scene
  *   declares one shared geometry only for a mesh several of its nodes draw; a mesh one node of a
  *   scene draws is that element's own geometry. So two instances of a scene (two `coin.tscn`s)
@@ -130,9 +130,13 @@ function sceneMesh(geometry: BufferGeometry, material: BaseMaterial3D | null): P
 }
 
 /**
- * A scene's `<mesh>` takes the resource its geometry draws, where one can be read back: its scene
- * material is the resource's own material, and its override is empty unless its material differs
- * from the resource's (a node sharing a mesh another node read back first).
+ * A scene's `<mesh>` takes the resource its geometry draws, where one can be read back. The scene
+ * drew one material per surface without saying whether it was the mesh's own or the node's
+ * override, so the read-back never loses it: the node keeps it as its override, and the resource
+ * takes the first reading node's material as its own. A script then reads the drawn material
+ * through either accessor, and clearing the override draws the mesh's material, not the default.
+ * Where Godot's override slot was empty, it reads back filled; that is closed when the plan
+ * states which slot the material came from.
  */
 function readBack(state: MeshInstanceState): void {
   if (state.unread === undefined) return;
@@ -141,7 +145,7 @@ function readBack(state: MeshInstanceState): void {
   if (mesh === undefined) return;
   state.mesh = mesh;
   state.unread = undefined;
-  state.overrides = [drawn === mesh.material ? null : drawn];
+  state.overrides = [drawn];
 }
 
 /** The geometry a mesh instance without a mesh draws: nothing, with its node and children left as they are. */

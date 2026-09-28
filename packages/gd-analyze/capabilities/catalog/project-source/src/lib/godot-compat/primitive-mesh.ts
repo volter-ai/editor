@@ -290,16 +290,6 @@ function fill(geometry: BufferGeometry, stored: PrimitiveMeshArrays): BufferGeom
   return geometry;
 }
 
-/** Resources whose drawn geometry awaits its rebuild. */
-const PENDING = new Set<PrimitiveMesh>();
-
-/** Rebuilds a pending resource's geometry now. */
-function update(self: PrimitiveMesh): void {
-  if (!PENDING.delete(self)) return;
-  const geometry = GEOMETRY.get(self);
-  if (geometry !== undefined) fill(geometry, storedSurface(self));
-}
-
 /**
  * The stored surface as a three `BufferGeometry`, one per resource and shared by every node that
  * draws it, as Godot's one mesh RID is. Godot's front faces wind clockwise on screen: the
@@ -312,7 +302,6 @@ function update(self: PrimitiveMesh): void {
  * @source servers/rendering/rendering_server.cpp:1511
  */
 export function godot_primitive_mesh_geometry(self: PrimitiveMesh): BufferGeometry {
-  update(self);
   let geometry = GEOMETRY.get(self);
   if (geometry === undefined) {
     geometry = fill(new BufferGeometry(), storedSurface(self));
@@ -323,21 +312,18 @@ export function godot_primitive_mesh_geometry(self: PrimitiveMesh): BufferGeomet
 
 /**
  * A primitive mesh's property changed: its drawn geometry, where it has one, is rebuilt in place
- * (`_update`, `primitive_meshes.cpp:51`, which replaces the surface on the mesh's one RID), so
- * every node drawing the resource draws the new surface. Each setter of a property its builder
- * reads calls this. As Godot's `request_update` defers `_update` and runs it once for every change
- * before it (`call_deferred`), the rebuild waits for the end of the running script code (a
- * microtask), before the next frame draws, and runs once however many setters ran; taking the
- * geometry (`godot_primitive_mesh_geometry`) rebuilds a pending one first, as Godot's readers
- * call `_update` when a request is pending.
+ * now (`_update`, `primitive_meshes.cpp:51`, which replaces the surface on the mesh's one RID), so
+ * every node drawing the resource draws the new surface in the frame the change was made. Each
+ * setter of a property its builder reads calls this. Godot's `request_update` defers nothing once
+ * the mesh is built: `pending_request` is cleared by the first `_update` (`:132`), and every later
+ * request runs `_update` at once (`:139-144`).
  *
  * @godot PrimitiveMesh (protocol)
  * @source scene/resources/3d/primitive_meshes.cpp:139
  */
 export function godot_primitive_mesh_changed(self: PrimitiveMesh): void {
-  if (!GEOMETRY.has(self) || PENDING.has(self)) return;
-  PENDING.add(self);
-  queueMicrotask(() => update(self));
+  const geometry = GEOMETRY.get(self);
+  if (geometry !== undefined) fill(geometry, storedSurface(self));
 }
 
 /**
