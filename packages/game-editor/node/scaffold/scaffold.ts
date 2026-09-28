@@ -356,13 +356,13 @@ export function pinSharedDependencyVersions(
  *   (`ensureProjectTracker`). It is a dependency of `@volter/editor-core`, not of the
  *   engine. The project needs its OWN copy because the installed validation
  *   preset (`.volter/tracker/validation/preset.mts`) imports
- *   `ztrack/preset-kit`: without it `ztrack check`/`ztrack loop` fail, and
+ *   `@volter/ztrack/preset-kit`: without it `ztrack check`/`ztrack loop` fail, and
  *   ztrack itself says so at init time ("`ztrack` isn't resolvable as a
  *   project dependency here … a one-off `npx` install is not enough"). Pinning
  *   also keeps the project on the same ztrack the editor's Project Work panel
  *   reads its board with, so the preset and the reader never disagree.
  */
-const STANDALONE_PINNED_DEPENDENCIES = ['@playwright/test', 'ztrack'] as const;
+const STANDALONE_PINNED_DEPENDENCIES = ['@playwright/test', '@volter/ztrack'] as const;
 
 /**
  * Pin the template devDependencies above to this checkout's exact installed

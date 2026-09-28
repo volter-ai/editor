@@ -23,6 +23,7 @@ import { captureSizeFromCommand } from '@volter/editor-sdk/kit/capture-size';
 import type { EditorShellStore, HelperVisibility } from './editor-shell-store';
 import { editorHost } from '@volter/editor-sdk/host';
 import { entityObject3D } from './entity-object';
+import { VIEWPORT_SHADING_MODES } from '../render/viewport-shading';
 import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
 import {
   setViewGridVisible,
@@ -239,9 +240,17 @@ export const viewportCommands: CommandContribution['commands'] = {
   }),
   'set-shading-mode': verb((store, cmd) => {
     const documentSession = activeObject3DDocumentSession();
+    // A MODE THE VIEWPORT DOES NOT DRAW IS REFUSED BY NAME: an unknown one reached the renderer
+    // and every frame after it threw (`editor.shading('material')`).
+    const mode = cmd['mode'];
+    const known: readonly string[] = documentSession
+      ? [...VIEWPORT_SHADING_MODES, 'uv', 'vertex-colors']
+      : VIEWPORT_SHADING_MODES;
+    if (typeof mode !== 'string' || !known.includes(mode)) {
+      return { ok: false, error: `No shading mode "${String(mode)}"; the modes are ${known.join(', ')}.` };
+    }
     // `preview` and `rendered` are lit as a stage says (Blender's Material Preview and Rendered);
     // where no stage says, they would draw as Solid under another name.
-    const mode = cmd['mode'];
     if (mode === 'preview' || mode === 'rendered') {
       const documentId = activeWorkspaceDocumentId();
       const stageKind = documentId ? viewPresentationBinding(documentId)?.stageKind : undefined;

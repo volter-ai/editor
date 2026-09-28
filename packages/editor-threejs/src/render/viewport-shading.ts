@@ -1,19 +1,23 @@
 import * as THREE from 'three';
 import { createNeutralMatcapTexture } from './matcap-texture';
 
-/** Temporary developer-facing shading modes. These never become scene data. */
-export type ViewportShadingMode =
-  | 'solid'
-  /** Authored materials, as `solid`; a stage lights it by a preview (Blender's Material Preview). */
-  | 'preview'
-  /** Authored materials, as `solid`; a stage lights it by the scene (Blender's Rendered). */
-  | 'rendered'
-  | 'clay'
-  | 'unlit'
-  | 'wireframe'
-  | 'matcap'
-  | 'normals'
-  | 'overdraw';
+/**
+ * Temporary developer-facing shading modes. These never become scene data. `preview` is authored
+ * materials lit by a preview (Blender's Material Preview) and `rendered` authored materials lit by
+ * the scene (Blender's Rendered), each as a stage says.
+ */
+export const VIEWPORT_SHADING_MODES = [
+  'solid',
+  'preview',
+  'rendered',
+  'clay',
+  'unlit',
+  'wireframe',
+  'matcap',
+  'normals',
+  'overdraw',
+] as const;
+export type ViewportShadingMode = (typeof VIEWPORT_SHADING_MODES)[number];
 
 type MaterialPair = {
   clay: THREE.MeshStandardMaterial;

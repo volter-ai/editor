@@ -3,7 +3,13 @@ import {
   documentViewportsVersion,
   subscribeDocumentViewports,
 } from '@volter/editor-sdk/kit/document-viewports';
-import { type ReactNode, Suspense, useSyncExternalStore } from 'react';
+import {
+  bindDocumentSecondAreaHeader,
+  documentAreasVersion,
+  documentSecondArea,
+  subscribeDocumentAreas,
+} from '@volter/editor-sdk/kit/document-areas';
+import { type ReactNode, Suspense, useCallback, useSyncExternalStore } from 'react';
 import { chromeRegionsKey, subscribeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
 
 /**
@@ -23,6 +29,10 @@ import { chromeRegionsKey, subscribeChromeRegions } from '@volter/editor-sdk/kit
  *    (`@volter/editor-sdk/kit/document-viewports`), so no descriptor has to
  *    declare them. A chromeless mount (an inspector preview) registers none
  *    and gets no strip.
+ *
+ * AFTER THEM, THE HEADER OF THE DOCUMENT'S SECOND AREA (`@volter/editor-sdk/kit/document-areas`):
+ * an empty region as wide as the document asked, which it draws that area's header into, so a
+ * document split into areas side by side has one header over each, as Blender's areas do.
  *
  * The strip renders when either kind has something to show. Exported so the
  * bounded host, which mounts a document without the dock, draws the
@@ -66,6 +76,12 @@ export function DocumentHeaderStrip({
     chromeRegionsKey,
     chromeRegionsKey,
   );
+  useSyncExternalStore(subscribeDocumentAreas, documentAreasVersion, documentAreasVersion);
+  const endWidth = documentSecondArea(documentId)?.headerWidth ?? null;
+  const bindEnd = useCallback(
+    (element: HTMLDivElement | null) => bindDocumentSecondAreaHeader(documentId, element),
+    [documentId],
+  );
   const HeaderControls = documentViewport(documentId)?.HeaderControls;
   if (!children && !HeaderControls && !transformControls) return null;
   // The workspace's knob, not the document's: a skin that hides headers hides
@@ -92,6 +108,14 @@ export function DocumentHeaderStrip({
           />
         </Suspense>
       ) : null}
+      {endWidth === null ? null : (
+        <div
+          ref={bindEnd}
+          className="volter-dock-document-toolbar-area"
+          data-testid={`document-header-area:${documentId}`}
+          style={{ flex: '0 0 auto', width: endWidth, alignSelf: 'stretch', display: 'flex', alignItems: 'center' }}
+        />
+      )}
     </div>
   );
 }

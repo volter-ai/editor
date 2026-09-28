@@ -37,6 +37,7 @@ import {
   PAGE_OWNED_DIRECTORIES,
   SESSION_ROOT,
   SESSION_SCRIPT,
+  sessionLevel,
   sleep,
 } from './blender-engine.mts';
 import sessionPython from './session.py?raw';
@@ -112,7 +113,8 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
   const FS = module.FS;
   return {
     readFile: async (path) => FS.readFile(path),
-    writeFile: async (path, data) => FS.writeFile(path, data),
+    // Not `async`: a write that throws throws here, so `request` never starts `.done` after a failed `.json`.
+    writeFile: (path, data) => { FS.writeFile(path, data); return Promise.resolve(); },
     mkdirTree: async (path) => FS.mkdirTree(path),
     readdir: async (path) => FS.readdir(path),
     stat: async (path) => {
@@ -194,10 +196,7 @@ export async function startEmscriptenBlenderEngine(
   // session's OWN named conditions go there.
   const say = (_level: 'log' | 'error', text: string) => {
     if (text.startsWith('@@VOLTER-READY ')) readyLine = text.slice('@@VOLTER-READY '.length);
-    options.log(
-      text.startsWith('@@VOLTER-WARN') || text.startsWith('@@VOLTER-ERROR') ? 'error' : 'log',
-      text,
-    );
+    options.log(sessionLevel(text), text);
   };
   const module = await factory({
     arguments: ['--background', '--factory-startup', '--python', SESSION_SCRIPT],

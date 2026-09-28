@@ -16,7 +16,9 @@
  *   `rail`               the PROPERTIES view — its tabs, sections and fields
  *   `outliner`           the OUTLINER view — its rows and their controls
  *   `content`            the CONTENT view — its categories and asset rows
+ *   `menubar`            the APPLICATION MENUS (Edit, View, …) and the menus they open
  *
+ *   await editor.document.click('[data-testid=app-menu-edit]', { scope: 'menubar' });
  *   await editor.document.query('[role=tab]', { scope: 'rail' });
  *   await editor.document.click('[data-testid=properties-tab-modifiers]', { scope: 'rail' });
  *   await editor.document.click('[data-ingest-name=Cube]', { scope: 'outliner', clicks: 2 });

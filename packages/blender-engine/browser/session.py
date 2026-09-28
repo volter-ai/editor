@@ -1827,6 +1827,19 @@ def _drop(path):
         _say("@@VOLTER-WARN the session could not remove its own %s: %r" % (path, error))
 
 
+# HOW OFTEN TO LOOK, by how recently something happened. A present's answer
+# and the next call of a gesture are usually a few milliseconds away, and a
+# fixed 2 ms sleep put a whole sleep into each of them: a no-op execute spent
+# 6-7 ms of its 8-10 ms coming back, most of it the present's `ask` waiting out
+# sleeps on both skews (measured 2026-09-28). Brisk for 50 ms after activity,
+# then the old 2 ms, so an idle session lists its directory no more than before.
+_BRISK_SECONDS = 0.05
+
+
+def _pause(since):
+    time.sleep(0.0002 if time.monotonic() - since < _BRISK_SECONDS else 0.002)
+
+
 def ask(payload):
     """Block until the tab answers. The worker's own thread is free while this
     waits; only the Blender pthread is held, which is where the operator is.
@@ -1843,8 +1856,9 @@ def ask(payload):
     with open(os.path.join(ASK, name + ".done"), "w") as fh:
         fh.write("1")
     marker = os.path.join(REPLY, name + ".done")
+    began = time.monotonic()
     while not os.path.exists(marker):
-        time.sleep(0.002)
+        _pause(began)
     with open(os.path.join(REPLY, name + ".json")) as fh:
         body = fh.read()
     _drop(os.path.join(ASK, name + ".json"))
@@ -1884,7 +1898,7 @@ def _vertical_extent(cam, width, height):
     return math.degrees(2.0 * math.atan(extent / (2.0 * float(cam.lens))))
 
 
-def _photograph(depsgraph, width, height):
+def _photograph(depsgraph, width, height, linear=False):
     """three.js IS the renderer: the render is a photograph of the scene the
     engine holds, taken through the scene's own camera at `scene.render`'s
     exact resolution. `bpy.ops.render.render` semantics are the contract."""
@@ -1932,13 +1946,17 @@ def _photograph(depsgraph, width, height):
     # refused BY NAME on the other side (`blender-runtime-host.ts`).
     if look not in ("None", "AgX - Base Contrast"):
         render["look"] = look
+    # The capture's scene-referred frame rides along when asked for: a render
+    # result is what a render leaves, and it holds scene-linear pixels.
+    if linear:
+        render["linear"] = True
     answer = SESSION.present(
         {"position": position, "target": target, "up": up, "render": render}
     )
     if not isinstance(answer, dict) or "base64" not in answer:
         raise RuntimeError("The renderer did not answer with a photograph")
     _assert_photographed_from(answer.get("camera"), position, target, up)
-    return base64.b64decode(answer["base64"]), render
+    return base64.b64decode(answer["base64"]), render, answer
 
 
 def _assert_photographed_from(reported, position, target, up):
@@ -1999,19 +2017,54 @@ class VolterRenderEngine(bpy.types.RenderEngine):
         width = max(1, int(scene.render.resolution_x * scale))
         height = max(1, int(scene.render.resolution_y * scale))
         try:
-            png, _render = _photograph(depsgraph, width, height)
+            png, _render, answer = _photograph(depsgraph, width, height, linear=True)
         except Exception as error:  # noqa: BLE001 - reported to Blender as a render error
             self.report({"ERROR"}, str(error))
             return
-        path = os.path.join(ROOT, "render-%d.png" % int(time.time() * 1000))
-        with open(path, "wb") as fh:
-            fh.write(png)
         result = self.begin_result(0, 0, width, height)
         try:
-            result.layers[0].load_from_file(path)
-        except (RuntimeError, AttributeError) as error:
+            _fill_result(self, result, answer, png, width, height)
+        except (RuntimeError, AttributeError, ValueError) as error:
             self.report({"ERROR"}, "Render result could not take the photograph: %s" % error)
         self.end_result(result)
+
+
+def _fill_result(engine, result, answer, png, width, height):
+    """THE RENDER RESULT HOLDS SCENE-LINEAR PIXELS, and Blender runs the scene's
+    view transform over them wherever it shows or saves one (`write_still`, the
+    Image Editor), as it does over Cycles'. The photograph's PNG is the display
+    image -- the transform already ran -- so loading it put every render
+    through AgX or Filmic twice. Measured 2026-09-28 by the model editor's
+    render view: a background 53 against the viewport's 59, a shadow's blue 2
+    against 7. The same capture's linear frame goes in instead: half floats,
+    RGBA, bottom row first, which is Blender's own row order. Linear 0.005,
+    0.05, 0.5 and 4.0 then save under AgX as 8, 58, 170 and 234 (the PNG
+    path saved 3, 53, 160 and 190), and under Standard as 15, 64, 188 and 255,
+    as the PNG path did.
+
+    A renderer that sends no linear frame gets the old path, and says so."""
+    linear = answer.get("linearBase64") if isinstance(answer, dict) else None
+    if linear and answer.get("linearWidth") == width and answer.get("linearHeight") == height:
+        import numpy
+
+        pixels = numpy.frombuffer(base64.b64decode(linear), dtype=numpy.float16)
+        if pixels.size != width * height * 4:
+            raise ValueError(
+                "the linear frame holds %d values for a %dx%d render" % (pixels.size, width, height)
+            )
+        result.layers[0].passes["Combined"].rect.foreach_set(pixels.astype(numpy.float32))
+        return
+    engine.report(
+        {"WARNING"},
+        "The renderer sent no scene-linear frame; the render result is its display image, "
+        "which the view transform will run over again",
+    )
+    path = os.path.join(ROOT, "render-%d.png" % int(time.time() * 1000))
+    with open(path, "wb") as fh:
+        fh.write(png)
+    try:
+        result.layers[0].load_from_file(path)
+    finally:
         try:
             os.unlink(path)
         except OSError:
@@ -4994,6 +5047,7 @@ def _channel_loop():
     # with the session.
     seen = set()
     unacked = []
+    active = 0.0
     while True:
         # A FAILED LISTING IS NOT AN EMPTY ONE. This swallowed every OSError
         # into "no requests", so the one failure that matters -- the process
@@ -5029,7 +5083,7 @@ def _channel_loop():
         names = sorted((n for n in markers if n not in seen),
                        key=lambda n: int(n[: -len(".done")]))
         if not names:
-            time.sleep(0.002)
+            _pause(active)
             continue
         for marker in names:
             seen.add(marker)
@@ -5047,6 +5101,8 @@ def _channel_loop():
             with open(os.path.join(OUT, rid + ".done"), "w") as fh:
                 fh.write("1")
             unacked.append(rid)
+        # From the last answer: the page's next call of a gesture follows it.
+        active = time.monotonic()
 
 
 try:

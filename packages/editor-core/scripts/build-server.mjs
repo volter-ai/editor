@@ -20,7 +20,7 @@ const result = await build({
   alias: { 'jsonc-parser': join(dirname(require.resolve('jsonc-parser/package.json')), 'lib/esm/main.js') },
   external: ['express', 'chokidar', 'vite', 'esbuild', 'typescript', 'ws', 'postcss',
     '@napi-rs/keyring', '@volter/supercode-client',
-    '@volter/supercode-harness-sdk', 'ztrack', 'ztrack/*'],
+    '@volter/supercode-harness-sdk', '@volter/ztrack', '@volter/ztrack/*'],
 });
 
 if (process.env["VOLTER_BUILD_METAFILE"]) await writeFile(process.env["VOLTER_BUILD_METAFILE"], JSON.stringify(result.metafile, null, 2));

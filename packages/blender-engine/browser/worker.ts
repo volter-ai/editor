@@ -41,7 +41,7 @@ import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './pr
 import { columnsToTypedArrays, describeFrame } from './session-frame.mts';
 
 const post = (reply: WorkerReply) => (self as unknown as Worker).postMessage(reply);
-const log = (level: 'log' | 'error', text: string) => post({ op: 'log', level, text });
+const log = (level: 'log' | 'warn' | 'error', text: string) => post({ op: 'log', level, text });
 
 interface Session {
   start(project: string): Promise<unknown>;

@@ -52,6 +52,7 @@ import {
   PAGE_OWNED_DIRECTORIES,
   SESSION_ROOT,
   SESSION_SCRIPT,
+  sessionLevel,
   sleep,
 } from './blender-engine.mts';
 import sessionPython from './session.py?raw';
@@ -63,6 +64,10 @@ const RESOURCES = '/bw';
  *  session's own root, because it belongs to the session's lifetime. */
 const ARENA_PATH = `${SESSION_ROOT}/frame.bin`;
 
+/** The WALI pack's startup copies of the render override, by runtime-relative
+ *  path; `stageRuntime` leaves them out. */
+const PACK_RENDER_OVERRIDES = new Set(['scripts/startup/vgai_three.py', 'scripts/startup/volter_three.py']);
+
 /** The host filesystem seam, in the only shape this file uses. */
 interface BrowserFileSystemLike {
   existsSync(path: string): boolean;
@@ -72,6 +77,8 @@ interface BrowserFileSystemLike {
   mkdirSync(path: string, options?: { recursive?: boolean }): void;
   readdirSync(path: string): string[];
   unlinkSync(path: string): void;
+  /** A write or removal, the program's included (its patches land here). */
+  on?(event: 'change' | 'delete', listener: (path: string) => void): unknown;
 }
 
 interface WaliProgram {
@@ -142,6 +149,17 @@ async function stageRuntime(
         `Blender runtime ${entry.path}: bytes ${offset}..${offset + entry.size} lie outside ` +
           `the ${blob.byteLength}-byte runtime blob`,
       );
+    // THE PACK'S RENDER OVERRIDE IS NOT STAGED. It is the delivery for a bare
+    // `blender -b` with no session: at startup it asks a presenter at its own
+    // directory and waits two seconds for one. This session registers the same
+    // override itself (`session.py`, `VolterRenderEngine`) and answers through
+    // its own channel, so here the module could only wait out those two
+    // seconds (measured 2026-09-27: every boot printed "no presenter answered
+    // at /tmp/vgai-presenter within 2 s").
+    if (PACK_RENDER_OVERRIDES.has(entry.path)) {
+      offset += entry.size;
+      continue;
+    }
     const path = `${RESOURCES}/${entry.path}`;
     filesystem.mkdirSync(path.slice(0, path.lastIndexOf('/')), { recursive: true });
     filesystem.writeFileSync(path, blob.subarray(offset, offset + entry.size));
@@ -156,11 +174,82 @@ async function stageRuntime(
   return { files: index.files.length, bytes: blob.byteLength, ms };
 }
 
+type LayerFromIndex = (
+  root: string,
+  files: RuntimeIndex['files'],
+  bytes: SharedArrayBuffer,
+  options: { mtimeMs: number; include?: (path: string) => boolean },
+) => unknown;
+
+/**
+ * Blender's runtime tree as a SHARED LAYER the program reads, never written
+ * into this page's filesystem (browser-substrate ADR-0044 §6): the blob is
+ * read once, straight into shared memory, and the index names where each file
+ * lies in it. Staged file by file, the tree was held twice -- in this page's
+ * filesystem and in the layer the substrate made of it for the program's
+ * workers -- and took 0.3-0.5 s of every boot (measured 2026-09-27). A
+ * substrate without the door (`sharedFileLayerFromIndex`) stages as before.
+ */
+async function sharedRuntime(
+  fromIndex: LayerFromIndex,
+  log: BlenderEngineOptions['log'],
+): Promise<unknown> {
+  const began = performance.now();
+  const indexAnswer = await fetch(artifactUrl('runtime.idx'));
+  if (!indexAnswer.ok)
+    throw new Error(`${ARTIFACT_BASE}/runtime.idx answered ${indexAnswer.status}`);
+  const index = (await indexAnswer.json()) as RuntimeIndex;
+  const total = index.files.reduce((sum, file) => sum + file.size, 0);
+  const blobAnswer = await fetch(artifactUrl('runtime.bin'));
+  if (!blobAnswer.ok || !blobAnswer.body)
+    throw new Error(`${ARTIFACT_BASE}/runtime.bin answered ${blobAnswer.status}`);
+  const shared = new SharedArrayBuffer(total);
+  const bytes = new Uint8Array(shared);
+  let filled = 0;
+  const reader = blobAnswer.body.getReader();
+  for (;;) {
+    const { done, value } = await reader.read();
+    if (done) break;
+    // The index and the blob must agree to the byte, or Python reads truncated files.
+    if (filled + value.byteLength > total)
+      throw new Error(`Blender runtime blob is longer than the ${total} bytes its index accounts for`);
+    bytes.set(value, filled);
+    filled += value.byteLength;
+  }
+  if (filled !== total)
+    throw new Error(`Blender runtime index accounts for ${total} bytes; the blob served ${filled}`);
+  const layer = fromIndex(RESOURCES, index.files, shared, {
+    mtimeMs: Date.now(),
+    // THE PACK'S RENDER OVERRIDE IS LEFT OUT: it is the delivery for a bare
+    // `blender -b` with no session, and at startup it asks a presenter at its
+    // own directory and waits two seconds for one. This session registers the
+    // same override itself (`session.py`, `VolterRenderEngine`) and answers
+    // through its own channel, so here the module could only wait (measured
+    // 2026-09-27: every boot printed "no presenter answered ... within 2 s").
+    include: (path) => !PACK_RENDER_OVERRIDES.has(path),
+  });
+  log('log', `blender: shared Blender's ${index.files.length}-file runtime tree in ${Math.round(performance.now() - began)} ms`);
+  return layer;
+}
+
 /** The program's filesystem, as {@link BlenderFiles}. */
 function programFiles(filesystem: BrowserFileSystemLike): BlenderFiles {
+  // One listener for the engine's life, and one waiter per wait: a change ends
+  // every wait in progress, a wait's own timeout ends only it, and either way
+  // it is forgotten.
+  const waiting = new Set<() => void>();
+  const wake = (): void => { for (const done of [...waiting]) done(); };
+  filesystem.on?.('change', wake);
+  filesystem.on?.('delete', wake);
   return {
+    ...(filesystem.on ? { changed: (within: number) => new Promise<void>((resolve) => {
+      const done = (): void => { clearTimeout(timer); waiting.delete(done); resolve(); };
+      const timer = setTimeout(done, within);
+      waiting.add(done);
+    }) } : {}),
     readFile: (path) => filesystem.readFile(path),
-    writeFile: async (path, data) => filesystem.writeFileSync(path, data),
+    // Not `async`: a write that throws throws here, so `request` never starts `.done` after a failed `.json`.
+    writeFile: (path, data) => { filesystem.writeFileSync(path, data); return Promise.resolve(); },
     mkdirTree: async (path) => filesystem.mkdirSync(path, { recursive: true }),
     readdir: async (path) => filesystem.readdirSync(path),
     stat: async (path) => {
@@ -183,9 +272,10 @@ export async function startWaliBlenderEngine(
   status: BlenderArtifactStatus,
 ): Promise<BlenderEngine> {
   const started = performance.now();
-  const [wali, runtime] = await Promise.all([
+  const [wali, runtime, layers] = await Promise.all([
     substrate('browser-wali/worker-program.js'),
     substrate('browser-runtime/browser-memory-filesystem.js'),
+    substrate('browser-wali/shared-file-layer.js').catch((): Record<string, unknown> => ({})),
   ]);
   const WaliWorkerProgram = wali['BrowserWaliWorkerProgram'] as
     | (new (
@@ -203,6 +293,15 @@ export async function startWaliBlenderEngine(
         'does not know.',
     );
 
+  // THE MODULE LOADS WHILE THE RUNTIME LAYER IS BUILT. Blender's 93 MB module
+  // was fetched and compiled by the program's worker only once the program
+  // ran, after the layer below: measured 2026-09-28, the layer 270-975 ms and
+  // then the module 200-250 ms warm, in series. The substrate's preload fills
+  // the cache the program's worker reads; a substrate without it, or a preload
+  // that fails, leaves the worker to load the module as before.
+  const preload = wali['preloadWaliModule'] as ((url: string, integrity: string) => Promise<void>) | undefined;
+  if (preload && status.integrity) void preload(artifactUrl('blender.wasm'), status.integrity).catch(() => undefined);
+
   const filesystem = new MemoryFileSystem();
   // `out` and `ask` are deliberately absent: `session.py` owns those two and
   // makes them itself (the channel's ownership rule in `blender-engine.mts`).
@@ -217,7 +316,9 @@ export async function startWaliBlenderEngine(
     options.project,
   ])
     filesystem.mkdirSync(directory, { recursive: true });
-  await stageRuntime(filesystem, options.log);
+  const fromIndex = layers['sharedFileLayerFromIndex'] as LayerFromIndex | undefined;
+  const runtimeLayer = fromIndex ? await sharedRuntime(fromIndex, options.log) : undefined;
+  if (!runtimeLayer) await stageRuntime(filesystem, options.log);
   filesystem.writeFileSync(SESSION_SCRIPT, sessionPython);
 
   const workers = status.workers ?? { pool: 16, blender: 4 };
@@ -248,7 +349,23 @@ export async function startWaliBlenderEngine(
       VOLTER_SESSION_ROOT: SESSION_ROOT,
       // THE ARENA'S DOOR ON THIS SKEW. See `readArena`.
       VOLTER_EXPORT_BUFFER_PATH: ARENA_PATH,
+      // OPENIMAGEIO'S POOL AT ONE THREAD, as Blender's own are (`-t 1`,
+      // BLENDER_WALI_WORKERS). Its default pool is built at the CPU count
+      // before `-t` reaches it: measured 2026-09-28, nine of the ten threads
+      // this Blender started were OpenImageIO's, idle for the session, each
+      // holding a pool worker (browser-substrate `programs/blender/5.2.0`
+      // README §(f)).
+      OPENIMAGEIO_THREADS: '1',
     },
+    ...(runtimeLayer ? { layers: [runtimeLayer] } : {}),
+    // BLENDER'S /tmp IS ITS OWN, as it is in the standalone skew's WasmFS:
+    // what it writes there never crosses to this page, so nothing waits for
+    // the page to take it (browser-substrate `privateRoots`, ADR-0046).
+    // Measured 2026-09-27: published, a `.blend` saved to /tmp cost 11 ms
+    // against the standalone skew's 2, most of it the page taking the file
+    // before Blender's next printed line. The session's channel and the
+    // project live elsewhere and still cross.
+    privateRoots: ['/tmp'],
     threadPoolSize: workers.pool,
     // Blender talks to nothing. The editor's own routes are this worker's, not
     // the program's.
@@ -265,10 +382,7 @@ export async function startWaliBlenderEngine(
       // -- the same rule as the standalone engine, and for the same measured
       // reason: only the session's own named conditions belong in the set an
       // agent must drive to zero.
-      options.log(
-        line.startsWith('@@VOLTER-WARN') || line.startsWith('@@VOLTER-ERROR') ? 'error' : 'log',
-        line,
-      );
+      options.log(sessionLevel(line), line);
     }
   };
   // THE PROGRAM DOES NOT RETURN. `session.py` loops forever, so `run` settles

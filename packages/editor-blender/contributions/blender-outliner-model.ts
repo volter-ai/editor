@@ -28,7 +28,7 @@ import {
  *  typed for the same reason `blender-properties-model.ts` narrows it: the
  *  document that published it and the reader are two modules meeting over one
  *  object, and `@volter/editor-blender` holds no host import. */
-interface PresentedView {
+export interface PresentedView {
   readonly root: THREE.Object3D;
   subscribeFrames(listener: () => void): () => void;
   objectForBlenderName(name: string): THREE.Object3D | null;

@@ -2,7 +2,7 @@
   "name": "@volter/editor-sdk",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.77",
+  "version": "0.5.82",
   "publishConfig": {
     "access": "public"
   },
@@ -139,6 +139,7 @@
     "./kit/editor-console": "./src/kit/editor-console.ts",
     "./kit/world-adoption-event": "./src/kit/world-adoption-event.ts",
     "./kit/asset-viewers": "./src/kit/asset-viewers.ts",
+    "./kit/document-areas": "./src/kit/document-areas.ts",
     "./kit/document-viewports": "./src/kit/document-viewports.ts",
     "./kit/inspection-node-media": "./src/kit/inspection-node-media.ts",
     "./kit/asset-thumbnails": "./src/kit/asset-thumbnails.ts",
@@ -441,6 +442,7 @@
     "./kit/editor-chrome-capture": "./src/kit/editor-chrome-capture.ts",
     "./kit/editor-current-view": "./src/kit/editor-current-view.ts",
     "./kit/editor-document-probe": "./src/kit/editor-document-probe.ts",
+    "./kit/photograph-notice": "./src/kit/photograph-notice.ts",
     "./kit/editor-git-client": "./src/kit/editor-git-client.ts",
     "./kit/editor-presentation-notice": "./src/kit/editor-presentation-notice.ts",
     "./kit/editor-view-presentation": "./src/kit/editor-view-presentation.ts",
@@ -479,7 +481,7 @@
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@storybook/react": "10.6.0",
     "@types/node": "^22.0.0",
-    "@volter/editor-project": "0.5.77",
+    "@volter/editor-project": "0.5.82",
     "mediabunny": "1.56.2",
     "postcss": "8.5.28",
     "rrweb": "2.1.6",

@@ -90,12 +90,24 @@ export interface BlenderFiles {
   /** Null when the path is not there. */
   stat(path: string): Promise<BlenderFileStat | null>;
   unlink(path: string): Promise<void>;
+  /**
+   * Resolves at the next change to this filesystem or after `within` ms,
+   * whichever is first, when the engine can say so. The call loop waits on it
+   * in place of its poll's sleep, so an answer is read when it lands rather
+   * than at the next timer: a browser clamps a chain of `setTimeout(1)` to
+   * 4 ms, which was most of a no-op call's return leg (measured 2026-09-28:
+   * 6-7 ms of 8-10). Each wait is its own and is gone when it resolves; racing
+   * one shared promise against every poll's sleep kept a reaction per poll
+   * until the next change (review of d36c8004: 43 MB in an hour-long call).
+   * Without it the loop sleeps as before.
+   */
+  changed?(within: number): Promise<void>;
 }
 
 export interface BlenderEngineOptions {
   /** The project's absolute path; the engine's filesystem mirrors it there. */
   project: string;
-  log(level: 'log' | 'error', text: string): void;
+  log(level: 'log' | 'warn' | 'error', text: string): void;
   /** What the session asks the TAB for, mid-call: a frame, and sometimes a
    *  photograph of it. Whatever this resolves to is what Python receives.
    *
@@ -148,6 +160,14 @@ export interface BlenderEngine {
 }
 
 export const ARTIFACT_BASE = '/__editor/blender-wasm';
+
+/** The console level of one line the session printed. Only the session's own named conditions
+ *  reach the editor's console, each at the severity it names; Blender's streams stay page output. */
+export function sessionLevel(line: string): 'log' | 'warn' | 'error' {
+  if (line.startsWith('@@VOLTER-ERROR')) return 'error';
+  if (line.startsWith('@@VOLTER-WARN')) return 'warn';
+  return 'log';
+}
 
 /**
  * An artifact URL, resolved against THE MODULE — never against `self.location`.
@@ -364,16 +384,28 @@ export function openSessionChannel(
       } catch (error) {
         answer = { error: error instanceof Error ? error.message : String(error) };
       }
-      await files.writeFile(`${SESSION_ROOT}/reply/${id}.json`, JSON.stringify(answer ?? null));
-      await files.writeFile(`${SESSION_ROOT}/reply/${id}.done`, '1');
+      // One turn, `.done` second, as a request's two files (see `request`).
+      await Promise.all([
+        files.writeFile(`${SESSION_ROOT}/reply/${id}.json`, JSON.stringify(answer ?? null)),
+        files.writeFile(`${SESSION_ROOT}/reply/${id}.done`, '1'),
+      ]);
       replied.add(id);
     }
   }
 
   async function request(payload: Record<string, unknown>): Promise<unknown> {
     const id = String(++sequence);
-    await files.writeFile(`${SESSION_ROOT}/in/${id}.json`, JSON.stringify(payload));
-    await files.writeFile(`${SESSION_ROOT}/in/${id}.done`, '1');
+    // BOTH WRITES BEGIN IN ONE TURN, `.done` second. Both engines write
+    // synchronously inside `writeFile` and throw from it, so the order is kept
+    // and a failed `.json` never leaves a `.done` behind; and the WALI
+    // engine carries one turn's writes to the program as one patch, where an
+    // await between them sent the request as two imports in series, the
+    // second waiting for the first's acknowledgement (measured 2026-09-28:
+    // most of a no-op call's 1.4-1.9 ms inbound leg).
+    await Promise.all([
+      files.writeFile(`${SESSION_ROOT}/in/${id}.json`, JSON.stringify(payload)),
+      files.writeFile(`${SESSION_ROOT}/in/${id}.done`, '1'),
+    ]);
     const began = performance.now();
     for (;;) {
       await serveAsks();
@@ -406,7 +438,8 @@ export function openSessionChannel(
             'wait on the same missing answer; start a new program with `blender-start {fresh: true}` ' +
             '(`VOLTER_BLENDER_FRESH_SESSION=1` for the battery harness).',
         );
-      await sleep(pollDelay(performance.now() - began));
+      const delay = pollDelay(performance.now() - began);
+      await (files.changed ? files.changed(delay) : sleep(delay));
     }
   }
 

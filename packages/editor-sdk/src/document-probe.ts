@@ -37,13 +37,15 @@
  *
  *  - `utility` — the utility view showing in the panel (a contribution's
  *    `*.utility.tsx`, the Profiler, State Watch…).
+ *  - `menubar` — the application menus (Edit, View, Window…) and the menus
+ *    their triggers open: the one place a person chooses Edit › Undo.
  *
- * `rail`, `outliner`, `content` and `utility` are EDITOR CHROME and do not belong to the active
+ * `rail`, `outliner`, `content`, `utility` and `menubar` are EDITOR CHROME and do not belong to the active
  * document, so they stay reachable while the Game document is active — the
  * Game refusal is about driving a game through synthetic gestures, and reading
  * the panel that reports its selection is not that.
  */
-export type DocumentProbeScope = 'document' | 'header' | 'shelf' | 'rail' | 'outliner' | 'content' | 'utility';
+export type DocumentProbeScope = 'document' | 'header' | 'shelf' | 'rail' | 'outliner' | 'content' | 'utility' | 'menubar';
 
 /** One element as the probe reports it — everything a caller needs to assert
  *  on, and nothing that requires a second round trip. */

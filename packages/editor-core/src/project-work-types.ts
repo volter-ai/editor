@@ -2,8 +2,8 @@ import {
   type ExternalWorkActivity,
   ExternalWorkActivitySchema,
   type PromptContextItem,
-} from 'ztrack/supercode';
-import type { Payload } from 'ztrack/visualizer-kit';
+} from '@volter/ztrack/supercode';
+import type { Payload } from '@volter/ztrack/visualizer-kit';
 
 export type ProjectWorkTrackerState =
   | { state: 'ready'; payload: Payload }

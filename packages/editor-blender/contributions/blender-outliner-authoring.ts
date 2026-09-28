@@ -83,6 +83,7 @@ import {
   blenderOutlinerVersion,
   blenderPresentedView,
   onBlenderFrame,
+  type PresentedView,
   refreshBlenderOutliner,
   showBlenderOutliner,
   subscribeBlenderOutliner,
@@ -219,18 +220,19 @@ export interface BlenderOutlinerHandle {
 const liveOutliners = new Set<BlenderOutlinerHandle>();
 
 /**
- * The Outliner handle for a document, for the header that draws over it.
+ * The Outliner handle for a document, for the header that draws over it: the one its own stage
+ * made (a stage's adapter names its document `object3d-document:<id>`).
  *
- * The fallback when no handle names that document is the SINGLE live one, and
- * it is sound rather than lax: the Blender engine is one session bound to one
- * `.blend` at a time (`blender-runtime-host.ts`'s `bindModelDocument`), so a
- * second Model document with its own Outliner over the same engine is not a
- * state this package can be in. With two, a document that cannot name itself
- * answers null rather than guessing.
+ * The fallback when no handle names that document is ANY live one, and it is sound rather than
+ * lax: the Blender engine is one session bound to one `.blend` at a time
+ * (`blender-runtime-host.ts`'s `bindModelDocument`), so every live handle is an Outliner of that
+ * one engine's tree, whether it is the Model document's area or the area split beside it
+ * (`blender-runtime.document.tsx`), and a header's menus act on the engine by name.
  */
 export function blenderOutlinerHandle(documentId?: string): BlenderOutlinerHandle | null {
-  for (const handle of liveOutliners) if (handle.documentId === documentId) return handle;
-  return liveOutliners.size === 1 ? [...liveOutliners][0]! : null;
+  for (const handle of liveOutliners)
+    if (handle.documentId === documentId || handle.documentId === `object3d-document:${documentId}`) return handle;
+  return liveOutliners.values().next().value ?? null;
 }
 
 /** The transform of a subject this adapter does not own. `TransformProvider.get`
@@ -829,6 +831,26 @@ function py(name: string): string {
   return JSON.stringify(name);
 }
 
+/** Blender's own name for each operator, as its undo history labels the step (`ot->name`). */
+const operatorNames = new Map<string, string>();
+
+/**
+ * THE STEP'S LABEL IS THE OPERATOR'S OWN NAME, the one Blender's Edit menu shows: Add › Cone is
+ * "Undo Add Cone", not "Undo Blender Python". Asked of Blender, not kept in a table here, because
+ * its names do not follow the menu rows (a Point light is "Add Light").
+ */
+async function operatorLabel(body: string): Promise<string> {
+  const id = /bpy\.ops\.([a-z_]+\.[a-z0-9_]+)\(/.exec(body)?.[1];
+  if (id === undefined) return 'Blender Python';
+  const known = operatorNames.get(id);
+  if (known !== undefined) return known;
+  const answer = await blenderExecute(`import bpy\nprint(bpy.ops.${id}.get_rna_type().name)`, false);
+  const name = answer.error === null ? answer.result.trim() : '';
+  if (name === '') return 'Blender Python';
+  operatorNames.set(id, name);
+  return name;
+}
+
 /**
  * RUN ONE OPERATOR AND SAY WHICH OBJECTS IT MADE.
  *
@@ -847,7 +869,7 @@ function py(name: string): string {
  */
 async function runBlenderOperator(
   body: string,
-  label = 'Blender Python',
+  label?: string,
 ): Promise<{ readonly made: readonly string[]; readonly error: string | null }> {
   const code = [
     'before = {o.name for o in bpy.data.objects}',
@@ -855,7 +877,7 @@ async function runBlenderOperator(
     'made = [o.name for o in bpy.data.objects if o.name not in before]',
     'print("\\n".join(made))',
   ].join('\n');
-  const answer = await blenderExecute(code, true, label);
+  const answer = await blenderExecute(code, true, label ?? (await operatorLabel(body)));
   // THE ENGINE'S REFUSAL, VERBATIM. `session.py::execute` answers with the
   // traceback in `error` rather than raising, and a paraphrase here is how a
   // refusal becomes a shrug.
@@ -971,9 +993,16 @@ const EXCLUDED_REASON =
   'This collection is excluded from the view layer (LayerCollection.exclude), so its viewport ' +
   'visibility is not what is hiding it. Clear the Exclude checkbox on this row first.';
 
-export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactory = ({
-  defaultAdapter,
-}) => {
+/**
+ * THE OUTLINER AUTHORING FOR A STAGE DRAWING `presented`: the rows are Blender's either way, and
+ * the view is where a row meets the three object its stage picks, outlines and moves. The Model
+ * document's own area draws the published view ({@link createBlenderOutlinerAuthoring}); a split
+ * area draws a follower of it (`BlenderRuntimeView.follow`, `blender-render-view.tsx`).
+ */
+export function blenderOutlinerAuthoringFor(
+  presented: () => PresentedView | null,
+): ToolObject3DDocumentAuthoringFactory {
+  return ({ defaultAdapter }) => {
   const listeners = new Set<() => void>();
   /**
    * THE ENGINE'S SELECTION, CACHED IN ROW IDS — never a second selection.
@@ -1008,7 +1037,7 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
    *  spaces meet (see the header). */
   const objectForRow = (id: string): THREE.Object3D | null => {
     const row = rows().get(id);
-    const view = blenderPresentedView();
+    const view = presented();
     if (row === undefined || view === null) return null;
     if (row.type === 'TSE_VIEW_COLLECTION_BASE') return view.root;
     return row.object === undefined ? null : view.objectForBlenderName(row.object);
@@ -1017,7 +1046,7 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
   /** The row for a presented OBJECT: its address is the object's own, so this
    *  is a map lookup rather than a walk. */
   const rowIdForObject = (object: THREE.Object3D): string | null => {
-    const view = blenderPresentedView();
+    const view = presented();
     if (view === null) return null;
     for (const row of rows().values())
       if (isObjectRow(row) && view.objectForBlenderName(row.object) === object) return row.id;
@@ -1403,7 +1432,7 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
     endEdit: async (id): Promise<WriteAck | undefined> => {
       const object = gestureObjects.get(id) ?? objectFor(id);
       gestureObjects.delete(id);
-      const view = blenderPresentedView();
+      const view = presented();
       if (object === null) return undefined;
       const started = gestureStart.get(object);
       gestureStart.delete(object);
@@ -1748,3 +1777,6 @@ export const createBlenderOutlinerAuthoring: ToolObject3DDocumentAuthoringFactor
     },
   };
 };
+}
+
+export const createBlenderOutlinerAuthoring = blenderOutlinerAuthoringFor(blenderPresentedView);
