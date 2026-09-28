@@ -1,16 +1,14 @@
 # Public release status
 
-Volter Editor 0.5.68 (editor-blender 0.1.11, blender-engine 0.1.9 unchanged) is published from the tag
-`release-0.5.68-source`, both lists ([release/modeling.json](release/modeling.json),
-[release/game.json](release/game.json)), carrying the music layer (automation, LFOs, groups, sidechain, audio
-tracks, the clip launcher, recording and comping). All seventeen versions are live, each registry digest matching its tested
-archive and each tarball downloading without credentials byte-identical to it (`@volter/model-editor` sat staged
-for about an hour, then went live without approval). From the registry, with no credentials and a fresh
-home, `npx @volter/game-editor@0.5.68 create` installed the runtime image, downloaded its workbench anonymously, took
-`add music`, launched a scene of a two-scene piece (its slots playing, the scene's strips metering and the stopped
-track reading −inf), rendered it through `project.music.render` with both scene loops and provenance, and undid an
-added scene byte-identically. Packed acceptance found and fixed one defect the checkout could not show: the game
-template imported `pixi.js` and `@pixi/react` undeclared ([provenance/public-npm-release.json](provenance/public-npm-release.json)).
+Volter Editor 0.5.69 (editor-blender 0.1.12, blender-engine 0.1.10) is the first release published by CI:
+`.github/workflows/publish.yml` builds the game release on every push to main, runs `check:release:game` and
+`check:packed-imports:game`, and publishes with npm provenance every package of
+[release/game.json](release/game.json) whose version npm lacks, so a release is the version commit. It carries
+the vgai retirement. From the registry, with no credentials and a fresh home,
+`npx @volter/game-editor@0.5.69 create reg-game --with canvas` installed the runtime image, downloaded its pinned
+workbench (sha256 matching) and started a session whose `status` read no console errors and no mount failures.
+Not re-walked for 0.5.69: music, scene launch and render, last walked on 0.5.68
+([provenance/public-npm-release.json](provenance/public-npm-release.json)).
 
 ## Game editor (branch `game-editor`)
 
