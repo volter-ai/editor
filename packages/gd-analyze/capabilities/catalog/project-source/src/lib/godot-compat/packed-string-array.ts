@@ -30,3 +30,20 @@ export function construct(...args: readonly [] | readonly [readonly string[]]): 
 export function size(self: readonly string[]): number {
   return self.length;
 }
+
+/**
+ * `a[i] = value`: Variant's indexed set (`VariantIndexedSetGet_PackedStringArray::set`,
+ * `INDEXED_SETGET_STRUCT_TYPED`, `core/variant/variant_setget.cpp:356`). A negative index counts
+ * from the end; a store outside the array is dropped (the release build reports nothing). Godot
+ * writes into the variable's own copy-on-write buffer, so the write is a new array assigned back.
+ *
+ * @godot PackedStringArray.set_indexed
+ * @source core/variant/variant_setget.cpp:356
+ */
+export function with_indexed(self: readonly string[], index: number, value: string): readonly string[] {
+  const place = index < 0 ? self.length + index : index;
+  if (place < 0 || place >= self.length) return self;
+  const copy = [...self];
+  copy[place] = value;
+  return Object.freeze(copy);
+}

@@ -103,10 +103,16 @@ interface GodotBuiltinShape {
   readonly iteratesRange?: true;
   /** False where the built-in type names no value lowering can state as a TS type (Nil). An untyped value is not a built-in and never reaches this table (`godotStatedValueType`). */
   readonly stated?: false;
+  /**
+   * As a function's return type, the type is `-> void`: the analyzer resolves `void` to Nil
+   * (`resolve_datatype`, gdscript_analyzer.cpp:680), so the function returns nothing (TS `void`),
+   * where a Nil value elsewhere (`const X = null`) is `null`.
+   */
+  readonly returnsNothing?: true;
 }
 
 const BUILTIN_SHAPES: Readonly<Record<string, GodotBuiltinShape>> = {
-  Nil: { stated: false },
+  Nil: { stated: false, returnsNothing: true },
   Signal: { awaits: true },
   int: { iteratesRange: true },
 };
@@ -118,6 +124,11 @@ function builtinShape(datatype: GodotBoundDatatype): GodotBuiltinShape | undefin
 /** Whether `await` on a value of this datatype awaits a Signal's next emission, as a promise. */
 export function godotAwaitsEmission(datatype: GodotBoundDatatype): boolean {
   return !datatype.metaType && builtinShape(datatype)?.awaits === true;
+}
+
+/** Whether a function whose return type is this datatype returns nothing (`-> void`). */
+export function godotReturnsNothing(datatype: GodotBoundDatatype): boolean {
+  return !datatype.metaType && builtinShape(datatype)?.returnsNothing === true;
 }
 
 /** Whether `for v in x` over a value of this datatype counts from 0 below x. */

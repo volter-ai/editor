@@ -780,6 +780,64 @@ function dictionaryPlace(
   };
 }
 
+/**
+ * An element of a built-in array Godot copies (a PackedStringArray; `lowering-shapes.ts`). Its
+ * value is copy-on-write (`Vector<T>`, core/templates/vector.h): `a[i] = e` writes the variable's
+ * own copy (`Variant::set_indexed` on the variable's slot, and the assign chain sets a copied base
+ * back up through its owners, `GDScriptCompiler::_parse_assignment`), so the store is a new array
+ * written back to `a`'s place, as a built-in's member write is.
+ */
+function valueElement(context: LoweringContext, node: GodotBoundNode): Omit<KeyedElement, 'shape'> | undefined {
+  if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
+  const baseNode = context.node(node.base, node);
+  if (godotBuiltinSubscriptShape(baseNode.datatype)?.kind !== 'array-element' || !builtinValueType(baseNode)) return undefined;
+  return { baseNode, indexNode: context.node(node.index, node) };
+}
+
+/** A copied array's element as a place: read as Variant indexing, written back through `with_indexed`. */
+function valueElementPlace(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  element: Omit<KeyedElement, 'shape'>,
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+): AssignablePlace {
+  const { baseNode, indexNode } = element;
+  const base = assignablePlace(context, baseNode, lower);
+  const rule = context.structural(node, 'subscript-element', [baseNode, indexNode], 'subscript-element:array');
+  const setUse = context.bindingUse(
+    {
+      sourceRevision: context.sourceRevision,
+      kind: 'builtin-indexed-set',
+      owner: baseNode.datatype.builtinType,
+      member: 'set_indexed',
+      signature: 'set',
+    },
+    node,
+  );
+  if (setUse.target.use.kind !== 'call' || setUse.target.use.sourceReceiver !== 'first-argument') {
+    return context.refuse(node, `element write ${setUse.target.localName} does not take the array first`);
+  }
+  const current =
+    base.read.kind === 'identifier-expression'
+      ? { before: [] as readonly TargetTsStatement[], value: base.read }
+      : materialize(context, expression(base.read));
+  const index = materialize(context, lower(context, indexNode));
+  const constant = indexNode.kind === 'LITERAL' && indexNode.value.kind === 'int' && Number(indexNode.value.value) >= 0;
+  // A compound store reads the element first; `with_indexed` drops the store where it is absent.
+  const read: TargetTsExpression = {
+    kind: 'non-null-expression',
+    expression: constant
+      ? { kind: 'element-expression', object: current.value, index: index.value, span: span(context.script, node) }
+      : { kind: 'call-expression', callee: { kind: 'property-expression', object: current.value, property: 'at' }, arguments: [index.value], span: span(context.script, node) },
+  };
+  return {
+    before: [...base.before, ...current.before, ...index.before],
+    read,
+    write: (value) => base.write(bindingCall(context, node, setUse, [current.value, index.value, value])),
+    requirements: [...base.requirements, ...rule, ...index.requirements, ...setUse.requirements],
+  };
+}
+
 /** Whether a value lowers to a read of an Array element (`a[i]`, `a.at(i)`), which TS types loosely. */
 function arrayElementRead(value: TargetTsExpression): boolean {
   if (value.kind === 'element-expression') return true;
@@ -835,6 +893,8 @@ function assignablePlace(
   }
   const element = dictionaryElement(context, node);
   if (element !== undefined) return dictionaryPlace(context, node, element, lower);
+  const copiedElement = valueElement(context, node);
+  if (copiedElement !== undefined) return valueElementPlace(context, node, copiedElement, lower);
   const attributeTarget = valueAttributeTarget(context, node);
   // The native base's own property as the base of a member write (`transform.basis = b`): read
   // through its getter, written back through its setter.
@@ -1080,7 +1140,7 @@ function assignment(
 ): LoweredExpression {
   const place =
     inheritedNativePlace(context, targetNode, combine !== undefined) ??
-    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined
+    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined || valueElement(context, targetNode) !== undefined
       ? assignablePlace(context, targetNode, lower)
       : undefined);
   if (place !== undefined) {

@@ -26,6 +26,7 @@ interface ApiDump {
   readonly singletons: readonly { readonly name: string; readonly type: string }[];
   readonly builtin_classes: readonly {
     readonly name: string;
+    readonly indexing_return_type?: string;
     readonly methods?: readonly ApiMethod[];
     readonly members?: readonly { readonly name: string }[];
     readonly constants?: readonly { readonly name: string }[];
@@ -129,6 +130,9 @@ export function godotCompatBindings(
         else bind('builtin-member', hashSignature(method.hash), { kind: 'call', sourceReceiver: 'first-argument' });
       } else if (builtin.members?.some((field) => field.name === member) && entry.exportName === `with_${member}`) {
         bind('builtin-member-set', 'set', { kind: 'call', sourceReceiver: 'first-argument' });
+      } else if (member === 'set_indexed' && builtin.indexing_return_type !== undefined && entry.exportName === 'with_indexed') {
+        // `Variant::set_indexed` on a built-in the dump gives an indexed element type.
+        bind('builtin-indexed-set', 'set', { kind: 'call', sourceReceiver: 'first-argument' });
       } else unmatched.push(`${owner}.${member} (${entry.module} ${entry.exportName})`);
     } else if (native !== undefined) {
       const method = native.methods?.find((candidate) => candidate.name === member);

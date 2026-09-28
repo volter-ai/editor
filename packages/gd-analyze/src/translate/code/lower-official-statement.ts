@@ -23,7 +23,7 @@ import {
   officialBoundSpan,
 } from './official-bound-lowering-context';
 import type { TargetTsClassMember, TargetTsParameter, TargetTsStatement } from './target-ts-syntax';
-import { godotBuiltinConverts, godotIteratesRange } from '../data/lowering-shapes';
+import { godotBuiltinConverts, godotIteratesRange, godotReturnsNothing } from '../data/lowering-shapes';
 
 export interface LoweredClassMembers {
   readonly members: readonly TargetTsClassMember[];
@@ -697,7 +697,13 @@ function lowerMethod(context: LoweringContext, node: GodotBoundFunctionNode): Lo
       : lowerOfficialSuite(context, bodyNode),
   );
   const parameters = lowerOfficialParameters(context, node);
-  const result = returnTypeNode === undefined ? undefined : context.targetType(returnTypeNode);
+  // `-> void` returns nothing, though the analyzer types it Nil as it types a null value.
+  const result =
+    returnTypeNode === undefined
+      ? undefined
+      : godotReturnsNothing(returnTypeNode.datatype)
+        ? { type: { kind: 'keyword-type', keyword: 'void' } as const, requirements: [] }
+        : context.targetType(returnTypeNode);
   return {
     member: {
       kind: 'method-member',

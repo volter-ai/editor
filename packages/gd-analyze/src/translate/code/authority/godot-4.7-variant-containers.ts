@@ -15,6 +15,9 @@
  * - An element read of an Array or PackedStringArray (`a[i]`) is Variant indexing
  *   (`VariantIndexedSetGet`, core/variant/variant_setget.cpp): a negative index counts from the end,
  *   which JS's `Array.prototype.at` does too; a constant non-negative index is a plain element.
+ *   An Array's element store writes the shared array in place; a PackedStringArray's writes the
+ *   variable's own copy (`Vector<String>` is copy-on-write), so compat's `with_indexed` returns a
+ *   new frozen array and the store assigns it back to the variable's place.
  *   A Dictionary's `d[k]` reads the key through `Dictionary.get` and `d[k] = v` stores it through
  *   `Dictionary.set` (`Variant::get` / `Variant::set` keyed, core/variant/variant_setget.cpp).
  */
@@ -54,7 +57,8 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
 export const GODOT_4_7_VARIANT_CONTAINER_DATATYPES: readonly GodotDatatypeRuleEntry[] = [
   {
     sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
-    // A copy-on-write value: compat's `packed-string-array.ts` holds it as a frozen string array.
+    // A copy-on-write value: compat's `packed-string-array.ts` holds it as a frozen string array,
+    // and a store writes a new array back (`with_indexed`), so the type stays read-only.
     sourceDatatype: 'BUILTIN:PackedStringArray',
     targetType: { kind: 'type-reference', name: 'ReadonlyArray', arguments: [{ kind: 'keyword-type', keyword: 'string' }] },
   },

@@ -19,6 +19,10 @@ export interface GodotOfficialSymbolIdentity {
     /** A write to a built-in value's member (`v.x = e`), lowered as `v = with_x(v, e)`;
      *  signature `set`. */
     | 'builtin-member-set'
+    /** A store into an element of a built-in value Godot copies (`a[i] = e` on a
+     *  PackedStringArray), lowered as `a = with_indexed(a, i, e)`; member `set_indexed`
+     *  (`Variant::set_indexed`), signature `set`. */
+    | 'builtin-indexed-set'
     /** An engine signal read as a value (`player.finished`): owner the declaring class, member the
      *  signal, signature `signal`; called with the object's native entity. */
     | 'native-signal';

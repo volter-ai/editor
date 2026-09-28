@@ -3811,8 +3811,9 @@
       "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
       "sourceDatatype": "BUILTIN:null",
       "targetType": {
-        "kind": "keyword-type",
-        "keyword": "void"
+        "kind": "type-reference",
+        "name": "null",
+        "arguments": []
       }
     },
     {
