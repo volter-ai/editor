@@ -379,8 +379,10 @@ function textStyle(stated: Stated, resources: ReadonlyMap<string, TargetGodotSce
     if (unread.length > 0) throw new Error(`LabelSettings' ${unread.join(', ')} has no CSS form`);
     return;
   }
+  // Unstated, the size and font are the ones the element inherits: its Theme's defaults, else the
+  // page's (Godot's default theme, `GodotStretch`), as Godot looks a theme item up the branch.
   const size = override(stated, 'font_sizes', 'font_size');
-  style['fontSize'] = px(size?.kind === 'number' ? size.value : THEME.fontSize);
+  if (size?.kind === 'number') style['fontSize'] = px(size.value);
   const color = override(stated, 'colors', 'font_color');
   style['color'] = css(color !== undefined && 'components' in color ? color.components : defaultColor);
   const fontOverride = override(stated, 'fonts', 'font');
@@ -458,6 +460,9 @@ function content(
       return { text };
     }
     case 'button': {
+      // A `<button>` takes its text's font from the branch, as a Label does (the page's own buttons
+      // do not inherit it).
+      style['font'] = 'inherit';
       // The theme's normal stylebox and font colour (`default_theme.cpp:139`), else the scene's.
       const normal = override(stated, 'styles', 'normal');
       if (normal?.kind === 'resource') {
@@ -791,6 +796,26 @@ function containerStyle(form: DomForm, stated: Stated, resources: ReadonlyMap<st
   }
 }
 
+/**
+ * A Control's Theme: its default font and font size, which CSS's `font-family` and `font-size` hand
+ * down the branch as Godot's theme lookup does for the default font (`Theme::get_default_font`).
+ * A Theme's per-class items have no inline CSS form and refuse by name.
+ */
+function themeStyle(stated: Stated, resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>, style: Record<string, GodotControlStyleValue>): void {
+  const key = stated.resource('theme');
+  if (key === undefined) return;
+  const theme = resources.get(key);
+  if (theme === undefined) throw new Error('a Control\'s Theme is not planned');
+  for (const { name, value } of theme.rawProperties ?? []) {
+    if (name === 'default_font' && value.kind === 'resource') {
+      const font = resources.get(value.key);
+      if (font?.load === undefined) throw new Error('a Theme\'s default font has no file the page loads');
+      style['fontFamily'] = { fontFamily: value.key };
+    } else if (name === 'default_font_size' && value.kind === 'number') style['fontSize'] = px(value.value);
+    else if (name !== 'default_base_scale') throw new Error(`a Theme's ${name} has no inline CSS form`);
+  }
+}
+
 /** Where the element takes pointer input: `mouse_filter`, its class's default unless stated. */
 function pointerStyle(form: DomForm, stated: Stated, style: Record<string, GodotControlStyleValue>): void {
   const filter = stated.number('mouse_filter', form.mouseFilter);
@@ -862,6 +887,7 @@ export function godotControlDom(
     stated.get('size_flags_stretch_ratio');
   }
   pointerStyle(form, stated, style);
+  themeStyle(stated, resources, style);
   containerStyle(form, stated, resources, style);
   const drawn = content(form, stated, resources, style, attributes);
   if (form.node2d !== true) transformStyle(stated, style);

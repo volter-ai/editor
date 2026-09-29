@@ -1306,7 +1306,11 @@ found exactly that. It is redone on the libraries:
   container sorts and the GUI input routing are deleted. The page's own GUI takes pointer input;
   a press that lands on a Control is the GUI stage's after `_input` (`viewport.ts`). An
   AnimationPlayer among Controls is a hidden element whose value tracks are Web Animations of the
-  Controls' CSS (`animation-elements.ts`; Truck Town's turbo meter). Refused by name until they
+  Controls' CSS (`animation-elements.ts`; Truck Town's turbo meter). A Control's Theme gives its
+  default font and size by CSS inheritance; the page's overlay carries Godot's default 16 px text.
+  Nine Godot 4 3D fixtures import and build with it: the 3D platformer demo, Truck Town, the FPS,
+  basic scene, city builder, 3D platformer and racing starter kits, Squash the Creeps and GDQuest's
+  first 3D game. Refused by name until they
   have a DOM form: any other node three mounts under a Control; GridContainer; a
   SubViewportContainer smaller than its viewport.
 - **Untyped values are typed statically, not dispatched at run time.** The analysis follows a value

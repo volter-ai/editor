@@ -99,5 +99,11 @@ export function GodotStretch({ children }: { readonly children?: ReactNode }): R
           transform: `scale(${String(stretch.screen.x / stretch.visible.x)}, ${String(stretch.screen.y / stretch.visible.y)})`,
           transformOrigin: '0 0',
         };
-  return createElement('div', { ref: box, style: { position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none' } }, createElement('div', { 'data-godot-canvas': '', style: shown }, children));
+  // Godot's default theme's text, which the Controls inherit unless their theme or overrides say
+  // otherwise (`default_theme.cpp:50`: 16 px).
+  return createElement(
+    'div',
+    { ref: box, style: { position: 'absolute', inset: 0, overflow: 'hidden', pointerEvents: 'none', fontSize: 16, fontFamily: 'sans-serif' } },
+    createElement('div', { 'data-godot-canvas': '', style: shown }, children),
+  );
 }
