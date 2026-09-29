@@ -9,6 +9,7 @@
  * when their action is just pressed; its key events are stored.
  */
 
+import type { ButtonGroup } from './button-group';
 import type { Object3D } from 'three';
 import { is_visible_in_tree } from './canvas-item';
 import { godot_control_set_gui_input } from './control';
@@ -30,6 +31,11 @@ export interface BaseButtonState {
   actionMode: number;
   keepPressedOutside: boolean;
   shortcut: Shortcut | null;
+  shortcutFeedback: boolean;
+  shortcutInTooltip: boolean;
+  /** The group whose one pressed button it may be (`button-group.ts`). */
+  group: ButtonGroup | null;
+  readonly entity: object;
   /** Redraws the class's look after its state changes. */
   readonly changed: () => void;
   readonly signals: {
@@ -48,10 +54,23 @@ function stateOf(self: object, member: string): BaseButtonState {
   return state;
 }
 
-/** `_pressed` then the signals (`BaseButton::_toggled` / `on_action_event`, `base_button.cpp:132`). */
+/**
+ * The group's other buttons unpressed, this one kept pressed unless the group allows unpressing
+ * (`BaseButton::_unpress_group`, `base_button.cpp:38`).
+ */
+function unpressGroup(state: BaseButtonState): void {
+  const group = state.group;
+  if (group === null) return;
+  if (state.toggleMode && !group.allowUnpress) state.pressed = true;
+  for (const other of group.buttons) if (other !== state.entity) set_pressed(other, false);
+}
+
+/** `_pressed` then the signals (`BaseButton::_toggled` / `on_action_event`, `base_button.cpp:204`). */
 function press(state: BaseButtonState): void {
   if (state.toggleMode) {
     state.pressed = !state.pressed;
+    unpressGroup(state);
+    state.group?.pressedSignal.emit(state.entity);
     state.signals.toggled.emit(state.pressed);
   }
   state.signals.pressed.emit();
@@ -74,6 +93,10 @@ export function godot_base_button_mount(entity: Object3D, changed: () => void): 
     actionMode: 1,
     keepPressedOutside: false,
     shortcut: null,
+    shortcutFeedback: true,
+    shortcutInTooltip: true,
+    group: null,
+    entity,
     changed,
     signals: { pressed: createSignal<[]>(), button_down: createSignal<[]>(), button_up: createSignal<[]>(), toggled: createSignal<[boolean]>() },
   };
@@ -271,10 +294,65 @@ export function godot_base_button_props(): (readonly [string, (entity: Object3D,
     ['keepPressedOutside', (entity, value: boolean) => set_keep_pressed_outside(entity, value)],
     ['shortcut', (entity, value: Shortcut | null) => set_shortcut(entity, value)],
     ['buttonMask', () => undefined],
-    ['shortcutFeedback', () => undefined],
-    ['shortcutInTooltip', () => undefined],
-    ['buttonGroup', () => undefined],
+    ['shortcutFeedback', (entity, value: boolean) => set_shortcut_feedback(entity, value)],
+    ['shortcutInTooltip', (entity, value: boolean) => set_shortcut_in_tooltip(entity, value)],
+    ['buttonGroup', (entity, value: ButtonGroup | null) => set_button_group(entity, value)],
   ];
+}
+
+/**
+ * Joins the group, leaving the one it was in (`base_button.cpp:498`).
+ *
+ * @godot BaseButton.set_button_group
+ * @source scene/gui/base_button.cpp:498
+ */
+export function set_button_group(self: object, group: ButtonGroup | null): void {
+  const state = stateOf(self, 'set_button_group');
+  state.group?.buttons.delete(state.entity);
+  state.group = group;
+  group?.buttons.add(state.entity);
+}
+
+/**
+ * @godot BaseButton.get_button_group
+ * @source scene/gui/base_button.cpp:514
+ */
+export function get_button_group(self: object): ButtonGroup | null {
+  return stateOf(self, 'get_button_group').group;
+}
+
+/**
+ * Kept: the page draws no pressed look for a shortcut's press, nor tooltips.
+ *
+ * @godot BaseButton.set_shortcut_feedback
+ * @source scene/gui/base_button.cpp:410
+ */
+export function set_shortcut_feedback(self: object, enabled: boolean): void {
+  stateOf(self, 'set_shortcut_feedback').shortcutFeedback = enabled;
+}
+
+/**
+ * @godot BaseButton.is_shortcut_feedback
+ * @source scene/gui/base_button.cpp:414
+ */
+export function is_shortcut_feedback(self: object): boolean {
+  return stateOf(self, 'is_shortcut_feedback').shortcutFeedback;
+}
+
+/**
+ * @godot BaseButton.set_shortcut_in_tooltip
+ * @source scene/gui/base_button.cpp:375
+ */
+export function set_shortcut_in_tooltip(self: object, enabled: boolean): void {
+  stateOf(self, 'set_shortcut_in_tooltip').shortcutInTooltip = enabled;
+}
+
+/**
+ * @godot BaseButton.is_shortcut_in_tooltip_enabled
+ * @source scene/gui/base_button.cpp:382
+ */
+export function is_shortcut_in_tooltip_enabled(self: object): boolean {
+  return stateOf(self, 'is_shortcut_in_tooltip_enabled').shortcutInTooltip;
 }
 
 /**

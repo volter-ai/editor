@@ -424,6 +424,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   RectangleShape2D: ['set_size'],
   Shortcut: ['set_events'],
   InputEventAction: ['set_action', 'set_pressed', 'set_strength'],
+  ButtonGroup: ['set_allow_unpress'],
   // Kept by their raw properties (`rawProperties`): no setters.
   TileSet: [],
   TileSetAtlasSource: [],

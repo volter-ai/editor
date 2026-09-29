@@ -42,6 +42,12 @@ export const GODOT_4_7_TEXTURE_RESOURCE_RULES: readonly (GodotSceneResourceRule 
   },
   {
     sourceRevision: REVISION,
+    className: 'ButtonGroup',
+    construct: { module: 'lib/godot-compat/button-group', exportName: 'construct' },
+    source: { file: 'scene/gui/base_button.cpp', symbol: 'ButtonGroup::ButtonGroup', line: 645 },
+  },
+  {
+    sourceRevision: REVISION,
     className: 'InputEventAction',
     construct: { module: 'lib/godot-compat/input-event-action', exportName: 'godot_input_event_action_new' },
     source: { file: 'core/input/input_event.cpp', symbol: 'InputEventAction::InputEventAction', line: 1620 },
