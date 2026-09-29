@@ -472,6 +472,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   PhysicalSkyMaterial: ['set_rayleigh_coefficient', 'set_rayleigh_color', 'set_mie_coefficient', 'set_mie_eccentricity', 'set_mie_color', 'set_turbidity', 'set_sun_disk_scale', 'set_ground_color', 'set_energy_multiplier', 'set_use_debanding', 'set_night_sky'],
   ShaderMaterial: ['set_shader', 'set_shader_parameter:*', 'set_render_priority'],
   Shader: [],
+  // Its items are raw properties (`Type/colors/name`), the constructor's own (`theme.ts`).
+  Theme: [],
   CompressedCubemap: [],
   // The parameters a GPUParticles3D's emitter reads (`gpu-particles-3d.ts`); the rest (turbulence,
   // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, the other

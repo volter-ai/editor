@@ -1686,7 +1686,9 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     context,
     node,
     Object.fromEntries(
-      Object.entries(node.authoredProperties).filter(([name]) => !fields.has(name) && name !== 'unique_name_in_owner'),
+      // `editor_description` is the editor's note on the node (`Node::set_editor_description`,
+      // `node.cpp:2662`): nothing in the running game reads it.
+      Object.entries(node.authoredProperties).filter(([name]) => !fields.has(name) && name !== 'unique_name_in_owner' && name !== 'editor_description'),
     ),
     setters,
   );

@@ -177,6 +177,12 @@ export interface DirectGodotProjectCompositionPlan {
   readonly mainScene: string;
   /** The scenes other than the main one whose scripts read autoloads: the world provides them. */
   readonly autoloadScenes: readonly string[];
+  /**
+   * The autoloads that are scenes (`MusicPlayer="*res://MusicPlayer.tscn"`): each instanced under
+   * the root, named as the autoload, before the main scene (`Main::start`, `main/main.cpp:3949`).
+   * A script reading one refuses (`validateAutoloadReferences` resolves only script singletons).
+   */
+  readonly sceneAutoloads: readonly { readonly name: string; readonly sceneResPath: string; readonly exportName: string; readonly targetPath: string }[];
   /** The settings the world loads before any script runs. */
   readonly projectSettings: readonly DirectGodotProjectSettingPlan[];
   /** The InputMap the world loads after the settings (`Main::setup`, `main/main.cpp:2102`). */
@@ -633,6 +639,8 @@ function scriptAutoloads(
 ): readonly DirectGodotScriptAutoloadPlan[] {
   const result: DirectGodotScriptAutoloadPlan[] = [];
   for (const autoload of project.entrypoints.autoloads) {
+    // A scene autoload is the world's to instance (`sceneAutoloads`).
+    if (autoload.kind !== 'script' && project.documents.scenes.some((scene) => scene.resPath === autoload.resPath)) continue;
     if (autoload.kind !== 'script') {
       diagnostics.push({
         at: `project.godot#[autoload].${autoload.name}`,
@@ -941,6 +949,12 @@ export function planDirectGodotProjectComposition(
     const autoloadReferences = sceneAutoloadReferences(scene, diagnostics);
     return { ...scene, ...(current === undefined ? {} : { cameras: { ...scene.cameras, current } }), ...(autoloadReferences.length === 0 ? {} : { autoloadReferences }) };
   });
+  // Each scene autoload names the component its scene is (`exportName`, `targetPath`).
+  const sceneAutoloads = project.entrypoints.autoloads.flatMap((autoload) => {
+    if (autoload.kind === 'script') return [];
+    const scene = bodied.find((entry) => entry.sourceResPath === autoload.resPath);
+    return scene === undefined ? [] : [{ name: autoload.name, sceneResPath: autoload.resPath, exportName: scene.exportName, targetPath: scene.targetPath }];
+  });
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
   }
@@ -959,6 +973,7 @@ export function planDirectGodotProjectComposition(
       sourceModules: plannedSourceModules,
       scenes: planGodotSceneRefs(bodied.map(planGodotSceneSkyLights)),
       scriptAutoloads: autoloads,
+      sceneAutoloads,
       scriptClasses: code.scriptModules.flatMap((module) => {
         const target = generatedClass(module);
         return target === undefined ? [] : [{ scriptResPath: module.resPath, generatedClass: target }];

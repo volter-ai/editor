@@ -218,10 +218,18 @@ export function emitDirectGodotWorldSyntax(
     mainAutoloadReferences.length === 0
       ? mainScene
       : { kind: 'jsx-element-child', tag: directGodotSceneAutoloadContextName(scene.exportName), attributes: [{ kind: 'jsx-expression-attribute', name: 'value', value: autoloadValue(mainAutoloadReferences) }], children: [mainScene] };
+  // The scene autoloads, each its scene's component named as the autoload, before the main scene.
+  const sceneAutoloads = composition.sceneAutoloads.map((autoload) => ({ autoload, planned: autoload }));
   const game: TargetTsJsxElementShape = {
     tag: 'Game',
     attributes: [],
     children: [
+      ...sceneAutoloads.map(({ autoload, planned }): TargetTsJsxChild => ({
+        kind: 'jsx-element-child',
+        tag: planned.exportName,
+        attributes: [{ kind: 'jsx-string-attribute', name: 'name', value: autoload.name }],
+        children: [],
+      })),
       ...composition.scriptAutoloads.map((_autoload, index): TargetTsJsxChild => ({
         kind: 'jsx-element-child',
         tag: `$Autoload_${index}`,
@@ -293,6 +301,7 @@ export function emitDirectGodotWorldSyntax(
     named('@react-three/rapier', ['Physics', ...hooks.rapier]),
     ...(hasAutoloads ? [named('three', ['Group'], true)] : []),
     { kind: 'import-statement', module: moduleSpecifier(scene.targetPath), namedBindings: [{ imported: scene.exportName, local: scene.exportName }, ...(mainAutoloadReferences.length === 0 ? [] : [{ imported: directGodotSceneAutoloadContextName(scene.exportName), local: directGodotSceneAutoloadContextName(scene.exportName) }])] },
+    ...sceneAutoloads.map(({ planned }): TargetTsStatement => ({ kind: 'import-statement', module: moduleSpecifier(planned.targetPath), namedBindings: [{ imported: planned.exportName, local: planned.exportName }] })),
     ...otherScenes.map(({ candidate }): TargetTsStatement => ({
       kind: 'import-statement',
       module: moduleSpecifier(candidate.targetPath),
