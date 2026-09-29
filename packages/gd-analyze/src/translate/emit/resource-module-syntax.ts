@@ -13,14 +13,14 @@ export function resourceModuleSourceFile(module: TargetGodotResourceModulePlan):
   const emission: FamilyEmission = { ...familyEmission(module.targetPath, module.resources), moduleLevel: true };
   emission.taken.add(module.exportName);
   const local = familyResourceModuleLocal(emission, module.key);
-  const handle = useCompat(emission, module.handle.module, module.handle.exportName);
+  const handle = module.handle === undefined ? undefined : useCompat(emission, module.handle.module, module.handle.exportName);
   return {
     syntaxVersion: TARGET_TS_SYNTAX_VERSION,
     sourcePath: module.targetPath,
     statements: [
       ...familyImports(emission),
       ...emission.statics,
-      { kind: 'variable-statement', declaration: 'const', name: module.exportName, initializer: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: handle }, arguments: [{ kind: 'identifier-expression', name: local }] }, modifiers: ['export'] },
+      { kind: 'variable-statement', declaration: 'const', name: module.exportName, initializer: handle === undefined ? { kind: 'identifier-expression', name: local } : { kind: 'call-expression', callee: { kind: 'identifier-expression', name: handle }, arguments: [{ kind: 'identifier-expression', name: local }] }, modifiers: ['export'] },
     ],
   };
 }

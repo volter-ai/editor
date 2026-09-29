@@ -26,7 +26,7 @@ import type { InputEventRecord } from './input-event';
 import { type GodotInputKind, can_process, godot_node_call_input, godot_node_entity, godot_node_input_receivers, is_inside_tree } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import type { Vector2 } from './vector2';
-import { type GodotSignal, godot_object_signal } from './signal';
+import { createSignal, type GodotSignal, godot_object_signal } from './signal';
 import { get_size as subViewportSize, godot_sub_viewport_set_transparent } from './sub-viewport';
 import { affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
 import { godot_window_has_size, godot_window_visible_size } from './window';
@@ -330,4 +330,26 @@ export function set_handle_input_locally(self: object, enable: boolean): void {
 export function set_msaa_3d(self: object, msaa: number): void {
   void self;
   void msaa;
+}
+
+const FRAME_POST_DRAW = createSignal<[]>();
+
+/**
+ * `RenderingServer.frame_post_draw`: emitted once a frame has been drawn.
+ *
+ * @godot Viewport (protocol)
+ * @source servers/rendering/rendering_server_default.cpp:222
+ */
+export function godot_viewport_frame_post_draw(): GodotSignal<[]> {
+  return FRAME_POST_DRAW.signal;
+}
+
+/**
+ * The frame before this one has been drawn: the root Window's frame calls this as it begins.
+ *
+ * @godot Viewport (protocol)
+ * @source servers/rendering/rendering_server_default.cpp:222
+ */
+export function godot_viewport_frame_drawn(): void {
+  FRAME_POST_DRAW.emit();
 }

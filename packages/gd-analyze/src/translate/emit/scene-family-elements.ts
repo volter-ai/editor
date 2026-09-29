@@ -1066,13 +1066,13 @@ export function familyModelMaterialOverride(emission: FamilyEmission, setter: Ta
 }
 
 /**
- * A preloaded resource's module (`TargetGodotResourceModulePlan`): its three material, declared at
- * module level; the local it is declared as.
+ * A preloaded resource's module (`TargetGodotResourceModulePlan`): its three material, or the
+ * resource compat makes, declared at module level; the local it is declared as.
  */
 export function familyResourceModuleLocal(emission: FamilyEmission, key: string): string {
   const resource = emission.resources.get(key);
   if (resource === undefined) throw new Error(`${key}: a resource module without its resource`);
-  return threeMaterialOf(emission, resource);
+  return resource.idiom?.kind === 'material' || resource.idiom?.kind === 'shader-material' ? threeMaterialOf(emission, resource) : resourceLocal(emission, key);
 }
 
 /** A material resource's three material: a ShaderMaterial's custom shader material, else its own. */

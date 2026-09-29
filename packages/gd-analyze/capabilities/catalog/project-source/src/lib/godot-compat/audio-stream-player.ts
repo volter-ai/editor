@@ -16,7 +16,7 @@
  */
 
 import type { Object3D } from 'three';
-import { get_length as streamLength, godot_audio_context, godot_audio_stream_start } from './audio-stream';
+import { get_length as streamLength, godot_audio_bus_output, godot_audio_context, godot_audio_stream_start } from './audio-stream';
 import { godot_node_adopt, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import type { ReactElement } from 'react';
@@ -122,7 +122,7 @@ export function godot_audio_player_mount(entity: Object3D, output: GodotAudioPla
  * @source scene/audio/audio_stream_player.cpp:302
  */
 export function godot_audio_stream_player_mount(entity: Object3D): void {
-  godot_audio_player_mount(entity, (audio) => audio.destination);
+  godot_audio_player_mount(entity, (audio) => godot_audio_bus_output(audio));
 }
 
 /**

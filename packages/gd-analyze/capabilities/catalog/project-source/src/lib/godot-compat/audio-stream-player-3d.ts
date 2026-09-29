@@ -22,7 +22,7 @@
 
 import { godot_audio_listener_3d_current } from './audio-listener-3d';
 import type { Object3D } from 'three';
-import { godot_audio_context } from './audio-stream';
+import { godot_audio_bus_output, godot_audio_context } from './audio-stream';
 import * as P from './audio-stream-player';
 import type { GodotSignal } from './signal';
 import { godot_camera_3d_of_viewport } from './camera-3d';
@@ -175,7 +175,7 @@ export function godot_audio_stream_player_3d_mount(entity: Object3D): void {
       spatial.filter = audio.createBiquadFilter();
       spatial.filter.type = 'highshelf';
       spatial.cut = audio.createGain();
-      spatial.panner.connect(spatial.filter).connect(spatial.cut).connect(audio.destination);
+      spatial.panner.connect(spatial.filter).connect(spatial.cut).connect(godot_audio_bus_output(audio));
     }
     pan(entity, spatial);
     return spatial.panner;

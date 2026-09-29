@@ -582,8 +582,11 @@ export interface TargetGodotResourceModulePlan {
   /** The document's own resource. */
   readonly key: string;
   readonly resources: readonly TargetGodotSceneResourcePlan[];
-  /** The compat function that makes the three object the resource the scripts hold, as a scene reads it back. */
-  readonly handle: { readonly module: string; readonly exportName: string };
+  /**
+   * The compat function that makes the three object the resource the scripts hold, as a scene reads
+   * it back (a material); none for a resource compat makes itself (a sky material).
+   */
+  readonly handle?: { readonly module: string; readonly exportName: string };
 }
 
 /** A material's Godot resource, one per three material (`godot_base_material_3d_of`), as a scene's override reads back. */
@@ -3017,11 +3020,13 @@ function planResourceModules(context: PlanContext, project: BoundGodotProject): 
       context.document = resources;
       const key = planResourceAt(context, resPath, resPath);
       const planned = key === undefined ? undefined : resources.planned.get(key);
-      if (key === undefined || planned === undefined || planned === null || planned.idiom?.kind !== 'material') {
+      // A three material, or a resource its compat constructor makes (nothing a component loads).
+      const made = planned !== undefined && planned !== null && (planned.idiom?.kind === 'material' || (planned.idiom === undefined && planned.construct !== undefined && planned.load === undefined));
+      if (key === undefined || planned === undefined || planned === null || !made) {
         refuse(context, resPath, `a preloaded ${document.resource.type} without a script has no module form`, 'resource', document.resource.type);
         return [];
       }
-      return [{ sourceResPath: resPath, sourceDigest: document.sourceDigest, targetPath: godotResourceModuleTargetPath(resPath), exportName: godotResourceModuleExportName(resPath), key, resources: resources.order, handle: MATERIAL_HANDLE }];
+      return [{ sourceResPath: resPath, sourceDigest: document.sourceDigest, targetPath: godotResourceModuleTargetPath(resPath), exportName: godotResourceModuleExportName(resPath), key, resources: resources.order, ...(planned.idiom?.kind === 'material' ? { handle: MATERIAL_HANDLE } : {}) }];
     });
 }
 
