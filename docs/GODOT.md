@@ -1243,6 +1243,35 @@ ssh disabled and an empty cache). The monorepo's own lock resolves it the same w
 The platformer gate passes on this machine: import (plan, emit, `npm ci`, typecheck, vite build)
 and `run --frames 120`: 0 thrown, 239 physics frames, physics per frame p50 4.7 ms, p99 8.5 ms.
 
+## 2D, UI and untyped values on the web's own libraries (owner, 2026-09-28)
+
+The owner: "I thought the whole idea was to go native idiomatic web with threejs rapier and react
+... and pixi etc." The 3D side follows that: three.js through R3F, and Rapier through
+`@react-three/rapier`. The 2D and UI work of the same day did not, and the review of `d8c8af1b`
+found exactly that. It is redone on the libraries:
+
+- **2D drawing is PixiJS, through `@pixi/react`.** A Node2D is a Pixi `Container`, a Sprite2D a
+  `Sprite`, an AnimatedSprite2D an `AnimatedSprite`, a TileMapLayer sprites of its atlas textures,
+  GPUParticles2D Pixi's particle container, and Camera2D the stage container's transform. A
+  CanvasItemMaterial's blend is Pixi's `blendMode`, and a `canvas_item` shader is a Pixi `Filter`
+  of the lowered GLSL, which also draws the wind sway the DOM canvas could not.
+- **2D physics is Rapier (`@dimforge/rapier2d-compat`)**, bodies and colliders created by its own
+  API and stepped from Pixi's ticker (`useTick`), as `@react-three/rapier` steps 3D from R3F's
+  frame. The hand-rolled SAT, integration and `move_and_slide` are deleted; `move_and_slide` is
+  Rapier's character controller, as the 3D one is.
+- **UI is React DOM.** A Control is an element its component renders (`<div>`, `<button>`,
+  `<span>`), its anchors and container layout computed from Godot's rules into its style, and its
+  signals React's own events.
+- **Untyped values are typed statically, not dispatched at run time.** The analysis follows a value
+  to its class (an exported PackedScene's instanced root script, a container's elements), so a call
+  lowers to a direct method call. The run-time dispatcher (`variant-named.ts`,
+  `variant-operator.ts`) is removed as each case gets a static type; what the analysis cannot type
+  refuses by name.
+- The review's smaller findings are fixed with it:
+  - emit's built-in type table moves to plan data;
+  - the scene-state class test becomes a plan stamp;
+  - the root Window's re-pick is gone, and picking is Pixi's own event system.
+
 ## Every Godot 4 fixture imports (2026-09-28)
 
 All seven Godot 4 fixtures import and build with no refusal: the 3D platformer, basic scene,
