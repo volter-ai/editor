@@ -225,6 +225,12 @@ export class BlenderRuntime {
     return this.#document;
   }
 
+  /** Blender's last lines of output (the worker's log, newest last): what a status read shows,
+   *  including each document save's size and phase timings (`@@VOLTER-DOCUMENT`). */
+  get lastOutput(): readonly string[] {
+    return [...this.#lastLines];
+  }
+
   /** Idempotent: the first call boots Blender at `project`'s
    *  absolute path; later calls await it (a different path is refused).
    *

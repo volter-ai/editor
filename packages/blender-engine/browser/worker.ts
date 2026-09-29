@@ -198,9 +198,19 @@ function setDocumentDirty(dirty: boolean): void {
 async function saveDocument(): Promise<void> {
   if (!engine || documentPath === null) return;
   const relative = documentPath;
+  // Each phase's milliseconds, reported with the save: on a large document the save is the
+  // edit's cost, and where it goes differs by host (a tab-served project runs the server here).
+  const ms: Record<string, number> = {};
+  let mark = performance.now();
+  const lap = (phase: string) => {
+    const now = performance.now();
+    ms[phase] = Math.round(now - mark);
+    mark = now;
+  };
   let answer: { saved?: boolean; path?: string; size?: number };
   try {
     answer = (await engine.request({ op: 'save-document' })) as typeof answer;
+    lap('save');
   } catch (error) {
     // A document that cannot be written is the session's work at risk, so it
     // is a named condition in the editor's console, not a debug line.
@@ -211,6 +221,7 @@ async function saveDocument(): Promise<void> {
   let bytes: Uint8Array;
   try {
     bytes = await engine.files.readFile(answer.path);
+    lap('read');
   } catch (error) {
     throw new Error(`The Blender document ${relative} could not be read back out of the engine: ${describeThrown(error)}`);
   }
@@ -222,6 +233,7 @@ async function saveDocument(): Promise<void> {
   let sent = 0;
   try {
     const chunks = await documentChunks(bytes);
+    lap('chunk');
     const query = `path=${encodeURIComponent(relative)}`;
     const manifest = JSON.stringify({ chunks: chunks.map(({ hash, start, end }) => [hash, end - start]) });
     // The manifest asks for what the server lacks; after those are sent it commits. A second
@@ -232,9 +244,15 @@ async function saveDocument(): Promise<void> {
         headers: { 'content-type': 'application/json' },
         body: manifest,
       });
-      const said = (await posted.json().catch(() => null)) as { ok?: boolean; missing?: string[]; error?: string } | null;
+      const said = (await posted.json().catch(() => null)) as
+        | { ok?: boolean; missing?: string[]; error?: string; ms?: Record<string, number> }
+        | null;
+      lap(`manifest${round}`);
       if (!posted.ok) throw new Error(`HTTP ${posted.status} ${said?.error ?? ''}`);
-      if (said?.ok) break;
+      if (said?.ok) {
+        for (const [phase, value] of Object.entries(said.ms ?? {})) ms[`server.${phase}`] = value;
+        break;
+      }
       if (round === 2 || !Array.isArray(said?.missing)) throw new Error(`the server still lacks ${said?.missing?.length ?? '?'} chunks`);
       const wanted = new Set(said.missing);
       for (const chunk of chunks) {
@@ -247,12 +265,13 @@ async function saveDocument(): Promise<void> {
         if (!part.ok) throw new Error(`HTTP ${part.status} ${await part.text().catch(() => '')}`);
         sent += chunk.end - chunk.start;
       }
+      lap(`send${round}`);
     }
   } catch (error) {
     throw new Error(`The Blender document ${relative} was not written to the project: ${describeThrown(error)}`);
   }
   setDocumentDirty(false);
-  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length, sent })}`);
+  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length, sent, ms })}`);
 }
 
 async function startBlender(project: string, document?: string): Promise<unknown> {

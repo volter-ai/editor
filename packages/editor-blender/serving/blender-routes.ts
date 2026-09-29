@@ -500,6 +500,13 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           return;
         }
         const listed = chunks as [string, number][];
+        const ms: Record<string, number> = {};
+        let mark = performance.now();
+        const lap = (phase: string) => {
+          const now = performance.now();
+          ms[phase] = Math.round(now - mark);
+          mark = now;
+        };
         const held = heldChunks.get(path) ?? new Map<string, Buffer>();
         // What the document on disk already holds, by hash, re-verified below.
         const known = committedChunks.get(path);
@@ -512,6 +519,7 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           } catch {
             onDisk = null;
           }
+          lap('read');
         }
         const parts: Buffer[] = [];
         const missing = new Set<string>();
@@ -526,13 +534,16 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           if (reused && sha256(reused) === hash) parts.push(reused);
           else missing.add(hash);
         }
+        lap('verify');
         if (missing.size > 0) {
-          json(res, { ok: false, missing: [...missing] });
+          json(res, { ok: false, missing: [...missing], ms });
           return;
         }
         const body = Buffer.concat(parts);
+        lap('concat');
         try {
           const revision = await services.commitProjectMutation(req, [{ path, content: body }]);
+          lap('commit');
           heldChunks.delete(path);
           const byHash = new Map<string, { offset: number; length: number }>();
           let offset = 0;
@@ -549,6 +560,7 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
             bytes: body.byteLength,
             sent: listed.reduce((sum, [hash, length]) => sum + (held.has(hash) ? length : 0), 0),
             revision: revision?.revision ?? null,
+            ms,
           });
         } catch (error) {
           services.answerProjectMutationError(res, error);
