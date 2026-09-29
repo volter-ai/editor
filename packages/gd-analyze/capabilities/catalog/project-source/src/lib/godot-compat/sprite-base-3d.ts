@@ -123,12 +123,15 @@ const turned = new Matrix4();
  * `BaseMaterial3D::BILLBOARD_*`, `material.cpp:1450`): its position and scale kept, its rotation the
  * camera's (enabled) or the camera's turn about Y (fixed Y). Set just before the draw, so the node's
  * own transform is untouched.
+ *
+ * @godot SpriteBase3D (protocol)
+ * @source scene/resources/material.cpp:1450
  */
-function billboard(mesh: Mesh, state: SpriteBase3DState, camera: Camera): void {
-  if (state.billboard === 0) return;
+export function godot_sprite_base_3d_billboard(mesh: Mesh, mode: number, camera: Camera): void {
+  if (mode === 0) return;
   mesh.matrixWorld.decompose(position, rotation, scale);
   camera.getWorldQuaternion(facing);
-  if (state.billboard === 2) {
+  if (mode === 2) {
     const forward = new ThreeVector3(0, 0, 1).applyQuaternion(facing);
     facing.setFromAxisAngle(new ThreeVector3(0, 1, 0), Math.atan2(forward.x, forward.z));
   }
@@ -180,7 +183,7 @@ export function godot_sprite_base_3d_mount(
     aabb: { position: vector3(), size: vector3() },
   };
   SPRITES.set(entity, state);
-  entity.onBeforeRender = (_renderer, _scene, camera) => billboard(entity, state, camera);
+  entity.onBeforeRender = (_renderer, _scene, camera) => godot_sprite_base_3d_billboard(entity, state.billboard, camera);
   entity.material = new MeshBasicMaterial({ transparent: true, side: DoubleSide });
   entity.geometry = EMPTY;
   godot_visual_instance_3d_aabb(entity, () => state.aabb);
