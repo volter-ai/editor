@@ -991,6 +991,28 @@ export function get_children(self: object): Variant[] {
     .map(objectOf);
 }
 
+/**
+ * The child at `index` (negative from the end), else null; internal children are not kept apart.
+ *
+ * @godot Node.get_child
+ * @source scene/main/node.cpp:1835
+ */
+export function get_child(self: object, index: number, include_internal = false): Variant {
+  void include_internal;
+  const children = get_children(self);
+  const at = index < 0 ? children.length + index : index;
+  return at >= 0 && at < children.length ? (children[at] as Variant) : null;
+}
+
+/**
+ * @godot Node.get_child_count
+ * @source scene/main/node.cpp:1825
+ */
+export function get_child_count(self: object, include_internal = false): number {
+  void include_internal;
+  return get_children(self).length;
+}
+
 /** `String::match`: `*` any run of characters, `?` any one (`ustring.cpp:5125`). */
 function wildcard(pattern: string, text: string): boolean {
   const expression = new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/gu, '\\$&').replace(/\*/gu, '.*').replace(/\?/gu, '.')}$`, 'su');

@@ -39,7 +39,7 @@
 
 import { Matrix4, type Object3D, PerspectiveCamera } from 'three';
 import type { Environment } from './environment';
-import { godot_node_observe_tree, is_inside_tree } from './node';
+import { godot_node_entity, godot_node_observe_tree, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { construct as plane, type Plane } from './plane';
 import { construct as basisOf } from './basis';
@@ -1018,4 +1018,14 @@ export function godot_camera_3d_attach_renderer(viewport: Object3D, draw: (camer
 export function godot_camera_3d_viewport_resized(viewport: Object3D): void {
   const camera = godot_camera_3d_of_viewport(viewport);
   if (camera !== null) writeProjection(camera, stateOf(camera));
+}
+
+/**
+ * The camera the viewport draws with, else null.
+ *
+ * @godot Viewport.get_camera_3d
+ * @source scene/main/viewport.cpp:4557
+ */
+export function get_camera_3d(self: object): PerspectiveCamera | null {
+  return camerasOf(godot_node_entity(self) as Object3D).camera;
 }

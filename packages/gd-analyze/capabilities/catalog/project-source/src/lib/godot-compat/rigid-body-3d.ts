@@ -406,6 +406,82 @@ export function apply_central_impulse(self: object, impulse: Vector3): void {
 }
 
 /**
+ * An impulse at `position`, an offset from the body's centre in global orientation.
+ *
+ * @godot RigidBody3D.apply_impulse
+ * @source scene/3d/physics/rigid_body_3d.cpp:541
+ */
+export function apply_impulse(self: object, impulse: Vector3, position: Vector3 = vector3(0, 0, 0)): void {
+  stateOf(self);
+  const body = bodyOf(self);
+  if (body === undefined) return;
+  const at = body.translation();
+  body.applyImpulseAtPoint(impulse, { x: at.x + position.x, y: at.y + position.y, z: at.z + position.z }, true);
+}
+
+/**
+ * A force for the coming step: its impulse over the world's step (Rapier's forces persist, Godot's
+ * applied force lasts one step).
+ *
+ * @godot RigidBody3D.apply_central_force
+ * @source scene/3d/physics/rigid_body_3d.cpp:550
+ */
+export function apply_central_force(self: object, force: Vector3): void {
+  apply_force(self, force);
+}
+
+/**
+ * @godot RigidBody3D.apply_force
+ * @source scene/3d/physics/rigid_body_3d.cpp:554
+ */
+export function apply_force(self: object, force: Vector3, position: Vector3 = vector3(0, 0, 0)): void {
+  const step = godot_physics_world()?.timestep ?? 1 / 60;
+  apply_impulse(self, op_multiply(force, step), position);
+}
+
+/**
+ * Sleeping puts the body to sleep, else wakes it.
+ *
+ * @godot RigidBody3D.set_sleeping
+ * @source scene/3d/physics/rigid_body_3d.cpp:505
+ */
+export function set_sleeping(self: object, sleeping: boolean): void {
+  const body = bodyOf(self);
+  if (body === undefined) return;
+  if (sleeping) body.sleep();
+  else body.wakeUp();
+}
+
+/**
+ * @godot RigidBody3D.is_sleeping
+ * @source scene/3d/physics/rigid_body_3d.cpp:519
+ */
+export function is_sleeping(self: object): boolean {
+  return bodyOf(self)?.isSleeping() ?? false;
+}
+
+const FROZEN = new WeakMap<object, boolean>();
+
+/**
+ * A frozen body stops simulating: static by default (`FREEZE_MODE_STATIC`), a fixed Rapier body.
+ *
+ * @godot RigidBody3D.set_freeze_enabled
+ * @source scene/3d/physics/rigid_body_3d.cpp:307
+ */
+export function set_freeze_enabled(self: object, freeze: boolean): void {
+  FROZEN.set(godot_node_entity(self), freeze);
+  bodyOf(self)?.setBodyType(freeze ? 1 : 0, true);
+}
+
+/**
+ * @godot RigidBody3D.is_freeze_enabled
+ * @source scene/3d/physics/rigid_body_3d.cpp:316
+ */
+export function is_freeze_enabled(self: object): boolean {
+  return FROZEN.get(godot_node_entity(self)) ?? false;
+}
+
+/**
  * @godot RigidBody3D.set_lock_rotation_enabled
  * @source scene/3d/physics/rigid_body_3d.cpp:302
  */
