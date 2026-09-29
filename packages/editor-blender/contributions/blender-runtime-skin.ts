@@ -217,6 +217,7 @@ export class BlenderSkinDirector {
    *  frame stands, which is Blender's answer for a file with no animation. */
   frame(): number {
     const clip = this.#clip;
+    if (this.#seeked !== null) return this.#seeked;
     if (!clip || !this.#action || clip.clipStart === undefined) return clip?.frameCurrent ?? 1;
     // A SEEK'S OWN ANSWER, while one is standing. `LoopRepeat` wraps
     // `action.time` into `[0, duration)`, so a seek to the LAST frame lands on
@@ -224,7 +225,6 @@ export class BlenderSkinDirector {
     // walk, where `jump-end` answered frame 1 over a frame-48 pose. The
     // wrapping is right for playback and wrong for a question, so a standing
     // seek answers with the frame it was given and the play tick clears it.
-    if (this.#seeked !== null) return this.#seeked;
     // THE ACTION'S TIME, NOT THE MIXER'S, and the difference is the whole of
     // looping: `AnimationMixer.time` is monotonic and never wraps, while
     // `AnimationAction.time` is wrapped into `[0, duration]` by `LoopRepeat`.
@@ -234,10 +234,9 @@ export class BlenderSkinDirector {
     return clip.clipStart + this.#action.time * clip.fps;
   }
 
-  /** Whether anything is actually playable — a Timeline over a file with no
-   *  action still draws its ruler and its range. */
+  /** Blender's scene clock exists even when the scene has no action. */
   get playable(): boolean {
-    return this.#action !== null;
+    return this.#clip !== null && this.#transport !== null;
   }
 
   // ------------------------------------------------------------ the binding
@@ -295,6 +294,7 @@ export class BlenderSkinDirector {
       clip?.clipStart !== previous?.clipStart ||
       clip?.clipEnd !== previous?.clipEnd;
     this.#clip = clip ?? null;
+    if (!clip || clip.scene !== previous?.scene) this.#seeked = null;
     if (clip?.reason) warnings.push(clip.reason);
     if (clip && (movedAction || changed)) this.#loadClip(presentation, clip, warnings);
     // BLENDER'S OWN FRAME RE-SYNCS THE PLAYHEAD. An agent that set
@@ -482,14 +482,17 @@ export class BlenderSkinDirector {
 
   #seek(frame: number): void {
     const clip = this.#clip;
-    if (!clip || !this.#mixer || clip.clipStart === undefined || clip.clipEnd === undefined) return;
-    const clamped = Math.min(clip.clipEnd, Math.max(clip.clipStart, frame));
+    if (!clip) return;
+    const clamped = Math.min(clip.frameEnd, Math.max(clip.frameStart, frame));
     this.#seeked = clamped;
+    // An action supplies a pose at this scene time; it does not own whether
+    // the scene clock can move. Empty/static scenes still play and scrub.
+    if (!this.#mixer || clip.clipStart === undefined || clip.clipEnd === undefined) return;
     // The TIME is nudged inside the clip so the last frame evaluates as the
     // last frame rather than wrapping to the first; the number REPORTED is the
     // one asked for (see `frame`).
     const duration = (clip.clipEnd - clip.clipStart) / clip.fps;
-    this.#mixer.setTime(Math.min(duration - 1e-4, (clamped - clip.clipStart) / clip.fps));
+    this.#mixer.setTime(Math.max(0, Math.min(duration - 1e-4, (clamped - clip.clipStart) / clip.fps)));
     this.#refresh();
   }
 
@@ -601,6 +604,8 @@ export class BlenderSkinDirector {
     this.#mixer?.stopAllAction();
     this.#mixer = null;
     this.#action = null;
+    this.#clip = null;
+    this.#seeked = null;
     for (const rig of this.#rigs.values()) {
       rig.skeleton.dispose();
       rig.boneRoot.removeFromParent();

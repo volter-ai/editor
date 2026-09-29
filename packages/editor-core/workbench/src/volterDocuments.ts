@@ -226,6 +226,35 @@ export class VolterDocuments extends Disposable {
 		return this.group;
 	}
 
+	/** Restoration can leave an area's tab active, especially after the model
+	 * was closed. That group is not the centre to split again on every boot. */
+	private bindMainGroup(documents: readonly VolterDocument[]): void {
+		const areas = new Set(documents.filter(document => document.area).map(document => document.id));
+		const centres = new Set(documents.filter(document => !document.area).map(document => document.id));
+		const holds = (group: IEditorGroup, ids: Set<string>) => group.editors.some(editor =>
+			editor instanceof VolterDocumentInput && editor.documentId !== undefined && ids.has(editor.documentId));
+		const groups = this.editorGroupsService.getGroups(GroupsOrder.GRID_APPEARANCE);
+		let main = holds(this.group, centres) ? this.group : groups.find(group => holds(group, centres));
+		if (!main && !holds(this.group, areas)) { main = this.group; }
+		if (!main) { main = groups.find(group => !holds(group, areas)); }
+		if (!main) {
+			const area = documents.find(document => document.area && holds(this.group, new Set([document.id])))?.area;
+			if (!area) { return; }
+			const opposite: Record<VolterDocumentArea['place'], GroupDirection> = {
+				left: GroupDirection.RIGHT, right: GroupDirection.LEFT,
+				above: GroupDirection.DOWN, below: GroupDirection.UP,
+			};
+			main = this.editorGroupsService.addGroup(this.group, opposite[area.place]);
+		}
+		if (main === this.group) { return; }
+		this.group = main;
+		this.appliedActiveId = null;
+		this.watchGroup();
+		for (const [id, group] of this.areaGroups) {
+			if (group === main) { this.areaGroups.delete(id); }
+		}
+	}
+
 	/**
 	 * The editor group for one area — created on first use, ADOPTED when one is already there.
 	 *
@@ -239,14 +268,15 @@ export class VolterDocuments extends Disposable {
 	 * below) and is left alone.
 	 */
 	private groupForArea(area: VolterDocumentArea, documentId: string): IEditorGroup {
-		const restored = this.editorGroupsService.getGroups(GroupsOrder.MOST_RECENTLY_ACTIVE).find(group => group.editors.some(editor => editor instanceof VolterDocumentInput && editor.documentId === documentId));
+		const adjacent = this.editorGroupsService.findGroup({ direction: AREA_DIRECTION[area.place] }, this.group);
+		const restored = adjacent?.editors.some(editor => editor instanceof VolterDocumentInput && editor.documentId === documentId) ? adjacent : undefined;
 		if (!this.areaGroups.has(area.id) && restored) {
 			this.areaGroups.set(area.id, restored);
 			this.areaDocuments.set(restored.id, documentId);
 			return restored;
 		}
 		const known = this.areaGroups.get(area.id);
-		const neighbour = known ?? this.editorGroupsService.findGroup({ direction: AREA_DIRECTION[area.place] }, this.group);
+		const neighbour = known ?? adjacent;
 		const group = neighbour && neighbour !== this.group && (known !== undefined || neighbour.count === 0)
 			? neighbour
 			: this.editorGroupsService.addGroup(this.group, AREA_DIRECTION[area.place]);
@@ -352,6 +382,8 @@ export class VolterDocuments extends Disposable {
 		const documents = this.bridge.list?.() ?? [];
 		this.applying = true;
 		try {
+			this.bindMainGroup(documents);
+			const areaDestinations = new Map<string, IEditorGroup>();
 			// An area opens in its area group; other documents keep their native group. `preserveFocus` matters for the area: creating the split must not
 			// take the caret out of whatever the person was typing in.
 			const opened = new Set<string>();
@@ -359,6 +391,7 @@ export class VolterDocuments extends Disposable {
 				const input = VolterDocumentInput.forDocument(document.id, document.title);
 				// Native tab moves own placement after the document is opened.
 				const group = document.area ? this.groupForArea(document.area, document.id) : this.groupContaining(input) ?? this.group;
+				if (document.area) { areaDestinations.set(document.id, group); }
 				if (!group.contains(input)) {
 					opened.add(document.id);
 					await this.editorService.openEditor(input, { inactive: true, preserveFocus: true, pinned: true }, group);
@@ -404,6 +437,18 @@ export class VolterDocuments extends Disposable {
 				// workspace switch that closed it, and the group goes with it.
 				for (const editor of [...group.editors]) {
 					if (!(editor instanceof VolterDocumentInput)) { continue; }
+					const destination = editor.documentId === undefined ? undefined : areaDestinations.get(editor.documentId);
+					if (destination && destination !== group) {
+						// An area is one workspace surface, not an ordinary document's
+						// intentionally split views. Retire old restored duplicates only.
+						const area = documents.find(document => document.id === editor.documentId)?.area;
+						await group.closeEditor(editor);
+						if (group !== this.group && group.count === 0 && this.editorGroupsService.groups.includes(group)) {
+							this.editorGroupsService.removeGroup(group);
+						}
+						if (area) { this.areaToSize.set(area.id, {group: destination, area}); }
+						continue;
+					}
 					if (editor.documentId !== undefined && (wanted.has(editor.documentId) || !this.registeredDocuments.has(editor.documentId))) { continue; }
 					if (group === this.group && editor.documentId === undefined && centre.length === 0) { continue; }
 					await group.closeEditor(editor);

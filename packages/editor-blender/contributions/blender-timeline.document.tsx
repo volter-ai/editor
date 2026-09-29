@@ -112,22 +112,10 @@ const REFUSALS = {
     'Selecting a keyframe writes `Keyframe.select_control_point`. The view draws the flags the data carries — a selected key takes `.common.anim.keyframe_selected` — and changes none of them.',
 } as const;
 
-/**
- * WHY A TRANSPORT GESTURE DOES NOTHING OVER A FILE WITH NO ACTION, in one
- * sentence, with ONE author: the `play` verb throws it and the header's
- * controls wear it as their title while they are disabled.
- *
- * It exists because the two halves disagreed. `volter.timeline.play` refused by
- * name while the BUTTON called `transport()?.play()` straight through — the
- * clock went to `playing`, both glyphs flipped to Pause, and the playhead
- * stayed on frame 1 forever, because `#seek`/the play tick return early with
- * no mixer to move (`blender-runtime-skin.ts`). Measured on U8's walk 3
- * (2026-09-20) over a `--template models` scaffold: `volter.timeline.state`
- * answered `action: null` with that warning while the header showed a running
- * transport. A control whose success can be invisible must say so.
- */
+/** The scene clock is available with or without an action. Only a missing
+ * scene/transport prevents timeline navigation. */
 const NOT_PLAYABLE =
-  'Nothing here is playable: no object in the scene carries an action this view could bind a mixer to.';
+  'No scene transport is attached yet; open the model document first.';
 
 /**
  * THE TRANSPORT THIS LOOK DRIVES — the Model document's, attached by
@@ -235,7 +223,7 @@ function report(): unknown {
  *  stage's own render loop draws the next frame from them. Blender is not
  *  called — `state().engineCalls` is how that is checked.
  *
- *  IT REFUSES OVER A FILE WITH NO ACTION, for the reason {@link NOT_PLAYABLE}
+ *  IT REFUSES WITHOUT A SCENE TRANSPORT, for the reason {@link NOT_PLAYABLE}
  *  states and with that one sentence: `#seek` returns at its first line with
  *  no mixer (`blender-runtime-skin.ts`), so the seek was a no-op and
  *  `report()` then answered `frame: 1` — the playhead's honest position and a
@@ -886,11 +874,8 @@ function TimelineHeader() {
   useSyncExternalStore(subscribeTimelineView, timelineViewVersion, timelineViewVersion);
   const play = blenderSkin.state();
   const unit = TIMELINE_CHROME.unit;
-  // THE TRANSPORT IS ONLY AS TRUE AS THE FILE. With no action there is no
-  // mixer, so every seek and the play tick return early; a control that still
-  // accepted the click reported a state the picture never took (see
-  // NOT_PLAYABLE). Disabled, wearing the reason as its title, is what the
-  // `play` verb already answers.
+  // Static scenes have a timeline too. Disable only while its scene/transport
+  // is unavailable, using the same condition as the command door.
   const playable = blenderSkin.playable;
   const button = (key: string, glyph: ReactNode, onClick: () => void, label: string) => (
     <button
