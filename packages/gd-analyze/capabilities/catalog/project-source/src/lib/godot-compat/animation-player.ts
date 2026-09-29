@@ -46,6 +46,9 @@ import {
   godot_animation_mixer_process,
   godot_animation_mixer_set_library,
   godot_animation_mixer_set_process,
+  get_callback_mode_method,
+  get_callback_mode_process,
+  get_root_node,
   has_animation,
   is_active,
   set_active,
@@ -889,6 +892,121 @@ export function set_auto_capture(self: object, auto_capture: boolean): void {
  */
 export function is_auto_capture(self: object): boolean {
   return stateOf(self, 'is_auto_capture').autoCapture;
+}
+
+/**
+ * How long an auto-captured blend takes (a negative time is the blend time); kept for capture
+ * playback, which is not transcribed (the module header).
+ *
+ * @godot AnimationPlayer.set_auto_capture_duration
+ * @source scene/animation/animation_player.cpp:889
+ */
+export function set_auto_capture_duration(self: object, auto_capture_duration: number): void {
+  stateOf(self, 'set_auto_capture_duration').autoCaptureDuration = auto_capture_duration;
+}
+
+/**
+ * @godot AnimationPlayer.get_auto_capture_duration
+ * @source scene/animation/animation_player.cpp:893
+ */
+export function get_auto_capture_duration(self: object): number {
+  return stateOf(self, 'get_auto_capture_duration').autoCaptureDuration;
+}
+
+/**
+ * The Tween transition of an auto-captured blend; kept for capture playback.
+ *
+ * @godot AnimationPlayer.set_auto_capture_transition_type
+ * @source scene/animation/animation_player.cpp:897
+ */
+export function set_auto_capture_transition_type(self: object, auto_capture_transition_type: number): void {
+  stateOf(self, 'set_auto_capture_transition_type').autoCaptureTransition = auto_capture_transition_type;
+}
+
+/**
+ * @godot AnimationPlayer.get_auto_capture_transition_type
+ * @source scene/animation/animation_player.cpp:901
+ */
+export function get_auto_capture_transition_type(self: object): number {
+  return stateOf(self, 'get_auto_capture_transition_type').autoCaptureTransition;
+}
+
+/**
+ * The Tween ease of an auto-captured blend; kept for capture playback.
+ *
+ * @godot AnimationPlayer.set_auto_capture_ease_type
+ * @source scene/animation/animation_player.cpp:905
+ */
+export function set_auto_capture_ease_type(self: object, auto_capture_ease_type: number): void {
+  stateOf(self, 'set_auto_capture_ease_type').autoCaptureEase = auto_capture_ease_type;
+}
+
+/**
+ * @godot AnimationPlayer.get_auto_capture_ease_type
+ * @source scene/animation/animation_player.cpp:909
+ */
+export function get_auto_capture_ease_type(self: object): number {
+  return stateOf(self, 'get_auto_capture_ease_type').autoCaptureEase;
+}
+
+/**
+ * The deprecated name of the mixer's `callback_mode_process` (`_set_process_callback_bind_compat_80813`).
+ *
+ * @godot AnimationPlayer.set_process_callback
+ * @source scene/animation/animation_player.compat.inc:37
+ */
+export function set_process_callback(self: object, mode: number): void {
+  stateOf(self, 'set_process_callback');
+  set_callback_mode_process(self, mode);
+}
+
+/**
+ * @godot AnimationPlayer.get_process_callback
+ * @source scene/animation/animation_player.compat.inc:41
+ */
+export function get_process_callback(self: object): number {
+  stateOf(self, 'get_process_callback');
+  return get_callback_mode_process(self);
+}
+
+/**
+ * The deprecated name of the mixer's `callback_mode_method`.
+ *
+ * @godot AnimationPlayer.set_method_call_mode
+ * @source scene/animation/animation_player.compat.inc:45
+ */
+export function set_method_call_mode(self: object, mode: number): void {
+  stateOf(self, 'set_method_call_mode');
+  set_callback_mode_method(self, mode);
+}
+
+/**
+ * @godot AnimationPlayer.get_method_call_mode
+ * @source scene/animation/animation_player.compat.inc:49
+ */
+export function get_method_call_mode(self: object): number {
+  stateOf(self, 'get_method_call_mode');
+  return get_callback_mode_method(self);
+}
+
+/**
+ * The deprecated name of the mixer's `root_node`.
+ *
+ * @godot AnimationPlayer.set_root
+ * @source scene/animation/animation_player.compat.inc:53
+ */
+export function set_root(self: object, path: string): void {
+  stateOf(self, 'set_root');
+  set_root_node(self, path);
+}
+
+/**
+ * @godot AnimationPlayer.get_root
+ * @source scene/animation/animation_player.compat.inc:57
+ */
+export function get_root(self: object): string {
+  stateOf(self, 'get_root');
+  return get_root_node(self);
 }
 
 // --- The scene's element.
