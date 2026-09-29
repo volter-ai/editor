@@ -18,6 +18,7 @@ export const GODOT_4_7_RENDER_RESOURCE_RULES: readonly (GodotSceneResourceRule &
     ['QuadMesh', 'quad-mesh', 'scene/resources/3d/primitive_meshes.h', 291],
     ['SphereMesh', 'sphere-mesh', 'scene/resources/3d/primitive_meshes.h', 340],
     ['CylinderMesh', 'cylinder-mesh', 'scene/resources/3d/primitive_meshes.h', 200],
+    ['CapsuleMesh', 'capsule-mesh', 'scene/resources/3d/primitive_meshes.h', 130],
     ['BoxMesh', 'box-mesh', 'scene/resources/3d/primitive_meshes.h', 192],
     ['StandardMaterial3D', 'standard-material-3d', 'scene/resources/material.h', 920],
     ['CameraAttributesPractical', 'camera-attributes-practical', 'scene/resources/camera_attributes.cpp', 306],

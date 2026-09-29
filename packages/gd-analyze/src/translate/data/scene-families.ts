@@ -370,6 +370,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   QuadMesh: PRIMITIVE_PLANE,
   SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_is_hemisphere', 'set_material'],
   BoxMesh: ['set_size', 'set_subdivide_width', 'set_subdivide_height', 'set_subdivide_depth', 'set_material'],
+  CapsuleMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_material'],
   CylinderMesh: ['set_top_radius', 'set_bottom_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_cap_top', 'set_cap_bottom', 'set_material'],
   StandardMaterial3D: [
     'set_albedo',

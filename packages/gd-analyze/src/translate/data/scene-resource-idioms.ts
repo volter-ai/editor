@@ -27,6 +27,8 @@ export type GodotSceneResourceIdiom =
   | { readonly kind: 'sphere'; readonly geometry: true }
   /** A CylinderMesh: three's `cylinderGeometry`. */
   | { readonly kind: 'cylinder'; readonly geometry: true }
+  /** A CapsuleMesh: three's `capsuleGeometry`. */
+  | { readonly kind: 'capsule'; readonly geometry: true }
   /** A BoxMesh: three's `boxGeometry`. */
   | { readonly kind: 'box'; readonly geometry: true }
   /** An ArrayMesh: a `bufferGeometry` over its surfaces' data file. */
@@ -69,6 +71,7 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
   QuadMesh: { kind: 'plane', geometry: true, size: [1, 1] },
   SphereMesh: { kind: 'sphere', geometry: true },
   CylinderMesh: { kind: 'cylinder', geometry: true },
+  CapsuleMesh: { kind: 'capsule', geometry: true },
   BoxMesh: { kind: 'box', geometry: true },
   ArrayMesh: { kind: 'array-mesh', geometry: true },
   StandardMaterial3D: 'material',

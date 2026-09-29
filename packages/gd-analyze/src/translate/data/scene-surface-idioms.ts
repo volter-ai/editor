@@ -66,6 +66,11 @@ function primitiveArgs(resource: TargetGodotSceneResourcePlan): TargetGodotScene
         ...(cap?.kind === 'bool' && !cap.value ? { open: true as const } : {}),
       };
     }
+    case 'capsule': {
+      // Godot's height spans the caps; three's length is the straight part between them.
+      const radius = num('set_radius', 0.5);
+      return { args: [radius, Math.max(num('set_height', 2) - radius * 2, 0), num('set_rings', 8), num('set_radial_segments', 64)] };
+    }
     default:
       return undefined;
   }
