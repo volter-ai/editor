@@ -539,10 +539,11 @@ export function godotFamilyRefusal(
     }
     case 'CPUParticles3D':
     case 'ParticleProcessMaterial': {
-      // The emitter emits from a point, a sphere, a sphere's surface and a box; not from `_POINTS`,
-      // `_DIRECTED_POINTS` or `_RING` (`particle_process_material.h:88`, `cpu_particles_3d.h:75`).
+      // The emitter emits from a point, a sphere, a sphere's surface, a box and (a process
+      // material's) a ring; not from `_POINTS` or `_DIRECTED_POINTS`, which need their emission
+      // textures (`particle_process_material.h:88`, `cpu_particles_3d.h:75`).
       const shape = numberOf(setters, 'set_emission_shape', 0);
-      return shape >= 4 ? `emission_shape=${String(shape)} is not emitted from` : undefined;
+      return shape === 4 || shape === 5 || (shape === 6 && className !== 'ParticleProcessMaterial') ? `emission_shape=${String(shape)} is not emitted from` : undefined;
     }
     case 'StandardMaterial3D': {
       const transparency = numberOf(setters, 'set_transparency', 0);
