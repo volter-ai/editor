@@ -43,6 +43,13 @@ import {
 } from './blender-runtime-camera-view';
 import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 
+/** A saved `View3DShading.type` as the stage's draw mode: Material Preview is `preview`. */
+const SAVED_SHADING = {
+  WIREFRAME: 'wireframe',
+  SOLID: 'solid',
+  MATERIAL: 'preview',
+  RENDERED: 'rendered',
+} as const;
 const scalar = z.number().finite();
 const point = z.tuple([scalar, scalar, scalar]);
 const edge = z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]);
@@ -547,6 +554,7 @@ export const frameSchema = z
         distance: z.number().finite(),
         perspective: z.enum(['PERSP', 'ORTHO', 'CAMERA']),
         lens: z.number().finite().positive().default(50),
+        shading: z.enum(['WIREFRAME', 'SOLID', 'MATERIAL', 'RENDERED']).optional(),
       })
       .nullable()
       .optional(),
@@ -831,8 +839,9 @@ export class BlenderRuntimeView {
    * direction from the pivot to the eye (the view's +Z, `view_rotation` turning view space into
    * the world: RNA's inverse of `viewquat`), the screen's up (the view's +Y), the distance and
    * the projection. A view saved through the scene camera opens in perspective along the same
-   * axis: looking through a camera is not a view this stage has. Null before a frame or when
-   * the file saved no 3D View.
+   * axis: looking through a camera is not a view this stage has. With it the view's SHADING, the
+   * draw mode Blender reopens it in (null from a file whose view carried none). Null before a
+   * frame or when the file saved no 3D View.
    */
   savedView(): {
     readonly target: readonly [number, number, number];
@@ -841,6 +850,7 @@ export class BlenderRuntimeView {
     readonly distance: number;
     readonly projection: 'perspective' | 'orthographic';
     readonly lens: number;
+    readonly drawMode: 'wireframe' | 'solid' | 'preview' | 'rendered' | null;
   } | null {
     const saved = this.frame?.view;
     if (!saved) return null;
@@ -855,6 +865,7 @@ export class BlenderRuntimeView {
       distance: saved.distance,
       projection: saved.perspective === 'ORTHO' ? 'orthographic' : 'perspective',
       lens: saved.lens,
+      drawMode: saved.shading ? SAVED_SHADING[saved.shading] : null,
     };
   }
 

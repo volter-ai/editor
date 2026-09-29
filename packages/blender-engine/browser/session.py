@@ -760,13 +760,17 @@ def _empty_display(obj):
 
 
 def _saved_view():
-    """The 3D View the file saved, which is where Blender opens it: the `Modeling` workspace's
-    (this editor's Model workspace is Blender's Modeling), else the first 3D View any screen
-    holds. `RegionView3D`'s pivot, rotation (view to world, `(w, x, y, z)`), distance and
-    projection (`PERSP`, `ORTHO`, or `CAMERA` for a view through the scene camera), and the
-    `View3D`'s lens."""
+    """The 3D View the file saved, which is where Blender opens it: the one on the screen the
+    file's window was showing when it was saved (Blender reopens that workspace; a stock file's is
+    `Layout`), else the `Modeling` workspace's (this editor's Model workspace is Blender's
+    Modeling), else the first 3D View any screen holds. `RegionView3D`'s pivot, rotation (view to
+    world, `(w, x, y, z)`), distance and projection (`PERSP`, `ORTHO`, or `CAMERA` for a view
+    through the scene camera), the `View3D`'s lens, and its SHADING TYPE, which Blender reopens
+    with the view: a file saved in Material Preview opens in Material Preview."""
+    screens = [window.screen for wm in bpy.data.window_managers for window in wm.windows
+               if window.screen is not None]
     workspace = bpy.data.workspaces.get("Modeling")
-    screens = list(workspace.screens) if workspace is not None else []
+    screens.extend(workspace.screens if workspace is not None else [])
     screens.extend(bpy.data.screens)
     for screen in screens:
         for area in screen.areas:
@@ -780,6 +784,7 @@ def _saved_view():
                 "rotation": [float(v) for v in region.view_rotation],
                 "distance": float(region.view_distance),
                 "perspective": region.view_perspective,
+                "shading": space.shading.type,
             }
     return None
 

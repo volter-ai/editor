@@ -646,10 +646,14 @@ function BlenderViewportArea({
       // WHERE BLENDER OPENS THE FILE: its own saved 3D View, when it holds one; the direction and
       // fit above are the fallback for a file that saved none.
       openingView={view.savedView()}
-      // The file's own lens, as the document's presentation (Blender's arithmetic in degrees).
+      // The file's own lens (Blender's arithmetic in degrees) and the shading its view was saved
+      // in, as the document's presentation: Blender reopens a file saved in Material Preview in
+      // Material Preview, so a textured scene saved that way does not open grey.
       presentation={(() => {
         const saved = view.savedView();
-        return saved ? { camera: { fov: blenderViewFieldOfView(saved.lens) } } : null;
+        if (!saved) return null;
+        const camera = { fov: blenderViewFieldOfView(saved.lens) };
+        return saved.drawMode ? { camera, drawMode: saved.drawMode } : { camera };
       })()}
       // Every entry this document opens is a `model` stage, the standing `blender:runtime`
       // address included (its id carries no `model:` prefix).
