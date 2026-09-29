@@ -1,3 +1,4 @@
+import { GODOT_GENERATED_MODULE_PACKAGES } from '../data/generated-packages';
 import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import { createHash } from 'node:crypto';
 import type { CapabilityCopyArtifact } from '../../snapshot/toolchain-snapshot';
@@ -276,7 +277,6 @@ function validateArtifact(artifact: GodotPlannedArtifact, paths: Set<string>): v
  * The libraries the generated scene, script and world modules are written with (three.js, React,
  * R3F, drei, Rapier): declared whatever compat files a game reaches.
  */
-const GENERATED_MODULE_PACKAGES: ReadonlySet<string> = new Set(['three', 'react', 'react-dom', '@react-three/fiber', '@react-three/drei', '@react-three/rapier', '@dimforge/rapier3d-compat']);
 
 type MutableManifest = { dependencies?: Record<string, string> };
 type MutableLock = { readonly packages?: Record<string, Record<string, unknown>> };
@@ -298,7 +298,7 @@ export function planDirectGodotArtifacts(
   // Only the packages it reaches: one only unreached capability files import is not declared,
   // unless the game's own modules are written with it.
   const used = godotCapabilityPackages(reached);
-  const unused = new Set([...godotCapabilityPackages(capabilities)].filter((name) => !used.has(name) && !GENERATED_MODULE_PACKAGES.has(name)));
+  const unused = new Set([...godotCapabilityPackages(capabilities)].filter((name) => !used.has(name) && !GODOT_GENERATED_MODULE_PACKAGES.has(name)));
   const pruned = prunePackageDocuments(project.packageManifest as MutableManifest, project.packageLock as MutableLock, unused);
   const projectFiles = [
     ...planned.filter((artifact) => artifact.path !== 'package.json' && artifact.path !== 'package-lock.json'),

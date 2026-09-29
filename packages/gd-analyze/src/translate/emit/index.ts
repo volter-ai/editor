@@ -1,3 +1,4 @@
+import { GODOT_GENERATED_MODULE_PACKAGES, godotImportPackage } from '../data/generated-packages';
 import { createHash } from 'node:crypto';
 import * as path from 'node:path';
 import { structuralDigest } from '../artifacts/identity';
@@ -46,11 +47,19 @@ function emitted(
 /**
  * A generated module's imports of capability files name only files the plan carries: the plan
  * decided which capability files the game reaches (`artifacts/capability-reach.ts`), and emit
- * prints no import of one it left out.
+ * prints no import of one it left out. Its packages are the generated modules' own, which the plan
+ * keeps declared (`generated-packages.ts`).
  */
 function assertPlannedCapabilityImports(file: string, syntax: TargetTsSourceFile, capabilityFiles: ReadonlySet<string>): void {
   for (const statement of syntax.statements) {
-    if (statement.kind !== 'import-statement' || !statement.module.startsWith('.')) continue;
+    if (statement.kind !== 'import-statement') continue;
+    // A package the game's own modules import is one the plan keeps declared (`generated-packages.ts`).
+    if (!statement.module.startsWith('.')) {
+      if (!GODOT_GENERATED_MODULE_PACKAGES.has(godotImportPackage(statement.module))) {
+        throw new Error(`${file}: imports ${statement.module}, a package generated modules do not declare`);
+      }
+      continue;
+    }
     const target = path.posix.normalize(path.posix.join(path.posix.dirname(file), statement.module));
     if (!target.startsWith('src/lib/')) continue;
     const candidates = [target, `${target}.ts`, `${target}.tsx`, `${target}/index.ts`, `${target}/index.tsx`];
