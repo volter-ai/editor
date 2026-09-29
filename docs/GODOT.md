@@ -1332,11 +1332,15 @@ its idiomatic form:
 - SubViewports' own images, ViewportTexture, `disable_3d`, `own_world_3d`;
 - GPUParticles3D trails and RibbonTrailMesh;
 - edits inside an instanced scene and `script = null` on an instance;
-- ImageTexture resources a document embeds.
+- ImageTexture resources a document embeds;
+- navigation (NavigationRegion3D, NavigationAgent3D, NavigationMesh), a map and an agent update
+  that ported the navigation server (review of `f6c8f54c`);
+- GPUParticles3D's transform alignment, a port of the particle storage's instance update;
+- NinePatchRect and RichTextLabel, until the GUI moves to React DOM.
 
-What stayed: SpringArm3D, ShapeCast3D, navigation, NinePatchRect, RichTextLabel's text, depth of
-field as `postprocessing`'s `DepthOfField`, spatial shader normal maps, `ambient_light_disabled`,
-`VERTEX`, local shader arrays, transform alignment, a collision shape's children, and the lowering
+What stayed: SpringArm3D, ShapeCast3D, depth of field as `postprocessing`'s `DepthOfField`,
+spatial shader normal maps, `ambient_light_disabled`, `VERTEX`, local shader arrays, a collision
+shape's children, and the lowering
 fixes (`free()` on self, script instances into engine-typed parameters as their nodes, typed by
 analysis's `nodeArguments`, null object returns, Variants into typed engine parameters).
 

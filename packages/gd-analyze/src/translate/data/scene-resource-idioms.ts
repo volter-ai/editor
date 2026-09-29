@@ -39,8 +39,6 @@ export type GodotSceneResourceIdiom =
   | { readonly kind: 'gradient-texture' }
   /** A CompressedTexture2D: the imported image, loaded by the scene's texture hook. */
   | { readonly kind: 'texture' }
-  /** A baked NavigationMesh: a data file the scene imports, made once (`navigation-mesh.ts`). */
-  | { readonly kind: 'navigation-mesh' }
   /** A MeshLibrary, AnimationLibrary or AnimationNodeBlendTree: a data file the scene imports. */
   | { readonly kind: 'mesh-library' }
   | { readonly kind: 'animation-library' }
@@ -80,7 +78,6 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
   GradientTexture2D: { kind: 'gradient-texture' },
   CompressedTexture2D: { kind: 'texture' },
   MeshLibrary: { kind: 'mesh-library' },
-  NavigationMesh: { kind: 'navigation-mesh' },
   AnimationLibrary: { kind: 'animation-library' },
   AnimationNodeBlendTree: { kind: 'animation-tree' },
   CompressedCubemap: { kind: 'loaded', module: 'compressed-cubemap', exportName: 'useGodotCubemap' },

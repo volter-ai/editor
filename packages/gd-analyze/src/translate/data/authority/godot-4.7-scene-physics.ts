@@ -26,8 +26,6 @@ export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule 
     ['ConvexPolygonShape3D', 'convex-polygon-shape-3d', 'scene/resources/3d/convex_polygon_shape_3d.cpp', 129],
     ['ConcavePolygonShape3D', 'concave-polygon-shape-3d', 'scene/resources/3d/concave_polygon_shape_3d.cpp', 134],
     ['SeparationRayShape3D', 'separation-ray-shape-3d', 'scene/resources/3d/separation_ray_shape_3d.cpp', 92, 'godot_separation_ray_shape_3d_new'],
-    // A baked navigation mesh, made from its data file (`navigation-mesh.ts`).
-    ['NavigationMesh', 'navigation-mesh', 'scene/resources/navigation_mesh.cpp', 317, 'godot_navigation_mesh_new'],
     // A GridMap's `physics_material` is an element prop: the material made from what the scene states.
     ['PhysicsMaterial', 'physics-material', 'scene/resources/physics_material.h', 36, 'godot_physics_material_of'],
     // A 2D shape a CollisionShape2D picks by (`collision-object-2d.ts`), made from what the scene states.

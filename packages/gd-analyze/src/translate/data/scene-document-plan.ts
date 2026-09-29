@@ -268,8 +268,6 @@ export interface TargetGodotSceneResourcePlan {
   readonly load?: TargetGodotImportedLoad;
   /** An `ArrayMesh`'s surfaces, decoded from its `_surfaces` (`read/godot4-surfaces.ts`). */
   readonly mesh?: TargetGodotArrayMeshPlan;
-  /** A baked `NavigationMesh`: its vertices' coordinates and its polygons, written as a data file. */
-  readonly navigation?: { readonly vertices: readonly number[]; readonly polygons: readonly (readonly number[])[] };
   /** A primitive mesh's three geometry args, and a cylinder's open top (`scene-surface-idioms.ts`). */
   readonly primitive?: { readonly args: readonly number[]; readonly open?: true };
   /** As a mesh draws it, its own material per surface, by resource key (`scene-surface-idioms.ts`). */
@@ -1155,15 +1153,6 @@ function planResolvedResource(
     }
     const planned = { key, className: data.type, construct: rule.construct, mesh, setters: [] };
     recordResource(document, key, planned);
-    return key;
-  }
-  if (godotSceneResourceIdiom(data.type, [])?.kind === 'navigation-mesh') {
-    const navigation = navigationMeshPlan(data);
-    if (typeof navigation === 'string') {
-      refuse(context, `${at}(${key})`, navigation, 'resource', 'NavigationMesh');
-      return undefined;
-    }
-    recordResource(document, key, { key, className: data.type, construct: rule.construct, navigation, setters: [] });
     return key;
   }
   if (data.type === 'AnimationNodeBlendTree') {
@@ -2627,22 +2616,6 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_sleeping: { kind: 'node' },
   set_freeze_enabled: { kind: 'node' },
 };
-
-/**
- * A baked `NavigationMesh` (`navigation_mesh.cpp:306`, `:317`): its `vertices` and `polygons`; its
- * bake settings matter only to baking.
- */
-function navigationMeshPlan(data: BoundGodotResourceData): { readonly vertices: readonly number[]; readonly polygons: readonly (readonly number[])[] } | string {
-  const numbers = (value: GodotValue | undefined): number[] | undefined =>
-    value?.kind === 'ctor' && value.args.every((arg) => arg.kind === 'number') ? value.args.map((arg) => (arg as { readonly value: number }).value) : undefined;
-  const vertices = numbers(data.properties['vertices']);
-  const polygons = data.properties['polygons'];
-  if (vertices === undefined || vertices.length % 3 !== 0) return 'a navigation mesh whose vertices are not a PackedVector3Array';
-  if (polygons?.kind !== 'array') return 'a navigation mesh whose polygons are not an array';
-  const read = polygons.items.map(numbers);
-  if (read.some((polygon) => polygon === undefined)) return 'a navigation mesh polygon that is not a PackedInt32Array';
-  return { vertices, polygons: read as number[][] };
-}
 
 /** A spatial node's transform, as its matrix or as position, YXZ rotation and scale. */
 const TRANSFORM_PROPERTIES = new Set(['transform', 'position', 'rotation', 'scale']);

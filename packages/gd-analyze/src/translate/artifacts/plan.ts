@@ -17,7 +17,6 @@ import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../da
 import {
   godotArrayMeshData,
   godotArrayMeshDataPath,
-  godotNavigationMeshDataPath,
   godotGridMapDataPath,
   godotMeshLibraryData,
   godotMeshLibraryDataPath,
@@ -165,10 +164,6 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan, typed
       if (resource.mesh !== undefined) {
         const file = godotArrayMeshDataPath(scene.targetPath, resource.key);
         if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, godotArrayMeshData(resource.mesh) as unknown as DirectJsonValue, [scene.sourceResPath]));
-      }
-      if (resource.navigation !== undefined) {
-        const file = godotNavigationMeshDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, projectDataJsonArtifact(file, resource.navigation as unknown as DirectJsonValue, [scene.sourceResPath]));
       }
       if (resource.animationTree !== undefined) {
         const file = godotAnimationTreeDataPath(scene.targetPath, resource.key);

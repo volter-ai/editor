@@ -119,8 +119,6 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   GridContainer: [...CONTROL, 'set_columns'],
   Label: [...CONTROL, 'set_text', 'set_label_settings', 'set_horizontal_alignment', 'set_vertical_alignment', 'set_autowrap_mode'],
   TextureRect: [...CONTROL, 'set_texture', 'set_expand_mode', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
-  NinePatchRect: [...CONTROL, 'set_texture', 'set_region_rect', 'set_patch_margin:*', 'set_draw_center', 'set_h_axis_stretch_mode', 'set_v_axis_stretch_mode'],
-  RichTextLabel: [...CONTROL, 'set_text', 'set_fit_content', 'set_autowrap_mode', 'set_scroll_active'],
   Node2D: NODE_2D,
   Sprite2D: [...NODE_2D, 'set_texture', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v', 'set_hframes', 'set_vframes', 'set_frame'],
   TouchScreenButton: [...NODE_2D, 'set_texture_normal', 'set_texture_pressed', 'set_passby_press', 'set_action', 'set_visibility_mode'],
@@ -188,8 +186,6 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     ...GEOMETRY_INSTANCE_3D,
     ...NODE_ELEMENT,
     'set_emitting',
-    'set_transform_align',
-    'set_transform_align_channel_filter',
     'set_amount',
     'set_lifetime',
     'set_one_shot',
@@ -369,8 +365,6 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_doppler_tracking',
   ],
   SpringArm3D: [...NODE_3D, 'set_meta:*', 'set_shape', 'set_length', 'set_mask', 'set_margin'],
-  NavigationRegion3D: [...NODE_3D, 'set_meta:*', 'set_navigation_mesh', 'set_enabled'],
-  NavigationAgent3D: ['set_meta:*', ...NODE_ELEMENT, 'set_path_desired_distance', 'set_target_desired_distance', 'set_path_height_offset', 'set_path_max_distance'],
   ShapeCast3D: [
     ...NODE_3D,
     'set_meta:*',
@@ -393,8 +387,6 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   PlaneMesh: PRIMITIVE_PLANE,
   QuadMesh: PRIMITIVE_PLANE,
   SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_is_hemisphere', 'set_material'],
-  // Its baked polygons, its data file's (`godotNavigationMeshDataPath`); its bake settings draw nothing.
-  NavigationMesh: [],
   BoxMesh: ['set_size', 'set_subdivide_width', 'set_subdivide_height', 'set_subdivide_depth', 'set_material'],
   CapsuleMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_material'],
   CylinderMesh: ['set_top_radius', 'set_bottom_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_cap_top', 'set_cap_bottom', 'set_material'],
@@ -845,11 +837,6 @@ export function godotArrayMeshData(mesh: TargetGodotArrayMeshPlan): GodotArrayMe
  * Where an `ArrayMesh`'s data file is written: a scene's own sub-resource beside the scene, a
  * resource file's under `src/meshes/` (shared by every scene that uses it).
  */
-/** Where a baked NavigationMesh's data file is written, as an ArrayMesh's is. */
-export function godotNavigationMeshDataPath(sceneTargetPath: string, key: string): string {
-  return godotArrayMeshDataPath(sceneTargetPath, key).replace(/\.json$/u, '.navigation.json');
-}
-
 export function godotArrayMeshDataPath(sceneTargetPath: string, key: string): string {
   const safe = (text: string) => text.replace(/[^A-Za-z0-9._/-]+/gu, '_');
   if (key.startsWith('sub:')) return `${sceneTargetPath.replace(/\.tsx$/u, '')}.${safe(key.slice('sub:'.length))}.mesh.json`;
