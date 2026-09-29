@@ -37,6 +37,21 @@ function rule(
   };
 }
 
+/** A rule whose node carries annotations (`@onready`, `@export_range`), by their key. */
+function annotatedRule(
+  nodeKind: GodotCodeRuleEntry['source']['nodeKind'],
+  semanticKey: string,
+  annotations: string,
+  inputDatatypes: readonly string[],
+  resultDatatype: string,
+  target: GodotCodeRuleRecipe,
+): GodotCodeRuleEntry {
+  return {
+    source: { sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION, nodeKind, semanticKey: `${semanticKey}|annotations:[${annotations}]`, inputDatatypes, resultDatatype },
+    target,
+  };
+}
+
 const OPERAND_CLASSES = ['VARIANT:*', 'BUILTIN:*', 'NATIVE:*', 'CLASS:*', 'SCRIPT:*', 'ENUM:*'];
 /** Every pair of operand classes with an untyped operand. */
 const VARIANT_OPERAND_PAIRS = OPERAND_CLASSES.flatMap((left) =>
@@ -123,6 +138,20 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
   // A lambda whatever it returns (a typed `-> void` one's function is Nil).
   rule('LAMBDA', 'lambda:synchronous', ['BUILTIN:*'], 'BUILTIN:*', { kind: 'structural', construct: 'lambda' }),
   rule('LAMBDA', 'lambda:coroutine', ['BUILTIN:*'], 'BUILTIN:*', { kind: 'structural', construct: 'lambda' }),
+  // An @onready member without a type or an initializer the analysis types (`@onready var skin`).
+  ...[['VARIANT:*'], []].map((inputs) => annotatedRule('VARIABLE', 'variable:declared:instance', '@onready:resolved:applied:*', inputs, '', { kind: 'structural', construct: 'variable' })),
+  // An exported number with its editor range (`@export_range`), which only the editor reads.
+  annotatedRule('VARIABLE', 'variable:inferred:instance', '@export_range:resolved:applied:*', ['BUILTIN:*'], '', { kind: 'structural', construct: 'variable' }),
+  annotatedRule('VARIABLE', 'variable:declared:instance', '@export_range:resolved:applied:*', ['BUILTIN:*'], '', { kind: 'structural', construct: 'variable' }),
+  // An object-typed place given null, a script instance, or an int given an enum.
+  rule('ASSIGNMENT', 'operator:OP_NONE:25', ['NATIVE:*', 'BUILTIN:*'], 'BUILTIN:*', { kind: 'assignment', operator: '=' }),
+  rule('ASSIGNMENT', 'operator:OP_NONE:25', ['NATIVE:*', 'CLASS:*'], 'NATIVE:*', { kind: 'assignment', operator: '=' }),
+  rule('ASSIGNMENT', 'operator:OP_NONE:25', ['BUILTIN:*', 'ENUM:*'], 'ENUM:*', { kind: 'assignment', operator: '=' }),
+  rule('AWAIT', 'await', ['VARIANT:*'], 'VARIANT:*', { kind: 'structural', construct: 'await' }),
+  // An inherited engine signal named bare (`body_entered.connect(…)`), through its signal binding.
+  rule('IDENTIFIER', 'member-identifier:INHERITED_VARIABLE', [], 'BUILTIN:*', { kind: 'binding' }),
+  // A for over a Dictionary, its keys.
+  rule('FOR', 'for-of:direct-binding', ['BUILTIN:*'], '', { kind: 'structural', construct: 'for-of' }),
   // A script enum's member read off the enum (`CameraType.MAX`) where the analyzer types it an int.
   rule('SUBSCRIPT', 'subscript-attribute', ['ENUM:meta:*'], 'BUILTIN:*', { kind: 'structural', construct: 'subscript-attribute' }),
   // An engine singleton's signal (`RenderingServer.frame_post_draw`), through its signal binding.

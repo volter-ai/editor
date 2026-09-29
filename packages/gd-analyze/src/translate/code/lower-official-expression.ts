@@ -2568,6 +2568,17 @@ export function lowerOfficialExpression(
             );
           }
         }
+        // An engine signal of the script's native base named bare (`body_entered.connect(…)`): the
+        // signal on the instance's own node, through the class's signal accessor.
+        const inheritedSignal = node.source === 'INHERITED_VARIABLE' && context.nativeBase !== undefined ? context.nativeSignalOwner?.(context.nativeBase, node.name) : undefined;
+        if (inheritedSignal !== undefined) {
+          const rule = context.selectRule(node, ['member-identifier:INHERITED_VARIABLE'], [], ['binding']);
+          const use = context.bindingUse({ sourceRevision: context.sourceRevision, kind: 'native-signal', owner: inheritedSignal, member: node.name, signature: 'signal' }, node);
+          if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+            return context.refuse(node, `signal binding ${use.target.localName} does not take its object first`);
+          }
+          return expression(bindingCall(context, node, use, [selfNative(context, node)]), [...rule.requirements, ...use.requirements]);
+        }
         if (node.source === 'INHERITED_VARIABLE' && node.datatype.kind === 'BUILTIN' && context.nativeBase !== undefined) {
           // An engine method of the script's native base named as a value (`queue_free`) is
           // `Callable(self, name)`: its binding called on the instance's native entity.

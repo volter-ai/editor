@@ -4,6 +4,7 @@ import type {
   GodotBoundFunctionNode,
   GodotBoundNode,
 } from '../../godot-frontend/bound-program';
+import { godotBuiltinSubscriptShape } from '../data/lowering-shapes';
 import { godotMatchComparedAs } from '../data/operand-types';
 import {
   type LoweredExpression,
@@ -570,7 +571,7 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
         node.useConversionAssign ? [iterableNode, variableNode] : [iterableNode],
         node.useConversionAssign ? 'for-of:conversion' : 'for-of:direct-binding',
       );
-      const iterable = settleForStatement(context, listAsVariableElements(context, variableNode, lowerExpression(context, iterableNode)));
+      const iterable = settleForStatement(context, listAsVariableElements(context, variableNode, dictionaryKeys(iterableNode, lowerExpression(context, iterableNode))));
       const body = lowerOfficialSuite(context, context.node(node.loop, node));
       const name = officialBoundIdentifier(context, node.variable, node);
       let binding = name;
@@ -693,6 +694,15 @@ export function lowerOfficialParameters(
  * `iterated-element-type`) iterates its list as an array of that type, so the variable is that
  * type to TypeScript as it is to the analysis.
  */
+/**
+ * `for key in dictionary`: its keys, in insertion order (`Dictionary`'s iterator,
+ * `variant_setget.cpp`'s `iter_init`/`iter_next` over its keys), a Map's `keys()`.
+ */
+function dictionaryKeys(iterableNode: GodotBoundNode, iterable: LoweredExpression): LoweredExpression {
+  if (godotBuiltinSubscriptShape(iterableNode.datatype)?.kind !== 'keyed-entry') return iterable;
+  return { ...iterable, value: { kind: 'call-expression', callee: { kind: 'property-expression', object: iterable.value, property: 'keys' }, arguments: [] } };
+}
+
 function listAsVariableElements(context: LoweringContext, variable: GodotBoundNode, iterable: LoweredExpression): LoweredExpression {
   if (!context.narrowed(variable) || !context.hasTargetType(variable)) return iterable;
   const element = context.targetType(variable);
