@@ -3082,8 +3082,11 @@ export function lowerOfficialExpression(
         }
         // On a native object, or a script instance whose script does not declare the name (its
         // native base's signal, as its properties are).
+        // An engine singleton's signal (`RenderingServer.frame_post_draw`) is read as an object's is,
+        // the singleton's value its receiver.
+        const singleton = baseNode.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS' && baseNode.datatype.kind === 'NATIVE' && baseNode.datatype.metaType;
         const signalOwner =
-          node.isAttribute && nativeMemberReceiver(context, baseNode, officialBoundPropertyName(context, node.attribute, node))
+          node.isAttribute && (singleton || nativeMemberReceiver(context, baseNode, officialBoundPropertyName(context, node.attribute, node)))
             ? context.nativeSignalOwner?.(baseNode.datatype.nativeType, officialBoundPropertyName(context, node.attribute, node))
             : undefined;
         if (signalOwner !== undefined) {
@@ -3100,7 +3103,7 @@ export function lowerOfficialExpression(
           }
           return compose(
             context,
-            [nativeEntity(lowerExpression(context, baseNode))],
+            [singleton ? lowerExpression(context, baseNode) : nativeEntity(lowerExpression(context, baseNode))],
             (values) => bindingCall(context, node, use, values),
             [...rule.requirements, ...use.requirements],
           );

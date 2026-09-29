@@ -123,6 +123,10 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
   // A lambda whatever it returns (a typed `-> void` one's function is Nil).
   rule('LAMBDA', 'lambda:synchronous', ['BUILTIN:*'], 'BUILTIN:*', { kind: 'structural', construct: 'lambda' }),
   rule('LAMBDA', 'lambda:coroutine', ['BUILTIN:*'], 'BUILTIN:*', { kind: 'structural', construct: 'lambda' }),
+  // A script enum's member read off the enum (`CameraType.MAX`) where the analyzer types it an int.
+  rule('SUBSCRIPT', 'subscript-attribute', ['ENUM:meta:*'], 'BUILTIN:*', { kind: 'structural', construct: 'subscript-attribute' }),
+  // An engine singleton's signal (`RenderingServer.frame_post_draw`), through its signal binding.
+  rule('SUBSCRIPT', 'subscript-attribute:native-signal', ['NATIVE:meta:*'], 'BUILTIN:*', { kind: 'binding' }),
   // An engine singleton named as a value (`RenderingServer.frame_post_draw`): its binding's value.
   rule('IDENTIFIER', 'bound-identifier:NATIVE_CLASS', [], 'NATIVE:meta:*', { kind: 'structural', construct: 'bound-identifier' }),
   // `value as Enum` of an int or an enum: the value itself, an enum being its int.

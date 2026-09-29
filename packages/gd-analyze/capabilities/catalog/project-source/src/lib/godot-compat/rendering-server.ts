@@ -58,6 +58,7 @@ export function construct(): object {
  * @godot RenderingServer.frame_post_draw
  * @source servers/rendering/rendering_server.cpp:3601
  */
-export function frame_post_draw(_self?: unknown): GodotSignal<[]> {
+export function frame_post_draw(self: unknown): GodotSignal<[]> {
+  void self;
   return godot_viewport_frame_post_draw();
 }
