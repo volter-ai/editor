@@ -1,7 +1,7 @@
 {
   "name": "@volter/editor-threejs",
   "author": "Volter AI, Inc.",
-  "version": "0.5.115",
+  "version": "0.5.116",
   "publishConfig": {
     "access": "public"
   },
@@ -135,12 +135,12 @@
     "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
-    "@volter/editor-project": "0.5.115",
+    "@volter/editor-project": "0.5.116",
     "@sparkjsdev/spark": "^2.1.0",
     "three.quarks": "^0.16.0",
     "zod": "^4.3.6",
     "typescript": "5.9.3",
-    "@volter/editor-sdk": "0.5.115",
+    "@volter/editor-sdk": "0.5.116",
     "postprocessing": "6.38.3",
     "quarks.core": "0.16.0",
     "@fortawesome/free-solid-svg-icons": "^7.2.0"
