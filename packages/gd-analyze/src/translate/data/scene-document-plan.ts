@@ -1298,15 +1298,18 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
       tracks: read.tracks.map((track) => ({
         ...track,
         keys: track.keys.map(([time, transition, value]) => {
-          if (typeof value !== 'object' || !('audioRef' in value)) return [time, transition, value] as const;
-          const ref = referenceOf(value.audioRef);
+          if (typeof value !== 'object' || (!('audioRef' in value) && !('resourceRef' in value))) return [time, transition, value] as const;
+          // An audio key's stream and a resource key's resource are resources of the scene; the key
+          // keeps its index in `streams`.
+          const ref = referenceOf('audioRef' in value ? value.audioRef : value.resourceRef);
           const planned = ref === undefined ? undefined : planResource(context, `${at}/${item.key}`, ref.reference, ref.id, animationScope);
           if (planned === undefined) {
             failed = true;
             return [time, transition, 0] as const;
           }
           if (!streams.includes(planned)) streams.push(planned);
-          return [time, transition, { audio: streams.indexOf(planned), start: value.start, end: value.end }] as const;
+          const index = streams.indexOf(planned);
+          return 'audioRef' in value ? ([time, transition, { audio: index, start: value.start, end: value.end }] as const) : ([time, transition, { resource: index }] as const);
         }),
       })),
     };

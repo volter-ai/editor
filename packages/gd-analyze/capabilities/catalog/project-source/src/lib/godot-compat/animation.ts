@@ -543,8 +543,11 @@ export type GodotAnimationKeyData =
   | { readonly Vector3: readonly [number, number, number] }
   | { readonly Quaternion: readonly [number, number, number, number] }
   | { readonly Color: readonly [number, number, number, number] }
+  | string
   | { readonly method: string; readonly args: readonly unknown[] }
-  | { readonly audio: number; readonly start: number; readonly end: number };
+  | { readonly audio: number; readonly start: number; readonly end: number }
+  /** A resource key (a texture) of a discrete track: the library's resource at `resource`. */
+  | { readonly resource: number };
 
 /** An animation as the translation's data file writes it (`data/scene-families.ts`). */
 export interface GodotAnimationData {
@@ -567,7 +570,9 @@ export interface GodotAnimationData {
 const TRACK_TYPE = { value: TYPE_VALUE, position_3d: TYPE_POSITION_3D, rotation_3d: TYPE_ROTATION_3D, scale_3d: TYPE_SCALE_3D, method: TYPE_METHOD, audio: TYPE_AUDIO } as const;
 
 function keyValue(value: GodotAnimationKeyData, streams: readonly unknown[]): unknown {
-  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  // A string or resource key is a discrete track's (`scene-animation.ts`), set as it is, never blended.
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') return value;
+  if ('resource' in value) return streams[value.resource] ?? null;
   // An audio key: its stream and offsets (`Animation::AudioKey`, `animation.h:143`).
   if ('audio' in value) return { stream: streams[value.audio] ?? null, start_offset: value.start, end_offset: value.end };
   if ('Vector3' in value) return vector3(...value.Vector3);
