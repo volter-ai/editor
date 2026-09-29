@@ -165,6 +165,7 @@
     "src/lib/godot-compat/marker-2d.ts",
     "src/lib/godot-compat/path-2d.ts",
     "src/lib/godot-compat/path-follow-2d.ts",
+    "src/lib/godot-compat/texture-button.ts",
     "src/lib/godot-compat/visible-on-screen-notifier-2d.ts",
     "src/lib/godot-compat/rect2i.ts",
     "src/lib/godot-compat/tile-map-layer.ts",

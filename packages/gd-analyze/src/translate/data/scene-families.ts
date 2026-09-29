@@ -260,6 +260,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   PathFollow3D: [...NODE_3D, 'set_meta:*', 'set_progress', 'set_progress_ratio', 'set_h_offset', 'set_v_offset', 'set_rotation_mode', 'set_loop', 'set_cubic_interpolation', 'set_tilt_enabled', 'set_use_model_front'],
   VisibleOnScreenNotifier3D: [...NODE_3D, 'set_meta:*', 'set_aabb'],
   Button: [...CONTROL, 'set_disabled', 'set_toggle_mode', 'set_pressed', 'set_action_mode', 'set_keep_pressed_outside', 'set_shortcut', 'set_button_mask', 'set_shortcut_feedback', 'set_shortcut_in_tooltip', 'set_button_group', 'set_text', 'set_flat', 'set_text_alignment', 'set_clip_text', 'set_button_icon', 'set_expand_icon', 'set_icon_alignment'],
+  TextureButton: [...CONTROL, 'set_disabled', 'set_toggle_mode', 'set_pressed', 'set_action_mode', 'set_keep_pressed_outside', 'set_shortcut', 'set_button_mask', 'set_shortcut_feedback', 'set_shortcut_in_tooltip', 'set_button_group', 'set_texture_normal', 'set_texture_pressed', 'set_texture_hover', 'set_texture_disabled', 'set_texture_focused', 'set_ignore_texture_size', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
   Timer: ['set_meta:*', ...NODE_ELEMENT, 'set_wait_time', 'set_one_shot', 'set_autostart', 'set_paused', 'set_ignore_time_scale', 'set_timer_process_callback'],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
