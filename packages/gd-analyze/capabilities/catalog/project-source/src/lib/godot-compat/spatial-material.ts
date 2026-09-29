@@ -115,6 +115,7 @@ export function godot_shader_material_three(material: ShaderMaterial): GodotSpat
     fragmentShader: spatial.fragmentShader,
     uniforms,
     transparent: spatial.transparent,
+    vertexColors: spatial.vertexColors,
     side: modes.has('cull_disabled') ? DoubleSide : modes.has('cull_front') ? BackSide : FrontSide,
     ...(modes.has('blend_add') ? { blending: AdditiveBlending } : {}),
     depthWrite: !modes.has('depth_draw_never') && !spatial.transparent,

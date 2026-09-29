@@ -331,6 +331,8 @@ export interface TargetGodotLoweredShader {
     readonly fragmentShader: string;
     /** Whether it writes `ALPHA`, which makes Godot draw it in the transparent pass. */
     readonly transparent: boolean;
+    /** Whether it reads `COLOR`, the mesh's vertex colour. */
+    readonly vertexColors: boolean;
   };
 }
 
@@ -394,6 +396,7 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
   const any = fragment ?? vertex;
   if (any === undefined) return 'the shader has neither vertex() nor fragment()';
   const unshaded = shader.tree.renderModes.includes('unshaded');
+  if (shader.tree.renderModes.includes('ambient_light_disabled') && !unshaded) return 'render_mode ambient_light_disabled is not drawn';
   if (unshaded && fragment !== undefined && (fragment.builtins.has('NORMAL') || fragment.builtins.has('VIEW'))) return 'an unshaded fragment() reading NORMAL or VIEW is not lowered';
   const head = (lowered: typeof any) => [GODOT_SPATIAL_SHARED, lowered.varyings, ...lowered.uniforms.map((uniform) => uniform.declaration), lowered.functions].filter((part) => part !== '').join('\n\n');
   return {
@@ -406,6 +409,7 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
       vertexShader: `${head(vertex ?? any)}\n\nvoid main() {\n${vertex === undefined ? GODOT_SPATIAL_DEFAULT_VERTEX : godotSpatialVertexStage(vertex.entry, vertex.builtins)}\n}`,
       fragmentShader: `${head(fragment ?? any)}\n\nvoid main() {\n${fragment === undefined ? godotSpatialFragmentStage('', new Set()) : godotSpatialFragmentStage(fragment.entry, fragment.builtins)}\n}`,
       transparent: fragment?.builtins.has('ALPHA') === true && fragment.builtins.has('ALPHA_SCISSOR_THRESHOLD') !== true,
+      vertexColors: vertex?.builtins.has('COLOR') === true || fragment?.builtins.has('COLOR') === true,
     },
   };
 }

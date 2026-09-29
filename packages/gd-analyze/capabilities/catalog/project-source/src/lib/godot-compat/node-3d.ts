@@ -556,7 +556,8 @@ function stateOf(object: Object3D): Node3DState {
     scale: [1, 1, 1],
     order: EULER_YXZ,
     dirty: isIdentity(local) ? DIRTY_NONE : DIRTY_EULER_ROTATION_AND_SCALE,
-    topLevel: false,
+    // A scene-authored `top_level` (a body's `userData.top_level`): its authored transform is global.
+    topLevel: (object.userData as { readonly top_level?: boolean } | undefined)?.top_level === true,
     disableScale: (object as { readonly isCamera?: boolean }).isCamera === true || (object as { readonly isLight?: boolean }).isLight === true,
     fromMatrix,
     rotationEditMode: 0,
@@ -567,7 +568,7 @@ function stateOf(object: Object3D): Node3DState {
     snapshot: fromMatrix ? undefined : { local, three: now },
   };
   NODE3D.set(object, state);
-  if (fromMatrix) writeLocal(object, state, local);
+  if (fromMatrix || state.topLevel) writeLocal(object, state, local);
   return state;
 }
 

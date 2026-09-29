@@ -197,7 +197,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     ...VISIBILITY_RANGE,
   ],
   // `<GodotCSGBox3D>`, a box mesh of its size (`csg-box-3d.ts`).
-  CSGBox3D: [...NODE_3D, 'set_size'],
+  CSGBox3D: [...NODE_3D, 'set_size', 'set_material', 'set_use_collision'],
   // `<GodotDecal>`, which draws nothing as the web export's Compatibility renderer (`decal.ts`).
   Decal: [
     ...NODE_3D,
@@ -569,9 +569,10 @@ export function godotFamilyRefusal(
     case 'Environment': {
       const background = numberOf(setters, 'set_background', 0);
       if (background !== 1 && background !== 2) return `background_mode=${String(background)} is not drawn`;
-      if (numberOf(setters, 'set_fog_height_density', 0) !== 0) return 'height fog is not drawn';
-      if (numberOf(setters, 'set_fog_sun_scatter', 0) !== 0) return 'fog sun scatter is not drawn';
-      if (numberOf(setters, 'set_fog_mode', 0) !== 0) return 'depth fog is not drawn';
+      // The fog's settings draw nothing while the fog is off (`rasterizer_scene_gles3.cpp:1646`).
+      // Height fog and sun scatter draw as the distance fog alone (`world-environment.ts`).
+      const fogOn = boolOf(setters, 'set_fog_enabled', false);
+      if (fogOn && numberOf(setters, 'set_fog_mode', 0) !== 0) return 'depth fog is not drawn';
       return undefined;
     }
     case 'GPUParticles3D': {

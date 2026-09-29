@@ -55,7 +55,14 @@ export function godotSpatialVertexStage(body: string, builtins: ReadonlySet<stri
     '\tvec3 godot_VERTEX = position;',
     '\tvec3 godot_NORMAL = normal;',
     '\tvec2 godot_UV = uv;',
+    // The mesh's vertex colour, which three declares when the material draws vertex colours.
+    '#if defined(USE_COLOR_ALPHA)',
+    '\tvec4 godot_COLOR = color;',
+    '#elif defined(USE_COLOR)',
+    '\tvec4 godot_COLOR = vec4(color, 1.0);',
+    '#else',
     '\tvec4 godot_COLOR = vec4(1.0);',
+    '#endif',
     body,
     '\tgodot_v_UV = godot_UV;',
     '\tgodot_v_COLOR = godot_COLOR;',
@@ -65,7 +72,7 @@ export function godotSpatialVertexStage(body: string, builtins: ReadonlySet<stri
 }
 
 /** The vertex stage of a shader with no `vertex()`: the UV and colour handed to the fragment. */
-export const GODOT_SPATIAL_DEFAULT_VERTEX = '\tgodot_v_UV = uv;\n\tgodot_v_COLOR = vec4(1.0);';
+export const GODOT_SPATIAL_DEFAULT_VERTEX = godotSpatialVertexStage('', new Set());
 
 /**
  * `fragment()`'s prologue and epilogue: Godot's defaults (`ALBEDO` white, `ALPHA` 1, `ROUGHNESS` 1,
@@ -104,6 +111,8 @@ export const GODOT_SPATIAL_RENDER_MODES: ReadonlySet<string> = new Set([
   'depth_draw_never',
   'depth_test_disabled',
   'unshaded',
+  // Only beside `unshaded`, which draws no light at all (`spatialShaderPlan`).
+  'ambient_light_disabled',
   'shadows_disabled',
   'diffuse_burley',
   'diffuse_lambert',

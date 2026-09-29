@@ -94,6 +94,8 @@ const BODY_DATA: Readonly<Record<string, string>> = {
   set_up_direction: 'up_direction',
   set_monitoring: 'monitoring',
   set_monitorable: 'monitorable',
+  // A top-level body ignores its parent's transform (`node-3d.ts` reads it when it first places the node).
+  set_as_top_level: 'top_level',
 };
 
 /** Rapier's own value of each `<RigidBody>` prop a body states only when Godot's differs. */

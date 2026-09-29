@@ -34,7 +34,7 @@ export interface GodotLoweredShader {
   readonly functions: string;
   readonly entry: string;
   /** A spatial shader's two stages as `three-custom-shader-material` takes them (`spatial-material.ts`). */
-  readonly spatial?: { readonly vertexShader: string; readonly fragmentShader: string; readonly transparent: boolean };
+  readonly spatial?: { readonly vertexShader: string; readonly fragmentShader: string; readonly transparent: boolean; readonly vertexColors: boolean };
 }
 
 export interface Shader {
