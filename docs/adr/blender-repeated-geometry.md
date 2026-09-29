@@ -73,3 +73,17 @@ error. Those readings are diagnosis, not a settled performance acceptance claim.
 The baseline is `stoneguard-diagnostics/review-c7-framecost.json`. A new hosted
 measurement and independent appearance/selection/edit review are required for
 this implementation; source batching counts alone are not a performance claim.
+
+The same-tab 5cbbee9a diagnostic did not improve frame time: at 1197×287,
+ordinary drawing measured 150.75 ms (three-frame median), while settled batching
+measured 161.43 ms (five-frame median). Draws fell from 14,811 to 13,229 but
+aggregate opaque bounds admitted another 8.18 million triangles. These are
+diagnostic numbers, not a comparison to the reviewer's taller canvas.
+
+Opaque batches now compact only the members that pass the same per-object
+frustum test as an ordinary draw. Transparent plans reuse their buffers and
+ordering on unchanged frames, after exact comparisons of camera, transforms,
+visibility, geometry ranges/bounds, material identity/version and draw flags.
+A changed input rebuilds the plan; no lossy hash or evaluated-data cache is
+involved. Nested group order also remains an ordering barrier. These changes
+require a new measurement before any performance claim.

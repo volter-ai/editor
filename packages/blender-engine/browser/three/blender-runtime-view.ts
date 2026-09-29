@@ -1243,14 +1243,19 @@ export class BlenderRuntimeView {
   /** Before the renderer uploads attributes/builds its queues, for this area's
    * actual camera. Transparent instance runs are camera-order dependent. */
   prepareDraw(camera: THREE.Camera): () => void {
-    this.root.updateMatrixWorld(true);
     try {
+      this.instances.prepareDraw(camera);
+      this.root.updateMatrixWorld(true);
       this.transparentInstances.prepare(camera);
     } catch (error) {
+      this.instances.finishDraw();
       this.transparentInstances.finishDraw();
       throw error;
     }
-    return () => this.transparentInstances.finishDraw();
+    return () => {
+      this.instances.finishDraw();
+      this.transparentInstances.finishDraw();
+    };
   }
 
   private workbenchFor(id: string | null, side: THREE.Side, used: Set<string>): THREE.Material {

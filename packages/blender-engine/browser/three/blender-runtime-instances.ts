@@ -43,6 +43,9 @@ export class BlenderRuntimeInstances {
   private readonly inverse = new THREE.Matrix4();
   private readonly matrix = new THREE.Matrix4();
   private readonly box = new THREE.Box3();
+  private readonly projection = new THREE.Matrix4();
+  private readonly frustum = new THREE.Frustum();
+  private camera: THREE.Camera | null = null;
   private eligible = 0;
   private excluded: Record<string, number> = {};
 
@@ -137,6 +140,10 @@ export class BlenderRuntimeInstances {
         }
         mesh.layers.mask &= ~member.layers;
         if (!instanceObjectShown(mesh)) continue;
+        // Aggregate batch bounds alone admit off-screen members. Retain the
+        // same per-object rejection as ordinary draws before compacting slots.
+        if (this.camera && (!this.camera.layers.isEnabled(0) ||
+            (mesh.frustumCulled && !this.frustum.intersectsObject(mesh)))) continue;
         const offset = count * 16;
         if (this.matrix.elements.some((value, i) => Math.fround(value) !== draw.instanceMatrix.array[offset + i])) {
           draw.setMatrixAt(count, this.matrix);
@@ -154,7 +161,17 @@ export class BlenderRuntimeInstances {
     }
   }
 
+  prepareDraw(camera: THREE.Camera): void {
+    camera.updateMatrixWorld();
+    this.camera = camera;
+    this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
+    this.frustum.setFromProjectionMatrix(this.projection);
+  }
+
+  finishDraw(): void { this.camera = null; }
+
   clear(): void {
+    this.camera = null;
     for (const {draw, members} of this.batches) {
       for (const {mesh, layers} of members) mesh.layers.mask |= layers;
       draw.removeFromParent();
