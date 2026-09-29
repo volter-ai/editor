@@ -12,12 +12,12 @@ import type {
 } from '../../analyze/bound-project';
 import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotBoundNode } from '../../godot-frontend/bound-program';
-import type { ImportedSoundKind } from '../../analyze/resource-loads';
+import type { ImportedResourceKind } from '../../analyze/resource-loads';
 import type { GodotValue } from '../../read/godot-value';
 import { GODOT_CODE_RESOURCE_LOADS, godotImportedAssetUrl } from '../data/code-resource-loads';
 import { godotCallShape, godotStoredResourceRoot } from '../data/lowering-shapes';
 import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
-import { godotPreloadsResourceModule, godotResourceModuleExportName, godotResourceModuleTargetPath, godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
+import { godotPreloadsResourceModule, godotResourceModuleExportName, godotResourceModuleTargetPath, godotSceneExportName, godotSceneTargetPath, godotTextureLoad } from '../data/scene-document-plan';
 import { safeIdent } from '../target-names';
 import {
   type GodotCodeTranslationAuthority,
@@ -540,7 +540,7 @@ function resourceLoadTargets(
 ): ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> {
   const found = new Map<number, readonly OfficialBoundResourceLoadTarget[]>();
   for (const load of source.resourceLoads ?? []) {
-    const byPath = new Map<string, { kind: ImportedSoundKind; values: string[] }>();
+    const byPath = new Map<string, { kind: ImportedResourceKind; values: string[] }>();
     for (const branch of load.branches) {
       const entry = byPath.get(branch.resPath) ?? { kind: branch.kind, values: [] };
       entry.values.push(branch.value);
@@ -549,8 +549,13 @@ function resourceLoadTargets(
     const targets: OfficialBoundResourceLoadTarget[] = [];
     for (const [resPath, { kind, values }] of byPath) {
       const construct = GODOT_CODE_RESOURCE_LOADS[kind];
-      const imported = project.documents.oggVorbis.find((entry) => entry.resPath === resPath);
-      if (construct === undefined || imported === undefined) break;
+      // The importer's options the load applies: a sound's loop, an image's as a scene loads it.
+      const sound = project.documents.oggVorbis.find((entry) => entry.resPath === resPath);
+      const texture = project.documents.textures.find((entry) => entry.resPath === resPath);
+      const load = texture === undefined ? undefined : godotTextureLoad(texture);
+      const options: Readonly<Record<string, unknown>> | undefined =
+        sound !== undefined ? { loop: sound.loop, loopOffset: sound.loopOffset } : load !== undefined && typeof load !== 'string' ? load.options : undefined;
+      if (construct === undefined || options === undefined) break;
       targets.push({
         values,
         local: `$load_${resPath.slice('res://'.length).replace(/[^A-Za-z0-9_$]/gu, '_')}`,
@@ -562,10 +567,7 @@ function resourceLoadTargets(
             { kind: 'literal-expression', value: godotImportedAssetUrl(resPath) },
             {
               kind: 'object-expression',
-              properties: [
-                { key: 'loop', value: { kind: 'literal-expression', value: imported.loop } },
-                { key: 'loopOffset', value: { kind: 'literal-expression', value: imported.loopOffset } },
-              ],
+              properties: Object.entries(options).map(([key, value]) => ({ key, value: { kind: 'literal-expression', value: value as string | number | boolean } })),
             },
           ],
         },

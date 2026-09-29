@@ -27,14 +27,14 @@ import { argumentCountRuns, type ConnectedCallables } from './connected-callable
 import { type ContainerProjectIndex, type ContainerTyped, containerTypes } from './container-types';
 
 /** How an imported file is loaded: the importer that imported it. */
-export type ImportedSoundKind = 'ogg-vorbis' | 'mp3' | 'wav';
+export type ImportedResourceKind = 'ogg-vorbis' | 'mp3' | 'wav' | 'texture';
 
 export interface ResourceLoadBranch {
   /** A string the path argument can be at run time. */
   readonly value: string;
   /** The project file it names. */
   readonly resPath: string;
-  readonly kind: ImportedSoundKind;
+  readonly kind: ImportedResourceKind;
 }
 
 /** A `load(path)` whose values the program fixes: the ones naming a sound; every other one is null. */
@@ -54,7 +54,7 @@ export interface ResourceLoadInputs {
   /** A script's ancestors, nearest first. */
   readonly scriptAncestors: (resPath: string) => readonly string[];
   /** The import kind of a project file imported as a sound. */
-  readonly importedSound: (resPath: string) => ImportedSoundKind | undefined;
+  readonly importedSound: (resPath: string) => ImportedResourceKind | undefined;
   /** Whether a `res://` path names a project file. */
   readonly exists: (resPath: string) => boolean;
   /** Every project scene and resource document's text, for function names they spell as strings. */

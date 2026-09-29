@@ -11,7 +11,7 @@ import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-s
 import type { ImportedClip } from '../read/gltf-animation-import';
 import { connectedCallables } from './connected-callables';
 import { containerProjectIndex } from './container-types';
-import { type BoundGodotResourceLoad, type ImportedSoundKind, resourceLoads } from './resource-loads';
+import { type BoundGodotResourceLoad, type ImportedResourceKind, resourceLoads } from './resource-loads';
 import { type BoundGodotNullableVariable, nullableVariables } from './nullable-variables';
 import { memberKey, typeMembers } from './member-types';
 import { numericNodeTypes, numericVariants, operatorResultTable, type ScriptNumericVariants, type VariantUtilityShape, variantUtilityCalls } from './numeric-variants';
@@ -1512,14 +1512,16 @@ export function bindGodotProject(
   const refinedFinal = new Map(
     code.scripts.map((program) => [program.resPath, new Map(refineProgram(program, () => undefined).map((entry) => [entry.nodeId, entry.datatype] as const))] as const),
   );
-  const importedSounds = new Map<string, ImportedSoundKind>(
-    decoded.imports.flatMap((sidecar): [string, ImportedSoundKind][] =>
+  const importedSounds = new Map<string, ImportedResourceKind>(
+    decoded.imports.flatMap((sidecar): [string, ImportedResourceKind][] =>
       sidecar.sourceFile === undefined
         ? []
         : sidecar.importer === 'oggvorbisstr' && sidecar.resourceType === 'AudioStreamOggVorbis'
           ? [[sidecar.sourceFile, 'ogg-vorbis']]
           : sidecar.importer === 'mp3' && sidecar.resourceType === 'AudioStreamMP3'
             ? [[sidecar.sourceFile, 'mp3']]
+            : sidecar.importer === 'texture' && sidecar.resourceType === 'CompressedTexture2D'
+              ? [[sidecar.sourceFile, 'texture']]
           : sidecar.importer === 'wav' && sidecar.resourceType === 'AudioStreamWAV'
             ? [[sidecar.sourceFile, 'wav']]
             : [],

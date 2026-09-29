@@ -523,7 +523,7 @@ function externalImagePath(modelResPath: string, uri: string): string | undefine
  * normal map (`roughness/mode`) takes three's mipmaps. A flipped normal map's green, a channel
  * remap, HDR clamping and a size limit are not applied, and refuse.
  */
-function textureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
+export function godotTextureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
   const params = texture.importParams;
   if (!SOURCE_IMAGE_COMPRESS_MODES.has(params.compressMode ?? 0)) return `compress/mode=${String(params.compressMode)} is not drawn from the source image`;
   if (params.channelRemap !== undefined && params.channelRemap.join() !== '0,1,2,3') return 'a channel remap is not applied';
@@ -990,7 +990,7 @@ function planResolvedResource(
   const font = data === undefined ? context.project?.documents.fonts.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   const imported =
     texture !== undefined
-      ? { className: 'CompressedTexture2D', load: textureLoad(texture) }
+      ? { className: 'CompressedTexture2D', load: godotTextureLoad(texture) }
       : sound !== undefined
         ? { className: 'AudioStreamWAV', load: soundLoad(sound) }
         : cubemap !== undefined
@@ -2006,7 +2006,7 @@ function modelImages(
       refuse(context, at, `${resPath}: images[${String(image.index)}] (${image.uri}) is not a texture the project imports`, 'resource', 'imported .glb');
       return undefined;
     }
-    const load = textureLoad(texture);
+    const load = godotTextureLoad(texture);
     if (typeof load === 'string') {
       refuse(context, at, `${texture.resPath}: ${load}`, 'resource', 'CompressedTexture2D');
       return undefined;
