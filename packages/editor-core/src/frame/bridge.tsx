@@ -487,6 +487,29 @@ interface NativeDocumentView {
   readonly element: HTMLElement | null;
 }
 const documentViews = new Map<string, NativeDocumentView>();
+let layoutFacetInstalled = false;
+
+/** Read-only ownership and placement facts for diagnosing repeated native
+ * surfaces. Kept on the product's status door, without browser evaluation. */
+function nativeLayoutFacts() {
+  const bounds = (element: Element | null) => {
+    if (!element) return null;
+    const r = element.getBoundingClientRect();
+    return { x: r.x, y: r.y, width: r.width, height: r.height, connected: element.isConnected };
+  };
+  return {
+    editorRoots: [...document.querySelectorAll('#editor-root')].map(bounds),
+    chrome: bounds(parts?.chromeRoot ?? null),
+    slots: [...documentViews.values()].map(view => ({
+      id: view.id, documentId: view.documentId, bounds: bounds(view.element),
+    })),
+    surfaces: [...document.querySelectorAll<HTMLElement>('[data-workspace-document-id]')].map(element => ({
+      documentId: element.dataset['workspaceDocumentId'],
+      viewId: element.dataset['workspaceViewId'],
+      bounds: bounds(element),
+    })),
+  };
+}
 let documentSlotsVersion = 0;
 const documentSlotListeners = new Set<() => void>();
 /** Every document open at some point in this page's life. A workbench tab for
@@ -1131,6 +1154,13 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   }
   primeSourceWriteRuntime();
   installEditorHostDoor();
+  if (!layoutFacetInstalled) {
+    layoutFacetInstalled = true;
+    editorHost().session.reportFacet(
+      reuse => ({nativeLayout: reuse?.['nativeLayout'] ?? nativeLayoutFacts()}),
+      {reusableKeys: ['nativeLayout']},
+    );
+  }
   // PORTABLE CSF, the kit's own design-time state: the Content scope's
   // story-backed entries, a component's named states, the addresses a story
   // opens under, the palette's per-story action, `capture-story-variants` and
