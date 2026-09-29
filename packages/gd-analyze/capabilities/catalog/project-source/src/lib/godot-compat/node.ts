@@ -185,8 +185,15 @@ function objectOf(entity: object): object {
   return NODE.get(entity)?.binding?.owner ?? entity;
 }
 
+/**
+ * The native parent that is a Godot node: a nameless container the Node protocol has not met (a
+ * library's own group around a node, as `@react-three/rapier`'s body holds what it moves) stands
+ * aside, as it does among the children (`childEntities`).
+ */
 function parentEntity(entity: object): object | null {
-  return (entity as Object3D).parent ?? null;
+  let parent = (entity as Object3D).parent ?? null;
+  while (parent !== null && !NODE.has(parent) && !FOREIGN.has(parent) && nameOf(parent) === '') parent = parent.parent ?? null;
+  return parent;
 }
 
 /**

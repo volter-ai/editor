@@ -285,6 +285,15 @@ godot_node_3d_observe_local((object) => {
   }
   body.setTranslation(position, true);
   body.setRotation(rotation, true);
+  // A node standing for the body inside the body's own object (an imported model's moving body)
+  // sits at its origin: the body now carries the place the script gave it.
+  const own = context?.rigidBodyStates.get(body.handle)?.object as Object3D | undefined;
+  const node = object as Object3D;
+  if (own !== undefined && own !== node && node.parent === own) {
+    node.position.set(0, 0, 0);
+    node.quaternion.identity();
+    node.updateMatrix();
+  }
 });
 
 interface Layers {

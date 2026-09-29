@@ -131,14 +131,15 @@ export interface TargetGodotImportedModelNode {
 }
 
 /**
- * A physics body of an imported model (`StaticBody3D`, the only kind the reader makes): the
- * `<RigidBody>` compat mounts in the model's node, standing for it, with a collider per
+ * A physics body of an imported model (a `StaticBody3D`, or the `RigidBody3D` the importer's generated
+ * physics puts in a mesh's place): the `<RigidBody>` compat mounts for the model's node, standing
+ * for it, with a collider per
  * CollisionShape3D child, at that child's transform. A primitive's collider is Rapier's (`args` as
  * its component takes them); a trimesh or convex one is made from the file's mesh of that index.
  */
 export interface TargetGodotImportedModelBody {
   readonly path: string;
-  readonly type: 'fixed';
+  readonly type: 'fixed' | 'dynamic';
   /** The importer's collision layer and mask (`physics/layer`, `physics/mask`), where it set them. */
   readonly layers?: readonly [number, number];
   readonly colliders: readonly {
@@ -251,7 +252,9 @@ export type GodotModelOverrideSlot =
   | { readonly kind: 'surface-material' }
   | { readonly kind: 'material-override' }
   | { readonly kind: 'cast-shadow' }
-  | { readonly kind: 'player' };
+  | { readonly kind: 'player' }
+  /** A node's own property compat's imported scene sets by its Godot name: `visible`; a body's layers, sleep and freeze. */
+  | { readonly kind: 'node' };
 
 /** A resource the scene constructs once, then sets its authored properties on. */
 export interface TargetGodotSceneResourcePlan {
@@ -2079,12 +2082,9 @@ function planImportedInstance(
       }
       colliders.push({ path: child.path, matrix: child.matrix, collider });
     }
-    if (member.classes.includes('RigidBody3D')) {
-      refuse(context, at, `${imported.resPath}: ${member.path}: an imported RigidBody3D is not mounted`, 'resource', 'imported .glb');
-      return undefined;
-    }
     const layers = model.collisionLayersByPath?.[member.path];
-    bodies.push({ path: member.path, type: 'fixed', ...(layers === undefined ? {} : { layers }), colliders });
+    // A RigidBody3D the importer made moves its node; the rest stand still.
+    bodies.push({ path: member.path, type: member.classes.includes('RigidBody3D') ? 'dynamic' : 'fixed', ...(layers === undefined ? {} : { layers }), colliders });
   }
   if (bodies.length > 0 && model.meshScale !== undefined) {
     refuse(context, at, `${imported.resPath}: the root scale of a model with physics bodies is not baked into their shapes`, 'resource', 'imported .glb');
@@ -2582,6 +2582,13 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_speed_scale: { kind: 'player' },
   set_default_blend_time: { kind: 'player' },
   set_auto_capture: { kind: 'player' },
+  // A node of the model shown or hidden, and a body the importer made: its layers, sleep and freeze
+  // (compat's imported-scene overrides by property name).
+  set_visible: { kind: 'node' },
+  set_collision_layer: { kind: 'node' },
+  set_collision_mask: { kind: 'node' },
+  set_sleeping: { kind: 'node' },
+  set_freeze_enabled: { kind: 'node' },
 };
 
 /** A spatial node's transform, as its matrix or as position, YXZ rotation and scale. */
