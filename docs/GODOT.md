@@ -1250,15 +1250,14 @@ The owner: "I thought the whole idea was to go native idiomatic web with threejs
 `@react-three/rapier`. The 2D and UI work of the same day did not, and the review of `d8c8af1b`
 found exactly that. It is redone on the libraries:
 
-- **2D drawing is PixiJS, through `@pixi/react`.** A Node2D is a Pixi `Container`, a Sprite2D a
+- **2D drawing is PixiJS through `@pixi/react`, as the editor's Pixi game runtime draws.** A Node2D is a Pixi `Container`, a Sprite2D a
   `Sprite`, an AnimatedSprite2D an `AnimatedSprite`, a TileMapLayer sprites of its atlas textures,
   GPUParticles2D Pixi's particle container, and Camera2D the stage container's transform. A
   CanvasItemMaterial's blend is Pixi's `blendMode`, and a `canvas_item` shader is a Pixi `Filter`
   of the lowered GLSL, which also draws the wind sway the DOM canvas could not.
-- **2D physics is Rapier (`@dimforge/rapier2d-compat`)**, bodies and colliders created by its own
-  API and stepped from Pixi's ticker (`useTick`), as `@react-three/rapier` steps 3D from R3F's
-  frame. The hand-rolled SAT, integration and `move_and_slide` are deleted; `move_and_slide` is
-  Rapier's character controller, as the 3D one is.
+- **2D physics is the editor's own 2D physics**, the one its Pixi game runtime already uses
+  (`packages/editor-game/src/runtime/pixi/`, `packages/game-runtime`), not a library the lane
+  picks. The hand-rolled SAT, integration and `move_and_slide` are deleted.
 - **UI is React DOM.** A Control is an element its component renders (`<div>`, `<button>`,
   `<span>`), its anchors and container layout computed from Godot's rules into its style, and its
   signals React's own events.
