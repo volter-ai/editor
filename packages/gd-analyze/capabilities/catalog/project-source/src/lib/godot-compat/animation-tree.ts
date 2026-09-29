@@ -4,14 +4,14 @@
  *
  * Godot 4.7's `AnimationTree` (`scene/animation/animation_tree.cpp`) and the blend-tree nodes the
  * corpus uses (`scene/animation/animation_blend_tree.cpp`: `AnimationNodeBlendTree`,
- * `AnimationNodeAnimation`, `AnimationNodeBlend2`, `AnimationNodeTimeScale`,
+ * `AnimationNodeAnimation`, `AnimationNodeBlend2`, `AnimationNodeTimeScale`, `AnimationNodeOneShot`,
  * `AnimationNodeOutput`), revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`, over compat's
  * AnimationMixer: the tree takes its AnimationPlayer's libraries and root node, keeps each node's
  * parameters under `parameters/<path>/<name>`, and each process walks the root node down to its
  * animation nodes, which make the mixer's animation instances with per-track weights. Deterministic,
  * discrete tracks forced continuous (`AnimationTree::AnimationTree`). Not transcribed (they throw):
- * state machines, blend spaces, one-shots, transitions, add/sub nodes, custom timelines, ping-pong
- * loops and root motion.
+ * state machines, blend spaces, transitions, add/sub nodes, custom timelines, ping-pong loops, root
+ * motion, a one-shot's fade curves, and one-shots over a glTF's clips.
  */
 
 import { godot_animation_clips_drive, godot_animation_clips_loop, godot_animation_clips_of } from './animation-clips';
@@ -102,6 +102,19 @@ export interface AnimationNodeBlend2 extends AnimationNodeBase {
 export interface AnimationNodeTimeScale extends AnimationNodeBase {
   readonly kind: 'time-scale';
 }
+export interface AnimationNodeOneShot extends AnimationNodeBase {
+  readonly kind: 'one-shot';
+  /** `MixMode` (`animation_blend_tree.h:131`): blend 0, add 1. */
+  mixMode: number;
+  fadeIn: number;
+  fadeOut: number;
+  sync: boolean;
+  breakLoopAtEnd: boolean;
+  abortOnReset: boolean;
+  autoRestart: boolean;
+  autoRestartDelay: number;
+  autoRestartRandomDelay: number;
+}
 export interface AnimationNodeOutput extends AnimationNodeBase {
   readonly kind: 'output-node';
 }
@@ -110,13 +123,27 @@ export interface AnimationNodeBlendTree extends AnimationNodeBase {
   /** Nodes by name (`output` first), each with its inputs' connected node names. */
   readonly nodes: Map<string, { readonly node: AnimationNode; readonly connections: string[] }>;
 }
-export type AnimationNode = AnimationNodeAnimation | AnimationNodeBlend2 | AnimationNodeTimeScale | AnimationNodeOutput | AnimationNodeBlendTree;
+export type AnimationNode = AnimationNodeAnimation | AnimationNodeBlend2 | AnimationNodeTimeScale | AnimationNodeOneShot | AnimationNodeOutput | AnimationNodeBlendTree;
 
 /** A node as the translation's data file writes it. */
 export type GodotAnimationNodeData =
   | { readonly type: 'animation'; readonly animation: string; readonly playMode?: number; readonly advanceOnStart?: boolean }
   | { readonly type: 'blend2'; readonly sync?: boolean; readonly filterEnabled?: boolean; readonly filters?: readonly string[] }
   | { readonly type: 'time-scale' }
+  | {
+      readonly type: 'one-shot';
+      readonly mixMode?: number;
+      readonly fadeIn?: number;
+      readonly fadeOut?: number;
+      readonly sync?: boolean;
+      readonly breakLoopAtEnd?: boolean;
+      readonly abortOnReset?: boolean;
+      readonly autoRestart?: boolean;
+      readonly autoRestartDelay?: number;
+      readonly autoRestartRandomDelay?: number;
+      readonly filterEnabled?: boolean;
+      readonly filters?: readonly string[];
+    }
   | {
       readonly type: 'blend-tree';
       readonly nodes: readonly { readonly name: string; readonly node: GodotAnimationNodeData }[];
@@ -145,6 +172,25 @@ export function godot_animation_node_load(data: GodotAnimationNodeData): Animati
     }
     case 'time-scale':
       return { kind: 'time-scale', ...base(['in']) };
+    case 'one-shot': {
+      // `AnimationNodeOneShot::AnimationNodeOneShot` (`animation_blend_tree.cpp:600`): inputs `in` and `shot`.
+      const node: AnimationNodeOneShot = {
+        kind: 'one-shot',
+        ...base(['in', 'shot']),
+        mixMode: data.mixMode ?? 0,
+        fadeIn: data.fadeIn ?? 0,
+        fadeOut: data.fadeOut ?? 0,
+        sync: data.sync ?? false,
+        breakLoopAtEnd: data.breakLoopAtEnd ?? false,
+        abortOnReset: data.abortOnReset ?? false,
+        autoRestart: data.autoRestart ?? false,
+        autoRestartDelay: data.autoRestartDelay ?? 1,
+        autoRestartRandomDelay: data.autoRestartRandomDelay ?? 0,
+      };
+      node.filterEnabled = data.filterEnabled ?? false;
+      for (const path of data.filters ?? []) node.filters.add(path);
+      return node;
+    }
     case 'blend-tree': {
       const tree: AnimationNodeBlendTree = { kind: 'blend-tree', ...base([]), nodes: new Map() };
       tree.nodes.set('output', { node: { kind: 'output-node', ...base(['output']) }, connections: [''] });
@@ -167,6 +213,8 @@ function parametersOf(node: AnimationNode): [string, number | boolean][] {
   if (node.kind === 'animation') return [...core, ['backward', false]];
   if (node.kind === 'blend2') return [...core, ['blend_amount', 0]];
   if (node.kind === 'time-scale') return [...core, ['scale', 1]];
+  // `AnimationNodeOneShot::get_parameter_list` (`animation_blend_tree.cpp:423`).
+  if (node.kind === 'one-shot') return [...core, ['request', 0], ['active', false], ['internal_active', false], ['fade_in_remaining', 0], ['fade_out_remaining', 0], ['time_to_restart', -1]];
   return core;
 }
 
@@ -229,7 +277,7 @@ function updateProperties(state: TreeState): void {
       const key = `${path}${name}`;
       let entry = state.properties.get(key);
       if (entry === undefined) {
-        entry = { value: initial, readOnly: name.startsWith('current_') };
+        entry = { value: initial, readOnly: name.startsWith('current_') || name === 'active' || name === 'internal_active' };
         state.properties.set(key, entry);
       }
       parameters.set(name, entry);
@@ -269,7 +317,7 @@ function blendNode(state: TreeState, ps: ProcessState, instance: Instance, other
   const weight = f32(info.weight);
   let anyValid = false;
   const node = instance.node;
-  if (node.kind === 'blend2' && node.filterEnabled && filter !== FILTER_IGNORE) {
+  if ((node.kind === 'blend2' || node.kind === 'one-shot') && node.filterEnabled && filter !== FILTER_IGNORE) {
     for (let i = 0; i < count; i += 1) w[i] = 0;
     for (const path of node.filters) {
       const index = ps.trackMap.get(path);
@@ -347,9 +395,130 @@ function processNode(state: TreeState, ps: ProcessState, instance: Instance, inf
       const nti1 = blendInput(state, ps, instance, 1, { ...info, weight: amount }, FILTER_PASS, node.sync, testOnly);
       return amount > 0.5 ? nti1 : nti0;
     }
+    case 'one-shot':
+      return processOneShot(state, ps, instance, node, info, testOnly);
     case 'animation':
       return processAnimation(state, ps, instance, node, info, testOnly);
   }
+}
+
+/** `NodeTimeInfo::get_remain` (`animation_tree.h:82`): a looping input never ends unless the loop breaks. */
+function remainOf(nti: NodeTimeInfo, breakLoop: boolean): number {
+  const looping = nti.loopMode !== LOOP_NONE;
+  if (looping && !breakLoop) return 31540000;
+  if (looping && breakLoop && nti.willEnd) return 0;
+  const remain = nti.length - nti.position;
+  return isZeroApprox(remain) ? 0 : remain;
+}
+
+/** `OneShotRequest` (`animation_blend_tree.h:112`). */
+const ONE_SHOT_REQUEST_FIRE = 1;
+const ONE_SHOT_REQUEST_ABORT = 2;
+const ONE_SHOT_REQUEST_FADE_OUT = 3;
+
+/** `AnimationNodeOneShot::_process` (`animation_blend_tree.cpp:437`), without fade curves. */
+function processOneShot(state: TreeState, ps: ProcessState, instance: Instance, node: AnimationNodeOneShot, info: GodotAnimationPlaybackInfo, testOnly: boolean): NodeTimeInfo {
+  const request = parameter(instance, 'request') as number;
+  const curActive = parameter(instance, 'active') === true;
+  let curInternalActive = parameter(instance, 'internal_active') === true;
+  const curNti: NodeTimeInfo = { ...noTime(), length: parameter(instance, 'current_length') as number, position: parameter(instance, 'current_position') as number };
+  let curTimeToRestart = parameter(instance, 'time_to_restart') as number;
+  let curFadeInRemaining = parameter(instance, 'fade_in_remaining') as number;
+  let curFadeOutRemaining = parameter(instance, 'fade_out_remaining') as number;
+  setParameter(instance, 'request', 0, testOnly);
+  let isShooting = true;
+  let isFadingOut = curActive && !curInternalActive;
+  const absDelta = Math.abs(info.delta);
+  const seek = info.seeked;
+  let doStart = request === ONE_SHOT_REQUEST_FIRE;
+  const isReset = isZeroApprox(info.time) && seek && !info.isExternalSeeking;
+  if (isReset && curInternalActive) doStart = true;
+  let isAbort = request === ONE_SHOT_REQUEST_ABORT;
+  if (isReset && !doStart && (isFadingOut || (node.abortOnReset && curActive))) isAbort = true;
+  if (isAbort) {
+    setParameter(instance, 'internal_active', false, testOnly);
+    setParameter(instance, 'active', false, testOnly);
+    setParameter(instance, 'time_to_restart', -1, testOnly);
+    setParameter(instance, 'fade_out_remaining', 0, testOnly);
+    curFadeOutRemaining = 0;
+    isFadingOut = false;
+    isShooting = false;
+  } else if (request === ONE_SHOT_REQUEST_FADE_OUT && !isFadingOut) {
+    if (curActive) {
+      isFadingOut = true;
+      curFadeOutRemaining = node.fadeOut;
+      curFadeInRemaining = 0;
+    } else {
+      isShooting = false;
+    }
+    setParameter(instance, 'internal_active', false, testOnly);
+    setParameter(instance, 'time_to_restart', -1, testOnly);
+  } else if (!doStart && !curActive) {
+    if (greaterOrEqual(curTimeToRestart, 0) && !seek) {
+      curTimeToRestart -= absDelta;
+      if (less(curTimeToRestart, 0)) doStart = true;
+      setParameter(instance, 'time_to_restart', curTimeToRestart, testOnly);
+    }
+    if (!doStart) isShooting = false;
+  }
+  let osSeek = seek;
+  if (!isShooting) return blendInput(state, ps, instance, 0, { ...info, weight: 1 }, FILTER_IGNORE, node.sync, testOnly);
+  if (doStart) {
+    osSeek = true;
+    if (!curInternalActive) curFadeInRemaining = node.fadeIn;
+    curInternalActive = true;
+    setParameter(instance, 'request', 0, testOnly);
+    setParameter(instance, 'internal_active', true, testOnly);
+    setParameter(instance, 'active', true, testOnly);
+  }
+  let blend = 1;
+  let useBlend = node.sync;
+  if (greater(curFadeInRemaining, 0)) {
+    if (greater(node.fadeIn, 0)) {
+      useBlend = true;
+      blend = (node.fadeIn - curFadeInRemaining) / node.fadeIn;
+    } else {
+      blend = 0;
+    }
+  }
+  if (isFadingOut) {
+    useBlend = true;
+    blend = greater(node.fadeOut, 0) ? curFadeOutRemaining / node.fadeOut : 0;
+  }
+  const mainNti =
+    node.mixMode === 1
+      ? blendInput(state, ps, instance, 0, { ...info, weight: 1 }, FILTER_IGNORE, node.sync, testOnly)
+      : blendInput(state, ps, instance, 0, { ...info, seeked: info.seeked && useBlend, weight: 1 - blend }, FILTER_BLEND, node.sync, testOnly);
+  const shotInfo: GodotAnimationPlaybackInfo = {
+    ...info,
+    time: doStart ? 0 : osSeek ? curNti.position : info.time,
+    seeked: osSeek,
+    weight: isZeroApprox(blend) ? CMP_EPSILON : blend,
+  };
+  const osNti = blendInput(state, ps, instance, 1, shotInfo, FILTER_PASS, true, testOnly);
+  if (lessOrEqual(curFadeInRemaining, 0) && !doStart && !isFadingOut) {
+    const absOsDelta = Math.abs(osNti.delta);
+    const tscl = isZeroApprox(absDelta) || isZeroApprox(absOsDelta) || isEqualApprox(absDelta, absOsDelta) ? 1 : absDelta / absOsDelta;
+    const osRem = remainOf(osNti, node.breakLoopAtEnd) * tscl;
+    if (lessOrEqual(osRem, node.fadeOut)) {
+      isFadingOut = true;
+      curFadeOutRemaining = osRem + absDelta;
+      curFadeInRemaining = 0;
+      setParameter(instance, 'internal_active', false, testOnly);
+    }
+  }
+  if (!seek) {
+    if (lessOrEqual(remainOf(osNti, node.breakLoopAtEnd), 0) || (isFadingOut && lessOrEqual(curFadeOutRemaining, 0))) {
+      setParameter(instance, 'internal_active', false, testOnly);
+      setParameter(instance, 'active', false, testOnly);
+      if (node.autoRestart) setParameter(instance, 'time_to_restart', node.autoRestartDelay + Math.random() * node.autoRestartRandomDelay, testOnly);
+    }
+    if (!doStart) curFadeInRemaining = Math.max(0, curFadeInRemaining - absDelta);
+    curFadeOutRemaining = Math.max(0, curFadeOutRemaining - absDelta);
+  }
+  setParameter(instance, 'fade_in_remaining', curFadeInRemaining, testOnly);
+  setParameter(instance, 'fade_out_remaining', curFadeOutRemaining, testOnly);
+  return curInternalActive ? osNti : mainNti;
 }
 
 /** `AnimationNodeAnimation::_process` (`animation_blend_tree.cpp:102`), forward play, no custom timeline. */
@@ -603,6 +772,8 @@ function driveClips(state: TreeState, player: object): void {
         case 'blend-tree':
           visit(node, own, factors, speed);
           return;
+        case 'one-shot':
+          throw new Error("godot-compat: a one-shot over a glTF's clips is not transcribed.");
         default:
           visit(node, path, factors, speed);
       }
@@ -689,6 +860,16 @@ export function set_animation_player(self: object, path: string): void {
  */
 export function get_animation_player(self: object): string {
   return stateOf(self, 'get_animation_player').animationPlayer;
+}
+
+/**
+ * Whether an object is an AnimationTree, whose `parameters/…` properties `Object.set` reaches.
+ *
+ * @godot AnimationTree (protocol)
+ * @source scene/animation/animation_tree.cpp:1057
+ */
+export function godot_animation_tree_is(self: object): boolean {
+  return TREES.has(godot_node_entity(self));
 }
 
 /**

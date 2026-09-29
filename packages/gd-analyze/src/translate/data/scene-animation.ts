@@ -271,6 +271,20 @@ export type GodotAnimationNodeData =
   | { readonly type: 'animation'; readonly animation: string }
   | { readonly type: 'blend2'; readonly sync?: boolean; readonly filterEnabled?: boolean; readonly filters?: readonly string[] }
   | { readonly type: 'time-scale' }
+  | {
+      readonly type: 'one-shot';
+      readonly mixMode?: number;
+      readonly fadeIn?: number;
+      readonly fadeOut?: number;
+      readonly sync?: boolean;
+      readonly breakLoopAtEnd?: boolean;
+      readonly abortOnReset?: boolean;
+      readonly autoRestart?: boolean;
+      readonly autoRestartDelay?: number;
+      readonly autoRestartRandomDelay?: number;
+      readonly filterEnabled?: boolean;
+      readonly filters?: readonly string[];
+    }
   | { readonly type: 'blend-tree'; readonly nodes: readonly { readonly name: string; readonly node: GodotAnimationNodeData }[]; readonly connections: readonly (readonly [string, number, string])[] };
 
 /**
@@ -302,6 +316,30 @@ export function godotAnimationNodeData(resource: BoundGodotResourceData, resolve
         else return `AnimationNodeBlend2.${name} is not translated`;
       }
       return { type: 'blend2', ...(sync ? { sync } : {}), ...(filterEnabled ? { filterEnabled } : {}), ...(filters.length === 0 ? {} : { filters }) };
+    }
+    case 'AnimationNodeOneShot': {
+      // `AnimationNodeOneShot`'s properties (`animation_blend_tree.cpp:520`); the fade curves are not translated.
+      const out: Record<string, unknown> = {};
+      const names: Readonly<Record<string, string>> = {
+        mix_mode: 'mixMode',
+        fadein_time: 'fadeIn',
+        fadeout_time: 'fadeOut',
+        sync: 'sync',
+        break_loop_at_end: 'breakLoopAtEnd',
+        abort_on_reset: 'abortOnReset',
+        autorestart: 'autoRestart',
+        autorestart_delay: 'autoRestartDelay',
+        autorestart_random_delay: 'autoRestartRandomDelay',
+        filter_enabled: 'filterEnabled',
+      };
+      const filters: string[] = [];
+      for (const [name, value] of own) {
+        const key = names[name];
+        if (key !== undefined && (value.kind === 'number' || value.kind === 'bool')) out[key] = value.value;
+        else if (name === 'filters' && value.kind === 'array' && value.items.every((item) => item.kind === 'string')) filters.push(...value.items.map((item) => (item as { readonly value: string }).value));
+        else return `AnimationNodeOneShot.${name} is not translated`;
+      }
+      return { type: 'one-shot', ...out, ...(filters.length === 0 ? {} : { filters }) };
     }
     case 'AnimationNodeTimeScale':
       return own.length === 0 ? { type: 'time-scale' } : `AnimationNodeTimeScale.${own[0]?.[0] ?? ''} is not translated`;
