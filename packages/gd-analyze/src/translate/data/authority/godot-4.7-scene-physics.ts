@@ -25,6 +25,7 @@ export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule 
     ['WorldBoundaryShape3D', 'world-boundary-shape-3d', 'scene/resources/3d/world_boundary_shape_3d.cpp', 82],
     ['ConvexPolygonShape3D', 'convex-polygon-shape-3d', 'scene/resources/3d/convex_polygon_shape_3d.cpp', 129],
     ['ConcavePolygonShape3D', 'concave-polygon-shape-3d', 'scene/resources/3d/concave_polygon_shape_3d.cpp', 134],
+    ['SeparationRayShape3D', 'separation-ray-shape-3d', 'scene/resources/3d/separation_ray_shape_3d.cpp', 92],
     // A GridMap's `physics_material` is an element prop: the material made from what the scene states.
     ['PhysicsMaterial', 'physics-material', 'scene/resources/physics_material.h', 36, 'godot_physics_material_of'],
     // A 2D shape a CollisionShape2D picks by (`collision-object-2d.ts`), made from what the scene states.

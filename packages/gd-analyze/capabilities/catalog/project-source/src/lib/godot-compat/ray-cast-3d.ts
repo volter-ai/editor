@@ -303,6 +303,24 @@ export function add_exception(self: object, node: object): void {
 }
 
 /**
+ * A body's RID left out of the cast: compat's RID of a collision object is its node (`get_rid`).
+ *
+ * @godot RayCast3D.add_exception_rid
+ * @source scene/3d/physics/ray_cast_3d.cpp:264
+ */
+export function add_exception_rid(self: object, rid: object): void {
+  stateOf(self).exceptions.add(rid);
+}
+
+/**
+ * @godot RayCast3D.remove_exception_rid
+ * @source scene/3d/physics/ray_cast_3d.cpp:273
+ */
+export function remove_exception_rid(self: object, rid: object): void {
+  stateOf(self).exceptions.delete(rid);
+}
+
+/**
  * Casts now, inside or outside the physics step.
  *
  * @godot RayCast3D.force_raycast_update

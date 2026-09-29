@@ -585,6 +585,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Curve: ['_set_limits', 'set_bake_resolution', '_set_data', 'set_point_count'],
   Gradient: ['set_interpolation_mode', 'set_interpolation_color_space', 'set_offsets', 'set_colors'],
   GradientTexture2D: ['set_gradient', 'set_width', 'set_height', 'set_fill', 'set_fill_from', 'set_fill_to', 'set_repeat'],
+  SpringArm3D: ['set_shape', 'set_length', 'set_mask', 'set_margin'],
+  SeparationRayShape3D: ['set_length', 'set_slide_on_slope'],
   ShapeCast3D: [
     'set_enabled',
     'set_shape',
