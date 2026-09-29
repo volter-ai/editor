@@ -1156,6 +1156,34 @@ function documentTargets(context: PlanContext): (path: string) => AnimationTarge
   };
 }
 
+/** The record members a sub-property of a built-in value names (`position:y`, `modulate:a`). */
+const RECORD_MEMBERS: ReadonlySet<string> = new Set(['x', 'y', 'z', 'w', 'r', 'g', 'b', 'a']);
+
+/**
+ * A value track's binding to a sub-property: the property's setter and getter, and the member of
+ * the built-in it holds, or the property of the resource it holds (by the one class that declares it).
+ */
+function subBinding(
+  lookup: SceneSetterLookup,
+  className: string,
+  property: string,
+  sub: string,
+): TargetGodotAnimationBindingsPlan['values'][number]['binding'] | string {
+  const setter = lookup(className, property);
+  const getter = lookup.getter?.(className, property) ?? `${className}.${property} has no getter lookup`;
+  if (typeof setter === 'string') return setter;
+  if (typeof getter === 'string') return getter;
+  const exported = (binding: { readonly module: string; readonly exportName: string; readonly localName: string }) => ({ module: binding.module, exportName: binding.exportName, localName: binding.localName });
+  const own = { setter: exported(setter), getter: exported(getter), ...(setter.index === undefined ? {} : { index: setter.index }) };
+  if (RECORD_MEMBERS.has(sub)) return { ...own, member: sub };
+  const type = lookup.propertyType?.(className, property);
+  const holder = type === undefined ? undefined : lookup.declaring?.(type, sub);
+  if (holder === undefined) return `${className}.${property}:${sub} names no one class's property`;
+  const inner = lookup(holder, sub);
+  if (typeof inner === 'string') return inner;
+  return { ...own, resource: { setter: exported(inner), ...(inner.index === undefined ? {} : { index: inner.index }) } };
+}
+
 function animationBindings(
   context: PlanContext,
   at: string,
@@ -1192,12 +1220,18 @@ function animationBindings(
         }
         const className = target.className;
         if (track.type === 'value') {
-          if (subnames.length !== 1) {
-            fail(where, 'a value track without one property subname', 'AnimationMixer track path');
+          if (subnames.length !== 1 && subnames.length !== 2) {
+            fail(where, 'a value track without one property subname and at most one sub-property', 'AnimationMixer track path');
             continue;
           }
           const property = subnames[0] as string;
           if (values.has(track.path)) continue;
+          if (subnames.length === 2) {
+            const sub = subBinding(lookup, className, property, subnames[1] as string);
+            if (typeof sub === 'string') fail(where, sub, `${className}.${property}`);
+            else values.set(track.path, sub);
+            continue;
+          }
           if (target.scriptResPath !== undefined && context.scriptFields(target.scriptResPath).has(property)) {
             values.set(track.path, { field: property });
             continue;
@@ -1915,6 +1949,13 @@ function planInstanceRoot(
   // `exports`); the rest are the root node's own properties.
   const fields = origin.scriptResPath === undefined ? new Set<string>() : context.scriptFields(origin.scriptResPath);
   for (const name of Object.keys(overrides)) if (fields.has(name)) delete overrides[name];
+  // An instance registered as a unique name of this scene (`unique_name_in_owner`), as an own node
+  // is; the editor's note on it is dropped.
+  const uniqueValue = overrides['unique_name_in_owner'];
+  const unique = uniqueValue?.kind === 'bool' && uniqueValue.value;
+  if (uniqueValue !== undefined && !structure(context, at, 'unique-name')) ok = false;
+  delete overrides['unique_name_in_owner'];
+  delete overrides['editor_description'];
   if (Object.keys(overrides).length > 0 && !structure(context, at, 'instance-root-override')) ok = false;
   // A script on an instance whose root has none attaches to the component's root (its ref); one
   // replacing the root's own script is not planned.
@@ -1946,6 +1987,7 @@ function planInstanceRoot(
     ...(fieldValues.length === 0 ? {} : { fieldValues }),
     properties,
     groups: groups ?? [],
+    ...(unique ? { unique: true as const } : {}),
     classes: [],
     setters,
     children: [],

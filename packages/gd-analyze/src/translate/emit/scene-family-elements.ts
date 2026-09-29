@@ -948,7 +948,26 @@ function animationBindingsLocal(emission: FamilyEmission, node: Pick<DirectGodot
       properties:
         'field' in binding
           ? [{ key: 'field', value: literal(binding.field) }]
-          : [{ key: 'set', value: compat(binding.setter) }, ...(binding.index === undefined ? [] : [{ key: 'index', value: { kind: 'literal-expression' as const, value: binding.index } }])],
+          : [
+              { key: 'set', value: compat(binding.setter) },
+              ...(binding.index === undefined ? [] : [{ key: 'index', value: { kind: 'literal-expression' as const, value: binding.index } }]),
+              ...(binding.getter === undefined ? [] : [{ key: 'get', value: compat(binding.getter) }]),
+              ...(binding.member === undefined ? [] : [{ key: 'member', value: literal(binding.member) }]),
+              ...(binding.resource === undefined
+                ? []
+                : [
+                    {
+                      key: 'resource',
+                      value: {
+                        kind: 'object-expression' as const,
+                        properties: [
+                          { key: 'set', value: compat(binding.resource.setter) },
+                          ...(binding.resource.index === undefined ? [] : [{ key: 'index', value: { kind: 'literal-expression' as const, value: binding.resource.index } }]),
+                        ],
+                      },
+                    },
+                  ]),
+            ],
     },
   }));
   const byPath = new Map<string, TargetTsObjectProperty[]>();

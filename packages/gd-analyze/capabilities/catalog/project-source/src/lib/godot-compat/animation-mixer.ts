@@ -95,7 +95,14 @@ function isZeroApprox(value: number): boolean {
 
 /** A value track's property on its target: a bound setter (with its index), or a script field. */
 export type GodotAnimationValueBinding =
-  | { readonly set: (self: never, ...args: never[]) => void; readonly index?: number | string }
+  | {
+      readonly set: (self: never, ...args: never[]) => void;
+      readonly index?: number | string;
+      /** A sub-property (`Object::set_indexed`, `object.cpp:560`): the property's getter, then the member or resource property set. */
+      readonly get?: (self: never, ...args: never[]) => unknown;
+      readonly member?: string;
+      readonly resource?: { readonly set: (self: never, ...args: never[]) => void; readonly index?: number | string };
+    }
   | { readonly field: string };
 
 /**
@@ -852,7 +859,7 @@ function updateCaches(state: MixerState): boolean {
           case TYPE_VALUE: {
             if (track_get_key_count(anim, i) === 0) return;
             const subpath = found.subnames.join(':');
-            if (found.subnames.length !== 1) throw new Error(`godot-compat: the value track '${path}' needs one property subname.`);
+            if (found.subnames.length === 0) throw new Error(`godot-compat: the value track '${path}' names no property.`);
             let initValue = godot_animation_zero(track_get_key_value(anim, i, 0));
             if (reset !== undefined) {
               const rt = find_track(reset, path, source.type);
@@ -1012,8 +1019,23 @@ function setValue(state: MixerState, track: TrackCacheValue, value: unknown): vo
   }
   const entity = godot_node_entity(track.object);
   const set = binding.set as (self: object, ...args: unknown[]) => void;
-  if (binding.index === undefined) set(entity, value);
-  else set(entity, binding.index, value);
+  const indexed = binding.index === undefined ? [] : [binding.index];
+  if (binding.get !== undefined) {
+    // `Object::set_indexed`: the property read, its member or resource property set, the property written back.
+    const current = (binding.get as (self: object, ...args: unknown[]) => unknown)(entity, ...indexed);
+    if (binding.resource !== undefined) {
+      if (current === null || current === undefined) return;
+      const inner = binding.resource.set as (self: object, ...args: unknown[]) => void;
+      if (binding.resource.index === undefined) inner(current as object, value);
+      else inner(current as object, binding.resource.index, value);
+      return;
+    }
+    if (binding.member !== undefined && typeof current === 'object' && current !== null) {
+      set(entity, ...indexed, Object.freeze({ ...(current as object), [binding.member]: value }));
+    }
+    return;
+  }
+  set(entity, ...indexed, value);
 }
 
 /** `_call_object` (`animation_mixer.cpp:2077`): the script's method first, then the bound native one. */

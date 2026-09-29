@@ -55,7 +55,20 @@ export interface TargetGodotAnimationExport {
 export interface TargetGodotAnimationBindingsPlan {
   readonly values: readonly {
     readonly path: string;
-    readonly binding: { readonly setter: TargetGodotAnimationExport; readonly index?: number | string } | { readonly field: string };
+    readonly binding:
+      | {
+          readonly setter: TargetGodotAnimationExport;
+          readonly index?: number | string;
+          /**
+           * A sub-property (`position:y`, `surface_material_override/0:albedo_color`): the
+           * property read through its getter, then its member replaced (a built-in's) or its
+           * resource's property set (`Object::set_indexed`, `object.cpp:560`).
+           */
+          readonly getter?: TargetGodotAnimationExport;
+          readonly member?: string;
+          readonly resource?: { readonly setter: TargetGodotAnimationExport; readonly index?: number | string };
+        }
+      | { readonly field: string };
   }[];
   readonly methods: readonly { readonly path: string; readonly method: string; readonly binding: TargetGodotAnimationExport }[];
 }

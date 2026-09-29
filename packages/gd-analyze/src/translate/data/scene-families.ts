@@ -367,6 +367,10 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_distance_fade_max_distance',
     // Shadows not received (`FLAG_DONT_RECEIVE_SHADOWS`), as the scene shader.
     'set_flag:13',
+    // UV1 triplanar mapping, its scale, offset and blend sharpness, as the scene shader.
+    'set_flag:6',
+    'set_flag:8',
+    'set_uv1_triplanar_blend_sharpness',
     // Stored: the stencil effect draws only through `stencil_mode`, which has no prop.
     'set_stencil_flags',
     'set_stencil_effect_color',

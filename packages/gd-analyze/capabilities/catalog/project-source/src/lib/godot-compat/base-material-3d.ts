@@ -82,6 +82,7 @@ import {
 } from 'three';
 import { construct as color, type Color } from './color';
 import { get_image, godot_texture_2d_image } from './texture-2d';
+import { construct as vector3, type Vector3 } from './vector3';
 
 const f32 = Math.fround;
 
@@ -370,6 +371,11 @@ export function godot_base_material_3d_of(target: Material, model = false): Base
   if (data['vertex_color_use_as_albedo'] === true) self.flags[FLAG_ALBEDO_FROM_VERTEX_COLOR] = true;
   if (data['vertex_color_is_srgb'] === true) self.flags[FLAG_SRGB_VERTEX_COLOR] = true;
   if (data['dont_receive_shadows'] === true) self.flags[FLAG_DONT_RECEIVE_SHADOWS] = true;
+  if (data['uv1_triplanar'] === true) self.flags[FLAG_UV1_USE_TRIPLANAR] = true;
+  if (data['uv1_world_triplanar'] === true) self.flags[FLAG_UV1_USE_WORLD_TRIPLANAR] = true;
+  if (Array.isArray(data['uv1_scale'])) extra.uv1_scale = vector3(...(data['uv1_scale'] as [number, number, number]));
+  if (Array.isArray(data['uv1_offset'])) extra.uv1_offset = vector3(...(data['uv1_offset'] as [number, number, number]));
+  if (typeof data['uv1_triplanar_sharpness'] === 'number') extra.uv1_triplanar_sharpness = f32(data['uv1_triplanar_sharpness']);
   if (data['proximity_fade_enabled'] === true) extra.proximity_fade_enabled = true;
   if (typeof data['proximity_fade_distance'] === 'number') extra.proximity_fade_distance = f32(data['proximity_fade_distance']);
   if (typeof data['depth_draw_mode'] === 'number') extra.depth_draw_mode = data['depth_draw_mode'];
@@ -690,6 +696,8 @@ const FLAG_ALBEDO_FROM_VERTEX_COLOR = 1;
 const FLAG_SRGB_VERTEX_COLOR = 2;
 const FLAG_BILLBOARD_KEEP_SCALE = 5;
 const FLAG_DONT_RECEIVE_SHADOWS = 13;
+const FLAG_UV1_USE_TRIPLANAR = 6;
+const FLAG_UV1_USE_WORLD_TRIPLANAR = 8;
 
 /** The parameters beyond the shared ones (`material.h`), at their initial values (`material.cpp:3938`). */
 interface Extra {
@@ -715,6 +723,9 @@ interface Extra {
   stencil_flags: number;
   stencil_effect_color: Color;
   stencil_effect_outline_thickness: number;
+  uv1_scale: Vector3;
+  uv1_offset: Vector3;
+  uv1_triplanar_sharpness: number;
 }
 
 const EXTRA = new WeakMap<BaseMaterial3D, Extra>();
@@ -745,6 +756,9 @@ function extraOf(self: BaseMaterial3D): Extra {
       stencil_flags: 0,
       stencil_effect_color: color(0, 0, 0, 1),
       stencil_effect_outline_thickness: f32(0.01),
+      uv1_scale: vector3(1, 1, 1),
+      uv1_offset: vector3(0, 0, 0),
+      uv1_triplanar_sharpness: 1,
     };
     EXTRA.set(self, extra);
   }
@@ -774,6 +788,11 @@ function applyExtra(self: BaseMaterial3D, target: Material): void {
     distance_fade_min: extra.distance_fade_min,
     distance_fade_max: extra.distance_fade_max,
     distance_fade_opaque: self.transparency === 0 && !extra.proximity_fade_enabled,
+    uv1_triplanar: self.flags[FLAG_UV1_USE_TRIPLANAR] === true,
+    uv1_world_triplanar: self.flags[FLAG_UV1_USE_WORLD_TRIPLANAR] === true,
+    uv1_scale: [extra.uv1_scale.x, extra.uv1_scale.y, extra.uv1_scale.z],
+    uv1_offset: [extra.uv1_offset.x, extra.uv1_offset.y, extra.uv1_offset.z],
+    uv1_triplanar_sharpness: extra.uv1_triplanar_sharpness,
   });
   godot_base_material_3d_scene_shader(target);
 }
@@ -848,6 +867,8 @@ interface SceneShading {
   readonly proximity: boolean;
   /** `DistanceFadeMode`, and whether a dither's material is otherwise opaque; undefined when disabled. */
   readonly fade: readonly [mode: number, opaque: boolean] | undefined;
+  /** UV1 triplanar mapping: world or local, the scale, offset and blend sharpness; undefined when off. */
+  readonly triplanar: { readonly world: boolean; readonly scale: readonly number[]; readonly offset: readonly number[]; readonly sharpness: number } | undefined;
 }
 
 function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
@@ -858,6 +879,15 @@ function shadingOf(data: Readonly<Record<string, unknown>>): SceneShading {
     coloured: data['vertex_color_use_as_albedo'] === true,
     proximity: data['proximity_fade_enabled'] === true,
     fade: mode === 0 ? undefined : [mode, data['distance_fade_opaque'] === true],
+    triplanar:
+      data['uv1_triplanar'] === true
+        ? {
+            world: data['uv1_world_triplanar'] === true,
+            scale: Array.isArray(data['uv1_scale']) ? (data['uv1_scale'] as number[]) : [1, 1, 1],
+            offset: Array.isArray(data['uv1_offset']) ? (data['uv1_offset'] as number[]) : [0, 0, 0],
+            sharpness: typeof data['uv1_triplanar_sharpness'] === 'number' ? data['uv1_triplanar_sharpness'] : 1,
+          }
+        : undefined,
   };
 }
 
@@ -989,10 +1019,31 @@ function proximityOf(target: Material): ProximityUniforms {
   return uniforms;
 }
 
+/** A number as a GLSL float literal. */
+function glslNumber(value: number): string {
+  const text = String(value);
+  return /[.eE]/u.test(text) ? text : `${text}.0`;
+}
+
 /** The scene draw's code in the program three compiles for a material (see below). */
-function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billboard: mode, keepScale, coloured, proximity, fade }: SceneShading, target: Material): void {
+function sceneShade(shader: Parameters<Material['onBeforeCompile']>[0], { billboard: mode, keepScale, coloured, proximity, fade, triplanar }: SceneShading, target: Material): void {
   let vertex = shader.vertexShader;
   let fragment = shader.fragmentShader;
+  if (triplanar !== undefined) {
+    // `uv1_power_normal` and `uv1_triplanar_pos` (`material.cpp:1412`), then `triplanar_texture` of
+    // the albedo (`:1488`) in place of three's UV sampling of the map.
+    const v3 = (values: readonly number[]) => `vec3(${values.map((value) => glslNumber(value)).join(', ')})`;
+    const position = triplanar.world ? '(modelMatrix * vec4(transformed, 1.0)).xyz' : 'transformed';
+    const normal = triplanar.world ? 'normalize(mat3(modelMatrix) * objectNormal)' : 'objectNormal';
+    vertex = `varying vec3 vGodotTriplanarPos;\nvarying vec3 vGodotTriplanarWeight;\n${vertex.replace(
+      '#include <project_vertex>',
+      `vGodotTriplanarWeight = pow(abs(${normal}), vec3(${glslNumber(triplanar.sharpness)}));\nvGodotTriplanarWeight /= dot(vGodotTriplanarWeight, vec3(1.0));\nvGodotTriplanarPos = (${position} * ${v3(triplanar.scale)} + ${v3(triplanar.offset)}) * vec3(1.0, -1.0, 1.0);\n#include <project_vertex>`,
+    )}`;
+    fragment = `varying vec3 vGodotTriplanarPos;\nvarying vec3 vGodotTriplanarWeight;\n${fragment.replace(
+      '#include <map_fragment>',
+      '#ifdef USE_MAP\n\tdiffuseColor *= texture2D( map, vGodotTriplanarPos.xy ) * vGodotTriplanarWeight.z + texture2D( map, vGodotTriplanarPos.xz ) * vGodotTriplanarWeight.y + texture2D( map, vGodotTriplanarPos.zy * vec2( -1.0, 1.0 ) ) * vGodotTriplanarWeight.x;\n#endif',
+    )}`;
+  }
   if (mode !== 0) vertex = `attribute vec4 godotInstanceCustom;\n${vertex.replace('#include <project_vertex>', billboardChunk(mode, keepScale))}`;
   if (coloured) {
     vertex = `attribute vec4 godotInstanceColor;\nvarying vec4 vGodotColor;\n${vertex.replace('#include <color_vertex>', '#include <color_vertex>\nvGodotColor = vec4( 1.0 );\n#ifdef USE_INSTANCING\n\tvGodotColor = godotInstanceColor;\n#endif')}`;
@@ -1081,7 +1132,7 @@ export function godot_base_material_3d_scene_shader<M extends Material>(target: 
   const shaded = SCENE_SHADED.get(target);
   if (shaded === key) return target;
   if (shaded === undefined) {
-    if (shading.billboard === 0 && !shading.coloured && !shading.proximity && shading.fade === undefined) return target;
+    if (shading.billboard === 0 && !shading.coloured && !shading.proximity && shading.fade === undefined && shading.triplanar === undefined) return target;
     const ownCompile = target.onBeforeCompile;
     const ownKey = target.customProgramCacheKey;
     const ownRender = target.onBeforeRender;
@@ -1305,6 +1356,57 @@ export function set_specular(self: BaseMaterial3D, specular: number): void {
  */
 export function get_specular(self: BaseMaterial3D): number {
   return extraOf(self).specular;
+}
+
+/**
+ * @godot BaseMaterial3D.set_uv1_scale
+ * @source scene/resources/material.cpp:2758
+ */
+export function set_uv1_scale(self: BaseMaterial3D, scale: Vector3): void {
+  extraOf(self).uv1_scale = vector3(scale.x, scale.y, scale.z);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_uv1_scale
+ * @source scene/resources/material.cpp:2763
+ */
+export function get_uv1_scale(self: BaseMaterial3D): Vector3 {
+  return extraOf(self).uv1_scale;
+}
+
+/**
+ * @godot BaseMaterial3D.set_uv1_offset
+ * @source scene/resources/material.cpp:2767
+ */
+export function set_uv1_offset(self: BaseMaterial3D, offset: Vector3): void {
+  extraOf(self).uv1_offset = vector3(offset.x, offset.y, offset.z);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_uv1_offset
+ * @source scene/resources/material.cpp:2772
+ */
+export function get_uv1_offset(self: BaseMaterial3D): Vector3 {
+  return extraOf(self).uv1_offset;
+}
+
+/**
+ * @godot BaseMaterial3D.set_uv1_triplanar_blend_sharpness
+ * @source scene/resources/material.cpp:2776
+ */
+export function set_uv1_triplanar_blend_sharpness(self: BaseMaterial3D, sharpness: number): void {
+  extraOf(self).uv1_triplanar_sharpness = f32(sharpness);
+  changed(self);
+}
+
+/**
+ * @godot BaseMaterial3D.get_uv1_triplanar_blend_sharpness
+ * @source scene/resources/material.cpp:2782
+ */
+export function get_uv1_triplanar_blend_sharpness(self: BaseMaterial3D): number {
+  return extraOf(self).uv1_triplanar_sharpness;
 }
 
 /**

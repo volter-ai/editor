@@ -236,9 +236,19 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     if (bool('set_flag', 13) === true) data.push({ key: 'dont_receive_shadows', value: true });
     if (bool('set_feature', 9) === true) data.push({ key: 'backlight', value: (components('set_backlight') ?? [0, 0, 0, 1]).slice(0, 3) });
   }
+  // UV1 triplanar (`FLAG_UV1_USE_TRIPLANAR` 6, world `FLAG_UV1_USE_WORLD_TRIPLANAR` 8): the albedo
+  // sampled by position, blended by the normal (`material.cpp:1412`, `:1488`).
+  const triplanar = bool('set_flag', 6) === true;
+  if (triplanar) {
+    data.push({ key: 'uv1_triplanar', value: true });
+    if (bool('set_flag', 8) === true) data.push({ key: 'uv1_world_triplanar', value: true });
+    data.push({ key: 'uv1_scale', value: (components('set_uv1_scale') ?? [1, 1, 1]).map(f32) });
+    data.push({ key: 'uv1_offset', value: (components('set_uv1_offset') ?? [0, 0, 0]).map(f32) });
+    data.push({ key: 'uv1_triplanar_sharpness', value: f32(num('set_uv1_triplanar_blend_sharpness') ?? 1) });
+  }
   if (data.length > 0) props.push({ name: 'userData', value: { kind: 'user-data', entries: data } });
-  // A billboard, vertex colour, proximity or distance fade draws through compat (`godot_base_material_3d_scene_shader`).
-  if (billboard !== 0 || coloured || proximity || fade !== 0) props.push({ name: 'onUpdate', value: { kind: 'compat', module: 'base-material-3d', exportName: 'godot_base_material_3d_scene_shader' } });
+  // A billboard, vertex colour, proximity or distance fade, or triplanar mapping draws through compat (`godot_base_material_3d_scene_shader`).
+  if (billboard !== 0 || coloured || proximity || fade !== 0 || triplanar) props.push({ name: 'onUpdate', value: { kind: 'compat', module: 'base-material-3d', exportName: 'godot_base_material_3d_scene_shader' } });
 
   if (element === 'meshPhysicalMaterial') {
     // `godot_base_material_3d_anisotropy`: a negative ratio stretches the highlight across the tangent.

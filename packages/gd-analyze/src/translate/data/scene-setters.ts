@@ -27,6 +27,12 @@ export interface SceneSetterBinding {
  */
 export type SceneSetterLookup = ((className: string, property: string) => SceneSetterBinding | string) & {
   readonly method?: (className: string, method: string) => SceneSetterBinding | string;
+  /** The property's getter (a value track's `Object::get_indexed` of a sub-property). */
+  readonly getter?: (className: string, property: string) => SceneSetterBinding | string;
+  /** The property's declared type: a built-in's name, or the class an object property holds. */
+  readonly propertyType?: (className: string, property: string) => string | undefined;
+  /** The one class at or below `className` that declares `property`, if exactly one does. */
+  readonly declaring?: (className: string, property: string) => string | undefined;
 };
 
 /**
@@ -132,7 +138,7 @@ export function sceneSetterLookup(
     const selected = method(className, name);
     return selected === undefined ? `${className} has no method ${name}` : bind(selected.owner, name, selected.hash);
   };
-  const lookup = (className: string, property: string): SceneSetterBinding | string => {
+  const lookup = (className: string, property: string, accessor: 'setter' | 'getter' = 'setter'): SceneSetterBinding | string => {
     const ancestry = ancestryOf(className);
     let owner: string | undefined;
     let setter: string | undefined;
@@ -144,39 +150,39 @@ export function sceneSetterLookup(
     const theme = THEME_OVERRIDE.exec(property);
     if (theme !== null && ancestry.includes('Control')) {
       owner = 'Control';
-      setter = THEME_OVERRIDE_SETTERS[theme[1] as string];
+      setter = THEME_OVERRIDE_SETTERS[theme[1] as string]?.replace(/^add_/u, 'get_');
       index = theme[2] as string;
     } else if (shaderParameter !== null && ancestry.includes('ShaderMaterial')) {
       owner = 'ShaderMaterial';
-      setter = 'set_shader_parameter';
+      setter = accessor === 'getter' ? 'get_shader_parameter' : 'set_shader_parameter';
       index = shaderParameter[1] as string;
     } else if (metadata !== null) {
       owner = 'Object';
-      setter = 'set_meta';
+      setter = accessor === 'getter' ? 'get_meta' : 'set_meta';
       index = metadata[1] as string;
     } else if (surface !== null && ancestry.includes('MeshInstance3D')) {
       owner = 'MeshInstance3D';
-      setter = 'set_surface_override_material';
+      setter = accessor === 'getter' ? 'get_surface_override_material' : 'set_surface_override_material';
       index = Number(surface[1]);
     } else if (bone !== null && ancestry.includes('Skeleton3D')) {
       owner = 'Skeleton3D';
-      setter = `set_bone_pose_${bone[2] as string}`;
+      setter = `${accessor === 'getter' ? 'get' : 'set'}_bone_pose_${bone[2] as string}`;
       index = Number(bone[1]);
     } else if (GLOW_LEVEL.test(property) && ancestry.includes('Environment')) {
       owner = 'Environment';
-      setter = 'set_glow_level';
+      setter = accessor === 'getter' ? 'get_glow_level' : 'set_glow_level';
       index = Number((GLOW_LEVEL.exec(property) as RegExpExecArray)[1]) - 1;
     } else if (RANDOMIZER_ENTRY.test(property) && ancestry.includes('AudioStreamRandomizer')) {
       const entry = RANDOMIZER_ENTRY.exec(property) as RegExpExecArray;
       owner = 'AudioStreamRandomizer';
-      setter = entry[2] === 'stream' ? 'set_stream' : 'set_stream_probability_weight';
+      setter = `${accessor === 'getter' ? 'get' : 'set'}_${entry[2] === 'stream' ? 'stream' : 'stream_probability_weight'}`;
       index = Number(entry[1]);
     } else {
       for (const className of ancestry) {
         const found = classes.get(className)?.properties.find((entry) => entry.name === property);
         if (found === undefined) continue;
         owner = className;
-        setter = found.setter;
+        setter = accessor === 'getter' ? found.getter : found.setter;
         index = found.index;
         break;
       }
@@ -205,7 +211,24 @@ export function sceneSetterLookup(
     if (typeof bound === 'string') return bound;
     return { module: bound.module, exportName: bound.exportName, localName: bound.localName, ...(index === undefined ? {} : { index }) };
   };
-  return Object.assign(lookup, { method: lookupMethod });
+  const propertyType = (className: string, property: string): string | undefined => {
+    if (SURFACE_OVERRIDE.test(property)) return 'Material';
+    for (const name of ancestryOf(className)) {
+      const found = classes.get(name)?.properties.find((entry) => entry.name === property);
+      if (found !== undefined) return found.type;
+    }
+    return undefined;
+  };
+  const declaring = (className: string, property: string): string | undefined => {
+    const found = apiDump.classes.filter((entry) => entry.properties.some((own) => own.name === property) && ancestryOf(entry.name).includes(className));
+    return found.length === 1 ? found[0]?.name : undefined;
+  };
+  return Object.assign((className: string, property: string) => lookup(className, property), {
+    method: lookupMethod,
+    getter: (className: string, property: string) => lookup(className, property, 'getter'),
+    propertyType,
+    declaring,
+  });
 }
 
 /** The compat constructor a built-in record is made by where a Variant holds it (a container's item, a field, metadata). */
