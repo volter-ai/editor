@@ -403,6 +403,10 @@ function materialProps(emission: FamilyEmission, idiom: GodotSceneMaterialIdiom,
       case 'three':
         emission.three.add(value.name);
         return { name, value: identifier(value.name) };
+      case 'vector2':
+        if (!shared) return { name, value: numbers(value.components) };
+        emission.three.add('Vector2');
+        return { name, value: { kind: 'new-expression', callee: identifier('Vector2'), arguments: value.components.map((component) => literal(component)) } };
       case 'map': {
         const texture = emission.resources.get(value.texture);
         if (texture === undefined) throw new Error(`${value.texture}: a texture the scene does not plan`);

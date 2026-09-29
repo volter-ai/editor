@@ -1,5 +1,6 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
 import { type BoundGodotTreeRequests, treeRequests } from './tree-requests';
+import { embeddedImageTextures } from './embedded-images';
 import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
 import type { GltfPhysicsShape } from '../read/gltf-document';
 import { type BoundGodotSignalIntrospection, signalIntrospection } from './signal-introspection';
@@ -397,6 +398,8 @@ export interface BoundGodotTextureDocument {
   readonly sourceDigest: string;
   readonly bytes: Uint8Array;
   readonly importParams: GodotTextureImportParams;
+  /** An `ImageTexture` a document embeds: the document and the sub-resource's id (`embedded-images.ts`). */
+  readonly embeddedIn?: { readonly resPath: string; readonly id: string };
 }
 
 export interface BoundGodotScriptMethod {
@@ -1655,7 +1658,7 @@ export function bindGodotProject(
       },
     ];
   });
-  const documents = boundDocuments(
+  const bound = boundDocuments(
     snapshot,
     authority,
     apiDump.parsed,
@@ -1666,6 +1669,8 @@ export function bindGodotProject(
     code.shaders,
     code.engineShaders,
   );
+  // The images documents embed (`ImageTexture`s), carried as the textures the game loads.
+  const documents = { ...bound, textures: [...bound.textures, ...embeddedImageTextures([...bound.scenes, ...bound.resources])] };
 
   return {
     version: BOUND_GODOT_PROJECT_VERSION,

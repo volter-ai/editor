@@ -971,8 +971,15 @@ function planResolvedResource(
   if (document === undefined) return undefined;
   if (document.planned.has(key)) return document.planned.get(key) === null ? undefined : key;
   document.planned.set(key, null);
-  // An image the texture importer imports: a `CompressedTexture2D` loaded from its copied file.
-  const texture = data === undefined ? context.project?.documents.textures.find((entry) => `ext:${entry.resPath}` === key) : undefined;
+  // An image the texture importer imports: a `CompressedTexture2D` loaded from its copied file; an
+  // `ImageTexture` a document embeds, the PNG analysis wrote of its image (`embedded-images.ts`).
+  const owner = key.startsWith('sub:') ? document.scene.resPath : key.startsWith('ext:') && key.includes('#sub:') ? key.slice('ext:'.length, key.indexOf('#sub:')) : undefined;
+  const texture =
+    data === undefined
+      ? context.project?.documents.textures.find((entry) => `ext:${entry.resPath}` === key)
+      : data.type === 'ImageTexture' && owner !== undefined
+        ? context.project?.documents.textures.find((entry) => entry.embeddedIn?.resPath === owner && entry.embeddedIn.id === String(data.id))
+        : undefined;
   // A sound the wav importer imports: an `AudioStreamWAV` loaded from its copied file.
   const sound = data === undefined && texture === undefined ? context.project?.documents.sounds.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   // A cubemap the `cubemap_texture` importer imports: a `CompressedCubemap` sliced from its copy.

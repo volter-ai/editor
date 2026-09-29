@@ -42,6 +42,8 @@ export type GodotSceneMaterialPropValue =
   | { readonly kind: 'linear-color'; readonly components: readonly number[] }
   /** A three constant (`AdditiveBlending`, `DoubleSide`). */
   | { readonly kind: 'three'; readonly name: string }
+  /** A two-component value: three's `Vector2`. */
+  | { readonly kind: 'vector2'; readonly components: readonly [number, number] }
   /**
    * A planned texture resource sampled with the material's filter and repeat; `model` when the
    * material draws on an imported model's own geometry, whose UVs are the file's (glTF's origin is
@@ -93,7 +95,16 @@ export const GODOT_DEFAULT_MATERIAL_IDIOM: GodotSceneMaterialIdiom = {
  */
 export function godotModelMaterialIdiom(idiom: GodotSceneMaterialIdiom): GodotSceneMaterialIdiom {
   if (!idiom.props.some((prop) => prop.value.kind === 'map')) return idiom;
-  return { ...idiom, props: idiom.props.map((prop) => (prop.value.kind === 'map' ? { name: prop.name, value: { ...prop.value, model: true } } : prop)) };
+  return {
+    ...idiom,
+    props: idiom.props.map((prop) => {
+      if (prop.value.kind === 'map') return { name: prop.name, value: { ...prop.value, model: true } };
+      // A normal map on the file's UVs, whose `v` runs down the image: its green flipped, as
+      // GLTFLoader flips it (`normalScale.y *= -1`).
+      if (prop.name === 'normalScale' && prop.value.kind === 'vector2') return { name: prop.name, value: { kind: 'vector2', components: [prop.value.components[0], -prop.value.components[1]] } };
+      return prop;
+    }),
+  };
 }
 
 /** The Compatibility shader's `srgb_to_linear` (`tonemap_inc.glsl:22`), in single precision. */
@@ -193,6 +204,25 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     // material's `roughness_texture_channel` (red by default); a grey image reads the same.
     const roughnessTexture = resource('set_texture', 2);
     if (roughnessTexture !== undefined) props.push({ name: 'roughnessMap', value: { kind: 'map', texture: roughnessTexture, filter, repeat, srgb: false } });
+    // `TEXTURE_METALLIC` (1): three samples its blue channel where Godot samples the material's
+    // `metallic_texture_channel` (red by default); an ORM image's blue is its metalness.
+    const metallicTexture = resource('set_texture', 1);
+    if (metallicTexture !== undefined) props.push({ name: 'metalnessMap', value: { kind: 'map', texture: metallicTexture, filter, repeat, srgb: false } });
+    // `FEATURE_NORMAL_MAPPING` (1) with `TEXTURE_NORMAL` (4): three's normal map, its scale
+    // `normal_scale`; on a model's glTF UVs `v` runs down the image, so the model variant flips its
+    // green (`godotModelMaterialIdiom`).
+    const normalTexture = bool('set_feature', 1) === true ? resource('set_texture', 4) : undefined;
+    if (normalTexture !== undefined) {
+      props.push({ name: 'normalMap', value: { kind: 'map', texture: normalTexture, filter, repeat, srgb: false } });
+      const scale = f32(num('set_normal_scale') ?? 1);
+      props.push({ name: 'normalScale', value: { kind: 'vector2', components: [scale, scale] } });
+    }
+    // `FEATURE_AMBIENT_OCCLUSION` (5) with `TEXTURE_AMBIENT_OCCLUSION` (8): three's ambient occlusion
+    // map, its red channel (Godot's default `ao_texture_channel`); three's occlusion darkens only the
+    // indirect light, where Godot's `ao_light_affect` also darkens the direct.
+    const aoTexture = bool('set_feature', 5) === true ? resource('set_texture', 8) : undefined;
+    if (aoTexture !== undefined) props.push({ name: 'aoMap', value: { kind: 'map', texture: aoTexture, filter, repeat, srgb: false } });
+    // `FEATURE_HEIGHT_MAPPING` (6): three draws no parallax, so a heightmap moves nothing.
   }
   // No `normal_texture` (`TEXTURE_NORMAL`, 4) is planned yet. The lane that adds it as three's
   // `normalMap` needs no flip on three's own geometry (its primitives, an ArrayMesh's data, a
@@ -209,6 +239,10 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     const emission = components('set_emission') ?? [0, 0, 0, 1];
     const energy = num('set_emission_energy_multiplier') ?? 1;
     props.push({ name: 'emissive', value: { kind: 'linear-color', components: emission.slice(0, 3).map((channel) => srgbToLinear(f32(channel * energy))) } });
+    // `TEXTURE_EMISSION` (3): three multiplies the emissive colour by its map, Godot's
+    // `EMISSION_OP_MULTIPLY`; Godot's default `EMISSION_OP_ADD` adds them, where three multiplies.
+    const emissionTexture = resource('set_texture', 3);
+    if (emissionTexture !== undefined) props.push({ name: 'emissiveMap', value: { kind: 'map', texture: emissionTexture, filter, repeat, srgb: true } });
   }
   // `CULL_FRONT` and `CULL_DISABLED` (`material.h:296`) as the side three draws.
   const cull = num('set_cull_mode') ?? 0;

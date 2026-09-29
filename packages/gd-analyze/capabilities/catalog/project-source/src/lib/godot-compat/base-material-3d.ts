@@ -736,6 +736,21 @@ interface Extra {
   uv1_scale: Vector3;
   uv1_offset: Vector3;
   uv1_triplanar_sharpness: number;
+  /** Kept for their getters: three reads roughness from green and metalness from blue. */
+  roughness_texture_channel: number;
+  metallic_texture_channel: number;
+  /** Kept: three's ambient occlusion darkens only the indirect light, and reads red. */
+  ao_light_affect: number;
+  ao_texture_channel: number;
+  /** Kept: a scene's normal scale is three's `normalScale` as it plans. */
+  normal_scale: number;
+  /** Kept: three draws no parallax, so a heightmap moves nothing. */
+  heightmap_scale: number;
+  heightmap_deep_parallax: boolean;
+  heightmap_min_layers: number;
+  heightmap_max_layers: number;
+  /** `EMISSION_OP_ADD` 0 or `EMISSION_OP_MULTIPLY` 1; three multiplies an emission map. */
+  emission_operator: number;
 }
 
 const EXTRA = new WeakMap<BaseMaterial3D, Extra>();
@@ -769,6 +784,16 @@ function extraOf(self: BaseMaterial3D): Extra {
       uv1_scale: vector3(1, 1, 1),
       uv1_offset: vector3(0, 0, 0),
       uv1_triplanar_sharpness: 1,
+      roughness_texture_channel: 0,
+      metallic_texture_channel: 0,
+      ao_light_affect: 0,
+      ao_texture_channel: 0,
+      normal_scale: 1,
+      heightmap_scale: 5,
+      heightmap_deep_parallax: false,
+      heightmap_min_layers: 8,
+      heightmap_max_layers: 32,
+      emission_operator: 0,
     };
     EXTRA.set(self, extra);
   }
@@ -1662,4 +1687,164 @@ export function set_anisotropy(self: BaseMaterial3D, anisotropy: number): void {
  */
 export function get_anisotropy(self: BaseMaterial3D): number {
   return self.anisotropy;
+}
+
+/**
+ * @godot BaseMaterial3D.set_roughness_texture_channel
+ * @source scene/resources/material.cpp:2965
+ */
+export function set_roughness_texture_channel(self: BaseMaterial3D, channel: number): void {
+  extraOf(self).roughness_texture_channel = channel;
+}
+
+/**
+ * @godot BaseMaterial3D.get_roughness_texture_channel
+ * @source scene/resources/material.cpp:2971
+ */
+export function get_roughness_texture_channel(self: BaseMaterial3D): number {
+  return extraOf(self).roughness_texture_channel;
+}
+
+/**
+ * @godot BaseMaterial3D.set_metallic_texture_channel
+ * @source scene/resources/material.cpp:2955
+ */
+export function set_metallic_texture_channel(self: BaseMaterial3D, channel: number): void {
+  extraOf(self).metallic_texture_channel = channel;
+}
+
+/**
+ * @godot BaseMaterial3D.get_metallic_texture_channel
+ * @source scene/resources/material.cpp:2961
+ */
+export function get_metallic_texture_channel(self: BaseMaterial3D): number {
+  return extraOf(self).metallic_texture_channel;
+}
+
+/**
+ * @godot BaseMaterial3D.set_ao_light_affect
+ * @source scene/resources/material.cpp:2239
+ */
+export function set_ao_light_affect(self: BaseMaterial3D, amount: number): void {
+  extraOf(self).ao_light_affect = f32(amount);
+}
+
+/**
+ * @godot BaseMaterial3D.get_ao_light_affect
+ * @source scene/resources/material.cpp:2244
+ */
+export function get_ao_light_affect(self: BaseMaterial3D): number {
+  return extraOf(self).ao_light_affect;
+}
+
+/**
+ * @godot BaseMaterial3D.set_heightmap_scale
+ * @source scene/resources/material.cpp:2275
+ */
+export function set_heightmap_scale(self: BaseMaterial3D, scale: number): void {
+  extraOf(self).heightmap_scale = f32(scale);
+}
+
+/**
+ * @godot BaseMaterial3D.get_heightmap_scale
+ * @source scene/resources/material.cpp:2280
+ */
+export function get_heightmap_scale(self: BaseMaterial3D): number {
+  return extraOf(self).heightmap_scale;
+}
+
+/**
+ * @godot BaseMaterial3D.set_heightmap_deep_parallax
+ * @source scene/resources/material.cpp:2851
+ */
+export function set_heightmap_deep_parallax(self: BaseMaterial3D, enable: boolean): void {
+  extraOf(self).heightmap_deep_parallax = enable;
+}
+
+/**
+ * @godot BaseMaterial3D.is_heightmap_deep_parallax_enabled
+ * @source scene/resources/material.cpp:2857
+ */
+export function is_heightmap_deep_parallax_enabled(self: BaseMaterial3D): boolean {
+  return extraOf(self).heightmap_deep_parallax;
+}
+
+/**
+ * @godot BaseMaterial3D.set_heightmap_deep_parallax_min_layers
+ * @source scene/resources/material.cpp:2861
+ */
+export function set_heightmap_deep_parallax_min_layers(self: BaseMaterial3D, layer: number): void {
+  extraOf(self).heightmap_min_layers = layer;
+}
+
+/**
+ * @godot BaseMaterial3D.get_heightmap_deep_parallax_min_layers
+ * @source scene/resources/material.cpp:2866
+ */
+export function get_heightmap_deep_parallax_min_layers(self: BaseMaterial3D): number {
+  return extraOf(self).heightmap_min_layers;
+}
+
+/**
+ * @godot BaseMaterial3D.set_heightmap_deep_parallax_max_layers
+ * @source scene/resources/material.cpp:2870
+ */
+export function set_heightmap_deep_parallax_max_layers(self: BaseMaterial3D, layer: number): void {
+  extraOf(self).heightmap_max_layers = layer;
+}
+
+/**
+ * @godot BaseMaterial3D.get_heightmap_deep_parallax_max_layers
+ * @source scene/resources/material.cpp:2875
+ */
+export function get_heightmap_deep_parallax_max_layers(self: BaseMaterial3D): number {
+  return extraOf(self).heightmap_max_layers;
+}
+
+/**
+ * @godot BaseMaterial3D.set_emission_operator
+ * @source scene/resources/material.cpp:3133
+ */
+export function set_emission_operator(self: BaseMaterial3D, operator: number): void {
+  extraOf(self).emission_operator = operator;
+}
+
+/**
+ * @godot BaseMaterial3D.get_emission_operator
+ * @source scene/resources/material.cpp:3141
+ */
+export function get_emission_operator(self: BaseMaterial3D): number {
+  return extraOf(self).emission_operator;
+}
+
+/**
+ * @godot BaseMaterial3D.set_normal_scale
+ * @source scene/resources/material.cpp:2212
+ */
+export function set_normal_scale(self: BaseMaterial3D, normal_scale: number): void {
+  extraOf(self).normal_scale = f32(normal_scale);
+}
+
+/**
+ * @godot BaseMaterial3D.get_normal_scale
+ * @source scene/resources/material.cpp:2217
+ */
+export function get_normal_scale(self: BaseMaterial3D): number {
+  return extraOf(self).normal_scale;
+}
+
+/**
+ * @godot BaseMaterial3D.set_ao_texture_channel
+ * @source scene/resources/material.cpp:2975
+ */
+export function set_ao_texture_channel(self: BaseMaterial3D, channel: number): void {
+  extraOf(self).ao_texture_channel = channel;
+}
+
+/**
+ * @godot BaseMaterial3D.get_ao_texture_channel
+ * @source scene/resources/material.cpp:2981
+ */
+export function get_ao_texture_channel(self: BaseMaterial3D): number {
+  return extraOf(self).ao_texture_channel;
 }
