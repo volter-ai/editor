@@ -1,0 +1,54 @@
+{
+  "date": "2026-09-29",
+  "status": "candidate; hosted viewport and human acceptance pending",
+  "engineSource": "e5d7eec67572dfc7c73f8f4d3f601d03442546f9",
+  "transportSource": "02ef38822466f00666bdc2a1052bb33526e3b335",
+  "scene": {
+    "repository": "volter-ai/game-benchmarks",
+    "revision": "34eb427",
+    "sourceSha256": "ad1430f2e1db93bb8f0996ddc487a2c1f5e8d40f3a410004fb1b1b881d4426e7",
+    "sourceBytes": 320520216,
+    "activeScene": "Stoneguard Bridge",
+    "sceneObjects": 11762,
+    "demoSha256": "91f4fed7d421d346d278ee133285ba72e9408ddea8b7b6835f48fb62b44412c9",
+    "demoChange": "Save a compressed copy with all windows on Stoneguard Bridge; retain all scenes and geometry. Source file is unchanged."
+  },
+  "nativeComparison": {
+    "openLiveMallocMiB": 1600.1,
+    "bridgeLiveMallocMiB": 2858,
+    "afterMeshReadsLiveMallocMiB": 5137.8,
+    "peakRssMiB": 2491.2,
+    "interpretation": "macOS compressed memory makes native RSS incomparable with committed Wasm heap. These are separate measurements, not a 3x Wasm overhead ratio."
+  },
+  "cleanReleaseBuild": {
+    "toolchain": "Emscripten 6.0.5; Release -O3 objects, -O2 final link",
+    "wasmSha256": "0ba94ac8388de893bcec4da70516aea69128addaa490ef27f17ca06262ee6546",
+    "fullBridgeNodeProbe": {
+      "result": "passed; original source opened, Stoneguard Bridge selected, every scene mesh evaluated and read",
+      "elapsedSecondsApprox": 35,
+      "peakHeapMiB": 3919.875,
+      "inputRetainedInWasmFs": true
+    },
+    "geometryRegression": {
+      "fixture": "Stoneguard Dwarf anatomical head; materials omitted only from isolated regression fixture",
+      "stages": ["original", "vertex edit", "subdivision level two"],
+      "comparison": "exact SHA256 equality with shipped engine for positions, triangle indices, corner normals and all five UV channels"
+    },
+    "compression": "brotli quality 11; decompressed outputs compared byte-for-byte with raw build",
+    "historicalBattery": "not run: the catalog path named in Blender RELEASE.md is absent from the current editor checkout"
+  },
+  "browserDiagnosticBuild": {
+    "scope": "same source changes, diagnostic -O0 link; not the clean release artifact",
+    "lastRunHeapMiB": 3260,
+    "reached": "initial frame pull and subsequent delta frame export",
+    "end": "external box-maintainer killed renderer during host-wide sustained swapping; no completed viewport receipt"
+  },
+  "transportChecks": [
+    "actual WasmFS: exact import bytes; writes <= 1 MiB; short/long/network-error imports preserve old file; empty file succeeds",
+    "nested geometry/image transfer: payload intact, sender buffers detached, aliased buffers unique, shared memory excluded",
+    "Blender browser TypeScript check passed",
+    "release manifest boundary passed: 17 packages",
+    "packed import declarations passed: 2343 files across 17 packages"
+  ],
+  "tradeoff": "Browser CPU subdivision tables are recomputed on reevaluation instead of cached. This reduces peak/retained memory at the cost of repeated subdivision work."
+}
