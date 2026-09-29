@@ -195,6 +195,7 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   ),
   Label3D: element('label-3d', 'Label3D', ctor('Label3D', 'scene/3d/label_3d.cpp', 1082), 'Mesh'),
   Timer: element('timer', 'Timer', ctor('Timer', 'scene/main/timer.cpp', 250)),
+  TileMapLayer: element('tile-map-layer', 'TileMapLayer', ctor('TileMapLayer', 'scene/2d/tile_map_layer.cpp', 3380)),
   Camera2D: element('camera-2d', 'Camera2D', ctor('Camera2D', 'scene/2d/camera_2d.cpp', 1030)),
   ColorRect: element('color-rect', 'ColorRect', ctor('ColorRect', 'scene/gui/color_rect.cpp', 62)),
   Marker2D: element('marker-2d', 'Marker2D', ctor('Marker2D', 'scene/2d/marker_2d.cpp', 117)),

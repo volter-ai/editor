@@ -226,6 +226,12 @@ export interface TargetGodotSceneResourcePlan {
     /** An imported model's: its tree's data file and its outside images, which its SceneState reads. */
     readonly model?: { readonly images: readonly { readonly index: number; readonly load: TargetGodotImportedLoad }[] };
   };
+  /**
+   * A resource whose class keeps its properties by names it makes up (a TileSet's `sources/N`, a
+   * TileSetAtlasSource's `x:y/alt/…`): every authored property's value by its name, handed to its
+   * constructor as a Map (`_set`, `tile_set.cpp:1240`).
+   */
+  readonly rawProperties?: readonly { readonly name: string; readonly value: TargetGodotSceneValue }[];
   /** A resource of a script's class (`script = ExtResource(…)`): its script and its properties' values. */
   readonly scriptResource?: {
     readonly scriptResPath: string;
@@ -769,6 +775,9 @@ function planResourceAt(context: PlanContext, at: string, resPath: string): stri
 }
 
 /** Plans a resource resolved to its key, its data (none for an imported file) and its own scope. */
+/** The resource classes kept by their raw properties (`rawProperties`). */
+const RAW_PROPERTY_CLASSES: ReadonlySet<string> = new Set(['TileSet', 'TileSetAtlasSource', 'TileSetScenesCollectionSource']);
+
 function planResolvedResource(
   context: PlanContext,
   at: string,
@@ -850,6 +859,24 @@ function planResolvedResource(
   if (data === undefined) {
     refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
     return undefined;
+  }
+  // A resource keeping its properties by names it makes up: each value by its name.
+  if (RAW_PROPERTY_CLASSES.has(data.type)) {
+    const rawRule = context.authority.resourceRule(data.type);
+    if (rawRule === undefined) {
+      refuse(context, at, `no resource rule constructs ${data.type}`, 'resource', data.type);
+      return undefined;
+    }
+    const rawProperties: { readonly name: string; readonly value: TargetGodotSceneValue }[] = [];
+    for (const [name, value] of Object.entries(data.properties)) {
+      if (name === 'resource_name' || name === 'script') continue;
+      const planned = setterValue(context, `${at}(${key}).${name}`, `${data.type}.${name}`, value, nestedScope);
+      if (planned === undefined) return undefined;
+      rawProperties.push({ name, value: planned });
+    }
+    const planned = { key, className: data.type, construct: rawRule.construct, rawProperties, setters: [] };
+    recordResource(document, key, planned);
+    return key;
   }
   // A resource of a script's class: its script's instance, its properties the script's fields.
   const scriptReference = referenceOf(data.properties['script']);

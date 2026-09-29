@@ -245,9 +245,30 @@ interface Hull {
   readonly radius: number;
 }
 
+/** Objects whose shapes their class gives in its own space (a TileMapLayer's tiles' polygons). */
+const PROVIDED = new WeakMap<Object3D, () => readonly { readonly points: readonly (readonly [number, number])[]; readonly radius: number }[]>();
+
+/**
+ * Gives an object shapes of its class's own, in its local space, beside its CollisionShape2D
+ * children (a TileMapLayer's tiles' collision polygons).
+ *
+ * @godot CollisionObject2D (protocol)
+ * @source scene/2d/tile_map_layer.cpp:760
+ */
+export function godot_collision_object_2d_shapes(entity: Object3D, provide: () => readonly { readonly points: readonly (readonly [number, number])[]; readonly radius: number }[]): void {
+  PROVIDED.set(entity, provide);
+}
+
 /** The object's enabled shapes, each in global coordinates. */
 function hullsOf(object: Object3D): Hull[] {
   const hulls: Hull[] = [];
+  const provide = PROVIDED.get(object);
+  if (provide !== undefined) {
+    const t = get_global_transform(object);
+    for (const outline of provide()) {
+      hulls.push({ points: outline.points.map(([x, y]) => [t.x.x * x + t.y.x * y + t.origin.x, t.x.y * x + t.y.y * y + t.origin.y] as const), radius: outline.radius });
+    }
+  }
   for (const child of object.children) {
     const record = SHAPES.get(child);
     if (record === undefined || record.disabled || record.shape === null) continue;

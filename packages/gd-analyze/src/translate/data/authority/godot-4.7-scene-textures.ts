@@ -24,6 +24,18 @@ export const GODOT_4_7_TEXTURE_RESOURCE_RULES: readonly (GodotSceneResourceRule 
   },
   {
     sourceRevision: REVISION,
+    className: 'TileSet',
+    construct: { module: 'lib/godot-compat/tile-set', exportName: 'godot_tile_set_new' },
+    source: { file: 'scene/resources/2d/tile_set.cpp', symbol: 'TileSet::_set', line: 3960 },
+  },
+  {
+    sourceRevision: REVISION,
+    className: 'TileSetAtlasSource',
+    construct: { module: 'lib/godot-compat/tile-set', exportName: 'godot_tile_set_atlas_source_new' },
+    source: { file: 'scene/resources/2d/tile_set.cpp', symbol: 'TileSetAtlasSource::_set', line: 5130 },
+  },
+  {
+    sourceRevision: REVISION,
     className: 'CanvasItemMaterial',
     construct: { module: 'lib/godot-compat/canvas-item-material', exportName: 'godot_canvas_item_material_new' },
     source: { file: 'scene/resources/canvas_item_material.cpp', symbol: 'CanvasItemMaterial::CanvasItemMaterial', line: 267 },

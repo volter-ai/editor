@@ -242,6 +242,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Path2D: [...NODE_2D, 'set_curve'],
   PathFollow2D: [...NODE_2D, 'set_progress', 'set_progress_ratio', 'set_h_offset', 'set_v_offset', 'set_rotates', 'set_loop', 'set_cubic_interpolation'],
   Camera2D: [...NODE_2D, 'set_offset', 'set_zoom', 'set_anchor_mode', 'set_enabled', 'set_limit:0', 'set_limit:1', 'set_limit:2', 'set_limit:3', 'set_position_smoothing_enabled', 'set_position_smoothing_speed', 'set_ignore_rotation', 'set_process_callback', 'set_drag_horizontal_enabled', 'set_drag_vertical_enabled', 'set_limit_smoothing_enabled', 'set_margin_drawing_enabled', 'set_limit_drawing_enabled', 'set_screen_drawing_enabled'],
+  TileMapLayer: [...NODE_2D, 'set_tile_set', 'set_tile_map_data_from_array', 'set_enabled', 'set_collision_enabled', 'set_rendering_quadrant_size', 'set_y_sort_origin', 'set_navigation_enabled', 'set_use_kinematic_bodies', 'set_collision_visibility_mode', 'set_navigation_visibility_mode'],
   Timer: ['set_meta:*', ...NODE_ELEMENT, 'set_wait_time', 'set_one_shot', 'set_autostart', 'set_paused', 'set_ignore_time_scale', 'set_timer_process_callback'],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
@@ -360,6 +361,10 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ArrayMesh: [],
   CompressedTexture2D: [],
   RectangleShape2D: ['set_size'],
+  // Kept by their raw properties (`rawProperties`): no setters.
+  TileSet: [],
+  TileSetAtlasSource: [],
+  TileSetScenesCollectionSource: [],
   CanvasItemMaterial: ['set_blend_mode', 'set_light_mode', 'set_particles_animation'],
   Curve2D: ['_set_data', 'set_bake_interval'],
   CapsuleShape2D: ['set_radius', 'set_height'],

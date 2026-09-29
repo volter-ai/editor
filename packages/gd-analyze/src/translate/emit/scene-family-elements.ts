@@ -431,6 +431,7 @@ const RECORD_MODULES: Readonly<Record<string, string>> = {
   Color: 'color',
   Quaternion: 'quaternion',
   Rect2: 'rect2',
+  Rect2i: 'rect2i',
 };
 
 /**
@@ -458,6 +459,7 @@ export function variantValue(emission: FamilyEmission, value: TargetGodotSceneVa
         arguments: [{ kind: 'array-expression', elements: value.entries.map(([key, item]) => ({ kind: 'array-expression' as const, elements: [variantValue(emission, key), variantValue(emission, item)] })) }],
       };
     case 'Array':
+    case 'PackedByteArray':
     case 'PackedVector2Array':
     case 'PackedVector3Array':
     case 'PackedFloat32Array':
@@ -573,6 +575,33 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
               ]),
         ],
       },
+    });
+    return local;
+  }
+  // A resource kept by its raw properties: its constructor takes them as a Map, by name.
+  const raw = resource.rawProperties;
+  if (raw !== undefined) {
+    const properties: TargetTsExpression = {
+      kind: 'new-expression',
+      callee: identifier('Map'),
+      typeArguments: [{ kind: 'keyword-type', keyword: 'string' }, { kind: 'keyword-type', keyword: 'any' }],
+      arguments: [{ kind: 'array-expression', elements: raw.map((entry) => ({ kind: 'array-expression' as const, elements: [literal(entry.name), variantValue(emission, entry.value)] })) }],
+    };
+    const made: TargetTsExpression = { kind: 'call-expression', callee: identifier(useCompat(emission, resource.construct.module.replace(/^lib\/godot-compat\//u, ''), resource.construct.exportName)), arguments: [properties] };
+    const uses = loadedUses(emission, properties);
+    const local = freshLocal(emission, stemOf(key));
+    emission.hookLocals.set(key, local);
+    if (uses.length === 0) {
+      emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
+      return local;
+    }
+    emission.loaded.add(local);
+    emission.react.add('useMemo');
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: { kind: 'call-expression', callee: identifier('useMemo'), arguments: [{ kind: 'arrow-expression', parameters: [], body: made }, { kind: 'array-expression', elements: uses.map(identifier) }] },
     });
     return local;
   }

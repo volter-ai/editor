@@ -200,6 +200,8 @@ export type TargetSceneValue =
   | { readonly kind: 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'; readonly components: readonly number[] }
   /** A `PackedVector3Array`, as the Vector3 array compat's setters take: x, y, z per element. */
   | { readonly kind: 'PackedVector3Array'; readonly components: readonly number[] }
+  /** A `PackedByteArray`: its bytes. */
+  | { readonly kind: 'PackedByteArray'; readonly components: readonly number[] }
   /** A `PackedVector2Array`: x, y per element. */
   | { readonly kind: 'PackedVector2Array'; readonly components: readonly number[] }
   /** A `PackedInt32Array` (a GridMap's `data.cells`), the ints as written. */
@@ -260,6 +262,14 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
         if ((value.name === 'PackedColorArray' && components.length % 4 !== 0) || !components.every((entry): entry is number => entry !== undefined)) return undefined;
         return { kind: value.name, components };
+      }
+      // A PackedByteArray as Godot 4 writes it: its bytes in base64 (`VariantWriter`,
+      // variant_parser.cpp:2226), or listed as numbers.
+      if (value.name === 'PackedByteArray') {
+        const [first] = value.args;
+        if (value.args.length === 1 && first?.kind === 'string') return { kind: 'PackedByteArray', components: [...Buffer.from(first.value, 'base64')] };
+        const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
+        return components.every((entry): entry is number => entry !== undefined) ? { kind: 'PackedByteArray', components } : undefined;
       }
       if (value.name === 'PackedVector2Array') {
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
