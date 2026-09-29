@@ -515,14 +515,20 @@ function externalImagePath(modelResPath: string, uri: string): string | undefine
   return `res://${relative}`;
 }
 
+/**
+ * An imported image as three loads it: the source file, with the importer's alpha-border fix,
+ * premultiplication and mipmaps. A normal map (`compress/normal_map`) is the source's normals as
+ * they are, where Godot renormalizes them and keeps red and green; a roughness map limited by a
+ * normal map (`roughness/mode`) takes three's mipmaps. A flipped normal map's green, a channel
+ * remap, HDR clamping and a size limit are not applied, and refuse.
+ */
 function textureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
   const params = texture.importParams;
   if (!SOURCE_IMAGE_COMPRESS_MODES.has(params.compressMode ?? 0)) return `compress/mode=${String(params.compressMode)} is not drawn from the source image`;
   if (params.channelRemap !== undefined && params.channelRemap.join() !== '0,1,2,3') return 'a channel remap is not applied';
-  if (params.normalMapInvertY === true || params.normalMap === 1) return 'normal-map processing is not applied';
+  if (params.normalMapInvertY === true) return "a normal map's flipped green is not applied";
   if (params.hdrClampExposure === true) return 'HDR exposure clamping is not applied';
   if ((params.sizeLimit ?? 0) !== 0) return 'a size limit is not applied';
-  if (params.mipmapsGenerate === true && (params.roughnessMode ?? 0) > 1) return 'roughness mipmaps are not generated';
   return {
     sourceResPath: texture.resPath,
     options: {
