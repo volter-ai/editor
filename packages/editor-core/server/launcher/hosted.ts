@@ -63,8 +63,8 @@ export async function hostedControl(command: string, args: string[]): Promise<vo
     const live = { editor: new LiveEditor(client), tools: new LiveTools(client), session: { port: 0, projectRoot: attachment.page } };
     if (verb === 'screenshot') {
       if (!argument?.endsWith('.png')) throw new Error('hosted screenshot requires an output .png path.');
-      const shot = await live.editor.screenshot();
-      if (shot.mimeType !== 'image/png') throw new Error('Editor did not return a PNG viewport.');
+      const shot = await live.editor.captureActiveDocument();
+      if (shot.mimeType !== 'image/png') throw new Error('Editor did not return a PNG of the active document.');
       writeFileSync(resolve(argument), Buffer.from(shot.base64, 'base64')); console.log(resolve(argument));
     } else await control(command, verb!, argument, undefined, undefined, { live, client });
   } finally { remote.close(); }

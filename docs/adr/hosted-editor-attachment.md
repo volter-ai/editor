@@ -42,15 +42,15 @@ From one working directory:
 ```sh
 volter-model-editor hosted attach https://host.example/model-editor/my-project
 volter-model-editor hosted status
-volter-model-editor hosted eval 'editor.openAsset("src/models/example.blend")'
+volter-model-editor hosted eval 'editor.open("model:src/models/example.blend")'
 volter-model-editor hosted eval 'editor.frameCost({frames:3})'
 volter-model-editor hosted screenshot /tmp/model.png
 volter-model-editor hosted detach
 ```
 
 The same commands exist on `volter-game-editor`; hosted eval exposes the neutral
-`editor`, `tools` and `session` bindings. A hosted screenshot captures the editor's
-active viewport. Local session commands and their richer capture options remain
+`editor`, `tools` and `session` bindings. A hosted screenshot captures the active document through `captureActiveDocument`,
+the same document-owned capture used by the local screenshot command. Local session commands and their richer capture options remain
 unchanged.
 
 A Vite shell mounts `hostedAttachmentPlugin(canonicalOrigin)` from
