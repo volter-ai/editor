@@ -1,5 +1,4 @@
 import { GODOT_GENERATED_MODULE_PACKAGES } from '../data/generated-packages';
-import { encode as encodePng } from 'fast-png';
 import type { GodotEmbeddedImage } from '../../read/embedded-images';
 import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import { createHash } from 'node:crypto';
@@ -29,6 +28,7 @@ import { godotCapabilityPackages, godotCapabilityRequirements, reachedGodotCapab
 import { plannedArtifactIdentity, structuralDigest } from './identity';
 import {
   projectDataBytesArtifact,
+  projectDataImageArtifact,
   projectDataGeneratedModuleArtifact,
   projectDataJsonArtifact,
   projectDataTypedModuleArtifact as typedModuleArtifact,
@@ -250,6 +250,8 @@ function artifactPayloadDigest(artifact: GodotPlannedArtifact): string {
       return structuralDigest(artifact.content.value);
     case 'bytes':
       return sha256(artifact.content.bytes);
+    case 'image':
+      return structuralDigest({ width: artifact.content.width, height: artifact.content.height, channels: artifact.content.channels, pixels: sha256(artifact.content.pixels) });
   }
 }
 
@@ -313,13 +315,10 @@ export function planDirectGodotArtifacts(
     ...reached.map(capabilityCopyArtifact),
     ...models.map((model) => assetCopyArtifact(model.resPath, model.sourceDigest, model.bytes)),
     ...licenses.map((license) => licenseCopyArtifact(license.relativePath, license.sourceDigest, license.bytes)),
-    // An image a document embeds, written as the PNG the page loads beside its document's copies.
+    // An image a document embeds, described by its pixels: emit writes the PNG the page loads
+    // beside its document's copies.
     ...embedded.map(({ resPath, image }) =>
-      projectDataBytesArtifact(
-        `public/godot/${resPath.slice('res://'.length)}`,
-        encodePng({ width: image.size[0], height: image.size[1], data: image.pixels, channels: image.channels, depth: 8 }),
-        [image.owner],
-      ),
+      projectDataImageArtifact(`public/godot/${resPath.slice('res://'.length)}`, image.size[0], image.size[1], image.channels, image.pixels, [image.owner]),
     ),
   ];
   const paths = new Set<string>();

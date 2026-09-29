@@ -1,4 +1,5 @@
 import { GODOT_GENERATED_MODULE_PACKAGES, godotImportPackage } from '../data/generated-packages';
+import { encode as encodePng } from 'fast-png';
 import { createHash } from 'node:crypto';
 import * as path from 'node:path';
 import { structuralDigest } from '../artifacts/identity';
@@ -223,6 +224,17 @@ function emitArtifact(
           }
           return [result];
         }
+        case 'image':
+          // The PNG of the pixels the plan described.
+          return [
+            emitted(
+              artifact.kind,
+              artifact.path,
+              encodePng({ width: artifact.content.width, height: artifact.content.height, data: artifact.content.pixels, channels: artifact.content.channels, depth: 8 }),
+              artifact.origin,
+              artifact.planIdentity,
+            ),
+          ];
       }
       throw new Error(`${artifact.path}: unhandled project-data content`);
     case 'asset-copy':

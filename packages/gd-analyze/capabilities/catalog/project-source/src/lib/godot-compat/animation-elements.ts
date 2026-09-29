@@ -9,6 +9,8 @@
  * animation's length, looping as it loops; the page's animation clock times them.
  */
 
+import { get_node_or_null, godot_node_entity } from './node';
+
 /** The animations a player among Controls plays, as the plan wrote them. */
 export interface GodotAnimationElements {
   readonly root: string;
@@ -30,14 +32,11 @@ interface Playing {
 
 const PLAYERS = new WeakMap<object, Playing>();
 
-/** The element at a node path from `from` (`..` its parent, a name one of its children's `data-name`). */
+/** The element at a node path from `from`, as the Node protocol finds it (`get_node_or_null`). */
 function elementAt(from: HTMLElement, path: string): HTMLElement | null {
-  let at: HTMLElement | null = from;
-  for (const part of path.split('/').filter((entry) => entry !== '' && entry !== '.')) {
-    if (at === null) return null;
-    at = part === '..' ? at.parentElement : ([...at.children].find((child) => (child as HTMLElement).dataset['name'] === part) as HTMLElement | undefined) ?? null;
-  }
-  return at;
+  const found = get_node_or_null(from, path);
+  const entity = found === null ? null : (godot_node_entity(found) as unknown);
+  return entity instanceof HTMLElement ? entity : null;
 }
 
 /** Stops what the player runs, leaving the animated properties as they were before. */

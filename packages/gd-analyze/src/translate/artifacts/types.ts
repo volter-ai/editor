@@ -85,6 +85,14 @@ export type GodotPlannedProjectDataArtifact =
       readonly digest: string;
       readonly origin: GodotProjectDataOrigin;
       readonly planIdentity: string;
+    }
+  | {
+      readonly kind: 'project-data';
+      readonly path: string;
+      /** An image the plan describes by its pixels (8-bit, `channels` a pixel), which emit writes as a PNG. */
+      readonly content: { readonly kind: 'image'; readonly width: number; readonly height: number; readonly channels: number; readonly pixels: Uint8Array };
+      readonly origin: GodotProjectDataOrigin;
+      readonly planIdentity: string;
     };
 
 export interface GodotPlannedAssetArtifact {

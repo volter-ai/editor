@@ -33,6 +33,26 @@ export function projectDataGeneratedModuleArtifact(
   };
 }
 
+/** Plan an image by its pixels, which emit writes as a PNG. */
+export function projectDataImageArtifact(
+  path: string,
+  width: number,
+  height: number,
+  channels: number,
+  pixels: Uint8Array,
+  sourcePaths: readonly string[],
+): GodotPlannedProjectDataArtifact {
+  const artifactOrigin = origin(sourcePaths);
+  const payload = structuralDigest({ width, height, channels, pixels: createHash('sha256').update(pixels).digest('hex') });
+  return {
+    kind: 'project-data',
+    path,
+    content: { kind: 'image', width, height, channels, pixels },
+    origin: artifactOrigin,
+    planIdentity: plannedArtifactIdentity('project-data', path, payload, artifactOrigin),
+  };
+}
+
 /** Plan importer-owned native JSON data without serializing it. */
 export function projectDataJsonArtifact(
   path: string,
