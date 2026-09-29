@@ -58,7 +58,7 @@ import { godot_node_3d_basis_euler, set_position, set_rotation, set_scale, set_t
 import { godot_message_queue_push } from './object';
 import { find_bone, godot_skeleton_3d_bone_rest, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
 import { construct as quaternion, is_normalized, type Quaternion } from './quaternion';
-import { createSignal, type SignalHandle } from './signal';
+import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import { construct as transform3d } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -1264,3 +1264,18 @@ export function godot_animation_mixer_set_library(self: object, name: string, li
   state.signals.animation_libraries_updated.emit();
 }
 
+/**
+ * @godot AnimationMixer.animation_finished
+ * @source scene/animation/animation_mixer.cpp:2488
+ */
+export function animation_finished(self: object): GodotSignal<[string]> {
+  return godot_animation_mixer_signal(self, 'animation_finished') as GodotSignal<[string]>;
+}
+
+/**
+ * @godot AnimationMixer.animation_started
+ * @source scene/animation/animation_mixer.cpp:2489
+ */
+export function animation_started(self: object): GodotSignal<[string]> {
+  return godot_animation_mixer_signal(self, 'animation_started') as GodotSignal<[string]>;
+}

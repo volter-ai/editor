@@ -23,6 +23,7 @@
 import type { Object3D } from 'three';
 import { godot_audio_context } from './audio-stream';
 import * as P from './audio-stream-player';
+import type { GodotSignal } from './signal';
 import { godot_camera_3d_of_viewport } from './camera-3d';
 import { godot_node_entity, godot_node_set_internal_physics } from './node';
 import { get_global_transform } from './node-3d';
@@ -630,4 +631,14 @@ const AUDIO_STREAM_PLAYER_3D = {
  */
 export function GodotAudioStreamPlayer3D(props: GodotElementProps<Group>): ReactElement {
   return useGodotElement(AUDIO_STREAM_PLAYER_3D, props);
+}
+
+/**
+ * The player's `finished` signal, emitted when a playback ends (`audio-stream-player.ts`).
+ *
+ * @godot AudioStreamPlayer3D.finished
+ * @source scene/3d/audio_stream_player_3d.cpp:916
+ */
+export function finished(self: object): GodotSignal<[]> {
+  return P.finished(self);
 }

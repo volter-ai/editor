@@ -73,6 +73,7 @@
     "src/lib/godot-compat/h-box-container.ts",
     "src/lib/godot-compat/h-slider.ts",
     "src/lib/godot-compat/image.ts",
+    "src/lib/godot-compat/input-event-key.ts",
     "src/lib/godot-compat/input-event-mouse-motion.ts",
     "src/lib/godot-compat/input-event-mouse.ts",
     "src/lib/godot-compat/input-event-screen-drag.ts",
