@@ -10,13 +10,16 @@
  * velocity, accelerated by gravity and linear acceleration, slowed by damping, rotated by its angle
  * and scaled by its scale and scale curve; one-shot, emitting stops after one cycle and `finished`
  * is emitted when the last particle dies. Each particle draws the node's texture centred on it,
- * tinted by the material's colour. Particles move with the node (`local_coords`); sub-emitters,
+ * tinted by the material's colour. With `local_coords` particles move with the node, else they stay
+ * in the canvas where they were emitted (their velocity not turned by the node's rotation); sub-emitters,
  * trails, turbulence, collision and colour ramps are not drawn.
  */
 
 import type { ReactElement } from 'react';
 import { Group, type Object3D, type Texture } from 'three';
-import { godot_canvas_item_self_filter } from './canvas-item';
+import { get_global_transform_with_canvas, godot_canvas_item_self_filter } from './canvas-item';
+import { affine_inverse, op_multiply } from './transform-2d';
+import { construct as vector2 } from './vector2';
 import { get_curve } from './curve-texture';
 import { sample } from './curve';
 import { godot_node_2d_mount, godot_node_2d_props } from './node-2d';
@@ -148,6 +151,12 @@ function spawn(state: Particles2DState, particle: Particle): void {
     particle.angularVelocity = 0;
     particle.scale = 1;
   }
+  // Not in local coordinates, a particle is emitted in the canvas and stays there as the node moves.
+  if (!state.localCoords) {
+    const at = op_multiply(get_global_transform_with_canvas(state.entity), vector2(x, y));
+    x = at.x;
+    y = at.y;
+  }
   particle.x = x;
   particle.y = y;
 }
@@ -243,9 +252,10 @@ function draw(entity: Object3D, element: HTMLElement): void {
       return;
     }
     const scale = particle.scale * (material === null ? 1 : curveAt(material, PARAM_SCALE, particle.age / particle.life));
+    const place = state.localCoords ? vector2(particle.x, particle.y) : op_multiply(affine_inverse(get_global_transform_with_canvas(entity)), vector2(particle.x, particle.y));
     node.style.display = '';
-    node.style.left = `${String(particle.x - width / 2)}px`;
-    node.style.top = `${String(particle.y - height / 2)}px`;
+    node.style.left = `${String(place.x - width / 2)}px`;
+    node.style.top = `${String(place.y - height / 2)}px`;
     node.style.width = `${String(width)}px`;
     node.style.height = `${String(height)}px`;
     node.style.backgroundImage = `url("${source}")`;
