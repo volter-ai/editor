@@ -32,7 +32,6 @@ import { godot_await_tweener_create, type AwaitTweener } from './await-tweener';
 import { godot_callback_tweener_create, type CallbackTweener } from './callback-tweener';
 import { godot_interval_tweener_create, type IntervalTweener } from './interval-tweener';
 import { godot_method_tweener_create, godot_method_tweener_set_tween, type MethodTweener } from './method-tweener';
-import type { GodotSignal } from './signal';
 import { godot_subtween_tweener_create, type SubtweenTweener } from './subtween-tweener';
 import { godot_property_tweener_create, godot_property_tweener_set_tween, type PropertyTweener } from './property-tweener';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
