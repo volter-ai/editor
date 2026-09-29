@@ -72,6 +72,7 @@
     "src/lib/godot-compat/input-event-screen-touch.ts",
     "src/lib/godot-compat/input-event.ts",
     "src/lib/godot-compat/input.ts",
+    "src/lib/godot-compat/kinematic-collision-3d.ts",
     "src/lib/godot-compat/label-3d.ts",
     "src/lib/godot-compat/label-settings.ts",
     "src/lib/godot-compat/label.ts",
