@@ -144,6 +144,10 @@ export interface StageFrameCostReading {
   readonly medianMs: number;
   readonly p95Ms: number;
   readonly minMs: number;
+  /** Frame submission, including driver backpressure; not pure CPU time. */
+  readonly submitMedianMs?: number;
+  /** Remaining GPU completion wait after submission (one-pixel readback). */
+  readonly completionWaitMedianMs?: number;
   /** The canvas as drawn: device pixels, its CSS size and the ratio between them. */
   readonly width: number;
   readonly height: number;

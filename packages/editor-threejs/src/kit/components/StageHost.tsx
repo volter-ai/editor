@@ -2108,11 +2108,19 @@ export function Object3DDocumentViewport({
           const gl = activeRenderer.getContext();
           const pixel = new Uint8Array(4);
           const times: number[] = [];
+          const submitTimes: number[] = [];
+          const completionTimes: number[] = [];
           for (let index = 0; index <= frames; index++) {
             const start = performance.now();
             animate(start, true);
+            const submitted = performance.now();
             gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-            if (index > 0) times.push(performance.now() - start);
+            const completed = performance.now();
+            if (index > 0) {
+              times.push(completed - start);
+              submitTimes.push(submitted - start);
+              completionTimes.push(completed - submitted);
+            }
           }
           const drawn = { calls: activeRenderer.info.render.calls, triangles: activeRenderer.info.render.triangles };
           let meshes = 0;
@@ -2130,11 +2138,14 @@ export function Object3DDocumentViewport({
           const size = activeRenderer.getDrawingBufferSize(new THREE.Vector2());
           const ratio = activeRenderer.getPixelRatio();
           const round = (value: number) => Math.round(value * 100) / 100;
+          const median = (values: number[]) => round(values.sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0);
           return {
             frames,
             medianMs: round(at(0.5)),
             p95Ms: round(at(0.95)),
             minMs: round(sorted[0] ?? 0),
+            submitMedianMs: median(submitTimes),
+            completionWaitMedianMs: median(completionTimes),
             width: size.x,
             height: size.y,
             cssWidth: round(size.x / ratio),
