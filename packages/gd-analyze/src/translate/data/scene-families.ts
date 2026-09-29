@@ -509,6 +509,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   CanvasTexture: ['set_diffuse_texture'],
   AudioStreamWAV: [],
   AudioStreamOggVorbis: [],
+  AudioStreamMP3: [],
   FontFile: [],
   // An environment's background, ambient light, tone mapping and fog (`environment.ts`, `world-environment.ts`).
   Environment: [
@@ -556,6 +557,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_sdfgi_enabled',
     'set_sdfgi_cascades',
     'set_sdfgi_energy',
+    'set_sdfgi_use_occlusion',
     'set_ssil_enabled',
     'set_ssil_radius',
     'set_ssil_intensity',

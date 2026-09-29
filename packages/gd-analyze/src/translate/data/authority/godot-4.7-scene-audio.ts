@@ -25,6 +25,12 @@ export const GODOT_4_7_AUDIO_RESOURCE_RULES: readonly (GodotSceneResourceRule & 
   },
   {
     sourceRevision: REVISION,
+    className: 'AudioStreamMP3',
+    construct: { module: 'lib/godot-compat/audio-stream-mp3', exportName: 'godot_audio_stream_mp3_load' },
+    source: { file: 'modules/mp3/audio_stream_mp3.cpp', symbol: 'AudioStreamMP3::load_from_buffer', line: 315 },
+  },
+  {
+    sourceRevision: REVISION,
     className: 'AudioStreamRandomizer',
     construct: { module: 'lib/godot-compat/audio-stream-randomizer', exportName: 'godot_audio_stream_randomizer_new' },
     source: { file: 'servers/audio/audio_stream.cpp', symbol: 'AudioStreamRandomizer::AudioStreamRandomizer', line: 788 },

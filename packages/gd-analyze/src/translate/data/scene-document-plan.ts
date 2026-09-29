@@ -996,7 +996,7 @@ function planResolvedResource(
         : cubemap !== undefined
           ? { className: 'CompressedCubemap', load: cubemapLoad(cubemap) }
           : ogg !== undefined
-            ? { className: 'AudioStreamOggVorbis', load: { sourceResPath: ogg.resPath, options: { loop: ogg.loop, loopOffset: ogg.loopOffset } } }
+            ? { className: ogg.streamClass, load: { sourceResPath: ogg.resPath, options: { loop: ogg.loop, loopOffset: ogg.loopOffset } } }
             : font !== undefined
               ? { className: 'FontFile', load: { sourceResPath: font.resPath, options: {} } }
               : undefined;

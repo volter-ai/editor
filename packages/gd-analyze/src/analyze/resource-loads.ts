@@ -27,7 +27,7 @@ import { argumentCountRuns, type ConnectedCallables } from './connected-callable
 import { type ContainerProjectIndex, type ContainerTyped, containerTypes } from './container-types';
 
 /** How an imported file is loaded: the importer that imported it. */
-export type ImportedSoundKind = 'ogg-vorbis' | 'wav';
+export type ImportedSoundKind = 'ogg-vorbis' | 'mp3' | 'wav';
 
 export interface ResourceLoadBranch {
   /** A string the path argument can be at run time. */

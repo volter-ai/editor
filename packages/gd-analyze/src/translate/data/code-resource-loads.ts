@@ -15,6 +15,7 @@ export interface GodotCodeResourceLoad {
 export const GODOT_CODE_RESOURCE_LOADS: Readonly<Partial<Record<ImportedSoundKind, GodotCodeResourceLoad>>> = {
   // `AudioStreamOggVorbis::load_from_buffer` (modules/vorbis/audio_stream_ogg_vorbis.cpp:581).
   'ogg-vorbis': { module: 'lib/godot-compat/audio-stream-ogg-vorbis', exportName: 'godot_audio_stream_ogg_vorbis_load' },
+  mp3: { module: 'lib/godot-compat/audio-stream-mp3', exportName: 'godot_audio_stream_mp3_load' },
 };
 
 /** The URL an imported asset's copy is served at. */

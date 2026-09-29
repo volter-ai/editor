@@ -390,6 +390,8 @@ export interface BoundGodotOggVorbisDocument {
   readonly bytes: Uint8Array;
   readonly loop: boolean;
   readonly loopOffset: number;
+  /** The stream the importer made: an `.ogg`'s, or an `.mp3`'s (`[remap] importer="mp3"`), which the browser decodes alike. */
+  readonly streamClass: 'AudioStreamOggVorbis' | 'AudioStreamMP3';
 }
 
 /** An image imported as a `CompressedTexture2D` (`[remap] importer="texture"`). */
@@ -779,7 +781,8 @@ function boundDocuments(
     oggVorbis: unique(
       'ogg-vorbis',
       decoded.imports.flatMap((sidecar) => {
-        if (sidecar.importer !== 'oggvorbisstr' || sidecar.resourceType !== 'AudioStreamOggVorbis') return [];
+        const mp3 = sidecar.importer === 'mp3' && sidecar.resourceType === 'AudioStreamMP3';
+        if (!mp3 && (sidecar.importer !== 'oggvorbisstr' || sidecar.resourceType !== 'AudioStreamOggVorbis')) return [];
         if (sidecar.sourceFile === undefined) return [];
         const entry = snapshot.entryByResPath(sidecar.sourceFile);
         if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
@@ -790,6 +793,7 @@ function boundDocuments(
             bytes: snapshot.bytesByResPath(sidecar.sourceFile),
             loop: sidecar.audioLoop ?? false,
             loopOffset: sidecar.audioLoopOffset ?? 0,
+            streamClass: mp3 ? ('AudioStreamMP3' as const) : ('AudioStreamOggVorbis' as const),
           },
         ];
       }),
@@ -1514,6 +1518,8 @@ export function bindGodotProject(
         ? []
         : sidecar.importer === 'oggvorbisstr' && sidecar.resourceType === 'AudioStreamOggVorbis'
           ? [[sidecar.sourceFile, 'ogg-vorbis']]
+          : sidecar.importer === 'mp3' && sidecar.resourceType === 'AudioStreamMP3'
+            ? [[sidecar.sourceFile, 'mp3']]
           : sidecar.importer === 'wav' && sidecar.resourceType === 'AudioStreamWAV'
             ? [[sidecar.sourceFile, 'wav']]
             : [],

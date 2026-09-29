@@ -60,6 +60,7 @@ export interface Environment {
   sdfgi_enabled: boolean;
   sdfgi_cascades: number;
   sdfgi_energy: number;
+  sdfgi_use_occlusion: boolean;
   ssil_enabled: boolean;
   ssil_radius: number;
   ssil_intensity: number;
@@ -121,6 +122,7 @@ export function construct(): Environment {
     sdfgi_enabled: false,
     sdfgi_cascades: 4,
     sdfgi_energy: 1,
+    sdfgi_use_occlusion: false,
     ssil_enabled: false,
     ssil_radius: 5,
     ssil_intensity: 1,
@@ -551,6 +553,7 @@ const PROPS: ReadonlyMap<string, (self: Environment, value: never) => void> = ne
   ['sdfgiEnabled', (self, value: boolean) => set_sdfgi_enabled(self, value)],
   ['sdfgiCascades', (self, value: number) => set_sdfgi_cascades(self, value)],
   ['sdfgiEnergy', (self, value: number) => set_sdfgi_energy(self, value)],
+  ['sdfgiUseOcclusion', (self, value: boolean) => set_sdfgi_use_occlusion(self, value)],
   ['ssilEnabled', (self, value: boolean) => set_ssil_enabled(self, value)],
   ['ssilRadius', (self, value: number) => set_ssil_radius(self, value)],
   ['ssilIntensity', (self, value: number) => set_ssil_intensity(self, value)],
@@ -870,6 +873,24 @@ export function set_sdfgi_cascades(self: Environment, cascades: number): void {
  */
 export function get_sdfgi_cascades(self: Environment): number {
   return self.sdfgi_cascades;
+}
+
+/**
+ * Stored, as the rest of SDFGI.
+ *
+ * @godot Environment.set_sdfgi_use_occlusion
+ * @source scene/resources/environment.cpp:533
+ */
+export function set_sdfgi_use_occlusion(self: Environment, enabled: boolean): void {
+  self.sdfgi_use_occlusion = enabled;
+}
+
+/**
+ * @godot Environment.is_sdfgi_using_occlusion
+ * @source scene/resources/environment.cpp:538
+ */
+export function is_sdfgi_using_occlusion(self: Environment): boolean {
+  return self.sdfgi_use_occlusion;
 }
 
 /**
