@@ -133,6 +133,10 @@ export interface BlenderCallMetrics {
   readonly wasmMemoryMB: number | null;
 }
 
+/** The engine's linear-memory ceiling, its link's `-sMAXIMUM_MEMORY` (4 GiB, wasm32's limit;
+ *  `blender_web_headless.cmake`). JavaScript cannot read a memory's maximum back. */
+const ENGINE_MEMORY_CEILING_MB = 4096;
+
 export class BlenderRuntime {
   readonly #worker: Worker;
   readonly #options: BlenderRuntimeOptions;
@@ -187,8 +191,15 @@ export class BlenderRuntime {
       // Error ("Uncaught [object Object]"), while the reason (an allocation that failed, the file
       // it was reading) is the last thing Blender printed.
       const last = this.#lastLines.length > 0 ? `\nBlender's last output:\n${this.#lastLines.join('\n')}` : '';
+      // OUT OF MEMORY IS SAID AS SUCH, from the heap the worker reported as the thread died.
+      const heapMB = this.#wasmBytes === null ? null : Math.round(this.#wasmBytes / 1048576);
+      const exhausted =
+        heapMB !== null && heapMB >= ENGINE_MEMORY_CEILING_MB - 16
+          ? `Blender ran out of memory: its heap reached ${heapMB} MB of the in-tab engine's ` +
+            `${ENGINE_MEMORY_CEILING_MB} MB, and this scene needs more. `
+          : '';
       const error = new Error(
-        `Blender worker failed: ${said || 'the worker script did not load'}${where}${last}`,
+        `${exhausted}Blender worker failed: ${said || 'the worker script did not load'}${where}${last}`,
       );
       // The page console is the editor's ledger (`installEditorConsoleReporting`
       // captures it, source-blind), and this package may import nothing of the

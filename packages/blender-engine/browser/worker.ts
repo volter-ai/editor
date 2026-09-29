@@ -704,6 +704,11 @@ function reportMemory(): void {
   if (bytes !== null) post({ op: 'memory', bytes });
 }
 
+// A BLENDER THREAD THAT DIES IS WEIGHED FIRST: its error reaches this scope before the page's
+// `onerror`, so the heap it died at is posted ahead of the failure, and the page can say whether
+// the engine ran out of memory (`runtime.ts`) instead of "Uncaught [object Object]".
+self.addEventListener('error', reportMemory);
+
 self.onmessage = (event: MessageEvent<WorkerRequest>) => {
   const request = event.data;
   if (request.op === 'present-result') {
