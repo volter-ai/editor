@@ -20,7 +20,7 @@ import {
   godotTweenInterpolates,
   godotTypeDefault,
 } from '../data/lowering-shapes';
-import { godotBuiltinWidens } from '../data/operand-types';
+import { godotBuiltinWidens, godotLiteralPathText } from '../data/operand-types';
 import { godotCompatReturnType } from './native-types';
 import type {
   GodotBoundCallNode,
@@ -684,7 +684,8 @@ function tweenedProperty(
   const pathNode = argumentNodes[1];
   if (objectNode === undefined || pathNode === undefined) return context.refuse(node, 'tween_property without its object and property');
   const value = pathNode.kind === 'LITERAL' ? pathNode.value : undefined;
-  const property = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
+  // The path as a string, a StringName or a NodePath (`^"light_energy"`).
+  const property = value === undefined ? undefined : godotLiteralPathText(value);
   if (property === undefined) return context.refuse(node, 'tween_property of a property only known at run time');
   if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(property)) return context.refuse(node, `tween_property of the sub-property path ${property}`);
   const className =
@@ -3581,9 +3582,6 @@ export function lowerOfficialExpression(
         if (fn.restParameter >= 0) {
           return context.refuse(fn, 'lambda rest parameter needs a rest binding the lane does not lower');
         }
-        if (fn.returnType >= 0) {
-          return context.refuse(fn, 'typed lambda needs a target return type the lane does not lower');
-        }
         if (fn.abstract) {
           return context.refuse(fn, 'abstract lambda has no direct target representation');
         }
@@ -3612,7 +3610,10 @@ export function lowerOfficialExpression(
           }`,
         );
         const loweredParameters = parameters(context, fn);
-        const body = lowerSuite(context, context.node(fn.body, fn));
+        // A typed lambda's returns convert to its return type as a function's do; the arrow's own
+        // type is what they return.
+        const returnNode = fn.returnType < 0 ? undefined : context.node(fn.returnType, fn);
+        const body = context.withReturnType(returnNode, () => lowerSuite(context, context.node(fn.body, fn)));
         return expression(
           {
             kind: 'arrow-expression',
@@ -3716,6 +3717,20 @@ export function lowerOfficialExpression(
       case 'PRELOAD': {
         // `preload("res://x.tscn")` is the project scene's resource, made once per path
         // (`ResourceLoader::load`'s cache): the scene component the translation writes for it.
+        // `preload("res://x.ogg")`: the imported sound its path loads, from the module's record of
+        // the script's loads (`resourceTable`), as `load` of that path is.
+        if (context.resourceLoads.has(node.id)) {
+          const table = resourceTable(context);
+          return expression(
+            {
+              kind: 'element-expression',
+              object: { kind: 'identifier-expression', name: table.local },
+              index: { kind: 'literal-expression', value: node.resolvedPath },
+              span: span(context.script, node),
+            },
+            [...context.structural(node, 'preload', [], 'preload:resource'), ...table.requirements],
+          );
+        }
         const scene = context.packedScene?.(node.resolvedPath);
         if (scene === undefined) {
           // `preload("res://m.tres")`: the project resource, made once per path as the loader caches

@@ -32,3 +32,9 @@ export function godotMatchComparedAs(builtinType: string): string | undefined {
   if (builtinType === 'StringName') return 'String';
   return ['int', 'float', 'bool', 'String'].includes(builtinType) ? builtinType : undefined;
 }
+
+/** A literal's text when it is a string, a StringName or a NodePath (`^"path"`), as a property path names it. */
+export function godotLiteralPathText(value: { readonly kind: string; readonly value?: unknown; readonly type?: string; readonly text?: string }): string | undefined {
+  if ((value.kind === 'string' || value.kind === 'string-name') && typeof value.value === 'string') return value.value;
+  return value.kind === 'opaque' && value.type === 'NodePath' ? value.text : undefined;
+}

@@ -162,6 +162,33 @@ function inlineValue(context: LoweringContext, owner: GodotBoundNode, plan: Lowe
 }
 
 /**
+ * A field's initial value: its expression, or, where it needs statements of its own (a built-in
+ * read once for its member, `linear_velocity.length()`), those statements run as the field is
+ * initialized, in a function called there, which returns the value.
+ */
+function fieldValue(context: LoweringContext, plan: LoweredExpression): TargetTsExpression {
+  if (plan.before.length === 0 && plan.after.length === 0) return plan.value;
+  const value = context.temporary();
+  return {
+    kind: 'call-expression',
+    callee: {
+      kind: 'parenthesized-expression',
+      expression: {
+        kind: 'arrow-expression',
+        parameters: [],
+        body: [
+          ...plan.before,
+          { kind: 'variable-statement', declaration: 'const', name: value, initializer: plan.value },
+          ...plan.after,
+          { kind: 'return-statement', expression: { kind: 'identifier-expression', name: value } },
+        ],
+      },
+    },
+    arguments: [],
+  };
+}
+
+/**
  * `for i in n` over an int: `n` is evaluated once and `i` takes 0 … n-1
  * (`GDScriptCompiler::_parse_block` FOR over an int, the VM's `ITERATE_BEGIN_INT`).
  */
@@ -812,9 +839,7 @@ function lowerField(
         ...(node.kind === 'CONSTANT' ? ['static' as const, 'readonly' as const] : []),
         ...(node.kind === 'VARIABLE' && node.static ? ['static' as const] : []),
       ],
-      ...(fieldInitializer === undefined
-        ? {}
-        : { initializer: inlineValue(context, initializerNode ?? node, fieldInitializer) }),
+      ...(fieldInitializer === undefined ? {} : { initializer: fieldValue(context, fieldInitializer) }),
       span: officialBoundSpan(context.script, node),
     },
     requirements: [

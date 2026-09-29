@@ -15,6 +15,8 @@
  * exported member of a script class no code assigns (its default and every value a scene or
  * resource document gives a property of that name).
  *
+ * A `preload` of an imported sound is that sound's load, of its one path.
+ *
  * The load lowers to the resources those values name. A value naming an imported sound is that
  * sound; a value naming no project file is Godot's null; a value naming any other project file, or
  * a path whose values are not all followed, leaves the load unresolved (and lowering refuses it).
@@ -305,6 +307,15 @@ export function resourceLoads(inputs: ResourceLoadInputs): ReadonlyMap<string, r
   const loads = new Map<string, BoundGodotResourceLoad[]>();
   for (const program of inputs.programs) {
     for (const node of program.nodes) {
+      // `preload("res://x.ogg")`: the imported sound at that path, as its `load` would be.
+      if (node.kind === 'PRELOAD') {
+        const kind = inputs.importedSound(node.resolvedPath);
+        if (kind === undefined) continue;
+        const rows = loads.get(program.resPath) ?? [];
+        rows.push({ nodeId: node.id, branches: [{ value: node.resolvedPath, resPath: node.resolvedPath, kind }] });
+        loads.set(program.resPath, rows);
+        continue;
+      }
       if (node.kind !== 'CALL' || node.compilerTarget.member !== 'load' || node.compilerTarget.owner !== '@GDScript' || node.arguments.length !== 1) continue;
       const found = values(program, node.arguments[0] as number);
       if (found === undefined) continue;

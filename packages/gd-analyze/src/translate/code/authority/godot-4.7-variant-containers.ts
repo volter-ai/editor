@@ -108,7 +108,7 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
   // A loop variable typed as an object class over a list of objects: each element as that class.
   ...['NATIVE:*', 'CLASS:*', 'SCRIPT:*'].map((variable) => rule('FOR', 'for-of:conversion', ['BUILTIN:*', variable], '', { kind: 'structural', construct: 'for-of' })),
   // `value as Enum` of an int or an enum: the value itself, an enum being its int.
-  ...['BUILTIN:int', 'ENUM:*', 'VARIANT:*'].map((input) => rule('CAST', 'cast:enum', [input], 'ENUM:*', { kind: 'structural', construct: 'cast' })),
+  ...['BUILTIN:*', 'ENUM:*', 'VARIANT:*'].map((input) => rule('CAST', 'cast:enum', [input], 'ENUM:*', { kind: 'structural', construct: 'cast' })),
   // `await` of a value only the run time types: a Signal's next emission, a coroutine's result, or
   // the value itself (`OPCODE_AWAIT`, gdscript_vm.cpp:2563).
   rule('AWAIT', 'await', ['VARIANT:*'], '*', { kind: 'structural', construct: 'await' }),
