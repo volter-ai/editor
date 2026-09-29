@@ -77,6 +77,8 @@ export interface TargetGodotSceneNodePlan {
   readonly skyLights?: readonly { readonly nodePath: string; readonly name: string }[];
   /** For an imported model: the importer's tree over the model file, and this scene's edits in it. */
   readonly model?: TargetGodotImportedModelPlan;
+  /** For an instanced scene: this scene's edits of its nodes (editable children), in document order. */
+  readonly edits?: readonly TargetGodotSceneInstanceEdit[];
   /** A node this scene places under a node of an imported model: that instance and the path. */
   readonly portal?: { readonly instanceNodePath: string; readonly at: string };
   /** For an imported model: the nodes this scene places under its model's nodes. */
@@ -242,6 +244,19 @@ export interface TargetGodotSceneSetterPlan {
   readonly collect?: 'libraries' | 'parameters' | 'meta' | 'shader' | 'shader-parameter' | 'theme';
   /** On an imported model's own node: the part of the model's element it sets (`MODEL_OVERRIDE_SLOTS`). */
   readonly modelSlot?: GodotModelOverrideSlot;
+}
+
+/**
+ * An instancing scene's edit of a node of an instanced scene (`at`, its path under the instance's
+ * root, `.` the root), applied once the instance has made its own (`SceneState::instantiate` sets
+ * them on the instantiated nodes, packed_scene.cpp:397): its script removed (`script = null`), and
+ * its properties, each through the slot compat's instance edits set it by (`modelSlot`) or else its
+ * setter.
+ */
+export interface TargetGodotSceneInstanceEdit {
+  readonly at: string;
+  readonly scriptRemoved?: true;
+  readonly setters: readonly TargetGodotSceneSetterPlan[];
 }
 
 /** What an authored property of an imported model's own node sets on the model's element. */
@@ -749,14 +764,6 @@ function sameValue(copy: GodotValue | undefined, origin: GodotValue | undefined)
     }
   }
   return JSON.stringify(copy) === JSON.stringify(origin);
-}
-
-function sameProperties(
-  copy: Readonly<Record<string, GodotValue>>,
-  origin: Readonly<Record<string, GodotValue>>,
-): boolean {
-  const names = new Set([...Object.keys(copy), ...Object.keys(origin)]);
-  return [...names].every((name) => sameValue(copy[name], origin[name]));
 }
 
 const f32 = Math.fround;
@@ -2150,6 +2157,54 @@ function planImportedInstance(
   };
 }
 
+/** The slots compat's instance edits set a scene node's property by (`useGodotInstanceEdits`); the rest are setter calls. */
+const SCENE_EDIT_SLOTS = new Set<GodotModelOverrideSlot['kind']>(['material-override', 'surface-material', 'transform', 'cast-shadow', 'layers']);
+
+/**
+ * An instancing scene's edit of a node of an instanced scene (`path` under the instance's root):
+ * its script removed where it authors `script = null` over the instanced scene's, and each property
+ * it changes, by its slot (on an imported model's own geometry, its materials drawn as the
+ * model's) or else by its setter, which takes no resource. Undefined where nothing changes, null
+ * where it refuses.
+ */
+function instanceEdit(
+  context: PlanContext,
+  at: string,
+  path: string,
+  node: BoundGodotSceneNode,
+  origin: BoundGodotSceneNode,
+  properties: Readonly<Record<string, GodotValue>>,
+  inModel: boolean,
+): TargetGodotSceneInstanceEdit | undefined | null {
+  const removed = node.scriptResPath === undefined && origin.scriptResPath !== undefined;
+  if (node.scriptResPath !== origin.scriptResPath && !removed) {
+    refuse(context, at, 'a script replacing an instanced node\'s own is not planned', 'editable-children');
+    return null;
+  }
+  const changed = Object.entries(properties).filter(([name, value]) => name !== 'script' && !sameValue(value, origin.authoredProperties[name]));
+  if (!removed && changed.length === 0) return undefined;
+  if (!structure(context, at, 'scene-instance-edits')) return null;
+  const setters: TargetGodotSceneSetterPlan[] = [];
+  let ok = true;
+  for (const [propertyName, value] of changed) {
+    const setter = setterPlan(context, `${at}.${propertyName}`, node.class.nativeName, propertyName, value, '');
+    if (setter === undefined) {
+      ok = false;
+      continue;
+    }
+    const slot = MODEL_OVERRIDE_SLOTS[setter.setter.exportName];
+    const edit = inModel ? modelOverride(context, setter) : slot !== undefined && (SCENE_EDIT_SLOTS.has(slot.kind) || setter.setter.exportName === 'set_visible') ? { ...setter, modelSlot: slot } : setter;
+    if ((edit.modelSlot === undefined || edit.modelSlot.kind === 'player' || edit.modelSlot.kind === 'bone-pose') && (inModel || edit.value.kind === 'resource')) {
+      refuse(context, `${at}.${propertyName}`, `an edit of ${node.class.nativeName}.${propertyName} inside an instance is not planned`, 'editable-children', `${node.class.nativeName}.${propertyName}`);
+      ok = false;
+      continue;
+    }
+    setters.push(edit);
+  }
+  if (!ok) return null;
+  return { at: path, ...(removed ? { scriptRemoved: true as const } : {}), setters };
+}
+
 /**
  * The root of an instanced scene: that scene's generated component, the values this document
  * authors on it beyond the instanced root's own as its props (Godot applies them over the
@@ -2186,11 +2241,14 @@ function planInstanceRoot(
   delete overrides['editor_description'];
   if (Object.keys(overrides).length > 0 && !structure(context, at, 'instance-root-override')) ok = false;
   // A script on an instance whose root has none attaches to the component's root (its ref); one
-  // replacing the root's own script is not planned.
-  if (node.scriptResPath !== origin.scriptResPath && origin.scriptResPath !== undefined) {
+  // replacing the root's own script is not planned, and `script = null` removes it (an edit).
+  const scriptRemoved = node.scriptResPath === undefined && origin.scriptResPath !== undefined;
+  delete overrides['script'];
+  if (node.scriptResPath !== origin.scriptResPath && origin.scriptResPath !== undefined && !scriptRemoved) {
     refuse(context, at, 'an instance root with its own script is not planned', 'structure');
     ok = false;
   }
+  if (scriptRemoved && !structure(context, at, 'scene-instance-edits')) ok = false;
   // Groups authored on the instance join its scene root's (`SceneState::instantiate` adds them to
   // the instantiated root, packed_scene.cpp:511).
   const groups = groupsOf(context, { ...node, groups: node.groups.filter((group) => !origin.groups.includes(group)) });
@@ -2216,6 +2274,8 @@ function planInstanceRoot(
     properties,
     groups: groups ?? [],
     ...(unique ? { unique: true as const } : {}),
+    // The edits this document makes inside it, the root's script removed first (`planScene` adds the rest).
+    edits: scriptRemoved ? [{ at: '.', scriptRemoved: true, setters: [] }] : [],
     classes: [],
     setters,
     children: [],
@@ -2366,13 +2426,19 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
               .get(node.inheritedNode.documentPath)
               ?.nodes.find((candidate) => candidate.nodePath === node.inheritedNode?.nodePath);
       if (origin !== undefined) {
-        const changed =
-          !sameProperties(node.authoredProperties, origin.authoredProperties) ||
-          JSON.stringify(node.groups) !== JSON.stringify(origin.groups) ||
-          node.scriptResPath !== origin.scriptResPath;
-        if (changed) {
-          refuse(context, at, `an override inside instanced ${instanced.resPath} is not planned`, 'editable-children');
+        if (JSON.stringify(node.groups) !== JSON.stringify(origin.groups)) {
+          refuse(context, at, `groups added inside instanced ${instanced.resPath} are not planned`, 'editable-children');
           refused = true;
+          continue;
+        }
+        // An edit of the instanced scene's node, which its instance applies (an imported model's
+        // own node, in a scene the instanced one instances, draws its materials as the model's).
+        const inModel = context.scenes.get(node.inheritedNode?.documentPath ?? '')?.sourceKind === 'imported-gltf';
+        const edit = instanceEdit(context, at, relativeTo(node.nodePath, enclosing), node, origin, node.authoredProperties, inModel);
+        if (edit === null) refused = true;
+        else if (edit !== undefined) {
+          const root = planned.find((entry) => entry.nodePath === enclosing);
+          (root?.edits as TargetGodotSceneInstanceEdit[] | undefined)?.push(edit);
         }
         continue;
       }

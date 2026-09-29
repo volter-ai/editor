@@ -93,6 +93,12 @@ export interface ParticleProcess {
    * as the camera does, 2 its Y along its velocity, 3 both, its Y along its velocity on the screen.
    */
   transform_align?: number;
+  /**
+   * Which of a particle's custom values turns it about the view when it faces the view
+   * (`transform_align_channel_filter`, 4.7's `particles_copy.glsl`): 0 none, 1 its angle, 2 its life
+   * fraction, 3 and 4 its custom z and w.
+   */
+  transform_align_channel_filter?: number;
 }
 
 interface Particle {
@@ -402,7 +408,12 @@ function draw(node: Object3D, e: Emitter, p: ParticleProcess): void {
     } else if ((p.particle_flags[FLAG_ALIGN_Y_TO_VELOCITY] === true || align === 2) && particle.velocity.lengthSq() > 0) {
       rotation.setFromUnitVectors(UP, heading.copy(particle.velocity).normalize());
     } else rotation.identity();
-    rotation.multiply(spin.setFromAxisAngle(Z, particle.angle));
+    if (viewing && align === 1) {
+      // Its up turned about the view by the filtered custom value; GLSL's column-major `mat3` turns
+      // it the other way.
+      const channel = [0, particle.angle, t, 0, 1][p.transform_align_channel_filter ?? 0] ?? 0;
+      rotation.multiply(spin.setFromAxisAngle(Z, -channel));
+    } else rotation.multiply(spin.setFromAxisAngle(Z, particle.angle));
     matrix.compose(particle.position, rotation, size.setScalar(scale));
     if (!e.local_coords) matrix.premultiply(inverseWorld);
     drawn.setMatrixAt(i, matrix);

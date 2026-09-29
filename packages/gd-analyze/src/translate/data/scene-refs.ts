@@ -28,6 +28,8 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
   let unique = false;
   const walk = (node: DirectGodotSceneNodePlan): void => {
     if (node.scriptInstance !== undefined) targets.add(node.nodePath);
+    // An instance this scene edits inside (`useGodotInstanceEdits` finds the edited nodes from it).
+    if ((node.edits ?? []).length > 0) targets.add(node.nodePath);
     if (node.unique === true) unique = true;
     for (const light of node.skyLights ?? []) targets.add(light.nodePath);
     // An instance whose root script's node fields this scene hands (`useGodotNodeReferences`).

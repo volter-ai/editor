@@ -186,6 +186,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     ...NODE_ELEMENT,
     'set_emitting',
     'set_transform_align',
+    'set_transform_align_channel_filter',
     'set_amount',
     'set_lifetime',
     'set_one_shot',

@@ -39,7 +39,7 @@ import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber'
 import { BallCollider, CapsuleCollider, ConvexHullCollider, CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody, TrimeshCollider } from '@react-three/rapier';
 import { createContext, createElement, Fragment, type ReactElement, type ReactNode, type Ref, type RefObject, use, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type BufferGeometry, Group, type Material, Matrix4, type Mesh, type Object3D, Quaternion as ThreeQuaternion, Texture, Vector3 as ThreeVector3 } from 'three';
-import { get_collision_layer, get_collision_mask, godot_collision_object_stand_in, set_collision_layer, set_collision_mask } from './collision-object-3d';
+import { get_collision_layer, get_collision_mask, godot_collision_object_node, godot_collision_object_stand_in, set_collision_layer, set_collision_mask } from './collision-object-3d';
 import { set_freeze_enabled, set_sleeping } from './rigid-body-3d';
 import { type GLTF, GLTFLoader, type GLTFLoaderPlugin } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
@@ -47,7 +47,8 @@ import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, g
 import { godot_animation_mixer_set_library } from './animation-mixer';
 import { godot_animation_player_apply_reset, godot_animation_player_mount, godot_animation_player_set_prop } from './animation-player';
 import { godot_base_material_3d_model_geometry, godot_base_material_3d_model_map } from './base-material-3d';
-import { godot_node_adopt, godot_node_foreign } from './node';
+import { get_children, get_node_or_null, godot_node_adopt, godot_node_entity, godot_node_foreign } from './node';
+import { godot_node_remove_script } from './react-lifecycle';
 import { set_transform, set_visible } from './node-3d';
 import { construct as quaternion } from './quaternion';
 import { construct as transform3d } from './transform-3d';
@@ -238,6 +239,43 @@ function applyOverride(entity: Object3D, property: string, value: unknown, adopt
   if (bone[2] === 'rotation') set_bone_pose_rotation(entity, index, quaternion(...(components as [number, number, number, number])));
   else if (bone[2] === 'position') set_bone_pose_position(entity, index, vector3(...(components as [number, number, number])));
   else set_bone_pose_scale(entity, index, vector3(...(components as [number, number, number])));
+}
+
+/** An instancing scene's edit of one node of an instance (`useGodotInstanceEdits`). */
+export interface GodotInstanceEdit {
+  /** `script = null`: the script the instanced scene attached is taken off. */
+  readonly script?: null;
+  /** Properties by their Godot names, set as an imported model's are (`applyOverride`). */
+  readonly properties?: Readonly<Record<string, unknown>>;
+  /** The node's other setters, called on it. */
+  readonly set?: (node: Object3D) => void;
+}
+
+/**
+ * An instancing scene's edits inside an instance (editable children), by each node's path under the
+ * instance's root: applied once the instance has made its own nodes, scripts and connections (its
+ * component is a child, whose effects run first) and before the tree is entered, as Godot sets them
+ * on the instantiated nodes (`SceneState::instantiate`, packed_scene.cpp:397).
+ *
+ * @godot PackedScene (protocol)
+ * @source scene/resources/packed_scene.cpp:397
+ */
+export function useGodotInstanceEdits(instance: RefObject<object | null>, edits: Readonly<Record<string, GodotInstanceEdit>>): void {
+  const authored = useRef(edits);
+  useEffect(() => {
+    const held = instance.current;
+    const root = held === null ? null : (held as Object3D).isObject3D === true ? held : (godot_collision_object_node(held) ?? null);
+    if (root === null) throw new Error('godot-compat: the instance a scene edits was not mounted.');
+    for (const [at, edit] of Object.entries(authored.current)) {
+      const found = at === '.' ? root : get_node_or_null(root, at);
+      if (found === null || typeof found !== 'object') throw new Error(`godot-compat: the instance has no node ${at} to edit.`);
+      const node = godot_node_entity(found) as Object3D;
+      if (edit.script === null) godot_node_remove_script(node);
+      const nodes = new Set(get_children(node).map((child) => godot_node_entity(child as object) as Object3D));
+      for (const [property, value] of Object.entries(edit.properties ?? {})) applyOverride(node, property, value, nodes);
+      edit.set?.(node);
+    }
+  }, []);
 }
 
 /** A model body's properties the instancing scene sets, applied as its body mounts. */

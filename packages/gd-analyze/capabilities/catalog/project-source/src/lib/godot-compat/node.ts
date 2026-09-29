@@ -337,6 +337,21 @@ export function godot_node_adopt(
   return objectOf(entity);
 }
 
+/**
+ * The node's script taken off before it enters the tree (an instancing scene's `script = null`):
+ * its callbacks and virtuals are gone, and the node is its own Godot object again.
+ *
+ * @godot Node (protocol)
+ * @source core/object/object.cpp:1070
+ */
+export function godot_node_release_script(entity: object): void {
+  const state = stateOf(entity);
+  const owner = state.binding?.owner;
+  if (owner !== undefined && owner !== entity) NATIVE_OF_OWNER.delete(owner);
+  state.binding = undefined;
+  state.methods = {};
+}
+
 /** The object a type test reads, or null; a freed object is an error, as in Godot. */
 function testedObject(value: unknown, test: string): object | null {
   if ((typeof value !== 'object' || value === null) && typeof value !== 'function') return null;

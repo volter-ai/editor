@@ -42,6 +42,11 @@ export const GODOT_4_7_IMPORTED_STRUCTURE_RULES: readonly (GodotSceneStructureRu
     id: 'imported-scene-edits',
     source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (editable children)', line: 540 },
   },
+  {
+    sourceRevision: REVISION,
+    id: 'scene-instance-edits',
+    source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (editable children)', line: 397 },
+  },
 ];
 
 export const GODOT_4_7_RENDER_STRUCTURE_RULES: readonly (GodotSceneStructureRule & { readonly source: Source })[] = [

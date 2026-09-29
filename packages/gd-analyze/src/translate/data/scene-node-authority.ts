@@ -59,6 +59,8 @@ export type GodotSceneStructureRuleId =
   | 'imported-scene'
   /** Overrides of an imported model's nodes, and nodes placed under them. */
   | 'imported-scene-edits'
+  /** Overrides of an instanced scene's nodes (editable children), and a script removed from one. */
+  | 'scene-instance-edits'
   /** A scene written as idiomatic React Three Fiber (the owner's ruling, GODOT.md). */
   | 'idiomatic-scene';
 

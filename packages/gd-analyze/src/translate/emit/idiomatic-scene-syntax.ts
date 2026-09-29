@@ -604,7 +604,64 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   if (connected.length > 0) overrides.push(attribute('connections', connected[0] as TargetTsExpression));
   const children = node.children.map((child) => nodeElement(emission, child));
   const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, rootIdiom?.three ?? 'Group');
+  if ((node.edits ?? []).length > 0) instanceEditsHook(emission, node);
   return element(local, [name, ...ref, ...transform, ...overrides], children);
+}
+
+/**
+ * This scene's edits inside an instance (`edits`), which compat applies once the instance made its
+ * own: `useGodotInstanceEdits(grenade, { ".": { script: null }, Shell: { properties: { material_override: shell } } })`.
+ * A property with a slot is set by its Godot name as an imported model's is; the rest by its setter.
+ */
+function instanceEditsHook(emission: Emission, node: DirectGodotSceneNodePlan): void {
+  const refName = refLocal(emission, node.nodePath, node.name);
+  const edits: TargetTsObjectProperty[] = (node.edits ?? []).map((edit) => {
+    const slot = (setter: TargetGodotSceneSetterPlan) => setter.modelSlot?.kind;
+    const properties: TargetTsObjectProperty[] = [
+      ...familyModelMaterialOverride(emission.family, edit.setters.find((setter) => slot(setter) === 'material-override')),
+      ...familyMaterialOverride(emission.family, edit.setters.filter((setter) => slot(setter) === 'surface-material')),
+      ...edit.setters.flatMap((setter) => {
+        const kind = slot(setter);
+        if (kind === 'transform' || kind === 'layers') return [{ key: kind, value: dataExpression(plainValue(setter.value)) }];
+        if (kind === 'cast-shadow') return [{ key: 'cast_shadow', value: dataExpression(plainValue(setter.value)) }];
+        if (kind === 'node') return [{ key: setter.propertyName, value: dataExpression(plainValue(setter.value)) }];
+        return [];
+      }),
+    ];
+    const calls: TargetTsStatement[] = edit.setters
+      .filter((setter) => setter.modelSlot === undefined)
+      .map((setter) => ({
+        kind: 'expression-statement' as const,
+        expression: {
+          kind: 'call-expression' as const,
+          callee: { kind: 'identifier-expression' as const, name: familyUseCompat(emission.family, setter.setter.module, setter.setter.exportName, setter.setter.localName) },
+          arguments: [
+            { kind: 'identifier-expression' as const, name: 'node' },
+            ...(setter.index === undefined ? [] : [literal(setter.index)]),
+            variantValue(emission.family, setter.value),
+          ],
+        },
+      }));
+    return {
+      key: edit.at,
+      value: {
+        kind: 'object-expression',
+        properties: [
+          ...(edit.scriptRemoved === true ? [{ key: 'script', value: literal(null) }] : []),
+          ...(properties.length === 0 ? [] : [{ key: 'properties', value: { kind: 'object-expression' as const, properties } }]),
+          ...(calls.length === 0 ? [] : [{ key: 'set', value: { kind: 'arrow-expression' as const, parameters: [{ name: 'node' }], body: calls } }]),
+        ],
+      },
+    };
+  });
+  emission.hooks.push({
+    kind: 'expression-statement',
+    expression: {
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: useCompat(emission, 'packed-scene', 'useGodotInstanceEdits') },
+      arguments: [{ kind: 'identifier-expression', name: refName }, { kind: 'object-expression', properties: edits }],
+    },
+  });
 }
 
 /** The URL the project serves an imported model's file at (its copied asset). */
