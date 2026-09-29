@@ -177,6 +177,31 @@ export function godotTweenInterpolates(apiType: string): boolean {
   return TWEENED_TYPES.has(apiType);
 }
 
+/**
+ * The input event records (`input-event.ts`, their `type`) each input event class is: `event is
+ * InputEventMouse` lowers to a test of the record's `type` (`InputEvent`'s class hierarchy,
+ * `core/input/input_event.h`).
+ */
+const INPUT_EVENT_RECORD_TYPES: Readonly<Record<string, readonly string[]>> = {
+  InputEvent: ['key', 'mouse_button', 'mouse_motion', 'joypad_button', 'joypad_motion', 'screen_touch', 'screen_drag', 'action'],
+  InputEventFromWindow: ['key', 'mouse_button', 'mouse_motion', 'screen_touch', 'screen_drag'],
+  InputEventWithModifiers: ['key', 'mouse_button', 'mouse_motion'],
+  InputEventKey: ['key'],
+  InputEventMouse: ['mouse_button', 'mouse_motion'],
+  InputEventMouseButton: ['mouse_button'],
+  InputEventMouseMotion: ['mouse_motion'],
+  InputEventJoypadButton: ['joypad_button'],
+  InputEventJoypadMotion: ['joypad_motion'],
+  InputEventScreenTouch: ['screen_touch'],
+  InputEventScreenDrag: ['screen_drag'],
+  InputEventAction: ['action'],
+};
+
+/** The input event records an input event class is, or undefined for a class that is none. */
+export function godotInputEventRecordTypes(className: string): readonly string[] | undefined {
+  return INPUT_EVENT_RECORD_TYPES[className];
+}
+
 /** The float components a sub-property path names on a value of this API type (`position:y`), by name. */
 const COMPONENTS: Readonly<Record<string, readonly string[]>> = {
   Vector2: ['x', 'y'],

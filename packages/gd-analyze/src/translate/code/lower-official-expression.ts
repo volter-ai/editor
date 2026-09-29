@@ -19,6 +19,7 @@ import {
   godotTruthShape,
   godotTweenInterpolates,
   godotComponentNames,
+  godotInputEventRecordTypes,
   godotTypeDefault,
 } from '../data/lowering-shapes';
 import { godotBuiltinWidens, godotLiteralPathText } from '../data/operand-types';
@@ -3777,6 +3778,29 @@ export function lowerOfficialExpression(
         // `value is T` on an object type (`OPCODE_TYPE_TEST_NATIVE` / `_SCRIPT`), through the Node
         // protocol: the class the scene recorded for its entity, or its script instance's class.
         const operandNode = context.node(node.operand, node);
+        // An input event tested for an input event class: the event record's own `type`.
+        const operandTypes = operandNode.datatype.kind === 'NATIVE' && !operandNode.datatype.metaType ? godotInputEventRecordTypes(operandNode.datatype.nativeType) : undefined;
+        const testedTypes = node.testDatatype.kind === 'NATIVE' ? godotInputEventRecordTypes(node.testDatatype.nativeType) : undefined;
+        if (operandTypes !== undefined && testedTypes !== undefined && !nullableObject(context, operandNode)) {
+          const requirements = context.structural(node, 'type-test', [operandNode], 'type-test:native');
+          const kept = testedTypes.filter((type) => operandTypes.includes(type));
+          return compose(
+            context,
+            [lowerExpression(context, operandNode)],
+            ([value]) => {
+              const type: TargetTsExpression = { kind: 'property-expression', object: value as TargetTsExpression, property: 'type' };
+              if (kept.length === operandTypes.length) return { kind: 'literal-expression', value: true, span: span(context.script, node) };
+              if (kept.length === 1) return { kind: 'binary-expression', operator: '===', left: type, right: { kind: 'literal-expression', value: kept[0] as string }, span: span(context.script, node) };
+              return {
+                kind: 'call-expression',
+                callee: { kind: 'property-expression', object: { kind: 'array-expression', elements: kept.map((entry) => ({ kind: 'literal-expression' as const, value: entry })) }, property: 'includes' },
+                arguments: [type],
+                span: span(context.script, node),
+              };
+            },
+            requirements,
+          );
+        }
         const test = objectTypeTest(context, node, node.testDatatype, 'is');
         const requirements = context.structural(node, 'type-test', [operandNode], `type-test:${test.kind}`);
         return compose(
