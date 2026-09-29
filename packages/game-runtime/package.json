@@ -2,7 +2,7 @@
   "name": "@volter/game-runtime",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.111",
+  "version": "0.5.112",
   "publishConfig": {
     "access": "public"
   },
