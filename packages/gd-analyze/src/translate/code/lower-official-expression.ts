@@ -3451,10 +3451,14 @@ export function lowerOfficialExpression(
         if (fn.abstract) {
           return context.refuse(fn, 'abstract lambda has no direct target representation');
         }
-        if (node.captures.length > 0 || node.useSelf) {
+        // A lambda captures its outer locals by value when it is created (`GDScriptLambdaCallable`,
+        // `modules/gdscript/gdscript_lambda_callable.cpp:39`); an arrow function captures the
+        // binding, which reads the same while no captured local is ever assigned again. `self` is
+        // the arrow's own `this`.
+        if (reassignedCapture(context, node) !== undefined) {
           return context.refuse(
             node,
-            'captured lambda needs a by-value capture the lane does not lower',
+            `captured lambda needs a by-value capture of '${String(reassignedCapture(context, node))}', which is assigned again`,
           );
         }
         const requirements = context.structural(
@@ -3605,4 +3609,24 @@ export function lowerOfficialExpression(
         return context.refuse(node, `${node.kind} is not an expression lowering`);
     }
   }
+}
+
+/** The name of a local a lambda captures that the script assigns anywhere after declaring it. */
+function reassignedCapture(context: LoweringContext, lambda: Extract<GodotBoundNode, { kind: 'LAMBDA' }>): string | undefined {
+  const names = new Set<string>();
+  for (const id of lambda.captures) {
+    const captured = context.script.nodes[id];
+    if (captured?.kind === 'IDENTIFIER') names.add(captured.name);
+    else if (captured !== undefined && 'identifier' in captured) {
+      const identifier = context.script.nodes[captured.identifier as number];
+      if (identifier?.kind === 'IDENTIFIER') names.add(identifier.name);
+    }
+  }
+  if (names.size === 0) return undefined;
+  for (const candidate of context.script.nodes) {
+    if (candidate?.kind !== 'ASSIGNMENT') continue;
+    const assignee = context.script.nodes[candidate.assignee];
+    if (assignee?.kind === 'IDENTIFIER' && assignee.source !== 'MEMBER_VARIABLE' && names.has(assignee.name)) return assignee.name;
+  }
+  return undefined;
 }

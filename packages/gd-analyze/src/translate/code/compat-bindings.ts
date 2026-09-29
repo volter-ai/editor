@@ -124,7 +124,8 @@ export function godotCompatBindings(
       else if (member.startsWith('OP_')) {
         const offered = new Set((builtin.operators ?? []).filter((operator) => operator.name === operatorName(member)).map((operator) => operator.right_type ?? ''));
         if (entry.rightTypes.length === 0 && offered.has('')) bind('builtin-operator', 'unary', { kind: 'call', sourceReceiver: 'absent' });
-        for (const right of new Set(entry.rightTypes.flatMap(godotOperandTypes))) {
+        // An `unknown` right operand takes whatever the operator is offered with (`String %`).
+        for (const right of new Set(entry.rightTypes.flatMap((type) => (type === 'unknown' ? [...offered] : godotOperandTypes(type))))) {
           if (offered.has(right)) bind('builtin-operator', `right:${right}`, { kind: 'call', sourceReceiver: 'absent' });
         }
       } else if (entry.isConst && builtin.constants?.some((constant) => constant.name === member)) {

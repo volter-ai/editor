@@ -6014,6 +6014,251 @@
         "kind": "object-equal",
         "negate": true
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:inferred:local|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:local|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "local-identifier:LOCAL_CONSTANT|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "BUILTIN:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "local-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:inferred:local|annotations:[]",
+        "inputDatatypes": [
+          "NATIVE:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:local|annotations:[]",
+        "inputDatatypes": [
+          "NATIVE:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "local-identifier:LOCAL_CONSTANT|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "local-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:inferred:local|annotations:[]",
+        "inputDatatypes": [
+          "ENUM:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:local|annotations:[]",
+        "inputDatatypes": [
+          "ENUM:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "local-identifier:LOCAL_CONSTANT|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "ENUM:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "local-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:inferred:local|annotations:[]",
+        "inputDatatypes": [
+          "CLASS:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:local|annotations:[]",
+        "inputDatatypes": [
+          "CLASS:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "local-identifier:LOCAL_CONSTANT|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "local-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:local|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "local-identifier:LOCAL_CONSTANT|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "VARIANT:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "local-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:local|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:local:conversion|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "BUILTIN:float"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:local:conversion|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
     }
   ],
   "datatypes": [
