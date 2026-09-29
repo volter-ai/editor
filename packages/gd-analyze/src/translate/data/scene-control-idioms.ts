@@ -62,6 +62,8 @@ export interface GodotControlAnimationsPlan {
 /** An element a Control draws inside itself, which is not a node. */
 export interface GodotControlPartPlan {
   readonly tag: string;
+  /** Its text (a RichTextLabel's run). */
+  readonly text?: string;
   readonly style: Readonly<Record<string, GodotControlStyleValue>>;
   readonly attributes: Readonly<Record<string, string | number | boolean>>;
   /** What compat finds it by, to change it (`data-part`). */
@@ -750,6 +752,53 @@ function content(
         },
       };
     }
+    case 'rich-text': {
+      // RichTextLabel: its BBCode as runs of styled text (`RichTextLabel::append_text`), each a span;
+      // a tag it does not know has no HTML form and refuses by name.
+      textStyle(stated, resources, THEME.labelColor, style);
+      const size = override(stated, 'font_sizes', 'normal_font_size');
+      if (size?.kind === 'number') style['fontSize'] = px(size.value);
+      const font = override(stated, 'fonts', 'normal_font');
+      if (font?.kind === 'resource') style['fontFamily'] = { fontFamily: font.key };
+      alignedText(stated, style, 0);
+      style['whiteSpace'] = 'pre-wrap';
+      stated.bool('fit_content', false);
+      stated.bool('scroll_active', true);
+      const text = stated.string('text') ?? '';
+      if (!stated.bool('bbcode_enabled', false)) return { text };
+      return { parts: bbcodeRuns(text) };
+    }
+    case 'nine-patch': {
+      // NinePatchRect: its texture sliced at its patch margins, the corners kept, the edges and
+      // centre stretched or tiled by its axis modes (`NinePatchRect::_notification`): CSS's border
+      // image over a border as wide as the margins.
+      const texture = stated.resource('texture');
+      const drawn = texture === undefined ? undefined : textureImage(resources, texture);
+      const margins = SIDES.map((side) => stated.number(`patch_margin_${side}`, 0));
+      const region = stated.components('region_rect');
+      if (region !== undefined && region.some((value) => value !== 0) && (drawn?.size === undefined || region[0] !== 0 || region[1] !== 0 || region[2] !== drawn.size[0] || region[3] !== drawn.size[1])) {
+        throw new Error('a NinePatchRect region other than its whole texture has no CSS form');
+      }
+      const repeat = (mode: number) => (mode === 1 ? 'repeat' : mode === 2 ? 'round' : 'stretch');
+      const [left = 0, top = 0, right = 0, bottom = 0] = margins;
+      // `clip_children`: its drawing masks its children (`CLIP_CHILDREN_ONLY` drawing nothing
+      // itself, `CLIP_CHILDREN_AND_DRAW` both), the same slices as the element's mask box image.
+      const clip = stated.number('clip_children', 0);
+      const slices = `${String(top)} ${String(right)} ${String(bottom)} ${String(left)}`;
+      const repeats = `${repeat(stated.number('axis_stretch_horizontal', 0))} ${repeat(stated.number('axis_stretch_vertical', 0))}`;
+      if (drawn !== undefined && clip !== 1) {
+        style['borderStyle'] = 'solid';
+        style['borderWidth'] = `${px(top)} ${px(right)} ${px(bottom)} ${px(left)}`;
+        style['borderImageSource'] = drawn.image;
+        style['borderImageSlice'] = `${slices}${stated.bool('draw_center', true) ? ' fill' : ''}`;
+        style['borderImageRepeat'] = repeats;
+        style['boxSizing'] = 'border-box';
+      }
+      if (drawn !== undefined && clip !== 0) {
+        style['WebkitMaskBoxImage'] = `${drawn.image} ${slices} fill / ${px(top)} ${px(right)} ${px(bottom)} ${px(left)} ${repeats}`;
+      }
+      return {};
+    }
     case 'color': {
       // ColorRect: its colour filling its box.
       style['background'] = css(stated.components('color') ?? [1, 1, 1, 1]);
@@ -823,6 +872,44 @@ function animationsPlan(stated: Stated, resources: ReadonlyMap<string, TargetGod
   stated.number('playback_default_blend_time', 0);
   stated.number('speed_scale', 1);
   return { root, ...(autoplay === undefined || autoplay === '' ? {} : { autoplay }), animations };
+}
+
+/** BBCode tags as the CSS a run inside them takes. */
+const BBCODE: Readonly<Record<string, (value: string) => Readonly<Record<string, string>>>> = {
+  b: () => ({ fontWeight: 'bold' }),
+  i: () => ({ fontStyle: 'italic' }),
+  u: () => ({ textDecoration: 'underline' }),
+  s: () => ({ textDecoration: 'line-through' }),
+  color: (value) => ({ color: value }),
+  font_size: (value) => ({ fontSize: `${value}px` }),
+};
+
+/**
+ * BBCode text as runs of text, each styled by the tags open around it (`RichTextLabel::append_text`,
+ * `rich_text_label.cpp:5586`).
+ */
+function bbcodeRuns(text: string): GodotControlPartPlan[] {
+  const runs: GodotControlPartPlan[] = [];
+  const open: { readonly tag: string; readonly style: Readonly<Record<string, string>> }[] = [];
+  const pattern = /\[(\/?)([a-z_]+)(?:=([^\]]*))?\]/gu;
+  let at = 0;
+  const push = (end: number) => {
+    const run = text.slice(at, end);
+    if (run !== '') runs.push({ tag: 'span', text: run, style: Object.assign({}, ...open.map((entry) => entry.style)), attributes: {} });
+  };
+  for (const match of text.matchAll(pattern)) {
+    const [whole, closing, tag = '', value = ''] = match;
+    const style = BBCODE[tag];
+    if (style === undefined) throw new Error(`a RichTextLabel's [${tag}] has no HTML form`);
+    push(match.index);
+    at = match.index + whole.length;
+    if (closing === '/') {
+      const last = open.map((entry) => entry.tag).lastIndexOf(tag);
+      if (last >= 0) open.splice(last, 1);
+    } else open.push({ tag, style: style(value) });
+  }
+  push(text.length);
+  return runs;
 }
 
 /** A container's own layout of its children, and the stylebox a panel draws behind them. */

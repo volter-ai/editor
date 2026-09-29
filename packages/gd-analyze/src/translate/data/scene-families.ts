@@ -118,6 +118,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   MarginContainer: CONTROL,
   CenterContainer: [...CONTROL, 'set_use_top_left'],
   GridContainer: [...CONTROL, 'set_columns'],
+  NinePatchRect: [...CONTROL, 'set_clip_children_mode', 'set_texture', 'set_region_rect', 'set_patch_margin:*', 'set_h_axis_stretch_mode', 'set_v_axis_stretch_mode', 'set_draw_center'],
+  RichTextLabel: [...CONTROL, 'set_text', 'set_use_bbcode', 'set_fit_content', 'set_scroll_active', 'set_autowrap_mode', 'set_horizontal_alignment', 'set_vertical_alignment'],
   Label: [...CONTROL, 'set_text', 'set_label_settings', 'set_horizontal_alignment', 'set_vertical_alignment', 'set_autowrap_mode'],
   TextureRect: [...CONTROL, 'set_texture', 'set_expand_mode', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
   Node2D: NODE_2D,

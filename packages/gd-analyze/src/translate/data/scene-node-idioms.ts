@@ -50,7 +50,7 @@ export type GodotSceneNodeIdiomForm =
       readonly module: string;
       readonly tag: 'div' | 'button' | 'label' | 'input';
       readonly layout: 'none' | 'row' | 'column' | 'stack' | 'center' | 'grid';
-      readonly content: 'none' | 'text' | 'button' | 'check' | 'range' | 'image' | 'texture-button' | 'progress' | 'separator' | 'touch' | 'color' | 'animations';
+      readonly content: 'none' | 'text' | 'rich-text' | 'nine-patch' | 'button' | 'check' | 'range' | 'image' | 'texture-button' | 'progress' | 'separator' | 'touch' | 'color' | 'animations';
       readonly mouseFilter: 0 | 1 | 2;
       readonly panel?: true;
       readonly node2d?: true;
@@ -277,6 +277,8 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   GridContainer: dom('control', 'div', 'grid', 'none', 1, ctor('GridContainer', 'scene/gui/grid_container.h', 35)),
   Label: dom('label', 'div', 'none', 'text', 2, ctor('Label', 'scene/gui/label.cpp', 1526)),
   TextureRect: dom('texture-rect', 'div', 'none', 'image', 1, ctor('TextureRect', 'scene/gui/texture_rect.cpp', 299)),
+  NinePatchRect: dom('control', 'div', 'none', 'nine-patch', 2, ctor('NinePatchRect', 'scene/gui/nine_patch_rect.cpp', 160)),
+  RichTextLabel: dom('control', 'div', 'none', 'rich-text', 0, ctor('RichTextLabel', 'scene/gui/rich_text_label.cpp', 7234)),
   Node2D: element('node-2d', 'Node2D', ctor('Node2D', 'scene/2d/node_2d.cpp', 519)),
   Sprite2D: element('sprite-2d', 'Sprite2D', ctor('Sprite2D', 'scene/2d/sprite_2d.cpp', 555)),
   TouchScreenButton: dom('canvas-item', 'div', 'none', 'touch', 0, ctor('TouchScreenButton', 'scene/2d/physics/touch_screen_button.cpp', 458), { node2d: true }),

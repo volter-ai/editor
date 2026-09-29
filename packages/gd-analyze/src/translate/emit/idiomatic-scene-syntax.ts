@@ -898,7 +898,12 @@ function domElement(emission: Emission, node: DirectGodotSceneNodePlan, at: stri
     [
       ...(dom.text === undefined || dom.text === '' ? [] : [{ kind: 'jsx-expression-child' as const, value: literal(dom.text) }]),
       ...(dom.parts ?? []).map((part) =>
-        element(part.tag, [...(part.part === undefined ? [] : [{ kind: 'jsx-string-attribute' as const, name: 'data-part', value: part.part }]), ...htmlAttributes(part.attributes), attribute('style', styleExpression(emission, part.style))]),
+        element(
+          part.tag,
+          [...(part.part === undefined ? [] : [{ kind: 'jsx-string-attribute' as const, name: 'data-part', value: part.part }]), ...htmlAttributes(part.attributes), attribute('style', styleExpression(emission, part.style))],
+          // A run's text (a RichTextLabel's).
+          part.text === undefined ? [] : [{ kind: 'jsx-expression-child' as const, value: literal(part.text) }],
+        ),
       ),
       ...childElements(emission, node),
     ],
