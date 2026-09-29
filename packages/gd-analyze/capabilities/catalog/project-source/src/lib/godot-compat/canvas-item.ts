@@ -19,10 +19,11 @@
 
 import type { Object3D } from 'three';
 import { type Color, construct as color } from './color';
+import { godot_input_mouse_position } from './input';
 import { get_viewport, godot_node_entity, is_inside_tree } from './node';
 import type { Rect2 } from './rect2';
 import { get_visible_rect } from './viewport';
-import { construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
+import { affine_inverse, construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
 import type { Vector2 } from './vector2';
 import type { GodotElementProp } from './react-lifecycle';
 
@@ -649,4 +650,24 @@ export function get_viewport_rect(self: object): Rect2 {
   const viewport = get_viewport(godot_node_entity(self));
   if (viewport === null) throw new Error('godot-compat: CanvasItem.get_viewport_rect outside the tree');
   return get_visible_rect(viewport);
+}
+
+/**
+ * The mouse's position in the item's own coordinates: the viewport's mouse position through the
+ * inverse of the item's transform with its canvas.
+ *
+ * @godot CanvasItem.get_local_mouse_position
+ * @source scene/main/canvas_item.cpp:1105
+ */
+export function get_local_mouse_position(self: object): Vector2 {
+  return op_multiply(affine_inverse(get_global_transform_with_canvas(self)), godot_input_mouse_position());
+}
+
+/**
+ * @godot CanvasItem.get_global_mouse_position
+ * @source scene/main/canvas_item.cpp:1096
+ */
+export function get_global_mouse_position(self: object): Vector2 {
+  void self;
+  return godot_input_mouse_position();
 }

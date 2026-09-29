@@ -25,6 +25,9 @@ export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule 
     ['ConcavePolygonShape3D', 'concave-polygon-shape-3d', 'scene/resources/3d/concave_polygon_shape_3d.cpp', 134],
     // A GridMap's `physics_material` is an element prop: the material made from what the scene states.
     ['PhysicsMaterial', 'physics-material', 'scene/resources/physics_material.h', 36, 'godot_physics_material_of'],
+    // A 2D shape a CollisionShape2D picks by (`collision-object-2d.ts`), made from what the scene states.
+    ['RectangleShape2D', 'rectangle-shape-2d', 'scene/resources/2d/rectangle_shape_2d.cpp', 131, 'godot_rectangle_shape_2d_new'],
+    ['CircleShape2D', 'circle-shape-2d', 'scene/resources/2d/circle_shape_2d.cpp', 99, 'godot_circle_shape_2d_new'],
   ] as const
 ).map(([className, module, file, line, exportName = 'construct']) => ({
   sourceRevision: REVISION,

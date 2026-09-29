@@ -19,6 +19,7 @@
 
 import { BasicShadowMap, type Object3D, PCFShadowMap, PCFSoftShadowMap, type ShadowMapType, type WebGLRenderer } from 'three';
 import { get_global_transform_with_canvas, godot_canvas_item_is } from './canvas-item';
+import { godot_collision_object_2d_pick } from './collision-object-2d';
 import { godot_control_call_gui_input, godot_control_find } from './control';
 import { godot_input_mouse_position, godot_input_set_dispatch } from './input';
 import type { InputEventRecord } from './input-event';
@@ -251,6 +252,8 @@ export function push_input(self: object, p_event: InputEventRecord, p_local_coor
   if (event.type === 'key' || event.type === 'joypad_button') callStage(viewport, state, 'shortcutInput', event);
   if (!state.handled && event.type === 'key') callStage(viewport, state, 'unhandledKeyInput', event);
   if (!state.handled) callStage(viewport, state, 'unhandledInput', event);
+  // Physics picking, of a mouse event nothing handled (`_process_picking`, `viewport.cpp:670`).
+  if (!state.handled) godot_collision_object_2d_pick(viewport, event);
 }
 
 /**

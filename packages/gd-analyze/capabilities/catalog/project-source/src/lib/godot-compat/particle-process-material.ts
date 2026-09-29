@@ -50,6 +50,11 @@ export interface ParticleProcessMaterial {
   emission_box_extents: Vector3;
   gravity: Vector3;
   lifetime_randomness: number;
+  emission_ring_axis: Vector3;
+  emission_ring_height: number;
+  emission_ring_radius: number;
+  emission_ring_inner_radius: number;
+  emission_ring_cone_angle: number;
 }
 
 /**
@@ -86,6 +91,11 @@ export function construct(): ParticleProcessMaterial {
     emission_box_extents: vector3(1, 1, 1),
     gravity: vector3(0, -9.8, 0),
     lifetime_randomness: 0,
+    emission_ring_axis: vector3(0, 0, 1),
+    emission_ring_height: 1,
+    emission_ring_radius: 1,
+    emission_ring_inner_radius: 0,
+    emission_ring_cone_angle: 90,
   };
 }
 
@@ -423,7 +433,52 @@ export function godot_particle_process_material_new(properties: Readonly<Record<
     else if (property === 'emissionBoxExtents') set_emission_box_extents(self, vector3(...(components(value) as [number, number, number])));
     else if (property === 'gravity') set_gravity(self, vector3(...(components(value) as [number, number, number])));
     else if (property === 'lifetimeRandomness') set_lifetime_randomness(self, value as number);
+    else if (property === 'emissionRingAxis') set_emission_ring_axis(self, vector3(...(components(value) as [number, number, number])));
+    else if (property === 'emissionRingHeight') set_emission_ring_height(self, value as number);
+    else if (property === 'emissionRingRadius') set_emission_ring_radius(self, value as number);
+    else if (property === 'emissionRingInnerRadius') set_emission_ring_inner_radius(self, value as number);
+    else if (property === 'emissionRingConeAngle') set_emission_ring_cone_angle(self, value as number);
     else throw new Error(`godot-compat: ParticleProcessMaterial has no ${property} property.`);
   }
   return self;
+}
+
+/**
+ * @godot ParticleProcessMaterial.set_emission_ring_axis
+ * @source scene/resources/particle_process_material.cpp:1640
+ */
+export function set_emission_ring_axis(self: ParticleProcessMaterial, axis: Vector3): void {
+  self.emission_ring_axis = axis;
+}
+
+/**
+ * @godot ParticleProcessMaterial.set_emission_ring_height
+ * @source scene/resources/particle_process_material.cpp:1646
+ */
+export function set_emission_ring_height(self: ParticleProcessMaterial, height: number): void {
+  self.emission_ring_height = height;
+}
+
+/**
+ * @godot ParticleProcessMaterial.set_emission_ring_radius
+ * @source scene/resources/particle_process_material.cpp:1652
+ */
+export function set_emission_ring_radius(self: ParticleProcessMaterial, radius: number): void {
+  self.emission_ring_radius = radius;
+}
+
+/**
+ * @godot ParticleProcessMaterial.set_emission_ring_inner_radius
+ * @source scene/resources/particle_process_material.cpp:1658
+ */
+export function set_emission_ring_inner_radius(self: ParticleProcessMaterial, radius: number): void {
+  self.emission_ring_inner_radius = radius;
+}
+
+/**
+ * @godot ParticleProcessMaterial.set_emission_ring_cone_angle
+ * @source scene/resources/particle_process_material.cpp:1664
+ */
+export function set_emission_ring_cone_angle(self: ParticleProcessMaterial, angle: number): void {
+  self.emission_ring_cone_angle = angle;
 }
