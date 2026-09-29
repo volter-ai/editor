@@ -18,7 +18,8 @@
 import type { Collider, RigidBody, World } from '@dimforge/rapier3d-compat';
 import RAPIER from '@dimforge/rapier3d-compat';
 import { type Object3D, Quaternion, Vector3 as ThreeVector3 } from 'three';
-import { godot_node_entity } from './node';
+import { godot_node_entity, godot_node_tree_signal } from './node';
+import { godot_shape_3d_collider } from './shape-3d';
 import { godot_node_3d_observe_local } from './node-3d';
 
 export type CollisionObjectKind = 'static' | 'character' | 'rigid' | 'area';
@@ -55,6 +56,89 @@ export function godot_physics_world(): World | undefined {
   return context?.world;
 }
 
+// --- Bodies a script builds (`StaticBody3D.new()`), which no `<RigidBody>` renders: made with
+// Rapier's own API as they enter the tree and removed as they leave it.
+
+/** A code-built body's Rapier body, and each code-built shape's collider, by node. */
+const CODE_BODIES = new WeakMap<object, RigidBody>();
+const CODE_COLLIDERS = new WeakMap<object, Collider>();
+/** Each code-built shape's shape, read when its collider is made. */
+const CODE_SHAPES = new WeakMap<object, () => object | null>();
+
+const scratchPosition = new ThreeVector3();
+const scratchRotation = new Quaternion();
+const scratchScale = new ThreeVector3();
+
+/** Makes a collider for a code-built shape under a code-built body, at the shape's local transform. */
+function buildCollider(body: RigidBody, bodyEntity: object, shapeEntity: object): void {
+  const world = context?.world;
+  const shape = CODE_SHAPES.get(shapeEntity)?.();
+  if (world === undefined || shape === null || shape === undefined || CODE_COLLIDERS.has(shapeEntity)) return;
+  const desc = godot_shape_3d_collider(shape).desc;
+  if (desc === null) return;
+  const object = shapeEntity as Object3D;
+  desc.setTranslation(object.position.x, object.position.y, object.position.z);
+  desc.setRotation({ x: object.quaternion.x, y: object.quaternion.y, z: object.quaternion.z, w: object.quaternion.w });
+  const collider = world.createCollider(desc, body);
+  CODE_COLLIDERS.set(shapeEntity, collider);
+  applyGroups(bodyEntity);
+}
+
+/**
+ * Makes a script-built collision object a Rapier body of `type` while it is in the tree, at its
+ * global transform, with a collider for each script-built shape under it (`_update_in_shape_owner`).
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source scene/3d/physics/collision_object_3d.cpp:96
+ */
+export function godot_collision_object_code_body(entity: object, type: 'fixed' | 'kinematic'): void {
+  let release: (() => void) | undefined;
+  godot_node_tree_signal(entity, 'tree_entered').connect(() => {
+    const world = context?.world;
+    if (world === undefined || CODE_BODIES.has(entity)) return;
+    const object = entity as Object3D;
+    object.updateWorldMatrix(true, false);
+    object.matrixWorld.decompose(scratchPosition, scratchRotation, scratchScale);
+    const desc = (type === 'fixed' ? RAPIER.RigidBodyDesc.fixed() : RAPIER.RigidBodyDesc.kinematicPositionBased())
+      .setTranslation(scratchPosition.x, scratchPosition.y, scratchPosition.z)
+      .setRotation({ x: scratchRotation.x, y: scratchRotation.y, z: scratchRotation.z, w: scratchRotation.w });
+    const body = world.createRigidBody(desc);
+    CODE_BODIES.set(entity, body);
+    release = godot_collision_object_stand_in(body, entity);
+    for (const child of object.children) buildCollider(body, entity, child);
+  });
+  godot_node_tree_signal(entity, 'tree_exiting').connect(() => {
+    const body = CODE_BODIES.get(entity);
+    if (body === undefined) return;
+    for (const child of (entity as Object3D).children) CODE_COLLIDERS.delete(child);
+    CODE_BODIES.delete(entity);
+    release?.();
+    context?.world.removeRigidBody(body);
+  });
+}
+
+/**
+ * Makes a script-built CollisionShape3D give its parent's script-built body a collider of its shape
+ * while it is in the tree.
+ *
+ * @godot CollisionObject3D (protocol)
+ * @source scene/3d/physics/collision_shape_3d.cpp:46
+ */
+export function godot_collision_object_code_shape(entity: object, shape: () => object | null): void {
+  CODE_SHAPES.set(entity, shape);
+  godot_node_tree_signal(entity, 'tree_entered').connect(() => {
+    const parent = (entity as Object3D).parent;
+    const body = parent === null ? undefined : CODE_BODIES.get(parent);
+    if (parent !== null && body !== undefined) buildCollider(body, parent, entity);
+  });
+  godot_node_tree_signal(entity, 'tree_exiting').connect(() => {
+    const collider = CODE_COLLIDERS.get(entity);
+    if (collider === undefined) return;
+    CODE_COLLIDERS.delete(entity);
+    if (collider.isValid()) context?.world.removeCollider(collider, true);
+  });
+}
+
 /** A body standing for a node that is not its object (a GridMap's cells), by body handle. */
 const STAND_IN = new Map<number, object>();
 /** Each node's last known body handle. */
@@ -69,6 +153,8 @@ const HANDLE = new WeakMap<object, number>();
 export function godot_collision_object_body(object: object): RigidBody | undefined {
   if (context === undefined) return undefined;
   const entity = godot_node_entity(object);
+  const built = CODE_BODIES.get(entity);
+  if (built !== undefined) return built;
   const known = HANDLE.get(entity);
   if (known !== undefined) {
     const state = context.rigidBodyStates.get(known);
@@ -125,6 +211,8 @@ let indexed: { readonly states: GodotPhysicsContext['colliderStates']; readonly 
  */
 export function godot_collision_object_collider_of_node(entity: object): Collider | undefined {
   if (context === undefined) return undefined;
+  const built = CODE_COLLIDERS.get(entity);
+  if (built !== undefined) return built;
   const states = context.colliderStates;
   if (indexed?.states !== states || indexed.size !== states.size) {
     colliderOfNode = new WeakMap();

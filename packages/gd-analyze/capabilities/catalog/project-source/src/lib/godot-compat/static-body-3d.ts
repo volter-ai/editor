@@ -8,9 +8,9 @@
  * the scene's own is its `userData`'s.
  */
 
-import type { Object3D } from 'three';
-import { godot_collision_object_colliders } from './collision-object-3d';
-import { godot_node_entity } from './node';
+import { Group, type Object3D } from 'three';
+import { godot_collision_object_code_body, godot_collision_object_colliders } from './collision-object-3d';
+import { godot_node_adopt, godot_node_entity } from './node';
 import { godot_physics_material_apply, godot_physics_material_of, type PhysicsMaterial } from './physics-material';
 
 const MATERIAL = new WeakMap<object, PhysicsMaterial | null>();
@@ -41,4 +41,18 @@ export function set_physics_material_override(self: object, physics_material_ove
  */
 export function get_physics_material_override(self: object): PhysicsMaterial | null {
   return materialOf(godot_node_entity(self));
+}
+
+/**
+ * A new StaticBody3D (`StaticBody3D.new()`): a fixed Rapier body while it is in the tree
+ * (`godot_collision_object_code_body`), as no `<RigidBody>` renders it.
+ *
+ * @godot StaticBody3D.StaticBody3D
+ * @source scene/3d/physics/static_body_3d.cpp:248
+ */
+export function construct(): Group {
+  const entity = new Group();
+  godot_node_adopt(entity, { kind: 'spatial', classes: ['StaticBody3D', 'PhysicsBody3D', 'CollisionObject3D', 'Node3D', 'Node', 'Object'] });
+  godot_collision_object_code_body(entity, 'fixed');
+  return entity;
 }
