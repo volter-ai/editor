@@ -77,6 +77,13 @@ const BODY_DATA: Readonly<Record<string, string>> = {
   set_collision_mask: 'collision_mask',
   set_ray_pickable: 'input_ray_pickable',
   set_mass: 'mass',
+  // A custom center of mass is kept for the getters; Rapier's is its colliders' (`colliderMasses`).
+  set_center_of_mass_mode: 'center_of_mass_mode',
+  set_center_of_mass: 'center_of_mass',
+  // A vehicle's forces as its scene starts them (`vehicle-body-3d.tsx` reads them).
+  set_engine_force: 'engine_force',
+  set_brake: 'brake',
+  set_steering: 'steering',
   set_linear_damp_mode: 'linear_damp_mode',
   set_angular_damp_mode: 'angular_damp_mode',
   set_lock_rotation_enabled: 'lock_rotation',
@@ -275,6 +282,43 @@ function bodyOverrides(
 export interface GodotSceneColliderPlan {
   readonly component: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'CylinderCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
   readonly args: { readonly kind: 'flat'; readonly values: readonly number[] } | { readonly kind: 'nested'; readonly values: readonly (readonly number[])[] };
+  /** The collider's share of a dynamic body's mass (`colliderMasses`); Rapier's density otherwise. */
+  readonly mass?: number;
+}
+
+/** The volume of a collider's bounding box, by which Godot shares a body's mass among its shapes. */
+function boundsVolume(collider: GodotSceneColliderPlan): number {
+  const values = collider.args.kind === 'flat' ? collider.args.values : (collider.args.values[0] ?? []);
+  const [a = 0, b = 0, c = 0] = values;
+  switch (collider.component) {
+    case 'CuboidCollider':
+      return 8 * a * b * c;
+    case 'BallCollider':
+      return (2 * a) ** 3;
+    case 'CapsuleCollider':
+      return (2 * b) ** 2 * (2 * a + 2 * b);
+    case 'CylinderCollider':
+      return (2 * b) ** 2 * 2 * a;
+    case 'ConvexHullCollider':
+    case 'TrimeshCollider': {
+      const extent = (axis: number) => {
+        const along = values.filter((_, index) => index % 3 === axis);
+        return along.length === 0 ? 0 : Math.max(...along) - Math.min(...along);
+      };
+      return extent(0) * extent(1) * extent(2);
+    }
+  }
+}
+
+/**
+ * A dynamic body's mass shared among its colliders as Godot shares it: each shape's by the volume
+ * of its bounding box (`GodotBody3D::update_mass_properties`, godot_body_3d.cpp:37, a shape's
+ * `area` its AABB's volume), so Rapier's body has Godot's mass; equally when every box is flat.
+ */
+function colliderMasses(colliders: readonly GodotSceneColliderPlan[], mass: number): readonly number[] {
+  const volumes = colliders.map(boundsVolume);
+  const total = volumes.reduce((sum, volume) => sum + volume, 0);
+  return volumes.map((volume) => (total === 0 ? mass / colliders.length : (mass * volume) / total));
 }
 
 const numberOf = (value: TargetGodotSceneValue | undefined): number | undefined => (value?.kind === 'number' ? value.value : undefined);
@@ -372,7 +416,13 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       const refuse = (message: string): void => {
         diagnostics.push({ at, message });
       };
-      const children = node.children.map(stamp);
+      const stamped = node.children.map(stamp);
+      // A dynamic body's colliders carry its mass (its setter's, else its class's).
+      const massSetter = setterValue(node.setters, 'set_mass');
+      const bodyMass = node.idiom?.form.kind === 'body' && node.idiom.form.type === 'dynamic' ? (massSetter?.kind === 'number' ? massSetter.value : (node.idiom.form.mass ?? 1)) : undefined;
+      const shares = bodyMass === undefined ? [] : colliderMasses(stamped.flatMap((child) => (child.collider === undefined ? [] : [child.collider])), bodyMass);
+      let share = 0;
+      const children = stamped.map((child) => (child.collider === undefined || bodyMass === undefined ? child : { ...child, collider: { ...child.collider, mass: shares[share++] as number } }));
       const placements = node.placements?.map((placed) => ({ at: placed.at, node: stamp(placed.node) }));
       const data = nodeData(node);
       const form = node.idiom?.form;
@@ -388,7 +438,7 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       };
       const body =
         node.instance === undefined && node.model === undefined && form?.kind === 'body'
-          ? planned(() => [...bodyProps(refuse, node.classes[0] as string, form.sensor, node.setters, resources, shapeData(node, resources), data)].map(([name, value]) => ({ name, value })), [])
+          ? planned(() => [...bodyProps(refuse, node.classes[0] as string, form.sensor, node.setters, resources, shapeData(node, resources), form.mass === undefined ? data : { mass: form.mass, ...data })].map(([name, value]) => ({ name, value })), [])
           : undefined;
       const overrides = instanced === undefined ? [] : planned(() => bodyOverrides(scene, node, instanced, bySource, refuse), []);
       const collider = form?.kind === 'collider' && node.instance === undefined ? colliderPlan(node, resources, refuse) : undefined;

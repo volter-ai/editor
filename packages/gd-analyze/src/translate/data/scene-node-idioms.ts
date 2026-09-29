@@ -24,7 +24,15 @@ export type GodotSceneNodeIdiomForm =
   /** A ReflectionProbe: the game editor's reflections capability. */
   | { readonly kind: 'reflection-probe' }
   /** A physics body: `@react-three/rapier`'s `<RigidBody>` of a type, its colliders sensors or not. */
-  | { readonly kind: 'body'; readonly type: 'fixed' | 'dynamic' | 'kinematicPosition'; readonly sensor: boolean }
+  | {
+      readonly kind: 'body';
+      readonly type: 'fixed' | 'dynamic' | 'kinematicPosition';
+      readonly sensor: boolean;
+      /** A dynamic body's mass when its scene sets none (its constructor's; RigidBody3D's is 1). */
+      readonly mass?: number;
+      /** A compat component the body renders inside itself, which drives it (a vehicle's controller). */
+      readonly driver?: { readonly module: string; readonly exportName: string };
+    }
   /** A CollisionShape3D: the Rapier collider its shape resource is. */
   | { readonly kind: 'collider' };
 
@@ -171,6 +179,17 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     three: 'RapierRigidBody',
     source: ctor('RigidBody3D', 'scene/3d/physics/rigid_body_3d.cpp', 829),
   },
+  // A RigidBody3D of 40 kg (`VehicleBody3D::VehicleBody3D`) whose driver, Rapier's ray-cast vehicle
+  // controller over the body, moves it on its VehicleWheel3D children (`vehicle-body-3d.tsx`).
+  VehicleBody3D: {
+    form: { kind: 'body', type: 'dynamic', sensor: false, mass: 40, driver: { module: 'vehicle-body-3d', exportName: 'GodotVehicleBody3D' } },
+    three: 'RapierRigidBody',
+    source: ctor('VehicleBody3D', 'scene/3d/physics/vehicle_body_3d.cpp', 1062),
+  },
+  VehicleWheel3D: element('vehicle-wheel-3d', 'VehicleWheel3D', ctor('VehicleWheel3D', 'scene/3d/physics/vehicle_body_3d.cpp', 391)),
+  // Joints: `@react-three/rapier`'s impulse joints over the two bodies their paths name (`joint-3d.tsx`).
+  PinJoint3D: element('pin-joint-3d', 'PinJoint3D', ctor('PinJoint3D', 'scene/3d/physics/joints/pin_joint_3d.cpp', 76)),
+  Generic6DOFJoint3D: element('generic-6dof-joint-3d', 'Generic6DOFJoint3D', ctor('Generic6DOFJoint3D', 'scene/3d/physics/joints/generic_6dof_joint_3d.cpp', 315)),
   CharacterBody3D: {
     form: { kind: 'body', type: 'kinematicPosition', sensor: false },
     three: 'RapierRigidBody',

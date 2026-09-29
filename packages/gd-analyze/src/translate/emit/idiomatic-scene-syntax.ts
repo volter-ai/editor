@@ -523,7 +523,7 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
     sensorTypes.push(attribute('activeCollisionTypes', { kind: 'binary-expression', operator: '|', left: { kind: 'binary-expression', operator: '|', left: types('DEFAULT'), right: types('KINEMATIC_FIXED') }, right: types('FIXED_FIXED') }));
   }
   const args: TargetTsExpression = planned.args.kind === 'flat' ? numbers(planned.args.values) : { kind: 'array-expression', elements: planned.args.values.map((values) => numbers(values)) };
-  return element(planned.component, [name, attribute('args', args), ...sensorTypes, ...transform]);
+  return element(planned.component, [name, attribute('args', args), ...(planned.mass === undefined ? [] : [attribute('mass', { kind: 'literal-expression', value: planned.mass })]), ...sensorTypes, ...transform]);
 }
 
 /** A node's Godot-only state, as the plan stamps it (`scene-body-idioms.ts`). */
@@ -794,7 +794,11 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       ...(body.type === 'dynamic' ? contactEvents(emission) : []),
       ...transform,
       ...props.map((prop) => bodyProp(emission, prop)),
-    ], sensorChildren(emission, body.sensor, children));
+    ], sensorChildren(emission, body.sensor, () => [
+      // The body's driver (a vehicle's controller) first, inside the body it drives.
+      ...(body.driver === undefined ? [] : [element(useCompat(emission, body.driver.module, body.driver.exportName), [])]),
+      ...children(),
+    ]));
   }
   const visible = visibleProp(node.setters);
   const own = withoutSpatial(node);

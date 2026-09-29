@@ -34,6 +34,19 @@ export function useGodotAdvance(entity: object): void {
 }
 
 /**
+ * One node's own work before each physics step, with the step's length: a vehicle driving its
+ * body (`vehicle-body-3d.tsx`), a joint finding its bodies (`joint-3d.tsx`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1219
+ */
+export function useGodotBeforePhysicsStep(work: (step: number) => void): void {
+  const current = useRef(work);
+  current.current = work;
+  useBeforePhysicsStep((world) => current.current(world.timestep));
+}
+
+/**
  * What one node hands the renderer each frame, from its component's frame while the node is inside
  * the tree, whatever its process mode: Godot's rendering server draws the world as it stands each
  * frame, paused or not (`RenderingServerDefault::draw`). A WorldEnvironment draws its environment

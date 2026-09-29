@@ -43,6 +43,46 @@ export type SceneSetterLookup = ((className: string, property: string) => SceneS
  * Internal properties the API dump leaves out (`PROPERTY_USAGE_INTERNAL`) that a scene stores, and
  * their internal setters, bound in ClassDB: `Curve._data` (`scene/resources/curve.cpp:646`).
  */
+/**
+ * A Generic6DOFJoint3D's per-axis properties (`linear_limit_x/upper_distance`), which the API dump
+ * leaves out of the class: each its axis's `set_flag_<axis>` or `set_param_<axis>` at the index its
+ * `ADD_PROPERTYI` names (`generic_6dof_joint_3d.cpp:52`), by the property's group and field.
+ */
+const SIX_DOF = /^((?:linear|angular)_(?:limit|motor|spring))_([xyz])\/(\w+)$/u;
+const SIX_DOF_SLOTS: Readonly<Record<string, readonly ['flag' | 'param', number]>> = {
+  'linear_limit/enabled': ['flag', 0],
+  'linear_limit/upper_distance': ['param', 1],
+  'linear_limit/lower_distance': ['param', 0],
+  'linear_limit/softness': ['param', 2],
+  'linear_limit/restitution': ['param', 3],
+  'linear_limit/damping': ['param', 4],
+  'linear_motor/enabled': ['flag', 5],
+  'linear_motor/target_velocity': ['param', 5],
+  'linear_motor/force_limit': ['param', 6],
+  'linear_spring/enabled': ['flag', 3],
+  'linear_spring/stiffness': ['param', 7],
+  'linear_spring/damping': ['param', 8],
+  'linear_spring/equilibrium_point': ['param', 9],
+  'angular_limit/enabled': ['flag', 1],
+  'angular_limit/upper_angle': ['param', 11],
+  'angular_limit/lower_angle': ['param', 10],
+  'angular_limit/softness': ['param', 12],
+  'angular_limit/restitution': ['param', 14],
+  'angular_limit/damping': ['param', 13],
+  'angular_limit/force_limit': ['param', 15],
+  'angular_limit/erp': ['param', 16],
+  'angular_motor/enabled': ['flag', 4],
+  'angular_motor/target_velocity': ['param', 17],
+  'angular_motor/force_limit': ['param', 18],
+  'angular_spring/enabled': ['flag', 2],
+  'angular_spring/stiffness': ['param', 19],
+  'angular_spring/damping': ['param', 20],
+  'angular_spring/equilibrium_point': ['param', 21],
+};
+/** A PinJoint3D's `params/<name>`, `set_param` at its `Param` (`pin_joint_3d.cpp:37`). */
+const PIN_PARAM = /^params\/(bias|damping|impulse_clamp)$/u;
+const PIN_PARAMS = ['bias', 'damping', 'impulse_clamp'];
+
 export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   // `curve.cpp:644`, `:646`.
   Curve: { _limits: '_set_limits', _data: '_set_data' },
@@ -172,6 +212,18 @@ export function sceneSetterLookup(
       owner = 'Environment';
       setter = accessor === 'getter' ? 'get_glow_level' : 'set_glow_level';
       index = Number((GLOW_LEVEL.exec(property) as RegExpExecArray)[1]) - 1;
+    } else if (SIX_DOF.test(property) && ancestry.includes('Generic6DOFJoint3D')) {
+      const [, group, axis, field] = SIX_DOF.exec(property) as RegExpExecArray;
+      const slot = SIX_DOF_SLOTS[`${group as string}/${field as string}`];
+      if (slot !== undefined) {
+        owner = 'Generic6DOFJoint3D';
+        setter = `${accessor === 'getter' ? 'get' : 'set'}_${slot[0]}_${axis as string}`;
+        index = slot[1];
+      }
+    } else if (PIN_PARAM.test(property) && ancestry.includes('PinJoint3D')) {
+      owner = 'PinJoint3D';
+      setter = accessor === 'getter' ? 'get_param' : 'set_param';
+      index = PIN_PARAMS.indexOf((PIN_PARAM.exec(property) as RegExpExecArray)[1] as string);
     } else if (RANDOMIZER_ENTRY.test(property) && ancestry.includes('AudioStreamRandomizer')) {
       const entry = RANDOMIZER_ENTRY.exec(property) as RegExpExecArray;
       owner = 'AudioStreamRandomizer';

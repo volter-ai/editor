@@ -1863,7 +1863,9 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   const tree = node.class.nativeAncestry.includes('AnimationTree');
   // A script field's node path is the field plan's (`useGodotNodeReferences`).
   const scriptFields = node.scriptResPath === undefined ? new Set<string>() : context.scriptFields(node.scriptResPath);
-  if (node.nodePathProperties.some((name) => !(tree && TREE_NODE_PATHS[name] !== undefined) && !scriptFields.has(name))) {
+  // A joint's bodies are its setters' paths, which its element resolves (`joint-3d.tsx`).
+  const joint = node.class.nativeAncestry.includes('Joint3D');
+  if (node.nodePathProperties.some((name) => !(tree && TREE_NODE_PATHS[name] !== undefined) && !(joint && (name === 'node_a' || name === 'node_b')) && !scriptFields.has(name))) {
     refuse(context, at, 'authored NodePath properties are not planned', 'structure');
     ok = false;
   }
@@ -2467,6 +2469,25 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
 const COLLISION_OBJECT_SETTERS = ['set_collision_layer', 'set_collision_mask', 'set_ray_pickable', 'set_as_top_level'];
 const AXIS_LOCKS = [1, 2, 4, 8, 16, 32].map((axis) => `set_axis_lock:${String(axis)}`);
 
+const RIGID_BODY_SETTERS: readonly string[] = [
+  ...COLLISION_OBJECT_SETTERS,
+  ...AXIS_LOCKS,
+  'set_mass',
+  'set_gravity_scale',
+  'set_linear_damp',
+  'set_angular_damp',
+  'set_linear_damp_mode',
+  'set_angular_damp_mode',
+  'set_use_continuous_collision_detection',
+  'set_lock_rotation_enabled',
+  'set_use_custom_integrator',
+  'set_contact_monitor',
+  'set_max_contacts_reported',
+  'set_physics_material_override',
+  'set_center_of_mass_mode',
+  'set_center_of_mass',
+];
+
 /**
  * The families the idiomatic scene writes (GODOT.md, "The output is idiomatic three.js"): each node
  * class's setters with a three, `@react-three/rapier` or Godot-only (`userData`) form, and each
@@ -2478,22 +2499,9 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
   // collision shape mounts no object to hide.
   Node3D: ['set_visible'],
   StaticBody3D: [...COLLISION_OBJECT_SETTERS, 'set_physics_material_override'],
-  RigidBody3D: [
-    ...COLLISION_OBJECT_SETTERS,
-    ...AXIS_LOCKS,
-    'set_mass',
-    'set_gravity_scale',
-    'set_linear_damp',
-    'set_angular_damp',
-    'set_linear_damp_mode',
-    'set_angular_damp_mode',
-    'set_use_continuous_collision_detection',
-    'set_lock_rotation_enabled',
-    'set_use_custom_integrator',
-    'set_contact_monitor',
-    'set_max_contacts_reported',
-    'set_physics_material_override',
-  ],
+  RigidBody3D: RIGID_BODY_SETTERS,
+  // A RigidBody3D its driver moves on its wheels (`vehicle-body-3d.tsx`): the forces are its script's.
+  VehicleBody3D: [...RIGID_BODY_SETTERS, 'set_engine_force', 'set_brake', 'set_steering'],
   CharacterBody3D: [
     ...COLLISION_OBJECT_SETTERS,
     'set_velocity',
@@ -2535,7 +2543,6 @@ const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = 
   ConcavePolygonShape3D: ['set_faces', 'set_backface_collision_enabled'],
   PhysicsMaterial: ['set_friction', 'set_bounce', 'set_rough', 'set_absorbent'],
 };
-const BODY_CLASSES = new Set(['StaticBody3D', 'RigidBody3D', 'CharacterBody3D', 'Area3D']);
 
 /** The properties an imported model's element sets on the model's own nodes, and where each goes. */
 const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
@@ -2695,7 +2702,7 @@ export function idiomaticRefusal(
     const allowed =
       carried || className === PENDING_INSTANCE ? node.setters.map((entry) => setterName(entry)[0] as string) : IDIOMATIC_NODE_SETTERS[className];
     if (allowed === undefined) return `class ${className}`;
-    if (className === 'CollisionShape3D' && (parentClass === undefined || !(BODY_CLASSES.has(parentClass) || parentClass === PENDING_INSTANCE))) {
+    if (className === 'CollisionShape3D' && (parentClass === undefined || !(godotSceneNodeIdiom(parentClass)?.form.kind === 'body' || parentClass === PENDING_INSTANCE))) {
       return 'a collision shape outside a body';
     }
     const property = carried ? undefined : node.properties.find((entry) => !TRANSFORM_PROPERTIES.has(entry.propertyName));

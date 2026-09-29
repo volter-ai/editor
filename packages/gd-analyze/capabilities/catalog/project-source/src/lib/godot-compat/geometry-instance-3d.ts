@@ -94,6 +94,31 @@ export function get_transparency(self: object): number {
   return TRANSPARENCY.get(self) ?? (typeof stated === 'number' ? stored(stated) : 0);
 }
 
+// --- GI mode: stored; the page has no baked light or dynamic GI for it to include the geometry in.
+
+const GI_MODE = new WeakMap<object, number>();
+
+/**
+ * Whether baked light (a LightmapGI) or dynamic GI (VoxelGI, SDFGI) lights the geometry
+ * (`instance_geometry_set_flag`); the page bakes and traces none, so only the mode is kept.
+ *
+ * @godot GeometryInstance3D.set_gi_mode
+ * @source scene/3d/visual_instance_3d.cpp:472
+ */
+export function set_gi_mode(self: object, mode: number): void {
+  GI_MODE.set(self, mode);
+}
+
+/**
+ * `GI_MODE_STATIC` until set (`visual_instance_3d.h:142`).
+ *
+ * @godot GeometryInstance3D.get_gi_mode
+ * @source scene/3d/visual_instance_3d.cpp:492
+ */
+export function get_gi_mode(self: object): number {
+  return GI_MODE.get(self) ?? 1;
+}
+
 // --- Material override: drawn by the node's own drawing.
 
 const OVERRIDE = new WeakMap<object, BaseMaterial3D | null>();
