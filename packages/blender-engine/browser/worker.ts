@@ -39,6 +39,7 @@
 
 import { type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
 import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
+import { frameTransferBuffers } from './frame-transfer.mts';
 import { documentChunks } from './document-chunks.mts';
 import { columnsToTypedArrays, describeFrame, isColumnDescriptor } from './session-frame.mts';
 
@@ -75,35 +76,24 @@ function presentToTab(
   const id = ++presentId;
   // A drawn mesh's buffers move to the tab rather than being copied: the
   // frame is the tab's from here on.
-  const transfer: ArrayBuffer[] = [];
-  // A picture travels the same way and for the same reason: an entry in the
-  // frame's `images` carries a raw RGBA raster the tab uploads into a
-  // `DataTexture` (`blender-runtime-view.ts`), once per image per revision.
-  const parts = frame as {
-    meshes?: Record<string, unknown>;
-    images?: Record<string, unknown>;
-  } | null;
-  for (const carrier of [parts?.meshes ?? {}, parts?.images ?? {}])
-    for (const held of Object.values(carrier))
-      for (const value of Object.values(held as Record<string, unknown>))
-        if (
-          ArrayBuffer.isView(value) &&
-          value.buffer instanceof ArrayBuffer &&
-          !transfer.includes(value.buffer)
-        )
-          transfer.push(value.buffer);
+  const transfer = frameTransferBuffers(frame);
   return new Promise((resolve, reject) => {
     pendingPresents.set(id, { resolve, reject });
-    (self as unknown as Worker).postMessage(
-      {
-        op: 'present',
-        id,
-        frame,
-        description,
-        ...(capture ? { capture } : {}),
-      } satisfies WorkerReply,
-      transfer,
-    );
+    try {
+      (self as unknown as Worker).postMessage(
+        {
+          op: 'present',
+          id,
+          frame,
+          description,
+          ...(capture ? { capture } : {}),
+        } satisfies WorkerReply,
+        transfer,
+      );
+    } catch (error) {
+      pendingPresents.delete(id);
+      reject(error);
+    }
   });
 }
 
@@ -535,7 +525,11 @@ async function stageProjectFiles(files_: BlenderFiles, project: string): Promise
     }
     const dir = path.slice(0, path.lastIndexOf('/'));
     if (dir) await files_.mkdirTree(dir);
-    await files_.writeFile(path, new Uint8Array(await answer.arrayBuffer()));
+    if (files_.writeFileStream && answer.body) {
+      await files_.writeFileStream(path, answer.body, file.size);
+    } else {
+      await files_.writeFile(path, new Uint8Array(await answer.arrayBuffer()));
+    }
     staged.set(path, { host: stamp, engine: await stampOf(files_, path) });
   }
 }

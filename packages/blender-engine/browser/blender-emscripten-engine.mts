@@ -27,6 +27,7 @@
  *    `session.py` chmods its own root as its first act.
  */
 
+import { writeStreamedFile, type StreamFileSystem } from './stream-file.mts';
 import {
   artifactUrl,
   type BlenderArtifactStatus,
@@ -44,7 +45,7 @@ import sessionPython from './session.py?raw';
 
 /** What the module factory is, in the only shape this file uses. */
 interface BlenderModule {
-  FS: {
+  FS: StreamFileSystem & {
     readFile(path: string): Uint8Array;
     writeFile(path: string, data: string | Uint8Array): void;
     mkdirTree(path: string): void;
@@ -115,6 +116,7 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
     readFile: async (path) => FS.readFile(path),
     // Not `async`: a write that throws throws here, so `request` never starts `.done` after a failed `.json`.
     writeFile: (path, data) => { FS.writeFile(path, data); return Promise.resolve(); },
+    writeFileStream: (path, body, size) => writeStreamedFile(FS, path, body, size),
     mkdirTree: async (path) => FS.mkdirTree(path),
     readdir: async (path) => FS.readdir(path),
     stat: async (path) => {
