@@ -533,7 +533,12 @@ function collider(emission: Emission, node: DirectGodotSceneNodePlan, name: Targ
     sensorTypes.push(attribute('activeCollisionTypes', { kind: 'binary-expression', operator: '|', left: { kind: 'binary-expression', operator: '|', left: types('DEFAULT'), right: types('KINEMATIC_FIXED') }, right: types('FIXED_FIXED') }));
   }
   const args: TargetTsExpression = planned.args.kind === 'flat' ? numbers(planned.args.values) : { kind: 'array-expression', elements: planned.args.values.map((values) => numbers(values)) };
-  return element(planned.component, [name, attribute('args', args), ...(planned.mass === undefined ? [] : [attribute('mass', { kind: 'literal-expression', value: planned.mass })]), ...sensorTypes, ...transform]);
+  // Its children hang from the collider's own object (`@react-three/rapier` renders one), moving with it.
+  return element(
+    planned.component,
+    [name, attribute('args', args), ...(planned.mass === undefined ? [] : [attribute('mass', { kind: 'literal-expression', value: planned.mass })]), ...sensorTypes, ...transform],
+    node.children.map((child) => nodeElement(emission, child)),
+  );
 }
 
 /** A node's Godot-only state, as the plan stamps it (`scene-body-idioms.ts`). */
@@ -644,7 +649,7 @@ function instanceEditsHook(emission: Emission, node: DirectGodotSceneNodePlan): 
         kind: 'expression-statement' as const,
         expression: {
           kind: 'call-expression' as const,
-          callee: { kind: 'identifier-expression' as const, name: familyUseCompat(emission.family, setter.setter.module, setter.setter.exportName, setter.setter.localName) },
+          callee: { kind: 'identifier-expression' as const, name: familyUseCompat(emission.family, setter.setter.module.replace(/^lib\/godot-compat\//u, ''), setter.setter.exportName, setter.setter.localName) },
           arguments: [
             { kind: 'identifier-expression' as const, name: 'node' },
             ...(setter.index === undefined ? [] : [literal(setter.index)]),

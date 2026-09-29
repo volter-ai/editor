@@ -14,6 +14,7 @@ import type { GodotValue } from '../../read/godot-value';
 import type { GodotBoundShader, GodotShaderUniform } from '../../godot-frontend/bound-shader';
 import { lowerGodotShader } from '../emit/shader-glsl';
 import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
+import { GODOT_CANVAS_FRAGMENT_BUILTINS, GODOT_CANVAS_VERTEX, godotCanvasFragmentStage } from '../emit/canvas-shader';
 import {
   GODOT_SPATIAL_DEFAULT_VERTEX,
   GODOT_SPATIAL_FRAGMENT_BUILTINS,
@@ -403,6 +404,8 @@ export interface TargetGodotLoweredShader {
   readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null; readonly color?: true; readonly filter?: number; readonly repeat?: number; readonly source?: 'screen' | 'depth' }[];
   readonly functions: string;
   readonly entry: string;
+  /** A canvas_item shader's two stages as compat's canvas shader material draws an item with them (`canvas-shader.ts`). */
+  readonly canvas?: { readonly vertexShader: string; readonly fragmentShader: string };
   /** A spatial shader's two stages as `three-custom-shader-material` takes them (`spatial-shader.ts`). */
   readonly spatial?: {
     readonly vertexShader: string;
@@ -415,12 +418,13 @@ export interface TargetGodotLoweredShader {
 }
 
 /**
- * A `.gdshader` the official shader frontend read, lowered for its mode (sky only: the corpus
- * draws no other shader mode), or why it is not.
+ * A `.gdshader` the official shader frontend read, lowered for its mode (sky, spatial,
+ * canvas_item), or why it is not.
  */
 function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string {
   if (!shader.ok) return `the official shader frontend refused it (${shader.stage}: ${shader.message})`;
   if (shader.shaderType === 'spatial') return spatialShaderPlan(shader);
+  if (shader.shaderType === 'canvas_item') return canvasShaderPlan(shader);
   if (shader.shaderType !== 'sky') return `shader_type ${shader.shaderType} is not lowered`;
   const lowered = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
   if (typeof lowered === 'string') return lowered;
@@ -455,6 +459,30 @@ function plannedUniform({ name, glsl, uniform }: { readonly name: string; readon
     ...(uniform.hintName.includes('source_color') ? { color: true as const } : {}),
     ...(uniform.type.name.startsWith('sampler') ? { filter: uniform.filter, repeat: uniform.repeat } : {}),
     ...(uniform.hintName.includes('hint_screen_texture') ? { source: 'screen' as const } : uniform.hintName.includes('hint_depth_texture') ? { source: 'depth' as const } : {}),
+  };
+}
+
+/**
+ * A canvas_item shader: `fragment()` lowered with its built-ins (`canvas-shader.ts`) and wrapped as
+ * the stage compat draws the item's quad with. `vertex()`, `light()` and a render mode other than
+ * the default blend and `unshaded` (no 2D light reaches the page) refuse by name.
+ */
+function canvasShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true }>): TargetGodotLoweredShader | string {
+  const names = new Set(shader.tree.functions.map((entry) => entry.name));
+  if (names.has('vertex')) return 'a canvas_item vertex() function is not lowered';
+  if (names.has('light')) return 'a light() function is not lowered';
+  const unsupported = shader.tree.renderModes.find((mode) => mode !== 'blend_mix' && mode !== 'unshaded');
+  if (unsupported !== undefined) return `render_mode ${unsupported} is not drawn`;
+  const fragment = lowerGodotShader(shader, GODOT_CANVAS_FRAGMENT_BUILTINS, 'fragment');
+  if (typeof fragment === 'string') return fragment;
+  const head = [fragment.varyings, ...fragment.uniforms.map((uniform) => uniform.declaration), fragment.functions].filter((part) => part !== '').join('\n\n');
+  return {
+    mode: 'canvas_item',
+    renderModes: shader.tree.renderModes,
+    uniforms: fragment.uniforms.map(plannedUniform),
+    functions: '',
+    entry: '',
+    canvas: { vertexShader: GODOT_CANVAS_VERTEX, fragmentShader: godotCanvasFragmentStage(head, fragment.entry) },
   };
 }
 

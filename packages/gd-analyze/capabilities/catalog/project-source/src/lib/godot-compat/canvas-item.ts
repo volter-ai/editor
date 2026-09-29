@@ -20,12 +20,13 @@
 import type { Object3D } from 'three';
 import { type Color, construct as color } from './color';
 import { godot_canvas_item_material_css_blend } from './canvas-item-material';
+import { godot_canvas_shader_draw, godot_canvas_shader_material_is, godot_canvas_shader_undraw } from './canvas-shader-material';
 import { godot_input_mouse_position } from './input';
 import { get_viewport, godot_node_entity, is_inside_tree } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import { get_visible_rect } from './viewport';
 import { affine_inverse, construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
-import type { Vector2 } from './vector2';
+import { construct as vector2, type Vector2 } from './vector2';
 import type { GodotElementProp } from './react-lifecycle';
 
 /** What the class that places and draws a canvas item gives it. */
@@ -51,6 +52,8 @@ export interface CanvasItemClass {
    * in the item's own coordinates, tinted by `tint` (its modulate in the tree and self modulate).
    */
   readonly paint?: (entity: Object3D, context: CanvasRenderingContext2D, tint: Color) => boolean | void;
+  /** The colour its drawing gives a canvas_item shader's `COLOR` (`canvas-shader-material.ts`). */
+  readonly shaded?: (entity: Object3D) => Color;
 }
 
 interface CanvasItemState {
@@ -682,6 +685,30 @@ export function godot_canvas_item_draw(entity: Object3D, viewport: Object3D, roo
   put(element, 'imageRendering', state.textureFilter === 0 ? '' : state.textureFilter % 2 === 1 ? 'pixelated' : 'auto');
   placeIn(entity, element, state.topLevel ? place.canvas : place.container);
   clipChildren(entity, state, element);
+  // A canvas_item ShaderMaterial draws the item in place of its class.
+  const material = materialOf(entity, state);
+  if (godot_canvas_shader_material_is(material)) {
+    if (state.class.shaded === undefined) throw new Error(`godot-compat: a canvas shader on a ${state.classes[0] ?? 'canvas item'} is not drawn.`);
+    DRAWN.delete(entity);
+    element.style.backgroundColor = '';
+    const own = size ?? vector2(0, 0);
+    const parent = godot_canvas_item_parent(entity);
+    const local = (state.class.drawTransform ?? state.class.transform)(entity);
+    const t = op_multiply(godot_canvas_item_canvas_transform(entity), parent === null ? local : op_multiply(get_global_transform(parent), local));
+    const visible = get_visible_rect(viewport).size;
+    godot_canvas_shader_draw(
+      entity,
+      element,
+      root,
+      material,
+      state.class.shaded(entity),
+      { width: own.x, height: own.y },
+      { x: t.origin.x, y: t.origin.y, width: own.x * Math.hypot(t.x.x, t.x.y), height: own.y * Math.hypot(t.y.x, t.y.y) },
+      { width: visible.x, height: visible.y },
+    );
+    return;
+  }
+  godot_canvas_shader_undraw(entity);
   if (state.class.draw === undefined) return;
   const key = state.class.drawKey?.(entity, element);
   if (key !== undefined && DRAWN.get(entity) === key) return;

@@ -974,7 +974,7 @@ function libraryLocal(emission: FamilyEmission, resource: TargetGodotSceneResour
     if (mesh === undefined) continue;
     const surfaces = (mesh.surfaceMaterials ?? []).map((key) => (key === undefined ? undefined : emission.resources.get(key)));
     const materials = surfaces.map((surface) => {
-      const local = surface === undefined ? defaultMaterialLocal(emission) : sharedMaterial(emission, surface);
+      const local = surface === undefined ? defaultMaterialLocal(emission) : threeMaterialOf(emission, surface);
       if (emission.loaded.has(local)) uses.push(local);
       return identifier(local);
     });
@@ -1140,7 +1140,7 @@ export function familyModelMaterials(emission: FamilyEmission, materials: readon
   return materials.flatMap(({ name, key }) => {
     const resource = emission.resources.get(key);
     if (resource === undefined) return [];
-    return [{ key: name, value: identifier(sharedMaterial(emission, resource)) }];
+    return [{ key: name, value: identifier(threeMaterialOf(emission, resource)) }];
   });
 }
 
@@ -1256,7 +1256,7 @@ function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePl
   const material = surface === undefined ? undefined : emission.resources.get(surface);
   return [
     attribute('geometry', identifier(sharedGeometry(emission, mesh))),
-    ...(material === undefined ? [] : [attribute('material', identifier(sharedMaterial(emission, material)))]),
+    ...(material === undefined ? [] : [attribute('material', identifier(threeMaterialOf(emission, material)))]),
   ];
 }
 

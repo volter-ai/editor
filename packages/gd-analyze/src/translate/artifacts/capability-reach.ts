@@ -60,6 +60,11 @@ function resourceModules(resource: TargetGodotSceneResourcePlan): readonly strin
       return ['mesh-library'];
     case 'navigation-mesh':
       return ['navigation-mesh'];
+    case 'viewport-texture':
+      return ['viewport-texture'];
+    // A collider's shape is Rapier's; a shape a node takes as a value (a cast's) is constructed.
+    case 'collider':
+      return [resource.construct.module];
     case 'animation-library':
       return ['animation-library'];
     case 'animation-tree':

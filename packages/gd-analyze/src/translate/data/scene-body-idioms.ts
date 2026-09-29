@@ -187,11 +187,12 @@ function bodyProps(
   // Rapier merges its locks, so compat reads Godot's own (`locked_axis`, `BodyAxis` bits) from userData.
   const axes = [...locks.linear, ...locks.angular].reduce((bits, enabled, index) => (enabled ? bits : bits | (1 << index)), 0);
   if (axes !== 0) data['axis_lock'] = axes;
-  // lock_rotation is Rapier's own `lockRotations`, beside its flag in `userData` for compat: Rapier
-  // merges it with the axis locks, which it then cannot report back, so the pair has no form.
+  // lock_rotation is Rapier's own `lockRotations`, beside its flag in `userData`, from which compat
+  // reads Godot's locks back (`physics-body-3d.ts`); every rotation is locked while it holds, so the
+  // angular axis locks add nothing to the body until a script frees it, when compat writes them.
   if (data['lock_rotation'] === true) {
-    if (locks.angular.includes(false)) refuse(`${className}.lock_rotation with an angular axis lock has no idiomatic form`);
-    else props.set('lockRotations', literal(true));
+    props.delete('enabledRotations');
+    props.set('lockRotations', literal(true));
   }
   if (!sensor) {
     // Godot's friction is the smaller of the pair's, its bounce the larger (`combine_friction`,
@@ -311,7 +312,6 @@ const componentsOf = (value: TargetGodotSceneValue | undefined): readonly number
 function colliderPlan(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>, refuse: (message: string) => void): GodotSceneColliderPlan | undefined {
   if (node.scriptInstance !== undefined) return refuse('a script on a collision shape has no idiomatic form'), undefined;
   if (Object.keys(nodeData(node)).length > 0) return refuse('groups or a unique name on a collision shape have no idiomatic form'), undefined;
-  if (node.children.length > 0) return refuse('children of a collision shape have no idiomatic form'), undefined;
   const value = setterValue(node.setters, 'set_shape');
   const shape = value?.kind === 'resource' ? resources.get(value.key) : undefined;
   if (shape === undefined) return refuse('a collision shape without a shape has no idiomatic form'), undefined;
@@ -366,11 +366,18 @@ function sheared(matrix: readonly number[]): boolean {
  * instance states on the root beside its visibility that differ from the root's own (a value the
  * root already holds, the same literal or the same resource file, is its own).
  */
+/**
+ * An instance's overrides its element states as its `userData` (`nodeData`), which the Node protocol
+ * applies whatever the root's element: a mesh's skeleton path (nothing drawn), `top_level` and
+ * `process_mode`.
+ */
+const INSTANCE_DATA_SETTERS: ReadonlySet<string> = new Set(['set_skeleton_path', 'set_as_top_level', 'set_process_mode']);
+
 function instanceOf(node: DirectGodotSceneNodePlan, instanced: SceneWithoutRefs, scenes: ReadonlyMap<string, SceneWithoutRefs>): NonNullable<DirectGodotSceneNodePlan['instanceOf']> {
   const own = instanced.root.setters;
   const same = (entry: TargetGodotSceneSetterPlan) =>
     own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
-  const stated = node.setters.filter((entry) => entry.role?.kind !== 'visible' && entry.role?.kind !== 'transparency' && entry.role?.kind !== 'data');
+  const stated = node.setters.filter((entry) => entry.role?.kind !== 'visible' && entry.role?.kind !== 'transparency' && entry.role?.kind !== 'data' && !INSTANCE_DATA_SETTERS.has(entry.setter.exportName));
   const rootClass = godotSceneRootClass(scenes, instanced.sourceResPath);
   const rootIdiom = godotSceneRootIdiom(scenes, instanced.sourceResPath);
   return {

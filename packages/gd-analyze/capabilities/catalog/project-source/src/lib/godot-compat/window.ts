@@ -416,6 +416,20 @@ export function godot_window_canvas_root(canvas: HTMLCanvasElement): HTMLElement
   return LAYERS.get(canvas);
 }
 
+/** Each canvas layer's canvas: the 3D frame under it. */
+const CANVASES = new WeakMap<HTMLElement, HTMLCanvasElement>();
+
+/**
+ * The canvas under a root Window's canvas layer: the 3D frame its canvas items draw over (a canvas
+ * shader's screen, `canvas-shader-material.ts`).
+ *
+ * @godot Window (protocol)
+ * @source servers/rendering/renderer_canvas_cull.cpp:304
+ */
+export function godot_window_canvas_of(root: HTMLElement): HTMLCanvasElement | undefined {
+  return CANVASES.get(root);
+}
+
 /**
  * The element the canvas items draw into (`useGodotCanvasItem`): one absolutely placed layer over
  * the canvas in the canvas's parent, laid out at the stretched size the 2D world is laid out at and
@@ -437,6 +451,7 @@ export function godot_window_canvas_layer(canvas: HTMLCanvasElement): HTMLElemen
     layer.style.transformOrigin = '0 0';
     layer.style.overflow = 'hidden';
     LAYERS.set(canvas, layer);
+    CANVASES.set(layer, canvas);
   }
   // Every read before any write, so the frame costs no forced layout.
   const left = canvas.offsetLeft;

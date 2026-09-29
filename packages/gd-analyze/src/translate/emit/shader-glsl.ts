@@ -212,6 +212,17 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
       }
       case 'OPERATOR':
         return operator(node);
+      // A local array's element, or its `length()`.
+      case 'ARRAY': {
+        if (!node.local) throw new Refused(`the ${node.name} array is not lowered`);
+        if (node.assignExpression !== null) throw new Refused(`the ${node.name} array's assignment is not lowered`);
+        const base = `godot_l_${node.name}`;
+        if (node.callExpression !== null) return `${base}.length()`;
+        return node.indexExpression === null ? base : `${base}[${expression(node.indexExpression)}]`;
+      }
+      // `{a, b, c}` or `float[3](a, b, c)`: GLSL's array constructor.
+      case 'ARRAY_CONSTRUCT':
+        return `${type(node.datatype.name)}[${String(node.initializer.length)}](${node.initializer.map(expression).join(', ')})`;
       default:
         throw new Refused(`a ${node.kind} expression is not lowered`);
     }
@@ -265,9 +276,17 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
       case 'VARIABLE_DECLARATION':
         return node.declarations
           .map((declaration) => {
-            if (declaration.size > 0 || declaration.sizeExpression !== null) throw new Refused('local arrays are not lowered');
+            const declared = type(node.declared.name);
+            if (declaration.size > 0 || declaration.sizeExpression !== null) {
+              // A local array: `float w[8] = float[8](…)` (GLSL ES 3.0), from its `{…}` list or its one array expression.
+              const size = declaration.sizeExpression === null ? String(declaration.size) : expression(declaration.sizeExpression);
+              const list = declaration.singleExpression ? undefined : declaration.initializer;
+              const single = declaration.singleExpression ? declaration.initializer[0] : undefined;
+              const value = list !== undefined && list.length > 0 ? `${declared}[${size}](${list.map(expression).join(', ')})` : single === undefined ? undefined : expression(single);
+              return `${indent}${node.const ? 'const ' : ''}${declared} godot_l_${declaration.name}[${size}]${value === undefined ? '' : ` = ${value}`};`;
+            }
             const initializer = declaration.initializer[0];
-            return `${indent}${node.const ? 'const ' : ''}${type(node.declared.name)} godot_l_${declaration.name}${initializer === undefined ? '' : ` = ${expression(initializer)}`};`;
+            return `${indent}${node.const ? 'const ' : ''}${declared} godot_l_${declaration.name}${initializer === undefined ? '' : ` = ${expression(initializer)}`};`;
           })
           .join('\n');
       case 'BLOCK':

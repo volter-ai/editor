@@ -33,6 +33,7 @@
     "src/lib/godot-compat/camera-attributes-practical.ts",
     "src/lib/godot-compat/canvas-item-material.ts",
     "src/lib/godot-compat/canvas-item.ts",
+    "src/lib/godot-compat/canvas-shader-material.ts",
     "src/lib/godot-compat/canvas-layer.ts",
     "src/lib/godot-compat/canvas-texture.ts",
     "src/lib/godot-compat/capsule-shape-3d.ts",

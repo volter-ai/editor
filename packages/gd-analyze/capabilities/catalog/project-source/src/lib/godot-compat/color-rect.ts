@@ -45,7 +45,7 @@ function drawKey(entity: Object3D, element: HTMLElement): string {
  */
 export function godot_color_rect_mount(entity: Object3D): void {
   COLORS.set(entity, color(1, 1, 1, 1));
-  godot_control_mount(entity, CLASSES, { draw, drawKey, paint });
+  godot_control_mount(entity, CLASSES, { draw, drawKey, paint, shaded: (node) => COLORS.get(node) ?? color(1, 1, 1, 1) });
 }
 
 /**
