@@ -12,7 +12,7 @@ import type {
   TargetGodotSceneValue,
 } from './scene-document-plan';
 
-const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative', 'set_material', 'set_use_parent_material', 'set_texture_filter', 'set_texture_repeat'];
+const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative', 'set_material', 'set_use_parent_material', 'set_texture_filter', 'set_texture_repeat', 'set_clip_children_mode'];
 const NODE_2D = [...CANVAS_ITEM, 'set_position', 'set_rotation', 'set_scale', 'set_skew'];
 const CONTROL = [
   ...CANVAS_ITEM,
@@ -119,6 +119,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   GridContainer: [...CONTROL, 'set_columns'],
   Label: [...CONTROL, 'set_text', 'set_label_settings', 'set_horizontal_alignment', 'set_vertical_alignment', 'set_autowrap_mode'],
   TextureRect: [...CONTROL, 'set_texture', 'set_expand_mode', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
+  NinePatchRect: [...CONTROL, 'set_texture', 'set_region_rect', 'set_patch_margin:*', 'set_draw_center', 'set_h_axis_stretch_mode', 'set_v_axis_stretch_mode'],
+  RichTextLabel: [...CONTROL, 'set_text', 'set_use_bbcode', 'set_fit_content', 'set_autowrap_mode', 'set_scroll_active'],
   Node2D: NODE_2D,
   Sprite2D: [...NODE_2D, 'set_texture', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v', 'set_hframes', 'set_vframes', 'set_frame'],
   TouchScreenButton: [...NODE_2D, 'set_texture_normal', 'set_texture_pressed', 'set_passby_press', 'set_action', 'set_visibility_mode'],

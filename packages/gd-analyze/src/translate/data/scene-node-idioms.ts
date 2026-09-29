@@ -234,6 +234,8 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   GridContainer: element('grid-container', 'GridContainer', ctor('GridContainer', 'scene/gui/grid_container.h', 35)),
   Label: element('label', 'Label', ctor('Label', 'scene/gui/label.cpp', 1526)),
   TextureRect: element('texture-rect', 'TextureRect', ctor('TextureRect', 'scene/gui/texture_rect.cpp', 299)),
+  NinePatchRect: element('nine-patch-rect', 'NinePatchRect', ctor('NinePatchRect', 'scene/gui/nine_patch_rect.cpp', 192)),
+  RichTextLabel: element('rich-text-label', 'RichTextLabel', ctor('RichTextLabel', 'scene/gui/rich_text_label.cpp', 8472)),
   Node2D: element('node-2d', 'Node2D', ctor('Node2D', 'scene/2d/node_2d.cpp', 519)),
   Sprite2D: element('sprite-2d', 'Sprite2D', ctor('Sprite2D', 'scene/2d/sprite_2d.cpp', 555)),
   TouchScreenButton: element(

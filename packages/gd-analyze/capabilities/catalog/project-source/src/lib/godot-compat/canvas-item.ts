@@ -50,7 +50,7 @@ export interface CanvasItemClass {
    * `NOTIFICATION_DRAW` inside a SubViewport: the item's own drawing onto the viewport's 2D canvas,
    * in the item's own coordinates, tinted by `tint` (its modulate in the tree and self modulate).
    */
-  readonly paint?: (entity: Object3D, context: CanvasRenderingContext2D, tint: Color) => void;
+  readonly paint?: (entity: Object3D, context: CanvasRenderingContext2D, tint: Color) => boolean | void;
 }
 
 interface CanvasItemState {
@@ -68,6 +68,8 @@ interface CanvasItemState {
   useParentMaterial: boolean;
   /** `TextureFilter` and `TextureRepeat` (`canvas_item.h:52`); 0 takes the parent's. */
   textureFilter: number;
+  /** `ClipChildrenMode`: disabled, only (the item not drawn), and draw. */
+  clipChildren: number;
   textureRepeat: number;
 }
 
@@ -115,6 +117,7 @@ export function godot_canvas_item_mount(entity: Object3D, classes: readonly stri
     useParentMaterial: false,
     textureFilter: 0,
     textureRepeat: 0,
+    clipChildren: 0,
   });
 }
 
@@ -678,11 +681,70 @@ export function godot_canvas_item_draw(entity: Object3D, viewport: Object3D, roo
   // node's filter (`get_texture_filter_in_tree`, `canvas_item.cpp:1760`); linear is the page's own.
   put(element, 'imageRendering', state.textureFilter === 0 ? '' : state.textureFilter % 2 === 1 ? 'pixelated' : 'auto');
   placeIn(entity, element, state.topLevel ? place.canvas : place.container);
+  clipChildren(entity, state, element);
   if (state.class.draw === undefined) return;
   const key = state.class.drawKey?.(entity, element);
   if (key !== undefined && DRAWN.get(entity) === key) return;
   state.class.draw(entity, element);
   if (key !== undefined) DRAWN.set(entity, key);
+}
+
+/** Each clipping item's mask, by what it was painted from. */
+const MASKS = new WeakMap<Object3D, { readonly key: string; readonly url: string }>();
+
+/**
+ * `clip_children` on the page (`canvas_item_set_canvas_group_mode`, `canvas_item.cpp:1860`): the
+ * item's element masked by its own drawing's alpha, painted at its size (`CanvasItemClass.paint`),
+ * which clips its children's elements inside it; with `CLIP_CHILDREN_ONLY` its own drawing is not
+ * shown. A drawing not yet complete (an image still loading) is painted again the next frame.
+ */
+function clipChildren(entity: Object3D, state: CanvasItemState, element: HTMLElement): void {
+  const content = element.querySelector(':scope > [data-godot-content]') as HTMLElement | null;
+  if (state.clipChildren === 0) {
+    if (MASKS.has(entity)) {
+      MASKS.delete(entity);
+      element.style.maskImage = '';
+      element.style.webkitMaskImage = '';
+      if (content !== null) content.style.visibility = '';
+    }
+    return;
+  }
+  if (state.class.paint === undefined) throw new Error(`godot-compat: clip_children on a ${state.classes[0] ?? 'canvas item'} is not drawn.`);
+  const size = state.class.size?.(entity);
+  if (size === undefined || size.x < 1 || size.y < 1) return;
+  const key = `${state.class.drawKey?.(entity, element) ?? ''}|${String(size.x)}x${String(size.y)}`;
+  if (MASKS.get(entity)?.key !== key) {
+    const canvas = element.ownerDocument.createElement('canvas');
+    canvas.width = Math.ceil(size.x);
+    canvas.height = Math.ceil(size.y);
+    const context = canvas.getContext('2d');
+    if (context === null) return;
+    const complete = state.class.paint(entity, context, color(1, 1, 1, 1)) !== false;
+    const url = canvas.toDataURL();
+    if (complete) MASKS.set(entity, { key, url });
+    else MASKS.delete(entity);
+    element.style.maskImage = `url("${url}")`;
+    element.style.webkitMaskImage = `url("${url}")`;
+    element.style.maskSize = '100% 100%';
+    element.style.maskRepeat = 'no-repeat';
+  }
+  if (content !== null) content.style.visibility = state.clipChildren === 1 ? 'hidden' : '';
+}
+
+/**
+ * @godot CanvasItem.set_clip_children_mode
+ * @source scene/main/canvas_item.cpp:1860
+ */
+export function set_clip_children_mode(self: object, mode: number): void {
+  stateOf(self, 'set_clip_children_mode').clipChildren = mode;
+}
+
+/**
+ * @godot CanvasItem.get_clip_children_mode
+ * @source scene/main/canvas_item.cpp:1879
+ */
+export function get_clip_children_mode(self: object): number {
+  return stateOf(self, 'get_clip_children_mode').clipChildren;
 }
 
 /** The material an item draws with: its own, or its parent item's where it uses the parent's. */
@@ -798,6 +860,7 @@ export function godot_canvas_item_props(): (readonly [string, GodotElementProp<O
     ['topLevel', (entity, value: boolean) => set_as_top_level(entity, value)],
     ['zIndex', (entity, value: number) => set_z_index(entity, value)],
     ['zAsRelative', (entity, value: boolean) => set_z_as_relative(entity, value)],
+    ['clipChildren', (entity, value: number) => set_clip_children_mode(entity, value)],
     ['material', (entity, value: object | null) => set_material(entity, value)],
     ['useParentMaterial', (entity, value: boolean) => set_use_parent_material(entity, value)],
     ['textureFilter', (entity, value: number) => set_texture_filter(entity, value)],

@@ -235,6 +235,8 @@
     "src/lib/godot-compat/texture-2d.ts",
     "src/lib/godot-compat/theme.ts",
     "src/lib/godot-compat/texture-rect.ts",
+    "src/lib/godot-compat/nine-patch-rect.ts",
+    "src/lib/godot-compat/rich-text-label.ts",
     "src/lib/godot-compat/timer.ts",
     "src/lib/godot-compat/touch-screen-button.ts",
     "src/lib/godot-compat/transform-2d.ts",
