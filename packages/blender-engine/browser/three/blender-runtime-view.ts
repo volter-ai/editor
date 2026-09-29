@@ -1493,9 +1493,22 @@ export class BlenderRuntimeView {
           // is ahead of this presenter — a page reloaded under a still-running
           // session — and saying so by name is what makes it re-send the frame
           // in full (`dispatch.mts`, `runtime_present`).
-          if (this.frame?.session === next.session && this.meshes.has(id)) continue;
+          // AND AT THAT REVISION: the frame names every mesh with the revision the engine holds
+          // it at, so it is a whole manifest of what this presenter should hold, and a resident
+          // geometry at another revision has drifted from the engine (a present the session
+          // recorded that never landed here). Refusing it by name is the same resync as a mesh
+          // not held at all: the session drops its record and re-sends in full.
+          const resident = this.meshes.get(id)?.signature;
+          if (
+            this.frame?.session === next.session &&
+            resident !== undefined &&
+            (resident === `revision:${data.revision}` || !resident.startsWith('revision:'))
+          )
+            continue;
           throw new Error(
-            `${UNKNOWN_GEOMETRY}: the presenter does not hold runtime mesh ${id} (store ${data.store}, revision ${data.revision})`,
+            resident === undefined
+              ? `${UNKNOWN_GEOMETRY}: the presenter does not hold runtime mesh ${id} (store ${data.store}, revision ${data.revision})`
+              : `${UNKNOWN_GEOMETRY}: the presenter holds runtime mesh ${id} at ${resident}, not revision ${data.revision}`,
           );
         }
         const drawn = 'hash' in data;
