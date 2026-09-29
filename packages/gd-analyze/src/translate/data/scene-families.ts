@@ -55,6 +55,8 @@ const VISIBILITY_RANGE = [
 const NODE_3D = ['set_visible'];
 // A GeometryInstance3D's `transparency`: stored, never drawn by the web's renderer (`geometry-instance-3d.ts`).
 const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency', 'set_gi_mode'];
+// A light's values kept in `userData` for its getters (`light-3d.ts`): the page's lights draw none of them.
+const LIGHT_KEPT = ['set_shadow_reverse_cull_face', 'set_shadow_caster_mask', 'set_enable_distance_fade', 'set_distance_fade_begin', 'set_distance_fade_shadow', 'set_distance_fade_length'];
 // A Node's `physics_interpolation_mode`, which every compat element takes (`useGodotElement`); stored
 // (`node.ts`: nothing is interpolated between physics ticks).
 const NODE_ELEMENT = ['set_physics_interpolation_mode'];
@@ -97,10 +99,10 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   // `shadow-mapping`. Split blending and the pancake size (16) are stored: three's one shadow map has
   // no splits to blend, and its shadow camera spans the whole depth `shadow-mapping` gives it, which
   // leaves no casters behind its near plane for a pancake to flatten (`renderer_scene_cull.cpp:2339`).
-  DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:16', 'set_param:17', 'set_param:18', 'set_shadow_mode', 'set_blend_splits'],
-  OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
+  DirectionalLight3D: [...NODE_3D, ...LIGHT_KEPT, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:16', 'set_param:17', 'set_param:18', 'set_shadow_mode', 'set_blend_splits'],
+  OmniLight3D: [...NODE_3D, ...LIGHT_KEPT, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // A spot light's angle (7) and its falloff to the rim (8) are three's cone and penumbra.
-  SpotLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_param:7', 'set_param:8', 'set_shadow', 'set_shadow_reverse_cull_face', 'set_param:15', 'set_param:17', 'set_param:18'],
+  SpotLight3D: [...NODE_3D, ...LIGHT_KEPT, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_param:7', 'set_param:8', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
   Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size', 'set_attributes'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
@@ -497,6 +499,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_ssao_power',
     'set_ssao_horizon',
     'set_glow_level:*',
+    'set_sdfgi_enabled',
     'set_sdfgi_cascades',
     'set_sdfgi_energy',
     'set_ssil_enabled',

@@ -189,6 +189,12 @@ const ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<s
   ['set_gi_mode', { kind: 'data', key: 'gi_mode' }],
   // A light's shadow drawn with back faces, which three's shadow map chooses by material side.
   ['set_shadow_reverse_cull_face', { kind: 'data', key: 'shadow_reverse_cull_face' }],
+  // A light's distance fade and shadow caster layers, which the page's lights do not draw.
+  ['set_enable_distance_fade', { kind: 'data', key: 'distance_fade_enabled' }],
+  ['set_distance_fade_begin', { kind: 'data', key: 'distance_fade_begin' }],
+  ['set_distance_fade_shadow', { kind: 'data', key: 'distance_fade_shadow' }],
+  ['set_distance_fade_length', { kind: 'data', key: 'distance_fade_length' }],
+  ['set_shadow_caster_mask', { kind: 'data', key: 'shadow_caster_mask' }],
 ]);
 
 const collected = (setters: readonly TargetGodotSceneSetterPlan[]): readonly TargetGodotSceneSetterPlan[] =>

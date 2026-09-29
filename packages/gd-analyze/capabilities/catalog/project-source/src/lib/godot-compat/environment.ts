@@ -57,6 +57,7 @@ export interface Environment {
   ssao_power: number;
   ssao_horizon: number;
   glow_levels: number[];
+  sdfgi_enabled: boolean;
   sdfgi_cascades: number;
   sdfgi_energy: number;
   ssil_enabled: boolean;
@@ -117,6 +118,7 @@ export function construct(): Environment {
     ssao_power: 1.5,
     ssao_horizon: f32(0.06),
     glow_levels: [0, f32(0.8), f32(0.4), f32(0.1), 0, 0, 0],
+    sdfgi_enabled: false,
     sdfgi_cascades: 4,
     sdfgi_energy: 1,
     ssil_enabled: false,
@@ -546,6 +548,7 @@ const PROPS: ReadonlyMap<string, (self: Environment, value: never) => void> = ne
   ['adjustmentSaturation', (self, value: number) => set_adjustment_saturation(self, value)],
   ['ssaoPower', (self, value: number) => set_ssao_power(self, value)],
   ['ssaoHorizon', (self, value: number) => set_ssao_horizon(self, value)],
+  ['sdfgiEnabled', (self, value: boolean) => set_sdfgi_enabled(self, value)],
   ['sdfgiCascades', (self, value: number) => set_sdfgi_cascades(self, value)],
   ['sdfgiEnergy', (self, value: number) => set_sdfgi_energy(self, value)],
   ['ssilEnabled', (self, value: boolean) => set_ssil_enabled(self, value)],
@@ -830,6 +833,24 @@ export function set_glow_level(self: Environment, level: number, intensity: numb
  */
 export function get_glow_level(self: Environment, level: number): number {
   return Number.isInteger(level) && level >= 0 && level < self.glow_levels.length ? (self.glow_levels[level] as number) : 0;
+}
+
+/**
+ * Stored: the Compatibility renderer, the web's, has no SDFGI.
+ *
+ * @godot Environment.set_sdfgi_enabled
+ * @source scene/resources/environment.cpp:469
+ */
+export function set_sdfgi_enabled(self: Environment, enabled: boolean): void {
+  self.sdfgi_enabled = enabled;
+}
+
+/**
+ * @godot Environment.is_sdfgi_enabled
+ * @source scene/resources/environment.cpp:474
+ */
+export function is_sdfgi_enabled(self: Environment): boolean {
+  return self.sdfgi_enabled;
 }
 
 /**
