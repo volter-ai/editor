@@ -62,6 +62,8 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
     ...(node.siblingIndex === undefined ? {} : { index: node.siblingIndex }),
     ...(castShadow?.kind === 'number' ? { cast_shadow: castShadow.value } : {}),
     ...(topLevel?.kind === 'bool' && topLevel.value ? { top_level: true } : {}),
+    // Values kept for their getters (`data` roles, `scene-surface-idioms.ts`).
+    ...Object.fromEntries(node.setters.flatMap((entry) => (entry.role?.kind === 'data' ? [[entry.role.key, plainValue(entry.value)] as const] : []))),
   };
 }
 
@@ -388,7 +390,7 @@ function instanceOf(node: DirectGodotSceneNodePlan, instanced: SceneWithoutRefs,
   const own = instanced.root.setters;
   const same = (entry: TargetGodotSceneSetterPlan) =>
     own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
-  const stated = node.setters.filter((entry) => entry.role?.kind !== 'visible' && entry.role?.kind !== 'transparency');
+  const stated = node.setters.filter((entry) => entry.role?.kind !== 'visible' && entry.role?.kind !== 'transparency' && entry.role?.kind !== 'data');
   const rootClass = godotSceneRootClass(scenes, instanced.sourceResPath);
   const rootIdiom = godotSceneRootIdiom(scenes, instanced.sourceResPath);
   return {

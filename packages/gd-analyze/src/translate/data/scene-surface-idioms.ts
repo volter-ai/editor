@@ -173,7 +173,7 @@ const COLLECTED: ReadonlyMap<string, NonNullable<TargetGodotSceneSetterPlan['col
 
 /**
  * The setters an element states apart from its own props, by the part they play: a Node3D's
- * `visible` (three's own prop) and a GeometryInstance3D's `transparency` (its `userData`), a
+ * `visible` (three's own prop), a GeometryInstance3D's `transparency` and GI mode (its `userData`), a
  * GeometryInstance3D's visibility range (`GodotVisibilityRange`'s props), a Camera3D's `current`.
  */
 const ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<string, TargetGodotSceneSetterPlan['role']>([
@@ -185,6 +185,10 @@ const ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<s
   ['set_visibility_range_end_margin', { kind: 'visibility-range', prop: 'endMargin' }],
   ['set_visibility_range_fade_mode', { kind: 'visibility-range', prop: 'fadeMode' }],
   ['set_current', { kind: 'current' }],
+  // A GeometryInstance3D's GI mode, which lights nothing on the page (`geometry-instance-3d.ts`).
+  ['set_gi_mode', { kind: 'data', key: 'gi_mode' }],
+  // A light's shadow drawn with back faces, which three's shadow map chooses by material side.
+  ['set_shadow_reverse_cull_face', { kind: 'data', key: 'shadow_reverse_cull_face' }],
 ]);
 
 const collected = (setters: readonly TargetGodotSceneSetterPlan[]): readonly TargetGodotSceneSetterPlan[] =>

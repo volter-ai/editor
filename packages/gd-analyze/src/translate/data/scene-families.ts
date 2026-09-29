@@ -54,7 +54,7 @@ const VISIBILITY_RANGE = [
 // Godot's visibility in the tree does.
 const NODE_3D = ['set_visible'];
 // A GeometryInstance3D's `transparency`: stored, never drawn by the web's renderer (`geometry-instance-3d.ts`).
-const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency'];
+const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency', 'set_gi_mode'];
 // A Node's `physics_interpolation_mode`, which every compat element takes (`useGodotElement`); stored
 // (`node.ts`: nothing is interpolated between physics ticks).
 const NODE_ELEMENT = ['set_physics_interpolation_mode'];
@@ -99,6 +99,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   // leaves no casters behind its near plane for a pancake to flatten (`renderer_scene_cull.cpp:2339`).
   DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:16', 'set_param:17', 'set_param:18', 'set_shadow_mode', 'set_blend_splits'],
   OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
+  // A spot light's angle (7) and its falloff to the rim (8) are three's cone and penumbra.
+  SpotLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_param:7', 'set_param:8', 'set_shadow', 'set_shadow_reverse_cull_face', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
   Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size', 'set_attributes'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.

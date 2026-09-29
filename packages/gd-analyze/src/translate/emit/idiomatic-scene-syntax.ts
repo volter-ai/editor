@@ -552,7 +552,7 @@ function visibleProp(setters: readonly TargetGodotSceneSetterPlan[]): TargetTsJs
 
 /** A node with its visible and transparency setters (their planned roles) taken out, for the element's own props. */
 function withoutSpatial(node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan {
-  const spatial = (entry: TargetGodotSceneSetterPlan) => entry.role?.kind === 'visible' || entry.role?.kind === 'transparency';
+  const spatial = (entry: TargetGodotSceneSetterPlan) => entry.role?.kind === 'visible' || entry.role?.kind === 'transparency' || entry.role?.kind === 'data';
   return node.setters.some(spatial) ? { ...node, setters: node.setters.filter((entry) => !spatial(entry)) } : node;
 }
 

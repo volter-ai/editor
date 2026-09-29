@@ -116,7 +116,9 @@ export function set_gi_mode(self: object, mode: number): void {
  * @source scene/3d/visual_instance_3d.cpp:492
  */
 export function get_gi_mode(self: object): number {
-  return GI_MODE.get(self) ?? 1;
+  // A scene states it in the node's `userData`.
+  const stated = (self as Partial<Object3D>).userData?.['gi_mode'];
+  return GI_MODE.get(self) ?? (typeof stated === 'number' ? stated : 1);
 }
 
 // --- Material override: drawn by the node's own drawing.

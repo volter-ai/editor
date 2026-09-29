@@ -1280,6 +1280,8 @@ export function familyElement(
         attributes: [
           // Godot's directional light shines along its -Z; three's toward its target, which this
           // aims; its Godot state is the values the scene authors (the sky pass reads them).
+          // A spot light aims along its -Z by compat's hand, as the directional light's pass does.
+          ...(light.aim === undefined ? [] : [attribute('onUpdate', identifier(useCompat(emission, light.aim.module, light.aim.exportName)))]),
           ...(authored === undefined
             ? []
             : [

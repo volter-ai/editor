@@ -18,7 +18,7 @@ export type GodotSceneNodeIdiomForm =
   /** A MeshInstance3D: three's `<mesh>` with its surfaces' geometry and materials. */
   | { readonly kind: 'mesh' }
   /** A Light3D: three's `<directionalLight>` or `<pointLight>`. */
-  | { readonly kind: 'light'; readonly directional: boolean }
+  | { readonly kind: 'light'; readonly directional: boolean; readonly spot?: true }
   /** A Camera3D: drei's `<PerspectiveCamera>` with Godot's lens. */
   | { readonly kind: 'camera' }
   /** A ReflectionProbe: the game editor's reflections capability. */
@@ -151,6 +151,12 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     three: 'PointLight',
     scaleless: true,
     source: ctor('OmniLight3D', 'scene/3d/light_3d.cpp', 661),
+  },
+  SpotLight3D: {
+    form: { kind: 'light', directional: false, spot: true },
+    three: 'SpotLight',
+    scaleless: true,
+    source: ctor('SpotLight3D', 'scene/3d/light_3d.cpp', 679),
   },
   Camera3D: {
     form: { kind: 'camera' },

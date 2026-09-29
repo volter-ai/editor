@@ -232,7 +232,9 @@ export interface TargetGodotSceneSetterPlan {
     | { readonly kind: 'visible' }
     | { readonly kind: 'transparency' }
     | { readonly kind: 'visibility-range'; readonly prop: string }
-    | { readonly kind: 'current' };
+    | { readonly kind: 'current' }
+    /** A value kept in the node's `userData` under `key` for its getter, drawing nothing. */
+    | { readonly kind: 'data'; readonly key: string };
   /** The one prop of its element or resource it joins with the others of its kind (`scene-surface-idioms.ts`). */
   readonly collect?: 'libraries' | 'parameters' | 'meta' | 'shader' | 'shader-parameter' | 'theme';
   /** On an imported model's own node: the part of the model's element it sets (`MODEL_OVERRIDE_SLOTS`). */
@@ -1913,7 +1915,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
     idiom,
-    ...(idiom.form.kind === 'light' ? { light: godotSceneLightPlan(setters, idiom.form.directional) } : {}),
+    ...(idiom.form.kind === 'light' ? { light: godotSceneLightPlan(setters, idiom.form.directional, idiom.form.spot === true) } : {}),
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     properties,
     groups,
