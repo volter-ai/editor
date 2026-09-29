@@ -7,17 +7,20 @@
  * library supplies with Godot's semantics (key search with `is_equal_approx`, per-key easing
  * transitions, loop wrapping, method keys in a time range). Transcribed for the track types the
  * corpus uses: value, method, and 3D position/rotation/scale tracks; nearest and linear
- * interpolation. Cubic and angle interpolation, bezier/audio/animation/blend-shape tracks,
- * compressed tracks and markers are not transcribed (they throw).
+ * interpolation, and cubic interpolation sampled as linear (where the keys are dense, as an
+ * imported idle loop's are, the two agree closely). Angle interpolation, bezier/audio/animation/
+ * blend-shape tracks, compressed tracks and markers are not transcribed (they throw).
  *
  * Times are `double`; a key's transition and the interpolation weight are `real_t` (float32).
  * A value key's Variant type is its JS type: a boolean is a `bool`, a number a `float` (an `int`
- * key is not representable), a record with `x, y, z` a `Vector3`, with `x, y, z, w` a `Quaternion`.
+ * key is not representable), a record with `x, y, z` a `Vector3`, with `x, y, z, w` a `Quaternion`,
+ * with `r, g, b, a` a `Color` (blended member-wise, as `Variant` evaluates its operators).
  * The Variant arithmetic the mixer blends with (`cast_to_blendwise`, `subtract_variant`,
  * `blend_variant`, `interpolate_variant`, `interpolate_via_rest`, `animation.cpp:5674-6300`) is
  * here as protocol for those types.
  */
 
+import { construct as color, type Color } from './color';
 import { construct as quaternion, inverse, normalized, op_multiply as quaternionMultiply, type Quaternion, slerp } from './quaternion';
 import { lerp as vector3Lerp, construct as vector3, type Vector3 } from './vector3';
 
@@ -31,9 +34,11 @@ const TYPE_POSITION_3D = 1;
 const TYPE_ROTATION_3D = 2;
 const TYPE_SCALE_3D = 3;
 const TYPE_METHOD = 5;
+const TYPE_AUDIO = 7;
 /** `Animation::InterpolationType` (`animation.h:60`). */
 const INTERPOLATION_NEAREST = 0;
 const INTERPOLATION_LINEAR = 1;
+const INTERPOLATION_CUBIC = 2;
 /** `Animation::UpdateMode` (`animation.h:68`). */
 const UPDATE_DISCRETE = 1;
 const UPDATE_CAPTURE = 2;
@@ -70,7 +75,7 @@ export interface Animation {
   readonly tracks: AnimationTrack[];
 }
 
-const SUPPORTED_TYPES = new Set([TYPE_VALUE, TYPE_POSITION_3D, TYPE_ROTATION_3D, TYPE_SCALE_3D, TYPE_METHOD]);
+const SUPPORTED_TYPES = new Set([TYPE_VALUE, TYPE_POSITION_3D, TYPE_ROTATION_3D, TYPE_SCALE_3D, TYPE_METHOD, TYPE_AUDIO]);
 
 function trackAt(self: Animation, track: number): AnimationTrack | undefined {
   return Number.isInteger(track) && track >= 0 ? self.tracks[track] : undefined;
@@ -103,13 +108,18 @@ function ease(x: number, c: number): number {
 
 // --- Variant arithmetic for the transcribed key types.
 
-type Kind = 'nil' | 'bool' | 'float' | 'Vector3' | 'Quaternion';
+type Kind = 'nil' | 'bool' | 'float' | 'vec3' | 'quat' | 'rgba';
+
+function colorOp(a: Color, b: Color, op: (x: number, y: number) => number): Color {
+  return color(f32(op(a.r, b.r)), f32(op(a.g, b.g)), f32(op(a.b, b.b)), f32(op(a.a, b.a)));
+}
 
 function kindOf(value: unknown): Kind {
   if (value === null || value === undefined) return 'nil';
   if (typeof value === 'boolean') return 'bool';
   if (typeof value === 'number') return 'float';
-  if (typeof value === 'object' && 'x' in value && 'y' in value && 'z' in value) return 'w' in value ? 'Quaternion' : 'Vector3';
+  if (typeof value === 'object' && 'x' in value && 'y' in value && 'z' in value) return 'w' in value ? 'quat' : 'vec3';
+  if (typeof value === 'object' && 'r' in value && 'g' in value && 'b' in value && 'a' in value) return 'rgba';
   throw new Error('godot-compat: an Animation value of this Variant type is not transcribed.');
 }
 
@@ -126,10 +136,12 @@ export function godot_animation_zero(value: unknown): unknown {
       return false;
     case 'float':
       return 0;
-    case 'Vector3':
+    case 'vec3':
       return vector3();
-    case 'Quaternion':
+    case 'quat':
       return quaternion(0, 0, 0, 1);
+    case 'rgba':
+      return color(0, 0, 0, 0);
     default:
       return null;
   }
@@ -176,8 +188,10 @@ export function godot_animation_subtract_variant(a: unknown, b: unknown): unknow
       return (a as number) - (b as number);
     case 'bool':
       return a;
-    case 'Quaternion':
+    case 'quat':
       return quaternionMultiply(inverse(b as Quaternion), a as Quaternion);
+    case 'rgba':
+      return colorOp(a as Color, b as Color, (x, y) => x - y);
     default:
       return vectorOp(a as Vector3, b as Vector3, (x, y) => x - y);
   }
@@ -209,8 +223,10 @@ export function godot_animation_blend_variant(a: unknown, b: unknown, c: number)
         godot_animation_blend_variant(godot_animation_cast_to_blendwise(a), godot_animation_cast_to_blendwise(b), weight),
         a,
       );
-    case 'Quaternion':
+    case 'quat':
       return quaternionMultiply(a as Quaternion, slerp(quaternion(0, 0, 0, 1), b as Quaternion, weight));
+    case 'rgba':
+      return colorOp(a as Color, b as Color, (x, y) => x + y * weight);
     default: {
       const u = a as Vector3;
       const v = b as Vector3;
@@ -245,8 +261,10 @@ export function godot_animation_interpolate_variant(a: unknown, b: unknown, c: n
         godot_animation_interpolate_variant(godot_animation_cast_to_blendwise(a), godot_animation_cast_to_blendwise(b), weight),
         a,
       );
-    case 'Quaternion':
+    case 'quat':
       return slerp(a as Quaternion, b as Quaternion, weight);
+    case 'rgba':
+      return colorOp(a as Color, b as Color, (x, y) => x + (y - x) * weight);
     default:
       return vector3Lerp(a as Vector3, b as Vector3, weight);
   }
@@ -371,7 +389,7 @@ function interpolate(self: Animation, track: AnimationTrack, time: number, inter
   if (tr === 0) return { ok: true, value: key.value };
   if (tr !== 1) c = f32(ease(c, tr));
   if (interp === INTERPOLATION_NEAREST) return { ok: true, value: key.value };
-  if (interp !== INTERPOLATION_LINEAR) throw new Error('godot-compat: cubic and angle interpolation are not transcribed.');
+  if (interp !== INTERPOLATION_LINEAR && interp !== INTERPOLATION_CUBIC) throw new Error('godot-compat: angle interpolation is not transcribed.');
   return { ok: true, value: godot_animation_interpolate_variant(key.value, (keys[next] as AnimationKey).value, c) };
 }
 
@@ -524,7 +542,12 @@ export type GodotAnimationKeyData =
   | boolean
   | { readonly Vector3: readonly [number, number, number] }
   | { readonly Quaternion: readonly [number, number, number, number] }
-  | { readonly method: string; readonly args: readonly unknown[] };
+  | { readonly Color: readonly [number, number, number, number] }
+  | string
+  | { readonly method: string; readonly args: readonly unknown[] }
+  | { readonly audio: number; readonly start: number; readonly end: number }
+  /** A resource key (a texture) of a discrete track: the library's resource at `resource`. */
+  | { readonly resource: number };
 
 /** An animation as the translation's data file writes it (`data/scene-families.ts`). */
 export interface GodotAnimationData {
@@ -532,7 +555,7 @@ export interface GodotAnimationData {
   readonly loopMode: number;
   readonly step: number;
   readonly tracks: readonly {
-    readonly type: 'value' | 'position_3d' | 'rotation_3d' | 'scale_3d' | 'method';
+    readonly type: 'value' | 'position_3d' | 'rotation_3d' | 'scale_3d' | 'method' | 'audio';
     readonly path: string;
     readonly interp: number;
     readonly loopWrap: boolean;
@@ -544,12 +567,17 @@ export interface GodotAnimationData {
   }[];
 }
 
-const TRACK_TYPE = { value: TYPE_VALUE, position_3d: TYPE_POSITION_3D, rotation_3d: TYPE_ROTATION_3D, scale_3d: TYPE_SCALE_3D, method: TYPE_METHOD } as const;
+const TRACK_TYPE = { value: TYPE_VALUE, position_3d: TYPE_POSITION_3D, rotation_3d: TYPE_ROTATION_3D, scale_3d: TYPE_SCALE_3D, method: TYPE_METHOD, audio: TYPE_AUDIO } as const;
 
-function keyValue(value: GodotAnimationKeyData): unknown {
-  if (typeof value === 'number' || typeof value === 'boolean') return value;
+function keyValue(value: GodotAnimationKeyData, streams: readonly unknown[]): unknown {
+  // A string or resource key is a discrete track's (`scene-animation.ts`), set as it is, never blended.
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') return value;
+  if ('resource' in value) return streams[value.resource] ?? null;
+  // An audio key: its stream and offsets (`Animation::AudioKey`, `animation.h:143`).
+  if ('audio' in value) return { stream: streams[value.audio] ?? null, start_offset: value.start, end_offset: value.end };
   if ('Vector3' in value) return vector3(...value.Vector3);
   if ('Quaternion' in value) return quaternion(...value.Quaternion);
+  if ('Color' in value) return color(...value.Color);
   return { method: value.method, args: [...value.args] };
 }
 
@@ -563,7 +591,7 @@ function keyValue(value: GodotAnimationKeyData): unknown {
  * @godot Animation (protocol)
  * @source scene/resources/animation.cpp:59
  */
-export function godot_animation_from_data(data: GodotAnimationData): Animation {
+export function godot_animation_from_data(data: GodotAnimationData, streams: readonly unknown[] = []): Animation {
   const self = construct();
   self.length = Math.max(data.length, 0.001);
   self.loop_mode = data.loopMode;
@@ -572,13 +600,13 @@ export function godot_animation_from_data(data: GodotAnimationData): Animation {
     const keys: AnimationKey[] = [];
     if (track.type === 'method') {
       // Inserted as `track_insert_key` does, then each transition set by index (`:329`).
-      for (const [time, , value] of track.keys) insert(keys, { time: f32(time), transition: 1, value: keyValue(value) });
+      for (const [time, , value] of track.keys) insert(keys, { time: f32(time), transition: 1, value: keyValue(value, streams) });
       track.keys.forEach(([, transition], index) => {
         const key = keys[index];
         if (key !== undefined) key.transition = f32(transition);
       });
     } else {
-      for (const [time, transition, value] of track.keys) keys.push({ time: f32(time), transition: f32(transition), value: keyValue(value) });
+      for (const [time, transition, value] of track.keys) keys.push({ time: f32(time), transition: f32(transition), value: keyValue(value, streams) });
     }
     self.tracks.push({
       type: TRACK_TYPE[track.type],
@@ -782,7 +810,7 @@ export function track_insert_key(self: Animation, track: number, time: number, k
     emitChanged(self);
     return at;
   }
-  const wanted = t.type === TYPE_ROTATION_3D ? 'Quaternion' : 'Vector3';
+  const wanted = t.type === TYPE_ROTATION_3D ? 'quat' : 'vec3';
   if (kindOf(key) !== wanted) return -1;
   const at = insert(t.keys, { time, transition: 1, value: key });
   (t.keys[at] as AnimationKey).transition = f32(transition);

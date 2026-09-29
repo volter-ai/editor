@@ -6,6 +6,7 @@
  * module's imports are read from the capability's own source, a plan input the toolchain snapshot
  * froze. Emit prints what this plans and refuses an import of a capability file it does not list.
  */
+import { godotCompositionHasControls, godotSceneRendersDom } from '../data/scene-refs';
 import * as path from 'node:path';
 import ts from 'typescript';
 import type { BoundGodotLifecycleEntry } from '../../analyze/bound-project';
@@ -58,6 +59,9 @@ function resourceModules(resource: TargetGodotSceneResourcePlan): readonly strin
       return ['shader-material'];
     case 'mesh-library':
       return ['mesh-library'];
+    // A collider's shape is Rapier's; a shape a node takes as a value (a cast's) is constructed.
+    case 'collider':
+      return [resource.construct.module];
     case 'animation-library':
       return ['animation-library'];
     case 'animation-tree':
@@ -90,13 +94,25 @@ function nodeModules(node: DirectGodotSceneNodePlan): readonly string[] {
       break;
     case 'light':
       if (form.directional) modules.push('directional-light-3d');
+      // A spot light aims itself by compat's hand (`scene-light-idioms.ts`).
+      if (node.light?.aim !== undefined) modules.push(node.light.aim.module);
       break;
     case 'camera':
       if (node.setters.some((setter) => setter.setter.exportName === 'set_environment')) modules.push('camera-3d');
       break;
+    case 'dom':
+      // A Control's element: the calls its events make (a touch button's action).
+      for (const call of Object.values(node.dom?.events ?? {})) modules.push(call.module);
+      // A touch-only element asks the display server (`display-server.ts`).
+      if (Object.values(node.dom?.style ?? {}).some((value) => typeof value === 'object' && 'touchscreenOnly' in value)) modules.push('display-server');
+      // A tinted element's filter (`canvas-item.ts`).
+      if (Object.values(node.dom?.style ?? {}).some((value) => typeof value === 'object' && 'tint' in value)) modules.push('canvas-item');
+      break;
     case 'body':
       if (form.sensor) modules.push('area-3d');
       if (form.type === 'dynamic') modules.push('rigid-body-3d');
+      // The body's driver (a vehicle's controller), rendered inside it.
+      if (form.driver !== undefined) modules.push(form.driver.module);
       break;
     default:
       break;
@@ -110,6 +126,8 @@ function nodeModules(node: DirectGodotSceneNodePlan): readonly string[] {
   }
   modules.push(...bindingModules(node.animation));
   if (node.scriptInstance !== undefined) modules.push('react-lifecycle', ...lifecycleModules(node.scriptInstance.lifecycle));
+  // Controls under a node that renders no element hang in a host standing for it (`godot_element_dom_host`).
+  if (!godotSceneRendersDom(node) && node.children.some(godotSceneRendersDom)) modules.push('react-lifecycle');
   return modules;
 }
 
@@ -126,12 +144,24 @@ export function godotCapabilityRequirements(
   // The world (`direct-project-world-syntax.ts`): the host hooks, the settings and InputMap loads, its autoloads.
   modules.push('main', 'advance', 'input');
   if (composition.projectSettings.length > 0) modules.push('project-settings');
+  // The world sets the bus layout through the audio protocol (`projectDataLoad`).
+  if (composition.audioBuses.length > 1 || composition.audioBuses.some((bus) => bus.volumeDb !== 0 || bus.mute || bus.solo || bus.bypassFx)) modules.push('audio-stream');
+  // A preloaded resource's module (`resource-module-syntax.ts`): its resources, the images it loads
+  // as it is evaluated and the handle of its resource.
+  for (const module of composition.resourceModules) {
+    for (const resource of module.resources) modules.push(...resourceModules(resource));
+    if (module.resources.some((resource) => resource.load !== undefined)) modules.push('compressed-texture-2d', 'base-material-3d');
+    if (module.handle !== undefined) modules.push(module.handle.module);
+  }
   for (const autoload of composition.scriptAutoloads) modules.push('react-lifecycle', ...lifecycleModules(autoload.lifecycle));
+  // The page's Controls (`direct-project-ui-syntax.ts`): the overlay stretched as the project stretches its 2D.
+  if (godotCompositionHasControls(composition)) modules.push('godot-controls');
   for (const scene of composition.scenes) {
     // Every scene component enters the tree through `useGodotScene`.
     modules.push('react-lifecycle');
+    // A resource only Controls' CSS draws is constructed by no module (`domOnly`).
     for (const resource of scene.resources) {
-      modules.push(...resourceModules(resource));
+      if (resource.domOnly !== true) modules.push(...resourceModules(resource));
     }
     for (const connection of scene.connections) modules.push(connection.accessor.module);
     const visit = (node: DirectGodotSceneNodePlan): void => {
@@ -152,7 +182,11 @@ export function godotCapabilityRequirements(
   return required;
 }
 
-/** The module specifiers a capability source file imports: static imports and re-exports, `import()`, and `new URL(…, import.meta.url)`. */
+/**
+ * The module specifiers a capability source file imports: static imports and re-exports, `import()`,
+ * `new URL(…, import.meta.url)`, and the declaration files its `/// <reference path>` directives name
+ * (a package's types compat declares itself).
+ */
 function capabilityImports(copy: CapabilityCopyArtifact): readonly string[] {
   const text = Buffer.from(copy.bytes).toString('utf8');
   const source = ts.createSourceFile(copy.path, text, ts.ScriptTarget.Latest, false, copy.path.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
@@ -175,7 +209,19 @@ function capabilityImports(copy: CapabilityCopyArtifact): readonly string[] {
     ts.forEachChild(node, visit);
   };
   visit(source);
+  for (const reference of source.referencedFiles) found.push(reference.fileName);
   return found;
+}
+
+/** A bare specifier's package: `three/examples/…` is `three`, `@react-three/fiber/x` is `@react-three/fiber`. */
+function packageOf(specifier: string): string {
+  const parts = specifier.split('/');
+  return specifier.startsWith('@') ? parts.slice(0, 2).join('/') : (parts[0] as string);
+}
+
+/** The npm packages capability files import, each by its bare specifier's package. */
+export function godotCapabilityPackages(copies: readonly CapabilityCopyArtifact[]): ReadonlySet<string> {
+  return new Set(copies.filter((copy) => isCode(copy.path)).flatMap((copy) => capabilityImports(copy).filter((specifier) => !specifier.startsWith('.')).map(packageOf)));
 }
 
 /** The copied file a project path names, as a bundler resolves it (`x`, `x.ts`, `x.tsx`, `x/index.ts`). */

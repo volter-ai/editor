@@ -7,8 +7,10 @@
  * `scene/main/node.cpp` at revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`.
  *
  * A node is its native entity: a `THREE.Object3D` (a plain `Node` is a `Group` compat marks
- * non-spatial, so Node3D's parent rule skips it). Its parent and children are three's own links
- * and its name is the Object3D's `name`; everything else Godot keeps on a Node lives in `NODE`,
+ * non-spatial, so Node3D's parent rule skips it), or, for a Control, the DOM element its component
+ * renders. Its parent and children are three's own links or the DOM's, and its name is the
+ * Object3D's `name` or the element's `data-name`; a CanvasLayer's Controls hang from the element
+ * the layer renders them in (`godot_node_dom_host`). Everything else Godot keeps on a Node lives in `NODE`,
  * keyed by the entity: the script binding (the generated script instance and its callbacks),
  * groups, tree membership, ready state, processing flags, process mode and priority, and the
  * hierarchy authority that owns the entity's attachment.
@@ -27,6 +29,10 @@ import type { Object3D } from 'three';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import { create_tween as treeCreateTween, get_root, godot_tree, godot_tree_process_delta, godot_tree_set_root, queue_delete, type SceneTree } from './scene-tree';
 import { bind_node, type Tween } from './tween';
+
+/** A Variant: whatever the value holds, as the script uses it (a node's children are nodes it reads as any class). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Variant = any;
 
 /** The native entity's hierarchy operations for nodes the composition site renders. */
 export interface NativeHierarchyAuthority {
@@ -181,8 +187,63 @@ function objectOf(entity: object): object {
   return NODE.get(entity)?.binding?.owner ?? entity;
 }
 
+/** Whether an entity is a DOM element (a Control's), not a three object. */
+function isElement(entity: object): entity is HTMLElement {
+  return typeof HTMLElement !== 'undefined' && entity instanceof HTMLElement;
+}
+
+/** The element each CanvasLayer renders its Controls in, and the layer each such element stands for. */
+const DOM_HOSTS = new WeakMap<object, HTMLElement>();
+const HOSTED_BY = new WeakMap<HTMLElement, object>();
+
+/**
+ * The element a node renders its DOM children in (a CanvasLayer's overlay): its Controls' parent is
+ * the node, and the node's children include them after its three children. Null when it unmounts.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/canvas_layer.cpp:359
+ */
+export function godot_node_dom_host(node: object, host: HTMLElement | null): void {
+  const previous = DOM_HOSTS.get(node);
+  if (previous !== undefined) HOSTED_BY.delete(previous);
+  if (host === null) DOM_HOSTS.delete(node);
+  else {
+    DOM_HOSTS.set(node, host);
+    HOSTED_BY.set(host, node);
+  }
+}
+
+/**
+ * The element a node renders its Controls in, when it does (`godot_node_dom_host`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/canvas_layer.cpp:359
+ */
+export function godot_node_dom_host_of(node: object): HTMLElement | undefined {
+  return DOM_HOSTS.get(entityOf(node));
+}
+
+/**
+ * The native parent that is a Godot node: a nameless group the Node protocol has not met (a
+ * component's own inner group, as a SpringArm3D's holds its children) stands aside, as it does
+ * among the children (`childEntities`).
+ */
 function parentEntity(entity: object): object | null {
-  return (entity as Object3D).parent ?? null;
+  if (!isElement(entity)) {
+    let parent = (entity as Object3D).parent ?? null;
+    while (parent !== null && !NODE.has(parent) && !FOREIGN.has(parent) && nameOf(parent) === '' && parent.parent !== null) parent = parent.parent;
+    return parent;
+  }
+  const parent = entity.parentElement;
+  return parent === null ? null : (HOSTED_BY.get(parent) ?? parent);
+}
+
+/** An entity's own native children: three's, then a DOM host's elements, or an element's. */
+function nativeChildren(entity: object): readonly object[] {
+  if (isElement(entity)) return [...entity.children];
+  const host = DOM_HOSTS.get(entity);
+  const own = (entity as Object3D).children ?? [];
+  return host === undefined ? own : [...own, ...host.children];
 }
 
 /**
@@ -192,7 +253,7 @@ function parentEntity(entity: object): object | null {
  * and its children stand in its place.
  */
 function childEntities(entity: object): readonly object[] {
-  return ((entity as Object3D).children ?? []).flatMap((child) =>
+  return nativeChildren(entity).flatMap((child) =>
     FOREIGN.has(child) ? [] : NODE.has(child) || nameOf(child) !== '' ? [child] : childEntities(child),
   );
 }
@@ -212,7 +273,27 @@ export function godot_node_foreign(object: object): void {
 }
 
 function nameOf(entity: object): string {
+  if (isElement(entity)) return entity.dataset['name'] ?? '';
   return (entity as { name?: string }).name ?? '';
+}
+
+/**
+ * The Godot-only state the scene states on a node: an Object3D's `userData`, or an element's
+ * `data-*` attributes (`data-groups` space-separated, `data-classes` nearest first, `data-index`,
+ * `data-process-mode`, `data-unique-name-in-owner`).
+ */
+function declaredData(entity: object): Readonly<Record<string, unknown>> {
+  if (!isElement(entity)) return ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+  const data = entity.dataset;
+  const words = (value: string | undefined) => (value === undefined || value === '' ? undefined : value.split(' '));
+  const number = (value: string | undefined) => (value === undefined ? undefined : Number(value));
+  return {
+    ...(words(data['groups']) === undefined ? {} : { groups: words(data['groups']) }),
+    ...(words(data['classes']) === undefined ? {} : { classes: words(data['classes']) }),
+    ...(number(data['index']) === undefined ? {} : { index: number(data['index']) }),
+    ...(number(data['processMode']) === undefined ? {} : { process_mode: number(data['processMode']) }),
+    ...(data['uniqueNameInOwner'] === 'true' ? { unique_name_in_owner: true } : {}),
+  };
 }
 
 // --- Protocol: the composition site's entry points.
@@ -375,6 +456,23 @@ export function godot_script_call(value: unknown, method: string, scripts: reado
 }
 
 /**
+ * `Script.new(...)` (`GDScript::_new`): the script's instance over a new object of its native class
+ * (`native`, made by that class's constructor), bound as that object's script, then its `_init`
+ * run with the arguments (`GDScriptInstance` construction calls the implicit initializer, then
+ * `_init`, gdscript.cpp:151).
+ *
+ * @godot Node (protocol)
+ * @source modules/gdscript/gdscript.cpp:151
+ */
+export function godot_script_new<Instance extends object>(ScriptClass: new (native: object) => Instance, native: object, args: readonly unknown[]): Instance {
+  const instance = new ScriptClass(native);
+  godot_node_adopt(native, { binding: { owner: instance } });
+  const init = (instance as Record<string, unknown>)['_init'];
+  if (typeof init === 'function') (init as (...values: unknown[]) => unknown).apply(instance, [...args]);
+  return instance;
+}
+
+/**
  * `value as ScriptClass`: the object when its script is the script or derives from it, else null
  * (`OPCODE_CAST_TO_SCRIPT`).
  *
@@ -405,7 +503,7 @@ export function godot_node_scene_root(entity: object): void {
 
 /**
  * The Godot-only state a node the JSX declares seeds from its `userData`, as it first enters the
- * tree: its groups, in authored order (added as the scene instantiates, `packed_scene.cpp:511`),
+ * tree: its `process_mode`, its groups, in authored order (added as the scene instantiates, `packed_scene.cpp:511`),
  * and, owned by the nearest scene root above it, whether its owner finds it as `%Name`
  * (`unique_name_in_owner`). A node the composition recorded keeps what it recorded.
  */
@@ -420,12 +518,15 @@ function seedDeclared(entity: object): void {
       break;
     }
   }
-  const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+  const data = declaredData(entity);
   for (const group of (data['groups'] ?? []) as readonly string[]) if (!state.groups.includes(group)) state.groups.push(group);
   // An explicit sibling position (`index`): the scene moves the node there once added, when that is
   // before where it was added (`SceneState::instantiate`, packed_scene.cpp:545).
   const index = data['index'];
-  if (typeof index === 'number') moveToIndex(entity as Object3D, index);
+  if (typeof index === 'number') moveToIndex(entity, index);
+  // Its authored `process_mode` (`Node::set_process_mode`, the low three bits it stores).
+  const processMode = data['process_mode'];
+  if (typeof processMode === 'number') state.processMode = processMode & 7;
   if (data['unique_name_in_owner'] === true) {
     if (state.owner === undefined) throw new Error(`godot-compat: %${nameOf(entity)} has no scene root to own it.`);
     stateOf(state.owner).uniqueNodes.set(nameOf(entity), entity);
@@ -437,15 +538,24 @@ function seedDeclared(entity: object): void {
  * before its own. Three's children hold objects that are not nodes (a model's surfaces) too: the
  * node goes before the node now at `index`.
  */
-function moveToIndex(entity: Object3D, index: number): void {
-  const parent = entity.parent;
+function moveToIndex(entity: object, index: number): void {
+  if (isElement(entity)) {
+    const parent = entity.parentElement;
+    if (parent === null) return;
+    const siblings = [...parent.children].filter((child) => NODE.has(child) || nameOf(child) !== '');
+    const position = siblings.indexOf(entity);
+    if (index < 0 || index >= position) return;
+    parent.insertBefore(entity, siblings[index] as Element);
+    return;
+  }
+  const parent = (entity as Object3D).parent;
   if (parent === null) return;
   const siblings = parent.children.filter((child) => !FOREIGN.has(child) && (NODE.has(child) || nameOf(child) !== ''));
-  const position = siblings.indexOf(entity);
+  const position = siblings.indexOf(entity as Object3D);
   if (index < 0 || index >= position) return;
   const before = siblings[index] as Object3D;
-  parent.children.splice(parent.children.indexOf(entity), 1);
-  parent.children.splice(parent.children.indexOf(before), 0, entity);
+  parent.children.splice(parent.children.indexOf(entity as Object3D), 1);
+  parent.children.splice(parent.children.indexOf(before), 0, entity as Object3D);
 }
 
 /**
@@ -459,29 +569,22 @@ export function godot_node_class_reader(reader: (entity: object) => readonly str
   if (!CLASS_READERS.includes(reader)) CLASS_READERS.push(reader);
 }
 
-const CAMERA_3D = Object.freeze(['Camera3D', 'Node3D', 'Node', 'Object']);
-const DIRECTIONAL_LIGHT_3D = Object.freeze(['DirectionalLight3D', 'Light3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object']);
-const MESH_INSTANCE_3D = Object.freeze(['MeshInstance3D', 'GeometryInstance3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object']);
-const NODE_3D = Object.freeze(['Node3D', 'Node', 'Object']);
 
 /**
- * A node's Godot classes: the ones its composition recorded, else the ones its JSX states, read
- * from the three object it mounts (a named camera, directional light or mesh, else a Node3D) or
- * from a module's reader.
+ * A node's Godot classes: the ones its composition recorded, else the ones its scene states in its
+ * `userData` (a node three or Rapier mounts), else a module's reader's.
  */
 function nodeClasses(entity: object): readonly string[] | undefined {
   const recorded = NODE.get(entity)?.classes ?? godot_input_event_classes(entity);
   if (recorded !== undefined) return recorded;
+  // The classes the scene states for a node three or Rapier mounts (its `userData`).
+  const stated = declaredData(entity)['classes'];
+  if (Array.isArray(stated)) return stated as readonly string[];
   for (const reader of CLASS_READERS) {
     const read = reader(entity);
     if (read !== undefined) return read;
   }
-  const three = entity as { readonly isObject3D?: boolean; readonly isCamera?: boolean; readonly isDirectionalLight?: boolean; readonly isMesh?: boolean };
-  if (three.isObject3D !== true || nameOf(entity) === '') return undefined;
-  if (three.isCamera === true) return CAMERA_3D;
-  if (three.isDirectionalLight === true) return DIRECTIONAL_LIGHT_3D;
-  if (three.isMesh === true) return MESH_INSTANCE_3D;
-  return NODE_3D;
+  return undefined;
 }
 
 /** The Godot classes of an object's native entity; one with none is an error. */
@@ -566,7 +669,7 @@ export function godot_node_processing(entity: object): {
     insideTree: state.insideTree,
     process: state.process,
     physicsProcess: state.physicsProcess,
-    canProcess: processModeAllows(entity, state, false),
+    canProcess: processModeAllows(entity, state),
     processPriority: state.processPriority,
     physicsProcessPriority: state.physicsProcessPriority,
     internalPhysics: state.internalPhysics,
@@ -607,7 +710,7 @@ export function godot_node_set_internal_process(entity: object, process: ((delta
  */
 export function godot_node_advance(entity: object, physics: boolean, delta: number): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree || state.queued || !processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || state.queued || !processModeAllows(entity, state)) return;
   (physics ? state.internalPhysics : state.internalProcess)?.(delta);
 }
 
@@ -681,12 +784,18 @@ export function godot_node_is_freed(object: object): boolean {
 function attach(parent: object, child: object): void {
   const authority = NODE.get(child)?.authority;
   if (authority !== undefined) authority.attach(parent, child);
-  else (parent as Object3D).add(child as Object3D);
+  else if (isElement(child)) {
+    // A Control goes into its parent Control's element, or the layer's overlay.
+    const host = isElement(parent) ? parent : DOM_HOSTS.get(parent);
+    if (host === undefined) throw new Error('godot-compat: a Control added under a node that renders no DOM.');
+    host.appendChild(child);
+  } else (parent as Object3D).add(child as Object3D);
 }
 
 function detach(parent: object, child: object): void {
   const authority = NODE.get(child)?.authority;
   if (authority !== undefined) authority.detach(parent, child);
+  else if (isElement(child)) child.remove();
   else (parent as Object3D).remove(child as Object3D);
 }
 
@@ -841,6 +950,7 @@ function duplicateEntity(source: object, flags: number): object {
   }
   // Some three classes' `copy` recurses whatever it is asked (a light's): the copy's children are
   // rebuilt here.
+  if (isElement(source)) throw new Error('godot-compat: Node.duplicate of a Control is not transcribed.');
   const copy = (source as Object3D).clone(false).clear();
   for (const child of childEntities(source)) {
     if (!NODE.has(child)) copy.add((child as Object3D).clone(true));
@@ -951,16 +1061,25 @@ export function move_child(self: object, child_node: object, to_index: number): 
   if (!INSERTION.has(parent)) INSERTION.set(parent, childEntities(parent).filter((entry) => NODE.has(entry)));
   children.splice(from, 1);
   children.splice(index, 0, child);
-  const next = children[index + 1] as Object3D | undefined;
-  const previous = children[index - 1] as Object3D | undefined;
-  const own = (child as Object3D).parent as Object3D;
+  const next = children[index + 1];
+  const previous = children[index - 1];
   const anchor = next !== undefined ? next : previous;
-  if (anchor === undefined || anchor.parent !== own) {
-    throw new Error('godot-compat: Node.move_child among siblings in different three containers is not transcribed.');
+  if (isElement(child)) {
+    // A Control moves among its siblings' elements, as the DOM orders them.
+    if (anchor === undefined || !isElement(anchor) || anchor.parentElement !== child.parentElement) {
+      throw new Error('godot-compat: Node.move_child among siblings in different containers is not transcribed.');
+    }
+    if (next !== undefined) anchor.before(child);
+    else anchor.after(child);
+  } else {
+    const own = (child as Object3D).parent as Object3D;
+    if (anchor === undefined || (anchor as Object3D).parent !== own) {
+      throw new Error('godot-compat: Node.move_child among siblings in different three containers is not transcribed.');
+    }
+    own.children.splice(own.children.indexOf(child as Object3D), 1);
+    const at = own.children.indexOf(anchor as Object3D);
+    own.children.splice(next !== undefined ? at : at + 1, 0, child as Object3D);
   }
-  own.children.splice(own.children.indexOf(child as Object3D), 1);
-  const at = own.children.indexOf(anchor);
-  own.children.splice(next !== undefined ? at : at + 1, 0, child as Object3D);
   if (stateOf(parent).insideTree) for (const observer of TREE_OBSERVERS) observer(child);
   for (const observer of CHILD_ORDER_OBSERVERS) observer(parent, child);
 }
@@ -971,10 +1090,84 @@ export function move_child(self: object, child_node: object, to_index: number): 
  * @godot Node.get_children
  * @source scene/main/node.cpp:1867
  */
-export function get_children(self: object): unknown[] {
+export function get_children(self: object): Variant[] {
   return childEntities(native(self, 'get_children'))
     .filter((child) => NODE.has(child))
     .map(objectOf);
+}
+
+/**
+ * The child at `index` (negative from the end), else null; internal children are not kept apart.
+ *
+ * @godot Node.get_child
+ * @source scene/main/node.cpp:1835
+ */
+export function get_child(self: object, index: number, include_internal = false): Variant {
+  void include_internal;
+  const children = get_children(self);
+  const at = index < 0 ? children.length + index : index;
+  return at >= 0 && at < children.length ? (children[at] as Variant) : null;
+}
+
+/**
+ * @godot Node.get_child_count
+ * @source scene/main/node.cpp:1825
+ */
+export function get_child_count(self: object, include_internal = false): number {
+  void include_internal;
+  return get_children(self).length;
+}
+
+/** `String::match`: `*` any run of characters, `?` any one (`ustring.cpp:5125`). */
+function wildcard(pattern: string, text: string): boolean {
+  const expression = new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/gu, '\\$&').replace(/\*/gu, '.*').replace(/\?/gu, '.')}$`, 'su');
+  return expression.test(text);
+}
+
+/**
+ * The descendants (or, not `recursive`, the children) whose name matches `pattern` and whose
+ * class is `type` or derives from it (a script's class name too), in tree order; `owned` keeps only
+ * nodes with an owner (`Node::find_children`).
+ *
+ * @godot Node.find_children
+ * @source scene/main/node.cpp:1943
+ */
+export function find_children(self: object, pattern: string, type = '', recursive = true, owned = true): Variant[] {
+  const found: Variant[] = [];
+  const visit = (entity: object): void => {
+    for (const child of childEntities(entity)) {
+      if (!NODE.has(child)) continue;
+      seedDeclared(child);
+      const state = stateOf(child);
+      const nameMatches = pattern === '' || wildcard(pattern, nameOf(child));
+      const typeMatches = type === '' || (nodeClasses(child) ?? []).includes(type) || objectOf(child).constructor?.name === type;
+      if ((!owned || state.owner !== undefined) && nameMatches && typeMatches) found.push(objectOf(child));
+      if (recursive) visit(child);
+    }
+  };
+  visit(native(self, 'find_children'));
+  return found;
+}
+
+/**
+ * The nodes in a group, in tree order (`SceneTree::get_nodes_in_group`, `scene_tree.cpp:1406`):
+ * from `root`, each node inside the tree whose groups have it.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1406
+ */
+export function godot_node_group_members(root: object, group: string): Variant[] {
+  const found: Variant[] = [];
+  const visit = (entity: object): void => {
+    const state = NODE.get(entity);
+    if (state !== undefined) {
+      seedDeclared(entity);
+      if (state.insideTree && state.groups.includes(group)) found.push(objectOf(entity));
+    }
+    for (const child of childEntities(entity)) visit(child);
+  };
+  visit(entityOf(root));
+  return found;
 }
 
 /**
@@ -1059,6 +1252,51 @@ export function set_name(self: object, name: string): void {
   (entity as { name: string }).name = name;
   const parent = parentEntity(entity);
   if (parent !== null && NODE.has(parent)) validateChildName(parent, entity);
+}
+
+/** Each node's `editor_description`, which only the editor shows. */
+const EDITOR_DESCRIPTIONS = new WeakMap<object, string>();
+
+/**
+ * @godot Node.set_editor_description
+ * @source scene/main/node.cpp:2662
+ */
+export function set_editor_description(self: object, editor_description: string): void {
+  EDITOR_DESCRIPTIONS.set(native(self, 'set_editor_description'), editor_description);
+}
+
+/**
+ * @godot Node.get_editor_description
+ * @source scene/main/node.cpp:2672
+ */
+export function get_editor_description(self: object): string {
+  return EDITOR_DESCRIPTIONS.get(native(self, 'get_editor_description')) ?? '';
+}
+
+/**
+ * The node registers with (or leaves) its owner's unique names, found as `%Name`, when it has an
+ * owner (`_acquire_unique_name_in_owner`, `_release_unique_name_in_owner`).
+ *
+ * @godot Node.set_unique_name_in_owner
+ * @source scene/main/node.cpp:2236
+ */
+export function set_unique_name_in_owner(self: object, enabled: boolean): void {
+  const entity = native(self, 'set_unique_name_in_owner');
+  const owner = stateOf(entity).owner;
+  if (owner === undefined) return;
+  const unique = stateOf(owner).uniqueNodes;
+  if (enabled) unique.set(nameOf(entity), entity);
+  else if (unique.get(nameOf(entity)) === entity) unique.delete(nameOf(entity));
+}
+
+/**
+ * @godot Node.is_unique_name_in_owner
+ * @source scene/main/node.cpp:2255
+ */
+export function is_unique_name_in_owner(self: object): boolean {
+  const entity = native(self, 'is_unique_name_in_owner');
+  const owner = stateOf(entity).owner;
+  return owner !== undefined && stateOf(owner).uniqueNodes.get(nameOf(entity)) === entity;
 }
 
 /**
@@ -1236,7 +1474,43 @@ function effectiveProcessMode(entity: object, state: NodeState): number {
   return 1;
 }
 
-function processModeAllows(entity: object, state: NodeState, paused: boolean): boolean {
+/** Whether the tree is paused (`SceneTree::paused`), and who follows it. */
+let treePaused = false;
+const PAUSE_LISTENERS = new Set<() => void>();
+
+/**
+ * Pauses or resumes the tree (`SceneTree::set_pause`, `scene_tree.cpp:1100`): its nodes then process by their process
+ * modes (`Node::_can_process`), and its followers (the world's physics) are told.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1100
+ */
+export function godot_node_set_tree_paused(paused: boolean): void {
+  if (treePaused === paused) return;
+  treePaused = paused;
+  for (const listener of PAUSE_LISTENERS) listener();
+}
+
+/**
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1121
+ */
+export function godot_node_tree_paused(): boolean {
+  return treePaused;
+}
+
+/**
+ * Follows the tree's pausing; the returned call stops following.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1100
+ */
+export function godot_node_follow_tree_paused(listener: () => void): () => void {
+  PAUSE_LISTENERS.add(listener);
+  return () => PAUSE_LISTENERS.delete(listener);
+}
+
+function processModeAllows(entity: object, state: NodeState, paused: boolean = treePaused): boolean {
   const mode = effectiveProcessMode(entity, state);
   if (mode === PROCESS_MODE_DISABLED) return false;
   if (mode === PROCESS_MODE_ALWAYS) return true;
@@ -1285,7 +1559,7 @@ export function is_physics_processing(self: object): boolean {
 }
 
 /**
- * The effective process mode allows processing while the tree is not paused.
+ * The effective process mode allows processing, the tree paused or not.
  *
  * @godot Node.can_process
  * @source scene/main/node.cpp:907
@@ -1293,7 +1567,7 @@ export function is_physics_processing(self: object): boolean {
 export function can_process(self: object): boolean {
   const entity = native(self, 'can_process');
   const state = stateOf(entity);
-  return state.insideTree && processModeAllows(entity, state, false);
+  return state.insideTree && processModeAllows(entity, state);
 }
 
 /**
@@ -1310,7 +1584,7 @@ export function godot_node_processes(script: object | null, kind: 'process' | 'p
   const entity = own === undefined ? undefined : entityOf(own);
   const state = entity === undefined ? undefined : NODE.get(entity);
   if (entity === undefined || state === undefined || !state.insideTree || state.queued) return false;
-  return (kind === 'process' ? state.process : state.physicsProcess) && processModeAllows(entity, state, false);
+  return (kind === 'process' ? state.process : state.physicsProcess) && processModeAllows(entity, state);
 }
 
 /**
@@ -1515,8 +1789,8 @@ export function godot_node_seat(root: object): void {
  * @source scene/main/node.cpp:341
  */
 export function godot_node_enter(root: object): void {
-  let top = root as { readonly parent?: object | null; readonly isScene?: boolean };
-  while (top.parent !== undefined && top.parent !== null) top = top.parent as typeof top;
+  let top = root as { readonly isScene?: boolean };
+  for (let parent = parentEntity(top); parent !== null; parent = parentEntity(top)) top = parent;
   if (top.isScene === true && NODE.get(top)?.insideTree !== true) godot_tree_set_root(top);
   const entering = enteringTop(root);
   if (entering !== undefined && entering.top === root) enterTree(root, entering.parent);
@@ -1704,7 +1978,7 @@ export function godot_node_listen_input(entity: object, kind: GodotInputKind, li
  */
 export function godot_node_call_input(entity: object, kind: GodotInputKind, event: unknown, handled: () => boolean): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree || state.queued || !state[kind] || !processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || state.queued || !state[kind] || !processModeAllows(entity, state)) return;
   state.binding?.[kind]?.(event);
   if (!state.insideTree || handled()) return;
   state.internalInput[kind]?.(event);

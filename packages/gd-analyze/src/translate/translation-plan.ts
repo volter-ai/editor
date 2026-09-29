@@ -1,4 +1,4 @@
-import { godotSceneSubnodes } from './data/scene-document-plan';
+import { godotEmbeddedImagePath, godotSceneSubnodes } from './data/scene-document-plan';
 import type { BoundGodotProject } from '../analyze/bound-project';
 import type { GodotImportToolchainSnapshot } from '../snapshot/toolchain-snapshot';
 import { planDirectGodotArtifacts } from './artifacts/plan';
@@ -65,9 +65,24 @@ function importedModels(project: BoundGodotProject, composition: DirectGodotProj
 }
 
 /** The images and sounds the scenes load as imported resources: copied beside the app, as the models are. */
+/** The images documents embed that a planned resource loads (`godotEmbeddedImagePath`), each with its file's path. */
+function embeddedImages(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
+  const loaded = new Set([...composition.scenes, ...composition.resourceModules].flatMap((scene) => scene.resources.flatMap((resource) => (resource.load === undefined ? [] : [resource.load.sourceResPath]))));
+  return project.documents.embeddedImages.flatMap((image) => {
+    const resPath = godotEmbeddedImagePath(image.owner, image.id);
+    return loaded.has(resPath) ? [{ resPath, image }] : [];
+  });
+}
+
 function importedTextures(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
   const paths = new Set(
-    composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.load === undefined ? [] : [resource.load.sourceResPath]))),
+    [...composition.scenes, ...composition.resourceModules].flatMap((scene) =>
+      scene.resources.flatMap((resource) => [
+        ...(resource.load === undefined ? [] : [resource.load.sourceResPath]),
+        // A model PackedScene's outside images, which its SceneState loads.
+        ...(resource.packedScene?.model?.images ?? []).map((image) => image.load.sourceResPath),
+      ]),
+    ),
   );
   // The sounds a script's `load(path)` loads (`resource-loads.ts`).
   for (const script of project.scripts) for (const load of script.resourceLoads ?? []) for (const branch of load.branches) paths.add(branch.resPath);
@@ -117,9 +132,21 @@ function validateInputClosure(
         resource.key.startsWith('ext:res://') ? [resource.key.slice('ext:res://'.length).split('#')[0] as string] : [],
       ),
     ),
+    // A `.tres` a script preloads is translated into its resource module, with those it names.
+    ...composition.resourceModules.flatMap((module) =>
+      module.resources.flatMap((resource) => (resource.key.startsWith('ext:res://') ? [resource.key.slice('ext:res://'.length).split('#')[0] as string] : [])),
+    ),
+    // The default bus layout is the world's buses (`audioBuses`), where a sound can play through it.
+    ...(project.documents.sounds.length === 0 && project.documents.oggVorbis.length === 0
+      ? []
+      : project.read.runtimeRoots.flatMap((root) => (root.mechanism === 'default-audio-bus-layout' ? [root.resPath.slice('res://'.length)] : []))),
+    // An animation file a library reads its animations from is translated into the library's data.
+    ...composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.animations?.sources ?? []).map((path) => path.slice('res://'.length)))),
   ]);
   // What the planned files name: a scene's or resource's `[ext_resource]`s, a script's `preload`s.
   const relative = (resPath: string): string => resPath.slice('res://'.length);
+  // An imported mesh the plan reads (`read/obj-mesh.ts`) with its importer's settings file.
+  for (const mesh of project.documents.objMeshes) if (consumed.has(relative(mesh.resPath))) consumed.add(`${relative(mesh.resPath)}.import`);
   const referenced = new Set<string>();
   for (const scene of project.documents.scenes) {
     if (consumed.has(relative(scene.resPath))) for (const entry of scene.extResources) referenced.add(relative(entry.resPath));
@@ -129,7 +156,7 @@ function validateInputClosure(
   }
   for (const script of project.scripts) {
     if (!consumed.has(relative(script.resPath))) continue;
-    for (const node of script.program.nodes) if (node.kind === 'PRELOAD') referenced.add(relative(node.resolvedPath));
+    for (const resPath of script.treeRequests.preloads) referenced.add(relative(resPath));
   }
   const roots = new Map(project.read.runtimeRoots.map((root) => [relative(root.resPath), root.mechanism] as const));
   // An empty AudioBusLayout is refused by `AudioServer::set_bus_layout` (servers/audio/audio_server.cpp:1755):
@@ -139,6 +166,10 @@ function validateInputClosure(
     project.documents.resources.some(
       (resource) => relative(resource.resPath) === path && resource.resource.type === 'AudioBusLayout' && Object.keys(resource.resource.properties).length === 0 && resource.subResources.length === 0,
     );
+  // A project with no sound file plays nothing through its buses (a generator stream is a script's,
+  // and a script reading AudioServer names the layout's buses through the bindings, not this file).
+  const silentBusLayout = (path: string): boolean =>
+    roots.get(path) === 'default-audio-bus-layout' && project.documents.sounds.length === 0 && project.documents.oggVorbis.length === 0;
   /**
    * Accounted for without a plan: a consumed file's `.uid` sidecar (the path's UID, which the plan
    * resolves by path); the empty default bus layout; the application icon (`DisplayServer::set_icon`,
@@ -149,6 +180,7 @@ function validateInputClosure(
   const unplannedReason = (path: string): string | undefined => {
     if (path.endsWith('.uid') && consumed.has(path.slice(0, -'.uid'.length))) return 'the UID sidecar of a translated file, which the plan resolves by path';
     if (emptyBusLayout(path)) return 'an empty AudioBusLayout, which AudioServer refuses (the Master bus stays)';
+    if (silentBusLayout(path)) return 'the AudioBusLayout of a project with no sound file, whose buses never mix anything';
     const source = path.endsWith('.import') ? path.slice(0, -'.import'.length) : path;
     if (roots.get(source) === 'application-icon') return 'the application icon (window chrome the page host owns)';
     if (roots.get(source) === 'boot-splash') return 'the boot splash (shown while the engine loads, main/main.cpp:3928; the page host owns loading)';
@@ -213,6 +245,7 @@ export function assembleGodotTranslationPlan(
       toolchain.capabilityCopies,
       [...importedModels(project, composition), ...importedTextures(project, composition)],
       project.documents.licenses,
+      embeddedImages(project, composition),
     );
   } catch (error) {
     return {

@@ -86,6 +86,54 @@ function assertStandalonePackageRows(packages: Record<string, Record<string, unk
   }
 }
 
+/** The row a package name resolves to from a row, as Node looks up `node_modules` from it outward. */
+function resolveRow(packages: Readonly<Record<string, unknown>>, from: string, name: string): string | undefined {
+  for (let base = from; ; ) {
+    const candidate = base === '' ? `node_modules/${name}` : `${base}/node_modules/${name}`;
+    if (packages[candidate] !== undefined) return candidate;
+    if (base === '') return undefined;
+    const nested = base.lastIndexOf('/node_modules/');
+    base = nested < 0 ? '' : base.slice(0, nested);
+  }
+}
+
+/**
+ * The manifest and lock without the root dependencies `drop` names: the root declarations removed
+ * and every lock row no longer reached from the root (by `dependencies`, `optionalDependencies`
+ * and `peerDependencies`, the root's `devDependencies` too) removed with them.
+ */
+export function prunePackageDocuments<Manifest extends { dependencies?: Record<string, string> }, Lock extends { readonly packages?: Record<string, Record<string, unknown>> }>(
+  manifest: Manifest,
+  lock: Lock,
+  drop: ReadonlySet<string>,
+): { readonly manifest: Manifest; readonly lock: Lock } {
+  const packages = { ...(lock.packages ?? {}) };
+  const root = { ...(packages[''] ?? {}) };
+  const without = (record: unknown): Record<string, string> =>
+    Object.fromEntries(Object.entries(jsonRecord(record, 'dependencies')).filter(([name]) => !drop.has(name)));
+  root['dependencies'] = without(root['dependencies']);
+  packages[''] = root;
+  const reached = new Set<string>(['']);
+  const queue = [''];
+  while (queue.length > 0) {
+    const at = queue.pop() as string;
+    const row = packages[at] ?? {};
+    const names = ['dependencies', 'optionalDependencies', 'peerDependencies', ...(at === '' ? ['devDependencies'] : [])].flatMap((field) => Object.keys(jsonRecord(row[field], field)));
+    for (const name of names) {
+      const target = resolveRow(packages, at, name);
+      if (target !== undefined && !reached.has(target)) {
+        reached.add(target);
+        queue.push(target);
+      }
+    }
+  }
+  for (const path of Object.keys(packages)) if (!reached.has(path)) delete packages[path];
+  return {
+    manifest: { ...manifest, dependencies: without(manifest.dependencies) },
+    lock: { ...lock, packages },
+  };
+}
+
 /**
  * Adapt the frozen standalone dependency graph only where project identity is allowed to vary.
  * Package selection has already happened in the toolchain snapshot; this function never resolves,

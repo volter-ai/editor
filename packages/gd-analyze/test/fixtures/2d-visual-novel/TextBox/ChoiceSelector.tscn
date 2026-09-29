@@ -1,0 +1,15 @@
+[gd_scene format=3 uid="uid://c52hncojts061"]
+
+[ext_resource type="Script" uid="uid://bpme70ry03bq4" path="res://TextBox/ChoiceSelector.gd" id="1"]
+
+[node name="ChoiceSelector" type="VBoxContainer" unique_id=998227816]
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 62.0
+offset_top = 68.0
+offset_right = -63.0
+offset_bottom = -24.0
+size_flags_horizontal = 3
+size_flags_vertical = 3
+script = ExtResource("1")

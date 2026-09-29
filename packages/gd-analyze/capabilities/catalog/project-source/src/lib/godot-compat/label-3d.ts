@@ -9,8 +9,9 @@
  * `pixel_size` world units per font pixel. The mesh is one quad over the lines' box, redrawn in a
  * deferred call after a change (`_queue_update`), filled with `modulate` over an outline stroked in
  * `outline_modulate`; its box is the node's AABB. The material is unshaded and transparent,
- * double-sided and depth-tested by the draw flags. Billboards, fixed size, alpha cut modes,
- * `uppercase`, right-to-left text and a font other than the default are not bound.
+ * double-sided and depth-tested by the draw flags. Fixed size, alpha cut modes,
+ * `uppercase`, right-to-left text and a font other than the default are not bound. A billboard
+ * faces the camera as a sprite's does (`sprite-base-3d.ts`).
  */
 
 import { DoubleSide, FrontSide, type Mesh, MeshBasicMaterial, PlaneGeometry, CanvasTexture as ThreeCanvasTexture, SRGBColorSpace } from 'three';
@@ -18,6 +19,7 @@ import { construct as color, type Color } from './color';
 import { get_ascent, get_height, godot_font_css, godot_font_default, godot_font_measure, godot_font_wrap } from './font';
 import { godot_node_entity } from './node';
 import { godot_message_queue_push } from './object';
+import { godot_sprite_base_3d_billboard } from './sprite-base-3d';
 import { godot_visual_instance_3d_aabb } from './visual-instance-3d';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector3, type Vector3 } from './vector3';
@@ -169,6 +171,7 @@ export function godot_label_3d_mount(entity: Mesh): void {
     aabb: { position: vector3(), size: vector3() },
   };
   LABELS.set(entity, state);
+  entity.onBeforeRender = (_renderer, _scene, camera) => godot_sprite_base_3d_billboard(entity, state.billboard, camera);
   entity.material = new MeshBasicMaterial({ transparent: true, side: DoubleSide });
   entity.geometry = new PlaneGeometry(0, 0);
   godot_visual_instance_3d_aabb(entity, () => state.aabb);
@@ -418,7 +421,7 @@ export function get_draw_flag(self: object, flag: number): boolean {
 }
 
 /**
- * A mode outside `0..2` fails; billboards are stored, not drawn.
+ * A mode outside `0..2` fails.
  *
  * @godot Label3D.set_billboard_mode
  * @source scene/3d/label_3d.cpp:1002

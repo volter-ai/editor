@@ -58,7 +58,7 @@ import { godot_node_3d_basis_euler, set_position, set_rotation, set_scale, set_t
 import { godot_message_queue_push } from './object';
 import { find_bone, godot_skeleton_3d_bone_rest, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
 import { construct as quaternion, is_normalized, type Quaternion } from './quaternion';
-import { createSignal, type SignalHandle } from './signal';
+import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import { construct as transform3d } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -71,6 +71,7 @@ const TYPE_POSITION_3D = 1;
 const TYPE_ROTATION_3D = 2;
 const TYPE_SCALE_3D = 3;
 const TYPE_METHOD = 5;
+const TYPE_AUDIO = 7;
 /** `Animation::UpdateMode`, `InterpolationType`, `FindMode` (`animation.h:60-91`). */
 const UPDATE_DISCRETE = 1;
 const INTERPOLATION_LINEAR_ANGLE = 3;
@@ -95,7 +96,14 @@ function isZeroApprox(value: number): boolean {
 
 /** A value track's property on its target: a bound setter (with its index), or a script field. */
 export type GodotAnimationValueBinding =
-  | { readonly set: (self: never, ...args: never[]) => void; readonly index?: number | string }
+  | {
+      readonly set: (self: never, ...args: never[]) => void;
+      readonly index?: number | string;
+      /** A sub-property (`Object::set_indexed`, `object.cpp:560`): the property's getter, then the member or resource property set. */
+      readonly get?: (self: never, ...args: never[]) => unknown;
+      readonly member?: string;
+      readonly resource?: { readonly set: (self: never, ...args: never[]) => void; readonly index?: number | string };
+    }
   | { readonly field: string };
 
 /**
@@ -198,7 +206,11 @@ interface TrackCacheMethod extends TrackCacheBase {
   readonly type: typeof TYPE_METHOD;
 }
 
-type TrackCache = TrackCacheValue | TrackCacheTransform | TrackCacheMethod;
+interface TrackCacheAudio extends TrackCacheBase {
+  readonly type: typeof TYPE_AUDIO;
+}
+
+type TrackCache = TrackCacheValue | TrackCacheTransform | TrackCacheMethod | TrackCacheAudio;
 
 /** `AnimationMixer::PlaybackInfo` (`animation_mixer.h:84`). */
 export interface GodotAnimationPlaybackInfo {
@@ -852,7 +864,7 @@ function updateCaches(state: MixerState): boolean {
           case TYPE_VALUE: {
             if (track_get_key_count(anim, i) === 0) return;
             const subpath = found.subnames.join(':');
-            if (found.subnames.length !== 1) throw new Error(`godot-compat: the value track '${path}' needs one property subname.`);
+            if (found.subnames.length === 0) throw new Error(`godot-compat: the value track '${path}' names no property.`);
             let initValue = godot_animation_zero(track_get_key_value(anim, i, 0));
             if (reset !== undefined) {
               const rt = find_track(reset, path, source.type);
@@ -916,6 +928,9 @@ function updateCaches(state: MixerState): boolean {
           case TYPE_METHOD:
             if (found.subnames.length > 0) throw new Error(`godot-compat: the method track '${path}' on a resource is not transcribed.`);
             track = { type: TYPE_METHOD, path, object: found.object, setupPass: 0, blendIdx: -1, totalWeight: 0, weightAppliedAt: 0 };
+            break;
+          case TYPE_AUDIO:
+            track = { type: TYPE_AUDIO, path, object: found.object, setupPass: 0, blendIdx: -1, totalWeight: 0, weightAppliedAt: 0 };
             break;
           default:
             throw new Error(`godot-compat: Animation track type ${String(source.type)} is not transcribed.`);
@@ -1012,8 +1027,23 @@ function setValue(state: MixerState, track: TrackCacheValue, value: unknown): vo
   }
   const entity = godot_node_entity(track.object);
   const set = binding.set as (self: object, ...args: unknown[]) => void;
-  if (binding.index === undefined) set(entity, value);
-  else set(entity, binding.index, value);
+  const indexed = binding.index === undefined ? [] : [binding.index];
+  if (binding.get !== undefined) {
+    // `Object::set_indexed`: the property read, its member or resource property set, the property written back.
+    const current = (binding.get as (self: object, ...args: unknown[]) => unknown)(entity, ...indexed);
+    if (binding.resource !== undefined) {
+      if (current === null || current === undefined) return;
+      const inner = binding.resource.set as (self: object, ...args: unknown[]) => void;
+      if (binding.resource.index === undefined) inner(current as object, value);
+      else inner(current as object, binding.resource.index, value);
+      return;
+    }
+    if (binding.member !== undefined && typeof current === 'object' && current !== null) {
+      set(entity, ...indexed, Object.freeze({ ...(current as object), [binding.member]: value }));
+    }
+    return;
+  }
+  set(entity, ...indexed, value);
 }
 
 /** `_call_object` (`animation_mixer.cpp:2077`): the script's method first, then the bound native one. */
@@ -1109,6 +1139,24 @@ function blendProcess(state: MixerState, delta: number, updateOnly: boolean): vo
             for (const index of godot_animation_key_indices_in_range(a, i, time, instance.info.delta, start, end, loopedFlag)) {
               callObject(state, t, method_track_get_name(a, i, index), method_track_get_params(a, i, index), deferred);
             }
+          }
+          return;
+        }
+        case TYPE_AUDIO: {
+          // Each key crossed plays its stream on the track's player from its start offset
+          // (`_blend_process`, `animation_mixer.cpp:1776`); a seek starts none.
+          if (updateOnly || seeked || isZeroApprox(blend)) return;
+          const t = track as TrackCacheAudio;
+          const methods = state.bindings.methods?.[t.path];
+          const setStream = methods?.['set_stream'] as ((self: object, stream: unknown) => void) | undefined;
+          const play = methods?.['play'] as ((self: object, from: number) => void) | undefined;
+          if (setStream === undefined || play === undefined || godot_node_is_freed(t.object)) return;
+          for (const index of godot_animation_key_indices_in_range(a, i, time, instance.info.delta, start, end, loopedFlag)) {
+            const key = track_get_key_value(a, i, index) as { readonly stream: unknown; readonly start_offset: number };
+            if (key.stream === null) continue;
+            const entity = godot_node_entity(t.object);
+            setStream(entity, key.stream);
+            play(entity, key.start_offset);
           }
           return;
         }
@@ -1216,3 +1264,18 @@ export function godot_animation_mixer_set_library(self: object, name: string, li
   state.signals.animation_libraries_updated.emit();
 }
 
+/**
+ * @godot AnimationMixer.animation_finished
+ * @source scene/animation/animation_mixer.cpp:2488
+ */
+export function animation_finished(self: object): GodotSignal<[string]> {
+  return godot_animation_mixer_signal(self, 'animation_finished') as GodotSignal<[string]>;
+}
+
+/**
+ * @godot AnimationMixer.animation_started
+ * @source scene/animation/animation_mixer.cpp:2489
+ */
+export function animation_started(self: object): GodotSignal<[string]> {
+  return godot_animation_mixer_signal(self, 'animation_started') as GodotSignal<[string]>;
+}

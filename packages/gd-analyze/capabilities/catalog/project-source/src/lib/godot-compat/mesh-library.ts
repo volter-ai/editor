@@ -19,6 +19,7 @@ import { construct as sphereShape, set_radius as setSphereRadius } from './spher
 import { construct as basis } from './basis';
 import { construct as transform3d, type Transform3D } from './transform-3d';
 import { construct as vector3 } from './vector3';
+import { godot_mesh_instance_3d_three } from './mesh-instance-3d';
 
 const f32 = Math.fround;
 
@@ -301,6 +302,41 @@ export function get_item_list(self: MeshLibrary): number[] {
 export function find_item_by_name(self: MeshLibrary, name: string): number {
   for (const [id, item] of self.items) if (item.name === name) return id;
   return -1;
+}
+
+const RESOURCES = new WeakMap<Item, object | null>();
+
+/**
+ * A new, empty MeshLibrary (`MeshLibrary.new()`).
+ *
+ * @godot MeshLibrary.MeshLibrary
+ * @source scene/resources/3d/mesh_library.cpp:431
+ */
+export function construct(): MeshLibrary {
+  return godot_mesh_library_new();
+}
+
+/**
+ * An item's mesh, drawn as a MeshInstance3D draws the resource; a missing item fails.
+ *
+ * @godot MeshLibrary.set_item_mesh
+ * @source scene/resources/3d/mesh_library.cpp:209
+ */
+export function set_item_mesh(self: MeshLibrary, id: number, mesh: object | null): void {
+  const item = self.items.get(id);
+  if (item === undefined) return;
+  item.mesh = mesh === null ? null : godot_mesh_instance_3d_three(mesh);
+  RESOURCES.set(item, mesh);
+  emitChanged(self);
+}
+
+/**
+ * @godot MeshLibrary.get_item_mesh
+ * @source scene/resources/3d/mesh_library.cpp:268
+ */
+export function get_item_mesh(self: MeshLibrary, id: number): object | null {
+  const item = self.items.get(id);
+  return item === undefined ? null : (RESOURCES.get(item) ?? null);
 }
 
 /**

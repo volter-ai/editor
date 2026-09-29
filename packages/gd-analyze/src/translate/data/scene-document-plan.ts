@@ -11,14 +11,24 @@ import type {
   BoundGodotCubemapDocument,
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
-import type { GodotBoundShader } from '../../godot-frontend/bound-shader';
-import { lowerGodotShader } from '../emit/shader-glsl';
-import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
+import type { GodotBoundShader, GodotShaderUniform } from '../../godot-frontend/bound-shader';
+import { lowerGodotShader } from './shader-glsl';
+import { GODOT_SKY_SHADER_BUILTINS } from './sky-shader';
+import {
+  GODOT_SPATIAL_DEFAULT_VERTEX,
+  GODOT_SPATIAL_FRAGMENT_BUILTINS,
+  GODOT_SPATIAL_RENDER_MODES,
+  GODOT_SPATIAL_SHARED,
+  GODOT_SPATIAL_VERTEX_BUILTINS,
+  godotSpatialFragmentStage,
+  godotSpatialVertexStage,
+} from './spatial-shader';
 import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
 import { readGodot4Surfaces } from '../../read/godot4-surfaces';
 import { GridMapReadError, readGridMapCells } from '../../read/grid-map';
 import { isImportedResourceId } from '../../read/instance-expansion';
 import type { ImportedClip } from '../../read/gltf-animation-import';
+import type { GltfPhysicsShape } from '../../read/gltf-document';
 import {
   godotMeshLibraryShapeClass,
   godotArrayMeshRefusal,
@@ -86,6 +96,11 @@ export interface TargetGodotSceneNodePlan {
   /** `unique_name_in_owner`: the scene root finds the node as `%Name`. */
   readonly unique?: true;
   /**
+   * Its script's exported fields whose authored values are not plain (resources, records,
+   * containers): each value planned as the scene's resources are, handed with the field plan's.
+   */
+  readonly fieldValues?: readonly { readonly field: string; readonly value: TargetGodotSceneValue }[];
+  /**
    * The sibling position the scene authors (`index`), which moves the node there once added when
    * that is before where it was added (`SceneState::instantiate`, packed_scene.cpp:545).
    */
@@ -108,9 +123,58 @@ export interface TargetGodotImportedModelNode {
   /** A GeometryInstance3D (a mesh): it casts and receives shadows as Godot makes it. */
   readonly geometryInstance?: true;
   readonly gltfNode?: number;
+  /** The glTF `meshes[]` index of the mesh resource the node carries (its `mesh` in the model's SceneState). */
+  readonly mesh?: number;
   readonly matrix: readonly number[];
   /** A Skeleton3D's bones in Godot's order: names, the glTF joints they bind to, imported poses. */
   readonly bones?: readonly BoundGodotImportedBone[];
+}
+
+/**
+ * A physics body of an imported model (a `StaticBody3D`): the fixed `<RigidBody>` compat mounts in
+ * the model's node, standing for it, with a collider per CollisionShape3D child, at that child's transform. A primitive's collider is Rapier's (`args` as
+ * its component takes them); a trimesh or convex one is made from the file's mesh of that index.
+ */
+export interface TargetGodotImportedModelBody {
+  readonly path: string;
+  readonly type: 'fixed';
+  /** The importer's collision layer and mask (`physics/layer`, `physics/mask`), where it set them. */
+  readonly layers?: readonly [number, number];
+  readonly colliders: readonly {
+    readonly path: string;
+    readonly matrix: readonly number[];
+    readonly collider:
+      | { readonly kind: 'cuboid' | 'ball' | 'capsule' | 'cylinder'; readonly args: readonly number[] }
+      | { readonly kind: 'trimesh' | 'convexHull'; readonly mesh: number };
+  }[];
+}
+
+/**
+ * A glTF `OMI_physics_shape` as Rapier's collider: a box by its half extents, a sphere by its
+ * radius, a capsule and a cylinder by the half height of their straight part (Godot's capsule
+ * height includes its caps) and radius; a trimesh or convex hull from the mesh it names.
+ */
+function modelCollider(shape: GltfPhysicsShape): TargetGodotImportedModelBody['colliders'][number]['collider'] | string {
+  switch (shape.type) {
+    case 'box': {
+      const size = shape.size ?? [1, 1, 1];
+      return { kind: 'cuboid', args: size.map((extent) => extent / 2) };
+    }
+    case 'sphere':
+      return { kind: 'ball', args: [shape.radius ?? 0.5] };
+    case 'capsule': {
+      const radius = shape.radius ?? 0.5;
+      return { kind: 'capsule', args: [Math.max((shape.height ?? 2) / 2 - radius, 0), radius] };
+    }
+    case 'cylinder':
+      return { kind: 'cylinder', args: [(shape.height ?? 2) / 2, shape.radius ?? 0.5] };
+    case 'trimesh':
+    case 'convex':
+      if (shape.mesh === undefined) return `a ${shape.type} shape names no mesh`;
+      return { kind: shape.type === 'trimesh' ? 'trimesh' : 'convexHull', mesh: shape.mesh };
+    default:
+      return `a ${shape.type} shape is not a Godot shape`;
+  }
 }
 
 /** An instanced imported model: the file, Godot's tree over it, and this scene's overrides in it. */
@@ -128,8 +192,15 @@ export interface TargetGodotImportedModelPlan {
   readonly materials?: readonly { readonly name: string; readonly key: string }[];
   /** The importer's AnimationPlayer library (its clips as the importer keys them), with its RESET. */
   readonly animations?: TargetGodotAnimationLibraryPlan;
+  /**
+   * The model's AnimationPlayers that play the glTF's own clips on three's mixer, by path in the
+   * model (`scene-surface-idioms.ts`): ones no AnimationTree drives and the scene adds nothing to.
+   */
+  readonly clipPlayers?: readonly string[];
   /** The importer's root scale baked into the model's meshes, when not 1. */
   readonly meshScale?: number;
+  /** The model's physics bodies the importer made (`OMI_physics_body`), each with its shapes' colliders. */
+  readonly bodies?: readonly TargetGodotImportedModelBody[];
   /** Authored properties of the model's own nodes, by their setters on the node's entity. */
   readonly overrides: readonly {
     readonly at: string;
@@ -141,8 +212,10 @@ export interface TargetGodotImportedModelPlan {
 
 /** A value a setter receives: a target value, or a resource this document's plan constructs. */
 export type TargetGodotSceneValue =
-  | Exclude<TargetSceneValue, { readonly kind: 'resource' }>
-  | { readonly kind: 'resource'; readonly key: string };
+  | Exclude<TargetSceneValue, { readonly kind: 'resource' | 'Variant-array' | 'Variant-dictionary' }>
+  | { readonly kind: 'resource'; readonly key: string }
+  | { readonly kind: 'Variant-array'; readonly items: readonly TargetGodotSceneValue[] }
+  | { readonly kind: 'Variant-dictionary'; readonly entries: readonly (readonly [TargetGodotSceneValue, TargetGodotSceneValue])[] };
 
 /** One authored property as its setter's bound call. */
 export interface TargetGodotSceneSetterPlan {
@@ -160,9 +233,11 @@ export interface TargetGodotSceneSetterPlan {
     | { readonly kind: 'visible' }
     | { readonly kind: 'transparency' }
     | { readonly kind: 'visibility-range'; readonly prop: string }
-    | { readonly kind: 'current' };
+    | { readonly kind: 'current' }
+    /** A value kept in the node's `userData` under `key` for its getter, drawing nothing. */
+    | { readonly kind: 'data'; readonly key: string };
   /** The one prop of its element or resource it joins with the others of its kind (`scene-surface-idioms.ts`). */
-  readonly collect?: 'libraries' | 'parameters' | 'meta' | 'shader' | 'shader-parameter';
+  readonly collect?: 'libraries' | 'parameters' | 'meta' | 'shader' | 'shader-parameter' | 'theme';
   /** On an imported model's own node: the part of the model's element it sets (`MODEL_OVERRIDE_SLOTS`). */
   readonly modelSlot?: GodotModelOverrideSlot;
 }
@@ -173,6 +248,8 @@ export type GodotModelOverrideSlot =
   | { readonly kind: 'layers' }
   | { readonly kind: 'transform' }
   | { readonly kind: 'surface-material' }
+  | { readonly kind: 'material-override' }
+  | { readonly kind: 'cast-shadow' }
   | { readonly kind: 'player' };
 
 /** A resource the scene constructs once, then sets its authored properties on. */
@@ -204,6 +281,33 @@ export interface TargetGodotSceneResourcePlan {
    * `Shader` resource's key, by the name its binding selects it with.
    */
   readonly engineShaders?: Readonly<Record<string, string>>;
+  /** `resource_local_to_scene`: each instance of the scene makes its own. */
+  readonly localToScene?: true;
+  /** Drawn only by Controls' CSS (`scene-control-idioms.ts`): no module constructs it, its file is still served. */
+  readonly domOnly?: true;
+  /**
+   * A PackedScene (an `ExtResource` of a `.tscn`, or of an imported model): the scene whose
+   * component `instantiate()` mounts, and its root's script class, which it makes first.
+   */
+  readonly packedScene?: {
+    readonly resPath: string;
+    readonly rootScript?: string;
+    /** An imported model's: its tree's data file and its outside images, which its SceneState reads. */
+    readonly model?: { readonly images: readonly { readonly index: number; readonly load: TargetGodotImportedLoad }[] };
+  };
+  /**
+   * A resource whose class keeps its properties by names it makes up (a TileSet's `sources/N`, a
+   * TileSetAtlasSource's `x:y/alt/…`): every authored property's value by its name, handed to its
+   * constructor as a Map (`_set`, `tile_set.cpp:1240`).
+   */
+  readonly rawProperties?: readonly { readonly name: string; readonly value: TargetGodotSceneValue }[];
+  /** A resource of a script's class (`script = ExtResource(…)`): its script and its properties' values. */
+  readonly scriptResource?: {
+    readonly scriptResPath: string;
+    readonly fields: readonly { readonly name: string; readonly value: TargetGodotSceneValue }[];
+    /** The `.tres` it was loaded from (`resource_path`), for one in a file of its own. */
+    readonly path?: string;
+  };
   readonly setters: readonly TargetGodotSceneSetterPlan[];
 }
 
@@ -237,6 +341,8 @@ export interface TargetGodotArrayMeshPlan {
 export interface TargetGodotImportedLoad {
   readonly sourceResPath: string;
   readonly options: Readonly<Record<string, boolean | number>>;
+  /** An image's pixel size, where its header states it (a Control draws it at that size). */
+  readonly size?: readonly [number, number];
 }
 
 /**
@@ -274,17 +380,27 @@ export interface TargetGodotLoweredShader {
   readonly mode: string;
   /** The `render_mode`s it states that the sky pass acts on (`use_debanding`). */
   readonly renderModes: readonly string[];
-  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null }[];
+  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null; readonly color?: true; readonly filter?: number; readonly repeat?: number }[];
   readonly functions: string;
   readonly entry: string;
+  /** A spatial shader's two stages as `three-custom-shader-material` takes them (`spatial-shader.ts`). */
+  readonly spatial?: {
+    readonly vertexShader: string;
+    readonly fragmentShader: string;
+    /** Whether it writes `ALPHA`, which makes Godot draw it in the transparent pass. */
+    readonly transparent: boolean;
+    /** Whether it reads `COLOR`, the mesh's vertex colour. */
+    readonly vertexColors: boolean;
+  };
 }
 
 /**
- * A `.gdshader` the official shader frontend read, lowered for its mode (sky only: the corpus
- * draws no other shader mode), or why it is not.
+ * A `.gdshader` the official shader frontend read, lowered for its mode (sky, spatial), or why it
+ * is not.
  */
 function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string {
   if (!shader.ok) return `the official shader frontend refused it (${shader.stage}: ${shader.message})`;
+  if (shader.shaderType === 'spatial') return spatialShaderPlan(shader);
   if (shader.shaderType !== 'sky') return `shader_type ${shader.shaderType} is not lowered`;
   const lowered = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
   if (typeof lowered === 'string') return lowered;
@@ -308,6 +424,58 @@ function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string
   };
 }
 
+/** A lowered uniform as the plan hands it to compat, with its default value where Godot gives one. */
+function plannedUniform({ name, glsl, uniform }: { readonly name: string; readonly glsl: string; readonly uniform: GodotShaderUniform }): TargetGodotLoweredShader['uniforms'][number] {
+  const values = uniform.default.map((value) => ('float' in value ? value.float : 'int' in value ? value.int : 'uint' in value ? value.uint : value.bool ? 1 : 0));
+  return {
+    name,
+    glsl,
+    type: uniform.type.name,
+    default: values.length === 0 ? null : values,
+    ...(uniform.hintName.includes('source_color') ? { color: true as const } : {}),
+    ...(uniform.type.name.startsWith('sampler') ? { filter: uniform.filter, repeat: uniform.repeat } : {}),
+  };
+}
+
+/**
+ * A spatial shader: `vertex()` and `fragment()` lowered with their stages' built-ins, each wrapped
+ * as the stage `three-custom-shader-material` runs (`spatial-shader.ts`). `light()` and a render
+ * mode three does not draw refuse by name.
+ */
+function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true }>): TargetGodotLoweredShader | string {
+  const names = new Set(shader.tree.functions.map((entry) => entry.name));
+  if (names.has('light')) return 'a light() function is not lowered';
+  const unsupported = shader.tree.renderModes.find((mode) => !GODOT_SPATIAL_RENDER_MODES.has(mode));
+  if (unsupported !== undefined) return `render_mode ${unsupported} is not drawn`;
+  const fragment = names.has('fragment') ? lowerGodotShader(shader, GODOT_SPATIAL_FRAGMENT_BUILTINS, 'fragment', ['vertex']) : undefined;
+  if (typeof fragment === 'string') return fragment;
+  const vertex = names.has('vertex') ? lowerGodotShader(shader, GODOT_SPATIAL_VERTEX_BUILTINS, 'vertex', ['fragment']) : undefined;
+  if (typeof vertex === 'string') return vertex;
+  const any = fragment ?? vertex;
+  if (any === undefined) return 'the shader has neither vertex() nor fragment()';
+  const unshaded = shader.tree.renderModes.includes('unshaded');
+  if (unshaded && fragment !== undefined && (fragment.builtins.has('NORMAL') || fragment.builtins.has('VIEW') || fragment.builtins.has('VERTEX'))) return 'an unshaded fragment() reading NORMAL, VIEW or VERTEX is not lowered';
+  // The screen and depth textures are the renderer's copies of the frame, which three's frame does
+  // not keep for a shader.
+  const screen = shader.tree.uniforms.find((uniform) => /hint_(screen|depth)_texture/u.test(uniform.hintName));
+  if (screen !== undefined) return `the ${screen.hintName} uniform ${screen.name} is not drawn`;
+  const head = (lowered: typeof any) => [GODOT_SPATIAL_SHARED, lowered.varyings, ...lowered.uniforms.map((uniform) => uniform.declaration), lowered.functions].filter((part) => part !== '').join('\n\n');
+  const stages = { worldVertexCoords: shader.tree.renderModes.includes('world_vertex_coords'), vertexTangents: vertex?.builtins.has('TANGENT') === true || vertex?.builtins.has('BINORMAL') === true };
+  return {
+    mode: 'spatial',
+    renderModes: shader.tree.renderModes,
+    uniforms: any.uniforms.map(plannedUniform),
+    functions: '',
+    entry: '',
+    spatial: {
+      vertexShader: `${head(vertex ?? any)}\n\nvoid main() {\n${vertex === undefined ? GODOT_SPATIAL_DEFAULT_VERTEX : godotSpatialVertexStage(vertex.entry, vertex.builtins, stages)}\n}`,
+      fragmentShader: `${head(fragment ?? any)}\n\nvoid main() {\n${fragment === undefined ? godotSpatialFragmentStage('', new Set()) : godotSpatialFragmentStage(fragment.entry, fragment.builtins, stages)}\n}`,
+      transparent: fragment?.builtins.has('ALPHA') === true && fragment.builtins.has('ALPHA_SCISSOR_THRESHOLD') !== true,
+      vertexColors: vertex?.builtins.has('COLOR') === true || fragment?.builtins.has('COLOR') === true,
+    },
+  };
+}
+
 /**
  * How each engine material binding names the shader a variant's properties select
  * (`panorama-sky-material.ts`); a class with no entry has no binding.
@@ -324,11 +492,10 @@ const ENGINE_SHADER_SELECTORS: Readonly<Record<string, (variant: Readonly<Record
  * same pixels the GPU decodes (S3TC/BPTC or ETC2/ASTC, `resource_importer_texture.cpp:888`), which
  * the web shows as the image itself, and the page, which has no block encoder, uploads the source
  * as the lossless path does; VRAM uncompressed (3) is the pixels unchanged. Lossy (1, WebP) and
- * Basis Universal (4) stay refused: they are the source degraded by an encoder at a quality the
- * import states, which the page does not reproduce, so the source image would be a different
- * picture where the quality is low.
+ * Basis Universal (4) are the source degraded by an encoder at the quality the import states; the
+ * page draws the source itself, which differs from Godot's only by that encoder's loss.
  */
-const SOURCE_IMAGE_COMPRESS_MODES: ReadonlySet<number> = new Set([0, 2, 3]);
+const SOURCE_IMAGE_COMPRESS_MODES: ReadonlySet<number> = new Set([0, 1, 2, 3, 4]);
 
 /** The `cubemap_texture` importer's options as `useGodotCubemap` applies them, or why they are not. */
 function cubemapLoad(cubemap: BoundGodotCubemapDocument): TargetGodotImportedLoad | string {
@@ -352,14 +519,20 @@ function externalImagePath(modelResPath: string, uri: string): string | undefine
   return `res://${relative}`;
 }
 
-function textureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
+/**
+ * An imported image as three loads it: the source file, with the importer's alpha-border fix,
+ * premultiplication and mipmaps. A normal map (`compress/normal_map`) is the source's normals as
+ * they are, where Godot renormalizes them and keeps red and green; a roughness map limited by a
+ * normal map (`roughness/mode`) takes three's mipmaps. A flipped normal map's green, a channel
+ * remap, HDR clamping and a size limit are not applied, and refuse.
+ */
+export function godotTextureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoad | string {
   const params = texture.importParams;
   if (!SOURCE_IMAGE_COMPRESS_MODES.has(params.compressMode ?? 0)) return `compress/mode=${String(params.compressMode)} is not drawn from the source image`;
   if (params.channelRemap !== undefined && params.channelRemap.join() !== '0,1,2,3') return 'a channel remap is not applied';
-  if (params.normalMapInvertY === true || params.normalMap === 1) return 'normal-map processing is not applied';
+  if (params.normalMapInvertY === true) return "a normal map's flipped green is not applied";
   if (params.hdrClampExposure === true) return 'HDR exposure clamping is not applied';
   if ((params.sizeLimit ?? 0) !== 0) return 'a size limit is not applied';
-  if (params.mipmapsGenerate === true && (params.roughnessMode ?? 0) > 1) return 'roughness mipmaps are not generated';
   return {
     sourceResPath: texture.resPath,
     options: {
@@ -367,6 +540,7 @@ function textureLoad(texture: BoundGodotTextureDocument): TargetGodotImportedLoa
       premultAlpha: params.premultAlpha ?? false,
       mipmaps: params.mipmapsGenerate ?? false,
     },
+    ...(texture.size === undefined ? {} : { size: texture.size }),
   };
 }
 
@@ -410,11 +584,36 @@ export interface TargetGodotSceneDocumentPlan {
   readonly connections: readonly TargetGodotSceneConnectionPlan[];
 }
 
+/**
+ * A resource document with no script that a script preloads (`preload("res://m.tres")`): a module
+ * of its own that makes the resource once and exports it, as the loader's cache holds one resource
+ * per path; the script imports it. Its resources are planned as a scene's are, the document's own
+ * last.
+ */
+export interface TargetGodotResourceModulePlan {
+  readonly sourceResPath: string;
+  readonly sourceDigest: string;
+  readonly targetPath: string;
+  readonly exportName: string;
+  /** The document's own resource. */
+  readonly key: string;
+  readonly resources: readonly TargetGodotSceneResourcePlan[];
+  /**
+   * The compat function that makes the three object the resource the scripts hold, as a scene reads
+   * it back (a material); none for a resource compat makes itself (a sky material).
+   */
+  readonly handle?: { readonly module: string; readonly exportName: string };
+}
+
+/** A material's Godot resource, one per three material (`godot_base_material_3d_of`), as a scene's override reads back. */
+const MATERIAL_HANDLE = { module: 'base-material-3d', exportName: 'godot_base_material_3d_of' } as const;
+
 export interface GodotSceneDocumentPlan {
   readonly version: typeof GODOT_SCENE_DOCUMENT_PLAN_VERSION;
   readonly snapshotDigest: string;
   readonly sourceRevision: string;
   readonly scenes: readonly TargetGodotSceneDocumentPlan[];
+  readonly resourceModules: readonly TargetGodotResourceModulePlan[];
 }
 
 /**
@@ -505,6 +704,27 @@ export function godotSceneHeldNodes<
   };
   collect(root);
   return held;
+}
+
+/** Where a preloaded resource document's module is written (`src/resources/<path>.ts`). */
+export function godotResourceModuleTargetPath(resPath: string): string {
+  return `src/resources/${resPath.slice('res://'.length).replace(/\.(?:t)?res$/u, '')}.ts`;
+}
+
+/** The name a preloaded resource document's module exports it as: its file's stem, in camel case. */
+export function godotResourceModuleExportName(resPath: string): string {
+  const basename = resPath.slice(resPath.lastIndexOf('/') + 1).replace(/\.(?:t)?res$/u, '');
+  const words = basename.split(/[^A-Za-z0-9]+/u).filter((word) => word.length > 0);
+  const joined = words.map((word, index) => `${(index === 0 ? word[0]?.toLowerCase() : word[0]?.toUpperCase()) ?? ''}${word.slice(1)}`).join('');
+  return /^[A-Za-z_]/u.test(joined) ? joined : `resource${joined}`;
+}
+
+/**
+ * Whether a script's `preload` of a resource document is its module's (`TargetGodotResourceModulePlan`):
+ * a document without a script; a scripted one is made by its script class in code.
+ */
+export function godotPreloadsResourceModule(document: { readonly resource: { readonly properties: Readonly<Record<string, unknown>> } }): boolean {
+  return document.resource.properties['script'] === undefined;
 }
 
 export function godotSceneTargetPath(resPath: string): string {
@@ -608,6 +828,8 @@ interface PlanContext {
   readonly scriptSignals: (resPath: string) => ReadonlyMap<string, number>;
   readonly authority: GodotSceneNodeAuthorityResolver;
   readonly scenes: ReadonlyMap<string, BoundGodotSceneDocument>;
+  /** The imported models a scene's value names as a PackedScene: each gets a scene component of its own. */
+  readonly modelScenes?: Set<string>;
   /**
    * Whether any of the project's scenes places a node written as a reflection probe: its lit
    * materials are then the reflections capability's (`scene-material-idioms.ts`), since a probe
@@ -659,9 +881,33 @@ function setterValue(
     refuse(context, at, `a ${value.kind} value is not passed to a setter`, 'property', subject);
     return undefined;
   }
-  if (target.kind !== 'resource') return target;
-  const key = planResource(context, at, target.reference, target.id, scope);
-  return key === undefined ? undefined : { kind: 'resource', key };
+  return planSceneValue(context, at, target, scope);
+}
+
+/** A value with the resources it holds (at any depth) planned, each by its key. */
+function planSceneValue(context: PlanContext, at: string, target: TargetSceneValue, scope: string): TargetGodotSceneValue | undefined {
+  switch (target.kind) {
+    case 'resource': {
+      const key = planResource(context, at, target.reference, target.id, scope);
+      return key === undefined ? undefined : { kind: 'resource', key };
+    }
+    case 'Variant-array': {
+      const items = target.items.map((item) => planSceneValue(context, at, item, scope));
+      return items.every((item): item is TargetGodotSceneValue => item !== undefined) ? { kind: 'Variant-array', items } : undefined;
+    }
+    case 'Variant-dictionary': {
+      const entries: (readonly [TargetGodotSceneValue, TargetGodotSceneValue])[] = [];
+      for (const [key, item] of target.entries) {
+        const plannedKey = planSceneValue(context, at, key, scope);
+        const plannedItem = planSceneValue(context, at, item, scope);
+        if (plannedKey === undefined || plannedItem === undefined) return undefined;
+        entries.push([plannedKey, plannedItem]);
+      }
+      return { kind: 'Variant-dictionary', entries };
+    }
+    default:
+      return target;
+  }
 }
 
 /**
@@ -715,6 +961,9 @@ function planResourceAt(context: PlanContext, at: string, resPath: string): stri
 }
 
 /** Plans a resource resolved to its key, its data (none for an imported file) and its own scope. */
+/** The resource classes kept by their raw properties (`rawProperties`). */
+const RAW_PROPERTY_CLASSES: ReadonlySet<string> = new Set(['Theme', 'TileSet', 'TileSetAtlasSource', 'TileSetScenesCollectionSource']);
+
 function planResolvedResource(
   context: PlanContext,
   at: string,
@@ -738,13 +987,13 @@ function planResolvedResource(
   const font = data === undefined ? context.project?.documents.fonts.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   const imported =
     texture !== undefined
-      ? { className: 'CompressedTexture2D', load: textureLoad(texture) }
+      ? { className: 'CompressedTexture2D', load: godotTextureLoad(texture) }
       : sound !== undefined
         ? { className: 'AudioStreamWAV', load: soundLoad(sound) }
         : cubemap !== undefined
           ? { className: 'CompressedCubemap', load: cubemapLoad(cubemap) }
           : ogg !== undefined
-            ? { className: 'AudioStreamOggVorbis', load: { sourceResPath: ogg.resPath, options: { loop: ogg.loop, loopOffset: ogg.loopOffset } } }
+            ? { className: ogg.streamClass, load: { sourceResPath: ogg.resPath, options: { loop: ogg.loop, loopOffset: ogg.loopOffset } } }
             : font !== undefined
               ? { className: 'FontFile', load: { sourceResPath: font.resPath, options: {} } }
               : undefined;
@@ -772,9 +1021,114 @@ function planResolvedResource(
     recordResource(document, key, planned);
     return key;
   }
+  // A scene: a `.tscn`, or an imported model, which `instantiate()` mounts as its component.
+  const scene = data === undefined && imported === undefined && key.startsWith('ext:') ? context.scenes.get(key.slice('ext:'.length)) : undefined;
+  if (scene !== undefined) {
+    let model: { readonly images: readonly { readonly index: number; readonly load: TargetGodotImportedLoad }[] } | undefined;
+    if (scene.sourceKind === 'imported-gltf') {
+      context.modelScenes?.add(scene.resPath);
+      const images = modelImages(context, at, scene.resPath, scene.model?.externalImages ?? []);
+      if (images === undefined) return undefined;
+      model = { images };
+    }
+    const rootScript = scene.nodes.find((node) => node.nodePath === '.')?.scriptResPath;
+    const planned = {
+      key,
+      className: 'PackedScene',
+      construct: { module: 'lib/godot-compat/packed-scene-instance', exportName: 'godot_packed_scene_preload' },
+      packedScene: { resPath: scene.resPath, ...(rootScript === undefined ? {} : { rootScript }), ...(model === undefined ? {} : { model }) },
+      setters: [],
+    };
+    recordResource(document, key, planned);
+    return key;
+  }
+  // A `.obj` the `wavefront_obj` importer imports: an ArrayMesh of the surfaces analysis read.
+  const obj = data === undefined ? context.project?.documents.objMeshes.find((entry) => `ext:${entry.resPath}` === key) : undefined;
+  if (obj !== undefined) {
+    const rule = context.authority.resourceRule('ArrayMesh');
+    const surfaces = obj.surfaces;
+    if (typeof surfaces === 'string') {
+      refuse(context, at, surfaces, 'resource', 'ArrayMesh');
+      return undefined;
+    }
+    if (rule === undefined) {
+      refuse(context, at, 'no resource rule constructs ArrayMesh', 'resource', 'ArrayMesh');
+      return undefined;
+    }
+    const mesh: TargetGodotArrayMeshPlan = {
+      resourceName: '',
+      surfaces: surfaces.map((surface) => ({
+        // `PRIMITIVE_TRIANGLES` (`rendering_server_enums.h:208`).
+        primitive: 3,
+        arrays: { vertex: surface.vertex, normal: surface.normal, tangent: undefined, color: undefined, tex_uv: surface.uv, tex_uv2: undefined, index: undefined },
+      })),
+    };
+    recordResource(document, key, { key, className: 'ArrayMesh', construct: rule.construct, mesh, setters: [] });
+    return key;
+  }
   if (data === undefined) {
     refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
     return undefined;
+  }
+  // An ImageTexture of an image its document embeds: loaded as an imported image is, from a file
+  // of its own the translation writes beside the document (`godotEmbeddedImagePath`).
+  const imageReference = data.type === 'ImageTexture' ? referenceOf(data.properties['image']) : undefined;
+  if (imageReference !== undefined) {
+    const owner = nestedScope === '' ? document.scene.resPath : nestedScope;
+    const embedded = imageReference.reference === 'sub' ? context.project?.documents.embeddedImages.find((entry) => entry.owner === owner && entry.id === imageReference.id) : undefined;
+    const load: TargetGodotImportedLoad | undefined =
+      embedded === undefined ? undefined : { sourceResPath: godotEmbeddedImagePath(embedded.owner, embedded.id), options: { fixAlphaBorder: true, premultAlpha: false, mipmaps: false }, size: embedded.size };
+    const rule = context.authority.resourceRule('CompressedTexture2D');
+    if (load === undefined || rule === undefined) {
+      refuse(context, at, `${key}: its image is not one read decoded (a format other than L8, LA8, RGB8 or RGBA8)`, 'resource', 'ImageTexture');
+      return undefined;
+    }
+    recordResource(document, key, { key, className: 'CompressedTexture2D', construct: rule.construct, load, setters: [] });
+    return key;
+  }
+  // A resource keeping its properties by names it makes up: each value by its name.
+  if (RAW_PROPERTY_CLASSES.has(data.type)) {
+    const rawRule = context.authority.resourceRule(data.type);
+    if (rawRule === undefined) {
+      refuse(context, at, `no resource rule constructs ${data.type}`, 'resource', data.type);
+      return undefined;
+    }
+    const rawProperties: { readonly name: string; readonly value: TargetGodotSceneValue }[] = [];
+    for (const [name, value] of Object.entries(data.properties)) {
+      if (name === 'resource_name' || name === 'script') continue;
+      const planned = setterValue(context, `${at}(${key}).${name}`, `${data.type}.${name}`, value, nestedScope);
+      if (planned === undefined) return undefined;
+      rawProperties.push({ name, value: planned });
+    }
+    const planned = { key, className: data.type, construct: rawRule.construct, rawProperties, setters: [] };
+    recordResource(document, key, planned);
+    return key;
+  }
+  // A resource of a script's class: its script's instance, its properties the script's fields.
+  const scriptReference = referenceOf(data.properties['script']);
+  if (scriptReference !== undefined) {
+    const extResources = nestedScope === '' ? document.scene.extResources : (context.project?.documents.resources.find((entry) => entry.resPath === nestedScope)?.extResources ?? []);
+    const scriptResPath = scriptReference.reference === 'ext' ? extResources.find((entry) => String(entry.id) === scriptReference.id)?.resPath : undefined;
+    if (scriptResPath === undefined || !scriptResPath.endsWith('.gd')) {
+      refuse(context, at, `${key}: its script is not a project script file`, 'resource', data.type);
+      return undefined;
+    }
+    const fields: { readonly name: string; readonly value: TargetGodotSceneValue }[] = [];
+    for (const [name, value] of Object.entries(data.properties)) {
+      if (name === 'script' || name === 'resource_name' || name.startsWith('metadata/')) continue;
+      const planned = setterValue(context, `${at}(${key}).${name}`, `${data.type}.${name}`, value, nestedScope);
+      if (planned === undefined) return undefined;
+      fields.push({ name, value: planned });
+    }
+    const planned = {
+      key,
+      className: data.type,
+      construct: { module: 'lib/godot-compat/resource', exportName: 'godot_script_resource_new' },
+      scriptResource: { scriptResPath, fields, ...(key.startsWith('ext:') && !key.includes('#') ? { path: key.slice('ext:'.length) } : {}) },
+      setters: [],
+    };
+    recordResource(document, key, planned);
+    return key;
   }
   // An engine material: every shader its class generates, captured from the pinned Godot and
   // lowered as a `.gdshader` is, each planned as a `Shader` its binding selects between.
@@ -853,9 +1207,16 @@ function planResolvedResource(
   }
   const setters: TargetGodotSceneSetterPlan[] = [];
   let ok = true;
+  let localToScene = false;
   for (const [propertyName, value] of Object.entries(data.properties)) {
     // A binary resource stores its null script (`resource_format_binary.cpp` writes every property).
     if (propertyName === 'script' && value.kind === 'null') continue;
+    // A resource local to its scene is copied for each instance of the scene
+    // (`Resource::duplicate_for_local_scene`, `resource.cpp:421`): the scene's component makes its own.
+    if (propertyName === 'resource_local_to_scene') {
+      localToScene = value.kind === 'bool' && value.value;
+      continue;
+    }
     // A resource's name (`Resource::set_name`, `resource.cpp:189`) is the editor's label for it;
     // nothing draws or plays it, as an ArrayMesh's or an animation's is not carried either.
     if (propertyName === 'resource_name') continue;
@@ -869,7 +1230,7 @@ function planResolvedResource(
     refuse(context, `${at}(${key})`, unstated, 'property', `${data.type}.${unstated.split(' ')[0] ?? ''}`);
     return undefined;
   }
-  const planned = { key, className: data.type, construct: rule.construct, ...(engineShaders === undefined ? {} : { engineShaders }), setters };
+  const planned = { key, className: data.type, construct: rule.construct, ...(engineShaders === undefined ? {} : { engineShaders }), ...(localToScene ? { localToScene: true as const } : {}), setters };
   recordResource(document, key, planned);
   return key;
 }
@@ -903,24 +1264,59 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
     refuse(context, at, 'AnimationLibrary._data is not a dictionary', 'resource', 'AnimationLibrary');
     return undefined;
   }
-  const animations: { name: string; animation: ReturnType<typeof godotAnimationData> & object }[] = [];
+  const animations: { name: string; animation: TargetGodotAnimationLibraryPlan['animations'][number]['animation'] }[] = [];
+  const streams: string[] = [];
+  const sources: string[] = [];
   for (const item of entries?.entries ?? []) {
     const reference = referenceOf(item.value);
     const document = context.document;
     const resources = scope === '' ? document?.scene.subResources : context.project?.documents.resources.find((entry) => entry.resPath === scope)?.subResources;
-    const resource = reference?.reference === 'sub' ? resources?.find((entry) => String(entry.id) === reference.id) : undefined;
+    // An animation of the library's own document, or an animation file it names (`poof.res`).
+    const extResources = scope === '' ? document?.scene.extResources : context.project?.documents.resources.find((entry) => entry.resPath === scope)?.extResources;
+    const external = reference?.reference === 'ext' ? extResources?.find((entry) => String(entry.id) === reference.id)?.resPath : undefined;
+    const resource =
+      reference?.reference === 'sub'
+        ? resources?.find((entry) => String(entry.id) === reference.id)
+        : external === undefined
+          ? undefined
+          : context.project?.documents.resources.find((entry) => entry.resPath === external)?.resource;
     if (resource === undefined || resource.type !== 'Animation') {
-      refuse(context, `${at}/${item.key}`, 'an animation that is not a sub-resource of its document', 'resource', 'Animation');
+      refuse(context, `${at}/${item.key}`, 'an animation that is neither a sub-resource of its document nor an animation file', 'resource', 'Animation');
       return undefined;
     }
-    const animation = godotAnimationData(resource);
-    if (typeof animation === 'string') {
-      refuse(context, `${at}/${item.key}`, animation, 'resource', 'Animation');
+    const read = godotAnimationData(resource);
+    if (typeof read === 'string') {
+      refuse(context, `${at}/${item.key}`, read, 'resource', 'Animation');
       return undefined;
     }
+    if (external !== undefined && !sources.includes(external)) sources.push(external);
+    // Each audio key's stream is a resource of the scene; the key keeps its index in `streams`.
+    const animationScope = external ?? scope;
+    let failed = false;
+    const animation = {
+      ...read,
+      tracks: read.tracks.map((track) => ({
+        ...track,
+        keys: track.keys.map(([time, transition, value]) => {
+          if (typeof value !== 'object' || (!('audioRef' in value) && !('resourceRef' in value))) return [time, transition, value] as const;
+          // An audio key's stream and a resource key's resource are resources of the scene; the key
+          // keeps its index in `streams`.
+          const ref = referenceOf('audioRef' in value ? value.audioRef : value.resourceRef);
+          const planned = ref === undefined ? undefined : planResource(context, `${at}/${item.key}`, ref.reference, ref.id, animationScope);
+          if (planned === undefined) {
+            failed = true;
+            return [time, transition, 0] as const;
+          }
+          if (!streams.includes(planned)) streams.push(planned);
+          const index = streams.indexOf(planned);
+          return 'audioRef' in value ? ([time, transition, { audio: index, start: value.start, end: value.end }] as const) : ([time, transition, { resource: index }] as const);
+        }),
+      })),
+    };
+    if (failed) return undefined;
     animations.push({ name: item.key, animation });
   }
-  return { animations };
+  return { animations, ...(streams.length === 0 ? {} : { streams }), ...(sources.length === 0 ? {} : { sources }) };
 }
 
 /**
@@ -946,6 +1342,35 @@ function documentTargets(context: PlanContext): (path: string) => AnimationTarge
       ? undefined
       : { className: node.class.nativeName, ancestry: node.class.nativeAncestry, ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }) };
   };
+}
+
+/** The record members a sub-property of a built-in value names (`position:y`, `modulate:a`). */
+const RECORD_MEMBERS: ReadonlySet<string> = new Set(['x', 'y', 'z', 'w', 'r', 'g', 'b', 'a']);
+
+/**
+ * A value track's binding to a sub-property: the property's setter and getter, and the member of
+ * the built-in it holds, or the property of the resource it holds (by the one class that declares it).
+ */
+function subBinding(
+  lookup: SceneSetterLookup,
+  className: string,
+  property: string,
+  sub: string,
+): TargetGodotAnimationBindingsPlan['values'][number]['binding'] | string {
+  const setter = lookup(className, property);
+  const getter = lookup.getter?.(className, property) ?? `${className}.${property} has no getter lookup`;
+  if (typeof setter === 'string') return setter;
+  if (typeof getter === 'string') return getter;
+  const exported = (binding: { readonly module: string; readonly exportName: string; readonly localName: string }) => ({ module: binding.module, exportName: binding.exportName, localName: binding.localName });
+  const own = { setter: exported(setter), getter: exported(getter), ...(setter.index === undefined ? {} : { index: setter.index }) };
+  if (RECORD_MEMBERS.has(sub)) return { ...own, member: sub };
+  const type = lookup.propertyType?.(className, property);
+  // A shader's parameter is ShaderMaterial's (`ShaderMaterial::_set`, `material.cpp:197`), named by the shader.
+  const holder = sub.startsWith('shader_parameter/') ? 'ShaderMaterial' : type === undefined ? undefined : lookup.declaring?.(type, sub);
+  if (holder === undefined) return `${className}.${property}:${sub} names no one class's property`;
+  const inner = lookup(holder, sub);
+  if (typeof inner === 'string') return inner;
+  return { ...own, resource: { setter: exported(inner), ...(inner.index === undefined ? {} : { index: inner.index }) } };
 }
 
 function animationBindings(
@@ -984,12 +1409,18 @@ function animationBindings(
         }
         const className = target.className;
         if (track.type === 'value') {
-          if (subnames.length !== 1) {
-            fail(where, 'a value track without one property subname', 'AnimationMixer track path');
+          if (subnames.length !== 1 && subnames.length !== 2) {
+            fail(where, 'a value track without one property subname and at most one sub-property', 'AnimationMixer track path');
             continue;
           }
           const property = subnames[0] as string;
           if (values.has(track.path)) continue;
+          if (subnames.length === 2) {
+            const sub = subBinding(lookup, className, property, subnames[1] as string);
+            if (typeof sub === 'string') fail(where, sub, `${className}.${property}`);
+            else values.set(track.path, sub);
+            continue;
+          }
           if (target.scriptResPath !== undefined && context.scriptFields(target.scriptResPath).has(property)) {
             values.set(track.path, { field: property });
             continue;
@@ -1003,6 +1434,18 @@ function animationBindings(
             setter: { module: found.module, exportName: found.exportName, localName: found.localName },
             ...(found.index === undefined ? {} : { index: found.index }),
           });
+        } else if (track.type === 'audio') {
+          // The player the track names plays each key's stream (`_blend_process`, `animation_mixer.cpp:1776`).
+          for (const method of ['set_stream', 'play']) {
+            const id = `${track.path}\0${method}`;
+            if (methods.has(id)) continue;
+            const found = lookup.method(className, method);
+            if (typeof found === 'string') {
+              fail(where, found, `${className}.${method}`);
+              continue;
+            }
+            methods.set(id, { path: track.path, method, binding: { module: found.module, exportName: found.exportName, localName: found.localName } });
+          }
         } else if (track.type === 'method') {
           if (subnames.length > 0) {
             fail(where, 'a method track on a resource', 'AnimationMixer track path');
@@ -1270,6 +1713,9 @@ function arrayMeshPlan(context: PlanContext, at: string, data: BoundGodotResourc
 }
 
 /** One authored property of `className` (a node's or a resource's) as its setter's call. */
+/** A Control's layout properties, which an inert layout states and drops (`GodotSceneNodeIdiom.inertLayout`). */
+const INERT_LAYOUT = new Set(['layout_mode', 'anchors_preset', 'anchor_left', 'anchor_top', 'anchor_right', 'anchor_bottom', 'offset_left', 'offset_top', 'offset_right', 'offset_bottom', 'grow_horizontal', 'grow_vertical']);
+
 function setterPlan(
   context: PlanContext,
   at: string,
@@ -1279,7 +1725,11 @@ function setterPlan(
   scope: string,
 ): TargetGodotSceneSetterPlan | undefined {
   const subject = `${className}.${propertyName}`;
-  const found = context.setters?.(className, propertyName);
+  // A Control's properties are its element's style, which the plan computes and no setter makes;
+  // an inert layout's are stated and dropped (`inertLayout`).
+  const idiom = godotSceneNodeIdiom(className);
+  const unbound = idiom?.form.kind === 'dom' || (idiom?.inertLayout === true && INERT_LAYOUT.has(propertyName));
+  const found = unbound ? context.setters?.unbound?.(className, propertyName) : context.setters?.(className, propertyName);
   if (found === undefined || typeof found === 'string') {
     refuse(context, at, found ?? `no setter lookup for ${propertyName}`, 'property', subject);
     return undefined;
@@ -1421,6 +1871,38 @@ function gridMapData(context: PlanContext, at: string, value: GodotValue): Targe
 }
 
 /** A node the document authors itself: a native entity of its class. */
+/** Whether an authored field value is plain, the field plan's to hand (a number, text, a node path). */
+function plainFieldValue(value: GodotValue): boolean {
+  return value.kind === 'number' || value.kind === 'bool' || value.kind === 'string' || (value.kind === 'ctor' && value.name === 'NodePath');
+}
+
+/**
+ * A node's script fields whose authored values are not plain, each planned (`fieldValues`): the
+ * values its scene authors for the fields of the script chain attached there.
+ */
+function planFieldValues(
+  context: PlanContext,
+  node: BoundGodotSceneNode,
+): readonly { readonly field: string; readonly value: TargetGodotSceneValue }[] | undefined {
+  const planned: { readonly field: string; readonly value: TargetGodotSceneValue }[] = [];
+  const seen = new Set<string>();
+  for (const script of context.project?.scripts ?? []) {
+    for (const field of script.fields) {
+      if (seen.has(field.name)) continue;
+      const attachment = field.attachmentValues.find(
+        (entry) => entry.documentPath === node.documentPath && entry.nodePath === node.nodePath && entry.source === 'authored-value' && entry.valueKind === 'value',
+      );
+      const value = attachment?.authoredValue;
+      if (value === undefined || plainFieldValue(value)) continue;
+      seen.add(field.name);
+      const target = setterValue(context, `${node.documentPath}#${node.nodePath}.${field.name}`, field.name, value, '');
+      if (target === undefined) return undefined;
+      planned.push({ field: field.name, value: target });
+    }
+  }
+  return planned;
+}
+
 function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): TargetGodotSceneNodePlan | undefined {
   const at = `${node.documentPath}#${node.nodePath}`;
   let ok = true;
@@ -1428,7 +1910,9 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   const tree = node.class.nativeAncestry.includes('AnimationTree');
   // A script field's node path is the field plan's (`useGodotNodeReferences`).
   const scriptFields = node.scriptResPath === undefined ? new Set<string>() : context.scriptFields(node.scriptResPath);
-  if (node.nodePathProperties.some((name) => !(tree && TREE_NODE_PATHS[name] !== undefined) && !scriptFields.has(name))) {
+  // A joint's bodies are its setters' paths, which its element resolves (`joint-3d.tsx`).
+  const joint = node.class.nativeAncestry.includes('Joint3D');
+  if (node.nodePathProperties.some((name) => !(tree && TREE_NODE_PATHS[name] !== undefined) && !(joint && (name === 'node_a' || name === 'node_b')) && !scriptFields.has(name))) {
     refuse(context, at, 'authored NodePath properties are not planned', 'structure');
     ok = false;
   }
@@ -1452,13 +1936,16 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     context,
     node,
     Object.fromEntries(
-      Object.entries(node.authoredProperties).filter(([name]) => !fields.has(name) && name !== 'unique_name_in_owner'),
+      // `editor_description` is the editor's note on the node (`Node::set_editor_description`,
+      // `node.cpp:2662`): nothing in the running game reads it.
+      Object.entries(node.authoredProperties).filter(([name]) => !fields.has(name) && name !== 'unique_name_in_owner' && name !== 'editor_description'),
     ),
     setters,
   );
   const groups = groupsOf(context, node);
   const placed = placement(context, node);
-  if (!ok || idiom === undefined || properties === undefined || groups === undefined || placed === undefined) {
+  const fieldValues = planFieldValues(context, node);
+  if (!ok || idiom === undefined || properties === undefined || groups === undefined || placed === undefined || fieldValues === undefined) {
     return undefined;
   }
   const unstated = godotFamilyRefusal(node.class.nativeName, 'node', setters);
@@ -1473,13 +1960,15 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
     idiom,
-    ...(idiom.form.kind === 'light' ? { light: godotSceneLightPlan(setters, idiom.form.directional) } : {}),
+    ...(idiom.form.kind === 'light' ? { light: godotSceneLightPlan(setters, idiom.form.directional, idiom.form.spot === true) } : {}),
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     properties,
     groups,
     classes: node.class.nativeAncestry,
     ...(unique ? { unique: true as const } : {}),
-    setters,
+    ...(fieldValues.length === 0 ? {} : { fieldValues }),
+    // An inert layout, checked (`godotFamilyRefusal`), is dropped: its element takes no prop for it.
+    setters: idiom.inertLayout === true ? setters.filter((entry) => !INERT_LAYOUT.has(entry.propertyName)) : setters,
     ...(animation === undefined ? {} : { animation }),
     children: [],
   };
@@ -1522,6 +2011,35 @@ function importedLibrary(clips: readonly ImportedClip[]): TargetGodotAnimationLi
  * An instanced imported model (`.glb`): Godot's importer tree over the file (`imported-scene`), the
  * instance root's authored values as props, and room for this scene's edits inside it.
  */
+/**
+ * A model's images outside its file: each the project's imported texture at its path
+ * (`GLTFDocument::_parse_images`, `gltf_document.cpp:2362`); one the project does not import as a
+ * texture Godot reads as bytes instead, which is not transcribed.
+ */
+function modelImages(
+  context: PlanContext,
+  at: string,
+  resPath: string,
+  external: NonNullable<BoundGodotSceneDocument['model']>['externalImages'],
+): { readonly index: number; readonly load: TargetGodotImportedLoad }[] | undefined {
+  const images: { readonly index: number; readonly load: TargetGodotImportedLoad }[] = [];
+  for (const image of external) {
+    const resolved = externalImagePath(resPath, image.uri);
+    const texture = resolved === undefined ? undefined : context.project?.documents.textures.find((entry) => entry.resPath === resolved);
+    if (texture === undefined) {
+      refuse(context, at, `${resPath}: images[${String(image.index)}] (${image.uri}) is not a texture the project imports`, 'resource', 'imported .glb');
+      return undefined;
+    }
+    const load = godotTextureLoad(texture);
+    if (typeof load === 'string') {
+      refuse(context, at, `${texture.resPath}: ${load}`, 'resource', 'CompressedTexture2D');
+      return undefined;
+    }
+    images.push({ index: image.index, load });
+  }
+  return images;
+}
+
 function planImportedInstance(
   context: PlanContext,
   node: BoundGodotSceneNode,
@@ -1535,24 +2053,8 @@ function planImportedInstance(
     refuse(context, at, `${imported.resPath} has no imported model source`, 'node-family', 'imported .glb');
     return undefined;
   }
-  // An image outside the file is the project's imported texture at its path
-  // (`GLTFDocument::_parse_images`, `gltf_document.cpp:2362`); one the project does not import as a
-  // texture Godot reads as bytes instead, which is not transcribed.
-  const images: { readonly index: number; readonly load: TargetGodotImportedLoad }[] = [];
-  for (const image of model.externalImages) {
-    const resolved = externalImagePath(imported.resPath, image.uri);
-    const texture = resolved === undefined ? undefined : context.project?.documents.textures.find((entry) => entry.resPath === resolved);
-    if (texture === undefined) {
-      refuse(context, at, `${imported.resPath}: images[${String(image.index)}] (${image.uri}) is not a texture the project imports`, 'resource', 'imported .glb');
-      return undefined;
-    }
-    const load = textureLoad(texture);
-    if (typeof load === 'string') {
-      refuse(context, at, `${texture.resPath}: ${load}`, 'resource', 'CompressedTexture2D');
-      return undefined;
-    }
-    images.push({ index: image.index, load });
-  }
+  const images = modelImages(context, at, imported.resPath, model.externalImages);
+  if (images === undefined) return undefined;
   // The importer's external materials: the project's `.tres` in place of the file's own material
   // of that name, as the scene importer swaps it in (`resource_importer_scene.cpp`, `use_external`).
   const materials: { readonly name: string; readonly key: string }[] = [];
@@ -1572,6 +2074,7 @@ function planImportedInstance(
     const transform = member.authoredProperties['transform'];
     const matrix = transform === undefined ? undefined : serializedValue(transform)?.value;
     const gltfNode = model.nodeIndexByPath[member.nodePath];
+    const mesh = model.meshByPath[member.nodePath];
     const bones = model.bonesByPath[member.nodePath];
     nodes.push({
       path: member.nodePath,
@@ -1581,6 +2084,7 @@ function planImportedInstance(
       ...(member.class.nativeAncestry.includes('AnimationPlayer') ? { animationPlayer: true as const } : {}),
       ...(member.class.nativeAncestry.includes('GeometryInstance3D') ? { geometryInstance: true as const } : {}),
       ...(gltfNode === undefined ? {} : { gltfNode }),
+      ...(mesh === undefined ? {} : { mesh }),
       matrix: matrix ?? IDENTITY_MATRIX,
       ...(bones === undefined ? {} : { bones }),
     });
@@ -1602,13 +2106,45 @@ function planImportedInstance(
     refuse(context, at, `${imported.resPath}: the root scale of a model with a skeleton is not baked into its skins and bone poses`, 'resource', 'imported .glb');
     return undefined;
   }
-  const properties = planProperties(context, node, node.authoredProperties);
+  // The importer's physics bodies, each with its CollisionShape3D children's colliders.
+  const bodies: TargetGodotImportedModelBody[] = [];
+  for (const member of nodes.filter((entry) => entry.classes.includes('PhysicsBody3D'))) {
+    const colliders: TargetGodotImportedModelBody['colliders'][number][] = [];
+    for (const child of nodes.filter((entry) => entry.path.startsWith(`${member.path}/`) && !entry.path.slice(member.path.length + 1).includes('/'))) {
+      const shape = model.collisionShapeByPath?.[child.path];
+      if (shape === undefined) continue;
+      const collider = modelCollider(shape);
+      if (typeof collider === 'string') {
+        refuse(context, at, `${imported.resPath}: ${child.path}: ${collider}`, 'resource', 'CollisionShape3D.shape');
+        return undefined;
+      }
+      colliders.push({ path: child.path, matrix: child.matrix, collider });
+    }
+    // A body the importer made that moves (a RigidBody3D taking its mesh's place) is not mounted.
+    const idiom = godotSceneNodeIdiom(member.classes[0] ?? '');
+    if (idiom?.form.kind === 'body' && idiom.form.type !== 'fixed') {
+      refuse(context, at, `${imported.resPath}: the importer's moving body ${member.path} is not planned`, 'resource', 'imported .glb');
+      return undefined;
+    }
+    const layers = model.collisionLayersByPath?.[member.path];
+    bodies.push({ path: member.path, type: 'fixed', ...(layers === undefined ? {} : { layers }), colliders });
+  }
+  if (bodies.length > 0 && model.meshScale !== undefined) {
+    refuse(context, at, `${imported.resPath}: the root scale of a model with physics bodies is not baked into their shapes`, 'resource', 'imported .glb');
+    return undefined;
+  }
+  // A model registered as a unique name of this scene (`unique_name_in_owner`), as an own node is.
+  const { unique_name_in_owner: uniqueValue, ...authored } = node.authoredProperties;
+  const unique = uniqueValue?.kind === 'bool' && uniqueValue.value;
+  if (uniqueValue !== undefined && !structure(context, at, 'unique-name')) return undefined;
+  const properties = planProperties(context, node, authored);
   const placed = placement(context, node);
   if (properties === undefined || placed === undefined) return undefined;
   return {
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
+    ...(unique ? { unique: true as const } : {}),
     // A script on the model's root (an imported model's root has none of its own).
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     model: {
@@ -1619,6 +2155,7 @@ function planImportedInstance(
       ...(materials.length === 0 ? {} : { materials }),
       ...(animations === undefined ? {} : { animations }),
       ...(model.meshScale === undefined ? {} : { meshScale: model.meshScale }),
+      ...(bodies.length === 0 ? {} : { bodies }),
       overrides: [],
     },
     properties,
@@ -1656,6 +2193,13 @@ function planInstanceRoot(
   // `exports`); the rest are the root node's own properties.
   const fields = origin.scriptResPath === undefined ? new Set<string>() : context.scriptFields(origin.scriptResPath);
   for (const name of Object.keys(overrides)) if (fields.has(name)) delete overrides[name];
+  // An instance registered as a unique name of this scene (`unique_name_in_owner`), as an own node
+  // is; the editor's note on it is dropped.
+  const uniqueValue = overrides['unique_name_in_owner'];
+  const unique = uniqueValue?.kind === 'bool' && uniqueValue.value;
+  if (uniqueValue !== undefined && !structure(context, at, 'unique-name')) ok = false;
+  delete overrides['unique_name_in_owner'];
+  delete overrides['editor_description'];
   if (Object.keys(overrides).length > 0 && !structure(context, at, 'instance-root-override')) ok = false;
   // A script on an instance whose root has none attaches to the component's root (its ref); one
   // replacing the root's own script is not planned.
@@ -1675,7 +2219,8 @@ function planInstanceRoot(
   const setters: TargetGodotSceneSetterPlan[] = [];
   const properties = planProperties(context, node, overrides, setters);
   const placed = placement(context, node);
-  if (!ok || properties === undefined || placed === undefined) return undefined;
+  const fieldValues = planFieldValues(context, node);
+  if (!ok || properties === undefined || placed === undefined || fieldValues === undefined) return undefined;
   return {
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
@@ -1683,8 +2228,10 @@ function planInstanceRoot(
     instance: { sourceResPath: instanced.resPath },
     // Its own script, where the base's root has none (the component's root carries it).
     ...(node.scriptResPath !== undefined && origin.scriptResPath === undefined ? { scriptResPath: node.scriptResPath } : {}),
+    ...(fieldValues.length === 0 ? {} : { fieldValues }),
     properties,
     groups: groups ?? [],
+    ...(unique ? { unique: true as const } : {}),
     classes: [],
     setters,
     children: [],
@@ -1846,12 +2393,14 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         continue;
       }
       const parent = node.placement.kind === 'child' ? node.placement.parentNodePath : undefined;
-      if (parent !== enclosing) {
+      // Under a node this document adds to the instance: that node's own child.
+      const addedParent = parent !== undefined && parent !== enclosing && scene.nodes.some((candidate) => candidate.nodePath === parent && candidate.inheritedNode === undefined);
+      if (parent !== enclosing && !addedParent) {
         refuse(context, at, `a node placed inside instanced ${instanced.resPath} is not planned`, 'editable-children');
         refused = true;
         continue;
       }
-      if (!structure(context, at, 'instance-children')) {
+      if (!addedParent && !structure(context, at, 'instance-children')) {
         refused = true;
         continue;
       }
@@ -1979,8 +2528,28 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   return document;
 }
 
-const COLLISION_OBJECT_SETTERS = ['set_collision_layer', 'set_collision_mask', 'set_ray_pickable'];
+const COLLISION_OBJECT_SETTERS = ['set_collision_layer', 'set_collision_mask', 'set_ray_pickable', 'set_as_top_level'];
 const AXIS_LOCKS = [1, 2, 4, 8, 16, 32].map((axis) => `set_axis_lock:${String(axis)}`);
+
+const RIGID_BODY_SETTERS: readonly string[] = [
+  ...COLLISION_OBJECT_SETTERS,
+  ...AXIS_LOCKS,
+  'set_mass',
+  'set_gravity_scale',
+  'set_linear_damp',
+  'set_angular_damp',
+  'set_linear_damp_mode',
+  'set_angular_damp_mode',
+  'set_use_continuous_collision_detection',
+  'set_lock_rotation_enabled',
+  'set_use_custom_integrator',
+  'set_contact_monitor',
+  'set_max_contacts_reported',
+  'set_physics_material_override',
+  'set_center_of_mass_mode',
+  'set_center_of_mass',
+  'set_sleeping',
+];
 
 /**
  * The families the idiomatic scene writes (GODOT.md, "The output is idiomatic three.js"): each node
@@ -1988,29 +2557,20 @@ const AXIS_LOCKS = [1, 2, 4, 8, 16, 32].map((axis) => `set_axis_lock:${String(ax
  * resource class's.
  */
 export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
-  Node: [],
+  // A node's `process_mode` is its `userData`'s (`nodeData`).
+  Node: ['set_process_mode'],
   // A Node3D's `visible` is three's own (`node_3d.cpp:1120`); a body's has no Rapier prop, and a
-  // collision shape mounts no object to hide.
-  Node3D: ['set_visible'],
+  // collision shape mounts no object to hide. Its `top_level` is its `userData`'s (`nodeData`).
+  Node3D: ['set_visible', 'set_as_top_level', 'set_process_mode'],
   StaticBody3D: [...COLLISION_OBJECT_SETTERS, 'set_physics_material_override'],
-  RigidBody3D: [
-    ...COLLISION_OBJECT_SETTERS,
-    ...AXIS_LOCKS,
-    'set_mass',
-    'set_gravity_scale',
-    'set_linear_damp',
-    'set_angular_damp',
-    'set_linear_damp_mode',
-    'set_angular_damp_mode',
-    'set_use_continuous_collision_detection',
-    'set_lock_rotation_enabled',
-    'set_use_custom_integrator',
-    'set_contact_monitor',
-    'set_max_contacts_reported',
-    'set_physics_material_override',
-  ],
+  RigidBody3D: RIGID_BODY_SETTERS,
+  // A RigidBody3D its driver moves on its wheels (`vehicle-body-3d.tsx`): the forces are its script's.
+  VehicleBody3D: [...RIGID_BODY_SETTERS, 'set_engine_force', 'set_brake', 'set_steering'],
+  // Its axis locks: the linear ones stop its motion on those axes (`move_and_slide`,
+  // `character_body_3d.cpp:47`); the angular ones its motion never reads.
   CharacterBody3D: [
     ...COLLISION_OBJECT_SETTERS,
+    ...AXIS_LOCKS,
     'set_velocity',
     'set_safe_margin',
     'set_floor_stop_on_slope_enabled',
@@ -2024,7 +2584,7 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
     'set_wall_min_slide_angle',
     'set_up_direction',
   ],
-  Area3D: [...COLLISION_OBJECT_SETTERS, 'set_monitoring'],
+  Area3D: [...COLLISION_OBJECT_SETTERS, 'set_monitoring', 'set_monitorable'],
   CollisionShape3D: ['set_shape', 'set_disabled'],
   RayCast3D: [
     'set_visible',
@@ -2039,16 +2599,33 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
     'set_debug_shape_custom_color',
   ],
   Marker3D: ['set_visible', 'set_gizmo_extents'],
+  // Its sweep moving its children, from its own component's physics step (`spring-arm-3d.ts`).
+  SpringArm3D: ['set_visible', 'set_shape', 'set_length', 'set_collision_mask', 'set_margin'],
+  // Swept when a script reads it, as the ray is (`shape-cast-3d.ts`).
+  ShapeCast3D: [
+    'set_visible',
+    'set_enabled',
+    'set_shape',
+    'set_target_position',
+    'set_margin',
+    'set_max_results',
+    'set_collision_mask',
+    'set_exclude_parent_body',
+    'set_collide_with_areas',
+    'set_collide_with_bodies',
+    'set_debug_shape_custom_color',
+  ],
 };
 const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   BoxShape3D: ['set_size'],
   SphereShape3D: ['set_radius'],
   CapsuleShape3D: ['set_radius', 'set_height'],
+  CylinderShape3D: ['set_radius', 'set_height'],
+  WorldBoundaryShape3D: ['set_plane'],
   ConvexPolygonShape3D: ['set_points'],
   ConcavePolygonShape3D: ['set_faces', 'set_backface_collision_enabled'],
   PhysicsMaterial: ['set_friction', 'set_bounce', 'set_rough', 'set_absorbent'],
 };
-const BODY_CLASSES = new Set(['StaticBody3D', 'RigidBody3D', 'CharacterBody3D', 'Area3D']);
 
 /** The properties an imported model's element sets on the model's own nodes, and where each goes. */
 const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
@@ -2056,6 +2633,10 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_layer_mask: { kind: 'layers' },
   // A mesh of the model's surface materials (compat's imported-scene overrides).
   set_surface_override_material: { kind: 'surface-material' },
+  // A geometry of the model drawn with one material, and whether it casts shadows (compat's
+  // imported-scene `material_override` and `cast_shadow`).
+  set_material_override: { kind: 'material-override' },
+  set_cast_shadows_setting: { kind: 'cast-shadow' },
   set_bone_pose_position: { kind: 'bone-pose', component: 'position' },
   set_bone_pose_rotation: { kind: 'bone-pose', component: 'rotation' },
   set_bone_pose_scale: { kind: 'bone-pose', component: 'scale' },
@@ -2073,6 +2654,11 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_default_blend_time: { kind: 'player' },
   set_auto_capture: { kind: 'player' },
 };
+
+/** The file an embedded image is written to, beside the document embedding it (`artifacts/plan.ts`). */
+export function godotEmbeddedImagePath(owner: string, id: string): string {
+  return `${owner}.${id.replace(/[^A-Za-z0-9_-]/gu, '_')}.png`;
+}
 
 /** A spatial node's transform, as its matrix or as position, YXZ rotation and scale. */
 const TRANSFORM_PROPERTIES = new Set(['transform', 'position', 'rotation', 'scale']);
@@ -2102,7 +2688,7 @@ export function godotSceneRootClass(
 function modelOverride(context: PlanContext, setter: TargetGodotSceneSetterPlan): TargetGodotSceneSetterPlan {
   const modelSlot = MODEL_OVERRIDE_SLOTS[setter.setter.exportName];
   if (modelSlot === undefined) return setter;
-  const value = modelSlot.kind === 'surface-material' && setter.value.kind === 'resource' ? { ...setter.value, key: planModelMaterial(context, setter.value.key) } : setter.value;
+  const value = (modelSlot.kind === 'surface-material' || modelSlot.kind === 'material-override') && setter.value.kind === 'resource' ? { ...setter.value, key: planModelMaterial(context, setter.value.key) } : setter.value;
   return { ...setter, value, modelSlot };
 }
 
@@ -2181,7 +2767,7 @@ export function idiomaticRefusal(
       if (node.setters.length > 0 || node.properties.some((entry) => !TRANSFORM_PROPERTIES.has(entry.propertyName))) return `overrides on the imported model ${node.nodePath}`;
       const override = node.model.overrides.flatMap((entry) => entry.setters).find((entry) => entry.modelSlot === undefined);
       if (override !== undefined) return `the imported model's ${override.propertyName}`;
-      if (node.groups.length > 0 || node.unique === true) return `groups or a unique name on the imported model ${node.nodePath}`;
+      if (node.groups.length > 0) return `groups on the imported model ${node.nodePath}`;
       for (const placed of node.placements ?? []) {
         const refused = walk(placed.node, undefined);
         if (refused !== undefined) return refused;
@@ -2204,7 +2790,7 @@ export function idiomaticRefusal(
     const allowed =
       carried || className === PENDING_INSTANCE ? node.setters.map((entry) => setterName(entry)[0] as string) : IDIOMATIC_NODE_SETTERS[className];
     if (allowed === undefined) return `class ${className}`;
-    if (className === 'CollisionShape3D' && (parentClass === undefined || !(BODY_CLASSES.has(parentClass) || parentClass === PENDING_INSTANCE))) {
+    if (className === 'CollisionShape3D' && (parentClass === undefined || !(godotSceneNodeIdiom(parentClass)?.form.kind === 'body' || parentClass === PENDING_INSTANCE))) {
       return 'a collision shape outside a body';
     }
     const property = carried ? undefined : node.properties.find((entry) => !TRANSFORM_PROPERTIES.has(entry.propertyName));
@@ -2429,12 +3015,38 @@ export function planGodotSceneDocuments(
     scenes: new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const)),
     // `project.documents.scenes` are the reachable scenes (`read/reachability.ts`).
     reflected: project.documents.scenes.some((scene) => scene.nodes.some((node) => godotSceneNodeIdiom(node.class.nativeName)?.form.kind === 'reflection-probe')),
+    modelScenes: new Set(),
     diagnostics: [],
   };
   const scenes = project.documents.scenes.flatMap((scene) => {
     const planned = planScene(context, scene);
     return planned === undefined ? [] : [planned];
   });
+  // An imported model a value names as a PackedScene (`instantiate()`): a scene of its own whose
+  // root instances the model, as a scene inheriting from the file is.
+  const modelsPlanned = new Set<string>();
+  for (let pending = [...(context.modelScenes ?? [])]; pending.length > 0; pending = [...(context.modelScenes ?? [])].filter((resPath) => !modelsPlanned.has(resPath))) {
+    for (const resPath of pending) {
+      modelsPlanned.add(resPath);
+      const imported = context.scenes.get(resPath);
+      const root = imported?.nodes.find((node) => node.nodePath === '.');
+      if (imported === undefined || root === undefined) continue;
+      const { scriptResPath: _script, ...rootNode } = root;
+      const planned = planScene(context, {
+        ...imported,
+        sourceKind: 'packed-scene',
+        nodes: [{ ...rootNode, documentPath: resPath, nodePath: '.', authoredProperties: {}, nodePathProperties: [], groups: [], instanceSceneResPath: resPath, inheritedNode: { documentPath: resPath, nodePath: '.' } }],
+        subResources: [],
+        extResources: [],
+        connections: [],
+        connectionCount: 0,
+        subResourceCount: 0,
+        editablePaths: [],
+      });
+      if (planned !== undefined) scenes.push(planned);
+    }
+  }
+  const resourceModules = planResourceModules(context, project);
   const plannedPaths = new Set(scenes.map((scene) => scene.sourceResPath));
   // An instance of a scene that did not plan cannot mount its component.
   const missing = (node: TargetGodotSceneNodePlan): string[] => [
@@ -2466,8 +3078,37 @@ export function planGodotSceneDocuments(
       snapshotDigest: project.snapshotDigest,
       sourceRevision: project.authority.revision,
       scenes,
+      resourceModules,
     },
   };
+}
+
+/** Each resource document without a script a script preloads, planned as its module (`TargetGodotResourceModulePlan`). */
+function planResourceModules(context: PlanContext, project: BoundGodotProject): TargetGodotResourceModulePlan[] {
+  const documents = new Map<string, BoundGodotProject['documents']['resources'][number]>();
+  // The paths the scripts preload, as analysis records them (`tree-requests.ts`).
+  for (const resPath of project.scripts.flatMap((script) => script.treeRequests.preloads)) {
+    const document = project.documents.resources.find((entry) => entry.resPath === resPath);
+    if (document !== undefined && godotPreloadsResourceModule(document)) documents.set(document.resPath, document);
+  }
+  return [...documents.values()]
+    .sort((a, b) => (a.resPath < b.resPath ? -1 : a.resPath > b.resPath ? 1 : 0))
+    .flatMap((document) => {
+      const resPath = document.resPath;
+      // The module's resources, planned in the document's own scope (no scene's sub-resources).
+      const scene: BoundGodotSceneDocument = { resPath, sourceDigest: document.sourceDigest, sourceKind: 'packed-scene', nodes: [], subResources: [], extResources: [], connectionCount: 0, connections: [], subResourceCount: 0, editablePaths: [] };
+      const resources: DocumentResources = { scene, reflected: context.reflected, planned: new Map(), order: [] };
+      context.document = resources;
+      const key = planResourceAt(context, resPath, resPath);
+      const planned = key === undefined ? undefined : resources.planned.get(key);
+      // A three material, or a resource its compat constructor makes (nothing a component loads).
+      const made = planned !== undefined && planned !== null && (planned.idiom?.kind === 'material' || (planned.idiom === undefined && planned.construct !== undefined && planned.load === undefined));
+      if (key === undefined || planned === undefined || planned === null || !made) {
+        refuse(context, resPath, `a preloaded ${document.resource.type} without a script has no module form`, 'resource', document.resource.type);
+        return [];
+      }
+      return [{ sourceResPath: resPath, sourceDigest: document.sourceDigest, targetPath: godotResourceModuleTargetPath(resPath), exportName: godotResourceModuleExportName(resPath), key, resources: resources.order, ...(planned.idiom?.kind === 'material' ? { handle: MATERIAL_HANDLE } : {}) }];
+    });
 }
 
 /** An imported model's data file: the importer's tree (`src/models/<path>.json`). */

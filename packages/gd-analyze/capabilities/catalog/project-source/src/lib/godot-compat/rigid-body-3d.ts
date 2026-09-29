@@ -406,6 +406,174 @@ export function apply_central_impulse(self: object, impulse: Vector3): void {
 }
 
 /**
+ * An impulse at `position`, an offset from the body's centre in global orientation.
+ *
+ * @godot RigidBody3D.apply_impulse
+ * @source scene/3d/physics/rigid_body_3d.cpp:541
+ */
+export function apply_impulse(self: object, impulse: Vector3, position: Vector3 = vector3(0, 0, 0)): void {
+  stateOf(self);
+  const body = bodyOf(self);
+  if (body === undefined) return;
+  const at = body.translation();
+  body.applyImpulseAtPoint(impulse, { x: at.x + position.x, y: at.y + position.y, z: at.z + position.z }, true);
+}
+
+/**
+ * A force for the coming step: its impulse over the world's step (Rapier's forces persist, Godot's
+ * applied force lasts one step).
+ *
+ * @godot RigidBody3D.apply_central_force
+ * @source scene/3d/physics/rigid_body_3d.cpp:550
+ */
+export function apply_central_force(self: object, force: Vector3): void {
+  apply_force(self, force);
+}
+
+/**
+ * @godot RigidBody3D.apply_force
+ * @source scene/3d/physics/rigid_body_3d.cpp:554
+ */
+export function apply_force(self: object, force: Vector3, position: Vector3 = vector3(0, 0, 0)): void {
+  const step = godot_physics_world()?.timestep ?? 1 / 60;
+  apply_impulse(self, op_multiply(force, step), position);
+}
+
+/**
+ * A constant force: Rapier's own, which stays on the body every step until changed (Godot's
+ * `body_set_constant_force`, `godot_body_3d.cpp`'s `constant_force`); the force a script applies
+ * for one step is an impulse (`apply_force`).
+ *
+ * @godot RigidBody3D.set_constant_force
+ * @source scene/3d/physics/rigid_body_3d.cpp:576
+ */
+export function set_constant_force(self: object, force: Vector3): void {
+  const body = bodyOf(self);
+  if (body === undefined) return;
+  body.resetForces(true);
+  body.addForce(force, true);
+}
+
+/**
+ * @godot RigidBody3D.get_constant_force
+ * @source scene/3d/physics/rigid_body_3d.cpp:580
+ */
+export function get_constant_force(self: object): Vector3 {
+  const force = bodyOf(self)?.userForce();
+  return force === undefined ? vector3(0, 0, 0) : toVector(force);
+}
+
+/**
+ * @godot RigidBody3D.set_constant_torque
+ * @source scene/3d/physics/rigid_body_3d.cpp:584
+ */
+export function set_constant_torque(self: object, torque: Vector3): void {
+  const body = bodyOf(self);
+  if (body === undefined) return;
+  body.resetTorques(true);
+  body.addTorque(torque, true);
+}
+
+/**
+ * @godot RigidBody3D.get_constant_torque
+ * @source scene/3d/physics/rigid_body_3d.cpp:588
+ */
+export function get_constant_torque(self: object): Vector3 {
+  const torque = bodyOf(self)?.userTorque();
+  return torque === undefined ? vector3(0, 0, 0) : toVector(torque);
+}
+
+/**
+ * The mode is kept: Rapier's center of mass is its colliders' (the plan shares the mass among
+ * them as Godot does), a custom one is not moved to.
+ *
+ * @godot RigidBody3D.set_center_of_mass_mode
+ * @source scene/3d/physics/rigid_body_3d.cpp:356
+ */
+export function set_center_of_mass_mode(self: object, mode: number): void {
+  CENTER_MODE.set(godot_node_entity(self), mode);
+}
+
+/**
+ * @godot RigidBody3D.get_center_of_mass_mode
+ * @source scene/3d/physics/rigid_body_3d.cpp:380
+ */
+export function get_center_of_mass_mode(self: object): number {
+  const entity = godot_node_entity(self);
+  const stated = ((entity as Object3D).userData ?? {})['center_of_mass_mode'];
+  return CENTER_MODE.get(entity) ?? (typeof stated === 'number' ? stated : 0);
+}
+
+/**
+ * @godot RigidBody3D.set_center_of_mass
+ * @source scene/3d/physics/rigid_body_3d.cpp:384
+ */
+export function set_center_of_mass(self: object, center_of_mass: Vector3): void {
+  CENTER.set(godot_node_entity(self), center_of_mass);
+}
+
+/**
+ * The custom center kept, else Rapier's, in the body's own space.
+ *
+ * @godot RigidBody3D.get_center_of_mass
+ * @source scene/3d/physics/rigid_body_3d.cpp:395
+ */
+export function get_center_of_mass(self: object): Vector3 {
+  const entity = godot_node_entity(self);
+  const kept = CENTER.get(entity);
+  if (kept !== undefined) return kept;
+  const stated = ((entity as Object3D).userData ?? {})['center_of_mass'];
+  if (Array.isArray(stated)) return vector3(Number(stated[0]), Number(stated[1]), Number(stated[2]));
+  const center = bodyOf(self)?.localCom();
+  return center === undefined ? vector3(0, 0, 0) : toVector(center);
+}
+
+const CENTER_MODE = new WeakMap<object, number>();
+const CENTER = new WeakMap<object, Vector3>();
+
+/**
+ * Sleeping puts the body to sleep, else wakes it.
+ *
+ * @godot RigidBody3D.set_sleeping
+ * @source scene/3d/physics/rigid_body_3d.cpp:505
+ */
+export function set_sleeping(self: object, sleeping: boolean): void {
+  const body = bodyOf(self);
+  if (body === undefined) return;
+  if (sleeping) body.sleep();
+  else body.wakeUp();
+}
+
+/**
+ * @godot RigidBody3D.is_sleeping
+ * @source scene/3d/physics/rigid_body_3d.cpp:519
+ */
+export function is_sleeping(self: object): boolean {
+  return bodyOf(self)?.isSleeping() ?? false;
+}
+
+const FROZEN = new WeakMap<object, boolean>();
+
+/**
+ * A frozen body stops simulating: static by default (`FREEZE_MODE_STATIC`), a fixed Rapier body.
+ *
+ * @godot RigidBody3D.set_freeze_enabled
+ * @source scene/3d/physics/rigid_body_3d.cpp:307
+ */
+export function set_freeze_enabled(self: object, freeze: boolean): void {
+  FROZEN.set(godot_node_entity(self), freeze);
+  bodyOf(self)?.setBodyType(freeze ? 1 : 0, true);
+}
+
+/**
+ * @godot RigidBody3D.is_freeze_enabled
+ * @source scene/3d/physics/rigid_body_3d.cpp:316
+ */
+export function is_freeze_enabled(self: object): boolean {
+  return FROZEN.get(godot_node_entity(self)) ?? false;
+}
+
+/**
  * @godot RigidBody3D.set_lock_rotation_enabled
  * @source scene/3d/physics/rigid_body_3d.cpp:302
  */

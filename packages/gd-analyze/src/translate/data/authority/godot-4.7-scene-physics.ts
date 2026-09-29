@@ -18,13 +18,22 @@ type Source = Readonly<{ file: string; symbol: string; line: number }>;
 
 export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule & { readonly source: Source })[] = (
   [
-    ['BoxShape3D', 'box-shape-3d', 'scene/resources/3d/box_shape_3d.cpp', 118],
-    ['SphereShape3D', 'sphere-shape-3d', 'scene/resources/3d/sphere_shape_3d.cpp', 104],
-    ['CapsuleShape3D', 'capsule-shape-3d', 'scene/resources/3d/capsule_shape_3d.cpp', 156],
+    ['BoxShape3D', 'box-shape-3d', 'scene/resources/3d/box_shape_3d.cpp', 118, 'godot_box_shape_3d_new'],
+    ['SphereShape3D', 'sphere-shape-3d', 'scene/resources/3d/sphere_shape_3d.cpp', 104, 'godot_sphere_shape_3d_new'],
+    ['CapsuleShape3D', 'capsule-shape-3d', 'scene/resources/3d/capsule_shape_3d.cpp', 156, 'godot_capsule_shape_3d_new'],
+    ['CylinderShape3D', 'cylinder-shape-3d', 'scene/resources/3d/cylinder_shape_3d.cpp', 155, 'godot_cylinder_shape_3d_new'],
+    ['WorldBoundaryShape3D', 'world-boundary-shape-3d', 'scene/resources/3d/world_boundary_shape_3d.cpp', 82],
     ['ConvexPolygonShape3D', 'convex-polygon-shape-3d', 'scene/resources/3d/convex_polygon_shape_3d.cpp', 129],
     ['ConcavePolygonShape3D', 'concave-polygon-shape-3d', 'scene/resources/3d/concave_polygon_shape_3d.cpp', 134],
+    ['SeparationRayShape3D', 'separation-ray-shape-3d', 'scene/resources/3d/separation_ray_shape_3d.cpp', 92, 'godot_separation_ray_shape_3d_new'],
     // A GridMap's `physics_material` is an element prop: the material made from what the scene states.
     ['PhysicsMaterial', 'physics-material', 'scene/resources/physics_material.h', 36, 'godot_physics_material_of'],
+    // A 2D shape a CollisionShape2D picks by (`collision-object-2d.ts`), made from what the scene states.
+    ['RectangleShape2D', 'rectangle-shape-2d', 'scene/resources/2d/rectangle_shape_2d.cpp', 131, 'godot_rectangle_shape_2d_new'],
+    ['CircleShape2D', 'circle-shape-2d', 'scene/resources/2d/circle_shape_2d.cpp', 99, 'godot_circle_shape_2d_new'],
+    ['CapsuleShape2D', 'capsule-shape-2d', 'scene/resources/2d/capsule_shape_2d.cpp', 117, 'godot_capsule_shape_2d_new'],
+    ['Curve2D', 'curve-2d', 'scene/resources/curve.cpp', 1420, 'godot_curve_2d_new'],
+    ['Curve3D', 'curve-3d', 'scene/resources/curve.cpp', 2380, 'godot_curve_3d_new'],
   ] as const
 ).map(([className, module, file, line, exportName = 'construct']) => ({
   sourceRevision: REVISION,

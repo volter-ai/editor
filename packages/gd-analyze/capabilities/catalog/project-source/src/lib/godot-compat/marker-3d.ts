@@ -11,14 +11,12 @@
 import type { ThreeElements } from '@react-three/fiber';
 import { createElement, type Ref, useLayoutEffect, useRef } from 'react';
 import type { Group, Object3D } from 'three';
-import { godot_node_class_reader, godot_node_duplicate_state } from './node';
+import { godot_node_duplicate_state } from './node';
 import './node-3d';
 
 const f32 = Math.fround;
 const EXTENTS = new WeakMap<Object3D, number>();
 const MARKERS = new WeakSet<object>();
-const MARKER_3D = Object.freeze(['Marker3D', 'Node3D', 'Node', 'Object']);
-godot_node_class_reader((entity) => (MARKERS.has(entity) ? MARKER_3D : undefined));
 
 godot_node_duplicate_state((from, to) => {
   const extents = EXTENTS.get(from as Object3D);

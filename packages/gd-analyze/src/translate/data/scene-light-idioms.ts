@@ -1,5 +1,5 @@
 /**
- * A DirectionalLight3D or OmniLight3D as the three light a three.js developer would write for it
+ * A DirectionalLight3D, OmniLight3D or SpotLight3D as the three light a three.js developer would write for it
  * (docs/GODOT.md §The lane's law, row 2): the planner decides every prop here, and emit prints them.
  *
  * - `intensity` is the energy times pi: Godot's shader divides the Lambert term by pi as three's
@@ -30,7 +30,9 @@ export type GodotSceneLightPropValue =
 
 /** The three light a scene's light node is, with its props in order. */
 export interface GodotSceneLightPlan {
-  readonly element: 'directionalLight' | 'pointLight';
+  readonly element: 'directionalLight' | 'pointLight' | 'spotLight';
+  /** A compat function the light is handed once made (`onUpdate`): a spot light's aim down its -Z. */
+  readonly aim?: { readonly module: string; readonly exportName: string };
   readonly props: readonly { readonly name: string; readonly value: GodotSceneLightPropValue }[];
   /** A directional light's authored values, handed to compat's sky pass (`onUpdate`). */
   readonly authored?: {
@@ -57,7 +59,7 @@ export function hexColor(components: readonly number[]): string {
 }
 
 /** The three light for a light node's authored setters. */
-export function godotSceneLightPlan(setters: readonly TargetGodotSceneSetterPlan[], directional: boolean): GodotSceneLightPlan {
+export function godotSceneLightPlan(setters: readonly TargetGodotSceneSetterPlan[], directional: boolean, spot = false): GodotSceneLightPlan {
   const param = (index: number, initial: number) => number(value(setters, 'set_param', index)) ?? initial;
   const colorValue = value(setters, 'set_color');
   const color = colorValue !== undefined && 'components' in colorValue ? colorValue.components : undefined;
@@ -89,6 +91,17 @@ export function godotSceneLightPlan(setters: readonly TargetGodotSceneSetterPlan
       { name: 'shadow-camera-far', value: literal(distance) },
     );
     if (param(17, 1) !== 1) props.push({ name: 'shadow-intensity', value: literal(Math.fround(param(17, 1))) });
+  }
+  if (spot) {
+    // A spot light's cone: Godot's angle is the cone's half angle in degrees (`light_3d.cpp:679`),
+    // three's in radians; Godot's falloff toward the rim (`spot_attenuation`, the rim distance's
+    // exponent, `scene.glsl:443`) as three's penumbra, the part of the cone it fades over.
+    const angle = param(7, 45);
+    const falloff = param(8, 1);
+    props.push({ name: 'angle', value: literal((Math.min(Math.max(angle, 0), 180) * Math.PI) / 180) }, { name: 'penumbra', value: literal(Math.min(Math.max(1 / Math.max(falloff, 1e-3), 0), 1)) });
+    // One shadow map along the cone, three's own spot shadow.
+    if (shadow && skyMode !== 2) props.push({ name: 'castShadow', value: { kind: 'flag' } }, { name: 'shadow-bias', value: literal(-param(15, 0.2) / 100) });
+    return { element: 'spotLight', props, aim: { module: 'spot-light-3d', exportName: 'godot_spot_light_3d_aim' } };
   }
   if (!directional) return { element: 'pointLight', props };
   const blend = value(setters, 'set_blend_splits');

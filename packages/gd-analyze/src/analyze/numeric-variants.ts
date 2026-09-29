@@ -378,6 +378,10 @@ const UTILITY_SHAPES: ReadonlyMap<string, VariantUtilityShape> = new Map([
   ['str', 'stringifies'],
   // `print` joins its arguments' `String` conversions as `str` does (`join_string`, variant_utility.cpp:960).
   ['print', 'stringifies'],
+  // `push_error`, `push_warning` and `printerr` join them the same way (variant_utility.cpp:981, :1017, :1027).
+  ['printerr', 'stringifies'],
+  ['push_error', 'stringifies'],
+  ['push_warning', 'stringifies'],
 ]);
 
 /** A call's utility shape: the Variant utility it calls, where the table gives it one. */

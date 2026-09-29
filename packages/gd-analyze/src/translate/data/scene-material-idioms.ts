@@ -42,12 +42,14 @@ export type GodotSceneMaterialPropValue =
   | { readonly kind: 'linear-color'; readonly components: readonly number[] }
   /** A three constant (`AdditiveBlending`, `DoubleSide`). */
   | { readonly kind: 'three'; readonly name: string }
+  /** A two-component value: three's `Vector2`. */
+  | { readonly kind: 'vector2'; readonly components: readonly [number, number] }
   /**
    * A planned texture resource sampled with the material's filter and repeat; `model` when the
    * material draws on an imported model's own geometry, whose UVs are the file's (glTF's origin is
    * the image's top row), so the texture is sampled as the model's own images are.
    */
-  | { readonly kind: 'map'; readonly texture: string; readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true }
+  | { readonly kind: 'map'; readonly texture: string; readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true; readonly uv?: { readonly scale: readonly [number, number]; readonly offset: readonly [number, number] } }
   /** The Godot-only values compat reads back, as `userData`. */
   | { readonly kind: 'user-data'; readonly entries: readonly { readonly key: string; readonly value: number | boolean | readonly number[] }[] }
   /** A compat function the material is handed once made (`onUpdate`). */
@@ -93,7 +95,16 @@ export const GODOT_DEFAULT_MATERIAL_IDIOM: GodotSceneMaterialIdiom = {
  */
 export function godotModelMaterialIdiom(idiom: GodotSceneMaterialIdiom): GodotSceneMaterialIdiom {
   if (!idiom.props.some((prop) => prop.value.kind === 'map')) return idiom;
-  return { ...idiom, props: idiom.props.map((prop) => (prop.value.kind === 'map' ? { name: prop.name, value: { ...prop.value, model: true } } : prop)) };
+  return {
+    ...idiom,
+    props: idiom.props.map((prop) => {
+      if (prop.value.kind === 'map') return { name: prop.name, value: { ...prop.value, model: true } };
+      // A normal map on the file's UVs, whose `v` runs down the image: its green flipped, as
+      // GLTFLoader flips it (`normalScale.y *= -1`).
+      if (prop.name === 'normalScale' && prop.value.kind === 'vector2') return { name: prop.name, value: { kind: 'vector2', components: [prop.value.components[0], -prop.value.components[1]] } };
+      return prop;
+    }),
+  };
 }
 
 /** The Compatibility shader's `srgb_to_linear` (`tonemap_inc.glsl:22`), in single precision. */
@@ -160,7 +171,11 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   const filter = num('set_texture_filter') ?? 3;
   const repeat = bool('set_flag', 16) ?? true;
   const texture = resource('set_texture', 0);
-  if (texture !== undefined) props.push({ name: 'map', value: { kind: 'map', texture, filter, repeat, srgb: true } });
+  // UV1's scale and offset move the albedo's UVs, where the map is not sampled triplanar.
+  const uvScale = components('set_uv1_scale');
+  const uvOffset = components('set_uv1_offset');
+  const uv = bool('set_flag', 6) !== true && (uvScale !== undefined || uvOffset !== undefined) ? { scale: [f32(uvScale?.[0] ?? 1), f32(uvScale?.[1] ?? 1)] as const, offset: [f32(uvOffset?.[0] ?? 0), f32(uvOffset?.[1] ?? 0)] as const } : undefined;
+  if (texture !== undefined) props.push({ name: 'map', value: { kind: 'map', texture, filter, repeat, srgb: true, ...(uv === undefined ? {} : { uv }) } });
   // `Transparency` (`material.h:198`): alpha and depth pre-pass, scissor, hash. Proximity fade reads
   // the scene's depth, which draws the material in the alpha pass, its albedo's alpha applied
   // (`material.cpp:1807`).
@@ -174,8 +189,10 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   if (transparency === 3 || fade === 2 || fade === 3) literal('alphaHash', true);
   if (transparency !== 0 || proximity || fade === 1) literal('opacity', albedo?.[3] ?? 1);
   // `DepthDrawMode` (`material.h:235`): `ALWAYS` 1, `DISABLED` 2; three writes depth by default.
+  // The depth pre-pass writes the depth of the pixels it keeps (`TRANSPARENCY_ALPHA_DEPTH_PRE_PASS`,
+  // `material.cpp:1807`), as a transparent three material that writes depth does.
   const depthDraw = num('set_depth_draw_mode') ?? 0;
-  if (depthDraw === 2 || (depthDraw === 0 && transparent)) literal('depthWrite', false);
+  if (depthDraw === 2 || (depthDraw === 0 && transparent && transparency !== 4)) literal('depthWrite', false);
   const blending = BLENDING[blend];
   if (blending !== undefined && blending !== '') props.push({ name: 'blending', value: { kind: 'three', name: blending } });
   if (!unshaded && element !== 'meshToonMaterial') {
@@ -187,6 +204,25 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     // material's `roughness_texture_channel` (red by default); a grey image reads the same.
     const roughnessTexture = resource('set_texture', 2);
     if (roughnessTexture !== undefined) props.push({ name: 'roughnessMap', value: { kind: 'map', texture: roughnessTexture, filter, repeat, srgb: false } });
+    // `TEXTURE_METALLIC` (1): three samples its blue channel where Godot samples the material's
+    // `metallic_texture_channel` (red by default); an ORM image's blue is its metalness.
+    const metallicTexture = resource('set_texture', 1);
+    if (metallicTexture !== undefined) props.push({ name: 'metalnessMap', value: { kind: 'map', texture: metallicTexture, filter, repeat, srgb: false } });
+    // `FEATURE_NORMAL_MAPPING` (1) with `TEXTURE_NORMAL` (4): three's normal map, its scale
+    // `normal_scale`; on a model's glTF UVs `v` runs down the image, so the model variant flips its
+    // green (`godotModelMaterialIdiom`).
+    const normalTexture = bool('set_feature', 1) === true ? resource('set_texture', 4) : undefined;
+    if (normalTexture !== undefined) {
+      props.push({ name: 'normalMap', value: { kind: 'map', texture: normalTexture, filter, repeat, srgb: false } });
+      const scale = f32(num('set_normal_scale') ?? 1);
+      props.push({ name: 'normalScale', value: { kind: 'vector2', components: [scale, scale] } });
+    }
+    // `FEATURE_AMBIENT_OCCLUSION` (5) with `TEXTURE_AMBIENT_OCCLUSION` (8): three's ambient occlusion
+    // map, its red channel (Godot's default `ao_texture_channel`); three's occlusion darkens only the
+    // indirect light, where Godot's `ao_light_affect` also darkens the direct.
+    const aoTexture = bool('set_feature', 5) === true ? resource('set_texture', 8) : undefined;
+    if (aoTexture !== undefined) props.push({ name: 'aoMap', value: { kind: 'map', texture: aoTexture, filter, repeat, srgb: false } });
+    // `FEATURE_HEIGHT_MAPPING` (6): three draws no parallax, so a heightmap moves nothing.
   }
   // No `normal_texture` (`TEXTURE_NORMAL`, 4) is planned yet. The lane that adds it as three's
   // `normalMap` needs no flip on three's own geometry (its primitives, an ArrayMesh's data, a
@@ -203,6 +239,10 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     const emission = components('set_emission') ?? [0, 0, 0, 1];
     const energy = num('set_emission_energy_multiplier') ?? 1;
     props.push({ name: 'emissive', value: { kind: 'linear-color', components: emission.slice(0, 3).map((channel) => srgbToLinear(f32(channel * energy))) } });
+    // `TEXTURE_EMISSION` (3): three multiplies the emissive colour by its map, Godot's
+    // `EMISSION_OP_MULTIPLY`; Godot's default `EMISSION_OP_ADD` adds them, where three multiplies.
+    const emissionTexture = resource('set_texture', 3);
+    if (emissionTexture !== undefined) props.push({ name: 'emissiveMap', value: { kind: 'map', texture: emissionTexture, filter, repeat, srgb: true } });
   }
   // `CULL_FRONT` and `CULL_DISABLED` (`material.h:296`) as the side three draws.
   const cull = num('set_cull_mode') ?? 0;
@@ -236,9 +276,19 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
     if (bool('set_flag', 13) === true) data.push({ key: 'dont_receive_shadows', value: true });
     if (bool('set_feature', 9) === true) data.push({ key: 'backlight', value: (components('set_backlight') ?? [0, 0, 0, 1]).slice(0, 3) });
   }
+  // UV1 triplanar (`FLAG_UV1_USE_TRIPLANAR` 6, world `FLAG_UV1_USE_WORLD_TRIPLANAR` 8): the albedo
+  // sampled by position, blended by the normal (`material.cpp:1412`, `:1488`).
+  const triplanar = bool('set_flag', 6) === true;
+  if (triplanar) {
+    data.push({ key: 'uv1_triplanar', value: true });
+    if (bool('set_flag', 8) === true) data.push({ key: 'uv1_world_triplanar', value: true });
+    data.push({ key: 'uv1_scale', value: (components('set_uv1_scale') ?? [1, 1, 1]).map(f32) });
+    data.push({ key: 'uv1_offset', value: (components('set_uv1_offset') ?? [0, 0, 0]).map(f32) });
+    data.push({ key: 'uv1_triplanar_sharpness', value: f32(num('set_uv1_triplanar_blend_sharpness') ?? 1) });
+  }
   if (data.length > 0) props.push({ name: 'userData', value: { kind: 'user-data', entries: data } });
-  // A billboard, vertex colour, proximity or distance fade draws through compat (`godot_base_material_3d_scene_shader`).
-  if (billboard !== 0 || coloured || proximity || fade !== 0) props.push({ name: 'onUpdate', value: { kind: 'compat', module: 'base-material-3d', exportName: 'godot_base_material_3d_scene_shader' } });
+  // A billboard, vertex colour, proximity or distance fade, or triplanar mapping draws through compat (`godot_base_material_3d_scene_shader`).
+  if (billboard !== 0 || coloured || proximity || fade !== 0 || triplanar) props.push({ name: 'onUpdate', value: { kind: 'compat', module: 'base-material-3d', exportName: 'godot_base_material_3d_scene_shader' } });
 
   if (element === 'meshPhysicalMaterial') {
     // `godot_base_material_3d_anisotropy`: a negative ratio stretches the highlight across the tangent.

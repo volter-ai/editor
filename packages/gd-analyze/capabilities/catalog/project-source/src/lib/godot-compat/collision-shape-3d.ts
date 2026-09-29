@@ -16,8 +16,9 @@ import { construct as capsule, set_height, set_radius as set_capsule_radius } fr
 import { type ConcavePolygonShape3D, construct as concave, set_backface_collision_enabled, set_faces } from './concave-polygon-shape-3d';
 import { construct as convex, set_points } from './convex-polygon-shape-3d';
 import { construct as sphere, set_radius as set_sphere_radius } from './sphere-shape-3d';
-import { godot_collision_object_collider_of_node, godot_collision_object_node } from './collision-object-3d';
-import { godot_node_class_reader, godot_node_entity } from './node';
+import { godot_collision_object_code_shape, godot_collision_object_collider_of_node, godot_collision_object_node } from './collision-object-3d';
+import { godot_node_adopt, godot_node_class_reader, godot_node_entity } from './node';
+import { Group } from 'three';
 import { godot_shape_3d_collider, godot_shape_3d_observe } from './shape-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -174,4 +175,18 @@ export function set_disabled(self: object, disabled: boolean): void {
  */
 export function is_disabled(self: object): boolean {
   return stateOf(self).disabled;
+}
+
+/**
+ * A new CollisionShape3D (`CollisionShape3D.new()`): its shape a collider of its parent's
+ * script-built body while it is in the tree (`godot_collision_object_code_shape`).
+ *
+ * @godot CollisionShape3D.CollisionShape3D
+ * @source scene/3d/physics/collision_shape_3d.cpp:322
+ */
+export function construct(): Group {
+  const entity = new Group();
+  godot_node_adopt(entity, { kind: 'spatial', classes: [...COLLISION_SHAPE_3D] });
+  godot_collision_object_code_shape(entity, () => stateOf(entity).shape);
+  return entity;
 }

@@ -100,6 +100,7 @@ function processOf(material: ParticleProcessMaterial | null): ParticleProcess | 
     emission_shape: material.emission_shape,
     emission_sphere_radius: material.emission_sphere_radius,
     emission_box_extents: material.emission_box_extents,
+    emission_ring: { axis: material.emission_ring_axis, height: material.emission_ring_height, radius: material.emission_ring_radius, inner: material.emission_ring_inner_radius },
     lifetime_randomness: material.lifetime_randomness,
     particle_flags: material.particle_flags,
   };

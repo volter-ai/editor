@@ -28,3 +28,14 @@ export function op_equal(left: string, right: string): boolean {
 export function op_not_equal(left: string, right: string): boolean {
   return left !== right;
 }
+
+/**
+ * The Variant constructors (`core/variant/variant_construct.cpp`): no arguments (the empty name),
+ * or `from` a StringName or a String (a StringName is its text here).
+ *
+ * @godot StringName.StringName
+ * @source core/variant/variant_construct.cpp:176
+ */
+export function construct(...args: readonly [] | readonly [string]): string {
+  return args.length === 0 ? '' : String(args[0]);
+}

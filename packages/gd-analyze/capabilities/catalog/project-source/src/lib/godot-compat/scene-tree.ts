@@ -24,10 +24,12 @@
  * function's by name here; a node made by `Class.new()`, which React never renders, steps none.
  *
  * The tree is an empty record; its root is the three scene the main scene mounts into, named
- * `root` as Godot's root Window is. Pause is not transcribed (the tree never pauses).
+ * `root` as Godot's root Window is. Pausing pauses its nodes by their process modes and the
+ * world's physics (`set_pause`).
  */
 
-import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued } from './node';
+import type { PackedScene } from './packed-scene-instance';
+import { godot_node_enter_root, godot_node_free, godot_node_object, godot_node_group_members, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued, godot_node_set_tree_paused, godot_node_tree_paused } from './node';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -42,6 +44,7 @@ const TREE: SceneTree = Object.freeze({});
 const tree = {
   root: undefined as object | undefined,
   reload: undefined as (() => void) | undefined,
+  change: undefined as ((scene: PackedScene) => void) | undefined,
 };
 
 /** The host's physics world, which the world hands compat (`godot_tree_attach_host`). */
@@ -114,6 +117,16 @@ export function godot_tree_root(): object | undefined {
  */
 export function godot_tree_on_reload(handler: (() => void) | undefined): void {
   tree.reload = handler;
+}
+
+/**
+ * The host's scene change for `change_scene_to_packed`, run where Godot changes scene.
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:1687
+ */
+export function godot_tree_on_change(handler: ((scene: PackedScene) => void) | undefined): void {
+  tree.change = handler;
 }
 
 /**
@@ -338,6 +351,27 @@ export function queue_delete(self: SceneTree, object: object): void {
 }
 
 /**
+ * Pauses or resumes the tree: nodes process by their process modes (`node.ts`) and the world's
+ * physics steps only while it runs (`useGodotPaused`).
+ *
+ * @godot SceneTree.set_pause
+ * @source scene/main/scene_tree.cpp:1100
+ */
+export function set_pause(self: SceneTree, enable: boolean): void {
+  void self;
+  godot_node_set_tree_paused(Boolean(enable));
+}
+
+/**
+ * @godot SceneTree.is_paused
+ * @source scene/main/scene_tree.cpp:1121
+ */
+export function is_paused(self: SceneTree): boolean {
+  void self;
+  return godot_node_tree_paused();
+}
+
+/**
  * With no current scene (no host reload registered) `ERR_UNCONFIGURED`; otherwise the scene is
  * reloaded once the current work is done, as JavaScript defers (a microtask, as `queue_delete`
  * is), where Godot swaps it in its next process pass (`scene/main/scene_tree.cpp:1673`), and `OK`
@@ -358,4 +392,120 @@ export function reload_current_scene(self: SceneTree): number {
     });
   }
   return 0;
+}
+
+/**
+ * The scene changes to a new instance of `scene` once the current work is done (a microtask, as
+ * `reload_current_scene` defers), and `OK` is returned; with no host to change it,
+ * `ERR_UNCONFIGURED`.
+ *
+ * @godot SceneTree.change_scene_to_packed
+ * @source scene/main/scene_tree.cpp:1687
+ */
+export function change_scene_to_packed(self: SceneTree, scene: PackedScene): number {
+  void self;
+  if (tree.change === undefined) return 3;
+  queueMicrotask(() => tree.change?.(scene));
+  return 0;
+}
+
+/**
+ * The web export's `quit` ends the game's main loop and leaves the page as it is; the page here
+ * keeps drawing, which the game no longer changes once it stops asking.
+ *
+ * @godot SceneTree.quit
+ * @source scene/main/scene_tree.cpp:875
+ */
+export function quit(self: SceneTree, exit_code = 0): void {
+  void self;
+  void exit_code;
+}
+
+/**
+ * An autoload's script instance: the root's child of its name (`/root/<name>`, where `Main::start`
+ * adds each autoload), for a script that reads it before its scene hands it over (`_init`).
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:3949
+ */
+export function godot_tree_autoload(name: string): unknown {
+  const root = tree.root as { readonly children?: readonly { readonly name?: string }[] } | undefined;
+  const found = root?.children?.find((child) => child.name === name);
+  if (found === undefined) throw new Error(`godot-compat: no autoload ${name} under the root yet.`);
+  return godot_node_object(found as object);
+}
+
+function members(group: string): unknown[] {
+  return tree.root === undefined ? [] : godot_node_group_members(tree.root, group);
+}
+
+/**
+ * Calls `method` with `args` on every node in the group, in tree order; a node without it is
+ * skipped (`SceneTree::call_group_flagsp`, `scene_tree.cpp:1130`, reports the error and goes on).
+ *
+ * @godot SceneTree.call_group
+ * @source scene/main/scene_tree.cpp:1245
+ */
+export function call_group(self: SceneTree, group: string, method: string, ...args: unknown[]): void {
+  void self;
+  for (const node of members(group)) {
+    const target = node as Record<string, unknown>;
+    const own = target[method];
+    if (typeof own === 'function') {
+      (own as (...values: unknown[]) => unknown).apply(target, args);
+      continue;
+    }
+    // A native method of the node (`queue_free`): the group's object answers it by name.
+    if (method === 'queue_free') queue_delete(self, node as object);
+  }
+}
+
+/**
+ * Sets `property` to `value` on every node in the group that has it.
+ *
+ * @godot SceneTree.set_group
+ * @source scene/main/scene_tree.cpp:1270
+ */
+export function set_group(self: SceneTree, group: string, property: string, value: unknown): void {
+  void self;
+  for (const node of members(group)) {
+    const target = node as Record<string, unknown>;
+    if (property in target) target[property] = value;
+  }
+}
+
+/**
+ * @godot SceneTree.get_nodes_in_group
+ * @source scene/main/scene_tree.cpp:1406
+ */
+export function get_nodes_in_group(self: SceneTree, group: string): unknown[] {
+  void self;
+  return members(group);
+}
+
+/**
+ * @godot SceneTree.get_first_node_in_group
+ * @source scene/main/scene_tree.cpp:1427
+ */
+export function get_first_node_in_group(self: SceneTree, group: string): unknown {
+  void self;
+  return members(group)[0] ?? null;
+}
+
+/**
+ * @godot SceneTree.has_group
+ * @source scene/main/scene_tree.cpp:1390
+ */
+export function has_group(self: SceneTree, group: string): boolean {
+  void self;
+  return members(group).length > 0;
+}
+
+/**
+ * @godot SceneTree.get_node_count_in_group
+ * @source scene/main/scene_tree.cpp:1439
+ */
+export function get_node_count_in_group(self: SceneTree, group: string): number {
+  void self;
+  return members(group).length;
 }

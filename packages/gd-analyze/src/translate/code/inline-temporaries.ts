@@ -11,6 +11,12 @@
  * expression, and a temporary defined out of JavaScript's order (GDScript evaluates a call's
  * receiver before its arguments) stays a statement. Never into a branch that may not run: a
  * conditional's arms, a short-circuit's right side, a loop's condition, an arrow's body.
+ *
+ * A temporary read several times in that statement folds into each read when its initializer
+ * gives the same value evaluated again (`reevaluable`: a node's entity, a field) and nothing with
+ * an effect runs between two reads: `camera.position.y = …` reads `camera` once in GDScript and
+ * as `Node3D_set_position(godot_node_entity(this.camera), …(Node3D_get_position(godot_node_entity(this.camera)) …))`
+ * here, the same node both times.
  */
 
 import type { TargetTsClassMember, TargetTsExpression, TargetTsJsxChild, TargetTsSourceFile, TargetTsStatement } from './target-ts-syntax';
@@ -18,7 +24,8 @@ import type { TargetTsClassMember, TargetTsExpression, TargetTsJsxChild, TargetT
 /** The names `OfficialBoundLoweringContext.temporary()` gives. */
 const TEMPORARY = /^__godot_value_\d+$/;
 
-type Found = { readonly status: 'found' | 'clean' | 'blocked'; readonly value: TargetTsExpression };
+/** `dirty`: on a find, whether an evaluation with an effect ran after the read (`Fold.repeat`). */
+type Found = { readonly status: 'found' | 'clean' | 'blocked'; readonly value: TargetTsExpression; readonly dirty?: boolean };
 
 /** Every identifier an expression or statement reads or writes, by name. */
 function countIn(node: TargetTsExpression | TargetTsStatement | TargetTsClassMember, name: string): number {
@@ -234,6 +241,33 @@ interface Fold {
   /** An initializer that reads nothing any evaluation could change: it may move past anything. */
   readonly constant: boolean;
   readonly readonlyOfThis: ReadonlySet<string>;
+  /**
+   * Every read is replaced (a `reevaluable` initializer): the first as a single read is, each
+   * later one only with nothing that has an effect evaluated since the one before it.
+   */
+  readonly repeat?: boolean;
+}
+
+/**
+ * Whether evaluating the value again gives the same value while nothing with an effect runs in
+ * between: `this`, locals, property reads on them, and the entity lookup (`godot_node_entity`).
+ */
+function reevaluable(value: TargetTsExpression): boolean {
+  switch (value.kind) {
+    case 'this-expression':
+    case 'identifier-expression':
+      return true;
+    case 'property-expression':
+      return !value.optional && reevaluable(value.object);
+    case 'parenthesized-expression':
+    case 'as-expression':
+    case 'non-null-expression':
+      return reevaluable(value.expression);
+    case 'call-expression':
+      return value.callee.kind === 'identifier-expression' && value.callee.name === 'godot_node_entity' && value.arguments.length === 1 && reevaluable(value.arguments[0] as TargetTsExpression);
+    default:
+      return false;
+  }
 }
 
 /**
@@ -271,6 +305,7 @@ function fold(value: TargetTsExpression, into: Fold): Found {
   /** The children, in evaluation order, folded; `rebuild` gets them back when one held the read. */
   const inOrder = (children: readonly TargetTsExpression[], rebuild: (children: TargetTsExpression[]) => TargetTsExpression, own: 'clean' | 'blocked'): Found => {
     if (into.constant) own = 'clean';
+    if (into.repeat === true) return inOrderRepeated(children, rebuild, own);
     for (const [index, child] of children.entries()) {
       const result = fold(child, into);
       if (result.status === 'blocked') return blocked;
@@ -280,6 +315,26 @@ function fold(value: TargetTsExpression, into: Fold): Found {
         return { status: 'found', value: rebuild(next) };
       }
     }
+    return own === 'clean' ? clean(value) : blocked;
+  };
+  /** `inOrder` replacing every read: the first reached cleanly, no effect between two. */
+  const inOrderRepeated = (children: readonly TargetTsExpression[], rebuild: (children: TargetTsExpression[]) => TargetTsExpression, own: 'clean' | 'blocked'): Found => {
+    const next = [...children];
+    let found = false;
+    let dirty = false;
+    for (const [index, child] of children.entries()) {
+      const result = fold(child, into);
+      if (result.status === 'found') {
+        if (found && dirty) return blocked;
+        found = true;
+        dirty = result.dirty === true;
+        next[index] = result.value;
+      } else if (result.status === 'blocked') {
+        if (!found || countIn(child, into.name) > 0) return blocked;
+        dirty = true;
+      }
+    }
+    if (found) return { status: 'found', value: rebuild(next), dirty: dirty || own === 'blocked' };
     return own === 'clean' ? clean(value) : blocked;
   };
   /** A part that may not run: it may hold nothing that reads or changes state before the fold. */
@@ -316,7 +371,8 @@ function fold(value: TargetTsExpression, into: Fold): Found {
     case 'binary-expression': {
       if (value.operator === '&&' || value.operator === '||' || value.operator === '??') {
         const left = fold(value.left, into);
-        if (left.status === 'found') return { status: 'found', value: { ...value, left: left.value } };
+        if (left.status === 'found' && into.repeat === true && countIn(value.right, into.name) > 0) return blocked;
+        if (left.status === 'found') return { status: 'found', value: { ...value, left: left.value }, dirty: left.dirty === true || !conditional(value.right) };
         return left.status === 'clean' && conditional(value.right) ? clean(value) : blocked;
       }
       return inOrder([value.left, value.right], ([left, right]) => ({ ...value, left: left as TargetTsExpression, right: right as TargetTsExpression }), 'clean');
@@ -347,7 +403,8 @@ function fold(value: TargetTsExpression, into: Fold): Found {
     }
     case 'conditional-expression': {
       const condition = fold(value.condition, into);
-      if (condition.status === 'found') return { status: 'found', value: { ...value, condition: condition.value } };
+      if (condition.status === 'found' && into.repeat === true && countIn(value.whenTrue, into.name) + countIn(value.whenFalse, into.name) > 0) return blocked;
+      if (condition.status === 'found') return { status: 'found', value: { ...value, condition: condition.value }, dirty: condition.dirty === true || !conditional(value.whenTrue) || !conditional(value.whenFalse) };
       return condition.status === 'clean' && conditional(value.whenTrue) && conditional(value.whenFalse) ? clean(value) : blocked;
     }
     case 'parenthesized-expression':
@@ -416,7 +473,9 @@ function inlineList(list: readonly TargetTsStatement[], scope: Scope): TargetTsS
     while (true) {
       const temporary = temporaryOf(out[out.length - 1]);
       if (temporary === undefined) break;
-      if (countIn(statement, temporary.name) !== 1) break;
+      const reads = countIn(statement, temporary.name);
+      const repeat = reads > 1 && reevaluable(temporary.value);
+      if (reads !== 1 && !repeat) break;
       if (list.slice(index + 1).some((later) => countIn(later, temporary.name) > 0)) break;
       const mutates = assigns(temporary.value);
       const stable = (name: string) => !mutates && !scope.unstable.has(name);
@@ -424,10 +483,11 @@ function inlineList(list: readonly TargetTsStatement[], scope: Scope): TargetTsS
         ...temporary,
         stable,
         // Stable reads stay good wherever they move, unless the statement assigns one of them.
-        constant: stateless(temporary.value, (name) => stable(name) && !assignsName(statement, name), scope.readonlyOfThis),
+        constant: !repeat && stateless(temporary.value, (name) => stable(name) && !assignsName(statement, name), scope.readonlyOfThis),
         readonlyOfThis: scope.readonlyOfThis,
+        repeat,
       });
-      if (folded === undefined) break;
+      if (folded === undefined || countIn(folded, temporary.name) > 0) break;
       out.pop();
       statement = folded;
     }

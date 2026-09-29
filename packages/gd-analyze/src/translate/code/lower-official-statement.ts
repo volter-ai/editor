@@ -4,6 +4,8 @@ import type {
   GodotBoundFunctionNode,
   GodotBoundNode,
 } from '../../godot-frontend/bound-program';
+import { godotBuiltinSubscriptShape } from '../data/lowering-shapes';
+import { godotMatchComparedAs } from '../data/operand-types';
 import {
   type LoweredExpression,
   type LoweredParameters,
@@ -23,7 +25,7 @@ import {
   officialBoundPropertyName,
   officialBoundSpan,
 } from './official-bound-lowering-context';
-import type { TargetTsClassMember, TargetTsExpression, TargetTsParameter, TargetTsStatement } from './target-ts-syntax';
+import type { TargetTsClassMember, TargetTsExpression, TargetTsParameter, TargetTsStatement, TargetTsType } from './target-ts-syntax';
 import { builtinDatatype } from '../../analyze/refined-types';
 import { godotCountsLoopCall } from '../data/counted-loops';
 import { godotBuiltinConverts, godotIteratesRange, godotReturnsNothing } from '../data/lowering-shapes';
@@ -161,6 +163,33 @@ function inlineValue(context: LoweringContext, owner: GodotBoundNode, plan: Lowe
 }
 
 /**
+ * A field's initial value: its expression, or, where it needs statements of its own (a built-in
+ * read once for its member, `linear_velocity.length()`), those statements run as the field is
+ * initialized, in a function called there, which returns the value.
+ */
+function fieldValue(context: LoweringContext, plan: LoweredExpression): TargetTsExpression {
+  if (plan.before.length === 0 && plan.after.length === 0) return plan.value;
+  const value = context.temporary();
+  return {
+    kind: 'call-expression',
+    callee: {
+      kind: 'parenthesized-expression',
+      expression: {
+        kind: 'arrow-expression',
+        parameters: [],
+        body: [
+          ...plan.before,
+          { kind: 'variable-statement', declaration: 'const', name: value, initializer: plan.value },
+          ...plan.after,
+          { kind: 'return-statement', expression: { kind: 'identifier-expression', name: value } },
+        ],
+      },
+    },
+    arguments: [],
+  };
+}
+
+/**
  * `for i in n` over an int: `n` is evaluated once and `i` takes 0 … n-1
  * (`GDScriptCompiler::_parse_block` FOR over an int, the VM's `ITERATE_BEGIN_INT`).
  */
@@ -263,15 +292,7 @@ function lowerCountedRange(
   if (step === 0) return context.refuse(stepNode ?? call, 'a range() loop with a zero step makes nothing (Godot reports "Step argument is zero!")');
   const name = officialBoundIdentifier(context, node.variable, node);
   const loopNode = context.node(node.loop, node);
-  const within = (inner: GodotBoundNode) =>
-    (inner.startLine > loopNode.startLine || (inner.startLine === loopNode.startLine && inner.startColumn >= loopNode.startColumn)) &&
-    (inner.endLine < loopNode.endLine || (inner.endLine === loopNode.endLine && inner.endColumn <= loopNode.endColumn));
-  const assignsVariable = context.script.nodes.some((candidate) => {
-    if (candidate.kind !== 'ASSIGNMENT' || !within(candidate)) return false;
-    const assignee = context.script.nodes[candidate.assignee];
-    return assignee?.kind === 'IDENTIFIER' && variable.kind === 'IDENTIFIER' && assignee.name === variable.name;
-  });
-  if (assignsVariable) return context.refuse(node, 'a range() loop whose body assigns its variable, which Godot copies from a hidden counter');
+  if (context.loopsAssigningVariable.has(node.id)) return context.refuse(node, 'a range() loop whose body assigns its variable, which Godot copies from a hidden counter');
   const begin = beginNode === undefined ? undefined : settleForStatement(context, lowerExpression(context, beginNode));
   const end = settleForStatement(context, lowerExpression(context, endNode));
   const body = lowerOfficialSuite(context, loopNode);
@@ -542,14 +563,17 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
         node.useConversionAssign ? [iterableNode, variableNode] : [iterableNode],
         node.useConversionAssign ? 'for-of:conversion' : 'for-of:direct-binding',
       );
-      const iterable = settleForStatement(context, listAsVariableElements(context, variableNode, lowerExpression(context, iterableNode)));
+      const iterable = settleForStatement(context, listAsVariableElements(context, variableNode, dictionaryKeys(iterableNode, lowerExpression(context, iterableNode))));
       const body = lowerOfficialSuite(context, context.node(node.loop, node));
       const name = officialBoundIdentifier(context, node.variable, node);
       let binding = name;
       const prefix: TargetTsStatement[] = [];
       const conversion: OfficialBoundLoweringRequirement[] = [];
       if (node.useConversionAssign) {
-        if (variableNode.datatype.kind !== 'BUILTIN') {
+        // A built-in converts through its constructor; an object is stated as its class, which
+        // Godot's typed assignment checks (`convertedValue`).
+        const object = (variableNode.datatype.kind === 'NATIVE' || variableNode.datatype.kind === 'CLASS') && !variableNode.datatype.metaType;
+        if (variableNode.datatype.kind !== 'BUILTIN' && !object) {
           return context.refuse(node, `a ${variableNode.datatype.display} loop variable's conversion has no binding`);
         }
         binding = context.temporary();
@@ -597,9 +621,11 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
         requirements: context.structural(node, 'pass'),
       };
     case 'ASSERT':
-      return context.refuse(node, 'assert needs the Godot error protocol, which compat does not implement');
+      // The release template compiles no asserts (`GDScriptCompiler::_parse_block`, ASSERT under
+      // `DEBUG_ENABLED`, gdscript_compiler.cpp:2182): the page is that build (`os.ts`).
+      return { statements: [], requirements: context.structural(node, 'assert') };
     case 'MATCH':
-      return context.refuse(node, 'match patterns need a structured lowering the lane does not write');
+      return lowerMatch(context, node);
     case 'BREAKPOINT':
       return context.refuse(node, 'breakpoint is an editor-only source operation');
     default:
@@ -660,6 +686,15 @@ export function lowerOfficialParameters(
  * `iterated-element-type`) iterates its list as an array of that type, so the variable is that
  * type to TypeScript as it is to the analysis.
  */
+/**
+ * `for key in dictionary`: its keys, in insertion order (`Dictionary`'s iterator,
+ * `variant_setget.cpp`'s `iter_init`/`iter_next` over its keys), a Map's `keys()`.
+ */
+function dictionaryKeys(iterableNode: GodotBoundNode, iterable: LoweredExpression): LoweredExpression {
+  if (godotBuiltinSubscriptShape(iterableNode.datatype)?.kind !== 'keyed-entry') return iterable;
+  return { ...iterable, value: { kind: 'call-expression', callee: { kind: 'property-expression', object: iterable.value, property: 'keys' }, arguments: [] } };
+}
+
 function listAsVariableElements(context: LoweringContext, variable: GodotBoundNode, iterable: LoweredExpression): LoweredExpression {
   if (!context.narrowed(variable) || !context.hasTargetType(variable)) return iterable;
   const element = context.targetType(variable);
@@ -689,18 +724,75 @@ function classFieldScope(
   return node.static ? 'static' : 'instance';
 }
 
+/**
+ * A variable's inline accessors as a TS getter and setter over its backing field `#name`: the
+ * source's `get:` and `set(value):` bodies, in which the property's own name is the backing field
+ * (`LoweringContext.withAccessorOf`), else the plain read and write Godot generates.
+ */
+function propertyAccessors(
+  context: LoweringContext,
+  node: Extract<GodotBoundNode, { kind: 'VARIABLE' }>,
+  name: string,
+  type: TargetTsType,
+): LoweredClassMembers {
+  const backing: TargetTsExpression = { kind: 'property-expression', object: { kind: 'this-expression' }, property: `#${name}` };
+  // A named accessor (`set = set_mood`, PROP_SETGET) is the script's function, called with the
+  // value; its own writes of the member are the backing field's (`namedAccessorOf`).
+  const named = (id: number, argument: boolean): LoweredStatements | undefined => {
+    const reference = context.node(id, node);
+    if (reference.kind !== 'IDENTIFIER') return undefined;
+    const call: TargetTsExpression = {
+      kind: 'call-expression',
+      callee: { kind: 'property-expression', object: { kind: 'this-expression' }, property: reference.name },
+      arguments: argument ? [{ kind: 'identifier-expression', name: 'value' }] : [],
+    };
+    return { statements: [argument ? { kind: 'expression-statement', expression: call } : { kind: 'return-statement', expression: call }], requirements: [] };
+  };
+  const accessorBody = (id: number): LoweredStatements => {
+    const fn = context.node(id, node);
+    if (fn.kind !== 'FUNCTION') return context.refuse(fn, 'a property accessor that is not a function');
+    return context.withAccessorOf(name, () => lowerOfficialSuite(context, context.node(fn.body, fn)));
+  };
+  const namedGetter = node.getter >= 0 ? named(node.getter, false) : undefined;
+  const namedSetter = node.setter >= 0 ? named(node.setter, true) : undefined;
+  const getter = namedGetter ?? (node.getter >= 0 ? accessorBody(node.getter) : { statements: [{ kind: 'return-statement' as const, expression: backing }], requirements: [] });
+  if (namedSetter !== undefined) {
+    return {
+      members: [
+        { kind: 'getter-member', name, result: type, body: getter.statements },
+        { kind: 'setter-member', name, parameter: { name: 'value', type }, body: namedSetter.statements },
+      ],
+      requirements: [...getter.requirements, ...namedSetter.requirements],
+    };
+  }
+  const setterFn = node.setter >= 0 ? context.node(node.setter, node) : undefined;
+  if (setterFn !== undefined && setterFn.kind !== 'FUNCTION') return context.refuse(setterFn, 'a property setter that is not a function');
+  const parameters = setterFn === undefined ? undefined : lowerOfficialParameters(context, setterFn);
+  const parameter = parameters?.parameters[0] ?? { name: 'value' };
+  const setter =
+    setterFn === undefined
+      ? { statements: [{ kind: 'expression-statement' as const, expression: { kind: 'assignment-expression' as const, operator: '=' as const, target: backing, value: { kind: 'identifier-expression' as const, name: 'value' } } }], requirements: [] }
+      : accessorBody(node.setter);
+  return {
+    members: [
+      { kind: 'getter-member', name, result: type, body: getter.statements },
+      { kind: 'setter-member', name, parameter: { ...parameter, type }, body: setter.statements },
+    ],
+    requirements: [...getter.requirements, ...(parameters?.requirements ?? []), ...setter.requirements],
+  };
+}
+
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: exhaustive field lowering
 function lowerField(
   context: LoweringContext,
   node: Extract<GodotBoundNode, { kind: 'VARIABLE' | 'CONSTANT' }>,
-): LoweredClassMember & { readonly onready?: LoweredStatements } {
-  if (
-    node.kind === 'VARIABLE' &&
-    (node.setter >= 0 ||
-      node.getter >= 0 ||
-      (node.propertyStyle !== '' && node.propertyStyle !== 'PROP_NONE'))
-  ) {
-    return context.refuse(node, 'property accessor fields need structured accessor lowering');
+): LoweredClassMember & { readonly onready?: LoweredStatements; readonly accessors?: LoweredClassMembers } {
+  const accessorStyle = node.kind === 'VARIABLE' && (node.setter >= 0 || node.getter >= 0 || (node.propertyStyle !== '' && node.propertyStyle !== 'PROP_NONE'));
+  if (accessorStyle && node.kind === 'VARIABLE') {
+    // Named accessor functions (`set = _set_x`) and accessors of a static or @onready variable are
+    // not carried; an inline `set(value):`/`get:` is (`propertyAccessors`).
+    if (node.propertyStyle !== 'PROP_INLINE' && node.propertyStyle !== 'PROP_SETGET') return context.refuse(node, `a ${node.propertyStyle} property's accessors are not lowered`);
+    if (node.static || node.onready) return context.refuse(node, 'accessors of a static or @onready variable are not lowered');
   }
   const onready = node.kind === 'VARIABLE' && node.onready;
   const initializerNode = node.initializer < 0 ? undefined : context.node(node.initializer, node);
@@ -736,18 +828,20 @@ function lowerField(
           convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode)),
         )
       : undefined;
+  // A property with inline accessors keeps its value in a private backing field, which its
+  // initializer sets without calling the setter (member initialization assigns directly).
+  const accessors = accessorStyle && node.kind === 'VARIABLE' ? propertyAccessors(context, node, name, targetType.type) : undefined;
   return {
+    ...(accessors === undefined ? {} : { accessors }),
     member: {
       kind: 'field-member',
-      name,
+      name: accessors === undefined ? name : `#${name}`,
       type: targetType.type,
       modifiers: [
         ...(node.kind === 'CONSTANT' ? ['static' as const, 'readonly' as const] : []),
         ...(node.kind === 'VARIABLE' && node.static ? ['static' as const] : []),
       ],
-      ...(fieldInitializer === undefined
-        ? {}
-        : { initializer: inlineValue(context, initializerNode ?? node, fieldInitializer) }),
+      ...(fieldInitializer === undefined ? {} : { initializer: fieldValue(context, fieldInitializer) }),
       span: officialBoundSpan(context.script, node),
     },
     requirements: [
@@ -808,11 +902,17 @@ function lowerMethod(context: LoweringContext, node: GodotBoundFunctionNode): Lo
       : sourceName;
   assertDirectClassElementName(context, context.node(node.identifier, node), sourceName, node.static);
   const returnTypeForBody = node.returnType < 0 ? undefined : context.node(node.returnType, node);
-  const body = context.withReturnType(returnTypeForBody, () =>
-    !node.static && name !== '_init'
-      ? context.withInstanceAutoloadAccess(() => lowerOfficialSuite(context, bodyNode))
-      : lowerOfficialSuite(context, bodyNode),
-  );
+  // A member's named accessor (`set = set_mood`) writes and reads the member itself, not through
+  // its accessors (`GDScriptCompiler::_parse_assignment`: inside the member's setter the member is
+  // the plain storage, `member_property_is_in_setter`, gdscript_compiler.cpp:1035).
+  const accessorOf = namedAccessorOf(context, sourceName);
+  const lowerBody = () =>
+    context.withReturnType(returnTypeForBody, () =>
+      !node.static && name !== '_init'
+        ? context.withInstanceAutoloadAccess(() => lowerOfficialSuite(context, bodyNode))
+        : lowerOfficialSuite(context, bodyNode),
+    );
+  const body = accessorOf === undefined ? lowerBody() : context.withAccessorOf(accessorOf, lowerBody);
   const parameters = lowerOfficialParameters(context, node);
   // `-> void` returns nothing, though the analyzer types it Nil as it types a null value. The
   // datatype rules are keyed by the datatype alone, and a Nil return type and a Nil value share
@@ -848,6 +948,19 @@ function lowerMethod(context: LoweringContext, node: GodotBoundFunctionNode): Lo
       ...body.requirements,
     ],
   };
+}
+
+/** The member whose named accessor (`set = f`, `get = f`) the script's function `name` is. */
+function namedAccessorOf(context: LoweringContext, name: string): string | undefined {
+  for (const node of context.script.nodes) {
+    if (node.kind !== 'VARIABLE' || node.propertyStyle !== 'PROP_SETGET') continue;
+    for (const id of [node.setter, node.getter]) {
+      const reference = id < 0 ? undefined : context.script.nodes[id];
+      const identifier = context.script.nodes[node.identifier];
+      if (reference?.kind === 'IDENTIFIER' && reference.name === name && identifier?.kind === 'IDENTIFIER') return identifier.name;
+    }
+  }
+  return undefined;
 }
 
 function thisCall(method: string, object: 'this' | 'super' = 'this'): TargetTsStatement {
@@ -943,7 +1056,10 @@ export function lowerOfficialClassMembers(
     if (node.kind === 'VARIABLE' || node.kind === 'CONSTANT') {
       const field = lowerField(context, node);
       if (field.onready !== undefined) onready.push(field.onready);
-      return { members: [field.member], requirements: field.requirements };
+      return {
+        members: [field.member, ...(field.accessors?.members ?? [])],
+        requirements: [...field.requirements, ...(field.accessors?.requirements ?? [])],
+      };
     }
     if (node.kind === 'FUNCTION') {
       const method = lowerMethod(context, node);
@@ -976,5 +1092,94 @@ export function lowerOfficialClassMembers(
   return {
     members: [...lowered.flatMap((entry) => entry.members), ...ready.members],
     requirements: [...lowered.flatMap((entry) => entry.requirements), ...ready.requirements],
+  };
+}
+
+/** The type a match compares a value as (`godotMatchComparedAs`), an enum as its int. */
+function matchedType(datatype: GodotBoundNode['datatype']): string | undefined {
+  if (datatype.metaType) return undefined;
+  if (datatype.kind === 'ENUM') return godotMatchComparedAs('int');
+  return datatype.kind === 'BUILTIN' ? godotMatchComparedAs(datatype.builtinType) : undefined;
+}
+
+/**
+ * `match value:` as an `if` chain over the value, evaluated once: a branch runs when one of its
+ * patterns matches, the first that does (`GDScriptCompiler::_parse_block`, MATCH,
+ * gdscript_compiler.cpp:1810). A literal or constant expression pattern matches a value of its own
+ * type that equals it (`_parse_match_pattern`, `:1540`, the type check then `==`), which for the
+ * value types a match here compares is `===` once the types are the same; a wildcard or a bind
+ * matches anything, the bind naming the value in its branch. Array and dictionary patterns, and
+ * guards, refuse by name.
+ */
+function lowerMatch(context: LoweringContext, node: Extract<GodotBoundNode, { kind: 'MATCH' }>): LoweredStatements {
+  const testNode = context.node(node.test, node);
+  const tested = matchedType(testNode.datatype);
+  if (tested === undefined) return context.refuse(node, `a match over a ${testNode.datatype.display} value, which is not compared by value here`);
+  const requirements: OfficialBoundLoweringRequirement[] = [...context.structural(node, 'match', [testNode])];
+  const subject = settleForStatement(context, lowerExpression(context, testNode));
+  requirements.push(...subject.requirements);
+  const local = context.temporary();
+  const read: TargetTsExpression = { kind: 'identifier-expression', name: local };
+  const branches = node.branches.map((id) => context.node(id, node));
+  type Arm = { readonly condition: TargetTsExpression | undefined; readonly statements: readonly TargetTsStatement[] };
+  const arms: Arm[] = [];
+  for (const branch of branches) {
+    if (branch.kind !== 'MATCH_BRANCH') return context.refuse(node, `a match branch of kind ${branch.kind}`);
+    if (branch.guardBody >= 0) return context.refuse(branch, 'a match branch guard (`when`) is not lowered');
+    const binds: TargetTsStatement[] = [];
+    const tests: TargetTsExpression[] = [];
+    let always = false;
+    for (const id of branch.patterns) {
+      const pattern = context.node(id, branch);
+      if (pattern.kind !== 'PATTERN') return context.refuse(branch, `a match pattern of kind ${pattern.kind}`);
+      if (pattern.patternType === 'PT_WILDCARD') {
+        always = true;
+      } else if (pattern.patternType === 'PT_BIND') {
+        always = true;
+        const bound = pattern.binds[0];
+        if (bound === undefined) return context.refuse(pattern, 'a bind pattern without its name');
+        binds.push({ kind: 'variable-statement', declaration: 'const', name: officialBoundIdentifier(context, bound.identifier, pattern), initializer: read });
+      } else if (pattern.patternType === 'PT_LITERAL' || pattern.patternType === 'PT_EXPRESSION') {
+        const valueNode = context.node(pattern.patternType === 'PT_LITERAL' ? pattern.literal : pattern.expression, pattern);
+        if (matchedType(valueNode.datatype) !== tested) return context.refuse(pattern, `a ${valueNode.datatype.display} pattern over a ${testNode.datatype.display} value`);
+        const value = settleForStatement(context, lowerExpression(context, valueNode));
+        if (value.before.length > 0 || value.after.length > 0) return context.refuse(pattern, 'a match pattern that needs statements of its own');
+        requirements.push(...value.requirements);
+        tests.push({ kind: 'binary-expression', operator: '===', left: read, right: value.value });
+      } else {
+        return context.refuse(pattern, `a ${pattern.patternType} match pattern is not lowered`);
+      }
+    }
+    const block = lowerOfficialSuite(context, context.node(branch.block, branch));
+    requirements.push(...block.requirements);
+    const condition = always ? undefined : tests.reduce<TargetTsExpression | undefined>((joined, test) => (joined === undefined ? test : { kind: 'binary-expression', operator: '||', left: joined, right: test }), undefined);
+    arms.push({ condition, statements: [...binds, ...block.statements] });
+    // Branches after one that always matches never run.
+    if (always) break;
+  }
+  let chain: readonly TargetTsStatement[] = [];
+  for (const arm of [...arms].reverse()) {
+    chain =
+      arm.condition === undefined
+        ? arm.statements
+        : [
+            {
+              kind: 'if-statement',
+              condition: arm.condition,
+              // biome-ignore lint/suspicious/noThenProperty: TargetTsSyntax names the source branch.
+              then: arm.statements,
+              ...(chain.length === 0 ? {} : { else: chain }),
+            },
+          ];
+  }
+  return {
+    statements: [
+      ...subject.before,
+      { kind: 'variable-statement', declaration: 'const', name: local, initializer: subject.value, span: officialBoundSpan(context.script, node) },
+      ...subject.after,
+      // A match with a bind or no chain keeps its branch's names to its own block.
+      { kind: 'block-statement', body: chain },
+    ],
+    requirements,
   };
 }

@@ -12,7 +12,7 @@ import type {
   TargetGodotSceneValue,
 } from './scene-document-plan';
 
-const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative'];
+const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative', 'set_material', 'set_use_parent_material', 'set_texture_filter', 'set_texture_repeat'];
 const NODE_2D = [...CANVAS_ITEM, 'set_position', 'set_rotation', 'set_scale', 'set_skew'];
 const CONTROL = [
   ...CANVAS_ITEM,
@@ -27,11 +27,23 @@ const CONTROL = [
   'set_rotation',
   'set_scale',
   'set_pivot_offset',
+  'set_pivot_offset_ratio',
+  'set_focus_mode',
+  'set_default_cursor_shape',
   'set_h_size_flags',
   'set_v_size_flags',
   'set_stretch_ratio',
   'set_mouse_filter',
   'set_force_pass_scroll_events',
+  'set_theme',
+  'set_theme_type_variation',
+  // The theme overrides, one `themeOverrides` prop (`theme_override_<kind>/NAME`).
+  'add_theme_font_size_override:*',
+  'add_theme_font_override:*',
+  'add_theme_color_override:*',
+  'add_theme_constant_override:*',
+  'add_theme_stylebox_override:*',
+  'add_theme_icon_override:*',
 ];
 // `GeometryInstance3D`'s visibility range: `<GodotVisibilityRange>` around the node's element.
 const VISIBILITY_RANGE = [
@@ -45,10 +57,13 @@ const VISIBILITY_RANGE = [
 // Godot's visibility in the tree does.
 const NODE_3D = ['set_visible'];
 // A GeometryInstance3D's `transparency`: stored, never drawn by the web's renderer (`geometry-instance-3d.ts`).
-const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency'];
-// A Node's `physics_interpolation_mode`, which every compat element takes (`useGodotElement`); stored
-// (`node.ts`: nothing is interpolated between physics ticks).
-const NODE_ELEMENT = ['set_physics_interpolation_mode'];
+const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency', 'set_gi_mode'];
+// A light's values kept in `userData` for its getters (`light-3d.ts`): the page's lights draw none of them.
+const LIGHT_KEPT = ['set_shadow_reverse_cull_face', 'set_shadow_caster_mask', 'set_enable_distance_fade', 'set_distance_fade_begin', 'set_distance_fade_shadow', 'set_distance_fade_length'];
+// A Node's `physics_interpolation_mode`, which every compat element takes (`useGodotElement`),
+// stored (`node.ts`: nothing is interpolated between physics ticks), and its `process_mode`, in its
+// `userData` (`scene-surface-idioms.ts`).
+const NODE_ELEMENT = ['set_physics_interpolation_mode', 'set_process_mode'];
 // The parameters a particle system's emitter reads (`cpu-particles-3d.ts`), by index, the same in
 // `CPUParticles3D::Parameter` and `ParticleProcessMaterial::Parameter`: initial velocity, angular
 // velocity, linear acceleration, damping, angle and scale. The rest (orbit, radial and tangential
@@ -58,21 +73,53 @@ const EMITTED_PARAMS = [0, 1, 3, 6, 7, 8];
 const EMITTED_FLAGS = ['set_particle_flag:0', 'set_particle_flag:2'];
 const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
 
+// `<GodotSprite3D>` and `<GodotAnimatedSprite3D>`: SpriteBase3D's props (`sprite-base-3d.ts`).
+const SPRITE_BASE_3D = [
+  ...GEOMETRY_INSTANCE_3D,
+  'set_meta:*',
+  'set_centered',
+  'set_offset',
+  'set_flip_h',
+  'set_flip_v',
+  'set_modulate',
+  'set_pixel_size',
+  'set_axis',
+  'set_billboard_mode',
+  'set_draw_flag:0',
+  'set_draw_flag:1',
+  'set_draw_flag:2',
+  'set_draw_flag:3',
+  'set_alpha_cut_mode',
+  'set_texture_filter',
+  'set_render_priority',
+  'set_cast_shadows_setting',
+  'set_layer_mask',
+];
+
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
-  MeshInstance3D: [...GEOMETRY_INSTANCE_3D, 'set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
+  MeshInstance3D: [...GEOMETRY_INSTANCE_3D, 'set_mesh', 'set_surface_override_material:*', 'set_material_override', 'set_as_top_level', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
   // Shadow max distance (9), fade start (13), normal bias (14), bias (15), opacity (17), blur (18):
   // `shadow-mapping`. Split blending and the pancake size (16) are stored: three's one shadow map has
   // no splits to blend, and its shadow camera spans the whole depth `shadow-mapping` gives it, which
   // leaves no casters behind its near plane for a pancake to flatten (`renderer_scene_cull.cpp:2339`).
-  DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:16', 'set_param:17', 'set_param:18', 'set_shadow_mode', 'set_blend_splits'],
-  OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
+  DirectionalLight3D: [...NODE_3D, ...LIGHT_KEPT, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:16', 'set_param:17', 'set_param:18', 'set_shadow_mode', 'set_blend_splits'],
+  OmniLight3D: [...NODE_3D, ...LIGHT_KEPT, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
+  // A spot light's angle (7) and its falloff to the rim (8) are three's cone and penumbra.
+  SpotLight3D: [...NODE_3D, ...LIGHT_KEPT, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_param:7', 'set_param:8', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
-  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask'],
+  // Its `top_level` is its `userData`'s (`nodeData`).
+  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size', 'set_attributes', 'set_as_top_level'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
   CanvasLayer: ['set_meta:*', 'set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
   Control: CONTROL,
   HBoxContainer: [...CONTROL, 'set_alignment'],
+  VBoxContainer: [...CONTROL, 'set_alignment'],
+  MarginContainer: CONTROL,
+  CenterContainer: [...CONTROL, 'set_use_top_left'],
+  GridContainer: [...CONTROL, 'set_columns'],
+  NinePatchRect: [...CONTROL, 'set_clip_children_mode', 'set_texture', 'set_region_rect', 'set_patch_margin:*', 'set_h_axis_stretch_mode', 'set_v_axis_stretch_mode', 'set_draw_center'],
+  RichTextLabel: [...CONTROL, 'set_text', 'set_use_bbcode', 'set_fit_content', 'set_scroll_active', 'set_autowrap_mode', 'set_horizontal_alignment', 'set_vertical_alignment'],
   Label: [...CONTROL, 'set_text', 'set_label_settings', 'set_horizontal_alignment', 'set_vertical_alignment', 'set_autowrap_mode'],
   TextureRect: [...CONTROL, 'set_texture', 'set_expand_mode', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
   Node2D: NODE_2D,
@@ -165,7 +212,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     ...VISIBILITY_RANGE,
   ],
   // `<GodotCSGBox3D>`, a box mesh of its size (`csg-box-3d.ts`).
-  CSGBox3D: [...NODE_3D, 'set_size'],
+  CSGBox3D: [...NODE_3D, 'set_size', 'set_material', 'set_use_collision'],
   // `<GodotDecal>`, which draws nothing as the web export's Compatibility renderer (`decal.ts`).
   Decal: [
     ...NODE_3D,
@@ -202,6 +249,70 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_ambient_color',
     'set_ambient_color_energy',
   ],
+  Sprite3D: [...SPRITE_BASE_3D, 'set_texture', 'set_hframes', 'set_vframes', 'set_frame', 'set_region_enabled', 'set_region_rect'],
+  AnimatedSprite3D: [...SPRITE_BASE_3D, 'set_sprite_frames', 'set_animation', 'set_autoplay', 'set_frame', 'set_frame_progress', 'set_speed_scale'],
+  // Its rect, which must be the whole viewport's (`godotFamilyRefusal`), and its stretch.
+  SubViewportContainer: ['_set_layout_mode', '_set_anchors_layout_preset', '_set_anchor:*', 'set_offset:*', 'set_h_grow_direction', 'set_v_grow_direction', 'set_stretch', 'set_stretch_shrink'],
+  SubViewport: ['set_meta:*', 'set_size', 'set_update_mode', 'set_transparent_background', 'set_handle_input_locally', 'set_msaa_3d'],
+  Area2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_monitoring', 'set_monitorable'],
+  CollisionShape2D: [...NODE_2D, 'set_shape', 'set_disabled'],
+  GPUParticles2D: [...NODE_2D, 'set_emitting', 'set_amount', 'set_lifetime', 'set_one_shot', 'set_speed_scale', 'set_explosiveness_ratio', 'set_randomness_ratio', 'set_use_local_coordinates', 'set_texture', 'set_process_material'],
+  AnimatedSprite2D: [...NODE_2D, 'set_sprite_frames', 'set_animation', 'set_autoplay', 'set_frame', 'set_frame_progress', 'set_speed_scale', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v'],
+  StaticBody2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_physics_material_override', 'set_constant_linear_velocity', 'set_constant_angular_velocity'],
+  RigidBody2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_gravity_scale', 'set_mass', 'set_linear_velocity', 'set_angular_velocity', 'set_linear_damp', 'set_angular_damp', 'set_freeze_enabled', 'set_lock_rotation_enabled', 'set_contact_monitor', 'set_max_contacts_reported', 'set_physics_material_override', 'set_can_sleep'],
+  CharacterBody2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_velocity', 'set_up_direction', 'set_floor_max_angle', 'set_floor_snap_length', 'set_max_slides', 'set_motion_mode', 'set_safe_margin'],
+  ColorRect: [...CONTROL, 'set_color'],
+  Marker2D: [...NODE_2D, 'set_gizmo_extents'],
+  VisibleOnScreenNotifier2D: [...NODE_2D, 'set_rect'],
+  Path2D: [...NODE_2D, 'set_curve'],
+  PathFollow2D: [...NODE_2D, 'set_progress', 'set_progress_ratio', 'set_h_offset', 'set_v_offset', 'set_rotates', 'set_loop', 'set_cubic_interpolation'],
+  Camera2D: [...NODE_2D, 'set_offset', 'set_zoom', 'set_anchor_mode', 'set_enabled', 'set_limit:0', 'set_limit:1', 'set_limit:2', 'set_limit:3', 'set_position_smoothing_enabled', 'set_position_smoothing_speed', 'set_ignore_rotation', 'set_process_callback', 'set_drag_horizontal_enabled', 'set_drag_vertical_enabled', 'set_limit_smoothing_enabled', 'set_margin_drawing_enabled', 'set_limit_drawing_enabled', 'set_screen_drawing_enabled'],
+  TileMapLayer: [...NODE_2D, 'set_tile_set', 'set_tile_map_data_from_array', 'set_enabled', 'set_collision_enabled', 'set_rendering_quadrant_size', 'set_y_sort_origin', 'set_navigation_enabled', 'set_use_kinematic_bodies', 'set_collision_visibility_mode', 'set_navigation_visibility_mode'],
+  Path3D: [...NODE_3D, 'set_meta:*', 'set_curve'],
+  PathFollow3D: [...NODE_3D, 'set_meta:*', 'set_progress', 'set_progress_ratio', 'set_h_offset', 'set_v_offset', 'set_rotation_mode', 'set_loop', 'set_cubic_interpolation', 'set_tilt_enabled', 'set_use_model_front'],
+  VisibleOnScreenNotifier3D: [...NODE_3D, 'set_meta:*', 'set_aabb'],
+  Button: [...CONTROL, 'set_disabled', 'set_toggle_mode', 'set_pressed', 'set_action_mode', 'set_keep_pressed_outside', 'set_shortcut', 'set_button_mask', 'set_shortcut_feedback', 'set_shortcut_in_tooltip', 'set_button_group', 'set_text', 'set_flat', 'set_text_alignment', 'set_clip_text', 'set_button_icon', 'set_expand_icon', 'set_icon_alignment'],
+  CheckBox: [...CONTROL, 'set_disabled', 'set_toggle_mode', 'set_pressed', 'set_action_mode', 'set_keep_pressed_outside', 'set_shortcut', 'set_button_mask', 'set_shortcut_feedback', 'set_shortcut_in_tooltip', 'set_button_group', 'set_text', 'set_flat', 'set_text_alignment', 'set_clip_text', 'set_button_icon', 'set_expand_icon', 'set_icon_alignment'],
+  // `<GodotPinJoint3D>` and `<GodotGeneric6DOFJoint3D>`: Rapier joints over the bodies their paths name.
+  PinJoint3D: [...NODE_3D, 'set_node_a', 'set_node_b', 'set_exclude_nodes_from_collision', 'set_solver_priority', 'set_param:*'],
+  Generic6DOFJoint3D: [
+    ...NODE_3D,
+    'set_node_a',
+    'set_node_b',
+    'set_exclude_nodes_from_collision',
+    'set_solver_priority',
+    ...['x', 'y', 'z'].flatMap((axis) => [`set_param_${axis}:*`, `set_flag_${axis}:*`]),
+  ],
+  // `<GodotAudioListener3D>`: where 3D sound is heard from while current (`audio-listener-3d.ts`).
+  AudioListener3D: [...NODE_3D, '_set_current'],
+  // `<GodotVehicleWheel3D>`: a wheel its VehicleBody3D's controller drives (`vehicle-wheel-3d.ts`).
+  VehicleWheel3D: [
+    ...NODE_3D,
+    'set_radius',
+    'set_suspension_rest_length',
+    'set_suspension_travel',
+    'set_suspension_stiffness',
+    'set_suspension_max_force',
+    'set_damping_compression',
+    'set_damping_relaxation',
+    'set_friction_slip',
+    'set_roll_influence',
+    'set_use_as_traction',
+    'set_use_as_steering',
+    'set_engine_force',
+    'set_brake',
+    'set_steering',
+  ],
+  TextureProgressBar: [
+    ...CONTROL,
+    ...['set_min', 'set_max', 'set_step', 'set_page', 'set_value', 'set_use_rounded_values', 'set_allow_greater', 'set_allow_lesser', 'set_exp_ratio'],
+    ...['set_under_texture', 'set_over_texture', 'set_progress_texture', 'set_texture_progress_offset', 'set_fill_mode', 'set_tint_under', 'set_tint_progress', 'set_tint_over'],
+  ],
+  PanelContainer: [...CONTROL],
+  HSeparator: [...CONTROL],
+  HSlider: [...CONTROL, 'set_min', 'set_max', 'set_step', 'set_page', 'set_value', 'set_use_rounded_values', 'set_allow_greater', 'set_allow_lesser', 'set_exp_ratio', 'set_editable'],
+  TextureButton: [...CONTROL, 'set_disabled', 'set_toggle_mode', 'set_pressed', 'set_action_mode', 'set_keep_pressed_outside', 'set_shortcut', 'set_button_mask', 'set_shortcut_feedback', 'set_shortcut_in_tooltip', 'set_button_group', 'set_texture_normal', 'set_texture_pressed', 'set_texture_hover', 'set_texture_disabled', 'set_texture_focused', 'set_ignore_texture_size', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
+  Timer: ['set_meta:*', ...NODE_ELEMENT, 'set_wait_time', 'set_one_shot', 'set_autostart', 'set_paused', 'set_ignore_time_scale', 'set_timer_process_callback'],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
   GridMap: [
@@ -265,6 +376,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   PlaneMesh: PRIMITIVE_PLANE,
   QuadMesh: PRIMITIVE_PLANE,
   SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_is_hemisphere', 'set_material'],
+  BoxMesh: ['set_size', 'set_subdivide_width', 'set_subdivide_height', 'set_subdivide_depth', 'set_material'],
+  CapsuleMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_material'],
   CylinderMesh: ['set_top_radius', 'set_bottom_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_cap_top', 'set_cap_bottom', 'set_material'],
   StandardMaterial3D: [
     'set_albedo',
@@ -280,6 +393,27 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_shading_mode',
     'set_texture:0',
     'set_texture:2',
+    // Metallic, emission, normal and ambient occlusion maps, and the channels, scale and operator
+    // they are read with (`scene-material-idioms.ts`); the heightmap is kept and not drawn.
+    'set_texture:1',
+    'set_texture:3',
+    'set_texture:4',
+    'set_texture:8',
+    'set_texture:9',
+    'set_feature:1',
+    'set_feature:5',
+    'set_feature:6',
+    'set_normal_scale',
+    'set_roughness_texture_channel',
+    'set_metallic_texture_channel',
+    'set_ao_texture_channel',
+    'set_ao_light_affect',
+    'set_emission_operator',
+    'set_heightmap_scale',
+    'set_heightmap_deep_parallax',
+    'set_heightmap_deep_parallax_min_layers',
+    'set_heightmap_deep_parallax_max_layers',
+    'set_flag:17',
     'set_texture_filter',
     'set_flag:16',
     // Culling, vertex colour (as albedo, sRGB), the billboard and proximity fade (`base-material-3d.ts`).
@@ -311,6 +445,12 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_distance_fade_max_distance',
     // Shadows not received (`FLAG_DONT_RECEIVE_SHADOWS`), as the scene shader.
     'set_flag:13',
+    // UV1 triplanar mapping, its scale, offset and blend sharpness, as the scene shader.
+    'set_flag:6',
+    'set_flag:8',
+    'set_uv1_triplanar_blend_sharpness',
+    'set_uv1_scale',
+    'set_uv1_offset',
     // Stored: the stencil effect draws only through `stencil_mode`, which has no prop.
     'set_stencil_flags',
     'set_stencil_effect_color',
@@ -318,6 +458,43 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ],
   ArrayMesh: [],
   CompressedTexture2D: [],
+  RectangleShape2D: ['set_size'],
+  Shortcut: ['set_events'],
+  InputEventAction: ['set_action', 'set_pressed', 'set_strength'],
+  ButtonGroup: ['set_allow_unpress'],
+  // A stylebox is CSS its Control paints (`style-box.ts`).
+  StyleBoxFlat: [
+    'set_content_margin:*',
+    'set_bg_color',
+    'set_draw_center',
+    'set_skew',
+    'set_border_width:*',
+    'set_border_color',
+    'set_border_blend',
+    'set_corner_radius:*',
+    'set_corner_detail',
+    'set_expand_margin:*',
+    'set_shadow_color',
+    'set_shadow_size',
+    'set_shadow_offset',
+    'set_anti_aliased',
+    'set_aa_size',
+  ],
+  StyleBoxLine: ['set_content_margin:*', 'set_color', 'set_grow_begin', 'set_grow_end', 'set_thickness', 'set_vertical'],
+  // Kept by their raw properties (`rawProperties`): no setters.
+  TileSet: [],
+  TileSetAtlasSource: [],
+  TileSetScenesCollectionSource: [],
+  CanvasItemMaterial: ['set_blend_mode', 'set_light_mode', 'set_particles_animation'],
+  Curve2D: ['_set_data', 'set_bake_interval'],
+  Curve3D: ['_set_data', 'set_point_count', 'set_bake_interval', 'set_up_vector_enabled'],
+  CapsuleShape2D: ['set_radius', 'set_height'],
+  CircleShape2D: ['set_radius'],
+  AtlasTexture: ['set_atlas', 'set_region', 'set_margin', 'set_filter_clip'],
+  // A scene's component (`packedScene`) and a resource of a script's class (`scriptResource`): no setters.
+  PackedScene: [],
+  Resource: [],
+  SpriteFrames: ['_set_animations'],
   MeshLibrary: [],
   AnimationLibrary: [],
   AnimationNodeBlendTree: [],
@@ -337,6 +514,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   CanvasTexture: ['set_diffuse_texture'],
   AudioStreamWAV: [],
   AudioStreamOggVorbis: [],
+  AudioStreamMP3: [],
   FontFile: [],
   // An environment's background, ambient light, tone mapping and fog (`environment.ts`, `world-environment.ts`).
   Environment: [
@@ -381,24 +559,37 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_ssao_power',
     'set_ssao_horizon',
     'set_glow_level:*',
+    'set_sdfgi_enabled',
     'set_sdfgi_cascades',
     'set_sdfgi_energy',
+    'set_sdfgi_use_occlusion',
     'set_ssil_enabled',
     'set_ssil_radius',
     'set_ssil_intensity',
     'set_glow_strength',
+    'set_glow_normalized',
+    'set_volumetric_fog_enabled',
+    'set_volumetric_fog_density',
+    'set_volumetric_fog_albedo',
+    'set_volumetric_fog_emission',
   ],
   Sky: ['set_material', 'set_radiance_size', 'set_process_mode'],
   PanoramaSkyMaterial: ['set_panorama', 'set_filtering_enabled', 'set_energy_multiplier'],
   ProceduralSkyMaterial: ['set_sky_top_color', 'set_sky_horizon_color', 'set_sky_curve', 'set_sky_energy_multiplier', 'set_sky_cover', 'set_sky_cover_modulate', 'set_ground_bottom_color', 'set_ground_horizon_color', 'set_ground_curve', 'set_ground_energy_multiplier', 'set_sun_angle_max', 'set_sun_curve', 'set_use_debanding', 'set_energy_multiplier'],
   PhysicalSkyMaterial: ['set_rayleigh_coefficient', 'set_rayleigh_color', 'set_mie_coefficient', 'set_mie_eccentricity', 'set_mie_color', 'set_turbidity', 'set_sun_disk_scale', 'set_ground_color', 'set_energy_multiplier', 'set_use_debanding', 'set_night_sky'],
-  ShaderMaterial: ['set_shader', 'set_shader_parameter:*'],
+  ShaderMaterial: ['set_shader', 'set_shader_parameter:*', 'set_render_priority'],
   Shader: [],
+  // Its items are raw properties (`Type/colors/name`), the constructor's own (`theme.ts`).
+  Theme: [],
+  // Its defaults only, which draw nothing (`camera-attributes-practical.ts`).
+  CameraAttributesPractical: [],
   CompressedCubemap: [],
   // The parameters a GPUParticles3D's emitter reads (`gpu-particles-3d.ts`); the rest (turbulence,
   // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, the other
   // parameters, emission curves, textures and offsets, ring axis) is not emitted.
   ParticleProcessMaterial: [
+    'set_turbulence_noise_strength',
+    'set_turbulence_noise_scale',
     'set_direction',
     'set_spread',
     'set_flatness',
@@ -413,12 +604,34 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_emission_box_extents',
     'set_gravity',
     'set_lifetime_randomness',
+    'set_emission_ring_axis',
+    'set_emission_ring_height',
+    'set_emission_ring_radius',
+    'set_emission_ring_inner_radius',
+    'set_emission_ring_cone_angle',
   ],
   CurveTexture: ['set_curve', 'set_width'],
   GradientTexture1D: ['set_gradient', 'set_width'],
   Curve: ['_set_limits', 'set_bake_resolution', '_set_data', 'set_point_count'],
   Gradient: ['set_interpolation_mode', 'set_interpolation_color_space', 'set_offsets', 'set_colors'],
   GradientTexture2D: ['set_gradient', 'set_width', 'set_height', 'set_fill', 'set_fill_from', 'set_fill_to', 'set_repeat'],
+  SeparationRayShape3D: ['set_length', 'set_slide_on_slope'],
+  NoiseTexture2D: ['set_noise', 'set_width', 'set_height', 'set_invert', 'set_in_3d_space', 'set_generate_mipmaps', 'set_seamless', 'set_seamless_blend_skirt', 'set_normalize'],
+  FastNoiseLite: [
+    'set_noise_type',
+    'set_seed',
+    'set_frequency',
+    'set_offset',
+    'set_fractal_type',
+    'set_fractal_octaves',
+    'set_fractal_lacunarity',
+    'set_fractal_gain',
+    'set_fractal_weighted_strength',
+    'set_fractal_ping_pong_strength',
+    'set_cellular_distance_function',
+    'set_cellular_jitter',
+    'set_cellular_return_type',
+  ],
   AudioStreamRandomizer: ['set_playback_mode', 'set_random_pitch', 'set_random_volume_offset_db', 'set_streams_count', 'set_stream:*', 'set_stream_probability_weight:*'],
 };
 
@@ -471,6 +684,16 @@ export function godotFamilyRefusal(
   const extra = unstated(allowed, setters);
   if (extra !== undefined) return `${extra.propertyName} has no ${className} element prop`;
   switch (className) {
+    case 'SubViewportContainer': {
+      // Its SubViewport draws over the whole frame (`sub-viewport.ts`): only a container covering
+      // the whole viewport draws where Godot's does.
+      const side = (setter: string, index: number, fallback: number) => {
+        const found = setters.find((entry) => entry.setter.exportName === setter && entry.index === index)?.value;
+        return found?.kind === 'number' ? found.value : fallback;
+      };
+      const full = [0, 1, 2, 3].every((index) => side('_set_anchor', index, 0) === (index >= 2 ? 1 : 0) && side('set_offset', index, 0) === 0);
+      return full ? undefined : 'a SubViewportContainer smaller than its viewport is not drawn';
+    }
     case 'SphereMesh': {
       if (boolOf(setters, 'set_is_hemisphere', false)) return 'is_hemisphere has no three sphere';
       const radius = numberOf(setters, 'set_radius', 0.5);
@@ -484,9 +707,10 @@ export function godotFamilyRefusal(
     case 'Environment': {
       const background = numberOf(setters, 'set_background', 0);
       if (background !== 1 && background !== 2) return `background_mode=${String(background)} is not drawn`;
-      if (numberOf(setters, 'set_fog_height_density', 0) !== 0) return 'height fog is not drawn';
-      if (numberOf(setters, 'set_fog_sun_scatter', 0) !== 0) return 'fog sun scatter is not drawn';
-      if (numberOf(setters, 'set_fog_mode', 0) !== 0) return 'depth fog is not drawn';
+      // The fog's settings draw nothing while the fog is off (`rasterizer_scene_gles3.cpp:1646`).
+      // Height fog and sun scatter draw as the distance fog alone (`world-environment.ts`).
+      const fogOn = boolOf(setters, 'set_fog_enabled', false);
+      if (fogOn && numberOf(setters, 'set_fog_mode', 0) !== 0) return 'depth fog is not drawn';
       return undefined;
     }
     case 'GPUParticles3D': {
@@ -496,14 +720,15 @@ export function godotFamilyRefusal(
     }
     case 'CPUParticles3D':
     case 'ParticleProcessMaterial': {
-      // The emitter emits from a point, a sphere, a sphere's surface and a box; not from `_POINTS`,
-      // `_DIRECTED_POINTS` or `_RING` (`particle_process_material.h:88`, `cpu_particles_3d.h:75`).
+      // The emitter emits from a point, a sphere, a sphere's surface, a box and (a process
+      // material's) a ring; not from `_POINTS` or `_DIRECTED_POINTS`, which need their emission
+      // textures (`particle_process_material.h:88`, `cpu_particles_3d.h:75`).
       const shape = numberOf(setters, 'set_emission_shape', 0);
-      return shape >= 4 ? `emission_shape=${String(shape)} is not emitted from` : undefined;
+      return shape === 4 || shape === 5 || (shape === 6 && className !== 'ParticleProcessMaterial') ? `emission_shape=${String(shape)} is not emitted from` : undefined;
     }
     case 'StandardMaterial3D': {
       const transparency = numberOf(setters, 'set_transparency', 0);
-      if (transparency > 2) return `transparency=${String(transparency)} has no three form`;
+      if (transparency > 4) return `transparency=${String(transparency)} has no three form`;
       const blend = numberOf(setters, 'set_blend_mode', 0);
       if (blend > 3) return `blend_mode=${String(blend)} has no three form`;
       const shading = numberOf(setters, 'set_shading_mode', 1);

@@ -21,7 +21,7 @@ export interface CapsuleShape3D {
 /**
  * A capsule of radius 0.5 and height 2.
  *
- * @godot CapsuleShape3D (protocol)
+ * @godot CapsuleShape3D.CapsuleShape3D
  * @source scene/resources/3d/capsule_shape_3d.cpp:156
  */
 export function construct(): CapsuleShape3D {
@@ -77,4 +77,17 @@ export function set_height(self: CapsuleShape3D, height: number): void {
  */
 export function get_height(self: CapsuleShape3D): number {
   return self.height;
+}
+
+/**
+ * A CapsuleShape3D of its defaults and the properties a scene states, by their prop names.
+ *
+ * @godot CapsuleShape3D (protocol)
+ * @source scene/resources/3d/capsule_shape_3d.cpp:156
+ */
+export function godot_capsule_shape_3d_new(properties: Readonly<Record<string, unknown>> = {}): CapsuleShape3D {
+  const self = construct();
+  if (properties['radius'] !== undefined) set_radius(self, properties['radius'] as number);
+  if (properties['height'] !== undefined) set_height(self, properties['height'] as number);
+  return self;
 }

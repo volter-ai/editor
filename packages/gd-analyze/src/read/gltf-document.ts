@@ -297,6 +297,11 @@ export const HANDLED_EXTENSIONS: readonly string[] = [
   'EXT_texture_avif',
   // Unlike the entries above, punctual lights do add imported nodes and are decoded below.
   'KHR_lights_punctual',
+  // Physics bodies and their shapes make Godot's physics nodes (`GLTFDocumentExtensionPhysics`,
+  // `modules/gltf/extensions/physics`): decoded below, the configurations modelled in
+  // `gltf-godot-scene.ts` and every other refused by name there.
+  'OMI_physics_body',
+  'OMI_physics_shape',
 ];
 
 export interface GltfNode {
@@ -312,6 +317,30 @@ export interface GltfNode {
   readonly skin: number | undefined;
   readonly camera: number | undefined;
   readonly punctualLight: number | undefined;
+  /** The node's `OMI_physics_body` (`GLTFDocumentExtensionPhysics::parse_node_extensions`). */
+  readonly physicsBody: GltfPhysicsBody | undefined;
+}
+
+/**
+ * A node's `OMI_physics_body`: its motion's type (a body of that type), its collider's and its
+ * trigger's shape index into the document's `OMI_physics_shape` shapes (-1 when the node only groups
+ * shapes), as the payload states them.
+ */
+export interface GltfPhysicsBody {
+  readonly motionType?: string;
+  readonly colliderShape?: number;
+  readonly triggerShape?: number;
+}
+
+/** One `OMI_physics_shape` shape (`GLTFPhysicsShape::from_dictionary`, `gltf_physics_shape.cpp:270`). */
+export interface GltfPhysicsShape {
+  /** `box`, `sphere`, `capsule`, `cylinder`, `convex` (`hull`) or `trimesh`. */
+  readonly type: string;
+  readonly size?: readonly [number, number, number];
+  readonly radius?: number;
+  readonly height?: number;
+  /** The glTF `meshes[]` index a convex or trimesh shape is made from. */
+  readonly mesh?: number;
 }
 
 export interface GltfCamera {
@@ -374,6 +403,7 @@ export interface GltfDocument {
   readonly animations: readonly GltfAnimation[];
   readonly cameras: readonly GltfCamera[];
   readonly punctualLights: readonly GltfPunctualLight[];
+  readonly physicsShapes: readonly GltfPhysicsShape[];
   /** `node index -> parent index`, built the way glTF states it: from each node's `children`. */
   readonly parents: readonly number[];
   /**
@@ -651,9 +681,24 @@ export function readGltfDocument(
       }
     }
     let punctualLight: number | undefined;
+    let physicsBody: GltfPhysicsBody | undefined;
     if (node['extensions'] !== undefined) {
       const extensions = obj(node['extensions'], at, `nodes[${index}].extensions`);
       for (const [name, payload] of Object.entries(extensions)) {
+        if (name === 'OMI_physics_body') {
+          const body = obj(payload, at, `nodes[${index}].extensions.OMI_physics_body`);
+          const part = (key: string) => (body[key] === undefined ? undefined : obj(body[key], at, `nodes[${index}].extensions.OMI_physics_body.${key}`));
+          const shapeOf = (entry: Record<string, unknown> | undefined) => (entry === undefined ? undefined : entry['shape'] === undefined ? -1 : num(entry['shape'], at, `nodes[${index}].extensions.OMI_physics_body.shape`));
+          const motion = part('motion');
+          const colliderShape = shapeOf(part('collider'));
+          const triggerShape = shapeOf(part('trigger'));
+          physicsBody = {
+            ...(motion === undefined ? {} : { motionType: str(motion['type'], '') }),
+            ...(colliderShape === undefined ? {} : { colliderShape }),
+            ...(triggerShape === undefined ? {} : { triggerShape }),
+          };
+          continue;
+        }
         if (name !== 'KHR_lights_punctual') {
           throw new GltfParseError(
             `${at}: nodes[${index}] uses extension "${name}", whose node payload this reader does not model`,
@@ -715,6 +760,7 @@ export function readGltfDocument(
       skin: typeof node['skin'] === 'number' ? node['skin'] : undefined,
       camera: typeof node['camera'] === 'number' ? node['camera'] : undefined,
       punctualLight,
+      physicsBody,
     };
   });
 
@@ -781,7 +827,36 @@ export function readGltfDocument(
           return { type };
         });
 
+  const physics = rootExtensions['OMI_physics_shape'];
+  const physicsShapes: GltfPhysicsShape[] =
+    physics === undefined
+      ? []
+      : optArr(obj(physics, at, 'extensions.OMI_physics_shape')['shapes'], at, 'extensions.OMI_physics_shape.shapes').map((entry, index) => {
+          const shape = obj(entry, at, `extensions.OMI_physics_shape.shapes[${index}]`);
+          const written = str(shape['type'], '');
+          const type = written === 'hull' ? 'convex' : written;
+          const properties = shape[written] === undefined ? shape : obj(shape[written], at, `extensions.OMI_physics_shape.shapes[${index}].${written}`);
+          const number = (key: string) => (properties[key] === undefined ? undefined : num(properties[key], at, `extensions.OMI_physics_shape.shapes[${index}].${key}`));
+          const size = properties['size'] === undefined ? undefined : arr(properties['size'], at, `extensions.OMI_physics_shape.shapes[${index}].size`).map((value) => num(value, at, 'size'));
+          if (size !== undefined && size.length !== 3) throw new GltfParseError(`${at}: extensions.OMI_physics_shape.shapes[${index}].size has ${size.length} numbers, not 3`);
+          const radius = number('radius');
+          const height = number('height');
+          const mesh = number('mesh');
+          return {
+            type,
+            ...(size === undefined ? {} : { size: size as [number, number, number] }),
+            ...(radius === undefined ? {} : { radius }),
+            ...(height === undefined ? {} : { height }),
+            ...(mesh === undefined ? {} : { mesh }),
+          };
+        });
+
   for (const node of nodes) {
+    for (const shape of [node.physicsBody?.colliderShape, node.physicsBody?.triggerShape]) {
+      if (shape !== undefined && shape !== -1 && physicsShapes[shape] === undefined) {
+        throw new GltfParseError(`${at}: nodes[${node.index}] names physics shape ${shape}, which does not exist`);
+      }
+    }
     if (node.camera !== undefined && cameras[node.camera] === undefined) {
       throw new GltfParseError(`${at}: nodes[${node.index}] names camera ${node.camera}, which does not exist`);
     }
@@ -952,6 +1027,7 @@ export function readGltfDocument(
     animations,
     cameras,
     punctualLights,
+    physicsShapes,
     parents,
     externalImages,
   };

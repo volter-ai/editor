@@ -1,10 +1,11 @@
 import { planGodotSceneSignalDelivery } from './scene-signal-delivery';
 import type { GodotScriptNodeSite } from './script-node-paths';
 import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
-import { godotSceneNodeIdiom } from './scene-node-idioms';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
 import { type GodotSceneBodyProp, type GodotSceneColliderPlan, planGodotSceneBodies } from './scene-body-idioms';
 import { planGodotSceneCollectedSetters, planGodotSceneSurfaces } from './scene-surface-idioms';
+import { type GodotControlDomPlan, planGodotSceneControls } from './scene-control-idioms';
+import { planGodotScenePlacedChildren } from './scene-arm-idioms';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
 import type {
@@ -23,6 +24,7 @@ import {
   type GodotSceneDocumentPlan,
   godotSceneHeldNodes,
   godotSceneSubnodes,
+  type TargetGodotResourceModulePlan,
   type TargetGodotSceneDocumentPlan,
   type TargetGodotSceneNodePlan,
   type TargetGodotSceneSetterPlan,
@@ -89,7 +91,7 @@ export type DirectGodotSceneNodePlan = Omit<
   /** A MeshInstance3D's mesh and, per surface, the material it draws (`scene-surface-idioms.ts`). */
   readonly surfaces?: { readonly mesh?: string; readonly materials: readonly (string | undefined)[]; readonly layers: number; readonly castShadow: boolean };
   /** A Camera3D's lens, cull mask and own environment (`scene-surface-idioms.ts`). */
-  readonly lens?: { readonly fov: number; readonly near: number; readonly far: number; readonly cullMask: number; readonly environment?: TargetGodotSceneValue };
+  readonly lens?: { readonly fov: number; readonly near: number; readonly far: number; readonly cullMask: number; readonly environment?: TargetGodotSceneValue; readonly projection?: number; readonly size?: number };
   /** A camera, light or probe whose element states no scale (`scene-surface-idioms.ts`). */
   readonly scaleless?: true;
   /** An instance: what its element needs of the scene it instances (`scene-body-idioms.ts`). */
@@ -106,6 +108,10 @@ export type DirectGodotSceneNodePlan = Omit<
   };
   /** A collision shape's Rapier collider (`scene-body-idioms.ts`). */
   readonly collider?: GodotSceneColliderPlan;
+  /** A Control's React DOM element (`scene-control-idioms.ts`). */
+  readonly dom?: GodotControlDomPlan;
+  /** The host its Controls hang in when it renders no element: its stacking (`scene-control-idioms.ts`). */
+  readonly domHost?: { readonly style: Readonly<Record<string, string | number>> };
   /** A physics body's `<RigidBody>` props (`scene-body-idioms.ts`). */
   readonly body?: readonly GodotSceneBodyProp[];
   /** An instance of a scene rooted in a body: the props its overrides change (`scene-body-idioms.ts`). */
@@ -177,6 +183,24 @@ export interface DirectGodotProjectCompositionPlan {
   readonly mainScene: string;
   /** The scenes other than the main one whose scripts read autoloads: the world provides them. */
   readonly autoloadScenes: readonly string[];
+  /**
+   * The autoloads that are scenes (`MusicPlayer="*res://MusicPlayer.tscn"`): each instanced under
+   * the root, named as the autoload, before the main scene (`Main::start`, `main/main.cpp:3949`).
+   * A script reading one refuses (`validateAutoloadReferences` resolves only script singletons).
+   */
+  readonly sceneAutoloads: readonly { readonly name: string; readonly sceneResPath: string; readonly exportName: string; readonly targetPath: string }[];
+  /**
+   * Whether a script changes the scene (`change_scene_to_packed`, `change_scene_to_file`), reloads
+   * it (`reload_current_scene`) or pauses the tree: the world mounts the scene a change names, or
+   * the main scene anew, and pauses its physics, only where one can.
+   */
+  readonly sceneChanges: { readonly change: boolean; readonly reload: boolean; readonly pause: boolean };
+  /**
+   * The default bus layout's buses (`AudioServer::set_bus_layout`, `audio_server.cpp:1755`), which
+   * the world sets before any script runs; Master alone where the project has no layout, or no
+   * sound file to play through it (`audioBuses`).
+   */
+  readonly audioBuses: readonly DirectGodotAudioBusPlan[];
   /** The settings the world loads before any script runs. */
   readonly projectSettings: readonly DirectGodotProjectSettingPlan[];
   /** The InputMap the world loads after the settings (`Main::setup`, `main/main.cpp:2102`). */
@@ -185,7 +209,21 @@ export interface DirectGodotProjectCompositionPlan {
   readonly processDelta: DirectGodotProcessDeltaPlan;
   readonly sourceModules: readonly DirectGodotSourceModulePlan[];
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
+  /** The resource documents scripts preload, each its own module (`TargetGodotResourceModulePlan`). */
+  readonly resourceModules: readonly TargetGodotResourceModulePlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
+  /** Every script's generated class, by the script's res path (a scene's resources make instances of them). */
+  readonly scriptClasses: readonly { readonly scriptResPath: string; readonly generatedClass: DirectGodotGeneratedClass }[];
+}
+
+/** One bus of the layout: its name, volume, mute, solo and bypass, and the bus it sends to. */
+export interface DirectGodotAudioBusPlan {
+  readonly name: string;
+  readonly volumeDb: number;
+  readonly mute: boolean;
+  readonly solo: boolean;
+  readonly bypassFx: boolean;
+  readonly send: string;
 }
 
 export interface DirectGodotCompositionDiagnostic {
@@ -631,6 +669,8 @@ function scriptAutoloads(
 ): readonly DirectGodotScriptAutoloadPlan[] {
   const result: DirectGodotScriptAutoloadPlan[] = [];
   for (const autoload of project.entrypoints.autoloads) {
+    // A scene autoload is the world's to instance (`sceneAutoloads`).
+    if (autoload.kind !== 'script' && project.documents.scenes.some((scene) => scene.resPath === autoload.resPath)) continue;
     if (autoload.kind !== 'script') {
       diagnostics.push({
         at: `project.godot#[autoload].${autoload.name}`,
@@ -764,23 +804,11 @@ function projectSettings(
       planned.set(entry.setting.key, { key: entry.setting.key, value });
     }
   }
-  // Compat lays the 2D world out at the stretched size in `canvas_items` mode; `viewport` mode
-  // (the whole game rendered at the base size and scaled) and integer scaling are not translated.
-  const stretchMode = project.read.authoredSettings.get('display/window/stretch/mode');
-  if (stretchMode?.kind === 'string' && stretchMode.value === 'viewport') {
-    diagnostics.push({ at: 'project.godot#display/window/stretch/mode', message: 'the viewport stretch mode is not translated' });
-  }
-  // The keep aspects (keep, the default, keep_width, keep_height) letterbox the whole viewport in
-  // Godot, 3D included (`window.cpp` `_update_viewport_size`); compat letterboxes only the 2D layer,
-  // so a project that draws 3D through a camera under them is not translated.
-  const aspect = project.read.authoredSettings.get('display/window/stretch/aspect');
-  const aspectValue = aspect?.kind === 'string' ? aspect.value : 'keep';
-  const drawsThreeD = project.documents.scenes.some((scene) =>
-    scene.nodes.some((node) => node.class.nativeAncestry.some((name) => godotSceneNodeIdiom(name)?.form?.kind === 'camera')),
-  );
-  if (stretchMode?.kind === 'string' && stretchMode.value === 'canvas_items' && ['keep', 'keep_width', 'keep_height'].includes(aspectValue) && drawsThreeD) {
-    diagnostics.push({ at: 'project.godot#display/window/stretch/aspect', message: `the ${aspectValue} stretch aspect with a 3D camera (a letterboxed 3D view) is not translated` });
-  }
+  // Compat lays the 2D world out at the stretched size in `canvas_items` and `viewport` modes
+  // (`window.ts`). Where Godot's differs: the 3D view fills the page's canvas at its own resolution,
+  // neither rendered at the base size (`viewport`) nor letterboxed by a keep aspect
+  // (`window.cpp` `_update_viewport_size`), since the page, not the game, sizes the canvas; on a
+  // window of the base aspect the two agree. Integer scaling is not translated.
   const scaleMode = project.read.authoredSettings.get('display/window/stretch/scale_mode');
   if (scaleMode?.kind === 'string' && scaleMode.value === 'integer') {
     diagnostics.push({ at: 'project.godot#display/window/stretch/scale_mode', message: 'integer stretch scaling is not translated' });
@@ -838,36 +866,6 @@ function processDelta(project: BoundGodotProject): DirectGodotProcessDeltaPlan {
 }
 
 /** Pure join of already-accepted code and data plans; it performs no source read or emission. */
-/** The classes whose methods take an action by name. */
-const ACTION_CLASSES = new Set(['Input', 'InputMap', 'InputEvent', 'InputEventAction', 'InputEventKey', 'InputEventMouseButton', 'InputEventJoypadButton', 'InputEventJoypadMotion', 'InputEventScreenTouch', 'InputEventMouseMotion', 'InputEventScreenDrag', 'InputEventWithModifiers', 'InputEventFromWindow', 'InputEventMouse']);
-
-/**
- * The input actions the project's scripts name: each string argument of a call to a method of an
- * input class. A call whose arguments include a computed value may name any action, and GUI nodes
- * navigate with the built-in `ui_*` actions: either keeps every built-in.
- */
-function usedInputActions(project: BoundGodotProject): ReadonlySet<string> | 'all' {
-  const used = new Set<string>();
-  for (const scene of project.documents.scenes) {
-    if (scene.nodes.some((node) => node.class.nativeAncestry.includes('Control'))) return 'all';
-  }
-  for (const script of project.scripts) {
-    const nodes = script.program.nodes;
-    for (const node of nodes) {
-      if (node.kind !== 'CALL' || !ACTION_CLASSES.has(node.compilerTarget.owner)) continue;
-      for (const id of node.arguments) {
-        const argument = nodes[id];
-        if (argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name')) {
-          used.add(argument.value.value);
-        } else if (argument?.datatype.kind !== 'BUILTIN' || (argument.datatype.builtinType !== 'bool' && argument.datatype.builtinType !== 'float' && argument.datatype.builtinType !== 'int')) {
-          return 'all';
-        }
-      }
-    }
-  }
-  return used;
-}
-
 export function planDirectGodotProjectComposition(
   project: BoundGodotProject,
   code: OfficialBoundCodePlan,
@@ -933,11 +931,18 @@ export function planDirectGodotProjectComposition(
   validateAutoloadReferences(instances, autoloads, diagnostics);
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(settings);
-  const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
-  const bodied = planGodotSceneSignalDelivery(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics), project).map((scene) => {
+  const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), project.inputActionsNamed === 'all' ? 'all' : new Set(project.inputActionsNamed));
+  const controlled = planGodotSceneControls(planGodotScenePlacedChildren(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics)), (at, message) => diagnostics.push({ at, message }));
+  const bodied = planGodotSceneSignalDelivery(controlled, project).map((scene) => {
     const current = scene.cameras?.authored ?? (scene.sourceResPath === mainScene ? scene.cameras?.first : undefined);
     const autoloadReferences = sceneAutoloadReferences(scene, diagnostics);
     return { ...scene, ...(current === undefined ? {} : { cameras: { ...scene.cameras, current } }), ...(autoloadReferences.length === 0 ? {} : { autoloadReferences }) };
+  });
+  // Each scene autoload names the component its scene is (`exportName`, `targetPath`).
+  const sceneAutoloads = project.entrypoints.autoloads.flatMap((autoload) => {
+    if (autoload.kind === 'script') return [];
+    const scene = bodied.find((entry) => entry.sourceResPath === autoload.resPath);
+    return scene === undefined ? [] : [{ name: autoload.name, sceneResPath: autoload.resPath, exportName: scene.exportName, targetPath: scene.targetPath }];
   });
   if (diagnostics.length > 0 || mainScene === undefined) {
     return { kind: 'refused-composition', diagnostics };
@@ -950,13 +955,85 @@ export function planDirectGodotProjectComposition(
       sourceRevision: project.authority.revision,
       mainScene,
       autoloadScenes: bodied.filter((scene) => scene.sourceResPath !== mainScene && (scene.autoloadReferences?.length ?? 0) > 0).map((scene) => scene.sourceResPath),
+      sceneChanges: sceneChanges(project),
+      audioBuses: audioBuses(project, diagnostics),
       projectSettings: settings,
       inputMap,
       physicsWorld: physics,
       processDelta: processDelta(project),
       sourceModules: plannedSourceModules,
       scenes: planGodotSceneRefs(bodied.map(planGodotSceneSkyLights)),
+      resourceModules: scenes.resourceModules,
       scriptAutoloads: autoloads,
+      sceneAutoloads,
+      scriptClasses: code.scriptModules.flatMap((module) => {
+        const target = generatedClass(module);
+        return target === undefined ? [] : [{ scriptResPath: module.resPath, generatedClass: target }];
+      }),
     },
   };
+}
+
+/** The scene changes the scripts call for, by the called function's name (a dynamic call counts too). */
+function sceneChanges(project: BoundGodotProject): DirectGodotProjectCompositionPlan['sceneChanges'] {
+  // What the scripts ask of the tree, as analysis records it (`tree-requests.ts`).
+  const requests = project.scripts.map((script) => script.treeRequests);
+  return { change: requests.some((entry) => entry.changesScene), reload: requests.some((entry) => entry.reloadsScene), pause: requests.some((entry) => entry.pausesTree) };
+}
+
+/**
+ * The default bus layout's buses as `AudioBusLayout::_set` reads them (`bus/N/name`, `volume_db`,
+ * `mute`, `solo`, `bypass_fx`, `send`; `audio_server.cpp:1880`), Master first with its defaults;
+ * Master alone for a project without a layout or without a sound file to play through it. A bus's
+ * effects are not bound and refuse by name.
+ */
+function audioBuses(project: BoundGodotProject, diagnostics: DirectGodotCompositionDiagnostic[]): readonly DirectGodotAudioBusPlan[] {
+  const master: DirectGodotAudioBusPlan = { name: 'Master', volumeDb: 0, mute: false, solo: false, bypassFx: false, send: '' };
+  const silent = project.documents.sounds.length === 0 && project.documents.oggVorbis.length === 0;
+  const root = project.read.runtimeRoots.find((entry) => entry.mechanism === 'default-audio-bus-layout');
+  const layout = root === undefined || silent ? undefined : project.documents.resources.find((entry) => entry.resPath === root.resPath);
+  if (layout === undefined) return [master];
+  const buses: { name?: string; volumeDb?: number; mute?: boolean; solo?: boolean; bypassFx?: boolean; send?: string }[] = [];
+  for (const [name, value] of Object.entries(layout.resource.properties)) {
+    const field = /^bus\/(\d+)\/(.+)$/u.exec(name);
+    if (field === null) continue;
+    const index = Number(field[1]);
+    const bus = (buses[index] ??= {});
+    const text = value.kind === 'string' || value.kind === 'string-name' ? String(value.value) : undefined;
+    const number = value.kind === 'number' ? value.value : undefined;
+    const flag = value.kind === 'bool' ? value.value : undefined;
+    switch (field[2]) {
+      case 'name':
+        if (text !== undefined) bus.name = text;
+        break;
+      case 'volume_db':
+        if (number !== undefined) bus.volumeDb = number;
+        break;
+      case 'mute':
+        if (flag !== undefined) bus.mute = flag;
+        break;
+      case 'solo':
+        if (flag !== undefined) bus.solo = flag;
+        break;
+      case 'bypass_fx':
+        if (flag !== undefined) bus.bypassFx = flag;
+        break;
+      case 'send':
+        if (text !== undefined) bus.send = text;
+        break;
+      default:
+        diagnostics.push({ at: `${layout.resPath}.${name}`, message: `an audio bus's ${field[2]} is not bound` });
+    }
+  }
+  return Array.from({ length: Math.max(buses.length, 1) }, (_, index) => {
+    const bus = buses[index] ?? {};
+    return {
+      name: index === 0 ? 'Master' : (bus.name ?? `Bus ${String(index)}`),
+      volumeDb: bus.volumeDb ?? 0,
+      mute: bus.mute ?? false,
+      solo: bus.solo ?? false,
+      bypassFx: bus.bypassFx ?? false,
+      send: index === 0 ? '' : (bus.send ?? 'Master'),
+    };
+  });
 }

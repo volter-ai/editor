@@ -12,3 +12,29 @@ const OPERAND_TYPES: Readonly<Record<string, readonly string[]>> = {
 export function godotOperandTypes(tsType: string): readonly string[] {
   return OPERAND_TYPES[tsType] ?? [tsType];
 }
+
+/**
+ * The built-in conversions that are no conversion in the output: a value of the first type IS a
+ * value of the second (an int stored as a float is the same JS number). Every other conversion
+ * between built-ins goes through the target type's constructor (`convertedValue`).
+ */
+const WIDENINGS: ReadonlySet<string> = new Set(['int>float']);
+
+export function godotBuiltinWidens(from: string, to: string): boolean {
+  return WIDENINGS.has(`${from}>${to}`);
+}
+
+/**
+ * The type a `match` compares a built-in's values as with `===` (`_parse_match_pattern`: the
+ * types equal, then `==`), a StringName its String; undefined for a type compared otherwise.
+ */
+export function godotMatchComparedAs(builtinType: string): string | undefined {
+  if (builtinType === 'StringName') return 'String';
+  return ['int', 'float', 'bool', 'String'].includes(builtinType) ? builtinType : undefined;
+}
+
+/** A literal's text when it is a string, a StringName or a NodePath (`^"path"`), as a property path names it. */
+export function godotLiteralPathText(value: { readonly kind: string; readonly value?: unknown; readonly type?: string; readonly text?: string }): string | undefined {
+  if ((value.kind === 'string' || value.kind === 'string-name') && typeof value.value === 'string') return value.value;
+  return value.kind === 'opaque' && value.type === 'NodePath' ? value.text : undefined;
+}

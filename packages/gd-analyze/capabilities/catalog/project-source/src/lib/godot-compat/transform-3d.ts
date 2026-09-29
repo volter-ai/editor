@@ -11,15 +11,28 @@ import {
   type Basis,
   construct as basis,
   inverse as basisInverse,
+  is_equal_approx as basisIsEqualApprox,
+  is_finite as basisIsFinite,
+  op_divide as basisDivide,
+  op_equal as basisEqual,
   op_multiply as basisMultiply,
   orthonormalized as basisOrthonormalized,
+  scaled as basisScaled,
+  scaled_local as basisScaledLocal,
+  transposed as basisTransposed,
 } from './basis';
+import { construct as plane, type Plane } from './plane';
 import {
   construct as vector3,
   cross,
+  dot,
+  is_equal_approx as vector3IsEqualApprox,
+  is_finite as vector3IsFinite,
   is_zero_approx,
   normalized,
   op_add,
+  op_divide as vector3Divide,
+  op_multiply as vector3Multiply,
   op_negate,
   op_subtract,
   UP,
@@ -183,17 +196,220 @@ export function affine_inverse(self: Transform3D): Transform3D {
   return make(inverted, basisMultiply(inverted, op_negate(self.origin)));
 }
 
+/** Godot's `AABB` layout (`core/math/aabb.h`): a `Vector3 position` and a `Vector3 size`. */
+interface Aabb {
+  readonly position: Vector3;
+  readonly size: Vector3;
+}
+
+/** `Transform3D::xform(AABB)` (`core/math/transform_3d.h:209`): the box of the transformed extents. */
+function xformAabb(self: Transform3D, box: Aabb): Aabb {
+  const min = box.position;
+  const max = op_add(box.position, box.size);
+  const axes = ['x', 'y', 'z'] as const;
+  const columns = [self.basis.x, self.basis.y, self.basis.z] as const;
+  const tmin = [self.origin.x, self.origin.y, self.origin.z];
+  const tmax = [self.origin.x, self.origin.y, self.origin.z];
+  for (let i = 0; i < 3; i += 1) {
+    for (let j = 0; j < 3; j += 1) {
+      const entry = columns[j as 0 | 1 | 2][axes[i as 0 | 1 | 2]];
+      const e = f32(entry * min[axes[j as 0 | 1 | 2]]);
+      const g = f32(entry * max[axes[j as 0 | 1 | 2]]);
+      tmin[i] = f32((tmin[i] ?? 0) + (e < g ? e : g));
+      tmax[i] = f32((tmax[i] ?? 0) + (e < g ? g : e));
+    }
+  }
+  const position = vector3(tmin[0] ?? 0, tmin[1] ?? 0, tmin[2] ?? 0);
+  return Object.freeze({ position, size: op_subtract(vector3(tmax[0] ?? 0, tmax[1] ?? 0, tmax[2] ?? 0), position) });
+}
+
+/**
+ * `Transform3D::xform(Plane)` (`core/math/transform_3d.h:197`): a point of the plane transformed,
+ * the normal through the inverse-transpose basis and normalized, `d` recomputed
+ * (`xform_fast`, `core/math/transform_3d.h:284`).
+ */
+function xformPlane(self: Transform3D, p: Plane): Plane {
+  const point = op_multiply(self, vector3Multiply(p.normal, p.d));
+  const normal = normalized(basisMultiply(basisTransposed(basisInverse(self.basis)), p.normal));
+  return plane(normal, dot(normal, point));
+}
+
 /**
  * `Transform3D * Vector3` is `xform`: the basis rows dotted with the vector plus the origin
  * (`core/math/transform_3d.h:177`). `Transform3D * Transform3D` is `origin = xform(p.origin)`, then
- * `basis *= p.basis` (`core/math/transform_3d.cpp:185`).
+ * `basis *= p.basis` (`core/math/transform_3d.cpp:185`). `Transform3D * float` scales the basis and
+ * origin (`core/math/transform_3d.h:155`); `* Plane` (`core/math/transform_3d.h:197`), `* AABB`
+ * (`core/math/transform_3d.h:209`, a `{ position, size }` record) and `* PackedVector3Array` (each
+ * point, `core/math/transform_3d.h:258`) transform those.
  *
  * @godot Transform3D.OP_MULTIPLY
  * @source core/math/transform_3d.cpp:190
  */
 export function op_multiply(left: Transform3D, right: Vector3): Vector3;
 export function op_multiply(left: Transform3D, right: Transform3D): Transform3D;
-export function op_multiply(left: Transform3D, right: Vector3 | Transform3D): Vector3 | Transform3D {
+export function op_multiply(left: Transform3D, right: number): Transform3D;
+export function op_multiply(left: Transform3D, right: Plane): Plane;
+export function op_multiply(left: Transform3D, right: Aabb): Aabb;
+export function op_multiply(left: Transform3D, right: readonly Vector3[]): Vector3[];
+export function op_multiply(
+  left: Transform3D,
+  right: Vector3 | Transform3D | number | Plane | Aabb | readonly Vector3[],
+): Vector3 | Transform3D | Plane | Aabb | Vector3[] {
+  if (typeof right === 'number') return make(basisMultiply(left.basis, right), vector3Multiply(left.origin, right));
+  if (Array.isArray(right)) return (right as readonly Vector3[]).map((point) => op_multiply(left, point));
   if ('basis' in right) return make(basisMultiply(left.basis, right.basis), op_multiply(left, right.origin));
-  return op_add(basisMultiply(left.basis, right), left.origin);
+  if ('normal' in right) return xformPlane(left, right);
+  if ('position' in right) return xformAabb(left, right);
+  return op_add(basisMultiply(left.basis, right as Vector3), left.origin);
+}
+
+/**
+ * The basis transposed and the origin carried back through it (`Transform3D::invert`,
+ * `core/math/transform_3d.cpp:46`): the inverse of a rotation-and-translation, which is what Godot
+ * assumes here.
+ *
+ * @godot Transform3D.inverse
+ * @source core/math/transform_3d.cpp:51
+ */
+export function inverse(self: Transform3D): Transform3D {
+  const b = basisTransposed(self.basis);
+  return make(b, basisMultiply(b, op_negate(self.origin)));
+}
+
+/**
+ * Rotated about the parent axis: basis and origin both rotated. Under `MATH_CHECKS` an axis that is
+ * not normalized leaves the rotation the identity.
+ *
+ * @godot Transform3D.rotated
+ * @source core/math/transform_3d.cpp:63
+ */
+export function rotated(self: Transform3D, p_axis: Vector3, p_angle: number): Transform3D {
+  const r = basis(p_axis, p_angle);
+  return make(basisMultiply(r, self.basis), basisMultiply(r, self.origin));
+}
+
+/**
+ * Rotated in its own frame: the basis post-multiplied, the origin kept.
+ *
+ * @godot Transform3D.rotated_local
+ * @source core/math/transform_3d.cpp:69
+ */
+export function rotated_local(self: Transform3D, p_axis: Vector3, p_angle: number): Transform3D {
+  return make(basisMultiply(self.basis, basis(p_axis, p_angle)), self.origin);
+}
+
+/**
+ * The basis rows and the origin scaled component-wise (parent frame).
+ *
+ * @godot Transform3D.scaled
+ * @source core/math/transform_3d.cpp:118
+ */
+export function scaled(self: Transform3D, p_scale: Vector3): Transform3D {
+  return make(basisScaled(self.basis, p_scale), vector3Multiply(self.origin, p_scale));
+}
+
+/**
+ * The basis columns scaled (local frame); the origin kept.
+ *
+ * @godot Transform3D.scaled_local
+ * @source core/math/transform_3d.cpp:123
+ */
+export function scaled_local(self: Transform3D, p_scale: Vector3): Transform3D {
+  return make(basisScaledLocal(self.basis, p_scale), self.origin);
+}
+
+/**
+ * The origin moved by the offset in the parent frame.
+ *
+ * @godot Transform3D.translated
+ * @source core/math/transform_3d.cpp:142
+ */
+export function translated(self: Transform3D, p_offset: Vector3): Transform3D {
+  return make(self.basis, op_add(self.origin, p_offset));
+}
+
+/**
+ * The origin moved by the offset through the basis.
+ *
+ * @godot Transform3D.translated_local
+ * @source core/math/transform_3d.cpp:147
+ */
+export function translated_local(self: Transform3D, p_offset: Vector3): Transform3D {
+  return make(self.basis, op_add(self.origin, basisMultiply(self.basis, p_offset)));
+}
+
+/**
+ * @godot Transform3D.is_equal_approx
+ * @source core/math/transform_3d.cpp:173
+ */
+export function is_equal_approx(self: Transform3D, p_xform: Transform3D): boolean {
+  return basisIsEqualApprox(self.basis, p_xform.basis) && vector3IsEqualApprox(self.origin, p_xform.origin);
+}
+
+/**
+ * @godot Transform3D.is_finite
+ * @source core/math/transform_3d.cpp:181
+ */
+export function is_finite(self: Transform3D): boolean {
+  return basisIsFinite(self.basis) && vector3IsFinite(self.origin);
+}
+
+/**
+ * The basis and origin divided by the scalar (`core/math/transform_3d.h:166`); plain
+ * `OperatorEvaluatorDiv`, so a zero divisor follows IEEE division.
+ *
+ * @godot Transform3D.OP_DIVIDE
+ * @source core/math/transform_3d.h:171
+ */
+export function op_divide(left: Transform3D, right: number): Transform3D {
+  return make(basisDivide(left.basis, right), vector3Divide(left.origin, right));
+}
+
+/**
+ * Against null (the `Variant` right operand) it is false (`core/variant/variant_op.cpp:550`).
+ *
+ * @godot Transform3D.OP_EQUAL
+ * @source core/math/transform_3d.h:147
+ */
+export function op_equal(left: Transform3D, right: Transform3D | null): boolean {
+  if (right === null) return false;
+  const o = left.origin;
+  return basisEqual(left.basis, right.basis) && o.x === right.origin.x && o.y === right.origin.y && o.z === right.origin.z;
+}
+
+/**
+ * @godot Transform3D.OP_NOT_EQUAL
+ * @source core/math/transform_3d.h:151
+ */
+export function op_not_equal(left: Transform3D, right: Transform3D | null): boolean {
+  return !op_equal(left, right);
+}
+
+/**
+ * `t == Transform3D()`: identity basis, zero origin.
+ *
+ * @godot Transform3D.OP_NOT
+ * @source core/variant/variant_op.cpp:901
+ */
+export function op_not(self: Transform3D): boolean {
+  return op_equal(self, construct());
+}
+
+/** Whether an Array element or a Dictionary key is this Transform3D. */
+function isTransform3DEqual(value: unknown, t: Transform3D): boolean {
+  if (typeof value !== 'object' || value === null || !('basis' in value) || !('origin' in value)) return false;
+  return op_equal(t, value as Transform3D);
+}
+
+/**
+ * `t in array` is `array.find(t) != -1`; `t in dict` is `dict.has(t)`
+ * (`core/variant/variant_op.h:1180`). A Transform3D key is matched by value.
+ *
+ * @godot Transform3D.OP_IN
+ * @source core/variant/variant_op.h:1142
+ */
+export function op_in(left: Transform3D, right: readonly unknown[] | ReadonlyMap<unknown, unknown>): boolean {
+  if (Array.isArray(right)) return right.some((element) => isTransform3DEqual(element, left));
+  for (const key of (right as ReadonlyMap<unknown, unknown>).keys()) if (isTransform3DEqual(key, left)) return true;
+  return false;
 }

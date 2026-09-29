@@ -15,12 +15,13 @@ import { SolverFlags } from '@dimforge/rapier3d-compat';
 import { useThree } from '@react-three/fiber';
 import { godot_camera_3d_attach_renderer, godot_camera_3d_viewport_resized } from './camera-3d';
 import { useRapier } from '@react-three/rapier';
-import { use, useEffect, useLayoutEffect, useReducer } from 'react';
+import { type ComponentType, use, useEffect, useLayoutEffect, useReducer, useState, useSyncExternalStore } from 'react';
 import { godot_collision_object_of_collider, godot_physics_attach } from './collision-object-3d';
+import { godot_node_follow_tree_paused, godot_node_tree_paused } from './node';
 import { godot_physics_body_3d_collides } from './physics-body-3d';
 import { godot_font_default, godot_font_default_url, godot_font_register } from './font';
 import { godot_resource_loader_settled } from './resource-loader';
-import { godot_tree_attach_host, godot_tree_on_reload } from './scene-tree';
+import { godot_tree_attach_host, godot_tree_on_change, godot_tree_on_reload } from './scene-tree';
 import { godot_viewport_attach_input, godot_viewport_attach_renderer } from './viewport';
 import { godot_window_attach_input, godot_window_canvas_size, godot_window_set_size } from './window';
 // The body classes' modules register their `is` classes and signals as they load.
@@ -119,4 +120,32 @@ export function useGodotSceneReload(): number {
     return () => godot_tree_on_reload(undefined);
   }, []);
   return generation;
+}
+
+/**
+ * Whether the tree is paused (`SceneTree.paused`), which the world's `<Physics paused>` follows:
+ * Godot stops stepping the physics server while the tree is paused (`SceneTree::set_pause`,
+ * `PhysicsServer3D::set_active(!paused)`).
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:1100
+ */
+export function useGodotPaused(): boolean {
+  return useSyncExternalStore(godot_node_follow_tree_paused, godot_node_tree_paused);
+}
+
+/**
+ * The scene `change_scene_to_packed` changed to, which the world mounts in place of the main scene
+ * (`SceneTree::_flush_scene_change` frees the current scene and adds the new one), or undefined.
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:1687
+ */
+export function useGodotSceneChange(): ComponentType | undefined {
+  const [scene, setScene] = useState<{ readonly component: ComponentType } | undefined>(undefined);
+  useEffect(() => {
+    godot_tree_on_change((packed) => setScene({ component: packed.component as unknown as ComponentType }));
+    return () => godot_tree_on_change(undefined);
+  }, []);
+  return scene?.component;
 }

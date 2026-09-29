@@ -120,6 +120,43 @@ export const GODOT_4_7_SIGNAL_RULES: readonly (GodotSceneSignalRule & { readonly
     arguments: 0,
     source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (connections)', line: 682 },
   },
+  ...(
+    [
+      ['Timer', 'timeout', 'timer', 'timeout', 0, 'scene/main/timer.cpp', 243],
+      ['AnimatedSprite3D', 'animation_finished', 'animated-sprite-3d', 'animation_finished', 0, 'scene/3d/sprite_3d.cpp', 1484],
+      ['AnimatedSprite3D', 'animation_looped', 'animated-sprite-3d', 'animation_looped', 0, 'scene/3d/sprite_3d.cpp', 1483],
+      ['AnimatedSprite3D', 'frame_changed', 'animated-sprite-3d', 'frame_changed', 0, 'scene/3d/sprite_3d.cpp', 1480],
+      ['AnimatedSprite2D', 'animation_finished', 'animated-sprite-2d', 'animation_finished', 0, 'scene/2d/animated_sprite_2d.cpp', 612],
+      ['AnimatedSprite2D', 'animation_looped', 'animated-sprite-2d', 'animation_looped', 0, 'scene/2d/animated_sprite_2d.cpp', 611],
+      ['AnimatedSprite2D', 'frame_changed', 'animated-sprite-2d', 'frame_changed', 0, 'scene/2d/animated_sprite_2d.cpp', 610],
+      ['CollisionObject2D', 'mouse_entered', 'collision-object-2d', 'mouse_entered', 0, 'scene/2d/physics/collision_object_2d.cpp', 631],
+      ['CollisionObject2D', 'mouse_exited', 'collision-object-2d', 'mouse_exited', 0, 'scene/2d/physics/collision_object_2d.cpp', 632],
+      ['CollisionObject2D', 'input_event', 'collision-object-2d', 'input_event', 3, 'scene/2d/physics/collision_object_2d.cpp', 630],
+      ['GPUParticles2D', 'finished', 'gpu-particles-2d', 'finished', 0, 'scene/2d/gpu_particles_2d.cpp', 928],
+      ['BaseButton', 'pressed', 'base-button', 'pressed', 0, 'scene/gui/base_button.cpp', 480],
+      ['BaseButton', 'button_down', 'base-button', 'button_down', 0, 'scene/gui/base_button.cpp', 482],
+      ['BaseButton', 'button_up', 'base-button', 'button_up', 0, 'scene/gui/base_button.cpp', 481],
+      ['BaseButton', 'toggled', 'base-button', 'toggled', 1, 'scene/gui/base_button.cpp', 483],
+      ['Range', 'value_changed', 'range', 'value_changed', 1, 'scene/gui/range.cpp', 400],
+      ['Area2D', 'body_entered', 'area-2d', 'body_entered', 1, 'scene/2d/physics/area_2d.cpp', 590],
+      ['Area2D', 'body_exited', 'area-2d', 'body_exited', 1, 'scene/2d/physics/area_2d.cpp', 591],
+      ['Area2D', 'area_entered', 'area-2d', 'area_entered', 1, 'scene/2d/physics/area_2d.cpp', 594],
+      ['Area2D', 'area_exited', 'area-2d', 'area_exited', 1, 'scene/2d/physics/area_2d.cpp', 595],
+      ['RigidBody2D', 'body_entered', 'rigid-body-2d', 'body_entered', 1, 'scene/2d/physics/rigid_body_2d.cpp', 844],
+      ['VisibleOnScreenNotifier2D', 'screen_entered', 'visible-on-screen-notifier-2d', 'screen_entered', 0, 'scene/2d/visible_on_screen_notifier_2d.cpp', 185],
+      ['VisibleOnScreenNotifier2D', 'screen_exited', 'visible-on-screen-notifier-2d', 'screen_exited', 0, 'scene/2d/visible_on_screen_notifier_2d.cpp', 186],
+      ['VisibleOnScreenNotifier3D', 'screen_entered', 'visible-on-screen-notifier-3d', 'screen_entered', 0, 'scene/3d/visible_on_screen_notifier_3d.cpp', 101],
+      ['VisibleOnScreenNotifier3D', 'screen_exited', 'visible-on-screen-notifier-3d', 'screen_exited', 0, 'scene/3d/visible_on_screen_notifier_3d.cpp', 102],
+      ['RigidBody2D', 'body_exited', 'rigid-body-2d', 'body_exited', 1, 'scene/2d/physics/rigid_body_2d.cpp', 845],
+    ] as const
+  ).map(([ownerClass, signal, module, exportName, argumentCount, file, line]) => ({
+    sourceRevision: REVISION,
+    ownerClass,
+    signal,
+    accessor: { module: `lib/godot-compat/${module}`, exportName, named: false },
+    arguments: argumentCount,
+    source: { file, symbol: `${ownerClass}::_bind_methods (${signal})`, line },
+  })),
 ];
 
 /**

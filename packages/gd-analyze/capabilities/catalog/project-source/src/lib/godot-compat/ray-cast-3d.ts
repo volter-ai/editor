@@ -14,7 +14,7 @@ import type { ThreeElements } from '@react-three/fiber';
 import { createElement, type Ref, useLayoutEffect, useRef } from 'react';
 import type { Group, Object3D } from 'three';
 import { godot_collision_object_body } from './collision-object-3d';
-import { godot_node_class_reader, godot_node_entity, is_inside_tree } from './node';
+import { godot_node_entity, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { intersect_ray } from './physics-direct-space-state-3d';
 import { godot_ray_query_new } from './physics-ray-query-parameters-3d';
@@ -44,8 +44,6 @@ interface RayState {
 }
 
 const RAY = new WeakMap<object, RayState>();
-const RAY_CAST_3D = Object.freeze(['RayCast3D', 'Node3D', 'Node', 'Object']);
-godot_node_class_reader((entity) => (RAY.has(entity) ? RAY_CAST_3D : undefined));
 
 function stateOf(object: object): RayState {
   const entity = godot_node_entity(object);
@@ -300,6 +298,24 @@ export function set_exclude_parent_body(self: object, exclude: boolean): void {
  */
 export function add_exception(self: object, node: object): void {
   stateOf(self).exceptions.add(godot_node_entity(node));
+}
+
+/**
+ * A body's RID left out of the cast: compat's RID of a collision object is its node (`get_rid`).
+ *
+ * @godot RayCast3D.add_exception_rid
+ * @source scene/3d/physics/ray_cast_3d.cpp:264
+ */
+export function add_exception_rid(self: object, rid: object): void {
+  stateOf(self).exceptions.add(rid);
+}
+
+/**
+ * @godot RayCast3D.remove_exception_rid
+ * @source scene/3d/physics/ray_cast_3d.cpp:273
+ */
+export function remove_exception_rid(self: object, rid: object): void {
+  stateOf(self).exceptions.delete(rid);
 }
 
 /**

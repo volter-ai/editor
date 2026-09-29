@@ -18,12 +18,14 @@
  * material draws as its model variant, its textures sampled as the model's images are.
  */
 
-import { BufferAttribute, BufferGeometry, type Material, type Mesh } from 'three';
+import { BufferAttribute, BufferGeometry, type Material, Mesh } from 'three';
 import { type BaseMaterial3D, godot_base_material_3d_initial, godot_base_material_3d_of, godot_base_material_3d_on_model, godot_base_material_3d_three } from './base-material-3d';
 import { construct as color } from './color';
 import type { ArrayMesh } from './array-mesh';
 import { godot_mesh_surfaces, type GodotMeshSurface } from './mesh';
 import { godot_primitive_mesh_geometry, type PrimitiveMesh } from './primitive-mesh';
+import { godot_geometry_instance_3d_draws_override } from './geometry-instance-3d';
+import { godot_node_adopt } from './node';
 
 /** A mesh resource a MeshInstance3D draws. */
 type MeshResource = PrimitiveMesh | ArrayMesh;
@@ -125,6 +127,25 @@ function draw(self: Mesh, state: MeshInstanceState): void {
 }
 
 /**
+ * The three geometry and materials a mesh resource is drawn with (its surfaces joined, each
+ * surface's material or the renderer's default), as a GridMap's MeshLibrary item draws it.
+ *
+ * @godot MeshInstance3D (protocol)
+ * @source scene/3d/mesh_instance_3d.cpp:120
+ */
+export function godot_mesh_instance_3d_three(mesh: object): { readonly geometry: BufferGeometry; readonly materials: readonly Material[] } {
+  const surfaces = godot_mesh_surfaces(mesh);
+  let geometry = GEOMETRY.get(mesh);
+  if (geometry === undefined) {
+    geometry = surfaces === undefined ? godot_primitive_mesh_geometry(mesh as PrimitiveMesh) : joined(surfaces);
+    GEOMETRY.set(mesh, geometry);
+  }
+  const model = godot_base_material_3d_on_model(geometry);
+  const own = surfaces === undefined ? [(mesh as PrimitiveMesh & { material?: BaseMaterial3D | null }).material ?? null] : surfaces.map((surface) => surface.material);
+  return { geometry, materials: own.map((material) => (material === null ? defaultMaterial() : godot_base_material_3d_three(material, model))) };
+}
+
+/**
  * A mesh instance with no mesh draws nothing (`set_base(RID())`); its surface overrides resize to
  * the mesh's surfaces (`_mesh_changed`), one for a primitive mesh, and a null mesh leaves them as
  * they were. On a scene's `<mesh>`, the resource replaces the scene's geometry.
@@ -203,4 +224,22 @@ export function set_skeleton_path(self: Mesh, path: string): void {
 export function get_skeleton_path(self: Mesh): string {
   const stated = (self.userData as Readonly<Record<string, unknown>>)['skeleton_path'];
   return SKELETON.get(self) ?? (typeof stated === 'string' ? stated : '');
+}
+
+/**
+ * A new MeshInstance3D (`MeshInstance3D.new()`): a three `Mesh` with no geometry until a mesh is
+ * set, drawing its material override over every surface.
+ *
+ * @godot MeshInstance3D.MeshInstance3D
+ * @source scene/3d/mesh_instance_3d.cpp:934
+ */
+export function construct(): Mesh {
+  const entity = new Mesh(new BufferGeometry(), godot_base_material_3d_three(godot_base_material_3d_initial()));
+  entity.castShadow = true;
+  entity.receiveShadow = true;
+  godot_node_adopt(entity, { kind: 'spatial', classes: ['MeshInstance3D', 'GeometryInstance3D', 'VisualInstance3D', 'Node3D', 'Node', 'Object'] });
+  godot_geometry_instance_3d_draws_override(entity, (material) => {
+    if (material !== null) entity.material = material;
+  });
+  return entity;
 }

@@ -57,6 +57,7 @@ const FLAG_DISABLE_Z = 2;
 /** `CPUParticles3D::EmissionShape` (`cpu_particles_3d.h:75`): the ones the emitter emits from. */
 const SHAPE_SPHERE = 1;
 const SHAPE_SPHERE_SURFACE = 2;
+const SHAPE_RING = 6;
 const SHAPE_BOX = 3;
 
 /**
@@ -83,6 +84,8 @@ export interface ParticleProcess {
   emission_shape: number;
   emission_sphere_radius: number;
   emission_box_extents: Vector3;
+  /** A ring's axis, height, radii (a process material's; a CPUParticles3D has none). */
+  emission_ring?: { readonly axis: Vector3; readonly height: number; readonly radius: number; readonly inner: number };
   lifetime_randomness: number;
   particle_flags: boolean[];
 }
@@ -204,6 +207,21 @@ function emitPosition(p: ParticleProcess, out: ThreeVector3): ThreeVector3 {
   if (p.emission_shape === SHAPE_BOX) {
     const e = p.emission_box_extents;
     return out.set(random(-e.x, e.x), random(-e.y, e.y), random(-e.z, e.z));
+  }
+  const ring = p.emission_ring;
+  if (p.emission_shape === SHAPE_RING && ring !== undefined) {
+    // A point of the ring's annulus, at a height along its axis (`EMISSION_SHAPE_RING`,
+    // `particle_process_material.cpp:720`); a zero axis is Z.
+    const axis = new ThreeVector3(ring.axis.x, ring.axis.y, ring.axis.z);
+    if (axis.lengthSq() === 0) axis.set(0, 0, 1);
+    axis.normalize();
+    const u = new ThreeVector3(1, 0, 0);
+    if (Math.abs(axis.dot(u)) > 0.99) u.set(0, 1, 0);
+    u.cross(axis).normalize();
+    const w = axis.clone().cross(u);
+    const turn = Math.random() * Math.PI * 2;
+    const radius = Math.sqrt(random(ring.inner * ring.inner, ring.radius * ring.radius));
+    return out.copy(u).multiplyScalar(Math.cos(turn) * radius).addScaledVector(w, Math.sin(turn) * radius).addScaledVector(axis, random(-ring.height / 2, ring.height / 2));
   }
   return out.set(0, 0, 0);
 }
@@ -342,7 +360,10 @@ function draw(node: Object3D, e: Emitter, p: ParticleProcess): void {
     if (p.particle_flags[FLAG_ALIGN_Y_TO_VELOCITY] === true && particle.velocity.lengthSq() > 0) {
       rotation.setFromUnitVectors(UP, heading.copy(particle.velocity).normalize());
     } else rotation.identity();
-    rotation.multiply(spin.setFromAxisAngle(Z, particle.angle));
+    // Flat particles turn in their plane by their angle (`cpu_particles_3d.cpp`: the basis's first
+    // column `(cos, -sin, 0)`, the other way). Otherwise the angle turns nothing here: a particle
+    // billboard reads it as `INSTANCE_CUSTOM.x`.
+    if (p.particle_flags[FLAG_DISABLE_Z] === true && p.particle_flags[FLAG_ALIGN_Y_TO_VELOCITY] !== true) rotation.multiply(spin.setFromAxisAngle(Z, -particle.angle));
     matrix.compose(particle.position, rotation, size.setScalar(scale));
     if (!e.local_coords) matrix.premultiply(inverseWorld);
     drawn.setMatrixAt(i, matrix);

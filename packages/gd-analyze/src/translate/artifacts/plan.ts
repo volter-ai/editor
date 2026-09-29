@@ -1,3 +1,5 @@
+import { GODOT_GENERATED_MODULE_PACKAGES } from '../data/generated-packages';
+import type { GodotEmbeddedImage } from '../../read/embedded-images';
 import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import { createHash } from 'node:crypto';
 import type { CapabilityCopyArtifact } from '../../snapshot/toolchain-snapshot';
@@ -11,6 +13,7 @@ import {
   directGodotSettingsJson,
 } from '../emit/direct-project-world-syntax';
 import type { DirectGodotSceneModulePlan } from '../data/direct-scene-module-plan';
+import { prunePackageDocuments } from '../data/package-lock-plan';
 import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
 import {
   godotArrayMeshData,
@@ -21,10 +24,11 @@ import {
 } from '../data/scene-families';
 import { assetCopyArtifact, licenseCopyArtifact } from './asset-copy';
 import { capabilityCopyArtifact } from './capability-copy';
-import { godotCapabilityRequirements, reachedGodotCapabilityCopies } from './capability-reach';
+import { godotCapabilityPackages, godotCapabilityRequirements, reachedGodotCapabilityCopies } from './capability-reach';
 import { plannedArtifactIdentity, structuralDigest } from './identity';
 import {
   projectDataBytesArtifact,
+  projectDataImageArtifact,
   projectDataGeneratedModuleArtifact,
   projectDataJsonArtifact,
   projectDataTypedModuleArtifact as typedModuleArtifact,
@@ -99,7 +103,14 @@ function sourceArtifacts(
   if (compositionScenes.size > 0) {
     throw new Error(`${[...compositionScenes.keys()][0]}: accepted scene has no module plan`);
   }
-  return [...plannedCode, ...plannedScenes];
+  const plannedResources = composition.resourceModules.map((module) =>
+    sourceTranslationArtifact(
+      module.targetPath,
+      { kind: 'resource-module', resourceResPath: module.sourceResPath, inputDigest: structuralDigest(module) },
+      { kind: 'source-translation', sourcePath: module.sourceResPath, sourceDigest: module.sourceDigest },
+    ),
+  );
+  return [...plannedCode, ...plannedScenes, ...plannedResources];
 }
 
 /** The compat modules the planned data files are typed by (`export default value satisfies T`), as the plan names them. */
@@ -162,7 +173,7 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan, typed
       }
       if (resource.animations !== undefined) {
         const file = godotAnimationLibraryDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, typedData(typed, file, resource.animations, [scene.sourceResPath], { module: 'animation-library', name: 'GodotAnimationLibraryData' }));
+        if (!written.has(file)) written.set(file, typedData(typed, file, { animations: resource.animations.animations }, [scene.sourceResPath], { module: 'animation-library', name: 'GodotAnimationLibraryData' }));
       }
       if (resource.library !== undefined) {
         const file = godotMeshLibraryDataPath(scene.targetPath, resource.key);
@@ -196,6 +207,8 @@ function projectArtifacts(
       structuralDigest({ composition, module: plan.worldModule }),
       sourcePaths,
     ),
+    // The page's Controls, when a scene renders any (`direct-project-ui-syntax.ts`).
+    ...(plan.uiModule === undefined ? [] : [projectDataGeneratedModuleArtifact(plan.uiModule.targetPath, 'ui', structuralDigest({ composition, module: plan.uiModule }), plan.uiModule.sourcePaths)]),
     // The settings the scripts read, which the world loads only when there are any.
     ...(composition.projectSettings.length === 0
       ? []
@@ -237,6 +250,8 @@ function artifactPayloadDigest(artifact: GodotPlannedArtifact): string {
       return structuralDigest(artifact.content.value);
     case 'bytes':
       return sha256(artifact.content.bytes);
+    case 'image':
+      return structuralDigest({ width: artifact.content.width, height: artifact.content.height, channels: artifact.content.channels, pixels: sha256(artifact.content.pixels) });
   }
 }
 
@@ -259,6 +274,14 @@ function validateArtifact(artifact: GodotPlannedArtifact, paths: Set<string>): v
   }
 }
 
+/**
+ * The libraries the generated scene, script and world modules are written with (three.js, React,
+ * R3F, drei, Rapier): declared whatever compat files a game reaches.
+ */
+
+type MutableManifest = { dependencies?: Record<string, string> };
+type MutableLock = { readonly packages?: Record<string, Record<string, unknown>> };
+
 /** Close every output descriptor and every already-final opaque byte before acceptance. */
 export function planDirectGodotArtifacts(
   composition: DirectGodotProjectCompositionPlan,
@@ -268,17 +291,35 @@ export function planDirectGodotArtifacts(
   capabilities: readonly CapabilityCopyArtifact[],
   models: readonly { readonly resPath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[] = [],
   licenses: readonly { readonly relativePath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[] = [],
+  embedded: readonly { readonly resPath: string; readonly image: GodotEmbeddedImage }[] = [],
 ): readonly GodotPlannedArtifact[] {
   const typed: TypedDataModules = new Set();
-  const projectFiles = projectArtifacts(project, composition, typed);
+  const planned = projectArtifacts(project, composition, typed);
   // Only the capability files the game reaches (`capability-reach.ts`).
   const reached = reachedGodotCapabilityCopies(capabilities, godotCapabilityRequirements(composition, code, typed));
+  // Only the packages it reaches: one only unreached capability files import is not declared,
+  // unless the game's own modules are written with it.
+  const used = godotCapabilityPackages(reached);
+  const unused = new Set([...godotCapabilityPackages(capabilities)].filter((name) => !used.has(name) && !GODOT_GENERATED_MODULE_PACKAGES.has(name)));
+  // The template's engine runtime, which neither the game's modules nor compat import (row 6).
+  if (!used.has('@volter/game-runtime') && !GODOT_GENERATED_MODULE_PACKAGES.has('@volter/game-runtime')) unused.add('@volter/game-runtime');
+  const pruned = prunePackageDocuments(project.packageManifest as MutableManifest, project.packageLock as MutableLock, unused);
+  const projectFiles = [
+    ...planned.filter((artifact) => artifact.path !== 'package.json' && artifact.path !== 'package-lock.json'),
+    projectDataJsonArtifact('package.json', pruned.manifest as unknown as DirectJsonValue, project.worldModule.sourcePaths),
+    projectDataJsonArtifact('package-lock.json', pruned.lock as unknown as DirectJsonValue, project.worldModule.sourcePaths),
+  ];
   const artifacts = [
     ...sourceArtifacts(composition, code, scenes),
     ...projectFiles,
     ...reached.map(capabilityCopyArtifact),
     ...models.map((model) => assetCopyArtifact(model.resPath, model.sourceDigest, model.bytes)),
     ...licenses.map((license) => licenseCopyArtifact(license.relativePath, license.sourceDigest, license.bytes)),
+    // An image a document embeds, described by its pixels: emit writes the PNG the page loads
+    // beside its document's copies.
+    ...embedded.map(({ resPath, image }) =>
+      projectDataImageArtifact(`public/godot/${resPath.slice('res://'.length)}`, image.size[0], image.size[1], image.channels, image.pixels, [image.owner]),
+    ),
   ];
   const paths = new Set<string>();
   for (const artifact of artifacts) {

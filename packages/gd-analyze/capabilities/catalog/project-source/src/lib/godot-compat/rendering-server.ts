@@ -7,7 +7,8 @@
  * three's renderer settings, which `viewport.ts` holds. A singleton: no receiver. It never reimplements the server.
  */
 
-import { godot_viewport_directional_shadow_quality } from './viewport';
+import type { GodotSignal } from './signal';
+import { godot_viewport_directional_shadow_quality, godot_viewport_frame_post_draw } from './viewport';
 
 /**
  * The rendering method whose drawing three's renderer matches: Forward+'s. Three lights a scene in
@@ -35,4 +36,29 @@ export function get_current_rendering_method(): string {
  */
 export function directional_soft_shadow_filter_set_quality(quality: number): void {
   godot_viewport_directional_shadow_quality(quality);
+}
+
+/** The singleton as a value (`RenderingServer.frame_post_draw`): its members take no receiver. */
+const SERVER = Object.freeze({});
+
+/**
+ * The singleton, where a script names it as a value.
+ *
+ * @godot RenderingServer.RenderingServer
+ * @source servers/rendering/rendering_server.cpp:3601
+ */
+export function construct(): object {
+  return SERVER;
+}
+
+/**
+ * Emitted once a frame has been drawn (`RenderingServerDefault::_draw`,
+ * `rendering_server_default.cpp:222`), by the viewport as the next frame begins (`viewport.ts`).
+ *
+ * @godot RenderingServer.frame_post_draw
+ * @source servers/rendering/rendering_server.cpp:3601
+ */
+export function frame_post_draw(self: unknown): GodotSignal<[]> {
+  void self;
+  return godot_viewport_frame_post_draw();
 }

@@ -40,8 +40,9 @@ export function directGodotInputMapJson(composition: DirectGodotProjectCompositi
 }
 
 /**
- * The project's settings and InputMap, loaded from its data files when the world module is
- * evaluated: before any script runs, as Godot loads them in `Main::setup` (`main/main.cpp:2102`).
+ * The project's bus layout, settings and InputMap, set and loaded from its data files when the
+ * world module is evaluated: before any script runs, as Godot loads them in `Main::setup`
+ * (`main/main.cpp:2102`).
  */
 function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
   readonly imports: readonly TargetTsStatement[];
@@ -52,8 +53,14 @@ function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
     expression: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: loader }, arguments: [{ kind: 'identifier-expression', name: data }] },
   });
   const settings = composition.projectSettings.length > 0;
+  // The default bus layout, where it is more than Master at its defaults.
+  const [master, ...others] = composition.audioBuses;
+  const buses = others.length > 0 || (master !== undefined && (master.volumeDb !== 0 || master.mute || master.solo || master.bypassFx));
   return {
     imports: [
+      ...(buses
+        ? [{ kind: 'import-statement' as const, module: './lib/godot-compat/audio-stream', namedBindings: [{ imported: 'godot_audio_bus_layout', local: 'godot_audio_bus_layout' }] }]
+        : []),
       ...(settings
         ? [
             { kind: 'import-statement' as const, module: './lib/godot-compat/project-settings', namedBindings: [{ imported: 'godot_project_settings_load_json', local: 'godot_project_settings_load_json' }] },
@@ -70,6 +77,26 @@ function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
       { kind: 'import-statement' as const, module: './project/input-map.json', defaultBinding: 'inputMap', namedBindings: [] },
     ],
     statements: [
+      ...(buses
+        ? [
+            {
+              kind: 'expression-statement' as const,
+              expression: {
+                kind: 'call-expression' as const,
+                callee: { kind: 'identifier-expression' as const, name: 'godot_audio_bus_layout' },
+                arguments: [
+                  {
+                    kind: 'array-expression' as const,
+                    elements: composition.audioBuses.map((bus) => ({
+                      kind: 'object-expression' as const,
+                      properties: Object.entries(bus).map(([key, value]) => ({ key, value: { kind: 'literal-expression' as const, value } })),
+                    })),
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       ...(settings ? [load('godot_project_settings_load_json', 'settings')] : []),
       load('godot_input_map_load_json', 'inputMap'),
     ],
@@ -209,19 +236,65 @@ export function emitDirectGodotWorldSyntax(
   const ticks = composition.physicsWorld.ticksPerSecond;
   const gravity = composition.physicsWorld.gravity;
   const numbers = (values: readonly number[]): TargetTsExpression => ({ kind: 'array-expression', elements: values.map((value) => ({ kind: 'literal-expression', value })) });
-  const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', tag: 'Scene', attributes: [{ kind: 'jsx-string-attribute', name: 'name', value: scene.root.name }], children: [] };
+  // A main scene rooted in a Control is an element of the page: named by its `data-name`, and sent
+  // through the page's tunnel (`<GodotControls ui={ui}>`) with the tree's root as its parent.
+  const domMain = scene.root.instance === undefined && scene.root.idiom?.form.kind === 'dom';
+  const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', tag: 'Scene', attributes: [{ kind: 'jsx-string-attribute', name: domMain ? 'data-name' : 'name', value: scene.root.name }], children: [] };
   const autoloadValue = (references: readonly { readonly name: string }[]): TargetTsExpression => ({
     kind: 'object-expression',
     properties: references.map((reference) => ({ key: reference.name, value: id(`$autoloadInstance_${directGodotAutoloadIndex(composition, reference as never)}`) })),
   });
-  const composedMainScene: TargetTsJsxChild =
+  const providedMainScene: TargetTsJsxChild =
     mainAutoloadReferences.length === 0
       ? mainScene
       : { kind: 'jsx-element-child', tag: directGodotSceneAutoloadContextName(scene.exportName), attributes: [{ kind: 'jsx-expression-attribute', name: 'value', value: autoloadValue(mainAutoloadReferences) }], children: [mainScene] };
+  // As a scene sends its Controls (`idiomatic-scene-syntax.ts`): the tunnel, this place's contexts
+  // bridged, and a host standing for the tree's root, R3F's scene.
+  const composedMainScene: TargetTsJsxChild = domMain
+    ? {
+        kind: 'jsx-element-child',
+        tag: 'ui.In',
+        attributes: [],
+        children: [
+          {
+            kind: 'jsx-element-child',
+            tag: 'Bridge',
+            attributes: [],
+            children: [
+              {
+                kind: 'jsx-element-child',
+                tag: 'div',
+                attributes: [
+                  {
+                    kind: 'jsx-expression-attribute',
+                    name: 'ref',
+                    value: { kind: 'arrow-expression', parameters: [{ name: 'host' }], body: call('godot_element_dom_host', [id('root'), id('host')]) },
+                  },
+                  {
+                    kind: 'jsx-expression-attribute',
+                    name: 'style',
+                    value: { kind: 'object-expression', properties: [{ key: 'position', value: { kind: 'literal-expression', value: 'absolute' } }, { key: 'inset', value: { kind: 'literal-expression', value: 0 } }, { key: 'pointerEvents', value: { kind: 'literal-expression', value: 'none' } }] },
+                  },
+                ],
+                children: [providedMainScene],
+              },
+            ],
+          },
+        ],
+      }
+    : providedMainScene;
+  // The scene autoloads, each its scene's component named as the autoload, before the main scene.
+  const sceneAutoloads = composition.sceneAutoloads.map((autoload) => ({ autoload, planned: autoload }));
   const game: TargetTsJsxElementShape = {
     tag: 'Game',
     attributes: [],
     children: [
+      ...sceneAutoloads.map(({ autoload, planned }): TargetTsJsxChild => ({
+        kind: 'jsx-element-child',
+        tag: planned.exportName,
+        attributes: [{ kind: 'jsx-string-attribute', name: 'name', value: autoload.name }],
+        children: [],
+      })),
       ...composition.scriptAutoloads.map((_autoload, index): TargetTsJsxChild => ({
         kind: 'jsx-element-child',
         tag: `$Autoload_${index}`,
@@ -253,9 +326,29 @@ export function emitDirectGodotWorldSyntax(
           { kind: 'jsx-expression-attribute', name: 'gravity', value: numbers(gravity) },
           { kind: 'jsx-expression-attribute', name: 'allowedLinearError', value: { kind: 'literal-expression', value: composition.physicsWorld.allowedLinearError } },
           { kind: 'jsx-expression-attribute', name: 'colliders', value: { kind: 'literal-expression', value: false } },
+          // The physics stops while the tree is paused (`useGodotPaused`).
+          ...(composition.sceneChanges.pause ? [{ kind: 'jsx-expression-attribute' as const, name: 'paused', value: id('paused') }] : []),
         ],
         children: [{ kind: 'jsx-element-child', ...provided }],
       },
+    ],
+  };
+  // The scene the game shows: the main one (the world's children), or the one a change mounted.
+  const shown: TargetTsExpression = composition.sceneChanges.change
+    ? {
+        kind: 'conditional-expression',
+        condition: { kind: 'binary-expression', operator: '===', left: id('Changed'), right: { kind: 'undefined-expression' } },
+        whenTrue: { kind: 'property-expression', object: id('props'), property: 'children' },
+        whenFalse: { kind: 'jsx-element-expression', tag: 'Changed', attributes: [], children: [] },
+      }
+    : { kind: 'property-expression', object: id('props'), property: 'children' };
+  // `reload_current_scene` mounts the main scene anew (`useGodotSceneReload`): keyed by its generation.
+  const gameScene: TargetTsExpression = {
+    kind: 'jsx-fragment-expression',
+    children: [
+      composition.sceneChanges.reload
+        ? { kind: 'jsx-element-child', tag: 'Fragment', attributes: [{ kind: 'jsx-expression-attribute', name: 'key', value: id('generation') }], children: [{ kind: 'jsx-expression-child', value: shown }] }
+        : { kind: 'jsx-expression-child', value: shown },
     ],
   };
   // Inside `<Physics>`: the world's wiring and the root Window, which delivers the
@@ -267,38 +360,28 @@ export function emitDirectGodotWorldSyntax(
     body: [
       statement(call('useGodotResources')),
       statement(call('useGodotWorld')),
-      { kind: 'variable-statement', declaration: 'const', name: 'generation', initializer: call('useGodotSceneReload') },
+      ...(composition.sceneChanges.reload ? [{ kind: 'variable-statement' as const, declaration: 'const' as const, name: 'generation', initializer: call('useGodotSceneReload') }] : []),
+      // `change_scene_to_packed` mounts the scene it names in place of the main one (`useGodotSceneChange`).
+      ...(composition.sceneChanges.change ? [{ kind: 'variable-statement' as const, declaration: 'const' as const, name: 'Changed', initializer: call('useGodotSceneChange') }] : []),
       statement(call('useGodotRootWindow')),
-      {
-        kind: 'return-statement',
-        expression: {
-          kind: 'jsx-fragment-expression',
-          children: [
-            // `reload_current_scene` mounts the main scene anew (`useGodotSceneReload`).
-            {
-              kind: 'jsx-element-child',
-              tag: 'Fragment',
-              attributes: [{ kind: 'jsx-expression-attribute', name: 'key', value: id('generation') }],
-              children: [{ kind: 'jsx-expression-child', value: { kind: 'property-expression', object: id('props'), property: 'children' } }],
-            },
-          ],
-        },
-      },
+      { kind: 'return-statement', expression: gameScene },
     ],
   };
   const imports: TargetTsStatement[] = [
-    named('react', ['Fragment', 'Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
+    named('react', [...(composition.sceneChanges.reload ? ['Fragment'] : []), 'Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
     named('react', ['PropsWithChildren', ...(hasAutoloads ? ['RefObject'] : [])], true),
-    ...(hooks.fiber.size === 0 ? [] : [named('@react-three/fiber', [...hooks.fiber])]),
+    ...(hooks.fiber.size === 0 && !domMain ? [] : [named('@react-three/fiber', [...hooks.fiber, ...(domMain ? ['useThree'] : [])])]),
     named('@react-three/rapier', ['Physics', ...hooks.rapier]),
     ...(hasAutoloads ? [named('three', ['Group'], true)] : []),
     { kind: 'import-statement', module: moduleSpecifier(scene.targetPath), namedBindings: [{ imported: scene.exportName, local: scene.exportName }, ...(mainAutoloadReferences.length === 0 ? [] : [{ imported: directGodotSceneAutoloadContextName(scene.exportName), local: directGodotSceneAutoloadContextName(scene.exportName) }])] },
+    ...(domMain ? [named('./lib/godot-compat/react-lifecycle', ['godot_element_dom_host']), named('./ui', ['ui']), named('its-fine', ['useContextBridge'])] : []),
+    ...sceneAutoloads.map(({ planned }): TargetTsStatement => ({ kind: 'import-statement', module: moduleSpecifier(planned.targetPath), namedBindings: [{ imported: planned.exportName, local: planned.exportName }] })),
     ...otherScenes.map(({ candidate }): TargetTsStatement => ({
       kind: 'import-statement',
       module: moduleSpecifier(candidate.targetPath),
       namedBindings: [{ imported: directGodotSceneAutoloadContextName(candidate.exportName), local: directGodotSceneAutoloadContextName(candidate.exportName) }],
     })),
-    named('./lib/godot-compat/main', ['useGodotResources', 'useGodotSceneReload', 'useGodotWorld']),
+    named('./lib/godot-compat/main', ['useGodotResources', ...(composition.sceneChanges.pause ? ['useGodotPaused'] : []), ...(composition.sceneChanges.change ? ['useGodotSceneChange'] : []), ...(composition.sceneChanges.reload ? ['useGodotSceneReload'] : []), 'useGodotWorld']),
     named('./lib/godot-compat/advance', ['useGodotRootWindow']),
     ...(hasAutoloads ? [named('./lib/godot-compat/react-lifecycle', ['useGodotScene', 'useGodotScript'])] : []),
     ...[...new Set(hooks.compat.values())].map((module) =>
@@ -333,12 +416,25 @@ export function emitDirectGodotWorldSyntax(
         parameters: [],
         body: [
           { kind: 'variable-statement', declaration: 'const', name: 'Scene', initializer: { kind: 'element-expression', object: id('scenes'), index: id('activeScene') } },
+          ...(composition.sceneChanges.pause ? [{ kind: 'variable-statement' as const, declaration: 'const' as const, name: 'paused', initializer: call('useGodotPaused') }] : []),
           ...composition.scriptAutoloads.map((_autoload, index): TargetTsStatement => ({
             kind: 'variable-statement',
             declaration: 'const',
             name: `$autoloadInstance_${index}`,
             initializer: { kind: 'call-expression', callee: id('useRef'), typeArguments: [nullable(referenceType(`$AutoloadScript_${index}`))], arguments: [{ kind: 'literal-expression', value: null }] },
           })),
+          // A main scene of Controls: the contexts its host carries to the page, and the tree's root it stands for.
+      ...(domMain
+        ? [
+            { kind: 'variable-statement' as const, declaration: 'const' as const, name: 'Bridge', initializer: call('useContextBridge') },
+            {
+              kind: 'variable-statement' as const,
+              declaration: 'const' as const,
+              name: 'root',
+              initializer: call('useThree', [{ kind: 'arrow-expression', parameters: [{ name: 'state' }], body: { kind: 'property-expression', object: id('state'), property: 'scene' } }]),
+            },
+          ]
+        : []),
           { kind: 'return-statement', expression: world },
         ],
         modifiers: ['export', 'default'],

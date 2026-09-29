@@ -11,11 +11,11 @@
  * The target is read and written through the accessors the translation resolved for the property
  * (the class's getter and setter bindings), which `Object::get_indexed`/`set_indexed` reach in
  * Godot. A target that has been freed finishes the tweener (`ObjectDB::get_instance` is null).
- * `set_custom_interpolator` is not transcribed (no binding).
+ * A custom interpolator maps the eased weight to the one the value is blended by.
  */
 
 import { godot_node_is_freed } from './node';
-import { godot_tween_add_variant, godot_tween_interpolate_variant, godot_tween_subtract_variant, type GodotTweenProperty } from './tween';
+import { godot_tween_add_variant, godot_tween_interpolate_variant, godot_tween_lerp_variant, godot_tween_subtract_variant, type GodotTweenProperty } from './tween';
 import { godot_tweener_elapsed, godot_tweener_finish, godot_tweener_init, godot_tweener_is_finished, godot_tweener_set_elapsed } from './tweener';
 
 /** An opaque PropertyTweener (`Ref<PropertyTweener>`). */
@@ -41,6 +41,7 @@ interface PropertyTweenerState {
   do_continue: boolean;
   do_continue_delayed: boolean;
   relative: boolean;
+  custom_method: ((weight: number) => unknown) | null;
 }
 
 const PROPERTY_TWEENER = new WeakMap<PropertyTweener, PropertyTweenerState>();
@@ -84,6 +85,7 @@ export function godot_property_tweener_create(target: object, access: GodotTween
     do_continue: true,
     do_continue_delayed: false,
     relative: false,
+    custom_method: null,
   };
   PROPERTY_TWEENER.set(tweener, state);
   godot_tweener_init(tweener, { start: () => start(state), step: (r_delta) => step(tweener, state, r_delta) });
@@ -131,6 +133,22 @@ function step(tweener: PropertyTweener, state: PropertyTweenerState, r_delta: nu
     state.do_continue_delayed = false;
   }
   const time = Math.min(elapsed_time - state.delay, state.duration);
+  const custom = state.custom_method;
+  if (custom !== null) {
+    // `_get_custom_interpolated_value` (`tween.cpp:559`): the method's float, or the step fails.
+    const weigh = (weight: number): number | undefined => {
+      const result = custom(weight);
+      return typeof result === 'number' ? result : undefined;
+    };
+    const eased = time < state.duration ? (godot_tween_interpolate_variant(0.0, 1.0, time, state.duration, state.trans_type, state.ease_type) as number) : 1.0;
+    const weight = weigh(eased);
+    if (weight === undefined) return [false, r_delta];
+    state.access.set(target as never, godot_tween_lerp_variant(state.initial_val, state.final_val, weight) as never);
+    if (time < state.duration) return [true, 0];
+    const rest = elapsed_time - state.delay - state.duration;
+    godot_tweener_finish(tweener);
+    return [false, rest];
+  }
   if (time < state.duration) {
     state.access.set(
       target as never,
@@ -195,6 +213,18 @@ export function set_trans(self: PropertyTweener, trans: number): PropertyTweener
  */
 export function set_ease(self: PropertyTweener, ease: number): PropertyTweener {
   stateOf(self).ease_type = ease;
+  return self;
+}
+
+/**
+ * A method mapping the eased weight (0 to 1) to the weight the value is blended by from its start
+ * to its final value; it must return a float.
+ *
+ * @godot PropertyTweener.set_custom_interpolator
+ * @source scene/animation/tween.cpp:607
+ */
+export function set_custom_interpolator(self: PropertyTweener, interpolator_method: (weight: number) => unknown): PropertyTweener {
+  stateOf(self).custom_method = interpolator_method;
   return self;
 }
 

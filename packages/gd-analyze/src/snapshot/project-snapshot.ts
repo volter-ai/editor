@@ -70,11 +70,17 @@ const SOURCE_ENGINE_RESOURCE_EXTENSIONS = new Set([
   '.scn',
   '.tres',
   '.tscn',
+  // A Theme the editor saved as a (here compressed, RSCC) binary resource: the binary loader
+  // recognizes every saved type's extension, so `load("….theme")` reads it as a `.res` would.
+  '.theme',
 ]);
 const IMPORT_METADATA_EXTENSIONS = new Set(['.import', '.uid']);
 const OPAQUE_ASSET_EXTENSIONS = new Set([
   '.aac',
   '.avi',
+  // A glTF's external buffer (`scene.bin` beside `scene.gltf`): the glTF importer reads it through
+  // the model's `buffers[].uri`, as it reads the model's textures.
+  '.bin',
   '.bmp',
   '.csv',
   '.dae',
@@ -130,15 +136,38 @@ const NON_INPUT_BASENAMES = new Set([
   '.git',
   '.DS_Store',
   '.editorconfig',
+  '.gitattribute',
   '.gitattributes',
   '.gitignore',
+  '.gitmodules',
   '.gdignore',
   'LICENSE',
   'LICENSE.md',
   'README',
   'README.md',
 ]);
-const NON_INPUT_EXTENSIONS = new Set(['.lock', '.sfk', '.tmp']);
+// Art tools' source files and editors' backups beside the project's assets (a Krita painting, a
+// GIMP or Photoshop document, an Aseprite file, a colour palette, a Blender scene the project
+// exports from): the engine never loads them, as it never loads a `.sfk` peak cache.
+const NON_INPUT_EXTENSIONS = new Set([
+  '.lock',
+  '.sfk',
+  '.tmp',
+  '.kra',
+  '.psd',
+  '.xcf',
+  '.ase',
+  '.aseprite',
+  '.gpl',
+  '.blend',
+  '.blend1',
+  '.bak',
+  // The editor's dependency-rename leftover (`scene.res.depren`), written while it rewrites a
+  // resource's dependency paths and never loaded: the engine loads the file without the suffix.
+  '.depren',
+  '.orig',
+  '.swp',
+]);
 
 export class GodotProjectSnapshotError extends Error {
   constructor(message: string) {
@@ -173,7 +202,8 @@ function classifyFile(relativePath: string): { kind: GodotProjectInputKind; reas
   if (OPAQUE_ASSET_EXTENSIONS.has(extension)) {
     return { kind: 'opaque-asset', reason: `opaque project asset ${extension}` };
   }
-  if (NON_INPUT_BASENAMES.has(basename) || NON_INPUT_EXTENSIONS.has(extension)) {
+  // An editor's backup copy (`material.tres~`): the engine loads the file without the tilde.
+  if (NON_INPUT_BASENAMES.has(basename) || NON_INPUT_EXTENSIONS.has(extension) || basename.endsWith('~')) {
     return { kind: 'explicit-non-input', reason: 'project-adjacent metadata' };
   }
   throw new GodotProjectSnapshotError(

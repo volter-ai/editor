@@ -14,7 +14,7 @@ function origin(
 /** Plan one importer-owned TypeScript module without constructing or printing target syntax. */
 export function projectDataGeneratedModuleArtifact(
   path: string,
-  module: 'world',
+  module: 'world' | 'ui',
   inputDigest: string,
   sourcePaths: readonly string[],
 ): GodotPlannedProjectDataArtifact {
@@ -30,6 +30,26 @@ export function projectDataGeneratedModuleArtifact(
       structuralDigest({ module, inputDigest }),
       artifactOrigin,
     ),
+  };
+}
+
+/** Plan an image by its pixels, which emit writes as a PNG. */
+export function projectDataImageArtifact(
+  path: string,
+  width: number,
+  height: number,
+  channels: number,
+  pixels: Uint8Array,
+  sourcePaths: readonly string[],
+): GodotPlannedProjectDataArtifact {
+  const artifactOrigin = origin(sourcePaths);
+  const payload = structuralDigest({ width, height, channels, pixels: createHash('sha256').update(pixels).digest('hex') });
+  return {
+    kind: 'project-data',
+    path,
+    content: { kind: 'image', width, height, channels, pixels },
+    origin: artifactOrigin,
+    planIdentity: plannedArtifactIdentity('project-data', path, payload, artifactOrigin),
   };
 }
 

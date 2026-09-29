@@ -16,10 +16,11 @@
 import { type Collider, type KinematicCharacterController, QueryFilterFlags } from '@dimforge/rapier3d-compat';
 import type { Object3D } from 'three';
 import { godot_collision_object_body, godot_collision_object_layers, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
-import { godot_node_entity } from './node';
-import { godot_physics_body_3d_collides } from './physics-body-3d';
+import { godot_node_entity, godot_node_object } from './node';
+import { godot_physics_body_3d_collides, godot_physics_body_3d_locked_axes } from './physics-body-3d';
 import { get_global_transform, set_global_position } from './node-3d';
 import { construct as vector3, dot, length, normalized, op_add, op_divide, op_equal, op_multiply, op_subtract, type Vector3 } from './vector3';
+import { godot_kinematic_collision_3d_new, type KinematicCollision3D } from './kinematic-collision-3d';
 
 const f32 = Math.fround;
 const ZERO = vector3();
@@ -56,6 +57,8 @@ interface BodyState {
   previous_position: Vector3;
   real_velocity: Vector3;
   slide_collisions: number;
+  /** The last motion's collisions, one record each (`get_slide_collision`). */
+  collisions: KinematicCollision3D[];
   controller: KinematicCharacterController | undefined;
 }
 
@@ -87,6 +90,7 @@ function stateOf(object: object, _member: string): BodyState {
       previous_position: ZERO,
       real_velocity: ZERO,
       slide_collisions: 0,
+      collisions: [],
       controller: undefined,
     };
     BODY.set(entity, state);
@@ -135,6 +139,9 @@ export function move_and_slide(owner: object): boolean {
   const collider = body !== undefined && body.numColliders() > 0 ? body.collider(0) : undefined;
   if (body === undefined || world === undefined || controller === undefined || collider === undefined) return false;
   const delta = world.timestep;
+  // A locked linear axis moves at no speed (`character_body_3d.cpp:47`).
+  const axes = godot_physics_body_3d_locked_axes(self);
+  if ((axes & 7) !== 0) state.velocity = vector3((axes & 1) !== 0 ? 0 : state.velocity.x, (axes & 2) !== 0 ? 0 : state.velocity.y, (axes & 4) !== 0 ? 0 : state.velocity.z);
   const from = body.translation();
   state.previous_position = vector3(from.x, from.y, from.z);
   const own = godot_collision_object_layers(self);
@@ -169,10 +176,19 @@ export function move_and_slide(owner: object): boolean {
   let wallNormal = ZERO;
   const count = controller.numComputedCollisions();
   const limit = Math.cos(state.floor_max_angle + 0.01);
+  const collisions: KinematicCollision3D[] = [];
   for (let index = 0; index < count; index += 1) {
     const hit = controller.computedCollision(index);
     const n = hit === null ? undefined : normalized(vector3(hit.normal2.x, hit.normal2.y, hit.normal2.z));
     if (n === undefined || op_equal(n, ZERO)) continue;
+    const other = hit?.collider === null || hit?.collider === undefined ? undefined : godot_collision_object_of_collider(hit.collider);
+    collisions.push(
+      godot_kinematic_collision_3d_new({
+        hits: [{ collider: other === undefined ? null : godot_node_object(other), normal: n, position: vector3(hit?.witness1.x ?? 0, hit?.witness1.y ?? 0, hit?.witness1.z ?? 0) }],
+        travel: vector3(moved.x, moved.y, moved.z),
+        remainder: vector3(),
+      }),
+    );
     const up = dot(n, state.up_direction);
     if (state.motion_mode === MOTION_MODE_GROUNDED && up >= limit && !rising) {
       flags.floor = true;
@@ -192,6 +208,7 @@ export function move_and_slide(owner: object): boolean {
   state.floor_normal = floorNormal;
   state.wall_normal = wallNormal;
   state.slide_collisions = count;
+  state.collisions = collisions;
   state.last_motion = vector3(moved.x, moved.y, moved.z);
   state.real_velocity = delta > 0 ? op_divide(state.last_motion, delta) : ZERO;
   return count > 0;
@@ -548,3 +565,19 @@ const CHARACTER_SEEDS: Readonly<Record<string, (entity: object, value: unknown) 
   wall_min_slide_angle: (entity, value) => set_wall_min_slide_angle(entity, Number(value)),
   up_direction: (entity, value) => set_up_direction(entity, vector3(...(value as [number, number, number]))),
 };
+
+/**
+ * @godot CharacterBody3D.get_slide_collision
+ * @source scene/3d/physics/character_body_3d.cpp:738
+ */
+export function get_slide_collision(self: object, slide_idx: number): KinematicCollision3D | null {
+  return stateOf(self, 'get_slide_collision').collisions[slide_idx] ?? null;
+}
+
+/**
+ * @godot CharacterBody3D.get_last_slide_collision
+ * @source scene/3d/physics/character_body_3d.cpp:749
+ */
+export function get_last_slide_collision(self: object): KinematicCollision3D | null {
+  return stateOf(self, 'get_last_slide_collision').collisions.at(-1) ?? null;
+}

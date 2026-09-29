@@ -128,7 +128,7 @@ export function godot_area_3d_adopt(entity: object): void {
   const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
   AREA.set(entity, {
     monitoring: data['monitoring'] === undefined ? true : Boolean(data['monitoring']),
-    monitorable: true,
+    monitorable: data['monitorable'] === undefined ? true : Boolean(data['monitorable']),
     bodies: new Map(),
     locked: false,
     ...signalsOf(entity),
@@ -189,6 +189,24 @@ export function set_monitoring(self: object, enable: boolean): void {
 }
 
 /**
+ * Whether other areas see this one (`Area3D::set_monitorable`); stored with the area's state.
+ *
+ * @godot Area3D.set_monitorable
+ * @source scene/3d/physics/area_3d.cpp:530
+ */
+export function set_monitorable(self: object, enable: boolean): void {
+  stateOf(self, 'set_monitorable').monitorable = enable;
+}
+
+/**
+ * @godot Area3D.is_monitorable
+ * @source scene/3d/physics/area_3d.cpp:544
+ */
+export function is_monitorable(self: object): boolean {
+  return stateOf(self, 'is_monitorable').monitorable;
+}
+
+/**
  * @godot Area3D.is_monitoring
  * @source scene/3d/physics/area_3d.cpp:511
  */
@@ -202,10 +220,11 @@ export function is_monitoring(self: object): boolean {
  * @godot Area3D.get_overlapping_bodies
  * @source scene/3d/physics/area_3d.cpp:515
  */
-export function get_overlapping_bodies(self: object): object[] {
+export function get_overlapping_bodies(self: object): Object3D[] {
   const state = stateOf(self, 'get_overlapping_bodies');
   if (!state.monitoring) return [];
-  return [...state.bodies.keys()].map((body) => godot_node_object(body));
+  // Each the body's Godot object (its script's instance, where it has one), as a Node3D array holds it.
+  return [...state.bodies.keys()].map((body) => godot_node_object(body) as Object3D);
 }
 
 /**

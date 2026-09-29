@@ -1,4 +1,10 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
+import { loopsAssigningVariable, statedRefinements } from './lowering-facts';
+import type { GodotEmbeddedImage } from '../read/embedded-images';
+import { namedInputActions } from './input-actions';
+import { type BoundGodotTreeRequests, treeRequests } from './tree-requests';
+import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
+import type { GltfPhysicsShape } from '../read/gltf-document';
 import { type BoundGodotSignalIntrospection, signalIntrospection } from './signal-introspection';
 import { provenCasts } from './proven-casts';
 import { type BoundGodotSelfNodePath, selfNodePaths } from './self-node-paths';
@@ -7,7 +13,7 @@ import { type BoundGodotTypedValue, typeProjectSettingValues } from './project-s
 import type { ImportedClip } from '../read/gltf-animation-import';
 import { connectedCallables } from './connected-callables';
 import { containerProjectIndex } from './container-types';
-import { type BoundGodotResourceLoad, type ImportedSoundKind, resourceLoads } from './resource-loads';
+import { type BoundGodotResourceLoad, type ImportedResourceKind, resourceLoads } from './resource-loads';
 import { type BoundGodotNullableVariable, nullableVariables } from './nullable-variables';
 import { memberKey, typeMembers } from './member-types';
 import { numericNodeTypes, numericVariants, operatorResultTable, type ScriptNumericVariants, type VariantUtilityShape, variantUtilityCalls } from './numeric-variants';
@@ -94,6 +100,10 @@ export interface BoundGodotSourceScript {
   readonly refinedProgram: GodotBoundScript;
   /** Calls to the Variant utilities whose result depends on the function (`VariantUtilityShape`). */
   readonly utilityCalls: readonly { readonly nodeId: number; readonly shape: VariantUtilityShape }[];
+  /** The refined types lowering states in the output (`lowering-facts.ts`). */
+  readonly statedRefinements: readonly number[];
+  /** The `for` loops whose body assigns their own variable (`lowering-facts.ts`). */
+  readonly loopsAssigningVariable: readonly number[];
   /** Variables holding an int or a float, as tagged numbers (`numeric-variant`). */
   readonly numericVariants?: ScriptNumericVariants;
   /** `load(path)` calls whose paths the program fixes (`resource-loads.ts`). */
@@ -106,6 +116,8 @@ export interface BoundGodotSourceScript {
   readonly signalIntrospection: BoundGodotSignalIntrospection;
   /** The script instances the program makes or sets outside a scene (`instances-made.ts`). */
   readonly instancesMade: BoundGodotInstancesMade;
+  /** What the program asks of the SceneTree, and the paths it preloads (`tree-requests.ts`). */
+  readonly treeRequests: BoundGodotTreeRequests;
   /** This script's variable declarations that hold null at some time (`nullable-variables.ts`). */
   readonly nullableDeclarations?: readonly number[];
   /** The variables holding null at some time that this script reads (`nullable-variables.ts`). */
@@ -217,6 +229,12 @@ export interface BoundGodotSceneDocument {
   readonly model?: {
     readonly bytes: Uint8Array;
     readonly nodeIndexByPath: Readonly<Record<string, number>>;
+    /** Each node that carries a mesh resource, by its glTF `meshes[]` index. */
+    readonly meshByPath: Readonly<Record<string, number>>;
+    /** Each CollisionShape3D the importer made from the file's `OMI_physics_shape`, by path: its shape. */
+    readonly collisionShapeByPath?: Readonly<Record<string, GltfPhysicsShape>>;
+    /** Each physics body the importer made from the `.import`'s `generate/physics`, by path: its layer and mask. */
+    readonly collisionLayersByPath?: Readonly<Record<string, readonly [number, number]>>;
     /** Each Skeleton3D's bones in Godot's order: names, glTF joint nodes and imported poses. */
     readonly bonesByPath: Readonly<Record<string, readonly BoundGodotImportedBone[]>>;
     readonly externalImages: readonly GltfExternalImage[];
@@ -333,6 +351,8 @@ const LICENSE_BASENAME = /^(licen[cs]es?|copying|copyright|authors|credits|notic
 
 export interface BoundGodotProjectDocuments {
   readonly scenes: readonly BoundGodotSceneDocument[];
+  /** The images documents embed, as read decoded them (`read/embedded-images.ts`). */
+  readonly embeddedImages: readonly GodotEmbeddedImage[];
   /** The project's license and attribution files, carried into the output verbatim. */
   readonly licenses: readonly BoundGodotLicenseDocument[];
   readonly resources: readonly BoundGodotResourceDocument[];
@@ -342,6 +362,9 @@ export interface BoundGodotProjectDocuments {
   readonly sounds: readonly BoundGodotSoundDocument[];
   /** Sounds the `oggvorbisstr` importer imports, decoded by the browser. */
   readonly oggVorbis: readonly BoundGodotOggVorbisDocument[];
+  /** Meshes the `wavefront_obj` importer imports (`[remap] importer="wavefront_obj"`): the file's text. */
+  /** Each `.obj` the `wavefront_obj` importer imports: its surfaces as the importer makes them (`read/obj-mesh.ts`), or why they are not read. */
+  readonly objMeshes: readonly { readonly resPath: string; readonly sourceDigest: string; readonly surfaces: readonly ObjMeshSurface[] | string }[];
   /** Font files the `font_data_dynamic` importer imports as a `FontFile` holding their bytes. */
   readonly fonts: readonly { readonly resPath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[];
   /** Each `.gdshader` as the pinned Godot's own shader frontend read it (`bound-shader.ts`). */
@@ -375,6 +398,8 @@ export interface BoundGodotOggVorbisDocument {
   readonly bytes: Uint8Array;
   readonly loop: boolean;
   readonly loopOffset: number;
+  /** The stream the importer made: an `.ogg`'s, or an `.mp3`'s (`[remap] importer="mp3"`), which the browser decodes alike. */
+  readonly streamClass: 'AudioStreamOggVorbis' | 'AudioStreamMP3';
 }
 
 /** An image imported as a `CompressedTexture2D` (`[remap] importer="texture"`). */
@@ -383,6 +408,8 @@ export interface BoundGodotTextureDocument {
   readonly sourceDigest: string;
   readonly bytes: Uint8Array;
   readonly importParams: GodotTextureImportParams;
+  /** Its pixel size, as read found it in the image's header (`read/image-size.ts`). */
+  readonly size?: readonly [number, number];
 }
 
 export interface BoundGodotScriptMethod {
@@ -402,6 +429,8 @@ export interface BoundGodotScriptClass {
   readonly methods: readonly BoundGodotScriptMethod[];
   /** The signals the class declares (`signal name(args)`), with their parameter counts. */
   readonly signals: readonly { readonly name: string; readonly parameters: number }[];
+  /** The member variables and constants the class declares, by name. */
+  readonly members: readonly string[];
 }
 
 export type BoundGodotImmediateBase =
@@ -442,6 +471,8 @@ export interface BoundGodotProject {
   readonly documents: BoundGodotProjectDocuments;
   readonly scripts: readonly BoundGodotSourceScript[];
   readonly entrypoints: BoundGodotProjectEntrypoints;
+  /** The input actions the scripts name, or every one (`input-actions.ts`). */
+  readonly inputActionsNamed: readonly string[] | 'all';
 }
 
 type DecodedProjectRelationships = GodotProject;
@@ -678,6 +709,9 @@ function boundDocuments(
                 model: {
                   bytes: snapshot.bytesByResPath(document.resPath),
                   nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
+                  meshByPath: Object.fromEntries(document.gltfOrigin.meshByPath),
+                  ...(document.gltfOrigin.collisionShapeByPath === undefined ? {} : { collisionShapeByPath: Object.fromEntries(document.gltfOrigin.collisionShapeByPath) }),
+                  ...(document.gltfOrigin.collisionLayersByPath === undefined ? {} : { collisionLayersByPath: Object.fromEntries(document.gltfOrigin.collisionLayersByPath) }),
                   bonesByPath: Object.fromEntries(document.gltfOrigin.bonesByPath),
                   externalImages: document.gltfOrigin.externalImages,
                   ...externalMaterialsOf(decoded.imports.find((sidecar) => sidecar.sourceFile === document.resPath)?.externalMaterials),
@@ -724,18 +758,22 @@ function boundDocuments(
         if (sidecar.sourceFile === undefined || sidecar.textureImport === undefined) return [];
         const entry = snapshot.entryByResPath(sidecar.sourceFile);
         if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
+        const bytes = snapshot.bytesByResPath(sidecar.sourceFile);
+        const size = sidecar.imageSize;
         return [
           {
             resPath: sidecar.sourceFile,
             sourceDigest: entry.digest,
-            bytes: snapshot.bytesByResPath(sidecar.sourceFile),
+            bytes,
             importParams: sidecar.textureImport,
+            ...(size === undefined ? {} : { size }),
           },
         ];
       }),
     ),
     shaders,
     engineShaders,
+    embeddedImages: decoded.embeddedImages,
     cubemaps: unique(
       'cubemap',
       decoded.imports.flatMap((sidecar) => {
@@ -759,7 +797,8 @@ function boundDocuments(
     oggVorbis: unique(
       'ogg-vorbis',
       decoded.imports.flatMap((sidecar) => {
-        if (sidecar.importer !== 'oggvorbisstr' || sidecar.resourceType !== 'AudioStreamOggVorbis') return [];
+        const mp3 = sidecar.importer === 'mp3' && sidecar.resourceType === 'AudioStreamMP3';
+        if (!mp3 && (sidecar.importer !== 'oggvorbisstr' || sidecar.resourceType !== 'AudioStreamOggVorbis')) return [];
         if (sidecar.sourceFile === undefined) return [];
         const entry = snapshot.entryByResPath(sidecar.sourceFile);
         if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
@@ -770,8 +809,26 @@ function boundDocuments(
             bytes: snapshot.bytesByResPath(sidecar.sourceFile),
             loop: sidecar.audioLoop ?? false,
             loopOffset: sidecar.audioLoopOffset ?? 0,
+            streamClass: mp3 ? ('AudioStreamMP3' as const) : ('AudioStreamOggVorbis' as const),
           },
         ];
+      }),
+    ),
+    objMeshes: unique(
+      'obj-mesh',
+      decoded.imports.flatMap((sidecar) => {
+        if (sidecar.importer !== 'wavefront_obj' || sidecar.sourceFile === undefined) return [];
+        const entry = snapshot.entryByResPath(sidecar.sourceFile);
+        if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
+        const text = new TextDecoder().decode(snapshot.bytesByResPath(sidecar.sourceFile));
+        let surfaces: readonly ObjMeshSurface[] | string;
+        try {
+          surfaces = readObjMesh(text, sidecar.sourceFile);
+        } catch (error) {
+          if (!(error instanceof ObjMeshError)) throw error;
+          surfaces = error.message;
+        }
+        return [{ resPath: sidecar.sourceFile, sourceDigest: entry.digest, surfaces }];
       }),
     ),
     fonts: unique(
@@ -1075,12 +1132,17 @@ function scriptClass(script: GodotBoundScript): BoundGodotScriptClass {
     const node = script.nodes[nodeId];
     return node?.kind === 'SIGNAL' ? [{ name: identifier(script, node.identifier).name, parameters: node.parameters.length }] : [];
   });
+  const members = root.members.flatMap((nodeId) => {
+    const node = script.nodes[nodeId];
+    return node?.kind === 'VARIABLE' || node?.kind === 'CONSTANT' ? [identifier(script, node.identifier).name] : [];
+  });
   return {
     rootNodeId: root.id,
     fqcn: root.fqcn,
     abstract: root.abstract,
     methods,
     signals,
+    members,
   };
 }
 
@@ -1471,12 +1533,16 @@ export function bindGodotProject(
   const refinedFinal = new Map(
     code.scripts.map((program) => [program.resPath, new Map(refineProgram(program, () => undefined).map((entry) => [entry.nodeId, entry.datatype] as const))] as const),
   );
-  const importedSounds = new Map<string, ImportedSoundKind>(
-    decoded.imports.flatMap((sidecar): [string, ImportedSoundKind][] =>
+  const importedSounds = new Map<string, ImportedResourceKind>(
+    decoded.imports.flatMap((sidecar): [string, ImportedResourceKind][] =>
       sidecar.sourceFile === undefined
         ? []
         : sidecar.importer === 'oggvorbisstr' && sidecar.resourceType === 'AudioStreamOggVorbis'
           ? [[sidecar.sourceFile, 'ogg-vorbis']]
+          : sidecar.importer === 'mp3' && sidecar.resourceType === 'AudioStreamMP3'
+            ? [[sidecar.sourceFile, 'mp3']]
+            : sidecar.importer === 'texture' && sidecar.resourceType === 'CompressedTexture2D'
+              ? [[sidecar.sourceFile, 'texture']]
           : sidecar.importer === 'wav' && sidecar.resourceType === 'AudioStreamWAV'
             ? [[sidecar.sourceFile, 'wav']]
             : [],
@@ -1596,9 +1662,12 @@ export function bindGodotProject(
       ...callReceiverFacts(program, attachments),
       refinedTypes,
       refinedProgram: refined,
+      statedRefinements: statedRefinements(program, refinedTypes),
+      loopsAssigningVariable: loopsAssigningVariable(refined),
       utilityCalls: variantUtilityCalls(refined),
       selfNodePaths: selfNodePaths(refined),
       instancesMade: instancesMade(refined),
+      treeRequests: treeRequests(refined),
       signalIntrospection: signalIntrospection(refined),
       provenCasts: provenCasts(refined, apiDump.parsed),
       ...(scriptNumericVariants === undefined ? {} : { numericVariants: scriptNumericVariants }),
@@ -1644,6 +1713,10 @@ export function bindGodotProject(
     resourceProgram: resources,
     documents,
     scripts,
+    inputActionsNamed: namedInputActions(
+      scripts.map((script) => script.program),
+      documents.scenes.some((scene) => scene.nodes.some((node) => node.class.nativeAncestry.includes('Control'))),
+    ),
     entrypoints: {
       ...(decoded.mainScene === undefined ? {} : { mainScene: decoded.mainScene }),
       autoloads: decoded.autoloads

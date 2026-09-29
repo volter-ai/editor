@@ -15,8 +15,9 @@
  * symbols and operations; the read product cannot carry an alternate script representation.
  */
 
+import type { GodotEmbeddedImage } from './embedded-images';
 import type { ImportedClip } from './gltf-animation-import';
-import type { GltfExternalImage } from './gltf-document';
+import type { GltfExternalImage, GltfPhysicsShape } from './gltf-document';
 import type { GodotValue, ResourceId } from './godot-value';
 import type { ImportSidecar } from './import-sidecar';
 import type { ResolvedSetting } from './known-settings';
@@ -239,6 +240,12 @@ export interface GltfSceneOrigin {
    * per-surface override that object is one primitive mesh inside the node, not the node.
    */
   readonly surfaceCountByPath: ReadonlyMap<string, number>;
+  /** Godot node path → a CollisionShape3D's shape, as the glTF's `OMI_physics_shape` states it. */
+  readonly collisionShapeByPath?: ReadonlyMap<string, GltfPhysicsShape>;
+  /** Godot node path → a physics body's collision layer and mask, where the importer set them. */
+  readonly collisionLayersByPath?: ReadonlyMap<string, readonly [number, number]>;
+  /** Godot node path → the glTF `meshes[]` index of the mesh resource the node carries. */
+  readonly meshByPath: ReadonlyMap<string, number>;
   /** Importer-synthesized Skeleton3D path → ordered bone names. */
   readonly boneNamesByPath: ReadonlyMap<string, readonly string[]>;
   /** The AnimationPlayer's clips as the importer keys them (`read/gltf-animation-import.ts`), or why not. */
@@ -600,6 +607,8 @@ export interface GodotProject {
    * `read/import-sidecar.ts` for the 3.6 run that measured it.
    */
   readonly imports: readonly ImportSidecar[];
+  /** The images the reached documents embed, decoded to PNG (`read/embedded-images.ts`). */
+  readonly embeddedImages: readonly GodotEmbeddedImage[];
   /**
    * Documents nothing the game loads reaches (`read/reachability.ts`): never planned, each with
    * its reason and the reader diagnostics it would otherwise have raised.

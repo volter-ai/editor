@@ -54,12 +54,22 @@ function primitiveArgs(resource: TargetGodotSceneResourcePlan): TargetGodotScene
     }
     case 'sphere':
       return { args: [num('set_radius', 0.5), num('set_radial_segments', 64), num('set_rings', 32) + 1] };
+    case 'box': {
+      const value = set.find((entry) => entry.setter.exportName === 'set_size')?.value;
+      const size = value !== undefined && 'components' in value ? value.components : [1, 1, 1];
+      return { args: [size[0] as number, size[1] as number, size[2] as number, num('set_subdivide_width', 0) + 1, num('set_subdivide_height', 0) + 1, num('set_subdivide_depth', 0) + 1] };
+    }
     case 'cylinder': {
       const cap = set.find((entry) => entry.setter.exportName === 'set_cap_top')?.value;
       return {
         args: [num('set_top_radius', 0.5), num('set_bottom_radius', 0.5), num('set_height', 2), num('set_radial_segments', 64), num('set_rings', 4) + 1],
         ...(cap?.kind === 'bool' && !cap.value ? { open: true as const } : {}),
       };
+    }
+    case 'capsule': {
+      // Godot's height spans the caps; three's length is the straight part between them.
+      const radius = num('set_radius', 0.5);
+      return { args: [radius, Math.max(num('set_height', 2) - radius * 2, 0), num('set_rings', 8), num('set_radial_segments', 64)] };
     }
     default:
       return undefined;
@@ -80,12 +90,20 @@ function cameraLens(node: DirectGodotSceneNodePlan): NonNullable<DirectGodotScen
     far: Number(property('far', 4000)),
     cullMask: numberValue(node.setters, 'set_cull_mask') ?? 0xfffff,
     ...(environment === undefined ? {} : { environment }),
+    // An orthogonal or frustum projection and its size (`camera_3d.h:71`, perspective and 1 by default).
+    ...(numberValue(node.setters, 'set_projection') === undefined ? {} : { projection: numberValue(node.setters, 'set_projection') as number }),
+    ...(numberValue(node.setters, 'set_size') === undefined ? {} : { size: numberValue(node.setters, 'set_size') as number }),
   };
 }
+
+/** The setters a scene may state on a model's AnimationPlayer that plays the glTF's clips (`animation-clips.ts`). */
+const CLIP_PLAYER_SETTERS: ReadonlySet<string> = new Set(['set_default_blend_time', 'set_deterministic']);
 
 /** The scenes with each mesh resource's `surfaceMaterials` and each MeshInstance3D's `surfaces`. */
 export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): SceneWithoutRefs[] {
   return scenes.map((scene) => {
+    // A model's AnimationPlayer plays the glTF's own clips when the scene adds no library or
+    // animation to it (an AnimationTree over it drives the clips, `animation-tree.ts`).
     const resources = scene.resources.map((resource) => {
       const primitive = primitiveArgs(resource);
       return { ...resource, surfaceMaterials: surfaceMaterials(resource), ...(primitive === undefined ? {} : { primitive }) };
@@ -98,15 +116,28 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
       if (node.idiom?.form.kind === 'mesh') {
         const mesh = resourceKey(node.setters, 'set_mesh');
         const own = mesh === undefined ? [] : (byKey.get(mesh)?.surfaceMaterials ?? []);
+        // `material_override` draws every surface, before a surface's own override
+        // (`GeometryInstance3D`, `visual_instance_3d.cpp:218`; `mesh_instance_3d.cpp:423`).
+        const override = resourceKey(node.setters, 'set_material_override');
         surfaces = {
           ...(mesh === undefined ? {} : { mesh }),
-          materials: own.map((material, surface) => resourceKey(node.setters, 'set_surface_override_material', surface) ?? material),
+          materials: own.map((material, surface) => override ?? resourceKey(node.setters, 'set_surface_override_material', surface) ?? material),
           layers: numberValue(node.setters, 'set_layer_mask') ?? 1,
           // Any setting but `SHADOW_CASTING_SETTING_OFF` casts (`geometry-instance-3d.ts`).
           castShadow: (numberValue(node.setters, 'set_cast_shadows_setting') ?? 1) !== 0,
         };
       }
       const lens = node.idiom?.form.kind === 'camera' ? cameraLens(node) : undefined;
+      const model = node.model;
+      const clipPlayers =
+        model === undefined || model.animations === undefined
+          ? []
+          : model.nodes
+              .filter((entry) => entry.animationPlayer === true)
+              .map((entry) => entry.path)
+              // (An override's `animation` is its own tracks' bindings, which the clips do not need; a
+              // library the scene adds is a setter.)
+              .filter((path) => !model.overrides.some((override) => override.at === path && override.setters.some((entry) => !CLIP_PLAYER_SETTERS.has(entry.setter.exportName))));
       // A camera, light or reflection probe draws with its scale removed (`disable_scale`,
       // node_3d.cpp:655): with no children and no script to read it back, its authored scale (the
       // rounding a `.tscn` rotation carries) changes nothing, and its element states none.
@@ -116,6 +147,7 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
         ...(surfaces === undefined ? {} : { surfaces }),
         ...(lens === undefined ? {} : { lens }),
         ...(scaleless ? { scaleless: true as const } : {}),
+        ...(model !== undefined && clipPlayers.length > 0 ? { model: { ...model, clipPlayers } } : {}),
         children,
         ...(placements === undefined ? {} : { placements }),
       };
@@ -136,11 +168,17 @@ const COLLECTED: ReadonlyMap<string, NonNullable<TargetGodotSceneSetterPlan['col
   ['set_meta', 'meta'],
   ['set_shader', 'shader'],
   ['set_shader_parameter', 'shader-parameter'],
+  ['add_theme_font_size_override', 'theme'],
+  ['add_theme_font_override', 'theme'],
+  ['add_theme_color_override', 'theme'],
+  ['add_theme_constant_override', 'theme'],
+  ['add_theme_stylebox_override', 'theme'],
+  ['add_theme_icon_override', 'theme'],
 ]);
 
 /**
  * The setters an element states apart from its own props, by the part they play: a Node3D's
- * `visible` (three's own prop) and a GeometryInstance3D's `transparency` (its `userData`), a
+ * `visible` (three's own prop), a GeometryInstance3D's `transparency` and GI mode (its `userData`), a
  * GeometryInstance3D's visibility range (`GodotVisibilityRange`'s props), a Camera3D's `current`.
  */
 const ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<string, TargetGodotSceneSetterPlan['role']>([
@@ -152,12 +190,27 @@ const ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<s
   ['set_visibility_range_end_margin', { kind: 'visibility-range', prop: 'endMargin' }],
   ['set_visibility_range_fade_mode', { kind: 'visibility-range', prop: 'fadeMode' }],
   ['set_current', { kind: 'current' }],
+  // A GeometryInstance3D's GI mode, which lights nothing on the page (`geometry-instance-3d.ts`).
+  ['set_gi_mode', { kind: 'data', key: 'gi_mode' }],
+  // A light's shadow drawn with back faces, which three's shadow map chooses by material side.
+  ['set_shadow_reverse_cull_face', { kind: 'data', key: 'shadow_reverse_cull_face' }],
+  // A light's distance fade and shadow caster layers, which the page's lights do not draw.
+  ['set_enable_distance_fade', { kind: 'data', key: 'distance_fade_enabled' }],
+  ['set_distance_fade_begin', { kind: 'data', key: 'distance_fade_begin' }],
+  ['set_distance_fade_shadow', { kind: 'data', key: 'distance_fade_shadow' }],
+  ['set_distance_fade_length', { kind: 'data', key: 'distance_fade_length' }],
+  ['set_shadow_caster_mask', { kind: 'data', key: 'shadow_caster_mask' }],
 ]);
 
-const collected = (setters: readonly TargetGodotSceneSetterPlan[]): readonly TargetGodotSceneSetterPlan[] =>
+/** A node's own setters stated apart: its `process_mode`, which the Node protocol reads as it enters the tree (`node.ts`); a Sky's is its own. */
+const NODE_ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<string, TargetGodotSceneSetterPlan['role']>([['set_process_mode', { kind: 'data', key: 'process_mode' }]]);
+
+const NODE_SETTER_ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map([...ROLES, ...NODE_ROLES]);
+
+const collected = (setters: readonly TargetGodotSceneSetterPlan[], roles: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = ROLES): readonly TargetGodotSceneSetterPlan[] =>
   setters.map((entry) => {
     const collect = COLLECTED.get(entry.setter.exportName);
-    const role = ROLES.get(entry.setter.exportName);
+    const role = roles.get(entry.setter.exportName);
     return collect === undefined && role === undefined ? entry : { ...entry, ...(collect === undefined ? {} : { collect }), ...(role === undefined ? {} : { role }) };
   });
 
@@ -182,7 +235,7 @@ export function planGodotSceneCollectedSetters(scenes: readonly SceneWithoutRefs
   return scenes.map((scene) => {
     const stamp = (node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan => ({
       ...node,
-      setters: collected(node.setters),
+      setters: collected(node.setters, NODE_SETTER_ROLES),
       // An imported model's own nodes' overrides (an AnimationPlayer of the model's libraries).
       ...(node.model === undefined ? {} : { model: { ...node.model, overrides: node.model.overrides.map((override) => ({ ...override, setters: collected(override.setters) })) } }),
       children: node.children.map(stamp),

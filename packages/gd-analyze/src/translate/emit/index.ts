@@ -1,3 +1,5 @@
+import { GODOT_GENERATED_MODULE_PACKAGES, godotImportPackage } from '../data/generated-packages';
+import { encode as encodePng } from 'fast-png';
 import { createHash } from 'node:crypto';
 import * as path from 'node:path';
 import { structuralDigest } from '../artifacts/identity';
@@ -11,7 +13,9 @@ import type {
 import type { TargetTsSourceFile } from '../code/target-ts-syntax';
 import type { GodotAcceptedTranslation, GodotTranslationPlan } from '../translation-plan';
 import { emitDirectGodotWorldSyntax } from './direct-project-world-syntax';
+import { emitDirectGodotUiSyntax } from './direct-project-ui-syntax';
 import { emitDirectGodotSceneSyntax } from './direct-scene-syntax';
+import { resourceModuleSourceFile } from './resource-module-syntax';
 import { emitTargetTsSourceFile } from './target-ts-printer';
 
 export type GodotOutputArtifact = GodotEmittedArtifact;
@@ -45,11 +49,19 @@ function emitted(
 /**
  * A generated module's imports of capability files name only files the plan carries: the plan
  * decided which capability files the game reaches (`artifacts/capability-reach.ts`), and emit
- * prints no import of one it left out.
+ * prints no import of one it left out. Its packages are the generated modules' own, which the plan
+ * keeps declared (`generated-packages.ts`).
  */
 function assertPlannedCapabilityImports(file: string, syntax: TargetTsSourceFile, capabilityFiles: ReadonlySet<string>): void {
   for (const statement of syntax.statements) {
-    if (statement.kind !== 'import-statement' || !statement.module.startsWith('.')) continue;
+    if (statement.kind !== 'import-statement') continue;
+    // A package the game's own modules import is one the plan keeps declared (`generated-packages.ts`).
+    if (!statement.module.startsWith('.')) {
+      if (!GODOT_GENERATED_MODULE_PACKAGES.has(godotImportPackage(statement.module))) {
+        throw new Error(`${file}: imports ${statement.module}, a package generated modules do not declare`);
+      }
+      continue;
+    }
     const target = path.posix.normalize(path.posix.join(path.posix.dirname(file), statement.module));
     if (!target.startsWith('src/lib/')) continue;
     const candidates = [target, `${target}.ts`, `${target}.tsx`, `${target}/index.ts`, `${target}/index.tsx`];
@@ -76,7 +88,8 @@ interface EmissionContext {
   readonly codeSyntax: Map<string, TargetTsSourceFile>;
   readonly sceneSyntax: Map<string, ReturnType<typeof emitDirectGodotSceneSyntax>[number]>;
   readonly sceneInputs: Map<string, GodotTranslationPlan['composition']['scenes'][number]>;
-  readonly projectModules: Map<'world', string>;
+  readonly resourceInputs: Map<string, GodotTranslationPlan['composition']['resourceModules'][number]>;
+  readonly projectModules: Map<'world' | 'ui', string>;
   /** The capability files the plan carries. */
   readonly capabilityFiles: ReadonlySet<string>;
 }
@@ -113,6 +126,14 @@ function sourceSyntax(
       context.sceneInputs.delete(artifact.emission.sceneResPath);
       return module.syntax;
     }
+    case 'resource-module': {
+      const module = context.resourceInputs.get(artifact.emission.resourceResPath);
+      if (module === undefined || module.targetPath !== artifact.path || structuralDigest(module) !== artifact.emission.inputDigest) {
+        throw new Error(`${artifact.path}: accepted resource module changed before emission`);
+      }
+      context.resourceInputs.delete(artifact.emission.resourceResPath);
+      return resourceModuleSourceFile(module);
+    }
   }
 }
 
@@ -137,6 +158,13 @@ function projectSyntax(
       });
       syntax = emitDirectGodotWorldSyntax(context.plan.composition);
       break;
+    case 'ui': {
+      const planned = context.plan.projectData.uiModule;
+      if (planned === undefined) throw new Error(`${artifact.path}: the page's Controls are absent from the accepted plan`);
+      actualInputDigest = structuralDigest({ composition: context.plan.composition, module: planned });
+      syntax = emitDirectGodotUiSyntax();
+      break;
+    }
   }
   if (actualInputDigest !== artifact.content.inputDigest) {
     throw new Error(`${artifact.path}: accepted ${module} input changed before emission`);
@@ -196,6 +224,17 @@ function emitArtifact(
           }
           return [result];
         }
+        case 'image':
+          // The PNG of the pixels the plan described.
+          return [
+            emitted(
+              artifact.kind,
+              artifact.path,
+              encodePng({ width: artifact.content.width, height: artifact.content.height, data: artifact.content.pixels, channels: artifact.content.channels, depth: 8 }),
+              artifact.origin,
+              artifact.planIdentity,
+            ),
+          ];
       }
       throw new Error(`${artifact.path}: unhandled project-data content`);
     case 'asset-copy':
@@ -239,7 +278,9 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
   if (sceneInputs.size !== accepted.plan.composition.scenes.length) {
     throw new Error('accepted composition repeats a scene source path');
   }
-  const projectModuleRows = [['world', accepted.plan.projectData.worldModule.targetPath]] as const;
+  const resourceInputs = new Map(accepted.plan.composition.resourceModules.map((module) => [module.sourceResPath, module] as const));
+  const uiModule = accepted.plan.projectData.uiModule;
+  const projectModuleRows: readonly (readonly ['world' | 'ui', string])[] = [['world', accepted.plan.projectData.worldModule.targetPath], ...(uiModule === undefined ? [] : [['ui', uiModule.targetPath] as const])];
   const projectModules = new Map(projectModuleRows);
   if (projectModules.size !== projectModuleRows.length) {
     throw new Error('accepted project data repeats a generated module');
@@ -249,6 +290,7 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
     codeSyntax,
     sceneSyntax,
     sceneInputs,
+    resourceInputs,
     projectModules,
     capabilityFiles: new Set(accepted.plan.artifacts.flatMap((artifact) => (artifact.kind === 'capability-copy' ? [artifact.path] : []))),
   };
@@ -257,6 +299,7 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
     codeSyntax.size > 0 ||
     sceneSyntax.size > 0 ||
     sceneInputs.size > 0 ||
+    resourceInputs.size > 0 ||
     projectModules.size > 0
   ) {
     throw new Error('accepted generated modules are absent from the artifact plan');

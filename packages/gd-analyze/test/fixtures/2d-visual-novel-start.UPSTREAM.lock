@@ -1,0 +1,58 @@
+{
+  "id": "2d-visual-novel-start",
+  "upstreams": [
+    {
+      "repo": "https://github.com/gdquest-demos/godot-4-2d-visual-novel",
+      "commit": "94dafe946c81d583ccf2a6fd80eccdfdc11f89e5",
+      "branch": "main",
+      "upstream_path": "start-project",
+      "license": "MIT AND CC-BY-NC-SA-4.0",
+      "license_file": "LICENSE",
+      "retrieved": "2026-09-28",
+      "vendored_into": ".",
+      "vendored_paths": [
+        "start-project",
+        "LICENSE",
+        "README.md"
+      ],
+      "note": "2D Visual Novel (start project) (start-project/ in godot-4-2d-visual-novel), a Godot 4 analysis fixture. WHY THIS PIN: `main` head of gdquest-demos/godot-4-2d-visual-novel at retrieval (94dafe94, 2026-05-16). The repository holds TWO Godot projects that share config/name \"2D Visual Novel\": `godot/` (the finished demo, features \"4.6\") and `start-project/` (the tutorial's asset-only starting point, features \"4.3\"); each is staged as its own fixture, and the sibling is out of scope here, not an exclusion. The tutorial's starting project: backgrounds, character art, text-box art, a theme font and default_env.tres, no scripts or scenes; features \"4.3\". ID: its config/name \"2D Visual Novel\" is identical to the finished demo's, staged as `2d-visual-novel`, so this one takes the `-start` suffix naming the only thing that differs. LICENSE (repository root, vendored at the fixture root): dual terms, MIT for source code, scenes, shaders and Godot-generated resources (Copyright (c) 2020-present GDQuest) and CC-BY-NC-SA-4.0 for art assets (textures, 3D models), full CC text included. The owner ruled 2026-09-28 that CC licenses including NC and SA are acceptable for benchmarking, which lifts the earlier rejection; the NC/SA terms still bind any redistribution of the art. README.md (repository root, vendored) carries the art attribution (\"Art by Asmo Arael\") the CC-BY terms require. The Montserrat-ExtraBold.ttf font ships without its own OFL text upstream. SECURITY (static read, nothing executed): no scripts at all; no @tool, no EditorPlugin, no OS/network/dynamic code, no .gdextension, no native blob, no C#. Cloned 2026-09-28 with `git -c core.hooksPath=/dev/null clone --depth 1`, no submodules; bytes vendored from `git cat-file blob` at the pin and re-read from disk, 0 mismatches. File modes are not carried (all staged 0644).",
+      "excluded_from_upstream": {
+        "rule": "The whole `start-project/` tree is vendored at the fixture root, plus the repository-root LICENSE and README.md. Excluded are the repository-root files outside both projects (listed).",
+        "why": "Nothing inside the Godot project is dropped; no `.godot/` cache, native binary, .gdextension or C# is tracked. Exclusions:\n- repository-root .gitignore (the repository's, not the project's) (1 file, 143 bytes)\n- images/: README banner screenshots outside the Godot project, never referenced from res:// (2 files, 332,145 bytes)",
+        "file_count": 3,
+        "bytes": 332288,
+        "paths": [
+          ".gitignore",
+          "images/2021-04-01-new-art.jpg",
+          "images/godot-visual-novel-prototype-screenshot.jpg"
+        ]
+      }
+    }
+  ],
+  "vendored_file_count": 22,
+  "vendored_bytes": 1294888,
+  "sha256_manifest": {
+    "Backgrounds/industrial-building.jpg": "4e0c8a603da2b2f837a5566aef4e3bce39244979c49db54756450a312c1241ed",
+    "Backgrounds/industrial-building.jpg.import": "bdec1cf05a09c4fc15a2998d34cd4844f70ba210a2c57d789e89f5d2f84bf66c",
+    "Backgrounds/steppes.jpg": "683ec17c78980862bf169d19c626deaa8f6cf181742424519f774e13926aaa59",
+    "Backgrounds/steppes.jpg.import": "0a1c4d37cf36396aa74abf04952f8974460e02c0008992bccde1b6826546dd11",
+    "Characters/Dani.png": "3321fe7ed26479b11ae34fb383eda7558869feed2c61af227e776bd51e49dd46",
+    "Characters/Dani.png.import": "e400dc38d25495a6884e69dbb794d321758c2680b6913aa870cc10e64f7d8888",
+    "Characters/Sophia.png": "f100f5b26366201820cd8869dfb1610fd6be326e98418c0f563047d40fec3678",
+    "Characters/Sophia.png.import": "bcc7bbba27d7bc8c517b33349f7afd5af45d5809e148cd542f9dc4f3921dd7a2",
+    "LICENSE": "d895723e270f826dbec911c369998e6a9ae2f1e2fa20627002b251d9a3884df1",
+    "README.md": "fab2637db72c5bf680061e02f276d528db41d10977eaec0f91073e7d19951f6d",
+    "TextBox/arrow.png": "d3a75e318be70ad4e6837fc97f43a6abda0e3b34a29f99a1de97d0f2835b9ae9",
+    "TextBox/arrow.png.import": "a4dd8dc3579243d526f52b0e87d284371bc5003e14ae30c5bfdc9e21e6593616",
+    "TextBox/character-name-box.png": "4f7a6ea26a90cd99972c063b2fa4b8507a59fc67beef47ed92bad016f05d054a",
+    "TextBox/character-name-box.png.import": "bd2dfe0238792e5e1f28f27c7ba3f77d001da22aecda82f68920f42fd8dd386f",
+    "TextBox/text-box.png": "a7087bd4e46c9568874f7a6bf1e15d19d8cef55d4508c8faf8051585d71aa93e",
+    "TextBox/text-box.png.import": "e39fb33cb363e9eefd797cfdafa584c06b4f2732226e8dacf0a172661ca91cc4",
+    "Theme/Montserrat-ExtraBold.ttf": "257af9a05de6371e1f7b345d02a93af5c2e0ab9b9224418a45189b8cc86049cd",
+    "Theme/Montserrat-ExtraBold.ttf.import": "c7ab775b154517addba55f63953ecc407d8b4400143637eddb26a71238fcce36",
+    "default_env.tres": "58de5d76a30d38d7697826b0d981dcaf1f9fd370e4b06d8db44034379cc1c365",
+    "icon.png": "e39d69e08e59828e37fb7ac5a592bad40d0693e3e9f89da62fe3ca5cd11af4a6",
+    "icon.png.import": "6ca2e315d3aa6eeaee679108c5be27a151f38f4b7e7fdc60206d0fa0fad93213",
+    "project.godot": "9c961d0b54dea59e9a7556d97ae52311b5e3936ece0670a90082ad95636bc3a1"
+  }
+}

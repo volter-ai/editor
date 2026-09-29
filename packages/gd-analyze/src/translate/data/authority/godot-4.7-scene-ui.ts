@@ -16,6 +16,7 @@ export const GODOT_4_7_UI_RESOURCE_RULES: readonly (GodotSceneResourceRule & { r
     ['PlaceholderTexture2D', 'placeholder-texture-2d', 'godot_placeholder_texture_2d_new', 'scene/resources/placeholder_textures.cpp', 70],
     ['LabelSettings', 'label-settings', 'godot_label_settings_new', 'scene/resources/label_settings.h', 152],
     ['FontFile', 'font-file', 'godot_font_file_load', 'scene/resources/font.cpp', 2896],
+    ['Theme', 'theme', 'godot_theme_new', 'scene/resources/theme.cpp', 1927],
   ] as const
 ).map(([className, module, exportName, file, line]) => ({
   sourceRevision: REVISION,

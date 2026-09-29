@@ -13,6 +13,8 @@ import type { Shader } from './shader';
 
 export interface ShaderMaterial {
   shader: Shader | null;
+  /** `render_priority`: stored and read back; three orders transparent objects by depth alone. */
+  renderPriority: number;
   readonly parameters: Map<string, unknown>;
   /**
    * Called when a parameter changes: each drawing of this material (its three material, a sky's
@@ -28,7 +30,7 @@ export interface ShaderMaterial {
  * @source scene/resources/material.cpp:545
  */
 export function construct(): ShaderMaterial {
-  return { shader: null, parameters: new Map(), listeners: new Set() };
+  return { shader: null, renderPriority: 0, parameters: new Map(), listeners: new Set() };
 }
 
 /**
@@ -68,15 +70,32 @@ export function get_shader_parameter(self: ShaderMaterial, name: string): unknow
 }
 
 /**
+ * @godot Material.set_render_priority
+ * @source scene/resources/material.cpp:64
+ */
+export function set_render_priority(self: ShaderMaterial, priority: number): void {
+  self.renderPriority = priority;
+}
+
+/**
+ * @godot Material.get_render_priority
+ * @source scene/resources/material.cpp:75
+ */
+export function get_render_priority(self: ShaderMaterial): number {
+  return self.renderPriority;
+}
+
+/**
  * A ShaderMaterial of its shader and the parameters a scene states (`shader_parameter/NAME`, by
- * Godot name), set in the order given.
+ * Godot name), set in the order given, and its other properties (`renderPriority`).
  *
  * @godot ShaderMaterial (protocol)
  * @source scene/resources/material.cpp:197
  */
-export function godot_shader_material_new(shader: Shader | null, parameters: Readonly<Record<string, unknown>> = {}): ShaderMaterial {
+export function godot_shader_material_new(shader: Shader | null, parameters: Readonly<Record<string, unknown>> = {}, properties: { readonly renderPriority?: number } = {}): ShaderMaterial {
   const self = construct();
   set_shader(self, shader);
+  if (properties.renderPriority !== undefined) set_render_priority(self, properties.renderPriority);
   for (const [name, value] of Object.entries(parameters)) set_shader_parameter(self, name, value);
   return self;
 }

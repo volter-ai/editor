@@ -22,9 +22,29 @@ export type GodotCallShape =
    * script that makes it, whose component steps it, so the call hands its creator (`this`) to the
    * binding right after the receiver (docs/GODOT.md §The emitted game's shape, step 6).
    */
-  | 'creator-owned';
+  | 'creator-owned'
+  /**
+   * `ResourceLoader.load(path)` / `ResourceSaver.save(resource, path)`: a project resource the
+   * translation builds, or one the page's storage keeps, the project's script resource classes
+   * handed by their scripts' paths (`resource-loader.ts`).
+   */
+  | 'resource-load'
+  | 'resource-save'
+  /**
+   * A method that changes a copied built-in array (`PackedStringArray.push_back`): compat holds the
+   * array frozen and returns the changed copy, which the call stores back where the array came
+   * from, as Godot's copy-on-write store writes the variable's own copy (`Vector<T>`).
+   */
+  | 'copied-mutator';
+
+const COPIED_MUTATORS = ['push_back', 'append', 'append_array', 'insert', 'remove_at', 'set', 'fill', 'resize', 'sort', 'reverse', 'erase', 'clear'];
 
 const CALL_SHAPES: Readonly<Record<string, GodotCallShape>> = {
+  ...Object.fromEntries(COPIED_MUTATORS.map((member) => [`PackedStringArray.${member}`, 'copied-mutator' as const])),
+  'ResourceLoader.load': 'resource-load',
+  // GDScript's `load(path)` is `ResourceLoader.load(path)` (`gdscript_utility_functions.cpp:233`).
+  '@GDScript.load': 'resource-load',
+  'ResourceSaver.save': 'resource-save',
   'Tween.tween_property': 'tweened-property',
   'Object.has_method': 'script-chain-method',
   'Node.create_tween': 'creator-owned',
@@ -155,6 +175,45 @@ const TWEENED_TYPES: ReadonlySet<string> = new Set(['float', 'Vector2', 'Vector3
 /** Whether `tween_property` of a property of this API type is lowered (compat interpolates it). */
 export function godotTweenInterpolates(apiType: string): boolean {
   return TWEENED_TYPES.has(apiType);
+}
+
+/**
+ * The input event records (`input-event.ts`, their `type`) each input event class is: `event is
+ * InputEventMouse` lowers to a test of the record's `type` (`InputEvent`'s class hierarchy,
+ * `core/input/input_event.h`).
+ */
+const INPUT_EVENT_RECORD_TYPES: Readonly<Record<string, readonly string[]>> = {
+  InputEvent: ['key', 'mouse_button', 'mouse_motion', 'joypad_button', 'joypad_motion', 'screen_touch', 'screen_drag', 'action'],
+  InputEventFromWindow: ['key', 'mouse_button', 'mouse_motion', 'screen_touch', 'screen_drag'],
+  InputEventWithModifiers: ['key', 'mouse_button', 'mouse_motion'],
+  InputEventKey: ['key'],
+  InputEventMouse: ['mouse_button', 'mouse_motion'],
+  InputEventMouseButton: ['mouse_button'],
+  InputEventMouseMotion: ['mouse_motion'],
+  InputEventJoypadButton: ['joypad_button'],
+  InputEventJoypadMotion: ['joypad_motion'],
+  InputEventScreenTouch: ['screen_touch'],
+  InputEventScreenDrag: ['screen_drag'],
+  InputEventAction: ['action'],
+};
+
+/** The input event records an input event class is, or undefined for a class that is none. */
+export function godotInputEventRecordTypes(className: string): readonly string[] | undefined {
+  return INPUT_EVENT_RECORD_TYPES[className];
+}
+
+/** The float components a sub-property path names on a value of this API type (`position:y`), by name. */
+const COMPONENTS: Readonly<Record<string, readonly string[]>> = {
+  Vector2: ['x', 'y'],
+  Vector3: ['x', 'y', 'z'],
+  Vector4: ['x', 'y', 'z', 'w'],
+  Quaternion: ['x', 'y', 'z', 'w'],
+  Color: ['r', 'g', 'b', 'a'],
+};
+
+/** The float components of a value of this API type a sub-property path can name, or undefined. */
+export function godotComponentNames(apiType: string): readonly string[] | undefined {
+  return COMPONENTS[apiType];
 }
 
 /**
@@ -289,4 +348,68 @@ const TEXT_LITERALS: ReadonlySet<string> = new Set(['NodePath']);
 
 export function godotLiteralIsText(type: string): boolean {
   return TEXT_LITERALS.has(type);
+}
+
+/**
+ * How a value of a built-in type is recognised at run time, where an untyped value's member is
+ * selected then (`variant-named.ts`): compat's predicate for the kind of JS value the type is held
+ * as, and for a record its members (a Basis's are vectors: `nested`).
+ */
+export interface GodotBuiltinTest {
+  readonly exportName: string;
+  readonly members?: string;
+  readonly nested?: true;
+}
+
+const PACKED_ARRAYS = ['PackedByteArray', 'PackedInt32Array', 'PackedInt64Array', 'PackedFloat32Array', 'PackedFloat64Array', 'PackedStringArray', 'PackedVector2Array', 'PackedVector3Array', 'PackedVector4Array', 'PackedColorArray'];
+const record = (members: string, nested?: true): GodotBuiltinTest => ({ exportName: 'godot_variant_is_record', members, ...(nested === undefined ? {} : { nested }) });
+
+const BUILTIN_TESTS: Readonly<Record<string, GodotBuiltinTest>> = {
+  Array: { exportName: 'godot_variant_is_array' },
+  ...Object.fromEntries(PACKED_ARRAYS.map((type) => [type, { exportName: 'godot_variant_is_array' }])),
+  Dictionary: { exportName: 'godot_variant_is_dictionary' },
+  String: { exportName: 'godot_variant_is_text' },
+  StringName: { exportName: 'godot_variant_is_text' },
+  NodePath: { exportName: 'godot_variant_is_text' },
+  int: { exportName: 'godot_variant_is_number' },
+  float: { exportName: 'godot_variant_is_number' },
+  Signal: { exportName: 'godot_variant_is_signal' },
+  Callable: { exportName: 'godot_variant_is_callable' },
+  Vector2: record('x,y'),
+  Vector2i: record('x,y'),
+  Vector3: record('x,y,z'),
+  Vector3i: record('x,y,z'),
+  Vector4: record('x,y,z,w'),
+  Vector4i: record('x,y,z,w'),
+  Quaternion: record('x,y,z,w'),
+  Color: record('r,g,b,a'),
+  Rect2: record('position,size'),
+  Rect2i: record('position,size'),
+  AABB: record('position,size'),
+  Plane: record('normal,d'),
+  Basis: record('x,y,z', true),
+  Transform2D: record('x,y,origin'),
+  Transform3D: record('basis,origin'),
+  Projection: record('x,y,z,w', true),
+};
+
+/** How a value of the built-in type `type` is recognised at run time, if compat can tell. */
+export function godotBuiltinTest(type: string): GodotBuiltinTest | undefined {
+  return Object.hasOwn(BUILTIN_TESTS, type) ? BUILTIN_TESTS[type] : undefined;
+}
+
+/** The native classes whose script instances `ResourceSaver.save` stores and `ResourceLoader.load` makes again. */
+const STORED_RESOURCE_ROOTS: ReadonlySet<string> = new Set(['Resource']);
+
+/** Whether a script rooted in the native class `className` is a resource the loader stores. */
+export function godotStoredResourceRoot(className: string | undefined): boolean {
+  return className !== undefined && STORED_RESOURCE_ROOTS.has(className);
+}
+
+/** GDScript's own constants (`GDScriptLanguage` `PI`, `TAU`, `INF`, `NAN`, gdscript.cpp:2169). */
+const LANGUAGE_CONSTANTS: Readonly<Record<string, number>> = { PI: Math.PI, TAU: Math.PI * 2, INF: Number.POSITIVE_INFINITY, NAN: Number.NaN };
+
+/** The value of GDScript's constant `name`, if it is one. */
+export function godotLanguageConstant(name: string): number | undefined {
+  return Object.hasOwn(LANGUAGE_CONSTANTS, name) ? LANGUAGE_CONSTANTS[name] : undefined;
 }

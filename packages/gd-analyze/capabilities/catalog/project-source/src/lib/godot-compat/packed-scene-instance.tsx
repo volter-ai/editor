@@ -18,7 +18,9 @@
 
 import { createPortal, flushSync } from '@react-three/fiber';
 import { type ComponentType, createContext, createElement, Fragment, type ReactNode } from 'react';
-import { Group, type Object3D } from 'three';
+import { Group, type Object3D, type Texture } from 'three';
+import type { GodotImportedSceneTree } from './packed-scene';
+import { godot_scene_state_model_load, godot_scene_state_of, type SceneState } from './scene-state';
 import { type GodotAddedScenes, godot_node_add_unmounted, godot_node_added_scenes, godot_node_adopt, godot_node_object, godot_node_stand_in } from './node';
 
 /** A scene component. */
@@ -29,6 +31,15 @@ export interface PackedScene {
   readonly resource_path: string;
   readonly component: GodotSceneComponent;
   readonly rootScript: (new (native: object) => object) | undefined;
+  /** An imported model's file, tree and outside images, which its SceneState reads. */
+  readonly model?: GodotPackedSceneModel;
+}
+
+/** An imported model a PackedScene instantiates. */
+export interface GodotPackedSceneModel {
+  readonly src: string;
+  readonly tree: GodotImportedSceneTree;
+  readonly images?: Readonly<Record<number, Texture>>;
 }
 
 const PRELOADED = new Map<string, PackedScene>();
@@ -45,13 +56,29 @@ export function godot_packed_scene_preload(
   path: string,
   component: GodotSceneComponent,
   rootScript?: new (native: object) => object,
+  model?: GodotPackedSceneModel,
 ): PackedScene {
   let scene = PRELOADED.get(path);
   if (scene === undefined) {
-    scene = Object.freeze({ resource_path: path, component, rootScript });
+    scene = Object.freeze({ resource_path: path, component, rootScript, ...(model === undefined ? {} : { model }) });
+    // A model's SceneState reads its file, which loads before the scenes mount.
+    if (model !== undefined) godot_scene_state_model_load(scene, model);
     PRELOADED.set(path, scene);
   }
   return scene;
+}
+
+/**
+ * The scene's state: its nodes and their properties as the file stores them. A model's is its
+ * imported tree; a project scene's is not transcribed.
+ *
+ * @godot PackedScene.get_state
+ * @source scene/resources/packed_scene.cpp:2120
+ */
+export function get_state(self: PackedScene): SceneState {
+  const state = godot_scene_state_of(self);
+  if (state === undefined) throw new Error(`godot-compat: PackedScene.get_state of ${self.resource_path} is not transcribed`);
+  return state;
 }
 
 /** An instantiated scene: its root's stand-in and script instance, and once added, where it mounts. */

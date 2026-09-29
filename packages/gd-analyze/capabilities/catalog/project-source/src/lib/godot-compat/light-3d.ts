@@ -327,3 +327,120 @@ export function set_shadow(self: Light, enabled: boolean): void {
 export function has_shadow(self: Light): boolean {
   return stateOf(self).shadow;
 }
+
+// --- Kept for their getters: the page's lights neither fade out with distance nor pick which
+// layers cast their shadows or with which faces (a scene states them in `userData`).
+
+const KEPT = new WeakMap<object, Record<string, number | boolean>>();
+
+function kept(self: object, key: string, initial: number | boolean): number | boolean {
+  const own = KEPT.get(self)?.[key];
+  if (own !== undefined) return own;
+  const stated = (self as { readonly userData?: Readonly<Record<string, unknown>> }).userData?.[key];
+  return typeof stated === typeof initial ? (stated as number | boolean) : initial;
+}
+
+function keep(self: object, key: string, value: number | boolean): void {
+  let values = KEPT.get(self);
+  if (values === undefined) {
+    values = {};
+    KEPT.set(self, values);
+  }
+  values[key] = value;
+}
+
+/**
+ * @godot Light3D.set_enable_distance_fade
+ * @source scene/3d/light_3d.cpp:75
+ */
+export function set_enable_distance_fade(self: object, distance_fade_enabled: boolean): void {
+  keep(self, 'distance_fade_enabled', distance_fade_enabled);
+}
+
+/**
+ * @godot Light3D.is_distance_fade_enabled
+ * @source scene/3d/light_3d.cpp:81
+ */
+export function is_distance_fade_enabled(self: object): boolean {
+  return kept(self, 'distance_fade_enabled', false) as boolean;
+}
+
+/**
+ * @godot Light3D.set_distance_fade_begin
+ * @source scene/3d/light_3d.cpp:85
+ */
+export function set_distance_fade_begin(self: object, distance_fade_begin: number): void {
+  keep(self, 'distance_fade_begin', distance_fade_begin);
+}
+
+/**
+ * @godot Light3D.get_distance_fade_begin
+ * @source scene/3d/light_3d.cpp:90
+ */
+export function get_distance_fade_begin(self: object): number {
+  return kept(self, 'distance_fade_begin', 40) as number;
+}
+
+/**
+ * @godot Light3D.set_distance_fade_shadow
+ * @source scene/3d/light_3d.cpp:94
+ */
+export function set_distance_fade_shadow(self: object, distance_fade_shadow: number): void {
+  keep(self, 'distance_fade_shadow', distance_fade_shadow);
+}
+
+/**
+ * @godot Light3D.get_distance_fade_shadow
+ * @source scene/3d/light_3d.cpp:99
+ */
+export function get_distance_fade_shadow(self: object): number {
+  return kept(self, 'distance_fade_shadow', 50) as number;
+}
+
+/**
+ * @godot Light3D.set_distance_fade_length
+ * @source scene/3d/light_3d.cpp:103
+ */
+export function set_distance_fade_length(self: object, distance_fade_length: number): void {
+  keep(self, 'distance_fade_length', distance_fade_length);
+}
+
+/**
+ * @godot Light3D.get_distance_fade_length
+ * @source scene/3d/light_3d.cpp:108
+ */
+export function get_distance_fade_length(self: object): number {
+  return kept(self, 'distance_fade_length', 10) as number;
+}
+
+/**
+ * @godot Light3D.set_shadow_reverse_cull_face
+ * @source scene/3d/light_3d.cpp:139
+ */
+export function set_shadow_reverse_cull_face(self: object, shadow_reverse_cull_face: boolean): void {
+  keep(self, 'shadow_reverse_cull_face', shadow_reverse_cull_face);
+}
+
+/**
+ * @godot Light3D.get_shadow_reverse_cull_face
+ * @source scene/3d/light_3d.cpp:144
+ */
+export function get_shadow_reverse_cull_face(self: object): boolean {
+  return kept(self, 'shadow_reverse_cull_face', false) as boolean;
+}
+
+/**
+ * @godot Light3D.set_shadow_caster_mask
+ * @source scene/3d/light_3d.cpp:148
+ */
+export function set_shadow_caster_mask(self: object, shadow_caster_mask: number): void {
+  keep(self, 'shadow_caster_mask', shadow_caster_mask);
+}
+
+/**
+ * @godot Light3D.get_shadow_caster_mask
+ * @source scene/3d/light_3d.cpp:153
+ */
+export function get_shadow_caster_mask(self: object): number {
+  return kept(self, 'shadow_caster_mask', 0xffffffff) as number;
+}

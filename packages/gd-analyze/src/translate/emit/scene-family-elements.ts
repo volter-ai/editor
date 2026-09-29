@@ -1,4 +1,4 @@
-import { godotSceneSubnodes } from '../data/scene-document-plan';
+import { godotImportedModelDataPath, godotSceneExportName, godotSceneSubnodes, godotSceneTargetPath } from '../data/scene-document-plan';
 /**
  * The JSX element each carried node family is written as (GODOT.md, "The output is idiomatic
  * three.js"), whatever shape the rest of its scene is written in: the element's tag, its literal
@@ -42,6 +42,7 @@ import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath 
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { GODOT_DEFAULT_MATERIAL_IDIOM, type GodotSceneMaterialIdiom } from '../data/scene-material-idioms';
 import type { GodotSceneGeometryMade } from '../data/scene-resource-idioms';
+import type { TargetSceneRecordConstructor } from '../data/scene-setters';
 
 const f32 = Math.fround;
 
@@ -100,6 +101,10 @@ export function setterValue(setters: readonly TargetGodotSceneSetterPlan[], expo
 /** What a scene's family elements need beside themselves: imports, hooks and data files. */
 export interface FamilyEmission {
   readonly targetPath: string;
+  /** A script's generated class (its module under the project and export), by the script's res path. */
+  readonly scriptClass: (resPath: string) => { readonly modulePath: string; readonly exportName: string } | undefined;
+  /** The project's own modules the scene imports (scenes, script classes): their names, by specifier. */
+  readonly project: Map<string, Set<string>>;
   readonly resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>;
   /** Values imported from three (constants such as `AdditiveBlending`). */
   readonly three: Set<string>;
@@ -118,6 +123,8 @@ export interface FamilyEmission {
   readonly statics: TargetTsStatement[];
   /** React hooks the component calls beside compat's (`useMemo`). */
   readonly react: Set<string>;
+  /** R3F hooks the component calls (`useFrame`), shared with the scene's own. */
+  readonly fiber: Set<string>;
   /** Resource locals that load (hooks), whose users are made in the component too. */
   readonly loaded: Set<string>;
   readonly hookLocals: Map<string, string>;
@@ -129,15 +136,20 @@ export interface FamilyEmission {
   readonly uses: Map<string, number>;
   /** Shared resources' locals, by resource key. */
   readonly shared: Map<string, string>;
+  /** A module with no component (a preloaded resource's): its images load at module level. */
+  readonly moduleLevel?: true;
 }
 
 export function familyEmission(
   targetPath: string,
   resources: readonly TargetGodotSceneResourcePlan[],
   currentCamera?: string,
+  scriptClass: FamilyEmission['scriptClass'] = () => undefined,
 ): FamilyEmission {
   return {
     targetPath,
+    scriptClass,
+    project: new Map(),
     resources: new Map(resources.map((resource) => [resource.key, resource] as const)),
     three: new Set(),
     drei: new Set(),
@@ -146,6 +158,7 @@ export function familyEmission(
     hooks: [],
     statics: [],
     react: new Set(),
+    fiber: new Set(),
     loaded: new Set(),
     hookLocals: new Map(),
     data: new Map(),
@@ -206,7 +219,7 @@ function assetUrl(resPath: string): string {
 function textureHook(
   emission: FamilyEmission,
   texture: TargetGodotSceneResourcePlan,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true; readonly uv?: { readonly scale: readonly [number, number]; readonly offset: readonly [number, number] } },
 ): string {
   const load = texture.load;
   if (load === undefined) throw new Error(`${texture.key}: a texture that is not an imported image`);
@@ -221,13 +234,39 @@ export function importedTextureHook(
   emission: FamilyEmission,
   resourceKey: string,
   load: NonNullable<TargetGodotSceneResourcePlan['load']>,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true; readonly uv?: { readonly scale: readonly [number, number]; readonly offset: readonly [number, number] } },
 ): string {
-  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}:${String(sampler.model === true)}`}`;
+  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}:${String(sampler.model === true)}:${JSON.stringify(sampler.uv ?? null)}`}`;
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
   const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
   emission.hookLocals.set(key, local);
+  if (emission.moduleLevel === true) {
+    // The texture now and its image once fetched (the loader tracks it), sampled as a material's map.
+    const loaded: TargetTsExpression = {
+      kind: 'call-expression',
+      callee: identifier(useCompat(emission, 'compressed-texture-2d', 'godot_compressed_texture_2d_load')),
+      arguments: [literal(assetUrl(load.sourceResPath)), { kind: 'object-expression', properties: Object.entries(load.options).map(([name, value]) => ({ key: name, value: literal(value) })) }],
+    };
+    const sampled: TargetTsExpression =
+      sampler === undefined
+        ? loaded
+        : {
+            kind: 'call-expression',
+            callee: identifier(useCompat(emission, 'base-material-3d', sampler.model === true ? 'godot_base_material_3d_model_map' : 'godot_base_material_3d_scene_map')),
+            arguments: [
+              loaded,
+              literal(sampler.filter),
+              literal(sampler.repeat),
+              literal(sampler.srgb),
+              ...(sampler.model !== true && sampler.uv !== undefined
+                ? [{ kind: 'object-expression' as const, properties: [{ key: 'scale', value: numbers(sampler.uv.scale) }, { key: 'offset', value: numbers(sampler.uv.offset) }] }]
+                : []),
+            ],
+          };
+    emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: sampled });
+    return local;
+  }
   emission.loaded.add(local);
   emission.hooks.push({
     kind: 'variable-statement',
@@ -249,6 +288,9 @@ export function importedTextureHook(
                   { key: 'repeat', value: literal(sampler.repeat) },
                   ...(sampler.srgb ? [] : [{ key: 'srgb', value: literal(false) }]),
                   ...(sampler.model === true ? [{ key: 'flipY', value: literal(false) }] : []),
+                  ...(sampler.uv === undefined
+                    ? []
+                    : [{ key: 'uv', value: { kind: 'object-expression' as const, properties: [{ key: 'scale', value: numbers(sampler.uv.scale) }, { key: 'offset', value: numbers(sampler.uv.offset) }] } }]),
                 ],
               },
             ]),
@@ -296,6 +338,10 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
           ],
         }),
       ]);
+    case 'box':
+      return element('boxGeometry', [attribute('args', numbers(args))]);
+    case 'capsule':
+      return element('capsuleGeometry', [attribute('args', numbers(args))]);
     case 'cylinder': {
       const open = resource.primitive?.open === true;
       return element('cylinderGeometry', [
@@ -357,10 +403,14 @@ function materialProps(emission: FamilyEmission, idiom: GodotSceneMaterialIdiom,
       case 'three':
         emission.three.add(value.name);
         return { name, value: identifier(value.name) };
+      case 'vector2':
+        if (!shared) return { name, value: numbers(value.components) };
+        emission.three.add('Vector2');
+        return { name, value: { kind: 'new-expression', callee: identifier('Vector2'), arguments: value.components.map((component) => literal(component)) } };
       case 'map': {
         const texture = emission.resources.get(value.texture);
         if (texture === undefined) throw new Error(`${value.texture}: a texture the scene does not plan`);
-        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb, ...(value.model === true ? { model: true as const } : {}) };
+        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb, ...(value.model === true ? { model: true as const } : {}), ...(value.uv === undefined ? {} : { uv: value.uv }) };
         return { name, value: identifier(texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, value.filter, value.repeat, value.model === true) : textureHook(emission, texture, sampler)) };
       }
       case 'user-data':
@@ -388,12 +438,14 @@ export function godotPropName(property: string): string {
 
 /** A metadata value as the Variant it is: a built-in made by its compat constructor. */
 function metaValue(emission: FamilyEmission, value: TargetGodotSceneValue): TargetTsExpression {
-  if (value.kind === 'Vector2' || value.kind === 'Vector3' || value.kind === 'Color' || value.kind === 'Quaternion') {
-    const module = { Vector2: 'vector2', Vector3: 'vector3', Color: 'color', Quaternion: 'quaternion' }[value.kind];
-    return { kind: 'call-expression', callee: identifier(useCompat(emission, module, 'construct', `${value.kind}_construct`)), arguments: value.components.map((component) => literal(component)) };
-  }
+  if ('construct' in value) return recordValue(emission, value.construct, value.components);
   if (value.kind === 'number' || value.kind === 'bool' || value.kind === 'string') return propValue(emission, value);
   throw new Error(`a ${value.kind} metadata value has no element form`);
+}
+
+/** A resource's local, declared as its scene declares it (a Control's font, `idiomatic-scene-syntax.ts`). */
+export function familyResourceValue(emission: FamilyEmission, key: string): TargetTsExpression {
+  return identifier(resourceLocal(emission, key));
 }
 
 /** An authored value as a literal prop value: a built-in's components, a resource's local. */
@@ -407,9 +459,72 @@ function propValue(emission: FamilyEmission, value: TargetGodotSceneValue): Targ
       return literal(null);
     case 'resource':
       return identifier(resourceLocal(emission, value.key));
+    case 'Variant-array':
+    case 'Variant-dictionary':
+      return variantValue(emission, value);
     default:
       return numbers(value.components);
   }
+}
+
+/** A built-in record made by the compat constructor its plan states. */
+function recordValue(emission: FamilyEmission, construct: TargetSceneRecordConstructor, components: readonly number[]): TargetTsExpression {
+  return { kind: 'call-expression', callee: identifier(useCompat(emission, construct.module, construct.exportName, construct.localName)), arguments: components.map((component) => literal(component)) };
+}
+
+/**
+ * An authored value as the Variant a script or resource holds: a record made by its compat
+ * constructor, a resource's local, an Array as a JS array, a Dictionary as a `Map`.
+ */
+export function variantValue(emission: FamilyEmission, value: TargetGodotSceneValue): TargetTsExpression {
+  switch (value.kind) {
+    case 'number':
+    case 'bool':
+    case 'string':
+      return literal(value.value);
+    case 'null':
+      return literal(null);
+    case 'resource':
+      return identifier(resourceLocal(emission, value.key));
+    case 'Variant-array':
+      return { kind: 'array-expression', elements: value.items.map((item) => variantValue(emission, item)) };
+    case 'Variant-dictionary':
+      return {
+        kind: 'new-expression',
+        callee: identifier('Map'),
+        // A Dictionary's keys and values are Variants: entries of different types are one Map's.
+        typeArguments: [{ kind: 'keyword-type', keyword: 'any' }, { kind: 'keyword-type', keyword: 'any' }],
+        arguments: [{ kind: 'array-expression', elements: value.entries.map(([key, item]) => ({ kind: 'array-expression' as const, elements: [variantValue(emission, key), variantValue(emission, item)] })) }],
+      };
+    case 'Array':
+    case 'PackedByteArray':
+    case 'PackedVector2Array':
+    case 'PackedVector3Array':
+    case 'PackedFloat32Array':
+    case 'PackedInt32Array':
+    case 'PackedColorArray':
+      return numbers(value.components);
+    default:
+      if (!('construct' in value)) throw new Error(`a ${value.kind} value has no Variant form`);
+      return recordValue(emission, value.construct, value.components);
+  }
+}
+
+/** The loaded locals (hook values) an expression reads, at any depth. */
+export function loadedUses(emission: FamilyEmission, expression: TargetTsExpression): string[] {
+  const found = new Set<string>();
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item);
+      return;
+    }
+    if (node === null || typeof node !== 'object') return;
+    const record = node as { readonly kind?: unknown; readonly name?: unknown };
+    if (record.kind === 'identifier-expression' && typeof record.name === 'string' && emission.loaded.has(record.name)) found.add(record.name);
+    for (const child of Object.values(node)) walk(child);
+  };
+  walk(expression);
+  return [...found];
 }
 
 /**
@@ -450,6 +565,110 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     });
     return local;
   }
+  // A PackedScene: the scene's component, preloaded once (`instantiate()` mounts it).
+  const packed = resource.packedScene;
+  if (packed !== undefined) {
+    const component = projectImport(emission, godotSceneTargetPath(packed.resPath), godotSceneExportName(packed.resPath));
+    const root = packed.rootScript === undefined ? undefined : emission.scriptClass(packed.rootScript);
+    const local = freshLocal(emission, `${path.posix.basename(packed.resPath).replace(/\.[^.]+$/u, '')} scene`);
+    emission.hookLocals.set(key, local);
+    emission.statics.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: {
+        kind: 'call-expression',
+        callee: identifier(useCompat(emission, 'packed-scene-instance', 'godot_packed_scene_preload')),
+        arguments: [
+          literal(packed.resPath),
+          identifier(component),
+          root === undefined ? { kind: 'undefined-expression' } : identifier(projectImport(emission, root.modulePath, root.exportName)),
+          // An imported model's own file, tree and outside images, which its SceneState reads.
+          ...(packed.model === undefined
+            ? []
+            : [
+                {
+                  kind: 'object-expression' as const,
+                  properties: [
+                    { key: 'src', value: literal(assetUrl(packed.resPath)) },
+                    { key: 'tree', value: identifier(dataImport(emission, godotImportedModelDataPath(packed.resPath), `${path.posix.basename(packed.resPath).replace(/\.[^.]+$/u, '')} model`)) },
+                    {
+                      key: 'images',
+                      value: {
+                        kind: 'object-expression' as const,
+                        properties: packed.model.images.map((image) => ({
+                          key: String(image.index),
+                          value: {
+                            kind: 'call-expression' as const,
+                            callee: identifier(useCompat(emission, 'compressed-texture-2d', 'godot_compressed_texture_2d_load')),
+                            arguments: [literal(assetUrl(image.load.sourceResPath)), { kind: 'object-expression' as const, properties: Object.entries(image.load.options).map(([name, value]) => ({ key: name, value: literal(value) })) }],
+                          },
+                        })),
+                      },
+                    },
+                  ],
+                },
+              ]),
+        ],
+      },
+    });
+    return local;
+  }
+  // A resource kept by its raw properties: its constructor takes them as a Map, by name.
+  const raw = resource.rawProperties;
+  if (raw !== undefined) {
+    const properties: TargetTsExpression = {
+      kind: 'new-expression',
+      callee: identifier('Map'),
+      typeArguments: [{ kind: 'keyword-type', keyword: 'string' }, { kind: 'keyword-type', keyword: 'any' }],
+      arguments: [{ kind: 'array-expression', elements: raw.map((entry) => ({ kind: 'array-expression' as const, elements: [literal(entry.name), variantValue(emission, entry.value)] })) }],
+    };
+    const made: TargetTsExpression = { kind: 'call-expression', callee: identifier(useCompat(emission, resource.construct.module.replace(/^lib\/godot-compat\//u, ''), resource.construct.exportName)), arguments: [properties] };
+    const uses = loadedUses(emission, properties);
+    const local = freshLocal(emission, stemOf(key));
+    emission.hookLocals.set(key, local);
+    if (uses.length === 0) {
+      emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
+      return local;
+    }
+    emission.loaded.add(local);
+    emission.react.add('useMemo');
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: { kind: 'call-expression', callee: identifier('useMemo'), arguments: [{ kind: 'arrow-expression', parameters: [], body: made }, { kind: 'array-expression', elements: uses.map(identifier) }] },
+    });
+    return local;
+  }
+  // A resource of a script's class: the script's instance, its fields the authored values.
+  const scripted = resource.scriptResource;
+  if (scripted !== undefined) {
+    const cls = emission.scriptClass(scripted.scriptResPath);
+    if (cls === undefined) throw new Error(`${key}: ${scripted.scriptResPath} has no generated class`);
+    const fields: TargetTsExpression = { kind: 'object-expression', properties: scripted.fields.map((field) => ({ key: field.name, value: variantValue(emission, field.value) })) };
+    const made: TargetTsExpression = {
+      kind: 'call-expression',
+      callee: identifier(useCompat(emission, 'resource', 'godot_script_resource_new')),
+      arguments: [identifier(projectImport(emission, cls.modulePath, cls.exportName)), fields, ...(scripted.path === undefined ? [] : [literal(scripted.path)])],
+    };
+    const uses = loadedUses(emission, fields);
+    const local = freshLocal(emission, stemOf(key));
+    emission.hookLocals.set(key, local);
+    if (uses.length === 0) {
+      emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
+      return local;
+    }
+    emission.loaded.add(local);
+    emission.react.add('useMemo');
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: { kind: 'call-expression', callee: identifier('useMemo'), arguments: [{ kind: 'arrow-expression', parameters: [], body: made }, { kind: 'array-expression', elements: uses.map(identifier) }] },
+    });
+    return local;
+  }
   if (idiom?.kind === 'shader') {
     const lowered = resource.shader;
     if (lowered === undefined) throw new Error(`${key}: a shader without its lowered code`);
@@ -466,6 +685,8 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   if (idiom?.kind === 'shader-material') {
     const shaderValue = resource.setters.find((setter) => setter.collect === 'shader')?.value;
     const shader: TargetTsExpression = shaderValue === undefined ? literal(null) : propValue(emission, shaderValue);
+    // Its own properties beside the shader and its parameters (`render_priority`).
+    const own = resource.setters.filter((setter) => setter.collect === undefined);
     const parameters = resource.setters
       .filter((setter) => setter.collect === 'shader-parameter')
       .map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) }));
@@ -475,9 +696,13 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     const made: TargetTsExpression = {
       kind: 'call-expression',
       callee: identifier(useCompat(emission, 'shader-material', 'godot_shader_material_new')),
-      arguments: [shader, { kind: 'object-expression', properties: parameters }],
+      arguments: [
+        shader,
+        { kind: 'object-expression', properties: parameters },
+        ...(own.length === 0 ? [] : [{ kind: 'object-expression' as const, properties: own.map((setter) => ({ key: godotPropName(setter.propertyName), value: propValue(emission, setter.value) })) }]),
+      ],
     };
-    if (uses.length === 0) {
+    if (uses.length === 0 && resource.localToScene !== true) {
       emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
       return local;
     }
@@ -492,7 +717,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     return local;
   }
   const properties = resource.setters.map((setter) => ({ key: godotPropName(setter.propertyName), value: propValue(emission, setter.value) }));
-  const uses = properties.flatMap((property) => (property.value.kind === 'identifier-expression' && emission.loaded.has(property.value.name) ? [property.value.name] : []));
+  const uses = [...new Set(properties.flatMap((property) => loadedUses(emission, property.value)))];
   const local = freshLocal(emission, key.replace(/^.*[:/#]/u, '').replace(/_[A-Za-z0-9]{5}$/u, ''));
   emission.hookLocals.set(key, local);
   const constructor = useCompat(emission, resource.construct.module.replace(/^lib\/godot-compat\//u, ''), resource.construct.exportName);
@@ -503,7 +728,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     callee: identifier(constructor),
     arguments: [...engineShaders, ...(properties.length === 0 ? (engineShaders.length === 0 ? [] : [{ kind: 'object-expression' as const, properties: [] }]) : [{ kind: 'object-expression' as const, properties }])],
   };
-  if (uses.length === 0) {
+  if (uses.length === 0 && resource.localToScene !== true) {
     emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
     return local;
   }
@@ -708,7 +933,7 @@ function libraryLocal(emission: FamilyEmission, resource: TargetGodotSceneResour
     if (mesh === undefined) continue;
     const surfaces = (mesh.surfaceMaterials ?? []).map((key) => (key === undefined ? undefined : emission.resources.get(key)));
     const materials = surfaces.map((surface) => {
-      const local = surface === undefined ? defaultMaterialLocal(emission) : sharedMaterial(emission, surface);
+      const local = surface === undefined ? defaultMaterialLocal(emission) : threeMaterialOf(emission, surface);
       if (emission.loaded.has(local)) uses.push(local);
       return identifier(local);
     });
@@ -731,12 +956,14 @@ function animationLibraryLocal(emission: FamilyEmission, resource: TargetGodotSc
   if (existing !== undefined) return existing;
   if (resource.animations === undefined) throw new Error(`${resource.key}: an AnimationLibrary without animations`);
   const data = dataImport(emission, godotAnimationLibraryDataPath(emission.targetPath, resource.key), `${stemOf(resource.key)} animations`);
+  // The streams its audio keys play, the scene's resources, by index.
+  const streams = (resource.animations.streams ?? []).map((key) => resourceLocal(emission, key));
   const made: TargetTsExpression = {
     kind: 'call-expression',
     callee: identifier(useCompat(emission, 'animation-library', 'godot_animation_library_load')),
-    arguments: [identifier(data)],
+    arguments: [identifier(data), ...(streams.length === 0 ? [] : [{ kind: 'array-expression' as const, elements: streams.map(identifier) }])],
   };
-  return declareShared(emission, resource.key, `${stemOf(resource.key)} library`, made, []);
+  return declareShared(emission, resource.key, `${stemOf(resource.key)} library`, made, streams.filter((local) => emission.loaded.has(local)));
 }
 
 /** An AnimationTree's blend tree: its data file loaded once, at module level (`godot_animation_node_load`). */
@@ -765,7 +992,26 @@ function animationBindingsLocal(emission: FamilyEmission, node: Pick<DirectGodot
       properties:
         'field' in binding
           ? [{ key: 'field', value: literal(binding.field) }]
-          : [{ key: 'set', value: compat(binding.setter) }, ...(binding.index === undefined ? [] : [{ key: 'index', value: { kind: 'literal-expression' as const, value: binding.index } }])],
+          : [
+              { key: 'set', value: compat(binding.setter) },
+              ...(binding.index === undefined ? [] : [{ key: 'index', value: { kind: 'literal-expression' as const, value: binding.index } }]),
+              ...(binding.getter === undefined ? [] : [{ key: 'get', value: compat(binding.getter) }]),
+              ...(binding.member === undefined ? [] : [{ key: 'member', value: literal(binding.member) }]),
+              ...(binding.resource === undefined
+                ? []
+                : [
+                    {
+                      key: 'resource',
+                      value: {
+                        kind: 'object-expression' as const,
+                        properties: [
+                          { key: 'set', value: compat(binding.resource.setter) },
+                          ...(binding.resource.index === undefined ? [] : [{ key: 'index', value: { kind: 'literal-expression' as const, value: binding.resource.index } }]),
+                        ],
+                      },
+                    },
+                  ]),
+            ],
     },
   }));
   const byPath = new Map<string, TargetTsObjectProperty[]>();
@@ -817,8 +1063,32 @@ export function familyMaterialOverride(emission: FamilyEmission, setters: readon
   return setters.flatMap((setter) => {
     const resource = resourceOf(emission, setter.value);
     if (resource === undefined) return [];
-    return [{ key: `surface_material_override/${String(setter.index)}`, value: identifier(sharedMaterial(emission, resource)) }];
+    return [{ key: `surface_material_override/${String(setter.index)}`, value: identifier(threeMaterialOf(emission, resource)) }];
   });
+}
+
+/**
+ * An imported model's geometry drawn with one material (`material_override`): the three material
+ * its resource is, a spatial shader's included.
+ */
+export function familyModelMaterialOverride(emission: FamilyEmission, setter: TargetGodotSceneSetterPlan | undefined): TargetTsObjectProperty[] {
+  const resource = setter === undefined ? undefined : resourceOf(emission, setter.value);
+  return resource === undefined ? [] : [{ key: 'material_override', value: identifier(threeMaterialOf(emission, resource)) }];
+}
+
+/**
+ * A preloaded resource's module (`TargetGodotResourceModulePlan`): its three material, or the
+ * resource compat makes, declared at module level; the local it is declared as.
+ */
+export function familyResourceModuleLocal(emission: FamilyEmission, key: string): string {
+  const resource = emission.resources.get(key);
+  if (resource === undefined) throw new Error(`${key}: a resource module without its resource`);
+  return resource.idiom?.kind === 'material' || resource.idiom?.kind === 'shader-material' ? threeMaterialOf(emission, resource) : resourceLocal(emission, key);
+}
+
+/** A material resource's three material: a ShaderMaterial's custom shader material, else its own. */
+function threeMaterialOf(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  return resource.idiom?.kind === 'shader-material' ? shaderMaterialThree(emission, resource) : sharedMaterial(emission, resource);
 }
 
 /**
@@ -829,7 +1099,7 @@ export function familyModelMaterials(emission: FamilyEmission, materials: readon
   return materials.flatMap(({ name, key }) => {
     const resource = emission.resources.get(key);
     if (resource === undefined) return [];
-    return [{ key: name, value: identifier(sharedMaterial(emission, resource)) }];
+    return [{ key: name, value: identifier(threeMaterialOf(emission, resource)) }];
   });
 }
 
@@ -842,6 +1112,8 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
   const own = setters.filter((setter) => setter.collect === undefined);
   // The node's metadata entries, one `meta` prop (`Object::_set`, `metadata/NAME`).
   const meta = setters.filter((setter) => setter.collect === 'meta');
+  // A Control's theme overrides, one `themeOverrides` prop by `<setter>/NAME`.
+  const theme = setters.filter((setter) => setter.collect === 'theme');
   return [
     ...(libraries.length === 0
       ? []
@@ -860,6 +1132,9 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
     ...(meta.length === 0
       ? []
       : [attribute('meta', { kind: 'object-expression', properties: meta.map((setter) => ({ key: String(setter.index), value: metaValue(emission, setter.value) })) })]),
+    ...(theme.length === 0
+      ? []
+      : [attribute('themeOverrides', { kind: 'object-expression', properties: theme.map((setter) => ({ key: `${setter.setter.exportName}/${String(setter.index)}`, value: propValue(emission, setter.value) })) })]),
     ...(parameters.length === 0
       ? []
       : [attribute('parameters', { kind: 'object-expression', properties: parameters.map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) })) })]),
@@ -898,6 +1173,41 @@ function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResource
   return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}:${String(model)}`, `${stemOf(texture.key)} map`, made, []);
 }
 
+/**
+ * A ShaderMaterial of a spatial shader as the three material it draws (`spatial-material.ts`),
+ * declared once, and its `TIME` uniform set from R3F's clock each frame, as a three shader's time
+ * uniform is.
+ */
+function shaderMaterialThree(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const key = `${resource.key}\0three`;
+  const existing = emission.shared.get(key);
+  if (existing !== undefined) return existing;
+  const record = resourceLocal(emission, resource.key);
+  const made: TargetTsExpression = { kind: 'call-expression', callee: identifier(useCompat(emission, 'spatial-material', 'godot_shader_material_three')), arguments: [identifier(record)] };
+  const local = declareShared(emission, key, `${stemOf(resource.key)} material`, made, emission.loaded.has(record) ? [record] : []);
+  emission.fiber.add('useFrame');
+  const time: TargetTsExpression = {
+    kind: 'property-expression',
+    object: { kind: 'property-expression', object: { kind: 'property-expression', object: identifier(local), property: 'uniforms' }, property: 'godot_TIME' },
+    property: 'value',
+  };
+  emission.hooks.push({
+    kind: 'expression-statement',
+    expression: {
+      kind: 'call-expression',
+      callee: identifier('useFrame'),
+      arguments: [
+        {
+          kind: 'arrow-expression',
+          parameters: [{ name: 'state' }],
+          body: { kind: 'assignment-expression', operator: '=', target: time, value: { kind: 'property-expression', object: { kind: 'property-expression', object: identifier('state'), property: 'clock' }, property: 'elapsedTime' } },
+        },
+      ],
+    },
+  });
+  return local;
+}
+
 /** A particle system's mesh as the three geometry and material it draws, declared once in the module. */
 function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePlan | undefined): TargetTsJsxAttribute[] {
   if (mesh === undefined) return [];
@@ -905,7 +1215,7 @@ function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePl
   const material = surface === undefined ? undefined : emission.resources.get(surface);
   return [
     attribute('geometry', identifier(sharedGeometry(emission, mesh))),
-    ...(material === undefined ? [] : [attribute('material', identifier(sharedMaterial(emission, material)))]),
+    ...(material === undefined ? [] : [attribute('material', identifier(threeMaterialOf(emission, material)))]),
   ];
 }
 
@@ -952,6 +1262,13 @@ export function familyElement(
       else children.push(geometry(emission, mesh));
       materials.forEach((resource, surface) => {
         const attach = materials.length === 1 ? [] : [{ kind: 'jsx-string-attribute' as const, name: 'attach', value: `material-${String(surface)}` }];
+        // A spatial shader's material is three's custom shader material over the ShaderMaterial.
+        if (resource?.idiom?.kind === 'shader-material') {
+          const local = identifier(shaderMaterialThree(emission, resource));
+          if (materials.length === 1) attributes.push(attribute('material', local));
+          else children.push(element('primitive', [attribute('object', local), ...attach]));
+          return;
+        }
         // A material a factory makes has no element: it is declared, as a shared one is.
         const made = resource?.idiom?.kind === 'material' && resource.idiom.factory !== undefined;
         if (resource !== undefined && (made || sharedResource(emission, resource))) {
@@ -974,6 +1291,8 @@ export function familyElement(
         attributes: [
           // Godot's directional light shines along its -Z; three's toward its target, which this
           // aims; its Godot state is the values the scene authors (the sky pass reads them).
+          // A spot light aims along its -Z by compat's hand, as the directional light's pass does.
+          ...(light.aim === undefined ? [] : [attribute('onUpdate', identifier(useCompat(emission, light.aim.module, light.aim.exportName)))]),
           ...(authored === undefined
             ? []
             : [
@@ -1021,14 +1340,24 @@ export function familyElement(
           // Its cull mask is three's camera layers (`camera-3d.ts`); three's default is layer 0
           // alone, Godot's all 20 (`camera_3d.h:83`), so the mask is always stated.
           attribute('layers-mask', literal(lens.cullMask)),
-          // Its own environment, drawn in place of the world's while the viewport draws with it.
-          ...(lens.environment === undefined
+          // Its own environment, drawn in place of the world's while the viewport draws with it, and
+          // an orthogonal or frustum projection: what the drei camera has no prop for.
+          ...(lens.environment === undefined && lens.projection === undefined && lens.size === undefined
             ? []
             : [
                 attribute('onUpdate', {
                   kind: 'call-expression',
-                  callee: identifier(useCompat(emission, 'camera-3d', 'godot_camera_3d_environment_prop')),
-                  arguments: [propValue(emission, lens.environment)],
+                  callee: identifier(useCompat(emission, 'camera-3d', 'godot_camera_3d_lens_prop')),
+                  arguments: [
+                    {
+                      kind: 'object-expression',
+                      properties: [
+                        ...(lens.environment === undefined ? [] : [{ key: 'environment', value: propValue(emission, lens.environment) }]),
+                        ...(lens.projection === undefined ? [] : [{ key: 'projection', value: literal(lens.projection) }]),
+                        ...(lens.size === undefined ? [] : [{ key: 'size', value: literal(lens.size) }]),
+                      ],
+                    },
+                  ],
                 }),
               ]),
         ],
@@ -1068,5 +1397,20 @@ export function familyImports(emission: FamilyEmission): TargetTsStatement[] {
       defaultBinding: local,
       namedBindings: [],
     })),
+    ...[...emission.project].map(([module, names]) => ({
+      kind: 'import-statement' as const,
+      module,
+      namedBindings: [...names].sort().map((name) => ({ imported: name, local: name })),
+    })),
   ];
+}
+
+/** A name another module of the project exports, imported into the scene's (none from itself). */
+function projectImport(emission: FamilyEmission, file: string, name: string): string {
+  if (file === emission.targetPath) return name;
+  const module = moduleSpecifier(emission.targetPath, file);
+  const names = emission.project.get(module) ?? new Set<string>();
+  names.add(name);
+  emission.project.set(module, names);
+  return name;
 }

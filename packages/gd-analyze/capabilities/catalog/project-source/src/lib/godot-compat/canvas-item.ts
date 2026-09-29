@@ -19,10 +19,15 @@
 
 import type { Object3D } from 'three';
 import { type Color, construct as color } from './color';
-import { godot_node_entity, is_inside_tree } from './node';
-import { construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
+import { godot_canvas_item_material_css_blend } from './canvas-item-material';
+import { godot_input_mouse_position } from './input';
+import { get_viewport, godot_node_entity, is_inside_tree } from './node';
+import type { Rect2 } from './rect2';
+import { get_visible_rect } from './viewport';
+import { affine_inverse, construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
 import type { Vector2 } from './vector2';
 import type { GodotElementProp } from './react-lifecycle';
+import { get_global_position as controlGlobalPosition, get_position as controlPosition, get_rotation as controlRotation, get_scale as controlScale } from './control';
 
 /** What the class that places and draws a canvas item gives it. */
 export interface CanvasItemClass {
@@ -54,6 +59,12 @@ interface CanvasItemState {
   selfModulate: Color;
   zIndex: number;
   zRelative: boolean;
+  /** Its material, and whether it draws with its parent's instead (`use_parent_material`). */
+  material: object | null;
+  useParentMaterial: boolean;
+  /** `TextureFilter` and `TextureRepeat` (`canvas_item.h:52`); 0 takes the parent's. */
+  textureFilter: number;
+  textureRepeat: number;
 }
 
 interface CanvasLayerLink {
@@ -71,6 +82,54 @@ const Z_MAX = 4096;
 
 function entityOf(self: object): Object3D {
   return godot_node_entity(self) as Object3D;
+}
+
+/**
+ * The CSS filter tinting an element by a colour (a Control's `modulate`): an SVG colour matrix in
+ * the page, made once per colour.
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/canvas_item.cpp:575
+ */
+export function godot_canvas_item_css_tint(r: number, g: number, b: number): string {
+  return typeof document === 'undefined' || document.body === null ? '' : colorFilter(document.body, color(r, g, b, 1));
+}
+
+/** A Control's element (docs/GODOT.md "UI is React DOM"), whose own style is its CanvasItem state. */
+function domItem(self: object): HTMLElement | undefined {
+  const entity = godot_node_entity(self) as unknown;
+  return typeof HTMLElement !== 'undefined' && entity instanceof HTMLElement ? entity : undefined;
+}
+
+/** A Control element's modulation, which its style draws (`opacity`, a colour filter). */
+const DOM_MODULATE = new WeakMap<HTMLElement, { modulate: Color; selfModulate: Color }>();
+
+function domModulate(element: HTMLElement): { modulate: Color; selfModulate: Color } {
+  let own = DOM_MODULATE.get(element);
+  if (own === undefined) {
+    const opacity = element.style.opacity === '' ? 1 : Number(element.style.opacity);
+    own = { modulate: color(1, 1, 1, opacity), selfModulate: color(1, 1, 1, 1) };
+    DOM_MODULATE.set(element, own);
+  }
+  return own;
+}
+
+/** `modulate` times `self_modulate` as the element's opacity and, for a tint, an SVG colour matrix. */
+function drawDomModulate(element: HTMLElement): void {
+  const { modulate, selfModulate } = domModulate(element);
+  const product = color(modulate.r * selfModulate.r, modulate.g * selfModulate.g, modulate.b * selfModulate.b, modulate.a * selfModulate.a);
+  element.style.opacity = product.a === 1 ? '' : String(product.a);
+  const body = element.ownerDocument.body;
+  element.style.filter = product.r === 1 && product.g === 1 && product.b === 1 ? '' : colorFilter(body, color(product.r, product.g, product.b, 1));
+}
+
+/** A Control element's shown state: hidden by `display: none`, shown in the display its layout gave it (`data-display`). */
+function setDomVisible(element: HTMLElement, visible: boolean): void {
+  if (visible) element.style.display = element.dataset['display'] ?? '';
+  else {
+    if (element.style.display !== 'none') element.dataset['display'] = element.style.display;
+    element.style.display = 'none';
+  }
 }
 
 function stateOf(self: object, member: string): CanvasItemState {
@@ -96,6 +155,10 @@ export function godot_canvas_item_mount(entity: Object3D, classes: readonly stri
     selfModulate: color(1, 1, 1, 1),
     zIndex: 0,
     zRelative: true,
+    material: null,
+    useParentMaterial: false,
+    textureFilter: 0,
+    textureRepeat: 0,
   });
 }
 
@@ -117,6 +180,16 @@ export function godot_canvas_item_layer(entity: Object3D, link: CanvasLayerLink)
  */
 export function godot_canvas_item_is(entity: object, className: string): boolean {
   return ITEMS.get(entity as Object3D)?.classes.includes(className) ?? false;
+}
+
+/**
+ * A canvas item's Godot class and its native ancestors, nearest first.
+ *
+ * @godot CanvasItem (protocol)
+ * @source core/object/object.h:677
+ */
+export function godot_canvas_item_classes(entity: object): readonly string[] {
+  return ITEMS.get(entity as Object3D)?.classes ?? [];
 }
 
 /**
@@ -170,7 +243,21 @@ export function godot_canvas_item_layer_number(layer: Object3D): number {
  */
 export function godot_canvas_item_canvas_transform(entity: Object3D): Transform2D {
   const layer = godot_canvas_item_layer_of(entity);
-  return layer === null ? transform2d() : (LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer);
+  return layer === null ? rootCanvasTransform : (LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer);
+}
+
+/** The root viewport's canvas transform, which its current Camera2D sets (`Viewport::set_canvas_transform`). */
+let rootCanvasTransform: Transform2D = transform2d();
+
+/**
+ * Sets the root viewport's canvas transform (a current Camera2D's view, `camera_2d.cpp:326`): the
+ * canvas's items outside a canvas layer draw through it.
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/viewport.cpp:1111
+ */
+export function godot_canvas_item_set_canvas_transform(transform: Transform2D): void {
+  rootCanvasTransform = transform;
 }
 
 /**
@@ -219,6 +306,8 @@ export function godot_canvas_item_propagate_visibility(entity: Object3D): void {
  * @source scene/main/canvas_item.cpp:86
  */
 export function set_visible(self: object, p_visible: boolean): void {
+  const element = domItem(self);
+  if (element !== undefined) return setDomVisible(element, p_visible);
   const state = stateOf(self, 'set_visible');
   if (state.visible === p_visible) return;
   state.visible = p_visible;
@@ -235,6 +324,8 @@ export function set_visible(self: object, p_visible: boolean): void {
  * @source scene/main/canvas_item.cpp:133
  */
 export function is_visible(self: object): boolean {
+  const element = domItem(self);
+  if (element !== undefined) return element.style.display !== 'none';
   return stateOf(self, 'is_visible').visible;
 }
 
@@ -261,6 +352,8 @@ export function hide(self: object): void {
  * @source scene/main/canvas_item.cpp:72
  */
 export function is_visible_in_tree(self: object): boolean {
+  const element = domItem(self);
+  if (element !== undefined) return element.isConnected && element.checkVisibility();
   const state = stateOf(self, 'is_visible_in_tree');
   return state.visible && parentVisibleInTree(entityOf(self));
 }
@@ -270,6 +363,11 @@ export function is_visible_in_tree(self: object): boolean {
  * @source scene/main/canvas_item.cpp:575
  */
 export function set_modulate(self: object, p_modulate: Color): void {
+  const element = domItem(self);
+  if (element !== undefined) {
+    domModulate(element).modulate = p_modulate;
+    return drawDomModulate(element);
+  }
   stateOf(self, 'set_modulate').modulate = p_modulate;
 }
 
@@ -278,6 +376,8 @@ export function set_modulate(self: object, p_modulate: Color): void {
  * @source scene/main/canvas_item.cpp:585
  */
 export function get_modulate(self: object): Color {
+  const element = domItem(self);
+  if (element !== undefined) return domModulate(element).modulate;
   return stateOf(self, 'get_modulate').modulate;
 }
 
@@ -286,6 +386,11 @@ export function get_modulate(self: object): Color {
  * @source scene/main/canvas_item.cpp:655
  */
 export function set_self_modulate(self: object, p_self_modulate: Color): void {
+  const element = domItem(self);
+  if (element !== undefined) {
+    domModulate(element).selfModulate = p_self_modulate;
+    return drawDomModulate(element);
+  }
   stateOf(self, 'set_self_modulate').selfModulate = p_self_modulate;
 }
 
@@ -294,6 +399,8 @@ export function set_self_modulate(self: object, p_self_modulate: Color): void {
  * @source scene/main/canvas_item.cpp:665
  */
 export function get_self_modulate(self: object): Color {
+  const element = domItem(self);
+  if (element !== undefined) return domModulate(element).selfModulate;
   return stateOf(self, 'get_self_modulate').selfModulate;
 }
 
@@ -305,6 +412,11 @@ export function get_self_modulate(self: object): Color {
  */
 export function set_z_index(self: object, p_z: number): void {
   if (p_z < Z_MIN || p_z > Z_MAX) return;
+  const element = domItem(self);
+  if (element !== undefined) {
+    element.style.zIndex = p_z === 0 ? '' : String(p_z);
+    return;
+  }
   stateOf(self, 'set_z_index').zIndex = p_z;
 }
 
@@ -313,6 +425,8 @@ export function set_z_index(self: object, p_z: number): void {
  * @source scene/main/canvas_item.cpp:791
  */
 export function get_z_index(self: object): number {
+  const element = domItem(self);
+  if (element !== undefined) return element.style.zIndex === '' ? 0 : Number(element.style.zIndex);
   return stateOf(self, 'get_z_index').zIndex;
 }
 
@@ -356,6 +470,8 @@ export function is_set_as_top_level(self: object): boolean {
  * @source scene/main/canvas_item.cpp:1527
  */
 export function get_transform(self: object): Transform2D {
+  // A Control's element: its position in its parent, its rotation and scale (skew none).
+  if (domItem(self) !== undefined) return transform2d(controlRotation(self), controlScale(self), 0, controlPosition(self));
   return stateOf(self, 'get_transform').class.transform(entityOf(self));
 }
 
@@ -367,6 +483,8 @@ export function get_transform(self: object): Transform2D {
  * @source scene/main/canvas_item.cpp:200
  */
 export function get_global_transform(self: object): Transform2D {
+  // A Control's element: where the page placed it in its 2D world, with its own rotation and scale.
+  if (domItem(self) !== undefined) return transform2d(controlRotation(self), controlScale(self), 0, controlGlobalPosition(self));
   const entity = entityOf(self);
   const state = stateOf(self, 'get_global_transform');
   const own = state.class.transform(entity);
@@ -383,11 +501,13 @@ export function get_global_transform(self: object): Transform2D {
  * @source scene/main/canvas_item.cpp:183
  */
 export function get_global_transform_with_canvas(self: object): Transform2D {
+  // A Control's element is laid out in the page's 2D world, which no canvas transform moves.
+  if (domItem(self) !== undefined) return get_global_transform(self);
   const entity = entityOf(self);
   const global = get_global_transform(self);
   const layer = godot_canvas_item_layer_of(entity);
   if (layer !== null) return op_multiply((LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer), global);
-  if (is_inside_tree(entity)) return op_multiply(transform2d(), global);
+  if (is_inside_tree(entity)) return op_multiply(rootCanvasTransform, global);
   return global;
 }
 
@@ -487,7 +607,7 @@ export function godot_canvas_item_self_filter(entity: Object3D, element: HTMLEle
 const STYLES = new WeakMap<HTMLElement, Map<string, string>>();
 
 /** Writes a style property only when its value changed (`canvas_item_set_*` sends a change). */
-function put(element: HTMLElement, property: 'position' | 'left' | 'top' | 'width' | 'height' | 'pointerEvents' | 'zIndex' | 'transformOrigin' | 'transform' | 'display' | 'filter', value: string): void {
+function put(element: HTMLElement, property: 'position' | 'left' | 'top' | 'width' | 'height' | 'pointerEvents' | 'zIndex' | 'transformOrigin' | 'transform' | 'display' | 'filter' | 'mixBlendMode' | 'imageRendering', value: string): void {
   let written = STYLES.get(element);
   if (written === undefined) {
     written = new Map();
@@ -557,6 +677,9 @@ export function godot_canvas_item_draw(entity: Object3D, viewport: Object3D, roo
   root.dataset['godotRoot'] = '';
   const own = viewportCanvas(root);
   if (own.parentElement !== root) root.appendChild(own);
+  // The viewport's canvas transform (its Camera2D's view) moves the whole canvas.
+  own.style.transformOrigin = '0px 0px';
+  own.style.transform = matrix(rootCanvasTransform);
   const element = elementOf(entity, root.ownerDocument);
   const place = is_inside_tree(entity) ? placeOf(entity, viewport, root) : undefined;
   if (place === undefined) {
@@ -591,12 +714,95 @@ export function godot_canvas_item_draw(entity: Object3D, viewport: Object3D, roo
   put(element, 'display', state.visible ? '' : 'none');
   put(element, 'zIndex', String(state.zIndex));
   put(element, 'filter', colorFilter(root, state.modulate));
+  put(element, 'mixBlendMode', godot_canvas_item_material_css_blend(materialOf(entity, state)));
+  // Nearest filtering is the page's pixelated rendering, which its children inherit as the parent
+  // node's filter (`get_texture_filter_in_tree`, `canvas_item.cpp:1760`); linear is the page's own.
+  put(element, 'imageRendering', state.textureFilter === 0 ? '' : state.textureFilter % 2 === 1 ? 'pixelated' : 'auto');
   placeIn(entity, element, state.topLevel ? place.canvas : place.container);
   if (state.class.draw === undefined) return;
   const key = state.class.drawKey?.(entity, element);
   if (key !== undefined && DRAWN.get(entity) === key) return;
   state.class.draw(entity, element);
   if (key !== undefined) DRAWN.set(entity, key);
+}
+
+/** The material an item draws with: its own, or its parent item's where it uses the parent's. */
+function materialOf(entity: Object3D, state: CanvasItemState): object | null {
+  if (!state.useParentMaterial) return state.material;
+  const parent = entity.parent;
+  const parentState = parent === null ? undefined : ITEMS.get(parent);
+  return parent === null || parentState === undefined ? null : materialOf(parent, parentState);
+}
+
+/**
+ * @godot CanvasItem.set_texture_filter
+ * @source scene/main/canvas_item.cpp:1665
+ */
+export function set_texture_filter(self: object, texture_filter: number): void {
+  stateOf(self, 'set_texture_filter').textureFilter = texture_filter;
+}
+
+/**
+ * @godot CanvasItem.get_texture_filter
+ * @source scene/main/canvas_item.cpp:1676
+ */
+export function get_texture_filter(self: object): number {
+  return stateOf(self, 'get_texture_filter').textureFilter;
+}
+
+/**
+ * Stored and read back; the page repeats a texture where its drawing asks for it.
+ *
+ * @godot CanvasItem.set_texture_repeat
+ * @source scene/main/canvas_item.cpp:1720
+ */
+export function set_texture_repeat(self: object, texture_repeat: number): void {
+  stateOf(self, 'set_texture_repeat').textureRepeat = texture_repeat;
+}
+
+/**
+ * @godot CanvasItem.get_texture_repeat
+ * @source scene/main/canvas_item.cpp:1755
+ */
+export function get_texture_repeat(self: object): number {
+  return stateOf(self, 'get_texture_repeat').textureRepeat;
+}
+
+/**
+ * The item's material (a CanvasItemMaterial's blend is its element's CSS blend; a shader material's
+ * shader is not run by the page's canvas).
+ *
+ * @godot CanvasItem.set_material
+ * @source scene/main/canvas_item.cpp:1180
+ */
+export function set_material(self: object, material: object | null): void {
+  const state = ITEMS.get(entityOf(self));
+  if (state !== undefined) state.material = material;
+}
+
+/**
+ * @godot CanvasItem.get_material
+ * @source scene/main/canvas_item.cpp:1196
+ */
+export function get_material(self: object): object | null {
+  return ITEMS.get(entityOf(self))?.material ?? null;
+}
+
+/**
+ * @godot CanvasItem.set_use_parent_material
+ * @source scene/main/canvas_item.cpp:1186
+ */
+export function set_use_parent_material(self: object, use: boolean): void {
+  const state = ITEMS.get(entityOf(self));
+  if (state !== undefined) state.useParentMaterial = use;
+}
+
+/**
+ * @godot CanvasItem.get_use_parent_material
+ * @source scene/main/canvas_item.cpp:1192
+ */
+export function get_use_parent_material(self: object): boolean {
+  return ITEMS.get(entityOf(self))?.useParentMaterial ?? false;
 }
 
 /**
@@ -633,5 +839,42 @@ export function godot_canvas_item_props(): (readonly [string, GodotElementProp<O
     ['topLevel', (entity, value: boolean) => set_as_top_level(entity, value)],
     ['zIndex', (entity, value: number) => set_z_index(entity, value)],
     ['zAsRelative', (entity, value: boolean) => set_z_as_relative(entity, value)],
+    ['material', (entity, value: object | null) => set_material(entity, value)],
+    ['useParentMaterial', (entity, value: boolean) => set_use_parent_material(entity, value)],
+    ['textureFilter', (entity, value: number) => set_texture_filter(entity, value)],
+    ['textureRepeat', (entity, value: number) => set_texture_repeat(entity, value)],
   ];
+}
+
+/**
+ * The rect of the viewport the item is in (`get_viewport()->get_visible_rect()`); outside the tree
+ * it fails.
+ *
+ * @godot CanvasItem.get_viewport_rect
+ * @source scene/main/canvas_item.cpp:450
+ */
+export function get_viewport_rect(self: object): Rect2 {
+  const viewport = get_viewport(godot_node_entity(self));
+  if (viewport === null) throw new Error('godot-compat: CanvasItem.get_viewport_rect outside the tree');
+  return get_visible_rect(viewport);
+}
+
+/**
+ * The mouse's position in the item's own coordinates: the viewport's mouse position through the
+ * inverse of the item's transform with its canvas.
+ *
+ * @godot CanvasItem.get_local_mouse_position
+ * @source scene/main/canvas_item.cpp:1105
+ */
+export function get_local_mouse_position(self: object): Vector2 {
+  return op_multiply(affine_inverse(get_global_transform_with_canvas(self)), godot_input_mouse_position());
+}
+
+/**
+ * @godot CanvasItem.get_global_mouse_position
+ * @source scene/main/canvas_item.cpp:1096
+ */
+export function get_global_mouse_position(self: object): Vector2 {
+  void self;
+  return godot_input_mouse_position();
 }

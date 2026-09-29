@@ -14,6 +14,7 @@
  */
 
 import { godot_node_entity, godot_node_is_freed, godot_node_is_queued, godot_node_object } from './node';
+import { emitRetainedGodotSignal, godot_object_signal, isRetainedGodotSignal } from './signal';
 
 /** Runs `run` after the current work, unless its target has been freed by then. */
 function defer(target: object, run: () => void): void {
@@ -39,6 +40,37 @@ export function call_deferred(self: object, method: string, ...args: readonly un
       console.error(error);
     }
   });
+}
+
+/**
+ * `self.property = value` by name: a script instance's field. A native class's property by name
+ * needs its setter, and an AnimationTree's `parameters/…` its parameter protocol, which lowering
+ * supplies (`treeParameterCall`); either fails by name here.
+ *
+ * @godot Object.set
+ * @source core/object/object.cpp:335
+ */
+export function set(self: object, property: string, value: unknown): void {
+  const name = String(property);
+  const script = godot_node_object(godot_node_entity(self)) as Record<string, unknown>;
+  if (name in script && typeof script[name] !== 'function') {
+    script[name] = value;
+    return;
+  }
+  throw new Error(`godot-compat: Object.set of the native property ${name} is not bound by name.`);
+}
+
+/**
+ * `self.property` by name, as `set` finds it.
+ *
+ * @godot Object.get
+ * @source core/object/object.cpp:418
+ */
+export function get(self: object, property: string): unknown {
+  const name = String(property);
+  const script = godot_node_object(godot_node_entity(self)) as Record<string, unknown>;
+  if (name in script && typeof script[name] !== 'function') return script[name];
+  throw new Error(`godot-compat: Object.get of the native property ${name} is not bound by name.`);
 }
 
 /**
@@ -191,4 +223,19 @@ export function has_method(self: object, method: string): boolean {
     prototype = Object.getPrototypeOf(prototype) as object | null;
   }
   return false;
+}
+
+/**
+ * Emits the object's signal of that name: its script's (`signal hit`), else the engine signal its
+ * object's map holds (`Object::emit_signalp`, `object.cpp:1274`); OK either way.
+ *
+ * @godot Object.emit_signal
+ * @source core/object/object.cpp:1246
+ */
+export function emit_signal(self: object, signal: string, ...args: readonly unknown[]): number {
+  const entity = godot_node_entity(self);
+  const own = (godot_node_object(entity) as Record<string, unknown> | undefined)?.[String(signal)];
+  if (isRetainedGodotSignal(own)) emitRetainedGodotSignal(own, args);
+  else godot_object_signal(entity, String(signal)).emit(...args);
+  return 0;
 }

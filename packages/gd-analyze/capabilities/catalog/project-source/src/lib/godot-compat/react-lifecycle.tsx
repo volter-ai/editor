@@ -30,6 +30,7 @@ import {
   type GodotScriptLifecycleBinding,
   godot_element_callsite,
   godot_node_adopt,
+  godot_node_dom_host,
   godot_node_defer_node_path,
   godot_node_object,
   godot_node_enter,
@@ -55,11 +56,34 @@ import { type GodotSignal, isRetainedGodotSignal } from './signal';
 import { godot_owned_release } from './scene-tree';
 
 /**
- * The node an element's ref holds: its object, or for a `@react-three/rapier` body (whose ref is
- * the Rapier body) the body's object.
+ * The node an element's ref holds: its object, a Control's DOM element, or for a
+ * `@react-three/rapier` body (whose ref is the Rapier body) the body's object.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:4092
  */
+export function godot_element_node(held: object | null): object | null {
+  return nodeOf(held);
+}
+
+/**
+ * A host element's `ref` callback for the Controls a scene sends to the page (`ui.In`): the host
+ * stands for `parent` (a node's ref, or the tree's root) in the Node tree while it is mounted.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/canvas_layer.cpp:359
+ */
+export function godot_element_dom_host(parent: RefObject<object | null> | object, host: HTMLElement | null): (() => void) | undefined {
+  if (host === null) return undefined;
+  const node = nodeOf('current' in parent ? (parent as RefObject<object | null>).current : parent);
+  if (node === null) return undefined;
+  godot_node_dom_host(node, host);
+  return () => godot_node_dom_host(node, null);
+}
+
 function nodeOf(held: object | null): object | null {
   if (held === null || (held as { readonly isObject3D?: boolean }).isObject3D === true) return held;
+  if (typeof HTMLElement !== 'undefined' && held instanceof HTMLElement) return held;
   return godot_collision_object_node(held) ?? null;
 }
 
@@ -316,8 +340,11 @@ export type GodotElementProp<Entity> = (entity: Entity, value: never) => void;
 /** How a node class is written as a JSX element (`useGodotElement`). */
 export interface GodotElementClass<Entity extends Object3D> {
   readonly create: () => Entity;
-  /** The class and its native ancestors, nearest first; a canvas or plain node is not spatial. */
-  readonly classes: readonly string[];
+  /**
+   * The class and its native ancestors, nearest first; absent where the scene states them in the
+   * element's `userData` (`classes`). A canvas or plain node is not spatial.
+   */
+  readonly classes?: readonly string[];
   readonly spatial: boolean;
   /** Makes the entity the node its class creates, before its properties. */
   readonly mount: (entity: Entity) => void;
@@ -352,7 +379,7 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     const made = element.create();
     if (name !== undefined) made.name = name;
     godot_element_callsite(made, callsite);
-    godot_node_adopt(made, { kind: element.spatial ? 'spatial' : 'node', classes: element.classes });
+    godot_node_adopt(made, { kind: element.spatial ? 'spatial' : 'node', ...(element.classes === undefined ? {} : { classes: element.classes }) });
     element.mount(made);
     for (const [property, value] of Object.entries(properties)) {
       // `userData` (or one of its fields, `userData-NAME`) is the node's Godot-only state (its groups,
@@ -367,8 +394,8 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
       // `physics_interpolation_mode`, which every class inherits (`node.cpp:4056`).
       const set =
         element.props.get(property) ??
-        (property === 'visible' && element.classes.includes('Node3D') ? set_visible : property === 'physicsInterpolationMode' ? set_physics_interpolation_mode : undefined);
-      if (set === undefined) throw new Error(`godot-compat: ${element.classes[0] ?? 'a node'} has no ${property} prop`);
+        (property === 'visible' && element.spatial ? set_visible : property === 'physicsInterpolationMode' ? set_physics_interpolation_mode : undefined);
+      if (set === undefined) throw new Error(`godot-compat: ${element.classes?.[0] ?? name ?? 'a node'} has no ${property} prop`);
       (set as (entity: Entity, value: unknown) => void)(made, value);
     }
     return made;

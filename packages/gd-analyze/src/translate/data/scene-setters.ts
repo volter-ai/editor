@@ -27,6 +27,17 @@ export interface SceneSetterBinding {
  */
 export type SceneSetterLookup = ((className: string, property: string) => SceneSetterBinding | string) & {
   readonly method?: (className: string, method: string) => SceneSetterBinding | string;
+  /** The property's getter (a value track's `Object::get_indexed` of a sub-property). */
+  readonly getter?: (className: string, property: string) => SceneSetterBinding | string;
+  /** The property's declared type: a built-in's name, or the class an object property holds. */
+  readonly propertyType?: (className: string, property: string) => string | undefined;
+  /** The one class at or below `className` that declares `property`, if exactly one does. */
+  readonly declaring?: (className: string, property: string) => string | undefined;
+  /**
+   * The property's setter by its Godot name, bound or not: a Control's authored properties are its
+   * element's style (`scene-control-idioms.ts`), which no setter call makes.
+   */
+  readonly unbound?: (className: string, property: string) => SceneSetterBinding | string;
 };
 
 /**
@@ -37,9 +48,56 @@ export type SceneSetterLookup = ((className: string, property: string) => SceneS
  * Internal properties the API dump leaves out (`PROPERTY_USAGE_INTERNAL`) that a scene stores, and
  * their internal setters, bound in ClassDB: `Curve._data` (`scene/resources/curve.cpp:646`).
  */
+/**
+ * A Generic6DOFJoint3D's per-axis properties (`linear_limit_x/upper_distance`), which the API dump
+ * leaves out of the class: each its axis's `set_flag_<axis>` or `set_param_<axis>` at the index its
+ * `ADD_PROPERTYI` names (`generic_6dof_joint_3d.cpp:52`), by the property's group and field.
+ */
+const SIX_DOF = /^((?:linear|angular)_(?:limit|motor|spring))_([xyz])\/(\w+)$/u;
+const SIX_DOF_SLOTS: Readonly<Record<string, readonly ['flag' | 'param', number]>> = {
+  'linear_limit/enabled': ['flag', 0],
+  'linear_limit/upper_distance': ['param', 1],
+  'linear_limit/lower_distance': ['param', 0],
+  'linear_limit/softness': ['param', 2],
+  'linear_limit/restitution': ['param', 3],
+  'linear_limit/damping': ['param', 4],
+  'linear_motor/enabled': ['flag', 5],
+  'linear_motor/target_velocity': ['param', 5],
+  'linear_motor/force_limit': ['param', 6],
+  'linear_spring/enabled': ['flag', 3],
+  'linear_spring/stiffness': ['param', 7],
+  'linear_spring/damping': ['param', 8],
+  'linear_spring/equilibrium_point': ['param', 9],
+  'angular_limit/enabled': ['flag', 1],
+  'angular_limit/upper_angle': ['param', 11],
+  'angular_limit/lower_angle': ['param', 10],
+  'angular_limit/softness': ['param', 12],
+  'angular_limit/restitution': ['param', 14],
+  'angular_limit/damping': ['param', 13],
+  'angular_limit/force_limit': ['param', 15],
+  'angular_limit/erp': ['param', 16],
+  'angular_motor/enabled': ['flag', 4],
+  'angular_motor/target_velocity': ['param', 17],
+  'angular_motor/force_limit': ['param', 18],
+  'angular_spring/enabled': ['flag', 2],
+  'angular_spring/stiffness': ['param', 19],
+  'angular_spring/damping': ['param', 20],
+  'angular_spring/equilibrium_point': ['param', 21],
+};
+/** A PinJoint3D's `params/<name>`, `set_param` at its `Param` (`pin_joint_3d.cpp:37`). */
+const PIN_PARAM = /^params\/(bias|damping|impulse_clamp)$/u;
+const PIN_PARAMS = ['bias', 'damping', 'impulse_clamp'];
+
 export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   // `curve.cpp:644`, `:646`.
   Curve: { _limits: '_set_limits', _data: '_set_data' },
+  // `curve.cpp:1467`.
+  Curve2D: { _data: '_set_data' },
+  Curve3D: { _data: '_set_data' },
+  // `sprite_frames.cpp:229`.
+  SpriteFrames: { animations: '_set_animations' },
+  // `audio_listener_3d.cpp:42`: `current` makes the listener current, or not.
+  AudioListener3D: { current: '_set_current' },
 };
 
 const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/;
@@ -62,6 +120,17 @@ const RANDOMIZER_ENTRY = /^stream_(\d+)\/(stream|weight)$/;
  * object's metadata entry of that name.
  */
 const METADATA = /^metadata\/(.+)$/;
+
+/** A Control's theme override (`theme_override_<kind>/NAME`, `Control::_set`, `control.cpp:340`) and its setter. */
+const THEME_OVERRIDE = /^theme_override_(font_sizes|fonts|colors|constants|styles|icons)\/(.+)$/;
+const THEME_OVERRIDE_SETTERS: Readonly<Record<string, string>> = {
+  font_sizes: 'add_theme_font_size_override',
+  fonts: 'add_theme_font_override',
+  colors: 'add_theme_color_override',
+  constants: 'add_theme_constant_override',
+  styles: 'add_theme_stylebox_override',
+  icons: 'add_theme_icon_override',
+};
 
 /**
  * `ShaderMaterial::_set` (`scene/resources/material.cpp:197`): `shader_parameter/NAME` is
@@ -116,7 +185,7 @@ export function sceneSetterLookup(
     const selected = method(className, name);
     return selected === undefined ? `${className} has no method ${name}` : bind(selected.owner, name, selected.hash);
   };
-  const lookup = (className: string, property: string): SceneSetterBinding | string => {
+  const lookup = (className: string, property: string, accessor: 'setter' | 'getter' = 'setter', bound = true): SceneSetterBinding | string => {
     const ancestry = ancestryOf(className);
     let owner: string | undefined;
     let setter: string | undefined;
@@ -125,37 +194,54 @@ export function sceneSetterLookup(
     const bone = BONE_POSE.exec(property);
     const metadata = METADATA.exec(property);
     const shaderParameter = SHADER_PARAMETER.exec(property);
-    if (shaderParameter !== null && ancestry.includes('ShaderMaterial')) {
+    const theme = THEME_OVERRIDE.exec(property);
+    if (theme !== null && ancestry.includes('Control')) {
+      owner = 'Control';
+      setter = accessor === 'getter' ? THEME_OVERRIDE_SETTERS[theme[1] as string]?.replace(/^add_(.*)_override$/u, 'get_$1') : THEME_OVERRIDE_SETTERS[theme[1] as string];
+      index = theme[2] as string;
+    } else if (shaderParameter !== null && ancestry.includes('ShaderMaterial')) {
       owner = 'ShaderMaterial';
-      setter = 'set_shader_parameter';
+      setter = accessor === 'getter' ? 'get_shader_parameter' : 'set_shader_parameter';
       index = shaderParameter[1] as string;
     } else if (metadata !== null) {
       owner = 'Object';
-      setter = 'set_meta';
+      setter = accessor === 'getter' ? 'get_meta' : 'set_meta';
       index = metadata[1] as string;
     } else if (surface !== null && ancestry.includes('MeshInstance3D')) {
       owner = 'MeshInstance3D';
-      setter = 'set_surface_override_material';
+      setter = accessor === 'getter' ? 'get_surface_override_material' : 'set_surface_override_material';
       index = Number(surface[1]);
     } else if (bone !== null && ancestry.includes('Skeleton3D')) {
       owner = 'Skeleton3D';
-      setter = `set_bone_pose_${bone[2] as string}`;
+      setter = `${accessor === 'getter' ? 'get' : 'set'}_bone_pose_${bone[2] as string}`;
       index = Number(bone[1]);
     } else if (GLOW_LEVEL.test(property) && ancestry.includes('Environment')) {
       owner = 'Environment';
-      setter = 'set_glow_level';
+      setter = accessor === 'getter' ? 'get_glow_level' : 'set_glow_level';
       index = Number((GLOW_LEVEL.exec(property) as RegExpExecArray)[1]) - 1;
+    } else if (SIX_DOF.test(property) && ancestry.includes('Generic6DOFJoint3D')) {
+      const [, group, axis, field] = SIX_DOF.exec(property) as RegExpExecArray;
+      const slot = SIX_DOF_SLOTS[`${group as string}/${field as string}`];
+      if (slot !== undefined) {
+        owner = 'Generic6DOFJoint3D';
+        setter = `${accessor === 'getter' ? 'get' : 'set'}_${slot[0]}_${axis as string}`;
+        index = slot[1];
+      }
+    } else if (PIN_PARAM.test(property) && ancestry.includes('PinJoint3D')) {
+      owner = 'PinJoint3D';
+      setter = accessor === 'getter' ? 'get_param' : 'set_param';
+      index = PIN_PARAMS.indexOf((PIN_PARAM.exec(property) as RegExpExecArray)[1] as string);
     } else if (RANDOMIZER_ENTRY.test(property) && ancestry.includes('AudioStreamRandomizer')) {
       const entry = RANDOMIZER_ENTRY.exec(property) as RegExpExecArray;
       owner = 'AudioStreamRandomizer';
-      setter = entry[2] === 'stream' ? 'set_stream' : 'set_stream_probability_weight';
+      setter = `${accessor === 'getter' ? 'get' : 'set'}_${entry[2] === 'stream' ? 'stream' : 'stream_probability_weight'}`;
       index = Number(entry[1]);
     } else {
       for (const className of ancestry) {
         const found = classes.get(className)?.properties.find((entry) => entry.name === property);
         if (found === undefined) continue;
         owner = className;
-        setter = found.setter;
+        setter = accessor === 'getter' ? found.getter : found.setter;
         index = found.index;
         break;
       }
@@ -180,12 +266,52 @@ export function sceneSetterLookup(
     // methods: it has no hash.
     const selected = method(owner, setter) ?? (setter.startsWith('_') ? { owner, hash: 0 } : undefined);
     if (selected === undefined) return `${owner} has no method ${setter}`;
-    const bound = bind(selected.owner, setter, selected.hash);
-    if (typeof bound === 'string') return bound;
-    return { module: bound.module, exportName: bound.exportName, localName: bound.localName, ...(index === undefined ? {} : { index }) };
+    if (!bound) return { module: '', exportName: setter, localName: '', ...(index === undefined ? {} : { index }) };
+    const binding = bind(selected.owner, setter, selected.hash);
+    if (typeof binding === 'string') return binding;
+    return { module: binding.module, exportName: binding.exportName, localName: binding.localName, ...(index === undefined ? {} : { index }) };
   };
-  return Object.assign(lookup, { method: lookupMethod });
+  const propertyType = (className: string, property: string): string | undefined => {
+    if (SURFACE_OVERRIDE.test(property)) return 'Material';
+    for (const name of ancestryOf(className)) {
+      const found = classes.get(name)?.properties.find((entry) => entry.name === property);
+      if (found !== undefined) return found.type;
+    }
+    return undefined;
+  };
+  const declaring = (className: string, property: string): string | undefined => {
+    const found = apiDump.classes.filter((entry) => entry.properties.some((own) => own.name === property) && ancestryOf(entry.name).includes(className));
+    return found.length === 1 ? found[0]?.name : undefined;
+  };
+  return Object.assign((className: string, property: string) => lookup(className, property), {
+    method: lookupMethod,
+    getter: (className: string, property: string) => lookup(className, property, 'getter'),
+    propertyType,
+    declaring,
+    unbound: (className: string, property: string) => lookup(className, property, 'setter', false),
+  });
 }
+
+/** The compat constructor a built-in record is made by where a Variant holds it (a container's item, a field, metadata). */
+export interface TargetSceneRecordConstructor {
+  readonly module: string;
+  readonly exportName: string;
+  readonly localName: string;
+}
+
+type SceneRecordKind = 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'Vector2i' | 'Vector3i' | 'Rect2' | 'Rect2i';
+
+/** Each built-in record's compat constructor: the plan states it on the value, emit prints it. */
+const SCENE_RECORD_CONSTRUCTORS: Readonly<Record<SceneRecordKind, TargetSceneRecordConstructor>> = {
+  Vector2: { module: 'vector2', exportName: 'construct', localName: 'Vector2_construct' },
+  Vector3: { module: 'vector3', exportName: 'construct', localName: 'Vector3_construct' },
+  Vector2i: { module: 'vector2i', exportName: 'construct', localName: 'Vector2i_construct' },
+  Vector3i: { module: 'vector3i', exportName: 'construct', localName: 'Vector3i_construct' },
+  Color: { module: 'color', exportName: 'construct', localName: 'Color_construct' },
+  Quaternion: { module: 'quaternion', exportName: 'construct', localName: 'Quaternion_construct' },
+  Rect2: { module: 'rect2', exportName: 'construct', localName: 'Rect2_construct' },
+  Rect2i: { module: 'rect2i', exportName: 'construct', localName: 'Rect2i_construct' },
+};
 
 /** An authored value as the composition passes it to a setter. */
 export type TargetSceneValue =
@@ -193,9 +319,13 @@ export type TargetSceneValue =
   | { readonly kind: 'bool'; readonly value: boolean }
   | { readonly kind: 'string'; readonly value: string }
   | { readonly kind: 'null' }
-  | { readonly kind: 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'; readonly components: readonly number[] }
+  | { readonly kind: 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'; readonly components: readonly number[]; readonly construct: TargetSceneRecordConstructor }
   /** A `PackedVector3Array`, as the Vector3 array compat's setters take: x, y, z per element. */
   | { readonly kind: 'PackedVector3Array'; readonly components: readonly number[] }
+  /** A `PackedByteArray`: its bytes. */
+  | { readonly kind: 'PackedByteArray'; readonly components: readonly number[] }
+  /** A `PackedVector2Array`: x, y per element. */
+  | { readonly kind: 'PackedVector2Array'; readonly components: readonly number[] }
   /** A `PackedInt32Array` (a GridMap's `data.cells`), the ints as written. */
   | { readonly kind: 'PackedInt32Array'; readonly components: readonly number[] }
   /** A `PackedFloat32Array`, or a `PackedColorArray` as r, g, b, a per element. */
@@ -215,7 +345,16 @@ export type TargetSceneValue =
    */
   | { readonly kind: 'Array'; readonly components: readonly number[] }
   /** A resource this document declares or references: `SubResource`/`ExtResource` by id. */
-  | { readonly kind: 'resource'; readonly reference: 'sub' | 'ext'; readonly id: string };
+  | { readonly kind: 'resource'; readonly reference: 'sub' | 'ext'; readonly id: string }
+  /** An integer vector or a rectangle, by its members in order (`Vector2i(x, y)`, `Rect2(x, y, w, h)`). */
+  | { readonly kind: 'Vector2i' | 'Vector3i' | 'Rect2' | 'Rect2i'; readonly components: readonly number[]; readonly construct: TargetSceneRecordConstructor }
+  /**
+   * An Array of any values (resources, records, nested containers), as a Variant holds it: each
+   * element its own value (a SpriteFrames' `animations`, an exported `Array[Texture2D]`).
+   */
+  | { readonly kind: 'Variant-array'; readonly items: readonly TargetSceneValue[] }
+  /** A Dictionary of any values, its entries in authored order. */
+  | { readonly kind: 'Variant-dictionary'; readonly entries: readonly (readonly [TargetSceneValue, TargetSceneValue])[] };
 
 /** An authored value as a target value, or undefined for a value this composition does not pass. */
 export function targetSceneValue(value: GodotValue): TargetSceneValue | undefined {
@@ -246,6 +385,24 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         if ((value.name === 'PackedColorArray' && components.length % 4 !== 0) || !components.every((entry): entry is number => entry !== undefined)) return undefined;
         return { kind: value.name, components };
       }
+      // A PackedByteArray as Godot 4 writes it: its bytes in base64 (`VariantWriter`,
+      // variant_parser.cpp:2226), or listed as numbers.
+      if (value.name === 'PackedByteArray') {
+        const [first] = value.args;
+        if (value.args.length === 1 && first?.kind === 'string') return { kind: 'PackedByteArray', components: [...Buffer.from(first.value, 'base64')] };
+        const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
+        return components.every((entry): entry is number => entry !== undefined) ? { kind: 'PackedByteArray', components } : undefined;
+      }
+      // A PackedStringArray as compat holds it: a JS array of its strings.
+      if (value.name === 'PackedStringArray') {
+        const items = value.args.map((arg) => (arg.kind === 'string' ? ({ kind: 'string', value: arg.value } as const) : undefined));
+        return items.every((item) => item !== undefined) ? { kind: 'Variant-array', items } : undefined;
+      }
+      if (value.name === 'PackedVector2Array') {
+        const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
+        if (components.length % 2 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;
+        return { kind: 'PackedVector2Array', components };
+      }
       if (value.name === 'PackedVector3Array') {
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
         if (components.length % 3 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;
@@ -257,21 +414,37 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         const [xx, xy, xz, yx, yy, yz, zx, zy, zz, ox, oy, oz] = args as [number, number, number, number, number, number, number, number, number, number, number, number];
         return { kind: 'Transform3D', components: [xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0, ox, oy, oz, 1] };
       }
-      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4], AABB: [6] }[value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB'];
+      type Record = 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB' | 'Vector2i' | 'Vector3i' | 'Rect2' | 'Rect2i';
+      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4], AABB: [6], Vector2i: [2], Vector3i: [3], Rect2: [4], Rect2i: [4] }[value.name as Record];
       if (arity === undefined || !arity.includes(value.args.length)) return undefined;
       const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
       if (!components.every((entry): entry is number => entry !== undefined)) return undefined;
-      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB', components };
+      if (value.name === 'AABB') return { kind: 'AABB', components };
+      const kind = value.name as SceneRecordKind;
+      return { kind, components, construct: SCENE_RECORD_CONSTRUCTORS[kind] };
     }
     case 'array': {
-      if (value.elementType !== undefined) return undefined;
       const components: number[] = [];
-      for (const item of value.items) {
-        const flat = item.kind === 'number' ? [item.value] : item.kind === 'ctor' && (item.name === 'Vector2' || item.name === 'Vector3') ? item.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined)) : [undefined];
-        if (!flat.every((entry): entry is number => entry !== undefined)) return undefined;
+      for (const item of value.elementType === undefined ? value.items : [undefined]) {
+        const flat = item?.kind === 'number' ? [item.value] : item?.kind === 'ctor' && (item.name === 'Vector2' || item.name === 'Vector3') ? item.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined)) : [undefined];
+        if (!flat.every((entry): entry is number => entry !== undefined)) {
+          components.length = 0;
+          const items = value.items.map(targetSceneValue);
+          return items.every((item): item is TargetSceneValue => item !== undefined) ? { kind: 'Variant-array', items } : undefined;
+        }
         components.push(...flat);
       }
       return { kind: 'Array', components };
+    }
+    case 'dict': {
+      const entries: (readonly [TargetSceneValue, TargetSceneValue])[] = [];
+      for (const entry of value.entries) {
+        const key = entry.keyValue === undefined ? ({ kind: 'string', value: entry.key } as const) : targetSceneValue(entry.keyValue);
+        const item = targetSceneValue(entry.value);
+        if (key === undefined || item === undefined) return undefined;
+        entries.push([key, item]);
+      }
+      return { kind: 'Variant-dictionary', entries };
     }
     default:
       return undefined;

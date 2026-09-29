@@ -2,6 +2,7 @@ import type { GodotNativeTypePart } from './native-types';
 import type { BoundGodotCallReceiver } from '../../analyze/call-receivers';
 import { builtinDatatype } from '../../analyze/refined-types';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
+import type { BoundGodotResourceDocument } from '../../analyze/bound-project';
 import type { NumericNodeTypes, ScriptNumericVariants, VariantUtilityShape } from '../../analyze/numeric-variants';
 import { safeIdent } from '../target-names';
 import type {
@@ -108,6 +109,11 @@ export interface OfficialBoundBindingUse {
 
 export interface OfficialBoundAutoloadUse {
   readonly reference: OfficialBoundAutoloadReference;
+  /**
+   * Read from the tree (`/root/<name>`, `godot_tree_autoload`), where the scene has not yet handed
+   * the script its autoloads: `_init`, a field initializer, a static function.
+   */
+  readonly fromTree?: true;
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
 }
 
@@ -184,6 +190,21 @@ export interface ImplicitReadyChain {
 
 export type NativePropertyLookup = (className: string, property: string) => NativeProperty | undefined;
 
+/**
+ * An engine member a name selects at run time on an untyped value (`variant-named.ts`): its class
+ * or built-in type, and the accessor or method its binding is.
+ */
+export interface NamedMemberCandidate {
+  readonly owner: string;
+  readonly builtin: boolean;
+  readonly symbol: { readonly kind: 'native-member' | 'builtin-member' | 'native-signal'; readonly owner: string; readonly member: string; readonly signature: string };
+  /** An indexed property's index (`ADD_PROPERTYI`), which its accessors take before the value. */
+  readonly index?: number;
+}
+
+/** Every engine member of a name, for a read, a store or a call, the most derived classes first. */
+export type NamedMemberLookup = (name: string, use: 'get' | 'set' | 'call') => readonly NamedMemberCandidate[];
+
 /** A native class's method, found up the ancestry the API dump states, or undefined. */
 export type NativeMethodLookup = (className: string, method: string) => NativePropertyAccessor | undefined;
 
@@ -201,6 +222,10 @@ export const NATIVE_CLASS_TYPE = '$NativeClass';
 export class LoweringContext {
   /** The resources each resolved `load(path)` yields (`resource-loads.ts`), by call node. */
   resourceLoads: ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> = new Map();
+  /** The resolved `load(path)` calls whose file does not load in code, with why (`resourceLoadTargets`). */
+  refusedResourceLoads: ReadonlyMap<number, string> = new Map();
+  /** The `for` loops whose body assigns their own variable (analysis's `loopsAssigningVariable`). */
+  loopsAssigningVariable: ReadonlySet<number> = new Set();
   /** The reads of variables that hold null at some time, which TS types `T | null` (`nullable-variables.ts`). */
   nullableReads: ReadonlySet<number> = new Set();
   /** The variable declarations that hold null at some time (`nullable-variables.ts`). */
@@ -213,6 +238,18 @@ export class LoweringContext {
   nodeFields: ReadonlyMap<string, string> = new Map();
   /** The `as Class` casts analysis proves always hold (`provenCasts`). */
   provenCasts: ReadonlySet<number> = new Set();
+  /** Attribute nodes a dynamic call calls as its own callee (`obj.method(...)`), never read by name. */
+  readonly plainCallees = new Set<number>();
+  /** The native class at the root of a project script's chain (`extends Resource`). */
+  scriptNativeRoot: (resPath: string) => string | undefined = () => undefined;
+  /** The project's resource documents (`.tres`, `.res`), by path. */
+  resourceDocument: (resPath: string) => BoundGodotResourceDocument | undefined = () => undefined;
+  /** The module a preloaded resource document without a script is written as, and what it exports (`TargetGodotResourceModulePlan`). */
+  resourceModule: (resPath: string) => { readonly name: string; readonly module: string } | undefined = () => undefined;
+  /** The project scripts whose chain is rooted in Resource: the classes a stored resource can be. */
+  resourceScripts: readonly string[] = [];
+  /** Every engine member of a name, for a member an untyped value selects at run time (`variant-named.ts`). */
+  namedMembers: NamedMemberLookup = () => [];
   /** The literal path each node reads from self (analyze's `selfNodePaths`), by node. */
   selfNodePaths: ReadonlyMap<number, string> = new Map();
   #temporaryIndex = 0;
@@ -298,6 +335,25 @@ export class LoweringContext {
   }
 
   #returnType: GodotBoundNode | undefined;
+  #accessorOf: string | undefined;
+
+  /**
+   * The property whose accessor is being lowered: inside its own `set`/`get`, the property's name
+   * is the member itself, not the accessor (`GDScriptCompiler`, `gdscript_compiler.cpp:293`).
+   */
+  get accessorOf(): string | undefined {
+    return this.#accessorOf;
+  }
+
+  withAccessorOf<Result>(name: string, operation: () => Result): Result {
+    const outer = this.#accessorOf;
+    this.#accessorOf = name;
+    try {
+      return operation();
+    } finally {
+      this.#accessorOf = outer;
+    }
+  }
 
   /** The declared return type of the function being lowered, if it declares one. */
   get returnType(): GodotBoundNode | undefined {
@@ -331,12 +387,7 @@ export class LoweringContext {
   ): OfficialBoundAutoloadUse | undefined {
     const candidate = this.autoloads.get(node.id);
     if (candidate === undefined) return undefined;
-    if (this.#instanceAutoloadAccess === 0) {
-      this.refuse(
-        node,
-        `singleton ${node.name} requires a post-construction instance method; static, field-initializer, and _init access is not yet planned`,
-      );
-    }
+    const fromTree = this.#instanceAutoloadAccess === 0;
     if (
       node.source !== 'UNDEFINED_SOURCE' ||
       node.name !== candidate.name ||
@@ -384,6 +435,7 @@ export class LoweringContext {
     };
     return {
       reference,
+      ...(fromTree ? { fromTree: true as const } : {}),
       requirements: [...rule.requirements, { kind: 'autoload-reference-requirement', reference }],
     };
   }
@@ -623,17 +675,22 @@ export class LoweringContext {
     ownAnnotations = true,
   ): OfficialBoundRuleUse {
     const semanticKey = semanticKeys[0] as string;
-    const annotations = (ownAnnotations ? node.annotations : []).map((id) => {
+    const annotations = (ownAnnotations ? node.annotations : []).flatMap((id) => {
       const annotation = this.node(id, node);
       if (annotation.kind !== 'ANNOTATION') {
         this.refuse(annotation, `annotation id ${String(id)} resolves to ${annotation.kind}`);
       }
+      // `@warning_ignore` only silences the analyzer's warning (`GDScriptParser::warning_ignore_annotation`):
+      // the construct means the same with or without it.
+      if (annotation.name.startsWith('@warning_ignore')) return [];
       return [
-        annotation.name,
-        annotation.resolved ? 'resolved' : 'unresolved',
-        annotation.applied ? 'applied' : 'unapplied',
-        JSON.stringify(annotation.resolvedArguments),
-      ].join(':');
+        [
+          annotation.name,
+          annotation.resolved ? 'resolved' : 'unresolved',
+          annotation.applied ? 'applied' : 'unapplied',
+          JSON.stringify(annotation.resolvedArguments),
+        ].join(':'),
+      ];
     });
     // A rule may hold for an annotation whatever its arguments (`@export_range:…:*`): the
     // arguments of an editor-facing annotation carry no runtime meaning.
@@ -760,6 +817,18 @@ export class LoweringContext {
         return {
           type: { kind: 'array-type', element: inner.type },
           requirements: inner.requirements,
+        };
+      }
+    }
+    if (entry.sourceDatatype === 'BUILTIN:Dictionary[*]' && node.datatype.containerTypes.length === 2) {
+      // A typed dictionary is a Map of its key and value types, where rules state both.
+      const [key, value] = node.datatype.containerTypes.map((datatype) => ({ ...node, datatype }) as GodotBoundNode) as [GodotBoundNode, GodotBoundNode];
+      if (this.hasTargetType(key) && this.hasTargetType(value)) {
+        const keyType = this.targetType(key);
+        const valueType = this.targetType(value);
+        return {
+          type: { kind: 'type-reference', name: 'Map', arguments: [keyType.type, valueType.type] },
+          requirements: [...keyType.requirements, ...valueType.requirements],
         };
       }
     }

@@ -245,7 +245,8 @@ function readInputActions(file: GodotTextFile): InputAction[] {
     if (value.kind !== 'dict') return { name, eventCount: 0, eventTypes: [], events: [] };
     const deadzone = asNumber(value.entries.find((e) => e.key === 'deadzone')?.value);
     const eventsValue = value.entries.find((e) => e.key === 'events')?.value;
-    const items: readonly GodotValue[] = eventsValue?.kind === 'array' ? eventsValue.items : [];
+    // A null entry is no event: `InputMap::load_from_project_settings` skips it (`input_map.cpp:350`).
+    const items: readonly GodotValue[] = eventsValue?.kind === 'array' ? eventsValue.items.filter((item) => item.kind !== 'null') : [];
     // Godot writes each binding as `Object( InputEventKey, "scancode":32, … )`: the event class is
     // the constructor's FIRST positional argument, a bare identifier.
     const events: InputEventBinding[] = items.flatMap((item) => {

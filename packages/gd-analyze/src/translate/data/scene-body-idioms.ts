@@ -47,13 +47,24 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
   const skeleton = setterValue(node.setters, 'set_skeleton_path');
   const transparency = setterValue(node.setters, 'set_transparency');
   const castShadow = setterValue(node.setters, 'set_cast_shadows_setting');
+  // A top-level node's transform is global (`node-3d.ts` reads it when it first places the node).
+  const topLevel = setterValue(node.setters, 'set_as_top_level');
+  // A node three, Rapier or a compat element mounts records no Godot class of its own: its classes,
+  // nearest first, which the Node protocol reads for `is`, `as` and its class name.
+  const form = node.idiom?.form.kind;
+  const stated = node.idiom?.form.kind === 'element' && node.idiom.form.statesClasses === true;
+  const mounted = node.instance === undefined && node.model === undefined && (stated || form === 'group' || form === 'mesh' || form === 'light' || form === 'camera' || form === 'body' || form === 'component');
   return {
+    ...(mounted && node.classes.length > 0 ? { classes: [...node.classes] } : {}),
     ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),
     ...(node.unique === true ? { unique_name_in_owner: true } : {}),
     ...(skeleton?.kind === 'string' ? { skeleton_path: skeleton.value } : {}),
     ...(transparency?.kind === 'number' ? { transparency: transparency.value } : {}),
     ...(node.siblingIndex === undefined ? {} : { index: node.siblingIndex }),
     ...(castShadow?.kind === 'number' ? { cast_shadow: castShadow.value } : {}),
+    ...(topLevel?.kind === 'bool' && topLevel.value ? { top_level: true } : {}),
+    // Values kept for their getters (`data` roles, `scene-surface-idioms.ts`).
+    ...Object.fromEntries(node.setters.flatMap((entry) => (entry.role?.kind === 'data' ? [[entry.role.key, plainValue(entry.value)] as const] : []))),
   };
 }
 
@@ -69,9 +80,18 @@ const BODY_DATA: Readonly<Record<string, string>> = {
   set_collision_mask: 'collision_mask',
   set_ray_pickable: 'input_ray_pickable',
   set_mass: 'mass',
+  // A custom center of mass is kept for the getters; Rapier's is its colliders' (`colliderMasses`).
+  set_center_of_mass_mode: 'center_of_mass_mode',
+  set_center_of_mass: 'center_of_mass',
+  // A vehicle's forces as its scene starts them (`vehicle-body-3d.tsx` reads them).
+  set_engine_force: 'engine_force',
+  set_brake: 'brake',
+  set_steering: 'steering',
   set_linear_damp_mode: 'linear_damp_mode',
   set_angular_damp_mode: 'angular_damp_mode',
   set_lock_rotation_enabled: 'lock_rotation',
+  // Kept: a Rapier body starts awake and sleeps once at rest, where Godot's starts as authored.
+  set_sleeping: 'sleeping',
   set_use_custom_integrator: 'custom_integrator',
   set_contact_monitor: 'contact_monitor',
   set_max_contacts_reported: 'max_contacts_reported',
@@ -88,6 +108,9 @@ const BODY_DATA: Readonly<Record<string, string>> = {
   set_wall_min_slide_angle: 'wall_min_slide_angle',
   set_up_direction: 'up_direction',
   set_monitoring: 'monitoring',
+  set_monitorable: 'monitorable',
+  // A top-level body ignores its parent's transform (`node-3d.ts` reads it when it first places the node).
+  set_as_top_level: 'top_level',
 };
 
 /** Rapier's own value of each `<RigidBody>` prop a body states only when Godot's differs. */
@@ -161,11 +184,12 @@ function bodyProps(
   // Rapier merges its locks, so compat reads Godot's own (`locked_axis`, `BodyAxis` bits) from userData.
   const axes = [...locks.linear, ...locks.angular].reduce((bits, enabled, index) => (enabled ? bits : bits | (1 << index)), 0);
   if (axes !== 0) data['axis_lock'] = axes;
-  // lock_rotation is Rapier's own `lockRotations`, beside its flag in `userData` for compat: Rapier
-  // merges it with the axis locks, which it then cannot report back, so the pair has no form.
+  // lock_rotation is Rapier's own `lockRotations`, beside its flag in `userData`, from which compat
+  // reads Godot's locks back (`physics-body-3d.ts`); every rotation is locked while it holds, so the
+  // angular axis locks add nothing to the body until a script frees it, when compat writes them.
   if (data['lock_rotation'] === true) {
-    if (locks.angular.includes(false)) refuse(`${className}.lock_rotation with an angular axis lock has no idiomatic form`);
-    else props.set('lockRotations', literal(true));
+    props.delete('enabledRotations');
+    props.set('lockRotations', literal(true));
   }
   if (!sensor) {
     // Godot's friction is the smaller of the pair's, its bounce the larger (`combine_friction`,
@@ -262,8 +286,19 @@ function bodyOverrides(
 
 /** A collision shape as Rapier's collider component and its `args`: flat numbers, or number lists. */
 export interface GodotSceneColliderPlan {
-  readonly component: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
+  readonly component: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'CylinderCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
   readonly args: { readonly kind: 'flat'; readonly values: readonly number[] } | { readonly kind: 'nested'; readonly values: readonly (readonly number[])[] };
+  /** The collider's share of a dynamic body's mass (`colliderMasses`); Rapier's density otherwise. */
+  readonly mass?: number;
+}
+
+/**
+ * A dynamic body's mass as its colliders' masses, which is how a Rapier body states one: shared
+ * equally among them. Rapier's centre of mass is then its colliders' centre, where Godot weighs each
+ * shape by its size.
+ */
+function colliderMasses(colliders: readonly GodotSceneColliderPlan[], mass: number): readonly number[] {
+  return colliders.map(() => mass / colliders.length);
 }
 
 const numberOf = (value: TargetGodotSceneValue | undefined): number | undefined => (value?.kind === 'number' ? value.value : undefined);
@@ -274,7 +309,6 @@ const componentsOf = (value: TargetGodotSceneValue | undefined): readonly number
 function colliderPlan(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>, refuse: (message: string) => void): GodotSceneColliderPlan | undefined {
   if (node.scriptInstance !== undefined) return refuse('a script on a collision shape has no idiomatic form'), undefined;
   if (Object.keys(nodeData(node)).length > 0) return refuse('groups or a unique name on a collision shape have no idiomatic form'), undefined;
-  if (node.children.length > 0) return refuse('children of a collision shape have no idiomatic form'), undefined;
   const value = setterValue(node.setters, 'set_shape');
   const shape = value?.kind === 'resource' ? resources.get(value.key) : undefined;
   if (shape === undefined) return refuse('a collision shape without a shape has no idiomatic form'), undefined;
@@ -292,6 +326,14 @@ function colliderPlan(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<str
       const radius = numberOf(setterValue(set, 'set_radius')) ?? 0.5;
       const height = numberOf(setterValue(set, 'set_height')) ?? 2;
       return { component: 'CapsuleCollider', args: flat([height / 2 - radius, radius]) };
+    }
+    case 'CylinderCollider':
+      return { component: 'CylinderCollider', args: flat([(numberOf(setterValue(set, 'set_height')) ?? 2) / 2, numberOf(setterValue(set, 'set_radius')) ?? 0.5]) };
+    case 'HalfSpace': {
+      // An infinite plane (`WorldBoundaryShape3D`) as Rapier's cuboid slab under the default plane
+      // (normal +Y through the origin); a plane authored otherwise has no idiomatic form.
+      if (setterValue(set, 'set_plane') !== undefined) return refuse('a WorldBoundaryShape3D plane other than the default has no idiomatic collider'), undefined;
+      return { component: 'CuboidCollider', args: flat([10000, 0.01, 10000]) };
     }
     case 'ConvexHullCollider':
       return { component: 'ConvexHullCollider', args: { kind: 'nested', values: [componentsOf(setterValue(set, 'set_points')) ?? []] } };
@@ -321,11 +363,18 @@ function sheared(matrix: readonly number[]): boolean {
  * instance states on the root beside its visibility that differ from the root's own (a value the
  * root already holds, the same literal or the same resource file, is its own).
  */
+/**
+ * An instance's overrides its element states as its `userData` (`nodeData`), which the Node protocol
+ * applies whatever the root's element: a mesh's skeleton path (nothing drawn), `top_level` and
+ * `process_mode`.
+ */
+const INSTANCE_DATA_SETTERS: ReadonlySet<string> = new Set(['set_skeleton_path', 'set_as_top_level', 'set_process_mode']);
+
 function instanceOf(node: DirectGodotSceneNodePlan, instanced: SceneWithoutRefs, scenes: ReadonlyMap<string, SceneWithoutRefs>): NonNullable<DirectGodotSceneNodePlan['instanceOf']> {
   const own = instanced.root.setters;
   const same = (entry: TargetGodotSceneSetterPlan) =>
     own.some((mine) => mine.setter.exportName === entry.setter.exportName && mine.index === entry.index && JSON.stringify(mine.value) === JSON.stringify(entry.value) && (entry.value.kind !== 'resource' || entry.value.key.startsWith('ext:')));
-  const stated = node.setters.filter((entry) => entry.role?.kind !== 'visible' && entry.role?.kind !== 'transparency');
+  const stated = node.setters.filter((entry) => entry.role?.kind !== 'visible' && entry.role?.kind !== 'transparency' && entry.role?.kind !== 'data' && !INSTANCE_DATA_SETTERS.has(entry.setter.exportName));
   const rootClass = godotSceneRootClass(scenes, instanced.sourceResPath);
   const rootIdiom = godotSceneRootIdiom(scenes, instanced.sourceResPath);
   return {
@@ -353,7 +402,13 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       const refuse = (message: string): void => {
         diagnostics.push({ at, message });
       };
-      const children = node.children.map(stamp);
+      const stamped = node.children.map(stamp);
+      // A dynamic body's colliders carry its mass (its setter's, else its class's).
+      const massSetter = setterValue(node.setters, 'set_mass');
+      const bodyMass = node.idiom?.form.kind === 'body' && node.idiom.form.type === 'dynamic' ? (massSetter?.kind === 'number' ? massSetter.value : (node.idiom.form.mass ?? 1)) : undefined;
+      const shares = bodyMass === undefined ? [] : colliderMasses(stamped.flatMap((child) => (child.collider === undefined ? [] : [child.collider])), bodyMass);
+      let share = 0;
+      const children = stamped.map((child) => (child.collider === undefined || bodyMass === undefined ? child : { ...child, collider: { ...child.collider, mass: shares[share++] as number } }));
       const placements = node.placements?.map((placed) => ({ at: placed.at, node: stamp(placed.node) }));
       const data = nodeData(node);
       const form = node.idiom?.form;
@@ -369,7 +424,7 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       };
       const body =
         node.instance === undefined && node.model === undefined && form?.kind === 'body'
-          ? planned(() => [...bodyProps(refuse, node.classes[0] as string, form.sensor, node.setters, resources, shapeData(node, resources), data)].map(([name, value]) => ({ name, value })), [])
+          ? planned(() => [...bodyProps(refuse, node.classes[0] as string, form.sensor, node.setters, resources, shapeData(node, resources), form.mass === undefined ? data : { mass: form.mass, ...data })].map(([name, value]) => ({ name, value })), [])
           : undefined;
       const overrides = instanced === undefined ? [] : planned(() => bodyOverrides(scene, node, instanced, bySource, refuse), []);
       const collider = form?.kind === 'collider' && node.instance === undefined ? colliderPlan(node, resources, refuse) : undefined;
@@ -377,7 +432,8 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       // An instance's overrides on its root are a family element's props or a body's; any other
       // root has no form for them.
       const rootForm = instance?.rootIdiom?.form.kind;
-      if (instance !== undefined && instance.stated > 0 && rootForm !== 'element' && rootForm !== 'body') refuse(`overrides on an instanced ${instance.rootClass ?? 'root'} have no idiomatic form`);
+      // A Control scene's root takes the instance's overrides as its element's style (`scene-control-idioms.ts`).
+      if (instance !== undefined && instance.stated > 0 && rootForm !== 'element' && rootForm !== 'body' && rootForm !== 'dom') refuse(`overrides on an instanced ${instance.rootClass ?? 'root'} have no idiomatic form`);
       // A node the plan maps to no idiom (not an instance's or a model's, which their component or
       // the model's element draws) has no element.
       if (node.idiom === undefined && node.instance === undefined && node.model === undefined) refuse(`${node.classes[0] ?? 'a node'} has no idiomatic element`);

@@ -1,4 +1,6 @@
+import type { BoundGodotResourceDocument } from '../../analyze/bound-project';
 import { builtinDatatype } from '../../analyze/refined-types';
+import type { GodotValue } from '../../read/godot-value';
 import {
   GODOT_NUMERIC_TYPES,
   type GodotBuiltinSubscriptShape,
@@ -6,7 +8,9 @@ import {
   godotAwaitsEmission,
   godotBuiltinCopied,
   godotBuiltinSubscriptShape,
+  godotBuiltinTest,
   godotCallShape,
+  godotLanguageConstant,
   godotLiteralIsText,
   godotNumericStoresAs,
   godotNumericTag,
@@ -14,8 +18,11 @@ import {
   godotSubscriptsParameters,
   godotTruthShape,
   godotTweenInterpolates,
+  godotComponentNames,
+  godotInputEventRecordTypes,
   godotTypeDefault,
 } from '../data/lowering-shapes';
+import { godotBuiltinWidens, godotLiteralPathText } from '../data/operand-types';
 import { godotCompatReturnType } from './native-types';
 import type {
   GodotBoundCallNode,
@@ -83,6 +90,8 @@ function dictionaryMap(
   return {
     kind: 'new-expression',
     callee: { kind: 'identifier-expression', name: 'Map' },
+    // A Dictionary's keys and values are Variants: entries of different types are one Map's.
+    ...(entries.length > 0 ? { typeArguments: [ANY, ANY] } : {}),
     arguments: [
       {
         kind: 'array-expression',
@@ -313,12 +322,14 @@ function prepareAssignmentTarget(
     const base = materialize(context, lower(context, baseNode));
     if (node.isAttribute) {
       const requirements = context.structural(node, 'subscript-attribute', [baseNode]);
+      // A member of an object that may be null is stated present: a store on null is Godot's error.
+      const nullable = nullableObject(context, baseNode);
       return {
         beforeAssigned: base.before,
         afterAssigned: [],
         target: {
           kind: 'property-expression',
-          object: base.value,
+          object: nullable ? { kind: 'non-null-expression', expression: base.value } : base.value,
           property: officialBoundPropertyName(context, node.attribute, node),
           span: span(context.script, node),
         },
@@ -614,16 +625,62 @@ function nativeEntity(value: LoweredExpression): LoweredExpression {
 function treeParameter(
   context: LoweringContext,
   node: GodotBoundNode,
-): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string } | undefined {
+): TreeParameter | undefined {
   if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
-  const baseNode = context.node(node.base, node);
+  return treeParameterAt(context, node, context.node(node.base, node), context.node(node.index, node));
+}
+
+/**
+ * The parameters compat's `animation-tree.ts` keeps (`parametersOf`): every node's times, an
+ * animation's direction, a Blend2's, Add2's and TimeScale's amount, a OneShot's request and state, a
+ * state machine's playback and advance conditions.
+ */
+const TREE_PARAMETER =
+  /^parameters\/(.+\/)?(blend_amount|add_amount|scale|backward|request|active|internal_active|fade_in_remaining|fade_out_remaining|time_to_restart|current_length|current_position|current_delta|playback|conditions\/[^/]+)$/u;
+
+/** A state machine's playback parameter: read as the playback object (`godot_animation_tree_playback`), never written. */
+const treePlayback = (path: string | undefined): boolean => path?.endsWith('/playback') === true;
+
+/** An AnimationTree parameter a script reaches: its literal path, or undefined where the script computes it. */
+interface TreeParameter {
+  readonly baseNode: GodotBoundNode;
+  readonly indexNode: GodotBoundNode;
+  readonly path: string | undefined;
+}
+
+/**
+ * `tree.set(&"parameters/run/blend_amount", v)` and `tree.get(…)`: `Object::set`/`get` by name on an
+ * AnimationTree, which the tree answers from its parameters as its subscript does (`treeParameter`).
+ * Undefined for another call, or on another receiver.
+ */
+function treeParameterCall(
+  context: LoweringContext,
+  node: GodotBoundCallNode,
+  calleeNode: GodotBoundNode,
+  argumentNodes: readonly GodotBoundNode[],
+): (TreeParameter & { readonly write: boolean }) | undefined {
+  if (node.compilerTarget.kind !== 'native-method' || (node.functionName !== 'set' && node.functionName !== 'get')) return undefined;
+  if (calleeNode.kind !== 'SUBSCRIPT' || !calleeNode.isAttribute) return undefined;
+  const indexNode = argumentNodes[0];
+  if (indexNode === undefined || argumentNodes.length !== (node.functionName === 'set' ? 2 : 1)) return undefined;
+  const found = treeParameterAt(context, node, context.node(calleeNode.base, calleeNode), indexNode);
+  return found === undefined ? undefined : { ...found, write: node.functionName === 'set' };
+}
+
+function treeParameterAt(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  baseNode: GodotBoundNode,
+  indexNode: GodotBoundNode,
+): TreeParameter | undefined {
   if (baseNode.datatype.kind !== 'NATIVE' || baseNode.datatype.metaType || !godotSubscriptsParameters(baseNode.datatype.nativeType)) return undefined;
-  const indexNode = context.node(node.index, node);
   const value = indexNode.kind === 'LITERAL' ? indexNode.value : undefined;
   const path = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
-  if (path === undefined) return context.refuse(node, 'an AnimationTree subscript whose path is not a literal');
+  // A path the script computes is the tree's to answer when it runs, as Godot's `_get` and `_set`
+  // are: compat raises GDScript's invalid access for a name that is no parameter.
+  if (path === undefined) return { baseNode, indexNode, path: undefined };
   // A parameter of a node compat transcribes (`animation-tree.ts`'s `parametersOf`).
-  if (!/^parameters\/(.+\/)?(blend_amount|scale|backward|current_length|current_position|current_delta)$/u.test(path)) {
+  if (!TREE_PARAMETER.test(path)) {
     return context.refuse(node, `an AnimationTree subscript of ${path}, which is not a parameter of a transcribed node`);
   }
   // The tree the receiver is in each scene (`scene-node-receiver`): the path is one of its parameters.
@@ -649,29 +706,37 @@ function tweenedProperty(
   const pathNode = argumentNodes[1];
   if (objectNode === undefined || pathNode === undefined) return context.refuse(node, 'tween_property without its object and property');
   const value = pathNode.kind === 'LITERAL' ? pathNode.value : undefined;
-  const property = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
+  // The path as a string, a StringName or a NodePath (`^"light_energy"`).
+  const property = value === undefined ? undefined : godotLiteralPathText(value);
   if (property === undefined) return context.refuse(node, 'tween_property of a property only known at run time');
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(property)) return context.refuse(node, `tween_property of the sub-property path ${property}`);
+  // One component of a vector, colour or quaternion property (`position:y`): the property's own
+  // accessors, compat's tween reading and writing the component the path names (`tween.ts`).
+  const [whole = '', component, ...deeper] = property.split(':');
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(whole) || deeper.length > 0) return context.refuse(node, `tween_property of the sub-property path ${property}`);
   const className =
     objectNode.kind === 'SELF'
       ? context.nativeBase
-      : nativeMemberReceiver(context, objectNode, property)
+      : nativeMemberReceiver(context, objectNode, whole)
         ? objectNode.datatype.nativeType
         : undefined;
+  // An object only the run time knows: the property selected by name then.
+  if (component === undefined && (className === undefined || className === '') && namedAttribute(context, objectNode, property)) return namedAccess(context, node, property);
   if (className === undefined || className === '') {
     return context.refuse(node, `tween_property of ${property} on an object whose native class is not fixed (${objectNode.datatype.display})`);
   }
-  if (objectNode.kind === 'SELF' && context.scriptMembers?.(objectNode.datatype.scriptPath)?.has(property) === true) {
-    return context.refuse(node, `tween_property of the script's own property ${property}`);
+  if (objectNode.kind === 'SELF' && context.scriptMembers?.(objectNode.datatype.scriptPath)?.has(whole) === true) {
+    return context.refuse(node, `tween_property of the script's own property ${whole}`);
   }
-  const found = context.nativeProperty(className, property);
-  if (found === undefined) return context.refuse(node, `tween_property of ${property}, which ${className} does not declare`);
-  if (found.index !== undefined) return context.refuse(node, `tween_property of the indexed property ${found.owner}.${property}`);
-  if (found.type === undefined || !godotTweenInterpolates(found.type)) {
+  const found = context.nativeProperty(className, whole);
+  if (found === undefined) return context.refuse(node, `tween_property of ${whole}, which ${className} does not declare`);
+  if (component !== undefined && (found.type === undefined || !(godotComponentNames(found.type) ?? []).includes(component))) {
+    return context.refuse(node, `tween_property of ${property}, which is no component of a ${found.type ?? 'untyped'} property`);
+  }
+  if (component === undefined && (found.type === undefined || !godotTweenInterpolates(found.type))) {
     return context.refuse(node, `tween_property of ${found.owner}.${property}, a ${found.type ?? 'untyped'} property Tween's interpolation is not transcribed for`);
   }
   const accessor = (method: NativePropertyAccessor | undefined, which: string): OfficialBoundBindingUse => {
-    if (method === undefined) return context.refuse(node, `${found.owner}.${property} has no ${which}`);
+    if (method === undefined) return context.refuse(node, `${found.owner}.${whole} has no ${which}`);
     const use = context.bindingUse(
       { sourceRevision: context.sourceRevision, kind: 'native-member', owner: method.owner, member: method.name, signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}` },
       node,
@@ -683,17 +748,57 @@ function tweenedProperty(
   };
   const getter = accessor(found.getter, 'getter');
   const setter = accessor(found.setter, 'setter');
+  // An indexed property (`light_energy`, `set_param(PARAM_ENERGY, v)`): its accessors with its index.
+  const index = found.index;
+  const read: TargetTsExpression =
+    index === undefined
+      ? boundTargetExpression(getter.target)
+      : {
+          kind: 'arrow-expression',
+          parameters: [{ name: 'object', type: { kind: 'keyword-type', keyword: 'never' } }],
+          body: { kind: 'call-expression', callee: boundTargetExpression(getter.target), arguments: [{ kind: 'identifier-expression', name: 'object' }, { kind: 'literal-expression', value: index }] },
+        };
+  const write: TargetTsExpression =
+    index === undefined
+      ? boundTargetExpression(setter.target)
+      : {
+          kind: 'arrow-expression',
+          parameters: [
+            { name: 'object', type: { kind: 'keyword-type', keyword: 'never' } },
+            { name: 'value', type: { kind: 'keyword-type', keyword: 'never' } },
+          ],
+          body: {
+            kind: 'call-expression',
+            callee: boundTargetExpression(setter.target),
+            arguments: [{ kind: 'identifier-expression', name: 'object' }, { kind: 'literal-expression', value: index }, { kind: 'identifier-expression', name: 'value' }],
+          },
+        };
   return expression(
     {
       kind: 'object-expression',
       properties: [
-        { key: 'get', value: boundTargetExpression(getter.target) },
-        { key: 'set', value: boundTargetExpression(setter.target) },
+        { key: 'get', value: read },
+        { key: 'set', value: write },
       ],
       span: span(context.script, node),
     },
     [...getter.requirements, ...setter.requirements],
   );
+}
+
+/**
+ * A script enum read as the Dictionary it is (`CameraType.size()`, `Mood.keys()`): its names to
+ * their values, in declaration order (`GDScriptParser::EnumNode`'s dictionary), as a Map.
+ */
+function enumDictionary(value: LoweredExpression): LoweredExpression {
+  return {
+    ...value,
+    value: {
+      kind: 'new-expression',
+      callee: { kind: 'identifier-expression', name: 'Map' },
+      arguments: [{ kind: 'call-expression', callee: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'entries' }, arguments: [value.value] }],
+    },
+  };
 }
 
 /** Compat's tree parameter protocol (`animation-tree.ts`): its import. */
@@ -900,6 +1005,395 @@ function variantElementPlace(
   };
 }
 
+const ANY: TargetTsType = { kind: 'keyword-type', keyword: 'any' };
+
+function namedImport(name: string): OfficialBoundLoweringRequirement {
+  return { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-named', imported: name, local: name, typeOnly: false };
+}
+
+/**
+ * The engine members a name can select on an untyped value at run time, as the array compat's
+ * `variant-named.ts` tries in turn: each class's or built-in type's accessor or method that compat
+ * binds, wrapped where the binding takes more than the call's own arguments (an indexed property's
+ * index, a tween's creator, a tweened property's accessors). `arity` is the call's argument count.
+ */
+function namedMembers(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  name: string,
+  use: 'get' | 'set' | 'call',
+  argumentNodes: readonly GodotBoundNode[] = [],
+): LoweredExpression {
+  const elements: TargetTsExpression[] = [];
+  const requirements: OfficialBoundLoweringRequirement[] = [];
+  const parameter = (parameterName: string): TargetTsParameter => ({ name: parameterName, type: ANY });
+  const id = (identifier: string): TargetTsExpression => ({ kind: 'identifier-expression', name: identifier });
+  for (const candidate of context.namedMembers(name, use)) {
+    const symbol: GodotOfficialSymbolIdentity = { sourceRevision: context.sourceRevision, ...candidate.symbol };
+    const target = context.bindings.resolve(symbol);
+    if (target.kind === 'refusal-binding' || target.use.kind !== 'call' || target.use.sourceReceiver !== 'first-argument') continue;
+    const shape = candidate.symbol.kind === 'native-member' && use === 'call' ? godotCallShape(candidate.owner, name) : undefined;
+    if (shape === 'script-chain-method') {
+      const argument = argumentNodes[0];
+      const method = argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name') ? argument.value.value : undefined;
+      if (method === undefined || context.nativeMethod('*', method) !== undefined) continue;
+    }
+    const bound = boundTargetExpression(target);
+    const args = argumentNodes.map((_, index) => `a${String(index)}`);
+    let value: TargetTsExpression = bound;
+    if (candidate.index !== undefined) {
+      const index: TargetTsExpression = { kind: 'literal-expression', value: candidate.index };
+      value =
+        use === 'get'
+          ? { kind: 'arrow-expression', parameters: [parameter('self')], body: { kind: 'call-expression', callee: bound, arguments: [id('self'), index] } }
+          : { kind: 'arrow-expression', parameters: [parameter('self'), parameter('value')], body: { kind: 'call-expression', callee: bound, arguments: [id('self'), index, id('value')] } };
+    } else if (shape === 'creator-owned') {
+      value = { kind: 'arrow-expression', parameters: [parameter('self'), ...args.map(parameter)], body: { kind: 'call-expression', callee: bound, arguments: [id('self'), { kind: 'this-expression' }, ...args.map(id)] } };
+    } else if (shape === 'tweened-property') {
+      const pathNode = argumentNodes[1];
+      const property = pathNode?.kind === 'LITERAL' && (pathNode.value.kind === 'string' || pathNode.value.kind === 'string-name') ? pathNode.value.value : undefined;
+      if (property === undefined) continue;
+      const access = namedAccess(context, node, property);
+      requirements.push(...access.requirements);
+      value = { kind: 'arrow-expression', parameters: [parameter('self'), ...args.map(parameter)], body: { kind: 'call-expression', callee: bound, arguments: [id('self'), ...args.map(id), access.value] } };
+    }
+    // A built-in type's member applies to the values compat recognises as that type.
+    let test: TargetTsExpression | undefined;
+    if (candidate.builtin) {
+      const shape = godotBuiltinTest(candidate.owner);
+      if (shape === undefined) continue;
+      requirements.push(namedImport(shape.exportName));
+      test =
+        shape.members === undefined
+          ? id(shape.exportName)
+          : {
+              kind: 'arrow-expression',
+              parameters: [parameter('value')],
+              body: {
+                kind: 'call-expression',
+                callee: id(shape.exportName),
+                arguments: [id('value'), { kind: 'literal-expression', value: shape.members }, ...(shape.nested === true ? [{ kind: 'literal-expression' as const, value: true }] : [])],
+              },
+            };
+    }
+    requirements.push(...context.bindingUse(symbol, node).requirements);
+    elements.push({
+      kind: 'object-expression',
+      properties: [{ key: 'owner', value: { kind: 'literal-expression', value: candidate.owner } }, ...(test === undefined ? [] : [{ key: 'is', value: test }]), { key: use, value }],
+    });
+  }
+  return expression({ kind: 'array-expression', elements }, requirements);
+}
+
+/** A property's accessors on a value only known at run time, as a tweener reads and writes it. */
+function namedAccess(context: LoweringContext, node: GodotBoundNode, property: string): LoweredExpression {
+  const getters = namedMembers(context, node, property, 'get');
+  const setters = namedMembers(context, node, property, 'set');
+  const name: TargetTsExpression = { kind: 'literal-expression', value: property };
+  const object: TargetTsParameter = { name: 'object', type: ANY };
+  return expression(
+    {
+      kind: 'object-expression',
+      properties: [
+        { key: 'get', value: { kind: 'arrow-expression', parameters: [object], body: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_variant_get_named' }, arguments: [{ kind: 'identifier-expression', name: 'object' }, name, getters.value] } } },
+        {
+          key: 'set',
+          value: {
+            kind: 'arrow-expression',
+            parameters: [object, { name: 'value', type: ANY }],
+            body: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_variant_set_named' }, arguments: [{ kind: 'identifier-expression', name: 'object' }, name, { kind: 'identifier-expression', name: 'value' }, setters.value] },
+          },
+        },
+      ],
+    },
+    [...getters.requirements, ...setters.requirements, namedImport('godot_variant_get_named'), namedImport('godot_variant_set_named')],
+  );
+}
+
+/**
+ * Whether `base.name` is selected at run time: the base is untyped, or a native object whose
+ * declared class has no such property or signal (a subclass may: `Object::get` asks the object's
+ * own class, `object.cpp:333`).
+ */
+function namedAttribute(context: LoweringContext, baseNode: GodotBoundNode, name: string): boolean {
+  if (baseNode.kind === 'IDENTIFIER' && (baseNode.source === 'NATIVE_CLASS' || baseNode.datatype.metaType)) return false;
+  if (baseNode.datatype.kind === 'VARIANT') return godotBuiltinSubscriptShape(baseNode.datatype) === undefined;
+  if (!nativeMemberReceiver(context, baseNode, name)) return false;
+  const className = baseNode.datatype.nativeType;
+  return context.nativeProperty(className, name) === undefined && context.nativeSignalOwner?.(className, name) === undefined;
+}
+
+/** Whether a store's target is a member selected by name at run time (`namedPlace`). */
+function namedTarget(context: LoweringContext, node: GodotBoundNode): boolean {
+  if (node.kind !== 'SUBSCRIPT' || !node.isAttribute) return false;
+  return namedAttribute(context, context.node(node.base, node), officialBoundPropertyName(context, node.attribute, node));
+}
+
+/** `base.name` read on a value only known at run time (`godot_variant_get_named`). */
+function namedRead(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  baseNode: GodotBoundNode,
+  name: string,
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+): LoweredExpression {
+  const members = namedMembers(context, node, name, 'get');
+  return compose(
+    context,
+    [lower(context, baseNode)],
+    ([object]) => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_variant_get_named' },
+      arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: name }, members.value],
+      span: span(context.script, node),
+    }),
+    [...members.requirements, namedImport('godot_variant_get_named')],
+  );
+}
+
+/**
+ * `base.name` as a place on a value only known at run time: read by name, and stored by name with
+ * the base written back where it came from when the base is a place (a built-in record the store
+ * copies), else stored on the object alone.
+ */
+function namedPlace(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  baseNode: GodotBoundNode,
+  name: string,
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+  needsRead: boolean,
+): AssignablePlace {
+  const getters = needsRead ? namedMembers(context, node, name, 'get') : undefined;
+  const setters = namedMembers(context, node, name, 'set');
+  const at = span(context.script, node);
+  const key: TargetTsExpression = { kind: 'literal-expression', value: name };
+  const placed = baseNode.kind === 'IDENTIFIER' ? baseNode.source === 'LOCAL_VARIABLE' || baseNode.source === 'MEMBER_VARIABLE' || baseNode.source === 'FUNCTION_PARAMETER' : baseNode.kind === 'SUBSCRIPT';
+  const base = placed ? assignablePlace(context, baseNode, lower) : undefined;
+  const object = base === undefined ? materialize(context, lower(context, baseNode)) : undefined;
+  const value = base?.read ?? (object as LoweredExpression).value;
+  const store = (assigned: TargetTsExpression): TargetTsExpression => ({
+    kind: 'call-expression',
+    callee: { kind: 'identifier-expression', name: 'godot_variant_set_named' },
+    arguments: [value, key, assigned, setters.value],
+    span: at,
+  });
+  return {
+    before: base?.before ?? (object as LoweredExpression).before,
+    afterAssigned: base?.afterAssigned ?? [],
+    read:
+      getters === undefined
+        ? { kind: 'undefined-expression' }
+        : { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_variant_get_named' }, arguments: [value, key, getters.value], span: at },
+    // The store gives the base back (a copy for a record), which its own place takes.
+    write: (assigned) => (base === undefined ? store(assigned) : base.write(store(assigned))),
+    requirements: [
+      ...(base?.requirements ?? (object as LoweredExpression).requirements),
+      ...(getters?.requirements ?? []),
+      ...setters.requirements,
+      namedImport('godot_variant_get_named'),
+      namedImport('godot_variant_set_named'),
+    ],
+  };
+}
+
+/** A compat protocol import of `lib/godot-compat/<module>`. */
+function compatImport(module: string, name: string): OfficialBoundLoweringRequirement {
+  return { kind: 'compat-import-requirement', module: `lib/godot-compat/${module}`, imported: name, local: name, typeOnly: false };
+}
+
+/** The members of a record value a resource document stores, by its built-in type. */
+const DOCUMENT_RECORDS: Readonly<Record<string, readonly string[]>> = {
+  Vector2: ['x', 'y'],
+  Vector2i: ['x', 'y'],
+  Vector3: ['x', 'y', 'z'],
+  Vector3i: ['x', 'y', 'z'],
+  Vector4: ['x', 'y', 'z', 'w'],
+  Color: ['r', 'g', 'b', 'a'],
+  Quaternion: ['x', 'y', 'z', 'w'],
+};
+
+/**
+ * A project resource document's resource as code that makes it, as the loader reads the file:
+ * each value as the Variant it is, a sub-resource or a script resource made in turn
+ * (`godot_script_resource_new`); a resource of any other kind is refused.
+ */
+function documentResource(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  document: BoundGodotResourceDocument,
+  data: BoundGodotResourceDocument['resource'],
+  requirements: OfficialBoundLoweringRequirement[],
+  path: string | undefined,
+): TargetTsExpression {
+  const valueOf = (value: GodotValue): TargetTsExpression => {
+    // A number, a boolean or text: the value itself.
+    if ('value' in value && typeof value.value !== 'object') return { kind: 'literal-expression', value: value.value };
+    switch (value.kind) {
+      case 'null':
+        return { kind: 'literal-expression', value: null };
+      case 'array':
+        return { kind: 'array-expression', elements: value.items.map(valueOf) };
+      case 'ctor': {
+        if (value.name === 'SubResource' || value.name === 'ExtResource') {
+          const id = String((value.args[0] as { readonly value?: unknown } | undefined)?.value ?? '');
+          if (value.name === 'SubResource') {
+            const sub = document.subResources.find((entry) => String(entry.id) === id);
+            if (sub === undefined) return context.refuse(node, `${document.resPath}: SubResource ${id} is not declared`);
+            return documentResource(context, node, document, sub, requirements, undefined);
+          }
+          const ext = document.extResources.find((entry) => String(entry.id) === id);
+          const nested = ext === undefined ? undefined : context.resourceDocument(ext.resPath);
+          if (nested === undefined) return context.refuse(node, `${document.resPath}: ExtResource ${id} is not a resource document the project has`);
+          return documentResource(context, node, nested, nested.resource, requirements, nested.resPath);
+        }
+        const members = DOCUMENT_RECORDS[value.name];
+        if (members === undefined || value.args.some((arg) => arg.kind !== 'number')) return context.refuse(node, `${document.resPath}: a ${value.name} value is not transcribed`);
+        return {
+          kind: 'call-expression',
+          callee: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'freeze' },
+          arguments: [{ kind: 'object-expression', properties: members.map((member, index) => ({ key: member, value: { kind: 'literal-expression', value: (value.args[index] as { readonly value: number } | undefined)?.value ?? 1 } })) }],
+        };
+      }
+      default:
+        return context.refuse(node, `${document.resPath}: a ${value.kind} value is not transcribed`);
+    }
+  };
+  const script = data.properties['script'];
+  const scriptId = script?.kind === 'ctor' && script.name === 'ExtResource' ? String((script.args[0] as { readonly value?: unknown } | undefined)?.value ?? '') : undefined;
+  const scriptPath = scriptId === undefined ? undefined : document.extResources.find((entry) => String(entry.id) === scriptId)?.resPath;
+  const found = scriptPath === undefined ? undefined : context.scriptClass?.(scriptPath);
+  if (found === undefined) return context.refuse(node, `${document.resPath}: a ${data.type} without a project script is not made in code`);
+  if (found.module !== undefined) requirements.push({ kind: 'project-import-requirement', module: found.module, imported: found.name, local: found.name, typeOnly: false });
+  requirements.push(compatImport('resource', 'godot_script_resource_new'));
+  const fields = Object.entries(data.properties).filter(([name]) => name !== 'script' && name !== 'resource_name' && !name.startsWith('metadata/'));
+  return {
+    kind: 'call-expression',
+    callee: { kind: 'identifier-expression', name: 'godot_script_resource_new' },
+    arguments: [
+      { kind: 'identifier-expression', name: found.name },
+      { kind: 'object-expression', properties: fields.map(([name, value]) => ({ key: name, value: valueOf(value) })) },
+      ...(path === undefined ? [] : [{ kind: 'literal-expression' as const, value: path }]),
+    ],
+  };
+}
+
+/**
+ * `ResourceLoader.load(path)` and `ResourceSaver.save(resource, path)` through compat's resource
+ * protocol: a load's project resources (the one its literal path names, else every resource
+ * document with a script) made by code, and the project's script resource classes by path.
+ */
+function resourceCall(
+  context: LoweringContext,
+  node: GodotBoundCallNode,
+  shape: 'resource-load' | 'resource-save',
+  argumentNodes: readonly GodotBoundNode[],
+  lowered: readonly LoweredExpression[],
+  requirements: readonly OfficialBoundLoweringRequirement[],
+): LoweredExpression {
+  const own: OfficialBoundLoweringRequirement[] = [];
+  const classes: TargetTsExpression = {
+    kind: 'object-expression',
+    properties: context.resourceScripts.flatMap((resPath) => {
+      const found = context.scriptClass?.(resPath);
+      if (found === undefined) return [];
+      if (found.module !== undefined) own.push({ kind: 'project-import-requirement', module: found.module, imported: found.name, local: found.name, typeOnly: false });
+      return [{ key: resPath, value: { kind: 'identifier-expression' as const, name: found.name } }];
+    }),
+  };
+  if (shape === 'resource-save') {
+    own.push(compatImport('resource-loader', 'godot_resource_saver_save'));
+    return compose(
+      context,
+      lowered.slice(0, 2),
+      ([resource, path]) => ({ kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_resource_saver_save' }, arguments: [resource as TargetTsExpression, path as TargetTsExpression, classes], span: span(context.script, node) }),
+      [...requirements, ...own],
+    );
+  }
+  const pathNode = argumentNodes[0];
+  const literal = pathNode?.kind === 'LITERAL' && (pathNode.value.kind === 'string' || pathNode.value.kind === 'string-name') ? pathNode.value.value : undefined;
+  const paths = literal !== undefined ? (literal.startsWith('res://') ? [literal] : []) : [];
+  const project: TargetTsExpression = {
+    kind: 'object-expression',
+    properties: paths.map((resPath) => {
+      const document = context.resourceDocument(resPath);
+      const value: TargetTsExpression = document === undefined ? { kind: 'literal-expression', value: null } : documentResource(context, node, document, document.resource, own, resPath);
+      return { key: resPath, value: { kind: 'arrow-expression' as const, parameters: [], body: value } };
+    }),
+  };
+  own.push(compatImport('resource-loader', 'godot_resource_loader_load'), compatImport('resource', 'godot_script_resource_new'));
+  return compose(
+    context,
+    lowered.slice(0, 1),
+    ([path]) => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_resource_loader_load' },
+      arguments: [path as TargetTsExpression, project, classes, { kind: 'identifier-expression', name: 'godot_script_resource_new' }],
+      span: span(context.script, node),
+    }),
+    [...requirements, ...own],
+  );
+}
+
+/** `Script.new(...)`: `godot_script_new` over the native root class's constructor. */
+function scriptNew(
+  context: LoweringContext,
+  node: GodotBoundCallNode,
+  resPath: string,
+  lowered: readonly LoweredExpression[],
+  requirements: readonly OfficialBoundLoweringRequirement[],
+): LoweredExpression {
+  const found = context.scriptClass?.(resPath);
+  if (found === undefined) return context.refuse(node, `${resPath} names no generated script class`);
+  const root = context.scriptNativeRoot(resPath);
+  if (root === undefined) return context.refuse(node, `${resPath} has no native class at the root of its chain`);
+  const construct = context.bindingUse({ sourceRevision: context.sourceRevision, kind: 'native-class', owner: root, member: root, signature: 'GDScriptNativeClass' }, node);
+  return compose(
+    context,
+    lowered,
+    (values) => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_script_new' },
+      arguments: [
+        { kind: 'identifier-expression', name: found.name },
+        { kind: 'call-expression', callee: boundTargetExpression(construct.target), arguments: [] },
+        { kind: 'array-expression', elements: [...values] },
+      ],
+      span: span(context.script, node),
+    }),
+    [
+      ...requirements,
+      ...construct.requirements,
+      { kind: 'compat-import-requirement', module: 'lib/godot-compat/node', imported: 'godot_script_new', local: 'godot_script_new', typeOnly: false },
+      ...(found.module === undefined ? [] : [{ kind: 'project-import-requirement' as const, module: found.module, imported: found.name, local: found.name, typeOnly: false }]),
+    ],
+  );
+}
+
+/** `base.name(...)` on a value only known at run time (`godot_variant_call_named`). */
+function namedCall(
+  context: LoweringContext,
+  node: GodotBoundCallNode,
+  baseNode: GodotBoundNode,
+  argumentNodes: readonly GodotBoundNode[],
+  lowered: readonly LoweredExpression[],
+  requirements: readonly OfficialBoundLoweringRequirement[],
+  lower: (context: LoweringContext, node: GodotBoundNode) => LoweredExpression,
+): LoweredExpression {
+  const members = namedMembers(context, node, node.functionName, 'call', argumentNodes);
+  return compose(
+    context,
+    [lower(context, baseNode), ...lowered],
+    ([object, ...values]) => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_variant_call_named' },
+      arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: node.functionName }, members.value, { kind: 'array-expression', elements: values as TargetTsExpression[] }],
+      span: span(context.script, node),
+    }),
+    [...requirements, ...members.requirements, namedImport('godot_variant_call_named')],
+  );
+}
+
 /**
  * An element of a built-in array Godot copies (a PackedStringArray; `lowering-shapes.ts`). Its
  * value is copy-on-write (`Vector<T>`, core/templates/vector.h): `a[i] = e` writes the variable's
@@ -1041,20 +1535,28 @@ function assignablePlace(
 ): AssignablePlace {
   const parameter = treeParameter(context, node);
   if (parameter !== undefined) {
+    if (treePlayback(parameter.path)) return context.refuse(node, `an assignment to ${parameter.path}, a state machine's playback`);
     const rule = context.selectRule(node, ['subscript-element:tree-parameter'], [parameter.baseNode, parameter.indexNode], ['binding'], false);
     const object = materialize(context, nativeEntity(lower(context, parameter.baseNode)));
-    const name: TargetTsExpression = { kind: 'literal-expression', value: parameter.path };
+    const computed = parameter.path === undefined ? materialize(context, lower(context, parameter.indexNode)) : undefined;
+    const name: TargetTsExpression = computed?.value ?? { kind: 'literal-expression', value: parameter.path as string };
     const call = (callee: string, args: readonly TargetTsExpression[]): TargetTsExpression => ({
       kind: 'call-expression',
       callee: { kind: 'identifier-expression', name: callee },
       arguments: [...args],
     });
     return {
-      before: object.before,
+      before: [...object.before, ...(computed?.before ?? [])],
       afterAssigned: [],
       read: call('godot_animation_tree_parameter', [object.value, name]),
       write: (value) => call('godot_animation_tree_set_parameter', [object.value, name, value]),
-      requirements: [...rule.requirements, ...object.requirements, treeProtocol('godot_animation_tree_parameter'), treeProtocol('godot_animation_tree_set_parameter')],
+      requirements: [
+        ...rule.requirements,
+        ...object.requirements,
+        ...(computed?.requirements ?? []),
+        treeProtocol('godot_animation_tree_parameter'),
+        treeProtocol('godot_animation_tree_set_parameter'),
+      ],
     };
   }
   const element = dictionaryElement(context, node);
@@ -1063,6 +1565,11 @@ function assignablePlace(
   if (copiedElement !== undefined) return valueElementPlace(context, node, copiedElement, lower);
   const untypedElement = variantElement(context, node);
   if (untypedElement !== undefined) return variantElementPlace(context, node, untypedElement, lower);
+  if (node.kind === 'SUBSCRIPT' && node.isAttribute) {
+    const namedBase = context.node(node.base, node);
+    const name = officialBoundPropertyName(context, node.attribute, node);
+    if (namedAttribute(context, namedBase, name)) return namedPlace(context, node, namedBase, name, lower, needsRead);
+  }
   const attributeTarget = valueAttributeTarget(context, node);
   // The native base's own property as the base of a member write (`transform.basis = b`): read
   // through its getter, written back through its setter.
@@ -1195,13 +1702,34 @@ export function convertedValue(
   value: LoweredExpression,
 ): LoweredExpression {
   const objectKind = (datatype: GodotBoundNode['datatype']) => !datatype.metaType && (datatype.kind === 'NATIVE' || datatype.kind === 'CLASS');
-  if (objectKind(target.datatype) && objectKind(valueNode.datatype) && target.datatype.display !== valueNode.datatype.display && context.hasTargetType(target)) {
-    // An object into a place typed as a subclass (`var l: DirectionalLight3D = $L.duplicate()`):
-    // the value is that class, which Godot's typed assignment checks.
+  if (
+    objectKind(target.datatype) &&
+    (objectKind(valueNode.datatype) || valueNode.datatype.kind === 'VARIANT') &&
+    target.datatype.display !== valueNode.datatype.display &&
+    context.hasTargetType(target)
+  ) {
+    // An object or a Variant into a place typed as a class (`var l: DirectionalLight3D =
+    // $L.duplicate()`, `var c: Chunk = chunks.get(key)`): the value is that class, which Godot's
+    // typed assignment checks.
     const type = context.targetType(target);
-    return { ...value, value: { kind: 'as-expression', expression: value.value, type: type.type }, requirements: [...value.requirements, ...type.requirements] };
+    // A class compat types by no receiver of its own (`object`) states nothing an object lacks (a
+    // Variant is still stated an object).
+    if (type.type.kind === 'keyword-type' && type.type.keyword === 'object' && objectKind(valueNode.datatype)) return value;
+    // A script's instance into a place typed as an engine class holds the node it is attached to.
+    const scripted = target.datatype.kind === 'NATIVE' && valueNode.datatype.kind === 'CLASS' && valueNode.datatype.scriptPath !== '';
+    const held: TargetTsExpression = scripted ? { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_node_entity' }, arguments: [value.value] } : value.value;
+    return {
+      ...value,
+      value: { kind: 'as-expression', expression: held, type: type.type },
+      requirements: [...value.requirements, ...type.requirements, ...(scripted ? [compatImport('node', 'godot_node_entity')] : [])],
+    };
   }
-  if (valueNode.datatype.kind !== 'VARIANT' || target.datatype.kind !== 'BUILTIN') return value;
+  if (target.datatype.kind !== 'BUILTIN') return value;
+  // A value of another built-in type converts through the target type's constructor as well
+  // (`return flag` in a function returning `int`); an int into a float is the same JS number.
+  const from = valueNode.datatype;
+  const otherBuiltin = from.kind === 'BUILTIN' && !from.metaType && from.builtinType !== target.datatype.builtinType && !godotBuiltinWidens(from.builtinType, target.datatype.builtinType);
+  if (from.kind !== 'VARIANT' && !otherBuiltin) return value;
   const owner = target.datatype.builtinType;
   const use = context.bindingUse(
     {
@@ -1216,7 +1744,15 @@ export function convertedValue(
   if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') {
     return context.refuse(valueNode, `constructor binding ${use.target.localName} is not a plain call`);
   }
-  return compose(context, [value], (values) => bindingCall(context, valueNode, use, values), use.requirements);
+  // A Variant is stated as the target type, one the constructor takes; the constructor converts
+  // whatever the value holds at run time, as `Variant::construct` does.
+  const stated = from.kind === 'VARIANT' && context.hasTargetType(target) ? context.targetType(target) : undefined;
+  return compose(
+    context,
+    [value],
+    (values) => bindingCall(context, valueNode, use, stated === undefined ? values : values.map((entry) => ({ kind: 'as-expression', expression: entry, type: stated.type }))),
+    [...use.requirements, ...(stated?.requirements ?? [])],
+  );
 }
 
 /**
@@ -1312,7 +1848,7 @@ function assignment(
 ): LoweredExpression {
   const place =
     inheritedNativePlace(context, targetNode, combine !== undefined) ??
-    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined || valueElement(context, targetNode) !== undefined || variantElement(context, targetNode) !== undefined
+    (valueAttributeTarget(context, targetNode) !== undefined || treeParameter(context, targetNode) !== undefined || dictionaryElement(context, targetNode) !== undefined || valueElement(context, targetNode) !== undefined || variantElement(context, targetNode) !== undefined || namedTarget(context, targetNode)
       ? assignablePlace(context, targetNode, lower, combine !== undefined)
       : undefined);
   if (place !== undefined) {
@@ -1788,6 +2324,8 @@ export function lowerOfficialExpression(
     // (A built-in with no datatype rule of its own keeps the binding's type.)
     if (!typedValue || datatype.metaType || !known || !context.hasTargetType(node)) return lowered;
     const type = context.targetType(node);
+    // A value its own read already states as the type (a proven cast's operand) is stated once.
+    if (lowered.value.kind === 'as-expression' && JSON.stringify(lowered.value.type) === JSON.stringify(type.type)) return lowered;
     return {
       ...lowered,
       value: { kind: 'as-expression', expression: lowered.value, type: type.type },
@@ -2036,7 +2574,7 @@ export function lowerOfficialExpression(
           return expression(
             local
               ? { kind: 'identifier-expression', name: context.lexicalName(node.name), span: span(context.script, node) }
-              : { kind: 'property-expression', object: { kind: 'this-expression' }, property: node.name, span: span(context.script, node) },
+              : { kind: 'property-expression', object: { kind: 'this-expression' }, property: godotMemberProperty(context, node.name), span: span(context.script, node) },
             context.structural(node, local ? 'local-identifier' : 'member-identifier', [], local ? 'local-identifier:numeric' : 'member-identifier:numeric'),
           );
         }
@@ -2067,6 +2605,17 @@ export function lowerOfficialExpression(
               [...rule.requirements, ...getter.requirements],
             );
           }
+        }
+        // An engine signal of the script's native base named bare (`body_entered.connect(…)`): the
+        // signal on the instance's own node, through the class's signal accessor.
+        const inheritedSignal = node.source === 'INHERITED_VARIABLE' && context.nativeBase !== undefined ? context.nativeSignalOwner?.(context.nativeBase, node.name) : undefined;
+        if (inheritedSignal !== undefined) {
+          const rule = context.selectRule(node, ['member-identifier:INHERITED_VARIABLE'], [], ['binding']);
+          const use = context.bindingUse({ sourceRevision: context.sourceRevision, kind: 'native-signal', owner: inheritedSignal, member: node.name, signature: 'signal' }, node);
+          if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'first-argument') {
+            return context.refuse(node, `signal binding ${use.target.localName} does not take its object first`);
+          }
+          return expression(bindingCall(context, node, use, [selfNative(context, node)]), [...rule.requirements, ...use.requirements]);
         }
         if (node.source === 'INHERITED_VARIABLE' && node.datatype.kind === 'BUILTIN' && context.nativeBase !== undefined) {
           // An engine method of the script's native base named as a value (`queue_free`) is
@@ -2119,11 +2668,21 @@ export function lowerOfficialExpression(
             {
               kind: 'property-expression',
               object: { kind: 'this-expression' },
-              property: node.name,
+              property: node.source === 'MEMBER_VARIABLE' ? godotMemberProperty(context, node.name) : node.name,
               span: span(context.script, node),
             },
             context.structural(node, 'member-identifier', [], `member-identifier:${node.source}`),
           );
+        }
+        // A ClassDB constant the script's native class inherits (`NOTIFICATION_PREDELETE`), which the
+        // analyzer also names a member constant, when the script's chain declares no such member.
+        const inherited =
+          node.source === 'MEMBER_CONSTANT' && context.nativeBase !== undefined && context.scriptMembers?.(context.script.resPath)?.has(node.name) !== true
+            ? context.nativeConstant(context.nativeBase, node.name)
+            : undefined;
+        if (inherited !== undefined) {
+          const rule = context.structural(node, 'literal', [], 'literal:native-constant');
+          return expression({ kind: 'literal-expression', value: inherited, span: span(context.script, node) }, rule);
         }
         if (node.source === 'MEMBER_CONSTANT' || node.source === 'STATIC_VARIABLE') {
           return expression(
@@ -2137,6 +2696,22 @@ export function lowerOfficialExpression(
           );
         }
         const autoload = context.autoload(node);
+        if (autoload?.fromTree === true) {
+          // Where the script has no autoload field yet, the autoload node under the root.
+          return expression(
+            {
+              kind: 'as-expression',
+              expression: {
+                kind: 'call-expression',
+                callee: { kind: 'identifier-expression', name: 'godot_tree_autoload' },
+                arguments: [{ kind: 'literal-expression', value: autoload.reference.name }],
+                span: span(context.script, node),
+              },
+              type: { kind: 'type-reference', name: autoload.reference.typeLocalName, arguments: [] },
+            },
+            [...autoload.requirements, compatImport('scene-tree', 'godot_tree_autoload')],
+          );
+        }
         if (autoload !== undefined) {
           return expression(
             {
@@ -2156,6 +2731,25 @@ export function lowerOfficialExpression(
             const rule = context.structural(node, 'literal', [], 'literal:native-constant');
             return expression({ kind: 'literal-expression', value, span: span(context.script, node) }, rule);
           }
+        }
+        // A global script class named as a value (`Chunk.calculate_block_uvs(...)`, a `class_name`
+        // the analyzer resolves through `ScriptServer`) is that script's generated class.
+        if (node.source === 'UNDEFINED_SOURCE' && node.datatype.metaType && (node.datatype.kind === 'CLASS' || node.datatype.kind === 'SCRIPT') && node.datatype.scriptPath !== '') {
+          const found = context.scriptClass?.(node.datatype.scriptPath);
+          if (found === undefined) return context.refuse(node, `${node.datatype.scriptPath} names no generated script class`);
+          return expression(
+            { kind: 'identifier-expression', name: found.name, span: span(context.script, node) },
+            [
+              ...context.structural(node, 'bound-identifier', [], 'bound-identifier:script-class'),
+              ...(found.module === undefined ? [] : [{ kind: 'project-import-requirement' as const, module: found.module, imported: found.name, local: found.name, typeOnly: false }]),
+            ],
+          );
+        }
+        // GDScript's own constants (`PI`, `TAU`, `INF`, `NAN`) are their values.
+        const language = node.source === 'UNDEFINED_SOURCE' ? godotLanguageConstant(node.name) : undefined;
+        if (language !== undefined) {
+          const rule = context.structural(node, 'literal', [], 'literal:native-constant');
+          return expression({ kind: 'literal-expression', value: language, span: span(context.script, node) }, rule);
         }
         // The binding is what the identifier means; resolve it before its structural rule so an
         // absent binding is what refuses.
@@ -2177,11 +2771,11 @@ export function lowerOfficialExpression(
         return compose(
           context,
           elements.map((element) => lowerExpression(context, element)),
-          (values) => ({
-            kind: 'array-expression',
-            elements: values,
-            span: span(context.script, node),
-          }),
+          (values) =>
+            // An empty Array holds Variants: its type is not inferred from nothing.
+            values.length === 0
+              ? { kind: 'as-expression', expression: { kind: 'array-expression', elements: [] }, type: { kind: 'array-type', element: ANY }, span: span(context.script, node) }
+              : { kind: 'array-expression', elements: values, span: span(context.script, node) },
           requirements,
         );
       }
@@ -2223,8 +2817,22 @@ export function lowerOfficialExpression(
           'binding',
           'integer-negate',
           'object-truthy',
+          'variant-operator',
         ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'variant-operator') {
+          return compose(
+            context,
+            [lowerExpression(context, operandNode)],
+            ([operand]) => ({
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_variant_evaluate' },
+              arguments: [{ kind: 'literal-expression', value: node.variantOperatorId }, operand as TargetTsExpression],
+              span: span(context.script, node),
+            }),
+            [...rule.requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-operator', imported: 'godot_variant_evaluate', local: 'godot_variant_evaluate', typeOnly: false } as const],
+          );
+        }
         if (recipe.kind === 'object-truthy') {
           return compose(
             context,
@@ -2285,8 +2893,22 @@ export function lowerOfficialExpression(
           'integer-binary',
           'object-equal',
           'variant-equal',
+          'variant-operator',
         ]);
         const recipe = rule.recipe;
+        if (recipe.kind === 'variant-operator') {
+          return compose(
+            context,
+            [lowerExpression(context, leftNode), lowerExpression(context, rightNode)],
+            ([leftValue, rightValue]) => ({
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_variant_evaluate' },
+              arguments: [{ kind: 'literal-expression', value: node.variantOperatorId }, leftValue as TargetTsExpression, rightValue as TargetTsExpression],
+              span: span(context.script, node),
+            }),
+            [...rule.requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-operator', imported: 'godot_variant_evaluate', local: 'godot_variant_evaluate', typeOnly: false } as const],
+          );
+        }
         if (recipe.kind === 'variant-equal') {
           return compose(
             context,
@@ -2427,9 +3049,25 @@ export function lowerOfficialExpression(
           node,
           node.operation === 'OP_NONE' ? [exactKey] : [exactKey, 'operator:variant-evaluate'],
           [assigneeNode, valueNode],
-          ['assignment', 'binding'],
+          ['assignment', 'binding', 'variant-operator'],
         );
         const recipe = rule.recipe;
+        if (recipe.kind === 'variant-operator') {
+          return assignment(
+            context,
+            node,
+            (read, value) =>
+              expression({
+                kind: 'call-expression',
+                callee: { kind: 'identifier-expression', name: 'godot_variant_evaluate' },
+                arguments: [{ kind: 'literal-expression', value: node.variantOperatorId }, read, value],
+              }),
+            assigneeNode,
+            lowerExpression(context, valueNode),
+            lowerExpression,
+            [...rule.requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/variant-operator', imported: 'godot_variant_evaluate', local: 'godot_variant_evaluate', typeOnly: false } as const],
+          );
+        }
         if (recipe.kind === 'binding') {
           const use = operatorBinding(context, node, assigneeNode, valueNode);
           return assignment(
@@ -2503,10 +3141,32 @@ export function lowerOfficialExpression(
             [...rule.requirements, ...use.requirements],
           );
         }
+        // A member of a value whose class only the run time knows: selected by name then.
+        if (node.isAttribute && !context.plainCallees.has(node.id) && namedAttribute(context, baseNode, officialBoundPropertyName(context, node.attribute, node))) {
+          return namedRead(context, node, baseNode, officialBoundPropertyName(context, node.attribute, node), lowerExpression);
+        }
         // On a native object, or a script instance whose script does not declare the name (its
         // native base's signal, as its properties are).
+        // An engine singleton's property (`Input.mouse_mode`): its getter on the one object, bound
+        // without a receiver (`Engine::get_singleton_object`), as its write is (`assignablePlace`).
+        if (node.isAttribute && baseNode.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS') {
+          const found = context.nativeProperty(baseNode.name, officialBoundPropertyName(context, node.attribute, node));
+          const method = found?.getter;
+          if (method !== undefined) {
+            const use = context.bindingUse(
+              { sourceRevision: context.sourceRevision, kind: 'native-member', owner: method.owner, member: method.name, signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}` },
+              node,
+            );
+            if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') return context.refuse(node, `${method.owner}.${method.name} is not bound on the singleton`);
+            const rule = context.selectRule(node, ['subscript-attribute:native-property'], [baseNode], ['binding']);
+            return expression(bindingCall(context, node, use, []), [...rule.requirements, ...use.requirements]);
+          }
+        }
+        // An engine singleton's signal (`RenderingServer.frame_post_draw`) is read as an object's is,
+        // the singleton's value its receiver.
+        const singleton = baseNode.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS' && baseNode.datatype.kind === 'NATIVE' && baseNode.datatype.metaType;
         const signalOwner =
-          node.isAttribute && nativeMemberReceiver(context, baseNode, officialBoundPropertyName(context, node.attribute, node))
+          node.isAttribute && (singleton || nativeMemberReceiver(context, baseNode, officialBoundPropertyName(context, node.attribute, node)))
             ? context.nativeSignalOwner?.(baseNode.datatype.nativeType, officialBoundPropertyName(context, node.attribute, node))
             : undefined;
         if (signalOwner !== undefined) {
@@ -2523,7 +3183,7 @@ export function lowerOfficialExpression(
           }
           return compose(
             context,
-            [nativeEntity(lowerExpression(context, baseNode))],
+            [singleton ? lowerExpression(context, baseNode) : nativeEntity(lowerExpression(context, baseNode))],
             (values) => bindingCall(context, node, use, values),
             [...rule.requirements, ...use.requirements],
           );
@@ -2577,15 +3237,16 @@ export function lowerOfficialExpression(
         const parameter = treeParameter(context, node);
         if (parameter !== undefined) {
           const rule = context.selectRule(node, ['subscript-element:tree-parameter'], [parameter.baseNode, parameter.indexNode], ['binding'], false);
+          const path = parameter.path;
           return compose(
             context,
-            [nativeEntity(base)],
-            ([object]) => ({
+            [nativeEntity(base), ...(path === undefined ? [lowerExpression(context, parameter.indexNode)] : [])],
+            ([object, computed]) => ({
               kind: 'call-expression',
-              callee: { kind: 'identifier-expression', name: 'godot_animation_tree_parameter' },
-              arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: parameter.path }],
+              callee: { kind: 'identifier-expression', name: treePlayback(path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter' },
+              arguments: [object as TargetTsExpression, computed ?? { kind: 'literal-expression', value: path as string }],
             }),
-            [...rule.requirements, treeProtocol('godot_animation_tree_parameter')],
+            [...rule.requirements, treeProtocol(treePlayback(parameter.path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter')],
           );
         }
         const indexNode = context.node(node.index, node);
@@ -2689,6 +3350,8 @@ export function lowerOfficialExpression(
           stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
         );
         const loads = node.compilerTarget.kind === 'gdscript-utility' ? context.resourceLoads.get(node.id) : undefined;
+        const refusedLoad = context.refusedResourceLoads.get(node.id);
+        if (refusedLoad !== undefined) return context.refuse(node, refusedLoad);
         if (loads !== undefined && lowered.length === 1) {
           // `load(path)` over the paths the program fixes: the module's record of every resolved
           // load (`resourceTable`) looked up by the path, null where no file is there
@@ -2706,6 +3369,88 @@ export function lowerOfficialExpression(
             after: [],
             requirements: [...requirements, ...path.requirements, ...table.requirements],
           };
+        }
+        // `ResourceLoader.load` / `ResourceSaver.save`: the project's resources and the page's storage.
+        const nativeShape =
+          node.compilerTarget.kind === 'native-method' || node.compilerTarget.kind === 'native-static'
+            ? godotCallShape(node.compilerTarget.owner, node.compilerTarget.member)
+            : node.compilerTarget.kind === 'gdscript-utility'
+              ? godotCallShape('@GDScript', node.compilerTarget.member)
+              : undefined;
+        if (nativeShape === 'resource-load' || nativeShape === 'resource-save') {
+          return resourceCall(context, node, nativeShape, argumentNodes, lowered, requirements);
+        }
+        // A change to a copied built-in array: the changed copy stored back where the array came from.
+        const builtinShape = node.compilerTarget.kind === 'builtin-member' ? godotCallShape(node.compilerTarget.owner, node.compilerTarget.member) : undefined;
+        if (builtinShape === 'copied-mutator' && calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute) {
+          const use = callTargetBinding(context, node);
+          if (use === undefined) return context.refuse(node, `${node.functionName} has no binding`);
+          const place = assignablePlace(context, context.node(calleeNode.base, calleeNode), lowerExpression);
+          const values = eagerValues(context, lowered);
+          return {
+            before: [...place.before, ...values.before, ...place.afterAssigned],
+            value: place.write(bindingCall(context, node, use, [place.read, ...values.values])),
+            after: [],
+            requirements: [...requirements, ...use.requirements, ...place.requirements, ...values.requirements],
+          };
+        }
+        // An AnimationTree's parameter by name, as its subscript is (`treeParameterCall`).
+        const treeCall = treeParameterCall(context, node, calleeNode, argumentNodes);
+        if (treeCall !== undefined) {
+          if (treeCall.write && treePlayback(treeCall.path)) return context.refuse(node, `a set of ${treeCall.path}, a state machine's playback`);
+          const base = lowerExpression(context, treeCall.baseNode);
+          const callee = treeCall.write ? 'godot_animation_tree_set_parameter' : treePlayback(treeCall.path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter';
+          const path = treeCall.path;
+          return compose(
+            context,
+            [nativeEntity(base), ...(path === undefined ? lowered : lowered.slice(1))],
+            ([object, ...values]) => ({
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: callee },
+              arguments: [object as TargetTsExpression, ...(path === undefined ? [] : [{ kind: 'literal-expression' as const, value: path }]), ...(values as TargetTsExpression[])],
+              span: span(context.script, node),
+            }),
+            [...requirements, treeProtocol(callee)],
+          );
+        }
+        // `Script.new(...)`: the script's instance over a new object of its native root class.
+        if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute && node.functionName === 'new') {
+          const classNode = context.node(calleeNode.base, calleeNode);
+          const datatype = classNode.datatype;
+          if ((datatype.kind === 'CLASS' || datatype.kind === 'SCRIPT') && datatype.metaType && datatype.scriptPath !== '') {
+            return scriptNew(context, node, datatype.scriptPath, lowered, requirements);
+          }
+        }
+        // `TerrainGenerator.flat(position)`: a static function of a global script class, called on
+        // its generated class (`GDScriptCompiler::_parse_expression` CALL on a class, gdscript_compiler.cpp:651).
+        if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute) {
+          const classNode = context.node(calleeNode.base, calleeNode);
+          const datatype = classNode.datatype;
+          if (classNode.kind === 'IDENTIFIER' && (datatype.kind === 'CLASS' || datatype.kind === 'SCRIPT') && datatype.metaType && datatype.scriptPath !== '') {
+            const receiver = lowerExpression(context, classNode);
+            return compose(
+              context,
+              [receiver, ...lowered],
+              ([receiverValue, ...argumentValues]) => ({
+                kind: 'call-expression',
+                callee: { kind: 'property-expression', object: receiverValue as TargetTsExpression, property: node.functionName, span: span(context.script, calleeNode) },
+                arguments: argumentValues as TargetTsExpression[],
+                span: span(context.script, node),
+              }),
+              requirements,
+            );
+          }
+        }
+        // A method of a value whose class only the run time knows: selected by name then.
+        if (
+          (node.compilerTarget.kind === 'dynamic' || node.compilerTarget.kind === 'unresolved') &&
+          !context.callReceivers.has(node.id) &&
+          context.untypedCalls.has(node.id) &&
+          !context.scriptSwitches.has(node.id) &&
+          calleeNode.kind === 'SUBSCRIPT' &&
+          calleeNode.isAttribute
+        ) {
+          return namedCall(context, node, context.node(calleeNode.base, calleeNode), argumentNodes, lowered, requirements, lowerExpression);
         }
         const target = callTargetBinding(context, node);
         // `Object.has_method(name)` answers from the script chain first, then ClassDB. Compat answers
@@ -2778,7 +3523,9 @@ export function lowerOfficialExpression(
                   ? expression(selfNative(context, receiverNode), context.structural(receiverNode, 'self'))
                   : target.target.kind === 'compat-binding' && nativeMember
                     ? nativeEntity(lowerExpression(context, receiverNode))
-                    : lowerExpression(context, receiverNode),
+                    : receiverNode.datatype.kind === 'ENUM' && receiverNode.datatype.metaType
+                      ? enumDictionary(lowerExpression(context, receiverNode))
+                      : lowerExpression(context, receiverNode),
                 target,
                 args,
               );
@@ -2822,7 +3569,12 @@ export function lowerOfficialExpression(
             (argumentValues) => ({
               kind: 'call-expression',
               callee,
-              arguments: argumentValues,
+              // An object that may be null is passed as the object the parameter types: GDScript
+              // passes null to an object parameter, which TS states present.
+              arguments: argumentValues.map((value, index) => {
+                const argument = argumentNodes[index];
+                return argument !== undefined && nullableObject(context, argument) ? { kind: 'non-null-expression', expression: value } : value;
+              }),
               span: span(context.script, node),
             }),
             requirements,
@@ -2859,6 +3611,8 @@ export function lowerOfficialExpression(
             ],
           );
         }
+        // The callee is the call's own member, not a member read by name.
+        context.plainCallees.add(calleeNode.id);
         const callee = lowerExpression(context, calleeNode);
         return dynamicCall(context, node, callee, args, requirements);
       }
@@ -2876,6 +3630,19 @@ export function lowerOfficialExpression(
         // (an early return) is no function state in Godot, so the Signal itself is awaited until it
         // emits; here the promise resolves with the Signal and the caller resumes at once.
         const isSignal = !awaitedNode.datatype.coroutine && godotAwaitsEmission(awaitedNode.datatype);
+        // A value only the run time types: awaited as what it holds (`godot_await_value`).
+        if (!isSignal && !awaitedNode.datatype.coroutine && awaitedNode.datatype.kind === 'VARIANT') {
+          return compose(
+            context,
+            [lowerExpression(context, awaitedNode)],
+            ([awaited]) => ({
+              kind: 'await-expression',
+              expression: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_await_value' }, arguments: [awaited as TargetTsExpression] },
+              span: span(context.script, node),
+            }),
+            [...requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/signal', imported: 'godot_await_value', local: 'godot_await_value', typeOnly: false }],
+          );
+        }
         return compose(
           context,
           [lowerExpression(context, awaitedNode)],
@@ -2929,16 +3696,17 @@ export function lowerOfficialExpression(
         if (fn.restParameter >= 0) {
           return context.refuse(fn, 'lambda rest parameter needs a rest binding the lane does not lower');
         }
-        if (fn.returnType >= 0) {
-          return context.refuse(fn, 'typed lambda needs a target return type the lane does not lower');
-        }
         if (fn.abstract) {
           return context.refuse(fn, 'abstract lambda has no direct target representation');
         }
-        if (node.captures.length > 0 || node.useSelf) {
+        // A lambda captures its outer locals by value when it is created (`GDScriptLambdaCallable`,
+        // `modules/gdscript/gdscript_lambda_callable.cpp:39`); an arrow function captures the
+        // binding, which reads the same while no captured local is ever assigned again. `self` is
+        // the arrow's own `this`.
+        if (reassignedCapture(context, node) !== undefined) {
           return context.refuse(
             node,
-            'captured lambda needs a by-value capture the lane does not lower',
+            `captured lambda needs a by-value capture of '${String(reassignedCapture(context, node))}', which is assigned again`,
           );
         }
         const requirements = context.structural(
@@ -2956,7 +3724,10 @@ export function lowerOfficialExpression(
           }`,
         );
         const loweredParameters = parameters(context, fn);
-        const body = lowerSuite(context, context.node(fn.body, fn));
+        // A typed lambda's returns convert to its return type as a function's do; the arrow's own
+        // type is what they return.
+        const returnNode = fn.returnType < 0 ? undefined : context.node(fn.returnType, fn);
+        const body = context.withReturnType(returnNode, () => lowerSuite(context, context.node(fn.body, fn)));
         return expression(
           {
             kind: 'arrow-expression',
@@ -2980,7 +3751,20 @@ export function lowerOfficialExpression(
         // A cast analysis proves always holds is the value itself (`provenCasts`), which the typed
         // read states as the class.
         if (context.provenCasts.has(node.id)) {
-          const requirements = context.structural(node, 'cast', [operandNode], 'cast:native');
+          const requirements = context.structural(node, 'cast', [operandNode], node.datatype.kind === 'NATIVE' ? 'cast:native' : 'cast:script');
+          const operand = lowerExpression(context, operandNode);
+          // A script's instance cast to its script's native class is the node it runs on.
+          const toNative = node.datatype.kind === 'NATIVE' && operandNode.datatype.kind !== 'NATIVE';
+          if (toNative && !nullableObject(context, operandNode)) {
+            const entity = nativeEntity(operand);
+            return { ...entity, requirements: [...entity.requirements, ...requirements] };
+          }
+          if (!toNative) return { ...operand, requirements: [...operand.requirements, ...requirements] };
+        }
+        // `value as Enum`: an enum is its int, so the value is itself (`GDScriptAnalyzer::reduce_cast`
+        // allows an int or an enum there, gdscript_analyzer.cpp:3780, and the VM converts nothing).
+        if (node.datatype.kind === 'ENUM' && !node.datatype.metaType) {
+          const requirements = context.structural(node, 'cast', [operandNode], 'cast:enum');
           const operand = lowerExpression(context, operandNode);
           return { ...operand, requirements: [...operand.requirements, ...requirements] };
         }
@@ -3002,6 +3786,29 @@ export function lowerOfficialExpression(
         // `value is T` on an object type (`OPCODE_TYPE_TEST_NATIVE` / `_SCRIPT`), through the Node
         // protocol: the class the scene recorded for its entity, or its script instance's class.
         const operandNode = context.node(node.operand, node);
+        // An input event tested for an input event class: the event record's own `type`.
+        const operandTypes = operandNode.datatype.kind === 'NATIVE' && !operandNode.datatype.metaType ? godotInputEventRecordTypes(operandNode.datatype.nativeType) : undefined;
+        const testedTypes = node.testDatatype.kind === 'NATIVE' ? godotInputEventRecordTypes(node.testDatatype.nativeType) : undefined;
+        if (operandTypes !== undefined && testedTypes !== undefined && !nullableObject(context, operandNode)) {
+          const requirements = context.structural(node, 'type-test', [operandNode], 'type-test:native');
+          const kept = testedTypes.filter((type) => operandTypes.includes(type));
+          return compose(
+            context,
+            [lowerExpression(context, operandNode)],
+            ([value]) => {
+              const type: TargetTsExpression = { kind: 'property-expression', object: value as TargetTsExpression, property: 'type' };
+              if (kept.length === operandTypes.length) return { kind: 'literal-expression', value: true, span: span(context.script, node) };
+              if (kept.length === 1) return { kind: 'binary-expression', operator: '===', left: type, right: { kind: 'literal-expression', value: kept[0] as string }, span: span(context.script, node) };
+              return {
+                kind: 'call-expression',
+                callee: { kind: 'property-expression', object: { kind: 'array-expression', elements: kept.map((entry) => ({ kind: 'literal-expression' as const, value: entry })) }, property: 'includes' },
+                arguments: [type],
+                span: span(context.script, node),
+              };
+            },
+            requirements,
+          );
+        }
         const test = objectTypeTest(context, node, node.testDatatype, 'is');
         const requirements = context.structural(node, 'type-test', [operandNode], `type-test:${test.kind}`);
         return compose(
@@ -3053,8 +3860,52 @@ export function lowerOfficialExpression(
       case 'PRELOAD': {
         // `preload("res://x.tscn")` is the project scene's resource, made once per path
         // (`ResourceLoader::load`'s cache): the scene component the translation writes for it.
+        // `preload("res://x.ogg")`: the imported sound its path loads, from the module's record of
+        // the script's loads (`resourceTable`), as `load` of that path is.
+        const refusedPreload = context.refusedResourceLoads.get(node.id);
+        if (refusedPreload !== undefined) return context.refuse(node, refusedPreload);
+        if (context.resourceLoads.has(node.id)) {
+          const table = resourceTable(context);
+          return expression(
+            {
+              kind: 'element-expression',
+              object: { kind: 'identifier-expression', name: table.local },
+              index: { kind: 'literal-expression', value: node.resolvedPath },
+              span: span(context.script, node),
+            },
+            [...context.structural(node, 'preload', [], 'preload:resource'), ...table.requirements],
+          );
+        }
         const scene = context.packedScene?.(node.resolvedPath);
-        if (scene === undefined) return context.refuse(node, `preload of ${node.resolvedPath} names no project scene`);
+        if (scene === undefined) {
+          // `preload("res://m.tres")`: the project resource, made once per path as the loader caches
+          // it (`godot_resource_loader_load` with the one path it names).
+          const document = context.resourceDocument(node.resolvedPath);
+          if (document === undefined) return context.refuse(node, `preload of ${node.resolvedPath} names no project scene or resource`);
+          const own: OfficialBoundLoweringRequirement[] = [...context.structural(node, 'preload', [], 'preload:resource')];
+          // A resource without a script: the one its module makes and exports.
+          const made = context.resourceModule(node.resolvedPath);
+          if (made !== undefined) {
+            const local = `$Resource_${made.name}`;
+            return expression({ kind: 'identifier-expression', name: local, span: span(context.script, node) }, [...own, { kind: 'project-import-requirement', module: made.module, imported: made.name, local, typeOnly: false }]);
+          }
+          const value = documentResource(context, node, document, document.resource, own, node.resolvedPath);
+          own.push(compatImport('resource-loader', 'godot_resource_loader_load'), compatImport('resource', 'godot_script_resource_new'));
+          return expression(
+            {
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_resource_loader_load' },
+              arguments: [
+                { kind: 'literal-expression', value: node.resolvedPath },
+                { kind: 'object-expression', properties: [{ key: node.resolvedPath, value: { kind: 'arrow-expression', parameters: [], body: value } }] },
+                { kind: 'object-expression', properties: [] },
+                { kind: 'identifier-expression', name: 'godot_script_resource_new' },
+              ],
+              span: span(context.script, node),
+            },
+            own,
+          );
+        }
         const requirements = context.structural(node, 'preload', [], 'preload:packed-scene');
         const local = `$Scene_${scene.name}`;
         return expression(
@@ -3089,4 +3940,29 @@ export function lowerOfficialExpression(
         return context.refuse(node, `${node.kind} is not an expression lowering`);
     }
   }
+}
+
+/** The name of a local a lambda captures that the script assigns anywhere after declaring it. */
+function reassignedCapture(context: LoweringContext, lambda: Extract<GodotBoundNode, { kind: 'LAMBDA' }>): string | undefined {
+  const names = new Set<string>();
+  for (const id of lambda.captures) {
+    const captured = context.script.nodes[id];
+    if (captured?.kind === 'IDENTIFIER') names.add(captured.name);
+    else if (captured !== undefined && 'identifier' in captured) {
+      const identifier = context.script.nodes[captured.identifier as number];
+      if (identifier?.kind === 'IDENTIFIER') names.add(identifier.name);
+    }
+  }
+  if (names.size === 0) return undefined;
+  for (const candidate of context.script.nodes) {
+    if (candidate?.kind !== 'ASSIGNMENT') continue;
+    const assignee = context.script.nodes[candidate.assignee];
+    if (assignee?.kind === 'IDENTIFIER' && assignee.source !== 'MEMBER_VARIABLE' && names.has(assignee.name)) return assignee.name;
+  }
+  return undefined;
+}
+
+/** A member variable's property: its backing field inside its own accessor (`#name`), else itself. */
+export function godotMemberProperty(context: LoweringContext, name: string): string {
+  return context.accessorOf === name ? `#${name}` : name;
 }

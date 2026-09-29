@@ -49,6 +49,11 @@ export interface GodotPlannedSourceTranslationArtifact {
         readonly kind: 'scene-module';
         readonly sceneResPath: string;
         readonly inputDigest: string;
+      }
+    | {
+        readonly kind: 'resource-module';
+        readonly resourceResPath: string;
+        readonly inputDigest: string;
       };
   readonly origin: GodotSourceTranslationOrigin;
   readonly planIdentity: string;
@@ -60,7 +65,7 @@ export type GodotPlannedProjectDataArtifact =
       readonly path: string;
       readonly content: {
         readonly kind: 'generated-target-ts';
-        readonly module: 'world';
+        readonly module: 'world' | 'ui';
         readonly inputDigest: string;
       };
       readonly origin: GodotProjectDataOrigin;
@@ -78,6 +83,14 @@ export type GodotPlannedProjectDataArtifact =
       readonly path: string;
       readonly content: { readonly kind: 'bytes'; readonly bytes: Uint8Array };
       readonly digest: string;
+      readonly origin: GodotProjectDataOrigin;
+      readonly planIdentity: string;
+    }
+  | {
+      readonly kind: 'project-data';
+      readonly path: string;
+      /** An image the plan describes by its pixels (8-bit, `channels` a pixel), which emit writes as a PNG. */
+      readonly content: { readonly kind: 'image'; readonly width: number; readonly height: number; readonly channels: number; readonly pixels: Uint8Array };
       readonly origin: GodotProjectDataOrigin;
       readonly planIdentity: string;
     };

@@ -12,12 +12,12 @@ import type {
 } from '../../analyze/bound-project';
 import type { GodotApiDump } from '../../analyze/api-dump';
 import type { GodotBoundNode } from '../../godot-frontend/bound-program';
-import type { ImportedSoundKind } from '../../analyze/resource-loads';
+import type { ImportedResourceKind } from '../../analyze/resource-loads';
 import type { GodotValue } from '../../read/godot-value';
 import { GODOT_CODE_RESOURCE_LOADS, godotImportedAssetUrl } from '../data/code-resource-loads';
-import { godotCallShape } from '../data/lowering-shapes';
+import { godotCallShape, godotStoredResourceRoot } from '../data/lowering-shapes';
 import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
-import { godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
+import { godotPreloadsResourceModule, godotResourceModuleExportName, godotResourceModuleTargetPath, godotSceneExportName, godotSceneTargetPath, godotTextureLoad } from '../data/scene-document-plan';
 import { safeIdent } from '../target-names';
 import {
   type GodotCodeTranslationAuthority,
@@ -36,6 +36,8 @@ import {
   type ImplicitReadyChain,
   type GlobalEnumConstantLookup,
   type NativeConstantLookup,
+  type NamedMemberCandidate,
+  type NamedMemberLookup,
   type NativeMethodLookup,
   type NativePropertyAccessor,
   type NativePropertyLookup,
@@ -50,6 +52,7 @@ import {
   type TargetTsImportBinding,
   type TargetTsSourceFile,
   type TargetTsStatement,
+  type TargetTsType,
 } from './target-ts-syntax';
 
 export type { OfficialBoundLoweringDiagnostic } from './official-bound-lowering-context';
@@ -344,9 +347,14 @@ function nativeCarrierRoot(
   const used = project.scripts.some(
     (candidate) =>
       rootScriptPath(candidate) === rootPath &&
-      (candidate.attachments.length > 0 || candidate.autoloads.length > 0),
+      (candidate.attachments.length > 0 || candidate.autoloads.length > 0 || madeInCode(project, candidate.resPath)),
   );
   return used ? rootPath : undefined;
+}
+
+/** Whether some script makes an instance of the script in code (analysis's `instancesMade`). */
+function madeInCode(project: BoundGodotProject, resPath: string): boolean {
+  return project.scripts.some((script) => script.instancesMade.anyScript || script.instancesMade.scripts.includes(resPath));
 }
 
 /**
@@ -360,18 +368,41 @@ const NATIVE_CARRIER_TYPE_IMPORT: TargetTsStatement = {
   typeOnly: true,
 };
 
-function nativeCarrierMembers(): readonly TargetTsClassMember[] {
+/**
+ * A class whose constructor sets its native carrier (`nativeCarrierMembers`) initializes its
+ * instance fields there, after the carrier and in their order: GDScript's implicit initializer
+ * runs with the script already on its object (`GDScriptInstance` is created on it before
+ * `@implicit_new`, `GDScript::_create_instance`, gdscript.cpp:151), so an initializer may read the node (`transform`), which a
+ * class field initializer, run before the constructor's body, could not.
+ */
+function initializedAfterCarrier(members: readonly TargetTsClassMember[]): readonly TargetTsClassMember[] {
+  const constructor = members.find((member) => member.kind === 'constructor-member');
+  if (constructor?.kind !== 'constructor-member') return members;
+  const moved: TargetTsStatement[] = [];
+  const fields = members.map((member): TargetTsClassMember => {
+    if (member.kind !== 'field-member' || member.initializer === undefined || member.modifiers?.includes('static') === true) return member;
+    moved.push({
+      kind: 'expression-statement',
+      expression: { kind: 'assignment-expression', operator: '=', target: { kind: 'property-expression', object: { kind: 'this-expression' }, property: member.name }, value: member.initializer },
+    });
+    const { initializer: _initializer, ...declared } = member;
+    return declared;
+  });
+  return fields.map((member) => (member === constructor ? { ...constructor, body: [...constructor.body, ...moved] } : member));
+}
+
+function nativeCarrierMembers(type: TargetTsType): readonly TargetTsClassMember[] {
   const native = {
     kind: 'as-expression',
     expression: { kind: 'identifier-expression', name: 'native' },
-    type: { kind: 'type-reference', name: '$Object3D', arguments: [] },
+    type,
   } as const;
   return [
     {
       kind: 'field-member',
       name: '$native',
       modifiers: ['readonly'],
-      type: { kind: 'type-reference', name: '$Object3D', arguments: [] },
+      type,
     },
     {
       kind: 'constructor-member',
@@ -506,20 +537,31 @@ function treeParametersOf(
 function resourceLoadTargets(
   project: BoundGodotProject,
   source: BoundGodotSourceScript,
-): ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> {
+): { readonly found: ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]>; readonly refused: ReadonlyMap<number, string> } {
   const found = new Map<number, readonly OfficialBoundResourceLoadTarget[]>();
+  const refused = new Map<number, string>();
   for (const load of source.resourceLoads ?? []) {
-    const byPath = new Map<string, { kind: ImportedSoundKind; values: string[] }>();
+    const byPath = new Map<string, { kind: ImportedResourceKind; values: string[] }>();
     for (const branch of load.branches) {
       const entry = byPath.get(branch.resPath) ?? { kind: branch.kind, values: [] };
       entry.values.push(branch.value);
       byPath.set(branch.resPath, entry);
     }
     const targets: OfficialBoundResourceLoadTarget[] = [];
+    let reason: string | undefined;
     for (const [resPath, { kind, values }] of byPath) {
       const construct = GODOT_CODE_RESOURCE_LOADS[kind];
-      const imported = project.documents.oggVorbis.find((entry) => entry.resPath === resPath);
-      if (construct === undefined || imported === undefined) break;
+      // The importer's options the load applies: a sound's loop, an image's as a scene loads it.
+      const sound = project.documents.oggVorbis.find((entry) => entry.resPath === resPath);
+      const texture = project.documents.textures.find((entry) => entry.resPath === resPath);
+      const load = texture === undefined ? undefined : godotTextureLoad(texture);
+      const options: Readonly<Record<string, unknown>> | undefined =
+        sound !== undefined ? { loop: sound.loop, loopOffset: sound.loopOffset } : load !== undefined && typeof load !== 'string' ? load.options : undefined;
+      if (construct === undefined || options === undefined) {
+        // Why the file does not load in code: the image's import the plan refuses, or no loader.
+        reason = typeof load === 'string' ? `load of ${resPath}: ${load}` : `load of ${resPath}, which no code-level load makes`;
+        break;
+      }
       targets.push({
         values,
         local: `$load_${resPath.slice('res://'.length).replace(/[^A-Za-z0-9_$]/gu, '_')}`,
@@ -531,36 +573,28 @@ function resourceLoadTargets(
             { kind: 'literal-expression', value: godotImportedAssetUrl(resPath) },
             {
               kind: 'object-expression',
-              properties: [
-                { key: 'loop', value: { kind: 'literal-expression', value: imported.loop } },
-                { key: 'loopOffset', value: { kind: 'literal-expression', value: imported.loopOffset } },
-              ],
+              properties: Object.entries(options).map(([key, value]) => ({ key, value: { kind: 'literal-expression', value: value as string | number | boolean } })),
             },
           ],
         },
         requirements: [{ kind: 'compat-import-requirement', module: construct.module, imported: construct.exportName, local: construct.exportName, typeOnly: false }],
       });
     }
-    if (targets.length === byPath.size) found.set(load.nodeId, targets);
+    if (reason !== undefined) refused.set(load.nodeId, reason);
+    else if (targets.length === byPath.size) found.set(load.nodeId, targets);
   }
-  return found;
+  return { found, refused };
 }
 
-/** The member variables a project script and its script ancestors declare, or undefined. */
+/** The member variables a project script and its script ancestors declare (analysis's `class.members`), or undefined. */
 function scriptMemberNames(project: BoundGodotProject, resPath: string): ReadonlySet<string> | undefined {
   const script = project.scripts.find((entry) => entry.resPath === resPath);
   if (script === undefined) return undefined;
   const names = new Set<string>();
   for (const path of [resPath, ...script.inheritance.scriptAncestors]) {
-    const program = project.scripts.find((entry) => entry.resPath === path)?.program;
-    const root = program?.nodes[program.rootNodeId];
-    if (program === undefined || root?.kind !== 'CLASS') return undefined;
-    for (const memberId of root.members) {
-      const member = program.nodes[memberId];
-      if (member?.kind !== 'VARIABLE' && member?.kind !== 'CONSTANT') continue;
-      const identifier = program.nodes[member.identifier];
-      if (identifier?.kind === 'IDENTIFIER') names.add(identifier.name);
-    }
+    const members = project.scripts.find((entry) => entry.resPath === path)?.class.members;
+    if (members === undefined) return undefined;
+    for (const name of members) names.add(name);
   }
   return names;
 }
@@ -577,6 +611,7 @@ function lowerScript(
   nativeSignalOwner?: (className: string, signal: string) => string | undefined,
   globalEnumConstant?: GlobalEnumConstantLookup,
   nodePaths: GodotScriptNodePathsPlan = EMPTY_SCRIPT_NODE_PATHS,
+  namedMembers?: NamedMemberLookup,
 ): {
   readonly sourceFile: TargetTsSourceFile;
   readonly module: OfficialBoundScriptModulePlan;
@@ -629,30 +664,40 @@ function lowerScript(
       return { name: godotSceneExportName(resPath), module, ...(rootScript === undefined ? {} : { rootScript }) };
     },
     nativeType,
-    new Set(
-      source.refinedTypes
-        .filter((entry) => {
-          if (entry.rule === 'type-test-narrowing') return true;
-          // A loop variable the analysis typed from the elements its body reads: the loop states
-          // its list as an array of that type (`lowerOfficialStatement`'s FOR).
-          if (entry.rule === 'iterated-element-type') return source.program.nodes.some((node) => node.kind === 'FOR' && node.variable === entry.nodeId);
-          // A member declared as a wider node type that the scenes fix (an exported node
-          // reference): its reads are stated as the node it holds.
-          const declared = source.program.nodes[entry.nodeId];
-          return entry.rule === 'scene-node-receiver' && declared?.kind === 'IDENTIFIER' && declared.source === 'MEMBER_VARIABLE' && declared.datatype.typeSource === 'ANNOTATED_EXPLICIT';
-        })
-        .map((entry) => entry.nodeId),
-    ),
+    // The refined types it states (analysis's `statedRefinements`).
+    new Set(source.statedRefinements),
     new Map(source.scriptCalls.flatMap((entry) => (entry.scripts === undefined ? [] : [[entry.nodeId, entry.scripts] as const]))),
     nativeSignalOwner,
     source.numericVariants,
   );
-  context.resourceLoads = resourceLoadTargets(project, source);
+  const loads = resourceLoadTargets(project, source);
+  context.resourceLoads = loads.found;
+  context.refusedResourceLoads = loads.refused;
+  context.loopsAssigningVariable = new Set(source.loopsAssigningVariable);
   context.nullableReads = new Set((source.nullableVariables ?? []).flatMap((entry) => entry.reads));
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;
   context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
   context.provenCasts = new Set(source.provenCasts);
+  if (namedMembers !== undefined) context.namedMembers = namedMembers;
+  context.resourceDocument = (resPath) => project.documents.resources.find((entry) => entry.resPath === resPath);
+  context.resourceModule = (resPath) => {
+    const document = context.resourceDocument(resPath);
+    if (document === undefined || !godotPreloadsResourceModule(document)) return undefined;
+    let module = path.posix.relative(path.posix.dirname(`src/scripts/${fileName(source.resPath)}`), godotResourceModuleTargetPath(resPath).replace(/\.ts$/u, ''));
+    if (!module.startsWith('.')) module = `./${module}`;
+    return { name: godotResourceModuleExportName(resPath), module };
+  };
+  context.scriptNativeRoot = (resPath) => {
+    for (let current = project.scripts.find((entry) => entry.resPath === resPath); current !== undefined; ) {
+      const immediate = current.inheritance.immediate;
+      if (immediate.kind === 'native') return immediate.className;
+      if (immediate.kind !== 'script') return undefined;
+      current = project.scripts.find((entry) => entry.resPath === immediate.resPath);
+    }
+    return undefined;
+  };
+  context.resourceScripts = project.scripts.map((entry) => entry.resPath).filter((resPath) => godotStoredResourceRoot(context.scriptNativeRoot(resPath)));
   context.selfNodePaths = new Map(source.selfNodePaths.map((entry) => [entry.nodeId, entry.path] as const));
   const ownNodePaths = nodePaths.scripts.get(source.resPath) ?? [];
   context.nodeFields = new Map(
@@ -687,10 +732,22 @@ function lowerScript(
   const sourceMembers = lowerOfficialClassMembers(context, root);
   // Whole-script closure below assumes every member lowered; a refused script stops here.
   if (context.refusals.length > 0) throw new BoundLoweringRefusals(context.refusals);
+  // The carrier is typed as its engine class's object (a Camera3D's `PerspectiveCamera`), the
+  // intersection of the types compat's modules take for the class and its ancestors.
+  const carrierParts = carrierRoot === source.resPath && nativeType !== undefined ? nativeType(nativeBaseOf(project, source) ?? '') : [];
+  const carrierRequirements: readonly OfficialBoundLoweringRequirement[] = carrierParts.map((part) =>
+    part.compat
+      ? { kind: 'compat-import-requirement', module: part.module, imported: part.exportName, local: `$Native_${part.exportName}`, typeOnly: true }
+      : { kind: 'project-import-requirement', module: part.module, imported: part.exportName, local: `$Native_${part.exportName}`, typeOnly: true },
+  );
+  const carrierType: TargetTsType = {
+    kind: 'intersection-type',
+    members: [{ kind: 'type-reference', name: '$Object3D', arguments: [] }, ...carrierParts.map((part): TargetTsType => ({ kind: 'type-reference', name: `$Native_${part.exportName}`, arguments: [] }))],
+  };
   const requirements = mergeOfficialBoundRequirements(
     context,
     root,
-    [...classRequirements, ...baseRequirements, ...sourceMembers.requirements],
+    [...classRequirements, ...baseRequirements, ...carrierRequirements, ...sourceMembers.requirements],
     [className(source)],
     fileName(script.resPath),
   );
@@ -706,14 +763,14 @@ function lowerScript(
           } as const,
         }
       : {}),
-    members: [
-      ...(carrierRoot === source.resPath ? nativeCarrierMembers() : []),
+    members: initializedAfterCarrier([
+      ...(carrierRoot === source.resPath ? nativeCarrierMembers(carrierParts.length === 0 ? { kind: 'type-reference', name: '$Object3D', arguments: [] } : carrierType) : []),
       ...autoloadReferenceMembers(requirements.autoloadReferences),
       // The nodes its scene hands over (`useGodotScript`), once they all exist.
       // Each read states the node's type as analysis gives it; the field holds any node.
       ...ownNodePaths.map((entry): TargetTsClassMember => ({ kind: 'field-member', name: entry.field, type: { kind: 'keyword-type', keyword: 'unknown' } })),
       ...sourceMembers.members,
-    ],
+    ]),
     span: officialBoundSpan(script, root),
   };
   const sourcePath = fileName(script.resPath);
@@ -840,6 +897,59 @@ export function nativePropertyLookup(apiDump: GodotApiDump): NativePropertyLooku
   };
 }
 
+/**
+ * Every engine member a name selects on an untyped value (`Object::get`, `Object::callp` and
+ * `Variant::callp` look the name up in the value's own class at run time): the classes that
+ * declare it themselves, the most derived first, then the built-in types.
+ */
+export function namedMemberLookup(apiDump: GodotApiDump): NamedMemberLookup {
+  const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
+  const depth = (name: string): number => {
+    let count = 0;
+    for (let current = classes.get(name); current !== undefined && current.base_class !== ''; current = classes.get(current.base_class)) count += 1;
+    return count;
+  };
+  const ordered = [...apiDump.classes].sort((left, right) => depth(right.name) - depth(left.name) || left.name.localeCompare(right.name));
+  const properties = nativePropertyLookup(apiDump);
+  const signature = (hash: number | undefined): string => (hash === undefined || hash === 0 ? 'unhashed' : `hash:${String(hash)}`);
+  const cache = new Map<string, readonly NamedMemberCandidate[]>();
+  return (name, use) => {
+    const key = `${use}\0${name}`;
+    const known = cache.get(key);
+    if (known !== undefined) return known;
+    const found: NamedMemberCandidate[] = [];
+    for (const entry of ordered) {
+      if (use === 'call') {
+        const method = entry.methods.find((candidate) => candidate.name === name);
+        if (method !== undefined) found.push({ owner: entry.name, builtin: false, symbol: { kind: 'native-member', owner: entry.name, member: name, signature: signature(method.hash) } });
+        continue;
+      }
+      if (use === 'get' && entry.signals.some((candidate) => candidate.name === name)) {
+        found.push({ owner: entry.name, builtin: false, symbol: { kind: 'native-signal', owner: entry.name, member: name, signature: 'signal' } });
+        continue;
+      }
+      if (!entry.properties.some((candidate) => candidate.name === name)) continue;
+      const property = properties(entry.name, name);
+      const accessor = use === 'get' ? property?.getter : property?.setter;
+      if (accessor === undefined) continue;
+      found.push({
+        owner: entry.name,
+        builtin: false,
+        symbol: { kind: 'native-member', owner: accessor.owner, member: accessor.name, signature: signature(accessor.hash) },
+        ...(property?.index === undefined ? {} : { index: property.index }),
+      });
+    }
+    if (use === 'call') {
+      for (const builtin of apiDump.builtinClasses ?? []) {
+        const method = builtin.methods.find((candidate) => candidate.name === name);
+        if (method !== undefined) found.push({ owner: builtin.name, builtin: true, symbol: { kind: 'builtin-member', owner: builtin.name, member: name, signature: signature(method.hash) } });
+      }
+    }
+    cache.set(key, found);
+    return found;
+  };
+}
+
 /** ClassDB integer constants and enum values (the dump folds enum values into constants). */
 export function nativeConstantLookup(apiDump: GodotApiDump): NativeConstantLookup {
   const classes = new Map(apiDump.classes.map((entry) => [entry.name, entry] as const));
@@ -878,6 +988,7 @@ export function lowerOfficialBoundProgram(
   const nativeMethods = apiDump === undefined ? undefined : nativeMethodLookup(apiDump);
   const nativeType = apiDump === undefined ? undefined : (className: string) => godotNativeTypeParts(apiDump, className);
   const nativeSignalOwner = apiDump === undefined ? undefined : nativeSignalLookup(apiDump);
+  const namedMembers = apiDump === undefined ? undefined : namedMemberLookup(apiDump);
   if (resolved.sourceRevision !== project.authority.revision) {
     throw new Error('official program and code authority must share one source revision');
   }
@@ -900,6 +1011,7 @@ export function lowerOfficialBoundProgram(
         nativeSignalOwner,
         globalEnumConstant,
         nodePaths,
+        namedMembers,
       );
       sourceFiles.push(inlineSingleUseTemporaries(sourceFile));
       scriptModules.push(module);

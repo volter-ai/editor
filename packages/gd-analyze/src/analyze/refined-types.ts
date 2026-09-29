@@ -9,6 +9,10 @@
  *   member `@onready var m = <such an expression>` (optionally `as T`) that nothing assigns again:
  *   its initializer runs once, in the script's `@implicit_ready` as the node becomes ready
  *   (modules/gdscript/gdscript_compiler.cpp:2409), so after that the member holds that node.
+ *   So is `preload("<scene>.tscn").instantiate()` cast to a class: the scene's root (`PackedScene::instantiate`,
+ *   scene/resources/packed_scene.cpp:2079).
+ *   So is self's `get_parent()` where the script's node is below its document's root in every
+ *   attached scene: the node above it there (`Node::get_parent`, scene/main/node.cpp:1874).
  * - `classdb-method-selection`: a member read on a typed object is the member's declared type: a
  *   script field's, else the native property's getter return type (`ClassDB::get_property`). A
  *   dynamic call on a typed receiver returns what the method the receiver's type selects returns
@@ -352,6 +356,15 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       agreed = type;
     }
     return agreed;
+  };
+
+  /** A scene document's root as its instance is typed: its script class, else its class. */
+  const sceneRootType = (documentPath: string): GodotBoundDatatype | undefined => {
+    const resolved = resolveScenePath(scenes, { documentPath, nodePath: '.' } as CallReceiverAttachment, '.');
+    if (typeof resolved === 'string') return undefined;
+    const script = inputs.scriptAt(resolved.documentPath, resolved.pathInDocument);
+    const info = script === undefined ? undefined : inputs.scriptInfo(script);
+    return script === undefined ? nativeDatatype(resolved.className) : info === undefined ? undefined : scriptDatatype(script, info);
   };
 
   /**
@@ -706,22 +719,75 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       ) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
+    } else if (
+      node?.kind === 'CALL' &&
+      node.compilerTarget.kind === 'native-method' &&
+      node.compilerTarget.member === 'instantiate' &&
+      node.arguments.length === 0 &&
+      program.nodes.some((other) => other.kind === 'CAST' && other.operand === id) &&
+      node.datatype.kind === 'NATIVE' &&
+      !node.datatype.metaType
+    ) {
+      // A preloaded scene's instance is its root: the root's script class, else its class (read
+      // where it is cast, which the root's class then proves).
+      const callee = nodes.get(node.callee);
+      const base = callee?.kind === 'SUBSCRIPT' && callee.isAttribute ? nodes.get(callee.base) : undefined;
+      const type = base?.kind === 'PRELOAD' && base.resolvedPath.endsWith('.tscn') ? sceneRootType(base.resolvedPath) : undefined;
+      if (type !== undefined && inherits(type.nativeType, node.datatype.nativeType)) {
+        result = { datatype: type, rule: 'scene-node-receiver' };
+      }
+    } else if (
+      node?.kind === 'CALL' &&
+      node.compilerTarget.kind === 'native-method' &&
+      node.compilerTarget.member === 'get_parent' &&
+      node.arguments.length === 0 &&
+      nodes.get(node.callee)?.kind === 'IDENTIFIER'
+    ) {
+      // Self's parent is the node above it in every attached scene, when it has one there (a
+      // document's root is parented wherever it is instanced, which the scene does not say).
+      const own = node.datatype;
+      const type = sceneNode((attachment) => {
+        const segments = attachment.nodePath === '.' || attachment.nodePath === '' ? undefined : attachment.nodePath.split('/');
+        if (segments === undefined) return undefined;
+        segments.pop();
+        return { from: { documentPath: attachment.documentPath, nodePath: '.' }, path: segments.length === 0 ? '.' : segments.join('/') };
+      });
+      if (type !== undefined && own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)) {
+        result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      }
     } else if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE' && onreadyPath(node.name) !== undefined) {
       // The member holds the node once ready; its declared type (the node's or an ancestor's) stays
       // right, and the node's own class, script and place in the scene are what it holds.
       const own = node.datatype;
-      const type = sceneNode(onreadyPath(node.name) as string);
-      if (type !== undefined && (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType)))) {
+      const held = sceneNode(onreadyPath(node.name) as string);
+      // A member declared as an engine class (`var player: CharacterBody3D`) holds the node as that
+      // class's object: its reads are the node's own class, not its script.
+      const explicit = own.kind === 'NATIVE' && own.typeSource === 'ANNOTATED_EXPLICIT';
+      const type = held !== undefined && explicit && held.kind !== 'NATIVE' ? nativeDatatype(held.nativeType) : held;
+      if (
+        type !== undefined &&
+        (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType) && !(explicit && type.nativeType === own.nativeType)))
+      ) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
-    } else if (node?.kind === 'VARIABLE' && isClassMember(node.id) && (node.datatype.kind === 'VARIANT' || (node.datatype.kind === 'NATIVE' && node.datatype.typeSource === 'INFERRED' && !node.datatype.metaType))) {
+    } else if (
+      node?.kind === 'VARIABLE' &&
+      isClassMember(node.id) &&
+      (node.datatype.kind === 'VARIANT' || (node.datatype.kind === 'NATIVE' && (node.datatype.typeSource === 'INFERRED' || node.datatype.typeSource === 'ANNOTATED_INFERRED') && !node.datatype.metaType))
+    ) {
       // An `@onready` member without a declared type (Variant, or inferred from `get_node` as a
-      // Node) is declared as the node it holds, as its reads are.
+      // Node, `:=`) is declared as the node it holds, as its reads are.
+      // One inferred from a cast to an engine class (`$Camera as Camera3D`) holds the cast's native
+      // object, so it is declared as the node's engine class, never its script.
       const identifier = nodes.get(node.identifier);
       const path = identifier?.kind === 'IDENTIFIER' ? onreadyPath(identifier.name) : undefined;
-      const type = path === undefined ? undefined : sceneNode(path);
+      const held = path === undefined ? undefined : sceneNode(path);
+      const cast = nodes.get(node.initializer)?.kind === 'CAST';
+      const type = held !== undefined && cast && held.kind !== 'NATIVE' ? nativeDatatype(held.nativeType) : held;
       const own = node.datatype;
-      if (type !== undefined && (own.kind === 'VARIANT' || inherits(type.nativeType, own.nativeType))) result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      if (type !== undefined && (own.kind === 'VARIANT' || (inherits(type.nativeType, own.nativeType) && !(cast && type.nativeType === own.nativeType)))) {
+        result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      }
     } else if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE' && node.datatype.kind === 'NATIVE' && !node.datatype.metaType && exportedDeclaration(node.name)) {
       // An exported node reference holds the node every attached scene's NodePath names.
       const own = node.datatype;

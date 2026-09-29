@@ -51,7 +51,6 @@
  */
 
 import type { Object3D } from 'three';
-import { godot_node_class_reader } from './node';
 import { construct as color, type Color } from './color';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -175,7 +174,8 @@ export function godot_reflection_probe_props(authored: Readonly<Record<string, u
   const state = initial(authored);
   // `set_size` and `set_origin_offset` keep the capture point inside the box.
   clampOffset(state);
-  return { ...config(state), userData: { godot: authored } };
+  // The probe states its Godot classes with its authored state (the Node protocol's `is`).
+  return { ...config(state), userData: { godot: authored, classes: ['ReflectionProbe', 'VisualInstance3D', 'Node3D', 'Node', 'Object'] } };
 }
 
 /** The capture point kept 0.01 inside each half of the box (`reflection_probe.cpp:103`). */
@@ -475,8 +475,3 @@ export function get_update_mode(self: object): number {
 }
 
 // The node's class, for a probe its JSX declares.
-godot_node_class_reader((entity) =>
-  ((entity as Object3D).userData as Record<string, unknown> | undefined)?.['reflectionProbe'] !== undefined
-    ? ['ReflectionProbe', 'VisualInstance3D', 'Node3D', 'Node', 'Object']
-    : undefined,
-);

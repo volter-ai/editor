@@ -34,14 +34,6 @@ passed by reproducing Godot's implementation, so the evidence gate is what drove
 `MainTimerSync`, the spawn host, class-mount registries, gles3's particle storage. Retiring the
 gate is what makes idiomatic translation possible.
 
-**Acceptance is a blind walk.** A game is ported when a fresh subagent, told only what a player
-would do, plays the imported game in the game editor through a Playwright REPL one action at a
-time, side by side with the original running in official Godot, and reports that it plays like the
-original (the workspace's standing directive). The walk reports what a player sees and whether it
-plays the same; it never measures or compares values, so it cannot become a comparator again. One walk per game when its work is done, never per
-change. Changes in between are checked cheaply: typecheck, import, `gd-analyze run`, a look in
-the editor.
-
 **The architecture review gate.** The structural bar is ARCHITECTURE.md (rule 4 especially) and
 these rows, judged by a context-free reviewer who is given only this section, ARCHITECTURE.md and
 the code, including an emitted game:
@@ -83,6 +75,21 @@ same commit that removes a pattern. The reviewer judges; the ratchet stops the s
 reviewer run only at milestones misses: the 09-26 regrowth was about 300 commits, each locally
 reasonable.
 
+**The GUI is React DOM** (owner, 2026-09-29, amending the rows below). A Control is a React DOM
+element its scene renders, sent to the page's `dom` root through a `tunnel-rat` tunnel with its
+place's contexts bridged (`its-fine`). Three things the rows would otherwise forbid are the GUI's
+own form and pass them:
+
+- the Node tree crosses from the node a Controls' host element stands for into the page's DOM, so
+  scripts reach Controls by the tree (`get_node`, `%Name`, signals): the host's `ref` binds it
+  (`godot_element_dom_host`), and compat keeps that one link (`DOM_HOSTS`), not a copy of the tree;
+- the page's overlay is laid out at the project's 2D size and scaled to the window as the project
+  stretches its 2D (`GodotStretch`, `display/window/stretch/*`);
+- a Control's classes ride on its element (`data-classes`), as a three node's ride on its
+  `userData`, for `is`, `as` and the page's GUI stage.
+
+Anything else the GUI adds is judged by the rows as before.
+
 **Decide from the law.** A design question the law answers is decided by whoever meets it,
 without asking: the answer is what the rulings and rows imply. Only a genuine conflict between
 them goes to the owner. The composition-site design below was built on an author's ruling that
@@ -110,6 +117,20 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
 | 2026-09-28 | `6aa9326f` | §The lane's law | holds: nothing new since `314112d4`, whose two row-2 findings are fixed (analysis decides which nodes read a path from self and which scripts a program makes; the plan and lowering read them; `nodeFieldTypes` is gone). Rows 2 to 6 and ruling 1 still fail on shapes present before: emit walking the composition's scenes, its refusals, default camera and scale drop (row 2); `CLASS_READERS`, `godot_as_native`'s run-time class-name test, lowering's class lookups, `window.ts`'s `'Control'` key (row 3); the root Window's frame hooks delivering input and drawing canvas items, the spawn host, stand-ins and `flushSync` (row 4); the world's compat hooks, `$native`, remaining `__godot_value_N`, `godot_input_debug` (row 5); `@volter/game-runtime` unimported, the editor adapter, manifest plugin and editor devDependencies (row 6); `numeric.ts`'s tagged Variant, the SceneTree and Window input protocols, the canvas cull listing (ruling 1). Ruling 2 passes. To watch: handed node fields declared `unknown` and cast at each read, not a typed ref (row 5). Emitted from a clean copy of `6aa9326f`. |
 | 2026-09-28 | `7425597d` | §The lane's law | regressed: one new finding (row 4, ruling 1). The area's and the body's scene-connection callbacks were kept by compat in a slot of its own per entity, filled from the element's handler props and called at each emission apart from the signal: a second, hidden connection list. Fixed in the next commit: an engine body's signals stay connections (`useGodotConnection`); a script's own signal keeps taking the scene's methods as its `useGodotScript` attaches it, which are the signal's own connections. Otherwise smaller: emit decides no current camera, autoloads, scale drop or those refusals; scene connections of script signals are callbacks; static paths into models, placements and `%Name/Child` are refs. Rows 2 to 6 and ruling 1 still fail on shapes present before: emit's sheared-transform and missing-idiom refusals and the world's walk of other scenes (row 2); `CLASS_READERS`, `godot_as_native`'s class-name test, `control.ts`'s class lists (row 3); the root Window's frame hooks, the spawn host and `flushSync`, the area's body storage (row 4); compat hooks in scenes and the world, `$native`, `__godot_value_N`, `godot_input_debug` (row 5); `@volter/game-runtime` unimported, the editor adapter and devDependencies (row 6); `numeric.ts`'s tagged Variant, the SceneTree and Window input protocols, the canvas cull listing, the area's `_body_inout` storage (ruling 1). Ruling 2 passes. To watch: the delivery table keyed by compat accessors, `any`-typed callbacks. Emitted from a clean copy of `7425597d`. |
 | 2026-09-28 | `c3d7e953` | §The lane's law | holds: nothing new since `7425597d`, whose finding is fixed (compat keeps no scene callbacks apart from the signal; an engine body's signals are connections, and a script's own signal's callbacks are its own connections). Rows 2 to 6 and ruling 1 still fail on shapes present before: emit's shear refusal, the world's walk of other scenes and its physics settings (row 2); `CLASS_READERS`, per-class ancestry tables, `godot_as_native`'s class-name test, `control.ts`'s class lists (row 3); the root Window's frame hooks, the spawn host with stand-ins and `flushSync`, `STAND_IN`, the area's body storage (row 4); the world's compat hooks, `useGodotScene`, `useGodotScript`, `useGodotNodeReferences`, `__godot_value_N` (row 5); `@volter/game-runtime` unimported, the editor adapter, manifest plugin and devDependencies (row 6); the area's `_body_inout`, the Window input protocol, the canvas cull listing, the tagged Variant, the SceneTree protocol (ruling 1). Ruling 2 passes. Emitted from a clean copy of `c3d7e953`. |
+| 2026-09-28 | `d8c8af1b` | §The lane's law | regressed, 7 new findings. (1) Compat steps its own 2D physics: SAT overlaps, rigid integration and `move_and_slide` over a module-wide object map, not Rapier. (2) The root Window's frame re-picks every 2D pickable object. (3) Members and operators of untyped values are selected at run time by per-call-site lists of Godot class names (`variant-named.ts`, `variant-operator.ts`). (4) Godot ancestry is written into every node's `userData.classes`. (5) Emit maps built-in type names to compat modules (`RECORD_MODULES`). (6) `scene-state.ts` tests `MeshInstance3D` and reads glTF meshes back as resources. (7) Ancestry lists grew from 18 compat modules to 39. Rows 2 to 6 and ruling 1 fail; row 1 and ruling 2 pass. Emitted from a clean copy of `d8c8af1b`. |
+| 2026-09-28 | `acba6740` | §The lane's law | regressed, 8 new findings. Findings 5 (`RECORD_MODULES`) and 6 (the `MeshInstance3D` test) of `d8c8af1b` are gone; 1 to 4 and 7 remain. New: (1) Control's theme lookup keys Theme items by the node's class ancestry (`branchItem`, `godot_canvas_item_classes`, `theme.ts`). (2) Input keeps its own clock for `VelocityTrack` (`input.ts`). (3) Input transcribes Godot's SDL joypad mapping where the Gamepad API's standard mapping serves. (4) Orthogonal and frustum cameras transcribe Godot's `Projection` into a `PerspectiveCamera` instead of emitting an `OrthographicCamera`. (5) Ancestry lists in 46 compat modules, up from 40. (6) Compat's 2D physics and canvas transform were extended. (7) Float32 emulation in the value types grew sharply. (8) `RAW_PROPERTY_CLASSES` is a class-keyed set outside the idiom tables. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Emitted from a clean copy of `acba6740`. |
+| 2026-09-28 | `f919c374` | §The lane's law | regressed, 9 new findings. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. New: (1) AnimationTree's OneShot and the mixer's audio track transcribe Godot's `_process` where three's action fades serve (`animation-tree.ts`, `animation-mixer.ts`). (2) The GUI port grew: the grid, margin, center and vbox containers transcribe their sort code where CSS flex or grid serves; `Range` and `Slider::gui_input` are transcribed and drawn as divs rather than `<input type=range>`; TextureButton's draw modes are transcribed. (3) Ancestry lists in 56 compat modules, up from 47. (4) Script-built bodies keep a second Rapier body store in compat (`CODE_BODIES`, `CODE_COLLIDERS`, `CODE_SHAPES`). (5) `worker-thread-pool.ts` keeps its own task scheduler. (6) The world emits `useGodotSceneChange` and its branch into games that never change scene. (7) `object.ts` `set`/`get` choose behaviour by a run-time AnimationTree test. (8) The plan parses `.obj` text itself (`readObjMesh`). (9) The plan calls emit's lowering for spatial shaders. Emitted from a clean copy of `f919c374`. |
+| 2026-09-29 | `f91c8410` | §The lane's law | regressed, 10 new findings. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Gone since `f919c374`: `object.ts`'s AnimationTree test, the plan's `.obj` parse, the unconditional scene-change branch, the unpaused `<Physics>`. New: (1) `engine.ts` keeps its own clock and frame count, fed by the root Window each frame, and `Time.get_ticks_*` reads it. (2) The root Window's frame emits `RenderingServer.frame_post_draw` to every connection (`advance.tsx`, `viewport.ts`). (3) The AnimationTree state machine transcribes Godot's playback (request fields, `NodeTimeInfo`, the A* travel path). (4) The plan ports the physics server's mass split across shapes (`colliderMasses`). (5) The plan reads the programs itself for scene changes and preloads (`sceneChanges`, `planResourceModules`). (6) Lowering's `madeInCode` repeats analysis's `instancesMade`. (7) `audio-stream.ts` keeps the AudioServer's bus list beside the Web Audio graph. (8) Ancestry lists in 62 compat modules, up from 55. (9) The GUI port grew (`PanelContainer`, `HSeparator`, `TextureProgressBar`, `ButtonGroup`, the StyleBox painters). (10) `fastnoise-lite` is declared in games that do not reach it. To watch: the vehicle driver placing its wheels each step, the joint bodies looked for before each step, the seamless-noise image. Emitted from a clean copy of `f91c8410`.
+| 2026-09-29 | `8ed29aff` | §The lane's law | holds: nothing new since `f91c8410`. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail on shapes present before. Of `f91c8410`'s findings, 1, 3, 4, 5, 6 and 10 are gone (the engine reads R3F's clock; state machines drive a model's clips on three's mixer with graphology's shortest path; mass shared equally among colliders; analysis records tree requests and preloads, which the plan and lowering read; unreached packages are pruned), 7 and 8 are smaller (buses are Web Audio gain nodes; the joint, wheel and listener modules take their classes from the scene), 2 changed form (`frame_post_draw` from R3F's `addAfterEffect`, still a compat signal each frame), and 9, the GUI port's growth, stands until the GUI moves to React DOM. Still failing: the plan's `usedInputActions` and lowering's loop scans (row 2); `CLASS_READERS`, class-name tests and ancestry lists in 59 modules (row 3); the root Window's input and canvas work, the area's `_body_inout`, compat's 2D `move_and_slide` (row 4); compat hooks, `$native`, `__godot_value_N`, `userData.classes` (row 5); the editor files and `@volter/game-runtime` (row 6); the tagged Variant and the library path's `_process` transcription (ruling 1). To watch: the clip path's hand-weighted cross-fades and OneShot where three's `crossFadeTo`/`fadeIn`/`fadeOut` serve, the monkeypatched `connect` in `viewport.ts`, `GENERATED_MODULE_PACKAGES` restating emit's imports, doubled classes on `marker-3d` and `ray-cast-3d`. Emitted from a clean copy of `8ed29aff`.
+| 2026-09-29 | `ab61ea7e` | §The lane's law | regressed, 10 new findings. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Gone since `8ed29aff`: the patched `connect` in `viewport.ts`, the restated generated-module packages, the doubled classes on `marker-3d` and `ray-cast-3d`. New: (1) `canvas-shader-material.ts`'s per-frame `PENDING` queue and second `WebGLRenderer`. (2) The SubViewport's CPU image (readback, its own sRGB encode, `godot_canvas_item_paint` walking and painting other nodes, per-class painters, `VIEWPORT_ROOTS`). (3) `spatial-material.ts`'s screen capture walking and re-rendering the scene. (4) Depth of field ported from `bokeh_dof.glsl`. (5) Particle trails ported from Godot's particle storage and `RibbonTrailMesh`. (6) A navigation map in compat (`REGIONS`, one growing `Pathfinding`). (7) Lowering reading other scripts' programs (`scriptFunctionParameters`). (8) Analysis decoding and encoding images (`embedded-images.ts`). (9) Class-name tests in the plan outside the idiom tables. (10) Growth: `useGodotInstanceEdits` and `useGodotViewportTexture` in the output, the BBCode parser, the NinePatchRect painter. Emitted from a clean copy of `ab61ea7e`. |
+| 2026-09-29 | `f6c8f54c` | §The lane's law | regressed, 3 new findings. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Of `ab61ea7e`'s findings all are gone but the navigation map. New: (1) compat keeps a navigation map (`REGIONS`, `WORLDS`) and ports `NavigationAgent3D::_update_navigation`. (2) The particles' view alignment and channel filter port `ParticlesStorage`'s instance buffer update. (3) The GUI port grew: NinePatchRect and RichTextLabel on `godot_control_mount`'s draw machinery. To watch: `DEPTH_CORRECTION_INVERSE`, SpringArm3D placing its children from its own step, stored but undrawn material settings. Emitted from a clean copy of `f6c8f54c`. |
+| 2026-09-29 | `1bc9d0ec` | §The lane's law | regressed, 7 new findings (against `8ed29aff`). Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. New: (1) `three-pathfinding` still declared after navigation left (row 6). (2) SpringArm3D sweeps before each physics step and places its children from compat (row 4, ruling 1). (3) Godot's reversed-Z projection ported into three's shaders (`DEPTH_CORRECTION_INVERSE`, `SCREEN_UV`, `INV_PROJECTION_MATRIX`). (4) The animation Variant arithmetic grew `vec2` and `discrete` kinds. (5) Compat's imported scene picks behaviour by Godot property name (`visible`, `BODY_OVERRIDES`, `PENDING_BODY`). (6) Lowering searches `GODOT_UNDUMPED_MEMBERS` by suffix and splits the class out. (7, to watch) `parentEntity` skips nameless library groups. Emitted from a clean copy of `1bc9d0ec`. |
+| 2026-09-29 | `44de8f25` | §The lane's law | regressed, 5 new findings (against `8ed29aff`). Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Every finding of `ab61ea7e`, `f6c8f54c` and `1bc9d0ec` is gone but these. New: (1) `free()` still bound through a table compared with its owner class (`compat-bindings.ts:143`). (2) Dead compat for moving model bodies (`collision-object-3d.ts:288`, reaching into `rigidBodyStates`). (3) The WorldEnvironment polls the camera's attributes each frame and sets React state to draw its depth of field. (4) Lowering's `as never`, `return null!` and `godot_node_entity(x) as T` wrapping grew. (5) ShapeCast3D a new compat element on `useGodotElement`; a `processMode` branch in its property chain. Emitted from a clean copy of `44de8f25`. |
+| 2026-09-29 | `7c060684` | §The lane's law | holds: nothing new since `8ed29aff`. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail on shapes present before. Every finding of `ab61ea7e`, `f6c8f54c`, `1bc9d0ec` and `44de8f25` is gone; so are `8ed29aff`'s doubled classes on `marker-3d` and `ray-cast-3d` and the patched `connect` in `viewport.ts`, and the generated packages are one table emit checks against. Still failing: the plan's `usedInputActions`, lowering's `scriptMemberNames`, the plan calling emit's shader lowering (row 2); `CLASS_READERS`, `godot_as_native`, theme lookup by ancestry, ancestry lists in 65 modules (row 3); the root Window's per-frame input and re-pick, the spawn host's `flushSync`, compat's 2D physics, `frame_post_draw` (row 4); compat hooks, `$native`, `__godot_value_N`, `userData.classes` (row 5); `@volter/game-runtime` and the editor files (row 6); the tagged Variant, the 2D motion port, `_body_inout` (ruling 1). To watch: the stale CameraAttributesPractical row in `godot-4.7-scene-render.ts`, lowering's silent `break` when a texture load refuses, the hand-written tangent frame in `spatial-shader.ts`, `process_mode`'s 3-bit mask, the importer's generated bodies transcribed in read. Emitted from a clean copy of `7c060684`. |
+| 2026-09-29 | `a8f16d0c` | §The lane's law | regressed, 3 new findings. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Gone since `7c060684`: the plan's `usedInputActions`, lowering's `scriptMemberNames`, the plan calling emit's shader lowering, the GUI port (Godot's layout engine and GUI input routing: Controls are React DOM elements with planned CSS), theme lookup by ancestry, `@volter/game-runtime`. New: (1) analysis decodes image headers (`godotImageSize` in `bound-project.ts`), read's job. (2) `canvas-texture.ts` ships though no module imports it: capability reach requires every scene resource's module, including those only a Control's CSS draws. (3) `GodotControls` and `GodotStretch`, compat components the output is written against, and `node.ts`'s `DOM_HOSTS` stitching Controls into compat's node tree. To watch: the document-wide `[data-shortcut]` search, Web Animations on the browser's clock, compat editing React-rendered DOM, class names in `scene-control-idioms.ts`, `case 'SubViewportContainer'`. Emitted from a clean copy of `a8f16d0c`. |
+| 2026-09-29 | `07636280` | §The lane's law | regressed, 4 new findings (against `7c060684`). Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Of `a8f16d0c`'s findings, the image header decode (now read's) and the unreached `canvas-texture.ts` (a `domOnly` resource constructs no module) are gone; `GodotControls` is gone from the scenes. New: (1) `GodotStretch` in `src/ui.tsx`, a compat component porting `Window::_update_viewport_size` (row 5, ruling 1). (2) `DOM_HOSTS`/`HOSTED_BY` joining the page's DOM into compat's Node tree, fed from each scene's host `ref` through `godot_element_dom_host` (rows 4, 5). (3) `data-classes` on every Control, read by the Node protocol and by `window.ts` to recognise a Control (rows 3, 5). (4) Emit keeping only `exports`/`connections` among a Control-rooted instance's props by name (row 2). To watch: the document-wide `[data-shortcut]` search, Web Animations on the browser's clock, class names in `scene-control-idioms.ts`, `capability-reach.ts` restating emit's imports. Emitted from a clean copy of `07636280`. |
+| 2026-09-29 | `3b344e30` | §The lane's law | regressed, 1 new finding (against `7c060684`, the law amended by the owner's "The GUI is React DOM"). Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail on shapes present before. The GUI's DOM link, stretch and `data-classes` pass under the amendment; ancestry lists are down to 17 compat modules. New: (1) read encodes embedded images to PNG and analysis makes up project files for them (`read/embedded-images.ts`, `bound-project.ts`), neither phase's concern. To watch: the document-wide `[data-shortcut]` search, Web Animations on the document's clock, SubViewportContainer's no-op layout props, a TouchScreenButton's `data-classes` beyond "a Control's". Emitted from a clean copy of `3b344e30`. |
+| 2026-09-29 | `d88fc590` | §The lane's law | holds: nothing new since `7c060684`. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail on shapes present before. `3b344e30`'s finding is gone (read decodes an embedded image's pixels, the artifact plan writes its PNG); ShapeCast3D is RayCast3D's component, swept when read; the GUI's DOM link, stretch and Controls' `data-classes` pass under the owner's amendment. Still failing: lowering's program scans (`assignsVariable`, the `FOR` scan) and capability reach restating emit's imports (row 2); `CLASS_READERS`, `godot_as_native`, ancestry lists (row 3); the root Window's per-frame input, the 2D motion, the spawn host's `flushSync`, `frame_post_draw` (row 4); compat hooks, `userData.classes`, `$native` (row 5); the editor files (row 6); the tagged Variant, `_body_inout` (ruling 1). To watch: compat mounting and reordering React-rendered DOM, the page-wide shortcut search, `data-classes` on non-Controls (dropped in `ca6c45c6`), the page-wide pointer listeners, PNG encoding in the artifact planner, Web Animations on the document's clock and a second node-path resolver in `animation-elements.ts`. Emitted from a clean copy of `d88fc590`. |
 
 **Order of work.**
 
@@ -257,13 +278,17 @@ its members carry over, its emitter wiring waits for step 2), and `evidence --re
 
 ## How a lane lands (2026-09-28, owner-approved: "go")
 
+**One thread, no lanes** (owner, 2026-09-28: "instead of subagents just do it in this chat - only
+review in subagent every 30 commits"). All building happens in the orchestrator's own thread;
+the only subagent is the periodic regression review after 30 lane commits. This overrides the
+workspace's two-lane rule for this lane.
+
 This is how the lane's work reaches `godot`. It adds no standard: the standard is §The lane's law
 and its rows. It exists because three periodic reviews in a row came back `regressed`: new findings
 arrived faster than reviews cleared them. The lanes were briefed to clear refusals, and they merged
 with no check of the shapes the review hunts.
 
-1. Every lane's brief carries §The lane's law and this reading of how its rows apply. The lane
-   checks its own diff against it before committing:
+1. Every lane's brief carries §The lane's law and this reading of how its rows apply:
    - Row 2: each phase owns its concern. Analysis types values. The plan decides every idiom,
      prop, ref and artifact. Lowering selects rules for the types analysis gives. Emit prints.
      None of them re-derives what an earlier phase decided, so emit reading a setter by its name
@@ -279,15 +304,13 @@ with no check of the shapes the review hunts.
    - Row 5: the output is what a three.js or R3F developer would write, with no generated
      dispatchers or helpers and nothing for tooling.
    - Ruling 2: no record, capture or comparison of Godot's output is kept.
-2. A lane lands on `godot` on the cheap checks (typecheck, the imports of every game that
-   imports, the headless probe, the ratchet), with no review of its own (owner, 2026-09-28: "stop
-   it with the excessive reviewing - do more coding less reviewing. Review when everything is done
-   (or on the regular regression checks) not all the time"). The reviews are the periodic one
-   (after 30 lane commits, docs/GODOT-REVIEW.md) and the one when the work is done, before the
-   games' acceptance walks.
-3. A periodic review's `regressed` verdict means the change does not land (docs/GODOT-REVIEW.md).
-   Its findings are fixed and the review re-run before more of the lane lands. New game work waits
-   until the verdict is `holds` or `pass`.
+2. No tests and no reviews (owner, 2026-09-28: "NO TESTS NO REVIEWS", "under any circumstance you
+   may not test"): a lane lands on `godot` as written. The one review is the regular regression
+   check, docs/GODOT-REVIEW.md after 30 lane commits. The one test runs once at the very end, when
+   everything is done (owner: "the only test is at the very end when everything is done").
+3. The slate is the board card's done-when (the games walked blind, the lane merged, its fixes on
+   main and released). Work that does not serve it, the emitted game's shape track included, waits
+   for the owner to ask for it.
 4. The rows that fail by the emitted game's shape (rows 4 and 5) are their own track
    (§The emitted game's shape), not a lane's side effect.
 
@@ -403,6 +426,13 @@ emitter prints:
 5. **An animation is three's.** AnimationPlayer's tracks are `AnimationClip`s on three's
    `AnimationMixer` (drei's `useAnimations` idiom) over real object properties. The
    `animationBindings` dispatch table goes.
+   Landed for imported models: a model's AnimationPlayer the scene adds no library to plays the
+   glTF's own clips on three's `AnimationMixer` (`animation-clips.ts`), advanced from the model's
+   element's own frame, with the AnimationPlayer API over it; an AnimationTree over such a player
+   drives the clips' actions each frame from its blend tree (Blend2, filtered by track, and
+   TimeScale). Still on the transcribed mixer: a scene's own animation libraries (their value
+   tracks on Godot properties and their method tracks) and a model's player the scene adds a
+   library to.
 6. **The world is a scene.** Settings and the input map are plain data. Input is the page's DOM
    events. The world is `<Physics>` holding the main scene, with no hooks of compat's in it.
    Landed for drawing: each canvas item or layer draws itself onto the root Window's canvas layer
@@ -522,9 +552,7 @@ component advancing that node; what drives the game from outside it (a clock ove
 scheduler, a spawn host, a mirrored tree, hooks the emitted world is written against) is not.
 Each step lands as its own lane under §How a lane lands. The ratchet gains a rule per step once
 the step removes its pattern (compat hooks per emitted scene, `__godot_value_` temporaries,
-`animationBindings` tables), so the output only moves one way. Each step is checked cheaply:
-typecheck, the imports of every game that imports, and the headless probe. The behaviour must not
-change, only the shape, and the games are walked once when the track is done.
+`animationBindings` tables), so the output only moves one way. There are no tests and no reviews of a step; the regression check is the one review.
 
 ## Where it lives
 
@@ -1247,6 +1275,142 @@ ssh disabled and an empty cache). The monorepo's own lock resolves it the same w
 
 The platformer gate passes on this machine: import (plan, emit, `npm ci`, typecheck, vite build)
 and `run --frames 120`: 0 thrown, 239 physics frames, physics per frame p50 4.7 ms, p99 8.5 ms.
+
+## 2D, UI and untyped values on the web's own libraries (owner, 2026-09-28)
+
+The owner: "I thought the whole idea was to go native idiomatic web with threejs rapier and react
+... and pixi etc." The 3D side follows that: three.js through R3F, and Rapier through
+`@react-three/rapier`. The 2D and UI work of the same day did not, and the review of `d8c8af1b`
+found exactly that. It is redone on the libraries:
+
+- **2D drawing is PixiJS through `@pixi/react`, as the editor's Pixi game runtime draws.** A Node2D is a Pixi `Container`, a Sprite2D a
+  `Sprite`, an AnimatedSprite2D an `AnimatedSprite`, a TileMapLayer sprites of its atlas textures,
+  GPUParticles2D Pixi's particle container, and Camera2D the stage container's transform. A
+  CanvasItemMaterial's blend is Pixi's `blendMode`, and a `canvas_item` shader is a Pixi `Filter`
+  of the lowered GLSL, which also draws the wind sway the DOM canvas could not.
+- **2D physics is Matter.js** (owner, 2026-09-28: "the most popular for AI"), the 2D physics
+  engine the web writes most, stepped from the Pixi ticker as the 3D side steps Rapier from R3F.
+  A PhysicsBody2D is a `Matter.Body` whose shapes are its CollisionShape2Ds (rectangle, circle,
+  capsule as a chamfered rectangle, polygons as `Bodies.fromVertices`): StaticBody2D `isStatic`,
+  RigidBody2D a dynamic body with gravity from the project's settings, Area2D an `isSensor` body
+  whose `collisionStart`/`collisionEnd` events are `body_entered`/`body_exited`, and collision
+  layers and masks Matter's `collisionFilter` category and mask. CharacterBody2D is a kinematic
+  body whose `move_and_slide` is written on Matter's queries (`Query.collides` against the
+  motion, the normal removed from the remaining motion, floor by `up_direction` and
+  `floor_max_angle`), since Matter has no character controller. The hand-rolled SAT, integration
+  and `move_and_slide` over a module-wide object map are deleted.
+- **The 2D games are parked** (owner, 2026-09-28: "let's avoid the 2d games for now"). The
+  Pixi drawing and Matter.js physics above are the ruling for when they resume; until then no 2D
+  work is done, and the lane works on the 3D games, UI and the untyped values.
+- **UI is React DOM.** A Control is an element its component renders (`<div>`, `<button>`,
+  `<span>`), its anchors and container layout computed from Godot's rules into its style, and its
+  signals React's own events.
+  How (the orchestrator's, 2026-09-29): React DOM cannot render inside R3F's Canvas, so a scene
+  sends its Controls through a `tunnel-rat` tunnel (`<ui.In>`), and the world renders them
+  (`<ui.Out />`) in an overlay beside the Canvas, as pmndrs puts HTML over a scene. Each run of
+  Controls under one non-Control node is wrapped in a host element standing for that node
+  (`godot_node_dom_host`), so the Node tree reaches them: a Control's node is its element, its
+  parent the element above it or the node its host stands for. The tunnel's DOM commits before
+  R3F's passive effects run, so Controls and their scripts exist before the 3D scene around them
+  enters the tree, and `%Name` and `@onready` reach them. The world provides the autoload contexts
+  on both sides. The Controls' Godot-only state is their `data-*` attributes (`data-name`,
+  `data-classes`, `data-groups`), as a three object's is its `userData`.
+  Done (2026-09-29): the plan computes each Control's element (`scene-control-idioms.ts`): anchors
+  and offsets as absolute boxes, box containers as flex rows and columns, margin, panel and centre
+  containers as one-cell grids, StyleBoxFlat and StyleBoxLine as CSS, LabelSettings and theme
+  overrides as text style, TextureRect, TextureProgressBar, Button icons and GradientTexture2D as
+  backgrounds, CheckBox and ButtonGroup as checkboxes and radios, HSlider as `<input type=range>`,
+  TouchScreenButton as a box pressing its action. Compat's Control modules are bindings on the
+  element (`control.ts`, `label.ts`, `base-button.ts`, `range.ts`, …); Godot's layout engine, the
+  container sorts and the GUI input routing are deleted. The page's own GUI takes pointer input;
+  a press that lands on a Control is the GUI stage's after `_input` (`viewport.ts`). An
+  AnimationPlayer among Controls is a hidden element whose value tracks are Web Animations of the
+  Controls' CSS (`animation-elements.ts`; Truck Town's turbo meter). A Control's Theme gives its
+  default font and size by CSS inheritance; the page's overlay carries Godot's default 16 px text.
+  GridContainer is a CSS grid; a tint (`modulate`) an SVG colour filter; an AtlasTexture a cropped
+  background; a TextureButton's hover, held, toggled and focused textures its element's pointer
+  and focus events; an instanced Control scene is styled where the instance places it.
+  Ten Godot 4 3D fixtures import and build with it: the 3D platformer demo, Truck Town, the FPS,
+  basic scene, city builder, 3D platformer and racing starter kits, Squash the Creeps, GDQuest's
+  first 3D game and Voxel Game. Refused by name until they have a DOM form: any other node three
+  mounts under a Control; a SubViewportContainer smaller than its viewport.
+  The reviews of `a8f16d0c` and `07636280` read the tree's DOM link, the stretch and the Controls'
+  `data-classes` as failures; the owner ruled them the GUI's own form (§The lane's law, "The GUI is
+  React DOM", 2026-09-29).
+- **Untyped values are typed statically, not dispatched at run time.** The analysis follows a value
+  to its class (an exported PackedScene's instanced root script, a container's elements), so a call
+  lowers to a direct method call. The run-time dispatcher (`variant-named.ts`,
+  `variant-operator.ts`) is removed as each case gets a static type; what the analysis cannot type
+  refuses by name.
+- The review's smaller findings are fixed with it:
+  - emit's built-in type table moves to plan data;
+  - the scene-state class test becomes a plan stamp;
+  - the root Window's re-pick is gone, and picking is Pixi's own event system.
+
+## Every Godot 4 fixture imports (2026-09-28)
+
+All seven Godot 4 fixtures import and build with no refusal: the 3D platformer, basic scene,
+racing and FPS starter kits, the city builder, match-3, and the platformer demo. Godot 3 is out of
+scope (owner, 2026-09-28: "no godot 3"). What made the last three import, all without per-change
+tests (§How a lane lands):
+
+- **Members and operators selected at run time.** A member, store, call or operator on a value the
+  analysis leaves untyped is selected when it runs, as Godot selects it: the script instance first,
+  then the engine members of that name ClassDB declares (the call site's own candidate list,
+  written by lowering), then a record's member or a Dictionary's key (`variant-named.ts`,
+  `variant-operator.ts`).
+- **Resource values.** An exported field, or a resource's property, holding resources, records or
+  containers is planned with the scene. A PackedScene is its scene's component, and an imported
+  model gets a scene of its own. A `.tres` of a script's class is that script's instance.
+  `Script.new()`, `ResourceLoader.load` and `ResourceSaver.save` (`user://` in the page's storage)
+  are bound.
+- **New node families.** Timer; Sprite3D and AnimatedSprite3D, with SpriteFrames and AtlasTexture;
+  SubViewport and SubViewportContainer (a shared-world pass drawn through the viewport's own
+  camera); Area2D and CollisionShape2D with mouse picking; GPUParticles2D; and ring emission for
+  process materials.
+- **Bindings.** MeshLibrary.new and set_item_mesh, SceneState of a model, Node.find_children, the
+  whole Array API, and viewport mouse and rect queries.
+
+## Roboblast (2026-09-29)
+
+The Roboblast third-person demo (`roboblast-tps-demo`, 4.7) went from 215 refusals to a clean
+import, and the review of `ab61ea7e` found how: ten features built as ports or as compat machinery
+(a second renderer and a per-frame queue for `canvas_item` shaders, a SubViewport's image drawn and
+read back on the CPU with per-class painters, a screen capture re-rendering the scene, Godot's
+bokeh blur and trail pass transcribed, instance edits and ViewportTextures as new compat hooks, a
+BBCode parser). They were taken out, with what the later reviews found; the demo refuses again, each by name, waiting for
+its idiomatic form:
+
+- the screen and depth textures (`hint_screen_texture`, `hint_depth_texture`);
+- `canvas_item` shaders on the page, `clip_children`, RichTextLabel's BBCode;
+- SubViewports' own images, ViewportTexture, `disable_3d`, `own_world_3d`;
+- GPUParticles3D trails and RibbonTrailMesh;
+- edits inside an instanced scene and `script = null` on an instance;
+- ImageTexture resources a document embeds;
+- navigation (NavigationRegion3D, NavigationAgent3D, NavigationMesh), a map and an agent update
+  that ported the navigation server (review of `f6c8f54c`);
+- GPUParticles3D's transform alignment, a port of the particle storage's instance update;
+- NinePatchRect and RichTextLabel, until the GUI moves to React DOM;
+- SpringArm3D, whose sweep placed its children from compat's physics step (review of `1bc9d0ec`);
+- a spatial shader's `SCREEN_UV`, `VIEWPORT_SIZE` and `INV_PROJECTION_MATRIX`, which ported Godot's
+  depth correction into three's clip space;
+- animation value keys of strings, Vector2s and resources, which grew the transcribed Variant
+  arithmetic;
+- an instancing scene's `visible`, layers, sleep and freeze on an imported model's nodes, which
+  compat applied by property name, and the importer's moving (RigidBody3D) bodies;
+- the camera's depth of field (CameraAttributesPractical), which the WorldEnvironment polled from
+  the camera each frame (review of `44de8f25`);
+- ShapeCast3D, a new compat element;
+- `free()` on self, bound through a table of undumped members;
+- a tween of one component of a property (`position:y`);
+- the lowering's casts: Variants into typed engine parameters (`as never`), script instances into
+  engine-typed parameters (`godot_node_entity(x) as T`), a null returned where an object is typed
+  (`return null!`).
+
+What stayed: spatial shader normal maps, `ambient_light_disabled`, `VERTEX`, local shader arrays,
+a collision shape's children, `lock_rotation` beside axis locks, a node's `process_mode` and
+`top_level` in its `userData`, the importer's generated static bodies with their layers, MP3
+streams, and a script's load of an imported image.
 
 ## What comes next
 

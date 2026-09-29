@@ -120,6 +120,8 @@ function planAuthoredValue(
     addField(state, scriptResPath, attachment, { fieldName: field.name, application: 'script-property-set', value: { kind: 'node-reference', value: path } });
     return;
   }
+  // A resource, record or container: the scene plan hands it (`fieldValues`).
+  if (value.kind === 'array' || value.kind === 'dict' || (value.kind === 'ctor' && value.name !== 'NodePath')) return;
   const serialized = serializedIdentity(value);
   if (serialized === undefined) {
     state.diagnostics.push({

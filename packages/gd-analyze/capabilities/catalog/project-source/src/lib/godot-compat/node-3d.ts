@@ -30,7 +30,8 @@
 
 import { Matrix4, type Object3D } from 'three';
 import { type Basis, construct as basis } from './basis';
-import { godot_node_duplicate_state, godot_node_is_spatial, godot_node_processing, is_inside_tree } from './node';
+import { godot_node_duplicate_state, godot_node_is_spatial, godot_node_object, godot_node_processing, is_inside_tree } from './node';
+import { construct as quaternion, type Quaternion } from './quaternion';
 import { type Transform3D, construct as transform3d } from './transform-3d';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -75,6 +76,14 @@ interface Node3DState {
    * (`camera_3d.cpp:878`, `light_3d.cpp:513`); compat reads it from three's `isCamera`/`isLight`.
    */
   disableScale: boolean;
+  /** `data.rotation_edit_mode`: `ROTATION_EDIT_MODE_EULER` (0), `QUATERNION` (1) or `BASIS` (2). */
+  rotationEditMode: number;
+  /** `data.notify_transform`, `data.notify_local_transform` and `data.ignore_notification`. */
+  notifyTransform: boolean;
+  notifyLocalTransform: boolean;
+  ignoreTransformNotification: boolean;
+  /** `visibility_parent_path`, a NodePath's text. */
+  visibilityParent: string;
   /** The local transform compat last read or wrote, and the three values it corresponds to. */
   snapshot: { readonly local: Local; readonly three: readonly number[] } | undefined;
 }
@@ -547,13 +556,19 @@ function stateOf(object: Object3D): Node3DState {
     scale: [1, 1, 1],
     order: EULER_YXZ,
     dirty: isIdentity(local) ? DIRTY_NONE : DIRTY_EULER_ROTATION_AND_SCALE,
-    topLevel: false,
+    // A scene-authored `top_level` (a body's `userData.top_level`): its authored transform is global.
+    topLevel: (object.userData as { readonly top_level?: boolean } | undefined)?.top_level === true,
     disableScale: (object as { readonly isCamera?: boolean }).isCamera === true || (object as { readonly isLight?: boolean }).isLight === true,
     fromMatrix,
+    rotationEditMode: 0,
+    notifyTransform: false,
+    notifyLocalTransform: false,
+    ignoreTransformNotification: false,
+    visibilityParent: '',
     snapshot: fromMatrix ? undefined : { local, three: now },
   };
   NODE3D.set(object, state);
-  if (fromMatrix) writeLocal(object, state, local);
+  if (fromMatrix || state.topLevel) writeLocal(object, state, local);
   return state;
 }
 
@@ -1021,4 +1036,482 @@ export function godot_node_3d_world_source(world: () => object): void {
 export function get_world_3d(self: Object3D): object | null {
   if (!is_inside_tree(self) || viewportWorld === undefined) return null;
   return viewportWorld();
+}
+
+// --- Rotation forms, the global rotation, and the transform helpers (`scene/3d/node_3d.cpp`).
+
+/** `Basis::get_quaternion` (`core/math/basis.cpp:715`), without `MATH_CHECKS` (a release build). */
+function quaternionOf(m: Rows): readonly [number, number, number, number] {
+  const r = (i: number, j: number): number => m[3 * i + j] as number;
+  const trace = f32(f32(r(0, 0) + r(1, 1)) + r(2, 2));
+  const temp = [0, 0, 0, 0];
+  if (trace > 0) {
+    let s = f32(Math.sqrt(f32(trace + 1)));
+    temp[3] = f32(s * 0.5);
+    s = f32(0.5 / s);
+    temp[0] = f32(f32(r(2, 1) - r(1, 2)) * s);
+    temp[1] = f32(f32(r(0, 2) - r(2, 0)) * s);
+    temp[2] = f32(f32(r(1, 0) - r(0, 1)) * s);
+  } else {
+    const i = r(0, 0) < r(1, 1) ? (r(1, 1) < r(2, 2) ? 2 : 1) : r(0, 0) < r(2, 2) ? 2 : 0;
+    const j = (i + 1) % 3;
+    const k = (i + 2) % 3;
+    let s = f32(Math.sqrt(f32(f32(f32(r(i, i) - r(j, j)) - r(k, k)) + 1)));
+    temp[i] = f32(s * 0.5);
+    s = f32(0.5 / s);
+    temp[3] = f32(f32(r(k, j) - r(j, k)) * s);
+    temp[j] = f32(f32(r(j, i) + r(i, j)) * s);
+    temp[k] = f32(f32(r(k, i) + r(i, k)) * s);
+  }
+  return [temp[0] as number, temp[1] as number, temp[2] as number, temp[3] as number];
+}
+
+/** `Basis::get_rotation_quaternion` (`core/math/basis.cpp:400`). */
+function rotationQuaternionOf(m: Rows): readonly [number, number, number, number] {
+  let o = orthonormalized(m);
+  if (determinant(o) < 0) o = o.map((value) => f32(value * -1));
+  return quaternionOf(o);
+}
+
+/** `Basis::scale_local` (`core/math/basis.cpp:247`): each row times the scale, by column. */
+function scaleLocal(m: Rows, s: V3): Rows {
+  return m.map((value, index) => f32(value * (s[index % 3] as number)));
+}
+
+/** `Basis::scale` (`core/math/basis.cpp:235`): row `i` times `s[i]`. */
+function scaleRows(m: Rows, s: V3): Rows {
+  return m.map((value, index) => f32(value * (s[Math.floor(index / 3)] as number)));
+}
+
+/** `Transform3D::xform` (`core/math/transform_3d.h`): the basis, then the origin. */
+function xformPoint(t: Local, v: V3): V3 {
+  const o = xformBasis(t.basis, v);
+  return [f32(o[0] + t.origin[0]), f32(o[1] + t.origin[1]), f32(o[2] + t.origin[2])];
+}
+
+function degToRad(value: number): number {
+  return f32(f32(value) * f32(f32(PI) / 180));
+}
+
+function radToDeg(value: number): number {
+  return f32(f32(value) * f32(180 / f32(PI)));
+}
+
+/**
+ * The basis becomes `Basis(quaternion, scale)` (`Basis::set_quaternion_scale`) with the stored
+ * scale; the Euler rotation is rebuilt from it at once and no dirty bit is left.
+ *
+ * @godot Node3D.set_quaternion
+ * @source scene/3d/node_3d.cpp:321
+ */
+export function set_quaternion(self: Object3D, p_quaternion: Quaternion): void {
+  const state = stateOf(self);
+  if ((state.dirty & DIRTY_EULER_ROTATION_AND_SCALE) !== 0) {
+    state.scale = getScale(readLocal(self).basis);
+    state.dirty &= ~DIRTY_EULER_ROTATION_AND_SCALE;
+  }
+  const origin = localOf(self, state).origin;
+  const q = p_quaternion;
+  const rotated = fromThree([0, 0, 0, q.x, q.y, q.z, q.w, state.scale[0], state.scale[1], state.scale[2]]).basis;
+  state.euler = getEulerNormalized(rotated, state.order);
+  state.dirty = DIRTY_NONE;
+  writeLocal(self, state, { basis: rotated, origin });
+}
+
+/**
+ * @godot Node3D.get_quaternion
+ * @source scene/3d/node_3d.cpp:416
+ */
+export function get_quaternion(self: Object3D): Quaternion {
+  return quaternion(...rotationQuaternionOf(localOf(self, stateOf(self)).basis));
+}
+
+/**
+ * Leaving `ROTATION_EDIT_MODE_BASIS` orthogonalizes the local transform (unless it is pending as
+ * Euler values); entering `ROTATION_EDIT_MODE_EULER` brings the stored Euler values up to date.
+ *
+ * @godot Node3D.set_rotation_edit_mode
+ * @source scene/3d/node_3d.cpp:724
+ */
+export function set_rotation_edit_mode(self: Object3D, p_mode: number): void {
+  const state = stateOf(self);
+  if (state.rotationEditMode === p_mode) return;
+  if (state.rotationEditMode === 2 && (state.dirty & DIRTY_LOCAL_TRANSFORM) === 0) {
+    // `Transform3D::orthogonalize` → `Basis::orthogonalize` (`core/math/basis.cpp:81`).
+    const local = readLocal(self);
+    const scale = getScale(local.basis);
+    writeLocal(self, state, { basis: scaleLocal(orthonormalized(local.basis), scale), origin: local.origin });
+  }
+  state.rotationEditMode = p_mode;
+  if (p_mode === 0) rotationAndScaleOf(self, state);
+}
+
+/**
+ * @godot Node3D.get_rotation_edit_mode
+ * @source scene/3d/node_3d.cpp:755
+ */
+export function get_rotation_edit_mode(self: Object3D): number {
+  return stateOf(self).rotationEditMode;
+}
+
+/**
+ * The global basis's normalized Euler angles in `EULER_ORDER_YXZ`.
+ *
+ * @godot Node3D.get_global_rotation
+ * @source scene/3d/node_3d.cpp:365
+ */
+export function get_global_rotation(self: Object3D): Vector3 {
+  return toVector3(getEulerNormalized(globalOf(self).basis, EULER_YXZ));
+}
+
+/**
+ * @godot Node3D.get_global_rotation_degrees
+ * @source scene/3d/node_3d.cpp:370
+ */
+export function get_global_rotation_degrees(self: Object3D): Vector3 {
+  const radians = get_global_rotation(self);
+  return vector3(radToDeg(radians.x), radToDeg(radians.y), radToDeg(radians.z));
+}
+
+/**
+ * `Basis::from_euler(euler) * Basis::from_scale(global scale)` at the global origin.
+ *
+ * @godot Node3D.set_global_rotation
+ * @source scene/3d/node_3d.cpp:376
+ */
+export function set_global_rotation(self: Object3D, p_euler_rad: Vector3): void {
+  const global = globalOf(self);
+  const rotated = eulerScale(toV3(p_euler_rad), getScale(global.basis), EULER_YXZ);
+  set_global_transform(self, toTransform({ basis: rotated, origin: global.origin }));
+}
+
+/**
+ * @godot Node3D.set_global_rotation_degrees
+ * @source scene/3d/node_3d.cpp:383
+ */
+export function set_global_rotation_degrees(self: Object3D, p_euler_degrees: Vector3): void {
+  set_global_rotation(self, vector3(degToRad(p_euler_degrees.x), degToRad(p_euler_degrees.y), degToRad(p_euler_degrees.z)));
+}
+
+/**
+ * Physics interpolation is off (the project default, and the host draws each node where its last
+ * frame left it, `node.ts`), so the interpolated transform is the global transform.
+ *
+ * @godot Node3D.get_global_transform_interpolated
+ * @source scene/3d/node_3d.cpp:627
+ */
+export function get_global_transform_interpolated(self: Object3D): Transform3D {
+  return get_global_transform(self);
+}
+
+/**
+ * The parent as a Node3D, or null for a top-level node or a parent that is not one.
+ *
+ * @godot Node3D.get_parent_node_3d
+ * @source scene/3d/node_3d.cpp:690
+ */
+export function get_parent_node_3d(self: Object3D): object | null {
+  if (stateOf(self).topLevel) return null;
+  const parent = parentNode3D(self);
+  return parent === null ? null : godot_node_object(parent);
+}
+
+/**
+ * `data.ignore_notification`: suppresses `NOTIFICATION_TRANSFORM_CHANGED`.
+ *
+ * @godot Node3D.set_ignore_transform_notification
+ * @source scene/3d/node_3d.h:193
+ */
+export function set_ignore_transform_notification(self: Object3D, enabled: boolean): void {
+  stateOf(self).ignoreTransformNotification = Boolean(enabled);
+}
+
+/**
+ * `data.disable_scale`: the global transform's basis is orthonormalized.
+ *
+ * @godot Node3D.set_disable_scale
+ * @source scene/3d/node_3d.cpp:1041
+ */
+export function set_disable_scale(self: Object3D, p_enabled: boolean): void {
+  stateOf(self).disableScale = Boolean(p_enabled);
+}
+
+/**
+ * @godot Node3D.is_scale_disabled
+ * @source scene/3d/node_3d.cpp:1046
+ */
+export function is_scale_disabled(self: Object3D): boolean {
+  return stateOf(self).disableScale;
+}
+
+/**
+ * Fails (does nothing) outside the tree. Compat computes the global transform on demand, so no
+ * transform change is pending; three's world matrix, the renderer's copy, is brought up to date.
+ *
+ * @godot Node3D.force_update_transform
+ * @source scene/3d/node_3d.cpp:1300
+ */
+export function force_update_transform(self: Object3D): void {
+  if (!is_inside_tree(self)) return;
+  self.updateWorldMatrix(true, false);
+}
+
+/**
+ * Stored and read back. The visibility parent drives visibility-range fading, which the web's
+ * Compatibility renderer does not draw per instance; the node draws as its own visibility says.
+ *
+ * @godot Node3D.set_visibility_parent
+ * @source scene/3d/node_3d.cpp:1344
+ */
+export function set_visibility_parent(self: Object3D, p_path: string): void {
+  stateOf(self).visibilityParent = String(p_path);
+}
+
+/**
+ * @godot Node3D.get_visibility_parent
+ * @source scene/3d/node_3d.cpp:1352
+ */
+export function get_visibility_parent(self: Object3D): string {
+  return stateOf(self).visibilityParent;
+}
+
+/**
+ * Gizmos exist only in the editor (`#ifdef TOOLS_ENABLED`); in an exported game it does nothing.
+ *
+ * @godot Node3D.update_gizmos
+ * @source scene/3d/node_3d.cpp:865
+ */
+export function update_gizmos(self: Object3D): void {
+  void self;
+}
+
+/**
+ * Editor-only (`TOOLS_ENABLED`); an exported game ignores the gizmo.
+ *
+ * @godot Node3D.add_gizmo
+ * @source scene/3d/node_3d.cpp:917
+ */
+export function add_gizmo(self: Object3D, gizmo: unknown): void {
+  void self;
+  void gizmo;
+}
+
+/**
+ * Editor-only (`TOOLS_ENABLED`); an exported game has none, so the array is empty.
+ *
+ * @godot Node3D.get_gizmos
+ * @source scene/3d/node_3d.cpp:957
+ */
+export function get_gizmos(self: Object3D): unknown[] {
+  void self;
+  return [];
+}
+
+/**
+ * Editor-only (`TOOLS_ENABLED`); in an exported game it does nothing.
+ *
+ * @godot Node3D.clear_gizmos
+ * @source scene/3d/node_3d.cpp:946
+ */
+export function clear_gizmos(self: Object3D): void {
+  void self;
+}
+
+/**
+ * Editor-only (`TOOLS_ENABLED`); in an exported game it does nothing.
+ *
+ * @godot Node3D.set_subgizmo_selection
+ * @source scene/3d/node_3d.cpp:887
+ */
+export function set_subgizmo_selection(self: Object3D, gizmo: unknown, id: number, transform: Transform3D): void {
+  void self;
+  void gizmo;
+  void id;
+  void transform;
+}
+
+/**
+ * Editor-only (`TOOLS_ENABLED`); in an exported game it does nothing.
+ *
+ * @godot Node3D.clear_subgizmo_selection
+ * @source scene/3d/node_3d.cpp:900
+ */
+export function clear_subgizmo_selection(self: Object3D): void {
+  void self;
+}
+
+/**
+ * `data.notify_local_transform`: `NOTIFICATION_LOCAL_TRANSFORM_CHANGED` on each local change.
+ *
+ * @godot Node3D.set_notify_local_transform
+ * @source scene/3d/node_3d.cpp:1290
+ */
+export function set_notify_local_transform(self: Object3D, p_enabled: boolean): void {
+  stateOf(self).notifyLocalTransform = Boolean(p_enabled);
+}
+
+/**
+ * @godot Node3D.is_local_transform_notification_enabled
+ * @source scene/3d/node_3d.cpp:1295
+ */
+export function is_local_transform_notification_enabled(self: Object3D): boolean {
+  return stateOf(self).notifyLocalTransform;
+}
+
+/**
+ * `data.notify_transform`: `NOTIFICATION_TRANSFORM_CHANGED` on each global change.
+ *
+ * @godot Node3D.set_notify_transform
+ * @source scene/3d/node_3d.cpp:1280
+ */
+export function set_notify_transform(self: Object3D, p_enabled: boolean): void {
+  stateOf(self).notifyTransform = Boolean(p_enabled);
+}
+
+/**
+ * @godot Node3D.is_transform_notification_enabled
+ * @source scene/3d/node_3d.cpp:1285
+ */
+export function is_transform_notification_enabled(self: Object3D): boolean {
+  return stateOf(self).notifyTransform;
+}
+
+/**
+ * `t.basis.rotate(axis, angle)`: `Basis(axis, angle) * basis` (`core/math/basis.cpp:352`).
+ *
+ * @godot Node3D.rotate
+ * @source scene/3d/node_3d.cpp:1160
+ */
+export function rotate(self: Object3D, p_axis: Vector3, p_angle: number): void {
+  const local = localOf(self, stateOf(self));
+  setLocal(self, { basis: mulBasis(axisAngle(toV3(p_axis), p_angle), local.basis), origin: local.origin });
+}
+
+/**
+ * @godot Node3D.rotate_x
+ * @source scene/3d/node_3d.cpp:1167
+ */
+export function rotate_x(self: Object3D, p_angle: number): void {
+  const local = localOf(self, stateOf(self));
+  setLocal(self, { basis: mulBasis(axisAngle([1, 0, 0], p_angle), local.basis), origin: local.origin });
+}
+
+/**
+ * @godot Node3D.rotate_z
+ * @source scene/3d/node_3d.cpp:1181
+ */
+export function rotate_z(self: Object3D, p_angle: number): void {
+  const local = localOf(self, stateOf(self));
+  setLocal(self, { basis: mulBasis(axisAngle([0, 0, 1], p_angle), local.basis), origin: local.origin });
+}
+
+/**
+ * `t.basis.rotate_local(axis, angle)`: `basis * Basis(axis, angle)` (`core/math/basis.cpp:366`).
+ *
+ * @godot Node3D.rotate_object_local
+ * @source scene/3d/node_3d.cpp:1153
+ */
+export function rotate_object_local(self: Object3D, p_axis: Vector3, p_angle: number): void {
+  const local = localOf(self, stateOf(self));
+  setLocal(self, { basis: mulBasis(local.basis, axisAngle(toV3(p_axis), p_angle)), origin: local.origin });
+}
+
+/**
+ * `t.basis.scale_local(scale)` (`core/math/basis.cpp:247`).
+ *
+ * @godot Node3D.scale_object_local
+ * @source scene/3d/node_3d.cpp:1211
+ */
+export function scale_object_local(self: Object3D, p_scale: Vector3): void {
+  const local = localOf(self, stateOf(self));
+  setLocal(self, { basis: scaleLocal(local.basis, toV3(p_scale)), origin: local.origin });
+}
+
+/**
+ * `Transform3D::translate_local` (`core/math/transform_3d.cpp:136`): the origin moves by the
+ * offset in the node's own axes.
+ *
+ * @godot Node3D.translate
+ * @source scene/3d/node_3d.cpp:1188
+ */
+export function translate(self: Object3D, p_offset: Vector3): void {
+  const local = localOf(self, stateOf(self));
+  setLocal(self, { basis: local.basis, origin: xformPoint(local, toV3(p_offset)) });
+}
+
+/**
+ * `t * Transform3D().translated_local(offset)`: the same motion as `translate`, through the
+ * transform product.
+ *
+ * @godot Node3D.translate_object_local
+ * @source scene/3d/node_3d.cpp:1195
+ */
+export function translate_object_local(self: Object3D, p_offset: Vector3): void {
+  const local = localOf(self, stateOf(self));
+  setLocal(self, mulTransform(local, { basis: IDENTITY, origin: toV3(p_offset) }));
+}
+
+/**
+ * @godot Node3D.global_rotate
+ * @source scene/3d/node_3d.cpp:1218
+ */
+export function global_rotate(self: Object3D, p_axis: Vector3, p_angle: number): void {
+  const global = globalOf(self);
+  set_global_transform(self, toTransform({ basis: mulBasis(axisAngle(toV3(p_axis), p_angle), global.basis), origin: global.origin }));
+}
+
+/**
+ * `t.basis.scale(scale)` (`core/math/basis.cpp:235`) on the global transform.
+ *
+ * @godot Node3D.global_scale
+ * @source scene/3d/node_3d.cpp:1225
+ */
+export function global_scale(self: Object3D, p_scale: Vector3): void {
+  const global = globalOf(self);
+  set_global_transform(self, toTransform({ basis: scaleRows(global.basis, toV3(p_scale)), origin: global.origin }));
+}
+
+/**
+ * @godot Node3D.global_translate
+ * @source scene/3d/node_3d.cpp:1232
+ */
+export function global_translate(self: Object3D, p_offset: Vector3): void {
+  const global = globalOf(self);
+  const o = toV3(p_offset);
+  set_global_transform(self, toTransform({ basis: global.basis, origin: [f32(global.origin[0] + o[0]), f32(global.origin[1] + o[1]), f32(global.origin[2] + o[2])] }));
+}
+
+/**
+ * @godot Node3D.orthonormalize
+ * @source scene/3d/node_3d.cpp:1239
+ */
+export function orthonormalize(self: Object3D): void {
+  const local = localOf(self, stateOf(self));
+  setLocal(self, { basis: orthonormalized(local.basis), origin: local.origin });
+}
+
+/**
+ * @godot Node3D.set_identity
+ * @source scene/3d/node_3d.cpp:1246
+ */
+export function set_identity(self: Object3D): void {
+  setLocal(self, { basis: IDENTITY, origin: [0, 0, 0] });
+}
+
+/**
+ * `get_global_transform().affine_inverse().xform(global)`.
+ *
+ * @godot Node3D.to_local
+ * @source scene/3d/node_3d.cpp:1270
+ */
+export function to_local(self: Object3D, p_global: Vector3): Vector3 {
+  return toVector3(xformPoint(affineInverse(globalOf(self)), toV3(p_global)));
+}
+
+/**
+ * @godot Node3D.to_global
+ * @source scene/3d/node_3d.cpp:1275
+ */
+export function to_global(self: Object3D, p_local: Vector3): Vector3 {
+  return toVector3(xformPoint(globalOf(self), toV3(p_local)));
 }

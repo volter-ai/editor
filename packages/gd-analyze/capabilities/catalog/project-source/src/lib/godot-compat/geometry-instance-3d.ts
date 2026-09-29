@@ -22,6 +22,8 @@
 
 import { type BaseMaterial3D, godot_base_material_3d_of, godot_base_material_3d_three } from './base-material-3d';
 import { godot_element_callsite } from './node';
+import type { ShaderMaterial } from './shader-material';
+import { godot_shader_material_of_three } from './spatial-material';
 import { type ReactElement, type ReactNode, createElement, useLayoutEffect, useState } from 'react';
 import { Box3, type Camera, LOD, type Material, type Object3D, Vector3 } from 'three';
 
@@ -92,6 +94,33 @@ export function get_transparency(self: object): number {
   return TRANSPARENCY.get(self) ?? (typeof stated === 'number' ? stored(stated) : 0);
 }
 
+// --- GI mode: stored; the page has no baked light or dynamic GI for it to include the geometry in.
+
+const GI_MODE = new WeakMap<object, number>();
+
+/**
+ * Whether baked light (a LightmapGI) or dynamic GI (VoxelGI, SDFGI) lights the geometry
+ * (`instance_geometry_set_flag`); the page bakes and traces none, so only the mode is kept.
+ *
+ * @godot GeometryInstance3D.set_gi_mode
+ * @source scene/3d/visual_instance_3d.cpp:472
+ */
+export function set_gi_mode(self: object, mode: number): void {
+  GI_MODE.set(self, mode);
+}
+
+/**
+ * `GI_MODE_STATIC` until set (`visual_instance_3d.h:142`).
+ *
+ * @godot GeometryInstance3D.get_gi_mode
+ * @source scene/3d/visual_instance_3d.cpp:492
+ */
+export function get_gi_mode(self: object): number {
+  // A scene states it in the node's `userData`.
+  const stated = (self as Partial<Object3D>).userData?.['gi_mode'];
+  return GI_MODE.get(self) ?? (typeof stated === 'number' ? stated : 1);
+}
+
 // --- Material override: drawn by the node's own drawing.
 
 const OVERRIDE = new WeakMap<object, BaseMaterial3D | null>();
@@ -142,8 +171,9 @@ export function godot_geometry_instance_3d_material_override(self: object, mater
  * @godot GeometryInstance3D.get_material_override
  * @source scene/3d/visual_instance_3d.cpp:229
  */
-export function get_material_override(self: object): BaseMaterial3D | null {
-  return OVERRIDE.get(self) ?? null;
+export function get_material_override(self: object): BaseMaterial3D | ShaderMaterial | null {
+  // A mesh the scene drew with a spatial shader's material reads it back as its ShaderMaterial.
+  return OVERRIDE.get(self) ?? godot_shader_material_of_three((self as { readonly material?: unknown }).material) ?? null;
 }
 
 // --- Visibility range: `RendererSceneCull::_visibility_range_check`, as the Compatibility renderer draws it.
