@@ -728,11 +728,17 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
     ) {
       // An `@onready` member without a declared type (Variant, or inferred from `get_node` as a
       // Node, `:=`) is declared as the node it holds, as its reads are.
+      // One inferred from a cast to an engine class (`$Camera as Camera3D`) holds the cast's native
+      // object, so it is declared as the node's engine class, never its script.
       const identifier = nodes.get(node.identifier);
       const path = identifier?.kind === 'IDENTIFIER' ? onreadyPath(identifier.name) : undefined;
-      const type = path === undefined ? undefined : sceneNode(path);
+      const held = path === undefined ? undefined : sceneNode(path);
+      const cast = nodes.get(node.initializer)?.kind === 'CAST';
+      const type = held !== undefined && cast && held.kind !== 'NATIVE' ? nativeDatatype(held.nativeType) : held;
       const own = node.datatype;
-      if (type !== undefined && (own.kind === 'VARIANT' || inherits(type.nativeType, own.nativeType))) result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      if (type !== undefined && (own.kind === 'VARIANT' || (inherits(type.nativeType, own.nativeType) && !(cast && type.nativeType === own.nativeType)))) {
+        result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      }
     } else if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE' && node.datatype.kind === 'NATIVE' && !node.datatype.metaType && exportedDeclaration(node.name)) {
       // An exported node reference holds the node every attached scene's NodePath names.
       const own = node.datatype;
