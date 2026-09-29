@@ -37,7 +37,7 @@ export async function hostedControl(command: string, args: string[]): Promise<vo
     writeFileSync(file, JSON.stringify({ ...common, token: created.clientToken }), { mode: 0o600, flag: 'wx' });
     page.hash = new URLSearchParams({ [HOSTED_ATTACHMENT_FRAGMENT]: JSON.stringify({ ...common, token: created.workerToken }) }).toString();
     openBrowserUrl(page.href, { background: true });
-    console.log(`Opening hosted editor: ${created.page}\nUse ${command} hosted status from this directory. Attachment expires ${new Date(created.expiresAt).toISOString()}.`);
+    console.log(`Attaching to hosted editor: ${created.page}\nIf this page is already open, its existing tab receives the attachment.\nUse ${command} hosted status from this directory. Attachment expires ${new Date(created.expiresAt).toISOString()}.`);
     return;
   }
   if (!['status', 'eval', 'screenshot', 'detach'].includes(verb ?? '')) throw new Error(HOSTED_USAGE);

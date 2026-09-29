@@ -5,7 +5,7 @@ import { mkdtemp, rm } from 'node:fs/promises';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import { build } from 'esbuild';
 import { createHostedAttachmentRelay } from '../dist/server/hosted-attachment-relay.js';
-import { attachHostedEditorPage, connectHostedAttachment, HOSTED_ATTACHMENT_FRAGMENT, isHostedRequest } from '../dist/server/hosted-attachment-client.js';
+import { attachHostedEditorPage, prepareHostedEditorPage, connectHostedAttachment, HOSTED_ATTACHMENT_FRAGMENT, isHostedRequest } from '../dist/server/hosted-attachment-client.js';
 
 async function fixture(t, options = {}) {
   let relay;
@@ -104,4 +104,67 @@ test('EditorClient uses the attachment for both status and command/screenshot en
   const client = new EditorClient({ url: 'http://127.0.0.1', fetch: remote.fetch });
   assert.equal((await client.getState()).connected, true);
   assert.deepEqual(await client.captureActiveDocument(), { ok: true, base64: 'aW1hZ2U=', mimeType: 'image/png' });
+});
+
+function pageOptions(created) {
+  const url = new URL(created.page);
+  url.hash = new URLSearchParams({ [HOSTED_ATTACHMENT_FRAGMENT]: JSON.stringify({ ...created, token: created.workerToken }) });
+  return { location: { href: url.href }, replaceUrl(value) { assert.equal(value, created.page); } };
+}
+async function revoke(created) {
+  const socket = new WebSocket(created.endpoint.replace('http:', 'ws:'));
+  await new Promise((resolve, reject) => {
+    socket.addEventListener('open', () => socket.send(JSON.stringify({ type: 'auth', role: 'client', token: created.clientToken })));
+    socket.addEventListener('message', event => { if (JSON.parse(String(event.data)).type === 'ready') socket.send(JSON.stringify({ type: 'revoke' })); });
+    socket.addEventListener('close', resolve);
+    socket.addEventListener('error', reject);
+  });
+}
+
+test('ordinary page owns boot; attach and detach/reattach reuse its document handler', async t => {
+  const f = await fixture(t);
+  const created = await f.create();
+  const owner = await prepareHostedEditorPage({ location: { href: created.page }, replaceUrl() { assert.fail('no credential to scrub'); } });
+  assert.ok(owner); t.after(() => owner.close());
+  let calls = 0;
+  owner.serve(async () => Response.json({ document: 'same loaded document', calls: ++calls }));
+  assert.equal(await prepareHostedEditorPage(pageOptions(created)), null, 'attachment tab must not boot a project');
+  const client = await connectHostedAttachment({ ...created, token: created.clientToken }); t.after(() => client.close());
+  await ready(client);
+  assert.equal((await (await client.fetch('http://127.0.0.1/__editor/state')).json()).calls, 1);
+  await revoke(created);
+  await assert.rejects(connectHostedAttachment({ ...created, token: created.clientToken }), /disconnected|refused|connection failed/);
+  const second = await f.create();
+  assert.equal(await prepareHostedEditorPage(pageOptions(second)), null);
+  const again = await connectHostedAttachment({ ...second, token: second.clientToken }); t.after(() => again.close());
+  await ready(again);
+  assert.deepEqual(await (await again.fetch('http://127.0.0.1/__editor/state')).json(), { document: 'same loaded document', calls: 2 });
+});
+
+test('simultaneous page opens elect one boot owner; closing releases ownership; URLs stay isolated', async t => {
+  const f = await fixture(t); const created = await f.create();
+  const options = { location: { href: created.page }, replaceUrl() {} };
+  const pages = await Promise.all([prepareHostedEditorPage(options), prepareHostedEditorPage(options)]);
+  const owners = pages.filter(Boolean);
+  assert.equal(owners.length, 1); t.after(() => owners[0].close());
+  const elsewhere = await prepareHostedEditorPage({ ...options, location: { href: `${created.page}-other` } });
+  assert.ok(elsewhere); t.after(() => elsewhere.close());
+  const wrong = pageOptions(created); wrong.location.href = wrong.location.href.replace('/example#', '/other#');
+  await assert.rejects(prepareHostedEditorPage(wrong), /exact page/);
+  owners[0].close();
+  await new Promise(resolve => setTimeout(resolve, 0));
+  const reopened = await prepareHostedEditorPage(options); assert.ok(reopened); t.after(() => reopened.close());
+});
+
+test('a silent lock owner refuses a handoff instead of authorizing another boot', async () => {
+  const page = `https://host.example/model-editor/${crypto.randomUUID()}`;
+  let release, acquired;
+  const held = new Promise(resolve => { acquired = resolve; });
+  const lock = navigator.locks.request(`volter-editor-hosted:${page}`, async () => {
+    acquired(); await new Promise(resolve => { release = resolve; });
+  });
+  await held;
+  try {
+    await assert.rejects(prepareHostedEditorPage({ location: { href: page }, replaceUrl() {} }), /existing hosted editor tab did not answer/);
+  } finally { release(); await lock; }
 });

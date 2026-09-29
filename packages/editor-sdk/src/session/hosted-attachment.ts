@@ -144,3 +144,82 @@ export function attachHostedEditorPage(options: {
     close() { stop(); socket.close(); },
   };
 }
+
+/** Own the exact hosted page before booting its project. Later attachment tabs
+ * hand their fresh worker capability to this owner, then remain idle. Detaching
+ * a relay does not release page ownership or unload the document. */
+export async function prepareHostedEditorPage(options: {
+  location: Pick<Location, 'href'>;
+  replaceUrl(url: string): void;
+}): Promise<NonNullable<ReturnType<typeof attachHostedEditorPage>> | null> {
+  const url = new URL(options.location.href);
+  const fragment = new URLSearchParams(url.hash.slice(1));
+  const encoded = fragment.get(HOSTED_ATTACHMENT_FRAGMENT);
+  const page = url.origin + url.pathname + url.search;
+  if (encoded) {
+    const capability = JSON.parse(encoded) as HostedAttachment;
+    if (new URL(capability.endpoint).origin !== url.origin || capability.page !== page)
+      throw new Error('Hosted attachment does not name this exact page.');
+    hostedSocketUrl(capability.endpoint);
+    fragment.delete(HOSTED_ATTACHMENT_FRAGMENT);
+    url.hash = fragment.toString(); options.replaceUrl(url.href);
+  }
+  if (!navigator.locks) throw new Error('Hosted attachment requires browser Web Locks to reuse the project tab safely.');
+  const channel = new BroadcastChannel(`volter-editor-hosted:${page}`);
+  let release!: () => void;
+  const lifetime = new Promise<void>(resolve => { release = resolve; });
+  let resolveOwner!: (owner: boolean) => void;
+  let rejectOwner!: (error: unknown) => void;
+  const acquired = new Promise<boolean>((resolve, reject) => { resolveOwner = resolve; rejectOwner = reject; });
+  let worker: ReturnType<typeof attachHostedEditorPage>;
+  let state: Record<string, unknown> = { phase: 'booting' };
+  let handler: typeof fetch | undefined;
+  let owner = false;
+  const connect = (credential: string): void => {
+    const workerUrl = new URL(page);
+    workerUrl.hash = new URLSearchParams({ [HOSTED_ATTACHMENT_FRAGMENT]: credential }).toString();
+    // Validate before replacing any existing connection. A new explicit attach
+    // replaces control, never the document or an in-flight mutation by replay.
+    const next = attachHostedEditorPage({ location: { href: workerUrl.href }, replaceUrl() {} });
+    worker?.close(); worker = next;
+    worker?.setState(state);
+    if (handler) worker?.serve(handler);
+  };
+  channel.onmessage = event => {
+    const message = event.data;
+    if (!owner || message?.type !== 'attach' || typeof message.id !== 'string') return;
+    try {
+      if (typeof message.credential === 'string') connect(message.credential);
+      channel.postMessage({ type: 'attached', id: message.id });
+    } catch (error) {
+      channel.postMessage({ type: 'refused', id: message.id, error: error instanceof Error ? error.message : String(error) });
+    }
+  };
+  void navigator.locks.request(`volter-editor-hosted:${page}`, { ifAvailable: true }, async lock => {
+    owner = Boolean(lock); resolveOwner(owner);
+    if (lock) await lifetime;
+  }).catch(rejectOwner);
+  try {
+    if (await acquired) {
+      if (encoded) connect(encoded);
+      return {
+        setState(value) { state = value; worker?.setState(value); },
+        serve(fetchEditor) { handler = fetchEditor; worker?.serve(fetchEditor); },
+        close() { owner = false; worker?.close(); channel.close(); release(); },
+      };
+    }
+    // The lock, not a timed absence of a reply, decides whether a new project
+    // may boot. An unresponsive owner is a refusal, never a duplicate boot.
+    const id = crypto.randomUUID();
+    await new Promise<void>((resolve, reject) => {
+      const timer = setTimeout(() => reject(new Error('The existing hosted editor tab did not answer. Return to that tab before attaching again.')), 5000);
+      channel.onmessage = event => {
+        if (event.data?.id !== id) return;
+        if (event.data.type === 'attached') { clearTimeout(timer); resolve(); }
+        if (event.data.type === 'refused') { clearTimeout(timer); reject(new Error(event.data.error)); }
+      };
+      channel.postMessage({ type: 'attach', id, ...(encoded ? { credential: encoded } : {}) });
+    });
+    channel.close(); return null;
+  } catch (error) { owner = false; worker?.close(); channel.close(); release(); throw error; }
+}

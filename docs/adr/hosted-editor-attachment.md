@@ -20,7 +20,20 @@ page. The CLI keeps its capability in an owner-only state file outside the proje
 a separate worker capability goes into the page fragment and is removed when the
 page consumes it. Neither credential is sent in HTTP URLs or printed. Attaching
 again from the same directory refuses, so status checks do not create duplicate
-tabs. `hosted detach` revokes the lease and preserves the browser document.
+tabs from that directory. At page entry, `prepareHostedEditorPage` takes an
+exclusive Web Lock for the exact origin/path/query, before project boot. A later
+attachment page sends its fresh worker capability over a same-origin
+BroadcastChannel to that owner and stays idle; it never opens a second project.
+The owner replaces its control connection, preserving the document and its HTTP
+handler even after detach or expiry. Ordinary page opens also register, without
+creating any relay capability. An unresponsive owner refuses rather than booting
+a duplicate. `hosted detach` revokes the lease and preserves the browser document.
+The ownership listener lives until pagehide. This shares the existing origin's
+trust boundary; it is not isolation from hostile same-origin scripts.
+
+Tabs opened before this ownership adapter was installed must be closed once
+before upgrading. Their old JavaScript cannot receive a handoff. No document is
+silently closed or reloaded to migrate them.
 
 The deployment must explicitly enable the relay for its canonical HTTPS origin
 (loopback HTTP is allowed for development). The relay limits leases, sockets,
@@ -64,7 +77,9 @@ not claim that the native addon runs in the browser, or hide shader warnings.
 A Vite shell mounts `hostedAttachmentPlugin(canonicalOrigin)` from
 `@volter/editor-core/server/hosted-attachment-vite`. An HTTP host instead mounts
 `createHostedAttachmentRelay` from `server/hosted-attachment-relay`. The shell
-loads `/__editor-hosted/client.js` only for an attachment fragment, calls
-`attachHostedEditorPage`, reports boot state, and calls `serve(fetchEditor)` with
+loads `/__editor-hosted/client.js` whenever the deployment enables attachment,
+including page opens without a fragment, and awaits `prepareHostedEditorPage`
+before boot. A null result means handoff succeeded: show that the existing tab
+is in use and do not boot. Otherwise report boot state and call `serve(fetchEditor)` with
 its existing session HTTP transport once ready. The integration for Browser
 Substrate lives in that repository's `examples/volter-editor`.
