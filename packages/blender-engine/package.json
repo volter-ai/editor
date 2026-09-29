@@ -2,7 +2,7 @@
   "name": "@volter/blender-engine",
   "author": "Volter AI, Inc.",
   "license": "GPL-3.0-or-later",
-  "version": "0.1.44",
+  "version": "0.1.45",
   "publishConfig": {
     "access": "public"
   },
