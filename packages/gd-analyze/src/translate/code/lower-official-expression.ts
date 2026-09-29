@@ -3340,6 +3340,8 @@ export function lowerOfficialExpression(
           stringifying ? stringifiedArgument(context, node, argument, lowerExpression(context, argument)) : lowerExpression(context, argument),
         );
         const loads = node.compilerTarget.kind === 'gdscript-utility' ? context.resourceLoads.get(node.id) : undefined;
+        const refusedLoad = context.refusedResourceLoads.get(node.id);
+        if (refusedLoad !== undefined) return context.refuse(node, refusedLoad);
         if (loads !== undefined && lowered.length === 1) {
           // `load(path)` over the paths the program fixes: the module's record of every resolved
           // load (`resourceTable`) looked up by the path, null where no file is there
@@ -3821,6 +3823,8 @@ export function lowerOfficialExpression(
         // (`ResourceLoader::load`'s cache): the scene component the translation writes for it.
         // `preload("res://x.ogg")`: the imported sound its path loads, from the module's record of
         // the script's loads (`resourceTable`), as `load` of that path is.
+        const refusedPreload = context.refusedResourceLoads.get(node.id);
+        if (refusedPreload !== undefined) return context.refuse(node, refusedPreload);
         if (context.resourceLoads.has(node.id)) {
           const table = resourceTable(context);
           return expression(

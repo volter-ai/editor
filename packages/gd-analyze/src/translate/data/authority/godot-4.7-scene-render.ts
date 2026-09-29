@@ -21,12 +21,12 @@ export const GODOT_4_7_RENDER_RESOURCE_RULES: readonly (GodotSceneResourceRule &
     ['CapsuleMesh', 'capsule-mesh', 'scene/resources/3d/primitive_meshes.h', 130],
     ['BoxMesh', 'box-mesh', 'scene/resources/3d/primitive_meshes.h', 192],
     ['StandardMaterial3D', 'standard-material-3d', 'scene/resources/material.h', 920],
-    ['CameraAttributesPractical', 'camera-attributes-practical', 'scene/resources/camera_attributes.cpp', 309, 'godot_camera_attributes_practical_new'],
+    ['CameraAttributesPractical', 'camera-attributes-practical', 'scene/resources/camera_attributes.cpp', 306],
   ] as const
-).map(([className, module, file, line, exportName = 'construct']) => ({
+).map(([className, module, file, line]) => ({
   sourceRevision: REVISION,
   className,
-  construct: { module: `lib/godot-compat/${module}`, exportName },
+  construct: { module: `lib/godot-compat/${module}`, exportName: 'construct' },
   source: { file, symbol: `${className}::${className}`, line },
 }));
 

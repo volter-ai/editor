@@ -537,8 +537,9 @@ function treeParametersOf(
 function resourceLoadTargets(
   project: BoundGodotProject,
   source: BoundGodotSourceScript,
-): ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> {
+): { readonly found: ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]>; readonly refused: ReadonlyMap<number, string> } {
   const found = new Map<number, readonly OfficialBoundResourceLoadTarget[]>();
+  const refused = new Map<number, string>();
   for (const load of source.resourceLoads ?? []) {
     const byPath = new Map<string, { kind: ImportedResourceKind; values: string[] }>();
     for (const branch of load.branches) {
@@ -547,6 +548,7 @@ function resourceLoadTargets(
       byPath.set(branch.resPath, entry);
     }
     const targets: OfficialBoundResourceLoadTarget[] = [];
+    let reason: string | undefined;
     for (const [resPath, { kind, values }] of byPath) {
       const construct = GODOT_CODE_RESOURCE_LOADS[kind];
       // The importer's options the load applies: a sound's loop, an image's as a scene loads it.
@@ -555,7 +557,11 @@ function resourceLoadTargets(
       const load = texture === undefined ? undefined : godotTextureLoad(texture);
       const options: Readonly<Record<string, unknown>> | undefined =
         sound !== undefined ? { loop: sound.loop, loopOffset: sound.loopOffset } : load !== undefined && typeof load !== 'string' ? load.options : undefined;
-      if (construct === undefined || options === undefined) break;
+      if (construct === undefined || options === undefined) {
+        // Why the file does not load in code: the image's import the plan refuses, or no loader.
+        reason = typeof load === 'string' ? `load of ${resPath}: ${load}` : `load of ${resPath}, which no code-level load makes`;
+        break;
+      }
       targets.push({
         values,
         local: `$load_${resPath.slice('res://'.length).replace(/[^A-Za-z0-9_$]/gu, '_')}`,
@@ -574,9 +580,10 @@ function resourceLoadTargets(
         requirements: [{ kind: 'compat-import-requirement', module: construct.module, imported: construct.exportName, local: construct.exportName, typeOnly: false }],
       });
     }
-    if (targets.length === byPath.size) found.set(load.nodeId, targets);
+    if (reason !== undefined) refused.set(load.nodeId, reason);
+    else if (targets.length === byPath.size) found.set(load.nodeId, targets);
   }
-  return found;
+  return { found, refused };
 }
 
 /** The member variables a project script and its script ancestors declare, or undefined. */
@@ -681,7 +688,9 @@ function lowerScript(
     nativeSignalOwner,
     source.numericVariants,
   );
-  context.resourceLoads = resourceLoadTargets(project, source);
+  const loads = resourceLoadTargets(project, source);
+  context.resourceLoads = loads.found;
+  context.refusedResourceLoads = loads.refused;
   context.nullableReads = new Set((source.nullableVariables ?? []).flatMap((entry) => entry.reads));
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;

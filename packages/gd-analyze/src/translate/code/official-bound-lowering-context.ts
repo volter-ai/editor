@@ -222,6 +222,8 @@ export const NATIVE_CLASS_TYPE = '$NativeClass';
 export class LoweringContext {
   /** The resources each resolved `load(path)` yields (`resource-loads.ts`), by call node. */
   resourceLoads: ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> = new Map();
+  /** The resolved `load(path)` calls whose file does not load in code, with why (`resourceLoadTargets`). */
+  refusedResourceLoads: ReadonlyMap<number, string> = new Map();
   /** The reads of variables that hold null at some time, which TS types `T | null` (`nullable-variables.ts`). */
   nullableReads: ReadonlySet<number> = new Set();
   /** The variable declarations that hold null at some time (`nullable-variables.ts`). */

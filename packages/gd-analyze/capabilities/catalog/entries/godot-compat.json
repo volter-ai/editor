@@ -30,6 +30,7 @@
     "src/lib/godot-compat/callback-tweener.ts",
     "src/lib/godot-compat/camera-2d.ts",
     "src/lib/godot-compat/camera-3d.ts",
+    "src/lib/godot-compat/camera-attributes-practical.ts",
     "src/lib/godot-compat/canvas-item-material.ts",
     "src/lib/godot-compat/canvas-item.ts",
     "src/lib/godot-compat/canvas-layer.ts",
