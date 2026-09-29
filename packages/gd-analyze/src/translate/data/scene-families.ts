@@ -92,7 +92,7 @@ const SPRITE_BASE_3D = [
 
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
-  MeshInstance3D: [...GEOMETRY_INSTANCE_3D, 'set_mesh', 'set_surface_override_material:*', 'set_material_override', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
+  MeshInstance3D: [...GEOMETRY_INSTANCE_3D, 'set_mesh', 'set_surface_override_material:*', 'set_material_override', 'set_as_top_level', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
   // Shadow max distance (9), fade start (13), normal bias (14), bias (15), opacity (17), blur (18):
   // `shadow-mapping`. Split blending and the pancake size (16) are stored: three's one shadow map has
   // no splits to blend, and its shadow camera spans the whole depth `shadow-mapping` gives it, which

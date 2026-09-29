@@ -47,6 +47,8 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
   const skeleton = setterValue(node.setters, 'set_skeleton_path');
   const transparency = setterValue(node.setters, 'set_transparency');
   const castShadow = setterValue(node.setters, 'set_cast_shadows_setting');
+  // A top-level node's transform is global (`node-3d.ts` reads it when it first places the node).
+  const topLevel = setterValue(node.setters, 'set_as_top_level');
   // A node three or Rapier mounts records no Godot class of its own: its classes, nearest first,
   // which the Node protocol reads for `is`, `as` and its class name.
   const form = node.idiom?.form.kind;
@@ -59,6 +61,7 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
     ...(transparency?.kind === 'number' ? { transparency: transparency.value } : {}),
     ...(node.siblingIndex === undefined ? {} : { index: node.siblingIndex }),
     ...(castShadow?.kind === 'number' ? { cast_shadow: castShadow.value } : {}),
+    ...(topLevel?.kind === 'bool' && topLevel.value ? { top_level: true } : {}),
   };
 }
 
