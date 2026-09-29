@@ -2201,7 +2201,7 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
     'set_wall_min_slide_angle',
     'set_up_direction',
   ],
-  Area3D: [...COLLISION_OBJECT_SETTERS, 'set_monitoring'],
+  Area3D: [...COLLISION_OBJECT_SETTERS, 'set_monitoring', 'set_monitorable'],
   CollisionShape3D: ['set_shape', 'set_disabled'],
   RayCast3D: [
     'set_visible',

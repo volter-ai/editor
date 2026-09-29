@@ -93,6 +93,7 @@ const BODY_DATA: Readonly<Record<string, string>> = {
   set_wall_min_slide_angle: 'wall_min_slide_angle',
   set_up_direction: 'up_direction',
   set_monitoring: 'monitoring',
+  set_monitorable: 'monitorable',
 };
 
 /** Rapier's own value of each `<RigidBody>` prop a body states only when Godot's differs. */

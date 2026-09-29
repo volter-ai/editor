@@ -42,6 +42,7 @@ export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<
   Curve: { _limits: '_set_limits', _data: '_set_data' },
   // `curve.cpp:1467`.
   Curve2D: { _data: '_set_data' },
+  Curve3D: { _data: '_set_data' },
   // `sprite_frames.cpp:229`.
   SpriteFrames: { animations: '_set_animations' },
 };

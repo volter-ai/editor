@@ -128,7 +128,7 @@ export function godot_area_3d_adopt(entity: object): void {
   const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
   AREA.set(entity, {
     monitoring: data['monitoring'] === undefined ? true : Boolean(data['monitoring']),
-    monitorable: true,
+    monitorable: data['monitorable'] === undefined ? true : Boolean(data['monitorable']),
     bodies: new Map(),
     locked: false,
     ...signalsOf(entity),
@@ -186,6 +186,24 @@ export function set_monitoring(self: object, enable: boolean): void {
     for (const connection of entry.connections) connection.disconnect();
     if (entry.inTree) state.bodyExited.emit(godot_node_object(body));
   }
+}
+
+/**
+ * Whether other areas see this one (`Area3D::set_monitorable`); stored with the area's state.
+ *
+ * @godot Area3D.set_monitorable
+ * @source scene/3d/physics/area_3d.cpp:530
+ */
+export function set_monitorable(self: object, enable: boolean): void {
+  stateOf(self, 'set_monitorable').monitorable = enable;
+}
+
+/**
+ * @godot Area3D.is_monitorable
+ * @source scene/3d/physics/area_3d.cpp:544
+ */
+export function is_monitorable(self: object): boolean {
+  return stateOf(self, 'is_monitorable').monitorable;
 }
 
 /**
