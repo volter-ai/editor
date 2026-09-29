@@ -205,6 +205,7 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   AudioListener3D: statedElement('audio-listener-3d', 'AudioListener3D', ctor('AudioListener3D', 'scene/3d/audio_listener_3d.cpp', 187)),
   VehicleWheel3D: statedElement('vehicle-wheel-3d', 'VehicleWheel3D', ctor('VehicleWheel3D', 'scene/3d/physics/vehicle_body_3d.cpp', 391)),
   // Joints: `@react-three/rapier`'s impulse joints over the two bodies their paths name (`joint-3d.tsx`).
+  ShapeCast3D: statedElement('shape-cast-3d', 'ShapeCast3D', ctor('ShapeCast3D', 'scene/3d/physics/shape_cast_3d.h', 41)),
   PinJoint3D: statedElement('pin-joint-3d', 'PinJoint3D', ctor('PinJoint3D', 'scene/3d/physics/joints/pin_joint_3d.cpp', 76)),
   Generic6DOFJoint3D: statedElement('generic-6dof-joint-3d', 'Generic6DOFJoint3D', ctor('Generic6DOFJoint3D', 'scene/3d/physics/joints/generic_6dof_joint_3d.cpp', 315)),
   CharacterBody3D: {

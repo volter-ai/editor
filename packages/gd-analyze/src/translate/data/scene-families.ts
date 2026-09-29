@@ -585,6 +585,18 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Curve: ['_set_limits', 'set_bake_resolution', '_set_data', 'set_point_count'],
   Gradient: ['set_interpolation_mode', 'set_interpolation_color_space', 'set_offsets', 'set_colors'],
   GradientTexture2D: ['set_gradient', 'set_width', 'set_height', 'set_fill', 'set_fill_from', 'set_fill_to', 'set_repeat'],
+  ShapeCast3D: [
+    'set_enabled',
+    'set_shape',
+    'set_target_position',
+    'set_margin',
+    'set_max_results',
+    'set_collision_mask',
+    'set_exclude_parent_body',
+    'set_collide_with_areas',
+    'set_collide_with_bodies',
+    'set_debug_shape_custom_color',
+  ],
   NoiseTexture2D: ['set_noise', 'set_width', 'set_height', 'set_invert', 'set_in_3d_space', 'set_generate_mipmaps', 'set_seamless', 'set_seamless_blend_skirt', 'set_normalize'],
   FastNoiseLite: [
     'set_noise_type',
