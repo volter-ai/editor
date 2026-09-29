@@ -179,7 +179,21 @@ export function godot_canvas_item_layer_number(layer: Object3D): number {
  */
 export function godot_canvas_item_canvas_transform(entity: Object3D): Transform2D {
   const layer = godot_canvas_item_layer_of(entity);
-  return layer === null ? transform2d() : (LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer);
+  return layer === null ? rootCanvasTransform : (LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer);
+}
+
+/** The root viewport's canvas transform, which its current Camera2D sets (`Viewport::set_canvas_transform`). */
+let rootCanvasTransform: Transform2D = transform2d();
+
+/**
+ * Sets the root viewport's canvas transform (a current Camera2D's view, `camera_2d.cpp:326`): the
+ * canvas's items outside a canvas layer draw through it.
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/viewport.cpp:1111
+ */
+export function godot_canvas_item_set_canvas_transform(transform: Transform2D): void {
+  rootCanvasTransform = transform;
 }
 
 /**
@@ -396,7 +410,7 @@ export function get_global_transform_with_canvas(self: object): Transform2D {
   const global = get_global_transform(self);
   const layer = godot_canvas_item_layer_of(entity);
   if (layer !== null) return op_multiply((LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer), global);
-  if (is_inside_tree(entity)) return op_multiply(transform2d(), global);
+  if (is_inside_tree(entity)) return op_multiply(rootCanvasTransform, global);
   return global;
 }
 
@@ -566,6 +580,9 @@ export function godot_canvas_item_draw(entity: Object3D, viewport: Object3D, roo
   root.dataset['godotRoot'] = '';
   const own = viewportCanvas(root);
   if (own.parentElement !== root) root.appendChild(own);
+  // The viewport's canvas transform (its Camera2D's view) moves the whole canvas.
+  own.style.transformOrigin = '0px 0px';
+  own.style.transform = matrix(rootCanvasTransform);
   const element = elementOf(entity, root.ownerDocument);
   const place = is_inside_tree(entity) ? placeOf(entity, viewport, root) : undefined;
   if (place === undefined) {

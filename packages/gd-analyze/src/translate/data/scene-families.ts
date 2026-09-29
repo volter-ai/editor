@@ -241,6 +241,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   VisibleOnScreenNotifier2D: [...NODE_2D, 'set_rect'],
   Path2D: [...NODE_2D, 'set_curve'],
   PathFollow2D: [...NODE_2D, 'set_progress', 'set_progress_ratio', 'set_h_offset', 'set_v_offset', 'set_rotates', 'set_loop', 'set_cubic_interpolation'],
+  Camera2D: [...NODE_2D, 'set_offset', 'set_zoom', 'set_anchor_mode', 'set_enabled', 'set_limit:0', 'set_limit:1', 'set_limit:2', 'set_limit:3', 'set_position_smoothing_enabled', 'set_position_smoothing_speed', 'set_ignore_rotation', 'set_process_callback', 'set_drag_horizontal_enabled', 'set_drag_vertical_enabled', 'set_limit_smoothing_enabled', 'set_margin_drawing_enabled', 'set_limit_drawing_enabled', 'set_screen_drawing_enabled'],
   Timer: ['set_meta:*', ...NODE_ELEMENT, 'set_wait_time', 'set_one_shot', 'set_autostart', 'set_paused', 'set_ignore_time_scale', 'set_timer_process_callback'],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
