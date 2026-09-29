@@ -75,6 +75,21 @@ same commit that removes a pattern. The reviewer judges; the ratchet stops the s
 reviewer run only at milestones misses: the 09-26 regrowth was about 300 commits, each locally
 reasonable.
 
+**The GUI is React DOM** (owner, 2026-09-29, amending the rows below). A Control is a React DOM
+element its scene renders, sent to the page's `dom` root through a `tunnel-rat` tunnel with its
+place's contexts bridged (`its-fine`). Three things the rows would otherwise forbid are the GUI's
+own form and pass them:
+
+- the Node tree crosses from the node a Controls' host element stands for into the page's DOM, so
+  scripts reach Controls by the tree (`get_node`, `%Name`, signals): the host's `ref` binds it
+  (`godot_element_dom_host`), and compat keeps that one link (`DOM_HOSTS`), not a copy of the tree;
+- the page's overlay is laid out at the project's 2D size and scaled to the window as the project
+  stretches its 2D (`GodotStretch`, `display/window/stretch/*`);
+- a Control's classes ride on its element (`data-classes`), as a three node's ride on its
+  `userData`, for `is`, `as` and the page's GUI stage.
+
+Anything else the GUI adds is judged by the rows as before.
+
 **Decide from the law.** A design question the law answers is decided by whoever meets it,
 without asking: the answer is what the rulings and rows imply. Only a genuine conflict between
 them goes to the owner. The composition-site design below was built on an author's ruling that
@@ -1317,17 +1332,9 @@ found exactly that. It is redone on the libraries:
   basic scene, city builder, 3D platformer and racing starter kits, Squash the Creeps, GDQuest's
   first 3D game and Voxel Game. Refused by name until they have a DOM form: any other node three
   mounts under a Control; a SubViewportContainer smaller than its viewport.
-  **Open to the owner (2026-09-29, reviews of `a8f16d0c` and `07636280`):** the reviewer reads three
-  parts of this ruling's form as the law's failures, and the law gives no other form for them.
-  (1) Scripts reach Controls by the Node tree (`get_node`, `%Name`, signals), so the tree must cross
-  from the node a Controls' host stands for into the page's DOM: `node.ts`'s `DOM_HOSTS`, fed from
-  each host's `ref` (rows 4 and 5: "a mirrored tree"). (2) Godot's `canvas_items` stretch scales
-  the GUI with the window (`GodotStretch`, ruling 1: "a port of `Window::_update_viewport_size`");
-  without it the GUI keeps its authored pixel size and a script's pointer positions stop matching
-  its Controls' rects. (3) A Control's classes ride on its element (`data-classes`), as a three
-  node's do on its `userData` (rows 3 and 5), for `is`/`as` and the GUI's input stage. The batch
-  from `a8f16d0c` does not land until the owner rules: amend the law to admit these three for the
-  React DOM GUI, or give the GUI another form.
+  The reviews of `a8f16d0c` and `07636280` read the tree's DOM link, the stretch and the Controls'
+  `data-classes` as failures; the owner ruled them the GUI's own form (§The lane's law, "The GUI is
+  React DOM", 2026-09-29).
 - **Untyped values are typed statically, not dispatched at run time.** The analysis follows a value
   to its class (an exported PackedScene's instanced root script, a container's elements), so a call
   lowers to a direct method call. The run-time dispatcher (`variant-named.ts`,
