@@ -183,6 +183,12 @@ export interface DirectGodotProjectCompositionPlan {
    * A script reading one refuses (`validateAutoloadReferences` resolves only script singletons).
    */
   readonly sceneAutoloads: readonly { readonly name: string; readonly sceneResPath: string; readonly exportName: string; readonly targetPath: string }[];
+  /**
+   * Whether a script changes the scene (`change_scene_to_packed`, `change_scene_to_file`) or reloads
+   * it (`reload_current_scene`): the world mounts the scene a change names, or the main scene anew,
+   * only where one can.
+   */
+  readonly sceneChanges: { readonly change: boolean; readonly reload: boolean };
   /** The settings the world loads before any script runs. */
   readonly projectSettings: readonly DirectGodotProjectSettingPlan[];
   /** The InputMap the world loads after the settings (`Main::setup`, `main/main.cpp:2102`). */
@@ -956,6 +962,7 @@ export function planDirectGodotProjectComposition(
       sourceRevision: project.authority.revision,
       mainScene,
       autoloadScenes: bodied.filter((scene) => scene.sourceResPath !== mainScene && (scene.autoloadReferences?.length ?? 0) > 0).map((scene) => scene.sourceResPath),
+      sceneChanges: sceneChanges(project),
       projectSettings: settings,
       inputMap,
       physicsWorld: physics,
@@ -971,4 +978,10 @@ export function planDirectGodotProjectComposition(
       }),
     },
   };
+}
+
+/** The scene changes the scripts call for, by the called function's name (a dynamic call counts too). */
+function sceneChanges(project: BoundGodotProject): DirectGodotProjectCompositionPlan['sceneChanges'] {
+  const called = new Set(project.scripts.flatMap((script) => script.program.nodes.flatMap((node) => (node.kind === 'CALL' ? [node.functionName] : []))));
+  return { change: called.has('change_scene_to_packed') || called.has('change_scene_to_file'), reload: called.has('reload_current_scene') };
 }

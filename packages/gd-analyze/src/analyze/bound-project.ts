@@ -1,4 +1,5 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
+import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
 import { type BoundGodotSignalIntrospection, signalIntrospection } from './signal-introspection';
 import { provenCasts } from './proven-casts';
 import { type BoundGodotSelfNodePath, selfNodePaths } from './self-node-paths';
@@ -345,7 +346,8 @@ export interface BoundGodotProjectDocuments {
   /** Sounds the `oggvorbisstr` importer imports, decoded by the browser. */
   readonly oggVorbis: readonly BoundGodotOggVorbisDocument[];
   /** Meshes the `wavefront_obj` importer imports (`[remap] importer="wavefront_obj"`): the file's text. */
-  readonly objMeshes: readonly { readonly resPath: string; readonly sourceDigest: string; readonly text: string }[];
+  /** Each `.obj` the `wavefront_obj` importer imports: its surfaces as the importer makes them (`read/obj-mesh.ts`), or why they are not read. */
+  readonly objMeshes: readonly { readonly resPath: string; readonly sourceDigest: string; readonly surfaces: readonly ObjMeshSurface[] | string }[];
   /** Font files the `font_data_dynamic` importer imports as a `FontFile` holding their bytes. */
   readonly fonts: readonly { readonly resPath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[];
   /** Each `.gdshader` as the pinned Godot's own shader frontend read it (`bound-shader.ts`). */
@@ -785,7 +787,15 @@ function boundDocuments(
         if (sidecar.importer !== 'wavefront_obj' || sidecar.sourceFile === undefined) return [];
         const entry = snapshot.entryByResPath(sidecar.sourceFile);
         if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
-        return [{ resPath: sidecar.sourceFile, sourceDigest: entry.digest, text: new TextDecoder().decode(snapshot.bytesByResPath(sidecar.sourceFile)) }];
+        const text = new TextDecoder().decode(snapshot.bytesByResPath(sidecar.sourceFile));
+        let surfaces: readonly ObjMeshSurface[] | string;
+        try {
+          surfaces = readObjMesh(text, sidecar.sourceFile);
+        } catch (error) {
+          if (!(error instanceof ObjMeshError)) throw error;
+          surfaces = error.message;
+        }
+        return [{ resPath: sidecar.sourceFile, sourceDigest: entry.digest, surfaces }];
       }),
     ),
     fonts: unique(

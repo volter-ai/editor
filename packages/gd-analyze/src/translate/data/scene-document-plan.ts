@@ -14,7 +14,6 @@ import type { GodotValue } from '../../read/godot-value';
 import type { GodotBoundShader, GodotShaderUniform } from '../../godot-frontend/bound-shader';
 import { lowerGodotShader } from '../emit/shader-glsl';
 import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
-import { readObjMesh } from '../../read/obj-mesh';
 import {
   GODOT_SPATIAL_DEFAULT_VERTEX,
   GODOT_SPATIAL_FRAGMENT_BUILTINS,
@@ -973,15 +972,13 @@ function planResolvedResource(
     recordResource(document, key, planned);
     return key;
   }
-  // A `.obj` the `wavefront_obj` importer imports: an ArrayMesh of its surfaces (`read/obj-mesh.ts`).
+  // A `.obj` the `wavefront_obj` importer imports: an ArrayMesh of the surfaces analysis read.
   const obj = data === undefined ? context.project?.documents.objMeshes.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   if (obj !== undefined) {
     const rule = context.authority.resourceRule('ArrayMesh');
-    let surfaces: ReturnType<typeof readObjMesh>;
-    try {
-      surfaces = readObjMesh(obj.text, obj.resPath);
-    } catch (error) {
-      refuse(context, at, error instanceof Error ? error.message : String(error), 'resource', 'ArrayMesh');
+    const surfaces = obj.surfaces;
+    if (typeof surfaces === 'string') {
+      refuse(context, at, surfaces, 'resource', 'ArrayMesh');
       return undefined;
     }
     if (rule === undefined) {

@@ -266,6 +266,24 @@ export function emitDirectGodotWorldSyntax(
       },
     ],
   };
+  // The scene the game shows: the main one (the world's children), or the one a change mounted.
+  const shown: TargetTsExpression = composition.sceneChanges.change
+    ? {
+        kind: 'conditional-expression',
+        condition: { kind: 'binary-expression', operator: '===', left: id('Changed'), right: { kind: 'undefined-expression' } },
+        whenTrue: { kind: 'property-expression', object: id('props'), property: 'children' },
+        whenFalse: { kind: 'jsx-element-expression', tag: 'Changed', attributes: [], children: [] },
+      }
+    : { kind: 'property-expression', object: id('props'), property: 'children' };
+  // `reload_current_scene` mounts the main scene anew (`useGodotSceneReload`): keyed by its generation.
+  const gameScene: TargetTsExpression = {
+    kind: 'jsx-fragment-expression',
+    children: [
+      composition.sceneChanges.reload
+        ? { kind: 'jsx-element-child', tag: 'Fragment', attributes: [{ kind: 'jsx-expression-attribute', name: 'key', value: id('generation') }], children: [{ kind: 'jsx-expression-child', value: shown }] }
+        : { kind: 'jsx-expression-child', value: shown },
+    ],
+  };
   // Inside `<Physics>`: the world's wiring and the root Window, which delivers the
   // page's input and draws its canvas items from its own hooks.
   const gameComponent: TargetTsStatement = {
@@ -275,39 +293,15 @@ export function emitDirectGodotWorldSyntax(
     body: [
       statement(call('useGodotResources')),
       statement(call('useGodotWorld')),
-      { kind: 'variable-statement', declaration: 'const', name: 'generation', initializer: call('useGodotSceneReload') },
+      ...(composition.sceneChanges.reload ? [{ kind: 'variable-statement' as const, declaration: 'const' as const, name: 'generation', initializer: call('useGodotSceneReload') }] : []),
       // `change_scene_to_packed` mounts the scene it names in place of the main one (`useGodotSceneChange`).
-      { kind: 'variable-statement', declaration: 'const', name: 'Changed', initializer: call('useGodotSceneChange') },
+      ...(composition.sceneChanges.change ? [{ kind: 'variable-statement' as const, declaration: 'const' as const, name: 'Changed', initializer: call('useGodotSceneChange') }] : []),
       statement(call('useGodotRootWindow')),
-      {
-        kind: 'return-statement',
-        expression: {
-          kind: 'jsx-fragment-expression',
-          children: [
-            // `reload_current_scene` mounts the main scene anew (`useGodotSceneReload`).
-            {
-              kind: 'jsx-element-child',
-              tag: 'Fragment',
-              attributes: [{ kind: 'jsx-expression-attribute', name: 'key', value: id('generation') }],
-              children: [
-                {
-                  kind: 'jsx-expression-child',
-                  value: {
-                    kind: 'conditional-expression',
-                    condition: { kind: 'binary-expression', operator: '===', left: id('Changed'), right: { kind: 'undefined-expression' } },
-                    whenTrue: { kind: 'property-expression', object: id('props'), property: 'children' },
-                    whenFalse: { kind: 'jsx-element-expression', tag: 'Changed', attributes: [], children: [] },
-                  },
-                },
-              ],
-            },
-          ],
-        },
-      },
+      { kind: 'return-statement', expression: gameScene },
     ],
   };
   const imports: TargetTsStatement[] = [
-    named('react', ['Fragment', 'Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
+    named('react', [...(composition.sceneChanges.reload ? ['Fragment'] : []), 'Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
     named('react', ['PropsWithChildren', ...(hasAutoloads ? ['RefObject'] : [])], true),
     ...(hooks.fiber.size === 0 ? [] : [named('@react-three/fiber', [...hooks.fiber])]),
     named('@react-three/rapier', ['Physics', ...hooks.rapier]),
@@ -319,7 +313,7 @@ export function emitDirectGodotWorldSyntax(
       module: moduleSpecifier(candidate.targetPath),
       namedBindings: [{ imported: directGodotSceneAutoloadContextName(candidate.exportName), local: directGodotSceneAutoloadContextName(candidate.exportName) }],
     })),
-    named('./lib/godot-compat/main', ['useGodotResources', 'useGodotSceneChange', 'useGodotSceneReload', 'useGodotWorld']),
+    named('./lib/godot-compat/main', ['useGodotResources', ...(composition.sceneChanges.change ? ['useGodotSceneChange'] : []), ...(composition.sceneChanges.reload ? ['useGodotSceneReload'] : []), 'useGodotWorld']),
     named('./lib/godot-compat/advance', ['useGodotRootWindow']),
     ...(hasAutoloads ? [named('./lib/godot-compat/react-lifecycle', ['useGodotScene', 'useGodotScript'])] : []),
     ...[...new Set(hooks.compat.values())].map((module) =>
