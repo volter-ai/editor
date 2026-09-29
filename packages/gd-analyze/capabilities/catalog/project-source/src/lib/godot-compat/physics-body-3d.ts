@@ -127,6 +127,17 @@ export function get_axis_lock(self: object, axis: number): boolean {
 }
 
 /**
+ * The body's locked `BodyAxis` bits (linear x 1, y 2, z 4; angular x 8, y 16, z 32), which a
+ * character's motion reads (`CharacterBody3D::move_and_slide`).
+ *
+ * @godot PhysicsBody3D (protocol)
+ * @source scene/3d/physics/physics_body_3d.cpp:201
+ */
+export function godot_physics_body_3d_locked_axes(self: object): number {
+  return locksOf(godot_node_entity(self)).axes;
+}
+
+/**
  * Locks or frees every rotation of a rigid body (`RigidBody3D.lock_rotation`), its axis locks kept.
  *
  * @godot RigidBody3D (protocol)
@@ -187,7 +198,9 @@ export function move_and_collide(self: object, motion: Vector3, test_only = fals
   };
   const hit = world.castShape(collider.translation(), collider.rotation(), motion, collider.shape, safe_margin, 1, true, QueryFilterFlags.EXCLUDE_SENSORS, undefined, undefined, undefined, admits);
   const fraction = hit === null ? 1 : hit.time_of_impact;
-  const travel = vector3(motion.x * fraction, motion.y * fraction, motion.z * fraction);
+  // A locked linear axis travels nothing (`PhysicsBody3D::move_and_collide`, `physics_body_3d.cpp:153`).
+  const axes = locksOf(entity).axes;
+  const travel = vector3((axes & 1) !== 0 ? 0 : motion.x * fraction, (axes & 2) !== 0 ? 0 : motion.y * fraction, (axes & 4) !== 0 ? 0 : motion.z * fraction);
   if (!test_only) {
     const from = body.translation();
     const to = vector3(from.x + travel.x, from.y + travel.y, from.z + travel.z);

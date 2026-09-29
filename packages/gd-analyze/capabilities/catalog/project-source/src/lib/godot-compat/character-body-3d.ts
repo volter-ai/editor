@@ -17,7 +17,7 @@ import { type Collider, type KinematicCharacterController, QueryFilterFlags } fr
 import type { Object3D } from 'three';
 import { godot_collision_object_body, godot_collision_object_layers, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
 import { godot_node_entity, godot_node_object } from './node';
-import { godot_physics_body_3d_collides } from './physics-body-3d';
+import { godot_physics_body_3d_collides, godot_physics_body_3d_locked_axes } from './physics-body-3d';
 import { get_global_transform, set_global_position } from './node-3d';
 import { construct as vector3, dot, length, normalized, op_add, op_divide, op_equal, op_multiply, op_subtract, type Vector3 } from './vector3';
 import { godot_kinematic_collision_3d_new, type KinematicCollision3D } from './kinematic-collision-3d';
@@ -139,6 +139,9 @@ export function move_and_slide(owner: object): boolean {
   const collider = body !== undefined && body.numColliders() > 0 ? body.collider(0) : undefined;
   if (body === undefined || world === undefined || controller === undefined || collider === undefined) return false;
   const delta = world.timestep;
+  // A locked linear axis moves at no speed (`character_body_3d.cpp:47`).
+  const axes = godot_physics_body_3d_locked_axes(self);
+  if ((axes & 7) !== 0) state.velocity = vector3((axes & 1) !== 0 ? 0 : state.velocity.x, (axes & 2) !== 0 ? 0 : state.velocity.y, (axes & 4) !== 0 ? 0 : state.velocity.z);
   const from = body.translation();
   state.previous_position = vector3(from.x, from.y, from.z);
   const own = godot_collision_object_layers(self);

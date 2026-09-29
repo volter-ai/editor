@@ -2661,11 +2661,11 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
   RigidBody3D: RIGID_BODY_SETTERS,
   // A RigidBody3D its driver moves on its wheels (`vehicle-body-3d.tsx`): the forces are its script's.
   VehicleBody3D: [...RIGID_BODY_SETTERS, 'set_engine_force', 'set_brake', 'set_steering'],
-  // Its angular locks, which a character body's motion never reads (only its linear ones, in
-  // `move_and_slide`, `character_body_3d.cpp:47`, which compat does not bind).
+  // Its axis locks: the linear ones stop its motion on those axes (`move_and_slide`,
+  // `character_body_3d.cpp:47`); the angular ones its motion never reads.
   CharacterBody3D: [
     ...COLLISION_OBJECT_SETTERS,
-    ...AXIS_LOCKS.slice(3),
+    ...AXIS_LOCKS,
     'set_velocity',
     'set_safe_margin',
     'set_floor_stop_on_slope_enabled',
