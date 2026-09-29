@@ -228,7 +228,8 @@ export class VolterDocuments extends Disposable {
 
 	/** Restoration can leave an area's tab active, especially after the model
 	 * was closed. That group is not the centre to split again on every boot. */
-	private bindMainGroup(documents: readonly VolterDocument[]): void {
+	private bindMainGroup(documents: readonly VolterDocument[]): boolean {
+		let created = false;
 		const areas = new Set(documents.filter(document => document.area).map(document => document.id));
 		const centres = new Set(documents.filter(document => !document.area).map(document => document.id));
 		const holds = (group: IEditorGroup, ids: Set<string>) => group.editors.some(editor =>
@@ -239,20 +240,22 @@ export class VolterDocuments extends Disposable {
 		if (!main) { main = groups.find(group => !holds(group, areas)); }
 		if (!main) {
 			const area = documents.find(document => document.area && holds(this.group, new Set([document.id])))?.area;
-			if (!area) { return; }
+			if (!area) { return false; }
 			const opposite: Record<VolterDocumentArea['place'], GroupDirection> = {
 				left: GroupDirection.RIGHT, right: GroupDirection.LEFT,
 				above: GroupDirection.DOWN, below: GroupDirection.UP,
 			};
 			main = this.editorGroupsService.addGroup(this.group, opposite[area.place]);
+			created = true;
 		}
-		if (main === this.group) { return; }
+		if (main === this.group) { return false; }
 		this.group = main;
 		this.appliedActiveId = null;
 		this.watchGroup();
 		for (const [id, group] of this.areaGroups) {
 			if (group === main) { this.areaGroups.delete(id); }
 		}
+		return created;
 	}
 
 	/**
@@ -382,7 +385,7 @@ export class VolterDocuments extends Disposable {
 		const documents = this.bridge.list?.() ?? [];
 		this.applying = true;
 		try {
-			this.bindMainGroup(documents);
+			const createdMain = this.bindMainGroup(documents);
 			const areaDestinations = new Map<string, IEditorGroup>();
 			// An area opens in its area group; other documents keep their native group. `preserveFocus` matters for the area: creating the split must not
 			// take the caret out of whatever the person was typing in.
@@ -391,7 +394,14 @@ export class VolterDocuments extends Disposable {
 				const input = VolterDocumentInput.forDocument(document.id, document.title);
 				// Native tab moves own placement after the document is opened.
 				const group = document.area ? this.groupForArea(document.area, document.id) : this.groupContaining(input) ?? this.group;
-				if (document.area) { areaDestinations.set(document.id, group); }
+				if (document.area) {
+					areaDestinations.set(document.id, group);
+					// With only the Timeline restored, recreating the centre starts a
+					// new split. Its native 50/50 default is not a saved user resize.
+					if (createdMain && document.area.ratio > 0 && document.area.ratio < 1) {
+						this.areaToSize.set(document.area.id, {group, area: document.area});
+					}
+				}
 				if (!group.contains(input)) {
 					opened.add(document.id);
 					await this.editorService.openEditor(input, { inactive: true, preserveFocus: true, pinned: true }, group);
