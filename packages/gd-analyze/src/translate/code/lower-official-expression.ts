@@ -3640,6 +3640,13 @@ export function lowerOfficialExpression(
           const operand = lowerExpression(context, operandNode);
           return { ...operand, requirements: [...operand.requirements, ...requirements] };
         }
+        // `value as Enum`: an enum is its int, so the value is itself (`GDScriptAnalyzer::reduce_cast`
+        // allows an int or an enum there, gdscript_analyzer.cpp:3780, and the VM converts nothing).
+        if (node.datatype.kind === 'ENUM' && !node.datatype.metaType) {
+          const requirements = context.structural(node, 'cast', [operandNode], 'cast:enum');
+          const operand = lowerExpression(context, operandNode);
+          return { ...operand, requirements: [...operand.requirements, ...requirements] };
+        }
         const test = objectTypeTest(context, node, node.datatype, 'cast');
         const requirements = context.structural(node, 'cast', [operandNode], `cast:${test.kind}`);
         return compose(

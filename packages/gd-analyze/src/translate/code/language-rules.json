@@ -1157,6 +1157,109 @@
     {
       "source": {
         "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "ASSERT",
+        "semanticKey": "assert|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "assert"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "MATCH",
+        "semanticKey": "match|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "match"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "MATCH",
+        "semanticKey": "match|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:float"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "match"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "MATCH",
+        "semanticKey": "match|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:bool"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "match"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "MATCH",
+        "semanticKey": "match|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:String"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "match"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "MATCH",
+        "semanticKey": "match|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:StringName"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "match"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "MATCH",
+        "semanticKey": "match|annotations:[]",
+        "inputDatatypes": [
+          "ENUM:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "match"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
         "nodeKind": "SIGNAL",
         "semanticKey": "signal|annotations:[]",
         "inputDatatypes": [],

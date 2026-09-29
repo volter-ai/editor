@@ -102,6 +102,13 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
   ...['VARIANT:*', 'SCRIPT:*'].map((input) => rule('TYPE_TEST', 'type-test:native', [input], 'BUILTIN:*', { kind: 'structural', construct: 'type-test' })),
   ...['VARIANT:*', 'CLASS:*', 'SCRIPT:*'].map((input) => rule('CAST', 'cast:script', [input], 'CLASS:*', { kind: 'structural', construct: 'cast' })),
   ...['VARIANT:*', 'SCRIPT:*'].map((input) => rule('CAST', 'cast:native', [input], 'NATIVE:*', { kind: 'structural', construct: 'cast' })),
+  // A Variant stored into an object-typed place (`player.stream = sounds[i]`): the value as that
+  // class, which Godot's typed assignment checks.
+  ...['NATIVE:*', 'CLASS:*'].map((place) => rule('ASSIGNMENT', 'operator:OP_NONE:25', [place, 'VARIANT:*'], 'VARIANT:*', { kind: 'assignment', operator: '=' })),
+  // A loop variable typed as an object class over a list of objects: each element as that class.
+  ...['NATIVE:*', 'CLASS:*', 'SCRIPT:*'].map((variable) => rule('FOR', 'for-of:conversion', ['BUILTIN:*', variable], '', { kind: 'structural', construct: 'for-of' })),
+  // `value as Enum` of an int or an enum: the value itself, an enum being its int.
+  ...['BUILTIN:int', 'ENUM:*', 'VARIANT:*'].map((input) => rule('CAST', 'cast:enum', [input], 'ENUM:*', { kind: 'structural', construct: 'cast' })),
   // `await` of a value only the run time types: a Signal's next emission, a coroutine's result, or
   // the value itself (`OPCODE_AWAIT`, gdscript_vm.cpp:2563).
   rule('AWAIT', 'await', ['VARIANT:*'], '*', { kind: 'structural', construct: 'await' }),
@@ -118,5 +125,12 @@ export const GODOT_4_7_VARIANT_CONTAINER_DATATYPES: readonly GodotDatatypeRuleEn
     // and a store writes a new array back (`with_indexed`), so the type stays read-only.
     sourceDatatype: 'BUILTIN:PackedStringArray',
     targetType: { kind: 'type-reference', name: 'ReadonlyArray', arguments: [{ kind: 'keyword-type', keyword: 'string' }] },
+  },
+  {
+    sourceRevision: GODOT_4_7_CODE_SEED_SOURCE_REVISION,
+    // A Callable is the function it calls (`callable.ts`: `call`, `bind`, a signal's `connect`),
+    // taking whatever it is called with.
+    sourceDatatype: 'BUILTIN:Callable',
+    targetType: { kind: 'function-type', parameters: [{ name: 'args', type: { kind: 'array-type', element: { kind: 'keyword-type', keyword: 'never' } }, rest: true }], result: { kind: 'keyword-type', keyword: 'unknown' } },
   },
 ];
