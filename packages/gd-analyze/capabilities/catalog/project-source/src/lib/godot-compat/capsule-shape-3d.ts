@@ -21,7 +21,7 @@ export interface CapsuleShape3D {
 /**
  * A capsule of radius 0.5 and height 2.
  *
- * @godot CapsuleShape3D (protocol)
+ * @godot CapsuleShape3D.CapsuleShape3D
  * @source scene/resources/3d/capsule_shape_3d.cpp:156
  */
 export function construct(): CapsuleShape3D {

@@ -18,7 +18,7 @@ export interface BoxShape3D {
 /**
  * A box of size (1, 1, 1).
  *
- * @godot BoxShape3D (protocol)
+ * @godot BoxShape3D.BoxShape3D
  * @source scene/resources/3d/box_shape_3d.cpp:118
  */
 export function construct(): BoxShape3D {

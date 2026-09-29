@@ -10,7 +10,7 @@
 
 import type { ReactElement } from 'react';
 import { Group, type Object3D } from 'three';
-import { godot_base_button_draw_state, godot_base_button_mount, godot_base_button_props } from './base-button';
+import { godot_base_button_draw_state, godot_base_button_mount, godot_base_button_props, set_toggle_mode } from './base-button';
 import { godot_canvas_item_self_filter } from './canvas-item';
 import { godot_control_mount, godot_control_props, update_minimum_size } from './control';
 import { get_height, godot_font_css, godot_font_default, godot_font_measure } from './font';
@@ -22,8 +22,13 @@ const CLASSES = ['Button', 'BaseButton', 'Control', 'CanvasItem', 'Node', 'Objec
 const FONT_SIZE = 16;
 const MARGIN_X = 8;
 const MARGIN_Y = 4;
+/** A CheckBox's box and the space after it (the default theme's `checked` icon, `h_separation`). */
+const CHECK = 16;
+const SEPARATION = 4;
 
 interface ButtonState {
+  /** A CheckBox's look: a check box before its text, flat (`check-box.ts`). */
+  readonly check: boolean;
   text: string;
   flat: boolean;
   alignment: number;
@@ -41,7 +46,7 @@ function stateOf(self: object, member: string): ButtonState {
 function minimumSize(entity: Object3D): Vector2 {
   const state = BUTTONS.get(entity) as ButtonState;
   const font = godot_font_default();
-  return vector2(godot_font_measure(font, state.text, FONT_SIZE) + MARGIN_X * 2, get_height(font, FONT_SIZE) + MARGIN_Y * 2);
+  return vector2(godot_font_measure(font, state.text, FONT_SIZE) + MARGIN_X * 2 + (state.check ? CHECK + SEPARATION : 0), get_height(font, FONT_SIZE) + MARGIN_Y * 2);
 }
 
 const CONTENTS = new WeakMap<Object3D, HTMLElement>();
@@ -64,13 +69,14 @@ function draw(entity: Object3D, element: HTMLElement): void {
     CONTENTS.set(entity, content);
   }
   if (content.parentElement !== element) element.insertBefore(content, element.firstChild);
-  content.style.justifyContent = state.alignment === 0 ? 'flex-start' : state.alignment === 2 ? 'flex-end' : 'center';
+  content.style.justifyContent = state.check || state.alignment === 0 ? 'flex-start' : state.alignment === 2 ? 'flex-end' : 'center';
   content.style.padding = `${String(MARGIN_Y)}px ${String(MARGIN_X)}px`;
   content.style.overflow = state.clipText ? 'hidden' : 'visible';
-  content.style.backgroundColor = state.flat ? 'transparent' : look.disabled ? 'rgba(26, 26, 26, 0.3)' : look.down || look.pressed ? 'rgba(0, 0, 0, 0.6)' : look.hovered ? 'rgba(51, 51, 51, 0.6)' : 'rgba(26, 26, 26, 0.6)';
+  content.style.backgroundColor = state.flat || state.check ? 'transparent' : look.disabled ? 'rgba(26, 26, 26, 0.3)' : look.down || look.pressed ? 'rgba(0, 0, 0, 0.6)' : look.hovered ? 'rgba(51, 51, 51, 0.6)' : 'rgba(26, 26, 26, 0.6)';
   content.style.color = look.disabled ? 'rgba(224, 224, 224, 0.5)' : look.hovered && !look.down ? 'rgb(245, 245, 245)' : 'rgb(224, 224, 224)';
   content.style.font = godot_font_css(godot_font_default(), FONT_SIZE);
-  content.textContent = state.text;
+  // A CheckBox's box, ticked while pressed, before its text.
+  content.textContent = state.check ? `${look.pressed ? '\u2611' : '\u2610'}\u2002${state.text}` : state.text;
   content.style.filter = godot_canvas_item_self_filter(entity, element);
 }
 
@@ -83,10 +89,22 @@ function drawKey(entity: Object3D, element: HTMLElement): string {
  * @godot Button (protocol)
  * @source scene/gui/button.cpp:780
  */
-export function godot_button_mount(entity: Object3D): void {
-  BUTTONS.set(entity, { text: '', flat: false, alignment: 1, clipText: false });
-  godot_control_mount(entity, CLASSES, { minimumSize, draw, drawKey });
+export function godot_button_mount(entity: Object3D, classes: readonly string[] = CLASSES, check = false): void {
+  BUTTONS.set(entity, { check, text: '', flat: false, alignment: 1, clipText: false });
+  godot_control_mount(entity, classes, { minimumSize, draw, drawKey });
   godot_base_button_mount(entity, () => undefined);
+  // A CheckBox toggles (`CheckBox::CheckBox`, `check_box.cpp`: `set_toggle_mode(true)`).
+  if (check) set_toggle_mode(entity, true);
+}
+
+/**
+ * Button's element props, which a CheckBox shares.
+ *
+ * @godot Button (protocol)
+ * @source scene/gui/button.cpp:780
+ */
+export function godot_button_props(): (readonly [string, GodotElementProp<Object3D>])[] {
+  return [...BUTTON.props];
 }
 
 /**

@@ -200,6 +200,8 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   Label3D: element('label-3d', 'Label3D', ctor('Label3D', 'scene/3d/label_3d.cpp', 1082), 'Mesh'),
   Timer: element('timer', 'Timer', ctor('Timer', 'scene/main/timer.cpp', 250)),
   Button: element('button', 'Button', ctor('Button', 'scene/gui/button.cpp', 780)),
+  CheckBox: element('check-box', 'CheckBox', ctor('CheckBox', 'scene/gui/check_box.cpp', 170)),
+  HSlider: element('h-slider', 'HSlider', ctor('HSlider', 'scene/gui/slider.h', 120)),
   TextureButton: element('texture-button', 'TextureButton', ctor('TextureButton', 'scene/gui/texture_button.h', 35)),
   Path3D: element('path-3d', 'Path3D', ctor('Path3D', 'scene/3d/path_3d.cpp', 219)),
   PathFollow3D: element('path-follow-3d', 'PathFollow3D', ctor('PathFollow3D', 'scene/3d/path_3d.cpp', 520)),

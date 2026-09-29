@@ -18,7 +18,7 @@ export interface SphereShape3D {
 /**
  * A sphere of radius 0.5.
  *
- * @godot SphereShape3D (protocol)
+ * @godot SphereShape3D.SphereShape3D
  * @source scene/resources/3d/sphere_shape_3d.cpp:104
  */
 export function construct(): SphereShape3D {
