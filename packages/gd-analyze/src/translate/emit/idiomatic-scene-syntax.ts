@@ -694,6 +694,8 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
       ...modelRefs(emission, node),
       // The model's AnimationPlayers that play its glTF's own clips (`animation-clips.ts`).
       ...(model.clipPlayers === undefined ? [] : [attribute('clipPlayers', { kind: 'array-expression', elements: model.clipPlayers.map((path) => ({ kind: 'literal-expression' as const, value: path })) })]),
+      // The importer's physics bodies, each a `<RigidBody>` the model mounts in its node.
+      ...(model.bodies === undefined ? [] : [attribute('bodies', dataExpression(model.bodies))]),
     ],
     [...node.children.map((child) => nodeElement(emission, child)), ...placements],
   );

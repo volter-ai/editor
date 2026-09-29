@@ -1,5 +1,6 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
 import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
+import type { GltfPhysicsShape } from '../read/gltf-document';
 import { type BoundGodotSignalIntrospection, signalIntrospection } from './signal-introspection';
 import { provenCasts } from './proven-casts';
 import { type BoundGodotSelfNodePath, selfNodePaths } from './self-node-paths';
@@ -220,6 +221,8 @@ export interface BoundGodotSceneDocument {
     readonly nodeIndexByPath: Readonly<Record<string, number>>;
     /** Each node that carries a mesh resource, by its glTF `meshes[]` index. */
     readonly meshByPath: Readonly<Record<string, number>>;
+    /** Each CollisionShape3D the importer made from the file's `OMI_physics_shape`, by path: its shape. */
+    readonly collisionShapeByPath?: Readonly<Record<string, GltfPhysicsShape>>;
     /** Each Skeleton3D's bones in Godot's order: names, glTF joint nodes and imported poses. */
     readonly bonesByPath: Readonly<Record<string, readonly BoundGodotImportedBone[]>>;
     readonly externalImages: readonly GltfExternalImage[];
@@ -685,6 +688,7 @@ function boundDocuments(
                   bytes: snapshot.bytesByResPath(document.resPath),
                   nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
                   meshByPath: Object.fromEntries(document.gltfOrigin.meshByPath),
+                  ...(document.gltfOrigin.collisionShapeByPath === undefined ? {} : { collisionShapeByPath: Object.fromEntries(document.gltfOrigin.collisionShapeByPath) }),
                   bonesByPath: Object.fromEntries(document.gltfOrigin.bonesByPath),
                   externalImages: document.gltfOrigin.externalImages,
                   ...externalMaterialsOf(decoded.imports.find((sidecar) => sidecar.sourceFile === document.resPath)?.externalMaterials),

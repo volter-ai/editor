@@ -28,6 +28,7 @@ import { readGodot4Surfaces } from '../../read/godot4-surfaces';
 import { GridMapReadError, readGridMapCells } from '../../read/grid-map';
 import { isImportedResourceId } from '../../read/instance-expansion';
 import type { ImportedClip } from '../../read/gltf-animation-import';
+import type { GltfPhysicsShape } from '../../read/gltf-document';
 import {
   godotMeshLibraryShapeClass,
   godotArrayMeshRefusal,
@@ -129,6 +130,52 @@ export interface TargetGodotImportedModelNode {
   readonly bones?: readonly BoundGodotImportedBone[];
 }
 
+/**
+ * A physics body of an imported model (`StaticBody3D`, the only kind the reader makes): the
+ * `<RigidBody>` compat mounts in the model's node, standing for it, with a collider per
+ * CollisionShape3D child, at that child's transform. A primitive's collider is Rapier's (`args` as
+ * its component takes them); a trimesh or convex one is made from the file's mesh of that index.
+ */
+export interface TargetGodotImportedModelBody {
+  readonly path: string;
+  readonly type: 'fixed';
+  readonly colliders: readonly {
+    readonly path: string;
+    readonly matrix: readonly number[];
+    readonly collider:
+      | { readonly kind: 'cuboid' | 'ball' | 'capsule' | 'cylinder'; readonly args: readonly number[] }
+      | { readonly kind: 'trimesh' | 'convexHull'; readonly mesh: number };
+  }[];
+}
+
+/**
+ * A glTF `OMI_physics_shape` as Rapier's collider: a box by its half extents, a sphere by its
+ * radius, a capsule and a cylinder by the half height of their straight part (Godot's capsule
+ * height includes its caps) and radius; a trimesh or convex hull from the mesh it names.
+ */
+function modelCollider(shape: GltfPhysicsShape): TargetGodotImportedModelBody['colliders'][number]['collider'] | string {
+  switch (shape.type) {
+    case 'box': {
+      const size = shape.size ?? [1, 1, 1];
+      return { kind: 'cuboid', args: size.map((extent) => extent / 2) };
+    }
+    case 'sphere':
+      return { kind: 'ball', args: [shape.radius ?? 0.5] };
+    case 'capsule': {
+      const radius = shape.radius ?? 0.5;
+      return { kind: 'capsule', args: [Math.max((shape.height ?? 2) / 2 - radius, 0), radius] };
+    }
+    case 'cylinder':
+      return { kind: 'cylinder', args: [(shape.height ?? 2) / 2, shape.radius ?? 0.5] };
+    case 'trimesh':
+    case 'convex':
+      if (shape.mesh === undefined) return `a ${shape.type} shape names no mesh`;
+      return { kind: shape.type === 'trimesh' ? 'trimesh' : 'convexHull', mesh: shape.mesh };
+    default:
+      return `a ${shape.type} shape is not a Godot shape`;
+  }
+}
+
 /** An instanced imported model: the file, Godot's tree over it, and this scene's overrides in it. */
 export interface TargetGodotImportedModelPlan {
   readonly sourceResPath: string;
@@ -151,6 +198,8 @@ export interface TargetGodotImportedModelPlan {
   readonly clipPlayers?: readonly string[];
   /** The importer's root scale baked into the model's meshes, when not 1. */
   readonly meshScale?: number;
+  /** The model's physics bodies the importer made (`OMI_physics_body`), each with its shapes' colliders. */
+  readonly bodies?: readonly TargetGodotImportedModelBody[];
   /** Authored properties of the model's own nodes, by their setters on the node's entity. */
   readonly overrides: readonly {
     readonly at: string;
@@ -2007,6 +2056,26 @@ function planImportedInstance(
     refuse(context, at, `${imported.resPath}: the root scale of a model with a skeleton is not baked into its skins and bone poses`, 'resource', 'imported .glb');
     return undefined;
   }
+  // The importer's physics bodies, each with its CollisionShape3D children's colliders.
+  const bodies: TargetGodotImportedModelBody[] = [];
+  for (const member of nodes.filter((entry) => entry.classes.includes('PhysicsBody3D'))) {
+    const colliders: TargetGodotImportedModelBody['colliders'][number][] = [];
+    for (const child of nodes.filter((entry) => entry.path.startsWith(`${member.path}/`) && !entry.path.slice(member.path.length + 1).includes('/'))) {
+      const shape = model.collisionShapeByPath?.[child.path];
+      if (shape === undefined) continue;
+      const collider = modelCollider(shape);
+      if (typeof collider === 'string') {
+        refuse(context, at, `${imported.resPath}: ${child.path}: ${collider}`, 'resource', 'CollisionShape3D.shape');
+        return undefined;
+      }
+      colliders.push({ path: child.path, matrix: child.matrix, collider });
+    }
+    bodies.push({ path: member.path, type: 'fixed', colliders });
+  }
+  if (bodies.length > 0 && model.meshScale !== undefined) {
+    refuse(context, at, `${imported.resPath}: the root scale of a model with physics bodies is not baked into their shapes`, 'resource', 'imported .glb');
+    return undefined;
+  }
   const properties = planProperties(context, node, node.authoredProperties);
   const placed = placement(context, node);
   if (properties === undefined || placed === undefined) return undefined;
@@ -2024,6 +2093,7 @@ function planImportedInstance(
       ...(materials.length === 0 ? {} : { materials }),
       ...(animations === undefined ? {} : { animations }),
       ...(model.meshScale === undefined ? {} : { meshScale: model.meshScale }),
+      ...(bodies.length === 0 ? {} : { bodies }),
       overrides: [],
     },
     properties,

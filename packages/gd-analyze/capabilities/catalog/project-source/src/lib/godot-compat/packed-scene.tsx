@@ -36,8 +36,10 @@ import { godot_animation_clips_mount } from './animation-clips';
 import { useGodotClips } from './advance';
 import { godot_geometry_instance_3d_mount } from './geometry-instance-3d';
 import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber';
-import { createContext, createElement, type ReactNode, type Ref, type RefObject, useContext, useImperativeHandle, useLayoutEffect, useMemo, useRef } from 'react';
-import { type BufferGeometry, Group, type Material, type Mesh, type Object3D, Texture } from 'three';
+import { BallCollider, CapsuleCollider, ConvexHullCollider, CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody, TrimeshCollider } from '@react-three/rapier';
+import { createContext, createElement, Fragment, type ReactElement, type ReactNode, type Ref, type RefObject, use, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { type BufferGeometry, Group, type Material, Matrix4, type Mesh, type Object3D, Quaternion as ThreeQuaternion, Texture, Vector3 as ThreeVector3 } from 'three';
+import { godot_collision_object_stand_in } from './collision-object-3d';
 import { type GLTF, GLTFLoader, type GLTFLoaderPlugin } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
@@ -385,6 +387,100 @@ function sampleExternalImages(gltf: { readonly scene: Object3D; readonly parser:
  * @godot PackedScene (protocol)
  * @source editor/import/3d/resource_importer_scene.cpp:3174
  */
+/**
+ * A physics body the importer made in the model (`OMI_physics_body`, `GLTFDocumentExtensionPhysics`):
+ * a fixed `<RigidBody>` in the node's own object, standing for the node, with a collider per shape
+ * at the shape node's transform.
+ */
+export interface GodotImportedModelBody {
+  readonly path: string;
+  readonly type: 'fixed';
+  readonly colliders: readonly {
+    readonly path: string;
+    readonly matrix: readonly number[];
+    readonly collider:
+      | { readonly kind: 'cuboid' | 'ball' | 'capsule' | 'cylinder'; readonly args: readonly number[] }
+      | { readonly kind: 'trimesh' | 'convexHull'; readonly mesh: number };
+  }[];
+}
+
+const PRIMITIVE_COLLIDERS = { cuboid: CuboidCollider, ball: BallCollider, capsule: CapsuleCollider, cylinder: CylinderCollider } as const;
+
+interface MeshPoints {
+  readonly vertices: Float32Array;
+  readonly indices: Uint32Array;
+}
+
+const MESH_POINTS = new WeakMap<GLTF, Map<number, Promise<MeshPoints>>>();
+
+/**
+ * The file's mesh of that index as a shape's points (`GLTFPhysicsShape::to_resource`, which makes a
+ * trimesh or convex shape from the ImporterMesh): its primitives' positions and triangles, loaded
+ * once per model; a shape's mesh need not be one any node draws.
+ */
+function meshPoints(gltf: GLTF, index: number): Promise<MeshPoints> {
+  let byIndex = MESH_POINTS.get(gltf);
+  if (byIndex === undefined) {
+    byIndex = new Map();
+    MESH_POINTS.set(gltf, byIndex);
+  }
+  let points = byIndex.get(index);
+  if (points === undefined) {
+    points = (gltf.parser.getDependency('mesh', index) as Promise<Object3D>).then((loaded) => {
+      const vertices: number[] = [];
+      const indices: number[] = [];
+      loaded.updateMatrixWorld(true);
+      loaded.traverse((object) => {
+        const geometry = (object as Mesh).isMesh === true ? (object as Mesh).geometry : undefined;
+        const position = geometry?.getAttribute('position');
+        if (geometry === undefined || position === undefined) return;
+        const base = vertices.length / 3;
+        // A primitive of a multi-primitive mesh is a child of its group, at its place in the mesh.
+        const place = object === loaded ? new Matrix4() : object.matrix;
+        const point = new ThreeVector3();
+        for (let i = 0; i < position.count; i += 1) {
+          point.fromBufferAttribute(position, i).applyMatrix4(place);
+          vertices.push(point.x, point.y, point.z);
+        }
+        const index = geometry.getIndex();
+        if (index === null) for (let i = 0; i < position.count; i += 1) indices.push(base + i);
+        else for (let i = 0; i < index.count; i += 1) indices.push(base + index.getX(i));
+      });
+      return { vertices: new Float32Array(vertices), indices: new Uint32Array(indices) };
+    });
+    byIndex.set(index, points);
+  }
+  return points;
+}
+
+/** A trimesh or convex collider of the file's mesh, suspended until its points are loaded. */
+function MeshCollider({ gltf, kind, mesh, position, quaternion }: { readonly gltf: GLTF; readonly kind: 'trimesh' | 'convexHull'; readonly mesh: number; readonly position: readonly number[]; readonly quaternion: readonly number[] }): ReactElement {
+  const points = use(meshPoints(gltf, mesh));
+  return kind === 'trimesh'
+    ? createElement(TrimeshCollider, { args: [points.vertices, points.indices], position: position as [number, number, number], quaternion: quaternion as [number, number, number, number] })
+    : createElement(ConvexHullCollider, { args: [points.vertices], position: position as [number, number, number], quaternion: quaternion as [number, number, number, number] });
+}
+
+/** One of the model's bodies, in its node's object and standing for the node. */
+function ModelBody({ gltf, entity, body }: { readonly gltf: GLTF; readonly entity: Object3D; readonly body: GodotImportedModelBody }): ReactElement {
+  const held = useRef<RapierRigidBody | null>(null);
+  useEffect(() => {
+    const rigid = held.current;
+    return rigid === null ? undefined : godot_collision_object_stand_in(rigid as never, entity);
+  }, [entity]);
+  const colliders = body.colliders.map((entry) => {
+    const position = new ThreeVector3();
+    const rotation = new ThreeQuaternion();
+    new Matrix4().fromArray(entry.matrix as number[]).decompose(position, rotation, new ThreeVector3());
+    const place = { position: [position.x, position.y, position.z], quaternion: [rotation.x, rotation.y, rotation.z, rotation.w] };
+    const collider = entry.collider;
+    return 'mesh' in collider
+      ? createElement(MeshCollider, { key: entry.path, gltf, kind: collider.kind, mesh: collider.mesh, ...place })
+      : createElement(PRIMITIVE_COLLIDERS[collider.kind] as never, { key: entry.path, args: collider.args, ...place });
+  });
+  return createElement(RigidBody, { ref: held, type: body.type, colliders: false }, ...colliders);
+}
+
 export function GodotImportedScene({
   src,
   tree: model,
@@ -393,6 +489,7 @@ export function GodotImportedScene({
   materials,
   refs,
   clipPlayers,
+  bodies,
   children,
   ref,
   ...props
@@ -411,6 +508,8 @@ export function GodotImportedScene({
   readonly clipPlayers?: readonly string[];
   /** The instancing scene's refs to the model's own nodes, by their path in the model, set as the tree mounts. */
   readonly refs?: Readonly<Record<string, RefObject<Object3D | null>>>;
+  /** The importer's physics bodies, each mounted in its node once the tree is in place. */
+  readonly bodies?: readonly GodotImportedModelBody[];
   readonly children?: ReactNode;
 }) {
   const gltf = useLoader(loaderOf(model, images), src);
@@ -441,6 +540,8 @@ export function GodotImportedScene({
     return built;
   }, [gltf, nodes]);
   const root = useRef<Group | null>(null);
+  // The bodies mount once the tree is under the root, so each reads its node's place in the world.
+  const [attached, setAttached] = useState(false);
   useImperativeHandle(ref, () => root.current as Group, []);
   // The model's clip players advance from its own frame.
   useGodotClips(root);
@@ -517,7 +618,9 @@ export function GodotImportedScene({
       if (target === undefined) throw new Error(`godot-compat: the imported tree has no node ${at}`);
       for (const [property, value] of Object.entries(properties)) applyOverride(target, property, value, members);
     }
+    setAttached(true);
     return () => {
+      setAttached(false);
       for (const child of tree.depthOne) entity.remove(child);
       // The scene's refs hold this tree's nodes only while it is mounted. A script's fields read
       // them once, so they rely on the tree staying the one built for the model (`LOADERS`).
@@ -528,5 +631,12 @@ export function GodotImportedScene({
     'group',
     { ...props, ref: root },
     createElement(TreeContext.Provider, { value: tree.byPath }, children),
+    ...(attached
+      ? (bodies ?? []).map((body) => {
+          const entity = tree.byPath.get(body.path);
+          if (entity === undefined) throw new Error(`godot-compat: the imported tree has no body ${body.path}`);
+          return createElement(Fragment, { key: body.path }, createPortal(createElement(ModelBody, { gltf, entity, body }), entity, undefined));
+        })
+      : []),
   );
 }
