@@ -55,22 +55,14 @@ export const GODOT_SPATIAL_FRAGMENT_BUILTINS: GodotShaderBuiltins = {
   NODE_POSITION_WORLD: 'godot_v_NODE_POSITION_WORLD',
   // The fragment's view-space position (three's `vViewPosition` is its negation).
   VERTEX: '(-vViewPosition)',
-  // Godot's screen coordinates, their origin the top-left, over the viewport's pixel size (compat's
-  // `spatial-material.ts` sets it each draw).
-  SCREEN_UV: '(vec2(gl_FragCoord.x, godot_VIEWPORT_SIZE.y - gl_FragCoord.y) / godot_VIEWPORT_SIZE)',
-  VIEWPORT_SIZE: 'godot_VIEWPORT_SIZE',
-  // The inverse of Godot's projection, which flips Y and maps depth to reversed Z in [0, 1]
-  // (`Projection::set_depth_correction`), so Godot's unprojections of its screen UV and depth hold.
-  INV_PROJECTION_MATRIX: 'godot_INV_PROJECTION_MATRIX',
 };
 
 /**
  * The varyings and uniforms every stage declares: the UV, colour and node position the fragment
- * reads, the view-space tangent frame `vertex()` writes, `TIME`, and the viewport's size and inverse
- * projection (compat sets them each draw).
+ * reads, the view-space tangent frame `vertex()` writes, and `TIME`.
  */
 export const GODOT_SPATIAL_SHARED =
-  'uniform float godot_TIME;\nuniform vec2 godot_VIEWPORT_SIZE;\nuniform mat4 godot_INV_PROJECTION_MATRIX;\nvarying vec2 godot_v_UV;\nvarying vec4 godot_v_COLOR;\nvarying vec3 godot_v_NODE_POSITION_WORLD;\nvarying vec3 godot_v_TANGENT;\nvarying vec3 godot_v_BINORMAL;';
+  'uniform float godot_TIME;\nvarying vec2 godot_v_UV;\nvarying vec4 godot_v_COLOR;\nvarying vec3 godot_v_NODE_POSITION_WORLD;\nvarying vec3 godot_v_TANGENT;\nvarying vec3 godot_v_BINORMAL;';
 
 /** How a spatial shader's stages are drawn: its `world_vertex_coords`, and whether `vertex()` writes a tangent frame. */
 export interface GodotSpatialStageOptions {

@@ -140,7 +140,7 @@ export function godotCompatBindings(
         // `Variant::set_indexed` on a built-in the dump gives an indexed element type.
         bind('builtin-indexed-set', 'set', { kind: 'call', sourceReceiver: 'first-argument' });
       } else unmatched.push(`${owner}.${member} (${entry.module} ${entry.exportName})`);
-    } else if (GODOT_UNDUMPED_MEMBERS.has(`${owner}.${member}`)) {
+    } else if (GODOT_UNDUMPED_MEMBERS.get(member) === owner) {
       // A member the dump does not list (`Object.free`, `lowering-shapes.ts`): one signature.
       bind('native-member', 'unhashed', { kind: 'call', sourceReceiver: 'first-argument' });
     } else if (native !== undefined) {

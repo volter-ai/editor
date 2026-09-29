@@ -364,7 +364,6 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_panning_strength',
     'set_doppler_tracking',
   ],
-  SpringArm3D: [...NODE_3D, 'set_meta:*', 'set_shape', 'set_length', 'set_mask', 'set_margin'],
   ShapeCast3D: [
     ...NODE_3D,
     'set_meta:*',

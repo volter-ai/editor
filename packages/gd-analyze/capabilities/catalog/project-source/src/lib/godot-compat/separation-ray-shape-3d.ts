@@ -4,7 +4,7 @@
  *
  * Godot 4.7's `SeparationRayShape3D` (`scene/resources/3d/separation_ray_shape_3d.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a ray of `length` along the shape's +Z. Rapier has
- * no such collider, so it gives none: a query that sweeps it (a SpringArm3D's) casts a ray, and a
+ * no such collider, so it gives none: a query that sweeps it casts a ray, and a
  * body's collision shape of it takes no part in contacts.
  */
 

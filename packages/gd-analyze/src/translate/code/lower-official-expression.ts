@@ -3610,9 +3610,9 @@ export function lowerOfficialExpression(
         }
         // `free()` on self is Object's own (`Variant::call`'s `free`), which no script can declare:
         // its binding on the instance's native entity (`GODOT_UNDUMPED_MEMBERS`).
-        const undumped = [...GODOT_UNDUMPED_MEMBERS].find((entry) => entry.endsWith(`.${node.compilerTarget.member}`));
-        if (calleeNode.kind === 'IDENTIFIER' && node.compilerTarget.kind === 'script-self' && undumped !== undefined && argumentNodes.length === 0) {
-          const [owner = '', member = ''] = undumped.split('.');
+        const member = node.compilerTarget.member;
+        const owner = member === undefined ? undefined : GODOT_UNDUMPED_MEMBERS.get(member);
+        if (calleeNode.kind === 'IDENTIFIER' && node.compilerTarget.kind === 'script-self' && member !== undefined && owner !== undefined && argumentNodes.length === 0) {
           const use = context.bindingUse({ sourceRevision: context.sourceRevision, kind: 'native-member', owner, member, signature: 'unhashed' }, node);
           return expression(bindingCall(context, node, use, [selfNative(context, node)]), [...requirements, ...use.requirements]);
         }

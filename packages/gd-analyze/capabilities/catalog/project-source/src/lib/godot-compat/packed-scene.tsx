@@ -39,8 +39,7 @@ import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber'
 import { BallCollider, CapsuleCollider, ConvexHullCollider, CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody, TrimeshCollider } from '@react-three/rapier';
 import { createContext, createElement, Fragment, type ReactElement, type ReactNode, type Ref, type RefObject, use, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type BufferGeometry, Group, type Material, Matrix4, type Mesh, type Object3D, Quaternion as ThreeQuaternion, Texture, Vector3 as ThreeVector3 } from 'three';
-import { get_collision_layer, get_collision_mask, godot_collision_object_stand_in, set_collision_layer, set_collision_mask } from './collision-object-3d';
-import { set_freeze_enabled, set_sleeping } from './rigid-body-3d';
+import { godot_collision_object_stand_in, set_collision_layer, set_collision_mask } from './collision-object-3d';
 import { type GLTF, GLTFLoader, type GLTFLoaderPlugin } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
@@ -48,7 +47,7 @@ import { godot_animation_mixer_set_library } from './animation-mixer';
 import { godot_animation_player_apply_reset, godot_animation_player_mount, godot_animation_player_set_prop } from './animation-player';
 import { godot_base_material_3d_model_geometry, godot_base_material_3d_model_map } from './base-material-3d';
 import { godot_node_adopt, godot_node_foreign } from './node';
-import { set_transform, set_visible } from './node-3d';
+import { set_transform } from './node-3d';
 import { construct as quaternion } from './quaternion';
 import { construct as transform3d } from './transform-3d';
 import { godot_skeleton_3d_bind, set_bone_pose_position, set_bone_pose_rotation, set_bone_pose_scale } from './skeleton-3d';
@@ -215,15 +214,6 @@ function applyOverride(entity: Object3D, property: string, value: unknown, adopt
     }
     return;
   }
-  if (property === 'visible') {
-    set_visible(entity, value as boolean);
-    return;
-  }
-  // A body the importer made takes its layers, sleep and freeze once it mounts (`ModelBody`).
-  if (BODY_OVERRIDES.has(property)) {
-    PENDING_BODY.set(entity, { ...(PENDING_BODY.get(entity) ?? {}), [property]: value });
-    return;
-  }
   const surface = SURFACE_OVERRIDE.exec(property);
   if (surface !== null) {
     const meshes = (entity as Mesh).isMesh === true ? [entity] : entity.children.filter((child) => !adopted.has(child) && (child as Mesh).isMesh === true);
@@ -239,10 +229,6 @@ function applyOverride(entity: Object3D, property: string, value: unknown, adopt
   else if (bone[2] === 'position') set_bone_pose_position(entity, index, vector3(...(components as [number, number, number])));
   else set_bone_pose_scale(entity, index, vector3(...(components as [number, number, number])));
 }
-
-/** A model body's properties the instancing scene sets, applied as its body mounts. */
-const BODY_OVERRIDES = new Set(['collision_layer', 'collision_mask', 'sleeping', 'freeze']);
-const PENDING_BODY = new WeakMap<Object3D, Readonly<Record<string, unknown>>>();
 
 /** The model's AnimationPlayers: made the class's node (`godot_animation_player_mount`). */
 const ANIMATION_PLAYERS = new WeakSet<Object3D>();
@@ -398,11 +384,11 @@ function sampleExternalImages(gltf: { readonly scene: Object3D; readonly parser:
  * A physics body the importer made in the model (`OMI_physics_body`, `GLTFDocumentExtensionPhysics`,
  * or the `.import`'s `generate/physics`): a fixed `<RigidBody>` in the node's own object, standing
  * for the node, with a collider per shape at the shape node's transform, and the importer's layer
- * and mask.
+ * and mask where it set them.
  */
 export interface GodotImportedModelBody {
   readonly path: string;
-  readonly type: 'fixed' | 'dynamic';
+  readonly type: 'fixed';
   readonly layers?: readonly [number, number];
   readonly colliders: readonly {
     readonly path: string;
@@ -470,34 +456,17 @@ function MeshCollider({ gltf, kind, mesh, position, quaternion }: { readonly glt
     : createElement(ConvexHullCollider, { args: [points.vertices], position: position as [number, number, number], quaternion: quaternion as [number, number, number, number] });
 }
 
-/**
- * One of the model's bodies, standing for its node: a fixed one in the node's own object; a dynamic
- * one, which moves its node, in the node's parent at the node's place, holding the node's object at
- * its origin.
- */
+/** One of the model's bodies, in its node's object and standing for the node. */
 function ModelBody({ gltf, entity, body }: { readonly gltf: GLTF; readonly entity: Object3D; readonly body: GodotImportedModelBody }): ReactElement {
   const held = useRef<RapierRigidBody | null>(null);
-  // The node's place, which the dynamic body takes as the node's object moves into it.
-  const [place] = useState(() => {
-    const placed = { position: entity.position.toArray(), quaternion: entity.quaternion.toArray() as [number, number, number, number] };
-    if (body.type === 'dynamic') {
-      entity.position.set(0, 0, 0);
-      entity.quaternion.identity();
-      entity.updateMatrix();
-    }
-    return placed;
-  });
   useEffect(() => {
     const rigid = held.current;
     if (rigid === null) return undefined;
     const release = godot_collision_object_stand_in(rigid as never, entity);
-    // The importer's layers, then the instancing scene's values (`SceneState::instantiate`).
-    const authored = PENDING_BODY.get(entity) ?? {};
-    const layers = body.layers ?? [get_collision_layer(entity), get_collision_mask(entity)];
-    set_collision_layer(entity, typeof authored['collision_layer'] === 'number' ? authored['collision_layer'] : layers[0]);
-    set_collision_mask(entity, typeof authored['collision_mask'] === 'number' ? authored['collision_mask'] : layers[1]);
-    if (typeof authored['freeze'] === 'boolean') set_freeze_enabled(entity, authored['freeze']);
-    if (typeof authored['sleeping'] === 'boolean') set_sleeping(entity, authored['sleeping']);
+    if (body.layers !== undefined) {
+      set_collision_layer(entity, body.layers[0]);
+      set_collision_mask(entity, body.layers[1]);
+    }
     return release;
   }, [entity, body]);
   const colliders = body.colliders.map((entry) => {
@@ -510,8 +479,7 @@ function ModelBody({ gltf, entity, body }: { readonly gltf: GLTF; readonly entit
       ? createElement(MeshCollider, { key: entry.path, gltf, kind: collider.kind, mesh: collider.mesh, ...place })
       : createElement(PRIMITIVE_COLLIDERS[collider.kind] as never, { key: entry.path, args: collider.args, ...place });
   });
-  if (body.type === 'fixed') return createElement(RigidBody, { ref: held, type: 'fixed', colliders: false }, ...colliders);
-  return createElement(RigidBody, { ref: held, type: 'dynamic', colliders: false, position: place.position, quaternion: place.quaternion }, ...colliders, createElement('primitive', { key: 'node', object: entity }));
+  return createElement(RigidBody, { ref: held, type: body.type, colliders: false }, ...colliders);
 }
 
 /**
@@ -675,11 +643,7 @@ export function GodotImportedScene({
       ? (bodies ?? []).map((body) => {
           const entity = tree.byPath.get(body.path);
           if (entity === undefined) throw new Error(`godot-compat: the imported tree has no body ${body.path}`);
-          // A dynamic body mounts in its node's parent: the model's root for a node at depth one.
-          const slash = body.path.lastIndexOf('/');
-          const container = body.type === 'fixed' ? entity : slash < 0 ? root.current : tree.byPath.get(body.path.slice(0, slash));
-          if (container === undefined || container === null) throw new Error(`godot-compat: the imported tree has no parent for ${body.path}`);
-          return createElement(Fragment, { key: body.path }, createPortal(createElement(ModelBody, { gltf, entity, body }), container, undefined));
+          return createElement(Fragment, { key: body.path }, createPortal(createElement(ModelBody, { gltf, entity, body }), entity, undefined));
         })
       : []),
   );

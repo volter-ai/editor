@@ -12,9 +12,6 @@
  * `source_color` uniforms are converted from sRGB to linear, as Godot's are. `TIME` is the
  * `godot_TIME` uniform, which the scene sets from R3F's clock each frame.
  *
- * `VIEWPORT_SIZE` and `INV_PROJECTION_MATRIX` (Godot's, flipped Y and reversed-Z depth) are set
- * each draw.
- *
  * Where it differs: `SPECULAR` is not drawn (three's standard material keeps Godot's default
  * 0.5), and `shadows_disabled` does not stop the mesh receiving shadows (a mesh setting in three).
  */
@@ -27,7 +24,6 @@ import {
   DoubleSide,
   FrontSide,
   type Material,
-  Matrix4,
   MeshBasicMaterial,
   MeshStandardMaterial,
   NearestFilter,
@@ -106,12 +102,6 @@ function uniformValue(uniform: GodotShaderUniform & { readonly color?: true; rea
 }
 
 /**
- * Godot's depth correction (`Projection::set_depth_correction`): Y flipped, and depth mapped to
- * reversed Z in [0, 1]; its inverse takes Godot's clip coordinates to three's.
- */
-const DEPTH_CORRECTION_INVERSE = new Matrix4().set(1, 0, 0, 0, 0, -1, 0, 0, 0, 0, -2, 1, 0, 0, 0, 1);
-
-/**
  * `ambient_light_disabled` on a lit shader: neither the ambient light nor the indirect specular
  * (reflections, GI) reaches the surface (`scene_forward_clustered.glsl:1687`, `:1800`, `:2246`),
  * three's indirect irradiance and radiance zeroed before they are added.
@@ -132,7 +122,7 @@ export function godot_shader_material_three(material: ShaderMaterial): GodotSpat
   const lowered = material.shader?.lowered;
   const spatial = lowered?.spatial;
   if (lowered === undefined || spatial === undefined) throw new Error('godot-compat: a ShaderMaterial without a spatial shader draws no mesh.');
-  const uniforms: Record<string, { value: unknown }> = { godot_TIME: { value: 0 }, godot_VIEWPORT_SIZE: { value: new ThreeVector2(1, 1) }, godot_INV_PROJECTION_MATRIX: { value: new Matrix4() } };
+  const uniforms: Record<string, { value: unknown }> = { godot_TIME: { value: 0 } };
   const byName = new Map(lowered.uniforms.map((uniform) => [uniform.name, uniform] as const));
   for (const uniform of lowered.uniforms) {
     const value = material.parameters.has(uniform.name) ? material.parameters.get(uniform.name) : uniform.default;
@@ -153,14 +143,6 @@ export function godot_shader_material_three(material: ShaderMaterial): GodotSpat
     depthTest: !modes.has('depth_test_disabled'),
     ...(modes.has('ambient_light_disabled') && !modes.has('unshaded') ? { patchMap: AMBIENT_LIGHT_DISABLED } : {}),
   });
-  // Each draw: the viewport's size and Godot's inverse projection.
-  made.onBeforeRender = (renderer, scene, camera) => {
-    const target = renderer.getRenderTarget();
-    const size = uniforms['godot_VIEWPORT_SIZE']?.value as ThreeVector2;
-    if (target === null) renderer.getDrawingBufferSize(size);
-    else size.set(target.width, target.height);
-    (uniforms['godot_INV_PROJECTION_MATRIX']?.value as Matrix4).multiplyMatrices(camera.projectionMatrixInverse, DEPTH_CORRECTION_INVERSE);
-  };
   material.listeners.add((name, value) => {
     const uniform = byName.get(name);
     if (uniform === undefined) return;

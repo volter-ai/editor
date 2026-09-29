@@ -131,15 +131,13 @@ export interface TargetGodotImportedModelNode {
 }
 
 /**
- * A physics body of an imported model (a `StaticBody3D`, or the `RigidBody3D` the importer's generated
- * physics puts in a mesh's place): the `<RigidBody>` compat mounts for the model's node, standing
- * for it, with a collider per
- * CollisionShape3D child, at that child's transform. A primitive's collider is Rapier's (`args` as
+ * A physics body of an imported model (a `StaticBody3D`): the fixed `<RigidBody>` compat mounts in
+ * the model's node, standing for it, with a collider per CollisionShape3D child, at that child's transform. A primitive's collider is Rapier's (`args` as
  * its component takes them); a trimesh or convex one is made from the file's mesh of that index.
  */
 export interface TargetGodotImportedModelBody {
   readonly path: string;
-  readonly type: 'fixed' | 'dynamic';
+  readonly type: 'fixed';
   /** The importer's collision layer and mask (`physics/layer`, `physics/mask`), where it set them. */
   readonly layers?: readonly [number, number];
   readonly colliders: readonly {
@@ -252,9 +250,7 @@ export type GodotModelOverrideSlot =
   | { readonly kind: 'surface-material' }
   | { readonly kind: 'material-override' }
   | { readonly kind: 'cast-shadow' }
-  | { readonly kind: 'player' }
-  /** A node's own property compat's imported scene sets by its Godot name: `visible`; a body's layers, sleep and freeze. */
-  | { readonly kind: 'node' };
+  | { readonly kind: 'player' };
 
 /** A resource the scene constructs once, then sets its authored properties on. */
 export interface TargetGodotSceneResourcePlan {
@@ -1273,6 +1269,7 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
       return undefined;
     }
     if (external !== undefined && !sources.includes(external)) sources.push(external);
+    // Each audio key's stream is a resource of the scene; the key keeps its index in `streams`.
     const animationScope = external ?? scope;
     let failed = false;
     const animation = {
@@ -1280,18 +1277,15 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
       tracks: read.tracks.map((track) => ({
         ...track,
         keys: track.keys.map(([time, transition, value]) => {
-          if (typeof value !== 'object' || (!('audioRef' in value) && !('resourceRef' in value))) return [time, transition, value] as const;
-          // An audio key's stream and a resource key's resource are resources of the scene; the key keeps
-          // its index in `streams`.
-          const ref = referenceOf('audioRef' in value ? value.audioRef : value.resourceRef);
+          if (typeof value !== 'object' || !('audioRef' in value)) return [time, transition, value] as const;
+          const ref = referenceOf(value.audioRef);
           const planned = ref === undefined ? undefined : planResource(context, `${at}/${item.key}`, ref.reference, ref.id, animationScope);
           if (planned === undefined) {
             failed = true;
             return [time, transition, 0] as const;
           }
           if (!streams.includes(planned)) streams.push(planned);
-          const index = streams.indexOf(planned);
-          return 'audioRef' in value ? ([time, transition, { audio: index, start: value.start, end: value.end }] as const) : ([time, transition, { resource: index }] as const);
+          return [time, transition, { audio: streams.indexOf(planned), start: value.start, end: value.end }] as const;
         }),
       })),
     };
@@ -2094,11 +2088,14 @@ function planImportedInstance(
       }
       colliders.push({ path: child.path, matrix: child.matrix, collider });
     }
-    const layers = model.collisionLayersByPath?.[member.path];
-    // A body the importer made that its idiom moves (a RigidBody3D) moves its node; the rest stand still.
+    // A body the importer made that moves (a RigidBody3D taking its mesh's place) is not mounted.
     const idiom = godotSceneNodeIdiom(member.classes[0] ?? '');
-    const dynamic = idiom?.form.kind === 'body' && idiom.form.type === 'dynamic';
-    bodies.push({ path: member.path, type: dynamic ? 'dynamic' : 'fixed', ...(layers === undefined ? {} : { layers }), colliders });
+    if (idiom?.form.kind === 'body' && idiom.form.type !== 'fixed') {
+      refuse(context, at, `${imported.resPath}: the importer's moving body ${member.path} is not planned`, 'resource', 'imported .glb');
+      return undefined;
+    }
+    const layers = model.collisionLayersByPath?.[member.path];
+    bodies.push({ path: member.path, type: 'fixed', ...(layers === undefined ? {} : { layers }), colliders });
   }
   if (bodies.length > 0 && model.meshScale !== undefined) {
     refuse(context, at, `${imported.resPath}: the root scale of a model with physics bodies is not baked into their shapes`, 'resource', 'imported .glb');
@@ -2608,13 +2605,6 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_speed_scale: { kind: 'player' },
   set_default_blend_time: { kind: 'player' },
   set_auto_capture: { kind: 'player' },
-  // A node of the model shown or hidden, and a body the importer made: its layers, sleep and freeze
-  // (compat's imported-scene overrides by property name).
-  set_visible: { kind: 'node' },
-  set_collision_layer: { kind: 'node' },
-  set_collision_mask: { kind: 'node' },
-  set_sleeping: { kind: 'node' },
-  set_freeze_enabled: { kind: 'node' },
 };
 
 /** A spatial node's transform, as its matrix or as position, YXZ rotation and scale. */

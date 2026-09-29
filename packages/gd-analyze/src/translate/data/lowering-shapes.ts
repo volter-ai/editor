@@ -390,8 +390,8 @@ export function godotLanguageConstant(name: string): number | undefined {
 }
 
 /**
- * Engine members a script calls that the API dump does not list, bound by owner and name with one
- * signature: `Object.free`, which `Variant::call` answers (`object.cpp:1919` registers it virtual)
- * and no script can declare.
+ * Engine members a script calls that the API dump does not list, by name, with the class that owns
+ * them, each bound with one signature: `free`, Object's, which `Variant::call` answers
+ * (`object.cpp:1919` registers it virtual) and no script can declare.
  */
-export const GODOT_UNDUMPED_MEMBERS: ReadonlySet<string> = new Set(['Object.free']);
+export const GODOT_UNDUMPED_MEMBERS: ReadonlyMap<string, string> = new Map([['free', 'Object']]);
