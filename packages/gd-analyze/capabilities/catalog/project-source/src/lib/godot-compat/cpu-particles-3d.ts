@@ -30,7 +30,7 @@
  */
 
 import type { ReactElement } from 'react';
-import { type BufferGeometry, Group, InstancedBufferAttribute, InstancedMesh, type Material, Matrix4, type Object3D, Quaternion, Vector3 as ThreeVector3 } from 'three';
+import { type BufferGeometry, type Camera, Group, InstancedBufferAttribute, InstancedMesh, type Material, Matrix4, type Object3D, Quaternion, Vector3 as ThreeVector3 } from 'three';
 import { godot_base_material_3d_three } from './base-material-3d';
 import { type Color, construct as color } from './color';
 import { type Curve, sample as curveSample } from './curve';
@@ -88,6 +88,11 @@ export interface ParticleProcess {
   emission_ring?: { readonly axis: Vector3; readonly height: number; readonly radius: number; readonly inner: number };
   lifetime_randomness: number;
   particle_flags: boolean[];
+  /**
+   * A GPUParticles3D's `transform_align` (`GPUParticles3D::TransformAlign`): 1 each particle facing
+   * as the camera does, 2 its Y along its velocity, 3 both, its Y along its velocity on the screen.
+   */
+  transform_align?: number;
 }
 
 interface Particle {
@@ -135,6 +140,8 @@ interface Emitter {
   material: Material | null;
   material_override: Material | null;
   drawn: InstancedMesh | null;
+  /** The camera three last drew the particles with. */
+  camera?: Camera;
 }
 
 const EMITTERS = new WeakMap<object, Emitter>();
@@ -317,6 +324,14 @@ const inverseWorld = new Matrix4();
 const rotation = new Quaternion();
 const spin = new Quaternion();
 const heading = new ThreeVector3();
+const axisX = new ThreeVector3();
+const viewZ = new ThreeVector3();
+const viewUp = new ThreeVector3();
+const viewRotation = new Quaternion();
+const nodeRotation = new Quaternion();
+const scratchPosition = new ThreeVector3();
+const scratchScale = new ThreeVector3();
+const basis = new Matrix4();
 const size = new ThreeVector3();
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
 
@@ -333,6 +348,10 @@ function drawnOf(node: Object3D, e: Emitter): InstancedMesh | null {
   own.setAttribute('godotInstanceCustom', new InstancedBufferAttribute(new Float32Array(e.amount * 4), 4));
   const drawn = new InstancedMesh(own, material, e.amount);
   drawn.frustumCulled = false;
+  // The camera three draws it with, which a particle aligned to the view faces next frame.
+  drawn.onBeforeRender = (_renderer, _scene, camera) => {
+    e.camera = camera;
+  };
   godot_node_foreign(drawn);
   node.add(drawn);
   e.drawn = drawn;
@@ -349,6 +368,18 @@ function draw(node: Object3D, e: Emitter, p: ParticleProcess): void {
   const colors = drawn.geometry.getAttribute('godotInstanceColor') as InstancedBufferAttribute;
   const customs = drawn.geometry.getAttribute('godotInstanceCustom') as InstancedBufferAttribute;
   const scaleCurve = p.curves[PARAM_SCALE] ?? null;
+  // The view's axes in the particles' space (`ParticlesStorage::_particles_update_instance_buffer`):
+  // toward the viewer and up.
+  const align = p.transform_align ?? 0;
+  const viewing = (align === 1 || align === 3) && e.camera !== undefined;
+  if (viewing) {
+    const camera = e.camera as Camera;
+    camera.updateWorldMatrix(true, false);
+    camera.matrixWorld.decompose(scratchPosition, viewRotation, scratchScale);
+    if (e.local_coords) viewRotation.premultiply(nodeRotation.setFromRotationMatrix(node.matrixWorld).invert());
+    viewZ.set(0, 0, 1).applyQuaternion(viewRotation);
+    viewUp.set(0, 1, 0).applyQuaternion(viewRotation);
+  }
   e.particles.forEach((particle, i) => {
     if (!particle.alive) {
       drawn.setMatrixAt(i, HIDDEN);
@@ -357,7 +388,18 @@ function draw(node: Object3D, e: Emitter, p: ParticleProcess): void {
     }
     const t = particle.age / particle.life;
     const scale = particle.scale * (scaleCurve === null ? 1 : curveSample(scaleCurve, t));
-    if (p.particle_flags[FLAG_ALIGN_Y_TO_VELOCITY] === true && particle.velocity.lengthSq() > 0) {
+    if (viewing && align === 1) {
+      // Facing as the view does (`TRANSFORM_ALIGN_Z_BILLBOARD`).
+      axisX.crossVectors(viewUp, viewZ).normalize();
+      rotation.setFromRotationMatrix(basis.makeBasis(axisX, viewUp, viewZ));
+    } else if (viewing && align === 3) {
+      // Its Y along its velocity on the screen, facing the view (`TRANSFORM_ALIGN_Z_BILLBOARD_Y_TO_VELOCITY`).
+      heading.copy(particle.velocity).addScaledVector(viewZ, -viewZ.dot(particle.velocity));
+      if (heading.lengthSq() === 0) heading.copy(viewUp);
+      heading.normalize();
+      axisX.crossVectors(heading, viewZ).normalize();
+      rotation.setFromRotationMatrix(basis.makeBasis(axisX, heading, viewZ));
+    } else if ((p.particle_flags[FLAG_ALIGN_Y_TO_VELOCITY] === true || align === 2) && particle.velocity.lengthSq() > 0) {
       rotation.setFromUnitVectors(UP, heading.copy(particle.velocity).normalize());
     } else rotation.identity();
     rotation.multiply(spin.setFromAxisAngle(Z, particle.angle));

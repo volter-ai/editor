@@ -55,6 +55,9 @@ export interface ParticleProcessMaterial {
   emission_ring_radius: number;
   emission_ring_inner_radius: number;
   emission_ring_cone_angle: number;
+  /** Kept: they move particles only with turbulence enabled, which is not bound. */
+  turbulence_noise_strength: number;
+  turbulence_noise_scale: number;
 }
 
 /**
@@ -91,6 +94,8 @@ export function construct(): ParticleProcessMaterial {
     emission_box_extents: vector3(1, 1, 1),
     gravity: vector3(0, -9.8, 0),
     lifetime_randomness: 0,
+    turbulence_noise_strength: 0,
+    turbulence_noise_scale: 0,
     emission_ring_axis: vector3(0, 0, 1),
     emission_ring_height: 1,
     emission_ring_radius: 1,
@@ -368,6 +373,38 @@ export function set_lifetime_randomness(self: ParticleProcessMaterial, randomnes
 }
 
 /**
+ * @godot ParticleProcessMaterial.set_turbulence_noise_strength
+ * @source scene/resources/particle_process_material.cpp:1809
+ */
+export function set_turbulence_noise_strength(self: ParticleProcessMaterial, strength: number): void {
+  self.turbulence_noise_strength = strength;
+}
+
+/**
+ * @godot ParticleProcessMaterial.get_turbulence_noise_strength
+ * @source scene/resources/particle_process_material.cpp:1814
+ */
+export function get_turbulence_noise_strength(self: ParticleProcessMaterial): number {
+  return self.turbulence_noise_strength;
+}
+
+/**
+ * @godot ParticleProcessMaterial.set_turbulence_noise_scale
+ * @source scene/resources/particle_process_material.cpp:1818
+ */
+export function set_turbulence_noise_scale(self: ParticleProcessMaterial, scale: number): void {
+  self.turbulence_noise_scale = scale;
+}
+
+/**
+ * @godot ParticleProcessMaterial.get_turbulence_noise_scale
+ * @source scene/resources/particle_process_material.cpp:1828
+ */
+export function get_turbulence_noise_scale(self: ParticleProcessMaterial): number {
+  return self.turbulence_noise_scale;
+}
+
+/**
  * @godot ParticleProcessMaterial.get_lifetime_randomness
  * @source scene/resources/particle_process_material.cpp:2134
  */
@@ -433,6 +470,8 @@ export function godot_particle_process_material_new(properties: Readonly<Record<
     else if (property === 'emissionBoxExtents') set_emission_box_extents(self, vector3(...(components(value) as [number, number, number])));
     else if (property === 'gravity') set_gravity(self, vector3(...(components(value) as [number, number, number])));
     else if (property === 'lifetimeRandomness') set_lifetime_randomness(self, value as number);
+    else if (property === 'turbulenceNoiseStrength') set_turbulence_noise_strength(self, value as number);
+    else if (property === 'turbulenceNoiseScale') set_turbulence_noise_scale(self, value as number);
     else if (property === 'emissionRingAxis') set_emission_ring_axis(self, vector3(...(components(value) as [number, number, number])));
     else if (property === 'emissionRingHeight') set_emission_ring_height(self, value as number);
     else if (property === 'emissionRingRadius') set_emission_ring_radius(self, value as number);

@@ -10,9 +10,10 @@
  * shader on the GPU, here a few hundred particles are moved on the CPU, as a three.js scene moves
  * them.
  *
- * Also drawn: the node's material override (`GeometryInstance3D`). Stored and not used: `interpolate`,
+ * Also drawn: the node's material override (`GeometryInstance3D`) and its transform alignment, by the
+ * camera three last drew the particles with. Stored and not used: `interpolate`,
  * `fixed_fps`, `fractional_delta`, the seed and the visibility AABB. Not drawn, and refused by name
- * at import when a scene states them: sub-emitters, trails, collision, transform alignment, the
+ * at import when a scene states them: sub-emitters, trails, collision, the
  * amount ratio, draw orders other than by index and more than one draw pass.
  */
 
@@ -69,6 +70,8 @@ const MAX_DRAW_PASSES = 4;
 /** What the node holds besides its emitter. */
 interface GPUParticles3DState {
   process_material: ParticleProcessMaterial | null;
+  /** `TransformAlign` (`gpu_particles_3d.h:51`), which the emitter draws each particle with. */
+  transform_align: number;
   draw_passes: (PrimitiveMesh | null)[];
   interpolate: boolean;
   draw_order: number;
@@ -83,9 +86,10 @@ function stateOf(self: object, member: string): GPUParticles3DState {
 }
 
 /** The process material as the values the emitter reads: its curves and ramps are its textures'. */
-function processOf(material: ParticleProcessMaterial | null): ParticleProcess | null {
+function processOf(material: ParticleProcessMaterial | null, transformAlign = 0): ParticleProcess | null {
   if (material === null) return null;
   return {
+    transform_align: transformAlign,
     direction: material.direction,
     spread: material.spread,
     flatness: material.flatness,
@@ -116,9 +120,9 @@ function processOf(material: ParticleProcessMaterial | null): ParticleProcess | 
  */
 export function godot_gpu_particles_3d_adopt(entity: Object3D): void {
   if (STATE.has(entity)) return;
-  const state: GPUParticles3DState = { process_material: null, draw_passes: [null], interpolate: true, draw_order: 0 };
+  const state: GPUParticles3DState = { process_material: null, transform_align: 0, draw_passes: [null], interpolate: true, draw_order: 0 };
   STATE.set(entity, state);
-  godot_particles_3d_adopt(entity, () => processOf(state.process_material));
+  godot_particles_3d_adopt(entity, () => processOf(state.process_material, state.transform_align));
   particles_set_fixed_fps(entity, 30);
 }
 
@@ -520,6 +524,7 @@ const GPU_PARTICLES_3D_ELEMENT: GodotElementClass<Group> = {
     ['visibilityAabb', (self, value: unknown) => set_visibility_aabb(self, value)],
     ['localCoords', (self, value: boolean) => set_use_local_coordinates(self, value)],
     ['processMaterial', (self, value: ParticleProcessMaterial | null) => set_process_material(self, value)],
+    ['transformAlign', (self, value: number) => set_transform_align(self, value)],
     ['drawPasses', (self, value: number) => set_draw_passes(self, value)],
     // The first pass's mesh as three's geometry and its surface material, as a scene states a drawn mesh.
     ['geometry', (self, value: BufferGeometry) => godot_cpu_particles_3d_draw_with(self, value, undefined)],
@@ -540,4 +545,20 @@ const GPU_PARTICLES_3D_ELEMENT: GodotElementClass<Group> = {
  */
 export function GodotGPUParticles3D(props: GodotElementProps<Group>): ReactElement {
   return useGodotElement(GPU_PARTICLES_3D_ELEMENT, props);
+}
+
+/**
+ * @godot GPUParticles3D.set_transform_align
+ * @source scene/3d/gpu_particles_3d.cpp:629
+ */
+export function set_transform_align(self: Object3D, align: number): void {
+  stateOf(self, 'set_transform_align').transform_align = align;
+}
+
+/**
+ * @godot GPUParticles3D.get_transform_align
+ * @source scene/3d/gpu_particles_3d.cpp:635
+ */
+export function get_transform_align(self: Object3D): number {
+  return stateOf(self, 'get_transform_align').transform_align;
 }

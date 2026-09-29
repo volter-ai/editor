@@ -185,6 +185,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     ...GEOMETRY_INSTANCE_3D,
     ...NODE_ELEMENT,
     'set_emitting',
+    'set_transform_align',
     'set_amount',
     'set_lifetime',
     'set_one_shot',
@@ -583,6 +584,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, the other
   // parameters, emission curves, textures and offsets, ring axis) is not emitted.
   ParticleProcessMaterial: [
+    'set_turbulence_noise_strength',
+    'set_turbulence_noise_scale',
     'set_direction',
     'set_spread',
     'set_flatness',
