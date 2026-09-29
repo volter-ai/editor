@@ -1768,12 +1768,20 @@ class Session:
         if not os.path.exists(self.document):
             return {"document": relative_path, "opened": False}
         bpy.ops.wm.open_mainfile(filepath=self.document)
+        size = os.path.getsize(self.document)
+        # THE STAGED COPY GOES ONCE BLENDER HAS READ IT. It sits in the engine's heap (WasmFS keeps
+        # file data in linear memory) and nothing reads it again: the load took everything into
+        # Blender's own memory, packed pictures included, and the next save writes the path anew.
+        # Freed before the first present, its bytes serve that present's evaluation instead of
+        # raising the heap's high-water mark by the file's size (307 MB for the Stoneguard file).
+        # The worker still holds the host's stamp for it, so it is not staged in again.
+        os.remove(self.document)
         self.present()
         # The load did not dirty anything: what is in memory IS the file.
         self.save_due = False
         return {"document": relative_path, "opened": True,
                 "objects": len(bpy.data.objects),
-                "size": os.path.getsize(self.document)}
+                "size": size}
 
     def mark_changed(self):
         """A request that can change the model ran: the next present carries
