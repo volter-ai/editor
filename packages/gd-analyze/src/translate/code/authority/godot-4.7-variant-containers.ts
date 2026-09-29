@@ -43,6 +43,18 @@ const VARIANT_OPERAND_PAIRS = OPERAND_CLASSES.flatMap((left) =>
   OPERAND_CLASSES.flatMap((right) => (left === 'VARIANT:*' || right === 'VARIANT:*' ? [[left, right] as const] : [])),
 );
 
+const CONVERTIBLE = ['BUILTIN:*', 'NATIVE:*', 'CLASS:*', 'SCRIPT:*', 'ENUM:*', 'VARIANT:*'];
+const OBJECTS = new Set(['NATIVE:*', 'CLASS:*', 'SCRIPT:*']);
+/** Converting pairs (target, value) with an untyped side, or between object types, the known ones left out. */
+const CONVERTED_PAIRS = CONVERTIBLE.flatMap((target) =>
+  CONVERTIBLE.flatMap((value) => {
+    const untyped = target === 'VARIANT:*' || value === 'VARIANT:*';
+    const objects = OBJECTS.has(target) && OBJECTS.has(value);
+    const known = objects && ((target === 'NATIVE:*' && value === 'NATIVE:*') || (target === 'CLASS:*' && value === 'NATIVE:*') || (target === 'CLASS:*' && value === 'CLASS:*') || (target === 'NATIVE:*' && value === 'CLASS:*'));
+    return (untyped || objects) && !known ? [[target, value] as const] : [];
+  }),
+);
+
 const DICTIONARY_ENTRY_COUNTS = [4, 5, 6, 7, 8, 10, 12, 16];
 
 export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = [
@@ -69,6 +81,18 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
   // A native property read the compiler left untyped (an object narrowed by `is`): its getter's
   // value, whatever the compiler stated for it.
   ...['NATIVE:*', 'CLASS:*'].map((input) => rule('SUBSCRIPT', 'subscript-attribute:native-property', [input], 'VARIANT:*', { kind: 'binding' })),
+  // A store, return or declaration converting a value only the run time types, or an object into
+  // another object type: Godot converts (or checks) the value as it runs, compat holds it as is.
+  ...CONVERTED_PAIRS.map(([target, value]) => rule('ASSIGNMENT', 'operator:OP_NONE:25:conversion', [target, value], value, { kind: 'assignment', operator: '=' })),
+  ...CONVERTED_PAIRS.filter(([target, value]) => !(target === 'VARIANT:*' && value === 'BUILTIN:*')).flatMap(([target, value]) => [
+    rule('RETURN', 'return:value:conversion', [target, value], '', { kind: 'structural', construct: 'return' }),
+    rule('VARIABLE', 'variable:declared:instance:conversion', [target, value], '', { kind: 'structural', construct: 'variable' }),
+    rule('VARIABLE', 'variable:declared:local:conversion', [target, value], '', { kind: 'structural', construct: 'variable' }),
+  ]),
+  // A member read by name, whatever the value it holds: an untyped or script-typed member, or a
+  // constant of any type (the script's own field, `this.name`).
+  ...['VARIANT:*', 'SCRIPT:*'].map((result) => rule('IDENTIFIER', 'member-identifier:MEMBER_VARIABLE', [], result, { kind: 'structural', construct: 'member-identifier' })),
+  ...['VARIANT:*', 'SCRIPT:*', 'CLASS:*', 'NATIVE:*'].map((result) => rule('IDENTIFIER', 'member-identifier:MEMBER_CONSTANT', [], result, { kind: 'structural', construct: 'member-identifier' })),
 ];
 
 export const GODOT_4_7_VARIANT_CONTAINER_DATATYPES: readonly GodotDatatypeRuleEntry[] = [

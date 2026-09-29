@@ -355,3 +355,11 @@ const STORED_RESOURCE_ROOTS: ReadonlySet<string> = new Set(['Resource']);
 export function godotStoredResourceRoot(className: string | undefined): boolean {
   return className !== undefined && STORED_RESOURCE_ROOTS.has(className);
 }
+
+/** GDScript's own constants (`GDScriptLanguage` `PI`, `TAU`, `INF`, `NAN`, gdscript.cpp:2169). */
+const LANGUAGE_CONSTANTS: Readonly<Record<string, number>> = { PI: Math.PI, TAU: Math.PI * 2, INF: Number.POSITIVE_INFINITY, NAN: Number.NaN };
+
+/** The value of GDScript's constant `name`, if it is one. */
+export function godotLanguageConstant(name: string): number | undefined {
+  return Object.hasOwn(LANGUAGE_CONSTANTS, name) ? LANGUAGE_CONSTANTS[name] : undefined;
+}

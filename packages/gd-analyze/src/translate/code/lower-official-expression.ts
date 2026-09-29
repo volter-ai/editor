@@ -10,6 +10,7 @@ import {
   godotBuiltinSubscriptShape,
   godotBuiltinTest,
   godotCallShape,
+  godotLanguageConstant,
   godotLiteralIsText,
   godotNumericStoresAs,
   godotNumericTag,
@@ -2559,6 +2560,12 @@ export function lowerOfficialExpression(
             const rule = context.structural(node, 'literal', [], 'literal:native-constant');
             return expression({ kind: 'literal-expression', value, span: span(context.script, node) }, rule);
           }
+        }
+        // GDScript's own constants (`PI`, `TAU`, `INF`, `NAN`) are their values.
+        const language = node.source === 'UNDEFINED_SOURCE' ? godotLanguageConstant(node.name) : undefined;
+        if (language !== undefined) {
+          const rule = context.structural(node, 'literal', [], 'literal:native-constant');
+          return expression({ kind: 'literal-expression', value: language, span: span(context.script, node) }, rule);
         }
         // The binding is what the identifier means; resolve it before its structural rule so an
         // absent binding is what refuses.
