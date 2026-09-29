@@ -458,6 +458,11 @@ export function variantValue(emission: FamilyEmission, value: TargetGodotSceneVa
         arguments: [{ kind: 'array-expression', elements: value.entries.map(([key, item]) => ({ kind: 'array-expression' as const, elements: [variantValue(emission, key), variantValue(emission, item)] })) }],
       };
     case 'Array':
+    case 'PackedVector2Array':
+    case 'PackedVector3Array':
+    case 'PackedFloat32Array':
+    case 'PackedInt32Array':
+    case 'PackedColorArray':
       return numbers(value.components);
     default: {
       const module = RECORD_MODULES[value.kind];

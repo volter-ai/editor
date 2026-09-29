@@ -40,6 +40,8 @@ export type SceneSetterLookup = ((className: string, property: string) => SceneS
 export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   // `curve.cpp:644`, `:646`.
   Curve: { _limits: '_set_limits', _data: '_set_data' },
+  // `curve.cpp:1467`.
+  Curve2D: { _data: '_set_data' },
   // `sprite_frames.cpp:229`.
   SpriteFrames: { animations: '_set_animations' },
 };
@@ -198,6 +200,8 @@ export type TargetSceneValue =
   | { readonly kind: 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'; readonly components: readonly number[] }
   /** A `PackedVector3Array`, as the Vector3 array compat's setters take: x, y, z per element. */
   | { readonly kind: 'PackedVector3Array'; readonly components: readonly number[] }
+  /** A `PackedVector2Array`: x, y per element. */
+  | { readonly kind: 'PackedVector2Array'; readonly components: readonly number[] }
   /** A `PackedInt32Array` (a GridMap's `data.cells`), the ints as written. */
   | { readonly kind: 'PackedInt32Array'; readonly components: readonly number[] }
   /** A `PackedFloat32Array`, or a `PackedColorArray` as r, g, b, a per element. */
@@ -256,6 +260,11 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
         if ((value.name === 'PackedColorArray' && components.length % 4 !== 0) || !components.every((entry): entry is number => entry !== undefined)) return undefined;
         return { kind: value.name, components };
+      }
+      if (value.name === 'PackedVector2Array') {
+        const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
+        if (components.length % 2 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;
+        return { kind: 'PackedVector2Array', components };
       }
       if (value.name === 'PackedVector3Array') {
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));

@@ -138,6 +138,8 @@ export const GODOT_4_7_SIGNAL_RULES: readonly (GodotSceneSignalRule & { readonly
       ['Area2D', 'area_entered', 'area-2d', 'area_entered', 1, 'scene/2d/physics/area_2d.cpp', 594],
       ['Area2D', 'area_exited', 'area-2d', 'area_exited', 1, 'scene/2d/physics/area_2d.cpp', 595],
       ['RigidBody2D', 'body_entered', 'rigid-body-2d', 'body_entered', 1, 'scene/2d/physics/rigid_body_2d.cpp', 844],
+      ['VisibleOnScreenNotifier2D', 'screen_entered', 'visible-on-screen-notifier-2d', 'screen_entered', 0, 'scene/2d/visible_on_screen_notifier_2d.cpp', 185],
+      ['VisibleOnScreenNotifier2D', 'screen_exited', 'visible-on-screen-notifier-2d', 'screen_exited', 0, 'scene/2d/visible_on_screen_notifier_2d.cpp', 186],
       ['RigidBody2D', 'body_exited', 'rigid-body-2d', 'body_exited', 1, 'scene/2d/physics/rigid_body_2d.cpp', 845],
     ] as const
   ).map(([ownerClass, signal, module, exportName, argumentCount, file, line]) => ({

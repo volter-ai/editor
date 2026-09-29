@@ -29,6 +29,7 @@ export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule 
     ['RectangleShape2D', 'rectangle-shape-2d', 'scene/resources/2d/rectangle_shape_2d.cpp', 131, 'godot_rectangle_shape_2d_new'],
     ['CircleShape2D', 'circle-shape-2d', 'scene/resources/2d/circle_shape_2d.cpp', 99, 'godot_circle_shape_2d_new'],
     ['CapsuleShape2D', 'capsule-shape-2d', 'scene/resources/2d/capsule_shape_2d.cpp', 117, 'godot_capsule_shape_2d_new'],
+    ['Curve2D', 'curve-2d', 'scene/resources/curve.cpp', 1420, 'godot_curve_2d_new'],
   ] as const
 ).map(([className, module, file, line, exportName = 'construct']) => ({
   sourceRevision: REVISION,
