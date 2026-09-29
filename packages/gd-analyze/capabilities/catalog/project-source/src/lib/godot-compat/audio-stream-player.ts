@@ -55,9 +55,13 @@ export interface GodotAudioPlayerState {
   /** Where a playback's gain connects: the page's output, or a 3D player's panner. */
   output: (audio: AudioContext) => AudioNode;
   processing: boolean;
+  /** `playback_type`: `PLAYBACK_TYPE_DEFAULT` (0), `STREAM` (1) or `SAMPLE` (2). */
+  playbackType: number;
 }
 
 const PLAYERS = new WeakMap<object, GodotAudioPlayerState>();
+/** `AudioStreamPlayer::mix_target`: `MIX_TARGET_STEREO` (0), `SURROUND` (1) or `CENTER` (2). */
+const MIX_TARGETS = new WeakMap<object, number>();
 
 /** `Math::db_to_linear(float)` (`core/math/math_funcs.h:620`). */
 const dbToLinear = (db: number): number => f32(Math.exp(f32(db * f32(0.11512925464970228))));
@@ -102,6 +106,7 @@ export function godot_audio_player_mount(entity: Object3D, output: GodotAudioPla
     finished: createSignal<[]>(),
     output,
     processing: false,
+    playbackType: 0,
   };
   PLAYERS.set(entity, state);
   godot_node_tree_signal(entity, 'tree_entered').connect(() => {
@@ -410,6 +415,89 @@ export function set_max_polyphony(self: object, max_polyphony: number): void {
  */
 export function get_max_polyphony(self: object): number {
   return stateOf(self, 'get_max_polyphony').maxPolyphony;
+}
+
+/** `Math::linear_to_db(float)` (`core/math/math_funcs.h:613`). */
+const linearToDb = (linear: number): number => f32(f32(Math.log(linear)) * f32(8.6858896380650365530225783783321));
+
+/**
+ * `set_volume_db(linear_to_db(volume))`.
+ *
+ * @godot AudioStreamPlayer.set_volume_linear
+ * @source scene/audio/audio_stream_player.cpp:85
+ */
+export function set_volume_linear(self: object, volume_linear: number): void {
+  set_volume_db(self, linearToDb(volume_linear));
+}
+
+/**
+ * @godot AudioStreamPlayer.get_volume_linear
+ * @source scene/audio/audio_stream_player.cpp:89
+ */
+export function get_volume_linear(self: object): number {
+  return dbToLinear(get_volume_db(self));
+}
+
+/**
+ * While playing, the playbacks stop and one plays again from `to_position`
+ * (`AudioStreamPlayerInternal::seek`, `audio_stream_player_internal.cpp:270`).
+ *
+ * @godot AudioStreamPlayer.seek
+ * @source scene/audio/audio_stream_player.cpp:128
+ */
+export function seek(self: object, to_position: number): void {
+  if (!is_playing(self)) return;
+  stop(self);
+  play(self, to_position);
+}
+
+/**
+ * Kept and read back: the page's output is stereo, into which every target mixes.
+ *
+ * @godot AudioStreamPlayer.set_mix_target
+ * @source scene/audio/audio_stream_player.cpp:163
+ */
+export function set_mix_target(self: object, mix_target: number): void {
+  stateOf(self, 'set_mix_target');
+  MIX_TARGETS.set(godot_node_entity(self), mix_target);
+}
+
+/**
+ * @godot AudioStreamPlayer.get_mix_target
+ * @source scene/audio/audio_stream_player.cpp:167
+ */
+export function get_mix_target(self: object): number {
+  stateOf(self, 'get_mix_target');
+  return MIX_TARGETS.get(godot_node_entity(self)) ?? 0;
+}
+
+/**
+ * Whether the player holds a playback (`!stream_playbacks.is_empty()`).
+ *
+ * @godot AudioStreamPlayer.has_stream_playback
+ * @source scene/audio/audio_stream_player.cpp:224
+ */
+export function has_stream_playback(self: object): boolean {
+  return stateOf(self, 'has_stream_playback').playbacks.length > 0;
+}
+
+/**
+ * Kept and read back: every playback here is a Web Audio sample, which is what the web export's
+ * default type plays.
+ *
+ * @godot AudioStreamPlayer.set_playback_type
+ * @source scene/audio/audio_stream_player.cpp:236
+ */
+export function set_playback_type(self: object, playback_type: number): void {
+  stateOf(self, 'set_playback_type').playbackType = playback_type;
+}
+
+/**
+ * @godot AudioStreamPlayer.get_playback_type
+ * @source scene/audio/audio_stream_player.cpp:232
+ */
+export function get_playback_type(self: object): number {
+  return stateOf(self, 'get_playback_type').playbackType;
 }
 
 /**

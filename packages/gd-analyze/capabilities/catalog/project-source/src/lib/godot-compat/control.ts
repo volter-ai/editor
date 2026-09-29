@@ -18,8 +18,15 @@
  * when a child enters or leaves, a child's size flags, minimum size or visibility change, or the
  * container is resized.
  *
- * Not bound: right-to-left layout (a node's layout direction is the locale's, left to right),
- * `propagate_maximum_size`, the offset transform, and the desired size of classes that report one.
+ * Focus is each viewport's focus owner, kept here by the viewport entity (`Viewport::gui.key_focus`):
+ * grabbing and releasing it, the focus modes and their recursive behaviour, and the next, previous
+ * and neighbouring focusable Controls. Theme items are the node's overrides, then the default theme's
+ * items for its class (`ControlVirtuals`), then ThemeDB's fallbacks; a Theme resource set on a node is
+ * kept and read back, and its own items are not looked up. `clip_contents` clips the node's element
+ * (`overflow: hidden`), the element holding its children's.
+ *
+ * Not bound: right-to-left mirroring of the layout (`is_layout_rtl` reports the direction, the
+ * layout stays left to right), and the desired size of classes that report one.
  */
 
 import type { Object3D } from 'three';
@@ -37,7 +44,10 @@ import {
   is_visible,
   is_visible_in_tree,
 } from './canvas-item';
-import { godot_node_adopt, godot_node_entity, godot_node_is_queued, godot_node_observe_child_order, godot_node_tree_signal, is_inside_tree } from './node';
+import { type Color, construct as color } from './color';
+import { godot_font_default, type GodotFont } from './font';
+import { godot_object_signal } from './signal';
+import { get_node_or_null, godot_node_adopt, godot_node_entity, godot_node_object, godot_node_is_queued, godot_node_observe_child_order, godot_node_tree_signal, is_inside_tree } from './node';
 import { godot_message_queue_push } from './object';
 import { construct as rect2, type Rect2 } from './rect2';
 import { get_size as subViewportSize } from './sub-viewport';
@@ -96,6 +106,14 @@ const LAYOUT_MODE_ANCHORS = 1;
 const LAYOUT_MODE_CONTAINER = 2;
 const LAYOUT_MODE_UNCONTROLLED = 3;
 
+/** `Control::FocusMode` (`scene/gui/control.h:93`) and the recursive behaviours (`:100`, `:106`). */
+const FOCUS_NONE = 0;
+const FOCUS_CLICK = 1;
+const FOCUS_ALL = 2;
+const FOCUS_ACCESSIBILITY = 3;
+const BEHAVIOR_INHERITED = 0;
+const BEHAVIOR_ENABLED = 2;
+
 /** `CMP_EPSILON` (`core/math/math_defs.h:50`), as `real_t`. */
 const CMP_EPSILON = f32(0.00001);
 
@@ -113,13 +131,29 @@ export interface ControlVirtuals {
   readonly themeChanged?: (entity: Object3D) => void;
   /** The default theme's constants for the class (`scene/theme/default_theme.cpp`). */
   readonly themeConstants?: Readonly<Record<string, number>>;
+  /** The default theme's colors and font sizes for the class (`scene/theme/default_theme.cpp`). */
+  readonly themeColors?: Readonly<Record<string, Color>>;
+  readonly themeFontSizes?: Readonly<Record<string, number>>;
   /** `NOTIFICATION_DRAW`: the class's own drawing into its element. */
   readonly draw?: (entity: Object3D, element: HTMLElement) => void;
   /** The state `draw` reads, as a key (`CanvasItemClass.drawKey`). */
   readonly drawKey?: (entity: Object3D, element: HTMLElement) => string;
 }
 
+/** `Data::OffsetTransform` (`scene/gui/control.h`): the transform applied after the node's own. */
+interface OffsetTransform {
+  enabled: boolean;
+  position: Vector2;
+  positionRatio: Vector2;
+  scale: Vector2;
+  rotation: number;
+  pivot: Vector2;
+  pivotRatio: Vector2;
+  visualOnly: boolean;
+}
+
 interface ControlState {
+  readonly entity: Object3D;
   /** A root Control's connection to its viewport's `size_changed`, while in the canvas. */
   viewportSizeChanged?: (() => void) | undefined;
   readonly anchor: number[];
@@ -134,8 +168,36 @@ interface ControlState {
   rotation: number;
   scale: Vector2;
   pivotOffset: Vector2;
+  pivotOffsetRatio: Vector2;
+  offsetTransform: OffsetTransform | undefined;
+  propagateMaximumSize: boolean;
   readonly virtuals: ControlVirtuals;
   readonly constantOverrides: Map<string, number>;
+  readonly colorOverrides: Map<string, Color>;
+  readonly fontSizeOverrides: Map<string, number>;
+  readonly fontOverrides: Map<string, unknown>;
+  readonly iconOverrides: Map<string, unknown>;
+  readonly styleboxOverrides: Map<string, unknown>;
+  bulkThemeOverride: boolean;
+  theme: object | null;
+  themeTypeVariation: string;
+  focusMode: number;
+  focusBehaviorRecursive: number;
+  mouseBehaviorRecursive: number;
+  readonly focusNeighbor: string[];
+  focusNext: string;
+  focusPrevious: string;
+  tooltipText: string;
+  tooltipAutoTranslateMode: number;
+  translationContext: string;
+  autoTranslate: boolean;
+  localizeNumeralSystem: boolean;
+  layoutDirection: number;
+  defaultCursorShape: number;
+  clipContents: boolean;
+  shortcutContext: object | null;
+  dragForwarding: readonly [unknown, unknown, unknown] | null;
+  accessibility: { name: string; description: string; live: number; controls: string[]; describedBy: string[]; labeledBy: string[]; flowTo: string[] };
   posCache: Vector2;
   sizeCache: Vector2;
   lastMinimumSize: Vector2;
@@ -176,15 +238,27 @@ function stateOf(self: object, member = 'Control'): ControlState {
  */
 export function godot_control_mount(entity: Object3D, classes: readonly string[], virtuals: ControlVirtuals = {}): void {
   godot_node_adopt(entity, { kind: 'node', classes });
+  // `clip_contents` clips the element that holds the children's elements, before the class draws.
+  const clip = (node: Object3D, element: HTMLElement): void => {
+    element.style.overflow = (CONTROLS.get(node) as ControlState).clipContents ? 'hidden' : '';
+  };
+  const draw = virtuals.draw;
+  const drawKey = virtuals.drawKey;
   godot_canvas_item_mount(entity, classes, {
     transform: godot_control_transform,
     drawTransform,
     size: (node) => (CONTROLS.get(node) as ControlState).sizeCache,
     visibilityChanged,
-    ...(virtuals.draw === undefined ? {} : { draw: virtuals.draw }),
-    ...(virtuals.drawKey === undefined ? {} : { drawKey: virtuals.drawKey }),
+    draw: (node, element) => {
+      clip(node, element);
+      draw?.(node, element);
+    },
+    ...(draw !== undefined && drawKey === undefined
+      ? {}
+      : { drawKey: (node: Object3D, element: HTMLElement) => `${String((CONTROLS.get(node) as ControlState).clipContents)}|${drawKey?.(node, element) ?? ''}` }),
   });
   CONTROLS.set(entity, {
+    entity,
     anchor: [0, 0, 0, 0],
     offset: [0, 0, 0, 0],
     hGrow: GROW_DIRECTION_END,
@@ -197,8 +271,36 @@ export function godot_control_mount(entity: Object3D, classes: readonly string[]
     rotation: 0,
     scale: vector2(1, 1),
     pivotOffset: vector2(),
+    pivotOffsetRatio: vector2(),
+    offsetTransform: undefined,
+    propagateMaximumSize: false,
     virtuals,
     constantOverrides: new Map(),
+    colorOverrides: new Map(),
+    fontSizeOverrides: new Map(),
+    fontOverrides: new Map(),
+    iconOverrides: new Map(),
+    styleboxOverrides: new Map(),
+    bulkThemeOverride: false,
+    theme: null,
+    themeTypeVariation: '',
+    focusMode: FOCUS_NONE,
+    focusBehaviorRecursive: BEHAVIOR_INHERITED,
+    mouseBehaviorRecursive: BEHAVIOR_INHERITED,
+    focusNeighbor: ['', '', '', ''],
+    focusNext: '',
+    focusPrevious: '',
+    tooltipText: '',
+    tooltipAutoTranslateMode: 0,
+    translationContext: '',
+    autoTranslate: true,
+    localizeNumeralSystem: true,
+    layoutDirection: 0,
+    defaultCursorShape: 0,
+    clipContents: false,
+    shortcutContext: null,
+    dragForwarding: null,
+    accessibility: { name: '', description: '', live: 0, controls: [], describedBy: [], labeledBy: [], flowTo: [] },
     posCache: vector2(),
     sizeCache: vector2(),
     lastMinimumSize: vector2(),
@@ -450,7 +552,17 @@ export function get_minimum_size(self: object): Vector2 {
  */
 function combinedMaximumSize(state: ControlState): Vector2 {
   state.maximumSizeValid = true;
-  return state.customMaximumSize;
+  let x = state.customMaximumSize.x;
+  let y = state.customMaximumSize.y;
+  // `data.parent_maximum_size_cache`: a parent Control that propagates its maximum size caps it.
+  const parent = godot_canvas_item_parent(state.entity);
+  const parentState = parent === null || is_set_as_top_level(state.entity) ? undefined : CONTROLS.get(parent);
+  if (parentState?.propagateMaximumSize === true) {
+    const cap = combinedMaximumSize(parentState);
+    if (cap.x >= 0) x = x >= 0 ? Math.min(x, cap.x) : cap.x;
+    if (cap.y >= 0) y = y >= 0 ? Math.min(y, cap.y) : cap.y;
+  }
+  return x === state.customMaximumSize.x && y === state.customMaximumSize.y ? state.customMaximumSize : vector2(x, y);
 }
 
 /** `Math::is_equal_approx` for `float` (`core/math/math_funcs.h:540`). */
@@ -879,8 +991,31 @@ export function godot_control_set_rect(self: object, p_rect: Rect2): void {
  * `control.cpp:743`), built as `Transform2D(rotation, scale, 0, pivot)` then `translate_local`.
  */
 function internalTransform(entity: Object3D, state: ControlState): Transform2D {
-  const pivot = state.pivotOffset;
+  const pivot = combinedPivot(state);
   const base = transform2d(state.rotation, state.scale, 0, pivot);
+  const moved = basis_xform(base, vector2(-pivot.x, -pivot.y));
+  const own = transform2d(base.x, base.y, vector2(f32(base.origin.x + moved.x), f32(base.origin.y + moved.y)));
+  const offset = state.offsetTransform;
+  return offset?.enabled === true && !offset.visualOnly ? xform(own, offsetTransform(state)) : own;
+}
+
+/** `get_combined_pivot_offset` (`control.cpp:1695`): the pivot plus its ratio of the size. */
+function combinedPivot(state: ControlState): Vector2 {
+  const size = state.sizeCache;
+  return vector2(f32(state.pivotOffset.x + f32(state.pivotOffsetRatio.x * size.x)), f32(state.pivotOffset.y + f32(state.pivotOffsetRatio.y * size.y)));
+}
+
+/**
+ * `get_offset_transform` (`control.cpp:2503`): `T(pivot + translation) * R * S * T(-pivot)`, each
+ * of the pivot and translation absolute plus a ratio of the size.
+ */
+function offsetTransform(state: ControlState): Transform2D {
+  const offset = state.offsetTransform;
+  if (offset?.enabled !== true) return transform2d();
+  const size = state.sizeCache;
+  const translation = vector2(f32(offset.position.x + f32(offset.positionRatio.x * size.x)), f32(offset.position.y + f32(offset.positionRatio.y * size.y)));
+  const pivot = vector2(f32(offset.pivot.x + f32(offset.pivotRatio.x * size.x)), f32(offset.pivot.y + f32(offset.pivotRatio.y * size.y)));
+  const base = transform2d(offset.rotation, offset.scale, 0, vector2(f32(pivot.x + translation.x), f32(pivot.y + translation.y)));
   const moved = basis_xform(base, vector2(-pivot.x, -pivot.y));
   return transform2d(base.x, base.y, vector2(f32(base.origin.x + moved.x), f32(base.origin.y + moved.y)));
 }
@@ -908,8 +1043,12 @@ export function godot_control_transform(self: object): Transform2D {
 function drawTransform(entity: Object3D): Transform2D {
   const transform = godot_control_transform(entity);
   const state = CONTROLS.get(entity) as ControlState;
-  if (!is_inside_tree(entity) || !(Math.abs(f32(Math.sin(f32(state.rotation * 4)))) < f32(0.00001))) return transform;
-  return transform2d(transform.x, transform.y, vector2(Math.floor(f32(transform.origin.x + 0.5)), Math.floor(f32(transform.origin.y + 0.5))));
+  const snapped =
+    !is_inside_tree(entity) || !(Math.abs(f32(Math.sin(f32(state.rotation * 4)))) < f32(0.00001))
+      ? transform
+      : transform2d(transform.x, transform.y, vector2(Math.floor(f32(transform.origin.x + 0.5)), Math.floor(f32(transform.origin.y + 0.5))));
+  // A visual-only offset transform moves the drawing and nothing else (`control.cpp:764`).
+  return state.offsetTransform?.enabled === true && state.offsetTransform.visualOnly ? xform(snapped, offsetTransform(state)) : snapped;
 }
 
 /**
@@ -1137,7 +1276,7 @@ export function add_theme_constant_override(self: object, p_name: string, p_cons
 
 /** `_notify_theme_override_changed` (`control.cpp:3578`): inside the tree, the theme changed. */
 function themeOverrideChanged(entity: Object3D): void {
-  if (is_inside_tree(entity)) themeChanged(entity);
+  if (!(CONTROLS.get(entity) as ControlState).bulkThemeOverride && is_inside_tree(entity)) themeChanged(entity);
 }
 
 /**
@@ -1308,7 +1447,7 @@ function findAt(entity: Object3D, point: Vector2, parentXform: Transform2D): Obj
     if (found !== null) return found;
   }
   const state = CONTROLS.get(entity);
-  if (state === undefined || state.mouseFilter === MOUSE_FILTER_IGNORE) return null;
+  if (state === undefined || mouseFilterWithOverride(entity, state) === MOUSE_FILTER_IGNORE) return null;
   return hasPoint(state, xform(affine_inverse(matrix), point)) ? entity : null;
 }
 
@@ -1363,13 +1502,34 @@ export function godot_control_call_gui_input(
   handled: () => boolean,
   setHandled: () => void,
 ): void {
+  const outer = acceptEvent;
+  acceptEvent = setHandled;
+  try {
+    callGuiInput(control, event, pointer, move, handled, setHandled);
+  } finally {
+    acceptEvent = outer;
+  }
+}
+
+/** The `Viewport::_gui_accept_event` of the GUI event being delivered, which `accept_event` calls. */
+let acceptEvent: (() => void) | undefined;
+
+function callGuiInput(
+  control: Object3D,
+  event: unknown,
+  pointer: boolean,
+  move: (event: unknown, transform: Transform2D) => unknown,
+  handled: () => boolean,
+  setHandled: () => void,
+): void {
   let ev = event;
   let item: Object3D | null = control;
   while (item !== null) {
     const state = CONTROLS.get(item);
     if (state !== undefined) {
+      const filter = mouseFilterWithOverride(item, state);
       // A Control queued for deletion takes no more input; the event goes on.
-      if (state.mouseFilter !== MOUSE_FILTER_IGNORE && !godot_node_is_queued(item)) {
+      if (filter !== MOUSE_FILTER_IGNORE && !godot_node_is_queued(item)) {
         // `Control::_call_gui_input` (`control.cpp:2518`): the script's, then the class's.
         if (!handled()) {
           // A script error aborts only its `_gui_input` (docs/GODOT.md §Order of work).
@@ -1382,7 +1542,7 @@ export function godot_control_call_gui_input(
         if (is_inside_tree(item) && !handled()) state.nativeGuiInput?.(ev);
       }
       if (!is_inside_tree(item) || is_set_as_top_level(item)) break;
-      if (state.mouseFilter === MOUSE_FILTER_STOP && pointer) {
+      if (filter === MOUSE_FILTER_STOP && pointer) {
         setHandled();
         break;
       }
@@ -1573,4 +1733,1508 @@ const CONTROL = {
  */
 export function GodotControl(props: GodotElementProps<Group>): ReactElement {
   return useGodotElement(CONTROL, props);
+}
+
+// --- Sizes and transforms.
+
+/**
+ * The class's own maximum size: none (`-1, -1`) for Control.
+ *
+ * @godot Control.get_maximum_size
+ * @source scene/gui/control.cpp:1809
+ */
+export function get_maximum_size(self: object): Vector2 {
+  stateOf(self, 'get_maximum_size');
+  return vector2(-1, -1);
+}
+
+/**
+ * The maximum size capped by the custom maximum and, where the parent Control propagates its own,
+ * by the parent's.
+ *
+ * @godot Control.get_combined_maximum_size
+ * @source scene/gui/control.cpp:1852
+ */
+export function get_combined_maximum_size(self: object): Vector2 {
+  return combinedMaximumSize(stateOf(self, 'get_combined_maximum_size'));
+}
+
+/**
+ * Whether the children's maximum sizes are capped by this node's; a change updates them.
+ *
+ * @godot Control.set_propagate_maximum_size
+ * @source scene/gui/control.cpp:1702
+ */
+export function set_propagate_maximum_size(self: object, p_propagate: boolean): void {
+  const state = stateOf(self, 'set_propagate_maximum_size');
+  if (state.propagateMaximumSize === Boolean(p_propagate)) return;
+  state.propagateMaximumSize = Boolean(p_propagate);
+  for (const child of [...state.entity.children]) if (CONTROLS.has(child)) updateMaximumSize(child);
+  updateMaximumSize(state.entity);
+}
+
+/**
+ * @godot Control.is_propagating_maximum_size
+ * @source scene/gui/control.cpp:1711
+ */
+export function is_propagating_maximum_size(self: object): boolean {
+  return stateOf(self, 'is_propagating_maximum_size').propagateMaximumSize;
+}
+
+/**
+ * The maximum size is computed again (deferred), for a class whose maximum size changed.
+ *
+ * @godot Control.update_maximum_size
+ * @source scene/gui/control.cpp:1732
+ */
+export function update_maximum_size(self: object): void {
+  stateOf(self, 'update_maximum_size');
+  updateMaximumSize(entityOf(self));
+}
+
+/**
+ * The combined minimum size capped by the combined maximum size.
+ *
+ * @godot Control.get_bound_minimum_size
+ * @source scene/gui/control.cpp:2145
+ */
+export function get_bound_minimum_size(self: object): Vector2 {
+  stateOf(self, 'get_bound_minimum_size');
+  return godot_control_bound_minimum_size(entityOf(self));
+}
+
+/**
+ * `set_rotation(deg_to_rad(degrees))`.
+ *
+ * @godot Control.set_rotation_degrees
+ * @source scene/gui/control.cpp:1646
+ */
+export function set_rotation_degrees(self: object, p_degrees: number): void {
+  set_rotation(self, f32(f32(p_degrees) * f32(Math.PI / 180)));
+}
+
+/**
+ * @godot Control.get_rotation_degrees
+ * @source scene/gui/control.cpp:1656
+ */
+export function get_rotation_degrees(self: object): number {
+  return f32(get_rotation(self) * f32(180 / Math.PI));
+}
+
+/**
+ * The pivot as a ratio of the size, added to `pivot_offset`.
+ *
+ * @godot Control.set_pivot_offset_ratio
+ * @source scene/gui/control.cpp:1661
+ */
+export function set_pivot_offset_ratio(self: object, p_ratio: Vector2): void {
+  stateOf(self, 'set_pivot_offset_ratio').pivotOffsetRatio = p_ratio;
+}
+
+/**
+ * @godot Control.get_pivot_offset_ratio
+ * @source scene/gui/control.cpp:1673
+ */
+export function get_pivot_offset_ratio(self: object): Vector2 {
+  return stateOf(self, 'get_pivot_offset_ratio').pivotOffsetRatio;
+}
+
+/**
+ * `pivot_offset + pivot_offset_ratio * size`.
+ *
+ * @godot Control.get_combined_pivot_offset
+ * @source scene/gui/control.cpp:1695
+ */
+export function get_combined_pivot_offset(self: object): Vector2 {
+  return combinedPivot(stateOf(self, 'get_combined_pivot_offset'));
+}
+
+/** The node's offset transform, made on first use with its defaults (`_ensure_allocated_offset_transform`). */
+function offsetOf(self: object, member: string): OffsetTransform {
+  const state = stateOf(self, member);
+  state.offsetTransform ??= {
+    enabled: false,
+    position: vector2(),
+    positionRatio: vector2(),
+    scale: vector2(1, 1),
+    rotation: 0,
+    pivot: vector2(),
+    pivotRatio: vector2(0.5, 0.5),
+    visualOnly: true,
+  };
+  return state.offsetTransform;
+}
+
+/** The offset transform's value, or its default before one is made. */
+function offsetRead<Key extends keyof OffsetTransform>(self: object, member: string, key: Key, fallback: OffsetTransform[Key]): OffsetTransform[Key] {
+  const offset = stateOf(self, member).offsetTransform;
+  return offset === undefined ? fallback : offset[key];
+}
+
+/**
+ * A transform applied after the node's own, about its own pivot; unless visual only, it moves the
+ * node's rect and input as well as its drawing.
+ *
+ * @godot Control.set_offset_transform_enabled
+ * @source scene/gui/control.cpp:2306
+ */
+export function set_offset_transform_enabled(self: object, p_enabled: boolean): void {
+  offsetOf(self, 'set_offset_transform_enabled').enabled = Boolean(p_enabled);
+}
+
+/**
+ * @godot Control.is_offset_transform_enabled
+ * @source scene/gui/control.cpp:2324
+ */
+export function is_offset_transform_enabled(self: object): boolean {
+  return offsetRead(self, 'is_offset_transform_enabled', 'enabled', false);
+}
+
+/**
+ * @godot Control.set_offset_transform_position
+ * @source scene/gui/control.cpp:2328
+ */
+export function set_offset_transform_position(self: object, p_offset: Vector2): void {
+  offsetOf(self, 'set_offset_transform_position').position = p_offset;
+}
+
+/**
+ * @godot Control.get_offset_transform_position
+ * @source scene/gui/control.cpp:2345
+ */
+export function get_offset_transform_position(self: object): Vector2 {
+  return offsetRead(self, 'get_offset_transform_position', 'position', vector2());
+}
+
+/**
+ * @godot Control.set_offset_transform_position_ratio
+ * @source scene/gui/control.cpp:2353
+ */
+export function set_offset_transform_position_ratio(self: object, p_offset: Vector2): void {
+  offsetOf(self, 'set_offset_transform_position_ratio').positionRatio = p_offset;
+}
+
+/**
+ * @godot Control.get_offset_transform_position_ratio
+ * @source scene/gui/control.cpp:2370
+ */
+export function get_offset_transform_position_ratio(self: object): Vector2 {
+  return offsetRead(self, 'get_offset_transform_position_ratio', 'positionRatio', vector2());
+}
+
+/**
+ * @godot Control.set_offset_transform_scale
+ * @source scene/gui/control.cpp:2378
+ */
+export function set_offset_transform_scale(self: object, p_scale: Vector2): void {
+  offsetOf(self, 'set_offset_transform_scale').scale = p_scale;
+}
+
+/**
+ * @godot Control.get_offset_transform_scale
+ * @source scene/gui/control.cpp:2395
+ */
+export function get_offset_transform_scale(self: object): Vector2 {
+  return offsetRead(self, 'get_offset_transform_scale', 'scale', vector2(1, 1));
+}
+
+/**
+ * @godot Control.set_offset_transform_rotation
+ * @source scene/gui/control.cpp:2403
+ */
+export function set_offset_transform_rotation(self: object, p_rotation: number): void {
+  offsetOf(self, 'set_offset_transform_rotation').rotation = f32(p_rotation);
+}
+
+/**
+ * @godot Control.get_offset_transform_rotation
+ * @source scene/gui/control.cpp:2420
+ */
+export function get_offset_transform_rotation(self: object): number {
+  return offsetRead(self, 'get_offset_transform_rotation', 'rotation', 0);
+}
+
+/**
+ * @godot Control.set_offset_transform_pivot
+ * @source scene/gui/control.cpp:2428
+ */
+export function set_offset_transform_pivot(self: object, p_pivot: Vector2): void {
+  offsetOf(self, 'set_offset_transform_pivot').pivot = p_pivot;
+}
+
+/**
+ * @godot Control.get_offset_transform_pivot
+ * @source scene/gui/control.cpp:2445
+ */
+export function get_offset_transform_pivot(self: object): Vector2 {
+  return offsetRead(self, 'get_offset_transform_pivot', 'pivot', vector2());
+}
+
+/**
+ * @godot Control.set_offset_transform_pivot_ratio
+ * @source scene/gui/control.cpp:2453
+ */
+export function set_offset_transform_pivot_ratio(self: object, p_pivot: Vector2): void {
+  offsetOf(self, 'set_offset_transform_pivot_ratio').pivotRatio = p_pivot;
+}
+
+/**
+ * @godot Control.get_offset_transform_pivot_ratio
+ * @source scene/gui/control.cpp:2470
+ */
+export function get_offset_transform_pivot_ratio(self: object): Vector2 {
+  return offsetRead(self, 'get_offset_transform_pivot_ratio', 'pivotRatio', vector2(0.5, 0.5));
+}
+
+/**
+ * @godot Control.set_offset_transform_visual_only
+ * @source scene/gui/control.cpp:2478
+ */
+export function set_offset_transform_visual_only(self: object, p_enabled: boolean): void {
+  offsetOf(self, 'set_offset_transform_visual_only').visualOnly = Boolean(p_enabled);
+}
+
+/**
+ * @godot Control.is_offset_transform_visual_only
+ * @source scene/gui/control.cpp:2495
+ */
+export function is_offset_transform_visual_only(self: object): boolean {
+  return offsetRead(self, 'is_offset_transform_visual_only', 'visualOnly', true);
+}
+
+/**
+ * The parent node when it is a Control, else null.
+ *
+ * @godot Control.get_parent_control
+ * @source scene/gui/control.cpp:681
+ */
+export function get_parent_control(self: object): object | null {
+  stateOf(self, 'get_parent_control');
+  const parent = parentControl(entityOf(self));
+  return parent === null ? null : godot_node_object(parent);
+}
+
+/** `data.parent_control`: the parent node when it is a Control. */
+function parentControl(entity: Object3D): Object3D | null {
+  const parent = entity.parent;
+  return parent !== null && CONTROLS.has(parent) ? parent : null;
+}
+
+/**
+ * @godot Control.set_clip_contents
+ * @source scene/gui/control.cpp:3556
+ */
+export function set_clip_contents(self: object, p_clip: boolean): void {
+  stateOf(self, 'set_clip_contents').clipContents = Boolean(p_clip);
+}
+
+/**
+ * @godot Control.is_clipping_contents
+ * @source scene/gui/control.cpp:3565
+ */
+export function is_clipping_contents(self: object): boolean {
+  return stateOf(self, 'is_clipping_contents').clipContents;
+}
+
+// --- Input.
+
+/**
+ * Marks the GUI event being delivered as handled (`Viewport::_gui_accept_event`); outside a
+ * delivery, or outside the tree, it does nothing.
+ *
+ * @godot Control.accept_event
+ * @source scene/gui/control.cpp:2538
+ */
+export function accept_event(self: object): void {
+  if (!is_inside_tree(entityOf(self))) return;
+  acceptEvent?.();
+}
+
+/** `_is_mouse_filter_enabled` (`control.cpp:2599`): the recursive behaviour, inherited up the parent Controls. */
+function mouseFilterEnabled(entity: Object3D): boolean {
+  const state = CONTROLS.get(entity) as ControlState;
+  if (state.mouseBehaviorRecursive === BEHAVIOR_INHERITED) {
+    const parent = parentControl(entity);
+    return parent === null ? true : mouseFilterEnabled(parent);
+  }
+  return state.mouseBehaviorRecursive === BEHAVIOR_ENABLED;
+}
+
+/** `get_mouse_filter_with_override` (`control.cpp:2576`). */
+function mouseFilterWithOverride(entity: Object3D, state: ControlState): number {
+  return mouseFilterEnabled(entity) ? state.mouseFilter : MOUSE_FILTER_IGNORE;
+}
+
+/**
+ * The mouse filter, or `MOUSE_FILTER_IGNORE` where the recursive mouse behaviour disables it.
+ *
+ * @godot Control.get_mouse_filter_with_override
+ * @source scene/gui/control.cpp:2576
+ */
+export function get_mouse_filter_with_override(self: object): number {
+  return mouseFilterWithOverride(entityOf(self), stateOf(self, 'get_mouse_filter_with_override'));
+}
+
+/**
+ * `MOUSE_BEHAVIOR_INHERITED` (0), `DISABLED` (1) or `ENABLED` (2), for the node and the children
+ * that inherit it; another index fails.
+ *
+ * @godot Control.set_mouse_behavior_recursive
+ * @source scene/gui/control.cpp:2584
+ */
+export function set_mouse_behavior_recursive(self: object, p_mouse_behavior_recursive: number): void {
+  if (p_mouse_behavior_recursive < 0 || p_mouse_behavior_recursive > 2) return;
+  stateOf(self, 'set_mouse_behavior_recursive').mouseBehaviorRecursive = p_mouse_behavior_recursive;
+}
+
+/**
+ * @godot Control.get_mouse_behavior_recursive
+ * @source scene/gui/control.cpp:2594
+ */
+export function get_mouse_behavior_recursive(self: object): number {
+  return stateOf(self, 'get_mouse_behavior_recursive').mouseBehaviorRecursive;
+}
+
+/**
+ * Moving the pointer is something a page cannot do (the web display server has no `warp_mouse`),
+ * so it does nothing.
+ *
+ * @godot Control.warp_mouse
+ * @source scene/gui/control.cpp:2649
+ */
+export function warp_mouse(self: object, p_position: Vector2): void {
+  stateOf(self, 'warp_mouse');
+  void p_position;
+}
+
+/**
+ * The node whose subtree must hold the focus owner for the node's shortcuts to fire; null for none.
+ *
+ * @godot Control.set_shortcut_context
+ * @source scene/gui/control.cpp:2655
+ */
+export function set_shortcut_context(self: object, p_node: object | null): void {
+  stateOf(self, 'set_shortcut_context').shortcutContext = p_node;
+}
+
+/**
+ * @godot Control.get_shortcut_context
+ * @source scene/gui/control.cpp:2664
+ */
+export function get_shortcut_context(self: object): object | null {
+  return stateOf(self, 'get_shortcut_context').shortcutContext;
+}
+
+/**
+ * The callables that stand in for `_get_drag_data`, `_can_drop_data` and `_drop_data`, kept for
+ * the viewport's drag and drop.
+ *
+ * @godot Control.set_drag_forwarding
+ * @source scene/gui/control.cpp:2688
+ */
+export function set_drag_forwarding(self: object, p_drag_func: unknown, p_can_drop_func: unknown, p_drop_func: unknown): void {
+  stateOf(self, 'set_drag_forwarding').dragForwarding = [p_drag_func, p_can_drop_func, p_drop_func];
+}
+
+/**
+ * Whether the viewport's last drag ended in a drop. The root viewport binds no drag and drop
+ * (`viewport.ts`), so no drag succeeds.
+ *
+ * @godot Control.is_drag_successful
+ * @source scene/gui/control.cpp:2891
+ */
+export function is_drag_successful(self: object): boolean {
+  stateOf(self, 'is_drag_successful');
+  return false;
+}
+
+// --- Focus.
+
+/** Each viewport's focus owner (`Viewport::gui.key_focus`), keyed by the viewport entity. */
+const FOCUS_OWNER = new WeakMap<Object3D, Object3D>();
+
+function focusViewport(entity: Object3D): Object3D | null {
+  return viewportOf(entity);
+}
+
+/** `_is_focus_mode_enabled` (`control.cpp:2947`): the recursive behaviour, inherited up the parent Controls. */
+function focusModeEnabled(entity: Object3D): boolean {
+  const state = CONTROLS.get(entity) as ControlState;
+  if (state.focusBehaviorRecursive === BEHAVIOR_INHERITED) {
+    const parent = parentControl(entity);
+    return parent === null ? true : focusModeEnabled(parent);
+  }
+  return state.focusBehaviorRecursive === BEHAVIOR_ENABLED;
+}
+
+function focusModeWithOverride(entity: Object3D): number {
+  return focusModeEnabled(entity) ? (CONTROLS.get(entity) as ControlState).focusMode : FOCUS_NONE;
+}
+
+/** `_is_focusable` (`control.cpp:2942`), with no screen reader active. */
+function focusable(entity: Object3D): boolean {
+  const mode = focusModeWithOverride(entity);
+  return is_visible_in_tree(entity) && (mode === FOCUS_ALL || mode === FOCUS_CLICK);
+}
+
+function hasFocus(entity: Object3D): boolean {
+  const viewport = focusViewport(entity);
+  return is_inside_tree(entity) && viewport !== null && FOCUS_OWNER.get(viewport) === entity;
+}
+
+/** `Viewport::gui_release_focus`: the owner loses the focus and says so (`focus_exited`). */
+function releaseFocusOf(viewport: Object3D): void {
+  const owner = FOCUS_OWNER.get(viewport);
+  if (owner === undefined) return;
+  FOCUS_OWNER.delete(viewport);
+  godot_object_signal<[]>(owner, 'focus_exited').emit();
+}
+
+/**
+ * `FOCUS_NONE` (0), `FOCUS_CLICK` (1), `FOCUS_ALL` (2) or `FOCUS_ACCESSIBILITY` (3); turning it
+ * off releases a focus the node holds.
+ *
+ * @godot Control.set_focus_mode
+ * @source scene/gui/control.cpp:2898
+ */
+export function set_focus_mode(self: object, p_focus_mode: number): void {
+  if (p_focus_mode < 0 || p_focus_mode > 3) return;
+  const entity = entityOf(self);
+  const state = stateOf(self, 'set_focus_mode');
+  if (is_inside_tree(entity) && p_focus_mode === FOCUS_NONE && state.focusMode !== FOCUS_NONE && hasFocus(entity)) release_focus(self);
+  state.focusMode = p_focus_mode;
+}
+
+/**
+ * @godot Control.get_focus_mode
+ * @source scene/gui/control.cpp:2913
+ */
+export function get_focus_mode(self: object): number {
+  return stateOf(self, 'get_focus_mode').focusMode;
+}
+
+/**
+ * The focus mode, or `FOCUS_NONE` where the recursive focus behaviour disables it.
+ *
+ * @godot Control.get_focus_mode_with_override
+ * @source scene/gui/control.cpp:2918
+ */
+export function get_focus_mode_with_override(self: object): number {
+  stateOf(self, 'get_focus_mode_with_override');
+  return focusModeWithOverride(entityOf(self));
+}
+
+/**
+ * `FOCUS_BEHAVIOR_INHERITED` (0), `DISABLED` (1) or `ENABLED` (2); a node it disables lets go of the
+ * focus, as does a child that inherits it.
+ *
+ * @godot Control.set_focus_behavior_recursive
+ * @source scene/gui/control.cpp:2926
+ */
+export function set_focus_behavior_recursive(self: object, p_focus_behavior_recursive: number): void {
+  if (p_focus_behavior_recursive < 0 || p_focus_behavior_recursive > 2) return;
+  const entity = entityOf(self);
+  stateOf(self, 'set_focus_behavior_recursive').focusBehaviorRecursive = p_focus_behavior_recursive;
+  const viewport = focusViewport(entity);
+  const owner = viewport === null ? undefined : FOCUS_OWNER.get(viewport);
+  if (viewport !== null && owner !== undefined && (owner === entity || entity.getObjectById(owner.id) !== undefined) && focusModeWithOverride(owner) === FOCUS_NONE) {
+    releaseFocusOf(viewport);
+  }
+}
+
+/**
+ * @godot Control.get_focus_behavior_recursive
+ * @source scene/gui/control.cpp:2937
+ */
+export function get_focus_behavior_recursive(self: object): number {
+  return stateOf(self, 'get_focus_behavior_recursive').focusBehaviorRecursive;
+}
+
+/**
+ * Whether the node holds its viewport's focus.
+ *
+ * @godot Control.has_focus
+ * @source scene/gui/control.cpp:2989
+ */
+export function has_focus(self: object, p_ignore_hidden_focus = false): boolean {
+  stateOf(self, 'has_focus');
+  void p_ignore_hidden_focus;
+  return hasFocus(entityOf(self));
+}
+
+/**
+ * Takes the viewport's focus from its owner (`focus_exited` there, then `focus_entered` here); a
+ * node outside the tree, or whose focus mode (with its override) is none, fails. With no screen
+ * reader, an accessibility-only focus mode cannot take it either.
+ *
+ * @godot Control.grab_focus
+ * @source scene/gui/control.cpp:2994
+ */
+export function grab_focus(self: object, p_hide_focus = false): void {
+  void p_hide_focus;
+  const entity = entityOf(self);
+  stateOf(self, 'grab_focus');
+  if (!is_inside_tree(entity)) return;
+  const mode = focusModeWithOverride(entity);
+  if (mode === FOCUS_NONE || mode === FOCUS_ACCESSIBILITY) return;
+  const viewport = focusViewport(entity);
+  if (viewport === null || FOCUS_OWNER.get(viewport) === entity) return;
+  releaseFocusOf(viewport);
+  FOCUS_OWNER.set(viewport, entity);
+  godot_object_signal<[]>(entity, 'focus_entered').emit();
+}
+
+/**
+ * Lets go of the viewport's focus, if the node holds it; outside the tree it fails.
+ *
+ * @godot Control.release_focus
+ * @source scene/gui/control.cpp:3020
+ */
+export function release_focus(self: object): void {
+  const entity = entityOf(self);
+  stateOf(self, 'release_focus');
+  if (!is_inside_tree(entity) || !hasFocus(entity)) return;
+  releaseFocusOf(focusViewport(entity) as Object3D);
+}
+
+/** The Control a focus path names, or null (`get_node_or_null` then the Control cast). */
+function focusPath(entity: Object3D, path: string): Object3D | null {
+  const node = get_node_or_null(entity, path);
+  if (node === null || typeof node !== 'object') return null;
+  const target = godot_node_entity(node) as Object3D;
+  return CONTROLS.has(target) ? target : null;
+}
+
+/** A Control child that focus search visits: visible in the tree and not top-level. */
+function searchable(node: Object3D | undefined): node is Object3D {
+  return node !== undefined && CONTROLS.has(node) && is_visible_in_tree(node) && !is_set_as_top_level(node);
+}
+
+/** `_next_control` (`control.cpp:3032`): the next searchable sibling, else the parent's. */
+function nextControl(from: Object3D): Object3D | null {
+  if (is_set_as_top_level(from)) return null;
+  const parent = parentControl(from);
+  if (parent === null) return null;
+  const siblings = parent.children;
+  for (let i = siblings.indexOf(from) + 1; i < siblings.length; i += 1) if (searchable(siblings[i])) return siblings[i] as Object3D;
+  return nextControl(parent);
+}
+
+/** `_prev_control` (`control.cpp:3148`): the last searchable descendant along the last children. */
+function prevControl(from: Object3D): Object3D {
+  const children = from.children;
+  for (let i = children.length - 1; i >= 0; i -= 1) if (searchable(children[i])) return prevControl(children[i] as Object3D);
+  return from;
+}
+
+/** The root Control above a node (`data.RI`): the last Control up the parents, or a top-level one. */
+function rootControl(entity: Object3D): Object3D {
+  let node = entity;
+  while (!is_set_as_top_level(node)) {
+    const parent = parentControl(node);
+    if (parent === null) break;
+    node = parent;
+  }
+  return node;
+}
+
+/** The root Controls beside a root Control under its parent (`data.parent_window`'s children). */
+function rootSiblings(root: Object3D): Object3D[] {
+  return root.parent === null ? [root] : root.parent.children.filter((child) => CONTROLS.has(child));
+}
+
+/**
+ * The next Control in tree order that takes focus from the keyboard (`FOCUS_ALL`): `focus_next`
+ * when it names a focusable Control, else the first child, the next sibling up the parents, and
+ * the next root Control in the viewport, wrapping around.
+ *
+ * @godot Control.find_next_valid_focus
+ * @source scene/gui/control.cpp:3057
+ */
+export function find_next_valid_focus(self: object): object | null {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'find_next_valid_focus');
+  if (state.focusNext !== '') {
+    const named = focusPath(entity, state.focusNext);
+    if (named === null) return null;
+    if (focusable(named)) return godot_node_object(named);
+  }
+  let from = entity;
+  const checked = new Set<Object3D>([from]);
+  let windowNext = -1;
+  for (;;) {
+    let next: Object3D | null = from.children.find(searchable) ?? null;
+    if (next === null) {
+      next = nextControl(from);
+      if (next === null) {
+        const root = rootControl(entity);
+        const roots = rootSiblings(root);
+        if (windowNext === -1) windowNext = roots.indexOf(root);
+        for (let i = 1; i < roots.length + 1; i += 1) {
+          const index = (((windowNext + i) % roots.length) + roots.length) % roots.length;
+          const candidate = roots[index];
+          if (!searchable(candidate)) continue;
+          windowNext = index;
+          next = candidate;
+          break;
+        }
+      }
+    }
+    if (next === null) return null;
+    if (focusModeWithOverride(next) === FOCUS_ALL) return godot_node_object(next);
+    if (checked.has(next)) return null;
+    checked.add(next);
+    from = next;
+  }
+}
+
+/**
+ * The previous Control in tree order that takes focus from the keyboard: `focus_previous` when it
+ * names a focusable Control, else the previous sibling's last descendant, the parent, and the
+ * previous root Control in the viewport, wrapping around.
+ *
+ * @godot Control.find_prev_valid_focus
+ * @source scene/gui/control.cpp:3164
+ */
+export function find_prev_valid_focus(self: object): object | null {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'find_prev_valid_focus');
+  if (state.focusPrevious !== '') {
+    const named = focusPath(entity, state.focusPrevious);
+    if (named === null) return null;
+    if (focusable(named)) return godot_node_object(named);
+  }
+  let from = entity;
+  const checked = new Set<Object3D>([from]);
+  let windowPrev = -1;
+  for (;;) {
+    let prev: Object3D | null = null;
+    const parent = parentControl(from);
+    if (is_set_as_top_level(from) || parent === null) {
+      const roots = rootSiblings(from);
+      if (windowPrev === -1) windowPrev = roots.indexOf(from);
+      for (let i = 1; i < roots.length + 1; i += 1) {
+        const index = (((windowPrev - i) % roots.length) + roots.length) % roots.length;
+        const candidate = roots[index];
+        if (!searchable(candidate)) continue;
+        windowPrev = index;
+        prev = prevControl(candidate);
+        break;
+      }
+      prev ??= prevControl(from);
+    } else {
+      const siblings = (from.parent as Object3D).children;
+      for (let i = siblings.indexOf(from) - 1; i >= 0; i -= 1) {
+        if (!searchable(siblings[i])) continue;
+        prev = siblings[i] as Object3D;
+        break;
+      }
+      prev = prev === null ? parent : prevControl(prev);
+    }
+    if (focusModeWithOverride(prev) === FOCUS_ALL) return godot_node_object(prev);
+    if (checked.has(prev)) return null;
+    checked.add(prev);
+    from = prev;
+  }
+}
+
+/** `MAX_NEIGHBOR_SEARCH_COUNT` (`control.cpp:3283`). */
+const MAX_NEIGHBOR_SEARCH_COUNT = 512;
+const FOCUS_DIRECTIONS = [vector2(-1, 0), vector2(0, -1), vector2(1, 0), vector2(0, 1)] as const;
+
+/**
+ * `_window_find_focus_neighbor` (`control.cpp:3409`): the keyboard-focusable Control past `min`
+ * along `dir` whose rect lies nearest the node's.
+ */
+function findFocusNeighbor(self: Object3D, dir: Vector2, at: Object3D, rect: Rect2, min: number, best: { control: Object3D | null; distance: number }): void {
+  if ((at as { readonly isScene?: boolean }).isScene === true) return;
+  if (CONTROLS.has(at) && at !== self && focusModeWithOverride(at) === FOCUS_ALL) {
+    const r = get_global_rect(at);
+    const begin = f32(f32(dir.x * r.position.x) + f32(dir.y * r.position.y));
+    const end = f32(f32(dir.x * f32(r.position.x + r.size.x)) + f32(dir.y * f32(r.position.y + r.size.y)));
+    if (Math.max(begin, end) > f32(min + CMP_EPSILON)) {
+      const cx = f32(f32(r.position.x + r.size.x / 2) - f32(rect.position.x + rect.size.x / 2));
+      const cy = f32(f32(r.position.y + r.size.y / 2) - f32(rect.position.y + rect.size.y / 2));
+      const abx = f32(Math.abs(cx) - 0.5 * r.size.x - 0.5 * rect.size.x);
+      const aby = f32(Math.abs(cy) - 0.5 * r.size.y - 0.5 * rect.size.y);
+      const distance = (abx > 0 ? abx * abx : 0) + (aby > 0 ? aby * aby : 0);
+      if (distance < best.distance || best.control === null) {
+        best.distance = distance;
+        best.control = at;
+      } else if (distance === best.distance) {
+        // The tie goes to the Control most aligned with the direction.
+        const closest = get_global_rect(best.control);
+        const ox = f32(closest.position.x + closest.size.x / 2) - f32(rect.position.x + rect.size.x / 2);
+        const oy = f32(closest.position.y + closest.size.y / 2) - f32(rect.position.y + rect.size.y / 2);
+        if (Math.abs(dir.x * cy - dir.y * cx) < Math.abs(dir.x * oy - dir.y * ox)) best.control = at;
+      }
+    }
+  }
+  for (const child of at.children) {
+    if (CONTROLS.has(child) && !is_visible_in_tree(child)) continue;
+    findFocusNeighbor(self, dir, child, rect, min, best);
+  }
+}
+
+/** `_get_focus_neighbor` (`control.cpp:3285`). */
+function focusNeighbor(entity: Object3D, side: number, count: number): Object3D | null {
+  if (count >= MAX_NEIGHBOR_SEARCH_COUNT) return null;
+  const state = CONTROLS.get(entity) as ControlState;
+  const path = state.focusNeighbor[side] as string;
+  if (path !== '') {
+    const named = focusPath(entity, path);
+    if (named === null) return null;
+    return focusable(named) ? named : focusNeighbor(named, side, count + 1);
+  }
+  const dir = FOCUS_DIRECTIONS[side] as Vector2;
+  const rect = get_global_rect(entity);
+  const begin = f32(f32(dir.x * rect.position.x) + f32(dir.y * rect.position.y));
+  const end = f32(f32(dir.x * f32(rect.position.x + rect.size.x)) + f32(dir.y * f32(rect.position.y + rect.size.y)));
+  const best = { control: null as Object3D | null, distance: 1e14 };
+  findFocusNeighbor(entity, dir, rootControl(entity), rect, Math.max(begin, end), best);
+  return best.control;
+}
+
+/**
+ * The Control focus moves to from this one toward `side`: the neighbour its path names (or that
+ * one's own, when it cannot take focus), else the nearest keyboard-focusable Control past the node's
+ * edge within its root Control.
+ *
+ * @godot Control.find_valid_focus_neighbor
+ * @source scene/gui/control.cpp:3405
+ */
+export function find_valid_focus_neighbor(self: object, p_side: number): object | null {
+  stateOf(self, 'find_valid_focus_neighbor');
+  if (p_side < 0 || p_side > 3) return null;
+  const found = focusNeighbor(entityOf(self), p_side, 0);
+  return found === null ? null : godot_node_object(found);
+}
+
+/**
+ * An index outside the four sides fails.
+ *
+ * @godot Control.set_focus_neighbor
+ * @source scene/gui/control.cpp:3251
+ */
+export function set_focus_neighbor(self: object, p_side: number, p_neighbor: string): void {
+  if (p_side < 0 || p_side > 3) return;
+  stateOf(self, 'set_focus_neighbor').focusNeighbor[p_side] = String(p_neighbor);
+}
+
+/**
+ * @godot Control.get_focus_neighbor
+ * @source scene/gui/control.cpp:3257
+ */
+export function get_focus_neighbor(self: object, p_side: number): string {
+  if (p_side < 0 || p_side > 3) return '';
+  return stateOf(self, 'get_focus_neighbor').focusNeighbor[p_side] as string;
+}
+
+/**
+ * @godot Control.set_focus_next
+ * @source scene/gui/control.cpp:3263
+ */
+export function set_focus_next(self: object, p_next: string): void {
+  stateOf(self, 'set_focus_next').focusNext = String(p_next);
+}
+
+/**
+ * @godot Control.get_focus_next
+ * @source scene/gui/control.cpp:3268
+ */
+export function get_focus_next(self: object): string {
+  return stateOf(self, 'get_focus_next').focusNext;
+}
+
+/**
+ * @godot Control.set_focus_previous
+ * @source scene/gui/control.cpp:3273
+ */
+export function set_focus_previous(self: object, p_prev: string): void {
+  stateOf(self, 'set_focus_previous').focusPrevious = String(p_prev);
+}
+
+/**
+ * @godot Control.get_focus_previous
+ * @source scene/gui/control.cpp:3278
+ */
+export function get_focus_previous(self: object): string {
+  return stateOf(self, 'get_focus_previous').focusPrevious;
+}
+
+// --- Theme items.
+
+/** Whether the override applies to the asked type: none named, the node's class, or its variation. */
+function overridesApply(entity: Object3D, state: ControlState, themeType: string): boolean {
+  return themeType === '' || themeType === state.themeTypeVariation || godot_control_is(entity, themeType);
+}
+
+/** The default theme's item for the node's class, when the asked type is the node's own. */
+function defaultItem<Value>(entity: Object3D, state: ControlState, themeType: string, items: Readonly<Record<string, Value>> | undefined, name: string): Value | undefined {
+  if (themeType !== '' && !godot_control_is(entity, themeType)) return undefined;
+  return items !== undefined && Object.hasOwn(items, name) ? items[name] : undefined;
+}
+
+/**
+ * The node's color override, else the default theme's for its class, else `Color()`.
+ *
+ * @godot Control.get_theme_color
+ * @source scene/gui/control.cpp:3768
+ */
+export function get_theme_color(self: object, p_name: string, p_theme_type = ''): Color {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'get_theme_color');
+  if (overridesApply(entity, state, p_theme_type) && state.colorOverrides.has(p_name)) return state.colorOverrides.get(p_name) as Color;
+  return defaultItem(entity, state, p_theme_type, state.virtuals.themeColors, p_name) ?? color();
+}
+
+/**
+ * The node's font size override, else the default theme's for its class, else the default font
+ * size (16, `ThemeDB::fallback_font_size`).
+ *
+ * @godot Control.get_theme_font_size
+ * @source scene/gui/control.cpp:3744
+ */
+export function get_theme_font_size(self: object, p_name: string, p_theme_type = ''): number {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'get_theme_font_size');
+  if (overridesApply(entity, state, p_theme_type) && state.fontSizeOverrides.has(p_name)) return state.fontSizeOverrides.get(p_name) as number;
+  return defaultItem(entity, state, p_theme_type, state.virtuals.themeFontSizes, p_name) ?? DEFAULT_FONT_SIZE;
+}
+
+/**
+ * The node's font override, else the default theme's font (every class's font is the default one).
+ *
+ * @godot Control.get_theme_font
+ * @source scene/gui/control.cpp:3720
+ */
+export function get_theme_font(self: object, p_name: string, p_theme_type = ''): unknown {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'get_theme_font');
+  if (overridesApply(entity, state, p_theme_type) && state.fontOverrides.has(p_name)) return state.fontOverrides.get(p_name);
+  return godot_font_default();
+}
+
+/**
+ * The node's icon override, else null (no default-theme icons are bound).
+ *
+ * @godot Control.get_theme_icon
+ * @source scene/gui/control.cpp:3672
+ */
+export function get_theme_icon(self: object, p_name: string, p_theme_type = ''): unknown {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'get_theme_icon');
+  if (overridesApply(entity, state, p_theme_type) && state.iconOverrides.has(p_name)) return state.iconOverrides.get(p_name);
+  return null;
+}
+
+/**
+ * The node's stylebox override, else null (no default-theme styleboxes are bound).
+ *
+ * @godot Control.get_theme_stylebox
+ * @source scene/gui/control.cpp:3696
+ */
+export function get_theme_stylebox(self: object, p_name: string, p_theme_type = ''): unknown {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'get_theme_stylebox');
+  if (overridesApply(entity, state, p_theme_type) && state.styleboxOverrides.has(p_name)) return state.styleboxOverrides.get(p_name);
+  return null;
+}
+
+/**
+ * @godot Control.has_theme_color
+ * @source scene/gui/control.cpp:3949
+ */
+export function has_theme_color(self: object, p_name: string, p_theme_type = ''): boolean {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'has_theme_color');
+  return (overridesApply(entity, state, p_theme_type) && state.colorOverrides.has(p_name)) || defaultItem(entity, state, p_theme_type, state.virtuals.themeColors, p_name) !== undefined;
+}
+
+/**
+ * @godot Control.has_theme_font_size
+ * @source scene/gui/control.cpp:3932
+ */
+export function has_theme_font_size(self: object, p_name: string, p_theme_type = ''): boolean {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'has_theme_font_size');
+  return (overridesApply(entity, state, p_theme_type) && state.fontSizeOverrides.has(p_name)) || defaultItem(entity, state, p_theme_type, state.virtuals.themeFontSizes, p_name) !== undefined;
+}
+
+/**
+ * @godot Control.has_theme_constant
+ * @source scene/gui/control.cpp:3966
+ */
+export function has_theme_constant(self: object, p_name: string, p_theme_type = ''): boolean {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'has_theme_constant');
+  return (overridesApply(entity, state, p_theme_type) && state.constantOverrides.has(p_name)) || defaultItem(entity, state, p_theme_type, state.virtuals.themeConstants, p_name) !== undefined;
+}
+
+/**
+ * @godot Control.has_theme_font
+ * @source scene/gui/control.cpp:3915
+ */
+export function has_theme_font(self: object, p_name: string, p_theme_type = ''): boolean {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'has_theme_font');
+  return overridesApply(entity, state, p_theme_type) && state.fontOverrides.has(p_name);
+}
+
+/**
+ * @godot Control.has_theme_icon
+ * @source scene/gui/control.cpp:3881
+ */
+export function has_theme_icon(self: object, p_name: string, p_theme_type = ''): boolean {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'has_theme_icon');
+  return overridesApply(entity, state, p_theme_type) && state.iconOverrides.has(p_name);
+}
+
+/**
+ * @godot Control.has_theme_stylebox
+ * @source scene/gui/control.cpp:3898
+ */
+export function has_theme_stylebox(self: object, p_name: string, p_theme_type = ''): boolean {
+  const entity = entityOf(self);
+  const state = stateOf(self, 'has_theme_stylebox');
+  return overridesApply(entity, state, p_theme_type) && state.styleboxOverrides.has(p_name);
+}
+
+/** `ThemeDB::fallback_font_size` (`scene/theme/theme_db.cpp`), the default theme's font size. */
+const DEFAULT_FONT_SIZE = 16;
+
+/** An override setter: the item into its map, then `_notify_theme_override_changed`. */
+function addOverride<Value>(self: object, member: string, pick: (state: ControlState) => Map<string, Value>, name: string, value: Value): void {
+  pick(stateOf(self, member)).set(name, value);
+  themeOverrideChanged(entityOf(self));
+}
+
+function removeOverride(self: object, member: string, pick: (state: ControlState) => Map<string, unknown>, name: string): void {
+  pick(stateOf(self, member)).delete(name);
+  themeOverrideChanged(entityOf(self));
+}
+
+/**
+ * @godot Control.add_theme_color_override
+ * @source scene/gui/control.cpp:4030
+ */
+export function add_theme_color_override(self: object, p_name: string, p_color: Color): void {
+  addOverride(self, 'add_theme_color_override', (state) => state.colorOverrides, p_name, p_color);
+}
+
+/**
+ * @godot Control.add_theme_font_size_override
+ * @source scene/gui/control.cpp:4024
+ */
+export function add_theme_font_size_override(self: object, p_name: string, p_font_size: number): void {
+  addOverride(self, 'add_theme_font_size_override', (state) => state.fontSizeOverrides, p_name, Math.trunc(p_font_size));
+}
+
+/**
+ * A null font fails (`RequiredParam`).
+ *
+ * @godot Control.add_theme_font_override
+ * @source scene/gui/control.cpp:4011
+ */
+export function add_theme_font_override(self: object, p_name: string, p_font: GodotFont | null): void {
+  if (p_font === null) return;
+  addOverride<unknown>(self, 'add_theme_font_override', (state) => state.fontOverrides, p_name, p_font);
+}
+
+/**
+ * A null texture fails (`RequiredParam`).
+ *
+ * @godot Control.add_theme_icon_override
+ * @source scene/gui/control.cpp:3985
+ */
+export function add_theme_icon_override(self: object, p_name: string, p_icon: object | null): void {
+  if (p_icon === null) return;
+  addOverride<unknown>(self, 'add_theme_icon_override', (state) => state.iconOverrides, p_name, p_icon);
+}
+
+/**
+ * A null stylebox fails (`RequiredParam`).
+ *
+ * @godot Control.add_theme_stylebox_override
+ * @source scene/gui/control.cpp:3998
+ */
+export function add_theme_stylebox_override(self: object, p_name: string, p_stylebox: object | null): void {
+  if (p_stylebox === null) return;
+  addOverride<unknown>(self, 'add_theme_stylebox_override', (state) => state.styleboxOverrides, p_name, p_stylebox);
+}
+
+/**
+ * @godot Control.remove_theme_color_override
+ * @source scene/gui/control.cpp:4078
+ */
+export function remove_theme_color_override(self: object, p_name: string): void {
+  removeOverride(self, 'remove_theme_color_override', (state) => state.colorOverrides, p_name);
+}
+
+/**
+ * @godot Control.remove_theme_font_size_override
+ * @source scene/gui/control.cpp:4072
+ */
+export function remove_theme_font_size_override(self: object, p_name: string): void {
+  removeOverride(self, 'remove_theme_font_size_override', (state) => state.fontSizeOverrides, p_name);
+}
+
+/**
+ * @godot Control.remove_theme_font_override
+ * @source scene/gui/control.cpp:4062
+ */
+export function remove_theme_font_override(self: object, p_name: string): void {
+  removeOverride(self, 'remove_theme_font_override', (state) => state.fontOverrides, p_name);
+}
+
+/**
+ * @godot Control.remove_theme_icon_override
+ * @source scene/gui/control.cpp:4042
+ */
+export function remove_theme_icon_override(self: object, p_name: string): void {
+  removeOverride(self, 'remove_theme_icon_override', (state) => state.iconOverrides, p_name);
+}
+
+/**
+ * @godot Control.remove_theme_stylebox_override
+ * @source scene/gui/control.cpp:4052
+ */
+export function remove_theme_stylebox_override(self: object, p_name: string): void {
+  removeOverride(self, 'remove_theme_stylebox_override', (state) => state.styleboxOverrides, p_name);
+}
+
+/**
+ * @godot Control.has_theme_color_override
+ * @source scene/gui/control.cpp:4114
+ */
+export function has_theme_color_override(self: object, p_name: string): boolean {
+  return stateOf(self, 'has_theme_color_override').colorOverrides.has(p_name);
+}
+
+/**
+ * @godot Control.has_theme_font_size_override
+ * @source scene/gui/control.cpp:4108
+ */
+export function has_theme_font_size_override(self: object, p_name: string): boolean {
+  return stateOf(self, 'has_theme_font_size_override').fontSizeOverrides.has(p_name);
+}
+
+/**
+ * @godot Control.has_theme_font_override
+ * @source scene/gui/control.cpp:4102
+ */
+export function has_theme_font_override(self: object, p_name: string): boolean {
+  return stateOf(self, 'has_theme_font_override').fontOverrides.has(p_name);
+}
+
+/**
+ * @godot Control.has_theme_icon_override
+ * @source scene/gui/control.cpp:4090
+ */
+export function has_theme_icon_override(self: object, p_name: string): boolean {
+  return stateOf(self, 'has_theme_icon_override').iconOverrides.has(p_name);
+}
+
+/**
+ * @godot Control.has_theme_stylebox_override
+ * @source scene/gui/control.cpp:4096
+ */
+export function has_theme_stylebox_override(self: object, p_name: string): boolean {
+  return stateOf(self, 'has_theme_stylebox_override').styleboxOverrides.has(p_name);
+}
+
+/**
+ * Override changes made until `end_bulk_theme_override` announce the theme change once.
+ *
+ * @godot Control.begin_bulk_theme_override
+ * @source scene/gui/control.cpp:4145
+ */
+export function begin_bulk_theme_override(self: object): void {
+  stateOf(self, 'begin_bulk_theme_override').bulkThemeOverride = true;
+}
+
+/**
+ * Fails outside a bulk override; else the theme change is announced.
+ *
+ * @godot Control.end_bulk_theme_override
+ * @source scene/gui/control.cpp:4150
+ */
+export function end_bulk_theme_override(self: object): void {
+  const state = stateOf(self, 'end_bulk_theme_override');
+  if (!state.bulkThemeOverride) return;
+  state.bulkThemeOverride = false;
+  themeOverrideChanged(entityOf(self));
+}
+
+/**
+ * The default theme's base scale, 1.
+ *
+ * @godot Control.get_theme_default_base_scale
+ * @source scene/gui/control.cpp:4128
+ */
+export function get_theme_default_base_scale(self: object): number {
+  stateOf(self, 'get_theme_default_base_scale');
+  return 1;
+}
+
+/**
+ * The default theme's font (`font.ts`).
+ *
+ * @godot Control.get_theme_default_font
+ * @source scene/gui/control.cpp:4133
+ */
+export function get_theme_default_font(self: object): GodotFont {
+  stateOf(self, 'get_theme_default_font');
+  return godot_font_default();
+}
+
+/**
+ * The default theme's font size, 16.
+ *
+ * @godot Control.get_theme_default_font_size
+ * @source scene/gui/control.cpp:4138
+ */
+export function get_theme_default_font_size(self: object): number {
+  stateOf(self, 'get_theme_default_font_size');
+  return DEFAULT_FONT_SIZE;
+}
+
+/**
+ * Kept and read back; the node's theme changes (`NOTIFICATION_THEME_CHANGED`). The Theme's own
+ * items are not looked up (the module header).
+ *
+ * @godot Control.set_theme
+ * @source scene/gui/control.cpp:3617
+ */
+export function set_theme(self: object, p_theme: object | null): void {
+  const state = stateOf(self, 'set_theme');
+  if (state.theme === p_theme) return;
+  state.theme = p_theme;
+  if (is_inside_tree(state.entity)) themeChanged(state.entity);
+}
+
+/**
+ * @godot Control.get_theme
+ * @source scene/gui/control.cpp:3649
+ */
+export function get_theme(self: object): object | null {
+  return stateOf(self, 'get_theme').theme;
+}
+
+/**
+ * The type the node's overrides also answer for; the theme changes.
+ *
+ * @godot Control.set_theme_type_variation
+ * @source scene/gui/control.cpp:3654
+ */
+export function set_theme_type_variation(self: object, p_theme_type: string): void {
+  const state = stateOf(self, 'set_theme_type_variation');
+  if (state.themeTypeVariation === p_theme_type) return;
+  state.themeTypeVariation = String(p_theme_type);
+  if (is_inside_tree(state.entity)) themeChanged(state.entity);
+}
+
+/**
+ * @godot Control.get_theme_type_variation
+ * @source scene/gui/control.cpp:3665
+ */
+export function get_theme_type_variation(self: object): string {
+  return stateOf(self, 'get_theme_type_variation').themeTypeVariation;
+}
+
+// --- Cursor, tooltip, translation and layout direction.
+
+/**
+ * The shape the pointer takes over the node, kept and read back (`CursorShape`, 17 of them); the
+ * root viewport binds no cursor shapes over Controls (`viewport.ts`).
+ *
+ * @godot Control.set_default_cursor_shape
+ * @source scene/gui/control.cpp:3508
+ */
+export function set_default_cursor_shape(self: object, p_shape: number): void {
+  if (p_shape < 0 || p_shape >= 17) return;
+  stateOf(self, 'set_default_cursor_shape').defaultCursorShape = p_shape;
+}
+
+/**
+ * @godot Control.get_default_cursor_shape
+ * @source scene/gui/control.cpp:3528
+ */
+export function get_default_cursor_shape(self: object): number {
+  return stateOf(self, 'get_default_cursor_shape').defaultCursorShape;
+}
+
+/**
+ * The default cursor shape (Control has no `_get_cursor_shape` of its own).
+ *
+ * @godot Control.get_cursor_shape
+ * @source scene/gui/control.cpp:3533
+ */
+export function get_cursor_shape(self: object, p_pos: Vector2 = vector2()): number {
+  void p_pos;
+  return get_default_cursor_shape(self);
+}
+
+/**
+ * @godot Control.set_tooltip_text
+ * @source scene/gui/control.cpp:4315
+ */
+export function set_tooltip_text(self: object, p_hint: string): void {
+  stateOf(self, 'set_tooltip_text').tooltipText = String(p_hint);
+}
+
+/**
+ * @godot Control.get_tooltip_text
+ * @source scene/gui/control.cpp:4321
+ */
+export function get_tooltip_text(self: object): string {
+  return stateOf(self, 'get_tooltip_text').tooltipText;
+}
+
+/**
+ * The tooltip text (Control has no `_get_tooltip` of its own).
+ *
+ * @godot Control.get_tooltip
+ * @source scene/gui/control.cpp:4343
+ */
+export function get_tooltip(self: object, p_at_position: Vector2 = vector2()): string {
+  void p_at_position;
+  return get_tooltip_text(self);
+}
+
+/**
+ * @godot Control.set_tooltip_auto_translate_mode
+ * @source scene/gui/control.cpp:4294
+ */
+export function set_tooltip_auto_translate_mode(self: object, p_mode: number): void {
+  stateOf(self, 'set_tooltip_auto_translate_mode').tooltipAutoTranslateMode = p_mode;
+}
+
+/**
+ * @godot Control.get_tooltip_auto_translate_mode
+ * @source scene/gui/control.cpp:4299
+ */
+export function get_tooltip_auto_translate_mode(self: object): number {
+  return stateOf(self, 'get_tooltip_auto_translate_mode').tooltipAutoTranslateMode;
+}
+
+/**
+ * @godot Control.set_translation_context
+ * @source scene/gui/control.cpp:4326
+ */
+export function set_translation_context(self: object, p_context: string): void {
+  stateOf(self, 'set_translation_context').translationContext = String(p_context);
+}
+
+/**
+ * @godot Control.get_translation_context
+ * @source scene/gui/control.cpp:4331
+ */
+export function get_translation_context(self: object): string {
+  return stateOf(self, 'get_translation_context').translationContext;
+}
+
+/**
+ * The deprecated switch for the node's auto translation (`AUTO_TRANSLATE_MODE_ALWAYS` or
+ * `DISABLED`).
+ *
+ * @godot Control.set_auto_translate
+ * @source scene/gui/control.cpp:4283
+ */
+export function set_auto_translate(self: object, p_enable: boolean): void {
+  stateOf(self, 'set_auto_translate').autoTranslate = Boolean(p_enable);
+}
+
+/**
+ * @godot Control.is_auto_translating
+ * @source scene/gui/control.cpp:4288
+ */
+export function is_auto_translating(self: object): boolean {
+  return stateOf(self, 'is_auto_translating').autoTranslate;
+}
+
+/**
+ * @godot Control.set_localize_numeral_system
+ * @source scene/gui/control.cpp:4266
+ */
+export function set_localize_numeral_system(self: object, p_enable: boolean): void {
+  stateOf(self, 'set_localize_numeral_system').localizeNumeralSystem = Boolean(p_enable);
+}
+
+/**
+ * @godot Control.is_localizing_numeral_system
+ * @source scene/gui/control.cpp:4277
+ */
+export function is_localizing_numeral_system(self: object): boolean {
+  return stateOf(self, 'is_localizing_numeral_system').localizeNumeralSystem;
+}
+
+/** `LayoutDirection` (`scene/gui/control.h:136`). */
+const LAYOUT_DIRECTION_INHERITED = 0;
+const LAYOUT_DIRECTION_LTR = 2;
+const LAYOUT_DIRECTION_RTL = 3;
+const LAYOUT_DIRECTION_MAX = 5;
+
+/**
+ * `LAYOUT_DIRECTION_INHERITED` (0), `APPLICATION_LOCALE` (1), `LTR` (2), `RTL` (3) or
+ * `SYSTEM_LOCALE` (4); another index fails.
+ *
+ * @godot Control.set_layout_direction
+ * @source scene/gui/control.cpp:4171
+ */
+export function set_layout_direction(self: object, p_direction: number): void {
+  if (p_direction < 0 || p_direction >= LAYOUT_DIRECTION_MAX) return;
+  stateOf(self, 'set_layout_direction').layoutDirection = p_direction;
+}
+
+/**
+ * @godot Control.get_layout_direction
+ * @source scene/gui/control.cpp:4183
+ */
+export function get_layout_direction(self: object): number {
+  return stateOf(self, 'get_layout_direction').layoutDirection;
+}
+
+/**
+ * `TextServer::is_locale_right_to_left` of the page's locale (`navigator.language`, which the web
+ * platform's `OS::get_locale` reads): a locale written in a right-to-left script.
+ */
+function localeRightToLeft(): boolean {
+  const locale = (globalThis as { readonly navigator?: { readonly language?: string } }).navigator?.language ?? 'en';
+  const language = locale.toLowerCase().split(/[-_]/u)[0] ?? '';
+  return ['ar', 'he', 'fa', 'ur', 'ps', 'sd', 'ug', 'yi', 'dv', 'ckb', 'syr', 'nqo'].includes(language);
+}
+
+/**
+ * Right to left when set so; inherited from the parent Control, else the root's direction, the
+ * locale's; the locale's for the locale modes. The layout itself stays left to right (the module
+ * header).
+ *
+ * @godot Control.is_layout_rtl
+ * @source scene/gui/control.cpp:4188
+ */
+export function is_layout_rtl(self: object): boolean {
+  const state = stateOf(self, 'is_layout_rtl');
+  if (state.layoutDirection === LAYOUT_DIRECTION_RTL) return true;
+  if (state.layoutDirection === LAYOUT_DIRECTION_LTR) return false;
+  if (state.layoutDirection === LAYOUT_DIRECTION_INHERITED) {
+    const parent = parentControl(state.entity);
+    if (parent !== null) return is_layout_rtl(parent);
+  }
+  return localeRightToLeft();
+}
+
+// --- Accessibility: kept and read back (the page's accessibility tree is not built from them).
+
+/**
+ * @godot Control.set_accessibility_name
+ * @source scene/gui/control.cpp:2799
+ */
+export function set_accessibility_name(self: object, p_name: string): void {
+  stateOf(self, 'set_accessibility_name').accessibility.name = String(p_name);
+}
+
+/**
+ * @godot Control.get_accessibility_name
+ * @source scene/gui/control.cpp:2808
+ */
+export function get_accessibility_name(self: object): string {
+  return stateOf(self, 'get_accessibility_name').accessibility.name;
+}
+
+/**
+ * @godot Control.set_accessibility_description
+ * @source scene/gui/control.cpp:2812
+ */
+export function set_accessibility_description(self: object, p_description: string): void {
+  stateOf(self, 'set_accessibility_description').accessibility.description = String(p_description);
+}
+
+/**
+ * @godot Control.get_accessibility_description
+ * @source scene/gui/control.cpp:2820
+ */
+export function get_accessibility_description(self: object): string {
+  return stateOf(self, 'get_accessibility_description').accessibility.description;
+}
+
+/**
+ * @godot Control.set_accessibility_live
+ * @source scene/gui/control.cpp:2824
+ */
+export function set_accessibility_live(self: object, p_mode: number): void {
+  stateOf(self, 'set_accessibility_live').accessibility.live = p_mode;
+}
+
+/**
+ * @godot Control.get_accessibility_live
+ * @source scene/gui/control.cpp:2832
+ */
+export function get_accessibility_live(self: object): number {
+  return stateOf(self, 'get_accessibility_live').accessibility.live;
+}
+
+/**
+ * @godot Control.set_accessibility_controls_nodes
+ * @source scene/gui/control.cpp:2836
+ */
+export function set_accessibility_controls_nodes(self: object, p_node_path: string[]): void {
+  stateOf(self, 'set_accessibility_controls_nodes').accessibility.controls = p_node_path;
+}
+
+/**
+ * @godot Control.get_accessibility_controls_nodes
+ * @source scene/gui/control.cpp:2844
+ */
+export function get_accessibility_controls_nodes(self: object): string[] {
+  return stateOf(self, 'get_accessibility_controls_nodes').accessibility.controls;
+}
+
+/**
+ * @godot Control.set_accessibility_described_by_nodes
+ * @source scene/gui/control.cpp:2848
+ */
+export function set_accessibility_described_by_nodes(self: object, p_node_path: string[]): void {
+  stateOf(self, 'set_accessibility_described_by_nodes').accessibility.describedBy = p_node_path;
+}
+
+/**
+ * @godot Control.get_accessibility_described_by_nodes
+ * @source scene/gui/control.cpp:2856
+ */
+export function get_accessibility_described_by_nodes(self: object): string[] {
+  return stateOf(self, 'get_accessibility_described_by_nodes').accessibility.describedBy;
+}
+
+/**
+ * @godot Control.set_accessibility_labeled_by_nodes
+ * @source scene/gui/control.cpp:2860
+ */
+export function set_accessibility_labeled_by_nodes(self: object, p_node_path: string[]): void {
+  stateOf(self, 'set_accessibility_labeled_by_nodes').accessibility.labeledBy = p_node_path;
+}
+
+/**
+ * @godot Control.get_accessibility_labeled_by_nodes
+ * @source scene/gui/control.cpp:2868
+ */
+export function get_accessibility_labeled_by_nodes(self: object): string[] {
+  return stateOf(self, 'get_accessibility_labeled_by_nodes').accessibility.labeledBy;
+}
+
+/**
+ * @godot Control.set_accessibility_flow_to_nodes
+ * @source scene/gui/control.cpp:2872
+ */
+export function set_accessibility_flow_to_nodes(self: object, p_node_path: string[]): void {
+  stateOf(self, 'set_accessibility_flow_to_nodes').accessibility.flowTo = p_node_path;
+}
+
+/**
+ * @godot Control.get_accessibility_flow_to_nodes
+ * @source scene/gui/control.cpp:2880
+ */
+export function get_accessibility_flow_to_nodes(self: object): string[] {
+  return stateOf(self, 'get_accessibility_flow_to_nodes').accessibility.flowTo;
 }
