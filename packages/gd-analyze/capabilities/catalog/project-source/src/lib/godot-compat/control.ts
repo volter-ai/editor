@@ -1727,6 +1727,7 @@ export function godot_control_props(): (readonly [string, GodotElementProp<Objec
     ['rotation', (entity, value: number) => set_rotation(entity, value)],
     ['scale', (entity, value: readonly [number, number]) => set_scale(entity, v2(value))],
     ['pivotOffset', (entity, value: readonly [number, number]) => set_pivot_offset(entity, v2(value))],
+    ['pivotOffsetRatio', (entity, value: readonly [number, number]) => set_pivot_offset_ratio(entity, v2(value))],
     ['sizeFlagsHorizontal', (entity, value: number) => set_h_size_flags(entity, value)],
     ['sizeFlagsVertical', (entity, value: number) => set_v_size_flags(entity, value)],
     ['sizeFlagsStretchRatio', (entity, value: number) => set_stretch_ratio(entity, value)],

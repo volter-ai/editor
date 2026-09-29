@@ -42,6 +42,18 @@ export const GODOT_4_7_TEXTURE_RESOURCE_RULES: readonly (GodotSceneResourceRule 
   },
   {
     sourceRevision: REVISION,
+    className: 'StyleBoxFlat',
+    construct: { module: 'lib/godot-compat/style-box-flat', exportName: 'godot_style_box_flat_new' },
+    source: { file: 'scene/resources/style_box_flat.cpp', symbol: 'StyleBoxFlat::draw', line: 456 },
+  },
+  {
+    sourceRevision: REVISION,
+    className: 'StyleBoxLine',
+    construct: { module: 'lib/godot-compat/style-box-line', exportName: 'godot_style_box_line_new' },
+    source: { file: 'scene/resources/style_box_line.cpp', symbol: 'StyleBoxLine::draw', line: 94 },
+  },
+  {
+    sourceRevision: REVISION,
     className: 'ButtonGroup',
     construct: { module: 'lib/godot-compat/button-group', exportName: 'construct' },
     source: { file: 'scene/gui/base_button.cpp', symbol: 'ButtonGroup::ButtonGroup', line: 645 },
