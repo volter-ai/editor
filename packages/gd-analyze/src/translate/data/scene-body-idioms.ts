@@ -288,39 +288,13 @@ export interface GodotSceneColliderPlan {
   readonly mass?: number;
 }
 
-/** The volume of a collider's bounding box, by which Godot shares a body's mass among its shapes. */
-function boundsVolume(collider: GodotSceneColliderPlan): number {
-  const values = collider.args.kind === 'flat' ? collider.args.values : (collider.args.values[0] ?? []);
-  const [a = 0, b = 0, c = 0] = values;
-  switch (collider.component) {
-    case 'CuboidCollider':
-      return 8 * a * b * c;
-    case 'BallCollider':
-      return (2 * a) ** 3;
-    case 'CapsuleCollider':
-      return (2 * b) ** 2 * (2 * a + 2 * b);
-    case 'CylinderCollider':
-      return (2 * b) ** 2 * 2 * a;
-    case 'ConvexHullCollider':
-    case 'TrimeshCollider': {
-      const extent = (axis: number) => {
-        const along = values.filter((_, index) => index % 3 === axis);
-        return along.length === 0 ? 0 : Math.max(...along) - Math.min(...along);
-      };
-      return extent(0) * extent(1) * extent(2);
-    }
-  }
-}
-
 /**
- * A dynamic body's mass shared among its colliders as Godot shares it: each shape's by the volume
- * of its bounding box (`GodotBody3D::update_mass_properties`, godot_body_3d.cpp:37, a shape's
- * `area` its AABB's volume), so Rapier's body has Godot's mass; equally when every box is flat.
+ * A dynamic body's mass as its colliders' masses, which is how a Rapier body states one: shared
+ * equally among them. Rapier's centre of mass is then its colliders' centre, where Godot weighs each
+ * shape by its size.
  */
 function colliderMasses(colliders: readonly GodotSceneColliderPlan[], mass: number): readonly number[] {
-  const volumes = colliders.map(boundsVolume);
-  const total = volumes.reduce((sum, volume) => sum + volume, 0);
-  return volumes.map((volume) => (total === 0 ? mass / colliders.length : (mass * volume) / total));
+  return colliders.map(() => mass / colliders.length);
 }
 
 const numberOf = (value: TargetGodotSceneValue | undefined): number | undefined => (value?.kind === 'number' ? value.value : undefined);
