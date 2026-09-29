@@ -162,7 +162,7 @@ const SCENE_LOADS = new Map<string, SceneLoad>();
 export function useGodotTexture(
   url: string,
   options: GodotTextureImport,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb?: boolean; readonly flipY?: boolean },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb?: boolean; readonly flipY?: boolean; readonly uv?: { readonly scale: readonly [number, number]; readonly offset: readonly [number, number] } },
 ): Texture {
   const key = `${url}\0${String(options.fixAlphaBorder)}:${String(options.premultAlpha)}:${String(options.mipmaps)}`;
   let load = SCENE_LOADS.get(key);
@@ -181,5 +181,6 @@ export function useGodotTexture(
   if (sampler === undefined) return load.texture;
   // A material on an imported model's own geometry samples the texture as the model's images are.
   const sampled = sampler.flipY === false ? godot_base_material_3d_model_map : godot_base_material_3d_scene_map;
+  if (sampler.flipY !== false && sampler.uv !== undefined) return godot_base_material_3d_scene_map(load.texture, sampler.filter, sampler.repeat, sampler.srgb ?? true, sampler.uv);
   return sampled(load.texture, sampler.filter, sampler.repeat, sampler.srgb ?? true);
 }

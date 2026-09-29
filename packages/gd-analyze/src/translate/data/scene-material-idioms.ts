@@ -47,7 +47,7 @@ export type GodotSceneMaterialPropValue =
    * material draws on an imported model's own geometry, whose UVs are the file's (glTF's origin is
    * the image's top row), so the texture is sampled as the model's own images are.
    */
-  | { readonly kind: 'map'; readonly texture: string; readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true }
+  | { readonly kind: 'map'; readonly texture: string; readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true; readonly uv?: { readonly scale: readonly [number, number]; readonly offset: readonly [number, number] } }
   /** The Godot-only values compat reads back, as `userData`. */
   | { readonly kind: 'user-data'; readonly entries: readonly { readonly key: string; readonly value: number | boolean | readonly number[] }[] }
   /** A compat function the material is handed once made (`onUpdate`). */
@@ -160,7 +160,11 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   const filter = num('set_texture_filter') ?? 3;
   const repeat = bool('set_flag', 16) ?? true;
   const texture = resource('set_texture', 0);
-  if (texture !== undefined) props.push({ name: 'map', value: { kind: 'map', texture, filter, repeat, srgb: true } });
+  // UV1's scale and offset move the albedo's UVs, where the map is not sampled triplanar.
+  const uvScale = components('set_uv1_scale');
+  const uvOffset = components('set_uv1_offset');
+  const uv = bool('set_flag', 6) !== true && (uvScale !== undefined || uvOffset !== undefined) ? { scale: [f32(uvScale?.[0] ?? 1), f32(uvScale?.[1] ?? 1)] as const, offset: [f32(uvOffset?.[0] ?? 0), f32(uvOffset?.[1] ?? 0)] as const } : undefined;
+  if (texture !== undefined) props.push({ name: 'map', value: { kind: 'map', texture, filter, repeat, srgb: true, ...(uv === undefined ? {} : { uv }) } });
   // `Transparency` (`material.h:198`): alpha and depth pre-pass, scissor, hash. Proximity fade reads
   // the scene's depth, which draws the material in the alpha pass, its albedo's alpha applied
   // (`material.cpp:1807`).

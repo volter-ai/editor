@@ -213,8 +213,18 @@ function sampledMap(texture: Texture, filter: number, repeat: boolean, flipY: bo
  * @godot BaseMaterial3D (protocol)
  * @source drivers/gles3/storage/texture_storage.h:255
  */
-export function godot_base_material_3d_scene_map(texture: Texture, filter: number, repeat: boolean, srgb = true): Texture {
-  return sampledMap(texture, filter, repeat, true, srgb);
+export function godot_base_material_3d_scene_map(texture: Texture, filter: number, repeat: boolean, srgb = true, uv?: { readonly scale: readonly [number, number]; readonly offset: readonly [number, number] }): Texture {
+  const map = sampledMap(texture, filter, repeat, true, srgb);
+  if (uv === undefined || (uv.scale[0] === 1 && uv.scale[1] === 1 && uv.offset[0] === 0 && uv.offset[1] === 0)) return map;
+  // `UV = UV * uv1_scale.xy + uv1_offset.xy` (`material.cpp:1245`) as the texture's own transform,
+  // on three's geometry, whose `v` runs up the image: its origin moves to where Godot's is.
+  const own = map.clone();
+  own.source = map.source;
+  own.repeat.set(uv.scale[0], uv.scale[1]);
+  own.offset.set(uv.offset[0], 1 - uv.scale[1] - uv.offset[1]);
+  VARIANT_OF.set(own, texture);
+  godot_texture_2d_image(own, () => get_image(texture));
+  return own;
 }
 
 /**

@@ -100,7 +100,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:16', 'set_param:17', 'set_param:18', 'set_shadow_mode', 'set_blend_splits'],
   OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
-  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size'],
+  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size', 'set_attributes'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
   CanvasLayer: ['set_meta:*', 'set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
   Control: CONTROL,
@@ -378,6 +378,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_flag:6',
     'set_flag:8',
     'set_uv1_triplanar_blend_sharpness',
+    'set_uv1_scale',
+    'set_uv1_offset',
     // Stored: the stencil effect draws only through `stencil_mode`, which has no prop.
     'set_stencil_flags',
     'set_stencil_effect_color',
@@ -485,6 +487,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Shader: [],
   // Its items are raw properties (`Type/colors/name`), the constructor's own (`theme.ts`).
   Theme: [],
+  // Its defaults only, which draw nothing (`camera-attributes-practical.ts`).
+  CameraAttributesPractical: [],
   CompressedCubemap: [],
   // The parameters a GPUParticles3D's emitter reads (`gpu-particles-3d.ts`); the rest (turbulence,
   // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, the other

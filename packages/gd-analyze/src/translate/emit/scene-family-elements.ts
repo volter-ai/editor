@@ -217,7 +217,7 @@ function assetUrl(resPath: string): string {
 function textureHook(
   emission: FamilyEmission,
   texture: TargetGodotSceneResourcePlan,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true; readonly uv?: { readonly scale: readonly [number, number]; readonly offset: readonly [number, number] } },
 ): string {
   const load = texture.load;
   if (load === undefined) throw new Error(`${texture.key}: a texture that is not an imported image`);
@@ -232,9 +232,9 @@ export function importedTextureHook(
   emission: FamilyEmission,
   resourceKey: string,
   load: NonNullable<TargetGodotSceneResourcePlan['load']>,
-  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true },
+  sampler?: { readonly filter: number; readonly repeat: boolean; readonly srgb: boolean; readonly model?: true; readonly uv?: { readonly scale: readonly [number, number]; readonly offset: readonly [number, number] } },
 ): string {
-  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}:${String(sampler.model === true)}`}`;
+  const key = `${resourceKey}\0${sampler === undefined ? '' : `${String(sampler.filter)}:${String(sampler.repeat)}:${String(sampler.srgb)}:${String(sampler.model === true)}:${JSON.stringify(sampler.uv ?? null)}`}`;
   const existing = emission.hookLocals.get(key);
   if (existing !== undefined) return existing;
   const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
@@ -260,6 +260,9 @@ export function importedTextureHook(
                   { key: 'repeat', value: literal(sampler.repeat) },
                   ...(sampler.srgb ? [] : [{ key: 'srgb', value: literal(false) }]),
                   ...(sampler.model === true ? [{ key: 'flipY', value: literal(false) }] : []),
+                  ...(sampler.uv === undefined
+                    ? []
+                    : [{ key: 'uv', value: { kind: 'object-expression' as const, properties: [{ key: 'scale', value: numbers(sampler.uv.scale) }, { key: 'offset', value: numbers(sampler.uv.offset) }] } }]),
                 ],
               },
             ]),
@@ -373,7 +376,7 @@ function materialProps(emission: FamilyEmission, idiom: GodotSceneMaterialIdiom,
       case 'map': {
         const texture = emission.resources.get(value.texture);
         if (texture === undefined) throw new Error(`${value.texture}: a texture the scene does not plan`);
-        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb, ...(value.model === true ? { model: true as const } : {}) };
+        const sampler = { filter: value.filter, repeat: value.repeat, srgb: value.srgb, ...(value.model === true ? { model: true as const } : {}), ...(value.uv === undefined ? {} : { uv: value.uv }) };
         return { name, value: identifier(texture.idiom?.kind === 'gradient-texture' ? gradientMap(emission, texture, value.filter, value.repeat, value.model === true) : textureHook(emission, texture, sampler)) };
       }
       case 'user-data':
