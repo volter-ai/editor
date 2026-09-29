@@ -219,6 +219,8 @@ export class BlenderRuntime {
       for (const id of [...this.#pending.keys()]) this.#settled(id);
       for (const pending of this.#pending.values()) pending.reject(error);
       this.#pending.clear();
+      // Queued logical operations must reject too; this worker cannot answer them.
+      this.terminate();
     };
   }
 

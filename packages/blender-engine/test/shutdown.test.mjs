@@ -282,3 +282,17 @@ test('rig continuations own the queue, then accepted edits drain before the clos
   await tick(); assert.equal(worker.messages[4].op, 'flush-document');
   worker.reply(worker.messages[4]); await stopping; assert.equal(worker.terminations, 1);
 });
+
+
+test('a worker failure rejects queued operations instead of posting to a dead worker', async t => {
+  fakeWorker(t);
+  const runtime = new BlenderRuntime({ present: () => ({}) });
+  const worker = FakeWorker.latest;
+  const start = runtime.start('/project'); await tick(); worker.reply(worker.messages[0]); await start;
+  const first = runtime.rig(), second = runtime.execute('queued'); await tick();
+  const rejected = Promise.all([assert.rejects(first, /worker failed/), assert.rejects(second, /terminated/)]);
+  worker.onerror({ message: 'fixture worker died' });
+  await rejected;
+  assert.deepEqual(worker.messages.map(m => m.op), ['start', 'rig']);
+  assert.equal(worker.terminations, 1);
+});
