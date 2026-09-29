@@ -35,7 +35,7 @@ export interface ColumnDescriptor {
   stride: number;
 }
 
-const isDescriptor = (value: unknown): value is ColumnDescriptor =>
+export const isColumnDescriptor = (value: unknown): value is ColumnDescriptor =>
   typeof value === 'object' &&
   value !== null &&
   typeof (value as ColumnDescriptor).offset === 'number' &&
@@ -97,7 +97,7 @@ function readColumn(arena: Uint8Array, name: string, descriptor: ColumnDescripto
  */
 export function columnsToTypedArrays(arena: Uint8Array, frame: unknown): unknown {
   const walk = (value: unknown, key: string): unknown => {
-    if (isDescriptor(value)) {
+    if (isColumnDescriptor(value)) {
       const view = readColumn(arena, key, value);
       return key === 'co' ? Float64Array.from(view) : view;
     }
@@ -144,7 +144,7 @@ export interface ColumnDigest {
  */
 export async function describeFrame(arena: Uint8Array, frame: unknown): Promise<unknown> {
   const walk = async (value: unknown, key: string): Promise<unknown> => {
-    if (isDescriptor(value)) {
+    if (isColumnDescriptor(value)) {
       const { offset, length, dtype } = value;
       if (offset < 0 || length < 0 || offset + length > arena.byteLength)
         throw new Error(

@@ -114,7 +114,24 @@ export interface BlenderEngineOptions {
    *  `saveDue` rides BESIDE the frame (the frame's own schema is the
    *  presenter's): this present left the session's `.blend` behind the model,
    *  and whoever answers owes it a save once the session goes idle. */
-  ask(payload: { frame: unknown; capture?: unknown; saveDue?: boolean }): Promise<unknown>;
+  ask(payload: SessionAsk): Promise<unknown>;
+}
+
+/**
+ * WHAT THE SESSION ASKS. A whole frame (`frame`), presented at once; or a frame in pieces
+ * (`session.py::_pull`): the frame whose changed meshes and pictures are deferred (`hold`), then
+ * each of them (`mesh` or `image`, with its `piece`), then the frame again with `present`, which is
+ * answered as a whole frame is.
+ */
+export interface SessionAsk {
+  frame?: unknown;
+  hold?: unknown;
+  mesh?: string;
+  image?: string;
+  piece?: unknown;
+  present?: boolean;
+  capture?: unknown;
+  saveDue?: boolean;
 }
 
 export interface BlenderEngine {

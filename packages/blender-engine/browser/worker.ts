@@ -38,7 +38,7 @@
 
 import { type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
 import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
-import { columnsToTypedArrays, describeFrame } from './session-frame.mts';
+import { columnsToTypedArrays, describeFrame, isColumnDescriptor } from './session-frame.mts';
 
 const post = (reply: WorkerReply) => (self as unknown as Worker).postMessage(reply);
 const log = (level: 'log' | 'warn' | 'error', text: string) => post({ op: 'log', level, text });
@@ -123,6 +123,65 @@ function enqueue<T>(work: () => Promise<T>): Promise<T> {
   return result;
 }
 
+/** A frame arriving in pieces (`session.py::_pull`), held until its `present`: the frame's own
+ *  columns by their arena offset, and each deferred datablock copied as it came. */
+interface Copied {
+  typed: unknown;
+  description: unknown;
+}
+interface PendingFrame {
+  columns: Map<number, Copied>;
+  meshes: Map<string, Copied>;
+  images: Map<string, Copied>;
+}
+let pending: PendingFrame | null = null;
+
+/** Every column the held frame names, copied now and keyed by its offset (unique in its arena). */
+async function copyColumns(arena: Uint8Array, frame: unknown): Promise<Map<number, Copied>> {
+  const columns = new Map<number, Copied>();
+  const walk = async (value: unknown, key: string): Promise<void> => {
+    if (isColumnDescriptor(value)) {
+      columns.set(value.offset, {
+        typed: (columnsToTypedArrays(arena, { [key]: value }) as Record<string, unknown>)[key],
+        description: (await describeFrame(arena, value)) as unknown,
+      });
+      return;
+    }
+    if (Array.isArray(value)) for (const entry of value) await walk(entry, key);
+    else if (typeof value === 'object' && value !== null)
+      for (const [name, held] of Object.entries(value)) await walk(held, name);
+  };
+  await walk(frame, '');
+  return columns;
+}
+
+/** The presented frame with its pieces put back: each column from the held copies, each deferred
+ *  mesh and picture from its pulled piece. Both the typed frame and its record. */
+function assemblePending(held: PendingFrame, frame: unknown): { typed: unknown; description: unknown } {
+  const build = (side: keyof Copied) => {
+    const walk = (value: unknown, path: readonly string[]): unknown => {
+      if (isColumnDescriptor(value)) {
+        const copied = held.columns.get(value.offset);
+        if (!copied) throw new Error(`Blender frame column ${path.join('.')}: not in the held frame`);
+        return copied[side];
+      }
+      if (Array.isArray(value)) return value.map((entry) => walk(entry, path));
+      if (typeof value !== 'object' || value === null) return value;
+      if ((value as { deferred?: unknown }).deferred === true) {
+        const [group, name] = path.slice(-2);
+        const piece = (group === 'meshes' ? held.meshes : held.images).get(name as string);
+        if (!piece) throw new Error(`Blender frame ${group} ${name}: deferred and never pulled`);
+        return piece[side];
+      }
+      const out: Record<string, unknown> = {};
+      for (const [name, entry] of Object.entries(value)) out[name] = walk(entry, [...path, name]);
+      return out;
+    };
+    return walk(frame, []);
+  };
+  return { typed: build('typed'), description: build('description') };
+}
+
 function setDocumentDirty(dirty: boolean): void {
   documentDirty = dirty;
   post({ op: 'document-dirty', dirty });
@@ -182,22 +241,44 @@ async function startBlender(project: string, document?: string): Promise<unknown
   const started = await startBlenderEngine({
     project,
     log,
-    ask: async ({ frame, capture, saveDue }) => {
+    ask: async ({ frame, hold, mesh, image, piece, present, capture, saveDue }) => {
       if (!holder.engine) throw new Error('The Blender session presented before it started');
       // Save once after the whole command, never during a partial frame.
       if (saveDue && documentPath !== null) setDocumentDirty(true);
-      // THE ARENA IS READ ONCE, HERE, and both readers share those bytes: the
+      // THE ARENA IS READ ONCE PER ASK, and both readers share those bytes: the
       // typed arrays the tab draws from, and the record of what was sent
       // (`describeFrame`). After the post the buffers are detached and the
-      // next `export_frame` overwrites the arena -- on either skew -- so there
+      // next export call overwrites the arena -- on either skew -- so there
       // is no later moment at which either could be taken.
       const arena = await holder.engine.readArena();
-      const description = await describeFrame(arena, frame);
-      const answered = await presentToTab(
-        columnsToTypedArrays(arena, frame),
-        description,
-        capture as CaptureRequest | undefined,
-      );
+      // A FRAME IN PIECES (`session.py::_pull`): its own columns and each deferred datablock are
+      // copied out of the heap as they come, because the next export call frees them; the tab
+      // gets the whole frame at `present`.
+      if (hold !== undefined) {
+        pending = { columns: await copyColumns(arena, hold), meshes: new Map(), images: new Map() };
+        return {};
+      }
+      if (mesh !== undefined || image !== undefined) {
+        if (!pending) throw new Error(`The Blender session sent ${mesh ?? image} before its frame`);
+        const copied = {
+          typed: columnsToTypedArrays(arena, piece),
+          description: await describeFrame(arena, piece),
+        };
+        if (mesh !== undefined) pending.meshes.set(mesh, copied);
+        else pending.images.set(image as string, copied);
+        return {};
+      }
+      let typed: unknown;
+      let description: unknown;
+      if (present) {
+        if (!pending) throw new Error('The Blender session presented a frame it never sent');
+        ({ typed, description } = assemblePending(pending, frame));
+        pending = null;
+      } else {
+        typed = columnsToTypedArrays(arena, frame);
+        description = await describeFrame(arena, frame);
+      }
+      const answered = await presentToTab(typed, description, capture as CaptureRequest | undefined);
       // THE CAPTURE IS THE ANSWER'S BODY, and `held` rides beside it: the
       // session reads a photograph's own fields off this object
       // (`session.py::_photograph`), and reads `held` to judge whether its

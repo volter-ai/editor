@@ -1373,6 +1373,11 @@ class Session:
         # that can see the ask can read the file.
         if EXPORT_BUFFER_PATH:
             options["buffer_path"] = EXPORT_BUFFER_PATH
+        # NOTICE, THEN PULL (`_present`): a changed mesh is named here and its columns are written
+        # one mesh at a time after, so the engine never holds every changed mesh's columns at once.
+        # An engine without the pull door ships them all in this call, as before.
+        if hasattr(_blender_web, "export_mesh"):
+            options["defer"] = True
         frame = json.loads(_blender_web.export_frame(json.dumps(options)))
         error = frame.get("error")
         if error:
@@ -1499,13 +1504,15 @@ class Session:
     def _present(self, capture=None):
         known = dict(self._known)
         frame = self._export()
+        pulled = self._pull(frame)
         self._drop_unreachable_textures(frame)
         # WHAT THIS FRAME SHIPPED, for the session's own accounting: the ids
         # whose columns crossed, and the ids that went as a reference. The
         # export's whole revision rule is visible here and nowhere else.
         self.last_shipped = {
             "revision": self.revision,
-            "columns": sorted(k for k, v in frame["meshes"].items() if "columns" in v),
+            "columns": sorted(k for k, v in frame["meshes"].items()
+                              if "columns" in v or v.get("deferred")),
             "unchanged": sorted(k for k, v in frame["meshes"].items() if v.get("unchanged")),
             "images": sorted(frame["images"].keys()),
             # How many COLUMN BYTES this frame actually shipped: a move ships
@@ -1535,6 +1542,8 @@ class Session:
             self._known["weights:%s:%s" % (weights["object"], weights["group"])] = (
                 weights["digest"])
         request = {"frame": frame}
+        if pulled:
+            request["present"] = True
         if capture:
             request["capture"] = capture
         # BESIDE the frame, never inside it: the frame's schema is the
@@ -1552,6 +1561,38 @@ class Session:
             raise RuntimeError(answer["error"])
         self._reconcile_with_presenter(answer, frame)
         return answer
+
+    def _pull(self, frame):
+        """THE PULL, one datablock at a time, as Hydra's render delegate pulls each prim's data
+        during Sync after the scene index's notice (`HydraSceneIndex::populate`). The door named
+        the changed meshes and pictures as deferred; the worker first copies the frame's own
+        columns out of the heap (`hold`), then each mesh's columns and each picture's pixels in
+        turn, copying each out before the next is written (every pull frees the one before). The
+        engine's peak is the scene plus one datablock's columns, not plus every changed one's.
+
+        The pieces come back into the frame as the door would have written them: a picture with no
+        readable pixels leaves `images` with its warning, as it did when the frame carried it
+        whole, so `_drop_unreachable_textures` reads the same frame either way. Answers whether
+        anything was pulled; the worker then presents the frame with its pieces."""
+        meshes = [key for key, mesh in frame["meshes"].items() if mesh.get("deferred")]
+        images = [name for name, image in frame["images"].items() if image.get("deferred")]
+        if not meshes and not images:
+            return False
+        ask({"hold": frame})
+        options = {"buffer_path": EXPORT_BUFFER_PATH} if EXPORT_BUFFER_PATH else {}
+        for kind, keys, door in (("mesh", meshes, _blender_web.export_mesh),
+                                 ("image", images, _blender_web.export_image)):
+            for key in keys:
+                options["key"] = key
+                piece = json.loads(door(json.dumps(options)))
+                if piece.get("error"):
+                    raise RuntimeError("Blender export door: %s" % piece["error"])
+                frame["warnings"].extend(piece.get("warnings", []))
+                if piece[kind] is None:
+                    del frame["images"][key]
+                    continue
+                ask({kind: key, "piece": piece[kind]})
+        return True
 
     def _drop_unreachable_textures(self, frame):
         """A picture the export could not read is a WARNING, not a refusal.
