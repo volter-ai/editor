@@ -780,3 +780,873 @@ export function op_in(left: Color, right: readonly unknown[] | ReadonlyMap<unkno
   for (const key of (right as ReadonlyMap<unknown, unknown>).keys()) if (isColorEqual(key, left)) return true;
   return false;
 }
+
+/**
+ * @godot Color.ALICE_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const ALICE_BLUE: Color = construct(0.9411765, 0.972549, 1, 1);
+
+/**
+ * @godot Color.ANTIQUE_WHITE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const ANTIQUE_WHITE: Color = construct(0.98039216, 0.92156863, 0.84313726, 1);
+
+/**
+ * @godot Color.AQUA
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const AQUA: Color = construct(0, 1, 1, 1);
+
+/**
+ * @godot Color.AQUAMARINE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const AQUAMARINE: Color = construct(0.49803922, 1, 0.83137256, 1);
+
+/**
+ * @godot Color.AZURE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const AZURE: Color = construct(0.9411765, 1, 1, 1);
+
+/**
+ * @godot Color.BEIGE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const BEIGE: Color = construct(0.9607843, 0.9607843, 0.8627451, 1);
+
+/**
+ * @godot Color.BISQUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const BISQUE: Color = construct(1, 0.89411765, 0.76862746, 1);
+
+/**
+ * @godot Color.BLACK
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const BLACK: Color = construct(0, 0, 0, 1);
+
+/**
+ * @godot Color.BLANCHED_ALMOND
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const BLANCHED_ALMOND: Color = construct(1, 0.92156863, 0.8039216, 1);
+
+/**
+ * @godot Color.BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const BLUE: Color = construct(0, 0, 1, 1);
+
+/**
+ * @godot Color.BLUE_VIOLET
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const BLUE_VIOLET: Color = construct(0.5411765, 0.16862746, 0.8862745, 1);
+
+/**
+ * @godot Color.BROWN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const BROWN: Color = construct(0.64705884, 0.16470589, 0.16470589, 1);
+
+/**
+ * @godot Color.BURLYWOOD
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const BURLYWOOD: Color = construct(0.87058824, 0.72156864, 0.5294118, 1);
+
+/**
+ * @godot Color.CADET_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const CADET_BLUE: Color = construct(0.37254903, 0.61960787, 0.627451, 1);
+
+/**
+ * @godot Color.CHARTREUSE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const CHARTREUSE: Color = construct(0.49803922, 1, 0, 1);
+
+/**
+ * @godot Color.CHOCOLATE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const CHOCOLATE: Color = construct(0.8235294, 0.4117647, 0.11764706, 1);
+
+/**
+ * @godot Color.CORAL
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const CORAL: Color = construct(1, 0.49803922, 0.3137255, 1);
+
+/**
+ * @godot Color.CORNFLOWER_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const CORNFLOWER_BLUE: Color = construct(0.39215687, 0.58431375, 0.92941177, 1);
+
+/**
+ * @godot Color.CORNSILK
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const CORNSILK: Color = construct(1, 0.972549, 0.8627451, 1);
+
+/**
+ * @godot Color.CRIMSON
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const CRIMSON: Color = construct(0.8627451, 0.078431375, 0.23529412, 1);
+
+/**
+ * @godot Color.CYAN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const CYAN: Color = construct(0, 1, 1, 1);
+
+/**
+ * @godot Color.DARK_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_BLUE: Color = construct(0, 0, 0.54509807, 1);
+
+/**
+ * @godot Color.DARK_CYAN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_CYAN: Color = construct(0, 0.54509807, 0.54509807, 1);
+
+/**
+ * @godot Color.DARK_GOLDENROD
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_GOLDENROD: Color = construct(0.72156864, 0.5254902, 0.043137256, 1);
+
+/**
+ * @godot Color.DARK_GRAY
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_GRAY: Color = construct(0.6627451, 0.6627451, 0.6627451, 1);
+
+/**
+ * @godot Color.DARK_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_GREEN: Color = construct(0, 0.39215687, 0, 1);
+
+/**
+ * @godot Color.DARK_KHAKI
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_KHAKI: Color = construct(0.7411765, 0.7176471, 0.41960785, 1);
+
+/**
+ * @godot Color.DARK_MAGENTA
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_MAGENTA: Color = construct(0.54509807, 0, 0.54509807, 1);
+
+/**
+ * @godot Color.DARK_OLIVE_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_OLIVE_GREEN: Color = construct(0.33333334, 0.41960785, 0.18431373, 1);
+
+/**
+ * @godot Color.DARK_ORANGE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_ORANGE: Color = construct(1, 0.54901963, 0, 1);
+
+/**
+ * @godot Color.DARK_ORCHID
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_ORCHID: Color = construct(0.6, 0.19607843, 0.8, 1);
+
+/**
+ * @godot Color.DARK_RED
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_RED: Color = construct(0.54509807, 0, 0, 1);
+
+/**
+ * @godot Color.DARK_SALMON
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_SALMON: Color = construct(0.9137255, 0.5882353, 0.47843137, 1);
+
+/**
+ * @godot Color.DARK_SEA_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_SEA_GREEN: Color = construct(0.56078434, 0.7372549, 0.56078434, 1);
+
+/**
+ * @godot Color.DARK_SLATE_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_SLATE_BLUE: Color = construct(0.28235295, 0.23921569, 0.54509807, 1);
+
+/**
+ * @godot Color.DARK_SLATE_GRAY
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_SLATE_GRAY: Color = construct(0.18431373, 0.30980393, 0.30980393, 1);
+
+/**
+ * @godot Color.DARK_TURQUOISE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_TURQUOISE: Color = construct(0, 0.80784315, 0.81960785, 1);
+
+/**
+ * @godot Color.DARK_VIOLET
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DARK_VIOLET: Color = construct(0.5803922, 0, 0.827451, 1);
+
+/**
+ * @godot Color.DEEP_PINK
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DEEP_PINK: Color = construct(1, 0.078431375, 0.5764706, 1);
+
+/**
+ * @godot Color.DEEP_SKY_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DEEP_SKY_BLUE: Color = construct(0, 0.7490196, 1, 1);
+
+/**
+ * @godot Color.DIM_GRAY
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DIM_GRAY: Color = construct(0.4117647, 0.4117647, 0.4117647, 1);
+
+/**
+ * @godot Color.DODGER_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const DODGER_BLUE: Color = construct(0.11764706, 0.5647059, 1, 1);
+
+/**
+ * @godot Color.FIREBRICK
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const FIREBRICK: Color = construct(0.69803923, 0.13333334, 0.13333334, 1);
+
+/**
+ * @godot Color.FLORAL_WHITE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const FLORAL_WHITE: Color = construct(1, 0.98039216, 0.9411765, 1);
+
+/**
+ * @godot Color.FOREST_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const FOREST_GREEN: Color = construct(0.13333334, 0.54509807, 0.13333334, 1);
+
+/**
+ * @godot Color.FUCHSIA
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const FUCHSIA: Color = construct(1, 0, 1, 1);
+
+/**
+ * @godot Color.GAINSBORO
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const GAINSBORO: Color = construct(0.8627451, 0.8627451, 0.8627451, 1);
+
+/**
+ * @godot Color.GHOST_WHITE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const GHOST_WHITE: Color = construct(0.972549, 0.972549, 1, 1);
+
+/**
+ * @godot Color.GOLD
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const GOLD: Color = construct(1, 0.84313726, 0, 1);
+
+/**
+ * @godot Color.GOLDENROD
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const GOLDENROD: Color = construct(0.85490197, 0.64705884, 0.1254902, 1);
+
+/**
+ * @godot Color.GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const GREEN: Color = construct(0, 1, 0, 1);
+
+/**
+ * @godot Color.GREEN_YELLOW
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const GREEN_YELLOW: Color = construct(0.6784314, 1, 0.18431373, 1);
+
+/**
+ * @godot Color.HONEYDEW
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const HONEYDEW: Color = construct(0.9411765, 1, 0.9411765, 1);
+
+/**
+ * @godot Color.HOT_PINK
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const HOT_PINK: Color = construct(1, 0.4117647, 0.7058824, 1);
+
+/**
+ * @godot Color.INDIAN_RED
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const INDIAN_RED: Color = construct(0.8039216, 0.36078432, 0.36078432, 1);
+
+/**
+ * @godot Color.INDIGO
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const INDIGO: Color = construct(0.29411766, 0, 0.50980395, 1);
+
+/**
+ * @godot Color.IVORY
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const IVORY: Color = construct(1, 1, 0.9411765, 1);
+
+/**
+ * @godot Color.KHAKI
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const KHAKI: Color = construct(0.9411765, 0.9019608, 0.54901963, 1);
+
+/**
+ * @godot Color.LAVENDER
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LAVENDER: Color = construct(0.9019608, 0.9019608, 0.98039216, 1);
+
+/**
+ * @godot Color.LAVENDER_BLUSH
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LAVENDER_BLUSH: Color = construct(1, 0.9411765, 0.9607843, 1);
+
+/**
+ * @godot Color.LAWN_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LAWN_GREEN: Color = construct(0.4862745, 0.9882353, 0, 1);
+
+/**
+ * @godot Color.LEMON_CHIFFON
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LEMON_CHIFFON: Color = construct(1, 0.98039216, 0.8039216, 1);
+
+/**
+ * @godot Color.LIGHT_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_BLUE: Color = construct(0.6784314, 0.84705883, 0.9019608, 1);
+
+/**
+ * @godot Color.LIGHT_CORAL
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_CORAL: Color = construct(0.9411765, 0.5019608, 0.5019608, 1);
+
+/**
+ * @godot Color.LIGHT_CYAN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_CYAN: Color = construct(0.8784314, 1, 1, 1);
+
+/**
+ * @godot Color.LIGHT_GOLDENROD
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_GOLDENROD: Color = construct(0.98039216, 0.98039216, 0.8235294, 1);
+
+/**
+ * @godot Color.LIGHT_GRAY
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_GRAY: Color = construct(0.827451, 0.827451, 0.827451, 1);
+
+/**
+ * @godot Color.LIGHT_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_GREEN: Color = construct(0.5647059, 0.93333334, 0.5647059, 1);
+
+/**
+ * @godot Color.LIGHT_PINK
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_PINK: Color = construct(1, 0.7137255, 0.75686276, 1);
+
+/**
+ * @godot Color.LIGHT_SALMON
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_SALMON: Color = construct(1, 0.627451, 0.47843137, 1);
+
+/**
+ * @godot Color.LIGHT_SEA_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_SEA_GREEN: Color = construct(0.1254902, 0.69803923, 0.6666667, 1);
+
+/**
+ * @godot Color.LIGHT_SKY_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_SKY_BLUE: Color = construct(0.5294118, 0.80784315, 0.98039216, 1);
+
+/**
+ * @godot Color.LIGHT_SLATE_GRAY
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_SLATE_GRAY: Color = construct(0.46666667, 0.53333336, 0.6, 1);
+
+/**
+ * @godot Color.LIGHT_STEEL_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_STEEL_BLUE: Color = construct(0.6901961, 0.76862746, 0.87058824, 1);
+
+/**
+ * @godot Color.LIGHT_YELLOW
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIGHT_YELLOW: Color = construct(1, 1, 0.8784314, 1);
+
+/**
+ * @godot Color.LIME
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIME: Color = construct(0, 1, 0, 1);
+
+/**
+ * @godot Color.LIME_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LIME_GREEN: Color = construct(0.19607843, 0.8039216, 0.19607843, 1);
+
+/**
+ * @godot Color.LINEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const LINEN: Color = construct(0.98039216, 0.9411765, 0.9019608, 1);
+
+/**
+ * @godot Color.MAGENTA
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MAGENTA: Color = construct(1, 0, 1, 1);
+
+/**
+ * @godot Color.MAROON
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MAROON: Color = construct(0.6901961, 0.1882353, 0.3764706, 1);
+
+/**
+ * @godot Color.MEDIUM_AQUAMARINE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_AQUAMARINE: Color = construct(0.4, 0.8039216, 0.6666667, 1);
+
+/**
+ * @godot Color.MEDIUM_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_BLUE: Color = construct(0, 0, 0.8039216, 1);
+
+/**
+ * @godot Color.MEDIUM_ORCHID
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_ORCHID: Color = construct(0.7294118, 0.33333334, 0.827451, 1);
+
+/**
+ * @godot Color.MEDIUM_PURPLE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_PURPLE: Color = construct(0.5764706, 0.4392157, 0.85882354, 1);
+
+/**
+ * @godot Color.MEDIUM_SEA_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_SEA_GREEN: Color = construct(0.23529412, 0.7019608, 0.44313726, 1);
+
+/**
+ * @godot Color.MEDIUM_SLATE_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_SLATE_BLUE: Color = construct(0.48235294, 0.40784314, 0.93333334, 1);
+
+/**
+ * @godot Color.MEDIUM_SPRING_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_SPRING_GREEN: Color = construct(0, 0.98039216, 0.6039216, 1);
+
+/**
+ * @godot Color.MEDIUM_TURQUOISE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_TURQUOISE: Color = construct(0.28235295, 0.81960785, 0.8, 1);
+
+/**
+ * @godot Color.MEDIUM_VIOLET_RED
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MEDIUM_VIOLET_RED: Color = construct(0.78039217, 0.08235294, 0.52156866, 1);
+
+/**
+ * @godot Color.MIDNIGHT_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MIDNIGHT_BLUE: Color = construct(0.09803922, 0.09803922, 0.4392157, 1);
+
+/**
+ * @godot Color.MINT_CREAM
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MINT_CREAM: Color = construct(0.9607843, 1, 0.98039216, 1);
+
+/**
+ * @godot Color.MISTY_ROSE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MISTY_ROSE: Color = construct(1, 0.89411765, 0.88235295, 1);
+
+/**
+ * @godot Color.MOCCASIN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const MOCCASIN: Color = construct(1, 0.89411765, 0.70980394, 1);
+
+/**
+ * @godot Color.NAVAJO_WHITE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const NAVAJO_WHITE: Color = construct(1, 0.87058824, 0.6784314, 1);
+
+/**
+ * @godot Color.NAVY_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const NAVY_BLUE: Color = construct(0, 0, 0.5019608, 1);
+
+/**
+ * @godot Color.OLD_LACE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const OLD_LACE: Color = construct(0.99215686, 0.9607843, 0.9019608, 1);
+
+/**
+ * @godot Color.OLIVE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const OLIVE: Color = construct(0.5019608, 0.5019608, 0, 1);
+
+/**
+ * @godot Color.OLIVE_DRAB
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const OLIVE_DRAB: Color = construct(0.41960785, 0.5568628, 0.13725491, 1);
+
+/**
+ * @godot Color.ORANGE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const ORANGE: Color = construct(1, 0.64705884, 0, 1);
+
+/**
+ * @godot Color.ORANGE_RED
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const ORANGE_RED: Color = construct(1, 0.27058825, 0, 1);
+
+/**
+ * @godot Color.ORCHID
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const ORCHID: Color = construct(0.85490197, 0.4392157, 0.8392157, 1);
+
+/**
+ * @godot Color.PALE_GOLDENROD
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PALE_GOLDENROD: Color = construct(0.93333334, 0.9098039, 0.6666667, 1);
+
+/**
+ * @godot Color.PALE_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PALE_GREEN: Color = construct(0.59607846, 0.9843137, 0.59607846, 1);
+
+/**
+ * @godot Color.PALE_TURQUOISE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PALE_TURQUOISE: Color = construct(0.6862745, 0.93333334, 0.93333334, 1);
+
+/**
+ * @godot Color.PALE_VIOLET_RED
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PALE_VIOLET_RED: Color = construct(0.85882354, 0.4392157, 0.5764706, 1);
+
+/**
+ * @godot Color.PAPAYA_WHIP
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PAPAYA_WHIP: Color = construct(1, 0.9372549, 0.8352941, 1);
+
+/**
+ * @godot Color.PEACH_PUFF
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PEACH_PUFF: Color = construct(1, 0.85490197, 0.7254902, 1);
+
+/**
+ * @godot Color.PERU
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PERU: Color = construct(0.8039216, 0.52156866, 0.24705882, 1);
+
+/**
+ * @godot Color.PINK
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PINK: Color = construct(1, 0.7529412, 0.79607844, 1);
+
+/**
+ * @godot Color.PLUM
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PLUM: Color = construct(0.8666667, 0.627451, 0.8666667, 1);
+
+/**
+ * @godot Color.POWDER_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const POWDER_BLUE: Color = construct(0.6901961, 0.8784314, 0.9019608, 1);
+
+/**
+ * @godot Color.PURPLE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const PURPLE: Color = construct(0.627451, 0.1254902, 0.9411765, 1);
+
+/**
+ * @godot Color.REBECCA_PURPLE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const REBECCA_PURPLE: Color = construct(0.4, 0.2, 0.6, 1);
+
+/**
+ * @godot Color.RED
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const RED: Color = construct(1, 0, 0, 1);
+
+/**
+ * @godot Color.ROSY_BROWN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const ROSY_BROWN: Color = construct(0.7372549, 0.56078434, 0.56078434, 1);
+
+/**
+ * @godot Color.ROYAL_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const ROYAL_BLUE: Color = construct(0.25490198, 0.4117647, 0.88235295, 1);
+
+/**
+ * @godot Color.SADDLE_BROWN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SADDLE_BROWN: Color = construct(0.54509807, 0.27058825, 0.07450981, 1);
+
+/**
+ * @godot Color.SALMON
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SALMON: Color = construct(0.98039216, 0.5019608, 0.44705883, 1);
+
+/**
+ * @godot Color.SANDY_BROWN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SANDY_BROWN: Color = construct(0.95686275, 0.6431373, 0.3764706, 1);
+
+/**
+ * @godot Color.SEA_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SEA_GREEN: Color = construct(0.18039216, 0.54509807, 0.34117648, 1);
+
+/**
+ * @godot Color.SEASHELL
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SEASHELL: Color = construct(1, 0.9607843, 0.93333334, 1);
+
+/**
+ * @godot Color.SIENNA
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SIENNA: Color = construct(0.627451, 0.32156864, 0.1764706, 1);
+
+/**
+ * @godot Color.SILVER
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SILVER: Color = construct(0.7529412, 0.7529412, 0.7529412, 1);
+
+/**
+ * @godot Color.SKY_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SKY_BLUE: Color = construct(0.5294118, 0.80784315, 0.92156863, 1);
+
+/**
+ * @godot Color.SLATE_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SLATE_BLUE: Color = construct(0.41568628, 0.3529412, 0.8039216, 1);
+
+/**
+ * @godot Color.SLATE_GRAY
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SLATE_GRAY: Color = construct(0.4392157, 0.5019608, 0.5647059, 1);
+
+/**
+ * @godot Color.SNOW
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SNOW: Color = construct(1, 0.98039216, 0.98039216, 1);
+
+/**
+ * @godot Color.SPRING_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const SPRING_GREEN: Color = construct(0, 1, 0.49803922, 1);
+
+/**
+ * @godot Color.STEEL_BLUE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const STEEL_BLUE: Color = construct(0.27450982, 0.50980395, 0.7058824, 1);
+
+/**
+ * @godot Color.TAN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const TAN: Color = construct(0.8235294, 0.7058824, 0.54901963, 1);
+
+/**
+ * @godot Color.TEAL
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const TEAL: Color = construct(0, 0.5019608, 0.5019608, 1);
+
+/**
+ * @godot Color.THISTLE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const THISTLE: Color = construct(0.84705883, 0.7490196, 0.84705883, 1);
+
+/**
+ * @godot Color.TOMATO
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const TOMATO: Color = construct(1, 0.3882353, 0.2784314, 1);
+
+/**
+ * @godot Color.TRANSPARENT
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const TRANSPARENT: Color = construct(1, 1, 1, 0);
+
+/**
+ * @godot Color.TURQUOISE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const TURQUOISE: Color = construct(0.2509804, 0.8784314, 0.8156863, 1);
+
+/**
+ * @godot Color.VIOLET
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const VIOLET: Color = construct(0.93333334, 0.50980395, 0.93333334, 1);
+
+/**
+ * @godot Color.WEB_GRAY
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const WEB_GRAY: Color = construct(0.5019608, 0.5019608, 0.5019608, 1);
+
+/**
+ * @godot Color.WEB_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const WEB_GREEN: Color = construct(0, 0.5019608, 0, 1);
+
+/**
+ * @godot Color.WEB_MAROON
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const WEB_MAROON: Color = construct(0.5019608, 0, 0, 1);
+
+/**
+ * @godot Color.WEB_PURPLE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const WEB_PURPLE: Color = construct(0.5019608, 0, 0.5019608, 1);
+
+/**
+ * @godot Color.WHEAT
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const WHEAT: Color = construct(0.9607843, 0.87058824, 0.7019608, 1);
+
+/**
+ * @godot Color.WHITE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const WHITE: Color = construct(1, 1, 1, 1);
+
+/**
+ * @godot Color.WHITE_SMOKE
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const WHITE_SMOKE: Color = construct(0.9607843, 0.9607843, 0.9607843, 1);
+
+/**
+ * @godot Color.YELLOW
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const YELLOW: Color = construct(1, 1, 0, 1);
+
+/**
+ * @godot Color.YELLOW_GREEN
+ * @source core/variant/variant_call.cpp:3087
+ */
+export const YELLOW_GREEN: Color = construct(0.6039216, 0.8039216, 0.19607843, 1);
