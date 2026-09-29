@@ -3170,6 +3170,20 @@ export function lowerOfficialExpression(
         if (nativeShape === 'resource-load' || nativeShape === 'resource-save') {
           return resourceCall(context, node, nativeShape, argumentNodes, lowered, requirements);
         }
+        // A change to a copied built-in array: the changed copy stored back where the array came from.
+        const builtinShape = node.compilerTarget.kind === 'builtin-member' ? godotCallShape(node.compilerTarget.owner, node.compilerTarget.member) : undefined;
+        if (builtinShape === 'copied-mutator' && calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute) {
+          const use = callTargetBinding(context, node);
+          if (use === undefined) return context.refuse(node, `${node.functionName} has no binding`);
+          const place = assignablePlace(context, context.node(calleeNode.base, calleeNode), lowerExpression);
+          const values = eagerValues(context, lowered);
+          return {
+            before: [...place.before, ...values.before, ...place.afterAssigned],
+            value: place.write(bindingCall(context, node, use, [place.read, ...values.values])),
+            after: [],
+            requirements: [...requirements, ...use.requirements, ...place.requirements, ...values.requirements],
+          };
+        }
         // `Script.new(...)`: the script's instance over a new object of its native root class.
         if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute && node.functionName === 'new') {
           const classNode = context.node(calleeNode.base, calleeNode);

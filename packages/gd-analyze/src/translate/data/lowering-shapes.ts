@@ -29,9 +29,18 @@ export type GodotCallShape =
    * handed by their scripts' paths (`resource-loader.ts`).
    */
   | 'resource-load'
-  | 'resource-save';
+  | 'resource-save'
+  /**
+   * A method that changes a copied built-in array (`PackedStringArray.push_back`): compat holds the
+   * array frozen and returns the changed copy, which the call stores back where the array came
+   * from, as Godot's copy-on-write store writes the variable's own copy (`Vector<T>`).
+   */
+  | 'copied-mutator';
+
+const COPIED_MUTATORS = ['push_back', 'append', 'append_array', 'insert', 'remove_at', 'set', 'fill', 'resize', 'sort', 'reverse', 'erase', 'clear'];
 
 const CALL_SHAPES: Readonly<Record<string, GodotCallShape>> = {
+  ...Object.fromEntries(COPIED_MUTATORS.map((member) => [`PackedStringArray.${member}`, 'copied-mutator' as const])),
   'ResourceLoader.load': 'resource-load',
   'ResourceSaver.save': 'resource-save',
   'Tween.tween_property': 'tweened-property',
