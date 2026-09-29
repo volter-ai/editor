@@ -47,6 +47,8 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
       const target = field.value.kind === 'node-reference' ? godotResolveNodePath(node.nodePath, field.value.value) : undefined;
       if (target !== undefined) targets.add(target);
     }
+    // An AnimationPlayer among Controls, whose animations its scene mounts on its element.
+    if (node.dom?.animations !== undefined) targets.add(node.nodePath);
     // A node that renders no element holding Controls: their host stands for it (`godot_node_dom_host`).
     if (!godotSceneRendersDom(node) && node.children.some(godotSceneRendersDom)) targets.add(node.nodePath);
     for (const child of godotSceneSubnodes(node)) walk(child);

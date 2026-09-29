@@ -30,6 +30,14 @@ import {
   godot_animation_clips_speed,
   godot_animation_clips_stop,
 } from './animation-clips';
+import {
+  godot_animation_elements_current,
+  godot_animation_elements_of,
+  godot_animation_elements_play,
+  godot_animation_elements_set_speed,
+  godot_animation_elements_speed,
+  godot_animation_elements_stop,
+} from './animation-elements';
 import { Group, type Object3D } from 'three';
 import type { ReactElement } from 'react';
 import { type Animation, godot_animation_capture_included } from './animation';
@@ -502,6 +510,8 @@ export function play_section(self: object, name = '', start_time = -1, end_time 
  * @source scene/animation/animation_player.cpp:423
  */
 export function play(self: object, name = '', custom_blend = -1, custom_speed = 1, from_end = false): void {
+  // A player among Controls, which runs its animations on their elements (`animation-elements.ts`).
+  if (godot_animation_elements_of(godot_node_entity(self))) return godot_animation_elements_play(godot_node_entity(self), String(name), custom_speed, from_end);
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return godot_animation_clips_play(godot_node_entity(self), String(name), custom_blend, custom_speed, from_end);
   const state = stateOf(self, 'play');
@@ -535,6 +545,7 @@ export function play_section_backwards(self: object, name = '', start_time = -1,
  * @source scene/animation/animation_player.cpp:381
  */
 export function queue(self: object, name: string): void {
+  if (godot_animation_elements_of(godot_node_entity(self))) return godot_animation_elements_play(godot_node_entity(self), String(name));
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return godot_animation_clips_queue(godot_node_entity(self), String(name));
   const state = stateOf(self, 'queue');
@@ -563,6 +574,7 @@ export function clear_queue(self: object): void {
  * @source scene/animation/animation_player.cpp:604
  */
 export function is_playing(self: object): boolean {
+  if (godot_animation_elements_of(godot_node_entity(self))) return godot_animation_elements_current(godot_node_entity(self)) !== '';
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return godot_animation_clips_playing(godot_node_entity(self));
   return stateOf(self, 'is_playing').playing;
@@ -575,6 +587,9 @@ export function is_playing(self: object): boolean {
  * @source scene/animation/animation_player.cpp:608
  */
 export function set_current_animation(self: object, animation: string): void {
+  if (godot_animation_elements_of(godot_node_entity(self))) {
+    return animation === '' || animation === '[stop]' ? godot_animation_elements_stop(godot_node_entity(self)) : godot_animation_elements_play(godot_node_entity(self), String(animation));
+  }
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return animation === '' ? godot_animation_clips_stop(godot_node_entity(self), true) : godot_animation_clips_play(godot_node_entity(self), String(animation));
   const state = stateOf(self, 'set_current_animation');
@@ -599,6 +614,7 @@ export function set_current_animation(self: object, animation: string): void {
  * @source scene/animation/animation_player.cpp:627
  */
 export function get_current_animation(self: object): string {
+  if (godot_animation_elements_of(godot_node_entity(self))) return godot_animation_elements_current(godot_node_entity(self));
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return godot_animation_clips_current(godot_node_entity(self));
   const state = stateOf(self, 'get_current_animation');
@@ -644,6 +660,7 @@ export function get_assigned_animation(self: object): string {
  * @source scene/animation/animation_player.cpp:652
  */
 export function pause(self: object): void {
+  if (godot_animation_elements_of(godot_node_entity(self))) return godot_animation_elements_stop(godot_node_entity(self));
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return godot_animation_clips_stop(godot_node_entity(self), false);
   stopInternal(stateOf(self, 'pause'), false, false);
@@ -654,6 +671,7 @@ export function pause(self: object): void {
  * @source scene/animation/animation_player.cpp:656
  */
 export function stop(self: object, keep_state = false): void {
+  if (godot_animation_elements_of(godot_node_entity(self))) return godot_animation_elements_stop(godot_node_entity(self));
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return godot_animation_clips_stop(godot_node_entity(self), !keep_state);
   stopInternal(stateOf(self, 'stop'), true, keep_state);
@@ -664,6 +682,7 @@ export function stop(self: object, keep_state = false): void {
  * @source scene/animation/animation_player.cpp:660
  */
 export function set_speed_scale(self: object, speed: number): void {
+  if (godot_animation_elements_of(godot_node_entity(self))) return godot_animation_elements_set_speed(godot_node_entity(self), speed);
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return godot_animation_clips_set_speed(godot_node_entity(self), speed);
   stateOf(self, 'set_speed_scale').speedScale = f32(speed);
@@ -674,6 +693,7 @@ export function set_speed_scale(self: object, speed: number): void {
  * @source scene/animation/animation_player.cpp:664
  */
 export function get_speed_scale(self: object): number {
+  if (godot_animation_elements_of(godot_node_entity(self))) return godot_animation_elements_speed(godot_node_entity(self));
   // A model's player that plays its glTF's clips (`animation-clips.ts`).
   if (godot_animation_clips_of(godot_node_entity(self))) return godot_animation_clips_speed(godot_node_entity(self));
   return stateOf(self, 'get_speed_scale').speedScale;
@@ -1092,4 +1112,3 @@ const ANIMATION_PLAYER = {
 export function GodotAnimationPlayer(props: GodotElementProps<Group>): ReactElement {
   return useGodotElement(ANIMATION_PLAYER, props);
 }
-

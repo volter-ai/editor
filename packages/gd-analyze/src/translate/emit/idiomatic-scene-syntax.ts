@@ -848,10 +848,39 @@ function domElement(emission: Emission, node: DirectGodotSceneNodePlan, at: stri
       },
     }),
   );
+  const ref = nodeRef(emission, node, idiom.three, 'dom');
+  // An AnimationPlayer among Controls: its animations, mounted on its element once it is on the page.
+  if (dom.animations !== undefined) {
+    const local = emission.nodeRefs.get(node.nodePath);
+    if (local === undefined) throw new Error(`${at}: an AnimationPlayer among Controls without its ref`);
+    const data = `${local}Animations`;
+    emission.family.statics.push({ kind: 'variable-statement', declaration: 'const', name: data, initializer: dataExpression(dom.animations) });
+    // The family's React import, which a shared material's effect already names (`scene-family-elements.ts`).
+    emission.family.react.add('useEffect');
+    emission.hooks.push({
+      kind: 'expression-statement',
+      expression: {
+        kind: 'call-expression',
+        callee: { kind: 'identifier-expression', name: 'useEffect' },
+        arguments: [
+          {
+            kind: 'arrow-expression',
+            parameters: [],
+            body: {
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: useCompat(emission, 'animation-elements', 'godot_animation_player_elements') },
+              arguments: [{ kind: 'property-expression', object: { kind: 'identifier-expression', name: local }, property: 'current' }, { kind: 'identifier-expression', name: data }],
+            },
+          },
+          { kind: 'array-expression', elements: [] },
+        ],
+      },
+    });
+  }
   return element(
     dom.tag,
     [
-      ...nodeRef(emission, node, idiom.three, 'dom'),
+      ...ref,
       ...Object.entries(dom.data).map(([key, value]) => ({ kind: 'jsx-string-attribute' as const, name: `data-${key.replace(/[A-Z]/gu, (letter) => `-${letter.toLowerCase()}`)}`, value })),
       ...htmlAttributes(dom.attributes),
       attribute('style', styleExpression(emission, dom.style)),

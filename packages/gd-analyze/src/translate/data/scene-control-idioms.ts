@@ -33,11 +33,29 @@ export interface GodotControlDomPlan {
   readonly text?: string;
   /** Elements it draws before its children (a CheckBox's box, a progress bar's textures). */
   readonly parts?: readonly GodotControlPartPlan[];
+  /** An AnimationPlayer's animations as Web Animations keyframes, and the one it plays as it enters. */
+  readonly animations?: GodotControlAnimationsPlan;
   /**
    * React events and the compat call each makes with literal arguments (a touch button's action),
    * the React event first where `event` says so.
    */
   readonly events?: Readonly<Record<string, { readonly module: string; readonly exportName: string; readonly args: readonly (string | number | boolean)[]; readonly event?: true }>>;
+}
+
+/**
+ * An AnimationPlayer's animations among Controls (`animation-player.ts`): each value track as
+ * keyframes of a CSS property of the element at its path from the player's root node, played for
+ * the animation's length, looping as it loops (`Animation::LoopMode`: none, linear, ping-pong).
+ */
+export interface GodotControlAnimationsPlan {
+  readonly root: string;
+  readonly autoplay?: string;
+  readonly animations: readonly {
+    readonly name: string;
+    readonly length: number;
+    readonly loop: number;
+    readonly tracks: readonly { readonly path: string; readonly keyframes: readonly Readonly<Record<string, string | number>>[] }[];
+  }[];
 }
 
 /** An element a Control draws inside itself, which is not a node. */
@@ -121,6 +139,10 @@ class Stated {
   resource(name: string): string | undefined {
     const value = this.get(name);
     return value?.kind === 'resource' ? value.key : undefined;
+  }
+  /** Every stated name. */
+  names(): readonly string[] {
+    return [...this.#values.keys()];
   }
   /** The stated names nothing read. */
   unread(): readonly string[] {
@@ -564,7 +586,7 @@ function content(
     }
     case 'progress': {
       // TextureProgressBar filling left to right (`FILL_LEFT_TO_RIGHT`): its under texture, its
-      // progress texture clipped to the value's share (`--godot-ratio`, set as the value changes),
+      // progress texture clipped to the value's share (`range.ts` clips it anew as the value changes),
       // then its over texture.
       const fill = stated.number('fill_mode', 0);
       if (fill !== 0) throw new Error(`TextureProgressBar's fill_mode ${String(fill)} has no CSS form`);
@@ -572,8 +594,8 @@ function content(
       const max = stated.number('max_value', 100);
       const value = stated.number('value', 0);
       stated.number('step', 1);
-      style['--godot-ratio'] = String(max === min ? 0 : (value - min) / (max - min));
-      // Its bounds and value, which `range.ts` reads and sets.
+      const ratio = max === min ? 0 : (value - min) / (max - min);
+      // Its bounds and value, which `range.ts` reads and sets, clipping the progress texture to the value's share.
       attributes['data-min'] = String(min);
       attributes['data-max'] = String(max);
       attributes['data-value'] = String(value);
@@ -604,7 +626,7 @@ function content(
               backgroundImage: drawn.image,
               backgroundRepeat: 'no-repeat',
               backgroundSize: '100% 100%',
-              ...(clip ? { clipPath: 'inset(0 calc((1 - var(--godot-ratio)) * 100%) 0 0)' } : {}),
+              ...(clip ? { clipPath: `inset(0 ${String(Math.round((1 - ratio) * 100000) / 1000)}% 0 0)` } : {}),
             },
             attributes: {},
           },
@@ -676,6 +698,57 @@ function content(
       return { parts: [{ tag: 'div', style: line, attributes: {} }] };
     }
   }
+}
+
+/** A Control's property as the CSS property its element animates, and a key's value as that property's. */
+const ANIMATED: Readonly<Record<string, { readonly css: string; readonly value: (value: unknown) => string | number }>> = {
+  'theme_override_colors/font_color': { css: 'color', value: (value) => css((value as { readonly Color: readonly number[] }).Color) },
+  'theme_override_colors/font_outline_color': { css: 'webkitTextStrokeColor', value: (value) => css((value as { readonly Color: readonly number[] }).Color) },
+  rotation: { css: 'rotate', value: (value) => `${String(value as number)}rad` },
+  position: {
+    css: 'translate',
+    value: (value) => {
+      const [x = 0, y = 0] = (value as { readonly Vector2: readonly number[] }).Vector2;
+      return `${px(x)} ${px(y)}`;
+    },
+  },
+};
+
+/**
+ * An AnimationPlayer's libraries among Controls as Web Animations keyframes: value tracks of the
+ * properties CSS animates (`ANIMATED`), linear between keys; any other track refuses by name.
+ */
+function animationsPlan(stated: Stated, resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>): GodotControlAnimationsPlan {
+  const root = stated.string('root_node') ?? '..';
+  const autoplay = stated.string('autoplay');
+  const animations: GodotControlAnimationsPlan['animations'][number][] = [];
+  for (const name of stated.names().filter((entry) => entry.startsWith('libraries/'))) {
+    const key = stated.resource(name);
+    const library = key === undefined ? undefined : resources.get(key)?.animations;
+    if (library === undefined) throw new Error(`${name} is not a planned AnimationLibrary`);
+    const prefix = name.slice('libraries/'.length);
+    for (const { name: animationName, animation } of library.animations) {
+      const tracks = animation.tracks.filter((track) => track.enabled).map((track) => {
+        const colon = track.path.indexOf(':');
+        const property = colon < 0 ? '' : track.path.slice(colon + 1);
+        const mapped = ANIMATED[property];
+        if (track.type !== 'value' || mapped === undefined) throw new Error(`an animation track of ${track.path} among Controls has no CSS form`);
+        if (track.interp !== 1 && track.interp !== 0) throw new Error(`the ${track.path} track's cubic interpolation among Controls has no CSS form`);
+        const length = animation.length > 0 ? animation.length : 1;
+        const keyframes = track.keys.map(([time, , value]) => ({ offset: Math.min(1, time / length), [mapped.css]: mapped.value(value), ...(track.update === 1 || track.interp === 0 ? { easing: 'steps(1, end)' } : {}) }));
+        // The first key's value holds from the start, the last's to the end (`Animation::value_track_interpolate`).
+        const first = keyframes[0];
+        const last = keyframes.at(-1);
+        if (first !== undefined && first.offset > 0) keyframes.unshift({ ...first, offset: 0 });
+        if (last !== undefined && last.offset < 1) keyframes.push({ ...last, offset: 1 });
+        return { path: track.path.slice(0, colon), keyframes };
+      });
+      animations.push({ name: prefix === '' ? animationName : `${prefix}/${animationName}`, length: animation.length, loop: animation.loopMode, tracks });
+    }
+  }
+  stated.number('playback_default_blend_time', 0);
+  stated.number('speed_scale', 1);
+  return { root, ...(autoplay === undefined || autoplay === '' ? {} : { autoplay }), animations };
 }
 
 /** A container's own layout of its children, and the stylebox a panel draws behind them. */
@@ -760,6 +833,13 @@ export function godotControlDom(
   resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>,
 ): GodotControlDomPlan {
   const stated = new Stated(node.setters);
+  // An AnimationPlayer among Controls: a hidden element holding its animations (`animation-player.ts`).
+  if (form.content === 'animations') {
+    const animations = animationsPlan(stated, resources);
+    const unread = stated.unread();
+    if (unread.length > 0) throw new Error(`${node.classes[0] ?? 'a node'}'s ${unread.join(', ')} among Controls has no idiomatic form`);
+    return { tag: form.tag, style: {}, attributes: { hidden: true }, data: domData(node, true), animations };
+  }
   for (const name of INERT) stated.get(name);
   // `process_mode` and the metadata the Node protocol keeps (`data-*`, `domData`).
   stated.get('process_mode');
@@ -804,7 +884,9 @@ export function planGodotSceneControls(scenes: readonly SceneWithoutRefs[], refu
   return scenes.map((scene) => {
     const resources = new Map(scene.resources.map((resource) => [resource.key, resource] as const));
     const stamp = (node: DirectGodotSceneNodePlan, parentLayout: DomForm['layout'] | undefined): DirectGodotSceneNodePlan => {
-      const form = node.idiom?.form;
+      // A node three mounts has, among Controls, the element its idiom gives it there (`amongControls`).
+      const among = parentLayout !== undefined && node.idiom?.form.kind !== 'dom' ? node.idiom?.amongControls : undefined;
+      const form = among ?? node.idiom?.form;
       const dom = form?.kind === 'dom' && node.instance === undefined ? form : undefined;
       const layout = dom?.layout;
       let planned: GodotControlDomPlan | undefined;
@@ -823,7 +905,7 @@ export function planGodotSceneControls(scenes: readonly SceneWithoutRefs[], refu
       // A non-Control under a Control has no element to hang from.
       if (form?.kind === 'dom') {
         for (const child of godotSceneSubnodes(node)) {
-          const childForm = child.idiom?.form.kind ?? child.instanceOf?.rootIdiom?.form.kind;
+          const childForm = child.idiom?.amongControls?.kind ?? child.idiom?.form.kind ?? child.instanceOf?.rootIdiom?.form.kind;
           if (childForm !== 'dom') refuse(`${scene.sourceResPath}#${child.nodePath}`, `a ${child.classes[0] ?? 'node'} under a Control has no element to hang from`);
         }
       }
@@ -835,6 +917,8 @@ export function planGodotSceneControls(scenes: readonly SceneWithoutRefs[], refu
       const domHost = hosts ? { style: { zIndex: layer?.kind === 'number' ? layer.value : (node.idiom?.canvasLayer ?? 0), ...(hidden ? { display: 'none' } : {}) } } : undefined;
       return {
         ...node,
+        // Among Controls, the node is the element its idiom gives it there.
+        ...(among === undefined || node.idiom === undefined ? {} : { idiom: { ...node.idiom, form: among, three: 'HTMLDivElement' } }),
         ...(planned === undefined ? {} : { dom: planned }),
         ...(domHost === undefined ? {} : { domHost }),
         children: node.children.map((child) => stamp(child, dom === undefined ? undefined : layout)),

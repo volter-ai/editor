@@ -6,7 +6,7 @@
  * bound onto the element its scene renders (docs/GODOT.md "UI is React DOM"): a slider's
  * `<input type=range>`, whose value, bounds and step are its own and whose `input` event is
  * `value_changed`; a TextureProgressBar's box, whose value and bounds are its `data-*` and whose
- * progress texture is clipped to the value's share (`--godot-ratio`).
+ * progress texture (`data-part="progress"`) is clipped to the value's share.
  */
 
 import { godot_node_entity } from './node';
@@ -71,7 +71,9 @@ export function set_value(self: object, p_val: number): void {
   if (isInput(element)) element.value = String(value);
   else {
     element.dataset['value'] = String(value);
-    element.style.setProperty('--godot-ratio', String(max === min ? 0 : (value - min) / (max - min)));
+    const ratio = max === min ? 0 : (value - min) / (max - min);
+    const progress = element.querySelector<HTMLElement>(':scope > [data-part="progress"]');
+    if (progress !== null) progress.style.clipPath = `inset(0 ${String((1 - ratio) * 100)}% 0 0)`;
   }
   VALUE_CHANGED.get(element)?.emit(value);
 }

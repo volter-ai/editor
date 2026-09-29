@@ -50,7 +50,7 @@ export type GodotSceneNodeIdiomForm =
       readonly module: string;
       readonly tag: 'div' | 'button' | 'label' | 'input';
       readonly layout: 'none' | 'row' | 'column' | 'stack' | 'center';
-      readonly content: 'none' | 'text' | 'button' | 'check' | 'range' | 'image' | 'texture-button' | 'progress' | 'separator' | 'touch' | 'color';
+      readonly content: 'none' | 'text' | 'button' | 'check' | 'range' | 'image' | 'texture-button' | 'progress' | 'separator' | 'touch' | 'color' | 'animations';
       readonly mouseFilter: 0 | 1 | 2;
       readonly panel?: true;
       readonly node2d?: true;
@@ -96,6 +96,11 @@ export interface GodotSceneNodeIdiom {
   readonly skyLights?: true;
   /** A canvas layer's own `layer` unless stated (`canvas_layer.h:45`): the Controls under it stack by it. */
   readonly canvasLayer?: number;
+  /**
+   * The element it is among Controls, where no three object can hang (an AnimationPlayer
+   * animating them through the Web Animations API, `scene-control-idioms.ts`).
+   */
+  readonly amongControls?: Extract<GodotSceneNodeIdiomForm, { readonly kind: 'dom' }>;
   /**
    * Its Control layout (anchors, offsets, grow directions) is stated and draws nothing: its element
    * takes the props and drops them, so no setter binds them (a SubViewportContainer over the whole
@@ -322,11 +327,14 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     ...element('world-environment', 'WorldEnvironment', ctor('WorldEnvironment', 'scene/3d/world_environment.cpp', 226)),
     skyLights: true,
   },
-  AnimationPlayer: element('animation-player', 'AnimationPlayer', {
-    file: 'scene/animation/animation_mixer.cpp',
-    symbol: 'AnimationMixer::_update_caches',
-    line: 651,
-  }),
+  AnimationPlayer: {
+    ...element('animation-player', 'AnimationPlayer', {
+      file: 'scene/animation/animation_mixer.cpp',
+      symbol: 'AnimationMixer::_update_caches',
+      line: 651,
+    }),
+    amongControls: { kind: 'dom', module: 'animation-player', tag: 'div', layout: 'none', content: 'animations', mouseFilter: 2 },
+  },
   AnimationTree: element('animation-tree', 'AnimationTree', {
     file: 'scene/animation/animation_tree.cpp',
     symbol: 'AnimationTree::_blend_pre_process',
