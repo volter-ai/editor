@@ -283,6 +283,8 @@ export interface TargetGodotSceneResourcePlan {
   readonly engineShaders?: Readonly<Record<string, string>>;
   /** `resource_local_to_scene`: each instance of the scene makes its own. */
   readonly localToScene?: true;
+  /** Drawn only by Controls' CSS (`scene-control-idioms.ts`): no module constructs it, its file is still served. */
+  readonly domOnly?: true;
   /**
    * A PackedScene (an `ExtResource` of a `.tscn`, or of an imported model): the scene whose
    * component `instantiate()` mounts, and its root's script class, which it makes first.

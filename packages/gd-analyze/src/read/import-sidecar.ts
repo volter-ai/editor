@@ -160,6 +160,8 @@ export interface ImportSidecar {
   readonly objParams?: GodotObjImportParams;
   /** Godot 4's `texture` importer options (`editor/import/resource_importer_texture.cpp:230`). */
   readonly textureImport?: GodotTextureImportParams;
+  /** The `texture` importer's source image's pixel size, from its header (`image-size.ts`). */
+  readonly imageSize?: readonly [number, number];
   /** The `wav` importer's options (`editor/import/resource_importer_wav.cpp:76`). */
   readonly wavImport?: GodotWavImportParams;
 }

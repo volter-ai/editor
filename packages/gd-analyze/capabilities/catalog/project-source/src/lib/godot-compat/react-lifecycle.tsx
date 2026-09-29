@@ -30,6 +30,7 @@ import {
   type GodotScriptLifecycleBinding,
   godot_element_callsite,
   godot_node_adopt,
+  godot_node_dom_host,
   godot_node_defer_node_path,
   godot_node_object,
   godot_node_enter,
@@ -63,6 +64,21 @@ import { godot_owned_release } from './scene-tree';
  */
 export function godot_element_node(held: object | null): object | null {
   return nodeOf(held);
+}
+
+/**
+ * A host element's `ref` callback for the Controls a scene sends to the page (`ui.In`): the host
+ * stands for `parent` (a node's ref, or the tree's root) in the Node tree while it is mounted.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/canvas_layer.cpp:359
+ */
+export function godot_element_dom_host(parent: RefObject<object | null> | object, host: HTMLElement | null): (() => void) | undefined {
+  if (host === null) return undefined;
+  const node = nodeOf('current' in parent ? (parent as RefObject<object | null>).current : parent);
+  if (node === null) return undefined;
+  godot_node_dom_host(node, host);
+  return () => godot_node_dom_host(node, null);
 }
 
 function nodeOf(held: object | null): object | null {

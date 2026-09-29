@@ -248,8 +248,40 @@ export function emitDirectGodotWorldSyntax(
     mainAutoloadReferences.length === 0
       ? mainScene
       : { kind: 'jsx-element-child', tag: directGodotSceneAutoloadContextName(scene.exportName), attributes: [{ kind: 'jsx-expression-attribute', name: 'value', value: autoloadValue(mainAutoloadReferences) }], children: [mainScene] };
+  // As a scene sends its Controls (`idiomatic-scene-syntax.ts`): the tunnel, this place's contexts
+  // bridged, and a host standing for the tree's root, R3F's scene.
   const composedMainScene: TargetTsJsxChild = domMain
-    ? { kind: 'jsx-element-child', tag: 'GodotControls', attributes: [{ kind: 'jsx-expression-attribute', name: 'ui', value: id('ui') }], children: [providedMainScene] }
+    ? {
+        kind: 'jsx-element-child',
+        tag: 'ui.In',
+        attributes: [],
+        children: [
+          {
+            kind: 'jsx-element-child',
+            tag: 'Bridge',
+            attributes: [],
+            children: [
+              {
+                kind: 'jsx-element-child',
+                tag: 'div',
+                attributes: [
+                  {
+                    kind: 'jsx-expression-attribute',
+                    name: 'ref',
+                    value: { kind: 'arrow-expression', parameters: [{ name: 'host' }], body: call('godot_element_dom_host', [id('root'), id('host')]) },
+                  },
+                  {
+                    kind: 'jsx-expression-attribute',
+                    name: 'style',
+                    value: { kind: 'object-expression', properties: [{ key: 'position', value: { kind: 'literal-expression', value: 'absolute' } }, { key: 'inset', value: { kind: 'literal-expression', value: 0 } }, { key: 'pointerEvents', value: { kind: 'literal-expression', value: 'none' } }] },
+                  },
+                ],
+                children: [providedMainScene],
+              },
+            ],
+          },
+        ],
+      }
     : providedMainScene;
   // The scene autoloads, each its scene's component named as the autoload, before the main scene.
   const sceneAutoloads = composition.sceneAutoloads.map((autoload) => ({ autoload, planned: autoload }));
@@ -338,11 +370,11 @@ export function emitDirectGodotWorldSyntax(
   const imports: TargetTsStatement[] = [
     named('react', [...(composition.sceneChanges.reload ? ['Fragment'] : []), 'Suspense', ...(hasAutoloads ? ['useEffect', 'useRef'] : []), ...hooks.react]),
     named('react', ['PropsWithChildren', ...(hasAutoloads ? ['RefObject'] : [])], true),
-    ...(hooks.fiber.size === 0 ? [] : [named('@react-three/fiber', [...hooks.fiber])]),
+    ...(hooks.fiber.size === 0 && !domMain ? [] : [named('@react-three/fiber', [...hooks.fiber, ...(domMain ? ['useThree'] : [])])]),
     named('@react-three/rapier', ['Physics', ...hooks.rapier]),
     ...(hasAutoloads ? [named('three', ['Group'], true)] : []),
     { kind: 'import-statement', module: moduleSpecifier(scene.targetPath), namedBindings: [{ imported: scene.exportName, local: scene.exportName }, ...(mainAutoloadReferences.length === 0 ? [] : [{ imported: directGodotSceneAutoloadContextName(scene.exportName), local: directGodotSceneAutoloadContextName(scene.exportName) }])] },
-    ...(domMain ? [named('./lib/godot-compat/godot-controls', ['GodotControls']), named('./ui', ['ui'])] : []),
+    ...(domMain ? [named('./lib/godot-compat/react-lifecycle', ['godot_element_dom_host']), named('./ui', ['ui']), named('its-fine', ['useContextBridge'])] : []),
     ...sceneAutoloads.map(({ planned }): TargetTsStatement => ({ kind: 'import-statement', module: moduleSpecifier(planned.targetPath), namedBindings: [{ imported: planned.exportName, local: planned.exportName }] })),
     ...otherScenes.map(({ candidate }): TargetTsStatement => ({
       kind: 'import-statement',
@@ -391,6 +423,18 @@ export function emitDirectGodotWorldSyntax(
             name: `$autoloadInstance_${index}`,
             initializer: { kind: 'call-expression', callee: id('useRef'), typeArguments: [nullable(referenceType(`$AutoloadScript_${index}`))], arguments: [{ kind: 'literal-expression', value: null }] },
           })),
+          // A main scene of Controls: the contexts its host carries to the page, and the tree's root it stands for.
+      ...(domMain
+        ? [
+            { kind: 'variable-statement' as const, declaration: 'const' as const, name: 'Bridge', initializer: call('useContextBridge') },
+            {
+              kind: 'variable-statement' as const,
+              declaration: 'const' as const,
+              name: 'root',
+              initializer: call('useThree', [{ kind: 'arrow-expression', parameters: [{ name: 'state' }], body: { kind: 'property-expression', object: id('state'), property: 'scene' } }]),
+            },
+          ]
+        : []),
           { kind: 'return-statement', expression: world },
         ],
         modifiers: ['export', 'default'],

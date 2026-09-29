@@ -51,6 +51,7 @@ import type {
 } from './godot-types';
 import { walkSceneNodes } from './godot-types';
 import type { ImportSidecar } from './import-sidecar';
+import { godotImageSize } from './image-size';
 import { readImportSidecar, readSceneImportParams } from './import-sidecar';
 import { expandReadableSceneInstances } from './instance-expansion';
 import { type GodotProjectFileSource, projectFileSourceFromSnapshot } from './project-file-source';
@@ -771,7 +772,11 @@ export function readGodotProjectDocuments(
       // A `<file>.import` is Godot's own record of how it imported the asset beside it — the same
       // text serialization, and the only place the project states that a `.glb`'s materials were
       // extracted to external `.tres` files. See `read/import-sidecar.ts`.
-      imports.push(readImportSidecar(parsed));
+      // A texture's source image's pixel size, read from its header as the importer reads it.
+      const sidecar = readImportSidecar(parsed);
+      const source_ = sidecar.textureImport !== undefined && sidecar.sourceFile !== undefined && source.has(sidecar.sourceFile) ? source.bytes(sidecar.sourceFile) : undefined;
+      const imageSize = source_ === undefined ? undefined : godotImageSize(source_);
+      imports.push(imageSize === undefined ? sidecar : { ...sidecar, imageSize });
     } else if (ext === '.tscn' || ext === '.escn') {
       const result = readSceneDocument(parsed, ctx);
       scenes.push(result.document);

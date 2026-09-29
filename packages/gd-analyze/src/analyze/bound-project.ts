@@ -1,6 +1,5 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
 import { namedInputActions } from './input-actions';
-import { godotImageSize } from '../read/image-size';
 import { type BoundGodotTreeRequests, treeRequests } from './tree-requests';
 import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
 import type { GltfPhysicsShape } from '../read/gltf-document';
@@ -401,7 +400,7 @@ export interface BoundGodotTextureDocument {
   readonly sourceDigest: string;
   readonly bytes: Uint8Array;
   readonly importParams: GodotTextureImportParams;
-  /** Its pixel size, from the image's header (`read/image-size.ts`). */
+  /** Its pixel size, as read found it in the image's header (`read/image-size.ts`). */
   readonly size?: readonly [number, number];
 }
 
@@ -752,7 +751,7 @@ function boundDocuments(
         const entry = snapshot.entryByResPath(sidecar.sourceFile);
         if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
         const bytes = snapshot.bytesByResPath(sidecar.sourceFile);
-        const size = godotImageSize(bytes);
+        const size = sidecar.imageSize;
         return [
           {
             resPath: sidecar.sourceFile,

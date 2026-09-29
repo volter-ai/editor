@@ -196,8 +196,8 @@ interface Emission {
   readonly rootRef: boolean;
   /** Each ref's type as its `useRef` names it. */
   readonly refTypes: Map<string, string>;
-  /** Whether the scene sends Controls through the page's tunnel (`src/ui.ts`). */
-  readonly ui: { used: boolean };
+  /** Whether the scene sends Controls through the page's tunnel (`src/ui.tsx`), and declares its context bridge. */
+  readonly ui: { used: boolean; bridge: boolean };
 }
 
 function useCompat(emission: Emission, module: string, name: string): string {
@@ -797,14 +797,30 @@ function childElements(emission: Emission, node: DirectGodotSceneNodePlan): Targ
   return [...others, controlsHost(emission, { kind: 'identifier-expression', name: parent }, controls.map((child) => nodeElement(emission, child)), node.domHost?.style)];
 }
 
-/** `<GodotControls ui={ui} parent={…}>`: Controls sent to the page's overlay (`src/ui.ts`). */
-function controlsHost(emission: Emission, parent: TargetTsExpression | undefined, children: readonly TargetTsJsxChild[], style?: Readonly<Record<string, string | number>>): TargetTsJsxChild {
+/**
+ * Controls sent to the page's overlay, as pmndrs puts HTML over a scene: `<ui.In>` (`src/ui.tsx`)
+ * holding the contexts of this place (`its-fine`'s bridge) and a host element filling the overlay,
+ * which stands for `parent` in the Node tree while it is mounted (`godot_element_dom_host`).
+ */
+function controlsHost(emission: Emission, parent: TargetTsExpression, children: readonly TargetTsJsxChild[], style?: Readonly<Record<string, string | number>>): TargetTsJsxChild {
   emission.ui.used = true;
-  return element(
-    useCompat(emission, 'godot-controls', 'GodotControls'),
-    [attribute('ui', { kind: 'identifier-expression', name: 'ui' }), ...(parent === undefined ? [] : [attribute('parent', parent)]), ...(style === undefined ? [] : [attribute('style', styleExpression(emission, style))])],
+  if (!emission.ui.bridge) {
+    emission.ui.bridge = true;
+    emission.hooks.push({ kind: 'variable-statement', declaration: 'const', name: 'Bridge', initializer: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'useContextBridge' }, arguments: [] } });
+  }
+  const host = element(
+    'div',
+    [
+      attribute('ref', {
+        kind: 'arrow-expression',
+        parameters: [{ name: 'host' }],
+        body: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'godot_element_dom_host') }, arguments: [parent, { kind: 'identifier-expression', name: 'host' }] },
+      }),
+      attribute('style', styleExpression(emission, { position: 'absolute', inset: 0, pointerEvents: 'none', ...(style ?? {}) })),
+    ],
     children,
   );
+  return element('ui.In', [], [element('Bridge', [], [host])]);
 }
 
 /** A planned style: CSS values as literals, a font resource's family read from its local. */
@@ -1072,7 +1088,7 @@ export function idiomaticSceneSourceFile(
     rootConnections: scene.refs.rootConnections,
     rootRef: scene.refs.rootRef,
     refTypes: new Map(),
-    ui: { used: false },
+    ui: { used: false, bridge: false },
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
   emission.hooks.push(...emission.scriptHooks.flatMap((hook) => hook()));
@@ -1216,7 +1232,12 @@ export function idiomaticSceneSourceFile(
       ? []
       : [{ kind: 'import-statement' as const, module: '@react-three/rapier', namedBindings: [...emission.rapier].sort().map((name) => ({ imported: name, local: name })) }]),
     ...familyImports(family),
-    ...(emission.ui.used ? [{ kind: 'import-statement' as const, module: moduleSpecifier(scene.targetPath, 'src/ui.ts'), namedBindings: [{ imported: 'ui', local: 'ui' }] }] : []),
+    ...(emission.ui.used
+      ? [
+          { kind: 'import-statement' as const, module: moduleSpecifier(scene.targetPath, 'src/ui.tsx'), namedBindings: [{ imported: 'ui', local: 'ui' }] },
+          { kind: 'import-statement' as const, module: 'its-fine', namedBindings: [{ imported: 'useContextBridge', local: 'useContextBridge' }] },
+        ]
+      : []),
     ...[...emission.scripts.values()].map((script) => ({
       kind: 'import-statement' as const,
       module: script.module,

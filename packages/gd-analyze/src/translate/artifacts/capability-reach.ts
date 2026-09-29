@@ -126,8 +126,8 @@ function nodeModules(node: DirectGodotSceneNodePlan): readonly string[] {
   }
   modules.push(...bindingModules(node.animation));
   if (node.scriptInstance !== undefined) modules.push('react-lifecycle', ...lifecycleModules(node.scriptInstance.lifecycle));
-  // Controls under a node that renders no element go through the page's tunnel (`GodotControls`).
-  if (!godotSceneRendersDom(node) && node.children.some(godotSceneRendersDom)) modules.push('godot-controls');
+  // Controls under a node that renders no element hang in a host standing for it (`godot_element_dom_host`).
+  if (!godotSceneRendersDom(node) && node.children.some(godotSceneRendersDom)) modules.push('react-lifecycle');
   return modules;
 }
 
@@ -159,8 +159,9 @@ export function godotCapabilityRequirements(
   for (const scene of composition.scenes) {
     // Every scene component enters the tree through `useGodotScene`.
     modules.push('react-lifecycle');
+    // A resource only Controls' CSS draws is constructed by no module (`domOnly`).
     for (const resource of scene.resources) {
-      modules.push(...resourceModules(resource));
+      if (resource.domOnly !== true) modules.push(...resourceModules(resource));
     }
     for (const connection of scene.connections) modules.push(connection.accessor.module);
     const visit = (node: DirectGodotSceneNodePlan): void => {

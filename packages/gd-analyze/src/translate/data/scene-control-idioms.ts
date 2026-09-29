@@ -1135,6 +1135,51 @@ export function planGodotSceneControls(scenes: readonly SceneWithoutRefs[], refu
         ...(node.placements === undefined ? {} : { placements: node.placements.map((placed) => ({ at: placed.at, node: stamp(placed.node, undefined) })) }),
       };
     };
-    return { ...scene, root: stamp(scene.root, undefined) };
+    const root = stamp(scene.root, undefined);
+    return { ...scene, root, resources: markDomOnly(scene.resources, root) };
   });
+}
+
+/**
+ * The scene's resources, those only its Controls' CSS draws marked `domOnly`: reached from a
+ * Control's element (directly or through another resource) and from nothing else the scene
+ * constructs, so no compat module makes them (their files are still served for the CSS).
+ */
+function markDomOnly(resources: readonly TargetGodotSceneResourcePlan[], root: DirectGodotSceneNodePlan): TargetGodotSceneResourcePlan[] {
+  const keys = resources.map((resource) => resource.key);
+  const named = (text: string) => keys.filter((key) => text.includes(JSON.stringify(key)));
+  const domSeeds = new Set<string>();
+  // A font the element's style names is declared by the scene (`fontFamily`), so it is constructed.
+  const fonts = new Set<string>();
+  // The scene less its Controls' own properties, which every other use of a resource shows through.
+  const strip = (node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan => {
+    if (node.dom !== undefined) {
+      for (const key of named(JSON.stringify(node.setters))) domSeeds.add(key);
+      for (const key of named(JSON.stringify([node.dom.style, node.dom.parts ?? []]))) fonts.add(key);
+    }
+    return {
+      ...node,
+      ...(node.dom === undefined ? {} : { setters: [], dom: undefined }),
+      children: node.children.map(strip),
+      ...(node.placements === undefined ? {} : { placements: node.placements.map((placed) => ({ at: placed.at, node: strip(placed.node) })) }),
+    };
+  };
+  const others = new Set([...named(JSON.stringify(strip(root))), ...fonts]);
+  if (domSeeds.size === 0) return [...resources];
+  const byKey = new Map(resources.map((resource) => [resource.key, resource] as const));
+  const closure = (seeds: Iterable<string>): Set<string> => {
+    const reached = new Set<string>();
+    const queue = [...seeds];
+    while (queue.length > 0) {
+      const key = queue.pop() as string;
+      if (reached.has(key)) continue;
+      reached.add(key);
+      const resource = byKey.get(key);
+      if (resource !== undefined) queue.push(...named(JSON.stringify({ ...resource, key: undefined })));
+    }
+    return reached;
+  };
+  const constructed = closure(others);
+  const drawn = closure(domSeeds);
+  return resources.map((resource) => (drawn.has(resource.key) && !constructed.has(resource.key) ? { ...resource, domOnly: true as const } : resource));
 }
