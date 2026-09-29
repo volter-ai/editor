@@ -177,6 +177,20 @@ export function godotTweenInterpolates(apiType: string): boolean {
   return TWEENED_TYPES.has(apiType);
 }
 
+/** The float components a sub-property path names on a value of this API type (`position:y`), by name. */
+const COMPONENTS: Readonly<Record<string, readonly string[]>> = {
+  Vector2: ['x', 'y'],
+  Vector3: ['x', 'y', 'z'],
+  Vector4: ['x', 'y', 'z', 'w'],
+  Quaternion: ['x', 'y', 'z', 'w'],
+  Color: ['r', 'g', 'b', 'a'],
+};
+
+/** The float components of a value of this API type a sub-property path can name, or undefined. */
+export function godotComponentNames(apiType: string): readonly string[] | undefined {
+  return COMPONENTS[apiType];
+}
+
 /**
  * The value a typed variable of this datatype holds before anything is assigned: GDScript clears a
  * built-in to its zero-argument construction (`constructed`), a few to a JS primitive, and an

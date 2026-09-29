@@ -17,6 +17,7 @@ import {
   godotStatedValueType,
   godotSubscriptsParameters,
   godotTruthShape,
+  godotComponentNames,
   godotTweenInterpolates,
   godotTypeDefault,
 } from '../data/lowering-shapes';
@@ -692,8 +693,9 @@ function treeParameterAt(
  * `Object::get_indexed`/`set_indexed` by name (tween.cpp:104, :627, :671), resolved here to the
  * object's native class's getter and setter bindings, which compat's PropertyTweener reads and
  * writes through (`{ get, set }`, `tween.ts`). The path must be a literal naming one native property
- * of a type Tween interpolates; a sub-property (`position:x`), a script's own property or any other
- * type refuses by name.
+ * of a type Tween interpolates, or one component of a vector, colour or quaternion property
+ * (`position:y`, as `Object::get_indexed` reaches it), read from the property and written back as a
+ * copy with that component changed; a script's own property or any other type refuses by name.
  */
 function tweenedProperty(
   context: LoweringContext,
@@ -707,28 +709,32 @@ function tweenedProperty(
   // The path as a string, a StringName or a NodePath (`^"light_energy"`).
   const property = value === undefined ? undefined : godotLiteralPathText(value);
   if (property === undefined) return context.refuse(node, 'tween_property of a property only known at run time');
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(property)) return context.refuse(node, `tween_property of the sub-property path ${property}`);
+  const [whole, component, ...deeper] = property.split(':') as [string, ...string[]];
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(whole) || deeper.length > 0) return context.refuse(node, `tween_property of the sub-property path ${property}`);
   const className =
     objectNode.kind === 'SELF'
       ? context.nativeBase
-      : nativeMemberReceiver(context, objectNode, property)
+      : nativeMemberReceiver(context, objectNode, whole)
         ? objectNode.datatype.nativeType
         : undefined;
   // An object only the run time knows: the property selected by name then.
-  if ((className === undefined || className === '') && namedAttribute(context, objectNode, property)) return namedAccess(context, node, property);
+  if (component === undefined && (className === undefined || className === '') && namedAttribute(context, objectNode, property)) return namedAccess(context, node, property);
   if (className === undefined || className === '') {
     return context.refuse(node, `tween_property of ${property} on an object whose native class is not fixed (${objectNode.datatype.display})`);
   }
-  if (objectNode.kind === 'SELF' && context.scriptMembers?.(objectNode.datatype.scriptPath)?.has(property) === true) {
-    return context.refuse(node, `tween_property of the script's own property ${property}`);
+  if (objectNode.kind === 'SELF' && context.scriptMembers?.(objectNode.datatype.scriptPath)?.has(whole) === true) {
+    return context.refuse(node, `tween_property of the script's own property ${whole}`);
   }
-  const found = context.nativeProperty(className, property);
-  if (found === undefined) return context.refuse(node, `tween_property of ${property}, which ${className} does not declare`);
-  if (found.type === undefined || !godotTweenInterpolates(found.type)) {
+  const found = context.nativeProperty(className, whole);
+  if (found === undefined) return context.refuse(node, `tween_property of ${whole}, which ${className} does not declare`);
+  if (component !== undefined && (found.type === undefined || !(godotComponentNames(found.type) ?? []).includes(component))) {
+    return context.refuse(node, `tween_property of ${property}, which is no component of a ${found.type ?? 'untyped'} property`);
+  }
+  if (component === undefined && (found.type === undefined || !godotTweenInterpolates(found.type))) {
     return context.refuse(node, `tween_property of ${found.owner}.${property}, a ${found.type ?? 'untyped'} property Tween's interpolation is not transcribed for`);
   }
   const accessor = (method: NativePropertyAccessor | undefined, which: string): OfficialBoundBindingUse => {
-    if (method === undefined) return context.refuse(node, `${found.owner}.${property} has no ${which}`);
+    if (method === undefined) return context.refuse(node, `${found.owner}.${whole} has no ${which}`);
     const use = context.bindingUse(
       { sourceRevision: context.sourceRevision, kind: 'native-member', owner: method.owner, member: method.name, signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}` },
       node,
@@ -765,6 +771,38 @@ function tweenedProperty(
             arguments: [{ kind: 'identifier-expression', name: 'object' }, { kind: 'literal-expression', value: index }, { kind: 'identifier-expression', name: 'value' }],
           },
         };
+  if (component !== undefined) {
+    // One component: read from the property; written back as a copy of the property with it changed.
+    const call = (callee: TargetTsExpression, args: readonly TargetTsExpression[]): TargetTsExpression => ({ kind: 'call-expression', callee, arguments: [...args] });
+    const object: TargetTsExpression = { kind: 'identifier-expression', name: 'object' };
+    const current = call(read, [object]);
+    const parameter = (name: string) => ({ name, type: { kind: 'keyword-type' as const, keyword: 'never' as const } });
+    return expression(
+      {
+        kind: 'object-expression',
+        properties: [
+          { key: 'get', value: { kind: 'arrow-expression', parameters: [parameter('object')], body: { kind: 'property-expression', object: current, property: component } } },
+          {
+            key: 'set',
+            value: {
+              kind: 'arrow-expression',
+              parameters: [parameter('object'), parameter('value')],
+              body: call(write, [
+                object,
+                call({ kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'assign' }, [
+                  { kind: 'object-expression', properties: [] },
+                  current,
+                  { kind: 'object-expression', properties: [{ key: component, value: { kind: 'identifier-expression', name: 'value' } }] },
+                ]),
+              ]),
+            },
+          },
+        ],
+        span: span(context.script, node),
+      },
+      [...getter.requirements, ...setter.requirements],
+    );
+  }
   return expression(
     {
       kind: 'object-expression',
