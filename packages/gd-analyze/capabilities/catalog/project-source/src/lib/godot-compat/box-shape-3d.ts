@@ -47,3 +47,16 @@ export function set_size(self: BoxShape3D, size: Vector3): void {
 export function get_size(self: BoxShape3D): Vector3 {
   return self.size;
 }
+
+/**
+ * A BoxShape3D of its defaults and the properties a scene states, by their prop names.
+ *
+ * @godot BoxShape3D (protocol)
+ * @source scene/resources/3d/box_shape_3d.cpp:118
+ */
+export function godot_box_shape_3d_new(properties: Readonly<Record<string, unknown>> = {}): BoxShape3D {
+  const self = construct();
+  const size = properties['size'] as readonly [number, number, number] | undefined;
+  if (size !== undefined) set_size(self, vector3(...size));
+  return self;
+}

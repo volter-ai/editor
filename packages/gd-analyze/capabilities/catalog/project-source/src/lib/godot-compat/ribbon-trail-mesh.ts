@@ -12,7 +12,7 @@
  */
 
 import { type Curve, get_point_count, sample_baked } from './curve';
-import { godot_primitive_mesh_describe, godot_primitive_mesh_describe_skin, godot_primitive_mesh_unchanged, type PrimitiveMesh, type PrimitiveMeshArrays, type PrimitiveMeshSkin } from './primitive-mesh';
+import { godot_primitive_mesh_describe, godot_primitive_mesh_describe_skin, godot_primitive_mesh_unchanged, type PrimitiveMesh, type PrimitiveMeshArrays, type PrimitiveMeshSkin, set_material } from './primitive-mesh';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector3, type Vector3 } from './vector3';
 
@@ -227,4 +227,22 @@ export function set_curve(self: RibbonTrailMesh, curve: Curve | null): void {
  */
 export function get_curve(self: RibbonTrailMesh): Curve | null {
   return self.curve;
+}
+
+/**
+ * A RibbonTrailMesh of its defaults and the properties a scene states, by their prop names.
+ *
+ * @godot RibbonTrailMesh (protocol)
+ * @source scene/resources/3d/primitive_meshes.h:478
+ */
+export function godot_ribbon_trail_mesh_new(properties: Readonly<Record<string, unknown>> = {}): RibbonTrailMesh {
+  const self = construct();
+  if (properties['shape'] !== undefined) set_shape(self, properties['shape'] as number);
+  if (properties['size'] !== undefined) set_size(self, properties['size'] as number);
+  if (properties['sections'] !== undefined) set_sections(self, properties['sections'] as number);
+  if (properties['sectionLength'] !== undefined) set_section_length(self, properties['sectionLength'] as number);
+  if (properties['sectionSegments'] !== undefined) set_section_segments(self, properties['sectionSegments'] as number);
+  if (properties['curve'] !== undefined) set_curve(self, properties['curve'] as Curve | null);
+  if (properties['material'] !== undefined) set_material(self, properties['material'] as object | null);
+  return self;
 }

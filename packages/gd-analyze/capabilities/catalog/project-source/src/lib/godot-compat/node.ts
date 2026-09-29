@@ -1246,6 +1246,17 @@ export function remove_from_group(self: object, group: string): void {
 }
 
 /**
+ * Deletes the object at once (`Variant::call`'s `free`, `memdelete`): a node leaves its parent and
+ * the tree now, its children freed with it (`godot_node_free`).
+ *
+ * @godot Object.free
+ * @source core/object/object.cpp:1919
+ */
+export function free(self: object): void {
+  godot_node_free(native(self, 'free'));
+}
+
+/**
  * Queues the node for deletion (`SceneTree::queue_delete`, `scene/main/scene_tree.cpp:1638`): it
  * takes no further part at once and is freed once the current work is done (`scene-tree.ts`).
  *

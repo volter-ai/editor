@@ -92,18 +92,24 @@ function axisAngle(p_axis: Vector3, p_angle: number): Basis {
 
 /**
  * The Variant constructors (`core/variant/variant_construct.cpp:151-155`): no arguments (the
- * identity, `core/math/basis.h:41`), `from: Basis`, `axis: Vector3, angle: float`
- * (`Basis(p_axis, p_angle)`, `core/math/basis.h:236`), and three column vectors
- * (`core/math/basis.h:240`). `from: Quaternion` is not transcribed.
+ * identity, `core/math/basis.h:41`), `from: Basis`, `from: Quaternion` (`Basis::set_quaternion`),
+ * `axis: Vector3, angle: float` (`Basis(p_axis, p_angle)`, `core/math/basis.h:236`), and three
+ * column vectors (`core/math/basis.h:240`).
  *
  * @godot Basis.Basis
  * @source core/math/basis.h:240
  */
 export function construct(
-  ...args: readonly [] | readonly [Basis] | readonly [Vector3, number] | readonly [Vector3, Vector3, Vector3]
+  ...args: readonly [] | readonly [Basis] | readonly [Quaternion] | readonly [Vector3, number] | readonly [Vector3, Vector3, Vector3]
 ): Basis {
   if (args.length === 0) return IDENTITY;
-  if (args.length === 1) return fromColumns(args[0].x, args[0].y, args[0].z);
+  if (args.length === 1) {
+    const from = args[0];
+    // A Quaternion's components are numbers; a Basis's are its column vectors.
+    if (typeof from.x === 'number') return godot_basis_from_quaternion(from as Quaternion);
+    const basis = from as Basis;
+    return fromColumns(basis.x, basis.y, basis.z);
+  }
   if (args.length === 2) return axisAngle(args[0], args[1]);
   return fromColumns(vector3(args[0]), vector3(args[1]), vector3(args[2]));
 }

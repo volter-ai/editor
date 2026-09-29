@@ -15,6 +15,7 @@ import {
   lowerOfficialExpression,
   lowerTruth,
   lowerTypeDefault,
+  nullableObject,
   numericTag,
 } from './lower-official-expression';
 import {
@@ -459,12 +460,17 @@ function lowerStatement(context: LoweringContext, node: GodotBoundNode): Lowered
           ? lowerExpression(context, valueNode)
           : convertedValue(context, returnType, valueNode, lowerExpression(context, valueNode)),
       );
+      // A function returning an object may return null, as GDScript does: TS types the result
+      // present, so a null (or an object read that may be null) is returned asserted present, as it
+      // is passed to an object parameter.
+      const objectReturn = returnType !== undefined && !returnType.datatype.metaType && (returnType.datatype.kind === 'NATIVE' || returnType.datatype.kind === 'CLASS');
+      const mayBeNull = (valueNode.kind === 'LITERAL' && valueNode.value.kind === 'nil') || nullableObject(context, valueNode);
       return {
         statements: [
           ...value.before,
           {
             kind: 'return-statement',
-            expression: value.value,
+            expression: objectReturn && mayBeNull ? { kind: 'non-null-expression', expression: value.value } : value.value,
             span: officialBoundSpan(context.script, node),
           },
           ...value.after,

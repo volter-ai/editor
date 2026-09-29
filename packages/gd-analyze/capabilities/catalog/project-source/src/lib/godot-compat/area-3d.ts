@@ -220,10 +220,11 @@ export function is_monitoring(self: object): boolean {
  * @godot Area3D.get_overlapping_bodies
  * @source scene/3d/physics/area_3d.cpp:515
  */
-export function get_overlapping_bodies(self: object): object[] {
+export function get_overlapping_bodies(self: object): Object3D[] {
   const state = stateOf(self, 'get_overlapping_bodies');
   if (!state.monitoring) return [];
-  return [...state.bodies.keys()].map((body) => godot_node_object(body));
+  // Each the body's Godot object (its script's instance, where it has one), as a Node3D array holds it.
+  return [...state.bodies.keys()].map((body) => godot_node_object(body) as Object3D);
 }
 
 /**

@@ -388,3 +388,10 @@ const LANGUAGE_CONSTANTS: Readonly<Record<string, number>> = { PI: Math.PI, TAU:
 export function godotLanguageConstant(name: string): number | undefined {
   return Object.hasOwn(LANGUAGE_CONSTANTS, name) ? LANGUAGE_CONSTANTS[name] : undefined;
 }
+
+/**
+ * Engine members a script calls that the API dump does not list, bound by owner and name with one
+ * signature: `Object.free`, which `Variant::call` answers (`object.cpp:1919` registers it virtual)
+ * and no script can declare.
+ */
+export const GODOT_UNDUMPED_MEMBERS: ReadonlySet<string> = new Set(['Object.free']);

@@ -60,3 +60,16 @@ export function set_slide_on_slope(self: SeparationRayShape3D, active: boolean):
 export function get_slide_on_slope(self: SeparationRayShape3D): boolean {
   return self.slide_on_slope;
 }
+
+/**
+ * A SeparationRayShape3D of its defaults and the properties a scene states, by their prop names.
+ *
+ * @godot SeparationRayShape3D (protocol)
+ * @source scene/resources/3d/separation_ray_shape_3d.cpp:92
+ */
+export function godot_separation_ray_shape_3d_new(properties: Readonly<Record<string, unknown>> = {}): SeparationRayShape3D {
+  const self = construct();
+  if (properties['length'] !== undefined) set_length(self, properties['length'] as number);
+  if (properties['slideOnSlope'] !== undefined) set_slide_on_slope(self, properties['slideOnSlope'] as boolean);
+  return self;
+}

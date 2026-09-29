@@ -5,6 +5,7 @@
  * an operator takes from the export's own signature. Compat implementing a member is what makes it
  * bound; there is no other record.
  */
+import { GODOT_UNDUMPED_MEMBERS } from '../data/lowering-shapes';
 import { readdirSync, readFileSync } from 'node:fs';
 import * as path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -139,6 +140,9 @@ export function godotCompatBindings(
         // `Variant::set_indexed` on a built-in the dump gives an indexed element type.
         bind('builtin-indexed-set', 'set', { kind: 'call', sourceReceiver: 'first-argument' });
       } else unmatched.push(`${owner}.${member} (${entry.module} ${entry.exportName})`);
+    } else if (GODOT_UNDUMPED_MEMBERS.has(`${owner}.${member}`)) {
+      // A member the dump does not list (`Object.free`, `lowering-shapes.ts`): one signature.
+      bind('native-member', 'unhashed', { kind: 'call', sourceReceiver: 'first-argument' });
     } else if (native !== undefined) {
       const method = native.methods?.find((candidate) => candidate.name === member);
       // A property's accessor, including the internal ones the dump leaves out (`Curve._set_data`).

@@ -66,3 +66,16 @@ export function set_height(self: CylinderShape3D, height: number): void {
 export function get_height(self: CylinderShape3D): number {
   return self.height;
 }
+
+/**
+ * A CylinderShape3D of its defaults and the properties a scene states, by their prop names.
+ *
+ * @godot CylinderShape3D (protocol)
+ * @source scene/resources/3d/cylinder_shape_3d.cpp:155
+ */
+export function godot_cylinder_shape_3d_new(properties: Readonly<Record<string, unknown>> = {}): CylinderShape3D {
+  const self = construct();
+  if (properties['radius'] !== undefined) set_radius(self, properties['radius'] as number);
+  if (properties['height'] !== undefined) set_height(self, properties['height'] as number);
+  return self;
+}

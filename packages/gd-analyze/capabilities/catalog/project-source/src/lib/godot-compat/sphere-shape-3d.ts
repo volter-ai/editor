@@ -50,3 +50,15 @@ export function set_radius(self: SphereShape3D, radius: number): void {
 export function get_radius(self: SphereShape3D): number {
   return self.radius;
 }
+
+/**
+ * A SphereShape3D of its defaults and the properties a scene states, by their prop names.
+ *
+ * @godot SphereShape3D (protocol)
+ * @source scene/resources/3d/sphere_shape_3d.cpp:104
+ */
+export function godot_sphere_shape_3d_new(properties: Readonly<Record<string, unknown>> = {}): SphereShape3D {
+  const self = construct();
+  if (properties['radius'] !== undefined) set_radius(self, properties['radius'] as number);
+  return self;
+}

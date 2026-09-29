@@ -47,6 +47,27 @@ export function construct(): CameraAttributesPractical {
 }
 
 /**
+ * A CameraAttributesPractical of its defaults and the properties a scene states, by their prop names.
+ *
+ * @godot CameraAttributesPractical (protocol)
+ * @source scene/resources/camera_attributes.cpp:309
+ */
+export function godot_camera_attributes_practical_new(properties: Readonly<Record<string, unknown>> = {}): CameraAttributesPractical {
+  const self = construct();
+  const set = <Value>(key: string, setter: (attributes: CameraAttributesPractical, value: Value) => void) => {
+    if (properties[key] !== undefined) setter(self, properties[key] as Value);
+  };
+  set('dofBlurFarEnabled', set_dof_blur_far_enabled);
+  set('dofBlurFarDistance', set_dof_blur_far_distance);
+  set('dofBlurFarTransition', set_dof_blur_far_transition);
+  set('dofBlurNearEnabled', set_dof_blur_near_enabled);
+  set('dofBlurNearDistance', set_dof_blur_near_distance);
+  set('dofBlurNearTransition', set_dof_blur_near_transition);
+  set('dofBlurAmount', set_dof_blur_amount);
+  return self;
+}
+
+/**
  * @godot CameraAttributesPractical.set_dof_blur_far_enabled
  * @source scene/resources/camera_attributes.cpp:151
  */

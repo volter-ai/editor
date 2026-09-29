@@ -11,19 +11,31 @@ import type { InputEventRecord } from './input-event';
 type KeyEvent = Extract<InputEventRecord, { readonly type: 'key' }>;
 
 /**
+ * An event as a key event: a script reaches InputEventKey's members on an `InputEvent` it tested
+ * (`event is InputEventKey and event.keycode`), which Godot resolves on the object at run time; on
+ * another event the member is not there and the call fails by name.
+ */
+function keyOf(self: InputEventRecord, member: string): KeyEvent {
+  if (self.type !== 'key') throw new TypeError(`godot-compat: InputEventKey.${member} on an event that is not a key event.`);
+  return self;
+}
+
+/**
  * @godot InputEventKey.get_keycode
  * @source core/input/input_event.cpp:341
  */
-export function get_keycode(self: KeyEvent): number {
-  return self.keycode;
+export function get_keycode(self: InputEventRecord): number {
+  const key = keyOf(self, 'get_keycode');
+  return key.keycode;
 }
 
 /**
  * @godot InputEventKey.get_physical_keycode
  * @source core/input/input_event.cpp:359
  */
-export function get_physical_keycode(self: KeyEvent): number {
-  return self.physical_keycode;
+export function get_physical_keycode(self: InputEventRecord): number {
+  const key = keyOf(self, 'get_physical_keycode');
+  return key.physical_keycode;
 }
 
 type MutableKeyEvent = { -readonly [K in keyof KeyEvent]: KeyEvent[K] };
@@ -42,46 +54,52 @@ export function construct(): KeyEvent {
  * @godot InputEventKey.set_pressed
  * @source core/input/input_event.cpp:331
  */
-export function set_pressed(self: KeyEvent, pressed: boolean): void {
-  (self as MutableKeyEvent).pressed = pressed;
+export function set_pressed(self: InputEventRecord, pressed: boolean): void {
+  const key = keyOf(self, 'set_pressed');
+  (key as MutableKeyEvent).pressed = pressed;
 }
 
 /**
  * @godot InputEventKey.set_keycode
  * @source core/input/input_event.cpp:336
  */
-export function set_keycode(self: KeyEvent, keycode: number): void {
-  (self as MutableKeyEvent).keycode = keycode;
+export function set_keycode(self: InputEventRecord, keycode: number): void {
+  const key = keyOf(self, 'set_keycode');
+  (key as MutableKeyEvent).keycode = keycode;
 }
 
 /**
  * @godot InputEventKey.set_key_label
  * @source core/input/input_event.cpp:345
  */
-export function set_key_label(self: KeyEvent, key_label: number): void {
-  (self as MutableKeyEvent).key_label = key_label;
+export function set_key_label(self: InputEventRecord, key_label: number): void {
+  const key = keyOf(self, 'set_key_label');
+  (key as MutableKeyEvent).key_label = key_label;
 }
 
 /**
  * @godot InputEventKey.get_key_label
  * @source core/input/input_event.cpp:350
  */
-export function get_key_label(self: KeyEvent): number {
-  return self.key_label;
+export function get_key_label(self: InputEventRecord): number {
+  const key = keyOf(self, 'get_key_label');
+  return key.key_label;
 }
 
 /**
  * @godot InputEventKey.set_physical_keycode
  * @source core/input/input_event.cpp:354
  */
-export function set_physical_keycode(self: KeyEvent, physical_keycode: number): void {
-  (self as MutableKeyEvent).physical_keycode = physical_keycode;
+export function set_physical_keycode(self: InputEventRecord, physical_keycode: number): void {
+  const key = keyOf(self, 'set_physical_keycode');
+  (key as MutableKeyEvent).physical_keycode = physical_keycode;
 }
 
 /**
  * @godot InputEventKey.set_echo
  * @source core/input/input_event.cpp:381
  */
-export function set_echo(self: KeyEvent, echo: boolean): void {
-  (self as MutableKeyEvent).echo = echo;
+export function set_echo(self: InputEventRecord, echo: boolean): void {
+  const key = keyOf(self, 'set_echo');
+  (key as MutableKeyEvent).echo = echo;
 }

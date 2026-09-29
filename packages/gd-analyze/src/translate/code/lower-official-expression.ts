@@ -20,6 +20,7 @@ import {
   godotComponentNames,
   godotTweenInterpolates,
   godotTypeDefault,
+  GODOT_UNDUMPED_MEMBERS,
 } from '../data/lowering-shapes';
 import { godotBuiltinWidens, godotLiteralPathText } from '../data/operand-types';
 import { godotCompatReturnType } from './native-types';
@@ -584,7 +585,7 @@ function nativeMemberReceiver(context: LoweringContext, node: GodotBoundNode, me
  * analysis resolved the read to its declaration (`nullable-variables.ts`). A member read or call on null is Godot's runtime error (`OPCODE_GET_NAMED`, `gdscript_vm.cpp:1260`; `OPCODE_CALL`, `:1903`), so the read
  * states the object as present (`value!`) and a null one throws where Godot errs.
  */
-function nullableObject(context: LoweringContext, node: GodotBoundNode): boolean {
+export function nullableObject(context: LoweringContext, node: GodotBoundNode): boolean {
   const datatype = node.datatype;
   if (datatype.metaType || (datatype.kind !== 'CLASS' && datatype.kind !== 'NATIVE')) return false;
   return context.nullableReads.has(node.id);
@@ -1668,7 +1669,9 @@ function assignablePlace(
       afterAssigned: [],
       // Read only when `needsRead` resolved the getter above.
       read: read?.value ?? { kind: 'undefined-expression' },
-      write: (value) => bindingCall(context, node, setter, [object.value, value]),
+      // A place the analyzer types Variant (an untyped receiver the call-receiver analysis typed)
+      // takes its value as the setter's parameter, which `Object::set` converts it to.
+      write: (value) => bindingCall(context, node, setter, [object.value, node.datatype.kind === 'VARIANT' ? { kind: 'as-expression', expression: value, type: { kind: 'keyword-type', keyword: 'never' } } : value]),
       requirements: [
         ...rule.requirements,
         ...object.requirements,
@@ -1753,6 +1756,12 @@ export function convertedValue(
       value: { kind: 'as-expression', expression: held, type: type.type },
       requirements: [...value.requirements, ...type.requirements, ...(scripted ? [compatImport('node', 'godot_node_entity')] : [])],
     };
+  }
+  // A Variant into a place typed as an enum (`event.keycode = actions[name]`): the int Godot's typed
+  // assignment checks it holds, stated as the enum's type.
+  if (target.datatype.kind === 'ENUM' && !target.datatype.metaType && valueNode.datatype.kind === 'VARIANT' && context.hasTargetType(target)) {
+    const type = context.targetType(target);
+    return { ...value, value: { kind: 'as-expression', expression: value.value, type: type.type }, requirements: [...value.requirements, ...type.requirements] };
   }
   if (target.datatype.kind !== 'BUILTIN') return value;
   // A value of another built-in type converts through the target type's constructor as well
@@ -1939,6 +1948,36 @@ function assignmentBinaryOperator(
     default:
       throw new Error(`unsupported assignment operator ${operator}`);
   }
+}
+
+/**
+ * A call's arguments as a project script's function takes them: a script's instance (or `self`)
+ * passed to a parameter typed as an engine class holds the node it is attached to, as a typed
+ * assignment does (`convertedValue`).
+ */
+function scriptCallArguments(
+  context: LoweringContext,
+  argumentNodes: readonly GodotBoundNode[],
+  args: readonly LoweredExpression[],
+  resPath: string | undefined,
+  name: string,
+): LoweredExpression[] {
+  const parameters = resPath === undefined || resPath === '' ? undefined : context.scriptParameters(resPath, name);
+  if (parameters === undefined) return [...args];
+  return args.map((value, index) => {
+    const parameter = parameters[index];
+    const argument = argumentNodes[index];
+    if (parameter === undefined || argument === undefined) return value;
+    const scripted = parameter.datatype.kind === 'NATIVE' && !parameter.datatype.metaType && argument.datatype.kind === 'CLASS' && !argument.datatype.metaType && argument.datatype.scriptPath !== '';
+    if (!scripted) return value;
+    // The parameter's type as its own script states it (by its datatype alone).
+    const type = context.targetType({ ...parameter, id: -1 } as GodotBoundNode);
+    return {
+      ...value,
+      value: { kind: 'as-expression', expression: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_node_entity' }, arguments: [value.value] }, type: type.type },
+      requirements: [...value.requirements, ...type.requirements, compatImport('node', 'godot_node_entity')],
+    };
+  });
 }
 
 function dynamicCall(
@@ -3487,12 +3526,18 @@ export function lowerOfficialExpression(
         // A tweened property's object is its native entity, and the property's accessors follow the
         // call's own arguments (`tweenedProperty`). A timer or tween is owned by the script that makes
         // it, which the binding takes right after the receiver (`creator-owned`).
+        // A Variant into an engine method's typed parameter is converted at the call
+        // (`Variant::convert` in the method bind's argument check), which TS states as whatever the
+        // parameter takes.
+        const typedArguments = lowered.map((value, index) =>
+          argumentNodes[index]?.datatype.kind === 'VARIANT' ? { ...value, value: { kind: 'as-expression' as const, expression: value.value, type: { kind: 'keyword-type' as const, keyword: 'never' as const } } } : value,
+        );
         const args =
-          shape === 'tweened-property' && lowered[0] !== undefined
-            ? [nativeEntity(lowered[0]), ...lowered.slice(1), tweenedProperty(context, node, argumentNodes)]
+          shape === 'tweened-property' && typedArguments[0] !== undefined
+            ? [nativeEntity(typedArguments[0]), ...typedArguments.slice(1), tweenedProperty(context, node, argumentNodes)]
             : shape === 'creator-owned'
-              ? [expression({ kind: 'this-expression', span: span(context.script, node) }), ...lowered]
-              : lowered;
+              ? [expression({ kind: 'this-expression', span: span(context.script, node) }), ...typedArguments]
+              : typedArguments;
         if (shape === 'script-chain-method') {
           const argument = argumentNodes[0];
           const name = argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name') ? argument.value.value : undefined;
@@ -3573,6 +3618,14 @@ export function lowerOfficialExpression(
           const result = boundCallWithoutReceiver(context, node, target, args);
           return { ...result, requirements: [...requirements, ...result.requirements] };
         }
+        // `free()` on self is Object's own (`Variant::call`'s `free`), which no script can declare:
+        // its binding on the instance's native entity (`GODOT_UNDUMPED_MEMBERS`).
+        const undumped = [...GODOT_UNDUMPED_MEMBERS].find((entry) => entry.endsWith(`.${node.compilerTarget.member}`));
+        if (calleeNode.kind === 'IDENTIFIER' && node.compilerTarget.kind === 'script-self' && undumped !== undefined && argumentNodes.length === 0) {
+          const [owner = '', member = ''] = undumped.split('.');
+          const use = context.bindingUse({ sourceRevision: context.sourceRevision, kind: 'native-member', owner, member, signature: 'unhashed' }, node);
+          return expression(bindingCall(context, node, use, [selfNative(context, node)]), [...requirements, ...use.requirements]);
+        }
         if (
           calleeNode.kind === 'IDENTIFIER' &&
           (node.compilerTarget.kind === 'script-self' || node.compilerTarget.kind === 'script-class')
@@ -3591,7 +3644,7 @@ export function lowerOfficialExpression(
           };
           return compose(
             context,
-            args,
+            scriptCallArguments(context, argumentNodes, args, node.compilerTarget.kind === 'script-self' ? context.script.resPath : undefined, node.compilerTarget.member),
             (argumentValues) => ({
               kind: 'call-expression',
               callee,
@@ -3640,7 +3693,11 @@ export function lowerOfficialExpression(
         // The callee is the call's own member, not a member read by name.
         context.plainCallees.add(calleeNode.id);
         const callee = lowerExpression(context, calleeNode);
-        return dynamicCall(context, node, callee, args, requirements);
+        // A project script's method on a receiver typed as its class takes its arguments as that
+        // function states them.
+        const receiver = calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute ? context.node(calleeNode.base, calleeNode).datatype : undefined;
+        const scriptPath = receiver !== undefined && receiver.kind === 'CLASS' && !receiver.metaType ? receiver.scriptPath : undefined;
+        return dynamicCall(context, node, callee, scriptCallArguments(context, argumentNodes, args, scriptPath, node.functionName), requirements);
       }
       case 'AWAIT': {
         // `await signal` suspends the coroutine until the signal's next emission and resumes with

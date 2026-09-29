@@ -179,7 +179,8 @@ interface Emission {
   /** Types `@react-three/rapier` exports that the refs name. */
   readonly rapierTypes: Set<string>;
   /** The prefab components the scene instances, by name, with their modules. */
-  readonly instances: Map<string, string>;
+  /** The instanced scenes' components, by their local name here: their module and export. */
+  readonly instances: Map<string, { readonly module: string; readonly exportName: string }>;
   /** The imported models' data files the scene reads, by local name. */
   readonly models: Map<string, string>;
   /** The scene's autoload context (`<Scene>Autoloads`), when its scripts read autoloads. */
@@ -576,8 +577,16 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   // What the plan found of the instanced scene (`scene-body-idioms.ts`): emit reads no other scene.
   const instanced = node.instanceOf;
   if (instanced === undefined) throw new Error(`${at}: the instanced scene is absent from composition`);
-  const local = instanced.exportName;
-  emission.instances.set(local, moduleSpecifier(emission.scene.targetPath, instanced.targetPath));
+  // Its component, imported once, under another name where its own clashes (a scene instancing
+  // another of its name, from another folder).
+  const module = moduleSpecifier(emission.scene.targetPath, instanced.targetPath);
+  let local = [...emission.instances].find(([, entry]) => entry.module === module)?.[0];
+  if (local === undefined) {
+    local = instanced.exportName;
+    for (let n = 2; local === emission.scene.exportName || emission.family.taken.has(local) || emission.instances.has(local); n += 1) local = `${instanced.exportName}${String(n)}`;
+    emission.family.taken.add(local);
+    emission.instances.set(local, { module, exportName: instanced.exportName });
+  }
   const rootClass = instanced.rootClass as string;
   const rootIdiom = instanced.rootIdiom;
   const overrides: TargetTsJsxAttribute[] = [];
@@ -1131,10 +1140,10 @@ export function idiomaticSceneSourceFile(
       defaultBinding: local,
       namedBindings: [],
     })),
-    ...[...emission.instances].map(([local, module]) => ({
+    ...[...emission.instances].map(([local, { module, exportName }]) => ({
       kind: 'import-statement' as const,
       module,
-      namedBindings: [{ imported: local, local }],
+      namedBindings: [{ imported: exportName, local }],
     })),
     ...(emission.rapier.size === 0
       ? []
