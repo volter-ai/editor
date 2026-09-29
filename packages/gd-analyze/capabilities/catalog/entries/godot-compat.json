@@ -7,6 +7,7 @@
     "src/lib/godot-compat/animation-clips.ts",
     "src/lib/godot-compat/animation-library.ts",
     "src/lib/godot-compat/animation-mixer.ts",
+    "src/lib/godot-compat/animation-node-state-machine-playback.ts",
     "src/lib/godot-compat/animation-player.ts",
     "src/lib/godot-compat/animation-tree.ts",
     "src/lib/godot-compat/animation.ts",

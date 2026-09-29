@@ -629,6 +629,17 @@ function treeParameter(
 }
 
 /**
+ * The parameters compat's `animation-tree.ts` keeps (`parametersOf`): every node's times, an
+ * animation's direction, a Blend2's, Add2's and TimeScale's amount, a OneShot's request and state, a
+ * state machine's playback and advance conditions.
+ */
+const TREE_PARAMETER =
+  /^parameters\/(.+\/)?(blend_amount|add_amount|scale|backward|request|active|internal_active|fade_in_remaining|fade_out_remaining|time_to_restart|current_length|current_position|current_delta|playback|conditions\/[^/]+)$/u;
+
+/** A state machine's playback parameter: read as the playback object (`godot_animation_tree_playback`), never written. */
+const treePlayback = (path: string): boolean => path.endsWith('/playback');
+
+/**
  * `tree.set(&"parameters/run/blend_amount", v)` and `tree.get(…)`: `Object::set`/`get` by name on an
  * AnimationTree, which the tree answers from its parameters as its subscript does (`treeParameter`).
  * Undefined for another call, or on another receiver.
@@ -658,7 +669,7 @@ function treeParameterAt(
   const path = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
   if (path === undefined) return context.refuse(node, 'an AnimationTree subscript whose path is not a literal');
   // A parameter of a node compat transcribes (`animation-tree.ts`'s `parametersOf`).
-  if (!/^parameters\/(.+\/)?(blend_amount|scale|backward|current_length|current_position|current_delta)$/u.test(path)) {
+  if (!TREE_PARAMETER.test(path)) {
     return context.refuse(node, `an AnimationTree subscript of ${path}, which is not a parameter of a transcribed node`);
   }
   // The tree the receiver is in each scene (`scene-node-receiver`): the path is one of its parameters.
@@ -1507,6 +1518,7 @@ function assignablePlace(
 ): AssignablePlace {
   const parameter = treeParameter(context, node);
   if (parameter !== undefined) {
+    if (treePlayback(parameter.path)) return context.refuse(node, `an assignment to ${parameter.path}, a state machine's playback`);
     const rule = context.selectRule(node, ['subscript-element:tree-parameter'], [parameter.baseNode, parameter.indexNode], ['binding'], false);
     const object = materialize(context, nativeEntity(lower(context, parameter.baseNode)));
     const name: TargetTsExpression = { kind: 'literal-expression', value: parameter.path };
@@ -3204,10 +3216,10 @@ export function lowerOfficialExpression(
             [nativeEntity(base)],
             ([object]) => ({
               kind: 'call-expression',
-              callee: { kind: 'identifier-expression', name: 'godot_animation_tree_parameter' },
+              callee: { kind: 'identifier-expression', name: treePlayback(parameter.path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter' },
               arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: parameter.path }],
             }),
-            [...rule.requirements, treeProtocol('godot_animation_tree_parameter')],
+            [...rule.requirements, treeProtocol(treePlayback(parameter.path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter')],
           );
         }
         const indexNode = context.node(node.index, node);
@@ -3356,8 +3368,9 @@ export function lowerOfficialExpression(
         // An AnimationTree's parameter by name, as its subscript is (`treeParameterCall`).
         const treeCall = treeParameterCall(context, node, calleeNode, argumentNodes);
         if (treeCall !== undefined) {
+          if (treeCall.write && treePlayback(treeCall.path)) return context.refuse(node, `a set of ${treeCall.path}, a state machine's playback`);
           const base = lowerExpression(context, treeCall.baseNode);
-          const callee = treeCall.write ? 'godot_animation_tree_set_parameter' : 'godot_animation_tree_parameter';
+          const callee = treeCall.write ? 'godot_animation_tree_set_parameter' : treePlayback(treeCall.path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter';
           return compose(
             context,
             [nativeEntity(base), ...lowered.slice(1)],

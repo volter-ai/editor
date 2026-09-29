@@ -287,13 +287,69 @@ export type GodotAnimationNodeData =
       readonly filterEnabled?: boolean;
       readonly filters?: readonly string[];
     }
-  | { readonly type: 'blend-tree'; readonly nodes: readonly { readonly name: string; readonly node: GodotAnimationNodeData }[]; readonly connections: readonly (readonly [string, number, string])[] };
+  | { readonly type: 'add2'; readonly sync?: boolean; readonly filterEnabled?: boolean; readonly filters?: readonly string[] }
+  | { readonly type: 'blend-tree'; readonly nodes: readonly { readonly name: string; readonly node: GodotAnimationNodeData }[]; readonly connections: readonly (readonly [string, number, string])[] }
+  | {
+      readonly type: 'state-machine';
+      readonly states: readonly { readonly name: string; readonly node: GodotAnimationNodeData; readonly position?: readonly [number, number] }[];
+      readonly endpoints?: { readonly Start?: readonly [number, number]; readonly End?: readonly [number, number] };
+      readonly transitions: readonly GodotAnimationTransitionData[];
+      readonly stateMachineType?: number;
+      readonly allowTransitionToSelf?: boolean;
+      readonly resetEnds?: boolean;
+    };
+
+/** A state machine's transition as the data file writes it (compat's `AnimationNodeStateMachineTransition`). */
+export interface GodotAnimationTransitionData {
+  readonly from: string;
+  readonly to: string;
+  readonly switchMode?: number;
+  readonly advanceMode?: number;
+  readonly advanceCondition?: string;
+  readonly xfadeTime?: number;
+  readonly breakLoopAtEnd?: boolean;
+  readonly reset?: boolean;
+  readonly priority?: number;
+}
+
+/** A `Vector2(x, y)` as a pair. */
+function pairOf(value: GodotValue): readonly [number, number] | undefined {
+  if (value.kind !== 'ctor' || value.name !== 'Vector2' || value.args.length !== 2) return undefined;
+  const [x, y] = value.args;
+  return x?.kind === 'number' && y?.kind === 'number' ? [x.value, y.value] : undefined;
+}
+
+/**
+ * An `AnimationNodeStateMachineTransition`'s properties (`animation_node_state_machine.cpp:137`): an
+ * advance expression and a cross-fade curve are not translated.
+ */
+function transitionData(from: string, to: string, resource: BoundGodotResourceData): GodotAnimationTransitionData | string {
+  const names: Readonly<Record<string, keyof GodotAnimationTransitionData>> = {
+    switch_mode: 'switchMode',
+    advance_mode: 'advanceMode',
+    advance_condition: 'advanceCondition',
+    xfade_time: 'xfadeTime',
+    break_loop_at_end: 'breakLoopAtEnd',
+    reset: 'reset',
+    priority: 'priority',
+  };
+  const out: Record<string, unknown> = { from, to };
+  for (const [name, value] of Object.entries(resource.properties)) {
+    if (name === 'resource_name' || (name === 'script' && value.kind === 'null')) continue;
+    const key = names[name];
+    if (key !== undefined && (value.kind === 'number' || value.kind === 'bool' || value.kind === 'string')) out[key] = value.value;
+    else return `AnimationNodeStateMachineTransition.${name} is not translated`;
+  }
+  return out as unknown as GodotAnimationTransitionData;
+}
 
 /**
  * An `AnimationNode` graph as its data file, or why it has none: a blend tree
  * (`AnimationNodeBlendTree::_set`, `animation_blend_tree.cpp:1740`: `nodes/NAME/node`,
- * `node_connections`; positions and the graph offset are the editor's), its animation, Blend2 and
- * TimeScale nodes, each a resource of the same document.
+ * `node_connections`; positions and the graph offset are the editor's), its animation, Blend2,
+ * Add2, OneShot and TimeScale nodes, and a root or nested state machine (its states, their graph
+ * positions, which the travel's costs read, and its transitions), each a resource of the same
+ * document.
  */
 export function godotAnimationNodeData(resource: BoundGodotResourceData, resolve: (value: GodotValue) => BoundGodotResourceData | undefined): GodotAnimationNodeData | string {
   const props = resource.properties;
@@ -345,6 +401,80 @@ export function godotAnimationNodeData(resource: BoundGodotResourceData, resolve
     }
     case 'AnimationNodeTimeScale':
       return own.length === 0 ? { type: 'time-scale' } : `AnimationNodeTimeScale.${own[0]?.[0] ?? ''} is not translated`;
+    case 'AnimationNodeAdd2': {
+      let sync = false;
+      let filterEnabled = false;
+      const filters: string[] = [];
+      for (const [name, value] of own) {
+        if (name === 'sync' && value.kind === 'bool') sync = value.value;
+        else if (name === 'filter_enabled' && value.kind === 'bool') filterEnabled = value.value;
+        else if (name === 'filters' && value.kind === 'array' && value.items.every((item) => item.kind === 'string')) filters.push(...value.items.map((item) => (item as { readonly value: string }).value));
+        else return `AnimationNodeAdd2.${name} is not translated`;
+      }
+      return { type: 'add2', ...(sync ? { sync } : {}), ...(filterEnabled ? { filterEnabled } : {}), ...(filters.length === 0 ? {} : { filters }) };
+    }
+    case 'AnimationNodeStateMachine': {
+      // `AnimationNodeStateMachine::_set` (`animation_node_state_machine.cpp:1658`): `states/NAME/node`
+      // and `states/NAME/position`, `transitions` as from, to and transition triples.
+      const states = new Map<string, { node?: GodotAnimationNodeData; position?: readonly [number, number] }>();
+      const transitions: GodotAnimationTransitionData[] = [];
+      let stateMachineType: number | undefined;
+      let allowTransitionToSelf: boolean | undefined;
+      let resetEnds: boolean | undefined;
+      for (const [name, value] of own) {
+        const state = /^states\/([^/]+)\/(node|position)$/u.exec(name);
+        if (state !== null) {
+          const entry = states.get(state[1] as string) ?? {};
+          states.set(state[1] as string, entry);
+          if (state[2] === 'position') {
+            const position = pairOf(value);
+            if (position === undefined) return `the state machine's ${state[1] as string} has a position that is not a Vector2`;
+            entry.position = position;
+            continue;
+          }
+          const child = resolve(value);
+          if (child === undefined) return `the state machine's ${state[1] as string} is not a resource of this document`;
+          const data = godotAnimationNodeData(child, resolve);
+          if (typeof data === 'string') return data;
+          entry.node = data;
+        } else if (name === 'transitions' && value.kind === 'array') {
+          for (let at = 0; at + 2 < value.items.length; at += 3) {
+            const [from, to, transition] = value.items.slice(at, at + 3) as [GodotValue, GodotValue, GodotValue];
+            const resource = resolve(transition);
+            if (from.kind !== 'string' || to.kind !== 'string' || resource === undefined) return 'a state machine transition that is not two states and a transition of this document';
+            const data = transitionData(from.value, to.value, resource);
+            if (typeof data === 'string') return data;
+            transitions.push(data);
+          }
+        } else if (name === 'state_machine_type' && value.kind === 'number' && value.value !== 2) {
+          stateMachineType = value.value;
+        } else if (name === 'allow_transition_to_self' && value.kind === 'bool') {
+          allowTransitionToSelf = value.value;
+        } else if (name === 'reset_ends' && value.kind === 'bool') {
+          resetEnds = value.value;
+        } else if (name !== 'graph_offset') {
+          return `AnimationNodeStateMachine.${name}${name === 'state_machine_type' ? ' grouped' : ''} is not translated`;
+        }
+      }
+      const endpoints: { Start?: readonly [number, number]; End?: readonly [number, number] } = {};
+      const nodes: { name: string; node: GodotAnimationNodeData; position?: readonly [number, number] }[] = [];
+      for (const [name, entry] of states) {
+        if (name === 'Start' || name === 'End') {
+          if (entry.position !== undefined) endpoints[name] = entry.position;
+        } else if (entry.node !== undefined) {
+          nodes.push({ name, node: entry.node, ...(entry.position === undefined ? {} : { position: entry.position }) });
+        }
+      }
+      return {
+        type: 'state-machine',
+        states: nodes,
+        ...(Object.keys(endpoints).length === 0 ? {} : { endpoints }),
+        transitions,
+        ...(stateMachineType === undefined ? {} : { stateMachineType }),
+        ...(allowTransitionToSelf === undefined ? {} : { allowTransitionToSelf }),
+        ...(resetEnds === undefined ? {} : { resetEnds }),
+      };
+    }
     case 'AnimationNodeBlendTree': {
       const nodes: { name: string; node: GodotAnimationNodeData }[] = [];
       const connections: (readonly [string, number, string])[] = [];
@@ -378,15 +508,39 @@ export function godotAnimationNodeData(resource: BoundGodotResourceData, resolve
  * The parameters an AnimationTree over this graph has, by full name (`parameters/run/blend_amount`),
  * as compat's `animation-tree.ts` lists them (`parametersOf`, `updateProperties`): every node's
  * `current_length`, `current_position` and `current_delta` (`AnimationNode::get_parameter_list`,
- * animation_tree.cpp:54), an animation's `backward`, a Blend2's `blend_amount`, a TimeScale's
- * `scale`; a blend tree's `output` and nodes under its path.
+ * animation_tree.cpp:54), an animation's `backward`, a Blend2's `blend_amount`, an Add2's
+ * `add_amount`, a TimeScale's `scale`, a OneShot's request and state, a state machine's `playback`
+ * and advance conditions; a blend tree's `output` and nodes, and a state machine's states with its
+ * `Start` and `End`, under their paths.
  */
 export function godotAnimationTreeParameters(root: GodotAnimationNodeData): ReadonlySet<string> {
   const names = new Set<string>();
   const core = ['current_length', 'current_position', 'current_delta'];
   const visit = (path: string, node: GodotAnimationNodeData | undefined): void => {
-    const own = node === undefined ? [] : node.type === 'animation' ? ['backward'] : node.type === 'blend2' ? ['blend_amount'] : node.type === 'time-scale' ? ['scale'] : [];
+    const own =
+      node === undefined
+        ? []
+        : node.type === 'animation'
+          ? ['backward']
+          : node.type === 'blend2'
+            ? ['blend_amount']
+            : node.type === 'add2'
+              ? ['add_amount']
+              : node.type === 'time-scale'
+                ? ['scale']
+                : node.type === 'one-shot'
+                  ? ['request', 'active', 'internal_active', 'fade_in_remaining', 'fade_out_remaining', 'time_to_restart']
+                  : node.type === 'state-machine'
+                    ? ['playback', ...node.transitions.flatMap((transition) => (transition.advanceCondition === undefined || transition.advanceCondition === '' ? [] : [`conditions/${transition.advanceCondition}`]))]
+                    : [];
     for (const name of [...core, ...own]) names.add(`${path}${name}`);
+    if (node?.type === 'state-machine') {
+      // `Start` and `End` (`AnimationNodeStateMachine::AnimationNodeStateMachine`, animation_node_state_machine.cpp:1887).
+      visit(`${path}Start/`, undefined);
+      visit(`${path}End/`, undefined);
+      for (const entry of node.states) visit(`${path}${entry.name}/`, entry.node);
+      return;
+    }
     if (node?.type !== 'blend-tree') return;
     // The tree's `output` node (`_initialize_node_tree`, animation_blend_tree.cpp:1934).
     visit(`${path}output/`, undefined);
