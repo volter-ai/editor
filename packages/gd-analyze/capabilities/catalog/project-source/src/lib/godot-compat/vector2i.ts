@@ -394,7 +394,7 @@ export function op_greater_equal(left: Vector2i, right: Vector2i): boolean {
 function isVector2iEqual(value: unknown, v: Vector2i): boolean {
   if (typeof value !== 'object' || value === null) return false;
   const other = value as Record<string, unknown>;
-  return Object.keys(other).length === 2 && other.x === v.x && other.y === v.y;
+  return Object.keys(other).length === 2 && other['x'] === v.x && other['y'] === v.y;
 }
 
 /**

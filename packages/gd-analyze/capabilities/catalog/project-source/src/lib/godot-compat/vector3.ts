@@ -915,7 +915,7 @@ export function op_greater_equal(left: Vector3, right: Vector3): boolean {
 function isVector3Equal(value: unknown, v: Vector3): boolean {
   if (typeof value !== 'object' || value === null) return false;
   const other = value as Record<string, unknown>;
-  return Object.keys(other).length === 3 && other.x === v.x && other.y === v.y && other.z === v.z;
+  return Object.keys(other).length === 3 && other['x'] === v.x && other['y'] === v.y && other['z'] === v.z;
 }
 
 /**
