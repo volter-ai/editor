@@ -586,21 +586,15 @@ function resourceLoadTargets(
   return { found, refused };
 }
 
-/** The member variables a project script and its script ancestors declare, or undefined. */
+/** The member variables a project script and its script ancestors declare (analysis's `class.members`), or undefined. */
 function scriptMemberNames(project: BoundGodotProject, resPath: string): ReadonlySet<string> | undefined {
   const script = project.scripts.find((entry) => entry.resPath === resPath);
   if (script === undefined) return undefined;
   const names = new Set<string>();
   for (const path of [resPath, ...script.inheritance.scriptAncestors]) {
-    const program = project.scripts.find((entry) => entry.resPath === path)?.program;
-    const root = program?.nodes[program.rootNodeId];
-    if (program === undefined || root?.kind !== 'CLASS') return undefined;
-    for (const memberId of root.members) {
-      const member = program.nodes[memberId];
-      if (member?.kind !== 'VARIABLE' && member?.kind !== 'CONSTANT') continue;
-      const identifier = program.nodes[member.identifier];
-      if (identifier?.kind === 'IDENTIFIER') names.add(identifier.name);
-    }
+    const members = project.scripts.find((entry) => entry.resPath === path)?.class.members;
+    if (members === undefined) return undefined;
+    for (const name of members) names.add(name);
   }
   return names;
 }

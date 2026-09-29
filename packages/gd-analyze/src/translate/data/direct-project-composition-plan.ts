@@ -865,36 +865,6 @@ function processDelta(project: BoundGodotProject): DirectGodotProcessDeltaPlan {
 }
 
 /** Pure join of already-accepted code and data plans; it performs no source read or emission. */
-/** The classes whose methods take an action by name. */
-const ACTION_CLASSES = new Set(['Input', 'InputMap', 'InputEvent', 'InputEventAction', 'InputEventKey', 'InputEventMouseButton', 'InputEventJoypadButton', 'InputEventJoypadMotion', 'InputEventScreenTouch', 'InputEventMouseMotion', 'InputEventScreenDrag', 'InputEventWithModifiers', 'InputEventFromWindow', 'InputEventMouse']);
-
-/**
- * The input actions the project's scripts name: each string argument of a call to a method of an
- * input class. A call whose arguments include a computed value may name any action, and GUI nodes
- * navigate with the built-in `ui_*` actions: either keeps every built-in.
- */
-function usedInputActions(project: BoundGodotProject): ReadonlySet<string> | 'all' {
-  const used = new Set<string>();
-  for (const scene of project.documents.scenes) {
-    if (scene.nodes.some((node) => node.class.nativeAncestry.includes('Control'))) return 'all';
-  }
-  for (const script of project.scripts) {
-    const nodes = script.program.nodes;
-    for (const node of nodes) {
-      if (node.kind !== 'CALL' || !ACTION_CLASSES.has(node.compilerTarget.owner)) continue;
-      for (const id of node.arguments) {
-        const argument = nodes[id];
-        if (argument?.kind === 'LITERAL' && (argument.value.kind === 'string' || argument.value.kind === 'string-name')) {
-          used.add(argument.value.value);
-        } else if (argument?.datatype.kind !== 'BUILTIN' || (argument.datatype.builtinType !== 'bool' && argument.datatype.builtinType !== 'float' && argument.datatype.builtinType !== 'int')) {
-          return 'all';
-        }
-      }
-    }
-  }
-  return used;
-}
-
 export function planDirectGodotProjectComposition(
   project: BoundGodotProject,
   code: OfficialBoundCodePlan,
@@ -960,7 +930,7 @@ export function planDirectGodotProjectComposition(
   validateAutoloadReferences(instances, autoloads, diagnostics);
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(settings);
-  const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
+  const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), project.inputActionsNamed === 'all' ? 'all' : new Set(project.inputActionsNamed));
   const controlled = planGodotSceneControls(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics), (at, message) => diagnostics.push({ at, message }));
   const bodied = planGodotSceneSignalDelivery(controlled, project).map((scene) => {
     const current = scene.cameras?.authored ?? (scene.sourceResPath === mainScene ? scene.cameras?.first : undefined);

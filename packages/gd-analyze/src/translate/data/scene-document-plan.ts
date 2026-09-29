@@ -12,8 +12,8 @@ import type {
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
 import type { GodotBoundShader, GodotShaderUniform } from '../../godot-frontend/bound-shader';
-import { lowerGodotShader } from '../emit/shader-glsl';
-import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
+import { lowerGodotShader } from './shader-glsl';
+import { GODOT_SKY_SHADER_BUILTINS } from './sky-shader';
 import {
   GODOT_SPATIAL_DEFAULT_VERTEX,
   GODOT_SPATIAL_FRAGMENT_BUILTINS,
@@ -22,7 +22,7 @@ import {
   GODOT_SPATIAL_VERTEX_BUILTINS,
   godotSpatialFragmentStage,
   godotSpatialVertexStage,
-} from '../emit/spatial-shader';
+} from './spatial-shader';
 import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
 import { readGodot4Surfaces } from '../../read/godot4-surfaces';
 import { GridMapReadError, readGridMapCells } from '../../read/grid-map';

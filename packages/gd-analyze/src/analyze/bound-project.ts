@@ -1,4 +1,5 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
+import { namedInputActions } from './input-actions';
 import { godotImageSize } from '../read/image-size';
 import { type BoundGodotTreeRequests, treeRequests } from './tree-requests';
 import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
@@ -421,6 +422,8 @@ export interface BoundGodotScriptClass {
   readonly methods: readonly BoundGodotScriptMethod[];
   /** The signals the class declares (`signal name(args)`), with their parameter counts. */
   readonly signals: readonly { readonly name: string; readonly parameters: number }[];
+  /** The member variables and constants the class declares, by name. */
+  readonly members: readonly string[];
 }
 
 export type BoundGodotImmediateBase =
@@ -461,6 +464,8 @@ export interface BoundGodotProject {
   readonly documents: BoundGodotProjectDocuments;
   readonly scripts: readonly BoundGodotSourceScript[];
   readonly entrypoints: BoundGodotProjectEntrypoints;
+  /** The input actions the scripts name, or every one (`input-actions.ts`). */
+  readonly inputActionsNamed: readonly string[] | 'all';
 }
 
 type DecodedProjectRelationships = GodotProject;
@@ -1119,12 +1124,17 @@ function scriptClass(script: GodotBoundScript): BoundGodotScriptClass {
     const node = script.nodes[nodeId];
     return node?.kind === 'SIGNAL' ? [{ name: identifier(script, node.identifier).name, parameters: node.parameters.length }] : [];
   });
+  const members = root.members.flatMap((nodeId) => {
+    const node = script.nodes[nodeId];
+    return node?.kind === 'VARIABLE' || node?.kind === 'CONSTANT' ? [identifier(script, node.identifier).name] : [];
+  });
   return {
     rootNodeId: root.id,
     fqcn: root.fqcn,
     abstract: root.abstract,
     methods,
     signals,
+    members,
   };
 }
 
@@ -1693,6 +1703,10 @@ export function bindGodotProject(
     resourceProgram: resources,
     documents,
     scripts,
+    inputActionsNamed: namedInputActions(
+      scripts.map((script) => script.program),
+      documents.scenes.some((scene) => scene.nodes.some((node) => node.class.nativeAncestry.includes('Control'))),
+    ),
     entrypoints: {
       ...(decoded.mainScene === undefined ? {} : { mainScene: decoded.mainScene }),
       autoloads: decoded.autoloads
