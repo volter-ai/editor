@@ -25,6 +25,7 @@ import { get_setting } from './project-settings';
 import type { InputEventRecord } from './input-event';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector2i, type Vector2i } from './vector2i';
+import { godot_collision_object_2d_repick } from './collision-object-2d';
 
 const SIZES = new WeakMap<Object3D, Vector2i>();
 
@@ -384,6 +385,7 @@ export function godot_window_process_events(frame: { readonly id: number; readon
   web.keys = [];
   for (const event of keys) parse_input_event(event);
   flush_buffered_events();
+  godot_collision_object_2d_repick();
 }
 
 /**

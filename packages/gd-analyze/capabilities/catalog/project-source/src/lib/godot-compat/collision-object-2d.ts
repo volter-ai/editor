@@ -8,7 +8,8 @@
  * against the pickable objects' shapes (their CollisionShape2D children), in viewport coordinates.
  * Each object under the pointer gets `_input_event(viewport, event, shape_idx)` and its
  * `input_event` signal; a mouse motion updates which objects the pointer is over, emitting
- * `mouse_exited` and `mouse_entered`. The shapes are tested directly, not through a physics space.
+ * `mouse_exited` and `mouse_entered`, as does each frame at the pointer's last position. The shapes
+ * are tested directly, not through a physics space.
  */
 
 import type { Object3D } from 'three';
@@ -113,12 +114,7 @@ function shapeUnder(object: Object3D, point: Vector2): number {
  */
 export function godot_collision_object_2d_pick(viewport: object, event: InputEventRecord): void {
   if (event.type !== 'mouse_button' && event.type !== 'mouse_motion') return;
-  const under = new Map<Object3D, number>();
-  for (const [object, state] of OBJECTS) {
-    if (!state.pickable || !is_inside_tree(object)) continue;
-    const shape = shapeUnder(object, event.position);
-    if (shape >= 0) under.set(object, shape);
-  }
+  const under = objectsUnder(event.position);
   for (const [object, shape] of under) {
     const state = OBJECTS.get(object) as PickState;
     const script = godot_node_object(object) as { readonly _input_event?: (viewport: object, event: InputEventRecord, shape: number) => void };
@@ -126,6 +122,26 @@ export function godot_collision_object_2d_pick(viewport: object, event: InputEve
     state.signals.input_event.emit(viewport, event, shape);
   }
   if (event.type !== 'mouse_motion') return;
+  lastPoint = event.position;
+  hover(under);
+}
+
+/** The pointer's last position in the viewport, once it has moved there. */
+let lastPoint: Vector2 | undefined;
+
+/** Which pickable objects are under the pointer at `point`, by their first shape there. */
+function objectsUnder(point: Vector2): Map<Object3D, number> {
+  const under = new Map<Object3D, number>();
+  for (const [object, state] of OBJECTS) {
+    if (!state.pickable || !is_inside_tree(object)) continue;
+    const shape = shapeUnder(object, point);
+    if (shape >= 0) under.set(object, shape);
+  }
+  return under;
+}
+
+/** `mouse_exited` for the objects the pointer left, then `mouse_entered` for those it is now over. */
+function hover(under: ReadonlyMap<Object3D, number>): void {
   for (const object of [...HOVERED]) {
     if (under.has(object) && is_inside_tree(object)) continue;
     HOVERED.delete(object);
@@ -136,6 +152,19 @@ export function godot_collision_object_2d_pick(viewport: object, event: InputEve
     HOVERED.add(object);
     OBJECTS.get(object)?.signals.mouse_entered.emit();
   }
+}
+
+/**
+ * Picks again at the pointer's last position once a frame, so an object moving under a still
+ * pointer enters or leaves it (`_process_picking` with the last mouse position,
+ * `viewport.cpp:683`).
+ *
+ * @godot CollisionObject2D (protocol)
+ * @source scene/main/viewport.cpp:683
+ */
+export function godot_collision_object_2d_repick(): void {
+  if (lastPoint === undefined || OBJECTS.size === 0) return;
+  hover(objectsUnder(lastPoint));
 }
 
 /**
