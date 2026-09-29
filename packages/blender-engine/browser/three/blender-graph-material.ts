@@ -322,8 +322,12 @@ ${compiled.uvs.map(n => `varying vec2 ${uvVarying(n)};`).join('\n')}`;
     '#include <project_vertex>',
     `vBlenderObjectPosition = transformed;
 vBlenderObjectNormal = objectNormal;
-vBlenderWorldPosition = (modelMatrix * vec4(transformed, 1.0)).xyz;
-vBlenderWorldNormal = normalize(transpose(inverse(mat3(modelMatrix))) * objectNormal);
+mat4 blenderWorldMatrix = modelMatrix;
+#ifdef USE_INSTANCING
+blenderWorldMatrix = modelMatrix * instanceMatrix;
+#endif
+vBlenderWorldPosition = (blenderWorldMatrix * vec4(transformed, 1.0)).xyz;
+vBlenderWorldNormal = normalize(transpose(inverse(mat3(blenderWorldMatrix))) * objectNormal);
 vBlenderOrco = blenderOrco;
 ${compiled.attributes.map(n => `${attributeVarying(n)} = ${graphAttributeName(n)};`).join('\n')}
 ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).join('\n')}
