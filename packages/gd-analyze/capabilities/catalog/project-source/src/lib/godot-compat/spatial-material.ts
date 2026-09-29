@@ -82,7 +82,7 @@ function uniformValue(uniform: GodotShaderUniform & { readonly color?: true; rea
         : [];
   const values = [...components];
   if (uniform.color === true && values.length >= 3) {
-    const linear = new ThreeColor(values[0], values[1], values[2]).convertSRGBToLinear();
+    const linear = new ThreeColor(values[0] ?? 0, values[1] ?? 0, values[2] ?? 0).convertSRGBToLinear();
     values[0] = linear.r;
     values[1] = linear.g;
     values[2] = linear.b;

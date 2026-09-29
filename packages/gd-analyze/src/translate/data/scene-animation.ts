@@ -49,6 +49,8 @@ export interface GodotAnimationData {
 export interface TargetGodotAnimationLibraryPlan {
   readonly animations: readonly { readonly name: string; readonly animation: GodotAnimationData }[];
   readonly streams?: readonly string[];
+  /** The animation files it reads its animations from (`poof.res`), as res paths. */
+  readonly sources?: readonly string[];
 }
 
 /** A compat export a track binds to. */

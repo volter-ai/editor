@@ -123,9 +123,13 @@ function validateInputClosure(
         resource.key.startsWith('ext:res://') ? [resource.key.slice('ext:res://'.length).split('#')[0] as string] : [],
       ),
     ),
+    // An animation file a library reads its animations from is translated into the library's data.
+    ...composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.animations?.sources ?? []).map((path) => path.slice('res://'.length)))),
   ]);
   // What the planned files name: a scene's or resource's `[ext_resource]`s, a script's `preload`s.
   const relative = (resPath: string): string => resPath.slice('res://'.length);
+  // An imported mesh the plan reads (`read/obj-mesh.ts`) with its importer's settings file.
+  for (const mesh of project.documents.objMeshes) if (consumed.has(relative(mesh.resPath))) consumed.add(`${relative(mesh.resPath)}.import`);
   const referenced = new Set<string>();
   for (const scene of project.documents.scenes) {
     if (consumed.has(relative(scene.resPath))) for (const entry of scene.extResources) referenced.add(relative(entry.resPath));

@@ -162,7 +162,7 @@ function meshDataArtifacts(composition: DirectGodotProjectCompositionPlan, typed
       }
       if (resource.animations !== undefined) {
         const file = godotAnimationLibraryDataPath(scene.targetPath, resource.key);
-        if (!written.has(file)) written.set(file, typedData(typed, file, resource.animations, [scene.sourceResPath], { module: 'animation-library', name: 'GodotAnimationLibraryData' }));
+        if (!written.has(file)) written.set(file, typedData(typed, file, { animations: resource.animations.animations }, [scene.sourceResPath], { module: 'animation-library', name: 'GodotAnimationLibraryData' }));
       }
       if (resource.library !== undefined) {
         const file = godotMeshLibraryDataPath(scene.targetPath, resource.key);

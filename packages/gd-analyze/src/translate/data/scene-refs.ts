@@ -72,7 +72,7 @@ export function planGodotSceneRefs(scenes: readonly Omit<DirectGodotSceneDocumen
         targets: own,
         modelNodes,
         rootRef: instancedBy(scene, (entry, other) => targets.get(other.sourceResPath)?.has(entry.nodePath) === true),
-        rootExports: scene.root.scriptInstance !== undefined && instancedBy(scene, (entry) => (entry.instanceExports?.length ?? 0) > 0),
+        rootExports: scene.root.scriptInstance !== undefined && instancedBy(scene, (entry) => (entry.instanceExports?.length ?? 0) > 0 || (entry.fieldValues?.length ?? 0) > 0),
         rootConnections:
           scene.root.scriptInstance !== undefined &&
           instancedBy(scene, (entry, other) => other.connections.some((connection) => connection.delivery === 'instance-prop' && connection.fromNodePath === entry.nodePath)),

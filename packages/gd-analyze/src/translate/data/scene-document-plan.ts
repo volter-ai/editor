@@ -1140,6 +1140,7 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
   }
   const animations: { name: string; animation: TargetGodotAnimationLibraryPlan['animations'][number]['animation'] }[] = [];
   const streams: string[] = [];
+  const sources: string[] = [];
   for (const item of entries?.entries ?? []) {
     const reference = referenceOf(item.value);
     const document = context.document;
@@ -1162,6 +1163,7 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
       refuse(context, `${at}/${item.key}`, read, 'resource', 'Animation');
       return undefined;
     }
+    if (external !== undefined && !sources.includes(external)) sources.push(external);
     // Each audio key's stream is a resource of the scene; the key keeps its index in `streams`.
     const animationScope = external ?? scope;
     let failed = false;
@@ -1185,7 +1187,7 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
     if (failed) return undefined;
     animations.push({ name: item.key, animation });
   }
-  return { animations, ...(streams.length === 0 ? {} : { streams }) };
+  return { animations, ...(streams.length === 0 ? {} : { streams }), ...(sources.length === 0 ? {} : { sources }) };
 }
 
 /**
