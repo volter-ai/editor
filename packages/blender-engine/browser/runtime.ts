@@ -118,6 +118,9 @@ export interface BlenderCallMetrics {
   readonly maxCallMs: number | null;
   /** Operation and load boundary owning the longest request; no payload data. */
   readonly maxCallLabel?: string | null;
+  /** Current cooperative phase and count of settled wire requests; sampled, not pushed per unit. */
+  readonly currentPhase?: string | null;
+  readonly completedCalls?: number;
   /** Calls whose duration passed 5s, counting outstanding ones already past it. */
   readonly callsOver5s: number;
   /** The same at 30s — a call this side of it is slow, past it is a wedge. */
@@ -168,7 +171,7 @@ export class BlenderRuntime {
   readonly #callLabels = new Map<number, string>();
   #loadBoundary = "engine-start";
   #maxCompletedLabel: string | null = null;
-  readonly #callWork = new Map<number, () => void>();
+  readonly #operationWork = new Set<() => void>();
   #lastCallMs: number | null = null;
   #maxCompletedMs = 0;
   #completedOver5s = 0;
@@ -499,6 +502,7 @@ export class BlenderRuntime {
     for (const id of [...this.#pending.keys()]) this.#settled(id);
     for (const pending of this.#pending.values()) pending.reject(error);
     this.#pending.clear();
+    for (const end of this.#operationWork) end();
   }
 
   /**
@@ -534,6 +538,8 @@ export class BlenderRuntime {
       // different claim from "no call has happened yet".
       maxCallMs: this.#lastCallMs === null && oldest === null ? null : Math.round(max),
       maxCallLabel: maxLabel,
+      currentPhase: this.#acceptedRequests ? this.#loadBoundary : null,
+      completedCalls: this.#completedCalls,
       callsOver5s: over5,
       callsOver30s: over30,
       lastCallWindow: this.#lastCallWindow,
@@ -543,13 +549,12 @@ export class BlenderRuntime {
 
   /** Close a call's window, whether it answered, threw, or was terminated. */
   #settled(id: number): void {
-    this.#callWork.get(id)?.();
-    this.#callWork.delete(id);
     const started = this.#callStarts.get(id);
     if (started === undefined) return;
     this.#callStarts.delete(id);
     const label = this.#callLabels.get(id) ?? null;
     this.#callLabels.delete(id);
+    this.#completedCalls++;
     const elapsed = performance.now() - started;
     this.#lastCallMs = elapsed;
     if (elapsed > this.#maxCompletedMs) { this.#maxCompletedMs = elapsed; this.#maxCompletedLabel = label; }
@@ -559,14 +564,19 @@ export class BlenderRuntime {
       this.#lastCallWindow = { start: started, end: started + elapsed };
   }
 
+  #completedCalls = 0;
   #acceptedRequests = 0;
   #requestTail: Promise<void> = Promise.resolve();
   #request(request: Request, shutdown = false): Promise<unknown> {
     if (this.#terminated || (this.#stopping && !shutdown))
       return Promise.reject(new Error('The Blender session is stopping or terminated'));
     const began = performance.now();
+    let endWork = () => {};
     this.#acceptedRequests++;
     const answer = this.#requestTail.then(async () => {
+      const finishWork = this.#work(`running worker ${request.op}`);
+      endWork = () => { if (this.#operationWork.delete(endWork)) finishWork(); };
+      this.#operationWork.add(endWork);
       this.#loadBoundary = request.op;
       let result = await this.#wireRequest(request) as PullResult<unknown>;
       while (result?.load === 'continue') {
@@ -576,6 +586,7 @@ export class BlenderRuntime {
       return result?.load === 'done' ? result.value : result;
     }).finally(() => {
       this.#acceptedRequests--;
+      endWork();
       const totalMs = Math.round(performance.now() - began);
       try { if (totalMs >= 1000) this.#options.log?.('log', `@@VOLTER-WORK op=${request.op} totalMs=${totalMs}`); } catch { /* diagnostics cannot poison the queue */ }
     });
@@ -592,7 +603,6 @@ export class BlenderRuntime {
       this.#callStarts.set(id, started);
       this.#callLabels.set(id, request.op === "load-next" ? `load-next after ${this.#loadBoundary}` : request.op);
       this.#lastCallWindow = { start: started, end: null };
-      this.#callWork.set(id, this.#work(`waiting for worker ${request.op}`));
       try {
         this.#worker.postMessage({ ...request, id });
       } catch (error) {

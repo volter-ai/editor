@@ -64,6 +64,9 @@ export interface WorkerCallTabMetrics {
   readonly maxCallMs: number | null;
   /** Optional operation/boundary label supplied by the lane, without request payloads. */
   readonly maxCallLabel?: string | null;
+  /** Current cooperative phase and count of settled wire requests; sampled, not pushed per unit. */
+  readonly currentPhase?: string | null;
+  readonly completedCalls?: number;
   /** Calls past 5s, and past 30s, since this page loaded. */
   readonly callsOver5s: number;
   readonly callsOver30s: number;

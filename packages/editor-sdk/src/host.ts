@@ -550,6 +550,9 @@ export interface EditorHostWorkerCallMetrics {
   readonly maxCallMs: number | null;
   /** Optional operation/boundary label supplied by the lane, without request payloads. */
   readonly maxCallLabel?: string | null;
+  /** Current cooperative phase and count of settled wire requests; sampled, not pushed per unit. */
+  readonly currentPhase?: string | null;
+  readonly completedCalls?: number;
   /** Calls past 5s, and past 30s, since the runtime was constructed. */
   readonly callsOver5s: number;
   readonly callsOver30s: number;

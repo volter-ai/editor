@@ -119,3 +119,14 @@ Artifact status, package readiness, Wasm instantiation, runtime initialization,
 Python readiness and Essentials file installation are separate work units.
 The artifact cache retains exactly the same bytes and digests; a cold/warm
 reader test verifies byte identity and producer checkpoints in both paths.
+
+The 4b870d67 hosted review found an unfinished initial open despite short wire
+calls. Continuation requests inherited a per-request page-work begin/end pair.
+Each transition travels through the control channel and is synchronously appended
+to the hosted session journal, so thousands of bounded units produced thousands
+of extra control messages and filesystem writes. Work reporting now belongs to
+one logical operation, while each wire request retains its actual start/end timer.
+A 3001-request regression requires exactly one begin/end pair. The ordinary census
+samples the current phase and completed-call count; it does not push per-unit
+progress events. This removes a concrete control-channel amplification; fresh
+hosted diagnosis must establish whether any separate completion problem remains.

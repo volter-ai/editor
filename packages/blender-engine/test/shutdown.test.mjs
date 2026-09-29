@@ -43,7 +43,7 @@ test('work diagnostics precede posting and balance presentation, failure and ter
   const worker=FakeWorker.latest;
   const original=worker.postMessage.bind(worker);
   worker.postMessage=message=>{
-    if(message.op!=='present-result')assert([...active.values()].includes('waiting for worker '+message.op));
+    if(message.op!=='present-result')assert([...active.values()].includes('running worker '+message.op));
     original(message);
   };
   const start=runtime.start('/project');
@@ -295,4 +295,31 @@ test('a worker failure rejects queued operations instead of posting to a dead wo
   await rejected;
   assert.deepEqual(worker.messages.map(m => m.op), ['start', 'rig']);
   assert.equal(worker.terminations, 1);
+});
+
+
+test('thousands of continuations keep one work report while every wire call is measured', async t => {
+  fakeWorker(t);
+  const events = [];
+  const runtime = new BlenderRuntime({ present: () => ({}), work(label) { events.push(['begin', label]); return () => events.push(['end', label]); } });
+  const worker = FakeWorker.latest;
+  const starting = runtime.start('/project'); await tick();
+  for (let i = 0; i < 3000; i++) {
+    worker.reply(worker.messages.at(-1), { load: 'continue', token: `unit:${i}`, phase: 'native-export' });
+    await tick();
+    assert.equal(worker.messages.at(-1).op, 'load-next');
+    assert.notEqual(runtime.metrics().inFlightMs, null);
+    assert.notEqual(runtime.metrics().lastCallMs, null);
+  }
+  assert.equal(worker.messages.length, 3001);
+  assert.equal(runtime.metrics().completedCalls, 3000);
+  assert.equal(runtime.metrics().currentPhase, 'native-export');
+  assert.deepEqual(events, [['begin', 'running worker start']]);
+  worker.reply(worker.messages.at(-1), { load: 'done', value: { session: 'done' } });
+  await starting;
+  assert.equal(runtime.metrics().completedCalls, 3001);
+  assert.equal(runtime.metrics().currentPhase, null);
+  assert.deepEqual(events, [['begin', 'running worker start'], ['end', 'running worker start']]);
+  assert.equal(runtime.metrics().inFlightMs, null);
+  runtime.terminate();
 });
