@@ -181,7 +181,7 @@ export const GODOT_SPATIAL_RENDER_MODES: ReadonlySet<string> = new Set([
   'depth_draw_never',
   'depth_test_disabled',
   'unshaded',
-  // Only beside `unshaded`, which draws no light at all (`spatialShaderPlan`).
+  // Lit, three's indirect light zeroed (compat's `spatial-material.ts`).
   'ambient_light_disabled',
   'shadows_disabled',
   'diffuse_burley',

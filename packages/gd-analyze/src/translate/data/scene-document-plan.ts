@@ -471,7 +471,6 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
   const any = fragment ?? vertex;
   if (any === undefined) return 'the shader has neither vertex() nor fragment()';
   const unshaded = shader.tree.renderModes.includes('unshaded');
-  if (shader.tree.renderModes.includes('ambient_light_disabled') && !unshaded) return 'render_mode ambient_light_disabled is not drawn';
   if (unshaded && fragment !== undefined && (fragment.builtins.has('NORMAL') || fragment.builtins.has('VIEW'))) return 'an unshaded fragment() reading NORMAL or VIEW is not lowered';
   const head = (lowered: typeof any) => [GODOT_SPATIAL_SHARED, lowered.varyings, ...lowered.uniforms.map((uniform) => uniform.declaration), lowered.functions].filter((part) => part !== '').join('\n\n');
   const stages = { worldVertexCoords: shader.tree.renderModes.includes('world_vertex_coords'), vertexTangents: vertex?.builtins.has('TANGENT') === true || vertex?.builtins.has('BINORMAL') === true };
@@ -2443,12 +2442,14 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
         continue;
       }
       const parent = node.placement.kind === 'child' ? node.placement.parentNodePath : undefined;
-      if (parent !== enclosing) {
+      // Under a node this document adds to the instance: that node's own child.
+      const addedParent = parent !== undefined && parent !== enclosing && scene.nodes.some((candidate) => candidate.nodePath === parent && candidate.inheritedNode === undefined);
+      if (parent !== enclosing && !addedParent) {
         refuse(context, at, `a node placed inside instanced ${instanced.resPath} is not planned`, 'editable-children');
         refused = true;
         continue;
       }
-      if (!structure(context, at, 'instance-children')) {
+      if (!addedParent && !structure(context, at, 'instance-children')) {
         refused = true;
         continue;
       }

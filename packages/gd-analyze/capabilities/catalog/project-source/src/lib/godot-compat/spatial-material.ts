@@ -102,6 +102,15 @@ function uniformValue(uniform: GodotShaderUniform & { readonly color?: true; rea
 }
 
 /**
+ * `ambient_light_disabled` on a lit shader: neither the ambient light nor the indirect specular
+ * (reflections, GI) reaches the surface (`scene_forward_clustered.glsl:1687`, `:1800`, `:2246`),
+ * three's indirect irradiance and radiance zeroed before they are added.
+ */
+const AMBIENT_LIGHT_DISABLED = {
+  '*': { '#include <lights_fragment_end>': 'irradiance = vec3(0.0);\niblIrradiance = vec3(0.0);\nradiance = vec3(0.0);\n#include <lights_fragment_end>' },
+};
+
+/**
  * The three material a ShaderMaterial of a spatial shader draws with, made once per material.
  *
  * @godot ShaderMaterial (protocol)
@@ -132,6 +141,7 @@ export function godot_shader_material_three(material: ShaderMaterial): GodotSpat
     // A transparent material writes depth only with `depth_draw_always`.
     depthWrite: !modes.has('depth_draw_never') && (!spatial.transparent || modes.has('depth_draw_always')),
     depthTest: !modes.has('depth_test_disabled'),
+    ...(modes.has('ambient_light_disabled') && !modes.has('unshaded') ? { patchMap: AMBIENT_LIGHT_DISABLED } : {}),
   });
   material.listeners.add((name, value) => {
     const uniform = byName.get(name);
