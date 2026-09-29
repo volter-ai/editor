@@ -77,7 +77,7 @@ export function get_size(self: Object3D): Vector2i {
  * settings: `visible`, the size the 2D world is laid out at (the viewport's visible rect), shown
  * in the window's `screen` rect, `margin` in from its top-left corner.
  */
-interface Stretch {
+export interface Stretch {
   readonly visible: Vector2;
   readonly screen: Vector2;
   readonly margin: Vector2;
@@ -115,6 +115,18 @@ function stretch(width: number, height: number): Stretch {
   visible = vector2(Math.floor(visible.x), Math.floor(visible.y));
   const margin = vector2(Math.round((width - screen.x) / 2), Math.round((height - screen.y) / 2));
   return { visible: vector2(visible.x / factor, visible.y / factor), screen, margin };
+}
+
+/**
+ * Where a box of `width` by `height` pixels shows the 2D world (the project's stretch): the size it
+ * is laid out at, the size it is shown at and its margin in from the box's top-left. The page's
+ * Controls are laid out and scaled by it (`godot-controls.tsx`).
+ *
+ * @godot Window (protocol)
+ * @source scene/main/window.cpp:1302
+ */
+export function godot_window_stretch(width: number, height: number): Stretch {
+  return stretch(width, height);
 }
 
 /**
@@ -243,7 +255,27 @@ const web = {
   mask: 0,
   insideCanvas: false,
   canvas: null as HTMLCanvasElement | null,
+  /** Whether the press being delivered landed on a Control's element (the page's GUI). */
+  onControl: false,
 };
+
+/**
+ * Whether the pointer event being delivered landed on a Control's element: the GUI takes it after
+ * `_input`, as Godot's GUI stage does (`viewport.ts`).
+ *
+ * @godot Window (protocol)
+ * @source scene/main/viewport.cpp:3489
+ */
+export function godot_window_event_on_control(): boolean {
+  return web.onControl;
+}
+
+/** Where a press landed: the canvas, a Control's element over it (`data-classes`), or elsewhere on the page. */
+function pressTarget(canvas: HTMLCanvasElement, event: Event): 'canvas' | 'control' | undefined {
+  const target = event.target as Element | null;
+  if (target === canvas) return 'canvas';
+  return target?.closest?.('[data-classes]') === null || target === null ? undefined : 'control';
+}
 
 /**
  * `GodotInput.computePosition` (`platform/web/js/libs/library_godot_input.js:492`): the client
@@ -314,19 +346,28 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
   on(page, 'keyup', key(false));
   const button = (pressed: boolean): EventListener => (raw) => {
     const event = raw as MouseEvent;
-    if (pressed) canvas.focus();
+    // A press on the canvas, or on a Control's element over it, which `_input` hears too.
+    const landed = pressed ? pressTarget(canvas, event) : 'canvas';
+    if (landed === undefined) return;
+    if (pressed && landed === 'canvas') canvas.focus();
     const index = MOUSE_BUTTONS[event.button];
     if (index === undefined) return;
     const flag = 1 << (index - 1);
     if (pressed) web.mask |= flag;
     else if ((web.mask & flag) !== 0) web.mask &= ~flag;
     else return;
-    parse_input_event({ type: 'mouse_button', pressed, button_index: index, position: canvasPoint(canvas, event), ...modifiers(event, 0) });
-    godot_audio_resume();
-    flush_buffered_events();
-    event.preventDefault();
+    web.onControl = landed === 'control';
+    try {
+      parse_input_event({ type: 'mouse_button', pressed, button_index: index, position: canvasPoint(canvas, event), ...modifiers(event, 0) });
+      godot_audio_resume();
+      flush_buffered_events();
+    } finally {
+      web.onControl = false;
+    }
+    // A Control's own press goes on to the page (a button's click, a slider's drag).
+    if (landed === 'canvas') event.preventDefault();
   };
-  on(canvas, 'mousedown', button(true));
+  on(page, 'mousedown', button(true));
   on(page, 'mouseup', button(false));
   on(page, 'pointermove', (raw) => {
     const event = raw as PointerEvent;
@@ -349,23 +390,31 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
   });
   const touch = (type: 0 | 1 | 2): EventListener => (raw) => {
     const event = raw as TouchEvent;
-    if (type === 0) canvas.focus();
-    for (const point of Array.from(event.changedTouches)) {
-      const position = canvasPoint(canvas, point);
-      if (type === 2) {
-        parse_input_event({ type: 'screen_drag', index: point.identifier, position });
-      } else {
-        godot_audio_resume();
-        parse_input_event({ type: 'screen_touch', index: point.identifier, position, pressed: type === 0 });
-        flush_buffered_events();
+    // Touches on the canvas, or on a Control's element over it (a touch stays with where it began).
+    const landed = pressTarget(canvas, event);
+    if (landed === undefined) return;
+    if (type === 0 && landed === 'canvas') canvas.focus();
+    web.onControl = landed === 'control';
+    try {
+      for (const point of Array.from(event.changedTouches)) {
+        const position = canvasPoint(canvas, point);
+        if (type === 2) {
+          parse_input_event({ type: 'screen_drag', index: point.identifier, position });
+        } else {
+          godot_audio_resume();
+          parse_input_event({ type: 'screen_touch', index: point.identifier, position, pressed: type === 0 });
+          flush_buffered_events();
+        }
       }
+    } finally {
+      web.onControl = false;
     }
-    if (event.cancelable) event.preventDefault();
+    if (landed === 'canvas' && event.cancelable) event.preventDefault();
   };
-  on(canvas, 'touchstart', touch(0));
-  on(canvas, 'touchend', touch(1));
-  on(canvas, 'touchcancel', touch(1));
-  on(canvas, 'touchmove', touch(2));
+  on(page, 'touchstart', touch(0));
+  on(page, 'touchend', touch(1));
+  on(page, 'touchcancel', touch(1));
+  on(page, 'touchmove', touch(2));
   on(canvas, 'contextmenu', (event) => event.preventDefault());
   return () => {
     godot_input_attach_canvas(null);

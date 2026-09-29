@@ -249,7 +249,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ],
   Sprite3D: [...SPRITE_BASE_3D, 'set_texture', 'set_hframes', 'set_vframes', 'set_frame', 'set_region_enabled', 'set_region_rect'],
   AnimatedSprite3D: [...SPRITE_BASE_3D, 'set_sprite_frames', 'set_animation', 'set_autoplay', 'set_frame', 'set_frame_progress', 'set_speed_scale'],
-  SubViewportContainer: [...CONTROL, 'set_stretch', 'set_stretch_shrink'],
+  // Its rect, which must be the whole viewport's (`godotFamilyRefusal`), and its stretch.
+  SubViewportContainer: ['_set_layout_mode', '_set_anchors_layout_preset', '_set_anchor:*', 'set_offset:*', 'set_h_grow_direction', 'set_v_grow_direction', 'set_stretch', 'set_stretch_shrink'],
   SubViewport: ['set_meta:*', 'set_size', 'set_update_mode', 'set_transparent_background', 'set_handle_input_locally', 'set_msaa_3d'],
   Area2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_monitoring', 'set_monitorable'],
   CollisionShape2D: [...NODE_2D, 'set_shape', 'set_disabled'],
@@ -681,6 +682,16 @@ export function godotFamilyRefusal(
   const extra = unstated(allowed, setters);
   if (extra !== undefined) return `${extra.propertyName} has no ${className} element prop`;
   switch (className) {
+    case 'SubViewportContainer': {
+      // Its SubViewport draws over the whole frame (`sub-viewport.ts`): only a container covering
+      // the whole viewport draws where Godot's does.
+      const side = (setter: string, index: number, fallback: number) => {
+        const found = setters.find((entry) => entry.setter.exportName === setter && entry.index === index)?.value;
+        return found?.kind === 'number' ? found.value : fallback;
+      };
+      const full = [0, 1, 2, 3].every((index) => side('_set_anchor', index, 0) === (index >= 2 ? 1 : 0) && side('set_offset', index, 0) === 0);
+      return full ? undefined : 'a SubViewportContainer smaller than its viewport is not drawn';
+    }
     case 'SphereMesh': {
       if (boolOf(setters, 'set_is_hemisphere', false)) return 'is_hemisphere has no three sphere';
       const radius = numberOf(setters, 'set_radius', 0.5);

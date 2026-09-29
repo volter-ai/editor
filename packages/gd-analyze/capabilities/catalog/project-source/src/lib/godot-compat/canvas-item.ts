@@ -27,6 +27,7 @@ import { get_visible_rect } from './viewport';
 import { affine_inverse, construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
 import type { Vector2 } from './vector2';
 import type { GodotElementProp } from './react-lifecycle';
+import { get_global_position as controlGlobalPosition, get_position as controlPosition, get_rotation as controlRotation, get_scale as controlScale } from './control';
 
 /** What the class that places and draws a canvas item gives it. */
 export interface CanvasItemClass {
@@ -81,6 +82,43 @@ const Z_MAX = 4096;
 
 function entityOf(self: object): Object3D {
   return godot_node_entity(self) as Object3D;
+}
+
+/** A Control's element (docs/GODOT.md "UI is React DOM"), whose own style is its CanvasItem state. */
+function domItem(self: object): HTMLElement | undefined {
+  const entity = godot_node_entity(self) as unknown;
+  return typeof HTMLElement !== 'undefined' && entity instanceof HTMLElement ? entity : undefined;
+}
+
+/** A Control element's modulation, which its style draws (`opacity`, a colour filter). */
+const DOM_MODULATE = new WeakMap<HTMLElement, { modulate: Color; selfModulate: Color }>();
+
+function domModulate(element: HTMLElement): { modulate: Color; selfModulate: Color } {
+  let own = DOM_MODULATE.get(element);
+  if (own === undefined) {
+    const opacity = element.style.opacity === '' ? 1 : Number(element.style.opacity);
+    own = { modulate: color(1, 1, 1, opacity), selfModulate: color(1, 1, 1, 1) };
+    DOM_MODULATE.set(element, own);
+  }
+  return own;
+}
+
+/** `modulate` times `self_modulate` as the element's opacity and, for a tint, an SVG colour matrix. */
+function drawDomModulate(element: HTMLElement): void {
+  const { modulate, selfModulate } = domModulate(element);
+  const product = color(modulate.r * selfModulate.r, modulate.g * selfModulate.g, modulate.b * selfModulate.b, modulate.a * selfModulate.a);
+  element.style.opacity = product.a === 1 ? '' : String(product.a);
+  const body = element.ownerDocument.body;
+  element.style.filter = product.r === 1 && product.g === 1 && product.b === 1 ? '' : colorFilter(body, color(product.r, product.g, product.b, 1));
+}
+
+/** A Control element's shown state: hidden by `display: none`, shown in the display its layout gave it (`data-display`). */
+function setDomVisible(element: HTMLElement, visible: boolean): void {
+  if (visible) element.style.display = element.dataset['display'] ?? '';
+  else {
+    if (element.style.display !== 'none') element.dataset['display'] = element.style.display;
+    element.style.display = 'none';
+  }
 }
 
 function stateOf(self: object, member: string): CanvasItemState {
@@ -257,6 +295,8 @@ export function godot_canvas_item_propagate_visibility(entity: Object3D): void {
  * @source scene/main/canvas_item.cpp:86
  */
 export function set_visible(self: object, p_visible: boolean): void {
+  const element = domItem(self);
+  if (element !== undefined) return setDomVisible(element, p_visible);
   const state = stateOf(self, 'set_visible');
   if (state.visible === p_visible) return;
   state.visible = p_visible;
@@ -273,6 +313,8 @@ export function set_visible(self: object, p_visible: boolean): void {
  * @source scene/main/canvas_item.cpp:133
  */
 export function is_visible(self: object): boolean {
+  const element = domItem(self);
+  if (element !== undefined) return element.style.display !== 'none';
   return stateOf(self, 'is_visible').visible;
 }
 
@@ -299,6 +341,8 @@ export function hide(self: object): void {
  * @source scene/main/canvas_item.cpp:72
  */
 export function is_visible_in_tree(self: object): boolean {
+  const element = domItem(self);
+  if (element !== undefined) return element.isConnected && element.checkVisibility();
   const state = stateOf(self, 'is_visible_in_tree');
   return state.visible && parentVisibleInTree(entityOf(self));
 }
@@ -308,6 +352,11 @@ export function is_visible_in_tree(self: object): boolean {
  * @source scene/main/canvas_item.cpp:575
  */
 export function set_modulate(self: object, p_modulate: Color): void {
+  const element = domItem(self);
+  if (element !== undefined) {
+    domModulate(element).modulate = p_modulate;
+    return drawDomModulate(element);
+  }
   stateOf(self, 'set_modulate').modulate = p_modulate;
 }
 
@@ -316,6 +365,8 @@ export function set_modulate(self: object, p_modulate: Color): void {
  * @source scene/main/canvas_item.cpp:585
  */
 export function get_modulate(self: object): Color {
+  const element = domItem(self);
+  if (element !== undefined) return domModulate(element).modulate;
   return stateOf(self, 'get_modulate').modulate;
 }
 
@@ -324,6 +375,11 @@ export function get_modulate(self: object): Color {
  * @source scene/main/canvas_item.cpp:655
  */
 export function set_self_modulate(self: object, p_self_modulate: Color): void {
+  const element = domItem(self);
+  if (element !== undefined) {
+    domModulate(element).selfModulate = p_self_modulate;
+    return drawDomModulate(element);
+  }
   stateOf(self, 'set_self_modulate').selfModulate = p_self_modulate;
 }
 
@@ -332,6 +388,8 @@ export function set_self_modulate(self: object, p_self_modulate: Color): void {
  * @source scene/main/canvas_item.cpp:665
  */
 export function get_self_modulate(self: object): Color {
+  const element = domItem(self);
+  if (element !== undefined) return domModulate(element).selfModulate;
   return stateOf(self, 'get_self_modulate').selfModulate;
 }
 
@@ -343,6 +401,11 @@ export function get_self_modulate(self: object): Color {
  */
 export function set_z_index(self: object, p_z: number): void {
   if (p_z < Z_MIN || p_z > Z_MAX) return;
+  const element = domItem(self);
+  if (element !== undefined) {
+    element.style.zIndex = p_z === 0 ? '' : String(p_z);
+    return;
+  }
   stateOf(self, 'set_z_index').zIndex = p_z;
 }
 
@@ -351,6 +414,8 @@ export function set_z_index(self: object, p_z: number): void {
  * @source scene/main/canvas_item.cpp:791
  */
 export function get_z_index(self: object): number {
+  const element = domItem(self);
+  if (element !== undefined) return element.style.zIndex === '' ? 0 : Number(element.style.zIndex);
   return stateOf(self, 'get_z_index').zIndex;
 }
 
@@ -394,6 +459,8 @@ export function is_set_as_top_level(self: object): boolean {
  * @source scene/main/canvas_item.cpp:1527
  */
 export function get_transform(self: object): Transform2D {
+  // A Control's element: its position in its parent, its rotation and scale (skew none).
+  if (domItem(self) !== undefined) return transform2d(controlRotation(self), controlScale(self), 0, controlPosition(self));
   return stateOf(self, 'get_transform').class.transform(entityOf(self));
 }
 
@@ -405,6 +472,8 @@ export function get_transform(self: object): Transform2D {
  * @source scene/main/canvas_item.cpp:200
  */
 export function get_global_transform(self: object): Transform2D {
+  // A Control's element: where the page placed it in its 2D world, with its own rotation and scale.
+  if (domItem(self) !== undefined) return transform2d(controlRotation(self), controlScale(self), 0, controlGlobalPosition(self));
   const entity = entityOf(self);
   const state = stateOf(self, 'get_global_transform');
   const own = state.class.transform(entity);
@@ -421,6 +490,8 @@ export function get_global_transform(self: object): Transform2D {
  * @source scene/main/canvas_item.cpp:183
  */
 export function get_global_transform_with_canvas(self: object): Transform2D {
+  // A Control's element is laid out in the page's 2D world, which no canvas transform moves.
+  if (domItem(self) !== undefined) return get_global_transform(self);
   const entity = entityOf(self);
   const global = get_global_transform(self);
   const layer = godot_canvas_item_layer_of(entity);

@@ -4,6 +4,7 @@ import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
 import { type GodotSceneBodyProp, type GodotSceneColliderPlan, planGodotSceneBodies } from './scene-body-idioms';
 import { planGodotSceneCollectedSetters, planGodotSceneSurfaces } from './scene-surface-idioms';
+import { type GodotControlDomPlan, planGodotSceneControls } from './scene-control-idioms';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
 import type {
@@ -106,6 +107,10 @@ export type DirectGodotSceneNodePlan = Omit<
   };
   /** A collision shape's Rapier collider (`scene-body-idioms.ts`). */
   readonly collider?: GodotSceneColliderPlan;
+  /** A Control's React DOM element (`scene-control-idioms.ts`). */
+  readonly dom?: GodotControlDomPlan;
+  /** The host its Controls hang in when it renders no element: its stacking (`scene-control-idioms.ts`). */
+  readonly domHost?: { readonly style: Readonly<Record<string, string | number>> };
   /** A physics body's `<RigidBody>` props (`scene-body-idioms.ts`). */
   readonly body?: readonly GodotSceneBodyProp[];
   /** An instance of a scene rooted in a body: the props its overrides change (`scene-body-idioms.ts`). */
@@ -956,7 +961,8 @@ export function planDirectGodotProjectComposition(
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(settings);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), usedInputActions(project));
-  const bodied = planGodotSceneSignalDelivery(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics), project).map((scene) => {
+  const controlled = planGodotSceneControls(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics), (at, message) => diagnostics.push({ at, message }));
+  const bodied = planGodotSceneSignalDelivery(controlled, project).map((scene) => {
     const current = scene.cameras?.authored ?? (scene.sourceResPath === mainScene ? scene.cameras?.first : undefined);
     const autoloadReferences = sceneAutoloadReferences(scene, diagnostics);
     return { ...scene, ...(current === undefined ? {} : { cameras: { ...scene.cameras, current } }), ...(autoloadReferences.length === 0 ? {} : { autoloadReferences }) };

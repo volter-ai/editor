@@ -339,6 +339,8 @@ export interface TargetGodotArrayMeshPlan {
 export interface TargetGodotImportedLoad {
   readonly sourceResPath: string;
   readonly options: Readonly<Record<string, boolean | number>>;
+  /** An image's pixel size, where its header states it (a Control draws it at that size). */
+  readonly size?: readonly [number, number];
 }
 
 /**
@@ -536,6 +538,7 @@ export function godotTextureLoad(texture: BoundGodotTextureDocument): TargetGodo
       premultAlpha: params.premultAlpha ?? false,
       mipmaps: params.mipmapsGenerate ?? false,
     },
+    ...(texture.size === undefined ? {} : { size: texture.size }),
   };
 }
 
@@ -1689,6 +1692,9 @@ function arrayMeshPlan(context: PlanContext, at: string, data: BoundGodotResourc
 }
 
 /** One authored property of `className` (a node's or a resource's) as its setter's call. */
+/** A Control's layout properties, which an inert layout states and drops (`GodotSceneNodeIdiom.inertLayout`). */
+const INERT_LAYOUT = new Set(['layout_mode', 'anchors_preset', 'anchor_left', 'anchor_top', 'anchor_right', 'anchor_bottom', 'offset_left', 'offset_top', 'offset_right', 'offset_bottom', 'grow_horizontal', 'grow_vertical']);
+
 function setterPlan(
   context: PlanContext,
   at: string,
@@ -1698,7 +1704,11 @@ function setterPlan(
   scope: string,
 ): TargetGodotSceneSetterPlan | undefined {
   const subject = `${className}.${propertyName}`;
-  const found = context.setters?.(className, propertyName);
+  // A Control's properties are its element's style, which the plan computes and no setter makes;
+  // an inert layout's are stated and dropped (`inertLayout`).
+  const idiom = godotSceneNodeIdiom(className);
+  const unbound = idiom?.form.kind === 'dom' || (idiom?.inertLayout === true && INERT_LAYOUT.has(propertyName));
+  const found = unbound ? context.setters?.unbound?.(className, propertyName) : context.setters?.(className, propertyName);
   if (found === undefined || typeof found === 'string') {
     refuse(context, at, found ?? `no setter lookup for ${propertyName}`, 'property', subject);
     return undefined;

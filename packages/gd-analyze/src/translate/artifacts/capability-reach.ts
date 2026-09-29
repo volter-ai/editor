@@ -6,6 +6,7 @@
  * module's imports are read from the capability's own source, a plan input the toolchain snapshot
  * froze. Emit prints what this plans and refuses an import of a capability file it does not list.
  */
+import { godotCompositionHasControls, godotSceneRendersDom } from '../data/scene-refs';
 import * as path from 'node:path';
 import ts from 'typescript';
 import type { BoundGodotLifecycleEntry } from '../../analyze/bound-project';
@@ -99,6 +100,12 @@ function nodeModules(node: DirectGodotSceneNodePlan): readonly string[] {
     case 'camera':
       if (node.setters.some((setter) => setter.setter.exportName === 'set_environment')) modules.push('camera-3d');
       break;
+    case 'dom':
+      // A Control's element: the calls its events make (a touch button's action).
+      for (const call of Object.values(node.dom?.events ?? {})) modules.push(call.module);
+      // A touch-only element asks the display server (`display-server.ts`).
+      if (Object.values(node.dom?.style ?? {}).some((value) => typeof value === 'object' && 'touchscreenOnly' in value)) modules.push('display-server');
+      break;
     case 'body':
       if (form.sensor) modules.push('area-3d');
       if (form.type === 'dynamic') modules.push('rigid-body-3d');
@@ -117,6 +124,8 @@ function nodeModules(node: DirectGodotSceneNodePlan): readonly string[] {
   }
   modules.push(...bindingModules(node.animation));
   if (node.scriptInstance !== undefined) modules.push('react-lifecycle', ...lifecycleModules(node.scriptInstance.lifecycle));
+  // Controls under a node that renders no element go through the page's tunnel (`GodotControls`).
+  if (!godotSceneRendersDom(node) && node.children.some(godotSceneRendersDom)) modules.push('godot-controls');
   return modules;
 }
 
@@ -143,6 +152,8 @@ export function godotCapabilityRequirements(
     if (module.handle !== undefined) modules.push(module.handle.module);
   }
   for (const autoload of composition.scriptAutoloads) modules.push('react-lifecycle', ...lifecycleModules(autoload.lifecycle));
+  // The page's Controls (`direct-project-ui-syntax.ts`): the overlay stretched as the project stretches its 2D.
+  if (godotCompositionHasControls(composition)) modules.push('godot-controls');
   for (const scene of composition.scenes) {
     // Every scene component enters the tree through `useGodotScene`.
     modules.push('react-lifecycle');

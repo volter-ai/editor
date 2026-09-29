@@ -33,6 +33,11 @@ export type SceneSetterLookup = ((className: string, property: string) => SceneS
   readonly propertyType?: (className: string, property: string) => string | undefined;
   /** The one class at or below `className` that declares `property`, if exactly one does. */
   readonly declaring?: (className: string, property: string) => string | undefined;
+  /**
+   * The property's setter by its Godot name, bound or not: a Control's authored properties are its
+   * element's style (`scene-control-idioms.ts`), which no setter call makes.
+   */
+  readonly unbound?: (className: string, property: string) => SceneSetterBinding | string;
 };
 
 /**
@@ -180,7 +185,7 @@ export function sceneSetterLookup(
     const selected = method(className, name);
     return selected === undefined ? `${className} has no method ${name}` : bind(selected.owner, name, selected.hash);
   };
-  const lookup = (className: string, property: string, accessor: 'setter' | 'getter' = 'setter'): SceneSetterBinding | string => {
+  const lookup = (className: string, property: string, accessor: 'setter' | 'getter' = 'setter', bound = true): SceneSetterBinding | string => {
     const ancestry = ancestryOf(className);
     let owner: string | undefined;
     let setter: string | undefined;
@@ -261,9 +266,10 @@ export function sceneSetterLookup(
     // methods: it has no hash.
     const selected = method(owner, setter) ?? (setter.startsWith('_') ? { owner, hash: 0 } : undefined);
     if (selected === undefined) return `${owner} has no method ${setter}`;
-    const bound = bind(selected.owner, setter, selected.hash);
-    if (typeof bound === 'string') return bound;
-    return { module: bound.module, exportName: bound.exportName, localName: bound.localName, ...(index === undefined ? {} : { index }) };
+    if (!bound) return { module: '', exportName: setter, localName: '', ...(index === undefined ? {} : { index }) };
+    const binding = bind(selected.owner, setter, selected.hash);
+    if (typeof binding === 'string') return binding;
+    return { module: binding.module, exportName: binding.exportName, localName: binding.localName, ...(index === undefined ? {} : { index }) };
   };
   const propertyType = (className: string, property: string): string | undefined => {
     if (SURFACE_OVERRIDE.test(property)) return 'Material';
@@ -282,6 +288,7 @@ export function sceneSetterLookup(
     getter: (className: string, property: string) => lookup(className, property, 'getter'),
     propertyType,
     declaring,
+    unbound: (className: string, property: string) => lookup(className, property, 'setter', false),
   });
 }
 

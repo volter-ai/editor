@@ -205,6 +205,8 @@ function projectArtifacts(
       structuralDigest({ composition, module: plan.worldModule }),
       sourcePaths,
     ),
+    // The page's Controls, when a scene renders any (`direct-project-ui-syntax.ts`).
+    ...(plan.uiModule === undefined ? [] : [projectDataGeneratedModuleArtifact(plan.uiModule.targetPath, 'ui', structuralDigest({ composition, module: plan.uiModule }), plan.uiModule.sourcePaths)]),
     // The settings the scripts read, which the world loads only when there are any.
     ...(composition.projectSettings.length === 0
       ? []

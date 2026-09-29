@@ -37,7 +37,24 @@ export type GodotSceneNodeIdiomForm =
       readonly driver?: { readonly module: string; readonly exportName: string };
     }
   /** A CollisionShape3D: the Rapier collider its shape resource is. */
-  | { readonly kind: 'collider' };
+  | { readonly kind: 'collider' }
+  /**
+   * A Control (or a Node2D among Controls) as the React DOM element its scene renders
+   * (`scene-control-idioms.ts`): its tag, how it lays out its children (a row, a column, a stack of
+   * them in one cell, or centred), what it draws inside itself, its `mouse_filter` unless stated,
+   * whether it draws its panel stylebox, whether it is placed as a Node2D, and the compat module
+   * whose bindings its scripts call on the element.
+   */
+  | {
+      readonly kind: 'dom';
+      readonly module: string;
+      readonly tag: 'div' | 'button' | 'label' | 'input';
+      readonly layout: 'none' | 'row' | 'column' | 'stack' | 'center';
+      readonly content: 'none' | 'text' | 'button' | 'check' | 'range' | 'image' | 'texture-button' | 'progress' | 'separator' | 'touch' | 'color';
+      readonly mouseFilter: 0 | 1 | 2;
+      readonly panel?: true;
+      readonly node2d?: true;
+    };
 
 /**
  * The props an instancing scene hands a scene rooted in the node (its name, transform, children,
@@ -77,6 +94,14 @@ export interface GodotSceneNodeIdiom {
   readonly skyLight?: true;
   /** Its element takes its scene's sky lights as refs, the `skyLights` prop (`scene-sky-lights.ts`). */
   readonly skyLights?: true;
+  /** A canvas layer's own `layer` unless stated (`canvas_layer.h:45`): the Controls under it stack by it. */
+  readonly canvasLayer?: number;
+  /**
+   * Its Control layout (anchors, offsets, grow directions) is stated and draws nothing: its element
+   * takes the props and drops them, so no setter binds them (a SubViewportContainer over the whole
+   * viewport, `scene-families.ts`).
+   */
+  readonly inertLayout?: true;
   /** The pinned Godot 4.7 source the idiom answers to: documentation, which nothing reads. */
   readonly source?: GodotSceneNodeIdiomSource;
 }
@@ -103,6 +128,7 @@ const ROOT_PROPS: { readonly [Kind in GodotSceneNodeIdiomForm['kind']]: GodotSce
   'reflection-probe': { kind: 'component' },
   body: { kind: 'library', module: '@react-three/rapier', name: 'RigidBodyProps', omitRef: true, children: true },
   collider: { kind: 'component' },
+  dom: { kind: 'compat', module: 'godot-controls', name: 'GodotControlRootProps' },
 };
 
 type GodotSceneNodeIdiomEntry = Omit<GodotSceneNodeIdiom, 'rootProps'>;
@@ -115,6 +141,21 @@ const element = (
 ): GodotSceneNodeIdiomEntry => ({
   form: { kind: 'element', module, exportName: `Godot${className}` },
   three,
+  source,
+});
+
+/** A Control as its DOM element (`scene-control-idioms.ts`). */
+const dom = (
+  module: string,
+  tag: Extract<GodotSceneNodeIdiomForm, { readonly kind: 'dom' }>['tag'],
+  layout: Extract<GodotSceneNodeIdiomForm, { readonly kind: 'dom' }>['layout'],
+  content: Extract<GodotSceneNodeIdiomForm, { readonly kind: 'dom' }>['content'],
+  mouseFilter: 0 | 1 | 2,
+  source: GodotSceneNodeIdiomSource,
+  extra: { readonly panel?: true; readonly node2d?: true } = {},
+): GodotSceneNodeIdiomEntry => ({
+  form: { kind: 'dom', module, tag, layout, content, mouseFilter, ...extra },
+  three: tag === 'button' ? 'HTMLButtonElement' : tag === 'label' ? 'HTMLLabelElement' : tag === 'input' ? 'HTMLInputElement' : 'HTMLDivElement',
   source,
 });
 
@@ -217,37 +258,34 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     three: 'Group',
     source: ctor('CollisionShape3D', 'scene/3d/physics/collision_shape_3d.cpp', 325),
   },
-  CanvasLayer: element('canvas-layer', 'CanvasLayer', ctor('CanvasLayer', 'scene/main/canvas_layer.cpp', 359)),
-  Control: element('control', 'Control', ctor('Control', 'scene/gui/control.cpp', 5161)),
-  HBoxContainer: element('h-box-container', 'HBoxContainer', ctor('HBoxContainer', 'scene/gui/box_container.h', 85)),
-  VBoxContainer: element('v-box-container', 'VBoxContainer', ctor('VBoxContainer', 'scene/gui/box_container.h', 94)),
-  MarginContainer: element('margin-container', 'MarginContainer', ctor('MarginContainer', 'scene/gui/margin_container.cpp', 124)),
-  TextureProgressBar: element('texture-progress-bar', 'TextureProgressBar', ctor('TextureProgressBar', 'scene/gui/texture_progress_bar.cpp', 727)),
-  PanelContainer: element('panel-container', 'PanelContainer', ctor('PanelContainer', 'scene/gui/panel_container.cpp', 102)),
-  HSeparator: element('h-separator', 'HSeparator', ctor('HSeparator', 'scene/gui/separator.cpp', 71)),
-  CenterContainer: element('center-container', 'CenterContainer', ctor('CenterContainer', 'scene/gui/center_container.h', 35)),
-  GridContainer: element('grid-container', 'GridContainer', ctor('GridContainer', 'scene/gui/grid_container.h', 35)),
-  Label: element('label', 'Label', ctor('Label', 'scene/gui/label.cpp', 1526)),
-  TextureRect: element('texture-rect', 'TextureRect', ctor('TextureRect', 'scene/gui/texture_rect.cpp', 299)),
+  CanvasLayer: { ...element('canvas-layer', 'CanvasLayer', ctor('CanvasLayer', 'scene/main/canvas_layer.cpp', 359)), canvasLayer: 1 },
+  // Controls (`scene-control-idioms.ts`): each class's element, layout, drawing and default
+  // `mouse_filter` (a Container's PASS, `container.cpp:216`; a Label's IGNORE, `label.cpp:1526`).
+  Control: dom('control', 'div', 'none', 'none', 0, ctor('Control', 'scene/gui/control.cpp', 5161)),
+  HBoxContainer: dom('control', 'div', 'row', 'none', 1, ctor('HBoxContainer', 'scene/gui/box_container.h', 85)),
+  VBoxContainer: dom('control', 'div', 'column', 'none', 1, ctor('VBoxContainer', 'scene/gui/box_container.h', 94)),
+  MarginContainer: dom('control', 'div', 'stack', 'none', 1, ctor('MarginContainer', 'scene/gui/margin_container.cpp', 124)),
+  TextureProgressBar: dom('range', 'div', 'none', 'progress', 1, ctor('TextureProgressBar', 'scene/gui/texture_progress_bar.cpp', 727)),
+  PanelContainer: dom('control', 'div', 'stack', 'none', 0, ctor('PanelContainer', 'scene/gui/panel_container.cpp', 102), { panel: true }),
+  HSeparator: dom('control', 'div', 'none', 'separator', 0, ctor('HSeparator', 'scene/gui/separator.cpp', 71)),
+  CenterContainer: dom('control', 'div', 'center', 'none', 1, ctor('CenterContainer', 'scene/gui/center_container.h', 35)),
+  Label: dom('label', 'div', 'none', 'text', 2, ctor('Label', 'scene/gui/label.cpp', 1526)),
+  TextureRect: dom('texture-rect', 'div', 'none', 'image', 1, ctor('TextureRect', 'scene/gui/texture_rect.cpp', 299)),
   Node2D: element('node-2d', 'Node2D', ctor('Node2D', 'scene/2d/node_2d.cpp', 519)),
   Sprite2D: element('sprite-2d', 'Sprite2D', ctor('Sprite2D', 'scene/2d/sprite_2d.cpp', 555)),
-  TouchScreenButton: element(
-    'touch-screen-button',
-    'TouchScreenButton',
-    ctor('TouchScreenButton', 'scene/2d/physics/touch_screen_button.cpp', 458),
-  ),
+  TouchScreenButton: dom('canvas-item', 'div', 'none', 'touch', 0, ctor('TouchScreenButton', 'scene/2d/physics/touch_screen_button.cpp', 458), { node2d: true }),
   Label3D: element('label-3d', 'Label3D', ctor('Label3D', 'scene/3d/label_3d.cpp', 1082), 'Mesh'),
   Timer: element('timer', 'Timer', ctor('Timer', 'scene/main/timer.cpp', 250)),
-  Button: element('button', 'Button', ctor('Button', 'scene/gui/button.cpp', 780)),
-  CheckBox: element('check-box', 'CheckBox', ctor('CheckBox', 'scene/gui/check_box.cpp', 170)),
-  HSlider: element('h-slider', 'HSlider', ctor('HSlider', 'scene/gui/slider.h', 120)),
-  TextureButton: element('texture-button', 'TextureButton', ctor('TextureButton', 'scene/gui/texture_button.h', 35)),
+  Button: dom('button', 'button', 'none', 'button', 0, ctor('Button', 'scene/gui/button.cpp', 780)),
+  CheckBox: dom('base-button', 'label', 'none', 'check', 0, ctor('CheckBox', 'scene/gui/check_box.cpp', 170)),
+  HSlider: dom('range', 'input', 'none', 'range', 0, ctor('HSlider', 'scene/gui/slider.h', 120)),
+  TextureButton: dom('base-button', 'button', 'none', 'texture-button', 0, ctor('TextureButton', 'scene/gui/texture_button.h', 35)),
   Path3D: element('path-3d', 'Path3D', ctor('Path3D', 'scene/3d/path_3d.cpp', 219)),
   PathFollow3D: element('path-follow-3d', 'PathFollow3D', ctor('PathFollow3D', 'scene/3d/path_3d.cpp', 520)),
   VisibleOnScreenNotifier3D: element('visible-on-screen-notifier-3d', 'VisibleOnScreenNotifier3D', ctor('VisibleOnScreenNotifier3D', 'scene/3d/visible_on_screen_notifier_3d.cpp', 107), 'Mesh'),
   TileMapLayer: element('tile-map-layer', 'TileMapLayer', ctor('TileMapLayer', 'scene/2d/tile_map_layer.cpp', 3380)),
   Camera2D: element('camera-2d', 'Camera2D', ctor('Camera2D', 'scene/2d/camera_2d.cpp', 1030)),
-  ColorRect: element('color-rect', 'ColorRect', ctor('ColorRect', 'scene/gui/color_rect.cpp', 62)),
+  ColorRect: dom('color-rect', 'div', 'none', 'color', 0, ctor('ColorRect', 'scene/gui/color_rect.cpp', 62)),
   Marker2D: element('marker-2d', 'Marker2D', ctor('Marker2D', 'scene/2d/marker_2d.cpp', 117)),
   VisibleOnScreenNotifier2D: element('visible-on-screen-notifier-2d', 'VisibleOnScreenNotifier2D', ctor('VisibleOnScreenNotifier2D', 'scene/2d/visible_on_screen_notifier_2d.cpp', 190)),
   Path2D: element('path-2d', 'Path2D', ctor('Path2D', 'scene/2d/path_2d.cpp', 190)),
@@ -259,7 +297,7 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   Area2D: element('area-2d', 'Area2D', ctor('Area2D', 'scene/2d/physics/area_2d.cpp', 640)),
   CollisionShape2D: element('collision-shape-2d', 'CollisionShape2D', ctor('CollisionShape2D', 'scene/2d/physics/collision_shape_2d.cpp', 245)),
   GPUParticles2D: element('gpu-particles-2d', 'GPUParticles2D', ctor('GPUParticles2D', 'scene/2d/gpu_particles_2d.cpp', 950)),
-  SubViewportContainer: element('sub-viewport-container', 'SubViewportContainer', ctor('SubViewportContainer', 'scene/gui/subviewport_container.cpp', 280)),
+  SubViewportContainer: { ...element('sub-viewport-container', 'SubViewportContainer', ctor('SubViewportContainer', 'scene/gui/subviewport_container.cpp', 280)), inertLayout: true },
   SubViewport: element('sub-viewport', 'SubViewport', ctor('SubViewport', 'scene/main/viewport.cpp', 5712)),
   Sprite3D: element('sprite-3d', 'Sprite3D', ctor('Sprite3D', 'scene/3d/sprite_3d.cpp', 760), 'Mesh'),
   AnimatedSprite3D: element('animated-sprite-3d', 'AnimatedSprite3D', ctor('AnimatedSprite3D', 'scene/3d/sprite_3d.cpp', 1590), 'Mesh'),

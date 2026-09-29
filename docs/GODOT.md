@@ -1286,6 +1286,28 @@ found exactly that. It is redone on the libraries:
 - **UI is React DOM.** A Control is an element its component renders (`<div>`, `<button>`,
   `<span>`), its anchors and container layout computed from Godot's rules into its style, and its
   signals React's own events.
+  How (the orchestrator's, 2026-09-29): React DOM cannot render inside R3F's Canvas, so a scene
+  sends its Controls through a `tunnel-rat` tunnel (`<ui.In>`), and the world renders them
+  (`<ui.Out />`) in an overlay beside the Canvas, as pmndrs puts HTML over a scene. Each run of
+  Controls under one non-Control node is wrapped in a host element standing for that node
+  (`godot_node_dom_host`), so the Node tree reaches them: a Control's node is its element, its
+  parent the element above it or the node its host stands for. The tunnel's DOM commits before
+  R3F's passive effects run, so Controls and their scripts exist before the 3D scene around them
+  enters the tree, and `%Name` and `@onready` reach them. The world provides the autoload contexts
+  on both sides. The Controls' Godot-only state is their `data-*` attributes (`data-name`,
+  `data-classes`, `data-groups`), as a three object's is its `userData`.
+  Done (2026-09-29): the plan computes each Control's element (`scene-control-idioms.ts`): anchors
+  and offsets as absolute boxes, box containers as flex rows and columns, margin, panel and centre
+  containers as one-cell grids, StyleBoxFlat and StyleBoxLine as CSS, LabelSettings and theme
+  overrides as text style, TextureRect, TextureProgressBar, Button icons and GradientTexture2D as
+  backgrounds, CheckBox and ButtonGroup as checkboxes and radios, HSlider as `<input type=range>`,
+  TouchScreenButton as a box pressing its action. Compat's Control modules are bindings on the
+  element (`control.ts`, `label.ts`, `base-button.ts`, `range.ts`, …); Godot's layout engine, the
+  container sorts and the GUI input routing are deleted. The page's own GUI takes pointer input;
+  a press that lands on a Control is the GUI stage's after `_input` (`viewport.ts`). Refused by
+  name until they have a DOM form: an AnimationPlayer (or any node three mounts) under a Control,
+  which Truck Town's turbo meter has; GridContainer; a SubViewportContainer smaller than its
+  viewport.
 - **Untyped values are typed statically, not dispatched at run time.** The analysis follows a value
   to its class (an exported PackedScene's instanced root script, a container's elements), so a call
   lowers to a direct method call. The run-time dispatcher (`variant-named.ts`,

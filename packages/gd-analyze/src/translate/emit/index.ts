@@ -12,6 +12,7 @@ import type {
 import type { TargetTsSourceFile } from '../code/target-ts-syntax';
 import type { GodotAcceptedTranslation, GodotTranslationPlan } from '../translation-plan';
 import { emitDirectGodotWorldSyntax } from './direct-project-world-syntax';
+import { emitDirectGodotUiSyntax } from './direct-project-ui-syntax';
 import { emitDirectGodotSceneSyntax } from './direct-scene-syntax';
 import { resourceModuleSourceFile } from './resource-module-syntax';
 import { emitTargetTsSourceFile } from './target-ts-printer';
@@ -87,7 +88,7 @@ interface EmissionContext {
   readonly sceneSyntax: Map<string, ReturnType<typeof emitDirectGodotSceneSyntax>[number]>;
   readonly sceneInputs: Map<string, GodotTranslationPlan['composition']['scenes'][number]>;
   readonly resourceInputs: Map<string, GodotTranslationPlan['composition']['resourceModules'][number]>;
-  readonly projectModules: Map<'world', string>;
+  readonly projectModules: Map<'world' | 'ui', string>;
   /** The capability files the plan carries. */
   readonly capabilityFiles: ReadonlySet<string>;
 }
@@ -156,6 +157,13 @@ function projectSyntax(
       });
       syntax = emitDirectGodotWorldSyntax(context.plan.composition);
       break;
+    case 'ui': {
+      const planned = context.plan.projectData.uiModule;
+      if (planned === undefined) throw new Error(`${artifact.path}: the page's Controls are absent from the accepted plan`);
+      actualInputDigest = structuralDigest({ composition: context.plan.composition, module: planned });
+      syntax = emitDirectGodotUiSyntax();
+      break;
+    }
   }
   if (actualInputDigest !== artifact.content.inputDigest) {
     throw new Error(`${artifact.path}: accepted ${module} input changed before emission`);
@@ -259,7 +267,8 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
     throw new Error('accepted composition repeats a scene source path');
   }
   const resourceInputs = new Map(accepted.plan.composition.resourceModules.map((module) => [module.sourceResPath, module] as const));
-  const projectModuleRows = [['world', accepted.plan.projectData.worldModule.targetPath]] as const;
+  const uiModule = accepted.plan.projectData.uiModule;
+  const projectModuleRows: readonly (readonly ['world' | 'ui', string])[] = [['world', accepted.plan.projectData.worldModule.targetPath], ...(uiModule === undefined ? [] : [['ui', uiModule.targetPath] as const])];
   const projectModules = new Map(projectModuleRows);
   if (projectModules.size !== projectModuleRows.length) {
     throw new Error('accepted project data repeats a generated module');

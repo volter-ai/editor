@@ -4,13 +4,13 @@
  *
  * Godot 4.7's `SubViewportContainer` (`scene/gui/subviewport_container.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a Control showing its SubViewport children's images
- * over its rect. The sub-viewport draws itself over the frame (`sub-viewport.ts`); `stretch` and
- * `stretch_shrink` are stored.
+ * over its rect. The sub-viewport draws itself over the frame (`sub-viewport.ts`), which is the
+ * container's rect: the plan carries only a container covering the whole viewport, and its layout
+ * props say so and change nothing; `stretch` and `stretch_shrink` are stored.
  */
 
 import type { ReactElement } from 'react';
 import { Group, type Object3D } from 'three';
-import { godot_control_mount, godot_control_props } from './control';
 import { godot_node_entity } from './node';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
@@ -56,9 +56,12 @@ const SUB_VIEWPORT_CONTAINER = {
   create: () => new Group(),
   classes: CLASSES,
   spatial: false,
-  mount: (entity: Object3D) => godot_control_mount(entity, CLASSES),
+  mount: (entity: Object3D) => void entity,
   props: new Map<string, GodotElementProp<Object3D>>([
-    ...godot_control_props(),
+    // Its rect, the whole viewport's (`scene-families.ts` refuses any other): where the sub-viewport draws.
+    ...['layoutMode', 'anchorsPreset', 'anchorLeft', 'anchorTop', 'anchorRight', 'anchorBottom', 'offsetLeft', 'offsetTop', 'offsetRight', 'offsetBottom', 'growHorizontal', 'growVertical'].map(
+      (name) => [name, () => undefined] as const,
+    ),
     ['stretch', (entity, value: boolean) => set_stretch(entity, value)],
     ['stretchShrink', (entity, value: number) => set_stretch_shrink(entity, value)],
   ]),

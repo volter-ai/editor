@@ -13,7 +13,7 @@
 
 import type { Object3D } from 'three';
 import { godot_canvas_item_layer, godot_canvas_item_propagate_visibility } from './canvas-item';
-import { godot_node_entity } from './node';
+import { godot_node_dom_host_of, godot_node_entity } from './node';
 import { construct as transform2d, type Transform2D } from './transform-2d';
 import { construct as vector2, type Vector2 } from './vector2';
 import type { ReactElement } from 'react';
@@ -72,6 +72,9 @@ function updateTransform(state: CanvasLayerState): void {
  */
 export function set_layer(self: object, p_xform: number): void {
   stateOf(self, 'set_layer').layer = p_xform;
+  // Its Controls stack by it on the page (`godot-controls.tsx`).
+  const host = godot_node_dom_host_of(self);
+  if (host !== undefined) host.style.zIndex = String(p_xform);
 }
 
 /**
@@ -94,6 +97,9 @@ export function set_visible(self: object, p_visible: boolean): void {
   if (state.visible === p_visible) return;
   state.visible = p_visible;
   for (const child of [...(godot_node_entity(self) as Object3D).children]) godot_canvas_item_propagate_visibility(child);
+  // Its Controls show and hide with it on the page (`godot-controls.tsx`).
+  const host = godot_node_dom_host_of(self);
+  if (host !== undefined) host.style.display = p_visible ? '' : 'none';
 }
 
 /**

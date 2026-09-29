@@ -1,6 +1,7 @@
 /**
  * The packages a game's own generated modules (its scenes, scripts, world and data) import, beside
- * the capability files': three, React and React DOM, R3F, drei and Rapier. Emit refuses a generated
+ * the capability files': three, React and React DOM, R3F, drei, Rapier, and `tunnel-rat`, which
+ * carries a scene's Controls to the page beside the Canvas. Emit refuses a generated
  * module that imports any other (`emit/index.ts`), and the plan keeps these declared however few
  * capability files the game reaches (`artifacts/plan.ts`).
  */
@@ -12,6 +13,7 @@ export const GODOT_GENERATED_MODULE_PACKAGES: ReadonlySet<string> = new Set([
   '@react-three/drei',
   '@react-three/rapier',
   '@dimforge/rapier3d-compat',
+  'tunnel-rat',
 ]);
 
 /** The package a bare import specifier names: its scope and name, or its first segment. */

@@ -7,8 +7,10 @@
  * `scene/main/node.cpp` at revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`.
  *
  * A node is its native entity: a `THREE.Object3D` (a plain `Node` is a `Group` compat marks
- * non-spatial, so Node3D's parent rule skips it). Its parent and children are three's own links
- * and its name is the Object3D's `name`; everything else Godot keeps on a Node lives in `NODE`,
+ * non-spatial, so Node3D's parent rule skips it), or, for a Control, the DOM element its component
+ * renders. Its parent and children are three's own links or the DOM's, and its name is the
+ * Object3D's `name` or the element's `data-name`; a CanvasLayer's Controls hang from the element
+ * the layer renders them in (`godot_node_dom_host`). Everything else Godot keeps on a Node lives in `NODE`,
  * keyed by the entity: the script binding (the generated script instance and its callbacks),
  * groups, tree membership, ready state, processing flags, process mode and priority, and the
  * hierarchy authority that owns the entity's attachment.
@@ -185,8 +187,54 @@ function objectOf(entity: object): object {
   return NODE.get(entity)?.binding?.owner ?? entity;
 }
 
+/** Whether an entity is a DOM element (a Control's), not a three object. */
+function isElement(entity: object): entity is HTMLElement {
+  return typeof HTMLElement !== 'undefined' && entity instanceof HTMLElement;
+}
+
+/** The element each CanvasLayer renders its Controls in, and the layer each such element stands for. */
+const DOM_HOSTS = new WeakMap<object, HTMLElement>();
+const HOSTED_BY = new WeakMap<HTMLElement, object>();
+
+/**
+ * The element a node renders its DOM children in (a CanvasLayer's overlay): its Controls' parent is
+ * the node, and the node's children include them after its three children. Null when it unmounts.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/canvas_layer.cpp:359
+ */
+export function godot_node_dom_host(node: object, host: HTMLElement | null): void {
+  const previous = DOM_HOSTS.get(node);
+  if (previous !== undefined) HOSTED_BY.delete(previous);
+  if (host === null) DOM_HOSTS.delete(node);
+  else {
+    DOM_HOSTS.set(node, host);
+    HOSTED_BY.set(host, node);
+  }
+}
+
+/**
+ * The element a node renders its Controls in, when it does (`godot_node_dom_host`).
+ *
+ * @godot Node (protocol)
+ * @source scene/main/canvas_layer.cpp:359
+ */
+export function godot_node_dom_host_of(node: object): HTMLElement | undefined {
+  return DOM_HOSTS.get(entityOf(node));
+}
+
 function parentEntity(entity: object): object | null {
-  return (entity as Object3D).parent ?? null;
+  if (!isElement(entity)) return (entity as Object3D).parent ?? null;
+  const parent = entity.parentElement;
+  return parent === null ? null : (HOSTED_BY.get(parent) ?? parent);
+}
+
+/** An entity's own native children: three's, then a DOM host's elements, or an element's. */
+function nativeChildren(entity: object): readonly object[] {
+  if (isElement(entity)) return [...entity.children];
+  const host = DOM_HOSTS.get(entity);
+  const own = (entity as Object3D).children ?? [];
+  return host === undefined ? own : [...own, ...host.children];
 }
 
 /**
@@ -196,7 +244,7 @@ function parentEntity(entity: object): object | null {
  * and its children stand in its place.
  */
 function childEntities(entity: object): readonly object[] {
-  return ((entity as Object3D).children ?? []).flatMap((child) =>
+  return nativeChildren(entity).flatMap((child) =>
     FOREIGN.has(child) ? [] : NODE.has(child) || nameOf(child) !== '' ? [child] : childEntities(child),
   );
 }
@@ -216,7 +264,27 @@ export function godot_node_foreign(object: object): void {
 }
 
 function nameOf(entity: object): string {
+  if (isElement(entity)) return entity.dataset['name'] ?? '';
   return (entity as { name?: string }).name ?? '';
+}
+
+/**
+ * The Godot-only state the scene states on a node: an Object3D's `userData`, or an element's
+ * `data-*` attributes (`data-groups` space-separated, `data-classes` nearest first, `data-index`,
+ * `data-process-mode`, `data-unique-name-in-owner`).
+ */
+function declaredData(entity: object): Readonly<Record<string, unknown>> {
+  if (!isElement(entity)) return ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+  const data = entity.dataset;
+  const words = (value: string | undefined) => (value === undefined || value === '' ? undefined : value.split(' '));
+  const number = (value: string | undefined) => (value === undefined ? undefined : Number(value));
+  return {
+    ...(words(data['groups']) === undefined ? {} : { groups: words(data['groups']) }),
+    ...(words(data['classes']) === undefined ? {} : { classes: words(data['classes']) }),
+    ...(number(data['index']) === undefined ? {} : { index: number(data['index']) }),
+    ...(number(data['processMode']) === undefined ? {} : { process_mode: number(data['processMode']) }),
+    ...(data['uniqueNameInOwner'] === 'true' ? { unique_name_in_owner: true } : {}),
+  };
 }
 
 // --- Protocol: the composition site's entry points.
@@ -441,12 +509,12 @@ function seedDeclared(entity: object): void {
       break;
     }
   }
-  const data = ((entity as Object3D).userData ?? {}) as Readonly<Record<string, unknown>>;
+  const data = declaredData(entity);
   for (const group of (data['groups'] ?? []) as readonly string[]) if (!state.groups.includes(group)) state.groups.push(group);
   // An explicit sibling position (`index`): the scene moves the node there once added, when that is
   // before where it was added (`SceneState::instantiate`, packed_scene.cpp:545).
   const index = data['index'];
-  if (typeof index === 'number') moveToIndex(entity as Object3D, index);
+  if (typeof index === 'number') moveToIndex(entity, index);
   // Its authored `process_mode` (`Node::set_process_mode`, the low three bits it stores).
   const processMode = data['process_mode'];
   if (typeof processMode === 'number') state.processMode = processMode & 7;
@@ -461,15 +529,24 @@ function seedDeclared(entity: object): void {
  * before its own. Three's children hold objects that are not nodes (a model's surfaces) too: the
  * node goes before the node now at `index`.
  */
-function moveToIndex(entity: Object3D, index: number): void {
-  const parent = entity.parent;
+function moveToIndex(entity: object, index: number): void {
+  if (isElement(entity)) {
+    const parent = entity.parentElement;
+    if (parent === null) return;
+    const siblings = [...parent.children].filter((child) => NODE.has(child) || nameOf(child) !== '');
+    const position = siblings.indexOf(entity);
+    if (index < 0 || index >= position) return;
+    parent.insertBefore(entity, siblings[index] as Element);
+    return;
+  }
+  const parent = (entity as Object3D).parent;
   if (parent === null) return;
   const siblings = parent.children.filter((child) => !FOREIGN.has(child) && (NODE.has(child) || nameOf(child) !== ''));
-  const position = siblings.indexOf(entity);
+  const position = siblings.indexOf(entity as Object3D);
   if (index < 0 || index >= position) return;
   const before = siblings[index] as Object3D;
-  parent.children.splice(parent.children.indexOf(entity), 1);
-  parent.children.splice(parent.children.indexOf(before), 0, entity);
+  parent.children.splice(parent.children.indexOf(entity as Object3D), 1);
+  parent.children.splice(parent.children.indexOf(before), 0, entity as Object3D);
 }
 
 /**
@@ -492,7 +569,7 @@ function nodeClasses(entity: object): readonly string[] | undefined {
   const recorded = NODE.get(entity)?.classes ?? godot_input_event_classes(entity);
   if (recorded !== undefined) return recorded;
   // The classes the scene states for a node three or Rapier mounts (its `userData`).
-  const stated = ((entity as { readonly userData?: Readonly<Record<string, unknown>> }).userData ?? {})['classes'];
+  const stated = declaredData(entity)['classes'];
   if (Array.isArray(stated)) return stated as readonly string[];
   for (const reader of CLASS_READERS) {
     const read = reader(entity);
@@ -698,12 +775,18 @@ export function godot_node_is_freed(object: object): boolean {
 function attach(parent: object, child: object): void {
   const authority = NODE.get(child)?.authority;
   if (authority !== undefined) authority.attach(parent, child);
-  else (parent as Object3D).add(child as Object3D);
+  else if (isElement(child)) {
+    // A Control goes into its parent Control's element, or the layer's overlay.
+    const host = isElement(parent) ? parent : DOM_HOSTS.get(parent);
+    if (host === undefined) throw new Error('godot-compat: a Control added under a node that renders no DOM.');
+    host.appendChild(child);
+  } else (parent as Object3D).add(child as Object3D);
 }
 
 function detach(parent: object, child: object): void {
   const authority = NODE.get(child)?.authority;
   if (authority !== undefined) authority.detach(parent, child);
+  else if (isElement(child)) child.remove();
   else (parent as Object3D).remove(child as Object3D);
 }
 
@@ -858,6 +941,7 @@ function duplicateEntity(source: object, flags: number): object {
   }
   // Some three classes' `copy` recurses whatever it is asked (a light's): the copy's children are
   // rebuilt here.
+  if (isElement(source)) throw new Error('godot-compat: Node.duplicate of a Control is not transcribed.');
   const copy = (source as Object3D).clone(false).clear();
   for (const child of childEntities(source)) {
     if (!NODE.has(child)) copy.add((child as Object3D).clone(true));
@@ -968,16 +1052,25 @@ export function move_child(self: object, child_node: object, to_index: number): 
   if (!INSERTION.has(parent)) INSERTION.set(parent, childEntities(parent).filter((entry) => NODE.has(entry)));
   children.splice(from, 1);
   children.splice(index, 0, child);
-  const next = children[index + 1] as Object3D | undefined;
-  const previous = children[index - 1] as Object3D | undefined;
-  const own = (child as Object3D).parent as Object3D;
+  const next = children[index + 1];
+  const previous = children[index - 1];
   const anchor = next !== undefined ? next : previous;
-  if (anchor === undefined || anchor.parent !== own) {
-    throw new Error('godot-compat: Node.move_child among siblings in different three containers is not transcribed.');
+  if (isElement(child)) {
+    // A Control moves among its siblings' elements, as the DOM orders them.
+    if (anchor === undefined || !isElement(anchor) || anchor.parentElement !== child.parentElement) {
+      throw new Error('godot-compat: Node.move_child among siblings in different containers is not transcribed.');
+    }
+    if (next !== undefined) anchor.before(child);
+    else anchor.after(child);
+  } else {
+    const own = (child as Object3D).parent as Object3D;
+    if (anchor === undefined || (anchor as Object3D).parent !== own) {
+      throw new Error('godot-compat: Node.move_child among siblings in different three containers is not transcribed.');
+    }
+    own.children.splice(own.children.indexOf(child as Object3D), 1);
+    const at = own.children.indexOf(anchor as Object3D);
+    own.children.splice(next !== undefined ? at : at + 1, 0, child as Object3D);
   }
-  own.children.splice(own.children.indexOf(child as Object3D), 1);
-  const at = own.children.indexOf(anchor);
-  own.children.splice(next !== undefined ? at : at + 1, 0, child as Object3D);
   if (stateOf(parent).insideTree) for (const observer of TREE_OBSERVERS) observer(child);
   for (const observer of CHILD_ORDER_OBSERVERS) observer(parent, child);
 }
@@ -1687,8 +1780,8 @@ export function godot_node_seat(root: object): void {
  * @source scene/main/node.cpp:341
  */
 export function godot_node_enter(root: object): void {
-  let top = root as { readonly parent?: object | null; readonly isScene?: boolean };
-  while (top.parent !== undefined && top.parent !== null) top = top.parent as typeof top;
+  let top = root as { readonly isScene?: boolean };
+  for (let parent = parentEntity(top); parent !== null; parent = parentEntity(top)) top = parent;
   if (top.isScene === true && NODE.get(top)?.insideTree !== true) godot_tree_set_root(top);
   const entering = enteringTop(root);
   if (entering !== undefined && entering.top === root) enterTree(root, entering.parent);

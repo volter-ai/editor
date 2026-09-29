@@ -2,7 +2,7 @@
  * Which nodes of each scene a component holds a ref to, decided at plan time (docs/GODOT.md §The
  * lane's law, row 2: emit prints the plan). A node needs a ref when a script is attached to it, when
  * a connection or a script field names it, when a WorldEnvironment's sky reads it
- * (`scene-sky-lights.ts`), and its scene root when its nodes are found as `%Name`;
+ * (`scene-sky-lights.ts`), when Controls hang from it, and its scene root when its nodes are found as `%Name`;
  * a scene's root is exposed to the scene that instances it when that scene refers to the instance
  * (`rootRef`), and its script's fields when that scene overrides them (`rootExports`).
  */
@@ -23,6 +23,17 @@ export interface GodotSceneRefsPlan {
   readonly modelNodes: readonly { readonly nodePath: string; readonly holder: string; readonly at: string }[];
 }
 
+/** Whether a node renders a React DOM element: a Control, or an instance of a scene rooted in one. */
+export function godotSceneRendersDom(node: DirectGodotSceneNodePlan): boolean {
+  return (node.idiom?.form.kind ?? node.instanceOf?.rootIdiom?.form.kind) === 'dom';
+}
+
+/** Whether any scene of the project renders a Control: the game then has a page for them (`src/ui.tsx`). */
+export function godotCompositionHasControls(composition: { readonly scenes: readonly { readonly root: DirectGodotSceneNodePlan }[] }): boolean {
+  const walk = (node: DirectGodotSceneNodePlan): boolean => godotSceneRendersDom(node) || godotSceneSubnodes(node).some(walk);
+  return composition.scenes.some((scene) => walk(scene.root));
+}
+
 function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): ReadonlySet<string> {
   const targets = new Set<string>();
   let unique = false;
@@ -36,6 +47,8 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
       const target = field.value.kind === 'node-reference' ? godotResolveNodePath(node.nodePath, field.value.value) : undefined;
       if (target !== undefined) targets.add(target);
     }
+    // A node that renders no element holding Controls: their host stands for it (`godot_node_dom_host`).
+    if (!godotSceneRendersDom(node) && node.children.some(godotSceneRendersDom)) targets.add(node.nodePath);
     for (const child of godotSceneSubnodes(node)) walk(child);
   };
   walk(scene.root);

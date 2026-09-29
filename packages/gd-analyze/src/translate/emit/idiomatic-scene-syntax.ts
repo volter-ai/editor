@@ -37,6 +37,8 @@ import { directGodotSceneAutoloadContextName } from './direct-autoload-syntax';
 import { godotImportedModelDataPath, godotSceneSubnodes } from '../data/scene-document-plan';
 import type { GodotSceneBodyProp } from '../data/scene-body-idioms';
 import type { GodotSceneNodeIdiom } from '../data/scene-node-idioms';
+import type { GodotControlDomPlan } from '../data/scene-control-idioms';
+import { godotSceneRendersDom } from '../data/scene-refs';
 import { godotResolveNodePath } from '../data/scene-animation';
 import {
   attribute,
@@ -50,6 +52,7 @@ import {
   familyEmission,
   familyImports,
   familyInstanceProps,
+  familyResourceValue,
   familyMaterialOverride,
   familyModelMaterialOverride,
   familyModelMaterials,
@@ -193,6 +196,8 @@ interface Emission {
   readonly rootRef: boolean;
   /** Each ref's type as its `useRef` names it. */
   readonly refTypes: Map<string, string>;
+  /** Whether the scene sends Controls through the page's tunnel (`src/ui.ts`). */
+  readonly ui: { used: boolean };
 }
 
 function useCompat(emission: Emission, module: string, name: string): string {
@@ -227,10 +232,11 @@ function refLocal(emission: Emission, nodePath: string, nodeName: string): strin
  * on its element, `type` the element's ref type (three's, or the Rapier body a `<RigidBody>`'s ref
  * holds). Its script is attached through it: `useGodotScript(ref, Class, { exports }, { autoloads })`.
  */
-function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: string, from: 'three' | 'rapier' = 'three'): TargetTsJsxAttribute[] {
+function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: string, from: 'three' | 'rapier' | 'dom' = 'three'): TargetTsJsxAttribute[] {
   if (!emission.needsRef.has(node.nodePath)) return [];
   const refName = refLocal(emission, node.nodePath, node.name);
-  (from === 'three' ? emission.three : emission.rapierTypes).add(type);
+  // A DOM element's type is the page's own (`HTMLDivElement`), which nothing imports.
+  if (from !== 'dom') (from === 'three' ? emission.three : emission.rapierTypes).add(type);
   emission.refTypes.set(node.nodePath, from === 'three' ? threeLocal(type) : type);
   const own: TargetTsExpression = {
     kind: 'call-expression',
@@ -616,7 +622,13 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   // The methods this scene connects to the instance's root script's signals.
   const connected = handedConnections(emission, node, 'instance-prop');
   if (connected.length > 0) overrides.push(attribute('connections', connected[0] as TargetTsExpression));
-  const children = node.children.map((child) => nodeElement(emission, child));
+  const children = childElements(emission, node);
+  // A Control scene's root is an element of the page: its name is its `data-name`, and the Node
+  // protocol reads its groups from its own `data-*`.
+  if (rootIdiom?.form.kind === 'dom') {
+    const ref = nodeRef(emission, node, rootIdiom.three, 'dom');
+    return element(local, [{ kind: 'jsx-string-attribute', name: 'data-name', value: node.name }, ...ref, ...overrides.filter((entry) => entry.kind !== 'jsx-expression-attribute' || entry.name !== 'userData')], children);
+  }
   const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, rootIdiom?.three ?? 'Group');
   return element(local, [name, ...ref, ...transform, ...overrides], children);
 }
@@ -768,6 +780,93 @@ function skyLightsAttribute(emission: Emission, node: DirectGodotSceneNodePlan):
   ];
 }
 
+/**
+ * A node's children as its element holds them: a Control's under its own element; under any other
+ * node, its Controls sent through the tunnel to the page (`<GodotControls ui={ui} parent={ref}>`),
+ * in a host element standing for the node (`godot-controls.tsx`), beside its other children.
+ */
+function childElements(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxChild[] {
+  if (godotSceneRendersDom(node) && node.instance === undefined) return node.children.map((child) => nodeElement(emission, child));
+  const controls = node.children.filter(godotSceneRendersDom);
+  const others = node.children.filter((child) => !godotSceneRendersDom(child)).map((child) => nodeElement(emission, child));
+  if (controls.length === 0) return others;
+  const parent = emission.nodeRefs.get(node.nodePath);
+  if (parent === undefined) throw new Error(`${emission.scene.sourceResPath}#${node.nodePath}: Controls hang from a node the scene holds no ref to`);
+  return [...others, controlsHost(emission, { kind: 'identifier-expression', name: parent }, controls.map((child) => nodeElement(emission, child)), node.domHost?.style)];
+}
+
+/** `<GodotControls ui={ui} parent={…}>`: Controls sent to the page's overlay (`src/ui.ts`). */
+function controlsHost(emission: Emission, parent: TargetTsExpression | undefined, children: readonly TargetTsJsxChild[], style?: Readonly<Record<string, string | number>>): TargetTsJsxChild {
+  emission.ui.used = true;
+  return element(
+    useCompat(emission, 'godot-controls', 'GodotControls'),
+    [attribute('ui', { kind: 'identifier-expression', name: 'ui' }), ...(parent === undefined ? [] : [attribute('parent', parent)]), ...(style === undefined ? [] : [attribute('style', styleExpression(emission, style))])],
+    children,
+  );
+}
+
+/** A planned style: CSS values as literals, a font resource's family read from its local. */
+function styleExpression(emission: Emission, style: GodotControlDomPlan['style']): TargetTsExpression {
+  return {
+    kind: 'object-expression',
+    properties: Object.entries(style).map(([key, value]) => ({
+      key,
+      value:
+        typeof value !== 'object'
+          ? literal(value)
+          : 'fontFamily' in value
+            ? { kind: 'property-expression' as const, object: familyResourceValue(emission.family, value.fontFamily), property: 'family' }
+            : // Shown only on a touch screen (`DisplayServer.is_touchscreen_available`).
+              {
+                kind: 'conditional-expression' as const,
+                condition: { kind: 'call-expression' as const, callee: { kind: 'identifier-expression' as const, name: useCompat(emission, 'display-server', 'is_touchscreen_available') }, arguments: [] },
+                whenTrue: { kind: 'undefined-expression' as const },
+                whenFalse: literal('none'),
+              },
+    })),
+  };
+}
+
+/** HTML attributes: a string as written, any other value as an expression. */
+function htmlAttributes(attributes: GodotControlDomPlan['attributes']): TargetTsJsxAttribute[] {
+  return Object.entries(attributes).map(([key, value]) => (typeof value === 'string' ? { kind: 'jsx-string-attribute' as const, name: key, value } : attribute(key, literal(value))));
+}
+
+/** A Control's React DOM element, as the plan computed it (`scene-control-idioms.ts`). */
+function domElement(emission: Emission, node: DirectGodotSceneNodePlan, at: string): TargetTsJsxChild {
+  const dom = node.dom;
+  const idiom = node.idiom;
+  if (dom === undefined || idiom === undefined) throw new Error(`${at}: a Control reached emit without its planned element`);
+  const events = Object.entries(dom.events ?? {}).map(([event, call]) =>
+    attribute(event, {
+      kind: 'arrow-expression',
+      parameters: call.event === true ? [{ name: 'event' }] : [],
+      body: {
+        kind: 'call-expression',
+        callee: { kind: 'identifier-expression', name: useCompat(emission, call.module, call.exportName) },
+        arguments: [...(call.event === true ? [{ kind: 'identifier-expression' as const, name: 'event' }] : []), ...call.args.map((arg) => literal(arg))],
+      },
+    }),
+  );
+  return element(
+    dom.tag,
+    [
+      ...nodeRef(emission, node, idiom.three, 'dom'),
+      ...Object.entries(dom.data).map(([key, value]) => ({ kind: 'jsx-string-attribute' as const, name: `data-${key.replace(/[A-Z]/gu, (letter) => `-${letter.toLowerCase()}`)}`, value })),
+      ...htmlAttributes(dom.attributes),
+      attribute('style', styleExpression(emission, dom.style)),
+      ...events,
+    ],
+    [
+      ...(dom.text === undefined || dom.text === '' ? [] : [{ kind: 'jsx-expression-child' as const, value: literal(dom.text) }]),
+      ...(dom.parts ?? []).map((part) =>
+        element(part.tag, [...(part.part === undefined ? [] : [{ kind: 'jsx-string-attribute' as const, name: 'data-part', value: part.part }]), ...htmlAttributes(part.attributes), attribute('style', styleExpression(emission, part.style))]),
+      ),
+      ...childElements(emission, node),
+    ],
+  );
+}
+
 function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): TargetTsJsxChild {
   const className = node.classes[0] as string;
   const idiom = node.idiom;
@@ -791,12 +890,13 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
     transform.push(attribute('position', numbers([0, 0, 0])));
   }
   transform.push(...authoredLocalAttributes(matrix as readonly number[] | undefined, transform));
-  const children = () => node.children.map((child) => nodeElement(emission, child));
+  const children = () => childElements(emission, node);
   if (node.model !== undefined) return modelElement(emission, node, name, transform);
   if (node.instance !== undefined) return instanceElement(emission, node, name, transform, at);
   // The plan refuses a node with no idiom (`scene-body-idioms.ts`).
   if (idiom === undefined) throw new Error(`${at}: ${className} reached emit without its planned idiom`);
   const form = idiom.form;
+  if (form.kind === 'dom') return domElement(emission, node, at);
   if (form.kind === 'body') {
     const body = form;
     emission.rapier.add('RigidBody');
@@ -929,6 +1029,7 @@ export function idiomaticSceneSourceFile(
     rootConnections: scene.refs.rootConnections,
     rootRef: scene.refs.rootRef,
     refTypes: new Map(),
+    ui: { used: false },
   };
   const node = nodeElement(emission, scene.root) as TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' };
   emission.hooks.push(...emission.scriptHooks.flatMap((hook) => hook()));
@@ -959,20 +1060,19 @@ export function idiomaticSceneSourceFile(
   // scenes scripts add under its nodes, which the component renders.
   let added = 'addedScenes';
   for (let n = 2; emission.refNames.has(added); n += 1) added = `addedScenes${String(n)}`;
-  emission.hooks.push({
-    kind: 'variable-statement',
-    declaration: 'const',
-    name: added,
-    initializer: {
-      kind: 'call-expression',
-      callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'useGodotScene') },
-      arguments: [{ kind: 'identifier-expression', name: emission.nodeRefs.get(scene.root.nodePath) as string }],
-    },
-  });
+  // A Control scene's root is an element of the page: the scenes scripts add are three's, which
+  // have no place in it.
+  const domRoot = scene.root.instance === undefined && scene.root.idiom?.form.kind === 'dom';
+  const entered: TargetTsExpression = {
+    kind: 'call-expression',
+    callee: { kind: 'identifier-expression', name: useCompat(emission, 'react-lifecycle', 'useGodotScene') },
+    arguments: [{ kind: 'identifier-expression', name: emission.nodeRefs.get(scene.root.nodePath) as string }],
+  };
+  emission.hooks.push(domRoot ? { kind: 'expression-statement', expression: entered } : { kind: 'variable-statement', declaration: 'const', name: added, initializer: entered });
   // An instancing scene's props (its name, transform, …) reach the root, and its children follow
   // the scene's own: the prefab form.
   const rootThree = scene.root.instance === undefined && scene.root.model === undefined ? familyThree(scene.root.idiom) : undefined;
-  if (scene.root.idiom?.rootProps.kind === 'compat' && rootThree !== undefined) emission.three.add(rootThree);
+  if (scene.root.idiom?.rootProps.kind === 'compat' && rootThree !== undefined && !domRoot) emission.three.add(rootThree);
   const props = rootPropsType(node.tag, scene.targetPath, scene.root);
   const root: TargetTsJsxElementShape & { readonly kind: 'jsx-element-child' } = {
     ...node,
@@ -1073,6 +1173,7 @@ export function idiomaticSceneSourceFile(
       ? []
       : [{ kind: 'import-statement' as const, module: '@react-three/rapier', namedBindings: [...emission.rapier].sort().map((name) => ({ imported: name, local: name })) }]),
     ...familyImports(family),
+    ...(emission.ui.used ? [{ kind: 'import-statement' as const, module: moduleSpecifier(scene.targetPath, 'src/ui.ts'), namedBindings: [{ imported: 'ui', local: 'ui' }] }] : []),
     ...[...emission.scripts.values()].map((script) => ({
       kind: 'import-statement' as const,
       module: script.module,
@@ -1194,7 +1295,7 @@ export function idiomaticSceneSourceFile(
           ...emission.hooks,
           {
             kind: 'return-statement',
-            expression: { kind: 'jsx-fragment-expression', children: [root, { kind: 'jsx-expression-child', value: { kind: 'identifier-expression', name: added } }] },
+            expression: domRoot ? { kind: 'jsx-fragment-expression', children: [root] } : { kind: 'jsx-fragment-expression', children: [root, { kind: 'jsx-expression-child', value: { kind: 'identifier-expression', name: added } }] },
           },
         ],
       },

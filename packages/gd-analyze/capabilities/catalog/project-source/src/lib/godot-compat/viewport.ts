@@ -9,28 +9,27 @@
  * directional shadow filter the rendering server selects is the renderer's shadow-map type.
  *
  * Input reaches the tree through `push_input` in Godot's order (`viewport.cpp:3489`): the nodes
- * processing `_input` from the last in tree order, the GUI (the Control under the pointer and its
- * parents, `_gui_input_event`), shortcut input, unhandled key input and unhandled input, each stage
- * skipped once the event is handled. The root viewport's events are the root window's, so the event
- * is already in its coordinates (the root window maps the page's pointer through the stretch). The GUI stage covers mouse buttons,
- * mouse motion, screen touches and drags, the pointer taking the shape of the Control under it;
- * focus, drag and drop and tooltips are not bound.
+ * processing `_input` from the last in tree order, the GUI, shortcut input, unhandled key input and
+ * unhandled input, each stage skipped once the event is handled. The root viewport's events are
+ * the root window's, so the event is already in its coordinates (the root window maps the page's
+ * pointer through the stretch). The GUI is the page's own: a Control is an element, which takes
+ * the pointer events that land on it (`godot-controls.tsx`), and a press that landed on one is
+ * handled by the GUI stage (`godot_window_event_on_control`).
  */
 
 import { addAfterEffect } from '@react-three/fiber';
 import { BasicShadowMap, type Object3D, PCFShadowMap, PCFSoftShadowMap, type ShadowMapType, type WebGLRenderer } from 'three';
-import { get_global_transform_with_canvas, godot_canvas_item_is } from './canvas-item';
 import { godot_collision_object_2d_pick } from './collision-object-2d';
-import { get_cursor_shape, godot_control_call_gui_input, godot_control_find } from './control';
+import { godot_base_button_shortcuts } from './base-button';
+import { is_action_pressed } from './input-event';
 import { godot_input_mouse_position, godot_input_set_dispatch } from './input';
 import type { InputEventRecord } from './input-event';
-import { type GodotInputKind, can_process, godot_node_call_input, godot_node_entity, godot_node_input_receivers, is_inside_tree } from './node';
+import { type GodotInputKind, godot_node_call_input, godot_node_entity, godot_node_input_receivers, is_inside_tree } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
 import type { Vector2 } from './vector2';
 import { createSignal, type GodotSignal, godot_object_signal } from './signal';
 import { get_size as subViewportSize, godot_sub_viewport_set_transparent } from './sub-viewport';
-import { affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
-import { godot_window_has_size, godot_window_visible_size } from './window';
+import { godot_window_event_on_control, godot_window_has_size, godot_window_visible_size } from './window';
 
 const renderers = new Set<WebGLRenderer>();
 
@@ -89,22 +88,8 @@ export function godot_viewport_directional_shadow_quality(quality: number): void
   for (const renderer of renderers) apply(renderer);
 }
 
-/** `DisplayServerWeb::godot2dom_cursor` (`platform/web/display_server_web.cpp:347`), by `CursorShape`. */
-const DOM_CURSORS = ['default', 'text', 'pointer', 'crosshair', 'wait', 'progress', 'grab', 'grabbing', 'no-drop', 'ns-resize', 'ew-resize', 'nesw-resize', 'nwse-resize', 'move', 'row-resize', 'col-resize', 'help'];
-
-/** The page's pointer over the canvas in the shape's CSS cursor (`godot_js_display_cursor_set_shape`). */
-function showCursor(shape: number): void {
-  const cursor = DOM_CURSORS[shape] ?? 'default';
-  for (const renderer of renderers) {
-    if (renderer.domElement.style.cursor !== cursor) renderer.domElement.style.cursor = cursor;
-  }
-}
-
 interface ViewportInput {
   handled: boolean;
-  mouseFocus: Object3D | null;
-  mouseFocusMask: number;
-  readonly touchFocus: Map<number, Object3D>;
   mouseInViewport: boolean;
 }
 
@@ -113,7 +98,7 @@ const INPUT = new WeakMap<Object3D, ViewportInput>();
 function inputOf(viewport: Object3D): ViewportInput {
   let state = INPUT.get(viewport);
   if (state === undefined) {
-    state = { handled: false, mouseFocus: null, mouseFocusMask: 0, touchFocus: new Map(), mouseInViewport: false };
+    state = { handled: false, mouseInViewport: false };
     INPUT.set(viewport, state);
   }
   return state;
@@ -150,96 +135,9 @@ export function godot_viewport_mouse_in_viewport(self: object, inside: boolean):
   inputOf(viewportOf(self)).mouseInViewport = inside;
 }
 
-/** `InputEvent::xformed_by` of a pointer event: its position through `transform`. */
-function moved(event: unknown, transform: Transform2D): unknown {
-  const record = event as InputEventRecord;
-  return 'position' in record ? { ...record, position: xform(transform, record.position) } : record;
-}
-
-/** The event in `control`'s own space (`get_global_transform_with_canvas().affine_inverse()`). */
-function localized(event: InputEventRecord, control: Object3D): InputEventRecord {
-  return moved(event, affine_inverse(get_global_transform_with_canvas(control))) as InputEventRecord;
-}
-
-/** `mouse_button_to_mask` (`core/input/input_enums.h:156`): `1 << (button - 1)`. */
-function maskOf(button: number): number {
-  return 1 << (button - 1);
-}
-
-/** `Viewport::_gui_input_event` (`viewport.cpp:1920`) for pointer events. */
-function guiInputEvent(viewport: Object3D, state: ViewportInput, event: InputEventRecord): void {
-  const handled = (): boolean => state.handled;
-  const setHandled = (): void => {
-    state.handled = true;
-  };
-  const call = (control: Object3D, ev: InputEventRecord): void => {
-    if (can_process(control)) godot_control_call_gui_input(control, ev, true, moved, handled, setHandled);
-  };
-  if (event.type === 'mouse_button') {
-    if (event.pressed) {
-      const mask = maskOf(event.button_index);
-      if (state.mouseFocusMask !== 0 && (state.mouseFocusMask & mask) === 0) {
-        if (state.mouseFocus === null) return;
-        state.mouseFocusMask |= mask;
-      } else {
-        state.mouseFocus = godot_control_find(viewport, event.position);
-        if (state.mouseFocus === null) return;
-        state.mouseFocusMask |= mask;
-      }
-      call(state.mouseFocus, localized(event, state.mouseFocus));
-    } else {
-      state.mouseFocusMask &= ~maskOf(event.button_index);
-      const focus = state.mouseFocus;
-      if (focus === null) return;
-      const local = localized(event, focus);
-      if (state.mouseFocusMask === 0) state.mouseFocus = null;
-      call(focus, local);
-    }
-    return;
-  }
-  if (event.type === 'mouse_motion') {
-    const over = state.mouseFocus ?? (state.mouseInViewport ? godot_control_find(viewport, event.position) : null);
-    // The pointer takes the shape of the Control under it (`Viewport::_gui_input_event`,
-    // `DisplayServer::cursor_set_shape`), an arrow over none.
-    showCursor(over === null ? 0 : get_cursor_shape(over));
-    if (over !== null) call(over, localized(event, over));
-    return;
-  }
-  if (event.type === 'screen_touch') {
-    if (event.pressed) {
-      const over = godot_control_find(viewport, event.position);
-      if (over !== null) {
-        state.touchFocus.set(event.index, over);
-        call(over, localized(event, over));
-      }
-    } else {
-      const over = state.touchFocus.get(event.index);
-      if (over !== undefined && is_inside_tree(over)) call(over, localized(event, over));
-      state.touchFocus.delete(event.index);
-    }
-    return;
-  }
-  if (event.type === 'screen_drag') {
-    const over = state.touchFocus.get(event.index) ?? godot_control_find(viewport, event.position);
-    if (over !== null && is_inside_tree(over)) call(over, localized(event, over));
-  }
-}
-
-/**
- * `SceneTree::_call_input_pause` (`scene_tree.cpp:1430`) for one stage. For shortcut input a Control
- * with no shortcut context (none is bound) is called after the other nodes (`scene_tree.cpp:1484`).
- */
+/** `SceneTree::_call_input_pause` (`scene_tree.cpp:1430`) for one stage. */
 function callStage(viewport: Object3D, state: ViewportInput, kind: GodotInputKind, event: InputEventRecord): void {
-  const later: Object3D[] = [];
   for (const entity of godot_node_input_receivers(viewport, kind) as Object3D[]) {
-    if (state.handled) break;
-    if (kind === 'shortcutInput' && godot_canvas_item_is(entity, 'Control')) {
-      later.push(entity);
-      continue;
-    }
-    godot_node_call_input(entity, kind, event, () => state.handled);
-  }
-  for (const entity of later) {
     if (state.handled) break;
     godot_node_call_input(entity, kind, event, () => state.handled);
   }
@@ -261,10 +159,15 @@ export function push_input(self: object, p_event: InputEventRecord, p_local_coor
   void p_local_coords;
   const event = p_event;
   callStage(viewport, state, 'input', event);
-  if (!state.handled) guiInputEvent(viewport, state, event);
+  // The GUI stage: a press the page delivered to a Control's element is the GUI's.
+  if (!state.handled && godot_window_event_on_control()) state.handled = true;
   if (state.handled) return;
   // `_push_unhandled_input_internal` (`viewport.cpp:3620`).
   if (event.type === 'key' || event.type === 'joypad_button') callStage(viewport, state, 'shortcutInput', event);
+  // The page's buttons whose shortcut the event is (`BaseButton::shortcut_input`), pressed once.
+  if (!state.handled && (event.type === 'key' || event.type === 'joypad_button') && typeof document !== 'undefined') {
+    if (godot_base_button_shortcuts(document, (action) => is_action_pressed(event, action, false, false))) state.handled = true;
+  }
   if (!state.handled && event.type === 'key') callStage(viewport, state, 'unhandledKeyInput', event);
   if (!state.handled) callStage(viewport, state, 'unhandledInput', event);
   // Physics picking, of a mouse event nothing handled (`_process_picking`, `viewport.cpp:670`).

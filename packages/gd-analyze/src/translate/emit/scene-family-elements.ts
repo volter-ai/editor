@@ -443,6 +443,11 @@ function metaValue(emission: FamilyEmission, value: TargetGodotSceneValue): Targ
   throw new Error(`a ${value.kind} metadata value has no element form`);
 }
 
+/** A resource's local, declared as its scene declares it (a Control's font, `idiomatic-scene-syntax.ts`). */
+export function familyResourceValue(emission: FamilyEmission, key: string): TargetTsExpression {
+  return identifier(resourceLocal(emission, key));
+}
+
 /** An authored value as a literal prop value: a built-in's components, a resource's local. */
 function propValue(emission: FamilyEmission, value: TargetGodotSceneValue): TargetTsExpression {
   switch (value.kind) {

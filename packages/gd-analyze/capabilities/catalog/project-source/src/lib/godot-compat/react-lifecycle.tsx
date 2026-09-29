@@ -55,11 +55,19 @@ import { type GodotSignal, isRetainedGodotSignal } from './signal';
 import { godot_owned_release } from './scene-tree';
 
 /**
- * The node an element's ref holds: its object, or for a `@react-three/rapier` body (whose ref is
- * the Rapier body) the body's object.
+ * The node an element's ref holds: its object, a Control's DOM element, or for a
+ * `@react-three/rapier` body (whose ref is the Rapier body) the body's object.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/node.cpp:4092
  */
+export function godot_element_node(held: object | null): object | null {
+  return nodeOf(held);
+}
+
 function nodeOf(held: object | null): object | null {
   if (held === null || (held as { readonly isObject3D?: boolean }).isObject3D === true) return held;
+  if (typeof HTMLElement !== 'undefined' && held instanceof HTMLElement) return held;
   return godot_collision_object_node(held) ?? null;
 }
 

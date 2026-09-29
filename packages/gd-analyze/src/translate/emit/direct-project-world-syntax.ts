@@ -236,15 +236,21 @@ export function emitDirectGodotWorldSyntax(
   const ticks = composition.physicsWorld.ticksPerSecond;
   const gravity = composition.physicsWorld.gravity;
   const numbers = (values: readonly number[]): TargetTsExpression => ({ kind: 'array-expression', elements: values.map((value) => ({ kind: 'literal-expression', value })) });
-  const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', tag: 'Scene', attributes: [{ kind: 'jsx-string-attribute', name: 'name', value: scene.root.name }], children: [] };
+  // A main scene rooted in a Control is an element of the page: named by its `data-name`, and sent
+  // through the page's tunnel (`<GodotControls ui={ui}>`) with the tree's root as its parent.
+  const domMain = scene.root.instance === undefined && scene.root.idiom?.form.kind === 'dom';
+  const mainScene: TargetTsJsxChild = { kind: 'jsx-element-child', tag: 'Scene', attributes: [{ kind: 'jsx-string-attribute', name: domMain ? 'data-name' : 'name', value: scene.root.name }], children: [] };
   const autoloadValue = (references: readonly { readonly name: string }[]): TargetTsExpression => ({
     kind: 'object-expression',
     properties: references.map((reference) => ({ key: reference.name, value: id(`$autoloadInstance_${directGodotAutoloadIndex(composition, reference as never)}`) })),
   });
-  const composedMainScene: TargetTsJsxChild =
+  const providedMainScene: TargetTsJsxChild =
     mainAutoloadReferences.length === 0
       ? mainScene
       : { kind: 'jsx-element-child', tag: directGodotSceneAutoloadContextName(scene.exportName), attributes: [{ kind: 'jsx-expression-attribute', name: 'value', value: autoloadValue(mainAutoloadReferences) }], children: [mainScene] };
+  const composedMainScene: TargetTsJsxChild = domMain
+    ? { kind: 'jsx-element-child', tag: 'GodotControls', attributes: [{ kind: 'jsx-expression-attribute', name: 'ui', value: id('ui') }], children: [providedMainScene] }
+    : providedMainScene;
   // The scene autoloads, each its scene's component named as the autoload, before the main scene.
   const sceneAutoloads = composition.sceneAutoloads.map((autoload) => ({ autoload, planned: autoload }));
   const game: TargetTsJsxElementShape = {
@@ -336,6 +342,7 @@ export function emitDirectGodotWorldSyntax(
     named('@react-three/rapier', ['Physics', ...hooks.rapier]),
     ...(hasAutoloads ? [named('three', ['Group'], true)] : []),
     { kind: 'import-statement', module: moduleSpecifier(scene.targetPath), namedBindings: [{ imported: scene.exportName, local: scene.exportName }, ...(mainAutoloadReferences.length === 0 ? [] : [{ imported: directGodotSceneAutoloadContextName(scene.exportName), local: directGodotSceneAutoloadContextName(scene.exportName) }])] },
+    ...(domMain ? [named('./lib/godot-compat/godot-controls', ['GodotControls']), named('./ui', ['ui'])] : []),
     ...sceneAutoloads.map(({ planned }): TargetTsStatement => ({ kind: 'import-statement', module: moduleSpecifier(planned.targetPath), namedBindings: [{ imported: planned.exportName, local: planned.exportName }] })),
     ...otherScenes.map(({ candidate }): TargetTsStatement => ({
       kind: 'import-statement',

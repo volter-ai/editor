@@ -14,7 +14,7 @@ function origin(
 /** Plan one importer-owned TypeScript module without constructing or printing target syntax. */
 export function projectDataGeneratedModuleArtifact(
   path: string,
-  module: 'world',
+  module: 'world' | 'ui',
   inputDigest: string,
   sourcePaths: readonly string[],
 ): GodotPlannedProjectDataArtifact {

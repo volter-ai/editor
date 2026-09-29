@@ -1,4 +1,5 @@
 import { planCapabilityPackageJson } from '../../../../game-editor/node/scaffold/catalog.js';
+import { godotCompositionHasControls } from './scene-refs';
 import type { BoundGodotProject } from '../../analyze/bound-project';
 import type { GodotImportToolchainSnapshot } from '../../snapshot/toolchain-snapshot';
 import type { DirectGodotProjectCompositionPlan } from './direct-project-composition-plan';
@@ -46,6 +47,8 @@ export interface DirectGodotProjectDataPlan {
   readonly snapshotDigest: string;
   readonly toolchainDigest: string;
   readonly worldModule: DirectGodotProjectModulePlan;
+  /** The page's Controls (`src/ui.tsx`), a `dom` root over the world's, when a scene renders any. */
+  readonly uiModule?: DirectGodotProjectModulePlan;
   readonly manifest: DirectJsonValue;
   readonly packageManifest: DirectJsonValue;
   readonly packageLock: DirectJsonValue;
@@ -311,6 +314,7 @@ export function planDirectGodotProjectData(
     );
     const packageLock = JSON.parse(packageLockText) as PackageLockDocument;
     const engineVersion = installedPackageVersion(toolchain, '@volter/game-runtime');
+    const controls = godotCompositionHasControls(composition);
     return {
       kind: 'accepted-project-data',
       plan: {
@@ -318,6 +322,7 @@ export function planDirectGodotProjectData(
         snapshotDigest: project.snapshotDigest,
         toolchainDigest: toolchain.digest,
         worldModule: worldModule(composition),
+        ...(controls ? { uiModule: { targetPath: 'src/ui.tsx', sourcePaths: worldModule(composition).sourcePaths } } : {}),
         manifest: {
           $schema: './node_modules/@volter/editor-project/schemas/volter-project.schema.json',
           manifestVersion: 2,
@@ -326,7 +331,8 @@ export function planDirectGodotProjectData(
           version: '0.1.0',
           engine: { version: engineVersion },
           resolution: project.window,
-          roots: [{ id: 'world', adapter: 'three', entry: 'src/world.tsx' }],
+          // The page's Controls render over the world, as react-dom in a `dom` root (`main.ts`).
+          roots: [{ id: 'world', adapter: 'three', entry: 'src/world.tsx' }, ...(controls ? [{ id: 'ui', adapter: 'dom', entry: 'src/ui.tsx', zOrder: 1 }] : [])],
         },
         packageManifest: packageManifest as DirectJsonValue,
         packageLock: packageLock as DirectJsonValue,
