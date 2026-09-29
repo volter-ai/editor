@@ -13,14 +13,14 @@
  * parents, `_gui_input_event`), shortcut input, unhandled key input and unhandled input, each stage
  * skipped once the event is handled. The root viewport's events are the root window's, so the event
  * is already in its coordinates (the root window maps the page's pointer through the stretch). The GUI stage covers mouse buttons,
- * mouse motion, screen touches and drags; focus, drag and drop, tooltips and the cursor shape are
- * not bound.
+ * mouse motion, screen touches and drags, the pointer taking the shape of the Control under it;
+ * focus, drag and drop and tooltips are not bound.
  */
 
 import { BasicShadowMap, type Object3D, PCFShadowMap, PCFSoftShadowMap, type ShadowMapType, type WebGLRenderer } from 'three';
 import { get_global_transform_with_canvas, godot_canvas_item_is } from './canvas-item';
 import { godot_collision_object_2d_pick } from './collision-object-2d';
-import { godot_control_call_gui_input, godot_control_find } from './control';
+import { get_cursor_shape, godot_control_call_gui_input, godot_control_find } from './control';
 import { godot_input_mouse_position, godot_input_set_dispatch } from './input';
 import type { InputEventRecord } from './input-event';
 import { type GodotInputKind, can_process, godot_node_call_input, godot_node_entity, godot_node_input_receivers, is_inside_tree } from './node';
@@ -86,6 +86,17 @@ export function godot_viewport_attach_renderer(renderer: WebGLRenderer): () => v
 export function godot_viewport_directional_shadow_quality(quality: number): void {
   directionalShadowQuality = quality;
   for (const renderer of renderers) apply(renderer);
+}
+
+/** `DisplayServerWeb::godot2dom_cursor` (`platform/web/display_server_web.cpp:347`), by `CursorShape`. */
+const DOM_CURSORS = ['default', 'text', 'pointer', 'crosshair', 'wait', 'progress', 'grab', 'grabbing', 'no-drop', 'ns-resize', 'ew-resize', 'nesw-resize', 'nwse-resize', 'move', 'row-resize', 'col-resize', 'help'];
+
+/** The page's pointer over the canvas in the shape's CSS cursor (`godot_js_display_cursor_set_shape`). */
+function showCursor(shape: number): void {
+  const cursor = DOM_CURSORS[shape] ?? 'default';
+  for (const renderer of renderers) {
+    if (renderer.domElement.style.cursor !== cursor) renderer.domElement.style.cursor = cursor;
+  }
 }
 
 interface ViewportInput {
@@ -187,6 +198,9 @@ function guiInputEvent(viewport: Object3D, state: ViewportInput, event: InputEve
   }
   if (event.type === 'mouse_motion') {
     const over = state.mouseFocus ?? (state.mouseInViewport ? godot_control_find(viewport, event.position) : null);
+    // The pointer takes the shape of the Control under it (`Viewport::_gui_input_event`,
+    // `DisplayServer::cursor_set_shape`), an arrow over none.
+    showCursor(over === null ? 0 : get_cursor_shape(over));
     if (over !== null) call(over, localized(event, over));
     return;
   }

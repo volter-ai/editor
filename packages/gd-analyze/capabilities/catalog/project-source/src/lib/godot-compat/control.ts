@@ -1729,6 +1729,7 @@ export function godot_control_props(): (readonly [string, GodotElementProp<Objec
     ['pivotOffset', (entity, value: readonly [number, number]) => set_pivot_offset(entity, v2(value))],
     ['pivotOffsetRatio', (entity, value: readonly [number, number]) => set_pivot_offset_ratio(entity, v2(value))],
     ['focusMode', (entity, value: number) => set_focus_mode(entity, value)],
+    ['mouseDefaultCursorShape', (entity, value: number) => set_default_cursor_shape(entity, value)],
     ['sizeFlagsHorizontal', (entity, value: number) => set_h_size_flags(entity, value)],
     ['sizeFlagsVertical', (entity, value: number) => set_v_size_flags(entity, value)],
     ['sizeFlagsStretchRatio', (entity, value: number) => set_stretch_ratio(entity, value)],
@@ -2990,8 +2991,8 @@ export function get_theme_type_variation(self: object): string {
 // --- Cursor, tooltip, translation and layout direction.
 
 /**
- * The shape the pointer takes over the node, kept and read back (`CursorShape`, 17 of them); the
- * root viewport binds no cursor shapes over Controls (`viewport.ts`).
+ * The shape the pointer takes over the node (`CursorShape`, 17 of them), which the root viewport
+ * shows as the page's cursor (`viewport.ts`).
  *
  * @godot Control.set_default_cursor_shape
  * @source scene/gui/control.cpp:3508

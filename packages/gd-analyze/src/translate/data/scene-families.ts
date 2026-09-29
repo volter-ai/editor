@@ -29,6 +29,7 @@ const CONTROL = [
   'set_pivot_offset',
   'set_pivot_offset_ratio',
   'set_focus_mode',
+  'set_default_cursor_shape',
   'set_h_size_flags',
   'set_v_size_flags',
   'set_stretch_ratio',
