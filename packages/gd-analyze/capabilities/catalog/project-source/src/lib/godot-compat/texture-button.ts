@@ -146,7 +146,7 @@ export function godot_texture_button_mount(entity: Object3D): void {
 
 /**
  * @godot TextureButton.TextureButton
- * @source scene/gui/texture_button.h:
+ * @source scene/gui/texture_button.h:35
  */
 export function construct(): Group {
   const entity = new Group();
@@ -258,7 +258,7 @@ const TEXTURE_BUTTON = {
  * A TextureButton as a scene writes it: `<GodotTextureButton textureNormal={image} />`.
  *
  * @godot TextureButton (protocol)
- * @source scene/gui/texture_button.h:
+ * @source scene/gui/texture_button.h:35
  */
 export function GodotTextureButton(props: GodotElementProps<Group>): ReactElement {
   return useGodotElement(TEXTURE_BUTTON, props);
