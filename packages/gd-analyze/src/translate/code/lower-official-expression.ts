@@ -623,7 +623,7 @@ function nativeEntity(value: LoweredExpression): LoweredExpression {
 function treeParameter(
   context: LoweringContext,
   node: GodotBoundNode,
-): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string } | undefined {
+): TreeParameter | undefined {
   if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
   return treeParameterAt(context, node, context.node(node.base, node), context.node(node.index, node));
 }
@@ -637,7 +637,14 @@ const TREE_PARAMETER =
   /^parameters\/(.+\/)?(blend_amount|add_amount|scale|backward|request|active|internal_active|fade_in_remaining|fade_out_remaining|time_to_restart|current_length|current_position|current_delta|playback|conditions\/[^/]+)$/u;
 
 /** A state machine's playback parameter: read as the playback object (`godot_animation_tree_playback`), never written. */
-const treePlayback = (path: string): boolean => path.endsWith('/playback');
+const treePlayback = (path: string | undefined): boolean => path?.endsWith('/playback') === true;
+
+/** An AnimationTree parameter a script reaches: its literal path, or undefined where the script computes it. */
+interface TreeParameter {
+  readonly baseNode: GodotBoundNode;
+  readonly indexNode: GodotBoundNode;
+  readonly path: string | undefined;
+}
 
 /**
  * `tree.set(&"parameters/run/blend_amount", v)` and `tree.get(…)`: `Object::set`/`get` by name on an
@@ -649,7 +656,7 @@ function treeParameterCall(
   node: GodotBoundCallNode,
   calleeNode: GodotBoundNode,
   argumentNodes: readonly GodotBoundNode[],
-): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string; readonly write: boolean } | undefined {
+): (TreeParameter & { readonly write: boolean }) | undefined {
   if (node.compilerTarget.kind !== 'native-method' || (node.functionName !== 'set' && node.functionName !== 'get')) return undefined;
   if (calleeNode.kind !== 'SUBSCRIPT' || !calleeNode.isAttribute) return undefined;
   const indexNode = argumentNodes[0];
@@ -663,11 +670,13 @@ function treeParameterAt(
   node: GodotBoundNode,
   baseNode: GodotBoundNode,
   indexNode: GodotBoundNode,
-): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string } | undefined {
+): TreeParameter | undefined {
   if (baseNode.datatype.kind !== 'NATIVE' || baseNode.datatype.metaType || !godotSubscriptsParameters(baseNode.datatype.nativeType)) return undefined;
   const value = indexNode.kind === 'LITERAL' ? indexNode.value : undefined;
   const path = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
-  if (path === undefined) return context.refuse(node, 'an AnimationTree subscript whose path is not a literal');
+  // A path the script computes is the tree's to answer when it runs, as Godot's `_get` and `_set`
+  // are: compat raises GDScript's invalid access for a name that is no parameter.
+  if (path === undefined) return { baseNode, indexNode, path: undefined };
   // A parameter of a node compat transcribes (`animation-tree.ts`'s `parametersOf`).
   if (!TREE_PARAMETER.test(path)) {
     return context.refuse(node, `an AnimationTree subscript of ${path}, which is not a parameter of a transcribed node`);
@@ -1521,18 +1530,25 @@ function assignablePlace(
     if (treePlayback(parameter.path)) return context.refuse(node, `an assignment to ${parameter.path}, a state machine's playback`);
     const rule = context.selectRule(node, ['subscript-element:tree-parameter'], [parameter.baseNode, parameter.indexNode], ['binding'], false);
     const object = materialize(context, nativeEntity(lower(context, parameter.baseNode)));
-    const name: TargetTsExpression = { kind: 'literal-expression', value: parameter.path };
+    const computed = parameter.path === undefined ? materialize(context, lower(context, parameter.indexNode)) : undefined;
+    const name: TargetTsExpression = computed?.value ?? { kind: 'literal-expression', value: parameter.path as string };
     const call = (callee: string, args: readonly TargetTsExpression[]): TargetTsExpression => ({
       kind: 'call-expression',
       callee: { kind: 'identifier-expression', name: callee },
       arguments: [...args],
     });
     return {
-      before: object.before,
+      before: [...object.before, ...(computed?.before ?? [])],
       afterAssigned: [],
       read: call('godot_animation_tree_parameter', [object.value, name]),
       write: (value) => call('godot_animation_tree_set_parameter', [object.value, name, value]),
-      requirements: [...rule.requirements, ...object.requirements, treeProtocol('godot_animation_tree_parameter'), treeProtocol('godot_animation_tree_set_parameter')],
+      requirements: [
+        ...rule.requirements,
+        ...object.requirements,
+        ...(computed?.requirements ?? []),
+        treeProtocol('godot_animation_tree_parameter'),
+        treeProtocol('godot_animation_tree_set_parameter'),
+      ],
     };
   }
   const element = dictionaryElement(context, node);
@@ -3211,13 +3227,14 @@ export function lowerOfficialExpression(
         const parameter = treeParameter(context, node);
         if (parameter !== undefined) {
           const rule = context.selectRule(node, ['subscript-element:tree-parameter'], [parameter.baseNode, parameter.indexNode], ['binding'], false);
+          const path = parameter.path;
           return compose(
             context,
-            [nativeEntity(base)],
-            ([object]) => ({
+            [nativeEntity(base), ...(path === undefined ? [lowerExpression(context, parameter.indexNode)] : [])],
+            ([object, computed]) => ({
               kind: 'call-expression',
-              callee: { kind: 'identifier-expression', name: treePlayback(parameter.path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter' },
-              arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: parameter.path }],
+              callee: { kind: 'identifier-expression', name: treePlayback(path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter' },
+              arguments: [object as TargetTsExpression, computed ?? { kind: 'literal-expression', value: path as string }],
             }),
             [...rule.requirements, treeProtocol(treePlayback(parameter.path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter')],
           );
@@ -3371,13 +3388,14 @@ export function lowerOfficialExpression(
           if (treeCall.write && treePlayback(treeCall.path)) return context.refuse(node, `a set of ${treeCall.path}, a state machine's playback`);
           const base = lowerExpression(context, treeCall.baseNode);
           const callee = treeCall.write ? 'godot_animation_tree_set_parameter' : treePlayback(treeCall.path) ? 'godot_animation_tree_playback' : 'godot_animation_tree_parameter';
+          const path = treeCall.path;
           return compose(
             context,
-            [nativeEntity(base), ...lowered.slice(1)],
+            [nativeEntity(base), ...(path === undefined ? lowered : lowered.slice(1))],
             ([object, ...values]) => ({
               kind: 'call-expression',
               callee: { kind: 'identifier-expression', name: callee },
-              arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: treeCall.path }, ...(values as TargetTsExpression[])],
+              arguments: [object as TargetTsExpression, ...(path === undefined ? [] : [{ kind: 'literal-expression' as const, value: path }]), ...(values as TargetTsExpression[])],
               span: span(context.script, node),
             }),
             [...requirements, treeProtocol(callee)],
