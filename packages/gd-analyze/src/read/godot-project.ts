@@ -52,6 +52,7 @@ import type {
 import { walkSceneNodes } from './godot-types';
 import type { ImportSidecar } from './import-sidecar';
 import { godotImageSize } from './image-size';
+import { godotEmbeddedImages } from './embedded-images';
 import { readImportSidecar, readSceneImportParams } from './import-sidecar';
 import { expandReadableSceneInstances } from './instance-expansion';
 import { type GodotProjectFileSource, projectFileSourceFromSnapshot } from './project-file-source';
@@ -1015,6 +1016,7 @@ export function readGodotProjectDocuments(
     scenes: reachable.scenes,
     resources: reachable.resources,
     imports,
+    embeddedImages: godotEmbeddedImages([...reachable.scenes, ...reachable.resources]),
     unplanned: reachable.unplanned,
     diagnostics: reachable.diagnostics,
   };

@@ -1,4 +1,5 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
+import { createHash } from 'node:crypto';
 import { namedInputActions } from './input-actions';
 import { type BoundGodotTreeRequests, treeRequests } from './tree-requests';
 import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
@@ -402,6 +403,8 @@ export interface BoundGodotTextureDocument {
   readonly importParams: GodotTextureImportParams;
   /** Its pixel size, as read found it in the image's header (`read/image-size.ts`). */
   readonly size?: readonly [number, number];
+  /** An image a document embeds (`read/embedded-images.ts`): the document and its Image's id. */
+  readonly embedded?: { readonly owner: string; readonly id: string };
 }
 
 export interface BoundGodotScriptMethod {
@@ -761,7 +764,18 @@ function boundDocuments(
             ...(size === undefined ? {} : { size }),
           },
         ];
-      }),
+      }).concat(
+        // The images documents embed, as images the page loads from a file of their own beside the
+        // document (`read/embedded-images.ts`), with the texture importer's defaults.
+        decoded.embeddedImages.map((image) => ({
+          resPath: `${image.owner}.${image.id.replace(/[^A-Za-z0-9_-]/gu, '_')}.png`,
+          sourceDigest: createHash('sha256').update(image.png).digest('hex'),
+          bytes: image.png,
+          importParams: {},
+          size: image.size,
+          embedded: { owner: image.owner, id: image.id },
+        })),
+      ),
     ),
     shaders,
     engineShaders,

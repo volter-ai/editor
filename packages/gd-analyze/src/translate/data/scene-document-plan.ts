@@ -1070,6 +1070,21 @@ function planResolvedResource(
     refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
     return undefined;
   }
+  // An ImageTexture of an image its document embeds: loaded as an imported image is, from the file
+  // read decoded it into (`read/embedded-images.ts`).
+  const imageReference = data.type === 'ImageTexture' ? referenceOf(data.properties['image']) : undefined;
+  if (imageReference !== undefined) {
+    const owner = nestedScope === '' ? document.scene.resPath : nestedScope;
+    const embedded = imageReference.reference === 'sub' ? context.project?.documents.textures.find((entry) => entry.embedded?.owner === owner && entry.embedded.id === imageReference.id) : undefined;
+    const load = embedded === undefined ? undefined : godotTextureLoad(embedded);
+    const rule = context.authority.resourceRule('CompressedTexture2D');
+    if (load === undefined || typeof load === 'string' || rule === undefined) {
+      refuse(context, at, `${key}: its image is not one read decoded (a format other than L8, LA8, RGB8 or RGBA8)`, 'resource', 'ImageTexture');
+      return undefined;
+    }
+    recordResource(document, key, { key, className: 'CompressedTexture2D', construct: rule.construct, load, setters: [] });
+    return key;
+  }
   // A resource keeping its properties by names it makes up: each value by its name.
   if (RAW_PROPERTY_CLASSES.has(data.type)) {
     const rawRule = context.authority.resourceRule(data.type);

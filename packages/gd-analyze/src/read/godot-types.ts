@@ -15,6 +15,7 @@
  * symbols and operations; the read product cannot carry an alternate script representation.
  */
 
+import type { GodotEmbeddedImage } from './embedded-images';
 import type { ImportedClip } from './gltf-animation-import';
 import type { GltfExternalImage, GltfPhysicsShape } from './gltf-document';
 import type { GodotValue, ResourceId } from './godot-value';
@@ -606,6 +607,8 @@ export interface GodotProject {
    * `read/import-sidecar.ts` for the 3.6 run that measured it.
    */
   readonly imports: readonly ImportSidecar[];
+  /** The images the reached documents embed, decoded to PNG (`read/embedded-images.ts`). */
+  readonly embeddedImages: readonly GodotEmbeddedImage[];
   /**
    * Documents nothing the game loads reaches (`read/reachability.ts`): never planned, each with
    * its reason and the reader diagnostics it would otherwise have raised.

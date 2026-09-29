@@ -589,18 +589,22 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   // The instance's groups join its scene root's (`SceneState::instantiate`, packed_scene.cpp:511).
   const ownData = nodeData(node);
   const data = instanced.data;
-  // `visible` is the root element's three prop; `transparency` its `userData`'s.
-  overrides.push(...visibleProp(node.setters));
+  // A three root takes the instance's visibility and `userData`; a Control scene's root takes the
+  // instance's style, which the plan computed (`scene-control-idioms.ts`).
   const rootBody = rootIdiom?.form.kind === 'body' ? rootIdiom.form : undefined;
-  const familyProps = instanced.stated > 0 && rootIdiom?.form.kind === 'element' ? familyInstanceProps(emission.family, node.nodePath, instanced.changed) : undefined;
-  if (familyProps !== undefined) {
-    overrides.push(...familyProps);
-    if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
-  } else if (rootBody !== undefined) {
-    // The props the plan found the instance's overrides change (`scene-body-idioms.ts`).
-    overrides.push(...(node.bodyOverrides ?? []).map((prop) => bodyProp(emission, prop)));
-  } else if (Object.keys(ownData).length > 0) {
-    overrides.push(attribute('userData', dataExpression(data)));
+  if (rootIdiom?.form.kind !== 'dom') {
+    // `visible` is the root element's three prop; `transparency` its `userData`'s.
+    overrides.push(...visibleProp(node.setters));
+    const familyProps = instanced.stated > 0 && rootIdiom?.form.kind === 'element' ? familyInstanceProps(emission.family, node.nodePath, instanced.changed) : undefined;
+    if (familyProps !== undefined) {
+      overrides.push(...familyProps);
+      if (Object.keys(ownData).length > 0) overrides.push(attribute('userData', dataExpression(data)));
+    } else if (rootBody !== undefined) {
+      // The props the plan found the instance's overrides change (`scene-body-idioms.ts`).
+      overrides.push(...(node.bodyOverrides ?? []).map((prop) => bodyProp(emission, prop)));
+    } else if (Object.keys(ownData).length > 0) {
+      overrides.push(attribute('userData', dataExpression(data)));
+    }
   }
   // Its overrides of the instanced scene root script's fields, which that component's script takes.
   // Its node references are handed here, after this scene's scripts attach and after the instance's
@@ -629,7 +633,7 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
     const ref = nodeRef(emission, node, rootIdiom.three, 'dom');
     // Its style where the instance places it or overrides its root (`scene-control-idioms.ts`).
     const style = node.dom === undefined ? [] : [attribute('style', styleExpression(emission, node.dom.style))];
-    return element(local, [{ kind: 'jsx-string-attribute', name: 'data-name', value: node.name }, ...ref, ...style, ...overrides.filter((entry) => entry.kind === 'jsx-expression-attribute' && (entry.name === 'exports' || entry.name === 'connections'))], children);
+    return element(local, [{ kind: 'jsx-string-attribute', name: 'data-name', value: node.name }, ...ref, ...style, ...overrides], children);
   }
   const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, rootIdiom?.three ?? 'Group');
   return element(local, [name, ...ref, ...transform, ...overrides], children);
