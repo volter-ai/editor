@@ -1316,31 +1316,28 @@ tests (§How a lane lands):
 - **Bindings.** MeshLibrary.new and set_item_mesh, SceneState of a model, Node.find_children, the
   whole Array API, and viewport mouse and rect queries.
 
-## Roboblast imports (2026-09-29)
+## Roboblast (2026-09-29)
 
-The Roboblast third-person demo (`roboblast-tps-demo`, 4.7) imports and builds with no refusal,
-from 215 refusals when the lane took it up. What it took, none of it Roboblast's own:
+The Roboblast third-person demo (`roboblast-tps-demo`, 4.7) went from 215 refusals to a clean
+import, and the review of `ab61ea7e` found how: ten features built as ports or as compat machinery
+(a second renderer and a per-frame queue for `canvas_item` shaders, a SubViewport's image drawn and
+read back on the CPU with per-class painters, a screen capture re-rendering the scene, Godot's
+bokeh blur and trail pass transcribed, instance edits and ViewportTextures as new compat hooks, a
+BBCode parser). They were taken out; the demo refuses 25 things again, each by name, waiting for
+its idiomatic form:
 
-- **Rendering.** Screen and depth textures (`hint_screen_texture`, `hint_depth_texture`) read the
-  frame's opaque pass at Godot's `SCREEN_UV` and in Godot's reversed-Z depth, with its
-  `INV_PROJECTION_MATRIX`. Spatial shaders get normal maps, `ambient_light_disabled`, `VERTEX`, and
-  local arrays. `canvas_item` shaders draw their item's quad after the frame. A camera's depth of
-  field uses Godot's blur sizes. GPUParticles3D get trails over their RibbonTrailMesh, transform
-  alignment and its channel filter.
-- **Viewports.** A SubViewport draws its own image: its 3D through its own camera (in its own world
-  or its parent's), and its canvas items painted over that. A ViewportTexture shows the image on a
-  material, found from `viewport_path` as Godot's local scene resolves it. A SubViewportContainer
-  shows it over its rect.
-- **Scenes.** Edits inside an instanced scene (editable children, `script = null`) are applied once
-  the instance is made. Imported models take `%Name`. A collision shape may have children. Instances
-  whose root is a MeshInstance3D keep their `userData` overrides.
-- **Nodes and resources.** SpringArm3D, ShapeCast3D, navigation (NavigationRegion3D,
-  NavigationAgent3D, baked NavigationMesh), NinePatchRect, RichTextLabel with its BBCode,
-  `clip_children`, and `process_mode` in idiomatic scenes are bound. A family-carried resource is
-  built from its props (`godot_<class>_new`).
-- **Scripts.** `free()` on self, a script's instance passed to an engine-typed parameter (as its
-  node), `null` from a function returning an object, and Variants into typed engine parameters now
-  lower.
+- the screen and depth textures (`hint_screen_texture`, `hint_depth_texture`);
+- `canvas_item` shaders on the page, `clip_children`, RichTextLabel's BBCode;
+- SubViewports' own images, ViewportTexture, `disable_3d`, `own_world_3d`;
+- GPUParticles3D trails and RibbonTrailMesh;
+- edits inside an instanced scene and `script = null` on an instance;
+- ImageTexture resources a document embeds.
+
+What stayed: SpringArm3D, ShapeCast3D, navigation, NinePatchRect, RichTextLabel's text, depth of
+field as `postprocessing`'s `DepthOfField`, spatial shader normal maps, `ambient_light_disabled`,
+`VERTEX`, local shader arrays, transform alignment, a collision shape's children, and the lowering
+fixes (`free()` on self, script instances into engine-typed parameters as their nodes, typed by
+analysis's `nodeArguments`, null object returns, Variants into typed engine parameters).
 
 ## What comes next
 

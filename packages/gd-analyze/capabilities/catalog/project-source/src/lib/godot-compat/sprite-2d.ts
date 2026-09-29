@@ -141,24 +141,7 @@ function draw(entity: Object3D, element: HTMLElement): void {
  */
 export function godot_sprite_2d_mount(entity: Object3D): void {
   SPRITES.set(entity, { texture: null, centered: true, offset: vector2(), flipH: false, flipV: false, hframes: 1, vframes: 1, frame: 0 });
-  godot_node_2d_mount(entity, ['Sprite2D', 'Node2D', 'CanvasItem', 'Node'], { draw, drawKey, paint });
-}
-
-/**
- * `NOTIFICATION_DRAW` in a SubViewport: the frame of the texture's image at the destination
- * rectangle, mirrored when flipped (its alpha the tint's, which the viewport sets).
- */
-function paint(entity: Object3D, context: CanvasRenderingContext2D): void {
-  const state = SPRITES.get(entity) as SpriteState;
-  const texture = state.texture;
-  const image = texture?.image as CanvasImageSource | null | undefined;
-  if (texture === null || image === null || image === undefined) return;
-  const { src, dst } = rects(state, texture);
-  context.save();
-  context.translate(dst.position.x + (dst.size.x < 0 ? -dst.size.x : 0), dst.position.y + (dst.size.y < 0 ? -dst.size.y : 0));
-  context.scale(dst.size.x < 0 ? -1 : 1, dst.size.y < 0 ? -1 : 1);
-  context.drawImage(image, src.position.x, src.position.y, src.size.x, src.size.y, 0, 0, Math.abs(dst.size.x), Math.abs(dst.size.y));
-  context.restore();
+  godot_node_2d_mount(entity, ['Sprite2D', 'Node2D', 'CanvasItem', 'Node'], { draw, drawKey });
 }
 
 /**

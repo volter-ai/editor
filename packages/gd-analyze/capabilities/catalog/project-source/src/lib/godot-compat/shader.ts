@@ -23,8 +23,6 @@ export interface GodotShaderUniform {
   /** A sampler's `filter_*` and `repeat_*` hints (`ShaderLanguage::TextureFilter`, `TextureRepeat`). */
   readonly filter?: number;
   readonly repeat?: number;
-  /** A `hint_screen_texture` or `hint_depth_texture` sampler: the frame's capture (`spatial-material.ts`). */
-  readonly source?: 'screen' | 'depth';
 }
 
 /** The lowered code: the GLSL the import printed from Godot's own parse of the shader. */
@@ -35,8 +33,6 @@ export interface GodotLoweredShader {
   readonly uniforms: readonly GodotShaderUniform[];
   readonly functions: string;
   readonly entry: string;
-  /** A canvas_item shader's two stages, which draw an item's quad (`canvas-shader-material.ts`). */
-  readonly canvas?: { readonly vertexShader: string; readonly fragmentShader: string };
   /** A spatial shader's two stages as `three-custom-shader-material` takes them (`spatial-material.ts`). */
   readonly spatial?: { readonly vertexShader: string; readonly fragmentShader: string; readonly transparent: boolean; readonly vertexColors: boolean };
 }

@@ -12,7 +12,7 @@ import type {
   TargetGodotSceneValue,
 } from './scene-document-plan';
 
-const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative', 'set_material', 'set_use_parent_material', 'set_texture_filter', 'set_texture_repeat', 'set_clip_children_mode'];
+const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative', 'set_material', 'set_use_parent_material', 'set_texture_filter', 'set_texture_repeat'];
 const NODE_2D = [...CANVAS_ITEM, 'set_position', 'set_rotation', 'set_scale', 'set_skew'];
 const CONTROL = [
   ...CANVAS_ITEM,
@@ -120,7 +120,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Label: [...CONTROL, 'set_text', 'set_label_settings', 'set_horizontal_alignment', 'set_vertical_alignment', 'set_autowrap_mode'],
   TextureRect: [...CONTROL, 'set_texture', 'set_expand_mode', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
   NinePatchRect: [...CONTROL, 'set_texture', 'set_region_rect', 'set_patch_margin:*', 'set_draw_center', 'set_h_axis_stretch_mode', 'set_v_axis_stretch_mode'],
-  RichTextLabel: [...CONTROL, 'set_text', 'set_use_bbcode', 'set_fit_content', 'set_autowrap_mode', 'set_scroll_active'],
+  RichTextLabel: [...CONTROL, 'set_text', 'set_fit_content', 'set_autowrap_mode', 'set_scroll_active'],
   Node2D: NODE_2D,
   Sprite2D: [...NODE_2D, 'set_texture', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v', 'set_hframes', 'set_vframes', 'set_frame'],
   TouchScreenButton: [...NODE_2D, 'set_texture_normal', 'set_texture_pressed', 'set_passby_press', 'set_action', 'set_visibility_mode'],
@@ -190,8 +190,6 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_emitting',
     'set_transform_align',
     'set_transform_align_channel_filter',
-    'set_trail_enabled',
-    'set_trail_lifetime',
     'set_amount',
     'set_lifetime',
     'set_one_shot',
@@ -255,7 +253,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Sprite3D: [...SPRITE_BASE_3D, 'set_texture', 'set_hframes', 'set_vframes', 'set_frame', 'set_region_enabled', 'set_region_rect'],
   AnimatedSprite3D: [...SPRITE_BASE_3D, 'set_sprite_frames', 'set_animation', 'set_autoplay', 'set_frame', 'set_frame_progress', 'set_speed_scale'],
   SubViewportContainer: [...CONTROL, 'set_stretch', 'set_stretch_shrink'],
-  SubViewport: ['set_meta:*', 'set_size', 'set_update_mode', 'set_transparent_background', 'set_handle_input_locally', 'set_msaa_3d', 'set_disable_3d', 'set_use_own_world_3d', 'set_disable_input'],
+  SubViewport: ['set_meta:*', 'set_size', 'set_update_mode', 'set_transparent_background', 'set_handle_input_locally', 'set_msaa_3d'],
   Area2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_monitoring', 'set_monitorable'],
   CollisionShape2D: [...NODE_2D, 'set_shape', 'set_disabled'],
   GPUParticles2D: [...NODE_2D, 'set_emitting', 'set_amount', 'set_lifetime', 'set_one_shot', 'set_speed_scale', 'set_explosiveness_ratio', 'set_randomness_ratio', 'set_use_local_coordinates', 'set_texture', 'set_process_material'],
@@ -397,10 +395,6 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_is_hemisphere', 'set_material'],
   // Its baked polygons, its data file's (`godotNavigationMeshDataPath`); its bake settings draw nothing.
   NavigationMesh: [],
-  // Its SubViewport's image; its `viewport_path` is planned as that node (`viewport`).
-  ViewportTexture: [],
-  // A trail mesh a particle system with trails skins along its particles' paths (`cpu-particles-3d.ts`).
-  RibbonTrailMesh: ['set_shape', 'set_size', 'set_sections', 'set_section_length', 'set_section_segments', 'set_curve', 'set_material'],
   BoxMesh: ['set_size', 'set_subdivide_width', 'set_subdivide_height', 'set_subdivide_depth', 'set_material'],
   CapsuleMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_material'],
   CylinderMesh: ['set_top_radius', 'set_bottom_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_cap_top', 'set_cap_bottom', 'set_material'],

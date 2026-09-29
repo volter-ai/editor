@@ -199,7 +199,4 @@ export const GODOT_SPATIAL_RENDER_MODES: ReadonlySet<string> = new Set([
   'specular_schlick_ggx',
   // `vertex()`'s VERTEX, NORMAL and tangent frame in world space (`godotSpatialVertexStage`).
   'world_vertex_coords',
-  // Skinned along a particle's trail: the emitter skins the trail mesh itself (compat's
-  // `cpu-particles-3d.ts`), whatever material draws it.
-  'particle_trails',
 ]);

@@ -20,8 +20,6 @@ export const GODOT_4_7_RENDER_RESOURCE_RULES: readonly (GodotSceneResourceRule &
     ['CylinderMesh', 'cylinder-mesh', 'scene/resources/3d/primitive_meshes.h', 200],
     ['CapsuleMesh', 'capsule-mesh', 'scene/resources/3d/primitive_meshes.h', 130],
     ['BoxMesh', 'box-mesh', 'scene/resources/3d/primitive_meshes.h', 192],
-    ['RibbonTrailMesh', 'ribbon-trail-mesh', 'scene/resources/3d/primitive_meshes.h', 478, 'godot_ribbon_trail_mesh_new'],
-    ['ViewportTexture', 'viewport-texture', 'scene/main/viewport.cpp', 243],
     ['StandardMaterial3D', 'standard-material-3d', 'scene/resources/material.h', 920],
     ['CameraAttributesPractical', 'camera-attributes-practical', 'scene/resources/camera_attributes.cpp', 309, 'godot_camera_attributes_practical_new'],
   ] as const
@@ -43,11 +41,6 @@ export const GODOT_4_7_IMPORTED_STRUCTURE_RULES: readonly (GodotSceneStructureRu
     sourceRevision: REVISION,
     id: 'imported-scene-edits',
     source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (editable children)', line: 540 },
-  },
-  {
-    sourceRevision: REVISION,
-    id: 'scene-instance-edits',
-    source: { file: 'scene/resources/packed_scene.cpp', symbol: 'SceneState::instantiate (editable children)', line: 397 },
   },
 ];
 

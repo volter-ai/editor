@@ -35,7 +35,6 @@ import {
   godot_node_enter,
   godot_node_exit,
   godot_node_listen_input,
-  godot_node_release_script,
   godot_node_scene_root,
   godot_node_seat,
   set_physics_interpolation_mode,
@@ -133,30 +132,6 @@ export type GodotScriptConnections = Readonly<Record<string, (...args: any) => v
 
 /** Each node's script instance, as `useGodotScript` makes it. */
 const SCRIPT_OF = new WeakMap<object, object>();
-/** What goes with a node's script when it is taken off: its connections, and what it made. */
-const SCRIPT_RELEASES = new WeakMap<object, (() => void)[]>();
-
-function onScriptRelease(native: object, release: () => void): void {
-  const releases = SCRIPT_RELEASES.get(native) ?? [];
-  releases.push(release);
-  SCRIPT_RELEASES.set(native, releases);
-}
-
-/**
- * A node's script taken off before it enters the tree, as an instancing scene's `script = null`
- * sets it once the instance made its own (`SceneState::instantiate`, packed_scene.cpp:397): the
- * connections to the script's signals and methods end with it, and what it made is released.
- *
- * @godot Node (protocol)
- * @source core/object/object.cpp:1070
- */
-export function godot_node_remove_script(native: object): void {
-  if (!SCRIPT_OF.has(native)) return;
-  for (const release of SCRIPT_RELEASES.get(native) ?? []) release();
-  SCRIPT_RELEASES.delete(native);
-  SCRIPT_OF.delete(native);
-  godot_node_release_script(native);
-}
 
 /**
  * A connection the scene authors (`[connection]`, made as the scene instantiates,
@@ -184,7 +159,6 @@ export function useGodotConnection<Name extends string, Args extends unknown[]>(
     const callee = instance?.[method];
     if (typeof callee !== 'function') throw new Error(`godot-compat: the target of ${name} has no script method ${method}.`);
     const connection = signal(from, name).connect((...args: Args) => (callee as (...values: Args) => unknown).apply(instance, args));
-    onScriptRelease(to, () => connection.disconnect());
     return () => connection.disconnect();
   }, []);
 }
@@ -249,18 +223,11 @@ export function useGodotScript<Instance extends object>(
     // The node's Godot object is its script instance (`get_node`, signals, `is`).
     godot_node_adopt(native, { binding: { owner: instance } });
     script.current = instance;
-    let released = false;
-    const release = () => {
-      if (released) return;
-      released = true;
+    return () => {
       for (const connection of connected) connection.disconnect();
+      script.current = null;
       // What the script made (its timers and tweens) goes with it.
       godot_owned_release(instance);
-    };
-    onScriptRelease(native, release);
-    return () => {
-      script.current = null;
-      release();
     };
   }, []);
   return script;

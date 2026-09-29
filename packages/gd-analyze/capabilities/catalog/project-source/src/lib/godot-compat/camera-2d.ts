@@ -13,7 +13,7 @@
 
 import type { ReactElement } from 'react';
 import { Group, type Object3D } from 'three';
-import { get_viewport_rect, godot_canvas_item_set_canvas_transform, godot_canvas_item_viewport_of } from './canvas-item';
+import { get_viewport_rect, godot_canvas_item_set_canvas_transform } from './canvas-item';
 import { get_global_position, godot_node_2d_mount, godot_node_2d_props } from './node-2d';
 import { godot_node_adopt, godot_node_entity, godot_node_set_internal_process, is_inside_tree } from './node';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
@@ -38,8 +38,7 @@ interface CameraState {
 }
 
 const CAMERAS = new WeakMap<object, CameraState>();
-/** Each viewport's current camera: the root window's (null) and each SubViewport's. */
-const CURRENT = new Map<Object3D | null, Object3D>();
+let current: Object3D | undefined;
 
 function stateOf(self: object, member: string): CameraState {
   const state = CAMERAS.get(godot_node_entity(self));
@@ -50,11 +49,8 @@ function stateOf(self: object, member: string): CameraState {
 /** `_update_scroll`: the camera's view as the viewport's canvas transform. */
 function update(entity: Object3D, state: CameraState, delta: number): void {
   if (!state.enabled || !is_inside_tree(entity)) return;
-  // The camera of its own viewport (`Viewport::_camera_2d_set`): the root window's or its SubViewport's.
-  const viewport = godot_canvas_item_viewport_of(entity);
-  const current = CURRENT.get(viewport);
-  if (current === undefined || !is_inside_tree(current)) CURRENT.set(viewport, entity);
-  if (CURRENT.get(viewport) !== entity) return;
+  if (current === undefined || !is_inside_tree(current)) current = entity;
+  if (current !== entity) return;
   const target = get_global_position(entity);
   let center = target;
   if (state.smoothing && state.smoothed !== undefined) {
@@ -76,7 +72,7 @@ function update(entity: Object3D, state: CameraState, delta: number): void {
     cy = bottom - top < halfH * 2 ? (top + bottom) / 2 : Math.min(Math.max(cy, top + halfH), bottom - halfH);
   }
   state.screenCenter = vector2(cx, cy);
-  godot_canvas_item_set_canvas_transform(transform2d(0, vector2(state.zoom.x, state.zoom.y), 0, vector2(view.x / 2 - cx * state.zoom.x, view.y / 2 - cy * state.zoom.y)), viewport);
+  godot_canvas_item_set_canvas_transform(transform2d(0, vector2(state.zoom.x, state.zoom.y), 0, vector2(view.x / 2 - cx * state.zoom.x, view.y / 2 - cy * state.zoom.y)));
 }
 
 /**
@@ -175,8 +171,7 @@ export function is_enabled(self: object): boolean {
  * @source scene/2d/camera_2d.cpp:486
  */
 export function make_current(self: object): void {
-  const entity = godot_node_entity(self) as Object3D;
-  CURRENT.set(godot_canvas_item_viewport_of(entity), entity);
+  current = godot_node_entity(self) as Object3D;
 }
 
 /**
@@ -184,8 +179,7 @@ export function make_current(self: object): void {
  * @source scene/2d/camera_2d.cpp:531
  */
 export function is_current(self: object): boolean {
-  const entity = godot_node_entity(self) as Object3D;
-  return CURRENT.get(godot_canvas_item_viewport_of(entity)) === entity;
+  return current === godot_node_entity(self);
 }
 
 /**

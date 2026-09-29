@@ -138,8 +138,6 @@ export interface FamilyEmission {
   readonly shared: Map<string, string>;
   /** A module with no component (a preloaded resource's): its images load at module level. */
   readonly moduleLevel?: true;
-  /** The local of a node's ref, by its node path (a ViewportTexture's SubViewport), where the scene holds one. */
-  nodeRef?: (nodePath: string) => string;
 }
 
 export function familyEmission(
@@ -297,32 +295,6 @@ export function importedTextureHook(
               },
             ]),
       ],
-    },
-  });
-  return local;
-}
-
-/**
- * A ViewportTexture: its SubViewport's image, from the node's ref as the scene holds it
- * (`useGodotViewportTexture(() => subViewport.current)`, read once the scene has mounted).
- */
-function viewportTextureLocal(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
-  const existing = emission.hookLocals.get(resource.key);
-  if (existing !== undefined) return existing;
-  const viewport = resource.viewport;
-  if (viewport === undefined || emission.nodeRef === undefined) throw new Error(`${resource.key}: a ViewportTexture without the scene's SubViewport`);
-  const ref = emission.nodeRef(viewport);
-  const local = freshLocal(emission, `${stemOf(resource.key)} texture`);
-  emission.hookLocals.set(resource.key, local);
-  emission.loaded.add(local);
-  emission.hooks.push({
-    kind: 'variable-statement',
-    declaration: 'const',
-    name: local,
-    initializer: {
-      kind: 'call-expression',
-      callee: identifier(useCompat(emission, 'viewport-texture', 'useGodotViewportTexture')),
-      arguments: [{ kind: 'arrow-expression', parameters: [], body: { kind: 'property-expression', object: identifier(ref), property: 'current' } }],
     },
   });
   return local;
@@ -579,7 +551,6 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   if (idiom?.kind === 'texture') return textureHook(emission, resource);
   if (idiom?.kind === 'mesh-library') return libraryLocal(emission, resource);
   if (idiom?.kind === 'navigation-mesh') return navigationMeshLocal(emission, resource);
-  if (idiom?.kind === 'viewport-texture') return viewportTextureLocal(emission, resource);
   if (idiom?.kind === 'animation-library') return animationLibraryLocal(emission, resource);
   if (idiom?.kind === 'animation-tree') return animationTreeLocal(emission, resource);
   const existing = emission.hookLocals.get(key);

@@ -1951,27 +1951,17 @@ function assignmentBinaryOperator(
 }
 
 /**
- * A call's arguments as a project script's function takes them: a script's instance (or `self`)
- * passed to a parameter typed as an engine class holds the node it is attached to, as a typed
- * assignment does (`convertedValue`).
+ * A call's arguments with each that passes a script's instance to an engine-typed parameter
+ * (analysis's `nodeArguments`) as the node it is attached to, as a typed assignment holds it
+ * (`convertedValue`).
  */
-function scriptCallArguments(
-  context: LoweringContext,
-  argumentNodes: readonly GodotBoundNode[],
-  args: readonly LoweredExpression[],
-  resPath: string | undefined,
-  name: string,
-): LoweredExpression[] {
-  const parameters = resPath === undefined || resPath === '' ? undefined : context.scriptParameters(resPath, name);
-  if (parameters === undefined) return [...args];
+function scriptCallArguments(context: LoweringContext, argumentNodes: readonly GodotBoundNode[], args: readonly LoweredExpression[]): LoweredExpression[] {
   return args.map((value, index) => {
-    const parameter = parameters[index];
     const argument = argumentNodes[index];
-    if (parameter === undefined || argument === undefined) return value;
-    const scripted = parameter.datatype.kind === 'NATIVE' && !parameter.datatype.metaType && argument.datatype.kind === 'CLASS' && !argument.datatype.metaType && argument.datatype.scriptPath !== '';
-    if (!scripted) return value;
-    // The parameter's type as its own script states it (by its datatype alone).
-    const type = context.targetType({ ...parameter, id: -1 } as GodotBoundNode);
+    const datatype = argument === undefined ? undefined : context.nodeArguments.get(argument.id);
+    if (argument === undefined || datatype === undefined) return value;
+    // The parameter's type, by its datatype alone.
+    const type = context.targetType({ ...argument, id: -1, datatype } as GodotBoundNode);
     return {
       ...value,
       value: { kind: 'as-expression', expression: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_node_entity' }, arguments: [value.value] }, type: type.type },
@@ -3644,7 +3634,7 @@ export function lowerOfficialExpression(
           };
           return compose(
             context,
-            scriptCallArguments(context, argumentNodes, args, node.compilerTarget.kind === 'script-self' ? context.script.resPath : undefined, node.compilerTarget.member),
+            scriptCallArguments(context, argumentNodes, args),
             (argumentValues) => ({
               kind: 'call-expression',
               callee,
@@ -3693,11 +3683,7 @@ export function lowerOfficialExpression(
         // The callee is the call's own member, not a member read by name.
         context.plainCallees.add(calleeNode.id);
         const callee = lowerExpression(context, calleeNode);
-        // A project script's method on a receiver typed as its class takes its arguments as that
-        // function states them.
-        const receiver = calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute ? context.node(calleeNode.base, calleeNode).datatype : undefined;
-        const scriptPath = receiver !== undefined && receiver.kind === 'CLASS' && !receiver.metaType ? receiver.scriptPath : undefined;
-        return dynamicCall(context, node, callee, scriptCallArguments(context, argumentNodes, args, scriptPath, node.functionName), requirements);
+        return dynamicCall(context, node, callee, scriptCallArguments(context, argumentNodes, args), requirements);
       }
       case 'AWAIT': {
         // `await signal` suspends the coroutine until the signal's next emission and resumes with

@@ -96,7 +96,7 @@ function update(self: object): AgentState {
     if (distance(origin, on) >= state.pathMaxDistance) reload = true;
   }
   if (reload) {
-    state.path = godot_navigation_path(origin, state.target);
+    state.path = godot_navigation_path(entity, origin, state.target);
     state.index = 0;
     state.finished = false;
     state.lastWaypoint = false;

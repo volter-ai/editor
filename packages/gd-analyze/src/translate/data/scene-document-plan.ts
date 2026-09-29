@@ -14,7 +14,6 @@ import type { GodotValue } from '../../read/godot-value';
 import type { GodotBoundShader, GodotShaderUniform } from '../../godot-frontend/bound-shader';
 import { lowerGodotShader } from '../emit/shader-glsl';
 import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
-import { GODOT_CANVAS_FRAGMENT_BUILTINS, GODOT_CANVAS_VERTEX, godotCanvasFragmentStage } from '../emit/canvas-shader';
 import {
   GODOT_SPATIAL_DEFAULT_VERTEX,
   GODOT_SPATIAL_FRAGMENT_BUILTINS,
@@ -78,8 +77,6 @@ export interface TargetGodotSceneNodePlan {
   readonly skyLights?: readonly { readonly nodePath: string; readonly name: string }[];
   /** For an imported model: the importer's tree over the model file, and this scene's edits in it. */
   readonly model?: TargetGodotImportedModelPlan;
-  /** For an instanced scene: this scene's edits of its nodes (editable children), in document order. */
-  readonly edits?: readonly TargetGodotSceneInstanceEdit[];
   /** A node this scene places under a node of an imported model: that instance and the path. */
   readonly portal?: { readonly instanceNodePath: string; readonly at: string };
   /** For an imported model: the nodes this scene places under its model's nodes. */
@@ -247,19 +244,6 @@ export interface TargetGodotSceneSetterPlan {
   readonly modelSlot?: GodotModelOverrideSlot;
 }
 
-/**
- * An instancing scene's edit of a node of an instanced scene (`at`, its path under the instance's
- * root, `.` the root), applied once the instance has made its own (`SceneState::instantiate` sets
- * them on the instantiated nodes, packed_scene.cpp:397): its script removed (`script = null`), and
- * its properties, each through the slot compat's instance edits set it by (`modelSlot`) or else its
- * setter.
- */
-export interface TargetGodotSceneInstanceEdit {
-  readonly at: string;
-  readonly scriptRemoved?: true;
-  readonly setters: readonly TargetGodotSceneSetterPlan[];
-}
-
 /** What an authored property of an imported model's own node sets on the model's element. */
 export type GodotModelOverrideSlot =
   | { readonly kind: 'bone-pose'; readonly component: 'position' | 'rotation' | 'scale' }
@@ -284,8 +268,6 @@ export interface TargetGodotSceneResourcePlan {
   readonly load?: TargetGodotImportedLoad;
   /** An `ArrayMesh`'s surfaces, decoded from its `_surfaces` (`read/godot4-surfaces.ts`). */
   readonly mesh?: TargetGodotArrayMeshPlan;
-  /** A `ViewportTexture`: the node path, in its scene, of the SubViewport whose image it shows. */
-  readonly viewport?: string;
   /** A baked `NavigationMesh`: its vertices' coordinates and its polygons, written as a data file. */
   readonly navigation?: { readonly vertices: readonly number[]; readonly polygons: readonly (readonly number[])[] };
   /** A primitive mesh's three geometry args, and a cylinder's open top (`scene-surface-idioms.ts`). */
@@ -400,17 +382,14 @@ export interface TargetGodotLoweredShader {
   readonly mode: string;
   /** The `render_mode`s it states that the sky pass acts on (`use_debanding`). */
   readonly renderModes: readonly string[];
-  /** Each uniform; a `hint_screen_texture` or `hint_depth_texture` sampler's `source` is compat's capture of the frame. */
-  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null; readonly color?: true; readonly filter?: number; readonly repeat?: number; readonly source?: 'screen' | 'depth' }[];
+  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null; readonly color?: true; readonly filter?: number; readonly repeat?: number }[];
   readonly functions: string;
   readonly entry: string;
-  /** A canvas_item shader's two stages as compat's canvas shader material draws an item with them (`canvas-shader.ts`). */
-  readonly canvas?: { readonly vertexShader: string; readonly fragmentShader: string };
   /** A spatial shader's two stages as `three-custom-shader-material` takes them (`spatial-shader.ts`). */
   readonly spatial?: {
     readonly vertexShader: string;
     readonly fragmentShader: string;
-    /** Whether it writes `ALPHA` or reads the screen, which makes Godot draw it in the transparent pass. */
+    /** Whether it writes `ALPHA`, which makes Godot draw it in the transparent pass. */
     readonly transparent: boolean;
     /** Whether it reads `COLOR`, the mesh's vertex colour. */
     readonly vertexColors: boolean;
@@ -418,13 +397,12 @@ export interface TargetGodotLoweredShader {
 }
 
 /**
- * A `.gdshader` the official shader frontend read, lowered for its mode (sky, spatial,
- * canvas_item), or why it is not.
+ * A `.gdshader` the official shader frontend read, lowered for its mode (sky, spatial), or why it
+ * is not.
  */
 function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string {
   if (!shader.ok) return `the official shader frontend refused it (${shader.stage}: ${shader.message})`;
   if (shader.shaderType === 'spatial') return spatialShaderPlan(shader);
-  if (shader.shaderType === 'canvas_item') return canvasShaderPlan(shader);
   if (shader.shaderType !== 'sky') return `shader_type ${shader.shaderType} is not lowered`;
   const lowered = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
   if (typeof lowered === 'string') return lowered;
@@ -458,31 +436,6 @@ function plannedUniform({ name, glsl, uniform }: { readonly name: string; readon
     default: values.length === 0 ? null : values,
     ...(uniform.hintName.includes('source_color') ? { color: true as const } : {}),
     ...(uniform.type.name.startsWith('sampler') ? { filter: uniform.filter, repeat: uniform.repeat } : {}),
-    ...(uniform.hintName.includes('hint_screen_texture') ? { source: 'screen' as const } : uniform.hintName.includes('hint_depth_texture') ? { source: 'depth' as const } : {}),
-  };
-}
-
-/**
- * A canvas_item shader: `fragment()` lowered with its built-ins (`canvas-shader.ts`) and wrapped as
- * the stage compat draws the item's quad with. `vertex()`, `light()` and a render mode other than
- * the default blend and `unshaded` (no 2D light reaches the page) refuse by name.
- */
-function canvasShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true }>): TargetGodotLoweredShader | string {
-  const names = new Set(shader.tree.functions.map((entry) => entry.name));
-  if (names.has('vertex')) return 'a canvas_item vertex() function is not lowered';
-  if (names.has('light')) return 'a light() function is not lowered';
-  const unsupported = shader.tree.renderModes.find((mode) => mode !== 'blend_mix' && mode !== 'unshaded');
-  if (unsupported !== undefined) return `render_mode ${unsupported} is not drawn`;
-  const fragment = lowerGodotShader(shader, GODOT_CANVAS_FRAGMENT_BUILTINS, 'fragment');
-  if (typeof fragment === 'string') return fragment;
-  const head = [fragment.varyings, ...fragment.uniforms.map((uniform) => uniform.declaration), fragment.functions].filter((part) => part !== '').join('\n\n');
-  return {
-    mode: 'canvas_item',
-    renderModes: shader.tree.renderModes,
-    uniforms: fragment.uniforms.map(plannedUniform),
-    functions: '',
-    entry: '',
-    canvas: { vertexShader: GODOT_CANVAS_VERTEX, fragmentShader: godotCanvasFragmentStage(head, fragment.entry) },
   };
 }
 
@@ -504,9 +457,10 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
   if (any === undefined) return 'the shader has neither vertex() nor fragment()';
   const unshaded = shader.tree.renderModes.includes('unshaded');
   if (unshaded && fragment !== undefined && (fragment.builtins.has('NORMAL') || fragment.builtins.has('VIEW') || fragment.builtins.has('VERTEX'))) return 'an unshaded fragment() reading NORMAL, VIEW or VERTEX is not lowered';
-  // A shader reading the screen or depth texture is drawn in the transparent pass, after the opaque
-  // one it reads (`has_read_screen_alpha`, `scene_shader_forward_clustered.cpp:252`).
-  const readsScreen = shader.tree.uniforms.some((uniform) => /hint_(screen|depth)_texture/u.test(uniform.hintName));
+  // The screen and depth textures are the renderer's copies of the frame, which three's frame does
+  // not keep for a shader.
+  const screen = shader.tree.uniforms.find((uniform) => /hint_(screen|depth)_texture/u.test(uniform.hintName));
+  if (screen !== undefined) return `the ${screen.hintName} uniform ${screen.name} is not drawn`;
   const head = (lowered: typeof any) => [GODOT_SPATIAL_SHARED, lowered.varyings, ...lowered.uniforms.map((uniform) => uniform.declaration), lowered.functions].filter((part) => part !== '').join('\n\n');
   const stages = { worldVertexCoords: shader.tree.renderModes.includes('world_vertex_coords'), vertexTangents: vertex?.builtins.has('TANGENT') === true || vertex?.builtins.has('BINORMAL') === true };
   return {
@@ -518,7 +472,7 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
     spatial: {
       vertexShader: `${head(vertex ?? any)}\n\nvoid main() {\n${vertex === undefined ? GODOT_SPATIAL_DEFAULT_VERTEX : godotSpatialVertexStage(vertex.entry, vertex.builtins, stages)}\n}`,
       fragmentShader: `${head(fragment ?? any)}\n\nvoid main() {\n${fragment === undefined ? godotSpatialFragmentStage('', new Set()) : godotSpatialFragmentStage(fragment.entry, fragment.builtins, stages)}\n}`,
-      transparent: readsScreen || (fragment?.builtins.has('ALPHA') === true && fragment.builtins.has('ALPHA_SCISSOR_THRESHOLD') !== true),
+      transparent: fragment?.builtins.has('ALPHA') === true && fragment.builtins.has('ALPHA_SCISSOR_THRESHOLD') !== true,
       vertexColors: vertex?.builtins.has('COLOR') === true || fragment?.builtins.has('COLOR') === true,
     },
   };
@@ -800,6 +754,14 @@ function sameValue(copy: GodotValue | undefined, origin: GodotValue | undefined)
   return JSON.stringify(copy) === JSON.stringify(origin);
 }
 
+function sameProperties(
+  copy: Readonly<Record<string, GodotValue>>,
+  origin: Readonly<Record<string, GodotValue>>,
+): boolean {
+  const names = new Set([...Object.keys(copy), ...Object.keys(origin)]);
+  return [...names].every((name) => sameValue(copy[name], origin[name]));
+}
+
 const f32 = Math.fround;
 
 function numbers(args: readonly GodotValue[]): readonly number[] | undefined {
@@ -1014,15 +976,8 @@ function planResolvedResource(
   if (document === undefined) return undefined;
   if (document.planned.has(key)) return document.planned.get(key) === null ? undefined : key;
   document.planned.set(key, null);
-  // An image the texture importer imports: a `CompressedTexture2D` loaded from its copied file; an
-  // `ImageTexture` a document embeds, the PNG analysis wrote of its image (`embedded-images.ts`).
-  const owner = key.startsWith('sub:') ? document.scene.resPath : key.startsWith('ext:') && key.includes('#sub:') ? key.slice('ext:'.length, key.indexOf('#sub:')) : undefined;
-  const texture =
-    data === undefined
-      ? context.project?.documents.textures.find((entry) => `ext:${entry.resPath}` === key)
-      : data.type === 'ImageTexture' && owner !== undefined
-        ? context.project?.documents.textures.find((entry) => entry.embeddedIn?.resPath === owner && entry.embeddedIn.id === String(data.id))
-        : undefined;
+  // An image the texture importer imports: a `CompressedTexture2D` loaded from its copied file.
+  const texture = data === undefined ? context.project?.documents.textures.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   // A sound the wav importer imports: an `AudioStreamWAV` loaded from its copied file.
   const sound = data === undefined && texture === undefined ? context.project?.documents.sounds.find((entry) => `ext:${entry.resPath}` === key) : undefined;
   // A cubemap the `cubemap_texture` importer imports: a `CompressedCubemap` sliced from its copy.
@@ -1202,16 +1157,7 @@ function planResolvedResource(
     recordResource(document, key, planned);
     return key;
   }
-  if (data.type === 'ViewportTexture') {
-    const viewport = viewportTexturePath(document.scene, at, data);
-    if (typeof viewport === 'string' && viewport.startsWith('!')) {
-      refuse(context, `${at}(${key})`, viewport.slice(1), 'resource', 'ViewportTexture');
-      return undefined;
-    }
-    recordResource(document, key, { key, className: data.type, construct: rule.construct, viewport, setters: [] });
-    return key;
-  }
-  if (data.type === 'NavigationMesh') {
+  if (godotSceneResourceIdiom(data.type, [])?.kind === 'navigation-mesh') {
     const navigation = navigationMeshPlan(data);
     if (typeof navigation === 'string') {
       refuse(context, `${at}(${key})`, navigation, 'resource', 'NavigationMesh');
@@ -2160,8 +2106,10 @@ function planImportedInstance(
       colliders.push({ path: child.path, matrix: child.matrix, collider });
     }
     const layers = model.collisionLayersByPath?.[member.path];
-    // A RigidBody3D the importer made moves its node; the rest stand still.
-    bodies.push({ path: member.path, type: member.classes.includes('RigidBody3D') ? 'dynamic' : 'fixed', ...(layers === undefined ? {} : { layers }), colliders });
+    // A body the importer made that its idiom moves (a RigidBody3D) moves its node; the rest stand still.
+    const idiom = godotSceneNodeIdiom(member.classes[0] ?? '');
+    const dynamic = idiom?.form.kind === 'body' && idiom.form.type === 'dynamic';
+    bodies.push({ path: member.path, type: dynamic ? 'dynamic' : 'fixed', ...(layers === undefined ? {} : { layers }), colliders });
   }
   if (bodies.length > 0 && model.meshScale !== undefined) {
     refuse(context, at, `${imported.resPath}: the root scale of a model with physics bodies is not baked into their shapes`, 'resource', 'imported .glb');
@@ -2200,54 +2148,6 @@ function planImportedInstance(
   };
 }
 
-/** The slots compat's instance edits set a scene node's property by (`useGodotInstanceEdits`); the rest are setter calls. */
-const SCENE_EDIT_SLOTS = new Set<GodotModelOverrideSlot['kind']>(['material-override', 'surface-material', 'transform', 'cast-shadow', 'layers']);
-
-/**
- * An instancing scene's edit of a node of an instanced scene (`path` under the instance's root):
- * its script removed where it authors `script = null` over the instanced scene's, and each property
- * it changes, by its slot (on an imported model's own geometry, its materials drawn as the
- * model's) or else by its setter, which takes no resource. Undefined where nothing changes, null
- * where it refuses.
- */
-function instanceEdit(
-  context: PlanContext,
-  at: string,
-  path: string,
-  node: BoundGodotSceneNode,
-  origin: BoundGodotSceneNode,
-  properties: Readonly<Record<string, GodotValue>>,
-  inModel: boolean,
-): TargetGodotSceneInstanceEdit | undefined | null {
-  const removed = node.scriptResPath === undefined && origin.scriptResPath !== undefined;
-  if (node.scriptResPath !== origin.scriptResPath && !removed) {
-    refuse(context, at, 'a script replacing an instanced node\'s own is not planned', 'editable-children');
-    return null;
-  }
-  const changed = Object.entries(properties).filter(([name, value]) => name !== 'script' && !sameValue(value, origin.authoredProperties[name]));
-  if (!removed && changed.length === 0) return undefined;
-  if (!structure(context, at, 'scene-instance-edits')) return null;
-  const setters: TargetGodotSceneSetterPlan[] = [];
-  let ok = true;
-  for (const [propertyName, value] of changed) {
-    const setter = setterPlan(context, `${at}.${propertyName}`, node.class.nativeName, propertyName, value, '');
-    if (setter === undefined) {
-      ok = false;
-      continue;
-    }
-    const slot = MODEL_OVERRIDE_SLOTS[setter.setter.exportName];
-    const edit = inModel ? modelOverride(context, setter) : slot !== undefined && (SCENE_EDIT_SLOTS.has(slot.kind) || setter.setter.exportName === 'set_visible') ? { ...setter, modelSlot: slot } : setter;
-    if ((edit.modelSlot === undefined || edit.modelSlot.kind === 'player' || edit.modelSlot.kind === 'bone-pose') && (inModel || edit.value.kind === 'resource')) {
-      refuse(context, `${at}.${propertyName}`, `an edit of ${node.class.nativeName}.${propertyName} inside an instance is not planned`, 'editable-children', `${node.class.nativeName}.${propertyName}`);
-      ok = false;
-      continue;
-    }
-    setters.push(edit);
-  }
-  if (!ok) return null;
-  return { at: path, ...(removed ? { scriptRemoved: true as const } : {}), setters };
-}
-
 /**
  * The root of an instanced scene: that scene's generated component, the values this document
  * authors on it beyond the instanced root's own as its props (Godot applies them over the
@@ -2284,14 +2184,11 @@ function planInstanceRoot(
   delete overrides['editor_description'];
   if (Object.keys(overrides).length > 0 && !structure(context, at, 'instance-root-override')) ok = false;
   // A script on an instance whose root has none attaches to the component's root (its ref); one
-  // replacing the root's own script is not planned, and `script = null` removes it (an edit).
-  const scriptRemoved = node.scriptResPath === undefined && origin.scriptResPath !== undefined;
-  delete overrides['script'];
-  if (node.scriptResPath !== origin.scriptResPath && origin.scriptResPath !== undefined && !scriptRemoved) {
+  // replacing the root's own script is not planned.
+  if (node.scriptResPath !== origin.scriptResPath && origin.scriptResPath !== undefined) {
     refuse(context, at, 'an instance root with its own script is not planned', 'structure');
     ok = false;
   }
-  if (scriptRemoved && !structure(context, at, 'scene-instance-edits')) ok = false;
   // Groups authored on the instance join its scene root's (`SceneState::instantiate` adds them to
   // the instantiated root, packed_scene.cpp:511).
   const groups = groupsOf(context, { ...node, groups: node.groups.filter((group) => !origin.groups.includes(group)) });
@@ -2317,8 +2214,6 @@ function planInstanceRoot(
     properties,
     groups: groups ?? [],
     ...(unique ? { unique: true as const } : {}),
-    // The edits this document makes inside it, the root's script removed first (`planScene` adds the rest).
-    edits: scriptRemoved ? [{ at: '.', scriptRemoved: true, setters: [] }] : [],
     classes: [],
     setters,
     children: [],
@@ -2469,19 +2364,13 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
               .get(node.inheritedNode.documentPath)
               ?.nodes.find((candidate) => candidate.nodePath === node.inheritedNode?.nodePath);
       if (origin !== undefined) {
-        if (JSON.stringify(node.groups) !== JSON.stringify(origin.groups)) {
-          refuse(context, at, `groups added inside instanced ${instanced.resPath} are not planned`, 'editable-children');
+        const changed =
+          !sameProperties(node.authoredProperties, origin.authoredProperties) ||
+          JSON.stringify(node.groups) !== JSON.stringify(origin.groups) ||
+          node.scriptResPath !== origin.scriptResPath;
+        if (changed) {
+          refuse(context, at, `an override inside instanced ${instanced.resPath} is not planned`, 'editable-children');
           refused = true;
-          continue;
-        }
-        // An edit of the instanced scene's node, which its instance applies (an imported model's
-        // own node, in a scene the instanced one instances, draws its materials as the model's).
-        const inModel = context.scenes.get(node.inheritedNode?.documentPath ?? '')?.sourceKind === 'imported-gltf';
-        const edit = instanceEdit(context, at, relativeTo(node.nodePath, enclosing), node, origin, node.authoredProperties, inModel);
-        if (edit === null) refused = true;
-        else if (edit !== undefined) {
-          const root = planned.find((entry) => entry.nodePath === enclosing);
-          (root?.edits as TargetGodotSceneInstanceEdit[] | undefined)?.push(edit);
         }
         continue;
       }
@@ -2600,8 +2489,6 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   const cameras: TargetGodotSceneNodePlan[] = [];
   const findCameras = (node: TargetGodotSceneNodePlan): void => {
     if (node.classes[0] === 'Camera3D') cameras.push(node);
-    // A SubViewport's cameras are its own viewport's (`sub-viewport.ts`).
-    if (node.classes[0] === 'SubViewport') return;
     for (const child of godotSceneSubnodes(node)) findCameras(child);
   };
   findCameras(root);
@@ -2740,33 +2627,6 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_sleeping: { kind: 'node' },
   set_freeze_enabled: { kind: 'node' },
 };
-
-/**
- * The SubViewport a ViewportTexture shows (`ViewportTexture::_setup_local_to_scene`,
- * `viewport.cpp:211`): its `viewport_path` from the resource's local scene, which is the node it is
- * set on when that is the scene's root or an instance, else that node's owner, the nearest instance
- * above it or the scene's root (`SceneState::make_local_resource`, `packed_scene.cpp:709`). Its node
- * path in the scene, or its refusal after a `!`.
- */
-function viewportTexturePath(scene: BoundGodotSceneDocument, at: string, data: BoundGodotResourceData): string {
-  const value = data.properties['viewport_path'];
-  const path = value?.kind === 'ctor' && value.name === 'NodePath' && value.args[0]?.kind === 'string' ? value.args[0].value : undefined;
-  if (path === undefined || path === '') return '!a ViewportTexture without its viewport_path is not planned';
-  // The node the resource is set on: the authored path's node part (`<scene>#<node>.<property>…`).
-  const nodePath = /#([^.(]*)/u.exec(at)?.[1] ?? '.';
-  const instanced = (candidate: string) => scene.nodes.find((node) => node.nodePath === candidate)?.inheritedNode?.nodePath === '.';
-  let base = '.';
-  for (let candidate = nodePath; candidate !== '.' && candidate !== ''; candidate = candidate.includes('/') ? candidate.slice(0, candidate.lastIndexOf('/')) : '.') {
-    if (instanced(candidate)) {
-      base = candidate;
-      break;
-    }
-  }
-  const target = godotResolveNodePath(base, path);
-  const node = target === undefined ? undefined : scene.nodes.find((candidate) => candidate.nodePath === target);
-  if (node === undefined || !node.class.nativeAncestry.includes('SubViewport')) return `!viewport_path ${path} names no SubViewport of the scene`;
-  return node.nodePath;
-}
 
 /**
  * A baked `NavigationMesh` (`navigation_mesh.cpp:306`, `:317`): its `vertices` and `polygons`; its

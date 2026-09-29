@@ -178,12 +178,6 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
   const constantNames = new Set(tree.constants.map((constant) => constant.name));
   const varyingNames = new Set(tree.varyings.map((varying) => varying.name));
   const functionNames = new Set(tree.functions.map((entry2) => entry2.name));
-  // The screen and depth textures a shader samples (`hint_screen_texture`, `hint_depth_texture`):
-  // read at Godot's screen UV, whose origin is the top-left, and the depth as Godot's reversed-Z
-  // depth buffer holds it (compat's `spatial-material.ts` captures both, three's way up).
-  const screenSamplers = new Set(tree.uniforms.filter((uniform) => /hint_(screen|depth)_texture/u.test(uniform.hintName)).map((uniform) => uniform.name));
-  const depthSamplers = new Set(tree.uniforms.filter((uniform) => uniform.hintName.includes('hint_depth_texture')).map((uniform) => uniform.name));
-  let screenRead = false;
   const type = (name: string): string => {
     if (!GLSL_TYPES.has(name)) throw new Refused(`the ${name} type is not lowered`);
     return name;
@@ -255,14 +249,6 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
         if (callee.kind !== 'VARIABLE') throw new Refused('a call without its function');
         const name = functionNames.has(callee.name) ? `godot_f_${callee.name}` : callee.name;
         if (!functionNames.has(callee.name) && !/^[a-zA-Z][a-zA-Z0-9]*$/.test(callee.name)) throw new Refused(`the ${callee.name} function is not lowered`);
-        const sampler = args[1];
-        if (sampler?.kind === 'VARIABLE' && !sampler.local && screenSamplers.has(sampler.name)) {
-          if (callee.name !== 'texture' && callee.name !== 'textureLod') throw new Refused(`${callee.name} on the ${sampler.name} screen texture is not lowered`);
-          screenRead = true;
-          const [texture, uv, ...rest] = args.slice(1).map(expression);
-          const read = `${name}(${[texture, `godot_screen_uv(${uv as string})`, ...rest].join(', ')})`;
-          return depthSamplers.has(sampler.name) ? `godot_depth_texel(${read})` : read;
-        }
         return `${name}(${args.slice(1).map(expression).join(', ')})`;
       }
       case OP.EMPTY:
@@ -367,9 +353,6 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
       if (varying.type.arraySize > 0) throw new Refused(`the ${varying.name} varying array is not lowered`);
       return `varying ${type(varying.type.name)} godot_v_${varying.name};`;
     });
-    // The screen UV's flip into three's textures, and a depth texel as Godot's reversed-Z buffer
-    // holds it: 1 at the near plane, 0 at the far one (`Projection::set_depth_correction`).
-    if (screenRead) functions.unshift('vec2 godot_screen_uv(vec2 uv) {\n\treturn vec2(uv.x, 1.0 - uv.y);\n}', 'vec4 godot_depth_texel(vec4 texel) {\n\treturn vec4(1.0 - texel.x, texel.yzw);\n}');
     return { uniforms, functions: functions.join('\n\n'), entry: entryBody, builtins: used, varyings: varyings.join('\n') };
   } catch (error) {
     if (error instanceof Refused) return `${shader.path}: ${error.message}`;

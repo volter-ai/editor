@@ -8,7 +8,7 @@
  * as they are, the edges stretched or tiled along their axis, the centre too unless `draw_center`
  * is off (`canvas_item_add_nine_patch`, `renderer_canvas_cull.cpp:1708`). Its minimum size is its
  * margins. On the page it is the CSS border image of an element over its rect, which slices the same
- * nine patches; in a SubViewport it is painted (stretched patches).
+ * nine patches.
  */
 
 import type { ReactElement } from 'react';
@@ -101,35 +101,6 @@ function draw(entity: Object3D, element: HTMLElement): void {
   content.style.filter = godot_canvas_item_self_filter(entity, element);
 }
 
-/** `NOTIFICATION_DRAW` onto a canvas (a SubViewport's, or a mask): the nine patches, stretched. */
-function paint(entity: Object3D, context: CanvasRenderingContext2D): boolean {
-  const state = PATCHES.get(entity) as NinePatchState;
-  const texture = state.texture;
-  const image = texture?.image as CanvasImageSource | null | undefined;
-  if (texture === null || image === null || image === undefined) return true;
-  // An image still loading draws nothing yet.
-  if ((image as { readonly complete?: boolean }).complete === false) return false;
-  const region = regionOf(state, texture);
-  const size = get_size(entity);
-  const [left, top, right, bottom] = state.margin;
-  const sx = [region.position.x, region.position.x + left, region.position.x + region.size.x - right, region.position.x + region.size.x];
-  const sy = [region.position.y, region.position.y + top, region.position.y + region.size.y - bottom, region.position.y + region.size.y];
-  const dx = [0, left, size.x - right, size.x];
-  const dy = [0, top, size.y - bottom, size.y];
-  for (let row = 0; row < 3; row += 1) {
-    for (let column = 0; column < 3; column += 1) {
-      if (row === 1 && column === 1 && !state.drawCenter) continue;
-      const w = (sx[column + 1] as number) - (sx[column] as number);
-      const h = (sy[row + 1] as number) - (sy[row] as number);
-      const dw = (dx[column + 1] as number) - (dx[column] as number);
-      const dh = (dy[row + 1] as number) - (dy[row] as number);
-      if (w <= 0 || h <= 0 || dw <= 0 || dh <= 0) continue;
-      context.drawImage(image, sx[column] as number, sy[row] as number, w, h, dx[column] as number, dy[row] as number, dw, dh);
-    }
-  }
-  return true;
-}
-
 /**
  * Makes `entity` a NinePatchRect: no texture, no margins, the centre drawn, both axes stretched
  * (`nine_patch_rect.h:45`).
@@ -152,7 +123,6 @@ export function godot_nine_patch_rect_mount(entity: Object3D): void {
       const image = state.texture?.image as { readonly src?: unknown } | null | undefined;
       return JSON.stringify([typeof image?.src === 'string' ? image.src : state.texture === null ? 0 : 1, state.margin, state.region, state.drawCenter, state.axisH, state.axisV, size.x, size.y, godot_canvas_item_self_filter(node, element)]);
     },
-    paint,
   });
 }
 

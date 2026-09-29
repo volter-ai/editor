@@ -28,8 +28,6 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
   let unique = false;
   const walk = (node: DirectGodotSceneNodePlan): void => {
     if (node.scriptInstance !== undefined) targets.add(node.nodePath);
-    // An instance this scene edits inside (`useGodotInstanceEdits` finds the edited nodes from it).
-    if ((node.edits ?? []).length > 0) targets.add(node.nodePath);
     if (node.unique === true) unique = true;
     for (const light of node.skyLights ?? []) targets.add(light.nodePath);
     // An instance whose root script's node fields this scene hands (`useGodotNodeReferences`).
@@ -42,8 +40,6 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
   };
   walk(scene.root);
   if (unique) targets.add(scene.root.nodePath);
-  // A ViewportTexture shows its SubViewport's image, which it finds from the node's ref.
-  for (const resource of scene.resources) if (resource.viewport !== undefined) targets.add(resource.viewport);
   // A connection delivered as a callback (`script-connections`, `instance-prop`) needs only the target's script (`scene-signal-delivery.ts`).
   for (const connection of scene.connections) {
     if (connection.delivery === undefined) targets.add(connection.fromNodePath);

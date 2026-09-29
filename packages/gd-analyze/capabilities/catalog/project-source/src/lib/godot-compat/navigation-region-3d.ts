@@ -20,14 +20,13 @@ import { construct as vector3, type Vector3 } from './vector3';
 interface RegionState {
   mesh: NavigationMesh | null;
   enabled: boolean;
-  /** The zone the region is in three-pathfinding under, once made. */
-  zone: string | undefined;
+  /** Its mesh placed where it stands, as three-pathfinding's zone, made when a path first needs it. */
+  zone: Pathfinding | undefined;
 }
 
-const REGIONS = new Map<Object3D, RegionState>();
-/** The world's zones, one per region. */
-const PATHFINDING = new Pathfinding();
-let zones = 0;
+const REGIONS = new WeakMap<object, RegionState>();
+/** Each world's regions in the tree (by its topmost object), which a path in that world runs over. */
+const WORLDS = new WeakMap<Object3D, Set<Object3D>>();
 
 function stateOf(self: object): RegionState {
   const entity = godot_node_entity(self) as Object3D;
@@ -39,19 +38,25 @@ function stateOf(self: object): RegionState {
   return state;
 }
 
+function worldOf(object: Object3D): Object3D {
+  let world = object;
+  while (world.parent !== null) world = world.parent;
+  return world;
+}
+
 /** A region's zone again: its mesh or place changed. */
 function remake(state: RegionState): void {
   state.zone = undefined;
 }
 
-/** The zone of an enabled region in the tree, made from its mesh placed where the region stands. */
-function zoneOf(entity: Object3D, state: RegionState): string | undefined {
+/** The zone of an enabled region in the tree: its mesh placed where the region stands. */
+function zoneOf(entity: Object3D, state: RegionState): Pathfinding | undefined {
   if (!state.enabled || state.mesh === null || !is_inside_tree(entity)) return undefined;
   if (state.zone === undefined) {
     entity.updateWorldMatrix(true, false);
     const geometry = godot_navigation_mesh_geometry(state.mesh).clone().applyMatrix4(entity.matrixWorld);
-    const zone = `region${String((zones += 1))}`;
-    PATHFINDING.setZoneData(zone, Pathfinding.createZone(geometry));
+    const zone = new Pathfinding();
+    zone.setZoneData('region', Pathfinding.createZone(geometry));
     geometry.dispose();
     state.zone = zone;
   }
@@ -65,15 +70,15 @@ function zoneOf(entity: Object3D, state: RegionState): string | undefined {
  * @godot NavigationRegion3D (protocol)
  * @source scene/3d/navigation/navigation_agent_3d.cpp:799
  */
-export function godot_navigation_path(from: Vector3, to: Vector3): Vector3[] {
+export function godot_navigation_path(agent: Object3D, from: Vector3, to: Vector3): Vector3[] {
   const start = new ThreeVector3(from.x, from.y, from.z);
   const end = new ThreeVector3(to.x, to.y, to.z);
-  for (const [entity, state] of REGIONS) {
-    const zone = zoneOf(entity, state);
+  for (const entity of WORLDS.get(worldOf(agent)) ?? []) {
+    const zone = zoneOf(entity, stateOf(entity));
     if (zone === undefined) continue;
-    const group = PATHFINDING.getGroup(zone, start);
+    const group = zone.getGroup('region', start);
     if (group === null || group === undefined) continue;
-    const found = PATHFINDING.findPath(start, end, zone, group);
+    const found = zone.findPath(start, end, 'region', group);
     if (found === null || found === undefined || found.length === 0) continue;
     return [vector3(from.x, from.y, from.z), ...found.map((point) => vector3(point.x, point.y, point.z))];
   }
@@ -119,8 +124,17 @@ const NAVIGATION_REGION_3D = {
   spatial: true,
   mount: (entity: Object3D) => {
     stateOf(entity);
-    // A region leaving the tree leaves the world's map, and comes back placed anew.
-    godot_node_tree_signal(entity, 'tree_exiting').connect(() => remake(stateOf(entity)));
+    // A region in the tree is in its world's map; leaving, it leaves the map, and comes back placed anew.
+    godot_node_tree_signal(entity, 'tree_entered').connect(() => {
+      const world = worldOf(entity);
+      const regions = WORLDS.get(world) ?? new Set<Object3D>();
+      regions.add(entity);
+      WORLDS.set(world, regions);
+    });
+    godot_node_tree_signal(entity, 'tree_exiting').connect(() => {
+      WORLDS.get(worldOf(entity))?.delete(entity);
+      remake(stateOf(entity));
+    });
   },
   props: new Map<string, GodotElementProp<Object3D>>([
     ['navigationMesh', (entity, value: NavigationMesh | null) => set_navigation_mesh(entity, value)],

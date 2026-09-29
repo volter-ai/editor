@@ -12,9 +12,8 @@
  * `source_color` uniforms are converted from sRGB to linear, as Godot's are. `TIME` is the
  * `godot_TIME` uniform, which the scene sets from R3F's clock each frame.
  *
- * A shader reading the screen or depth texture reads the frame's opaque pass, captured once per
- * frame (`capture`), at Godot's screen UV and in Godot's reversed-Z depth; `VIEWPORT_SIZE` and
- * `INV_PROJECTION_MATRIX` are set each draw.
+ * `VIEWPORT_SIZE` and `INV_PROJECTION_MATRIX` (Godot's, flipped Y and reversed-Z depth) are set
+ * each draw.
  *
  * Where it differs: `SPECULAR` is not drawn (three's standard material keeps Godot's default
  * 0.5), and `shadows_disabled` does not stop the mesh receiving shadows (a mesh setting in three).
@@ -24,28 +23,19 @@ import CustomShaderMaterial from 'three-custom-shader-material/vanilla';
 import {
   AdditiveBlending,
   BackSide,
-  type Camera,
   Color as ThreeColor,
-  DepthTexture,
   DoubleSide,
   FrontSide,
-  HalfFloatType,
-  LinearMipmapLinearFilter,
   type Material,
   Matrix4,
-  type Mesh,
   MeshBasicMaterial,
   MeshStandardMaterial,
   NearestFilter,
-  type Object3D,
   RepeatWrapping,
-  type Scene,
   type Texture,
   Vector2 as ThreeVector2,
   Vector3 as ThreeVector3,
   Vector4 as ThreeVector4,
-  type WebGLRenderer,
-  WebGLRenderTarget,
 } from 'three';
 import type { GodotShaderUniform } from './shader';
 import type { ShaderMaterial } from './shader-material';
@@ -116,58 +106,6 @@ function uniformValue(uniform: GodotShaderUniform & { readonly color?: true; rea
 }
 
 /**
- * The frame's opaque pass, which a shader reading `hint_screen_texture` or `hint_depth_texture`
- * samples: rendered once per frame and camera, as the first such material draws, into a target
- * holding its colour (mipmapped, as `filter_linear_mipmap` reads it) and its depth. The meshes drawn
- * in the transparent pass (three's transparent materials, which those shaders' are) are left out,
- * as Godot copies the screen after its opaque pass (`RenderForwardClustered::_render_scene`).
- */
-interface Capture {
-  frame: number;
-  camera: Camera | null;
-  readonly target: WebGLRenderTarget;
-}
-
-const CAPTURES = new WeakMap<WebGLRenderer, Capture>();
-let capturing = false;
-const drawingSize = new ThreeVector2();
-
-function capture(renderer: WebGLRenderer, scene: Scene, camera: Camera): Capture {
-  const target = renderer.getRenderTarget();
-  if (target === null) renderer.getDrawingBufferSize(drawingSize);
-  else drawingSize.set(target.width, target.height);
-  let held = CAPTURES.get(renderer);
-  if (held === undefined) {
-    const made = new WebGLRenderTarget(drawingSize.x, drawingSize.y, { type: HalfFloatType, generateMipmaps: true, minFilter: LinearMipmapLinearFilter, depthTexture: new DepthTexture(drawingSize.x, drawingSize.y) });
-    held = { frame: -1, camera: null, target: made };
-    CAPTURES.set(renderer, held);
-  }
-  if (held.frame === renderer.info.render.frame && held.camera === camera) return held;
-  held.camera = camera;
-  if (held.target.width !== drawingSize.x || held.target.height !== drawingSize.y) held.target.setSize(drawingSize.x, drawingSize.y);
-  const hidden: Object3D[] = [];
-  scene.traverseVisible((object) => {
-    const material = (object as Mesh).material as Material | Material[] | undefined;
-    if (material === undefined) return;
-    if ((Array.isArray(material) ? material : [material]).some((entry) => entry.transparent)) hidden.push(object);
-  });
-  for (const object of hidden) object.visible = false;
-  const shadows = renderer.shadowMap.autoUpdate;
-  renderer.shadowMap.autoUpdate = false;
-  capturing = true;
-  renderer.setRenderTarget(held.target);
-  renderer.clear();
-  renderer.render(scene, camera);
-  // The nested render counts a frame: the outer one's later draws read this capture.
-  held.frame = renderer.info.render.frame;
-  renderer.setRenderTarget(target);
-  capturing = false;
-  renderer.shadowMap.autoUpdate = shadows;
-  for (const object of hidden) object.visible = true;
-  return held;
-}
-
-/**
  * Godot's depth correction (`Projection::set_depth_correction`): Y flipped, and depth mapped to
  * reversed Z in [0, 1]; its inverse takes Godot's clip coordinates to three's.
  */
@@ -197,10 +135,6 @@ export function godot_shader_material_three(material: ShaderMaterial): GodotSpat
   const uniforms: Record<string, { value: unknown }> = { godot_TIME: { value: 0 }, godot_VIEWPORT_SIZE: { value: new ThreeVector2(1, 1) }, godot_INV_PROJECTION_MATRIX: { value: new Matrix4() } };
   const byName = new Map(lowered.uniforms.map((uniform) => [uniform.name, uniform] as const));
   for (const uniform of lowered.uniforms) {
-    if (uniform.source !== undefined) {
-      uniforms[uniform.glsl] = { value: null };
-      continue;
-    }
     const value = material.parameters.has(uniform.name) ? material.parameters.get(uniform.name) : uniform.default;
     uniforms[uniform.glsl] = { value: value === null ? (uniform.type.startsWith('sampler') ? null : uniformValue(uniform, [])) : uniformValue(uniform, value) };
   }
@@ -219,22 +153,17 @@ export function godot_shader_material_three(material: ShaderMaterial): GodotSpat
     depthTest: !modes.has('depth_test_disabled'),
     ...(modes.has('ambient_light_disabled') && !modes.has('unshaded') ? { patchMap: AMBIENT_LIGHT_DISABLED } : {}),
   });
-  // Each draw: the viewport's size and Godot's inverse projection, and the frame's capture for the
-  // screen and depth textures it samples.
-  const screen = lowered.uniforms.filter((uniform) => uniform.source !== undefined);
+  // Each draw: the viewport's size and Godot's inverse projection.
   made.onBeforeRender = (renderer, scene, camera) => {
     const target = renderer.getRenderTarget();
     const size = uniforms['godot_VIEWPORT_SIZE']?.value as ThreeVector2;
     if (target === null) renderer.getDrawingBufferSize(size);
     else size.set(target.width, target.height);
     (uniforms['godot_INV_PROJECTION_MATRIX']?.value as Matrix4).multiplyMatrices(camera.projectionMatrixInverse, DEPTH_CORRECTION_INVERSE);
-    if (screen.length === 0 || capturing) return;
-    const held = capture(renderer, scene, camera);
-    for (const uniform of screen) (uniforms[uniform.glsl] as { value: unknown }).value = uniform.source === 'depth' ? held.target.depthTexture : held.target.texture;
   };
   material.listeners.add((name, value) => {
     const uniform = byName.get(name);
-    if (uniform === undefined || uniform.source !== undefined) return;
+    if (uniform === undefined) return;
     const slot = uniforms[uniform.glsl] as { value: unknown };
     slot.value = value === null || value === undefined ? uniformValue(uniform, uniform.default ?? []) : uniformValue(uniform, value);
   });

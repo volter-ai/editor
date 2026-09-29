@@ -41,8 +41,6 @@ export type GodotSceneResourceIdiom =
   | { readonly kind: 'texture' }
   /** A baked NavigationMesh: a data file the scene imports, made once (`navigation-mesh.ts`). */
   | { readonly kind: 'navigation-mesh' }
-  /** A ViewportTexture: its SubViewport's image, from that node's ref (`viewport-texture.ts`). */
-  | { readonly kind: 'viewport-texture' }
   /** A MeshLibrary, AnimationLibrary or AnimationNodeBlendTree: a data file the scene imports. */
   | { readonly kind: 'mesh-library' }
   | { readonly kind: 'animation-library' }
@@ -83,7 +81,6 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
   CompressedTexture2D: { kind: 'texture' },
   MeshLibrary: { kind: 'mesh-library' },
   NavigationMesh: { kind: 'navigation-mesh' },
-  ViewportTexture: { kind: 'viewport-texture' },
   AnimationLibrary: { kind: 'animation-library' },
   AnimationNodeBlendTree: { kind: 'animation-tree' },
   CompressedCubemap: { kind: 'loaded', module: 'compressed-cubemap', exportName: 'useGodotCubemap' },

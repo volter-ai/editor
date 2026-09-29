@@ -10,7 +10,7 @@ import type { ReactElement } from 'react';
 import { Group, type Object3D } from 'three';
 import { godot_canvas_item_self_filter } from './canvas-item';
 import { type Color, construct as color } from './color';
-import { get_size, godot_control_mount, godot_control_props } from './control';
+import { godot_control_mount, godot_control_props } from './control';
 import { godot_node_entity } from './node';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
@@ -25,14 +25,6 @@ function draw(entity: Object3D, element: HTMLElement): void {
   element.style.filter = godot_canvas_item_self_filter(entity, element);
 }
 
-/** `NOTIFICATION_DRAW` in a SubViewport: the rect filled with the colour, tinted. */
-function paint(entity: Object3D, context: CanvasRenderingContext2D, tint: Color): void {
-  const fill = COLORS.get(entity) ?? color(1, 1, 1, 1);
-  const size = get_size(entity);
-  context.fillStyle = css(color(fill.r * tint.r, fill.g * tint.g, fill.b * tint.b, fill.a));
-  context.fillRect(0, 0, size.x, size.y);
-}
-
 function drawKey(entity: Object3D, element: HTMLElement): string {
   return JSON.stringify([COLORS.get(entity), godot_canvas_item_self_filter(entity, element)]);
 }
@@ -45,7 +37,7 @@ function drawKey(entity: Object3D, element: HTMLElement): string {
  */
 export function godot_color_rect_mount(entity: Object3D): void {
   COLORS.set(entity, color(1, 1, 1, 1));
-  godot_control_mount(entity, CLASSES, { draw, drawKey, paint, shaded: (node) => COLORS.get(node) ?? color(1, 1, 1, 1) });
+  godot_control_mount(entity, CLASSES, { draw, drawKey });
 }
 
 /**

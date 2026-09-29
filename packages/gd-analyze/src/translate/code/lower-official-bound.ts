@@ -598,28 +598,6 @@ function scriptMemberNames(project: BoundGodotProject, resPath: string): Readonl
   return names;
 }
 
-/** A project script's function's parameters, its own or the nearest script ancestor's that declares it. */
-function scriptFunctionParameters(project: BoundGodotProject, resPath: string, name: string): readonly GodotBoundNode[] | undefined {
-  const script = project.scripts.find((entry) => entry.resPath === resPath);
-  if (script === undefined) return undefined;
-  for (const path of [resPath, ...script.inheritance.scriptAncestors]) {
-    const program = project.scripts.find((entry) => entry.resPath === path)?.program;
-    const root = program?.nodes[program.rootNodeId];
-    if (program === undefined || root?.kind !== 'CLASS') return undefined;
-    for (const memberId of root.members) {
-      const member = program.nodes[memberId];
-      if (member?.kind !== 'FUNCTION') continue;
-      const identifier = program.nodes[member.identifier];
-      if (identifier?.kind !== 'IDENTIFIER' || identifier.name !== name) continue;
-      return member.parameters.flatMap((id) => {
-        const parameter = program.nodes[id];
-        return parameter === undefined ? [] : [parameter];
-      });
-    }
-  }
-  return undefined;
-}
-
 function lowerScript(
   project: BoundGodotProject,
   source: BoundGodotSourceScript,
@@ -704,7 +682,7 @@ function lowerScript(
     source.numericVariants,
   );
   context.resourceLoads = resourceLoadTargets(project, source);
-  context.scriptParameters = (resPath, name) => scriptFunctionParameters(project, resPath, name);
+  context.nodeArguments = new Map(source.nodeArguments.map((entry) => [entry.argumentId, entry.datatype] as const));
   context.nullableReads = new Set((source.nullableVariables ?? []).flatMap((entry) => entry.reads));
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;

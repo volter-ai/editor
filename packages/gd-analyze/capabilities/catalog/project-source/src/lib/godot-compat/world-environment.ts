@@ -100,7 +100,7 @@
  */
 
 import { useThree } from '@react-three/fiber';
-import { Bloom, BrightnessContrast, EffectComposer, HueSaturation, N8AO, ToneMapping as ToneMappingEffect } from '@react-three/postprocessing';
+import { Bloom, BrightnessContrast, DepthOfField, EffectComposer, HueSaturation, N8AO, ToneMapping as ToneMappingEffect } from '@react-three/postprocessing';
 import { BlendFunction, ToneMappingMode } from 'postprocessing';
 import { createElement, Fragment, type ReactElement, type RefObject, useLayoutEffect, useRef, useState } from 'react';
 import {
@@ -135,7 +135,7 @@ import {
 import type { Color } from './color';
 import type { Environment } from './environment';
 import { get_attributes as get_camera_attributes, get_environment as get_camera_environment } from './camera-3d';
-import { type CameraAttributesPractical, GodotDepthOfFieldEffect } from './camera-attributes-practical';
+import type { CameraAttributesPractical } from './camera-attributes-practical';
 import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
 import { useGodotDraw } from './advance';
 import { godot_node_foreign } from './node';
@@ -606,21 +606,23 @@ export function GodotWorldEnvironment({ skyLights = NO_SKY_LIGHTS, ...props }: G
   return createElement(Fragment, null, element, createElement(EffectComposer, { multisampling: 0, depthBuffer: true, scene, camera, children: [...depthOfField(attributes), ...(env === null ? [] : postEffects(env))] }));
 }
 
-const DEPTH_OF_FIELD = new WeakMap<CameraAttributesPractical, GodotDepthOfFieldEffect>();
-
 /**
- * The camera's depth of field, drawn before the environment's post pass as Godot blurs the scene
- * before its tone mapping (`RenderForwardClustered::_render_buffers_post_process`); it blurs
- * nothing while its blurs are off (`camera-attributes-practical.ts`).
+ * The camera's depth of field as `postprocessing`'s `DepthOfField`, drawn before the environment's
+ * post pass as Godot blurs before tone mapping: in focus up to where the far blur begins, blurring
+ * over its transition, the bokeh scaled by the blur amount (Godot's amount is a share of a 64-pixel
+ * radius). Without a far blur, the near blur's distance is the focus.
  */
 function depthOfField(attributes: CameraAttributesPractical | null): ReactElement[] {
-  if (attributes === null) return [];
-  let effect = DEPTH_OF_FIELD.get(attributes);
-  if (effect === undefined) {
-    effect = new GodotDepthOfFieldEffect(attributes);
-    DEPTH_OF_FIELD.set(attributes, effect);
-  }
-  return [createElement('primitive', { key: 'dof', object: effect, dispose: null })];
+  if (attributes === null || (!attributes.dof_blur_far_enabled && !attributes.dof_blur_near_enabled) || attributes.dof_blur_amount <= 0) return [];
+  const far = attributes.dof_blur_far_enabled;
+  return [
+    createElement(DepthOfField, {
+      key: 'dof',
+      worldFocusDistance: far ? attributes.dof_blur_far_distance : attributes.dof_blur_near_distance,
+      worldFocusRange: far ? attributes.dof_blur_far_transition : attributes.dof_blur_near_transition,
+      bokehScale: attributes.dof_blur_amount * 10,
+    }),
+  ];
 }
 
 /**
