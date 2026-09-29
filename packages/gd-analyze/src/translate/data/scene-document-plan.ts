@@ -139,6 +139,8 @@ export interface TargetGodotImportedModelNode {
 export interface TargetGodotImportedModelBody {
   readonly path: string;
   readonly type: 'fixed';
+  /** The importer's collision layer and mask (`physics/layer`, `physics/mask`), where it set them. */
+  readonly layers?: readonly [number, number];
   readonly colliders: readonly {
     readonly path: string;
     readonly matrix: readonly number[];
@@ -2077,7 +2079,12 @@ function planImportedInstance(
       }
       colliders.push({ path: child.path, matrix: child.matrix, collider });
     }
-    bodies.push({ path: member.path, type: 'fixed', colliders });
+    if (member.classes.includes('RigidBody3D')) {
+      refuse(context, at, `${imported.resPath}: ${member.path}: an imported RigidBody3D is not mounted`, 'resource', 'imported .glb');
+      return undefined;
+    }
+    const layers = model.collisionLayersByPath?.[member.path];
+    bodies.push({ path: member.path, type: 'fixed', ...(layers === undefined ? {} : { layers }), colliders });
   }
   if (bodies.length > 0 && model.meshScale !== undefined) {
     refuse(context, at, `${imported.resPath}: the root scale of a model with physics bodies is not baked into their shapes`, 'resource', 'imported .glb');

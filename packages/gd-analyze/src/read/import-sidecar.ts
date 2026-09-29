@@ -378,6 +378,22 @@ export interface GodotSceneImportParams {
    * express. `character.glb`'s `idle`/`jump`/`walk` loop ONLY because the sidecar says so.
    */
   readonly animationLoopModes: Readonly<Record<string, number>>;
+  /**
+   * `_subresources.nodes.PATH:<path>` with `generate/physics` on: the body the importer makes of
+   * that mesh node (`ResourceImporterScene::_post_fix_node`, `resource_importer_scene.cpp:1653`), by
+   * the node's path; a string names a setting that is not read.
+   */
+  readonly nodePhysics: Readonly<Record<string, GodotImportedNodePhysics | string>>;
+}
+
+/** The physics body the importer makes of a mesh node (`generate/physics`, `resource_importer_scene.cpp:2127`). */
+export interface GodotImportedNodePhysics {
+  /** `physics/body_type`: StaticBody3D 0, RigidBody3D 1, Area3D 2. */
+  readonly bodyType: number;
+  /** `physics/shape_type`: decompose convex 0, single convex 1, trimesh 2, box 3, sphere 4, cylinder 5, capsule 6, automatic 7. */
+  readonly shapeType: number;
+  readonly layer: number;
+  readonly mask: number;
 }
 
 /**
@@ -419,6 +435,31 @@ function readAnimationLoopModes(
   return modes;
 }
 
+/** The `generate/physics` settings a physics node's entry may carry, and their defaults (`resource_importer_scene.cpp:2127`). */
+const NODE_PHYSICS_DEFAULTS: Readonly<Record<string, number>> = { 'physics/body_type': 0, 'physics/shape_type': 7, 'physics/layer': 1, 'physics/mask': 1 };
+
+function readNodePhysics(subresources: GodotValue | undefined): Readonly<Record<string, GodotImportedNodePhysics | string>> {
+  if (subresources?.kind !== 'dict') return {};
+  const nodes = subresources.entries.find((entry) => entry.key === 'nodes')?.value;
+  if (nodes?.kind !== 'dict') return {};
+  const result: Record<string, GodotImportedNodePhysics | string> = {};
+  for (const node of nodes.entries) {
+    if (node.value.kind !== 'dict' || !node.key.startsWith('PATH:')) continue;
+    const settings = node.value.entries;
+    const generate = settings.find((entry) => entry.key === 'generate/physics')?.value;
+    if (generate?.kind !== 'bool' || !generate.value) continue;
+    const path = node.key.slice('PATH:'.length);
+    const unread = settings.find((entry) => entry.key !== 'generate/physics' && NODE_PHYSICS_DEFAULTS[entry.key] === undefined);
+    if (unread !== undefined) {
+      result[path] = `the importer's ${unread.key} for ${path} is not read`;
+      continue;
+    }
+    const value = (key: string): number => asNumber(settings.find((entry) => entry.key === key)?.value) ?? (NODE_PHYSICS_DEFAULTS[key] as number);
+    result[path] = { bodyType: value('physics/body_type'), shapeType: value('physics/shape_type'), layer: value('physics/layer'), mask: value('physics/mask') };
+  }
+  return result;
+}
+
 /** The `[params]` of a `scene` sidecar. Pure; the caller owns the filesystem. */
 export function readSceneImportParams(file: GodotTextFile): GodotSceneImportParams {
   const params = file.sections.find((one) => one.kind === 'params')?.properties ?? {};
@@ -436,6 +477,7 @@ export function readSceneImportParams(file: GodotTextFile): GodotSceneImportPara
     animationTrimming: boolOr(params['animation/trimming'], false),
     animationRemoveImmutableTracks: boolOr(params['animation/remove_immutable_tracks'], true),
     animationLoopModes: readAnimationLoopModes(params['_subresources']),
+    nodePhysics: readNodePhysics(params['_subresources']),
   };
 }
 

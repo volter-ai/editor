@@ -182,6 +182,8 @@ export interface GlbSceneNode {
   readonly gltfName?: string;
   /** A CollisionShape3D's shape, as the glTF's `OMI_physics_shape` states it (`GLTFPhysicsShape::to_node`). */
   readonly collisionShape?: GltfPhysicsShape;
+  /** A physics body's collision layer and mask, where the importer set them (`physics/layer`, `physics/mask`). */
+  readonly collisionLayers?: readonly [number, number];
 }
 
 export interface GlbScene {
@@ -275,6 +277,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
   const { nodeIndexByPath, nameByPath, surfaceCountByPath, meshByPath, boneNamesByPath, bonesByPath } =
     gltfOriginIndex(scene.nodes);
   const collisionShapeByPath = new Map(scene.nodes.flatMap((node) => (node.collisionShape === undefined ? [] : [[node.path, node.collisionShape] as const])));
+  const collisionLayersByPath = new Map(scene.nodes.flatMap((node) => (node.collisionLayers === undefined ? [] : [[node.path, node.collisionLayers] as const])));
   const player = scene.nodes.find((node) => node.animations !== undefined);
   const playerClips = player?.animations ?? [];
   const animationPlayer: GltfAnimationPlayerOrigin | undefined =
@@ -306,6 +309,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
       nameByPath,
       surfaceCountByPath,
       ...(collisionShapeByPath.size === 0 ? {} : { collisionShapeByPath }),
+      ...(collisionLayersByPath.size === 0 ? {} : { collisionLayersByPath }),
       meshByPath,
       boneNamesByPath,
       bonesByPath,
@@ -548,6 +552,7 @@ interface MutableSceneNode {
   gltfNodeIndex?: number;
   gltfName?: string;
   collisionShape?: GltfPhysicsShape;
+  collisionLayers?: readonly [number, number];
   readonly children: MutableSceneNode[];
 }
 
@@ -912,6 +917,58 @@ export function readGltfAsGodotScene(
     root.name = importParams.rootName;
   }
 
+  // ---- the importer's physics bodies ---------------------------------------------------------
+  // `ResourceImporterScene::_post_fix_node` (`resource_importer_scene.cpp:1653`): a mesh node whose
+  // `_subresources.nodes.PATH:<path>` turns `generate/physics` on gets a body: a StaticBody3D child
+  // (`physics/body_type` 0), or a RigidBody3D taking its place with the mesh under it (1), holding a
+  // CollisionShape3D of the mesh's shape, the importer's layer and mask on the body. An automatic
+  // shape is a trimesh for a static body; a single convex shape is the mesh's hull. Decomposed
+  // convex shapes, primitive shapes and Area3D bodies are not modelled.
+  const physics = Object.entries(importParams.nodePhysics);
+  if (physics.length > 0) {
+    if (importParams.rootScale !== 1) throw new GltfParseError(`${resPath}: generated physics under a root scale is not modelled`);
+    const found = new Map<string, { readonly node: MutableSceneNode; readonly parent: MutableSceneNode }>();
+    const index = (parent: MutableSceneNode, prefix: string): void => {
+      for (const child of parent.children) {
+        const path = prefix === '' ? child.name : `${prefix}/${child.name}`;
+        found.set(path, { node: child, parent });
+        index(child, path);
+      }
+    };
+    index(root, '');
+    for (const [path, settings] of physics) {
+      if (typeof settings === 'string') throw new GltfParseError(`${resPath}: ${settings}`);
+      const place = found.get(path);
+      const mesh = place?.node.gltfNodeIndex === undefined ? undefined : doc.nodes[place.node.gltfNodeIndex]?.mesh;
+      if (place === undefined || place.node.mesh === undefined || mesh === undefined) continue;
+      const automatic = settings.shapeType === 7;
+      const shapeType = automatic ? (settings.bodyType === 1 ? 0 : 2) : settings.shapeType;
+      if (shapeType !== 1 && shapeType !== 2) throw new GltfParseError(`${resPath}: ${path}'s generated physics shape type ${String(shapeType)} is not modelled`);
+      const shapeNode: MutableSceneNode = {
+        name: 'CollisionShape3D',
+        nodeClass: 'CollisionShape3D',
+        transform: IDENTITY_TRANSFORM,
+        visible: true,
+        collisionShape: { type: shapeType === 2 ? 'trimesh' : 'convex', mesh },
+        children: [],
+      };
+      const layers = [settings.layer, settings.mask] as const;
+      if (settings.bodyType === 0) {
+        const body: MutableSceneNode = { name: 'StaticBody3D', nodeClass: 'StaticBody3D', transform: IDENTITY_TRANSFORM, visible: true, collisionLayers: layers, children: [] };
+        addChild(place.node, body);
+        addChild(body, shapeNode);
+      } else if (settings.bodyType === 1) {
+        const { node, parent } = place;
+        const body: MutableSceneNode = { name: node.name, nodeClass: 'RigidBody3D', transform: node.transform, visible: true, collisionLayers: layers, children: [node] };
+        parent.children.splice(parent.children.indexOf(node), 1, body);
+        node.transform = IDENTITY_TRANSFORM;
+        addChild(body, shapeNode);
+      } else {
+        throw new GltfParseError(`${resPath}: ${path}'s generated Area3D is not modelled`);
+      }
+    }
+  }
+
   // ---- the AnimationPlayer -----------------------------------------------------------------
   if (importParams.animationImport && doc.animations.length > 0) {
     const player: MutableSceneNode = {
@@ -1011,6 +1068,7 @@ export function readGltfAsGodotScene(
       ...(node.gltfNodeIndex === undefined ? {} : { gltfNodeIndex: node.gltfNodeIndex }),
       ...(node.gltfName === undefined ? {} : { gltfName: node.gltfName }),
       ...(node.collisionShape === undefined ? {} : { collisionShape: node.collisionShape }),
+      ...(node.collisionLayers === undefined ? {} : { collisionLayers: node.collisionLayers }),
     });
     for (const child of node.children) {
       walk(child, path === '.' ? child.name : `${path}/${child.name}`);

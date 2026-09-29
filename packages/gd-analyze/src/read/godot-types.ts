@@ -241,6 +241,8 @@ export interface GltfSceneOrigin {
   readonly surfaceCountByPath: ReadonlyMap<string, number>;
   /** Godot node path → a CollisionShape3D's shape, as the glTF's `OMI_physics_shape` states it. */
   readonly collisionShapeByPath?: ReadonlyMap<string, GltfPhysicsShape>;
+  /** Godot node path → a physics body's collision layer and mask, where the importer set them. */
+  readonly collisionLayersByPath?: ReadonlyMap<string, readonly [number, number]>;
   /** Godot node path → the glTF `meshes[]` index of the mesh resource the node carries. */
   readonly meshByPath: ReadonlyMap<string, number>;
   /** Importer-synthesized Skeleton3D path → ordered bone names. */

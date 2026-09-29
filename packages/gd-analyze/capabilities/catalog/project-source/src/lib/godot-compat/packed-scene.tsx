@@ -39,7 +39,7 @@ import { createPortal, type ThreeElements, useLoader } from '@react-three/fiber'
 import { BallCollider, CapsuleCollider, ConvexHullCollider, CuboidCollider, CylinderCollider, RigidBody, type RapierRigidBody, TrimeshCollider } from '@react-three/rapier';
 import { createContext, createElement, Fragment, type ReactElement, type ReactNode, type Ref, type RefObject, use, useContext, useEffect, useImperativeHandle, useLayoutEffect, useMemo, useRef, useState } from 'react';
 import { type BufferGeometry, Group, type Material, Matrix4, type Mesh, type Object3D, Quaternion as ThreeQuaternion, Texture, Vector3 as ThreeVector3 } from 'three';
-import { godot_collision_object_stand_in } from './collision-object-3d';
+import { godot_collision_object_stand_in, set_collision_layer, set_collision_mask } from './collision-object-3d';
 import { type GLTF, GLTFLoader, type GLTFLoaderPlugin } from 'three/examples/jsm/loaders/GLTFLoader.js';
 import { clone as cloneSkinned } from 'three/examples/jsm/utils/SkeletonUtils.js';
 import { type AnimationLibrary, type GodotAnimationLibraryData, get_animation, godot_animation_library_load } from './animation-library';
@@ -381,13 +381,15 @@ function sampleExternalImages(gltf: { readonly scene: Object3D; readonly parser:
 }
 
 /**
- * A physics body the importer made in the model (`OMI_physics_body`, `GLTFDocumentExtensionPhysics`):
- * a fixed `<RigidBody>` in the node's own object, standing for the node, with a collider per shape
- * at the shape node's transform.
+ * A physics body the importer made in the model (`OMI_physics_body`, `GLTFDocumentExtensionPhysics`,
+ * or the `.import`'s `generate/physics`): a fixed `<RigidBody>` in the node's own object, standing
+ * for the node, with a collider per shape at the shape node's transform, and the importer's layer
+ * and mask.
  */
 export interface GodotImportedModelBody {
   readonly path: string;
   readonly type: 'fixed';
+  readonly layers?: readonly [number, number];
   readonly colliders: readonly {
     readonly path: string;
     readonly matrix: readonly number[];
@@ -459,8 +461,14 @@ function ModelBody({ gltf, entity, body }: { readonly gltf: GLTF; readonly entit
   const held = useRef<RapierRigidBody | null>(null);
   useEffect(() => {
     const rigid = held.current;
-    return rigid === null ? undefined : godot_collision_object_stand_in(rigid as never, entity);
-  }, [entity]);
+    if (rigid === null) return undefined;
+    const release = godot_collision_object_stand_in(rigid as never, entity);
+    if (body.layers !== undefined) {
+      set_collision_layer(entity, body.layers[0]);
+      set_collision_mask(entity, body.layers[1]);
+    }
+    return release;
+  }, [entity, body]);
   const colliders = body.colliders.map((entry) => {
     const position = new ThreeVector3();
     const rotation = new ThreeQuaternion();

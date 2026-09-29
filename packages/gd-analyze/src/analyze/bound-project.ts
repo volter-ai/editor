@@ -226,6 +226,8 @@ export interface BoundGodotSceneDocument {
     readonly meshByPath: Readonly<Record<string, number>>;
     /** Each CollisionShape3D the importer made from the file's `OMI_physics_shape`, by path: its shape. */
     readonly collisionShapeByPath?: Readonly<Record<string, GltfPhysicsShape>>;
+    /** Each physics body the importer made from the `.import`'s `generate/physics`, by path: its layer and mask. */
+    readonly collisionLayersByPath?: Readonly<Record<string, readonly [number, number]>>;
     /** Each Skeleton3D's bones in Godot's order: names, glTF joint nodes and imported poses. */
     readonly bonesByPath: Readonly<Record<string, readonly BoundGodotImportedBone[]>>;
     readonly externalImages: readonly GltfExternalImage[];
@@ -692,6 +694,7 @@ function boundDocuments(
                   nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
                   meshByPath: Object.fromEntries(document.gltfOrigin.meshByPath),
                   ...(document.gltfOrigin.collisionShapeByPath === undefined ? {} : { collisionShapeByPath: Object.fromEntries(document.gltfOrigin.collisionShapeByPath) }),
+                  ...(document.gltfOrigin.collisionLayersByPath === undefined ? {} : { collisionLayersByPath: Object.fromEntries(document.gltfOrigin.collisionLayersByPath) }),
                   bonesByPath: Object.fromEntries(document.gltfOrigin.bonesByPath),
                   externalImages: document.gltfOrigin.externalImages,
                   ...externalMaterialsOf(decoded.imports.find((sidecar) => sidecar.sourceFile === document.resPath)?.externalMaterials),
