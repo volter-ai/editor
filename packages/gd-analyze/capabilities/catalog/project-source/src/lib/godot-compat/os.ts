@@ -52,3 +52,15 @@ export function get_static_memory_usage(): number {
 export function get_static_memory_peak_usage(): number {
   return 0;
 }
+
+/**
+ * Opens the URI in a new browsing context, as the web platform's `OS_Web::shell_open` does
+ * (`platform/web/os_web.cpp:194`, `window.open`); OK.
+ *
+ * @godot OS.shell_open
+ * @source core/core_bind.cpp:359
+ */
+export function shell_open(uri: string): number {
+  globalThis.open?.(String(uri), '_blank');
+  return 0;
+}

@@ -184,11 +184,11 @@ export interface DirectGodotProjectCompositionPlan {
    */
   readonly sceneAutoloads: readonly { readonly name: string; readonly sceneResPath: string; readonly exportName: string; readonly targetPath: string }[];
   /**
-   * Whether a script changes the scene (`change_scene_to_packed`, `change_scene_to_file`) or reloads
-   * it (`reload_current_scene`): the world mounts the scene a change names, or the main scene anew,
-   * only where one can.
+   * Whether a script changes the scene (`change_scene_to_packed`, `change_scene_to_file`), reloads
+   * it (`reload_current_scene`) or pauses the tree: the world mounts the scene a change names, or
+   * the main scene anew, and pauses its physics, only where one can.
    */
-  readonly sceneChanges: { readonly change: boolean; readonly reload: boolean };
+  readonly sceneChanges: { readonly change: boolean; readonly reload: boolean; readonly pause: boolean };
   /**
    * The default bus layout's buses (`AudioServer::set_bus_layout`, `audio_server.cpp:1755`), which
    * the world sets before any script runs; Master alone where the project has no layout, or no
@@ -1000,7 +1000,9 @@ export function planDirectGodotProjectComposition(
 /** The scene changes the scripts call for, by the called function's name (a dynamic call counts too). */
 function sceneChanges(project: BoundGodotProject): DirectGodotProjectCompositionPlan['sceneChanges'] {
   const called = new Set(project.scripts.flatMap((script) => script.program.nodes.flatMap((node) => (node.kind === 'CALL' ? [node.functionName] : []))));
-  return { change: called.has('change_scene_to_packed') || called.has('change_scene_to_file'), reload: called.has('reload_current_scene') };
+  // A pause is `set_pause` or a store to `paused` (`get_tree().paused = true`).
+  const named = new Set(project.scripts.flatMap((script) => script.program.nodes.flatMap((node) => (node.kind === 'IDENTIFIER' ? [node.name] : []))));
+  return { change: called.has('change_scene_to_packed') || called.has('change_scene_to_file'), reload: called.has('reload_current_scene'), pause: called.has('set_pause') || named.has('paused') };
 }
 
 /**

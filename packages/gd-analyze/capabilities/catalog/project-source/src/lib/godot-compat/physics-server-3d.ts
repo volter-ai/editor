@@ -11,7 +11,7 @@
 
 import { godot_collision_object_body, godot_collision_object_layers, godot_collision_object_of_collider, godot_physics_world } from './collision-object-3d';
 import { godot_node_entity } from './node';
-import { godot_physics_body_3d_collides } from './physics-body-3d';
+import { add_collision_exception_with, godot_physics_body_3d_collides } from './physics-body-3d';
 import type { PhysicsTestMotionParameters3D } from './physics-test-motion-parameters-3d';
 import { godot_test_motion_result, type PhysicsTestMotionResult3D } from './physics-test-motion-result-3d';
 import { construct as vector3, op_multiply, op_subtract } from './vector3';
@@ -84,4 +84,15 @@ export function body_test_motion(body: object, parameters: PhysicsTestMotionPara
   ];
   out.collision_count = 1;
   return true;
+}
+
+/**
+ * The body no longer collides with the other: a body's RID is its node (`get_rid`), so this is
+ * the node's own exception (`PhysicsBody3D.add_collision_exception_with`).
+ *
+ * @godot PhysicsServer3D.body_add_collision_exception
+ * @source servers/physics_3d/physics_server_3d.cpp:828
+ */
+export function body_add_collision_exception(body: object, excepted_body: object): void {
+  add_collision_exception_with(body, excepted_body);
 }

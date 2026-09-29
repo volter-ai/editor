@@ -3109,6 +3109,21 @@ export function lowerOfficialExpression(
         }
         // On a native object, or a script instance whose script does not declare the name (its
         // native base's signal, as its properties are).
+        // An engine singleton's property (`Input.mouse_mode`): its getter on the one object, bound
+        // without a receiver (`Engine::get_singleton_object`), as its write is (`assignablePlace`).
+        if (node.isAttribute && baseNode.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS') {
+          const found = context.nativeProperty(baseNode.name, officialBoundPropertyName(context, node.attribute, node));
+          const method = found?.getter;
+          if (method !== undefined) {
+            const use = context.bindingUse(
+              { sourceRevision: context.sourceRevision, kind: 'native-member', owner: method.owner, member: method.name, signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}` },
+              node,
+            );
+            if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') return context.refuse(node, `${method.owner}.${method.name} is not bound on the singleton`);
+            const rule = context.selectRule(node, ['subscript-attribute:native-property'], [baseNode], ['binding']);
+            return expression(bindingCall(context, node, use, []), [...rule.requirements, ...use.requirements]);
+          }
+        }
         // An engine singleton's signal (`RenderingServer.frame_post_draw`) is read as an object's is,
         // the singleton's value its receiver.
         const singleton = baseNode.kind === 'IDENTIFIER' && baseNode.source === 'NATIVE_CLASS' && baseNode.datatype.kind === 'NATIVE' && baseNode.datatype.metaType;

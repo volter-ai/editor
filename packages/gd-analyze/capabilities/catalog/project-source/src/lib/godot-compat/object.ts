@@ -14,6 +14,7 @@
  */
 
 import { godot_node_entity, godot_node_is_freed, godot_node_is_queued, godot_node_object } from './node';
+import { emitRetainedGodotSignal, godot_object_signal, isRetainedGodotSignal } from './signal';
 
 /** Runs `run` after the current work, unless its target has been freed by then. */
 function defer(target: object, run: () => void): void {
@@ -222,4 +223,19 @@ export function has_method(self: object, method: string): boolean {
     prototype = Object.getPrototypeOf(prototype) as object | null;
   }
   return false;
+}
+
+/**
+ * Emits the object's signal of that name: its script's (`signal hit`), else the engine signal its
+ * object's map holds (`Object::emit_signalp`, `object.cpp:1274`); OK either way.
+ *
+ * @godot Object.emit_signal
+ * @source core/object/object.cpp:1246
+ */
+export function emit_signal(self: object, signal: string, ...args: readonly unknown[]): number {
+  const entity = godot_node_entity(self);
+  const own = (godot_node_object(entity) as Record<string, unknown> | undefined)?.[String(signal)];
+  if (isRetainedGodotSignal(own)) emitRetainedGodotSignal(own, args);
+  else godot_object_signal(entity, String(signal)).emit(...args);
+  return 0;
 }

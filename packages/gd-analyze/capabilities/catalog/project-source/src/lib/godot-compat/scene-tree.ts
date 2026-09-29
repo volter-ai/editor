@@ -24,11 +24,12 @@
  * function's by name here; a node made by `Class.new()`, which React never renders, steps none.
  *
  * The tree is an empty record; its root is the three scene the main scene mounts into, named
- * `root` as Godot's root Window is. Pause is not transcribed (the tree never pauses).
+ * `root` as Godot's root Window is. Pausing pauses its nodes by their process modes and the
+ * world's physics (`set_pause`).
  */
 
 import type { PackedScene } from './packed-scene-instance';
-import { godot_node_enter_root, godot_node_free, godot_node_object, godot_node_group_members, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued } from './node';
+import { godot_node_enter_root, godot_node_free, godot_node_object, godot_node_group_members, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued, godot_node_set_tree_paused, godot_node_tree_paused } from './node';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -347,6 +348,27 @@ export function queue_delete(self: SceneTree, object: object): void {
   queueMicrotask(() => {
     if (!godot_node_is_freed(object)) godot_node_free(object);
   });
+}
+
+/**
+ * Pauses or resumes the tree: nodes process by their process modes (`node.ts`) and the world's
+ * physics steps only while it runs (`useGodotPaused`).
+ *
+ * @godot SceneTree.set_pause
+ * @source scene/main/scene_tree.cpp:1100
+ */
+export function set_pause(self: SceneTree, enable: boolean): void {
+  void self;
+  godot_node_set_tree_paused(Boolean(enable));
+}
+
+/**
+ * @godot SceneTree.is_paused
+ * @source scene/main/scene_tree.cpp:1121
+ */
+export function is_paused(self: SceneTree): boolean {
+  void self;
+  return godot_node_tree_paused();
 }
 
 /**

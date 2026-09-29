@@ -580,7 +580,7 @@ export function godot_node_processing(entity: object): {
     insideTree: state.insideTree,
     process: state.process,
     physicsProcess: state.physicsProcess,
-    canProcess: processModeAllows(entity, state, false),
+    canProcess: processModeAllows(entity, state),
     processPriority: state.processPriority,
     physicsProcessPriority: state.physicsProcessPriority,
     internalPhysics: state.internalPhysics,
@@ -621,7 +621,7 @@ export function godot_node_set_internal_process(entity: object, process: ((delta
  */
 export function godot_node_advance(entity: object, physics: boolean, delta: number): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree || state.queued || !processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || state.queued || !processModeAllows(entity, state)) return;
   (physics ? state.internalPhysics : state.internalProcess)?.(delta);
 }
 
@@ -1369,7 +1369,43 @@ function effectiveProcessMode(entity: object, state: NodeState): number {
   return 1;
 }
 
-function processModeAllows(entity: object, state: NodeState, paused: boolean): boolean {
+/** Whether the tree is paused (`SceneTree::paused`), and who follows it. */
+let treePaused = false;
+const PAUSE_LISTENERS = new Set<() => void>();
+
+/**
+ * Pauses or resumes the tree (`SceneTree::set_pause`, `scene_tree.cpp:1100`): its nodes then process by their process
+ * modes (`Node::_can_process`), and its followers (the world's physics) are told.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1100
+ */
+export function godot_node_set_tree_paused(paused: boolean): void {
+  if (treePaused === paused) return;
+  treePaused = paused;
+  for (const listener of PAUSE_LISTENERS) listener();
+}
+
+/**
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1121
+ */
+export function godot_node_tree_paused(): boolean {
+  return treePaused;
+}
+
+/**
+ * Follows the tree's pausing; the returned call stops following.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1100
+ */
+export function godot_node_follow_tree_paused(listener: () => void): () => void {
+  PAUSE_LISTENERS.add(listener);
+  return () => PAUSE_LISTENERS.delete(listener);
+}
+
+function processModeAllows(entity: object, state: NodeState, paused: boolean = treePaused): boolean {
   const mode = effectiveProcessMode(entity, state);
   if (mode === PROCESS_MODE_DISABLED) return false;
   if (mode === PROCESS_MODE_ALWAYS) return true;
@@ -1418,7 +1454,7 @@ export function is_physics_processing(self: object): boolean {
 }
 
 /**
- * The effective process mode allows processing while the tree is not paused.
+ * The effective process mode allows processing, the tree paused or not.
  *
  * @godot Node.can_process
  * @source scene/main/node.cpp:907
@@ -1426,7 +1462,7 @@ export function is_physics_processing(self: object): boolean {
 export function can_process(self: object): boolean {
   const entity = native(self, 'can_process');
   const state = stateOf(entity);
-  return state.insideTree && processModeAllows(entity, state, false);
+  return state.insideTree && processModeAllows(entity, state);
 }
 
 /**
@@ -1443,7 +1479,7 @@ export function godot_node_processes(script: object | null, kind: 'process' | 'p
   const entity = own === undefined ? undefined : entityOf(own);
   const state = entity === undefined ? undefined : NODE.get(entity);
   if (entity === undefined || state === undefined || !state.insideTree || state.queued) return false;
-  return (kind === 'process' ? state.process : state.physicsProcess) && processModeAllows(entity, state, false);
+  return (kind === 'process' ? state.process : state.physicsProcess) && processModeAllows(entity, state);
 }
 
 /**
@@ -1837,7 +1873,7 @@ export function godot_node_listen_input(entity: object, kind: GodotInputKind, li
  */
 export function godot_node_call_input(entity: object, kind: GodotInputKind, event: unknown, handled: () => boolean): void {
   const state = NODE.get(entity);
-  if (state === undefined || !state.insideTree || state.queued || !state[kind] || !processModeAllows(entity, state, false)) return;
+  if (state === undefined || !state.insideTree || state.queued || !state[kind] || !processModeAllows(entity, state)) return;
   state.binding?.[kind]?.(event);
   if (!state.insideTree || handled()) return;
   state.internalInput[kind]?.(event);

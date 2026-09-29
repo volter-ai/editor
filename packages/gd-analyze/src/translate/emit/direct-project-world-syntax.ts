@@ -288,6 +288,8 @@ export function emitDirectGodotWorldSyntax(
           { kind: 'jsx-expression-attribute', name: 'gravity', value: numbers(gravity) },
           { kind: 'jsx-expression-attribute', name: 'allowedLinearError', value: { kind: 'literal-expression', value: composition.physicsWorld.allowedLinearError } },
           { kind: 'jsx-expression-attribute', name: 'colliders', value: { kind: 'literal-expression', value: false } },
+          // The physics stops while the tree is paused (`useGodotPaused`).
+          ...(composition.sceneChanges.pause ? [{ kind: 'jsx-expression-attribute' as const, name: 'paused', value: id('paused') }] : []),
         ],
         children: [{ kind: 'jsx-element-child', ...provided }],
       },
@@ -340,7 +342,7 @@ export function emitDirectGodotWorldSyntax(
       module: moduleSpecifier(candidate.targetPath),
       namedBindings: [{ imported: directGodotSceneAutoloadContextName(candidate.exportName), local: directGodotSceneAutoloadContextName(candidate.exportName) }],
     })),
-    named('./lib/godot-compat/main', ['useGodotResources', ...(composition.sceneChanges.change ? ['useGodotSceneChange'] : []), ...(composition.sceneChanges.reload ? ['useGodotSceneReload'] : []), 'useGodotWorld']),
+    named('./lib/godot-compat/main', ['useGodotResources', ...(composition.sceneChanges.pause ? ['useGodotPaused'] : []), ...(composition.sceneChanges.change ? ['useGodotSceneChange'] : []), ...(composition.sceneChanges.reload ? ['useGodotSceneReload'] : []), 'useGodotWorld']),
     named('./lib/godot-compat/advance', ['useGodotRootWindow']),
     ...(hasAutoloads ? [named('./lib/godot-compat/react-lifecycle', ['useGodotScene', 'useGodotScript'])] : []),
     ...[...new Set(hooks.compat.values())].map((module) =>
@@ -375,6 +377,7 @@ export function emitDirectGodotWorldSyntax(
         parameters: [],
         body: [
           { kind: 'variable-statement', declaration: 'const', name: 'Scene', initializer: { kind: 'element-expression', object: id('scenes'), index: id('activeScene') } },
+          ...(composition.sceneChanges.pause ? [{ kind: 'variable-statement' as const, declaration: 'const' as const, name: 'paused', initializer: call('useGodotPaused') }] : []),
           ...composition.scriptAutoloads.map((_autoload, index): TargetTsStatement => ({
             kind: 'variable-statement',
             declaration: 'const',

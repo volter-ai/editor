@@ -472,3 +472,39 @@ export function godot_window_canvas_layer(canvas: HTMLCanvasElement): HTMLElemen
   }
   return layer;
 }
+
+/** `Window::Mode` (`window.h:48`): `MODE_WINDOWED` 0, `MODE_FULLSCREEN` 3, `MODE_EXCLUSIVE_FULLSCREEN` 4. */
+const MODE_WINDOWED = 0;
+const MODE_FULLSCREEN = 3;
+const MODE_EXCLUSIVE_FULLSCREEN = 4;
+
+/**
+ * The page's fullscreen state (`DisplayServerWeb::window_get_mode`, `display_server_web.cpp:1422`):
+ * fullscreen while the document has a fullscreen element, else windowed.
+ *
+ * @godot Window.get_mode
+ * @source scene/main/window.cpp:535
+ */
+export function get_mode(self: object): number {
+  void self;
+  return globalThis.document?.fullscreenElement ? MODE_FULLSCREEN : MODE_WINDOWED;
+}
+
+/**
+ * Fullscreen asks the page's document for it (a browser grants it only in an input's handler);
+ * windowed leaves it; maximized and minimized change nothing on the web
+ * (`DisplayServerWeb::window_set_mode`, `display_server_web.cpp:1396`).
+ *
+ * @godot Window.set_mode
+ * @source scene/main/window.cpp:523
+ */
+export function set_mode(self: object, mode: number): void {
+  void self;
+  const document = globalThis.document;
+  if (document === undefined) return;
+  if (mode === MODE_FULLSCREEN || mode === MODE_EXCLUSIVE_FULLSCREEN) {
+    if (document.fullscreenElement === null) void document.documentElement.requestFullscreen?.().catch(() => undefined);
+  } else if (mode === MODE_WINDOWED && document.fullscreenElement !== null) {
+    void document.exitFullscreen?.().catch(() => undefined);
+  }
+}

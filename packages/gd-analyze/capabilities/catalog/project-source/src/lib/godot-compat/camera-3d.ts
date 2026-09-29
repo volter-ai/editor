@@ -887,7 +887,7 @@ const DEFAULT_CULL_MASK = 0xfffff;
 /**
  * A new Camera3D (`Camera3D.new()`): Godot's lens (75, 0.05, 4000) and cull mask.
  *
- * @godot Camera3D (protocol)
+ * @godot Camera3D.Camera3D
  * @source scene/3d/camera_3d.cpp:871
  */
 export function construct(): PerspectiveCamera {
