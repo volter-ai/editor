@@ -52,7 +52,8 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
   // A node three, Rapier or a compat element mounts records no Godot class of its own: its classes,
   // nearest first, which the Node protocol reads for `is`, `as` and its class name.
   const form = node.idiom?.form.kind;
-  const mounted = node.instance === undefined && node.model === undefined && (form === 'group' || form === 'mesh' || form === 'light' || form === 'camera' || form === 'body' || form === 'component');
+  const stated = node.idiom?.form.kind === 'element' && node.idiom.form.statesClasses === true;
+  const mounted = node.instance === undefined && node.model === undefined && (stated || form === 'group' || form === 'mesh' || form === 'light' || form === 'camera' || form === 'body' || form === 'component');
   return {
     ...(mounted && node.classes.length > 0 ? { classes: [...node.classes] } : {}),
     ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),

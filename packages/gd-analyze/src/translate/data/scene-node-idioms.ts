@@ -7,8 +7,11 @@
 
 /** How a node is written. */
 export type GodotSceneNodeIdiomForm =
-  /** A compat element (`<GodotLabel text="…" />`): its authored properties as props, in order. */
-  | { readonly kind: 'element'; readonly module: string; readonly exportName: string }
+  /**
+   * A compat element (`<GodotLabel text="…" />`): its authored properties as props, in order; with
+   * `statesClasses`, the scene states the node's classes in its `userData` for the element.
+   */
+  | { readonly kind: 'element'; readonly module: string; readonly exportName: string; readonly statesClasses?: true }
   /** A compat component taking the node's transform and its setters as props (`<GodotMarker3D />`). */
   | { readonly kind: 'component'; readonly module: string; readonly exportName: string }
   /** A plain Node: compat's non-spatial group, with no transform. */
@@ -115,6 +118,13 @@ const element = (
   source,
 });
 
+/** A compat element whose node's classes its scene states (`userData.classes`). */
+const statedElement = (module: string, className: string, source: GodotSceneNodeIdiomSource): GodotSceneNodeIdiomEntry => ({
+  form: { kind: 'element', module, exportName: `Godot${className}`, statesClasses: true },
+  three: 'Group',
+  source,
+});
+
 /** Each node class the lane writes; a node of a class absent here is refused at plan time. */
 const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   Node: {
@@ -192,11 +202,11 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     three: 'RapierRigidBody',
     source: ctor('VehicleBody3D', 'scene/3d/physics/vehicle_body_3d.cpp', 1062),
   },
-  AudioListener3D: element('audio-listener-3d', 'AudioListener3D', ctor('AudioListener3D', 'scene/3d/audio_listener_3d.cpp', 187)),
-  VehicleWheel3D: element('vehicle-wheel-3d', 'VehicleWheel3D', ctor('VehicleWheel3D', 'scene/3d/physics/vehicle_body_3d.cpp', 391)),
+  AudioListener3D: statedElement('audio-listener-3d', 'AudioListener3D', ctor('AudioListener3D', 'scene/3d/audio_listener_3d.cpp', 187)),
+  VehicleWheel3D: statedElement('vehicle-wheel-3d', 'VehicleWheel3D', ctor('VehicleWheel3D', 'scene/3d/physics/vehicle_body_3d.cpp', 391)),
   // Joints: `@react-three/rapier`'s impulse joints over the two bodies their paths name (`joint-3d.tsx`).
-  PinJoint3D: element('pin-joint-3d', 'PinJoint3D', ctor('PinJoint3D', 'scene/3d/physics/joints/pin_joint_3d.cpp', 76)),
-  Generic6DOFJoint3D: element('generic-6dof-joint-3d', 'Generic6DOFJoint3D', ctor('Generic6DOFJoint3D', 'scene/3d/physics/joints/generic_6dof_joint_3d.cpp', 315)),
+  PinJoint3D: statedElement('pin-joint-3d', 'PinJoint3D', ctor('PinJoint3D', 'scene/3d/physics/joints/pin_joint_3d.cpp', 76)),
+  Generic6DOFJoint3D: statedElement('generic-6dof-joint-3d', 'Generic6DOFJoint3D', ctor('Generic6DOFJoint3D', 'scene/3d/physics/joints/generic_6dof_joint_3d.cpp', 315)),
   CharacterBody3D: {
     form: { kind: 'body', type: 'kinematicPosition', sensor: false },
     three: 'RapierRigidBody',
