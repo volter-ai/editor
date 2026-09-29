@@ -442,3 +442,15 @@ export function signalToPromise<Args extends readonly unknown[]>(
   });
 }
 
+
+/**
+ * What `await` waits for on a value only the run time types (`OPCODE_AWAIT`,
+ * `gdscript_vm.cpp:2563`): a Signal's next emission, a coroutine's promise, or the value itself.
+ *
+ * @godot Signal (protocol)
+ * @source modules/gdscript/gdscript_vm.cpp:2563
+ */
+export function godot_await_value(value: unknown): unknown {
+  if (isRetainedGodotSignal(value)) return signalToPromise(value);
+  return value;
+}

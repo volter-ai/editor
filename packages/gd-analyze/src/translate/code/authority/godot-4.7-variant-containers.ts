@@ -89,6 +89,22 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
     rule('VARIABLE', 'variable:declared:instance:conversion', [target, value], '', { kind: 'structural', construct: 'variable' }),
     rule('VARIABLE', 'variable:declared:local:conversion', [target, value], '', { kind: 'structural', construct: 'variable' }),
   ]),
+  // A dictionary literal of any size, in either style (`{"a": 1}` or `{a = 1}`): a `Map` of its
+  // entries in source order (`GODOT_CODE_RULE_REST` takes any number of keys and values).
+  rule('DICTIONARY', 'dictionary-object-literal:PYTHON_DICT', ['*...'], '*', { kind: 'structural', construct: 'dictionary-object-literal' }),
+  rule('DICTIONARY', 'dictionary-object-literal:LUA_TABLE', ['*...'], '*', { kind: 'structural', construct: 'dictionary-object-literal' }),
+  // A class constant of an object value (a preloaded scene or resource), any type.
+  ...['NATIVE:*', 'CLASS:*', 'SCRIPT:*', 'VARIANT:*'].flatMap((input) =>
+    ['declared', 'inferred'].map((declared) => rule('CONSTANT', `constant:${declared}:class-static`, [input], '', { kind: 'structural', construct: 'constant' })),
+  ),
+  // `is` and `as` of a value whatever the analysis typed it as: tested at run time.
+  ...['VARIANT:*', 'CLASS:*', 'SCRIPT:*'].map((input) => rule('TYPE_TEST', 'type-test:script', [input], 'BUILTIN:*', { kind: 'structural', construct: 'type-test' })),
+  ...['VARIANT:*', 'SCRIPT:*'].map((input) => rule('TYPE_TEST', 'type-test:native', [input], 'BUILTIN:*', { kind: 'structural', construct: 'type-test' })),
+  ...['VARIANT:*', 'CLASS:*', 'SCRIPT:*'].map((input) => rule('CAST', 'cast:script', [input], 'CLASS:*', { kind: 'structural', construct: 'cast' })),
+  ...['VARIANT:*', 'SCRIPT:*'].map((input) => rule('CAST', 'cast:native', [input], 'NATIVE:*', { kind: 'structural', construct: 'cast' })),
+  // `await` of a value only the run time types: a Signal's next emission, a coroutine's result, or
+  // the value itself (`OPCODE_AWAIT`, gdscript_vm.cpp:2563).
+  rule('AWAIT', 'await', ['VARIANT:*'], '*', { kind: 'structural', construct: 'await' }),
   // A member read by name, whatever the value it holds: an untyped or script-typed member, or a
   // constant of any type (the script's own field, `this.name`).
   ...['VARIANT:*', 'SCRIPT:*'].map((result) => rule('IDENTIFIER', 'member-identifier:MEMBER_VARIABLE', [], result, { kind: 'structural', construct: 'member-identifier' })),

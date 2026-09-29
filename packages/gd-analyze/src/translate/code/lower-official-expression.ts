@@ -3379,6 +3379,19 @@ export function lowerOfficialExpression(
         // (an early return) is no function state in Godot, so the Signal itself is awaited until it
         // emits; here the promise resolves with the Signal and the caller resumes at once.
         const isSignal = !awaitedNode.datatype.coroutine && godotAwaitsEmission(awaitedNode.datatype);
+        // A value only the run time types: awaited as what it holds (`godot_await_value`).
+        if (!isSignal && !awaitedNode.datatype.coroutine && awaitedNode.datatype.kind === 'VARIANT') {
+          return compose(
+            context,
+            [lowerExpression(context, awaitedNode)],
+            ([awaited]) => ({
+              kind: 'await-expression',
+              expression: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_await_value' }, arguments: [awaited as TargetTsExpression] },
+              span: span(context.script, node),
+            }),
+            [...requirements, { kind: 'compat-import-requirement', module: 'lib/godot-compat/signal', imported: 'godot_await_value', local: 'godot_await_value', typeOnly: false }],
+          );
+        }
         return compose(
           context,
           [lowerExpression(context, awaitedNode)],
