@@ -9,17 +9,29 @@
  * (`text-shadow`), aligned by `text-align` and a flex column. Its minimum size is its widest line by
  * its lines' heights with the line and paragraph spacing between them.
  *
- * The font is the settings' font file, else the default theme's (`label.cpp:118`), at the settings'
- * size, else the default theme's 16. Not bound: `uppercase`, visible characters,
- * `max_lines_visible`, `lines_skipped`, clipping and overrun trimming, tab stops and right-to-left
- * text.
+ * The font is the settings' font file, else the node's theme font (its override, else the default
+ * theme's, `label.cpp:118`), at the settings' size, else the theme's `font_size` (16); the colour is
+ * the settings', else the theme's `font_color`. The text is split into paragraphs at the paragraph
+ * separator, upper-cased by `uppercase` in the node's language, cut to the visible characters before
+ * shaping (or, after shaping, drawn up to them); `lines_skipped` and `max_lines_visible` choose the
+ * lines drawn, `clip_text` clips them to the node, and the overrun behaviour trims each line to the
+ * width (by character or word, with the ellipsis character). The text direction is the CSS
+ * `direction`, the language the element's `lang`.
+ *
+ * Kept and read back, not applied: tab stops (the page's tab width is uniform), the autowrap trim
+ * and justification flags (the browser trims and justifies by its own rules), and the structured
+ * text BiDi override.
  */
 
 import type { Object3D } from 'three';
 import { godot_canvas_item_self_filter } from './canvas-item';
 import {
   get_size,
+  get_theme_color,
   get_theme_constant,
+  get_theme_font,
+  get_theme_font_size,
+  is_layout_rtl,
   godot_control_maximum_size,
   godot_control_mount,
   set_mouse_filter,
@@ -27,6 +39,7 @@ import {
   update_minimum_size,
 } from './control';
 import { get_height, godot_font_css, godot_font_default, godot_font_measure, godot_font_wrap, type GodotFont } from './font';
+import { construct as color } from './color';
 import type { LabelSettings } from './label-settings';
 import { godot_node_entity, is_inside_tree } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
@@ -48,8 +61,41 @@ const ALIGNMENT_FILL = 3;
 /** `Control::SIZE_SHRINK_CENTER` (`scene/gui/control.h:83`). */
 const SIZE_SHRINK_CENTER = 4;
 
+/** `TextServer::VisibleCharactersBehavior` (`servers/text/text_server.h:139`). */
+const VC_CHARS_BEFORE_SHAPING = 0;
+
+/** `TextServer::OverrunBehavior` (`servers/text/text_server.h:124`). */
+const OVERRUN_NO_TRIMMING = 0;
+const OVERRUN_TRIM_CHAR = 1;
+const OVERRUN_TRIM_WORD = 2;
+const OVERRUN_TRIM_ELLIPSIS = 3;
+const OVERRUN_TRIM_WORD_ELLIPSIS = 4;
+
+/** `Control::TextDirection` (`scene/gui/control.h:143`): auto, LTR, RTL, inherited. */
+const TEXT_DIRECTION_AUTO = 0;
+const TEXT_DIRECTION_LTR = 1;
+const TEXT_DIRECTION_RTL = 2;
+
 interface LabelState {
+  readonly entity: Object3D;
   text: string;
+  textDirection: number;
+  language: string;
+  paragraphSeparator: string;
+  autowrapTrimFlags: number;
+  justificationFlags: number;
+  clipText: boolean;
+  tabStops: number[];
+  overrunBehavior: number;
+  ellipsisChar: string;
+  uppercase: boolean;
+  visibleCharacters: number;
+  visibleRatio: number;
+  visibleCharactersBehavior: number;
+  linesSkipped: number;
+  maxLinesVisible: number;
+  structuredTextBidiOverride: number;
+  structuredTextBidiOverrideOptions: unknown[];
   settings: LabelSettings | null;
   horizontalAlignment: number;
   verticalAlignment: number;
@@ -75,11 +121,29 @@ function stateOf(self: object, member: string): LabelState {
 
 /** The settings' font, else the theme's (`label.cpp:118`). */
 function font(state: LabelState): GodotFont {
-  return state.settings?.font ?? godot_font_default();
+  return state.settings?.font ?? ((get_theme_font(state.entity, 'font') as GodotFont | null) ?? godot_font_default());
 }
 
 function fontSize(state: LabelState): number {
-  return state.settings?.fontSize ?? 16;
+  return state.settings?.fontSize ?? get_theme_font_size(state.entity, 'font_size');
+}
+
+/** `String::c_unescape` of the separator: `\n`, `\t`, `\r`, `\\` and the quotes. */
+function unescaped(text: string): string {
+  const escapes: Readonly<Record<string, string>> = { n: '\n', t: '\t', r: '\r', '\\': '\\', '"': '"', "'": "'", a: '\x07', b: '\b', f: '\f', v: '\v' };
+  return text.replace(/\\(.)/gu, (whole, char: string) => escapes[char] ?? whole);
+}
+
+/**
+ * The text `_shape` lays out (`label.cpp:170`): upper-cased in the node's language by `uppercase`,
+ * and cut to the visible characters when they apply before shaping.
+ */
+function shapedText(state: LabelState): string {
+  let text = state.uppercase ? state.text.toLocaleUpperCase(state.language === '' ? undefined : state.language) : state.text;
+  if (state.visibleCharacters >= 0 && state.visibleCharactersBehavior === VC_CHARS_BEFORE_SHAPING) {
+    text = Array.from(text).slice(0, state.visibleCharacters).join('');
+  }
+  return text;
 }
 
 function lineSpacing(entity: Object3D, state: LabelState): number {
@@ -106,7 +170,9 @@ function lines(entity: Object3D, state: LabelState): Line[] {
   if (state.autowrapMode !== AUTOWRAP_OFF && maxWidth > 0) width = Math.max(1, maxWidth);
   const out: Line[] = [];
   let start = 0;
-  for (const paragraph of state.text.split('\n')) {
+  const separator = unescaped(state.paragraphSeparator);
+  const separatorLength = Array.from(separator).length;
+  for (const paragraph of separator === '' ? [shapedText(state)] : shapedText(state).split(separator)) {
     const wrapped = state.autowrapMode === AUTOWRAP_OFF ? [paragraph] : godot_font_wrap(font(state), paragraph, fontSize(state), width, state.autowrapMode);
     let cursor = 0;
     wrapped.forEach((text, i) => {
@@ -114,9 +180,20 @@ function lines(entity: Object3D, state: LabelState): Line[] {
       out.push({ text, start: start + Array.from(paragraph.slice(0, at)).length, last: i === wrapped.length - 1 });
       cursor = at + text.length;
     });
-    start += Array.from(paragraph).length + 1;
+    start += Array.from(paragraph).length + separatorLength;
   }
   return out;
+}
+
+/** The lines from `lines_skipped` on, at most `max_lines_visible` of them (`_update_visible`, `label.cpp:366`). */
+function shownLines(state: LabelState, all: readonly Line[]): Line[] {
+  const shown = all.slice(state.linesSkipped);
+  return state.maxLinesVisible >= 0 ? shown.slice(0, state.maxLinesVisible) : shown;
+}
+
+/** Whether lines may be cut to the node (`clip_text` or an overrun behaviour). */
+function trims(state: LabelState): boolean {
+  return state.clipText || state.overrunBehavior !== OVERRUN_NO_TRIMMING;
 }
 
 /**
@@ -133,10 +210,15 @@ function minimumSize(entity: Object3D): Vector2 {
   let height = 0;
   const spacing = lineSpacing(entity, state);
   const paragraphGap = paragraphSpacing(entity, state);
-  for (const line of all) height += lineH + spacing + (line.last ? paragraphGap : 0);
+  for (const line of shownLines(state, all)) height += lineH + spacing + (line.last ? paragraphGap : 0);
   if (height > 0) height -= spacing + paragraphGap;
   height = Math.max(height, lineH);
-  return state.autowrapMode !== AUTOWRAP_OFF ? vector2(1, height) : vector2(width, height);
+  if (state.autowrapMode !== AUTOWRAP_OFF) {
+    if (!state.clipText && state.overrunBehavior !== OVERRUN_NO_TRIMMING && state.maxLinesVisible > 0) height = Math.min(height, (lineH + spacing) * state.maxLinesVisible);
+    else if (trims(state)) height = 1;
+    return vector2(1, height);
+  }
+  return vector2(trims(state) ? 1 : width, height);
 }
 
 /**
@@ -149,7 +231,25 @@ function minimumSize(entity: Object3D): Vector2 {
  */
 export function godot_label_mount(entity: Object3D): void {
   const state: LabelState = {
+    entity,
     text: '',
+    textDirection: TEXT_DIRECTION_AUTO,
+    language: '',
+    paragraphSeparator: '\\n',
+    autowrapTrimFlags: 128 | 256,
+    justificationFlags: 1 | 2 | 32 | 64,
+    clipText: false,
+    tabStops: [],
+    overrunBehavior: OVERRUN_NO_TRIMMING,
+    ellipsisChar: '\u2026',
+    uppercase: false,
+    visibleCharacters: -1,
+    visibleRatio: 1,
+    visibleCharactersBehavior: VC_CHARS_BEFORE_SHAPING,
+    linesSkipped: 0,
+    maxLinesVisible: -1,
+    structuredTextBidiOverride: 0,
+    structuredTextBidiOverrideOptions: [],
     settings: null,
     horizontalAlignment: ALIGNMENT_BEGIN,
     verticalAlignment: ALIGNMENT_BEGIN,
@@ -163,9 +263,35 @@ export function godot_label_mount(entity: Object3D): void {
     drawKey: (node, element) => {
       const label = LABELS.get(node) as LabelState;
       const size = get_size(node);
-      return JSON.stringify([label.text, label.settings, label.horizontalAlignment, label.verticalAlignment, label.autowrapMode, size.x, size.y, godot_canvas_item_self_filter(node, element)]);
+      return JSON.stringify([
+        label.text,
+        label.settings,
+        label.horizontalAlignment,
+        label.verticalAlignment,
+        label.autowrapMode,
+        size.x,
+        size.y,
+        godot_canvas_item_self_filter(node, element),
+        label.textDirection,
+        label.textDirection === 3 ? is_layout_rtl(node) : false,
+        label.language,
+        label.paragraphSeparator,
+        label.clipText,
+        label.overrunBehavior,
+        label.ellipsisChar,
+        label.uppercase,
+        label.visibleCharacters,
+        label.visibleCharactersBehavior,
+        label.linesSkipped,
+        label.maxLinesVisible,
+        get_theme_color(node, 'font_color'),
+        fontSize(label),
+        font(label),
+      ]);
     },
     themeConstants: { line_spacing: 3, paragraph_spacing: 0 },
+    themeColors: { font_color: color(1, 1, 1, 1) },
+    themeFontSizes: { font_size: 16 },
   });
   // `set_mouse_filter(MOUSE_FILTER_IGNORE)` (`label.cpp:1529`).
   set_mouse_filter(entity, 2);
@@ -304,7 +430,8 @@ function visibleCount(entity: Object3D, state: LabelState, all: readonly Line[])
   const paragraphGap = paragraphSpacing(entity, state);
   let total = 0;
   let visible = 0;
-  for (const line of all) {
+  for (const line of all.slice(state.linesSkipped)) {
+    if (state.maxLinesVisible >= 0 && visible >= state.maxLinesVisible) break;
     total += lineH + spacing;
     if (total > Math.ceil(height + spacing)) break;
     visible += 1;
@@ -328,7 +455,7 @@ export function get_visible_line_count(self: object): number {
 /** Each visible line with its top in the node, by the vertical alignment. */
 function placedLines(entity: Object3D, state: LabelState): { readonly line: Line; readonly top: number }[] {
   const all = lines(entity, state);
-  const visible = all.slice(0, visibleCount(entity, state, all));
+  const visible = all.slice(state.linesSkipped, state.linesSkipped + visibleCount(entity, state, all));
   const lineH = lineHeight(state);
   let spacing = lineSpacing(entity, state);
   const paragraphGap = paragraphSpacing(entity, state);
@@ -376,6 +503,378 @@ export function get_character_bounds(self: object, p_pos: number): Rect2 {
   return rect2();
 }
 
+/** A setter that changes what is laid out: the minimum size is updated (the node redraws by its key). */
+function relayout(self: object): void {
+  update_minimum_size(self);
+}
+
+/**
+ * `TEXT_DIRECTION_AUTO` (0), `LTR` (1), `RTL` (2) or `INHERITED` (3); another value fails.
+ *
+ * @godot Label.set_text_direction
+ * @source scene/gui/label.cpp:1186
+ */
+export function set_text_direction(self: object, p_text_direction: number): void {
+  if (p_text_direction < -1 || p_text_direction > 3) return;
+  stateOf(self, 'set_text_direction').textDirection = p_text_direction;
+}
+
+/**
+ * @godot Label.get_text_direction
+ * @source scene/gui/label.cpp:1227
+ */
+export function get_text_direction(self: object): number {
+  return stateOf(self, 'get_text_direction').textDirection;
+}
+
+/**
+ * The language the text is shaped and upper-cased in (the element's `lang`).
+ *
+ * @godot Label.set_language
+ * @source scene/gui/label.cpp:1231
+ */
+export function set_language(self: object, p_language: string): void {
+  const state = stateOf(self, 'set_language');
+  if (state.language === p_language) return;
+  state.language = String(p_language);
+  relayout(self);
+}
+
+/**
+ * @godot Label.get_language
+ * @source scene/gui/label.cpp:1241
+ */
+export function get_language(self: object): string {
+  return stateOf(self, 'get_language').language;
+}
+
+/**
+ * The separator (escaped, `c_unescape`d when used) the text splits into paragraphs at.
+ *
+ * @godot Label.set_paragraph_separator
+ * @source scene/gui/label.cpp:1245
+ */
+export function set_paragraph_separator(self: object, p_paragraph_separator: string): void {
+  const state = stateOf(self, 'set_paragraph_separator');
+  if (state.paragraphSeparator === p_paragraph_separator) return;
+  state.paragraphSeparator = String(p_paragraph_separator);
+  relayout(self);
+}
+
+/**
+ * @godot Label.get_paragraph_separator
+ * @source scene/gui/label.cpp:1254
+ */
+export function get_paragraph_separator(self: object): string {
+  return stateOf(self, 'get_paragraph_separator').paragraphSeparator;
+}
+
+/**
+ * Kept to its trim bits (`BREAK_TRIM_MASK`) and read back (the module header).
+ *
+ * @godot Label.set_autowrap_trim_flags
+ * @source scene/gui/label.cpp:63
+ */
+export function set_autowrap_trim_flags(self: object, p_flags: number): void {
+  stateOf(self, 'set_autowrap_trim_flags').autowrapTrimFlags = p_flags & (128 | 256 | 512);
+}
+
+/**
+ * @godot Label.get_autowrap_trim_flags
+ * @source scene/gui/label.cpp:81
+ */
+export function get_autowrap_trim_flags(self: object): number {
+  return stateOf(self, 'get_autowrap_trim_flags').autowrapTrimFlags;
+}
+
+/**
+ * Kept and read back (the module header).
+ *
+ * @godot Label.set_justification_flags
+ * @source scene/gui/label.cpp:85
+ */
+export function set_justification_flags(self: object, p_flags: number): void {
+  stateOf(self, 'set_justification_flags').justificationFlags = p_flags;
+}
+
+/**
+ * @godot Label.get_justification_flags
+ * @source scene/gui/label.cpp:97
+ */
+export function get_justification_flags(self: object): number {
+  return stateOf(self, 'get_justification_flags').justificationFlags;
+}
+
+/**
+ * The text is clipped to the node, and its minimum size no longer holds the whole text.
+ *
+ * @godot Label.set_clip_text
+ * @source scene/gui/label.cpp:1258
+ */
+export function set_clip_text(self: object, p_clip: boolean): void {
+  const state = stateOf(self, 'set_clip_text');
+  if (state.clipText === Boolean(p_clip)) return;
+  state.clipText = Boolean(p_clip);
+  relayout(self);
+}
+
+/**
+ * @godot Label.is_clipping_text
+ * @source scene/gui/label.cpp:1269
+ */
+export function is_clipping_text(self: object): boolean {
+  return stateOf(self, 'is_clipping_text').clipText;
+}
+
+/**
+ * Kept and read back (the module header).
+ *
+ * @godot Label.set_tab_stops
+ * @source scene/gui/label.cpp:1273
+ */
+export function set_tab_stops(self: object, p_tab_stops: number[]): void {
+  stateOf(self, 'set_tab_stops').tabStops = [...p_tab_stops];
+}
+
+/**
+ * @godot Label.get_tab_stops
+ * @source scene/gui/label.cpp:1283
+ */
+export function get_tab_stops(self: object): number[] {
+  return [...stateOf(self, 'get_tab_stops').tabStops];
+}
+
+/**
+ * How a line wider than the node is trimmed: `OVERRUN_NO_TRIMMING` (0), by character (1), by word
+ * (2), with an ellipsis (3), by word with an ellipsis (4), or with the ellipsis forced (5, 6).
+ *
+ * @godot Label.set_text_overrun_behavior
+ * @source scene/gui/label.cpp:1287
+ */
+export function set_text_overrun_behavior(self: object, p_behavior: number): void {
+  const state = stateOf(self, 'set_text_overrun_behavior');
+  if (state.overrunBehavior === p_behavior) return;
+  state.overrunBehavior = p_behavior;
+  relayout(self);
+}
+
+/**
+ * @godot Label.get_text_overrun_behavior
+ * @source scene/gui/label.cpp:1303
+ */
+export function get_text_overrun_behavior(self: object): number {
+  return stateOf(self, 'get_text_overrun_behavior').overrunBehavior;
+}
+
+/**
+ * One character; a longer string keeps its first.
+ *
+ * @godot Label.set_ellipsis_char
+ * @source scene/gui/label.cpp:1307
+ */
+export function set_ellipsis_char(self: object, p_char: string): void {
+  const state = stateOf(self, 'set_ellipsis_char');
+  const char = Array.from(String(p_char)).slice(0, 1).join('');
+  if (state.ellipsisChar === char) return;
+  state.ellipsisChar = char;
+  if (trims(state)) relayout(self);
+}
+
+/**
+ * @godot Label.get_ellipsis_char
+ * @source scene/gui/label.cpp:1327
+ */
+export function get_ellipsis_char(self: object): string {
+  return stateOf(self, 'get_ellipsis_char').ellipsisChar;
+}
+
+/**
+ * The text is shaped and drawn in upper case.
+ *
+ * @godot Label.set_uppercase
+ * @source scene/gui/label.cpp:101
+ */
+export function set_uppercase(self: object, p_uppercase: boolean): void {
+  const state = stateOf(self, 'set_uppercase');
+  if (state.uppercase === Boolean(p_uppercase)) return;
+  state.uppercase = Boolean(p_uppercase);
+  relayout(self);
+}
+
+/**
+ * @godot Label.is_uppercase
+ * @source scene/gui/label.cpp:113
+ */
+export function is_uppercase(self: object): boolean {
+  return stateOf(self, 'is_uppercase').uppercase;
+}
+
+/**
+ * The text's length in characters.
+ *
+ * @godot Label.get_total_character_count
+ * @source scene/gui/label.cpp:1425
+ */
+export function get_total_character_count(self: object): number {
+  return Array.from(stateOf(self, 'get_total_character_count').text).length;
+}
+
+/**
+ * How many characters show (-1 for all); the ratio follows.
+ *
+ * @godot Label.set_visible_characters
+ * @source scene/gui/label.cpp:1335
+ */
+export function set_visible_characters(self: object, p_amount: number): void {
+  const state = stateOf(self, 'set_visible_characters');
+  if (state.visibleCharacters === p_amount) return;
+  state.visibleCharacters = Math.trunc(p_amount);
+  const total = get_total_character_count(self);
+  state.visibleRatio = p_amount === -1 || total === 0 ? 1 : Math.fround(p_amount / total);
+  if (state.visibleCharactersBehavior === VC_CHARS_BEFORE_SHAPING) relayout(self);
+}
+
+/**
+ * @godot Label.get_visible_characters
+ * @source scene/gui/label.cpp:1351
+ */
+export function get_visible_characters(self: object): number {
+  return stateOf(self, 'get_visible_characters').visibleCharacters;
+}
+
+/**
+ * The share of characters that show: 1 or more is all (-1), below 0 none.
+ *
+ * @godot Label.set_visible_ratio
+ * @source scene/gui/label.cpp:1355
+ */
+export function set_visible_ratio(self: object, p_ratio: number): void {
+  const state = stateOf(self, 'set_visible_ratio');
+  const ratio = Math.fround(p_ratio);
+  if (state.visibleRatio === ratio) return;
+  if (ratio >= 1) {
+    state.visibleCharacters = -1;
+    state.visibleRatio = 1;
+  } else if (ratio < 0) {
+    state.visibleCharacters = 0;
+    state.visibleRatio = 0;
+  } else {
+    state.visibleCharacters = Math.trunc(get_total_character_count(self) * ratio);
+    state.visibleRatio = ratio;
+  }
+  if (state.visibleCharactersBehavior === VC_CHARS_BEFORE_SHAPING) relayout(self);
+}
+
+/**
+ * @godot Label.get_visible_ratio
+ * @source scene/gui/label.cpp:1376
+ */
+export function get_visible_ratio(self: object): number {
+  return stateOf(self, 'get_visible_ratio').visibleRatio;
+}
+
+/**
+ * `VC_CHARS_BEFORE_SHAPING` (0) cuts the text before it is laid out; the others lay out the whole
+ * text and draw the visible characters.
+ *
+ * @godot Label.set_visible_characters_behavior
+ * @source scene/gui/label.cpp:1384
+ */
+export function set_visible_characters_behavior(self: object, p_behavior: number): void {
+  const state = stateOf(self, 'set_visible_characters_behavior');
+  if (state.visibleCharactersBehavior === p_behavior) return;
+  const relays = state.visibleCharactersBehavior === VC_CHARS_BEFORE_SHAPING || p_behavior === VC_CHARS_BEFORE_SHAPING;
+  state.visibleCharactersBehavior = p_behavior;
+  if (relays) relayout(self);
+}
+
+/**
+ * @godot Label.get_visible_characters_behavior
+ * @source scene/gui/label.cpp:1380
+ */
+export function get_visible_characters_behavior(self: object): number {
+  return stateOf(self, 'get_visible_characters_behavior').visibleCharactersBehavior;
+}
+
+/**
+ * The lines drawn start after this many; a negative count fails.
+ *
+ * @godot Label.set_lines_skipped
+ * @source scene/gui/label.cpp:1395
+ */
+export function set_lines_skipped(self: object, p_lines: number): void {
+  if (p_lines < 0) return;
+  const state = stateOf(self, 'set_lines_skipped');
+  if (state.linesSkipped === p_lines) return;
+  state.linesSkipped = Math.trunc(p_lines);
+  relayout(self);
+}
+
+/**
+ * @godot Label.get_lines_skipped
+ * @source scene/gui/label.cpp:1407
+ */
+export function get_lines_skipped(self: object): number {
+  return stateOf(self, 'get_lines_skipped').linesSkipped;
+}
+
+/**
+ * At most this many lines are drawn (-1 for no limit).
+ *
+ * @godot Label.set_max_lines_visible
+ * @source scene/gui/label.cpp:1411
+ */
+export function set_max_lines_visible(self: object, p_lines: number): void {
+  const state = stateOf(self, 'set_max_lines_visible');
+  if (state.maxLinesVisible === p_lines) return;
+  state.maxLinesVisible = Math.trunc(p_lines);
+  relayout(self);
+}
+
+/**
+ * @godot Label.get_max_lines_visible
+ * @source scene/gui/label.cpp:1421
+ */
+export function get_max_lines_visible(self: object): number {
+  return stateOf(self, 'get_max_lines_visible').maxLinesVisible;
+}
+
+/**
+ * Kept and read back (the module header).
+ *
+ * @godot Label.set_structured_text_bidi_override
+ * @source scene/gui/label.cpp:1197
+ */
+export function set_structured_text_bidi_override(self: object, p_parser: number): void {
+  stateOf(self, 'set_structured_text_bidi_override').structuredTextBidiOverride = p_parser;
+}
+
+/**
+ * @godot Label.get_structured_text_bidi_override
+ * @source scene/gui/label.cpp:1207
+ */
+export function get_structured_text_bidi_override(self: object): number {
+  return stateOf(self, 'get_structured_text_bidi_override').structuredTextBidiOverride;
+}
+
+/**
+ * Kept (a copy of the array) and read back.
+ *
+ * @godot Label.set_structured_text_bidi_override_options
+ * @source scene/gui/label.cpp:1211
+ */
+export function set_structured_text_bidi_override_options(self: object, p_args: unknown[]): void {
+  stateOf(self, 'set_structured_text_bidi_override_options').structuredTextBidiOverrideOptions = [...p_args];
+}
+
+/**
+ * @godot Label.get_structured_text_bidi_override_options
+ * @source scene/gui/label.cpp:1223
+ */
+export function get_structured_text_bidi_override_options(self: object): unknown[] {
+  return [...stateOf(self, 'get_structured_text_bidi_override_options').structuredTextBidiOverrideOptions];
+}
+
 const CONTENT = new WeakMap<Object3D, HTMLDivElement>();
 
 /** CSS `rgba()` of a Color. */
@@ -410,7 +909,12 @@ function draw(entity: Object3D, element: HTMLElement): void {
   box.style.height = `${String(size.y)}px`;
   box.style.font = godot_font_css(font(state), fontSize(state));
   box.style.lineHeight = `${String(lineH)}px`;
-  box.style.color = css(settings?.fontColor ?? { r: 1, g: 1, b: 1, a: 1 });
+  box.style.color = css(settings?.fontColor ?? get_theme_color(entity, 'font_color'));
+  box.style.overflow = state.clipText ? 'hidden' : '';
+  box.lang = state.language;
+  const rtl = state.textDirection === TEXT_DIRECTION_RTL || (state.textDirection === 3 && is_layout_rtl(entity));
+  box.style.direction = state.textDirection === TEXT_DIRECTION_LTR ? 'ltr' : rtl ? 'rtl' : '';
+  box.style.unicodeBidi = state.textDirection === TEXT_DIRECTION_AUTO ? 'plaintext' : '';
   box.style.textAlign = TEXT_ALIGN[state.horizontalAlignment] ?? 'left';
   box.style.setProperty('text-align-last', state.horizontalAlignment === ALIGNMENT_FILL ? 'justify' : '');
   box.style.filter = godot_canvas_item_self_filter(entity, element);
@@ -424,6 +928,8 @@ function draw(entity: Object3D, element: HTMLElement): void {
     settings !== null && shadow !== undefined && shadow.a > 0
       ? `${String(settings.shadowOffset.x)}px ${String(settings.shadowOffset.y)}px ${String(Math.max(0, settings.shadowSize - 1))}px ${css(shadow)}`
       : '';
+  // Visible characters counted after shaping draw the text up to them; the rest keeps its place.
+  const shown = state.visibleCharacters >= 0 && state.visibleCharactersBehavior !== VC_CHARS_BEFORE_SHAPING ? state.visibleCharacters : Number.POSITIVE_INFINITY;
   box.replaceChildren(
     ...placedLines(entity, state).map(({ line, top }) => {
       const row = element.ownerDocument.createElement('div');
@@ -431,10 +937,44 @@ function draw(entity: Object3D, element: HTMLElement): void {
       row.style.left = '0px';
       row.style.right = '0px';
       row.style.top = `${String(top)}px`;
-      row.textContent = line.text;
+      const text = overrun(state, line.text, size.x);
+      const characters = Array.from(text);
+      const count = Math.max(0, Math.min(characters.length, shown - line.start));
+      if (count >= characters.length) {
+        row.textContent = text;
+      } else {
+        const hidden = element.ownerDocument.createElement('span');
+        hidden.style.visibility = 'hidden';
+        hidden.textContent = characters.slice(count).join('');
+        row.replaceChildren(characters.slice(0, count).join(''), hidden);
+      }
       return row;
     }),
   );
+}
+
+/**
+ * A line trimmed to `width` by the overrun behaviour (`TextServer::shaped_text_overrun_trim_to_width`):
+ * characters, or whole words, dropped from the end, and the ellipsis character added for the
+ * ellipsis modes; a line that fits is kept.
+ */
+function overrun(state: LabelState, text: string, width: number): string {
+  const behavior = state.overrunBehavior;
+  if (behavior === OVERRUN_NO_TRIMMING || measure(state, text) <= width) return text;
+  const ellipsis = behavior === OVERRUN_TRIM_ELLIPSIS || behavior === OVERRUN_TRIM_WORD_ELLIPSIS || behavior > OVERRUN_TRIM_WORD_ELLIPSIS ? state.ellipsisChar : '';
+  const byWord = behavior === OVERRUN_TRIM_WORD || behavior === OVERRUN_TRIM_WORD_ELLIPSIS || behavior === 6;
+  let characters = Array.from(text);
+  while (characters.length > 0) {
+    if (byWord) {
+      const cut = characters.lastIndexOf(' ');
+      characters = cut <= 0 ? [] : characters.slice(0, cut);
+    } else {
+      characters = characters.slice(0, -1);
+    }
+    const trimmed = characters.join('').trimEnd() + ellipsis;
+    if (measure(state, trimmed) <= width) return trimmed;
+  }
+  return behavior === OVERRUN_TRIM_CHAR || behavior === OVERRUN_TRIM_WORD ? '' : ellipsis;
 }
 
 const LABEL = {
