@@ -78,21 +78,18 @@ function primitiveArgs(resource: TargetGodotSceneResourcePlan): TargetGodotScene
 
 /**
  * A Camera3D's lens (`camera_3d.h:68`, three's defaults differ, so every value is stated): its
- * vertical angle, near and far, its cull mask (Godot's default all 20 layers, `camera_3d.h:83`), its
- * own environment and its attributes.
+ * vertical angle, near and far, its cull mask (Godot's default all 20 layers, `camera_3d.h:83`), and
+ * its own environment.
  */
 function cameraLens(node: DirectGodotSceneNodePlan): NonNullable<DirectGodotSceneNodePlan['lens']> {
   const property = (name: string, initial: number) => node.properties.find((entry) => entry.propertyName === name)?.value[0] ?? initial;
   const environment = node.setters.find((entry) => entry.setter.exportName === 'set_environment')?.value;
-  const attributes = node.setters.find((entry) => entry.setter.exportName === 'set_attributes')?.value;
   return {
     fov: Number(property('fov', 75)),
     near: Number(property('near', 0.05)),
     far: Number(property('far', 4000)),
     cullMask: numberValue(node.setters, 'set_cull_mask') ?? 0xfffff,
     ...(environment === undefined ? {} : { environment }),
-    // Its depth of field (`camera-attributes-practical.ts`).
-    ...(attributes === undefined ? {} : { attributes }),
     // An orthogonal or frustum projection and its size (`camera_3d.h:71`, perspective and 1 by default).
     ...(numberValue(node.setters, 'set_projection') === undefined ? {} : { projection: numberValue(node.setters, 'set_projection') as number }),
     ...(numberValue(node.setters, 'set_size') === undefined ? {} : { size: numberValue(node.setters, 'set_size') as number }),
@@ -205,10 +202,15 @@ const ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<s
   ['set_shadow_caster_mask', { kind: 'data', key: 'shadow_caster_mask' }],
 ]);
 
-const collected = (setters: readonly TargetGodotSceneSetterPlan[]): readonly TargetGodotSceneSetterPlan[] =>
+/** A node's own setters stated apart: its `process_mode`, which the Node protocol reads as it enters the tree (`node.ts`); a Sky's is its own. */
+const NODE_ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map<string, TargetGodotSceneSetterPlan['role']>([['set_process_mode', { kind: 'data', key: 'process_mode' }]]);
+
+const NODE_SETTER_ROLES: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = new Map([...ROLES, ...NODE_ROLES]);
+
+const collected = (setters: readonly TargetGodotSceneSetterPlan[], roles: ReadonlyMap<string, TargetGodotSceneSetterPlan['role']> = ROLES): readonly TargetGodotSceneSetterPlan[] =>
   setters.map((entry) => {
     const collect = COLLECTED.get(entry.setter.exportName);
-    const role = ROLES.get(entry.setter.exportName);
+    const role = roles.get(entry.setter.exportName);
     return collect === undefined && role === undefined ? entry : { ...entry, ...(collect === undefined ? {} : { collect }), ...(role === undefined ? {} : { role }) };
   });
 
@@ -233,7 +235,7 @@ export function planGodotSceneCollectedSetters(scenes: readonly SceneWithoutRefs
   return scenes.map((scene) => {
     const stamp = (node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan => ({
       ...node,
-      setters: collected(node.setters),
+      setters: collected(node.setters, NODE_SETTER_ROLES),
       // An imported model's own nodes' overrides (an AnimationPlayer of the model's libraries).
       ...(node.model === undefined ? {} : { model: { ...node.model, overrides: node.model.overrides.map((override) => ({ ...override, setters: collected(override.setters) })) } }),
       children: node.children.map(stamp),

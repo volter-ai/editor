@@ -110,6 +110,7 @@ commit, and the Verdict column starts with `baseline`, `pass`, `holds` or `regre
 | 2026-09-29 | `ab61ea7e` | §The lane's law | regressed, 10 new findings. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Gone since `8ed29aff`: the patched `connect` in `viewport.ts`, the restated generated-module packages, the doubled classes on `marker-3d` and `ray-cast-3d`. New: (1) `canvas-shader-material.ts`'s per-frame `PENDING` queue and second `WebGLRenderer`. (2) The SubViewport's CPU image (readback, its own sRGB encode, `godot_canvas_item_paint` walking and painting other nodes, per-class painters, `VIEWPORT_ROOTS`). (3) `spatial-material.ts`'s screen capture walking and re-rendering the scene. (4) Depth of field ported from `bokeh_dof.glsl`. (5) Particle trails ported from Godot's particle storage and `RibbonTrailMesh`. (6) A navigation map in compat (`REGIONS`, one growing `Pathfinding`). (7) Lowering reading other scripts' programs (`scriptFunctionParameters`). (8) Analysis decoding and encoding images (`embedded-images.ts`). (9) Class-name tests in the plan outside the idiom tables. (10) Growth: `useGodotInstanceEdits` and `useGodotViewportTexture` in the output, the BBCode parser, the NinePatchRect painter. Emitted from a clean copy of `ab61ea7e`. |
 | 2026-09-29 | `f6c8f54c` | §The lane's law | regressed, 3 new findings. Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Of `ab61ea7e`'s findings all are gone but the navigation map. New: (1) compat keeps a navigation map (`REGIONS`, `WORLDS`) and ports `NavigationAgent3D::_update_navigation`. (2) The particles' view alignment and channel filter port `ParticlesStorage`'s instance buffer update. (3) The GUI port grew: NinePatchRect and RichTextLabel on `godot_control_mount`'s draw machinery. To watch: `DEPTH_CORRECTION_INVERSE`, SpringArm3D placing its children from its own step, stored but undrawn material settings. Emitted from a clean copy of `f6c8f54c`. |
 | 2026-09-29 | `1bc9d0ec` | §The lane's law | regressed, 7 new findings (against `8ed29aff`). Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. New: (1) `three-pathfinding` still declared after navigation left (row 6). (2) SpringArm3D sweeps before each physics step and places its children from compat (row 4, ruling 1). (3) Godot's reversed-Z projection ported into three's shaders (`DEPTH_CORRECTION_INVERSE`, `SCREEN_UV`, `INV_PROJECTION_MATRIX`). (4) The animation Variant arithmetic grew `vec2` and `discrete` kinds. (5) Compat's imported scene picks behaviour by Godot property name (`visible`, `BODY_OVERRIDES`, `PENDING_BODY`). (6) Lowering searches `GODOT_UNDUMPED_MEMBERS` by suffix and splits the class out. (7, to watch) `parentEntity` skips nameless library groups. Emitted from a clean copy of `1bc9d0ec`. |
+| 2026-09-29 | `44de8f25` | §The lane's law | regressed, 5 new findings (against `8ed29aff`). Row 1 and ruling 2 pass; rows 2 to 6 and ruling 1 fail. Every finding of `ab61ea7e`, `f6c8f54c` and `1bc9d0ec` is gone but these. New: (1) `free()` still bound through a table compared with its owner class (`compat-bindings.ts:143`). (2) Dead compat for moving model bodies (`collision-object-3d.ts:288`, reaching into `rigidBodyStates`). (3) The WorldEnvironment polls the camera's attributes each frame and sets React state to draw its depth of field. (4) Lowering's `as never`, `return null!` and `godot_node_entity(x) as T` wrapping grew. (5) ShapeCast3D a new compat element on `useGodotElement`; a `processMode` branch in its property chain. Emitted from a clean copy of `44de8f25`. |
 
 **Order of work.**
 
@@ -1325,7 +1326,7 @@ import, and the review of `ab61ea7e` found how: ten features built as ports or a
 (a second renderer and a per-frame queue for `canvas_item` shaders, a SubViewport's image drawn and
 read back on the CPU with per-class painters, a screen capture re-rendering the scene, Godot's
 bokeh blur and trail pass transcribed, instance edits and ViewportTextures as new compat hooks, a
-BBCode parser). They were taken out; the demo refuses 25 things again, each by name, waiting for
+BBCode parser). They were taken out, with what the later reviews found; the demo refuses again, each by name, waiting for
 its idiomatic form:
 
 - the screen and depth textures (`hint_screen_texture`, `hint_depth_texture`);
@@ -1344,13 +1345,20 @@ its idiomatic form:
 - animation value keys of strings, Vector2s and resources, which grew the transcribed Variant
   arithmetic;
 - an instancing scene's `visible`, layers, sleep and freeze on an imported model's nodes, which
-  compat applied by property name, and the importer's moving (RigidBody3D) bodies.
+  compat applied by property name, and the importer's moving (RigidBody3D) bodies;
+- the camera's depth of field (CameraAttributesPractical), which the WorldEnvironment polled from
+  the camera each frame (review of `44de8f25`);
+- ShapeCast3D, a new compat element;
+- `free()` on self, bound through a table of undumped members;
+- a tween of one component of a property (`position:y`);
+- the lowering's casts: Variants into typed engine parameters (`as never`), script instances into
+  engine-typed parameters (`godot_node_entity(x) as T`), a null returned where an object is typed
+  (`return null!`).
 
-What stayed: ShapeCast3D, depth of field as `postprocessing`'s `DepthOfField`,
-spatial shader normal maps, `ambient_light_disabled`, `VERTEX`, local shader arrays, a collision
-shape's children, and the lowering
-fixes (`free()` on self, script instances into engine-typed parameters as their nodes, typed by
-analysis's `nodeArguments`, null object returns, Variants into typed engine parameters).
+What stayed: spatial shader normal maps, `ambient_light_disabled`, `VERTEX`, local shader arrays,
+a collision shape's children, `lock_rotation` beside axis locks, a node's `process_mode` and
+`top_level` in its `userData`, the importer's generated static bodies with their layers, MP3
+streams, and a script's load of an imported image.
 
 ## What comes next
 

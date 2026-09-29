@@ -682,7 +682,6 @@ function lowerScript(
     source.numericVariants,
   );
   context.resourceLoads = resourceLoadTargets(project, source);
-  context.nodeArguments = new Map(source.nodeArguments.map((entry) => [entry.argumentId, entry.datatype] as const));
   context.nullableReads = new Set((source.nullableVariables ?? []).flatMap((entry) => entry.reads));
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;

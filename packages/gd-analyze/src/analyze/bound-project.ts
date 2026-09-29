@@ -1,4 +1,3 @@
-import { type BoundGodotNodeArgument, nodeArguments } from './node-arguments';
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
 import { type BoundGodotTreeRequests, treeRequests } from './tree-requests';
 import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
@@ -98,8 +97,6 @@ export interface BoundGodotSourceScript {
   readonly refinedProgram: GodotBoundScript;
   /** Calls to the Variant utilities whose result depends on the function (`VariantUtilityShape`). */
   readonly utilityCalls: readonly { readonly nodeId: number; readonly shape: VariantUtilityShape }[];
-  /** Arguments passing a script's instance to a project function's engine-typed parameter (`node-arguments.ts`). */
-  readonly nodeArguments: readonly BoundGodotNodeArgument[];
   /** Variables holding an int or a float, as tagged numbers (`numeric-variant`). */
   readonly numericVariants?: ScriptNumericVariants;
   /** `load(path)` calls whose paths the program fixes (`resource-loads.ts`). */
@@ -412,8 +409,6 @@ export interface BoundGodotScriptMethod {
   /** Its declared parameters' count, and whether it takes the rest in an array (`...args`). */
   readonly parameters: number;
   readonly rest: boolean;
-  /** Each declared parameter's type. */
-  readonly parameterTypes: readonly GodotBoundDatatype[];
 }
 
 export interface BoundGodotScriptClass {
@@ -1111,10 +1106,6 @@ function scriptClass(script: GodotBoundScript): BoundGodotScriptClass {
         coroutine: fn.coroutine,
         parameters: fn.parameters.length,
         rest: fn.restParameter >= 0,
-        parameterTypes: fn.parameters.flatMap((id) => {
-          const parameter = script.nodes[id];
-          return parameter === undefined ? [] : [parameter.datatype];
-        }),
       },
     ];
   });
@@ -1648,13 +1639,6 @@ export function bindGodotProject(
       refinedTypes,
       refinedProgram: refined,
       utilityCalls: variantUtilityCalls(refined),
-      nodeArguments: nodeArguments(refined, (scriptPath, name) => {
-        for (const path of [scriptPath, ...(inheritance.get(scriptPath)?.scriptAncestors ?? [])]) {
-          const method = classes.get(path)?.methods.find((entry) => entry.name === name);
-          if (method !== undefined) return method.parameterTypes;
-        }
-        return undefined;
-      }),
       selfNodePaths: selfNodePaths(refined),
       instancesMade: instancesMade(refined),
       treeRequests: treeRequests(refined),
@@ -1679,7 +1663,7 @@ export function bindGodotProject(
       },
     ];
   });
-  const bound = boundDocuments(
+  const documents = boundDocuments(
     snapshot,
     authority,
     apiDump.parsed,
@@ -1690,7 +1674,6 @@ export function bindGodotProject(
     code.shaders,
     code.engineShaders,
   );
-  const documents = bound;
 
   return {
     version: BOUND_GODOT_PROJECT_VERSION,

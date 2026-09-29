@@ -100,9 +100,9 @@
  */
 
 import { useThree } from '@react-three/fiber';
-import { Bloom, BrightnessContrast, DepthOfField, EffectComposer, HueSaturation, N8AO, ToneMapping as ToneMappingEffect } from '@react-three/postprocessing';
+import { Bloom, BrightnessContrast, EffectComposer, HueSaturation, N8AO, ToneMapping as ToneMappingEffect } from '@react-three/postprocessing';
 import { BlendFunction, ToneMappingMode } from 'postprocessing';
-import { createElement, Fragment, type ReactElement, type RefObject, useLayoutEffect, useRef, useState } from 'react';
+import { createElement, Fragment, type ReactElement, type RefObject, useLayoutEffect, useRef } from 'react';
 import {
   ACESFilmicToneMapping,
   AmbientLight,
@@ -134,8 +134,7 @@ import {
 } from 'three';
 import type { Color } from './color';
 import type { Environment } from './environment';
-import { get_attributes as get_camera_attributes, get_environment as get_camera_environment } from './camera-3d';
-import type { CameraAttributesPractical } from './camera-attributes-practical';
+import { get_environment as get_camera_environment } from './camera-3d';
 import { type GodotSkyLight, godot_light_3d_sky_light } from './light-3d';
 import { useGodotDraw } from './advance';
 import { godot_node_foreign } from './node';
@@ -586,43 +585,19 @@ export function GodotWorldEnvironment({ skyLights = NO_SKY_LIGHTS, ...props }: G
     return godot_world_environment_register(scene, node);
   }, [node, scene]);
   // Its drawing, from its own component's frame while it is inside the tree (`useGodotDraw`).
-  // The current camera's attributes, which it may take or change after this renders.
-  const [attributes, setAttributes] = useState<CameraAttributesPractical | null>(null);
   useGodotDraw(node, () => {
     if (node === undefined) return;
     const state = get();
     drawFrame(scene, node, state.gl, state.camera, lights.current);
-    const held = (state.camera as { readonly isPerspectiveCamera?: boolean }).isPerspectiveCamera === true ? get_camera_attributes(state.camera as never) : null;
-    const practical = held !== null && typeof held === 'object' && 'dof_blur_amount' in held ? (held as CameraAttributesPractical) : null;
-    if (practical !== attributes) setAttributes(practical);
   });
-  // Glow, SSAO, the adjustments or the camera's depth of field: the web renderer's post pass, as
-  // `postprocessing`'s own effects in one composer, which renders in place of R3F's own frame,
-  // without MSAA as Godot's 3D (`rendering/anti_aliasing/quality/msaa_3d`, 0).
+  // Glow, SSAO or the adjustments: the web renderer's post pass, as `postprocessing`'s own effects
+  // in one composer, which renders in place of R3F's own frame, without MSAA as Godot's 3D
+  // (`rendering/anti_aliasing/quality/msaa_3d`, 0).
   const env = (props['environment'] ?? null) as Environment | null;
-  if ((env === null || !godot_environment_post_enabled(env)) && attributes === null) return element;
+  if (env === null || !godot_environment_post_enabled(env)) return element;
   // The composer draws the scene through the camera the viewport draws with now (its own default is
   // R3F's camera when it mounts, before the scene's current camera is chosen).
-  return createElement(Fragment, null, element, createElement(EffectComposer, { multisampling: 0, depthBuffer: true, scene, camera, children: [...depthOfField(attributes), ...(env === null ? [] : postEffects(env))] }));
-}
-
-/**
- * The camera's depth of field as `postprocessing`'s `DepthOfField`, drawn before the environment's
- * post pass as Godot blurs before tone mapping: in focus up to where the far blur begins, blurring
- * over its transition, the bokeh scaled by the blur amount (Godot's amount is a share of a 64-pixel
- * radius). Without a far blur, the near blur's distance is the focus.
- */
-function depthOfField(attributes: CameraAttributesPractical | null): ReactElement[] {
-  if (attributes === null || (!attributes.dof_blur_far_enabled && !attributes.dof_blur_near_enabled) || attributes.dof_blur_amount <= 0) return [];
-  const far = attributes.dof_blur_far_enabled;
-  return [
-    createElement(DepthOfField, {
-      key: 'dof',
-      worldFocusDistance: far ? attributes.dof_blur_far_distance : attributes.dof_blur_near_distance,
-      worldFocusRange: far ? attributes.dof_blur_far_transition : attributes.dof_blur_near_transition,
-      bokehScale: attributes.dof_blur_amount * 10,
-    }),
-  ];
+  return createElement(Fragment, null, element, createElement(EffectComposer, { multisampling: 0, depthBuffer: true, scene, camera, children: postEffects(env) }));
 }
 
 /**

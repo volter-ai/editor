@@ -60,8 +60,9 @@ const NODE_3D = ['set_visible'];
 const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency', 'set_gi_mode'];
 // A light's values kept in `userData` for its getters (`light-3d.ts`): the page's lights draw none of them.
 const LIGHT_KEPT = ['set_shadow_reverse_cull_face', 'set_shadow_caster_mask', 'set_enable_distance_fade', 'set_distance_fade_begin', 'set_distance_fade_shadow', 'set_distance_fade_length'];
-// A Node's `physics_interpolation_mode` and `process_mode`, which every compat element takes
-// (`useGodotElement`); the first stored (`node.ts`: nothing is interpolated between physics ticks).
+// A Node's `physics_interpolation_mode`, which every compat element takes (`useGodotElement`),
+// stored (`node.ts`: nothing is interpolated between physics ticks), and its `process_mode`, in its
+// `userData` (`scene-surface-idioms.ts`).
 const NODE_ELEMENT = ['set_physics_interpolation_mode', 'set_process_mode'];
 // The parameters a particle system's emitter reads (`cpu-particles-3d.ts`), by index, the same in
 // `CPUParticles3D::Parameter` and `ParticleProcessMaterial::Parameter`: initial velocity, angular
@@ -108,7 +109,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   SpotLight3D: [...NODE_3D, ...LIGHT_KEPT, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_param:7', 'set_param:8', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
   // Its `top_level` is its `userData`'s (`nodeData`).
-  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size', 'set_attributes', 'set_as_top_level'],
+  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size', 'set_as_top_level'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
   CanvasLayer: ['set_meta:*', 'set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
   Control: CONTROL,
@@ -364,20 +365,6 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_panning_strength',
     'set_doppler_tracking',
   ],
-  ShapeCast3D: [
-    ...NODE_3D,
-    'set_meta:*',
-    'set_enabled',
-    'set_shape',
-    'set_target_position',
-    'set_margin',
-    'set_max_results',
-    'set_collision_mask',
-    'set_exclude_parent_body',
-    'set_collide_with_areas',
-    'set_collide_with_bodies',
-    'set_debug_shape_custom_color',
-  ],
 };
 
 const PRIMITIVE_PLANE = ['set_size', 'set_subdivide_width', 'set_subdivide_depth', 'set_orientation', 'set_material'];
@@ -591,16 +578,6 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Shader: [],
   // Its items are raw properties (`Type/colors/name`), the constructor's own (`theme.ts`).
   Theme: [],
-  // Its depth of field, drawn by the WorldEnvironment's post pass (`camera-attributes-practical.ts`).
-  CameraAttributesPractical: [
-    'set_dof_blur_far_enabled',
-    'set_dof_blur_far_distance',
-    'set_dof_blur_far_transition',
-    'set_dof_blur_near_enabled',
-    'set_dof_blur_near_distance',
-    'set_dof_blur_near_transition',
-    'set_dof_blur_amount',
-  ],
   CompressedCubemap: [],
   // The parameters a GPUParticles3D's emitter reads (`gpu-particles-3d.ts`); the rest (turbulence,
   // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, the other

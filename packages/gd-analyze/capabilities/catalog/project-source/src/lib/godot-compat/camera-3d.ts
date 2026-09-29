@@ -721,8 +721,9 @@ export function get_v_offset(self: PerspectiveCamera): number {
 }
 
 /**
- * Stored and read back; the current camera's depth of field is drawn by the WorldEnvironment's post
- * pass (`world-environment.ts`, `camera-attributes-practical.ts`).
+ * Stored and read back. Exposure and depth of field from camera attributes are post effects the
+ * web's Compatibility renderer draws through the environment, which compat's post pass takes from
+ * the WorldEnvironment (`world-environment.ts`); the camera's own attributes draw nothing.
  *
  * @godot Camera3D.set_attributes
  * @source scene/3d/camera_3d.cpp:545
@@ -835,16 +836,15 @@ export function get_environment(self: PerspectiveCamera): Environment | null {
 
 /**
  * A scene's Camera3D element states what the drei camera has no prop for through R3F's
- * `onUpdate`: its own environment, its attributes, and an orthogonal or frustum projection and its size
+ * `onUpdate`: its own environment, and an orthogonal or frustum projection and its size
  * (`onUpdate={godot_camera_3d_lens_prop({ projection: 1, size: 19 })}`).
  *
  * @godot Camera3D (protocol)
  * @source scene/3d/camera_3d.cpp:687
  */
-export function godot_camera_3d_lens_prop(lens: { readonly environment?: Environment | null; readonly attributes?: object | null; readonly projection?: number; readonly size?: number }): (self: PerspectiveCamera) => void {
+export function godot_camera_3d_lens_prop(lens: { readonly environment?: Environment | null; readonly projection?: number; readonly size?: number }): (self: PerspectiveCamera) => void {
   return (self) => {
     if (lens.environment !== undefined && ENVIRONMENTS.get(self) !== lens.environment) set_environment(self, lens.environment);
-    if (lens.attributes !== undefined && get_attributes(self) !== lens.attributes) set_attributes(self, lens.attributes);
     if (lens.size !== undefined && get_size(self) !== f32(lens.size)) set_size(self, lens.size);
     if (lens.projection !== undefined && get_projection(self) !== lens.projection) set_projection(self, lens.projection);
   };
