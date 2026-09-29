@@ -62,27 +62,76 @@ export function godot_audio_context(): AudioContext | null {
   return context;
 }
 
-/** One bus of the layout (`AudioServer::Bus`): its volume, mute, solo, bypass and send. */
-export interface GodotAudioBus {
+/** A bus as the layout states it (`bus/N/*` of the default bus layout). */
+export interface GodotAudioBusLayout {
   readonly name: string;
-  volumeDb: number;
-  mute: boolean;
-  solo: boolean;
-  bypassFx: boolean;
-  send: string;
+  readonly volumeDb: number;
+  readonly mute: boolean;
+  readonly solo: boolean;
+  readonly bypassFx: boolean;
+  readonly send: string;
 }
 
-const BUSES: GodotAudioBus[] = [{ name: 'Master', volumeDb: 0, mute: false, solo: false, bypassFx: false, send: '' }];
-const NODES = new WeakMap<AudioContext, Map<string, GainNode>>();
+/**
+ * A bus on the page: a gain node of its volume, into a gain node of its mute, into one silenced
+ * while another bus is soloed, into its send target's volume (Master's into the output). What Web
+ * Audio cannot hold, whether it is soloed and the bus it sends to, is kept beside them.
+ */
+export interface GodotAudioBus {
+  readonly name: string;
+  readonly volume: GainNode;
+  readonly mute: GainNode;
+  readonly unsoloed: GainNode;
+  solo: boolean;
+  readonly send: string;
+}
+
+/** The page's buses, in the layout's order (Master first), once its audio context exists. */
+let buses: GodotAudioBus[] | undefined;
+let layout: readonly GodotAudioBusLayout[] = [{ name: 'Master', volumeDb: 0, mute: false, solo: false, bypassFx: false, send: '' }];
+
+/** The buses of the layout as gain nodes on the page's context, wired to their targets. */
+function busesOf(audio: AudioContext): GodotAudioBus[] {
+  if (buses !== undefined) return buses;
+  const made = layout.map((entry): GodotAudioBus => {
+    const volume = audio.createGain();
+    const mute = audio.createGain();
+    const unsoloed = audio.createGain();
+    volume.gain.value = 10 ** (entry.volumeDb / 20);
+    mute.gain.value = entry.mute ? 0 : 1;
+    volume.connect(mute).connect(unsoloed);
+    return { name: entry.name, volume, mute, unsoloed, solo: entry.solo, send: entry.send };
+  });
+  // Each bus into its send (a bus the layout lacks is Master); Master, and a bus sending to itself or before
+  // it, into the output.
+  made.forEach((bus, index) => {
+    const target = index === 0 ? undefined : (made.find((other) => other.name === bus.send) ?? made[0]);
+    bus.unsoloed.connect(target === undefined || made.indexOf(target) >= index ? audio.destination : target.volume);
+  });
+  buses = made;
+  soloed();
+  return made;
+}
+
+/** Silences every bus but Master and the soloed ones while any is soloed. */
+function soloed(): void {
+  const all = buses ?? [];
+  const soloing = all.some((bus) => bus.solo);
+  all.forEach((bus, index) => {
+    bus.unsoloed.gain.value = soloing && !bus.solo && index !== 0 ? 0 : 1;
+  });
+}
 
 /**
- * The layout's buses, which `AudioServer` reads and changes (`audio-server.ts`).
+ * The page's buses, which `AudioServer` reads and changes (`audio-server.ts`); none where the page
+ * has no Web Audio.
  *
  * @godot AudioStream (protocol)
  * @source servers/audio/audio_server.cpp:944
  */
-export function godot_audio_buses(): GodotAudioBus[] {
-  return BUSES;
+export function godot_audio_buses(): readonly GodotAudioBus[] {
+  const audio = godot_audio_context();
+  return audio === null ? [] : busesOf(audio);
 }
 
 /**
@@ -92,58 +141,22 @@ export function godot_audio_buses(): GodotAudioBus[] {
  * @godot AudioStream (protocol)
  * @source servers/audio/audio_server.cpp:1755
  */
-export function godot_audio_bus_layout(buses: readonly Readonly<GodotAudioBus>[]): void {
-  BUSES.splice(0, BUSES.length, ...buses.map((bus) => ({ ...bus })));
-  if (context !== undefined && context !== null) NODES.delete(context);
-}
-
-/** A bus's gain: silent while muted, or while another bus is soloed and it is not. */
-function gainOf(bus: GodotAudioBus): number {
-  const soloing = BUSES.some((other) => other.solo);
-  return bus.mute || (soloing && !bus.solo && bus !== BUSES[0]) ? 0 : 10 ** (bus.volumeDb / 20);
+export function godot_audio_bus_layout(entries: readonly GodotAudioBusLayout[]): void {
+  for (const bus of buses ?? []) bus.unsoloed.disconnect();
+  layout = entries;
+  buses = undefined;
 }
 
 /**
  * The bus a player's sound goes into (a bus the layout lacks is Master, as
- * `AudioServer::thread_find_bus_index` finds): a gain node sending into its target bus, Master
- * into the page's output.
+ * `AudioServer::thread_find_bus_index` finds): its volume node.
  *
  * @godot AudioStream (protocol)
  * @source servers/audio/audio_server.cpp:997
  */
 export function godot_audio_bus_output(audio: AudioContext, bus: string): AudioNode {
-  let nodes = NODES.get(audio);
-  if (nodes === undefined) {
-    nodes = new Map();
-    NODES.set(audio, nodes);
-  }
-  const node = (target: GodotAudioBus, depth: number): GainNode => {
-    let gain = nodes.get(target.name);
-    if (gain === undefined) {
-      gain = audio.createGain();
-      gain.gain.value = gainOf(target);
-      const send = target === BUSES[0] || depth > BUSES.length ? undefined : (BUSES.find((other) => other.name === target.send) ?? BUSES[0]);
-      gain.connect(send === undefined || send === target ? audio.destination : node(send, depth + 1));
-      nodes.set(target.name, gain);
-    }
-    return gain;
-  };
-  return node(BUSES.find((entry) => entry.name === bus) ?? (BUSES[0] as GodotAudioBus), 0);
-}
-
-/**
- * The buses' gains after a change to their volume, mute or solo (`AudioServer`'s setters).
- *
- * @godot AudioStream (protocol)
- * @source servers/audio/audio_server.cpp:1006
- */
-export function godot_audio_bus_changed(): void {
-  const nodes = context === undefined || context === null ? undefined : NODES.get(context);
-  if (nodes === undefined) return;
-  for (const bus of BUSES) {
-    const gain = nodes.get(bus.name);
-    if (gain !== undefined) gain.gain.value = gainOf(bus);
-  }
+  const all = busesOf(audio);
+  return (all.find((entry) => entry.name === bus) ?? (all[0] as GodotAudioBus)).volume;
 }
 
 /**
