@@ -1,4 +1,5 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
+import { loopsAssigningVariable, statedRefinements } from './lowering-facts';
 import type { GodotEmbeddedImage } from '../read/embedded-images';
 import { namedInputActions } from './input-actions';
 import { type BoundGodotTreeRequests, treeRequests } from './tree-requests';
@@ -99,6 +100,10 @@ export interface BoundGodotSourceScript {
   readonly refinedProgram: GodotBoundScript;
   /** Calls to the Variant utilities whose result depends on the function (`VariantUtilityShape`). */
   readonly utilityCalls: readonly { readonly nodeId: number; readonly shape: VariantUtilityShape }[];
+  /** The refined types lowering states in the output (`lowering-facts.ts`). */
+  readonly statedRefinements: readonly number[];
+  /** The `for` loops whose body assigns their own variable (`lowering-facts.ts`). */
+  readonly loopsAssigningVariable: readonly number[];
   /** Variables holding an int or a float, as tagged numbers (`numeric-variant`). */
   readonly numericVariants?: ScriptNumericVariants;
   /** `load(path)` calls whose paths the program fixes (`resource-loads.ts`). */
@@ -1657,6 +1662,8 @@ export function bindGodotProject(
       ...callReceiverFacts(program, attachments),
       refinedTypes,
       refinedProgram: refined,
+      statedRefinements: statedRefinements(program, refinedTypes),
+      loopsAssigningVariable: loopsAssigningVariable(refined),
       utilityCalls: variantUtilityCalls(refined),
       selfNodePaths: selfNodePaths(refined),
       instancesMade: instancesMade(refined),

@@ -292,15 +292,7 @@ function lowerCountedRange(
   if (step === 0) return context.refuse(stepNode ?? call, 'a range() loop with a zero step makes nothing (Godot reports "Step argument is zero!")');
   const name = officialBoundIdentifier(context, node.variable, node);
   const loopNode = context.node(node.loop, node);
-  const within = (inner: GodotBoundNode) =>
-    (inner.startLine > loopNode.startLine || (inner.startLine === loopNode.startLine && inner.startColumn >= loopNode.startColumn)) &&
-    (inner.endLine < loopNode.endLine || (inner.endLine === loopNode.endLine && inner.endColumn <= loopNode.endColumn));
-  const assignsVariable = context.script.nodes.some((candidate) => {
-    if (candidate.kind !== 'ASSIGNMENT' || !within(candidate)) return false;
-    const assignee = context.script.nodes[candidate.assignee];
-    return assignee?.kind === 'IDENTIFIER' && variable.kind === 'IDENTIFIER' && assignee.name === variable.name;
-  });
-  if (assignsVariable) return context.refuse(node, 'a range() loop whose body assigns its variable, which Godot copies from a hidden counter');
+  if (context.loopsAssigningVariable.has(node.id)) return context.refuse(node, 'a range() loop whose body assigns its variable, which Godot copies from a hidden counter');
   const begin = beginNode === undefined ? undefined : settleForStatement(context, lowerExpression(context, beginNode));
   const end = settleForStatement(context, lowerExpression(context, endNode));
   const body = lowerOfficialSuite(context, loopNode);

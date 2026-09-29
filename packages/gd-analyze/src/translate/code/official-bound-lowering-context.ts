@@ -224,6 +224,8 @@ export class LoweringContext {
   resourceLoads: ReadonlyMap<number, readonly OfficialBoundResourceLoadTarget[]> = new Map();
   /** The resolved `load(path)` calls whose file does not load in code, with why (`resourceLoadTargets`). */
   refusedResourceLoads: ReadonlyMap<number, string> = new Map();
+  /** The `for` loops whose body assigns their own variable (analysis's `loopsAssigningVariable`). */
+  loopsAssigningVariable: ReadonlySet<number> = new Set();
   /** The reads of variables that hold null at some time, which TS types `T | null` (`nullable-variables.ts`). */
   nullableReads: ReadonlySet<number> = new Set();
   /** The variable declarations that hold null at some time (`nullable-variables.ts`). */

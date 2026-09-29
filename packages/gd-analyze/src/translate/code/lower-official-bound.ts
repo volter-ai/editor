@@ -664,20 +664,8 @@ function lowerScript(
       return { name: godotSceneExportName(resPath), module, ...(rootScript === undefined ? {} : { rootScript }) };
     },
     nativeType,
-    new Set(
-      source.refinedTypes
-        .filter((entry) => {
-          if (entry.rule === 'type-test-narrowing') return true;
-          // A loop variable the analysis typed from the elements its body reads: the loop states
-          // its list as an array of that type (`lowerOfficialStatement`'s FOR).
-          if (entry.rule === 'iterated-element-type') return source.program.nodes.some((node) => node.kind === 'FOR' && node.variable === entry.nodeId);
-          // A member declared as a wider node type that the scenes fix (an exported node
-          // reference): its reads are stated as the node it holds.
-          const declared = source.program.nodes[entry.nodeId];
-          return entry.rule === 'scene-node-receiver' && declared?.kind === 'IDENTIFIER' && declared.source === 'MEMBER_VARIABLE' && declared.datatype.typeSource === 'ANNOTATED_EXPLICIT';
-        })
-        .map((entry) => entry.nodeId),
-    ),
+    // The refined types it states (analysis's `statedRefinements`).
+    new Set(source.statedRefinements),
     new Map(source.scriptCalls.flatMap((entry) => (entry.scripts === undefined ? [] : [[entry.nodeId, entry.scripts] as const]))),
     nativeSignalOwner,
     source.numericVariants,
@@ -685,6 +673,7 @@ function lowerScript(
   const loads = resourceLoadTargets(project, source);
   context.resourceLoads = loads.found;
   context.refusedResourceLoads = loads.refused;
+  context.loopsAssigningVariable = new Set(source.loopsAssigningVariable);
   context.nullableReads = new Set((source.nullableVariables ?? []).flatMap((entry) => entry.reads));
   context.nullableDeclarations = new Set(source.nullableDeclarations ?? []);
   if (globalEnumConstant !== undefined) context.globalEnumConstant = globalEnumConstant;
