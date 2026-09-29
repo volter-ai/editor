@@ -2352,10 +2352,14 @@ class NativeHistory:
         finally:
             self.moving = False
         self.cursor += -1 if direction == "undo" else 1
-        # Native undo replaces datablocks. Both revision caches must forget their
-        # old pointers before the restored scene is exported to the presenter.
-        _blender_web.session_reset()
-        SESSION.forget()
+        # AN UNDO STEP IS AN ORDINARY UPDATE when Blender kept its datablocks and depsgraph:
+        # memfile undo re-reads only the changed IDs and tags exactly those, so the next frame
+        # re-ships what changed and the presenter keeps the rest (`session_undo`). A step that
+        # replaced the depsgraph starts both revision caches over, as does an engine without
+        # the door.
+        if not hasattr(_blender_web, "session_undo") or _blender_web.session_undo():
+            _blender_web.session_reset()
+            SESSION.forget()
         SESSION.present()
         return {"moved": True}
 
