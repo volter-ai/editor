@@ -208,13 +208,34 @@ export function sceneSetterLookup(
   return Object.assign(lookup, { method: lookupMethod });
 }
 
+/** The compat constructor a built-in record is made by where a Variant holds it (a container's item, a field, metadata). */
+export interface TargetSceneRecordConstructor {
+  readonly module: string;
+  readonly exportName: string;
+  readonly localName: string;
+}
+
+type SceneRecordKind = 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'Vector2i' | 'Vector3i' | 'Rect2' | 'Rect2i';
+
+/** Each built-in record's compat constructor: the plan states it on the value, emit prints it. */
+const SCENE_RECORD_CONSTRUCTORS: Readonly<Record<SceneRecordKind, TargetSceneRecordConstructor>> = {
+  Vector2: { module: 'vector2', exportName: 'construct', localName: 'Vector2_construct' },
+  Vector3: { module: 'vector3', exportName: 'construct', localName: 'Vector3_construct' },
+  Vector2i: { module: 'vector2i', exportName: 'construct', localName: 'Vector2i_construct' },
+  Vector3i: { module: 'vector3i', exportName: 'construct', localName: 'Vector3i_construct' },
+  Color: { module: 'color', exportName: 'construct', localName: 'Color_construct' },
+  Quaternion: { module: 'quaternion', exportName: 'construct', localName: 'Quaternion_construct' },
+  Rect2: { module: 'rect2', exportName: 'construct', localName: 'Rect2_construct' },
+  Rect2i: { module: 'rect2i', exportName: 'construct', localName: 'Rect2i_construct' },
+};
+
 /** An authored value as the composition passes it to a setter. */
 export type TargetSceneValue =
   | { readonly kind: 'number'; readonly value: number }
   | { readonly kind: 'bool'; readonly value: boolean }
   | { readonly kind: 'string'; readonly value: string }
   | { readonly kind: 'null' }
-  | { readonly kind: 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'; readonly components: readonly number[] }
+  | { readonly kind: 'Vector2' | 'Vector3' | 'Color' | 'Quaternion'; readonly components: readonly number[]; readonly construct: TargetSceneRecordConstructor }
   /** A `PackedVector3Array`, as the Vector3 array compat's setters take: x, y, z per element. */
   | { readonly kind: 'PackedVector3Array'; readonly components: readonly number[] }
   /** A `PackedByteArray`: its bytes. */
@@ -242,7 +263,7 @@ export type TargetSceneValue =
   /** A resource this document declares or references: `SubResource`/`ExtResource` by id. */
   | { readonly kind: 'resource'; readonly reference: 'sub' | 'ext'; readonly id: string }
   /** An integer vector or a rectangle, by its members in order (`Vector2i(x, y)`, `Rect2(x, y, w, h)`). */
-  | { readonly kind: 'Vector2i' | 'Vector3i' | 'Rect2' | 'Rect2i'; readonly components: readonly number[] }
+  | { readonly kind: 'Vector2i' | 'Vector3i' | 'Rect2' | 'Rect2i'; readonly components: readonly number[]; readonly construct: TargetSceneRecordConstructor }
   /**
    * An Array of any values (resources, records, nested containers), as a Variant holds it: each
    * element its own value (a SpriteFrames' `animations`, an exported `Array[Texture2D]`).
@@ -309,7 +330,9 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
       if (arity === undefined || !arity.includes(value.args.length)) return undefined;
       const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
       if (!components.every((entry): entry is number => entry !== undefined)) return undefined;
-      return { kind: value.name as Record, components };
+      if (value.name === 'AABB') return { kind: 'AABB', components };
+      const kind = value.name as SceneRecordKind;
+      return { kind, components, construct: SCENE_RECORD_CONSTRUCTORS[kind] };
     }
     case 'array': {
       const components: number[] = [];

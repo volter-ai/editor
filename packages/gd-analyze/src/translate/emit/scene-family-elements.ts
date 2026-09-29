@@ -42,6 +42,7 @@ import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath 
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { GODOT_DEFAULT_MATERIAL_IDIOM, type GodotSceneMaterialIdiom } from '../data/scene-material-idioms';
 import type { GodotSceneGeometryMade } from '../data/scene-resource-idioms';
+import type { TargetSceneRecordConstructor } from '../data/scene-setters';
 
 const f32 = Math.fround;
 
@@ -397,10 +398,7 @@ export function godotPropName(property: string): string {
 
 /** A metadata value as the Variant it is: a built-in made by its compat constructor. */
 function metaValue(emission: FamilyEmission, value: TargetGodotSceneValue): TargetTsExpression {
-  if (value.kind === 'Vector2' || value.kind === 'Vector3' || value.kind === 'Color' || value.kind === 'Quaternion') {
-    const module = { Vector2: 'vector2', Vector3: 'vector3', Color: 'color', Quaternion: 'quaternion' }[value.kind];
-    return { kind: 'call-expression', callee: identifier(useCompat(emission, module, 'construct', `${value.kind}_construct`)), arguments: value.components.map((component) => literal(component)) };
-  }
+  if ('construct' in value) return recordValue(emission, value.construct, value.components);
   if (value.kind === 'number' || value.kind === 'bool' || value.kind === 'string') return propValue(emission, value);
   throw new Error(`a ${value.kind} metadata value has no element form`);
 }
@@ -424,17 +422,10 @@ function propValue(emission: FamilyEmission, value: TargetGodotSceneValue): Targ
   }
 }
 
-/** The compat module constructing each built-in record a Variant container holds. */
-const RECORD_MODULES: Readonly<Record<string, string>> = {
-  Vector2: 'vector2',
-  Vector3: 'vector3',
-  Vector2i: 'vector2i',
-  Vector3i: 'vector3i',
-  Color: 'color',
-  Quaternion: 'quaternion',
-  Rect2: 'rect2',
-  Rect2i: 'rect2i',
-};
+/** A built-in record made by the compat constructor its plan states. */
+function recordValue(emission: FamilyEmission, construct: TargetSceneRecordConstructor, components: readonly number[]): TargetTsExpression {
+  return { kind: 'call-expression', callee: identifier(useCompat(emission, construct.module, construct.exportName, construct.localName)), arguments: components.map((component) => literal(component)) };
+}
 
 /**
  * An authored value as the Variant a script or resource holds: a record made by its compat
@@ -468,11 +459,9 @@ export function variantValue(emission: FamilyEmission, value: TargetGodotSceneVa
     case 'PackedInt32Array':
     case 'PackedColorArray':
       return numbers(value.components);
-    default: {
-      const module = RECORD_MODULES[value.kind];
-      if (module === undefined) throw new Error(`a ${value.kind} value has no Variant form`);
-      return { kind: 'call-expression', callee: identifier(useCompat(emission, module, 'construct', `${value.kind}_construct`)), arguments: value.components.map((component) => literal(component)) };
-    }
+    default:
+      if (!('construct' in value)) throw new Error(`a ${value.kind} value has no Variant form`);
+      return recordValue(emission, value.construct, value.components);
   }
 }
 
