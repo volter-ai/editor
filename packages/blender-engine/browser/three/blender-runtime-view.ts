@@ -644,6 +644,7 @@ export class BlenderRuntimeView {
   readonly root = new THREE.Group();
   private readonly instances = new BlenderRuntimeInstances(this.root);
   private readonly transparentInstances = new BlenderTransparentInstances(this.root);
+  private drawBatching = true;
   private readonly objects = new Map<string, THREE.Object3D>();
   private readonly meshes = new Map<
     string,
@@ -1227,8 +1228,16 @@ export class BlenderRuntimeView {
 
   private rebuildInstances(): void {
     this.transparentInstances.clear();
-    this.instances.rebuild(this.objects.values(), !this.rendered);
-    if (!this.rendered) this.transparentInstances.setObjects(this.objects.values());
+    this.instances.rebuild(this.objects.values(), this.drawBatching && !this.rendered);
+    if (this.drawBatching && !this.rendered) this.transparentInstances.setObjects(this.objects.values());
+  }
+
+  /** Presentation-only comparison door; never changes Blender or its data. */
+  setDrawBatching(enabled: boolean): void {
+    if (enabled === this.drawBatching) return;
+    this.drawBatching = enabled;
+    this.rebuildInstances();
+    presenterChanged();
   }
 
   /** Before the renderer uploads attributes/builds its queues, for this area's
@@ -2049,7 +2058,7 @@ export class BlenderRuntimeView {
   }
 
   drawStatistics() {
-    return {opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect()};
+    return {enabled: this.drawBatching, opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect()};
   }
 
   snapshot() {

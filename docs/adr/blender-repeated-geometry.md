@@ -61,6 +61,10 @@ This keeps the authored Alpha and blending, rather than replacing foliage with
 an alpha-test cutoff. Picking returns the original objects; edited transforms
 are used on the next draw. Helpers/batches do not become authored scene entries.
 The diagnostic `blender-status` reports both opaque and transparent batch counts.
+`blender-draw-batching {enabled:false|true}` selects the ordinary/instanced
+presentation for a same-tab, same-camera frame-cost comparison. It never invokes
+the native engine or persists anything. Held scene counts exclude internal
+presentation draws; renderer draw counters continue to report actual work.
 
 Early 137 ms/8,170-call measurements were taken while this work was evolving;
 a later run had only seven opaque batches and a changed canvas after a React

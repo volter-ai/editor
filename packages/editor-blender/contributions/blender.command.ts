@@ -51,6 +51,8 @@ const verb = (derivedRefresh: CommandDerivedRefresh, timeoutMs?: number): Comman
 });
 
 export const commands: CommandContribution['commands'] = {
+  // Presentation-only comparison, no engine mutation or derived frame refresh.
+  'blender-draw-batching': verb('none'),
   'blender-start': verb('none', 120_000),
   // Stop drains accepted modeling work and persists it before teardown.
   'blender-stop': verb('none', 30 * 60_000),

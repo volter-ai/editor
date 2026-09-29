@@ -2119,7 +2119,7 @@ export function Object3DDocumentViewport({
           let sceneTriangles = 0;
           host.scene.traverseVisible((object) => {
             const mesh = object as THREE.Mesh;
-            if (!mesh.isMesh || !mesh.geometry) return;
+            if (!mesh.isMesh || !mesh.geometry || isInEditorOwnedSubtree(mesh)) return;
             meshes++;
             const index = mesh.geometry.getIndex();
             const count = index ? index.count : (mesh.geometry.getAttribute('position')?.count ?? 0);

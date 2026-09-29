@@ -732,6 +732,7 @@ interface RuntimeView {
   applyFrame(frame: unknown): unknown;
   snapshot(): ReturnType<BlenderRuntimeView['snapshot']>;
   drawStatistics(): ReturnType<BlenderRuntimeView['drawStatistics']>;
+  setDrawBatching(enabled: boolean): void;
   /** Own a detached revision for render lighting, never the interactive view. */
   captureSnapshot(): ReturnType<BlenderRuntimeView['captureSnapshot']>;
   /** Keep the description of the frame just applied, and the two poses of every
@@ -1147,6 +1148,13 @@ export async function handleBlenderCommand(cmd: {
   [key: string]: unknown;
 }): Promise<EditorCommandResult> {
   const host = editorHost();
+  if (cmd.type === 'blender-draw-batching') {
+    if (typeof cmd['enabled'] !== 'boolean') return {ok: false, error: 'blender-draw-batching requires boolean enabled'};
+    if (!runtime?.project || !host.session.open()) return {ok: false, error: 'Open a Blender document before changing draw batching'};
+    const view = await runtimeView();
+    view.setDrawBatching(cmd['enabled']);
+    return {ok: true, data: {instancing: view.drawStatistics()}};
+  }
   // A read of this tab, answered ABOVE `blenderRuntime()` because that call
   // spawns the worker: this is the one Blender command that must not create
   // the session it is asked about. A caller uses it to find out whether the
