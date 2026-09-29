@@ -12,12 +12,11 @@
 
 import type { ReactElement } from 'react';
 import { Group, type Object3D } from 'three';
-import { godot_node_adopt, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
+import { godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import type { Transform3D } from './transform-3d';
 
-const CLASSES = ['AudioListener3D', 'Node3D', 'Node', 'Object'];
 
 /** Whether each listener was made current (`current`), in or out of the tree. */
 const CURRENT = new WeakMap<object, boolean>();
@@ -54,17 +53,6 @@ export function godot_audio_listener_3d_mount(entity: Object3D): void {
     }
     LISTENERS.delete(entity);
   });
-}
-
-/**
- * @godot AudioListener3D.AudioListener3D
- * @source scene/3d/audio_listener_3d.cpp:187
- */
-export function construct(): Group {
-  const entity = new Group();
-  godot_node_adopt(entity, { kind: 'spatial', classes: CLASSES });
-  godot_audio_listener_3d_mount(entity);
-  return entity;
 }
 
 /**
@@ -116,7 +104,6 @@ export function get_listener_transform(self: object): Transform3D {
 
 const AUDIO_LISTENER_3D = {
   create: () => new Group(),
-  classes: CLASSES,
   spatial: true,
   mount: godot_audio_listener_3d_mount,
   props: new Map<string, GodotElementProp<Object3D>>([['current', (entity, value: boolean) => _set_current(entity, value)]]),

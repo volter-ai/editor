@@ -316,8 +316,11 @@ export type GodotElementProp<Entity> = (entity: Entity, value: never) => void;
 /** How a node class is written as a JSX element (`useGodotElement`). */
 export interface GodotElementClass<Entity extends Object3D> {
   readonly create: () => Entity;
-  /** The class and its native ancestors, nearest first; a canvas or plain node is not spatial. */
-  readonly classes: readonly string[];
+  /**
+   * The class and its native ancestors, nearest first; absent where the scene states them in the
+   * element's `userData` (`classes`). A canvas or plain node is not spatial.
+   */
+  readonly classes?: readonly string[];
   readonly spatial: boolean;
   /** Makes the entity the node its class creates, before its properties. */
   readonly mount: (entity: Entity) => void;
@@ -352,7 +355,7 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
     const made = element.create();
     if (name !== undefined) made.name = name;
     godot_element_callsite(made, callsite);
-    godot_node_adopt(made, { kind: element.spatial ? 'spatial' : 'node', classes: element.classes });
+    godot_node_adopt(made, { kind: element.spatial ? 'spatial' : 'node', ...(element.classes === undefined ? {} : { classes: element.classes }) });
     element.mount(made);
     for (const [property, value] of Object.entries(properties)) {
       // `userData` (or one of its fields, `userData-NAME`) is the node's Godot-only state (its groups,
@@ -367,8 +370,8 @@ export function useGodotElement<Entity extends Object3D>(element: GodotElementCl
       // `physics_interpolation_mode`, which every class inherits (`node.cpp:4056`).
       const set =
         element.props.get(property) ??
-        (property === 'visible' && element.classes.includes('Node3D') ? set_visible : property === 'physicsInterpolationMode' ? set_physics_interpolation_mode : undefined);
-      if (set === undefined) throw new Error(`godot-compat: ${element.classes[0] ?? 'a node'} has no ${property} prop`);
+        (property === 'visible' && element.spatial ? set_visible : property === 'physicsInterpolationMode' ? set_physics_interpolation_mode : undefined);
+      if (set === undefined) throw new Error(`godot-compat: ${element.classes?.[0] ?? name ?? 'a node'} has no ${property} prop`);
       (set as (entity: Entity, value: unknown) => void)(made, value);
     }
     return made;

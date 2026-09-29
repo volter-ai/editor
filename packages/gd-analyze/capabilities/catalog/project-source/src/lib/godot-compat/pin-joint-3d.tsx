@@ -14,10 +14,9 @@ import { useSphericalJoint } from '@react-three/rapier';
 import { createElement, type ReactElement, useEffect, useRef } from 'react';
 import { Group, type Object3D } from 'three';
 import { type GodotJointBodies, godot_joint_3d_props, useGodotJointBodies } from './joint-3d';
-import { godot_node_adopt, godot_node_entity } from './node';
+import { godot_node_entity } from './node';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
-const CLASSES = ['PinJoint3D', 'Joint3D', 'Node3D', 'Node', 'Object'];
 
 const PARAMS = new WeakMap<object, number[]>();
 
@@ -58,19 +57,8 @@ function Pin({ bodies }: { readonly bodies: GodotJointBodies }): null {
   return null;
 }
 
-/**
- * @godot PinJoint3D.PinJoint3D
- * @source scene/3d/physics/joints/pin_joint_3d.cpp:76
- */
-export function construct(): Group {
-  const entity = new Group();
-  godot_node_adopt(entity, { kind: 'spatial', classes: CLASSES });
-  return entity;
-}
-
 const PIN_JOINT_3D = {
   create: () => new Group(),
-  classes: CLASSES,
   spatial: true,
   mount: (entity: Object3D) => void paramsOf(entity),
   props: new Map<string, GodotElementProp<Object3D>>([

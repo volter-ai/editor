@@ -49,10 +49,10 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
   const castShadow = setterValue(node.setters, 'set_cast_shadows_setting');
   // A top-level node's transform is global (`node-3d.ts` reads it when it first places the node).
   const topLevel = setterValue(node.setters, 'set_as_top_level');
-  // A node three or Rapier mounts records no Godot class of its own: its classes, nearest first,
-  // which the Node protocol reads for `is`, `as` and its class name.
+  // A node three, Rapier or a compat element mounts records no Godot class of its own: its classes,
+  // nearest first, which the Node protocol reads for `is`, `as` and its class name.
   const form = node.idiom?.form.kind;
-  const mounted = node.instance === undefined && node.model === undefined && (form === 'group' || form === 'mesh' || form === 'light' || form === 'camera' || form === 'body');
+  const mounted = node.instance === undefined && node.model === undefined && (form === 'group' || form === 'mesh' || form === 'light' || form === 'camera' || form === 'body' || form === 'component');
   return {
     ...(mounted && node.classes.length > 0 ? { classes: [...node.classes] } : {}),
     ...(node.groups.length === 0 ? {} : { groups: [...node.groups] }),

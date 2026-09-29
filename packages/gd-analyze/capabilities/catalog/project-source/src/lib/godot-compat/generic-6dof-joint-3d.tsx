@@ -17,10 +17,9 @@ import { type RapierRigidBody, useImpulseJoint } from '@react-three/rapier';
 import { createElement, type ReactElement, useEffect, useRef } from 'react';
 import { Group, type Object3D } from 'three';
 import { type GodotJointBodies, godot_joint_3d_props, useGodotJointBodies } from './joint-3d';
-import { godot_node_adopt, godot_node_entity } from './node';
+import { godot_node_entity } from './node';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 
-const CLASSES = ['Generic6DOFJoint3D', 'Joint3D', 'Node3D', 'Node', 'Object'];
 
 /** `Param` (`generic_6dof_joint_3d.h:39`): the ones the lock reads. */
 const PARAM_LINEAR_LOWER_LIMIT = 0;
@@ -172,16 +171,6 @@ function Generic({ bodies, mask }: { readonly bodies: GodotJointBodies; readonly
   return null;
 }
 
-/**
- * @godot Generic6DOFJoint3D.Generic6DOFJoint3D
- * @source scene/3d/physics/joints/generic_6dof_joint_3d.cpp:315
- */
-export function construct(): Group {
-  const entity = new Group();
-  godot_node_adopt(entity, { kind: 'spatial', classes: CLASSES });
-  return entity;
-}
-
 /** Each per-axis property's prop (`angularLimitXUpperAngle`), by its group, field and slot (`ADD_PROPERTYI`, `:52`). */
 const SLOTS: readonly (readonly [string, 'flag' | 'param', number])[] = [
   ['linear_limit/enabled', 'flag', 0],
@@ -218,7 +207,6 @@ const camel = (name: string) => name.replace(/[_/]([a-z])/gu, (_, letter: string
 
 const GENERIC_6DOF_JOINT_3D = {
   create: () => new Group(),
-  classes: CLASSES,
   spatial: true,
   mount: (entity: Object3D) => void axesOf(entity),
   props: new Map<string, GodotElementProp<Object3D>>([

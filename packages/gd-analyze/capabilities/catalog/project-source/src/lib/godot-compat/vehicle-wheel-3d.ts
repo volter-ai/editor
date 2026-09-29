@@ -14,11 +14,10 @@
 
 import type { ReactElement } from 'react';
 import { Group, type Object3D, Vector3 as ThreeVector3 } from 'three';
-import { godot_node_adopt, godot_node_entity } from './node';
+import { godot_node_entity } from './node';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import { construct as vector3, type Vector3 } from './vector3';
 
-const CLASSES = ['VehicleWheel3D', 'Node3D', 'Node', 'Object'];
 
 /** A wheel's settings (`vehicle_body_3d.h:83`) and what its vehicle last found for it. */
 export interface GodotVehicleWheelState {
@@ -107,17 +106,6 @@ export function godot_vehicle_wheel_3d_mount(entity: Object3D): void {
     contactNormal: vector3(0, 0, 0),
     rpm: 0,
   });
-}
-
-/**
- * @godot VehicleWheel3D.VehicleWheel3D
- * @source scene/3d/physics/vehicle_body_3d.cpp:391
- */
-export function construct(): Group {
-  const entity = new Group();
-  godot_node_adopt(entity, { kind: 'spatial', classes: CLASSES });
-  godot_vehicle_wheel_3d_mount(entity);
-  return entity;
 }
 
 /**
@@ -381,7 +369,6 @@ export function get_rpm(self: object): number {
 
 const VEHICLE_WHEEL_3D = {
   create: () => new Group(),
-  classes: CLASSES,
   spatial: true,
   mount: godot_vehicle_wheel_3d_mount,
   props: new Map<string, GodotElementProp<Object3D>>([
