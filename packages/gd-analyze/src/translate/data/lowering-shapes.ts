@@ -42,6 +42,8 @@ const COPIED_MUTATORS = ['push_back', 'append', 'append_array', 'insert', 'remov
 const CALL_SHAPES: Readonly<Record<string, GodotCallShape>> = {
   ...Object.fromEntries(COPIED_MUTATORS.map((member) => [`PackedStringArray.${member}`, 'copied-mutator' as const])),
   'ResourceLoader.load': 'resource-load',
+  // GDScript's `load(path)` is `ResourceLoader.load(path)` (`gdscript_utility_functions.cpp:233`).
+  '@GDScript.load': 'resource-load',
   'ResourceSaver.save': 'resource-save',
   'Tween.tween_property': 'tweened-property',
   'Object.has_method': 'script-chain-method',

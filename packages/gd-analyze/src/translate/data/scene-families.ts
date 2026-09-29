@@ -12,7 +12,7 @@ import type {
   TargetGodotSceneValue,
 } from './scene-document-plan';
 
-const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative', 'set_material', 'set_use_parent_material'];
+const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative', 'set_material', 'set_use_parent_material', 'set_texture_filter', 'set_texture_repeat'];
 const NODE_2D = [...CANVAS_ITEM, 'set_position', 'set_rotation', 'set_scale', 'set_skew'];
 const CONTROL = [
   ...CANVAS_ITEM,

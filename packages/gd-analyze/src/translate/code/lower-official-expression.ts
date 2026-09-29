@@ -3185,7 +3185,12 @@ export function lowerOfficialExpression(
           };
         }
         // `ResourceLoader.load` / `ResourceSaver.save`: the project's resources and the page's storage.
-        const nativeShape = node.compilerTarget.kind === 'native-method' || node.compilerTarget.kind === 'native-static' ? godotCallShape(node.compilerTarget.owner, node.compilerTarget.member) : undefined;
+        const nativeShape =
+          node.compilerTarget.kind === 'native-method' || node.compilerTarget.kind === 'native-static'
+            ? godotCallShape(node.compilerTarget.owner, node.compilerTarget.member)
+            : node.compilerTarget.kind === 'gdscript-utility'
+              ? godotCallShape('@GDScript', node.compilerTarget.member)
+              : undefined;
         if (nativeShape === 'resource-load' || nativeShape === 'resource-save') {
           return resourceCall(context, node, nativeShape, argumentNodes, lowered, requirements);
         }

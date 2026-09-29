@@ -27,6 +27,7 @@
  * `root` as Godot's root Window is. Pause is not transcribed (the tree never pauses).
  */
 
+import type { PackedScene } from './packed-scene-instance';
 import { godot_node_enter_root, godot_node_free, godot_node_group_members, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued } from './node';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
@@ -42,6 +43,7 @@ const TREE: SceneTree = Object.freeze({});
 const tree = {
   root: undefined as object | undefined,
   reload: undefined as (() => void) | undefined,
+  change: undefined as ((scene: PackedScene) => void) | undefined,
 };
 
 /** The host's physics world, which the world hands compat (`godot_tree_attach_host`). */
@@ -114,6 +116,16 @@ export function godot_tree_root(): object | undefined {
  */
 export function godot_tree_on_reload(handler: (() => void) | undefined): void {
   tree.reload = handler;
+}
+
+/**
+ * The host's scene change for `change_scene_to_packed`, run where Godot changes scene.
+ *
+ * @godot SceneTree (protocol)
+ * @source scene/main/scene_tree.cpp:1687
+ */
+export function godot_tree_on_change(handler: ((scene: PackedScene) => void) | undefined): void {
+  tree.change = handler;
 }
 
 /**
@@ -358,6 +370,33 @@ export function reload_current_scene(self: SceneTree): number {
     });
   }
   return 0;
+}
+
+/**
+ * The scene changes to a new instance of `scene` once the current work is done (a microtask, as
+ * `reload_current_scene` defers), and `OK` is returned; with no host to change it,
+ * `ERR_UNCONFIGURED`.
+ *
+ * @godot SceneTree.change_scene_to_packed
+ * @source scene/main/scene_tree.cpp:1687
+ */
+export function change_scene_to_packed(self: SceneTree, scene: PackedScene): number {
+  void self;
+  if (tree.change === undefined) return 3;
+  queueMicrotask(() => tree.change?.(scene));
+  return 0;
+}
+
+/**
+ * The web export's `quit` ends the game's main loop and leaves the page as it is; the page here
+ * keeps drawing, which the game no longer changes once it stops asking.
+ *
+ * @godot SceneTree.quit
+ * @source scene/main/scene_tree.cpp:875
+ */
+export function quit(self: SceneTree, exit_code = 0): void {
+  void self;
+  void exit_code;
 }
 
 function members(group: string): unknown[] {

@@ -276,6 +276,8 @@ export function emitDirectGodotWorldSyntax(
       statement(call('useGodotResources')),
       statement(call('useGodotWorld')),
       { kind: 'variable-statement', declaration: 'const', name: 'generation', initializer: call('useGodotSceneReload') },
+      // `change_scene_to_packed` mounts the scene it names in place of the main one (`useGodotSceneChange`).
+      { kind: 'variable-statement', declaration: 'const', name: 'Changed', initializer: call('useGodotSceneChange') },
       statement(call('useGodotRootWindow')),
       {
         kind: 'return-statement',
@@ -287,7 +289,17 @@ export function emitDirectGodotWorldSyntax(
               kind: 'jsx-element-child',
               tag: 'Fragment',
               attributes: [{ kind: 'jsx-expression-attribute', name: 'key', value: id('generation') }],
-              children: [{ kind: 'jsx-expression-child', value: { kind: 'property-expression', object: id('props'), property: 'children' } }],
+              children: [
+                {
+                  kind: 'jsx-expression-child',
+                  value: {
+                    kind: 'conditional-expression',
+                    condition: { kind: 'binary-expression', operator: '===', left: id('Changed'), right: { kind: 'undefined-expression' } },
+                    whenTrue: { kind: 'property-expression', object: id('props'), property: 'children' },
+                    whenFalse: { kind: 'jsx-element-expression', tag: 'Changed', attributes: [], children: [] },
+                  },
+                },
+              ],
             },
           ],
         },
@@ -307,7 +319,7 @@ export function emitDirectGodotWorldSyntax(
       module: moduleSpecifier(candidate.targetPath),
       namedBindings: [{ imported: directGodotSceneAutoloadContextName(candidate.exportName), local: directGodotSceneAutoloadContextName(candidate.exportName) }],
     })),
-    named('./lib/godot-compat/main', ['useGodotResources', 'useGodotSceneReload', 'useGodotWorld']),
+    named('./lib/godot-compat/main', ['useGodotResources', 'useGodotSceneChange', 'useGodotSceneReload', 'useGodotWorld']),
     named('./lib/godot-compat/advance', ['useGodotRootWindow']),
     ...(hasAutoloads ? [named('./lib/godot-compat/react-lifecycle', ['useGodotScene', 'useGodotScript'])] : []),
     ...[...new Set(hooks.compat.values())].map((module) =>

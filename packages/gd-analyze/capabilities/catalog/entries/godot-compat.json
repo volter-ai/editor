@@ -172,6 +172,7 @@
     "src/lib/godot-compat/tile-set.ts",
     "src/lib/godot-compat/box-mesh.ts",
     "src/lib/godot-compat/cylinder-shape-3d.ts",
+    "src/lib/godot-compat/worker-thread-pool.ts",
     "src/lib/godot-compat/world-boundary-shape-3d.ts",
     "src/lib/godot-compat/curve-3d.ts",
     "src/lib/godot-compat/path-3d.ts",

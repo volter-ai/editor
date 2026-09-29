@@ -20,3 +20,14 @@ export type MouseMotion = Extract<InputEventRecord, { readonly type: 'mouse_moti
 export function get_relative(self: MouseMotion): Vector2 {
   return self.relative ?? vector2();
 }
+
+/**
+ * The motion in screen pixels, before the viewport's stretch: the page's motion, which is the
+ * event's own (`relative`) where the viewport does not stretch.
+ *
+ * @godot InputEventMouseMotion.get_screen_relative
+ * @source core/input/input_event.cpp:944
+ */
+export function get_screen_relative(self: MouseMotion): Vector2 {
+  return (self as { readonly screen_relative?: Vector2 }).screen_relative ?? self.relative ?? vector2();
+}

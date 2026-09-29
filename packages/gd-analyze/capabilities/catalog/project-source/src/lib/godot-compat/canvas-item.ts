@@ -61,6 +61,9 @@ interface CanvasItemState {
   /** Its material, and whether it draws with its parent's instead (`use_parent_material`). */
   material: object | null;
   useParentMaterial: boolean;
+  /** `TextureFilter` and `TextureRepeat` (`canvas_item.h:52`); 0 takes the parent's. */
+  textureFilter: number;
+  textureRepeat: number;
 }
 
 interface CanvasLayerLink {
@@ -105,6 +108,8 @@ export function godot_canvas_item_mount(entity: Object3D, classes: readonly stri
     zRelative: true,
     material: null,
     useParentMaterial: false,
+    textureFilter: 0,
+    textureRepeat: 0,
   });
 }
 
@@ -520,7 +525,7 @@ export function godot_canvas_item_self_filter(entity: Object3D, element: HTMLEle
 const STYLES = new WeakMap<HTMLElement, Map<string, string>>();
 
 /** Writes a style property only when its value changed (`canvas_item_set_*` sends a change). */
-function put(element: HTMLElement, property: 'position' | 'left' | 'top' | 'width' | 'height' | 'pointerEvents' | 'zIndex' | 'transformOrigin' | 'transform' | 'display' | 'filter' | 'mixBlendMode', value: string): void {
+function put(element: HTMLElement, property: 'position' | 'left' | 'top' | 'width' | 'height' | 'pointerEvents' | 'zIndex' | 'transformOrigin' | 'transform' | 'display' | 'filter' | 'mixBlendMode' | 'imageRendering', value: string): void {
   let written = STYLES.get(element);
   if (written === undefined) {
     written = new Map();
@@ -628,6 +633,9 @@ export function godot_canvas_item_draw(entity: Object3D, viewport: Object3D, roo
   put(element, 'zIndex', String(state.zIndex));
   put(element, 'filter', colorFilter(root, state.modulate));
   put(element, 'mixBlendMode', godot_canvas_item_material_css_blend(materialOf(entity, state)));
+  // Nearest filtering is the page's pixelated rendering, which its children inherit as the parent
+  // node's filter (`get_texture_filter_in_tree`, `canvas_item.cpp:1760`); linear is the page's own.
+  put(element, 'imageRendering', state.textureFilter === 0 ? '' : state.textureFilter % 2 === 1 ? 'pixelated' : 'auto');
   placeIn(entity, element, state.topLevel ? place.canvas : place.container);
   if (state.class.draw === undefined) return;
   const key = state.class.drawKey?.(entity, element);
@@ -642,6 +650,40 @@ function materialOf(entity: Object3D, state: CanvasItemState): object | null {
   const parent = entity.parent;
   const parentState = parent === null ? undefined : ITEMS.get(parent);
   return parent === null || parentState === undefined ? null : materialOf(parent, parentState);
+}
+
+/**
+ * @godot CanvasItem.set_texture_filter
+ * @source scene/main/canvas_item.cpp:1665
+ */
+export function set_texture_filter(self: object, texture_filter: number): void {
+  stateOf(self, 'set_texture_filter').textureFilter = texture_filter;
+}
+
+/**
+ * @godot CanvasItem.get_texture_filter
+ * @source scene/main/canvas_item.cpp:1676
+ */
+export function get_texture_filter(self: object): number {
+  return stateOf(self, 'get_texture_filter').textureFilter;
+}
+
+/**
+ * Stored and read back; the page repeats a texture where its drawing asks for it.
+ *
+ * @godot CanvasItem.set_texture_repeat
+ * @source scene/main/canvas_item.cpp:1720
+ */
+export function set_texture_repeat(self: object, texture_repeat: number): void {
+  stateOf(self, 'set_texture_repeat').textureRepeat = texture_repeat;
+}
+
+/**
+ * @godot CanvasItem.get_texture_repeat
+ * @source scene/main/canvas_item.cpp:1755
+ */
+export function get_texture_repeat(self: object): number {
+  return stateOf(self, 'get_texture_repeat').textureRepeat;
 }
 
 /**
@@ -717,6 +759,8 @@ export function godot_canvas_item_props(): (readonly [string, GodotElementProp<O
     ['zAsRelative', (entity, value: boolean) => set_z_as_relative(entity, value)],
     ['material', (entity, value: object | null) => set_material(entity, value)],
     ['useParentMaterial', (entity, value: boolean) => set_use_parent_material(entity, value)],
+    ['textureFilter', (entity, value: number) => set_texture_filter(entity, value)],
+    ['textureRepeat', (entity, value: number) => set_texture_repeat(entity, value)],
   ];
 }
 

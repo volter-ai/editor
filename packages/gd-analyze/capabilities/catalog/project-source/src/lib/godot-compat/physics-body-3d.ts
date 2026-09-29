@@ -16,7 +16,8 @@
  */
 
 import { ActiveHooks } from '@dimforge/rapier3d-compat';
-import { godot_collision_object_body, godot_collision_object_colliders } from './collision-object-3d';
+import { godot_collision_object_body, godot_collision_object_colliders, godot_physics_world } from './collision-object-3d';
+import { construct as vector3, type Vector3 } from './vector3';
 import { godot_node_entity } from './node';
 
 /** Each node's collision exceptions (`PhysicsBody3D::add_collision_exception_with`), both ways. */
@@ -137,4 +138,17 @@ export function godot_physics_body_3d_lock_rotation(self: object, lock: boolean)
  */
 export function godot_physics_body_3d_rotation_locked(self: object): boolean {
   return locksOf(godot_node_entity(self)).rotation;
+}
+
+/**
+ * The gravity acting on the body: the physics world's (Rapier's); an Area3D's gravity override is
+ * not added.
+ *
+ * @godot PhysicsBody3D.get_gravity
+ * @source scene/3d/physics/physics_body_3d.cpp:183
+ */
+export function get_gravity(self: object): Vector3 {
+  void self;
+  const gravity = godot_physics_world()?.gravity;
+  return gravity === undefined ? vector3(0, 0, 0) : vector3(gravity.x, gravity.y, gravity.z);
 }
