@@ -67,7 +67,7 @@ function importedModels(project: BoundGodotProject, composition: DirectGodotProj
 /** The images and sounds the scenes load as imported resources: copied beside the app, as the models are. */
 function importedTextures(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
   const paths = new Set(
-    composition.scenes.flatMap((scene) =>
+    [...composition.scenes, ...composition.resourceModules].flatMap((scene) =>
       scene.resources.flatMap((resource) => [
         ...(resource.load === undefined ? [] : [resource.load.sourceResPath]),
         // A model PackedScene's outside images, which its SceneState loads.
@@ -123,6 +123,10 @@ function validateInputClosure(
         resource.key.startsWith('ext:res://') ? [resource.key.slice('ext:res://'.length).split('#')[0] as string] : [],
       ),
     ),
+    // A `.tres` a script preloads is translated into its resource module, with those it names.
+    ...composition.resourceModules.flatMap((module) =>
+      module.resources.flatMap((resource) => (resource.key.startsWith('ext:res://') ? [resource.key.slice('ext:res://'.length).split('#')[0] as string] : [])),
+    ),
     // An animation file a library reads its animations from is translated into the library's data.
     ...composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.animations?.sources ?? []).map((path) => path.slice('res://'.length)))),
   ]);
@@ -149,6 +153,10 @@ function validateInputClosure(
     project.documents.resources.some(
       (resource) => relative(resource.resPath) === path && resource.resource.type === 'AudioBusLayout' && Object.keys(resource.resource.properties).length === 0 && resource.subResources.length === 0,
     );
+  // A project with no sound file plays nothing through its buses (a generator stream is a script's,
+  // and a script reading AudioServer names the layout's buses through the bindings, not this file).
+  const silentBusLayout = (path: string): boolean =>
+    roots.get(path) === 'default-audio-bus-layout' && project.documents.sounds.length === 0 && project.documents.oggVorbis.length === 0;
   /**
    * Accounted for without a plan: a consumed file's `.uid` sidecar (the path's UID, which the plan
    * resolves by path); the empty default bus layout; the application icon (`DisplayServer::set_icon`,
@@ -159,6 +167,7 @@ function validateInputClosure(
   const unplannedReason = (path: string): string | undefined => {
     if (path.endsWith('.uid') && consumed.has(path.slice(0, -'.uid'.length))) return 'the UID sidecar of a translated file, which the plan resolves by path';
     if (emptyBusLayout(path)) return 'an empty AudioBusLayout, which AudioServer refuses (the Master bus stays)';
+    if (silentBusLayout(path)) return 'the AudioBusLayout of a project with no sound file, whose buses never mix anything';
     const source = path.endsWith('.import') ? path.slice(0, -'.import'.length) : path;
     if (roots.get(source) === 'application-icon') return 'the application icon (window chrome the page host owns)';
     if (roots.get(source) === 'boot-splash') return 'the boot splash (shown while the engine loads, main/main.cpp:3928; the page host owns loading)';

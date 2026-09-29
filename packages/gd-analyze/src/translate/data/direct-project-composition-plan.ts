@@ -22,6 +22,7 @@ import {
   type GodotSceneDocumentPlan,
   godotSceneHeldNodes,
   godotSceneSubnodes,
+  type TargetGodotResourceModulePlan,
   type TargetGodotSceneDocumentPlan,
   type TargetGodotSceneNodePlan,
   type TargetGodotSceneSetterPlan,
@@ -190,6 +191,8 @@ export interface DirectGodotProjectCompositionPlan {
   readonly processDelta: DirectGodotProcessDeltaPlan;
   readonly sourceModules: readonly DirectGodotSourceModulePlan[];
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
+  /** The resource documents scripts preload, each its own module (`TargetGodotResourceModulePlan`). */
+  readonly resourceModules: readonly TargetGodotResourceModulePlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
   /** Every script's generated class, by the script's res path (a scene's resources make instances of them). */
   readonly scriptClasses: readonly { readonly scriptResPath: string; readonly generatedClass: DirectGodotGeneratedClass }[];
@@ -959,6 +962,7 @@ export function planDirectGodotProjectComposition(
       processDelta: processDelta(project),
       sourceModules: plannedSourceModules,
       scenes: planGodotSceneRefs(bodied.map(planGodotSceneSkyLights)),
+      resourceModules: scenes.resourceModules,
       scriptAutoloads: autoloads,
       sceneAutoloads,
       scriptClasses: code.scriptModules.flatMap((module) => {

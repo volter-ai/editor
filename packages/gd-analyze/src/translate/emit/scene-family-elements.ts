@@ -136,6 +136,8 @@ export interface FamilyEmission {
   readonly uses: Map<string, number>;
   /** Shared resources' locals, by resource key. */
   readonly shared: Map<string, string>;
+  /** A module with no component (a preloaded resource's): its images load at module level. */
+  readonly moduleLevel?: true;
 }
 
 export function familyEmission(
@@ -239,6 +241,32 @@ export function importedTextureHook(
   if (existing !== undefined) return existing;
   const local = freshLocal(emission, path.posix.basename(load.sourceResPath).replace(/\.[^.]+$/u, ''));
   emission.hookLocals.set(key, local);
+  if (emission.moduleLevel === true) {
+    // The texture now and its image once fetched (the loader tracks it), sampled as a material's map.
+    const loaded: TargetTsExpression = {
+      kind: 'call-expression',
+      callee: identifier(useCompat(emission, 'compressed-texture-2d', 'godot_compressed_texture_2d_load')),
+      arguments: [literal(assetUrl(load.sourceResPath)), { kind: 'object-expression', properties: Object.entries(load.options).map(([name, value]) => ({ key: name, value: literal(value) })) }],
+    };
+    const sampled: TargetTsExpression =
+      sampler === undefined
+        ? loaded
+        : {
+            kind: 'call-expression',
+            callee: identifier(useCompat(emission, 'base-material-3d', sampler.model === true ? 'godot_base_material_3d_model_map' : 'godot_base_material_3d_scene_map')),
+            arguments: [
+              loaded,
+              literal(sampler.filter),
+              literal(sampler.repeat),
+              literal(sampler.srgb),
+              ...(sampler.model !== true && sampler.uv !== undefined
+                ? [{ kind: 'object-expression' as const, properties: [{ key: 'scale', value: numbers(sampler.uv.scale) }, { key: 'offset', value: numbers(sampler.uv.offset) }] }]
+                : []),
+            ],
+          };
+    emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: sampled });
+    return local;
+  }
   emission.loaded.add(local);
   emission.hooks.push({
     kind: 'variable-statement',
@@ -1035,6 +1063,16 @@ export function familyMaterialOverride(emission: FamilyEmission, setters: readon
 export function familyModelMaterialOverride(emission: FamilyEmission, setter: TargetGodotSceneSetterPlan | undefined): TargetTsObjectProperty[] {
   const resource = setter === undefined ? undefined : resourceOf(emission, setter.value);
   return resource === undefined ? [] : [{ key: 'material_override', value: identifier(threeMaterialOf(emission, resource)) }];
+}
+
+/**
+ * A preloaded resource's module (`TargetGodotResourceModulePlan`): its three material, declared at
+ * module level; the local it is declared as.
+ */
+export function familyResourceModuleLocal(emission: FamilyEmission, key: string): string {
+  const resource = emission.resources.get(key);
+  if (resource === undefined) throw new Error(`${key}: a resource module without its resource`);
+  return threeMaterialOf(emission, resource);
 }
 
 /** A material resource's three material: a ShaderMaterial's custom shader material, else its own. */

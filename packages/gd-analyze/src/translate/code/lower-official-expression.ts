@@ -1600,11 +1600,26 @@ export function convertedValue(
   value: LoweredExpression,
 ): LoweredExpression {
   const objectKind = (datatype: GodotBoundNode['datatype']) => !datatype.metaType && (datatype.kind === 'NATIVE' || datatype.kind === 'CLASS');
-  if (objectKind(target.datatype) && objectKind(valueNode.datatype) && target.datatype.display !== valueNode.datatype.display && context.hasTargetType(target)) {
-    // An object into a place typed as a subclass (`var l: DirectionalLight3D = $L.duplicate()`):
-    // the value is that class, which Godot's typed assignment checks.
+  if (
+    objectKind(target.datatype) &&
+    (objectKind(valueNode.datatype) || valueNode.datatype.kind === 'VARIANT') &&
+    target.datatype.display !== valueNode.datatype.display &&
+    context.hasTargetType(target)
+  ) {
+    // An object or a Variant into a place typed as a class (`var l: DirectionalLight3D =
+    // $L.duplicate()`, `var c: Chunk = chunks.get(key)`): the value is that class, which Godot's
+    // typed assignment checks.
     const type = context.targetType(target);
-    return { ...value, value: { kind: 'as-expression', expression: value.value, type: type.type }, requirements: [...value.requirements, ...type.requirements] };
+    // A class compat types by no receiver of its own (`object`) states nothing the value lacks.
+    if (type.type.kind === 'keyword-type' && type.type.keyword === 'object') return value;
+    // A script's instance into a place typed as an engine class holds the node it is attached to.
+    const scripted = target.datatype.kind === 'NATIVE' && valueNode.datatype.kind === 'CLASS' && valueNode.datatype.scriptPath !== '';
+    const held: TargetTsExpression = scripted ? { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_node_entity' }, arguments: [value.value] } : value.value;
+    return {
+      ...value,
+      value: { kind: 'as-expression', expression: held, type: type.type },
+      requirements: [...value.requirements, ...type.requirements, ...(scripted ? [compatImport('node', 'godot_node_entity')] : [])],
+    };
   }
   if (target.datatype.kind !== 'BUILTIN') return value;
   // A value of another built-in type converts through the target type's constructor as well
@@ -1626,7 +1641,15 @@ export function convertedValue(
   if (use.target.use.kind !== 'call' || use.target.use.sourceReceiver !== 'absent') {
     return context.refuse(valueNode, `constructor binding ${use.target.localName} is not a plain call`);
   }
-  return compose(context, [value], (values) => bindingCall(context, valueNode, use, values), use.requirements);
+  // A Variant is stated as the target type, one the constructor takes; the constructor converts
+  // whatever the value holds at run time, as `Variant::construct` does.
+  const stated = from.kind === 'VARIANT' && context.hasTargetType(target) ? context.targetType(target) : undefined;
+  return compose(
+    context,
+    [value],
+    (values) => bindingCall(context, valueNode, use, stated === undefined ? values : values.map((entry) => ({ kind: 'as-expression', expression: entry, type: stated.type }))),
+    [...use.requirements, ...(stated?.requirements ?? [])],
+  );
 }
 
 /**
@@ -2535,6 +2558,16 @@ export function lowerOfficialExpression(
             context.structural(node, 'member-identifier', [], `member-identifier:${node.source}`),
           );
         }
+        // A ClassDB constant the script's native class inherits (`NOTIFICATION_PREDELETE`), which the
+        // analyzer also names a member constant, when the script's chain declares no such member.
+        const inherited =
+          node.source === 'MEMBER_CONSTANT' && context.nativeBase !== undefined && context.scriptMembers?.(context.script.resPath)?.has(node.name) !== true
+            ? context.nativeConstant(context.nativeBase, node.name)
+            : undefined;
+        if (inherited !== undefined) {
+          const rule = context.structural(node, 'literal', [], 'literal:native-constant');
+          return expression({ kind: 'literal-expression', value: inherited, span: span(context.script, node) }, rule);
+        }
         if (node.source === 'MEMBER_CONSTANT' || node.source === 'STATIC_VARIABLE') {
           return expression(
             {
@@ -3232,6 +3265,26 @@ export function lowerOfficialExpression(
             return scriptNew(context, node, datatype.scriptPath, lowered, requirements);
           }
         }
+        // `TerrainGenerator.flat(position)`: a static function of a global script class, called on
+        // its generated class (`GDScriptCompiler::_parse_expression` CALL on a class, gdscript_compiler.cpp:651).
+        if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute) {
+          const classNode = context.node(calleeNode.base, calleeNode);
+          const datatype = classNode.datatype;
+          if (classNode.kind === 'IDENTIFIER' && (datatype.kind === 'CLASS' || datatype.kind === 'SCRIPT') && datatype.metaType && datatype.scriptPath !== '') {
+            const receiver = lowerExpression(context, classNode);
+            return compose(
+              context,
+              [receiver, ...lowered],
+              ([receiverValue, ...argumentValues]) => ({
+                kind: 'call-expression',
+                callee: { kind: 'property-expression', object: receiverValue as TargetTsExpression, property: node.functionName, span: span(context.script, calleeNode) },
+                arguments: argumentValues as TargetTsExpression[],
+                span: span(context.script, node),
+              }),
+              requirements,
+            );
+          }
+        }
         // A method of a value whose class only the run time knows: selected by name then.
         if (
           (node.compilerTarget.kind === 'dynamic' || node.compilerTarget.kind === 'unresolved') &&
@@ -3620,6 +3673,12 @@ export function lowerOfficialExpression(
           const document = context.resourceDocument(node.resolvedPath);
           if (document === undefined) return context.refuse(node, `preload of ${node.resolvedPath} names no project scene or resource`);
           const own: OfficialBoundLoweringRequirement[] = [...context.structural(node, 'preload', [], 'preload:resource')];
+          // A resource without a script: the one its module makes and exports.
+          const made = context.resourceModule(node.resolvedPath);
+          if (made !== undefined) {
+            const local = `$Resource_${made.name}`;
+            return expression({ kind: 'identifier-expression', name: local, span: span(context.script, node) }, [...own, { kind: 'project-import-requirement', module: made.module, imported: made.name, local, typeOnly: false }]);
+          }
           const value = documentResource(context, node, document, document.resource, own, node.resolvedPath);
           own.push(compatImport('resource-loader', 'godot_resource_loader_load'), compatImport('resource', 'godot_script_resource_new'));
           return expression(

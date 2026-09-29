@@ -49,6 +49,11 @@ export interface GodotPlannedSourceTranslationArtifact {
         readonly kind: 'scene-module';
         readonly sceneResPath: string;
         readonly inputDigest: string;
+      }
+    | {
+        readonly kind: 'resource-module';
+        readonly resourceResPath: string;
+        readonly inputDigest: string;
       };
   readonly origin: GodotSourceTranslationOrigin;
   readonly planIdentity: string;

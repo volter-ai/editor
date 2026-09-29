@@ -518,11 +518,33 @@ export interface TargetGodotSceneDocumentPlan {
   readonly connections: readonly TargetGodotSceneConnectionPlan[];
 }
 
+/**
+ * A resource document with no script that a script preloads (`preload("res://m.tres")`): a module
+ * of its own that makes the resource once and exports it, as the loader's cache holds one resource
+ * per path; the script imports it. Its resources are planned as a scene's are, the document's own
+ * last.
+ */
+export interface TargetGodotResourceModulePlan {
+  readonly sourceResPath: string;
+  readonly sourceDigest: string;
+  readonly targetPath: string;
+  readonly exportName: string;
+  /** The document's own resource. */
+  readonly key: string;
+  readonly resources: readonly TargetGodotSceneResourcePlan[];
+  /** The compat function that makes the three object the resource the scripts hold, as a scene reads it back. */
+  readonly handle: { readonly module: string; readonly exportName: string };
+}
+
+/** A material's Godot resource, one per three material (`godot_base_material_3d_of`), as a scene's override reads back. */
+const MATERIAL_HANDLE = { module: 'base-material-3d', exportName: 'godot_base_material_3d_of' } as const;
+
 export interface GodotSceneDocumentPlan {
   readonly version: typeof GODOT_SCENE_DOCUMENT_PLAN_VERSION;
   readonly snapshotDigest: string;
   readonly sourceRevision: string;
   readonly scenes: readonly TargetGodotSceneDocumentPlan[];
+  readonly resourceModules: readonly TargetGodotResourceModulePlan[];
 }
 
 /**
@@ -613,6 +635,27 @@ export function godotSceneHeldNodes<
   };
   collect(root);
   return held;
+}
+
+/** Where a preloaded resource document's module is written (`src/resources/<path>.ts`). */
+export function godotResourceModuleTargetPath(resPath: string): string {
+  return `src/resources/${resPath.slice('res://'.length).replace(/\.(?:t)?res$/u, '')}.ts`;
+}
+
+/** The name a preloaded resource document's module exports it as: its file's stem, in camel case. */
+export function godotResourceModuleExportName(resPath: string): string {
+  const basename = resPath.slice(resPath.lastIndexOf('/') + 1).replace(/\.(?:t)?res$/u, '');
+  const words = basename.split(/[^A-Za-z0-9]+/u).filter((word) => word.length > 0);
+  const joined = words.map((word, index) => `${(index === 0 ? word[0]?.toLowerCase() : word[0]?.toUpperCase()) ?? ''}${word.slice(1)}`).join('');
+  return /^[A-Za-z_]/u.test(joined) ? joined : `resource${joined}`;
+}
+
+/**
+ * Whether a script's `preload` of a resource document is its module's (`TargetGodotResourceModulePlan`):
+ * a document without a script; a scripted one is made by its script class in code.
+ */
+export function godotPreloadsResourceModule(document: { readonly resource: { readonly properties: Readonly<Record<string, unknown>> } }): boolean {
+  return document.resource.properties['script'] === undefined;
 }
 
 export function godotSceneTargetPath(resPath: string): string {
@@ -2841,6 +2884,7 @@ export function planGodotSceneDocuments(
       if (planned !== undefined) scenes.push(planned);
     }
   }
+  const resourceModules = planResourceModules(context, project);
   const plannedPaths = new Set(scenes.map((scene) => scene.sourceResPath));
   // An instance of a scene that did not plan cannot mount its component.
   const missing = (node: TargetGodotSceneNodePlan): string[] => [
@@ -2872,8 +2916,37 @@ export function planGodotSceneDocuments(
       snapshotDigest: project.snapshotDigest,
       sourceRevision: project.authority.revision,
       scenes,
+      resourceModules,
     },
   };
+}
+
+/** Each resource document without a script a script preloads, planned as its module (`TargetGodotResourceModulePlan`). */
+function planResourceModules(context: PlanContext, project: BoundGodotProject): TargetGodotResourceModulePlan[] {
+  const documents = new Map<string, BoundGodotProject['documents']['resources'][number]>();
+  for (const script of project.scripts) {
+    for (const node of script.program.nodes) {
+      if (node.kind !== 'PRELOAD') continue;
+      const document = project.documents.resources.find((entry) => entry.resPath === node.resolvedPath);
+      if (document !== undefined && godotPreloadsResourceModule(document)) documents.set(document.resPath, document);
+    }
+  }
+  return [...documents.values()]
+    .sort((a, b) => (a.resPath < b.resPath ? -1 : a.resPath > b.resPath ? 1 : 0))
+    .flatMap((document) => {
+      const resPath = document.resPath;
+      // The module's resources, planned in the document's own scope (no scene's sub-resources).
+      const scene: BoundGodotSceneDocument = { resPath, sourceDigest: document.sourceDigest, sourceKind: 'packed-scene', nodes: [], subResources: [], extResources: [], connectionCount: 0, connections: [], subResourceCount: 0, editablePaths: [] };
+      const resources: DocumentResources = { scene, reflected: context.reflected, planned: new Map(), order: [] };
+      context.document = resources;
+      const key = planResourceAt(context, resPath, resPath);
+      const planned = key === undefined ? undefined : resources.planned.get(key);
+      if (key === undefined || planned === undefined || planned === null || planned.idiom?.kind !== 'material') {
+        refuse(context, resPath, `a preloaded ${document.resource.type} without a script has no module form`, 'resource', document.resource.type);
+        return [];
+      }
+      return [{ sourceResPath: resPath, sourceDigest: document.sourceDigest, targetPath: godotResourceModuleTargetPath(resPath), exportName: godotResourceModuleExportName(resPath), key, resources: resources.order, handle: MATERIAL_HANDLE }];
+    });
 }
 
 /** An imported model's data file: the importer's tree (`src/models/<path>.json`). */

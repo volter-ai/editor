@@ -240,6 +240,8 @@ export class LoweringContext {
   scriptNativeRoot: (resPath: string) => string | undefined = () => undefined;
   /** The project's resource documents (`.tres`, `.res`), by path. */
   resourceDocument: (resPath: string) => BoundGodotResourceDocument | undefined = () => undefined;
+  /** The module a preloaded resource document without a script is written as, and what it exports (`TargetGodotResourceModulePlan`). */
+  resourceModule: (resPath: string) => { readonly name: string; readonly module: string } | undefined = () => undefined;
   /** The project scripts whose chain is rooted in Resource: the classes a stored resource can be. */
   resourceScripts: readonly string[] = [];
   /** Every engine member of a name, for a member an untyped value selects at run time (`variant-named.ts`). */
@@ -811,6 +813,18 @@ export class LoweringContext {
         return {
           type: { kind: 'array-type', element: inner.type },
           requirements: inner.requirements,
+        };
+      }
+    }
+    if (entry.sourceDatatype === 'BUILTIN:Dictionary[*]' && node.datatype.containerTypes.length === 2) {
+      // A typed dictionary is a Map of its key and value types, where rules state both.
+      const [key, value] = node.datatype.containerTypes.map((datatype) => ({ ...node, datatype }) as GodotBoundNode) as [GodotBoundNode, GodotBoundNode];
+      if (this.hasTargetType(key) && this.hasTargetType(value)) {
+        const keyType = this.targetType(key);
+        const valueType = this.targetType(value);
+        return {
+          type: { kind: 'type-reference', name: 'Map', arguments: [keyType.type, valueType.type] },
+          requirements: [...keyType.requirements, ...valueType.requirements],
         };
       }
     }

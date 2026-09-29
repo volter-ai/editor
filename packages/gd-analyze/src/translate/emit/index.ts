@@ -12,6 +12,7 @@ import type { TargetTsSourceFile } from '../code/target-ts-syntax';
 import type { GodotAcceptedTranslation, GodotTranslationPlan } from '../translation-plan';
 import { emitDirectGodotWorldSyntax } from './direct-project-world-syntax';
 import { emitDirectGodotSceneSyntax } from './direct-scene-syntax';
+import { resourceModuleSourceFile } from './resource-module-syntax';
 import { emitTargetTsSourceFile } from './target-ts-printer';
 
 export type GodotOutputArtifact = GodotEmittedArtifact;
@@ -76,6 +77,7 @@ interface EmissionContext {
   readonly codeSyntax: Map<string, TargetTsSourceFile>;
   readonly sceneSyntax: Map<string, ReturnType<typeof emitDirectGodotSceneSyntax>[number]>;
   readonly sceneInputs: Map<string, GodotTranslationPlan['composition']['scenes'][number]>;
+  readonly resourceInputs: Map<string, GodotTranslationPlan['composition']['resourceModules'][number]>;
   readonly projectModules: Map<'world', string>;
   /** The capability files the plan carries. */
   readonly capabilityFiles: ReadonlySet<string>;
@@ -112,6 +114,14 @@ function sourceSyntax(
       context.sceneSyntax.delete(artifact.emission.sceneResPath);
       context.sceneInputs.delete(artifact.emission.sceneResPath);
       return module.syntax;
+    }
+    case 'resource-module': {
+      const module = context.resourceInputs.get(artifact.emission.resourceResPath);
+      if (module === undefined || module.targetPath !== artifact.path || structuralDigest(module) !== artifact.emission.inputDigest) {
+        throw new Error(`${artifact.path}: accepted resource module changed before emission`);
+      }
+      context.resourceInputs.delete(artifact.emission.resourceResPath);
+      return resourceModuleSourceFile(module);
     }
   }
 }
@@ -239,6 +249,7 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
   if (sceneInputs.size !== accepted.plan.composition.scenes.length) {
     throw new Error('accepted composition repeats a scene source path');
   }
+  const resourceInputs = new Map(accepted.plan.composition.resourceModules.map((module) => [module.sourceResPath, module] as const));
   const projectModuleRows = [['world', accepted.plan.projectData.worldModule.targetPath]] as const;
   const projectModules = new Map(projectModuleRows);
   if (projectModules.size !== projectModuleRows.length) {
@@ -249,6 +260,7 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
     codeSyntax,
     sceneSyntax,
     sceneInputs,
+    resourceInputs,
     projectModules,
     capabilityFiles: new Set(accepted.plan.artifacts.flatMap((artifact) => (artifact.kind === 'capability-copy' ? [artifact.path] : []))),
   };
@@ -257,6 +269,7 @@ export function emitGodotTranslation(accepted: GodotAcceptedTranslation): GodotE
     codeSyntax.size > 0 ||
     sceneSyntax.size > 0 ||
     sceneInputs.size > 0 ||
+    resourceInputs.size > 0 ||
     projectModules.size > 0
   ) {
     throw new Error('accepted generated modules are absent from the artifact plan');

@@ -710,13 +710,24 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       // The member holds the node once ready; its declared type (the node's or an ancestor's) stays
       // right, and the node's own class, script and place in the scene are what it holds.
       const own = node.datatype;
-      const type = sceneNode(onreadyPath(node.name) as string);
-      if (type !== undefined && (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType)))) {
+      const held = sceneNode(onreadyPath(node.name) as string);
+      // A member declared as an engine class (`var player: CharacterBody3D`) holds the node as that
+      // class's object: its reads are the node's own class, not its script.
+      const explicit = own.kind === 'NATIVE' && own.typeSource === 'ANNOTATED_EXPLICIT';
+      const type = held !== undefined && explicit && held.kind !== 'NATIVE' ? nativeDatatype(held.nativeType) : held;
+      if (
+        type !== undefined &&
+        (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType) && !(explicit && type.nativeType === own.nativeType)))
+      ) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
-    } else if (node?.kind === 'VARIABLE' && isClassMember(node.id) && (node.datatype.kind === 'VARIANT' || (node.datatype.kind === 'NATIVE' && node.datatype.typeSource === 'INFERRED' && !node.datatype.metaType))) {
+    } else if (
+      node?.kind === 'VARIABLE' &&
+      isClassMember(node.id) &&
+      (node.datatype.kind === 'VARIANT' || (node.datatype.kind === 'NATIVE' && (node.datatype.typeSource === 'INFERRED' || node.datatype.typeSource === 'ANNOTATED_INFERRED') && !node.datatype.metaType))
+    ) {
       // An `@onready` member without a declared type (Variant, or inferred from `get_node` as a
-      // Node) is declared as the node it holds, as its reads are.
+      // Node, `:=`) is declared as the node it holds, as its reads are.
       const identifier = nodes.get(node.identifier);
       const path = identifier?.kind === 'IDENTIFIER' ? onreadyPath(identifier.name) : undefined;
       const type = path === undefined ? undefined : sceneNode(path);

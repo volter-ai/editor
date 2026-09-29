@@ -99,7 +99,14 @@ function sourceArtifacts(
   if (compositionScenes.size > 0) {
     throw new Error(`${[...compositionScenes.keys()][0]}: accepted scene has no module plan`);
   }
-  return [...plannedCode, ...plannedScenes];
+  const plannedResources = composition.resourceModules.map((module) =>
+    sourceTranslationArtifact(
+      module.targetPath,
+      { kind: 'resource-module', resourceResPath: module.sourceResPath, inputDigest: structuralDigest(module) },
+      { kind: 'source-translation', sourcePath: module.sourceResPath, sourceDigest: module.sourceDigest },
+    ),
+  );
+  return [...plannedCode, ...plannedScenes, ...plannedResources];
 }
 
 /** The compat modules the planned data files are typed by (`export default value satisfies T`), as the plan names them. */

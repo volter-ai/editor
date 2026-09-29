@@ -43,7 +43,7 @@ function stringifyValue(value: unknown, indent: string, depth: number, sortKeys:
   if (typeof value === 'number') return number(value);
   if (typeof value === 'bigint') return value.toString();
   if (typeof value === 'string') return globalThis.JSON.stringify(value);
-  if (ArrayBuffer.isView(value) && !(value instanceof DataView)) value = [...(value as unknown as ArrayLike<unknown>)];
+  if (ArrayBuffer.isView(value) && !(value instanceof DataView)) value = Array.from(value as unknown as ArrayLike<unknown>);
   if (Array.isArray(value)) {
     if (seen.has(value)) return '"[...]"';
     if (value.length === 0) return '[]';

@@ -103,6 +103,14 @@ export function godot_array_mesh_new(data: { readonly resource_name?: string; re
   return mesh;
 }
 
+/**
+ * @godot ArrayMesh.get_surface_count
+ * @source scene/resources/mesh.cpp:1855
+ */
+export function get_surface_count(self: ArrayMesh): number {
+  return self.surfaces.length;
+}
+
 /** An ArrayMesh's data file as the translation writes it (three's conventions, `scene-families.ts`). */
 export interface GodotArrayMeshData {
   readonly position: readonly number[];

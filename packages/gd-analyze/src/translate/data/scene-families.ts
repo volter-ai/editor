@@ -605,7 +605,7 @@ export function godotFamilyRefusal(
     }
     case 'StandardMaterial3D': {
       const transparency = numberOf(setters, 'set_transparency', 0);
-      if (transparency > 2) return `transparency=${String(transparency)} has no three form`;
+      if (transparency > 4) return `transparency=${String(transparency)} has no three form`;
       const blend = numberOf(setters, 'set_blend_mode', 0);
       if (blend > 3) return `blend_mode=${String(blend)} has no three form`;
       const shading = numberOf(setters, 'set_shading_mode', 1);

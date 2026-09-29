@@ -17,7 +17,7 @@ import type { GodotValue } from '../../read/godot-value';
 import { GODOT_CODE_RESOURCE_LOADS, godotImportedAssetUrl } from '../data/code-resource-loads';
 import { godotCallShape, godotStoredResourceRoot } from '../data/lowering-shapes';
 import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
-import { godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
+import { godotPreloadsResourceModule, godotResourceModuleExportName, godotResourceModuleTargetPath, godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
 import { safeIdent } from '../target-names';
 import {
   type GodotCodeTranslationAuthority,
@@ -346,9 +346,22 @@ function nativeCarrierRoot(
   const used = project.scripts.some(
     (candidate) =>
       rootScriptPath(candidate) === rootPath &&
-      (candidate.attachments.length > 0 || candidate.autoloads.length > 0),
+      (candidate.attachments.length > 0 || candidate.autoloads.length > 0 || madeInCode(project, candidate.resPath)),
   );
   return used ? rootPath : undefined;
+}
+
+/** Whether a script's `Script.new(...)` makes an instance of the script (`scriptNew`, over a native object). */
+function madeInCode(project: BoundGodotProject, resPath: string): boolean {
+  return project.scripts.some((script) =>
+    script.program.nodes.some((node) => {
+      if (node.kind !== 'CALL' || node.functionName !== 'new') return false;
+      const callee = script.program.nodes[node.callee];
+      if (callee?.kind !== 'SUBSCRIPT' || !callee.isAttribute) return false;
+      const datatype = script.program.nodes[callee.base]?.datatype;
+      return (datatype?.kind === 'CLASS' || datatype?.kind === 'SCRIPT') && datatype.metaType === true && datatype.scriptPath === resPath;
+    }),
+  );
 }
 
 /**
@@ -658,6 +671,13 @@ function lowerScript(
   context.provenCasts = new Set(source.provenCasts);
   if (namedMembers !== undefined) context.namedMembers = namedMembers;
   context.resourceDocument = (resPath) => project.documents.resources.find((entry) => entry.resPath === resPath);
+  context.resourceModule = (resPath) => {
+    const document = context.resourceDocument(resPath);
+    if (document === undefined || !godotPreloadsResourceModule(document)) return undefined;
+    let module = path.posix.relative(path.posix.dirname(`src/scripts/${fileName(source.resPath)}`), godotResourceModuleTargetPath(resPath).replace(/\.ts$/u, ''));
+    if (!module.startsWith('.')) module = `./${module}`;
+    return { name: godotResourceModuleExportName(resPath), module };
+  };
   context.scriptNativeRoot = (resPath) => {
     for (let current = project.scripts.find((entry) => entry.resPath === resPath); current !== undefined; ) {
       const immediate = current.inheritance.immediate;

@@ -178,8 +178,10 @@ export function godotSceneMaterialIdiom(setters: readonly TargetGodotSceneSetter
   if (transparency === 3 || fade === 2 || fade === 3) literal('alphaHash', true);
   if (transparency !== 0 || proximity || fade === 1) literal('opacity', albedo?.[3] ?? 1);
   // `DepthDrawMode` (`material.h:235`): `ALWAYS` 1, `DISABLED` 2; three writes depth by default.
+  // The depth pre-pass writes the depth of the pixels it keeps (`TRANSPARENCY_ALPHA_DEPTH_PRE_PASS`,
+  // `material.cpp:1807`), as a transparent three material that writes depth does.
   const depthDraw = num('set_depth_draw_mode') ?? 0;
-  if (depthDraw === 2 || (depthDraw === 0 && transparent)) literal('depthWrite', false);
+  if (depthDraw === 2 || (depthDraw === 0 && transparent && transparency !== 4)) literal('depthWrite', false);
   const blending = BLENDING[blend];
   if (blending !== undefined && blending !== '') props.push({ name: 'blending', value: { kind: 'three', name: blending } });
   if (!unshaded && element !== 'meshToonMaterial') {
