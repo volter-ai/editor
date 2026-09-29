@@ -296,6 +296,8 @@ export function planDirectGodotArtifacts(
   // unless the game's own modules are written with it.
   const used = godotCapabilityPackages(reached);
   const unused = new Set([...godotCapabilityPackages(capabilities)].filter((name) => !used.has(name) && !GODOT_GENERATED_MODULE_PACKAGES.has(name)));
+  // The template's engine runtime, which neither the game's modules nor compat import (row 6).
+  if (!used.has('@volter/game-runtime') && !GODOT_GENERATED_MODULE_PACKAGES.has('@volter/game-runtime')) unused.add('@volter/game-runtime');
   const pruned = prunePackageDocuments(project.packageManifest as MutableManifest, project.packageLock as MutableLock, unused);
   const projectFiles = [
     ...planned.filter((artifact) => artifact.path !== 'package.json' && artifact.path !== 'package-lock.json'),
