@@ -1,7 +1,7 @@
 {
   "date": "2026-09-29",
-  "status": "core coding verified; updated hosted acceptance pending",
-  "engineSource": "54e4af619a285c6d76c56ef960dc99d45aca5084",
+  "status": "resumable native load coding verified; fresh hosted acceptance pending",
+  "engineSource": "9fdd05db03bf0e4aa1028607be3e113be7f98d01",
   "transportSource": "ce8541be",
   "drawSource": "7d1eca57",
   "scene": {
@@ -14,9 +14,9 @@
     "demoSha256": "91f4fed7d421d346d278ee133285ba72e9408ddea8b7b6835f48fb62b44412c9",
     "demoChange": "Save a compressed copy with all windows on Stoneguard Bridge; retain all scenes and geometry. Source file is unchanged."
   },
-  "rawWasmSha256": "15c4b7072ebc655418849da79a6fefed8bff26774e7446ade8d3a54bd6ad7a61",
+  "rawWasmSha256": "9d8cb5bd0dbb34fa7f04858fb6bc831195d0b06e8b82bb26889f3c6d807a9588",
   "memory": {
-    "scope": "Node CPU evaluation of all Bridge meshes; Bridge-active compressed input unlinked after load, identical input and script for baseline and candidate; not hosted viewport memory",
+    "scope": "Node CPU evaluation of all Bridge meshes; Bridge-active compressed input unlinked after load, identical input and script for baseline and candidate; not hosted viewport memory; these paired figures describe the preceding 54e4af6 release, retained as historical measurements",
     "previousEngineHeapMiB": 3199.375,
     "scratchReleaseOnlyHeapMiB": 2989.875,
     "finalEngineHeapMiB": 3087.875,
@@ -130,14 +130,14 @@
         "worstMesh": null
       },
       "uv:UVMap": {
-        "different": 8,
-        "exact": 412,
-        "maxAbs": 1.1920928955078125e-07,
+        "different": 9,
+        "exact": 411,
+        "maxAbs": 4.76837158203125e-07,
         "pairs": 420,
-        "rms": 6.0778054907211e-11,
+        "rms": 4.2126736125647356e-10,
         "shapeMismatch": 0,
         "values": 15703734,
-        "worstMesh": "Dressed arch wedge -1 23"
+        "worstMesh": "Dressed arch wedge -1 05"
       },
       "uv:UVMap.001": {
         "different": 0,
@@ -209,12 +209,12 @@
       "totalVertices": 203753801
     }
   },
-  "nativeSceneCaveat": "Full scene is not bit-identical. 50 position arrays differ by <=2.384185791015625e-7; 95 normal arrays differ by <=0.016369462 near collapsed faces; eight UVMap arrays differ by <=1.1920928955078125e-7. All object identities, transforms, topology, triangles and channel shapes match. Bodice is byte-exact.",
+  "nativeSceneCaveat": "Full scene is not bit-identical. 95 normals arrays differ by <=0.01636946201324463; 50 positions arrays differ by <=2.384185791015625e-07; 9 uv:UVMap arrays differ by <=4.76837158203125e-07. All object identities, transforms, topology, triangles and channel shapes match. Bodice is byte-exact.",
   "streaming": {
     "maxMessageBytes": 1048576,
     "integrity": "SHA256 checked per chunk before acknowledgement; one message in flight; revision references on deltas",
     "initial": "one mesh prepared at a time; source columns released after staging; final manifest commits atomically",
-    "tests": "four protocol/geometry tests: chunk bounds, backpressure, corruption/order/truncation, staged commit/reuse, native triangle seams/materials/UVs/attributes/loose vertices; actual engine concave initial/unchanged/edit export check passed"
+    "tests": "eight protocol/geometry/pull-job checks; native concave initial, unchanged and edited deltas with 65 linked objects; read checkpoint refusal retains the previous document"
   },
   "geometryStageBenchmark": {
     "scope": "isolated largest recorded native mesh, not hosted load duration or peak RSS",
@@ -232,9 +232,9 @@
     "browserTypecheck": "passed with vite/client raw-import declarations",
     "editorBlenderTypecheck": "passed",
     "historicalBattery": "not run: catalog absent from current checkout",
-    "hosted": "fresh acceptance not run by coder",
+    "hosted": "fresh acceptance pending for 9fdd05d; prior 54e4af6 hosted review failed startup duration",
     "releaseBoundaryPackages": 17,
-    "packedImportFiles": 2363,
+    "packedImportFiles": 2364,
     "compression": "brotli quality 11; raw bytes compared after decompression"
   },
   "previousReleaseEvidence": {
@@ -330,5 +330,51 @@
       "maxUvAbsDelta": 2.384185791015625e-06,
       "caveat": "Mage clothing | continuous ivory bodice has pre-existing native/Wasm position, triangulation and normal differences. Its candidate output is byte-exact to shipped Wasm. Nearly collapsed faces amplify last-bit Armature/subdivision differences through Solidify. Native visual or bit parity is not claimed."
     }
-  }
+  },
+  "priorCoreRelease": {
+    "status": "core coding verified; updated hosted acceptance pending",
+    "engineSource": "54e4af619a285c6d76c56ef960dc99d45aca5084",
+    "rawWasmSha256": "15c4b7072ebc655418849da79a6fefed8bff26774e7446ade8d3a54bd6ad7a61",
+    "memory": {
+      "scope": "Node CPU evaluation of all Bridge meshes; Bridge-active compressed input unlinked after load, identical input and script for baseline and candidate; not hosted viewport memory; these paired figures describe the preceding 54e4af6 release, retained as historical measurements",
+      "previousEngineHeapMiB": 3199.375,
+      "scratchReleaseOnlyHeapMiB": 2989.875,
+      "finalEngineHeapMiB": 3087.875,
+      "finalHeadroomMiB": 1008.125,
+      "finalMallocInUseBytes": 1353493040,
+      "fullSceneEvidenceProbeHeapMiB": 3423.9375,
+      "change": "Release consumed local subdivision conversion tables before building later UV channels. No level, object, UV channel or precision removed."
+    },
+    "verification": {
+      "gameBuild": "passed",
+      "browserTypecheck": "passed with vite/client raw-import declarations",
+      "editorBlenderTypecheck": "passed",
+      "historicalBattery": "not run: catalog absent from current checkout",
+      "hosted": "fresh acceptance pending for 9fdd05d; prior 54e4af6 hosted review failed startup duration",
+      "releaseBoundaryPackages": 17,
+      "packedImportFiles": 2363,
+      "compression": "brotli quality 11; raw bytes compared after decompression"
+    }
+  },
+  "startupSource": "30efe7a2",
+  "cooperativeLoad": {
+    "scope": "final binary, Node CPU session bind/present with immediate diagnostic ask acknowledgements; excludes engine boot, browser transport and GPU presentation",
+    "totalSeconds": 27.21295428276062,
+    "maximumWorkGapSeconds": 1.9716172218322754,
+    "maximumGapPhase": "mesh pull BezierCurve.002",
+    "boundaries": 2512,
+    "heapHighWaterMiB": 3045.9375,
+    "headroomMiB": 1050.0625,
+    "priorHostedReview": {
+      "engineSource": "54e4af619a285c6d76c56ef960dc99d45aca5084",
+      "maxCallMs": 82508,
+      "callsOver30s": 1,
+      "heapMiB": 3218,
+      "result": "c7 failed despite transport chunking; hosted viewport and currentBridge scene passed"
+    },
+    "change": "Native file reads and subdivision stages park at caller-thread checkpoints. Worker startup is a token-driven pull job; only load-next resumes work. Actual RPC metrics remain unchanged and aggregate duration is logged separately. Shared geometry advances one revision per frame.",
+    "method": "Measure only actual ask/checkpoint boundaries; diagnostic phase markers do not reset the gap timer."
+  },
+  "reproduction": "provenance/stoneguard/README.md and its native/Wasm geometry emitters and comparator",
+  "finalSceneEvidenceHeapMiB": 3479.75
 }

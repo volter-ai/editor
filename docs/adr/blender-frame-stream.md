@@ -67,8 +67,8 @@ Call metrics continue to measure actual request lifetimes without timer resets.
 The native reader and exporter supply cooperative checkpoints on their calling
 thread, including subdivision-table stages. Callbacks only carry transport;
 they must never inspect or mutate partially read/evaluated Blender data. Other
-commands are refused while this load owns the engine. Native allocation order,
-quality and arithmetic remain unchanged. An older engine lacking these optional
+commands are refused while this load owns the engine. Checkpointing preserves subdivision levels and arithmetic. Callbacks add
+transport allocations, so native comparison is rerun for each binary. An older engine lacking these optional
 doors keeps its synchronous native phases, reported at their actual durations.
 
 Directory-channel polling backs off since its last progress, rather than the
@@ -76,3 +76,13 @@ start of a long job. Otherwise every later mesh in an initial scene pays the
 slow 25 ms poll interval even while it is continuously producing data.
 `pull-job.test.mjs` covers producer parking, stale/concurrent requests, error
 propagation, bounded import backpressure and the actual worker startup lane.
+
+The paired native implementation is `9fdd05db03b`. Its complete Bridge CPU
+session probe took 27.213 seconds across 2,512 actual ask/checkpoint boundaries; the longest work gap
+was 1.972 seconds while pulling BezierCurve.002. These timings exclude engine
+boot, browser transport and GPU presentation; they do not establish hosted
+acceptance. The raw Wasm hash and evidence scopes are in the provenance record.
+The same engine rejects a failed file-read checkpoint without replacing the
+previous document. A linked-object regression also exposed and fixed revision
+increments after the first shared-mesh notice: a geometry revision now advances
+once per frame, so the next unchanged frame reuses that mesh.
