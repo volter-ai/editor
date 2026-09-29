@@ -18,6 +18,11 @@ export interface GodotShaderUniform {
   readonly glsl: string;
   readonly type: string;
   readonly default: readonly number[] | null;
+  /** A `source_color` uniform, converted from sRGB to linear. */
+  readonly color?: true;
+  /** A sampler's `filter_*` and `repeat_*` hints (`ShaderLanguage::TextureFilter`, `TextureRepeat`). */
+  readonly filter?: number;
+  readonly repeat?: number;
 }
 
 /** The lowered code: the GLSL the import printed from Godot's own parse of the shader. */
@@ -28,6 +33,8 @@ export interface GodotLoweredShader {
   readonly uniforms: readonly GodotShaderUniform[];
   readonly functions: string;
   readonly entry: string;
+  /** A spatial shader's two stages as `three-custom-shader-material` takes them (`spatial-material.ts`). */
+  readonly spatial?: { readonly vertexShader: string; readonly fragmentShader: string; readonly transparent: boolean };
 }
 
 export interface Shader {

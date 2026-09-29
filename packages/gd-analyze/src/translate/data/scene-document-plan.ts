@@ -11,9 +11,18 @@ import type {
   BoundGodotCubemapDocument,
 } from '../../analyze/bound-project';
 import type { GodotValue } from '../../read/godot-value';
-import type { GodotBoundShader } from '../../godot-frontend/bound-shader';
+import type { GodotBoundShader, GodotShaderUniform } from '../../godot-frontend/bound-shader';
 import { lowerGodotShader } from '../emit/shader-glsl';
 import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
+import {
+  GODOT_SPATIAL_DEFAULT_VERTEX,
+  GODOT_SPATIAL_FRAGMENT_BUILTINS,
+  GODOT_SPATIAL_RENDER_MODES,
+  GODOT_SPATIAL_SHARED,
+  GODOT_SPATIAL_VERTEX_BUILTINS,
+  godotSpatialFragmentStage,
+  godotSpatialVertexStage,
+} from '../emit/spatial-shader';
 import { ARRAY_MESH_PRIMITIVE } from '../../read/array-mesh';
 import { readGodot4Surfaces } from '../../read/godot4-surfaces';
 import { GridMapReadError, readGridMapCells } from '../../read/grid-map';
@@ -218,6 +227,8 @@ export interface TargetGodotSceneResourcePlan {
    * `Shader` resource's key, by the name its binding selects it with.
    */
   readonly engineShaders?: Readonly<Record<string, string>>;
+  /** `resource_local_to_scene`: each instance of the scene makes its own. */
+  readonly localToScene?: true;
   /**
    * A PackedScene (an `ExtResource` of a `.tscn`, or of an imported model): the scene whose
    * component `instantiate()` mounts, and its root's script class, which it makes first.
@@ -311,9 +322,16 @@ export interface TargetGodotLoweredShader {
   readonly mode: string;
   /** The `render_mode`s it states that the sky pass acts on (`use_debanding`). */
   readonly renderModes: readonly string[];
-  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null }[];
+  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null; readonly color?: true; readonly filter?: number; readonly repeat?: number }[];
   readonly functions: string;
   readonly entry: string;
+  /** A spatial shader's two stages as `three-custom-shader-material` takes them (`spatial-shader.ts`). */
+  readonly spatial?: {
+    readonly vertexShader: string;
+    readonly fragmentShader: string;
+    /** Whether it writes `ALPHA`, which makes Godot draw it in the transparent pass. */
+    readonly transparent: boolean;
+  };
 }
 
 /**
@@ -322,6 +340,7 @@ export interface TargetGodotLoweredShader {
  */
 function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string {
   if (!shader.ok) return `the official shader frontend refused it (${shader.stage}: ${shader.message})`;
+  if (shader.shaderType === 'spatial') return spatialShaderPlan(shader);
   if (shader.shaderType !== 'sky') return `shader_type ${shader.shaderType} is not lowered`;
   const lowered = lowerGodotShader(shader, GODOT_SKY_SHADER_BUILTINS, 'sky');
   if (typeof lowered === 'string') return lowered;
@@ -342,6 +361,52 @@ function shaderPlan(shader: GodotBoundShader): TargetGodotLoweredShader | string
     }),
     functions: lowered.functions,
     entry: lowered.entry,
+  };
+}
+
+/** A lowered uniform as the plan hands it to compat, with its default value where Godot gives one. */
+function plannedUniform({ name, glsl, uniform }: { readonly name: string; readonly glsl: string; readonly uniform: GodotShaderUniform }): TargetGodotLoweredShader['uniforms'][number] {
+  const values = uniform.default.map((value) => ('float' in value ? value.float : 'int' in value ? value.int : 'uint' in value ? value.uint : value.bool ? 1 : 0));
+  return {
+    name,
+    glsl,
+    type: uniform.type.name,
+    default: values.length === 0 ? null : values,
+    ...(uniform.hintName.includes('source_color') ? { color: true as const } : {}),
+    ...(uniform.type.name.startsWith('sampler') ? { filter: uniform.filter, repeat: uniform.repeat } : {}),
+  };
+}
+
+/**
+ * A spatial shader: `vertex()` and `fragment()` lowered with their stages' built-ins, each wrapped
+ * as the stage `three-custom-shader-material` runs (`spatial-shader.ts`). `light()` and a render
+ * mode three does not draw refuse by name.
+ */
+function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true }>): TargetGodotLoweredShader | string {
+  const names = new Set(shader.tree.functions.map((entry) => entry.name));
+  if (names.has('light')) return 'a light() function is not lowered';
+  const unsupported = shader.tree.renderModes.find((mode) => !GODOT_SPATIAL_RENDER_MODES.has(mode));
+  if (unsupported !== undefined) return `render_mode ${unsupported} is not drawn`;
+  const fragment = names.has('fragment') ? lowerGodotShader(shader, GODOT_SPATIAL_FRAGMENT_BUILTINS, 'fragment', ['vertex']) : undefined;
+  if (typeof fragment === 'string') return fragment;
+  const vertex = names.has('vertex') ? lowerGodotShader(shader, GODOT_SPATIAL_VERTEX_BUILTINS, 'vertex', ['fragment']) : undefined;
+  if (typeof vertex === 'string') return vertex;
+  const any = fragment ?? vertex;
+  if (any === undefined) return 'the shader has neither vertex() nor fragment()';
+  const unshaded = shader.tree.renderModes.includes('unshaded');
+  if (unshaded && fragment !== undefined && (fragment.builtins.has('NORMAL') || fragment.builtins.has('VIEW'))) return 'an unshaded fragment() reading NORMAL or VIEW is not lowered';
+  const head = (lowered: typeof any) => [GODOT_SPATIAL_SHARED, lowered.varyings, ...lowered.uniforms.map((uniform) => uniform.declaration), lowered.functions].filter((part) => part !== '').join('\n\n');
+  return {
+    mode: 'spatial',
+    renderModes: shader.tree.renderModes,
+    uniforms: any.uniforms.map(plannedUniform),
+    functions: '',
+    entry: '',
+    spatial: {
+      vertexShader: `${head(vertex ?? any)}\n\nvoid main() {\n${vertex === undefined ? GODOT_SPATIAL_DEFAULT_VERTEX : godotSpatialVertexStage(vertex.entry, vertex.builtins)}\n}`,
+      fragmentShader: `${head(fragment ?? any)}\n\nvoid main() {\n${fragment === undefined ? godotSpatialFragmentStage('', new Set()) : godotSpatialFragmentStage(fragment.entry, fragment.builtins)}\n}`,
+      transparent: fragment?.builtins.has('ALPHA') === true && fragment.builtins.has('ALPHA_SCISSOR_THRESHOLD') !== true,
+    },
   };
 }
 
@@ -983,9 +1048,16 @@ function planResolvedResource(
   }
   const setters: TargetGodotSceneSetterPlan[] = [];
   let ok = true;
+  let localToScene = false;
   for (const [propertyName, value] of Object.entries(data.properties)) {
     // A binary resource stores its null script (`resource_format_binary.cpp` writes every property).
     if (propertyName === 'script' && value.kind === 'null') continue;
+    // A resource local to its scene is copied for each instance of the scene
+    // (`Resource::duplicate_for_local_scene`, `resource.cpp:421`): the scene's component makes its own.
+    if (propertyName === 'resource_local_to_scene') {
+      localToScene = value.kind === 'bool' && value.value;
+      continue;
+    }
     // A resource's name (`Resource::set_name`, `resource.cpp:189`) is the editor's label for it;
     // nothing draws or plays it, as an ArrayMesh's or an animation's is not carried either.
     if (propertyName === 'resource_name') continue;
@@ -999,7 +1071,7 @@ function planResolvedResource(
     refuse(context, `${at}(${key})`, unstated, 'property', `${data.type}.${unstated.split(' ')[0] ?? ''}`);
     return undefined;
   }
-  const planned = { key, className: data.type, construct: rule.construct, ...(engineShaders === undefined ? {} : { engineShaders }), setters };
+  const planned = { key, className: data.type, construct: rule.construct, ...(engineShaders === undefined ? {} : { engineShaders }), ...(localToScene ? { localToScene: true as const } : {}), setters };
   recordResource(document, key, planned);
   return key;
 }
@@ -2226,6 +2298,7 @@ const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = 
   SphereShape3D: ['set_radius'],
   CapsuleShape3D: ['set_radius', 'set_height'],
   CylinderShape3D: ['set_radius', 'set_height'],
+  WorldBoundaryShape3D: ['set_plane'],
   ConvexPolygonShape3D: ['set_points'],
   ConcavePolygonShape3D: ['set_faces', 'set_backface_collision_enabled'],
   PhysicsMaterial: ['set_friction', 'set_bounce', 'set_rough', 'set_absorbent'],

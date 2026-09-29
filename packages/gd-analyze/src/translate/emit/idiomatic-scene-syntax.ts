@@ -886,7 +886,7 @@ export function idiomaticSceneSourceFile(
     hooks: [],
     scriptHooks: [],
     referenceHooks: [],
-    lifecycle: { react: new Set(), fiber: new Set(), rapier: new Set(), compat: new Map() },
+    lifecycle: { react: new Set(), fiber: family.fiber, rapier: new Set(), compat: new Map() },
     processDelta: project.processDelta,
     sensor: { current: false },
     rapierCore: new Set(),

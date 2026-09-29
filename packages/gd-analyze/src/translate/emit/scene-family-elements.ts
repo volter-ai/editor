@@ -123,6 +123,8 @@ export interface FamilyEmission {
   readonly statics: TargetTsStatement[];
   /** React hooks the component calls beside compat's (`useMemo`). */
   readonly react: Set<string>;
+  /** R3F hooks the component calls (`useFrame`), shared with the scene's own. */
+  readonly fiber: Set<string>;
   /** Resource locals that load (hooks), whose users are made in the component too. */
   readonly loaded: Set<string>;
   readonly hookLocals: Map<string, string>;
@@ -154,6 +156,7 @@ export function familyEmission(
     hooks: [],
     statics: [],
     react: new Set(),
+    fiber: new Set(),
     loaded: new Set(),
     hookLocals: new Map(),
     data: new Map(),
@@ -640,6 +643,8 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   if (idiom?.kind === 'shader-material') {
     const shaderValue = resource.setters.find((setter) => setter.collect === 'shader')?.value;
     const shader: TargetTsExpression = shaderValue === undefined ? literal(null) : propValue(emission, shaderValue);
+    // Its own properties beside the shader and its parameters (`render_priority`).
+    const own = resource.setters.filter((setter) => setter.collect === undefined);
     const parameters = resource.setters
       .filter((setter) => setter.collect === 'shader-parameter')
       .map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) }));
@@ -649,9 +654,13 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     const made: TargetTsExpression = {
       kind: 'call-expression',
       callee: identifier(useCompat(emission, 'shader-material', 'godot_shader_material_new')),
-      arguments: [shader, { kind: 'object-expression', properties: parameters }],
+      arguments: [
+        shader,
+        { kind: 'object-expression', properties: parameters },
+        ...(own.length === 0 ? [] : [{ kind: 'object-expression' as const, properties: own.map((setter) => ({ key: godotPropName(setter.propertyName), value: propValue(emission, setter.value) })) }]),
+      ],
     };
-    if (uses.length === 0) {
+    if (uses.length === 0 && resource.localToScene !== true) {
       emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
       return local;
     }
@@ -677,7 +686,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     callee: identifier(constructor),
     arguments: [...engineShaders, ...(properties.length === 0 ? (engineShaders.length === 0 ? [] : [{ kind: 'object-expression' as const, properties: [] }]) : [{ kind: 'object-expression' as const, properties }])],
   };
-  if (uses.length === 0) {
+  if (uses.length === 0 && resource.localToScene !== true) {
     emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
     return local;
   }
@@ -1077,6 +1086,41 @@ function gradientMap(emission: FamilyEmission, texture: TargetGodotSceneResource
   return declareShared(emission, `${texture.key}\0${String(filter)}:${String(repeat)}:${String(model)}`, `${stemOf(texture.key)} map`, made, []);
 }
 
+/**
+ * A ShaderMaterial of a spatial shader as the three material it draws (`spatial-material.ts`),
+ * declared once, and its `TIME` uniform set from R3F's clock each frame, as a three shader's time
+ * uniform is.
+ */
+function shaderMaterialThree(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const key = `${resource.key}\0three`;
+  const existing = emission.shared.get(key);
+  if (existing !== undefined) return existing;
+  const record = resourceLocal(emission, resource.key);
+  const made: TargetTsExpression = { kind: 'call-expression', callee: identifier(useCompat(emission, 'spatial-material', 'godot_shader_material_three')), arguments: [identifier(record)] };
+  const local = declareShared(emission, key, `${stemOf(resource.key)} material`, made, emission.loaded.has(record) ? [record] : []);
+  emission.fiber.add('useFrame');
+  const time: TargetTsExpression = {
+    kind: 'property-expression',
+    object: { kind: 'property-expression', object: { kind: 'property-expression', object: identifier(local), property: 'uniforms' }, property: 'godot_TIME' },
+    property: 'value',
+  };
+  emission.hooks.push({
+    kind: 'expression-statement',
+    expression: {
+      kind: 'call-expression',
+      callee: identifier('useFrame'),
+      arguments: [
+        {
+          kind: 'arrow-expression',
+          parameters: [{ name: 'state' }],
+          body: { kind: 'assignment-expression', operator: '=', target: time, value: { kind: 'property-expression', object: { kind: 'property-expression', object: identifier('state'), property: 'clock' }, property: 'elapsedTime' } },
+        },
+      ],
+    },
+  });
+  return local;
+}
+
 /** A particle system's mesh as the three geometry and material it draws, declared once in the module. */
 function particleMesh(emission: FamilyEmission, mesh: TargetGodotSceneResourcePlan | undefined): TargetTsJsxAttribute[] {
   if (mesh === undefined) return [];
@@ -1131,6 +1175,13 @@ export function familyElement(
       else children.push(geometry(emission, mesh));
       materials.forEach((resource, surface) => {
         const attach = materials.length === 1 ? [] : [{ kind: 'jsx-string-attribute' as const, name: 'attach', value: `material-${String(surface)}` }];
+        // A spatial shader's material is three's custom shader material over the ShaderMaterial.
+        if (resource?.idiom?.kind === 'shader-material') {
+          const local = identifier(shaderMaterialThree(emission, resource));
+          if (materials.length === 1) attributes.push(attribute('material', local));
+          else children.push(element('primitive', [attribute('object', local), ...attach]));
+          return;
+        }
         // A material a factory makes has no element: it is declared, as a shared one is.
         const made = resource?.idiom?.kind === 'material' && resource.idiom.factory !== undefined;
         if (resource !== undefined && (made || sharedResource(emission, resource))) {

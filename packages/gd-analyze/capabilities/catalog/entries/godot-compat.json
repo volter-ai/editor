@@ -176,6 +176,7 @@
     "src/lib/godot-compat/button.ts",
     "src/lib/godot-compat/input-event-action.ts",
     "src/lib/godot-compat/shortcut.ts",
+    "src/lib/godot-compat/spatial-material.ts",
     "src/lib/godot-compat/sphere-shape-3d.ts",
     "src/lib/godot-compat/sprite-2d.ts",
     "src/lib/godot-compat/standard-material-3d.ts",
@@ -222,7 +223,8 @@
       "fast-png": "^8.0.0",
       "postprocessing": "^6.38.3",
       "react": "^19.2.4",
-      "three": "^0.180.0"
+      "three": "^0.180.0",
+      "three-custom-shader-material": "^6.4.0"
     }
   },
   "regions": {

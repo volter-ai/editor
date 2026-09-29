@@ -139,6 +139,8 @@ export interface LoweredGodotShader {
   readonly entry: string;
   /** The built-ins the shader reads or writes. */
   readonly builtins: ReadonlySet<string>;
+  /** `varying <type> godot_v_<name>;` for each varying, declared in both stages. */
+  readonly varyings: string;
 }
 
 class Refused extends Error {}
@@ -167,14 +169,14 @@ function scalarText(value: GodotShaderScalar): string {
  * The shader lowered with `builtins` naming its mode's built-ins and `entry` naming the function
  * the mode runs (`sky`, `fragment`), or the construct it does not carry.
  */
-export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShaderBuiltins, entry: string): LoweredGodotShader | string {
+export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShaderBuiltins, entry: string, otherEntries: readonly string[] = []): LoweredGodotShader | string {
   if (!shader.ok) return `${shader.path}: the official shader frontend refused it (${shader.stage}: ${shader.message})`;
   const tree = shader.tree;
   if (tree.structs.length > 0) return `${shader.path}: shader structs are not lowered`;
-  if (tree.varyings.length > 0) return `${shader.path}: varyings are not lowered`;
   const used = new Set<string>();
   const uniformNames = new Set(tree.uniforms.map((uniform) => uniform.name));
   const constantNames = new Set(tree.constants.map((constant) => constant.name));
+  const varyingNames = new Set(tree.varyings.map((varying) => varying.name));
   const functionNames = new Set(tree.functions.map((entry2) => entry2.name));
   const type = (name: string): string => {
     if (!GLSL_TYPES.has(name)) throw new Refused(`the ${name} type is not lowered`);
@@ -190,6 +192,7 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
         if (node.local) return `godot_l_${node.name}`;
         if (uniformNames.has(node.name)) return `godot_u_${node.name}`;
         if (constantNames.has(node.name)) return `godot_c_${node.name}`;
+        if (varyingNames.has(node.name)) return `godot_v_${node.name}`;
         const builtin = builtins[node.name];
         if (builtin === undefined) throw new Refused(`the built-in ${node.name} is not carried`);
         used.add(node.name);
@@ -268,6 +271,16 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
         switch (node.flowOp) {
           case FLOW.IF:
             return `${indent}if (${expr(0)}) ${body(0)}${node.blocks.length > 1 ? ` else ${body(1)}` : ''}`;
+          case FLOW.FOR: {
+            // `for (init; condition; step) body`: its four blocks (`ShaderLanguage::_parse_block`,
+            // `shader_language.cpp:8796`), each of the first three one statement.
+            const part = (index: number): string => {
+              const found = node.blocks[index];
+              if (found === undefined || found.kind !== 'BLOCK') throw new Refused('a for loop without its blocks');
+              return found.statements.map((entry2) => statement(entry2, '').replace(/;$/u, '')).join(', ');
+            };
+            return `${indent}for (${part(0)}; ${part(1)}; ${part(2)}) ${body(3)}`;
+          }
           case FLOW.RETURN:
             return `${indent}return${node.expressions.length > 0 ? ` ${expr(0)}` : ''};`;
           case FLOW.WHILE:
@@ -308,6 +321,8 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
         entryBody = block(fn.body, '\t');
         continue;
       }
+      // Another stage's entry (`vertex()` while lowering `fragment()`) is lowered with its own stage.
+      if (otherEntries.includes(name)) continue;
       const parameters = fn.arguments.map((argument) => {
         if (argument.qualifier !== 0) throw new Refused(`the ${name} function's out/inout parameters are not lowered`);
         return `${type(argument.type.name)} godot_l_${argument.name}`;
@@ -315,7 +330,11 @@ export function lowerGodotShader(shader: GodotBoundShader, builtins: GodotShader
       functions.push(`${type(fn.returnType.name)} godot_f_${name}(${parameters.join(', ')}) {\n${block(fn.body, '\t')}\n}`);
     }
     if (entryBody === undefined) return `${shader.path}: the shader has no ${entry}() function`;
-    return { uniforms, functions: functions.join('\n\n'), entry: entryBody, builtins: used };
+    const varyings = tree.varyings.map((varying) => {
+      if (varying.type.arraySize > 0) throw new Refused(`the ${varying.name} varying array is not lowered`);
+      return `varying ${type(varying.type.name)} godot_v_${varying.name};`;
+    });
+    return { uniforms, functions: functions.join('\n\n'), entry: entryBody, builtins: used, varyings: varyings.join('\n') };
   } catch (error) {
     if (error instanceof Refused) return `${shader.path}: ${error.message}`;
     throw error;

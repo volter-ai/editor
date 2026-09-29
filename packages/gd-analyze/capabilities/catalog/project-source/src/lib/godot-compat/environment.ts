@@ -63,6 +63,11 @@ export interface Environment {
   ssil_radius: number;
   ssil_intensity: number;
   glow_strength: number;
+  glow_normalized: boolean;
+  volumetric_fog_enabled: boolean;
+  volumetric_fog_density: number;
+  volumetric_fog_albedo: Color;
+  volumetric_fog_emission: Color;
 }
 
 /**
@@ -118,6 +123,11 @@ export function construct(): Environment {
     ssil_radius: 5,
     ssil_intensity: 1,
     glow_strength: 1,
+    glow_normalized: false,
+    volumetric_fog_enabled: false,
+    volumetric_fog_density: 0.05,
+    volumetric_fog_albedo: color(1, 1, 1, 1),
+    volumetric_fog_emission: color(0, 0, 0, 1),
   };
 }
 
@@ -542,6 +552,11 @@ const PROPS: ReadonlyMap<string, (self: Environment, value: never) => void> = ne
   ['ssilRadius', (self, value: number) => set_ssil_radius(self, value)],
   ['ssilIntensity', (self, value: number) => set_ssil_intensity(self, value)],
   ['glowStrength', (self, value: number) => set_glow_strength(self, value)],
+  ['glowNormalized', (self, value: boolean) => set_glow_normalized(self, value)],
+  ['volumetricFogEnabled', (self, value: boolean) => set_volumetric_fog_enabled(self, value)],
+  ['volumetricFogDensity', (self, value: number) => set_volumetric_fog_density(self, value)],
+  ['volumetricFogAlbedo', (self, value: readonly [number, number, number, number]) => set_volumetric_fog_albedo(self, color(...value))],
+  ['volumetricFogEmission', (self, value: readonly [number, number, number, number]) => set_volumetric_fog_emission(self, color(...value))],
   // `glow_levels/N` is the level N - 1 (`environment.cpp:1464`).
   ...[1, 2, 3, 4, 5, 6, 7].map((n): [string, (self: Environment, value: never) => void] => [`glowLevels${String(n)}`, (self, value: number) => set_glow_level(self, n - 1, value)]),
 ]);
@@ -914,6 +929,88 @@ export function set_glow_strength(self: Environment, strength: number): void {
  */
 export function get_glow_strength(self: Environment): number {
   return self.glow_strength;
+}
+
+// --- Stored, never drawn: the Compatibility renderer has no volumetric fog, and draws glow unnormalized.
+
+/**
+ * @godot Environment.set_glow_normalized
+ * @source scene/resources/environment.cpp:626
+ */
+export function set_glow_normalized(self: Environment, normalized: boolean): void {
+  self.glow_normalized = normalized;
+}
+
+/**
+ * @godot Environment.is_glow_normalized
+ * @source scene/resources/environment.cpp:632
+ */
+export function is_glow_normalized(self: Environment): boolean {
+  return self.glow_normalized;
+}
+
+/**
+ * @godot Environment.set_volumetric_fog_enabled
+ * @source scene/resources/environment.cpp:931
+ */
+export function set_volumetric_fog_enabled(self: Environment, enabled: boolean): void {
+  self.volumetric_fog_enabled = enabled;
+}
+
+/**
+ * @godot Environment.is_volumetric_fog_enabled
+ * @source scene/resources/environment.cpp:936
+ */
+export function is_volumetric_fog_enabled(self: Environment): boolean {
+  return self.volumetric_fog_enabled;
+}
+
+/**
+ * @godot Environment.set_volumetric_fog_density
+ * @source scene/resources/environment.cpp:939
+ */
+export function set_volumetric_fog_density(self: Environment, density: number): void {
+  self.volumetric_fog_density = f32(density);
+}
+
+/**
+ * @godot Environment.get_volumetric_fog_density
+ * @source scene/resources/environment.cpp:943
+ */
+export function get_volumetric_fog_density(self: Environment): number {
+  return self.volumetric_fog_density;
+}
+
+/**
+ * @godot Environment.set_volumetric_fog_albedo
+ * @source scene/resources/environment.cpp:946
+ */
+export function set_volumetric_fog_albedo(self: Environment, color: Color): void {
+  self.volumetric_fog_albedo = color;
+}
+
+/**
+ * @godot Environment.get_volumetric_fog_albedo
+ * @source scene/resources/environment.cpp:950
+ */
+export function get_volumetric_fog_albedo(self: Environment): Color {
+  return self.volumetric_fog_albedo;
+}
+
+/**
+ * @godot Environment.set_volumetric_fog_emission
+ * @source scene/resources/environment.cpp:953
+ */
+export function set_volumetric_fog_emission(self: Environment, color: Color): void {
+  self.volumetric_fog_emission = color;
+}
+
+/**
+ * @godot Environment.get_volumetric_fog_emission
+ * @source scene/resources/environment.cpp:957
+ */
+export function get_volumetric_fog_emission(self: Environment): Color {
+  return self.volumetric_fog_emission;
 }
 
 /**
