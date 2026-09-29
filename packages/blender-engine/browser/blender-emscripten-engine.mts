@@ -27,6 +27,7 @@
  *    `session.py` chmods its own root as its first act.
  */
 
+import { checkpointStream } from './pull-job.mts';
 import { writeStreamedFile, type StreamFileSystem } from './stream-file.mts';
 import {
   artifactUrl,
@@ -149,14 +150,17 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
  */
 const ARTIFACT_CACHE = 'volter-blender-artifacts';
 
-async function cachedArtifact(file: string, digest: string | undefined): Promise<Response> {
+async function cachedArtifact(file: string, digest: string | undefined, checkpoint: () => Promise<void>): Promise<Response> {
+  const bounded = (response: Response): Response => response.ok && response.body
+    ? new Response(checkpointStream(response.body, checkpoint), { status: response.status, headers: response.headers })
+    : response;
   const url = artifactUrl(file);
-  if (!digest || typeof caches === 'undefined') return fetch(url);
+  if (!digest || typeof caches === 'undefined') return bounded(await fetch(url));
   const key = `${url}?sha256=${digest}`;
   const cache = await caches.open(ARTIFACT_CACHE);
   const hit = await cache.match(key);
-  if (hit) return hit;
-  const response = await fetch(url);
+  if (hit) return bounded(hit);
+  const response = bounded(await fetch(url));
   if (!response.ok) return response;
   // One build's bytes per file: an older build's are dropped as this one lands.
   for (const old of await cache.keys()) if (old.url.startsWith(`${url}?sha256=`) && old.url !== key) await cache.delete(old);
@@ -177,15 +181,18 @@ export async function startEmscriptenBlenderEngine(
     );
   const glueUrl = artifactUrl('blender_browser.js');
   const digests = status.digests ?? {};
+  const checkpoint = async (phase: string): Promise<void> => { await options.ask({ checkpoint: phase }); };
+  const artifact = (file: string) => cachedArtifact(file, digests[file], () => checkpoint(`artifact/${file}`));
   // The `.data` package is handed to the glue whole (`getPreloadedPackage`),
   // so it is read before the module starts; the wasm streams in beside it.
   const [factory, preloaded] = await Promise.all([
     loadFactory(glueUrl),
-    cachedArtifact('blender_browser.data', digests['blender_browser.data']).then(async (response) => {
+    artifact('blender_browser.data').then(async (response) => {
       if (!response.ok) throw new Error(`blender_browser.data: HTTP ${response.status}`);
       return response.arrayBuffer();
     }),
   ]);
+  await checkpoint('runtime-package-ready');
   let bootError: unknown = null;
   const started = performance.now();
   let readyLine: string | null = null;
@@ -221,9 +228,10 @@ export async function startEmscriptenBlenderEngine(
     getPreloadedPackage: () => preloaded,
     instantiateWasm: (imports: WebAssembly.Imports, receive: (instance: WebAssembly.Instance, module: WebAssembly.Module) => void) => {
       void (async () => {
-        const response = await cachedArtifact('blender_browser.wasm', digests['blender_browser.wasm']);
+        const response = await artifact('blender_browser.wasm');
         if (!response.ok) throw new Error(`blender_browser.wasm: HTTP ${response.status}`);
         const { instance, module: compiled } = await WebAssembly.instantiateStreaming(response, imports);
+        await checkpoint('wasm-instantiated');
         receive(instance, compiled);
       })().catch((error: unknown) => { bootError = error; });
       return {};
@@ -273,6 +281,7 @@ export async function startEmscriptenBlenderEngine(
   }).finally(() => {
     (WebAssembly as { Memory: unknown }).Memory = Memory;
   });
+  await checkpoint('runtime-initialized');
   // `main()` runs on a pthread (`-sPROXY_TO_PTHREAD`), so the factory resolves
   // long before the session exists. The ready line is what says it does.
   while (readyLine === null) {
@@ -337,7 +346,8 @@ export async function startEmscriptenBlenderEngine(
 
   const files = moduleFiles(module);
   FS.chmod('/bw/datafiles', 0o755);
-  await mountEssentials(files, digests['essentials.bin']);
+  await checkpoint('python-ready');
+  await mountEssentials(files, digests['essentials.bin'], checkpoint);
   const { request } = openSessionChannel(files, options);
 
   return {
@@ -364,9 +374,9 @@ export async function startEmscriptenBlenderEngine(
 /** Assets are data, not a second engine. Ship them separately so a data update
  * does not relink the 86 MB Wasm binary. Both payload and per-file bounds are
  * checked before anything enters Blender's filesystem. */
-async function mountEssentials(files: BlenderFiles, digest: string | undefined): Promise<void> {
+async function mountEssentials(files: BlenderFiles, digest: string | undefined, checkpoint: (phase: string) => Promise<void>): Promise<void> {
   const [indexResponse, payloadResponse] = await Promise.all([
-    fetch(artifactUrl('essentials.json')), cachedArtifact('essentials.bin', digest),
+    fetch(artifactUrl('essentials.json')), cachedArtifact('essentials.bin', digest, () => checkpoint('artifact/essentials.bin')),
   ]);
   if (!indexResponse.ok || !payloadResponse.ok)
     throw new Error(`Blender Essentials assets are missing (${indexResponse.status}/${payloadResponse.status})`);
@@ -380,6 +390,7 @@ async function mountEssentials(files: BlenderFiles, digest: string | undefined):
   if (payload.byteLength !== index.bytes || hash !== index.sha256)
     throw new Error('Blender Essentials payload does not match its source manifest');
   for (const file of index.files) {
+    await checkpoint('essentials-file');
     if (!file.path || file.path.includes('\\') || file.path.split('/').some(p => !p || p === '.' || p === '..') ||
         !Number.isInteger(file.offset) || !Number.isInteger(file.bytes) ||
         file.offset < 0 || file.bytes < 0 || file.offset + file.bytes > payload.byteLength)

@@ -258,6 +258,7 @@ export async function artifactStatus(): Promise<BlenderArtifactStatus> {
  */
 export async function startBlenderEngine(options: BlenderEngineOptions): Promise<BlenderEngine> {
   const status = await artifactStatus();
+  await options.ask({ checkpoint: 'artifact-status' });
   if (!status.available)
     throw new Error(
       `The headless Blender WebAssembly build is not served by this editor: ${status.missing.join('; ')}`,

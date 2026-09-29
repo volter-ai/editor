@@ -118,3 +118,28 @@ test('a continuation from an earlier operation cannot advance the next operation
   await assert.rejects(second.step(old.token), /Invalid/);
   assert.deepEqual(await second.step(current.token), { load: 'done', value: true });
 });
+
+test('actual artifact reader yields on cold and cached bodies without changing bytes', async () => {
+  const { readFile } = await import('node:fs/promises');
+  const source = await readFile('packages/blender-engine/browser/blender-emscripten-engine.mts', 'utf8');
+  const reader = source.slice(source.indexOf('const ARTIFACT_CACHE'), source.indexOf('export async function startEmscriptenBlenderEngine'));
+  const bundled = await build({ stdin: { contents: `import { checkpointStream } from './pull-job.mts';\nconst artifactUrl = f => 'https://artifact.test/' + f;\n${reader}\nexport { cachedArtifact };`, resolveDir: new URL('../browser/', import.meta.url).pathname, loader: 'ts' }, bundle: true, write: false, platform: 'node', format: 'esm' });
+  const { cachedArtifact } = await import(`data:text/javascript;base64,${Buffer.from(bundled.outputFiles[0].text).toString('base64')}`);
+  const savedFetch = globalThis.fetch, savedCaches = globalThis.caches;
+  const input = new Uint8Array(2 * 1024 * 1024 + 17).map((_, i) => i % 251);
+  let fetched = 0, kept;
+  globalThis.fetch = async () => { fetched++; return new Response(input, { headers: { 'content-type': 'application/wasm' } }); };
+  globalThis.caches = { open: async () => ({ match: async () => kept?.clone(), keys: async () => [], put: async (_, value) => { kept = value; } }) };
+  try {
+    for (const pass of ['cold', 'cached']) {
+      const job = new PullJob(async pause => new Uint8Array(await (await cachedArtifact('engine.wasm', 'digest', () => pause(pass))).arrayBuffer()));
+      let result = await job.step(), chunks = 0;
+      while (result.load === 'continue') { assert.equal(result.phase, pass); chunks++; result = await job.step(result.token); }
+      assert.equal(chunks, 3); assert.deepEqual(result.value, input);
+    }
+    assert.equal(fetched, 1);
+  } finally {
+    globalThis.fetch = savedFetch;
+    if (savedCaches === undefined) delete globalThis.caches; else globalThis.caches = savedCaches;
+  }
+});

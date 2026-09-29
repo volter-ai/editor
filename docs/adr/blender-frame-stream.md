@@ -111,3 +111,11 @@ history and persistence cannot re-enter it. The page serializes whole logical
 operations, drains accepted edits before the close barrier, and protects queued
 work against unload. Wire-call timing remains measured from post to reply;
 `@@VOLTER-WORK` records total logical duration including queue time separately.
+
+A fresh-cache hosted run subsequently measured 13.451 s in `start`, before the
+first engine-ready checkpoint. Runtime `.data`, Wasm and Essentials reads now
+use the same one-MiB producer backpressure on both cache hits and misses.
+Artifact status, package readiness, Wasm instantiation, runtime initialization,
+Python readiness and Essentials file installation are separate work units.
+The artifact cache retains exactly the same bytes and digests; a cold/warm
+reader test verifies byte identity and producer checkpoints in both paths.
