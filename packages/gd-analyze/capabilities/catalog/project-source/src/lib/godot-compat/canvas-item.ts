@@ -19,6 +19,7 @@
 
 import type { Object3D } from 'three';
 import { type Color, construct as color } from './color';
+import { godot_canvas_item_material_css_blend } from './canvas-item-material';
 import { godot_input_mouse_position } from './input';
 import { get_viewport, godot_node_entity, is_inside_tree } from './node';
 import type { Rect2 } from './rect2';
@@ -57,6 +58,9 @@ interface CanvasItemState {
   selfModulate: Color;
   zIndex: number;
   zRelative: boolean;
+  /** Its material, and whether it draws with its parent's instead (`use_parent_material`). */
+  material: object | null;
+  useParentMaterial: boolean;
 }
 
 interface CanvasLayerLink {
@@ -99,6 +103,8 @@ export function godot_canvas_item_mount(entity: Object3D, classes: readonly stri
     selfModulate: color(1, 1, 1, 1),
     zIndex: 0,
     zRelative: true,
+    material: null,
+    useParentMaterial: false,
   });
 }
 
@@ -490,7 +496,7 @@ export function godot_canvas_item_self_filter(entity: Object3D, element: HTMLEle
 const STYLES = new WeakMap<HTMLElement, Map<string, string>>();
 
 /** Writes a style property only when its value changed (`canvas_item_set_*` sends a change). */
-function put(element: HTMLElement, property: 'position' | 'left' | 'top' | 'width' | 'height' | 'pointerEvents' | 'zIndex' | 'transformOrigin' | 'transform' | 'display' | 'filter', value: string): void {
+function put(element: HTMLElement, property: 'position' | 'left' | 'top' | 'width' | 'height' | 'pointerEvents' | 'zIndex' | 'transformOrigin' | 'transform' | 'display' | 'filter' | 'mixBlendMode', value: string): void {
   let written = STYLES.get(element);
   if (written === undefined) {
     written = new Map();
@@ -594,12 +600,58 @@ export function godot_canvas_item_draw(entity: Object3D, viewport: Object3D, roo
   put(element, 'display', state.visible ? '' : 'none');
   put(element, 'zIndex', String(state.zIndex));
   put(element, 'filter', colorFilter(root, state.modulate));
+  put(element, 'mixBlendMode', godot_canvas_item_material_css_blend(materialOf(entity, state)));
   placeIn(entity, element, state.topLevel ? place.canvas : place.container);
   if (state.class.draw === undefined) return;
   const key = state.class.drawKey?.(entity, element);
   if (key !== undefined && DRAWN.get(entity) === key) return;
   state.class.draw(entity, element);
   if (key !== undefined) DRAWN.set(entity, key);
+}
+
+/** The material an item draws with: its own, or its parent item's where it uses the parent's. */
+function materialOf(entity: Object3D, state: CanvasItemState): object | null {
+  if (!state.useParentMaterial) return state.material;
+  const parent = entity.parent;
+  const parentState = parent === null ? undefined : ITEMS.get(parent);
+  return parent === null || parentState === undefined ? null : materialOf(parent, parentState);
+}
+
+/**
+ * The item's material (a CanvasItemMaterial's blend is its element's CSS blend; a shader material's
+ * shader is not run by the page's canvas).
+ *
+ * @godot CanvasItem.set_material
+ * @source scene/main/canvas_item.cpp:1180
+ */
+export function set_material(self: object, material: object | null): void {
+  const state = ITEMS.get(entityOf(self));
+  if (state !== undefined) state.material = material;
+}
+
+/**
+ * @godot CanvasItem.get_material
+ * @source scene/main/canvas_item.cpp:1196
+ */
+export function get_material(self: object): object | null {
+  return ITEMS.get(entityOf(self))?.material ?? null;
+}
+
+/**
+ * @godot CanvasItem.set_use_parent_material
+ * @source scene/main/canvas_item.cpp:1186
+ */
+export function set_use_parent_material(self: object, use: boolean): void {
+  const state = ITEMS.get(entityOf(self));
+  if (state !== undefined) state.useParentMaterial = use;
+}
+
+/**
+ * @godot CanvasItem.get_use_parent_material
+ * @source scene/main/canvas_item.cpp:1192
+ */
+export function get_use_parent_material(self: object): boolean {
+  return ITEMS.get(entityOf(self))?.useParentMaterial ?? false;
 }
 
 /**
@@ -636,6 +688,8 @@ export function godot_canvas_item_props(): (readonly [string, GodotElementProp<O
     ['topLevel', (entity, value: boolean) => set_as_top_level(entity, value)],
     ['zIndex', (entity, value: number) => set_z_index(entity, value)],
     ['zAsRelative', (entity, value: boolean) => set_z_as_relative(entity, value)],
+    ['material', (entity, value: object | null) => set_material(entity, value)],
+    ['useParentMaterial', (entity, value: boolean) => set_use_parent_material(entity, value)],
   ];
 }
 

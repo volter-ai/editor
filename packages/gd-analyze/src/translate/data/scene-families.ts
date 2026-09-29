@@ -12,7 +12,7 @@ import type {
   TargetGodotSceneValue,
 } from './scene-document-plan';
 
-const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative'];
+const CANVAS_ITEM = ['set_meta:*', 'set_visible', 'set_modulate', 'set_self_modulate', 'set_as_top_level', 'set_z_index', 'set_z_as_relative', 'set_material', 'set_use_parent_material'];
 const NODE_2D = [...CANVAS_ITEM, 'set_position', 'set_rotation', 'set_scale', 'set_skew'];
 const CONTROL = [
   ...CANVAS_ITEM,
@@ -359,6 +359,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ArrayMesh: [],
   CompressedTexture2D: [],
   RectangleShape2D: ['set_size'],
+  CanvasItemMaterial: ['set_blend_mode', 'set_light_mode', 'set_particles_animation'],
   Curve2D: ['_set_data', 'set_bake_interval'],
   CapsuleShape2D: ['set_radius', 'set_height'],
   CircleShape2D: ['set_radius'],

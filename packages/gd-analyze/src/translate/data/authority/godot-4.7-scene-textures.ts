@@ -24,6 +24,12 @@ export const GODOT_4_7_TEXTURE_RESOURCE_RULES: readonly (GodotSceneResourceRule 
   },
   {
     sourceRevision: REVISION,
+    className: 'CanvasItemMaterial',
+    construct: { module: 'lib/godot-compat/canvas-item-material', exportName: 'godot_canvas_item_material_new' },
+    source: { file: 'scene/resources/canvas_item_material.cpp', symbol: 'CanvasItemMaterial::CanvasItemMaterial', line: 267 },
+  },
+  {
+    sourceRevision: REVISION,
     className: 'SpriteFrames',
     construct: { module: 'lib/godot-compat/sprite-frames', exportName: 'godot_sprite_frames_new' },
     source: { file: 'scene/resources/sprite_frames.cpp', symbol: 'SpriteFrames::SpriteFrames', line: 268 },
