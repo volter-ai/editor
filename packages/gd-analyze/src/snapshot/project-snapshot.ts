@@ -70,11 +70,17 @@ const SOURCE_ENGINE_RESOURCE_EXTENSIONS = new Set([
   '.scn',
   '.tres',
   '.tscn',
+  // A Theme the editor saved as a (here compressed, RSCC) binary resource: the binary loader
+  // recognizes every saved type's extension, so `load("….theme")` reads it as a `.res` would.
+  '.theme',
 ]);
 const IMPORT_METADATA_EXTENSIONS = new Set(['.import', '.uid']);
 const OPAQUE_ASSET_EXTENSIONS = new Set([
   '.aac',
   '.avi',
+  // A glTF's external buffer (`scene.bin` beside `scene.gltf`): the glTF importer reads it through
+  // the model's `buffers[].uri`, as it reads the model's textures.
+  '.bin',
   '.bmp',
   '.csv',
   '.dae',
@@ -156,6 +162,9 @@ const NON_INPUT_EXTENSIONS = new Set([
   '.blend',
   '.blend1',
   '.bak',
+  // The editor's dependency-rename leftover (`scene.res.depren`), written while it rewrites a
+  // resource's dependency paths and never loaded: the engine loads the file without the suffix.
+  '.depren',
   '.orig',
   '.swp',
 ]);
