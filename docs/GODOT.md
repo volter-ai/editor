@@ -247,8 +247,11 @@ skips the frame or unmounts the game.
      0.1.x versions;
    - add the template's `overrides` (`packages/game-editor/template/package.json`, which pins
      drei's `stats-gl`), since a lock's root entry does not record them;
-   - run `npm@11 install --package-lock-only` over the previous lock, which keeps npm's libc
+   - run `npm@11 install --package-lock-only --legacy-peer-deps=false` over the previous lock, which keeps npm's libc
      filters and the `lock-template` name;
+     state the peer policy explicitly when resolving outside the repository, whose `.npmrc`
+     already disables legacy peer handling: a user's global setting can otherwise remove
+     `graphology-types` and other required peers from the generated game's lock;
    - check it: the 0.5.x editor and game packages are one lockstep set (`@volter/supercode*`,
      pulled in by `editor-core`, versions on its own); no nested copy of the game's runtime
      (`three`, `game-runtime`, `threejs-runtime`), while `editor-core`'s own nested React and R3F
