@@ -1352,9 +1352,9 @@ export function familyElement(
           // Its cull mask is three's camera layers (`camera-3d.ts`); three's default is layer 0
           // alone, Godot's all 20 (`camera_3d.h:83`), so the mask is always stated.
           attribute('layers-mask', literal(lens.cullMask)),
-          // Its own environment, drawn in place of the world's while the viewport draws with it, and
-          // an orthogonal or frustum projection: what the drei camera has no prop for.
-          ...(lens.environment === undefined && lens.projection === undefined && lens.size === undefined
+          // Its own environment, drawn in place of the world's while the viewport draws with it, its
+          // attributes, and an orthogonal or frustum projection: what the drei camera has no prop for.
+          ...(lens.environment === undefined && lens.attributes === undefined && lens.projection === undefined && lens.size === undefined
             ? []
             : [
                 attribute('onUpdate', {
@@ -1365,6 +1365,7 @@ export function familyElement(
                       kind: 'object-expression',
                       properties: [
                         ...(lens.environment === undefined ? [] : [{ key: 'environment', value: propValue(emission, lens.environment) }]),
+                        ...(lens.attributes === undefined ? [] : [{ key: 'attributes', value: propValue(emission, lens.attributes) }]),
                         ...(lens.projection === undefined ? [] : [{ key: 'projection', value: literal(lens.projection) }]),
                         ...(lens.size === undefined ? [] : [{ key: 'size', value: literal(lens.size) }]),
                       ],

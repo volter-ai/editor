@@ -107,7 +107,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   // A spot light's angle (7) and its falloff to the rim (8) are three's cone and penumbra.
   SpotLight3D: [...NODE_3D, ...LIGHT_KEPT, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_param:7', 'set_param:8', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
-  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size', 'set_attributes'],
+  // Its `top_level` is its `userData`'s (`nodeData`).
+  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size', 'set_attributes', 'set_as_top_level'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
   CanvasLayer: ['set_meta:*', 'set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
   Control: CONTROL,
@@ -599,8 +600,16 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Shader: [],
   // Its items are raw properties (`Type/colors/name`), the constructor's own (`theme.ts`).
   Theme: [],
-  // Its defaults only, which draw nothing (`camera-attributes-practical.ts`).
-  CameraAttributesPractical: [],
+  // Its depth of field, drawn by the WorldEnvironment's post pass (`camera-attributes-practical.ts`).
+  CameraAttributesPractical: [
+    'set_dof_blur_far_enabled',
+    'set_dof_blur_far_distance',
+    'set_dof_blur_far_transition',
+    'set_dof_blur_near_enabled',
+    'set_dof_blur_near_distance',
+    'set_dof_blur_near_transition',
+    'set_dof_blur_amount',
+  ],
   CompressedCubemap: [],
   // The parameters a GPUParticles3D's emitter reads (`gpu-particles-3d.ts`); the rest (turbulence,
   // collision, sub-emitters, attractors, 3D scale and rotation, velocity limits, the other

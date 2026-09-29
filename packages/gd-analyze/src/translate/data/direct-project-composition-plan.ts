@@ -89,7 +89,7 @@ export type DirectGodotSceneNodePlan = Omit<
   /** A MeshInstance3D's mesh and, per surface, the material it draws (`scene-surface-idioms.ts`). */
   readonly surfaces?: { readonly mesh?: string; readonly materials: readonly (string | undefined)[]; readonly layers: number; readonly castShadow: boolean };
   /** A Camera3D's lens, cull mask and own environment (`scene-surface-idioms.ts`). */
-  readonly lens?: { readonly fov: number; readonly near: number; readonly far: number; readonly cullMask: number; readonly environment?: TargetGodotSceneValue; readonly projection?: number; readonly size?: number };
+  readonly lens?: { readonly fov: number; readonly near: number; readonly far: number; readonly cullMask: number; readonly environment?: TargetGodotSceneValue; readonly attributes?: TargetGodotSceneValue; readonly projection?: number; readonly size?: number };
   /** A camera, light or probe whose element states no scale (`scene-surface-idioms.ts`). */
   readonly scaleless?: true;
   /** An instance: what its element needs of the scene it instances (`scene-body-idioms.ts`). */

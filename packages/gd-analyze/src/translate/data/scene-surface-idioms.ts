@@ -78,18 +78,21 @@ function primitiveArgs(resource: TargetGodotSceneResourcePlan): TargetGodotScene
 
 /**
  * A Camera3D's lens (`camera_3d.h:68`, three's defaults differ, so every value is stated): its
- * vertical angle, near and far, its cull mask (Godot's default all 20 layers, `camera_3d.h:83`), and
- * its own environment.
+ * vertical angle, near and far, its cull mask (Godot's default all 20 layers, `camera_3d.h:83`), its
+ * own environment and its attributes.
  */
 function cameraLens(node: DirectGodotSceneNodePlan): NonNullable<DirectGodotSceneNodePlan['lens']> {
   const property = (name: string, initial: number) => node.properties.find((entry) => entry.propertyName === name)?.value[0] ?? initial;
   const environment = node.setters.find((entry) => entry.setter.exportName === 'set_environment')?.value;
+  const attributes = node.setters.find((entry) => entry.setter.exportName === 'set_attributes')?.value;
   return {
     fov: Number(property('fov', 75)),
     near: Number(property('near', 0.05)),
     far: Number(property('far', 4000)),
     cullMask: numberValue(node.setters, 'set_cull_mask') ?? 0xfffff,
     ...(environment === undefined ? {} : { environment }),
+    // Its depth of field (`camera-attributes-practical.ts`).
+    ...(attributes === undefined ? {} : { attributes }),
     // An orthogonal or frustum projection and its size (`camera_3d.h:71`, perspective and 1 by default).
     ...(numberValue(node.setters, 'set_projection') === undefined ? {} : { projection: numberValue(node.setters, 'set_projection') as number }),
     ...(numberValue(node.setters, 'set_size') === undefined ? {} : { size: numberValue(node.setters, 'set_size') as number }),
