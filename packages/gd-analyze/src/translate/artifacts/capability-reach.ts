@@ -196,6 +196,17 @@ function capabilityImports(copy: CapabilityCopyArtifact): readonly string[] {
   return found;
 }
 
+/** A bare specifier's package: `three/examples/…` is `three`, `@react-three/fiber/x` is `@react-three/fiber`. */
+function packageOf(specifier: string): string {
+  const parts = specifier.split('/');
+  return specifier.startsWith('@') ? parts.slice(0, 2).join('/') : (parts[0] as string);
+}
+
+/** The npm packages capability files import, each by its bare specifier's package. */
+export function godotCapabilityPackages(copies: readonly CapabilityCopyArtifact[]): ReadonlySet<string> {
+  return new Set(copies.filter((copy) => isCode(copy.path)).flatMap((copy) => capabilityImports(copy).filter((specifier) => !specifier.startsWith('.')).map(packageOf)));
+}
+
 /** The copied file a project path names, as a bundler resolves it (`x`, `x.ts`, `x.tsx`, `x/index.ts`). */
 function resolveCopy(target: string, copies: ReadonlyMap<string, CapabilityCopyArtifact>): CapabilityCopyArtifact | undefined {
   for (const candidate of [target, `${target}.ts`, `${target}.tsx`, `${target}/index.ts`, `${target}/index.tsx`]) {

@@ -11,6 +11,7 @@ import {
   directGodotSettingsJson,
 } from '../emit/direct-project-world-syntax';
 import type { DirectGodotSceneModulePlan } from '../data/direct-scene-module-plan';
+import { prunePackageDocuments } from '../data/package-lock-plan';
 import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
 import {
   godotArrayMeshData,
@@ -21,7 +22,7 @@ import {
 } from '../data/scene-families';
 import { assetCopyArtifact, licenseCopyArtifact } from './asset-copy';
 import { capabilityCopyArtifact } from './capability-copy';
-import { godotCapabilityRequirements, reachedGodotCapabilityCopies } from './capability-reach';
+import { godotCapabilityPackages, godotCapabilityRequirements, reachedGodotCapabilityCopies } from './capability-reach';
 import { plannedArtifactIdentity, structuralDigest } from './identity';
 import {
   projectDataBytesArtifact,
@@ -266,6 +267,15 @@ function validateArtifact(artifact: GodotPlannedArtifact, paths: Set<string>): v
   }
 }
 
+/**
+ * The libraries the generated scene, script and world modules are written with (three.js, React,
+ * R3F, drei, Rapier): declared whatever compat files a game reaches.
+ */
+const GENERATED_MODULE_PACKAGES: ReadonlySet<string> = new Set(['three', 'react', 'react-dom', '@react-three/fiber', '@react-three/drei', '@react-three/rapier', '@dimforge/rapier3d-compat']);
+
+type MutableManifest = { dependencies?: Record<string, string> };
+type MutableLock = { readonly packages?: Record<string, Record<string, unknown>> };
+
 /** Close every output descriptor and every already-final opaque byte before acceptance. */
 export function planDirectGodotArtifacts(
   composition: DirectGodotProjectCompositionPlan,
@@ -277,9 +287,19 @@ export function planDirectGodotArtifacts(
   licenses: readonly { readonly relativePath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[] = [],
 ): readonly GodotPlannedArtifact[] {
   const typed: TypedDataModules = new Set();
-  const projectFiles = projectArtifacts(project, composition, typed);
+  const planned = projectArtifacts(project, composition, typed);
   // Only the capability files the game reaches (`capability-reach.ts`).
   const reached = reachedGodotCapabilityCopies(capabilities, godotCapabilityRequirements(composition, code, typed));
+  // Only the packages it reaches: one only unreached capability files import is not declared,
+  // unless the game's own modules are written with it.
+  const used = godotCapabilityPackages(reached);
+  const unused = new Set([...godotCapabilityPackages(capabilities)].filter((name) => !used.has(name) && !GENERATED_MODULE_PACKAGES.has(name)));
+  const pruned = prunePackageDocuments(project.packageManifest as MutableManifest, project.packageLock as MutableLock, unused);
+  const projectFiles = [
+    ...planned.filter((artifact) => artifact.path !== 'package.json' && artifact.path !== 'package-lock.json'),
+    projectDataJsonArtifact('package.json', pruned.manifest as unknown as DirectJsonValue, project.worldModule.sourcePaths),
+    projectDataJsonArtifact('package-lock.json', pruned.lock as unknown as DirectJsonValue, project.worldModule.sourcePaths),
+  ];
   const artifacts = [
     ...sourceArtifacts(composition, code, scenes),
     ...projectFiles,
