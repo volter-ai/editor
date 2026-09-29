@@ -381,13 +381,6 @@ function sampleExternalImages(gltf: { readonly scene: Object3D; readonly parser:
 }
 
 /**
- * An instanced imported model: its root (this group, the instancing scene's node) and Godot's
- * imported tree under it, with the instancing scene's placements portalled into its nodes.
- *
- * @godot PackedScene (protocol)
- * @source editor/import/3d/resource_importer_scene.cpp:3174
- */
-/**
  * A physics body the importer made in the model (`OMI_physics_body`, `GLTFDocumentExtensionPhysics`):
  * a fixed `<RigidBody>` in the node's own object, standing for the node, with a collider per shape
  * at the shape node's transform.
@@ -481,6 +474,13 @@ function ModelBody({ gltf, entity, body }: { readonly gltf: GLTF; readonly entit
   return createElement(RigidBody, { ref: held, type: body.type, colliders: false }, ...colliders);
 }
 
+/**
+ * An instanced imported model: its root (this group, the instancing scene's node) and Godot's
+ * imported tree under it, with the instancing scene's placements portalled into its nodes.
+ *
+ * @godot PackedScene (protocol)
+ * @source editor/import/3d/resource_importer_scene.cpp:3174
+ */
 export function GodotImportedScene({
   src,
   tree: model,
