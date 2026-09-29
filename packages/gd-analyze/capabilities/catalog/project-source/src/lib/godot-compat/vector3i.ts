@@ -412,3 +412,81 @@ export function op_in(left: Vector3i, right: readonly unknown[] | ReadonlyMap<un
   for (const key of (right as ReadonlyMap<unknown, unknown>).keys()) if (isVector3iEqual(key, left)) return true;
   return false;
 }
+
+/**
+ * @godot Vector3i.AXIS_X
+ * @source core/variant/variant_call.cpp:3121
+ */
+export const AXIS_X: number = 0;
+
+/**
+ * @godot Vector3i.AXIS_Y
+ * @source core/variant/variant_call.cpp:3122
+ */
+export const AXIS_Y: number = 1;
+
+/**
+ * @godot Vector3i.AXIS_Z
+ * @source core/variant/variant_call.cpp:3123
+ */
+export const AXIS_Z: number = 2;
+
+/**
+ * @godot Vector3i.ZERO
+ * @source core/variant/variant_call.cpp:3135
+ */
+export const ZERO: Vector3i = make(0, 0, 0);
+
+/**
+ * @godot Vector3i.ONE
+ * @source core/variant/variant_call.cpp:3136
+ */
+export const ONE: Vector3i = make(1, 1, 1);
+
+/**
+ * @godot Vector3i.MIN
+ * @source core/variant/variant_call.cpp:3137
+ */
+export const MIN: Vector3i = make(-2147483648, -2147483648, -2147483648);
+
+/**
+ * @godot Vector3i.MAX
+ * @source core/variant/variant_call.cpp:3138
+ */
+export const MAX: Vector3i = make(2147483647, 2147483647, 2147483647);
+
+/**
+ * @godot Vector3i.LEFT
+ * @source core/variant/variant_call.cpp:3139
+ */
+export const LEFT: Vector3i = make(-1, 0, 0);
+
+/**
+ * @godot Vector3i.RIGHT
+ * @source core/variant/variant_call.cpp:3140
+ */
+export const RIGHT: Vector3i = make(1, 0, 0);
+
+/**
+ * @godot Vector3i.UP
+ * @source core/variant/variant_call.cpp:3141
+ */
+export const UP: Vector3i = make(0, 1, 0);
+
+/**
+ * @godot Vector3i.DOWN
+ * @source core/variant/variant_call.cpp:3142
+ */
+export const DOWN: Vector3i = make(0, -1, 0);
+
+/**
+ * @godot Vector3i.FORWARD
+ * @source core/variant/variant_call.cpp:3143
+ */
+export const FORWARD: Vector3i = make(0, 0, -1);
+
+/**
+ * @godot Vector3i.BACK
+ * @source core/variant/variant_call.cpp:3144
+ */
+export const BACK: Vector3i = make(0, 0, 1);

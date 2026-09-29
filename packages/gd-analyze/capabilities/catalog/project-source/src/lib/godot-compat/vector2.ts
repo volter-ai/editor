@@ -812,3 +812,51 @@ export function op_in(left: Vector2, right: readonly unknown[] | ReadonlyMap<unk
   for (const key of (right as ReadonlyMap<unknown, unknown>).keys()) if (isVector2Equal(key, left)) return true;
   return false;
 }
+
+/**
+ * @godot Vector2.AXIS_X
+ * @source core/variant/variant_call.cpp:3146
+ */
+export const AXIS_X: number = 0;
+
+/**
+ * @godot Vector2.AXIS_Y
+ * @source core/variant/variant_call.cpp:3147
+ */
+export const AXIS_Y: number = 1;
+
+/**
+ * @godot Vector2.ONE
+ * @source core/variant/variant_call.cpp:3153
+ */
+export const ONE: Vector2 = make(1, 1);
+
+/**
+ * @godot Vector2.INF
+ * @source core/variant/variant_call.cpp:3154
+ */
+export const INF: Vector2 = make(Infinity, Infinity);
+
+/**
+ * @godot Vector2.LEFT
+ * @source core/variant/variant_call.cpp:3155
+ */
+export const LEFT: Vector2 = make(-1, 0);
+
+/**
+ * @godot Vector2.RIGHT
+ * @source core/variant/variant_call.cpp:3156
+ */
+export const RIGHT: Vector2 = make(1, 0);
+
+/**
+ * @godot Vector2.UP
+ * @source core/variant/variant_call.cpp:3157
+ */
+export const UP: Vector2 = make(0, -1);
+
+/**
+ * @godot Vector2.DOWN
+ * @source core/variant/variant_call.cpp:3158
+ */
+export const DOWN: Vector2 = make(0, 1);

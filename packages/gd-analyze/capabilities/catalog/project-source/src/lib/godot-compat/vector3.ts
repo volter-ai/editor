@@ -930,3 +930,93 @@ export function op_in(left: Vector3, right: readonly unknown[] | ReadonlyMap<unk
   for (const key of (right as ReadonlyMap<unknown, unknown>).keys()) if (isVector3Equal(key, left)) return true;
   return false;
 }
+
+/**
+ * @godot Vector3.AXIS_X
+ * @source core/variant/variant_call.cpp:3091
+ */
+export const AXIS_X: number = 0;
+
+/**
+ * @godot Vector3.AXIS_Y
+ * @source core/variant/variant_call.cpp:3092
+ */
+export const AXIS_Y: number = 1;
+
+/**
+ * @godot Vector3.AXIS_Z
+ * @source core/variant/variant_call.cpp:3093
+ */
+export const AXIS_Z: number = 2;
+
+/**
+ * @godot Vector3.INF
+ * @source core/variant/variant_call.cpp:3097
+ */
+export const INF: Vector3 = make(Infinity, Infinity, Infinity);
+
+/**
+ * @godot Vector3.LEFT
+ * @source core/variant/variant_call.cpp:3098
+ */
+export const LEFT: Vector3 = make(-1, 0, 0);
+
+/**
+ * @godot Vector3.RIGHT
+ * @source core/variant/variant_call.cpp:3099
+ */
+export const RIGHT: Vector3 = make(1, 0, 0);
+
+/**
+ * @godot Vector3.DOWN
+ * @source core/variant/variant_call.cpp:3101
+ */
+export const DOWN: Vector3 = make(0, -1, 0);
+
+/**
+ * @godot Vector3.FORWARD
+ * @source core/variant/variant_call.cpp:3102
+ */
+export const FORWARD: Vector3 = make(0, 0, -1);
+
+/**
+ * @godot Vector3.BACK
+ * @source core/variant/variant_call.cpp:3103
+ */
+export const BACK: Vector3 = make(0, 0, 1);
+
+/**
+ * @godot Vector3.MODEL_LEFT
+ * @source core/variant/variant_call.cpp:3105
+ */
+export const MODEL_LEFT: Vector3 = make(1, 0, 0);
+
+/**
+ * @godot Vector3.MODEL_RIGHT
+ * @source core/variant/variant_call.cpp:3106
+ */
+export const MODEL_RIGHT: Vector3 = make(-1, 0, 0);
+
+/**
+ * @godot Vector3.MODEL_TOP
+ * @source core/variant/variant_call.cpp:3107
+ */
+export const MODEL_TOP: Vector3 = make(0, 1, 0);
+
+/**
+ * @godot Vector3.MODEL_BOTTOM
+ * @source core/variant/variant_call.cpp:3108
+ */
+export const MODEL_BOTTOM: Vector3 = make(0, -1, 0);
+
+/**
+ * @godot Vector3.MODEL_FRONT
+ * @source core/variant/variant_call.cpp:3109
+ */
+export const MODEL_FRONT: Vector3 = make(0, 0, 1);
+
+/**
+ * @godot Vector3.MODEL_REAR
+ * @source core/variant/variant_call.cpp:3110
+ */
+export const MODEL_REAR: Vector3 = make(0, 0, -1);
