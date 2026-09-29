@@ -249,6 +249,7 @@ export function construct(shaders: GodotPhysicalSkyShaders): PhysicalSkyMaterial
   const black = color(0, 0, 0, 1);
   const self: PhysicalSkyMaterial = {
     shader: null,
+    renderPriority: 0,
     parameters: new Map(),
     listeners: new Set(),
     rayleigh: 0,

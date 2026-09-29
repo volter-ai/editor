@@ -325,6 +325,7 @@ export function construct(shaders: GodotProceduralSkyShaders): ProceduralSkyMate
   const black = color(0, 0, 0, 1);
   const self: ProceduralSkyMaterial = {
     shader: null,
+    renderPriority: 0,
     parameters: new Map(),
     listeners: new Set(),
     sky_top_color: black,

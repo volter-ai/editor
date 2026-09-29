@@ -38,6 +38,7 @@ export interface PanoramaSkyMaterial extends ShaderMaterial {
 export function construct(shaders: GodotPanoramaSkyShaders): PanoramaSkyMaterial {
   const self: PanoramaSkyMaterial = {
     shader: shaders.filterOn,
+    renderPriority: 0,
     parameters: new Map(),
     listeners: new Set(),
     panorama: null,
