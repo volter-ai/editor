@@ -15,10 +15,19 @@
  * axis is locked.
  */
 
-import { ActiveHooks } from '@dimforge/rapier3d-compat';
-import { godot_collision_object_body, godot_collision_object_colliders, godot_physics_world } from './collision-object-3d';
+import { ActiveHooks, type Collider, QueryFilterFlags } from '@dimforge/rapier3d-compat';
+import { Quaternion as ThreeQuaternion, Vector3 as ThreeVector3, type Object3D } from 'three';
+import {
+  godot_collision_object_body,
+  godot_collision_object_colliders,
+  godot_collision_object_layers,
+  godot_collision_object_of_collider,
+  godot_physics_world,
+} from './collision-object-3d';
+import { godot_kinematic_collision_3d_new, type KinematicCollision3D } from './kinematic-collision-3d';
 import { construct as vector3, type Vector3 } from './vector3';
-import { godot_node_entity } from './node';
+import { godot_node_entity, godot_node_object } from './node';
+import { set_global_position } from './node-3d';
 
 /** Each node's collision exceptions (`PhysicsBody3D::add_collision_exception_with`), both ways. */
 const EXCEPTIONS = new WeakMap<object, Set<object>>();
@@ -151,4 +160,52 @@ export function get_gravity(self: object): Vector3 {
   void self;
   const gravity = godot_physics_world()?.gravity;
   return gravity === undefined ? vector3(0, 0, 0) : vector3(gravity.x, gravity.y, gravity.z);
+}
+
+/**
+ * Moves the body along `motion` until its shape meets another (`PhysicsBody3D::_move`,
+ * `physics_body_3d.cpp:87`): Rapier sweeps its first collider (`castShape`) through what its mask
+ * takes, bodies only, never itself nor its exceptions; the body goes to where the sweep stops (not
+ * with `test_only`), and the collision is returned with the motion made and left, or null where
+ * nothing is met. Godot's recovery from a start inside another shape is Rapier's: a sweep already
+ * touching stops at once.
+ *
+ * @godot PhysicsBody3D.move_and_collide
+ * @source scene/3d/physics/physics_body_3d.cpp:87
+ */
+export function move_and_collide(self: object, motion: Vector3, test_only = false, safe_margin = 0.001): KinematicCollision3D | null {
+  const entity = godot_node_entity(self);
+  const body = godot_collision_object_body(entity);
+  const world = godot_physics_world();
+  const collider = body !== undefined && body.numColliders() > 0 ? body.collider(0) : undefined;
+  if (body === undefined || world === undefined || collider === undefined) return null;
+  const own = godot_collision_object_layers(entity);
+  const admits = (other: Collider): boolean => {
+    if (other.parent()?.handle === body.handle) return false;
+    const node = godot_collision_object_of_collider(other);
+    return node !== undefined && (own.mask & godot_collision_object_layers(node).layer) !== 0 && godot_physics_body_3d_collides(entity, node);
+  };
+  const hit = world.castShape(collider.translation(), collider.rotation(), motion, collider.shape, safe_margin, 1, true, QueryFilterFlags.EXCLUDE_SENSORS, undefined, undefined, undefined, admits);
+  const fraction = hit === null ? 1 : hit.time_of_impact;
+  const travel = vector3(motion.x * fraction, motion.y * fraction, motion.z * fraction);
+  if (!test_only) {
+    const from = body.translation();
+    const to = vector3(from.x + travel.x, from.y + travel.y, from.z + travel.z);
+    if (body.isKinematic()) body.setNextKinematicTranslation(to);
+    else body.setTranslation(to, true);
+    set_global_position(entity as Object3D, to);
+  }
+  if (hit === null) return null;
+  // The witness and normal on the shape met, from its space into the world's.
+  const place = hit.collider.translation();
+  const turn = hit.collider.rotation();
+  const quaternion = new ThreeQuaternion(turn.x, turn.y, turn.z, turn.w);
+  const point = new ThreeVector3(hit.witness2.x, hit.witness2.y, hit.witness2.z).applyQuaternion(quaternion).add(new ThreeVector3(place.x, place.y, place.z));
+  const normal = new ThreeVector3(hit.normal2.x, hit.normal2.y, hit.normal2.z).applyQuaternion(quaternion);
+  const other = godot_collision_object_of_collider(hit.collider);
+  return godot_kinematic_collision_3d_new({
+    hits: [{ collider: other === undefined ? null : godot_node_object(other), normal: vector3(normal.x, normal.y, normal.z), position: vector3(point.x, point.y, point.z) }],
+    travel,
+    remainder: vector3(motion.x - travel.x, motion.y - travel.y, motion.z - travel.z),
+  });
 }
