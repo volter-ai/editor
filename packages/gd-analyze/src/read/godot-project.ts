@@ -424,6 +424,10 @@ function resolveInheritedNodePath(
     const answers = candidatePaths.map((innerPath) =>
       resolveInheritedNodePath(scenes, instanceOf, innerPath, nextChain),
     );
+    // The exact spelling resolving is the answer, even where consuming the root's name also would
+    // (a root and its child of one name, `Projectile/Projectile`).
+    const exact = answers[0];
+    if (exact?.kind === 'resolved') return exact;
     const origins = answers
       .filter(
         (answer): answer is Extract<InstancedParentResolution, { kind: 'resolved' }> =>
