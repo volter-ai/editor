@@ -386,6 +386,11 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
         return components.every((entry): entry is number => entry !== undefined) ? { kind: 'PackedByteArray', components } : undefined;
       }
+      // A PackedStringArray as compat holds it: a JS array of its strings.
+      if (value.name === 'PackedStringArray') {
+        const items = value.args.map((arg) => (arg.kind === 'string' ? ({ kind: 'string', value: arg.value } as const) : undefined));
+        return items.every((item) => item !== undefined) ? { kind: 'Variant-array', items } : undefined;
+      }
       if (value.name === 'PackedVector2Array') {
         const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
         if (components.length % 2 !== 0 || !components.every((entry): entry is number => entry !== undefined)) return undefined;

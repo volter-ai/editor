@@ -699,6 +699,8 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
       ...(model.clipPlayers === undefined ? [] : [attribute('clipPlayers', { kind: 'array-expression', elements: model.clipPlayers.map((path) => ({ kind: 'literal-expression' as const, value: path })) })]),
       // The importer's physics bodies, each a `<RigidBody>` the model mounts in its node.
       ...(model.bodies === undefined ? [] : [attribute('bodies', dataExpression(model.bodies))]),
+      // Its `%Name` with the scene root (the root group's `userData`).
+      ...nodeDataAttribute(node),
     ],
     [...node.children.map((child) => nodeElement(emission, child)), ...placements],
   );

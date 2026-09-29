@@ -2117,13 +2117,18 @@ function planImportedInstance(
     refuse(context, at, `${imported.resPath}: the root scale of a model with physics bodies is not baked into their shapes`, 'resource', 'imported .glb');
     return undefined;
   }
-  const properties = planProperties(context, node, node.authoredProperties);
+  // A model registered as a unique name of this scene (`unique_name_in_owner`), as an own node is.
+  const { unique_name_in_owner: uniqueValue, ...authored } = node.authoredProperties;
+  const unique = uniqueValue?.kind === 'bool' && uniqueValue.value;
+  if (uniqueValue !== undefined && !structure(context, at, 'unique-name')) return undefined;
+  const properties = planProperties(context, node, authored);
   const placed = placement(context, node);
   if (properties === undefined || placed === undefined) return undefined;
   return {
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
     name: node.name,
+    ...(unique ? { unique: true as const } : {}),
     // A script on the model's root (an imported model's root has none of its own).
     ...(node.scriptResPath === undefined ? {} : { scriptResPath: node.scriptResPath }),
     model: {
@@ -2742,7 +2747,7 @@ export function idiomaticRefusal(
       if (node.setters.length > 0 || node.properties.some((entry) => !TRANSFORM_PROPERTIES.has(entry.propertyName))) return `overrides on the imported model ${node.nodePath}`;
       const override = node.model.overrides.flatMap((entry) => entry.setters).find((entry) => entry.modelSlot === undefined);
       if (override !== undefined) return `the imported model's ${override.propertyName}`;
-      if (node.groups.length > 0 || node.unique === true) return `groups or a unique name on the imported model ${node.nodePath}`;
+      if (node.groups.length > 0) return `groups on the imported model ${node.nodePath}`;
       for (const placed of node.placements ?? []) {
         const refused = walk(placed.node, undefined);
         if (refused !== undefined) return refused;
