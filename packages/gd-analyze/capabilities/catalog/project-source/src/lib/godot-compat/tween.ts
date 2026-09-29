@@ -178,10 +178,19 @@ export function tween_property(
 ): PropertyTweener | null {
   const state = stateOf(self);
   if (!checkValid(state)) return null;
-  void property;
+  // One component of the property (`position:y`, `Object::get_indexed`): read from it, written back
+  // as a copy of the property with the component changed.
+  const component = property.split(':')[1];
+  const reached: GodotTweenProperty =
+    component === undefined
+      ? access
+      : {
+          get: (target) => (access.get(target) as Record<string, number>)[component],
+          set: (target, value) => access.set(target, { ...(access.get(target) as object), [component]: value } as never),
+        };
   // "Type mismatch between initial and final value": Godot's error, and no tweener.
-  if (variantType(access.get(object as never)) !== variantType(final_val)) return null;
-  const tweener = godot_property_tweener_create(object, access, final_val, duration);
+  if (variantType(reached.get(object as never)) !== variantType(final_val)) return null;
+  const tweener = godot_property_tweener_create(object, reached, final_val, duration);
   append(self, state, tweener);
   godot_property_tweener_set_tween(tweener, state.default_transition, state.default_ease);
   return tweener;

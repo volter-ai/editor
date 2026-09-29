@@ -18,6 +18,7 @@ import {
   godotSubscriptsParameters,
   godotTruthShape,
   godotTweenInterpolates,
+  godotComponentNames,
   godotTypeDefault,
 } from '../data/lowering-shapes';
 import { godotBuiltinWidens, godotLiteralPathText } from '../data/operand-types';
@@ -707,28 +708,34 @@ function tweenedProperty(
   // The path as a string, a StringName or a NodePath (`^"light_energy"`).
   const property = value === undefined ? undefined : godotLiteralPathText(value);
   if (property === undefined) return context.refuse(node, 'tween_property of a property only known at run time');
-  if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(property)) return context.refuse(node, `tween_property of the sub-property path ${property}`);
+  // One component of a vector, colour or quaternion property (`position:y`): the property's own
+  // accessors, compat's tween reading and writing the component the path names (`tween.ts`).
+  const [whole = '', component, ...deeper] = property.split(':');
+  if (!/^[A-Za-z_][A-Za-z0-9_]*$/u.test(whole) || deeper.length > 0) return context.refuse(node, `tween_property of the sub-property path ${property}`);
   const className =
     objectNode.kind === 'SELF'
       ? context.nativeBase
-      : nativeMemberReceiver(context, objectNode, property)
+      : nativeMemberReceiver(context, objectNode, whole)
         ? objectNode.datatype.nativeType
         : undefined;
   // An object only the run time knows: the property selected by name then.
-  if ((className === undefined || className === '') && namedAttribute(context, objectNode, property)) return namedAccess(context, node, property);
+  if (component === undefined && (className === undefined || className === '') && namedAttribute(context, objectNode, property)) return namedAccess(context, node, property);
   if (className === undefined || className === '') {
     return context.refuse(node, `tween_property of ${property} on an object whose native class is not fixed (${objectNode.datatype.display})`);
   }
-  if (objectNode.kind === 'SELF' && context.scriptMembers?.(objectNode.datatype.scriptPath)?.has(property) === true) {
-    return context.refuse(node, `tween_property of the script's own property ${property}`);
+  if (objectNode.kind === 'SELF' && context.scriptMembers?.(objectNode.datatype.scriptPath)?.has(whole) === true) {
+    return context.refuse(node, `tween_property of the script's own property ${whole}`);
   }
-  const found = context.nativeProperty(className, property);
-  if (found === undefined) return context.refuse(node, `tween_property of ${property}, which ${className} does not declare`);
-  if (found.type === undefined || !godotTweenInterpolates(found.type)) {
+  const found = context.nativeProperty(className, whole);
+  if (found === undefined) return context.refuse(node, `tween_property of ${whole}, which ${className} does not declare`);
+  if (component !== undefined && (found.type === undefined || !(godotComponentNames(found.type) ?? []).includes(component))) {
+    return context.refuse(node, `tween_property of ${property}, which is no component of a ${found.type ?? 'untyped'} property`);
+  }
+  if (component === undefined && (found.type === undefined || !godotTweenInterpolates(found.type))) {
     return context.refuse(node, `tween_property of ${found.owner}.${property}, a ${found.type ?? 'untyped'} property Tween's interpolation is not transcribed for`);
   }
   const accessor = (method: NativePropertyAccessor | undefined, which: string): OfficialBoundBindingUse => {
-    if (method === undefined) return context.refuse(node, `${found.owner}.${property} has no ${which}`);
+    if (method === undefined) return context.refuse(node, `${found.owner}.${whole} has no ${which}`);
     const use = context.bindingUse(
       { sourceRevision: context.sourceRevision, kind: 'native-member', owner: method.owner, member: method.name, signature: method.hash === 0 ? 'unhashed' : `hash:${String(method.hash)}` },
       node,
