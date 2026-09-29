@@ -500,3 +500,241 @@ export function wrap(value: unknown, min: unknown, max: unknown): number {
   if (isEqualApprox(result, high)) return low;
   return result;
 }
+
+/**
+ * `push_error(...)`: the arguments' text joined, reported as an error (`ERR_PRINT`), which on the
+ * web is the console's error. Lowering passes each argument as its `Variant::stringify` text.
+ *
+ * @godot @GlobalScope.push_error
+ * @source core/variant/variant_utility.cpp:1017
+ */
+export function push_error(...args: readonly string[]): void {
+  console.error(args.join(''));
+}
+
+/**
+ * `push_warning(...)`: as `push_error`, reported as a warning (`WARN_PRINT`).
+ *
+ * @godot @GlobalScope.push_warning
+ * @source core/variant/variant_utility.cpp:1027
+ */
+export function push_warning(...args: readonly string[]): void {
+  console.warn(args.join(''));
+}
+
+/**
+ * `printerr(...)`: the arguments' text joined, printed to the error stream.
+ *
+ * @godot @GlobalScope.printerr
+ * @source core/variant/variant_utility.cpp:981
+ */
+export function printerr(...args: readonly string[]): void {
+  console.error(args.join(''));
+}
+
+/**
+ * @godot @GlobalScope.exp
+ * @source core/variant/variant_utility.cpp:339
+ */
+export function exp(x: number): number {
+  return Math.exp(x);
+}
+
+/**
+ * @godot @GlobalScope.sqrt
+ * @source core/variant/variant_utility.cpp:95
+ */
+export function sqrt(x: number): number {
+  return Math.sqrt(x);
+}
+
+/**
+ * @godot @GlobalScope.pow
+ * @source core/variant/variant_utility.cpp:331
+ */
+export function pow(x: number, y: number): number {
+  return Math.pow(x, y);
+}
+
+/**
+ * @godot @GlobalScope.tan
+ * @source core/variant/variant_utility.cpp:51
+ */
+export function tan(x: number): number {
+  return Math.tan(x);
+}
+
+/**
+ * `floor` of an int or float (an int is itself); vectors are not bound.
+ *
+ * @godot @GlobalScope.floor
+ * @source core/variant/variant_utility.cpp:111
+ */
+export function floor(x: unknown): number {
+  return Math.floor(requireNumber('floor', x));
+}
+
+/**
+ * @godot @GlobalScope.floorf
+ * @source core/variant/variant_utility.cpp:147
+ */
+export function floorf(x: number): number {
+  return Math.floor(x);
+}
+
+/**
+ * @godot @GlobalScope.floori
+ * @source core/variant/variant_utility.cpp:151
+ */
+export function floori(x: number): number {
+  return Math.floor(x);
+}
+
+/**
+ * `ceil` of an int or float (an int is itself); vectors are not bound.
+ *
+ * @godot @GlobalScope.ceil
+ * @source core/variant/variant_utility.cpp:155
+ */
+export function ceil(x: unknown): number {
+  return Math.ceil(requireNumber('ceil', x));
+}
+
+/**
+ * @godot @GlobalScope.ceilf
+ * @source core/variant/variant_utility.cpp:191
+ */
+export function ceilf(x: number): number {
+  return Math.ceil(x);
+}
+
+/**
+ * @godot @GlobalScope.ceili
+ * @source core/variant/variant_utility.cpp:195
+ */
+export function ceili(x: number): number {
+  return Math.ceil(x);
+}
+
+/**
+ * `Math::round` rounds half away from zero.
+ *
+ * @godot @GlobalScope.roundi
+ * @source core/variant/variant_utility.cpp:239
+ */
+export function roundi(x: number): number {
+  return Math.sign(x) * Math.round(Math.abs(x));
+}
+
+/**
+ * @godot @GlobalScope.absi
+ * @source core/variant/variant_utility.cpp:283
+ */
+export function absi(x: number): number {
+  return Math.abs(x);
+}
+
+/**
+ * @godot @GlobalScope.signi
+ * @source core/variant/variant_utility.cpp:327
+ */
+export function signi(x: number): number {
+  return Math.sign(x);
+}
+
+/**
+ * @godot @GlobalScope.maxi
+ * @source core/variant/variant_utility.cpp:682
+ */
+export function maxi(x: number, y: number): number {
+  return Math.max(x, y);
+}
+
+/**
+ * @godot @GlobalScope.maxf
+ * @source core/variant/variant_utility.cpp:678
+ */
+export function maxf(x: number, y: number): number {
+  return x > y ? x : y;
+}
+
+/**
+ * @godot @GlobalScope.mini
+ * @source core/variant/variant_utility.cpp:726
+ */
+export function mini(x: number, y: number): number {
+  return Math.min(x, y);
+}
+
+/**
+ * `CLAMP(x, min, max)`: below `min` gives `min`, then above `max` gives `max`.
+ *
+ * @godot @GlobalScope.clampi
+ * @source core/variant/variant_utility.cpp:766
+ */
+export function clampi(x: number, min: number, max: number): number {
+  return x < min ? min : x > max ? max : x;
+}
+
+/**
+ * @godot @GlobalScope.is_zero_approx
+ * @source core/variant/variant_utility.cpp:355
+ */
+export function is_zero_approx(x: number): boolean {
+  return Math.abs(x) < CMP_EPSILON;
+}
+
+/**
+ * @godot @GlobalScope.is_equal_approx
+ * @source core/variant/variant_utility.cpp:351
+ */
+export function is_equal_approx(x: number, y: number): boolean {
+  return isEqualApprox(x, y);
+}
+
+/**
+ * @godot @GlobalScope.move_toward
+ * @source core/variant/variant_utility.cpp:560
+ */
+export function move_toward(from: number, to: number, delta: number): number {
+  return Math.abs(to - from) <= delta ? to : from + signOf(to - from) * delta;
+}
+
+/**
+ * `Math::wrapi`: an empty range gives `min`.
+ *
+ * @godot @GlobalScope.wrapi
+ * @source core/variant/variant_utility.cpp:630
+ */
+export function wrapi(value: number, min: number, max: number): number {
+  const range = max - min;
+  return range === 0 ? min : min + ((((value - min) % range) + range) % range);
+}
+
+/**
+ * @godot @GlobalScope.fposmod
+ * @source core/variant/variant_utility.cpp:103
+ */
+export function fposmod(x: number, y: number): number {
+  let value = x % y;
+  if ((value < 0 && y > 0) || (value > 0 && y < 0)) value += y;
+  return value;
+}
+
+/**
+ * @godot @GlobalScope.posmod
+ * @source core/variant/variant_utility.cpp:107
+ */
+export function posmod(x: number, y: number): number {
+  let value = x % y;
+  if ((value < 0 && y > 0) || (value > 0 && y < 0)) value += y;
+  return value;
+}
+
+/**
+ * @godot @GlobalScope.rad_to_deg
+ * @source core/variant/variant_utility.cpp:572
+ */
+export function rad_to_deg(angle_rad: number): number {
+  return angle_rad * (180 / PI);
+}

@@ -6259,6 +6259,49 @@
         "kind": "structural",
         "construct": "constant"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "LAMBDA",
+        "semanticKey": "lambda:synchronous|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*"
+        ],
+        "resultDatatype": "BUILTIN:Callable"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "lambda"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "FUNCTION",
+        "semanticKey": "function:instance:synchronous|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "function"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "LAMBDA",
+        "semanticKey": "lambda:coroutine|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*"
+        ],
+        "resultDatatype": "BUILTIN:Callable"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "lambda"
+      }
     }
   ],
   "datatypes": [
