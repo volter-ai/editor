@@ -883,6 +883,7 @@ async function main(): Promise<void> {
         'react-dom',
         'three',
         '@react-three/fiber',
+        'its-fine',
         'pixi.js',
         '@pixi/react',
       ],

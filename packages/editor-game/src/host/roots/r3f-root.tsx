@@ -49,6 +49,7 @@ import type { ComponentType, PropsWithChildren } from 'react';
 
 /** The React and Fiber a three world is mounted with — the ones its own hooks resolve. */
 export interface R3FRuntime {
+  readonly FiberProvider: typeof import('its-fine').FiberProvider;
   readonly createElement: typeof React.createElement;
   readonly Fragment: typeof React.Fragment;
   readonly Component: typeof React.Component;
@@ -204,11 +205,17 @@ function threeWorldAdapter(id: string, component: ComponentType, runtime: R3FRun
       // No `<StrictMode>` — the host mounts once; StrictMode's deliberate
       // double-invoke of effects would double-subscribe `useFrame` callbacks
       // against a host loop that only ticks once per frame.
+      // Canvas normally supplies FiberProvider. A raw createRoot needs it
+      // too, so authored context bridges can carry R3F contexts into DOM.
       const world = createElement(
-        Fragment,
+        runtime.FiberProvider,
         null,
-        content,
-        createElement(MountEffectsReady, { key: 'volter-mount-effects-ready' }),
+        createElement(
+          Fragment,
+          null,
+          content,
+          createElement(MountEffectsReady, { key: 'volter-mount-effects-ready' }),
+        ),
       );
       // A reconcile-time crash (e.g. a missing `extend` catalogue entry)
       // surfaces as an uncaught window error and `onCreated` never fires —

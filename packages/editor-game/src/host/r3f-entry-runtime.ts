@@ -20,10 +20,12 @@ import type { RootAdapter, ThreeHostContext } from '@volter/editor-project/adapt
 import { R3F_RUNTIME_PATH } from '@volter/editor-sdk/host';
 import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
 import { Component, createElement, Fragment, useEffect } from 'react';
+import { FiberProvider } from 'its-fine';
 import type * as THREE from 'three';
 import { type R3FRuntime, resolveR3FEntryAdapter } from './roots/r3f-root';
 
 const CHECKOUT_RUNTIME: R3FRuntime = {
+  FiberProvider,
   createElement,
   Fragment,
   Component,
@@ -43,6 +45,7 @@ interface PackagedR3FRuntime {
 let cachedPackagedRuntime: Promise<PackagedR3FRuntime> | null = null;
 
 const RUNTIME_MEMBERS = [
+  'FiberProvider',
   'createElement',
   'Fragment',
   'Component',
@@ -66,6 +69,7 @@ async function packagedRuntime(): Promise<PackagedR3FRuntime> {
   }
   return {
     runtime: {
+      FiberProvider: mod['FiberProvider'] as R3FRuntime['FiberProvider'],
       createElement: mod['createElement'] as R3FRuntime['createElement'],
       Fragment: mod['Fragment'] as R3FRuntime['Fragment'],
       Component: mod['Component'] as R3FRuntime['Component'],

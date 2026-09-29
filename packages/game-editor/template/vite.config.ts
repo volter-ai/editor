@@ -86,7 +86,7 @@ export default defineConfig({
     // page split React context ("Invalid hook call", drei's "Hooks can only be
     // used within the Canvas component!") and three's class identity, so
     // `dedupe` collapses every import onto this project's copy.
-    dedupe: ['react', 'react-dom', 'three', '@react-three/fiber', 'pixi.js', '@pixi/react'],
+    dedupe: ['react', 'react-dom', 'three', '@react-three/fiber', 'its-fine', 'pixi.js', '@pixi/react'],
   },
   optimizeDeps: {
     // Top-level `esbuild.jsx` does not govern dependency optimization. The

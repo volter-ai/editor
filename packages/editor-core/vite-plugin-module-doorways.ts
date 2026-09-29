@@ -262,6 +262,7 @@ export const REACT_WORLD_DOORWAY: ModuleDoorway = {
 export const R3F_DOORWAY: ModuleDoorway = {
   path: R3F_RUNTIME_PATH,
   rows: [
+    { from: 'its-fine', names: ['FiberProvider'] },
     { from: 'three', namespace: 'projectThree' },
     { from: 'react', names: ['createElement', 'Fragment', 'Component', 'useEffect'] },
     {

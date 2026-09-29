@@ -19,6 +19,13 @@ SHA-256 `7dfe829f3098d8ac2515b114e86dc8dadf9249c56daa77eee95476caebd1425c`.
 The official reference editor is unchanged. This is toolchain provenance, not a
 claim of gameplay acceptance.
 
+The editor mounts R3F worlds with `createRoot`, so it must supply the
+`its-fine` `FiberProvider` normally supplied by R3F's `Canvas`. Resolve that
+provider through the project's runtime doorway and deduplicate `its-fine`
+with the renderer packages. A world's context bridge must use the provider
+from its own module graph; this belongs to the editor's mount contract,
+not a workaround emitted into each imported game.
+
 The acceptance slate is the four games named in the original 2026-09-28 walk
 record: `platformer-3d-godot4`, `starter-kit-basic-scene`, `starter-kit-racing`,
 and `starter-kit-3d-platformer`. Additional corpus fixtures do not expand this
