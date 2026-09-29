@@ -13,8 +13,11 @@
  * distance gain. Past `max_distance` (when set) the player is silent, as Godot skips it. Where the
  * panner differs: within `unit_size` Godot's gain rises above 1 up to `max_db`, the panner's stays
  * at 1; Godot pans by its speaker mix and `panning_strength`, the
- * panner by `equalpower`; doppler, emission angles, area reverb and the attenuation filter are not
- * bound.
+ * panner by `equalpower`. The attenuation filter is Godot's: a high-shelf `BiquadFilterNode` at
+ * `attenuation_filter_cutoff_hz` whose gain is the share of the distance attenuation
+ * `attenuation_filter_db` gives, lowered by `emission_angle_filter_attenuation_db` when the camera
+ * is outside the emission angle (`_update_panning`, `:477`). Doppler and area reverb (buses are not
+ * bound) are not.
  */
 
 import type { Object3D } from 'three';
@@ -42,8 +45,29 @@ interface Spatial {
   attenuationModel: number;
   dopplerTracking: number;
   panningStrength: number;
+  areaMask: number;
+  emissionAngleEnabled: boolean;
+  emissionAngle: number;
+  emissionAngleFilterAttenuationDb: number;
+  attenuationFilterCutoffHz: number;
+  attenuationFilterDb: number;
   panner: PannerNode | null;
+  filter: BiquadFilterNode | null;
   cut: GainNode | null;
+}
+
+/** `CMP_EPSILON` (`core/math/math_defs.h:50`). */
+const CMP_EPSILON = 0.00001;
+
+/** `_get_attenuation_db` (`audio_stream_player_3d.cpp:233`): the model's attenuation plus the volume, capped at `max_db`. */
+function attenuationDb(entity: Object3D, spatial: Spatial, distance: number): number {
+  let att = 0;
+  const d = distance / spatial.unitSize;
+  if (spatial.attenuationModel === ATTENUATION_INVERSE_DISTANCE) att = 20 * Math.log10(1 / (d + CMP_EPSILON));
+  else if (spatial.attenuationModel === ATTENUATION_INVERSE_SQUARE_DISTANCE) att = 20 * Math.log10(1 / (d * d + CMP_EPSILON));
+  else if (spatial.attenuationModel === ATTENUATION_LOGARITHMIC) att = -20 * Math.log(d + CMP_EPSILON);
+  att += P.get_volume_db(entity);
+  return f32(Math.min(att, spatial.maxDb));
 }
 
 const SPATIAL = new WeakMap<object, Spatial>();
@@ -98,6 +122,22 @@ function pan(entity: Object3D, spatial: Spatial): void {
     distance = Math.hypot(at.x - eye.origin.x, at.y - eye.origin.y, at.z - eye.origin.z);
   }
   spatial.cut.gain.value = spatial.maxDistance > 0 && distance > spatial.maxDistance ? 0 : 1;
+  if (spatial.filter !== null) {
+    let multiplier = Math.pow(10, attenuationDb(entity, spatial, distance) / 20);
+    if (spatial.maxDistance > 0) multiplier *= Math.max(0, 1 - distance / spatial.maxDistance);
+    let dbAtt = (1 - Math.min(1, multiplier)) * spatial.attenuationFilterDb;
+    if (spatial.emissionAngleEnabled && camera !== null) {
+      // The angle between the node's +Z and the camera-to-node direction (`:481`).
+      const eye = get_global_transform(camera).origin;
+      const z = get_global_transform(entity).basis.z;
+      const to = [at.x - eye.x, at.y - eye.y, at.z - eye.z] as const;
+      const lengths = Math.hypot(...to) * Math.hypot(z.x, z.y, z.z);
+      const c = lengths === 0 ? 1 : (to[0] * z.x + to[1] * z.y + to[2] * z.z) / lengths;
+      if ((Math.acos(Math.max(-1, Math.min(1, c))) * 180) / Math.PI > spatial.emissionAngle) dbAtt += spatial.emissionAngleFilterAttenuationDb;
+    }
+    spatial.filter.frequency.value = spatial.attenuationFilterCutoffHz;
+    spatial.filter.gain.value = dbAtt;
+  }
 }
 
 /**
@@ -107,14 +147,32 @@ function pan(entity: Object3D, spatial: Spatial): void {
  * @source scene/3d/audio_stream_player_3d.cpp:974
  */
 export function godot_audio_stream_player_3d_mount(entity: Object3D): void {
-  const spatial: Spatial = { unitSize: 10, maxDb: 3, maxDistance: 0, attenuationModel: ATTENUATION_INVERSE_DISTANCE, dopplerTracking: 0, panningStrength: 1, panner: null, cut: null };
+  const spatial: Spatial = {
+    unitSize: 10,
+    maxDb: 3,
+    maxDistance: 0,
+    attenuationModel: ATTENUATION_INVERSE_DISTANCE,
+    dopplerTracking: 0,
+    panningStrength: 1,
+    areaMask: 0,
+    emissionAngleEnabled: false,
+    emissionAngle: 45,
+    emissionAngleFilterAttenuationDb: -12,
+    attenuationFilterCutoffHz: 5000,
+    attenuationFilterDb: -24,
+    panner: null,
+    filter: null,
+    cut: null,
+  };
   SPATIAL.set(entity, spatial);
   P.godot_audio_player_mount(entity, (audio) => {
     if (spatial.panner === null || spatial.cut === null) {
       spatial.panner = audio.createPanner();
       spatial.panner.panningModel = 'equalpower';
+      spatial.filter = audio.createBiquadFilter();
+      spatial.filter.type = 'highshelf';
       spatial.cut = audio.createGain();
-      spatial.panner.connect(spatial.cut).connect(audio.destination);
+      spatial.panner.connect(spatial.filter).connect(spatial.cut).connect(audio.destination);
     }
     pan(entity, spatial);
     return spatial.panner;
@@ -365,6 +423,178 @@ export function set_panning_strength(self: object, strength: number): void {
  */
 export function get_panning_strength(self: object): number {
   return spatialOf(self, 'get_panning_strength').panningStrength;
+}
+
+/**
+ * `set_volume_db(linear_to_db(volume))`.
+ *
+ * @godot AudioStreamPlayer3D.set_volume_linear
+ * @source scene/3d/audio_stream_player_3d.cpp:616
+ */
+export function set_volume_linear(self: object, volume_linear: number): void {
+  P.set_volume_linear(self, volume_linear);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.get_volume_linear
+ * @source scene/3d/audio_stream_player_3d.cpp:620
+ */
+export function get_volume_linear(self: object): number {
+  return P.get_volume_linear(self);
+}
+
+/**
+ * While playing, the playbacks stop and one plays again from `to_position`.
+ *
+ * @godot AudioStreamPlayer3D.seek
+ * @source scene/3d/audio_stream_player_3d.cpp:667
+ */
+export function seek(self: object, to_position: number): void {
+  P.seek(self, to_position);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.set_stream_paused
+ * @source scene/3d/audio_stream_player_3d.cpp:807
+ */
+export function set_stream_paused(self: object, pause: boolean): void {
+  P.set_stream_paused(self, pause);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.get_stream_paused
+ * @source scene/3d/audio_stream_player_3d.cpp:811
+ */
+export function get_stream_paused(self: object): boolean {
+  return P.get_stream_paused(self);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.has_stream_playback
+ * @source scene/3d/audio_stream_player_3d.cpp:815
+ */
+export function has_stream_playback(self: object): boolean {
+  return P.has_stream_playback(self);
+}
+
+/**
+ * Kept and read back, as on the plain player.
+ *
+ * @godot AudioStreamPlayer3D.set_playback_type
+ * @source scene/3d/audio_stream_player_3d.cpp:844
+ */
+export function set_playback_type(self: object, playback_type: number): void {
+  P.set_playback_type(self, playback_type);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.get_playback_type
+ * @source scene/3d/audio_stream_player_3d.cpp:840
+ */
+export function get_playback_type(self: object): number {
+  return P.get_playback_type(self);
+}
+
+/**
+ * The physics layers of the Area3Ds that may divert the sound to their reverb bus; kept and read
+ * back (buses are not bound).
+ *
+ * @godot AudioStreamPlayer3D.set_area_mask
+ * @source scene/3d/audio_stream_player_3d.cpp:724
+ */
+export function set_area_mask(self: object, mask: number): void {
+  spatialOf(self, 'set_area_mask').areaMask = mask >>> 0;
+}
+
+/**
+ * @godot AudioStreamPlayer3D.get_area_mask
+ * @source scene/3d/audio_stream_player_3d.cpp:728
+ */
+export function get_area_mask(self: object): number {
+  return spatialOf(self, 'get_area_mask').areaMask;
+}
+
+/**
+ * @godot AudioStreamPlayer3D.set_emission_angle_enabled
+ * @source scene/3d/audio_stream_player_3d.cpp:732
+ */
+export function set_emission_angle_enabled(self: object, enabled: boolean): void {
+  spatialOf(self, 'set_emission_angle_enabled').emissionAngleEnabled = Boolean(enabled);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.is_emission_angle_enabled
+ * @source scene/3d/audio_stream_player_3d.cpp:737
+ */
+export function is_emission_angle_enabled(self: object): boolean {
+  return spatialOf(self, 'is_emission_angle_enabled').emissionAngleEnabled;
+}
+
+/**
+ * An angle outside `0..90` degrees fails.
+ *
+ * @godot AudioStreamPlayer3D.set_emission_angle
+ * @source scene/3d/audio_stream_player_3d.cpp:741
+ */
+export function set_emission_angle(self: object, degrees: number): void {
+  if (degrees < 0 || degrees > 90) return;
+  spatialOf(self, 'set_emission_angle').emissionAngle = f32(degrees);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.get_emission_angle
+ * @source scene/3d/audio_stream_player_3d.cpp:747
+ */
+export function get_emission_angle(self: object): number {
+  return spatialOf(self, 'get_emission_angle').emissionAngle;
+}
+
+/**
+ * @godot AudioStreamPlayer3D.set_emission_angle_filter_attenuation_db
+ * @source scene/3d/audio_stream_player_3d.cpp:751
+ */
+export function set_emission_angle_filter_attenuation_db(self: object, db: number): void {
+  spatialOf(self, 'set_emission_angle_filter_attenuation_db').emissionAngleFilterAttenuationDb = f32(db);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.get_emission_angle_filter_attenuation_db
+ * @source scene/3d/audio_stream_player_3d.cpp:755
+ */
+export function get_emission_angle_filter_attenuation_db(self: object): number {
+  return spatialOf(self, 'get_emission_angle_filter_attenuation_db').emissionAngleFilterAttenuationDb;
+}
+
+/**
+ * @godot AudioStreamPlayer3D.set_attenuation_filter_cutoff_hz
+ * @source scene/3d/audio_stream_player_3d.cpp:759
+ */
+export function set_attenuation_filter_cutoff_hz(self: object, hz: number): void {
+  spatialOf(self, 'set_attenuation_filter_cutoff_hz').attenuationFilterCutoffHz = f32(hz);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.get_attenuation_filter_cutoff_hz
+ * @source scene/3d/audio_stream_player_3d.cpp:763
+ */
+export function get_attenuation_filter_cutoff_hz(self: object): number {
+  return spatialOf(self, 'get_attenuation_filter_cutoff_hz').attenuationFilterCutoffHz;
+}
+
+/**
+ * @godot AudioStreamPlayer3D.set_attenuation_filter_db
+ * @source scene/3d/audio_stream_player_3d.cpp:767
+ */
+export function set_attenuation_filter_db(self: object, db: number): void {
+  spatialOf(self, 'set_attenuation_filter_db').attenuationFilterDb = f32(db);
+}
+
+/**
+ * @godot AudioStreamPlayer3D.get_attenuation_filter_db
+ * @source scene/3d/audio_stream_player_3d.cpp:771
+ */
+export function get_attenuation_filter_db(self: object): number {
+  return spatialOf(self, 'get_attenuation_filter_db').attenuationFilterDb;
 }
 
 const AUDIO_STREAM_PLAYER_3D = {
