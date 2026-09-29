@@ -223,8 +223,17 @@ export function godot_node_dom_host_of(node: object): HTMLElement | undefined {
   return DOM_HOSTS.get(entityOf(node));
 }
 
+/**
+ * The native parent that is a Godot node: a nameless group the Node protocol has not met (a
+ * component's own inner group, as a SpringArm3D's holds its children) stands aside, as it does
+ * among the children (`childEntities`).
+ */
 function parentEntity(entity: object): object | null {
-  if (!isElement(entity)) return (entity as Object3D).parent ?? null;
+  if (!isElement(entity)) {
+    let parent = (entity as Object3D).parent ?? null;
+    while (parent !== null && !NODE.has(parent) && !FOREIGN.has(parent) && nameOf(parent) === '' && parent.parent !== null) parent = parent.parent;
+    return parent;
+  }
   const parent = entity.parentElement;
   return parent === null ? null : (HOSTED_BY.get(parent) ?? parent);
 }

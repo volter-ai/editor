@@ -2599,6 +2599,8 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
     'set_debug_shape_custom_color',
   ],
   Marker3D: ['set_visible', 'set_gizmo_extents'],
+  // Its sweep moving its children, from its own component's physics step (`spring-arm-3d.ts`).
+  SpringArm3D: ['set_visible', 'set_shape', 'set_length', 'set_collision_mask', 'set_margin'],
   // Swept when a script reads it, as the ray is (`shape-cast-3d.ts`).
   ShapeCast3D: [
     'set_visible',

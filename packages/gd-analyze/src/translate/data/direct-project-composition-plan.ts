@@ -5,6 +5,7 @@ import { planGodotSceneSkyLights } from './scene-sky-lights';
 import { type GodotSceneBodyProp, type GodotSceneColliderPlan, planGodotSceneBodies } from './scene-body-idioms';
 import { planGodotSceneCollectedSetters, planGodotSceneSurfaces } from './scene-surface-idioms';
 import { type GodotControlDomPlan, planGodotSceneControls } from './scene-control-idioms';
+import { planGodotScenePlacedChildren } from './scene-arm-idioms';
 import type { GodotValue } from '../../read/godot-value';
 import { godotResolveNodePath } from './scene-animation';
 import type {
@@ -931,7 +932,7 @@ export function planDirectGodotProjectComposition(
   const settings = projectSettings(project, diagnostics);
   const physics = physicsWorld(settings);
   const inputMap = planDirectGodotInputMap(project.read.inputActions, (at, message) => diagnostics.push({ at, message }), project.inputActionsNamed === 'all' ? 'all' : new Set(project.inputActionsNamed));
-  const controlled = planGodotSceneControls(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics), (at, message) => diagnostics.push({ at, message }));
+  const controlled = planGodotSceneControls(planGodotScenePlacedChildren(planGodotSceneBodies(planGodotSceneSurfaces(planGodotSceneCollectedSetters(composedScenes)), diagnostics)), (at, message) => diagnostics.push({ at, message }));
   const bodied = planGodotSceneSignalDelivery(controlled, project).map((scene) => {
     const current = scene.cameras?.authored ?? (scene.sourceResPath === mainScene ? scene.cameras?.first : undefined);
     const autoloadReferences = sceneAutoloadReferences(scene, diagnostics);

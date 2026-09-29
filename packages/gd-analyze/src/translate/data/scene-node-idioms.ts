@@ -96,6 +96,8 @@ export interface GodotSceneNodeIdiom {
   readonly skyLights?: true;
   /** A canvas layer's own `layer` unless stated (`canvas_layer.h:45`): the Controls under it stack by it. */
   readonly canvasLayer?: number;
+  /** It places its own children as it runs (a SpringArm3D): they are stated at its origin (`scene-arm-idioms.ts`). */
+  readonly placesChildren?: true;
   /**
    * The element it is among Controls, where no three object can hang (an AnimationPlayer
    * animating them through the Web Animations API, `scene-control-idioms.ts`).
@@ -183,6 +185,12 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     form: { kind: 'component', module: 'ray-cast-3d', exportName: 'GodotRayCast3D' },
     three: 'Group',
     source: ctor('RayCast3D', 'scene/3d/physics/ray_cast_3d.cpp', 564),
+  },
+  SpringArm3D: {
+    form: { kind: 'component', module: 'spring-arm-3d', exportName: 'GodotSpringArm3D' },
+    three: 'Group',
+    placesChildren: true,
+    source: ctor('SpringArm3D', 'scene/3d/physics/spring_arm_3d.cpp', 36),
   },
   ShapeCast3D: {
     form: { kind: 'component', module: 'shape-cast-3d', exportName: 'GodotShapeCast3D' },
