@@ -1,3 +1,4 @@
+import { FrameStreamReader } from './frame-stream.mts';
 /**
  * The tab-side handle on a Blender session: spawns the worker, forwards the
  * four tool calls, and hands every presented frame to whoever displays it.
@@ -27,6 +28,8 @@ type DistributiveOmit<T, K extends keyof T> = T extends unknown ? Omit<T, K> : n
 type Request = DistributiveOmit<WorkerRequest, 'id'>;
 
 export interface BlenderRuntimeOptions {
+  /** Stage one verified mesh/image without replacing the displayed frame. */
+  stage?(part: { session: string; revision: number; abort?: boolean; mesh?: string; image?: string; piece?: unknown }): Promise<void> | void;
   /** Operation-only diagnostics, never request payloads. The optional observer
    * must not affect work, even if it throws. End calls balance overlapping work. */
   work?(label: string): () => void;
@@ -478,6 +481,7 @@ export class BlenderRuntime {
 
   /** Forced teardown for a lost session; explicit user stops must use stop(). */
   terminate(): void {
+    this.#discardStagedFrame();
     if (this.#terminated) return;
     this.#terminated = true;
     globalThis.removeEventListener?.('beforeunload', this.#beforeUnload);
@@ -570,8 +574,39 @@ export class BlenderRuntime {
     } catch { return () => {}; }
   }
 
+  readonly #frameStream = new FrameStreamReader();
+  #stagedIdentity: { session: string; revision: number } | null = null;
+  #discardStagedFrame(): void {
+    this.#frameStream.reset();
+    const part = this.#stagedIdentity; this.#stagedIdentity = null;
+    if (part) {
+      try { void Promise.resolve(this.#options.stage?.({ ...part, abort: true })).catch(() => {}); }
+      catch { /* Cleanup cannot replace the original operation failure. */ }
+    }
+  }
+
   async #receive(reply: WorkerReply): Promise<void> {
     if ('op' in reply) {
+      if (reply.op === 'frame-stream') {
+        try {
+          const decoded = await this.#frameStream.accept(reply.chunk);
+          if (decoded) {
+            const value = decoded.value as ({ op: 'stage'; session: string; revision: number } | Omit<Extract<WorkerReply, { op: 'present' }>, 'id'>);
+            if (value.op === 'present') {
+              await this.#receive({ ...value, id: reply.id } as WorkerReply);
+              return;
+            }
+            if (value.op !== 'stage' || !this.#options.stage) throw new Error('The presenter does not support staged Blender frames');
+            this.#stagedIdentity = { session: value.session, revision: value.revision };
+            await this.#options.stage(value);
+          }
+          this.#worker.postMessage({ op: 'present-result', id: reply.id } satisfies WorkerRequest);
+        } catch (error) {
+          this.#discardStagedFrame();
+          this.#worker.postMessage({ op: 'present-result', id: reply.id, error: error instanceof Error ? error.message : String(error) } satisfies WorkerRequest);
+        }
+        return;
+      }
       if (reply.op === 'document-dirty') {
         this.#dirty = reply.dirty;
         return;
@@ -600,6 +635,7 @@ export class BlenderRuntime {
       const end = this.#work('presenting worker frame');
       try {
         const answer = await this.#options.present(reply.frame, reply.description, reply.capture);
+        this.#stagedIdentity = null;
         this.#worker.postMessage({
           op: 'present-result',
           id: reply.id,
@@ -609,6 +645,7 @@ export class BlenderRuntime {
             : {}),
         } satisfies WorkerRequest);
       } catch (error) {
+        this.#discardStagedFrame();
         this.#worker.postMessage({
           op: 'present-result',
           id: reply.id,
@@ -619,6 +656,7 @@ export class BlenderRuntime {
       }
       return;
     }
+    if ('error' in reply) this.#discardStagedFrame();
     const pending = this.#pending.get(reply.id);
     if (!pending) return;
     this.#pending.delete(reply.id);

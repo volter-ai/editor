@@ -1,3 +1,4 @@
+import type { FrameChunk } from './frame-stream.mts';
 /** Messages between the editor tab and its Blender worker. One session per
  * worker; the model lives in the worker's Python and nowhere else. */
 
@@ -97,6 +98,7 @@ export type WorkerRequest =
     };
 
 export type WorkerReply =
+  | { op: 'frame-stream'; id: number; chunk: FrameChunk }
   | { op: 'document-dirty'; dirty: boolean }
   | { op: 'history'; entries: NativeHistoryEntry[] }
   | { id: number; result: unknown }

@@ -78,7 +78,7 @@ export const ATTRIBUTE_LAYOUT: Record<AttributeType, { size: number }> = {
 /** Exactly what the draw reads off a presented mesh. */
 export interface MeshColumns {
   /** 3 * nv */
-  co: Float64Array;
+  co: Float32Array | Float64Array;
   /** Blender-evaluated normals, 3 per corner, independent of UV splits. */
   cornerNormal?: Float32Array | undefined;
   /** 3 * nv, a deformed mesh's Generated coordinates in Blender's stored

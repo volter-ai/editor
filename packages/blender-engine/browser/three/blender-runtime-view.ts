@@ -184,7 +184,7 @@ const unchangedMeshSchema = z
  */
 const columnsSchema = z
   .object({
-    co: z.instanceof(Float64Array),
+    co: z.union([z.instanceof(Float32Array), z.instanceof(Float64Array)]),
     cornerNormal: z.instanceof(Float32Array).optional(),
     orco: z.instanceof(Float32Array).optional(),
     faceStart: z.instanceof(Uint32Array),
@@ -1442,6 +1442,33 @@ export class BlenderRuntimeView {
       group.visible = !this.capturing;
   }
 
+  private staged: { session: string; revision: number; meshes: Map<string, { signature: string; geometry: THREE.BufferGeometry }>; images: Map<string, z.infer<typeof frameImageSchema>> } | null = null;
+
+  /** Prepare one mesh as soon as its bounded transfer completes. Source
+   * columns are released before the next mesh; displayed resources change
+   * only when the final frame manifest is validated. */
+  stageFrame(part: { session: string; revision: number; abort?: boolean; mesh?: string; image?: string; piece?: unknown }): void {
+    if (part.abort || (!part.mesh && !part.image)) {
+      for (const entry of this.staged?.meshes.values() ?? []) entry.geometry.dispose();
+      this.staged = part.abort ? null : { session: part.session, revision: part.revision, meshes: new Map(), images: new Map() };
+      return;
+    }
+    const staged = this.staged;
+    if (!staged || staged.session !== part.session || staged.revision !== part.revision)
+      throw new Error('Blender frame piece does not belong to the pending revision');
+    if (part.mesh !== undefined) {
+      const data = exportedMeshSchema.parse(part.piece);
+      if (staged.meshes.has(part.mesh)) throw new Error('Duplicate Blender mesh piece');
+      const signature = `revision:${data.revision}`;
+      staged.meshes.set(part.mesh, { signature, geometry: geometryFromDrawArrays(drawArraysFromColumns({
+        ...data.columns, attributes: data.attributes as never, activeUv: data.activeUv, renderUv: data.renderUv,
+      }, signature)) });
+    } else if (part.image !== undefined) {
+      if (staged.images.has(part.image)) throw new Error('Duplicate Blender image piece');
+      staged.images.set(part.image, frameImageSchema.parse(part.piece));
+    }
+  }
+
   applyFrame(input: unknown) {
     // WHAT THIS PRESENTER HELD BEFORE THIS FRAME, read before anything is
     // applied, and carried back to the session in the present's answer.
@@ -1459,6 +1486,10 @@ export class BlenderRuntimeView {
     const held =
       this.frame === null ? null : { session: this.frame.session, revision: this.frame.revision };
     const next = frameSchema.parse(input);
+    const staged = this.staged;
+    if (staged && (staged.session !== next.session || staged.revision !== next.revision))
+      throw new Error('Blender frame manifest does not match its staged revision');
+    if (staged) for (const [name, data] of staged.images) next.images[name] = data;
     if (this.retiredSessions.has(next.session))
       throw new Error(
         'The runtime session was replaced; its delayed frame cannot overwrite the active model',
@@ -1503,6 +1534,12 @@ export class BlenderRuntimeView {
       }
       for (const [id, data] of Object.entries(next.meshes)) {
         if ('unchanged' in data) {
+          const incoming = staged?.meshes.get(id);
+          if (incoming) {
+            if (incoming.signature !== `revision:${data.revision}`) throw new Error('Staged Blender mesh revision mismatch');
+            prepared.set(id, incoming);
+            continue;
+          }
           // A REFERENCE, not geometry: the worker says this store has not been
           // written since the frame it last sent, so the resident
           // BufferGeometry stands. If it is not resident the worker's record
@@ -1566,6 +1603,10 @@ export class BlenderRuntimeView {
         mesh.material.dispose();
       }
       throw error;
+    }
+    if (staged) {
+      for (const [id, value] of staged.meshes) if (!prepared.has(id)) value.geometry.dispose();
+      this.staged = null;
     }
     if (this.frame?.session !== next.session) {
       if (this.frame) this.retiredSessions.add(this.frame.session);
@@ -1929,7 +1970,7 @@ export class BlenderRuntimeView {
     // nested number arrays it arrived as cost ~15x their JSON (the blower's
     // last frame held 850 MB of main-thread heap this way, measured
     // 2026-09-13). Reuse checks compare the per-mesh signatures kept above.
-    this.frame = { ...next, meshes: {}, volumes: {} };
+    this.frame = { ...next, meshes: {}, volumes: {}, images: {} };
     this.worldKey = JSON.stringify(next.world ?? null);
     // THE OVERLAYS, after the graph stands: the weight drawing is laid over
     // the presented mesh's own geometry and the bones over the armature
@@ -2182,6 +2223,8 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
+    for (const entry of this.staged?.meshes.values() ?? []) entry.geometry.dispose();
+    this.staged = null;
     for (const light of this.lights.values()) {
       light.removeFromParent();
       light.dispose();

@@ -91,15 +91,14 @@ function readColumn(arena: Uint8Array, name: string, descriptor: ColumnDescripto
  * Every `{offset, length, dtype, count, stride}` in the frame, replaced by its
  * typed array.
  *
- * `co` is widened to `Float64Array` because that is what `MeshColumns`
- * declares and `drawArraysFromColumns` is typed against, while Blender's own
- * vertex array is single precision.
+ * Positions keep Blender's own precision. Widening a float column would
+ * double its transfer/storage without adding information.
  */
 export function columnsToTypedArrays(arena: Uint8Array, frame: unknown): unknown {
   const walk = (value: unknown, key: string): unknown => {
     if (isColumnDescriptor(value)) {
       const view = readColumn(arena, key, value);
-      return key === 'co' ? Float64Array.from(view) : view;
+      return view;
     }
     if (Array.isArray(value)) return value.map((entry) => walk(entry, key));
     if (typeof value === 'object' && value !== null) {

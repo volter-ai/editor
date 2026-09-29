@@ -1,3 +1,4 @@
+import { sendFrameValue } from './frame-stream.mts';
 /**
  * THE BLENDER IN THE TAB IS BLENDER (ARCHITECTURE-CORE, owner ruling
  * 2026-09-17): the editor's modeling engine is Blender 5.2 LTS compiled to
@@ -39,7 +40,6 @@
 
 import { type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
 import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
-import { frameTransferBuffers } from './frame-transfer.mts';
 import { documentChunks } from './document-chunks.mts';
 import { columnsToTypedArrays, describeFrame, isColumnDescriptor } from './session-frame.mts';
 
@@ -68,33 +68,20 @@ const pendingPresents = new Map<
   { resolve: (value: PresentAnswer) => void; reject: (error: Error) => void }
 >();
 
-function presentToTab(
-  frame: unknown,
-  description: unknown,
-  capture?: CaptureRequest,
-): Promise<PresentAnswer> {
-  const id = ++presentId;
-  // A drawn mesh's buffers move to the tab rather than being copied: the
-  // frame is the tab's from here on.
-  const transfer = frameTransferBuffers(frame);
-  return new Promise((resolve, reject) => {
-    pendingPresents.set(id, { resolve, reject });
-    try {
-      (self as unknown as Worker).postMessage(
-        {
-          op: 'present',
-          id,
-          frame,
-          description,
-          ...(capture ? { capture } : {}),
-        } satisfies WorkerReply,
-        transfer,
-      );
-    } catch (error) {
-      pendingPresents.delete(id);
-      reject(error);
-    }
-  });
+async function streamToTab(value: unknown): Promise<PresentAnswer> {
+  return await sendFrameValue(value, chunk => {
+    const id = ++presentId;
+    return new Promise<PresentAnswer>((resolve, reject) => {
+      pendingPresents.set(id, { resolve, reject });
+      try {
+        (self as unknown as Worker).postMessage({ op: 'frame-stream', id, chunk } satisfies WorkerReply,
+          chunk.kind === 'bytes' ? [chunk.bytes.buffer as ArrayBuffer] : []);
+      } catch (error) { pendingPresents.delete(id); reject(error); }
+    });
+  }) as PresentAnswer;
+}
+function presentToTab(frame: unknown, description: unknown, capture?: CaptureRequest): Promise<PresentAnswer> {
+  return streamToTab({ op: 'present', frame, description, ...(capture ? { capture } : {}) });
 }
 
 let engine: BlenderEngine | null = null;
@@ -122,6 +109,8 @@ interface Copied {
   description: unknown;
 }
 interface PendingFrame {
+  session: string;
+  revision: number;
   columns: Map<number, Copied>;
   meshes: Map<string, Copied>;
   images: Map<string, Copied>;
@@ -166,7 +155,10 @@ function assemblePending(held: PendingFrame, frame: unknown): { typed: unknown; 
         return piece[side];
       }
       const out: Record<string, unknown> = {};
-      for (const [name, entry] of Object.entries(value)) out[name] = walk(entry, [...path, name]);
+      for (const [name, entry] of Object.entries(value)) {
+        const item = walk(entry, [...path, name]);
+        if (item !== undefined) out[name] = item;
+      }
       return out;
     };
     return walk(frame, []);
@@ -285,7 +277,9 @@ async function startBlender(project: string, document?: string): Promise<unknown
       // copied out of the heap as they come, because the next export call frees them; the tab
       // gets the whole frame at `present`.
       if (hold !== undefined) {
-        pending = { columns: await copyColumns(arena, hold), meshes: new Map(), images: new Map() };
+        const identity = hold as { session: string; revision: number };
+        pending = { session: identity.session, revision: identity.revision, columns: await copyColumns(arena, hold), meshes: new Map(), images: new Map() };
+        await streamToTab({ op: 'stage', session: identity.session, revision: identity.revision });
         return {};
       }
       if (mesh !== undefined || image !== undefined) {
@@ -310,8 +304,14 @@ async function startBlender(project: string, document?: string): Promise<unknown
             description: await describeFrame(arena, piece),
           };
         }
-        if (mesh !== undefined) pending.meshes.set(mesh, copied);
-        else pending.images.set(image as string, copied);
+        await streamToTab({ op: 'stage', session: pending.session, revision: pending.revision,
+          ...(mesh !== undefined ? { mesh } : { image }), piece: copied.typed });
+        // Keep only the manifest and digest; the presenter already built this
+        // resource, and the next pull may overwrite the engine arena.
+        if (mesh !== undefined) {
+          const data = copied.typed as { revision: number };
+          pending.meshes.set(mesh, { typed: { revision: data.revision, unchanged: true }, description: copied.description });
+        } else pending.images.set(image as string, { typed: undefined, description: copied.description });
         return {};
       }
       let typed: unknown;

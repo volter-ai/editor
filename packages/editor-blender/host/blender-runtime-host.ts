@@ -723,6 +723,7 @@ function driveNodeView(cmd: { type: string; [key: string]: unknown }): NodeViewS
 }
 
 interface RuntimeView {
+  stageFrame(part: { session: string; revision: number; abort?: boolean; mesh?: string; image?: string; piece?: unknown }): void;
   applyFrame(frame: unknown): unknown;
   snapshot(): ReturnType<BlenderRuntimeView['snapshot']>;
   /** Own a detached revision for render lighting, never the interactive view. */
@@ -797,6 +798,7 @@ const isRuntimeView = (value: unknown): value is RuntimeView =>
   typeof value === 'object' &&
   value !== null &&
   typeof (value as RuntimeView).applyFrame === 'function' &&
+  typeof (value as RuntimeView).stageFrame === 'function' &&
   typeof (value as RuntimeView).snapshot === 'function' &&
   typeof (value as RuntimeView).captureSnapshot === 'function' &&
   typeof (value as RuntimeView).recordPresentation === 'function' &&
@@ -821,7 +823,7 @@ async function runtimeView(): Promise<RuntimeView> {
   }
   throw new Error(
     `The Blender Model document is not open, or the open one is not a Model this engine can present ` +
-      `to (it must answer applyFrame, captureSnapshot, recordPresentation and recordPhotograph): nothing ` +
+      `to (it must answer stageFrame, applyFrame, captureSnapshot, recordPresentation and recordPhotograph): nothing ` +
       `published a presentable view as ${id} within 15 s (bound model: ${boundModel?.documentId ?? 'none'}). ` +
       'Open the Model document first (`volter blender-mcp` opens it before its first call).',
   );
@@ -835,6 +837,7 @@ export function blenderRuntime(): BlenderRuntime {
   const lifetime = new AbortController();
   captureLifetime = lifetime;
   let photographing = false;
+  let streamedView: RuntimeView | null = null;
   runtime = new BlenderRuntime({
     work: beginBlenderWork,
     history: (entries) => {
@@ -863,6 +866,18 @@ export function blenderRuntime(): BlenderRuntime {
           undo: () => restore('undo'), redo: () => restore('redo'),
         });
       }
+    },
+    stage: async part => {
+      if (part.abort) { streamedView?.stageFrame(part); streamedView = null; return; }
+      const conflict = modelDocumentConflict();
+      if (conflict) throw new Error(conflict);
+      if (boundModel === null) return;
+      const documentId = presentationDocumentId();
+      const view = await runtimeView();
+      lifetime.signal.throwIfAborted();
+      if (presentationDocumentId() !== documentId) throw new Error('Blender document changed during frame transfer');
+      streamedView = view;
+      view.stageFrame(part);
     },
     present: async (frame, description, capture) => {
       const conflict = modelDocumentConflict();
