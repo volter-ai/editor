@@ -119,6 +119,7 @@
     "src/lib/godot-compat/resource-loader.ts",
     "src/lib/godot-compat/resource.ts",
     "src/lib/godot-compat/rigid-body-3d.ts",
+    "src/lib/godot-compat/scene-state.ts",
     "src/lib/godot-compat/scene-tree-timer.ts",
     "src/lib/godot-compat/scene-tree.ts",
     "src/lib/godot-compat/shader-material.ts",

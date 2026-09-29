@@ -8,6 +8,7 @@
  * from, empty for one made in code.
  */
 
+import { godot_mesh_register, godot_mesh_surfaces } from './mesh';
 import { godot_node_adopt, godot_script_new } from './node';
 
 const PATHS = new WeakMap<object, string>();
@@ -57,4 +58,23 @@ export function godot_script_resource_new<Instance extends object>(ScriptClass: 
   for (const [name, value] of Object.entries(fields)) (instance as Record<string, unknown>)[name] = value;
   if (path !== undefined) PATHS.set(native, path);
   return instance;
+}
+
+/**
+ * A copy of the resource (`Resource::duplicate`): its class and its properties, a mesh its
+ * surfaces; sub-resources are shared unless `subresources` (not transcribed: shared always).
+ *
+ * @godot Resource.duplicate
+ * @source core/io/resource.cpp:320
+ */
+export function duplicate(self: object, subresources = false): object {
+  void subresources;
+  const surfaces = godot_mesh_surfaces(self);
+  const copy = Object.assign(Object.create(Object.getPrototypeOf(self) as object | null) as object, self);
+  godot_node_adopt(copy, { classes: ['Resource', 'RefCounted', 'Object'] });
+  if (surfaces !== undefined) {
+    godot_node_adopt(copy, { classes: ['ArrayMesh', 'Mesh', 'Resource', 'RefCounted', 'Object'] });
+    godot_mesh_register(copy, () => surfaces);
+  }
+  return copy;
 }

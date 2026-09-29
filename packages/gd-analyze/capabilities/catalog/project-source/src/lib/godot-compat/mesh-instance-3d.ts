@@ -125,6 +125,25 @@ function draw(self: Mesh, state: MeshInstanceState): void {
 }
 
 /**
+ * The three geometry and materials a mesh resource is drawn with (its surfaces joined, each
+ * surface's material or the renderer's default), as a GridMap's MeshLibrary item draws it.
+ *
+ * @godot MeshInstance3D (protocol)
+ * @source scene/3d/mesh_instance_3d.cpp:120
+ */
+export function godot_mesh_instance_3d_three(mesh: object): { readonly geometry: BufferGeometry; readonly materials: readonly Material[] } {
+  const surfaces = godot_mesh_surfaces(mesh);
+  let geometry = GEOMETRY.get(mesh);
+  if (geometry === undefined) {
+    geometry = surfaces === undefined ? godot_primitive_mesh_geometry(mesh as PrimitiveMesh) : joined(surfaces);
+    GEOMETRY.set(mesh, geometry);
+  }
+  const model = godot_base_material_3d_on_model(geometry);
+  const own = surfaces === undefined ? [(mesh as PrimitiveMesh & { material?: BaseMaterial3D | null }).material ?? null] : surfaces.map((surface) => surface.material);
+  return { geometry, materials: own.map((material) => (material === null ? defaultMaterial() : godot_base_material_3d_three(material, model))) };
+}
+
+/**
  * A mesh instance with no mesh draws nothing (`set_base(RID())`); its surface overrides resize to
  * the mesh's surfaces (`_mesh_changed`), one for a primitive mesh, and a null mesh leaves them as
  * they were. On a scene's `<mesh>`, the resource replaces the scene's geometry.

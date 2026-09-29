@@ -220,7 +220,12 @@ export interface TargetGodotSceneResourcePlan {
    * A PackedScene (an `ExtResource` of a `.tscn`, or of an imported model): the scene whose
    * component `instantiate()` mounts, and its root's script class, which it makes first.
    */
-  readonly packedScene?: { readonly resPath: string; readonly rootScript?: string };
+  readonly packedScene?: {
+    readonly resPath: string;
+    readonly rootScript?: string;
+    /** An imported model's: its tree's data file and its outside images, which its SceneState reads. */
+    readonly model?: { readonly images: readonly { readonly index: number; readonly load: TargetGodotImportedLoad }[] };
+  };
   /** A resource of a script's class (`script = ExtResource(…)`): its script and its properties' values. */
   readonly scriptResource?: {
     readonly scriptResPath: string;
@@ -825,13 +830,19 @@ function planResolvedResource(
   // A scene: a `.tscn`, or an imported model, which `instantiate()` mounts as its component.
   const scene = data === undefined && imported === undefined && key.startsWith('ext:') ? context.scenes.get(key.slice('ext:'.length)) : undefined;
   if (scene !== undefined) {
-    if (scene.sourceKind === 'imported-gltf') context.modelScenes?.add(scene.resPath);
+    let model: { readonly images: readonly { readonly index: number; readonly load: TargetGodotImportedLoad }[] } | undefined;
+    if (scene.sourceKind === 'imported-gltf') {
+      context.modelScenes?.add(scene.resPath);
+      const images = modelImages(context, at, scene.resPath, scene.model?.externalImages ?? []);
+      if (images === undefined) return undefined;
+      model = { images };
+    }
     const rootScript = scene.nodes.find((node) => node.nodePath === '.')?.scriptResPath;
     const planned = {
       key,
       className: 'PackedScene',
       construct: { module: 'lib/godot-compat/packed-scene-instance', exportName: 'godot_packed_scene_preload' },
-      packedScene: { resPath: scene.resPath, ...(rootScript === undefined ? {} : { rootScript }) },
+      packedScene: { resPath: scene.resPath, ...(rootScript === undefined ? {} : { rootScript }), ...(model === undefined ? {} : { model }) },
       setters: [],
     };
     recordResource(document, key, planned);
@@ -1637,6 +1648,35 @@ function importedLibrary(clips: readonly ImportedClip[]): TargetGodotAnimationLi
  * An instanced imported model (`.glb`): Godot's importer tree over the file (`imported-scene`), the
  * instance root's authored values as props, and room for this scene's edits inside it.
  */
+/**
+ * A model's images outside its file: each the project's imported texture at its path
+ * (`GLTFDocument::_parse_images`, `gltf_document.cpp:2362`); one the project does not import as a
+ * texture Godot reads as bytes instead, which is not transcribed.
+ */
+function modelImages(
+  context: PlanContext,
+  at: string,
+  resPath: string,
+  external: NonNullable<BoundGodotSceneDocument['model']>['externalImages'],
+): { readonly index: number; readonly load: TargetGodotImportedLoad }[] | undefined {
+  const images: { readonly index: number; readonly load: TargetGodotImportedLoad }[] = [];
+  for (const image of external) {
+    const resolved = externalImagePath(resPath, image.uri);
+    const texture = resolved === undefined ? undefined : context.project?.documents.textures.find((entry) => entry.resPath === resolved);
+    if (texture === undefined) {
+      refuse(context, at, `${resPath}: images[${String(image.index)}] (${image.uri}) is not a texture the project imports`, 'resource', 'imported .glb');
+      return undefined;
+    }
+    const load = textureLoad(texture);
+    if (typeof load === 'string') {
+      refuse(context, at, `${texture.resPath}: ${load}`, 'resource', 'CompressedTexture2D');
+      return undefined;
+    }
+    images.push({ index: image.index, load });
+  }
+  return images;
+}
+
 function planImportedInstance(
   context: PlanContext,
   node: BoundGodotSceneNode,
@@ -1650,24 +1690,8 @@ function planImportedInstance(
     refuse(context, at, `${imported.resPath} has no imported model source`, 'node-family', 'imported .glb');
     return undefined;
   }
-  // An image outside the file is the project's imported texture at its path
-  // (`GLTFDocument::_parse_images`, `gltf_document.cpp:2362`); one the project does not import as a
-  // texture Godot reads as bytes instead, which is not transcribed.
-  const images: { readonly index: number; readonly load: TargetGodotImportedLoad }[] = [];
-  for (const image of model.externalImages) {
-    const resolved = externalImagePath(imported.resPath, image.uri);
-    const texture = resolved === undefined ? undefined : context.project?.documents.textures.find((entry) => entry.resPath === resolved);
-    if (texture === undefined) {
-      refuse(context, at, `${imported.resPath}: images[${String(image.index)}] (${image.uri}) is not a texture the project imports`, 'resource', 'imported .glb');
-      return undefined;
-    }
-    const load = textureLoad(texture);
-    if (typeof load === 'string') {
-      refuse(context, at, `${texture.resPath}: ${load}`, 'resource', 'CompressedTexture2D');
-      return undefined;
-    }
-    images.push({ index: image.index, load });
-  }
+  const images = modelImages(context, at, imported.resPath, model.externalImages);
+  if (images === undefined) return undefined;
   // The importer's external materials: the project's `.tres` in place of the file's own material
   // of that name, as the scene importer swaps it in (`resource_importer_scene.cpp`, `use_external`).
   const materials: { readonly name: string; readonly key: string }[] = [];

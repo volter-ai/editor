@@ -987,6 +987,37 @@ export function get_children(self: object): unknown[] {
     .map(objectOf);
 }
 
+/** `String::match`: `*` any run of characters, `?` any one (`ustring.cpp:5125`). */
+function wildcard(pattern: string, text: string): boolean {
+  const expression = new RegExp(`^${pattern.replace(/[.+^${}()|[\]\\]/gu, '\\$&').replace(/\*/gu, '.*').replace(/\?/gu, '.')}$`, 'su');
+  return expression.test(text);
+}
+
+/**
+ * The descendants (or, not `recursive`, the children) whose name matches `pattern` and whose
+ * class is `type` or derives from it (a script's class name too), in tree order; `owned` keeps only
+ * nodes with an owner (`Node::find_children`).
+ *
+ * @godot Node.find_children
+ * @source scene/main/node.cpp:1943
+ */
+export function find_children(self: object, pattern: string, type = '', recursive = true, owned = true): unknown[] {
+  const found: unknown[] = [];
+  const visit = (entity: object): void => {
+    for (const child of childEntities(entity)) {
+      if (!NODE.has(child)) continue;
+      seedDeclared(child);
+      const state = stateOf(child);
+      const nameMatches = pattern === '' || wildcard(pattern, nameOf(child));
+      const typeMatches = type === '' || (nodeClasses(child) ?? []).includes(type) || objectOf(child).constructor?.name === type;
+      if ((!owned || state.owner !== undefined) && nameMatches && typeMatches) found.push(objectOf(child));
+      if (recursive) visit(child);
+    }
+  };
+  visit(native(self, 'find_children'));
+  return found;
+}
+
 /**
  * @godot Node.get_parent
  * @source scene/main/node.cpp:2100

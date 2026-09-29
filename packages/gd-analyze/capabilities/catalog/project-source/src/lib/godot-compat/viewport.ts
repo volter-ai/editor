@@ -20,10 +20,11 @@
 import { BasicShadowMap, type Object3D, PCFShadowMap, PCFSoftShadowMap, type ShadowMapType, type WebGLRenderer } from 'three';
 import { get_global_transform_with_canvas, godot_canvas_item_is } from './canvas-item';
 import { godot_control_call_gui_input, godot_control_find } from './control';
-import { godot_input_set_dispatch } from './input';
+import { godot_input_mouse_position, godot_input_set_dispatch } from './input';
 import type { InputEventRecord } from './input-event';
 import { type GodotInputKind, can_process, godot_node_call_input, godot_node_entity, godot_node_input_receivers, is_inside_tree } from './node';
 import { construct as rect2, type Rect2 } from './rect2';
+import type { Vector2 } from './vector2';
 import { type GodotSignal, godot_object_signal } from './signal';
 import { get_size as subViewportSize } from './sub-viewport';
 import { affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
@@ -263,6 +264,17 @@ export function get_visible_rect(self: object): Rect2 {
   const viewport = viewportOf(self);
   const size = godot_window_has_size(viewport) ? godot_window_visible_size(viewport) : subViewportSize(viewport);
   return rect2(0, 0, size.x, size.y);
+}
+
+/**
+ * The mouse's position in the viewport: where the last mouse event was (`gui.last_mouse_pos`).
+ *
+ * @godot Viewport.get_mouse_position
+ * @source scene/main/viewport.cpp:1183
+ */
+export function get_mouse_position(self: object): Vector2 {
+  void self;
+  return godot_input_mouse_position();
 }
 
 /**

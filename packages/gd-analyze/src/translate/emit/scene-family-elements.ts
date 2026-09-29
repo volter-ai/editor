@@ -1,4 +1,4 @@
-import { godotSceneExportName, godotSceneSubnodes, godotSceneTargetPath } from '../data/scene-document-plan';
+import { godotImportedModelDataPath, godotSceneExportName, godotSceneSubnodes, godotSceneTargetPath } from '../data/scene-document-plan';
 /**
  * The JSX element each carried node family is written as (GODOT.md, "The output is idiomatic
  * three.js"), whatever shape the rest of its scene is written in: the element's tag, its literal
@@ -534,7 +534,37 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
       initializer: {
         kind: 'call-expression',
         callee: identifier(useCompat(emission, 'packed-scene-instance', 'godot_packed_scene_preload')),
-        arguments: [literal(packed.resPath), identifier(component), ...(root === undefined ? [] : [identifier(projectImport(emission, root.modulePath, root.exportName))])],
+        arguments: [
+          literal(packed.resPath),
+          identifier(component),
+          root === undefined ? { kind: 'undefined-expression' } : identifier(projectImport(emission, root.modulePath, root.exportName)),
+          // An imported model's own file, tree and outside images, which its SceneState reads.
+          ...(packed.model === undefined
+            ? []
+            : [
+                {
+                  kind: 'object-expression' as const,
+                  properties: [
+                    { key: 'src', value: literal(assetUrl(packed.resPath)) },
+                    { key: 'tree', value: identifier(dataImport(emission, godotImportedModelDataPath(packed.resPath), `${path.posix.basename(packed.resPath).replace(/\.[^.]+$/u, '')} model`)) },
+                    {
+                      key: 'images',
+                      value: {
+                        kind: 'object-expression' as const,
+                        properties: packed.model.images.map((image) => ({
+                          key: String(image.index),
+                          value: {
+                            kind: 'call-expression' as const,
+                            callee: identifier(useCompat(emission, 'compressed-texture-2d', 'godot_compressed_texture_2d_load')),
+                            arguments: [literal(assetUrl(image.load.sourceResPath)), { kind: 'object-expression' as const, properties: Object.entries(image.load.options).map(([name, value]) => ({ key: name, value: literal(value) })) }],
+                          },
+                        })),
+                      },
+                    },
+                  ],
+                },
+              ]),
+        ],
       },
     });
     return local;

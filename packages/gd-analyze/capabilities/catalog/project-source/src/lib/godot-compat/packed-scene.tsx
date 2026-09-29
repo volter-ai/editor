@@ -330,6 +330,19 @@ function samplerFilter(minFilter: number | undefined): number {
 const SAMPLED = new WeakSet<object>();
 
 /** Swaps each stand-in for the shared texture as the material samples it. */
+/**
+ * A model's file loaded as its instances load it, outside any component: for its SceneState,
+ * which reads the imported nodes' meshes (`scene-state.ts`).
+ *
+ * @godot PackedScene (protocol)
+ * @source editor/import/3d/resource_importer_scene.cpp:3174
+ */
+export async function godot_imported_scene_load(src: string, tree: GodotImportedSceneTree, images?: Readonly<Record<number, Texture>>): Promise<{ readonly scene: Object3D; readonly parser: unknown }> {
+  const gltf = await loaderOf(tree, images).loadAsync(src);
+  if (images !== undefined) sampleExternalImages(gltf, images);
+  return gltf;
+}
+
 function sampleExternalImages(gltf: { readonly scene: Object3D; readonly parser: unknown }, images: Readonly<Record<number, Texture>>): void {
   if (SAMPLED.has(gltf.scene)) return;
   SAMPLED.add(gltf.scene);

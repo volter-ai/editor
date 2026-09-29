@@ -311,8 +311,23 @@ function parseImpl(event: InputEventRecord, emulated = false): void {
   if (!emulated && emulateMouseFromTouch && event.type === 'screen_drag' && event.index === mouseFromTouchIndex) {
     parseImpl({ type: 'mouse_motion', device: DEVICE_ID_EMULATION, position: event.position }, true);
   }
+  // `Input::mouse_pos` (`input.cpp:858`, `:893`): where the last mouse event was.
+  if (event.type === 'mouse_button' || event.type === 'mouse_motion') mousePosition = event.position;
   parseActions(event);
   dispatchFunction?.(event);
+}
+
+let mousePosition: Vector2 = vector2();
+
+/**
+ * Where the last mouse event was, in the root viewport's coordinates (`Input::get_mouse_position`
+ * as the root viewport reads it, `viewport.cpp:1183`).
+ *
+ * @godot Input (protocol)
+ * @source core/input/input.cpp:858
+ */
+export function godot_input_mouse_position(): Vector2 {
+  return mousePosition;
 }
 
 /** The action part of `Input::_parse_input_event_impl` (`core/input/input.cpp:1005`). */

@@ -19,7 +19,9 @@
 
 import type { Object3D } from 'three';
 import { type Color, construct as color } from './color';
-import { godot_node_entity, is_inside_tree } from './node';
+import { get_viewport, godot_node_entity, is_inside_tree } from './node';
+import type { Rect2 } from './rect2';
+import { get_visible_rect } from './viewport';
 import { construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
 import type { Vector2 } from './vector2';
 import type { GodotElementProp } from './react-lifecycle';
@@ -634,4 +636,17 @@ export function godot_canvas_item_props(): (readonly [string, GodotElementProp<O
     ['zIndex', (entity, value: number) => set_z_index(entity, value)],
     ['zAsRelative', (entity, value: boolean) => set_z_as_relative(entity, value)],
   ];
+}
+
+/**
+ * The rect of the viewport the item is in (`get_viewport()->get_visible_rect()`); outside the tree
+ * it fails.
+ *
+ * @godot CanvasItem.get_viewport_rect
+ * @source scene/main/canvas_item.cpp:450
+ */
+export function get_viewport_rect(self: object): Rect2 {
+  const viewport = get_viewport(godot_node_entity(self));
+  if (viewport === null) throw new Error('godot-compat: CanvasItem.get_viewport_rect outside the tree');
+  return get_visible_rect(viewport);
 }
