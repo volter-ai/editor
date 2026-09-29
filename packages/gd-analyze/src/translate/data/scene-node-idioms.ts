@@ -187,6 +187,7 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   VBoxContainer: element('v-box-container', 'VBoxContainer', ctor('VBoxContainer', 'scene/gui/box_container.h', 94)),
   MarginContainer: element('margin-container', 'MarginContainer', ctor('MarginContainer', 'scene/gui/margin_container.cpp', 124)),
   CenterContainer: element('center-container', 'CenterContainer', ctor('CenterContainer', 'scene/gui/center_container.h', 35)),
+  GridContainer: element('grid-container', 'GridContainer', ctor('GridContainer', 'scene/gui/grid_container.h', 35)),
   Label: element('label', 'Label', ctor('Label', 'scene/gui/label.cpp', 1526)),
   TextureRect: element('texture-rect', 'TextureRect', ctor('TextureRect', 'scene/gui/texture_rect.cpp', 299)),
   Node2D: element('node-2d', 'Node2D', ctor('Node2D', 'scene/2d/node_2d.cpp', 519)),

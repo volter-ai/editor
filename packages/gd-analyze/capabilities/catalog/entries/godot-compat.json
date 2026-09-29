@@ -66,6 +66,7 @@
     "src/lib/godot-compat/gradient-texture-1d.ts",
     "src/lib/godot-compat/gradient-texture-2d.ts",
     "src/lib/godot-compat/gradient.ts",
+    "src/lib/godot-compat/grid-container.ts",
     "src/lib/godot-compat/grid-map.ts",
     "src/lib/godot-compat/h-box-container.ts",
     "src/lib/godot-compat/image.ts",

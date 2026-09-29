@@ -108,6 +108,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   VBoxContainer: [...CONTROL, 'set_alignment'],
   MarginContainer: CONTROL,
   CenterContainer: [...CONTROL, 'set_use_top_left'],
+  GridContainer: [...CONTROL, 'set_columns'],
   Label: [...CONTROL, 'set_text', 'set_label_settings', 'set_horizontal_alignment', 'set_vertical_alignment', 'set_autowrap_mode'],
   TextureRect: [...CONTROL, 'set_texture', 'set_expand_mode', 'set_stretch_mode', 'set_flip_h', 'set_flip_v'],
   Node2D: NODE_2D,
