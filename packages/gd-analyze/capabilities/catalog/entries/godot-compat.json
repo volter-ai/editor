@@ -74,6 +74,7 @@
     "src/lib/godot-compat/input-event-screen-touch.ts",
     "src/lib/godot-compat/input-event.ts",
     "src/lib/godot-compat/input.ts",
+    "src/lib/godot-compat/int.ts",
     "src/lib/godot-compat/kinematic-collision-3d.ts",
     "src/lib/godot-compat/interval-tweener.ts",
     "src/lib/godot-compat/json.ts",

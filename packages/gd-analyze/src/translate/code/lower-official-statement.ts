@@ -23,7 +23,7 @@ import {
   officialBoundPropertyName,
   officialBoundSpan,
 } from './official-bound-lowering-context';
-import type { TargetTsClassMember, TargetTsExpression, TargetTsParameter, TargetTsStatement } from './target-ts-syntax';
+import type { TargetTsClassMember, TargetTsExpression, TargetTsParameter, TargetTsStatement, TargetTsType } from './target-ts-syntax';
 import { builtinDatatype } from '../../analyze/refined-types';
 import { godotCountsLoopCall } from '../data/counted-loops';
 import { godotBuiltinConverts, godotIteratesRange, godotReturnsNothing } from '../data/lowering-shapes';
@@ -689,18 +689,52 @@ function classFieldScope(
   return node.static ? 'static' : 'instance';
 }
 
+/**
+ * A variable's inline accessors as a TS getter and setter over its backing field `#name`: the
+ * source's `get:` and `set(value):` bodies, in which the property's own name is the backing field
+ * (`LoweringContext.withAccessorOf`), else the plain read and write Godot generates.
+ */
+function propertyAccessors(
+  context: LoweringContext,
+  node: Extract<GodotBoundNode, { kind: 'VARIABLE' }>,
+  name: string,
+  type: TargetTsType,
+): LoweredClassMembers {
+  const backing: TargetTsExpression = { kind: 'property-expression', object: { kind: 'this-expression' }, property: `#${name}` };
+  const accessorBody = (id: number): LoweredStatements => {
+    const fn = context.node(id, node);
+    if (fn.kind !== 'FUNCTION') return context.refuse(fn, 'a property accessor that is not a function');
+    return context.withAccessorOf(name, () => lowerOfficialSuite(context, context.node(fn.body, fn)));
+  };
+  const getter = node.getter >= 0 ? accessorBody(node.getter) : { statements: [{ kind: 'return-statement' as const, expression: backing }], requirements: [] };
+  const setterFn = node.setter >= 0 ? context.node(node.setter, node) : undefined;
+  if (setterFn !== undefined && setterFn.kind !== 'FUNCTION') return context.refuse(setterFn, 'a property setter that is not a function');
+  const parameters = setterFn === undefined ? undefined : lowerOfficialParameters(context, setterFn);
+  const parameter = parameters?.parameters[0] ?? { name: 'value' };
+  const setter =
+    setterFn === undefined
+      ? { statements: [{ kind: 'expression-statement' as const, expression: { kind: 'assignment-expression' as const, operator: '=' as const, target: backing, value: { kind: 'identifier-expression' as const, name: 'value' } } }], requirements: [] }
+      : accessorBody(node.setter);
+  return {
+    members: [
+      { kind: 'getter-member', name, result: type, body: getter.statements },
+      { kind: 'setter-member', name, parameter: { ...parameter, type }, body: setter.statements },
+    ],
+    requirements: [...getter.requirements, ...(parameters?.requirements ?? []), ...setter.requirements],
+  };
+}
+
 // biome-ignore lint/complexity/noExcessiveCognitiveComplexity: exhaustive field lowering
 function lowerField(
   context: LoweringContext,
   node: Extract<GodotBoundNode, { kind: 'VARIABLE' | 'CONSTANT' }>,
-): LoweredClassMember & { readonly onready?: LoweredStatements } {
-  if (
-    node.kind === 'VARIABLE' &&
-    (node.setter >= 0 ||
-      node.getter >= 0 ||
-      (node.propertyStyle !== '' && node.propertyStyle !== 'PROP_NONE'))
-  ) {
-    return context.refuse(node, 'property accessor fields need structured accessor lowering');
+): LoweredClassMember & { readonly onready?: LoweredStatements; readonly accessors?: LoweredClassMembers } {
+  const accessorStyle = node.kind === 'VARIABLE' && (node.setter >= 0 || node.getter >= 0 || (node.propertyStyle !== '' && node.propertyStyle !== 'PROP_NONE'));
+  if (accessorStyle && node.kind === 'VARIABLE') {
+    // Named accessor functions (`set = _set_x`) and accessors of a static or @onready variable are
+    // not carried; an inline `set(value):`/`get:` is (`propertyAccessors`).
+    if (node.propertyStyle !== 'PROP_INLINE') return context.refuse(node, `a ${node.propertyStyle} property's accessors are not lowered`);
+    if (node.static || node.onready) return context.refuse(node, 'accessors of a static or @onready variable are not lowered');
   }
   const onready = node.kind === 'VARIABLE' && node.onready;
   const initializerNode = node.initializer < 0 ? undefined : context.node(node.initializer, node);
@@ -736,10 +770,14 @@ function lowerField(
           convertedValue(context, node, initializerNode, lowerExpression(context, initializerNode)),
         )
       : undefined;
+  // A property with inline accessors keeps its value in a private backing field, which its
+  // initializer sets without calling the setter (member initialization assigns directly).
+  const accessors = accessorStyle && node.kind === 'VARIABLE' ? propertyAccessors(context, node, name, targetType.type) : undefined;
   return {
+    ...(accessors === undefined ? {} : { accessors }),
     member: {
       kind: 'field-member',
-      name,
+      name: accessors === undefined ? name : `#${name}`,
       type: targetType.type,
       modifiers: [
         ...(node.kind === 'CONSTANT' ? ['static' as const, 'readonly' as const] : []),
@@ -943,7 +981,10 @@ export function lowerOfficialClassMembers(
     if (node.kind === 'VARIABLE' || node.kind === 'CONSTANT') {
       const field = lowerField(context, node);
       if (field.onready !== undefined) onready.push(field.onready);
-      return { members: [field.member], requirements: field.requirements };
+      return {
+        members: [field.member, ...(field.accessors?.members ?? [])],
+        requirements: [...field.requirements, ...(field.accessors?.requirements ?? [])],
+      };
     }
     if (node.kind === 'FUNCTION') {
       const method = lowerMethod(context, node);

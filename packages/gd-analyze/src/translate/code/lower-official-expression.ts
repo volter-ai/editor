@@ -20,6 +20,7 @@ import {
   godotTweenInterpolates,
   godotTypeDefault,
 } from '../data/lowering-shapes';
+import { godotBuiltinWidens } from '../data/operand-types';
 import { godotCompatReturnType } from './native-types';
 import type {
   GodotBoundCallNode,
@@ -1605,7 +1606,12 @@ export function convertedValue(
     const type = context.targetType(target);
     return { ...value, value: { kind: 'as-expression', expression: value.value, type: type.type }, requirements: [...value.requirements, ...type.requirements] };
   }
-  if (valueNode.datatype.kind !== 'VARIANT' || target.datatype.kind !== 'BUILTIN') return value;
+  if (target.datatype.kind !== 'BUILTIN') return value;
+  // A value of another built-in type converts through the target type's constructor as well
+  // (`return flag` in a function returning `int`); an int into a float is the same JS number.
+  const from = valueNode.datatype;
+  const otherBuiltin = from.kind === 'BUILTIN' && !from.metaType && from.builtinType !== target.datatype.builtinType && !godotBuiltinWidens(from.builtinType, target.datatype.builtinType);
+  if (from.kind !== 'VARIANT' && !otherBuiltin) return value;
   const owner = target.datatype.builtinType;
   const use = context.bindingUse(
     {
@@ -2440,7 +2446,7 @@ export function lowerOfficialExpression(
           return expression(
             local
               ? { kind: 'identifier-expression', name: context.lexicalName(node.name), span: span(context.script, node) }
-              : { kind: 'property-expression', object: { kind: 'this-expression' }, property: node.name, span: span(context.script, node) },
+              : { kind: 'property-expression', object: { kind: 'this-expression' }, property: godotMemberProperty(context, node.name), span: span(context.script, node) },
             context.structural(node, local ? 'local-identifier' : 'member-identifier', [], local ? 'local-identifier:numeric' : 'member-identifier:numeric'),
           );
         }
@@ -2523,7 +2529,7 @@ export function lowerOfficialExpression(
             {
               kind: 'property-expression',
               object: { kind: 'this-expression' },
-              property: node.name,
+              property: node.source === 'MEMBER_VARIABLE' ? godotMemberProperty(context, node.name) : node.name,
               span: span(context.script, node),
             },
             context.structural(node, 'member-identifier', [], `member-identifier:${node.source}`),
@@ -3642,4 +3648,9 @@ function reassignedCapture(context: LoweringContext, lambda: Extract<GodotBoundN
     if (assignee?.kind === 'IDENTIFIER' && assignee.source !== 'MEMBER_VARIABLE' && names.has(assignee.name)) return assignee.name;
   }
   return undefined;
+}
+
+/** A member variable's property: its backing field inside its own accessor (`#name`), else itself. */
+export function godotMemberProperty(context: LoweringContext, name: string): string {
+  return context.accessorOf === name ? `#${name}` : name;
 }

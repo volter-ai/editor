@@ -324,6 +324,25 @@ export class LoweringContext {
   }
 
   #returnType: GodotBoundNode | undefined;
+  #accessorOf: string | undefined;
+
+  /**
+   * The property whose accessor is being lowered: inside its own `set`/`get`, the property's name
+   * is the member itself, not the accessor (`GDScriptCompiler`, `gdscript_compiler.cpp:293`).
+   */
+  get accessorOf(): string | undefined {
+    return this.#accessorOf;
+  }
+
+  withAccessorOf<Result>(name: string, operation: () => Result): Result {
+    const outer = this.#accessorOf;
+    this.#accessorOf = name;
+    try {
+      return operation();
+    } finally {
+      this.#accessorOf = outer;
+    }
+  }
 
   /** The declared return type of the function being lowered, if it declares one. */
   get returnType(): GodotBoundNode | undefined {
@@ -649,17 +668,22 @@ export class LoweringContext {
     ownAnnotations = true,
   ): OfficialBoundRuleUse {
     const semanticKey = semanticKeys[0] as string;
-    const annotations = (ownAnnotations ? node.annotations : []).map((id) => {
+    const annotations = (ownAnnotations ? node.annotations : []).flatMap((id) => {
       const annotation = this.node(id, node);
       if (annotation.kind !== 'ANNOTATION') {
         this.refuse(annotation, `annotation id ${String(id)} resolves to ${annotation.kind}`);
       }
+      // `@warning_ignore` only silences the analyzer's warning (`GDScriptParser::warning_ignore_annotation`):
+      // the construct means the same with or without it.
+      if (annotation.name.startsWith('@warning_ignore')) return [];
       return [
-        annotation.name,
-        annotation.resolved ? 'resolved' : 'unresolved',
-        annotation.applied ? 'applied' : 'unapplied',
-        JSON.stringify(annotation.resolvedArguments),
-      ].join(':');
+        [
+          annotation.name,
+          annotation.resolved ? 'resolved' : 'unresolved',
+          annotation.applied ? 'applied' : 'unapplied',
+          JSON.stringify(annotation.resolvedArguments),
+        ].join(':'),
+      ];
     });
     // A rule may hold for an annotation whatever its arguments (`@export_range:…:*`): the
     // arguments of an editor-facing annotation carry no runtime meaning.

@@ -12,3 +12,14 @@ const OPERAND_TYPES: Readonly<Record<string, readonly string[]>> = {
 export function godotOperandTypes(tsType: string): readonly string[] {
   return OPERAND_TYPES[tsType] ?? [tsType];
 }
+
+/**
+ * The built-in conversions that are no conversion in the output: a value of the first type IS a
+ * value of the second (an int stored as a float is the same JS number). Every other conversion
+ * between built-ins goes through the target type's constructor (`convertedValue`).
+ */
+const WIDENINGS: ReadonlySet<string> = new Set(['int>float']);
+
+export function godotBuiltinWidens(from: string, to: string): boolean {
+  return WIDENINGS.has(`${from}>${to}`);
+}
