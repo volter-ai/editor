@@ -704,7 +704,6 @@ function tweenedProperty(
   }
   const found = context.nativeProperty(className, property);
   if (found === undefined) return context.refuse(node, `tween_property of ${property}, which ${className} does not declare`);
-  if (found.index !== undefined) return context.refuse(node, `tween_property of the indexed property ${found.owner}.${property}`);
   if (found.type === undefined || !godotTweenInterpolates(found.type)) {
     return context.refuse(node, `tween_property of ${found.owner}.${property}, a ${found.type ?? 'untyped'} property Tween's interpolation is not transcribed for`);
   }
@@ -721,12 +720,37 @@ function tweenedProperty(
   };
   const getter = accessor(found.getter, 'getter');
   const setter = accessor(found.setter, 'setter');
+  // An indexed property (`light_energy`, `set_param(PARAM_ENERGY, v)`): its accessors with its index.
+  const index = found.index;
+  const read: TargetTsExpression =
+    index === undefined
+      ? boundTargetExpression(getter.target)
+      : {
+          kind: 'arrow-expression',
+          parameters: [{ name: 'object', type: { kind: 'keyword-type', keyword: 'never' } }],
+          body: { kind: 'call-expression', callee: boundTargetExpression(getter.target), arguments: [{ kind: 'identifier-expression', name: 'object' }, { kind: 'literal-expression', value: index }] },
+        };
+  const write: TargetTsExpression =
+    index === undefined
+      ? boundTargetExpression(setter.target)
+      : {
+          kind: 'arrow-expression',
+          parameters: [
+            { name: 'object', type: { kind: 'keyword-type', keyword: 'never' } },
+            { name: 'value', type: { kind: 'keyword-type', keyword: 'never' } },
+          ],
+          body: {
+            kind: 'call-expression',
+            callee: boundTargetExpression(setter.target),
+            arguments: [{ kind: 'identifier-expression', name: 'object' }, { kind: 'literal-expression', value: index }, { kind: 'identifier-expression', name: 'value' }],
+          },
+        };
   return expression(
     {
       kind: 'object-expression',
       properties: [
-        { key: 'get', value: boundTargetExpression(getter.target) },
-        { key: 'set', value: boundTargetExpression(setter.target) },
+        { key: 'get', value: read },
+        { key: 'set', value: write },
       ],
       span: span(context.script, node),
     },

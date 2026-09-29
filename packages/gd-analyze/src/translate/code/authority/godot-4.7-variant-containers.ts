@@ -107,6 +107,24 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
   ...['NATIVE:*', 'CLASS:*'].map((place) => rule('ASSIGNMENT', 'operator:OP_NONE:25', [place, 'VARIANT:*'], 'VARIANT:*', { kind: 'assignment', operator: '=' })),
   // A loop variable typed as an object class over a list of objects: each element as that class.
   ...['NATIVE:*', 'CLASS:*', 'SCRIPT:*'].map((variable) => rule('FOR', 'for-of:conversion', ['BUILTIN:*', variable], '', { kind: 'structural', construct: 'for-of' })),
+  // An enum is its int in arithmetic (`Mood.size() - 1`, `mood + 1`): the numbers' own `+` and `-`.
+  ...(
+    [
+      ['OP_ADDITION:6', '+'],
+      ['OP_SUBTRACTION:7', '-'],
+    ] as const
+  ).flatMap(([operator, symbol]) =>
+    [
+      ['ENUM:*', 'BUILTIN:*'],
+      ['BUILTIN:*', 'ENUM:*'],
+      ['ENUM:*', 'ENUM:*'],
+    ].map((inputs) => rule('BINARY_OPERATOR', `operator:${operator}`, inputs, 'BUILTIN:*', { kind: 'binary', operator: symbol })),
+  ),
+  // A lambda whatever it returns (a typed `-> void` one's function is Nil).
+  rule('LAMBDA', 'lambda:synchronous', ['BUILTIN:*'], 'BUILTIN:*', { kind: 'structural', construct: 'lambda' }),
+  rule('LAMBDA', 'lambda:coroutine', ['BUILTIN:*'], 'BUILTIN:*', { kind: 'structural', construct: 'lambda' }),
+  // An engine singleton named as a value (`RenderingServer.frame_post_draw`): its binding's value.
+  rule('IDENTIFIER', 'bound-identifier:NATIVE_CLASS', [], 'NATIVE:meta:*', { kind: 'structural', construct: 'bound-identifier' }),
   // `value as Enum` of an int or an enum: the value itself, an enum being its int.
   ...['BUILTIN:*', 'ENUM:*', 'VARIANT:*'].map((input) => rule('CAST', 'cast:enum', [input], 'ENUM:*', { kind: 'structural', construct: 'cast' })),
   // `await` of a value only the run time types: a Signal's next emission, a coroutine's result, or
