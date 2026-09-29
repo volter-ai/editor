@@ -1308,11 +1308,13 @@ found exactly that. It is redone on the libraries:
   AnimationPlayer among Controls is a hidden element whose value tracks are Web Animations of the
   Controls' CSS (`animation-elements.ts`; Truck Town's turbo meter). A Control's Theme gives its
   default font and size by CSS inheritance; the page's overlay carries Godot's default 16 px text.
-  Nine Godot 4 3D fixtures import and build with it: the 3D platformer demo, Truck Town, the FPS,
-  basic scene, city builder, 3D platformer and racing starter kits, Squash the Creeps and GDQuest's
-  first 3D game. Refused by name until they
-  have a DOM form: any other node three mounts under a Control; GridContainer; a
-  SubViewportContainer smaller than its viewport.
+  GridContainer is a CSS grid; a tint (`modulate`) an SVG colour filter; an AtlasTexture a cropped
+  background; a TextureButton's hover, held, toggled and focused textures its element's pointer
+  and focus events; an instanced Control scene is styled where the instance places it.
+  Ten Godot 4 3D fixtures import and build with it: the 3D platformer demo, Truck Town, the FPS,
+  basic scene, city builder, 3D platformer and racing starter kits, Squash the Creeps, GDQuest's
+  first 3D game and Voxel Game. Refused by name until they have a DOM form: any other node three
+  mounts under a Control; a SubViewportContainer smaller than its viewport.
 - **Untyped values are typed statically, not dispatched at run time.** The analysis follows a value
   to its class (an exported PackedScene's instanced root script, a container's elements), so a call
   lowers to a direct method call. The run-time dispatcher (`variant-named.ts`,
