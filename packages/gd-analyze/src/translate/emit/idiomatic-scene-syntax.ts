@@ -51,6 +51,7 @@ import {
   familyImports,
   familyInstanceProps,
   familyMaterialOverride,
+  familyModelMaterialOverride,
   familyModelMaterials,
   flag,
   float32Literal,
@@ -634,6 +635,8 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
     const layers = override.setters.find((setter) => slot(setter) === 'layers');
     const moved = override.setters.find((setter) => slot(setter) === 'transform');
     const surfaces = override.setters.filter((setter) => slot(setter) === 'surface-material');
+    const materialOverride = override.setters.find((setter) => slot(setter) === 'material-override');
+    const castShadow = override.setters.find((setter) => slot(setter) === 'cast-shadow');
     const others = override.setters.filter((setter) => slot(setter) === 'player');
     overrides.push({
       key: override.at,
@@ -647,6 +650,9 @@ function modelElement(emission: Emission, node: DirectGodotSceneNodePlan, name: 
           ...(moved === undefined ? [] : [{ key: 'transform', value: dataExpression(plainValue(moved.value)) }]),
           // A mesh of the model's surface materials, the scene's own (three's materials).
           ...familyMaterialOverride(emission.family, surfaces),
+          // A geometry of the model drawn with one material, and its shadow casting (compat's own).
+          ...familyModelMaterialOverride(emission.family, materialOverride),
+          ...(castShadow === undefined ? [] : [{ key: 'cast_shadow', value: dataExpression(plainValue(castShadow.value)) }]),
           // An AnimationPlayer of the model: compat's player props (`familyAnimationOverride`).
           ...(others.length === 0 && override.animation === undefined ? [] : familyAnimationOverride(emission.family, override.at, others, override.animation)),
         ],

@@ -202,6 +202,16 @@ function applyOverride(entity: Object3D, property: string, value: unknown, adopt
     surfaces(entity);
     return;
   }
+  // A GeometryInstance3D's `material_override` and `cast_shadow` (`geometry_instance_3d.cpp:73`,
+  // `:120`): every surface of the node's mesh.
+  if (property === 'material_override' || property === 'cast_shadow') {
+    const meshes = [entity, ...entity.children.filter((child) => !adopted.has(child))].filter((object): object is Mesh => (object as Mesh).isMesh === true);
+    for (const mesh of meshes) {
+      if (property === 'cast_shadow') mesh.castShadow = value !== 0;
+      else if (value !== null) mesh.material = value as Material;
+    }
+    return;
+  }
   const surface = SURFACE_OVERRIDE.exec(property);
   if (surface !== null) {
     const meshes = (entity as Mesh).isMesh === true ? [entity] : entity.children.filter((child) => !adopted.has(child) && (child as Mesh).isMesh === true);

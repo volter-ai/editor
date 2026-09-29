@@ -1000,8 +1000,22 @@ export function familyMaterialOverride(emission: FamilyEmission, setters: readon
   return setters.flatMap((setter) => {
     const resource = resourceOf(emission, setter.value);
     if (resource === undefined) return [];
-    return [{ key: `surface_material_override/${String(setter.index)}`, value: identifier(sharedMaterial(emission, resource)) }];
+    return [{ key: `surface_material_override/${String(setter.index)}`, value: identifier(threeMaterialOf(emission, resource)) }];
   });
+}
+
+/**
+ * An imported model's geometry drawn with one material (`material_override`): the three material
+ * its resource is, a spatial shader's included.
+ */
+export function familyModelMaterialOverride(emission: FamilyEmission, setter: TargetGodotSceneSetterPlan | undefined): TargetTsObjectProperty[] {
+  const resource = setter === undefined ? undefined : resourceOf(emission, setter.value);
+  return resource === undefined ? [] : [{ key: 'material_override', value: identifier(threeMaterialOf(emission, resource)) }];
+}
+
+/** A material resource's three material: a ShaderMaterial's custom shader material, else its own. */
+function threeMaterialOf(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  return resource.idiom?.kind === 'shader-material' ? shaderMaterialThree(emission, resource) : sharedMaterial(emission, resource);
 }
 
 /**

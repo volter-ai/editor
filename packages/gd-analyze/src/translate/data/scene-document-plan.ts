@@ -196,6 +196,8 @@ export type GodotModelOverrideSlot =
   | { readonly kind: 'layers' }
   | { readonly kind: 'transform' }
   | { readonly kind: 'surface-material' }
+  | { readonly kind: 'material-override' }
+  | { readonly kind: 'cast-shadow' }
   | { readonly kind: 'player' };
 
 /** A resource the scene constructs once, then sets its authored properties on. */
@@ -2238,7 +2240,7 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   return document;
 }
 
-const COLLISION_OBJECT_SETTERS = ['set_collision_layer', 'set_collision_mask', 'set_ray_pickable'];
+const COLLISION_OBJECT_SETTERS = ['set_collision_layer', 'set_collision_mask', 'set_ray_pickable', 'set_as_top_level'];
 const AXIS_LOCKS = [1, 2, 4, 8, 16, 32].map((axis) => `set_axis_lock:${String(axis)}`);
 
 /**
@@ -2317,6 +2319,10 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_layer_mask: { kind: 'layers' },
   // A mesh of the model's surface materials (compat's imported-scene overrides).
   set_surface_override_material: { kind: 'surface-material' },
+  // A geometry of the model drawn with one material, and whether it casts shadows (compat's
+  // imported-scene `material_override` and `cast_shadow`).
+  set_material_override: { kind: 'material-override' },
+  set_cast_shadows_setting: { kind: 'cast-shadow' },
   set_bone_pose_position: { kind: 'bone-pose', component: 'position' },
   set_bone_pose_rotation: { kind: 'bone-pose', component: 'rotation' },
   set_bone_pose_scale: { kind: 'bone-pose', component: 'scale' },
@@ -2363,7 +2369,7 @@ export function godotSceneRootClass(
 function modelOverride(context: PlanContext, setter: TargetGodotSceneSetterPlan): TargetGodotSceneSetterPlan {
   const modelSlot = MODEL_OVERRIDE_SLOTS[setter.setter.exportName];
   if (modelSlot === undefined) return setter;
-  const value = modelSlot.kind === 'surface-material' && setter.value.kind === 'resource' ? { ...setter.value, key: planModelMaterial(context, setter.value.key) } : setter.value;
+  const value = (modelSlot.kind === 'surface-material' || modelSlot.kind === 'material-override') && setter.value.kind === 'resource' ? { ...setter.value, key: planModelMaterial(context, setter.value.key) } : setter.value;
   return { ...setter, value, modelSlot };
 }
 
