@@ -1266,6 +1266,9 @@ found exactly that. It is redone on the libraries:
   motion, the normal removed from the remaining motion, floor by `up_direction` and
   `floor_max_angle`), since Matter has no character controller. The hand-rolled SAT, integration
   and `move_and_slide` over a module-wide object map are deleted.
+- **The 2D games are parked** (owner, 2026-09-28: "let's avoid the 2d games for now"). The
+  Pixi drawing and Matter.js physics above are the ruling for when they resume; until then no 2D
+  work is done, and the lane works on the 3D games, UI and the untyped values.
 - **UI is React DOM.** A Control is an element its component renders (`<div>`, `<button>`,
   `<span>`), its anchors and container layout computed from Godot's rules into its style, and its
   signals React's own events.
