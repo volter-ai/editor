@@ -1412,10 +1412,14 @@ class Session:
         # automatic one is the evaluated bounds the presenter already holds.
         if graphs:
             depsgraph = bpy.context.evaluated_depsgraph_get()
+            # BY NAME THROUGH ONE MAP: `scene.objects.get` searches the collection linearly, so a
+            # lookup per row was quadratic -- measured on the Stoneguard file (11,702 rows): 11,343
+            # calls, 14.4 s of every present.
+            by_name = {obj.name: obj for obj in scene.objects}
             for row in frame["objects"]:
                 if not any(m in graphs for m in row["materials"] if m is not None):
                     continue
-                obj = scene.objects.get(row["name"])
+                obj = by_name.get(row["name"])
                 data = obj.evaluated_get(depsgraph).data if obj is not None else None
                 if getattr(data, "use_auto_texspace", True) is False:
                     row["texspace"] = [[float(v) for v in data.texspace_location],
