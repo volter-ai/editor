@@ -1732,6 +1732,8 @@ export function godot_control_props(): (readonly [string, GodotElementProp<Objec
     ['sizeFlagsStretchRatio', (entity, value: number) => set_stretch_ratio(entity, value)],
     ['mouseFilter', (entity, value: number) => set_mouse_filter(entity, value)],
     ['mouseForcePassScrollEvents', (entity, value: boolean) => set_force_pass_scroll_events(entity, value)],
+    ['theme', (entity, value: object | null) => set_theme(entity, value)],
+    ['themeTypeVariation', (entity, value: string) => set_theme_type_variation(entity, value)],
   ];
 }
 

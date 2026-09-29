@@ -32,6 +32,8 @@ const CONTROL = [
   'set_stretch_ratio',
   'set_mouse_filter',
   'set_force_pass_scroll_events',
+  'set_theme',
+  'set_theme_type_variation',
   // The theme overrides, one `themeOverrides` prop (`theme_override_<kind>/NAME`).
   'add_theme_font_size_override:*',
   'add_theme_font_override:*',

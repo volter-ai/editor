@@ -17,7 +17,9 @@
  *   an inline script of a reachable scene is a root, and it reaches every path it is a PREFIX of (a
  *   script that assembles `"res://levels/level" + str(n) + ".tscn"` reaches every level);
  * - a reachable document reaches each of its `[ext_resource]` targets;
- * - a reachable imported asset reaches the materials its `.import` sidecar extracted.
+ * - a reachable imported asset reaches the materials its `.import` sidecar extracted;
+ * - a reachable script reaches each path it preloads or loads relative to its own folder
+ *   (`preload("bullet.tscn")`, resolved as `GDScriptParser` resolves it against the script's path).
  *
  * What it cannot see: a path assembled from pieces none of which is spelled with a `res://` or
  * `uid://` prefix. Such a load reaches a document this walk calls unplanned.
@@ -65,6 +67,21 @@ function spelledPaths(text: string): string[] {
   return [...text.matchAll(SPELLED_PATH)].map((match) => match[0]);
 }
 
+const RELATIVE_LOAD = /\b(?:preload|load)\(\s*["']([^"':]+)["']\s*\)/g;
+
+/** The paths a script preloads or loads relative to its folder, as `res://` paths. */
+function relativeLoads(scriptPath: string, text: string): string[] {
+  const folder = scriptPath.slice(0, scriptPath.lastIndexOf('/') + 1);
+  return [...text.matchAll(RELATIVE_LOAD)].map((match) => {
+    const parts: string[] = [];
+    for (const part of `${folder.slice('res://'.length)}${match[1] as string}`.split('/')) {
+      if (part === '..') parts.pop();
+      else if (part !== '.' && part !== '') parts.push(part);
+    }
+    return `res://${parts.join('/')}`;
+  });
+}
+
 /** The document a diagnostic's `at` names: `res://a/b.tscn`, `res://a/b.tscn:12`, `res://a#Node`. */
 function documentOf(at: string): string | undefined {
   if (!at.startsWith('res://')) return undefined;
@@ -105,8 +122,11 @@ export function partitionReachableDocuments(input: ReachabilityInput): Reachabil
   for (const path of documents.keys()) {
     for (const prefix of prefixes) if (path.startsWith(prefix)) reach(path);
   }
+  const scriptTexts = new Map((input.scripts ?? []).map((script) => [script.resPath, script.text] as const));
   while (queue.length > 0) {
     const path = queue.pop() as string;
+    const scriptText = scriptTexts.get(path);
+    if (scriptText !== undefined) for (const relative of relativeLoads(path, scriptText)) reach(relative);
     for (const sidecar of sidecarsBySource.get(path) ?? []) {
       for (const material of Object.values(sidecar.externalMaterials ?? {})) reach(material);
     }

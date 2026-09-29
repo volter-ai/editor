@@ -24,6 +24,39 @@ export function bind(
   return (...args: readonly unknown[]) => callable(...args, ...p_binds);
 }
 
+/**
+ * @godot Callable.call
+ * @source core/variant/callable.cpp:43
+ */
+export function call(self: (...args: never[]) => unknown, ...args: readonly unknown[]): unknown {
+  return (self as (...values: readonly unknown[]) => unknown)(...args);
+}
+
+/**
+ * @godot Callable.callv
+ * @source core/variant/callable.cpp:73
+ */
+export function callv(self: (...args: never[]) => unknown, arguments_: readonly unknown[]): unknown {
+  return (self as (...values: readonly unknown[]) => unknown)(...arguments_);
+}
+
+/**
+ * The call made later, after the current work (`MessageQueue::push_callablep`): on the page, a
+ * microtask, as `Object.call_deferred` is (`object.ts`). A script error aborts only this call.
+ *
+ * @godot Callable.call_deferred
+ * @source core/variant/callable.cpp:39
+ */
+export function call_deferred(self: (...args: never[]) => unknown, ...args: readonly unknown[]): void {
+  queueMicrotask(() => {
+    try {
+      (self as (...values: readonly unknown[]) => unknown)(...args);
+    } catch (error) {
+      console.error(error);
+    }
+  });
+}
+
 const METHOD_CALLABLES = new WeakMap<object, Map<string, (...args: readonly unknown[]) => unknown>>();
 
 /**
