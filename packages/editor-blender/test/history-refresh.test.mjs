@@ -10,8 +10,10 @@ const stubs = {
     constructor(options) { probe.options = options; }
     historyStep(id, direction) { probe.moves.push([id, direction]); return probe.restored; }
     start(project, document) { probe.started = {project, document}; return Promise.resolve({}); }
+    get presented() { return probe.presented ?? null; }
+    present() { probe.presents = (probe.presents ?? 0) + 1; return Promise.resolve(); }
   }`,
-  '@volter/editor-sdk/host': `export const editorHost = () => probe.host;`,
+  '@volter/editor-sdk/host': `export const editorHost = () => ({...probe.host, documents: {activeId: () => null, ...probe.host.documents}});`,
   '../contributions/blender-outliner-model': `
     export const blenderEngineSelection = () => ({selected: ['Restored Cube'], active: 'Restored Cube'});
     export const refreshBlenderOutliner = names => { probe.reads.push(names); return probe.refreshed; };
@@ -106,4 +108,29 @@ test('cold start honors the declared default and refuses ambiguous Models', asyn
       assert.equal(probe.started.document, 'second.blend');
     }
   }
+});
+
+for (const [name, shown, latest, needed] of [
+  ['already presented during file open', {session: 's', revision: 1}, {session: 's', revision: 1}, 0],
+  ['reopened pane without a frame', null, {session: 's', revision: 1}, 1],
+  ['new file without an initial frame', null, null, 1],
+  ['view from a previous session', {session: 'old', revision: 1}, {session: 's', revision: 1}, 1],
+  ['view behind the engine revision', {session: 's', revision: 1}, {session: 's', revision: 2}, 1],
+]) test(`Model open presents only when needed: ${name}`, async () => {
+  const binding = {documentId: 'document:model:scene.blend', entryId: 'model:scene.blend', blend: 'scene.blend'};
+  let published = false;
+  const view = {snapshot: () => shown, stageFrame() {}, applyFrame() {}, captureSnapshot() {}, recordPresentation() {}, recordPhotograph() {}};
+  const probe = {presented: latest, presents: 0, host: {
+    session: {open: () => true, onBeforeClose() {}, onEnded() {}, reportWorkerCallMeter() {}},
+    projectLocalState: {projectRootPath: () => '/project'},
+    documents: {activeId: () => binding.documentId, context: () => undefined,
+      waitForContext: async () => { assert(published); return view; }},
+  }};
+  const module = {exports: {}};
+  runInNewContext(bundle.outputFiles[0].text, {
+    module, exports: module.exports, require: createRequire(import.meta.url), probe, AbortController,
+  });
+  module.exports.bindModelDocument(binding);
+  assert.equal(await module.exports.openModelDocumentBlend(binding, () => { published = true; }), true);
+  assert.equal(probe.presents, needed);
 });

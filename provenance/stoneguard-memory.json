@@ -376,5 +376,14 @@
     "method": "Measure only actual ask/checkpoint boundaries; diagnostic phase markers do not reset the gap timer."
   },
   "reproduction": "provenance/stoneguard/README.md and its native/Wasm geometry emitters and comparator",
-  "finalSceneEvidenceHeapMiB": 3479.75
+  "finalSceneEvidenceHeapMiB": 3479.75,
+  "startupDuplicatePresentation": {
+    "observedEditor": "e09e367e",
+    "hostedMaxCallMs": 13798,
+    "maxCallLabel": "present",
+    "cause": "The Model open path called present after bind_document had already presented during start.",
+    "fix": "Compare the published view session/revision to the latest runtime frame; present only for a missing, stale or different-session view.",
+    "regression": "Ten host tests pass, including already-presented, reopened, absent-file and stale-view cases.",
+    "hostedVerification": "pending final image"
+  }
 }

@@ -341,13 +341,18 @@ export async function openModelDocumentBlend(
   publish();
   await started;
   if (boundModel !== binding) return false;
-  // AND SHOW WHAT IT OPENED. `start` binds the document and loads the file; it
-  // does not present, because presenting is what a MUTATION does
-  // (`session.py::dispatch`). So until this line a freshly opened Model
-  // document displayed nothing until an execute happened to run — I1 measured
-  // it, and "open a model, see the model" is the document's own request rather
-  // than a side effect to hope for.
-  await session.present();
+  // bind_document presents the opened file before start resolves. Do not
+  // immediately evaluate/export it again: on Stoneguard that redundant RPC
+  // took 13.8 seconds after the resumable startup had already finished.
+  // A reopened pane has a NEW view, though, and an absent file presents
+  // nothing at start. Compare the view's actual holding with the runtime's
+  // revision so both cases still request the frame they need.
+  const shown = (await runtimeView()).snapshot();
+  if (boundModel !== binding) return false;
+  const latest = session.presented;
+  if (!shown || !latest || shown.session !== latest.session || shown.revision !== latest.revision) {
+    await session.present();
+  }
   return boundModel === binding;
 }
 

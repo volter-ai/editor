@@ -86,3 +86,18 @@ The same engine rejects a failed file-read checkpoint without replacing the
 previous document. A linked-object regression also exposed and fixed revision
 increments after the first shared-mesh notice: a geometry revision now advances
 once per frame, so the next unchanged frame reuses that mesh.
+
+## Avoid exporting the just-opened document twice
+
+The hosted continuation build completed its initial load, but a later RPC still
+reached 13.798 seconds. The operation label on the unchanged call meter identified
+`present`: `openModelDocumentBlend` unconditionally called it after `start`, even
+though Python's `bind_document` had already presented before `start` resolved.
+This repeated evaluation/export also delayed the inspection reads queued behind it.
+
+The open path now compares the published view's actual session/revision with the
+runtime's latest frame. Matching holdings need no second present. A reopened pane,
+a new file with no initial frame, a different session, or an outdated view still
+requests its missing frame. Host tests cover those cases. The call meter also
+carries an optional operation/load-boundary label so a later slow call identifies
+which work owns it; timers and duration buckets are unchanged.
