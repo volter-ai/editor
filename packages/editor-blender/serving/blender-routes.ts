@@ -318,13 +318,33 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           json(res, { error: 'That path leaves the project root.' }, 403);
           return;
         }
+        // STREAMED, never read whole: on a tab-served project this server runs in the page, and a
+        // 307 MB document read into one buffer and ended as one body was copied along the page's
+        // own response path. MEASURED 2026-09-29 on the hosted Stoneguard open: the page's
+        // isolate held 1,009 MB of ArrayBuffers while the document crossed, against 19 MB before.
+        let size: number;
         try {
-          const bytes = await readFile(absolute);
-          res.setHeader('content-type', 'application/octet-stream');
-          res.end(bytes);
+          const info = await stat(absolute);
+          if (!info.isFile()) throw new Error('not a file');
+          size = info.size;
         } catch {
           json(res, { error: 'Not found.' }, 404);
+          return;
         }
+        res.setHeader('content-type', 'application/octet-stream');
+        res.setHeader('content-length', String(size));
+        await new Promise<void>((resolve) => {
+          const stream = createReadStream(absolute);
+          stream.once('error', () => {
+            res.destroy();
+            resolve();
+          });
+          res.once('close', () => {
+            stream.destroy();
+            resolve();
+          });
+          stream.pipe(res);
+        });
       },
     },
     // ---- A SHIPPED OUTPUT: bytes Blender produced for the game to ship (`public/`), recorded
