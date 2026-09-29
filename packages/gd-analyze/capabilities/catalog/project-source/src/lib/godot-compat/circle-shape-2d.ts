@@ -60,3 +60,14 @@ export function set_radius(self: CircleShape2D, radius: number): void {
 export function get_radius(self: CircleShape2D): number {
   return self.radius;
 }
+
+/**
+ * The shape as the 2D physics tests it: its centre, rounded by its radius.
+ *
+ * @godot CircleShape2D (protocol)
+ * @source servers/physics_2d/godot_shape_2d.cpp:394
+ */
+export function godot_circle_shape_2d_outline(self: object): { readonly points: readonly (readonly [number, number])[]; readonly radius: number } | undefined {
+  if (!CIRCLES.has(self)) return undefined;
+  return { points: [[0, 0]], radius: (self as CircleShape2D).radius };
+}

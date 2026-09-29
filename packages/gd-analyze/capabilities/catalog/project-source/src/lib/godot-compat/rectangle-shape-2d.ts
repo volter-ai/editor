@@ -62,3 +62,15 @@ export function set_size(self: RectangleShape2D, size: Vector2): void {
 export function get_size(self: RectangleShape2D): Vector2 {
   return self.size;
 }
+
+/**
+ * The shape as the 2D physics tests it: its outline's points and no radius.
+ *
+ * @godot RectangleShape2D (protocol)
+ * @source servers/physics_2d/godot_shape_2d.cpp:445
+ */
+export function godot_rectangle_shape_2d_outline(self: object): { readonly points: readonly (readonly [number, number])[]; readonly radius: number } | undefined {
+  if (!RECTANGLES.has(self)) return undefined;
+  const { x, y } = (self as RectangleShape2D).size;
+  return { points: [[-x / 2, -y / 2], [x / 2, -y / 2], [x / 2, y / 2], [-x / 2, y / 2]], radius: 0 };
+}

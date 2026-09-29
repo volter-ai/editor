@@ -233,6 +233,9 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   CollisionShape2D: [...NODE_2D, 'set_shape', 'set_disabled'],
   GPUParticles2D: [...NODE_2D, 'set_emitting', 'set_amount', 'set_lifetime', 'set_one_shot', 'set_speed_scale', 'set_explosiveness_ratio', 'set_randomness_ratio', 'set_use_local_coordinates', 'set_texture', 'set_process_material'],
   AnimatedSprite2D: [...NODE_2D, 'set_sprite_frames', 'set_animation', 'set_autoplay', 'set_frame', 'set_frame_progress', 'set_speed_scale', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v'],
+  StaticBody2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_physics_material_override', 'set_constant_linear_velocity', 'set_constant_angular_velocity'],
+  RigidBody2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_gravity_scale', 'set_mass', 'set_linear_velocity', 'set_angular_velocity', 'set_linear_damp', 'set_angular_damp', 'set_freeze_enabled', 'set_lock_rotation_enabled', 'set_contact_monitor', 'set_max_contacts_reported', 'set_physics_material_override', 'set_can_sleep'],
+  CharacterBody2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_velocity', 'set_up_direction', 'set_floor_max_angle', 'set_floor_snap_length', 'set_max_slides', 'set_motion_mode', 'set_safe_margin'],
   Timer: ['set_meta:*', ...NODE_ELEMENT, 'set_wait_time', 'set_one_shot', 'set_autostart', 'set_paused', 'set_ignore_time_scale', 'set_timer_process_callback'],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
@@ -351,6 +354,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ArrayMesh: [],
   CompressedTexture2D: [],
   RectangleShape2D: ['set_size'],
+  CapsuleShape2D: ['set_radius', 'set_height'],
   CircleShape2D: ['set_radius'],
   AtlasTexture: ['set_atlas', 'set_region', 'set_margin', 'set_filter_clip'],
   // A scene's component (`packedScene`) and a resource of a script's class (`scriptResource`): no setters.

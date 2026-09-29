@@ -133,6 +133,12 @@ export const GODOT_4_7_SIGNAL_RULES: readonly (GodotSceneSignalRule & { readonly
       ['CollisionObject2D', 'mouse_exited', 'collision-object-2d', 'mouse_exited', 0, 'scene/2d/physics/collision_object_2d.cpp', 632],
       ['CollisionObject2D', 'input_event', 'collision-object-2d', 'input_event', 3, 'scene/2d/physics/collision_object_2d.cpp', 630],
       ['GPUParticles2D', 'finished', 'gpu-particles-2d', 'finished', 0, 'scene/2d/gpu_particles_2d.cpp', 928],
+      ['Area2D', 'body_entered', 'area-2d', 'body_entered', 1, 'scene/2d/physics/area_2d.cpp', 590],
+      ['Area2D', 'body_exited', 'area-2d', 'body_exited', 1, 'scene/2d/physics/area_2d.cpp', 591],
+      ['Area2D', 'area_entered', 'area-2d', 'area_entered', 1, 'scene/2d/physics/area_2d.cpp', 594],
+      ['Area2D', 'area_exited', 'area-2d', 'area_exited', 1, 'scene/2d/physics/area_2d.cpp', 595],
+      ['RigidBody2D', 'body_entered', 'rigid-body-2d', 'body_entered', 1, 'scene/2d/physics/rigid_body_2d.cpp', 844],
+      ['RigidBody2D', 'body_exited', 'rigid-body-2d', 'body_exited', 1, 'scene/2d/physics/rigid_body_2d.cpp', 845],
     ] as const
   ).map(([ownerClass, signal, module, exportName, argumentCount, file, line]) => ({
     sourceRevision: REVISION,
