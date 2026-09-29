@@ -116,6 +116,8 @@ export interface BlenderCallMetrics {
    *  otherwise the worst call this session has ever seen is invisible for
    *  exactly as long as it keeps running. */
   readonly maxCallMs: number | null;
+  /** Operation and load boundary owning the longest request; no payload data. */
+  readonly maxCallLabel?: string | null;
   /** Calls whose duration passed 5s, counting outstanding ones already past it. */
   readonly callsOver5s: number;
   /** The same at 30s — a call this side of it is slow, past it is a wedge. */
@@ -163,6 +165,9 @@ export class BlenderRuntime {
   };
   /** `performance.now()` at the `postMessage` of every outstanding call. */
   readonly #callStarts = new Map<number, number>();
+  readonly #callLabels = new Map<number, string>();
+  #loadBoundary = "engine-start";
+  #maxCompletedLabel: string | null = null;
   readonly #callWork = new Map<number, () => void>();
   #lastCallMs: number | null = null;
   #maxCompletedMs = 0;
@@ -265,6 +270,7 @@ export class BlenderRuntime {
   async #load(request: Extract<Request, { op: 'start' }>): Promise<RuntimeStart> {
     let result = await this.#request(request) as PullResult<RuntimeStart>;
     while (result?.load === 'continue') {
+      this.#loadBoundary = result.phase;
       result = await this.#request({ op: 'load-next', token: result.token }) as PullResult<RuntimeStart>;
     }
     return result?.load === 'done' ? result.value : result as unknown as RuntimeStart;
@@ -518,12 +524,13 @@ export class BlenderRuntime {
   metrics(now: number = performance.now()): BlenderCallMetrics {
     let oldest: number | null = null;
     let max = this.#maxCompletedMs;
+    let maxLabel = this.#maxCompletedLabel;
     let over5 = this.#completedOver5s;
     let over30 = this.#completedOver30s;
-    for (const started of this.#callStarts.values()) {
+    for (const [id, started] of this.#callStarts) {
       const elapsed = now - started;
       if (oldest === null || elapsed > oldest) oldest = elapsed;
-      if (elapsed > max) max = elapsed;
+      if (elapsed > max) { max = elapsed; maxLabel = this.#callLabels.get(id) ?? null; }
       if (elapsed >= 5_000) over5 += 1;
       if (elapsed >= 30_000) over30 += 1;
     }
@@ -533,6 +540,7 @@ export class BlenderRuntime {
       // Zero here would mean "no call has ever taken any time", which is a
       // different claim from "no call has happened yet".
       maxCallMs: this.#lastCallMs === null && oldest === null ? null : Math.round(max),
+      maxCallLabel: maxLabel,
       callsOver5s: over5,
       callsOver30s: over30,
       lastCallWindow: this.#lastCallWindow,
@@ -547,9 +555,11 @@ export class BlenderRuntime {
     const started = this.#callStarts.get(id);
     if (started === undefined) return;
     this.#callStarts.delete(id);
+    const label = this.#callLabels.get(id) ?? null;
+    this.#callLabels.delete(id);
     const elapsed = performance.now() - started;
     this.#lastCallMs = elapsed;
-    if (elapsed > this.#maxCompletedMs) this.#maxCompletedMs = elapsed;
+    if (elapsed > this.#maxCompletedMs) { this.#maxCompletedMs = elapsed; this.#maxCompletedLabel = label; }
     if (elapsed >= 5_000) this.#completedOver5s += 1;
     if (elapsed >= 30_000) this.#completedOver30s += 1;
     if (this.#lastCallWindow !== null && this.#lastCallWindow.start === started)
@@ -564,6 +574,7 @@ export class BlenderRuntime {
       this.#pending.set(id, { resolve, reject });
       const started = performance.now();
       this.#callStarts.set(id, started);
+      this.#callLabels.set(id, request.op === "load-next" ? `load-next after ${this.#loadBoundary}` : request.op);
       this.#lastCallWindow = { start: started, end: null };
       this.#callWork.set(id, this.#work(`waiting for worker ${request.op}`));
       try {

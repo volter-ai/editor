@@ -548,6 +548,8 @@ export interface EditorHostWorkerCallMetrics {
   readonly lastCallMs: number | null;
   /** The longest call yet, counting an outstanding one at its current age. */
   readonly maxCallMs: number | null;
+  /** Optional operation/boundary label supplied by the lane, without request payloads. */
+  readonly maxCallLabel?: string | null;
   /** Calls past 5s, and past 30s, since the runtime was constructed. */
   readonly callsOver5s: number;
   readonly callsOver30s: number;

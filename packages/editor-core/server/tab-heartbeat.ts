@@ -270,6 +270,7 @@ function parseWorkerCallLane(raw: unknown): WorkerCallTabMetrics | undefined {
     inFlightMs: finite(record['inFlightMs']),
     lastCallMs: finite(record['lastCallMs']),
     maxCallMs: finite(record['maxCallMs']),
+    maxCallLabel: typeof record['maxCallLabel'] === 'string' ? record['maxCallLabel'].slice(0, 160) : null,
     callsOver5s,
     callsOver30s,
     lastCallLongestTaskMs: finite(record['lastCallLongestTaskMs']),

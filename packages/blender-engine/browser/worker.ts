@@ -71,7 +71,8 @@ const pendingPresents = new Map<
 
 async function streamToTab(value: unknown): Promise<PresentAnswer> {
   return await sendFrameValue(value, async chunk => {
-    await loadCheckpoint?.("frame-transfer");
+    const kind = value as { op?: string; mesh?: unknown; image?: unknown };
+    await loadCheckpoint?.(`frame-transfer/${kind.op ?? "unknown"}/${kind.mesh !== undefined ? "mesh" : kind.image !== undefined ? "image" : "manifest"}/${chunk.kind}`);
     const id = ++presentId;
     return new Promise<PresentAnswer>((resolve, reject) => {
       pendingPresents.set(id, { resolve, reject });
