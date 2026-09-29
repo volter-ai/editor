@@ -550,10 +550,11 @@ function nodeDataAttribute(node: DirectGodotSceneNodePlan): TargetTsJsxAttribute
 }
 
 /** A setter's Godot-named value as a compat component's camelCase prop. */
-function componentProp(entry: TargetGodotSceneSetterPlan): TargetTsJsxAttribute {
+function componentProp(emission: Emission, entry: TargetGodotSceneSetterPlan): TargetTsJsxAttribute {
   const camel = entry.propertyName.replace(/_([a-z])/gu, (_, letter: string) => letter.toUpperCase());
-  const value = plainValue(entry.value);
-  return attribute(camel, dataExpression(value));
+  // A resource (a cast's shape) is its local, as the scene declares it.
+  if (entry.value.kind === 'resource') return attribute(camel, variantValue(emission.family, entry.value));
+  return attribute(camel, dataExpression(plainValue(entry.value)));
 }
 
 /** A Node3D's authored `visible`, as three's own prop, which hides the subtree as Godot does (`node_3d.cpp:1120`). */
@@ -1007,7 +1008,7 @@ function nodeElement(emission: Emission, node: DirectGodotSceneNodePlan): Target
       return collider(emission, node, name, transform, at);
     case 'component': {
       const tag = useCompat(emission, form.module, form.exportName);
-      return element(tag, [name, ...nodeRef(emission, node, idiom.three), ...transform, ...visible, ...own.setters.map(componentProp), ...nodeDataAttribute(node)], children());
+      return element(tag, [name, ...nodeRef(emission, node, idiom.three), ...transform, ...visible, ...own.setters.map((entry) => componentProp(emission, entry)), ...nodeDataAttribute(node)], children());
     }
     default:
       throw new Error(`${at}: ${className} has no idiomatic element`);

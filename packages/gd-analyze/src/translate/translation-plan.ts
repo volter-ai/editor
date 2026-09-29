@@ -1,4 +1,4 @@
-import { godotSceneSubnodes } from './data/scene-document-plan';
+import { godotEmbeddedImagePath, godotSceneSubnodes } from './data/scene-document-plan';
 import type { BoundGodotProject } from '../analyze/bound-project';
 import type { GodotImportToolchainSnapshot } from '../snapshot/toolchain-snapshot';
 import { planDirectGodotArtifacts } from './artifacts/plan';
@@ -65,6 +65,15 @@ function importedModels(project: BoundGodotProject, composition: DirectGodotProj
 }
 
 /** The images and sounds the scenes load as imported resources: copied beside the app, as the models are. */
+/** The images documents embed that a planned resource loads (`godotEmbeddedImagePath`), each with its file's path. */
+function embeddedImages(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
+  const loaded = new Set([...composition.scenes, ...composition.resourceModules].flatMap((scene) => scene.resources.flatMap((resource) => (resource.load === undefined ? [] : [resource.load.sourceResPath]))));
+  return project.documents.embeddedImages.flatMap((image) => {
+    const resPath = godotEmbeddedImagePath(image.owner, image.id);
+    return loaded.has(resPath) ? [{ resPath, image }] : [];
+  });
+}
+
 function importedTextures(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
   const paths = new Set(
     [...composition.scenes, ...composition.resourceModules].flatMap((scene) =>
@@ -236,6 +245,7 @@ export function assembleGodotTranslationPlan(
       toolchain.capabilityCopies,
       [...importedModels(project, composition), ...importedTextures(project, composition)],
       project.documents.licenses,
+      embeddedImages(project, composition),
     );
   } catch (error) {
     return {

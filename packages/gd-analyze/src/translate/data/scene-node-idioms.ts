@@ -184,6 +184,11 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     three: 'Group',
     source: ctor('RayCast3D', 'scene/3d/physics/ray_cast_3d.cpp', 564),
   },
+  ShapeCast3D: {
+    form: { kind: 'component', module: 'shape-cast-3d', exportName: 'GodotShapeCast3D' },
+    three: 'Group',
+    source: ctor('ShapeCast3D', 'scene/3d/physics/shape_cast_3d.h', 41),
+  },
   Marker3D: {
     form: { kind: 'component', module: 'marker-3d', exportName: 'GodotMarker3D' },
     three: 'Group',

@@ -1,19 +1,19 @@
 /**
  * The images a document embeds (read decodes, docs/GODOT.md row 2): each `Image` sub-resource's
- * `data` (`Image::_set_data`, `core/io/image.cpp:3930`), its width, height, format and pixels,
- * decoded into a PNG the page loads as it loads an imported image. The formats the page's PNG
- * holds as they are (`L8`, `LA8`, `RGB8`, `RGBA8`) are carried; any other format, or pixels of the
- * wrong length, is left out, and the texture naming it refuses at plan time by name.
+ * `data` (`Image::_set_data`, `core/io/image.cpp:3930`), decoded into its width, height, channels
+ * and first level's pixels. The 8-bit formats (`L8`, `LA8`, `RGB8`, `RGBA8`) are decoded; any
+ * other format, or pixels of the wrong length, is left out, and the texture naming it refuses at
+ * plan time by name.
  */
-import { encode } from 'fast-png';
 import type { GodotValue } from './godot-value';
 
-/** An image a document embeds, as a PNG: the document and the Image's id, its size and bytes. */
+/** An image a document embeds: the document and the Image's id, its size, channels and pixels. */
 export interface GodotEmbeddedImage {
   readonly owner: string;
   readonly id: string;
   readonly size: readonly [number, number];
-  readonly png: Uint8Array;
+  readonly channels: number;
+  readonly pixels: Uint8Array;
 }
 
 /** `Image::Format` by the name `_set_data` writes, as PNG channels. */
@@ -32,7 +32,7 @@ function bytesOf(value: GodotValue | undefined): Uint8Array | undefined {
   return numbers.every((number): number is number => number !== undefined) ? Uint8Array.from(numbers) : undefined;
 }
 
-/** The images the documents embed, decoded. */
+/** The images the documents embed, decoded to pixels. */
 export function godotEmbeddedImages(
   documents: readonly { readonly resPath: string; readonly subResources: readonly { readonly id: string | number; readonly type: string; readonly properties: Readonly<Record<string, GodotValue>> }[] }[],
 ): GodotEmbeddedImage[] {
@@ -50,8 +50,7 @@ export function godotEmbeddedImages(
       // The first mipmap level, where the image carries its chain (`mipmaps`).
       const length = width.value * height.value * channels;
       if (pixels.length < length) continue;
-      const png = encode({ width: width.value, height: height.value, data: pixels.subarray(0, length), channels, depth: 8 });
-      images.push({ owner: document.resPath, id: String(sub.id), size: [width.value, height.value], png });
+      images.push({ owner: document.resPath, id: String(sub.id), size: [width.value, height.value], channels, pixels: pixels.slice(0, length) });
     }
   }
   return images;

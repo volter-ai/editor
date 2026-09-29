@@ -1070,15 +1070,16 @@ function planResolvedResource(
     refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
     return undefined;
   }
-  // An ImageTexture of an image its document embeds: loaded as an imported image is, from the file
-  // read decoded it into (`read/embedded-images.ts`).
+  // An ImageTexture of an image its document embeds: loaded as an imported image is, from a file
+  // of its own the translation writes beside the document (`godotEmbeddedImagePath`).
   const imageReference = data.type === 'ImageTexture' ? referenceOf(data.properties['image']) : undefined;
   if (imageReference !== undefined) {
     const owner = nestedScope === '' ? document.scene.resPath : nestedScope;
-    const embedded = imageReference.reference === 'sub' ? context.project?.documents.textures.find((entry) => entry.embedded?.owner === owner && entry.embedded.id === imageReference.id) : undefined;
-    const load = embedded === undefined ? undefined : godotTextureLoad(embedded);
+    const embedded = imageReference.reference === 'sub' ? context.project?.documents.embeddedImages.find((entry) => entry.owner === owner && entry.id === imageReference.id) : undefined;
+    const load: TargetGodotImportedLoad | undefined =
+      embedded === undefined ? undefined : { sourceResPath: godotEmbeddedImagePath(embedded.owner, embedded.id), options: { fixAlphaBorder: true, premultAlpha: false, mipmaps: false }, size: embedded.size };
     const rule = context.authority.resourceRule('CompressedTexture2D');
-    if (load === undefined || typeof load === 'string' || rule === undefined) {
+    if (load === undefined || rule === undefined) {
       refuse(context, at, `${key}: its image is not one read decoded (a format other than L8, LA8, RGB8 or RGBA8)`, 'resource', 'ImageTexture');
       return undefined;
     }
@@ -2594,6 +2595,20 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
     'set_debug_shape_custom_color',
   ],
   Marker3D: ['set_visible', 'set_gizmo_extents'],
+  // Swept when a script reads it, as the ray is (`shape-cast-3d.ts`).
+  ShapeCast3D: [
+    'set_visible',
+    'set_enabled',
+    'set_shape',
+    'set_target_position',
+    'set_margin',
+    'set_max_results',
+    'set_collision_mask',
+    'set_exclude_parent_body',
+    'set_collide_with_areas',
+    'set_collide_with_bodies',
+    'set_debug_shape_custom_color',
+  ],
 };
 const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   BoxShape3D: ['set_size'],
@@ -2633,6 +2648,11 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_default_blend_time: { kind: 'player' },
   set_auto_capture: { kind: 'player' },
 };
+
+/** The file an embedded image is written to, beside the document embedding it (`artifacts/plan.ts`). */
+export function godotEmbeddedImagePath(owner: string, id: string): string {
+  return `${owner}.${id.replace(/[^A-Za-z0-9_-]/gu, '_')}.png`;
+}
 
 /** A spatial node's transform, as its matrix or as position, YXZ rotation and scale. */
 const TRANSFORM_PROPERTIES = new Set(['transform', 'position', 'rotation', 'scale']);
