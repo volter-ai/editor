@@ -27,7 +27,7 @@
  * `root` as Godot's root Window is. Pause is not transcribed (the tree never pauses).
  */
 
-import { godot_node_enter_root, godot_node_free, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued } from './node';
+import { godot_node_enter_root, godot_node_free, godot_node_group_members, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued } from './node';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -358,4 +358,79 @@ export function reload_current_scene(self: SceneTree): number {
     });
   }
   return 0;
+}
+
+function members(group: string): unknown[] {
+  return tree.root === undefined ? [] : godot_node_group_members(tree.root, group);
+}
+
+/**
+ * Calls `method` with `args` on every node in the group, in tree order; a node without it is
+ * skipped (`SceneTree::call_group_flagsp`, `scene_tree.cpp:1130`, reports the error and goes on).
+ *
+ * @godot SceneTree.call_group
+ * @source scene/main/scene_tree.cpp:1245
+ */
+export function call_group(self: SceneTree, group: string, method: string, ...args: unknown[]): void {
+  void self;
+  for (const node of members(group)) {
+    const target = node as Record<string, unknown>;
+    const own = target[method];
+    if (typeof own === 'function') {
+      (own as (...values: unknown[]) => unknown).apply(target, args);
+      continue;
+    }
+    // A native method of the node (`queue_free`): the group's object answers it by name.
+    if (method === 'queue_free') queue_delete(self, node as object);
+  }
+}
+
+/**
+ * Sets `property` to `value` on every node in the group that has it.
+ *
+ * @godot SceneTree.set_group
+ * @source scene/main/scene_tree.cpp:1270
+ */
+export function set_group(self: SceneTree, group: string, property: string, value: unknown): void {
+  void self;
+  for (const node of members(group)) {
+    const target = node as Record<string, unknown>;
+    if (property in target) target[property] = value;
+  }
+}
+
+/**
+ * @godot SceneTree.get_nodes_in_group
+ * @source scene/main/scene_tree.cpp:1406
+ */
+export function get_nodes_in_group(self: SceneTree, group: string): unknown[] {
+  void self;
+  return members(group);
+}
+
+/**
+ * @godot SceneTree.get_first_node_in_group
+ * @source scene/main/scene_tree.cpp:1427
+ */
+export function get_first_node_in_group(self: SceneTree, group: string): unknown {
+  void self;
+  return members(group)[0] ?? null;
+}
+
+/**
+ * @godot SceneTree.has_group
+ * @source scene/main/scene_tree.cpp:1390
+ */
+export function has_group(self: SceneTree, group: string): boolean {
+  void self;
+  return members(group).length > 0;
+}
+
+/**
+ * @godot SceneTree.get_node_count_in_group
+ * @source scene/main/scene_tree.cpp:1439
+ */
+export function get_node_count_in_group(self: SceneTree, group: string): number {
+  void self;
+  return members(group).length;
 }

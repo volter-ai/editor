@@ -1023,6 +1023,27 @@ export function find_children(self: object, pattern: string, type = '', recursiv
 }
 
 /**
+ * The nodes in a group, in tree order (`SceneTree::get_nodes_in_group`, `scene_tree.cpp:1406`):
+ * from `root`, each node inside the tree whose groups have it.
+ *
+ * @godot Node (protocol)
+ * @source scene/main/scene_tree.cpp:1406
+ */
+export function godot_node_group_members(root: object, group: string): Variant[] {
+  const found: Variant[] = [];
+  const visit = (entity: object): void => {
+    const state = NODE.get(entity);
+    if (state !== undefined) {
+      seedDeclared(entity);
+      if (state.insideTree && state.groups.includes(group)) found.push(objectOf(entity));
+    }
+    for (const child of childEntities(entity)) visit(child);
+  };
+  visit(entityOf(root));
+  return found;
+}
+
+/**
  * @godot Node.get_parent
  * @source scene/main/node.cpp:2100
  */

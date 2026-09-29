@@ -324,6 +324,30 @@ export function minf(x: number, y: number): number {
 }
 
 /**
+ * A float in `[0, 1]` from the global generator (`Math::randf`, `core/math/math_funcs.cpp:65`).
+ *
+ * @godot @GlobalScope.randf
+ * @source core/variant/variant_utility.cpp:784
+ */
+export function randf(): number {
+  return randd();
+}
+
+/**
+ * A normally distributed float of `mean` and `deviation` (`RandomPCG::randfn`, the Box-Muller
+ * transform, `core/math/random_pcg.h:132`).
+ *
+ * @godot @GlobalScope.randfn
+ * @source core/variant/variant_utility.cpp:800
+ */
+export function randfn(mean: number, deviation: number): number {
+  let u = randd();
+  while (u <= 0) u = randd();
+  const v = randd();
+  return mean + deviation * Math.sqrt(-2 * Math.log(u)) * Math.cos(2 * Math.PI * v);
+}
+
+/**
  * `randd() * (to - from) + from` (`core/math/random_pcg.cpp:71`) on the global generator.
  *
  * @godot @GlobalScope.randf_range
