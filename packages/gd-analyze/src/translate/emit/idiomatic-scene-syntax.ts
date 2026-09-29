@@ -209,6 +209,16 @@ function pascalName(file: string): string {
 }
 
 /** The ref's local name of the node at `nodePath`, named once (a field may name it before its element). */
+/** The scene's node at `nodePath`, at any depth (a model's placements included). */
+function findNode(node: DirectGodotSceneNodePlan, nodePath: string): DirectGodotSceneNodePlan | undefined {
+  if (node.nodePath === nodePath) return node;
+  for (const child of godotSceneSubnodes(node)) {
+    const found = findNode(child, nodePath);
+    if (found !== undefined) return found;
+  }
+  return undefined;
+}
+
 function refLocal(emission: Emission, nodePath: string, nodeName: string): string {
   const named = emission.nodeRefs.get(nodePath);
   if (named !== undefined) return named;
@@ -949,6 +959,12 @@ export function idiomaticSceneSourceFile(
   const current = cameras.current;
   const scriptClasses = new Map(project.scriptClasses.map((entry) => [entry.scriptResPath, entry.generatedClass] as const));
   const family = familyEmission(scene.targetPath, scene.resources, current, (resPath) => scriptClasses.get(resPath));
+  // A ViewportTexture's SubViewport, by the ref the scene holds to it (its element declares it).
+  family.nodeRef = (nodePath) => {
+    const node = findNode(scene.root, nodePath);
+    if (node === undefined) throw new Error(`${nodePath}: a node the scene does not hold`);
+    return refLocal(emission, nodePath, node.name);
+  };
   familyCountUses(family, scene.root);
   const emission: Emission = {
     scene,

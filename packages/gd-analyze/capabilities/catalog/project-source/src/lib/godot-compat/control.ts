@@ -139,6 +139,8 @@ export interface ControlVirtuals {
   readonly draw?: (entity: Object3D, element: HTMLElement) => void;
   /** The state `draw` reads, as a key (`CanvasItemClass.drawKey`). */
   readonly drawKey?: (entity: Object3D, element: HTMLElement) => string;
+  /** Its drawing onto a SubViewport's canvas (`CanvasItemClass.paint`). */
+  readonly paint?: (entity: Object3D, context: CanvasRenderingContext2D, tint: Color) => void;
 }
 
 /** `Data::OffsetTransform` (`scene/gui/control.h`): the transform applied after the node's own. */
@@ -245,6 +247,7 @@ export function godot_control_mount(entity: Object3D, classes: readonly string[]
   };
   const draw = virtuals.draw;
   const drawKey = virtuals.drawKey;
+  const paint = virtuals.paint;
   godot_canvas_item_mount(entity, classes, {
     transform: godot_control_transform,
     drawTransform,
@@ -254,6 +257,7 @@ export function godot_control_mount(entity: Object3D, classes: readonly string[]
       clip(node, element);
       draw?.(node, element);
     },
+    ...(paint === undefined ? {} : { paint }),
     ...(draw !== undefined && drawKey === undefined
       ? {}
       : { drawKey: (node: Object3D, element: HTMLElement) => `${String((CONTROLS.get(node) as ControlState).clipContents)}|${drawKey?.(node, element) ?? ''}` }),

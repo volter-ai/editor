@@ -42,6 +42,8 @@ function refTargets(scene: Omit<DirectGodotSceneDocumentPlan, 'refs'>): Readonly
   };
   walk(scene.root);
   if (unique) targets.add(scene.root.nodePath);
+  // A ViewportTexture shows its SubViewport's image, which it finds from the node's ref.
+  for (const resource of scene.resources) if (resource.viewport !== undefined) targets.add(resource.viewport);
   // A connection delivered as a callback (`script-connections`, `instance-prop`) needs only the target's script (`scene-signal-delivery.ts`).
   for (const connection of scene.connections) {
     if (connection.delivery === undefined) targets.add(connection.fromNodePath);

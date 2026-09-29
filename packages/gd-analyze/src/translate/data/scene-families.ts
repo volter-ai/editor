@@ -253,7 +253,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Sprite3D: [...SPRITE_BASE_3D, 'set_texture', 'set_hframes', 'set_vframes', 'set_frame', 'set_region_enabled', 'set_region_rect'],
   AnimatedSprite3D: [...SPRITE_BASE_3D, 'set_sprite_frames', 'set_animation', 'set_autoplay', 'set_frame', 'set_frame_progress', 'set_speed_scale'],
   SubViewportContainer: [...CONTROL, 'set_stretch', 'set_stretch_shrink'],
-  SubViewport: ['set_meta:*', 'set_size', 'set_update_mode', 'set_transparent_background', 'set_handle_input_locally', 'set_msaa_3d'],
+  SubViewport: ['set_meta:*', 'set_size', 'set_update_mode', 'set_transparent_background', 'set_handle_input_locally', 'set_msaa_3d', 'set_disable_3d', 'set_use_own_world_3d', 'set_disable_input'],
   Area2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_monitoring', 'set_monitorable'],
   CollisionShape2D: [...NODE_2D, 'set_shape', 'set_disabled'],
   GPUParticles2D: [...NODE_2D, 'set_emitting', 'set_amount', 'set_lifetime', 'set_one_shot', 'set_speed_scale', 'set_explosiveness_ratio', 'set_randomness_ratio', 'set_use_local_coordinates', 'set_texture', 'set_process_material'],
@@ -395,6 +395,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_is_hemisphere', 'set_material'],
   // Its baked polygons, its data file's (`godotNavigationMeshDataPath`); its bake settings draw nothing.
   NavigationMesh: [],
+  // Its SubViewport's image; its `viewport_path` is planned as that node (`viewport`).
+  ViewportTexture: [],
   // A trail mesh a particle system with trails skins along its particles' paths (`cpu-particles-3d.ts`).
   RibbonTrailMesh: ['set_shape', 'set_size', 'set_sections', 'set_section_length', 'set_section_segments', 'set_curve', 'set_material'],
   BoxMesh: ['set_size', 'set_subdivide_width', 'set_subdivide_height', 'set_subdivide_depth', 'set_material'],

@@ -22,7 +22,7 @@ import { type Color, construct as color } from './color';
 import { godot_canvas_item_material_css_blend } from './canvas-item-material';
 import { godot_input_mouse_position } from './input';
 import { get_viewport, godot_node_entity, is_inside_tree } from './node';
-import type { Rect2 } from './rect2';
+import { construct as rect2, type Rect2 } from './rect2';
 import { get_visible_rect } from './viewport';
 import { affine_inverse, construct as transform2d, op_multiply, type Transform2D } from './transform-2d';
 import type { Vector2 } from './vector2';
@@ -46,6 +46,11 @@ export interface CanvasItemClass {
    * drawn every frame.
    */
   readonly drawKey?: (entity: Object3D, element: HTMLElement) => string;
+  /**
+   * `NOTIFICATION_DRAW` inside a SubViewport: the item's own drawing onto the viewport's 2D canvas,
+   * in the item's own coordinates, tinted by `tint` (its modulate in the tree and self modulate).
+   */
+  readonly paint?: (entity: Object3D, context: CanvasRenderingContext2D, tint: Color) => void;
 }
 
 interface CanvasItemState {
@@ -194,21 +199,56 @@ export function godot_canvas_item_layer_number(layer: Object3D): number {
  */
 export function godot_canvas_item_canvas_transform(entity: Object3D): Transform2D {
   const layer = godot_canvas_item_layer_of(entity);
-  return layer === null ? rootCanvasTransform : (LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer);
+  if (layer !== null) return (LAYERS.get(layer) as CanvasLayerLink).finalTransform(layer);
+  const viewport = godot_canvas_item_viewport_of(entity);
+  return viewport === null ? rootCanvasTransform : (VIEWPORT_ROOTS.get(viewport) as ViewportRoot).canvasTransform;
 }
 
 /** The root viewport's canvas transform, which its current Camera2D sets (`Viewport::set_canvas_transform`). */
 let rootCanvasTransform: Transform2D = transform2d();
 
+/** A SubViewport's canvas: its size and the canvas transform its current Camera2D sets. */
+interface ViewportRoot {
+  readonly size: () => Vector2;
+  canvasTransform: Transform2D;
+}
+
+const VIEWPORT_ROOTS = new WeakMap<Object3D, ViewportRoot>();
+
 /**
- * Sets the root viewport's canvas transform (a current Camera2D's view, `camera_2d.cpp:326`): the
- * canvas's items outside a canvas layer draw through it.
+ * Registers a SubViewport as the viewport of the canvas items under it: they draw onto its own
+ * canvas (`godot_canvas_item_paint`), not the page, at its `size`.
  *
  * @godot CanvasItem (protocol)
  * @source scene/main/viewport.cpp:1111
  */
-export function godot_canvas_item_set_canvas_transform(transform: Transform2D): void {
-  rootCanvasTransform = transform;
+export function godot_canvas_item_viewport_root(viewport: Object3D, size: () => Vector2): void {
+  if (!VIEWPORT_ROOTS.has(viewport)) VIEWPORT_ROOTS.set(viewport, { size, canvasTransform: transform2d() });
+}
+
+/**
+ * The SubViewport a node is in (the nearest registered one above it), or null in the root window.
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/node.cpp:1308
+ */
+export function godot_canvas_item_viewport_of(entity: Object3D): Object3D | null {
+  for (let node = entity.parent; node !== null; node = node.parent) if (VIEWPORT_ROOTS.has(node)) return node;
+  return null;
+}
+
+/**
+ * Sets a viewport's canvas transform (a current Camera2D's view, `camera_2d.cpp:326`): the root
+ * window's (`viewport` null) or a SubViewport's; the canvas's items outside a canvas layer draw
+ * through it.
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/viewport.cpp:1111
+ */
+export function godot_canvas_item_set_canvas_transform(transform: Transform2D, viewport: Object3D | null = null): void {
+  const root = viewport === null ? undefined : VIEWPORT_ROOTS.get(viewport);
+  if (root === undefined) rootCanvasTransform = transform;
+  else root.canvasTransform = transform;
 }
 
 /**
@@ -554,7 +594,8 @@ function placeOf(entity: Object3D, viewport: Object3D, root: HTMLElement): { rea
       const own = viewportCanvas(root);
       return { container: container ?? own, canvas: canvas ?? own };
     }
-    if ((node as { readonly isScene?: boolean }).isScene === true) return undefined;
+    // A SubViewport's items draw onto its own canvas (`godot_canvas_item_paint`).
+    if ((node as { readonly isScene?: boolean }).isScene === true || VIEWPORT_ROOTS.has(node)) return undefined;
     if (LAYERS.has(node)) {
       const element = elementOf(node, document);
       container ??= element;
@@ -772,9 +813,62 @@ export function godot_canvas_item_props(): (readonly [string, GodotElementProp<O
  * @source scene/main/canvas_item.cpp:450
  */
 export function get_viewport_rect(self: object): Rect2 {
-  const viewport = get_viewport(godot_node_entity(self));
+  const entity = godot_node_entity(self) as Object3D;
+  const viewport = get_viewport(entity);
   if (viewport === null) throw new Error('godot-compat: CanvasItem.get_viewport_rect outside the tree');
+  const sub = godot_canvas_item_viewport_of(entity);
+  if (sub !== null) {
+    const size = (VIEWPORT_ROOTS.get(sub) as ViewportRoot).size();
+    return rect2(0, 0, size.x, size.y);
+  }
   return get_visible_rect(viewport);
+}
+
+/**
+ * Draws a SubViewport's canvas items onto its 2D canvas (`RendererCanvasCull::render_canvas`): in
+ * tree order sorted by their z index, each through the viewport's canvas transform and its global
+ * transform, tinted by its modulate in the tree and its self modulate; a hidden item hides its
+ * children. A nested SubViewport draws its own.
+ *
+ * @godot CanvasItem (protocol)
+ * @source servers/rendering/renderer_canvas_cull.cpp:81
+ */
+export function godot_canvas_item_paint(viewport: Object3D, context: CanvasRenderingContext2D): void {
+  const root = VIEWPORT_ROOTS.get(viewport);
+  if (root === undefined) return;
+  const drawn: { readonly entity: Object3D; readonly z: number; readonly tint: Color }[] = [];
+  const walk = (node: Object3D, z: number, tint: Color): void => {
+    for (const child of node.children) {
+      if (VIEWPORT_ROOTS.has(child)) continue;
+      const state = ITEMS.get(child);
+      if (state === undefined) {
+        walk(child, z, tint);
+        continue;
+      }
+      if (!state.visible) continue;
+      const own = state.zRelative ? z + state.zIndex : state.zIndex;
+      const modulated = color(tint.r * state.modulate.r, tint.g * state.modulate.g, tint.b * state.modulate.b, tint.a * state.modulate.a);
+      drawn.push({ entity: child, z: own, tint: color(modulated.r * state.selfModulate.r, modulated.g * state.selfModulate.g, modulated.b * state.selfModulate.b, modulated.a * state.selfModulate.a) });
+      walk(child, own, modulated);
+    }
+  };
+  walk(viewport, 0, color(1, 1, 1, 1));
+  drawn.sort((left, right) => left.z - right.z);
+  for (const { entity, tint } of drawn) {
+    const state = ITEMS.get(entity) as CanvasItemState;
+    if (state.class.paint === undefined) {
+      if (state.class.draw === undefined) continue;
+      throw new Error(`godot-compat: a ${state.classes[0] ?? 'canvas item'} is not drawn in a SubViewport.`);
+    }
+    const parent = godot_canvas_item_parent(entity);
+    const own = (state.class.drawTransform ?? state.class.transform)(entity);
+    const t = op_multiply(root.canvasTransform, parent === null ? own : op_multiply(get_global_transform(parent), own));
+    context.setTransform(t.x.x, t.x.y, t.y.x, t.y.y, t.origin.x, t.origin.y);
+    context.globalAlpha = Math.min(Math.max(tint.a, 0), 1);
+    state.class.paint(entity, context, tint);
+  }
+  context.setTransform(1, 0, 0, 1, 0, 0);
+  context.globalAlpha = 1;
 }
 
 /**

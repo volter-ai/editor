@@ -283,6 +283,8 @@ export interface TargetGodotSceneResourcePlan {
   readonly load?: TargetGodotImportedLoad;
   /** An `ArrayMesh`'s surfaces, decoded from its `_surfaces` (`read/godot4-surfaces.ts`). */
   readonly mesh?: TargetGodotArrayMeshPlan;
+  /** A `ViewportTexture`: the node path, in its scene, of the SubViewport whose image it shows. */
+  readonly viewport?: string;
   /** A baked `NavigationMesh`: its vertices' coordinates and its polygons, written as a data file. */
   readonly navigation?: { readonly vertices: readonly number[]; readonly polygons: readonly (readonly number[])[] };
   /** A primitive mesh's three geometry args, and a cylinder's open top (`scene-surface-idioms.ts`). */
@@ -1170,6 +1172,15 @@ function planResolvedResource(
     }
     const planned = { key, className: data.type, construct: rule.construct, mesh, setters: [] };
     recordResource(document, key, planned);
+    return key;
+  }
+  if (data.type === 'ViewportTexture') {
+    const viewport = viewportTexturePath(document.scene, at, data);
+    if (typeof viewport === 'string' && viewport.startsWith('!')) {
+      refuse(context, `${at}(${key})`, viewport.slice(1), 'resource', 'ViewportTexture');
+      return undefined;
+    }
+    recordResource(document, key, { key, className: data.type, construct: rule.construct, viewport, setters: [] });
     return key;
   }
   if (data.type === 'NavigationMesh') {
@@ -2561,6 +2572,8 @@ function planScene(context: PlanContext, scene: BoundGodotSceneDocument): Target
   const cameras: TargetGodotSceneNodePlan[] = [];
   const findCameras = (node: TargetGodotSceneNodePlan): void => {
     if (node.classes[0] === 'Camera3D') cameras.push(node);
+    // A SubViewport's cameras are its own viewport's (`sub-viewport.ts`).
+    if (node.classes[0] === 'SubViewport') return;
     for (const child of godotSceneSubnodes(node)) findCameras(child);
   };
   findCameras(root);
@@ -2620,8 +2633,11 @@ export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>>
   RigidBody3D: RIGID_BODY_SETTERS,
   // A RigidBody3D its driver moves on its wheels (`vehicle-body-3d.tsx`): the forces are its script's.
   VehicleBody3D: [...RIGID_BODY_SETTERS, 'set_engine_force', 'set_brake', 'set_steering'],
+  // Its angular locks, which a character body's motion never reads (only its linear ones, in
+  // `move_and_slide`, `character_body_3d.cpp:47`, which compat does not bind).
   CharacterBody3D: [
     ...COLLISION_OBJECT_SETTERS,
+    ...AXIS_LOCKS.slice(3),
     'set_velocity',
     'set_safe_margin',
     'set_floor_stop_on_slope_enabled',
@@ -2696,6 +2712,33 @@ const MODEL_OVERRIDE_SLOTS: Readonly<Record<string, GodotModelOverrideSlot>> = {
   set_sleeping: { kind: 'node' },
   set_freeze_enabled: { kind: 'node' },
 };
+
+/**
+ * The SubViewport a ViewportTexture shows (`ViewportTexture::_setup_local_to_scene`,
+ * `viewport.cpp:211`): its `viewport_path` from the resource's local scene, which is the node it is
+ * set on when that is the scene's root or an instance, else that node's owner, the nearest instance
+ * above it or the scene's root (`SceneState::make_local_resource`, `packed_scene.cpp:709`). Its node
+ * path in the scene, or its refusal after a `!`.
+ */
+function viewportTexturePath(scene: BoundGodotSceneDocument, at: string, data: BoundGodotResourceData): string {
+  const value = data.properties['viewport_path'];
+  const path = value?.kind === 'ctor' && value.name === 'NodePath' && value.args[0]?.kind === 'string' ? value.args[0].value : undefined;
+  if (path === undefined || path === '') return '!a ViewportTexture without its viewport_path is not planned';
+  // The node the resource is set on: the authored path's node part (`<scene>#<node>.<property>…`).
+  const nodePath = /#([^.(]*)/u.exec(at)?.[1] ?? '.';
+  const instanced = (candidate: string) => scene.nodes.find((node) => node.nodePath === candidate)?.inheritedNode?.nodePath === '.';
+  let base = '.';
+  for (let candidate = nodePath; candidate !== '.' && candidate !== ''; candidate = candidate.includes('/') ? candidate.slice(0, candidate.lastIndexOf('/')) : '.') {
+    if (instanced(candidate)) {
+      base = candidate;
+      break;
+    }
+  }
+  const target = godotResolveNodePath(base, path);
+  const node = target === undefined ? undefined : scene.nodes.find((candidate) => candidate.nodePath === target);
+  if (node === undefined || !node.class.nativeAncestry.includes('SubViewport')) return `!viewport_path ${path} names no SubViewport of the scene`;
+  return node.nodePath;
+}
 
 /**
  * A baked `NavigationMesh` (`navigation_mesh.cpp:306`, `:317`): its `vertices` and `polygons`; its

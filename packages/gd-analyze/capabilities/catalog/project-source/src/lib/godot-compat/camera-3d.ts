@@ -19,8 +19,8 @@
  * camera's cull mask (Godot's 20 render layers are three's layers 0 to 19). A new Camera3D culls
  * with all 20 (`0xfffff`, `camera_3d.h:83`); a scene's camera states its mask.
  *
- * The camera's viewport is its topmost three ancestor: the root window (whose size `window.ts`
- * holds) or a SubViewport (`sub-viewport.ts`).
+ * The camera's viewport is its nearest SubViewport (`sub-viewport.ts`), else its topmost three
+ * ancestor: the root window (whose size `window.ts` holds).
  *
  * The projection is Godot's (`_get_camera_projection`) in all three modes. A perspective camera
  * without `h_offset`/`v_offset` draws through three's own `fov` and `aspect`; an orthogonal or
@@ -31,7 +31,7 @@
  * orthogonal camera.
  *
  * Which camera a viewport draws with is Godot's: a mounted camera registers with its viewport (the
- * nearest three `Scene` above it) when it enters the tree and becomes the viewport's camera when it
+ * nearest SubViewport or three `Scene` above it) when it enters the tree and becomes the viewport's camera when it
  * is `current` or the viewport's first (`NOTIFICATION_ENTER_WORLD`, `camera_3d.cpp:195`), and hands
  * over on leaving; the viewport's set of cameras keeps Godot's `HashSet` order, an erased camera's
  * slot taken by the last one (`core/templates/hash_set.h:263`).
@@ -43,7 +43,7 @@ import { godot_node_entity, godot_node_observe_tree, is_inside_tree } from './no
 import { get_global_transform } from './node-3d';
 import { construct as plane, type Plane } from './plane';
 import { construct as basisOf } from './basis';
-import { get_size as subViewportSize } from './sub-viewport';
+import { get_size as subViewportSize, godot_sub_viewport_camera_source, godot_sub_viewport_is } from './sub-viewport';
 import { construct as transform3d, type Transform3D } from './transform-3d';
 import { get_size as windowSize, godot_window_camera_coords, godot_window_has_size } from './window';
 import {
@@ -103,10 +103,10 @@ function camerasOf(viewport: Object3D): ViewportCameras {
   return cameras;
 }
 
-/** The nearest three `Scene` above the camera: its viewport (`Node::get_viewport`). */
+/** The nearest SubViewport or three `Scene` above the camera: its viewport (`Node::get_viewport`). */
 function nearestViewport(camera: Object3D): Object3D | null {
   for (let node = camera.parent; node !== null; node = node.parent) {
-    if ((node as { readonly isScene?: boolean }).isScene === true) return node;
+    if ((node as { readonly isScene?: boolean }).isScene === true || godot_sub_viewport_is(node)) return node;
   }
   return null;
 }
@@ -139,8 +139,8 @@ function stateOf(camera: PerspectiveCamera): CameraState {
 
 function viewportOf(camera: Object3D): Object3D {
   let node = camera;
-  while (node.parent !== null) node = node.parent;
-  return node;
+  while (node.parent !== null && !godot_sub_viewport_is(node.parent)) node = node.parent;
+  return node.parent ?? node;
 }
 
 /** `get_camera_rect_size()`: the viewport's `Size2i` as a `Vector2` (`scene/main/viewport.cpp:3711`). */
@@ -806,6 +806,8 @@ function enterWorld(camera: PerspectiveCamera): void {
   state.viewport = viewport;
   if (viewport === null) return;
   const cameras = camerasOf(viewport);
+  // A SubViewport draws its image through its own current camera.
+  if (godot_sub_viewport_is(viewport)) godot_sub_viewport_camera_source(viewport, () => camerasOf(viewport).camera);
   if (!cameras.set.includes(camera)) cameras.set.push(camera);
   if (state.current || cameras.set.length === 1) cameraSet(viewport, camera);
 }

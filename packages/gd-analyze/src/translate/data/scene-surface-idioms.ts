@@ -212,7 +212,7 @@ const collected = (setters: readonly TargetGodotSceneSetterPlan[]): readonly Tar
     return collect === undefined && role === undefined ? entry : { ...entry, ...(collect === undefined ? {} : { collect }), ...(role === undefined ? {} : { role }) };
   });
 
-/** The first Camera3D the scene holds, in tree order, and the one authored current. */
+/** The first Camera3D the scene holds, in tree order, and the one authored current, outside its SubViewports. */
 function sceneCameras(root: DirectGodotSceneNodePlan): { readonly first?: string; readonly authored?: string } {
   let first: string | undefined;
   let authored: string | undefined;
@@ -222,6 +222,8 @@ function sceneCameras(root: DirectGodotSceneNodePlan): { readonly first?: string
       const current = entry.setters.find((setter) => setter.role?.kind === 'current')?.value;
       if (current?.kind === 'bool' && current.value) authored ??= entry.nodePath;
     }
+    // A SubViewport's cameras are its own viewport's (`sub-viewport.ts`).
+    if (entry.classes[0] === 'SubViewport') return;
     for (const child of godotSceneSubnodes(entry)) walk(child);
   };
   walk(root);
