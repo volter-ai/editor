@@ -32,6 +32,13 @@ const CONTROL = [
   'set_stretch_ratio',
   'set_mouse_filter',
   'set_force_pass_scroll_events',
+  // The theme overrides, one `themeOverrides` prop (`theme_override_<kind>/NAME`).
+  'add_theme_font_size_override:*',
+  'add_theme_font_override:*',
+  'add_theme_color_override:*',
+  'add_theme_constant_override:*',
+  'add_theme_stylebox_override:*',
+  'add_theme_icon_override:*',
 ];
 // `GeometryInstance3D`'s visibility range: `<GodotVisibilityRange>` around the node's element.
 const VISIBILITY_RANGE = [

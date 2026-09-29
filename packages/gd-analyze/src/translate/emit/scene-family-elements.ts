@@ -1027,6 +1027,8 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
   const own = setters.filter((setter) => setter.collect === undefined);
   // The node's metadata entries, one `meta` prop (`Object::_set`, `metadata/NAME`).
   const meta = setters.filter((setter) => setter.collect === 'meta');
+  // A Control's theme overrides, one `themeOverrides` prop by `<setter>/NAME`.
+  const theme = setters.filter((setter) => setter.collect === 'theme');
   return [
     ...(libraries.length === 0
       ? []
@@ -1045,6 +1047,9 @@ function elementProps(emission: FamilyEmission, nodePath: string, setters: reado
     ...(meta.length === 0
       ? []
       : [attribute('meta', { kind: 'object-expression', properties: meta.map((setter) => ({ key: String(setter.index), value: metaValue(emission, setter.value) })) })]),
+    ...(theme.length === 0
+      ? []
+      : [attribute('themeOverrides', { kind: 'object-expression', properties: theme.map((setter) => ({ key: `${setter.setter.exportName}/${String(setter.index)}`, value: propValue(emission, setter.value) })) })]),
     ...(parameters.length === 0
       ? []
       : [attribute('parameters', { kind: 'object-expression', properties: parameters.map((setter) => ({ key: String(setter.index), value: propValue(emission, setter.value) })) })]),

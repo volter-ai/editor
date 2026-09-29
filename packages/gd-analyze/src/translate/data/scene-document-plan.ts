@@ -174,7 +174,7 @@ export interface TargetGodotSceneSetterPlan {
     | { readonly kind: 'visibility-range'; readonly prop: string }
     | { readonly kind: 'current' };
   /** The one prop of its element or resource it joins with the others of its kind (`scene-surface-idioms.ts`). */
-  readonly collect?: 'libraries' | 'parameters' | 'meta' | 'shader' | 'shader-parameter';
+  readonly collect?: 'libraries' | 'parameters' | 'meta' | 'shader' | 'shader-parameter' | 'theme';
   /** On an imported model's own node: the part of the model's element it sets (`MODEL_OVERRIDE_SLOTS`). */
   readonly modelSlot?: GodotModelOverrideSlot;
 }

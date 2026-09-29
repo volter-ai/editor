@@ -157,6 +157,12 @@ const COLLECTED: ReadonlyMap<string, NonNullable<TargetGodotSceneSetterPlan['col
   ['set_meta', 'meta'],
   ['set_shader', 'shader'],
   ['set_shader_parameter', 'shader-parameter'],
+  ['add_theme_font_size_override', 'theme'],
+  ['add_theme_font_override', 'theme'],
+  ['add_theme_color_override', 'theme'],
+  ['add_theme_constant_override', 'theme'],
+  ['add_theme_stylebox_override', 'theme'],
+  ['add_theme_icon_override', 'theme'],
 ]);
 
 /**

@@ -1696,6 +1696,23 @@ export function godot_control_props(): (readonly [string, GodotElementProp<Objec
   const v2 = (value: readonly [number, number]) => vector2(...value);
   return [
     ...godot_canvas_item_props(),
+    // The theme overrides a scene states (`theme_override_<kind>/NAME`), by setter and name.
+    [
+      'themeOverrides',
+      (entity, value: Readonly<Record<string, unknown>>) => {
+        for (const [key, entry] of Object.entries(value)) {
+          const slash = key.indexOf('/');
+          const setter = key.slice(0, slash);
+          const name = key.slice(slash + 1);
+          if (setter === 'add_theme_font_size_override') add_theme_font_size_override(entity, name, entry as number);
+          else if (setter === 'add_theme_font_override') add_theme_font_override(entity, name, entry as GodotFont | null);
+          else if (setter === 'add_theme_color_override') add_theme_color_override(entity, name, color(...(entry as [number, number, number, number])));
+          else if (setter === 'add_theme_constant_override') add_theme_constant_override(entity, name, entry as number);
+          else if (setter === 'add_theme_stylebox_override') add_theme_stylebox_override(entity, name, entry as object | null);
+          else if (setter === 'add_theme_icon_override') add_theme_icon_override(entity, name, entry as object | null);
+        }
+      },
+    ],
     ['customMinimumSize', (entity, value: readonly [number, number]) => set_custom_minimum_size(entity, v2(value))],
     ['customMaximumSize', (entity, value: readonly [number, number]) => set_custom_maximum_size(entity, v2(value))],
     ['layoutMode', (entity, value: number) => _set_layout_mode(entity, value)],

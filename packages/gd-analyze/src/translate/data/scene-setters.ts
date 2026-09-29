@@ -68,6 +68,17 @@ const RANDOMIZER_ENTRY = /^stream_(\d+)\/(stream|weight)$/;
  */
 const METADATA = /^metadata\/(.+)$/;
 
+/** A Control's theme override (`theme_override_<kind>/NAME`, `Control::_set`, `control.cpp:340`) and its setter. */
+const THEME_OVERRIDE = /^theme_override_(font_sizes|fonts|colors|constants|styles|icons)\/(.+)$/;
+const THEME_OVERRIDE_SETTERS: Readonly<Record<string, string>> = {
+  font_sizes: 'add_theme_font_size_override',
+  fonts: 'add_theme_font_override',
+  colors: 'add_theme_color_override',
+  constants: 'add_theme_constant_override',
+  styles: 'add_theme_stylebox_override',
+  icons: 'add_theme_icon_override',
+};
+
 /**
  * `ShaderMaterial::_set` (`scene/resources/material.cpp:197`): `shader_parameter/NAME` is
  * `set_shader_parameter(NAME, value)`, a parameter of the material's shader.
@@ -130,7 +141,12 @@ export function sceneSetterLookup(
     const bone = BONE_POSE.exec(property);
     const metadata = METADATA.exec(property);
     const shaderParameter = SHADER_PARAMETER.exec(property);
-    if (shaderParameter !== null && ancestry.includes('ShaderMaterial')) {
+    const theme = THEME_OVERRIDE.exec(property);
+    if (theme !== null && ancestry.includes('Control')) {
+      owner = 'Control';
+      setter = THEME_OVERRIDE_SETTERS[theme[1] as string];
+      index = theme[2] as string;
+    } else if (shaderParameter !== null && ancestry.includes('ShaderMaterial')) {
       owner = 'ShaderMaterial';
       setter = 'set_shader_parameter';
       index = shaderParameter[1] as string;
