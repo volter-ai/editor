@@ -7,11 +7,12 @@
  * opaque record `SceneTree.create_tween` makes (`scene-tree.ts`), which also steps it in the tree's
  * process or physics pass; its steps, flags and signals live in `TWEEN`, keyed by the record.
  *
- * Transcribed: `tween_property` and `tween_callback` (with `PropertyTweener` and `CallbackTweener`),
- * sequential and parallel steps, loops, speed scale, kill/stop/pause/play, the bound node, the
- * process and pause modes, and the `step_finished`, `loop_finished` and `finished` signals. Not
- * transcribed (no binding): `tween_interval`, `tween_method`, `tween_subtween`, `tween_await`,
- * `custom_step` and `set_ignore_time_scale`.
+ * Transcribed: `tween_property`, `tween_callback`, `tween_interval`, `tween_method`,
+ * `tween_subtween` and `tween_await` (with their tweeners' modules), sequential and parallel steps,
+ * loops, speed scale, kill/stop/pause/play, `custom_step`, the bound node, the process and pause
+ * modes, and the `step_finished`, `loop_finished` and `finished` signals. A subtween is stepped by
+ * the tween it was added to, not by its creator. `ignore_time_scale` is kept: the host's delta is
+ * not scaled (`Engine.time_scale` is not bound), so there is nothing to ignore.
  *
  * The easing equations run in `real_t` (float32), as Godot declares them; where one calls the C
  * library in double (`Math::sin`/`cos` of a double argument) or in float (`Math::pow`/`sqrt` of
@@ -27,7 +28,12 @@
 
 import { type Color, construct as color } from './color';
 import { can_process as nodeCanProcess, godot_node_is_freed, is_inside_tree } from './node';
+import { godot_await_tweener_create, type AwaitTweener } from './await-tweener';
 import { godot_callback_tweener_create, type CallbackTweener } from './callback-tweener';
+import { godot_interval_tweener_create, type IntervalTweener } from './interval-tweener';
+import { godot_method_tweener_create, godot_method_tweener_set_tween, type MethodTweener } from './method-tweener';
+import type { GodotSignal } from './signal';
+import { godot_subtween_tweener_create, type SubtweenTweener } from './subtween-tweener';
 import { godot_property_tweener_create, godot_property_tweener_set_tween, type PropertyTweener } from './property-tweener';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import { godot_tweener_set_tween, godot_tweener_start, godot_tweener_step } from './tweener';
@@ -72,6 +78,9 @@ interface TweenState {
   valid: boolean;
   default_parallel: boolean;
   parallel_enabled: boolean;
+  ignore_time_scale: boolean;
+  /** Added to another tween as its subtween: that tween steps it, the creator's pass does not. */
+  subtween: boolean;
   readonly finished: SignalHandle<[]>;
   readonly step_finished: SignalHandle<[number]>;
   readonly loop_finished: SignalHandle<[number]>;
@@ -114,6 +123,8 @@ export function godot_tween_create(): Tween {
     valid: true,
     default_parallel: false,
     parallel_enabled: false,
+    ignore_time_scale: false,
+    subtween: false,
     finished: createSignal<[]>(),
     step_finished: createSignal<[number]>(),
     loop_finished: createSignal<[number]>(),
@@ -189,6 +200,95 @@ export function tween_callback(self: Tween, callback: (...args: never[]) => unkn
   const tweener = godot_callback_tweener_create(callback);
   append(self, state, tweener);
   return tweener;
+}
+
+/**
+ * An `IntervalTweener`: a step that waits `time` seconds.
+ *
+ * @godot Tween.tween_interval
+ * @source scene/animation/tween.cpp:123
+ */
+export function tween_interval(self: Tween, time: number): IntervalTweener | null {
+  const state = stateOf(self);
+  if (!checkValid(state)) return null;
+  const tweener = godot_interval_tweener_create(time);
+  append(self, state, tweener);
+  return tweener;
+}
+
+/**
+ * A `MethodTweener` calling `method` with a value eased from `from` to `to` over `duration`
+ * seconds; the value types must match (Godot's error, and no tweener).
+ *
+ * @godot Tween.tween_method
+ * @source scene/animation/tween.cpp:141
+ */
+export function tween_method(self: Tween, method: (value: never) => unknown, from: unknown, to: unknown, duration: number): MethodTweener | null {
+  const state = stateOf(self);
+  if (!checkValid(state)) return null;
+  if (variantType(from) !== variantType(to)) return null;
+  const tweener = godot_method_tweener_create(method, from, to, duration);
+  append(self, state, tweener);
+  godot_method_tweener_set_tween(tweener, state.default_transition, state.default_ease);
+  return tweener;
+}
+
+/**
+ * A `SubtweenTweener` running `subtween` as a step; the subtween leaves its creator's pass (Godot
+ * removes it from its tree) and is stepped by this tween.
+ *
+ * @godot Tween.tween_subtween
+ * @source scene/animation/tween.cpp:154
+ */
+export function tween_subtween(self: Tween, subtween: Tween | null): SubtweenTweener | null {
+  const state = stateOf(self);
+  if (!checkValid(state) || subtween === null) return null;
+  stateOf(subtween).subtween = true;
+  const tweener = godot_subtween_tweener_create(subtween);
+  append(self, state, tweener);
+  return tweener;
+}
+
+/**
+ * An `AwaitTweener`: a step that waits until `signal` is emitted (or its timeout passes).
+ *
+ * @godot Tween.tween_await
+ * @source scene/animation/tween.cpp:174
+ */
+export function tween_await(self: Tween, signal: GodotSignal<readonly unknown[]>): AwaitTweener | null {
+  const state = stateOf(self);
+  if (!checkValid(state)) return null;
+  const tweener = godot_await_tweener_create(signal);
+  append(self, state, tweener);
+  return tweener;
+}
+
+/**
+ * Steps the tween by `delta` now, running even while paused, and returns whether it still has
+ * steps to run; during another step it fails and returns true.
+ *
+ * @godot Tween.custom_step
+ * @source scene/animation/tween.cpp:325
+ */
+export function custom_step(self: Tween, delta: number): boolean {
+  const state = stateOf(self);
+  if (state.in_step) return true;
+  const running = state.running;
+  state.running = true;
+  const result = godot_tween_step(self, delta);
+  state.running = state.running && running;
+  return result;
+}
+
+/**
+ * Kept (the module header): the delta the tween is stepped by is already unscaled.
+ *
+ * @godot Tween.set_ignore_time_scale
+ * @source scene/animation/tween.cpp:264
+ */
+export function set_ignore_time_scale(self: Tween, ignore = true): Tween {
+  stateOf(self).ignore_time_scale = Boolean(ignore);
+  return self;
 }
 
 // --- Control.
@@ -554,6 +654,7 @@ export function godot_tween_step(self: Tween, p_delta: number): boolean {
  */
 export function godot_tween_can_process(self: Tween, tree_paused: boolean): boolean {
   const state = stateOf(self);
+  if (state.subtween) return false;
   if (state.is_bound && state.pause_mode === TWEEN_PAUSE_BOUND) {
     const node = boundNode(state);
     if (node !== undefined) return is_inside_tree(node) && nodeCanProcess(node);
