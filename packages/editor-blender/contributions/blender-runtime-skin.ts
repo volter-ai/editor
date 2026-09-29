@@ -288,6 +288,8 @@ export class BlenderSkinDirector {
     this.#engineCalls++;
     const clip = await read.clip();
     const previous = this.#clip;
+    const rangeChanged = clip?.frameStart !== previous?.frameStart ||
+      clip?.frameEnd !== previous?.frameEnd || clip?.fps !== previous?.fps;
     const movedAction =
       clip?.action !== previous?.action ||
       clip?.tracks.length !== previous?.tracks.length ||
@@ -297,12 +299,16 @@ export class BlenderSkinDirector {
     if (!clip || clip.scene !== previous?.scene) this.#seeked = null;
     if (clip?.reason) warnings.push(clip.reason);
     if (clip && (movedAction || changed)) this.#loadClip(presentation, clip, warnings);
+    // The subject can attach before the asynchronous scene read arrives.
+    // Refresh its clock range through the transport's own subject door.
+    const activeSubject = this.#transport?.snapshot().activeSubject;
+    if (rangeChanged && activeSubject) this.#transport?.setActiveSubject(activeSubject);
     // BLENDER'S OWN FRAME RE-SYNCS THE PLAYHEAD. An agent that set
     // `scene.frame_current` in bpy has said where it wants to be, and a
     // present is how we hear about it; while the transport is PLAYING it would
     // be the Timeline arguing with itself, so it is honoured only at rest.
     const playing = this.#transport?.snapshot().playbackState === 'playing';
-    if (clip && !playing && previous?.frameCurrent !== clip.frameCurrent) {
+    if (clip && !playing && (rangeChanged || previous?.frameCurrent !== clip.frameCurrent)) {
       this.#seek(clip.frameCurrent);
       // THE BOOKMARK READ, once per bind: the file says where it was left, and
       // the transport is what everything else now asks.
