@@ -14,7 +14,7 @@ import type { ThreeElements } from '@react-three/fiber';
 import { createElement, type Ref, useLayoutEffect, useRef } from 'react';
 import type { Group, Object3D } from 'three';
 import { godot_collision_object_body } from './collision-object-3d';
-import { godot_node_adopt, godot_node_entity, is_inside_tree } from './node';
+import { godot_node_entity, is_inside_tree } from './node';
 import { get_global_transform } from './node-3d';
 import { intersect_ray } from './physics-direct-space-state-3d';
 import { godot_ray_query_new } from './physics-ray-query-parameters-3d';
@@ -44,7 +44,6 @@ interface RayState {
 }
 
 const RAY = new WeakMap<object, RayState>();
-const RAY_CAST_3D = Object.freeze(['RayCast3D', 'Node3D', 'Node', 'Object']);
 
 function stateOf(object: object): RayState {
   const entity = godot_node_entity(object);
@@ -113,7 +112,6 @@ export function godot_ray_cast_3d_adopt(entity: object): void {
     face: -1,
   };
   RAY.set(entity, state);
-  godot_node_adopt(entity, { classes: RAY_CAST_3D });
 }
 
 /**
