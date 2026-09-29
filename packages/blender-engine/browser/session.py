@@ -143,6 +143,25 @@ REPLY = os.path.join(ROOT, "reply")
 # (`blender-wali-engine.mts`), where the file is not a fallback but the
 # native door onto the same bytes.
 EXPORT_BUFFER_PATH = os.environ.get("VOLTER_EXPORT_BUFFER_PATH", "")
+
+# WHERE THE ENGINE'S HEAP WENT, stage by stage: the heap only grows, so its size after a stage says
+# nothing about the stage before it; this records `_blender_web.memory()` at each, in MB
+# ([label, heap, mallocInUse, mallocFree, guarded, guardedPeak]), and a script reads `MEMORY_MARKS`
+# (the last 64) to say which stage raised the high-water mark. MEASURED 2026-09-29 on the
+# Stoneguard file: the first export's door call took the heap from 1,442 to 3,644 MB while in-use
+# rose 28 MB and the guarded peak did not move -- OpenSubdiv's limit-surface evaluator for one
+# head (quality 3), which native Blender pays too (+1.2 GB peak RSS there).
+MEMORY_MARKS = []
+
+
+def _mark(label):
+    try:
+        reading = _blender_web.memory()
+    except Exception:  # noqa: BLE001 -- an engine without the door records nothing
+        return
+    MEMORY_MARKS.append([label] + [round(reading.get(key, 0) / 1048576)
+                                   for key in ("heap", "mallocInUse", "mallocFree", "guarded", "guardedPeak")])
+    del MEMORY_MARKS[:-64]
 _real_stderr = sys.stderr
 
 
@@ -1358,6 +1377,7 @@ class Session:
         """
         scene = bpy.context.scene
         graphs = material_graphs(scene)
+        _mark("export:graphs")
         # An IMAGE EMPTY's picture travels with the graphs' images: the overlay draws it
         # (`overlay_empty.hh` `image_sync`).
         empty_images = {obj.data.name for obj in scene.objects
@@ -1378,7 +1398,13 @@ class Session:
         # An engine without the pull door ships them all in this call, as before.
         if hasattr(_blender_web, "export_mesh"):
             options["defer"] = True
-        frame = json.loads(_blender_web.export_frame(json.dumps(options)))
+        if hasattr(_blender_web, "memory_reset_peak"):
+            _blender_web.memory_reset_peak()
+        exported = _blender_web.export_frame(json.dumps(options))
+        _mark("export:door")
+        frame = json.loads(exported)
+        del exported
+        _mark("export:parsed")
         error = frame.get("error")
         if error:
             raise RuntimeError("Blender export door: %s" % error)
@@ -1507,8 +1533,11 @@ class Session:
 
     def _present(self, capture=None):
         known = dict(self._known)
+        _mark("present:before")
         frame = self._export()
+        _mark("present:exported")
         pulled = self._pull(frame)
+        _mark("present:pulled")
         self._drop_unreachable_textures(frame)
         # WHAT THIS FRAME SHIPPED, for the session's own accounting: the ids
         # whose columns crossed, and the ids that went as a reference. The
@@ -1816,7 +1845,9 @@ class Session:
         self.document = os.path.join(self.project, relative_path)
         if not os.path.exists(self.document):
             return {"document": relative_path, "opened": False}
+        _mark("open:before")
         bpy.ops.wm.open_mainfile(filepath=self.document)
+        _mark("open:after")
         size = os.path.getsize(self.document)
         # THE STAGED COPY GOES ONCE BLENDER HAS READ IT. It sits in the engine's heap (WasmFS keeps
         # file data in linear memory) and nothing reads it again: the load took everything into
