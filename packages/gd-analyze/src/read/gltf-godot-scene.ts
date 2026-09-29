@@ -89,6 +89,8 @@ export interface GlbMeshSurface {
 export interface GlbMeshInfo {
   /** `ArrayMesh` — what `ImporterMesh` becomes once `_post_fix_node` bakes it. */
   readonly meshClass: string;
+  /** The glTF `meshes[]` index the importer made this mesh resource from. */
+  readonly gltfMesh: number;
   readonly resourceName: string;
   readonly surfaces: readonly GlbMeshSurface[];
 }
@@ -235,24 +237,27 @@ function gltfOriginIndex(nodes: readonly GlbSceneNode[]): {
   nodeIndexByPath: Map<string, number>;
   nameByPath: Map<string, string>;
   surfaceCountByPath: Map<string, number>;
+  meshByPath: Map<string, number>;
   boneNamesByPath: Map<string, readonly string[]>;
   bonesByPath: Map<string, readonly { readonly name: string; readonly gltfNode: number; readonly pose: GlbBonePose }[]>;
 } {
   const nodeIndexByPath = new Map<string, number>();
   const nameByPath = new Map<string, string>();
   const surfaceCountByPath = new Map<string, number>();
+  const meshByPath = new Map<string, number>();
   const boneNamesByPath = new Map<string, readonly string[]>();
   const bonesByPath = new Map<string, readonly { readonly name: string; readonly gltfNode: number; readonly pose: GlbBonePose }[]>();
   for (const node of nodes) {
     if (node.gltfNodeIndex !== undefined) nodeIndexByPath.set(node.path, node.gltfNodeIndex);
     if (node.gltfName !== undefined) nameByPath.set(node.path, node.gltfName);
     if (node.mesh !== undefined) surfaceCountByPath.set(node.path, node.mesh.surfaces.length);
+    if (node.mesh !== undefined) meshByPath.set(node.path, node.mesh.gltfMesh);
     if (node.bones !== undefined) boneNamesByPath.set(node.path, node.bones.map((bone) => bone.name));
     if (node.bones !== undefined) {
       bonesByPath.set(node.path, node.bones.map((bone) => ({ name: bone.name, gltfNode: bone.gltfNodeIndex, pose: bone.pose })));
     }
   }
-  return { nodeIndexByPath, nameByPath, surfaceCountByPath, boneNamesByPath, bonesByPath };
+  return { nodeIndexByPath, nameByPath, surfaceCountByPath, meshByPath, boneNamesByPath, bonesByPath };
 }
 
 export function glbSceneDocument(scene: GlbScene): SceneDocument {
@@ -265,7 +270,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
     byPath.get(parentPath)?.children.push(asSceneNode(node, byPath));
   }
   const root = byPath.get('.');
-  const { nodeIndexByPath, nameByPath, surfaceCountByPath, boneNamesByPath, bonesByPath } =
+  const { nodeIndexByPath, nameByPath, surfaceCountByPath, meshByPath, boneNamesByPath, bonesByPath } =
     gltfOriginIndex(scene.nodes);
   const player = scene.nodes.find((node) => node.animations !== undefined);
   const playerClips = player?.animations ?? [];
@@ -297,6 +302,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
       nodeIndexByPath,
       nameByPath,
       surfaceCountByPath,
+      meshByPath,
       boneNamesByPath,
       bonesByPath,
       sceneRootPaths: scene.sceneRootPaths,
@@ -713,6 +719,7 @@ export function readGltfAsGodotScene(
     }
     return {
       meshClass: 'ArrayMesh',
+      gltfMesh: node.mesh as number,
       resourceName: meshResourceNames[node.mesh as number] as string,
       surfaces: mesh.primitives.map((primitive, index) => {
         const material =

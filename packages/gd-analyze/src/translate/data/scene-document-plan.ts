@@ -113,6 +113,8 @@ export interface TargetGodotImportedModelNode {
   /** A GeometryInstance3D (a mesh): it casts and receives shadows as Godot makes it. */
   readonly geometryInstance?: true;
   readonly gltfNode?: number;
+  /** The glTF `meshes[]` index of the mesh resource the node carries (its `mesh` in the model's SceneState). */
+  readonly mesh?: number;
   readonly matrix: readonly number[];
   /** A Skeleton3D's bones in Godot's order: names, the glTF joints they bind to, imported poses. */
   readonly bones?: readonly BoundGodotImportedBone[];
@@ -1747,6 +1749,7 @@ function planImportedInstance(
     const transform = member.authoredProperties['transform'];
     const matrix = transform === undefined ? undefined : serializedValue(transform)?.value;
     const gltfNode = model.nodeIndexByPath[member.nodePath];
+    const mesh = model.meshByPath[member.nodePath];
     const bones = model.bonesByPath[member.nodePath];
     nodes.push({
       path: member.nodePath,
@@ -1756,6 +1759,7 @@ function planImportedInstance(
       ...(member.class.nativeAncestry.includes('AnimationPlayer') ? { animationPlayer: true as const } : {}),
       ...(member.class.nativeAncestry.includes('GeometryInstance3D') ? { geometryInstance: true as const } : {}),
       ...(gltfNode === undefined ? {} : { gltfNode }),
+      ...(mesh === undefined ? {} : { mesh }),
       matrix: matrix ?? IDENTITY_MATRIX,
       ...(bones === undefined ? {} : { bones }),
     });

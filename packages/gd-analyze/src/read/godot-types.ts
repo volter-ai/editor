@@ -239,6 +239,8 @@ export interface GltfSceneOrigin {
    * per-surface override that object is one primitive mesh inside the node, not the node.
    */
   readonly surfaceCountByPath: ReadonlyMap<string, number>;
+  /** Godot node path → the glTF `meshes[]` index of the mesh resource the node carries. */
+  readonly meshByPath: ReadonlyMap<string, number>;
   /** Importer-synthesized Skeleton3D path → ordered bone names. */
   readonly boneNamesByPath: ReadonlyMap<string, readonly string[]>;
   /** The AnimationPlayer's clips as the importer keys them (`read/gltf-animation-import.ts`), or why not. */

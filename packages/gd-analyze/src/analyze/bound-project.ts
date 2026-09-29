@@ -217,6 +217,8 @@ export interface BoundGodotSceneDocument {
   readonly model?: {
     readonly bytes: Uint8Array;
     readonly nodeIndexByPath: Readonly<Record<string, number>>;
+    /** Each node that carries a mesh resource, by its glTF `meshes[]` index. */
+    readonly meshByPath: Readonly<Record<string, number>>;
     /** Each Skeleton3D's bones in Godot's order: names, glTF joint nodes and imported poses. */
     readonly bonesByPath: Readonly<Record<string, readonly BoundGodotImportedBone[]>>;
     readonly externalImages: readonly GltfExternalImage[];
@@ -678,6 +680,7 @@ function boundDocuments(
                 model: {
                   bytes: snapshot.bytesByResPath(document.resPath),
                   nodeIndexByPath: Object.fromEntries(document.gltfOrigin.nodeIndexByPath),
+                  meshByPath: Object.fromEntries(document.gltfOrigin.meshByPath),
                   bonesByPath: Object.fromEntries(document.gltfOrigin.bonesByPath),
                   externalImages: document.gltfOrigin.externalImages,
                   ...externalMaterialsOf(decoded.imports.find((sidecar) => sidecar.sourceFile === document.resPath)?.externalMaterials),

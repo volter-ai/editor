@@ -63,6 +63,8 @@ export interface GodotImportedSceneNode {
   readonly nonSpatial?: true;
   /** The glTF `nodes[]` index the importer made this node from; absent for a synthesized node. */
   readonly gltfNode?: number;
+  /** The glTF `meshes[]` index of the mesh resource the importer gave this node, as the plan states it. */
+  readonly mesh?: number;
   /** Godot's local transform, column-major (the Object3D matrix). */
   /** The importer's AnimationPlayer, which plays the model's clips. */
   readonly animationPlayer?: true;
