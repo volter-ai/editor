@@ -150,7 +150,7 @@ export function sceneSetterLookup(
     const theme = THEME_OVERRIDE.exec(property);
     if (theme !== null && ancestry.includes('Control')) {
       owner = 'Control';
-      setter = THEME_OVERRIDE_SETTERS[theme[1] as string]?.replace(/^add_/u, 'get_');
+      setter = accessor === 'getter' ? THEME_OVERRIDE_SETTERS[theme[1] as string]?.replace(/^add_(.*)_override$/u, 'get_$1') : THEME_OVERRIDE_SETTERS[theme[1] as string];
       index = theme[2] as string;
     } else if (shaderParameter !== null && ancestry.includes('ShaderMaterial')) {
       owner = 'ShaderMaterial';
