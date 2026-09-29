@@ -347,14 +347,11 @@ export function set_msaa_3d(self: object, msaa: number): void {
   void msaa;
 }
 
-const FRAME_POST_DRAW = createSignal<[]>();
 /** R3F's after-render effect, held while the signal has connections. */
 let afterDraw: (() => void) | undefined;
-const connectPostDraw = FRAME_POST_DRAW.signal.connect;
-// Connecting arms R3F's own after-render effect (`addAfterEffect`), which emits once each frame
+// A connection arms R3F's own after-render effect (`addAfterEffect`), which emits once each frame
 // has been drawn and removes itself once nothing is connected.
-FRAME_POST_DRAW.signal.connect = (listener, options, callable) => {
-  const connection = connectPostDraw(listener, options, callable);
+const FRAME_POST_DRAW = createSignal<[]>(() => {
   afterDraw ??= addAfterEffect(() => {
     FRAME_POST_DRAW.emit();
     if (!FRAME_POST_DRAW.signal.hasConnections()) {
@@ -362,8 +359,7 @@ FRAME_POST_DRAW.signal.connect = (listener, options, callable) => {
       afterDraw = undefined;
     }
   });
-  return connection;
-};
+});
 
 /**
  * `RenderingServer.frame_post_draw`: emitted once a frame has been drawn, by R3F's after-render

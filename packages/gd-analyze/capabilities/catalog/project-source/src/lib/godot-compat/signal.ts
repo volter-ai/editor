@@ -238,14 +238,15 @@ export function emitRetainedGodotSignal(
 }
 
 /**
- * One signal. See this module's header for why `emit` is not on the signal.
+ * One signal. See this module's header for why `emit` is not on the signal. `onConnect` is told of
+ * each new connection (a signal whose emitter runs only while something listens arms it there).
  *
  * @godot Signal (protocol)
  * @source core/object/object.cpp:1517 (Object::connect: flags, duplicate and reference-counted slots)
  * @source core/object/object.cpp:1223 (emit_signalp disconnects one-shot slots before invoking)
  * @source core/object/object.cpp:1630 (Object::_disconnect decrements a reference-counted slot)
  */
-export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Args> {
+export function createSignal<Args extends readonly unknown[]>(onConnect?: () => void): SignalHandle<Args> {
   const target = new EventTarget();
   const connections = new Map<
     object,
@@ -325,6 +326,7 @@ export function createSignal<Args extends readonly unknown[]>(): SignalHandle<Ar
           flags,
           referenceCount: 1,
         });
+        onConnect?.();
         return connection;
       },
       disconnect(callable): void {
