@@ -1,8 +1,9 @@
 {
   "date": "2026-09-29",
-  "status": "candidate; hosted viewport and human acceptance pending",
-  "engineSource": "e5d7eec67572dfc7c73f8f4d3f601d03442546f9",
-  "transportSource": "02ef38822466f00666bdc2a1052bb33526e3b335",
+  "status": "core coding verified; updated hosted acceptance pending",
+  "engineSource": "54e4af619a285c6d76c56ef960dc99d45aca5084",
+  "transportSource": "ce8541be",
+  "drawSource": "7d1eca57",
   "scene": {
     "repository": "volter-ai/game-benchmarks",
     "revision": "34eb427",
@@ -13,82 +14,321 @@
     "demoSha256": "91f4fed7d421d346d278ee133285ba72e9408ddea8b7b6835f48fb62b44412c9",
     "demoChange": "Save a compressed copy with all windows on Stoneguard Bridge; retain all scenes and geometry. Source file is unchanged."
   },
-  "nativeComparison": {
-    "openLiveMallocMiB": 1600.1,
-    "bridgeLiveMallocMiB": 2858,
-    "afterMeshReadsLiveMallocMiB": 5137.8,
-    "peakRssMiB": 2491.2,
-    "interpretation": "macOS compressed memory makes native RSS incomparable with committed Wasm heap. These are separate measurements, not a 3x Wasm overhead ratio."
+  "rawWasmSha256": "15c4b7072ebc655418849da79a6fefed8bff26774e7446ade8d3a54bd6ad7a61",
+  "memory": {
+    "scope": "Node CPU evaluation of all Bridge meshes; Bridge-active compressed input unlinked after load, identical input and script for baseline and candidate; not hosted viewport memory",
+    "previousEngineHeapMiB": 3199.375,
+    "scratchReleaseOnlyHeapMiB": 2989.875,
+    "finalEngineHeapMiB": 3087.875,
+    "finalHeadroomMiB": 1008.125,
+    "finalMallocInUseBytes": 1353493040,
+    "fullSceneEvidenceProbeHeapMiB": 3423.9375,
+    "change": "Release consumed local subdivision conversion tables before building later UV channels. No level, object, UV channel or precision removed."
   },
-  "cleanReleaseBuild": {
-    "toolchain": "Emscripten 6.0.5; Release -O3 objects, -O2 final link",
-    "wasmSha256": "0ba94ac8388de893bcec4da70516aea69128addaa490ef27f17ca06262ee6546",
-    "fullBridgeNodeProbe": {
-      "result": "passed; original source opened, Stoneguard Bridge selected, every scene mesh evaluated and read",
-      "elapsedSecondsApprox": 35,
-      "peakHeapMiB": 3919.875,
-      "inputRetainedInWasmFs": true
+  "nativeBodice": {
+    "reference": "Blender 5.2 LTS fbe6228777e7 macOS arm64 release",
+    "stages": [
+      "base",
+      "Armature",
+      "Subsurf",
+      "Solidify"
+    ],
+    "arrays": 28,
+    "exact": 28,
+    "fields": [
+      "positions",
+      "triangles",
+      "edges",
+      "corners",
+      "face starts",
+      "corner normals",
+      "Garment UV"
+    ],
+    "reciprocalCases": 1393215,
+    "nativeAndWasmDigest": "31221d83"
+  },
+  "nativeSceneEvaluation": {
+    "fields": {
+      "corners": {
+        "different": 0,
+        "exact": 1070,
+        "maxAbs": 0,
+        "pairs": 1070,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 19020700,
+        "worstMesh": null
+      },
+      "edges": {
+        "different": 0,
+        "exact": 1070,
+        "maxAbs": 0,
+        "pairs": 1070,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 20655644,
+        "worstMesh": null
+      },
+      "faceStarts": {
+        "different": 0,
+        "exact": 1070,
+        "maxAbs": 0,
+        "pairs": 1070,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 5354710,
+        "worstMesh": null
+      },
+      "normals": {
+        "different": 95,
+        "exact": 975,
+        "maxAbs": 0.01636946201324463,
+        "pairs": 1070,
+        "rms": 1.2021643043420611e-05,
+        "shapeMismatch": 0,
+        "values": 57062100,
+        "worstMesh": "Dwarf | curved scale 02 02"
+      },
+      "positions": {
+        "different": 50,
+        "exact": 1020,
+        "maxAbs": 2.384185791015625e-07,
+        "pairs": 1070,
+        "rms": 1.7175163830170521e-10,
+        "shapeMismatch": 0,
+        "values": 14955387,
+        "worstMesh": "Dwarf | curved scale 10 05"
+      },
+      "triangles": {
+        "different": 0,
+        "exact": 1070,
+        "maxAbs": 0,
+        "pairs": 1070,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 24933840,
+        "worstMesh": null
+      },
+      "uv:Garment UV": {
+        "different": 0,
+        "exact": 54,
+        "maxAbs": 0,
+        "pairs": 54,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 21403648,
+        "worstMesh": null
+      },
+      "uv:Terrain color UV": {
+        "different": 0,
+        "exact": 1,
+        "maxAbs": 0,
+        "pairs": 1,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 602112,
+        "worstMesh": null
+      },
+      "uv:UVMap": {
+        "different": 8,
+        "exact": 412,
+        "maxAbs": 1.1920928955078125e-07,
+        "pairs": 420,
+        "rms": 6.0778054907211e-11,
+        "shapeMismatch": 0,
+        "values": 15703734,
+        "worstMesh": "Dressed arch wedge -1 23"
+      },
+      "uv:UVMap.001": {
+        "different": 0,
+        "exact": 8,
+        "maxAbs": 0,
+        "pairs": 8,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 12733278,
+        "worstMesh": null
+      },
+      "uv:UVMap.002": {
+        "different": 0,
+        "exact": 6,
+        "maxAbs": 0,
+        "pairs": 6,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 282960,
+        "worstMesh": null
+      },
+      "uv:UVMap.003": {
+        "different": 0,
+        "exact": 6,
+        "maxAbs": 0,
+        "pairs": 6,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 282960,
+        "worstMesh": null
+      },
+      "uv:UVMap.004": {
+        "different": 0,
+        "exact": 2,
+        "maxAbs": 0,
+        "pairs": 2,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 258960,
+        "worstMesh": null
+      },
+      "uv:UVSet1": {
+        "different": 0,
+        "exact": 1,
+        "maxAbs": 0,
+        "pairs": 1,
+        "rms": 0.0,
+        "shapeMismatch": 0,
+        "values": 53440,
+        "worstMesh": null
+      }
     },
-    "geometryRegression": {
-      "fixture": "Stoneguard Dwarf anatomical head; materials omitted only from isolated regression fixture",
-      "stages": [
-        "original",
-        "vertex edit",
-        "subdivision level two"
-      ],
-      "comparison": "exact SHA256 equality with shipped engine for positions, triangle indices, corner normals and all five UV channels"
+    "left": {
+      "distinctGeometry": 1070,
+      "evidenceBytes": 773213892,
+      "meshPointers": 1106,
+      "objects": 11762,
+      "totalVertices": 203753801
     },
-    "compression": "brotli quality 11; decompressed outputs compared byte-for-byte with raw build",
-    "historicalBattery": "not run: the catalog path named in Blender RELEASE.md is absent from the current editor checkout",
-    "fullBridgeUnlinkedNodeProbe": {
-      "result": "passed; original source opened, input unlinked after open, every Bridge mesh evaluated and read",
-      "peakHeapMiB": 3623.25,
-      "finalMallocInUseBytes": 1794687536,
-      "inputRetainedInWasmFs": false,
-      "scope": "CPU evaluation probe; not hosted viewport memory"
-    },
-    "sceneEvaluationRegression": {
-      "baselineWasmSha256": "722b181cec94f1bdf2f088e0ae92f04ffa5a79c267bf5b04af7260c16e34eb0f",
-      "objectsComparedInOriginalScene": 11761,
-      "method": "two baseline processes because retained subdivision tables exceed 4 GiB; known-OOM Dwarf head separately covered by three-state fixture",
-      "exactFields": [
-        "positions",
-        "triangle indices",
-        "edges",
-        "corner vertex indices",
-        "face starts",
-        "corner normals",
-        "object transforms"
-      ],
-      "uvCaveat": "ten arch meshes differ by one floating-point step in some UV values; maximum absolute delta 4.76837158203125e-7; no UV channels removed"
+    "matrixMaxAbs": 0,
+    "meshPairs": 1070,
+    "objectMismatches": [],
+    "objectNamesExact": true,
+    "right": {
+      "distinctGeometry": 1070,
+      "evidenceBytes": 773213892,
+      "meshPointers": 1106,
+      "objects": 11762,
+      "totalVertices": 203753801
     }
   },
-  "browserDiagnosticBuild": {
-    "scope": "same source changes, diagnostic -O0 link; not the clean release artifact",
-    "lastRunHeapMiB": 3260,
-    "reached": "initial frame pull and subsequent delta frame export",
-    "end": "external box-maintainer killed renderer during host-wide sustained swapping; no completed viewport receipt"
+  "nativeSceneCaveat": "Full scene is not bit-identical. 50 position arrays differ by <=2.384185791015625e-7; 95 normal arrays differ by <=0.016369462 near collapsed faces; eight UVMap arrays differ by <=1.1920928955078125e-7. All object identities, transforms, topology, triangles and channel shapes match. Bodice is byte-exact.",
+  "streaming": {
+    "maxMessageBytes": 1048576,
+    "integrity": "SHA256 checked per chunk before acknowledgement; one message in flight; revision references on deltas",
+    "initial": "one mesh prepared at a time; source columns released after staging; final manifest commits atomically",
+    "tests": "four protocol/geometry tests: chunk bounds, backpressure, corruption/order/truncation, staged commit/reuse, native triangle seams/materials/UVs/attributes/loose vertices; actual engine concave initial/unchanged/edit export check passed"
   },
-  "transportChecks": [
-    "actual WasmFS: exact import bytes; writes <= 1 MiB; short/long/network-error imports preserve old file; empty file succeeds",
-    "nested geometry/image transfer: payload intact, sender buffers detached, aliased buffers unique, shared memory excluded",
-    "Blender browser TypeScript check passed",
-    "release manifest boundary passed: 17 packages",
-    "packed import declarations passed: 2343 files across 17 packages"
-  ],
-  "tradeoff": "Browser CPU subdivision tables are recomputed on reevaluation instead of cached. This reduces peak/retained memory at the cost of repeated subdivision work.",
-  "nativeSceneEvaluation": {
-    "reference": "Blender 5.2.0 LTS fbe6228777e7, macOS arm64 Release",
-    "objects": 11762,
-    "distinctGeometrySets": 1070,
-    "exact": [
-      "object names/types/counts/transforms",
-      "edges",
-      "corner vertex indices",
-      "face starts"
+  "geometryStageBenchmark": {
+    "scope": "isolated largest recorded native mesh, not hosted load duration or peak RSS",
+    "mesh": "Woodland sapling000",
+    "triangles": 2062487,
+    "drawVertices": 1777278,
+    "legacyMs": 10546.936666,
+    "nativeColumnsMs": 778.118916,
+    "legacyEndRssBytes": 2075197440,
+    "nativeColumnsEndRssBytes": 763166720,
+    "correctness": "every expanded position, normal and UV compared with native data"
+  },
+  "verification": {
+    "gameBuild": "passed",
+    "browserTypecheck": "passed with vite/client raw-import declarations",
+    "editorBlenderTypecheck": "passed",
+    "historicalBattery": "not run: catalog absent from current checkout",
+    "hosted": "fresh acceptance not run by coder",
+    "releaseBoundaryPackages": 17,
+    "packedImportFiles": 2363,
+    "compression": "brotli quality 11; raw bytes compared after decompression"
+  },
+  "previousReleaseEvidence": {
+    "date": "2026-09-29",
+    "status": "candidate; hosted viewport and human acceptance pending",
+    "engineSource": "e5d7eec67572dfc7c73f8f4d3f601d03442546f9",
+    "transportSource": "02ef38822466f00666bdc2a1052bb33526e3b335",
+    "scene": {
+      "repository": "volter-ai/game-benchmarks",
+      "revision": "34eb427",
+      "sourceSha256": "ad1430f2e1db93bb8f0996ddc487a2c1f5e8d40f3a410004fb1b1b881d4426e7",
+      "sourceBytes": 320520216,
+      "activeScene": "Stoneguard Bridge",
+      "sceneObjects": 11762,
+      "demoSha256": "91f4fed7d421d346d278ee133285ba72e9408ddea8b7b6835f48fb62b44412c9",
+      "demoChange": "Save a compressed copy with all windows on Stoneguard Bridge; retain all scenes and geometry. Source file is unchanged."
+    },
+    "nativeComparison": {
+      "openLiveMallocMiB": 1600.1,
+      "bridgeLiveMallocMiB": 2858,
+      "afterMeshReadsLiveMallocMiB": 5137.8,
+      "peakRssMiB": 2491.2,
+      "interpretation": "macOS compressed memory makes native RSS incomparable with committed Wasm heap. These are separate measurements, not a 3x Wasm overhead ratio."
+    },
+    "cleanReleaseBuild": {
+      "toolchain": "Emscripten 6.0.5; Release -O3 objects, -O2 final link",
+      "wasmSha256": "0ba94ac8388de893bcec4da70516aea69128addaa490ef27f17ca06262ee6546",
+      "fullBridgeNodeProbe": {
+        "result": "passed; original source opened, Stoneguard Bridge selected, every scene mesh evaluated and read",
+        "elapsedSecondsApprox": 35,
+        "peakHeapMiB": 3919.875,
+        "inputRetainedInWasmFs": true
+      },
+      "geometryRegression": {
+        "fixture": "Stoneguard Dwarf anatomical head; materials omitted only from isolated regression fixture",
+        "stages": [
+          "original",
+          "vertex edit",
+          "subdivision level two"
+        ],
+        "comparison": "exact SHA256 equality with shipped engine for positions, triangle indices, corner normals and all five UV channels"
+      },
+      "compression": "brotli quality 11; decompressed outputs compared byte-for-byte with raw build",
+      "historicalBattery": "not run: the catalog path named in Blender RELEASE.md is absent from the current editor checkout",
+      "fullBridgeUnlinkedNodeProbe": {
+        "result": "passed; original source opened, input unlinked after open, every Bridge mesh evaluated and read",
+        "peakHeapMiB": 3623.25,
+        "finalMallocInUseBytes": 1794687536,
+        "inputRetainedInWasmFs": false,
+        "scope": "CPU evaluation probe; not hosted viewport memory"
+      },
+      "sceneEvaluationRegression": {
+        "baselineWasmSha256": "722b181cec94f1bdf2f088e0ae92f04ffa5a79c267bf5b04af7260c16e34eb0f",
+        "objectsComparedInOriginalScene": 11761,
+        "method": "two baseline processes because retained subdivision tables exceed 4 GiB; known-OOM Dwarf head separately covered by three-state fixture",
+        "exactFields": [
+          "positions",
+          "triangle indices",
+          "edges",
+          "corner vertex indices",
+          "face starts",
+          "corner normals",
+          "object transforms"
+        ],
+        "uvCaveat": "ten arch meshes differ by one floating-point step in some UV values; maximum absolute delta 4.76837158203125e-7; no UV channels removed"
+      }
+    },
+    "browserDiagnosticBuild": {
+      "scope": "same source changes, diagnostic -O0 link; not the clean release artifact",
+      "lastRunHeapMiB": 3260,
+      "reached": "initial frame pull and subsequent delta frame export",
+      "end": "external box-maintainer killed renderer during host-wide sustained swapping; no completed viewport receipt"
+    },
+    "transportChecks": [
+      "actual WasmFS: exact import bytes; writes <= 1 MiB; short/long/network-error imports preserve old file; empty file succeeds",
+      "nested geometry/image transfer: payload intact, sender buffers detached, aliased buffers unique, shared memory excluded",
+      "Blender browser TypeScript check passed",
+      "release manifest boundary passed: 17 packages",
+      "packed import declarations passed: 2343 files across 17 packages"
     ],
-    "maxPositionAbsDelta": 0.0024997517466545105,
-    "maxUvAbsDelta": 2.384185791015625e-06,
-    "caveat": "Mage clothing | continuous ivory bodice has pre-existing native/Wasm position, triangulation and normal differences. Its candidate output is byte-exact to shipped Wasm. Nearly collapsed faces amplify last-bit Armature/subdivision differences through Solidify. Native visual or bit parity is not claimed."
+    "tradeoff": "Browser CPU subdivision tables are recomputed on reevaluation instead of cached. This reduces peak/retained memory at the cost of repeated subdivision work.",
+    "nativeSceneEvaluation": {
+      "reference": "Blender 5.2.0 LTS fbe6228777e7, macOS arm64 Release",
+      "objects": 11762,
+      "distinctGeometrySets": 1070,
+      "exact": [
+        "object names/types/counts/transforms",
+        "edges",
+        "corner vertex indices",
+        "face starts"
+      ],
+      "maxPositionAbsDelta": 0.0024997517466545105,
+      "maxUvAbsDelta": 2.384185791015625e-06,
+      "caveat": "Mage clothing | continuous ivory bodice has pre-existing native/Wasm position, triangulation and normal differences. Its candidate output is byte-exact to shipped Wasm. Nearly collapsed faces amplify last-bit Armature/subdivision differences through Solidify. Native visual or bit parity is not claimed."
+    }
   }
 }

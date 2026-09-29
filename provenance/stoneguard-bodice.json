@@ -1,0 +1,202 @@
+{
+  "arrays": 28,
+  "exact": 28,
+  "results": [
+    {
+      "mesh": "0",
+      "field": "positions",
+      "bytes": 98016,
+      "equal": true,
+      "sha256": "1e4d14ce0a6122180dcf8bfe8f2d2779b9ac0307b6e9c57c11b83b48d4c734ff"
+    },
+    {
+      "mesh": "0",
+      "field": "triangles",
+      "bytes": 193536,
+      "equal": true,
+      "sha256": "0fffef1bb3168790feebf7781ba24abc6bb5a8d123b8c282e91a8e244099b8ae"
+    },
+    {
+      "mesh": "0",
+      "field": "edges",
+      "bytes": 129872,
+      "equal": true,
+      "sha256": "892e70839fb008f8d0fdbb005d4003cab591468011f5f94591e635fe1e811cec"
+    },
+    {
+      "mesh": "0",
+      "field": "corners",
+      "bytes": 129024,
+      "equal": true,
+      "sha256": "a5e08f220453c29d44575d0ea93b1a2fb49523f40a0ee9e6143564d9696212fd"
+    },
+    {
+      "mesh": "0",
+      "field": "faceStarts",
+      "bytes": 32256,
+      "equal": true,
+      "sha256": "b767726e008cd92f068f2499e0944584de338f24ed78a2dbc0d774f6bfcd4491"
+    },
+    {
+      "mesh": "0",
+      "field": "normals",
+      "bytes": 387072,
+      "equal": true,
+      "sha256": "0ad997755d2cbe80fb7ea957dfd53c564a1a21add529d1f3f3ab4d6a127d93e5"
+    },
+    {
+      "mesh": "0",
+      "field": "uv:Garment UV",
+      "bytes": 258048,
+      "equal": true,
+      "sha256": "0ff7850cf293ca26a6c9c269e1a458dba374296592a071fc36a68a205bf8797f"
+    },
+    {
+      "mesh": "1",
+      "field": "positions",
+      "bytes": 98016,
+      "equal": true,
+      "sha256": "e0fc4fee7936db615f5922ecf488d3806c929728d2a9067d28806553a51dca9d"
+    },
+    {
+      "mesh": "1",
+      "field": "triangles",
+      "bytes": 193536,
+      "equal": true,
+      "sha256": "0fffef1bb3168790feebf7781ba24abc6bb5a8d123b8c282e91a8e244099b8ae"
+    },
+    {
+      "mesh": "1",
+      "field": "edges",
+      "bytes": 129872,
+      "equal": true,
+      "sha256": "892e70839fb008f8d0fdbb005d4003cab591468011f5f94591e635fe1e811cec"
+    },
+    {
+      "mesh": "1",
+      "field": "corners",
+      "bytes": 129024,
+      "equal": true,
+      "sha256": "a5e08f220453c29d44575d0ea93b1a2fb49523f40a0ee9e6143564d9696212fd"
+    },
+    {
+      "mesh": "1",
+      "field": "faceStarts",
+      "bytes": 32256,
+      "equal": true,
+      "sha256": "b767726e008cd92f068f2499e0944584de338f24ed78a2dbc0d774f6bfcd4491"
+    },
+    {
+      "mesh": "1",
+      "field": "normals",
+      "bytes": 387072,
+      "equal": true,
+      "sha256": "27c659056391301da5134f544d021963d3a6e74f72faee5d8bb75240d438e3d6"
+    },
+    {
+      "mesh": "1",
+      "field": "uv:Garment UV",
+      "bytes": 258048,
+      "equal": true,
+      "sha256": "0ff7850cf293ca26a6c9c269e1a458dba374296592a071fc36a68a205bf8797f"
+    },
+    {
+      "mesh": "2",
+      "field": "positions",
+      "bytes": 1553352,
+      "equal": true,
+      "sha256": "fb8be83c0abf604fca93514afcfba19604a0b40e7f77e51fc86dc32d1c70ef18"
+    },
+    {
+      "mesh": "2",
+      "field": "triangles",
+      "bytes": 3096576,
+      "equal": true,
+      "sha256": "68112796a64f5a519ac563be222c4622ac5fde61aebf0eff5b0bb05be62108af"
+    },
+    {
+      "mesh": "2",
+      "field": "edges",
+      "bytes": 2067776,
+      "equal": true,
+      "sha256": "cbfb63e53e485bb8b21f6e4d0bc4f45de19ae4c446584b6220746e885a5e6270"
+    },
+    {
+      "mesh": "2",
+      "field": "corners",
+      "bytes": 2064384,
+      "equal": true,
+      "sha256": "ee1cded4eda77767e765f1ad616d70bbb11ca869830fd22abf0007f9086bc7d2"
+    },
+    {
+      "mesh": "2",
+      "field": "faceStarts",
+      "bytes": 516096,
+      "equal": true,
+      "sha256": "6a5a383712c071e48642630c39e35dce66b0a48c6690230c540ca3ace33dfb9b"
+    },
+    {
+      "mesh": "2",
+      "field": "normals",
+      "bytes": 6193152,
+      "equal": true,
+      "sha256": "4363b0605372745e352523634a621fecc18071a8da650665ff4efc33622da209"
+    },
+    {
+      "mesh": "2",
+      "field": "uv:Garment UV",
+      "bytes": 4128768,
+      "equal": true,
+      "sha256": "85d8ea258bd76356f86a961cfbf2e7c31e3a7fefd67ff969beb7126d4bfb6db5"
+    },
+    {
+      "mesh": "3",
+      "field": "positions",
+      "bytes": 3106704,
+      "equal": true,
+      "sha256": "3497c2c71b21aeee5d24d104a8e4ac934814ff42a4290d92812c68385500e118"
+    },
+    {
+      "mesh": "3",
+      "field": "triangles",
+      "bytes": 6213888,
+      "equal": true,
+      "sha256": "c2dfbddf92421b376061ea653e320de6ddea75552a3241c0a00dd50ea5846487"
+    },
+    {
+      "mesh": "3",
+      "field": "edges",
+      "bytes": 4142464,
+      "equal": true,
+      "sha256": "6caeb3b2550a22347e378c937a7f21ed85b4f66f194943272e97ab14c4f863ec"
+    },
+    {
+      "mesh": "3",
+      "field": "corners",
+      "bytes": 4142592,
+      "equal": true,
+      "sha256": "ed856169f6fe0dcb32d514bc1904036a52f5373de49f4fe40d1f7816a480ac76"
+    },
+    {
+      "mesh": "3",
+      "field": "faceStarts",
+      "bytes": 1035648,
+      "equal": true,
+      "sha256": "04e5ae016ce749244440003758e8e689defb89001d36337fb5485573f0edaa1f"
+    },
+    {
+      "mesh": "3",
+      "field": "normals",
+      "bytes": 12427776,
+      "equal": true,
+      "sha256": "d71bc62ac1ae54d429f55124e64f13b4a05d0ac227fd3270275b2d5b1efb085e"
+    },
+    {
+      "mesh": "3",
+      "field": "uv:Garment UV",
+      "bytes": 8285184,
+      "equal": true,
+      "sha256": "73b59a7752028ee547db5831afc79334995c7d59dbc70ee2af44f1e783d5ffaa"
+    }
+  ]
+}

@@ -45,3 +45,10 @@ against the native columns. End-of-stage RSS was 2,075,197,440 and 763,166,720
 bytes respectively; these are snapshots, not peak or hosted load measurements.
 The protocol test also covers native face ordering, material groups, seams,
 multiple UV maps, a face attribute, loose vertices and invalid corner refusal.
+
+The paired engine source and full-scene evidence are recorded in
+[`provenance/stoneguard-memory.json`](../../provenance/stoneguard-memory.json).
+The focused native bodice hashes are in
+[`provenance/stoneguard-bodice.json`](../../provenance/stoneguard-bodice.json).
+The full-scene record explicitly retains residual floating-point differences;
+unchanged counts alone are not treated as native bit parity.

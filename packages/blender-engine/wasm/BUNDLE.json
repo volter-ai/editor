@@ -1,10 +1,9 @@
 {
   "blender": "5.2.0 LTS",
-  "source": "e5d7eec67572dfc7c73f8f4d3f601d03442546f9",
-  "reviewedSource": "e5d7eec67572dfc7c73f8f4d3f601d03442546f9",
+  "source": "54e4af619a285c6d76c56ef960dc99d45aca5084",
   "upstream": "fbe6228777e7d9afefcd61a413844e790ae75db7",
   "sourceRepository": "https://github.com/volter-ai/blender",
-  "sourceRecipe": "https://github.com/volter-ai/blender/blob/e5d7eec67572dfc7c73f8f4d3f601d03442546f9/build_files/emscripten/RELEASE.md",
+  "sourceRecipe": "https://github.com/volter-ai/blender/blob/54e4af619a285c6d76c56ef960dc99d45aca5084/build_files/emscripten/RELEASE.md",
   "factoryEngine": "BLENDER_EEVEE",
   "files": {
     "blender_browser.js": "raw",
@@ -17,8 +16,8 @@
       "sha256": "0c63c29e7d4b1ba1fce4e94057778b0757767b25ea4f6f01d329e99351568f30"
     },
     "blender_browser.wasm": {
-      "bytes": 86317655,
-      "sha256": "0ba94ac8388de893bcec4da70516aea69128addaa490ef27f17ca06262ee6546"
+      "bytes": 86332914,
+      "sha256": "15c4b7072ebc655418849da79a6fefed8bff26774e7446ade8d3a54bd6ad7a61"
     },
     "blender_browser.data": {
       "bytes": 52698568,
@@ -31,8 +30,8 @@
       "sha256": "0c63c29e7d4b1ba1fce4e94057778b0757767b25ea4f6f01d329e99351568f30"
     },
     "blender_browser.wasm.br": {
-      "bytes": 18596913,
-      "sha256": "64af23954e1911ffcb879f69a9e8c9bbd83b5531939b586228f44fcea8211e3b"
+      "bytes": 18601239,
+      "sha256": "8cd29a87fcce046c292c52cc62523fe0ebbd1db8f05b19503d56311ae12c84c5"
     },
     "blender_browser.data.br": {
       "bytes": 8056563,
@@ -43,9 +42,9 @@
       "sha256": "4085e9336266cf66f061d4d5c962a5929cc96d5732c746b5c13ea05cd104a75b"
     }
   },
-  "note": "Unreleased Stoneguard candidate. Clean source build at the named commit; Release -O3 objects and -O2 link, Emscripten 6.0.5. Focused geometry regression matches shipped engine across original, vertex edit and subdivision-level edit. Full historical battery is absent from current editor checkout; no full-battery claim.",
+  "note": "Stoneguard c7/c14/c15 engine. Emscripten 6.0.5, Release -O3 objects and -O2 link. Portable native arm64 matrix reciprocal plus fused generic OpenSubdiv stencil and patch accumulation; bodice four-stage comparison 28/28 arrays exact. Full-scene comparison and memory scope recorded in provenance/stoneguard-memory.json. Historical battery absent; no full-battery or hosted acceptance claim.",
   "callTrampoline": "CPython 3.13.13 is compiled with PY_CALL_TRAMPOLINE for Blender CPython slot arity casts. This applies to CPython dispatch, not arbitrary indirect calls.",
   "engineIds": "The existing session registers Python render engines under CYCLES, BLENDER_EEVEE and BLENDER_WORKBENCH; the headless build permits built-in IDs to be shadowed.",
-  "exportDoor": "The source-owned bpy_web_export.cc exports Principled physical inputs, normal images, eight named UV layers and evaluated corner normals, and takes graph_materials/graph_images/graph_generated (a graph-drawn shader mix reduced to the one Principled BSDF it reaches, graph images at the door revisions with every UDIM tile, orco for deformed meshes whose graph reads Generated coordinates). A frame can defer its changed meshes and pictures (defer) for the caller to pull one at a time (export_mesh, export_image), each call freeing the previous one's columns and a picture it decoded; an undo step keeps the revisions when Blender kept the depsgraph (session_undo); Blender's CPU subdivision descriptor is released once a mesh is read; the memory door reports malloc in-use and free. Datablock revisions are keyed by session_uid. writefile.cc writes one copy of the document per save in the browser build. CPU evaluators adopt stencil tables without cloning; browser subdivision descriptors are released immediately after CPU tessellation/deformation.",
+  "exportDoor": "The source-owned bpy_web_export.cc exports Principled physical inputs, normal images, eight named UV layers and evaluated corner normals, and takes graph_materials/graph_images/graph_generated (a graph-drawn shader mix reduced to the one Principled BSDF it reaches, graph images at the door revisions with every UDIM tile, orco for deformed meshes whose graph reads Generated coordinates). A frame can defer its changed meshes and pictures (defer) for the caller to pull one at a time (export_mesh, export_image), each call freeing the previous one's columns and a picture it decoded; an undo step keeps the revisions when Blender kept the depsgraph (session_undo); Blender's CPU subdivision descriptor is released once a mesh is read; the memory door reports malloc in-use and free. Datablock revisions are keyed by session_uid. writefile.cc writes one copy of the document per save in the browser build. CPU evaluators adopt stencil tables without cloning; browser subdivision descriptors are released immediately after CPU tessellation/deformation. Native evaluated corner triangles accompany corner normals. Consumed local conversion stencils are released before later UV channels are constructed.",
   "preloadedPayload": "releasePreloadedFileData releases the JS preload buffer after session ready. The measured working payload exclusions are retained."
 }
