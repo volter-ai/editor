@@ -1242,6 +1242,30 @@ ssh disabled and an empty cache). The monorepo's own lock resolves it the same w
 The platformer gate passes on this machine: import (plan, emit, `npm ci`, typecheck, vite build)
 and `run --frames 120`: 0 thrown, 239 physics frames, physics per frame p50 4.7 ms, p99 8.5 ms.
 
+## Every Godot 4 fixture imports (2026-09-28)
+
+All seven Godot 4 fixtures import and build with no refusal: the 3D platformer, basic scene,
+racing and FPS starter kits, the city builder, match-3, and the platformer demo. Godot 3 is out of
+scope (owner, 2026-09-28: "no godot 3"). What made the last three import, all without per-change
+tests (§How a lane lands):
+
+- **Members and operators selected at run time.** A member, store, call or operator on a value the
+  analysis leaves untyped is selected when it runs, as Godot selects it: the script instance first,
+  then the engine members of that name ClassDB declares (the call site's own candidate list,
+  written by lowering), then a record's member or a Dictionary's key (`variant-named.ts`,
+  `variant-operator.ts`).
+- **Resource values.** An exported field, or a resource's property, holding resources, records or
+  containers is planned with the scene. A PackedScene is its scene's component, and an imported
+  model gets a scene of its own. A `.tres` of a script's class is that script's instance.
+  `Script.new()`, `ResourceLoader.load` and `ResourceSaver.save` (`user://` in the page's storage)
+  are bound.
+- **New node families.** Timer; Sprite3D and AnimatedSprite3D, with SpriteFrames and AtlasTexture;
+  SubViewport and SubViewportContainer (a shared-world pass drawn through the viewport's own
+  camera); Area2D and CollisionShape2D with mouse picking; GPUParticles2D; and ring emission for
+  process materials.
+- **Bindings.** MeshLibrary.new and set_item_mesh, SceneState of a model, Node.find_children, the
+  whole Array API, and viewport mouse and rect queries.
+
 ## What comes next
 
 > Superseded by §The lane's law, §Order of work (2026-09-27). The list below is the order before the rulings.
