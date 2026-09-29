@@ -384,6 +384,34 @@
     "cause": "The Model open path called present after bind_document had already presented during start.",
     "fix": "Compare the published view session/revision to the latest runtime frame; present only for a missing, stale or different-session view.",
     "regression": "Ten host tests pass, including already-presented, reopened, absent-file and stale-view cases.",
-    "hostedVerification": "pending final image"
+    "hostedVerification": "951f0dbe removed present as the longest call; the next longest operation was rig (12401 ms). Fresh independent acceptance remains pending."
+  },
+  "startupFollowup": {
+    "rigSource": "ba63d64b",
+    "coldRuntimeSource": "64687a66",
+    "workerFailureSource": "44725ab9",
+    "rigDiagnosis": {
+      "editorSource": "951f0dbe",
+      "maxCallMs": 12401,
+      "maxCallLabel": "rig",
+      "heapMiB": 3157,
+      "state": "present"
+    },
+    "coldRuntimeDiagnosis": {
+      "editorSource": "ba63d64b",
+      "maxCallMs": 13451,
+      "maxCallLabel": "start",
+      "callsOver5s": 1,
+      "callsOver30s": 0,
+      "lastHeapMiB": 3052,
+      "limitation": "Last available reading only; tab later lost heartbeats. Not a completed-load acceptance receipt."
+    },
+    "changes": [
+      "Rig weight extraction yields between objects and every 50 ms at a 1024-vertex boundary; explicit presentation uses the same pull protocol.",
+      "Whole logical operations are serialized; history cannot re-enter parked Python; accepted edits drain before close. Worker failure rejects queued work.",
+      "Runtime artifact reads yield at one MiB on cache hits and misses; runtime boot stages are separate units."
+    ],
+    "verification": "24 focused tests plus worker-failure queue regression, release build and browser typecheck pass. Exact old/new rig extractor result on 4097 weighted/unweighted/unmapped/truncated vertices.",
+    "acceptance": "Fresh independent hosted review required on the final package; no final hosted maximum is claimed."
   }
 }
