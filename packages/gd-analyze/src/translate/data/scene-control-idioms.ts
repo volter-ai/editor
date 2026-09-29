@@ -1034,7 +1034,7 @@ export function godotControlDom(
     const animations = animationsPlan(stated, resources);
     const unread = stated.unread();
     if (unread.length > 0) throw new Error(`${node.classes[0] ?? 'a node'}'s ${unread.join(', ')} among Controls has no idiomatic form`);
-    return { tag: form.tag, style: {}, attributes: { hidden: true }, data: domData(node, true), animations };
+    return { tag: form.tag, style: {}, attributes: { hidden: true }, data: domData(node, false), animations };
   }
   for (const name of INERT) stated.get(name);
   // `process_mode` and the metadata the Node protocol keeps (`data-*`, `domData`).
@@ -1066,7 +1066,9 @@ export function godotControlDom(
   if (form.tag === 'button') attributes['type'] = 'button';
   const unread = stated.unread().filter((name) => !name.startsWith('metadata/'));
   if (unread.length > 0) throw new Error(`${node.classes[0] ?? 'a Control'}'s ${unread.join(', ')} has no idiomatic form in its element`);
-  const data = domData(node, true);
+  // A Control's classes ride on its element (§The lane's law, "The GUI is React DOM"); a Node2D
+  // among them states none.
+  const data = domData(node, form.node2d !== true);
   // A hidden Control keeps the display its layout gives it for when it is shown (`canvas-item.ts`).
   if (!stated.bool('visible', true)) {
     const display = form.layout === 'row' || form.layout === 'column' || form.content === 'text' || form.content === 'button' || form.content === 'check' || form.content === 'separator' ? 'flex' : form.layout === 'stack' || form.layout === 'center' || form.layout === 'grid' ? 'grid' : '';

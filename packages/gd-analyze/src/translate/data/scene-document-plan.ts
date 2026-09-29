@@ -1964,7 +1964,8 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     classes: node.class.nativeAncestry,
     ...(unique ? { unique: true as const } : {}),
     ...(fieldValues.length === 0 ? {} : { fieldValues }),
-    setters,
+    // An inert layout, checked (`godotFamilyRefusal`), is dropped: its element takes no prop for it.
+    setters: idiom.inertLayout === true ? setters.filter((entry) => !INERT_LAYOUT.has(entry.propertyName)) : setters,
     ...(animation === undefined ? {} : { animation }),
     children: [],
   };

@@ -5,8 +5,8 @@
  * Godot 4.7's `SubViewportContainer` (`scene/gui/subviewport_container.cpp`, revision
  * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): a Control showing its SubViewport children's images
  * over its rect. The sub-viewport draws itself over the frame (`sub-viewport.ts`), which is the
- * container's rect: the plan carries only a container covering the whole viewport, and its layout
- * props say so and change nothing; `stretch` and `stretch_shrink` are stored.
+ * container's rect: the plan carries only a container covering the whole viewport, whose layout
+ * it states no prop for; `stretch` and `stretch_shrink` are stored.
  */
 
 import type { ReactElement } from 'react';
@@ -58,10 +58,6 @@ const SUB_VIEWPORT_CONTAINER = {
   spatial: false,
   mount: (entity: Object3D) => void entity,
   props: new Map<string, GodotElementProp<Object3D>>([
-    // Its rect, the whole viewport's (`scene-families.ts` refuses any other): where the sub-viewport draws.
-    ...['layoutMode', 'anchorsPreset', 'anchorLeft', 'anchorTop', 'anchorRight', 'anchorBottom', 'offsetLeft', 'offsetTop', 'offsetRight', 'offsetBottom', 'growHorizontal', 'growVertical'].map(
-      (name) => [name, () => undefined] as const,
-    ),
     ['stretch', (entity, value: boolean) => set_stretch(entity, value)],
     ['stretchShrink', (entity, value: number) => set_stretch_shrink(entity, value)],
   ]),
