@@ -130,6 +130,7 @@
     "src/lib/godot-compat/skeleton-3d.ts",
     "src/lib/godot-compat/sky.ts",
     "src/lib/godot-compat/sphere-mesh.ts",
+    "src/lib/godot-compat/animated-sprite-2d.ts",
     "src/lib/godot-compat/animated-sprite-3d.ts",
     "src/lib/godot-compat/atlas-texture.ts",
     "src/lib/godot-compat/sprite-3d.ts",

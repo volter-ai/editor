@@ -195,6 +195,7 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   ),
   Label3D: element('label-3d', 'Label3D', ctor('Label3D', 'scene/3d/label_3d.cpp', 1082), 'Mesh'),
   Timer: element('timer', 'Timer', ctor('Timer', 'scene/main/timer.cpp', 250)),
+  AnimatedSprite2D: element('animated-sprite-2d', 'AnimatedSprite2D', ctor('AnimatedSprite2D', 'scene/2d/animated_sprite_2d.cpp', 620)),
   Area2D: element('area-2d', 'Area2D', ctor('Area2D', 'scene/2d/physics/area_2d.cpp', 640)),
   CollisionShape2D: element('collision-shape-2d', 'CollisionShape2D', ctor('CollisionShape2D', 'scene/2d/physics/collision_shape_2d.cpp', 245)),
   GPUParticles2D: element('gpu-particles-2d', 'GPUParticles2D', ctor('GPUParticles2D', 'scene/2d/gpu_particles_2d.cpp', 950)),

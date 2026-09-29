@@ -232,6 +232,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Area2D: [...NODE_2D, 'set_collision_layer', 'set_collision_mask', 'set_monitoring', 'set_monitorable'],
   CollisionShape2D: [...NODE_2D, 'set_shape', 'set_disabled'],
   GPUParticles2D: [...NODE_2D, 'set_emitting', 'set_amount', 'set_lifetime', 'set_one_shot', 'set_speed_scale', 'set_explosiveness_ratio', 'set_randomness_ratio', 'set_use_local_coordinates', 'set_texture', 'set_process_material'],
+  AnimatedSprite2D: [...NODE_2D, 'set_sprite_frames', 'set_animation', 'set_autoplay', 'set_frame', 'set_frame_progress', 'set_speed_scale', 'set_centered', 'set_offset', 'set_flip_h', 'set_flip_v'],
   Timer: ['set_meta:*', ...NODE_ELEMENT, 'set_wait_time', 'set_one_shot', 'set_autostart', 'set_paused', 'set_ignore_time_scale', 'set_timer_process_callback'],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
