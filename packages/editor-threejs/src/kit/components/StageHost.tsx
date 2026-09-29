@@ -1762,10 +1762,10 @@ export function Object3DDocumentViewport({
           if (viewPresentation(documentId).drawMode !== mode)
             setViewPresentation(documentId, { drawMode: mode as ViewportDrawMode });
         };
-        // A draw mode the person chose and the view restored is theirs: the session takes it; else
-        // the one the document's file states (a .blend reopens in the shading it was saved in).
-        // Only a view with neither is given the session's.
-        const restoredMode = viewPresentationSnapshot(documentId).drawMode ?? ownLayer?.drawMode;
+        // A document whose FILE states its draw mode keeps a person's pick there (a .blend's 3D
+        // View), so the file's statement is where the session starts. Otherwise a mode the person
+        // chose and the view restored is theirs. Only a view with neither is given the session's.
+        const restoredMode = ownLayer?.drawMode ?? viewPresentationSnapshot(documentId).drawMode;
         if (restoredMode !== undefined && viewModes.has(restoredMode) && host.session)
           host.session.setMode(restoredMode);
         else sessionToView();

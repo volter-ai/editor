@@ -843,6 +843,10 @@ export class BlenderRuntimeView {
    * draw mode Blender reopens it in (null from a file whose view carried none). Null before a
    * frame or when the file saved no 3D View.
    */
+  noteSavedShading(shading: keyof typeof SAVED_SHADING): void {
+    if (this.frame?.view) this.frame.view.shading = shading;
+  }
+
   savedView(): {
     readonly target: readonly [number, number, number];
     readonly direction: readonly [number, number, number];

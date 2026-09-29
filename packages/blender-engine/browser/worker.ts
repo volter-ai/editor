@@ -508,6 +508,8 @@ async function handle(request: WorkerRequest): Promise<unknown> {
         ...(request.object === undefined ? {} : { object: request.object }),
         ...(request.collection === undefined ? {} : { collection: request.collection }),
       });
+    case 'view-shading':
+      return ask({ op: 'view-shading', shading: request.shading });
     case 'rna-set':
       return ask({
         op: 'rna-set',

@@ -76,6 +76,9 @@ export type WorkerRequest =
   /** ONE RESTRICTION COLUMN, written (`session.py`'s `outliner_set`). A column
    *  Blender draws on no row of that type is refused by name. */
   | { id: number; op: 'outliner-set'; path: string; column: string; value: boolean }
+  /** A person's shading pick, kept in the file's own 3D View (`session.py`'s `_view_shading`);
+   *  UI state, so it marks nothing changed and rides the next save. */
+  | { id: number; op: 'view-shading'; shading: 'WIREFRAME' | 'SOLID' | 'MATERIAL' | 'RENDERED' }
   | { id: number; op: 'read-file'; path: string }
   | { id: number; op: 'write-file'; path: string; bytes: Uint8Array }
   | { id: number; op: 'list-files'; path: string }

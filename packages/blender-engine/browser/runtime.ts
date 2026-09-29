@@ -318,6 +318,12 @@ export class BlenderRuntime {
     })) as BlenderRnaWrite;
   }
 
+  /** Keep a person's shading pick in the file's own 3D View, as UI state (no save of its own). */
+  async viewShading(shading: 'WIREFRAME' | 'SOLID' | 'MATERIAL' | 'RENDERED'): Promise<void> {
+    await this.#ready();
+    await this.#request({ op: 'view-shading', shading });
+  }
+
   /** BLENDER'S VIEW LAYER TREE for the scene — what its Outliner shows, as
    *  rows (`./rna.ts`, `BlenderOutlinerTree`). `selected` is our viewport's
    *  selection by object name; reading it never writes the engine's. */

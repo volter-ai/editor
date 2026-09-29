@@ -789,6 +789,23 @@ def _saved_view():
     return None
 
 
+def _view_shading(shading):
+    """A person's shading pick, written where Blender keeps it: the `View3DShading.type` of the 3D
+    View `_saved_view` reads. UI STATE, NOT THE MODEL: nothing is marked changed, so it rides the
+    next save the model's own edits make, as a shading change in Blender is kept only by a save."""
+    screens = [window.screen for wm in bpy.data.window_managers for window in wm.windows
+               if window.screen is not None]
+    workspace = bpy.data.workspaces.get("Modeling")
+    screens.extend(workspace.screens if workspace is not None else [])
+    screens.extend(bpy.data.screens)
+    for screen in screens:
+        for area in screen.areas:
+            if area.type == "VIEW_3D":
+                area.spaces[0].shading.type = shading
+                return {"shading": area.spaces[0].shading.type}
+    return {"shading": None}
+
+
 def _subject_line(scene, view_layer):
     """The 3D Viewport's second overlay line, as `draw_selected_name` (`view3d_draw.cc`) writes it,
     less the two parts that follow the playhead: the tab draws `(frame)` and the marker on it
@@ -5002,6 +5019,8 @@ def _dispatch(request):
             _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer
+    if op == "view-shading":
+        return _view_shading(request["shading"])
     if op == "rna-set":
         SESSION.mark_changed()
         answer = rna_set(request["path"], request["property"], request["value"],

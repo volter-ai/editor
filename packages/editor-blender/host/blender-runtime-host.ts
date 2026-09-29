@@ -444,6 +444,12 @@ export async function blenderRnaSet(
   return written;
 }
 
+/** Keep a person's shading pick in the file's own 3D View (`runtime.viewShading`). */
+export async function blenderViewShading(shading: 'WIREFRAME' | 'SOLID' | 'MATERIAL' | 'RENDERED'): Promise<void> {
+  if (!blenderSessionStarted()) return;
+  await blenderRuntime().viewShading(shading);
+}
+
 /**
  * THE SCRIPT DOOR, in-page — one bpy script, run the way the MCP add-on runs
  * one (`session.py::execute`: a namespace of its own, output captured, and a

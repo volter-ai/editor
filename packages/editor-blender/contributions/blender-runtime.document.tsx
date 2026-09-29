@@ -56,7 +56,12 @@ import {
   useSyncExternalStore,
 } from 'react';
 import * as THREE from 'three';
-import { bindModelDocument, blenderExecute, openModelDocumentBlend } from '../host/blender-runtime-host';
+import {
+  bindModelDocument,
+  blenderExecute,
+  blenderViewShading,
+  openModelDocumentBlend,
+} from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
@@ -123,6 +128,14 @@ export const inspectorBuiltins: readonly string[] = [];
 // one set of presented objects (`blender-runtime-skin.ts`).
 const view = blenderModelView;
 type AreaView = BlenderRuntimeView;
+
+/** A stage draw mode as the `View3DShading.type` Blender saves it under. */
+const BLENDER_SHADING = {
+  wireframe: 'WIREFRAME',
+  solid: 'SOLID',
+  preview: 'MATERIAL',
+  rendered: 'RENDERED',
+} as const;
 
 /** What an area's stage reads from the view it draws, made once per view. */
 interface AreaReads {
@@ -432,6 +445,24 @@ function BlenderViewportArea({
     };
   }, [main, documentId, view]);
   /**
+   * A SHADING PICK IS KEPT WHERE BLENDER KEEPS IT: in the file's own 3D View, the one it reopens
+   * on (`blenderViewShading`), so the next save carries it and a reopen starts from it. Noted on
+   * the view at once, so a remount before the next frame reads the pick and not the file's old
+   * shading. Modes Blender's four cells do not name (Clay, Matcap…) stay the editor's.
+   */
+  useEffect(() => {
+    if (!main || !documentId) return;
+    const keep = (): void => {
+      const saved = view.savedView();
+      const mode = viewPresentation(documentId).drawMode;
+      const shading = BLENDER_SHADING[mode as keyof typeof BLENDER_SHADING];
+      if (!saved || shading === undefined || saved.drawMode === mode) return;
+      view.noteSavedShading(shading);
+      void blenderViewShading(shading);
+    };
+    return subscribeViewportPresentation(keep);
+  }, [main, documentId, view]);
+  /**
    * AND WITH THE AREA'S SHOW OVERLAYS OFF, the switch that makes a camera view read as the render
    * does: no grid, no camera or light wires, no selection marks, no view text — and still the
    * camera's outline and passepartout (`drawviewborder`: "When overlays are disabled, only show
@@ -646,14 +677,15 @@ function BlenderViewportArea({
       // WHERE BLENDER OPENS THE FILE: its own saved 3D View, when it holds one; the direction and
       // fit above are the fallback for a file that saved none.
       openingView={view.savedView()}
-      // The file's own lens (Blender's arithmetic in degrees) and the shading its view was saved
-      // in, as the document's presentation: Blender reopens a file saved in Material Preview in
-      // Material Preview, so a textured scene saved that way does not open grey.
+      // The file's own lens (Blender's arithmetic in degrees) and, for the main area, the shading
+      // its view was saved in, as the document's presentation: Blender reopens a file saved in
+      // Material Preview in Material Preview, so a textured scene saved that way does not open
+      // grey. The second area is the render preview and opens Rendered.
       presentation={(() => {
         const saved = view.savedView();
         if (!saved) return null;
         const camera = { fov: blenderViewFieldOfView(saved.lens) };
-        return saved.drawMode ? { camera, drawMode: saved.drawMode } : { camera };
+        return main && saved.drawMode ? { camera, drawMode: saved.drawMode } : { camera };
       })()}
       // Every entry this document opens is a `model` stage, the standing `blender:runtime`
       // address included (its id carries no `model:` prefix).
