@@ -3,34 +3,19 @@
  * @role BINDING
  *
  * Godot 4.7's `AudioServer` (`servers/audio/audio_server.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) as the page's one bus, `Master`: a gain node every
- * player sounds through into the page's output, its volume in decibels and its mute. A player on a
- * bus the layout does not have sounds on Master, as Godot's does (`AudioServer::thread_find_bus_index`
- * falls back to 0). Other buses, their effects and sends are not bound. A singleton: no receiver.
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) over the page's buses (`audio-stream.ts`): each a
+ * gain node sending into its target bus, Master into the page's output; their volumes in decibels,
+ * mutes and solos. Bus effects are not bound. A singleton: no receiver.
  */
 
-import { godot_audio_bus_set_gain } from './audio-stream';
-
-interface Bus {
-  readonly name: string;
-  volumeDb: number;
-  mute: boolean;
-}
-
-const BUSES: Bus[] = [{ name: 'Master', volumeDb: 0, mute: false }];
-
-/** The Master bus's gain on the page's output (`audio-stream.ts`), from its volume and mute. */
-function applied(): void {
-  const master = BUSES[0] as Bus;
-  godot_audio_bus_set_gain(master.mute ? 0 : 10 ** (master.volumeDb / 20));
-}
+import { godot_audio_bus_changed, godot_audio_buses } from './audio-stream';
 
 /**
  * @godot AudioServer.get_bus_count
  * @source servers/audio/audio_server.cpp:944
  */
 export function get_bus_count(): number {
-  return BUSES.length;
+  return godot_audio_buses().length;
 }
 
 /**
@@ -38,7 +23,7 @@ export function get_bus_count(): number {
  * @source servers/audio/audio_server.cpp:992
  */
 export function get_bus_name(bus_idx: number): string {
-  return BUSES[bus_idx]?.name ?? '';
+  return godot_audio_buses()[bus_idx]?.name ?? '';
 }
 
 /**
@@ -46,7 +31,7 @@ export function get_bus_name(bus_idx: number): string {
  * @source servers/audio/audio_server.cpp:997
  */
 export function get_bus_index(bus_name: string): number {
-  return BUSES.findIndex((bus) => bus.name === String(bus_name));
+  return godot_audio_buses().findIndex((bus) => bus.name === String(bus_name));
 }
 
 /**
@@ -54,10 +39,10 @@ export function get_bus_index(bus_name: string): number {
  * @source servers/audio/audio_server.cpp:1006
  */
 export function set_bus_volume_db(bus_idx: number, volume_db: number): void {
-  const bus = BUSES[bus_idx];
+  const bus = godot_audio_buses()[bus_idx];
   if (bus === undefined) return;
   bus.volumeDb = volume_db;
-  applied();
+  godot_audio_bus_changed();
 }
 
 /**
@@ -65,7 +50,7 @@ export function set_bus_volume_db(bus_idx: number, volume_db: number): void {
  * @source servers/audio/audio_server.cpp:1016
  */
 export function get_bus_volume_db(bus_idx: number): number {
-  return BUSES[bus_idx]?.volumeDb ?? 0;
+  return godot_audio_buses()[bus_idx]?.volumeDb ?? 0;
 }
 
 /**
@@ -93,10 +78,10 @@ export function get_bus_volume_linear(bus_idx: number): number {
  * @source servers/audio/audio_server.cpp:1065
  */
 export function set_bus_mute(bus_idx: number, enable: boolean): void {
-  const bus = BUSES[bus_idx];
+  const bus = godot_audio_buses()[bus_idx];
   if (bus === undefined) return;
   bus.mute = enable;
-  applied();
+  godot_audio_bus_changed();
 }
 
 /**
@@ -104,5 +89,5 @@ export function set_bus_mute(bus_idx: number, enable: boolean): void {
  * @source servers/audio/audio_server.cpp:1075
  */
 export function is_bus_mute(bus_idx: number): boolean {
-  return BUSES[bus_idx]?.mute ?? false;
+  return godot_audio_buses()[bus_idx]?.mute ?? false;
 }

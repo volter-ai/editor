@@ -168,14 +168,14 @@ export function godot_audio_stream_player_3d_mount(entity: Object3D): void {
     cut: null,
   };
   SPATIAL.set(entity, spatial);
-  P.godot_audio_player_mount(entity, (audio) => {
+  P.godot_audio_player_mount(entity, (audio, bus) => {
     if (spatial.panner === null || spatial.cut === null) {
       spatial.panner = audio.createPanner();
       spatial.panner.panningModel = 'equalpower';
       spatial.filter = audio.createBiquadFilter();
       spatial.filter.type = 'highshelf';
       spatial.cut = audio.createGain();
-      spatial.panner.connect(spatial.filter).connect(spatial.cut).connect(godot_audio_bus_output(audio));
+      spatial.panner.connect(spatial.filter).connect(spatial.cut).connect(godot_audio_bus_output(audio, bus));
     }
     pan(entity, spatial);
     return spatial.panner;

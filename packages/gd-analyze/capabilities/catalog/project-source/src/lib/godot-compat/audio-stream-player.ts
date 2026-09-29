@@ -53,7 +53,7 @@ export interface GodotAudioPlayerState {
   readonly playbacks: Playback[];
   readonly finished: SignalHandle<[]>;
   /** Where a playback's gain connects: the page's output, or a 3D player's panner. */
-  output: (audio: AudioContext) => AudioNode;
+  output: (audio: AudioContext, bus: string) => AudioNode;
   processing: boolean;
   /** `playback_type`: `PLAYBACK_TYPE_DEFAULT` (0), `STREAM` (1) or `SAMPLE` (2). */
   playbackType: number;
@@ -122,7 +122,7 @@ export function godot_audio_player_mount(entity: Object3D, output: GodotAudioPla
  * @source scene/audio/audio_stream_player.cpp:302
  */
 export function godot_audio_stream_player_mount(entity: Object3D): void {
-  godot_audio_player_mount(entity, (audio) => godot_audio_bus_output(audio));
+  godot_audio_player_mount(entity, (audio, bus) => godot_audio_bus_output(audio, bus));
 }
 
 /**
@@ -179,7 +179,7 @@ export function play(self: object, from_position = 0.0): void {
       streamPitch = start.pitchScale;
       const into = audio.createGain();
       into.gain.value = f32(dbToLinear(state.volumeDb) * start.volumeScale);
-      into.connect(state.output(audio));
+      into.connect(state.output(audio, state.bus));
       gain = into;
       restart = (from) => {
         const source = audio.createBufferSource();

@@ -189,6 +189,12 @@ export interface DirectGodotProjectCompositionPlan {
    * only where one can.
    */
   readonly sceneChanges: { readonly change: boolean; readonly reload: boolean };
+  /**
+   * The default bus layout's buses (`AudioServer::set_bus_layout`, `audio_server.cpp:1755`), which
+   * the world sets before any script runs; Master alone where the project has no layout, or no
+   * sound file to play through it (`audioBuses`).
+   */
+  readonly audioBuses: readonly DirectGodotAudioBusPlan[];
   /** The settings the world loads before any script runs. */
   readonly projectSettings: readonly DirectGodotProjectSettingPlan[];
   /** The InputMap the world loads after the settings (`Main::setup`, `main/main.cpp:2102`). */
@@ -202,6 +208,16 @@ export interface DirectGodotProjectCompositionPlan {
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
   /** Every script's generated class, by the script's res path (a scene's resources make instances of them). */
   readonly scriptClasses: readonly { readonly scriptResPath: string; readonly generatedClass: DirectGodotGeneratedClass }[];
+}
+
+/** One bus of the layout: its name, volume, mute, solo and bypass, and the bus it sends to. */
+export interface DirectGodotAudioBusPlan {
+  readonly name: string;
+  readonly volumeDb: number;
+  readonly mute: boolean;
+  readonly solo: boolean;
+  readonly bypassFx: boolean;
+  readonly send: string;
 }
 
 export interface DirectGodotCompositionDiagnostic {
@@ -963,6 +979,7 @@ export function planDirectGodotProjectComposition(
       mainScene,
       autoloadScenes: bodied.filter((scene) => scene.sourceResPath !== mainScene && (scene.autoloadReferences?.length ?? 0) > 0).map((scene) => scene.sourceResPath),
       sceneChanges: sceneChanges(project),
+      audioBuses: audioBuses(project, diagnostics),
       projectSettings: settings,
       inputMap,
       physicsWorld: physics,
@@ -984,4 +1001,61 @@ export function planDirectGodotProjectComposition(
 function sceneChanges(project: BoundGodotProject): DirectGodotProjectCompositionPlan['sceneChanges'] {
   const called = new Set(project.scripts.flatMap((script) => script.program.nodes.flatMap((node) => (node.kind === 'CALL' ? [node.functionName] : []))));
   return { change: called.has('change_scene_to_packed') || called.has('change_scene_to_file'), reload: called.has('reload_current_scene') };
+}
+
+/**
+ * The default bus layout's buses as `AudioBusLayout::_set` reads them (`bus/N/name`, `volume_db`,
+ * `mute`, `solo`, `bypass_fx`, `send`; `audio_server.cpp:1880`), Master first with its defaults;
+ * Master alone for a project without a layout or without a sound file to play through it. A bus's
+ * effects are not bound and refuse by name.
+ */
+function audioBuses(project: BoundGodotProject, diagnostics: DirectGodotCompositionDiagnostic[]): readonly DirectGodotAudioBusPlan[] {
+  const master: DirectGodotAudioBusPlan = { name: 'Master', volumeDb: 0, mute: false, solo: false, bypassFx: false, send: '' };
+  const silent = project.documents.sounds.length === 0 && project.documents.oggVorbis.length === 0;
+  const root = project.read.runtimeRoots.find((entry) => entry.mechanism === 'default-audio-bus-layout');
+  const layout = root === undefined || silent ? undefined : project.documents.resources.find((entry) => entry.resPath === root.resPath);
+  if (layout === undefined) return [master];
+  const buses: { name?: string; volumeDb?: number; mute?: boolean; solo?: boolean; bypassFx?: boolean; send?: string }[] = [];
+  for (const [name, value] of Object.entries(layout.resource.properties)) {
+    const field = /^bus\/(\d+)\/(.+)$/u.exec(name);
+    if (field === null) continue;
+    const index = Number(field[1]);
+    const bus = (buses[index] ??= {});
+    const text = value.kind === 'string' || value.kind === 'string-name' ? String(value.value) : undefined;
+    const number = value.kind === 'number' ? value.value : undefined;
+    const flag = value.kind === 'bool' ? value.value : undefined;
+    switch (field[2]) {
+      case 'name':
+        if (text !== undefined) bus.name = text;
+        break;
+      case 'volume_db':
+        if (number !== undefined) bus.volumeDb = number;
+        break;
+      case 'mute':
+        if (flag !== undefined) bus.mute = flag;
+        break;
+      case 'solo':
+        if (flag !== undefined) bus.solo = flag;
+        break;
+      case 'bypass_fx':
+        if (flag !== undefined) bus.bypassFx = flag;
+        break;
+      case 'send':
+        if (text !== undefined) bus.send = text;
+        break;
+      default:
+        diagnostics.push({ at: `${layout.resPath}.${name}`, message: `an audio bus's ${field[2]} is not bound` });
+    }
+  }
+  return Array.from({ length: Math.max(buses.length, 1) }, (_, index) => {
+    const bus = buses[index] ?? {};
+    return {
+      name: index === 0 ? 'Master' : (bus.name ?? `Bus ${String(index)}`),
+      volumeDb: bus.volumeDb ?? 0,
+      mute: bus.mute ?? false,
+      solo: bus.solo ?? false,
+      bypassFx: bus.bypassFx ?? false,
+      send: index === 0 ? '' : (bus.send ?? 'Master'),
+    };
+  });
 }

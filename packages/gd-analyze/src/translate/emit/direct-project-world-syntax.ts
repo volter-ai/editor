@@ -40,8 +40,9 @@ export function directGodotInputMapJson(composition: DirectGodotProjectCompositi
 }
 
 /**
- * The project's settings and InputMap, loaded from its data files when the world module is
- * evaluated: before any script runs, as Godot loads them in `Main::setup` (`main/main.cpp:2102`).
+ * The project's bus layout, settings and InputMap, set and loaded from its data files when the
+ * world module is evaluated: before any script runs, as Godot loads them in `Main::setup`
+ * (`main/main.cpp:2102`).
  */
 function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
   readonly imports: readonly TargetTsStatement[];
@@ -52,8 +53,14 @@ function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
     expression: { kind: 'call-expression', callee: { kind: 'identifier-expression', name: loader }, arguments: [{ kind: 'identifier-expression', name: data }] },
   });
   const settings = composition.projectSettings.length > 0;
+  // The default bus layout, where it is more than Master at its defaults.
+  const [master, ...others] = composition.audioBuses;
+  const buses = others.length > 0 || (master !== undefined && (master.volumeDb !== 0 || master.mute || master.solo || master.bypassFx));
   return {
     imports: [
+      ...(buses
+        ? [{ kind: 'import-statement' as const, module: './lib/godot-compat/audio-stream', namedBindings: [{ imported: 'godot_audio_bus_layout', local: 'godot_audio_bus_layout' }] }]
+        : []),
       ...(settings
         ? [
             { kind: 'import-statement' as const, module: './lib/godot-compat/project-settings', namedBindings: [{ imported: 'godot_project_settings_load_json', local: 'godot_project_settings_load_json' }] },
@@ -70,6 +77,26 @@ function projectDataLoad(composition: DirectGodotProjectCompositionPlan): {
       { kind: 'import-statement' as const, module: './project/input-map.json', defaultBinding: 'inputMap', namedBindings: [] },
     ],
     statements: [
+      ...(buses
+        ? [
+            {
+              kind: 'expression-statement' as const,
+              expression: {
+                kind: 'call-expression' as const,
+                callee: { kind: 'identifier-expression' as const, name: 'godot_audio_bus_layout' },
+                arguments: [
+                  {
+                    kind: 'array-expression' as const,
+                    elements: composition.audioBuses.map((bus) => ({
+                      kind: 'object-expression' as const,
+                      properties: Object.entries(bus).map(([key, value]) => ({ key, value: { kind: 'literal-expression' as const, value } })),
+                    })),
+                  },
+                ],
+              },
+            },
+          ]
+        : []),
       ...(settings ? [load('godot_project_settings_load_json', 'settings')] : []),
       load('godot_input_map_load_json', 'inputMap'),
     ],

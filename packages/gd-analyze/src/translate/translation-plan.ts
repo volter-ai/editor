@@ -127,6 +127,10 @@ function validateInputClosure(
     ...composition.resourceModules.flatMap((module) =>
       module.resources.flatMap((resource) => (resource.key.startsWith('ext:res://') ? [resource.key.slice('ext:res://'.length).split('#')[0] as string] : [])),
     ),
+    // The default bus layout is the world's buses (`audioBuses`), where a sound can play through it.
+    ...(project.documents.sounds.length === 0 && project.documents.oggVorbis.length === 0
+      ? []
+      : project.read.runtimeRoots.flatMap((root) => (root.mechanism === 'default-audio-bus-layout' ? [root.resPath.slice('res://'.length)] : []))),
     // An animation file a library reads its animations from is translated into the library's data.
     ...composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.animations?.sources ?? []).map((path) => path.slice('res://'.length)))),
   ]);
