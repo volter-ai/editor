@@ -198,6 +198,21 @@ export async function startEmscriptenBlenderEngine(
     if (text.startsWith('@@VOLTER-READY ')) readyLine = text.slice('@@VOLTER-READY '.length);
     options.log(sessionLevel(text), text);
   };
+  // THE HEAP ITSELF, not a view of it. Blender runs on a pthread, so when its heap grows there
+  // this worker's `module.HEAPU8` keeps the length it had until the glue next refreshes it -- and
+  // no export the door calls does. MEASURED 2026-09-29 on the Stoneguard scene from
+  // game-benchmarks main: a mesh's columns at 1.14 GB were read through a 433 MB view, and the
+  // pull failed "outside the export arena". The glue builds its memory with `new
+  // WebAssembly.Memory` and exports no handle to it, so that constructor is observed while the
+  // factory runs; every read below takes a fresh view of `memory.buffer`.
+  const Memory = WebAssembly.Memory;
+  let memory: WebAssembly.Memory | null = null;
+  (WebAssembly as { Memory: unknown }).Memory = function (descriptor: WebAssembly.MemoryDescriptor) {
+    const made = new Memory(descriptor);
+    memory ??= made;
+    return made;
+  } as unknown as typeof WebAssembly.Memory;
+  const heap = (): Uint8Array => (memory ? new Uint8Array(memory.buffer) : module.HEAPU8);
   const module = await factory({
     arguments: ['--background', '--factory-startup', '--python', SESSION_SCRIPT],
     locateFile: (file: string) => artifactUrl(file),
@@ -253,6 +268,8 @@ export async function startEmscriptenBlenderEngine(
         );
       },
     ],
+  }).finally(() => {
+    (WebAssembly as { Memory: unknown }).Memory = Memory;
   });
   // `main()` runs on a pthread (`-sPROXY_TO_PTHREAD`), so the factory resolves
   // long before the session exists. The ready line is what says it does.
@@ -329,13 +346,15 @@ export async function startEmscriptenBlenderEngine(
     // A VIEW, NOT A COPY. The arena is wasm linear memory and under
     // `-sPROXY_TO_PTHREAD` that memory is SHARED, so `session-frame.mts`
     // slices every column it reads out of here; this call itself is free.
-    readArena: async () =>
-      module.HEAPU8.subarray(
-        module._blender_web_export_buffer(),
-        module._blender_web_export_buffer() + module._blender_web_export_buffer_size(),
-      ),
+    // A DIRECT ARENA (address 0) IS THE WHOLE HEAP, at its length now: the size the door reports
+    // is `emscripten_get_heap_size()`, which is Blender's pthread's own view of the heap and is as
+    // stale as this worker's was (measured: 431 MB while a column lay at 2.0 GB).
+    readArena: async () => {
+      const base = module._blender_web_export_buffer();
+      return base === 0 ? heap() : heap().subarray(base, base + module._blender_web_export_buffer_size());
+    },
     bootMs,
-    memoryBytes: () => module.HEAPU8.length,
+    memoryBytes: () => heap().length,
     releasedPayloadBytes,
   };
 }

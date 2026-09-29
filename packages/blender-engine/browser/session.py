@@ -162,6 +162,8 @@ def _mark(label):
     MEMORY_MARKS.append([label] + [round(reading.get(key, 0) / 1048576)
                                    for key in ("heap", "mallocInUse", "mallocFree", "guarded", "guardedPeak")])
     del MEMORY_MARKS[:-64]
+    # Also said, so an engine that dies of memory names in its last output the stage it reached.
+    _say("@@VOLTER-MEMORY %s heap=%d inUse=%d free=%d" % tuple(MEMORY_MARKS[-1][:4]))
 _real_stderr = sys.stderr
 
 
@@ -1611,7 +1613,7 @@ class Session:
         images = [name for name, image in frame["images"].items() if image.get("deferred")]
         if not meshes and not images:
             return False
-        ask({"hold": frame})
+        _asked({"hold": frame})
         options = {"buffer_path": EXPORT_BUFFER_PATH} if EXPORT_BUFFER_PATH else {}
         for kind, keys, door in (("mesh", meshes, _blender_web.export_mesh),
                                  ("image", images, _blender_web.export_image)):
@@ -1626,7 +1628,7 @@ class Session:
                 if piece[kind] is None:
                     del frame["images"][key]
                     continue
-                ask({kind: key, "piece": piece[kind]})
+                _asked({kind: key, "piece": piece[kind]})
         return True
 
     def _send_encoded_image(self, key, deferred):
@@ -1666,7 +1668,7 @@ class Session:
         with open(path, "wb") as fh:
             fh.write(data)
         try:
-            ask({"image": key, "piece": {
+            _asked({"image": key, "piece": {
                 "revision": deferred["revision"],
                 "mime": mime,
                 "colorspace": "sRGB" if image.colorspace_settings.name == "sRGB" else "data",
@@ -2012,6 +2014,17 @@ _BRISK_SECONDS = 0.05
 
 def _pause(since):
     time.sleep(0.0002 if time.monotonic() - since < _BRISK_SECONDS else 0.002)
+
+
+def _asked(payload):
+    """`ask`, failing as the tab failed: a piece the worker could not take comes back as
+    `{"error": ...}`, and a pull that read past it presented a frame missing that piece, refused
+    later under another name ("deferred and never pulled")."""
+    answer = ask(payload)
+    if isinstance(answer, dict) and answer.get("error"):
+        raise RuntimeError("The tab refused %s: %s" % (
+            next((key for key in ("mesh", "image", "hold") if key in payload), "an ask"), answer["error"]))
+    return answer
 
 
 def ask(payload):
