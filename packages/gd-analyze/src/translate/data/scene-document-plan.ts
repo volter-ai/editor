@@ -14,6 +14,7 @@ import type { GodotValue } from '../../read/godot-value';
 import type { GodotBoundShader, GodotShaderUniform } from '../../godot-frontend/bound-shader';
 import { lowerGodotShader } from '../emit/shader-glsl';
 import { GODOT_SKY_SHADER_BUILTINS } from '../emit/sky-shader';
+import { readObjMesh } from '../../read/obj-mesh';
 import {
   GODOT_SPATIAL_DEFAULT_VERTEX,
   GODOT_SPATIAL_FRAGMENT_BUILTINS,
@@ -929,6 +930,32 @@ function planResolvedResource(
     recordResource(document, key, planned);
     return key;
   }
+  // A `.obj` the `wavefront_obj` importer imports: an ArrayMesh of its surfaces (`read/obj-mesh.ts`).
+  const obj = data === undefined ? context.project?.documents.objMeshes.find((entry) => `ext:${entry.resPath}` === key) : undefined;
+  if (obj !== undefined) {
+    const rule = context.authority.resourceRule('ArrayMesh');
+    let surfaces: ReturnType<typeof readObjMesh>;
+    try {
+      surfaces = readObjMesh(obj.text, obj.resPath);
+    } catch (error) {
+      refuse(context, at, error instanceof Error ? error.message : String(error), 'resource', 'ArrayMesh');
+      return undefined;
+    }
+    if (rule === undefined) {
+      refuse(context, at, 'no resource rule constructs ArrayMesh', 'resource', 'ArrayMesh');
+      return undefined;
+    }
+    const mesh: TargetGodotArrayMeshPlan = {
+      resourceName: '',
+      surfaces: surfaces.map((surface) => ({
+        // `PRIMITIVE_TRIANGLES` (`rendering_server_enums.h:208`).
+        primitive: 3,
+        arrays: { vertex: surface.vertex, normal: surface.normal, tangent: undefined, color: undefined, tex_uv: surface.uv, tex_uv2: undefined, index: undefined },
+      })),
+    };
+    recordResource(document, key, { key, className: 'ArrayMesh', construct: rule.construct, mesh, setters: [] });
+    return key;
+  }
   if (data === undefined) {
     refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
     return undefined;
@@ -1185,7 +1212,8 @@ function subBinding(
   const own = { setter: exported(setter), getter: exported(getter), ...(setter.index === undefined ? {} : { index: setter.index }) };
   if (RECORD_MEMBERS.has(sub)) return { ...own, member: sub };
   const type = lookup.propertyType?.(className, property);
-  const holder = type === undefined ? undefined : lookup.declaring?.(type, sub);
+  // A shader's parameter is ShaderMaterial's (`ShaderMaterial::_set`, `material.cpp:197`), named by the shader.
+  const holder = sub.startsWith('shader_parameter/') ? 'ShaderMaterial' : type === undefined ? undefined : lookup.declaring?.(type, sub);
   if (holder === undefined) return `${className}.${property}:${sub} names no one class's property`;
   const inner = lookup(holder, sub);
   if (typeof inner === 'string') return inner;

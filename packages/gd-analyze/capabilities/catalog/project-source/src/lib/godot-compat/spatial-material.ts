@@ -44,6 +44,17 @@ const REPEAT_ENABLE = 1;
 export type GodotSpatialMaterial = Material & { readonly uniforms: { readonly godot_TIME: { value: number } } };
 
 const THREE_MATERIALS = new WeakMap<ShaderMaterial, GodotSpatialMaterial>();
+const OF_THREE = new WeakMap<Material, ShaderMaterial>();
+
+/**
+ * The ShaderMaterial a three material draws, where it is one (a mesh's override read back).
+ *
+ * @godot ShaderMaterial (protocol)
+ * @source scene/resources/material.cpp:545
+ */
+export function godot_shader_material_of_three(material: unknown): ShaderMaterial | undefined {
+  return typeof material === 'object' && material !== null ? OF_THREE.get(material as Material) : undefined;
+}
 
 function isRecord(value: unknown): value is Readonly<Record<string, number>> {
   return typeof value === 'object' && value !== null && !Array.isArray(value);
@@ -129,5 +140,6 @@ export function godot_shader_material_three(material: ShaderMaterial): GodotSpat
   });
   const drawn = made as unknown as GodotSpatialMaterial;
   THREE_MATERIALS.set(material, drawn);
+  OF_THREE.set(drawn, material);
   return drawn;
 }

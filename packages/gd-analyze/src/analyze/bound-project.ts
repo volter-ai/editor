@@ -344,6 +344,8 @@ export interface BoundGodotProjectDocuments {
   readonly sounds: readonly BoundGodotSoundDocument[];
   /** Sounds the `oggvorbisstr` importer imports, decoded by the browser. */
   readonly oggVorbis: readonly BoundGodotOggVorbisDocument[];
+  /** Meshes the `wavefront_obj` importer imports (`[remap] importer="wavefront_obj"`): the file's text. */
+  readonly objMeshes: readonly { readonly resPath: string; readonly sourceDigest: string; readonly text: string }[];
   /** Font files the `font_data_dynamic` importer imports as a `FontFile` holding their bytes. */
   readonly fonts: readonly { readonly resPath: string; readonly sourceDigest: string; readonly bytes: Uint8Array }[];
   /** Each `.gdshader` as the pinned Godot's own shader frontend read it (`bound-shader.ts`). */
@@ -775,6 +777,15 @@ function boundDocuments(
             loopOffset: sidecar.audioLoopOffset ?? 0,
           },
         ];
+      }),
+    ),
+    objMeshes: unique(
+      'obj-mesh',
+      decoded.imports.flatMap((sidecar) => {
+        if (sidecar.importer !== 'wavefront_obj' || sidecar.sourceFile === undefined) return [];
+        const entry = snapshot.entryByResPath(sidecar.sourceFile);
+        if (entry?.entryType !== 'file' || entry.digest === undefined) return [];
+        return [{ resPath: sidecar.sourceFile, sourceDigest: entry.digest, text: new TextDecoder().decode(snapshot.bytesByResPath(sidecar.sourceFile)) }];
       }),
     ),
     fonts: unique(

@@ -111,9 +111,12 @@ export function planGodotSceneSurfaces(scenes: readonly SceneWithoutRefs[]): Sce
       if (node.idiom?.form.kind === 'mesh') {
         const mesh = resourceKey(node.setters, 'set_mesh');
         const own = mesh === undefined ? [] : (byKey.get(mesh)?.surfaceMaterials ?? []);
+        // `material_override` draws every surface, before a surface's own override
+        // (`GeometryInstance3D`, `visual_instance_3d.cpp:218`; `mesh_instance_3d.cpp:423`).
+        const override = resourceKey(node.setters, 'set_material_override');
         surfaces = {
           ...(mesh === undefined ? {} : { mesh }),
-          materials: own.map((material, surface) => resourceKey(node.setters, 'set_surface_override_material', surface) ?? material),
+          materials: own.map((material, surface) => override ?? resourceKey(node.setters, 'set_surface_override_material', surface) ?? material),
           layers: numberValue(node.setters, 'set_layer_mask') ?? 1,
           // Any setting but `SHADOW_CASTING_SETTING_OFF` casts (`geometry-instance-3d.ts`).
           castShadow: (numberValue(node.setters, 'set_cast_shadows_setting') ?? 1) !== 0,
