@@ -250,6 +250,11 @@ its members carry over, its emitter wiring waits for step 2), and `evidence --re
 
 ## How a lane lands (2026-09-28, owner-approved: "go")
 
+**One thread, no lanes** (owner, 2026-09-28: "instead of subagents just do it in this chat - only
+review in subagent every 30 commits"). All building happens in the orchestrator's own thread;
+the only subagent is the periodic regression review after 30 lane commits. This overrides the
+workspace's two-lane rule for this lane.
+
 This is how the lane's work reaches `godot`. It adds no standard: the standard is §The lane's law
 and its rows. It exists because three periodic reviews in a row came back `regressed`: new findings
 arrived faster than reviews cleared them. The lanes were briefed to clear refusals, and they merged
