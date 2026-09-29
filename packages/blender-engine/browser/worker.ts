@@ -1,3 +1,4 @@
+import { PullJob, checkpointStream } from './pull-job.mts';
 import { sendFrameValue } from './frame-stream.mts';
 /**
  * THE BLENDER IN THE TAB IS BLENDER (ARCHITECTURE-CORE, owner ruling
@@ -69,7 +70,8 @@ const pendingPresents = new Map<
 >();
 
 async function streamToTab(value: unknown): Promise<PresentAnswer> {
-  return await sendFrameValue(value, chunk => {
+  return await sendFrameValue(value, async chunk => {
+    await loadCheckpoint?.("frame-transfer");
     const id = ++presentId;
     return new Promise<PresentAnswer>((resolve, reject) => {
       pendingPresents.set(id, { resolve, reject });
@@ -85,6 +87,8 @@ function presentToTab(frame: unknown, description: unknown, capture?: CaptureReq
 }
 
 let engine: BlenderEngine | null = null;
+let loadJob: PullJob<unknown> | null = null;
+let loadCheckpoint: ((phase: string) => Promise<void>) | null = null;
 
 // ---- The session's document.
 //
@@ -263,7 +267,8 @@ async function startBlender(project: string, document?: string): Promise<unknown
   const started = await startBlenderEngine({
     project,
     log,
-    ask: async ({ frame, hold, mesh, image, piece, present, capture, saveDue }) => {
+    ask: async ({ frame, hold, mesh, image, piece, present, capture, saveDue, checkpoint }) => {
+      if (typeof checkpoint === 'string') { await loadCheckpoint?.(checkpoint); return {}; }
       if (!holder.engine) throw new Error('The Blender session presented before it started');
       // Save once after the whole command, never during a partial frame.
       if (saveDue && documentPath !== null) setDocumentDirty(true);
@@ -337,12 +342,14 @@ async function startBlender(project: string, document?: string): Promise<unknown
     },
   });
   holder.engine = started;
+  await loadCheckpoint?.("engine-ready");
   engine = started;
   // THE PROJECT'S FILES BEFORE THE SESSION'S FIRST ACT, because that act may
   // be `open_mainfile` on the document — which lives on the host's disk and is
   // not in the engine's filesystem until it is staged. Every other call stages
   // on its way in (`execute`); start had nothing to open before it did.
   if (document) await stageProjectFiles(started.files, project);
+  await loadCheckpoint?.("project-imported");
   const banner = (await started.request({
     op: 'start',
     project,
@@ -526,7 +533,7 @@ async function stageProjectFiles(files_: BlenderFiles, project: string): Promise
     const dir = path.slice(0, path.lastIndexOf('/'));
     if (dir) await files_.mkdirTree(dir);
     if (files_.writeFileStream && answer.body) {
-      await files_.writeFileStream(path, answer.body, file.size);
+      await files_.writeFileStream(path, loadCheckpoint ? checkpointStream(answer.body, () => loadCheckpoint!("file-import")) : answer.body, file.size);
     } else {
       await files_.writeFile(path, new Uint8Array(await answer.arrayBuffer()));
     }
@@ -567,8 +574,19 @@ async function listSessionFiles(files: BlenderFiles, root: string): Promise<File
 
 async function handle(request: WorkerRequest): Promise<unknown> {
   switch (request.op) {
-    case 'start':
-      return start(request.project, request.document);
+    case 'start': {
+      if (loadJob) throw new Error('The Blender load has already started');
+      loadJob = new PullJob(async checkpoint => {
+        loadCheckpoint = checkpoint;
+        const began = performance.now();
+        try { return await start(request.project, request.document); }
+        finally { loadCheckpoint = null; log('log', `@@VOLTER-LOAD totalMs=${Math.round(performance.now() - began)}`); }
+      });
+      return loadJob.step();
+    }
+    case 'load-next':
+      if (!loadJob) throw new Error('No Blender load to continue');
+      return loadJob.step(request.token);
     case 'present-result': {
       const pending = pendingPresents.get(request.id);
       pendingPresents.delete(request.id);
@@ -582,6 +600,7 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       return undefined;
     }
   }
+  if (loadCheckpoint) throw new Error('The Blender load must finish before another command');
   if (!session || !projectRoot || !engine) throw new Error('The Blender session has not started');
   const files = engine.files;
   /** The session channel itself, for the requests whose answer is already the

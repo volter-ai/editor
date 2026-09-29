@@ -127,6 +127,7 @@ export interface BlenderEngineOptions {
  * answered as a whole frame is.
  */
 export interface SessionAsk {
+  checkpoint?: string;
   frame?: unknown;
   hold?: unknown;
   mesh?: string;
@@ -382,15 +383,16 @@ export function openSessionChannel(
   /** Answer any `ask` the session has raised, and retire the replies it has
    *  taken. Called from the poll loop, so a present raised inside a call is
    *  served while that call is outstanding. */
-  async function serveAsks(): Promise<void> {
+  async function serveAsks(): Promise<boolean> {
     let names: string[];
     try {
       names = await files.readdir(`${SESSION_ROOT}/ask`);
     } catch {
-      return;
+      return false;
     }
     const raised = new Set(names.filter((name) => name.endsWith('.done')));
     await retireReplies(raised);
+    let progressed = false;
     for (const name of raised) {
       const id = name.slice(0, -'.done'.length);
       if (Number(id) <= asking) continue;
@@ -410,7 +412,9 @@ export function openSessionChannel(
         files.writeFile(`${SESSION_ROOT}/reply/${id}.done`, '1'),
       ]);
       replied.add(id);
+      progressed = true;
     }
+    return progressed;
   }
 
   async function request(payload: Record<string, unknown>): Promise<unknown> {
@@ -426,9 +430,9 @@ export function openSessionChannel(
       files.writeFile(`${SESSION_ROOT}/in/${id}.json`, JSON.stringify(payload)),
       files.writeFile(`${SESSION_ROOT}/in/${id}.done`, '1'),
     ]);
-    const began = performance.now();
+    let lastProgress = performance.now();
     for (;;) {
-      await serveAsks();
+      if (await serveAsks()) lastProgress = performance.now();
       if (await files.stat(`${SESSION_ROOT}/out/${id}.done`)) {
         const body = JSON.parse(
           decoder.decode(await files.readFile(`${SESSION_ROOT}/out/${id}.json`)),
@@ -458,7 +462,7 @@ export function openSessionChannel(
             'wait on the same missing answer; start a new program with `blender-start {fresh: true}` ' +
             '(`VOLTER_BLENDER_FRESH_SESSION=1` for the battery harness).',
         );
-      const delay = pollDelay(performance.now() - began);
+      const delay = pollDelay(performance.now() - lastProgress);
       await (files.changed ? files.changed(delay) : sleep(delay));
     }
   }

@@ -1,3 +1,4 @@
+import type { PullResult } from './pull-job.mts';
 import { FrameStreamReader } from './frame-stream.mts';
 /**
  * The tab-side handle on a Blender session: spawns the worker, forwards the
@@ -253,12 +254,20 @@ export class BlenderRuntime {
       );
     this.#project = project;
     this.#document ??= document ?? 'models/model.blend';
-    this.#started ??= this.#request({
+    this.#started ??= this.#load({
       op: 'start',
       project,
       ...(document === undefined ? {} : { document }),
     }) as Promise<RuntimeStart>;
     return this.#started;
+  }
+
+  async #load(request: Extract<Request, { op: 'start' }>): Promise<RuntimeStart> {
+    let result = await this.#request(request) as PullResult<RuntimeStart>;
+    while (result?.load === 'continue') {
+      result = await this.#request({ op: 'load-next', token: result.token }) as PullResult<RuntimeStart>;
+    }
+    return result?.load === 'done' ? result.value : result as unknown as RuntimeStart;
   }
 
   #ready(): Promise<RuntimeStart> {

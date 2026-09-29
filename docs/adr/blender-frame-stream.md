@@ -52,3 +52,27 @@ The focused native bodice hashes are in
 [`provenance/stoneguard-bodice.json`](../../provenance/stoneguard-bodice.json).
 The full-scene record explicitly retains residual floating-point differences;
 unchanged counts alone are not treated as native bit parity.
+
+## Startup is a pull job
+
+The first independent hosted review of this transport still recorded an
+82.508-second startup RPC. Chunked messages alone did not bound that request.
+Startup now returns a continuation at real work boundaries. The producer parks
+until the owner sends the matching `load-next` request; a stale or duplicated
+token cannot advance it. Import writes and frame transfers yield at one MiB
+boundaries. The final startup promise still waits for the complete document and
+presentation, and `@@VOLTER-LOAD totalMs` retains the aggregate duration.
+Call metrics continue to measure actual request lifetimes without timer resets.
+
+The native reader and exporter supply cooperative checkpoints on their calling
+thread, including subdivision-table stages. Callbacks only carry transport;
+they must never inspect or mutate partially read/evaluated Blender data. Other
+commands are refused while this load owns the engine. Native allocation order,
+quality and arithmetic remain unchanged. An older engine lacking these optional
+doors keeps its synchronous native phases, reported at their actual durations.
+
+Directory-channel polling backs off since its last progress, rather than the
+start of a long job. Otherwise every later mesh in an initial scene pays the
+slow 25 ms poll interval even while it is continuously producing data.
+`pull-job.test.mjs` covers producer parking, stale/concurrent requests, error
+propagation, bounded import backpressure and the actual worker startup lane.

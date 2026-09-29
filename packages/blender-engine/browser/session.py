@@ -1402,7 +1402,11 @@ class Session:
             options["defer"] = True
         if hasattr(_blender_web, "memory_reset_peak"):
             _blender_web.memory_reset_peak()
-        exported = _blender_web.export_frame(json.dumps(options))
+        if hasattr(_blender_web, "export_frame_chunked"):
+            exported = _blender_web.export_frame_chunked(json.dumps(options),
+                lambda: _asked({"checkpoint": "native-export"}))
+        else:
+            exported = _blender_web.export_frame(json.dumps(options))
         _mark("export:door")
         frame = json.loads(exported)
         del exported
@@ -1847,9 +1851,18 @@ class Session:
         self.document = os.path.join(self.project, relative_path)
         if not os.path.exists(self.document):
             return {"document": relative_path, "opened": False}
+        _asked({"checkpoint": "document-open"})
         _mark("open:before")
-        bpy.ops.wm.open_mainfile(filepath=self.document)
+        checkpointed_read = hasattr(_blender_web, "set_read_checkpoint")
+        if checkpointed_read:
+            _blender_web.set_read_checkpoint(lambda: _asked({"checkpoint": "file-read"}))
+        try:
+            bpy.ops.wm.open_mainfile(filepath=self.document)
+        finally:
+            if checkpointed_read:
+                _blender_web.set_read_checkpoint(None)
         _mark("open:after")
+        _asked({"checkpoint": "document-opened"})
         size = os.path.getsize(self.document)
         # THE STAGED COPY GOES ONCE BLENDER HAS READ IT. It sits in the engine's heap (WasmFS keeps
         # file data in linear memory) and nothing reads it again: the load took everything into

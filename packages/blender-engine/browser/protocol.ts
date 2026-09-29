@@ -3,6 +3,7 @@ import type { FrameChunk } from './frame-stream.mts';
  * worker; the model lives in the worker's Python and nowhere else. */
 
 export type WorkerRequest =
+  | { id: number; op: 'load-next'; token: string }
   | { id: number; op: 'flush-document' }
   | { id: number; op: 'history-begin' | 'history-end' }
   | { id: number; op: 'history-step'; token: string; direction: 'undo' | 'redo' }
