@@ -20,6 +20,7 @@
  * bound) are not.
  */
 
+import { godot_audio_listener_3d_current } from './audio-listener-3d';
 import type { Object3D } from 'three';
 import { godot_audio_context } from './audio-stream';
 import * as P from './audio-stream-player';
@@ -106,7 +107,8 @@ function pan(entity: Object3D, spatial: Spatial): void {
   spatial.panner.refDistance = params?.refDistance ?? 1;
   spatial.panner.rolloffFactor = params?.rolloffFactor ?? 0;
   const root = godot_tree_root();
-  const camera = root === undefined ? null : godot_camera_3d_of_viewport(root as Object3D);
+  // The viewport's current AudioListener3D, else its camera (`audio_stream_player_3d.cpp:400`).
+  const camera = godot_audio_listener_3d_current() ?? (root === undefined ? null : godot_camera_3d_of_viewport(root as Object3D));
   let distance = 0;
   if (camera !== null) {
     const eye = get_global_transform(camera);

@@ -192,6 +192,7 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
     three: 'RapierRigidBody',
     source: ctor('VehicleBody3D', 'scene/3d/physics/vehicle_body_3d.cpp', 1062),
   },
+  AudioListener3D: element('audio-listener-3d', 'AudioListener3D', ctor('AudioListener3D', 'scene/3d/audio_listener_3d.cpp', 187)),
   VehicleWheel3D: element('vehicle-wheel-3d', 'VehicleWheel3D', ctor('VehicleWheel3D', 'scene/3d/physics/vehicle_body_3d.cpp', 391)),
   // Joints: `@react-three/rapier`'s impulse joints over the two bodies their paths name (`joint-3d.tsx`).
   PinJoint3D: element('pin-joint-3d', 'PinJoint3D', ctor('PinJoint3D', 'scene/3d/physics/joints/pin_joint_3d.cpp', 76)),

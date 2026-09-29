@@ -91,6 +91,8 @@ export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<
   Curve3D: { _data: '_set_data' },
   // `sprite_frames.cpp:229`.
   SpriteFrames: { animations: '_set_animations' },
+  // `audio_listener_3d.cpp:42`: `current` makes the listener current, or not.
+  AudioListener3D: { current: '_set_current' },
 };
 
 const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/;

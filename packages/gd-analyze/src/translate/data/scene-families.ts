@@ -275,6 +275,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_solver_priority',
     ...['x', 'y', 'z'].flatMap((axis) => [`set_param_${axis}:*`, `set_flag_${axis}:*`]),
   ],
+  // `<GodotAudioListener3D>`: where 3D sound is heard from while current (`audio-listener-3d.ts`).
+  AudioListener3D: [...NODE_3D, '_set_current'],
   // `<GodotVehicleWheel3D>`: a wheel its VehicleBody3D's controller drives (`vehicle-wheel-3d.ts`).
   VehicleWheel3D: [
     ...NODE_3D,
