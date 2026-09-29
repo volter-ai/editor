@@ -33,3 +33,22 @@ export function is_debug_build(): boolean {
 export function get_name(): string {
   return 'Web';
 }
+
+/**
+ * The release template counts no allocations (`Memory::get_mem_usage` is 0 without
+ * `DEBUG_ENABLED`, `core/os/memory.cpp:222`).
+ *
+ * @godot OS.get_static_memory_usage
+ * @source core/core_bind.cpp:591
+ */
+export function get_static_memory_usage(): number {
+  return 0;
+}
+
+/**
+ * @godot OS.get_static_memory_peak_usage
+ * @source core/core_bind.cpp:595
+ */
+export function get_static_memory_peak_usage(): number {
+  return 0;
+}

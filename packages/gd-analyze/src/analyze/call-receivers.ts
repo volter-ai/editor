@@ -162,6 +162,25 @@ export function resolveScenePath(
     },
   ];
   if (path.startsWith('/')) return `absolute node path ${path} depends on the running tree`;
+  // A path climbing above an attachment inside its document (`../VoxelWorld` from a child of the
+  // root) is the same path from the document's root, where the parents are.
+  if (!path.startsWith('%') && attachment.nodePath !== '.' && attachment.nodePath !== '') {
+    const segments = attachment.nodePath.split('/');
+    let depth = segments.length;
+    let climbs = false;
+    for (const segment of path.split('/')) {
+      if (segment === '' || segment === '.') continue;
+      if (segment !== '..') segments.push(segment);
+      else if (segments.length > 0) {
+        segments.pop();
+        if (segments.length < depth) {
+          depth = segments.length;
+          climbs = true;
+        }
+      } else return `node path ${path} leaves the attached scene`;
+    }
+    if (climbs) return resolveScenePath(scenes, { documentPath: attachment.documentPath, nodePath: '.' }, segments.length === 0 ? '.' : segments.join('/'));
+  }
   if (path.startsWith('%')) {
     // `%Name`: a node owned with `unique_name_in_owner` by the node itself, else by its owner
     // (`Node::get_node_or_null`, scene/main/node.cpp:1943). A scene root owns its document's nodes;
