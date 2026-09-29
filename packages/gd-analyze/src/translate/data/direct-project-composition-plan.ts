@@ -999,7 +999,7 @@ function audioBuses(project: BoundGodotProject, diagnostics: DirectGodotComposit
     if (field === null) continue;
     const index = Number(field[1]);
     const bus = (buses[index] ??= {});
-    const text = value.kind === 'string' || value.kind === 'string-name' ? String(value.value) : undefined;
+    const text = value.kind === 'string' ? value.value : undefined;
     const number = value.kind === 'number' ? value.value : undefined;
     const flag = value.kind === 'bool' ? value.value : undefined;
     switch (field[2]) {

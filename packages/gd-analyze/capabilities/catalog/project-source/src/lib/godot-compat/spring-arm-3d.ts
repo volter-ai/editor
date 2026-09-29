@@ -79,7 +79,6 @@ function spring(entity: Object3D, state: ArmState): void {
   const arm = state.arm;
   if (arm !== null) arm.position.set(0, 0, state.hitLength);
 }
-}
 
 /**
  * @godot SpringArm3D.get_length

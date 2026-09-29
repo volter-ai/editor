@@ -457,7 +457,7 @@ function alignedText(stated: Stated, style: Record<string, GodotControlStyleValu
  * click (`base-button.ts`), its shortcut's actions (`data-shortcut`, which the viewport's shortcut
  * stage presses it for), and `action_mode` pressing on the press rather than the release.
  */
-function buttonEvents(stated: Stated, attributes: Record<string, string | number | boolean>, resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>): { readonly events?: GodotControlDomPlan['events'] } {
+function buttonEvents(stated: Stated, attributes: Record<string, string | number | boolean>, resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>): Pick<GodotControlDomPlan, 'events'> {
   const toggle = stated.bool('toggle_mode', false);
   if (stated.bool('button_pressed', false)) attributes['aria-pressed'] = true;
   // Its shortcut's events, each an action (`Shortcut::matches_event`); another event has no DOM form.
@@ -485,9 +485,10 @@ function content(
   resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>,
   style: Record<string, GodotControlStyleValue>,
   attributes: Record<string, string | number | boolean>,
-): { readonly text?: string; readonly parts?: readonly GodotControlPartPlan[]; readonly events?: GodotControlDomPlan['events'] } {
+): Pick<GodotControlDomPlan, 'text' | 'parts' | 'events'> {
   switch (form.content) {
     case 'none':
+    case 'animations':
       return {};
     case 'text': {
       textStyle(stated, resources, THEME.labelColor, style);
@@ -1155,13 +1156,14 @@ function markDomOnly(resources: readonly TargetGodotSceneResourcePlan[], root: D
   const fonts = new Set<string>();
   // The scene less its Controls' own properties, which every other use of a resource shows through.
   const strip = (node: DirectGodotSceneNodePlan): DirectGodotSceneNodePlan => {
-    if (node.dom !== undefined) {
+    const { dom, ...rest } = node;
+    if (dom !== undefined) {
       for (const key of named(JSON.stringify(node.setters))) domSeeds.add(key);
-      for (const key of named(JSON.stringify([node.dom.style, node.dom.parts ?? []]))) fonts.add(key);
+      for (const key of named(JSON.stringify([dom.style, dom.parts ?? []]))) fonts.add(key);
     }
     return {
-      ...node,
-      ...(node.dom === undefined ? {} : { setters: [], dom: undefined }),
+      ...rest,
+      ...(dom === undefined ? {} : { setters: [] }),
       children: node.children.map(strip),
       ...(node.placements === undefined ? {} : { placements: node.placements.map((placed) => ({ at: placed.at, node: strip(placed.node) })) }),
     };
