@@ -90,6 +90,8 @@ const BODY_DATA: Readonly<Record<string, string>> = {
   set_linear_damp_mode: 'linear_damp_mode',
   set_angular_damp_mode: 'angular_damp_mode',
   set_lock_rotation_enabled: 'lock_rotation',
+  // Kept: a Rapier body starts awake and sleeps once at rest, where Godot's starts as authored.
+  set_sleeping: 'sleeping',
   set_use_custom_integrator: 'custom_integrator',
   set_contact_monitor: 'contact_monitor',
   set_max_contacts_reported: 'max_contacts_reported',

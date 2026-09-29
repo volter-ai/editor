@@ -22,6 +22,7 @@
 
 import { construct as color, type Color } from './color';
 import { construct as quaternion, inverse, normalized, op_multiply as quaternionMultiply, type Quaternion, slerp } from './quaternion';
+import { construct as vector2, type Vector2 } from './vector2';
 import { lerp as vector3Lerp, construct as vector3, type Vector3 } from './vector3';
 
 const f32 = Math.fround;
@@ -108,7 +109,8 @@ function ease(x: number, c: number): number {
 
 // --- Variant arithmetic for the transcribed key types.
 
-type Kind = 'nil' | 'bool' | 'float' | 'vec3' | 'quat' | 'rgba';
+/** A string or an object (a texture) is discrete: it is never blended, and takes the nearer key. */
+type Kind = 'nil' | 'bool' | 'float' | 'vec2' | 'vec3' | 'quat' | 'rgba' | 'discrete';
 
 function colorOp(a: Color, b: Color, op: (x: number, y: number) => number): Color {
   return color(f32(op(a.r, b.r)), f32(op(a.g, b.g)), f32(op(a.b, b.b)), f32(op(a.a, b.a)));
@@ -119,7 +121,9 @@ function kindOf(value: unknown): Kind {
   if (typeof value === 'boolean') return 'bool';
   if (typeof value === 'number') return 'float';
   if (typeof value === 'object' && 'x' in value && 'y' in value && 'z' in value) return 'w' in value ? 'quat' : 'vec3';
+  if (typeof value === 'object' && 'x' in value && 'y' in value) return 'vec2';
   if (typeof value === 'object' && 'r' in value && 'g' in value && 'b' in value && 'a' in value) return 'rgba';
+  if (typeof value === 'string' || typeof value === 'object') return 'discrete';
   throw new Error('godot-compat: an Animation value of this Variant type is not transcribed.');
 }
 
@@ -136,6 +140,8 @@ export function godot_animation_zero(value: unknown): unknown {
       return false;
     case 'float':
       return 0;
+    case 'vec2':
+      return vector2(0, 0);
     case 'vec3':
       return vector3();
     case 'quat':
@@ -187,7 +193,10 @@ export function godot_animation_subtract_variant(a: unknown, b: unknown): unknow
     case 'float':
       return (a as number) - (b as number);
     case 'bool':
+    case 'discrete':
       return a;
+    case 'vec2':
+      return vector2(f32((a as Vector2).x - (b as Vector2).x), f32((a as Vector2).y - (b as Vector2).y));
     case 'quat':
       return quaternionMultiply(inverse(b as Quaternion), a as Quaternion);
     case 'rgba':
@@ -223,6 +232,10 @@ export function godot_animation_blend_variant(a: unknown, b: unknown, c: number)
         godot_animation_blend_variant(godot_animation_cast_to_blendwise(a), godot_animation_cast_to_blendwise(b), weight),
         a,
       );
+    case 'discrete':
+      return a;
+    case 'vec2':
+      return vector2(f32((a as Vector2).x + f32((b as Vector2).x * weight)), f32((a as Vector2).y + f32((b as Vector2).y * weight)));
     case 'quat':
       return quaternionMultiply(a as Quaternion, slerp(quaternion(0, 0, 0, 1), b as Quaternion, weight));
     case 'rgba':
@@ -261,6 +274,10 @@ export function godot_animation_interpolate_variant(a: unknown, b: unknown, c: n
         godot_animation_interpolate_variant(godot_animation_cast_to_blendwise(a), godot_animation_cast_to_blendwise(b), weight),
         a,
       );
+    case 'discrete':
+      return weight < 0.5 ? a : b;
+    case 'vec2':
+      return vector2(f32((a as Vector2).x + ((b as Vector2).x - (a as Vector2).x) * weight), f32((a as Vector2).y + ((b as Vector2).y - (a as Vector2).y) * weight));
     case 'quat':
       return slerp(a as Quaternion, b as Quaternion, weight);
     case 'rgba':
@@ -543,8 +560,12 @@ export type GodotAnimationKeyData =
   | { readonly Vector3: readonly [number, number, number] }
   | { readonly Quaternion: readonly [number, number, number, number] }
   | { readonly Color: readonly [number, number, number, number] }
+  | { readonly Vector2: readonly [number, number] }
+  | string
   | { readonly method: string; readonly args: readonly unknown[] }
-  | { readonly audio: number; readonly start: number; readonly end: number };
+  | { readonly audio: number; readonly start: number; readonly end: number }
+  /** A resource key (a texture): the library's resource at `resource`. */
+  | { readonly resource: number };
 
 /** An animation as the translation's data file writes it (`data/scene-families.ts`). */
 export interface GodotAnimationData {
@@ -567,7 +588,9 @@ export interface GodotAnimationData {
 const TRACK_TYPE = { value: TYPE_VALUE, position_3d: TYPE_POSITION_3D, rotation_3d: TYPE_ROTATION_3D, scale_3d: TYPE_SCALE_3D, method: TYPE_METHOD, audio: TYPE_AUDIO } as const;
 
 function keyValue(value: GodotAnimationKeyData, streams: readonly unknown[]): unknown {
-  if (typeof value === 'number' || typeof value === 'boolean') return value;
+  if (typeof value === 'number' || typeof value === 'boolean' || typeof value === 'string') return value;
+  if ('resource' in value) return streams[value.resource] ?? null;
+  if ('Vector2' in value) return vector2(...value.Vector2);
   // An audio key: its stream and offsets (`Animation::AudioKey`, `animation.h:143`).
   if ('audio' in value) return { stream: streams[value.audio] ?? null, start_offset: value.start, end_offset: value.end };
   if ('Vector3' in value) return vector3(...value.Vector3);

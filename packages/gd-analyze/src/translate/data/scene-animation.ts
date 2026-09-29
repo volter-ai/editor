@@ -15,9 +15,18 @@ export type GodotAnimationKeyData =
   | { readonly Vector3: readonly [number, number, number] }
   | { readonly Quaternion: readonly [number, number, number, number] }
   | { readonly Color: readonly [number, number, number, number] }
+  | { readonly Vector2: readonly [number, number] }
+  | string
   | { readonly method: string; readonly args: readonly (number | boolean | string)[] }
   /** An audio key: the library's stream at `audio` (its `streams`), played from `start` to `end` before its length. */
-  | { readonly audio: number; readonly start: number; readonly end: number };
+  | { readonly audio: number; readonly start: number; readonly end: number }
+  /** A resource key (a texture): the library's resource at `resource` (its `streams`). */
+  | { readonly resource: number };
+
+/** A resource key as read, before its library resolves the resource: its reference. */
+export interface GodotAnimationResourceRef {
+  readonly resourceRef: GodotValue;
+}
 
 /** An audio key as read, before its library resolves the stream: the stream's resource reference. */
 export interface GodotAnimationAudioRef {
@@ -41,7 +50,7 @@ export interface GodotAnimationData {
     readonly enabled: boolean;
     readonly imported: boolean;
     readonly update: number;
-    readonly keys: readonly (readonly [number, number, GodotAnimationKeyData | GodotAnimationAudioRef])[];
+    readonly keys: readonly (readonly [number, number, GodotAnimationKeyData | GodotAnimationAudioRef | GodotAnimationResourceRef])[];
   }[];
 }
 
@@ -108,29 +117,41 @@ function entry(value: GodotValue | undefined, key: string): GodotValue | undefin
   return value?.kind === 'dict' ? value.entries.find((item) => item.key === key)?.value : undefined;
 }
 
+/** Why a key has no data-file form. */
+interface RefusedKey {
+  readonly refused: string;
+}
+
 /** A value key as the data file writes it, or why it has none. */
-function valueKey(value: GodotValue): GodotAnimationKeyData | string {
+function valueKey(value: GodotValue): GodotAnimationKeyData | GodotAnimationResourceRef | RefusedKey {
   if (value.kind === 'bool') return value.value;
-  if (value.kind === 'number') return value.variantType === 'int' ? 'an int key' : value.value;
+  // A string (a label's text) and a resource (a sprite's texture) are discrete keys.
+  if (value.kind === 'string') return value.value;
+  if (value.kind === 'ctor' && (value.name === 'ExtResource' || value.name === 'SubResource')) return { resourceRef: value };
+  if (value.kind === 'ctor' && value.name === 'Vector2') {
+    const args = value.args.map((arg) => (arg.kind === 'number' ? f32(arg.value) : undefined));
+    if (args.length === 2 && args.every((arg): arg is number => arg !== undefined)) return { Vector2: args as [number, number] };
+  }
+  if (value.kind === 'number') return value.variantType === 'int' ? { refused: 'an int key' } : value.value;
   if (value.kind === 'ctor' && (value.name === 'Vector3' || value.name === 'Quaternion' || value.name === 'Color')) {
     const args = value.args.map((arg) => (arg.kind === 'number' ? f32(arg.value) : undefined));
-    if (!args.every((arg): arg is number => arg !== undefined)) return `a ${value.name} key`;
+    if (!args.every((arg): arg is number => arg !== undefined)) return { refused: `a ${value.name} key` };
     if (value.name === 'Vector3' && args.length === 3) return { Vector3: args as [number, number, number] };
     if (value.name === 'Quaternion' && args.length === 4) return { Quaternion: args as [number, number, number, number] };
     if (value.name === 'Color' && args.length === 4) return { Color: args as [number, number, number, number] };
   }
-  return `a ${value.kind === 'ctor' ? value.name : value.kind} key`;
+  return { refused: `a ${value.kind === 'ctor' ? value.name : value.kind} key` };
 }
 
 /** A method key (`{ "args": […], "method": &"name" }`), or why it has none. */
-function methodKey(value: GodotValue): GodotAnimationKeyData | string {
+function methodKey(value: GodotValue): GodotAnimationKeyData | RefusedKey {
   const method = entry(value, 'method');
   const args = entry(value, 'args');
-  if (method?.kind !== 'string' || args?.kind !== 'array') return 'a method key without a method name and arguments';
+  if (method?.kind !== 'string' || args?.kind !== 'array') return { refused: 'a method key without a method name and arguments' };
   const out: (number | boolean | string)[] = [];
   for (const arg of args.items) {
     if (arg.kind === 'number' || arg.kind === 'bool' || arg.kind === 'string') out.push(arg.value);
-    else return `a method argument of kind ${arg.kind === 'ctor' ? arg.name : arg.kind}`;
+    else return { refused: `a method argument of kind ${arg.kind === 'ctor' ? arg.name : arg.kind}` };
   }
   return { method: method.value, args: out };
 }
@@ -187,7 +208,7 @@ export function godotAnimationData(resource: BoundGodotResourceData): GodotAnima
       if (!['type', 'path', 'interp', 'loop_wrap', 'imported', 'enabled', 'keys', ...(kind === 'audio' ? ['use_blend'] : [])].includes(name)) return `track ${String(index)}'s ${name} is not translated`;
     }
     const keysValue = fields.get('keys');
-    const keys: (readonly [number, number, GodotAnimationKeyData | GodotAnimationAudioRef])[] = [];
+    const keys: (readonly [number, number, GodotAnimationKeyData | GodotAnimationAudioRef | GodotAnimationResourceRef])[] = [];
     let update = 0;
     if (kind === 'audio') {
       // `{ "clips": [{ "start_offset", "end_offset", "stream" }], "times": … }` (`Animation::_set`, `animation.cpp:340`).
@@ -219,7 +240,7 @@ export function godotAnimationData(resource: BoundGodotResourceData): GodotAnima
       }
       for (let key = 0; key < times.length; key += 1) {
         const value = (kind === 'value' ? valueKey : methodKey)(values.items[key] as GodotValue);
-        if (typeof value === 'string') return `track ${String(index)} has ${value}`;
+        if (typeof value === 'object' && 'refused' in value) return `track ${String(index)} has ${value.refused}`;
         keys.push([f32(times[key] as number), f32(transitions?.[key] ?? 1), value]);
       }
     } else {
