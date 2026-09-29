@@ -1765,10 +1765,13 @@ export function Object3DDocumentViewport({
         // A document whose FILE states its draw mode keeps a person's pick there (a .blend's 3D
         // View), so the file's statement is where the session starts. Otherwise a mode the person
         // chose and the view restored is theirs. Only a view with neither is given the session's.
+        // Then the view takes the session's mode either way: a stored choice older than the file's
+        // statement would otherwise keep lighting the view for the mode it no longer draws (the
+        // Blender presenter dressed in Solid's materials under a Material Preview cell).
         const restoredMode = ownLayer?.drawMode ?? viewPresentationSnapshot(documentId).drawMode;
         if (restoredMode !== undefined && viewModes.has(restoredMode) && host.session)
           host.session.setMode(restoredMode);
-        else sessionToView();
+        sessionToView();
         const stopSessionMode = host.session?.subscribe(sessionToView);
         const stopViewMode = subscribeViewportPresentation(() => {
           const session = host.session;
