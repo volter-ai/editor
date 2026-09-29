@@ -448,7 +448,7 @@ export function godot_node_scene_root(entity: object): void {
 
 /**
  * The Godot-only state a node the JSX declares seeds from its `userData`, as it first enters the
- * tree: its groups, in authored order (added as the scene instantiates, `packed_scene.cpp:511`),
+ * tree: its `process_mode`, its groups, in authored order (added as the scene instantiates, `packed_scene.cpp:511`),
  * and, owned by the nearest scene root above it, whether its owner finds it as `%Name`
  * (`unique_name_in_owner`). A node the composition recorded keeps what it recorded.
  */
@@ -469,6 +469,9 @@ function seedDeclared(entity: object): void {
   // before where it was added (`SceneState::instantiate`, packed_scene.cpp:545).
   const index = data['index'];
   if (typeof index === 'number') moveToIndex(entity as Object3D, index);
+  // Its authored `process_mode` (`Node::set_process_mode`, the low three bits it stores).
+  const processMode = data['process_mode'];
+  if (typeof processMode === 'number') state.processMode = processMode & 7;
   if (data['unique_name_in_owner'] === true) {
     if (state.owner === undefined) throw new Error(`godot-compat: %${nameOf(entity)} has no scene root to own it.`);
     stateOf(state.owner).uniqueNodes.set(nameOf(entity), entity);

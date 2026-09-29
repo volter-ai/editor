@@ -60,9 +60,9 @@ const NODE_3D = ['set_visible'];
 const GEOMETRY_INSTANCE_3D = [...NODE_3D, 'set_transparency', 'set_gi_mode'];
 // A light's values kept in `userData` for its getters (`light-3d.ts`): the page's lights draw none of them.
 const LIGHT_KEPT = ['set_shadow_reverse_cull_face', 'set_shadow_caster_mask', 'set_enable_distance_fade', 'set_distance_fade_begin', 'set_distance_fade_shadow', 'set_distance_fade_length'];
-// A Node's `physics_interpolation_mode`, which every compat element takes (`useGodotElement`); stored
-// (`node.ts`: nothing is interpolated between physics ticks).
-const NODE_ELEMENT = ['set_physics_interpolation_mode'];
+// A Node's `physics_interpolation_mode` and `process_mode`, which every compat element takes
+// (`useGodotElement`); the first stored (`node.ts`: nothing is interpolated between physics ticks).
+const NODE_ELEMENT = ['set_physics_interpolation_mode', 'set_process_mode'];
 // The parameters a particle system's emitter reads (`cpu-particles-3d.ts`), by index, the same in
 // `CPUParticles3D::Parameter` and `ParticleProcessMaterial::Parameter`: initial velocity, angular
 // velocity, linear acceleration, damping, angle and scale. The rest (orbit, radial and tangential
@@ -393,6 +393,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   PlaneMesh: PRIMITIVE_PLANE,
   QuadMesh: PRIMITIVE_PLANE,
   SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_is_hemisphere', 'set_material'],
+  // Its baked polygons, its data file's (`godotNavigationMeshDataPath`); its bake settings draw nothing.
+  NavigationMesh: [],
   // A trail mesh a particle system with trails skins along its particles' paths (`cpu-particles-3d.ts`).
   RibbonTrailMesh: ['set_shape', 'set_size', 'set_sections', 'set_section_length', 'set_section_segments', 'set_curve', 'set_material'],
   BoxMesh: ['set_size', 'set_subdivide_width', 'set_subdivide_height', 'set_subdivide_depth', 'set_material'],

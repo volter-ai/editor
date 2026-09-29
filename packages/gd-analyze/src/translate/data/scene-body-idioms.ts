@@ -37,7 +37,8 @@ function plainValue(value: TargetGodotSceneValue): unknown {
 }
 
 /**
- * A node's Godot-only state the Node protocol seeds from its `userData`: groups and `%Name`; a
+ * A node's Godot-only state the Node protocol seeds from its `userData`: groups, `%Name` and its
+ * `process_mode`; a
  * MeshInstance3D's `skeleton` path, which draws nothing on the unskinned meshes a scene carries
  * (`MeshInstance3D::_resolve_skeleton_path`, mesh_instance_3d.cpp:184; skinned surfaces refuse); a
  * GeometryInstance3D's `transparency`, which the web's renderer never draws, and its shadow
@@ -49,6 +50,7 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
   const castShadow = setterValue(node.setters, 'set_cast_shadows_setting');
   // A top-level node's transform is global (`node-3d.ts` reads it when it first places the node).
   const topLevel = setterValue(node.setters, 'set_as_top_level');
+  const processMode = setterValue(node.setters, 'set_process_mode');
   // A node three, Rapier or a compat element mounts records no Godot class of its own: its classes,
   // nearest first, which the Node protocol reads for `is`, `as` and its class name.
   const form = node.idiom?.form.kind;
@@ -63,6 +65,7 @@ function nodeData(node: DirectGodotSceneNodePlan): Record<string, unknown> {
     ...(node.siblingIndex === undefined ? {} : { index: node.siblingIndex }),
     ...(castShadow?.kind === 'number' ? { cast_shadow: castShadow.value } : {}),
     ...(topLevel?.kind === 'bool' && topLevel.value ? { top_level: true } : {}),
+    ...(processMode?.kind === 'number' ? { process_mode: processMode.value } : {}),
     // Values kept for their getters (`data` roles, `scene-surface-idioms.ts`).
     ...Object.fromEntries(node.setters.flatMap((entry) => (entry.role?.kind === 'data' ? [[entry.role.key, plainValue(entry.value)] as const] : []))),
   };

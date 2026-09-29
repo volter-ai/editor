@@ -23,6 +23,8 @@ export interface GodotShaderUniform {
   /** A sampler's `filter_*` and `repeat_*` hints (`ShaderLanguage::TextureFilter`, `TextureRepeat`). */
   readonly filter?: number;
   readonly repeat?: number;
+  /** A `hint_screen_texture` or `hint_depth_texture` sampler: the frame's capture (`spatial-material.ts`). */
+  readonly source?: 'screen' | 'depth';
 }
 
 /** The lowered code: the GLSL the import printed from Godot's own parse of the shader. */

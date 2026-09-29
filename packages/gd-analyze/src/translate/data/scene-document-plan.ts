@@ -397,14 +397,15 @@ export interface TargetGodotLoweredShader {
   readonly mode: string;
   /** The `render_mode`s it states that the sky pass acts on (`use_debanding`). */
   readonly renderModes: readonly string[];
-  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null; readonly color?: true; readonly filter?: number; readonly repeat?: number }[];
+  /** Each uniform; a `hint_screen_texture` or `hint_depth_texture` sampler's `source` is compat's capture of the frame. */
+  readonly uniforms: readonly { readonly name: string; readonly glsl: string; readonly type: string; readonly default: readonly number[] | null; readonly color?: true; readonly filter?: number; readonly repeat?: number; readonly source?: 'screen' | 'depth' }[];
   readonly functions: string;
   readonly entry: string;
   /** A spatial shader's two stages as `three-custom-shader-material` takes them (`spatial-shader.ts`). */
   readonly spatial?: {
     readonly vertexShader: string;
     readonly fragmentShader: string;
-    /** Whether it writes `ALPHA`, which makes Godot draw it in the transparent pass. */
+    /** Whether it writes `ALPHA` or reads the screen, which makes Godot draw it in the transparent pass. */
     readonly transparent: boolean;
     /** Whether it reads `COLOR`, the mesh's vertex colour. */
     readonly vertexColors: boolean;
@@ -451,6 +452,7 @@ function plannedUniform({ name, glsl, uniform }: { readonly name: string; readon
     default: values.length === 0 ? null : values,
     ...(uniform.hintName.includes('source_color') ? { color: true as const } : {}),
     ...(uniform.type.name.startsWith('sampler') ? { filter: uniform.filter, repeat: uniform.repeat } : {}),
+    ...(uniform.hintName.includes('hint_screen_texture') ? { source: 'screen' as const } : uniform.hintName.includes('hint_depth_texture') ? { source: 'depth' as const } : {}),
   };
 }
 
@@ -471,7 +473,10 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
   const any = fragment ?? vertex;
   if (any === undefined) return 'the shader has neither vertex() nor fragment()';
   const unshaded = shader.tree.renderModes.includes('unshaded');
-  if (unshaded && fragment !== undefined && (fragment.builtins.has('NORMAL') || fragment.builtins.has('VIEW'))) return 'an unshaded fragment() reading NORMAL or VIEW is not lowered';
+  if (unshaded && fragment !== undefined && (fragment.builtins.has('NORMAL') || fragment.builtins.has('VIEW') || fragment.builtins.has('VERTEX'))) return 'an unshaded fragment() reading NORMAL, VIEW or VERTEX is not lowered';
+  // A shader reading the screen or depth texture is drawn in the transparent pass, after the opaque
+  // one it reads (`has_read_screen_alpha`, `scene_shader_forward_clustered.cpp:252`).
+  const readsScreen = shader.tree.uniforms.some((uniform) => /hint_(screen|depth)_texture/u.test(uniform.hintName));
   const head = (lowered: typeof any) => [GODOT_SPATIAL_SHARED, lowered.varyings, ...lowered.uniforms.map((uniform) => uniform.declaration), lowered.functions].filter((part) => part !== '').join('\n\n');
   const stages = { worldVertexCoords: shader.tree.renderModes.includes('world_vertex_coords'), vertexTangents: vertex?.builtins.has('TANGENT') === true || vertex?.builtins.has('BINORMAL') === true };
   return {
@@ -483,7 +488,7 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
     spatial: {
       vertexShader: `${head(vertex ?? any)}\n\nvoid main() {\n${vertex === undefined ? GODOT_SPATIAL_DEFAULT_VERTEX : godotSpatialVertexStage(vertex.entry, vertex.builtins, stages)}\n}`,
       fragmentShader: `${head(fragment ?? any)}\n\nvoid main() {\n${fragment === undefined ? godotSpatialFragmentStage('', new Set()) : godotSpatialFragmentStage(fragment.entry, fragment.builtins, stages)}\n}`,
-      transparent: fragment?.builtins.has('ALPHA') === true && fragment.builtins.has('ALPHA_SCISSOR_THRESHOLD') !== true,
+      transparent: readsScreen || (fragment?.builtins.has('ALPHA') === true && fragment.builtins.has('ALPHA_SCISSOR_THRESHOLD') !== true),
       vertexColors: vertex?.builtins.has('COLOR') === true || fragment?.builtins.has('COLOR') === true,
     },
   };
@@ -2606,10 +2611,11 @@ const RIGID_BODY_SETTERS: readonly string[] = [
  * resource class's.
  */
 export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
-  Node: [],
+  // A node's `process_mode` is its `userData`'s (`nodeData`).
+  Node: ['set_process_mode'],
   // A Node3D's `visible` is three's own (`node_3d.cpp:1120`); a body's has no Rapier prop, and a
   // collision shape mounts no object to hide. Its `top_level` is its `userData`'s (`nodeData`).
-  Node3D: ['set_visible', 'set_as_top_level'],
+  Node3D: ['set_visible', 'set_as_top_level', 'set_process_mode'],
   StaticBody3D: [...COLLISION_OBJECT_SETTERS, 'set_physics_material_override'],
   RigidBody3D: RIGID_BODY_SETTERS,
   // A RigidBody3D its driver moves on its wheels (`vehicle-body-3d.tsx`): the forces are its script's.
