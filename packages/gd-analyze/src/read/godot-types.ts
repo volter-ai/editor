@@ -16,7 +16,7 @@
  */
 
 import type { ImportedClip } from './gltf-animation-import';
-import type { GltfExternalImage } from './gltf-document';
+import type { GltfExternalImage, GltfPhysicsShape } from './gltf-document';
 import type { GodotValue, ResourceId } from './godot-value';
 import type { ImportSidecar } from './import-sidecar';
 import type { ResolvedSetting } from './known-settings';
@@ -239,6 +239,8 @@ export interface GltfSceneOrigin {
    * per-surface override that object is one primitive mesh inside the node, not the node.
    */
   readonly surfaceCountByPath: ReadonlyMap<string, number>;
+  /** Godot node path → a CollisionShape3D's shape, as the glTF's `OMI_physics_shape` states it. */
+  readonly collisionShapeByPath?: ReadonlyMap<string, GltfPhysicsShape>;
   /** Godot node path → the glTF `meshes[]` index of the mesh resource the node carries. */
   readonly meshByPath: ReadonlyMap<string, number>;
   /** Importer-synthesized Skeleton3D path → ordered bone names. */

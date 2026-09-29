@@ -67,7 +67,7 @@
  *    per-import random sub-resource id. It is an identity, not information.
  */
 import { GltfParseError, readGlbContainer } from './glb-container';
-import type { GltfDocument, GltfExternalImage, GltfNode, Transform3D } from './gltf-document';
+import type { GltfDocument, GltfExternalImage, GltfNode, GltfPhysicsShape, Transform3D } from './gltf-document';
 import {
   basisRotationQuaternion,
   basisScale,
@@ -180,6 +180,8 @@ export interface GlbSceneNode {
    * a name the file does not contain).
    */
   readonly gltfName?: string;
+  /** A CollisionShape3D's shape, as the glTF's `OMI_physics_shape` states it (`GLTFPhysicsShape::to_node`). */
+  readonly collisionShape?: GltfPhysicsShape;
 }
 
 export interface GlbScene {
@@ -272,6 +274,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
   const root = byPath.get('.');
   const { nodeIndexByPath, nameByPath, surfaceCountByPath, meshByPath, boneNamesByPath, bonesByPath } =
     gltfOriginIndex(scene.nodes);
+  const collisionShapeByPath = new Map(scene.nodes.flatMap((node) => (node.collisionShape === undefined ? [] : [[node.path, node.collisionShape] as const])));
   const player = scene.nodes.find((node) => node.animations !== undefined);
   const playerClips = player?.animations ?? [];
   const animationPlayer: GltfAnimationPlayerOrigin | undefined =
@@ -302,6 +305,7 @@ export function glbSceneDocument(scene: GlbScene): SceneDocument {
       nodeIndexByPath,
       nameByPath,
       surfaceCountByPath,
+      ...(collisionShapeByPath.size === 0 ? {} : { collisionShapeByPath }),
       meshByPath,
       boneNamesByPath,
       bonesByPath,
@@ -527,6 +531,9 @@ function determineSkeletons(doc: GltfDocument, at: string): SynthesizedSkeleton[
   });
 }
 
+/** The classes `Object::cast_to<PhysicsBody3D>` accepts, which a glTF collider shape joins (`_generate_shape_node_and_body_if_needed`). */
+const PHYSICS_BODY_CLASSES: ReadonlySet<string> = new Set(['StaticBody3D', 'AnimatableBody3D', 'RigidBody3D', 'VehicleBody3D', 'CharacterBody3D', 'PhysicalBone3D']);
+
 interface MutableSceneNode {
   name: string;
   nodeClass: string;
@@ -540,6 +547,7 @@ interface MutableSceneNode {
   animations?: GlbAnimationClip[];
   gltfNodeIndex?: number;
   gltfName?: string;
+  collisionShape?: GltfPhysicsShape;
   readonly children: MutableSceneNode[];
 }
 
@@ -738,6 +746,53 @@ export function readGltfAsGodotScene(
     };
   };
 
+  /**
+   * The node `GLTFDocumentExtensionPhysics::generate_scene_node` (`gltf_document_extension_physics.cpp:403`)
+   * makes of a node's `OMI_physics_body`, which takes the node's place: a body of its motion's type
+   * (a static one; a shape of its own is its `<name>Shape` child); a collider shape under a physics
+   * body, that shape's CollisionShape3D; one under no body, a StaticBody3D holding it as
+   * `<name>Shape`; a shape-less collider (grouping its children's shapes) under no body, a
+   * StaticBody3D. Undefined when the extension makes nothing (a grouping collider inside a body).
+   * Triggers, other motion types and a physics node that also carries a mesh, camera or light
+   * refuse by name.
+   */
+  const physicsNode = (node: GltfNode, parent: MutableSceneNode): MutableSceneNode | undefined => {
+    const body = node.physicsBody;
+    if (body === undefined) return undefined;
+    const at = `${resPath}: nodes[${node.index}]`;
+    if (node.mesh !== undefined || node.camera !== undefined || node.punctualLight !== undefined) {
+      throw new GltfParseError(`${at} carries OMI_physics_body beside a mesh, camera or light; the importer makes only the physics node, which this reader has not measured`);
+    }
+    if (body.triggerShape !== undefined) throw new GltfParseError(`${at} is an OMI_physics_body trigger (an Area3D), which this reader does not model`);
+    if (body.motionType !== undefined && body.motionType !== 'static') {
+      throw new GltfParseError(`${at} is an OMI_physics_body of motion "${body.motionType}", which this reader does not model`);
+    }
+    const name = nodeNames.get(node.index) as string;
+    const shapeNode = (shape: number, shapeName: string): MutableSceneNode => ({
+      name: shapeName,
+      nodeClass: 'CollisionShape3D',
+      transform: IDENTITY_TRANSFORM,
+      visible: true,
+      collisionShape: doc.physicsShapes[shape] as GltfPhysicsShape,
+      children: [],
+    });
+    const staticBody = (withShape: number | undefined): MutableSceneNode => ({
+      name,
+      nodeClass: 'StaticBody3D',
+      transform: node.transform,
+      visible: true,
+      gltfNodeIndex: node.index,
+      ...(node.name === '' ? {} : { gltfName: node.name }),
+      children: withShape === undefined || withShape === -1 ? [] : [shapeNode(withShape, `${name}Shape`)],
+    });
+    if (body.motionType !== undefined) return staticBody(body.colliderShape);
+    if (body.colliderShape === undefined) return undefined;
+    const inBody = PHYSICS_BODY_CLASSES.has(parent.nodeClass);
+    if (body.colliderShape === -1) return inBody ? undefined : staticBody(undefined);
+    if (!inBody) return staticBody(body.colliderShape);
+    return { ...shapeNode(body.colliderShape, name), transform: node.transform, gltfNodeIndex: node.index, ...(node.name === '' ? {} : { gltfName: node.name }) };
+  };
+
   const generate = (nodeIndex: number, parent: MutableSceneNode): void => {
     const node = doc.nodes[nodeIndex] as GltfNode;
     const skeletonIndex = skeletonOfNode.get(nodeIndex);
@@ -814,6 +869,13 @@ export function readGltfAsGodotScene(
       return;
     }
 
+    const physical = physicsNode(node, parent);
+    if (physical !== undefined) {
+      addChild(parent, physical);
+      sceneNodes.set(nodeIndex, physical);
+      for (const child of node.children) generate(child, physical);
+      return;
+    }
     const generated: MutableSceneNode = {
       name: nodeNames.get(nodeIndex) as string,
       nodeClass: importedClassOf(node),
@@ -948,6 +1010,7 @@ export function readGltfAsGodotScene(
       ...(node.animations === undefined ? {} : { animations: node.animations }),
       ...(node.gltfNodeIndex === undefined ? {} : { gltfNodeIndex: node.gltfNodeIndex }),
       ...(node.gltfName === undefined ? {} : { gltfName: node.gltfName }),
+      ...(node.collisionShape === undefined ? {} : { collisionShape: node.collisionShape }),
     });
     for (const child of node.children) {
       walk(child, path === '.' ? child.name : `${path}/${child.name}`);
