@@ -66,6 +66,6 @@ export async function hostedControl(command: string, args: string[]): Promise<vo
       const shot = await live.editor.captureActiveDocument();
       if (shot.mimeType !== 'image/png') throw new Error('Editor did not return a PNG of the active document.');
       writeFileSync(resolve(argument), Buffer.from(shot.base64, 'base64')); console.log(resolve(argument));
-    } else await control(command, verb!, argument, undefined, undefined, { live, client });
+    } else await control(command, verb!, argument, undefined, undefined, { live, client, consolePolicy: 'report' });
   } finally { remote.close(); }
 }

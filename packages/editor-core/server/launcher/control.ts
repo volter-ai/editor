@@ -8,7 +8,7 @@ import { CONTROLLER_DISCONNECTED_MESSAGE } from '../server-utils';
  *  product's `game` and `page`); a returned name replaces the kit's own. */
 export type EvalScope = (live: LiveSession) => Record<string, unknown>;
 
-export async function control(command: string, verb: string, argument?: string, reason?: string, scope?: EvalScope, attachment?: { live: LiveSession; client: EditorClient }): Promise<void> {
+export async function control(command: string, verb: string, argument?: string, reason?: string, scope?: EvalScope, attachment?: { live: LiveSession; client: EditorClient; consolePolicy?: 'report' }): Promise<void> {
   if (verb === 'eval' && argument === '--list') {
     // No session needed: the same bindings, built on port 0 and never contacted.
     const unconnected = { ...unconnectedBindings(), session: { port: 0, projectRoot: process.cwd() } };
@@ -67,7 +67,12 @@ export async function control(command: string, verb: string, argument?: string, 
   const consoleState = await client.getUnresolvedConsole() as { entries?: unknown[] };
   if (consoleState.entries?.length) {
     console.error(JSON.stringify(consoleState, null, 2));
-    process.exitCode = 1;
+    // Hosted control reports the operation's result independently of the
+    // session's retained diagnostics. An optional workbench addon error (or
+    // an older warning) must not turn a successful status/eval into failure.
+    // Keep the entries loud and unacknowledged; command/transport exceptions
+    // still propagate to the CLI's normal nonzero exit path.
+    if (attachment?.consolePolicy !== 'report') process.exitCode = 1;
   }
 }
 

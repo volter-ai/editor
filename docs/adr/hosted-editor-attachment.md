@@ -53,6 +53,14 @@ The same commands exist on `volter-game-editor`; hosted eval exposes the neutral
 the same document-owned capture used by the local screenshot command. Local session commands and their richer capture options remain
 unchanged.
 
+Hosted status/eval exit according to the requested operation. Retained session
+console diagnostics are still printed to stderr, remain unacknowledged, and are
+included in the editor's status; they do not change a successful operation into
+exit 1. A command refusal or transport failure still exits nonzero. This matters
+for hosted Code-OSS: its extension host catches an unavailable optional native
+watchdog and continues, leaving an error in the session log. This policy does
+not claim that the native addon runs in the browser, or hide shader warnings.
+
 A Vite shell mounts `hostedAttachmentPlugin(canonicalOrigin)` from
 `@volter/editor-core/server/hosted-attachment-vite`. An HTTP host instead mounts
 `createHostedAttachmentRelay` from `server/hosted-attachment-relay`. The shell

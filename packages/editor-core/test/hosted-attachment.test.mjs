@@ -97,11 +97,11 @@ test('EditorClient uses the attachment for both status and command/screenshot en
   const f = await fixture(t); const created = await f.create(); const page = browser(created); t.after(() => page.close());
   page.serve(async (input, init) => {
     if (new URL(input).pathname === '/__editor/state') return Response.json({ connected: true });
-    assert.equal(JSON.parse(init.body).type, 'capture-viewport');
+    assert.equal(JSON.parse(init.body).type, 'capture-active-document');
     return Response.json({ ok: true, base64: 'aW1hZ2U=', mimeType: 'image/png' });
   });
   const remote = await connectHostedAttachment({ ...created, token: created.clientToken }); t.after(() => remote.close()); await ready(remote);
   const client = new EditorClient({ url: 'http://127.0.0.1', fetch: remote.fetch });
   assert.equal((await client.getState()).connected, true);
-  assert.deepEqual(await client.captureViewport(), { base64: 'aW1hZ2U=', mimeType: 'image/png' });
+  assert.deepEqual(await client.captureActiveDocument(), { ok: true, base64: 'aW1hZ2U=', mimeType: 'image/png' });
 });
