@@ -116,6 +116,7 @@
     "src/lib/godot-compat/audio-server.ts",
     "src/lib/godot-compat/capsule-mesh.ts",
     "src/lib/godot-compat/time.ts",
+    "src/lib/godot-compat/input-map.ts",
     "src/lib/godot-compat/audio-listener-3d.ts",
     "src/lib/godot-compat/joint-3d.tsx",
     "src/lib/godot-compat/pin-joint-3d.tsx",

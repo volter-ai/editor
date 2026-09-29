@@ -525,6 +525,66 @@ export function godot_input_map_load(actions: readonly GodotInputMapAction[]): v
   }
 }
 
+/**
+ * Whether the map has the action.
+ *
+ * @godot InputMap (protocol)
+ * @source core/input/input_map.cpp:164
+ */
+export function godot_input_map_has(name: string): boolean {
+  return inputMap.has(String(name));
+}
+
+/**
+ * Adds an action without events (`InputMap::add_action`); an action already there changes nothing.
+ *
+ * @godot InputMap (protocol)
+ * @source core/input/input_map.cpp:115
+ */
+export function godot_input_map_add(name: string, deadzone: number): void {
+  if (inputMap.has(String(name))) return;
+  inputMap.set(String(name), { deadzone: f32(deadzone), inputs: [] });
+}
+
+/**
+ * Adds an event to an action unless the action already matches it exactly
+ * (`InputMap::action_add_event`, `input_map.cpp:199`), a keyboard or mouse event of device 0 made
+ * the keyboard's or the mouse's.
+ *
+ * @godot InputMap (protocol)
+ * @source core/input/input_map.cpp:199
+ */
+export function godot_input_map_add_event(name: string, event: InputEventRecord): void {
+  const action = inputMap.get(String(name));
+  if (action === undefined) return;
+  const present = action.inputs.some((mapped) => {
+    const device = deviceOf(mapped);
+    return (device === ALL_DEVICES || device === deviceOf(event)) && actionMatch(mapped, event, true, action.deadzone) !== undefined;
+  });
+  if (!present) action.inputs.push(normalizedDevice(autoremapped(event)));
+}
+
+/**
+ * Removes an action, or its events.
+ *
+ * @godot InputMap (protocol)
+ * @source core/input/input_map.cpp:124
+ */
+export function godot_input_map_erase(name: string, eventsOnly: boolean): void {
+  if (eventsOnly) inputMap.get(String(name))?.inputs.splice(0);
+  else inputMap.delete(String(name));
+}
+
+/**
+ * The map's actions, in the order they were added.
+ *
+ * @godot InputMap (protocol)
+ * @source core/input/input_map.cpp:130
+ */
+export function godot_input_map_actions(): string[] {
+  return [...inputMap.keys()];
+}
+
 /** An input map action as the project's input map file holds it: a position is `[x, y]`. */
 export interface GodotInputMapActionJson {
   readonly name: string;
