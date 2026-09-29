@@ -2,7 +2,7 @@
   "name": "@volter/dawproject",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.119",
+  "version": "0.5.120",
   "publishConfig": {
     "access": "public"
   },
