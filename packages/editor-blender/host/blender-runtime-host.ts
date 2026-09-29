@@ -731,6 +731,7 @@ interface RuntimeView {
   stageFrame(part: { session: string; revision: number; abort?: boolean; mesh?: string; image?: string; piece?: unknown }): void;
   applyFrame(frame: unknown): unknown;
   snapshot(): ReturnType<BlenderRuntimeView['snapshot']>;
+  drawStatistics(): ReturnType<BlenderRuntimeView['drawStatistics']>;
   /** Own a detached revision for render lighting, never the interactive view. */
   captureSnapshot(): ReturnType<BlenderRuntimeView['captureSnapshot']>;
   /** Keep the description of the frame just applied, and the two poses of every

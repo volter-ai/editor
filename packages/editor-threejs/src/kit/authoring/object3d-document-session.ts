@@ -174,7 +174,7 @@ export class Object3DDocumentSession {
   private readonly throughOrthographic = new THREE.OrthographicCamera();
   /** The host's mirror of the document scene onto the rendered scene — see
    *  {@link Object3DDocumentSession.setBeforeRender}. */
-  private beforeRender: (() => void) | null = null;
+  private beforeRender: (() => void | (() => void)) | null = null;
   private state = INITIAL_PRESENTATION;
   private version = 0;
   private readonly listeners = new Set<() => void>();
@@ -1253,7 +1253,7 @@ export class Object3DDocumentSession {
    * The host owns the step and clears it in its own teardown; the session only
    * holds the reference.
    */
-  setBeforeRender(step: (() => void) | null): void {
+  setBeforeRender(step: (() => void | (() => void)) | null): void {
     this.beforeRender = step;
   }
 
@@ -1339,51 +1339,55 @@ export class Object3DDocumentSession {
   }
 
   render(renderSolid: (camera: THREE.Camera) => void): void {
-    this.beforeRender?.();
-    this.boneSelectionHighlight?.update();
-    const camera = this.camera();
-    const mode = this.state.mode;
-    this.boundsHelper?.update();
-    this.selectionOrigins?.place();
-    if (mode === 'uv' || mode === 'vertex-colors') {
-      renderSolid(camera);
-      return;
-    }
-    if (mode === 'wireframe' && this.topologyOverlay) {
-      this.syncTopologyOverlay();
-      if (this.xray.enabled && this.xray.alpha <= 0) {
-        // X-RAY AT NO ALPHA: the wires alone, every surface left out of the draw. The surfaces'
-        // MATERIALS stand down, not the meshes, whose children (lines, points, other objects)
-        // still draw, as every wire does in Blender's.
-        const hidden = new Set<THREE.Material>();
-        this.root.traverse((object) => {
-          const mesh = object as THREE.Mesh;
-          if (!mesh.isMesh) return;
-          for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
-            if (material?.visible) {
-              material.visible = false;
-              hidden.add(material);
-            }
-          }
-        });
-        try {
-          renderSolid(camera);
-        } finally {
-          for (const material of hidden) material.visible = true;
-        }
+    const finishDraw = this.beforeRender?.();
+    try {
+      this.boneSelectionHighlight?.update();
+      const camera = this.camera();
+      const mode = this.state.mode;
+      this.boundsHelper?.update();
+      this.selectionOrigins?.place();
+      if (mode === 'uv' || mode === 'vertex-colors') {
+        renderSolid(camera);
         return;
       }
-      // Clay bodies, not the triangle-wireframe swap: the overlay IS the wire,
-      // and the solid form behind it is what occludes the far side.
-      this.shading.render(
-        this.scene,
-        'clay',
-        () => renderSolid(camera),
-        isEditorViewportShadingTarget,
-      );
-      return;
+      if (mode === 'wireframe' && this.topologyOverlay) {
+        this.syncTopologyOverlay();
+        if (this.xray.enabled && this.xray.alpha <= 0) {
+          // X-RAY AT NO ALPHA: the wires alone, every surface left out of the draw. The surfaces'
+          // MATERIALS stand down, not the meshes, whose children (lines, points, other objects)
+          // still draw, as every wire does in Blender's.
+          const hidden = new Set<THREE.Material>();
+          this.root.traverse((object) => {
+            const mesh = object as THREE.Mesh;
+            if (!mesh.isMesh) return;
+            for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) {
+              if (material?.visible) {
+                material.visible = false;
+                hidden.add(material);
+              }
+            }
+          });
+          try {
+            renderSolid(camera);
+          } finally {
+            for (const material of hidden) material.visible = true;
+          }
+          return;
+        }
+        // Clay bodies, not the triangle-wireframe swap: the overlay IS the wire,
+        // and the solid form behind it is what occludes the far side.
+        this.shading.render(
+          this.scene,
+          'clay',
+          () => renderSolid(camera),
+          isEditorViewportShadingTarget,
+        );
+        return;
+      }
+      this.shading.render(this.scene, mode, () => renderSolid(camera), isEditorViewportShadingTarget);
+    } finally {
+      finishDraw?.();
     }
-    this.shading.render(this.scene, mode, () => renderSolid(camera), isEditorViewportShadingTarget);
   }
 
   /** Visible authoring draw with the editor-only native selection silhouette. */

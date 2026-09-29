@@ -52,6 +52,10 @@ export interface ToolObject3DPreviewSource {
    * where a world runs.
    */
   update?(deltaSeconds: number): void;
+  /** Prepare camera-dependent draw buffers immediately before rendering.
+   * Does not advance content time or mutate the authored document. An optional
+   * returned function restores temporary draw state, including after errors. */
+  prepareDraw?(camera: Camera): void | (() => void);
   /**
    * EVERY CHANGE TO WHAT THE SOURCE DRAWS, announced: the host calls
    * `listener` whenever the source's graph, materials, textures or poses may

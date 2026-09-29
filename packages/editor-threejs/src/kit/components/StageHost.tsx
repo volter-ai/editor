@@ -1904,7 +1904,10 @@ export function Object3DDocumentViewport({
           }
         };
         host.syncHostScene = syncHostScene;
-        documentSession.setBeforeRender(() => host.syncHostScene?.());
+        documentSession.setBeforeRender(() => {
+          host.syncHostScene?.();
+          return source.prepareDraw?.(documentSession.camera());
+        });
         // This loop draws the compass and every other overlay pass over the
         // document's own render, so it — and only it — can serve the chrome
         // door a frame that matches the screen.

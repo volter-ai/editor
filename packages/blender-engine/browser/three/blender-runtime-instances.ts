@@ -12,7 +12,7 @@ function sameMaterials(a: THREE.Material | THREE.Material[], b: THREE.Material |
     : a === b;
 }
 
-function shown(object: THREE.Object3D): boolean {
+export function instanceObjectShown(object: THREE.Object3D): boolean {
   for (let node: THREE.Object3D | null = object; node; node = node.parent)
     if (!node.visible) return false;
   return true;
@@ -20,7 +20,7 @@ function shown(object: THREE.Object3D): boolean {
 
 /** Three's instance normal transform supports positive, orthogonal scale axes.
  * Mirrored, singular and sheared placements keep the ordinary Mesh draw. */
-function supported(matrix: THREE.Matrix4): boolean {
+export function instanceMatrixSupported(matrix: THREE.Matrix4): boolean {
   if (matrix.determinant() <= 0) return false;
   const e = matrix.elements;
   const x = Math.hypot(e[0]!, e[1]!, e[2]!);
@@ -68,7 +68,7 @@ export class BlenderRuntimeInstances {
       // UVs/colours must not disable batching. No channel is deleted to fit.
       if (materials.some(m => graphDrawAttributes(m, mesh.geometry).size > 12)) { exclude('attributeBudget'); continue; }
       this.matrix.multiplyMatrices(this.inverse, mesh.matrixWorld);
-      if (!supported(this.matrix)) { exclude('transform'); continue; }
+      if (!instanceMatrixSupported(this.matrix)) { exclude('transform'); continue; }
       this.eligible++;
       const key = `${mesh.geometry.id}:${Array.isArray(mesh.material) ? 'slots' : 'single'}:` +
         materials.map(m => m.uuid).join(',') + `:${mesh.renderOrder}`;
@@ -104,7 +104,7 @@ export class BlenderRuntimeInstances {
         // Return the canonical mesh, not the internal batch or an unstable slot.
         draw.raycast = (raycaster, hits) => {
           for (const {mesh} of batch.members)
-            if (mesh.layers.mask === 0 && shown(mesh)) mesh.raycast(raycaster, hits);
+            if (mesh.layers.mask === 0 && instanceObjectShown(mesh)) mesh.raycast(raycaster, hits);
         };
         this.root.add(draw);
         draw.updateMatrixWorld(true);
@@ -130,13 +130,13 @@ export class BlenderRuntimeInstances {
         // A drag can introduce negative scale/shear, or a skin can replace a
         // mesh between frames. Fall back immediately without touching its data.
         const compatible = mesh.parent !== null && mesh.geometry === draw.geometry &&
-          sameMaterials(mesh.material, draw.material) && supported(this.matrix);
+          sameMaterials(mesh.material, draw.material) && instanceMatrixSupported(this.matrix);
         if (!compatible) {
           mesh.layers.mask |= member.layers;
           continue;
         }
         mesh.layers.mask &= ~member.layers;
-        if (!shown(mesh)) continue;
+        if (!instanceObjectShown(mesh)) continue;
         const offset = count * 16;
         if (this.matrix.elements.some((value, i) => Math.fround(value) !== draw.instanceMatrix.array[offset + i])) {
           draw.setMatrixAt(count, this.matrix);

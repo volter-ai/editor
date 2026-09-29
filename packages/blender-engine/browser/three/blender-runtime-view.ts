@@ -43,6 +43,7 @@ import {
 } from './blender-runtime-camera-view';
 import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 import { BlenderRuntimeInstances } from './blender-runtime-instances';
+import { BlenderTransparentInstances } from './blender-transparent-instances';
 
 /** A saved `View3DShading.type` as the stage's draw mode: Material Preview is `preview`. */
 const SAVED_SHADING = {
@@ -642,6 +643,7 @@ export interface PhotographRecord {
 export class BlenderRuntimeView {
   readonly root = new THREE.Group();
   private readonly instances = new BlenderRuntimeInstances(this.root);
+  private readonly transparentInstances = new BlenderTransparentInstances(this.root);
   private readonly objects = new Map<string, THREE.Object3D>();
   private readonly meshes = new Map<
     string,
@@ -1036,7 +1038,7 @@ export class BlenderRuntimeView {
         for (const child of children) next.add(child);
         parent?.add(next);
         this.objects.set(id, next);
-        this.instances.rebuild(this.objects.values(), !this.rendered);
+        this.rebuildInstances();
         return;
       }
   }
@@ -1220,7 +1222,26 @@ export class BlenderRuntimeView {
       material.dispose();
       this.workbenchMaterials.delete(key);
     }
+    this.rebuildInstances();
+  }
+
+  private rebuildInstances(): void {
+    this.transparentInstances.clear();
     this.instances.rebuild(this.objects.values(), !this.rendered);
+    if (!this.rendered) this.transparentInstances.setObjects(this.objects.values());
+  }
+
+  /** Before the renderer uploads attributes/builds its queues, for this area's
+   * actual camera. Transparent instance runs are camera-order dependent. */
+  prepareDraw(camera: THREE.Camera): () => void {
+    this.root.updateMatrixWorld(true);
+    try {
+      this.transparentInstances.prepare(camera);
+    } catch (error) {
+      this.transparentInstances.finishDraw();
+      throw error;
+    }
+    return () => this.transparentInstances.finishDraw();
   }
 
   private workbenchFor(id: string | null, side: THREE.Side, used: Set<string>): THREE.Material {
@@ -2016,7 +2037,7 @@ export class BlenderRuntimeView {
       active: this.frame?.active,
       mode: this.frame?.mode,
       geometryBuilds: this.geometryBuilds,
-      instancing: this.instances.inspect(),
+      instancing: this.drawStatistics(),
       objects: [...this.objects].map(([id, object]) => ({
         id,
         name: object.name,
@@ -2028,7 +2049,7 @@ export class BlenderRuntimeView {
   }
 
   drawStatistics() {
-    return this.instances.inspect();
+    return {opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect()};
   }
 
   snapshot() {
@@ -2238,6 +2259,7 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
+    this.transparentInstances.clear();
     this.instances.clear();
     for (const entry of this.staged?.meshes.values() ?? []) entry.geometry.dispose();
     this.staged = null;
