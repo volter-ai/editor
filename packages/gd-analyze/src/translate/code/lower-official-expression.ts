@@ -2547,6 +2547,22 @@ export function lowerOfficialExpression(
           );
         }
         const autoload = context.autoload(node);
+        if (autoload?.fromTree === true) {
+          // Where the script has no autoload field yet, the autoload node under the root.
+          return expression(
+            {
+              kind: 'as-expression',
+              expression: {
+                kind: 'call-expression',
+                callee: { kind: 'identifier-expression', name: 'godot_tree_autoload' },
+                arguments: [{ kind: 'literal-expression', value: autoload.reference.name }],
+                span: span(context.script, node),
+              },
+              type: { kind: 'type-reference', name: autoload.reference.typeLocalName, arguments: [] },
+            },
+            [...autoload.requirements, compatImport('scene-tree', 'godot_tree_autoload')],
+          );
+        }
         if (autoload !== undefined) {
           return expression(
             {
@@ -3598,7 +3614,29 @@ export function lowerOfficialExpression(
         // `preload("res://x.tscn")` is the project scene's resource, made once per path
         // (`ResourceLoader::load`'s cache): the scene component the translation writes for it.
         const scene = context.packedScene?.(node.resolvedPath);
-        if (scene === undefined) return context.refuse(node, `preload of ${node.resolvedPath} names no project scene`);
+        if (scene === undefined) {
+          // `preload("res://m.tres")`: the project resource, made once per path as the loader caches
+          // it (`godot_resource_loader_load` with the one path it names).
+          const document = context.resourceDocument(node.resolvedPath);
+          if (document === undefined) return context.refuse(node, `preload of ${node.resolvedPath} names no project scene or resource`);
+          const own: OfficialBoundLoweringRequirement[] = [...context.structural(node, 'preload', [], 'preload:resource')];
+          const value = documentResource(context, node, document, document.resource, own, node.resolvedPath);
+          own.push(compatImport('resource-loader', 'godot_resource_loader_load'), compatImport('resource', 'godot_script_resource_new'));
+          return expression(
+            {
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: 'godot_resource_loader_load' },
+              arguments: [
+                { kind: 'literal-expression', value: node.resolvedPath },
+                { kind: 'object-expression', properties: [{ key: node.resolvedPath, value: { kind: 'arrow-expression', parameters: [], body: value } }] },
+                { kind: 'object-expression', properties: [] },
+                { kind: 'identifier-expression', name: 'godot_script_resource_new' },
+              ],
+              span: span(context.script, node),
+            },
+            own,
+          );
+        }
         const requirements = context.structural(node, 'preload', [], 'preload:packed-scene');
         const local = `$Scene_${scene.name}`;
         return expression(

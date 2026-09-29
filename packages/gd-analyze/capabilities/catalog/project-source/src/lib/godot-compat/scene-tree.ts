@@ -28,7 +28,7 @@
  */
 
 import type { PackedScene } from './packed-scene-instance';
-import { godot_node_enter_root, godot_node_free, godot_node_group_members, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued } from './node';
+import { godot_node_enter_root, godot_node_free, godot_node_object, godot_node_group_members, godot_node_is_freed, godot_node_is_queued, godot_node_set_queued } from './node';
 import { get_setting } from './project-settings';
 import { godot_timer_advance, godot_timer_create, type SceneTreeTimer } from './scene-tree-timer';
 import { godot_tween_can_process, godot_tween_clear, godot_tween_create, godot_tween_in_physics, godot_tween_step, type Tween } from './tween';
@@ -397,6 +397,20 @@ export function change_scene_to_packed(self: SceneTree, scene: PackedScene): num
 export function quit(self: SceneTree, exit_code = 0): void {
   void self;
   void exit_code;
+}
+
+/**
+ * An autoload's script instance: the root's child of its name (`/root/<name>`, where `Main::start`
+ * adds each autoload), for a script that reads it before its scene hands it over (`_init`).
+ *
+ * @godot SceneTree (protocol)
+ * @source main/main.cpp:3949
+ */
+export function godot_tree_autoload(name: string): unknown {
+  const root = tree.root as { readonly children?: readonly { readonly name?: string }[] } | undefined;
+  const found = root?.children?.find((child) => child.name === name);
+  if (found === undefined) throw new Error(`godot-compat: no autoload ${name} under the root yet.`);
+  return godot_node_object(found as object);
 }
 
 function members(group: string): unknown[] {

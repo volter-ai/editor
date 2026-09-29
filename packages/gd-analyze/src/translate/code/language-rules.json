@@ -6792,6 +6792,32 @@
       "target": {
         "kind": "binding"
       }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "PRELOAD",
+        "semanticKey": "preload:resource|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "preload"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "PRELOAD",
+        "semanticKey": "preload:resource|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "preload"
+      }
     }
   ],
   "datatypes": [

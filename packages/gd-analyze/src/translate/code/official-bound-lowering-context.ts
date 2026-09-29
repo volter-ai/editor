@@ -109,6 +109,11 @@ export interface OfficialBoundBindingUse {
 
 export interface OfficialBoundAutoloadUse {
   readonly reference: OfficialBoundAutoloadReference;
+  /**
+   * Read from the tree (`/root/<name>`, `godot_tree_autoload`), where the scene has not yet handed
+   * the script its autoloads: `_init`, a field initializer, a static function.
+   */
+  readonly fromTree?: true;
   readonly requirements: readonly OfficialBoundLoweringRequirement[];
 }
 
@@ -376,12 +381,7 @@ export class LoweringContext {
   ): OfficialBoundAutoloadUse | undefined {
     const candidate = this.autoloads.get(node.id);
     if (candidate === undefined) return undefined;
-    if (this.#instanceAutoloadAccess === 0) {
-      this.refuse(
-        node,
-        `singleton ${node.name} requires a post-construction instance method; static, field-initializer, and _init access is not yet planned`,
-      );
-    }
+    const fromTree = this.#instanceAutoloadAccess === 0;
     if (
       node.source !== 'UNDEFINED_SOURCE' ||
       node.name !== candidate.name ||
@@ -429,6 +429,7 @@ export class LoweringContext {
     };
     return {
       reference,
+      ...(fromTree ? { fromTree: true as const } : {}),
       requirements: [...rule.requirements, { kind: 'autoload-reference-requirement', reference }],
     };
   }
