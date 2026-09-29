@@ -214,11 +214,15 @@ function prop<T>(node: GraphNode, name: string): T {
  *  Y-up world by the exact permutation (x, y, z) -> (x, z, -y)
  *  (`blender-runtime-view.ts`), so every world-space quantity handed to the
  *  library goes back through `blender_from_three`, and a normal the graph
- *  returns comes out through its transpose. */
+ *  returns comes out through its transpose. A transmissive material's fragment shader already
+ *  declares `modelMatrix` (three's `transmission_pars_fragment`), so the prelude yields it there:
+ *  declared twice, the Stoneguard file's water failed to compile ("'modelMatrix' : redefinition"). */
 const EEVEE_GLOBALS = `
 #define GPU_FRAGMENT_SHADER
 #define FrontFacing gl_FrontFacing
+#ifndef USE_TRANSMISSION
 uniform mat4 modelMatrix;
+#endif
 const mat3 blender_from_three = mat3(1.0, 0.0, 0.0, 0.0, 0.0, 1.0, 0.0, -1.0, 0.0);
 const mat4 blender_from_three4 = mat4(blender_from_three);
 struct BlenderGlobalData { vec3 P; vec3 N; vec3 Ng; vec3 Ni; bool is_strand; vec3 curve_T; vec2 barycentric_coords; };
