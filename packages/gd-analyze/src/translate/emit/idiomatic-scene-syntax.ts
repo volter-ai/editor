@@ -61,6 +61,7 @@ import {
   numbers,
   setterValue,
   useCompat as familyUseCompat,
+  variantValue,
 } from './scene-family-elements';
 
 /**
@@ -277,7 +278,10 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
     const scriptArguments = (): TargetTsExpression[] => {
       const own: TargetTsExpression = {
         kind: 'object-expression',
-        properties: values.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+        properties: [
+          ...values.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+          ...(node.fieldValues ?? []).map((field) => ({ key: field.field, value: variantValue(emission.family, field.value) })),
+        ],
       };
       // A scene root whose instancers override its script's fields: theirs over its own.
       const exported: TargetTsExpression =
@@ -298,7 +302,7 @@ function nodeRef(emission: Emission, node: DirectGodotSceneNodePlan, type: strin
       const hasAutoloads = script.autoloadReferences.length > 0 && emission.autoloads !== undefined;
       if (connections.length > 0) return [exported, autoloads, { kind: 'array-expression', elements: connections }];
       if (hasAutoloads) return [exported, autoloads];
-      return exported === own && values.length === 0 ? [] : [exported];
+      return exported === own && values.length === 0 && (node.fieldValues ?? []).length === 0 ? [] : [exported];
     };
     // A field holding a node is handed once every script of the scene is attached, so a scripted
     // node is its script instance wherever it is in the scene.
@@ -582,11 +586,14 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   // own (its component is a child), so they are script instances and override the instance's own.
   const exportedValues = (node.instanceExports ?? []).filter((field) => field.value.kind !== 'node-reference');
   const exportedNodes = (node.instanceExports ?? []).filter((field) => field.value.kind === 'node-reference');
-  if (exportedValues.length > 0) {
+  if (exportedValues.length > 0 || (node.fieldValues ?? []).length > 0) {
     overrides.push(
       attribute('exports', {
         kind: 'object-expression',
-        properties: exportedValues.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+        properties: [
+          ...exportedValues.map((field) => ({ key: field.fieldName, value: fieldValue(emission, node, field.value) })),
+          ...(node.fieldValues ?? []).map((field) => ({ key: field.field, value: variantValue(emission.family, field.value) })),
+        ],
       }),
     );
   }
@@ -866,7 +873,8 @@ export function idiomaticSceneSourceFile(
     return autoload;
   });
   const current = cameras.current;
-  const family = familyEmission(scene.targetPath, scene.resources, current);
+  const scriptClasses = new Map(project.scriptClasses.map((entry) => [entry.scriptResPath, entry.generatedClass] as const));
+  const family = familyEmission(scene.targetPath, scene.resources, current, (resPath) => scriptClasses.get(resPath));
   familyCountUses(family, scene.root);
   const emission: Emission = {
     scene,

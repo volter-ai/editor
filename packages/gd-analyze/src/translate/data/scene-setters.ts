@@ -215,7 +215,16 @@ export type TargetSceneValue =
    */
   | { readonly kind: 'Array'; readonly components: readonly number[] }
   /** A resource this document declares or references: `SubResource`/`ExtResource` by id. */
-  | { readonly kind: 'resource'; readonly reference: 'sub' | 'ext'; readonly id: string };
+  | { readonly kind: 'resource'; readonly reference: 'sub' | 'ext'; readonly id: string }
+  /** An integer vector or a rectangle, by its members in order (`Vector2i(x, y)`, `Rect2(x, y, w, h)`). */
+  | { readonly kind: 'Vector2i' | 'Vector3i' | 'Rect2' | 'Rect2i'; readonly components: readonly number[] }
+  /**
+   * An Array of any values (resources, records, nested containers), as a Variant holds it: each
+   * element its own value (a SpriteFrames' `animations`, an exported `Array[Texture2D]`).
+   */
+  | { readonly kind: 'Variant-array'; readonly items: readonly TargetSceneValue[] }
+  /** A Dictionary of any values, its entries in authored order. */
+  | { readonly kind: 'Variant-dictionary'; readonly entries: readonly (readonly [TargetSceneValue, TargetSceneValue])[] };
 
 /** An authored value as a target value, or undefined for a value this composition does not pass. */
 export function targetSceneValue(value: GodotValue): TargetSceneValue | undefined {
@@ -257,21 +266,35 @@ export function targetSceneValue(value: GodotValue): TargetSceneValue | undefine
         const [xx, xy, xz, yx, yy, yz, zx, zy, zz, ox, oy, oz] = args as [number, number, number, number, number, number, number, number, number, number, number, number];
         return { kind: 'Transform3D', components: [xx, yx, zx, 0, xy, yy, zy, 0, xz, yz, zz, 0, ox, oy, oz, 1] };
       }
-      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4], AABB: [6] }[value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB'];
+      type Record = 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB' | 'Vector2i' | 'Vector3i' | 'Rect2' | 'Rect2i';
+      const arity = { Vector2: [2], Vector3: [3], Color: [3, 4], Quaternion: [4], AABB: [6], Vector2i: [2], Vector3i: [3], Rect2: [4], Rect2i: [4] }[value.name as Record];
       if (arity === undefined || !arity.includes(value.args.length)) return undefined;
       const components = value.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined));
       if (!components.every((entry): entry is number => entry !== undefined)) return undefined;
-      return { kind: value.name as 'Vector2' | 'Vector3' | 'Color' | 'Quaternion' | 'AABB', components };
+      return { kind: value.name as Record, components };
     }
     case 'array': {
-      if (value.elementType !== undefined) return undefined;
       const components: number[] = [];
-      for (const item of value.items) {
-        const flat = item.kind === 'number' ? [item.value] : item.kind === 'ctor' && (item.name === 'Vector2' || item.name === 'Vector3') ? item.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined)) : [undefined];
-        if (!flat.every((entry): entry is number => entry !== undefined)) return undefined;
+      for (const item of value.elementType === undefined ? value.items : [undefined]) {
+        const flat = item?.kind === 'number' ? [item.value] : item?.kind === 'ctor' && (item.name === 'Vector2' || item.name === 'Vector3') ? item.args.map((arg) => (arg.kind === 'number' ? arg.value : undefined)) : [undefined];
+        if (!flat.every((entry): entry is number => entry !== undefined)) {
+          components.length = 0;
+          const items = value.items.map(targetSceneValue);
+          return items.every((item): item is TargetSceneValue => item !== undefined) ? { kind: 'Variant-array', items } : undefined;
+        }
         components.push(...flat);
       }
       return { kind: 'Array', components };
+    }
+    case 'dict': {
+      const entries: (readonly [TargetSceneValue, TargetSceneValue])[] = [];
+      for (const entry of value.entries) {
+        const key = entry.keyValue === undefined ? ({ kind: 'string', value: entry.key } as const) : targetSceneValue(entry.keyValue);
+        const item = targetSceneValue(entry.value);
+        if (key === undefined || item === undefined) return undefined;
+        entries.push([key, item]);
+      }
+      return { kind: 'Variant-dictionary', entries };
     }
     default:
       return undefined;

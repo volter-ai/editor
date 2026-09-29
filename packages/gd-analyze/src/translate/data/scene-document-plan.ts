@@ -86,6 +86,11 @@ export interface TargetGodotSceneNodePlan {
   /** `unique_name_in_owner`: the scene root finds the node as `%Name`. */
   readonly unique?: true;
   /**
+   * Its script's exported fields whose authored values are not plain (resources, records,
+   * containers): each value planned as the scene's resources are, handed with the field plan's.
+   */
+  readonly fieldValues?: readonly { readonly field: string; readonly value: TargetGodotSceneValue }[];
+  /**
    * The sibling position the scene authors (`index`), which moves the node there once added when
    * that is before where it was added (`SceneState::instantiate`, packed_scene.cpp:545).
    */
@@ -146,8 +151,10 @@ export interface TargetGodotImportedModelPlan {
 
 /** A value a setter receives: a target value, or a resource this document's plan constructs. */
 export type TargetGodotSceneValue =
-  | Exclude<TargetSceneValue, { readonly kind: 'resource' }>
-  | { readonly kind: 'resource'; readonly key: string };
+  | Exclude<TargetSceneValue, { readonly kind: 'resource' | 'Variant-array' | 'Variant-dictionary' }>
+  | { readonly kind: 'resource'; readonly key: string }
+  | { readonly kind: 'Variant-array'; readonly items: readonly TargetGodotSceneValue[] }
+  | { readonly kind: 'Variant-dictionary'; readonly entries: readonly (readonly [TargetGodotSceneValue, TargetGodotSceneValue])[] };
 
 /** One authored property as its setter's bound call. */
 export interface TargetGodotSceneSetterPlan {
@@ -209,6 +216,18 @@ export interface TargetGodotSceneResourcePlan {
    * `Shader` resource's key, by the name its binding selects it with.
    */
   readonly engineShaders?: Readonly<Record<string, string>>;
+  /**
+   * A PackedScene (an `ExtResource` of a `.tscn`, or of an imported model): the scene whose
+   * component `instantiate()` mounts, and its root's script class, which it makes first.
+   */
+  readonly packedScene?: { readonly resPath: string; readonly rootScript?: string };
+  /** A resource of a script's class (`script = ExtResource(…)`): its script and its properties' values. */
+  readonly scriptResource?: {
+    readonly scriptResPath: string;
+    readonly fields: readonly { readonly name: string; readonly value: TargetGodotSceneValue }[];
+    /** The `.tres` it was loaded from (`resource_path`), for one in a file of its own. */
+    readonly path?: string;
+  };
   readonly setters: readonly TargetGodotSceneSetterPlan[];
 }
 
@@ -613,6 +632,8 @@ interface PlanContext {
   readonly scriptSignals: (resPath: string) => ReadonlyMap<string, number>;
   readonly authority: GodotSceneNodeAuthorityResolver;
   readonly scenes: ReadonlyMap<string, BoundGodotSceneDocument>;
+  /** The imported models a scene's value names as a PackedScene: each gets a scene component of its own. */
+  readonly modelScenes?: Set<string>;
   /**
    * Whether any of the project's scenes places a node written as a reflection probe: its lit
    * materials are then the reflections capability's (`scene-material-idioms.ts`), since a probe
@@ -664,9 +685,33 @@ function setterValue(
     refuse(context, at, `a ${value.kind} value is not passed to a setter`, 'property', subject);
     return undefined;
   }
-  if (target.kind !== 'resource') return target;
-  const key = planResource(context, at, target.reference, target.id, scope);
-  return key === undefined ? undefined : { kind: 'resource', key };
+  return planSceneValue(context, at, target, scope);
+}
+
+/** A value with the resources it holds (at any depth) planned, each by its key. */
+function planSceneValue(context: PlanContext, at: string, target: TargetSceneValue, scope: string): TargetGodotSceneValue | undefined {
+  switch (target.kind) {
+    case 'resource': {
+      const key = planResource(context, at, target.reference, target.id, scope);
+      return key === undefined ? undefined : { kind: 'resource', key };
+    }
+    case 'Variant-array': {
+      const items = target.items.map((item) => planSceneValue(context, at, item, scope));
+      return items.every((item): item is TargetGodotSceneValue => item !== undefined) ? { kind: 'Variant-array', items } : undefined;
+    }
+    case 'Variant-dictionary': {
+      const entries: (readonly [TargetGodotSceneValue, TargetGodotSceneValue])[] = [];
+      for (const [key, item] of target.entries) {
+        const plannedKey = planSceneValue(context, at, key, scope);
+        const plannedItem = planSceneValue(context, at, item, scope);
+        if (plannedKey === undefined || plannedItem === undefined) return undefined;
+        entries.push([plannedKey, plannedItem]);
+      }
+      return { kind: 'Variant-dictionary', entries };
+    }
+    default:
+      return target;
+  }
 }
 
 /**
@@ -777,9 +822,50 @@ function planResolvedResource(
     recordResource(document, key, planned);
     return key;
   }
+  // A scene: a `.tscn`, or an imported model, which `instantiate()` mounts as its component.
+  const scene = data === undefined && imported === undefined && key.startsWith('ext:') ? context.scenes.get(key.slice('ext:'.length)) : undefined;
+  if (scene !== undefined) {
+    if (scene.sourceKind === 'imported-gltf') context.modelScenes?.add(scene.resPath);
+    const rootScript = scene.nodes.find((node) => node.nodePath === '.')?.scriptResPath;
+    const planned = {
+      key,
+      className: 'PackedScene',
+      construct: { module: 'lib/godot-compat/packed-scene-instance', exportName: 'godot_packed_scene_preload' },
+      packedScene: { resPath: scene.resPath, ...(rootScript === undefined ? {} : { rootScript }) },
+      setters: [],
+    };
+    recordResource(document, key, planned);
+    return key;
+  }
   if (data === undefined) {
     refuse(context, at, `${key} is not a resource this scene or a .tres declares`, 'resource', 'external resource');
     return undefined;
+  }
+  // A resource of a script's class: its script's instance, its properties the script's fields.
+  const scriptReference = referenceOf(data.properties['script']);
+  if (scriptReference !== undefined) {
+    const extResources = nestedScope === '' ? document.scene.extResources : (context.project?.documents.resources.find((entry) => entry.resPath === nestedScope)?.extResources ?? []);
+    const scriptResPath = scriptReference.reference === 'ext' ? extResources.find((entry) => String(entry.id) === scriptReference.id)?.resPath : undefined;
+    if (scriptResPath === undefined || !scriptResPath.endsWith('.gd')) {
+      refuse(context, at, `${key}: its script is not a project script file`, 'resource', data.type);
+      return undefined;
+    }
+    const fields: { readonly name: string; readonly value: TargetGodotSceneValue }[] = [];
+    for (const [name, value] of Object.entries(data.properties)) {
+      if (name === 'script' || name === 'resource_name' || name.startsWith('metadata/')) continue;
+      const planned = setterValue(context, `${at}(${key}).${name}`, `${data.type}.${name}`, value, nestedScope);
+      if (planned === undefined) return undefined;
+      fields.push({ name, value: planned });
+    }
+    const planned = {
+      key,
+      className: data.type,
+      construct: { module: 'lib/godot-compat/resource', exportName: 'godot_script_resource_new' },
+      scriptResource: { scriptResPath, fields, ...(key.startsWith('ext:') && !key.includes('#') ? { path: key.slice('ext:'.length) } : {}) },
+      setters: [],
+    };
+    recordResource(document, key, planned);
+    return key;
   }
   // An engine material: every shader its class generates, captured from the pinned Godot and
   // lowered as a `.gdshader` is, each planned as a `Shader` its binding selects between.
@@ -1426,6 +1512,28 @@ function gridMapData(context: PlanContext, at: string, value: GodotValue): Targe
 }
 
 /** A node the document authors itself: a native entity of its class. */
+/** Whether an authored field value is plain, the field plan's to hand (a number, text, a node path). */
+function plainFieldValue(value: GodotValue): boolean {
+  return value.kind === 'number' || value.kind === 'bool' || value.kind === 'string' || (value.kind === 'ctor' && value.name === 'NodePath');
+}
+
+/** A node's script fields whose authored values are not plain, each planned (`fieldValues`). */
+function planFieldValues(
+  context: PlanContext,
+  node: BoundGodotSceneNode,
+  fields: ReadonlySet<string>,
+  values: Readonly<Record<string, GodotValue>>,
+): readonly { readonly field: string; readonly value: TargetGodotSceneValue }[] | undefined {
+  const planned: { readonly field: string; readonly value: TargetGodotSceneValue }[] = [];
+  for (const [field, value] of Object.entries(values)) {
+    if (!fields.has(field) || node.nodePathProperties.includes(field) || plainFieldValue(value)) continue;
+    const target = setterValue(context, `${node.documentPath}#${node.nodePath}.${field}`, field, value, '');
+    if (target === undefined) return undefined;
+    planned.push({ field, value: target });
+  }
+  return planned;
+}
+
 function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): TargetGodotSceneNodePlan | undefined {
   const at = `${node.documentPath}#${node.nodePath}`;
   let ok = true;
@@ -1463,7 +1571,8 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   );
   const groups = groupsOf(context, node);
   const placed = placement(context, node);
-  if (!ok || idiom === undefined || properties === undefined || groups === undefined || placed === undefined) {
+  const fieldValues = planFieldValues(context, node, fields, node.authoredProperties);
+  if (!ok || idiom === undefined || properties === undefined || groups === undefined || placed === undefined || fieldValues === undefined) {
     return undefined;
   }
   const unstated = godotFamilyRefusal(node.class.nativeName, 'node', setters);
@@ -1484,6 +1593,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
     groups,
     classes: node.class.nativeAncestry,
     ...(unique ? { unique: true as const } : {}),
+    ...(fieldValues.length === 0 ? {} : { fieldValues }),
     setters,
     ...(animation === undefined ? {} : { animation }),
     children: [],
@@ -1680,7 +1790,13 @@ function planInstanceRoot(
   const setters: TargetGodotSceneSetterPlan[] = [];
   const properties = planProperties(context, node, overrides, setters);
   const placed = placement(context, node);
-  if (!ok || properties === undefined || placed === undefined) return undefined;
+  const fieldValues = planFieldValues(
+    context,
+    node,
+    fields,
+    Object.fromEntries(Object.entries(node.authoredProperties).filter(([name, value]) => !sameValue(value, origin.authoredProperties[name]))),
+  );
+  if (!ok || properties === undefined || placed === undefined || fieldValues === undefined) return undefined;
   return {
     nodePath: node.nodePath,
     ...(placed.parentNodePath === undefined ? {} : { parentNodePath: placed.parentNodePath }),
@@ -1688,6 +1804,7 @@ function planInstanceRoot(
     instance: { sourceResPath: instanced.resPath },
     // Its own script, where the base's root has none (the component's root carries it).
     ...(node.scriptResPath !== undefined && origin.scriptResPath === undefined ? { scriptResPath: node.scriptResPath } : {}),
+    ...(fieldValues.length === 0 ? {} : { fieldValues }),
     properties,
     groups: groups ?? [],
     classes: [],
@@ -2434,12 +2551,37 @@ export function planGodotSceneDocuments(
     scenes: new Map(project.documents.scenes.map((scene) => [scene.resPath, scene] as const)),
     // `project.documents.scenes` are the reachable scenes (`read/reachability.ts`).
     reflected: project.documents.scenes.some((scene) => scene.nodes.some((node) => godotSceneNodeIdiom(node.class.nativeName)?.form.kind === 'reflection-probe')),
+    modelScenes: new Set(),
     diagnostics: [],
   };
   const scenes = project.documents.scenes.flatMap((scene) => {
     const planned = planScene(context, scene);
     return planned === undefined ? [] : [planned];
   });
+  // An imported model a value names as a PackedScene (`instantiate()`): a scene of its own whose
+  // root instances the model, as a scene inheriting from the file is.
+  const modelsPlanned = new Set<string>();
+  for (let pending = [...(context.modelScenes ?? [])]; pending.length > 0; pending = [...(context.modelScenes ?? [])].filter((resPath) => !modelsPlanned.has(resPath))) {
+    for (const resPath of pending) {
+      modelsPlanned.add(resPath);
+      const imported = context.scenes.get(resPath);
+      const root = imported?.nodes.find((node) => node.nodePath === '.');
+      if (imported === undefined || root === undefined) continue;
+      const { scriptResPath: _script, ...rootNode } = root;
+      const planned = planScene(context, {
+        ...imported,
+        sourceKind: 'packed-scene',
+        nodes: [{ ...rootNode, documentPath: resPath, nodePath: '.', authoredProperties: {}, nodePathProperties: [], groups: [], instanceSceneResPath: resPath }],
+        subResources: [],
+        extResources: [],
+        connections: [],
+        connectionCount: 0,
+        subResourceCount: 0,
+        editablePaths: [],
+      });
+      if (planned !== undefined) scenes.push(planned);
+    }
+  }
   const plannedPaths = new Set(scenes.map((scene) => scene.sourceResPath));
   // An instance of a scene that did not plan cannot mount its component.
   const missing = (node: TargetGodotSceneNodePlan): string[] => [

@@ -8,7 +8,7 @@
  * from, empty for one made in code.
  */
 
-import { godot_node_adopt } from './node';
+import { godot_node_adopt, godot_script_new } from './node';
 
 const PATHS = new WeakMap<object, string>();
 
@@ -40,4 +40,21 @@ export function godot_resource_set_path(self: object, path: string): void {
  */
 export function get_path(self: object): string {
   return PATHS.get(self) ?? '';
+}
+
+/**
+ * A resource of a script's class as a scene or `.tres` declares it (`ResourceLoader` loading a
+ * `[resource]` with `script = …`): the script's instance over a new Resource, its `_init` run, then
+ * each authored property set on it (`ResourceFormatText` sets them after the script, in order), and
+ * its path the file it came from.
+ *
+ * @godot Resource (protocol)
+ * @source scene/resources/resource_format_text.cpp:606
+ */
+export function godot_script_resource_new<Instance extends object>(ScriptClass: new (native: object) => Instance, fields: Readonly<Record<string, unknown>>, path?: string): Instance {
+  const native = construct();
+  const instance = godot_script_new(ScriptClass, native, []);
+  for (const [name, value] of Object.entries(fields)) (instance as Record<string, unknown>)[name] = value;
+  if (path !== undefined) PATHS.set(native, path);
+  return instance;
 }

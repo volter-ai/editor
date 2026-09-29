@@ -1,4 +1,4 @@
-import { godotSceneSubnodes } from '../data/scene-document-plan';
+import { godotSceneExportName, godotSceneSubnodes, godotSceneTargetPath } from '../data/scene-document-plan';
 /**
  * The JSX element each carried node family is written as (GODOT.md, "The output is idiomatic
  * three.js"), whatever shape the rest of its scene is written in: the element's tag, its literal
@@ -100,6 +100,10 @@ export function setterValue(setters: readonly TargetGodotSceneSetterPlan[], expo
 /** What a scene's family elements need beside themselves: imports, hooks and data files. */
 export interface FamilyEmission {
   readonly targetPath: string;
+  /** A script's generated class (its module under the project and export), by the script's res path. */
+  readonly scriptClass: (resPath: string) => { readonly modulePath: string; readonly exportName: string } | undefined;
+  /** The project's own modules the scene imports (scenes, script classes): their names, by specifier. */
+  readonly project: Map<string, Set<string>>;
   readonly resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>;
   /** Values imported from three (constants such as `AdditiveBlending`). */
   readonly three: Set<string>;
@@ -135,9 +139,12 @@ export function familyEmission(
   targetPath: string,
   resources: readonly TargetGodotSceneResourcePlan[],
   currentCamera?: string,
+  scriptClass: FamilyEmission['scriptClass'] = () => undefined,
 ): FamilyEmission {
   return {
     targetPath,
+    scriptClass,
+    project: new Map(),
     resources: new Map(resources.map((resource) => [resource.key, resource] as const)),
     three: new Set(),
     drei: new Set(),
@@ -407,9 +414,72 @@ function propValue(emission: FamilyEmission, value: TargetGodotSceneValue): Targ
       return literal(null);
     case 'resource':
       return identifier(resourceLocal(emission, value.key));
+    case 'Variant-array':
+    case 'Variant-dictionary':
+      return variantValue(emission, value);
     default:
       return numbers(value.components);
   }
+}
+
+/** The compat module constructing each built-in record a Variant container holds. */
+const RECORD_MODULES: Readonly<Record<string, string>> = {
+  Vector2: 'vector2',
+  Vector3: 'vector3',
+  Vector2i: 'vector2i',
+  Vector3i: 'vector3i',
+  Color: 'color',
+  Quaternion: 'quaternion',
+  Rect2: 'rect2',
+};
+
+/**
+ * An authored value as the Variant a script or resource holds: a record made by its compat
+ * constructor, a resource's local, an Array as a JS array, a Dictionary as a `Map`.
+ */
+export function variantValue(emission: FamilyEmission, value: TargetGodotSceneValue): TargetTsExpression {
+  switch (value.kind) {
+    case 'number':
+    case 'bool':
+    case 'string':
+      return literal(value.value);
+    case 'null':
+      return literal(null);
+    case 'resource':
+      return identifier(resourceLocal(emission, value.key));
+    case 'Variant-array':
+      return { kind: 'array-expression', elements: value.items.map((item) => variantValue(emission, item)) };
+    case 'Variant-dictionary':
+      return {
+        kind: 'new-expression',
+        callee: identifier('Map'),
+        arguments: [{ kind: 'array-expression', elements: value.entries.map(([key, item]) => ({ kind: 'array-expression' as const, elements: [variantValue(emission, key), variantValue(emission, item)] })) }],
+      };
+    case 'Array':
+      return numbers(value.components);
+    default: {
+      const module = RECORD_MODULES[value.kind];
+      if (module === undefined) throw new Error(`a ${value.kind} value has no Variant form`);
+      return { kind: 'call-expression', callee: identifier(useCompat(emission, module, 'construct', `${value.kind}_construct`)), arguments: value.components.map((component) => literal(component)) };
+    }
+  }
+}
+
+/** The loaded locals (hook values) an expression reads, at any depth. */
+export function loadedUses(emission: FamilyEmission, expression: TargetTsExpression): string[] {
+  const found = new Set<string>();
+  const walk = (node: unknown): void => {
+    if (Array.isArray(node)) {
+      for (const item of node) walk(item);
+      return;
+    }
+    if (node === null || typeof node !== 'object') return;
+    const record = node as { readonly kind?: unknown; readonly name?: unknown };
+    if (record.kind === 'identifier-expression' && typeof record.name === 'string' && emission.loaded.has(record.name)) found.add(record.name);
+    for (const child of Object.values(node)) walk(child);
+  };
+  walk(expression);
+  return [...found];
 }
 
 /**
@@ -447,6 +517,53 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
           { kind: 'object-expression', properties: Object.entries(load.options).map(([name, value]) => ({ key: name, value: literal(value) })) },
         ],
       },
+    });
+    return local;
+  }
+  // A PackedScene: the scene's component, preloaded once (`instantiate()` mounts it).
+  const packed = resource.packedScene;
+  if (packed !== undefined) {
+    const component = projectImport(emission, godotSceneTargetPath(packed.resPath), godotSceneExportName(packed.resPath));
+    const root = packed.rootScript === undefined ? undefined : emission.scriptClass(packed.rootScript);
+    const local = freshLocal(emission, `${path.posix.basename(packed.resPath).replace(/\.[^.]+$/u, '')} scene`);
+    emission.hookLocals.set(key, local);
+    emission.statics.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: {
+        kind: 'call-expression',
+        callee: identifier(useCompat(emission, 'packed-scene-instance', 'godot_packed_scene_preload')),
+        arguments: [literal(packed.resPath), identifier(component), ...(root === undefined ? [] : [identifier(projectImport(emission, root.modulePath, root.exportName))])],
+      },
+    });
+    return local;
+  }
+  // A resource of a script's class: the script's instance, its fields the authored values.
+  const scripted = resource.scriptResource;
+  if (scripted !== undefined) {
+    const cls = emission.scriptClass(scripted.scriptResPath);
+    if (cls === undefined) throw new Error(`${key}: ${scripted.scriptResPath} has no generated class`);
+    const fields: TargetTsExpression = { kind: 'object-expression', properties: scripted.fields.map((field) => ({ key: field.name, value: variantValue(emission, field.value) })) };
+    const made: TargetTsExpression = {
+      kind: 'call-expression',
+      callee: identifier(useCompat(emission, 'resource', 'godot_script_resource_new')),
+      arguments: [identifier(projectImport(emission, cls.modulePath, cls.exportName)), fields, ...(scripted.path === undefined ? [] : [literal(scripted.path)])],
+    };
+    const uses = loadedUses(emission, fields);
+    const local = freshLocal(emission, stemOf(key));
+    emission.hookLocals.set(key, local);
+    if (uses.length === 0) {
+      emission.statics.push({ kind: 'variable-statement', declaration: 'const', name: local, initializer: made });
+      return local;
+    }
+    emission.loaded.add(local);
+    emission.react.add('useMemo');
+    emission.hooks.push({
+      kind: 'variable-statement',
+      declaration: 'const',
+      name: local,
+      initializer: { kind: 'call-expression', callee: identifier('useMemo'), arguments: [{ kind: 'arrow-expression', parameters: [], body: made }, { kind: 'array-expression', elements: uses.map(identifier) }] },
     });
     return local;
   }
@@ -492,7 +609,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
     return local;
   }
   const properties = resource.setters.map((setter) => ({ key: godotPropName(setter.propertyName), value: propValue(emission, setter.value) }));
-  const uses = properties.flatMap((property) => (property.value.kind === 'identifier-expression' && emission.loaded.has(property.value.name) ? [property.value.name] : []));
+  const uses = [...new Set(properties.flatMap((property) => loadedUses(emission, property.value)))];
   const local = freshLocal(emission, key.replace(/^.*[:/#]/u, '').replace(/_[A-Za-z0-9]{5}$/u, ''));
   emission.hookLocals.set(key, local);
   const constructor = useCompat(emission, resource.construct.module.replace(/^lib\/godot-compat\//u, ''), resource.construct.exportName);
@@ -1068,5 +1185,20 @@ export function familyImports(emission: FamilyEmission): TargetTsStatement[] {
       defaultBinding: local,
       namedBindings: [],
     })),
+    ...[...emission.project].map(([module, names]) => ({
+      kind: 'import-statement' as const,
+      module,
+      namedBindings: [...names].sort().map((name) => ({ imported: name, local: name })),
+    })),
   ];
+}
+
+/** A name another module of the project exports, imported into the scene's (none from itself). */
+function projectImport(emission: FamilyEmission, file: string, name: string): string {
+  if (file === emission.targetPath) return name;
+  const module = moduleSpecifier(emission.targetPath, file);
+  const names = emission.project.get(module) ?? new Set<string>();
+  names.add(name);
+  emission.project.set(module, names);
+  return name;
 }

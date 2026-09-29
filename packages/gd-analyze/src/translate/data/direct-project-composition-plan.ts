@@ -186,6 +186,8 @@ export interface DirectGodotProjectCompositionPlan {
   readonly sourceModules: readonly DirectGodotSourceModulePlan[];
   readonly scenes: readonly DirectGodotSceneDocumentPlan[];
   readonly scriptAutoloads: readonly DirectGodotScriptAutoloadPlan[];
+  /** Every script's generated class, by the script's res path (a scene's resources make instances of them). */
+  readonly scriptClasses: readonly { readonly scriptResPath: string; readonly generatedClass: DirectGodotGeneratedClass }[];
 }
 
 export interface DirectGodotCompositionDiagnostic {
@@ -957,6 +959,10 @@ export function planDirectGodotProjectComposition(
       sourceModules: plannedSourceModules,
       scenes: planGodotSceneRefs(bodied.map(planGodotSceneSkyLights)),
       scriptAutoloads: autoloads,
+      scriptClasses: code.scriptModules.flatMap((module) => {
+        const target = generatedClass(module);
+        return target === undefined ? [] : [{ scriptResPath: module.resPath, generatedClass: target }];
+      }),
     },
   };
 }
