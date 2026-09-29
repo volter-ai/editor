@@ -62,3 +62,29 @@ test('streamed geometry is prepared once, committed by matching manifest and reu
   assert.throws(() => view.stageFrame({ session: 'test', revision: 2, mesh: 'triangle', piece: triangle }), /pending revision/);
   view.dispose();
 });
+
+const geometryBundle = await build({ entryPoints: [fileURLToPath(new URL('../browser/three/blender-runtime-geometry.ts', import.meta.url))], bundle: true, platform: 'node', format: 'esm', write: false });
+const { drawArraysFromColumns } = await import(`data:text/javascript;base64,${Buffer.from(geometryBundle.outputFiles[0].text).toString('base64')}`);
+test('native column draw preserves tessellation, every UV and attribute across seams and loose vertices', () => {
+  const columns = { ...triangle.columns, co: new Float32Array([0,0,0,1,0,0,0,1,0,2,2,2]),
+    faceStart: new Uint32Array([0,3,6]), corner: new Uint32Array([0,1,2,0,2,1]),
+    cornerTri: new Uint32Array([0,1,2,3,4,5]), material: new Uint32Array([0,2]),
+    cornerNormal: new Float32Array([0,0,1,0,0,1,0,0,1,0,0,-1,0,0,-1,0,0,-1]),
+    attributes: [
+      { name: 'uv', type: 'FLOAT2', domain: 'CORNER', data: new Float32Array([0,0,1,0,0,1,.1,.2,.3,.4,.5,.6]) },
+      { name: 'second', type: 'FLOAT2', domain: 'CORNER', data: new Float32Array([.2,.3,.4,.5,.6,.7,.8,.9,1,0,0,1]) },
+      { name: 'face-value', type: 'FLOAT', domain: 'FACE', data: new Float32Array([2,3]) },
+    ], activeUv: 'uv', renderUv: 'second', smooth: new Uint8Array([1,1]) };
+  const result = drawArraysFromColumns(columns, 'native');
+  assert.equal(result.sourceVertex.length, 7, 'six distinct corners plus the loose vertex');
+  for (let i=0;i<columns.cornerTri.length;i++) {
+    const corner = columns.cornerTri[i], vertex = columns.corner[corner], drawn = result.indices[i];
+    assert.equal(result.sourceVertex[drawn], vertex);
+    assert.deepEqual(result.positions.slice(drawn*3,drawn*3+3), columns.co.slice(vertex*3,vertex*3+3));
+    assert.deepEqual(result.normals.slice(drawn*3,drawn*3+3), columns.cornerNormal.slice(corner*3,corner*3+3));
+    for (let uv=0;uv<2;uv++) assert.deepEqual(result.uvLayers[uv].data.slice(drawn*2,drawn*2+2), columns.attributes[uv].data.slice(corner*2,corner*2+2));
+    assert.equal(result.attributeLayers[0].data[drawn*4], i<3?2:3);
+  }
+  assert.deepEqual(result.groups, [{start:0,count:3,materialIndex:0},{start:3,count:3,materialIndex:2}]);
+  assert.throws(() => drawArraysFromColumns({...columns,cornerTri:new Uint32Array([0,1,5,3,4,5])}, 'wrong'), /different face/);
+});

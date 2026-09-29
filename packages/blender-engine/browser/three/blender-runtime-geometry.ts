@@ -313,8 +313,113 @@ export function geometryFromDrawArrays(
   return geometry;
 }
 
+/** Blender already supplied corner normals and triangulation. Read those
+ * columns directly: no polygon triangulation, adjacency graph, vector objects
+ * or stringified floating-point keys. Two passes size final buffers exactly. */
+function drawNativeColumns(c: MeshColumns, hash: string): DrawArrays {
+  const triangles = c.cornerTri!, normal = c.cornerNormal!;
+  const nv = c.co.length / 3, nc = c.corner.length, nf = c.faceStart.length - 1;
+  const maps = c.attributes.filter(a => a.type === 'FLOAT2' && a.domain === 'CORNER');
+  const mapName = c.renderUv ?? c.activeUv ?? maps[0]?.name;
+  const activeMap = maps.findIndex(a => a.name === mapName);
+  if (mapName && activeMap < 0) throw new Error(`Runtime UV map ${mapName} is missing`);
+  const attributes = graphAttributeLayers(c.attributes, data => data as ArrayLike<number>);
+  const width = 3 + maps.length * 2 + attributes.length * 4;
+  const scratch = new Float32Array(width), comparison = new Float32Array(width);
+  const bits = new Uint32Array(scratch.buffer), comparisonBits = new Uint32Array(comparison.buffer);
+  const faces = new Uint32Array(nc), cornerIndex = new Uint32Array(nc);
+  const representative = new Uint32Array(nc), links = new Uint32Array(nc);
+  const used = new Uint8Array(nv);
+  let tableSize = 1;
+  while (tableSize < Math.max(1, nc * 2)) tableSize *= 2;
+  const buckets = new Uint32Array(tableSize);
+  const read = (corner: number, face: number, vertex: number, target: Float32Array): void => {
+    let offset = 0;
+    for (let k = 0; k < 3; k++) target[offset++] = normal[corner * 3 + k]!;
+    for (const map of maps) for (let k = 0; k < 2; k++) target[offset++] = Number(map.data[corner * 2 + k]);
+    for (const layer of attributes) {
+      const value = layer.read(vertex, corner, face);
+      for (let k = 0; k < 4; k++) target[offset++] = Number(value[k]);
+    }
+  };
+  let count = 0;
+  for (let face = 0; face < nf; face++) {
+    for (let corner = c.faceStart[face]!; corner < c.faceStart[face + 1]!; corner++) {
+      const vertex = c.corner[corner]!;
+      if (vertex >= nv) throw new Error('Native mesh corner references a missing vertex');
+      faces[corner] = face; used[vertex] = 1;
+      read(corner, face, vertex, scratch);
+      let digest = Math.imul(vertex ^ 2166136261, 16777619);
+      for (const word of bits) digest = Math.imul(digest ^ word, 16777619);
+      const bucket = (digest >>> 0) & (tableSize - 1);
+      let found = -1;
+      for (let entry = buckets[bucket]!; entry; entry = links[entry - 1]!) {
+        const index = entry - 1, previous = representative[index]!;
+        if (c.corner[previous] !== vertex) continue;
+        read(previous, faces[previous]!, vertex, comparison);
+        let equal = true;
+        for (let k = 0; k < width; k++) if (bits[k] !== comparisonBits[k]) { equal = false; break; }
+        if (equal) { found = index; break; }
+      }
+      if (found < 0) {
+        found = count++; representative[found] = corner;
+        links[found] = buckets[bucket]!; buckets[bucket] = found + 1;
+      }
+      cornerIndex[corner] = found;
+    }
+  }
+  let loose = 0; for (const flag of used) if (!flag) loose++;
+  const total = count + loose;
+  const positions = new Float32Array(total * 3), normals = new Float32Array(total * 3);
+  const sourceVertex = new Uint32Array(total);
+  const uvLayers = maps.map(map => ({ name: map.name, data: new Float32Array(total * 2) }));
+  const attributeLayers = attributes.map(layer => ({ name: layer.name, data: new Float32Array(total * 4) }));
+  const orco = c.orco ? new Float32Array(total * 3) : null;
+  const position = (index: number, vertex: number): void => {
+    sourceVertex[index] = vertex;
+    for (let k = 0; k < 3; k++) {
+      positions[index * 3 + k] = c.co[vertex * 3 + k]!;
+      if (orco) orco[index * 3 + k] = c.orco![vertex * 3 + k]! * 0.5 + 0.5;
+    }
+  };
+  for (let index = 0; index < count; index++) {
+    const corner = representative[index]!, vertex = c.corner[corner]!;
+    position(index, vertex); read(corner, faces[corner]!, vertex, scratch);
+    normals.set(scratch.subarray(0, 3), index * 3);
+    let offset = 3;
+    for (const layer of uvLayers) { layer.data.set(scratch.subarray(offset, offset + 2), index * 2); offset += 2; }
+    for (const layer of attributeLayers) { layer.data.set(scratch.subarray(offset, offset + 4), index * 4); offset += 4; }
+  }
+  let index = count;
+  for (let vertex = 0; vertex < nv; vertex++) if (!used[vertex]) {
+    position(index, vertex);
+    for (let layer = 0; layer < attributes.length; layer++) attributeLayers[layer]!.data.set(attributes[layer]!.read(vertex, undefined, undefined), index * 4);
+    index++;
+  }
+  const indices = new Uint32Array(triangles.length), groups: DrawArrays['groups'] = [];
+  let offset = 0;
+  for (let face = 0; face < nf; face++) {
+    const start = c.faceStart[face]!, end = c.faceStart[face + 1]!;
+    const length = Math.max(0, end - start - 2) * 3;
+    if (offset + length > triangles.length) throw new Error('Native mesh triangulation is incomplete');
+    for (let j = 0; j < length; j++) {
+      const corner = triangles[offset + j]!;
+      if (corner < start || corner >= end) throw new Error('Native triangle references a different face');
+      indices[offset + j] = cornerIndex[corner]!;
+    }
+    const materialIndex = c.material[face]!, previous = groups.at(-1);
+    if (previous?.materialIndex === materialIndex) previous.count += length;
+    else groups.push({ start: offset, count: length, materialIndex });
+    offset += length;
+  }
+  if (offset !== triangles.length) throw new Error('Native mesh triangulation has extra triangles');
+  return { positions, normals, sourceVertex, uv: activeMap < 0 ? null : uvLayers[activeMap]!.data,
+    uvLayers, attributeLayers, orco, indices, groups, hash };
+}
+
 /** The worker's door: the mesh store's columns, drawn into buffers. */
 export function drawArraysFromColumns(c: MeshColumns, hash: string): DrawArrays {
+  if (c.cornerTri && c.cornerNormal) return drawNativeColumns(c, hash);
   const nv = c.co.length / 3;
   const maps = c.attributes.filter((a) => a.type === 'FLOAT2' && a.domain === 'CORNER');
   const mapName = c.renderUv ?? c.activeUv ?? maps[0]?.name;

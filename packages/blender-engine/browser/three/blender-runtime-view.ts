@@ -186,6 +186,7 @@ const columnsSchema = z
   .object({
     co: z.union([z.instanceof(Float32Array), z.instanceof(Float64Array)]),
     cornerNormal: z.instanceof(Float32Array).optional(),
+    cornerTri: z.instanceof(Uint32Array).optional(),
     orco: z.instanceof(Float32Array).optional(),
     faceStart: z.instanceof(Uint32Array),
     corner: z.instanceof(Uint32Array),

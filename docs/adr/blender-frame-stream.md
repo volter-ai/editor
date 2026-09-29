@@ -27,3 +27,21 @@ reduction, geometry simplification or UV-channel selection in this transport.
 backpressure, corruption/order/truncation refusal, typed-column preservation,
 and staged commit followed by geometry reuse. This protocol check is not a
 hosted viewport or scene-load timing claim.
+
+## Native draw columns
+
+The exporter supplies `cornerTri` in Blender's evaluated face order alongside
+its evaluated corner normals. The view uses those columns directly and builds
+an exact-size indexed draw buffer. Typed hash buckets compare all channel bits
+before sharing a vertex; every UV map, material attribute, original vertex
+mapping and loose vertex remains represented. Older engines without native
+triangles retain the polygon fallback.
+
+On Stoneguard's largest recorded native mesh (Woodland sapling000, 2,062,487
+triangles), the same Node geometry-stage benchmark took 10,546.94 ms through
+the polygon fallback and 778.12 ms through native columns. Both produced
+1,777,278 draw vertices. Every expanded position, normal and UV was checked
+against the native columns. End-of-stage RSS was 2,075,197,440 and 763,166,720
+bytes respectively; these are snapshots, not peak or hosted load measurements.
+The protocol test also covers native face ordering, material groups, seams,
+multiple UV maps, a face attribute, loose vertices and invalid corner refusal.
