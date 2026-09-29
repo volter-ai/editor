@@ -13,7 +13,6 @@
  * setter or member as a callable, which lowering supplies; it is not dispatched here.
  */
 
-import { godot_animation_tree_get, godot_animation_tree_is, godot_animation_tree_set } from './animation-tree';
 import { godot_node_entity, godot_node_is_freed, godot_node_is_queued, godot_node_object } from './node';
 
 /** Runs `run` after the current work, unless its target has been freed by then. */
@@ -43,19 +42,15 @@ export function call_deferred(self: object, method: string, ...args: readonly un
 }
 
 /**
- * `self.property = value` by name: a script instance's field, or an AnimationTree's
- * `parameters/…` (`AnimationTree::_set`, `animation_tree.cpp:1057`). A native class's property by
- * name needs its setter, which lowering supplies; it fails by name here.
+ * `self.property = value` by name: a script instance's field. A native class's property by name
+ * needs its setter, and an AnimationTree's `parameters/…` its parameter protocol, which lowering
+ * supplies (`treeParameterCall`); either fails by name here.
  *
  * @godot Object.set
  * @source core/object/object.cpp:335
  */
 export function set(self: object, property: string, value: unknown): void {
   const name = String(property);
-  if (name.startsWith('parameters/') && godot_animation_tree_is(self)) {
-    godot_animation_tree_set(self, name.slice('parameters/'.length), value as number | boolean);
-    return;
-  }
   const script = godot_node_object(godot_node_entity(self)) as Record<string, unknown>;
   if (name in script && typeof script[name] !== 'function') {
     script[name] = value;
@@ -72,7 +67,6 @@ export function set(self: object, property: string, value: unknown): void {
  */
 export function get(self: object, property: string): unknown {
   const name = String(property);
-  if (name.startsWith('parameters/') && godot_animation_tree_is(self)) return godot_animation_tree_get(self, name.slice('parameters/'.length)) ?? null;
   const script = godot_node_object(godot_node_entity(self)) as Record<string, unknown>;
   if (name in script && typeof script[name] !== 'function') return script[name];
   throw new Error(`godot-compat: Object.get of the native property ${name} is not bound by name.`);

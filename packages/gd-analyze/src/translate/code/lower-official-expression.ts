@@ -625,9 +625,35 @@ function treeParameter(
   node: GodotBoundNode,
 ): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string } | undefined {
   if (node.kind !== 'SUBSCRIPT' || node.isAttribute) return undefined;
-  const baseNode = context.node(node.base, node);
+  return treeParameterAt(context, node, context.node(node.base, node), context.node(node.index, node));
+}
+
+/**
+ * `tree.set(&"parameters/run/blend_amount", v)` and `tree.get(…)`: `Object::set`/`get` by name on an
+ * AnimationTree, which the tree answers from its parameters as its subscript does (`treeParameter`).
+ * Undefined for another call, or on another receiver.
+ */
+function treeParameterCall(
+  context: LoweringContext,
+  node: GodotBoundCallNode,
+  calleeNode: GodotBoundNode,
+  argumentNodes: readonly GodotBoundNode[],
+): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string; readonly write: boolean } | undefined {
+  if (node.compilerTarget.kind !== 'native-method' || (node.functionName !== 'set' && node.functionName !== 'get')) return undefined;
+  if (calleeNode.kind !== 'SUBSCRIPT' || !calleeNode.isAttribute) return undefined;
+  const indexNode = argumentNodes[0];
+  if (indexNode === undefined || argumentNodes.length !== (node.functionName === 'set' ? 2 : 1)) return undefined;
+  const found = treeParameterAt(context, node, context.node(calleeNode.base, calleeNode), indexNode);
+  return found === undefined ? undefined : { ...found, write: node.functionName === 'set' };
+}
+
+function treeParameterAt(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  baseNode: GodotBoundNode,
+  indexNode: GodotBoundNode,
+): { readonly baseNode: GodotBoundNode; readonly indexNode: GodotBoundNode; readonly path: string } | undefined {
   if (baseNode.datatype.kind !== 'NATIVE' || baseNode.datatype.metaType || !godotSubscriptsParameters(baseNode.datatype.nativeType)) return undefined;
-  const indexNode = context.node(node.index, node);
   const value = indexNode.kind === 'LITERAL' ? indexNode.value : undefined;
   const path = value?.kind === 'string' || value?.kind === 'string-name' ? value.value : undefined;
   if (path === undefined) return context.refuse(node, 'an AnimationTree subscript whose path is not a literal');
@@ -3256,6 +3282,23 @@ export function lowerOfficialExpression(
             after: [],
             requirements: [...requirements, ...use.requirements, ...place.requirements, ...values.requirements],
           };
+        }
+        // An AnimationTree's parameter by name, as its subscript is (`treeParameterCall`).
+        const treeCall = treeParameterCall(context, node, calleeNode, argumentNodes);
+        if (treeCall !== undefined) {
+          const base = lowerExpression(context, treeCall.baseNode);
+          const callee = treeCall.write ? 'godot_animation_tree_set_parameter' : 'godot_animation_tree_parameter';
+          return compose(
+            context,
+            [nativeEntity(base), ...lowered.slice(1)],
+            ([object, ...values]) => ({
+              kind: 'call-expression',
+              callee: { kind: 'identifier-expression', name: callee },
+              arguments: [object as TargetTsExpression, { kind: 'literal-expression', value: treeCall.path }, ...(values as TargetTsExpression[])],
+              span: span(context.script, node),
+            }),
+            [...requirements, treeProtocol(callee)],
+          );
         }
         // `Script.new(...)`: the script's instance over a new object of its native root class.
         if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute && node.functionName === 'new') {

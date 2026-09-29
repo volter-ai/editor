@@ -863,16 +863,6 @@ export function get_animation_player(self: object): string {
 }
 
 /**
- * Whether an object is an AnimationTree, whose `parameters/…` properties `Object.set` reaches.
- *
- * @godot AnimationTree (protocol)
- * @source scene/animation/animation_tree.cpp:1057
- */
-export function godot_animation_tree_is(self: object): boolean {
-  return TREES.has(godot_node_entity(self));
-}
-
-/**
  * `AnimationTree::_set` (`animation_tree.cpp:1057`): a parameter by its full name; a read-only one
  * (`current_*`) inside the tree, or a name the tree has not, is not set (false).
  *
