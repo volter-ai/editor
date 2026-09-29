@@ -2608,8 +2608,8 @@ const RIGID_BODY_SETTERS: readonly string[] = [
 export const IDIOMATIC_NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Node: [],
   // A Node3D's `visible` is three's own (`node_3d.cpp:1120`); a body's has no Rapier prop, and a
-  // collision shape mounts no object to hide.
-  Node3D: ['set_visible'],
+  // collision shape mounts no object to hide. Its `top_level` is its `userData`'s (`nodeData`).
+  Node3D: ['set_visible', 'set_as_top_level'],
   StaticBody3D: [...COLLISION_OBJECT_SETTERS, 'set_physics_material_override'],
   RigidBody3D: RIGID_BODY_SETTERS,
   // A RigidBody3D its driver moves on its wheels (`vehicle-body-3d.tsx`): the forces are its script's.

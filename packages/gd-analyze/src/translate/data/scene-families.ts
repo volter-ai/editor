@@ -187,6 +187,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_emitting',
     'set_transform_align',
     'set_transform_align_channel_filter',
+    'set_trail_enabled',
+    'set_trail_lifetime',
     'set_amount',
     'set_lifetime',
     'set_one_shot',
@@ -390,6 +392,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   PlaneMesh: PRIMITIVE_PLANE,
   QuadMesh: PRIMITIVE_PLANE,
   SphereMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_is_hemisphere', 'set_material'],
+  // A trail mesh a particle system with trails skins along its particles' paths (`cpu-particles-3d.ts`).
+  RibbonTrailMesh: ['set_shape', 'set_size', 'set_sections', 'set_section_length', 'set_section_segments', 'set_curve', 'set_material'],
   BoxMesh: ['set_size', 'set_subdivide_width', 'set_subdivide_height', 'set_subdivide_depth', 'set_material'],
   CapsuleMesh: ['set_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_material'],
   CylinderMesh: ['set_top_radius', 'set_bottom_radius', 'set_height', 'set_radial_segments', 'set_rings', 'set_cap_top', 'set_cap_bottom', 'set_material'],

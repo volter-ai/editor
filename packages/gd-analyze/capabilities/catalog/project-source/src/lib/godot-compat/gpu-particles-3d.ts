@@ -74,6 +74,9 @@ interface GPUParticles3DState {
   transform_align: number;
   /** The custom value a view-facing particle turns by (`gpu_particles_3d.h`, 4.7). */
   transform_align_channel_filter: number;
+  /** Trails (`trail_enabled`) and their length in seconds (`trail_lifetime`). */
+  trail_enabled: boolean;
+  trail_lifetime: number;
   draw_passes: (PrimitiveMesh | null)[];
   interpolate: boolean;
   draw_order: number;
@@ -88,11 +91,12 @@ function stateOf(self: object, member: string): GPUParticles3DState {
 }
 
 /** The process material as the values the emitter reads: its curves and ramps are its textures'. */
-function processOf(material: ParticleProcessMaterial | null, transformAlign = 0, channelFilter = 0): ParticleProcess | null {
+function processOf(material: ParticleProcessMaterial | null, state: GPUParticles3DState): ParticleProcess | null {
   if (material === null) return null;
   return {
-    transform_align: transformAlign,
-    transform_align_channel_filter: channelFilter,
+    transform_align: state.transform_align,
+    transform_align_channel_filter: state.transform_align_channel_filter,
+    ...(state.trail_enabled ? { trail_lifetime: state.trail_lifetime } : {}),
     direction: material.direction,
     spread: material.spread,
     flatness: material.flatness,
@@ -123,9 +127,9 @@ function processOf(material: ParticleProcessMaterial | null, transformAlign = 0,
  */
 export function godot_gpu_particles_3d_adopt(entity: Object3D): void {
   if (STATE.has(entity)) return;
-  const state: GPUParticles3DState = { process_material: null, transform_align: 0, transform_align_channel_filter: 0, draw_passes: [null], interpolate: true, draw_order: 0 };
+  const state: GPUParticles3DState = { process_material: null, transform_align: 0, transform_align_channel_filter: 0, trail_enabled: false, trail_lifetime: 0.3, draw_passes: [null], interpolate: true, draw_order: 0 };
   STATE.set(entity, state);
-  godot_particles_3d_adopt(entity, () => processOf(state.process_material, state.transform_align, state.transform_align_channel_filter));
+  godot_particles_3d_adopt(entity, () => processOf(state.process_material, state));
   particles_set_fixed_fps(entity, 30);
 }
 
@@ -529,6 +533,8 @@ const GPU_PARTICLES_3D_ELEMENT: GodotElementClass<Group> = {
     ['processMaterial', (self, value: ParticleProcessMaterial | null) => set_process_material(self, value)],
     ['transformAlign', (self, value: number) => set_transform_align(self, value)],
     ['transformAlignChannelFilter', (self, value: number) => set_transform_align_channel_filter(self, value)],
+    ['trailEnabled', (self, value: boolean) => set_trail_enabled(self, value)],
+    ['trailLifetime', (self, value: number) => set_trail_lifetime(self, value)],
     ['drawPasses', (self, value: number) => set_draw_passes(self, value)],
     // The first pass's mesh as three's geometry and its surface material, as a scene states a drawn mesh.
     ['geometry', (self, value: BufferGeometry) => godot_cpu_particles_3d_draw_with(self, value, undefined)],
@@ -565,6 +571,40 @@ export function set_transform_align(self: Object3D, align: number): void {
  */
 export function get_transform_align(self: Object3D): number {
   return stateOf(self, 'get_transform_align').transform_align;
+}
+
+/**
+ * Whether each particle is drawn as its trail mesh along its recent path (`cpu-particles-3d.ts`).
+ *
+ * @godot GPUParticles3D.set_trail_enabled
+ * @source scene/3d/gpu_particles_3d.cpp:246
+ */
+export function set_trail_enabled(self: Object3D, enabled: boolean): void {
+  stateOf(self, 'set_trail_enabled').trail_enabled = enabled;
+}
+
+/**
+ * @godot GPUParticles3D.is_trail_enabled
+ * @source scene/3d/gpu_particles_3d.cpp:258
+ */
+export function is_trail_enabled(self: Object3D): boolean {
+  return stateOf(self, 'is_trail_enabled').trail_enabled;
+}
+
+/**
+ * @godot GPUParticles3D.set_trail_lifetime
+ * @source scene/3d/gpu_particles_3d.cpp:252
+ */
+export function set_trail_lifetime(self: Object3D, seconds: number): void {
+  stateOf(self, 'set_trail_lifetime').trail_lifetime = seconds;
+}
+
+/**
+ * @godot GPUParticles3D.get_trail_lifetime
+ * @source scene/3d/gpu_particles_3d.cpp:262
+ */
+export function get_trail_lifetime(self: Object3D): number {
+  return stateOf(self, 'get_trail_lifetime').trail_lifetime;
 }
 
 /**

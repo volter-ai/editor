@@ -30,14 +30,14 @@
  */
 
 import type { ReactElement } from 'react';
-import { type BufferGeometry, type Camera, Group, InstancedBufferAttribute, InstancedMesh, type Material, Matrix4, type Object3D, Quaternion, Vector3 as ThreeVector3 } from 'three';
+import { BufferAttribute, type BufferGeometry, type Camera, DynamicDrawUsage, Group, InstancedBufferAttribute, InstancedMesh, type Material, Matrix4, type Object3D, Quaternion, Vector3 as ThreeVector3 } from 'three';
 import { godot_base_material_3d_three } from './base-material-3d';
 import { type Color, construct as color } from './color';
 import { type Curve, sample as curveSample } from './curve';
 import { get_cast_shadows_setting, godot_geometry_instance_3d_draws_override, godot_geometry_instance_3d_material_override, set_cast_shadows_setting } from './geometry-instance-3d';
 import { type Gradient, sample as gradientSample } from './gradient';
 import { godot_node_foreign, godot_node_set_internal_process } from './node';
-import { godot_primitive_mesh_geometry, get_material, type PrimitiveMesh } from './primitive-mesh';
+import { godot_primitive_mesh_geometry, godot_primitive_mesh_skin, get_material, type PrimitiveMesh, type PrimitiveMeshSkin } from './primitive-mesh';
 import { type GodotElementClass, type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
 import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import { construct as vector3, type Vector3 } from './vector3';
@@ -99,6 +99,11 @@ export interface ParticleProcess {
    * fraction, 3 and 4 its custom z and w.
    */
   transform_align_channel_filter?: number;
+  /**
+   * A GPUParticles3D's trail length in seconds, while its trails are on (`trail_enabled`) and its
+   * mesh is a trail mesh: each particle is drawn as that mesh, its bones at the particle's past.
+   */
+  trail_lifetime?: number;
 }
 
 interface Particle {
@@ -113,6 +118,20 @@ interface Particle {
   damping: number;
   scale: number;
   color: [number, number, number, number];
+  /** When it was emitted, and when it died, on the emitter's clock (`Emitter.time`). */
+  born: number;
+  died: number | undefined;
+  /** Its states since it was emitted, oldest first, kept as long as a trail reaches back. */
+  history: TrailSample[];
+}
+
+/** A particle's state at one moment, which a trail's bone is placed by. */
+interface TrailSample {
+  time: number;
+  age: number;
+  position: ThreeVector3;
+  velocity: ThreeVector3;
+  angle: number;
 }
 
 /** The node's emitter: its parameters, its particles and the mesh drawing them. */
@@ -146,6 +165,12 @@ interface Emitter {
   material: Material | null;
   material_override: Material | null;
   drawn: InstancedMesh | null;
+  /** Seconds the emitter has run. */
+  time: number;
+  /** A particle has been alive since `finished` was last emitted. */
+  live: boolean;
+  /** Each particle's trail, a trail mesh of its own, made as trails are first drawn. */
+  trails: InstancedMesh[] | null;
   /** The camera three last drew the particles with. */
   camera?: Camera;
 }
@@ -184,6 +209,9 @@ function particle(): Particle {
     damping: 0,
     scale: 1,
     color: [1, 1, 1, 1],
+    born: 0,
+    died: undefined,
+    history: [],
   };
 }
 
@@ -246,6 +274,11 @@ const worldScale = new ThreeVector3();
 function spawn(node: Object3D, e: Emitter, p: ParticleProcess, particle: Particle): void {
   particle.alive = true;
   particle.age = 0;
+  e.live = true;
+  // A restarted particle's trail restarts with it (`particles.glsl`: its trail takes its start).
+  particle.born = e.time;
+  particle.died = undefined;
+  particle.history = [];
   particle.life = e.lifetime * (1 - p.lifetime_randomness * Math.random());
   const range = (param: number): number => random(p.params_min[param] ?? 0, p.params_max[param] ?? 0);
   emitPosition(p, particle.position);
@@ -276,11 +309,13 @@ function advance(node: Object3D, e: Emitter, p: ParticleProcess, delta: number):
   // Gravity pulls in the world; particles that move with the node feel it in the node's space.
   if (e.local_coords) gravity.applyQuaternion(worldQuaternion.clone().invert());
   let alive = false;
+  e.time += delta;
   for (const particle of e.particles) {
     if (!particle.alive) continue;
     particle.age += delta;
     if (particle.age >= particle.life) {
       particle.alive = false;
+      particle.died = e.time;
       continue;
     }
     alive = true;
@@ -319,10 +354,30 @@ function advance(node: Object3D, e: Emitter, p: ParticleProcess, delta: number):
     from = 0;
     to -= e.lifetime;
   }
-  if (!alive && !e.emitting && e.drawn?.visible === true) {
-    e.drawn.visible = false;
+  if (p.trail_lifetime !== undefined) record(e, p.trail_lifetime);
+  if (!alive && !e.emitting && e.live) {
+    e.live = false;
+    if (e.drawn !== null) e.drawn.visible = false;
     e.finished.emit();
   }
+}
+
+/** Each live particle's state now, and its states older than its trail reaches forgotten. */
+function record(e: Emitter, lifetime: number): void {
+  for (const particle of e.particles) {
+    if (!particle.alive) continue;
+    const history = particle.history;
+    history.push({ time: e.time, age: particle.age, position: particle.position.clone(), velocity: particle.velocity.clone(), angle: particle.angle });
+    // The oldest state a trail reads is its lifetime ago; the one before it is kept to interpolate from.
+    let drop = 0;
+    while (drop + 1 < history.length && (history[drop + 1] as TrailSample).time <= e.time - lifetime) drop += 1;
+    if (drop > 0) history.splice(0, drop);
+  }
+}
+
+/** Whether a dead particle's trail still reaches back into its life. */
+function trailing(e: Emitter, p: ParticleProcess, particle: Particle): boolean {
+  return p.trail_lifetime !== undefined && particle.died !== undefined && e.time - particle.died < p.trail_lifetime;
 }
 
 const matrix = new Matrix4();
@@ -340,6 +395,36 @@ const scratchScale = new ThreeVector3();
 const basis = new Matrix4();
 const size = new ThreeVector3();
 const HIDDEN = new Matrix4().makeScale(0, 0, 0);
+
+/**
+ * A particle's rotation as it is drawn (`particles_copy.glsl`): aligned by the node's transform
+ * alignment to the view (`viewZ`, `viewUp`, which `draw` sets) or its velocity, and turned by its
+ * angle, or by the filtered custom value when it faces the view.
+ */
+function orient(p: ParticleProcess, viewing: boolean, velocity: ThreeVector3, angle: number, t: number, out: Quaternion): Quaternion {
+  const align = p.transform_align ?? 0;
+  if (viewing && align === 1) {
+    // Facing as the view does (`TRANSFORM_ALIGN_Z_BILLBOARD`).
+    axisX.crossVectors(viewUp, viewZ).normalize();
+    out.setFromRotationMatrix(basis.makeBasis(axisX, viewUp, viewZ));
+  } else if (viewing && align === 3) {
+    // Its Y along its velocity on the screen, facing the view (`TRANSFORM_ALIGN_Z_BILLBOARD_Y_TO_VELOCITY`).
+    heading.copy(velocity).addScaledVector(viewZ, -viewZ.dot(velocity));
+    if (heading.lengthSq() === 0) heading.copy(viewUp);
+    heading.normalize();
+    axisX.crossVectors(heading, viewZ).normalize();
+    out.setFromRotationMatrix(basis.makeBasis(axisX, heading, viewZ));
+  } else if ((p.particle_flags[FLAG_ALIGN_Y_TO_VELOCITY] === true || align === 2) && velocity.lengthSq() > 0) {
+    out.setFromUnitVectors(UP, heading.copy(velocity).normalize());
+  } else out.identity();
+  if (viewing && align === 1) {
+    // Its up turned about the view by the filtered custom value; GLSL's column-major `mat3` turns
+    // it the other way.
+    const channel = [0, angle, t, 0, 1][p.transform_align_channel_filter ?? 0] ?? 0;
+    out.multiply(spin.setFromAxisAngle(Z, -channel));
+  } else out.multiply(spin.setFromAxisAngle(Z, angle));
+  return out;
+}
 
 /** The instanced mesh drawing the particles, made as the emitter first draws and again when its mesh changes. */
 function drawnOf(node: Object3D, e: Emitter): InstancedMesh | null {
@@ -366,14 +451,7 @@ function drawnOf(node: Object3D, e: Emitter): InstancedMesh | null {
 
 /** Writes each particle's transform, colour and custom values into the instanced mesh. */
 function draw(node: Object3D, e: Emitter, p: ParticleProcess): void {
-  const drawn = drawnOf(node, e);
-  if (drawn === null) return;
-  drawn.visible = e.particles.some((particle) => particle.alive);
-  drawn.castShadow = node.castShadow;
   if (!e.local_coords) inverseWorld.copy(node.matrixWorld).invert();
-  const colors = drawn.geometry.getAttribute('godotInstanceColor') as InstancedBufferAttribute;
-  const customs = drawn.geometry.getAttribute('godotInstanceCustom') as InstancedBufferAttribute;
-  const scaleCurve = p.curves[PARAM_SCALE] ?? null;
   // The view's axes in the particles' space (`ParticlesStorage::_particles_update_instance_buffer`):
   // toward the viewer and up.
   const align = p.transform_align ?? 0;
@@ -386,6 +464,19 @@ function draw(node: Object3D, e: Emitter, p: ParticleProcess): void {
     viewZ.set(0, 0, 1).applyQuaternion(viewRotation);
     viewUp.set(0, 1, 0).applyQuaternion(viewRotation);
   }
+  const skin = p.trail_lifetime === undefined || e.mesh === null ? undefined : godot_primitive_mesh_skin(e.mesh);
+  if (skin !== undefined) {
+    if (e.drawn !== null) e.drawn.visible = false;
+    drawTrails(node, e, p, skin, viewing);
+    return;
+  }
+  const drawn = drawnOf(node, e);
+  if (drawn === null) return;
+  drawn.visible = e.particles.some((particle) => particle.alive);
+  drawn.castShadow = node.castShadow;
+  const colors = drawn.geometry.getAttribute('godotInstanceColor') as InstancedBufferAttribute;
+  const customs = drawn.geometry.getAttribute('godotInstanceCustom') as InstancedBufferAttribute;
+  const scaleCurve = p.curves[PARAM_SCALE] ?? null;
   e.particles.forEach((particle, i) => {
     if (!particle.alive) {
       drawn.setMatrixAt(i, HIDDEN);
@@ -394,38 +485,172 @@ function draw(node: Object3D, e: Emitter, p: ParticleProcess): void {
     }
     const t = particle.age / particle.life;
     const scale = particle.scale * (scaleCurve === null ? 1 : curveSample(scaleCurve, t));
-    if (viewing && align === 1) {
-      // Facing as the view does (`TRANSFORM_ALIGN_Z_BILLBOARD`).
-      axisX.crossVectors(viewUp, viewZ).normalize();
-      rotation.setFromRotationMatrix(basis.makeBasis(axisX, viewUp, viewZ));
-    } else if (viewing && align === 3) {
-      // Its Y along its velocity on the screen, facing the view (`TRANSFORM_ALIGN_Z_BILLBOARD_Y_TO_VELOCITY`).
-      heading.copy(particle.velocity).addScaledVector(viewZ, -viewZ.dot(particle.velocity));
-      if (heading.lengthSq() === 0) heading.copy(viewUp);
-      heading.normalize();
-      axisX.crossVectors(heading, viewZ).normalize();
-      rotation.setFromRotationMatrix(basis.makeBasis(axisX, heading, viewZ));
-    } else if ((p.particle_flags[FLAG_ALIGN_Y_TO_VELOCITY] === true || align === 2) && particle.velocity.lengthSq() > 0) {
-      rotation.setFromUnitVectors(UP, heading.copy(particle.velocity).normalize());
-    } else rotation.identity();
-    if (viewing && align === 1) {
-      // Its up turned about the view by the filtered custom value; GLSL's column-major `mat3` turns
-      // it the other way.
-      const channel = [0, particle.angle, t, 0, 1][p.transform_align_channel_filter ?? 0] ?? 0;
-      rotation.multiply(spin.setFromAxisAngle(Z, -channel));
-    } else rotation.multiply(spin.setFromAxisAngle(Z, particle.angle));
+    orient(p, viewing, particle.velocity, particle.angle, t, rotation);
     matrix.compose(particle.position, rotation, size.setScalar(scale));
     if (!e.local_coords) matrix.premultiply(inverseWorld);
     drawn.setMatrixAt(i, matrix);
-    const ramp = p.color_ramp === null ? null : gradientSample(p.color_ramp, t);
-    const alpha = p.alpha_curve === null ? 1 : curveSample(p.alpha_curve, t);
-    const [r, g, b, a] = particle.color;
-    colors.setXYZW(i, r * (ramp?.r ?? 1), g * (ramp?.g ?? 1), b * (ramp?.b ?? 1), a * (ramp?.a ?? 1) * alpha);
+    writeColor(p, particle, t, colors, i);
     customs.setXYZW(i, particle.angle, t, 0, 1);
   });
   drawn.instanceMatrix.needsUpdate = true;
   colors.needsUpdate = true;
   customs.needsUpdate = true;
+}
+
+/** A particle's colour at life fraction `t`: its own, by the colour ramp and alpha curve. */
+function writeColor(p: ParticleProcess, particle: Particle, t: number, colors: InstancedBufferAttribute, i: number): void {
+  const ramp = p.color_ramp === null ? null : gradientSample(p.color_ramp, t);
+  const alpha = p.alpha_curve === null ? 1 : curveSample(p.alpha_curve, t);
+  const [r, g, b, a] = particle.color;
+  colors.setXYZW(i, r * (ramp?.r ?? 1), g * (ramp?.g ?? 1), b * (ramp?.b ?? 1), a * (ramp?.a ?? 1) * alpha);
+}
+
+/** A trail mesh's rest data: its geometry's positions, normals and triangles as the mesh built them. */
+interface TrailRest {
+  readonly position: Float32Array;
+  readonly normal: Float32Array;
+  readonly index: readonly number[];
+}
+
+const TRAIL_REST = new WeakMap<InstancedMesh, TrailRest>();
+
+/**
+ * One particle's trail: the trail mesh's geometry, its positions, normals and drawn triangles
+ * rewritten each frame, as one instance so the material reads the particle's colour.
+ */
+function trailOf(node: Object3D, e: Emitter, i: number): InstancedMesh | null {
+  const trails = e.trails ?? (e.trails = []);
+  const held = trails[i];
+  if (held !== undefined) return held;
+  if (e.mesh === null) return null;
+  const own = godot_primitive_mesh_geometry(e.mesh);
+  const source = get_material(e.mesh);
+  const material = e.material_override ?? e.material ?? (source === null ? undefined : godot_base_material_3d_three(source as never));
+  const position = own.getAttribute('position') as BufferAttribute;
+  const normal = own.getAttribute('normal') as BufferAttribute;
+  const rest: TrailRest = { position: Float32Array.from(position.array), normal: Float32Array.from(normal.array), index: Array.from(own.getIndex()?.array ?? []) };
+  position.setUsage(DynamicDrawUsage);
+  normal.setUsage(DynamicDrawUsage);
+  own.setIndex(new BufferAttribute(new Uint32Array(rest.index.length), 1).setUsage(DynamicDrawUsage));
+  own.setAttribute('godotInstanceColor', new InstancedBufferAttribute(new Float32Array(4), 4));
+  own.setAttribute('godotInstanceCustom', new InstancedBufferAttribute(new Float32Array(4), 4));
+  const drawn = new InstancedMesh(own, material, 1);
+  drawn.frustumCulled = false;
+  drawn.onBeforeRender = (_renderer, _scene, camera) => {
+    e.camera = camera;
+  };
+  TRAIL_REST.set(drawn, rest);
+  godot_node_foreign(drawn);
+  node.add(drawn);
+  trails[i] = drawn;
+  return drawn;
+}
+
+const sampled: TrailSample = { time: 0, age: 0, position: new ThreeVector3(), velocity: new ThreeVector3(), angle: 0 };
+
+/**
+ * The particle's state at `time`, between the two it recorded around it: its first before it began
+ * (a trail's delayed part waits at its start, `particles.glsl`), none once it had died.
+ */
+function sampleAt(particle: Particle, time: number): TrailSample | undefined {
+  const history = particle.history;
+  const first = history[0];
+  if (first === undefined || (particle.died !== undefined && time > particle.died)) return undefined;
+  if (time <= first.time) return first;
+  let at = history.length - 1;
+  while (at > 0 && (history[at] as TrailSample).time > time) at -= 1;
+  const from = history[at] as TrailSample;
+  const to = history[at + 1];
+  if (to === undefined) return from;
+  const f = (time - from.time) / (to.time - from.time);
+  sampled.time = time;
+  sampled.age = from.age + (to.age - from.age) * f;
+  sampled.position.lerpVectors(from.position, to.position, f);
+  sampled.velocity.lerpVectors(from.velocity, to.velocity, f);
+  sampled.angle = from.angle + (to.angle - from.angle) * f;
+  return sampled;
+}
+
+const BONES: Matrix4[] = [];
+const bind = new Matrix4();
+const vertex = new ThreeVector3();
+const blended = new ThreeVector3();
+const turned = new ThreeVector3();
+
+/**
+ * Each particle drawn as the trail mesh (`particles_copy.glsl` with `trail_size > 1`): bone `k` at
+ * the particle's transform `k / sections` of the trail's lifetime ago (`trail_params`,
+ * `particles_storage.cpp:1181`), aligned as a particle is, times its bind pose; each vertex the
+ * blend of its two bones'. A bone whose moment the particle had not lived to is gone, and so are
+ * the triangles touching it.
+ */
+function drawTrails(node: Object3D, e: Emitter, p: ParticleProcess, skin: PrimitiveMeshSkin, viewing: boolean): void {
+  const lifetime = p.trail_lifetime as number;
+  const sections = skin.bindY.length - 1;
+  const scaleCurve = p.curves[PARAM_SCALE] ?? null;
+  while (BONES.length <= sections) BONES.push(new Matrix4());
+  const live: boolean[] = [];
+  e.particles.forEach((particle, i) => {
+    const drawn = trailOf(node, e, i);
+    if (drawn === null) return;
+    drawn.visible = (particle.alive || trailing(e, p, particle)) && particle.history.length > 0;
+    if (!drawn.visible) return;
+    drawn.castShadow = node.castShadow;
+    for (let k = 0; k <= sections; k += 1) {
+      const sample = sampleAt(particle, e.time - (k * lifetime) / sections);
+      live[k] = sample !== undefined;
+      if (sample === undefined) continue;
+      const t = sample.age / particle.life;
+      const scale = particle.scale * (scaleCurve === null ? 1 : curveSample(scaleCurve, t));
+      orient(p, viewing, sample.velocity, sample.angle, t, rotation);
+      const bone = (BONES[k] as Matrix4).compose(sample.position, rotation, size.setScalar(scale)).multiply(bind.makeTranslation(0, skin.bindY[k] as number, 0));
+      if (!e.local_coords) bone.premultiply(inverseWorld);
+    }
+    const rest = TRAIL_REST.get(drawn) as TrailRest;
+    const geometry = drawn.geometry;
+    const position = geometry.getAttribute('position') as BufferAttribute;
+    const normal = geometry.getAttribute('normal') as BufferAttribute;
+    const count = rest.position.length / 3;
+    const kept: boolean[] = [];
+    for (let v = 0; v < count; v += 1) {
+      const b0 = skin.bones[v * 2] as number;
+      const b1 = skin.bones[v * 2 + 1] as number;
+      kept[v] = live[b0] === true && live[b1] === true;
+      if (!kept[v]) continue;
+      const w0 = skin.weights[v * 2] as number;
+      const w1 = skin.weights[v * 2 + 1] as number;
+      vertex.fromArray(rest.position, v * 3);
+      blended.copy(vertex).applyMatrix4(BONES[b0] as Matrix4).multiplyScalar(w0);
+      blended.addScaledVector(turned.copy(vertex).applyMatrix4(BONES[b1] as Matrix4), w1);
+      position.setXYZ(v, blended.x, blended.y, blended.z);
+      vertex.fromArray(rest.normal, v * 3);
+      blended.copy(vertex).transformDirection(BONES[b0] as Matrix4).multiplyScalar(w0);
+      blended.addScaledVector(turned.copy(vertex).transformDirection(BONES[b1] as Matrix4), w1).normalize();
+      normal.setXYZ(v, blended.x, blended.y, blended.z);
+    }
+    const index = geometry.getIndex() as BufferAttribute;
+    let drawnCount = 0;
+    for (let at = 0; at + 2 < rest.index.length; at += 3) {
+      const [a, b, c] = [rest.index[at] as number, rest.index[at + 1] as number, rest.index[at + 2] as number];
+      if (!kept[a] || !kept[b] || !kept[c]) continue;
+      index.setX(drawnCount, a);
+      index.setX(drawnCount + 1, b);
+      index.setX(drawnCount + 2, c);
+      drawnCount += 3;
+    }
+    geometry.setDrawRange(0, drawnCount);
+    position.needsUpdate = true;
+    normal.needsUpdate = true;
+    index.needsUpdate = true;
+    // The particle's own colour and custom values, as it has them now or last had them.
+    const t = Math.min(particle.age / particle.life, 1);
+    const colors = geometry.getAttribute('godotInstanceColor') as InstancedBufferAttribute;
+    const customs = geometry.getAttribute('godotInstanceCustom') as InstancedBufferAttribute;
+    writeColor(p, particle, t, colors, 0);
+    customs.setXYZW(0, particle.angle, t, 0, 1);
+    colors.needsUpdate = true;
+    customs.needsUpdate = true;
+  });
 }
 
 /** One frame of the emitter, from the node's own component. */
@@ -439,10 +664,10 @@ function frame(node: Object3D, e: Emitter, delta: number): void {
     // The preprocess time runs at once, in thirtieths of a second, before the first frame is drawn.
     for (let done = 0; e.emitting && done < e.pre_process_time; done += 1 / 30) advance(node, e, p, Math.min(1 / 30, e.pre_process_time - done));
   }
-  if (e.emitting || e.particles.some((particle) => particle.alive)) {
+  if (e.emitting || e.particles.some((particle) => particle.alive || trailing(e, p, particle))) {
     advance(node, e, p, Math.min(delta, 0.1) * e.speed_scale);
     draw(node, e, p);
-  }
+  } else for (const trail of e.trails ?? []) trail.visible = false;
 }
 
 /** Starts a new emission cycle, keeping the particles already alive. */
@@ -488,6 +713,9 @@ export function godot_particles_3d_adopt(entity: Object3D, process: () => Partic
     material: null,
     material_override: null,
     drawn: null,
+    time: 0,
+    live: false,
+    trails: null,
   };
   placeSlots(e);
   EMITTERS.set(entity, e);
@@ -503,6 +731,8 @@ export function godot_particles_3d_adopt(entity: Object3D, process: () => Partic
 function redraw(node: object, e: Emitter): void {
   if (e.drawn !== null) (node as Object3D).remove(e.drawn);
   e.drawn = null;
+  for (const trail of e.trails ?? []) (node as Object3D).remove(trail);
+  e.trails = null;
 }
 
 /** A CPUParticles3D's own process values, Godot's defaults (`cpu_particles_3d.cpp:1812`). */

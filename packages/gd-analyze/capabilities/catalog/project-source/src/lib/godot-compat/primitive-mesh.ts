@@ -235,6 +235,40 @@ export function get_flip_faces(self: PrimitiveMesh): boolean {
   return self.flip_faces;
 }
 
+/**
+ * A trail mesh's skin (`Mesh::get_builtin_bind_pose`): each vertex's two bones and weights, and
+ * each bone's bind pose, a translation along Y (`bindY`), which a particle system with trails
+ * places at its particles' past transforms.
+ */
+export interface PrimitiveMeshSkin {
+  readonly bones: readonly number[];
+  readonly weights: readonly number[];
+  readonly bindY: readonly number[];
+}
+
+const SKINS = new WeakMap<object, (self: never) => PrimitiveMeshSkin>();
+
+/**
+ * Registers a trail mesh's skin with the builder its class transcribes.
+ *
+ * @godot Mesh (protocol)
+ * @source scene/resources/mesh.cpp:958
+ */
+export function godot_primitive_mesh_describe_skin<Mesh extends PrimitiveMesh>(mesh: Mesh, skin: (self: Mesh) => PrimitiveMeshSkin): Mesh {
+  SKINS.set(mesh, skin as (self: never) => PrimitiveMeshSkin);
+  return mesh;
+}
+
+/**
+ * The mesh's skin, when it has builtin bind poses (a trail mesh); undefined for any other.
+ *
+ * @godot Mesh.get_builtin_bind_pose_count
+ * @source scene/resources/mesh.cpp:958
+ */
+export function godot_primitive_mesh_skin(self: PrimitiveMesh): PrimitiveMeshSkin | undefined {
+  return SKINS.get(self)?.(self as never);
+}
+
 /** The resources whose geometry has been built for drawing. */
 const DRAWN = new WeakSet<PrimitiveMesh>();
 
