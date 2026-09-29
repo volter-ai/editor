@@ -187,6 +187,7 @@
     "src/lib/godot-compat/surface-tool.ts",
     "src/lib/godot-compat/subtween-tweener.ts",
     "src/lib/godot-compat/texture-2d.ts",
+    "src/lib/godot-compat/theme.ts",
     "src/lib/godot-compat/texture-rect.ts",
     "src/lib/godot-compat/timer.ts",
     "src/lib/godot-compat/touch-screen-button.ts",

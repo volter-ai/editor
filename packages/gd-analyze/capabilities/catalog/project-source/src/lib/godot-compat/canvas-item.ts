@@ -129,6 +129,16 @@ export function godot_canvas_item_is(entity: object, className: string): boolean
 }
 
 /**
+ * A canvas item's Godot class and its native ancestors, nearest first.
+ *
+ * @godot CanvasItem (protocol)
+ * @source core/object/object.h:677
+ */
+export function godot_canvas_item_classes(entity: object): readonly string[] {
+  return ITEMS.get(entity as Object3D)?.classes ?? [];
+}
+
+/**
  * The parent node's entity when it is a canvas item and the item is not top-level
  * (`CanvasItem::get_parent_item`, `canvas_item.cpp:646`).
  *

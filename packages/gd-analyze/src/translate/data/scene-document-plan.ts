@@ -778,7 +778,7 @@ function planResourceAt(context: PlanContext, at: string, resPath: string): stri
 
 /** Plans a resource resolved to its key, its data (none for an imported file) and its own scope. */
 /** The resource classes kept by their raw properties (`rawProperties`). */
-const RAW_PROPERTY_CLASSES: ReadonlySet<string> = new Set(['TileSet', 'TileSetAtlasSource', 'TileSetScenesCollectionSource']);
+const RAW_PROPERTY_CLASSES: ReadonlySet<string> = new Set(['Theme', 'TileSet', 'TileSetAtlasSource', 'TileSetScenesCollectionSource']);
 
 function planResolvedResource(
   context: PlanContext,
@@ -2225,6 +2225,7 @@ const IDIOMATIC_RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = 
   BoxShape3D: ['set_size'],
   SphereShape3D: ['set_radius'],
   CapsuleShape3D: ['set_radius', 'set_height'],
+  CylinderShape3D: ['set_radius', 'set_height'],
   ConvexPolygonShape3D: ['set_points'],
   ConcavePolygonShape3D: ['set_faces', 'set_backface_collision_enabled'],
   PhysicsMaterial: ['set_friction', 'set_bounce', 'set_rough', 'set_absorbent'],

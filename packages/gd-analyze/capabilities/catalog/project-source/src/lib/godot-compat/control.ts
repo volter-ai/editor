@@ -20,9 +20,9 @@
  *
  * Focus is each viewport's focus owner, kept here by the viewport entity (`Viewport::gui.key_focus`):
  * grabbing and releasing it, the focus modes and their recursive behaviour, and the next, previous
- * and neighbouring focusable Controls. Theme items are the node's overrides, then the default theme's
- * items for its class (`ControlVirtuals`), then ThemeDB's fallbacks; a Theme resource set on a node is
- * kept and read back, and its own items are not looked up. `clip_contents` clips the node's element
+ * and neighbouring focusable Controls. Theme items are the node's overrides, then the Theme resources on
+ * its branch (`theme.ts`), then the default theme's items for its class (`ControlVirtuals`), then
+ * ThemeDB's fallbacks. `clip_contents` clips the node's element
  * (`overflow: hidden`), the element holding its children's.
  *
  * Not bound: right-to-left mirroring of the layout (`is_layout_rtl` reports the direction, the
@@ -35,7 +35,7 @@ import {
   get_global_transform_with_canvas,
   get_transform,
   godot_canvas_item_canvas_transform,
-  godot_canvas_item_is,
+  godot_canvas_item_classes, godot_canvas_item_is,
   godot_canvas_item_layer_number,
   godot_canvas_item_layer_of,
   godot_canvas_item_mount,
@@ -44,6 +44,7 @@ import {
   is_visible,
   is_visible_in_tree,
 } from './canvas-item';
+import { godot_theme_is, godot_theme_item, type GodotThemeDataType } from './theme';
 import { type Color, construct as color } from './color';
 import { godot_font_default, type GodotFont } from './font';
 import { godot_object_signal } from './signal';
@@ -1297,15 +1298,15 @@ export function has_theme_constant_override(self: object, p_name: string): boole
 }
 
 /**
- * The node's override, else the default theme's constant for its class (no project or node
- * themes are bound), else 0 (`Control::get_theme_constant`, `control.cpp:3792`).
+ * The node's override, else the themes of its branch, else the default theme's constant for its
+ * class (no project theme is bound), else 0 (`Control::get_theme_constant`, `control.cpp:3792`).
  *
  * @godot Control.get_theme_constant
  * @source scene/gui/control.cpp:3792
  */
 export function get_theme_constant(self: object, p_name: string): number {
   const state = stateOf(self, 'get_theme_constant');
-  return state.constantOverrides.get(p_name) ?? state.virtuals.themeConstants?.[p_name] ?? 0;
+  return state.constantOverrides.get(p_name) ?? (branchItem(state.entity, state, 'constants', p_name, '')?.value as number | undefined) ?? state.virtuals.themeConstants?.[p_name] ?? 0;
 }
 
 /**
@@ -2581,6 +2582,24 @@ export function get_focus_previous(self: object): string {
 
 // --- Theme items.
 
+/**
+ * The item of the themes on the node's branch (`ThemeOwner::get_theme_item_in_types`,
+ * `theme_owner.cpp:227`): each Control from the node up with a theme, tried for the asked type, or
+ * for the node's variation, class and base classes in turn.
+ */
+function branchItem(entity: Object3D, state: ControlState, dataType: GodotThemeDataType, name: string, themeType: string): { readonly value: unknown } | undefined {
+  const types = themeType !== '' ? [themeType] : [...(state.themeTypeVariation === '' ? [] : [state.themeTypeVariation]), ...godot_canvas_item_classes(entity)];
+  for (let owner: Object3D | null = entity; owner !== null; owner = parentControl(owner)) {
+    const theme = CONTROLS.get(owner)?.theme;
+    if (!godot_theme_is(theme)) continue;
+    for (const type of types) {
+      const found = godot_theme_item(theme, dataType, name, type);
+      if (found !== undefined) return found;
+    }
+  }
+  return undefined;
+}
+
 /** Whether the override applies to the asked type: none named, the node's class, or its variation. */
 function overridesApply(entity: Object3D, state: ControlState, themeType: string): boolean {
   return themeType === '' || themeType === state.themeTypeVariation || godot_control_is(entity, themeType);
@@ -2593,7 +2612,7 @@ function defaultItem<Value>(entity: Object3D, state: ControlState, themeType: st
 }
 
 /**
- * The node's color override, else the default theme's for its class, else `Color()`.
+ * The node's color override, else its branch's themes, else the default theme's for its class, else `Color()`.
  *
  * @godot Control.get_theme_color
  * @source scene/gui/control.cpp:3768
@@ -2602,11 +2621,13 @@ export function get_theme_color(self: object, p_name: string, p_theme_type = '')
   const entity = entityOf(self);
   const state = stateOf(self, 'get_theme_color');
   if (overridesApply(entity, state, p_theme_type) && state.colorOverrides.has(p_name)) return state.colorOverrides.get(p_name) as Color;
+  const themed = branchItem(entity, state, 'colors', p_name, p_theme_type);
+  if (themed !== undefined) return themed.value as Color;
   return defaultItem(entity, state, p_theme_type, state.virtuals.themeColors, p_name) ?? color();
 }
 
 /**
- * The node's font size override, else the default theme's for its class, else the default font
+ * The node's font size override, else its branch's themes, else the default theme's for its class, else the default font
  * size (16, `ThemeDB::fallback_font_size`).
  *
  * @godot Control.get_theme_font_size
@@ -2616,11 +2637,13 @@ export function get_theme_font_size(self: object, p_name: string, p_theme_type =
   const entity = entityOf(self);
   const state = stateOf(self, 'get_theme_font_size');
   if (overridesApply(entity, state, p_theme_type) && state.fontSizeOverrides.has(p_name)) return state.fontSizeOverrides.get(p_name) as number;
+  const themed = branchItem(entity, state, 'font_sizes', p_name, p_theme_type);
+  if (themed !== undefined) return themed.value as number;
   return defaultItem(entity, state, p_theme_type, state.virtuals.themeFontSizes, p_name) ?? DEFAULT_FONT_SIZE;
 }
 
 /**
- * The node's font override, else the default theme's font (every class's font is the default one).
+ * The node's font override, else its branch's themes, else the default theme's font (every class's font is the default one).
  *
  * @godot Control.get_theme_font
  * @source scene/gui/control.cpp:3720
@@ -2629,11 +2652,11 @@ export function get_theme_font(self: object, p_name: string, p_theme_type = ''):
   const entity = entityOf(self);
   const state = stateOf(self, 'get_theme_font');
   if (overridesApply(entity, state, p_theme_type) && state.fontOverrides.has(p_name)) return state.fontOverrides.get(p_name);
-  return godot_font_default();
+  return branchItem(entity, state, 'fonts', p_name, p_theme_type)?.value ?? godot_font_default();
 }
 
 /**
- * The node's icon override, else null (no default-theme icons are bound).
+ * The node's icon override, else its branch's themes, else null (no default-theme icons are bound).
  *
  * @godot Control.get_theme_icon
  * @source scene/gui/control.cpp:3672
@@ -2642,11 +2665,11 @@ export function get_theme_icon(self: object, p_name: string, p_theme_type = ''):
   const entity = entityOf(self);
   const state = stateOf(self, 'get_theme_icon');
   if (overridesApply(entity, state, p_theme_type) && state.iconOverrides.has(p_name)) return state.iconOverrides.get(p_name);
-  return null;
+  return branchItem(entity, state, 'icons', p_name, p_theme_type)?.value ?? null;
 }
 
 /**
- * The node's stylebox override, else null (no default-theme styleboxes are bound).
+ * The node's stylebox override, else its branch's themes, else null (no default-theme styleboxes are bound).
  *
  * @godot Control.get_theme_stylebox
  * @source scene/gui/control.cpp:3696
@@ -2655,7 +2678,7 @@ export function get_theme_stylebox(self: object, p_name: string, p_theme_type = 
   const entity = entityOf(self);
   const state = stateOf(self, 'get_theme_stylebox');
   if (overridesApply(entity, state, p_theme_type) && state.styleboxOverrides.has(p_name)) return state.styleboxOverrides.get(p_name);
-  return null;
+  return branchItem(entity, state, 'styles', p_name, p_theme_type)?.value ?? null;
 }
 
 /**
@@ -2918,8 +2941,8 @@ export function get_theme_default_font_size(self: object): number {
 }
 
 /**
- * Kept and read back; the node's theme changes (`NOTIFICATION_THEME_CHANGED`). The Theme's own
- * items are not looked up (the module header).
+ * The node and its branch look their theme items up in it (`get_theme_*`); the node's theme
+ * changes (`NOTIFICATION_THEME_CHANGED`).
  *
  * @godot Control.set_theme
  * @source scene/gui/control.cpp:3617

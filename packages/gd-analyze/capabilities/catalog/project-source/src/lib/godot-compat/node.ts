@@ -1127,6 +1127,51 @@ export function set_name(self: object, name: string): void {
   if (parent !== null && NODE.has(parent)) validateChildName(parent, entity);
 }
 
+/** Each node's `editor_description`, which only the editor shows. */
+const EDITOR_DESCRIPTIONS = new WeakMap<object, string>();
+
+/**
+ * @godot Node.set_editor_description
+ * @source scene/main/node.cpp:2662
+ */
+export function set_editor_description(self: object, editor_description: string): void {
+  EDITOR_DESCRIPTIONS.set(native(self, 'set_editor_description'), editor_description);
+}
+
+/**
+ * @godot Node.get_editor_description
+ * @source scene/main/node.cpp:2672
+ */
+export function get_editor_description(self: object): string {
+  return EDITOR_DESCRIPTIONS.get(native(self, 'get_editor_description')) ?? '';
+}
+
+/**
+ * The node registers with (or leaves) its owner's unique names, found as `%Name`, when it has an
+ * owner (`_acquire_unique_name_in_owner`, `_release_unique_name_in_owner`).
+ *
+ * @godot Node.set_unique_name_in_owner
+ * @source scene/main/node.cpp:2236
+ */
+export function set_unique_name_in_owner(self: object, enabled: boolean): void {
+  const entity = native(self, 'set_unique_name_in_owner');
+  const owner = stateOf(entity).owner;
+  if (owner === undefined) return;
+  const unique = stateOf(owner).uniqueNodes;
+  if (enabled) unique.set(nameOf(entity), entity);
+  else if (unique.get(nameOf(entity)) === entity) unique.delete(nameOf(entity));
+}
+
+/**
+ * @godot Node.is_unique_name_in_owner
+ * @source scene/main/node.cpp:2255
+ */
+export function is_unique_name_in_owner(self: object): boolean {
+  const entity = native(self, 'is_unique_name_in_owner');
+  const owner = stateOf(entity).owner;
+  return owner !== undefined && stateOf(owner).uniqueNodes.get(nameOf(entity)) === entity;
+}
+
 /**
  * @godot Node.is_in_group
  * @source scene/main/node.cpp:2453

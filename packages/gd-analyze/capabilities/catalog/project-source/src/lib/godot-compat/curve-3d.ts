@@ -33,6 +33,7 @@ export function godot_curve_3d_new(properties: Readonly<Record<string, unknown>>
   const self: Curve3D = { points: [], bakeInterval: 0.2 };
   if (properties['bakeInterval'] !== undefined) self.bakeInterval = properties['bakeInterval'] as number;
   if (properties['data'] !== undefined) _set_data(self, properties['data']);
+  if (properties['pointCount'] !== undefined) set_point_count(self, properties['pointCount'] as number);
   return self;
 }
 
@@ -144,6 +145,19 @@ export function sample_baked(self: Curve3D, offset = 0, cubic = false): Vector3 
  */
 export function get_point_count(self: Curve3D): number {
   return self.points.length;
+}
+
+/**
+ * Drops points past the count, or adds points at the origin up to it.
+ *
+ * @godot Curve3D.set_point_count
+ * @source scene/resources/curve.cpp:1448
+ */
+export function set_point_count(self: Curve3D, count: number): void {
+  if (count < 0 || count === self.points.length) return;
+  if (self.points.length > count) self.points.length = count;
+  else while (self.points.length < count) self.points.push({ in: vector3(0, 0, 0), out: vector3(0, 0, 0), position: vector3(0, 0, 0), tilt: 0 });
+  delete self.baked;
 }
 
 /**

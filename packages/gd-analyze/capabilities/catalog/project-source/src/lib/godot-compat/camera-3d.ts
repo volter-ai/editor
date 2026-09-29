@@ -835,15 +835,18 @@ export function get_environment(self: PerspectiveCamera): Environment | null {
 }
 
 /**
- * A scene's Camera3D element states its environment through R3F's `onUpdate` (the drei camera
- * has no Godot props): `onUpdate={godot_camera_3d_environment_prop(env)}`.
+ * A scene's Camera3D element states what the drei camera has no prop for through R3F's
+ * `onUpdate`: its own environment, and an orthogonal or frustum projection and its size
+ * (`onUpdate={godot_camera_3d_lens_prop({ projection: 1, size: 19 })}`).
  *
  * @godot Camera3D (protocol)
  * @source scene/3d/camera_3d.cpp:687
  */
-export function godot_camera_3d_environment_prop(environment: Environment | null): (self: PerspectiveCamera) => void {
+export function godot_camera_3d_lens_prop(lens: { readonly environment?: Environment | null; readonly projection?: number; readonly size?: number }): (self: PerspectiveCamera) => void {
   return (self) => {
-    if (ENVIRONMENTS.get(self) !== environment) set_environment(self, environment);
+    if (lens.environment !== undefined && ENVIRONMENTS.get(self) !== lens.environment) set_environment(self, lens.environment);
+    if (lens.size !== undefined && get_size(self) !== f32(lens.size)) set_size(self, lens.size);
+    if (lens.projection !== undefined && get_projection(self) !== lens.projection) set_projection(self, lens.projection);
   };
 }
 

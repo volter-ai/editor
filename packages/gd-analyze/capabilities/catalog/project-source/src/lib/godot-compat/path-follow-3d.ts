@@ -28,6 +28,10 @@ interface FollowState {
   vOffset: number;
   rotationMode: number;
   loop: boolean;
+  /** Stated and read back; the follow samples the baked points linearly either way. */
+  cubic: boolean;
+  tilt: boolean;
+  modelFront: boolean;
 }
 
 const FOLLOWS = new WeakMap<object, FollowState>();
@@ -61,7 +65,7 @@ function place(entity: Object3D, state: FollowState): void {
  * @source scene/3d/path_3d.cpp:520
  */
 export function godot_path_follow_3d_mount(entity: Object3D): void {
-  FOLLOWS.set(entity, { progress: 0, hOffset: 0, vOffset: 0, rotationMode: 3, loop: true });
+  FOLLOWS.set(entity, { progress: 0, hOffset: 0, vOffset: 0, rotationMode: 3, loop: true, cubic: true, tilt: true, modelFront: false });
 }
 
 /**
@@ -151,6 +155,54 @@ export function set_loop(self: object, loop: boolean): void {
   stateOf(self, 'set_loop').loop = loop;
 }
 
+/**
+ * @godot PathFollow3D.set_cubic_interpolation
+ * @source scene/3d/path_3d.cpp:332
+ */
+export function set_cubic_interpolation(self: object, enabled: boolean): void {
+  stateOf(self, 'set_cubic_interpolation').cubic = enabled;
+}
+
+/**
+ * @godot PathFollow3D.get_cubic_interpolation
+ * @source scene/3d/path_3d.cpp:336
+ */
+export function get_cubic_interpolation(self: object): boolean {
+  return stateOf(self, 'get_cubic_interpolation').cubic;
+}
+
+/**
+ * @godot PathFollow3D.set_tilt_enabled
+ * @source scene/3d/path_3d.cpp:555
+ */
+export function set_tilt_enabled(self: object, enabled: boolean): void {
+  stateOf(self, 'set_tilt_enabled').tilt = enabled;
+}
+
+/**
+ * @godot PathFollow3D.is_tilt_enabled
+ * @source scene/3d/path_3d.cpp:563
+ */
+export function is_tilt_enabled(self: object): boolean {
+  return stateOf(self, 'is_tilt_enabled').tilt;
+}
+
+/**
+ * @godot PathFollow3D.set_use_model_front
+ * @source scene/3d/path_3d.cpp:531
+ */
+export function set_use_model_front(self: object, enabled: boolean): void {
+  stateOf(self, 'set_use_model_front').modelFront = enabled;
+}
+
+/**
+ * @godot PathFollow3D.is_using_model_front
+ * @source scene/3d/path_3d.cpp:539
+ */
+export function is_using_model_front(self: object): boolean {
+  return stateOf(self, 'is_using_model_front').modelFront;
+}
+
 const PATH_FOLLOW_3D = {
   create: () => new Group(),
   classes: CLASSES,
@@ -163,9 +215,9 @@ const PATH_FOLLOW_3D = {
     ['vOffset', (entity, value: number) => set_v_offset(entity, value)],
     ['rotationMode', (entity, value: number) => set_rotation_mode(entity, value)],
     ['loop', (entity, value: boolean) => set_loop(entity, value)],
-    ['cubicInterp', () => undefined],
-    ['tiltEnabled', () => undefined],
-    ['useModelFront', () => undefined],
+    ['cubicInterp', (entity, value: boolean) => set_cubic_interpolation(entity, value)],
+    ['tiltEnabled', (entity, value: boolean) => set_tilt_enabled(entity, value)],
+    ['useModelFront', (entity, value: boolean) => set_use_model_front(entity, value)],
   ]),
 };
 

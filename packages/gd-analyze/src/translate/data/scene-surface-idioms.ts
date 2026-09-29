@@ -85,6 +85,9 @@ function cameraLens(node: DirectGodotSceneNodePlan): NonNullable<DirectGodotScen
     far: Number(property('far', 4000)),
     cullMask: numberValue(node.setters, 'set_cull_mask') ?? 0xfffff,
     ...(environment === undefined ? {} : { environment }),
+    // An orthogonal or frustum projection and its size (`camera_3d.h:71`, perspective and 1 by default).
+    ...(numberValue(node.setters, 'set_projection') === undefined ? {} : { projection: numberValue(node.setters, 'set_projection') as number }),
+    ...(numberValue(node.setters, 'set_size') === undefined ? {} : { size: numberValue(node.setters, 'set_size') as number }),
   };
 }
 

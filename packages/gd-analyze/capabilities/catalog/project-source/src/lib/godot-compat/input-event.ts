@@ -11,6 +11,7 @@
  * for a mouse event (`:715`), 0 otherwise. Only mouse buttons and screen touches can be canceled.
  */
 
+import { godot_input_event_action_status } from './input';
 import { construct as vector2, type Vector2 } from './vector2';
 
 interface Base {
@@ -117,6 +118,52 @@ export function get_device(self: InputEventRecord): number {
   if (self.type === 'key') return 16;
   if (self.type === 'mouse_button' || self.type === 'mouse_motion') return 32;
   return 0;
+}
+
+/**
+ * @godot InputEvent.is_echo
+ * @source core/input/input_event.cpp:87
+ */
+export function is_echo(self: InputEventRecord): boolean {
+  return self.type === 'key' && self.echo === true;
+}
+
+/**
+ * Whether the event matches the action at all, pressed or not.
+ *
+ * @godot InputEvent.is_action
+ * @source core/input/input_event.cpp:47
+ */
+export function is_action(self: InputEventRecord, action: string, exact_match = false): boolean {
+  return godot_input_event_action_status(self, action, exact_match) !== undefined;
+}
+
+/**
+ * Pressing the action, an echo only when `allow_echo`.
+ *
+ * @godot InputEvent.is_action_pressed
+ * @source core/input/input_event.cpp:51
+ */
+export function is_action_pressed(self: InputEventRecord, action: string, allow_echo = false, exact_match = false): boolean {
+  const status = godot_input_event_action_status(self, action, exact_match);
+  return status !== undefined && status.pressed && (allow_echo || !is_echo(self));
+}
+
+/**
+ * @godot InputEvent.is_action_released
+ * @source core/input/input_event.cpp:57
+ */
+export function is_action_released(self: InputEventRecord, action: string, exact_match = false): boolean {
+  const status = godot_input_event_action_status(self, action, exact_match);
+  return status !== undefined && !status.pressed;
+}
+
+/**
+ * @godot InputEvent.get_action_strength
+ * @source core/input/input_event.cpp:63
+ */
+export function get_action_strength(self: InputEventRecord, action: string, exact_match = false): number {
+  return godot_input_event_action_status(self, action, exact_match)?.strength ?? 0;
 }
 
 const ZERO = vector2();

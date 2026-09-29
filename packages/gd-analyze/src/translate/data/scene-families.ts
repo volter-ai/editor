@@ -98,7 +98,7 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   DirectionalLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_shadow', 'set_sky_mode', 'set_param:9', 'set_param:13', 'set_param:14', 'set_param:15', 'set_param:16', 'set_param:17', 'set_param:18', 'set_shadow_mode', 'set_blend_splits'],
   OmniLight3D: [...NODE_3D, 'set_color', 'set_param:0', 'set_param:4', 'set_param:6', 'set_shadow', 'set_param:15', 'set_param:17', 'set_param:18'],
   // The lens (`fov`, `near`, `far`) is the node's JSX property rules; `current` is the default camera.
-  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask'],
+  Camera3D: [...NODE_3D, 'set_current', 'set_environment', 'set_cull_mask', 'set_projection', 'set_size'],
   // Compat elements (`useGodotElement`): the props their classes' tables declare.
   CanvasLayer: ['set_meta:*', 'set_layer', 'set_visible', 'set_offset', 'set_rotation', 'set_scale'],
   Control: CONTROL,
@@ -381,7 +381,7 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   TileSetScenesCollectionSource: [],
   CanvasItemMaterial: ['set_blend_mode', 'set_light_mode', 'set_particles_animation'],
   Curve2D: ['_set_data', 'set_bake_interval'],
-  Curve3D: ['_set_data', 'set_bake_interval', 'set_up_vector_enabled'],
+  Curve3D: ['_set_data', 'set_point_count', 'set_bake_interval', 'set_up_vector_enabled'],
   CapsuleShape2D: ['set_radius', 'set_height'],
   CircleShape2D: ['set_radius'],
   AtlasTexture: ['set_atlas', 'set_region', 'set_margin', 'set_filter_clip'],

@@ -280,6 +280,17 @@ function actionStatus(event: InputEventRecord, actionName: string, exactMatch: b
   return undefined;
 }
 
+/**
+ * `InputMap::event_get_action_status` for an event: whether it matches the action, and if so
+ * whether it presses it and how strongly.
+ *
+ * @godot InputMap (protocol)
+ * @source core/input/input_map.cpp:290
+ */
+export function godot_input_event_action_status(event: InputEventRecord, action: string, exact_match: boolean): { readonly pressed: boolean; readonly strength: number; readonly rawStrength: number } | undefined {
+  return actionStatus(event, action, exact_match);
+}
+
 /** `Input::_update_action_cache` (`core/input/input.cpp:1846`). */
 function updateActionCache(actionName: string, state: ActionState): void {
   state.cache.pressed = false;

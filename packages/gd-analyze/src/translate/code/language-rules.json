@@ -6268,7 +6268,7 @@
         "inputDatatypes": [
           "VARIANT:*"
         ],
-        "resultDatatype": "BUILTIN:Callable"
+        "resultDatatype": "BUILTIN:*"
       },
       "target": {
         "kind": "structural",
@@ -6283,7 +6283,7 @@
         "inputDatatypes": [
           "VARIANT:*"
         ],
-        "resultDatatype": "BUILTIN:Callable"
+        "resultDatatype": "BUILTIN:*"
       },
       "target": {
         "kind": "structural",
