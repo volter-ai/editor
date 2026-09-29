@@ -90,6 +90,8 @@ function nodeModules(node: DirectGodotSceneNodePlan): readonly string[] {
       break;
     case 'light':
       if (form.directional) modules.push('directional-light-3d');
+      // A spot light aims itself by compat's hand (`scene-light-idioms.ts`).
+      if (node.light?.aim !== undefined) modules.push(node.light.aim.module);
       break;
     case 'camera':
       if (node.setters.some((setter) => setter.setter.exportName === 'set_environment')) modules.push('camera-3d');
@@ -97,6 +99,8 @@ function nodeModules(node: DirectGodotSceneNodePlan): readonly string[] {
     case 'body':
       if (form.sensor) modules.push('area-3d');
       if (form.type === 'dynamic') modules.push('rigid-body-3d');
+      // The body's driver (a vehicle's controller), rendered inside it.
+      if (form.driver !== undefined) modules.push(form.driver.module);
       break;
     default:
       break;
@@ -126,6 +130,15 @@ export function godotCapabilityRequirements(
   // The world (`direct-project-world-syntax.ts`): the host hooks, the settings and InputMap loads, its autoloads.
   modules.push('main', 'advance', 'input');
   if (composition.projectSettings.length > 0) modules.push('project-settings');
+  // The world sets the bus layout through the audio protocol (`projectDataLoad`).
+  if (composition.audioBuses.length > 1 || composition.audioBuses.some((bus) => bus.volumeDb !== 0 || bus.mute || bus.solo || bus.bypassFx)) modules.push('audio-stream');
+  // A preloaded resource's module (`resource-module-syntax.ts`): its resources, the images it loads
+  // as it is evaluated and the handle of its resource.
+  for (const module of composition.resourceModules) {
+    for (const resource of module.resources) modules.push(...resourceModules(resource));
+    if (module.resources.some((resource) => resource.load !== undefined)) modules.push('compressed-texture-2d', 'base-material-3d');
+    if (module.handle !== undefined) modules.push(module.handle.module);
+  }
   for (const autoload of composition.scriptAutoloads) modules.push('react-lifecycle', ...lifecycleModules(autoload.lifecycle));
   for (const scene of composition.scenes) {
     // Every scene component enters the tree through `useGodotScene`.
