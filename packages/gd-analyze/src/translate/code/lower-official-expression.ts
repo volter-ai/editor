@@ -2580,11 +2580,11 @@ export function lowerOfficialExpression(
         return compose(
           context,
           elements.map((element) => lowerExpression(context, element)),
-          (values) => ({
-            kind: 'array-expression',
-            elements: values,
-            span: span(context.script, node),
-          }),
+          (values) =>
+            // An empty Array holds Variants: its type is not inferred from nothing.
+            values.length === 0
+              ? { kind: 'as-expression', expression: { kind: 'array-expression', elements: [] }, type: { kind: 'array-type', element: ANY }, span: span(context.script, node) }
+              : { kind: 'array-expression', elements: values, span: span(context.script, node) },
           requirements,
         );
       }
@@ -3297,7 +3297,12 @@ export function lowerOfficialExpression(
             (argumentValues) => ({
               kind: 'call-expression',
               callee,
-              arguments: argumentValues,
+              // An object that may be null is passed as the object the parameter types: GDScript
+              // passes null to an object parameter, which TS states present.
+              arguments: argumentValues.map((value, index) => {
+                const argument = argumentNodes[index];
+                return argument !== undefined && nullableObject(context, argument) ? { kind: 'non-null-expression', expression: value } : value;
+              }),
               span: span(context.script, node),
             }),
             requirements,
