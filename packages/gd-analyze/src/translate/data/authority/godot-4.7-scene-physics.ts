@@ -21,6 +21,8 @@ export const GODOT_4_7_PHYSICS_RESOURCE_RULES: readonly (GodotSceneResourceRule 
     ['BoxShape3D', 'box-shape-3d', 'scene/resources/3d/box_shape_3d.cpp', 118],
     ['SphereShape3D', 'sphere-shape-3d', 'scene/resources/3d/sphere_shape_3d.cpp', 104],
     ['CapsuleShape3D', 'capsule-shape-3d', 'scene/resources/3d/capsule_shape_3d.cpp', 156],
+    ['CylinderShape3D', 'cylinder-shape-3d', 'scene/resources/3d/cylinder_shape_3d.cpp', 155],
+    ['WorldBoundaryShape3D', 'world-boundary-shape-3d', 'scene/resources/3d/world_boundary_shape_3d.cpp', 82],
     ['ConvexPolygonShape3D', 'convex-polygon-shape-3d', 'scene/resources/3d/convex_polygon_shape_3d.cpp', 129],
     ['ConcavePolygonShape3D', 'concave-polygon-shape-3d', 'scene/resources/3d/concave_polygon_shape_3d.cpp', 134],
     // A GridMap's `physics_material` is an element prop: the material made from what the scene states.

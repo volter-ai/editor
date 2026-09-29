@@ -303,6 +303,8 @@ function geometry(emission: FamilyEmission, resource: TargetGodotSceneResourcePl
           ],
         }),
       ]);
+    case 'box':
+      return element('boxGeometry', [attribute('args', numbers(args))]);
     case 'cylinder': {
       const open = resource.primitive?.open === true;
       return element('cylinderGeometry', [

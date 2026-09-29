@@ -54,6 +54,11 @@ function primitiveArgs(resource: TargetGodotSceneResourcePlan): TargetGodotScene
     }
     case 'sphere':
       return { args: [num('set_radius', 0.5), num('set_radial_segments', 64), num('set_rings', 32) + 1] };
+    case 'box': {
+      const value = set.find((entry) => entry.setter.exportName === 'set_size')?.value;
+      const size = value !== undefined && 'components' in value ? value.components : [1, 1, 1];
+      return { args: [size[0] as number, size[1] as number, size[2] as number, num('set_subdivide_width', 0) + 1, num('set_subdivide_height', 0) + 1, num('set_subdivide_depth', 0) + 1] };
+    }
     case 'cylinder': {
       const cap = set.find((entry) => entry.setter.exportName === 'set_cap_top')?.value;
       return {

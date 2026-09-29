@@ -267,7 +267,7 @@ function bodyOverrides(
 
 /** A collision shape as Rapier's collider component and its `args`: flat numbers, or number lists. */
 export interface GodotSceneColliderPlan {
-  readonly component: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
+  readonly component: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'CylinderCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
   readonly args: { readonly kind: 'flat'; readonly values: readonly number[] } | { readonly kind: 'nested'; readonly values: readonly (readonly number[])[] };
 }
 
@@ -297,6 +297,14 @@ function colliderPlan(node: DirectGodotSceneNodePlan, resources: ReadonlyMap<str
       const radius = numberOf(setterValue(set, 'set_radius')) ?? 0.5;
       const height = numberOf(setterValue(set, 'set_height')) ?? 2;
       return { component: 'CapsuleCollider', args: flat([height / 2 - radius, radius]) };
+    }
+    case 'CylinderCollider':
+      return { component: 'CylinderCollider', args: flat([(numberOf(setterValue(set, 'set_height')) ?? 2) / 2, numberOf(setterValue(set, 'set_radius')) ?? 0.5]) };
+    case 'HalfSpace': {
+      // An infinite plane (`WorldBoundaryShape3D`) as Rapier's cuboid slab under the default plane
+      // (normal +Y through the origin); a plane authored otherwise has no idiomatic form.
+      if (setterValue(set, 'set_plane') !== undefined) return refuse('a WorldBoundaryShape3D plane other than the default has no idiomatic collider'), undefined;
+      return { component: 'CuboidCollider', args: flat([10000, 0.01, 10000]) };
     }
     case 'ConvexHullCollider':
       return { component: 'ConvexHullCollider', args: { kind: 'nested', values: [componentsOf(setterValue(set, 'set_points')) ?? []] } };

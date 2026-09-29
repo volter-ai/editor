@@ -27,6 +27,8 @@ export type GodotSceneResourceIdiom =
   | { readonly kind: 'sphere'; readonly geometry: true }
   /** A CylinderMesh: three's `cylinderGeometry`. */
   | { readonly kind: 'cylinder'; readonly geometry: true }
+  /** A BoxMesh: three's `boxGeometry`. */
+  | { readonly kind: 'box'; readonly geometry: true }
   /** An ArrayMesh: a `bufferGeometry` over its surfaces' data file. */
   | { readonly kind: 'array-mesh'; readonly geometry: true }
   /** A StandardMaterial3D: the three material and props `scene-material-idioms.ts` plans for it. */
@@ -48,7 +50,7 @@ export type GodotSceneResourceIdiom =
   /** A collision shape: the `@react-three/rapier` collider it is. */
   | {
       readonly kind: 'collider';
-      readonly collider: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'ConvexHullCollider' | 'TrimeshCollider';
+      readonly collider: 'CuboidCollider' | 'BallCollider' | 'CapsuleCollider' | 'CylinderCollider' | 'ConvexHullCollider' | 'TrimeshCollider' | 'HalfSpace';
     };
 
 /**
@@ -67,6 +69,7 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
   QuadMesh: { kind: 'plane', geometry: true, size: [1, 1] },
   SphereMesh: { kind: 'sphere', geometry: true },
   CylinderMesh: { kind: 'cylinder', geometry: true },
+  BoxMesh: { kind: 'box', geometry: true },
   ArrayMesh: { kind: 'array-mesh', geometry: true },
   StandardMaterial3D: 'material',
   GradientTexture2D: { kind: 'gradient-texture' },
@@ -83,6 +86,8 @@ const IDIOMS: Readonly<Record<string, GodotSceneResourceIdiom | 'material'>> = {
   BoxShape3D: { kind: 'collider', collider: 'CuboidCollider' },
   SphereShape3D: { kind: 'collider', collider: 'BallCollider' },
   CapsuleShape3D: { kind: 'collider', collider: 'CapsuleCollider' },
+  CylinderShape3D: { kind: 'collider', collider: 'CylinderCollider' },
+  WorldBoundaryShape3D: { kind: 'collider', collider: 'HalfSpace' },
   ConvexPolygonShape3D: { kind: 'collider', collider: 'ConvexHullCollider' },
   ConcavePolygonShape3D: { kind: 'collider', collider: 'TrimeshCollider' },
 };
