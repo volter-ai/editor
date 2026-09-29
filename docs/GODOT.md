@@ -1315,6 +1315,32 @@ tests (§How a lane lands):
 - **Bindings.** MeshLibrary.new and set_item_mesh, SceneState of a model, Node.find_children, the
   whole Array API, and viewport mouse and rect queries.
 
+## Roboblast imports (2026-09-29)
+
+The Roboblast third-person demo (`roboblast-tps-demo`, 4.7) imports and builds with no refusal,
+from 215 refusals when the lane took it up. What it took, none of it Roboblast's own:
+
+- **Rendering.** Screen and depth textures (`hint_screen_texture`, `hint_depth_texture`) read the
+  frame's opaque pass at Godot's `SCREEN_UV` and in Godot's reversed-Z depth, with its
+  `INV_PROJECTION_MATRIX`. Spatial shaders get normal maps, `ambient_light_disabled`, `VERTEX`, and
+  local arrays. `canvas_item` shaders draw their item's quad after the frame. A camera's depth of
+  field uses Godot's blur sizes. GPUParticles3D get trails over their RibbonTrailMesh, transform
+  alignment and its channel filter.
+- **Viewports.** A SubViewport draws its own image: its 3D through its own camera (in its own world
+  or its parent's), and its canvas items painted over that. A ViewportTexture shows the image on a
+  material, found from `viewport_path` as Godot's local scene resolves it. A SubViewportContainer
+  shows it over its rect.
+- **Scenes.** Edits inside an instanced scene (editable children, `script = null`) are applied once
+  the instance is made. Imported models take `%Name`. A collision shape may have children. Instances
+  whose root is a MeshInstance3D keep their `userData` overrides.
+- **Nodes and resources.** SpringArm3D, ShapeCast3D, navigation (NavigationRegion3D,
+  NavigationAgent3D, baked NavigationMesh), NinePatchRect, RichTextLabel with its BBCode,
+  `clip_children`, and `process_mode` in idiomatic scenes are bound. A family-carried resource is
+  built from its props (`godot_<class>_new`).
+- **Scripts.** `free()` on self, a script's instance passed to an engine-typed parameter (as its
+  node), `null` from a function returning an object, and Variants into typed engine parameters now
+  lower.
+
 ## What comes next
 
 > Superseded by §The lane's law, §Order of work (2026-09-27). The list below is the order before the rulings.
