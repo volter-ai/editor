@@ -345,6 +345,9 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ArrayMesh: [],
   CompressedTexture2D: [],
   AtlasTexture: ['set_atlas', 'set_region', 'set_margin', 'set_filter_clip'],
+  // A scene's component (`packedScene`) and a resource of a script's class (`scriptResource`): no setters.
+  PackedScene: [],
+  Resource: [],
   SpriteFrames: ['_set_animations'],
   MeshLibrary: [],
   AnimationLibrary: [],

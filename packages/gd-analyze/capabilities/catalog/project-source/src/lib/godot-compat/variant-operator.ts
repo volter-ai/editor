@@ -15,6 +15,11 @@
 
 import { godot_variant_equal } from './variant-equal';
 
+/** A Variant: whatever the value holds, as the script uses it. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Variant = any;
+
+
 /** `Variant::Operator` (`core/variant/variant.h:519`). */
 const OP_EQUAL = 0;
 const OP_NOT_EQUAL = 1;
@@ -140,7 +145,7 @@ function kind(value: unknown): string {
  * @godot Variant (protocol)
  * @source core/variant/variant_op.cpp:1041
  */
-export function godot_variant_evaluate(op: number, a: unknown, b?: unknown): unknown {
+export function godot_variant_evaluate(op: number, a: unknown, b?: unknown): Variant {
   const invalid = (): never => {
     throw new Error(`Invalid operands '${kind(a)}' and '${kind(b)}' in operator ${String(op)}.`);
   };

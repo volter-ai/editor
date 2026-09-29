@@ -1528,19 +1528,29 @@ function plainFieldValue(value: GodotValue): boolean {
   return value.kind === 'number' || value.kind === 'bool' || value.kind === 'string' || (value.kind === 'ctor' && value.name === 'NodePath');
 }
 
-/** A node's script fields whose authored values are not plain, each planned (`fieldValues`). */
+/**
+ * A node's script fields whose authored values are not plain, each planned (`fieldValues`): the
+ * values its scene authors for the fields of the script chain attached there.
+ */
 function planFieldValues(
   context: PlanContext,
   node: BoundGodotSceneNode,
-  fields: ReadonlySet<string>,
-  values: Readonly<Record<string, GodotValue>>,
 ): readonly { readonly field: string; readonly value: TargetGodotSceneValue }[] | undefined {
   const planned: { readonly field: string; readonly value: TargetGodotSceneValue }[] = [];
-  for (const [field, value] of Object.entries(values)) {
-    if (!fields.has(field) || node.nodePathProperties.includes(field) || plainFieldValue(value)) continue;
-    const target = setterValue(context, `${node.documentPath}#${node.nodePath}.${field}`, field, value, '');
-    if (target === undefined) return undefined;
-    planned.push({ field, value: target });
+  const seen = new Set<string>();
+  for (const script of context.project?.scripts ?? []) {
+    for (const field of script.fields) {
+      if (seen.has(field.name)) continue;
+      const attachment = field.attachmentValues.find(
+        (entry) => entry.documentPath === node.documentPath && entry.nodePath === node.nodePath && entry.source === 'authored-value' && entry.valueKind === 'value',
+      );
+      const value = attachment?.authoredValue;
+      if (value === undefined || plainFieldValue(value)) continue;
+      seen.add(field.name);
+      const target = setterValue(context, `${node.documentPath}#${node.nodePath}.${field.name}`, field.name, value, '');
+      if (target === undefined) return undefined;
+      planned.push({ field: field.name, value: target });
+    }
   }
   return planned;
 }
@@ -1582,7 +1592,7 @@ function planNativeNode(context: PlanContext, node: BoundGodotSceneNode): Target
   );
   const groups = groupsOf(context, node);
   const placed = placement(context, node);
-  const fieldValues = planFieldValues(context, node, fields, node.authoredProperties);
+  const fieldValues = planFieldValues(context, node);
   if (!ok || idiom === undefined || properties === undefined || groups === undefined || placed === undefined || fieldValues === undefined) {
     return undefined;
   }
@@ -1814,12 +1824,7 @@ function planInstanceRoot(
   const setters: TargetGodotSceneSetterPlan[] = [];
   const properties = planProperties(context, node, overrides, setters);
   const placed = placement(context, node);
-  const fieldValues = planFieldValues(
-    context,
-    node,
-    fields,
-    Object.fromEntries(Object.entries(node.authoredProperties).filter(([name, value]) => !sameValue(value, origin.authoredProperties[name]))),
-  );
+  const fieldValues = planFieldValues(context, node);
   if (!ok || properties === undefined || placed === undefined || fieldValues === undefined) return undefined;
   return {
     nodePath: node.nodePath,
@@ -2595,7 +2600,7 @@ export function planGodotSceneDocuments(
       const planned = planScene(context, {
         ...imported,
         sourceKind: 'packed-scene',
-        nodes: [{ ...rootNode, documentPath: resPath, nodePath: '.', authoredProperties: {}, nodePathProperties: [], groups: [], instanceSceneResPath: resPath }],
+        nodes: [{ ...rootNode, documentPath: resPath, nodePath: '.', authoredProperties: {}, nodePathProperties: [], groups: [], instanceSceneResPath: resPath, inheritedNode: { documentPath: resPath, nodePath: '.' } }],
         subResources: [],
         extResources: [],
         connections: [],

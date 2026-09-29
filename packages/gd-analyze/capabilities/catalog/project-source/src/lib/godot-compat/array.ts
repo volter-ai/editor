@@ -17,7 +17,7 @@
  * @godot Array.Array
  * @source core/variant/array.cpp:952
  */
-export function construct(...args: readonly [] | readonly [unknown[]]): unknown[] {
+export function construct<Element = unknown>(...args: readonly [] | readonly [Element[]]): Element[] {
   if (args.length === 0) return [];
   return args[0];
 }

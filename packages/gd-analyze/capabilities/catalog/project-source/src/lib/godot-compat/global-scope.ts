@@ -231,8 +231,15 @@ export function is_instance_valid(instance: unknown): boolean {
  * @godot @GlobalScope.lerp
  * @source core/variant/variant_utility.cpp:445
  */
-export function lerp(from: unknown, to: unknown, weight: number): number {
-  return lerpDouble(requireNumber('lerp', from), requireNumber('lerp', to), weight);
+export function lerp<Value>(from: Value, to: Value, weight: number): Value {
+  if (typeof from === 'number') return lerpDouble(from, requireNumber('lerp', to), weight) as Value;
+  // A vector or a colour: member by member (`Vector3::lerp`, `Color::lerp`).
+  if (typeof from === 'object' && from !== null && typeof to === 'object' && to !== null && Object.isFrozen(from)) {
+    const target = to as Readonly<Record<string, unknown>>;
+    const members = Object.entries(from as Readonly<Record<string, unknown>>).map(([name, value]) => [name, lerpDouble(requireNumber('lerp', value), requireNumber('lerp', target[name]), weight)] as const);
+    return Object.freeze(Object.fromEntries(members)) as Value;
+  }
+  return lerpDouble(requireNumber('lerp', from), requireNumber('lerp', to), weight) as Value;
 }
 
 /**

@@ -86,6 +86,8 @@ function dictionaryMap(
   return {
     kind: 'new-expression',
     callee: { kind: 'identifier-expression', name: 'Map' },
+    // A Dictionary's keys and values are Variants: entries of different types are one Map's.
+    ...(entries.length > 0 ? { typeArguments: [ANY, ANY] } : {}),
     arguments: [
       {
         kind: 'array-expression',
@@ -316,12 +318,14 @@ function prepareAssignmentTarget(
     const base = materialize(context, lower(context, baseNode));
     if (node.isAttribute) {
       const requirements = context.structural(node, 'subscript-attribute', [baseNode]);
+      // A member of an object that may be null is stated present: a store on null is Godot's error.
+      const nullable = nullableObject(context, baseNode);
       return {
         beforeAssigned: base.before,
         afterAssigned: [],
         target: {
           kind: 'property-expression',
-          object: base.value,
+          object: nullable ? { kind: 'non-null-expression', expression: base.value } : base.value,
           property: officialBoundPropertyName(context, node.attribute, node),
           span: span(context.script, node),
         },
@@ -2947,7 +2951,7 @@ export function lowerOfficialExpression(
           );
         }
         // A member of a value whose class only the run time knows: selected by name then.
-        if (node.isAttribute && namedAttribute(context, baseNode, officialBoundPropertyName(context, node.attribute, node))) {
+        if (node.isAttribute && !context.plainCallees.has(node.id) && namedAttribute(context, baseNode, officialBoundPropertyName(context, node.attribute, node))) {
           return namedRead(context, node, baseNode, officialBoundPropertyName(context, node.attribute, node), lowerExpression);
         }
         // On a native object, or a script instance whose script does not declare the name (its
@@ -3330,6 +3334,8 @@ export function lowerOfficialExpression(
             ],
           );
         }
+        // The callee is the call's own member, not a member read by name.
+        context.plainCallees.add(calleeNode.id);
         const callee = lowerExpression(context, calleeNode);
         return dynamicCall(context, node, callee, args, requirements);
       }

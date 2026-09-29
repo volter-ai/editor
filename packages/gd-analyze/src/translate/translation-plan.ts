@@ -67,7 +67,13 @@ function importedModels(project: BoundGodotProject, composition: DirectGodotProj
 /** The images and sounds the scenes load as imported resources: copied beside the app, as the models are. */
 function importedTextures(project: BoundGodotProject, composition: DirectGodotProjectCompositionPlan) {
   const paths = new Set(
-    composition.scenes.flatMap((scene) => scene.resources.flatMap((resource) => (resource.load === undefined ? [] : [resource.load.sourceResPath]))),
+    composition.scenes.flatMap((scene) =>
+      scene.resources.flatMap((resource) => [
+        ...(resource.load === undefined ? [] : [resource.load.sourceResPath]),
+        // A model PackedScene's outside images, which its SceneState loads.
+        ...(resource.packedScene?.model?.images ?? []).map((image) => image.load.sourceResPath),
+      ]),
+    ),
   );
   // The sounds a script's `load(path)` loads (`resource-loads.ts`).
   for (const script of project.scripts) for (const load of script.resourceLoads ?? []) for (const branch of load.branches) paths.add(branch.resPath);

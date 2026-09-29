@@ -16,6 +16,11 @@
 import { godot_is_native, godot_node_entity, godot_node_object } from './node';
 import { isRetainedGodotSignal } from './signal';
 
+/** A Variant: whatever the value holds, as the script uses it. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Variant = any;
+
+
 /** An engine member of one class or built-in type that a name can select at run time. */
 export interface GodotNamedMember {
   /** The engine class (`is`) the member is declared on. */
@@ -126,7 +131,7 @@ function typeName(value: unknown): string {
  * @godot Variant (protocol)
  * @source modules/gdscript/gdscript_vm.cpp:1260
  */
-export function godot_variant_get_named(value: unknown, name: string, members: readonly GodotNamedMember[]): unknown {
+export function godot_variant_get_named(value: unknown, name: string, members: readonly GodotNamedMember[]): Variant {
   if (typeof value === 'object' && value !== null) {
     const script = scriptOf(value);
     if (script !== undefined && name in script && typeof script[name] !== 'function') return script[name];
@@ -178,7 +183,7 @@ export function godot_variant_set_named<Value>(value: Value, name: string, assig
  * @godot Variant (protocol)
  * @source modules/gdscript/gdscript_vm.cpp:1903
  */
-export function godot_variant_call_named(value: unknown, name: string, members: readonly GodotNamedMember[], args: readonly unknown[]): unknown {
+export function godot_variant_call_named(value: unknown, name: string, members: readonly GodotNamedMember[], args: readonly unknown[]): Variant {
   if (value === null || value === undefined) throw new Error(`Attempt to call function '${name}' in base 'null instance' on a null instance.`);
   if (typeof value === 'object') {
     const script = scriptOf(value);

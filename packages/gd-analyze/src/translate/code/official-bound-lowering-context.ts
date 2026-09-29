@@ -229,6 +229,8 @@ export class LoweringContext {
   nodeFields: ReadonlyMap<string, string> = new Map();
   /** The `as Class` casts analysis proves always hold (`provenCasts`). */
   provenCasts: ReadonlySet<number> = new Set();
+  /** Attribute nodes a dynamic call calls as its own callee (`obj.method(...)`), never read by name. */
+  readonly plainCallees = new Set<number>();
   /** The native class at the root of a project script's chain (`extends Resource`). */
   scriptNativeRoot: (resPath: string) => string | undefined = () => undefined;
   /** The project's resource documents (`.tres`, `.res`), by path. */

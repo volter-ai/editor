@@ -28,6 +28,10 @@ import { createSignal, type GodotSignal, type SignalHandle } from './signal';
 import { create_tween as treeCreateTween, get_root, godot_tree, godot_tree_process_delta, godot_tree_set_root, queue_delete, type SceneTree } from './scene-tree';
 import { bind_node, type Tween } from './tween';
 
+/** A Variant: whatever the value holds, as the script uses it (a node's children are nodes it reads as any class). */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Variant = any;
+
 /** The native entity's hierarchy operations for nodes the composition site renders. */
 export interface NativeHierarchyAuthority {
   create(kind: string): object;
@@ -981,7 +985,7 @@ export function move_child(self: object, child_node: object, to_index: number): 
  * @godot Node.get_children
  * @source scene/main/node.cpp:1867
  */
-export function get_children(self: object): unknown[] {
+export function get_children(self: object): Variant[] {
   return childEntities(native(self, 'get_children'))
     .filter((child) => NODE.has(child))
     .map(objectOf);
@@ -1001,8 +1005,8 @@ function wildcard(pattern: string, text: string): boolean {
  * @godot Node.find_children
  * @source scene/main/node.cpp:1943
  */
-export function find_children(self: object, pattern: string, type = '', recursive = true, owned = true): unknown[] {
-  const found: unknown[] = [];
+export function find_children(self: object, pattern: string, type = '', recursive = true, owned = true): Variant[] {
+  const found: Variant[] = [];
   const visit = (entity: object): void => {
     for (const child of childEntities(entity)) {
       if (!NODE.has(child)) continue;

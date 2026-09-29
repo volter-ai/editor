@@ -9,6 +9,10 @@
  * main loop (`main.tsx`) mounts the scenes only once every tracked load has finished.
  */
 
+/** A Variant: whatever the value holds, as the script uses it. */
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+type Variant = any;
+
 const pending = new Set<Promise<unknown>>();
 const failures: unknown[] = [];
 
@@ -93,7 +97,7 @@ export function godot_resource_loader_load(
   project: Readonly<Record<string, () => unknown>>,
   classes: ScriptClasses,
   make: (cls: new (native: object) => object, fields: Readonly<Record<string, unknown>>) => object,
-): unknown {
+  ): Variant {
   if (path.startsWith('user://')) {
     const text = storage()?.getItem(`godot:${path}`);
     if (text === null || text === undefined) return null;
