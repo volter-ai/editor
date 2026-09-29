@@ -40,6 +40,8 @@ export type SceneSetterLookup = ((className: string, property: string) => SceneS
 export const INTERNAL_PROPERTY_SETTERS: Readonly<Record<string, Readonly<Record<string, string>>>> = {
   // `curve.cpp:644`, `:646`.
   Curve: { _limits: '_set_limits', _data: '_set_data' },
+  // `sprite_frames.cpp:229`.
+  SpriteFrames: { animations: '_set_animations' },
 };
 
 const SURFACE_OVERRIDE = /^surface_material_override\/(\d+)$/;

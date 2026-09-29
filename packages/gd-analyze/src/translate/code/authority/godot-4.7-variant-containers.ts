@@ -66,6 +66,9 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
     ),
   ),
   ...['VARIANT:*', 'BUILTIN:*'].map((result) => rule('UNARY_OPERATOR', 'operator:variant-evaluate', ['VARIANT:*'], result, { kind: 'variant-operator' })),
+  // A native property read the compiler left untyped (an object narrowed by `is`): its getter's
+  // value, whatever the compiler stated for it.
+  ...['NATIVE:*', 'CLASS:*'].map((input) => rule('SUBSCRIPT', 'subscript-attribute:native-property', [input], 'VARIANT:*', { kind: 'binding' })),
 ];
 
 export const GODOT_4_7_VARIANT_CONTAINER_DATATYPES: readonly GodotDatatypeRuleEntry[] = [

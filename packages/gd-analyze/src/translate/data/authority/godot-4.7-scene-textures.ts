@@ -16,4 +16,16 @@ export const GODOT_4_7_TEXTURE_RESOURCE_RULES: readonly (GodotSceneResourceRule 
     construct: { module: 'lib/godot-compat/compressed-texture-2d', exportName: 'godot_compressed_texture_2d_load' },
     source: { file: 'scene/resources/compressed_texture.cpp', symbol: 'CompressedTexture2D::load', line: 132 },
   },
+  {
+    sourceRevision: REVISION,
+    className: 'AtlasTexture',
+    construct: { module: 'lib/godot-compat/atlas-texture', exportName: 'godot_atlas_texture_new' },
+    source: { file: 'scene/resources/atlas_texture.cpp', symbol: 'AtlasTexture::AtlasTexture', line: 280 },
+  },
+  {
+    sourceRevision: REVISION,
+    className: 'SpriteFrames',
+    construct: { module: 'lib/godot-compat/sprite-frames', exportName: 'godot_sprite_frames_new' },
+    source: { file: 'scene/resources/sprite_frames.cpp', symbol: 'SpriteFrames::SpriteFrames', line: 268 },
+  },
 ];

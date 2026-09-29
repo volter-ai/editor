@@ -58,6 +58,29 @@ const EMITTED_PARAMS = [0, 1, 3, 6, 7, 8];
 const EMITTED_FLAGS = ['set_particle_flag:0', 'set_particle_flag:2'];
 const AUDIO_PLAYER = ['set_meta:*', 'set_stream', 'set_volume_db', 'set_pitch_scale', 'set_autoplay', 'set_max_polyphony', 'set_bus'];
 
+// `<GodotSprite3D>` and `<GodotAnimatedSprite3D>`: SpriteBase3D's props (`sprite-base-3d.ts`).
+const SPRITE_BASE_3D = [
+  ...GEOMETRY_INSTANCE_3D,
+  'set_meta:*',
+  'set_centered',
+  'set_offset',
+  'set_flip_h',
+  'set_flip_v',
+  'set_modulate',
+  'set_pixel_size',
+  'set_axis',
+  'set_billboard_mode',
+  'set_draw_flag:0',
+  'set_draw_flag:1',
+  'set_draw_flag:2',
+  'set_draw_flag:3',
+  'set_alpha_cut_mode',
+  'set_texture_filter',
+  'set_render_priority',
+  'set_cast_shadows_setting',
+  'set_layer_mask',
+];
+
 /** The setters (`name`, or `name:index` for one index of an indexed property) each family states. */
 const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   MeshInstance3D: [...GEOMETRY_INSTANCE_3D, 'set_mesh', 'set_surface_override_material:*', 'set_layer_mask', 'set_cast_shadows_setting', 'set_skeleton_path', ...VISIBILITY_RANGE],
@@ -202,6 +225,8 @@ const NODE_SETTERS: Readonly<Record<string, readonly string[]>> = {
     'set_ambient_color',
     'set_ambient_color_energy',
   ],
+  Sprite3D: [...SPRITE_BASE_3D, 'set_texture', 'set_hframes', 'set_vframes', 'set_frame', 'set_region_enabled', 'set_region_rect'],
+  AnimatedSprite3D: [...SPRITE_BASE_3D, 'set_sprite_frames', 'set_animation', 'set_autoplay', 'set_frame', 'set_frame_progress', 'set_speed_scale'],
   Timer: ['set_meta:*', ...NODE_ELEMENT, 'set_wait_time', 'set_one_shot', 'set_autostart', 'set_paused', 'set_ignore_time_scale', 'set_timer_process_callback'],
   AudioStreamPlayer: AUDIO_PLAYER,
   // The cells are `data`; `cell_scale` has no collider scale and refuses.
@@ -319,6 +344,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   ],
   ArrayMesh: [],
   CompressedTexture2D: [],
+  AtlasTexture: ['set_atlas', 'set_region', 'set_margin', 'set_filter_clip'],
+  SpriteFrames: ['_set_animations'],
   MeshLibrary: [],
   AnimationLibrary: [],
   AnimationNodeBlendTree: [],
