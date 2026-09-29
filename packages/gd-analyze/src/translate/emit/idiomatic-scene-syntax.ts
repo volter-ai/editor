@@ -627,7 +627,9 @@ function instanceElement(emission: Emission, node: DirectGodotSceneNodePlan, nam
   // protocol reads its groups from its own `data-*`.
   if (rootIdiom?.form.kind === 'dom') {
     const ref = nodeRef(emission, node, rootIdiom.three, 'dom');
-    return element(local, [{ kind: 'jsx-string-attribute', name: 'data-name', value: node.name }, ...ref, ...overrides.filter((entry) => entry.kind !== 'jsx-expression-attribute' || entry.name !== 'userData')], children);
+    // Its style where the instance places it or overrides its root (`scene-control-idioms.ts`).
+    const style = node.dom === undefined ? [] : [attribute('style', styleExpression(emission, node.dom.style))];
+    return element(local, [{ kind: 'jsx-string-attribute', name: 'data-name', value: node.name }, ...ref, ...style, ...overrides.filter((entry) => entry.kind === 'jsx-expression-attribute' && (entry.name === 'exports' || entry.name === 'connections'))], children);
   }
   const ref = rootBody !== undefined ? nodeRef(emission, node, 'RapierRigidBody', 'rapier') : nodeRef(emission, node, rootIdiom?.three ?? 'Group');
   return element(local, [name, ...ref, ...transform, ...overrides], children);
@@ -816,7 +818,14 @@ function styleExpression(emission: Emission, style: GodotControlDomPlan['style']
           ? literal(value)
           : 'fontFamily' in value
             ? { kind: 'property-expression' as const, object: familyResourceValue(emission.family, value.fontFamily), property: 'family' }
-            : // Shown only on a touch screen (`DisplayServer.is_touchscreen_available`).
+            : 'tint' in value
+              ? // A tint (`canvas-item.ts`'s SVG colour matrix).
+                {
+                  kind: 'call-expression' as const,
+                  callee: { kind: 'identifier-expression' as const, name: useCompat(emission, 'canvas-item', 'godot_canvas_item_css_tint') },
+                  arguments: value.tint.map((channel) => literal(channel)),
+                }
+              : // Shown only on a touch screen (`DisplayServer.is_touchscreen_available`).
               {
                 kind: 'conditional-expression' as const,
                 condition: { kind: 'call-expression' as const, callee: { kind: 'identifier-expression' as const, name: useCompat(emission, 'display-server', 'is_touchscreen_available') }, arguments: [] },

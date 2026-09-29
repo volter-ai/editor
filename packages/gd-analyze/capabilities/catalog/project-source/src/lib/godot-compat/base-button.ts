@@ -88,10 +88,69 @@ export function godot_base_button_toggle(event: { readonly currentTarget: EventT
   (SIGNALS.get(element)?.get('toggled') as SignalHandle<[boolean]> | undefined)?.emit(next);
 }
 
-/** A texture button's texture for its pressed state. */
-function drawPressed(element: HTMLElement, pressed: boolean): void {
-  const texture = pressed ? element.dataset['texturePressed'] : element.dataset['textureNormal'];
-  if (texture !== undefined) element.style.backgroundImage = texture === 'none' ? '' : texture;
+/** A texture button's texture for its state: pressed, else hovered, else normal (`TextureButton::_notification`). */
+function drawPressed(element: HTMLElement, toggled: boolean): void {
+  const pressed = toggled || element.dataset['held'] === 'true';
+  const hovered = element.dataset['hovered'] === 'true';
+  const texture = (pressed ? element.dataset['texturePressed'] : undefined) ?? (hovered ? element.dataset['textureHover'] : undefined) ?? element.dataset['textureNormal'];
+  // The focused texture over the rest while the button has focus.
+  const focused = element.dataset['focused'] === 'true' ? element.dataset['textureFocused'] : undefined;
+  const layers = [focused, texture].filter((layer): layer is string => layer !== undefined && layer !== 'none');
+  if (texture !== undefined || focused !== undefined) element.style.backgroundImage = layers.join(', ');
+}
+
+/**
+ * A pointer holding a (non-toggle) texture button down or letting go: its pressed texture drawn
+ * while it is held (`BaseButton::is_pressed` during the press).
+ *
+ * @godot BaseButton (protocol)
+ * @source scene/gui/base_button.cpp:97
+ */
+export function godot_base_button_hold(event: { readonly currentTarget: EventTarget | null }, held: boolean): void {
+  const element = event.currentTarget as HTMLElement | null;
+  if (element === null) return;
+  element.dataset['held'] = String(held);
+  drawPressed(element, element.getAttribute('aria-pressed') === 'true');
+}
+
+/**
+ * The pointer leaving a texture button: no longer over it, nor holding it.
+ *
+ * @godot BaseButton (protocol)
+ * @source scene/gui/base_button.cpp:74
+ */
+export function godot_base_button_leave(event: { readonly currentTarget: EventTarget | null }): void {
+  const element = event.currentTarget as HTMLElement | null;
+  if (element === null) return;
+  element.dataset['held'] = 'false';
+  element.dataset['hovered'] = 'false';
+  drawPressed(element, element.getAttribute('aria-pressed') === 'true');
+}
+
+/**
+ * A texture button taking or losing the page's focus: its focused texture drawn over the rest.
+ *
+ * @godot BaseButton (protocol)
+ * @source scene/gui/texture_button.cpp:230
+ */
+export function godot_base_button_focus(event: { readonly currentTarget: EventTarget | null }, focused: boolean): void {
+  const element = event.currentTarget as HTMLElement | null;
+  if (element === null) return;
+  element.dataset['focused'] = String(focused);
+  drawPressed(element, element.getAttribute('aria-pressed') === 'true');
+}
+
+/**
+ * The pointer entering or leaving a texture button: its hover texture drawn while it is over it.
+ *
+ * @godot BaseButton (protocol)
+ * @source scene/gui/base_button.cpp:74
+ */
+export function godot_base_button_hover(event: { readonly currentTarget: EventTarget | null }, entering: boolean): void {
+  const element = event.currentTarget as HTMLElement | null;
+  if (element === null) return;
+  element.dataset['hovered'] = String(entering);
+  drawPressed(element, element.getAttribute('aria-pressed') === 'true');
 }
 
 /**

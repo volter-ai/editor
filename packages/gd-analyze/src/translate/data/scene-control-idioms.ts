@@ -17,9 +17,10 @@ type DomForm = Extract<GodotSceneNodeIdiomForm, { readonly kind: 'dom' }>;
 
 /**
  * A style value: CSS as written, a font resource's family (`font.ts`), which the scene reads from
- * the resource, or `display` shown only on a touch screen (`DisplayServer.is_touchscreen_available`).
+ * the resource, `display` shown only on a touch screen (`DisplayServer.is_touchscreen_available`),
+ * or a `filter` tinting the element by a colour (`canvas-item.ts`'s SVG colour matrix).
  */
-export type GodotControlStyleValue = string | number | { readonly fontFamily: string } | { readonly touchscreenOnly: true };
+export type GodotControlStyleValue = string | number | { readonly fontFamily: string } | { readonly touchscreenOnly: true } | { readonly tint: readonly [number, number, number] };
 
 /** The element a Control renders, as the plan computes it. */
 export interface GodotControlDomPlan {
@@ -170,20 +171,27 @@ function canvasItemStyle(stated: Stated, style: Record<string, GodotControlStyle
   // `visible` hides the element once its layout is known (`godotControlDom`).
   stated.get('visible');
   // `modulate` multiplies the item and its children, `self_modulate` the item alone: the page's
-  // opacity; a colour tint has no CSS of its own and is refused.
+  // opacity and, for a colour, a tint of the element (the two multiplied, as the page cannot tint
+  // an element apart from its children).
+  const tint = [1, 1, 1, 1];
   for (const name of ownColor ? ['modulate'] : ['modulate', 'self_modulate']) {
     const color = stated.components(name);
     if (color === undefined) continue;
-    const [r = 1, g = 1, b = 1, a = 1] = color;
-    if (r !== 1 || g !== 1 || b !== 1) throw new Error(`a Control's ${name} tint has no CSS form`);
-    if (a !== 1) style['opacity'] = Math.round(a * 1000) / 1000;
+    color.forEach((channel, index) => {
+      tint[index] = (tint[index] as number) * channel;
+    });
   }
+  const [r = 1, g = 1, b = 1, a = 1] = tint;
+  if (a !== 1) style['opacity'] = Math.round(a * 1000) / 1000;
+  if (r !== 1 || g !== 1 || b !== 1) style['filter'] = { tint: [r, g, b] };
   const z = stated.number('z_index', 0);
   if (z !== 0) style['zIndex'] = z;
   stated.bool('z_as_relative', true);
   // A texture filter or repeat changes how an image is sampled: the page's own image rendering.
   const filter = stated.number('texture_filter', 0);
   if (filter === 1 || filter === 3 || filter === 5) style['imageRendering'] = 'pixelated';
+  // Repeat is a TextureRect's tiling (`stretch_mode`), which its background repeats by.
+  stated.number('texture_repeat', 0);
 }
 
 /** The anchors and offsets of a Control its parent does not place: an absolutely placed box. */
@@ -244,6 +252,11 @@ function placedStyle(stated: Stated, layout: DomForm['layout'], style: Record<st
     const across = layout === 'row' ? vertical : horizontal;
     style['flex'] = (along & SIZE_EXPAND) !== 0 ? `${String(ratio)} 1 0` : '0 0 auto';
     style['alignSelf'] = align(across);
+  } else if (layout === 'grid') {
+    // A grid's cell: its flags align it in the cell.
+    style['justifySelf'] = align(horizontal);
+    style['alignSelf'] = align(vertical);
+    stated.get('size_flags_stretch_ratio');
   } else {
     // A stack (MarginContainer, PanelContainer, CenterContainer): every child in the one cell.
     style['gridArea'] = '1 / 1';
@@ -305,8 +318,30 @@ function styleBoxLineStyle(resource: TargetGodotSceneResourcePlan, style: Record
  * GradientTexture2D's gradient, a CanvasTexture without an image as Godot's white texel) and its
  * pixel size.
  */
-function textureImage(resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>, key: string): { readonly image: string; readonly size?: readonly [number, number] } {
+function textureImage(
+  resources: ReadonlyMap<string, TargetGodotSceneResourcePlan>,
+  key: string,
+): { readonly image: string; readonly size?: readonly [number, number]; readonly crop?: { readonly backgroundSize: string; readonly backgroundPosition: string } } {
   const resource = resources.get(key);
+  // An AtlasTexture: its region of its atlas's image, the background scaled so the region fills the
+  // box and placed at the region (`AtlasTexture::draw_rect`).
+  const atlasKey = resource === undefined ? undefined : new Stated(resource.setters).resource('atlas');
+  if (resource !== undefined && atlasKey !== undefined) {
+    const own = new Stated(resource.setters);
+    own.resource('atlas');
+    const atlas = textureImage(resources, atlasKey);
+    const [x = 0, y = 0, w = 0, h = 0] = own.components('region') ?? [];
+    own.bool('filter_clip', false);
+    if (own.components('margin')?.some((value) => value !== 0) === true) throw new Error('an AtlasTexture\'s margin has no CSS form');
+    if (atlas.size === undefined || w <= 0 || h <= 0) throw new Error('an AtlasTexture\'s region of an image of no known size has no CSS form');
+    const [aw, ah] = atlas.size;
+    const percent = (value: number) => `${String(Math.round(value * 100000) / 1000)}%`;
+    return {
+      image: atlas.image,
+      size: [w, h],
+      crop: { backgroundSize: `${percent(aw / w)} ${percent(ah / h)}`, backgroundPosition: `${aw === w ? '0%' : percent(x / (aw - w))} ${ah === h ? '0%' : percent(y / (ah - h))}` },
+    };
+  }
   if (resource?.load !== undefined) return { image: `url("${godotImportedAssetUrl(resource.load.sourceResPath)}")`, ...(resource.load.size === undefined ? {} : { size: resource.load.size }) };
   if (resource !== undefined && resource.setters.some((entry) => entry.propertyName === 'gradient')) return gradientImage(resources, resource);
   if (resource !== undefined && resource.setters.every((entry) => entry.propertyName !== 'diffuse_texture') && resource.className === 'CanvasTexture') {
@@ -548,6 +583,7 @@ function content(
       const texture = stated.resource('texture');
       const drawn = texture === undefined ? undefined : textureImage(resources, texture);
       if (drawn !== undefined) style['backgroundImage'] = drawn.image;
+      if (drawn?.crop !== undefined && ![0, 4, 5].includes(stated.number('stretch_mode', 0))) throw new Error('an AtlasTexture drawn by a TextureRect stretch mode other than scale or keep aspect has no CSS form');
       // `EXPAND_KEEP_SIZE`: the texture's size is the least the box takes (`TextureRect::get_minimum_size`).
       if (stated.number('expand_mode', 0) === 0 && drawn?.size !== undefined) {
         style['minWidth'] ??= px(drawn.size[0]);
@@ -557,6 +593,10 @@ function content(
       style['backgroundRepeat'] = mode === 1 ? 'repeat' : 'no-repeat';
       style['backgroundSize'] = mode === 0 ? '100% 100%' : mode === 4 || mode === 5 ? 'contain' : mode === 6 ? 'cover' : 'auto';
       style['backgroundPosition'] = mode === 3 || mode === 5 || mode === 6 ? 'center' : 'left top';
+      if (drawn?.crop !== undefined) {
+        style['backgroundSize'] = drawn.crop.backgroundSize;
+        style['backgroundPosition'] = drawn.crop.backgroundPosition;
+      }
       const flips = [stated.bool('flip_h', false) ? 'scaleX(-1)' : '', stated.bool('flip_v', false) ? 'scaleY(-1)' : ''].filter((entry) => entry !== '');
       if (flips.length > 0) style['transform'] = flips.join(' ');
       return {};
@@ -565,8 +605,20 @@ function content(
       const texture = stated.resource('texture_normal');
       const normal = texture === undefined ? undefined : textureImage(resources, texture);
       if (normal !== undefined) style['backgroundImage'] = normal.image;
-      for (const name of ['texture_hover', 'texture_disabled', 'texture_focused', 'texture_click_mask']) {
+      for (const name of ['texture_disabled', 'texture_click_mask']) {
         if (stated.resource(name) !== undefined) throw new Error(`TextureButton's ${name} has no CSS form`);
+      }
+      // Its hover texture, drawn while the pointer is over it, and its focused texture, drawn over
+      // the rest while it has the page's focus (`base-button.ts`).
+      const hoverTexture = stated.resource('texture_hover');
+      if (hoverTexture !== undefined) {
+        attributes['data-texture-normal'] = normal?.image ?? 'none';
+        attributes['data-texture-hover'] = textureImage(resources, hoverTexture).image;
+      }
+      const focusedTexture = stated.resource('texture_focused');
+      if (focusedTexture !== undefined) {
+        attributes['data-texture-normal'] = normal?.image ?? 'none';
+        attributes['data-texture-focused'] = textureImage(resources, focusedTexture).image;
       }
       // A toggle button's pressed texture, which the button swaps in while it is pressed (`base-button.ts`).
       const pressedTexture = stated.resource('texture_pressed');
@@ -582,12 +634,29 @@ function content(
         style['minWidth'] ??= px(normal.size[0]);
         style['minHeight'] ??= px(normal.size[1]);
       }
-      if (pressedTexture !== undefined && !stated.bool('toggle_mode', false)) throw new Error('a TextureButton\'s texture_pressed outside toggle mode has no CSS form');
       style['border'] = 'none';
       style['padding'] = 0;
       style['backgroundColor'] = 'transparent';
       style['cursor'] = 'pointer';
-      return { ...buttonEvents(stated, attributes, resources) };
+      const pressing = buttonEvents(stated, attributes, resources).events ?? {};
+      const hovering = hoverTexture === undefined ? {} : {
+        onPointerEnter: { module: 'base-button', exportName: 'godot_base_button_hover', args: [true], event: true as const },
+        onPointerLeave: { module: 'base-button', exportName: 'godot_base_button_hover', args: [false], event: true as const },
+      };
+      // Outside toggle mode, the pressed texture is drawn while a pointer holds the button down.
+      const holding = pressedTexture === undefined || stated.bool('toggle_mode', false) ? {} : {
+        onPointerDown: { module: 'base-button', exportName: 'godot_base_button_hold', args: [true], event: true as const },
+        onPointerUp: { module: 'base-button', exportName: 'godot_base_button_hold', args: [false], event: true as const },
+        onPointerCancel: { module: 'base-button', exportName: 'godot_base_button_hold', args: [false], event: true as const },
+      };
+      const focusing = focusedTexture === undefined ? {} : {
+        onFocus: { module: 'base-button', exportName: 'godot_base_button_focus', args: [true], event: true as const },
+        onBlur: { module: 'base-button', exportName: 'godot_base_button_focus', args: [false], event: true as const },
+      };
+      // Leaving the button lets go of its hold too.
+      const leaving = 'onPointerLeave' in hovering && 'onPointerDown' in holding ? { onPointerLeave: { module: 'base-button', exportName: 'godot_base_button_leave', args: [], event: true as const } } : {};
+      const events = { ...pressing, ...hovering, ...holding, ...focusing, ...leaving };
+      return Object.keys(events).length === 0 ? {} : { events };
     }
     case 'progress': {
       // TextureProgressBar filling left to right (`FILL_LEFT_TO_RIGHT`): its under texture, its
@@ -772,6 +841,21 @@ function containerStyle(form: DomForm, stated: Stated, resources: ReadonlyMap<st
       style['justifyContent'] = alignment === 1 ? 'center' : alignment === 2 ? 'flex-end' : 'flex-start';
       return;
     }
+    case 'grid': {
+      // GridContainer: its children in rows of `columns` cells, each column as wide as its widest
+      // child and each row as tall as its tallest (`GridContainer::_notification`), `h_separation`
+      // and `v_separation` apart; a column or row of expanding children shares the room left.
+      style['display'] = 'grid';
+      const columns = stated.number('columns', 1);
+      style['gridTemplateColumns'] = `repeat(${String(columns)}, auto)`;
+      const h = override(stated, 'constants', 'h_separation');
+      const v = override(stated, 'constants', 'v_separation');
+      style['columnGap'] = px(h?.kind === 'number' ? h.value : THEME.separation);
+      style['rowGap'] = px(v?.kind === 'number' ? v.value : THEME.separation);
+      style['alignContent'] = 'start';
+      style['justifyContent'] = 'start';
+      return;
+    }
     case 'stack':
     case 'center': {
       style['display'] = 'grid';
@@ -898,7 +982,7 @@ export function godotControlDom(
   const data = domData(node, true);
   // A hidden Control keeps the display its layout gives it for when it is shown (`canvas-item.ts`).
   if (!stated.bool('visible', true)) {
-    const display = form.layout === 'row' || form.layout === 'column' || form.content === 'text' || form.content === 'button' || form.content === 'check' || form.content === 'separator' ? 'flex' : form.layout === 'stack' || form.layout === 'center' ? 'grid' : '';
+    const display = form.layout === 'row' || form.layout === 'column' || form.content === 'text' || form.content === 'button' || form.content === 'check' || form.content === 'separator' ? 'flex' : form.layout === 'stack' || form.layout === 'center' || form.layout === 'grid' ? 'grid' : '';
     if (display !== '') data['display'] = display;
     style['display'] = 'none';
   }
@@ -907,6 +991,7 @@ export function godotControlDom(
 
 /** The scenes with each Control's element planned (`dom`); a Control with no CSS form refuses its scene by name. */
 export function planGodotSceneControls(scenes: readonly SceneWithoutRefs[], refuse: (at: string, message: string) => void): SceneWithoutRefs[] {
+  const bySource = new Map(scenes.map((scene) => [scene.sourceResPath, scene] as const));
   return scenes.map((scene) => {
     const resources = new Map(scene.resources.map((resource) => [resource.key, resource] as const));
     const stamp = (node: DirectGodotSceneNodePlan, parentLayout: DomForm['layout'] | undefined): DirectGodotSceneNodePlan => {
@@ -914,8 +999,8 @@ export function planGodotSceneControls(scenes: readonly SceneWithoutRefs[], refu
       const among = parentLayout !== undefined && node.idiom?.form.kind !== 'dom' ? node.idiom?.amongControls : undefined;
       const form = among ?? node.idiom?.form;
       const dom = form?.kind === 'dom' && node.instance === undefined ? form : undefined;
-      const layout = dom?.layout;
       let planned: GodotControlDomPlan | undefined;
+      const layout = dom?.layout;
       if (dom !== undefined) {
         try {
           planned = godotControlDom(node, dom, parentLayout, resources);
@@ -923,10 +1008,22 @@ export function planGodotSceneControls(scenes: readonly SceneWithoutRefs[], refu
           refuse(`${scene.sourceResPath}#${node.nodePath}`, error instanceof Error ? error.message : String(error));
         }
       }
-      // An instance of a Control scene takes its root's element as it is: an override of the root's
-      // properties is not carried into it.
-      if (node.instance !== undefined && node.instanceOf?.rootIdiom?.form.kind === 'dom' && node.instanceOf.changed.length > 0) {
-        refuse(`${scene.sourceResPath}#${node.nodePath}`, `the instance's ${node.instanceOf.changed.map((entry) => entry.propertyName).join(', ')} on a Control scene's root is not carried`);
+      // An instance of a Control scene that overrides its root's properties or that a container
+      // places: the root's element with the instance's style, its root's properties and the
+      // instance's over them, placed as the instance is (its element's `style` replaces the root's own).
+      const rootForm = node.instanceOf?.rootIdiom?.form;
+      if (node.instance !== undefined && rootForm?.kind === 'dom' && node.instanceOf !== undefined && (node.instanceOf.changed.length > 0 || (parentLayout !== undefined && parentLayout !== 'none'))) {
+        const root = bySource.get(node.instance.sourceResPath)?.root;
+        if (root === undefined) refuse(`${scene.sourceResPath}#${node.nodePath}`, 'the instanced Control scene is not planned');
+        else {
+          const changed = new Set(node.instanceOf.changed.map((entry) => entry.propertyName));
+          const merged = [...root.setters.filter((entry) => !changed.has(entry.propertyName)), ...node.instanceOf.changed];
+          try {
+            planned = godotControlDom({ ...root, setters: merged }, rootForm, parentLayout, new Map([...(bySource.get(node.instance.sourceResPath)?.resources ?? []).map((resource) => [resource.key, resource] as const), ...resources]));
+          } catch (error) {
+            refuse(`${scene.sourceResPath}#${node.nodePath}`, error instanceof Error ? error.message : String(error));
+          }
+        }
       }
       // A non-Control under a Control has no element to hang from.
       if (form?.kind === 'dom') {

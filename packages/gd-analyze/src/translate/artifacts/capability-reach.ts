@@ -105,6 +105,8 @@ function nodeModules(node: DirectGodotSceneNodePlan): readonly string[] {
       for (const call of Object.values(node.dom?.events ?? {})) modules.push(call.module);
       // A touch-only element asks the display server (`display-server.ts`).
       if (Object.values(node.dom?.style ?? {}).some((value) => typeof value === 'object' && 'touchscreenOnly' in value)) modules.push('display-server');
+      // A tinted element's filter (`canvas-item.ts`).
+      if (Object.values(node.dom?.style ?? {}).some((value) => typeof value === 'object' && 'tint' in value)) modules.push('canvas-item');
       break;
     case 'body':
       if (form.sensor) modules.push('area-3d');

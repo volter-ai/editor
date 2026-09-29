@@ -49,7 +49,7 @@ export type GodotSceneNodeIdiomForm =
       readonly kind: 'dom';
       readonly module: string;
       readonly tag: 'div' | 'button' | 'label' | 'input';
-      readonly layout: 'none' | 'row' | 'column' | 'stack' | 'center';
+      readonly layout: 'none' | 'row' | 'column' | 'stack' | 'center' | 'grid';
       readonly content: 'none' | 'text' | 'button' | 'check' | 'range' | 'image' | 'texture-button' | 'progress' | 'separator' | 'touch' | 'color' | 'animations';
       readonly mouseFilter: 0 | 1 | 2;
       readonly panel?: true;
@@ -274,6 +274,7 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   PanelContainer: dom('control', 'div', 'stack', 'none', 0, ctor('PanelContainer', 'scene/gui/panel_container.cpp', 102), { panel: true }),
   HSeparator: dom('control', 'div', 'none', 'separator', 0, ctor('HSeparator', 'scene/gui/separator.cpp', 71)),
   CenterContainer: dom('control', 'div', 'center', 'none', 1, ctor('CenterContainer', 'scene/gui/center_container.h', 35)),
+  GridContainer: dom('control', 'div', 'grid', 'none', 1, ctor('GridContainer', 'scene/gui/grid_container.h', 35)),
   Label: dom('label', 'div', 'none', 'text', 2, ctor('Label', 'scene/gui/label.cpp', 1526)),
   TextureRect: dom('texture-rect', 'div', 'none', 'image', 1, ctor('TextureRect', 'scene/gui/texture_rect.cpp', 299)),
   Node2D: element('node-2d', 'Node2D', ctor('Node2D', 'scene/2d/node_2d.cpp', 519)),

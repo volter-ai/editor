@@ -18,9 +18,13 @@ import { godot_node_dom_host } from './node';
 import { godot_element_node } from './react-lifecycle';
 import { godot_window_stretch } from './window';
 
-/** The props an instancing scene hands a scene rooted in a Control: its name and its children. */
+/**
+ * The props an instancing scene hands a scene rooted in a Control: its name, its style where the
+ * instance places it (a container's child) or overrides it, and its children.
+ */
 export interface GodotControlRootProps {
   readonly 'data-name'?: string;
+  readonly style?: CSSProperties;
   readonly children?: ReactNode;
 }
 

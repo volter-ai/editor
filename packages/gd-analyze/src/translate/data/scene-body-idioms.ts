@@ -432,7 +432,8 @@ export function planGodotSceneBodies(scenes: readonly SceneWithoutRefs[], diagno
       // An instance's overrides on its root are a family element's props or a body's; any other
       // root has no form for them.
       const rootForm = instance?.rootIdiom?.form.kind;
-      if (instance !== undefined && instance.stated > 0 && rootForm !== 'element' && rootForm !== 'body') refuse(`overrides on an instanced ${instance.rootClass ?? 'root'} have no idiomatic form`);
+      // A Control scene's root takes the instance's overrides as its element's style (`scene-control-idioms.ts`).
+      if (instance !== undefined && instance.stated > 0 && rootForm !== 'element' && rootForm !== 'body' && rootForm !== 'dom') refuse(`overrides on an instanced ${instance.rootClass ?? 'root'} have no idiomatic form`);
       // A node the plan maps to no idiom (not an instance's or a model's, which their component or
       // the model's element draws) has no element.
       if (node.idiom === undefined && node.instance === undefined && node.model === undefined) refuse(`${node.classes[0] ?? 'a node'} has no idiomatic element`);

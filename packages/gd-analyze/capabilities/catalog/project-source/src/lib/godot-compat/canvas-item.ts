@@ -84,6 +84,17 @@ function entityOf(self: object): Object3D {
   return godot_node_entity(self) as Object3D;
 }
 
+/**
+ * The CSS filter tinting an element by a colour (a Control's `modulate`): an SVG colour matrix in
+ * the page, made once per colour.
+ *
+ * @godot CanvasItem (protocol)
+ * @source scene/main/canvas_item.cpp:575
+ */
+export function godot_canvas_item_css_tint(r: number, g: number, b: number): string {
+  return typeof document === 'undefined' || document.body === null ? '' : colorFilter(document.body, color(r, g, b, 1));
+}
+
 /** A Control's element (docs/GODOT.md "UI is React DOM"), whose own style is its CanvasItem state. */
 function domItem(self: object): HTMLElement | undefined {
   const entity = godot_node_entity(self) as unknown;
