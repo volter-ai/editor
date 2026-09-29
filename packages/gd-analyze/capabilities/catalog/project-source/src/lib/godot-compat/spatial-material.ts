@@ -6,8 +6,8 @@
  * `three-custom-shader-material` over `MeshStandardMaterial` (`MeshBasicMaterial` when `unshaded`),
  * its two stages the ones the translation lowered (`spatial-shader.ts`), its uniforms the shader's
  * defaults and then the material's parameters, kept current as they are set. The render modes are
- * the material's settings: `cull_*` its side, `blend_add` additive blending, `depth_draw_never` and
- * `depth_test_disabled` its depth, and a written `ALPHA` makes it transparent (Godot's transparent
+ * the material's settings: `cull_*` its side, `blend_add` additive blending, `depth_draw_never`,
+ * `depth_draw_always` and `depth_test_disabled` its depth, and a written `ALPHA` makes it transparent (Godot's transparent
  * pass, `scene/resources/material.cpp`, revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`).
  * `source_color` uniforms are converted from sRGB to linear, as Godot's are. `TIME` is the
  * `godot_TIME` uniform, which the scene sets from R3F's clock each frame.
@@ -129,7 +129,8 @@ export function godot_shader_material_three(material: ShaderMaterial): GodotSpat
     vertexColors: spatial.vertexColors,
     side: modes.has('cull_disabled') ? DoubleSide : modes.has('cull_front') ? BackSide : FrontSide,
     ...(modes.has('blend_add') ? { blending: AdditiveBlending } : {}),
-    depthWrite: !modes.has('depth_draw_never') && !spatial.transparent,
+    // A transparent material writes depth only with `depth_draw_always`.
+    depthWrite: !modes.has('depth_draw_never') && (!spatial.transparent || modes.has('depth_draw_always')),
     depthTest: !modes.has('depth_test_disabled'),
   });
   material.listeners.add((name, value) => {

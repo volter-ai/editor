@@ -457,6 +457,7 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
   if (shader.tree.renderModes.includes('ambient_light_disabled') && !unshaded) return 'render_mode ambient_light_disabled is not drawn';
   if (unshaded && fragment !== undefined && (fragment.builtins.has('NORMAL') || fragment.builtins.has('VIEW'))) return 'an unshaded fragment() reading NORMAL or VIEW is not lowered';
   const head = (lowered: typeof any) => [GODOT_SPATIAL_SHARED, lowered.varyings, ...lowered.uniforms.map((uniform) => uniform.declaration), lowered.functions].filter((part) => part !== '').join('\n\n');
+  const stages = { worldVertexCoords: shader.tree.renderModes.includes('world_vertex_coords'), vertexTangents: vertex?.builtins.has('TANGENT') === true || vertex?.builtins.has('BINORMAL') === true };
   return {
     mode: 'spatial',
     renderModes: shader.tree.renderModes,
@@ -464,8 +465,8 @@ function spatialShaderPlan(shader: Extract<GodotBoundShader, { readonly ok: true
     functions: '',
     entry: '',
     spatial: {
-      vertexShader: `${head(vertex ?? any)}\n\nvoid main() {\n${vertex === undefined ? GODOT_SPATIAL_DEFAULT_VERTEX : godotSpatialVertexStage(vertex.entry, vertex.builtins)}\n}`,
-      fragmentShader: `${head(fragment ?? any)}\n\nvoid main() {\n${fragment === undefined ? godotSpatialFragmentStage('', new Set()) : godotSpatialFragmentStage(fragment.entry, fragment.builtins)}\n}`,
+      vertexShader: `${head(vertex ?? any)}\n\nvoid main() {\n${vertex === undefined ? GODOT_SPATIAL_DEFAULT_VERTEX : godotSpatialVertexStage(vertex.entry, vertex.builtins, stages)}\n}`,
+      fragmentShader: `${head(fragment ?? any)}\n\nvoid main() {\n${fragment === undefined ? godotSpatialFragmentStage('', new Set()) : godotSpatialFragmentStage(fragment.entry, fragment.builtins, stages)}\n}`,
       transparent: fragment?.builtins.has('ALPHA') === true && fragment.builtins.has('ALPHA_SCISSOR_THRESHOLD') !== true,
       vertexColors: vertex?.builtins.has('COLOR') === true || fragment?.builtins.has('COLOR') === true,
     },
