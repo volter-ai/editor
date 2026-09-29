@@ -1,0 +1,6 @@
+[gd_scene format=3 uid="uid://bvqaib1h3jbde"]
+
+[ext_resource type="Script" uid="uid://d03q88bi68qt2" path="res://Parser/ParserTest.gd" id="1"]
+
+[node name="ParserTest" type="Node2D" unique_id=1311513350]
+script = ExtResource("1")

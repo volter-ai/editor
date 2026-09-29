@@ -1,0 +1,74 @@
+{
+  "id": "pong-with-gdscript",
+  "upstreams": [
+    {
+      "repo": "https://github.com/godotengine/godot-demo-projects",
+      "commit": "3e08537616661a5883831628decab4c526260289",
+      "branch": "master",
+      "upstream_path": "2d/pong",
+      "license": "MIT",
+      "license_file": "LICENSE.md",
+      "retrieved": "2026-09-28",
+      "vendored_into": ".",
+      "vendored_paths": [
+        "2d/pong",
+        "LICENSE.md"
+      ],
+      "note": "Pong with GDScript (2d/pong in godot-demo-projects), a Godot 4 analysis fixture. WHY THIS PIN: `master` head of godotengine/godot-demo-projects at retrieval (3e085376, committed 2026-09-29 00:43 +0200), the living Godot 4 demo set; project.godot reads config_version=5, config/features \"4.7\". Taken from a sparse, blobless clone of that single commit. ID: config/name \"Pong with GDScript\" kebab-cased; no collision. LICENSE: `2d/pong/` carries no license file of its own, so the repository-root LICENSE.md (verbatim MIT, Godot Engine contributors / Linietsky, Manzur) is vendored at the fixture root and is the `license_file`. The demo README carries no third-party terms. SECURITY (static read, nothing executed): no @tool script, no EditorPlugin, no OS.execute/create_process/shell_open, no network API (HTTPRequest/HTTPClient/TCP/UDP/WebSocket/ENet/WebRTC/JavaScriptBridge), no GDScript.new/set_source_code/Expression, no .gdextension/.gdnlib, no native blob (file(1) over every file: no Mach-O/ELF/PE), no C#. Cloned 2026-09-28 with `git -c core.hooksPath=/dev/null clone --depth 1`, no submodules; bytes vendored from `git cat-file blob` at the pin and re-read from disk, 0 mismatches. File modes are not carried (all staged 0644).",
+      "excluded_from_upstream": {
+        "rule": "The whole `2d/pong/` tree is vendored at the fixture root, plus the repository-root LICENSE.md. Excluded are the repository-root files outside every demo (listed); the other demo directories of the repository are out of scope, not exclusions.",
+        "why": "Nothing inside the Godot project is dropped unless listed; no `.godot/` cache, native binary, .gdextension or C# file is tracked in this demo. Exclusions:\n- repository-root tooling and docs outside the Godot project (.clang-format, .editorconfig, .gitattributes, .gitignore, .lycheeignore, CONTRIBUTING.md, README.md, file_format.sh); the root README's License section only restates LICENSE.md, which is vendored (8 files, 6,581 bytes)\n- repository chrome outside the Godot project: .github/ (CI workflows, web-export dist, issue templates, CODEOWNERS, dependabot) (12 files, 19,819 bytes)",
+        "file_count": 20,
+        "bytes": 26400,
+        "paths": [
+          ".clang-format",
+          ".editorconfig",
+          ".gitattributes",
+          ".github/CODEOWNERS",
+          ".github/ISSUE_TEMPLATE/bug-report.md",
+          ".github/ISSUE_TEMPLATE/feature---enhancement-request.md",
+          ".github/PULL_REQUEST_TEMPLATE.md",
+          ".github/dependabot.yml",
+          ".github/dist/.nojekyll",
+          ".github/dist/export_presets.cfg",
+          ".github/dist/footer.html",
+          ".github/dist/header.html",
+          ".github/workflows/check_urls.yml",
+          ".github/workflows/export_web.yml",
+          ".github/workflows/static_checks.yml",
+          ".gitignore",
+          ".lycheeignore",
+          "CONTRIBUTING.md",
+          "README.md",
+          "file_format.sh"
+        ]
+      }
+    }
+  ],
+  "vendored_file_count": 22,
+  "vendored_bytes": 17431,
+  "sha256_manifest": {
+    "LICENSE.md": "0339177149b474f7ff676d32218ecb3a8f2538955610023c3769763720d09e4c",
+    "README.md": "ccdff6c1ad255ddf1e694e5e411dc875a0f1dbccb6f430704c02eeac124413d1",
+    "ball.png": "efed0dd8e238732e852aab341533778280e7aead52bb4f88df541454d13effce",
+    "ball.png.import": "e256b960ee96e5daf8e9fd9332701fc7e592fbd4536c3c630ae36bede2283385",
+    "icon.webp": "77ad25739f25e29d991ca9ff675e8bda5dc003c6c42999de503a28d02edfa3b2",
+    "icon.webp.import": "639a12e4b150abd8be7217201b656a12fa2a6d26934e4fed780f21f8cebcc946",
+    "logic/ball.gd": "6815f48538b422961a7547d2d3bce74ecd07dda04419cd212f110170707e387f",
+    "logic/ball.gd.uid": "05d3e1f84a8c4a86b36dfe3aea3daac5ac93d9f05bf499ba079e2c3965bc2c97",
+    "logic/ceiling_floor.gd": "dac87afad82236b87d04283fa9676ad154a9220fc8143811d5b917a72d8356d3",
+    "logic/ceiling_floor.gd.uid": "6f3f083745e2e5608fc1e4d64c7646ba5ce514df95e1d19844ec832335189c35",
+    "logic/paddle.gd": "e7f7914e05276891c646f3b2f39c4e22c37690491fc6369e61d3e49b6ebe4341",
+    "logic/paddle.gd.uid": "a3f53fd852b335c50957e9ce9664917cb30177fd4472134cf9902c2689419f80",
+    "logic/wall.gd": "a847193f770058755a2c283b1ab1b93bd2dce9f719ee32d61852a784f39614bd",
+    "logic/wall.gd.uid": "d69fcb9063eb02d2b71bb746f2ac8890fe6509f26e481dfc62079ec3264dc55b",
+    "paddle.png": "222f254d40614425b3d3e16027056a0a8bee4ea8c2b55de2c513235b080db7bb",
+    "paddle.png.import": "96685572addda1b56bac127ed0fcfe92860f5fd956257919c6452258eef395f4",
+    "pong.tscn": "19797feb58a3ffd182c70df6f8a9c991ee7affbb7d391253c19fbd70fa721877",
+    "project.godot": "f2f3ae7226bef25762b089736353f67b59941e29d32ebccd34b7f637c3dd9731",
+    "screenshots/.gdignore": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+    "screenshots/pong.png": "4e4fb6735bead00cc524f671ff3e80e0a8dc70b56e23a4cfd9c0995b8cd82143",
+    "separator.png": "b6c1642261de44c1b876e0b74c8e27644282278322ca5eb8041e15e14ffd7d18",
+    "separator.png.import": "ae1a3174060de8a629d00c14e2c43a8510444fb8e5aaa6525df0b2e8f83d77fd"
+  }
+}

@@ -1,0 +1,20 @@
+[gd_resource type="Resource" script_class="Character" format=3 uid="uid://doo56slpsi3ke"]
+
+[ext_resource type="Script" uid="uid://bn4x58vdls101" path="res://Characters/Character.gd" id="1"]
+[ext_resource type="Texture2D" uid="uid://bpq0djo0dk6xd" path="res://Characters/Sophia/sophia_neutral.png" id="2"]
+[ext_resource type="Texture2D" uid="uid://clpe1mk5qsbqa" path="res://Characters/Sophia/sophia_happy.png" id="3"]
+[ext_resource type="Texture2D" uid="uid://j845kgqw7i6x" path="res://Characters/Sophia/sophia_angry.png" id="4"]
+[ext_resource type="Texture2D" uid="uid://d1802nlxqpsb0" path="res://Characters/Sophia/sophia_surprised.png" id="5"]
+[ext_resource type="Texture2D" uid="uid://do8y4rnvto7dh" path="res://Characters/Sophia/sophia_sad.png" id="6"]
+
+[resource]
+script = ExtResource("1")
+id = "sophia"
+display_name = "Sophia"
+images = {
+"angry": ExtResource("4"),
+"happy": ExtResource("3"),
+"neutral": ExtResource("2"),
+"sad": ExtResource("6"),
+"surprised": ExtResource("5")
+}

@@ -1,0 +1,13 @@
+[gd_scene format=3 uid="uid://cpv668ph8f7vp"]
+
+[ext_resource type="Script" uid="uid://dmhnnkvkcunse" path="res://Characters/CharacterDisplayer.gd" id="1"]
+
+[node name="CharacterDisplayer" type="Node2D" unique_id=2113599678]
+script = ExtResource("1")
+
+[node name="Left" type="Sprite2D" parent="." unique_id=1144140871]
+position = Vector2(330.836, 655.203)
+
+[node name="Right" type="Sprite2D" parent="." unique_id=513153900]
+position = Vector2(1592.01, 655.203)
+flip_h = true
