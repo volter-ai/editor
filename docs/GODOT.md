@@ -1255,9 +1255,17 @@ found exactly that. It is redone on the libraries:
   GPUParticles2D Pixi's particle container, and Camera2D the stage container's transform. A
   CanvasItemMaterial's blend is Pixi's `blendMode`, and a `canvas_item` shader is a Pixi `Filter`
   of the lowered GLSL, which also draws the wind sway the DOM canvas could not.
-- **2D physics is the editor's own 2D physics**, the one its Pixi game runtime already uses
-  (`packages/editor-game/src/runtime/pixi/`, `packages/game-runtime`), not a library the lane
-  picks. The hand-rolled SAT, integration and `move_and_slide` are deleted.
+- **2D physics is Matter.js** (owner, 2026-09-28: "the most popular for AI"), the 2D physics
+  engine the web writes most, stepped from the Pixi ticker as the 3D side steps Rapier from R3F.
+  A PhysicsBody2D is a `Matter.Body` whose shapes are its CollisionShape2Ds (rectangle, circle,
+  capsule as a chamfered rectangle, polygons as `Bodies.fromVertices`): StaticBody2D `isStatic`,
+  RigidBody2D a dynamic body with gravity from the project's settings, Area2D an `isSensor` body
+  whose `collisionStart`/`collisionEnd` events are `body_entered`/`body_exited`, and collision
+  layers and masks Matter's `collisionFilter` category and mask. CharacterBody2D is a kinematic
+  body whose `move_and_slide` is written on Matter's queries (`Query.collides` against the
+  motion, the normal removed from the remaining motion, floor by `up_direction` and
+  `floor_max_angle`), since Matter has no character controller. The hand-rolled SAT, integration
+  and `move_and_slide` over a module-wide object map are deleted.
 - **UI is React DOM.** A Control is an element its component renders (`<div>`, `<button>`,
   `<span>`), its anchors and container layout computed from Godot's rules into its style, and its
   signals React's own events.
