@@ -26,7 +26,7 @@ import { type GodotInputKind, can_process, godot_node_call_input, godot_node_ent
 import { construct as rect2, type Rect2 } from './rect2';
 import type { Vector2 } from './vector2';
 import { type GodotSignal, godot_object_signal } from './signal';
-import { get_size as subViewportSize } from './sub-viewport';
+import { get_size as subViewportSize, godot_sub_viewport_set_transparent } from './sub-viewport';
 import { affine_inverse, op_multiply as xform, type Transform2D } from './transform-2d';
 import { godot_window_has_size, godot_window_visible_size } from './window';
 
@@ -297,4 +297,34 @@ export function godot_viewport_attach_input(root: object): () => void {
  */
 export function size_changed(self: object): GodotSignal<[]> {
   return godot_object_signal<[]>(godot_node_entity(self), 'size_changed').signal;
+}
+
+/**
+ * @godot Viewport.set_transparent_background
+ * @source scene/main/viewport.cpp:1334
+ */
+export function set_transparent_background(self: object, enable: boolean): void {
+  godot_sub_viewport_set_transparent(self, enable);
+}
+
+/**
+ * Input reaches the page's one viewport: stored nowhere.
+ *
+ * @godot Viewport.set_handle_input_locally
+ * @source scene/main/viewport.cpp:3947
+ */
+export function set_handle_input_locally(self: object, enable: boolean): void {
+  void self;
+  void enable;
+}
+
+/**
+ * Multisampling is the page renderer's (`antialias`): stored nowhere.
+ *
+ * @godot Viewport.set_msaa_3d
+ * @source scene/main/viewport.cpp:3677
+ */
+export function set_msaa_3d(self: object, msaa: number): void {
+  void self;
+  void msaa;
 }

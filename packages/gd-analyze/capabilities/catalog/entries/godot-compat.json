@@ -141,6 +141,7 @@
     "src/lib/godot-compat/static-body-3d.ts",
     "src/lib/godot-compat/string.ts",
     "src/lib/godot-compat/string-name.ts",
+    "src/lib/godot-compat/sub-viewport-container.ts",
     "src/lib/godot-compat/sub-viewport.ts",
     "src/lib/godot-compat/texture-2d.ts",
     "src/lib/godot-compat/texture-rect.ts",

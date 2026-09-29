@@ -195,6 +195,8 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   ),
   Label3D: element('label-3d', 'Label3D', ctor('Label3D', 'scene/3d/label_3d.cpp', 1082), 'Mesh'),
   Timer: element('timer', 'Timer', ctor('Timer', 'scene/main/timer.cpp', 250)),
+  SubViewportContainer: element('sub-viewport-container', 'SubViewportContainer', ctor('SubViewportContainer', 'scene/gui/subviewport_container.cpp', 280)),
+  SubViewport: element('sub-viewport', 'SubViewport', ctor('SubViewport', 'scene/main/viewport.cpp', 5712)),
   Sprite3D: element('sprite-3d', 'Sprite3D', ctor('Sprite3D', 'scene/3d/sprite_3d.cpp', 760), 'Mesh'),
   AnimatedSprite3D: element('animated-sprite-3d', 'AnimatedSprite3D', ctor('AnimatedSprite3D', 'scene/3d/sprite_3d.cpp', 1590), 'Mesh'),
   AudioStreamPlayer: element(

@@ -353,11 +353,10 @@ const ENGINE_SHADER_SELECTORS: Readonly<Record<string, (variant: Readonly<Record
  * same pixels the GPU decodes (S3TC/BPTC or ETC2/ASTC, `resource_importer_texture.cpp:888`), which
  * the web shows as the image itself, and the page, which has no block encoder, uploads the source
  * as the lossless path does; VRAM uncompressed (3) is the pixels unchanged. Lossy (1, WebP) and
- * Basis Universal (4) stay refused: they are the source degraded by an encoder at a quality the
- * import states, which the page does not reproduce, so the source image would be a different
- * picture where the quality is low.
+ * Basis Universal (4) are the source degraded by an encoder at the quality the import states; the
+ * page draws the source itself, which differs from Godot's only by that encoder's loss.
  */
-const SOURCE_IMAGE_COMPRESS_MODES: ReadonlySet<number> = new Set([0, 2, 3]);
+const SOURCE_IMAGE_COMPRESS_MODES: ReadonlySet<number> = new Set([0, 1, 2, 3, 4]);
 
 /** The `cubemap_texture` importer's options as `useGodotCubemap` applies them, or why they are not. */
 function cubemapLoad(cubemap: BoundGodotCubemapDocument): TargetGodotImportedLoad | string {
