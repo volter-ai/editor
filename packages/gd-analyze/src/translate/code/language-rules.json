@@ -6278,19 +6278,6 @@
     {
       "source": {
         "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
-        "nodeKind": "FUNCTION",
-        "semanticKey": "function:instance:synchronous|annotations:[]",
-        "inputDatatypes": [],
-        "resultDatatype": ""
-      },
-      "target": {
-        "kind": "structural",
-        "construct": "function"
-      }
-    },
-    {
-      "source": {
-        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
         "nodeKind": "LAMBDA",
         "semanticKey": "lambda:coroutine|annotations:[]",
         "inputDatatypes": [
@@ -6301,6 +6288,309 @@
       "target": {
         "kind": "structural",
         "construct": "lambda"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:inferred:static|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:declared:static|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "member-identifier:STATIC_VARIABLE|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "BUILTIN:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "member-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:inferred:static|annotations:[]",
+        "inputDatatypes": [
+          "NATIVE:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:declared:static|annotations:[]",
+        "inputDatatypes": [
+          "NATIVE:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "member-identifier:STATIC_VARIABLE|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "NATIVE:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "member-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:inferred:static|annotations:[]",
+        "inputDatatypes": [
+          "ENUM:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:declared:static|annotations:[]",
+        "inputDatatypes": [
+          "ENUM:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "member-identifier:STATIC_VARIABLE|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "ENUM:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "member-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:inferred:static|annotations:[]",
+        "inputDatatypes": [
+          "CLASS:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:declared:static|annotations:[]",
+        "inputDatatypes": [
+          "CLASS:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "member-identifier:STATIC_VARIABLE|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "CLASS:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "member-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:declared:static|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:declared:static|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:class-static|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:declared:static:conversion|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "BUILTIN:float"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:class-static:conversion|annotations:[]",
+        "inputDatatypes": [
+          "BUILTIN:int",
+          "BUILTIN:float"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "VARIABLE",
+        "semanticKey": "variable:declared:static:conversion|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "variable"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "CONSTANT",
+        "semanticKey": "constant:declared:class-static:conversion|annotations:[]",
+        "inputDatatypes": [
+          "VARIANT:*",
+          "BUILTIN:*"
+        ],
+        "resultDatatype": ""
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "constant"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "bound-identifier:script-class|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "CLASS:meta:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "bound-identifier"
+      }
+    },
+    {
+      "source": {
+        "sourceRevision": "5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88",
+        "nodeKind": "IDENTIFIER",
+        "semanticKey": "bound-identifier:script-class|annotations:[]",
+        "inputDatatypes": [],
+        "resultDatatype": "SCRIPT:meta:*"
+      },
+      "target": {
+        "kind": "structural",
+        "construct": "bound-identifier"
       }
     }
   ],

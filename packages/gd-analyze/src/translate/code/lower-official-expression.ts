@@ -2561,6 +2561,19 @@ export function lowerOfficialExpression(
             return expression({ kind: 'literal-expression', value, span: span(context.script, node) }, rule);
           }
         }
+        // A global script class named as a value (`Chunk.calculate_block_uvs(...)`, a `class_name`
+        // the analyzer resolves through `ScriptServer`) is that script's generated class.
+        if (node.source === 'UNDEFINED_SOURCE' && node.datatype.metaType && (node.datatype.kind === 'CLASS' || node.datatype.kind === 'SCRIPT') && node.datatype.scriptPath !== '') {
+          const found = context.scriptClass?.(node.datatype.scriptPath);
+          if (found === undefined) return context.refuse(node, `${node.datatype.scriptPath} names no generated script class`);
+          return expression(
+            { kind: 'identifier-expression', name: found.name, span: span(context.script, node) },
+            [
+              ...context.structural(node, 'bound-identifier', [], 'bound-identifier:script-class'),
+              ...(found.module === undefined ? [] : [{ kind: 'project-import-requirement' as const, module: found.module, imported: found.name, local: found.name, typeOnly: false }]),
+            ],
+          );
+        }
         // GDScript's own constants (`PI`, `TAU`, `INF`, `NAN`) are their values.
         const language = node.source === 'UNDEFINED_SOURCE' ? godotLanguageConstant(node.name) : undefined;
         if (language !== undefined) {
