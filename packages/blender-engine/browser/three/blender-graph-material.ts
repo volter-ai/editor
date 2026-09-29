@@ -148,6 +148,30 @@ export function graphUvChannels(material: THREE.MeshPhysicalMaterial): number[] 
   return Object.values(bindings.get(material)?.channels ?? {});
 }
 
+/** Attributes a physical graph draw can read, including its pending program.
+ * Resident geometry retains many more authored layers than a shader consumes;
+ * only shader inputs count toward WebGL's vertex attribute limit. */
+export function graphDrawAttributes(material: THREE.Material, geometry: THREE.BufferGeometry): Set<string> {
+  const names = new Set(['position', 'normal', 'uv']);
+  if (geometry.hasAttribute('tangent')) names.add('tangent');
+  if (material.vertexColors) names.add('color');
+  if (!(material instanceof THREE.MeshPhysicalMaterial)) return names;
+  const channels = geometry.userData['blenderUvChannels'] as Record<string, number> | undefined;
+  const uv = (name: string) => {
+    const channel = name === '' ? 0 : (channels?.[name] ?? 9);
+    names.add(channel === 0 ? 'uv' : `uv${channel}`);
+  };
+  for (const texture of [material.map, material.roughnessMap, material.normalMap])
+    if (texture) uv((texture.userData['blenderUvName'] as string | undefined) ?? '');
+  for (const binding of [bindings.get(material), pendings.get(material)?.binding]) {
+    if (!binding) continue;
+    names.add('blenderOrco');
+    for (const name of binding.compiled.uvs) uv(name);
+    for (const name of binding.compiled.attributes) names.add(graphAttributeName(name));
+  }
+  return names;
+}
+
 /** The channel each named UV layer is in on `geometry` (a layer the mesh
  *  lacks reads zeros from channel 9, Blender's missing attribute). */
 function channelsFor(compiled: CompiledGraph, geometry: THREE.BufferGeometry): Record<string, number> {

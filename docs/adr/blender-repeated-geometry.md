@@ -29,6 +29,11 @@ draws and their existing shadow path. The material graph's world position and
 normal varyings include the instance transform; local/Generated/UV coordinates
 remain local to the source geometry.
 
+The vertex-attribute budget counts each material's actual shader inputs,
+including a pending graph program, plus the four instance matrix slots. All
+other authored channels stay resident. Counting every stored layer instead of
+active inputs unnecessarily excluded repeated geometry in the first candidate.
+
 The baseline is `stoneguard-diagnostics/review-c7-framecost.json`. A new hosted
 measurement and independent appearance/selection/edit review are required for
 this implementation; source batching counts alone are not a performance claim.

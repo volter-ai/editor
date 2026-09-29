@@ -2027,6 +2027,10 @@ export class BlenderRuntimeView {
     };
   }
 
+  drawStatistics() {
+    return this.instances.inspect();
+  }
+
   snapshot() {
     return this.frame;
   }

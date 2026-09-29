@@ -1,4 +1,5 @@
 import * as THREE from 'three';
+import { graphDrawAttributes } from './blender-graph-material';
 
 // Small spatial batches retain frustum rejection without duplicating geometry.
 const BATCH_SIZE = 64;
@@ -55,13 +56,13 @@ export class BlenderRuntimeInstances {
       if (!mesh.isMesh || (mesh as THREE.SkinnedMesh).isSkinnedMesh ||
           (mesh as THREE.InstancedMesh).isInstancedMesh || mesh.morphTargetInfluences ||
           mesh.layers.mask !== 1) continue;
-      // WebGL2 guarantees sixteen vertex attributes; the instance matrix uses
-      // four. Keep richly attributed meshes on the ordinary path rather than
-      // dropping UV/colour channels or risking a refused shader.
-      if (Object.values(mesh.geometry.attributes).reduce((count, attribute) => count + Math.ceil(attribute.itemSize / 4), 0) > 12) continue;
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       if (materials.some(m => m.transparent || (m as THREE.MeshPhysicalMaterial).transmission > 0 ||
           (m as THREE.ShaderMaterial).isShaderMaterial)) continue;
+      // Four slots for instanceMatrix, at most twelve for each actual program.
+      // Count active inputs, NOT every stored authored layer: retaining unused
+      // UVs/colours must not disable batching. No channel is deleted to fit.
+      if (materials.some(m => graphDrawAttributes(m, mesh.geometry).size > 12)) continue;
       this.matrix.multiplyMatrices(this.inverse, mesh.matrixWorld);
       if (!supported(this.matrix)) continue;
       const key = `${mesh.geometry.id}:${Array.isArray(mesh.material) ? 'slots' : 'single'}:` +

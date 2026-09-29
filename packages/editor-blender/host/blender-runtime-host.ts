@@ -1156,6 +1156,7 @@ export async function handleBlenderCommand(cmd: {
       data: {
         started: runtime?.project != null,
         document: host.documents.context(presentationDocumentId()) !== undefined,
+        instancing: runtime?.project != null ? (await runtimeView()).drawStatistics() : null,
         lastOutput: runtime?.lastOutput ?? [],
       },
     };
