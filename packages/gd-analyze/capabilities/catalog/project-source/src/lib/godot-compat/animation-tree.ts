@@ -6,21 +6,22 @@
  * (`scene/animation/animation_blend_tree.cpp`: `AnimationNodeBlendTree`, `AnimationNodeAnimation`,
  * `AnimationNodeBlend2`, `AnimationNodeAdd2`, `AnimationNodeTimeScale`, `AnimationNodeOneShot`,
  * `AnimationNodeOutput`; `scene/animation/animation_node_state_machine.cpp`: a root or nested
- * `AnimationNodeStateMachine` and its playback), revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`,
- * over compat's AnimationMixer: the tree takes its AnimationPlayer's libraries and root node, keeps
- * each node's parameters under `parameters/<path>/<name>`, and each process walks the root node
- * down to its animation nodes, which make the mixer's animation instances with per-track weights.
- * Deterministic, discrete tracks forced continuous (`AnimationTree::AnimationTree`). Over a glTF's
- * clips (a model's AnimationPlayer, `animation-clips.ts`) the same walk sets each clip's action: its
- * time where the walk put it, its weight the track weights the walk gave it, split into parts where
- * filters weigh its tracks apart; three's mixer averages where Godot's adds, so an Add2 over tracks
- * its first input also animates is averaged in. Not transcribed (they throw): grouped state machines,
- * advance expressions, blend spaces, transition nodes, sub nodes, custom timelines, ping-pong loops,
- * root motion, and fade and cross-fade curves.
+ * `AnimationNodeStateMachine` and its playback), revision `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`.
+ * The tree keeps each node's parameters under `parameters/<path>/<name>`. Over an animation library,
+ * compat's AnimationMixer plays it: the tree takes its AnimationPlayer's libraries and root node, and
+ * each process walks the root node down to its animation nodes, which make the mixer's animation
+ * instances with per-track weights (deterministic, discrete tracks forced continuous,
+ * `AnimationTree::AnimationTree`). Over a glTF's clips (a model's AnimationPlayer,
+ * `animation-clips.ts`), three's mixer plays it: each frame the tree is walked and sets its clips'
+ * actions' weights and speeds (`driveClips`), a state machine moving between its states and
+ * cross-fading them there. Not transcribed (they throw): state machines and Add2 over an animation
+ * library, grouped state machines, advance expressions, blend spaces, transition nodes, sub nodes,
+ * custom timelines, ping-pong loops, root motion, and fade and cross-fade curves.
  */
 
-import { godot_animation_clips_drive, godot_animation_clips_list, godot_animation_clips_loop, godot_animation_clips_of } from './animation-clips';
-import { AnimationClip, type AnimationAction, type AnimationMixer as ThreeAnimationMixer, Group, type KeyframeTrack, type Object3D } from 'three';
+import { godot_animation_clips_drive, godot_animation_clips_loop, godot_animation_clips_of } from './animation-clips';
+import { AnimationClip, type AnimationAction, Group, type KeyframeTrack, type Object3D } from 'three';
+import type { Animation } from './animation';
 import type { ReactElement } from 'react';
 import {
   type GodotAnimationPlaybackInfo,
@@ -49,10 +50,9 @@ import {
 import { get_name, get_node_or_null, get_parent, godot_is_native, godot_node_entity, godot_node_tree_signal, is_inside_tree } from './node';
 import {
   type AnimationNodeStateMachinePlayback,
-  construct as playback_new,
-  godot_node_time_info,
-  type GodotNodeTimeInfo,
-  godot_state_machine_playback_is_end,
+  godot_state_machine_playback_end_fade,
+  godot_state_machine_playback_enter,
+  godot_state_machine_playback_new,
 } from './animation-node-state-machine-playback';
 import { godot_message_queue_push } from './object';
 import { type GodotElementProp, type GodotElementProps, useGodotElement } from './react-lifecycle';
@@ -335,7 +335,7 @@ function parametersOf(node: AnimationNode): [string, GodotAnimationTreeValue][] 
   // playback, then its transitions' advance conditions, sorted.
   if (node.kind === 'state-machine') {
     const conditions = [...new Set(node.transitions.map((entry) => entry.transition.advanceConditionName).filter((name) => name !== ''))].sort();
-    return [...core, ['playback', playback_new()], ...conditions.map((name): [string, GodotAnimationTreeValue] => [name, false])];
+    return [...core, ['playback', godot_state_machine_playback_new(node)], ...conditions.map((name): [string, GodotAnimationTreeValue] => [name, false])];
   }
   if (node.kind === 'time-scale') return [...core, ['scale', 1]];
   // `AnimationNodeOneShot::get_parameter_list` (`animation_blend_tree.cpp:423`).
@@ -353,12 +353,18 @@ interface Instance {
   connections: (Instance | undefined)[];
   trackWeights: number[];
   blended: boolean;
-  /** An animation node's animation, found once (`_update_animation_cache`, `animation_blend_tree.cpp:417`): a resource's, or a glTF clip's. */
-  cachedAnimation: { readonly length: number; readonly loop_mode: number; readonly clip: boolean } | undefined;
+  /** An animation node's animation, found once (`_update_animation_cache`, `animation_blend_tree.cpp:417`). */
+  cachedAnimation: Animation | undefined;
 }
 
-type NodeTimeInfo = GodotNodeTimeInfo;
-const noTime = godot_node_time_info;
+interface NodeTimeInfo {
+  length: number;
+  position: number;
+  delta: number;
+  loopMode: number;
+  willEnd: boolean;
+}
+const noTime = (): NodeTimeInfo => ({ length: 0, position: 0, delta: 0, loopMode: LOOP_NONE, willEnd: false });
 
 interface ProcessState {
   valid: boolean;
@@ -376,8 +382,6 @@ interface TreeState {
   started: boolean;
   readonly animationPlayerChanged: SignalHandle<[]>;
   playerHooked: object | undefined;
-  /** The glTF clips the tree drives, where its player is a model's (`driveClips`). */
-  clips: ClipDrive | undefined;
 }
 
 const TREES = new WeakMap<object, TreeState>();
@@ -444,7 +448,7 @@ function blendNode(state: TreeState, ps: ProcessState, instance: Instance, other
   const weight = f32(info.weight);
   let anyValid = false;
   const node = instance.node;
-  if ((node.kind === 'blend2' || node.kind === 'add2' || node.kind === 'one-shot') && node.filterEnabled && filter !== FILTER_IGNORE) {
+  if ((node.kind === 'blend2' || node.kind === 'one-shot') && node.filterEnabled && filter !== FILTER_IGNORE) {
     for (let i = 0; i < count; i += 1) w[i] = 0;
     for (const path of node.filters) {
       const index = ps.trackMap.get(path);
@@ -522,33 +526,24 @@ function processNode(state: TreeState, ps: ProcessState, instance: Instance, inf
       const nti1 = blendInput(state, ps, instance, 1, { ...info, weight: amount }, FILTER_PASS, node.sync, testOnly);
       return amount > 0.5 ? nti1 : nti0;
     }
-    case 'add2': {
-      // `AnimationNodeAdd2::_process` (`animation_blend_tree.cpp:817`).
-      const amount = parameter(instance, 'add_amount') as number;
-      const nti = blendInput(state, ps, instance, 0, { ...info, weight: 1 }, FILTER_IGNORE, node.sync, testOnly);
-      blendInput(state, ps, instance, 1, { ...info, weight: amount }, FILTER_PASS, node.sync, testOnly);
-      return nti;
-    }
     case 'one-shot':
       return processOneShot(state, ps, instance, node, info, testOnly);
     case 'animation':
       return processAnimation(state, ps, instance, node, info, testOnly);
+    // Over an animation library only the blend-tree nodes are transcribed; a state machine and an
+    // Add2 play a model's clips (`driveClips`).
+    case 'add2':
     case 'state-machine':
-      return processStateMachine(state, ps, instance, node, info, testOnly);
-    // `AnimationNode::_process`: a node that plays nothing.
     case 'start-state':
     case 'end-state':
-      return noTime();
+      throw new Error(`godot-compat: an AnimationTree's ${node.kind} over an animation library is not transcribed.`);
   }
 }
 
-/**
- * `NodeTimeInfo::get_remain` (`animation_tree.h:82`): a looping input never ends unless the loop
- * breaks, nor does a state machine whose end is not predicted.
- */
+/** `NodeTimeInfo::get_remain` (`animation_tree.h:82`): a looping input never ends unless the loop breaks. */
 function remainOf(nti: NodeTimeInfo, breakLoop: boolean): number {
   const looping = nti.loopMode !== LOOP_NONE;
-  if ((looping && !breakLoop) || nti.infinity) return 31540000;
+  if (looping && !breakLoop) return 31540000;
   if (looping && breakLoop && nti.willEnd) return 0;
   const remain = nti.length - nti.position;
   return isZeroApprox(remain) ? 0 : remain;
@@ -664,338 +659,11 @@ function processOneShot(state: TreeState, ps: ProcessState, instance: Instance, 
   return curInternalActive ? osNti : mainNti;
 }
 
-/** `SwitchMode`, `AdvanceMode` (`animation_node_state_machine.h:41`) and `STATE_MACHINE_TYPE_NESTED`. */
-const SWITCH_MODE_SYNC = 1;
-const SWITCH_MODE_AT_END = 2;
-const ADVANCE_MODE_DISABLED = 0;
-const ADVANCE_MODE_AUTO = 2;
-const STATE_MACHINE_TYPE_NESTED = 1;
-
-/** `NextInfo` (`animation_node_state_machine.h:208`). */
-interface NextInfo {
-  node: string;
-  xfade: number;
-  switchMode: number;
-  isReset: boolean;
-  breakLoopAtEnd: boolean;
-}
-
-/**
- * `AnimationNodeStateMachine::_process` (`animation_node_state_machine.cpp:1638`) and its playback's
- * `process` (`:708`): a test-only pass runs on a copy of the playback.
- */
-function processStateMachine(state: TreeState, ps: ProcessState, instance: Instance, machine: AnimationNodeStateMachine, info: GodotAnimationPlaybackInfo, testOnly: boolean): NodeTimeInfo {
-  const held = instance.parameters.get('playback')?.value;
-  if (typeof held !== 'object') return noTime();
-  const playback: AnimationNodeStateMachinePlayback = testOnly
-    ? { ...held, path: [...held.path], currentNti: { ...held.currentNti }, fadingFromNti: { ...held.fadingFromNti }, stateStarted: createSignal<[string]>(), stateFinished: createSignal<[string]>() }
-    : held;
-  const nti = playbackProcess(state, ps, instance, machine, playback, info, testOnly);
-  playback.startRequest = '';
-  playback.nextRequest = false;
-  playback.stopRequest = false;
-  playback.resetRequestOnTeleport = false;
-  return nti;
-}
-
-/** The playback's run of one process (`AnimationNodeStateMachinePlayback::_process`, `animation_node_state_machine.cpp:717`), for a root or nested machine. */
-function playbackProcess(
-  state: TreeState,
-  ps: ProcessState,
-  instance: Instance,
-  machine: AnimationNodeStateMachine,
-  pb: AnimationNodeStateMachinePlayback,
-  info: GodotAnimationPlaybackInfo,
-  testOnly: boolean,
-): NodeTimeInfo {
-  const states = machine.states;
-  // `blend_node` of a state under the machine (`AnimationNode::blend_node`, `animation_tree.cpp:160`).
-  const blendState = (name: string, pi: GodotAnimationPlaybackInfo, onlyTest: boolean): NodeTimeInfo => {
-    const child = instance.children.get(name);
-    return child === undefined ? noTime() : blendNode(state, ps, instance, child, pi, FILTER_IGNORE, true, onlyTest);
-  };
-  // `_set_current` (`:195`) and `_clear_fading` (`:357`), with their `state_started` and `state_finished`.
-  const setCurrent = (name: string): void => {
-    pb.current = name;
-    if (name !== '') pb.stateStarted.emit(name);
-  };
-  const clearFading = (name: string): void => {
-    if (name !== '') pb.stateFinished.emit(name);
-    pb.fadingFrom = '';
-    pb.fadingFromNti = noTime();
-  };
-  // `_start` (`:514`).
-  const startMachine = (): void => {
-    pb.playing = true;
-    setCurrent(pb.startRequest !== '' ? pb.startRequest : 'Start');
-    pb.teleportRequest = true;
-    pb.stopRequest = false;
-    pb.startRequest = '';
-  };
-  // `_make_travel_path` (`:544`): A* over the transitions not disabled, each costing the distance
-  // between its states' graph positions times its priority.
-  const makeTravelPath = (allowSelf: boolean): { readonly ok: boolean; readonly path: string[] } => {
-    const travelTo = pb.travelRequest;
-    pb.travelRequest = '';
-    if (!pb.playing) startMachine();
-    const at = (name: string) => states.get(name)?.position ?? ([0, 0] as const);
-    const distance = (a: readonly [number, number], b: readonly [number, number]) => f32(Math.hypot(a[0] - b[0], a[1] - b[1]));
-    if (!states.has(travelTo) || !states.has(pb.current)) return { ok: false, path: [] };
-    if (pb.current === travelTo) return { ok: !allowSelf, path: [] };
-    const currentPos = at(pb.current);
-    const targetPos = at(travelTo);
-    const transitions = machine.transitions;
-    let found = false;
-    const cost = new Map<string, { prev: string; distance: number }>();
-    const open: number[] = [];
-    for (let i = 0; i < transitions.length; i += 1) {
-      const t = transitions[i] as (typeof transitions)[number];
-      if (t.transition.advanceMode === ADVANCE_MODE_DISABLED || t.from !== pb.current) continue;
-      open.push(i);
-      cost.set(t.to, { prev: pb.current, distance: f32(distance(at(t.to), currentPos) * t.transition.priority) });
-      if (t.to === travelTo) {
-        found = true;
-        break;
-      }
-    }
-    while (!found && open.length > 0) {
-      let least = -1;
-      let leastCost = 1e20;
-      open.forEach((index, at_) => {
-        const to = (transitions[index] as (typeof transitions)[number]).to;
-        const total = f32((cost.get(to)?.distance ?? 0) + distance(at(to), targetPos));
-        if (total < leastCost) {
-          least = at_;
-          leastCost = total;
-        }
-      });
-      if (least < 0) break;
-      const chosen = transitions[open[least] as number] as (typeof transitions)[number];
-      for (const t of transitions) {
-        if (t.transition.advanceMode === ADVANCE_MODE_DISABLED) continue;
-        if (t.from !== chosen.to || t.to === chosen.from) continue;
-        const through = f32(f32(distance(at(t.from), at(t.to)) * t.transition.priority) + (cost.get(t.from)?.distance ?? 0));
-        const known = cost.get(t.to);
-        if (known !== undefined) {
-          if (through < known.distance) {
-            known.distance = through;
-            known.prev = t.from;
-          }
-        } else {
-          cost.set(t.to, { prev: t.from, distance: through });
-          open.push(transitions.indexOf(t));
-          if (t.to === travelTo) {
-            found = true;
-            break;
-          }
-        }
-      }
-      if (found) break;
-      open.splice(least, 1);
-    }
-    if (!found) return { ok: false, path: [] };
-    const path: string[] = [];
-    for (let step = travelTo; step !== pb.current; step = cost.get(step)?.prev ?? pb.current) path.push(step);
-    return { ok: true, path: path.reverse() };
-  };
-  // `_check_advance_condition` (`:1119`): an auto transition whose condition, if it has one, holds.
-  const advances = (transition: AnimationNodeStateMachineTransition): boolean =>
-    transition.advanceMode === ADVANCE_MODE_AUTO && (transition.advanceConditionName === '' || parameter(instance, transition.advanceConditionName) === true);
-  // `_find_next` (`:1066`): the path's next state, else the best-priority auto transition.
-  const findNext = (): NextInfo => {
-    const next: NextInfo = { node: '', xfade: 0, switchMode: 0, isReset: false, breakLoopAtEnd: false };
-    const take = (to: string, t: AnimationNodeStateMachineTransition) => {
-      next.node = to;
-      next.xfade = t.xfadeTime;
-      next.switchMode = t.switchMode;
-      next.isReset = t.reset;
-      next.breakLoopAtEnd = t.breakLoopAtEnd;
-    };
-    if (pb.path.length > 0) {
-      for (const t of machine.transitions) {
-        if (t.transition.advanceMode === ADVANCE_MODE_DISABLED) continue;
-        if (t.from === pb.current && t.to === pb.path[0]) take(t.to, t.transition);
-      }
-      return next;
-    }
-    let best: (typeof machine.transitions)[number] | undefined;
-    let priorityBest = 1e20;
-    for (const t of machine.transitions) {
-      if (t.transition.advanceMode === ADVANCE_MODE_DISABLED) continue;
-      if (t.from === pb.current && advances(t.transition) && t.transition.priority <= priorityBest) {
-        priorityBest = t.transition.priority;
-        best = t;
-      }
-    }
-    if (best !== undefined) take(best.to, best.transition);
-    return next;
-  };
-  // `_can_transition_to_next` (`:1006`).
-  const canTransitionToNext = (next: NextInfo): boolean => {
-    if (next.node === '') return false;
-    if (pb.nextRequest) {
-      pb.nextRequest = false;
-      return true;
-    }
-    if (pb.fadingFrom !== '') return false;
-    if (pb.current !== 'Start' && next.switchMode === SWITCH_MODE_AT_END) return lessOrEqual(remainOf(pb.currentNti, next.breakLoopAtEnd), next.xfade);
-    return true;
-  };
-  // `_transition_to_next_recursive` (`:922`): follows transitions until one fades.
-  const transitionToNext = (delta: number): boolean => {
-    pb.resetRequestForFadingFrom = false;
-    let pi: GodotAnimationPlaybackInfo = { time: 0, delta, start: 0, end: 0, seeked: false, isExternalSeeking: false, loopedFlag: LOOPED_FLAG_NONE, weight: 0 };
-    let next: NextInfo = { node: '', xfade: 0, switchMode: 0, isReset: false, breakLoopAtEnd: false };
-    const visited = [pb.current];
-    for (;;) {
-      next = findNext();
-      if (!canTransitionToNext(next)) break;
-      // A loop of transitions within one frame stops.
-      if (visited.includes(next.node)) break;
-      visited.push(next.node);
-      if (next.xfade) {
-        pb.fadingFrom = pb.current;
-        pb.fadingTime = next.xfade;
-        pb.fadingPos = 0;
-      } else {
-        if (pb.resetRequest) {
-          pi = { ...pi, time: 0, seeked: true, isExternalSeeking: false, weight: 0 };
-          blendState(pb.current, pi, testOnly);
-        }
-        clearFading(pb.current);
-        pb.fadingTime = 0;
-        pb.fadingPos = 0;
-      }
-      if (pb.path.length > 0) pb.path.shift();
-      setCurrent(next.node);
-      if (pb.current === 'End') break;
-      pb.resetRequestForFadingFrom = pb.resetRequest;
-      pb.resetRequest = next.isReset;
-      pb.fadingFromNti = { ...pb.currentNti };
-      if (next.switchMode === SWITCH_MODE_SYNC) {
-        pi = { ...pi, time: pb.currentNti.position, seeked: true, isExternalSeeking: false, weight: 0 };
-        blendState(pb.current, pi, testOnly);
-      }
-      // Only the next state's length, to find the one after it.
-      pi = { ...pi, time: 0, isExternalSeeking: false, weight: 0, seeked: next.isReset };
-      pb.currentNti = blendState(pb.current, pi, true);
-      if (pb.fadingTime) break;
-    }
-    return next.node === 'End';
-  };
-
-  const seek = info.seeked;
-  // A seek to 0 by the parent restarts the machine (a nested one resets its current state).
-  if (isZeroApprox(info.time) && seek && !info.isExternalSeeking) {
-    if (machine.type !== STATE_MACHINE_TYPE_NESTED || godot_state_machine_playback_is_end(pb) || !pb.playing) {
-      pb.path = [];
-      startMachine();
-      pb.resetRequest = true;
-    } else {
-      pb.resetRequest = true;
-      pb.teleportRequest = true;
-    }
-  }
-  if (pb.stopRequest) {
-    pb.startRequest = '';
-    pb.travelRequest = '';
-    pb.path = [];
-    pb.playing = false;
-    return noTime();
-  }
-  if (!pb.playing && pb.startRequest !== '' && pb.travelRequest !== '') return noTime();
-  if (pb.startRequest !== '') {
-    pb.path = [];
-    pb.startRequest = pb.startRequest.split('/')[0] as string;
-    // `No such node` (`:776`): the request stands and nothing plays.
-    if (!states.has(pb.startRequest)) return noTime();
-    startMachine();
-  }
-  if (pb.travelRequest !== '') {
-    const parts = pb.travelRequest.split('/');
-    pb.travelRequest = parts[0] as string;
-    const target = pb.travelRequest;
-    const made = makeTravelPath(parts.length <= 1 ? machine.allowTransitionToSelf : false);
-    if (made.ok) {
-      pb.path = made.path;
-    } else {
-      // No route: teleport.
-      if (!states.has(target)) return noTime();
-      pb.path = [];
-      if (pb.current !== target || pb.resetRequestOnTeleport) {
-        setCurrent(target);
-        pb.resetRequest = pb.resetRequestOnTeleport;
-        pb.teleportRequest = true;
-      }
-    }
-  }
-  if (pb.teleportRequest) {
-    pb.teleportRequest = false;
-    pb.fadingFrom = '';
-    pb.fadingFromNti = noTime();
-    pb.fadingPos = 0;
-    pb.currentNti = blendState(pb.current, { ...info, time: 0, seeked: true, isExternalSeeking: false, weight: 0 }, true);
-    transitionToNext(info.delta);
-  }
-  if (!states.has(pb.current)) {
-    pb.playing = false;
-    setCurrent('');
-    return noTime();
-  }
-  // `Start` and `End` weigh nothing unless the machine resets its ends.
-  const startOfGroup = !machine.resetEnds && pb.fadingFrom === 'Start';
-  const endOfGroup = !machine.resetEnds && pb.current === 'End';
-  // The cross-fade's blend.
-  let fadeBlend = 1;
-  if (pb.fadingTime && pb.fadingFrom !== '') {
-    if (!states.has(pb.fadingFrom)) {
-      pb.fadingFrom = '';
-    } else {
-      if (!seek) pb.fadingPos += Math.abs(info.delta);
-      fadeBlend = f32(Math.min(1, pb.fadingPos / pb.fadingTime));
-    }
-  }
-  fadeBlend = isZeroApproxF(fadeBlend) ? CMP_EPSILON : fadeBlend;
-  if (startOfGroup) fadeBlend = 1;
-  else if (endOfGroup) fadeBlend = 0;
-  let pi: GodotAnimationPlaybackInfo = { ...info, weight: fadeBlend };
-  if (pb.resetRequest) {
-    pb.resetRequest = false;
-    pi = { ...pi, time: 0, seeked: true };
-  }
-  pb.currentNti = blendState(pb.current, pi, testOnly);
-  if (pb.fadingFrom !== '') {
-    let inverse = 1 - fadeBlend;
-    inverse = isZeroApprox(inverse) ? CMP_EPSILON : inverse;
-    if (startOfGroup) inverse = 0;
-    else if (endOfGroup) inverse = 1;
-    pi = { ...info, weight: inverse };
-    if (pb.resetRequestForFadingFrom) {
-      pb.resetRequestForFadingFrom = false;
-      pi = { ...pi, time: 0, seeked: true };
-    }
-    pb.fadingFromNti = blendState(pb.fadingFrom, pi, testOnly);
-    if (greaterOrEqual(pb.fadingPos, pb.fadingTime)) clearFading(pb.fadingFrom);
-  }
-  const willEnd = transitionToNext(info.delta) || pb.current === 'End';
-  if (willEnd || (machine.type === STATE_MACHINE_TYPE_NESTED && !machine.transitions.some((t) => t.from === pb.current))) {
-    if (pb.fadingFrom !== '') return greater(remainOf(pb.currentNti, false), remainOf(pb.fadingFromNti, false)) ? pb.currentNti : pb.fadingFromNti;
-    return pb.currentNti;
-  }
-  if (!godot_state_machine_playback_is_end(pb)) pb.currentNti.infinity = true;
-  return pb.currentNti;
-}
-
 /** `AnimationNodeAnimation::_process` (`animation_blend_tree.cpp:102`), forward play, no custom timeline. */
 function processAnimation(state: TreeState, ps: ProcessState, instance: Instance, node: AnimationNodeAnimation, info: GodotAnimationPlaybackInfo, testOnly: boolean): NodeTimeInfo {
   // The instance keeps the animation it found until the node's animation changes, whatever the
   // tree's libraries do since.
-  if (instance.cachedAnimation === undefined) {
-    const clip = state.clips?.clip(node.animation);
-    const animation = clip === undefined ? godot_animation_mixer_animation(state.entity, node.animation) : undefined;
-    instance.cachedAnimation =
-      clip !== undefined ? { length: clip.clip.duration, loop_mode: clip.loopMode, clip: true } : animation === undefined ? undefined : { length: animation.length, loop_mode: animation.loop_mode, clip: false };
-  }
+  if (instance.cachedAnimation === undefined) instance.cachedAnimation = godot_animation_mixer_animation(state.entity, node.animation);
   const anim = instance.cachedAnimation;
   if (anim === undefined) {
     if (!testOnly && instance.blended) ps.valid = false;
@@ -1031,7 +699,7 @@ function processAnimation(state: TreeState, ps: ProcessState, instance: Instance
     backward = false;
     if (!isZeroApprox(curDelta) && greaterOrEqual(prevTime, curLen)) curDelta = 0;
   }
-  const nti: NodeTimeInfo = { length: curLen, position: curTime, delta: curDelta, loopMode, willEnd, infinity: false };
+  const nti: NodeTimeInfo = { length: curLen, position: curTime, delta: curDelta, loopMode, willEnd };
   let prevPlayback = prevTime;
   let curPlayback = curTime;
   if (loopMode === LOOP_LINEAR) {
@@ -1053,12 +721,7 @@ function processAnimation(state: TreeState, ps: ProcessState, instance: Instance
       }
     }
   }
-  if (!testOnly && anim.clip) {
-    // A glTF clip's action takes the time and the track weights (`applyClips`).
-    const frame = (state.clips as ClipDrive).frame;
-    frame.set(node.animation, [...(frame.get(node.animation) ?? []), { time: curPlayback, trackWeights: [...instance.trackWeights] }]);
-    setParameter(instance, 'backward', backward, false);
-  } else if (!testOnly) {
+  if (!testOnly) {
     if (immediately) {
       godot_animation_mixer_make_instance(state.entity, node.animation, { ...info, start: 0, end: animSize, time: 0, delta: 0, weight: f32(CMP_EPSILON), trackWeights: instance.trackWeights });
     }
@@ -1144,21 +807,23 @@ function setupAnimationPlayer(state: TreeState): void {
   clear_caches(entity);
 }
 
-/** A glTF clip player a tree drives: its mixer and clips, and each frame's instances of them. */
-interface ClipDrive {
-  readonly mixer: ThreeAnimationMixer;
-  readonly clip: (name: string) => { readonly clip: AnimationClip; readonly loopMode: number } | undefined;
-  /** This frame's instances of each clip: where the walk put it, and its track weights. */
-  readonly frame: Map<string, { readonly time: number; readonly trackWeights: readonly number[] }[]>;
-  /** Each clip part's action, by clip, filter signature and instance. */
-  readonly actions: Map<string, AnimationAction>;
-  /** The tree the track map and parts were read from, and them. */
-  layout: { readonly root: AnimationNode; readonly trackMap: ReadonlyMap<string, number>; readonly trackCount: number; readonly filters: readonly ReadonlySet<string>[] } | undefined;
-  readonly parts: Map<string, readonly { readonly key: string; readonly tracks: KeyframeTrack[]; readonly index: number }[]>;
-}
-
 /** The clip player each tree drives (`driveClips`). */
 const DRIVEN = new WeakMap<TreeState, object>();
+
+/** A weight along a path from the output to an animation: a number, or a filtered node's split. */
+type ClipFactor = number | { readonly filter: ReadonlySet<string>; readonly inside: number; readonly outside: number };
+
+/** What a walk over a subtree plays first: its clip's length, and whether it loops. */
+interface Reached {
+  readonly length: number;
+  readonly looping: boolean;
+}
+
+/** `SwitchMode` and `AdvanceMode` (`animation_node_state_machine.h:41`). */
+const SWITCH_MODE_SYNC = 1;
+const SWITCH_MODE_AT_END = 2;
+const ADVANCE_MODE_DISABLED = 0;
+const ADVANCE_MODE_AUTO = 2;
 
 /** The node a track animates: a bone's (`Skeleton3D:bone`) or a node's name, before the property. */
 function trackNode(track: string): string {
@@ -1171,104 +836,277 @@ function filterNode(path: string): string {
   return colon >= 0 ? path.slice(colon + 1) : path.slice(path.lastIndexOf('/') + 1);
 }
 
-/**
- * The clips' track map: a track per animated node across the player's clips, and each filter path
- * of the tree to its node's track; and the tree's filters, whose memberships split a clip's tracks
- * into parts one weight moves.
- */
-function clipLayout(drive: ClipDrive, root: AnimationNode, clipNames: readonly string[]): NonNullable<ClipDrive['layout']> {
-  const trackMap = new Map<string, number>();
-  for (const name of clipNames) {
-    for (const track of drive.clip(name)?.clip.tracks ?? []) {
-      const node = trackNode(track.name);
-      if (!trackMap.has(node)) trackMap.set(node, trackMap.size);
-    }
-  }
-  const trackCount = trackMap.size;
-  const filters: ReadonlySet<string>[] = [];
-  const visit = (node: AnimationNode): void => {
-    if ((node.kind === 'blend2' || node.kind === 'add2' || node.kind === 'one-shot') && node.filterEnabled) {
-      filters.push(new Set([...node.filters].map(filterNode)));
-      for (const path of node.filters) {
-        const index = trackMap.get(filterNode(path));
-        if (index !== undefined) trackMap.set(path, index);
-      }
-    }
-    if (node.kind === 'blend-tree') for (const entry of node.nodes.values()) visit(entry.node);
-    if (node.kind === 'state-machine') for (const entry of node.states.values()) visit(entry.node);
-  };
-  visit(root);
-  drive.parts.clear();
-  return { root, trackMap, trackCount, filters };
+/** A filtered node's split of its weight: `inside` on the tracks its filters name, `outside` on the rest. */
+function split(node: AnimationNodeBase, inside: number, outside: number): ClipFactor {
+  return node.filterEnabled ? { filter: new Set([...node.filters].map(filterNode)), inside, outside } : inside;
 }
 
 /**
- * Sets the clips' actions from this frame's instances: each clip split into the parts of its tracks
- * the tree's filters weigh alike, each part's action at the instance's time (three's mixer does not
- * advance it) and weighted as its tracks are; an action no instance reached weighs nothing.
+ * The transition a state machine takes next from its current state: toward the travel path's next
+ * state, else its best-priority automatic transition whose condition holds (`_find_next`,
+ * `animation_node_state_machine.cpp:1066`).
  */
-function applyClips(drive: ClipDrive): void {
-  const layout = drive.layout;
-  const used = new Set<AnimationAction>();
-  for (const [name, instances] of drive.frame) {
-    const clip = drive.clip(name);
-    if (clip === undefined || layout === undefined) continue;
-    let parts = drive.parts.get(name);
-    if (parts === undefined) {
-      const groups = new Map<string, KeyframeTrack[]>();
-      for (const track of clip.clip.tracks) {
-        const key = layout.filters.map((filter) => (filter.has(trackNode(track.name)) ? '1' : '0')).join('');
-        groups.set(key, [...(groups.get(key) ?? []), track]);
-      }
-      parts = [...groups].map(([key, tracks]) => ({ key, tracks, index: layout.trackMap.get(trackNode((tracks[0] as KeyframeTrack).name)) ?? 0 }));
-      drive.parts.set(name, parts);
-    }
-    instances.forEach((instance, occurrence) => {
-      for (const part of parts) {
-        const id = `${name}#${part.key}#${String(occurrence)}`;
-        let action = drive.actions.get(id);
-        if (action === undefined) {
-          const whole = part.tracks.length === clip.clip.tracks.length && occurrence === 0;
-          action = drive.mixer.clipAction(whole ? clip.clip : new AnimationClip(id, clip.clip.duration, part.tracks));
-          action.setLoop(godot_animation_clips_loop(clip.loopMode), Infinity);
-          action.play();
-          action.setEffectiveTimeScale(0);
-          drive.actions.set(id, action);
-        }
-        action.time = instance.time;
-        action.setEffectiveWeight(instance.trackWeights[part.index] ?? 0);
-        used.add(action);
-      }
-    });
+function nextTransition(playback: AnimationNodeStateMachinePlayback, machine: AnimationNodeStateMachine, condition: (name: string) => boolean): AnimationNodeStateMachine['transitions'][number] | undefined {
+  const from = machine.transitions.filter((entry) => entry.from === playback.current && entry.transition.advanceMode !== ADVANCE_MODE_DISABLED);
+  const toward = playback.path[0];
+  if (toward !== undefined) return from.find((entry) => entry.to === toward);
+  let best: AnimationNodeStateMachine['transitions'][number] | undefined;
+  for (const entry of from) {
+    const { advanceMode, advanceConditionName, priority } = entry.transition;
+    if (advanceMode !== ADVANCE_MODE_AUTO || (advanceConditionName !== '' && !condition(advanceConditionName))) continue;
+    if (best === undefined || priority <= best.transition.priority) best = entry;
   }
-  for (const action of drive.actions.values()) if (!used.has(action)) action.setEffectiveWeight(0);
+  return best;
+}
+
+/**
+ * A state machine's step over `delta` seconds: it starts at `Start`, its fade runs on, and it takes
+ * the transitions it may (one fading at a time; an at-end one once its state's clip is within the
+ * cross-fade of its end), each into a state whose clips restart unless it switches in sync.
+ */
+function stepMachine(playback: AnimationNodeStateMachinePlayback, machine: AnimationNodeStateMachine, delta: number, condition: (name: string) => boolean): void {
+  if (!playback.playing) {
+    playback.playing = true;
+    godot_state_machine_playback_enter(playback, 'Start', 0, 'cut');
+  }
+  playback.position += delta;
+  if (playback.fadingFrom !== '') {
+    playback.fadingFromPosition += delta;
+    playback.fadeElapsed += delta;
+    if (playback.fadeElapsed >= playback.fadeTime) godot_state_machine_playback_end_fade(playback);
+  }
+  const taken = new Set([playback.current]);
+  for (;;) {
+    const next = nextTransition(playback, machine, condition);
+    if (next === undefined) break;
+    const forced = playback.nextRequested;
+    playback.nextRequested = false;
+    const { switchMode, xfadeTime, breakLoopAtEnd, reset } = next.transition;
+    if (!forced && playback.fadingFrom !== '') break;
+    if (!forced && playback.current !== 'Start' && switchMode === SWITCH_MODE_AT_END) {
+      const into = playback.looping && playback.length > 0 ? playback.position % playback.length : playback.position;
+      const remaining = playback.looping && !breakLoopAtEnd ? Infinity : playback.length - into;
+      if (remaining > xfadeTime) break;
+    }
+    // A loop of transitions within one step stops.
+    if (taken.has(next.to)) break;
+    taken.add(next.to);
+    if (playback.path[0] === next.to) playback.path.shift();
+    const position = playback.position;
+    const restartAt = switchMode === SWITCH_MODE_SYNC ? position : reset ? 0 : undefined;
+    if (xfadeTime > 0) {
+      godot_state_machine_playback_end_fade(playback);
+      playback.fadingFrom = playback.current;
+      playback.fadingFromPosition = position;
+      playback.fadingFromLength = playback.length;
+      playback.fadeTime = xfadeTime;
+      playback.fadeElapsed = 0;
+      godot_state_machine_playback_enter(playback, next.to, restartAt, 'fade');
+      break;
+    }
+    godot_state_machine_playback_enter(playback, next.to, restartAt, 'cut');
+    if (playback.current === 'End') break;
+  }
 }
 
 /**
  * The tree over a player's glTF clips (`animation-clips.ts`): each frame, before the player's mixer
- * advances, the tree processes as it does over a mixer (`_blend_pre_process`) with the clips as its
- * animations, and its instances set the clips' actions (`applyClips`).
+ * advances, the tree is walked from its output with its parameters as they are, each animation node
+ * reached with the weight and speed its path gives it. A Blend2 splits its weight by its amount, an
+ * Add2 adds its second input by its amount, a OneShot fades its shot in over its main input while
+ * the shot plays, and a TimeScale scales its subtree's speed (a filtered node splits only on the
+ * tracks its filters name). A state machine weighs its current state by its cross-fade and the state
+ * it fades from by the rest (`stepMachine`). An animation's action is its clip, split by the filters
+ * on its path into parts of the tracks each takes the same weight on; what the walk does not reach
+ * weighs nothing. Three's mixer averages where Godot's adds: an Add2 over tracks its first input
+ * also animates is averaged in.
  */
 function driveClips(state: TreeState, player: object): void {
   // The tree drives a player once, however often its setup runs.
   if (DRIVEN.get(state) === player) return;
   DRIVEN.set(state, player);
-  const drive: ClipDrive = {
-    ...godot_animation_clips_drive(player, (delta) => {
-      drive.frame.clear();
-      if (state.root !== null && is_active(state.entity)) {
-        const layout = drive.layout?.root === state.root ? drive.layout : (drive.layout = clipLayout(drive, state.root, godot_animation_clips_list(player)));
-        blendPreProcess(state, delta, layout.trackCount, layout.trackMap);
+  const parts = new Map<string, AnimationAction>();
+  /** Whether each OneShot's shot loops, as its last walk found it. */
+  const shotLoops = new Map<string, boolean>();
+  const drive = godot_animation_clips_drive(player, (delta) => {
+    updateProperties(state);
+    const reached = new Set<AnimationAction>();
+    const entry = (path: string, name: string) => state.properties.get(`${BASE}${path}${name}`);
+    const parameter = (path: string, name: string, fallback: number): number => {
+      const value = entry(path, name)?.value;
+      return typeof value === 'number' || typeof value === 'boolean' ? Number(value) : fallback;
+    };
+    const setParameter = (path: string, name: string, value: number | boolean): void => {
+      const held = entry(path, name);
+      if (held !== undefined && typeof held.value !== 'object') held.value = value;
+    };
+    const visit = (node: AnimationNode, path: string, factors: readonly ClipFactor[], speed: number, restartAt: number | undefined): Reached | undefined => {
+      switch (node.kind) {
+        case 'blend-tree': {
+          const input = node.nodes.get('output')?.connections[0];
+          const connected = input === undefined ? undefined : node.nodes.get(input);
+          return connected === undefined || input === undefined ? undefined : visitIn(node, input, connected.node, path, factors, speed, restartAt);
+        }
+        case 'animation': {
+          const clip = drive.clip(node.animation);
+          if (clip === undefined) return undefined;
+          const filters = factors.flatMap((factor) => (typeof factor === 'number' ? [] : [factor.filter]));
+          const groups = new Map<string, KeyframeTrack[]>();
+          for (const track of clip.clip.tracks) {
+            const key = filters.map((filter) => (filter.has(trackNode(track.name)) ? '1' : '0')).join('');
+            groups.set(key, [...(groups.get(key) ?? []), track]);
+          }
+          for (const [key, tracks] of groups) {
+            const id = `${node.animation}#${key}`;
+            let action = parts.get(id);
+            if (action === undefined) {
+              action = drive.mixer.clipAction(key === '' ? clip.clip : new AnimationClip(id, clip.clip.duration, tracks));
+              action.setLoop(godot_animation_clips_loop(clip.loopMode), Infinity);
+              action.clampWhenFinished = true;
+              action.play();
+              parts.set(id, action);
+            }
+            if (restartAt !== undefined) {
+              action.reset();
+              action.time = restartAt;
+            }
+            let weight = 1;
+            let index = 0;
+            for (const factor of factors) {
+              if (typeof factor === 'number') weight *= factor;
+              else weight *= key[index++] === '1' ? factor.inside : factor.outside;
+            }
+            action.setEffectiveWeight(weight);
+            action.setEffectiveTimeScale(speed);
+            reached.add(action);
+          }
+          return { length: clip.clip.duration, looping: clip.loopMode !== LOOP_NONE };
+        }
+        case 'state-machine': {
+          const playback = entry(path, 'playback')?.value;
+          if (typeof playback !== 'object') return undefined;
+          // A machine its parent restarts plays again from `Start`.
+          if (restartAt !== undefined) playback.playing = false;
+          stepMachine(playback, node, delta * speed, (name) => parameter(path, name, 0) !== 0);
+          const fade = playback.fadingFrom === '' || playback.fadeTime <= 0 ? 1 : Math.min(1, playback.fadeElapsed / playback.fadeTime);
+          const play = (name: string, weight: number): Reached | undefined => {
+            const state = node.states.get(name)?.node;
+            const at = playback.restart.get(name);
+            playback.restart.delete(name);
+            return state === undefined ? undefined : visit(state, `${path}${name}/`, [...factors, weight], speed, at);
+          };
+          const current = play(playback.current, fade);
+          playback.length = current?.length ?? 0;
+          playback.looping = current?.looping ?? false;
+          if (playback.fadingFrom !== '') playback.fadingFromLength = play(playback.fadingFrom, 1 - fade)?.length ?? 0;
+          return current;
+        }
+        default:
+          return undefined;
       }
-      applyClips(drive);
-    }),
-    frame: new Map(),
-    actions: new Map(),
-    layout: undefined,
-    parts: new Map(),
-  };
-  state.clips = drive;
-  for (const instance of state.instances.values()) instance.cachedAnimation = undefined;
+    };
+    const visitIn = (
+      tree: AnimationNodeBlendTree,
+      name: string,
+      node: AnimationNode,
+      path: string,
+      factors: readonly ClipFactor[],
+      speed: number,
+      restartAt: number | undefined,
+    ): Reached | undefined => {
+      const own = `${path}${name}/`;
+      const input = (index: number) => {
+        const source = tree.nodes.get(name)?.connections[index];
+        const connected = source === undefined ? undefined : tree.nodes.get(source);
+        return connected === undefined || source === undefined ? undefined : { name: source, node: connected.node };
+      };
+      const into = (index: number, factor: ClipFactor, scale = speed, at = restartAt): Reached | undefined => {
+        const connected = input(index);
+        return connected === undefined ? undefined : visitIn(tree, connected.name, connected.node, path, [...factors, factor], scale, at);
+      };
+      switch (node.kind) {
+        case 'blend2': {
+          const amount = parameter(own, 'blend_amount', 0);
+          const first = into(0, split(node, 1 - amount, 1));
+          const second = into(1, split(node, amount, 0));
+          return amount > 0.5 ? (second ?? first) : (first ?? second);
+        }
+        case 'add2': {
+          const first = into(0, 1);
+          into(1, split(node, parameter(own, 'add_amount', 0), 0));
+          return first;
+        }
+        case 'time-scale':
+          return into(0, 1, speed * parameter(own, 'scale', 1));
+        case 'one-shot':
+          return visitOneShot(node, own, (index, factor, at) => into(index, factor, speed, at), delta * speed);
+        case 'blend-tree':
+        case 'state-machine':
+          return visit(node, own, factors, speed, restartAt);
+        default:
+          return visit(node, path, factors, speed, restartAt);
+      }
+    };
+    /**
+     * A OneShot: a request fires, aborts or fades out its shot; while it plays, the shot's weight
+     * rises over its fade-in and falls over its fade-out before its end, the main input taking the
+     * rest (all of it when the shot adds), and an auto-restarting one fires again after its delay.
+     */
+    const visitOneShot = (node: AnimationNodeOneShot, own: string, into: (index: number, factor: ClipFactor, at: number | undefined) => Reached | undefined, step: number): Reached | undefined => {
+      const request = parameter(own, 'request', 0);
+      setParameter(own, 'request', 0);
+      let active = parameter(own, 'active', 0) !== 0;
+      let elapsed = parameter(own, 'current_position', 0);
+      let fadeOut = parameter(own, 'fade_out_remaining', 0);
+      let fired = request === ONE_SHOT_REQUEST_FIRE;
+      if (!active && !fired && node.autoRestart) {
+        const wait = parameter(own, 'time_to_restart', -1);
+        if (wait >= 0) {
+          setParameter(own, 'time_to_restart', wait - step);
+          fired = wait - step < 0;
+        }
+      }
+      if (fired) {
+        active = true;
+        elapsed = 0;
+        fadeOut = 0;
+      } else if (request === ONE_SHOT_REQUEST_ABORT) {
+        active = false;
+      } else if (request === ONE_SHOT_REQUEST_FADE_OUT && active && fadeOut <= 0) {
+        fadeOut = node.fadeOut > 0 ? node.fadeOut : Number.MIN_VALUE;
+      } else if (active) {
+        elapsed += step;
+      }
+      let blend = 0;
+      if (active) {
+        const length = parameter(own, 'current_length', 0);
+        const looping = shotLoops.get(own) === true;
+        const remaining = looping && !node.breakLoopAtEnd ? Infinity : length - elapsed;
+        if (fadeOut <= 0 && remaining <= node.fadeOut) fadeOut = Math.max(remaining, Number.MIN_VALUE);
+        else if (fadeOut > 0 && !fired) fadeOut -= step;
+        blend = node.fadeIn > 0 ? Math.min(1, elapsed / node.fadeIn) : 1;
+        if (fadeOut > 0 && node.fadeOut > 0) blend *= Math.max(0, fadeOut) / node.fadeOut;
+        if (remaining <= 0 || (fadeOut < 0 && !fired)) {
+          active = false;
+          blend = 0;
+          if (node.autoRestart) setParameter(own, 'time_to_restart', node.autoRestartDelay + Math.random() * node.autoRestartRandomDelay);
+        }
+      }
+      setParameter(own, 'active', active);
+      setParameter(own, 'internal_active', active && fadeOut <= 0);
+      setParameter(own, 'current_position', elapsed);
+      setParameter(own, 'fade_out_remaining', Math.max(0, fadeOut));
+      const main = into(0, node.mixMode === 1 ? 1 : split(node, 1 - blend, 1), undefined);
+      if (!active) return main;
+      const shot = into(1, split(node, blend, 0), fired ? 0 : undefined);
+      setParameter(own, 'current_length', shot?.length ?? 0);
+      shotLoops.set(own, shot?.looping === true);
+      return shot ?? main;
+    };
+    if (state.root !== null && is_active(state.entity)) visit(state.root, '', [], 1, state.started ? 0 : undefined);
+    state.started = false;
+    for (const action of parts.values()) if (!reached.has(action)) action.setEffectiveWeight(0);
+  });
 }
 
 /**
@@ -1290,7 +1128,6 @@ export function godot_animation_tree_mount(entity: object): void {
     started: true,
     animationPlayerChanged: createSignal<[]>(),
     playerHooked: undefined,
-    clips: undefined,
   };
   TREES.set(entity, state);
   godot_animation_mixer_adopt(entity, {
