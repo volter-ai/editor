@@ -422,7 +422,12 @@ function orient(p: ParticleProcess, viewing: boolean, velocity: ThreeVector3, an
     // it the other way.
     const channel = [0, angle, t, 0, 1][p.transform_align_channel_filter ?? 0] ?? 0;
     out.multiply(spin.setFromAxisAngle(Z, -channel));
-  } else out.multiply(spin.setFromAxisAngle(Z, angle));
+  } else if (p.particle_flags[FLAG_DISABLE_Z] === true && !(p.particle_flags[FLAG_ALIGN_Y_TO_VELOCITY] === true)) {
+    // Flat particles turn in their plane by their angle (`cpu_particles_3d.cpp` and the process
+    // material's `TRANSFORM[0] = vec4(cos, -sin, 0, 0)`, a column: the other way). Otherwise the
+    // angle turns nothing here: a particle billboard reads it as `INSTANCE_CUSTOM.x`.
+    out.multiply(spin.setFromAxisAngle(Z, -angle));
+  }
   return out;
 }
 
