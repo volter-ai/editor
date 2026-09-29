@@ -1116,9 +1116,17 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
     const reference = referenceOf(item.value);
     const document = context.document;
     const resources = scope === '' ? document?.scene.subResources : context.project?.documents.resources.find((entry) => entry.resPath === scope)?.subResources;
-    const resource = reference?.reference === 'sub' ? resources?.find((entry) => String(entry.id) === reference.id) : undefined;
+    // An animation of the library's own document, or an animation file it names (`poof.res`).
+    const extResources = scope === '' ? document?.scene.extResources : context.project?.documents.resources.find((entry) => entry.resPath === scope)?.extResources;
+    const external = reference?.reference === 'ext' ? extResources?.find((entry) => String(entry.id) === reference.id)?.resPath : undefined;
+    const resource =
+      reference?.reference === 'sub'
+        ? resources?.find((entry) => String(entry.id) === reference.id)
+        : external === undefined
+          ? undefined
+          : context.project?.documents.resources.find((entry) => entry.resPath === external)?.resource;
     if (resource === undefined || resource.type !== 'Animation') {
-      refuse(context, `${at}/${item.key}`, 'an animation that is not a sub-resource of its document', 'resource', 'Animation');
+      refuse(context, `${at}/${item.key}`, 'an animation that is neither a sub-resource of its document nor an animation file', 'resource', 'Animation');
       return undefined;
     }
     const animation = godotAnimationData(resource);
