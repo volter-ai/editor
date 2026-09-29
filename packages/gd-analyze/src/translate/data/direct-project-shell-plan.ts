@@ -90,6 +90,14 @@ export function planDirectGodotProjectShell(
 ): readonly DirectGodotProjectShellFilePlan[] {
   const files: DirectGodotProjectShellFilePlan[] = [
     retainedIndex(projectName, toolchain),
+    {
+      kind: 'bytes',
+      targetPath: '.npmrc',
+      // The frozen graph includes required peers. npm ci otherwise inherits the user's
+      // legacy-peer-deps setting and can omit them even when the lock contains their rows.
+      bytes: Buffer.from('legacy-peer-deps=false\n'),
+      sourcePaths: ['project.godot'],
+    },
     ...TEMPLATE_SHELL.map((targetPath): DirectGodotProjectShellFilePlan => ({
       kind: 'bytes',
       targetPath,
