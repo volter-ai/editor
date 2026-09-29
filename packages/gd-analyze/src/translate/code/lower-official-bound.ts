@@ -15,7 +15,7 @@ import type { GodotBoundNode } from '../../godot-frontend/bound-program';
 import type { ImportedSoundKind } from '../../analyze/resource-loads';
 import type { GodotValue } from '../../read/godot-value';
 import { GODOT_CODE_RESOURCE_LOADS, godotImportedAssetUrl } from '../data/code-resource-loads';
-import { godotCallShape } from '../data/lowering-shapes';
+import { godotCallShape, godotStoredResourceRoot } from '../data/lowering-shapes';
 import { godotAnimationNodeData, godotAnimationTreeParameters } from '../data/scene-animation';
 import { godotSceneExportName, godotSceneTargetPath } from '../data/scene-document-plan';
 import { safeIdent } from '../target-names';
@@ -657,6 +657,7 @@ function lowerScript(
   context.utilityShapes = new Map(source.utilityCalls.map((entry) => [entry.nodeId, entry.shape] as const));
   context.provenCasts = new Set(source.provenCasts);
   if (namedMembers !== undefined) context.namedMembers = namedMembers;
+  context.resourceDocument = (resPath) => project.documents.resources.find((entry) => entry.resPath === resPath);
   context.scriptNativeRoot = (resPath) => {
     for (let current = project.scripts.find((entry) => entry.resPath === resPath); current !== undefined; ) {
       const immediate = current.inheritance.immediate;
@@ -666,6 +667,7 @@ function lowerScript(
     }
     return undefined;
   };
+  context.resourceScripts = project.scripts.map((entry) => entry.resPath).filter((resPath) => godotStoredResourceRoot(context.scriptNativeRoot(resPath)));
   context.selfNodePaths = new Map(source.selfNodePaths.map((entry) => [entry.nodeId, entry.path] as const));
   const ownNodePaths = nodePaths.scripts.get(source.resPath) ?? [];
   context.nodeFields = new Map(

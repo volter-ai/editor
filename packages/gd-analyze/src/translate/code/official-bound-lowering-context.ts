@@ -2,6 +2,7 @@ import type { GodotNativeTypePart } from './native-types';
 import type { BoundGodotCallReceiver } from '../../analyze/call-receivers';
 import { builtinDatatype } from '../../analyze/refined-types';
 import type { GodotBoundNode, GodotBoundScript } from '../../godot-frontend/bound-program';
+import type { BoundGodotResourceDocument } from '../../analyze/bound-project';
 import type { NumericNodeTypes, ScriptNumericVariants, VariantUtilityShape } from '../../analyze/numeric-variants';
 import { safeIdent } from '../target-names';
 import type {
@@ -230,6 +231,10 @@ export class LoweringContext {
   provenCasts: ReadonlySet<number> = new Set();
   /** The native class at the root of a project script's chain (`extends Resource`). */
   scriptNativeRoot: (resPath: string) => string | undefined = () => undefined;
+  /** The project's resource documents (`.tres`, `.res`), by path. */
+  resourceDocument: (resPath: string) => BoundGodotResourceDocument | undefined = () => undefined;
+  /** The project scripts whose chain is rooted in Resource: the classes a stored resource can be. */
+  resourceScripts: readonly string[] = [];
   /** Every engine member of a name, for a member an untyped value selects at run time (`variant-named.ts`). */
   namedMembers: NamedMemberLookup = () => [];
   /** The literal path each node reads from self (analyze's `selfNodePaths`), by node. */

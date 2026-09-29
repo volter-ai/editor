@@ -22,9 +22,18 @@ export type GodotCallShape =
    * script that makes it, whose component steps it, so the call hands its creator (`this`) to the
    * binding right after the receiver (docs/GODOT.md §The emitted game's shape, step 6).
    */
-  | 'creator-owned';
+  | 'creator-owned'
+  /**
+   * `ResourceLoader.load(path)` / `ResourceSaver.save(resource, path)`: a project resource the
+   * translation builds, or one the page's storage keeps, the project's script resource classes
+   * handed by their scripts' paths (`resource-loader.ts`).
+   */
+  | 'resource-load'
+  | 'resource-save';
 
 const CALL_SHAPES: Readonly<Record<string, GodotCallShape>> = {
+  'ResourceLoader.load': 'resource-load',
+  'ResourceSaver.save': 'resource-save',
   'Tween.tween_property': 'tweened-property',
   'Object.has_method': 'script-chain-method',
   'Node.create_tween': 'creator-owned',
@@ -337,4 +346,12 @@ const BUILTIN_TESTS: Readonly<Record<string, GodotBuiltinTest>> = {
 /** How a value of the built-in type `type` is recognised at run time, if compat can tell. */
 export function godotBuiltinTest(type: string): GodotBuiltinTest | undefined {
   return Object.hasOwn(BUILTIN_TESTS, type) ? BUILTIN_TESTS[type] : undefined;
+}
+
+/** The native classes whose script instances `ResourceSaver.save` stores and `ResourceLoader.load` makes again. */
+const STORED_RESOURCE_ROOTS: ReadonlySet<string> = new Set(['Resource']);
+
+/** Whether a script rooted in the native class `className` is a resource the loader stores. */
+export function godotStoredResourceRoot(className: string | undefined): boolean {
+  return className !== undefined && STORED_RESOURCE_ROOTS.has(className);
 }

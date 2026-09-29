@@ -1,4 +1,6 @@
+import type { BoundGodotResourceDocument } from '../../analyze/bound-project';
 import { builtinDatatype } from '../../analyze/refined-types';
+import type { GodotValue } from '../../read/godot-value';
 import {
   GODOT_NUMERIC_TYPES,
   type GodotBuiltinSubscriptShape,
@@ -1093,6 +1095,144 @@ function namedPlace(
       namedImport('godot_variant_set_named'),
     ],
   };
+}
+
+/** A compat protocol import of `lib/godot-compat/<module>`. */
+function compatImport(module: string, name: string): OfficialBoundLoweringRequirement {
+  return { kind: 'compat-import-requirement', module: `lib/godot-compat/${module}`, imported: name, local: name, typeOnly: false };
+}
+
+/** The members of a record value a resource document stores, by its built-in type. */
+const DOCUMENT_RECORDS: Readonly<Record<string, readonly string[]>> = {
+  Vector2: ['x', 'y'],
+  Vector2i: ['x', 'y'],
+  Vector3: ['x', 'y', 'z'],
+  Vector3i: ['x', 'y', 'z'],
+  Vector4: ['x', 'y', 'z', 'w'],
+  Color: ['r', 'g', 'b', 'a'],
+  Quaternion: ['x', 'y', 'z', 'w'],
+};
+
+/**
+ * A project resource document's resource as code that makes it, as the loader reads the file:
+ * each value as the Variant it is, a sub-resource or a script resource made in turn
+ * (`godot_script_resource_new`); a resource of any other kind is refused.
+ */
+function documentResource(
+  context: LoweringContext,
+  node: GodotBoundNode,
+  document: BoundGodotResourceDocument,
+  data: BoundGodotResourceDocument['resource'],
+  requirements: OfficialBoundLoweringRequirement[],
+  path: string | undefined,
+): TargetTsExpression {
+  const valueOf = (value: GodotValue): TargetTsExpression => {
+    // A number, a boolean or text: the value itself.
+    if ('value' in value && typeof value.value !== 'object') return { kind: 'literal-expression', value: value.value };
+    switch (value.kind) {
+      case 'null':
+        return { kind: 'literal-expression', value: null };
+      case 'array':
+        return { kind: 'array-expression', elements: value.items.map(valueOf) };
+      case 'ctor': {
+        if (value.name === 'SubResource' || value.name === 'ExtResource') {
+          const id = String((value.args[0] as { readonly value?: unknown } | undefined)?.value ?? '');
+          if (value.name === 'SubResource') {
+            const sub = document.subResources.find((entry) => String(entry.id) === id);
+            if (sub === undefined) return context.refuse(node, `${document.resPath}: SubResource ${id} is not declared`);
+            return documentResource(context, node, document, sub, requirements, undefined);
+          }
+          const ext = document.extResources.find((entry) => String(entry.id) === id);
+          const nested = ext === undefined ? undefined : context.resourceDocument(ext.resPath);
+          if (nested === undefined) return context.refuse(node, `${document.resPath}: ExtResource ${id} is not a resource document the project has`);
+          return documentResource(context, node, nested, nested.resource, requirements, nested.resPath);
+        }
+        const members = DOCUMENT_RECORDS[value.name];
+        if (members === undefined || value.args.some((arg) => arg.kind !== 'number')) return context.refuse(node, `${document.resPath}: a ${value.name} value is not transcribed`);
+        return {
+          kind: 'call-expression',
+          callee: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'freeze' },
+          arguments: [{ kind: 'object-expression', properties: members.map((member, index) => ({ key: member, value: { kind: 'literal-expression', value: (value.args[index] as { readonly value: number } | undefined)?.value ?? 1 } })) }],
+        };
+      }
+      default:
+        return context.refuse(node, `${document.resPath}: a ${value.kind} value is not transcribed`);
+    }
+  };
+  const script = data.properties['script'];
+  const scriptId = script?.kind === 'ctor' && script.name === 'ExtResource' ? String((script.args[0] as { readonly value?: unknown } | undefined)?.value ?? '') : undefined;
+  const scriptPath = scriptId === undefined ? undefined : document.extResources.find((entry) => String(entry.id) === scriptId)?.resPath;
+  const found = scriptPath === undefined ? undefined : context.scriptClass?.(scriptPath);
+  if (found === undefined) return context.refuse(node, `${document.resPath}: a ${data.type} without a project script is not made in code`);
+  if (found.module !== undefined) requirements.push({ kind: 'project-import-requirement', module: found.module, imported: found.name, local: found.name, typeOnly: false });
+  requirements.push(compatImport('resource', 'godot_script_resource_new'));
+  const fields = Object.entries(data.properties).filter(([name]) => name !== 'script' && name !== 'resource_name' && !name.startsWith('metadata/'));
+  return {
+    kind: 'call-expression',
+    callee: { kind: 'identifier-expression', name: 'godot_script_resource_new' },
+    arguments: [
+      { kind: 'identifier-expression', name: found.name },
+      { kind: 'object-expression', properties: fields.map(([name, value]) => ({ key: name, value: valueOf(value) })) },
+      ...(path === undefined ? [] : [{ kind: 'literal-expression' as const, value: path }]),
+    ],
+  };
+}
+
+/**
+ * `ResourceLoader.load(path)` and `ResourceSaver.save(resource, path)` through compat's resource
+ * protocol: a load's project resources (the one its literal path names, else every resource
+ * document with a script) made by code, and the project's script resource classes by path.
+ */
+function resourceCall(
+  context: LoweringContext,
+  node: GodotBoundCallNode,
+  shape: 'resource-load' | 'resource-save',
+  argumentNodes: readonly GodotBoundNode[],
+  lowered: readonly LoweredExpression[],
+  requirements: readonly OfficialBoundLoweringRequirement[],
+): LoweredExpression {
+  const own: OfficialBoundLoweringRequirement[] = [];
+  const classes: TargetTsExpression = {
+    kind: 'object-expression',
+    properties: context.resourceScripts.flatMap((resPath) => {
+      const found = context.scriptClass?.(resPath);
+      if (found === undefined) return [];
+      if (found.module !== undefined) own.push({ kind: 'project-import-requirement', module: found.module, imported: found.name, local: found.name, typeOnly: false });
+      return [{ key: resPath, value: { kind: 'identifier-expression' as const, name: found.name } }];
+    }),
+  };
+  if (shape === 'resource-save') {
+    own.push(compatImport('resource-loader', 'godot_resource_saver_save'));
+    return compose(
+      context,
+      lowered.slice(0, 2),
+      ([resource, path]) => ({ kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_resource_saver_save' }, arguments: [resource as TargetTsExpression, path as TargetTsExpression, classes], span: span(context.script, node) }),
+      [...requirements, ...own],
+    );
+  }
+  const pathNode = argumentNodes[0];
+  const literal = pathNode?.kind === 'LITERAL' && (pathNode.value.kind === 'string' || pathNode.value.kind === 'string-name') ? pathNode.value.value : undefined;
+  const paths = literal !== undefined ? (literal.startsWith('res://') ? [literal] : []) : [];
+  const project: TargetTsExpression = {
+    kind: 'object-expression',
+    properties: paths.map((resPath) => {
+      const document = context.resourceDocument(resPath);
+      const value: TargetTsExpression = document === undefined ? { kind: 'literal-expression', value: null } : documentResource(context, node, document, document.resource, own, resPath);
+      return { key: resPath, value: { kind: 'arrow-expression' as const, parameters: [], body: value } };
+    }),
+  };
+  own.push(compatImport('resource-loader', 'godot_resource_loader_load'), compatImport('resource', 'godot_script_resource_new'));
+  return compose(
+    context,
+    lowered.slice(0, 1),
+    ([path]) => ({
+      kind: 'call-expression',
+      callee: { kind: 'identifier-expression', name: 'godot_resource_loader_load' },
+      arguments: [path as TargetTsExpression, project, classes, { kind: 'identifier-expression', name: 'godot_script_resource_new' }],
+      span: span(context.script, node),
+    }),
+    [...requirements, ...own],
+  );
 }
 
 /** `Script.new(...)`: `godot_script_new` over the native root class's constructor. */
@@ -3013,6 +3153,11 @@ export function lowerOfficialExpression(
             after: [],
             requirements: [...requirements, ...path.requirements, ...table.requirements],
           };
+        }
+        // `ResourceLoader.load` / `ResourceSaver.save`: the project's resources and the page's storage.
+        const nativeShape = node.compilerTarget.kind === 'native-method' || node.compilerTarget.kind === 'native-static' ? godotCallShape(node.compilerTarget.owner, node.compilerTarget.member) : undefined;
+        if (nativeShape === 'resource-load' || nativeShape === 'resource-save') {
+          return resourceCall(context, node, nativeShape, argumentNodes, lowered, requirements);
         }
         // `Script.new(...)`: the script's instance over a new object of its native root class.
         if (calleeNode.kind === 'SUBSCRIPT' && calleeNode.isAttribute && node.functionName === 'new') {
