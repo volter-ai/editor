@@ -453,6 +453,8 @@ export function variantValue(emission: FamilyEmission, value: TargetGodotSceneVa
       return {
         kind: 'new-expression',
         callee: identifier('Map'),
+        // A Dictionary's keys and values are Variants: entries of different types are one Map's.
+        typeArguments: [{ kind: 'keyword-type', keyword: 'any' }, { kind: 'keyword-type', keyword: 'any' }],
         arguments: [{ kind: 'array-expression', elements: value.entries.map(([key, item]) => ({ kind: 'array-expression' as const, elements: [variantValue(emission, key), variantValue(emission, item)] })) }],
       };
     case 'Array':
