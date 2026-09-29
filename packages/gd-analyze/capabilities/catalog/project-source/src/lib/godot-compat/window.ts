@@ -95,7 +95,9 @@ function stretch(width: number, height: number): Stretch {
   const whole = vector2(width, height);
   const factor = Number(get_setting('display/window/stretch/scale', 1)) || 1;
   const base = vector2(Number(get_setting('display/window/size/viewport_width', 1152)), Number(get_setting('display/window/size/viewport_height', 648)));
-  if (get_setting('display/window/stretch/mode', 'disabled') !== 'canvas_items' || base.x <= 0 || base.y <= 0 || width <= 0 || height <= 0) {
+  const mode = get_setting('display/window/stretch/mode', 'disabled');
+  // `viewport` lays the 2D world out as `canvas_items` does; the page's canvas draws the 3D view (`project-composition`).
+  if ((mode !== 'canvas_items' && mode !== 'viewport') || base.x <= 0 || base.y <= 0 || width <= 0 || height <= 0) {
     return { visible: vector2(width / factor, height / factor), screen: whole, margin: vector2() };
   }
   const aspect = String(get_setting('display/window/stretch/aspect', 'keep'));

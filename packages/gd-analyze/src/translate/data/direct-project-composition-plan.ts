@@ -1,7 +1,6 @@
 import { planGodotSceneSignalDelivery } from './scene-signal-delivery';
 import type { GodotScriptNodeSite } from './script-node-paths';
 import { type GodotSceneRefsPlan, planGodotSceneRefs } from './scene-refs';
-import { godotSceneNodeIdiom } from './scene-node-idioms';
 import { planGodotSceneSkyLights } from './scene-sky-lights';
 import { type GodotSceneBodyProp, type GodotSceneColliderPlan, planGodotSceneBodies } from './scene-body-idioms';
 import { planGodotSceneCollectedSetters, planGodotSceneSurfaces } from './scene-surface-idioms';
@@ -774,23 +773,11 @@ function projectSettings(
       planned.set(entry.setting.key, { key: entry.setting.key, value });
     }
   }
-  // Compat lays the 2D world out at the stretched size in `canvas_items` mode; `viewport` mode
-  // (the whole game rendered at the base size and scaled) and integer scaling are not translated.
-  const stretchMode = project.read.authoredSettings.get('display/window/stretch/mode');
-  if (stretchMode?.kind === 'string' && stretchMode.value === 'viewport') {
-    diagnostics.push({ at: 'project.godot#display/window/stretch/mode', message: 'the viewport stretch mode is not translated' });
-  }
-  // The keep aspects (keep, the default, keep_width, keep_height) letterbox the whole viewport in
-  // Godot, 3D included (`window.cpp` `_update_viewport_size`); compat letterboxes only the 2D layer,
-  // so a project that draws 3D through a camera under them is not translated.
-  const aspect = project.read.authoredSettings.get('display/window/stretch/aspect');
-  const aspectValue = aspect?.kind === 'string' ? aspect.value : 'keep';
-  const drawsThreeD = project.documents.scenes.some((scene) =>
-    scene.nodes.some((node) => node.class.nativeAncestry.some((name) => godotSceneNodeIdiom(name)?.form?.kind === 'camera')),
-  );
-  if (stretchMode?.kind === 'string' && stretchMode.value === 'canvas_items' && ['keep', 'keep_width', 'keep_height'].includes(aspectValue) && drawsThreeD) {
-    diagnostics.push({ at: 'project.godot#display/window/stretch/aspect', message: `the ${aspectValue} stretch aspect with a 3D camera (a letterboxed 3D view) is not translated` });
-  }
+  // Compat lays the 2D world out at the stretched size in `canvas_items` and `viewport` modes
+  // (`window.ts`). Where Godot's differs: the 3D view fills the page's canvas at its own resolution,
+  // neither rendered at the base size (`viewport`) nor letterboxed by a keep aspect
+  // (`window.cpp` `_update_viewport_size`), since the page, not the game, sizes the canvas; on a
+  // window of the base aspect the two agree. Integer scaling is not translated.
   const scaleMode = project.read.authoredSettings.get('display/window/stretch/scale_mode');
   if (scaleMode?.kind === 'string' && scaleMode.value === 'integer') {
     diagnostics.push({ at: 'project.godot#display/window/stretch/scale_mode', message: 'integer stretch scaling is not translated' });
