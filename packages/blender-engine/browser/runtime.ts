@@ -159,7 +159,7 @@ export class BlenderRuntime {
   #terminated = false;
   #dirty = false;
   readonly #beforeUnload = (event: BeforeUnloadEvent): void => {
-    if (!this.#dirty && this.#pending.size === 0) return;
+    if (!this.#dirty && this.#acceptedRequests === 0) return;
     event.preventDefault();
     event.returnValue = '';
   };
@@ -259,21 +259,12 @@ export class BlenderRuntime {
       );
     this.#project = project;
     this.#document ??= document ?? 'models/model.blend';
-    this.#started ??= this.#load({
+    this.#started ??= this.#request({
       op: 'start',
       project,
       ...(document === undefined ? {} : { document }),
     }) as Promise<RuntimeStart>;
     return this.#started;
-  }
-
-  async #load(request: Extract<Request, { op: 'start' }>): Promise<RuntimeStart> {
-    let result = await this.#request(request) as PullResult<RuntimeStart>;
-    while (result?.load === 'continue') {
-      this.#loadBoundary = result.phase;
-      result = await this.#request({ op: 'load-next', token: result.token }) as PullResult<RuntimeStart>;
-    }
-    return result?.load === 'done' ? result.value : result as unknown as RuntimeStart;
   }
 
   #ready(): Promise<RuntimeStart> {
@@ -566,9 +557,32 @@ export class BlenderRuntime {
       this.#lastCallWindow = { start: started, end: started + elapsed };
   }
 
+  #acceptedRequests = 0;
+  #requestTail: Promise<void> = Promise.resolve();
   #request(request: Request, shutdown = false): Promise<unknown> {
     if (this.#terminated || (this.#stopping && !shutdown))
       return Promise.reject(new Error('The Blender session is stopping or terminated'));
+    const began = performance.now();
+    this.#acceptedRequests++;
+    const answer = this.#requestTail.then(async () => {
+      this.#loadBoundary = request.op;
+      let result = await this.#wireRequest(request) as PullResult<unknown>;
+      while (result?.load === 'continue') {
+        this.#loadBoundary = result.phase;
+        result = await this.#wireRequest({ op: 'load-next', token: result.token }) as PullResult<unknown>;
+      }
+      return result?.load === 'done' ? result.value : result;
+    }).finally(() => {
+      this.#acceptedRequests--;
+      const totalMs = Math.round(performance.now() - began);
+      try { if (totalMs >= 1000) this.#options.log?.('log', `@@VOLTER-WORK op=${request.op} totalMs=${totalMs}`); } catch { /* diagnostics cannot poison the queue */ }
+    });
+    this.#requestTail = answer.then(() => {}, () => {});
+    return answer;
+  }
+
+  #wireRequest(request: Request): Promise<unknown> {
+    if (this.#terminated) return Promise.reject(new Error('The Blender session is terminated'));
     const id = ++this.#nextId;
     return new Promise((resolve, reject) => {
       this.#pending.set(id, { resolve, reject });

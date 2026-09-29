@@ -1,7 +1,9 @@
 /** A cooperative job advances only when its owner asks for its next unit.
  * Checkpoints park the producer; they do not renew a timer while work runs. */
 export type PullResult<T> = { load: 'continue'; token: string; phase: string } | { load: 'done'; value: T };
+let nextJob = 0;
 export class PullJob<T> {
+  private readonly job = ++nextJob;
   private started = false;
   private finished = false;
   private sequence = 0;
@@ -17,7 +19,7 @@ export class PullJob<T> {
       this.started = true;
       void Promise.resolve().then(() => this.work(phase => new Promise<void>(resolve => {
         this.resume = resolve;
-        this.expected = `load:${++this.sequence}`;
+        this.expected = `load:${this.job}:${++this.sequence}`;
         const waiter = this.waiter!; this.waiter = null;
         waiter.resolve({ load: 'continue', token: this.expected, phase });
       }))).then(value => {

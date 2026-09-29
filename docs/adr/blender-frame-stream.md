@@ -101,3 +101,13 @@ a new file with no initial frame, a different session, or an outdated view still
 requests its missing frame. Host tests cover those cases. The call meter also
 carries an optional operation/load-boundary label so a later slow call identifies
 which work owns it; timers and duration buckets are unchanged.
+
+The hosted follow-up identified a 12.401 s rig read after removing the redundant
+initial presentation. Rig reads and explicit presentations now use the same pull
+protocol as startup. Rig extraction yields between objects and every 50 ms at a
+1024-vertex boundary without changing influence selection or normalization.
+Continuation tokens identify the job as well as its step. While Python is parked,
+history and persistence cannot re-enter it. The page serializes whole logical
+operations, drains accepted edits before the close barrier, and protects queued
+work against unload. Wire-call timing remains measured from post to reply;
+`@@VOLTER-WORK` records total logical duration including queue time separately.

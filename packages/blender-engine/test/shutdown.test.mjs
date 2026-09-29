@@ -47,7 +47,7 @@ test('work diagnostics precede posting and balance presentation, failure and ter
     original(message);
   };
   const start=runtime.start('/project');
-  worker.reply(worker.messages[0]);await start;
+  await tick(); worker.reply(worker.messages[0]);await start;
   assert.equal(active.size,0);
   const edit=runtime.execute('SECRET MODEL CODE');
   await tick();
@@ -70,7 +70,7 @@ test('throwing work observers and failed postMessage cannot leak a pending call'
   for(const throwsAt of ['begin','end']){
     const runtime=new BlenderRuntime({present:()=>({}),work(){if(throwsAt==='begin')throw Error('diagnostic');return ()=>{throw Error('diagnostic');};}});
     const worker=FakeWorker.latest;
-    const start=runtime.start('/project');worker.reply(worker.messages[0]);await start;
+    const start=runtime.start('/project');await tick(); worker.reply(worker.messages[0]);await start;
     worker.postMessage=()=>{throw Error('cannot post');};
     await assert.rejects(runtime.execute('x'),/cannot post/);
     assert.equal(runtime.metrics().inFlightMs,null);
@@ -83,18 +83,20 @@ test('explicit shutdown persists before termination and refuses new work', async
   const runtime = new BlenderRuntime({ present: () => ({}) });
   const worker = FakeWorker.latest;
   const start = runtime.start('/project', 'model.blend');
-  worker.reply(worker.messages[0]);
+  await tick(); worker.reply(worker.messages[0]);
   await start;
   const edit = runtime.execute('edit');
   await tick();
   const stopping = runtime.stop();
   assert.equal(runtime.stop(), stopping);
   await tick();
-  assert.deepEqual(worker.messages.map(m => m.op), ['start', 'execute', 'flush-document']);
+  assert.deepEqual(worker.messages.map(m => m.op), ['start', 'execute']);
   assert.equal(worker.terminations, 0);
   await assert.rejects(runtime.execute('too late'), /stopping/);
   worker.reply(worker.messages[1]);
   await edit;
+  await tick();
+  assert.equal(worker.messages[2].op, 'flush-document');
   assert.equal(worker.terminations, 0);
   worker.reply(worker.messages[2]);
   await stopping;
@@ -109,7 +111,7 @@ test('failed save retains the worker and permits retry', async t => {
   const runtime = new BlenderRuntime({ present: () => ({}) });
   const worker = FakeWorker.latest;
   const start = runtime.start('/project');
-  worker.reply(worker.messages[0]);
+  await tick(); worker.reply(worker.messages[0]);
   await start;
   const stopping = runtime.stop();
   const refused = assert.rejects(stopping, /disk full/);
@@ -133,7 +135,7 @@ test('stop waits for startup; an unused runtime needs no save', async t => {
   const stopping = runtime.stop();
   await tick();
   assert.equal(worker.messages.length, 1);
-  worker.reply(worker.messages[0]);
+  await tick(); worker.reply(worker.messages[0]);
   await start;
   await tick();
   worker.reply(worker.messages[1]);
@@ -153,16 +155,18 @@ test('worker edit acknowledgment waits for durable upload; failed saves stay dir
       builder.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ contents:
         args.path.includes('blender-engine')
           ? 'export const startBlenderEngine = globalThis.startEngine;'
-          : 'export const describeFrame = (_, frame) => frame; export const columnsToTypedArrays = (_, frame) => frame;',
+          : 'export const isColumnDescriptor = () => false; export const describeFrame = (_, frame) => frame; export const columnsToTypedArrays = (_, frame) => frame;',
       }));
     } }],
   });
   let options, finishUpload, failUpload = false;
   let revision = 0;
   const events = [], replies = [];
-  const self = { postMessage(reply) { replies.push(reply); } };
+  const self = { addEventListener() {}, postMessage(reply) { replies.push(reply);
+    if (reply.op === 'frame-stream' && reply.chunk.kind !== 'begin') queueMicrotask(() => self.onmessage({ data: { op: 'present-result', id: reply.id } }));
+  } };
   const context = {
-    self, module: { exports: {} }, setTimeout, clearTimeout, Uint8Array, ArrayBuffer, Blob,
+    self, module: { exports: {} }, queueMicrotask, performance, crypto, TextEncoder, TextDecoder, Response, setTimeout, clearTimeout, Uint8Array, ArrayBuffer, Blob,
     startEngine: async value => {
       options = value;
       return {
@@ -185,9 +189,10 @@ test('worker edit acknowledgment waits for durable upload; failed saves stay dir
       if (url.endsWith('/status')) return { ok: true, json: async () => ({ available: true }) };
       if (url.endsWith('blender-project-index')) return { ok: true, json: async () => ({ root: '/project', files: [] }) };
       assert.ok(url.startsWith('/__editor/blender-document'));
-      events.push(`upload:${new Uint8Array(await init.body.arrayBuffer())[0]}`);
+      assert.equal(JSON.parse(init.body).chunks[0][1], 1);
+      events.push(`upload:${revision}`);
       await new Promise(resolve => { finishUpload = resolve; });
-      return { ok: !failUpload, status: 507, text: async () => 'disk full' };
+      return { ok: !failUpload, status: 507, json: async () => failUpload ? { error: 'disk full' } : { ok: true } };
     },
   };
   runInNewContext(workerBundle.outputFiles[0].text, context);
@@ -198,11 +203,20 @@ test('worker edit acknowledgment waits for durable upload; failed saves stay dir
   };
   send({ id: 1, op: 'start', project: '/project', document: 'model.blend' });
   await until(() => replies.some(r => r.id === 1 && 'result' in r));
+  let loaded = replies.find(r => r.id === 1).result, next = 10;
+  while (loaded.load === 'continue') {
+    const id = next++;
+    send({ id, op: 'load-next', token: loaded.token });
+    await until(() => replies.some(r => r.id === id && !r.op));
+    const reply = replies.find(r => r.id === id && !r.op);
+    assert.equal(reply.error, undefined); loaded = reply.result;
+  }
+
   send({ id: 2, op: 'execute', code: 'edit' });
-  await until(() => replies.some(r => r.op === 'present'));
+  await until(() => replies.some(r => r.op === 'frame-stream'));
   assert.ok(!events.includes('save-document'));
   // This must bypass the command queue: the edit is waiting for its frame.
-  send({ op: 'present-result', id: replies.find(r => r.op === 'present').id });
+  send({ op: 'present-result', id: replies.find(r => r.op === 'frame-stream').id });
   await until(() => events.includes('upload:1'));
   assert.ok(!replies.some(r => r.id === 2 && !r.op));
   failUpload = true;
@@ -238,7 +252,7 @@ test('browser unload is guarded while calls or failed saves remain, not after pe
   assert.equal(guarded(), false);
   const start = runtime.start('/project');
   assert.equal(guarded(), true);
-  worker.reply(worker.messages[0]);
+  await tick(); worker.reply(worker.messages[0]);
   await start;
   assert.equal(guarded(), false);
   worker.onmessage({ data: { op: 'document-dirty', dirty: true } });
@@ -247,4 +261,24 @@ test('browser unload is guarded while calls or failed saves remain, not after pe
   assert.equal(guarded(), false);
   runtime.terminate();
   assert.equal(guarded(), false);
+});
+
+
+test('rig continuations own the queue, then accepted edits drain before the close barrier', async t => {
+  fakeWorker(t);
+  const runtime = new BlenderRuntime({ present: () => ({}) });
+  const worker = FakeWorker.latest;
+  const start = runtime.start('/project'); await tick(); worker.reply(worker.messages[0]); await start;
+  const rig = runtime.rig(); await tick();
+  const edit = runtime.execute('accepted'); await tick();
+  assert.deepEqual(worker.messages.map(m => m.op), ['start', 'rig']);
+  worker.reply(worker.messages[1], { load: 'continue', token: 'rig:1', phase: 'rig-weights' });
+  await tick(); assert.equal(worker.messages[2].op, 'load-next');
+  const stopping = runtime.stop(); await tick();
+  assert.equal(worker.messages.length, 3);
+  worker.reply(worker.messages[2], { load: 'done', value: { rigs: [] } }); await rig;
+  await tick(); assert.equal(worker.messages[3].op, 'execute');
+  const failed = assert.rejects(edit, /disk full/); worker.fail(worker.messages[3]); await failed;
+  await tick(); assert.equal(worker.messages[4].op, 'flush-document');
+  worker.reply(worker.messages[4]); await stopping; assert.equal(worker.terminations, 1);
 });

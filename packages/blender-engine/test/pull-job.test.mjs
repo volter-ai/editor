@@ -96,4 +96,25 @@ test('actual worker startup parks the engine and completes streamed presentation
   assert.equal(result.load, 'done'); assert.equal(result.value.session, 'proof');
   assert.deepEqual(events, ['start', 'evaluated', 'presented', 'history-events']);
   assert(replies.some(r => r.op === 'frame-stream'));
+  for (const op of ['rig', 'present']) {
+    events.length = 0;
+    result = await send({ op });
+    assert.equal(result.load, 'continue');
+    assert.equal(result.phase, 'opened');
+    assert.deepEqual(events, [op]); // No history request into the parked Python interpreter.
+    while (result.load === 'continue') result = await send({ op: 'load-next', token: result.token });
+    assert.equal(result.load, 'done');
+    assert.deepEqual(events, [op, 'evaluated', 'presented', 'history-events']);
+  }
+
+});
+
+
+test('a continuation from an earlier operation cannot advance the next operation', async () => {
+  const make = () => new PullJob(async pause => { await pause('weights'); return true; });
+  const first = make(), second = make();
+  const old = await first.step(); await first.step(old.token);
+  const current = await second.step();
+  await assert.rejects(second.step(old.token), /Invalid/);
+  assert.deepEqual(await second.step(current.token), { load: 'done', value: true });
 });

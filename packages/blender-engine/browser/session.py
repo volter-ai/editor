@@ -4421,8 +4421,11 @@ def rna_rig(object_name=None):
         subjects = [obj for obj in bpy.context.view_layer.objects
                     if obj.type == "MESH" and obj.data is not None
                     and obj.find_armature() is not None]
-    return {"frame": scene_frame, "named": object_name,
-            "rigs": [_rig_of(obj) for obj in subjects]}
+    rigs = []
+    for obj in subjects:
+        _asked({"checkpoint": "rig-object"})
+        rigs.append(_rig_of(obj))
+    return {"frame": scene_frame, "named": object_name, "rigs": rigs}
 
 
 def _rig_of(obj):
@@ -4506,7 +4509,11 @@ def _rig_of(obj):
     truncated = 0
     unweighted = 0
     most = 0
+    checkpoint_at = time.monotonic()
     for i, vertex in enumerate(mesh.vertices):
+        if i % 1024 == 0 and time.monotonic() - checkpoint_at >= 0.05:
+            _asked({"checkpoint": "rig-weights"})
+            checkpoint_at = time.monotonic()
         pairs = []
         for element in vertex.groups:
             bone = group_to_bone.get(int(element.group))

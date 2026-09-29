@@ -573,17 +573,22 @@ async function listSessionFiles(files: BlenderFiles, root: string): Promise<File
   return out;
 }
 
+function pullWork(label: string, work: () => Promise<unknown>): Promise<unknown> {
+  if (loadCheckpoint) throw new Error('The current Blender operation must finish first');
+  loadJob = new PullJob(async checkpoint => {
+    loadCheckpoint = checkpoint;
+    const began = performance.now();
+    try { return await work(); }
+    finally { loadCheckpoint = null; log('log', `@@VOLTER-WORK op=${label} totalMs=${Math.round(performance.now() - began)}`); }
+  });
+  return loadJob.step();
+}
+
 async function handle(request: WorkerRequest): Promise<unknown> {
   switch (request.op) {
     case 'start': {
       if (loadJob) throw new Error('The Blender load has already started');
-      loadJob = new PullJob(async checkpoint => {
-        loadCheckpoint = checkpoint;
-        const began = performance.now();
-        try { return await start(request.project, request.document); }
-        finally { loadCheckpoint = null; log('log', `@@VOLTER-LOAD totalMs=${Math.round(performance.now() - began)}`); }
-      });
-      return loadJob.step();
+      return pullWork('start', () => start(request.project, request.document));
     }
     case 'load-next':
       if (!loadJob) throw new Error('No Blender load to continue');
@@ -632,7 +637,7 @@ async function handle(request: WorkerRequest): Promise<unknown> {
     case 'present':
       // Straight through to `session.py`'s own `present` op — the worker adds
       // nothing, and a capture-less present answers `{ presented, revision }`.
-      return ask({ op: 'present' });
+      return pullWork('present', () => ask({ op: 'present' }));
     case 'scene-info':
       return session.sceneInfo();
     case 'object-info':
@@ -698,10 +703,10 @@ async function handle(request: WorkerRequest): Promise<unknown> {
     // because `collection` crossed `runtime.ts` and `session.py` and never
     // this switch, with no error anywhere.
     case 'rig':
-      return ask({
+      return pullWork('rig', () => ask({
         op: 'rig',
         ...(request.object === undefined ? {} : { object: request.object }),
-      });
+      }));
     case 'action-clip':
       return ask({
         op: 'action-clip',
@@ -791,7 +796,7 @@ self.onmessage = (event: MessageEvent<WorkerRequest>) => {
 async function answerRequest(request: WorkerRequest): Promise<void> {
   try {
     const result = await handle(request);
-    if (documentDirty) await saveDocument();
+    if (!loadCheckpoint && documentDirty) await saveDocument();
     await reportHistory();
     post({ id: request.id, result });
   } catch (error) {
@@ -811,7 +816,7 @@ async function answerRequest(request: WorkerRequest): Promise<void> {
 }
 
 async function reportHistory(): Promise<void> {
-  if (!engine || !session) return;
+  if (loadCheckpoint || !engine || !session) return;
   const entries = await engine.request({ op: 'history-events' }) as import('./protocol').NativeHistoryEntry[];
   if (entries.length) post({ op: 'history', entries });
 }
