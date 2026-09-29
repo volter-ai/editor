@@ -1,4 +1,5 @@
 import { type BoundGodotInstancesMade, instancesMade } from './instances-made';
+import { type BoundGodotTreeRequests, treeRequests } from './tree-requests';
 import { ObjMeshError, type ObjMeshSurface, readObjMesh } from '../read/obj-mesh';
 import type { GltfPhysicsShape } from '../read/gltf-document';
 import { type BoundGodotSignalIntrospection, signalIntrospection } from './signal-introspection';
@@ -108,6 +109,8 @@ export interface BoundGodotSourceScript {
   readonly signalIntrospection: BoundGodotSignalIntrospection;
   /** The script instances the program makes or sets outside a scene (`instances-made.ts`). */
   readonly instancesMade: BoundGodotInstancesMade;
+  /** What the program asks of the SceneTree, and the paths it preloads (`tree-requests.ts`). */
+  readonly treeRequests: BoundGodotTreeRequests;
   /** This script's variable declarations that hold null at some time (`nullable-variables.ts`). */
   readonly nullableDeclarations?: readonly number[];
   /** The variables holding null at some time that this script reads (`nullable-variables.ts`). */
@@ -1627,6 +1630,7 @@ export function bindGodotProject(
       utilityCalls: variantUtilityCalls(refined),
       selfNodePaths: selfNodePaths(refined),
       instancesMade: instancesMade(refined),
+      treeRequests: treeRequests(refined),
       signalIntrospection: signalIntrospection(refined),
       provenCasts: provenCasts(refined, apiDump.parsed),
       ...(scriptNumericVariants === undefined ? {} : { numericVariants: scriptNumericVariants }),

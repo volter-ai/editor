@@ -147,7 +147,7 @@ function validateInputClosure(
   }
   for (const script of project.scripts) {
     if (!consumed.has(relative(script.resPath))) continue;
-    for (const node of script.program.nodes) if (node.kind === 'PRELOAD') referenced.add(relative(node.resolvedPath));
+    for (const resPath of script.treeRequests.preloads) referenced.add(relative(resPath));
   }
   const roots = new Map(project.read.runtimeRoots.map((root) => [relative(root.resPath), root.mechanism] as const));
   // An empty AudioBusLayout is refused by `AudioServer::set_bus_layout` (servers/audio/audio_server.cpp:1755):

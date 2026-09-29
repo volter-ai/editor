@@ -999,10 +999,9 @@ export function planDirectGodotProjectComposition(
 
 /** The scene changes the scripts call for, by the called function's name (a dynamic call counts too). */
 function sceneChanges(project: BoundGodotProject): DirectGodotProjectCompositionPlan['sceneChanges'] {
-  const called = new Set(project.scripts.flatMap((script) => script.program.nodes.flatMap((node) => (node.kind === 'CALL' ? [node.functionName] : []))));
-  // A pause is `set_pause` or a store to `paused` (`get_tree().paused = true`).
-  const named = new Set(project.scripts.flatMap((script) => script.program.nodes.flatMap((node) => (node.kind === 'IDENTIFIER' ? [node.name] : []))));
-  return { change: called.has('change_scene_to_packed') || called.has('change_scene_to_file'), reload: called.has('reload_current_scene'), pause: called.has('set_pause') || named.has('paused') };
+  // What the scripts ask of the tree, as analysis records it (`tree-requests.ts`).
+  const requests = project.scripts.map((script) => script.treeRequests);
+  return { change: requests.some((entry) => entry.changesScene), reload: requests.some((entry) => entry.reloadsScene), pause: requests.some((entry) => entry.pausesTree) };
 }
 
 /**

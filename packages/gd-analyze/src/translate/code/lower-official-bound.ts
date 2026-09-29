@@ -352,17 +352,9 @@ function nativeCarrierRoot(
   return used ? rootPath : undefined;
 }
 
-/** Whether a script's `Script.new(...)` makes an instance of the script (`scriptNew`, over a native object). */
+/** Whether some script makes an instance of the script in code (analysis's `instancesMade`). */
 function madeInCode(project: BoundGodotProject, resPath: string): boolean {
-  return project.scripts.some((script) =>
-    script.program.nodes.some((node) => {
-      if (node.kind !== 'CALL' || node.functionName !== 'new') return false;
-      const callee = script.program.nodes[node.callee];
-      if (callee?.kind !== 'SUBSCRIPT' || !callee.isAttribute) return false;
-      const datatype = script.program.nodes[callee.base]?.datatype;
-      return (datatype?.kind === 'CLASS' || datatype?.kind === 'SCRIPT') && datatype.metaType === true && datatype.scriptPath === resPath;
-    }),
-  );
+  return project.scripts.some((script) => script.instancesMade.anyScript || script.instancesMade.scripts.includes(resPath));
 }
 
 /**

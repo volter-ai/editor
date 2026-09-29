@@ -3003,12 +3003,10 @@ export function planGodotSceneDocuments(
 /** Each resource document without a script a script preloads, planned as its module (`TargetGodotResourceModulePlan`). */
 function planResourceModules(context: PlanContext, project: BoundGodotProject): TargetGodotResourceModulePlan[] {
   const documents = new Map<string, BoundGodotProject['documents']['resources'][number]>();
-  for (const script of project.scripts) {
-    for (const node of script.program.nodes) {
-      if (node.kind !== 'PRELOAD') continue;
-      const document = project.documents.resources.find((entry) => entry.resPath === node.resolvedPath);
-      if (document !== undefined && godotPreloadsResourceModule(document)) documents.set(document.resPath, document);
-    }
+  // The paths the scripts preload, as analysis records them (`tree-requests.ts`).
+  for (const resPath of project.scripts.flatMap((script) => script.treeRequests.preloads)) {
+    const document = project.documents.resources.find((entry) => entry.resPath === resPath);
+    if (document !== undefined && godotPreloadsResourceModule(document)) documents.set(document.resPath, document);
   }
   return [...documents.values()]
     .sort((a, b) => (a.resPath < b.resPath ? -1 : a.resPath > b.resPath ? 1 : 0))
