@@ -26,7 +26,6 @@ import type { InputEventRecord } from './input-event';
 import { construct as vector2, type Vector2 } from './vector2';
 import { construct as vector2i, type Vector2i } from './vector2i';
 import { godot_collision_object_2d_repick } from './collision-object-2d';
-import { godot_engine_frame } from './engine';
 
 const SIZES = new WeakMap<Object3D, Vector2i>();
 
@@ -384,7 +383,6 @@ export function godot_window_attach_input(canvas: HTMLCanvasElement): () => void
  */
 export function godot_window_process_events(frame: { readonly id: number; readonly delta: number }): void {
   godot_input_frame(frame);
-  godot_engine_frame(frame.delta);
   const keys = web.keys;
   web.keys = [];
   for (const event of keys) parse_input_event(event);

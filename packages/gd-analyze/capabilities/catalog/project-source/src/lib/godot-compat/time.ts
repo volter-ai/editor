@@ -3,8 +3,8 @@
  * @role BINDING
  *
  * Godot 4.7's `Time` singleton (`core/os/time.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): the ticks since the engine started, as the host's
- * clock counts them from the game's first frame (`engine.ts`).
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): the ticks since the engine started, R3F's clock
+ * (`engine.ts`).
  */
 
 import { godot_engine_ticks } from './engine';

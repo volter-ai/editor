@@ -3,42 +3,38 @@
  * @role BINDING
  *
  * Godot 4.7's `Engine` singleton (`core/config/engine.cpp`, revision
- * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`): its frame rate is the count of frames drawn in the
- * last whole second, 1 until the first second ends (`Main::iteration`, `main/main.cpp:4986`). The
- * frames are the root Window's, each with the host's delta (`godot_engine_frame`).
+ * `5b4e0cb0fd279832bbdd69fed5354d4e5ad26f88`) over R3F's root: the time since the game began is
+ * R3F's clock, and the frame rate the frames three's renderer has drawn over that time. Godot counts
+ * the frames of the last whole second (`Main::iteration`, `main/main.cpp:4986`); this is the rate
+ * since the game began, and 1 until its first second ends.
  */
 
-let fps = 1;
-let frames = 0;
-let elapsed = 0;
-/** The host's time since the first frame, in seconds: the sum of its frames' deltas. */
-let ticks = 0;
+import type { RootState } from '@react-three/fiber';
+
+/** R3F's root, handed over by the root Window (`useGodotRootWindow`). */
+let host: (() => RootState) | undefined;
 
 /**
- * One frame the root Window processed, `delta` seconds after the last.
+ * Hands the engine R3F's root state; the returned call releases it.
  *
  * @godot Engine (protocol)
  * @source main/main.cpp:4986
  */
-export function godot_engine_frame(delta: number): void {
-  frames += 1;
-  elapsed += delta;
-  ticks += delta;
-  if (elapsed > 1) {
-    fps = frames;
-    frames = 0;
-    elapsed %= 1;
-  }
+export function godot_engine_attach(get: () => RootState): () => void {
+  host = get;
+  return () => {
+    if (host === get) host = undefined;
+  };
 }
 
 /**
- * The host's time since the game's first frame, in seconds (what `Time`'s ticks count).
+ * The time since the game began, in seconds: R3F's clock (what `Time`'s ticks count).
  *
  * @godot Engine (protocol)
  * @source main/main.cpp:4986
  */
 export function godot_engine_ticks(): number {
-  return ticks;
+  return host?.().clock.elapsedTime ?? 0;
 }
 
 /**
@@ -46,7 +42,10 @@ export function godot_engine_ticks(): number {
  * @source core/config/engine.h:134
  */
 export function get_frames_per_second(): number {
-  return fps;
+  const state = host?.();
+  const elapsed = state?.clock.elapsedTime ?? 0;
+  if (state === undefined || elapsed < 1) return 1;
+  return Math.floor(state.gl.info.render.frame / elapsed);
 }
 
 /**

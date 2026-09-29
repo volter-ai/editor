@@ -18,10 +18,10 @@ import { useBeforePhysicsStep } from '@react-three/rapier';
 import { type RefObject, useEffect, useRef } from 'react';
 import { get_physics_process_delta_time, godot_node_advance, is_inside_tree } from './node';
 import { godot_process_delta } from './scene-tree';
-import { godot_viewport_frame_drawn } from './viewport';
 import { godot_window_canvas_layer, godot_window_canvas_root, godot_window_process_events } from './window';
 import { godot_canvas_item_draw, godot_canvas_item_undraw } from './canvas-item';
 import { godot_animation_clips_advance } from './animation-clips';
+import { godot_engine_attach } from './engine';
 
 /**
  * Runs one node's own internal processing from its component's frame and physics step.
@@ -107,12 +107,13 @@ export function useGodotCanvasItem(entity: Object3D): void {
  */
 export function useGodotRootWindow(): void {
   const gl = useThree((state) => state.gl);
+  // The engine's time and frame count are R3F's clock and three's renderer's.
+  const get = useThree((state) => state.get);
+  useEffect(() => godot_engine_attach(get), [get]);
   // The frame's identity is three's own count of the renderer's frames, its delta R3F's. A renderer
   // that keeps no count (a host's stand-in) gives each frame R3F's elapsed time as its identity,
   // which repeats while its clock is paused (a press then reads as just pressed until it moves).
   useFrame((state, delta) => {
-    // The previous frame has been drawn (`RenderingServer.frame_post_draw`).
-    godot_viewport_frame_drawn();
     godot_window_process_events({ id: state.gl.info?.render?.frame ?? state.clock.elapsedTime, delta });
   }, -1);
   // The Window's own canvas layer, placed over the canvas each frame; each canvas item draws itself

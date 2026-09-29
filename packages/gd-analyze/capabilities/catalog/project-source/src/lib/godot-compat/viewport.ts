@@ -17,6 +17,7 @@
  * focus, drag and drop and tooltips are not bound.
  */
 
+import { addAfterEffect } from '@react-three/fiber';
 import { BasicShadowMap, type Object3D, PCFShadowMap, PCFSoftShadowMap, type ShadowMapType, type WebGLRenderer } from 'three';
 import { get_global_transform_with_canvas, godot_canvas_item_is } from './canvas-item';
 import { godot_collision_object_2d_pick } from './collision-object-2d';
@@ -347,23 +348,30 @@ export function set_msaa_3d(self: object, msaa: number): void {
 }
 
 const FRAME_POST_DRAW = createSignal<[]>();
+/** R3F's after-render effect, held while the signal has connections. */
+let afterDraw: (() => void) | undefined;
+const connectPostDraw = FRAME_POST_DRAW.signal.connect;
+// Connecting arms R3F's own after-render effect (`addAfterEffect`), which emits once each frame
+// has been drawn and removes itself once nothing is connected.
+FRAME_POST_DRAW.signal.connect = (listener, options, callable) => {
+  const connection = connectPostDraw(listener, options, callable);
+  afterDraw ??= addAfterEffect(() => {
+    FRAME_POST_DRAW.emit();
+    if (!FRAME_POST_DRAW.signal.hasConnections()) {
+      afterDraw?.();
+      afterDraw = undefined;
+    }
+  });
+  return connection;
+};
 
 /**
- * `RenderingServer.frame_post_draw`: emitted once a frame has been drawn.
+ * `RenderingServer.frame_post_draw`: emitted once a frame has been drawn, by R3F's after-render
+ * effect while something is connected.
  *
  * @godot Viewport (protocol)
  * @source servers/rendering/rendering_server_default.cpp:222
  */
 export function godot_viewport_frame_post_draw(): GodotSignal<[]> {
   return FRAME_POST_DRAW.signal;
-}
-
-/**
- * The frame before this one has been drawn: the root Window's frame calls this as it begins.
- *
- * @godot Viewport (protocol)
- * @source servers/rendering/rendering_server_default.cpp:222
- */
-export function godot_viewport_frame_drawn(): void {
-  FRAME_POST_DRAW.emit();
 }
