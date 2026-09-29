@@ -25,7 +25,8 @@
  * So the session marks a present `saveDue`, this file finishes the command,
  * calls `save-document` as an ordinary request (which Python's loop
  * picks up BETWEEN calls, never mid-call), and carries the bytes to the
- * project through `/__editor/blender-document` BEFORE acknowledging the edit.
+ * project through `/__editor/blender-document` BEFORE acknowledging the edit —
+ * as a delta: the chunks the server does not hold (`document-chunks.mts`).
  *
  * WHY THE CARRY IS NOT THE MIRROR'S JOB (`volter blender-mcp`, class Mirror):
  * the Mirror is pull-based and runs only after an `execute_blender_code`, so
@@ -38,6 +39,7 @@
 
 import { type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
 import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
+import { documentChunks } from './document-chunks.mts';
 import { columnsToTypedArrays, describeFrame, isColumnDescriptor } from './session-frame.mts';
 
 const post = (reply: WorkerReply) => (self as unknown as Worker).postMessage(reply);
@@ -217,21 +219,40 @@ async function saveDocument(): Promise<void> {
   // call re-fetch the whole document over the session's own save, and would
   // hide it from `list-files` (which lists only what the SESSION owns).
   staged.delete(answer.path);
+  let sent = 0;
   try {
-    const posted = await fetch(`/__editor/blender-document?path=${encodeURIComponent(relative)}`, {
-      method: 'POST',
-      headers: { 'content-type': 'application/octet-stream' },
-      body: new Blob([bytes as BlobPart]),
-    });
-    if (!posted.ok) {
-      const said = await posted.text().catch(() => '');
-      throw new Error(`HTTP ${posted.status} ${said}`);
+    const chunks = await documentChunks(bytes);
+    const query = `path=${encodeURIComponent(relative)}`;
+    const manifest = JSON.stringify({ chunks: chunks.map(({ hash, start, end }) => [hash, end - start]) });
+    // The manifest asks for what the server lacks; after those are sent it commits. A second
+    // refusal can only be a file changed underneath between the two, so a third ask is the bound.
+    for (let round = 0; ; round += 1) {
+      const posted = await fetch(`/__editor/blender-document?${query}`, {
+        method: 'POST',
+        headers: { 'content-type': 'application/json' },
+        body: manifest,
+      });
+      const said = (await posted.json().catch(() => null)) as { ok?: boolean; missing?: string[]; error?: string } | null;
+      if (!posted.ok) throw new Error(`HTTP ${posted.status} ${said?.error ?? ''}`);
+      if (said?.ok) break;
+      if (round === 2 || !Array.isArray(said?.missing)) throw new Error(`the server still lacks ${said?.missing?.length ?? '?'} chunks`);
+      const wanted = new Set(said.missing);
+      for (const chunk of chunks) {
+        if (!wanted.delete(chunk.hash)) continue;
+        const part = await fetch(`/__editor/blender-document-chunk?${query}&hash=${chunk.hash}`, {
+          method: 'POST',
+          headers: { 'content-type': 'application/octet-stream' },
+          body: new Blob([bytes.subarray(chunk.start, chunk.end) as BlobPart]),
+        });
+        if (!part.ok) throw new Error(`HTTP ${part.status} ${await part.text().catch(() => '')}`);
+        sent += chunk.end - chunk.start;
+      }
     }
   } catch (error) {
     throw new Error(`The Blender document ${relative} was not written to the project: ${describeThrown(error)}`);
   }
   setDocumentDirty(false);
-  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length })}`);
+  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length, sent })}`);
 }
 
 async function startBlender(project: string, document?: string): Promise<unknown> {

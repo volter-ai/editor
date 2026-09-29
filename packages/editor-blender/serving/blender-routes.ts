@@ -9,6 +9,7 @@
  * like every other project write.
  */
 
+import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { mkdir, readFile, rm, stat, unlink, writeFile } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -40,6 +41,13 @@ function json(res: ServerResponse, body: unknown, status = 200): void {
   res.statusCode = status;
   res.setHeader('content-type', 'application/json');
   res.end(JSON.stringify(body));
+}
+
+/** The largest chunk a document save sends (`document-chunks.mts`'s cut bound). */
+const DOCUMENT_CHUNK_MAX = 4 * 1024 * 1024;
+
+function sha256(bytes: Uint8Array): string {
+  return createHash('sha256').update(bytes).digest('hex');
 }
 
 async function readBody(req: IncomingMessage): Promise<Buffer> {
@@ -76,6 +84,14 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
     if (!isContainedRelativePath(path)) return false;
     return path.split('/').every((segment) => segment !== '' && !segment.startsWith('.'));
   };
+
+  // The document's chunks: those the page sent for the save in flight, and where each chunk of
+  // the last committed save lies in the file, valid while the file's size and mtime still match.
+  const heldChunks = new Map<string, Map<string, Buffer>>();
+  const committedChunks = new Map<
+    string,
+    { size: number; mtimeMs: number; byHash: Map<string, { offset: number; length: number }> }
+  >();
 
   const routes: { method: 'GET' | 'POST'; match: RegExp; handle: Handler }[] = [
     // ---- The engine itself: headless Blender, compiled to WebAssembly. Its pthreads load
@@ -397,6 +413,40 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
     // those bytes reach the disk the project lives on. Unlike the spool, the destination shape is
     // pinned BY THIS SERVER, and the write is the project's one attributed, conflict-checked
     // transaction: a `.blend` is the project's file like any other.
+    //
+    // IT ARRIVES AS A DELTA. The page cuts each save into content-defined chunks
+    // (`blender-engine/browser/document-chunks.mts`) and posts their manifest; this answers with
+    // the chunks it does not already hold, the page posts those, and the manifest again commits.
+    // MEASURED 2026-09-29, native Blender 5.2 on the Stoneguard bridge: a 497 MB save, one object
+    // moved, changed 1 of 475 one-MiB chunks, so an edit carries about a megabyte instead of the
+    // whole file. Chunks this server reuses come from the document as it lies on disk, and each
+    // is hashed again against the manifest before the commit: a file changed underneath (another
+    // writer, a restore) is not drift but a missing chunk, re-sent.
+    {
+      method: 'POST',
+      match: /^\/__editor\/blender-document-chunk$/,
+      handle: async (req, res, url) => {
+        const path = url.searchParams.get('path') ?? '';
+        const hash = url.searchParams.get('hash') ?? '';
+        if (!isDocumentPath(path) || !/^[0-9a-f]{64}$/u.test(hash)) {
+          json(res, { error: 'A document chunk names its .blend `path` and its SHA-256 `hash` (64 hex digits).' }, 400);
+          return;
+        }
+        const body = await readBody(req);
+        if (body.byteLength === 0 || body.byteLength > DOCUMENT_CHUNK_MAX) {
+          json(res, { error: `A document chunk is 1 to ${DOCUMENT_CHUNK_MAX} bytes; got ${body.byteLength}.` }, 400);
+          return;
+        }
+        if (sha256(body) !== hash) {
+          json(res, { error: `The chunk's bytes do not hash to ${hash}; it was not kept.` }, 400);
+          return;
+        }
+        let held = heldChunks.get(path);
+        if (!held) heldChunks.set(path, (held = new Map()));
+        held.set(hash, body);
+        json(res, { ok: true, bytes: body.byteLength });
+      },
+    },
     {
       method: 'POST',
       match: /^\/__editor\/blender-document$/,
@@ -414,20 +464,92 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           );
           return;
         }
-        if (projectRoot() === null) {
+        const root = projectRoot();
+        if (root === null) {
           json(res, { error: 'No project open, so there is nowhere to save the document.' }, 404);
           return;
         }
-        const body = await readBody(req);
-        // A zero-byte .blend is not a document; writing one would replace a good file with an
-        // empty one at exactly the moment something went wrong.
-        if (body.byteLength === 0) {
-          json(res, { error: 'The Blender document body was empty; nothing was written.' }, 400);
+        // The editor server's `express.json` has already read a JSON body when it runs first
+        // (MEASURED: the stream arrived empty); read the stream only when it has not.
+        const parsed = (req as IncomingMessage & { body?: unknown }).body;
+        let manifest: unknown = parsed !== null && typeof parsed === 'object' && !Buffer.isBuffer(parsed) ? parsed : null;
+        if (manifest === null) {
+          try {
+            manifest = JSON.parse((await readBody(req)).toString('utf8'));
+          } catch {
+            manifest = null;
+          }
+        }
+        const chunks = (manifest as { chunks?: unknown } | null)?.chunks;
+        if (
+          !Array.isArray(chunks) ||
+          chunks.length === 0 ||
+          !chunks.every(
+            (chunk) =>
+              Array.isArray(chunk) &&
+              typeof chunk[0] === 'string' &&
+              /^[0-9a-f]{64}$/u.test(chunk[0]) &&
+              Number.isInteger(chunk[1]) &&
+              chunk[1] > 0 &&
+              chunk[1] <= DOCUMENT_CHUNK_MAX,
+          )
+        ) {
+          // A zero-chunk manifest is a zero-byte .blend, which is not a document; writing one
+          // would replace a good file with an empty one at exactly the moment something went wrong.
+          json(res, { error: 'A document manifest is `{ chunks: [[sha256, length], ...] }`, at least one chunk.' }, 400);
           return;
         }
+        const listed = chunks as [string, number][];
+        const held = heldChunks.get(path) ?? new Map<string, Buffer>();
+        // What the document on disk already holds, by hash, re-verified below.
+        const known = committedChunks.get(path);
+        let onDisk: Buffer | null = null;
+        if (known && listed.some(([hash]) => !held.has(hash) && known.byHash.has(hash))) {
+          try {
+            const file = join(root, path);
+            const now = await stat(file);
+            if (now.size === known.size && now.mtimeMs === known.mtimeMs) onDisk = await readFile(file);
+          } catch {
+            onDisk = null;
+          }
+        }
+        const parts: Buffer[] = [];
+        const missing = new Set<string>();
+        for (const [hash, length] of listed) {
+          const fresh = held.get(hash);
+          if (fresh && fresh.byteLength === length) {
+            parts.push(fresh);
+            continue;
+          }
+          const at = onDisk ? known?.byHash.get(hash) : undefined;
+          const reused = at !== undefined && at.length === length ? onDisk!.subarray(at.offset, at.offset + length) : null;
+          if (reused && sha256(reused) === hash) parts.push(reused);
+          else missing.add(hash);
+        }
+        if (missing.size > 0) {
+          json(res, { ok: false, missing: [...missing] });
+          return;
+        }
+        const body = Buffer.concat(parts);
         try {
           const revision = await services.commitProjectMutation(req, [{ path, content: body }]);
-          json(res, { ok: true, bytes: body.byteLength, revision: revision?.revision ?? null });
+          heldChunks.delete(path);
+          const byHash = new Map<string, { offset: number; length: number }>();
+          let offset = 0;
+          for (const [hash, length] of listed) {
+            byHash.set(hash, { offset, length });
+            offset += length;
+          }
+          const written = await stat(join(root, path)).catch(() => null);
+          if (written && written.size === body.byteLength)
+            committedChunks.set(path, { size: written.size, mtimeMs: written.mtimeMs, byHash });
+          else committedChunks.delete(path);
+          json(res, {
+            ok: true,
+            bytes: body.byteLength,
+            sent: listed.reduce((sum, [hash, length]) => sum + (held.has(hash) ? length : 0), 0),
+            revision: revision?.revision ?? null,
+          });
         } catch (error) {
           services.answerProjectMutationError(res, error);
         }
