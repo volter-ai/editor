@@ -9,6 +9,8 @@
  *   member `@onready var m = <such an expression>` (optionally `as T`) that nothing assigns again:
  *   its initializer runs once, in the script's `@implicit_ready` as the node becomes ready
  *   (modules/gdscript/gdscript_compiler.cpp:2409), so after that the member holds that node.
+ *   So is `preload("<scene>.tscn").instantiate()` cast to a class: the scene's root (`PackedScene::instantiate`,
+ *   scene/resources/packed_scene.cpp:2079).
  *   So is self's `get_parent()` where the script's node is below its document's root in every
  *   attached scene: the node above it there (`Node::get_parent`, scene/main/node.cpp:1874).
  * - `classdb-method-selection`: a member read on a typed object is the member's declared type: a
@@ -354,6 +356,15 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
       agreed = type;
     }
     return agreed;
+  };
+
+  /** A scene document's root as its instance is typed: its script class, else its class. */
+  const sceneRootType = (documentPath: string): GodotBoundDatatype | undefined => {
+    const resolved = resolveScenePath(scenes, { documentPath, nodePath: '.' } as CallReceiverAttachment, '.');
+    if (typeof resolved === 'string') return undefined;
+    const script = inputs.scriptAt(resolved.documentPath, resolved.pathInDocument);
+    const info = script === undefined ? undefined : inputs.scriptInfo(script);
+    return script === undefined ? nativeDatatype(resolved.className) : info === undefined ? undefined : scriptDatatype(script, info);
   };
 
   /**
@@ -707,6 +718,23 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)))
       ) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      }
+    } else if (
+      node?.kind === 'CALL' &&
+      node.compilerTarget.kind === 'native-method' &&
+      node.compilerTarget.member === 'instantiate' &&
+      node.arguments.length === 0 &&
+      program.nodes.some((other) => other.kind === 'CAST' && other.operand === id) &&
+      node.datatype.kind === 'NATIVE' &&
+      !node.datatype.metaType
+    ) {
+      // A preloaded scene's instance is its root: the root's script class, else its class (read
+      // where it is cast, which the root's class then proves).
+      const callee = nodes.get(node.callee);
+      const base = callee?.kind === 'SUBSCRIPT' && callee.isAttribute ? nodes.get(callee.base) : undefined;
+      const type = base?.kind === 'PRELOAD' && base.resolvedPath.endsWith('.tscn') ? sceneRootType(base.resolvedPath) : undefined;
+      if (type !== undefined && inherits(type.nativeType, node.datatype.nativeType)) {
+        result = { datatype: type, rule: 'scene-node-receiver' };
       }
     } else if (
       node?.kind === 'CALL' &&

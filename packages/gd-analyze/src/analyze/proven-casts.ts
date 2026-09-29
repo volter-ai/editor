@@ -19,7 +19,14 @@ export function provenCasts(program: GodotBoundScript, apiDump: GodotApiDump): r
     return false;
   };
   return program.nodes.flatMap((node) => {
-    if (node.kind !== 'CAST' || node.datatype.kind !== 'NATIVE' || node.datatype.nativeType === '') return [];
+    if (node.kind !== 'CAST') return [];
+    // A value typed as the cast's own script class is itself.
+    const script = node.datatype.kind === 'CLASS' && node.datatype.scriptPath !== '' ? node.datatype.scriptPath : undefined;
+    if (script !== undefined) {
+      const operandType = program.nodes[node.operand]?.datatype;
+      return operandType !== undefined && !operandType.metaType && operandType.kind === 'CLASS' && operandType.scriptPath === script ? [node.id] : [];
+    }
+    if (node.datatype.kind !== 'NATIVE' || node.datatype.nativeType === '') return [];
     const operand = program.nodes[node.operand];
     const known = operand?.datatype;
     // A script's instance whose script extends the class is itself too: the cast passes the

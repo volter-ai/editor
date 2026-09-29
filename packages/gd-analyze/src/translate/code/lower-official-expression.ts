@@ -3751,14 +3751,15 @@ export function lowerOfficialExpression(
         // A cast analysis proves always holds is the value itself (`provenCasts`), which the typed
         // read states as the class.
         if (context.provenCasts.has(node.id)) {
-          const requirements = context.structural(node, 'cast', [operandNode], 'cast:native');
+          const requirements = context.structural(node, 'cast', [operandNode], node.datatype.kind === 'NATIVE' ? 'cast:native' : 'cast:script');
           const operand = lowerExpression(context, operandNode);
           // A script's instance cast to its script's native class is the node it runs on.
-          if (operandNode.datatype.kind !== 'NATIVE' && !nullableObject(context, operandNode)) {
+          const toNative = node.datatype.kind === 'NATIVE' && operandNode.datatype.kind !== 'NATIVE';
+          if (toNative && !nullableObject(context, operandNode)) {
             const entity = nativeEntity(operand);
             return { ...entity, requirements: [...entity.requirements, ...requirements] };
           }
-          if (operandNode.datatype.kind === 'NATIVE') return { ...operand, requirements: [...operand.requirements, ...requirements] };
+          if (!toNative) return { ...operand, requirements: [...operand.requirements, ...requirements] };
         }
         // `value as Enum`: an enum is its int, so the value is itself (`GDScriptAnalyzer::reduce_cast`
         // allows an int or an enum there, gdscript_analyzer.cpp:3780, and the VM converts nothing).
