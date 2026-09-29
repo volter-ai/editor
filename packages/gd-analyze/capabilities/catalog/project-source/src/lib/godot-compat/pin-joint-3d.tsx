@@ -52,7 +52,8 @@ export function get_param(self: object, param: number): number {
 function Pin({ bodies }: { readonly bodies: GodotJointBodies }): null {
   const a = useRef<RapierRigidBody>(bodies.a as RapierRigidBody);
   const b = useRef<RapierRigidBody>(bodies.b as RapierRigidBody);
-  const joint = useSphericalJoint(a, b, [bodies.anchorA, bodies.anchorB]);
+  const anchor = (point: GodotJointBodies['anchorA']): [number, number, number] => [point.x, point.y, point.z];
+  const joint = useSphericalJoint(a, b, [anchor(bodies.anchorA), anchor(bodies.anchorB)]);
   useEffect(() => joint.current?.setContactsEnabled(bodies.contacts), [joint, bodies]);
   return null;
 }

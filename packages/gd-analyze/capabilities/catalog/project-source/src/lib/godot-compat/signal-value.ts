@@ -44,10 +44,12 @@ export function emit(self: GodotSignal<readonly unknown[]>, ...args: readonly un
  * @godot Signal.connect
  * @source core/variant/callable.cpp:543
  */
-export function connect(self: GodotSignal<readonly unknown[]>, callable: (...args: readonly unknown[]) => unknown, flags = 0): number {
+export function connect(self: GodotSignal<readonly unknown[]>, callable: (...args: never[]) => unknown, flags = 0): number {
   if ((flags & 1) !== 0) throw new Error('godot-compat: CONNECT_DEFERRED is not bound.');
   if (self.isConnected(callable) && (flags & 8) === 0) return ERR_INVALID_PARAMETER;
-  self.connect((...args) => void callable(...args), { flags, oneShot: (flags & 4) !== 0 }, callable);
+  // The Callable takes what the signal emits, whatever its own parameters state.
+  const call = callable as (...args: readonly unknown[]) => unknown;
+  self.connect((...args) => void call(...args), { flags, oneShot: (flags & 4) !== 0 }, callable);
   return OK;
 }
 
@@ -57,7 +59,7 @@ export function connect(self: GodotSignal<readonly unknown[]>, callable: (...arg
  * @godot Signal.disconnect
  * @source core/variant/callable.cpp:550
  */
-export function disconnect(self: GodotSignal<readonly unknown[]>, callable: (...args: readonly unknown[]) => unknown): void {
+export function disconnect(self: GodotSignal<readonly unknown[]>, callable: (...args: never[]) => unknown): void {
   if (!self.isConnected(callable)) return;
   self.disconnect(callable);
 }
@@ -66,6 +68,6 @@ export function disconnect(self: GodotSignal<readonly unknown[]>, callable: (...
  * @godot Signal.is_connected
  * @source core/variant/callable.cpp:556
  */
-export function is_connected(self: GodotSignal<readonly unknown[]>, callable: (...args: readonly unknown[]) => unknown): boolean {
+export function is_connected(self: GodotSignal<readonly unknown[]>, callable: (...args: never[]) => unknown): boolean {
   return self.isConnected(callable);
 }

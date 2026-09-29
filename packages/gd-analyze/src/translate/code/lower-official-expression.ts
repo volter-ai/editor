@@ -758,6 +758,21 @@ function tweenedProperty(
   );
 }
 
+/**
+ * A script enum read as the Dictionary it is (`CameraType.size()`, `Mood.keys()`): its names to
+ * their values, in declaration order (`GDScriptParser::EnumNode`'s dictionary), as a Map.
+ */
+function enumDictionary(value: LoweredExpression): LoweredExpression {
+  return {
+    ...value,
+    value: {
+      kind: 'new-expression',
+      callee: { kind: 'identifier-expression', name: 'Map' },
+      arguments: [{ kind: 'call-expression', callee: { kind: 'property-expression', object: { kind: 'identifier-expression', name: 'Object' }, property: 'entries' }, arguments: [value.value] }],
+    },
+  };
+}
+
 /** Compat's tree parameter protocol (`animation-tree.ts`): its import. */
 function treeProtocol(name: string): OfficialBoundLoweringRequirement {
   return { kind: 'compat-import-requirement', module: 'lib/godot-compat/animation-tree', imported: name, local: name, typeOnly: false };
@@ -1661,8 +1676,9 @@ export function convertedValue(
     // $L.duplicate()`, `var c: Chunk = chunks.get(key)`): the value is that class, which Godot's
     // typed assignment checks.
     const type = context.targetType(target);
-    // A class compat types by no receiver of its own (`object`) states nothing the value lacks.
-    if (type.type.kind === 'keyword-type' && type.type.keyword === 'object') return value;
+    // A class compat types by no receiver of its own (`object`) states nothing an object lacks (a
+    // Variant is still stated an object).
+    if (type.type.kind === 'keyword-type' && type.type.keyword === 'object' && objectKind(valueNode.datatype)) return value;
     // A script's instance into a place typed as an engine class holds the node it is attached to.
     const scripted = target.datatype.kind === 'NATIVE' && valueNode.datatype.kind === 'CLASS' && valueNode.datatype.scriptPath !== '';
     const held: TargetTsExpression = scripted ? { kind: 'call-expression', callee: { kind: 'identifier-expression', name: 'godot_node_entity' }, arguments: [value.value] } : value.value;
@@ -3438,7 +3454,9 @@ export function lowerOfficialExpression(
                   ? expression(selfNative(context, receiverNode), context.structural(receiverNode, 'self'))
                   : target.target.kind === 'compat-binding' && nativeMember
                     ? nativeEntity(lowerExpression(context, receiverNode))
-                    : lowerExpression(context, receiverNode),
+                    : receiverNode.datatype.kind === 'ENUM' && receiverNode.datatype.metaType
+                      ? enumDictionary(lowerExpression(context, receiverNode))
+                      : lowerExpression(context, receiverNode),
                 target,
                 args,
               );

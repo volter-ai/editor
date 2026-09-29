@@ -111,7 +111,7 @@ export function _set_current(self: object, current: boolean): void {
  * @source scene/3d/audio_listener_3d.cpp:112
  */
 export function get_listener_transform(self: object): Transform3D {
-  return get_global_transform(godot_node_entity(self));
+  return get_global_transform(godot_node_entity(self) as Object3D);
 }
 
 const AUDIO_LISTENER_3D = {

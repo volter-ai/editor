@@ -52,6 +52,7 @@ import {
   type TargetTsImportBinding,
   type TargetTsSourceFile,
   type TargetTsStatement,
+  type TargetTsType,
 } from './target-ts-syntax';
 
 export type { OfficialBoundLoweringDiagnostic } from './official-bound-lowering-context';
@@ -375,18 +376,41 @@ const NATIVE_CARRIER_TYPE_IMPORT: TargetTsStatement = {
   typeOnly: true,
 };
 
-function nativeCarrierMembers(): readonly TargetTsClassMember[] {
+/**
+ * A class whose constructor sets its native carrier (`nativeCarrierMembers`) initializes its
+ * instance fields there, after the carrier and in their order: GDScript's implicit initializer
+ * runs with the script already on its object (`GDScriptInstance` is created on it before
+ * `@implicit_new`, `GDScript::_create_instance`, gdscript.cpp:151), so an initializer may read the node (`transform`), which a
+ * class field initializer, run before the constructor's body, could not.
+ */
+function initializedAfterCarrier(members: readonly TargetTsClassMember[]): readonly TargetTsClassMember[] {
+  const constructor = members.find((member) => member.kind === 'constructor-member');
+  if (constructor?.kind !== 'constructor-member') return members;
+  const moved: TargetTsStatement[] = [];
+  const fields = members.map((member): TargetTsClassMember => {
+    if (member.kind !== 'field-member' || member.initializer === undefined || member.modifiers?.includes('static') === true) return member;
+    moved.push({
+      kind: 'expression-statement',
+      expression: { kind: 'assignment-expression', operator: '=', target: { kind: 'property-expression', object: { kind: 'this-expression' }, property: member.name }, value: member.initializer },
+    });
+    const { initializer: _initializer, ...declared } = member;
+    return declared;
+  });
+  return fields.map((member) => (member === constructor ? { ...constructor, body: [...constructor.body, ...moved] } : member));
+}
+
+function nativeCarrierMembers(type: TargetTsType): readonly TargetTsClassMember[] {
   const native = {
     kind: 'as-expression',
     expression: { kind: 'identifier-expression', name: 'native' },
-    type: { kind: 'type-reference', name: '$Object3D', arguments: [] },
+    type,
   } as const;
   return [
     {
       kind: 'field-member',
       name: '$native',
       modifiers: ['readonly'],
-      type: { kind: 'type-reference', name: '$Object3D', arguments: [] },
+      type,
     },
     {
       kind: 'constructor-member',
@@ -722,10 +746,22 @@ function lowerScript(
   const sourceMembers = lowerOfficialClassMembers(context, root);
   // Whole-script closure below assumes every member lowered; a refused script stops here.
   if (context.refusals.length > 0) throw new BoundLoweringRefusals(context.refusals);
+  // The carrier is typed as its engine class's object (a Camera3D's `PerspectiveCamera`), the
+  // intersection of the types compat's modules take for the class and its ancestors.
+  const carrierParts = carrierRoot === source.resPath && nativeType !== undefined ? nativeType(nativeBaseOf(project, source) ?? '') : [];
+  const carrierRequirements: readonly OfficialBoundLoweringRequirement[] = carrierParts.map((part) =>
+    part.compat
+      ? { kind: 'compat-import-requirement', module: part.module, imported: part.exportName, local: `$Native_${part.exportName}`, typeOnly: true }
+      : { kind: 'project-import-requirement', module: part.module, imported: part.exportName, local: `$Native_${part.exportName}`, typeOnly: true },
+  );
+  const carrierType: TargetTsType = {
+    kind: 'intersection-type',
+    members: [{ kind: 'type-reference', name: '$Object3D', arguments: [] }, ...carrierParts.map((part): TargetTsType => ({ kind: 'type-reference', name: `$Native_${part.exportName}`, arguments: [] }))],
+  };
   const requirements = mergeOfficialBoundRequirements(
     context,
     root,
-    [...classRequirements, ...baseRequirements, ...sourceMembers.requirements],
+    [...classRequirements, ...baseRequirements, ...carrierRequirements, ...sourceMembers.requirements],
     [className(source)],
     fileName(script.resPath),
   );
@@ -741,14 +777,14 @@ function lowerScript(
           } as const,
         }
       : {}),
-    members: [
-      ...(carrierRoot === source.resPath ? nativeCarrierMembers() : []),
+    members: initializedAfterCarrier([
+      ...(carrierRoot === source.resPath ? nativeCarrierMembers(carrierParts.length === 0 ? { kind: 'type-reference', name: '$Object3D', arguments: [] } : carrierType) : []),
       ...autoloadReferenceMembers(requirements.autoloadReferences),
       // The nodes its scene hands over (`useGodotScript`), once they all exist.
       // Each read states the node's type as analysis gives it; the field holds any node.
       ...ownNodePaths.map((entry): TargetTsClassMember => ({ kind: 'field-member', name: entry.field, type: { kind: 'keyword-type', keyword: 'unknown' } })),
       ...sourceMembers.members,
-    ],
+    ]),
     span: officialBoundSpan(script, root),
   };
   const sourcePath = fileName(script.resPath);
