@@ -1,6 +1,7 @@
 /**
  * Imported textures: an image the `texture` importer imports losslessly, loaded by
- * `CompressedTexture2D` from its copy beside the app.
+ * `CompressedTexture2D` from its copy beside the app; and textures made at run time from a noise
+ * (`NoiseTexture2D` over `FastNoiseLite`).
  */
 import { GODOT_4_7_CODE_SEED_SOURCE_REVISION } from '../../code/authority/godot-4.7-seed';
 import type { GodotSceneResourceRule } from '../scene-node-authority';
@@ -21,6 +22,18 @@ export const GODOT_4_7_TEXTURE_RESOURCE_RULES: readonly (GodotSceneResourceRule 
     className: 'AtlasTexture',
     construct: { module: 'lib/godot-compat/atlas-texture', exportName: 'godot_atlas_texture_new' },
     source: { file: 'scene/resources/atlas_texture.cpp', symbol: 'AtlasTexture::AtlasTexture', line: 280 },
+  },
+  {
+    sourceRevision: REVISION,
+    className: 'NoiseTexture2D',
+    construct: { module: 'lib/godot-compat/noise-texture-2d', exportName: 'godot_noise_texture_2d_new' },
+    source: { file: 'modules/noise/noise_texture_2d.cpp', symbol: 'NoiseTexture2D::NoiseTexture2D', line: 37 },
+  },
+  {
+    sourceRevision: REVISION,
+    className: 'FastNoiseLite',
+    construct: { module: 'lib/godot-compat/fast-noise-lite', exportName: 'godot_fast_noise_lite_new' },
+    source: { file: 'modules/noise/fastnoise_lite.cpp', symbol: 'FastNoiseLite::FastNoiseLite', line: 53 },
   },
   {
     sourceRevision: REVISION,

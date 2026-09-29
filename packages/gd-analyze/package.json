@@ -24,6 +24,7 @@
     "@types/jsdom": "^27.0.0",
     "@types/node": "^25.3.0",
     "fast-png": "^8.0.0",
+    "fastnoise-lite": "^1.1.1",
     "jsdom": "^27.0.1",
     "pako": "^3.0.1",
     "postprocessing": "^6.38.3",

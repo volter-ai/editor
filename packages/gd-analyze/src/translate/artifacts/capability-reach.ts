@@ -165,7 +165,11 @@ export function godotCapabilityRequirements(
   return required;
 }
 
-/** The module specifiers a capability source file imports: static imports and re-exports, `import()`, and `new URL(…, import.meta.url)`. */
+/**
+ * The module specifiers a capability source file imports: static imports and re-exports, `import()`,
+ * `new URL(…, import.meta.url)`, and the declaration files its `/// <reference path>` directives name
+ * (a package's types compat declares itself).
+ */
 function capabilityImports(copy: CapabilityCopyArtifact): readonly string[] {
   const text = Buffer.from(copy.bytes).toString('utf8');
   const source = ts.createSourceFile(copy.path, text, ts.ScriptTarget.Latest, false, copy.path.endsWith('x') ? ts.ScriptKind.TSX : ts.ScriptKind.TS);
@@ -188,6 +192,7 @@ function capabilityImports(copy: CapabilityCopyArtifact): readonly string[] {
     ts.forEachChild(node, visit);
   };
   visit(source);
+  for (const reference of source.referencedFiles) found.push(reference.fileName);
   return found;
 }
 

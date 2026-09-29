@@ -585,6 +585,22 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   Curve: ['_set_limits', 'set_bake_resolution', '_set_data', 'set_point_count'],
   Gradient: ['set_interpolation_mode', 'set_interpolation_color_space', 'set_offsets', 'set_colors'],
   GradientTexture2D: ['set_gradient', 'set_width', 'set_height', 'set_fill', 'set_fill_from', 'set_fill_to', 'set_repeat'],
+  NoiseTexture2D: ['set_noise', 'set_width', 'set_height', 'set_invert', 'set_in_3d_space', 'set_generate_mipmaps', 'set_seamless', 'set_seamless_blend_skirt', 'set_normalize'],
+  FastNoiseLite: [
+    'set_noise_type',
+    'set_seed',
+    'set_frequency',
+    'set_offset',
+    'set_fractal_type',
+    'set_fractal_octaves',
+    'set_fractal_lacunarity',
+    'set_fractal_gain',
+    'set_fractal_weighted_strength',
+    'set_fractal_ping_pong_strength',
+    'set_cellular_distance_function',
+    'set_cellular_jitter',
+    'set_cellular_return_type',
+  ],
   AudioStreamRandomizer: ['set_playback_mode', 'set_random_pitch', 'set_random_volume_offset_db', 'set_streams_count', 'set_stream:*', 'set_stream_probability_weight:*'],
 };
 

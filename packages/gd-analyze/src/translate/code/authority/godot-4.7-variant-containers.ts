@@ -142,7 +142,6 @@ export const GODOT_4_7_VARIANT_CONTAINER_RULES: readonly GodotCodeRuleEntry[] = 
   ...[['VARIANT:*'], []].map((inputs) => annotatedRule('VARIABLE', 'variable:declared:instance', '@onready:resolved:applied:*', inputs, '', { kind: 'structural', construct: 'variable' })),
   // An exported number with its editor range (`@export_range`), which only the editor reads.
   annotatedRule('VARIABLE', 'variable:inferred:instance', '@export_range:resolved:applied:*', ['BUILTIN:*'], '', { kind: 'structural', construct: 'variable' }),
-  annotatedRule('VARIABLE', 'variable:declared:instance', '@export_range:resolved:applied:*', ['BUILTIN:*'], '', { kind: 'structural', construct: 'variable' }),
   // An object-typed place given null, a script instance, or an int given an enum.
   rule('ASSIGNMENT', 'operator:OP_NONE:25', ['NATIVE:*', 'BUILTIN:*'], 'BUILTIN:*', { kind: 'assignment', operator: '=' }),
   rule('ASSIGNMENT', 'operator:OP_NONE:25', ['NATIVE:*', 'CLASS:*'], 'NATIVE:*', { kind: 'assignment', operator: '=' }),
