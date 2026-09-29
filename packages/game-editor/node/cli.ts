@@ -7,7 +7,7 @@ import productPackage from '../package.json';
 import { createGameProject, presets } from './create';
 import { isScaffoldAddition, SCAFFOLD_ADDITIONS, type ScaffoldAddition } from './scaffold/additions';
 import { launch, prepareSession, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
-import { control } from '@volter/editor-core/server/launcher/control';
+import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { listRecentProjects, listSessions, openProject, restart, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
 import { hasManifest } from '@volter/editor-project/manifest/locate';
 import { CAPABILITY_OPTIONS, runCapabilityCommand } from './capabilities';
@@ -52,10 +52,12 @@ try {
   volter-game-editor eval <JavaScript> | --list   # { editor, game, page, tools, session } in scope
   volter-game-editor play | stop | restart
   volter-game-editor ${SCREENSHOT_USAGE}
-  volter-game-editor sessions | project | projects
+  volter-game-editor ${HOSTED_USAGE}\n  volter-game-editor sessions | project | projects
   volter-game-editor open <path>
   volter-game-editor add [id...] | remove <id...> | outdated   [--project <path>] [--dry-run] [--json]
   volter-game-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
+  } else if (verb === 'hosted') {
+    await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {
     if (positionals.length !== 1) throw new Error('Usage: volter-game-editor blender-mcp');
     let project = resolve(process.cwd());

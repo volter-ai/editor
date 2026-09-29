@@ -7,7 +7,7 @@ import { hasManifest } from '@volter/editor-project/manifest/locate';
 import productPackage from '../package.json';
 import { declaration } from './create';
 import { launch, prepareSession, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
-import { control } from '@volter/editor-core/server/launcher/control';
+import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { listRecentProjects, listSessions, openProject, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
 import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
 
@@ -28,7 +28,9 @@ try {
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Model Editor\n  volter-model-editor create <folder> [--workbench <dir>]\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
+    console.log(`Volter Model Editor\n  volter-model-editor create <folder> [--workbench <dir>]\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
+  } else if (verb === 'hosted') {
+    await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {
     if (positionals.length !== 1) throw new Error('Usage: volter-model-editor blender-mcp');
     let project = resolve(process.cwd());

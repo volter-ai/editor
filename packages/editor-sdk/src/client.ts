@@ -253,6 +253,7 @@ export interface GameDebugDoor {
 
 export class EditorClient {
   private readonly baseUrl: string;
+  private readonly fetchOverride: typeof fetch | undefined;
 
   /**
    * The running game's debug plane — see {@link GameDebugDoor}. It rides the
@@ -284,6 +285,8 @@ export class EditorClient {
 
   constructor(opts?: {
     url?: string;
+    /** An authenticated transport for the same HTTP routes (e.g. a hosted tab). */
+    fetch?: typeof fetch;
     onEnvelope?: (body: unknown, observation: EditorEnvelopeObservation) => void;
     /**
      * An IN-PAGE command channel, for a client that lives inside the editor
@@ -299,7 +302,7 @@ export class EditorClient {
       );
     }
     const unknownOptions = Object.keys(opts ?? {}).filter(
-      (key) => key !== 'url' && key !== 'onEnvelope' && key !== 'transport',
+      (key) => key !== 'url' && key !== 'onEnvelope' && key !== 'transport' && key !== 'fetch',
     );
     if (unknownOptions.length > 0) {
       throw new Error(
@@ -307,6 +310,7 @@ export class EditorClient {
       );
     }
     this.baseUrl = (opts?.url ?? DEFAULT_URL).replace(/\/$/, '');
+    this.fetchOverride = opts?.fetch;
     this.onEnvelope = opts?.onEnvelope ?? null;
     this.transport = opts?.transport ?? null;
     this.game = {
@@ -376,7 +380,7 @@ export class EditorClient {
         commandDispatcher = deadlineMs > UNDICI_DEFAULT_HEADERS_TIMEOUT_MS
           ? createDispatcher(deadlineMs + 30_000)
           : undefined;
-        res = await dispatchFetch(url, init, commandDispatcher);
+        res = this.fetchOverride ? await this.fetchOverride(url, init) : await dispatchFetch(url, init, commandDispatcher);
         break;
       } catch (error) {
         await commandDispatcher?.destroy?.();
@@ -1526,7 +1530,7 @@ export class EditorClient {
     dispatcher?: Dispatcher,
   ): Promise<Response> {
     try {
-      return await dispatchFetch(url, init, dispatcher);
+      return this.fetchOverride ? await this.fetchOverride(url, init) : await dispatchFetch(url, init, dispatcher);
     } catch (error) {
       if ((error as { name?: string } | null)?.name === 'TimeoutError') throw error;
       const { code, detail } = describeFetchFailure(error);

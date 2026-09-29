@@ -8,15 +8,15 @@ import { CONTROLLER_DISCONNECTED_MESSAGE } from '../server-utils';
  *  product's `game` and `page`); a returned name replaces the kit's own. */
 export type EvalScope = (live: LiveSession) => Record<string, unknown>;
 
-export async function control(command: string, verb: string, argument?: string, reason?: string, scope?: EvalScope): Promise<void> {
+export async function control(command: string, verb: string, argument?: string, reason?: string, scope?: EvalScope, attachment?: { live: LiveSession; client: EditorClient }): Promise<void> {
   if (verb === 'eval' && argument === '--list') {
     // No session needed: the same bindings, built on port 0 and never contacted.
     const unconnected = { ...unconnectedBindings(), session: { port: 0, projectRoot: process.cwd() } };
     console.log(formatSurface(command, { ...unconnected, ...scope?.(unconnected) }));
     return;
   }
-  const live = await connect();
-  const client = new EditorClient({ url: `http://127.0.0.1:${live.session.port}` });
+  const live = attachment?.live ?? await connect();
+  const client = attachment?.client ?? new EditorClient({ url: `http://127.0.0.1:${live.session.port}` });
   if (verb === 'close') {
     const session = (await verifiedSessions(live.session.port)).find(s => s.port === live.session.port && s.project === live.session.projectRoot && s.registered);
     if (!session?.pid) throw new Error('Cannot close a session without verified process ownership.');
@@ -70,3 +70,6 @@ export async function control(command: string, verb: string, argument?: string, 
     process.exitCode = 1;
   }
 }
+
+// Products enter hosted control through the same public launcher door.
+export { hostedControl, HOSTED_USAGE } from './hosted';
