@@ -206,6 +206,9 @@ const ENTRIES: Readonly<Record<string, GodotSceneNodeIdiomEntry>> = {
   VehicleWheel3D: statedElement('vehicle-wheel-3d', 'VehicleWheel3D', ctor('VehicleWheel3D', 'scene/3d/physics/vehicle_body_3d.cpp', 391)),
   // Joints: `@react-three/rapier`'s impulse joints over the two bodies their paths name (`joint-3d.tsx`).
   SpringArm3D: statedElement('spring-arm-3d', 'SpringArm3D', ctor('SpringArm3D', 'scene/3d/physics/spring_arm_3d.cpp', 36)),
+  // Navigation over three-pathfinding (`navigation-region-3d.ts`).
+  NavigationRegion3D: statedElement('navigation-region-3d', 'NavigationRegion3D', ctor('NavigationRegion3D', 'scene/3d/navigation/navigation_region_3d.cpp', 426)),
+  NavigationAgent3D: statedElement('navigation-agent-3d', 'NavigationAgent3D', ctor('NavigationAgent3D', 'scene/3d/navigation/navigation_agent_3d.cpp', 353)),
   ShapeCast3D: statedElement('shape-cast-3d', 'ShapeCast3D', ctor('ShapeCast3D', 'scene/3d/physics/shape_cast_3d.h', 41)),
   PinJoint3D: statedElement('pin-joint-3d', 'PinJoint3D', ctor('PinJoint3D', 'scene/3d/physics/joints/pin_joint_3d.cpp', 76)),
   Generic6DOFJoint3D: statedElement('generic-6dof-joint-3d', 'Generic6DOFJoint3D', ctor('Generic6DOFJoint3D', 'scene/3d/physics/joints/generic_6dof_joint_3d.cpp', 315)),

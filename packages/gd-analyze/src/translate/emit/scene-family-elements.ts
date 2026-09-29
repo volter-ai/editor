@@ -38,7 +38,7 @@ import type {
 import type { DirectGodotSceneNodePlan } from '../data/direct-project-composition-plan';
 import type { GodotSceneNodeIdiomForm } from '../data/scene-node-idioms';
 import { godotAnimationLibraryDataPath, godotAnimationTreeDataPath } from '../data/scene-animation';
-import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath } from '../data/scene-families';
+import { godotArrayMeshDataPath, godotGridMapDataPath, godotMeshLibraryDataPath, godotNavigationMeshDataPath } from '../data/scene-families';
 import type { TargetGodotSceneResourcePlan, TargetGodotSceneSetterPlan, TargetGodotSceneValue } from '../data/scene-document-plan';
 import { GODOT_DEFAULT_MATERIAL_IDIOM, type GodotSceneMaterialIdiom } from '../data/scene-material-idioms';
 import type { GodotSceneGeometryMade } from '../data/scene-resource-idioms';
@@ -300,6 +300,22 @@ export function importedTextureHook(
   return local;
 }
 
+/** A baked NavigationMesh: made once from its data file (`godot_navigation_mesh_new`), at module level. */
+function navigationMeshLocal(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
+  const existing = emission.hookLocals.get(resource.key);
+  if (existing !== undefined) return existing;
+  const data = dataImport(emission, godotNavigationMeshDataPath(emission.targetPath, resource.key), `${stemOf(resource.key)} navigation`);
+  const local = freshLocal(emission, `${stemOf(resource.key)} navigation mesh`);
+  emission.hookLocals.set(resource.key, local);
+  emission.statics.push({
+    kind: 'variable-statement',
+    declaration: 'const',
+    name: local,
+    initializer: { kind: 'call-expression', callee: identifier(useCompat(emission, 'navigation-mesh', 'godot_navigation_mesh_new')), arguments: [identifier(data)] },
+  });
+  return local;
+}
+
 /** An ArrayMesh's data file, imported once: its local. */
 function arrayMeshData(emission: FamilyEmission, resource: TargetGodotSceneResourcePlan): string {
   const file = godotArrayMeshDataPath(emission.targetPath, resource.key);
@@ -534,6 +550,7 @@ function resourceLocal(emission: FamilyEmission, key: string): string {
   const idiom = resource.idiom;
   if (idiom?.kind === 'texture') return textureHook(emission, resource);
   if (idiom?.kind === 'mesh-library') return libraryLocal(emission, resource);
+  if (idiom?.kind === 'navigation-mesh') return navigationMeshLocal(emission, resource);
   if (idiom?.kind === 'animation-library') return animationLibraryLocal(emission, resource);
   if (idiom?.kind === 'animation-tree') return animationTreeLocal(emission, resource);
   const existing = emission.hookLocals.get(key);

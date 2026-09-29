@@ -610,6 +610,8 @@ const RESOURCE_SETTERS: Readonly<Record<string, readonly string[]>> = {
   GradientTexture2D: ['set_gradient', 'set_width', 'set_height', 'set_fill', 'set_fill_from', 'set_fill_to', 'set_repeat'],
   SpringArm3D: ['set_shape', 'set_length', 'set_mask', 'set_margin'],
   SeparationRayShape3D: ['set_length', 'set_slide_on_slope'],
+  NavigationRegion3D: ['set_navigation_mesh', 'set_enabled'],
+  NavigationAgent3D: ['set_path_desired_distance', 'set_target_desired_distance', 'set_path_height_offset', 'set_path_max_distance'],
   ShapeCast3D: [
     'set_enabled',
     'set_shape',
@@ -824,6 +826,11 @@ export function godotArrayMeshData(mesh: TargetGodotArrayMeshPlan): GodotArrayMe
  * Where an `ArrayMesh`'s data file is written: a scene's own sub-resource beside the scene, a
  * resource file's under `src/meshes/` (shared by every scene that uses it).
  */
+/** Where a baked NavigationMesh's data file is written, as an ArrayMesh's is. */
+export function godotNavigationMeshDataPath(sceneTargetPath: string, key: string): string {
+  return godotArrayMeshDataPath(sceneTargetPath, key).replace(/\.json$/u, '.navigation.json');
+}
+
 export function godotArrayMeshDataPath(sceneTargetPath: string, key: string): string {
   const safe = (text: string) => text.replace(/[^A-Za-z0-9._/-]+/gu, '_');
   if (key.startsWith('sub:')) return `${sceneTargetPath.replace(/\.tsx$/u, '')}.${safe(key.slice('sub:'.length))}.mesh.json`;

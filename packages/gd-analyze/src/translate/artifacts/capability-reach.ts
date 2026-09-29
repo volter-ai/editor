@@ -58,6 +58,8 @@ function resourceModules(resource: TargetGodotSceneResourcePlan): readonly strin
       return ['shader-material'];
     case 'mesh-library':
       return ['mesh-library'];
+    case 'navigation-mesh':
+      return ['navigation-mesh'];
     case 'animation-library':
       return ['animation-library'];
     case 'animation-tree':

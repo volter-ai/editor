@@ -99,6 +99,9 @@
     "src/lib/godot-compat/mesh-library.ts",
     "src/lib/godot-compat/mesh.ts",
     "src/lib/godot-compat/method-tweener.ts",
+    "src/lib/godot-compat/navigation-agent-3d.ts",
+    "src/lib/godot-compat/navigation-mesh.ts",
+    "src/lib/godot-compat/navigation-region-3d.ts",
     "src/lib/godot-compat/node-2d.ts",
     "src/lib/godot-compat/node-3d.ts",
     "src/lib/godot-compat/node.ts",
@@ -268,7 +271,8 @@
       "postprocessing": "^6.38.3",
       "react": "^19.2.4",
       "three": "^0.180.0",
-      "three-custom-shader-material": "^6.4.0"
+      "three-custom-shader-material": "^6.4.0",
+      "three-pathfinding": "^1.3.0"
     }
   },
   "regions": {
