@@ -8,11 +8,12 @@
  * on the origin unless not `centered`, moved by `offset`, flipped by `flip_h`/`flip_v`, in the plane
  * across its `axis`. Its material is unshaded and blended (alpha cut disabled), tinted by `modulate`,
  * double-sided and depth-tested by the draw flags. The quad is redrawn in a deferred call after a
- * change (`_queue_redraw`). Billboards, fixed size, the shaded flag and alpha cut modes are stored,
- * not drawn.
+ * change (`_queue_redraw`). A billboard faces the camera (`BILLBOARD_ENABLED`) or turns about its Y
+ * axis toward it (`BILLBOARD_FIXED_Y`) as it is drawn, its node's transform untouched. Fixed size,
+ * the shaded flag and alpha cut modes are stored, not drawn.
  */
 
-import { BufferAttribute, BufferGeometry, DoubleSide, FrontSide, type Mesh, MeshBasicMaterial } from 'three';
+import { BufferAttribute, BufferGeometry, DoubleSide, FrontSide, type Camera, Matrix4, type Mesh, MeshBasicMaterial, Quaternion, Vector3 as ThreeVector3 } from 'three';
 import { godot_atlas_texture_region } from './atlas-texture';
 import { godot_base_material_3d_model_map } from './base-material-3d';
 import { construct as color, type Color } from './color';
@@ -111,6 +112,29 @@ function draw(mesh: Mesh, state: SpriteBase3DState): void {
   state.aabb = { position: vector3(...low), size: vector3(high[0] - low[0], high[1] - low[1], high[2] - low[2]) };
 }
 
+const position = new ThreeVector3();
+const rotation = new Quaternion();
+const scale = new ThreeVector3();
+const facing = new Quaternion();
+const turned = new Matrix4();
+
+/**
+ * A billboard's world matrix for the camera it is drawn with (the material's billboard,
+ * `BaseMaterial3D::BILLBOARD_*`, `material.cpp:1450`): its position and scale kept, its rotation the
+ * camera's (enabled) or the camera's turn about Y (fixed Y). Set just before the draw, so the node's
+ * own transform is untouched.
+ */
+function billboard(mesh: Mesh, state: SpriteBase3DState, camera: Camera): void {
+  if (state.billboard === 0) return;
+  mesh.matrixWorld.decompose(position, rotation, scale);
+  camera.getWorldQuaternion(facing);
+  if (state.billboard === 2) {
+    const forward = new ThreeVector3(0, 0, 1).applyQuaternion(facing);
+    facing.setFromAxisAngle(new ThreeVector3(0, 1, 0), Math.atan2(forward.x, forward.z));
+  }
+  mesh.matrixWorld.copy(turned.compose(position, facing, scale));
+}
+
 /**
  * Queues the sprite's redraw (`_queue_redraw`, `sprite_3d.cpp:240`): one deferred draw after changes.
  *
@@ -156,6 +180,7 @@ export function godot_sprite_base_3d_mount(
     aabb: { position: vector3(), size: vector3() },
   };
   SPRITES.set(entity, state);
+  entity.onBeforeRender = (_renderer, _scene, camera) => billboard(entity, state, camera);
   entity.material = new MeshBasicMaterial({ transparent: true, side: DoubleSide });
   entity.geometry = EMPTY;
   godot_visual_instance_3d_aabb(entity, () => state.aabb);
@@ -307,8 +332,6 @@ export function get_draw_flag(self: object, flag: number): boolean {
 }
 
 /**
- * Stored; a billboard is not drawn.
- *
  * @godot SpriteBase3D.set_billboard_mode
  * @source scene/3d/sprite_3d.cpp:430
  */
