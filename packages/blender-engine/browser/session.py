@@ -1587,6 +1587,8 @@ class Session:
         for kind, keys, door in (("mesh", meshes, _blender_web.export_mesh),
                                  ("image", images, _blender_web.export_image)):
             for key in keys:
+                if kind == "image" and self._send_encoded_image(key, frame["images"][key]):
+                    continue
                 options["key"] = key
                 piece = json.loads(door(json.dumps(options)))
                 if piece.get("error"):
@@ -1596,6 +1598,53 @@ class Session:
                     del frame["images"][key]
                     continue
                 ask({kind: key, "piece": piece[kind]})
+        return True
+
+    def _send_encoded_image(self, key, deferred):
+        """A PICTURE AS ITS FILE'S OWN BYTES, when that is exactly what the frame would carry.
+
+        A modelling program keeps a picture compressed as its file and lets the GPU hold the
+        decoded texture; only this side's raster door decoded every picture into RGBA and shipped
+        that. MEASURED 2026-09-29 on the Stoneguard bridge: its 84 material pictures are 171 MB as
+        their packed files and 1,343 MB as RGBA, and the hosted tab's renderer passed 10 GB while
+        it opened. So a picture whose texels ARE its file -- a plain file or packed PNG or JPEG,
+        not edited in this session -- is written to the engine's filesystem as those bytes and
+        crosses as they are (`worker.ts`), decoded by the browser. The rest keep the raster door:
+        a key with `@` (a roughness remap bakes new texels), a picture painted here (`is_dirty`),
+        a UDIM or generated one, or bytes neither decoder reads.
+
+        Answers whether it was sent."""
+        if "@" in key:
+            return False
+        image = bpy.data.images.get(key)
+        if image is None or image.source != "FILE" or image.is_dirty:
+            return False
+        try:
+            if image.packed_file is not None:
+                data = bytes(image.packed_file.data)
+            else:
+                with open(bpy.path.abspath(image.filepath), "rb") as fh:
+                    data = fh.read()
+        except (OSError, TypeError, ValueError):
+            return False
+        if data[:8] == b"\x89PNG\r\n\x1a\n":
+            mime = "image/png"
+        elif data[:3] == b"\xff\xd8\xff":
+            mime = "image/jpeg"
+        else:
+            return False
+        path = os.path.join(ROOT, "encoded-image.bin")
+        with open(path, "wb") as fh:
+            fh.write(data)
+        try:
+            ask({"image": key, "piece": {
+                "revision": deferred["revision"],
+                "mime": mime,
+                "colorspace": "sRGB" if image.colorspace_settings.name == "sRGB" else "data",
+                "encodedPath": path,
+            }})
+        finally:
+            os.remove(path)
         return True
 
     def _drop_unreachable_textures(self, frame):

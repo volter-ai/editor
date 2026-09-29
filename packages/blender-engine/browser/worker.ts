@@ -300,10 +300,26 @@ async function startBlender(project: string, document?: string): Promise<unknown
       }
       if (mesh !== undefined || image !== undefined) {
         if (!pending) throw new Error(`The Blender session sent ${mesh ?? image} before its frame`);
-        const copied = {
-          typed: columnsToTypedArrays(arena, piece),
-          description: await describeFrame(arena, piece),
-        };
+        // A PICTURE AS ITS FILE'S OWN BYTES (`session.py::_encoded_image`): the session wrote
+        // them to `encodedPath` rather than decoding them into the arena, and they cross as they
+        // are; the record keeps their digest, as it does a column's.
+        const encodedPath = (piece as { encodedPath?: unknown } | undefined)?.encodedPath;
+        let copied: Copied;
+        if (image !== undefined && typeof encodedPath === 'string') {
+          const { encodedPath: _path, ...rest } = piece as Record<string, unknown>;
+          const bytes = (await holder.engine.files.readFile(encodedPath)).slice();
+          const digest = new Uint8Array(await crypto.subtle.digest('SHA-256', bytes));
+          const sha256 = Array.from(digest, (byte) => byte.toString(16).padStart(2, '0')).join('');
+          copied = {
+            typed: { ...rest, encoded: bytes },
+            description: { ...rest, encoded: { dtype: 'u8', length: bytes.length, sha256 } },
+          };
+        } else {
+          copied = {
+            typed: columnsToTypedArrays(arena, piece),
+            description: await describeFrame(arena, piece),
+          };
+        }
         if (mesh !== undefined) pending.meshes.set(mesh, copied);
         else pending.images.set(image as string, copied);
         return {};

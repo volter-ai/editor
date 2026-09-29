@@ -249,9 +249,13 @@ export async function texturesReady(): Promise<void> {
   while (pendingTextures.size > 0) await Promise.all([...pendingTextures]);
 }
 
-/** A PNG's bytes as a three texture, decoded by the browser's own decoder. */
-function loadPngTexture(png: Uint8Array): { texture: THREE.Texture; ready: Promise<void> } {
-  const blob = new Blob([png as BlobPart], { type: 'image/png' });
+/** An image file's own bytes (PNG or JPEG) as a three texture, decoded by the browser's own
+ *  decoder. */
+function loadEncodedTexture(
+  encoded: Uint8Array,
+  mime: 'image/png' | 'image/jpeg',
+): { texture: THREE.Texture; ready: Promise<void> } {
+  const blob = new Blob([encoded as BlobPart], { type: mime });
   const texture = new THREE.Texture();
   let disposed = false;
   texture.addEventListener('dispose', () => {
@@ -275,8 +279,14 @@ function loadPngTexture(png: Uint8Array): { texture: THREE.Texture; ready: Promi
   //
   // Its alpha is asked for here too: the browser's `default` premultiplies (Chrome's does), and
   // every reader of this texture takes the file's own texels, straight unless the image says it
-  // stores them premultiplied, which the reader then undoes.
-  const decoding = createImageBitmap(blob, { imageOrientation: 'flipY', premultiplyAlpha: 'none' })
+  // stores them premultiplied, which the reader then undoes. And its colour is the file's own: no
+  // embedded profile or gamma is applied, because Blender reads the texels as stored and applies
+  // the image's colour space setting itself, as the sampler does here.
+  const decoding = createImageBitmap(blob, {
+    imageOrientation: 'flipY',
+    premultiplyAlpha: 'none',
+    colorSpaceConversion: 'none',
+  })
     .then((bitmap) => {
       if (disposed) {
         bitmap.close();
@@ -392,14 +402,20 @@ const rasterImageSchema = z
     }).strict()).optional(),
   })
   .strict();
-const pngImageSchema = z
+/** An image as its FILE'S OWN BYTES, PNG or JPEG (`session.py::_encoded_image`): what the file
+ *  already carries compressed, decoded by the browser into the texture, so neither side holds
+ *  the picture as raw RGBA. MEASURED 2026-09-29 on the Stoneguard bridge: its 84 material images
+ *  are 171 MB as their packed files and 1,343 MB as RGBA. */
+const encodedImageSchema = z
   .object({
     revision: z.number().int().nonnegative(),
-    png: z.instanceof(Uint8Array).optional(),
-    pngBase64: z.string().optional(),
+    encoded: z.instanceof(Uint8Array).optional(),
+    encodedBase64: z.string().optional(),
+    mime: z.enum(['image/png', 'image/jpeg']),
+    colorspace: z.enum(['sRGB', 'data']).optional(),
   })
   .strict();
-const frameImageSchema = z.union([rasterImageSchema, pngImageSchema]);
+const frameImageSchema = z.union([rasterImageSchema, encodedImageSchema]);
 
 const textureReferenceSchema = z
   .object({
@@ -694,7 +710,7 @@ export class BlenderRuntimeView {
       width: number;
       height: number;
       revision: number;
-      png?: Uint8Array;
+      encoded?: { bytes: Uint8Array; mime: 'image/png' | 'image/jpeg'; colorspace: 'sRGB' | 'data' };
       ready?: Promise<void>;
       /** A UDIM image's tiles as a graph samples them (`udimTextures`). */
       udim?: {tiles: THREE.DataArrayTexture; map: THREE.DataTexture; frame: NonNullable<z.infer<typeof rasterImageSchema>['tiles']>};
@@ -1609,24 +1625,25 @@ export class BlenderRuntimeView {
         });
         continue;
       }
-      // A FILE'S OWN PNG, decoded once here. Its size is the bitmap's, so the
+      // A FILE'S OWN BYTES, decoded once here. Its size is the bitmap's, so the
       // cache records none: the next raster for this name, whatever its size,
       // is a rebuild rather than an upload into a texture whose dimensions
       // this side never learned.
-      const png = data.png ?? (data.pngBase64 ? bytesFromBase64(data.pngBase64) : undefined);
-      if (!png) throw new Error(`Runtime image ${name} carries no bytes`);
+      const encoded = data.encoded ?? (data.encodedBase64 ? bytesFromBase64(data.encodedBase64) : undefined);
+      if (!encoded) throw new Error(`Runtime image ${name} carries no bytes`);
       held?.texture.dispose();
       held?.udim?.tiles.dispose();
       held?.udim?.map.dispose();
-      const { texture, ready } = loadPngTexture(png);
-      texture.colorSpace = THREE.SRGBColorSpace;
+      const colorspace = data.colorspace ?? 'sRGB';
+      const { texture, ready } = loadEncodedTexture(encoded, data.mime);
+      texture.colorSpace = colorspace === 'data' ? THREE.NoColorSpace : THREE.SRGBColorSpace;
       this.textures.set(name, {
         texture,
         ready,
         width: 0,
         height: 0,
         revision: data.revision,
-        png: png.slice(),
+        encoded: { bytes: encoded.slice(), mime: data.mime, colorspace },
       });
     }
     for (const [id, data] of Object.entries(next.materials)) {
@@ -2034,8 +2051,13 @@ export class BlenderRuntimeView {
     for (const name of images) {
       const held = this.textures.get(name);
       if (!held) throw new Error(`Blender capture image ${name} is not resident`);
-      if (held.png) {
-        frame.images[name] = { revision: held.revision, png: held.png.slice() };
+      if (held.encoded) {
+        frame.images[name] = {
+          revision: held.revision,
+          encoded: held.encoded.bytes.slice(),
+          mime: held.encoded.mime,
+          colorspace: held.encoded.colorspace,
+        };
       } else {
         const data = held.texture.image?.data;
         if (!(data instanceof Uint8Array))
