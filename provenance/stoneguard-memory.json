@@ -31,11 +31,37 @@
     },
     "geometryRegression": {
       "fixture": "Stoneguard Dwarf anatomical head; materials omitted only from isolated regression fixture",
-      "stages": ["original", "vertex edit", "subdivision level two"],
+      "stages": [
+        "original",
+        "vertex edit",
+        "subdivision level two"
+      ],
       "comparison": "exact SHA256 equality with shipped engine for positions, triangle indices, corner normals and all five UV channels"
     },
     "compression": "brotli quality 11; decompressed outputs compared byte-for-byte with raw build",
-    "historicalBattery": "not run: the catalog path named in Blender RELEASE.md is absent from the current editor checkout"
+    "historicalBattery": "not run: the catalog path named in Blender RELEASE.md is absent from the current editor checkout",
+    "fullBridgeUnlinkedNodeProbe": {
+      "result": "passed; original source opened, input unlinked after open, every Bridge mesh evaluated and read",
+      "peakHeapMiB": 3623.25,
+      "finalMallocInUseBytes": 1794687536,
+      "inputRetainedInWasmFs": false,
+      "scope": "CPU evaluation probe; not hosted viewport memory"
+    },
+    "sceneEvaluationRegression": {
+      "baselineWasmSha256": "722b181cec94f1bdf2f088e0ae92f04ffa5a79c267bf5b04af7260c16e34eb0f",
+      "objectsComparedInOriginalScene": 11761,
+      "method": "two baseline processes because retained subdivision tables exceed 4 GiB; known-OOM Dwarf head separately covered by three-state fixture",
+      "exactFields": [
+        "positions",
+        "triangle indices",
+        "edges",
+        "corner vertex indices",
+        "face starts",
+        "corner normals",
+        "object transforms"
+      ],
+      "uvCaveat": "ten arch meshes differ by one floating-point step in some UV values; maximum absolute delta 4.76837158203125e-7; no UV channels removed"
+    }
   },
   "browserDiagnosticBuild": {
     "scope": "same source changes, diagnostic -O0 link; not the clean release artifact",
@@ -50,5 +76,19 @@
     "release manifest boundary passed: 17 packages",
     "packed import declarations passed: 2343 files across 17 packages"
   ],
-  "tradeoff": "Browser CPU subdivision tables are recomputed on reevaluation instead of cached. This reduces peak/retained memory at the cost of repeated subdivision work."
+  "tradeoff": "Browser CPU subdivision tables are recomputed on reevaluation instead of cached. This reduces peak/retained memory at the cost of repeated subdivision work.",
+  "nativeSceneEvaluation": {
+    "reference": "Blender 5.2.0 LTS fbe6228777e7, macOS arm64 Release",
+    "objects": 11762,
+    "distinctGeometrySets": 1070,
+    "exact": [
+      "object names/types/counts/transforms",
+      "edges",
+      "corner vertex indices",
+      "face starts"
+    ],
+    "maxPositionAbsDelta": 0.0024997517466545105,
+    "maxUvAbsDelta": 2.384185791015625e-06,
+    "caveat": "Mage clothing | continuous ivory bodice has pre-existing native/Wasm position, triangulation and normal differences. Its candidate output is byte-exact to shipped Wasm. Nearly collapsed faces amplify last-bit Armature/subdivision differences through Solidify. Native visual or bit parity is not claimed."
+  }
 }
