@@ -3751,7 +3751,12 @@ export function lowerOfficialExpression(
         if (context.provenCasts.has(node.id)) {
           const requirements = context.structural(node, 'cast', [operandNode], 'cast:native');
           const operand = lowerExpression(context, operandNode);
-          return { ...operand, requirements: [...operand.requirements, ...requirements] };
+          // A script's instance cast to its script's native class is the node it runs on.
+          if (operandNode.datatype.kind !== 'NATIVE' && !nullableObject(context, operandNode)) {
+            const entity = nativeEntity(operand);
+            return { ...entity, requirements: [...entity.requirements, ...requirements] };
+          }
+          if (operandNode.datatype.kind === 'NATIVE') return { ...operand, requirements: [...operand.requirements, ...requirements] };
         }
         // `value as Enum`: an enum is its int, so the value is itself (`GDScriptAnalyzer::reduce_cast`
         // allows an int or an enum there, gdscript_analyzer.cpp:3780, and the VM converts nothing).

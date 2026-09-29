@@ -22,8 +22,9 @@ export function provenCasts(program: GodotBoundScript, apiDump: GodotApiDump): r
     if (node.kind !== 'CAST' || node.datatype.kind !== 'NATIVE' || node.datatype.nativeType === '') return [];
     const operand = program.nodes[node.operand];
     const known = operand?.datatype;
-    // A script's instance cast to its node's class is the node, another object than the instance.
-    if (known === undefined || known.metaType || known.kind !== 'NATIVE' || known.nativeType === '') return [];
+    // A script's instance whose script extends the class is itself too: the cast passes the
+    // instance through (`OPCODE_CAST_TO_NATIVE` tests the object, whose class is the script's base).
+    if (known === undefined || known.metaType || (known.kind !== 'NATIVE' && known.kind !== 'CLASS' && known.kind !== 'SCRIPT') || known.nativeType === '') return [];
     return inherits(known.nativeType, node.datatype.nativeType) ? [node.id] : [];
   });
 }
