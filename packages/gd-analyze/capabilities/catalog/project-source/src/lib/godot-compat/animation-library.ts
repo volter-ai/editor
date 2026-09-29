@@ -64,9 +64,9 @@ export function construct(): AnimationLibrary {
  * @godot AnimationLibrary (protocol)
  * @source scene/resources/animation_library.cpp:148
  */
-export function godot_animation_library_load(data: GodotAnimationLibraryData): AnimationLibrary {
+export function godot_animation_library_load(data: GodotAnimationLibraryData, streams: readonly unknown[] = []): AnimationLibrary {
   const self = construct();
-  for (const entry of data.animations) add_animation(self, entry.name, godot_animation_from_data(entry.animation));
+  for (const entry of data.animations) add_animation(self, entry.name, godot_animation_from_data(entry.animation, streams));
   return self;
 }
 

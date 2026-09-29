@@ -1138,7 +1138,8 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
     refuse(context, at, 'AnimationLibrary._data is not a dictionary', 'resource', 'AnimationLibrary');
     return undefined;
   }
-  const animations: { name: string; animation: ReturnType<typeof godotAnimationData> & object }[] = [];
+  const animations: { name: string; animation: TargetGodotAnimationLibraryPlan['animations'][number]['animation'] }[] = [];
+  const streams: string[] = [];
   for (const item of entries?.entries ?? []) {
     const reference = referenceOf(item.value);
     const document = context.document;
@@ -1156,14 +1157,35 @@ function animationLibraryPlan(context: PlanContext, at: string, data: BoundGodot
       refuse(context, `${at}/${item.key}`, 'an animation that is neither a sub-resource of its document nor an animation file', 'resource', 'Animation');
       return undefined;
     }
-    const animation = godotAnimationData(resource);
-    if (typeof animation === 'string') {
-      refuse(context, `${at}/${item.key}`, animation, 'resource', 'Animation');
+    const read = godotAnimationData(resource);
+    if (typeof read === 'string') {
+      refuse(context, `${at}/${item.key}`, read, 'resource', 'Animation');
       return undefined;
     }
+    // Each audio key's stream is a resource of the scene; the key keeps its index in `streams`.
+    const animationScope = external ?? scope;
+    let failed = false;
+    const animation = {
+      ...read,
+      tracks: read.tracks.map((track) => ({
+        ...track,
+        keys: track.keys.map(([time, transition, value]) => {
+          if (typeof value !== 'object' || !('audioRef' in value)) return [time, transition, value] as const;
+          const ref = referenceOf(value.audioRef);
+          const planned = ref === undefined ? undefined : planResource(context, `${at}/${item.key}`, ref.reference, ref.id, animationScope);
+          if (planned === undefined) {
+            failed = true;
+            return [time, transition, 0] as const;
+          }
+          if (!streams.includes(planned)) streams.push(planned);
+          return [time, transition, { audio: streams.indexOf(planned), start: value.start, end: value.end }] as const;
+        }),
+      })),
+    };
+    if (failed) return undefined;
     animations.push({ name: item.key, animation });
   }
-  return { animations };
+  return { animations, ...(streams.length === 0 ? {} : { streams }) };
 }
 
 /**
@@ -1281,6 +1303,18 @@ function animationBindings(
             setter: { module: found.module, exportName: found.exportName, localName: found.localName },
             ...(found.index === undefined ? {} : { index: found.index }),
           });
+        } else if (track.type === 'audio') {
+          // The player the track names plays each key's stream (`_blend_process`, `animation_mixer.cpp:1776`).
+          for (const method of ['set_stream', 'play']) {
+            const id = `${track.path}\0${method}`;
+            if (methods.has(id)) continue;
+            const found = lookup.method(className, method);
+            if (typeof found === 'string') {
+              fail(where, found, `${className}.${method}`);
+              continue;
+            }
+            methods.set(id, { path: track.path, method, binding: { module: found.module, exportName: found.exportName, localName: found.localName } });
+          }
         } else if (track.type === 'method') {
           if (subnames.length > 0) {
             fail(where, 'a method track on a resource', 'AnimationMixer track path');

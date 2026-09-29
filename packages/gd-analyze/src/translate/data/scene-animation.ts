@@ -15,9 +15,18 @@ export type GodotAnimationKeyData =
   | { readonly Vector3: readonly [number, number, number] }
   | { readonly Quaternion: readonly [number, number, number, number] }
   | { readonly Color: readonly [number, number, number, number] }
-  | { readonly method: string; readonly args: readonly (number | boolean | string)[] };
+  | { readonly method: string; readonly args: readonly (number | boolean | string)[] }
+  /** An audio key: the library's stream at `audio` (its `streams`), played from `start` to `end` before its length. */
+  | { readonly audio: number; readonly start: number; readonly end: number };
 
-export type GodotAnimationTrackType = 'value' | 'position_3d' | 'rotation_3d' | 'scale_3d' | 'method';
+/** An audio key as read, before its library resolves the stream: the stream's resource reference. */
+export interface GodotAnimationAudioRef {
+  readonly audioRef: GodotValue;
+  readonly start: number;
+  readonly end: number;
+}
+
+export type GodotAnimationTrackType = 'value' | 'position_3d' | 'rotation_3d' | 'scale_3d' | 'method' | 'audio';
 
 /** An animation as the data file writes it (compat `animation.ts`'s `GodotAnimationData`). */
 export interface GodotAnimationData {
@@ -32,13 +41,14 @@ export interface GodotAnimationData {
     readonly enabled: boolean;
     readonly imported: boolean;
     readonly update: number;
-    readonly keys: readonly (readonly [number, number, GodotAnimationKeyData])[];
+    readonly keys: readonly (readonly [number, number, GodotAnimationKeyData | GodotAnimationAudioRef])[];
   }[];
 }
 
-/** A library's animations by name, in its `_data` order. */
+/** A library's animations by name, in its `_data` order, and the streams its audio keys play (planned resource keys). */
 export interface TargetGodotAnimationLibraryPlan {
   readonly animations: readonly { readonly name: string; readonly animation: GodotAnimationData }[];
+  readonly streams?: readonly string[];
 }
 
 /** A compat export a track binds to. */
@@ -76,7 +86,7 @@ export interface TargetGodotAnimationBindingsPlan {
 const f32 = Math.fround;
 
 /** `Animation::_set`'s track types (`animation.cpp:106`) this translation writes. */
-const TRACK_TYPES = new Set<GodotAnimationTrackType>(['value', 'position_3d', 'rotation_3d', 'scale_3d', 'method']);
+const TRACK_TYPES = new Set<GodotAnimationTrackType>(['value', 'position_3d', 'rotation_3d', 'scale_3d', 'method', 'audio']);
 /** Floats per key of a packed 3D track: time, transition, the value (`animation.cpp:30`). */
 const PACKED_SIZE: Readonly<Record<string, number>> = { position_3d: 5, rotation_3d: 6, scale_3d: 5 };
 
@@ -171,11 +181,28 @@ export function godotAnimationData(resource: BoundGodotResourceData): GodotAnima
     // cubic sampled as linear (`animation.ts`).
     if (interp !== 0 && interp !== 1 && interp !== 2) return `track ${String(index)}'s interpolation ${String(interp)} is not translated`;
     for (const name of fields.keys()) {
-      if (!['type', 'path', 'interp', 'loop_wrap', 'imported', 'enabled', 'keys'].includes(name)) return `track ${String(index)}'s ${name} is not translated`;
+      // An audio track's `use_blend` mixes its volume by the blend weight (`animation_mixer.cpp:1776`); it plays at full volume here.
+      if (!['type', 'path', 'interp', 'loop_wrap', 'imported', 'enabled', 'keys', ...(kind === 'audio' ? ['use_blend'] : [])].includes(name)) return `track ${String(index)}'s ${name} is not translated`;
     }
     const keysValue = fields.get('keys');
-    const keys: (readonly [number, number, GodotAnimationKeyData])[] = [];
+    const keys: (readonly [number, number, GodotAnimationKeyData | GodotAnimationAudioRef])[] = [];
     let update = 0;
+    if (kind === 'audio') {
+      // `{ "clips": [{ "start_offset", "end_offset", "stream" }], "times": … }` (`Animation::_set`, `animation.cpp:340`).
+      const times = numbersOf(entry(keysValue, 'times'));
+      const clips = entry(keysValue, 'clips');
+      if (times === undefined || clips?.kind !== 'array' || times.length !== clips.items.length) return `track ${String(index)}'s keys are not times and clips`;
+      for (let key = 0; key < times.length; key += 1) {
+        const clip = clips.items[key] as GodotValue;
+        const stream = entry(clip, 'stream');
+        const start = entry(clip, 'start_offset');
+        const end = entry(clip, 'end_offset');
+        if (stream === undefined || stream.kind === 'null') return `track ${String(index)} has an audio key without a stream`;
+        keys.push([f32(times[key] as number), 1, { audioRef: stream, start: start?.kind === 'number' ? start.value : 0, end: end?.kind === 'number' ? end.value : 0 }]);
+      }
+      out.push({ type: kind, path, interp, loopWrap: bool('loop_wrap', true), enabled: bool('enabled', true), imported: bool('imported', false), update: 0, keys });
+      continue;
+    }
     if (kind === 'value' || kind === 'method') {
       const times = numbersOf(entry(keysValue, 'times'));
       const transitions = entry(keysValue, 'transitions') === undefined ? undefined : numbersOf(entry(keysValue, 'transitions'));

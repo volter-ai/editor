@@ -71,6 +71,7 @@ const TYPE_POSITION_3D = 1;
 const TYPE_ROTATION_3D = 2;
 const TYPE_SCALE_3D = 3;
 const TYPE_METHOD = 5;
+const TYPE_AUDIO = 7;
 /** `Animation::UpdateMode`, `InterpolationType`, `FindMode` (`animation.h:60-91`). */
 const UPDATE_DISCRETE = 1;
 const INTERPOLATION_LINEAR_ANGLE = 3;
@@ -205,7 +206,11 @@ interface TrackCacheMethod extends TrackCacheBase {
   readonly type: typeof TYPE_METHOD;
 }
 
-type TrackCache = TrackCacheValue | TrackCacheTransform | TrackCacheMethod;
+interface TrackCacheAudio extends TrackCacheBase {
+  readonly type: typeof TYPE_AUDIO;
+}
+
+type TrackCache = TrackCacheValue | TrackCacheTransform | TrackCacheMethod | TrackCacheAudio;
 
 /** `AnimationMixer::PlaybackInfo` (`animation_mixer.h:84`). */
 export interface GodotAnimationPlaybackInfo {
@@ -924,6 +929,9 @@ function updateCaches(state: MixerState): boolean {
             if (found.subnames.length > 0) throw new Error(`godot-compat: the method track '${path}' on a resource is not transcribed.`);
             track = { type: TYPE_METHOD, path, object: found.object, setupPass: 0, blendIdx: -1, totalWeight: 0, weightAppliedAt: 0 };
             break;
+          case TYPE_AUDIO:
+            track = { type: TYPE_AUDIO, path, object: found.object, setupPass: 0, blendIdx: -1, totalWeight: 0, weightAppliedAt: 0 };
+            break;
           default:
             throw new Error(`godot-compat: Animation track type ${String(source.type)} is not transcribed.`);
         }
@@ -1131,6 +1139,24 @@ function blendProcess(state: MixerState, delta: number, updateOnly: boolean): vo
             for (const index of godot_animation_key_indices_in_range(a, i, time, instance.info.delta, start, end, loopedFlag)) {
               callObject(state, t, method_track_get_name(a, i, index), method_track_get_params(a, i, index), deferred);
             }
+          }
+          return;
+        }
+        case TYPE_AUDIO: {
+          // Each key crossed plays its stream on the track's player from its start offset
+          // (`_blend_process`, `animation_mixer.cpp:1776`); a seek starts none.
+          if (updateOnly || seeked || isZeroApprox(blend)) return;
+          const t = track as TrackCacheAudio;
+          const methods = state.bindings.methods?.[t.path];
+          const setStream = methods?.['set_stream'] as ((self: object, stream: unknown) => void) | undefined;
+          const play = methods?.['play'] as ((self: object, from: number) => void) | undefined;
+          if (setStream === undefined || play === undefined || godot_node_is_freed(t.object)) return;
+          for (const index of godot_animation_key_indices_in_range(a, i, time, instance.info.delta, start, end, loopedFlag)) {
+            const key = track_get_key_value(a, i, index) as { readonly stream: unknown; readonly start_offset: number };
+            if (key.stream === null) continue;
+            const entity = godot_node_entity(t.object);
+            setStream(entity, key.stream);
+            play(entity, key.start_offset);
           }
           return;
         }

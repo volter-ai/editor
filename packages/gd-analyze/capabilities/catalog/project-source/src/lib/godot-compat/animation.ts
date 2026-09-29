@@ -34,6 +34,7 @@ const TYPE_POSITION_3D = 1;
 const TYPE_ROTATION_3D = 2;
 const TYPE_SCALE_3D = 3;
 const TYPE_METHOD = 5;
+const TYPE_AUDIO = 7;
 /** `Animation::InterpolationType` (`animation.h:60`). */
 const INTERPOLATION_NEAREST = 0;
 const INTERPOLATION_LINEAR = 1;
@@ -74,7 +75,7 @@ export interface Animation {
   readonly tracks: AnimationTrack[];
 }
 
-const SUPPORTED_TYPES = new Set([TYPE_VALUE, TYPE_POSITION_3D, TYPE_ROTATION_3D, TYPE_SCALE_3D, TYPE_METHOD]);
+const SUPPORTED_TYPES = new Set([TYPE_VALUE, TYPE_POSITION_3D, TYPE_ROTATION_3D, TYPE_SCALE_3D, TYPE_METHOD, TYPE_AUDIO]);
 
 function trackAt(self: Animation, track: number): AnimationTrack | undefined {
   return Number.isInteger(track) && track >= 0 ? self.tracks[track] : undefined;
@@ -542,7 +543,8 @@ export type GodotAnimationKeyData =
   | { readonly Vector3: readonly [number, number, number] }
   | { readonly Quaternion: readonly [number, number, number, number] }
   | { readonly Color: readonly [number, number, number, number] }
-  | { readonly method: string; readonly args: readonly unknown[] };
+  | { readonly method: string; readonly args: readonly unknown[] }
+  | { readonly audio: number; readonly start: number; readonly end: number };
 
 /** An animation as the translation's data file writes it (`data/scene-families.ts`). */
 export interface GodotAnimationData {
@@ -550,7 +552,7 @@ export interface GodotAnimationData {
   readonly loopMode: number;
   readonly step: number;
   readonly tracks: readonly {
-    readonly type: 'value' | 'position_3d' | 'rotation_3d' | 'scale_3d' | 'method';
+    readonly type: 'value' | 'position_3d' | 'rotation_3d' | 'scale_3d' | 'method' | 'audio';
     readonly path: string;
     readonly interp: number;
     readonly loopWrap: boolean;
@@ -562,10 +564,12 @@ export interface GodotAnimationData {
   }[];
 }
 
-const TRACK_TYPE = { value: TYPE_VALUE, position_3d: TYPE_POSITION_3D, rotation_3d: TYPE_ROTATION_3D, scale_3d: TYPE_SCALE_3D, method: TYPE_METHOD } as const;
+const TRACK_TYPE = { value: TYPE_VALUE, position_3d: TYPE_POSITION_3D, rotation_3d: TYPE_ROTATION_3D, scale_3d: TYPE_SCALE_3D, method: TYPE_METHOD, audio: TYPE_AUDIO } as const;
 
-function keyValue(value: GodotAnimationKeyData): unknown {
+function keyValue(value: GodotAnimationKeyData, streams: readonly unknown[]): unknown {
   if (typeof value === 'number' || typeof value === 'boolean') return value;
+  // An audio key: its stream and offsets (`Animation::AudioKey`, `animation.h:143`).
+  if ('audio' in value) return { stream: streams[value.audio] ?? null, start_offset: value.start, end_offset: value.end };
   if ('Vector3' in value) return vector3(...value.Vector3);
   if ('Quaternion' in value) return quaternion(...value.Quaternion);
   if ('Color' in value) return color(...value.Color);
@@ -582,7 +586,7 @@ function keyValue(value: GodotAnimationKeyData): unknown {
  * @godot Animation (protocol)
  * @source scene/resources/animation.cpp:59
  */
-export function godot_animation_from_data(data: GodotAnimationData): Animation {
+export function godot_animation_from_data(data: GodotAnimationData, streams: readonly unknown[] = []): Animation {
   const self = construct();
   self.length = Math.max(data.length, 0.001);
   self.loop_mode = data.loopMode;
@@ -591,13 +595,13 @@ export function godot_animation_from_data(data: GodotAnimationData): Animation {
     const keys: AnimationKey[] = [];
     if (track.type === 'method') {
       // Inserted as `track_insert_key` does, then each transition set by index (`:329`).
-      for (const [time, , value] of track.keys) insert(keys, { time: f32(time), transition: 1, value: keyValue(value) });
+      for (const [time, , value] of track.keys) insert(keys, { time: f32(time), transition: 1, value: keyValue(value, streams) });
       track.keys.forEach(([, transition], index) => {
         const key = keys[index];
         if (key !== undefined) key.transition = f32(transition);
       });
     } else {
-      for (const [time, transition, value] of track.keys) keys.push({ time: f32(time), transition: f32(transition), value: keyValue(value) });
+      for (const [time, transition, value] of track.keys) keys.push({ time: f32(time), transition: f32(transition), value: keyValue(value, streams) });
     }
     self.tracks.push({
       type: TRACK_TYPE[track.type],

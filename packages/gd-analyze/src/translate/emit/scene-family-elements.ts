@@ -914,12 +914,14 @@ function animationLibraryLocal(emission: FamilyEmission, resource: TargetGodotSc
   if (existing !== undefined) return existing;
   if (resource.animations === undefined) throw new Error(`${resource.key}: an AnimationLibrary without animations`);
   const data = dataImport(emission, godotAnimationLibraryDataPath(emission.targetPath, resource.key), `${stemOf(resource.key)} animations`);
+  // The streams its audio keys play, the scene's resources, by index.
+  const streams = (resource.animations.streams ?? []).map((key) => resourceLocal(emission, key));
   const made: TargetTsExpression = {
     kind: 'call-expression',
     callee: identifier(useCompat(emission, 'animation-library', 'godot_animation_library_load')),
-    arguments: [identifier(data)],
+    arguments: [identifier(data), ...(streams.length === 0 ? [] : [{ kind: 'array-expression' as const, elements: streams.map(identifier) }])],
   };
-  return declareShared(emission, resource.key, `${stemOf(resource.key)} library`, made, []);
+  return declareShared(emission, resource.key, `${stemOf(resource.key)} library`, made, streams.filter((local) => emission.loaded.has(local)));
 }
 
 /** An AnimationTree's blend tree: its data file loaded once, at module level (`godot_animation_node_load`). */
