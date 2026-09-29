@@ -9,6 +9,8 @@
  *   member `@onready var m = <such an expression>` (optionally `as T`) that nothing assigns again:
  *   its initializer runs once, in the script's `@implicit_ready` as the node becomes ready
  *   (modules/gdscript/gdscript_compiler.cpp:2409), so after that the member holds that node.
+ *   So is self's `get_parent()` where the script's node is below its document's root in every
+ *   attached scene: the node above it there (`Node::get_parent`, scene/main/node.cpp:1874).
  * - `classdb-method-selection`: a member read on a typed object is the member's declared type: a
  *   script field's, else the native property's getter return type (`ClassDB::get_property`). A
  *   dynamic call on a typed receiver returns what the method the receiver's type selects returns
@@ -704,6 +706,25 @@ export function refineDatatypes(inputs: RefineInputs): readonly BoundGodotRefine
         type !== undefined &&
         (own.kind === 'VARIANT' || (own.kind === 'NATIVE' && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)))
       ) {
+        result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
+      }
+    } else if (
+      node?.kind === 'CALL' &&
+      node.compilerTarget.kind === 'native-method' &&
+      node.compilerTarget.member === 'get_parent' &&
+      node.arguments.length === 0 &&
+      nodes.get(node.callee)?.kind === 'IDENTIFIER'
+    ) {
+      // Self's parent is the node above it in every attached scene, when it has one there (a
+      // document's root is parented wherever it is instanced, which the scene does not say).
+      const own = node.datatype;
+      const type = sceneNode((attachment) => {
+        const segments = attachment.nodePath === '.' || attachment.nodePath === '' ? undefined : attachment.nodePath.split('/');
+        if (segments === undefined) return undefined;
+        segments.pop();
+        return { from: { documentPath: attachment.documentPath, nodePath: '.' }, path: segments.length === 0 ? '.' : segments.join('/') };
+      });
+      if (type !== undefined && own.kind === 'NATIVE' && !own.metaType && inherits(type.nativeType, own.nativeType) && (type.kind !== 'NATIVE' || type.nativeType !== own.nativeType)) {
         result = { datatype: type, rule: 'scene-node-receiver', sceneNodes };
       }
     } else if (node?.kind === 'IDENTIFIER' && node.source === 'MEMBER_VARIABLE' && onreadyPath(node.name) !== undefined) {

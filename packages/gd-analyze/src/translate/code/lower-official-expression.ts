@@ -2324,6 +2324,8 @@ export function lowerOfficialExpression(
     // (A built-in with no datatype rule of its own keeps the binding's type.)
     if (!typedValue || datatype.metaType || !known || !context.hasTargetType(node)) return lowered;
     const type = context.targetType(node);
+    // A value its own read already states as the type (a proven cast's operand) is stated once.
+    if (lowered.value.kind === 'as-expression' && JSON.stringify(lowered.value.type) === JSON.stringify(type.type)) return lowered;
     return {
       ...lowered,
       value: { kind: 'as-expression', expression: lowered.value, type: type.type },
