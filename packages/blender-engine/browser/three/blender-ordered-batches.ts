@@ -120,6 +120,11 @@ export class BlenderOrderedBatches {
       draw = new THREE.BatchedMesh(1, 0, 0, family.material);
       draw.dispose();
       draw.copy(template);
+      // Three r180's program invalidation reads colorTexture, whereas its
+      // program parameters read _colorsTexture. These owned draws never use
+      // per-instance colors: expose that same null state to both checks so
+      // every draw does not rebuild the already-correct program parameters.
+      Object.defineProperty(draw, 'colorTexture', {value: null});
       for (const name of Object.keys(template.geometry.attributes))
         draw.geometry.setAttribute(name, template.geometry.getAttribute(name));
       draw.geometry.setIndex(template.geometry.index);
