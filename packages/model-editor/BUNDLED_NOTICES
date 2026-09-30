@@ -981,9 +981,9 @@ OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
 
-@volter/blender-engine@0.1.76
+@volter/blender-engine@0.1.77
 Declared license: GPL-3.0-or-later
-Source: the unmodified npm package @volter/blender-engine@0.1.76, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/blender-engine@0.1.77, from https://github.com/volter-ai/editor.git
 
 --- packages/blender-engine/LICENSE ---
 
@@ -1713,9 +1713,9 @@ Public License instead of this License.  But first, please read
 <https://www.gnu.org/licenses/why-not-lgpl.html>.
 
 
-@volter/editor-blender@0.1.78
+@volter/editor-blender@0.1.79
 Declared license: AGPL-3.0-only AND GPL-3.0-or-later
-Source: the unmodified npm package @volter/editor-blender@0.1.78, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-blender@0.1.79, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-blender/LICENSE ---
 
@@ -3154,9 +3154,9 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
 SOFTWARE.
 
-@volter/editor-core@0.5.138
+@volter/editor-core@0.5.139
 Declared license: AGPL-3.0-only AND Apache-2.0
-Source: the unmodified npm package @volter/editor-core@0.5.138, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-core@0.5.139, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-core/LICENSE ---
 
@@ -4062,9 +4062,9 @@ server/support/ modules transferred from the SDK package of volter-ai/volter-eng
 Their source paths and hashes are recorded in provenance/editor-server.json.
 
 
-@volter/editor-project@0.5.138
+@volter/editor-project@0.5.139
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/editor-project@0.5.138, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-project@0.5.139, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-project/LICENSE ---
 
@@ -4272,9 +4272,9 @@ Source: the unmodified npm package @volter/editor-project@0.5.138, from https://
    limitations under the License.
 
 
-@volter/editor-sdk@0.5.138
+@volter/editor-sdk@0.5.139
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/editor-sdk@0.5.138, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-sdk@0.5.139, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-sdk/LICENSE ---
 
@@ -4495,9 +4495,9 @@ The project output-root policy is Apache-2.0, transferred from the original
 SDK; its exact source is recorded in provenance/editor-server.json.
 
 
-@volter/editor-threejs@0.5.138
+@volter/editor-threejs@0.5.139
 Declared license: AGPL-3.0-only AND Apache-2.0
-Source: the unmodified npm package @volter/editor-threejs@0.5.138, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/editor-threejs@0.5.139, from https://github.com/volter-ai/editor.git
 
 --- packages/editor-threejs/LICENSE ---
 

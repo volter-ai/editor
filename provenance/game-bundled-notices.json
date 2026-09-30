@@ -268,7 +268,7 @@
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.76",
+      "version": "0.1.77",
       "license": "GPL-3.0-or-later",
       "notices": [
         {
@@ -279,7 +279,7 @@
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.78",
+      "version": "0.1.79",
       "license": "AGPL-3.0-only AND GPL-3.0-or-later",
       "notices": [
         {
@@ -294,7 +294,7 @@
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -313,7 +313,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -324,7 +324,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -339,7 +339,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -615,7 +615,7 @@
   "editor-core": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -626,7 +626,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -755,7 +755,7 @@
   "editor-live": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -766,7 +766,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -783,7 +783,7 @@
   "game-live": [
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -1357,7 +1357,7 @@
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.76",
+      "version": "0.1.77",
       "license": "GPL-3.0-or-later",
       "notices": [
         {
@@ -1368,7 +1368,7 @@
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.78",
+      "version": "0.1.79",
       "license": "AGPL-3.0-only AND GPL-3.0-or-later",
       "notices": [
         {
@@ -1383,7 +1383,7 @@
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -1402,7 +1402,7 @@
     },
     {
       "name": "@volter/editor-game",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "AGPL-3.0-only",
       "notices": [
         {
@@ -1417,7 +1417,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -1428,7 +1428,7 @@
     },
     {
       "name": "@volter/editor-react",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "AGPL-3.0-only",
       "notices": [
         {
@@ -1443,7 +1443,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -1458,7 +1458,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -1477,7 +1477,7 @@
     },
     {
       "name": "@volter/editor-xstate",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "AGPL-3.0-only",
       "notices": [
         {
@@ -1492,7 +1492,7 @@
     },
     {
       "name": "@volter/game-runtime",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -1507,7 +1507,7 @@
     },
     {
       "name": "@volter/threejs-runtime",
-      "version": "0.5.138",
+      "version": "0.5.139",
       "license": "Apache-2.0",
       "notices": [
         {
