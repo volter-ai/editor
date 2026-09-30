@@ -99,7 +99,10 @@ export class BlenderMotionGeometry {
     if (!geometry) { this.worker?.terminate(); this.worker = null; return; }
     this.building = true;
     const generation = this.generation;
-    const current = () => { if (generation !== this.generation) throw cancelled; };
+    const current = () => {
+      if (generation !== this.generation) throw cancelled;
+      if (this.unavailable) throw new Error(this.unavailable);
+    };
     const yieldCopy = async () => { await new Promise<void>(resolve => setTimeout(resolve, 0)); current(); };
     try {
       if (!this.worker) {
@@ -110,8 +113,10 @@ export class BlenderMotionGeometry {
           }
         };
         this.worker.onerror = event => {
+          this.unavailable = event.message || 'Navigation geometry worker unavailable';
+          this.worker?.terminate(); this.worker = null;
           const pending = this.pending; this.pending = null;
-          pending?.resolve({id: pending.id, refusal: event.message || 'Navigation geometry worker unavailable'});
+          pending?.resolve({id: pending.id, refusal: this.unavailable});
         };
       }
       const position = geometry.getAttribute('position') as THREE.BufferAttribute;
