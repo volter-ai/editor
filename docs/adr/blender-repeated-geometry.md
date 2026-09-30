@@ -272,3 +272,21 @@ The frame-cost door accepts an explicit `pixelRatio` in 0.25..2 for a fixed
 measurement resolution across displays. It resizes every document-compositor
 pass, reports the actual measured dimensions and ratio, and restores the original
 ratio in `finally`. The default still measures the viewport as it is drawn.
+
+## Opaque ranges on skinned meshes
+
+Material-range consolidation now permits an opaque skinned mesh with the same
+constraints as an ordinary mesh: a full indexed draw, complete disjoint triangle
+groups, no morph targets, and only the engine's known material hooks and default
+object hooks. Instanced meshes and custom hooks retain their original draw.
+
+The transient geometry borrows every source attribute, including `skinIndex`
+and `skinWeight`, at its original vertex address. Its sole owned data is the
+bounded reordered index. The canonical SkinnedMesh, skeleton, bind matrices,
+world transform and skinning shader are unchanged, so Three continues to update
+the skeleton for that object. Within each material, index order remains the
+original group order; Three already sorts opaque groups by that material.
+The canonical geometry is restored after every draw, including failure. This
+removes the unnecessary blanket exclusion of skinned meshes; the existing
+8 MiB index-cache bound remains. A settled frame comparison is still required
+before claiming a performance improvement.

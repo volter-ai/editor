@@ -1,11 +1,14 @@
 import * as THREE from 'three';
+import { materialDrawHooksSupported } from './blender-physical-material';
 
 const CACHE_BYTES = 8 * 1024 * 1024;
 type Copy = {geometry: THREE.BufferGeometry; signature: string; bytes: number; before: number; after: number};
 
 /** Three sorts opaque groups by material id before drawing. Consolidate the
  * ranges that are already consecutive in that render order, preserving index
- * order inside each material. No transparency, vertices or authored slots change. */
+ * order inside each material. Skinned meshes retain their canonical object,
+ * skeleton and every vertex attribute; only an index is reordered. No
+ * transparency, vertices or authored slots change. */
 export class BlenderMaterialRanges {
   private objects: THREE.Mesh[] = [];
   private readonly copies = new Map<string, Copy>();
@@ -24,11 +27,13 @@ export class BlenderMaterialRanges {
       const source = mesh.geometry;
       const materials = mesh.material;
       if (mesh.layers.mask === 0 || !Array.isArray(materials) || source.groups.length < 8 || !source.index ||
-          (mesh as THREE.SkinnedMesh).isSkinnedMesh || (mesh as THREE.InstancedMesh).isInstancedMesh ||
+          (mesh as THREE.InstancedMesh).isInstancedMesh ||
+          mesh.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender ||
+          mesh.onAfterRender !== THREE.Object3D.prototype.onAfterRender ||
           mesh.morphTargetInfluences || Object.keys(source.morphAttributes).length ||
           source.drawRange.start !== 0 || source.drawRange.count < source.index.count ||
           materials.some(m => m.transparent || (m as THREE.MeshPhysicalMaterial).transmission > 0 ||
-            (m as THREE.ShaderMaterial).isShaderMaterial)) continue;
+            (m as THREE.ShaderMaterial).isShaderMaterial || !materialDrawHooksSupported(m))) continue;
       const signature = JSON.stringify([source.id, source.index.id, source.index.version,
         materials.map(m => m.uuid), source.groups,
         Object.entries(source.attributes).map(([name, a]) => [name, (a as THREE.BufferAttribute).id])]);
@@ -50,6 +55,8 @@ export class BlenderMaterialRanges {
         if (!valid || end !== source.index.count || grouped.size >= source.groups.length) continue;
         const bytes = source.index.array.byteLength;
         if (this.bytes + bytes > CACHE_BYTES) continue;
+        // Skin indices/weights stay at their original vertex addresses. Three
+        // still updates this same object's skeleton and applies its bind matrices.
         const geometry = new THREE.BufferGeometry();
         for (const [name, attribute] of Object.entries(source.attributes)) geometry.setAttribute(name, attribute);
         const index = source.index.clone();
