@@ -175,6 +175,7 @@ export class Object3DDocumentSession {
   /** The host's mirror of the document scene onto the rendered scene — see
    *  {@link Object3DDocumentSession.setBeforeRender}. */
   private beforeRender: ((interactive: boolean) => void | (() => void)) | null = null;
+  private beforeDepthRender: ((camera: THREE.Camera, material: THREE.MeshDepthMaterial) => void | (() => void)) | null = null;
   private state = INITIAL_PRESENTATION;
   private version = 0;
   private readonly listeners = new Set<() => void>();
@@ -1253,8 +1254,10 @@ export class Object3DDocumentSession {
    * The host owns the step and clears it in its own teardown; the session only
    * holds the reference.
    */
-  setBeforeRender(step: ((interactive: boolean) => void | (() => void)) | null): void {
+  setBeforeRender(step: ((interactive: boolean) => void | (() => void)) | null,
+    depth: ((camera: THREE.Camera, material: THREE.MeshDepthMaterial) => void | (() => void)) | null = null): void {
     this.beforeRender = step;
+    this.beforeDepthRender = step ? depth : null;
   }
 
   /**
@@ -1340,6 +1343,22 @@ export class Object3DDocumentSession {
 
   render(renderSolid: (camera: THREE.Camera) => void, interactive = false): void {
     const finishDraw = this.beforeRender?.(interactive);
+    const before = this.scene.onBeforeRender;
+    const after = this.scene.onAfterRender;
+    const passCleanups: (void | (() => void))[] = [];
+    // Public Scene hooks bracket each actual renderer pass, after matrices are
+    // current and before its render list is built. A composer may render this
+    // scene repeatedly with different cameras and override materials.
+    this.scene.onBeforeRender = (...args) => {
+      before.apply(this.scene, args);
+      const material = this.scene.overrideMaterial as THREE.MeshDepthMaterial | null;
+      passCleanups.push(material?.isMeshDepthMaterial
+        ? this.beforeDepthRender?.(args[2], material) : undefined);
+    };
+    this.scene.onAfterRender = (...args) => {
+      try { after.apply(this.scene, args); }
+      finally { passCleanups.pop()?.(); }
+    };
     try {
       this.boneSelectionHighlight?.update();
       const camera = this.camera();
@@ -1386,7 +1405,10 @@ export class Object3DDocumentSession {
       }
       this.shading.render(this.scene, mode, () => renderSolid(camera), isEditorViewportShadingTarget);
     } finally {
-      finishDraw?.();
+      this.scene.onBeforeRender = before;
+      this.scene.onAfterRender = after;
+      try { while (passCleanups.length) passCleanups.pop()?.(); }
+      finally { finishDraw?.(); }
     }
   }
 
