@@ -281,6 +281,7 @@ export class BlenderTransparentInstances {
     for (const n of this.projection.elements) this.observe(n);
     for (const n of this.root.matrixWorld.elements) this.observe(n);
     const observedGeometry = new Set<THREE.BufferGeometry>();
+    const observedMaterials = new Set<THREE.Material>();
     for (const mesh of this.objects) {
       // Check eligibility every frame, including opaque -> transparent
       // transitions, but opaque geometry/attribute versions cannot affect a
@@ -323,17 +324,23 @@ export class BlenderTransparentInstances {
       this.observe(sphere?.center.z ?? 0); this.observe(sphere?.radius ?? -1);
       const materials = Array.isArray(mesh.material) ? mesh.material : null;
       this.observe(materials?.length ?? -1);
-      if (materials) for (const material of materials) this.observeMaterial(material);
-      else this.observeMaterial(mesh.material as THREE.Material);
+      if (materials) for (const material of materials) this.observeMaterial(material, observedMaterials);
+      else this.observeMaterial(mesh.material as THREE.Material, observedMaterials);
     }
     this.stateChanged ||= this.planState.length !== this.stateIndex;
     this.planState.length = this.stateIndex;
     return this.stateChanged;
   }
 
-  private observeMaterial(material: THREE.Material): void {
+  private observeMaterial(material: THREE.Material, observed: Set<THREE.Material>): void {
+    // Every slot still observes its identity. Shared state needs one exact
+    // census per material, rather than thousands of identical hook/value
+    // comparisons for repeated foliage using the same material.
+    this.observe(material.uuid);
+    if (observed.has(material)) return;
+    observed.add(material);
     this.observe(materialDrawHooksSupported(material) ? 1 : 0);
-    this.observe(material.uuid); this.observe(material.version);
+    this.observe(material.version);
     this.observe(material.visible ? 1 : 0); this.observe(material.transparent ? 1 : 0);
     this.observe(material.side); this.observe(material.forceSinglePass ? 1 : 0);
     this.observe((material as THREE.MeshPhysicalMaterial).transmission ?? 0);
