@@ -44,3 +44,10 @@ for its own active document, does not duplicate an in-flight start, and removes
 the subscription on unmount. Utility focus after success retains the model's
 published context. Diagnostic: `c19-seams-status2.json` (no worker/renderer) and
 `c19-seams-mount-diagnosis.json` (latched opening message).
+
+A visible model may also start while a utility area owns keyboard focus.
+`modelDocumentMayOpen` retains the binding and another-model ownership checks
+without requiring Timeline focus to move first. The activation subscription
+still retries when a genuinely different model relinquishes focus. The
+87f77472 load succeeded with the model already active; that reading did not
+exercise the Timeline-active restoration case and is not claimed as such.

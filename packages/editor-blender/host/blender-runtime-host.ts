@@ -315,6 +315,15 @@ export function blenderPresentationDocumentId(): string {
   return presentationDocumentId();
 }
 
+/** The selected pane may load while a utility area (Timeline, for example)
+ * has keyboard focus. Another model remains an ownership barrier. */
+export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
+  if (boundModel !== binding) return false;
+  const active = editorHost().documents.activeId();
+  const anotherModel = active?.startsWith('document:model:') || active === BLENDER_RUNTIME_DOCUMENT_ID;
+  return !anotherModel || active === binding.documentId;
+}
+
 /**
  * OPEN A `.blend` IN THE ENGINE — the Model document's own call, the WS-F save
  * path run backwards. `session.py` opens the named file at start and saves
@@ -333,7 +342,7 @@ export async function openModelDocumentBlend(
   if (!host.session.open()) throw new Error('Opening a model requires an open project session.');
   const project = host.projectLocalState.projectRootPath();
   if (project === null) throw new Error('Opening a model requires a project path.');
-  if (boundModel !== binding || host.documents.activeId() !== binding.documentId) return false;
+  if (!modelDocumentMayOpen(binding)) return false;
   const session = blenderRuntime();
   // start claims its resource synchronously; its first frame may arrive before
   // the returned promise resolves. The getter above rejects a conflicting file.

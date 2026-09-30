@@ -61,6 +61,7 @@ import {
   blenderExecute,
   blenderViewShading,
   openModelDocumentBlend,
+  modelDocumentMayOpen,
 } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
@@ -223,7 +224,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     let starting = false;
     let finished = false;
     const open = async () => {
-      if (cancelled || starting || finished || (binding && documents.activeId() !== documentId)) return;
+      if (cancelled || starting || finished || (binding && !modelDocumentMayOpen(binding))) return;
       starting = true;
       try {
         if (binding) {
