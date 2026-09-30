@@ -33,17 +33,29 @@ const _mounted = new Set<string>();
 const _mountListeners = new Set<() => void>();
 
 let _version = 0;
+let _notificationPending = false;
 
 function _notifyContexts(): void {
-  _version += 1;
-  for (const listener of [..._listeners]) listener();
+  // Contributions publish from their own React roots' effects. A host store
+  // update here can synchronously re-enter a pending host commit when React
+  // flushes passive effects. Publish the React snapshot after that stack has
+  // unwound; direct context readers still see the new handle immediately.
+  if (_notificationPending) return;
+  _notificationPending = true;
+  queueMicrotask(() => {
+    _notificationPending = false;
+    _version += 1;
+    for (const listener of [..._listeners]) listener();
+  });
 }
 
 export function publishDocumentContext(documentId: string, context: unknown): () => void {
   _contexts.set(documentId, context);
   _notifyContexts();
   return () => {
-    if (_contexts.get(documentId) === context) _contexts.delete(documentId);
+    if (_contexts.get(documentId) !== context) return;
+    _contexts.delete(documentId);
+    _notifyContexts();
   };
 }
 

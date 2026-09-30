@@ -54,10 +54,19 @@ export interface DocumentViewport {
 const viewports = new Map<string, DocumentViewport>();
 const listeners = new Set<() => void>();
 let version = 0;
+let notificationPending = false;
 
 function changed(): void {
-  version += 1;
-  for (const listener of listeners) listener();
+  // A stage registers from a contribution root's effect. Keep the viewport
+  // immediately readable, but publish its React snapshot outside that commit
+  // so a host subscriber cannot re-enter a pending host commit through it.
+  if (notificationPending) return;
+  notificationPending = true;
+  queueMicrotask(() => {
+    notificationPending = false;
+    version += 1;
+    for (const listener of [...listeners]) listener();
+  });
 }
 
 /** Register the viewport of one document. Returns the removal. */

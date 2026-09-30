@@ -26,10 +26,19 @@ const sessions = new Map<string, Object3DDocumentSession>();
 const preparations = new Map<string, () => Promise<void>>();
 let registryVersion = 0;
 const registryListeners = new Set<() => void>();
+let notificationPending = false;
 
 function notifyRegistry(): void {
-  registryVersion++;
-  for (const listener of registryListeners) listener();
+  // Stage registration runs in a contribution root's effect. Publish its
+  // host-facing snapshot after that commit unwinds, alongside the viewport's
+  // snapshot; synchronous readers still find the registered session now.
+  if (notificationPending) return;
+  notificationPending = true;
+  queueMicrotask(() => {
+    notificationPending = false;
+    registryVersion++;
+    for (const listener of [...registryListeners]) listener();
+  });
 }
 
 /** `stage` is what the mounting stage adds to the document's viewport (its
