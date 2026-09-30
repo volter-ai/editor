@@ -50,6 +50,7 @@ import {
   type WorkspaceDocumentSelection,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { activeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
+import { documentLoadFor } from '@volter/editor-sdk/kit/document-context-registry';
 import { activeInspectionSurface } from './active-surface';
 import {
   composeInspectionSubject,
@@ -292,6 +293,7 @@ export function describeActiveInspectionSubject(store: ShellStore): InspectionDi
   // selected the inspector shows nothing" — nothing is what it gets.
   const available =
     composed.available &&
+    documentLoadFor(activeWorkspaceDocumentId()) === null &&
     (subject.id !== GAME_SUBJECT_ID || subject.sections.length > 0) &&
     !inspectorBelongsToAnotherDocument({
       activeDocumentKind: activeWorkspaceDocument()?.descriptor.kind ?? null,
