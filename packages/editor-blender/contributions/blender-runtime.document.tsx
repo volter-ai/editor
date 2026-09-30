@@ -249,8 +249,17 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
         starting = false;
       }
     };
-    const unsubscribe = documents.subscribe(() => { void open(); });
-    void open();
+    // Opening publishes context to other React roots. Start outside this
+    // effect (or a host activation listener's synchronous notification stack)
+    // so those roots cannot synchronously commit through a pending commit here.
+    let queued = false;
+    const requestOpen = () => {
+      if (cancelled || queued) return;
+      queued = true;
+      queueMicrotask(() => { queued = false; void open(); });
+    };
+    const unsubscribe = documents.subscribe(requestOpen);
+    requestOpen();
     return () => {
       cancelled = true;
       unsubscribe();

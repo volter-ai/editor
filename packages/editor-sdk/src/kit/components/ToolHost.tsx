@@ -271,9 +271,19 @@ function ProjectToolMount({
     // first — including the stage announcement a document mounts through
     // `ToolContributionSurfaces`. That ordering is what makes "no announcement"
     // mean "this document has no stage" for an opener's `ready`.
-    root.render(
-      documentId ? createEditorElement(ContributionMountSignal, { documentId }, element) : element,
-    );
+    // Do not schedule a second root while React is flushing this root's
+    // passive effects. Contributions publish external stores back to the host;
+    // a pending Suspense commit can otherwise re-enter the other root's commit
+    // through that store notification. Coalesce superseded props and reject a
+    // deferred render after teardown/StrictMode has replaced its root.
+    let cancelled = false;
+    queueMicrotask(() => {
+      if (cancelled || rootRef.current !== root) return;
+      root.render(
+        documentId ? createEditorElement(ContributionMountSignal, { documentId }, element) : element,
+      );
+    });
+    return () => { cancelled = true; };
   }, [accountRevision, active, contribution, override, documentId, documentEntry, playKey]);
 
   // THE HOST DIV STAYS MOUNTED THROUGH A CRASH. Swapping it for the message
