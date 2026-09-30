@@ -1022,7 +1022,7 @@ export function Object3DDocumentViewport({
       const studioStage = studioStageRef.current;
       const hasShell = hasShellRef.current;
       const assetSubject = assetSubjectRef.current;
-      const scene = new THREE.Scene();
+      const scene = new DocumentScene();
       // The image-based light's strength is the view presentation's (its studio preset's), set
       // on the rendered scene before every draw (`syncHostScene`). The content scene keeps
       // three's default, so a document that authors its own strength still states it here.
