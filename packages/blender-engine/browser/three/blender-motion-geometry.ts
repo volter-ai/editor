@@ -9,16 +9,17 @@ const CHUNK_INDICES = 49_152;
 const COPY_ITEMS = 8_192;
 const cancelled = Symbol('navigation geometry replaced');
 type Range = {start: number; count: number; materialIndex?: number | undefined};
-type Entry = {geometry: THREE.BufferGeometry; error: number; bytes: number};
+type Entry = {geometry: THREE.BufferGeometry; error: number; bytes: number; sharedAttributes: boolean};
+type Job = {geometry: THREE.BufferGeometry; fine: boolean};
 
 /** A disposable navigation drawing, never Blender's evaluated geometry.
  * Copies are derived off-thread, in importance order, one bounded mesh at a
  * time. Full meshes remain resident and are restored after EVERY draw. */
 export class BlenderMotionGeometry {
   private groups = new Map<THREE.BufferGeometry, THREE.Mesh[]>();
-  private readonly cache = new Map<THREE.BufferGeometry, Entry>();
+  private readonly cache = new Map<THREE.BufferGeometry, Entry[]>();
   private readonly swapped: {mesh: THREE.Mesh; geometry: THREE.BufferGeometry}[] = [];
-  private queue: THREE.BufferGeometry[] = [];
+  private queue: Job[] = [];
   private worker: Worker | null = null;
   private pending: {id: number; resolve: (response: MotionMeshResponse) => void} | null = null;
   private generation = 0;
@@ -29,7 +30,7 @@ export class BlenderMotionGeometry {
   private nextIdentity = 0;
   private bytes = 0;
   private unavailable: string | null = null;
-  private reductions: {vertices: number; fullTriangles: number; reducedTriangles: number; error: number; accepted: boolean; bytes?: number}[] = [];
+  private reductions: {vertices: number; fullTriangles: number; reducedTriangles: number; error: number; fine: boolean; accepted: boolean; bytes?: number}[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
   private readonly cameraWorld = new THREE.Matrix4();
   private readonly cameraProjection = new THREE.Matrix4();
@@ -92,14 +93,15 @@ export class BlenderMotionGeometry {
     // that costs most draws, not its name or its order in the .blend.
     if (candidates.reduce((n, [g, meshes]) => n + g.index!.count * meshes.length, 0) < 6_000_000) return;
     candidates.sort(([a, am], [b, bm]) => b.index!.count * bm.length - a.index!.count * am.length);
-    this.queue = candidates.map(([g]) => g);
+    this.queue = candidates.map(([geometry]) => ({geometry, fine: false}));
     this.next();
   }
 
   private async next(): Promise<void> {
     if (this.building || this.unavailable || this.bytes >= CACHE_BYTES) return;
-    const geometry = this.queue.shift();
-    if (!geometry) { this.worker?.terminate(); this.worker = null; return; }
+    const job = this.queue.shift();
+    if (!job) { this.worker?.terminate(); this.worker = null; return; }
+    const {geometry, fine} = job;
     this.building = true;
     const generation = this.generation;
     const current = () => {
@@ -175,7 +177,7 @@ export class BlenderMotionGeometry {
       }
       if (!geometry.boundingSphere) return;
       const absoluteError = Math.max(bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y,
-        bounds.max.z - bounds.min.z) * 0.002;
+        bounds.max.z - bounds.min.z) * (fine ? 0.0005 : 0.002);
       const parts: Uint32Array[] = [];
       const outputGroups: Range[] = [];
       let count = 0, error = 0;
@@ -228,12 +230,14 @@ export class BlenderMotionGeometry {
         if (multi) outputGroups.push({start: groupStart, count: count - groupStart, materialIndex: range.materialIndex});
       }
       const reduction: (typeof this.reductions)[number] = {vertices: position.count, fullTriangles: geometry.index!.count / 3,
-        reducedTriangles: count / 3, error, accepted: false};
+        reducedTriangles: count / 3, error, fine, accepted: false};
       if (this.reductions.length < 32) this.reductions.push(reduction);
       if (!count || count >= geometry.index!.count * 0.75) return;
-      // Compact only after all material ranges succeed. Yield while remapping
-      // and copying; cancellation never publishes a partial surface.
-      const remap = new Int32Array(position.count).fill(-1);
+      // A finer level borrows the resident vertex columns and owns only its
+      // indices. This avoids another large attribute allocation beside the
+      // coarse copy; source versions still invalidate both levels together.
+      // Coarse copies remain compact for bounded packed draw families.
+      const remap = fine ? null : new Int32Array(position.count).fill(-1);
       const originals: number[] = [];
       const indices = new Uint32Array(count);
       let offset = 0;
@@ -242,20 +246,21 @@ export class BlenderMotionGeometry {
           await yieldCopy();
           for (let i = first; i < Math.min(first + COPY_ITEMS, part.length); i++) {
             const original = part[i]!;
-            let local = remap[original]!;
-            if (local < 0) { local = originals.length; originals.push(original); remap[original] = local; }
+            let local = remap ? remap[original]! : original;
+            if (local < 0) { local = originals.length; originals.push(original); remap![original] = local; }
             indices[offset + i] = local;
           }
         }
         offset += part.length;
       }
-      const bytes = indices.byteLength + Object.values(geometry.attributes).reduce((n, a) =>
-        n + originals.length * a.itemSize * a.array.BYTES_PER_ELEMENT, 0);
+      const bytes = indices.byteLength + (fine ? 0 : Object.values(geometry.attributes).reduce((n, a) =>
+        n + originals.length * a.itemSize * a.array.BYTES_PER_ELEMENT, 0));
       reduction.bytes = bytes;
       if (this.bytes + bytes > CACHE_BYTES) return;
       const copy = new THREE.BufferGeometry();
       copy.setIndex(new THREE.BufferAttribute(indices, 1));
       for (const [name, source] of Object.entries(geometry.attributes)) {
+        if (fine) { copy.setAttribute(name, source); continue; }
         const attribute = source as THREE.BufferAttribute;
         const ArrayType = attribute.array.constructor as {new(length: number): THREE.TypedArray};
         const data = new ArrayType(originals.length * attribute.itemSize);
@@ -272,8 +277,15 @@ export class BlenderMotionGeometry {
       for (const group of outputGroups) copy.addGroup(group.start, group.count, group.materialIndex);
       copy.userData = {...geometry.userData};
       reduction.accepted = true;
-      this.cache.set(geometry, {geometry: copy, error, bytes});
+      const levels = this.cache.get(geometry) ?? [];
+      levels.push({geometry: copy, error, bytes, sharedAttributes: fine});
+      this.cache.set(geometry, levels);
       this.bytes += bytes;
+      // Large repeated shapes can be cheap at distance yet still cost millions
+      // of triangles just beyond the coarse copy's pixel gate. Build one finer
+      // level after the initial queue; every placement keeps the same gate.
+      if (!fine && geometry.index!.count >= 300_000 && count < geometry.index!.count * 0.25)
+        this.queue.push({geometry, fine: true});
     } catch (error) {
       if (error === cancelled) return;
       this.unavailable = String(error);
@@ -306,10 +318,10 @@ export class BlenderMotionGeometry {
     this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.projection);
     let tooClose = 0;
-    for (const [source, entry] of this.cache) {
+    for (const [source, levels] of this.cache) {
       // The copy carries the ORIGINAL bounds derived during its yielding
       // build. Do not scan vertices or use the smaller simplified bounds.
-      const bounds = entry.geometry.boundingBox!;
+      const bounds = levels[0]!.geometry.boundingBox!;
       bounds.getSize(this.halfExtent).multiplyScalar(0.5);
       for (const mesh of this.groups.get(source) ?? []) {
         if (!instanceObjectShown(mesh) || (mesh.frustumCulled && !this.frustum.intersectsObject(mesh))) continue;
@@ -342,8 +354,12 @@ export class BlenderMotionGeometry {
           // camera. This tightens the bound without relaxing the pixel gate.
           depth = Math.max(sphereDepth, -this.boxCentre.z - radiusZ);
         }
-        const pixels = entry.error * scale * Math.abs(camera.projectionMatrix.elements[5]!) * height / (2 * depth);
-        if (!(depth > 0) || pixels > 1) { tooClose++; continue; }
+        const pixelsPerUnit = scale * Math.abs(camera.projectionMatrix.elements[5]!) * height / (2 * depth);
+        let entry: Entry | undefined;
+        if (depth > 0) for (const level of levels) {
+          if (level.error * pixelsPerUnit <= 1) { entry = level; break; }
+        }
+        if (!entry) { tooClose++; continue; }
         // Decide per placement: one near-camera blade must not veto thousands
         // of distant placements of its shared geometry. The following draw
         // planner sees these geometry identities, so transparency still batches
@@ -366,7 +382,8 @@ export class BlenderMotionGeometry {
     this.swapped.length = 0;
   }
   inspect() {
-    return {copies: this.cache.size, bytes: this.bytes, queued: this.queue.length, pending: this.building,
+    return {copies: this.cache.size, levels: [...this.cache.values()].reduce((n, levels) => n + levels.length, 0),
+      bytes: this.bytes, queued: this.queue.length, pending: this.building,
       unavailable: this.unavailable, reductions: this.reductions.map(r => ({...r})), lastNavigation: {...this.lastNavigation}};
   }
   private releaseCopies(): void {
@@ -377,7 +394,13 @@ export class BlenderMotionGeometry {
     this.worker?.terminate(); this.worker = null;
     this.pending?.resolve({id: this.pending.id, refusal: 'Navigation geometry replaced'});
     this.pending = null; this.building = false; this.queue = [];
-    for (const entry of this.cache.values()) entry.geometry.dispose();
+    for (const levels of this.cache.values()) for (const entry of levels) {
+      // Geometry.dispose releases its attributes' GPU buffers. A borrowed
+      // column remains owned by the original geometry and must stay resident.
+      if (entry.sharedAttributes)
+        for (const name of Object.keys(entry.geometry.attributes)) entry.geometry.deleteAttribute(name);
+      entry.geometry.dispose();
+    }
     this.cache.clear(); this.bytes = 0; this.reductions = [];
   }
   clear(): void {
