@@ -61,6 +61,7 @@ export class BlenderTransparentInstances {
   private readonly hidden: THREE.Mesh[] = [];
   private readonly inverse = new THREE.Matrix4();
   private readonly matrix = new THREE.Matrix4();
+  private readonly uploadedMatrix = new THREE.Matrix4();
   private readonly projection = new THREE.Matrix4();
   private readonly frustum = new THREE.Frustum();
   private readonly centre = new THREE.Vector3();
@@ -255,12 +256,28 @@ export class BlenderTransparentInstances {
           draw.mesh.renderOrder = head.mesh.renderOrder;
           draw.mesh.boundingSphere!.center.copy(head.centre).applyMatrix4(this.inverse);
           draw.mesh.updateMatrixWorld(true);
+          let matricesChanged = false;
           for (let i = 0; i < length; i++) {
             const member = entries[offset + i]!.mesh;
             this.matrix.multiplyMatrices(this.inverse, member.matrixWorld);
-            draw.mesh.setMatrixAt(i, this.matrix);
+            // Camera-only replanning often retains the same slots. Compare
+            // the exact Float32 values before dirtying a buffer/texture again.
+            draw.mesh.getMatrixAt(i, this.uploadedMatrix);
+            let changed = false;
+            for (let j = 0; j < 16; j++) if (Math.fround(this.matrix.elements[j]!) !== this.uploadedMatrix.elements[j]) { changed = true; break; }
+            if (changed) {
+              draw.mesh.setMatrixAt(i, this.matrix);
+              matricesChanged = true;
+            }
             if (draw.mesh instanceof THREE.BatchedMesh) {
-              draw.mesh.setGeometryIdAt(i, this.ordered.geometryId(first.key, member.geometry));
+              const geometryId = this.ordered.geometryId(first.key, member.geometry);
+              if (draw.mesh.getGeometryIdAt(i) !== geometryId) {
+                draw.mesh.setGeometryIdAt(i, geometryId);
+                // r180's setter does not mark its cached multi-draw list dirty.
+                // A public visibility transition rebuilds starts/counts next
+                // draw, even when the number of visible slots stays the same.
+                if (draw.mesh.getVisibleAt(i)) draw.mesh.setVisibleAt(i, false);
+              }
               draw.mesh.setVisibleAt(i, true);
             }
             draw.members.push(member);
@@ -271,7 +288,7 @@ export class BlenderTransparentInstances {
             for (let i = length; i < CAPACITY; i++) draw.mesh.setVisibleAt(i, false);
           } else {
             draw.mesh.count = length;
-            draw.mesh.instanceMatrix.needsUpdate = true;
+            if (matricesChanged) draw.mesh.instanceMatrix.needsUpdate = true;
           }
           this.planned.push(draw);
           this.batches++;
