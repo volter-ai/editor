@@ -94,6 +94,8 @@ export function physicalPaletteState(material: THREE.MeshPhysicalMaterial, image
     else if (typeof value === 'object' || typeof value === 'function') {
       if (depth > 8) { state.push('reference', identity(value)); return; }
       if (Array.isArray(value)) { state.push('array', value.length); for (const entry of value) append(entry, depth + 1); }
+      else if (value instanceof THREE.Euler) state.push('euler', value.x, value.y, value.z, value.order);
+      else if (value instanceof THREE.Quaternion) state.push('quaternion', value.x, value.y, value.z, value.w);
       else if (Object.getPrototypeOf(value) === Object.prototype || value instanceof THREE.Color ||
           value instanceof THREE.Vector2 || value instanceof THREE.Vector3 || value instanceof THREE.Vector4 ||
           value instanceof THREE.Matrix3 || value instanceof THREE.Matrix4 || value instanceof THREE.Plane) {
