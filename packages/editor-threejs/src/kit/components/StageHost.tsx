@@ -24,6 +24,7 @@ import {
   useSyncExternalStore,
 } from 'react';
 import * as THREE from 'three';
+import { DocumentScene } from '../../render/document-scene';
 import { registerStageTransport, StageTransport } from '@volter/editor-sdk/kit/animation/stage-transport';
 import { scanClipSubjects } from '../animation/three-clips-subject';
 import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
@@ -410,7 +411,7 @@ interface DocumentContentBinding {
 
 /** Persistent editor state. Source revisions own only their content binding. */
 class Object3DDocumentHost {
-  readonly scene = new THREE.Scene();
+  readonly scene = new DocumentScene();
   /** This document's store, optionally supplied by its owner. */
   readonly store: EditorShellStore;
   readonly cleanups: Array<() => void> = [];
