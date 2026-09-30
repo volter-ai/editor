@@ -29,6 +29,7 @@ export class BlenderTransparentInstances {
   private readonly depth = new THREE.Vector4();
   private batches = 0;
   private instances = 0;
+  private excluded: Record<string, number> = {};
   private readonly planState: (number | string)[] = [];
   private readonly planned: Draw[] = [];
   private stateIndex = 0;
@@ -65,6 +66,7 @@ export class BlenderTransparentInstances {
       draw.members.length = 0;
     }
     this.batches = this.instances = 0;
+    this.excluded = {};
     this.frustum.setFromProjectionMatrix(this.projection);
     this.inverse.copy(this.root.matrixWorld).invert();
     const entries: Entry[] = [];
@@ -117,6 +119,14 @@ export class BlenderTransparentInstances {
           material = candidate;
           key = groupKey;
         }
+      }
+      if (key === null) {
+        const reason = !candidate ? 'multipleMaterials'
+          : (candidate as THREE.ShaderMaterial).isShaderMaterial ? 'customShader'
+          : (candidate as THREE.MeshPhysicalMaterial).transmission > 0 ? 'transmission'
+          : candidate.side === THREE.DoubleSide && !candidate.forceSinglePass ? 'twoPass'
+          : 'geometryLayersOrTransform';
+        this.excluded[reason] = (this.excluded[reason] ?? 0) + 1;
       }
       entries.push({mesh, material, key, groupOrder: order, z, centre});
     }
@@ -189,7 +199,7 @@ export class BlenderTransparentInstances {
     }
   }
 
-  inspect() { return {batches: this.batches, instances: this.instances}; }
+  inspect() { return {batches: this.batches, instances: this.instances, excluded: {...this.excluded}}; }
 
   private observe(value: number | string): void {
     if (this.planState[this.stateIndex] !== value) {

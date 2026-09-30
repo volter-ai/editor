@@ -167,3 +167,15 @@ point map. Only these artificial boundaries are position-locked; genuine open
 edges can collapse within the same measured error. This avoids requiring every
 leaf border vertex to survive a navigation-only drawing. The original bounds,
 material ranges and rest/capture geometry are still retained.
+
+
+87f77472 accepted the sapling copy (263,503 of 2,062,487 triangles, 17.9 MB;
+all copies 20.4 MB). The same-tab 1197×827 five-frame diagnosis measured full
+152.64 ms versus navigation 94.77 ms, with 225.34M versus 86.17M drawn triangles.
+This is a real improvement, but about 10.5 fps remains insufficient. The
+placement transform bound now uses the maximum absolute row sum of AᵀA:
+its square root bounds the largest singular value and equals maximum scale
+for orthogonal columns, avoiding Frobenius's unnecessary sqrt(3) inflation
+for a uniform transform. Preparation phase timings and transparent batching
+exclusions are exposed alongside the existing draw diagnostics to attribute
+the remaining cost. A new frame reading is still required.

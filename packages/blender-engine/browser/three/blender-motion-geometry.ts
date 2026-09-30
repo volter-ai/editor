@@ -306,10 +306,18 @@ export class BlenderMotionGeometry {
     for (const [source, entry] of this.cache) {
       for (const mesh of this.groups.get(source) ?? []) {
         if (!instanceObjectShown(mesh) || (mesh.frustumCulled && !this.frustum.intersectsObject(mesh))) continue;
-        // Frobenius norm bounds the linear transform even under shear; the
-        // longest axis alone can understate the projected simplifier error.
+        // Bound the largest singular value by the maximum absolute row sum
+        // of AᵀA. Unlike Frobenius this is tight for orthogonal TRS columns,
+        // while still bounding shear. A uniform rotation must not inflate
+        // both error and radius by sqrt(3) and veto nearby placements.
         const e = mesh.matrixWorld.elements;
-        const scale = Math.hypot(e[0]!, e[1]!, e[2]!, e[4]!, e[5]!, e[6]!, e[8]!, e[9]!, e[10]!);
+        const x2 = e[0]! ** 2 + e[1]! ** 2 + e[2]! ** 2;
+        const y2 = e[4]! ** 2 + e[5]! ** 2 + e[6]! ** 2;
+        const z2 = e[8]! ** 2 + e[9]! ** 2 + e[10]! ** 2;
+        const xy = Math.abs(e[0]! * e[4]! + e[1]! * e[5]! + e[2]! * e[6]!);
+        const xz = Math.abs(e[0]! * e[8]! + e[1]! * e[9]! + e[2]! * e[10]!);
+        const yz = Math.abs(e[4]! * e[8]! + e[5]! * e[9]! + e[6]! * e[10]!);
+        const scale = Math.sqrt(Math.max(x2 + xy + xz, y2 + xy + yz, z2 + xz + yz));
         const sphere = source.boundingSphere!;
         this.centre.copy(sphere.center).applyMatrix4(mesh.matrixWorld).applyMatrix4(camera.matrixWorldInverse);
         const depth = (camera as THREE.PerspectiveCamera).isPerspectiveCamera
