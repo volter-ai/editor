@@ -215,7 +215,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     let unpublish: (() => void) | undefined;
     const binding = blend === undefined ? null : { documentId, entryId: entryId!, blend };
     const load = beginDocumentLoad(documentId, blend?.split('/').pop() ?? 'Model');
-    const unbind = bindModelDocument(binding);
+    const unbind = bindModelDocument(binding, view);
     const publish = () => { unpublish = callbacks.current.publishContext?.(view); };
     setOpened(null);
     // Native focus can arrive after the contributed pane mounts. A declined

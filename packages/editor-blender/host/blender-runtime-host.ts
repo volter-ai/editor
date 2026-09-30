@@ -274,12 +274,20 @@ export interface ModelDocumentBinding {
 
 let boundModel: ModelDocumentBinding | null = null;
 let modelBindingGeneration = 0;
+let modelFramePresenter: { document: string; documentId: string; view: RuntimeView } | null = null;
 
 /** Bind the mounted Model document; the returned cleanup releases only this
  * binding. `null` names the standing Model without a file entry. */
-export function bindModelDocument(bound: ModelDocumentBinding | null): () => void {
+export function bindModelDocument(bound: ModelDocumentBinding | null, view?: RuntimeView): () => void {
   const generation = ++modelBindingGeneration;
   boundModel = bound;
+  const document = bound?.blend ?? 'models/model.blend';
+  if (view && (runtime?.document == null || runtime.document === document)) {
+    // The module-scoped Model view outlives pane activation. Keep the worker's
+    // presenter through a utility-document switch, including before its first
+    // frame begins. A conflicting file cannot claim that worker's presenter.
+    modelFramePresenter = { document, documentId: bound?.documentId ?? BLENDER_RUNTIME_DOCUMENT_ID, view };
+  }
   noteBlenderRnaChanged();
   return () => {
     // An old pane's asynchronous cleanup must not unbind its replacement.
@@ -786,6 +794,7 @@ function terminateBlenderRuntime(): void {
     captureLifetime = null;
     runtime?.terminate();
     runtime = null;
+    modelFramePresenter = null;
     lastCapture = null;
   } finally { end(); }
 }
@@ -853,7 +862,7 @@ export function blenderRuntime(): BlenderRuntime {
   const lifetime = new AbortController();
   captureLifetime = lifetime;
   let photographing = false;
-  let streamedView: RuntimeView | null = null;
+  let streamedFrame: { session: string; revision: number; documentId: string | null; view: RuntimeView | null } | null = null;
   runtime = new BlenderRuntime({
     work: beginBlenderWork,
     history: (entries) => {
@@ -884,36 +893,59 @@ export function blenderRuntime(): BlenderRuntime {
       }
     },
     stage: async part => {
-      if (part.abort) { streamedView?.stageFrame(part); streamedView = null; return; }
-      const conflict = modelDocumentConflict();
-      if (conflict) throw new Error(conflict);
-      if (boundModel === null) return;
-      const documentId = presentationDocumentId();
-      const view = await runtimeView();
+      if (part.abort) {
+        // A delayed abort must not clear the next frame's staged geometry.
+        if (streamedFrame?.session === part.session && streamedFrame.revision === part.revision) {
+          streamedFrame.view?.stageFrame(part);
+          streamedFrame = null;
+        }
+        return;
+      }
+      if (!part.mesh && !part.image) {
+        const retained = modelFramePresenter?.document === runtime?.document ? modelFramePresenter : null;
+        if (!retained) {
+          const conflict = modelDocumentConflict();
+          if (conflict) throw new Error(conflict);
+        }
+        const documentId = retained?.documentId ?? (boundModel === null ? null : presentationDocumentId());
+        const view = retained?.view ?? (documentId === null ? null : await runtimeView());
+        lifetime.signal.throwIfAborted();
+        streamedFrame = { session: part.session, revision: part.revision, documentId, view };
+        view?.stageFrame(part);
+        return;
+      }
+      const owner = streamedFrame;
+      if (!owner || owner.session !== part.session || owner.revision !== part.revision)
+        throw new Error('Blender frame piece does not belong to the pending revision');
       lifetime.signal.throwIfAborted();
-      if (presentationDocumentId() !== documentId) throw new Error('Blender document changed during frame transfer');
-      streamedView = view;
-      view.stageFrame(part);
+      // Every piece and its final manifest share the begin's presenter, even
+      // when the pane is temporarily inactive. Never start halfway through a
+      // headless stream just because a pane has appeared meanwhile.
+      owner.view?.stageFrame(part);
     },
     present: async (frame, description, capture) => {
+      const streamed = streamedFrame;
+      const identity = frame as { session?: unknown; revision?: unknown } | null;
+      if (streamed && (streamed.session !== identity?.session || streamed.revision !== identity?.revision))
+        throw new Error('Blender frame manifest does not match its staged revision');
       const conflict = modelDocumentConflict();
-      if (conflict) throw new Error(conflict);
-      // THE ENGINE DOES NOT NEED A VIEW. With no Model document bound, no presenter is coming:
-      // the frame is presented to nobody and the session keeps running (a headless agent, a save
-      // on close). The Model document presents the session's current state when it binds. Only a
-      // photograph needs a view, so only a capture is refused.
-      if (boundModel === null) {
+      if (!streamed?.view && conflict) throw new Error(conflict);
+      // A genuinely headless frame needs no view. An owned stream must still
+      // commit to its retained presenter while the pane is inactive: accepting
+      // its manifest headlessly would strand that view's staged revision.
+      if (streamed ? streamed.view === null : boundModel === null) {
         if (capture?.render) {
           throw new Error('Rendering a Blender frame needs the Model document open; nothing is presenting.');
         }
+        streamedFrame = null;
         return {};
       }
-      const documentId = presentationDocumentId();
+      const documentId = streamed?.documentId ?? presentationDocumentId();
       const endWait = beginBlenderWork('waiting for Model presenter');
       let view: RuntimeView;
-      try { view = await runtimeView(); } finally { endWait(); }
+      try { view = streamed?.view ?? await runtimeView(); } finally { endWait(); }
       lifetime.signal.throwIfAborted();
-      if (presentationDocumentId() !== documentId)
+      if (!streamed && presentationDocumentId() !== documentId)
         throw new Error('Blender document changed before its frame could be presented');
       // WHAT THE PRESENTER HELD BEFORE THIS FRAME, carried back to the session
       // beside whatever this present produced. The session only has a RECORD of
@@ -927,6 +959,7 @@ export function blenderRuntime(): BlenderRuntime {
         try { return view.applyFrame(frame) as { held?: unknown } | null | undefined; }
         finally { endApply(); }
       })();
+      streamedFrame = null;
       const reports = typeof applied === 'object' && applied !== null && 'held' in applied;
       const held = reports ? (applied.held as { session: string; revision: number } | null) : null;
       const answer = (capture: unknown): PresentAnswer => ({
