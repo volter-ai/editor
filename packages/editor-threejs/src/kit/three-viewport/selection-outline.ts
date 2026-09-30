@@ -18,6 +18,7 @@ import {
 } from '@volter/editor-threejs/viewport/editor-layers';
 import type { EffectPass, OutlineEffect } from 'postprocessing';
 import type * as THREE from 'three';
+import {bindOutlineDepthCulling} from '../../render/outline-depth-culling';
 
 /**
  * The three postprocessing bindings {@link createThreeSelectionOutline} needs,
@@ -111,6 +112,7 @@ export function createThreeSelectionOutline(
       if (editorLayerOn) current.layers.enable(EDITOR_LAYER);
     }
   };
+  bindOutlineDepthCulling(effect);
   outlineState.set(effect, { colors, roots: 0 });
   paintOutline(effect);
   return effect;
