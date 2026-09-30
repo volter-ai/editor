@@ -33,3 +33,14 @@ the product door. Independent review must verify one correctly placed Timeline,
 repair on reopening an already-stacked project, and play/pause, step and scrub
 alongside Blender's own layout. Source diagnosis and build success are not that
 visual acceptance.
+
+
+A later cold hosted open exposed a focus-order race: a restored model pane
+mounted while the Timeline was still the host's active document. Its open
+correctly declined, but the component kept “Opening model…” and never retried
+when the model became active. `BlenderModelDocument` now subscribes to the
+host's document activation until its open succeeds or fails. It starts only
+for its own active document, does not duplicate an in-flight start, and removes
+the subscription on unmount. Utility focus after success retains the model's
+published context. Diagnostic: `c19-seams-status2.json` (no worker/renderer) and
+`c19-seams-mount-diagnosis.json` (latched opening message).

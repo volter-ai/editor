@@ -215,7 +215,16 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     const unbind = bindModelDocument(binding);
     const publish = () => { unpublish = callbacks.current.publishContext?.(view); };
     setOpened(null);
-    void (async () => {
+    // Native focus can arrive after the contributed pane mounts. A declined
+    // open is not an in-flight load: retry when the host activates this model,
+    // rather than leaving "Opening model…" latched forever. Utility focus
+    // after a successful open must not tear down the model's published view.
+    const documents = editorHost().documents;
+    let starting = false;
+    let finished = false;
+    const open = async () => {
+      if (cancelled || starting || finished || (binding && documents.activeId() !== documentId)) return;
+      starting = true;
       try {
         if (binding) {
           if (!await openModelDocumentBlend(binding, publish)) return;
@@ -223,18 +232,27 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
           // The standing Model document is the explicit blender-start target.
           publish();
         }
-        if (!cancelled) setOpened({ key, error: null });
+        if (!cancelled) {
+          finished = true;
+          setOpened({ key, error: null });
+        }
       } catch (error) {
         if (cancelled) return;
+        finished = true;
         unpublish?.();
         unpublish = undefined;
         const detail = error instanceof Error ? error.message : String(error);
         setOpened({ key, error: detail });
         callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${blend ?? 'the model'}`, detail });
+      } finally {
+        starting = false;
       }
-    })();
+    };
+    const unsubscribe = documents.subscribe(() => { void open(); });
+    void open();
     return () => {
       cancelled = true;
+      unsubscribe();
       unpublish?.();
       unbind();
     };
