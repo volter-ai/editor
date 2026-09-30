@@ -347,8 +347,11 @@ ${compiled.uvs.map(n => `varying vec2 ${uvVarying(n)};`).join('\n')}`;
     `vBlenderObjectPosition = transformed;
 vBlenderObjectNormal = objectNormal;
 mat4 blenderWorldMatrix = modelMatrix;
+#ifdef USE_BATCHING
+blenderWorldMatrix = blenderWorldMatrix * batchingMatrix;
+#endif
 #ifdef USE_INSTANCING
-blenderWorldMatrix = modelMatrix * instanceMatrix;
+blenderWorldMatrix = blenderWorldMatrix * instanceMatrix;
 #endif
 vBlenderWorldPosition = (blenderWorldMatrix * vec4(transformed, 1.0)).xyz;
 vBlenderWorldNormal = normalize(transpose(inverse(mat3(blenderWorldMatrix))) * objectNormal);

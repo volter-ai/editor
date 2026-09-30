@@ -179,3 +179,28 @@ for orthogonal columns, avoiding Frobenius's unnecessary sqrt(3) inflation
 for a uniform transform. Preparation phase timings and transparent batching
 exclusions are exposed alongside the existing draw diagnostics to attribute
 the remaining cost. A new frame reading is still required.
+
+14e6b3d1 measured 137.98 ms full detail and 92.09 ms navigation at 1197×827.
+The live material census ruled out two-pass foliage: meadow and forest grass
+are single-pass FrontSide surfaces. Many different geometries share those
+materials, so geometry-specific instancing leaves most draws separate. A short,
+restored draw hook also identified the existing outline depth and transmission
+passes; their work is not removed or mistaken for duplicate authored objects.
+
+The presenter now uses Three's BatchedMesh when WEBGL_multi_draw is available.
+It merges only consecutive compatible single-material entries in the existing
+transparent sort, retaining tie barriers, culling, placement matrices and all
+vertex attributes. Named UV maps and attribute layouts must match. The graph
+shader includes the batching transform for world-space inputs. Canonical meshes
+still handle picking, selection, authored state and fallback drawing.
+
+Packed immutable attributes are shared by independent ordered runs through
+public Three APIs. The cache permits 32 MiB total, 4 MiB per family and 1,024
+runs of 64 members. Creating at most four runs per frame bounds copy()'s
+transient array allocations; ordinary draws fill the remaining runs until they
+are available. Attribute identity/version changes rebuild the affected family.
+Retiring a run detaches shared attributes before disposal; the template owns
+their final release. Unsupported geometry, memory limits or missing multi-draw
+support retain ordinary drawing or the prior geometry-specific instancing.
+This candidate still needs a settled runtime measurement; it is not a claim
+that C19 is complete.

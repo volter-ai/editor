@@ -1,10 +1,12 @@
 import * as THREE from 'three';
+import {BlenderOrderedBatches, ORDERED_BATCH_CAPACITY} from './blender-ordered-batches';
+import {presenterChanged} from './blender-presenter-change';
 import {graphDrawAttributes} from './blender-graph-material';
 import {instanceMatrixSupported, instanceObjectShown} from './blender-runtime-instances';
 
-const CAPACITY = 64;
-type Entry = {mesh: THREE.Mesh; material: THREE.Material | null; key: string | null; groupOrder: number; z: number; centre: THREE.Vector3};
-type Draw = {mesh: THREE.InstancedMesh; members: THREE.Mesh[]};
+const CAPACITY = ORDERED_BATCH_CAPACITY;
+type Entry = {mesh: THREE.Mesh; material: THREE.Material | null; key: string | null; batchKey: string | null; groupOrder: number; z: number; centre: THREE.Vector3};
+type Draw = {mesh: THREE.InstancedMesh | THREE.BatchedMesh; members: THREE.Mesh[]};
 
 function groupOrder(mesh: THREE.Object3D): number {
   for (let parent = mesh.parent; parent; parent = parent.parent)
@@ -19,6 +21,9 @@ function groupOrder(mesh: THREE.Object3D): number {
  * This does not turn blended foliage into cutouts or change its opacity. */
 export class BlenderTransparentInstances {
   private objects: THREE.Mesh[] = [];
+  private readonly ordered = new BlenderOrderedBatches();
+  private readonly mixedDraws = new Map<THREE.BatchedMesh, Draw>();
+  private multiDraw = false;
   private readonly pools = new Map<string, Draw[]>();
   private readonly hidden: THREE.Mesh[] = [];
   private readonly inverse = new THREE.Matrix4();
@@ -42,12 +47,15 @@ export class BlenderTransparentInstances {
     this.objects = [...objects].filter((object): object is THREE.Mesh => (object as THREE.Mesh).isMesh === true);
   }
 
-  prepare(camera: THREE.Camera): void {
+  prepare(camera: THREE.Camera, multiDraw = false): void {
     this.finishDraw();
     if (!this.objects.length) return;
     camera.updateMatrixWorld();
     this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    if (!this.planChanged(camera)) {
+    const capabilityChanged = this.multiDraw !== multiDraw;
+    this.multiDraw = multiDraw;
+    const inputsChanged = this.planChanged(camera);
+    if (!inputsChanged && !capabilityChanged && !this.ordered.pending) {
       // The draw plan is a disposable presentation, not evaluated scene data.
       // Reuse only after exact comparison of every input to culling/ordering;
       // a camera move, drag, visibility or material change rebuilds it below.
@@ -61,6 +69,8 @@ export class BlenderTransparentInstances {
       return;
     }
     this.planned.length = 0;
+    for (const draw of this.mixedDraws.values()) draw.members.length = 0;
+    this.ordered.begin();
     for (const pool of this.pools.values()) for (const draw of pool) {
       draw.mesh.visible = false;
       draw.members.length = 0;
@@ -128,8 +138,14 @@ export class BlenderTransparentInstances {
           : 'geometryLayersOrTransform';
         this.excluded[reason] = (this.excluded[reason] ?? 0) + 1;
       }
-      entries.push({mesh, material, key, groupOrder: order, z, centre});
+      const batchKey = multiDraw && key && material ? this.ordered.register(mesh.geometry, material, mesh.renderOrder) : null;
+      entries.push({mesh, material, key, batchKey, groupOrder: order, z, centre});
     }
+    this.ordered.pack();
+    // A family may exceed the bounded cache. Retain its original instancing
+    // key rather than merging incompatible geometries on the fallback path.
+    for (const entry of entries) if (entry.batchKey && this.ordered.available(entry.batchKey)) entry.key = entry.batchKey;
+    for (const [mesh] of this.mixedDraws) if (!mesh.parent) this.mixedDraws.delete(mesh);
     entries.sort((a, b) => a.groupOrder - b.groupOrder || a.mesh.renderOrder - b.mesh.renderOrder || b.z - a.z || a.mesh.id - b.mesh.id);
     const used = new Map<string, number>();
     for (let begin = 0; begin < entries.length;) {
@@ -153,9 +169,26 @@ export class BlenderTransparentInstances {
           const head = entries[offset]!;
           const index = used.get(first.key) ?? 0;
           used.set(first.key, index + 1);
+          const mixed = first.key.startsWith('multi:');
+          let draw: Draw | undefined;
+          if (mixed) {
+            const mesh = this.ordered.get(first.key, index);
+            if (!mesh) continue;
+            draw = this.mixedDraws.get(mesh);
+            if (!draw) {
+              draw = {mesh, members: []};
+              this.mixedDraws.set(mesh, draw);
+              const held = draw;
+              mesh.raycast = (raycaster, hits) => {
+                if (mesh.visible) for (const member of held.members)
+                  if (instanceObjectShown(member)) member.raycast(raycaster, hits);
+              };
+              this.root.add(mesh);
+            }
+          }
           let pool = this.pools.get(first.key);
           if (!pool) { pool = []; this.pools.set(first.key, pool); }
-          let draw = pool[index];
+          if (!mixed) draw = pool[index];
           if (!draw) {
             const mesh = new THREE.InstancedMesh(first.mesh.geometry, first.material!, CAPACITY);
             mesh.name = 'Blender ordered transparency';
@@ -184,12 +217,20 @@ export class BlenderTransparentInstances {
             const member = entries[offset + i]!.mesh;
             this.matrix.multiplyMatrices(this.inverse, member.matrixWorld);
             draw.mesh.setMatrixAt(i, this.matrix);
+            if (draw.mesh instanceof THREE.BatchedMesh) {
+              draw.mesh.setGeometryIdAt(i, this.ordered.geometryId(first.key, member.geometry));
+              draw.mesh.setVisibleAt(i, true);
+            }
             draw.members.push(member);
             member.layers.disable(0);
             this.hidden.push(member);
           }
-          draw.mesh.count = length;
-          draw.mesh.instanceMatrix.needsUpdate = true;
+          if (draw.mesh instanceof THREE.BatchedMesh) {
+            for (let i = length; i < CAPACITY; i++) draw.mesh.setVisibleAt(i, false);
+          } else {
+            draw.mesh.count = length;
+            draw.mesh.instanceMatrix.needsUpdate = true;
+          }
           this.planned.push(draw);
           this.batches++;
           this.instances += length;
@@ -197,9 +238,12 @@ export class BlenderTransparentInstances {
       }
       begin = end;
     }
+    // A quiet viewport must also finish bounded pool construction. Notify only
+    // after this draw's temporary layer/geometry swaps have been restored.
+    if (this.ordered.pending) queueMicrotask(presenterChanged);
   }
 
-  inspect() { return {batches: this.batches, instances: this.instances, excluded: {...this.excluded}}; }
+  inspect() { return {batches: this.batches, instances: this.instances, excluded: {...this.excluded}, multiDraw: this.ordered.inspect()}; }
 
   private observe(value: number | string): void {
     if (this.planState[this.stateIndex] !== value) {
@@ -217,6 +261,7 @@ export class BlenderTransparentInstances {
     this.observe(camera.layers.mask);
     for (const n of this.projection.elements) this.observe(n);
     for (const n of this.root.matrixWorld.elements) this.observe(n);
+    const observedGeometry = new Set<THREE.BufferGeometry>();
     for (const mesh of this.objects) {
       this.observe(mesh.parent?.id ?? -1);
       this.observe(instanceObjectShown(mesh) ? 1 : 0);
@@ -228,6 +273,19 @@ export class BlenderTransparentInstances {
       for (const n of mesh.matrixWorld.elements) this.observe(n);
       const geometry = mesh.geometry;
       this.observe(geometry.id);
+      if (!observedGeometry.has(geometry)) {
+        observedGeometry.add(geometry);
+        this.observe(geometry.index?.id ?? -1);
+        this.observe(geometry.index?.version ?? -1);
+        this.observe(JSON.stringify(geometry.userData['blenderUvChannels'] ?? null));
+        for (const name of Object.keys(geometry.attributes).sort()) {
+          const attribute = geometry.getAttribute(name);
+          this.observe(name);
+          if (attribute instanceof THREE.BufferAttribute) {
+            this.observe(attribute.id); this.observe(attribute.version);
+          }
+        }
+      }
       this.observe(geometry.drawRange.start);
       this.observe(geometry.drawRange.count);
       this.observe(geometry.index?.count ?? geometry.getAttribute('position').count);
@@ -259,6 +317,7 @@ export class BlenderTransparentInstances {
     for (const mesh of this.hidden) mesh.layers.enable(0);
     this.hidden.length = 0;
     for (const pool of this.pools.values()) for (const {mesh} of pool) mesh.visible = false;
+    for (const {mesh} of this.mixedDraws.values()) mesh.visible = false;
   }
 
   clear(): void {
@@ -268,6 +327,8 @@ export class BlenderTransparentInstances {
       mesh.dispose();
     }
     this.pools.clear();
+    this.ordered.clear();
+    this.mixedDraws.clear();
     this.planned.length = 0;
     this.planState.length = 0;
     this.objects = [];
