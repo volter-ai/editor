@@ -16,6 +16,36 @@ function groupOrder(mesh: THREE.Object3D): number {
   return 0;
 }
 
+/** A batch's public boundingSphere is its transparency sorting anchor, not
+ * its contents. Publish a separate lazy WORLD bound for depth-only rejection.
+ * Read the actual Float32 instance matrices that the draw uploads. */
+function bindDepthOccluderBounds(draw: Draw): void {
+  const union = new THREE.Sphere();
+  const sphere = new THREE.Sphere();
+  const local = new THREE.Matrix4();
+  const world = new THREE.Matrix4();
+  draw.mesh.userData['depthOccluderWorldSphere'] = (): THREE.Sphere | null => {
+    union.makeEmpty();
+    for (let i = 0; i < draw.members.length; i++) {
+      const geometry = draw.members[i]!.geometry;
+      if (!geometry.boundingSphere) geometry.computeBoundingSphere();
+      if (!geometry.boundingSphere) return null;
+      draw.mesh.getMatrixAt(i, local);
+      world.multiplyMatrices(draw.mesh.matrixWorld, local);
+      const e = world.elements;
+      if (e[3] !== 0 || e[7] !== 0 || e[11] !== 0 || e[15] !== 1) return null;
+      sphere.copy(geometry.boundingSphere);
+      sphere.center.applyMatrix4(world);
+      const dot = (a: number, b: number) => e[a]! * e[b]! + e[a + 1]! * e[b + 1]! + e[a + 2]! * e[b + 2]!;
+      const xy = Math.abs(dot(0, 4)), xz = Math.abs(dot(0, 8)), yz = Math.abs(dot(4, 8));
+      sphere.radius *= Math.sqrt(Math.max(dot(0, 0) + xy + xz, dot(4, 4) + xy + yz, dot(8, 8) + xz + yz)) * (1 + 16 * Number.EPSILON);
+      if (!Number.isFinite(sphere.radius + sphere.center.x + sphere.center.y + sphere.center.z) || sphere.radius < 0) return null;
+      union.union(sphere);
+    }
+    return union.isEmpty() ? null : union;
+  };
+}
+
 /** Preserve Three's transparent object order. An instance run may contain only
  * consecutive, compatible, single-pass surfaces in that order. Incompatible
  * surfaces remain barriers; ties at a run boundary stay ordinary draws because
@@ -186,6 +216,7 @@ export class BlenderTransparentInstances {
             draw = this.mixedDraws.get(mesh);
             if (!draw) {
               draw = {mesh, members: []};
+              bindDepthOccluderBounds(draw);
               this.mixedDraws.set(mesh, draw);
               const held = draw;
               mesh.raycast = (raycaster, hits) => {
@@ -209,6 +240,7 @@ export class BlenderTransparentInstances {
             mesh.boundingSphere = new THREE.Sphere();
             mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
             draw = {mesh, members: []};
+            bindDepthOccluderBounds(draw);
             const held = draw;
             mesh.raycast = (raycaster, hits) => {
               if (!mesh.visible) return;

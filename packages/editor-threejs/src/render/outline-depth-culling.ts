@@ -123,7 +123,8 @@ export function bindOutlineDepthCulling(effect: OutlineEffect): void {
     renderer.renderBufferDirect = function (drawCamera, drawScene, geometry, drawMaterial, object, group) {
       if (drawCamera !== camera || drawScene !== scene ||
           !camera.projectionMatrix.equals(originalProjection) || !camera.matrixWorldInverse.equals(originalView) ||
-          !(object instanceof THREE.Mesh) || object instanceof THREE.SkinnedMesh || !object.frustumCulled ||
+          !(object instanceof THREE.Mesh) || object instanceof THREE.SkinnedMesh ||
+          (!object.frustumCulled && typeof object.userData['depthOccluderWorldSphere'] !== 'function') ||
           Object.keys(geometry.morphAttributes).length ||
           object.onBeforeRender !== (object instanceof THREE.BatchedMesh ? THREE.BatchedMesh.prototype.onBeforeRender : THREE.Object3D.prototype.onBeforeRender) ||
           object.onAfterRender !== THREE.Object3D.prototype.onAfterRender ||
@@ -135,12 +136,29 @@ export function bindOutlineDepthCulling(effect: OutlineEffect): void {
       let hidden = outside.get(object);
       if (hidden === undefined) {
         hidden = false;
+        const worldBound = object.userData['depthOccluderWorldSphere'];
+        if (!object.frustumCulled && typeof worldBound === 'function') {
+          // Owned ordered batches expose real contents separately from their
+          // sorting anchor. A null/invalid bound retains the original draw.
+          const bound = worldBound() as THREE.Sphere | null;
+          if (bound instanceof THREE.Sphere && Number.isFinite(bound.radius + bound.center.x + bound.center.y + bound.center.z) && bound.radius >= 0) {
+            for (const plane of frustum.planes) {
+              const distance = plane.distanceToPoint(bound.center);
+              const margin = 1e-6 * (Math.abs(plane.normal.x * bound.center.x) + Math.abs(plane.normal.y * bound.center.y) +
+                Math.abs(plane.normal.z * bound.center.z) + Math.abs(plane.constant) + bound.radius + 1);
+              if (distance + bound.radius < -margin) { hidden = true; break; }
+            }
+          }
+          outside.set(object, hidden);
+          if (!hidden) return originalDraw.call(this, drawCamera, drawScene, geometry, drawMaterial, object, group);
+          return;
+        }
         const bounded = object as THREE.Mesh & {boundingSphere?: THREE.Sphere | null; computeBoundingSphere?: () => void};
         if (bounded.boundingSphere === null) bounded.computeBoundingSphere?.();
         if (bounded.boundingSphere === undefined && !geometry.boundingSphere) geometry.computeBoundingSphere();
         const bound = bounded.boundingSphere === undefined ? geometry.boundingSphere : bounded.boundingSphere;
         const e = object.matrixWorld.elements;
-        if (bound && Number.isFinite(bound.radius) && e[3] === 0 && e[7] === 0 && e[11] === 0 && e[15] === 1) {
+        if (bound && Number.isFinite(bound.radius) && bound.radius >= 0 && e[3] === 0 && e[7] === 0 && e[11] === 0 && e[15] === 1) {
           worldCentre.copy(bound.center).applyMatrix4(object.matrixWorld);
           // Support of the transformed local sphere along each plane normal:
           // unlike max-column scale this remains conservative with shear.
