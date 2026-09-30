@@ -281,3 +281,29 @@ were already ordinary evaluated meshes. The candidate was therefore removed
 without a frame-speed claim. The remaining many small opaque draws are distinct
 single-material objects: 436 steel-scale geometries and 257 rock-face
 geometries, rather than unmerged ranges within one mesh.
+
+## Distinct opaque shapes
+
+Bridge contains 436 separate steel-scale geometries and 257 separate rock-face
+geometries. Repeated-shape instancing cannot combine their draws. The ordered
+packer now also serves a separate opaque pass after temporary navigation and
+material-range selection. It uses at most 8 MiB of packed geometry and 128 draw
+runs, retaining the existing 4 MiB family and four-new-runs-per-frame bounds.
+Ordinary meshes fill every unavailable, pending or incompatible run.
+
+Opaque candidates use default object hooks, known engine material hooks,
+positive orthogonal placement matrices, complete single-material geometry and
+normal depth-writing opaque state. Morphs, skins, custom shaders, transmission,
+nonstandard depth/blend/stencil state and partial groups remain barriers. Each
+partial opaque group contributes its original material id and sorting position,
+so a whole-geometry run cannot swallow another object's group. Ordering follows
+Three's group order, object render order, material id, ascending clip depth and
+object id. Ties at run boundaries remain ordinary.
+
+Opaque proxies retain the original material identity, rather than a variant's
+new material id: Three's opaque sorter must see the same ordering key. Shaders,
+textures, vertex attributes, triangle indices and material values stay intact;
+no palette shader is evaluated. Original meshes remain authoritative for
+picking, editing and selection passes. Their draw layers and all transient
+geometries are restored at the end of each draw, including failures. This
+candidate still needs a matched frame-cost measurement.

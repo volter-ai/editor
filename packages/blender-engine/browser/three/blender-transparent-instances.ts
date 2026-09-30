@@ -7,7 +7,7 @@ import {materialDrawHooksSupported} from './blender-physical-material';
 import {instanceMatrixSupported, instanceObjectShown, instanceObjectHooksSupported} from './blender-runtime-instances';
 
 const CAPACITY = ORDERED_BATCH_CAPACITY;
-type Entry = {mesh: THREE.Mesh; material: THREE.Material | null; key: string | null; batchKey: string | null; groupOrder: number; z: number; centre: THREE.Vector3};
+type Entry = {mesh: THREE.Mesh; material: THREE.Material | null; key: string | null; batchKey: string | null; groupOrder: number; materialId: number; z: number; centre: THREE.Vector3};
 type Draw = {mesh: THREE.InstancedMesh | THREE.BatchedMesh; members: THREE.Mesh[]};
 
 function groupOrder(mesh: THREE.Object3D): number {
@@ -20,11 +20,13 @@ function groupOrder(mesh: THREE.Object3D): number {
  * consecutive, compatible, single-pass surfaces in that order. Incompatible
  * surfaces remain barriers; ties at a run boundary stay ordinary draws because
  * Three breaks equal-depth ties by object id, and an internal batch has a new id.
- * This does not turn blended foliage into cutouts or change its opacity. */
+ * This does not turn blended foliage into cutouts or change its opacity.
+ * The opaque pass uses Three's material-id/front-to-back order and keeps
+ * partial groups as barriers; opaque proxies retain the source material id. */
 export class BlenderTransparentInstances {
   private objects: THREE.Mesh[] = [];
   private readonly drawMaterials = new BlenderDrawMaterials();
-  private readonly ordered = new BlenderOrderedBatches();
+  private readonly ordered: BlenderOrderedBatches;
   private readonly mixedDraws = new Map<THREE.BatchedMesh, Draw>();
   private multiDraw = false;
   private readonly pools = new Map<string, Draw[]>();
@@ -45,7 +47,21 @@ export class BlenderTransparentInstances {
   private stateIndex = 0;
   private stateChanged = false;
 
-  constructor(private readonly root: THREE.Group) {}
+  constructor(private readonly root: THREE.Group, private readonly pass: 'transparent' | 'opaque' = 'transparent') {
+    // Distinct small opaque shapes share a separate, smaller bounded cache.
+    this.ordered = pass === 'opaque' ? new BlenderOrderedBatches(8 * 1024 * 1024, 128) : new BlenderOrderedBatches();
+  }
+
+  private matchesPass(material: THREE.Material): boolean {
+    return material.visible && (this.pass === 'transparent' ? material.transparent
+      : !material.transparent && !((material as THREE.MeshPhysicalMaterial).transmission > 0));
+  }
+
+  private drawMaterial(source: THREE.Material, mesh: THREE.InstancedMesh | THREE.BatchedMesh): THREE.Material {
+    // Opaque sorting includes material.id. Keep the original identity so a
+    // partial-group barrier retains its place among these exact-material runs.
+    return this.pass === 'opaque' ? source : this.drawMaterials.get(source, mesh);
+  }
 
   setObjects(objects: Iterable<THREE.Object3D>): void {
     this.clear();
@@ -68,7 +84,7 @@ export class BlenderTransparentInstances {
       for (const draw of this.planned) {
         draw.mesh.visible = true;
         const source = draw.members[0]!.material;
-        draw.mesh.material = this.drawMaterials.get(Array.isArray(source) ? source[0]! : source, draw.mesh);
+        draw.mesh.material = this.drawMaterial(Array.isArray(source) ? source[0]! : source, draw.mesh);
         for (const member of draw.members) {
           member.layers.disable(0);
           this.hidden.push(member);
@@ -91,7 +107,7 @@ export class BlenderTransparentInstances {
     const eligibility = new Map<string, boolean>();
     for (const mesh of this.objects) {
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      if (!materials.some(m => m.visible && m.transparent)) continue;
+      if (!materials.some(m => this.matchesPass(m))) continue;
       if (!instanceObjectShown(mesh) || !mesh.layers.test(camera.layers)) continue;
       if (mesh.frustumCulled && !this.frustum.intersectsObject(mesh)) continue;
       // Match WebGLRenderer.projectObject's sorting centre, including a skin's
@@ -112,7 +128,21 @@ export class BlenderTransparentInstances {
       let key: string | null = null;
       const candidate = materials.length === 1 ? materials[0]! : null;
       const order = groupOrder(mesh);
-      if (candidate && candidate.visible && candidate.transparent &&
+      if (this.pass === 'opaque' && materials.length > 1) {
+        // Three expands opaque arrays into one render item per visible group.
+        // Their material ids and positions are barriers, even when the same
+        // material also appears on a whole-geometry candidate elsewhere.
+        for (const group of mesh.geometry.groups) {
+          const source = materials[group.materialIndex ?? 0];
+          if (source && this.matchesPass(source) && group.count > 0)
+            entries.push({mesh, material: null, key: null, batchKey: null, groupOrder: order, materialId: Reflect.get(source, 'id') as number, z, centre});
+        }
+        continue;
+      }
+      const opaqueState = this.pass === 'transparent' || (candidate && candidate.depthTest && candidate.depthWrite &&
+        candidate.depthFunc === THREE.LessEqualDepth && !candidate.stencilWrite && !candidate.polygonOffset &&
+        !candidate.alphaHash && candidate.blending === THREE.NormalBlending);
+      if (candidate && this.matchesPass(candidate) && opaqueState &&
           materialDrawHooksSupported(candidate) && instanceObjectHooksSupported(mesh) &&
           !(candidate as THREE.ShaderMaterial).isShaderMaterial &&
           !((candidate as THREE.MeshPhysicalMaterial).transmission > 0) &&
@@ -148,14 +178,15 @@ export class BlenderTransparentInstances {
         this.excluded[reason] = (this.excluded[reason] ?? 0) + 1;
       }
       const batchKey = multiDraw && key && material ? this.ordered.register(mesh.geometry, material, mesh.renderOrder) : null;
-      entries.push({mesh, material, key, batchKey, groupOrder: order, z, centre});
+      entries.push({mesh, material, key, batchKey, groupOrder: order, materialId: candidate ? Reflect.get(candidate, 'id') as number : 0, z, centre});
     }
     this.ordered.pack();
     // A family may exceed the bounded cache. Retain its original instancing
     // key rather than merging incompatible geometries on the fallback path.
     for (const entry of entries) if (entry.batchKey && this.ordered.available(entry.batchKey)) entry.key = entry.batchKey;
     for (const [mesh] of this.mixedDraws) if (!mesh.parent) this.mixedDraws.delete(mesh);
-    entries.sort((a, b) => a.groupOrder - b.groupOrder || a.mesh.renderOrder - b.mesh.renderOrder || b.z - a.z || a.mesh.id - b.mesh.id);
+    entries.sort((a, b) => a.groupOrder - b.groupOrder || a.mesh.renderOrder - b.mesh.renderOrder ||
+      (this.pass === 'opaque' ? a.materialId - b.materialId || a.z - b.z : b.z - a.z) || a.mesh.id - b.mesh.id);
     const used = new Map<string, number>();
     for (let begin = 0; begin < entries.length;) {
       const first = entries[begin]!;
@@ -200,7 +231,7 @@ export class BlenderTransparentInstances {
           if (!mixed) draw = pool[index];
           if (!draw) {
             const mesh = new THREE.InstancedMesh(first.mesh.geometry, first.material!, CAPACITY);
-            mesh.name = 'Blender ordered transparency';
+            mesh.name = this.pass === 'opaque' ? 'Blender ordered opaque' : 'Blender ordered transparency';
             mesh.userData['engineInternal'] = true;
             mesh.matrixAutoUpdate = false;
             // Each member was culled above. The sphere is a sorting anchor,
@@ -218,7 +249,7 @@ export class BlenderTransparentInstances {
             pool.push(draw);
             this.root.add(mesh);
           }
-          draw.mesh.material = this.drawMaterials.get(first.material!, draw.mesh);
+          draw.mesh.material = this.drawMaterial(first.material!, draw.mesh);
           draw.mesh.visible = true;
           draw.mesh.renderOrder = head.mesh.renderOrder;
           draw.mesh.boundingSphere!.center.copy(head.centre).applyMatrix4(this.inverse);
@@ -283,11 +314,10 @@ export class BlenderTransparentInstances {
     const observedGeometry = new Set<THREE.BufferGeometry>();
     const observedMaterials = new Set<THREE.Material>();
     for (const mesh of this.objects) {
-      // Check eligibility every frame, including opaque -> transparent
-      // transitions, but opaque geometry/attribute versions cannot affect a
-      // transparent draw plan. Large solid-only scenes need no such census.
+      // Observe the current pass every frame, including material pass changes.
+      // Attributes belonging only to the other pass cannot affect this plan.
       const currentMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
-      if (!currentMaterials.some(material => material.visible && material.transparent)) continue;
+      if (!currentMaterials.some(material => this.matchesPass(material))) continue;
       this.observe(mesh.parent?.id ?? -1);
       this.observe(instanceObjectShown(mesh) ? 1 : 0);
       this.observe(mesh.layers.mask);
@@ -343,6 +373,12 @@ export class BlenderTransparentInstances {
     this.observe(material.version);
     this.observe(material.visible ? 1 : 0); this.observe(material.transparent ? 1 : 0);
     this.observe(material.side); this.observe(material.forceSinglePass ? 1 : 0);
+    if (this.pass === 'opaque') {
+      this.observe(material.depthTest ? 1 : 0); this.observe(material.depthWrite ? 1 : 0);
+      this.observe(material.depthFunc); this.observe(material.stencilWrite ? 1 : 0);
+      this.observe(material.polygonOffset ? 1 : 0); this.observe(material.alphaHash ? 1 : 0);
+      this.observe(material.blending);
+    }
     this.observe((material as THREE.MeshPhysicalMaterial).transmission ?? 0);
   }
 
