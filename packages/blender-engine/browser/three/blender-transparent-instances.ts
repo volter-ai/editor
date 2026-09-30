@@ -263,6 +263,11 @@ export class BlenderTransparentInstances {
     for (const n of this.root.matrixWorld.elements) this.observe(n);
     const observedGeometry = new Set<THREE.BufferGeometry>();
     for (const mesh of this.objects) {
+      // Check eligibility every frame, including opaque -> transparent
+      // transitions, but opaque geometry/attribute versions cannot affect a
+      // transparent draw plan. Large solid-only scenes need no such census.
+      const currentMaterials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+      if (!currentMaterials.some(material => material.visible && material.transparent)) continue;
       this.observe(mesh.parent?.id ?? -1);
       this.observe(instanceObjectShown(mesh) ? 1 : 0);
       this.observe(mesh.layers.mask);

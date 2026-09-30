@@ -223,3 +223,23 @@ the draw's finally block, so picking and saved material slots are unchanged.
 This is a general rule on range structure, not an asset-name special case.
 It still requires measurement. C19 also requires a second real large scene's
 performance reading before review; only the Bridge has been measured so far.
+
+The second real scene, Vespucci, measured 17.38 ms full detail / 17.90 ms
+navigation in material preview (five frames, 1197×827, 5,395 canonical meshes,
+927,448 canonical triangles). With batching disabled it measured 38.10 ms:
+34,750 versus 1,112 calls, with exactly 422,861 drawn triangles in both full
+detail readings. Its simplification gate stayed off; range consolidation
+removed 33,625 ranges using 2.16 MB of indices. This supports the general
+batching path, not a claim that navigation LOD has been calibrated on multiple
+large scenes. Startup also logged React error 177; that remains an unresolved
+condition, not a clean-review result.
+
+The nearest-depth estimate for navigation now intersects the original sphere
+and box bounds. Camera-space box support along Z is the absolute Z row of
+view×world multiplied by local half extents. Both nearest depths are lower
+bounds on every original vertex's depth, so their maximum remains a lower
+bound. This avoids projecting a tall shape's vertical radius toward a level
+camera without changing the one-pixel gate or the simplifier's error budget.
+Transparent plan comparison also skips opaque geometry after checking each
+mesh's current materials, preserving detection of transparency transitions
+without scanning unrelated attribute versions.

@@ -38,6 +38,9 @@ export class BlenderMotionGeometry {
   private readonly projection = new THREE.Matrix4();
   private readonly frustum = new THREE.Frustum();
   private readonly centre = new THREE.Vector3();
+  private readonly boxCentre = new THREE.Vector3();
+  private readonly halfExtent = new THREE.Vector3();
+  private readonly viewWorld = new THREE.Matrix4();
   private drawnMeshes = 0;
   private fullTriangles = 0;
   private motionTriangles = 0;
@@ -304,13 +307,19 @@ export class BlenderMotionGeometry {
     this.frustum.setFromProjectionMatrix(this.projection);
     let tooClose = 0;
     for (const [source, entry] of this.cache) {
+      // The copy carries the ORIGINAL bounds derived during its yielding
+      // build. Do not scan vertices or use the smaller simplified bounds.
+      const bounds = entry.geometry.boundingBox!;
+      bounds.getSize(this.halfExtent).multiplyScalar(0.5);
       for (const mesh of this.groups.get(source) ?? []) {
         if (!instanceObjectShown(mesh) || (mesh.frustumCulled && !this.frustum.intersectsObject(mesh))) continue;
         // Bound the largest singular value by the maximum absolute row sum
         // of AᵀA. Unlike Frobenius this is tight for orthogonal TRS columns,
         // while still bounding shear. A uniform rotation must not inflate
         // both error and radius by sqrt(3) and veto nearby placements.
-        const e = mesh.matrixWorld.elements;
+        // Bound in view space, also accounting for an explicitly scaled camera.
+        this.viewWorld.multiplyMatrices(camera.matrixWorldInverse, mesh.matrixWorld);
+        const e = this.viewWorld.elements;
         const x2 = e[0]! ** 2 + e[1]! ** 2 + e[2]! ** 2;
         const y2 = e[4]! ** 2 + e[5]! ** 2 + e[6]! ** 2;
         const z2 = e[8]! ** 2 + e[9]! ** 2 + e[10]! ** 2;
@@ -319,9 +328,20 @@ export class BlenderMotionGeometry {
         const yz = Math.abs(e[4]! * e[8]! + e[5]! * e[9]! + e[6]! * e[10]!);
         const scale = Math.sqrt(Math.max(x2 + xy + xz, y2 + xy + yz, z2 + xz + yz));
         const sphere = source.boundingSphere!;
-        this.centre.copy(sphere.center).applyMatrix4(mesh.matrixWorld).applyMatrix4(camera.matrixWorldInverse);
-        const depth = (camera as THREE.PerspectiveCamera).isPerspectiveCamera
-          ? -this.centre.z - sphere.radius * scale : 1;
+        this.centre.copy(sphere.center).applyMatrix4(this.viewWorld);
+        let depth = 1;
+        if ((camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
+          const sphereDepth = -this.centre.z - sphere.radius * scale;
+          bounds.getCenter(this.boxCentre).applyMatrix4(this.viewWorld);
+          const v = this.viewWorld.elements;
+          const radiusZ = Math.abs(v[2]!) * this.halfExtent.x +
+            Math.abs(v[6]!) * this.halfExtent.y + Math.abs(v[10]!) * this.halfExtent.z;
+          // Both enclosures contain every original vertex. Their nearest
+          // depths are lower bounds, so the larger remains a lower bound.
+          // A tall shape's height need not inflate its radius toward a level
+          // camera. This tightens the bound without relaxing the pixel gate.
+          depth = Math.max(sphereDepth, -this.boxCentre.z - radiusZ);
+        }
         const pixels = entry.error * scale * Math.abs(camera.projectionMatrix.elements[5]!) * height / (2 * depth);
         if (!(depth > 0) || pixels > 1) { tooClose++; continue; }
         // Decide per placement: one near-camera blade must not veto thousands
