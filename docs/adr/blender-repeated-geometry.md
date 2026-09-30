@@ -204,3 +204,22 @@ their final release. Unsupported geometry, memory limits or missing multi-draw
 support retain ordinary drawing or the prior geometry-specific instancing.
 This candidate still needs a settled runtime measurement; it is not a claim
 that C19 is complete.
+
+76b1d161 reduced full-detail calls to 10,450 with the same 225,338,458 triangles,
+but navigation was 94.46 ms versus the previous 92.09 ms: no speed win is
+claimed. Five-frame diagnostic hooks, restored afterward, attributed only
+41.56 ms across 28 root matrix updates and 17.19 ms across 42,051 material
+bindings. Another census found 608 terrain ranges referring to just two opaque
+materials, plus 66/64 character ranges referring to four/two materials.
+
+Opaque material ranges are now consolidated in the order Three already draws
+them: material sorting remains the renderer's responsibility, and each material's
+triangle order is retained. Only a disposable index copy is allocated (8 MiB
+cache); canonical vertex attributes are shared and remain owned by the source.
+Ranges must cover the full indexed geometry without overlap, and transparent,
+transmissive, custom shader, skinned and morph geometry retain their originals.
+Already-instanced meshes are left alone. The canonical geometry is restored in
+the draw's finally block, so picking and saved material slots are unchanged.
+This is a general rule on range structure, not an asset-name special case.
+It still requires measurement. C19 also requires a second real large scene's
+performance reading before review; only the Bridge has been measured so far.

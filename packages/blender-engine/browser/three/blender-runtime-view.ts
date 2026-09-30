@@ -44,6 +44,7 @@ import {
 import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 import { BlenderRuntimeInstances } from './blender-runtime-instances';
 import { BlenderTransparentInstances } from './blender-transparent-instances';
+import { BlenderMaterialRanges } from './blender-material-ranges';
 import { BlenderMotionGeometry } from './blender-motion-geometry';
 
 /** A saved `View3DShading.type` as the stage's draw mode: Material Preview is `preview`. */
@@ -644,6 +645,7 @@ export interface PhotographRecord {
 export class BlenderRuntimeView {
   readonly root = new THREE.Group();
   private readonly instances = new BlenderRuntimeInstances(this.root);
+  private readonly materialRanges = new BlenderMaterialRanges();
   private readonly transparentInstances = new BlenderTransparentInstances(this.root);
   private readonly motionGeometry = new BlenderMotionGeometry(presenterChanged);
   private drawBatching = true;
@@ -1233,6 +1235,7 @@ export class BlenderRuntimeView {
     this.instances.rebuild(this.objects.values(), this.drawBatching && !this.rendered);
     if (this.drawBatching && !this.rendered) this.transparentInstances.setObjects(this.objects.values());
     this.motionGeometry.setObjects(this.objects.values());
+    this.materialRanges.setObjects(this.drawBatching && !this.rendered ? this.objects.values() : []);
   }
 
   /** Presentation-only comparison door; never changes Blender or its data. */
@@ -1244,8 +1247,8 @@ export class BlenderRuntimeView {
   }
 
   private drawPreparation: {
-    last: {opaqueMs: number; motionMs: number; transparentMs: number} | null;
-    navigation: {opaqueMs: number; motionMs: number; transparentMs: number} | null;
+    last: {opaqueMs: number; motionMs: number; rangesMs: number; transparentMs: number} | null;
+    navigation: {opaqueMs: number; motionMs: number; rangesMs: number; transparentMs: number} | null;
   } = {last: null, navigation: null};
 
   /** Before the renderer uploads attributes/builds its queues, for this area's
@@ -1264,18 +1267,22 @@ export class BlenderRuntimeView {
       // their sorting barriers and compatible geometry grouping.
       if (motion) this.instances.sync();
       const motionDone = performance.now();
+      this.materialRanges.prepare();
+      const rangesDone = performance.now();
       this.transparentInstances.prepare(camera, options?.multiDraw === true);
       const timing = {opaqueMs: opaqueDone - start, motionMs: motionDone - opaqueDone,
-        transparentMs: performance.now() - motionDone};
+        rangesMs: rangesDone - motionDone, transparentMs: performance.now() - rangesDone};
       this.drawPreparation.last = timing;
       if (motion) this.drawPreparation.navigation = timing;
     } catch (error) {
+      this.materialRanges.finish();
       this.motionGeometry.finish();
       this.instances.finishDraw();
       this.transparentInstances.finishDraw();
       throw error;
     }
     return () => {
+      this.materialRanges.finish();
       this.motionGeometry.finish();
       this.instances.finishDraw();
       this.transparentInstances.finishDraw();
@@ -2087,7 +2094,7 @@ export class BlenderRuntimeView {
   }
 
   drawStatistics() {
-    return {enabled: this.drawBatching, preparation: {...this.drawPreparation}, opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
+    return {enabled: this.drawBatching, preparation: {...this.drawPreparation}, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
   }
 
   snapshot() {
@@ -2297,6 +2304,7 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
+    this.materialRanges.clear();
     this.motionGeometry.clear();
     this.transparentInstances.clear();
     this.instances.clear();
