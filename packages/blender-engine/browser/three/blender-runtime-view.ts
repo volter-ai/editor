@@ -43,7 +43,6 @@ import {
 } from './blender-runtime-camera-view';
 import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 import { BlenderRuntimeInstances } from './blender-runtime-instances';
-import { BlenderDepthInstances } from './blender-depth-instances';
 import { BlenderTransparentInstances } from './blender-transparent-instances';
 import { BlenderMaterialRanges } from './blender-material-ranges';
 import { BlenderMotionGeometry } from './blender-motion-geometry';
@@ -646,7 +645,6 @@ export interface PhotographRecord {
 export class BlenderRuntimeView {
   readonly root = new THREE.Group();
   private readonly instances = new BlenderRuntimeInstances(this.root);
-  private readonly depthInstances = new BlenderDepthInstances(this.root);
   private readonly materialRanges = new BlenderMaterialRanges();
   private readonly transparentInstances = new BlenderTransparentInstances(this.root);
   private readonly motionGeometry = new BlenderMotionGeometry(presenterChanged);
@@ -1233,7 +1231,6 @@ export class BlenderRuntimeView {
   }
 
   private rebuildInstances(): void {
-    this.depthInstances.setObjects(this.drawBatching && !this.rendered ? this.objects.values() : []);
     this.transparentInstances.clear();
     this.instances.rebuild(this.objects.values(), this.drawBatching && !this.rendered);
     if (this.drawBatching && !this.rendered) this.transparentInstances.setObjects(this.objects.values());
@@ -1290,15 +1287,6 @@ export class BlenderRuntimeView {
       this.instances.finishDraw();
       this.transparentInstances.finishDraw();
     };
-  }
-
-  prepareDepthDraw(camera: THREE.Camera, material: THREE.MeshDepthMaterial): void | (() => void) {
-    if (!this.drawBatching || this.rendered || !this.depthInstances.supports(material)) return;
-    const resumeColor = this.transparentInstances.suspendDraw();
-    const restore = () => { try { this.depthInstances.finish(); } finally { resumeColor(); } };
-    try { this.depthInstances.prepare(camera, material); }
-    catch (error) { restore(); throw error; }
-    return restore;
   }
 
   private workbenchFor(id: string | null, side: THREE.Side, used: Set<string>): THREE.Material {
@@ -2106,7 +2094,7 @@ export class BlenderRuntimeView {
   }
 
   drawStatistics() {
-    return {enabled: this.drawBatching, preparation: {...this.drawPreparation}, depth: this.depthInstances.inspect(), materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
+    return {enabled: this.drawBatching, preparation: {...this.drawPreparation}, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
   }
 
   snapshot() {
@@ -2316,7 +2304,6 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
-    this.depthInstances.clear();
     this.materialRanges.clear();
     this.motionGeometry.clear();
     this.transparentInstances.clear();

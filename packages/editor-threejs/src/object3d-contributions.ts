@@ -20,7 +20,6 @@ import type {
   ColorRepresentation,
   Group,
   Intersection,
-  MeshDepthMaterial,
   Object3D,
   Ray,
   Scene,
@@ -59,9 +58,6 @@ export interface ToolObject3DPreviewSource {
    * Interactive draws may use disposable navigation geometry; omitted/false
    * always means full detail (captures and default frame-cost readings). */
   prepareDraw?(camera: Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean}): void | (() => void);
-  /** Optional pass-local depth draws. The host restores them before the next
-   * pass, including after a render error. Authored objects remain authoritative. */
-  prepareDepthDraw?(camera: Camera, material: MeshDepthMaterial): void | (() => void);
   /**
    * EVERY CHANGE TO WHAT THE SOURCE DRAWS, announced: the host calls
    * `listener` whenever the source's graph, materials, textures or poses may

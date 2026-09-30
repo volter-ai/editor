@@ -1909,7 +1909,7 @@ export function Object3DDocumentViewport({
           const mode = documentSession.presentation().mode;
           const navigation = interactive && ['solid', 'preview', 'clay', 'unlit', 'matcap'].includes(mode);
           return source.prepareDraw?.(documentSession.camera(), {interactive: navigation, height: renderer.domElement.height, multiDraw: renderer.extensions.has('WEBGL_multi_draw')});
-        }, (camera, material) => source.prepareDepthDraw?.(camera, material));
+        });
         // This loop draws the compass and every other overlay pass over the
         // document's own render, so it — and only it — can serve the chrome
         // door a frame that matches the screen.

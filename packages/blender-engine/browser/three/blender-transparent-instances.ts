@@ -318,19 +318,6 @@ export class BlenderTransparentInstances {
     this.observe((material as THREE.MeshPhysicalMaterial).transmission ?? 0);
   }
 
-  /** A plain depth override does not need color transparency ordering. Reveal
-   * only this plan's canonical members, retaining exact masks for restoration. */
-  suspendDraw(): () => void {
-    const members = this.hidden.map(mesh => ({mesh, mask: mesh.layers.mask}));
-    const draws = this.planned.map(({mesh}) => ({mesh, visible: mesh.visible}));
-    for (const {mesh} of members) mesh.layers.enable(0);
-    for (const {mesh} of draws) mesh.visible = false;
-    return () => {
-      for (const {mesh, mask} of members) mesh.layers.mask = mask;
-      for (const {mesh, visible} of draws) mesh.visible = visible;
-    };
-  }
-
   finishDraw(): void {
     for (const mesh of this.hidden) mesh.layers.enable(0);
     this.hidden.length = 0;

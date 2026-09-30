@@ -395,7 +395,6 @@ function BlenderViewportArea({
   const build = useCallback(
     () => ({
       root: view.root,
-      prepareDepthDraw: (camera: THREE.Camera, material: THREE.MeshDepthMaterial) => view.prepareDepthDraw(camera, material),
       prepareDraw: (camera: THREE.Camera, options?: {interactive: boolean; height: number}) => view.prepareDraw(camera, options),
       // What the view draws changes with each frame and the work after it,
       // and with the skin's poses when the Timeline scrubs.
