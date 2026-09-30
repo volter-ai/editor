@@ -268,7 +268,7 @@
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.81",
+      "version": "0.1.82",
       "license": "GPL-3.0-or-later",
       "notices": [
         {
@@ -279,7 +279,7 @@
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.83",
+      "version": "0.1.84",
       "license": "AGPL-3.0-only AND GPL-3.0-or-later",
       "notices": [
         {
@@ -294,7 +294,7 @@
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.143",
+      "version": "0.5.144",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -313,7 +313,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.143",
+      "version": "0.5.144",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -324,7 +324,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.143",
+      "version": "0.5.144",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -339,7 +339,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.143",
+      "version": "0.5.144",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -615,7 +615,7 @@
   "editor-core": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.143",
+      "version": "0.5.144",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -626,7 +626,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.143",
+      "version": "0.5.144",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -755,7 +755,7 @@
   "editor-live": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.143",
+      "version": "0.5.144",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -766,7 +766,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.143",
+      "version": "0.5.144",
       "license": "Apache-2.0",
       "notices": [
         {
