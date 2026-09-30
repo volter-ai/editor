@@ -2217,7 +2217,7 @@ export function Object3DDocumentViewport({
                   drawCamera: () => host.session?.camera() ?? viewport.camera,
                   orbit: viewport.orbitControls,
                   scene: host.scene,
-                  frameCost: (frames, quality) => measureFrameCost(frames, quality),
+                  frameCost: (frames, quality, pixelRatio) => measureFrameCost(frames, quality, pixelRatio),
                 },
                 () => null,
                 (kind, object) => viewport.setHelper(kind, object),

@@ -281,3 +281,7 @@ were already ordinary evaluated meshes. The candidate was therefore removed
 without a frame-speed claim. The remaining many small opaque draws are distinct
 single-material objects: 436 steel-scale geometries and 257 rock-face
 geometries, rather than unmerged ranges within one mesh.
+
+### Reopened-stage measurement ratio
+
+The initial stage rig forwards `frameCost`'s requested pixel ratio as well as its frame count and quality. After closing and reopening a document, this binding previously dropped the ratio, so a requested ratio of 1 measured the display's ratio of 2 instead. This is a measurement correction; default viewport resolution stays unchanged. The opaque distinct-shape experiment was retired: it overlapped the repeated-shape instancer's navigation fallbacks, and its small apparent gain had unequal triangle counts.
