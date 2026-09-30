@@ -57,7 +57,7 @@ export interface ToolObject3DPreviewSource {
    * returned function restores temporary draw state, including after errors.
    * Interactive draws may use disposable navigation geometry; omitted/false
    * always means full detail (captures and default frame-cost readings). */
-  prepareDraw?(camera: Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean}): void | (() => void);
+  prepareDraw?(camera: Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: WebGLRenderer}): void | (() => void);
   /**
    * EVERY CHANGE TO WHAT THE SOURCE DRAWS, announced: the host calls
    * `listener` whenever the source's graph, materials, textures or poses may

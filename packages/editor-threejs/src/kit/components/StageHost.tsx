@@ -1909,7 +1909,7 @@ export function Object3DDocumentViewport({
           host.syncHostScene?.();
           const mode = documentSession.presentation().mode;
           const navigation = interactive && ['solid', 'preview', 'clay', 'unlit', 'matcap'].includes(mode);
-          return source.prepareDraw?.(documentSession.camera(), {interactive: navigation, height: renderer.domElement.height, multiDraw: renderer.extensions.has('WEBGL_multi_draw')});
+          return source.prepareDraw?.(documentSession.camera(), {interactive: navigation, height: renderer.domElement.height, multiDraw: renderer.extensions.has('WEBGL_multi_draw'), renderer});
         });
         // This loop draws the compass and every other overlay pass over the
         // document's own render, so it — and only it — can serve the chrome

@@ -4,7 +4,8 @@
  * that MeshPhysicalMaterial does not expose as properties. */
 import * as THREE from 'three';
 import {z} from 'zod';
-import {applyGraphShader, bindGraphDraw, borrowGraphDrawBinding, graphProgramKey, graphUvChannels, setGraphViewport} from './blender-graph-material';
+import {applyGraphShader, bindGraphDraw, bindPaletteGraph, borrowGraphDrawBinding, graphProgramKey, graphUvChannels, setGraphViewport} from './blender-graph-material';
+import type {CompiledGraph} from './blender-node-graph';
 import {bindNamedUvChannels} from './blender-texture-samplers';
 
 const scalar = z.number().finite();
@@ -64,6 +65,77 @@ function graphShadow(material: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMa
     values.blenderWorldExtinction.value.copy(held.blenderWorldExtinction.value);
   }
   return shadow;
+}
+
+type PaletteState = (string | number | boolean | null)[];
+const identities = new WeakMap<object, number>();
+let nextIdentity = 0;
+const ignoredMaterial = new Set(['id', 'uuid', 'name', 'userData', 'version', '_listeners',
+  'onBeforeRender', 'onBeforeCompile', 'customProgramCacheKey']);
+const ignoredTexture = new Set(['id', 'uuid', 'name', 'source', 'mipmaps', 'version', '_listeners', 'userData']);
+const paletteMaps = new Set(['map', 'normalMap', 'roughnessMap']);
+const identity = (object: object): number => {
+  let id = identities.get(object);
+  if (id === undefined) { id = ++nextIdentity; identities.set(object, id); }
+  return id;
+};
+
+/** An exact, small snapshot of shader/render state, including the engine's
+ * private physical uniforms. No toJSON/image readback, lossy hash, or version
+ * assumption: direct property edits must invalidate a palette too. Only the
+ * three sampled image identities may differ, with identical sampler/UV state. */
+export function physicalPaletteState(material: THREE.MeshPhysicalMaterial, imageIdentities = false): PaletteState | null {
+  const held = uniforms.get(material);
+  if (!held || !materialDrawHooksSupported(material)) return null;
+  const state: PaletteState = [];
+  const append = (value: unknown, depth = 0): void => {
+    if (value === null || typeof value === 'number' || typeof value === 'string' || typeof value === 'boolean') state.push(value);
+    else if (value === undefined) state.push('undefined');
+    else if (typeof value === 'object' || typeof value === 'function') {
+      if (depth > 8) { state.push('reference', identity(value)); return; }
+      if (Array.isArray(value)) { state.push('array', value.length); for (const entry of value) append(entry, depth + 1); }
+      else if (Object.getPrototypeOf(value) === Object.prototype || value instanceof THREE.Color ||
+          value instanceof THREE.Vector2 || value instanceof THREE.Vector3 || value instanceof THREE.Vector4 ||
+          value instanceof THREE.Matrix3 || value instanceof THREE.Matrix4 || value instanceof THREE.Plane) {
+        state.push('values');
+        for (const key of Object.keys(value).sort()) { state.push(key); append((value as Record<string, unknown>)[key], depth + 1); }
+      } else state.push('reference', identity(value));
+    }
+  };
+  for (const key of Object.keys(material).sort()) {
+    if (ignoredMaterial.has(key)) continue;
+    state.push(key);
+    const value = (material as unknown as Record<string, unknown>)[key];
+    if (paletteMaps.has(key) && value instanceof THREE.Texture) {
+      // Special sampler kinds require different GLSL declarations/conversions.
+      if (value.constructor !== THREE.Texture) return null;
+      if (value.matrixAutoUpdate) value.updateMatrix();
+      state.push('sampled-image');
+      if (imageIdentities) state.push(value.uuid);
+      for (const name of Object.keys(value).sort()) {
+        if (ignoredTexture.has(name)) continue;
+        state.push(name); append((value as unknown as Record<string, unknown>)[name]);
+      }
+      append(value.userData['blenderUvName'] ?? '');
+    } else append(value);
+  }
+  for (const [name, value] of Object.entries(held)) { state.push(name); append(value.value); }
+  return state;
+}
+
+export function samePhysicalPaletteState(first: PaletteState, second: PaletteState): boolean {
+  return first.length === second.length && first.every((value, index) => value === second[index]);
+}
+
+/** A palette draw owns its material/uniform index array, borrowing all image
+ * and ramp storage. It never substitutes a source material's hooks. */
+export function physicalPaletteMaterial(compiled: CompiledGraph, sources: readonly THREE.MeshPhysicalMaterial[],
+  indices: Int32Array, geometry: THREE.BufferGeometry): THREE.MeshPhysicalMaterial | null {
+  for (const source of sources) bindNamedUvChannels(source, geometry);
+  const copy = graphShadow(sources[0]!);
+  if (bindPaletteGraph(copy, compiled, sources, indices, geometry)) return copy;
+  copy.dispose();
+  return null;
 }
 
 /** Copy physical values into an independently cached draw form. Textures and

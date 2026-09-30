@@ -24,6 +24,7 @@ interface Binding {
   ramps: THREE.DataTexture[];
   /** Named UV layer to the channel the current draw's geometry holds it in. */
   channels: Record<string, number>;
+  palette?: {indices: Int32Array; sources: readonly THREE.MeshPhysicalMaterial[]};
 }
 const bindings = new WeakMap<THREE.MeshPhysicalMaterial, Binding>();
 /** Graph structures whose program the GPU refused. A material whose graph is
@@ -33,6 +34,59 @@ const failed = new Set<string>();
 
 export function materialGraph(material: THREE.MeshPhysicalMaterial): CompiledGraph | null {
   return bindings.get(material)?.compiled ?? null;
+}
+
+/** Only identical graph programs can share an ordered draw. The originals
+ * keep ownership of textures and ramp tables; their live uniform objects are
+ * borrowed, so value edits do not turn into baked shader constants. */
+function compatiblePaletteGraphs(sources: readonly THREE.MeshPhysicalMaterial[]): CompiledGraph | null {
+  if (sources.length !== 2 || sources.some(source => pendings.has(source))) return null;
+  const graphs = sources.map(source => bindings.get(source)?.compiled);
+  const graph = graphs[0];
+  if (!graph || failed.has(graph.key) || graphs.some(other => !other || other.key !== graph.key ||
+      other.declarations !== graph.declarations || other.library !== graph.library ||
+      JSON.stringify([other.uvs, other.attributes, other.outputs]) !== JSON.stringify([graph.uvs, graph.attributes, graph.outputs]))) return null;
+  // Leave room for the physical material's environment and lighting samplers.
+  if (sources.reduce((n, source) => n + graph.images.reduce((n, image) => n + (image.tiled ? 2 : 1), 0) +
+      graph.ramps.length + [source.map, source.normalMap, source.roughnessMap].filter(Boolean).length, 0) > 8) return null;
+  return graph;
+}
+
+export function paletteGraphReady(source: THREE.MeshPhysicalMaterial): boolean {
+  const graph = bindings.get(source)?.compiled;
+  return !!graph && !pendings.has(source) && !failed.has(graph.key);
+}
+
+export function paletteGraphs(sources: readonly THREE.MeshPhysicalMaterial[]): CompiledGraph | null {
+  const graph = compatiblePaletteGraphs(sources);
+  if (!graph) return null;
+  const rename = (text: string, index: number) => text.replace(/\b(bg\w+|blenderGraph)\b/g, name => `bp${index}_${name}`);
+  const outputs = Object.values(graph.outputs).map(output => `${output.type} ${output.global};`);
+  if (graph.closure) outputs.push('float bgClosureP;', 'vec3 bgClosureE;', 'float bgClosureT;');
+  const names = [...Object.values(graph.outputs).map(output => output.global), ...(graph.closure ? ['bgClosureP', 'bgClosureE', 'bgClosureT'] : [])];
+  const program = [rename(graph.program, 0), rename(graph.program, 1), ...outputs,
+    // Evaluate both graphs before selecting. Derivatives and implicit texture
+    // LOD must never occur inside a potentially divergent fragment branch.
+    `void blenderGraph() { bp0_blenderGraph(); bp1_blenderGraph(); ${names.map(name =>
+      `${name} = vBlenderPaletteIndex == 0 ? bp0_${name} : bp1_${name};`).join(' ')} }`].join('\n');
+  return {...graph, key: `blender-palette-v1:${graph.key}`, program,
+    declarations: `${graph.library}\n${program}`, images: [], ramps: [], uniforms: new Map()};
+}
+
+export function bindPaletteGraph(material: THREE.MeshPhysicalMaterial, compiled: CompiledGraph,
+  sources: readonly THREE.MeshPhysicalMaterial[], indices: Int32Array, geometry: THREE.BufferGeometry): boolean {
+  if (!compatiblePaletteGraphs(sources)) return false;
+  const values: Record<string, THREE.IUniform> = {blenderPaletteIndices: {value: indices}};
+  for (let index = 0; index < sources.length; index++) {
+    const source = sources[index]!;
+    for (const [name, uniform] of Object.entries(bindings.get(source)!.uniforms)) values[`bp${index}_${name}`] = uniform;
+    for (const name of ['map', 'normalMap', 'roughnessMap'] as const) {
+      if (source[name]) values[`bp${index}_${name}`] = {value: source[name]};
+    }
+  }
+  bindings.set(material, {compiled, uniforms: values, ramps: [], channels: channelsFor(compiled, geometry), palette: {indices, sources}});
+  material.needsUpdate = true;
+  return true;
 }
 
 type ImageTexture = THREE.Texture | {tiles: THREE.Texture; map: THREE.Texture} | null;
@@ -395,6 +449,22 @@ ${compiled.attributes.map(n => `${attributeVarying(n)} = ${graphAttributeName(n)
 ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).join('\n')}
 #include <project_vertex>`,
   );
+  if (binding.palette) {
+    shader.vertexShader = `uniform int blenderPaletteIndices[64];\nflat varying int vBlenderPaletteIndex;\n${shader.vertexShader}`
+      .replace('#include <project_vertex>', 'vBlenderPaletteIndex = blenderPaletteIndices[int(getIndirectIndex(gl_DrawID))];\n#include <project_vertex>');
+    shader.fragmentShader = `flat varying int vBlenderPaletteIndex;\n${shader.fragmentShader}`;
+    for (const [name, uv, clip] of [['map', 'vMapUv', 'blenderMapClip'], ['normalMap', 'vNormalMapUv', 'blenderNormalClip'],
+      ['roughnessMap', 'vRoughnessMapUv', 'blenderRoughnessClip']] as const) {
+      if (!material[name]) continue;
+      shader.fragmentShader = `uniform sampler2D bp0_${name}, bp1_${name};\n${shader.fragmentShader}`
+        .replaceAll(`blenderImageSample(${name}, ${uv}, ${clip})`, `blenderPalette_${name}(${uv}, ${clip})`)
+        .replace('void main() {', `vec4 blenderPalette_${name}(vec2 uv, bool clipImage) {
+          vec4 first = blenderImageSample(bp0_${name}, uv, clipImage);
+          vec4 second = blenderImageSample(bp1_${name}, uv, clipImage);
+          return vBlenderPaletteIndex == 0 ? first : second;
+        }\nvoid main() {`);
+    }
+  }
   const out = (name: string) => compiled.outputs[name]?.global;
   // [chunk, line, whether the line goes BEFORE the chunk]
   const fragment: [string, string, boolean][] = [];

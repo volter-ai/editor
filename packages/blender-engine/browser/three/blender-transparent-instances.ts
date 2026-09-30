@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {BlenderOrderedBatches, ORDERED_BATCH_CAPACITY} from './blender-ordered-batches';
 import {BlenderDrawMaterials} from './blender-draw-materials';
+import {BlenderMaterialPalettes} from './blender-material-palettes';
 import {presenterChanged} from './blender-presenter-change';
 import {graphDrawAttributes} from './blender-graph-material';
 import {materialDrawHooksSupported} from './blender-physical-material';
@@ -8,7 +9,7 @@ import {instanceMatrixSupported, instanceObjectShown, instanceObjectHooksSupport
 
 const CAPACITY = ORDERED_BATCH_CAPACITY;
 type Entry = {mesh: THREE.Mesh; material: THREE.Material | null; key: string | null; batchKey: string | null; groupOrder: number; z: number; centre: THREE.Vector3};
-type Draw = {mesh: THREE.InstancedMesh | THREE.BatchedMesh; members: THREE.Mesh[]};
+type Draw = {mesh: THREE.InstancedMesh | THREE.BatchedMesh; members: THREE.Mesh[]; palette: boolean};
 
 function groupOrder(mesh: THREE.Object3D): number {
   for (let parent = mesh.parent; parent; parent = parent.parent)
@@ -25,6 +26,10 @@ export class BlenderTransparentInstances {
   private objects: THREE.Mesh[] = [];
   private readonly drawMaterials = new BlenderDrawMaterials();
   private readonly ordered = new BlenderOrderedBatches();
+  private readonly palettes = new BlenderMaterialPalettes();
+  private readonly sourceMaterials = new Set<THREE.Material>();
+  private plannedGeneration = -1;
+  private renderer: THREE.WebGLRenderer | undefined;
   private readonly mixedDraws = new Map<THREE.BatchedMesh, Draw>();
   private multiDraw = false;
   private readonly pools = new Map<string, Draw[]>();
@@ -52,23 +57,36 @@ export class BlenderTransparentInstances {
     this.objects = [...objects].filter((object): object is THREE.Mesh => (object as THREE.Mesh).isMesh === true);
   }
 
-  prepare(camera: THREE.Camera, multiDraw = false): void {
+  prepare(camera: THREE.Camera, multiDraw = false, renderer?: THREE.WebGLRenderer): void {
     this.finishDraw();
     this.drawMaterials.begin();
     if (!this.objects.length) return;
     camera.updateMatrixWorld();
     this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    const capabilityChanged = this.multiDraw !== multiDraw;
+    let scene: THREE.Object3D = this.root;
+    while (scene.parent) scene = scene.parent;
+    const targetScene = scene instanceof THREE.Scene ? scene : null;
+    const capabilityChanged = this.multiDraw !== multiDraw || this.renderer !== renderer;
+    this.renderer = renderer;
     this.multiDraw = multiDraw;
     const inputsChanged = this.planChanged(camera);
-    if (!inputsChanged && !capabilityChanged && !this.ordered.pending) {
+    if (inputsChanged) {
+      this.sourceMaterials.clear();
+      for (const mesh of this.objects) for (const material of Array.isArray(mesh.material) ? mesh.material : [mesh.material]) this.sourceMaterials.add(material);
+    }
+    const palettesChanged = this.palettes.prepare(this.sourceMaterials, () => {
+      this.ordered.clear(); this.mixedDraws.clear(); this.planned.length = 0;
+    });
+    this.ordered.beginPaletteFrame();
+    if (renderer && targetScene) this.ordered.compilePalettes(renderer, camera, targetScene);
+    if (!inputsChanged && !capabilityChanged && !palettesChanged && this.plannedGeneration === this.ordered.generation && !this.ordered.pending) {
       // The draw plan is a disposable presentation, not evaluated scene data.
       // Reuse only after exact comparison of every input to culling/ordering;
       // a camera move, drag, visibility or material change rebuilds it below.
       for (const draw of this.planned) {
         draw.mesh.visible = true;
         const source = draw.members[0]!.material;
-        draw.mesh.material = this.drawMaterials.get(Array.isArray(source) ? source[0]! : source, draw.mesh);
+        if (!draw.palette) draw.mesh.material = this.drawMaterials.get(Array.isArray(source) ? source[0]! : source, draw.mesh);
         for (const member of draw.members) {
           member.layers.disable(0);
           this.hidden.push(member);
@@ -147,13 +165,15 @@ export class BlenderTransparentInstances {
           : 'geometryLayersOrTransform';
         this.excluded[reason] = (this.excluded[reason] ?? 0) + 1;
       }
-      const batchKey = multiDraw && key && material ? this.ordered.register(mesh.geometry, material, mesh.renderOrder) : null;
+      const palette = renderer && targetScene && material ? this.palettes.get(material) : undefined;
+      const batchKey = multiDraw && key && material ? this.ordered.register(mesh.geometry, palette?.identity ?? material, mesh.renderOrder, palette) : null;
       entries.push({mesh, material, key, batchKey, groupOrder: order, z, centre});
     }
     this.ordered.pack();
+    if (renderer && targetScene) this.ordered.compilePalettes(renderer, camera, targetScene);
     // A family may exceed the bounded cache. Retain its original instancing
     // key rather than merging incompatible geometries on the fallback path.
-    for (const entry of entries) if (entry.batchKey && this.ordered.available(entry.batchKey)) entry.key = entry.batchKey;
+    for (const entry of entries) if (entry.batchKey && this.ordered.available(entry.batchKey, renderer)) entry.key = entry.batchKey;
     for (const [mesh] of this.mixedDraws) if (!mesh.parent) this.mixedDraws.delete(mesh);
     entries.sort((a, b) => a.groupOrder - b.groupOrder || a.mesh.renderOrder - b.mesh.renderOrder || b.z - a.z || a.mesh.id - b.mesh.id);
     const used = new Map<string, number>();
@@ -181,11 +201,11 @@ export class BlenderTransparentInstances {
           const mixed = first.key.startsWith('multi:');
           let draw: Draw | undefined;
           if (mixed) {
-            const mesh = this.ordered.get(first.key, index);
+            const mesh = this.ordered.get(first.key, index, renderer);
             if (!mesh) continue;
             draw = this.mixedDraws.get(mesh);
             if (!draw) {
-              draw = {mesh, members: []};
+              draw = {mesh, members: [], palette: this.ordered.isPalette(first.key)};
               this.mixedDraws.set(mesh, draw);
               const held = draw;
               mesh.raycast = (raycaster, hits) => {
@@ -208,7 +228,7 @@ export class BlenderTransparentInstances {
             mesh.frustumCulled = false;
             mesh.boundingSphere = new THREE.Sphere();
             mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-            draw = {mesh, members: []};
+            draw = {mesh, members: [], palette: false};
             const held = draw;
             mesh.raycast = (raycaster, hits) => {
               if (!mesh.visible) return;
@@ -218,7 +238,7 @@ export class BlenderTransparentInstances {
             pool.push(draw);
             this.root.add(mesh);
           }
-          draw.mesh.material = this.drawMaterials.get(first.material!, draw.mesh);
+          if (!draw.palette) draw.mesh.material = this.drawMaterials.get(first.material!, draw.mesh);
           draw.mesh.visible = true;
           draw.mesh.renderOrder = head.mesh.renderOrder;
           draw.mesh.boundingSphere!.center.copy(head.centre).applyMatrix4(this.inverse);
@@ -229,6 +249,7 @@ export class BlenderTransparentInstances {
             draw.mesh.setMatrixAt(i, this.matrix);
             if (draw.mesh instanceof THREE.BatchedMesh) {
               draw.mesh.setGeometryIdAt(i, this.ordered.geometryId(first.key, member.geometry));
+              this.ordered.setMaterialAt(first.key, draw.mesh, i, entries[offset + i]!.material!);
               draw.mesh.setVisibleAt(i, true);
             }
             draw.members.push(member);
@@ -251,9 +272,10 @@ export class BlenderTransparentInstances {
     // A quiet viewport must also finish bounded pool construction. Notify only
     // after this draw's temporary layer/geometry swaps have been restored.
     if (this.ordered.pending) queueMicrotask(presenterChanged);
+    this.plannedGeneration = this.ordered.generation;
   }
 
-  inspect() { return {batches: this.batches, instances: this.instances, excluded: {...this.excluded}, multiDraw: this.ordered.inspect(), materials: this.drawMaterials.inspect()}; }
+  inspect() { return {batches: this.batches, instances: this.instances, excluded: {...this.excluded}, multiDraw: this.ordered.inspect(), materials: this.drawMaterials.inspect(), palettes: this.palettes.inspect()}; }
 
   private observe(value: number | string): void {
     if (this.planState[this.stateIndex] !== value) {
@@ -361,6 +383,10 @@ export class BlenderTransparentInstances {
     }
     this.pools.clear();
     this.ordered.clear();
+    this.palettes.clear();
+    this.sourceMaterials.clear();
+    this.plannedGeneration = -1;
+    this.renderer = undefined;
     this.drawMaterials.clear();
     this.mixedDraws.clear();
     this.planned.length = 0;
