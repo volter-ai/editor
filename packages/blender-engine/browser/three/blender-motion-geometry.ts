@@ -29,7 +29,7 @@ export class BlenderMotionGeometry {
   private nextIdentity = 0;
   private bytes = 0;
   private unavailable: string | null = null;
-  private reductions: {vertices: number; fullTriangles: number; reducedTriangles: number; error: number; accepted: boolean}[] = [];
+  private reductions: {vertices: number; fullTriangles: number; reducedTriangles: number; error: number; accepted: boolean; bytes?: number}[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
   private readonly cameraWorld = new THREE.Matrix4();
   private readonly cameraProjection = new THREE.Matrix4();
@@ -124,8 +124,40 @@ export class BlenderMotionGeometry {
       const multi = Array.isArray(meshes[0]!.material);
       if (meshes.some(mesh => Array.isArray(mesh.material) !== multi)) return;
       const ranges: Range[] = multi ? geometry.groups : [{start: 0, count: geometry.index!.count}];
-      const appearance = Object.entries(geometry.attributes).filter(([name]) => name === 'normal' || /^uv\d*$/.test(name));
+      const chunks = ranges.flatMap(range => {
+        const chunks: Range[] = [];
+        for (let start = range.start; start < range.start + range.count; start += CHUNK_INDICES)
+          chunks.push({start, count: Math.min(CHUNK_INDICES, range.start + range.count - start), materialIndex: range.materialIndex});
+        return chunks;
+      });
+      // Lock only the boundaries introduced by partitioning. LockBorder would
+      // also pin every vertex on a real leaf's silhouette, defeating LOD even
+      // when its edge could simplify within the allowed appearance error.
+      // Blender's source-point map joins UV/normal splits at the same point.
+      const sourcePoints = geometry.getAttribute('blenderVertex') as THREE.BufferAttribute | undefined;
+      const partition = new Uint32Array(position.count);
+      const boundary = new Uint8Array(position.count);
+      const pointIndex = (vertex: number) => sourcePoints ? sourcePoints.getX(vertex) : vertex;
+      for (let chunk = 0; chunk < chunks.length; chunk++) {
+        const range = chunks[chunk]!;
+        for (let first = range.start; first < range.start + range.count; first += COPY_ITEMS) {
+          await yieldCopy();
+          for (let i = first; i < Math.min(first + COPY_ITEMS, range.start + range.count); i++) {
+            const point = pointIndex(geometry.index!.getX(i));
+            if (!Number.isInteger(point) || point < 0 || point >= partition.length) return;
+            if (!partition[point]) partition[point] = chunk + 1;
+            else if (partition[point] !== chunk + 1) boundary[point] = 1;
+          }
+        }
+      }
+      const appearance = Object.entries(geometry.attributes).filter(([name]) => name !== 'position' && name !== 'blenderVertex');
       const stride = appearance.reduce((n, [, a]) => n + a.itemSize, 0);
+      if (stride > 32) return; // meshoptimizer's attribute component limit
+      const protectedComponents: number[] = [];
+      let component = 0;
+      for (const [name, attribute] of appearance) {
+        for (let c = 0; c < attribute.itemSize; c++, component++) if (name !== 'normal') protectedComponents.push(component);
+      }
       const weights = appearance.flatMap(([name, a]) => Array(a.itemSize).fill(name === 'normal' ? 0.5 : 1));
       // Reuse bounds when present, otherwise derive the error scale in
       // yielding slices. Never scan a large mesh in one UI-thread call.
@@ -157,12 +189,14 @@ export class BlenderMotionGeometry {
             if (local === undefined) { local = originals.length; originals.push(original); remap.set(original, local); }
             indices[i - start] = local;
           }
+          const locks = new Uint8Array(originals.length);
           const positions = new Float32Array(originals.length * 3);
           const values = new Float32Array(originals.length * stride);
           for (let first = 0; first < originals.length; first += COPY_ITEMS) {
             await yieldCopy();
             for (let i = first; i < Math.min(first + COPY_ITEMS, originals.length); i++) {
               const original = originals[i]!;
+              locks[i] = boundary[pointIndex(original)]!;
               for (let c = 0; c < 3; c++) positions[i * 3 + c] = position.getComponent(original, c);
               let offset = 0;
               for (const [, attribute] of appearance) {
@@ -175,8 +209,8 @@ export class BlenderMotionGeometry {
           const id = ++this.nextId;
           const response = await new Promise<MotionMeshResponse>(resolve => {
             this.pending = {id, resolve};
-            const request: MotionMeshRequest = {id, positions, indices, attributes: values, stride, weights, absoluteError};
-            this.worker!.postMessage(request, [positions.buffer, indices.buffer, values.buffer]);
+            const request: MotionMeshRequest = {id, positions, indices, attributes: values, stride, weights, absoluteError, protectedComponents, locks};
+            this.worker!.postMessage(request, [positions.buffer, indices.buffer, values.buffer, locks.buffer]);
           });
           current();
           if (response.refusal) throw new Error(response.refusal);
@@ -190,7 +224,7 @@ export class BlenderMotionGeometry {
         }
         if (multi) outputGroups.push({start: groupStart, count: count - groupStart, materialIndex: range.materialIndex});
       }
-      const reduction = {vertices: position.count, fullTriangles: geometry.index!.count / 3,
+      const reduction: (typeof this.reductions)[number] = {vertices: position.count, fullTriangles: geometry.index!.count / 3,
         reducedTriangles: count / 3, error, accepted: false};
       if (this.reductions.length < 32) this.reductions.push(reduction);
       if (!count || count >= geometry.index!.count * 0.75) return;
@@ -214,6 +248,7 @@ export class BlenderMotionGeometry {
       }
       const bytes = indices.byteLength + Object.values(geometry.attributes).reduce((n, a) =>
         n + originals.length * a.itemSize * a.array.BYTES_PER_ELEMENT, 0);
+      reduction.bytes = bytes;
       if (this.bytes + bytes > CACHE_BYTES) return;
       const copy = new THREE.BufferGeometry();
       copy.setIndex(new THREE.BufferAttribute(indices, 1));

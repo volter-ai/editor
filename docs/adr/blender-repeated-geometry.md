@@ -100,7 +100,8 @@ them to cutouts or hashed transparency is not an equivalent optimization.
 C19 explicitly calls for temporary simplified geometry during navigation.
 The presenter now derives compact geometry copies with meshoptimizer 1.2 in a
 worker, one mesh at a time, prioritizing repeated high-cost geometry. It retains
-boundaries and seams, includes normals/UVs in the error calculation, and retains
+material/chunk boundaries and UV/shader-attribute seams, includes normals and
+shader attributes in the error calculation, and retains
 every attribute in the compact copy. The cache is capped at 64 MiB; each worker input
 has at most 49,152 indices (16,384 triangles). Material ranges are simplified
 separately, with locked chunk boundaries and their original ordering retained.
@@ -144,3 +145,25 @@ whole compact copy must fit the same 64 MiB budget. Replacement/disposal
 cancels pending worker replies and yielding copies. Absolute errors share the
 whole mesh's scale, and the maximum chunk error gates each placement.
 This change still needs runtime measurement; it is not a fast-navigation claim.
+
+
+The 697a8a87 runtime completed loading (43,317 calls, max 3,658 ms, none over
+five seconds, 3,168 MiB Wasm). Its bounded sapling reduction completed but still
+had 1,378,439 of 2,062,487 triangles and exceeded the compact cache budget, so
+it correctly retained the original. No additional frame benchmark was run for
+that known unchanged dominant geometry. Native source arrays contain many
+split vertices; the next reducer uses meshoptimizer 1.2's
+[attribute-aware permissive mode](https://github.com/zeux/meshoptimizer/blob/v1.2/README.md#permissive-simplification),
+protecting UV and all other shader-attribute discontinuities while allowing
+normal splits to collapse within the same appearance-error limit. Material
+and chunk boundaries remain locked. Copies retain the selected original
+attribute values; authored geometry is untouched. Reduction diagnostics now
+include the required compact byte count. Performance remains unproven.
+
+The earlier blanket `LockBorder` also pinned genuine open leaf silhouettes.
+The partitioner now marks vertices shared across chunks/material ranges in
+bounded yielding passes, joining Blender UV/normal splits through its source
+point map. Only these artificial boundaries are position-locked; genuine open
+edges can collapse within the same measured error. This avoids requiring every
+leaf border vertex to survive a navigation-only drawing. The original bounds,
+material ranges and rest/capture geometry are still retained.
