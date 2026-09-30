@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import {BlenderOrderedBatches, ORDERED_BATCH_CAPACITY} from './blender-ordered-batches';
+import {BlenderDrawMaterials} from './blender-draw-materials';
 import {presenterChanged} from './blender-presenter-change';
 import {graphDrawAttributes} from './blender-graph-material';
 import {instanceMatrixSupported, instanceObjectShown} from './blender-runtime-instances';
@@ -21,6 +22,7 @@ function groupOrder(mesh: THREE.Object3D): number {
  * This does not turn blended foliage into cutouts or change its opacity. */
 export class BlenderTransparentInstances {
   private objects: THREE.Mesh[] = [];
+  private readonly drawMaterials = new BlenderDrawMaterials();
   private readonly ordered = new BlenderOrderedBatches();
   private readonly mixedDraws = new Map<THREE.BatchedMesh, Draw>();
   private multiDraw = false;
@@ -35,6 +37,8 @@ export class BlenderTransparentInstances {
   private batches = 0;
   private instances = 0;
   private excluded: Record<string, number> = {};
+  private readonly plannedProjection = new THREE.Matrix4();
+  private projectionKnown = false;
   private readonly planState: (number | string)[] = [];
   private readonly planned: Draw[] = [];
   private stateIndex = 0;
@@ -49,6 +53,7 @@ export class BlenderTransparentInstances {
 
   prepare(camera: THREE.Camera, multiDraw = false): void {
     this.finishDraw();
+    this.drawMaterials.begin();
     if (!this.objects.length) return;
     camera.updateMatrixWorld();
     this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
@@ -61,6 +66,8 @@ export class BlenderTransparentInstances {
       // a camera move, drag, visibility or material change rebuilds it below.
       for (const draw of this.planned) {
         draw.mesh.visible = true;
+        const source = draw.members[0]!.material;
+        draw.mesh.material = this.drawMaterials.get(Array.isArray(source) ? source[0]! : source, draw.mesh);
         for (const member of draw.members) {
           member.layers.disable(0);
           this.hidden.push(member);
@@ -209,6 +216,7 @@ export class BlenderTransparentInstances {
             pool.push(draw);
             this.root.add(mesh);
           }
+          draw.mesh.material = this.drawMaterials.get(first.material!, draw.mesh);
           draw.mesh.visible = true;
           draw.mesh.renderOrder = head.mesh.renderOrder;
           draw.mesh.boundingSphere!.center.copy(head.centre).applyMatrix4(this.inverse);
@@ -243,7 +251,7 @@ export class BlenderTransparentInstances {
     if (this.ordered.pending) queueMicrotask(presenterChanged);
   }
 
-  inspect() { return {batches: this.batches, instances: this.instances, excluded: {...this.excluded}, multiDraw: this.ordered.inspect()}; }
+  inspect() { return {batches: this.batches, instances: this.instances, excluded: {...this.excluded}, multiDraw: this.ordered.inspect(), materials: this.drawMaterials.inspect()}; }
 
   private observe(value: number | string): void {
     if (this.planState[this.stateIndex] !== value) {
@@ -256,6 +264,15 @@ export class BlenderTransparentInstances {
   /** Compare inputs without cloning 10,000 centres, allocating entries or
    * sorting/uploading matrices again on an unchanged frame. No lossy hash. */
   private planChanged(camera: THREE.Camera): boolean {
+    // A moved camera already invalidates culling and ordering. Do not first
+    // compare every object's attributes/matrix only to rebuild the same list.
+    // Invalidate the saved inputs; the first quiet frame records them afresh.
+    if (!this.projectionKnown || !this.plannedProjection.equals(this.projection)) {
+      this.plannedProjection.copy(this.projection);
+      this.projectionKnown = true;
+      this.planState.length = 0;
+      return true;
+    }
     this.stateIndex = 0;
     this.stateChanged = this.planState.length === 0;
     this.observe(camera.layers.mask);
@@ -333,9 +350,11 @@ export class BlenderTransparentInstances {
     }
     this.pools.clear();
     this.ordered.clear();
+    this.drawMaterials.clear();
     this.mixedDraws.clear();
     this.planned.length = 0;
     this.planState.length = 0;
+    this.projectionKnown = false;
     this.objects = [];
     this.batches = this.instances = 0;
   }

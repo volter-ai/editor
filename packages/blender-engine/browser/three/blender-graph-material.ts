@@ -105,6 +105,23 @@ export function setMaterialGraph(
   pendings.set(material, {binding, started: false});
 }
 
+/** A disposable draw material borrows the source's live uniform values, never
+ * its owned ramp textures or geometry-dependent UV selector. Pending graphs
+ * must first draw through their source so its asynchronous compile can finish. */
+export function borrowGraphDrawBinding(source: THREE.MeshPhysicalMaterial, target: THREE.MeshPhysicalMaterial): boolean {
+  if (pendings.has(source)) return false;
+  const sourceBinding = bindings.get(source);
+  const binding = sourceBinding && !failed.has(sourceBinding.compiled.key) ? sourceBinding : undefined;
+  const held = bindings.get(target);
+  if (!binding) {
+    if (held) { bindings.delete(target); target.needsUpdate = true; }
+  } else if (!held || held.compiled.key !== binding.compiled.key || held.uniforms !== binding.uniforms) {
+    bindings.set(target, {compiled: binding.compiled, uniforms: binding.uniforms, ramps: [], channels: {}});
+    target.needsUpdate = true;
+  }
+  return true;
+}
+
 /** A binding's values: uniforms, ramp tables and textures. */
 function fill(binding: Binding, compiled: CompiledGraph, texture: (image: CompiledGraph['images'][number]) => ImageTexture): void {
   binding.compiled = compiled;

@@ -4,7 +4,7 @@
  * that MeshPhysicalMaterial does not expose as properties. */
 import * as THREE from 'three';
 import {z} from 'zod';
-import {applyGraphShader, bindGraphDraw, graphProgramKey, graphUvChannels, setGraphViewport} from './blender-graph-material';
+import {applyGraphShader, bindGraphDraw, borrowGraphDrawBinding, graphProgramKey, graphUvChannels, setGraphViewport} from './blender-graph-material';
 import {bindNamedUvChannels} from './blender-texture-samplers';
 
 const scalar = z.number().finite();
@@ -54,6 +54,27 @@ function graphShadow(material: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMa
     values.blenderWorldExtinction.value.copy(held.blenderWorldExtinction.value);
   }
   return shadow;
+}
+
+/** Copy physical values into an independently cached draw form. Textures and
+ * graph uniform values remain borrowed from the authoritative source material. */
+export function syncPhysicalDrawMaterial(source: THREE.Material, target?: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMaterial | null {
+  if (!(source instanceof THREE.MeshPhysicalMaterial) || !uniforms.has(source)) return null;
+  const copy = target ?? graphShadow(source);
+  if (!borrowGraphDrawBinding(source, copy)) {
+    if (!target) copy.dispose();
+    return null;
+  }
+  copy.copy(source);
+  const held = uniforms.get(source)!;
+  const values = uniforms.get(copy)!;
+  values.blenderCoatIor.value = held.blenderCoatIor.value;
+  values.blenderCoatTint.value.copy(held.blenderCoatTint.value);
+  values.blenderMapClip.value = held.blenderMapClip.value;
+  values.blenderRoughnessClip.value = held.blenderRoughnessClip.value;
+  values.blenderNormalClip.value = held.blenderNormalClip.value;
+  values.blenderWorldExtinction.value.copy(held.blenderWorldExtinction.value);
+  return copy;
 }
 
 export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, input?: Physical,
