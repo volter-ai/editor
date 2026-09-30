@@ -312,7 +312,7 @@ export class LiveEditor {
    * the draw mode. `stage` names another stage by its id (a split's second area,
    * `<documentId>#area-2`).
    */
-  async frameCost(options?: { readonly frames?: number; readonly stage?: string }): Promise<StageFrameCostReading> {
+  async frameCost(options?: { readonly frames?: number; readonly stage?: string; readonly quality?: 'full' | 'navigation' }): Promise<StageFrameCostReading> {
     return this.#client.frameCostDocument(options);
   }
 

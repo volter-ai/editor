@@ -22,14 +22,18 @@ function product(folder,inputs){
 }
 if(process.argv[2]==='--product'){
   const [folder,inputs]=process.argv.slice(3);
-  await build({configFile:`packages/${folder}/vite.config.ts`,plugins:[{
+  const ids=new Set();
+  const collect=()=>({
     name:'bundled-license-inputs',
     generateBundle(_options,bundle){
-      const ids=[...new Set(Object.values(bundle).filter(chunk=>chunk.type==='chunk')
-        .flatMap(chunk=>Object.entries(chunk.modules).filter(([,info])=>info.renderedLength>0).map(([id])=>id)))];
-      writeFileSync(`.artifacts/${inputs}`,JSON.stringify(ids,null,2));
+      for(const chunk of Object.values(bundle))if(chunk.type==='chunk')
+        for(const [id,info] of Object.entries(chunk.modules))if(info.renderedLength>0)ids.add(id);
     },
-  }]});
+  });
+  // Workers are separate Rollup graphs but ship in the same product. Collect
+  // their actual rendered inputs too, and write once AFTER every graph ends.
+  await build({configFile:`packages/${folder}/vite.config.ts`,plugins:[collect()],worker:{plugins:()=>[collect()]}});
+  writeFileSync(`.artifacts/${inputs}`,JSON.stringify([...ids].sort(),null,2));
   process.exit(0);
 }
 // `[list] [package...]`: naming packages builds only their steps, so a
