@@ -45,7 +45,9 @@ export class BlenderMotionGeometry {
       const g = mesh.geometry;
       const position = g.getAttribute('position');
       if (!g.index || g.index.count < 6144 || !position || position.count > 200_000 ||
-          Object.values(g.attributes).some(a => !(a instanceof THREE.BufferAttribute)) ||
+          Object.values(g.attributes).some(a => !(a instanceof THREE.BufferAttribute) ||
+            (a as THREE.Float16BufferAttribute).isFloat16BufferAttribute ||
+            (a as THREE.InstancedBufferAttribute).isInstancedBufferAttribute) ||
           Object.keys(g.morphAttributes).length || g.drawRange.start !== 0 || g.drawRange.count < g.index.count) continue;
       // Only a whole, single material surface. Material boundaries are never
       // crossed by the simplifier, nor are authored group ranges shortened.
@@ -190,7 +192,10 @@ export class BlenderMotionGeometry {
       let fits = true;
       for (const mesh of this.groups.get(source) ?? []) {
         if (!instanceObjectShown(mesh) || (mesh.frustumCulled && !this.frustum.intersectsObject(mesh))) continue;
-        const scale = mesh.matrixWorld.getMaxScaleOnAxis();
+        // Frobenius norm bounds the linear transform even under shear; the
+        // longest axis alone can understate the projected simplifier error.
+        const e = mesh.matrixWorld.elements;
+        const scale = Math.hypot(e[0]!, e[1]!, e[2]!, e[4]!, e[5]!, e[6]!, e[8]!, e[9]!, e[10]!);
         const sphere = source.boundingSphere!;
         this.centre.copy(sphere.center).applyMatrix4(mesh.matrixWorld).applyMatrix4(camera.matrixWorldInverse);
         const depth = (camera as THREE.PerspectiveCamera).isPerspectiveCamera

@@ -9,7 +9,7 @@ The disposable presenter groups repeated opaque geometry with identical ordered
 material slots into Three InstancedMesh draws. Groups are spatially partitioned
 to at most 64 members so frustum rejection does not become one all-scene bound.
 This reuses the exact resident geometry, including all material groups and
-attributes. It introduces no LOD, decimation, hidden-object deletion, evaluation
+attributes. This batching step introduces no LOD, decimation, hidden-object deletion, evaluation
 cache or change to Blender, streaming, deltas, persistence or scene math.
 
 Canonical Mesh objects retain their identities, geometry, material slots,
@@ -111,7 +111,8 @@ projected-error check against all visible placements of each shared shape.
 Culling bounds, transparent sorting anchors, materials and instance ordering
 remain the originals'. The renderer's synchronous draw swaps geometry after
 the ordinary instancing plan is prepared and restores it in `finally`. A quiet
-camera schedules a full-detail redraw after 150 ms. Captures, rendered shading,
+camera schedules a full-detail redraw after 150 ms. Edit/sculpt/pose and inspection
+draw modes, captures, rendered shading,
 editing/picking outside the draw, native evaluation and saved data retain full
 geometry. Copies own their buffers and are disposed on geometry replacement.
 

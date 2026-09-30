@@ -1250,7 +1250,8 @@ export class BlenderRuntimeView {
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
       this.transparentInstances.prepare(camera);
-      this.motionGeometry.prepare(camera, !this.rendered && options?.interactive === true, options?.height ?? 0);
+      this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
+        options?.interactive === true, options?.height ?? 0);
     } catch (error) {
       this.motionGeometry.finish();
       this.instances.finishDraw();
