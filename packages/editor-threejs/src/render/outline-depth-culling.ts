@@ -3,17 +3,19 @@ import type {OutlineEffect, DepthPass, RenderPass} from 'postprocessing';
 
 type OutlineDepth = OutlineEffect & {camera: THREE.Camera; scene: THREE.Scene; depthPass: DepthPass & {renderPass?: RenderPass}};
 
-/** The outline samples scene depth only where a selected surface draws. Cull
- * depth occluders against a conservative selection rectangle, then restore the
- * ORIGINAL projection before uploading any draw uniforms. Raster positions,
- * depth values, mask/edge passes and the color pass retain their original math.
- * Unknown callbacks/cameras and bounds crossing the near plane use the full pass. */
+/** The outline samples scene depth only where a selected surface draws. Reject
+ * ordinary depth draws outside a conservative selection rectangle. Camera and
+ * object callbacks retain their original inputs, order and transforms; helpers
+ * and custom draws use the full path. Nothing changes in the color/mask passes. */
 export function bindOutlineDepthCulling(effect: OutlineEffect): void {
   const outline = effect as OutlineDepth;
   const depth = outline.depthPass;
   const render = depth.render.bind(depth);
   const originalProjection = new THREE.Matrix4();
-  const originalInverse = new THREE.Matrix4();
+  const originalView = new THREE.Matrix4();
+  const clip = new THREE.Matrix4();
+  const frustum = new THREE.Frustum();
+  const worldCentre = new THREE.Vector3();
   const crop = new THREE.Matrix4();
   const objectView = new THREE.Matrix4();
   const sphere = new THREE.Sphere();
@@ -30,22 +32,13 @@ export function bindOutlineDepthCulling(effect: OutlineEffect): void {
       render(renderer, input, output, delta, stencil);
       return;
     }
-    // No callback may see the temporary culling projection. The only supported
-    // non-default object callback is Three's own batch culling; shader uploads
-    // happen after renderBufferDirect restores the original camera below.
     let supported = true;
+    // A drawable sharing the selection layer without belonging to Selection
+    // would also write the mask, so the selected objects alone cannot bound it.
     scene.traverseVisible(object => {
-      if (object.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender &&
-          (!(object instanceof THREE.BatchedMesh) ||
-            object.onBeforeRender !== THREE.BatchedMesh.prototype.onBeforeRender)) supported = false;
-      if (object.onAfterRender !== THREE.Object3D.prototype.onAfterRender) supported = false;
       if (object.layers.isEnabled(effect.selection.layer) && !effect.selection.has(object) &&
           (object instanceof THREE.Mesh || object instanceof THREE.Line ||
             object instanceof THREE.Points || object instanceof THREE.Sprite)) supported = false;
-      if (object instanceof THREE.Mesh || object instanceof THREE.Line || object instanceof THREE.Points || object instanceof THREE.Sprite) {
-        const materials = Array.isArray(object.material) ? object.material : [object.material];
-        if (materials.some(material => !material.allowOverride)) supported = false;
-      }
     });
     const material = depth.renderPass?.overrideMaterial;
     if (!supported || !(material instanceof THREE.MeshDepthMaterial) ||
@@ -61,7 +54,11 @@ export function bindOutlineDepthCulling(effect: OutlineEffect): void {
       for (let parent: THREE.Object3D | null = object; parent; parent = parent.parent)
         if (!parent.visible) { shown = false; break; }
       if (!shown) continue;
-      if (!(object instanceof THREE.Mesh) || !object.frustumCulled) { supported = false; break; }
+      if (!(object instanceof THREE.Mesh) || !object.frustumCulled ||
+          object.onBeforeRender !== THREE.Object3D.prototype.onBeforeRender ||
+          object.onAfterRender !== THREE.Object3D.prototype.onAfterRender) { supported = false; break; }
+      const selectedMaterials = Array.isArray(object.material) ? object.material : [object.material];
+      if (selectedMaterials.some(material => !material.allowOverride)) { supported = false; break; }
       const bounded = object as THREE.Mesh & {boundingSphere?: THREE.Sphere | null; computeBoundingSphere?: () => void};
       if (bounded.boundingSphere !== undefined) {
         if (bounded.boundingSphere === null) bounded.computeBoundingSphere?.();
@@ -112,25 +109,58 @@ export function bindOutlineDepthCulling(effect: OutlineEffect): void {
       render(renderer, input, output, delta, stencil); return;
     }
     originalProjection.copy(camera.projectionMatrix);
-    originalInverse.copy(camera.projectionMatrixInverse);
+    originalView.copy(camera.matrixWorldInverse);
     crop.set(2 / (right - left), 0, 0, -(right + left) / (right - left),
       0, 2 / (top - bottom), 0, -(top + bottom) / (top - bottom),
       0, 0, 1, 0, 0, 0, 0, 1);
-    camera.projectionMatrix.premultiply(crop);
-    camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
+    clip.multiplyMatrices(crop, originalProjection).multiply(originalView);
+    frustum.setFromProjectionMatrix(clip, camera.coordinateSystem);
+    // These planes never become the renderer's camera. Object/material hooks
+    // execute normally before renderBufferDirect; custom/deforming draws are
+    // never rejected. The cache lives for only this pass and contains booleans.
+    const outside = new WeakMap<THREE.Object3D, boolean>();
     const originalDraw = renderer.renderBufferDirect;
-    let restored = false;
-    const restoreProjection = () => {
-      if (restored) return;
-      restored = true;
-      camera.projectionMatrix.copy(originalProjection);
-      camera.projectionMatrixInverse.copy(originalInverse);
-    };
-    renderer.renderBufferDirect = function (...args) {
-      restoreProjection();
-      return originalDraw.apply(this, args);
+    renderer.renderBufferDirect = function (drawCamera, drawScene, geometry, drawMaterial, object, group) {
+      if (drawCamera !== camera || drawScene !== scene ||
+          !camera.projectionMatrix.equals(originalProjection) || !camera.matrixWorldInverse.equals(originalView) ||
+          !(object instanceof THREE.Mesh) || object instanceof THREE.SkinnedMesh || !object.frustumCulled ||
+          Object.keys(geometry.morphAttributes).length ||
+          object.onBeforeRender !== (object instanceof THREE.BatchedMesh ? THREE.BatchedMesh.prototype.onBeforeRender : THREE.Object3D.prototype.onBeforeRender) ||
+          object.onAfterRender !== THREE.Object3D.prototype.onAfterRender ||
+          !(drawMaterial instanceof THREE.MeshDepthMaterial) || drawMaterial.displacementMap ||
+          drawMaterial.onBeforeRender !== THREE.Material.prototype.onBeforeRender ||
+          drawMaterial.onBeforeCompile !== THREE.Material.prototype.onBeforeCompile ||
+          drawMaterial.customProgramCacheKey !== THREE.Material.prototype.customProgramCacheKey)
+        return originalDraw.call(this, drawCamera, drawScene, geometry, drawMaterial, object, group);
+      let hidden = outside.get(object);
+      if (hidden === undefined) {
+        hidden = false;
+        const bounded = object as THREE.Mesh & {boundingSphere?: THREE.Sphere | null; computeBoundingSphere?: () => void};
+        if (bounded.boundingSphere === null) bounded.computeBoundingSphere?.();
+        if (bounded.boundingSphere === undefined && !geometry.boundingSphere) geometry.computeBoundingSphere();
+        const bound = bounded.boundingSphere === undefined ? geometry.boundingSphere : bounded.boundingSphere;
+        const e = object.matrixWorld.elements;
+        if (bound && Number.isFinite(bound.radius) && e[3] === 0 && e[7] === 0 && e[11] === 0 && e[15] === 1) {
+          worldCentre.copy(bound.center).applyMatrix4(object.matrixWorld);
+          // Support of the transformed local sphere along each plane normal:
+          // unlike max-column scale this remains conservative with shear.
+          for (const plane of frustum.planes) {
+            const n = plane.normal;
+            const radius = bound.radius * Math.hypot(
+              n.x * e[0]! + n.y * e[1]! + n.z * e[2]!,
+              n.x * e[4]! + n.y * e[5]! + n.z * e[6]!,
+              n.x * e[8]! + n.y * e[9]! + n.z * e[10]!);
+            const distance = plane.distanceToPoint(worldCentre);
+            const margin = 1e-6 * (Math.abs(n.x * worldCentre.x) + Math.abs(n.y * worldCentre.y) +
+              Math.abs(n.z * worldCentre.z) + Math.abs(plane.constant) + radius + 1);
+            if (distance + radius < -margin) { hidden = true; break; }
+          }
+        }
+        outside.set(object, hidden);
+      }
+      if (!hidden) return originalDraw.call(this, drawCamera, drawScene, geometry, drawMaterial, object, group);
     };
     try { render(renderer, input, output, delta, stencil); }
-    finally { restoreProjection(); renderer.renderBufferDirect = originalDraw; }
+    finally { renderer.renderBufferDirect = originalDraw; }
   };
 }

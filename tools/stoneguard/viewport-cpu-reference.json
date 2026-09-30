@@ -189,5 +189,6 @@
       "compressions": 18944110230,
       "freePages": 4322
     }
-  ]
+  ],
+  "hostAttribution": "Box-maintenance reported host quietening mainly from closing foreign Studio renderer77188 and RH2 renderer91553, not from this diagnostic session; compression/background load persisted despite zero additional swapouts."
 }
