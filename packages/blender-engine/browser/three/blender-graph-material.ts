@@ -69,7 +69,7 @@ export function paletteGraphs(sources: readonly THREE.MeshPhysicalMaterial[]): C
     // LOD must never occur inside a potentially divergent fragment branch.
     `void blenderGraph() { bp0_blenderGraph(); bp1_blenderGraph(); ${names.map(name =>
       `${name} = vBlenderPaletteIndex == 0 ? bp0_${name} : bp1_${name};`).join(' ')} }`].join('\n');
-  return {...graph, key: `blender-palette-v2:${graph.key}`, program,
+  return {...graph, key: `blender-palette-v3:${graph.key}`, program,
     declarations: `${graph.library}\n${program}`, images: [], ramps: [], uniforms: new Map()};
 }
 
@@ -459,9 +459,14 @@ ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).joi
       shader.fragmentShader = `uniform sampler2D bp0_${name}, bp1_${name};\n${shader.fragmentShader}`
         .replaceAll(`blenderImageSample(${name}, ${uv}, ${clip})`, `blenderPalette_${name}(${uv}, ${clip})`)
         .replace('void main() {', `vec4 blenderPalette_${name}(vec2 uv, bool clipImage) {
-          vec4 first = blenderImageSample(bp0_${name}, uv, clipImage);
-          vec4 second = blenderImageSample(bp1_${name}, uv, clipImage);
-          return vBlenderPaletteIndex == 0 ? first : second;
+          // Both derivatives precede the source choice. Explicit gradients
+          // retain the original implicit LOD without sampling both images.
+          vec2 dx = dFdx(uv), dy = dFdy(uv);
+          vec4 pixel;
+          if (vBlenderPaletteIndex == 0) pixel = textureGrad(bp0_${name}, uv, dx, dy);
+          else pixel = textureGrad(bp1_${name}, uv, dx, dy);
+          if (clipImage && (any(lessThan(uv, vec2(0.0))) || any(greaterThan(uv, vec2(1.0))))) pixel = vec4(0.0);
+          return pixel;
         }\nvoid main() {`);
     }
   }

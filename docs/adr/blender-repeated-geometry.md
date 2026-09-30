@@ -259,8 +259,13 @@ shape used by both sources has two distinct packed entries, so the selector
 cannot alias another placement's material. The selector counts toward the
 existing 4 MiB family and 32 MiB cache limits. Each renderer shares one compiled
 palette material across a family's runs; canonical geometry and materials keep
-their original ownership. The shader evaluates both graph programs and texture
-samples before selecting their outputs, retaining derivative behavior and the
-original normal math. Exact compatibility checks, asynchronous link gating,
+their original ownership. The shader evaluates both graph programs before
+selecting their outputs, retaining derivative behavior and the
+original normal math. Standard physical image sampling computes both UV
+derivatives before choosing the source, then uses explicit gradients to retain
+implicit LOD without fetching both images. The readiness guard observes the
+renderer-owned material properties map, which is replaced on context restore;
+ordinary pass-specific program selection does not restart compilation. Exact
+compatibility checks, asynchronous link gating,
 transparent ordering barriers and canonical fallback remain in place. This
 revision needs its own frame measurement before a speed claim.

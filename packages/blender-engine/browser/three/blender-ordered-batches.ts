@@ -9,7 +9,7 @@ const CACHE_BYTES = 32 * 1024 * 1024;
 const MAX_DRAWS = 1024;
 type Shape = {geometry: THREE.BufferGeometry; stamp: string; bytes: number; paletteIndex: number};
 export type OrderedPalette = {identity: THREE.Material; sources: readonly THREE.MeshPhysicalMaterial[]; compiled: CompiledGraph};
-type Compilation = {material: THREE.MeshPhysicalMaterial; ready: boolean; refused: boolean; pending: boolean; program: unknown};
+type Compilation = {material: THREE.MeshPhysicalMaterial; ready: boolean; refused: boolean; pending: boolean; properties: unknown};
 type Family = {material: THREE.Material; shapes: Map<string, Shape>; template: THREE.BatchedMesh | null;
   ids: Map<string, number>; draws: THREE.BatchedMesh[]; dirty: boolean; bytes: number; reservedBytes: number; refused: boolean;
   palette: OrderedPalette | undefined; compilations: Map<THREE.WebGLRenderer, Compilation>};
@@ -147,8 +147,11 @@ export class BlenderOrderedBatches {
       const {template, palette} = family;
       if (!template || !palette) continue;
       let compilation = family.compilations.get(renderer);
-      if (compilation?.ready && (renderer.properties.get(compilation.material) as {currentProgram?: unknown}).currentProgram !== compilation.program) {
-        compilation.ready = false; // Context restoration clears renderer properties.
+      // Rendering passes legitimately select different programs on this shared
+      // material. Context restoration replaces the material's properties map;
+      // program selection alone must not restart compilation every frame.
+      if (compilation?.ready && renderer.properties.get(compilation.material) !== compilation.properties) {
+        compilation.ready = false;
         this.generation++;
       }
       if (compilation?.ready || compilation?.pending || compilation?.refused) continue;
@@ -156,7 +159,7 @@ export class BlenderOrderedBatches {
       if (!compilation) {
         const material = physicalPaletteMaterial(palette.compiled, palette.sources, template.geometry);
         if (!material) continue;
-        compilation = {material, ready: false, refused: false, pending: false, program: null};
+        compilation = {material, ready: false, refused: false, pending: false, properties: null};
         family.compilations.set(renderer, compilation);
       }
       const held = compilation;
@@ -176,10 +179,11 @@ export class BlenderOrderedBatches {
         held.pending = false;
         // compileAsync signals completion, including a refused program. Check
         // the actual link result; never let a failed palette hide originals.
-        const program = (renderer.properties.get(held.material) as {currentProgram?: {program?: WebGLProgram}}).currentProgram;
+        const properties = renderer.properties.get(held.material);
+        const program = (properties as {currentProgram?: {program?: WebGLProgram}}).currentProgram;
         const gl = renderer.getContext();
         held.ready = resolved && !gl.isContextLost() && !!program?.program && gl.getProgramParameter(program.program, gl.LINK_STATUS) === true;
-        held.program = program;
+        held.properties = properties;
         held.refused = !held.ready && !gl.isContextLost();
         this.generation++;
         if (held.refused) console.warn('Blender ordered material palette did not link; canonical draws retained.');
