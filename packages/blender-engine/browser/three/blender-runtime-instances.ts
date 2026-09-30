@@ -1,5 +1,6 @@
 import * as THREE from 'three';
 import { graphDrawAttributes } from './blender-graph-material';
+import { materialDrawHooksSupported } from './blender-physical-material';
 
 // Small spatial batches retain frustum rejection without duplicating geometry.
 const BATCH_SIZE = 64;
@@ -10,6 +11,11 @@ function sameMaterials(a: THREE.Material | THREE.Material[], b: THREE.Material |
   return Array.isArray(a) && Array.isArray(b)
     ? a.length === b.length && a.every((material, i) => material === b[i])
     : a === b;
+}
+
+export function instanceObjectHooksSupported(object: THREE.Object3D): boolean {
+  return object.onBeforeRender === THREE.Object3D.prototype.onBeforeRender &&
+    object.onAfterRender === THREE.Object3D.prototype.onAfterRender;
 }
 
 export function instanceObjectShown(object: THREE.Object3D): boolean {
@@ -60,12 +66,13 @@ export class BlenderRuntimeInstances {
     for (const object of objects) {
       const mesh = object as THREE.Mesh;
       if (!mesh.isMesh) continue;
+      if (!instanceObjectHooksSupported(mesh)) { exclude('customHooks'); continue; }
       if ((mesh as THREE.SkinnedMesh).isSkinnedMesh ||
           (mesh as THREE.InstancedMesh).isInstancedMesh || mesh.morphTargetInfluences ||
           mesh.layers.mask !== 1) { exclude('deformationOrLayers'); continue; }
       const materials = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
       if (materials.some(m => m.transparent || (m as THREE.MeshPhysicalMaterial).transmission > 0 ||
-          (m as THREE.ShaderMaterial).isShaderMaterial)) { exclude('material'); continue; }
+          (m as THREE.ShaderMaterial).isShaderMaterial || !materialDrawHooksSupported(m))) { exclude('material'); continue; }
       // Four slots for instanceMatrix, at most twelve for each actual program.
       // Count active inputs, NOT every stored authored layer: retaining unused
       // UVs/colours must not disable batching. No channel is deleted to fit.
@@ -125,6 +132,8 @@ export class BlenderRuntimeInstances {
     if (!this.batches.length) return;
     this.inverse.copy(this.root.matrixWorld).invert();
     for (const {draw, members} of this.batches) {
+      const materials = Array.isArray(draw.material) ? draw.material : [draw.material];
+      const supportedHooks = materials.every(materialDrawHooksSupported);
       let count = 0;
       let changed = false;
       for (const member of members) {
@@ -133,6 +142,7 @@ export class BlenderRuntimeInstances {
         // A drag can introduce negative scale/shear, or a skin can replace a
         // mesh between frames. Fall back immediately without touching its data.
         const compatible = mesh.parent !== null && mesh.geometry === draw.geometry &&
+          supportedHooks && instanceObjectHooksSupported(mesh) &&
           sameMaterials(mesh.material, draw.material) && instanceMatrixSupported(this.matrix);
         if (!compatible) {
           mesh.layers.mask |= member.layers;

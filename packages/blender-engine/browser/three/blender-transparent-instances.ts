@@ -3,7 +3,8 @@ import {BlenderOrderedBatches, ORDERED_BATCH_CAPACITY} from './blender-ordered-b
 import {BlenderDrawMaterials} from './blender-draw-materials';
 import {presenterChanged} from './blender-presenter-change';
 import {graphDrawAttributes} from './blender-graph-material';
-import {instanceMatrixSupported, instanceObjectShown} from './blender-runtime-instances';
+import {materialDrawHooksSupported} from './blender-physical-material';
+import {instanceMatrixSupported, instanceObjectShown, instanceObjectHooksSupported} from './blender-runtime-instances';
 
 const CAPACITY = ORDERED_BATCH_CAPACITY;
 type Entry = {mesh: THREE.Mesh; material: THREE.Material | null; key: string | null; batchKey: string | null; groupOrder: number; z: number; centre: THREE.Vector3};
@@ -112,6 +113,7 @@ export class BlenderTransparentInstances {
       const candidate = materials.length === 1 ? materials[0]! : null;
       const order = groupOrder(mesh);
       if (candidate && candidate.visible && candidate.transparent &&
+          materialDrawHooksSupported(candidate) && instanceObjectHooksSupported(mesh) &&
           !(candidate as THREE.ShaderMaterial).isShaderMaterial &&
           !((candidate as THREE.MeshPhysicalMaterial).transmission > 0) &&
           (candidate.side !== THREE.DoubleSide || candidate.forceSinglePass) &&
@@ -291,6 +293,7 @@ export class BlenderTransparentInstances {
       this.observe(mesh.renderOrder);
       this.observe(groupOrder(mesh));
       this.observe(mesh.frustumCulled ? 1 : 0);
+      this.observe(instanceObjectHooksSupported(mesh) ? 1 : 0);
       this.observe(mesh.morphTargetInfluences ? 1 : 0);
       for (const n of mesh.matrixWorld.elements) this.observe(n);
       const geometry = mesh.geometry;
@@ -329,6 +332,7 @@ export class BlenderTransparentInstances {
   }
 
   private observeMaterial(material: THREE.Material): void {
+    this.observe(materialDrawHooksSupported(material) ? 1 : 0);
     this.observe(material.uuid); this.observe(material.version);
     this.observe(material.visible ? 1 : 0); this.observe(material.transparent ? 1 : 0);
     this.observe(material.side); this.observe(material.forceSinglePass ? 1 : 0);

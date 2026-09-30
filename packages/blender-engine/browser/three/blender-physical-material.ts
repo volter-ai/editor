@@ -28,6 +28,16 @@ const uniforms = new WeakMap<THREE.MeshPhysicalMaterial, {
   blenderMapClip: {value: boolean}; blenderRoughnessClip: {value: boolean}; blenderNormalClip: {value: boolean};
   blenderWorldExtinction: {value: THREE.Vector3};
 }>();
+const drawHooks = new WeakMap<THREE.Material, Pick<THREE.Material, 'onBeforeRender' | 'onBeforeCompile' | 'customProgramCacheKey'>>();
+
+/** Internal draws can preserve the engine's known hooks or Three's defaults.
+ * A later custom hook may depend on the original object/material identity. */
+export function materialDrawHooksSupported(material: THREE.Material): boolean {
+  const hooks = drawHooks.get(material) ?? THREE.Material.prototype;
+  return material.onBeforeRender === hooks.onBeforeRender &&
+    material.onBeforeCompile === hooks.onBeforeCompile &&
+    material.customProgramCacheKey === hooks.customProgramCacheKey;
+}
 
 export function applyWorldExtinction(material: THREE.MeshPhysicalMaterial, extinction: THREE.Vector3): void {
   if (!uniforms.has(material)) applyPhysicalMaterial(material);
@@ -59,7 +69,7 @@ function graphShadow(material: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMa
 /** Copy physical values into an independently cached draw form. Textures and
  * graph uniform values remain borrowed from the authoritative source material. */
 export function syncPhysicalDrawMaterial(source: THREE.Material, target?: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMaterial | null {
-  if (!(source instanceof THREE.MeshPhysicalMaterial) || !uniforms.has(source)) return null;
+  if (!(source instanceof THREE.MeshPhysicalMaterial) || !uniforms.has(source) || !materialDrawHooksSupported(source)) return null;
   const copy = target ?? graphShadow(source);
   if (!borrowGraphDrawBinding(source, copy)) {
     if (!target) copy.dispose();
@@ -180,6 +190,8 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
       // surface inputs it carries (`blender-graph-material.ts`).
       applyGraphShader(material, shader);
     };
+    drawHooks.set(material, {onBeforeRender: material.onBeforeRender,
+      onBeforeCompile: material.onBeforeCompile, customProgramCacheKey: material.customProgramCacheKey});
     material.needsUpdate = true;
   }
   values.blenderCoatIor.value = Math.max(1, data.coat_ior);
