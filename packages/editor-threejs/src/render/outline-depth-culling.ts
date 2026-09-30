@@ -15,6 +15,7 @@ export function bindOutlineDepthCulling(effect: OutlineEffect): void {
   const originalProjection = new THREE.Matrix4();
   const originalInverse = new THREE.Matrix4();
   const crop = new THREE.Matrix4();
+  const objectView = new THREE.Matrix4();
   const sphere = new THREE.Sphere();
   const viewCentre = new THREE.Vector3();
   const corner = new THREE.Vector4();
@@ -71,15 +72,18 @@ export function bindOutlineDepthCulling(effect: OutlineEffect): void {
         if (!object.geometry.boundingSphere) { supported = false; break; }
         sphere.copy(object.geometry.boundingSphere);
       }
-      // Three's usual max-axis sphere scale is insufficient under shear.
-      // The Frobenius norm bounds every scale direction, including shear and
-      // reflected/non-uniform transforms; a wider crop costs work, never pixels.
-      const e = object.matrixWorld.elements;
-      const scale = Math.hypot(e[0]!, e[1]!, e[2]!, e[4]!, e[5]!, e[6]!, e[8]!, e[9]!, e[10]!);
-      sphere.center.applyMatrix4(object.matrixWorld);
-      sphere.radius *= scale;
-      viewCentre.copy(sphere.center).applyMatrix4(camera.matrixWorldInverse);
-      // A box enclosing the world sphere is also conservative in camera axes.
+      // Bound scale in CAMERA space too: authored cameras may carry scale.
+      // Gershgorin's upper bound on the symmetric A^T A matrix bounds every
+      // direction, including shear; orthogonal placements keep a tight sphere.
+      objectView.multiplyMatrices(camera.matrixWorldInverse, object.matrixWorld);
+      const e = objectView.elements;
+      if (e[3] !== 0 || e[7] !== 0 || e[11] !== 0 || e[15] !== 1) { supported = false; break; }
+      const dot = (a: number, b: number) => e[a]! * e[b]! + e[a + 1]! * e[b + 1]! + e[a + 2]! * e[b + 2]!;
+      const xy = Math.abs(dot(0, 4)), xz = Math.abs(dot(0, 8)), yz = Math.abs(dot(4, 8));
+      const scale = Math.sqrt(Math.max(dot(0, 0) + xy + xz, dot(4, 4) + xy + yz, dot(8, 8) + xz + yz));
+      viewCentre.copy(sphere.center).applyMatrix4(objectView);
+      sphere.radius *= scale * (1 + 16 * Number.EPSILON);
+      // A box enclosing this sphere is conservative in camera axes.
       // Perspective division is bounded by its corners only wholly ahead of near.
       if (Number.isFinite(sphere.radius) && -viewCentre.z + sphere.radius < camera.near) continue;
       if (!Number.isFinite(sphere.radius) || -viewCentre.z - sphere.radius <= camera.near) {
