@@ -2,7 +2,7 @@
   "name": "@volter/editor-game",
   "author": "Volter AI, Inc.",
   "license": "AGPL-3.0-only",
-  "version": "0.5.145",
+  "version": "0.5.146",
   "publishConfig": {
     "access": "public"
   },
@@ -101,11 +101,11 @@
     "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
-    "@volter/editor-sdk": "0.5.145",
-    "@volter/editor-project": "0.5.145",
-    "@volter/editor-threejs": "0.5.145",
-    "@volter/threejs-runtime": "0.5.145",
-    "@volter/game-runtime": "0.5.145",
+    "@volter/editor-sdk": "0.5.146",
+    "@volter/editor-project": "0.5.146",
+    "@volter/editor-threejs": "0.5.146",
+    "@volter/threejs-runtime": "0.5.146",
+    "@volter/game-runtime": "0.5.146",
     "@colyseus/msgpackr": "^1.11.3",
     "@colyseus/schema": "^4.0.14",
     "@colyseus/sdk": "^0.17.34",
@@ -139,7 +139,7 @@
     "xstate": "^5.32.4",
     "zod": "^4.3.6",
     "@fortawesome/fontawesome-svg-core": "^7.2.0",
-    "@volter/editor-react": "0.5.145"
+    "@volter/editor-react": "0.5.146"
   },
   "peerDependencies": {
     "@sparkjsdev/spark": "^2.1.0",
