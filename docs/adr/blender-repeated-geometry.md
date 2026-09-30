@@ -285,3 +285,9 @@ geometries, rather than unmerged ranges within one mesh.
 ### Reopened-stage measurement ratio
 
 The initial stage rig forwards `frameCost`'s requested pixel ratio as well as its frame count and quality. After closing and reopening a document, this binding previously dropped the ratio, so a requested ratio of 1 measured the display's ratio of 2 instead. This is a measurement correction; default viewport resolution stays unchanged. The opaque distinct-shape experiment was retired: it overlapped the repeated-shape instancer's navigation fallbacks, and its small apparent gain had unequal triangle counts.
+
+### Actual native viewport reference (2026-09-30)
+
+The official Blender 5.2.0 LTS build fbe6228777e7, Metal, measured a median 184.04 ms for one actual viewport redraw of Bridge frame 1 at 1197×827 physical pixels and the browser camera. The maximum view/projection matrix errors were 1.746e-7/2.384e-7. A POST_PIXEL callback read one pixel from the active framebuffer to wait for this viewport, giving median 47.60 ms before the callback and 129.46 ms for completion. Seven frames were retained after five warm frames. Native preview samples remained at their default 16. This is native EEVEE with full geometry and forest HDR; browser navigation uses temporary LOD and different shaders. It is a reference, not a hard floor for Three or proof that 33 ms is impossible. GPUOffScreen.draw_view3d runs the image-render path and is not a substitute for this measurement.
+
+The bounded standalone probe is tools/stoneguard/native-viewport-profile.py; supply the diagnostics directory after --. It reads ceiling-camera.json, starts in a fresh Blender window with the scene file already loaded, adjusts only its own layout, asserts dimensions and matrices, records timings, removes its draw callback, and quits its own app through Blender's door. Compact evidence is native-viewport-reference.json. No scene bytes are saved.
