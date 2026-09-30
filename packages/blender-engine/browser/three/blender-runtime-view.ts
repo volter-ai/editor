@@ -645,7 +645,7 @@ export class BlenderRuntimeView {
   readonly root = new THREE.Group();
   private readonly instances = new BlenderRuntimeInstances(this.root);
   private readonly transparentInstances = new BlenderTransparentInstances(this.root);
-  private readonly motionGeometry = new BlenderMotionGeometry(this.root, presenterChanged);
+  private readonly motionGeometry = new BlenderMotionGeometry(presenterChanged);
   private drawBatching = true;
   private readonly objects = new Map<string, THREE.Object3D>();
   private readonly meshes = new Map<
@@ -1249,9 +1249,14 @@ export class BlenderRuntimeView {
     try {
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
-      this.transparentInstances.prepare(camera);
-      this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
+      const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
         options?.interactive === true, options?.height ?? 0);
+      // A changed navigation geometry is an ordinary-draw fallback for an
+      // opaque batch; its full-detail members remain instanced. Transparent
+      // runs are planned AFTER per-placement geometry selection, preserving
+      // their sorting barriers and compatible geometry grouping.
+      if (motion) this.instances.sync();
+      this.transparentInstances.prepare(camera);
     } catch (error) {
       this.motionGeometry.finish();
       this.instances.finishDraw();

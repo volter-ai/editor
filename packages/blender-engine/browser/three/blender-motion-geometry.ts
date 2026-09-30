@@ -33,8 +33,9 @@ export class BlenderMotionGeometry {
   private drawnMeshes = 0;
   private fullTriangles = 0;
   private motionTriangles = 0;
+  private lastNavigation = {meshes: 0, fullTriangles: 0, motionTriangles: 0, tooClose: 0};
 
-  constructor(private readonly root: THREE.Group, private readonly invalidate: () => void) {}
+  constructor(private readonly invalidate: () => void) {}
 
   setObjects(objects: Iterable<THREE.Object3D>): void {
     const groups = new Map<THREE.BufferGeometry, THREE.Mesh[]>();
@@ -168,10 +169,10 @@ export class BlenderMotionGeometry {
     this.timer = setTimeout(() => { this.timer = null; this.next(); }, 0);
   }
 
-  prepare(camera: THREE.Camera, interactive: boolean, height: number): void {
+  prepare(camera: THREE.Camera, interactive: boolean, height: number): boolean {
     this.finish();
     this.drawnMeshes = this.fullTriangles = this.motionTriangles = 0;
-    if (!interactive || !(height > 0)) return;
+    if (!interactive || !(height > 0)) return false;
     const now = performance.now();
     const moved = this.cameraKnown && (!camera.matrixWorld.equals(this.cameraWorld) ||
       !camera.projectionMatrix.equals(this.cameraProjection));
@@ -184,12 +185,11 @@ export class BlenderMotionGeometry {
       if (this.quietTimer) clearTimeout(this.quietTimer);
       this.quietTimer = setTimeout(() => { this.quietTimer = null; this.invalidate(); }, QUIET_MS + 1);
     }
-    if (now - this.movedAt > QUIET_MS) return;
+    if (now - this.movedAt > QUIET_MS) return false;
     this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
     this.frustum.setFromProjectionMatrix(this.projection);
-    const allowed = new Map<THREE.BufferGeometry, THREE.BufferGeometry>();
+    let tooClose = 0;
     for (const [source, entry] of this.cache) {
-      let fits = true;
       for (const mesh of this.groups.get(source) ?? []) {
         if (!instanceObjectShown(mesh) || (mesh.frustumCulled && !this.frustum.intersectsObject(mesh))) continue;
         // Frobenius norm bounds the linear transform even under shear; the
@@ -201,30 +201,21 @@ export class BlenderMotionGeometry {
         const depth = (camera as THREE.PerspectiveCamera).isPerspectiveCamera
           ? -this.centre.z - sphere.radius * scale : 1;
         const pixels = entry.error * scale * Math.abs(camera.projectionMatrix.elements[5]!) * height / (2 * depth);
-        if (!(depth > 0) || pixels > 1) { fits = false; break; }
+        if (!(depth > 0) || pixels > 1) { tooClose++; continue; }
+        // Decide per placement: one near-camera blade must not veto thousands
+        // of distant placements of its shared geometry. The following draw
+        // planner sees these geometry identities, so transparency still batches
+        // only consecutive compatible surfaces in the original camera order.
+        this.swapped.push({mesh, geometry: source});
+        mesh.geometry = entry.geometry;
+        this.drawnMeshes++;
+        this.fullTriangles += source.index!.count / 3;
+        this.motionTriangles += entry.geometry.index!.count / 3;
       }
-      if (fits) allowed.set(source, entry.geometry);
     }
-    // After instancing/culling chose its exact members: both ordinary and
-    // internal draws select the same temporary geometry for this camera.
-    this.root.traverse(object => {
-      const mesh = object as THREE.Mesh;
-      if (!mesh.isMesh || (mesh as THREE.SkinnedMesh).isSkinnedMesh || mesh.morphTargetInfluences ||
-          ((mesh as THREE.InstancedMesh).isInstancedMesh && mesh.userData['engineInternal'] !== true)) return;
-      if (Array.isArray(mesh.material) && (mesh.material.length !== 1 || mesh.geometry.groups.length !== 1 ||
-          mesh.geometry.groups[0]!.start !== 0 || mesh.geometry.groups[0]!.count !== mesh.geometry.index?.count ||
-          mesh.geometry.groups[0]!.materialIndex !== 0)) return;
-      const copy = allowed.get(mesh.geometry);
-      if (!copy) return;
-      this.swapped.push({mesh, geometry: mesh.geometry});
-      if (mesh.visible && mesh.layers.isEnabled(0)) {
-        const count = (mesh as THREE.InstancedMesh).isInstancedMesh ? (mesh as THREE.InstancedMesh).count : 1;
-        this.drawnMeshes += count;
-        this.fullTriangles += mesh.geometry.index!.count / 3 * count;
-        this.motionTriangles += copy.index!.count / 3 * count;
-      }
-      mesh.geometry = copy;
-    });
+    this.lastNavigation = {meshes: this.drawnMeshes, fullTriangles: this.fullTriangles,
+      motionTriangles: this.motionTriangles, tooClose};
+    return this.swapped.length > 0;
   }
 
   private quietTimer: ReturnType<typeof setTimeout> | null = null;
@@ -234,7 +225,7 @@ export class BlenderMotionGeometry {
   }
   inspect() {
     return {copies: this.cache.size, bytes: this.bytes, queued: this.queue.length, pending: this.pending !== null,
-      unavailable: this.unavailable, lastDraw: {meshes: this.drawnMeshes, fullTriangles: this.fullTriangles, motionTriangles: this.motionTriangles}};
+      unavailable: this.unavailable, lastNavigation: {...this.lastNavigation}};
   }
   private releaseCopies(): void {
     this.finish();

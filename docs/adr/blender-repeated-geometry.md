@@ -107,10 +107,10 @@ unsuccessful reductions and a failed worker use their complete originals.
 There is no main-thread simplification fallback or persistent derived cache.
 
 Only an interactive moving camera permits these copies, with a conservative
-projected-error check against all visible placements of each shared shape.
+projected-error check per visible placement of each shared shape.
 Culling bounds, transparent sorting anchors, materials and instance ordering
-remain the originals'. The renderer's synchronous draw swaps geometry after
-the ordinary instancing plan is prepared and restores it in `finally`. A quiet
+remain the originals'. The renderer's synchronous draw selects geometry before
+planning transparent instance runs and restores it in `finally`. A quiet
 camera schedules a full-detail redraw after 150 ms. Edit/sculpt/pose and inspection
 draw modes, captures, rendered shading,
 editing/picking outside the draw, native evaluation and saved data retain full
@@ -120,6 +120,14 @@ The existing frame-cost door defaults to `quality:"full"`. An explicit
 `quality:"navigation"` measures small camera turns through this same navigation
 path and reports that label; it restores the original camera even on failure.
 Neither reading is substituted for the other. `blender-status` reports copy
-count/bytes, pending work, refusals and the last draw's full/reduced triangle
-counts. A new runtime diagnosis and independent navigation/appearance review
+count/bytes, pending work, refusals and the last navigation plan's full/reduced
+triangle counts (the renderer's actual counters remain in frame cost). A new runtime diagnosis and independent navigation/appearance review
 are required; implementation alone is not a speed or appearance claim.
+
+The first 4c48ac57 navigation diagnosis was negative: 149.55 ms versus 133.86 ms
+full detail, with 221.89M versus 225.34M drawn triangles. Eight copies occupied
+2.9 MB and completed without a worker refusal. Its whole-shape projected-error
+gate let one near placement reject every distant copy of the same plant. The
+selection is now per placement, before transparent run planning. Opaque members
+whose geometry changes use the existing ordinary-draw fallback; full-detail
+members remain instanced. This correction needs its own measurement.
