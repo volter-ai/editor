@@ -46,7 +46,7 @@ export class BlenderMotionGeometry {
       const position = g.getAttribute('position');
       if (!g.index || g.index.count < 6144 || !position || position.count > 200_000 ||
           Object.values(g.attributes).some(a => !(a instanceof THREE.BufferAttribute) ||
-            (a as THREE.Float16BufferAttribute).isFloat16BufferAttribute ||
+            (a as THREE.BufferAttribute & {isFloat16BufferAttribute?: boolean}).isFloat16BufferAttribute ||
             (a as THREE.InstancedBufferAttribute).isInstancedBufferAttribute) ||
           Object.keys(g.morphAttributes).length || g.drawRange.start !== 0 || g.drawRange.count < g.index.count) continue;
       // Only a whole, single material surface. Material boundaries are never
