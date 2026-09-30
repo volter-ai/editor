@@ -20,8 +20,6 @@ export class BlenderOrderedBatches {
   private created = 0;
   pending = false;
 
-  constructor(private readonly cacheBytes = CACHE_BYTES, private readonly maxDraws = MAX_DRAWS) {}
-
   begin(): void { this.created = 0; this.pending = false; this.registrations.clear(); }
 
   register(geometry: THREE.BufferGeometry, material: THREE.Material, order: number): string | null {
@@ -84,7 +82,7 @@ export class BlenderOrderedBatches {
         for (const attribute of Object.values(geometry.attributes)) bytes += attribute.array.byteLength;
       }
       bytes += indices * (vertices > 65535 ? 4 : 2);
-      family.refused = bytes > FAMILY_BYTES || this.bytes + bytes > this.cacheBytes;
+      family.refused = bytes > FAMILY_BYTES || this.bytes + bytes > CACHE_BYTES;
       if (family.refused) continue;
       const template = new THREE.BatchedMesh(ORDERED_BATCH_CAPACITY, vertices, indices, family.material);
       template.sortObjects = false;
@@ -115,7 +113,7 @@ export class BlenderOrderedBatches {
     if (!template) return null;
     let draw = family.draws[index];
     if (!draw) {
-      if (this.drawCount >= this.maxDraws) return null;
+      if (this.drawCount >= MAX_DRAWS) return null;
       // copy() uses public Three APIs and briefly copies the packed arrays.
       // Bound that transient work per frame; ordinary meshes fill every gap.
       if (this.created >= 4) { this.pending = true; return null; }
