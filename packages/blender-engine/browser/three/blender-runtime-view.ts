@@ -1253,7 +1253,7 @@ export class BlenderRuntimeView {
 
   /** Before the renderer uploads attributes/builds its queues, for this area's
    * actual camera. Transparent instance runs are camera-order dependent. */
-  prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}): () => void {
+  prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean}): () => void {
     try {
       const start = performance.now();
       this.instances.prepareDraw(camera);
@@ -1269,7 +1269,7 @@ export class BlenderRuntimeView {
       const motionDone = performance.now();
       this.materialRanges.prepare();
       const rangesDone = performance.now();
-      this.transparentInstances.prepare(camera, options?.multiDraw === true, options?.renderer);
+      this.transparentInstances.prepare(camera, options?.multiDraw === true);
       const timing = {opaqueMs: opaqueDone - start, motionMs: motionDone - opaqueDone,
         rangesMs: rangesDone - motionDone, transparentMs: performance.now() - rangesDone};
       this.drawPreparation.last = timing;

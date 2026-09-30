@@ -244,31 +244,27 @@ Transparent plan comparison also skips opaque geometry after checking each
 mesh's current materials, preserving detection of transparency transitions
 without scanning unrelated attribute versions.
 
-## Compatible material palettes
+## Material palette experiment removed
 
-The first two-material palette reduced Bridge navigation calls to about 6,400,
-but its settled median was about 86 ms: the 33 ms target remains unmet. A bounded
-submission profile attributed about 220 ms over eight observed frames to the
-grass palette. Each of its roughly 650 ordered runs owned a distinct physical
-material and selector uniform array, forcing physical and graph uniform refreshes
-even when the compiled program was shared. These are diagnostic measurements,
-not an independent acceptance result.
+The compatible two-material palette reduced navigation calls from 8,211 to
+6,383, but added GPU work. After warming each alternative in nine separate
+40-frame commands at 1197×827 and ratio 1, ordinary materials measured 82.76 ms
+median (67.22 ms submission, 16.38 ms completion wait); the palette measured
+87.19 ms (55.90 ms submission, 28.00 ms completion wait). Both alternatives
+retained the original scene and transparency ordering. The shader's two graph
+evaluations outweighed its submission savings, even with one compiled material
+per renderer, packed selectors and explicit physical texture gradients.
 
-Packed shapes now carry an immutable one-byte source selector per vertex. A
-shape used by both sources has two distinct packed entries, so the selector
-cannot alias another placement's material. The selector counts toward the
-existing 4 MiB family and 32 MiB cache limits. Each renderer shares one compiled
-palette material across a family's runs; canonical geometry and materials keep
-their original ownership. The shader evaluates both graph programs before
-selecting their outputs, retaining derivative behavior and the
-original normal math. Standard physical image sampling computes both UV
-derivatives before choosing the source, then uses explicit gradients to retain
-implicit LOD without fetching both images. The readiness guard observes the
-renderer-owned material properties map, which is replaced on context restore;
-ordinary pass-specific program selection does not restart compilation. Exact
-compatibility checks, asynchronous link gating,
-transparent ordering barriers and canonical fallback remain in place. This
-revision needs its own frame measurement before a speed claim.
+The palette implementation and its renderer plumbing have been removed.
+Ordered batches again use each source's original material and shader. Native
+loading, canonical geometry, fine navigation geometry and the fixed-resolution
+measurement door remain. These measurements explain the removal; they do not
+meet the 33 ms navigation target or replace independent review.
+
+A separate, temporary ordinary-material geometry-sharing probe also produced
+no total improvement: 78.23 versus 77.83 ms with identical 8,211 calls and
+66,433,585 drawn triangles after the same warming. That probe was restored and
+is not included in the source.
 
 A hosted reattachment changed the stage from 1197×827 at ratio 1 to 2394×1654
 at ratio 2. Those timings cannot establish a change against the earlier baseline.
