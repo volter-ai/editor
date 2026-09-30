@@ -556,17 +556,33 @@ function BlenderViewportArea({
     if (!documentId || !main) return;
     const { transport } = editorHost();
     let detach: (() => void) | null = null;
+    let cancelled = false;
+    let queued = false;
     const attach = (): void => {
-      if (detach) return;
+      if (cancelled || detach) return;
       const handle = transport.for(documentId);
       if (!handle) return;
       detach = blenderSkin.attachTo(handle);
     };
-    attach();
-    const stop = transport.subscribe(attach);
+    // attachTo restores the loaded clip's bookmark through transport.seek.
+    // That publishes the skin/transport snapshots consumed by the Timeline's
+    // separate React root. Keep those updates outside this root's passive
+    // effect stack, including a registry notification during another effect.
+    const requestAttach = (): void => {
+      if (cancelled || queued) return;
+      queued = true;
+      queueMicrotask(() => { queued = false; attach(); });
+    };
+    requestAttach();
+    const stop = transport.subscribe(requestAttach);
     return () => {
+      cancelled = true;
       stop();
-      detach?.();
+      // Detaching the subject also publishes the transport snapshot. A
+      // superseded effect releases its own handle before the next attachment.
+      const release = detach;
+      detach = null;
+      if (release) queueMicrotask(release);
     };
   }, [documentId, main]);
   /**

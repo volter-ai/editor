@@ -579,11 +579,16 @@ export class BlenderSkinDirector {
     const stopSettled = transport.onSettled(() => {
       void this.writeBookmark();
     });
+    let released = false;
     const detach = () => {
+      if (released) return;
+      released = true;
       stopSettled();
       detachSubject();
-      if (this.#transport === transport) this.#transport = null;
-      this.#detach = null;
+      if (this.#detach === detach) {
+        if (this.#transport === transport) this.#transport = null;
+        this.#detach = null;
+      }
     };
     this.#detach = detach;
     // The bookmark READ, if the clip is already loaded when we attach.
