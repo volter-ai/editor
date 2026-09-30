@@ -207,25 +207,6 @@ function channelsFor(compiled: CompiledGraph, geometry: THREE.BufferGeometry): R
   return channels;
 }
 
-/** Compare the actual named-layer inputs without allocating and serializing
- * two channel maps on every draw. Missing layers still get their zero buffer,
- * including when this geometry first shares an already-bound material. */
-function channelsMatch(compiled: CompiledGraph, channels: Record<string, number>, geometry: THREE.BufferGeometry): boolean {
-  const named = geometry.userData['blenderUvChannels'] as Record<string, number> | undefined;
-  const count = geometry.getAttribute('position')?.count ?? 0;
-  let same = Object.keys(channels).length === compiled.uvs.length;
-  for (const name of compiled.uvs) {
-    let channel = name === '' ? 0 : named?.[name];
-    if (channel === undefined) {
-      channel = 9;
-      if (geometry.getAttribute('uv9')?.count !== count)
-        geometry.setAttribute('uv9', new THREE.BufferAttribute(new Float32Array(count * 2), 2));
-    }
-    if (channels[name] !== channel) same = false;
-  }
-  return same;
-}
-
 /** Per draw: a pending program started compiling (see `Pending`), a compiled
  *  one swapped in, a refused one dropped, and the channel of each named layer
  *  on this geometry. `shadowOf` makes the proxy a program compiles through:
@@ -280,8 +261,9 @@ export function bindGraphDraw(material: THREE.MeshPhysicalMaterial, geometry: TH
       `so it is drawn with its constant values. ${first}`);
     return;
   }
-  if (!channelsMatch(binding.compiled, binding.channels, geometry)) {
-    binding.channels = channelsFor(binding.compiled, geometry);
+  const channels = channelsFor(binding.compiled, geometry);
+  if (JSON.stringify(channels) !== JSON.stringify(binding.channels)) {
+    binding.channels = channels;
     material.needsUpdate = true;
   }
 }

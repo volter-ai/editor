@@ -16,36 +16,6 @@ function groupOrder(mesh: THREE.Object3D): number {
   return 0;
 }
 
-/** A batch's public boundingSphere is its transparency sorting anchor, not
- * its contents. Publish a separate lazy WORLD bound for depth-only rejection.
- * Read the actual Float32 instance matrices that the draw uploads. */
-function bindDepthOccluderBounds(draw: Draw): void {
-  const union = new THREE.Sphere();
-  const sphere = new THREE.Sphere();
-  const local = new THREE.Matrix4();
-  const world = new THREE.Matrix4();
-  draw.mesh.userData['depthOccluderWorldSphere'] = (): THREE.Sphere | null => {
-    union.makeEmpty();
-    for (let i = 0; i < draw.members.length; i++) {
-      const geometry = draw.members[i]!.geometry;
-      if (!geometry.boundingSphere) geometry.computeBoundingSphere();
-      if (!geometry.boundingSphere) return null;
-      draw.mesh.getMatrixAt(i, local);
-      world.multiplyMatrices(draw.mesh.matrixWorld, local);
-      const e = world.elements;
-      if (e[3] !== 0 || e[7] !== 0 || e[11] !== 0 || e[15] !== 1) return null;
-      sphere.copy(geometry.boundingSphere);
-      sphere.center.applyMatrix4(world);
-      const dot = (a: number, b: number) => e[a]! * e[b]! + e[a + 1]! * e[b + 1]! + e[a + 2]! * e[b + 2]!;
-      const xy = Math.abs(dot(0, 4)), xz = Math.abs(dot(0, 8)), yz = Math.abs(dot(4, 8));
-      sphere.radius *= Math.sqrt(Math.max(dot(0, 0) + xy + xz, dot(4, 4) + xy + yz, dot(8, 8) + xz + yz)) * (1 + 16 * Number.EPSILON);
-      if (!Number.isFinite(sphere.radius + sphere.center.x + sphere.center.y + sphere.center.z) || sphere.radius < 0) return null;
-      union.union(sphere);
-    }
-    return union.isEmpty() ? null : union;
-  };
-}
-
 /** Preserve Three's transparent object order. An instance run may contain only
  * consecutive, compatible, single-pass surfaces in that order. Incompatible
  * surfaces remain barriers; ties at a run boundary stay ordinary draws because
@@ -61,7 +31,6 @@ export class BlenderTransparentInstances {
   private readonly hidden: THREE.Mesh[] = [];
   private readonly inverse = new THREE.Matrix4();
   private readonly matrix = new THREE.Matrix4();
-  private readonly uploadedMatrix = new THREE.Matrix4();
   private readonly projection = new THREE.Matrix4();
   private readonly frustum = new THREE.Frustum();
   private readonly centre = new THREE.Vector3();
@@ -217,7 +186,6 @@ export class BlenderTransparentInstances {
             draw = this.mixedDraws.get(mesh);
             if (!draw) {
               draw = {mesh, members: []};
-              bindDepthOccluderBounds(draw);
               this.mixedDraws.set(mesh, draw);
               const held = draw;
               mesh.raycast = (raycaster, hits) => {
@@ -241,7 +209,6 @@ export class BlenderTransparentInstances {
             mesh.boundingSphere = new THREE.Sphere();
             mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
             draw = {mesh, members: []};
-            bindDepthOccluderBounds(draw);
             const held = draw;
             mesh.raycast = (raycaster, hits) => {
               if (!mesh.visible) return;
@@ -256,19 +223,10 @@ export class BlenderTransparentInstances {
           draw.mesh.renderOrder = head.mesh.renderOrder;
           draw.mesh.boundingSphere!.center.copy(head.centre).applyMatrix4(this.inverse);
           draw.mesh.updateMatrixWorld(true);
-          let matricesChanged = false;
           for (let i = 0; i < length; i++) {
             const member = entries[offset + i]!.mesh;
             this.matrix.multiplyMatrices(this.inverse, member.matrixWorld);
-            // Camera-only replanning often retains the same slots. Compare
-            // the exact Float32 values before dirtying a buffer/texture again.
-            draw.mesh.getMatrixAt(i, this.uploadedMatrix);
-            let changed = false;
-            for (let j = 0; j < 16; j++) if (Math.fround(this.matrix.elements[j]!) !== this.uploadedMatrix.elements[j]) { changed = true; break; }
-            if (changed) {
-              draw.mesh.setMatrixAt(i, this.matrix);
-              matricesChanged = true;
-            }
+            draw.mesh.setMatrixAt(i, this.matrix);
             if (draw.mesh instanceof THREE.BatchedMesh) {
               const geometryId = this.ordered.geometryId(first.key, member.geometry);
               if (draw.mesh.getGeometryIdAt(i) !== geometryId) {
@@ -288,7 +246,7 @@ export class BlenderTransparentInstances {
             for (let i = length; i < CAPACITY; i++) draw.mesh.setVisibleAt(i, false);
           } else {
             draw.mesh.count = length;
-            if (matricesChanged) draw.mesh.instanceMatrix.needsUpdate = true;
+            draw.mesh.instanceMatrix.needsUpdate = true;
           }
           this.planned.push(draw);
           this.batches++;
@@ -330,7 +288,6 @@ export class BlenderTransparentInstances {
     for (const n of this.projection.elements) this.observe(n);
     for (const n of this.root.matrixWorld.elements) this.observe(n);
     const observedGeometry = new Set<THREE.BufferGeometry>();
-    const observedMaterials = new Set<THREE.Material>();
     for (const mesh of this.objects) {
       // Check eligibility every frame, including opaque -> transparent
       // transitions, but opaque geometry/attribute versions cannot affect a
@@ -373,23 +330,17 @@ export class BlenderTransparentInstances {
       this.observe(sphere?.center.z ?? 0); this.observe(sphere?.radius ?? -1);
       const materials = Array.isArray(mesh.material) ? mesh.material : null;
       this.observe(materials?.length ?? -1);
-      if (materials) for (const material of materials) this.observeMaterial(material, observedMaterials);
-      else this.observeMaterial(mesh.material as THREE.Material, observedMaterials);
+      if (materials) for (const material of materials) this.observeMaterial(material);
+      else this.observeMaterial(mesh.material as THREE.Material);
     }
     this.stateChanged ||= this.planState.length !== this.stateIndex;
     this.planState.length = this.stateIndex;
     return this.stateChanged;
   }
 
-  private observeMaterial(material: THREE.Material, observed: Set<THREE.Material>): void {
-    // Every slot still observes its identity. Shared state needs one exact
-    // census per material, rather than thousands of identical hook/value
-    // comparisons for repeated foliage using the same material.
-    this.observe(material.uuid);
-    if (observed.has(material)) return;
-    observed.add(material);
+  private observeMaterial(material: THREE.Material): void {
     this.observe(materialDrawHooksSupported(material) ? 1 : 0);
-    this.observe(material.version);
+    this.observe(material.uuid); this.observe(material.version);
     this.observe(material.visible ? 1 : 0); this.observe(material.transparent ? 1 : 0);
     this.observe(material.side); this.observe(material.forceSinglePass ? 1 : 0);
     this.observe((material as THREE.MeshPhysicalMaterial).transmission ?? 0);

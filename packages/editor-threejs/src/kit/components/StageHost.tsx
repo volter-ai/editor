@@ -24,7 +24,6 @@ import {
   useSyncExternalStore,
 } from 'react';
 import * as THREE from 'three';
-import { DocumentScene } from '../../render/document-scene';
 import { registerStageTransport, StageTransport } from '@volter/editor-sdk/kit/animation/stage-transport';
 import { scanClipSubjects } from '../animation/three-clips-subject';
 import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
@@ -411,7 +410,7 @@ interface DocumentContentBinding {
 
 /** Persistent editor state. Source revisions own only their content binding. */
 class Object3DDocumentHost {
-  readonly scene = new DocumentScene();
+  readonly scene = new THREE.Scene();
   /** This document's store, optionally supplied by its owner. */
   readonly store: EditorShellStore;
   readonly cleanups: Array<() => void> = [];
@@ -1022,7 +1021,7 @@ export function Object3DDocumentViewport({
       const studioStage = studioStageRef.current;
       const hasShell = hasShellRef.current;
       const assetSubject = assetSubjectRef.current;
-      const scene = new DocumentScene();
+      const scene = new THREE.Scene();
       // The image-based light's strength is the view presentation's (its studio preset's), set
       // on the rendered scene before every draw (`syncHostScene`). The content scene keeps
       // three's default, so a document that authors its own strength still states it here.

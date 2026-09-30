@@ -1,5 +1,7 @@
 # Repeated Blender geometry in the viewport
 
+Historical research. The final kept/removed decisions are in [stoneguard-performance-retirement.md](stoneguard-performance-retirement.md). Removed implementations and runnable profiling probes survive only on the pushed perf archive branch; statements below about a candidate describe its historical state. Frame-time optimization stopped by owner order2026-09-30.
+
 Stoneguard t_65c85042 c19. The independent 0e6b1bee review completed Bridge
 loading, but measured 14,967 draws and 225,338,458 triangles per preview frame,
 with median 332.38 ms at 1197×827. The scene contains 11,720 mesh objects over

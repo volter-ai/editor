@@ -11,7 +11,6 @@ import {
 } from '@volter/editor-threejs/render/viewport-shading';
 import type { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import * as THREE from 'three';
-import { DepthDrawMaterials } from '../../render/depth-draw-materials';
 import { threeObject } from '../../adapter/three-contract';
 import { axisViewName, cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
 import { activeKeymapNavigation } from '@volter/editor-sdk/kit/keymap-presets';
@@ -119,7 +118,6 @@ const TOPOLOGY_WIRE_COLOR = 0x11161d;
 export class Object3DDocumentSession {
   readonly profiler = createPerformanceProfiler();
   private readonly shading = new ViewportShadingRenderer();
-  private readonly depthDrawMaterials = new DepthDrawMaterials();
   private readonly helpers: THREE.Object3D[] = [];
   private skeletonHelper: THREE.SkeletonHelper | null = null;
   private boundsHelper: THREE.BoxHelper | null = null;
@@ -1342,7 +1340,6 @@ export class Object3DDocumentSession {
 
   render(renderSolid: (camera: THREE.Camera) => void, interactive = false): void {
     const finishDraw = this.beforeRender?.(interactive);
-    const restoreDepthDraw = this.depthDrawMaterials.bind(this.renderer);
     try {
       this.boneSelectionHighlight?.update();
       const camera = this.camera();
@@ -1389,7 +1386,6 @@ export class Object3DDocumentSession {
       }
       this.shading.render(this.scene, mode, () => renderSolid(camera), isEditorViewportShadingTarget);
     } finally {
-      restoreDepthDraw();
       finishDraw?.();
     }
   }
@@ -1580,7 +1576,6 @@ export class Object3DDocumentSession {
     this.selectionOutlinePass = null;
     this.composer = null;
     this.shading.dispose();
-    this.depthDrawMaterials.dispose();
     this.listeners.clear();
   }
 

@@ -1246,19 +1246,12 @@ export class BlenderRuntimeView {
     presenterChanged();
   }
 
-  private drawPreparation: {
-    last: {opaqueMs: number; motionMs: number; rangesMs: number; transparentMs: number} | null;
-    navigation: {opaqueMs: number; motionMs: number; rangesMs: number; transparentMs: number} | null;
-  } = {last: null, navigation: null};
-
   /** Before the renderer uploads attributes/builds its queues, for this area's
    * actual camera. Transparent instance runs are camera-order dependent. */
   prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean}): () => void {
     try {
-      const start = performance.now();
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
-      const opaqueDone = performance.now();
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
         options?.interactive === true, options?.height ?? 0);
       // A changed navigation geometry is an ordinary-draw fallback for an
@@ -1266,14 +1259,8 @@ export class BlenderRuntimeView {
       // runs are planned AFTER per-placement geometry selection, preserving
       // their sorting barriers and compatible geometry grouping.
       if (motion) this.instances.sync();
-      const motionDone = performance.now();
       this.materialRanges.prepare();
-      const rangesDone = performance.now();
       this.transparentInstances.prepare(camera, options?.multiDraw === true);
-      const timing = {opaqueMs: opaqueDone - start, motionMs: motionDone - opaqueDone,
-        rangesMs: rangesDone - motionDone, transparentMs: performance.now() - rangesDone};
-      this.drawPreparation.last = timing;
-      if (motion) this.drawPreparation.navigation = timing;
     } catch (error) {
       this.materialRanges.finish();
       this.motionGeometry.finish();
@@ -2094,7 +2081,7 @@ export class BlenderRuntimeView {
   }
 
   drawStatistics() {
-    return {enabled: this.drawBatching, preparation: {...this.drawPreparation}, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
+    return {enabled: this.drawBatching, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
   }
 
   snapshot() {
