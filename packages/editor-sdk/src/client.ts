@@ -553,8 +553,10 @@ export class EditorClient {
     return this.command<DocumentLookOutcome>({ type: 'document-orbit', ...options });
   }
 
-  /** What a frame of a 3D document's stage costs, uncapped (`document-frame-cost`). */
-  async frameCostDocument(options?: { readonly frames?: number; readonly stage?: string; readonly quality?: 'full' | 'navigation' }): Promise<StageFrameCostReading> {
+  /** What a frame of a 3D document's stage costs, uncapped (`document-frame-cost`).
+   * Optional pixelRatio (0.25..2) fixes measurement resolution across displays;
+   * the reading reports it and the viewport's original ratio is restored. */
+  async frameCostDocument(options?: { readonly frames?: number; readonly stage?: string; readonly quality?: 'full' | 'navigation'; readonly pixelRatio?: number }): Promise<StageFrameCostReading> {
     return this.command<StageFrameCostReading>({ type: 'document-frame-cost', ...options });
   }
 

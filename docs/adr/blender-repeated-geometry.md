@@ -269,3 +269,10 @@ ordinary pass-specific program selection does not restart compilation. Exact
 compatibility checks, asynchronous link gating,
 transparent ordering barriers and canonical fallback remain in place. This
 revision needs its own frame measurement before a speed claim.
+
+A hosted reattachment changed the stage from 1197×827 at ratio 1 to 2394×1654
+at ratio 2. Those timings cannot establish a change against the earlier baseline.
+The frame-cost door accepts an explicit `pixelRatio` in 0.25..2 for a fixed
+measurement resolution across displays. It resizes every document-compositor
+pass, reports the actual measured dimensions and ratio, and restores the original
+ratio in `finally`. The default still measures the viewport as it is drawn.
