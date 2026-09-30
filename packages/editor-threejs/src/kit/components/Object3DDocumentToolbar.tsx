@@ -57,9 +57,9 @@ import {
   studioPresets,
   viewPresets,
   viewPresentationBinding,
-  subscribeViewportPresentation,
+  subscribeViewportPresentationSnapshot,
   viewPresentation,
-  viewportPresentationVersion,
+  viewportPresentationSnapshotVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { ViewportOverlaysGlyph, ViewportOverlaysMenu } from '@volter/editor-sdk/kit/components/ViewportOverlaysMenu';
 import {
@@ -142,7 +142,7 @@ export function Object3DDocumentToolbar({
   const [moreOpen, setMoreOpen] = useState(false);
   const viewRef = useRef<HTMLButtonElement>(null);
   const moreRef = useRef<HTMLButtonElement>(null);
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion, viewportPresentationSnapshotVersion);
   if (!session) return null;
   const presentation = session.presentation();
   const { lighting } = viewPresentation(documentId);
