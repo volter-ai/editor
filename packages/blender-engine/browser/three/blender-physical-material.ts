@@ -109,7 +109,7 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
       blenderWorldExtinction: {value: new THREE.Vector3()}};
     uniforms.set(material, values);
     const held = values;
-    material.customProgramCacheKey = () => `blender-principled-physical-v5${graphProgramKey(material)}`;
+    material.customProgramCacheKey = () => `blender-principled-physical-v6${graphProgramKey(material)}`;
     material.onBeforeRender = (renderer, scene, camera, geometry, object) => {
       bindNamedUvChannels(material, geometry);
       bindGraphDraw(material, geometry, renderer, scene, camera, object, graphShadow);

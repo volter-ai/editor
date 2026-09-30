@@ -363,15 +363,23 @@ ${compiled.uvs.map(n => `varying vec2 ${uvVarying(n)};`).join('\n')}`;
     '#include <project_vertex>',
     `vBlenderObjectPosition = transformed;
 vBlenderObjectNormal = objectNormal;
-mat4 blenderWorldMatrix = modelMatrix;
-#ifdef USE_BATCHING
-blenderWorldMatrix = blenderWorldMatrix * batchingMatrix;
-#endif
+vec4 blenderWorldPosition = vec4(transformed, 1.0);
 #ifdef USE_INSTANCING
-blenderWorldMatrix = blenderWorldMatrix * instanceMatrix;
+blenderWorldPosition = instanceMatrix * blenderWorldPosition;
 #endif
-vBlenderWorldPosition = (blenderWorldMatrix * vec4(transformed, 1.0)).xyz;
-vBlenderWorldNormal = normalize(transpose(inverse(mat3(blenderWorldMatrix))) * objectNormal);
+#ifdef USE_BATCHING
+blenderWorldPosition = batchingMatrix * blenderWorldPosition;
+#endif
+vBlenderWorldPosition = (modelMatrix * blenderWorldPosition).xyz;
+// Three already computed inverse-transpose(modelView) * objectNormal,
+// including the supported instance/batch normal transforms. Multiplying by
+// transpose(view) removes that view transform without another matrix inverse.
+// Our instance planners retain ordinary draws for shear/singular transforms.
+vec3 blenderWorldNormal = transpose(mat3(viewMatrix)) * transformedNormal;
+#ifdef FLIP_SIDED
+blenderWorldNormal = -blenderWorldNormal;
+#endif
+vBlenderWorldNormal = normalize(blenderWorldNormal);
 vBlenderOrco = blenderOrco;
 ${compiled.attributes.map(n => `${attributeVarying(n)} = ${graphAttributeName(n)};`).join('\n')}
 ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).join('\n')}
