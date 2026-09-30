@@ -4,15 +4,16 @@ export const ORDERED_BATCH_CAPACITY = 64;
 const FAMILY_BYTES = 4 * 1024 * 1024;
 const CACHE_BYTES = 32 * 1024 * 1024;
 const MAX_DRAWS = 1024;
-type Shape = {geometry: THREE.BufferGeometry; stamp: string};
+type Shape = {geometry: THREE.BufferGeometry; stamp: string; bytes: number};
 type Family = {material: THREE.Material; shapes: Map<number, Shape>; template: THREE.BatchedMesh | null;
-  ids: Map<number, number>; draws: THREE.BatchedMesh[]; dirty: boolean; bytes: number; refused: boolean};
+  ids: Map<number, number>; draws: THREE.BatchedMesh[]; dirty: boolean; bytes: number; reservedBytes: number; refused: boolean};
 
 /** Immutable packed attributes are shared between ordered draw runs. Only the
  * matrix/indirection textures and command lists belong to an individual run.
  * All interaction and authored geometry remain on the canonical meshes. */
 export class BlenderOrderedBatches {
   private readonly families = new Map<string, Family>();
+  private readonly partitions = new Map<string, string[]>();
   private readonly registrations = new Map<string, string | null>();
   private bytes = 0;
   private drawCount = 0;
@@ -43,16 +44,26 @@ export class BlenderOrderedBatches {
       bytes += attribute.array.byteLength;
     }
     if (bytes > FAMILY_BYTES) return null;
-    const key = `multi:${material.uuid}:${order}:${JSON.stringify(layout)}`;
+    const layoutKey = `multi:${material.uuid}:${order}:${JSON.stringify(layout)}`;
+    let keys = this.partitions.get(layoutKey);
+    if (!keys) { keys = []; this.partitions.set(layoutKey, keys); }
+    // A new compatible shape must not evict every existing run when their
+    // union exceeds one bounded allocation (notably full + navigation copies).
+    // Partition deterministically, preserving established geometry membership.
+    let key = keys.find(key => this.families.get(key)!.shapes.has(geometry.id));
+    key ??= keys.find(key => this.families.get(key)!.reservedBytes + bytes <= FAMILY_BYTES);
+    if (!key) { key = `${layoutKey}:${keys.length}`; keys.push(key); }
     let family = this.families.get(key);
     if (!family) {
-      family = {material, shapes: new Map(), template: null, ids: new Map(), draws: [], dirty: true, bytes: 0, refused: false};
+      family = {material, shapes: new Map(), template: null, ids: new Map(), draws: [], dirty: true,
+        bytes: 0, reservedBytes: 0, refused: false};
       this.families.set(key, family);
     }
     const stamp = JSON.stringify(versions);
     const held = family.shapes.get(geometry.id);
     if (!held || held.stamp !== stamp) {
-      family.shapes.set(geometry.id, {geometry, stamp});
+      family.reservedBytes += bytes - (held?.bytes ?? 0);
+      family.shapes.set(geometry.id, {geometry, stamp, bytes});
       family.dirty = true;
     }
     this.registrations.set(registration, key);
@@ -150,6 +161,7 @@ export class BlenderOrderedBatches {
   clear(): void {
     for (const family of this.families.values()) this.release(family);
     this.families.clear();
+    this.partitions.clear();
     this.registrations.clear();
     this.pending = false;
   }
