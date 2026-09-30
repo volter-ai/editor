@@ -1904,9 +1904,9 @@ export function Object3DDocumentViewport({
           }
         };
         host.syncHostScene = syncHostScene;
-        documentSession.setBeforeRender(() => {
+        documentSession.setBeforeRender((interactive) => {
           host.syncHostScene?.();
-          return source.prepareDraw?.(documentSession.camera());
+          return source.prepareDraw?.(documentSession.camera(), {interactive, height: renderer.domElement.height});
         });
         // This loop draws the compass and every other overlay pass over the
         // document's own render, so it — and only it — can serve the chrome
@@ -2007,6 +2007,7 @@ export function Object3DDocumentViewport({
           drawnToneMapping = renderer.toneMapping;
           drawnExposure = renderer.toneMappingExposure;
         };
+        let navigationMeasurement: THREE.Quaternion | null = null;
         const animate = (time: number, resumed: boolean) => {
           if (disposed || !renderer || !viewport) return;
           const activeRenderer = renderer;
@@ -2032,6 +2033,11 @@ export function Object3DDocumentViewport({
           // scene panel uses, so anything riding the loop (a camera flight)
           // has final say over the pose and orbit damping never fights it.
           if (!chromeless) runViewportFrame(documentId, delta);
+          if (navigationMeasurement) {
+            const camera = documentSession.camera();
+            camera.quaternion.copy(navigationMeasurement);
+            camera.updateMatrixWorld(true);
+          }
           viewport.batchedRenderer.update(delta);
           profiler?.endPhase('editor');
           if (!resumed && !mustDraw(advanced)) {
@@ -2050,7 +2056,10 @@ export function Object3DDocumentViewport({
             host.scene.overrideMaterial = scene.overrideMaterial;
           try {
             activeViewport.renderWithInfrastructure(() => {
-              documentSession.renderViewport(delta);
+              // Photographs and the default frame-cost reading draw the
+              // full resident scene. Only navigation may use source-owned
+              // temporary geometry; the source restores it after the draw.
+              documentSession.renderViewport(delta, navigationMeasurement !== null || (!resumed && !documentSession.needsFrame()));
               activeViewport.renderViewCube(activeRenderer);
             });
           } finally {
@@ -2102,7 +2111,7 @@ export function Object3DDocumentViewport({
          * resumed so it draws, run back to back and each waited out on the GPU with a one-pixel
          * read, which a real frame never does; the first frame warms and is not counted.
          */
-        const measureFrameCost = (frames: number): StageFrameCost => {
+        const measureFrameCost = (frames: number, quality: 'full' | 'navigation' = 'full'): StageFrameCost => {
           if (!renderer) throw new Error('This stage has no renderer yet.');
           const activeRenderer = renderer;
           const gl = activeRenderer.getContext();
@@ -2110,17 +2119,31 @@ export function Object3DDocumentViewport({
           const times: number[] = [];
           const submitTimes: number[] = [];
           const completionTimes: number[] = [];
-          for (let index = 0; index <= frames; index++) {
-            const start = performance.now();
-            animate(start, true);
-            const submitted = performance.now();
-            gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
-            const completed = performance.now();
-            if (index > 0) {
-              times.push(completed - start);
-              submitTimes.push(submitted - start);
-              completionTimes.push(completed - submitted);
+          const camera = documentSession.camera();
+          const originalTurn = camera.quaternion.clone();
+          const axis = new THREE.Vector3(0, 1, 0);
+          try {
+            for (let index = 0; index <= frames; index++) {
+              // A real changed camera exercises culling, sorting and the
+              // source's navigation path. Never persist this diagnostic pose.
+              if (quality === 'navigation') navigationMeasurement = originalTurn.clone().multiply(
+                new THREE.Quaternion().setFromAxisAngle(axis, (index + 1) * 0.0005));
+              const start = performance.now();
+              animate(start, true);
+              const submitted = performance.now();
+              gl.readPixels(0, 0, 1, 1, gl.RGBA, gl.UNSIGNED_BYTE, pixel);
+              const completed = performance.now();
+              if (index > 0) {
+                times.push(completed - start);
+                submitTimes.push(submitted - start);
+                completionTimes.push(completed - submitted);
+              }
             }
+          } finally {
+            navigationMeasurement = null;
+            camera.quaternion.copy(originalTurn);
+            camera.updateMatrixWorld(true);
+            dirty = true;
           }
           const drawn = { calls: activeRenderer.info.render.calls, triangles: activeRenderer.info.render.triangles };
           let meshes = 0;
@@ -2141,6 +2164,7 @@ export function Object3DDocumentViewport({
           const median = (values: number[]) => round(values.sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0);
           return {
             frames,
+            quality,
             medianMs: round(at(0.5)),
             p95Ms: round(at(0.95)),
             minMs: round(sorted[0] ?? 0),
@@ -2177,7 +2201,7 @@ export function Object3DDocumentViewport({
                   drawCamera: () => host.session?.camera() ?? viewport.camera,
                   orbit: viewport.orbitControls,
                   scene: host.scene,
-                  frameCost: (frames) => measureFrameCost(frames),
+                  frameCost: (frames, quality) => measureFrameCost(frames, quality),
                 },
                 () => null,
                 (kind, object) => viewport.setHelper(kind, object),

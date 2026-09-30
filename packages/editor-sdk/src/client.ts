@@ -554,7 +554,7 @@ export class EditorClient {
   }
 
   /** What a frame of a 3D document's stage costs, uncapped (`document-frame-cost`). */
-  async frameCostDocument(options?: { readonly frames?: number; readonly stage?: string }): Promise<StageFrameCostReading> {
+  async frameCostDocument(options?: { readonly frames?: number; readonly stage?: string; readonly quality?: 'full' | 'navigation' }): Promise<StageFrameCostReading> {
     return this.command<StageFrameCostReading>({ type: 'document-frame-cost', ...options });
   }
 

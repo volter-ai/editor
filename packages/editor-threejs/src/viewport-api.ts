@@ -32,7 +32,7 @@ export interface ViewportRig {
    * `requestAnimationFrame`, each waited out on the GPU, so the number is the frame's cost and
    * not the display's refresh. Absent on a stage with no frame of its own.
    */
-  frameCost?(frames: number): StageFrameCost;
+  frameCost?(frames: number, quality?: 'full' | 'navigation'): StageFrameCost;
   readonly orbit: { readonly target: THREE.Vector3; enabled: boolean; update(): void };
   /** The editor's own scene (helpers live on its editor layer). */
   readonly scene: THREE.Scene;
@@ -101,4 +101,3 @@ export interface ViewportDoor {
   /** Fires whenever a stage mounts or unmounts; the return unsubscribes. */
   onStages(fn: (stages: readonly ViewportStage[]) => void): () => void;
 }
-

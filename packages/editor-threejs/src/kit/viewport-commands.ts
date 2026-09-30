@@ -193,6 +193,9 @@ export const viewportCommands: CommandContribution['commands'] = {
     const named = cmd['stage'];
     if (named !== undefined && typeof named !== 'string')
       return { ok: false, error: 'document-frame-cost: "stage" names a stage by its document id.' };
+    const quality = cmd['quality'] ?? 'full';
+    if (quality !== 'full' && quality !== 'navigation')
+      return {ok: false, error: 'document-frame-cost: "quality" must be "full" or "navigation".'};
     const documentId = named ?? activeWorkspaceDocumentId();
     const stages = viewportStages();
     const stage = stages.find((one) => one.documentId === documentId);
@@ -206,7 +209,7 @@ export const viewportCommands: CommandContribution['commands'] = {
     const measure = stage.rig().frameCost;
     if (!measure)
       return { ok: false, error: `document-frame-cost: the stage for ${JSON.stringify(stage.documentId)} has no frame of its own to measure.` };
-    return { ok: true, data: { stage: stage.documentId, ...measure(frames) } };
+    return { ok: true, data: { stage: stage.documentId, ...measure(frames, quality) } };
   }, 120_000),
   'capture-viewport': verb(async (store, cmd) => {
     // Fresh, unthrottled on-demand capture (see EditorShellStore.captureViewportImage).

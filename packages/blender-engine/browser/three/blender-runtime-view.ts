@@ -44,6 +44,7 @@ import {
 import { DEFAULT_VIEWPORT_DISPLAY, workbenchMaterial } from './blender-workbench-material';
 import { BlenderRuntimeInstances } from './blender-runtime-instances';
 import { BlenderTransparentInstances } from './blender-transparent-instances';
+import { BlenderMotionGeometry } from './blender-motion-geometry';
 
 /** A saved `View3DShading.type` as the stage's draw mode: Material Preview is `preview`. */
 const SAVED_SHADING = {
@@ -644,6 +645,7 @@ export class BlenderRuntimeView {
   readonly root = new THREE.Group();
   private readonly instances = new BlenderRuntimeInstances(this.root);
   private readonly transparentInstances = new BlenderTransparentInstances(this.root);
+  private readonly motionGeometry = new BlenderMotionGeometry(this.root, presenterChanged);
   private drawBatching = true;
   private readonly objects = new Map<string, THREE.Object3D>();
   private readonly meshes = new Map<
@@ -1230,6 +1232,7 @@ export class BlenderRuntimeView {
     this.transparentInstances.clear();
     this.instances.rebuild(this.objects.values(), this.drawBatching && !this.rendered);
     if (this.drawBatching && !this.rendered) this.transparentInstances.setObjects(this.objects.values());
+    this.motionGeometry.setObjects(this.objects.values());
   }
 
   /** Presentation-only comparison door; never changes Blender or its data. */
@@ -1242,17 +1245,20 @@ export class BlenderRuntimeView {
 
   /** Before the renderer uploads attributes/builds its queues, for this area's
    * actual camera. Transparent instance runs are camera-order dependent. */
-  prepareDraw(camera: THREE.Camera): () => void {
+  prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number}): () => void {
     try {
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
       this.transparentInstances.prepare(camera);
+      this.motionGeometry.prepare(camera, !this.rendered && options?.interactive === true, options?.height ?? 0);
     } catch (error) {
+      this.motionGeometry.finish();
       this.instances.finishDraw();
       this.transparentInstances.finishDraw();
       throw error;
     }
     return () => {
+      this.motionGeometry.finish();
       this.instances.finishDraw();
       this.transparentInstances.finishDraw();
     };
@@ -2063,7 +2069,7 @@ export class BlenderRuntimeView {
   }
 
   drawStatistics() {
-    return {enabled: this.drawBatching, opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect()};
+    return {enabled: this.drawBatching, opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
   }
 
   snapshot() {
@@ -2273,6 +2279,7 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
+    this.motionGeometry.clear();
     this.transparentInstances.clear();
     this.instances.clear();
     for (const entry of this.staged?.meshes.values() ?? []) entry.geometry.dispose();

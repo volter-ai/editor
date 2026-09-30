@@ -376,7 +376,7 @@ function BlenderViewportArea({
   const build = useCallback(
     () => ({
       root: view.root,
-      prepareDraw: (camera: THREE.Camera) => view.prepareDraw(camera),
+      prepareDraw: (camera: THREE.Camera, options?: {interactive: boolean; height: number}) => view.prepareDraw(camera, options),
       // What the view draws changes with each frame and the work after it,
       // and with the skin's poses when the Timeline scrubs.
       onChange(listener: () => void) {

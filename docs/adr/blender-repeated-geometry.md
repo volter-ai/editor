@@ -87,3 +87,38 @@ visibility, geometry ranges/bounds, material identity/version and draw flags.
 A changed input rebuilds the plan; no lossy hash or evaluated-data cache is
 involved. Nested group order also remains an ordering barrier. These changes
 require a new measurement before any performance claim.
+
+## Navigation geometry
+
+After repairing the native Timeline layout (c20), the restored 1197×827 Bridge
+still measured 220.34 ms median over five full-detail frames, 13,382 draws and
+225,338,458 triangles (`c20-restored-frame-cost.json`). Submission, including
+driver backpressure, took 103.79 ms median; the remaining GPU wait was 90.03 ms.
+Native metadata confirms the dominant grasses are saved as BLENDED, so changing
+them to cutouts or hashed transparency is not an equivalent optimization.
+
+C19 explicitly calls for temporary simplified geometry during navigation.
+The presenter now derives compact geometry copies with meshoptimizer 1.2 in a
+worker, one mesh at a time, prioritizing repeated high-cost geometry. It retains
+boundaries and seams, includes normals/UVs in the error calculation, and retains
+every attribute in the compact copy. The cache is capped at 64 MiB; each input
+has at most 200,000 vertices. Unsupported/deformed/multiple-material surfaces,
+unsuccessful reductions and a failed worker use their complete originals.
+There is no main-thread simplification fallback or persistent derived cache.
+
+Only an interactive moving camera permits these copies, with a conservative
+projected-error check against all visible placements of each shared shape.
+Culling bounds, transparent sorting anchors, materials and instance ordering
+remain the originals'. The renderer's synchronous draw swaps geometry after
+the ordinary instancing plan is prepared and restores it in `finally`. A quiet
+camera schedules a full-detail redraw after 150 ms. Captures, rendered shading,
+editing/picking outside the draw, native evaluation and saved data retain full
+geometry. Copies own their buffers and are disposed on geometry replacement.
+
+The existing frame-cost door defaults to `quality:"full"`. An explicit
+`quality:"navigation"` measures small camera turns through this same navigation
+path and reports that label; it restores the original camera even on failure.
+Neither reading is substituted for the other. `blender-status` reports copy
+count/bytes, pending work, refusals and the last draw's full/reduced triangle
+counts. A new runtime diagnosis and independent navigation/appearance review
+are required; implementation alone is not a speed or appearance claim.

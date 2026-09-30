@@ -174,7 +174,7 @@ export class Object3DDocumentSession {
   private readonly throughOrthographic = new THREE.OrthographicCamera();
   /** The host's mirror of the document scene onto the rendered scene — see
    *  {@link Object3DDocumentSession.setBeforeRender}. */
-  private beforeRender: (() => void | (() => void)) | null = null;
+  private beforeRender: ((interactive: boolean) => void | (() => void)) | null = null;
   private state = INITIAL_PRESENTATION;
   private version = 0;
   private readonly listeners = new Set<() => void>();
@@ -1253,7 +1253,7 @@ export class Object3DDocumentSession {
    * The host owns the step and clears it in its own teardown; the session only
    * holds the reference.
    */
-  setBeforeRender(step: (() => void | (() => void)) | null): void {
+  setBeforeRender(step: ((interactive: boolean) => void | (() => void)) | null): void {
     this.beforeRender = step;
   }
 
@@ -1338,8 +1338,8 @@ export class Object3DDocumentSession {
     for (const resolve of waiters) resolve(frame);
   }
 
-  render(renderSolid: (camera: THREE.Camera) => void): void {
-    const finishDraw = this.beforeRender?.();
+  render(renderSolid: (camera: THREE.Camera) => void, interactive = false): void {
+    const finishDraw = this.beforeRender?.(interactive);
     try {
       this.boneSelectionHighlight?.update();
       const camera = this.camera();
@@ -1391,7 +1391,7 @@ export class Object3DDocumentSession {
   }
 
   /** Visible authoring draw with the editor-only native selection silhouette. */
-  renderViewport(deltaSeconds = 0): void {
+  renderViewport(deltaSeconds = 0, interactive = false): void {
     this.advanceLook(deltaSeconds);
     this.ensureComposer();
     this.render((camera) => {
@@ -1407,7 +1407,7 @@ export class Object3DDocumentSession {
       composer.setMainScene(this.scene);
       composer.setMainCamera(camera);
       composer.render(deltaSeconds);
-    });
+    }, interactive);
   }
 
   resize(width: number, height: number): void {

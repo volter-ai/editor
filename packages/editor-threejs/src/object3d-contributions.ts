@@ -54,8 +54,10 @@ export interface ToolObject3DPreviewSource {
   update?(deltaSeconds: number): void;
   /** Prepare camera-dependent draw buffers immediately before rendering.
    * Does not advance content time or mutate the authored document. An optional
-   * returned function restores temporary draw state, including after errors. */
-  prepareDraw?(camera: Camera): void | (() => void);
+   * returned function restores temporary draw state, including after errors.
+   * Interactive draws may use disposable navigation geometry; omitted/false
+   * always means full detail (captures and default frame-cost readings). */
+  prepareDraw?(camera: Camera, options?: {interactive: boolean; height: number}): void | (() => void);
   /**
    * EVERY CHANGE TO WHAT THE SOURCE DRAWS, announced: the host calls
    * `listener` whenever the source's graph, materials, textures or poses may

@@ -141,6 +141,9 @@ export interface StageFrameCostReading {
   readonly stage: string;
   /** Frames measured, after one that warms. */
   readonly frames: number;
+  /** Full stationary drawing, or a small temporary camera turn with the
+   * stage's navigation presentation. The original camera is restored. */
+  readonly quality?: 'full' | 'navigation';
   readonly medianMs: number;
   readonly p95Ms: number;
   readonly minMs: number;
