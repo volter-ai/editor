@@ -42,6 +42,13 @@ export function createHostedAttachmentRelay(options: { origin: string; ttlMs?: n
   }
   const sweep = setInterval(() => { for (const lease of leases.values()) if (lease.expiresAt <= Date.now()) remove(lease); }, 1000);
   sweep.unref();
+  // Browser WebSockets answer control-frame pings automatically. Keep both
+  // worker and client connections active through idle proxy timeouts without
+  // issuing editor requests or extending the attachment's lease.
+  const keepAlive = setInterval(() => {
+    for (const socket of sockets.clients) if (socket.readyState === WebSocket.OPEN) socket.ping();
+  }, 20_000);
+  keepAlive.unref();
   const json = (response: ServerResponse, status: number, value: unknown): void => {
     response.writeHead(status, { 'content-type': 'application/json', 'cache-control': 'no-store' }); response.end(JSON.stringify(value));
   };
@@ -141,5 +148,5 @@ export function createHostedAttachmentRelay(options: { origin: string; ttlMs?: n
     server.on('upgrade', onUpgrade);
     return () => { server.off('upgrade', onUpgrade); };
   }
-  return { middleware, install, close() { clearInterval(sweep); for (const lease of leases.values()) remove(lease); sockets.close(); } };
+  return { middleware, install, close() { clearInterval(sweep); clearInterval(keepAlive); for (const lease of leases.values()) remove(lease); sockets.close(); } };
 }
