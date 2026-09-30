@@ -24,7 +24,7 @@ interface Binding {
   ramps: THREE.DataTexture[];
   /** Named UV layer to the channel the current draw's geometry holds it in. */
   channels: Record<string, number>;
-  palette?: {indices: Int32Array; sources: readonly THREE.MeshPhysicalMaterial[]};
+  palette?: {sources: readonly THREE.MeshPhysicalMaterial[]};
 }
 const bindings = new WeakMap<THREE.MeshPhysicalMaterial, Binding>();
 /** Graph structures whose program the GPU refused. A material whose graph is
@@ -69,14 +69,14 @@ export function paletteGraphs(sources: readonly THREE.MeshPhysicalMaterial[]): C
     // LOD must never occur inside a potentially divergent fragment branch.
     `void blenderGraph() { bp0_blenderGraph(); bp1_blenderGraph(); ${names.map(name =>
       `${name} = vBlenderPaletteIndex == 0 ? bp0_${name} : bp1_${name};`).join(' ')} }`].join('\n');
-  return {...graph, key: `blender-palette-v1:${graph.key}`, program,
+  return {...graph, key: `blender-palette-v2:${graph.key}`, program,
     declarations: `${graph.library}\n${program}`, images: [], ramps: [], uniforms: new Map()};
 }
 
 export function bindPaletteGraph(material: THREE.MeshPhysicalMaterial, compiled: CompiledGraph,
-  sources: readonly THREE.MeshPhysicalMaterial[], indices: Int32Array, geometry: THREE.BufferGeometry): boolean {
+  sources: readonly THREE.MeshPhysicalMaterial[], geometry: THREE.BufferGeometry): boolean {
   if (!compatiblePaletteGraphs(sources)) return false;
-  const values: Record<string, THREE.IUniform> = {blenderPaletteIndices: {value: indices}};
+  const values: Record<string, THREE.IUniform> = {};
   for (let index = 0; index < sources.length; index++) {
     const source = sources[index]!;
     for (const [name, uniform] of Object.entries(bindings.get(source)!.uniforms)) values[`bp${index}_${name}`] = uniform;
@@ -84,7 +84,7 @@ export function bindPaletteGraph(material: THREE.MeshPhysicalMaterial, compiled:
       if (source[name]) values[`bp${index}_${name}`] = {value: source[name]};
     }
   }
-  bindings.set(material, {compiled, uniforms: values, ramps: [], channels: channelsFor(compiled, geometry), palette: {indices, sources}});
+  bindings.set(material, {compiled, uniforms: values, ramps: [], channels: channelsFor(compiled, geometry), palette: {sources}});
   material.needsUpdate = true;
   return true;
 }
@@ -450,8 +450,8 @@ ${compiled.uvs.map(n => `${uvVarying(n)} = ${attribute(channels[n] ?? 0)};`).joi
 #include <project_vertex>`,
   );
   if (binding.palette) {
-    shader.vertexShader = `uniform int blenderPaletteIndices[64];\nflat varying int vBlenderPaletteIndex;\n${shader.vertexShader}`
-      .replace('#include <project_vertex>', 'vBlenderPaletteIndex = blenderPaletteIndices[int(getIndirectIndex(gl_DrawID))];\n#include <project_vertex>');
+    shader.vertexShader = `attribute float blenderPaletteIndex;\nflat varying int vBlenderPaletteIndex;\n${shader.vertexShader}`
+      .replace('#include <project_vertex>', 'vBlenderPaletteIndex = int(blenderPaletteIndex);\n#include <project_vertex>');
     shader.fragmentShader = `flat varying int vBlenderPaletteIndex;\n${shader.fragmentShader}`;
     for (const [name, uv, clip] of [['map', 'vMapUv', 'blenderMapClip'], ['normalMap', 'vNormalMapUv', 'blenderNormalClip'],
       ['roughnessMap', 'vRoughnessMapUv', 'blenderRoughnessClip']] as const) {

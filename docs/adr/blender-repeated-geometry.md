@@ -243,3 +243,24 @@ camera without changing the one-pixel gate or the simplifier's error budget.
 Transparent plan comparison also skips opaque geometry after checking each
 mesh's current materials, preserving detection of transparency transitions
 without scanning unrelated attribute versions.
+
+## Compatible material palettes
+
+The first two-material palette reduced Bridge navigation calls to about 6,400,
+but its settled median was about 86 ms: the 33 ms target remains unmet. A bounded
+submission profile attributed about 220 ms over eight observed frames to the
+grass palette. Each of its roughly 650 ordered runs owned a distinct physical
+material and selector uniform array, forcing physical and graph uniform refreshes
+even when the compiled program was shared. These are diagnostic measurements,
+not an independent acceptance result.
+
+Packed shapes now carry an immutable one-byte source selector per vertex. A
+shape used by both sources has two distinct packed entries, so the selector
+cannot alias another placement's material. The selector counts toward the
+existing 4 MiB family and 32 MiB cache limits. Each renderer shares one compiled
+palette material across a family's runs; canonical geometry and materials keep
+their original ownership. The shader evaluates both graph programs and texture
+samples before selecting their outputs, retaining derivative behavior and the
+original normal math. Exact compatibility checks, asynchronous link gating,
+transparent ordering barriers and canonical fallback remain in place. This
+revision needs its own frame measurement before a speed claim.

@@ -166,7 +166,7 @@ export class BlenderTransparentInstances {
         this.excluded[reason] = (this.excluded[reason] ?? 0) + 1;
       }
       const palette = renderer && targetScene && material ? this.palettes.get(material) : undefined;
-      const batchKey = multiDraw && key && material ? this.ordered.register(mesh.geometry, palette?.identity ?? material, mesh.renderOrder, palette) : null;
+      const batchKey = multiDraw && key && material ? this.ordered.register(mesh.geometry, palette?.identity ?? material, mesh.renderOrder, palette, material) : null;
       entries.push({mesh, material, key, batchKey, groupOrder: order, z, centre});
     }
     this.ordered.pack();
@@ -248,8 +248,7 @@ export class BlenderTransparentInstances {
             this.matrix.multiplyMatrices(this.inverse, member.matrixWorld);
             draw.mesh.setMatrixAt(i, this.matrix);
             if (draw.mesh instanceof THREE.BatchedMesh) {
-              draw.mesh.setGeometryIdAt(i, this.ordered.geometryId(first.key, member.geometry));
-              this.ordered.setMaterialAt(first.key, draw.mesh, i, entries[offset + i]!.material!);
+              draw.mesh.setGeometryIdAt(i, this.ordered.geometryId(first.key, member.geometry, entries[offset + i]!.material!));
               draw.mesh.setVisibleAt(i, true);
             }
             draw.members.push(member);

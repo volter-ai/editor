@@ -7,13 +7,15 @@ export const ORDERED_BATCH_CAPACITY = 64;
 const FAMILY_BYTES = 4 * 1024 * 1024;
 const CACHE_BYTES = 32 * 1024 * 1024;
 const MAX_DRAWS = 1024;
-type Shape = {geometry: THREE.BufferGeometry; stamp: string; bytes: number};
+type Shape = {geometry: THREE.BufferGeometry; stamp: string; bytes: number; paletteIndex: number};
 export type OrderedPalette = {identity: THREE.Material; sources: readonly THREE.MeshPhysicalMaterial[]; compiled: CompiledGraph};
 type Compilation = {material: THREE.MeshPhysicalMaterial; ready: boolean; refused: boolean; pending: boolean; program: unknown};
-type Family = {material: THREE.Material; shapes: Map<number, Shape>; template: THREE.BatchedMesh | null;
-  ids: Map<number, number>; draws: THREE.BatchedMesh[]; dirty: boolean; bytes: number; reservedBytes: number; refused: boolean;
-  palette: OrderedPalette | undefined; compilations: Map<THREE.WebGLRenderer, Compilation>;
-  drawMaterials: Map<THREE.BatchedMesh, {material: THREE.MeshPhysicalMaterial; indices: Int32Array}>};
+type Family = {material: THREE.Material; shapes: Map<string, Shape>; template: THREE.BatchedMesh | null;
+  ids: Map<string, number>; draws: THREE.BatchedMesh[]; dirty: boolean; bytes: number; reservedBytes: number; refused: boolean;
+  palette: OrderedPalette | undefined; compilations: Map<THREE.WebGLRenderer, Compilation>};
+
+const PALETTE_ATTRIBUTE = 'blenderPaletteIndex';
+const shapeKey = (geometry: THREE.BufferGeometry, paletteIndex: number): string => `${geometry.id}:${paletteIndex}`;
 
 /** Immutable packed attributes are shared between ordered draw runs. Only the
  * matrix/indirection textures and command lists belong to an individual run.
@@ -32,8 +34,13 @@ export class BlenderOrderedBatches {
   begin(): void { this.created = 0; this.pending = false; this.registrations.clear(); }
   beginPaletteFrame(): void { this.compiling = 0; }
 
-  register(geometry: THREE.BufferGeometry, material: THREE.Material, order: number, palette?: OrderedPalette): string | null {
-    const registration = `${geometry.id}:${material.uuid}:${order}`;
+  register(geometry: THREE.BufferGeometry, material: THREE.Material, order: number, palette?: OrderedPalette, source?: THREE.Material): string | null {
+    const paletteIndex = palette ? palette.sources.indexOf(source as THREE.MeshPhysicalMaterial) : -1;
+    if (palette && (paletteIndex < 0 || geometry.hasAttribute(PALETTE_ATTRIBUTE))) return null;
+    // One authored geometry can be used by both materials. Its packed shapes
+    // then differ by selector; never reuse the first member's column for both.
+    const shape = shapeKey(geometry, paletteIndex);
+    const registration = `${shape}:${material.uuid}:${order}`;
     if (this.registrations.has(registration)) return this.registrations.get(registration)!;
     this.registrations.set(registration, null);
     const position = geometry.getAttribute('position');
@@ -42,7 +49,7 @@ export class BlenderOrderedBatches {
         Object.keys(geometry.morphAttributes).length) return null;
     const layout: unknown[] = [!!geometry.index, geometry.userData['blenderUvChannels'] ?? null];
     const versions: unknown[] = [geometry.index?.id, geometry.index?.version];
-    let bytes = (geometry.index?.count ?? 0) * 4;
+    let bytes = (geometry.index?.count ?? 0) * 4 + (palette ? position.count : 0);
     for (const name of Object.keys(geometry.attributes).sort()) {
       const attribute = geometry.getAttribute(name);
       if (!(attribute instanceof THREE.BufferAttribute) ||
@@ -60,20 +67,20 @@ export class BlenderOrderedBatches {
     // A new compatible shape must not evict every existing run when their
     // union exceeds one bounded allocation (notably full + navigation copies).
     // Partition deterministically, preserving established geometry membership.
-    let key = keys.find(key => this.families.get(key)!.shapes.has(geometry.id));
+    let key = keys.find(key => this.families.get(key)!.shapes.has(shape));
     key ??= keys.find(key => this.families.get(key)!.reservedBytes + bytes <= FAMILY_BYTES);
     if (!key) { key = `${layoutKey}:${keys.length}`; keys.push(key); }
     let family = this.families.get(key);
     if (!family) {
       family = {material, shapes: new Map(), template: null, ids: new Map(), draws: [], dirty: true,
-        bytes: 0, reservedBytes: 0, refused: false, palette, compilations: new Map(), drawMaterials: new Map()};
+        bytes: 0, reservedBytes: 0, refused: false, palette, compilations: new Map()};
       this.families.set(key, family);
     }
     const stamp = JSON.stringify(versions);
-    const held = family.shapes.get(geometry.id);
+    const held = family.shapes.get(shape);
     if (!held || held.stamp !== stamp) {
       family.reservedBytes += bytes - (held?.bytes ?? 0);
-      family.shapes.set(geometry.id, {geometry, stamp, bytes});
+      family.shapes.set(shape, {geometry, stamp, bytes, paletteIndex});
       family.dirty = true;
     }
     this.registrations.set(registration, key);
@@ -91,6 +98,7 @@ export class BlenderOrderedBatches {
         indices += geometry.index?.count ?? 0;
         for (const attribute of Object.values(geometry.attributes)) bytes += attribute.array.byteLength;
       }
+      if (family.palette) bytes += vertices;
       bytes += indices * (vertices > 65535 ? 4 : 2);
       family.refused = bytes > FAMILY_BYTES || this.bytes + bytes > CACHE_BYTES;
       if (family.refused) continue;
@@ -102,7 +110,22 @@ export class BlenderOrderedBatches {
       template.boundingSphere = new THREE.Sphere();
       template.name = 'Blender ordered multi-draw';
       template.userData['engineInternal'] = true;
-      for (const {geometry} of family.shapes.values()) family.ids.set(geometry.id, template.addGeometry(geometry));
+      for (const [key, {geometry, paletteIndex}] of family.shapes) {
+        if (!family.palette) { family.ids.set(key, template.addGeometry(geometry)); continue; }
+        const packedShape = new THREE.BufferGeometry();
+        // Borrow canonical columns only during the bounded copy into Three's
+        // packed geometry. This proxy alone owns the new selector column.
+        for (const [name, attribute] of Object.entries(geometry.attributes)) packedShape.setAttribute(name, attribute);
+        packedShape.setIndex(geometry.index);
+        packedShape.setAttribute(PALETTE_ATTRIBUTE, new THREE.Uint8BufferAttribute(
+          new Uint8Array(geometry.getAttribute('position').count).fill(paletteIndex), 1));
+        try { family.ids.set(key, template.addGeometry(packedShape)); }
+        finally {
+          for (const name of Object.keys(geometry.attributes)) packedShape.deleteAttribute(name);
+          packedShape.setIndex(null);
+          packedShape.dispose();
+        }
+      }
       // Named UV selection is a geometry-level material input. The family key
       // requires identical maps; every per-vertex graph attribute is copied.
       const first = family.shapes.values().next().value!.geometry;
@@ -131,7 +154,7 @@ export class BlenderOrderedBatches {
       if (compilation?.ready || compilation?.pending || compilation?.refused) continue;
       if (this.compiling >= 2) { this.pending = true; continue; }
       if (!compilation) {
-        const material = physicalPaletteMaterial(palette.compiled, palette.sources, new Int32Array(ORDERED_BATCH_CAPACITY), template.geometry);
+        const material = physicalPaletteMaterial(palette.compiled, palette.sources, template.geometry);
         if (!material) continue;
         compilation = {material, ready: false, refused: false, pending: false, program: null};
         family.compilations.set(renderer, compilation);
@@ -198,27 +221,18 @@ export class BlenderOrderedBatches {
         draw.addInstance(firstId);
         draw.setVisibleAt(i, false);
       }
-      if (family.palette) {
-        const indices = new Int32Array(ORDERED_BATCH_CAPACITY);
-        const material = physicalPaletteMaterial(family.palette.compiled, family.palette.sources, indices, draw.geometry);
-        if (!material) { for (const name of Object.keys(draw.geometry.attributes)) draw.geometry.deleteAttribute(name);
-          draw.geometry.setIndex(null); draw.dispose(); return null; }
-        draw.material = material;
-        family.drawMaterials.set(draw, {material, indices});
-      }
       family.draws.push(draw);
       this.created++;
       this.drawCount++;
     }
+    if (family.palette) draw.material = family.compilations.get(renderer!)!.material;
     return draw;
   }
 
-  geometryId(key: string, geometry: THREE.BufferGeometry): number { return this.families.get(key)!.ids.get(geometry.id)!; }
-
-  setMaterialAt(key: string, draw: THREE.BatchedMesh, index: number, source: THREE.Material): void {
+  geometryId(key: string, geometry: THREE.BufferGeometry, source: THREE.Material): number {
     const family = this.families.get(key)!;
-    const held = family.drawMaterials.get(draw);
-    if (held) held.indices[index] = family.palette!.sources.indexOf(source as THREE.MeshPhysicalMaterial);
+    const index = family.palette ? family.palette.sources.indexOf(source as THREE.MeshPhysicalMaterial) : -1;
+    return family.ids.get(shapeKey(geometry, index))!;
   }
 
   isPalette(key: string): boolean { return !!this.families.get(key)?.palette; }
@@ -233,8 +247,6 @@ export class BlenderOrderedBatches {
     this.generation++;
     for (const compilation of family.compilations.values()) if (!compilation.pending) compilation.material.dispose();
     family.compilations.clear();
-    for (const {material} of family.drawMaterials.values()) material.dispose();
-    family.drawMaterials.clear();
     for (const draw of family.draws) {
       draw.removeFromParent();
       // BatchedMesh.dispose owns its geometry. Detach shared buffer attributes

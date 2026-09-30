@@ -129,13 +129,13 @@ export function samePhysicalPaletteState(first: PaletteState, second: PaletteSta
   return first.length === second.length && first.every((value, index) => value === second[index]);
 }
 
-/** A palette draw owns its material/uniform index array, borrowing all image
- * and ramp storage. It never substitutes a source material's hooks. */
+/** Packed shapes own their selector column. A renderer shares this material
+ * across the family's ordered runs, borrowing source image/uniform storage. */
 export function physicalPaletteMaterial(compiled: CompiledGraph, sources: readonly THREE.MeshPhysicalMaterial[],
-  indices: Int32Array, geometry: THREE.BufferGeometry): THREE.MeshPhysicalMaterial | null {
+  geometry: THREE.BufferGeometry): THREE.MeshPhysicalMaterial | null {
   for (const source of sources) bindNamedUvChannels(source, geometry);
   const copy = graphShadow(sources[0]!);
-  if (bindPaletteGraph(copy, compiled, sources, indices, geometry)) return copy;
+  if (bindPaletteGraph(copy, compiled, sources, geometry)) return copy;
   copy.dispose();
   return null;
 }
