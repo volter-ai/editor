@@ -1,7 +1,9 @@
-# Autopublish: every push to main releases what it changed. autorelease.mjs
+# A measured main commit is deliberately promoted to publish. autorelease.mjs
 # moves each changed package (and what pins it exactly) to its next patch
 # version, the release is built and every version npm lacks is published, and
-# the version commit goes back to main. Auth is the repository secret NPM_TOKEN
+# the version commit goes back to publish. Main is built and measured from source.
+# Creating the branch only initializes it; dispatch or a later promotion releases.
+# Auth is the repository secret NPM_TOKEN
 # (an npm automation token with write on the @volter scope).
 # npm may accept a publish ("+ pkg@ver") and hold it as STAGED until an owner
 # approves it with 2FA (`npm stage list|approve`); a staged version isn't on
@@ -10,7 +12,7 @@
 name: publish
 on:
   push:
-    branches: [main]
+    branches: [publish]
   workflow_dispatch:
 concurrency:
   group: publish
@@ -20,6 +22,7 @@ permissions:
   id-token: write
 jobs:
   publish:
+    if: github.ref == 'refs/heads/publish' && github.event.created != true
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -29,7 +32,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
         with:
-          ref: main
+          ref: ${{ github.sha }}
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
@@ -74,7 +77,7 @@ jobs:
               grep -qi 'cannot publish over' "$RUNNER_TEMP/err" || exit 1
             fi
           done
-      - name: The version commit goes back to main
+      - name: The version commit goes back to publish
         run: |
           [ -s "$RUNNER_TEMP/release-files" ] || exit 0
           git config user.name "github-actions[bot]"
@@ -82,11 +85,9 @@ jobs:
           git add $(cat "$RUNNER_TEMP/release-files")
           git commit -qm "Release $(for dir in $PACKAGES; do git diff --cached --quiet -- "$dir/package.json" || node -p "const p=require('./$dir/package.json'); p.name+'@'+p.version"; done | tr '\n' ' ')"
           git reset -q --hard HEAD
-          for attempt in 1 2 3 4 5; do
-            if git pull -q --rebase origin main; then git push -q origin HEAD:main && exit 0; else git rebase --abort; fi
-            sleep 5
-          done
-          exit 1
+          # Do not graft the version commit onto another promotion's source.
+          # Finish this run before promoting the next measured commit.
+          git push origin HEAD:publish
       - if: steps.check.outputs.new
         name: npm serves every version this run published
         run: |

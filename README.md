@@ -208,6 +208,16 @@ The build generates modules needed by the typechecks and packaging checks.
 Building the separate Code-OSS workbench is described in
 [`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs).
 
+Main is used and measured from these source builds. npm publishing runs only
+from `publish`, after deliberately promoting a measured main commit. Finish
+the preceding publish run, fetch both branches, then merge that exact commit
+into `publish` and push it. The workflow checks out the promotion's exact SHA;
+its version commit returns to `publish` and refuses to overwrite a later
+promotion. Creating the branch only initializes it; the first release can be
+dispatched with `gh workflow run publish.yml --ref publish`. Manual dispatch
+on main is also refused by the job's branch guard. Installed npm products,
+scaffolds and templates continue consuming the last promoted release.
+
 Products are named for their purpose: `@volter/model-editor` and
 `@volter/game-editor`, run as `volter-model-editor` and `volter-game-editor`.
 Projects keep `volter.project.json`, `volter.adapter.ts`, `.volter/` and the existing
