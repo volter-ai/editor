@@ -101,8 +101,10 @@ C19 explicitly calls for temporary simplified geometry during navigation.
 The presenter now derives compact geometry copies with meshoptimizer 1.2 in a
 worker, one mesh at a time, prioritizing repeated high-cost geometry. It retains
 boundaries and seams, includes normals/UVs in the error calculation, and retains
-every attribute in the compact copy. The cache is capped at 64 MiB; each input
-has at most 200,000 vertices. Unsupported/deformed/multiple-material surfaces,
+every attribute in the compact copy. The cache is capped at 64 MiB; each worker input
+has at most 49,152 indices (16,384 triangles). Material ranges are simplified
+separately, with locked chunk boundaries and their original ordering retained.
+Attribute copying and final compaction yield in 8,192-element slices. Unsupported/deformed surfaces,
 unsuccessful reductions and a failed worker use their complete originals.
 There is no main-thread simplification fallback or persistent derived cache.
 
@@ -131,3 +133,14 @@ gate let one near placement reject every distant copy of the same plant. The
 selection is now per placement, before transparent run planning. Opaque members
 whose geometry changes use the existing ordinary-draw fallback; full-detail
 members remain instanced. This correction needs its own measurement.
+
+
+The per-placement 5aa1b6d6 diagnosis remained insufficient: 144.45 ms navigation
+versus 156.36 ms full detail. The retained native census found that 100 copies
+of a 1.78M-vertex sapling account for 206.25M triangles; the old vertex cutoff
+excluded the dominant cost. Large geometry now uses bounded per-material
+chunks instead. No partial mesh is published: all ranges must finish and the
+whole compact copy must fit the same 64 MiB budget. Replacement/disposal
+cancels pending worker replies and yielding copies. Absolute errors share the
+whole mesh's scale, and the maximum chunk error gates each placement.
+This change still needs runtime measurement; it is not a fast-navigation claim.

@@ -7,24 +7,25 @@ export interface MotionMeshRequest {
   attributes: Float32Array;
   stride: number;
   weights: number[];
+  absoluteError: number;
 }
 export interface MotionMeshResponse {id: number; indices?: Uint32Array; error?: number; refusal?: string}
 
 // One copied mesh at a time. The worker never owns or detaches a resident
 // Blender column, and never writes positions or attributes back to the model.
 self.onmessage = async (event: MessageEvent<MotionMeshRequest>) => {
-  const {id, positions, indices, attributes, stride, weights} = event.data;
+  const {id, positions, indices, attributes, stride, weights, absoluteError} = event.data;
   try {
     await MeshoptSimplifier.ready;
     const target = Math.max(384, Math.floor(indices.length * 0.08 / 3) * 3);
     const [reduced, error] = MeshoptSimplifier.simplifyWithAttributes(
-      indices, positions, 3, attributes, stride, weights, null, target, 0.002,
+      indices, positions, 3, attributes, stride, weights, null, target, absoluteError,
       // Preserve open boundaries and attribute seams. If that prevents a
       // useful reduction, keep the original; never sample/drop triangles.
-      ['LockBorder'],
+      ['LockBorder', 'ErrorAbsolute'],
     );
     const response: MotionMeshResponse = {
-      id, indices: reduced, error: error * MeshoptSimplifier.getScale(positions, 3),
+      id, indices: reduced, error,
     };
     self.postMessage(response, {transfer: [reduced.buffer]});
   } catch (error) {

@@ -4,6 +4,11 @@ import type {MotionMeshRequest, MotionMeshResponse} from './blender-motion-worke
 
 const CACHE_BYTES = 64 * 1024 * 1024;
 const QUIET_MS = 150;
+// At most 16,384 triangles are copied/simplified in a single worker request.
+const CHUNK_INDICES = 49_152;
+const COPY_ITEMS = 8_192;
+const cancelled = Symbol('navigation geometry replaced');
+type Range = {start: number; count: number; materialIndex?: number | undefined};
 type Entry = {geometry: THREE.BufferGeometry; error: number; bytes: number};
 
 /** A disposable navigation drawing, never Blender's evaluated geometry.
@@ -15,13 +20,16 @@ export class BlenderMotionGeometry {
   private readonly swapped: {mesh: THREE.Mesh; geometry: THREE.BufferGeometry}[] = [];
   private queue: THREE.BufferGeometry[] = [];
   private worker: Worker | null = null;
-  private pending: {id: number; geometry: THREE.BufferGeometry} | null = null;
+  private pending: {id: number; resolve: (response: MotionMeshResponse) => void} | null = null;
+  private generation = 0;
+  private building = false;
   private nextId = 0;
   private signature = '';
   private readonly identities = new WeakMap<object, number>();
   private nextIdentity = 0;
   private bytes = 0;
   private unavailable: string | null = null;
+  private reductions: {vertices: number; fullTriangles: number; reducedTriangles: number; error: number; accepted: boolean}[] = [];
   private timer: ReturnType<typeof setTimeout> | null = null;
   private readonly cameraWorld = new THREE.Matrix4();
   private readonly cameraProjection = new THREE.Matrix4();
@@ -45,15 +53,22 @@ export class BlenderMotionGeometry {
           (mesh as THREE.InstancedMesh).isInstancedMesh || mesh.morphTargetInfluences) continue;
       const g = mesh.geometry;
       const position = g.getAttribute('position');
-      if (!g.index || g.index.count < 6144 || !position || position.count > 200_000 ||
+      if (!g.index || g.index.count < 6144 || !position || position.count > 8_000_000 ||
           Object.values(g.attributes).some(a => !(a instanceof THREE.BufferAttribute) ||
             (a as THREE.BufferAttribute & {isFloat16BufferAttribute?: boolean}).isFloat16BufferAttribute ||
             (a as THREE.InstancedBufferAttribute).isInstancedBufferAttribute) ||
           Object.keys(g.morphAttributes).length || g.drawRange.start !== 0 || g.drawRange.count < g.index.count) continue;
-      // Only a whole, single material surface. Material boundaries are never
-      // crossed by the simplifier, nor are authored group ranges shortened.
-      if (Array.isArray(mesh.material) && (mesh.material.length !== 1 || g.groups.length !== 1 ||
-          g.groups[0]!.start !== 0 || g.groups[0]!.count !== g.index.count || g.groups[0]!.materialIndex !== 0)) continue;
+      // Support ordered, disjoint material ranges. Overlaps/gaps or a shared
+      // geometry interpreted differently by two objects retain full detail.
+      if (Array.isArray(mesh.material)) {
+        let end = 0;
+        if (!g.groups.length || g.groups.some(range => {
+          const valid = range.start === end && range.count > 0 && range.count % 3 === 0 &&
+            Number.isInteger(range.materialIndex) && range.materialIndex! >= 0 && range.materialIndex! < (mesh.material as THREE.Material[]).length;
+          end = range.start + range.count;
+          return !valid;
+        }) || end !== g.index.count) continue;
+      }
       const held = groups.get(g);
       if (held) held.push(mesh); else groups.set(g, [mesh]);
     }
@@ -63,7 +78,7 @@ export class BlenderMotionGeometry {
       if (id === undefined) { id = ++this.nextIdentity; this.identities.set(object, id); }
       return id;
     };
-    const signature = [...groups].map(([g]) => `${g.id}:${identity(g.index!)}:${g.index!.version}:` +
+    const signature = [...groups].map(([g, meshes]) => `${g.id}:${identity(g.index!)}:${g.index!.version}:${Array.isArray(meshes[0]!.material)}:${JSON.stringify(g.groups)}:` +
       Object.entries(g.attributes).map(([name, a]) => `${name}:${identity(a)}:${(a as THREE.BufferAttribute).version}`).join(',')).join(';');
     if (signature === this.signature) return;
     this.releaseCopies();
@@ -78,95 +93,154 @@ export class BlenderMotionGeometry {
     this.next();
   }
 
-  private next(): void {
-    if (this.pending || this.unavailable || this.bytes >= CACHE_BYTES) return;
+  private async next(): Promise<void> {
+    if (this.building || this.unavailable || this.bytes >= CACHE_BYTES) return;
     const geometry = this.queue.shift();
     if (!geometry) { this.worker?.terminate(); this.worker = null; return; }
-    if (!this.worker) {
-      try {
+    this.building = true;
+    const generation = this.generation;
+    const current = () => { if (generation !== this.generation) throw cancelled; };
+    const yieldCopy = async () => { await new Promise<void>(resolve => setTimeout(resolve, 0)); current(); };
+    try {
+      if (!this.worker) {
         this.worker = new Worker(new URL('./blender-motion-worker.ts', import.meta.url), {type: 'module'});
-        this.worker.onmessage = (event: MessageEvent<MotionMeshResponse>) => this.receive(event.data);
-        this.worker.onerror = event => {
-          this.unavailable = event.message || 'Navigation geometry worker unavailable';
-          this.worker?.terminate(); this.worker = null; this.pending = null;
-          this.queue.length = 0;
+        this.worker.onmessage = (event: MessageEvent<MotionMeshResponse>) => {
+          if (this.pending?.id === event.data.id) {
+            const pending = this.pending; this.pending = null; pending.resolve(event.data);
+          }
         };
-      } catch (error) {
-        // This is an optional presentation. Refusal retains full geometry,
-        // with a visible diagnostic; never fall back to blocking the UI.
-        this.unavailable = String(error); return;
+        this.worker.onerror = event => {
+          const pending = this.pending; this.pending = null;
+          pending?.resolve({id: pending.id, refusal: event.message || 'Navigation geometry worker unavailable'});
+        };
       }
-    }
-    const position = geometry.getAttribute('position') as THREE.BufferAttribute;
-    const positions = new Float32Array(position.count * 3);
-    for (let i = 0; i < position.count; i++) {
-      positions[i * 3] = position.getX(i); positions[i * 3 + 1] = position.getY(i); positions[i * 3 + 2] = position.getZ(i);
-    }
-    // Normals and UVs contribute appearance error. All attributes, including
-    // those not used to rank collapses, are retained in the resulting copy.
-    const attributes = Object.entries(geometry.attributes).filter(([name]) => name === 'normal' || /^uv\d*$/.test(name));
-    const stride = attributes.reduce((n, [, a]) => n + a.itemSize, 0);
-    const values = new Float32Array(position.count * stride);
-    const weights: number[] = [];
-    let offset = 0;
-    for (const [name, a] of attributes) {
-      for (let c = 0; c < a.itemSize; c++) weights.push(name === 'normal' ? 0.5 : 1);
-      for (let i = 0; i < position.count; i++) for (let c = 0; c < a.itemSize; c++)
-        values[i * stride + offset + c] = (a as THREE.BufferAttribute).getComponent(i, c);
-      offset += a.itemSize;
-    }
-    const indices = new Uint32Array(geometry.index!.array);
-    const id = ++this.nextId;
-    this.pending = {id, geometry};
-    const request: MotionMeshRequest = {id, positions, indices, attributes: values, stride, weights};
-    this.worker.postMessage(request, [positions.buffer, indices.buffer, values.buffer]);
-  }
-
-  private receive(response: MotionMeshResponse): void {
-    const pending = this.pending;
-    if (!pending || pending.id !== response.id) return;
-    this.pending = null;
-    const {geometry} = pending;
-    const indices = response.indices;
-    if (response.refusal) {
-      this.unavailable = response.refusal;
-      this.worker?.terminate(); this.worker = null; this.queue.length = 0;
-    }
-    if (indices && response.error !== undefined && Number.isFinite(response.error) &&
-        indices.length > 0 && indices.length < geometry.index!.count * 0.75) {
+      const position = geometry.getAttribute('position') as THREE.BufferAttribute;
+      const meshes = this.groups.get(geometry)!;
+      const multi = Array.isArray(meshes[0]!.material);
+      if (meshes.some(mesh => Array.isArray(mesh.material) !== multi)) return;
+      const ranges: Range[] = multi ? geometry.groups : [{start: 0, count: geometry.index!.count}];
+      const appearance = Object.entries(geometry.attributes).filter(([name]) => name === 'normal' || /^uv\d*$/.test(name));
+      const stride = appearance.reduce((n, [, a]) => n + a.itemSize, 0);
+      const weights = appearance.flatMap(([name, a]) => Array(a.itemSize).fill(name === 'normal' ? 0.5 : 1));
+      // Reuse bounds when present, otherwise derive the error scale in
+      // yielding slices. Never scan a large mesh in one UI-thread call.
+      const bounds = geometry.boundingBox?.clone() ?? new THREE.Box3();
+      if (!geometry.boundingBox) {
+        const point = new THREE.Vector3();
+        for (let first = 0; first < position.count; first += COPY_ITEMS) {
+          await yieldCopy();
+          for (let i = first; i < Math.min(first + COPY_ITEMS, position.count); i++)
+            bounds.expandByPoint(point.fromBufferAttribute(position, i));
+        }
+      }
+      if (!geometry.boundingSphere) return;
+      const absoluteError = Math.max(bounds.max.x - bounds.min.x, bounds.max.y - bounds.min.y,
+        bounds.max.z - bounds.min.z) * 0.002;
+      const parts: Uint32Array[] = [];
+      const outputGroups: Range[] = [];
+      let count = 0, error = 0;
+      for (const range of ranges) {
+        const groupStart = count;
+        for (let start = range.start; start < range.start + range.count; start += CHUNK_INDICES) {
+          await yieldCopy();
+          const end = Math.min(start + CHUNK_INDICES, range.start + range.count);
+          const originals: number[] = [], remap = new Map<number, number>();
+          const indices = new Uint32Array(end - start);
+          for (let i = start; i < end; i++) {
+            const original = geometry.index!.getX(i);
+            let local = remap.get(original);
+            if (local === undefined) { local = originals.length; originals.push(original); remap.set(original, local); }
+            indices[i - start] = local;
+          }
+          const positions = new Float32Array(originals.length * 3);
+          const values = new Float32Array(originals.length * stride);
+          for (let first = 0; first < originals.length; first += COPY_ITEMS) {
+            await yieldCopy();
+            for (let i = first; i < Math.min(first + COPY_ITEMS, originals.length); i++) {
+              const original = originals[i]!;
+              for (let c = 0; c < 3; c++) positions[i * 3 + c] = position.getComponent(original, c);
+              let offset = 0;
+              for (const [, attribute] of appearance) {
+                for (let c = 0; c < attribute.itemSize; c++)
+                  values[i * stride + offset + c] = (attribute as THREE.BufferAttribute).getComponent(original, c);
+                offset += attribute.itemSize;
+              }
+            }
+          }
+          const id = ++this.nextId;
+          const response = await new Promise<MotionMeshResponse>(resolve => {
+            this.pending = {id, resolve};
+            const request: MotionMeshRequest = {id, positions, indices, attributes: values, stride, weights, absoluteError};
+            this.worker!.postMessage(request, [positions.buffer, indices.buffer, values.buffer]);
+          });
+          current();
+          if (response.refusal) throw new Error(response.refusal);
+          if (!response.indices || !Number.isFinite(response.error)) throw new Error('Invalid navigation geometry response');
+          const reduced = response.indices;
+          for (let i = 0; i < reduced.length; i++) reduced[i] = originals[reduced[i]!]!;
+          count += reduced.length;
+          if (count * 4 > CACHE_BYTES - this.bytes) return;
+          parts.push(reduced);
+          error = Math.max(error, response.error!);
+        }
+        if (multi) outputGroups.push({start: groupStart, count: count - groupStart, materialIndex: range.materialIndex});
+      }
+      const reduction = {vertices: position.count, fullTriangles: geometry.index!.count / 3,
+        reducedTriangles: count / 3, error, accepted: false};
+      if (this.reductions.length < 32) this.reductions.push(reduction);
+      if (!count || count >= geometry.index!.count * 0.75) return;
+      // Compact only after all material ranges succeed. Yield while remapping
+      // and copying; cancellation never publishes a partial surface.
+      const remap = new Int32Array(position.count).fill(-1);
       const originals: number[] = [];
-      const remap = new Map<number, number>();
-      for (let i = 0; i < indices.length; i++) {
-        const original = indices[i]!;
-        let index = remap.get(original);
-        if (index === undefined) { index = originals.length; originals.push(original); remap.set(original, index); }
-        indices[i] = index;
+      const indices = new Uint32Array(count);
+      let offset = 0;
+      for (const part of parts) {
+        for (let first = 0; first < part.length; first += COPY_ITEMS) {
+          await yieldCopy();
+          for (let i = first; i < Math.min(first + COPY_ITEMS, part.length); i++) {
+            const original = part[i]!;
+            let local = remap[original]!;
+            if (local < 0) { local = originals.length; originals.push(original); remap[original] = local; }
+            indices[offset + i] = local;
+          }
+        }
+        offset += part.length;
       }
       const bytes = indices.byteLength + Object.values(geometry.attributes).reduce((n, a) =>
         n + originals.length * a.itemSize * a.array.BYTES_PER_ELEMENT, 0);
-      if (this.bytes + bytes <= CACHE_BYTES) {
-        const copy = new THREE.BufferGeometry();
-        copy.setIndex(new THREE.BufferAttribute(indices, 1));
-        for (const [name, source] of Object.entries(geometry.attributes)) {
-          const attribute = source as THREE.BufferAttribute;
-          const ArrayType = attribute.array.constructor as {new(length: number): THREE.TypedArray};
-          const data = new ArrayType(originals.length * attribute.itemSize);
-          for (let i = 0; i < originals.length; i++) for (let c = 0; c < attribute.itemSize; c++)
-            data[i * attribute.itemSize + c] = attribute.array[originals[i]! * attribute.itemSize + c]!;
-          copy.setAttribute(name, new THREE.BufferAttribute(data, attribute.itemSize, attribute.normalized));
+      if (this.bytes + bytes > CACHE_BYTES) return;
+      const copy = new THREE.BufferGeometry();
+      copy.setIndex(new THREE.BufferAttribute(indices, 1));
+      for (const [name, source] of Object.entries(geometry.attributes)) {
+        const attribute = source as THREE.BufferAttribute;
+        const ArrayType = attribute.array.constructor as {new(length: number): THREE.TypedArray};
+        const data = new ArrayType(originals.length * attribute.itemSize);
+        for (let first = 0; first < originals.length; first += COPY_ITEMS) {
+          await yieldCopy();
+          for (let i = first; i < Math.min(first + COPY_ITEMS, originals.length); i++)
+            for (let c = 0; c < attribute.itemSize; c++)
+              data[i * attribute.itemSize + c] = attribute.array[originals[i]! * attribute.itemSize + c]!;
         }
-        // Retain the exact culling/sorting bounds and material assignment.
-        if (!geometry.boundingSphere) geometry.computeBoundingSphere();
-        copy.boundingSphere = geometry.boundingSphere!.clone();
-        copy.boundingBox = geometry.boundingBox?.clone() ?? null;
-        if (geometry.groups.length === 1) copy.addGroup(0, indices.length, geometry.groups[0]!.materialIndex);
-        copy.userData = {...geometry.userData};
-        this.cache.set(geometry, {geometry: copy, error: response.error, bytes});
-        this.bytes += bytes;
+        copy.setAttribute(name, new THREE.BufferAttribute(data, attribute.itemSize, attribute.normalized));
+      }
+      copy.boundingSphere = geometry.boundingSphere.clone();
+      copy.boundingBox = bounds.clone();
+      for (const group of outputGroups) copy.addGroup(group.start, group.count, group.materialIndex);
+      copy.userData = {...geometry.userData};
+      reduction.accepted = true;
+      this.cache.set(geometry, {geometry: copy, error, bytes});
+      this.bytes += bytes;
+    } catch (error) {
+      if (error === cancelled) return;
+      this.unavailable = String(error);
+      this.worker?.terminate(); this.worker = null; this.pending = null; this.queue.length = 0;
+    } finally {
+      if (generation === this.generation) {
+        this.building = false;
+        this.timer = setTimeout(() => { this.timer = null; void this.next(); }, 0);
       }
     }
-    // Yield between meshes, including copying their attributes for the worker.
-    this.timer = setTimeout(() => { this.timer = null; this.next(); }, 0);
   }
 
   prepare(camera: THREE.Camera, interactive: boolean, height: number): boolean {
@@ -224,16 +298,19 @@ export class BlenderMotionGeometry {
     this.swapped.length = 0;
   }
   inspect() {
-    return {copies: this.cache.size, bytes: this.bytes, queued: this.queue.length, pending: this.pending !== null,
-      unavailable: this.unavailable, lastNavigation: {...this.lastNavigation}};
+    return {copies: this.cache.size, bytes: this.bytes, queued: this.queue.length, pending: this.building,
+      unavailable: this.unavailable, reductions: this.reductions.map(r => ({...r})), lastNavigation: {...this.lastNavigation}};
   }
   private releaseCopies(): void {
     this.finish();
     if (this.timer) clearTimeout(this.timer);
     this.timer = null;
-    this.worker?.terminate(); this.worker = null; this.pending = null; this.queue = [];
+    this.generation++;
+    this.worker?.terminate(); this.worker = null;
+    this.pending?.resolve({id: this.pending.id, refusal: 'Navigation geometry replaced'});
+    this.pending = null; this.building = false; this.queue = [];
     for (const entry of this.cache.values()) entry.geometry.dispose();
-    this.cache.clear(); this.bytes = 0;
+    this.cache.clear(); this.bytes = 0; this.reductions = [];
   }
   clear(): void {
     this.releaseCopies();
