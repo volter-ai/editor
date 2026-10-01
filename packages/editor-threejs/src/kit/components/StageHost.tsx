@@ -2113,7 +2113,7 @@ export function Object3DDocumentViewport({
          * resumed so it draws, run back to back and each waited out on the GPU with a one-pixel
          * read, which a real frame never does; the first frame warms and is not counted.
          */
-        const measureFrameCost = (frames: number, quality: 'full' | 'navigation' = 'full', pixelRatio?: number): StageFrameCost => {
+        const measureFrameCost = (frames: number, quality: 'full' | 'navigation' = 'full'): StageFrameCost => {
           if (!renderer) throw new Error('This stage has no renderer yet.');
           const activeRenderer = renderer;
           const gl = activeRenderer.getContext();
@@ -2124,17 +2124,7 @@ export function Object3DDocumentViewport({
           const camera = documentSession.camera();
           const originalTurn = camera.quaternion.clone();
           const axis = new THREE.Vector3(0, 1, 0);
-          const originalRatio = activeRenderer.getPixelRatio();
-          const cssSize = activeRenderer.getSize(new THREE.Vector2());
-          const ratio = pixelRatio ?? originalRatio;
-          const size = new THREE.Vector2();
           try {
-            if (ratio !== originalRatio) {
-              activeRenderer.setPixelRatio(ratio);
-              // The document's compositor queries the actual drawing buffer,
-              // so every pass measures this ratio, not just the final canvas.
-              documentSession.resize(cssSize.x, cssSize.y);
-            }
             for (let index = 0; index <= frames; index++) {
               // A real changed camera exercises culling, sorting and the
               // source's navigation path. Never persist this diagnostic pose.
@@ -2151,15 +2141,10 @@ export function Object3DDocumentViewport({
                 completionTimes.push(completed - submitted);
               }
             }
-            activeRenderer.getDrawingBufferSize(size);
           } finally {
             navigationMeasurement = null;
             camera.quaternion.copy(originalTurn);
             camera.updateMatrixWorld(true);
-            if (ratio !== originalRatio) {
-              activeRenderer.setPixelRatio(originalRatio);
-              documentSession.resize(cssSize.x, cssSize.y);
-            }
             dirty = true;
           }
           const drawn = { calls: activeRenderer.info.render.calls, triangles: activeRenderer.info.render.triangles };
@@ -2175,6 +2160,8 @@ export function Object3DDocumentViewport({
           });
           const sorted = [...times].sort((a, b) => a - b);
           const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
+          const size = activeRenderer.getDrawingBufferSize(new THREE.Vector2());
+          const ratio = activeRenderer.getPixelRatio();
           const round = (value: number) => Math.round(value * 100) / 100;
           const median = (values: number[]) => round(values.sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0);
           return {
@@ -2216,7 +2203,7 @@ export function Object3DDocumentViewport({
                   drawCamera: () => host.session?.camera() ?? viewport.camera,
                   orbit: viewport.orbitControls,
                   scene: host.scene,
-                  frameCost: (frames, quality, pixelRatio) => measureFrameCost(frames, quality, pixelRatio),
+                  frameCost: (frames, quality) => measureFrameCost(frames, quality),
                 },
                 () => null,
                 (kind, object) => viewport.setHelper(kind, object),
