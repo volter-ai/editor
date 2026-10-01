@@ -253,7 +253,21 @@ const pendingTextures = new Set<Promise<void>>();
 // File images retain their finished bitmap, but decoder work is transient.
 // Starting every image in one frame at once retained all PNG decode/flip
 // workspaces alongside those bitmaps (the Bridge's rasters total 1,343 MiB).
+//
+// AND ONE IMAGE'S PIXELS AT A TIME, NOT ONE DECODE AT A TIME. A viewport's image keeps its
+// decoded bitmap until the next drawn frame uploads it (`upload`), and decodes resolve between
+// tasks while a loading page's busy main thread starves its frames, so a queue that waited only
+// for the previous DECODE ran ahead of the uploads and held every decoded image at once. The next
+// viewport image therefore waits until the previous one's pixels are uploaded or released. A
+// photograph keeps its pixels and does not draw frames, so its images queue on their own and
+// wait only for the previous decode.
 let textureDecodeTail: Promise<void> = Promise.resolve();
+let keptPixelsDecodeTail: Promise<void> = Promise.resolve();
+/** Decoded file-image pixels currently held, in bytes: the instrument for the rule above. */
+let decodedPixelBytes = 0;
+export function decodedImageBytes(): number {
+  return decodedPixelBytes;
+}
 // GPU allocations belong to a context generation, not just a renderer object.
 const textureContexts = new WeakMap<THREE.WebGLRenderer, { generation: number }>();
 function textureContext(renderer: THREE.WebGLRenderer): { generation: number } {
@@ -292,10 +306,12 @@ function loadEncodedTexture(
   let disposed = false;
   let decodingNow: Promise<void> | null = null;
   let everBound = false;
+  let heldBytes = 0;
+  let openQueue: (() => void) | null = null;
   const uploads = new WeakMap<THREE.WebGLRenderer, { generation: number; keys: WeakMap<THREE.Texture, string> }>();
   texture.addEventListener('dispose', () => {
     disposed = true;
-    texture.image?.close?.();
+    releaseBitmap();
   });
   // DECODED BOTTOM ROW FIRST, because that is the row Blender's v=0 is. A PNG
   // stores its rows top-down -- this one is a FILE-backed image's own bytes,
@@ -319,7 +335,13 @@ function loadEncodedTexture(
   // the image's colour space setting itself, as the sampler does here.
   const decode = (): Promise<void> => {
     if (decodingNow) return decodingNow;
-    const decoding = textureDecodeTail.then(async () => {
+    let opened = false;
+    let open = (): void => { opened = true; };
+    const pixelsGone = new Promise<void>((resolve) => {
+      open = () => { opened = true; resolve(); };
+      if (opened) resolve();
+    });
+    const decoding = (keepPixels ? keptPixelsDecodeTail : textureDecodeTail).then(async () => {
       // A closed document must not decode the rest of its queued images.
       if (disposed) return;
       const blob = new Blob([encoded as BlobPart], { type: mime });
@@ -333,6 +355,9 @@ function loadEncodedTexture(
         return;
       }
       bitmap = decoded;
+      heldBytes = decoded.width * decoded.height * 4;
+      decodedPixelBytes += heldBytes;
+      openQueue = open;
       texture.image = decoded;
       texture.source.dataReady = true;
       texture.needsUpdate = true;
@@ -341,23 +366,31 @@ function loadEncodedTexture(
     .finally(() => {
       pendingTextures.delete(decoding);
       decodingNow = null;
+      // No pixels held (a failure, a closed document): the next image need not wait.
+      if (!bitmap) open();
     });
     // A failed image does not poison another document's decode queue.
-    textureDecodeTail = decoding.catch(() => {});
+    if (keepPixels) keptPixelsDecodeTail = decoding.catch(() => {});
+    else textureDecodeTail = pixelsGone;
     pendingTextures.add(decoding);
     // The owner's ready promise still reports the same decode failure.
     void decoding.catch(() => {});
     decodingNow = decoding;
     return decoding;
   };
-  const releaseBitmap = (): void => {
+  function releaseBitmap(): void {
     if (!bitmap) return;
     const dimensions = { width: bitmap.width, height: bitmap.height };
     bitmap.close();
     bitmap = null;
+    decodedPixelBytes -= heldBytes;
+    heldBytes = 0;
     texture.image = dimensions;
     texture.source.dataReady = false;
-  };
+    const next = openQueue;
+    openQueue = null;
+    next?.();
+  }
   const upload = (renderer: THREE.WebGLRenderer, variants: () => readonly THREE.Texture[]): void => {
     if (disposed) return;
     if (renderer.getContext().isContextLost() || !renderer.domElement.isConnected) { releaseBitmap(); return; }
@@ -370,7 +403,8 @@ function loadEncodedTexture(
     const textures = variants();
     if (textures.length === 0) { releaseBitmap(); return; }
     everBound = true;
-    if (textures.every(one => held!.keys.get(one) === textureUploadKey(one))) return;
+    // Every sampler already holds these texels: pixels kept now would only hold up the queue.
+    if (textures.every(one => held!.keys.get(one) === textureUploadKey(one))) { releaseBitmap(); return; }
     if (!bitmap) {
       // A new context or sampler needs the same original texels again. The
       // current context keeps its GPU content while one image is re-decoded.
@@ -2233,7 +2267,8 @@ export class BlenderRuntimeView {
   }
 
   drawStatistics() {
-    return {enabled: this.drawBatching, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
+    return {enabled: this.drawBatching, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect(),
+      decodedImageBytes: decodedImageBytes()};
   }
 
   snapshot() {
