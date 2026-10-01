@@ -45,3 +45,28 @@ decoder options, image sizes, texture sources, material samplers, colors and
 texturesReady completion barrier remain unchanged; no image is downsized or
 discarded. This bounds concurrency rather than claiming a measured reduction
 in total renderer footprint. The final recording must establish that result.
+
+## Decoded pixels belong to an upload, not the presented model
+
+The b97812ca recording still lost its renderer before the selected Properties
+proof. Serial decoding alone leaves every completed ImageBitmap resident.
+The Bridge image census is 1,343 MiB of decoded pixels, retained alongside the
+171 MiB encoded files and WebGL textures. This is a concrete retained allocation;
+it does not establish the full process-footprint attribution.
+
+The stage now supplies its native renderer to the existing prepareDraw seam.
+The file-image owner uploads through Three's public initTexture door, including
+every current material-input sampler sharing that Source, and closes the bitmap
+after all uploads. It retains dimensions, the original compressed bytes and
+Source.dataReady=false; no closed pixel source is passed back to GL.
+A hidden document learns image dimensions and closes the initial bitmap rather
+than keeping CPU rasters for a context it does not have.
+
+A new renderer, context-restoration generation, or changed sampler parameters
+queues a fresh decode using the original flip/alpha/colour options, uploads the
+full pixels and closes them again. Renderer admission is weakly held; queued
+work reads the current sampler list and does not upload into a detached canvas.
+Raster/UDIM paths and detached capture snapshots retain their existing lifetimes.
+No image is resized, recompressed, removed or colour-converted by this change.
+The required final recording must still prove the total footprint and Properties;
+no measured frame-speed gain is attributed to this lifetime correction.

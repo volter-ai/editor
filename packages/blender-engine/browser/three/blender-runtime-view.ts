@@ -253,6 +253,26 @@ const pendingTextures = new Set<Promise<void>>();
 // Starting every image in one frame at once retained all PNG decode/flip
 // workspaces alongside those bitmaps (the Bridge's rasters total 1,343 MiB).
 let textureDecodeTail: Promise<void> = Promise.resolve();
+// GPU allocations belong to a context generation, not just a renderer object.
+const textureContexts = new WeakMap<THREE.WebGLRenderer, { generation: number }>();
+function textureContext(renderer: THREE.WebGLRenderer): { generation: number } {
+  let state = textureContexts.get(renderer);
+  if (!state) {
+    state = { generation: 0 };
+    textureContexts.set(renderer, state);
+    const held = state;
+    renderer.domElement.addEventListener('webglcontextrestored', () => {
+      held.generation++;
+      presenterChanged();
+    });
+  }
+  return state;
+}
+function textureUploadKey(texture: THREE.Texture): string {
+  return JSON.stringify([texture.wrapS, texture.wrapT, texture.magFilter, texture.minFilter,
+    texture.anisotropy, texture.format, texture.type, texture.internalFormat,
+    texture.generateMipmaps, texture.premultiplyAlpha, texture.flipY, texture.unpackAlignment, texture.colorSpace]);
+}
 
 export async function texturesReady(): Promise<void> {
   while (pendingTextures.size > 0) await Promise.all([...pendingTextures]);
@@ -263,9 +283,14 @@ export async function texturesReady(): Promise<void> {
 function loadEncodedTexture(
   encoded: Uint8Array,
   mime: 'image/png' | 'image/jpeg',
-): { texture: THREE.Texture; ready: Promise<void> } {
+  keepPixels = false,
+): { texture: THREE.Texture; ready: Promise<void>; upload(renderer: THREE.WebGLRenderer, variants: () => readonly THREE.Texture[]): void } {
   const texture = new THREE.Texture();
+  let bitmap: ImageBitmap | null = null;
   let disposed = false;
+  let decodingNow: Promise<void> | null = null;
+  let everBound = false;
+  const uploads = new WeakMap<THREE.WebGLRenderer, { generation: number; keys: WeakMap<THREE.Texture, string> }>();
   texture.addEventListener('dispose', () => {
     disposed = true;
     texture.image?.close?.();
@@ -290,34 +315,85 @@ function loadEncodedTexture(
   // stores them premultiplied, which the reader then undoes. And its colour is the file's own: no
   // embedded profile or gamma is applied, because Blender reads the texels as stored and applies
   // the image's colour space setting itself, as the sampler does here.
-  const decoding = textureDecodeTail.then(async () => {
+  const decode = (): Promise<void> => {
+    if (decodingNow) return decodingNow;
+    const decoding = textureDecodeTail.then(async () => {
       // A closed document must not decode the rest of its queued images.
       if (disposed) return;
       const blob = new Blob([encoded as BlobPart], { type: mime });
-      const bitmap = await createImageBitmap(blob, {
+      const decoded = await createImageBitmap(blob, {
         imageOrientation: 'flipY',
         premultiplyAlpha: 'none',
         colorSpaceConversion: 'none',
       });
       if (disposed) {
-        bitmap.close();
+        decoded.close();
         return;
       }
-      texture.image = bitmap;
+      bitmap = decoded;
+      texture.image = decoded;
+      texture.source.dataReady = true;
       texture.needsUpdate = true;
       presenterChanged();
     })
     .finally(() => {
       pendingTextures.delete(decoding);
+      decodingNow = null;
     });
-  // A failed image still rejects its own ready promise. It does not prevent
-  // another document's images from reaching the browser decoder.
-  textureDecodeTail = decoding.catch(() => {});
-  pendingTextures.add(decoding);
-  // Keep a rejection handled even if a document closes before its first
-  // render. The owner's ready promise still reports that same failure.
-  void decoding.catch(() => {});
-  return { texture, ready: decoding };
+    // A failed image does not poison another document's decode queue.
+    textureDecodeTail = decoding.catch(() => {});
+    pendingTextures.add(decoding);
+    // The owner's ready promise still reports the same decode failure.
+    void decoding.catch(() => {});
+    decodingNow = decoding;
+    return decoding;
+  };
+  const releaseBitmap = (): void => {
+    if (!bitmap) return;
+    const dimensions = { width: bitmap.width, height: bitmap.height };
+    bitmap.close();
+    bitmap = null;
+    texture.image = dimensions;
+    texture.source.dataReady = false;
+  };
+  const upload = (renderer: THREE.WebGLRenderer, variants: () => readonly THREE.Texture[]): void => {
+    if (disposed) return;
+    if (renderer.getContext().isContextLost() || !renderer.domElement.isConnected) { releaseBitmap(); return; }
+    everBound = true;
+    const context = textureContext(renderer);
+    let held = uploads.get(renderer);
+    if (!held || held.generation !== context.generation) {
+      held = { generation: context.generation, keys: new WeakMap() };
+      uploads.set(renderer, held);
+    }
+    const textures = [texture, ...variants()];
+    if (textures.every(one => held!.keys.get(one) === textureUploadKey(one))) return;
+    if (!bitmap) {
+      // A new context or sampler needs the same original texels again. The
+      // current context keeps its GPU content while one image is re-decoded.
+      void decode().then(() => { if (!disposed) upload(renderer, variants); }, error => {
+        if (!disposed) console.error('Blender file image re-upload failed', error);
+      });
+      return;
+    }
+    for (const one of textures) {
+      // Clones share Source, but each sampler can have its own GL allocation.
+      // Upload all of them before closing their common bitmap.
+      one.needsUpdate = true;
+      renderer.initTexture(one);
+      held.keys.set(one, textureUploadKey(one));
+    }
+    releaseBitmap();
+    // Three may visit an already-uploaded sampler again after a clone bumps
+    // the shared Source version. Keep dimensions but never pass closed pixels
+    // to GL. A new context/sampler is admitted by upload() above.
+    texture.source.dataReady = false;
+  };
+  const ready = decode();
+  // Learn dimensions for image extras, but a hidden document has no context
+  // to keep CPU texels for. Its first viewport re-decodes from retained bytes.
+  void ready.then(() => { if (!everBound && !keepPixels) releaseBitmap(); }, () => {});
+  return { texture, ready, upload };
 }
 
 /** A RASTER as a three texture, uploaded with no decode and no flip.
@@ -731,6 +807,7 @@ export class BlenderRuntimeView {
       revision: number;
       encoded?: { bytes: Uint8Array; mime: 'image/png' | 'image/jpeg'; colorspace: 'sRGB' | 'data' };
       ready?: Promise<void>;
+      upload?: (renderer: THREE.WebGLRenderer, variants: () => readonly THREE.Texture[]) => void;
       /** A UDIM image's tiles as a graph samples them (`udimTextures`). */
       udim?: {tiles: THREE.DataArrayTexture; map: THREE.DataTexture; frame: NonNullable<z.infer<typeof rasterImageSchema>['tiles']>};
     }
@@ -1257,8 +1334,10 @@ export class BlenderRuntimeView {
 
   /** Before the renderer uploads attributes/builds its queues, for this area's
    * actual camera. Transparent instance runs are camera-order dependent. */
-  prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean}): () => void {
+  prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}): () => void {
     try {
+      if (options?.renderer) for (const held of this.textures.values())
+        held.upload?.(options.renderer, () => this.textureSamplers.variants(held.texture));
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
@@ -1748,15 +1827,17 @@ export class BlenderRuntimeView {
       held?.udim?.tiles.dispose();
       held?.udim?.map.dispose();
       const colorspace = data.colorspace ?? 'sRGB';
-      const { texture, ready } = loadEncodedTexture(encoded, data.mime);
+      const { texture, ready, upload } = loadEncodedTexture(encoded, data.mime, this.photograph);
       texture.colorSpace = colorspace === 'data' ? THREE.NoColorSpace : THREE.SRGBColorSpace;
       this.textures.set(name, {
         texture,
         ready,
+        upload,
         width: 0,
         height: 0,
         revision: data.revision,
-        encoded: { bytes: encoded.slice(), mime: data.mime, colorspace },
+        // The transferred file buffer is already owned and immutable here.
+        encoded: { bytes: encoded, mime: data.mime, colorspace },
       });
     }
     for (const [id, data] of Object.entries(next.materials)) {
