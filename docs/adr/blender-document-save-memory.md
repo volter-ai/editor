@@ -31,3 +31,17 @@ renderer growth is diagnosed, that initial presentation is fixed, or that the
 final recorded run passes. Evidence is in stoneguard-diagnostics/
 f2-footprint-{live,ready,selected,final}-vmmap.txt and the corresponding status
 and Properties reads. No performance optimization or new frame-time claim.
+
+Initial presentation has a separate unbounded concurrency path:
+loadEncodedTexture starts every PNG/JPEG decode in the manifest immediately.
+The existing Bridge image census records 84 images, 171 MiB compressed and
+1,343 MiB as RGBA. Finished ImageBitmaps must remain available for texture
+uploads and context restoration, but all decoder and vertical-flip temporary
+workspaces need not coexist. File-image decoding now runs one image at a time.
+Blob creation is inside that queue, and a disposed texture skips queued work
+or closes an already-running decode's result. A failed image still rejects
+its own readiness promise without poisoning later jobs. The exact browser
+decoder options, image sizes, texture sources, material samplers, colors and
+texturesReady completion barrier remain unchanged; no image is downsized or
+discarded. This bounds concurrency rather than claiming a measured reduction
+in total renderer footprint. The final recording must establish that result.

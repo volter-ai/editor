@@ -249,6 +249,10 @@ const meshSchema = z.union([
  *  untextured render this whole path exists to stop. (A RASTER needs no wait:
  *  a `DataTexture` holds its bytes the moment it is built.) */
 const pendingTextures = new Set<Promise<void>>();
+// File images retain their finished bitmap, but decoder work is transient.
+// Starting every image in one frame at once retained all PNG decode/flip
+// workspaces alongside those bitmaps (the Bridge's rasters total 1,343 MiB).
+let textureDecodeTail: Promise<void> = Promise.resolve();
 
 export async function texturesReady(): Promise<void> {
   while (pendingTextures.size > 0) await Promise.all([...pendingTextures]);
@@ -260,7 +264,6 @@ function loadEncodedTexture(
   encoded: Uint8Array,
   mime: 'image/png' | 'image/jpeg',
 ): { texture: THREE.Texture; ready: Promise<void> } {
-  const blob = new Blob([encoded as BlobPart], { type: mime });
   const texture = new THREE.Texture();
   let disposed = false;
   texture.addEventListener('dispose', () => {
@@ -287,12 +290,15 @@ function loadEncodedTexture(
   // stores them premultiplied, which the reader then undoes. And its colour is the file's own: no
   // embedded profile or gamma is applied, because Blender reads the texels as stored and applies
   // the image's colour space setting itself, as the sampler does here.
-  const decoding = createImageBitmap(blob, {
-    imageOrientation: 'flipY',
-    premultiplyAlpha: 'none',
-    colorSpaceConversion: 'none',
-  })
-    .then((bitmap) => {
+  const decoding = textureDecodeTail.then(async () => {
+      // A closed document must not decode the rest of its queued images.
+      if (disposed) return;
+      const blob = new Blob([encoded as BlobPart], { type: mime });
+      const bitmap = await createImageBitmap(blob, {
+        imageOrientation: 'flipY',
+        premultiplyAlpha: 'none',
+        colorSpaceConversion: 'none',
+      });
       if (disposed) {
         bitmap.close();
         return;
@@ -304,6 +310,9 @@ function loadEncodedTexture(
     .finally(() => {
       pendingTextures.delete(decoding);
     });
+  // A failed image still rejects its own ready promise. It does not prevent
+  // another document's images from reaching the browser decoder.
+  textureDecodeTail = decoding.catch(() => {});
   pendingTextures.add(decoding);
   // Keep a rejection handled even if a document closes before its first
   // render. The owner's ready promise still reports that same failure.
