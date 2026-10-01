@@ -1348,6 +1348,7 @@ class Session:
         # New documents remain raw; an opened compressed document stays
         # compressed instead of expanding in WasmFS on its first idle save.
         self.document_compressed = False
+        self.document_size = 0
         # Set by a present that left the document behind the model; cleared by
         # the save. The tab reads it as `saveDue` beside the frame.
         self.save_due = False
@@ -1874,6 +1875,7 @@ class Session:
         _mark("open:after")
         _asked({"checkpoint": "document-opened"})
         size = os.path.getsize(self.document)
+        self.document_size = size
         # THE STAGED COPY GOES ONCE BLENDER HAS READ IT. It sits in the engine's heap (WasmFS keeps
         # file data in linear memory) and nothing reads it again: the load took everything into
         # Blender's own memory, packed pictures included, and the next save writes the path anew.
@@ -1999,12 +2001,22 @@ class Session:
                 os.chmod(directory, 0o777)
             except OSError:
                 pass
+        # The first staged copy was released after open. Seed only its size
+        # before the native writer starts: RawWriteWrap's browser backend
+        # removes this placeholder and presizes its temporary from it. A
+        # growing WasmFS vector would otherwise retain outgrown buffers and
+        # double past the compressed document's actual size. The host's file
+        # remains untouched until the worker's verified commit succeeds.
+        if not existed and self.document_size > 0:
+            with open(self.document, "wb") as placeholder:
+                placeholder.truncate(self.document_size)
         bpy.ops.wm.save_as_mainfile(
             filepath=self.document, compress=self.document_compressed,
             relative_remap=False, copy=True)
+        self.document_size = os.path.getsize(self.document)
         return {"saved": True, "path": self.document,
                 "document": self.document_relative,
-                "size": os.path.getsize(self.document),
+                "size": self.document_size,
                 "revision": self.revision,
                 # The instruments a reader needs to judge the save: what
                 # Blender thought of the file's state, and whether this was the

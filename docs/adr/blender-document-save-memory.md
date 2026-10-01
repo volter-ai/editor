@@ -92,6 +92,17 @@ and leaves relative_remap=false and copy=true intact. It changes no authored
 arrays, packed images, dimensions, paths, undo or selection. This is a source
 allocation correction; the final recording must establish its total effect.
 
+The session also retains only the opened file's byte count. Before its first
+save, when that input path has already been released, it creates a local
+placeholder of that known size. The existing browser RawWriteWrap removes
+the placeholder and uses its size to reserve the native output once. This
+avoids geometric WasmFS buffer growth even when a compressed save crosses a
+power-of-two boundary. Later saves use their actual prior file size as before.
+The native operator still writes every output byte, and no placeholder is
+uploaded or committed on failure. The project file and the live model remain
+the save barrier's protected work until native writing and verified commit
+complete.
+
 ## Server persistence consumes verified chunks
 
 The previous document route retained every uploaded chunk as a Buffer, then
