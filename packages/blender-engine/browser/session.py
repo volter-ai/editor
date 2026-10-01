@@ -1327,6 +1327,18 @@ def _weights(scene, view_layer, frame, known):
 
 # ---------------------------------------------------------------- the session
 
+def _door_json(options):
+    """THE EXPORT DOOR'S REQUEST, its names written as UTF-8 and not escaped.
+
+    The C++ door's JSON reader does not decode `\\uXXXX` escapes: it drops the
+    backslash, so `json.dumps`'s default (ASCII, escaping) turns a mesh named
+    "Hull \u2022 bow" into a lookup for "Hull u2022 bow" that finds nothing, and the
+    pull fails with "the last frame deferred no mesh". Measured on 0.5.157 by
+    asking `export_mesh` for one key both ways: escaped, the door echoed
+    'Hull u2022 probe'; raw, 'Hull \u2022 probe'."""
+    return json.dumps(options, ensure_ascii=False)
+
+
 class Session:
     def __init__(self):
         self.session = "blender-%d" % int(time.time() * 1000)
@@ -1403,10 +1415,10 @@ class Session:
         if hasattr(_blender_web, "memory_reset_peak"):
             _blender_web.memory_reset_peak()
         if hasattr(_blender_web, "export_frame_chunked"):
-            exported = _blender_web.export_frame_chunked(json.dumps(options),
+            exported = _blender_web.export_frame_chunked(_door_json(options),
                 lambda: _asked({"checkpoint": "native-export"}))
         else:
-            exported = _blender_web.export_frame(json.dumps(options))
+            exported = _blender_web.export_frame(_door_json(options))
         _mark("export:door")
         frame = json.loads(exported)
         del exported
@@ -1625,7 +1637,7 @@ class Session:
                 if kind == "image" and self._send_encoded_image(key, frame["images"][key]):
                     continue
                 options["key"] = key
-                piece = json.loads(door(json.dumps(options)))
+                piece = json.loads(door(_door_json(options)))
                 if piece.get("error"):
                     raise RuntimeError("Blender export door: %s" % piece["error"])
                 frame["warnings"].extend(piece.get("warnings", []))
