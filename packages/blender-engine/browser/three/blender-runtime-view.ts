@@ -2177,6 +2177,52 @@ export class BlenderRuntimeView {
     };
   }
 
+  /**
+   * THE CPU BYTES THIS VIEW'S GEOMETRY HOLDS, counted once per distinct ArrayBuffer: the draw
+   * arrays each presented mesh keeps after its upload (by attribute name), and whatever else the
+   * stage's scene holds beyond them (batches, instances, overlays). Neither is in
+   * `performance.memory`, which counts the JS heap and not the buffers behind typed arrays, and
+   * neither is in the engine's Wasm memory. A read for the memory census (`blender-status`),
+   * walked on request and never per frame.
+   */
+  retainedGeometry(): {
+    readonly meshes: number;
+    readonly meshBytes: number;
+    readonly byAttribute: Readonly<Record<string, number>>;
+    readonly sceneGeometries: number;
+    readonly sceneExtraBytes: number;
+  } {
+    const seen = new Set<ArrayBufferLike>();
+    const byAttribute: Record<string, number> = {};
+    const add = (name: string, attribute: { array?: ArrayLike<number> & { buffer?: ArrayBufferLike } } | null | undefined): number => {
+      const buffer = attribute?.array?.buffer;
+      if (!buffer || seen.has(buffer)) return 0;
+      seen.add(buffer);
+      byAttribute[name] = (byAttribute[name] ?? 0) + buffer.byteLength;
+      return buffer.byteLength;
+    };
+    const geometryBytes = (geometry: THREE.BufferGeometry, prefix: string): number => {
+      let bytes = add(`${prefix}index`, geometry.index as never);
+      for (const [name, attribute] of Object.entries(geometry.attributes)) bytes += add(`${prefix}${name}`, attribute as never);
+      for (const [name, list] of Object.entries(geometry.morphAttributes))
+        for (const attribute of list ?? []) bytes += add(`${prefix}morph:${name}`, attribute as never);
+      return bytes;
+    };
+    let meshBytes = 0;
+    for (const { geometry } of this.meshes.values()) meshBytes += geometryBytes(geometry, '');
+    const geometries = new Set<THREE.BufferGeometry>();
+    let sceneExtraBytes = 0;
+    let top: THREE.Object3D = this.root;
+    while (top.parent) top = top.parent;
+    top.traverse((object) => {
+      const geometry = (object as THREE.Mesh).geometry as THREE.BufferGeometry | undefined;
+      if (!geometry?.isBufferGeometry || geometries.has(geometry)) return;
+      geometries.add(geometry);
+      sceneExtraBytes += geometryBytes(geometry, 'scene:');
+    });
+    return { meshes: this.meshes.size, meshBytes, byAttribute, sceneGeometries: geometries.size, sceneExtraBytes };
+  }
+
   drawStatistics() {
     return {enabled: this.drawBatching, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
   }
