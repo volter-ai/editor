@@ -5151,7 +5151,18 @@ def _dispatch(request):
         # Arbitrary Python can partially mutate before throwing. Once execution
         # starts it needs a checkpoint; capability refusals above do not.
         HISTORY.changed()
-        SESSION.mark_changed()
+        # A WRITE OUTSIDE HISTORY IS VIEW STATE, AND IT RIDES THE NEXT SAVE. The editor's own
+        # gestures that are not edits of the model -- the selection and active object
+        # (`writeBlenderSelection`), the 3D cursor, a locked camera's pose mid-navigation -- run
+        # here with `history` False, as Blender records none of them as an undo step of their
+        # own either. They are still Blender's state and the document still carries them: the
+        # next save writes them with everything else. They do not queue a save of their own.
+        # MEASURED on the Stoneguard bridge (t_2def0a16): selecting one object presented with the
+        # engine heap flat at 3,112 MiB, then queued a whole-document save -- written, chunked,
+        # uploaded and committed in ~62 s on the lane the Properties reads wait on -- across
+        # which the hosted tab's renderer went from 6.5 GB to 8.9 GB.
+        if request.get("history", True):
+            SESSION.mark_changed()
         answer = execute(request["code"])
         # Every mutation is presented, the rule: the Model
         # document is what the agent is looking at.
