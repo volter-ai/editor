@@ -7,7 +7,7 @@
 
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { mkdir, open, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, rename, stat } from 'node:fs/promises';
 import type { Server as HttpServer } from 'node:http';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import type { EditorServerCompatibility } from '@volter/editor-sdk/session/editor-compatibility';
