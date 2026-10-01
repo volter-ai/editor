@@ -9,9 +9,9 @@
  * like every other project write.
  */
 
-import { createHash } from 'node:crypto';
+import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
-import { mkdir, readFile, rm, stat, unlink, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, rm, stat, unlink, writeFile } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
@@ -87,7 +87,12 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
 
   // The document's chunks: those the page sent for the save in flight, and where each chunk of
   // the last committed save lies in the file, valid while the file's size and mtime still match.
-  const heldChunks = new Map<string, Map<string, Buffer>>();
+  // Keep chunks in the project's persistent filesystem, not /tmp's browser
+  // memory overlay. This plugin owns its random staging directory only.
+  const documentStagingId = randomUUID();
+  const heldChunks = new Map<string, Map<string, { file: string; length: number }>>();
+  const documentChunkRoot = (root: string, path: string): string =>
+    join(root, '.volter', 'tmp', `blender-document-${documentStagingId}`, sha256(Buffer.from(path)));
   const committedChunks = new Map<
     string,
     { size: number; mtimeMs: number; byHash: Map<string, { offset: number; length: number }> }
@@ -452,6 +457,11 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           json(res, { error: 'A document chunk names its .blend `path` and its SHA-256 `hash` (64 hex digits).' }, 400);
           return;
         }
+        const root = projectRoot();
+        if (root === null) {
+          json(res, { error: 'No project open, so there is nowhere to hold the document chunk.' }, 404);
+          return;
+        }
         const body = await readBody(req);
         if (body.byteLength === 0 || body.byteLength > DOCUMENT_CHUNK_MAX) {
           json(res, { error: `A document chunk is 1 to ${DOCUMENT_CHUNK_MAX} bytes; got ${body.byteLength}.` }, 400);
@@ -461,9 +471,14 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           json(res, { error: `The chunk's bytes do not hash to ${hash}; it was not kept.` }, 400);
           return;
         }
-        let held = heldChunks.get(path);
-        if (!held) heldChunks.set(path, (held = new Map()));
-        held.set(hash, body);
+        const key = join(root, path);
+        let held = heldChunks.get(key);
+        if (!held) heldChunks.set(key, (held = new Map()));
+        const directory = documentChunkRoot(root, path);
+        await mkdir(directory, { recursive: true });
+        const file = join(directory, hash);
+        await writeFile(file, body);
+        held.set(hash, { file, length: body.byteLength });
         json(res, { ok: true, bytes: body.byteLength });
       },
     },
@@ -527,63 +542,96 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
           ms[phase] = Math.round(now - mark);
           mark = now;
         };
-        const held = heldChunks.get(path) ?? new Map<string, Buffer>();
+        const key = join(root, path);
+        const held = heldChunks.get(key) ?? new Map<string, { file: string; length: number }>();
+        const wanted = new Set(listed.map(([hash]) => hash));
+        for (const [hash, chunk] of held) {
+          if (wanted.has(hash)) continue;
+          await unlink(chunk.file);
+          held.delete(hash);
+        }
         // What the document on disk already holds, by hash, re-verified below.
-        const known = committedChunks.get(path);
-        let onDisk: Buffer | null = null;
+        const known = committedChunks.get(key);
+        let onDisk: Awaited<ReturnType<typeof open>> | null = null;
         if (known && listed.some(([hash]) => !held.has(hash) && known.byHash.has(hash))) {
           try {
             const file = join(root, path);
             const now = await stat(file);
-            if (now.size === known.size && now.mtimeMs === known.mtimeMs) onDisk = await readFile(file);
+            if (now.size === known.size && now.mtimeMs === known.mtimeMs) onDisk = await open(file, 'r');
           } catch {
             onDisk = null;
           }
           lap('read');
         }
-        const parts: Buffer[] = [];
-        const missing = new Set<string>();
-        for (const [hash, length] of listed) {
+        const readChunk = async (hash: string, length: number): Promise<Buffer | null> => {
           const fresh = held.get(hash);
-          if (fresh && fresh.byteLength === length) {
-            parts.push(fresh);
-            continue;
+          if (fresh?.length === length) {
+            const bytes = await readFile(fresh.file);
+            return bytes.byteLength === length && sha256(bytes) === hash ? bytes : null;
           }
-          const at = onDisk ? known?.byHash.get(hash) : undefined;
-          const reused = at !== undefined && at.length === length ? onDisk!.subarray(at.offset, at.offset + length) : null;
-          if (reused && sha256(reused) === hash) parts.push(reused);
-          else missing.add(hash);
-        }
-        lap('verify');
-        if (missing.size > 0) {
-          json(res, { ok: false, missing: [...missing], ms });
-          return;
-        }
-        const body = Buffer.concat(parts);
-        lap('concat');
-        try {
-          const revision = await services.commitProjectMutation(req, [{ path, content: body }]);
-          lap('commit');
-          heldChunks.delete(path);
-          const byHash = new Map<string, { offset: number; length: number }>();
+          const at = known?.byHash.get(hash);
+          if (!onDisk || !at || at.length !== length) return null;
+          const bytes = Buffer.allocUnsafe(length);
           let offset = 0;
-          for (const [hash, length] of listed) {
-            byHash.set(hash, { offset, length });
-            offset += length;
+          while (offset < length) {
+            const read = await onDisk.read(bytes, offset, length - offset, at.offset + offset);
+            if (!read.bytesRead) return null;
+            offset += read.bytesRead;
           }
-          const written = await stat(join(root, path)).catch(() => null);
-          if (written && written.size === body.byteLength)
-            committedChunks.set(path, { size: written.size, mtimeMs: written.mtimeMs, byHash });
-          else committedChunks.delete(path);
-          json(res, {
-            ok: true,
-            bytes: body.byteLength,
-            sent: listed.reduce((sum, [hash, length]) => sum + (held.has(hash) ? length : 0), 0),
-            revision: revision?.revision ?? null,
-            ms,
-          });
-        } catch (error) {
-          services.answerProjectMutationError(res, error);
+          return sha256(bytes) === hash ? bytes : null;
+        };
+        const missing = new Set<string>();
+        try {
+          for (const [hash, length] of listed) {
+            if (!(await readChunk(hash, length))) missing.add(hash);
+          }
+          lap('verify');
+          if (missing.size > 0) {
+            json(res, { ok: false, missing: [...missing], ms });
+            return;
+          }
+          const bytes = listed.reduce((sum, [, length]) => sum + length, 0);
+          if (!Number.isSafeInteger(bytes)) {
+            json(res, { error: 'Document manifest size is too large.' }, 400);
+            return;
+          }
+          // The kit consumes this stream inside its existing mutation lock,
+          // writing a hidden sibling before its atomic rename. Recheck every
+          // chunk at consumption; a changed/deleted chunk aborts that sibling.
+          async function* content(): AsyncGenerator<Uint8Array> {
+            for (const [hash, length] of listed) {
+              const chunk = await readChunk(hash, length);
+              if (!chunk) throw new Error(`Document chunk ${hash} changed before commit`);
+              yield chunk;
+            }
+          }
+          try {
+            const revision = await services.commitProjectMutation(req, [{ path, content: content() }]);
+            lap('commit');
+            heldChunks.delete(key);
+            await rm(documentChunkRoot(root, path), { recursive: true, force: true });
+            const byHash = new Map<string, { offset: number; length: number }>();
+            let offset = 0;
+            for (const [hash, length] of listed) {
+              byHash.set(hash, { offset, length });
+              offset += length;
+            }
+            const written = await stat(join(root, path)).catch(() => null);
+            if (written && written.size === bytes)
+              committedChunks.set(key, { size: written.size, mtimeMs: written.mtimeMs, byHash });
+            else committedChunks.delete(key);
+            json(res, {
+              ok: true,
+              bytes,
+              sent: listed.reduce((sum, [hash, length]) => sum + (held.has(hash) ? length : 0), 0),
+              revision: revision?.revision ?? null,
+              ms,
+            });
+          } catch (error) {
+            services.answerProjectMutationError(res, error);
+          }
+        } finally {
+          await onDisk?.close();
         }
       },
     },

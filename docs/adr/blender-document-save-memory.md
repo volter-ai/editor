@@ -91,3 +91,36 @@ compressed writer. This depends on the document, never a machine preference,
 and leaves relative_remap=false and copy=true intact. It changes no authored
 arrays, packed images, dimensions, paths, undo or selection. This is a source
 allocation correction; the final recording must establish its total effect.
+
+## Server persistence consumes verified chunks
+
+The previous document route retained every uploaded chunk as a Buffer, then
+concatenated a second whole-file Buffer for the project commit. The commit
+subsequently read the whole written file again to fingerprint it. The earlier
+receipt's 519 MB document therefore had multiple concurrent server copies,
+even after the worker's bounded readback correction.
+
+Uploaded chunks now live in a plugin-owned random staging directory under
+the project's `.volter/tmp` tree. This uses the hosted project's persistent
+store rather than its `/tmp` memory overlay. The route holds paths and lengths,
+reads and verifies one chunk at a time, then supplies a server-owned async
+byte iterator to the existing SDK mutation door. The kit consumes it under
+the same path lock, attribution, collaboration and expected-revision rules.
+It writes a hidden sibling through one file descriptor, hashes those actual
+bytes while writing, closes it, then atomically renames it. A failed iterator,
+short write or changed chunk removes the sibling and leaves the old file.
+
+The large-file fingerprint remains SHA-256(first 64 KiB + size); smaller files
+remain full SHA-256. The same fingerprint now tags the expected watcher event,
+and the commit no longer rereads the whole destination for its own record.
+Chunk reuse still requires matching disk size/mtime and a new SHA-256 check
+against each manifest entry, repeated at consumption. Missing/drifted chunks
+still go through the original bounded resend protocol. Obsolete uploaded
+chunks and successful saves remove only this plugin's own staging files.
+
+This bounds the route's chunk pool and assembly, not every lower-level
+allocation: the hosted filesystem's descriptor read currently caches a whole
+reused file, and independent filesystem observers can still read that file.
+The compression correction reduces its resident size as well. Neither source
+change is a final memory/Properties claim; c3 and the recorded-run task stay
+open until the final-head product run establishes them.
