@@ -1,6 +1,6 @@
 # Model loading state reference map
 
-Owner request, 2026-09-30: replace the bare “Opening model…” presentation and the oversized inspector icon during Blender loading. This map precedes layout changes. Independent review captures before/after at full scale; the implementer does no screenshot walk.
+Owner request, 2026-09-30: replace the bare “Opening model…” presentation and the oversized inspector icon during Blender loading. This map precedes the layout.
 
 | Reference | Observed pattern | Mapping to Model Editor |
 | --- | --- | --- |
@@ -8,8 +8,8 @@ Owner request, 2026-09-30: replace the bare “Opening model…” presentation 
 | [Unity status bar](https://docs.unity3d.com/6000.0/Documentation/Manual/StatusBar.html), [official status image](https://docs.unity3d.com/6000.0/Documentation/uploads/Main/status-bar-overview.png) | Background tasks occupy a narrow status row; messages and activity remain peripheral to editor content. | Use normal status type, existing surface/text/spacing tokens, bounded width and ellipsis. No centered splash, large icon, or decorative card. |
 | [Unity Inspector](https://docs.unity3d.com/6000.0/Documentation/Manual/UsingTheInspector.html) | The inspector describes the current selection. Its documented purpose is editing real selected objects/assets, rather than providing a loading illustration. The quiet loading treatment below is our design inference, not a claim that this manual depicts a loading frame. | While the model has not supplied a ready subject, keep the inspector body quiet and suppress generic preview artwork. When ready, restore the document-owned Properties rail normally; preserve failures as actionable text. |
 
-The official Blender and Unity task images were visually inspected at their original scale (483×36 and 882×100). These are documentation references, not screenshots of Stoneguard and not an observation of every file-opening phase.
+The official Blender and Unity task images were visually inspected at their original scale (483×36 and 882×100). They are documentation references, not observations of every file-opening phase.
 
 Implementation constraints: preserve native loading, chunking, deltas, scene bytes and math; show truthful pending/error/ready states; clear progress when the document closes, changes, fails or completes. Loading copy is accessible through a polite status announcement. Reuse Volter brand tokens and the existing status contribution door. No new icon library, fabricated progress, or browser runtime diagnostics in the product flow.
 
-Implemented through the existing document-context notification channel: the opening document publishes a token-owned load state, the status contribution reads the active document, and the shared inspection resolver withholds placeholder subjects until ready. Completion clears it; failure retains an unavailable subject while the document shows the real alert; unmount/switch disposes only its own token. The native indeterminate progress element uses the status font/spacing and muted ink, with a quiet document ground. No new worker, timer, fabricated phase, or backend work was added.
+Implemented through the existing document-context notification channel: the opening document publishes a token-owned load state, the status contribution reads the active document, and the shared inspection resolver withholds placeholder subjects until ready. Completion clears it; failure retains an unavailable subject while the document shows the real alert; unmount/switch disposes only its own token. The native indeterminate progress element uses the status font/spacing and muted ink, with a quiet document ground.

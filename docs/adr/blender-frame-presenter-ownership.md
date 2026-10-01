@@ -1,11 +1,29 @@
 # Blender frame presenter ownership across document switches
 
-Card t_65c85042, c7 t_83f9f624, 2026-09-30. Independent review F1 at editor1e63b63e found that switching to a source document during initial Bridge loading and returning produced “Blender frame manifest does not match its staged revision”, with no viewport or usable Properties. Native loading had completed, but that did not make the document usable.
+Status: Accepted
+Date: 2026-09-30
+Card: t_65c85042
 
-The host resolved the active Model binding for every staged piece and the final manifest. Hiding the pane cleared that binding, so later pieces and the manifest could be acknowledged without reaching the retained module-scoped Model view. Runtime cleared its staged identity on the headless acknowledgment, but the view still held partial geometry at the earlier revision. Reopening requested another presentation; its manifest then met the stranded staged revision. The revision guard correctly refused it.
+Switching to another document while the Model document was still loading, then
+returning, failed with "Blender frame manifest does not match its staged
+revision" and left no viewport. The host resolved the active Model binding for
+every staged piece and for the final manifest. Hiding the pane cleared that
+binding, so later pieces and the manifest were acknowledged without reaching
+the retained Model view, which still held partial geometry at the earlier
+revision. The next presentation then met that stranded revision.
 
-The worker and the module-scoped Model presentation outlive activation. Binding now records that existing view for the worker's file independently of keyboard/document focus. A streamed frame captures its session, revision, document address and presenter once at begin; every piece and its manifest use that same owner, including while the pane is inactive. A frame begun headless remains headless until its manifest, rather than attaching a view halfway through. A conflicting file cannot replace the remembered worker presenter. Worker teardown releases that remembered address.
+## Decision
 
-Abort cleanup names the same session/revision and cannot dispose a newer pending frame. Both the host and view retain manifest/piece revision checks; stale sessions and resource conflicts remain refusals. The host commits an owned stream before clearing its owner. No second view, retained column copy, new native load, suppressed error, fabricated ready state or changed native evaluation is introduced. The inactive view is the already retained singleton, so returning can use its completed frame rather than re-exporting it.
+The worker and the module-scoped Model view outlive pane activation. Binding
+records that view for the worker's file, independently of focus. A streamed
+frame captures its session, revision, document address and presenter once, at
+its begin; every piece and its manifest go to that same owner, including while
+the pane is inactive. A frame begun headless stays headless until its manifest.
+A conflicting file cannot replace the remembered presenter, and worker
+teardown releases it.
 
-The independent review must repeat the pending-document switch/return and observe completed Bridge rendering, Properties, screenshot and frameCost. Loading UI's prior before/after acceptance remains recorded. Bounded native chunks/deltas and exact native/scene bytes are preserved. No new frame-time optimization or33ms claim.
+An abort names its session and revision and cannot dispose a newer pending
+frame. Host and view both keep their manifest and piece revision checks; stale
+sessions and resource conflicts remain refusals. No second view or retained
+column copy is introduced. Returning to the pane uses the frame the retained
+view completed instead of exporting it again.
