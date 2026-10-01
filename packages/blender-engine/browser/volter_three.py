@@ -225,7 +225,9 @@ def _export():
         "known": {},
         "buffer_path": EXPORT_BUFFER_PATH,
     }
-    frame = json.loads(_blender_web.export_frame(json.dumps(options)))
+    # Names as UTF-8, not escaped: the door does not decode `\\uXXXX`
+    # (session.py `_door_json`).
+    frame = json.loads(_blender_web.export_frame(json.dumps(options, ensure_ascii=False)))
     error = frame.get("error")
     if error:
         raise RuntimeError("Blender export door: %s" % error)
