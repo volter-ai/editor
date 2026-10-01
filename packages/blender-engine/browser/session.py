@@ -1150,6 +1150,43 @@ def material_graphs(scene):
     return {name: graph for name, graph in graphs.items() if graph is not None}
 
 
+# THE GENERIC LAYERS A MATERIAL CAN READ BY NAME, and nothing else crosses. The export door ships
+# every generic attribute of a mesh, and the presenter widens each to a float4 per drawn vertex and
+# uploads it, but a layer reaches a pixel only through a graph's Attribute or Color Attribute node
+# (`blender-node-graph.ts`, which compiles exactly those two). MEASURED on the Stoneguard bridge
+# (t_2def0a16): 334 of the presenter's 626 MiB of retained geometry were such layers -- every
+# vertex group of its rigged figures (`Hips`, `Shoulder.L`, ...) -- and no material read one.
+# Colour layers (a Color Attribute node with no name reads the mesh's default one), UV maps,
+# positions and custom normals always cross; the skin binding and weight overlay read vertex
+# groups through their own doors (`_rig_of`, `_weights`), not through these layers.
+_NAMED_LAYER_TYPES = ("FLOAT", "FLOAT2", "FLOAT_VECTOR")
+
+
+def _graph_attribute_names(graphs):
+    names = set()
+    for graph in graphs.values():
+        for node in (graph.get("nodes") or {}).values():
+            props = node.get("props") or {}
+            if node.get("type") == "ShaderNodeAttribute":
+                names.add(props.get("attribute_name") or "")
+            elif node.get("type") == "ShaderNodeVertexColor":
+                names.add(props.get("layer_name") or "")
+    return names
+
+
+def _readable_attributes(attributes, names):
+    kept = []
+    for attribute in attributes or ():
+        name = attribute.get("name", "")
+        unread = (attribute.get("type") in _NAMED_LAYER_TYPES
+                  and not (attribute.get("type") == "FLOAT2" and attribute.get("domain") == "CORNER")
+                  and not name.startswith(".") and name not in ("position", "custom_normal")
+                  and name not in names)
+        if not unread:
+            kept.append(attribute)
+    return kept
+
+
 # ------------------------------------------------------------- the overlays
 #
 # INSPECTION OVERLAYS, READ OFF THE ENGINE (ARCHITECTURE-CORE §Blender north
@@ -1343,6 +1380,10 @@ class Session:
         # (`mesh:<geometry key>` / `image:<name>`) at the revision it holds:
         # a mesh it has ships as a reference, a picture it has does not ship.
         self._known = {}
+        # The attribute names the materials read when the meshes in `_known` were shipped
+        # (`_readable_attributes`). A material that starts reading another name needs layers
+        # those meshes did not carry, so they are shipped again.
+        self._shipped_attribute_names = set()
         # The last frame's accounting (`_present`), read by `dispatch`.
         self.last_shipped = None
         # THE SESSION'S DOCUMENT: the `.blend` it opens at start and saves back
@@ -1391,6 +1432,11 @@ class Session:
         """
         scene = bpy.context.scene
         graphs = material_graphs(scene)
+        names = _graph_attribute_names(graphs)
+        if not names <= self._shipped_attribute_names:
+            for key in [key for key in self._known if key.startswith("mesh:")]:
+                del self._known[key]
+        self._shipped_attribute_names = names
         _mark("export:graphs")
         # An IMAGE EMPTY's picture travels with the graphs' images: the overlay draws it
         # (`overlay_empty.hh` `image_sync`).
@@ -1644,6 +1690,13 @@ class Session:
                 if piece[kind] is None:
                     del frame["images"][key]
                     continue
+                # Pulled meshes only: a staged mesh replaces the presenter's resident geometry
+                # whatever its revision, so one shipped again for a newly read layer lands. A mesh
+                # an engine without the pull door writes inline keeps every layer, because the
+                # presenter keeps a resident mesh at an unchanged revision.
+                if kind == "mesh" and "attributes" in piece[kind]:
+                    piece[kind]["attributes"] = _readable_attributes(
+                        piece[kind]["attributes"], self._shipped_attribute_names)
                 _asked({kind: key, "piece": piece[kind]})
         return True
 
