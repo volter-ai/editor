@@ -19,8 +19,10 @@ the `texturesReady` barrier are unchanged.
 Only one viewport image's pixels are held at a time. A viewport image keeps its
 bitmap until the next drawn frame uploads it, and while a loading page's main
 thread is busy its frames are starved but decodes still resolve between tasks,
-so a queue that waited only for the previous decode ran ahead and held every
-decoded image at once. The next viewport image's decode therefore waits until
+so a queue that waited only for the previous decode could run ahead and hold
+every decoded image at once. That is read from the code, not measured: the
+Bridge's loads showed a ~2 GB transient that one moment released, the size of
+its decoded images, and `decodedImageBytes` is the reading that would show it. The next viewport image's decode therefore waits until
 the previous image's pixels are uploaded or released; a failed or closed image
 releases the queue at once. A photograph's images keep their pixels and draw no
 frames, so they queue separately and wait only for the previous decode. The

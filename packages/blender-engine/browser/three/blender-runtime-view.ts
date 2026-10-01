@@ -257,7 +257,8 @@ const pendingTextures = new Set<Promise<void>>();
 // AND ONE IMAGE'S PIXELS AT A TIME, NOT ONE DECODE AT A TIME. A viewport's image keeps its
 // decoded bitmap until the next drawn frame uploads it (`upload`), and decodes resolve between
 // tasks while a loading page's busy main thread starves its frames, so a queue that waited only
-// for the previous DECODE ran ahead of the uploads and held every decoded image at once. The next
+// for the previous DECODE can run ahead of the uploads and hold every decoded image at once (read
+// from the code; `decodedImageBytes` below is its measurement). The next
 // viewport image therefore waits until the previous one's pixels are uploaded or released. A
 // photograph keeps its pixels and does not draw frames, so its images queue on their own and
 // wait only for the previous decode.
