@@ -27,6 +27,18 @@ class SharedPackedGeometry extends THREE.BufferGeometry {
   }
 }
 
+/** Texture.clone shares its Source by default. Batch commands and matrices
+ * are mutable run-local data, so their clone needs its own image shell before
+ * BatchedMesh.copy replaces image.data with that run's copied array. */
+function isolateRunTextureCopies(texture: THREE.DataTexture): void {
+  const clone = texture.clone.bind(texture);
+  texture.clone = () => {
+    const copy = clone();
+    copy.source = new THREE.Source({...texture.image});
+    return copy;
+  };
+}
+
 /** Immutable packed attributes are shared between ordered draw runs. Only the
  * matrix/indirection textures and command lists belong to an individual run.
  * All interaction and authored geometry remain on the canonical meshes. */
@@ -106,6 +118,10 @@ export class BlenderOrderedBatches {
       const template = new THREE.BatchedMesh(ORDERED_BATCH_CAPACITY, vertices, indices, family.material);
       template.geometry.dispose();
       template.geometry = new SharedPackedGeometry();
+      // Do not reach into Three's private field names: only the owned
+      // template's DataTextures carry the run's dynamic state.
+      for (const value of Object.values(template))
+        if (value instanceof THREE.DataTexture) isolateRunTextureCopies(value);
       template.sortObjects = false;
       template.perObjectFrustumCulled = false;
       template.frustumCulled = false;
