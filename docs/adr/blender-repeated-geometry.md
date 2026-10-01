@@ -1,7 +1,5 @@
 # Repeated Blender geometry in the viewport
 
-Historical research. The final kept/removed decisions are in [stoneguard-performance-retirement.md](stoneguard-performance-retirement.md). Removed implementations and runnable profiling probes survive only on the pushed perf archive branch; statements below about a candidate describe its historical state. Frame-time optimization stopped by owner order2026-09-30.
-
 Stoneguard t_65c85042 c19. The independent 0e6b1bee review completed Bridge
 loading, but measured 14,967 draws and 225,338,458 triangles per preview frame,
 with median 332.38 ms at 1197×827. The scene contains 11,720 mesh objects over
@@ -245,85 +243,3 @@ camera without changing the one-pixel gate or the simplifier's error budget.
 Transparent plan comparison also skips opaque geometry after checking each
 mesh's current materials, preserving detection of transparency transitions
 without scanning unrelated attribute versions.
-
-## Material palette experiment removed
-
-The compatible two-material palette reduced navigation calls from 8,211 to
-6,383, but added GPU work. After warming each alternative in nine separate
-40-frame commands at 1197×827 and ratio 1, ordinary materials measured 82.76 ms
-median (67.22 ms submission, 16.38 ms completion wait); the palette measured
-87.19 ms (55.90 ms submission, 28.00 ms completion wait). Both alternatives
-retained the original scene and transparency ordering. The shader's two graph
-evaluations outweighed its submission savings, even with one compiled material
-per renderer, packed selectors and explicit physical texture gradients.
-
-The palette implementation and its renderer plumbing have been removed.
-Ordered batches again use each source's original material and shader. Native
-loading, canonical geometry, fine navigation geometry and the fixed-resolution
-measurement door remain. These measurements explain the removal; they do not
-meet the 33 ms navigation target or replace independent review.
-
-A separate, temporary ordinary-material geometry-sharing probe also produced
-no total improvement: 78.23 versus 77.83 ms with identical 8,211 calls and
-66,433,585 drawn triangles after the same warming. That probe was restored and
-is not included in the source.
-
-A hosted reattachment changed the stage from 1197×827 at ratio 1 to 2394×1654
-at ratio 2. Those timings cannot establish a change against the earlier baseline.
-The frame-cost door accepts an explicit `pixelRatio` in 0.25..2 for a fixed
-measurement resolution across displays. It resizes every document-compositor
-pass, reports the actual measured dimensions and ratio, and restores the original
-ratio in `finally`. The default still measures the viewport as it is drawn.
-
-## Skinned-range exclusion probe retired
-
-A candidate allowed index-only range consolidation on skinned meshes. The loaded
-Bridge census showed no eligible skinned mesh: its three multi-range meshes
-were already ordinary evaluated meshes. The candidate was therefore removed
-without a frame-speed claim. The remaining many small opaque draws are distinct
-single-material objects: 436 steel-scale geometries and 257 rock-face
-geometries, rather than unmerged ranges within one mesh.
-
-### Reopened-stage measurement ratio
-
-The initial stage rig forwards `frameCost`'s requested pixel ratio as well as its frame count and quality. After closing and reopening a document, this binding previously dropped the ratio, so a requested ratio of 1 measured the display's ratio of 2 instead. This is a measurement correction; default viewport resolution stays unchanged. The opaque distinct-shape experiment was retired: it overlapped the repeated-shape instancer's navigation fallbacks, and its small apparent gain had unequal triangle counts.
-
-### Actual native viewport reference (2026-09-30)
-
-The official Blender 5.2.0 LTS build fbe6228777e7, Metal, measured a median 184.04 ms for one actual viewport redraw of Bridge frame 1 at 1197×827 physical pixels and the browser camera. The maximum view/projection matrix errors were 1.746e-7/2.384e-7. A POST_PIXEL callback read one pixel from the active framebuffer to wait for this viewport, giving median 47.60 ms before the callback and 129.46 ms for completion. Seven frames were retained after five warm frames. Native preview samples remained at their default 16. This is native EEVEE with full geometry and forest HDR; browser navigation uses temporary LOD and different shaders. It is a reference, not a hard floor for Three or proof that 33 ms is impossible. GPUOffScreen.draw_view3d runs the image-render path and is not a substitute for this measurement.
-
-The bounded standalone probe is tools/stoneguard/native-viewport-profile.py; supply the diagnostics directory after --. It reads ceiling-camera.json, starts in a fresh Blender window with the scene file already loaded, adjusts only its own layout, asserts dimensions and matrices, records timings, removes its draw callback, and quits its own app through Blender's door. Compact evidence is native-viewport-reference.json. No scene bytes are saved.
-
-### CPU ceiling profile (2026-09-30)
-
-The unsampled 40-frame navigation baseline is 73.30 ms, 54.84 ms CPU, 1197×827 at ratio 1, 8,214 calls and 66,434,419 triangles. A 10 ms JS Self-Profiling run retained 2,783 samples over eight 40-frame batches with identical draw eligibility. Restricting stacks to the frame-cost loop and normalizing CPU sample shares to the unsampled CPU median gives estimates: draw submission/object draw preparation 21.6 ms, uniform/material/texture state 13.5 ms, traversal/queues 7.0 ms, matrices/instance sync 6.8 ms, explicit frustum culling 2.5 ms, presentation planning 1.1 ms, and stage/other JS 2.3 ms. These are sampling estimates, not independent clocks. The profiled batch CPU median is 59.01 ms; sampling overhead and host variation remain. GC is not independently exposed and is never asserted zero. No synchronous WASM stack appeared in this main-thread viewport profile.
-
-The final unsampled seven-frame check, matching the earlier small orbit, measured 73.86 ms / CPU 49.27 ms / completion wait 26.79 ms, with 8,211 calls and 65,881,683 triangles. The per-five-second host series accompanies the compact evidence; no further swapouts occurred after its first sample. Compressions and other host load remain relevant even without swapouts. Box-maintenance later attributed the improvement in free memory mainly to closing foreign Studio and RH2 renderers (77188 and 91553), not to closing this diagnostic session. All owned document panes, Blender workers, attachment and three diagnostic tabs were closed after the reading.
-
-33 ms is neither demonstrated reachable nor a demonstrated WebGL floor. Bare GL draw timing in the earlier intrusive probe was approximately 2 ms; repeated state and object preparation cost much more. Eliminating just matrix and traversal work still leaves about 35 ms CPU before the remaining GPU wait. The next candidate must address repeated pass work and draw preparation together, preserve geometry and transparent ordering, and establish a measured improvement before any gain is claimed. Native EEVEE's 184 ms reference is different shader/full-detail work, not a lower bound for Three. Probe and compact results: tools/stoneguard/profile-viewport-sampling.js and viewport-cpu-reference.json. The host dev page enables sampling only with VOLTER_EDITOR_JS_PROFILING=1.
-
-### Bounded outline depth culling candidate
-
-The initial crop-projection implementation (9f25d9e9) never culled on Bridge: custom editor helper draw hooks forced its conservative full-pass fallback. Alternating OFF/ON/OFF/ON readings retained exactly 8,211 calls and 65,881,683 triangles, with identical per-pass counters in all conditions. The medians 81.31/79.23/83.43/79.61 ms do not establish a gain; other sessions kept the machine loaded even with the cleanup queue held. That projection mutation is removed.
-
-The corrected candidate bounds selected mask fragments from current spheres with a conservative camera-space Gram-matrix scale bound. It rejects only ordinary depth draw submissions outside that rectangle, after Three has executed the original callbacks. Camera projection/inverse and object transforms are never modified. Custom helper, deforming and custom shader draws use their original path individually, rather than disabling culling for all other objects. A transformed sphere's exact support along each culling plane covers shear and reflection. Repeated groups cache only an outside boolean for this pass. The color, selection mask and edge passes retain their inputs and order.
-
-Unknown scene/depth-material callbacks, unsupported cameras, XR/reversed depth, selected non-meshes, selected custom callbacks or override refusals, unbounded meshes, near-plane crossings and unknown selection-layer users retain the full pass. A camera changed by a callback disables rejection. The renderBufferDirect wrapper is restored in finally. An offscreen selection skips only depth; stock mask clearing still runs. No evaluated geometry, native math, material opacity or saved data changes. This corrected candidate is not measured yet. Independent review owns visual validation; no 33 ms claim.
-
-### Presentation notification across React roots
-
-React #177 reproduced again on the 9f25d9e9 starter startup; previous clean startups did not establish a fix. StageHost binds presentation while flushing its contribution effect, and the remaining viewport-presentation store synchronously notified React useSyncExternalStore subscribers from that effect. Those subscribers now use a separate coalesced microtask snapshot/version pair. The immediate presentation API, camera/session application, Blender source persistence and workspace persistence keep their synchronous subscription semantics. The snapshot version is deferred together with its listeners, so a commit-time snapshot check cannot turn a delayed notification back into a nested synchronous update.
-
-This removes a concrete reentrant notification path. It does not suppress React errors, change React's commit guard, or prove that every cause of #177 is fixed; new cause evidence is still needed.
-
-### Ordinary-depth cause result and ordered batch bounds
-
-At 6f33424c, the alternating comparison established that ordinary depth rejection runs: representative depth draws fell from about 3,550 to 1,990 while every color and selection-mask draw multiset stayed identical. OFF medians were 73.63/77.54 ms and ON medians 72.80/86.69 ms. Active swapout counters increased by 102,520 pages during warming/measurement despite the cleanup queue being held; these mixed timings establish no gain. Compact evidence is tools/stoneguard/outline-depth-draw-reference.json. React #177 did not appear on this startup, which alone does not establish its complete repair. All owned product panes, Blender workers, tab and attachment were closed after the reading.
-
-The remaining ordered instance draws disable aggregate frustum culling because their boundingSphere is a transparency sorting anchor. The new candidate publishes a separate lazy depthOccluderWorldSphere capability on each owned ordered draw. It unions the actual member geometry spheres under the Float32 instance matrices uploaded by that draw, with a conservative Gram-matrix scale bound for shear/reflection. The depth adapter may reject a whole draw only when this real contents bound is outside the selected-fragment rectangle; a null/invalid bound draws normally. It never changes the sorting sphere, member order, instance visibility, matrix slots, color pass or canonical geometry. No draw-pass preparation cost is added when an outline is absent. This candidate still requires cause measurement; no speed claim.
-
-### Ordered slot uploads and geometry-list invalidation
-
-A camera move replans ordered runs, but unchanged slot matrices no longer dirty their instance buffer/texture. Each candidate matrix is compared after Math.fround against the actual stored Float32 matrix; changed transforms still upload before the next draw. This is exact value reuse, not a lossy pose hash.
-
-Three r180's setGeometryIdAt changes its instance record without marking the cached multi-draw starts/counts dirty. On an owned slot geometry change, a public false→true visibility transition now invalidates that list, even if the visible slot count remains constant. The final visibility and source order are unchanged. This addresses a concrete stale-list path found in source; independent visual review remains required. No native geometry/math or saved data changes, and no performance gain is asserted before measurement.
