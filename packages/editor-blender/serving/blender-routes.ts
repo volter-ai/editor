@@ -9,7 +9,7 @@
  * like every other project write.
  */
 
-import { createHash, randomUUID } from 'node:crypto';
+import { createHash } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { mkdir, open, readFile, rm, stat, unlink, writeFile } from 'node:fs/promises';
 import type { IncomingMessage, ServerResponse } from 'node:http';
@@ -88,11 +88,14 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
   // The document's chunks: those the page sent for the save in flight, and where each chunk of
   // the last committed save lies in the file, valid while the file's size and mtime still match.
   // Keep chunks in the project's persistent filesystem, not /tmp's browser
-  // memory overlay. This plugin owns its random staging directory only.
-  const documentStagingId = randomUUID();
+  // memory overlay. One staging directory per document, so a save that a crash
+  // or a closed tab abandoned is reclaimed: the first chunk this server takes
+  // for a document clears what an earlier server left there. A save another
+  // server had in flight then finds its chunks missing and sends them again.
   const heldChunks = new Map<string, Map<string, { file: string; length: number }>>();
+  const claimedStaging = new Set<string>();
   const documentChunkRoot = (root: string, path: string): string =>
-    join(root, '.volter', 'tmp', `blender-document-${documentStagingId}`, sha256(Buffer.from(path)));
+    join(root, '.volter', 'tmp', 'blender-document', sha256(Buffer.from(path)));
   const committedChunks = new Map<
     string,
     { size: number; mtimeMs: number; byHash: Map<string, { offset: number; length: number }> }
@@ -475,6 +478,10 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
         let held = heldChunks.get(key);
         if (!held) heldChunks.set(key, (held = new Map()));
         const directory = documentChunkRoot(root, path);
+        if (!claimedStaging.has(directory)) {
+          claimedStaging.add(directory);
+          await rm(directory, { recursive: true, force: true });
+        }
         await mkdir(directory, { recursive: true });
         const file = join(directory, hash);
         await writeFile(file, body);
