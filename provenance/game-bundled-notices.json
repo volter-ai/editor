@@ -1780,12 +1780,12 @@
     },
     {
       "name": "its-fine",
-      "version": "2.0.0",
+      "version": "2.1.1",
       "license": "MIT",
       "notices": [
         {
           "file": "node_modules/its-fine/LICENSE",
-          "sha256": "506bca9e41227d2ae1fbea8342a1fcff853af8198e9e1f37693a635e86efc539"
+          "sha256": "643123eeb38f154d93cb8323e1289a648d3f343b411a9340453c010e325d0c82"
         }
       ]
     },
