@@ -1,5 +1,5 @@
 import { PullJob, checkpointStream } from './pull-job.mts';
-import { sendFrameValue } from './frame-stream.mts';
+import { releaseFrameBuffers, sendFrameValue } from './frame-stream.mts';
 /**
  * THE BLENDER IN THE TAB IS BLENDER (ARCHITECTURE-CORE, owner ruling
  * 2026-09-17): the editor's modeling engine is Blender 5.2 LTS compiled to
@@ -333,6 +333,8 @@ async function startBlender(project: string, document?: string): Promise<unknown
         }
         await streamToTab({ op: 'stage', session: pending.session, revision: pending.revision,
           ...(mesh !== undefined ? { mesh } : { image }), piece: copied.typed });
+        // The tab holds its own copy now; this one is released, not left to the collector.
+        releaseFrameBuffers(copied.typed);
         // Keep only the manifest and digest; the presenter already built this
         // resource, and the next pull may overwrite the engine arena.
         if (mesh !== undefined) {
@@ -352,6 +354,7 @@ async function startBlender(project: string, document?: string): Promise<unknown
         description = await describeFrame(arena, frame);
       }
       const answered = await presentToTab(typed, description, capture as CaptureRequest | undefined);
+      releaseFrameBuffers(typed);
       // THE CAPTURE IS THE ANSWER'S BODY, and `held` rides beside it: the
       // session reads a photograph's own fields off this object
       // (`session.py::_photograph`), and reads `held` to judge whether its

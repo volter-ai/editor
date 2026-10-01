@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { z } from 'zod';
 import { onPresenterChange, presenterChanged } from './blender-presenter-change';
 import { bytesFromBase64 } from './blender-base64';
+import { releaseFrameBuffers } from '../frame-stream.mts';
 import { ArmatureOverlay, armatureSchema } from './blender-runtime-armature';
 import { UNKNOWN_GEOMETRY, UNKNOWN_IMAGE } from './blender-runtime-frame';
 import {
@@ -1618,9 +1619,17 @@ export class BlenderRuntimeView {
       const data = exportedMeshSchema.parse(part.piece);
       if (staged.meshes.has(part.mesh)) throw new Error('Duplicate Blender mesh piece');
       const signature = `revision:${data.revision}`;
-      staged.meshes.set(part.mesh, { signature, geometry: geometryFromDrawArrays(drawArraysFromColumns({
+      const geometry = geometryFromDrawArrays(drawArraysFromColumns({
         ...data.columns, attributes: data.attributes as never, activeUv: data.activeUv, renderUv: data.renderUv,
-      }, signature)) });
+      }, signature));
+      staged.meshes.set(part.mesh, { signature, geometry });
+      // The columns were this piece's own reassembled copy and the draw arrays are built from
+      // them, so their bytes are released now rather than at a later collection
+      // (`releaseFrameBuffers`). Whatever the geometry itself references is kept.
+      const kept = new Set<ArrayBufferLike>();
+      if (geometry.index) kept.add(geometry.index.array.buffer);
+      for (const attribute of Object.values(geometry.attributes)) kept.add((attribute as THREE.BufferAttribute).array.buffer);
+      releaseFrameBuffers(part.piece, kept);
     } else if (part.image !== undefined) {
       if (staged.images.has(part.image)) throw new Error('Duplicate Blender image piece');
       staged.images.set(part.image, frameImageSchema.parse(part.piece));
