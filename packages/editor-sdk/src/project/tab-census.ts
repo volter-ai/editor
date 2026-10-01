@@ -86,6 +86,8 @@ export interface WorkerCallTabMetrics {
    * high-water mark.
    */
   readonly wasmMemoryMB: number | null;
+  /** What the lane's worker holds in JavaScript beside its engine memory, in MB, when reported. */
+  readonly workerHeldMB?: number;
 }
 
 /** THE MAIN THREAD'S STALLS since page load, from the host's `longtask`

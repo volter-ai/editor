@@ -122,6 +122,45 @@ interface PendingFrame {
 }
 let pending: PendingFrame | null = null;
 
+/**
+ * WHAT THIS WORKER HOLDS OF A FRAME, in bytes: the held frame's own columns (`pending.columns`),
+ * any bytes still kept for its pulled pieces, and the copies in flight to the tab (made off the
+ * engine arena, not yet released). The browser's per-realm measurement attributes this worker's
+ * JavaScript memory as one number (786 MiB live mid-transfer on the Stoneguard bridge,
+ * t_2def0a16); this is the ledger that names which of these holds it. Posted beside the engine's
+ * memory after every call (`reportMemory`) and logged as `@@VOLTER-HELD` as a frame arrives.
+ */
+let inFlightBytes = 0;
+let piecesSinceLedger = 0;
+function bufferBytes(value: unknown): number {
+  const seen = new Set<ArrayBufferLike>();
+  const visited = new Set<unknown>();
+  let total = 0;
+  const walk = (item: unknown): void => {
+    if (item === null || typeof item !== 'object' || visited.has(item)) return;
+    visited.add(item);
+    if (ArrayBuffer.isView(item)) {
+      if (!seen.has(item.buffer)) { seen.add(item.buffer); total += item.buffer.byteLength; }
+      return;
+    }
+    for (const held of item instanceof Map ? item.values() : Array.isArray(item) ? item : Object.values(item)) walk(held);
+  };
+  walk(value);
+  return total;
+}
+function heldLedger(): { hold: number; pieces: number; inFlight: number; meshes: number; images: number } {
+  const hold = pending ? bufferBytes([...pending.columns.values()].map((c) => c.typed)) : 0;
+  const pieces = pending
+    ? bufferBytes([...pending.meshes.values(), ...pending.images.values()].map((c) => c.typed))
+    : 0;
+  return { hold, pieces, inFlight: inFlightBytes, meshes: pending?.meshes.size ?? 0, images: pending?.images.size ?? 0 };
+}
+function logLedger(at: string): void {
+  const l = heldLedger();
+  const mib = (b: number) => Math.round(b / 1048576);
+  log('log', `@@VOLTER-HELD ${at} hold=${mib(l.hold)}MiB pieces=${mib(l.pieces)}MiB inFlight=${mib(l.inFlight)}MiB meshes=${l.meshes} images=${l.images}`);
+}
+
 /** Every column the held frame names, copied now and keyed by its offset (unique in its arena). */
 async function copyColumns(arena: Uint8Array, frame: unknown): Promise<Map<number, Copied>> {
   const columns = new Map<number, Copied>();
@@ -306,6 +345,8 @@ async function startBlender(project: string, document?: string): Promise<unknown
       if (hold !== undefined) {
         const identity = hold as { session: string; revision: number };
         pending = { session: identity.session, revision: identity.revision, columns: await copyColumns(arena, hold), meshes: new Map(), images: new Map() };
+        piecesSinceLedger = 0;
+        logLedger('hold');
         await streamToTab({ op: 'stage', session: identity.session, revision: identity.revision });
         return {};
       }
@@ -331,10 +372,17 @@ async function startBlender(project: string, document?: string): Promise<unknown
             description: await describeFrame(arena, piece),
           };
         }
-        await streamToTab({ op: 'stage', session: pending.session, revision: pending.revision,
-          ...(mesh !== undefined ? { mesh } : { image }), piece: copied.typed });
-        // The tab holds its own copy now; this one is released, not left to the collector.
-        releaseFrameBuffers(copied.typed);
+        const copiedBytes = bufferBytes(copied.typed);
+        inFlightBytes += copiedBytes;
+        try {
+          await streamToTab({ op: 'stage', session: pending.session, revision: pending.revision,
+            ...(mesh !== undefined ? { mesh } : { image }), piece: copied.typed });
+        } finally {
+          // The tab holds its own copy now; this one is released, not left to the collector.
+          releaseFrameBuffers(copied.typed);
+          inFlightBytes -= copiedBytes;
+        }
+        if (++piecesSinceLedger % 100 === 0) logLedger(`piece ${piecesSinceLedger}`);
         // Keep only the manifest and digest; the presenter already built this
         // resource, and the next pull may overwrite the engine arena.
         if (mesh !== undefined) {
@@ -353,8 +401,16 @@ async function startBlender(project: string, document?: string): Promise<unknown
         typed = columnsToTypedArrays(arena, frame);
         description = await describeFrame(arena, frame);
       }
-      const answered = await presentToTab(typed, description, capture as CaptureRequest | undefined);
-      releaseFrameBuffers(typed);
+      if (present) logLedger('present');
+      const typedBytes = bufferBytes(typed);
+      inFlightBytes += typedBytes;
+      let answered: PresentAnswer;
+      try {
+        answered = await presentToTab(typed, description, capture as CaptureRequest | undefined);
+      } finally {
+        releaseFrameBuffers(typed);
+        inFlightBytes -= typedBytes;
+      }
       // THE CAPTURE IS THE ANSWER'S BODY, and `held` rides beside it: the
       // session reads a photograph's own fields off this object
       // (`session.py::_photograph`), and reads `held` to judge whether its
@@ -802,7 +858,8 @@ export function describeThrown(error: unknown): string {
 function reportMemory(): void {
   if (!engine) return;
   const bytes = engine.memoryBytes();
-  if (bytes !== null) post({ op: 'memory', bytes });
+  const l = heldLedger();
+  if (bytes !== null) post({ op: 'memory', bytes, held: l.hold + l.pieces + l.inFlight });
 }
 
 // A BLENDER THREAD THAT DIES IS WEIGHED FIRST: its error reaches this scope before the page's

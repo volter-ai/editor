@@ -140,6 +140,9 @@ export interface BlenderCallMetrics {
    * is also the high-water mark and no separate peak is kept.
    */
   readonly wasmMemoryMB: number | null;
+  /** What the engine's worker holds of a frame in JavaScript, in MB: the held frame's columns,
+   *  kept piece bytes and copies in flight (`worker.ts`, `heldLedger`). Absent before a report. */
+  readonly workerHeldMB?: number;
 }
 
 /** The engine's linear-memory ceiling, its link's `-sMAXIMUM_MEMORY` (4 GiB, wasm32's limit;
@@ -181,6 +184,7 @@ export class BlenderRuntime {
   /** Bytes of module linear memory at the worker's last report; see
    *  {@link BlenderCallMetrics.wasmMemoryMB}. */
   #wasmBytes: number | null = null;
+  #heldBytes: number | null = null;
 
   constructor(options: BlenderRuntimeOptions) {
     this.#options = options;
@@ -544,6 +548,7 @@ export class BlenderRuntime {
       callsOver30s: over30,
       lastCallWindow: this.#lastCallWindow,
       wasmMemoryMB: this.#wasmBytes === null ? null : Math.round(this.#wasmBytes / 1048576),
+      ...(this.#heldBytes === null ? {} : { workerHeldMB: Math.round(this.#heldBytes / 1048576) }),
     };
   }
 
@@ -669,6 +674,7 @@ export class BlenderRuntime {
       }
       if (reply.op === 'memory') {
         this.#wasmBytes = reply.bytes;
+        if (typeof reply.held === 'number') this.#heldBytes = reply.held;
         return;
       }
       // Recorded BEFORE the display, and whether or not the display throws:
