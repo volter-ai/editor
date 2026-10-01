@@ -189,10 +189,15 @@ async function saveDocument(): Promise<void> {
   // edit's cost, and where it goes differs by host (a tab-served project runs the server here).
   const ms: Record<string, number> = {};
   let mark = performance.now();
+  // And the engine's linear memory after each phase, in MiB: what the write and the read-back
+  // cost the module, beside what they cost in time.
+  const heapMiB: Record<string, number> = {};
   const lap = (phase: string) => {
     const now = performance.now();
     ms[phase] = Math.round(now - mark);
     mark = now;
+    const bytes = engine?.memoryBytes();
+    if (typeof bytes === 'number') heapMiB[phase] = Math.round(bytes / 1048576);
   };
   let answer: { saved?: boolean; path?: string; size?: number };
   try {
@@ -274,7 +279,7 @@ async function saveDocument(): Promise<void> {
     throw new Error(`The Blender document ${relative} was not written to the project: ${describeThrown(error)}`);
   }
   setDocumentDirty(false);
-  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: size, sent, ms })}`);
+  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: size, sent, ms, heapMiB })}`);
 }
 
 async function startBlender(project: string, document?: string): Promise<unknown> {

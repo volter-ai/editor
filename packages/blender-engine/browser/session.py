@@ -2013,9 +2013,11 @@ class Session:
                 and hasattr(_blender_web, "set_read_checkpoint")):
             with open(self.document, "wb") as placeholder:
                 placeholder.truncate(self.document_size)
+        _mark("save:before")
         bpy.ops.wm.save_as_mainfile(
             filepath=self.document, compress=self.document_compressed,
             relative_remap=False, copy=True)
+        _mark("save:written")
         self.document_size = os.path.getsize(self.document)
         return {"saved": True, "path": self.document,
                 "document": self.document_relative,
