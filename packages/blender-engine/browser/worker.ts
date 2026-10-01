@@ -626,14 +626,16 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       return ask({ op: 'history-step', token: request.token, direction: request.direction });
     case 'execute':
       // Code about to run may open a file the host wrote since the last call.
-      await stageProjectFiles(files, projectRoot);
-      {
+      // A selection script presents too. Keep its native/export/transfer
+      // checkpoints on the same bounded pull door used for initial loading.
+      return pullWork('execute', async () => {
+        await stageProjectFiles(files, projectRoot!);
         const answer = await ask({ op: 'execute', code: request.code, history: request.history ?? true,
           label: request.label ?? 'Blender Python' }) as {
           error?: string; result: string;
         };
         return answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`;
-      }
+      });
     case 'present':
       // Straight through to `session.py`'s own `present` op — the worker adds
       // nothing, and a capture-less present answers `{ presented, revision }`.
