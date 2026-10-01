@@ -10,11 +10,21 @@ images: 171 MiB encoded, 1,343 MiB as RGBA.
 
 ## Decision
 
-Decodes run one image at a time, in one queue per page. Blob creation is inside
+Decodes run one image at a time. Blob creation is inside
 the queue, a disposed texture skips its queued decode or closes a decode
 already running, and a failed image rejects its own readiness without stopping
 the images after it. Decoder options (flip, alpha, colour), sizes, samplers and
 the `texturesReady` barrier are unchanged.
+
+Only one viewport image's pixels are held at a time. A viewport image keeps its
+bitmap until the next drawn frame uploads it, and while a loading page's main
+thread is busy its frames are starved but decodes still resolve between tasks,
+so a queue that waited only for the previous decode ran ahead and held every
+decoded image at once. The next viewport image's decode therefore waits until
+the previous image's pixels are uploaded or released; a failed or closed image
+releases the queue at once. A photograph's images keep their pixels and draw no
+frames, so they queue separately and wait only for the previous decode. The
+held bytes are reported (`drawStatistics().decodedImageBytes`).
 
 Decoded pixels belong to the upload, not to the presented model. The stage
 passes its renderer to `prepareDraw`; the image uploads through three's public

@@ -14,10 +14,10 @@ const digest = async (bytes: Uint8Array): Promise<string> =>
  * FREE A FRAME'S BYTES NOW, NOT AT THE NEXT GARBAGE COLLECTION. Every column crosses this path as
  * several whole copies (the worker's copy off the engine arena, the copy hashed for the record,
  * each one-MiB chunk, the column reassembled in the tab), and each is dead the moment the next
- * one exists. Left to the collector they are external memory it reclaims late: measured on the
- * Stoneguard bridge (t_2def0a16), the hosted tab's renderer rose to 8.6 GB during loading with the
- * engine heap flat and the page's JS heap up only 0.36 GB, then fell by 1.75 GB at one collection.
- * `ArrayBuffer.prototype.transfer(0)` detaches a buffer and releases its backing store at once.
+ * one exists. Left to the collector they are external memory it reclaims when it gets to it; a
+ * scene's columns are gigabytes (1.45 GB on the Stoneguard bridge), so the copies are released
+ * here instead. `ArrayBuffer.prototype.transfer(0)` detaches a buffer and frees its backing
+ * store at once.
  * Only plain buffers this realm owns are released: a SharedArrayBuffer (the engine's own memory)
  * is never touched, and `keep` names the buffers a caller is still using.
  */
