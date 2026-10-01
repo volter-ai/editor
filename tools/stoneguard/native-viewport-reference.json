@@ -1,0 +1,105 @@
+{
+  "metadata": {
+    "version": "5.2.0 LTS",
+    "build": "fbe6228777e7",
+    "scene": "Stoneguard Bridge",
+    "frame": 1,
+    "region": [
+      1197,
+      827
+    ],
+    "viewError": 1.7459029777455726e-07,
+    "projectionError": 2.384185791015625e-07,
+    "backend": "METAL",
+    "device": "Metal API",
+    "taaSamples": 16,
+    "previewPixelSize": "1",
+    "lens": 50.0,
+    "layout": [
+      {
+        "area": [
+          4,
+          163,
+          1195,
+          823
+        ],
+        "region": [
+          1195,
+          823
+        ]
+      },
+      {
+        "area": [
+          4,
+          163,
+          1197,
+          823
+        ],
+        "region": [
+          1197,
+          823
+        ]
+      },
+      {
+        "area": [
+          4,
+          163,
+          1197,
+          827
+        ],
+        "region": [
+          1197,
+          827
+        ]
+      }
+    ],
+    "method": "Actual UI DRAW redraw; POST_PIXEL one-pixel active framebuffer read completes this viewport frame.",
+    "limitations": [
+      "Native EEVEE and forest HDR differ from Three material preview.",
+      "Native original detail versus browser navigation LOD."
+    ]
+  },
+  "timing": {
+    "ms": 184.04395796824247,
+    "submitMs": 47.60241601616144,
+    "completionWaitMs": 129.45729098282754,
+    "frames": [
+      {
+        "ms": 208.45262508373708,
+        "submitMs": 57.080917060375214,
+        "completionWaitMs": 151.37170802336186
+      },
+      {
+        "ms": 172.50279104337096,
+        "submitMs": 43.04550006054342,
+        "completionWaitMs": 129.45729098282754
+      },
+      {
+        "ms": 184.04395796824247,
+        "submitMs": 59.92545804474503,
+        "completionWaitMs": 124.11849992349744
+      },
+      {
+        "ms": 173.09954098891467,
+        "submitMs": 56.68358295224607,
+        "completionWaitMs": 116.4159580366686
+      },
+      {
+        "ms": 185.71912497282028,
+        "submitMs": 47.60241601616144,
+        "completionWaitMs": 138.11670895665884
+      },
+      {
+        "ms": 187.30245798360556,
+        "submitMs": 42.65874996781349,
+        "completionWaitMs": 144.64370801579207
+      },
+      {
+        "ms": 166.996999992989,
+        "submitMs": 42.53166599664837,
+        "completionWaitMs": 124.46533399634063
+      }
+    ],
+    "warmupFrames": 5
+  }
+}

@@ -41,7 +41,7 @@ import { sendFrameValue } from './frame-stream.mts';
 
 import { type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
 import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
-import { documentChunks } from './document-chunks.mts';
+import { documentChunks, documentChunksFromFile } from './document-chunks.mts';
 import { columnsToTypedArrays, describeFrame, isColumnDescriptor } from './session-frame.mts';
 
 const post = (reply: WorkerReply) => (self as unknown as Worker).postMessage(reply);
@@ -205,9 +205,23 @@ async function saveDocument(): Promise<void> {
   }
   if (!answer?.saved || typeof answer.path !== 'string')
     throw new Error(`Blender did not save the document ${relative}`);
-  let bytes: Uint8Array;
+  let bytes: Uint8Array | undefined;
+  let size: number;
+  let read: (offset: number, length: number) => Promise<Uint8Array>;
   try {
-    bytes = await engine.files.readFile(answer.path);
+    const info = await engine.files.stat(answer.path);
+    if (!info || !Number.isSafeInteger(info.size) || info.size < 0) throw new Error('Saved document has no valid size');
+    size = info.size;
+    if (engine.files.readFileRange) {
+      const files = engine.files, path = answer.path;
+      read = (offset, length) => files.readFileRange!(path, offset, length);
+    } else {
+      // Legacy filesystem seams retain their prior whole-file behavior.
+      bytes = await engine.files.readFile(answer.path);
+      if (bytes.length !== size) throw new Error('Saved document changed before reading');
+      const held = bytes;
+      read = async (offset, length) => held.subarray(offset, offset + length);
+    }
     lap('read');
   } catch (error) {
     throw new Error(`The Blender document ${relative} could not be read back out of the engine: ${describeThrown(error)}`);
@@ -219,7 +233,7 @@ async function saveDocument(): Promise<void> {
   staged.delete(answer.path);
   let sent = 0;
   try {
-    const chunks = await documentChunks(bytes);
+    const chunks = bytes ? await documentChunks(bytes) : await documentChunksFromFile(size, read);
     lap('chunk');
     const query = `path=${encodeURIComponent(relative)}`;
     const manifest = JSON.stringify({ chunks: chunks.map(({ hash, start, end }) => [hash, end - start]) });
@@ -244,10 +258,12 @@ async function saveDocument(): Promise<void> {
       const wanted = new Set(said.missing);
       for (const chunk of chunks) {
         if (!wanted.delete(chunk.hash)) continue;
+        const body = await read(chunk.start, chunk.end - chunk.start);
+        if (body.byteLength !== chunk.end - chunk.start) throw new Error('Saved document changed during upload');
         const part = await fetch(`/__editor/blender-document-chunk?${query}&hash=${chunk.hash}`, {
           method: 'POST',
           headers: { 'content-type': 'application/octet-stream' },
-          body: new Blob([bytes.subarray(chunk.start, chunk.end) as BlobPart]),
+          body: new Blob([body as BlobPart]),
         });
         if (!part.ok) throw new Error(`HTTP ${part.status} ${await part.text().catch(() => '')}`);
         sent += chunk.end - chunk.start;
@@ -258,7 +274,7 @@ async function saveDocument(): Promise<void> {
     throw new Error(`The Blender document ${relative} was not written to the project: ${describeThrown(error)}`);
   }
   setDocumentDirty(false);
-  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length, sent, ms })}`);
+  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: size, sent, ms })}`);
 }
 
 async function startBlender(project: string, document?: string): Promise<unknown> {
@@ -626,14 +642,16 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       return ask({ op: 'history-step', token: request.token, direction: request.direction });
     case 'execute':
       // Code about to run may open a file the host wrote since the last call.
-      await stageProjectFiles(files, projectRoot);
-      {
+      // A selection script presents too. Keep its native/export/transfer
+      // checkpoints on the same bounded pull door used for initial loading.
+      return pullWork('execute', async () => {
+        await stageProjectFiles(files, projectRoot!);
         const answer = await ask({ op: 'execute', code: request.code, history: request.history ?? true,
           label: request.label ?? 'Blender Python' }) as {
           error?: string; result: string;
         };
         return answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`;
-      }
+      });
     case 'present':
       // Straight through to `session.py`'s own `present` op — the worker adds
       // nothing, and a capture-less present answers `{ presented, revision }`.

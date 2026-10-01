@@ -65,6 +65,11 @@ export class BlenderTextureSamplers {
     return binding.texture;
   }
 
+  /** All material-input samplers sharing an image's Source. */
+  variants(source: THREE.Texture): THREE.Texture[] {
+    return [...this.bindings.values()].filter(binding => binding.source === source).map(binding => binding.texture);
+  }
+
   delete(key: string): void {
     const binding = this.bindings.get(key);
     if (!binding) return;

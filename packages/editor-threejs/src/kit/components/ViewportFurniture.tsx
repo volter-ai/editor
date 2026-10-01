@@ -41,9 +41,9 @@ import {
 import { faBars, faChevronLeft } from '@fortawesome/free-solid-svg-icons';
 import { stageViewName } from './stage-view-name';
 import {
-  subscribeViewportPresentation,
+  subscribeViewportPresentationSnapshot,
   viewPresentation,
-  viewportPresentationVersion,
+  viewportPresentationSnapshotVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { ViewportViewMenu } from './ViewportViewMenu';
 import {
@@ -212,7 +212,7 @@ export function ViewportFurniture({
   // opens the view menu, Unity under its scene gizmo.
   const chrome = useViewportChrome();
   // Whether the zoom and pan buttons are drawn at all is the VIEW's (`overlays.navigationControls`).
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion, viewportPresentationSnapshotVersion);
   const navigationControls = viewPresentation(documentId).overlays.navigationControls;
   if (!viewport) return null;
   // Blender's view text names the DIRECTION as well as the projection —

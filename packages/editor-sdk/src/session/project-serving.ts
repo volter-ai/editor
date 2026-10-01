@@ -57,6 +57,10 @@ export interface ProjectOutputWrite {
   readonly inputs?: readonly string[];
 }
 
+/** Server-owned bytes produced lazily inside the project's mutation lock.
+ * A rejected iterator leaves the previous resource intact. */
+export type ProjectMutationContent = string | Uint8Array | AsyncIterable<Uint8Array> | null;
+
 export interface ProjectServingServices {
   /** The editor estate a vendored game's writes are recorded against. */
   readonly engineRoot: string;
@@ -85,7 +89,7 @@ export interface ProjectServingServices {
    */
   commitProjectMutation(
     request: unknown,
-    resources: readonly { readonly path: string; readonly content: string | Uint8Array | null }[],
+    resources: readonly { readonly path: string; readonly content: ProjectMutationContent }[],
   ): Promise<{ readonly revision: number } | null>;
   /** Answer a failed project mutation as every kit route does: a conflict is a structured 409. */
   answerProjectMutationError(response: unknown, error: unknown): void;

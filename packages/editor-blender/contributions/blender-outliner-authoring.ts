@@ -1009,7 +1009,9 @@ async function writeBlenderSelection(
     `_sel = {${names.map(py).join(', ')}}`,
     '_vl = bpy.context.view_layer',
     'for _o in _vl.objects:',
-    '    _o.select_set(_o.name in _sel)',
+    '    _wanted = _o.name in _sel',
+    '    if _o.select_get() != _wanted:',
+    '        _o.select_set(_wanted)',
     active === null
       ? '_vl.objects.active = None'
       : `_vl.objects.active = bpy.data.objects.get(${py(active)})`,

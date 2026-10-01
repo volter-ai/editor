@@ -24,7 +24,6 @@ import {
   useSyncExternalStore,
 } from 'react';
 import * as THREE from 'three';
-import { DocumentScene } from '../../render/document-scene';
 import { registerStageTransport, StageTransport } from '@volter/editor-sdk/kit/animation/stage-transport';
 import { scanClipSubjects } from '../animation/three-clips-subject';
 import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
@@ -411,7 +410,7 @@ interface DocumentContentBinding {
 
 /** Persistent editor state. Source revisions own only their content binding. */
 class Object3DDocumentHost {
-  readonly scene = new DocumentScene();
+  readonly scene = new THREE.Scene();
   /** This document's store, optionally supplied by its owner. */
   readonly store: EditorShellStore;
   readonly cleanups: Array<() => void> = [];
@@ -1022,7 +1021,7 @@ export function Object3DDocumentViewport({
       const studioStage = studioStageRef.current;
       const hasShell = hasShellRef.current;
       const assetSubject = assetSubjectRef.current;
-      const scene = new DocumentScene();
+      const scene = new THREE.Scene();
       // The image-based light's strength is the view presentation's (its studio preset's), set
       // on the rendered scene before every draw (`syncHostScene`). The content scene keeps
       // three's default, so a document that authors its own strength still states it here.
@@ -2114,7 +2113,7 @@ export function Object3DDocumentViewport({
          * resumed so it draws, run back to back and each waited out on the GPU with a one-pixel
          * read, which a real frame never does; the first frame warms and is not counted.
          */
-        const measureFrameCost = (frames: number, quality: 'full' | 'navigation' = 'full'): StageFrameCost => {
+        const measureFrameCost = (frames: number, quality: 'full' | 'navigation' = 'full', pixelRatio?: number): StageFrameCost => {
           if (!renderer) throw new Error('This stage has no renderer yet.');
           const activeRenderer = renderer;
           const gl = activeRenderer.getContext();
@@ -2125,7 +2124,17 @@ export function Object3DDocumentViewport({
           const camera = documentSession.camera();
           const originalTurn = camera.quaternion.clone();
           const axis = new THREE.Vector3(0, 1, 0);
+          const originalRatio = activeRenderer.getPixelRatio();
+          const cssSize = activeRenderer.getSize(new THREE.Vector2());
+          const ratio = pixelRatio ?? originalRatio;
+          const size = new THREE.Vector2();
           try {
+            if (ratio !== originalRatio) {
+              activeRenderer.setPixelRatio(ratio);
+              // The document's compositor queries the actual drawing buffer,
+              // so every pass measures this ratio, not just the final canvas.
+              documentSession.resize(cssSize.x, cssSize.y);
+            }
             for (let index = 0; index <= frames; index++) {
               // A real changed camera exercises culling, sorting and the
               // source's navigation path. Never persist this diagnostic pose.
@@ -2142,10 +2151,15 @@ export function Object3DDocumentViewport({
                 completionTimes.push(completed - submitted);
               }
             }
+            activeRenderer.getDrawingBufferSize(size);
           } finally {
             navigationMeasurement = null;
             camera.quaternion.copy(originalTurn);
             camera.updateMatrixWorld(true);
+            if (ratio !== originalRatio) {
+              activeRenderer.setPixelRatio(originalRatio);
+              documentSession.resize(cssSize.x, cssSize.y);
+            }
             dirty = true;
           }
           const drawn = { calls: activeRenderer.info.render.calls, triangles: activeRenderer.info.render.triangles };
@@ -2161,8 +2175,6 @@ export function Object3DDocumentViewport({
           });
           const sorted = [...times].sort((a, b) => a - b);
           const at = (q: number) => sorted[Math.min(sorted.length - 1, Math.floor(q * sorted.length))] ?? 0;
-          const size = activeRenderer.getDrawingBufferSize(new THREE.Vector2());
-          const ratio = activeRenderer.getPixelRatio();
           const round = (value: number) => Math.round(value * 100) / 100;
           const median = (values: number[]) => round(values.sort((a, b) => a - b)[Math.floor(values.length / 2)] ?? 0);
           return {
@@ -2204,7 +2216,7 @@ export function Object3DDocumentViewport({
                   drawCamera: () => host.session?.camera() ?? viewport.camera,
                   orbit: viewport.orbitControls,
                   scene: host.scene,
-                  frameCost: (frames, quality) => measureFrameCost(frames, quality),
+                  frameCost: (frames, quality, pixelRatio) => measureFrameCost(frames, quality, pixelRatio),
                 },
                 () => null,
                 (kind, object) => viewport.setHelper(kind, object),

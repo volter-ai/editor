@@ -84,6 +84,8 @@ export interface BlenderFileStat {
  */
 export interface BlenderFiles {
   readFile(path: string): Promise<Uint8Array>;
+  /** Read only this range for bounded document-save hashing and uploads. */
+  readFileRange?(path: string, offset: number, length: number): Promise<Uint8Array>;
   writeFile(path: string, data: string | Uint8Array): Promise<void>;
   /** Stream a known-size file into the engine without a second whole-file JS buffer.
    * A failed transfer leaves the previous file intact. */

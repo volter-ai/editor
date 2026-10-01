@@ -1,0 +1,1581 @@
+{
+  "candidate": "9f25d9e9",
+  "result": "Full fallback in every condition; no culling and no gain claim. Custom editor helper callbacks diagnosed. Projection mutation retired.",
+  "conditions": [
+    {
+      "off": true,
+      "cost": {
+        "unresolvedConsole": {
+          "errors": 1,
+          "warnings": 3,
+          "errorOccurrences": 1,
+          "warningOccurrences": 5,
+          "acked": 0,
+          "dropped": 0,
+          "measuredAt": 1790803152482
+        },
+        "ok": true,
+        "stage": "document:model:src/models/stoneguard-bridge.blend",
+        "frames": 7,
+        "quality": "navigation",
+        "medianMs": 81.31,
+        "p95Ms": 101.48,
+        "minMs": 70.18,
+        "submitMedianMs": 70.03,
+        "completionWaitMedianMs": 12.88,
+        "width": 1197,
+        "height": 827,
+        "cssWidth": 1197,
+        "cssHeight": 827,
+        "devicePixelRatio": 1,
+        "drawn": {
+          "calls": 8211,
+          "triangles": 65881683
+        },
+        "scene": {
+          "meshes": 11704,
+          "triangles": 237782883
+        },
+        "drawMode": "preview"
+      },
+      "passes": [
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4570,
+          "triangles": 118694226
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3584,
+          "triangles": 100696030
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4591,
+          "triangles": 37903523
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3593,
+          "triangles": 23117478
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4589,
+          "triangles": 37862018
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3592,
+          "triangles": 23075991
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4568,
+          "triangles": 37879020
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3571,
+          "triangles": 23092993
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37883025
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3529,
+          "triangles": 23096998
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4547,
+          "triangles": 37894573
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3550,
+          "triangles": 23108546
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4551,
+          "triangles": 37907026
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3554,
+          "triangles": 23120999
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37596315
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3531,
+          "triangles": 22856960
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4550,
+          "triangles": 37598816
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3555,
+          "triangles": 22859461
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4594,
+          "triangles": 37881148
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3596,
+          "triangles": 23095103
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        }
+      ]
+    },
+    {
+      "off": false,
+      "cost": {
+        "unresolvedConsole": {
+          "errors": 1,
+          "warnings": 3,
+          "errorOccurrences": 1,
+          "warningOccurrences": 6,
+          "acked": 0,
+          "dropped": 0,
+          "measuredAt": 1790803154363
+        },
+        "ok": true,
+        "stage": "document:model:src/models/stoneguard-bridge.blend",
+        "frames": 7,
+        "quality": "navigation",
+        "medianMs": 79.23,
+        "p95Ms": 80.95,
+        "minMs": 72.27,
+        "submitMedianMs": 60.38,
+        "completionWaitMedianMs": 13.87,
+        "width": 1197,
+        "height": 827,
+        "cssWidth": 1197,
+        "cssHeight": 827,
+        "devicePixelRatio": 1,
+        "drawn": {
+          "calls": 8211,
+          "triangles": 65881683
+        },
+        "scene": {
+          "meshes": 11704,
+          "triangles": 237782883
+        },
+        "drawMode": "preview"
+      },
+      "passes": [
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4570,
+          "triangles": 118694226
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3584,
+          "triangles": 100696030
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4591,
+          "triangles": 37903523
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3593,
+          "triangles": 23117478
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4589,
+          "triangles": 37862018
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3592,
+          "triangles": 23075991
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4568,
+          "triangles": 37879020
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3571,
+          "triangles": 23092993
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37883025
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3529,
+          "triangles": 23096998
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4547,
+          "triangles": 37894573
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3550,
+          "triangles": 23108546
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4551,
+          "triangles": 37907026
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3554,
+          "triangles": 23120999
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37596315
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3531,
+          "triangles": 22856960
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4550,
+          "triangles": 37598816
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3555,
+          "triangles": 22859461
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4594,
+          "triangles": 37881148
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3596,
+          "triangles": 23095103
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        }
+      ]
+    },
+    {
+      "off": true,
+      "cost": {
+        "unresolvedConsole": {
+          "errors": 1,
+          "warnings": 3,
+          "errorOccurrences": 1,
+          "warningOccurrences": 6,
+          "acked": 0,
+          "dropped": 0,
+          "measuredAt": 1790803156455
+        },
+        "ok": true,
+        "stage": "document:model:src/models/stoneguard-bridge.blend",
+        "frames": 7,
+        "quality": "navigation",
+        "medianMs": 83.43,
+        "p95Ms": 89.07,
+        "minMs": 79.25,
+        "submitMedianMs": 62.55,
+        "completionWaitMedianMs": 17.76,
+        "width": 1197,
+        "height": 827,
+        "cssWidth": 1197,
+        "cssHeight": 827,
+        "devicePixelRatio": 1,
+        "drawn": {
+          "calls": 8211,
+          "triangles": 65881683
+        },
+        "scene": {
+          "meshes": 11704,
+          "triangles": 237782883
+        },
+        "drawMode": "preview"
+      },
+      "passes": [
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4570,
+          "triangles": 118694226
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3584,
+          "triangles": 100696030
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4591,
+          "triangles": 37903523
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3593,
+          "triangles": 23117478
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4589,
+          "triangles": 37862018
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3592,
+          "triangles": 23075991
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4568,
+          "triangles": 37879020
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3571,
+          "triangles": 23092993
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37883025
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3529,
+          "triangles": 23096998
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4547,
+          "triangles": 37894573
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3550,
+          "triangles": 23108546
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4551,
+          "triangles": 37907026
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3554,
+          "triangles": 23120999
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37596315
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3531,
+          "triangles": 22856960
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4550,
+          "triangles": 37598816
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3555,
+          "triangles": 22859461
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4594,
+          "triangles": 37881148
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3596,
+          "triangles": 23095103
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        }
+      ]
+    },
+    {
+      "off": false,
+      "cost": {
+        "unresolvedConsole": {
+          "errors": 1,
+          "warnings": 3,
+          "errorOccurrences": 1,
+          "warningOccurrences": 6,
+          "acked": 0,
+          "dropped": 0,
+          "measuredAt": 1790803158317
+        },
+        "ok": true,
+        "stage": "document:model:src/models/stoneguard-bridge.blend",
+        "frames": 7,
+        "quality": "navigation",
+        "medianMs": 79.61,
+        "p95Ms": 84.29,
+        "minMs": 65.11,
+        "submitMedianMs": 61.31,
+        "completionWaitMedianMs": 13.63,
+        "width": 1197,
+        "height": 827,
+        "cssWidth": 1197,
+        "cssHeight": 827,
+        "devicePixelRatio": 1,
+        "drawn": {
+          "calls": 8211,
+          "triangles": 65881683
+        },
+        "scene": {
+          "meshes": 11704,
+          "triangles": 237782883
+        },
+        "drawMode": "preview"
+      },
+      "passes": [
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4570,
+          "triangles": 118694226
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3584,
+          "triangles": 100696030
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4591,
+          "triangles": 37903523
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3593,
+          "triangles": 23117478
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4589,
+          "triangles": 37862018
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3592,
+          "triangles": 23075991
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4568,
+          "triangles": 37879020
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3571,
+          "triangles": 23092993
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37883025
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3529,
+          "triangles": 23096998
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4547,
+          "triangles": 37894573
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3550,
+          "triangles": 23108546
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4551,
+          "triangles": 37907026
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3554,
+          "triangles": 23120999
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37596315
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3531,
+          "triangles": 22856960
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4550,
+          "triangles": 37598816
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3555,
+          "triangles": 22859461
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4594,
+          "triangles": 37881148
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3596,
+          "triangles": 23095103
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218
+        }
+      ]
+    }
+  ],
+  "hostMemorySeries": [
+    {
+      "unixTime": 1790803119.2596328,
+      "fields": {
+        "Pages free": 34443,
+        "Pages active": 516543,
+        "Pages inactive": 487534,
+        "Pages speculative": 31461,
+        "Pages throttled": 0,
+        "Pages wired down": 383108,
+        "Pages purgeable": 54,
+        "\"Translation faults\"": 102420778106,
+        "Pages copy-on-write": 3032969956,
+        "Pages zero filled": 26017961538,
+        "Pages reactivated": 22249882371,
+        "Pages purged": 457616539,
+        "File-backed pages": 369328,
+        "Anonymous pages": 666210,
+        "Pages stored in compressor": 3301361,
+        "Pages occupied by compressor": 863318,
+        "Decompressions": 16700906099,
+        "Compressions": 19048040611,
+        "Pageins": 1087362784,
+        "Pageouts": 12073893,
+        "Swapins": 90157250,
+        "Swapouts": 124262639
+      }
+    },
+    {
+      "unixTime": 1790803124.273857,
+      "fields": {
+        "Pages free": 3600,
+        "Pages active": 486090,
+        "Pages inactive": 450550,
+        "Pages speculative": 35457,
+        "Pages throttled": 0,
+        "Pages wired down": 535178,
+        "Pages purgeable": 0,
+        "\"Translation faults\"": 102421484071,
+        "Pages copy-on-write": 3033009271,
+        "Pages zero filled": 26018254969,
+        "Pages reactivated": 22250059916,
+        "Pages purged": 457628046,
+        "File-backed pages": 343594,
+        "Anonymous pages": 628503,
+        "Pages stored in compressor": 3229184,
+        "Pages occupied by compressor": 805258,
+        "Decompressions": 16701180090,
+        "Compressions": 19048264903,
+        "Pageins": 1087368718,
+        "Pageouts": 12073905,
+        "Swapins": 90157644,
+        "Swapouts": 124262639
+      }
+    },
+    {
+      "unixTime": 1790803129.287978,
+      "fields": {
+        "Pages free": 13350,
+        "Pages active": 426788,
+        "Pages inactive": 402912,
+        "Pages speculative": 23216,
+        "Pages throttled": 0,
+        "Pages wired down": 552246,
+        "Pages purgeable": 28,
+        "\"Translation faults\"": 102422116839,
+        "Pages copy-on-write": 3033049594,
+        "Pages zero filled": 26018507725,
+        "Pages reactivated": 22250392399,
+        "Pages purged": 457635644,
+        "File-backed pages": 315150,
+        "Anonymous pages": 537766,
+        "Pages stored in compressor": 3382052,
+        "Pages occupied by compressor": 898243,
+        "Decompressions": 16701342528,
+        "Compressions": 19048594837,
+        "Pageins": 1087382146,
+        "Pageouts": 12073984,
+        "Swapins": 90157768,
+        "Swapouts": 124262639
+      }
+    },
+    {
+      "unixTime": 1790803134.3018172,
+      "fields": {
+        "Pages free": 6157,
+        "Pages active": 448622,
+        "Pages inactive": 402213,
+        "Pages speculative": 45199,
+        "Pages throttled": 0,
+        "Pages wired down": 552584,
+        "Pages purgeable": 2,
+        "\"Translation faults\"": 102422658700,
+        "Pages copy-on-write": 3033082345,
+        "Pages zero filled": 26018709244,
+        "Pages reactivated": 22250447352,
+        "Pages purged": 457646949,
+        "File-backed pages": 325747,
+        "Anonymous pages": 570287,
+        "Pages stored in compressor": 3340510,
+        "Pages occupied by compressor": 861858,
+        "Decompressions": 16701431752,
+        "Compressions": 19048666979,
+        "Pageins": 1087389349,
+        "Pageouts": 12074025,
+        "Swapins": 90158007,
+        "Swapouts": 124262639
+      }
+    },
+    {
+      "unixTime": 1790803139.3256378,
+      "fields": {
+        "Pages free": 3478,
+        "Pages active": 466351,
+        "Pages inactive": 436266,
+        "Pages speculative": 28912,
+        "Pages throttled": 0,
+        "Pages wired down": 551588,
+        "Pages purgeable": 0,
+        "\"Translation faults\"": 102423217502,
+        "Pages copy-on-write": 3033122442,
+        "Pages zero filled": 26018940993,
+        "Pages reactivated": 22250463272,
+        "Pages purged": 457649643,
+        "File-backed pages": 304885,
+        "Anonymous pages": 626644,
+        "Pages stored in compressor": 3289718,
+        "Pages occupied by compressor": 829783,
+        "Decompressions": 16701497511,
+        "Compressions": 19048688352,
+        "Pageins": 1087394883,
+        "Pageouts": 12074076,
+        "Swapins": 90158113,
+        "Swapouts": 124262639
+      }
+    },
+    {
+      "unixTime": 1790803144.344224,
+      "fields": {
+        "Pages free": 5489,
+        "Pages active": 436166,
+        "Pages inactive": 393862,
+        "Pages speculative": 40305,
+        "Pages throttled": 0,
+        "Pages wired down": 554478,
+        "Pages purgeable": 36,
+        "\"Translation faults\"": 102423783899,
+        "Pages copy-on-write": 3033154241,
+        "Pages zero filled": 26019150588,
+        "Pages reactivated": 22250714772,
+        "Pages purged": 457657379,
+        "File-backed pages": 322619,
+        "Anonymous pages": 547714,
+        "Pages stored in compressor": 3380161,
+        "Pages occupied by compressor": 886134,
+        "Decompressions": 16701638020,
+        "Compressions": 19048936951,
+        "Pageins": 1087410042,
+        "Pageouts": 12074102,
+        "Swapins": 90158185,
+        "Swapouts": 124262639
+      }
+    },
+    {
+      "unixTime": 1790803149.355154,
+      "fields": {
+        "Pages free": 8374,
+        "Pages active": 441187,
+        "Pages inactive": 417094,
+        "Pages speculative": 22776,
+        "Pages throttled": 0,
+        "Pages wired down": 561698,
+        "Pages purgeable": 32,
+        "\"Translation faults\"": 102424350652,
+        "Pages copy-on-write": 3033195753,
+        "Pages zero filled": 26019372032,
+        "Pages reactivated": 22250740712,
+        "Pages purged": 457659735,
+        "File-backed pages": 300056,
+        "Anonymous pages": 581001,
+        "Pages stored in compressor": 3340595,
+        "Pages occupied by compressor": 865659,
+        "Decompressions": 16701708182,
+        "Compressions": 19048980159,
+        "Pageins": 1087417855,
+        "Pageouts": 12074145,
+        "Swapins": 90158312,
+        "Swapouts": 124262639
+      }
+    },
+    {
+      "unixTime": 1790803154.394044,
+      "fields": {
+        "Pages free": 1651,
+        "Pages active": 396686,
+        "Pages inactive": 358284,
+        "Pages speculative": 37191,
+        "Pages throttled": 0,
+        "Pages wired down": 587417,
+        "Pages purgeable": 0,
+        "\"Translation faults\"": 102425038949,
+        "Pages copy-on-write": 3033227566,
+        "Pages zero filled": 26019631607,
+        "Pages reactivated": 22250985479,
+        "Pages purged": 457664670,
+        "File-backed pages": 295391,
+        "Anonymous pages": 496771,
+        "Pages stored in compressor": 3460464,
+        "Pages occupied by compressor": 935023,
+        "Decompressions": 16701882478,
+        "Compressions": 19049289515,
+        "Pageins": 1087437195,
+        "Pageouts": 12074181,
+        "Swapins": 90158380,
+        "Swapouts": 124262639
+      }
+    }
+  ],
+  "hostCaveat": "Box cleanup hard-held, renderer35402 pinned. Kernel63\u201389%, load~35 and foreign bun/node/supercode work persisted. Swapouts0 per box."
+}

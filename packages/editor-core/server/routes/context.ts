@@ -25,6 +25,7 @@ import type {
   SourceRevision,
 } from '@volter/editor-sdk/session/collaboration-types';
 import type { EditorServerCompatibility } from '@volter/editor-sdk/session/editor-compatibility';
+import type { ProjectMutationContent } from '@volter/editor-sdk/session/project-serving';
 import type { Request, Response } from 'express';
 import type { TripwireGate } from '../support/project/build-discipline';
 import type {
@@ -95,7 +96,7 @@ export interface RouteContext {
    */
   readonly commitProjectMutation: (
     req: Request,
-    resources: readonly { path: string; content: string | Buffer | null }[],
+    resources: readonly { path: string; content: ProjectMutationContent }[],
   ) => Promise<SourceRevision | null | undefined>;
   /** The matching error answer, including the structured conflict shape. */
   readonly projectMutationError: (res: Response, error: unknown) => void;

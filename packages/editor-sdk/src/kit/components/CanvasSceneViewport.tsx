@@ -50,9 +50,9 @@ import {
   setViewDrafting,
   setViewGridVisible,
   viewDrafting,
-  subscribeViewportPresentation,
+  subscribeViewportPresentationSnapshot,
   viewGridVisible,
-  viewportPresentationVersion,
+  viewportPresentationSnapshotVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
 import { ToolStrip } from '@volter/editor-sdk/kit/components/Toolbar';
@@ -138,7 +138,7 @@ export function CanvasSceneBackdrop({ view, documentId }: { view: RootViewContro
   // bound under the host document's own id, so a door that toggles the active view's grid
   // reaches this one, and two canvases never share a switch.
   useEffect(() => bindViewPresentation(documentId, 'canvas'), [documentId]);
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion);
   const showGrid = viewGridVisible(documentId);
   const drafting = viewDrafting(documentId);
   const resolution = getCurrentProject()?.config.resolution;
@@ -499,7 +499,7 @@ export function CanvasSceneControls({
 }) {
   const store = useEditorStore();
   useSyncExternalStore(store.subscribe, store.getSnapshot);
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion);
   const pose = useSyncExternalStore(view.subscribe, view.get, view.get);
   // The mode is the view's, so it survives the remount a source write causes (Godot's stays on).
   const [mode, setModeState] = useState<CanvasSceneMode | null>(() => sceneModes.get(view) ?? null);
@@ -793,7 +793,7 @@ function CanvasSceneEditGizmos({
   );
   const [revision, bump] = useState(0);
   useEffect(() => subscribe(() => bump((n) => n + 1)), [subscribe]);
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion);
   const drafting = viewDrafting(documentId);
   if (!adapter?.inspector || !adapter.rects || (!drafting.lock && !drafting.group)) return null;
   const marks = collectAllNodeIds(adapter).flatMap((id) => {
@@ -839,7 +839,7 @@ function CanvasSceneViewMenu({
 }) {
   const [open, setOpen] = useState(false);
   const triggerRef = useRef<HTMLButtonElement>(null);
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion);
   useSyncExternalStore(
     useCallback((listener) => subscribeCanvasSceneGuides(view, listener), [view]),
     useCallback(() => canvasSceneGuideRevision(view), [view]),

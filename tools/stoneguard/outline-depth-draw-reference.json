@@ -1,0 +1,993 @@
+{
+  "candidate": "6f33424c",
+  "result": "Ordinary depth rejection runs; color/mask draw multisets identical. Timing inconclusive with active swapping; no gain or33ms claim.",
+  "conditions": [
+    {
+      "off": true,
+      "startedAtMs": 1790804618867,
+      "endedAtMs": 1790804619705,
+      "cost": {
+        "unresolvedConsole": {
+          "errors": 1,
+          "warnings": 3,
+          "errorOccurrences": 1,
+          "warningOccurrences": 6,
+          "acked": 0,
+          "dropped": 0,
+          "measuredAt": 1790804619677
+        },
+        "ok": true,
+        "stage": "document:model:src/models/stoneguard-bridge.blend",
+        "frames": 7,
+        "quality": "navigation",
+        "medianMs": 73.63,
+        "p95Ms": 78.75,
+        "minMs": 68.68,
+        "submitMedianMs": 56.15,
+        "completionWaitMedianMs": 19.44,
+        "width": 1197,
+        "height": 827,
+        "cssWidth": 1197,
+        "cssHeight": 827,
+        "devicePixelRatio": 1,
+        "drawn": {
+          "calls": 8211,
+          "triangles": 65881683
+        },
+        "scene": {
+          "meshes": 11704,
+          "triangles": 237782883
+        },
+        "drawMode": "preview"
+      },
+      "passDrawMultiset": [
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37596315,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37883025,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4547,
+          "triangles": 37894573,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4550,
+          "triangles": 37598816,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4551,
+          "triangles": 37907026,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4568,
+          "triangles": 37879020,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4570,
+          "triangles": 118694226,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4589,
+          "triangles": 37862018,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4591,
+          "triangles": 37903523,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4594,
+          "triangles": 37881148,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3529,
+          "triangles": 23096998,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3531,
+          "triangles": 22856960,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3550,
+          "triangles": 23108546,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3554,
+          "triangles": 23120999,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3555,
+          "triangles": 22859461,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3571,
+          "triangles": 23092993,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3584,
+          "triangles": 100696030,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3592,
+          "triangles": 23075991,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3593,
+          "triangles": 23117478,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3596,
+          "triangles": 23095103,
+          "occurrences": 1
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1,
+          "occurrences": 10
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186,
+          "occurrences": 10
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1,
+          "occurrences": 10
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218,
+          "occurrences": 10
+        }
+      ]
+    },
+    {
+      "off": false,
+      "startedAtMs": 1790804620716,
+      "endedAtMs": 1790804621582,
+      "cost": {
+        "unresolvedConsole": {
+          "errors": 1,
+          "warnings": 3,
+          "errorOccurrences": 1,
+          "warningOccurrences": 6,
+          "acked": 0,
+          "dropped": 0,
+          "measuredAt": 1790804621557
+        },
+        "ok": true,
+        "stage": "document:model:src/models/stoneguard-bridge.blend",
+        "frames": 7,
+        "quality": "navigation",
+        "medianMs": 72.8,
+        "p95Ms": 94.45,
+        "minMs": 65.77,
+        "submitMedianMs": 57.62,
+        "completionWaitMedianMs": 12.81,
+        "width": 1197,
+        "height": 827,
+        "cssWidth": 1197,
+        "cssHeight": 827,
+        "devicePixelRatio": 1,
+        "drawn": {
+          "calls": 8211,
+          "triangles": 65881683
+        },
+        "scene": {
+          "meshes": 11704,
+          "triangles": 237782883
+        },
+        "drawMode": "preview"
+      },
+      "passDrawMultiset": [
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37596315,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37883025,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4547,
+          "triangles": 37894573,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4550,
+          "triangles": 37598816,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4551,
+          "triangles": 37907026,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4568,
+          "triangles": 37879020,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4570,
+          "triangles": 118694226,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4589,
+          "triangles": 37862018,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4591,
+          "triangles": 37903523,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4594,
+          "triangles": 37881148,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1970,
+          "triangles": 9468620,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1976,
+          "triangles": 9560254,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1982,
+          "triangles": 9527468,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1985,
+          "triangles": 9435483,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1993,
+          "triangles": 9426423,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1996,
+          "triangles": 9586990,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 2024,
+          "triangles": 9518626,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 2036,
+          "triangles": 21470450,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 2039,
+          "triangles": 9497569,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3555,
+          "triangles": 22859461,
+          "occurrences": 1
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1,
+          "occurrences": 10
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186,
+          "occurrences": 10
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1,
+          "occurrences": 10
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218,
+          "occurrences": 10
+        }
+      ]
+    },
+    {
+      "off": true,
+      "startedAtMs": 1790804622695,
+      "endedAtMs": 1790804623488,
+      "cost": {
+        "unresolvedConsole": {
+          "errors": 1,
+          "warnings": 3,
+          "errorOccurrences": 1,
+          "warningOccurrences": 6,
+          "acked": 0,
+          "dropped": 0,
+          "measuredAt": 1790804623435
+        },
+        "ok": true,
+        "stage": "document:model:src/models/stoneguard-bridge.blend",
+        "frames": 7,
+        "quality": "navigation",
+        "medianMs": 77.54,
+        "p95Ms": 86.7,
+        "minMs": 72.16,
+        "submitMedianMs": 62.63,
+        "completionWaitMedianMs": 14.08,
+        "width": 1197,
+        "height": 827,
+        "cssWidth": 1197,
+        "cssHeight": 827,
+        "devicePixelRatio": 1,
+        "drawn": {
+          "calls": 8211,
+          "triangles": 65881683
+        },
+        "scene": {
+          "meshes": 11704,
+          "triangles": 237782883
+        },
+        "drawMode": "preview"
+      },
+      "passDrawMultiset": [
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37596315,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37883025,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4547,
+          "triangles": 37894573,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4550,
+          "triangles": 37598816,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4551,
+          "triangles": 37907026,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4568,
+          "triangles": 37879020,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4570,
+          "triangles": 118694226,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4589,
+          "triangles": 37862018,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4591,
+          "triangles": 37903523,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4594,
+          "triangles": 37881148,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3529,
+          "triangles": 23096998,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3531,
+          "triangles": 22856960,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3550,
+          "triangles": 23108546,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3554,
+          "triangles": 23120999,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3555,
+          "triangles": 22859461,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3571,
+          "triangles": 23092993,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3584,
+          "triangles": 100696030,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3592,
+          "triangles": 23075991,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3593,
+          "triangles": 23117478,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3596,
+          "triangles": 23095103,
+          "occurrences": 1
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1,
+          "occurrences": 10
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186,
+          "occurrences": 10
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1,
+          "occurrences": 10
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218,
+          "occurrences": 10
+        }
+      ]
+    },
+    {
+      "off": false,
+      "startedAtMs": 1790804624565,
+      "endedAtMs": 1790804625448,
+      "cost": {
+        "unresolvedConsole": {
+          "errors": 1,
+          "warnings": 3,
+          "errorOccurrences": 1,
+          "warningOccurrences": 6,
+          "acked": 0,
+          "dropped": 0,
+          "measuredAt": 1790804625421
+        },
+        "ok": true,
+        "stage": "document:model:src/models/stoneguard-bridge.blend",
+        "frames": 7,
+        "quality": "navigation",
+        "medianMs": 86.69,
+        "p95Ms": 107.87,
+        "minMs": 67.55,
+        "submitMedianMs": 78.07,
+        "completionWaitMedianMs": 9.65,
+        "width": 1197,
+        "height": 827,
+        "cssWidth": 1197,
+        "cssHeight": 827,
+        "devicePixelRatio": 1,
+        "drawn": {
+          "calls": 8211,
+          "triangles": 65881683
+        },
+        "scene": {
+          "meshes": 11704,
+          "triangles": 237782883
+        },
+        "drawMode": "preview"
+      },
+      "passDrawMultiset": [
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37596315,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4526,
+          "triangles": 37883025,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4547,
+          "triangles": 37894573,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4550,
+          "triangles": 37598816,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4551,
+          "triangles": 37907026,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4568,
+          "triangles": 37879020,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4570,
+          "triangles": 118694226,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4589,
+          "triangles": 37862018,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4591,
+          "triangles": 37903523,
+          "occurrences": 1
+        },
+        {
+          "pass": "EffectComposer.Buffer",
+          "calls": 4594,
+          "triangles": 37881148,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1970,
+          "triangles": 9468620,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1976,
+          "triangles": 9560254,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1982,
+          "triangles": 9527468,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1985,
+          "triangles": 9435483,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1993,
+          "triangles": 9426423,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 1996,
+          "triangles": 9586990,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 2024,
+          "triangles": 9518626,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 2036,
+          "triangles": 21470450,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 2039,
+          "triangles": 9497569,
+          "occurrences": 1
+        },
+        {
+          "pass": "MeshDepthMaterial",
+          "calls": 3555,
+          "triangles": 22859461,
+          "occurrences": 1
+        },
+        {
+          "pass": "Outline.Edges",
+          "calls": 1,
+          "triangles": 1,
+          "occurrences": 10
+        },
+        {
+          "pass": "ShaderMaterial",
+          "calls": 85,
+          "triangles": 5423186,
+          "occurrences": 10
+        },
+        {
+          "pass": "screen",
+          "calls": 1,
+          "triangles": 1,
+          "occurrences": 10
+        },
+        {
+          "pass": "screen",
+          "calls": 19,
+          "triangles": 218,
+          "occurrences": 10
+        }
+      ]
+    }
+  ],
+  "hostMemorySeries": [
+    {
+      "unixTime": 1790804585.5191271,
+      "fields": {
+        "Pages free": 3758,
+        "Pages active": 415596,
+        "Pages inactive": 383724,
+        "Pages speculative": 30276,
+        "Pages throttled": 0,
+        "Pages wired down": 407878,
+        "Pages purgeable": 12,
+        "\"Translation faults\"": 102638751306,
+        "Pages copy-on-write": 3045811429,
+        "Pages zero filled": 26105510792,
+        "Pages reactivated": 22308537264,
+        "Pages purged": 458983142,
+        "File-backed pages": 304037,
+        "Anonymous pages": 525559,
+        "Pages stored in compressor": 3809536,
+        "Pages occupied by compressor": 1075633,
+        "Decompressions": 16743923264,
+        "Compressions": 19102258439,
+        "Pageins": 1094351895,
+        "Pageouts": 12106298,
+        "Swapins": 90349021,
+        "Swapouts": 124585656
+      }
+    },
+    {
+      "unixTime": 1790804590.537756,
+      "fields": {
+        "Pages free": 3565,
+        "Pages active": 344190,
+        "Pages inactive": 310854,
+        "Pages speculative": 31984,
+        "Pages throttled": 0,
+        "Pages wired down": 596619,
+        "Pages purgeable": 2,
+        "\"Translation faults\"": 102639600422,
+        "Pages copy-on-write": 3045884944,
+        "Pages zero filled": 26105798682,
+        "Pages reactivated": 22308862551,
+        "Pages purged": 458989497,
+        "File-backed pages": 252445,
+        "Anonymous pages": 434584,
+        "Pages stored in compressor": 3760770,
+        "Pages occupied by compressor": 1029293,
+        "Decompressions": 16744236836,
+        "Compressions": 19102573816,
+        "Pageins": 1094379564,
+        "Pageouts": 12106446,
+        "Swapins": 90349776,
+        "Swapouts": 124602412
+      }
+    },
+    {
+      "unixTime": 1790804595.565305,
+      "fields": {
+        "Pages free": 4037,
+        "Pages active": 356279,
+        "Pages inactive": 335011,
+        "Pages speculative": 19346,
+        "Pages throttled": 0,
+        "Pages wired down": 610313,
+        "Pages purgeable": 0,
+        "\"Translation faults\"": 102640660011,
+        "Pages copy-on-write": 3045938294,
+        "Pages zero filled": 26106010454,
+        "Pages reactivated": 22309224141,
+        "Pages purged": 458997940,
+        "File-backed pages": 247944,
+        "Anonymous pages": 462692,
+        "Pages stored in compressor": 3723711,
+        "Pages occupied by compressor": 991104,
+        "Decompressions": 16744661073,
+        "Compressions": 19103008024,
+        "Pageins": 1094400900,
+        "Pageouts": 12106461,
+        "Swapins": 90351108,
+        "Swapouts": 124611496
+      }
+    },
+    {
+      "unixTime": 1790804600.584976,
+      "fields": {
+        "Pages free": 3972,
+        "Pages active": 340824,
+        "Pages inactive": 318843,
+        "Pages speculative": 20138,
+        "Pages throttled": 0,
+        "Pages wired down": 611071,
+        "Pages purgeable": 2,
+        "\"Translation faults\"": 102641733052,
+        "Pages copy-on-write": 3046001316,
+        "Pages zero filled": 26106252273,
+        "Pages reactivated": 22309596809,
+        "Pages purged": 459006515,
+        "File-backed pages": 252274,
+        "Anonymous pages": 427531,
+        "Pages stored in compressor": 3812477,
+        "Pages occupied by compressor": 1021784,
+        "Decompressions": 16745038951,
+        "Compressions": 19103491712,
+        "Pageins": 1094409913,
+        "Pageouts": 12106516,
+        "Swapins": 90352859,
+        "Swapouts": 124621712
+      }
+    },
+    {
+      "unixTime": 1790804605.6038778,
+      "fields": {
+        "Pages free": 3965,
+        "Pages active": 345911,
+        "Pages inactive": 314644,
+        "Pages speculative": 29678,
+        "Pages throttled": 0,
+        "Pages wired down": 620078,
+        "Pages purgeable": 0,
+        "\"Translation faults\"": 102642570346,
+        "Pages copy-on-write": 3046038277,
+        "Pages zero filled": 26106441698,
+        "Pages reactivated": 22309920714,
+        "Pages purged": 459012526,
+        "File-backed pages": 249830,
+        "Anonymous pages": 440403,
+        "Pages stored in compressor": 3800343,
+        "Pages occupied by compressor": 1002639,
+        "Decompressions": 16745390604,
+        "Compressions": 19103868769,
+        "Pageins": 1094417001,
+        "Pageouts": 12106666,
+        "Swapins": 90353612,
+        "Swapouts": 124653228
+      }
+    },
+    {
+      "unixTime": 1790804610.621221,
+      "fields": {
+        "Pages free": 5392,
+        "Pages active": 342007,
+        "Pages inactive": 323626,
+        "Pages speculative": 16855,
+        "Pages throttled": 0,
+        "Pages wired down": 599985,
+        "Pages purgeable": 4,
+        "\"Translation faults\"": 102643547802,
+        "Pages copy-on-write": 3046065434,
+        "Pages zero filled": 26106715827,
+        "Pages reactivated": 22310382629,
+        "Pages purged": 459020388,
+        "File-backed pages": 233726,
+        "Anonymous pages": 448762,
+        "Pages stored in compressor": 3857522,
+        "Pages occupied by compressor": 1028609,
+        "Decompressions": 16745814236,
+        "Compressions": 19104394415,
+        "Pageins": 1094426957,
+        "Pageouts": 12106817,
+        "Swapins": 90355953,
+        "Swapouts": 124665092
+      }
+    },
+    {
+      "unixTime": 1790804615.651556,
+      "fields": {
+        "Pages free": 3697,
+        "Pages active": 371874,
+        "Pages inactive": 344366,
+        "Pages speculative": 25825,
+        "Pages throttled": 0,
+        "Pages wired down": 630441,
+        "Pages purgeable": 0,
+        "\"Translation faults\"": 102644359295,
+        "Pages copy-on-write": 3046091491,
+        "Pages zero filled": 26106936947,
+        "Pages reactivated": 22310768123,
+        "Pages purged": 459025574,
+        "File-backed pages": 239763,
+        "Anonymous pages": 502302,
+        "Pages stored in compressor": 3785605,
+        "Pages occupied by compressor": 940304,
+        "Decompressions": 16746148141,
+        "Compressions": 19104712425,
+        "Pageins": 1094431575,
+        "Pageouts": 12106861,
+        "Swapins": 90357121,
+        "Swapouts": 124684480
+      }
+    },
+    {
+      "unixTime": 1790804620.6642282,
+      "fields": {
+        "Pages free": 4112,
+        "Pages active": 358208,
+        "Pages inactive": 327746,
+        "Pages speculative": 28806,
+        "Pages throttled": 0,
+        "Pages wired down": 626549,
+        "Pages purgeable": 2,
+        "\"Translation faults\"": 102645110625,
+        "Pages copy-on-write": 3046125757,
+        "Pages zero filled": 26107143873,
+        "Pages reactivated": 22311211853,
+        "Pages purged": 459035216,
+        "File-backed pages": 247975,
+        "Anonymous pages": 466785,
+        "Pages stored in compressor": 3825971,
+        "Pages occupied by compressor": 971290,
+        "Decompressions": 16746418248,
+        "Compressions": 19105058450,
+        "Pageins": 1094442723,
+        "Pageouts": 12106890,
+        "Swapins": 90359261,
+        "Swapouts": 124688176
+      }
+    },
+    {
+      "unixTime": 1790804625.6962729,
+      "fields": {
+        "Pages free": 2857,
+        "Pages active": 348174,
+        "Pages inactive": 325279,
+        "Pages speculative": 21561,
+        "Pages throttled": 0,
+        "Pages wired down": 630233,
+        "Pages purgeable": 0,
+        "\"Translation faults\"": 102646177071,
+        "Pages copy-on-write": 3046186416,
+        "Pages zero filled": 26107396691,
+        "Pages reactivated": 22311637207,
+        "Pages purged": 459038555,
+        "File-backed pages": 242487,
+        "Anonymous pages": 452527,
+        "Pages stored in compressor": 3838380,
+        "Pages occupied by compressor": 988105,
+        "Decompressions": 16746790359,
+        "Compressions": 19105504151,
+        "Pageins": 1094459791,
+        "Pageouts": 12106900,
+        "Swapins": 90360541,
+        "Swapouts": 124688176
+      }
+    }
+  ],
+  "swapoutPagesDuringProbe": 102520,
+  "hostCaveat": "Box hardheld151queueentries and killed owninflight40809 at21:41:55Z; renderer43297 pinned. Preprobe boxsamples0swapout rates,37-39percentfree,23-49kcompressions/s,load70-75. Duringwarm/AB swapoutcountersincremented. No quiet-window claim."
+}

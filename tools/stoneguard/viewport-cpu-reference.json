@@ -1,0 +1,194 @@
+{
+  "method": "10 ms browser JS Self-Profiling; samples restricted to frameCost stack. CPU shares normalized to unsampled submit median; estimates, not independent clocks. GC not exposed separately.",
+  "baseline": {
+    "unresolvedConsole": {
+      "errors": 0,
+      "warnings": 3,
+      "errorOccurrences": 0,
+      "warningOccurrences": 9,
+      "acked": 0,
+      "dropped": 0,
+      "measuredAt": 1790799455326
+    },
+    "ok": true,
+    "stage": "document:model:src/models/stoneguard-bridge.blend",
+    "frames": 40,
+    "quality": "navigation",
+    "medianMs": 73.3,
+    "p95Ms": 94.54,
+    "minMs": 67.34,
+    "submitMedianMs": 54.84,
+    "completionWaitMedianMs": 19.53,
+    "width": 1197,
+    "height": 827,
+    "cssWidth": 1197,
+    "cssHeight": 827,
+    "devicePixelRatio": 1,
+    "drawn": {
+      "calls": 8214,
+      "triangles": 66434419
+    },
+    "scene": {
+      "meshes": 11704,
+      "triangles": 237782883
+    },
+    "drawMode": "preview"
+  },
+  "profiledMedianSubmitMs": 59.01,
+  "sampleCounts": {
+    "Culling": 63,
+    "Draw submission / object draw preparation": 541,
+    "Renderer traversal / queue": 175,
+    "Uniforms / materials / texture state": 339,
+    "GPU wait / stage unassigned": 790,
+    "Scene matrices / instance sync": 171,
+    "Stage / other JS": 58,
+    "Scene presentation planning": 28
+  },
+  "insideSamples": 2165,
+  "cpuSamples": 1375,
+  "estimatedBaselineCpuMs": {
+    "Culling": 2.512669090909091,
+    "Draw submission / object draw preparation": 21.577047272727274,
+    "Renderer traversal / queue": 6.979636363636363,
+    "Uniforms / materials / texture state": 13.520552727272728,
+    "Scene matrices / instance sync": 6.8201018181818185,
+    "Stage / other JS": 2.3132509090909092,
+    "Scene presentation planning": 1.1167418181818183
+  },
+  "limitations": [
+    "GC/engine internals are not independently observable.",
+    "Top frameCost-only samples combine GPU completion wait with small loop overhead.",
+    "Native EEVEE uses different shaders/full geometry.",
+    "Sampling shares have statistical error and cannot establish a hard hardware floor."
+  ],
+  "finalSevenFrames": {
+    "unresolvedConsole": {
+      "errors": 0,
+      "warnings": 3,
+      "errorOccurrences": 0,
+      "warningOccurrences": 17,
+      "acked": 0,
+      "dropped": 0,
+      "measuredAt": 1790799794018
+    },
+    "ok": true,
+    "stage": "document:model:src/models/stoneguard-bridge.blend",
+    "frames": 7,
+    "quality": "navigation",
+    "medianMs": 73.86,
+    "p95Ms": 119.02,
+    "minMs": 68.21,
+    "submitMedianMs": 49.27,
+    "completionWaitMedianMs": 26.79,
+    "width": 1197,
+    "height": 827,
+    "cssWidth": 1197,
+    "cssHeight": 827,
+    "devicePixelRatio": 1,
+    "drawn": {
+      "calls": 8211,
+      "triangles": 65881683
+    },
+    "scene": {
+      "meshes": 11704,
+      "triangles": 237782883
+    },
+    "drawMode": "preview"
+  },
+  "gc": "Not independently exposed by JS Self-Profiling; no zero-cost assertion.",
+  "jsWasmBoundary": "No synchronous WASM stack in measured main-thread viewport samples; Blender work runs in its worker.",
+  "hostMemorySeries": [
+    {
+      "utcSeconds": 1790799414.118988,
+      "swapouts": 123893151,
+      "compressions": 18939664730,
+      "freePages": 11785
+    },
+    {
+      "utcSeconds": 1790799419.1515,
+      "swapouts": 123893151,
+      "compressions": 18940000389,
+      "freePages": 4000
+    },
+    {
+      "utcSeconds": 1790799424.188323,
+      "swapouts": 123893151,
+      "compressions": 18940306683,
+      "freePages": 1741
+    },
+    {
+      "utcSeconds": 1790799429.2060852,
+      "swapouts": 123893151,
+      "compressions": 18940553371,
+      "freePages": 3751
+    },
+    {
+      "utcSeconds": 1790799434.256615,
+      "swapouts": 123893151,
+      "compressions": 18940820130,
+      "freePages": 4042
+    },
+    {
+      "utcSeconds": 1790799439.299447,
+      "swapouts": 123893151,
+      "compressions": 18941242220,
+      "freePages": 4033
+    },
+    {
+      "utcSeconds": 1790799444.330632,
+      "swapouts": 123893151,
+      "compressions": 18941530409,
+      "freePages": 2657
+    },
+    {
+      "utcSeconds": 1790799449.3856168,
+      "swapouts": 123893151,
+      "compressions": 18941860391,
+      "freePages": 3479
+    },
+    {
+      "utcSeconds": 1790799454.4151838,
+      "swapouts": 123893151,
+      "compressions": 18942114626,
+      "freePages": 4194
+    },
+    {
+      "utcSeconds": 1790799459.46283,
+      "swapouts": 123893151,
+      "compressions": 18942485011,
+      "freePages": 3967
+    },
+    {
+      "utcSeconds": 1790799464.4750621,
+      "swapouts": 123893151,
+      "compressions": 18942702766,
+      "freePages": 12512
+    },
+    {
+      "utcSeconds": 1790799469.5114,
+      "swapouts": 123893151,
+      "compressions": 18942853676,
+      "freePages": 15269
+    },
+    {
+      "utcSeconds": 1790799474.542746,
+      "swapouts": 123893151,
+      "compressions": 18943263335,
+      "freePages": 7336
+    },
+    {
+      "utcSeconds": 1790799479.599613,
+      "swapouts": 123893151,
+      "compressions": 18943687435,
+      "freePages": 3393
+    },
+    {
+      "utcSeconds": 1790799484.646996,
+      "swapouts": 123893151,
+      "compressions": 18944110230,
+      "freePages": 4322
+    }
+  ],
+  "hostAttribution": "Box-maintenance reported host quietening mainly from closing foreign Studio renderer77188 and RH2 renderer91553, not from this diagnostic session; compression/background load persisted despite zero additional swapouts."
+}
