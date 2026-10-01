@@ -70,6 +70,8 @@ export interface FrontendHandoff {
   readonly env: Readonly<Record<string, string>>;
   /** The client id the runtime's lease coordinator will see. */
   readonly clientId: string;
+  /** The harness the runtime's receipt names as its source, when it names one. */
+  readonly harness: string | null;
   /** True when the runtime's mint door answered; false when it 404'd and the receipt's own
    *  bearer was handed over instead (see the measurement in `mintFrontendHandoff`). */
   readonly minted: boolean;
@@ -82,6 +84,7 @@ export interface FrontendHandoff {
 interface LiveRuntimeReceipt {
   readonly base_url: string;
   readonly token: string;
+  readonly source?: { readonly harness?: string };
 }
 
 interface LiveRuntimeDoor {
@@ -218,6 +221,7 @@ export async function mintFrontendHandoff(options: {
       SUPERCODE_FRONTEND_PERMISSIONS: FRONTEND_PERMISSIONS,
     },
     clientId,
+    harness: receipt.source?.harness ?? null,
     minted,
     async isBusy() {
       if (disposed) throw new Error('The chat runtime handoff is no longer active.');

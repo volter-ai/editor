@@ -39,12 +39,13 @@ export class ChatSessionCatalog {
       this.invalid = `${file}: ${(error as Error).message}`;
     }
   }
-  create(selection: ChatSelection): ManagedChatSession {
+  /** `persist: false` makes the conversation active for this run only, unsaved. */
+  create(selection: ChatSelection, persist = true): ManagedChatSession {
     validateChatSelection(selection);
     const entry = {id: randomUUID(), selection: {...selection}, identity: null, title: selection.model || selection.harness, created: Date.now()};
     this.sessions.set(entry.id, entry);
     this.active = entry.id;
-    this.save();
+    if (persist) this.save();
     return entry;
   }
   save(): void {

@@ -1218,6 +1218,10 @@ export class HarnessChatService {
         });
         this.frontendHandoffValue = handoff;
         this.frontendRefusalValue = null;
+        // The Chat opens the editor's active conversation, so the attached runtime is that
+        // conversation while this editor runs, and only then: it is not saved into the
+        // project's catalogue, whose conversations the editor starts and resumes itself.
+        this.chatCatalog.create({ harness: handoff.harness ?? 'supercode', model: '', effort: '' }, false);
         return { env: { ...handoff.env }, refusal: null };
       }
       await this.ensureController();
