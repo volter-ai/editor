@@ -8,6 +8,25 @@ type Shape = {geometry: THREE.BufferGeometry; stamp: string; bytes: number};
 type Family = {material: THREE.Material; shapes: Map<number, Shape>; template: THREE.BatchedMesh | null;
   ids: Map<number, number>; draws: THREE.BatchedMesh[]; dirty: boolean; bytes: number; reservedBytes: number; refused: boolean};
 
+/** Only owned immutable batch buffers use this geometry. Each draw owns a
+ * metadata shell; cloning a run must not first duplicate and then discard
+ * the family's packed arrays (up to four MiB for each of 1,024 runs). */
+class SharedPackedGeometry extends THREE.BufferGeometry {
+  override copy(source: THREE.BufferGeometry): this {
+    this.name = source.name;
+    this.index = source.index;
+    this.attributes = {...source.attributes};
+    this.morphAttributes = {};
+    this.morphTargetsRelative = source.morphTargetsRelative;
+    this.groups = source.groups.map(group => ({...group}));
+    this.boundingBox = source.boundingBox?.clone() ?? null;
+    this.boundingSphere = source.boundingSphere?.clone() ?? null;
+    this.drawRange = {...source.drawRange};
+    this.userData = source.userData;
+    return this;
+  }
+}
+
 /** Immutable packed attributes are shared between ordered draw runs. Only the
  * matrix/indirection textures and command lists belong to an individual run.
  * All interaction and authored geometry remain on the canonical meshes. */
@@ -85,6 +104,8 @@ export class BlenderOrderedBatches {
       family.refused = bytes > FAMILY_BYTES || this.bytes + bytes > CACHE_BYTES;
       if (family.refused) continue;
       const template = new THREE.BatchedMesh(ORDERED_BATCH_CAPACITY, vertices, indices, family.material);
+      template.geometry.dispose();
+      template.geometry = new SharedPackedGeometry();
       template.sortObjects = false;
       template.perObjectFrustumCulled = false;
       template.frustumCulled = false;
@@ -114,8 +135,9 @@ export class BlenderOrderedBatches {
     let draw = family.draws[index];
     if (!draw) {
       if (this.drawCount >= MAX_DRAWS) return null;
-      // copy() uses public Three APIs and briefly copies the packed arrays.
-      // Bound that transient work per frame; ordinary meshes fill every gap.
+      // copy() retains each run's commands and matrices; its owned geometry
+      // clone shares the family's immutable arrays without transient copies.
+      // Bound run construction per frame; ordinary meshes fill every gap.
       if (this.created >= 4) { this.pending = true; return null; }
       draw = new THREE.BatchedMesh(1, 0, 0, family.material);
       draw.dispose();
@@ -125,9 +147,6 @@ export class BlenderOrderedBatches {
       // per-instance colors: expose that same null state to both checks so
       // every draw does not rebuild the already-correct program parameters.
       Object.defineProperty(draw, 'colorTexture', {value: null});
-      for (const name of Object.keys(template.geometry.attributes))
-        draw.geometry.setAttribute(name, template.geometry.getAttribute(name));
-      draw.geometry.setIndex(template.geometry.index);
       const firstId = family.ids.values().next().value!;
       for (let i = 0; i < ORDERED_BATCH_CAPACITY; i++) {
         draw.addInstance(firstId);
