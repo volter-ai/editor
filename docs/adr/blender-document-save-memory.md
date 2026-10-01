@@ -71,3 +71,23 @@ Raster/UDIM paths and detached capture snapshots retain their existing lifetimes
 No image is resized, recompressed, removed or colour-converted by this change.
 The required final recording must still prove the total footprint and Properties;
 no measured frame-speed gain is attributed to this lifetime correction.
+
+## The document owns its compression format
+
+The protected 9c766fa6 recording plateaued at 6.8–7.1 GB before selection,
+then grew by 675 MB in 17 seconds. The renderer exited without a watcher
+signal; its exit cause is not established. Selection persistence is therefore
+still an open proof, rather than a confirmed unbounded initial-load leak.
+
+The input Bridge is a 292,227,269-byte Zstandard file. The earlier completed
+save receipt is 519,048,665 bytes: the session unconditionally wrote an
+uncompressed document. Bounded readback did not bound that resident WasmFS
+output, nor the server's simultaneous chunk pool and whole-file concatenation.
+
+The session now reads four magic bytes before opening/releasing the staged
+document and explicitly preserves its compression choice on saves. New raw
+documents stay raw; gzip/Zstandard inputs use Blender's current lossless
+compressed writer. This depends on the document, never a machine preference,
+and leaves relative_remap=false and copy=true intact. It changes no authored
+arrays, packed images, dimensions, paths, undo or selection. This is a source
+allocation correction; the final recording must establish its total effect.

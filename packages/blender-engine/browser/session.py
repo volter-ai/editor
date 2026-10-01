@@ -1344,6 +1344,10 @@ class Session:
         # the destination. None until `blender-start` states one.
         self.document = None
         self.document_relative = None
+        # The document chooses compression, never the machine preference.
+        # New documents remain raw; an opened compressed document stays
+        # compressed instead of expanding in WasmFS on its first idle save.
+        self.document_compressed = False
         # Set by a present that left the document behind the model; cleared by
         # the save. The tab reads it as `saveDue` beside the frame.
         self.save_due = False
@@ -1851,6 +1855,12 @@ class Session:
         self.document = os.path.join(self.project, relative_path)
         if not os.path.exists(self.document):
             return {"document": relative_path, "opened": False}
+        with open(self.document, "rb") as source:
+            magic = source.read(4)
+        # Blender reads gzip and Zstandard documents. Its save operator
+        # writes its current lossless compressed format for either family.
+        self.document_compressed = (magic == b"\x28\xb5\x2f\xfd"
+                                    or magic[:3] == b"\x1f\x8b\x08")
         _asked({"checkpoint": "document-open"})
         _mark("open:before")
         checkpointed_read = hasattr(_blender_web, "set_read_checkpoint")
@@ -1956,7 +1966,10 @@ class Session:
         (`file` says "Zstandard compressed data", `head -c 12` is not
         `BLENDER`). Blender reads either back, so nothing was broken; what was
         wrong is that the BYTES of a file the project commits depended on a
-        per-machine preference. A document states its own format.
+        per-machine preference. A document states its own format. New files
+        are raw; opened compressed files use Blender's lossless compressed
+        writer. The flag is read before the staged input is released and
+        stays with this document even if a script saves to another path.
         """
         self.save_due = False
         if self.document is None:
@@ -1987,7 +2000,8 @@ class Session:
             except OSError:
                 pass
         bpy.ops.wm.save_as_mainfile(
-            filepath=self.document, compress=False, relative_remap=False, copy=True)
+            filepath=self.document, compress=self.document_compressed,
+            relative_remap=False, copy=True)
         return {"saved": True, "path": self.document,
                 "document": self.document_relative,
                 "size": os.path.getsize(self.document),
