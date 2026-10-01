@@ -131,7 +131,7 @@ export type WorkerReply =
    * stays taken: there is no `madvise` in wasm, so a scene's peak allocation is
    * a permanent cost for the life of the tab.
    */
-  | { op: 'memory'; bytes: number };
+  | { op: 'memory'; bytes: number; held?: number };
 
 export type NativeHistoryEntry = { reset: true } | {
   id: string;

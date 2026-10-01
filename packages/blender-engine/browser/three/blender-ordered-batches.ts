@@ -1,19 +1,43 @@
 import * as THREE from 'three';
-import type {CompiledGraph} from './blender-node-graph';
-import {physicalPaletteMaterial} from './blender-physical-material';
-import {presenterChanged} from './blender-presenter-change';
 
 export const ORDERED_BATCH_CAPACITY = 64;
 const FAMILY_BYTES = 4 * 1024 * 1024;
 const CACHE_BYTES = 32 * 1024 * 1024;
 const MAX_DRAWS = 1024;
 type Shape = {geometry: THREE.BufferGeometry; stamp: string; bytes: number};
-export type OrderedPalette = {identity: THREE.Material; sources: readonly THREE.MeshPhysicalMaterial[]; compiled: CompiledGraph};
-type Compilation = {material: THREE.MeshPhysicalMaterial; ready: boolean; refused: boolean; pending: boolean; program: unknown};
 type Family = {material: THREE.Material; shapes: Map<number, Shape>; template: THREE.BatchedMesh | null;
-  ids: Map<number, number>; draws: THREE.BatchedMesh[]; dirty: boolean; bytes: number; reservedBytes: number; refused: boolean;
-  palette: OrderedPalette | undefined; compilations: Map<THREE.WebGLRenderer, Compilation>;
-  drawMaterials: Map<THREE.BatchedMesh, {material: THREE.MeshPhysicalMaterial; indices: Int32Array}>};
+  ids: Map<number, number>; draws: THREE.BatchedMesh[]; dirty: boolean; bytes: number; reservedBytes: number; refused: boolean};
+
+/** Only owned immutable batch buffers use this geometry. Each draw owns a
+ * metadata shell; cloning a run must not first duplicate and then discard
+ * the family's packed arrays (up to four MiB for each of 1,024 runs). */
+class SharedPackedGeometry extends THREE.BufferGeometry {
+  override copy(source: THREE.BufferGeometry): this {
+    this.name = source.name;
+    this.index = source.index;
+    this.attributes = {...source.attributes};
+    this.morphAttributes = {};
+    this.morphTargetsRelative = source.morphTargetsRelative;
+    this.groups = source.groups.map(group => ({...group}));
+    this.boundingBox = source.boundingBox?.clone() ?? null;
+    this.boundingSphere = source.boundingSphere?.clone() ?? null;
+    this.drawRange = {...source.drawRange};
+    this.userData = source.userData;
+    return this;
+  }
+}
+
+/** Texture.clone shares its Source by default. Batch commands and matrices
+ * are mutable run-local data, so their clone needs its own image shell before
+ * BatchedMesh.copy replaces image.data with that run's copied array. */
+function isolateRunTextureCopies(texture: THREE.DataTexture): void {
+  const clone = texture.clone.bind(texture);
+  texture.clone = () => {
+    const copy = clone();
+    copy.source = new THREE.Source({...texture.image});
+    return copy;
+  };
+}
 
 /** Immutable packed attributes are shared between ordered draw runs. Only the
  * matrix/indirection textures and command lists belong to an individual run.
@@ -25,14 +49,11 @@ export class BlenderOrderedBatches {
   private bytes = 0;
   private drawCount = 0;
   private created = 0;
-  private compiling = 0;
   pending = false;
-  generation = 0;
 
   begin(): void { this.created = 0; this.pending = false; this.registrations.clear(); }
-  beginPaletteFrame(): void { this.compiling = 0; }
 
-  register(geometry: THREE.BufferGeometry, material: THREE.Material, order: number, palette?: OrderedPalette): string | null {
+  register(geometry: THREE.BufferGeometry, material: THREE.Material, order: number): string | null {
     const registration = `${geometry.id}:${material.uuid}:${order}`;
     if (this.registrations.has(registration)) return this.registrations.get(registration)!;
     this.registrations.set(registration, null);
@@ -66,7 +87,7 @@ export class BlenderOrderedBatches {
     let family = this.families.get(key);
     if (!family) {
       family = {material, shapes: new Map(), template: null, ids: new Map(), draws: [], dirty: true,
-        bytes: 0, reservedBytes: 0, refused: false, palette, compilations: new Map(), drawMaterials: new Map()};
+        bytes: 0, reservedBytes: 0, refused: false};
       this.families.set(key, family);
     }
     const stamp = JSON.stringify(versions);
@@ -95,6 +116,12 @@ export class BlenderOrderedBatches {
       family.refused = bytes > FAMILY_BYTES || this.bytes + bytes > CACHE_BYTES;
       if (family.refused) continue;
       const template = new THREE.BatchedMesh(ORDERED_BATCH_CAPACITY, vertices, indices, family.material);
+      template.geometry.dispose();
+      template.geometry = new SharedPackedGeometry();
+      // Do not reach into Three's private field names: only the owned
+      // template's DataTextures carry the run's dynamic state.
+      for (const value of Object.values(template))
+        if (value instanceof THREE.DataTexture) isolateRunTextureCopies(value);
       template.sortObjects = false;
       template.perObjectFrustumCulled = false;
       template.frustumCulled = false;
@@ -115,72 +142,18 @@ export class BlenderOrderedBatches {
     }
   }
 
-  /** Compile before replacing a single canonical draw, with this renderer's
-   * context and actual scene lighting. Each frame starts at most two programs.
-   * The proxy borrows packed geometry and owns only its matrix textures. */
-  compilePalettes(renderer: THREE.WebGLRenderer, camera: THREE.Camera, scene: THREE.Scene): void {
-    if (renderer.getContext().isContextLost()) return;
-    for (const family of this.families.values()) {
-      const {template, palette} = family;
-      if (!template || !palette) continue;
-      let compilation = family.compilations.get(renderer);
-      if (compilation?.ready && (renderer.properties.get(compilation.material) as {currentProgram?: unknown}).currentProgram !== compilation.program) {
-        compilation.ready = false; // Context restoration clears renderer properties.
-        this.generation++;
-      }
-      if (compilation?.ready || compilation?.pending || compilation?.refused) continue;
-      if (this.compiling >= 2) { this.pending = true; continue; }
-      if (!compilation) {
-        const material = physicalPaletteMaterial(palette.compiled, palette.sources, new Int32Array(ORDERED_BATCH_CAPACITY), template.geometry);
-        if (!material) continue;
-        compilation = {material, ready: false, refused: false, pending: false, program: null};
-        family.compilations.set(renderer, compilation);
-      }
-      const held = compilation;
-      held.pending = true;
-      held.material.needsUpdate = true;
-      const proxy = new THREE.BatchedMesh(1, 0, 0, held.material);
-      proxy.geometry.dispose();
-      proxy.geometry = template.geometry;
-      Object.defineProperty(proxy, 'colorTexture', {value: null});
-      this.compiling++;
-      const settle = (resolved: boolean) => {
-        proxy.geometry = new THREE.BufferGeometry();
-        proxy.dispose();
-        if (family.template !== template || family.compilations.get(renderer) !== held) {
-          held.material.dispose(); return;
-        }
-        held.pending = false;
-        // compileAsync signals completion, including a refused program. Check
-        // the actual link result; never let a failed palette hide originals.
-        const program = (renderer.properties.get(held.material) as {currentProgram?: {program?: WebGLProgram}}).currentProgram;
-        const gl = renderer.getContext();
-        held.ready = resolved && !gl.isContextLost() && !!program?.program && gl.getProgramParameter(program.program, gl.LINK_STATUS) === true;
-        held.program = program;
-        held.refused = !held.ready && !gl.isContextLost();
-        this.generation++;
-        if (held.refused) console.warn('Blender ordered material palette did not link; canonical draws retained.');
-        presenterChanged();
-      };
-      try { renderer.compileAsync(proxy, camera, scene).then(() => settle(true), () => settle(false)); }
-      catch { settle(false); }
-    }
-  }
+  available(key: string): boolean { return !!this.families.get(key)?.template; }
 
-  available(key: string, renderer?: THREE.WebGLRenderer): boolean {
-    const family = this.families.get(key);
-    return !!family?.template && (!family.palette || (!!renderer && family.compilations.get(renderer)?.ready === true));
-  }
-
-  get(key: string, index: number, renderer?: THREE.WebGLRenderer): THREE.BatchedMesh | null {
+  get(key: string, index: number): THREE.BatchedMesh | null {
     const family = this.families.get(key)!;
     const template = family.template;
-    if (!template || !this.available(key, renderer)) return null;
+    if (!template) return null;
     let draw = family.draws[index];
     if (!draw) {
       if (this.drawCount >= MAX_DRAWS) return null;
-      // copy() uses public Three APIs and briefly copies the packed arrays.
-      // Bound that transient work per frame; ordinary meshes fill every gap.
+      // copy() retains each run's commands and matrices; its owned geometry
+      // clone shares the family's immutable arrays without transient copies.
+      // Bound run construction per frame; ordinary meshes fill every gap.
       if (this.created >= 4) { this.pending = true; return null; }
       draw = new THREE.BatchedMesh(1, 0, 0, family.material);
       draw.dispose();
@@ -190,21 +163,10 @@ export class BlenderOrderedBatches {
       // per-instance colors: expose that same null state to both checks so
       // every draw does not rebuild the already-correct program parameters.
       Object.defineProperty(draw, 'colorTexture', {value: null});
-      for (const name of Object.keys(template.geometry.attributes))
-        draw.geometry.setAttribute(name, template.geometry.getAttribute(name));
-      draw.geometry.setIndex(template.geometry.index);
       const firstId = family.ids.values().next().value!;
       for (let i = 0; i < ORDERED_BATCH_CAPACITY; i++) {
         draw.addInstance(firstId);
         draw.setVisibleAt(i, false);
-      }
-      if (family.palette) {
-        const indices = new Int32Array(ORDERED_BATCH_CAPACITY);
-        const material = physicalPaletteMaterial(family.palette.compiled, family.palette.sources, indices, draw.geometry);
-        if (!material) { for (const name of Object.keys(draw.geometry.attributes)) draw.geometry.deleteAttribute(name);
-          draw.geometry.setIndex(null); draw.dispose(); return null; }
-        draw.material = material;
-        family.drawMaterials.set(draw, {material, indices});
       }
       family.draws.push(draw);
       this.created++;
@@ -215,26 +177,10 @@ export class BlenderOrderedBatches {
 
   geometryId(key: string, geometry: THREE.BufferGeometry): number { return this.families.get(key)!.ids.get(geometry.id)!; }
 
-  setMaterialAt(key: string, draw: THREE.BatchedMesh, index: number, source: THREE.Material): void {
-    const family = this.families.get(key)!;
-    const held = family.drawMaterials.get(draw);
-    if (held) held.indices[index] = family.palette!.sources.indexOf(source as THREE.MeshPhysicalMaterial);
-  }
-
-  isPalette(key: string): boolean { return !!this.families.get(key)?.palette; }
-
   inspect() { return {bytes: this.bytes, draws: this.drawCount, pending: this.pending,
-    paletteFamilies: [...this.families.values()].filter(f => !!f.palette).length,
-    paletteReady: [...this.families.values()].filter(f => [...f.compilations.values()].some(c => c.ready)).length,
-    paletteRefused: [...this.families.values()].filter(f => [...f.compilations.values()].some(c => c.refused)).length,
     refusedFamilies: [...this.families.values()].filter(f => f.refused).length}; }
 
   private release(family: Family): void {
-    this.generation++;
-    for (const compilation of family.compilations.values()) if (!compilation.pending) compilation.material.dispose();
-    family.compilations.clear();
-    for (const {material} of family.drawMaterials.values()) material.dispose();
-    family.drawMaterials.clear();
     for (const draw of family.draws) {
       draw.removeFromParent();
       // BatchedMesh.dispose owns its geometry. Detach shared buffer attributes

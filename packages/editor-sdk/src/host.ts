@@ -562,6 +562,8 @@ export interface EditorHostWorkerCallMetrics {
   /** The lane's own out-of-process memory in MB (a wasm module's linear
    *  memory), or null when it has none to report. */
   readonly wasmMemoryMB: number | null;
+  /** What the lane's worker holds in JavaScript beside that memory, in MB, when it reports it. */
+  readonly workerHeldMB?: number;
 }
 
 /** The open project's declared SHAPE, as a contribution may gate on it. */

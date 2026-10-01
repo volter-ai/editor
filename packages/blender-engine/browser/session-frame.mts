@@ -23,6 +23,8 @@
  * be built over bytes the arena only aligned to eight.
  */
 
+import { releaseFrameBuffers } from './frame-stream.mts';
+
 export interface ColumnDescriptor {
   /** Byte offset into the arena. */
   offset: number;
@@ -151,6 +153,7 @@ export async function describeFrame(arena: Uint8Array, frame: unknown): Promise<
         );
       const bytes = arena.subarray(offset, offset + length).slice();
       const hash = await crypto.subtle.digest('SHA-256', bytes);
+      releaseFrameBuffers(bytes);
       const sha256 = [...new Uint8Array(hash)]
         .map((byte) => byte.toString(16).padStart(2, '0'))
         .join('');

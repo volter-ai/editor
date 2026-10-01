@@ -153,6 +153,13 @@ EXPORT_BUFFER_PATH = os.environ.get("VOLTER_EXPORT_BUFFER_PATH", "")
 # head (quality 3), which native Blender pays too (+1.2 GB peak RSS there).
 MEMORY_MARKS = []
 
+# WHETHER THE NATIVE WRITER PRESIZES ITS TEMPORARY FROM A PLACEHOLDER (`save_document`). Only the
+# browser filesystem backend's RawWriteWrap does, and the pinned engine exposes no door naming that
+# capability itself; `set_read_checkpoint` is the browser backend's own door and ships in the same
+# build, so its presence is what identifies that backend here. A native door that names the
+# reservation would replace this reading.
+_WRITE_RESERVATION = hasattr(_blender_web, "set_read_checkpoint")
+
 
 def _mark(label):
     try:
@@ -1143,6 +1150,43 @@ def material_graphs(scene):
     return {name: graph for name, graph in graphs.items() if graph is not None}
 
 
+# THE GENERIC LAYERS A MATERIAL CAN READ BY NAME, and nothing else crosses. The export door ships
+# every generic attribute of a mesh, and the presenter widens each to a float4 per drawn vertex and
+# uploads it, but a layer reaches a pixel only through a graph's Attribute or Color Attribute node
+# (`blender-node-graph.ts`, which compiles exactly those two). MEASURED on the Stoneguard bridge
+# (t_2def0a16): 334 of the presenter's 626 MiB of retained geometry were such layers -- every
+# vertex group of its rigged figures (`Hips`, `Shoulder.L`, ...) -- and no material read one.
+# Colour layers (a Color Attribute node with no name reads the mesh's default one), UV maps,
+# positions and custom normals always cross; the skin binding and weight overlay read vertex
+# groups through their own doors (`_rig_of`, `_weights`), not through these layers.
+_NAMED_LAYER_TYPES = ("FLOAT", "FLOAT2", "FLOAT_VECTOR")
+
+
+def _graph_attribute_names(graphs):
+    names = set()
+    for graph in graphs.values():
+        for node in (graph.get("nodes") or {}).values():
+            props = node.get("props") or {}
+            if node.get("type") == "ShaderNodeAttribute":
+                names.add(props.get("attribute_name") or "")
+            elif node.get("type") == "ShaderNodeVertexColor":
+                names.add(props.get("layer_name") or "")
+    return names
+
+
+def _readable_attributes(attributes, names):
+    kept = []
+    for attribute in attributes or ():
+        name = attribute.get("name", "")
+        unread = (attribute.get("type") in _NAMED_LAYER_TYPES
+                  and not (attribute.get("type") == "FLOAT2" and attribute.get("domain") == "CORNER")
+                  and not name.startswith(".") and name not in ("position", "custom_normal")
+                  and name not in names)
+        if not unread:
+            kept.append(attribute)
+    return kept
+
+
 # ------------------------------------------------------------- the overlays
 #
 # INSPECTION OVERLAYS, READ OFF THE ENGINE (ARCHITECTURE-CORE §Blender north
@@ -1336,6 +1380,10 @@ class Session:
         # (`mesh:<geometry key>` / `image:<name>`) at the revision it holds:
         # a mesh it has ships as a reference, a picture it has does not ship.
         self._known = {}
+        # The attribute names the materials read when the meshes in `_known` were shipped
+        # (`_readable_attributes`). A material that starts reading another name needs layers
+        # those meshes did not carry, so they are shipped again.
+        self._shipped_attribute_names = set()
         # The last frame's accounting (`_present`), read by `dispatch`.
         self.last_shipped = None
         # THE SESSION'S DOCUMENT: the `.blend` it opens at start and saves back
@@ -1344,6 +1392,11 @@ class Session:
         # the destination. None until `blender-start` states one.
         self.document = None
         self.document_relative = None
+        # The document chooses compression, never the machine preference.
+        # New documents remain raw; an opened compressed document stays
+        # compressed instead of expanding in WasmFS on its first idle save.
+        self.document_compressed = False
+        self.document_size = 0
         # Set by a present that left the document behind the model; cleared by
         # the save. The tab reads it as `saveDue` beside the frame.
         self.save_due = False
@@ -1379,6 +1432,11 @@ class Session:
         """
         scene = bpy.context.scene
         graphs = material_graphs(scene)
+        names = _graph_attribute_names(graphs)
+        if not names <= self._shipped_attribute_names:
+            for key in [key for key in self._known if key.startswith("mesh:")]:
+                del self._known[key]
+        self._shipped_attribute_names = names
         _mark("export:graphs")
         # An IMAGE EMPTY's picture travels with the graphs' images: the overlay draws it
         # (`overlay_empty.hh` `image_sync`).
@@ -1632,6 +1690,13 @@ class Session:
                 if piece[kind] is None:
                     del frame["images"][key]
                     continue
+                # Pulled meshes only: a staged mesh replaces the presenter's resident geometry
+                # whatever its revision, so one shipped again for a newly read layer lands. A mesh
+                # an engine without the pull door writes inline keeps every layer, because the
+                # presenter keeps a resident mesh at an unchanged revision.
+                if kind == "mesh" and "attributes" in piece[kind]:
+                    piece[kind]["attributes"] = _readable_attributes(
+                        piece[kind]["attributes"], self._shipped_attribute_names)
                 _asked({kind: key, "piece": piece[kind]})
         return True
 
@@ -1851,6 +1916,12 @@ class Session:
         self.document = os.path.join(self.project, relative_path)
         if not os.path.exists(self.document):
             return {"document": relative_path, "opened": False}
+        with open(self.document, "rb") as source:
+            magic = source.read(4)
+        # Blender reads gzip and Zstandard documents. Its save operator
+        # writes its current lossless compressed format for either family.
+        self.document_compressed = (magic == b"\x28\xb5\x2f\xfd"
+                                    or magic[:3] == b"\x1f\x8b\x08")
         _asked({"checkpoint": "document-open"})
         _mark("open:before")
         checkpointed_read = hasattr(_blender_web, "set_read_checkpoint")
@@ -1864,6 +1935,7 @@ class Session:
         _mark("open:after")
         _asked({"checkpoint": "document-opened"})
         size = os.path.getsize(self.document)
+        self.document_size = size
         # THE STAGED COPY GOES ONCE BLENDER HAS READ IT. It sits in the engine's heap (WasmFS keeps
         # file data in linear memory) and nothing reads it again: the load took everything into
         # Blender's own memory, packed pictures included, and the next save writes the path anew.
@@ -1956,7 +2028,10 @@ class Session:
         (`file` says "Zstandard compressed data", `head -c 12` is not
         `BLENDER`). Blender reads either back, so nothing was broken; what was
         wrong is that the BYTES of a file the project commits depended on a
-        per-machine preference. A document states its own format.
+        per-machine preference. A document states its own format. New files
+        are raw; opened compressed files use Blender's lossless compressed
+        writer. The flag is read before the staged input is released and
+        stays with this document even if a script saves to another path.
         """
         self.save_due = False
         if self.document is None:
@@ -1986,11 +2061,24 @@ class Session:
                 os.chmod(directory, 0o777)
             except OSError:
                 pass
+        # The first staged copy was released after open. Seed only its size
+        # before the native writer starts: RawWriteWrap's browser backend
+        # removes this placeholder and presizes its temporary from it. A
+        # growing WasmFS vector would otherwise retain outgrown buffers and
+        # double past the compressed document's actual size. The host's file
+        # remains untouched until the worker's verified commit succeeds.
+        if not existed and self.document_size > 0 and _WRITE_RESERVATION:
+            with open(self.document, "wb") as placeholder:
+                placeholder.truncate(self.document_size)
+        _mark("save:before")
         bpy.ops.wm.save_as_mainfile(
-            filepath=self.document, compress=False, relative_remap=False, copy=True)
+            filepath=self.document, compress=self.document_compressed,
+            relative_remap=False, copy=True)
+        _mark("save:written")
+        self.document_size = os.path.getsize(self.document)
         return {"saved": True, "path": self.document,
                 "document": self.document_relative,
-                "size": os.path.getsize(self.document),
+                "size": self.document_size,
                 "revision": self.revision,
                 # The instruments a reader needs to judge the save: what
                 # Blender thought of the file's state, and whether this was the
@@ -5120,7 +5208,18 @@ def _dispatch(request):
         # Arbitrary Python can partially mutate before throwing. Once execution
         # starts it needs a checkpoint; capability refusals above do not.
         HISTORY.changed()
-        SESSION.mark_changed()
+        # A WRITE OUTSIDE HISTORY IS VIEW STATE, AND IT RIDES THE NEXT SAVE. The editor's own
+        # gestures that are not edits of the model -- the selection and active object
+        # (`writeBlenderSelection`), the 3D cursor, a locked camera's pose mid-navigation -- run
+        # here with `history` False, as Blender records none of them as an undo step of their
+        # own either. They are still Blender's state and the document still carries them: the
+        # next save writes them with everything else. They do not queue a save of their own.
+        # MEASURED on the Stoneguard bridge (t_2def0a16): selecting one object presented with the
+        # engine heap flat at 3,112 MiB, then queued a whole-document save -- written, chunked,
+        # uploaded and committed in ~62 s on the lane the Properties reads wait on -- across
+        # which the hosted tab's renderer went from 6.5 GB to 8.9 GB.
+        if request.get("history", True):
+            SESSION.mark_changed()
         answer = execute(request["code"])
         # Every mutation is presented, the rule: the Model
         # document is what the agent is looking at.

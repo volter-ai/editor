@@ -6,6 +6,7 @@ import * as THREE from 'three';
 import { z } from 'zod';
 import { onPresenterChange, presenterChanged } from './blender-presenter-change';
 import { bytesFromBase64 } from './blender-base64';
+import { releaseFrameBuffers } from '../frame-stream.mts';
 import { ArmatureOverlay, armatureSchema } from './blender-runtime-armature';
 import { UNKNOWN_GEOMETRY, UNKNOWN_IMAGE } from './blender-runtime-frame';
 import {
@@ -249,6 +250,46 @@ const meshSchema = z.union([
  *  untextured render this whole path exists to stop. (A RASTER needs no wait:
  *  a `DataTexture` holds its bytes the moment it is built.) */
 const pendingTextures = new Set<Promise<void>>();
+// File images retain their finished bitmap, but decoder work is transient.
+// Starting every image in one frame at once retained all PNG decode/flip
+// workspaces alongside those bitmaps (the Bridge's rasters total 1,343 MiB).
+//
+// AND ONE IMAGE'S PIXELS AT A TIME, NOT ONE DECODE AT A TIME. A viewport's image keeps its
+// decoded bitmap until the next drawn frame uploads it (`upload`), and decodes resolve between
+// tasks while a loading page's busy main thread starves its frames, so a queue that waited only
+// for the previous DECODE can run ahead of the uploads and hold every decoded image at once (read
+// from the code; `decodedImageBytes` below is its measurement). The next
+// viewport image therefore waits until the previous one's pixels are uploaded or released. A
+// photograph keeps its pixels and does not draw frames, so its images queue on their own and
+// wait only for the previous decode.
+let textureDecodeTail: Promise<void> = Promise.resolve();
+let keptPixelsDecodeTail: Promise<void> = Promise.resolve();
+/** Decoded file-image pixels currently held, in bytes: the instrument for the rule above. */
+let decodedPixelBytes = 0;
+export function decodedImageBytes(): number {
+  return decodedPixelBytes;
+}
+// GPU allocations belong to a context generation, not just a renderer object.
+const textureContexts = new WeakMap<THREE.WebGLRenderer, { generation: number }>();
+function textureContext(renderer: THREE.WebGLRenderer): { generation: number } {
+  let state = textureContexts.get(renderer);
+  if (!state) {
+    state = { generation: 0 };
+    textureContexts.set(renderer, state);
+    const held = state;
+    renderer.domElement.addEventListener('webglcontextrestored', () => {
+      held.generation++;
+      presenterChanged();
+    });
+  }
+  return state;
+}
+// Read for every sampler of every file image on every frame, so a plain join, not JSON.
+function textureUploadKey(texture: THREE.Texture): string {
+  return `${texture.wrapS}|${texture.wrapT}|${texture.magFilter}|${texture.minFilter}|${texture.anisotropy}|` +
+    `${texture.format}|${texture.type}|${texture.internalFormat}|${texture.generateMipmaps}|` +
+    `${texture.premultiplyAlpha}|${texture.flipY}|${texture.unpackAlignment}|${texture.colorSpace}`;
+}
 
 export async function texturesReady(): Promise<void> {
   while (pendingTextures.size > 0) await Promise.all([...pendingTextures]);
@@ -259,13 +300,19 @@ export async function texturesReady(): Promise<void> {
 function loadEncodedTexture(
   encoded: Uint8Array,
   mime: 'image/png' | 'image/jpeg',
-): { texture: THREE.Texture; ready: Promise<void> } {
-  const blob = new Blob([encoded as BlobPart], { type: mime });
+  keepPixels = false,
+): { texture: THREE.Texture; ready: Promise<void>; upload(renderer: THREE.WebGLRenderer, variants: () => readonly THREE.Texture[]): void } {
   const texture = new THREE.Texture();
+  let bitmap: ImageBitmap | null = null;
   let disposed = false;
+  let decodingNow: Promise<void> | null = null;
+  let everBound = false;
+  let heldBytes = 0;
+  let openQueue: (() => void) | null = null;
+  const uploads = new WeakMap<THREE.WebGLRenderer, { generation: number; keys: WeakMap<THREE.Texture, string> }>();
   texture.addEventListener('dispose', () => {
     disposed = true;
-    texture.image?.close?.();
+    releaseBitmap();
   });
   // DECODED BOTTOM ROW FIRST, because that is the row Blender's v=0 is. A PNG
   // stores its rows top-down -- this one is a FILE-backed image's own bytes,
@@ -287,28 +334,104 @@ function loadEncodedTexture(
   // stores them premultiplied, which the reader then undoes. And its colour is the file's own: no
   // embedded profile or gamma is applied, because Blender reads the texels as stored and applies
   // the image's colour space setting itself, as the sampler does here.
-  const decoding = createImageBitmap(blob, {
-    imageOrientation: 'flipY',
-    premultiplyAlpha: 'none',
-    colorSpaceConversion: 'none',
-  })
-    .then((bitmap) => {
+  const decode = (): Promise<void> => {
+    if (decodingNow) return decodingNow;
+    let opened = false;
+    let open = (): void => { opened = true; };
+    const pixelsGone = new Promise<void>((resolve) => {
+      open = () => { opened = true; resolve(); };
+      if (opened) resolve();
+    });
+    const decoding = (keepPixels ? keptPixelsDecodeTail : textureDecodeTail).then(async () => {
+      // A closed document must not decode the rest of its queued images.
+      if (disposed) return;
+      const blob = new Blob([encoded as BlobPart], { type: mime });
+      const decoded = await createImageBitmap(blob, {
+        imageOrientation: 'flipY',
+        premultiplyAlpha: 'none',
+        colorSpaceConversion: 'none',
+      });
       if (disposed) {
-        bitmap.close();
+        decoded.close();
         return;
       }
-      texture.image = bitmap;
+      bitmap = decoded;
+      heldBytes = decoded.width * decoded.height * 4;
+      decodedPixelBytes += heldBytes;
+      openQueue = open;
+      texture.image = decoded;
+      texture.source.dataReady = true;
       texture.needsUpdate = true;
       presenterChanged();
     })
     .finally(() => {
       pendingTextures.delete(decoding);
+      decodingNow = null;
+      // No pixels held (a failure, a closed document): the next image need not wait.
+      if (!bitmap) open();
     });
-  pendingTextures.add(decoding);
-  // Keep a rejection handled even if a document closes before its first
-  // render. The owner's ready promise still reports that same failure.
-  void decoding.catch(() => {});
-  return { texture, ready: decoding };
+    // A failed image does not poison another document's decode queue.
+    if (keepPixels) keptPixelsDecodeTail = decoding.catch(() => {});
+    else textureDecodeTail = pixelsGone;
+    pendingTextures.add(decoding);
+    // The owner's ready promise still reports the same decode failure.
+    void decoding.catch(() => {});
+    decodingNow = decoding;
+    return decoding;
+  };
+  function releaseBitmap(): void {
+    if (!bitmap) return;
+    const dimensions = { width: bitmap.width, height: bitmap.height };
+    bitmap.close();
+    bitmap = null;
+    decodedPixelBytes -= heldBytes;
+    heldBytes = 0;
+    texture.image = dimensions;
+    texture.source.dataReady = false;
+    const next = openQueue;
+    openQueue = null;
+    next?.();
+  }
+  const upload = (renderer: THREE.WebGLRenderer, variants: () => readonly THREE.Texture[]): void => {
+    if (disposed) return;
+    if (renderer.getContext().isContextLost() || !renderer.domElement.isConnected) { releaseBitmap(); return; }
+    const context = textureContext(renderer);
+    let held = uploads.get(renderer);
+    if (!held || held.generation !== context.generation) {
+      held = { generation: context.generation, keys: new WeakMap() };
+      uploads.set(renderer, held);
+    }
+    const textures = variants();
+    if (textures.length === 0) { releaseBitmap(); return; }
+    everBound = true;
+    // Every sampler already holds these texels: pixels kept now would only hold up the queue.
+    if (textures.every(one => held!.keys.get(one) === textureUploadKey(one))) { releaseBitmap(); return; }
+    if (!bitmap) {
+      // A new context or sampler needs the same original texels again. The
+      // current context keeps its GPU content while one image is re-decoded.
+      void decode().then(() => { if (!disposed) upload(renderer, variants); }, error => {
+        if (!disposed) console.error('Blender file image re-upload failed', error);
+      });
+      return;
+    }
+    for (const one of textures) {
+      // Clones share Source, but each sampler can have its own GL allocation.
+      // Upload all of them before closing their common bitmap.
+      one.needsUpdate = true;
+      renderer.initTexture(one);
+      held.keys.set(one, textureUploadKey(one));
+    }
+    releaseBitmap();
+    // Three may visit an already-uploaded sampler again after a clone bumps
+    // the shared Source version. Keep dimensions but never pass closed pixels
+    // to GL. A new context/sampler is admitted by upload() above.
+    texture.source.dataReady = false;
+  };
+  const ready = decode();
+  // Learn dimensions for image extras, but a hidden document has no context
+  // to keep CPU texels for. Its first viewport re-decodes from retained bytes.
+  void ready.then(() => { if (!everBound && !keepPixels) releaseBitmap(); }, () => {});
+  return { texture, ready, upload };
 }
 
 /** A RASTER as a three texture, uploaded with no decode and no flip.
@@ -713,6 +836,7 @@ export class BlenderRuntimeView {
    *  never disposes it. Held with the size and revision the resident bytes
    *  are, because a repaint at the same size is an upload into this texture
    *  while a resize is a new one every material has to be re-pointed at. */
+  private readonly extraImageTextures = new Set<THREE.Texture>();
   private readonly textures = new Map<
     string,
     {
@@ -722,6 +846,7 @@ export class BlenderRuntimeView {
       revision: number;
       encoded?: { bytes: Uint8Array; mime: 'image/png' | 'image/jpeg'; colorspace: 'sRGB' | 'data' };
       ready?: Promise<void>;
+      upload?: (renderer: THREE.WebGLRenderer, variants: () => readonly THREE.Texture[]) => void;
       /** A UDIM image's tiles as a graph samples them (`udimTextures`). */
       udim?: {tiles: THREE.DataArrayTexture; map: THREE.DataTexture; frame: NonNullable<z.infer<typeof rasterImageSchema>['tiles']>};
     }
@@ -1246,19 +1371,16 @@ export class BlenderRuntimeView {
     presenterChanged();
   }
 
-  private drawPreparation: {
-    last: {opaqueMs: number; motionMs: number; rangesMs: number; transparentMs: number} | null;
-    navigation: {opaqueMs: number; motionMs: number; rangesMs: number; transparentMs: number} | null;
-  } = {last: null, navigation: null};
-
   /** Before the renderer uploads attributes/builds its queues, for this area's
    * actual camera. Transparent instance runs are camera-order dependent. */
   prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}): () => void {
     try {
-      const start = performance.now();
+      if (options?.renderer) for (const held of this.textures.values())
+        held.upload?.(options.renderer, () => this.extraImageTextures.has(held.texture)
+          ? [...this.textureSamplers.variants(held.texture), held.texture]
+          : this.textureSamplers.variants(held.texture));
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
-      const opaqueDone = performance.now();
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
         options?.interactive === true, options?.height ?? 0);
       // A changed navigation geometry is an ordinary-draw fallback for an
@@ -1266,14 +1388,8 @@ export class BlenderRuntimeView {
       // runs are planned AFTER per-placement geometry selection, preserving
       // their sorting barriers and compatible geometry grouping.
       if (motion) this.instances.sync();
-      const motionDone = performance.now();
       this.materialRanges.prepare();
-      const rangesDone = performance.now();
-      this.transparentInstances.prepare(camera, options?.multiDraw === true, options?.renderer);
-      const timing = {opaqueMs: opaqueDone - start, motionMs: motionDone - opaqueDone,
-        rangesMs: rangesDone - motionDone, transparentMs: performance.now() - rangesDone};
-      this.drawPreparation.last = timing;
-      if (motion) this.drawPreparation.navigation = timing;
+      this.transparentInstances.prepare(camera, options?.multiDraw === true);
     } catch (error) {
       this.materialRanges.finish();
       this.motionGeometry.finish();
@@ -1453,6 +1569,7 @@ export class BlenderRuntimeView {
   }
 
   private applyExtras(next: Frame): void {
+    this.extraImageTextures.clear();
     const cameras: Record<string, z.infer<typeof cameraDataSchema>> = {};
     for (const [name, data] of Object.entries(next.cameras)) {
       const parsed = cameraDataSchema.safeParse(data);
@@ -1491,6 +1608,7 @@ export class BlenderRuntimeView {
             () => this.awaitedImages.delete(name),
           );
         }
+        this.extraImageTextures.add(held.texture);
         return { texture: held.texture, width, height };
       },
     });
@@ -1536,9 +1654,17 @@ export class BlenderRuntimeView {
       const data = exportedMeshSchema.parse(part.piece);
       if (staged.meshes.has(part.mesh)) throw new Error('Duplicate Blender mesh piece');
       const signature = `revision:${data.revision}`;
-      staged.meshes.set(part.mesh, { signature, geometry: geometryFromDrawArrays(drawArraysFromColumns({
+      const geometry = geometryFromDrawArrays(drawArraysFromColumns({
         ...data.columns, attributes: data.attributes as never, activeUv: data.activeUv, renderUv: data.renderUv,
-      }, signature)) });
+      }, signature));
+      staged.meshes.set(part.mesh, { signature, geometry });
+      // The columns were this piece's own reassembled copy and the draw arrays are built from
+      // them, so their bytes are released now rather than at a later collection
+      // (`releaseFrameBuffers`). Whatever the geometry itself references is kept.
+      const kept = new Set<ArrayBufferLike>();
+      if (geometry.index) kept.add(geometry.index.array.buffer);
+      for (const attribute of Object.values(geometry.attributes)) kept.add((attribute as THREE.BufferAttribute).array.buffer);
+      releaseFrameBuffers(part.piece, kept);
     } else if (part.image !== undefined) {
       if (staged.images.has(part.image)) throw new Error('Duplicate Blender image piece');
       staged.images.set(part.image, frameImageSchema.parse(part.piece));
@@ -1752,15 +1878,17 @@ export class BlenderRuntimeView {
       held?.udim?.tiles.dispose();
       held?.udim?.map.dispose();
       const colorspace = data.colorspace ?? 'sRGB';
-      const { texture, ready } = loadEncodedTexture(encoded, data.mime);
+      const { texture, ready, upload } = loadEncodedTexture(encoded, data.mime, this.photograph);
       texture.colorSpace = colorspace === 'data' ? THREE.NoColorSpace : THREE.SRGBColorSpace;
       this.textures.set(name, {
         texture,
         ready,
+        upload,
         width: 0,
         height: 0,
         revision: data.revision,
-        encoded: { bytes: encoded.slice(), mime: data.mime, colorspace },
+        // The transferred file buffer is already owned and immutable here.
+        encoded: { bytes: encoded, mime: data.mime, colorspace },
       });
     }
     for (const [id, data] of Object.entries(next.materials)) {
@@ -2093,8 +2221,55 @@ export class BlenderRuntimeView {
     };
   }
 
+  /**
+   * THE CPU BYTES THIS VIEW'S GEOMETRY HOLDS, counted once per distinct ArrayBuffer: the draw
+   * arrays each presented mesh keeps after its upload (by attribute name), and whatever else the
+   * stage's scene holds beyond them (batches, instances, overlays). Neither is in
+   * `performance.memory`, which counts the JS heap and not the buffers behind typed arrays, and
+   * neither is in the engine's Wasm memory. A read for the memory census (`blender-status`),
+   * walked on request and never per frame.
+   */
+  retainedGeometry(): {
+    readonly meshes: number;
+    readonly meshBytes: number;
+    readonly byAttribute: Readonly<Record<string, number>>;
+    readonly sceneGeometries: number;
+    readonly sceneExtraBytes: number;
+  } {
+    const seen = new Set<ArrayBufferLike>();
+    const byAttribute: Record<string, number> = {};
+    const add = (name: string, attribute: { array?: ArrayLike<number> & { buffer?: ArrayBufferLike } } | null | undefined): number => {
+      const buffer = attribute?.array?.buffer;
+      if (!buffer || seen.has(buffer)) return 0;
+      seen.add(buffer);
+      byAttribute[name] = (byAttribute[name] ?? 0) + buffer.byteLength;
+      return buffer.byteLength;
+    };
+    const geometryBytes = (geometry: THREE.BufferGeometry, prefix: string): number => {
+      let bytes = add(`${prefix}index`, geometry.index as never);
+      for (const [name, attribute] of Object.entries(geometry.attributes)) bytes += add(`${prefix}${name}`, attribute as never);
+      for (const [name, list] of Object.entries(geometry.morphAttributes))
+        for (const attribute of list ?? []) bytes += add(`${prefix}morph:${name}`, attribute as never);
+      return bytes;
+    };
+    let meshBytes = 0;
+    for (const { geometry } of this.meshes.values()) meshBytes += geometryBytes(geometry, '');
+    const geometries = new Set<THREE.BufferGeometry>();
+    let sceneExtraBytes = 0;
+    let top: THREE.Object3D = this.root;
+    while (top.parent) top = top.parent;
+    top.traverse((object) => {
+      const geometry = (object as THREE.Mesh).geometry as THREE.BufferGeometry | undefined;
+      if (!geometry?.isBufferGeometry || geometries.has(geometry)) return;
+      geometries.add(geometry);
+      sceneExtraBytes += geometryBytes(geometry, 'scene:');
+    });
+    return { meshes: this.meshes.size, meshBytes, byAttribute, sceneGeometries: geometries.size, sceneExtraBytes };
+  }
+
   drawStatistics() {
-    return {enabled: this.drawBatching, preparation: {...this.drawPreparation}, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
+    return {enabled: this.drawBatching, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect(),
+      decodedImageBytes: decodedImageBytes()};
   }
 
   snapshot() {
@@ -2331,6 +2506,7 @@ export class BlenderRuntimeView {
       udim?.map.dispose();
     }
     this.textures.clear();
+    this.extraImageTextures.clear();
     this.textureNames.clear();
     this.roughnessTextureNames.clear();
     this.textureSamplers.clear();

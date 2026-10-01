@@ -80,6 +80,7 @@ import {
 } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
 import type { ToolObject3DAuthoringProps } from '@volter/editor-threejs/object3d-contributions';
 import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
+import { beginDocumentLoad } from '@volter/editor-sdk/kit/document-context-registry';
 
 /** The second areas' stage stores whose overlays have been opened off (`BlenderViewportArea`). */
 const overlaysOpened = new WeakSet<object>();
@@ -213,7 +214,8 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     let cancelled = false;
     let unpublish: (() => void) | undefined;
     const binding = blend === undefined ? null : { documentId, entryId: entryId!, blend };
-    const unbind = bindModelDocument(binding);
+    const load = beginDocumentLoad(documentId, blend?.split('/').pop() ?? 'Model');
+    const unbind = bindModelDocument(binding, view);
     const publish = () => { unpublish = callbacks.current.publishContext?.(view); };
     setOpened(null);
     // Native focus can arrive after the contributed pane mounts. A declined
@@ -236,6 +238,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
         if (!cancelled) {
           finished = true;
           setOpened({ key, error: null });
+          load.ready();
         }
       } catch (error) {
         if (cancelled) return;
@@ -244,6 +247,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
         unpublish = undefined;
         const detail = error instanceof Error ? error.message : String(error);
         setOpened({ key, error: detail });
+        load.fail();
         callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${blend ?? 'the model'}`, detail });
       } finally {
         starting = false;
@@ -262,6 +266,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     requestOpen();
     return () => {
       cancelled = true;
+      load.dispose();
       unsubscribe();
       unpublish?.();
       unbind();
@@ -269,8 +274,8 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
   }, [active, blend, documentId, entryId, key]);
 
   if (active === false || !documentId) return null;
-  if (opened?.key !== key) return <div role="status">Opening model…</div>;
-  if (opened.error) return <div role="alert">{opened.error}</div>;
+  if (opened?.key !== key) return <div data-testid="model-loading-ground" aria-busy="true" style={{position: 'absolute', inset: 0}} />;
+  if (opened.error) return <div role="alert" style={{padding: 'var(--volter-space-4)', fontSize: 'var(--volter-font-md)'}}>{opened.error}</div>;
   return <BlenderModelViewport {...props} />;
 }
 

@@ -103,9 +103,9 @@ import {
   temporaryPivotVersion,
 } from './canvas-temporary-pivot';
 import {
-  subscribeViewportPresentation,
+  subscribeViewportPresentationSnapshot,
   viewDrafting,
-  viewportPresentationVersion,
+  viewportPresentationSnapshotVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import {
   selectReactStoryFrameAtPoint,
@@ -1440,7 +1440,7 @@ export function RootSelectionOverlay({
   const axisGizmos =
     transformModeAware && store.transformMode !== 'combined' && store.transformMode !== 'select';
   // Godot's View › Gizmos: Position (the origin handle) and Transformation (the tool's axis gizmo).
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion);
   const gizmoSwitches = presentationId ? viewDrafting(presentationId) : null;
   const showPositionGizmo = gizmoSwitches?.position ?? true;
   const showAxisGizmo = !axisGizmos || (gizmoSwitches?.transformation ?? true);

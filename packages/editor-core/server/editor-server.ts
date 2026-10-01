@@ -7,10 +7,11 @@
 
 import { createHash, randomBytes, randomUUID } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
-import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
+import { mkdir, open, readFile, rename, stat } from 'node:fs/promises';
 import type { Server as HttpServer } from 'node:http';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
 import type { EditorServerCompatibility } from '@volter/editor-sdk/session/editor-compatibility';
+import type { ProjectMutationContent } from '@volter/editor-sdk/session/project-serving';
 import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
 import chokidar, { type FSWatcher } from 'chokidar';
 import type { Request, Response, Router } from 'express';
@@ -64,7 +65,6 @@ import { openBrowserUrl, shouldOpenTabInBackground } from './open-browser';
 import { acceptPagePhase, type PlayPhaseRecord } from './play-stall';
 import { withDependencyChangeInvalidation } from './project-dependency-invalidation';
 import {
-  hashAndSize,
   headerValue,
   readRunningEngineVersion,
   unlinkIfPresent,
@@ -936,7 +936,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
 
   const commitProjectMutation = async (
     req: Request,
-    resources: readonly { path: string; content: string | Buffer | null }[],
+    resources: readonly { path: string; content: ProjectMutationContent }[],
   ) => {
     const trusted = trustedShareIdentity(req);
     const normalized = await Promise.all(
@@ -996,24 +996,23 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
             normalized.map((resource) => resource.path),
           );
         }
-        for (const resource of normalized) {
-          const sha =
-            resource.content === null
-              ? null
-              : createHash('sha256').update(resource.content).digest('hex').slice(0, 16);
+        const expectMutation = (path: string, sha: string | null) => {
           // Atomic renames can produce both add and change events. Retain the
           // digest briefly so every duplicate event for this one write is
           // ignored; a different digest invalidates it immediately.
-          watch.expectedEditorMutations.set(resource.path, { sha, expiresAt: Date.now() + 5_000 });
-        }
-        while (watch.expectedEditorMutations.size > 200) {
-          const oldest = watch.expectedEditorMutations.keys().next().value;
-          if (!oldest) break;
-          watch.expectedEditorMutations.delete(oldest);
-        }
+          watch.expectedEditorMutations.set(path, { sha, expiresAt: Date.now() + 5_000 });
+          while (watch.expectedEditorMutations.size > 200) {
+            const oldest = watch.expectedEditorMutations.keys().next().value;
+            if (!oldest) break;
+            watch.expectedEditorMutations.delete(oldest);
+          }
+        };
+        const committed: { path: string; sha: string | null }[] = [];
         for (const resource of normalized) {
           if (resource.content === null) {
+            expectMutation(resource.path, null);
             await unlinkIfPresent(resource.absolute);
+            committed.push({ path: resource.path, sha: null });
             continue;
           }
           await mkdir(dirname(resource.absolute), { recursive: true });
@@ -1022,18 +1021,45 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
             `.${basename(resource.absolute)}.volter-${randomUUID()}.tmp`,
           );
           try {
-            await writeFile(temporary, resource.content);
+            const full = createHash('sha256');
+            const prefix = createHash('sha256');
+            let size = 0;
+            const chunks: AsyncIterable<Uint8Array> = typeof resource.content === 'string'
+              || resource.content instanceof Uint8Array
+              ? (async function* () { yield typeof resource.content === 'string'
+                  ? Buffer.from(resource.content) : resource.content as Uint8Array; })()
+              : resource.content;
+            // Append completed chunks to a hidden sibling, never hold a
+            // second whole resource in the server. Hash the exact bytes
+            // while writing; use the same large-file fingerprint as scanning.
+            const output = await open(temporary, 'w');
+            try {
+              for await (const chunk of chunks) {
+                if (!(chunk instanceof Uint8Array)) throw new Error('Project mutation stream yielded non-byte content');
+                full.update(chunk);
+                if (size < 65536) prefix.update(chunk.subarray(0, 65536 - size));
+                size += chunk.byteLength;
+                if (!Number.isSafeInteger(size)) throw new Error('Project mutation is too large');
+                let offset = 0;
+                while (offset < chunk.byteLength) {
+                  const written = await output.write(chunk, offset, chunk.byteLength - offset, null);
+                  if (!written.bytesWritten) throw new Error('Project mutation write made no progress');
+                  offset += written.bytesWritten;
+                }
+              }
+            } finally {
+              await output.close();
+            }
+            const fullSha = full.digest('hex').slice(0, 16);
+            const sha = size > 10 * 1024 * 1024
+              ? prefix.update(`\0size:${size}`).digest('hex').slice(0, 16) : fullSha;
+            expectMutation(resource.path, sha);
             await rename(temporary, resource.absolute);
+            committed.push({ path: resource.path, sha });
           } finally {
             await unlinkIfPresent(temporary);
           }
         }
-        const committed = await Promise.all(
-          normalized.map(async (resource) => ({
-            path: resource.path,
-            sha: resource.content === null ? null : (await hashAndSize(resource.absolute)).hash,
-          })),
-        );
         const recorded = collaboration?.recordSourceMutation({
           authorId: actorId,
           source: 'editor',

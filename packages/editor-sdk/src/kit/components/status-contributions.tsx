@@ -74,6 +74,7 @@ import {
   workspaceUtilityRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-utility-registry';
 import { SaveStatus } from './SaveStatus';
+import { DocumentLoadingStatus } from './DocumentLoadingStatus';
 
 /** Standard console counters remain visible when the drawer is closed. */
 export function ErrorCountStatus() {
@@ -330,6 +331,13 @@ const registrationGroup = createHmrRegistrationGroup(
  *  (same ensure idiom as `ensureBuildContributionsRegistered`). */
 export function ensureCoreStatusContributionsRegistered(): void {
   registrationGroup.ensure((track) => {
+    track(registerWorkspaceStatus({
+      id: 'document-loading',
+      name: 'Opening document',
+      align: 'left',
+      order: -80,
+      Content: DocumentLoadingStatus,
+    }));
     track(
       registerWorkspaceStatus({
         id: 'editor-lease',

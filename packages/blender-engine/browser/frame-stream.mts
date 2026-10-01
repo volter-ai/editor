@@ -10,6 +10,33 @@ const arrays = { Uint8Array, Int8Array, Uint16Array, Int16Array, Uint32Array, In
 const digest = async (bytes: Uint8Array): Promise<string> =>
   Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', bytes as Uint8Array<ArrayBuffer>)), b => b.toString(16).padStart(2, '0')).join('');
 
+/**
+ * FREE A FRAME'S BYTES NOW, NOT AT THE NEXT GARBAGE COLLECTION. Every column crosses this path as
+ * several whole copies (the worker's copy off the engine arena, the copy hashed for the record,
+ * each one-MiB chunk, the column reassembled in the tab), and each is dead the moment the next
+ * one exists. Left to the collector they are external memory it reclaims when it gets to it; a
+ * scene's columns are gigabytes (1.45 GB on the Stoneguard bridge), so the copies are released
+ * here instead. `ArrayBuffer.prototype.transfer(0)` detaches a buffer and frees its backing
+ * store at once.
+ * Only plain buffers this realm owns are released: a SharedArrayBuffer (the engine's own memory)
+ * is never touched, and `keep` names the buffers a caller is still using.
+ */
+export function releaseFrameBuffers(value: unknown, keep: ReadonlySet<ArrayBufferLike> = new Set()): void {
+  const seen = new Set<unknown>();
+  const walk = (item: unknown): void => {
+    if (item === null || typeof item !== 'object' || seen.has(item)) return;
+    seen.add(item);
+    if (ArrayBuffer.isView(item)) {
+      const buffer = item.buffer as ArrayBuffer & { transfer?: (length: number) => ArrayBuffer; detached?: boolean };
+      if (!(buffer instanceof ArrayBuffer) || keep.has(buffer) || buffer.detached || typeof buffer.transfer !== 'function') return;
+      buffer.transfer(0);
+      return;
+    }
+    for (const held of Array.isArray(item) ? item : Object.values(item)) walk(held);
+  };
+  walk(value);
+}
+
 export async function sendFrameValue(value: unknown, send: (chunk: FrameChunk) => Promise<unknown>): Promise<unknown> {
   const buffers: Uint8Array[] = [];
   const json = JSON.stringify(value, (_key, item: unknown) => {
@@ -52,6 +79,7 @@ export class FrameStreamReader {
           throw new Error('Frame chunk is out of order or exceeds its bound');
         if (await digest(chunk.bytes) !== chunk.sha256) throw new Error('Frame chunk digest mismatch');
         buffer.set(chunk.bytes, chunk.offset); this.offsets[chunk.slot] = chunk.offset + chunk.bytes.byteLength;
+        releaseFrameBuffers(chunk.bytes);
         return;
       }
       if (chunk.kind !== 'end') throw new Error('Unknown frame chunk');

@@ -631,9 +631,24 @@ export function resolvePresentation(layers: readonly PresentationLayer[]): Viewp
 
 let version = 0;
 const listeners = new Set<() => void>();
+let snapshotVersion = 0;
+let snapshotPending = false;
+const snapshotListeners = new Set<() => void>();
 
 function bump(): void {
   version += 1;
+  // Stage binding can run inside a React passive contribution effect. Notify
+  // React only after that stack unwinds; a synchronous external-store update
+  // can otherwise enter a second root commit while the first is flushing effects.
+  // Keep imperative camera/session/persistence subscribers immediate.
+  if (!snapshotPending) {
+    snapshotPending = true;
+    queueMicrotask(() => {
+      snapshotPending = false;
+      snapshotVersion = version;
+      for (const listener of [...snapshotListeners]) listener();
+    });
+  }
   for (const listener of listeners) listener();
 }
 
@@ -644,6 +659,18 @@ export function subscribeViewportPresentation(listener: () => void): () => void 
 
 export function viewportPresentationVersion(): number {
   return version;
+}
+
+/** React external-store pair. Both version publication and notification are
+ * deferred together; reading the immediate version during commit would still
+ * force a nested synchronous update even if only its listeners were delayed. */
+export function subscribeViewportPresentationSnapshot(listener: () => void): () => void {
+  snapshotListeners.add(listener);
+  return () => snapshotListeners.delete(listener);
+}
+
+export function viewportPresentationSnapshotVersion(): number {
+  return snapshotVersion;
 }
 
 // ---- Merging -----------------------------------------------------------------------------------
