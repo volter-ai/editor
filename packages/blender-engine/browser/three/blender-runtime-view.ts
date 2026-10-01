@@ -268,10 +268,11 @@ function textureContext(renderer: THREE.WebGLRenderer): { generation: number } {
   }
   return state;
 }
+// Read for every sampler of every file image on every frame, so a plain join, not JSON.
 function textureUploadKey(texture: THREE.Texture): string {
-  return JSON.stringify([texture.wrapS, texture.wrapT, texture.magFilter, texture.minFilter,
-    texture.anisotropy, texture.format, texture.type, texture.internalFormat,
-    texture.generateMipmaps, texture.premultiplyAlpha, texture.flipY, texture.unpackAlignment, texture.colorSpace]);
+  return `${texture.wrapS}|${texture.wrapT}|${texture.magFilter}|${texture.minFilter}|${texture.anisotropy}|` +
+    `${texture.format}|${texture.type}|${texture.internalFormat}|${texture.generateMipmaps}|` +
+    `${texture.premultiplyAlpha}|${texture.flipY}|${texture.unpackAlignment}|${texture.colorSpace}`;
 }
 
 export async function texturesReady(): Promise<void> {
@@ -1339,10 +1340,9 @@ export class BlenderRuntimeView {
   prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}): () => void {
     try {
       if (options?.renderer) for (const held of this.textures.values())
-        held.upload?.(options.renderer, () => [
-          ...this.textureSamplers.variants(held.texture),
-          ...(this.extraImageTextures.has(held.texture) ? [held.texture] : []),
-        ]);
+        held.upload?.(options.renderer, () => this.extraImageTextures.has(held.texture)
+          ? [...this.textureSamplers.variants(held.texture), held.texture]
+          : this.textureSamplers.variants(held.texture));
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
