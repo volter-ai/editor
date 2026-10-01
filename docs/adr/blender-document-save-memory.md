@@ -35,7 +35,7 @@ and Properties reads. No performance optimization or new frame-time claim.
 Initial presentation has a separate unbounded concurrency path:
 loadEncodedTexture starts every PNG/JPEG decode in the manifest immediately.
 The existing Bridge image census records 84 images, 171 MiB compressed and
-1,343 MiB as RGBA. Finished ImageBitmaps must remain available for texture
+1,343 MiB as RGBA. The initial serial-decode correction retained finished ImageBitmaps for texture
 uploads and context restoration, but all decoder and vertical-flip temporary
 workspaces need not coexist. File-image decoding now runs one image at a time.
 Blob creation is inside that queue, and a disposed texture skips queued work
@@ -55,8 +55,9 @@ The Bridge image census is 1,343 MiB of decoded pixels, retained alongside the
 it does not establish the full process-footprint attribution.
 
 The stage now supplies its native renderer to the existing prepareDraw seam.
-The file-image owner uploads through Three's public initTexture door, including
-every current material-input sampler sharing that Source, and closes the bitmap
+The file-image owner uploads through Three's public initTexture door for
+every current material-input sampler sharing that Source (and the canonical
+texture only when image extras use it), and closes the bitmap
 after all uploads. It retains dimensions, the original compressed bytes and
 Source.dataReady=false; no closed pixel source is passed back to GL.
 A hidden document learns image dimensions and closes the initial bitmap rather

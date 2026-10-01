@@ -359,14 +359,15 @@ function loadEncodedTexture(
   const upload = (renderer: THREE.WebGLRenderer, variants: () => readonly THREE.Texture[]): void => {
     if (disposed) return;
     if (renderer.getContext().isContextLost() || !renderer.domElement.isConnected) { releaseBitmap(); return; }
-    everBound = true;
     const context = textureContext(renderer);
     let held = uploads.get(renderer);
     if (!held || held.generation !== context.generation) {
       held = { generation: context.generation, keys: new WeakMap() };
       uploads.set(renderer, held);
     }
-    const textures = [texture, ...variants()];
+    const textures = variants();
+    if (textures.length === 0) { releaseBitmap(); return; }
+    everBound = true;
     if (textures.every(one => held!.keys.get(one) === textureUploadKey(one))) return;
     if (!bitmap) {
       // A new context or sampler needs the same original texels again. The
@@ -798,6 +799,7 @@ export class BlenderRuntimeView {
    *  never disposes it. Held with the size and revision the resident bytes
    *  are, because a repaint at the same size is an upload into this texture
    *  while a resize is a new one every material has to be re-pointed at. */
+  private readonly extraImageTextures = new Set<THREE.Texture>();
   private readonly textures = new Map<
     string,
     {
@@ -1337,7 +1339,10 @@ export class BlenderRuntimeView {
   prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}): () => void {
     try {
       if (options?.renderer) for (const held of this.textures.values())
-        held.upload?.(options.renderer, () => this.textureSamplers.variants(held.texture));
+        held.upload?.(options.renderer, () => [
+          ...this.textureSamplers.variants(held.texture),
+          ...(this.extraImageTextures.has(held.texture) ? [held.texture] : []),
+        ]);
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
@@ -1528,6 +1533,7 @@ export class BlenderRuntimeView {
   }
 
   private applyExtras(next: Frame): void {
+    this.extraImageTextures.clear();
     const cameras: Record<string, z.infer<typeof cameraDataSchema>> = {};
     for (const [name, data] of Object.entries(next.cameras)) {
       const parsed = cameraDataSchema.safeParse(data);
@@ -1566,6 +1572,7 @@ export class BlenderRuntimeView {
             () => this.awaitedImages.delete(name),
           );
         }
+        this.extraImageTextures.add(held.texture);
         return { texture: held.texture, width, height };
       },
     });
@@ -2408,6 +2415,7 @@ export class BlenderRuntimeView {
       udim?.map.dispose();
     }
     this.textures.clear();
+    this.extraImageTextures.clear();
     this.textureNames.clear();
     this.roughnessTextureNames.clear();
     this.textureSamplers.clear();
