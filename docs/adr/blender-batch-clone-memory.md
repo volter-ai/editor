@@ -37,3 +37,14 @@ Evidence: stoneguard-diagnostics/f2-off-selected-reading.json and
 f2-off-selected-later.json; source type checks f2-shared-batch-types.log and
 f2-execute-types.log. These are cause readings, not independent arc acceptance.
 The candidate's F2 stability remains to be observed through the board's review.
+
+A further ownership correction is recorded under t_e709edac. Three r180
+Texture.copy shares its Source, and BatchedMesh.copy replaces image.data after
+cloning its matrix and indirection textures. Sharing that image shell lets
+one run overwrite another run's mutable inputs and lets WebGL share the
+underlying upload. Only the owned template DataTextures receive a clone hook
+that creates an independent Source and image shell before Three copies the
+small run-local arrays. Immutable geometry remains shared; matrix and command
+textures remain private to each run. No Three prototype or ambient clone
+behavior is changed. This is a correctness reason to retain the change, not
+a frame-time optimization. Engine types pass in f2-run-texture-types.log.
