@@ -578,6 +578,9 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
       syncHarnessParticipant(snapshot);
     },
     ...(initialHarnessCaller ? { callerSessions: [initialHarnessCaller] } : {}),
+    // The live receipt id of a runtime already running, set by whatever launched this
+    // editor: its Chat attaches there at load instead of starting an agent of its own.
+    ...(process.env['VOLTER_CHAT_RUNTIME']?.trim() ? { chatRuntime: process.env['VOLTER_CHAT_RUNTIME'].trim() } : {}),
   });
   const projectWork = new ProjectWorkCoordinator({
     getProjectRoot: () => projectRoot,

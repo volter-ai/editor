@@ -274,6 +274,9 @@ export interface HarnessChatServiceOptions {
   discoveryPollMs?: number;
   /** Sessions that invoked volter for this project from outside its workspace. */
   callerSessions?: readonly HarnessChatCallerSession[];
+  /** A runtime already running (its live receipt's id) that the Chat attaches to instead of
+   *  starting or resuming one of its own: a session in a terminal, or a replay. */
+  chatRuntime?: string;
   /** Trusted account route resolved only when Supercode launches a process. */
   resolveCodingInference?: (workspace: string) => Promise<ResolvedCodingInference | null>;
   /** Test seam. Production loads the real zero-dependency Supercode SDK. */
@@ -1207,6 +1210,16 @@ export class HarnessChatService {
 
   private async mintFrontendHandoff(): Promise<FrontendHandoffResult> {
     try {
+      if (this.options.chatRuntime) {
+        const handoff = await mintFrontendHandoff({
+          engineRoot: this.options.engineRoot,
+          runtimeSessionId: this.options.chatRuntime,
+          directory: join(homedir(), '.volter', 'runtime', `frontend-${process.pid}`),
+        });
+        this.frontendHandoffValue = handoff;
+        this.frontendRefusalValue = null;
+        return { env: { ...handoff.env }, refusal: null };
+      }
       await this.ensureController();
       const controller = this.controller;
       if (!controller) throw new Error('Volter Harness is unavailable.');
