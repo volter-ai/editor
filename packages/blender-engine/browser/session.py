@@ -2007,7 +2007,10 @@ class Session:
         # growing WasmFS vector would otherwise retain outgrown buffers and
         # double past the compressed document's actual size. The host's file
         # remains untouched until the worker's verified commit succeeds.
-        if not existed and self.document_size > 0:
+        # set_read_checkpoint is the existing browser-only native capability;
+        # other filesystem backends do not have RawWriteWrap's reservation.
+        if (not existed and self.document_size > 0
+                and hasattr(_blender_web, "set_read_checkpoint")):
             with open(self.document, "wb") as placeholder:
                 placeholder.truncate(self.document_size)
         bpy.ops.wm.save_as_mainfile(
