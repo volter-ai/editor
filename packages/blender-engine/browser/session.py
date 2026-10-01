@@ -153,6 +153,13 @@ EXPORT_BUFFER_PATH = os.environ.get("VOLTER_EXPORT_BUFFER_PATH", "")
 # head (quality 3), which native Blender pays too (+1.2 GB peak RSS there).
 MEMORY_MARKS = []
 
+# WHETHER THE NATIVE WRITER PRESIZES ITS TEMPORARY FROM A PLACEHOLDER (`save_document`). Only the
+# browser filesystem backend's RawWriteWrap does, and the pinned engine exposes no door naming that
+# capability itself; `set_read_checkpoint` is the browser backend's own door and ships in the same
+# build, so its presence is what identifies that backend here. A native door that names the
+# reservation would replace this reading.
+_WRITE_RESERVATION = hasattr(_blender_web, "set_read_checkpoint")
+
 
 def _mark(label):
     try:
@@ -2007,10 +2014,7 @@ class Session:
         # growing WasmFS vector would otherwise retain outgrown buffers and
         # double past the compressed document's actual size. The host's file
         # remains untouched until the worker's verified commit succeeds.
-        # set_read_checkpoint is the existing browser-only native capability;
-        # other filesystem backends do not have RawWriteWrap's reservation.
-        if (not existed and self.document_size > 0
-                and hasattr(_blender_web, "set_read_checkpoint")):
+        if not existed and self.document_size > 0 and _WRITE_RESERVATION:
             with open(self.document, "wb") as placeholder:
                 placeholder.truncate(self.document_size)
         _mark("save:before")
