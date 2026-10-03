@@ -365,8 +365,8 @@ three's own objects, the stage's camera and the held keys. The model's stage sta
 and hidden; Stop or Escape disposes the copy. While it plays the document's stage mode is
 `PLAY`, and the frame's stage and panel key rules stand down on it. State: coded, never run.
 The starter copies `track.py` and `track.play.ts`: a ring, car and wheels, arcade driving,
-Track raycasts and a chase camera. Running `track.py` in the session's Blender makes
-`src/models/track.blend`. Closes when a person makes it, drives with arrows/WASD, checks
+Track raycasts and a chase camera. `track.blend` starts as a copy of the cube; running `track.py` with it
+open replaces it with the track. Closes when a person makes it, drives with arrows/WASD, checks
 off-track slowing and wheels, and Stop returns the unchanged model. Open: keymap generation
 (no compiled fork), a collider helper, a visible Play control and the hosted script import.
 

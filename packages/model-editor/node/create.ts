@@ -88,5 +88,8 @@ export default defineAdapter({
     for (const file of ['cube.blend', 'cube.py', 'track.py', 'track.play.ts']) {
       await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
     }
+    // THE TRACK'S MODEL STARTS AS THE CUBE: `track.py` replaces the open model and refuses any
+    // file but this one, so running it never writes over another model.
+    await copyFile(join(productRoot, 'starter', 'cube.blend'), join(target, 'src/models', 'track.blend'));
     return { targetDir: target, manifest };
 }

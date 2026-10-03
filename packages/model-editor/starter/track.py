@@ -6,12 +6,13 @@
 
 """The starter race — run this through the session's Blender.
 
-Open the starter cube, then execute this source through `blender-execute`:
+Open the Track model (`track.blend`, which starts as a copy of the cube), then
+execute this source through `blender-execute`:
 
     editor.blender('blender-execute', { code: open('src/models/track.py').read() })
 
-This replaces the open scene and saves `track.blend` beside its named file.
-Open that Model document and choose View > Play to run `track.play.ts`.
+Like `cube.py` it replaces the open model, and the session saves it; it refuses
+any other open file. Then choose View > Play to run `track.play.ts`.
 Coordinates are metres, Z is up, and the car's nose is local +Y.
 """
 
@@ -21,9 +22,8 @@ from pathlib import Path
 import bpy
 from mathutils import Matrix, Vector
 
-if not bpy.data.filepath:
-    raise RuntimeError("Open a saved model before making the starter track.")
-destination = str(Path(bpy.data.filepath).with_name("track.blend"))
+if Path(bpy.data.filepath).name != "track.blend":
+    raise RuntimeError("Open the Track model (track.blend) first: this replaces the open model.")
 
 for obj in list(bpy.data.objects):
     bpy.data.objects.remove(obj, do_unlink=True)
@@ -154,4 +154,3 @@ scene.camera = camera
 bpy.ops.object.select_all(action="DESELECT")
 car.select_set(True)
 bpy.context.view_layer.objects.active = car
-bpy.ops.wm.save_as_mainfile(filepath=destination)
