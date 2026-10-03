@@ -95,49 +95,49 @@
 				"command": "volter.edit.copy",
 				"key": "ctrl+C",
 				"mac": "cmd+C",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.cut",
 				"key": "ctrl+X",
 				"mac": "cmd+X",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.paste",
 				"key": "ctrl+V",
 				"mac": "cmd+V",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.duplicate",
 				"key": "ctrl+D",
 				"mac": "cmd+D",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.group",
 				"key": "ctrl+G",
 				"mac": "cmd+G",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.wrap",
 				"key": "ctrl+alt+G",
 				"mac": "alt+cmd+G",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.unwrap",
 				"key": "ctrl+shift+G",
 				"mac": "shift+cmd+G",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.selectAll",
 				"key": "ctrl+A",
 				"mac": "cmd+A",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.save",
@@ -148,68 +148,68 @@
 			{
 				"command": "volter.edit.delete",
 				"key": "Delete",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.delete",
 				"key": "Backspace",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.enterScope",
 				"key": "Enter",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.exitScopeOrDeselect",
 				"key": "Escape",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.nudgeUp",
 				"key": "Up",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.nudgeUpCoarse",
 				"key": "shift+Up",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.nudgeDown",
 				"key": "Down",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.nudgeDownCoarse",
 				"key": "shift+Down",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.nudgeLeft",
 				"key": "Left",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.nudgeLeftCoarse",
 				"key": "shift+Left",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.nudgeRight",
 				"key": "Right",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.nudgeRightCoarse",
 				"key": "shift+Right",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.view.resetPan",
 				"key": "ctrl+0",
 				"mac": "cmd+0",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.view.commandPalette",
@@ -243,145 +243,145 @@
 			{
 				"command": "volter.transform.select",
 				"key": "Q",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.transform.combined",
 				"key": "T",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.transform.translate",
 				"key": "W",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.transform.rotate",
 				"key": "E",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.transform.scale",
 				"key": "R",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.viewport.toggleSnap",
 				"key": "shift+S",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.viewport.frameSelection",
 				"key": "F",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.viewport.cyclePivot",
 				"key": ".",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.canvas.panMode",
 				"key": "G",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.surface == 'canvas' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.stage.surface == 'canvas' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.canvas.rulerMode",
 				"key": "M",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.surface == 'canvas' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.stage.surface == 'canvas' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.canvas.toggleGrid",
 				"key": "ctrl+'",
 				"mac": "cmd+'",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.surface == 'canvas' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.stage.surface == 'canvas' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.viewport.snapToFloor",
 				"key": "PageDown",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.view.top",
 				"key": "NumPad7",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.view.front",
 				"key": "NumPad1",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.view.right",
 				"key": "NumPad3",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.view.perspective",
 				"key": "NumPad5",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.view.camera",
 				"key": "NumPad0",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'volter'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'volter'"
 			},
 			{
 				"command": "volter.edit.copy",
 				"key": "ctrl+C",
 				"mac": "cmd+C",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.cut",
 				"key": "ctrl+X",
 				"mac": "cmd+X",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.paste",
 				"key": "ctrl+V",
 				"mac": "cmd+V",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.duplicate",
 				"key": "shift+D",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.group",
 				"key": "ctrl+G",
 				"mac": "cmd+G",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.wrap",
 				"key": "ctrl+alt+G",
 				"mac": "alt+cmd+G",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.unwrap",
 				"key": "ctrl+shift+G",
 				"mac": "shift+cmd+G",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.selectAll",
 				"key": "A",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.selectAll",
 				"key": "ctrl+A",
 				"mac": "cmd+A",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.deselectAll",
 				"key": "alt+A",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.save",
@@ -392,63 +392,63 @@
 			{
 				"command": "volter.edit.delete",
 				"key": "X",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.enterScope",
 				"key": "Enter",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.exitScopeOrDeselect",
 				"key": "Escape",
-				"when": "volter.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.nudgeUp",
 				"key": "Up",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.nudgeUpCoarse",
 				"key": "shift+Up",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.nudgeDown",
 				"key": "Down",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.nudgeDownCoarse",
 				"key": "shift+Down",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.nudgeLeft",
 				"key": "Left",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.nudgeLeftCoarse",
 				"key": "shift+Left",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.nudgeRight",
 				"key": "Right",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.edit.nudgeRightCoarse",
 				"key": "shift+Right",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.resetPan",
 				"key": "ctrl+0",
 				"mac": "cmd+0",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.commandPalette",
@@ -482,152 +482,152 @@
 			{
 				"command": "volter.transform.select",
 				"key": "W",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.transform.combined",
 				"key": "T",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.transform.translate",
 				"key": "G",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.transform.rotate",
 				"key": "R",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.transform.scale",
 				"key": "S",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.viewport.toggleSnap",
 				"key": "shift+S",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.viewport.frameSelection",
 				"key": ".",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.viewport.frameSelection",
 				"key": "NumPad_Decimal",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.viewport.cyclePivot",
 				"key": ",",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.viewport.snapToFloor",
 				"key": "PageDown",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.top",
 				"key": "NumPad7",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.front",
 				"key": "NumPad1",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.right",
 				"key": "NumPad3",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.bottom",
 				"key": "ctrl+NumPad7",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.back",
 				"key": "ctrl+NumPad1",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.left",
 				"key": "ctrl+NumPad3",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.orbitLeft",
 				"key": "NumPad4",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.orbitRight",
 				"key": "NumPad6",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.orbitUp",
 				"key": "NumPad8",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.orbitDown",
 				"key": "NumPad2",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.opposite",
 				"key": "NumPad9",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.rollLeft",
 				"key": "shift+NumPad4",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.rollRight",
 				"key": "shift+NumPad6",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.all",
 				"key": "Home",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.zoomIn",
 				"key": "NumPad_Add",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.zoomIn",
 				"key": "ctrl+=",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.zoomOut",
 				"key": "NumPad_Subtract",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.zoomOut",
 				"key": "ctrl+-",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.projection",
 				"key": "NumPad5",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			},
 			{
 				"command": "volter.view.camera",
 				"key": "NumPad0",
-				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.keymap == 'blender'"
+				"when": "volter.stage.focused && volter.document.kind != 'game' && volter.stage.mode != 'PLAY' && volter.keymap == 'blender'"
 			}
 		]
 	}

@@ -67,6 +67,9 @@ import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
+import { modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
+import { runPlayScript } from '../src/play-script';
+import { notifyWorkspaceDocumentSelectionChanged } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   documentSecondAreaHeader,
   setDocumentSecondArea,
@@ -281,6 +284,11 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
  * Blender's standard always-on render preview is set up: Rendered shading, through the scene
  * camera. Each area has its own stage, shading, navigation and camera view; the model, its
  * selection and its history are the document's.
+ *
+ * PLAYING (the header's Play, `src/model-play.ts`), the area shows a DETACHED copy of the model
+ * (`BlenderRuntimeView.detach`) on a stage of its own, which the project's play script moves
+ * (`src/play-script.ts`). The model's own stage stays mounted underneath, hidden, so Stop
+ * returns to the same view of the same model: nothing a game does reaches Blender.
  */
 function BlenderModelViewport(props: ToolContributionProps) {
   const { documentId } = props;
@@ -304,8 +312,50 @@ function BlenderModelViewport(props: ToolContributionProps) {
       second.dispose();
     };
   }, [split, documentId]);
+  const playing = useSyncExternalStore(
+    subscribeModelPlay,
+    () => (documentId ? modelPlaying(documentId) : false),
+    () => false,
+  );
+  const [played, setPlayed] = useState<ReturnType<AreaView['detach']> | null>(null);
+  useEffect(() => {
+    if (!playing || !documentId) return;
+    const playId = `${documentId}#play`;
+    // A game is seen as the render is: Rendered shading, chosen before the stage binds.
+    setViewPresentation(playId, { drawMode: 'rendered' });
+    const copy = view.detach();
+    setPlayed(copy);
+    // The stage's mode is PLAY for as long as the copy stands, so the keys are the player's.
+    view.setPlaying(true);
+    notifyWorkspaceDocumentSelectionChanged(documentId);
+    return () => {
+      setPlayed(null);
+      copy.dispose();
+      view.setPlaying(false);
+      notifyWorkspaceDocumentSelectionChanged(documentId);
+    };
+  }, [playing, documentId]);
+  // The document closing or going inactive ends its game; a game never outlives its stage.
+  useEffect(() => {
+    if (!documentId) return;
+    return () => setModelPlaying(documentId, false);
+  }, [documentId]);
   if (!documentId) return null;
-  const second = split ? follower : null;
+  const game = playing ? played : null;
+  const second = split && !game ? follower : null;
+  // PLAYING, THE COPY'S STAGE FILLS THE SLOT and the model's own stands hidden beneath it.
+  const filled = { position: 'absolute', inset: 12 } as const;
+  if (game)
+    return (
+      <div style={{ position: 'absolute', inset: -12 }}>
+        <div style={{ ...filled, visibility: 'hidden' }}>
+          <BlenderViewportArea {...props} view={view} main />
+        </div>
+        <div key="play" style={filled} data-testid="blender-play-area">
+          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play />
+        </div>
+      </div>
+    );
   // SPLIT, THE TWO AREAS SHARE THE SLOT the stage alone fills otherwise: each stage's root bleeds
   // 12 px past its positioned parent (`inset: -12px`), so each area is that parent inset by 12,
   // and the two stand 2 px apart, Blender's gap between areas. Unsplit, both wrappers are
@@ -396,28 +446,36 @@ function BlenderViewportArea({
   active,
   document,
   documentId,
+  notify,
   surfaces,
   view,
   main,
-}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean }) {
+  play = false,
+}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly play?: boolean }) {
   const reads = readsOf(view);
   const build = useCallback(
     () => ({
       root: view.root,
       prepareDraw: (camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}) => view.prepareDraw(camera, options),
       // What the view draws changes with each frame and the work after it,
-      // and with the skin's poses when the Timeline scrubs.
-      onChange(listener: () => void) {
-        const stopView = view.onChange(listener);
-        const stopSkin = blenderSkin.subscribe(listener);
-        return () => {
-          stopView();
-          stopSkin();
-        };
-      },
+      // and with the skin's poses when the Timeline scrubs. A PLAYING copy announces nothing:
+      // its script moves it every frame, and a source that announces nothing is drawn every
+      // frame (`ToolObject3DPreviewSource.onChange`).
+      ...(play
+        ? {}
+        : {
+            onChange(listener: () => void) {
+              const stopView = view.onChange(listener);
+              const stopSkin = blenderSkin.subscribe(listener);
+              return () => {
+                stopView();
+                stopSkin();
+              };
+            },
+          }),
       dispose() {},
     }),
-    [view],
+    [view, play],
   );
   const blend = document?.source?.path;
   // Re-read on the engine's frames, the skin's publications and every drawn frame of this stage
@@ -457,7 +515,8 @@ function BlenderViewportArea({
    * person's.
    */
   useEffect(() => {
-    if (main || !documentId) return;
+    // A playing copy's camera is its script's.
+    if (main || play || !documentId) return;
     let entered = false;
     const enter = (): void => {
       if (entered) return;
@@ -472,7 +531,57 @@ function BlenderViewportArea({
       stopSessions();
       stopFrames();
     };
-  }, [main, documentId, view]);
+  }, [main, play, documentId, view]);
+  /**
+   * THE PLAYING COPY IS MOVED BY THE PROJECT'S PLAY SCRIPT (`src/play-script.ts`), on this
+   * stage's own frame hook, once the stage stands. The stage's orbit stands down while it runs,
+   * so the script's camera is not argued with, and Escape stops the game.
+   */
+  const notifyRef = useRef(notify);
+  notifyRef.current = notify;
+  useEffect(() => {
+    if (!play || !documentId) return;
+    if (blend === undefined) {
+      notifyRef.current?.({
+        tone: 'error',
+        title: 'This model has no play script',
+        detail: 'A play script stands beside a model\'s .blend file, and this model has no file of its own.',
+      });
+      return;
+    }
+    const modelId = documentId.replace(/#play$/, '');
+    let stopScript: (() => void) | null = null;
+    let orbit: { enabled: boolean } | null = null;
+    const start = (): void => {
+      if (stopScript) return;
+      const stage = viewportStages().find((one) => one.documentId === documentId);
+      if (!stage) return;
+      orbit = stage.rig().orbit;
+      orbit.enabled = false;
+      stopScript = runPlayScript({
+        blend,
+        root: view.root,
+        camera: () => stage.rig().drawCamera(),
+        onFrame: (fn) => stage.onFrame(fn),
+        report: (title, detail) => {
+          editorHost().console.error(`${title}: ${detail}`, 'blender-play');
+          notifyRef.current?.({ tone: 'error', title, detail });
+        },
+      });
+    };
+    start();
+    const stopStages = onViewportStages(start);
+    const onEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape') setModelPlaying(modelId, false);
+    };
+    window.addEventListener('keydown', onEscape, true);
+    return () => {
+      stopStages();
+      window.removeEventListener('keydown', onEscape, true);
+      stopScript?.();
+      if (orbit) orbit.enabled = true;
+    };
+  }, [play, documentId, blend, view]);
   /**
    * A SHADING PICK IS KEPT WHERE BLENDER KEEPS IT: in the file's own 3D View, the one it reopens
    * on (`blenderViewShading`), so the next save carries it and a reopen starts from it. Noted on
@@ -639,7 +748,7 @@ function BlenderViewportArea({
    */
   const cursorPress = useRef<{ id: number; x: number; y: number } | null>(null);
   const cursorChord = (event: ReactPointerEvent | ReactMouseEvent): boolean =>
-    event.button === 2 && event.shiftKey && event.target instanceof HTMLCanvasElement;
+    !play && event.button === 2 && event.shiftKey && event.target instanceof HTMLCanvasElement;
   const onPointerDownCapture = (event: ReactPointerEvent): void => {
     if (!cursorChord(event)) {
       cursorPress.current = null;
@@ -714,7 +823,9 @@ function BlenderViewportArea({
       // provider; the default adapter it delegates to still answers everything
       // about the presentation (WORK.md §Blender in the tab is Blender,
       // "Inspection parity", I3).
-      authoring={authoring}
+      // A PLAYING COPY HAS NO AUTHORING: it is read-only to the editor, and what moves it is its
+      // script. With none given the stage is the native read-only one.
+      {...(play ? {} : { authoring })}
       cameraDirection={[0.8187, 0.4458, 0.3617]}
       // FOR A FILE THAT SAVED NO 3D VIEW: Blender's factory Modeling direction, standing back
       // three fits.
