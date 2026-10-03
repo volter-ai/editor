@@ -60,6 +60,7 @@ import {
 } from './blender-outliner-authoring';
 import { blenderOutlinerVersion, subscribeBlenderOutliner } from './blender-outliner-model';
 import { areaSplit, setAreaSplit, subscribeAreaSplit } from '../src/area-split';
+import { modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
 
 type MenuId = 'view' | 'select' | 'add' | 'object';
 
@@ -273,6 +274,11 @@ export function BlenderObjectModeHeader({
     () => (documentId === undefined ? false : areaSplit(documentId)),
     () => false,
   );
+  const playing = useSyncExternalStore(
+    subscribeModelPlay,
+    () => (documentId === undefined ? false : modelPlaying(documentId)),
+    () => false,
+  );
   const handle = blenderOutlinerHandle(documentId);
   // NOTHING RATHER THAN A DEAD BAR: with no Outliner published for this
   // document there is no subject for any of these rows, and a menu of rows
@@ -381,6 +387,19 @@ export function BlenderObjectModeHeader({
             Close Area
           </MenuItem>
         </MenuSubmenu>
+        <MenuSeparator />
+        {/* PLAY — not Blender's row: the model's play script moves a detached copy of it on this
+            stage (`src/model-play.ts`, `src/play-script.ts`). Escape stops it too. */}
+        <MenuItem
+          data-testid="blender-play"
+          disabled={documentId === undefined}
+          onSelect={() => {
+            setOpen(null);
+            if (documentId !== undefined) setModelPlaying(documentId, !playing);
+          }}
+        >
+          {playing ? 'Stop' : 'Play'}
+        </MenuItem>
       </MenuWord>
       {/* SELECT — `VIEW3D_MT_select_object`, `space_view3d.py:1713-1715`. The
           three rows are `object.select_all` with action SELECT / DESELECT /

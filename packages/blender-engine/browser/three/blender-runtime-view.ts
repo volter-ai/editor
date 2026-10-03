@@ -1005,7 +1005,16 @@ export class BlenderRuntimeView {
   }
 
   stageMode(): string | null {
-    return this.mode;
+    return this.playing ? 'PLAY' : this.mode;
+  }
+
+  /** PLAY IS A MODE OF THE STAGE: while the document plays, the keys are the player's, and the
+   *  mode this context publishes is what the frame's key rules stand down on
+   *  (`scripts/workbench/generate-keymaps.mjs`, `whenFor`). Blender's own mode returns on stop. */
+  private playing = false;
+
+  setPlaying(playing: boolean): void {
+    this.playing = playing;
   }
 
   /** The inverse: the presented object for a Blender datablock NAME, or null
@@ -2220,6 +2229,26 @@ export class BlenderRuntimeView {
         follower.leader = null;
         follower.dispose();
         follower.root.removeFromParent();
+      },
+    };
+  }
+
+  /**
+   * A COPY OF THE MODEL THAT NO LONGER FOLLOWS IT, for Play: the graph `follow` builds, from the
+   * frame this view holds now, and handed nothing afterwards. What moves its objects is the
+   * caller's; Blender's data and this view never see it, and disposing it is the whole undo.
+   */
+  detach(): { readonly view: BlenderRuntimeView; dispose(): void } {
+    const detached = new BlenderRuntimeView();
+    if (this.frame) detached.applyFrame(this.fullFrame());
+    let disposed = false;
+    return {
+      view: detached,
+      dispose: () => {
+        if (disposed) return;
+        disposed = true;
+        detached.dispose();
+        detached.root.removeFromParent();
       },
     };
   }

@@ -355,6 +355,21 @@ load under 20; at load 40–60 the same opens take 15–30 s. Open: the pack arc
 unpublished while the editor is private. Under 10 s cold needs the substrate to resume
 processes (its W74), not only prebaked files.
 
+## Play on the Model document
+
+View ▸ Play on a Model document shows a detached copy of the model
+(`BlenderRuntimeView.detach`) on a stage of its own, in Rendered shading, and runs the
+project's play script beside the `.blend` (`src/models/<name>.play.ts`,
+`packages/editor-blender/src/play-script.ts`) on that stage's frame hook. The script holds
+three's own objects, the stage's camera and the held keys. The model's stage stays mounted
+and hidden; Stop or Escape disposes the copy. While it plays the document's stage mode is
+`PLAY`, and the frame's stage and panel key rules stand down on it. State: coded, never run.
+The keymap manifest's `when` clauses were rewritten by the generator's own substitution,
+without a compiled fork to run the generator against. Closes when a person presses Play on
+a model with a play script, drives an object with the keys, and Stop returns the same view
+of an unchanged model. Open: a collider helper, a starter track and car, a visible Play
+control, and the play script's import in the hosted image.
+
 ## Supported-editing work
 
 1. **Native undo/redo:** Code-OSS owns resource ordering and commands; Blender
