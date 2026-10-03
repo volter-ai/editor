@@ -364,11 +364,11 @@ project's play script beside the `.blend` (`src/models/<name>.play.ts`,
 three's own objects, the stage's camera and the held keys. The model's stage stays mounted
 and hidden; Stop or Escape disposes the copy. While it plays the document's stage mode is
 `PLAY`, and the frame's stage and panel key rules stand down on it. State: coded, never run.
-The keymap manifest's `when` clauses were rewritten by the generator's own substitution,
-without a compiled fork to run the generator against. Closes when a person presses Play on
-a model with a play script, drives an object with the keys, and Stop returns the same view
-of an unchanged model. Open: a collider helper, a starter track and car, a visible Play
-control, and the play script's import in the hosted image.
+The starter copies `track.py` and `track.play.ts`: a ring, car and wheels, arcade driving,
+Track raycasts and a chase camera. Running `track.py` in the session's Blender makes
+`src/models/track.blend`. Closes when a person makes it, drives with arrows/WASD, checks
+off-track slowing and wheels, and Stop returns the unchanged model. Open: keymap generation
+(no compiled fork), a collider helper, a visible Play control and the hosted script import.
 
 ## Supported-editing work
 

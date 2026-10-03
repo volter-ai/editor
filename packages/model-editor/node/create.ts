@@ -85,7 +85,7 @@ export default defineAdapter({
       mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
     await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
-    for (const file of ['cube.blend', 'cube.py']) {
+    for (const file of ['cube.blend', 'cube.py', 'track.py', 'track.play.ts']) {
       await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
     }
     return { targetDir: target, manifest };
