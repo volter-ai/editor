@@ -4,6 +4,7 @@ import {test} from 'node:test';
 import {startFrameProxy} from '../dist/server/frame-proxy.js';
 import {closeHttpServer, createProcessShutdown} from '../dist/server/process-shutdown.js';
 import './managed-account-defaults.test.mjs';
+import './chat-restore.test.mjs';
 
 async function listen(server) {
   await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
