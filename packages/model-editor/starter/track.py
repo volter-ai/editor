@@ -25,6 +25,10 @@ if Path(bpy.data.filepath).name != "track.blend":
 
 for obj in list(bpy.data.objects):
     bpy.data.objects.remove(obj, do_unlink=True)
+# This file owns its entire scene, including its display collections.
+for group in list(bpy.data.collections):
+    if group.name != "Collection":
+        bpy.data.collections.remove(group)
 for collection in (bpy.data.meshes, bpy.data.materials, bpy.data.lights, bpy.data.cameras, bpy.data.curves):
     for data in list(collection):
         collection.remove(data)
@@ -46,11 +50,11 @@ def material(name, value):
 
 # Volter's light semantic roles from brand.volter.ai/tokens.json, in linear RGB.
 asphalt = material("Asphalt", "#16252c")       # surface.inverse
-grass = material("Grass", "#3f7a55")           # status.healthy.base
+grass = material("Grass", "#5f9a2e")           # scene.instance
 orange = material("Orange", "#ff6a1f")         # accent.orange
 white = material("White", "#f3f2ec")           # text.inverse
 rubber = material("Rubber", "#0f1a1f")         # surface.media
-violet = material("Violet", "#7c5bd6")         # scene.dynamicSoft
+violet = material("Violet", "#6a5a92")         # scene.dynamicSoft
 wood = material("Wood", "#c7641a")             # data.amber
 leaves = material("Leaves", "#5f9a2e")         # scene.instance
 cube_material = bpy.data.materials.new(name="Material")
@@ -123,7 +127,7 @@ for i, (centre, tangent, normal) in enumerate(samples):
         line = box(f"Centre.{i}", (centre.x, centre.y, 0.015), (0.16, 1.5, 0.02), white)
         line.rotation_euler.z = math.atan2(tangent.y, tangent.x) - math.pi / 2
 
-bpy.ops.mesh.primitive_plane_add(size=2400, location=(0, -4, -0.04))
+bpy.ops.mesh.primitive_plane_add(size=300, location=(0, -4, -0.04))
 ground = bpy.context.active_object
 ground.name = "Ground"
 ground.data.materials.append(grass)
@@ -180,10 +184,10 @@ for i in range(56):
 # Low-poly hills close the horizon without textures or a skybox.
 for i in range(18):
     angle = math.tau * i / 18
-    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=1, location=(220 * math.cos(angle), -4 + 220 * math.sin(angle), 0))
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=1, location=(150 * math.cos(angle), -4 + 150 * math.sin(angle), 0))
     hill = bpy.context.active_object
     hill.name = f"Hill.{i}"
-    hill.scale = (65, 60, 22 + i % 4 * 8)
+    hill.scale = (55, 55, 6 + i % 4 * 3)
     hill.data.materials.append(grass if i % 2 else leaves)
 for i in range(5):
     for tier in range(3):
@@ -218,38 +222,82 @@ scene = bpy.context.scene
 scene.unit_settings.system = "METRIC"
 scene.unit_settings.scale_length = 1
 scene.world.use_nodes = True
-background = scene.world.node_tree.nodes.get("Background")
+scene.world.node_tree.nodes.clear()
+background = scene.world.node_tree.nodes.new("ShaderNodeBackground")
+output = scene.world.node_tree.nodes.new("ShaderNodeOutputWorld")
+scene.world.node_tree.links.new(background.outputs[0], output.inputs[0])
 sky = scene.world.node_tree.nodes.new("ShaderNodeTexSky")
 # Blender 5.2 calls its Nishita successor MULTIPLE_SCATTERING; the presenter supports it.
 sky.sky_type = "MULTIPLE_SCATTERING"
 sky.sun_elevation = math.radians(16)
-sky.sun_rotation = math.radians(135)
-sky.aerosol_density = 0.5
+sky.sun_rotation = math.radians(225)
+sky.aerosol_density = 0.0
+sky.altitude = 0.0
 scene.world.node_tree.links.new(sky.outputs["Color"], background.inputs["Color"])
-background.inputs["Strength"].default_value = 0.18
-scene.view_settings.view_transform = "AgX"
-scene.view_settings.look = "AgX - Punchy"
-scene.view_settings.exposure = -0.7
+# Separate visible sky brightness from ambient radiance, as an ordinary World shader.
+light_path = scene.world.node_tree.nodes.new("ShaderNodeLightPath")
+ambient = scene.world.node_tree.nodes.new("ShaderNodeBackground")
+ambient.inputs["Strength"].default_value = 0.03
+scene.world.node_tree.links.new(sky.outputs["Color"], ambient.inputs["Color"])
+mix = scene.world.node_tree.nodes.new("ShaderNodeMixShader")
+scene.world.node_tree.links.new(light_path.outputs["Is Camera Ray"], mix.inputs[0])
+scene.world.node_tree.links.new(ambient.outputs["Background"], mix.inputs[1])
+scene.world.node_tree.links.new(background.outputs["Background"], mix.inputs[2])
+scene.world.node_tree.links.new(mix.outputs[0], output.inputs["Surface"])
+background.inputs["Strength"].default_value = 0.06
+scene.view_settings.view_transform = "Standard"
+scene.view_settings.look = "None"
+scene.view_settings.exposure = 0
 bpy.ops.object.light_add(type="SUN", rotation=(math.radians(74), 0, math.radians(-55)))
 sun = bpy.context.active_object
 sun.name = "Sun"
-sun.data.energy = 4.0
+sun.data.energy = 3.0
+sun.data.color = (1.0, 0.88, 0.68)
 sun.data.angle = math.radians(0.5)
 
-bpy.ops.object.camera_add(location=(39, -37, 4.8))
+bpy.ops.object.camera_add(location=(39, -36, 3.8))
 camera = bpy.context.active_object
 camera.name = "Camera"
-camera.rotation_euler = (Vector((32, -25, 1.4)) - camera.location).to_track_quat('-Z', 'Y').to_euler()
+camera.rotation_euler = (Vector((32, -22, 1.4)) - camera.location).to_track_quat('-Z', 'Y').to_euler()
 camera.data.lens = 28
 scene.camera = camera
+scene.render.resolution_x = 1280
+scene.render.resolution_y = 720
+scene.render.resolution_percentage = 100
 for screen in bpy.data.screens:
     for area in screen.areas:
         if area.type == "VIEW_3D":
             space = area.spaces.active
             space.shading.type = "RENDERED"
-            space.region_3d.view_location = (32, -25, 1.4)
+            space.region_3d.view_location = (32, -22, 1.4)
             space.region_3d.view_distance = 16
             space.region_3d.view_rotation = camera.rotation_euler.to_quaternion()
+
+# Keep the Outliner useful: its native door pages 64 children per collection.
+# Driving objects stay together; repeated scenery is divided into small collections.
+main = bpy.data.collections.get("Collection")
+drive = bpy.data.collections.new("01 Drive")
+main.children.link(drive)
+groups = {"01 Drive": drive}
+counts = {}
+for obj in list(bpy.data.objects):
+    prefix = obj.name.split(".")[0]
+    if prefix in {"Cube", "Wheel", "Ramp", "Cone", "ConeBase", "Crate", "CrateBand", "Sun", "Camera", "Checkpoint", "Gantry", "Start"}:
+        group = "01 Drive"
+    elif prefix in {"Track", "Edge", "Centre", "Ground"}:
+        group = "02 Circuit"
+    else:
+        group = {"Kerb": "03 Kerbs", "Barrier": "04 Tyres", "Tree": "05 Trees", "Hill": "06 Hills"}.get(prefix, "07 Stands and signs")
+    counts[group] = counts.get(group, 0) + 1
+    key = group + (f" {(counts[group] - 1) // 48 + 1}" if group not in {"01 Drive", "02 Circuit"} else "")
+    if key not in groups:
+        groups[key] = bpy.data.collections.new(key)
+        main.children.link(groups[key])
+    for old in list(obj.users_collection):
+        old.objects.unlink(obj)
+    groups[key].objects.link(obj)
+# Cameras are useful for a render, but their overlay rectangle obscures the edit.
+camera.hide_set(True)
 
 bpy.ops.object.select_all(action="DESELECT")
 car.select_set(True)
