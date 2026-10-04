@@ -47,7 +47,7 @@
  *  one `package.json` cannot be both an npm manifest and an extension manifest, and that
  *  transform is supercode's, not a fifteen-line copy of it here), REMOVES `extensions/copilot`
  *  (272 MB of GitHub Copilot Chat, the open-source default agent Code-OSS vendors), and rewrites
- *  `product.json` to name ours and grant it the four proposals it asks for.
+ *  `product.json` to name ours, grant reviewed proposed APIs and use Open VSX for user installs.
  *
  *  IT IS IDEMPOTENT, and that is a requirement rather than a nicety: `dev.mjs` runs it on every
  *  boot. The overlaid directories are REMOVED and re-copied (so a product swap cannot leave the
@@ -318,58 +318,6 @@ function patchChatSource(checkout, relative, original, replacement, what) {
 }
 
 function patchNativeChat(checkout) {
-	// Participant welcome uses native buttons for standalone trusted command links.
-	// It stays outside transcript history and shares the extension's guarded action.
-	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `	readonly firstLinkToButton?: boolean;`, `	readonly firstLinkToButton?: boolean;
-	readonly additionalMessageLinksToButtons?: boolean;`, 'participant welcome button option');
-	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `this.renderMarkdownMessageContent(content.additionalMessage, options);`, `this.renderMarkdownMessageContent(content.additionalMessage, options, options?.additionalMessageLinksToButtons);`, 'participant welcome button rendering');
-	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `	private renderMarkdownMessageContent(content: IMarkdownString, options: IChatViewWelcomeRenderOptions | undefined): IRenderedMarkdown {
-		const messageResult = this._register(this.markdownRendererService.render(content));
-		// eslint-disable-next-line no-restricted-syntax
-		const firstLink = options?.firstLinkToButton ? messageResult.element.querySelector('a') : undefined;
-		if (firstLink) {
-			const target = firstLink.getAttribute('data-href');
-			const button = this._register(new Button(firstLink.parentElement!, defaultButtonStyles));
-			button.label = firstLink.textContent ?? '';
-			if (target) {
-				this._register(button.onDidClick(() => {
-					this.openerService.open(target, { allowCommands: true });
-				}));
-			}
-			firstLink.replaceWith(button.element);
-		}
-		return messageResult;
-	}`, `	private renderMarkdownMessageContent(content: IMarkdownString, options: IChatViewWelcomeRenderOptions | undefined, standaloneCommands = false): IRenderedMarkdown {
-		const messageResult = this._register(this.markdownRendererService.render(content));
-		const allowedCommands = content.isTrusted === true ? true
-			: typeof content.isTrusted === 'object' ? content.isTrusted.enabledCommands : [];
-		// Like viewsWelcome, a paragraph containing only a link is an action.
-		// Inline links and untrusted commands retain ordinary Markdown rendering.
-		// eslint-disable-next-line no-restricted-syntax
-		const firstLink = options?.firstLinkToButton ? messageResult.element.querySelector('a') : undefined;
-		// eslint-disable-next-line no-restricted-syntax
-		const links = standaloneCommands ? Array.from(messageResult.element.querySelectorAll('p > a:only-child')).filter(link => {
-			const target = link.getAttribute('data-href');
-			return link.parentElement?.textContent?.trim() === link.textContent?.trim()
-				&& target?.startsWith('command:')
-				&& (allowedCommands === true || allowedCommands.includes(URI.parse(target).path));
-		}) : firstLink ? [firstLink] : [];
-		for (const link of links) {
-			const target = link.getAttribute('data-href');
-			const button = this._register(new Button(link.parentElement!, defaultButtonStyles));
-			button.label = link.textContent ?? '';
-			if (target) {
-				this._register(button.onDidClick(() => {
-					this.openerService.open(target, { allowCommands: standaloneCommands ? allowedCommands : true });
-				}));
-			}
-			link.replaceWith(button.element);
-		}
-		return messageResult;
-	}`, 'standalone trusted welcome commands');
-	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts', `							isWidgetAgentWelcomeViewContent: this.input?.currentModeKind === ChatModeKind.Agent`, `							isWidgetAgentWelcomeViewContent: this.input?.currentModeKind === ChatModeKind.Agent,
-							additionalMessageLinksToButtons: true`, 'participant welcome action styling');
-
 	// The toolbar/keyboard New Chat door must honor a provider-owned creation menu.
 	// Keep this out of the shared clear helper: Send to New Chat also calls that
 	// helper, and cancelling an interactive picker must never submit into the old chat.
@@ -470,7 +418,7 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
 }
 
 /**
- * `product.json` — ours to write (ARCHITECTURE-CORE §The core is Code-OSS, rule 7). Two keys:
+ * `product.json` — ours to write (ARCHITECTURE-CORE §The core is Code-OSS, rule 7):
  *
  *  - `defaultChatAgent` names OUR extension. The Copilot-only URLs, commands and quota context
  *    keys go with the extension they describe: every reader in `chatSetup/` and
@@ -486,7 +434,10 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
  *    `{ default: { id: '', name: '' }, … }`), so nothing here names an authentication provider
  *    this product does not have. `${MAIN_FILE}`-style refusal is not possible for a shape a
  *    minified service dereferences, so the shape is simply kept.
- *  - `extensionEnabledApiProposals` grants the extension the four proposals it asks for.
+ *  - `extensionEnabledApiProposals` grants Supercode its proposals and the user-installed
+ *    official Codex extension only the two proposals its reviewed manifest declares.
+ *  - `extensionsGallery` enables user installation from Open VSX; neither official agent
+ *    extension is bundled. Code-OSS retains its user-controlled update/recommendation defaults.
  *
  * REMOVING the key entirely would ALSO silence the Copilot setup machinery (`chatEntitlement
  * Service` returns early with no `defaultChatAgent`), but it would silence the Chat view's whole
@@ -520,7 +471,18 @@ function patchProduct(checkout) {
 		provider: { default: { id: '', name: '' }, enterprise: { id: '', name: '' } },
 		providerScopes: [],
 	};
-	product.extensionEnabledApiProposals = { [CHAT_EXTENSION.id]: [...CHAT_EXTENSION.proposals] };
+	product.extensionEnabledApiProposals = {
+		[CHAT_EXTENSION.id]: [...CHAT_EXTENSION.proposals],
+		'openai.chatgpt': ['chatSessionsProvider', 'languageModelProxy'],
+	};
+	// Open VSX's Code-OSS adapter, including resources for web extensions.
+	// https://github.com/eclipse-openvsx/openvsx/wiki/Using-Open-VSX-in-VS-Code
+	product.extensionsGallery = {
+		serviceUrl: 'https://open-vsx.org/vscode/gallery',
+		itemUrl: 'https://open-vsx.org/vscode/item',
+		resourceUrlTemplate: 'https://open-vsx.org/vscode/unpkg/{publisher}/{name}/{version}/{path}',
+		extensionUrlTemplate: 'https://open-vsx.org/vscode/gallery/{publisher}/{name}/latest',
+	};
 	writeFileSync(path, `${JSON.stringify(product, null, '\t')}\n`);
 }
 

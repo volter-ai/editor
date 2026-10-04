@@ -101,9 +101,17 @@ ${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : '
       'process.argv.splice(1, 0, cli);',
       'import(pathToFileURL(cli).href);',
     ].join(' ');
-    await write('.mcp.json', JSON.stringify({
-      mcpServers: { blender: { command: 'node', args: ['--input-type=commonjs', '--eval', mcpEntry, '--', 'blender-mcp'] } },
-    }, null, 2) + '\n');
+    const blenderMcp = { command: 'node', args: ['--input-type=commonjs', '--eval', mcpEntry, '--', 'blender-mcp'] };
+    await write('.mcp.json', JSON.stringify({ mcpServers: { blender: blenderMcp } }, null, 2) + '\n');
+    // Codex reads project configuration after the person trusts the folder.
+    // Both clients launch exactly the same transport; no global config is changed.
+    await mkdir(join(target, '.codex'));
+    await write('.codex/config.toml', [
+      '[mcp_servers.blender]',
+      `command = ${JSON.stringify(blenderMcp.command)}`,
+      `args = [${blenderMcp.args.map(arg => JSON.stringify(arg)).join(', ')}]`,
+      '',
+    ].join('\n'));
     await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
     if (playable) {
       for (const file of ['track.blend', 'track.py', 'track.play.ts', 'race-state.ts'])

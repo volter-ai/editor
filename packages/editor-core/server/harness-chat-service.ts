@@ -44,7 +44,7 @@ import {
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { ChatSessionCatalog } from './chat-session-catalog';
-import { chatExecutable, chatProcessEnvironment, chatSetupActions, chatStarterPrompts } from './chat-setup';
+import { chatExecutable, chatProcessEnvironment, chatSetupActions } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -272,8 +272,6 @@ export function withManagedRuntimeObserver(
 export interface HarnessChatServiceOptions {
   engineRoot: string;
   getProjectRoot: () => string;
-  /** Loaded adapter facet from the local controlling tab; absent until project boot reports it. */
-  getProjectAdapter?: () => unknown;
   onChange: (snapshot: HarnessChatSnapshot) => void;
   initializeTimeoutMs?: number;
   /** Test seam; production periodically discovers sessions launched after editor boot. */
@@ -1113,14 +1111,12 @@ export class HarnessChatService {
       await this.setupRefresh;
     }
     const snapshot = this.snapshot();
-    const starterPrompts = chatStarterPrompts(this.options.getProjectAdapter?.());
     const launchContext = await this.chatProcessContext();
     const actions = chatSetupActions(snapshot.harnesses, launchContext);
     return {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
       openSessionCommand: 'volter.chat.openSession',
-      fillInputCommand: 'volter.chat.fillInput',
       responseOnlyHistory: true,
       sessions: [...this.chatCatalog.sessions.values()],
       actualModel: this.observedModel,
@@ -1137,8 +1133,6 @@ export class HarnessChatService {
         reason: this.frontendHandoffValue ? null : [this.frontendRefusalValue, actions.length ? null : launchContext.installError].filter(Boolean).join('\n') || null,
         cwd: this.options.getProjectRoot(),
       },
-      starterPrompts: starterPrompts ?? [],
-      starterPromptsPending: Boolean(this.options.getProjectAdapter) && starterPrompts === undefined,
     };
   }
 

@@ -572,16 +572,6 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   const harnessChat = new HarnessChatService({
     engineRoot,
     getProjectRoot: () => projectRoot,
-    getProjectAdapter: () => {
-      if (projectRoot === engineRoot) return {};
-      // The same controlling tab as /__editor/state; another participant's
-      // late report must not supply this local Chat's project configuration.
-      const table = plane.tabTableFor(ctx.hostParticipantId ?? null);
-      const blessed = table?.blessedTabId() ?? null;
-      const clientId = blessed === null ? undefined : plane.clientsInDeliveryOrder(blessed, table)[0];
-      const state = clientId === undefined ? undefined : editorStatesByClient.get(clientId)?.state;
-      return state?.['adapter'];
-    },
     resolveCodingInference: (workspace) => account.resolvedCodingInference(workspace),
     onChange: (snapshot) => {
       broadcast('harness-chat', snapshot);
