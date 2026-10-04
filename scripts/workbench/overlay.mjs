@@ -47,7 +47,7 @@
  *  one `package.json` cannot be both an npm manifest and an extension manifest, and that
  *  transform is supercode's, not a fifteen-line copy of it here), REMOVES `extensions/copilot`
  *  (272 MB of GitHub Copilot Chat, the open-source default agent Code-OSS vendors), and rewrites
- *  `product.json` to name ours and grant it the four proposals it asks for.
+ *  `product.json` to name ours, grant reviewed proposed APIs and use Open VSX for user installs.
  *
  *  IT IS IDEMPOTENT, and that is a requirement rather than a nicety: `dev.mjs` runs it on every
  *  boot. The overlaid directories are REMOVED and re-copied (so a product swap cannot leave the
@@ -470,7 +470,7 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
 }
 
 /**
- * `product.json` — ours to write (ARCHITECTURE-CORE §The core is Code-OSS, rule 7). Two keys:
+ * `product.json` — ours to write (ARCHITECTURE-CORE §The core is Code-OSS, rule 7):
  *
  *  - `defaultChatAgent` names OUR extension. The Copilot-only URLs, commands and quota context
  *    keys go with the extension they describe: every reader in `chatSetup/` and
@@ -486,7 +486,10 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
  *    `{ default: { id: '', name: '' }, … }`), so nothing here names an authentication provider
  *    this product does not have. `${MAIN_FILE}`-style refusal is not possible for a shape a
  *    minified service dereferences, so the shape is simply kept.
- *  - `extensionEnabledApiProposals` grants the extension the four proposals it asks for.
+ *  - `extensionEnabledApiProposals` grants Supercode its proposals and the user-installed
+ *    official Codex extension only the two proposals its reviewed manifest declares.
+ *  - `extensionsGallery` enables user installation from Open VSX; neither official agent
+ *    extension is bundled. Code-OSS retains its user-controlled update/recommendation defaults.
  *
  * REMOVING the key entirely would ALSO silence the Copilot setup machinery (`chatEntitlement
  * Service` returns early with no `defaultChatAgent`), but it would silence the Chat view's whole
@@ -520,7 +523,18 @@ function patchProduct(checkout) {
 		provider: { default: { id: '', name: '' }, enterprise: { id: '', name: '' } },
 		providerScopes: [],
 	};
-	product.extensionEnabledApiProposals = { [CHAT_EXTENSION.id]: [...CHAT_EXTENSION.proposals] };
+	product.extensionEnabledApiProposals = {
+		[CHAT_EXTENSION.id]: [...CHAT_EXTENSION.proposals],
+		'openai.chatgpt': ['chatSessionsProvider', 'languageModelProxy'],
+	};
+	// Open VSX's Code-OSS adapter, including resources for web extensions.
+	// https://github.com/eclipse-openvsx/openvsx/wiki/Using-Open-VSX-in-VS-Code
+	product.extensionsGallery = {
+		serviceUrl: 'https://open-vsx.org/vscode/gallery',
+		itemUrl: 'https://open-vsx.org/vscode/item',
+		resourceUrlTemplate: 'https://open-vsx.org/vscode/unpkg/{publisher}/{name}/{version}/{path}',
+		extensionUrlTemplate: 'https://open-vsx.org/vscode/gallery/{publisher}/{name}/latest',
+	};
 	writeFileSync(path, `${JSON.stringify(product, null, '\t')}\n`);
 }
 

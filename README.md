@@ -77,6 +77,19 @@ short buttons fill their full instructions into that conversation's input.
 These source changes need the new Supercode frontend and a rebuilt workbench
 release before registry installations receive them; see [WORK.md](WORK.md).
 
+The next workbench build also enables the **Extensions** view's Open VSX gallery.
+Search `@id:openai.chatgpt` (Codex) or `@id:Anthropic.claude-code` (Claude Code)
+and choose **Install** to use their official interfaces and sign-in flows.
+Both are optional, user-installed extensions; neither is bundled with the editor.
+The gallery enables extension search, downloads, update checks and recommendations.
+Code-OSS keeps its defaults: enabled extensions update automatically after a
+12-hour delay, and recommendation notifications are allowed. These remain adjustable
+through `extensions.autoUpdate`, `extensions.autoUpdateDelay`,
+`extensions.autoCheckUpdates` and `extensions.ignoreRecommendations` in Settings.
+No agent recommendation or automatic agent installation is added. This requires
+a rebuilt workbench; updating npm packages alone does not add the gallery to an
+already installed workbench.
+
 To reopen the project later:
 
 ```bash
@@ -214,8 +227,12 @@ project, `volter-model-editor eval` drives its automation API, and
 inside a project. MCP initialization does not start Blender; its first scene
 request attaches to or opens that project's editor.
 
-Scaffolded projects declare that transport in `.mcp.json`. Node resolves the
-project's `@volter/model-editor/package.json` and imports the CLI named by its
+Scaffolded projects declare that transport in `.mcp.json` and `.codex/config.toml`,
+with identical Blender server commands and arguments. Codex, in either its official
+extension or the terminal, loads the project configuration once the person
+[trusts the folder in Codex](https://learn.chatgpt.com/docs/config-file/config-basic).
+Creation never writes to the person's global `~/.codex` configuration.
+Node resolves the project's `@volter/model-editor/package.json` and imports the CLI named by its
 `bin` declaration in the same process. It needs neither a `.bin` shim nor an
 npm/shell wrapper, including when a source project links a workspace install.
 This uses npm/pnpm or Yarn's `node_modules` linker; the editor's package discovery
