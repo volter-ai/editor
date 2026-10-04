@@ -19,7 +19,7 @@ npx @volter/model-editor create my-race --template playable
   WASD. Escape moves it back and returns the untouched model. A lap is about 30 seconds.
 - `src/models/track.py` is the bpy script that built the scene, `src/models/track.play.ts`
   is the script Play runs, and `src/ui/` is the React interface drawn over it.
-- In the Chat pane, one click signs in with ChatGPT, or Chat runs the coding agent you
+- In the Chat pane, one click opens Sign in with ChatGPT, or Chat runs the coding agent you
   already have (Codex or Claude Code; others from its agent picker). The editor adds no
   account and bills nothing.
 - Three first things to ask the agent, one per file:
@@ -89,28 +89,6 @@ To move a project to a new release, close the editor, update its `@volter` packa
 `.volter/workbench.json` aside before reopening. The product then downloads the matching
 workbench.
 
-## Game editor
-
-```bash
-npx @volter/game-editor create my-game
-```
-
-`create` takes a preset: `game` (the default 3D starter), `prototype`, `full`, `website` or
-`empty`. A game with a world (`game`, `prototype`, `full`) opens in the Game workspace: Scene
-editing writes the game's own source, Play runs it beside the editor, and Export builds a web
-bundle.
-
-A game's `node_modules` links to the game editor's runtime image, installed once per version
-under `~/.volter/images/` (or `$VOLTER_HOME/images/`). The image carries every package the
-template and capability catalog use. A game that needs another package installs its own
-`node_modules` instead.
-
-From a game directory, `npx volter-game-editor` provides:
-
-- `status`, `console`, `eval`, `close`;
-- `play`, `stop`, `screenshot`;
-- `add`, `remove`, `outdated` for catalog capabilities.
-
 ## Package map
 
 The npm scope is `@volter`. Install one product; its supporting packages come with it.
@@ -118,7 +96,6 @@ The npm scope is `@volter`. Install one product; its supporting packages come wi
 | Package | Responsibility |
 | --- | --- |
 | `@volter/model-editor` | The model editor and its `volter-model-editor` command |
-| `@volter/game-editor` | The game editor, its `volter-game-editor` command, template and capability catalog |
 | `@volter/editor-core` | Shared editor host and Code-OSS integration |
 | `@volter/editor-sdk` | Extension and contribution APIs |
 | `@volter/editor-live` | Session automation client |
@@ -148,9 +125,8 @@ npm run check:release
 npm run check:packed-imports
 ```
 
-`npm run build:game`, `npm run check:release:game` and `npm run check:packed-imports:game`
-do the same for the game release. To rebuild after a change, name the packages it touched:
-`node scripts/build-release-packages.mjs release/game.json @volter/editor-core @volter/game-editor`.
+To rebuild after a change, name the packages it touched:
+`node scripts/build-release-packages.mjs release/modeling.json @volter/editor-core @volter/model-editor`.
 [`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs) builds the
 Code-OSS workbench.
 
