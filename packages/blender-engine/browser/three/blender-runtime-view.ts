@@ -695,6 +695,7 @@ export class BlenderRuntimeView {
   private readonly lightExtrasRoot = new THREE.Group();
   private readonly emptyExtrasRoot = new THREE.Group();
   private rendered = false;
+  private sceneLights = false;
   private shadowFit: {
     camera: THREE.Camera | undefined;
     cameraMatrix: THREE.Matrix4 | undefined;
@@ -1373,7 +1374,10 @@ export class BlenderRuntimeView {
     // same way it waits for area-light tables and image decodes: one
     // photograph, no second chance at it.
     this.rendered = rendered;
-    this.lighting.setRendered(sceneLights);
+    this.sceneLights = sceneLights;
+    // This is the studio rig, not the authored lights. A scene-lit preview
+    // never adds the Solid studio, including World-only Material Preview.
+    this.lighting.setRendered(rendered);
     // The scene's world is what a render sees past the geometry AND its
     // ambient light; modeling keeps the document's own backdrop and fill.
     // A photograph always composes its own; the viewport recomposes only when the key changed.
@@ -1561,7 +1565,7 @@ export class BlenderRuntimeView {
       if (object) object.visible = this.rendered ? obj.render_visible : obj.visible;
       if (!obj.light) continue;
       const light = this.lights.get(obj.light);
-      if (light) light.visible = this.rendered && obj.render_visible;
+      if (light) light.visible = this.sceneLights && obj.render_visible;
     }
     // AN OVERLAY IS MODELING CHROME AND IS NEVER PHOTOGRAPHED. The same
     // distinction the loop above draws between what the viewport shows and
