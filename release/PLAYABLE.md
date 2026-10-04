@@ -62,8 +62,10 @@ The resulting playable scaffold would request tools npm does not serve.
 
 ## Artifacts that are still missing
 
-Supercode PR1032 head `29d8fac9991f6293e2780e685e1807b704b130e7` contains the
-starter welcome-state fix and its preceding fill/guard fixes. Its source manifest
+The required Supercode `chat-sign-in` source is
+`f2bc8508e85d211a03fda78bd3e3919fe88a265b` (PR1032). It includes the
+welcome in the native empty state, short introductory text, and preceding
+fill/guard fixes. Its source manifest
 still says frontend-vscode 0.1.16, but npm's immutable 0.1.16 records source
 `5a4a0ce169f1e5c39763e3b6536f482dce915ea5`, which does not contain that commit.
 Do not mistake a development manifest version for published fixed bytes, or guess
@@ -76,9 +78,55 @@ Its public BUILD.json confirms frontend-vscode **0.1.14**, editor source
 `ae7600a80ae8d595a6a843b3f8e5028f94260742`, and Code-OSS source
 `f16dc165c0dffe701a7bbf59aefb1c662b206cee`. Changing the npm extension pin does
 not change this tarball. A new public Model Editor workbench must be cut from the
-committed PR40 overlay and the actually published fixed extension, then pinned by
-its real tag/hash. No invented tag/hash is committed here. A source integration
-checkout is not a replacement for this public artifact.
+overlay now merged to main at `9b098916` (PR40 and PR43) and the actually
+published fixed extension, then pinned by its real tag/hash. This overlay turns
+standalone trusted command links into native welcome buttons and routes provider
+New Chat through its creation command before native edit-session cleanup, so
+picker cancellation preserves the current session. It also prevents repeated
+REH Copilot guards on overlay re-application. The changed native workbench
+sources require a rebuild; copying a newer extension alone is insufficient.
+No invented tag/hash is committed here. A source integration checkout is not a
+replacement for this public artifact.
+
+## Live evidence and limits
+
+These are observations from retained development integration sessions, not
+registry-only acceptance of the final public artifacts. All three sessions were
+closed, their owned consumers retired, and the original project files restored
+or verified unchanged by hash. Evidence is retained under `/tmp/model-play-frames`.
+
+- **W44:** valid/broken/fixed saves of the HUD and Play script while stopped and
+  playing passed all 12 checks without a page reload or Chat state loss. One real
+  boost starter turn finished without a permission prompt or follow-up. Driving
+  measured 108 km/h normally, 132 with left Shift and 121 with right Shift; the
+  requested 162 km/h cap was not exercised. This predates the native empty-state
+  welcome fix and does not validate its presentation.
+- **W50:** Supercode `29d8fac99` on integration `a394e21a` passed the native
+  empty-state welcome, three exact prompt fills without Send, and one real HUD
+  turn (native duration 9 seconds, no permission prompt or follow-up). Starters
+  disappeared after Send and stayed absent when reopening W44's existing
+  conversation. Play visibly showed bottom-right speed and JUMP while airborne.
+  The generic New Session button still opened an unbound draft; the provider's
+  own creation command worked. A control-command timeout while its manual picker
+  was open is retained as a qualification. W50 did not validate the later native
+  button styling or generic New Session repair. Frames include `w50-intro.png`,
+  `w50-hud-jump.png`; the agent's change is `w50-starter-hud.diff`.
+- **W58:** integration `2cbd0bd8`, Supercode `f2bc8508e`, and the W56/W57
+  extension/overlay/native compile on Code-OSS `f16dc165` passed the visible
+  sidebar New Session picker and one completed creation into a bound conversation.
+  The shorter native welcome and all three short-labelled **buttons** filled the
+  exact prompts with real pointer clicks; no Send or user turn occurred. Cancel
+  preserved the existing conversation/resource, catalogue, connection, layout and
+  `@ClaudeCode ` draft prefix. Longer-draft preservation was not exercised: its
+  setup used an unsupported automation fill method, with the error retained and
+  no retry. No native review tabs were open, so preservation of open review tabs
+  remains unexercised. Frames include `w58-new-picker.png`, `w58-cancel.png`,
+  `w58-intro.png`, and `w58-fill-1.png` through `w58-fill-3.png`.
+
+Signed-out/install transitions, recovery from real failed discovery/attachment,
+nonempty draft/review-tab cancellation, and fresh registry-only creation/Chat/Play
+with the final public extension and workbench remain release checks. W58's
+no-Send walk does not re-prove W50's real-turn behavior on the newest bytes.
 
 ## Remaining acts, in order
 
@@ -92,14 +140,15 @@ Blender corresponding-source/artifact mapping.
    that repository's `autorelease.yml` (SDK build/npm publication). Do not separately
    dispatch a duplicate release. Wait for completion and read
    `npm view @volter/supercode-frontend-vscode@latest version gitHead dist.integrity`.
-   Verify that the actual source/packed bytes contain `29d8fac99`; use the emitted
+   Verify that the actual source/packed bytes contain `f2bc8508e`; use the emitted
    version, not the old 0.1.16. If already merged, observe its run instead of merging
    or publishing again. Any required staging approval is an owner action.
 
 2. **Prepare and publish the public Model Editor workbench.** Editor PR40
-   (`e04c0d73`) is merged on main at `2fe1dcf8` and integrated into this branch.
-   Its scaffold preserves the playable tools, default Track document and starter
-   Chat declaration. Still pending: pin the real fixed extension version and
+   and PR43 are merged on main through `9b098916` and integrated into this branch.
+   The scaffold preserves the playable tools, default Track document and starter
+   Chat declaration; the overlay includes the native buttons and provider New
+   Chat/cancel fixes described above. Still pending: pin the real fixed extension version and
    refresh its lock entry, then commit the combined editor source. With granted
    build capacity, install locked dependencies and cut (without publishing):
 
