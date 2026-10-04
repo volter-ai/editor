@@ -355,13 +355,9 @@ load under 20; at load 40–60 the same opens take 15–30 s. Open: the pack arc
 unpublished while the editor is private. Under 10 s cold needs the substrate to resume
 processes (its W74), not only prebaked files.
 
-## Chat sign-in and project starter prompts (source, 2026-10-04)
+## Chat sign-in (source, 2026-10-04)
 
-W50 passed Supercode `29d8fac99` in native empty-state content: all three pointer
-fills, one real HUD turn, starters disappearing after Send and remaining absent
-when reopening the earlier conversation with seven history entries. The walk also
-found the generic New Session button created an unbound `supercode:/untitled-*`
-draft. The source overlay now routes the native toolbar/keyboard New Chat action
+The source overlay now routes the native toolbar/keyboard New Chat action
 through the resolved non-delegating provider's existing creation command, including
 its Harness/Model/Effort flow. Provider-owned creation dispatches before native
 edit confirmation or stopping the old editing session, so picker cancellation
@@ -369,27 +365,9 @@ preserves review tabs as well as the old conversation and draft. It follows the
 same lifecycle as invoking the provider's own New Session command directly.
 The shared clear helper used by Send to New Chat is unchanged.
 
-At this Code-OSS pin, neither the participant API nor internal welcome content has
-`suggestedPrompts`. The source overlay extends the welcome renderer's existing
-link-to-button mechanism for participant additional content: every trusted command
-link alone in a paragraph becomes a native button. Inline/untrusted links stay
-Markdown. The extension still supplies short labels and the same guarded fill
-command; the native empty-state lifetime removes buttons after a user turn.
-Both introductory strings belong to the Supercode extension's `package.json`.
-These follow-ups are source-only, not covered by W50: next verification needs the
-frontend build, overlay application, then direct Code-OSS `compile-client` serially.
-No host, Model browser or Node bundle build is required. A fresh session must verify
-all button fills, first-turn removal and the visible New Session flow (including
-picker cancellation), with its own capacity grant.
-The REH Copilot shim patch also detects its complete applied block before stripping
-legacy marker comments. Reapplying the overlay now leaves that block untouched,
-including the preserved earlier duplicate-guard evidence in the kept fork; it does
-not append another guard. This idempotence fix is source-reviewed, not applied or
-executed in the source-only follow-up.
-
-Supercode's native Chat frontend owns sign-in and starter buttons; the editor's
+Supercode's native Chat frontend owns sign-in; the editor's
 private host controls supply readiness, revalidated install/login terminal launches
-and project data. Codex is offered first as **Sign in with ChatGPT**; the only
+and conversation state. Codex is offered first as **Sign in with ChatGPT**; the only
 first-run install uses npm's resolved global prefix, shown before the person clicks.
 Passive refresh retries a refused runtime handoff after sign-in, without reloading.
 Default coding launches still inject no provider settings or account credential.
@@ -401,45 +379,6 @@ interactive shell). Both terminal and inventory process receive the launch Node
 directory, inherited PATH and npm's global bin directory. The install fixes that
 same prefix explicitly, so a new Codex executable is visible to fresh inventory
 probes without restarting the editor. This path is source-verified, not live-walked.
-`volter.adapter.ts` declares `editor.chat.starterPrompts` (up to three `{label, prompt}` pairs); buttons
-fill the composer and send nothing. The existing validated adapter state report
-supplies them to Chat, which waits for project configuration before caching an
-empty conversation's offer. The playable model starter carries race prompts and its scaffold hook;
-that hook becomes reachable when the parallel `model-play-race` template lands.
-Projects with no Chat declaration, including the plain model starter, offer none.
-
-Verified by reading, Codex/Claude login `--json` plans, frontend TypeScript compile
-and extension packing, the editor host build and the model scaffold typecheck.
-The editor core typecheck passes with its installed `@volter/supercode-client`
-declarations explicitly resolved: the normal command cannot resolve that peer from
-the hoisted UI package. No tests, editor session, browser or actual login ran.
-Live button/layout, cancellation and readiness-transition acceptance remains with
-the pilot. The extension changes are in Supercode's `chat-sign-in` branch; its
-tracker check has 79 existing errors, with no tracker edits in this work.
-
-First live READY receipt (race worker, W27): three starters appeared in a new
-conversation and were absent in a restored one. All three native fill commands
-returned null with an empty composer; no harness turn was created. This is a
-failed fill acceptance, not a passed walk. The follow-up targets the exact native
-resource through `volter.chat.fillInput`, verifies its returned draft, and reports
-stale/mismatched actions instead of silently returning. Labels are separate from
-instructions. A native history compatibility patch renders a leading intro response
-with its empty internal request hidden, so there is no fabricated user bubble.
-W28 compiled those follow-up changes. W29 passed the short labels and intro with
-no fake user bubble, but every real pointer click was refused by the extension's
-zero-event guard. The native resource matched the active host conversation, idle,
-busy=false and no pending requests; private cursors/history were not exposed.
-W31 compiled and overlaid Supercode `bc4fae859`, replacing zero-event checks with
-sticky semantic user-turn evidence and exposing every guard input plus the last
-click snapshot through `status(true)`. Its live fill acceptance remains pending.
-The worker's saved tab errors also record `ChatModes.dispose` cancellation during
-`ChatInputPart.setInputModel` / `ChatViewPane.showModel`. The old fill path reopened
-the same session; the new one only reveals its existing widget. General session
-reveal now also uses `revealIfOpened`. The stack confirms a model rebind, but an
-unhandled cancellation is not by itself proof of why the draft remained empty.
-The exact action arguments used the correct host conversation ID. `runCommands`
-discards inner returns and catches errors; native draft inspection is the next
-walk's readback instead of treating its null as a fill receipt.
 
 Two first-run retry repairs follow the independent review, source-only until a
 new build grant. The frontend now keeps setup pending until both connection and
@@ -453,31 +392,6 @@ and recreated before inventory refresh. A controller owning a conversation is
 preserved; its eventual replacement uses the recovered context. Verification needs
 frontend build, editor-core server build, then overlay copy, serially; no product
 browser build or Code-OSS compile-client. No live failure/retry acceptance claimed.
-
-Safe setup acceptance needs a fresh OS user or supported enrolled Mac with no
-signed-in harness; install Codex without signing in to exercise the signed-out
-state. Never sign the owner out. A container can inspect inventory and terminal
-actions, but does not prove this macOS workbench's UI. There is no shipped
-readiness-fixture switch: existing `createClient`/`createController` seams permit
-a development harness to replay recorded inventory through the real host controls;
-the standard editor boot does not wire them. `SUPERCODE_BIN` can select an external
-protocol fixture process, but no such replayer is supplied or accepted here.
-
-Local READY acceptance needs no public workbench release: in an isolated editor
-development dependency tree, temporarily match the frontend pin to the locally
-built package version and install that package at the overlay's fixed dependency
-path. Apply `scripts/workbench/overlay.mjs` to a pilot-owned Code-OSS checkout at
-`FORK.json`'s pin, then use the source-workbench inner loop (`dev.mjs`, the fork's
-Node version, and `edit --workbench`). Stop owned sessions before compilation and
-reopen through the editor's doors. The overlay has no direct local-pack override;
-do not publish that temporary development pin or modify another worker's runtime.
-
-Not released: the editor still pins frontend 0.1.14. Shipping to
-`npx @volter/model-editor` requires the Supercode PR to land (its main SDK
-autorelease publishes the next frontend version), then that published version's
-editor pin/lock update, a public workbench rebuild/release with a matching
-product artifact hash, and promotion of the measured editor main commit to
-`publish`. This task publishes nothing and changes no released artifact pin.
 
 ## React source authoring through Retrace
 
