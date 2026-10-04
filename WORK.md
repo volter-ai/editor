@@ -409,6 +409,15 @@ locks input on entry, freezes the detached scene for the return, and fades its R
 away before revealing the editing stage. Escape completes an in-progress blend. The race's
 resting chase distance is 11 metres, keeping the road ahead readable.
 
+Independent-review follow-up: Material Preview retains viewport visibility independently of
+Scene World/Scene Lights; captures still use render visibility and restore the preview on
+return. The UI Play provider reports all declared entry paths before importing/mounting,
+and the Play tool retains failed-attempt paths through first-update failure so a relevant
+save retries. The second modeling area stays mounted but hidden during Play; only its
+header/shelf chrome stands down. Source review and commit boundary hooks passed; no builds,
+tests or live sessions ran for these fixes. The three checks for the next granted regression
+session B are in [docs/MODEL-PLAY-REGRESSION.md](docs/MODEL-PLAY-REGRESSION.md).
+
 Keymap verification remains open: the checked-in play guard was edited by substitution;
 at review time no compiled Code-OSS fork was found in the local checkout/build locations (home checkouts,
 `.volter`, temporary directories; source/parser filename search and Spotlight). The cached
