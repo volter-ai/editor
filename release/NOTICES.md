@@ -22,6 +22,10 @@ packages plus `editor-model-play`, `editor-ui`, `editor-react`, `editor-game`,
 `game-runtime` and `threejs-runtime` (14 total). The UI tool currently imports DOM
 authoring from `editor-game`; that package declares the two runtimes. These are
 installation dependencies, not a Game Editor product or a registered game transport.
+The publish workflow uses `release/game.json`, now the 19-package superset of both
+products and this playable closure, so one promotion also publishes the two source tools.
+`release/playable.json` remains the narrower 14-package installation boundary.
+See [PLAYABLE.md](PLAYABLE.md) for the pending Chat/workbench publication gates.
 Build this reviewed closure with `npm run build:playable`; the same release builder
 and notice generator write `provenance/playable-bundled-notices.json` and the actual
 bundles' notices. The new Play/UI tools ship source and their own LICENSE/NOTICE,
