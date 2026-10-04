@@ -1446,7 +1446,7 @@ export class HarnessChatService {
     this.managedRuntime = null;
     void handoff?.dispose();
     this.closing = controller
-      ? withTimeout(controller.close(), 75_000, 'Volter Harness shutdown').then(() => undefined)
+      ? withTimeout(controller.close(), 2_500, 'Volter Harness shutdown').then(() => undefined)
       : Promise.resolve();
     return this.closing;
   }
