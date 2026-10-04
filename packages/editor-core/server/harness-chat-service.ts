@@ -44,7 +44,7 @@ import {
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { ChatSessionCatalog } from './chat-session-catalog';
-import { chatSetupActions } from './chat-setup';
+import { chatSetupActions, chatStarterPrompts } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -1066,6 +1066,7 @@ export class HarnessChatService {
         reason: this.frontendHandoffValue ? null : this.frontendRefusalValue,
         cwd: this.options.getProjectRoot(),
       },
+      starterPrompts: chatStarterPrompts(this.options.getProjectRoot()),
     };
   }
 
