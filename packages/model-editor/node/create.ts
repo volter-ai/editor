@@ -45,6 +45,14 @@ function checkoutNodeModules(): string | null {
   return null;
 }
 
+/** The playable starter owns its Chat suggestions; plain model projects supply none.
+ * The playable template is developed on model-play-race and composes this hook. */
+async function starterChatDeclaration(template: string | undefined): Promise<string> {
+  if (template !== 'playable') return '';
+  const chat = JSON.parse(await readFile(join(productRoot, 'starter', 'chat-prompts.json'), 'utf8'));
+  return `, chat: ${JSON.stringify(chat)}`;
+}
+
 export async function writeProject({ name, targetDir, template }: Parameters<ProductCreateDeclaration['create']>[0]) {
     if (template !== undefined && !['models', 'playable'].includes(template)) throw new Error('Unknown Model Editor template.');
     const playable = template === 'playable';
@@ -81,7 +89,7 @@ import { ModelLayout } from '@volter/editor-blender/layouts';
 import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 
 export default defineAdapter({
-${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : ''}  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties' },
+${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : ''}  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties'${await starterChatDeclaration(template)} },
   documents: { ${playable ? "default: 'model:src/models/track.blend', " : ''}find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
 });
 `);

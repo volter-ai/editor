@@ -42,7 +42,8 @@
     "./inspection": "./src/inspection.ts",
     "./settings/schema": "./src/settings/schema.ts",
     "./manifest/load": "./src/manifest/load.ts",
-    "./adapter/manifest-interpreter": "./src/adapter/manifest-interpreter.ts"
+    "./adapter/manifest-interpreter": "./src/adapter/manifest-interpreter.ts",
+    "./adapter/adapter-module": "./src/adapter/adapter-module.ts"
   },
   "files": [
     "src",

@@ -818,7 +818,19 @@ export interface AdapterEditorConfiguration {
   readonly inspector?: 'column' | 'properties' | 'card';
   /** Utility registry ids to reveal when Play settles; omitted means none. */
   readonly playUtilities?: readonly string[];
+  /** Project-owned suggestions shown by Chat; choosing one fills its composer. */
+  readonly chat?: { readonly starterPrompts: readonly { readonly label: string; readonly prompt: string }[] };
 }
+
+/** Shared validation for the declaration and its serialized host-state projection. */
+export const ChatStarterPromptsSchema = z.array(
+  z.object({
+    label: z.string().min(1).max(60).refine(value => value.trim().length > 0 && !/[\x00-\x1f]/.test(value),
+      'Chat starter labels must be nonempty single-line strings'),
+    prompt: z.string().min(1).max(2000).refine(value => value.trim().length > 0 && !/[\x00-\x1f]/.test(value),
+      'Chat starter prompts must be nonempty single-line strings'),
+  }).strict(),
+).max(3);
 
 const AdapterEditorConfigurationSchema = z
   .object({
@@ -849,6 +861,7 @@ const AdapterEditorConfigurationSchema = z
     workspace: z.string().min(1).optional(),
     inspector: z.enum(['column', 'properties', 'card']).optional(),
     playUtilities: z.array(z.string().min(1)).optional(),
+    chat: z.object({ starterPrompts: ChatStarterPromptsSchema }).strict().optional(),
   })
   .strict();
 
@@ -939,6 +952,9 @@ export function defineAdapter(input: AdapterDefinitionInput = {}): AdapterDefini
             ...input.editor,
             ...(input.editor.playUtilities
               ? { playUtilities: Object.freeze([...input.editor.playUtilities]) }
+              : {}),
+            ...(input.editor.chat
+              ? { chat: Object.freeze({ starterPrompts: Object.freeze(input.editor.chat.starterPrompts.map(starter => Object.freeze({ ...starter }))) }) }
               : {}),
           }),
         }

@@ -44,6 +44,7 @@ import {
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { ChatSessionCatalog } from './chat-session-catalog';
+import { chatExecutable, chatProcessEnvironment, chatSetupActions, chatStarterPrompts } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -173,7 +174,10 @@ type SupercodeLocalHarness = {
 type SupercodeClientConstructor = new (options?: {
   command?: string;
   cwd?: string;
+  env?: Record<string, string>;
 }) => SupercodeClient;
+
+type ChatProcessContext = Awaited<ReturnType<typeof chatProcessEnvironment>> & { supercode: string | undefined };
 
 /**
  * WHETHER THE AGENT ASKS BEFORE IT ACTS, and the one place that is decided.
@@ -268,6 +272,8 @@ export function withManagedRuntimeObserver(
 export interface HarnessChatServiceOptions {
   engineRoot: string;
   getProjectRoot: () => string;
+  /** Loaded adapter facet from the local controlling tab; absent until project boot reports it. */
+  getProjectAdapter?: () => unknown;
   onChange: (snapshot: HarnessChatSnapshot) => void;
   initializeTimeoutMs?: number;
   /** Test seam; production periodically discovers sessions launched after editor boot. */
@@ -634,8 +640,13 @@ function findSourceLinkedSupercodeCommand(): string | undefined {
   );
 }
 
-export function findSupercodeCommand(engineRoot: string): string | undefined {
-  if (process.env['SUPERCODE_BIN']) return process.env['SUPERCODE_BIN'];
+export function findSupercodeCommand(engineRoot: string, cwd = process.cwd(), path = process.env['PATH'] ?? ''): string | undefined {
+  const explicit = process.env['SUPERCODE_BIN'];
+  if (explicit) {
+    const command = chatExecutable(explicit, cwd, path);
+    if (!command) throw new Error(`SUPERCODE_BIN does not resolve to an executable: ${explicit}`);
+    return command;
+  }
   // A source-linked SDK must run the core from that same checkout. Falling
   // through to an unrelated npm install creates a mixed-version system that
   // can be protocol-compatible enough to start while returning stale or
@@ -657,7 +668,7 @@ export function findSupercodeCommand(engineRoot: string): string | undefined {
   ]) {
     if (existsSync(candidate)) return candidate;
   }
-  return undefined;
+  return chatExecutable('supercode', cwd, path);
 }
 
 function shellQuote(value: string): string {
@@ -869,7 +880,12 @@ export class HarnessChatService {
   private chatSelection: ChatSelection = { ...DEFAULT_CHAT_SELECTION };
   private selectingChat = false;
   private readonly chatCatalog: ChatSessionCatalog;
-  private readonly frontendControls = new FrontendControls(() => this.chatControlState(), (selection) => this.selectChat(selection), id => this.openChat(id), (id, nativeId) => this.bindChatIdentity(id, nativeId));
+  private readonly frontendControls = new FrontendControls(() => this.chatControlState(true), (selection) => this.selectChat(selection), id => this.openChat(id), (id, nativeId) => this.bindChatIdentity(id, nativeId), (kind, harness) => this.prepareChatSetup(kind, harness));
+  private setupHarness: string | null = null;
+  private setupRefresh: Promise<void> | null = null;
+  private chatProcess: { workspace: string; context: Promise<ChatProcessContext>; failed: boolean } | null = null;
+  private controllerProcess: ChatProcessContext | null = null;
+  private chatProcessRefresh: Promise<void> | null = null;
   private frontendHandoffValue: FrontendHandoff | null = null;
   /** The standing reason the Chat view has no agent, or `null`. Held because a refusal
    *  OUTLIVES a page load and the console ledger's clearing rule (a) retires an entry whose
@@ -952,6 +968,7 @@ export class HarnessChatService {
   }
 
   async refresh(autoObserve = true): Promise<HarnessChatSnapshot> {
+    await this.refreshChatProcessContext();
     const created = !this.controller;
     await this.ensureController(autoObserve);
     if (!this.controller) return this.snapshot();
@@ -1033,16 +1050,78 @@ export class HarnessChatService {
     return this.frontendControls.start();
   }
 
-  private async chatControlState() {
+  private chatProcessContext(workspace = resolve(this.options.getProjectRoot()), retryFailed = false): Promise<ChatProcessContext> {
+    if (this.chatProcess?.workspace !== workspace || (retryFailed && this.chatProcess.failed)) {
+      const context = chatProcessEnvironment(workspace).then(environment => ({
+        ...environment,
+        supercode: findSupercodeCommand(this.options.engineRoot, workspace, environment.env.PATH),
+      }));
+      const cached = { workspace, context, failed: false };
+      // An installError is a failed discovery even though the promise fulfilled.
+      // Keep it for this request; the next explicit state/refresh request retries.
+      void context.then(value => { cached.failed = Boolean(value.installError); }, () => { cached.failed = true; });
+      this.chatProcess = cached;
+    }
+    return this.chatProcess.context;
+  }
+
+  private refreshChatProcessContext(): Promise<void> {
+    if (this.options.createClient) return Promise.resolve();
+    this.chatProcessRefresh ??= (async () => {
+      await this.starting;
+      const workspace = resolve(this.options.getProjectRoot());
+      const next = await this.chatProcessContext(workspace, true);
+      if (workspace !== resolve(this.options.getProjectRoot())) return;
+      const previous = this.controllerProcess;
+      if (!this.controller || !previous || (previous.env.PATH === next.env.PATH && previous.supercode === next.supercode)) return;
+      // Never retire a controller that owns a conversation. A later controller
+      // will use the recovered context; first-run discovery has no runtime yet.
+      if (this.closed || this.selectingChat || this.frontendHandoffValue || this.managedRuntime
+        || this.lastSnapshot.turn.state === 'running' || this.lastSnapshot.requests.length) return;
+      const controller = this.controller;
+      if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
+      this.discoveryTimer = null;
+      this.unsubscribe?.(); this.unsubscribe = null;
+      this.remoteHost?.close(); this.remoteHost = null;
+      this.controller = null;
+      this.discoveryClient = null;
+      this.controllerProcess = null;
+      const generation = this.workspaceGeneration;
+      const restarting = (async () => {
+        await controller.close();
+        if (!this.closed && generation === this.workspaceGeneration) {
+          await this.startController(workspace, false, generation);
+        }
+      })();
+      this.starting = restarting;
+      try { await restarting; }
+      finally { if (this.starting === restarting) this.starting = null; }
+    })().finally(() => { this.chatProcessRefresh = null; });
+    return this.chatProcessRefresh;
+  }
+
+  private async chatControlState(retryDiscovery = false) {
     // The extension asks for this at activation; a runtime still being handed
     // over is waited for, so the answer carries its connection.
     await this.frontendHandoffInFlight?.catch(() => undefined);
+    if (retryDiscovery) await this.refreshChatProcessContext();
     await this.ensureController();
+    // A refused startup is recoverable after a terminal install/sign-in. Serialize
+    // passive inventory refresh and handoff retries across extension-host callers.
+    if (!this.frontendHandoffValue && this.controller && !this.selectingChat) {
+      this.setupRefresh ??= this.refreshChatSetup().finally(() => { this.setupRefresh = null; });
+      await this.setupRefresh;
+    }
     const snapshot = this.snapshot();
+    const starterPrompts = chatStarterPrompts(this.options.getProjectAdapter?.());
+    const launchContext = await this.chatProcessContext();
+    const actions = this.frontendHandoffValue ? [] : chatSetupActions(snapshot.harnesses, launchContext);
     return {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
       openSessionCommand: 'volter.chat.openSession',
+      fillInputCommand: 'volter.chat.fillInput',
+      responseOnlyHistory: true,
       sessions: [...this.chatCatalog.sessions.values()],
       actualModel: this.observedModel,
       connection: this.frontendHandoffValue?.env,
@@ -1051,6 +1130,45 @@ export class HarnessChatService {
       models: chatModels(this.chatSelection.harness),
       modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id)])),
       configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
+      setup: {
+        ready: Boolean(this.frontendHandoffValue),
+        actions,
+        reason: this.frontendHandoffValue ? null : [this.frontendRefusalValue, actions.length ? null : launchContext.installError].filter(Boolean).join('\n') || null,
+        cwd: this.options.getProjectRoot(),
+      },
+      starterPrompts: starterPrompts ?? [],
+      starterPromptsPending: Boolean(this.options.getProjectAdapter) && starterPrompts === undefined,
+    };
+  }
+
+  private async refreshChatSetup(): Promise<void> {
+    const controller = this.controller;
+    if (!controller) return;
+    await controller.dispatch({ type: 'refresh', autoObserve: false, silent: true });
+    this.capture();
+    if (this.closed || controller !== this.controller || this.frontendHandoffValue) return;
+    const ready = this.lastSnapshot.harnesses.find(h => h.availableActions.start &&
+      (!this.setupHarness || h.id === this.setupHarness));
+    if (!ready) return;
+    if (this.setupHarness) this.chatSelection = { harness: this.setupHarness, model: '', effort: '' };
+    await this.runtimeFrontendHandoff();
+    if (this.frontendHandoffValue) this.setupHarness = null;
+  }
+
+  private async prepareChatSetup(kind: string, harness: string) {
+    await this.chatControlState(true);
+    const launchContext = await this.chatProcessContext();
+    const action = chatSetupActions(this.lastSnapshot.harnesses, launchContext).find(a => a.kind === kind && a.harness === harness);
+    if (!action || this.frontendHandoffValue) throw new Error('This setup action is no longer available.');
+    const program = kind === 'login' ? launchContext.supercode : launchContext.npm;
+    if (!program) throw new Error('The setup executable is no longer available.');
+    this.setupHarness = harness;
+    // The extension runs this exact, host-authored command in a visible terminal.
+    // It never executes arbitrary repair prose or receives provider credentials.
+    return { ...action, cwd: this.options.getProjectRoot(),
+      program,
+      arguments: kind === 'login' ? ['harness', 'login', harness] : ['install', '-g', '--prefix', launchContext.npmPrefix!, '@openai/codex'],
+      env: launchContext.env,
     };
   }
 
@@ -1507,12 +1625,15 @@ export class HarnessChatService {
     this.projectConversation = projectConversation;
     this.deriveTaskPlan = deriveTaskPlan;
     this.sessionIdentity = sessionReconnectIdentity;
-    const command = findSupercodeCommand(this.options.engineRoot);
+    const launchContext = await this.chatProcessContext(workspace);
+    this.controllerProcess = launchContext;
+    const command = launchContext.supercode;
     const client = withCallerSessionDiscovery(
       withManagedRuntimeObserver(
         new SupercodeHarnessClient({
           cwd: workspace,
           ...(command ? { command } : {}),
+          env: launchContext.env,
         }),
         (runtime) => this.observeChatRuntime(runtime),
         transformBackend,

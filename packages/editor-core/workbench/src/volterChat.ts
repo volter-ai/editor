@@ -39,7 +39,28 @@ registerAction2(class extends Action2 {
 	async run(accessor: ServicesAccessor, value: string): Promise<void> {
 		const resource = URI.parse(value);
 		if (resource.scheme !== 'supercode') { throw new Error('Expected a Volter Harness chat session.'); }
-		await accessor.get(IChatWidgetService).openSession(resource, ChatViewPaneTarget);
+		await accessor.get(IChatWidgetService).openSession(resource, ChatViewPaneTarget, { revealIfOpened: true });
+	}
+});
+
+// A draft belongs to a resource, not whichever Chat widget happened to have focus.
+// Do not submit input, create a session, or switch to a different conversation here.
+registerAction2(class extends Action2 {
+	constructor() { super({ id: 'volter.chat.fillInput', title: localize2('fillHarnessChat', 'Fill Harness Conversation Input'), f1: false }); }
+	async run(accessor: ServicesAccessor, value: string, prompt: string) {
+		const resource = URI.parse(value);
+		if (resource.scheme !== 'supercode' || typeof prompt !== 'string' || !prompt.trim()) {
+			throw new Error('Expected a Volter Harness conversation and a nonempty draft.');
+		}
+		const widgets = accessor.get(IChatWidgetService);
+		const widget = widgets.getWidgetBySessionResource(resource);
+		if (!widget || !(await widgets.reveal(widget))) { throw new Error('This conversation is no longer open.'); }
+		if (widget.viewModel?.sessionResource.toString() !== resource.toString()) {
+			throw new Error('The conversation changed before its input could be filled.');
+		}
+		widget.setInput(prompt);
+		widget.focusInput();
+		return { sessionResource: resource.toString(), input: widget.getInput() };
 	}
 });
 
@@ -79,9 +100,11 @@ registerWorkbenchContribution2(HarnessChatFocus.ID, HarnessChatFocus, WorkbenchP
 registerAction2(class extends Action2 {
 	constructor() { super({ id: 'volter.chat.inspect', title: localize2('inspectHarnessChat', 'Inspect Chat Runtime'), f1: false }); }
 	run(accessor: ServicesAccessor) {
+		const widget = accessor.get(IChatWidgetService).lastFocusedWidget;
 		return {
 			builtInAgentHostEnabled: accessor.get(IAgentHostEnablementService).enabled.get(),
-			sessionResource: accessor.get(IChatWidgetService).lastFocusedWidget?.viewModel?.sessionResource.toString(),
+			sessionResource: widget?.viewModel?.sessionResource.toString(),
+			input: widget?.getInput(),
 		};
 	}
 });
