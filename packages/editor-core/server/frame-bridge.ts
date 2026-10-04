@@ -1,5 +1,5 @@
 import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { basename, join } from 'node:path';
 import type { ProductIdentity } from '@volter/editor-sdk/session/product-locator';
 
 /**
@@ -59,8 +59,8 @@ export interface BuiltProductEntry {
  * module's path relative to the build's ROOT, and the root is the repo the
  * build ran in — a fact this process, reading an INSTALLED product out of
  * `node_modules`, has no way to reconstruct. What it does know is the
- * product's own declaration (`./src/index.ts`), and that is the tail of the
- * key whatever the build's root was. `isEntry` is what keeps the match honest:
+ * product's own declaration (`./src/index.ts`), and its owning package directory;
+ * together they identify the key whatever the build's root was. `isEntry` is what keeps the match honest:
  * only a rollup entry may answer this door.
  */
 export function readBuiltProductEntry(
@@ -79,8 +79,11 @@ export function readBuiltProductEntry(
     );
   }
   const tail = product.entry.replace(/^\.\//, '');
+  // Other published entry doorways may have the same src/index.ts suffix.
+  // Match the owning package too when the build root encloses packages.
+  const packageTail = `${basename(product.dir)}/${tail}`;
   const found = Object.entries(manifest).find(
-    ([key, value]) => value.isEntry === true && (key === tail || key.endsWith(`/${tail}`)),
+    ([key, value]) => value.isEntry === true && (key === tail || key.endsWith(`/${packageTail}`)),
   );
   const entry = found?.[1];
   if (!entry || typeof entry.file !== 'string') {
