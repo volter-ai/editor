@@ -354,31 +354,21 @@ function BlenderModelViewport(props: ToolContributionProps) {
   }, [game, documentId]);
   if (!documentId) return null;
   const second = split && !game ? follower : null;
-  // PLAYING, THE COPY'S STAGE FILLS THE SLOT and the model's own stands hidden beneath it.
-  const filled = { position: 'absolute', inset: 12 } as const;
-  if (game)
-    return (
-      <div style={{ position: 'absolute', inset: -12 }}>
-        <div style={{ ...filled, visibility: 'hidden' }}>
-          <BlenderViewportArea {...props} view={view} main />
-        </div>
-        <div key="play" style={filled} data-testid="blender-play-area">
-          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play />
-        </div>
-      </div>
-    );
-  // SPLIT, THE TWO AREAS SHARE THE SLOT the stage alone fills otherwise: each stage's root bleeds
-  // 12 px past its positioned parent (`inset: -12px`), so each area is that parent inset by 12,
-  // and the two stand 2 px apart, Blender's gap between areas. Unsplit, both wrappers are
-  // `contents` and the one stage is placed as it always was.
+  // Keep the authoring area's React position stable across Play/Stop. Changing its
+  // wrappers remounts the stage and discards selection, pose and its authoring adapter.
   const area = { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } as const;
   return (
-    <div style={second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
-      <div style={second ? area : { display: 'contents' }}>
+    <div style={game || second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
+      <div key="model" style={game ? { position: 'absolute', inset: 12, visibility: 'hidden' } : second ? area : { display: 'contents' }}>
         <BlenderViewportArea {...props} view={view} main />
       </div>
+      {game && (
+        <div key="play" style={{ position: 'absolute', inset: 12 }} data-testid="blender-play-area">
+          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play />
+        </div>
+      )}
       {second && (
-        <div style={area} data-testid="blender-second-area">
+        <div key="second" style={area} data-testid="blender-second-area">
           <BlenderViewportArea {...props} documentId={`${documentId}#area-2`} view={second.view} main={false} />
           <SecondAreaChrome documentId={documentId} areaId={`${documentId}#area-2`} notify={props.notify} />
         </div>

@@ -1,19 +1,17 @@
 # SPDX-License-Identifier: GPL-3.0-or-later
 # Copyright 2026 Volter AI, Inc.
 #
-# Like `cube.py`, this bpy script is GPL-3.0-or-later; the `.blend` it
-# authors is your artwork, and the project's other starter source is MIT.
+# Like cube.py, this bpy script is GPL-3.0-or-later; the .blend it authors
+# is your artwork, and the project's other starter source is MIT.
 
-"""The starter race — run this through the session's Blender.
+"""The race source for Volter Model Editor, built on Blender.
 
-Open the Track model (`track.blend`, which starts as a copy of the cube), then
-execute this source through `blender-execute`:
-
+Open Track, then run through the session's Blender:
     editor.blender('blender-execute', { code: open('src/models/track.py').read() })
 
-Like `cube.py` it replaces the open model, and the session saves it; it refuses
-any other open file. Then choose View > Play to run `track.play.ts`.
-Coordinates are metres, Z is up, and the car's nose is local +Y.
+Only track.blend may be replaced; the session saves it. View > Play drives
+its grey Cube with arrows/WASD. Move any Ramp* mesh onto the circuit to jump.
+Coordinates are metres, Z is up, and local +Y is forward.
 """
 
 import math
@@ -27,35 +25,36 @@ if Path(bpy.data.filepath).name != "track.blend":
 
 for obj in list(bpy.data.objects):
     bpy.data.objects.remove(obj, do_unlink=True)
-for mesh in list(bpy.data.meshes):
-    bpy.data.meshes.remove(mesh)
-for material in list(bpy.data.materials):
-    bpy.data.materials.remove(material)
-for light in list(bpy.data.lights):
-    bpy.data.lights.remove(light)
-for camera in list(bpy.data.cameras):
-    bpy.data.cameras.remove(camera)
+for collection in (bpy.data.meshes, bpy.data.materials, bpy.data.lights, bpy.data.cameras, bpy.data.curves):
+    for data in list(collection):
+        collection.remove(data)
 
 
-def material(name, colour):
-    value = bpy.data.materials.new(name=name)
-    value.use_nodes = True
-    rgb = tuple(int(colour[i:i + 2], 16) / 255 for i in (1, 3, 5))
-    linear = tuple(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb)
-    value.diffuse_color = (*linear, 1.0)
-    value.node_tree.nodes.get("Principled BSDF").inputs["Base Color"].default_value = (*linear, 1.0)
-    return value
+def colour(value):
+    rgb = tuple(int(value[i:i + 2], 16) / 255 for i in (1, 3, 5))
+    return tuple(c / 12.92 if c <= 0.04045 else ((c + 0.055) / 1.055) ** 2.4 for c in rgb)
 
 
-# Base colours from brand.volter.ai/tokens.json's light semantic roles:
-# surface.inverse, status.healthy.base, accent.orange, text.inverse,
-# surface.media and scene.dynamicSoft. No textures or shader effects.
-asphalt = material("Asphalt", "#16252c")
-grass = material("Grass", "#3f7a55")
-paint = material("Paint", "#ff6a1f")
-stripe = material("Stripe", "#f3f2ec")
-rubber = material("Rubber", "#0f1a1f")
-glass = material("Cabin", "#dcd5e9")
+def material(name, value):
+    result = bpy.data.materials.new(name=name)
+    result.use_nodes = True
+    rgba = (*colour(value), 1.0)
+    result.diffuse_color = rgba
+    result.node_tree.nodes.get("Principled BSDF").inputs["Base Color"].default_value = rgba
+    return result
+
+
+# Volter's light semantic roles from brand.volter.ai/tokens.json, in linear RGB.
+asphalt = material("Asphalt", "#16252c")       # surface.inverse
+grass = material("Grass", "#3f7a55")           # status.healthy.base
+orange = material("Orange", "#ff6a1f")         # accent.orange
+white = material("White", "#f3f2ec")           # text.inverse
+rubber = material("Rubber", "#0f1a1f")         # surface.media
+violet = material("Violet", "#7c5bd6")         # scene.dynamicSoft
+wood = material("Wood", "#c7641a")             # data.amber
+leaves = material("Leaves", "#5f9a2e")         # scene.instance
+cube_material = bpy.data.materials.new(name="Material")
+cube_material.use_nodes = True
 
 
 def box(name, location, dimensions, surface, parent=None):
@@ -70,86 +69,187 @@ def box(name, location, dimensions, surface, parent=None):
     return obj
 
 
-# ONE CLOSED MESH, wound upwards so a downward ray meets its front face.
-segments = 128
-vertices = []
-faces = []
-for i in range(segments):
-    angle = math.tau * i / segments
-    for radius in (24.0, 36.0):
-        vertices.append((radius * math.cos(angle), radius * math.sin(angle), 0.0))
-for i in range(segments):
-    j = (i + 1) % segments
-    faces.append((2 * i, 2 * i + 1, 2 * j + 1, 2 * j))
-mesh = bpy.data.meshes.new("Track")
-mesh.from_pydata(vertices, [], faces)
-mesh.update()
-track = bpy.data.objects.new("Track", mesh)
-bpy.context.collection.objects.link(track)
-track.data.materials.append(asphalt)
+def mesh(name, vertices, faces, surface, location=(0.0, 0.0, 0.0)):
+    data = bpy.data.meshes.new(name)
+    data.from_pydata(vertices, [], faces)
+    data.update()
+    obj = bpy.data.objects.new(name, data)
+    bpy.context.collection.objects.link(obj)
+    obj.location = location
+    obj.data.materials.append(surface)
+    return obj
 
-bpy.ops.mesh.primitive_plane_add(size=100.0, location=(0.0, 0.0, -0.03))
+
+# A long start straight, a tight northern turn and alternating infield bends.
+points = [
+    (32, -30), (32, -10), (32, 10), (32, 26), (22, 36), (8, 32),
+    (4, 18), (-8, 16), (-16, 28), (-30, 24), (-34, 10), (-22, 0),
+    (-10, -4), (-16, -18), (-34, -28), (-30, -42), (-12, -44),
+    (10, -44), (26, -40),
+]
+
+
+def path(index, t):
+    a, b, c, d = [Vector((*points[(index + offset) % len(points)], 0)) for offset in (-1, 0, 1, 2)]
+    return 0.5 * ((2 * b) + (-a + c) * t + (2 * a - 5 * b + 4 * c - d) * t * t + (-a + 3 * b - 3 * c + d) * t * t * t)
+
+
+samples = []
+for i in range(len(points)):
+    for step in range(12):
+        t = step / 12
+        centre = path(i, t)
+        tangent = (path(i, t + 0.001) - centre).normalized()
+        normal = Vector((-tangent.y, tangent.x, 0))
+        samples.append((centre, tangent, normal))
+
+vertices = []
+for centre, tangent, normal in samples:
+    vertices.extend([tuple(centre - normal * 5), tuple(centre + normal * 5)])
+faces = []
+for i in range(len(samples)):
+    j = (i + 1) % len(samples)
+    faces.append((2 * i, 2 * j, 2 * j + 1, 2 * i + 1))
+mesh("Track", vertices, faces, asphalt)
+# Raised just above the asphalt, with face normals up: crisp road markings.
+for side in (-1, 1):
+    edge = []
+    for centre, tangent, normal in samples:
+        edge.extend([tuple(centre + normal * (side * 4.62 - 0.09) + Vector((0, 0, 0.012))),
+                     tuple(centre + normal * (side * 4.62 + 0.09) + Vector((0, 0, 0.012)))])
+    mesh(f"Edge.{side}", edge, faces, white)
+for i, (centre, tangent, normal) in enumerate(samples):
+    if i % 4 == 0:
+        line = box(f"Centre.{i}", (centre.x, centre.y, 0.015), (0.16, 1.5, 0.02), white)
+        line.rotation_euler.z = math.atan2(tangent.y, tangent.x) - math.pi / 2
+
+bpy.ops.mesh.primitive_plane_add(size=2400, location=(0, -4, -0.04))
 ground = bpy.context.active_object
 ground.name = "Ground"
-ground.data.name = "Ground"
 ground.data.materials.append(grass)
 
-for i in range(64):
-    angle = math.tau * i / 64
-    for radius, side in ((23.5, "Inner"), (36.5, "Outer")):
-        kerb = box(
-            f"Kerb.{side}.{i:02d}",
-            (radius * math.cos(angle), radius * math.sin(angle), 0.08),
-            (0.6, 1.6, 0.16), stripe if i % 2 == 0 else paint,
-        )
-        kerb.rotation_euler.z = angle
+for i, (centre, tangent, normal) in enumerate(samples):
+    if i % 3 != 0:
+        continue
+    for side in (-1, 1):
+        at = centre + normal * (5.3 * side)
+        kerb = box(f"Kerb.{i}.{side}", (at.x, at.y, 0.09), (0.6, 1.7, 0.18), white if i % 2 else orange)
+        kerb.rotation_euler.z = math.atan2(tangent.y, tangent.x) - math.pi / 2
+    if i % 12 == 0:
+        at = centre - normal * 7.3
+        for tyre in range(3):
+            bpy.ops.mesh.primitive_torus_add(major_segments=12, minor_segments=6, major_radius=0.52, minor_radius=0.22, location=(at.x + tangent.x * (tyre - 1) * 1.4, at.y + tangent.y * (tyre - 1) * 1.4, 0.35))
+            obj = bpy.context.active_object
+            obj.name = f"Barrier.{i}.{tyre}"
+            obj.data.materials.append(rubber)
 
+# The checker line and gantry make the start readable from the chase camera.
 for row in range(2):
-    for column in range(12):
-        box(
-            f"Start.{row}.{column}", (24.5 + column, -5.0 + row * 0.5, 0.01),
-            (1.0, 0.5, 0.02), stripe if (row + column) % 2 == 0 else asphalt,
-        )
+    for column in range(10):
+        box(f"Start.{row}.{column}", (27.5 + column, -24 + row * 0.5, 0.015), (1, 0.5, 0.03), white if (row + column) % 2 else asphalt)
+for x in (25.8, 38.2):
+    box(f"Gantry.Post.{x}", (x, -24, 3.1), (0.35, 0.5, 6.2), white)
+box("Gantry", (32, -24, 6.0), (13, 0.6, 0.8), orange)
+for i in range(7):
+    box(f"Gantry.Check.{i}", (27.5 + i * 1.5, -24.32, 6.0), (0.75, 0.04, 0.55), white)
 
-# THE CAR'S ORIGIN IS ON THE ROAD; its body geometry stands above it.
-car = box("Car", (0.0, 0.0, 0.0), (1.8, 4.0, 0.7), paint)
-car.data.transform(Matrix.Translation((0.0, 0.0, 0.75)))
-box("Cabin", (0.0, -0.25, 1.3), (1.5, 1.9, 0.5), glass, car)
-box("Nose", (0.0, 1.65, 1.12), (1.3, 0.25, 0.06), stripe, car)
+# A wedge's top is read by the play script, including after an editor move.
+mesh("Ramp.Jump", [(-3, -4, 0), (3, -4, 0), (3, 4, 2.4), (-3, 4, 2.4), (-3, 4, 0), (3, 4, 0)],
+     [(0, 1, 2, 3), (3, 2, 5, 4), (0, 3, 4), (1, 5, 2), (0, 4, 5, 1)], violet, (32, -2, 0))
 
-for name, x, y in (
-    ("Wheel.FL", -1.0, 1.3), ("Wheel.FR", 1.0, 1.3),
-    ("Wheel.RL", -1.0, -1.3), ("Wheel.RR", 1.0, -1.3),
-):
-    bpy.ops.mesh.primitive_cylinder_add(
-        vertices=16, radius=0.42, depth=0.32, location=(x, y, 0.42),
-        rotation=(0.0, math.pi / 2, 0.0),
-    )
+for i in range(6):
+    bpy.ops.mesh.primitive_cone_add(vertices=8, radius1=0.4, radius2=0.06, depth=0.85, location=(29 + i * 1.2, 12, 0.425))
+    cone = bpy.context.active_object
+    cone.name = f"Cone.{i}"
+    cone.data.materials.append(orange)
+    box(f"ConeBase.{i}", (0, 0, -0.4), (0.8, 0.8, 0.08), rubber, cone)
+for i in range(4):
+    crate = box(f"Crate.{i}", (-27 + i * 1.5, -28, 0.65), (1.2, 1.2, 1.3), wood)
+    box(f"CrateBand.{i}", (0, 0, 0), (1.25, 0.15, 1.35), white, crate)
+
+for i in range(56):
+    angle = math.tau * i / 56
+    x, y = (53 + i % 3 * 7) * math.cos(angle), -4 + (56 + i % 4 * 4) * math.sin(angle)
+    box(f"Tree.Trunk.{i}", (x, y, 1.4), (0.4, 0.4, 2.8), wood)
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=2.6, location=(x, y, 4.0))
+    tree = bpy.context.active_object
+    tree.name = f"Tree.Crown.{i}"
+    tree.scale.z = 1.35
+    tree.data.materials.append(leaves if i % 2 else grass)
+
+# Low-poly hills close the horizon without textures or a skybox.
+for i in range(18):
+    angle = math.tau * i / 18
+    bpy.ops.mesh.primitive_ico_sphere_add(subdivisions=1, radius=1, location=(220 * math.cos(angle), -4 + 220 * math.sin(angle), 0))
+    hill = bpy.context.active_object
+    hill.name = f"Hill.{i}"
+    hill.scale = (65, 60, 22 + i % 4 * 8)
+    hill.data.materials.append(grass if i % 2 else leaves)
+for i in range(5):
+    for tier in range(3):
+        box(f"Stand.{i}.{tier}", (44 + tier * 1.3, -28 + i * 5, 0.5 + tier * 0.6), (1.3, 4.5, 1 + tier * 1.2), orange if i % 2 else violet)
+    box(f"Stand.Roof.{i}", (45.3, -28 + i * 5, 4.2), (5, 4.8, 0.2), white)
+
+for i, (x, y) in enumerate(((22, 2), (42, 14), (-40, 18), (-24, -50))):
+    box(f"Billboard.Post.{i}", (x, y, 1.5), (0.3, 0.4, 3), white)
+    box(f"Billboard.{i}", (x, y, 3), (0.35, 6, 2), orange if i % 2 else violet)
+    for stripe in range(3):
+        box(f"Billboard.Stripe.{i}.{stripe}", (x + 0.2, y - 1.6 + stripe * 1.5, 3), (0.05, 0.65, 1.4), white)
+
+# Ordered checkpoints prevent lap counts from shuttling over the start line.
+for i, (x, y) in enumerate(((8, 32), (-34, 10), (-12, -44)), 1):
+    checkpoint = bpy.data.objects.new(f"Checkpoint.{i}", None)
+    bpy.context.collection.objects.link(checkpoint)
+    checkpoint.location = (x, y, 0)
+
+# Default cube geometry and material; its ground-level origin carries the wheels.
+car = box("Cube", (32, -28, 0), (2, 2, 2), cube_material)
+car.data.transform(Matrix.Translation((0, 0, 1.42)))
+for name, x, y in (("Wheel.FL", -1.2, 0.78), ("Wheel.FR", 1.2, 0.78), ("Wheel.RL", -1.2, -0.78), ("Wheel.RR", 1.2, -0.78)):
+    bpy.ops.mesh.primitive_cylinder_add(vertices=16, radius=0.57, depth=0.55, location=(x, y, 0.57), rotation=(0, math.pi / 2, 0))
     wheel = bpy.context.active_object
     wheel.name = name
-    wheel.data.name = name
-    # Bake the cylinder's axle into its mesh: local X spins, local Z steers.
     bpy.ops.object.transform_apply(location=False, rotation=True, scale=True)
     wheel.data.materials.append(rubber)
     wheel.parent = car
-    box(name + ".Spoke", (math.copysign(0.17, x), 0.0, 0.0), (0.04, 0.08, 0.65), stripe, wheel)
+    box(name + ".Spoke", (math.copysign(0.29, x), 0, 0), (0.04, 0.14, 0.85), white, wheel)
 
-car.location = (30.0, 0.0, 0.0)
 scene = bpy.context.scene
 scene.unit_settings.system = "METRIC"
-scene.unit_settings.scale_length = 1.0
-
-bpy.ops.object.light_add(type="SUN", rotation=(0.4, -0.6, -0.3))
+scene.unit_settings.scale_length = 1
+scene.world.use_nodes = True
+background = scene.world.node_tree.nodes.get("Background")
+sky = scene.world.node_tree.nodes.new("ShaderNodeTexSky")
+# Blender 5.2 calls its Nishita successor MULTIPLE_SCATTERING; the presenter supports it.
+sky.sky_type = "MULTIPLE_SCATTERING"
+sky.sun_elevation = math.radians(16)
+sky.sun_rotation = math.radians(135)
+sky.aerosol_density = 0.5
+scene.world.node_tree.links.new(sky.outputs["Color"], background.inputs["Color"])
+background.inputs["Strength"].default_value = 0.18
+scene.view_settings.view_transform = "AgX"
+scene.view_settings.look = "AgX - Punchy"
+scene.view_settings.exposure = -0.7
+bpy.ops.object.light_add(type="SUN", rotation=(math.radians(74), 0, math.radians(-55)))
 sun = bpy.context.active_object
 sun.name = "Sun"
-sun.data.energy = 3.0
+sun.data.energy = 4.0
+sun.data.angle = math.radians(0.5)
 
-bpy.ops.object.camera_add(location=(30.0, -10.0, 6.0))
+bpy.ops.object.camera_add(location=(39, -37, 4.8))
 camera = bpy.context.active_object
 camera.name = "Camera"
-camera.rotation_euler = (Vector((30.0, 2.0, 0.8)) - camera.location).to_track_quat('-Z', 'Y').to_euler()
-camera.data.lens = 35.0
+camera.rotation_euler = (Vector((32, -25, 1.4)) - camera.location).to_track_quat('-Z', 'Y').to_euler()
+camera.data.lens = 28
 scene.camera = camera
+for screen in bpy.data.screens:
+    for area in screen.areas:
+        if area.type == "VIEW_3D":
+            space = area.spaces.active
+            space.shading.type = "RENDERED"
+            space.region_3d.view_location = (32, -25, 1.4)
+            space.region_3d.view_distance = 16
+            space.region_3d.view_rotation = camera.rotation_euler.to_quaternion()
 
 bpy.ops.object.select_all(action="DESELECT")
 car.select_set(True)
