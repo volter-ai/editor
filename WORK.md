@@ -422,9 +422,17 @@ no animation implementation started.
 Supercode's native Chat frontend owns sign-in and starter buttons; the editor's
 private host controls supply readiness, revalidated install/login terminal launches
 and project data. Codex is offered first as **Sign in with ChatGPT**; the only
-first-run install is `npm install -g @openai/codex`, shown before the person clicks.
+first-run install uses npm's resolved global prefix, shown before the person clicks.
 Passive refresh retries a refused runtime handoff after sign-in, without reloading.
 Default coding launches still inject no provider settings or account credential.
+Login and install buttons display quoted absolute executable paths. Login uses
+the same resolver as the running harness: `SUPERCODE_BIN`, a source-linked SDK's
+own binary, the installed `@volter/supercode/bin/supercode.js`, then source/PATH
+fallbacks. The terminal runs that program directly with argument arrays (no
+interactive shell). Both terminal and inventory process receive the launch Node
+directory, inherited PATH and npm's global bin directory. The install fixes that
+same prefix explicitly, so a new Codex executable is visible to fresh inventory
+probes without restarting the editor. This path is source-verified, not live-walked.
 `volter.adapter.ts` declares `editor.chat.starterPrompts` (up to three); buttons
 fill the composer and send nothing. The existing validated adapter state report
 supplies them to Chat, which waits for project configuration before caching an
