@@ -11,7 +11,10 @@ import type { ProductCreateDeclaration } from '@volter/editor-sdk/session/produc
 const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
 export const declaration: ProductCreateDeclaration = {
   product: '@volter/model-editor',
-  templates: [{ id: 'models', name: 'Models', description: 'Blender modeling with a starter cube.' }],
+  templates: [
+    { id: 'models', name: 'Models', description: 'Blender modeling with a starter cube.' },
+    { id: 'playable', name: 'Playable', description: 'A cube circuit with a model play script and React HUD.' },
+  ],
   async create(request) {
     const result = await writeProject(request);
     // A CHECKOUT'S PROJECT LINKS THE CHECKOUT'S OWN INSTALL, as a game links
@@ -43,13 +46,16 @@ function checkoutNodeModules(): string | null {
 }
 
 export async function writeProject({ name, targetDir, template }: Parameters<ProductCreateDeclaration['create']>[0]) {
-    if (template !== undefined && template !== 'models') throw new Error('The model editor creates modeling projects.');
+    if (template !== undefined && !['models', 'playable'].includes(template)) throw new Error('Unknown Model Editor template.');
+    const playable = template === 'playable';
     if (!name.trim()) throw new Error('A project name is required.');
     const target = resolve(targetDir);
     const product = JSON.parse(await readFile(join(productRoot, 'package.json'), 'utf8'));
     const manifest = GameManifestSchema.parse({
       manifestVersion: 2, name, version: '0.1.0',
-      engine: { version: product.version }, roots: [],
+      engine: { version: product.version },
+      roots: playable ? [{ id: 'ui', adapter: 'dom', entry: 'src/ui/game.tsx', zOrder: 1 }] : [],
+      ...(playable ? { resolution: { width: 1280, height: 720 } } : {}),
     });
     // Exclusive mkdir refuses even an existing empty directory. Creation never
     // overwrites an author's files, and a failed install leaves source intact.
@@ -62,10 +68,12 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
       name: name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '') || 'models',
       private: true, version: '0.1.0', type: 'module',
       scripts: { dev: 'volter-model-editor edit .', 'volter-model-editor': 'volter-model-editor' },
+      ...(playable ? { dependencies: { react: '~19.2.4', 'react-dom': '~19.2.4', three: '^0.180.0' } } : {}),
       devDependencies: {
         '@volter/model-editor': product.version,
         '@volter/editor-project': product.version,
         '@volter/editor-blender': product.dependencies['@volter/editor-blender'],
+        ...(playable ? { '@volter/editor-model-play': product.version, '@volter/editor-ui': product.version, '@volter/editor-react': product.version } : {}),
       },
     }, null, 2) + '\n');
     await write('volter.adapter.ts', `import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
@@ -73,7 +81,7 @@ import { ModelLayout } from '@volter/editor-blender/layouts';
 import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 
 export default defineAdapter({
-  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties' },
+${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : ''}  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties' },
   documents: { find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
 });
 `);
@@ -85,11 +93,18 @@ export default defineAdapter({
       mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
     await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
-    for (const file of ['cube.blend', 'cube.py', 'track.py', 'track.play.ts']) {
-      await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
+    if (playable) {
+      for (const file of ['track.blend', 'track.py', 'track.play.ts', 'race-state.ts'])
+        await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
+      await mkdir(join(target, 'src/ui'));
+      for (const file of ['game.tsx', 'race-hud.tsx', 'game.stories.tsx'])
+        await copyFile(join(productRoot, 'starter/ui', file), join(target, 'src/ui', file));
+    } else {
+      for (const file of ['cube.blend', 'cube.py', 'track.py'])
+        await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
+      await copyFile(join(productRoot, 'starter', 'base-track.play.ts'), join(target, 'src/models', 'track.play.ts'));
+      // Preserve the base template's existing cube placeholder and authoring path.
+      await copyFile(join(productRoot, 'starter', 'cube.blend'), join(target, 'src/models', 'track.blend'));
     }
-    // THE TRACK'S MODEL STARTS AS THE CUBE: `track.py` replaces the open model and refuses any
-    // file but this one, so running it never writes over another model.
-    await copyFile(join(productRoot, 'starter', 'cube.blend'), join(target, 'src/models', 'track.blend'));
     return { targetDir: target, manifest };
 }

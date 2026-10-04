@@ -15,9 +15,9 @@
  * the coordinates are Blender's (Z up); `root` itself carries the turn to three's Y up, so an
  * object's `getWorldPosition` is in the stage's space, where `camera` lives.
  *
- * The module is imported through the live-module url (`project-module-url.ts`), so a save
- * re-runs it against the same copy: the previous game is disposed, the next one starts from
- * wherever the objects stand.
+ * Without UI layers, the tool imports through the live-module URL. When a UI
+ * tool offers project roots, all entries share one project mount epoch.
+ * A save disposes and rebuilds that composition against the same detached copy.
  */
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import {
@@ -29,6 +29,9 @@ import {
   liveModuleImportUrl,
 } from '@volter/editor-sdk/session/project-module-url';
 import type * as THREE from 'three';
+import { projectPlayLayers } from '@volter/editor-sdk/kit/project-play-layers';
+import { beginProjectMountEpoch, projectEntryImportUrl } from '@volter/editor-sdk/session/project-module-url';
+interface PlayComposition { loadScript(): Promise<{ default?: unknown }>; dispose(): void; }
 
 export interface ModelPlayContext {
   /** The Model group: the detached copy's root. */
@@ -59,10 +62,10 @@ function isGame(value: unknown): value is ModelPlayGame {
   return typeof value === 'object' && value !== null && typeof (value as ModelPlayGame).update === 'function';
 }
 
-async function startGame(modulePath: string, context: ModelPlayContext): Promise<ModelPlayGame> {
+async function startGame(modulePath: string, context: ModelPlayContext, composition?: PlayComposition): Promise<ModelPlayGame> {
   const project = getCurrentProject();
   if (!project) throw new Error('No project is open.');
-  const namespace = (await import(
+  const namespace = composition ? await composition.loadScript() : (await import(
     /* @vite-ignore */ liveModuleImportUrl(project.rootPath, modulePath, beginLiveModuleRevision())
   )) as { default?: unknown };
   if (typeof namespace.default !== 'function')
@@ -86,6 +89,7 @@ export function runPlayScript(options: {
   readonly camera: () => THREE.Camera;
   readonly onFrame: (fn: (deltaSeconds: number) => void) => () => void;
   readonly report: (title: string, detail: string) => void;
+  readonly container: HTMLElement;
 }): () => void {
   const { blend, root, camera, onFrame, report } = options;
   const modulePath = playScriptPath(blend);
@@ -106,6 +110,8 @@ export function runPlayScript(options: {
   let stopped = false;
   let attempt = 0;
   let game: ModelPlayGame | null = null;
+  let composition: PlayComposition | null = null;
+  const mountLayers = projectPlayLayers();
   const end = (): void => {
     const ending = game;
     game = null;
@@ -114,18 +120,35 @@ export function runPlayScript(options: {
     } catch (error) {
       report(`${modulePath} failed while stopping`, error instanceof Error ? error.message : String(error));
     }
+    composition?.dispose();
+    composition = null;
   };
   const start = async (): Promise<void> => {
     const mine = ++attempt;
+    end();
+    let nextComposition: PlayComposition | undefined;
     try {
-      const next = await startGame(modulePath, context);
+      if (mountLayers) {
+        const project = getCurrentProject();
+        if (!project) throw new Error('No project is open.');
+        const epoch = beginProjectMountEpoch();
+        const dispose = await mountLayers({ projectRoot: project.rootPath, epoch, container: options.container });
+        nextComposition = {
+          loadScript: () => import(/* @vite-ignore */ projectEntryImportUrl(project.rootPath, modulePath, epoch)),
+          dispose,
+        };
+      }
+      if (stopped || mine !== attempt) { nextComposition?.dispose(); return; }
+      const next = await startGame(modulePath, context, nextComposition);
       if (stopped || mine !== attempt) {
         next.dispose?.();
+        nextComposition?.dispose();
         return;
       }
-      end();
       game = next;
+      composition = nextComposition ?? null;
     } catch (error) {
+      nextComposition?.dispose();
       if (stopped || mine !== attempt) return;
       report(`${modulePath} did not start`, error instanceof Error ? error.message : String(error));
     }
@@ -155,7 +178,9 @@ export function runPlayScript(options: {
   window.addEventListener('keyup', onKeyUp, true);
   window.addEventListener('blur', onBlur);
   const stopChanges = subscribeProjectModuleChange((changed) => {
-    if (projectModuleChangeMatches(changed, modulePath)) void start();
+    // A composed HUD and script must remount together, including shared-store
+    // edits. A fresh epoch is threaded to both through the UI tool door.
+    if (mountLayers || projectModuleChangeMatches(changed, modulePath)) void start();
   });
   void start();
   return () => {

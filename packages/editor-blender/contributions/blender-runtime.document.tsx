@@ -59,6 +59,9 @@ import * as THREE from 'three';
 import {
   bindModelDocument,
   blenderExecute,
+  blenderRna,
+  blenderRnaContext,
+  subscribeBlenderRna,
   blenderViewShading,
   openModelDocumentBlend,
   modelDocumentMayOpen,
@@ -67,8 +70,7 @@ import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
-import { modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
-import { runPlayScript } from '../src/play-script';
+import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
 import { notifyWorkspaceDocumentSelectionChanged } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   documentSecondAreaHeader,
@@ -285,13 +287,43 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
  * camera. Each area has its own stage, shading, navigation and camera view; the model, its
  * selection and its history are the document's.
  *
- * PLAYING (the header's Play, `src/model-play.ts`), the area shows a DETACHED copy of the model
+ * PLAYING (the composed Play tool), the area shows a DETACHED copy of the model
  * (`BlenderRuntimeView.detach`) on a stage of its own, which the project's play script moves
- * (`src/play-script.ts`). The model's own stage stays mounted underneath, hidden, so Stop
+ * (the document Play extension). The model's own stage stays mounted underneath, hidden, so Stop
  * returns to the same view of the same model: nothing a game does reaches Blender.
  */
 function BlenderModelViewport(props: ToolContributionProps) {
   const { documentId } = props;
+  // Rendered areas and Play use the scene's display transform, just as a
+  // photograph does. Solid keeps its studio transform. RNA also announces
+  // colour settings that change without changing the presented geometry.
+  useEffect(() => {
+    if (!documentId) return;
+    let cancelled = false;
+    let revision = 0;
+    const read = async () => {
+      const mine = ++revision;
+      const context = await blenderRnaContext();
+      if (!context) return;
+      const path = context.tabs.find(tab => tab.id === 'render')?.paths.find(item => item.label === 'View Settings')?.path;
+      if (!path) return;
+      const settings = await blenderRna(path);
+      if (cancelled || mine !== revision || settings?.kind !== 'struct') return;
+      const rows = settings.groups.flatMap(group => group.rows);
+      const transform = rows.find(row => row.identifier === 'view_transform')?.value;
+      const stops = rows.find(row => row.identifier === 'exposure')?.value;
+      const mapper = transform === 'Standard' ? 'none' : transform === 'Filmic' ? 'filmic' : 'agx';
+      const exposure = typeof stops === 'number' ? 2 ** stops : 1;
+      for (const id of [documentId, `${documentId}#area-2`, `${documentId}#play`]) {
+        setViewPresentation(id, { modes: { rendered: { lighting: { tone: { mapper, exposure } } } } });
+      }
+    };
+    const update = () => { void read().catch(error => editorHost().console.error(String(error), 'blender-colour')); };
+    const stopRna = subscribeBlenderRna(update);
+    const stopFrames = view.subscribeFrames(update);
+    update();
+    return () => { cancelled = true; stopRna(); stopFrames(); };
+  }, [documentId]);
   const split = useSyncExternalStore(
     subscribeAreaSplit,
     () => (documentId ? areaSplit(documentId) : false),
@@ -313,8 +345,8 @@ function BlenderModelViewport(props: ToolContributionProps) {
     };
   }, [split, documentId]);
   const playing = useSyncExternalStore(
-    subscribeModelPlay,
-    () => (documentId ? modelPlaying(documentId) : false),
+    subscribeDocumentPlayExtensions,
+    () => (documentId ? documentPlayExtension('model')?.playing(documentId) ?? false : false),
     () => false,
   );
   const [played, setPlayed] = useState<ReturnType<AreaView['detach']> | null>(null);
@@ -338,7 +370,7 @@ function BlenderModelViewport(props: ToolContributionProps) {
   // The document closing or going inactive ends its game; a game never outlives its stage.
   useEffect(() => {
     if (!documentId) return;
-    return () => setModelPlaying(documentId, false);
+    return () => documentPlayExtension('model')?.setPlaying(documentId, false);
   }, [documentId]);
   const game = playing ? played : null;
   useEffect(() => {
@@ -534,11 +566,12 @@ function BlenderViewportArea({
     };
   }, [main, play, documentId, view]);
   /**
-   * THE PLAYING COPY IS MOVED BY THE PROJECT'S PLAY SCRIPT (`src/play-script.ts`), on this
+   * THE PLAYING COPY IS MOVED BY THE PROJECT'S PLAY SCRIPT (the document Play extension), on this
    * stage's own frame hook, once the stage stands. The stage's orbit stands down while it runs,
    * so the script's camera is not argued with, and Escape stops the game.
    */
   const notifyRef = useRef(notify);
+  const surfaceRef = useRef<HTMLDivElement>(null);
   notifyRef.current = notify;
   useEffect(() => {
     if (!play || !documentId) return;
@@ -551,6 +584,10 @@ function BlenderViewportArea({
       return;
     }
     const modelId = documentId.replace(/#play$/, '');
+    const layers = window.document.createElement('div');
+    Object.assign(layers.style, { position: 'absolute', inset: '0', pointerEvents: 'none' });
+    layers.dataset.testid = 'model-play-roots';
+    surfaceRef.current?.appendChild(layers);
     let stopScript: (() => void) | null = null;
     let orbit: { enabled: boolean } | null = null;
     const start = (): void => {
@@ -559,8 +596,9 @@ function BlenderViewportArea({
       if (!stage) return;
       orbit = stage.rig().orbit;
       orbit.enabled = false;
-      stopScript = runPlayScript({
-        blend,
+      stopScript = documentPlayExtension('model')?.run({
+        container: layers,
+        sourcePath: blend,
         root: view.root,
         camera: () => stage.rig().drawCamera(),
         onFrame: (fn) => stage.onFrame(fn),
@@ -568,18 +606,19 @@ function BlenderViewportArea({
           editorHost().console.error(`${title}: ${detail}`, 'blender-play');
           notifyRef.current?.({ tone: 'error', title, detail });
         },
-      });
+      }) ?? null;
     };
     start();
     const stopStages = onViewportStages(start);
     const onEscape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') setModelPlaying(modelId, false);
+      if (event.key === 'Escape') documentPlayExtension('model')?.setPlaying(modelId, false);
     };
     window.addEventListener('keydown', onEscape, true);
     return () => {
       stopStages();
       window.removeEventListener('keydown', onEscape, true);
       stopScript?.();
+      layers.remove();
       if (orbit) orbit.enabled = true;
     };
   }, [play, documentId, blend, view]);
@@ -797,6 +836,7 @@ function BlenderViewportArea({
   const Surface = surfaces.Object3DAuthoring;
   return (
     <div
+      ref={surfaceRef}
       style={{ display: 'contents' }}
       onPointerDownCapture={onPointerDownCapture}
       onPointerUpCapture={onPointerUpCapture}

@@ -355,21 +355,34 @@ load under 20; at load 40–60 the same opens take 15–30 s. Open: the pack arc
 unpublished while the editor is private. Under 10 s cold needs the substrate to resume
 processes (its W74), not only prebaked files.
 
+## React source authoring through Retrace
+
+Replace `editor-react`'s custom OID/edit planning (`serving/ui-oid-plugin.ts`, `src/source`)
+with Volter's `@retrace/core`, `@retrace/element` and `@retrace/format-tsx-babel`
+([Retrace](https://github.com/volter-ai/retrace); local checkout `/Users/yueranyuan/volter/retrace`).
+State: the editor names Retrace nowhere; its three central stamping/writer/plugin files total
+5,626 lines, including shared R3F work. Retrace's element lane parses TSX and plans literal,
+structural and import edits; stamping, OID compatibility, persistence and stale-write guards
+remain caller-owned. Closes when UI selection, literal/style and structural edits use Retrace
+and recorded writes, undo/redo and dynamic-value refusals round-trip through the UI board.
+Size: several days across the serving plugin, source adapters and persistence; scope must
+separate DOM work from the shared R3F bindings. Packages are not on npm yet. Tracker only;
+no migration started.
+
 ## Play on the Model document
 
-View ▸ Play on a Model document shows a detached copy of the model
-(`BlenderRuntimeView.detach`) on a stage of its own, in Rendered shading, and runs the
-project's play script beside the `.blend` (`src/models/<name>.play.ts`,
-`packages/editor-blender/src/play-script.ts`) on that stage's frame hook. The script holds
-three's own objects, the stage's camera and the held keys. The model's stage stays mounted
-and hidden; Stop or Escape disposes the copy. While it plays the document's stage mode is
-`PLAY`, and the frame's stage and panel key rules stand down on it. State: run from source.
-The starter copies `track.py` and `track.play.ts`: a ring, car and wheels, arcade driving,
-Track raycasts and a chase camera. Running `track.py` on the placeholder `track.blend` in
-the session's Blender authors the track. Measured: View ▸ Play, held-arrow motion in two
-captures and Escape restoring a byte-identical authoring frame; capture follows Play's
-visible stage. Open: the cube circuit demo, keymap generation, a collider helper, a visible
-Play control and the hosted script import. No automated tests ran.
+The `playable` Model Editor template declares `editor-model-play`, `editor-ui` and
+`editor-react` on its project; the base `models` template declares none of them. The Play
+tool contributes header/View controls through `kit/document-play-extension`; Blender
+lends its detached Rendered stage. Stop/Escape disposes it and returns to the saved model.
+The UI tool mounts the declared `dom` root through `kit/project-play-layers`, sharing one
+mount epoch with the script (`editor-model-play/src/play-script.ts`), so its plain race
+store has one instance. The existing UI board opens the HUD's CSF stories beside Track.
+State: walked in a source session of Volter Model Editor, built on Blender; fresh creation
+of both templates. Render and Play from the same camera pose match; the detached stage
+carries the World and fitted sun shadows. Driving at 89 km/h measured 100.1 fps; frameCost
+measured 9.6 ms median / 11.47 ms p95 at 2909×1129. Open: packaged contribution identity,
+clear jump/drift/lap captures and recording steps. No automated tests ran.
 
 ## Supported-editing work
 

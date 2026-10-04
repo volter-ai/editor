@@ -17,18 +17,19 @@ const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'model
 
 try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
-    workbench: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
+    workbench: { type: 'string' }, template: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' },
     ...SCREENSHOT_OPTIONS,
   } });
   const [verb = 'edit', folder = '.'] = positionals;
+  if (values.template && verb !== 'create') throw new Error('--template belongs to create.');
   if (values.list && verb !== 'eval') throw new Error('--list belongs to eval.');
   for (const key of Object.keys(SCREENSHOT_OPTIONS) as (keyof typeof SCREENSHOT_OPTIONS)[])
     if (values[key] !== undefined && verb !== 'screenshot') throw new Error(`--${key} belongs to screenshot.`);
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Model Editor\n  volter-model-editor create <folder> [--workbench <dir>]\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
+    console.log(`Volter Model Editor\n  volter-model-editor create <folder> [--template models|playable] [--workbench <dir>]\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
   } else if (verb === 'hosted') {
     await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {
@@ -77,7 +78,7 @@ try {
     if (verb === 'create') {
       if (!positionals[1]) throw new Error('create requires a new folder name.');
       if (values.workbench) resolveWorkbench(resolve(values.workbench), 'editor');
-      await declaration.create({ name: folder.split(/[\\/]/).at(-1)!, targetDir: resolve(folder) });
+      await declaration.create({ name: folder.split(/[\\/]/).at(-1)!, targetDir: resolve(folder), ...(values.template ? { template: values.template } : {}) });
       if (values.workbench) writeWorkbenchDeclaration(resolve(folder), resolve(values.workbench));
 
     }

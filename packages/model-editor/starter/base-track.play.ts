@@ -3,7 +3,6 @@
 
 /** Drive the detached Cube. All positions under root are Blender's metres, Z up. */
 import * as THREE from 'three';
-import { publishRaceState } from './race-state';
 
 export default function play(context: {
   readonly root: THREE.Object3D;
@@ -21,13 +20,11 @@ export default function play(context: {
     return wheel;
   });
   const surfaces: THREE.Object3D[] = [];
-  const kerbs: THREE.Vector3[] = [];
   const obstacles: {
     object: THREE.Object3D; velocity: THREE.Vector3; spin: THREE.Vector3; floor: number; hit: boolean;
   }[] = [];
   root.traverse((object) => {
     if (!(object as THREE.Mesh).isMesh) return;
-    if (object.name.startsWith('Kerb.')) kerbs.push(object.position.clone());
     if (object.name === 'Track' || object.name.startsWith('Ramp')) surfaces.push(object);
     if (/^(Cone|Crate)\./.test(object.name)) {
       find(object.name);
@@ -41,40 +38,6 @@ export default function play(context: {
   let grounded = true;
   let pitch = 0;
   let cameraStarted = false;
-  let elapsed = 0;
-  let lap = 0;
-  let lapStarted = 0;
-  let lastLap = 0;
-  let checkpoint = 0;
-  let previousY = car.position.y;
-  let effectClock = 0;
-  let hudClock = 0;
-  const checkpoints = [1, 2, 3].map(i => find(`Checkpoint.${i}`)).filter((o): o is THREE.Object3D => o !== null);
-  const velocity = new THREE.Vector2();
-  const effects = new THREE.Group();
-  effects.name = 'Race effects';
-  root.add(effects);
-  const markGeometry = new THREE.PlaneGeometry(0.32, 0.7);
-  const markMaterial = new THREE.MeshBasicMaterial({ color: '#0f1a1f', transparent: true, opacity: 0.6, depthWrite: false });
-  const marks = Array.from({ length: 128 }, () => {
-    const mark = new THREE.Mesh(markGeometry, markMaterial);
-    mark.visible = false;
-    effects.add(mark);
-    return mark;
-  });
-  let nextMark = 0;
-  const puffGeometry = new THREE.IcosahedronGeometry(0.22, 0);
-  const puffs = Array.from({ length: 24 }, () => {
-    const material = new THREE.MeshBasicMaterial({ color: '#e9edef', transparent: true, opacity: 0, depthWrite: false });
-    const mesh = new THREE.Mesh(puffGeometry, material);
-    mesh.visible = false;
-    effects.add(mesh);
-    return { mesh, life: 0 };
-  });
-  let nextPuff = 0;
-  let fps = 0;
-  let measuredFrames = 0;
-  let measuredSince = performance.now();
   const ray = new THREE.Raycaster();
   const origin = new THREE.Vector3();
   const down = new THREE.Vector3();
@@ -98,14 +61,6 @@ export default function play(context: {
   return {
     update(dt: number) {
       if (dt <= 0) return;
-      elapsed += dt;
-      measuredFrames++;
-      const now = performance.now();
-      if (now - measuredSince >= 1000) {
-        fps = measuredFrames * 1000 / (now - measuredSince);
-        measuredFrames = 0;
-        measuredSince = now;
-      }
       root.updateMatrixWorld(true);
       up.set(0, 0, 1).transformDirection(root.matrixWorld);
       down.copy(up).negate();
@@ -121,18 +76,15 @@ export default function play(context: {
         else speed = approach(speed, 0, (throttle && brake ? 20 : 3) * h);
         steering = approach(steering, turn * 0.5, 3 * h);
         if (grounded) heading += speed / 1.8 * Math.tan(steering) / (1 + Math.abs(speed) / 8) * h;
-        const drifting = grounded && Math.abs(steering) > 0.3 && Math.abs(speed) > 13;
-        const grip = grounded ? (drifting ? 1.6 : 8) : 0.2;
-        velocity.lerp(new THREE.Vector2(-Math.sin(heading) * speed, Math.cos(heading) * speed), 1 - Math.exp(-grip * h));
-        travelled += velocity.length() * h * Math.sign(speed);
-        car.position.x += velocity.x * h;
-        car.position.y += velocity.y * h;
+        const distance = speed * h;
+        travelled += distance;
+        car.position.x -= Math.sin(heading) * distance;
+        car.position.y += Math.cos(heading) * distance;
         const road = surfaceAt(car.position.x, car.position.y);
         const floor = road ?? 0;
         if (road === null && grounded) {
           speed *= Math.exp(-8 * h);
           speed = THREE.MathUtils.clamp(speed, -4, 4);
-          velocity.multiplyScalar(Math.exp(-8 * h));
         }
         // Follow a rising surface; retain its launch velocity when the surface drops away.
         if (grounded && floor >= car.position.z - 0.15) {
@@ -178,71 +130,16 @@ export default function play(context: {
           }
         }
       }
-      const roll = grounded ? -steering * Math.min(Math.abs(speed), 24) * 0.018 : 0;
-      car.rotation.set(pitch, roll, heading, 'ZXY');
-      effectClock += dt;
-      const slipping = grounded && Math.abs(steering) > 0.3 && Math.abs(speed) > 13;
-      const offroad = grounded && surfaceAt(car.position.x, car.position.y) === null;
-      if ((slipping || offroad) && effectClock > 0.06) {
-        effectClock = 0;
-        for (const side of [-1, 1]) {
-          const mark = marks[nextMark++ % marks.length]!;
-          mark.position.copy(car.position).add(new THREE.Vector3(side * 1.2 * Math.cos(heading) + Math.sin(heading) * 0.78,
-            side * 1.2 * Math.sin(heading) - Math.cos(heading) * 0.78, 0.018));
-          mark.rotation.z = heading;
-          mark.visible = true;
-          const puff = puffs[nextPuff++ % puffs.length]!;
-          puff.mesh.position.copy(mark.position).add(new THREE.Vector3(0, 0, 0.3));
-          puff.mesh.scale.setScalar(1);
-          puff.mesh.material.color.set(offroad ? '#c7641a' : '#e9edef');
-          puff.life = 0.7;
-          puff.mesh.visible = true;
-        }
-      }
-      for (const puff of puffs) {
-        if (puff.life <= 0) continue;
-        puff.life -= dt;
-        puff.mesh.visible = puff.life > 0;
-        puff.mesh.material.opacity = Math.max(0, puff.life * 0.5);
-        puff.mesh.position.z += dt * 0.9;
-        puff.mesh.scale.addScalar(dt * 1.8);
-      }
-      const nextCheckpoint = checkpoints[checkpoint];
-      if (lap > 0 && nextCheckpoint && Math.hypot(car.position.x - nextCheckpoint.position.x, car.position.y - nextCheckpoint.position.y) < 10)
-        checkpoint++;
-      if (previousY < -24 && car.position.y >= -24 && Math.abs(car.position.x - 32) < 5 && speed > 0) {
-        if (lap === 0 || checkpoint === checkpoints.length) {
-          lastLap = lap === 0 ? 0 : elapsed - lapStarted;
-          lap++;
-          checkpoint = 0;
-          lapStarted = elapsed;
-        }
-      }
-      previousY = car.position.y;
-      hudClock += dt;
-      if (hudClock >= 0.1) {
-        hudClock = 0;
-        publishRaceState({ lap: Math.max(1, lap), lapTime: lap ? elapsed - lapStarted : 0,
-          lastLap, speed: Math.abs(speed) * 3.6, fps, airborne: !grounded });
-      }
+      car.rotation.set(pitch, 0, heading, 'ZXY');
       for (const [index, wheel] of wheels.entries()) {
         wheel.rotation.z = index < 2 ? steering : 0;
-        wheel.rotation.x = (wheel.rotation.x - travelled / 0.57) % (2 * Math.PI);
+        wheel.rotation.x = (wheel.rotation.x - travelled / 0.42) % (2 * Math.PI);
       }
 
       // Smooth our own stage-space pose; navigation re-poses the stage camera each frame.
       root.updateMatrixWorld(true);
-      const pace = Math.min(30, Math.abs(speed));
-      const distance = 7 + pace * 0.16;
-      const lookAhead = 4 + pace * 0.1;
-      const fov = 38 + pace * 0.45;
-      const height = 1.4 + (distance + lookAhead) * Math.tan(THREE.MathUtils.degToRad(fov * 0.26));
-      const kerb = grounded && kerbs.some(point => Math.hypot(point.x - car.position.x, point.y - car.position.y) < 1.4);
-      const rumble = kerb ? Math.sin(elapsed * 90) * Math.min(0.05, pace * 0.003) : 0;
-      root.localToWorld(eye.set(car.position.x + Math.sin(heading) * distance + 1.1 * Math.cos(heading),
-        car.position.y - Math.cos(heading) * distance + 1.1 * Math.sin(heading), car.position.z + height + rumble));
-      root.localToWorld(target.set(car.position.x - Math.sin(heading) * lookAhead,
-        car.position.y + Math.cos(heading) * lookAhead, car.position.z + 1.4));
+      root.localToWorld(eye.set(car.position.x + Math.sin(heading) * 10, car.position.y - Math.cos(heading) * 10, car.position.z + 6));
+      car.localToWorld(target.set(0, 2, 1.2));
       if (!cameraStarted) {
         cameraPosition.copy(eye);
         cameraTarget.copy(target);
@@ -254,21 +151,9 @@ export default function play(context: {
       const camera = context.camera;
       camera.position.copy(cameraPosition);
       if (camera.parent) camera.parent.worldToLocal(camera.position);
-      camera.up.copy(up).applyAxisAngle(new THREE.Vector3().subVectors(cameraTarget, cameraPosition).normalize(), -roll * 0.3);
-      if ((camera as THREE.PerspectiveCamera).isPerspectiveCamera) {
-        const perspective = camera as THREE.PerspectiveCamera;
-        perspective.fov = fov;
-        perspective.updateProjectionMatrix();
-      }
+      camera.up.copy(up);
       camera.lookAt(cameraTarget);
       camera.updateMatrixWorld(true);
-    },
-    dispose() {
-      root.remove(effects);
-      markGeometry.dispose();
-      markMaterial.dispose();
-      puffGeometry.dispose();
-      for (const puff of puffs) puff.mesh.material.dispose();
     },
   };
 }
