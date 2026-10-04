@@ -60,6 +60,17 @@ export function readSharedSdkUrls(dist: string): Record<string, string> | null {
 export function sharedSdkPlugin(urls: Record<string, string>): Plugin {
   return {
     name: 'volter-shared-sdk', enforce: 'pre',
+    config() {
+      // Registry installs put SDK source inside node_modules, where Vite's
+      // scanner otherwise prebundles it. this.resolve then returns .vite/deps
+      // instead of the SDK's source identity, bypassing the manifest redirect
+      // below and creating private copies of the host's registries/project.
+      // Vite applies a package exclusion to every subpath and externalizes it
+      // from other dependencies' prebundles too. Keep this with the redirect,
+      // not a host's partial list of known SDK doors. The changed exclude list
+      // also invalidates Vite's existing optimizer cache on the next start.
+      return { optimizeDeps: { exclude: ['@volter/editor-sdk'] } };
+    },
     async resolveId(source, importer, options) {
       // These URLs identify the browser composition, never Node tool modules.
       if (options.ssr || (options as { scan?: boolean }).scan) return;
