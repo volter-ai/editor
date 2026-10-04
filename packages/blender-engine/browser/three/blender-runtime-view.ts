@@ -705,6 +705,8 @@ export class BlenderRuntimeView {
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
   private heldRendered: (() => THREE.Camera) | null = null;
+  /** Material Preview can use scene lighting while retaining viewport visibility. */
+  private heldVisibility: 'viewport' | 'render' = 'render';
   /** What the World was last composed for ({@link worldKeyFor}), or null when it is cleared:
    *  composing rebuilds its textures, so it happens only when the key changes. */
   private worldApplied: string | null = null;
@@ -1175,13 +1177,15 @@ export class BlenderRuntimeView {
    * ({@link setRendered}) — the scene's own lights, its World behind and around the model,
    * `hide_render` visibility and shadows — seen through `drawCamera()`, the camera the stage
    * draws with (orthographic in an orthographic view). `null` returns the viewport to modeling.
+   * Material Preview passes viewport visibility independently of its lighting choices.
    * A render taken meanwhile ends back in this state rather than in modeling.
    */
   private heldSceneLighting: { world: boolean; lights: boolean } | undefined;
-  holdRendered(drawCamera: (() => THREE.Camera) | null, sceneLighting?: { world: boolean; lights: boolean }): void {
-    if (drawCamera === this.heldRendered && sceneLighting?.world === this.heldSceneLighting?.world && sceneLighting?.lights === this.heldSceneLighting?.lights) return;
+  holdRendered(drawCamera: (() => THREE.Camera) | null, sceneLighting?: { world: boolean; lights: boolean }, visibility: 'viewport' | 'render' = 'render'): void {
+    if (drawCamera === this.heldRendered && sceneLighting?.world === this.heldSceneLighting?.world && sceneLighting?.lights === this.heldSceneLighting?.lights && visibility === this.heldVisibility) return;
     this.heldRendered = drawCamera;
     this.heldSceneLighting = sceneLighting;
+    this.heldVisibility = visibility;
     if (this.capturing) return;
     this.report(drawCamera === null ? this.applyRendered(false) : this.applyRendered(true, drawCamera()));
   }
@@ -1560,12 +1564,14 @@ export class BlenderRuntimeView {
   }
 
   private applyVisibility(): void {
+    const renderVisibility = this.rendered && (this.capturing || this.heldVisibility === 'render');
     for (const obj of this.frame?.objects ?? []) {
       const object = this.objects.get(obj.id);
-      if (object) object.visible = this.rendered ? obj.render_visible : obj.visible;
+      const visible = renderVisibility ? obj.render_visible : obj.visible;
+      if (object) object.visible = visible;
       if (!obj.light) continue;
       const light = this.lights.get(obj.light);
-      if (light) light.visible = this.sceneLights && obj.render_visible;
+      if (light) light.visible = this.sceneLights && visible;
     }
     // AN OVERLAY IS MODELING CHROME AND IS NEVER PHOTOGRAPHED. The same
     // distinction the loop above draws between what the viewport shows and

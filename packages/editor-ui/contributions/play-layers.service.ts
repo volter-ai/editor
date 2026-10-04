@@ -5,16 +5,16 @@ import { activeRealmServices } from '@volter/editor-game/host/realm-services';
 import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
 export const point = 'workspace.service';
 export function start(): () => void {
-  return registerProjectPlayLayers(async ({ projectRoot, epoch, container }) => {
+  return registerProjectPlayLayers(async ({ projectRoot, epoch, container, onEntries }) => {
     const manifest = await fetchGameManifest();
+    const roots = manifest.roots.filter(declaration => declaration.adapter.identity === 'dom');
+    const entries = roots.flatMap(declaration => declaration.entry ? [declaration.entry] : []);
+    onEntries(entries);
     const realm = await activeRealmServices(projectRoot, epoch);
     const disposals: (() => void)[] = [];
-    const entries: string[] = [];
     const dispose = () => { for (const end of disposals.splice(0).reverse()) end(); };
     try {
-      for (const declaration of manifest.roots) {
-        if (declaration.adapter.identity !== 'dom') continue;
-        if (declaration.entry) entries.push(declaration.entry);
+      for (const declaration of roots) {
         const layer = document.createElement('div');
         Object.assign(layer.style, { position: 'absolute', inset: '0', zIndex: String(declaration.zOrder), pointerEvents: 'none' });
         layer.dataset.rootId = declaration.id;

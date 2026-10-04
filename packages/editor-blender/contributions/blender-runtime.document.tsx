@@ -391,9 +391,9 @@ function BlenderModelViewport(props: ToolContributionProps) {
     };
   }, [game, documentId]);
   if (!documentId) return null;
-  const second = split && !game ? follower : null;
-  // Keep the authoring area's React position stable across Play/Stop. Changing its
-  // wrappers remounts the stage and discards selection, pose and its authoring adapter.
+  const second = split ? follower : null;
+  // Keep both authoring areas mounted across Play/Stop. Remounting a stage discards
+  // its pose/session and repeats the second area's initial scene-camera setup.
   const area = { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } as const;
   return (
     <div style={game || second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
@@ -406,9 +406,9 @@ function BlenderModelViewport(props: ToolContributionProps) {
         </div>
       )}
       {second && (
-        <div key="second" style={area} data-testid="blender-second-area">
+        <div key="second" style={{ ...area, visibility: game ? 'hidden' : undefined }} aria-hidden={game ? true : undefined} data-testid="blender-second-area">
           <BlenderViewportArea {...props} documentId={`${documentId}#area-2`} view={second.view} main={false} />
-          <SecondAreaChrome documentId={documentId} areaId={`${documentId}#area-2`} notify={props.notify} />
+          {!game && <SecondAreaChrome documentId={documentId} areaId={`${documentId}#area-2`} notify={props.notify} />}
         </div>
       )}
     </div>
@@ -808,7 +808,7 @@ function BlenderViewportArea({
       const preview = drawMode === 'preview';
       const sceneLighting = preview ? { world: lighting.source === 'scene', lights: lighting.preview.sceneLights } : undefined;
       const needsScene = lighting.source === 'scene' || (preview && lighting.preview.sceneLights);
-      view.holdRendered(needsScene && stage ? drawCamera : null, sceneLighting);
+      view.holdRendered(needsScene && stage ? drawCamera : null, sceneLighting, preview ? 'viewport' : 'render');
       // BLENDER'S SOLID IS BLENDER'S OWN FUNCTION: while the stage lights by Blender's studio, the
       // presenter draws every surface by it (`blender-workbench-material.ts`).
       view.setWorkbench(lighting.source === 'studio' && lighting.studioPreset === DOCUMENT_STUDIO_PRESET.id);

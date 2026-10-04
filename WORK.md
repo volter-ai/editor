@@ -409,6 +409,15 @@ locks input on entry, freezes the detached scene for the return, and fades its R
 away before revealing the editing stage. Escape completes an in-progress blend. The race's
 resting chase distance is 11 metres, keeping the road ahead readable.
 
+Independent-review follow-up: Material Preview retains viewport visibility independently of
+Scene World/Scene Lights; captures still use render visibility and restore the preview on
+return. The UI Play provider reports all declared entry paths before importing/mounting,
+and the Play tool retains failed-attempt paths through first-update failure so a relevant
+save retries. The second modeling area stays mounted but hidden during Play; only its
+header/shelf chrome stands down. Source review and commit boundary hooks passed; no builds,
+tests or live sessions ran for these fixes. The three checks for the next granted regression
+session B are in [docs/MODEL-PLAY-REGRESSION.md](docs/MODEL-PLAY-REGRESSION.md).
+
 Keymap generation is verified on `launch-integration`: an isolated public Code-OSS
 checkout at `f16dc165c0df` was compiled and its own `KeybindingParser`/`keyCodes`
 validated all 102 rules over 60 commands. The generated files are not byte-identical
@@ -416,6 +425,22 @@ to the substitution: three source hashes changed in both artifacts and the manif
 description capitalizes Volter. All contributed keybindings are identical. Commit
 `cdd0fe96` carries the generator's output, also copied into the compiled workbench.
 This verifies generation; a live keyboard walk remains a separate acceptance.
+
+## Tab recorder frame rate
+
+Raise the shared browser controller's optional recording rate without changing its low-rate
+watcher defaults. State: `~/.codex/skills/browser/scripts/open-session.ts:990` clamps
+`/screencast` to 15 fps; `screencast.ts` forwards only after `1000 / fps` milliseconds and
+resets its deadline to the latest send time, losing cadence when incoming frames do not
+divide evenly into the requested rate. CDP already uses `everyNthFrame: 1`; moving frames
+are capped at 1280 pixels wide. The accepted race take is a 15 fps storyboard; the owner
+records the real clip at full frame rate. Closes when an opt-in 30/60 fps recording path
+preserves source timestamps, accumulates deadlines, bounds backpressure and reports actual
+received/sent/dropped frames, with sustained cadence and native 1920×1080 checked on a
+moving tab through the existing shared connection. Coordinate controller maintenance with
+its owners; preserve tabs and leases. Size: roughly 2–3 controller/recording files, 60–120
+lines and half a day including validation. Tracker only; no controller change or fixed-step
+replay work started.
 
 ## Skeletons and actions in Play
 

@@ -11,6 +11,9 @@ export type ProjectPlayLayers = (options: {
   readonly projectRoot: string;
   readonly epoch: ProjectMountEpoch;
   readonly container: HTMLElement;
+  /** Report all declared entries before importing or mounting them, so a failed
+   * first mount can be retried when an entry or its dependency is saved. */
+  readonly onEntries: (entries: readonly string[]) => void;
 }) => Promise<MountedProjectPlayLayers>;
 const key = Symbol.for('volter.project-play-layers');
 const page = globalThis as typeof globalThis & { [key]?: ProjectPlayLayers };
