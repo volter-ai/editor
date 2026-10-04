@@ -66,6 +66,9 @@ export function sharedSdkPlugin(urls: Record<string, string>): Plugin {
       if (!source.startsWith('@volter/editor-sdk') && !(source.startsWith('.') && importer && sdkModule(importer))) return;
       const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
       const name = resolved && sdkModule(resolved.id);
+      // This door must retain Vite's import.meta.hot. Its page-wide event bus
+      // joins served listeners to bundled consumers without owning tool state.
+      if (name === 'kit/project-module-changes') return resolved;
       return name && urls[name] ? urls[name] : undefined;
     },
   };

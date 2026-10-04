@@ -9,10 +9,12 @@ export function start(): () => void {
     const manifest = await fetchGameManifest();
     const realm = await activeRealmServices(projectRoot, epoch);
     const disposals: (() => void)[] = [];
+    const entries: string[] = [];
     const dispose = () => { for (const end of disposals.splice(0).reverse()) end(); };
     try {
       for (const declaration of manifest.roots) {
         if (declaration.adapter.identity !== 'dom') continue;
+        if (declaration.entry) entries.push(declaration.entry);
         const layer = document.createElement('div');
         Object.assign(layer.style, { position: 'absolute', inset: '0', zIndex: String(declaration.zOrder), pointerEvents: 'none' });
         layer.dataset.rootId = declaration.id;
@@ -23,7 +25,7 @@ export function start(): () => void {
         // Stop can be a parent React commit; unmount the independent root after it.
         disposals.push(() => queueMicrotask(() => mounted.dispose()));
       }
-      return dispose;
+      return { entries, dispose };
     } catch (error) { dispose(); throw error; }
   });
 }

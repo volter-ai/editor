@@ -17,7 +17,8 @@
  *
  * Without UI layers, the tool imports through the live-module URL. When a UI
  * tool offers project roots, all entries share one project mount epoch.
- * A save disposes and rebuilds that composition against the same detached copy.
+ * A save in the mount's dependency graph prepares a replacement against the
+ * same detached copy; its first successful update replaces the running mount.
  */
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { surfaceAcceptsKey, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
@@ -32,7 +33,12 @@ import {
 import type * as THREE from 'three';
 import { projectPlayLayers } from '@volter/editor-sdk/kit/project-play-layers';
 import { beginProjectMountEpoch, projectEntryImportUrl } from '@volter/editor-sdk/session/project-module-url';
-interface PlayComposition { loadScript(): Promise<{ default?: unknown }>; dispose(): void; }
+interface PlayComposition {
+  readonly entries: readonly string[];
+  loadScript(): Promise<{ default?: unknown }>;
+  reveal(): void;
+  dispose(): void;
+}
 
 export interface ModelPlayContext {
   /** The Model group: the detached copy's root. */
@@ -113,42 +119,49 @@ export function runPlayScript(options: {
   let attempt = 0;
   let game: ModelPlayGame | null = null;
   let composition: PlayComposition | null = null;
+  let pending: { game: ModelPlayGame; composition: PlayComposition | null } | null = null;
   const mountLayers = projectPlayLayers();
-  const end = (): void => {
-    const ending = game;
-    game = null;
-    try {
-      ending?.dispose?.();
-    } catch (error) {
+  const dispose = (ending: ModelPlayGame | null, layers: PlayComposition | null): void => {
+    try { ending?.dispose?.(); }
+    catch (error) {
       report(`${modulePath} failed while stopping`, error instanceof Error ? error.message : String(error));
-    }
-    composition?.dispose();
+    } finally { layers?.dispose(); }
+  };
+  const end = (): void => {
+    dispose(game, composition);
+    game = null;
     composition = null;
   };
   const start = async (): Promise<void> => {
     const mine = ++attempt;
-    end();
+    if (pending) { dispose(pending.game, pending.composition); pending = null; }
     let nextComposition: PlayComposition | undefined;
     try {
       if (mountLayers) {
         const project = getCurrentProject();
         if (!project) throw new Error('No project is open.');
         const epoch = beginProjectMountEpoch();
-        const dispose = await mountLayers({ projectRoot: project.rootPath, epoch, container: options.container });
+        const container = document.createElement('div');
+        container.dataset.mountEpoch = String(epoch);
+        Object.assign(container.style, { position: 'absolute', inset: '0', visibility: 'hidden', pointerEvents: 'none' });
+        options.container.appendChild(container);
+        let layers;
+        try { layers = await mountLayers({ projectRoot: project.rootPath, epoch, container }); }
+        catch (error) { container.remove(); throw error; }
         nextComposition = {
+          entries: layers.entries,
           loadScript: () => import(/* @vite-ignore */ projectEntryImportUrl(project.rootPath, modulePath, epoch)),
-          dispose,
+          reveal: () => { container.style.visibility = 'visible'; },
+          dispose: () => { layers.dispose(); container.remove(); },
         };
       }
       if (stopped || mine !== attempt) { nextComposition?.dispose(); return; }
       const next = await startGame(modulePath, context, nextComposition);
       if (stopped || mine !== attempt) {
-        next.dispose?.();
-        nextComposition?.dispose();
+        dispose(next, nextComposition ?? null);
         return;
       }
-      game = next;
-      composition = nextComposition ?? null;
+      pending = { game: next, composition: nextComposition ?? null };
     } catch (error) {
       nextComposition?.dispose();
       if (stopped || mine !== attempt) return;
@@ -157,10 +170,26 @@ export function runPlayScript(options: {
   };
   let firstFrame = true;
   const stopFrames = onFrame((deltaSeconds) => {
+    let replacementUpdated = false;
+    if (pending) {
+      const next = pending;
+      pending = null;
+      try {
+        next.game.update(deltaSeconds);
+        end();
+        game = next.game;
+        composition = next.composition;
+        composition?.reveal();
+        replacementUpdated = true;
+      } catch (error) {
+        dispose(next.game, next.composition);
+        report(`${modulePath} did not start`, error instanceof Error ? error.message : String(error));
+      }
+    }
     if (game === null) return;
     if (!surfaceHoldsKeyboard()) keys.clear();
     try {
-      game.update(deltaSeconds);
+      if (!replacementUpdated) game.update(deltaSeconds);
       if (firstFrame) { firstFrame = false; options.ready(); }
     } catch (error) {
       end();
@@ -179,10 +208,11 @@ export function runPlayScript(options: {
   window.addEventListener('keydown', onKeyDown, true);
   window.addEventListener('keyup', onKeyUp, true);
   window.addEventListener('blur', onBlur);
-  const stopChanges = subscribeProjectModuleChange((changed) => {
+  const stopChanges = subscribeProjectModuleChange((changed, affected) => {
     // A composed HUD and script must remount together, including shared-store
     // edits. A fresh epoch is threaded to both through the UI tool door.
-    if (mountLayers || projectModuleChangeMatches(changed, modulePath)) void start();
+    const entries = [modulePath, ...(composition?.entries ?? pending?.composition?.entries ?? [])];
+    if ([changed, ...(affected ?? [])].some(path => entries.some(entry => projectModuleChangeMatches(path, entry)))) void start();
   });
   void start();
   return () => {
@@ -192,6 +222,7 @@ export function runPlayScript(options: {
     window.removeEventListener('keydown', onKeyDown, true);
     window.removeEventListener('keyup', onKeyUp, true);
     window.removeEventListener('blur', onBlur);
+    if (pending) { dispose(pending.game, pending.composition); pending = null; }
     end();
   };
 }
