@@ -318,6 +318,83 @@ function patchChatSource(checkout, relative, original, replacement, what) {
 }
 
 function patchNativeChat(checkout) {
+	// Participant welcome uses native buttons for standalone trusted command links.
+	// It stays outside transcript history and shares the extension's guarded action.
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `	readonly firstLinkToButton?: boolean;`, `	readonly firstLinkToButton?: boolean;
+	readonly additionalMessageLinksToButtons?: boolean;`, 'participant welcome button option');
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `this.renderMarkdownMessageContent(content.additionalMessage, options);`, `this.renderMarkdownMessageContent(content.additionalMessage, options, options?.additionalMessageLinksToButtons);`, 'participant welcome button rendering');
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `	private renderMarkdownMessageContent(content: IMarkdownString, options: IChatViewWelcomeRenderOptions | undefined): IRenderedMarkdown {
+		const messageResult = this._register(this.markdownRendererService.render(content));
+		// eslint-disable-next-line no-restricted-syntax
+		const firstLink = options?.firstLinkToButton ? messageResult.element.querySelector('a') : undefined;
+		if (firstLink) {
+			const target = firstLink.getAttribute('data-href');
+			const button = this._register(new Button(firstLink.parentElement!, defaultButtonStyles));
+			button.label = firstLink.textContent ?? '';
+			if (target) {
+				this._register(button.onDidClick(() => {
+					this.openerService.open(target, { allowCommands: true });
+				}));
+			}
+			firstLink.replaceWith(button.element);
+		}
+		return messageResult;
+	}`, `	private renderMarkdownMessageContent(content: IMarkdownString, options: IChatViewWelcomeRenderOptions | undefined, standaloneCommands = false): IRenderedMarkdown {
+		const messageResult = this._register(this.markdownRendererService.render(content));
+		const allowedCommands = content.isTrusted === true ? true
+			: typeof content.isTrusted === 'object' ? content.isTrusted.enabledCommands : [];
+		// Like viewsWelcome, a paragraph containing only a link is an action.
+		// Inline links and untrusted commands retain ordinary Markdown rendering.
+		// eslint-disable-next-line no-restricted-syntax
+		const firstLink = options?.firstLinkToButton ? messageResult.element.querySelector('a') : undefined;
+		// eslint-disable-next-line no-restricted-syntax
+		const links = standaloneCommands ? Array.from(messageResult.element.querySelectorAll('p > a:only-child')).filter(link => {
+			const target = link.getAttribute('data-href');
+			return link.parentElement?.textContent?.trim() === link.textContent?.trim()
+				&& target?.startsWith('command:')
+				&& (allowedCommands === true || allowedCommands.includes(URI.parse(target).path));
+		}) : firstLink ? [firstLink] : [];
+		for (const link of links) {
+			const target = link.getAttribute('data-href');
+			const button = this._register(new Button(link.parentElement!, defaultButtonStyles));
+			button.label = link.textContent ?? '';
+			if (target) {
+				this._register(button.onDidClick(() => {
+					this.openerService.open(target, { allowCommands: standaloneCommands ? allowedCommands : true });
+				}));
+			}
+			link.replaceWith(button.element);
+		}
+		return messageResult;
+	}`, 'standalone trusted welcome commands');
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts', `							isWidgetAgentWelcomeViewContent: this.input?.currentModeKind === ChatModeKind.Agent`, `							isWidgetAgentWelcomeViewContent: this.input?.currentModeKind === ChatModeKind.Agent,
+							additionalMessageLinksToButtons: true`, 'participant welcome action styling');
+
+	// The toolbar/keyboard New Chat door must honor a provider-owned creation menu.
+	// Keep this out of the shared clear helper: Send to New Chat also calls that
+	// helper, and cancelling an interactive picker must never submit into the old chat.
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/actions/chatNewActions.ts', `import { IChatService } from '../../common/chatService/chatService.js';`, `import { IChatService } from '../../common/chatService/chatService.js';
+import { ICommandService } from '../../../../../platform/commands/common/commands.js';
+import { IChatSessionsService } from '../../common/chatSessionsService.js';
+import { getDefaultNewChatSessionTypeAndReason } from '../../common/constants.js';
+import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-owned New Chat imports');
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/actions/chatNewActions.ts', `	const model = widget.viewModel?.model;
+	if (model && !(await handleCurrentEditingSession(model, undefined, dialogService))) {`, `	// A non-delegating provider owns creation through chatSessions/newSession.
+	// Dispatch before native confirmation/stop: cancelling its picker must leave
+	// the old conversation, draft and edit-review tabs untouched, just as opening
+	// that provider's contributed creation command directly does.
+	const resolved = getDefaultNewChatSessionTypeAndReason(accessor, {
+		explicitOverride: sessionType,
+		currentSessionType: currentSession ? getChatSessionType(currentSession) : undefined,
+	});
+	if (accessor.get(IChatSessionsService).getChatSessionContribution(resolved.sessionType)?.canDelegate === false) {
+		await accessor.get(ICommandService).executeCommand(\`workbench.action.chat.openNewChatSessionExternal.\${resolved.sessionType}\`);
+		return;
+	}
+
+	const model = widget.viewModel?.model;
+	if (model && !(await handleCurrentEditingSession(model, undefined, dialogService))) {`, 'provider-owned New Chat creation');
+
 	// The native input-state API must not broadcast one conversation's permission
 	// changes into every other conversation owned by the same provider.
 	patchChatSource(checkout, 'src/vs/workbench/api/common/extHostChatSessions.ts', `\t\t// Temporary workaround: input state changes for one resource are propagated to all
@@ -452,15 +529,12 @@ function patchProduct(checkout) {
  * extension is not there (`build/lib/copilot.ts`'s `prepareBuiltInCopilotRipgrepShim`: "Copilot
  * SDK directory not found"). This release does not bundle it, so the step has nothing to do —
  * and an unconditional throw is not a thing a caller can route around, which is why this is a
- * patch and not a flag. Same shape as the other two: strip our lines, re-insert from the file's
- * own text, refuse by name if upstream moved the block.
+ * patch and not a flag. Detect the complete applied block before removing legacy markers;
+ * stripping only its comments left the executable guard behind and added another on each run.
  */
 function patchRehCopilotShim(checkout) {
 	const path = join(checkout, REH_GULPFILE);
-	const source = readFileSync(path, 'utf8')
-		.split('\n')
-		.filter((line) => !line.includes('// VOLTER (overlaid tier') && !line.includes('VOLTER_NO_BUILTIN_COPILOT'))
-		.join('\n');
+	const source = readFileSync(path, 'utf8');
 	const anchor = "\t\tconst builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');\n";
 	if (!source.includes(anchor)) {
 		fail(`${path} has no \`${anchor.trim()}\` — upstream moved the Copilot ripgrep shim and this patch needs re-aiming.`);
@@ -469,7 +543,11 @@ function patchRehCopilotShim(checkout) {
 		'\t\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): extensions/copilot is not in\n' +
 		'\t\t// this release, so there is no built-in Copilot SDK to shim. VOLTER_NO_BUILTIN_COPILOT.\n' +
 		'\t\tif (!fs.existsSync(builtInCopilotExtensionDir)) { return; }\n';
-	writeFileSync(path, source.replace(anchor, anchor + guard));
+	if (source.includes(anchor + guard)) { return; }
+	const unmarked = source.split('\n')
+		.filter((line) => !line.includes('// VOLTER (overlaid tier') && !line.includes('VOLTER_NO_BUILTIN_COPILOT'))
+		.join('\n');
+	writeFileSync(path, unmarked.replace(anchor, anchor + guard));
 }
 
 /**

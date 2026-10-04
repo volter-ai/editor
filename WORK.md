@@ -357,6 +357,36 @@ processes (its W74), not only prebaked files.
 
 ## Chat sign-in and project starter prompts (source, 2026-10-04)
 
+W50 passed Supercode `29d8fac99` in native empty-state content: all three pointer
+fills, one real HUD turn, starters disappearing after Send and remaining absent
+when reopening the earlier conversation with seven history entries. The walk also
+found the generic New Session button created an unbound `supercode:/untitled-*`
+draft. The source overlay now routes the native toolbar/keyboard New Chat action
+through the resolved non-delegating provider's existing creation command, including
+its Harness/Model/Effort flow. Provider-owned creation dispatches before native
+edit confirmation or stopping the old editing session, so picker cancellation
+preserves review tabs as well as the old conversation and draft. It follows the
+same lifecycle as invoking the provider's own New Session command directly.
+The shared clear helper used by Send to New Chat is unchanged.
+
+At this Code-OSS pin, neither the participant API nor internal welcome content has
+`suggestedPrompts`. The source overlay extends the welcome renderer's existing
+link-to-button mechanism for participant additional content: every trusted command
+link alone in a paragraph becomes a native button. Inline/untrusted links stay
+Markdown. The extension still supplies short labels and the same guarded fill
+command; the native empty-state lifetime removes buttons after a user turn.
+Both introductory strings belong to the Supercode extension's `package.json`.
+These follow-ups are source-only, not covered by W50: next verification needs the
+frontend build, overlay application, then direct Code-OSS `compile-client` serially.
+No host, Model browser or Node bundle build is required. A fresh session must verify
+all button fills, first-turn removal and the visible New Session flow (including
+picker cancellation), with its own capacity grant.
+The REH Copilot shim patch also detects its complete applied block before stripping
+legacy marker comments. Reapplying the overlay now leaves that block untouched,
+including the preserved earlier duplicate-guard evidence in the kept fork; it does
+not append another guard. This idempotence fix is source-reviewed, not applied or
+executed in the source-only follow-up.
+
 Supercode's native Chat frontend owns sign-in and starter buttons; the editor's
 private host controls supply readiness, revalidated install/login terminal launches
 and project data. Codex is offered first as **Sign in with ChatGPT**; the only
