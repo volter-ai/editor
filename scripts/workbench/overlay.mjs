@@ -436,6 +436,7 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
  *    minified service dereferences, so the shape is simply kept.
  *  - `extensionEnabledApiProposals` grants Supercode its proposals and the user-installed
  *    official Codex extension only the two proposals its reviewed manifest declares.
+ *  - `trustedExtensionPublishers` trusts only OpenAI for the person's one-click Codex install.
  *  - `extensionsGallery` enables user installation from Open VSX; neither official agent
  *    extension is bundled. Code-OSS retains its user-controlled update/recommendation defaults.
  *
@@ -475,6 +476,7 @@ function patchProduct(checkout) {
 		[CHAT_EXTENSION.id]: [...CHAT_EXTENSION.proposals],
 		'openai.chatgpt': ['chatSessionsProvider', 'languageModelProxy'],
 	};
+	product.trustedExtensionPublishers = ['openai'];
 	// Open VSX's Code-OSS adapter, including resources for web extensions.
 	// https://github.com/eclipse-openvsx/openvsx/wiki/Using-Open-VSX-in-VS-Code
 	product.extensionsGallery = {
