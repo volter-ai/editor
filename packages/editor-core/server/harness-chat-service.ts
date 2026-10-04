@@ -1303,7 +1303,8 @@ export class HarnessChatService {
 
   /**
    * The key of this project's saved conversation, or else of its most recent session whose
-   * harness can still resume (the selected harness's, when one was chosen), or `null` when it
+   * harness the SDK permits to resume automatically (or the explicitly selected harness
+   * can resume), or `null` when it
    * has none. Only sessions whose `cwd` IS this project count: a session the person ran
    * somewhere else is not this project's history, and resuming it would put another folder's
    * conversation in this folder's panel.
@@ -1319,8 +1320,14 @@ export class HarnessChatService {
     }
     if (saved) return null;
     const root = resolve(this.options.getProjectRoot());
+    // A discovered session is not a saved choice. Apply the SDK's automatic
+    // policy only when the person has chosen neither a conversation nor an agent.
     const resumable = new Set(
-      this.lastSnapshot.harnesses.filter((harness) => harness.availableActions.resume).map((harness) => harness.id),
+      this.lastSnapshot.harnesses.filter((harness) =>
+        this.chatSelection.harness
+          ? harness.availableActions.resume
+          : harness.availableActions.autoResume === true,
+      ).map((harness) => harness.id),
     );
     const mine = this.lastSnapshot.sessions
       .filter((session) => resumable.has(session.harness) && session.cwd !== null)
@@ -1446,7 +1453,10 @@ export class HarnessChatService {
     this.managedRuntime = null;
     void handoff?.dispose();
     this.closing = controller
-      ? withTimeout(controller.close(), 2_500, 'Volter Harness shutdown').then(() => undefined)
+      ? withTimeout(controller.close(), 2_500, 'Volter Harness shutdown').then(
+          () => undefined,
+          () => undefined,
+        )
       : Promise.resolve();
     return this.closing;
   }
