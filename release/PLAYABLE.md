@@ -75,6 +75,8 @@ pending-approval labels. This is packed-byte verification, not a new live walk.
 The attachment client remains **0.2.7**, matching npm latest and its existing lock
 integrity; editor-core needs no further version change. No dependency was installed.
 
+The frontend pin now advances to **0.1.18**, published at `021ad2af07a06ec996d11a37bc5d838592ade71a`, which contains PR1053 follow-up `fc3aafd3b`. Its verified tarball includes the unlocked native Model settings command, exact-resource checks and New Session defaults. New Session asks only for the agent (skipping the picker when exactly one is startable); model/reasoning remain configurable through Model settings for a new conversation. These latest bytes have packed/source verification only, not a live walk. The earlier 0.1.17 evidence above remains historical.
+
 The Model Editor still pins
 `model-editor-f16dc165c0df-ae7600a80ae8-darwin-arm64`, SHA256
 `cb5922a25786c658e9cea452a5c9bab42125366154ed53ff84721d9f41418c46`.
