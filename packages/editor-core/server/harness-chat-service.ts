@@ -216,7 +216,7 @@ const RUNTIME_POLICY = 'default' as const;
  * harness, whether it is installed and signed in and what it can do now
  * (`availableActions`); the editor names none of them. A project's own most recent
  * session is resumed with the harness that ran it, when that harness can still resume;
- * otherwise the first harness supercode lists as able to start is started. When none
+ * otherwise only a harness the SDK marks autoStart is selected automatically. When none
  * can, the refusal names each one with supercode's own reason and repair.
  */
 function harnessRefusal(harnesses: readonly HarnessChatHarness[]): string {
@@ -225,7 +225,7 @@ function harnessRefusal(harnesses: readonly HarnessChatHarness[]): string {
     const why = harness.reason ?? (harness.installed ? `not ready (${harness.auth})` : 'not installed');
     return `${harness.label}: ${why}${harness.repair ? ` — ${harness.repair}` : ''}`;
   });
-  return `No coding agent is available for the Chat view. ${lines.join('; ')}.`;
+  return `No coding agent was automatically selected. Sign in or choose an installed agent. ${lines.join('; ')}.`;
 }
 
 /** What the host gets back: the environment to spawn the REH with, or why there is none. */
@@ -1108,14 +1108,14 @@ export class HarnessChatService {
     await this.ensureController();
     // A refused startup is recoverable after a terminal install/sign-in. Serialize
     // passive inventory refresh and handoff retries across extension-host callers.
-    if (!this.frontendHandoffValue && this.controller && !this.selectingChat) {
+    if ((!this.frontendHandoffValue || this.setupHarness) && this.controller && !this.selectingChat) {
       this.setupRefresh ??= this.refreshChatSetup().finally(() => { this.setupRefresh = null; });
       await this.setupRefresh;
     }
     const snapshot = this.snapshot();
     const starterPrompts = chatStarterPrompts(this.options.getProjectAdapter?.());
     const launchContext = await this.chatProcessContext();
-    const actions = this.frontendHandoffValue ? [] : chatSetupActions(snapshot.harnesses, launchContext);
+    const actions = chatSetupActions(snapshot.harnesses, launchContext);
     return {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
@@ -1126,7 +1126,8 @@ export class HarnessChatService {
       actualModel: this.observedModel,
       connection: this.frontendHandoffValue?.env,
       busy: (await this.frontendHandoffValue?.isBusy()) || snapshot.turn.state === 'running' || snapshot.requests.length > 0,
-      harnesses: snapshot.harnesses.filter(h => h.availableActions.start).map(h => ({ id: h.id, name: h.label })),
+      harnesses: snapshot.harnesses.filter(h => h.availableActions.start).map(h => ({ id: h.id, name: h.label, autoStart: h.availableActions.autoStart === true,
+        description: h.auth === 'unknown' || h.auth === 'configured' ? 'Authentication unverified' : undefined })),
       models: chatModels(this.chatSelection.harness),
       modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id)])),
       configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
@@ -1146,8 +1147,14 @@ export class HarnessChatService {
     if (!controller) return;
     await controller.dispatch({ type: 'refresh', autoObserve: false, silent: true });
     this.capture();
-    if (this.closed || controller !== this.controller || this.frontendHandoffValue) return;
-    const ready = this.lastSnapshot.harnesses.find(h => h.availableActions.start &&
+    if (this.closed || controller !== this.controller) return;
+    if (this.frontendHandoffValue) {
+      // A sign-in from the picker refreshes availability without replacing the
+      // conversation underneath the person. New Session applies their next choice.
+      if (this.setupHarness && this.lastSnapshot.harnesses.some(h => h.id === this.setupHarness && h.availableActions.autoStart)) this.setupHarness = null;
+      return;
+    }
+    const ready = this.lastSnapshot.harnesses.find(h => h.availableActions.autoStart === true &&
       (!this.setupHarness || h.id === this.setupHarness));
     if (!ready) return;
     if (this.setupHarness) this.chatSelection = { harness: this.setupHarness, model: '', effort: '' };
@@ -1159,7 +1166,7 @@ export class HarnessChatService {
     await this.chatControlState(true);
     const launchContext = await this.chatProcessContext();
     const action = chatSetupActions(this.lastSnapshot.harnesses, launchContext).find(a => a.kind === kind && a.harness === harness);
-    if (!action || this.frontendHandoffValue) throw new Error('This setup action is no longer available.');
+    if (!action) throw new Error('This setup action is no longer available.');
     const program = kind === 'login' ? launchContext.supercode : launchContext.npm;
     if (!program) throw new Error('The setup executable is no longer available.');
     this.setupHarness = harness;
@@ -1345,13 +1352,12 @@ export class HarnessChatService {
           this.capture();
         }
         const resumable = this.resumableSessionKey();
-        // A harness that reports a login goes before one whose login is unknown, so a
-        // signed-in agent is never passed over for one that will refuse; within each group
-        // supercode's own order stands.
-        const signedIn = (harness: HarnessChatHarness) => harness.auth === 'ready' || harness.auth === 'configured';
-        const startable = [...this.lastSnapshot.harnesses]
-          .filter((harness) => harness.availableActions.start)
-          .sort((left, right) => Number(signedIn(right)) - Number(signedIn(left)))[0];
+        // Selection policy belongs to the SDK. Unknown authentication is not an
+        // automatic fallback; an explicitly selected agent can still be started.
+        const startable = this.lastSnapshot.harnesses.find(harness =>
+          this.chatSelection.harness
+            ? harness.id === this.chatSelection.harness && harness.availableActions.start
+            : harness.availableActions.autoStart === true);
         if (resumable === null && !startable) throw new Error(harnessRefusal(this.lastSnapshot.harnesses));
         // With no choice made, the conversation's selection is the harness this dispatch
         // runs: the resumed session's, or the one started. Decided before dispatching,
@@ -1440,10 +1446,7 @@ export class HarnessChatService {
     this.managedRuntime = null;
     void handoff?.dispose();
     this.closing = controller
-      ? withTimeout(controller.close(), 2_500, 'Volter Harness shutdown').then(
-          () => undefined,
-          () => undefined,
-        )
+      ? withTimeout(controller.close(), 75_000, 'Volter Harness shutdown').then(() => undefined)
       : Promise.resolve();
     return this.closing;
   }
@@ -1660,19 +1663,8 @@ export class HarnessChatService {
    * a client without it. `null` means Supercode had nothing to say, and nothing is
    * refused on silence.
    *
-   * A passive probe that answers `unknown` is escalated to the HANDSHAKE probe for this
-   * one harness — Supercode's own recommended next step, and the only way to tell "not
-   * signed in" from "cannot tell without opening it". Measured 2026-09-21: OpenCode on
-   * this box reads `auth: unknown` passively and `auth: ready` under the handshake (3.9s),
-   * so treating the passive answer as a refusal would have blocked a working harness.
-   *
-   * WHAT THIS ADDS OVER SUPERCODE'S OWN DOOR, so the next reader does not take it for a
-   * duplicate: the controller already refuses a not-installed or `required` harness in
-   * `harnessActions` (`start: installed && auth !== 'required' && …`) from its LAST
-   * INVENTORY — measured verbatim here on a not-installed harness, which never reaches
-   * this seam. This read is FRESH at the moment of launch, so a sign-in or sign-out since
-   * that refresh counts, and it escalates the `unknown` the controller treats as
-   * startable into a verdict instead of an opaque failure inside the harness.
+   * Native authentication status belongs to Supercode. A protocol handshake is
+   * not authentication and must never promote an unknown agent into an automatic choice.
    */
   private async harnessReadiness(
     harness: string,
@@ -1690,8 +1682,7 @@ export class HarnessChatService {
         return harnesses.find((item) => item.id === harness);
       };
       try {
-        let entry = await ask('passive');
-        if (entry?.installed && entry.auth === 'unknown') entry = (await ask('handshake')) ?? entry;
+        const entry = await ask('passive');
         if (entry) {
           return {
             id: entry.id,

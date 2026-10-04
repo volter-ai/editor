@@ -68,6 +68,8 @@ export interface HarnessChatHarness {
   capabilities: HarnessChatCapabilities;
   availableActions: {
     start: boolean;
+    autoStart?: boolean;
+    login?: boolean;
     resume: boolean;
     attach: boolean;
     send: boolean;
