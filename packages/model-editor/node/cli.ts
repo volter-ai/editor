@@ -19,17 +19,19 @@ try {
   const { values, positionals } = parseArgs({ allowPositionals: true, options: {
     workbench: { type: 'string' }, template: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' },
+    'existing-session': { type: 'boolean' },
     ...SCREENSHOT_OPTIONS,
   } });
   const [verb = 'edit', folder = '.'] = positionals;
   if (values.template && verb !== 'create') throw new Error('--template belongs to create.');
   if (values.list && verb !== 'eval') throw new Error('--list belongs to eval.');
+  if (values['existing-session'] && verb !== 'blender-mcp') throw new Error('--existing-session belongs to blender-mcp.');
   for (const key of Object.keys(SCREENSHOT_OPTIONS) as (keyof typeof SCREENSHOT_OPTIONS)[])
     if (values[key] !== undefined && verb !== 'screenshot') throw new Error(`--${key} belongs to screenshot.`);
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Model Editor\n  volter-model-editor create <folder> [--template models|playable] [--workbench <dir>]\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
+    console.log(`Volter Model Editor\n  volter-model-editor create <folder> [--template models|playable] [--workbench <dir>]\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
   } else if (verb === 'hosted') {
     await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {
@@ -45,6 +47,11 @@ try {
     // an editor; launcher output goes to stderr so stdout remains JSON-RPC.
     await serveBlenderMcp(project, async () => {
       const { resolveSession } = await import('@volter/editor-live');
+      if (values['existing-session']) {
+        // Propagate attachment failures without the ordinary lazy editor launch.
+        await resolveSession(project);
+        return;
+      }
       try { await resolveSession(project); return; } catch { /* launch diagnoses stale sessions */ }
       await new Promise<void>((done, fail) => {
         const child = spawn(process.execPath, [fileURLToPath(import.meta.url), 'edit', project], {

@@ -8,6 +8,8 @@
 
 Open Track, then run through the session's Blender:
     editor.blender('blender-execute', { code: open('src/models/track.py').read() })
+The agent's blender MCP server is declared in .mcp.json and runs the project's
+installed Model Editor CLI directly in Node, without an npm/bin shim.
 
 Only track.blend may be replaced; the session saves it. View > Play drives
 its grey Cube with arrows/WASD. Move any Ramp* mesh onto the circuit to jump.
