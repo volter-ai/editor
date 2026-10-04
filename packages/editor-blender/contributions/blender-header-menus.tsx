@@ -60,7 +60,7 @@ import {
 } from './blender-outliner-authoring';
 import { blenderOutlinerVersion, subscribeBlenderOutliner } from './blender-outliner-model';
 import { areaSplit, setAreaSplit, subscribeAreaSplit } from '../src/area-split';
-import { modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
+import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
 
 type MenuId = 'view' | 'select' | 'add' | 'object';
 
@@ -274,11 +274,9 @@ export function BlenderObjectModeHeader({
     () => (documentId === undefined ? false : areaSplit(documentId)),
     () => false,
   );
-  const playing = useSyncExternalStore(
-    subscribeModelPlay,
-    () => (documentId === undefined ? false : modelPlaying(documentId)),
-    () => false,
-  );
+  const playExtension = useSyncExternalStore(subscribeDocumentPlayExtensions, () => documentPlayExtension('model'), () => null);
+  const PlayControl = playExtension?.Control;
+  const PlayMenu = playExtension?.Menu;
   const handle = blenderOutlinerHandle(documentId);
   // NOTHING RATHER THAN A DEAD BAR: with no Outliner published for this
   // document there is no subject for any of these rows, and a menu of rows
@@ -387,19 +385,7 @@ export function BlenderObjectModeHeader({
             Close Area
           </MenuItem>
         </MenuSubmenu>
-        <MenuSeparator />
-        {/* PLAY — not Blender's row: the model's play script moves a detached copy of it on this
-            stage (`src/model-play.ts`, `src/play-script.ts`). Escape stops it too. */}
-        <MenuItem
-          data-testid="blender-play"
-          disabled={documentId === undefined}
-          onSelect={() => {
-            setOpen(null);
-            if (documentId !== undefined) setModelPlaying(documentId, !playing);
-          }}
-        >
-          {playing ? 'Stop' : 'Play'}
-        </MenuItem>
+        {PlayMenu && <><MenuSeparator /><PlayMenu documentId={documentId} onClose={() => setOpen(null)} /></>}
       </MenuWord>
       {/* SELECT — `VIEW3D_MT_select_object`, `space_view3d.py:1713-1715`. The
           three rows are `object.select_all` with action SELECT / DESELECT /
@@ -530,6 +516,7 @@ export function BlenderObjectModeHeader({
           Delete
         </MenuItem>
       </MenuWord>
+      {PlayControl && <PlayControl documentId={documentId} onClose={() => setOpen(null)} />}
     </EditorToolbar>
   );
 }

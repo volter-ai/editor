@@ -576,6 +576,8 @@ export const frameSchema = z
         perspective: z.enum(['PERSP', 'ORTHO', 'CAMERA']),
         lens: z.number().finite().positive().default(50),
         shading: z.enum(['WIREFRAME', 'SOLID', 'MATERIAL', 'RENDERED']).optional(),
+        scene_world: z.boolean().optional(),
+        scene_lights: z.boolean().optional(),
       })
       .nullable()
       .optional(),
@@ -693,9 +695,18 @@ export class BlenderRuntimeView {
   private readonly lightExtrasRoot = new THREE.Group();
   private readonly emptyExtrasRoot = new THREE.Group();
   private rendered = false;
+  private sceneLights = false;
+  private shadowFit: {
+    camera: THREE.Camera | undefined;
+    cameraMatrix: THREE.Matrix4 | undefined;
+    projection: THREE.Matrix4 | undefined;
+    objects: Map<THREE.Object3D, { matrix: THREE.Matrix4; visible: boolean }>;
+  } | null = null;
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
   private heldRendered: (() => THREE.Camera) | null = null;
+  /** Material Preview can use scene lighting while retaining viewport visibility. */
+  private heldVisibility: 'viewport' | 'render' = 'render';
   /** What the World was last composed for ({@link worldKeyFor}), or null when it is cleared:
    *  composing rebuilds its textures, so it happens only when the key changes. */
   private worldApplied: string | null = null;
@@ -881,6 +892,8 @@ export class BlenderRuntimeView {
     readonly projection: 'perspective' | 'orthographic';
     readonly lens: number;
     readonly drawMode: 'wireframe' | 'solid' | 'preview' | 'rendered' | null;
+    readonly sceneWorld: boolean;
+    readonly sceneLights: boolean;
   } | null {
     const saved = this.frame?.view;
     if (!saved) return null;
@@ -896,6 +909,8 @@ export class BlenderRuntimeView {
       projection: saved.perspective === 'ORTHO' ? 'orthographic' : 'perspective',
       lens: saved.lens,
       drawMode: saved.shading ? SAVED_SHADING[saved.shading] : null,
+      sceneWorld: saved.scene_world ?? false,
+      sceneLights: saved.scene_lights ?? false,
     };
   }
 
@@ -1162,13 +1177,24 @@ export class BlenderRuntimeView {
    * ({@link setRendered}) — the scene's own lights, its World behind and around the model,
    * `hide_render` visibility and shadows — seen through `drawCamera()`, the camera the stage
    * draws with (orthographic in an orthographic view). `null` returns the viewport to modeling.
+   * Material Preview passes viewport visibility independently of its lighting choices.
    * A render taken meanwhile ends back in this state rather than in modeling.
    */
-  holdRendered(drawCamera: (() => THREE.Camera) | null): void {
-    if (drawCamera === this.heldRendered) return;
+  private heldSceneLighting: { world: boolean; lights: boolean } | undefined;
+  holdRendered(drawCamera: (() => THREE.Camera) | null, sceneLighting?: { world: boolean; lights: boolean }, visibility: 'viewport' | 'render' = 'render'): void {
+    if (drawCamera === this.heldRendered && sceneLighting?.world === this.heldSceneLighting?.world && sceneLighting?.lights === this.heldSceneLighting?.lights && visibility === this.heldVisibility) return;
     this.heldRendered = drawCamera;
+    this.heldSceneLighting = sceneLighting;
+    this.heldVisibility = visibility;
     if (this.capturing) return;
     this.report(drawCamera === null ? this.applyRendered(false) : this.applyRendered(true, drawCamera()));
+  }
+
+  /** Prepare a rendered viewport before revealing its first frame, using the
+   * same lighting/image/World readiness as a photograph. Call after the stage
+   * has attached the root to its scene. */
+  async prepareRendered(camera: THREE.Camera): Promise<void> {
+    await this.applyRendered(true, camera);
   }
 
   /**
@@ -1179,7 +1205,8 @@ export class BlenderRuntimeView {
     // A photograph in progress keeps its own state; it returns to this one when it ends.
     if (this.heldRendered === null || this.capturing) return;
     const camera = this.heldRendered();
-    if (this.worldKeyFor(camera) === this.worldApplied) return;
+    const worldKey = this.heldSceneLighting?.world === false ? null : this.worldKeyFor(camera);
+    if (worldKey === this.worldApplied) return;
     this.report(this.applyRendered(true, camera));
   }
 
@@ -1192,7 +1219,12 @@ export class BlenderRuntimeView {
     const ortho = (camera as THREE.OrthographicCamera).isOrthographicCamera;
     // Coarse, so an orbit recomposes a handful of times rather than every frame.
     const turn = ortho ? camera.getWorldDirection(new THREE.Vector3()).toArray().map((v) => v.toFixed(1)).join(',') : '';
-    return `${camera.uuid}:${turn}:${this.worldKey}`;
+    // A stage can announce itself before parenting the model into its Scene.
+    // Retry after that attachment; the first World apply otherwise finds no Scene
+    // and its cached key leaves the viewport with no sky or ambient light.
+    let owner: THREE.Object3D = this.root;
+    while (owner.parent) owner = owner.parent;
+    return `${owner.uuid}:${camera.uuid}:${turn}:${this.worldKey}`;
   }
 
   private report(work: Promise<void>): void {
@@ -1267,6 +1299,10 @@ export class BlenderRuntimeView {
       const start = performance.now();
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
+      // The script/navigation has just posed the camera and the detached
+      // objects. Fit shadows for that draw, rather than the camera's pose
+      // when Rendered shading was first entered. Captures use this path too.
+      if (this.rendered) this.applyShadows(true, camera);
       const opaqueDone = performance.now();
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
         options?.interactive === true, options?.height ?? 0);
@@ -1330,7 +1366,11 @@ export class BlenderRuntimeView {
   }
 
   private async applyRendered(rendered: boolean, camera?: THREE.Camera): Promise<void> {
-    const extinction = (rendered ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
+    // A frame or shading change can replace geometry, visibility and lights.
+    this.shadowFit = null;
+    const sceneWorld = rendered && (this.capturing || this.heldSceneLighting?.world !== false);
+    const sceneLights = rendered && (this.capturing || this.heldSceneLighting?.lights !== false);
+    const extinction = (sceneWorld ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
     for (const material of [...this.materials.values(), this.fallback]) applyWorldExtinction(material, extinction);
     // An area light cannot be DRAWN until its lookup tables are uploaded, and a
     // render is one photograph with no second chance at it.
@@ -1338,12 +1378,15 @@ export class BlenderRuntimeView {
     // same way it waits for area-light tables and image decodes: one
     // photograph, no second chance at it.
     this.rendered = rendered;
+    this.sceneLights = sceneLights;
+    // This is the studio rig, not the authored lights. A scene-lit preview
+    // never adds the Solid studio, including World-only Material Preview.
     this.lighting.setRendered(rendered);
     // The scene's world is what a render sees past the geometry AND its
     // ambient light; modeling keeps the document's own backdrop and fill.
     // A photograph always composes its own; the viewport recomposes only when the key changed.
-    const worldKey = rendered && camera ? this.worldKeyFor(camera) : null;
-    if (!rendered) this.world.clear();
+    const worldKey = sceneWorld && camera ? this.worldKeyFor(camera) : null;
+    if (!sceneWorld) this.world.clear();
     else if (this.capturing || worldKey !== this.worldApplied) this.world.apply(this.root, this.frame?.world ?? null, camera);
     this.worldApplied = this.capturing ? null : worldKey;
     this.applyVisibility();
@@ -1381,6 +1424,21 @@ export class BlenderRuntimeView {
    */
   private applyShadows(rendered: boolean, camera?: THREE.Camera): void {
     this.root.updateMatrixWorld(true);
+    const fitted = this.shadowFit;
+    if (rendered && fitted && fitted.camera === camera &&
+      (!camera || (fitted.cameraMatrix?.equals(camera.matrixWorld) && fitted.projection?.equals(camera.projectionMatrix))) &&
+      fitted.objects.size === this.objects.size &&
+      [...this.objects.values()].every(object => {
+        const previous = fitted.objects.get(object);
+        return previous?.visible === object.visible && previous.matrix.equals(object.matrixWorld);
+      })) return;
+    this.shadowFit = rendered ? {
+      camera,
+      cameraMatrix: camera?.matrixWorld.clone(),
+      projection: camera?.projectionMatrix.clone(),
+      objects: new Map([...this.objects.values()].map(object =>
+        [object, { matrix: object.matrixWorld.clone(), visible: object.visible }])),
+    } : null;
     const boxes: THREE.Box3[] = [];
     for (const object of this.objects.values()) {
       const mesh = object as THREE.Mesh;
@@ -1506,12 +1564,14 @@ export class BlenderRuntimeView {
   }
 
   private applyVisibility(): void {
+    const renderVisibility = this.rendered && (this.capturing || this.heldVisibility === 'render');
     for (const obj of this.frame?.objects ?? []) {
       const object = this.objects.get(obj.id);
-      if (object) object.visible = this.rendered ? obj.render_visible : obj.visible;
+      const visible = renderVisibility ? obj.render_visible : obj.visible;
+      if (object) object.visible = visible;
       if (!obj.light) continue;
       const light = this.lights.get(obj.light);
-      if (light) light.visible = this.rendered && obj.render_visible;
+      if (light) light.visible = this.sceneLights && visible;
     }
     // AN OVERLAY IS MODELING CHROME AND IS NEVER PHOTOGRAPHED. The same
     // distinction the loop above draws between what the viewport shows and
