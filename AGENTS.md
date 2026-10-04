@@ -6,8 +6,9 @@ private-history repositories and their legacy releases remain private.
 
 Read `README.md` for the release boundaries and `WORK.md` for remaining work.
 Publish only the packages a reviewed list names: `release/modeling.json` (the
-modeling product, eight packages) or `release/game.json` (the game editor: those
-eight and its five), and keep Blender's corresponding source publicly available
+modeling product, eight packages), `release/game.json` (the game editor), or
+`release/playable.json` (the playable Model Editor skew and its tool dependency
+closure). Keep Blender's corresponding source publicly available
 before distributing its binary. Preserve package licenses, notices and the exact
 source/artifact mapping.
 
