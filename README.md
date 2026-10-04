@@ -2,6 +2,30 @@
 
 # Volter Editor
 
+![A cube on wheels jumping a ramp in the Volter Model Editor, with the outliner and properties panels beside the viewport and a lap timer over it](docs/media/model-play-race.png)
+
+**Volter Model Editor, built on Blender.** Blender 5.2 compiled to WebAssembly and running in a
+browser tab, with the interface in React, the shell in Code-OSS and the viewport in three.js.
+The model on screen is a live three.js scene, so a script can drive it and a React interface
+can sit over it, in the same window, with no export step.
+
+```bash
+npx @volter/model-editor create my-race --template playable
+```
+
+- Needs macOS on Apple Silicon and Node.js 24. Nothing else to install.
+- Opens a race circuit modelled in the editor. Press **Play** in the viewport header: the
+  camera moves from your editing view to the game's, and you drive with the arrow keys or
+  WASD. Escape moves it back and returns the untouched model. A lap is about 30 seconds.
+- `src/models/track.py` is the bpy script that built the scene, `src/models/track.play.ts`
+  is the script Play runs, and `src/ui/` is the React interface drawn over it.
+- The Chat pane runs the coding agent you already have signed in (Codex on a ChatGPT plan,
+  Claude Code, Gemini, Grok). The editor adds no account and bills nothing.
+- A new chat offers three first changes, one per file: add a ramp and crates (`track.py`),
+  add a boost key (`track.play.ts`), rearrange the HUD (`src/ui/race-hud.tsx`). A click puts
+  the request in the message box to edit before sending.
+- `npx @volter/model-editor create my-models` makes a plain modelling project with a cube.
+
 Volter Editor is this stack: a media-neutral editor kit built on Code-OSS, the
 integrations that make each tool a document kind, and the products built on
 them. Two products ship from this repository: the model editor
@@ -12,7 +36,7 @@ private git history. The previous repositories and their legacy releases remain
 private under explicit `*-private-history` names.
 
 The installed product starts its session
-server and opens Blender in a packaged Code-OSS workbench. Installed MCP can
+server and opens Volter Model Editor in a packaged Code-OSS workbench. Installed MCP can
 inspect, edit and photograph the model. Modeling edits persist to the project's
 `.blend` file and survive reopening. Packaged-workbench startup and reuse are
 verified on darwin-arm64. The matching workbench is public and anonymously
