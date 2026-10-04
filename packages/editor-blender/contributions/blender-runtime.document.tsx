@@ -808,7 +808,7 @@ function BlenderViewportArea({
       const preview = drawMode === 'preview';
       const sceneLighting = preview ? { world: lighting.source === 'scene', lights: lighting.preview.sceneLights } : undefined;
       const needsScene = lighting.source === 'scene' || (preview && lighting.preview.sceneLights);
-      view.holdRendered(needsScene && stage ? drawCamera : null, sceneLighting);
+      view.holdRendered(needsScene && stage ? drawCamera : null, sceneLighting, preview ? 'viewport' : 'render');
       // BLENDER'S SOLID IS BLENDER'S OWN FUNCTION: while the stage lights by Blender's studio, the
       // presenter draws every surface by it (`blender-workbench-material.ts`).
       view.setWorkbench(lighting.source === 'studio' && lighting.studioPreset === DOCUMENT_STUDIO_PRESET.id);
