@@ -58,3 +58,17 @@ does not close these checks.
    project module exception should not. Do not remove chunks from the retained integration
    build. Source unit coverage: `packages/editor-core/test/stale-chunk-recovery.test.mjs`
    (Node 24); run through the World only when a test slot is granted.
+
+5. **Registry-installed tools share the host SDK.** In a fresh directory outside any
+   checkout, use the normal registry and the release's README create command with
+   `--template playable`; no workspace links. Confirm Track opens, then Play must
+   move the camera, mount the HUD and accept driving input; Escape must restore the
+   editing view. Inspect the dependency cache: no SDK subpath may be an optimized
+   entry or have its implementation inlined into another dependency's prebundle.
+   Browser imports of SDK modules listed in `volter-shared-sdk.json` must use those
+   host chunk URLs. The project-module change bus stays source-served for HMR.
+   Repeat after a stop/reopen with an existing optimizer cache, and check a HUD
+   save still updates Play without reloading Chat. Record install/cache provenance
+   and console errors. A workspace-linked pass cannot substitute for this check:
+   its realpaths outside `node_modules` bypass the optimizer path that failed in
+   the registry-only 0.5.158 acceptance (`No project is open.` on first Play).
