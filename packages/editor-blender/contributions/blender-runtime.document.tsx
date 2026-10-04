@@ -380,7 +380,7 @@ function BlenderModelViewport(props: ToolContributionProps) {
     if (!game || !documentId) return;
     const modelViewport = documentViewport(documentId);
     if (!modelViewport) return;
-    // The photograph follows the visible stage; the model keeps its registered viewport and pose.
+    // registerObject3DDocumentSession creates this document's own viewport object; capture may follow its visible play area.
     const capture = modelViewport.capture;
     modelViewport.capture = (size) => documentViewport(`${documentId}#play`)?.capture?.(size) ?? null;
     return () => {
