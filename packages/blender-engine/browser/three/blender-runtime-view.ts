@@ -1179,7 +1179,10 @@ export class BlenderRuntimeView {
     // A photograph in progress keeps its own state; it returns to this one when it ends.
     if (this.heldRendered === null || this.capturing) return;
     const camera = this.heldRendered();
-    if (this.worldKeyFor(camera) === this.worldApplied) return;
+    if (this.worldKeyFor(camera) === this.worldApplied) {
+      this.world.refresh();
+      return;
+    }
     this.report(this.applyRendered(true, camera));
   }
 
@@ -1192,7 +1195,12 @@ export class BlenderRuntimeView {
     const ortho = (camera as THREE.OrthographicCamera).isOrthographicCamera;
     // Coarse, so an orbit recomposes a handful of times rather than every frame.
     const turn = ortho ? camera.getWorldDirection(new THREE.Vector3()).toArray().map((v) => v.toFixed(1)).join(',') : '';
-    return `${camera.uuid}:${turn}:${this.worldKey}`;
+    // A stage can announce itself before parenting the model into its Scene.
+    // Retry after that attachment; the first World apply otherwise finds no Scene
+    // and its cached key leaves the viewport with no sky or ambient light.
+    let owner: THREE.Object3D = this.root;
+    while (owner.parent) owner = owner.parent;
+    return `${owner.uuid}:${camera.uuid}:${turn}:${this.worldKey}`;
   }
 
   private report(work: Promise<void>): void {
@@ -1267,6 +1275,10 @@ export class BlenderRuntimeView {
       const start = performance.now();
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
+      // The script/navigation has just posed the camera and the detached
+      // objects. Fit shadows for that draw, rather than the camera's pose
+      // when Rendered shading was first entered. Captures use this path too.
+      if (this.rendered) this.applyShadows(true, camera);
       const opaqueDone = performance.now();
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
         options?.interactive === true, options?.height ?? 0);
