@@ -378,12 +378,11 @@ import { ICommandService } from '../../../../../platform/commands/common/command
 import { IChatSessionsService } from '../../common/chatSessionsService.js';
 import { getDefaultNewChatSessionTypeAndReason } from '../../common/constants.js';
 import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-owned New Chat imports');
-	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/actions/chatNewActions.ts', `	await editingSession?.stop();
-
-	// Create a new session, preserving the session type (or using the specified one)`, `	await editingSession?.stop();
-
-	// A non-delegating provider owns creation through chatSessions/newSession.
-	// Opening an untitled URI bypasses its configuration and runtime binding.
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/actions/chatNewActions.ts', `	const model = widget.viewModel?.model;
+	if (model && !(await handleCurrentEditingSession(model, undefined, dialogService))) {`, `	// A non-delegating provider owns creation through chatSessions/newSession.
+	// Dispatch before native confirmation/stop: cancelling its picker must leave
+	// the old conversation, draft and edit-review tabs untouched, just as opening
+	// that provider's contributed creation command directly does.
 	const resolved = getDefaultNewChatSessionTypeAndReason(accessor, {
 		explicitOverride: sessionType,
 		currentSessionType: currentSession ? getChatSessionType(currentSession) : undefined,
@@ -393,7 +392,8 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
 		return;
 	}
 
-	// Create a new session, preserving the session type (or using the specified one)`, 'provider-owned New Chat creation');
+	const model = widget.viewModel?.model;
+	if (model && !(await handleCurrentEditingSession(model, undefined, dialogService))) {`, 'provider-owned New Chat creation');
 
 	// The native input-state API must not broadcast one conversation's permission
 	// changes into every other conversation owned by the same provider.
