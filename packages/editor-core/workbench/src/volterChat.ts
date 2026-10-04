@@ -43,27 +43,6 @@ registerAction2(class extends Action2 {
 	}
 });
 
-// A draft belongs to a resource, not whichever Chat widget happened to have focus.
-// Do not submit input, create a session, or switch to a different conversation here.
-registerAction2(class extends Action2 {
-	constructor() { super({ id: 'volter.chat.fillInput', title: localize2('fillHarnessChat', 'Fill Harness Conversation Input'), f1: false }); }
-	async run(accessor: ServicesAccessor, value: string, prompt: string) {
-		const resource = URI.parse(value);
-		if (resource.scheme !== 'supercode' || typeof prompt !== 'string' || !prompt.trim()) {
-			throw new Error('Expected a Volter Harness conversation and a nonempty draft.');
-		}
-		const widgets = accessor.get(IChatWidgetService);
-		const widget = widgets.getWidgetBySessionResource(resource);
-		if (!widget || !(await widgets.reveal(widget))) { throw new Error('This conversation is no longer open.'); }
-		if (widget.viewModel?.sessionResource.toString() !== resource.toString()) {
-			throw new Error('The conversation changed before its input could be filled.');
-		}
-		widget.setInput(prompt);
-		widget.focusInput();
-		return { sessionResource: resource.toString(), input: widget.getInput() };
-	}
-});
-
 // Cached native chat models can be revealed without asking their content provider
 // again. Notify the adapter on focus so its model/permission catalogue follows
 // that exact conversation before the next request.

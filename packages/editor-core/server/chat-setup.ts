@@ -1,5 +1,4 @@
 /** Host data for Supercode's native Chat setup. Credentials stay with the harness. */
-import { ChatStarterPromptsSchema } from '@volter/editor-project/adapter/adapter-module';
 import { execFile } from 'node:child_process';
 import { accessSync, constants, statSync } from 'node:fs';
 import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
@@ -58,13 +57,4 @@ export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH
   } catch (error) {
     return { env, installError: `Cannot resolve npm's install directory: ${error instanceof Error ? error.message : String(error)}` };
   }
-}
-
-/** Read the loaded adapter's existing wire facet, never evaluate a second project module.
- * Undefined means the project adapter has not reported yet, not an empty declaration. */
-export function chatStarterPrompts(adapter: unknown): { label: string; prompt: string }[] | undefined {
-  if (!adapter || typeof adapter !== 'object') return undefined;
-  const editor: unknown = Reflect.get(adapter, 'editor');
-  const chat: unknown = editor && typeof editor === 'object' ? Reflect.get(editor, 'chat') : undefined;
-  return ChatStarterPromptsSchema.parse(chat && typeof chat === 'object' ? Reflect.get(chat, 'starterPrompts') : []);
 }
