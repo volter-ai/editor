@@ -269,6 +269,8 @@ export function withManagedRuntimeObserver(
 export interface HarnessChatServiceOptions {
   engineRoot: string;
   getProjectRoot: () => string;
+  /** Loaded adapter facet from the local controlling tab; absent until project boot reports it. */
+  getProjectAdapter?: () => unknown;
   onChange: (snapshot: HarnessChatSnapshot) => void;
   initializeTimeoutMs?: number;
   /** Test seam; production periodically discovers sessions launched after editor boot. */
@@ -1048,6 +1050,7 @@ export class HarnessChatService {
       await this.setupRefresh;
     }
     const snapshot = this.snapshot();
+    const starterPrompts = chatStarterPrompts(this.options.getProjectAdapter?.());
     return {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
@@ -1066,7 +1069,8 @@ export class HarnessChatService {
         reason: this.frontendHandoffValue ? null : this.frontendRefusalValue,
         cwd: this.options.getProjectRoot(),
       },
-      starterPrompts: chatStarterPrompts(this.options.getProjectRoot()),
+      starterPrompts: starterPrompts ?? [],
+      starterPromptsPending: Boolean(this.options.getProjectAdapter) && starterPrompts === undefined,
     };
   }
 

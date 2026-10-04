@@ -44,10 +44,10 @@ function checkoutNodeModules(): string | null {
 
 /** The playable starter owns its Chat suggestions; plain model projects supply none.
  * The playable template is developed on model-play-race and composes this hook. */
-async function copyStarterChat(template: string | undefined, target: string): Promise<void> {
-  if (template === 'playable') {
-    await copyFile(join(productRoot, 'starter', 'volter.chat.json'), join(target, 'volter.chat.json'));
-  }
+async function starterChatDeclaration(template: string | undefined): Promise<string> {
+  if (template !== 'playable') return '';
+  const chat = JSON.parse(await readFile(join(productRoot, 'starter', 'chat-prompts.json'), 'utf8'));
+  return `, chat: ${JSON.stringify(chat)}`;
 }
 
 export async function writeProject({ name, targetDir, template }: Parameters<ProductCreateDeclaration['create']>[0]) {
@@ -81,7 +81,7 @@ import { ModelLayout } from '@volter/editor-blender/layouts';
 import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 
 export default defineAdapter({
-  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties' },
+  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties'${await starterChatDeclaration(template)} },
   documents: { find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
 });
 `);
@@ -93,7 +93,6 @@ export default defineAdapter({
       mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
     await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
-    await copyStarterChat(template, target);
     for (const file of ['cube.blend', 'cube.py']) {
       await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
     }

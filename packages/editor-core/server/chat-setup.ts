@@ -1,6 +1,5 @@
 /** Host data for Supercode's native Chat setup. Credentials stay with the harness. */
-import { readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { ChatStarterPromptsSchema } from '@volter/editor-project/adapter/adapter-module';
 import type { HarnessChatHarness } from '../src/harness-chat-types';
 
 export interface ChatSetupAction {
@@ -25,20 +24,11 @@ export function chatSetupActions(harnesses: readonly HarnessChatHarness[]): Chat
   }] : [];
 }
 
-/** Optional project-owned data; no defaults or purpose text belong in the kit. */
-export function chatStarterPrompts(projectRoot: string): string[] {
-  let value: unknown;
-  try { value = JSON.parse(readFileSync(join(projectRoot, 'volter.chat.json'), 'utf8')); }
-  catch (error) {
-    if ((error as NodeJS.ErrnoException).code === 'ENOENT') return [];
-    throw new Error(`volter.chat.json: ${error instanceof Error ? error.message : String(error)}`);
-  }
-  if (!value || typeof value !== 'object' || Array.isArray(value) ||
-      Object.keys(value).some(key => key !== 'starterPrompts')) throw new Error('volter.chat.json: expected { starterPrompts: string[] }.');
-  const prompts = (value as { starterPrompts?: unknown }).starterPrompts;
-  if (!Array.isArray(prompts) || prompts.some(prompt => typeof prompt !== 'string' ||
-      !prompt.trim() || prompt.length > 2000 || /[\x00-\x1f]/.test(prompt))) {
-    throw new Error('volter.chat.json: starterPrompts must contain nonempty single-line strings (up to 2000 characters).');
-  }
-  return prompts.slice(0, 3);
+/** Read the loaded adapter's existing wire facet, never evaluate a second project module.
+ * Undefined means the project adapter has not reported yet, not an empty declaration. */
+export function chatStarterPrompts(adapter: unknown): string[] | undefined {
+  if (!adapter || typeof adapter !== 'object') return undefined;
+  const editor: unknown = Reflect.get(adapter, 'editor');
+  const chat: unknown = editor && typeof editor === 'object' ? Reflect.get(editor, 'chat') : undefined;
+  return ChatStarterPromptsSchema.parse(chat && typeof chat === 'object' ? Reflect.get(chat, 'starterPrompts') : []);
 }
