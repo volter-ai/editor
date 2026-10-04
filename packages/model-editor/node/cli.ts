@@ -16,7 +16,9 @@ import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/
 const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'model-editor', displayName: productPackage.volter.product.displayName, command: Object.keys(productPackage.bin)[0]! };
 
 try {
-  const { values, positionals } = parseArgs({ allowPositionals: true, options: {
+  // Explicit args: a project's .mcp.json starts this CLI under `node --eval`, where parseArgs'
+  // default drops only the exec path and reads the CLI's own path as the verb.
+  const { values, positionals } = parseArgs({ args: process.argv.slice(2), allowPositionals: true, options: {
     workbench: { type: 'string' }, template: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' },
     'existing-session': { type: 'boolean' },

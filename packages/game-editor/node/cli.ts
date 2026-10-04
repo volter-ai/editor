@@ -29,7 +29,9 @@ async function playVerb(verb: 'play' | 'stop'): Promise<void> {
 }
 
 try {
-  const { values, positionals } = parseArgs({ allowPositionals: true, options: {
+  // Explicit args: a project's .mcp.json starts this CLI under `node --eval`, where parseArgs'
+  // default drops only the exec path and reads the CLI's own path as the verb.
+  const { values, positionals } = parseArgs({ args: process.argv.slice(2), allowPositionals: true, options: {
     workbench: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     template: { type: 'string' }, with: { type: 'string' },
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' },
