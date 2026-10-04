@@ -50,6 +50,9 @@ def material(name, value):
 
 # Volter's light semantic roles from brand.volter.ai/tokens.json, in linear RGB.
 asphalt = material("Asphalt", "#16252c")       # surface.inverse
+# Dry asphalt scatters the low sun; it must not read as a polished mirror.
+asphalt.node_tree.nodes.get("Principled BSDF").inputs["Roughness"].default_value = 1.0
+asphalt.node_tree.nodes.get("Principled BSDF").inputs["Specular IOR Level"].default_value = 0.05
 grass = material("Grass", "#5f9a2e")           # scene.instance
 orange = material("Orange", "#ff6a1f")         # accent.orange
 white = material("White", "#f3f2ec")           # text.inverse
