@@ -529,15 +529,12 @@ function patchProduct(checkout) {
  * extension is not there (`build/lib/copilot.ts`'s `prepareBuiltInCopilotRipgrepShim`: "Copilot
  * SDK directory not found"). This release does not bundle it, so the step has nothing to do —
  * and an unconditional throw is not a thing a caller can route around, which is why this is a
- * patch and not a flag. Same shape as the other two: strip our lines, re-insert from the file's
- * own text, refuse by name if upstream moved the block.
+ * patch and not a flag. Detect the complete applied block before removing legacy markers;
+ * stripping only its comments left the executable guard behind and added another on each run.
  */
 function patchRehCopilotShim(checkout) {
 	const path = join(checkout, REH_GULPFILE);
-	const source = readFileSync(path, 'utf8')
-		.split('\n')
-		.filter((line) => !line.includes('// VOLTER (overlaid tier') && !line.includes('VOLTER_NO_BUILTIN_COPILOT'))
-		.join('\n');
+	const source = readFileSync(path, 'utf8');
 	const anchor = "\t\tconst builtInCopilotExtensionDir = path.join(outputDir, 'extensions', 'copilot');\n";
 	if (!source.includes(anchor)) {
 		fail(`${path} has no \`${anchor.trim()}\` — upstream moved the Copilot ripgrep shim and this patch needs re-aiming.`);
@@ -546,7 +543,11 @@ function patchRehCopilotShim(checkout) {
 		'\t\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): extensions/copilot is not in\n' +
 		'\t\t// this release, so there is no built-in Copilot SDK to shim. VOLTER_NO_BUILTIN_COPILOT.\n' +
 		'\t\tif (!fs.existsSync(builtInCopilotExtensionDir)) { return; }\n';
-	writeFileSync(path, source.replace(anchor, anchor + guard));
+	if (source.includes(anchor + guard)) { return; }
+	const unmarked = source.split('\n')
+		.filter((line) => !line.includes('// VOLTER (overlaid tier') && !line.includes('VOLTER_NO_BUILTIN_COPILOT'))
+		.join('\n');
+	writeFileSync(path, unmarked.replace(anchor, anchor + guard));
 }
 
 /**

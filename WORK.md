@@ -378,6 +378,11 @@ frontend build, overlay application, then direct Code-OSS `compile-client` seria
 No host, Model browser or Node bundle build is required. A fresh session must verify
 all button fills, first-turn removal and the visible New Session flow (including
 picker cancellation), with its own capacity grant.
+The REH Copilot shim patch also detects its complete applied block before stripping
+legacy marker comments. Reapplying the overlay now leaves that block untouched,
+including the preserved earlier duplicate-guard evidence in the kept fork; it does
+not append another guard. This idempotence fix is source-reviewed, not applied or
+executed in the source-only follow-up.
 
 Supercode's native Chat frontend owns sign-in and starter buttons; the editor's
 private host controls supply readiness, revalidated install/login terminal launches
