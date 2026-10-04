@@ -83,9 +83,9 @@ export async function managedInferenceLaunch(
     const provider = 'volter-openrouter';
     return {
       program: 'codex',
+      // Choosing an inference provider is not a permission choice: no approval, sandbox or
+      // hook-trust bypass, so this Codex asks, and is confined, exactly as the person's own does.
       arguments: [
-        '--dangerously-bypass-approvals-and-sandbox',
-        '--dangerously-bypass-hook-trust',
         '-c',
         `model_provider=${toml(provider)}`,
         '-c',
@@ -106,8 +106,10 @@ export async function managedInferenceLaunch(
   if (harness === 'claude-code') {
     return {
       program: 'claude',
+      // Permissions ask the person through the Chat, as Supercode's own Claude Code launch does.
       arguments: [
-        '--dangerously-skip-permissions',
+        '--permission-prompt-tool',
+        'stdio',
         '--model',
         inference.model,
         '--print',
