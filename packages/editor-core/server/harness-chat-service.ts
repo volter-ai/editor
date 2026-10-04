@@ -1571,10 +1571,15 @@ export class HarnessChatService {
       // (`project-mcp-servers.ts` carries the measurement). Supplied ones are never
       // overwritten — a caller that already named them meant it.
       if (params === null || typeof params !== 'object') return params;
-      const supplied = params as { mcp_servers?: unknown };
-      if (supplied.mcp_servers !== undefined) return params;
+      // A CODEX CHAT WORKS ON ITS PROJECT: without a sandbox on the start, Codex keeps its config
+      // default, read-only for a folder it has not been told to trust, and refuses every edit.
+      // The chat asks for workspace-write (the project and tmp, no network); anything outside
+      // still asks the person through the approval policy. Only Codex's start takes it.
+      let chat = params as { harness?: string; sandbox?: unknown; mcp_servers?: unknown };
+      if (chat.harness === 'codex' && chat.sandbox === undefined) chat = { ...chat, sandbox: 'workspace-write' };
+      if (chat.mcp_servers !== undefined) return chat;
       const servers = projectMcpServers(workspace);
-      return servers.length > 0 ? { ...supplied, mcp_servers: servers } : params;
+      return servers.length > 0 ? { ...chat, mcp_servers: servers } : chat;
     };
     if (this.options.createClient) {
       const module = this.options.createController
