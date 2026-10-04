@@ -10,8 +10,6 @@
  * themselves in the account panel. Its single caller is `withCodingInference` at the
  * bottom of this file, which reads that explicit `preferredRoute` and passes the backend
  * params through untouched for every other value — `'auto'` is not a choice.
- * `scripts/validate-harness-launch.mjs` refuses any provider credential or provider
- * config written outside that one function, and refuses it gaining a second caller.
  */
 
 import { mkdir, writeFile } from 'node:fs/promises';
@@ -57,8 +55,7 @@ function openCodeModel(model: string): string {
 /**
  * THE OPT-IN, AND THE ONLY PLACE IN THE ESTATE THAT MAY WRITE A PROVIDER CREDENTIAL OR
  * PROVIDER CONFIG INTO A HARNESS LAUNCH. Everything the table needs — the process token
- * name, the Pi extension it materializes — lives inside this function so the guard's
- * span is exactly this function and nothing leaks to module scope.
+ * name, the Pi extension it materializes — lives inside this function.
  *
  * Reached only by a person who chose managed or BYOK coding inference for themselves
  * because they have no subscription for this harness. Returns `undefined` for a harness
