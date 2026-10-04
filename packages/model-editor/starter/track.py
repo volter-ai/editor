@@ -300,6 +300,11 @@ for obj in list(bpy.data.objects):
     obj.parent = parent
     obj.matrix_world = world
 
+# Expanded object rows should name their geometry, not a primitive's .001 data.
+for obj in bpy.data.objects:
+    if obj.data is not None:
+        obj.data.name = obj.name
+
 # Cameras are useful for a render, but their overlay rectangle obscures the edit.
 camera.hide_set(True)
 
