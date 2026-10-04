@@ -77,7 +77,7 @@ try {
     if (verb !== 'create' && verb !== 'edit') throw new Error(`Unknown command: ${verb}`);
     if (verb === 'create') {
       if (!positionals[1]) throw new Error('create requires a new folder name.');
-      if (values.workbench) resolveWorkbench(resolve(values.workbench), 'editor');
+      if (values.workbench) resolveWorkbench(resolve(values.workbench), PRODUCT.id);
       await declaration.create({ name: folder.split(/[\\/]/).at(-1)!, targetDir: resolve(folder), ...(values.template ? { template: values.template } : {}) });
       if (values.workbench) writeWorkbenchDeclaration(resolve(folder), resolve(values.workbench));
 
