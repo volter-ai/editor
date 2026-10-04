@@ -33,3 +33,28 @@ session, preserve the recording project, and restore any deliberately broken sou
 Save before/after frames and relevant public-door state alongside the existing evidence in
 `/tmp/model-play-frames`. Record observed results and limitations; source inspection alone
 does not close these checks.
+
+4. **Project saves preserve the editor page and Chat.** Record the editor load ID, active
+   Chat conversation/native resource and an unsent composer draft. With Play stopped and
+   the UI board closed, save each starter-owned file in turn: `src/ui/game.tsx` (also its
+   `race-hud.tsx` dependency), `src/models/track.play.ts`, and `src/models/track.py`. Use a
+   valid visible change, then a temporary syntax/import error, then repair it. After every
+   save, wait for story discovery/update completion: the load ID, conversation, draft,
+   panel layout and second view must remain unchanged. Repeat while playing; the relevant
+   document/Play owner may update its model/HUD or report an error, but the editor page and
+   Chat must survive. Do not Send. Restore every file afterwards.
+
+   Cover a cold session before first Play and a stopped session after Play/UI-board use;
+   old epoch modules and background story discovery must not change the guarantee. Wait
+   over 60 seconds before a second broken HUD edit: the old stale-chunk recovery throttle
+   could conceal the reload defect for a minute. Capture each failure and repair and read
+   the load ID independently. A project exception must remain reportable, not be swallowed
+   as a deployment error. `track.py` is a source file, not a Vite JS module: saving it alone
+   need not regenerate the blend or change the running scene.
+
+   In a separately authorized disposable deployment check, remove a genuinely lazy hashed
+   editor chunk after loading the old shell, then reach that lazy surface. A confirmed
+   404/410 should still cause one deployment-recovery reload; a 500, offline request or
+   project module exception should not. Do not remove chunks from the retained integration
+   build. Source unit coverage: `packages/editor-core/test/stale-chunk-recovery.test.mjs`
+   (Node 24); run through the World only when a test slot is granted.
