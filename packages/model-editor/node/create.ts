@@ -59,12 +59,12 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
     if (!name.trim()) throw new Error('A project name is required.');
     const target = resolve(targetDir);
     const product = JSON.parse(await readFile(join(productRoot, 'package.json'), 'utf8'));
-    // The kit's lockstep version is the one this product was released against, which a
-    // product-only release (a version npm refused) leaves behind its own version.
+    // The engine a project pins and the kit it installs are the kit's lockstep version
+    // (editor-core/editor-project), which a product-only release leaves behind the product's.
     const kit = product.dependencies['@volter/editor-project'];
     const manifest = GameManifestSchema.parse({
       manifestVersion: 2, name, version: '0.1.0',
-      engine: { version: product.version },
+      engine: { version: kit },
       roots: playable ? [{ id: 'ui', adapter: 'dom', entry: 'src/ui/game.tsx', zOrder: 1 }] : [],
       ...(playable ? { resolution: { width: 1280, height: 720 } } : {}),
     });
