@@ -392,7 +392,11 @@ view at that size (12 settled frames): shadow fitting on every draw took 10.55 m
 13.71 ms. CPU submission medians were 5.09 / 5.00 ms; these samples show no material total
 frame-cost improvement. Scene/shading changes invalidate the fit too. The packaged SDK doorways share tool registries
 and project state. PR #37 carries recording steps; one fresh session is stopped at the
-start line. A full circuit lap has not been driven. No automated tests ran.
+start line. The product key door drove all three ordered checkpoints and crossed the start
+line again: LAP 2, LAST 8:07.41 (`lap-complete.png`). This stop-and-inspect lap includes
+inspection pauses and one infield recovery; it is not a racing-time benchmark. Off-road drag
+was reduced so the capped off-road speed can actually recover onto the track. Temporary
+HUD state attributes used for the check were removed. No automated tests ran.
 
 ## Skeletons and actions in Play
 

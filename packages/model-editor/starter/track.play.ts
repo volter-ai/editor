@@ -130,9 +130,9 @@ export default function play(context: {
         const road = surfaceAt(car.position.x, car.position.y);
         const floor = road ?? 0;
         if (road === null && grounded) {
-          speed *= Math.exp(-8 * h);
+          speed *= Math.exp(-2 * h);
           speed = THREE.MathUtils.clamp(speed, -4, 4);
-          velocity.multiplyScalar(Math.exp(-8 * h));
+          velocity.multiplyScalar(Math.exp(-2 * h));
         }
         // Follow a rising surface; retain its launch velocity when the surface drops away.
         if (grounded && floor >= car.position.z - 0.15) {
