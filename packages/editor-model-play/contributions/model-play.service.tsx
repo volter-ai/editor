@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from 'react';
 import { Button, EditorIcon, editorIcons, MenuItem } from '@volter/editor-sdk/widgets';
 import { registerDocumentPlayExtension, type DocumentPlayControlProps } from '@volter/editor-sdk/kit/document-play-extension';
-import { modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
+import { escapeModelPlay, modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
 import { runPlayScript } from '../src/play-script';
 import type * as THREE from 'three';
 
@@ -28,11 +28,11 @@ function Menu({ documentId, onClose }: DocumentPlayControlProps) {
 }
 export function start(): () => void {
   const unregister = registerDocumentPlayExtension('model', {
-    Control, Menu, playing: modelPlaying, setPlaying: setModelPlaying, subscribe: subscribeModelPlay,
+    Control, Menu, playing: modelPlaying, setPlaying: setModelPlaying, escape: escapeModelPlay, subscribe: subscribeModelPlay,
     run(stage) {
       // The document kind lends native scene objects; this tool owns their Three types.
       return runPlayScript({ ...stage, blend: stage.sourcePath, root: stage.root as THREE.Object3D,
-        camera: stage.camera as () => THREE.Camera });
+        camera: stage.camera as () => THREE.Camera, editingCamera: stage.editingCamera as () => THREE.Camera });
     },
   });
   return unregister;

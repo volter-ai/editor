@@ -576,6 +576,8 @@ export const frameSchema = z
         perspective: z.enum(['PERSP', 'ORTHO', 'CAMERA']),
         lens: z.number().finite().positive().default(50),
         shading: z.enum(['WIREFRAME', 'SOLID', 'MATERIAL', 'RENDERED']).optional(),
+        scene_world: z.boolean().optional(),
+        scene_lights: z.boolean().optional(),
       })
       .nullable()
       .optional(),
@@ -887,6 +889,8 @@ export class BlenderRuntimeView {
     readonly projection: 'perspective' | 'orthographic';
     readonly lens: number;
     readonly drawMode: 'wireframe' | 'solid' | 'preview' | 'rendered' | null;
+    readonly sceneWorld: boolean;
+    readonly sceneLights: boolean;
   } | null {
     const saved = this.frame?.view;
     if (!saved) return null;
@@ -902,6 +906,8 @@ export class BlenderRuntimeView {
       projection: saved.perspective === 'ORTHO' ? 'orthographic' : 'perspective',
       lens: saved.lens,
       drawMode: saved.shading ? SAVED_SHADING[saved.shading] : null,
+      sceneWorld: saved.scene_world ?? false,
+      sceneLights: saved.scene_lights ?? false,
     };
   }
 
@@ -1170,9 +1176,11 @@ export class BlenderRuntimeView {
    * draws with (orthographic in an orthographic view). `null` returns the viewport to modeling.
    * A render taken meanwhile ends back in this state rather than in modeling.
    */
-  holdRendered(drawCamera: (() => THREE.Camera) | null): void {
-    if (drawCamera === this.heldRendered) return;
+  private heldSceneLighting: { world: boolean; lights: boolean } | undefined;
+  holdRendered(drawCamera: (() => THREE.Camera) | null, sceneLighting?: { world: boolean; lights: boolean }): void {
+    if (drawCamera === this.heldRendered && sceneLighting?.world === this.heldSceneLighting?.world && sceneLighting?.lights === this.heldSceneLighting?.lights) return;
     this.heldRendered = drawCamera;
+    this.heldSceneLighting = sceneLighting;
     if (this.capturing) return;
     this.report(drawCamera === null ? this.applyRendered(false) : this.applyRendered(true, drawCamera()));
   }
@@ -1192,7 +1200,8 @@ export class BlenderRuntimeView {
     // A photograph in progress keeps its own state; it returns to this one when it ends.
     if (this.heldRendered === null || this.capturing) return;
     const camera = this.heldRendered();
-    if (this.worldKeyFor(camera) === this.worldApplied) return;
+    const worldKey = this.heldSceneLighting?.world === false ? null : this.worldKeyFor(camera);
+    if (worldKey === this.worldApplied) return;
     this.report(this.applyRendered(true, camera));
   }
 
@@ -1354,7 +1363,9 @@ export class BlenderRuntimeView {
   private async applyRendered(rendered: boolean, camera?: THREE.Camera): Promise<void> {
     // A frame or shading change can replace geometry, visibility and lights.
     this.shadowFit = null;
-    const extinction = (rendered ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
+    const sceneWorld = rendered && (this.capturing || this.heldSceneLighting?.world !== false);
+    const sceneLights = rendered && (this.capturing || this.heldSceneLighting?.lights !== false);
+    const extinction = (sceneWorld ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
     for (const material of [...this.materials.values(), this.fallback]) applyWorldExtinction(material, extinction);
     // An area light cannot be DRAWN until its lookup tables are uploaded, and a
     // render is one photograph with no second chance at it.
@@ -1362,12 +1373,12 @@ export class BlenderRuntimeView {
     // same way it waits for area-light tables and image decodes: one
     // photograph, no second chance at it.
     this.rendered = rendered;
-    this.lighting.setRendered(rendered);
+    this.lighting.setRendered(sceneLights);
     // The scene's world is what a render sees past the geometry AND its
     // ambient light; modeling keeps the document's own backdrop and fill.
     // A photograph always composes its own; the viewport recomposes only when the key changed.
-    const worldKey = rendered && camera ? this.worldKeyFor(camera) : null;
-    if (!rendered) this.world.clear();
+    const worldKey = sceneWorld && camera ? this.worldKeyFor(camera) : null;
+    if (!sceneWorld) this.world.clear();
     else if (this.capturing || worldKey !== this.worldApplied) this.world.apply(this.root, this.frame?.world ?? null, camera);
     this.worldApplied = this.capturing ? null : worldKey;
     this.applyVisibility();
