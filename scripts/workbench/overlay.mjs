@@ -655,12 +655,19 @@ function main() {
 	for (const name of previous.extensions ?? []) { rmSync(join(extensionsDir, name), { recursive: true, force: true }); }
 	for (const tier of previous.lookTiers ?? []) { rmSync(join(checkout, 'src/vs/workbench/contrib', tier.contrib), { recursive: true, force: true }); }
 	rmSync(join(extensionsDir, CHAT_EXTENSION.directory), { recursive: true, force: true });
-	// THE ONE DELETION THIS MAKES IN THE CLONE. `build/lib/extensions.ts` already lists `copilot`
+	// `build/lib/extensions.ts` already lists `copilot`
 	// in `excludedExtensions`, so `compile-non-native-extensions-build` skips it either way; what
 	// packages it is the separate `compile-copilot-extension-build`, which `build-release.mjs`
 	// no longer runs. Removing the directory as well is what makes a sources boot agree with a
 	// release, and what makes "is Copilot in this workbench" answerable by looking.
 	rmSync(join(extensionsDir, COPILOT_EXTENSION), { recursive: true, force: true });
+	// Release packaging also excludes the upstream API-test extension. A sources boot scans
+	// its manifest anyway: it declares a fake `copilot` language-model vendor (and a default
+	// test chat participant), without registering a provider outside the API tests. Model
+	// discovery and thinking-title generation then try to activate that nonexistent provider.
+	// Remove the test contribution at its source, just as the release does; keep real missing
+	// provider warnings intact. Re-applying the overlay is harmless when it is already absent.
+	rmSync(join(extensionsDir, 'vscode-api-tests'), { recursive: true, force: true });
 
 	replaceTree(join(KIT_DIR, 'src'), join(checkout, KIT_TARGET));
 	replaceTree(join(productDir, 'src'), join(checkout, PRODUCT_TARGET));
