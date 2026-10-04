@@ -1,7 +1,16 @@
 {
   "starterPrompts": [
-    "Edit src/models/track.py to add a second Ramp.* wedge and three Crate.* boxes after the first corner. Open Track, rerun the script through the project's Blender MCP, and save track.blend.",
-    "Edit src/models/track.play.ts so holding either Shift key boosts forward top speed from 30 to 45 metres per second. Keep braking unchanged.",
-    "Edit src/ui/race-hud.tsx to move the speed panel to the bottom right and show JUMP instead of AIR while airborne. Keep the lap timer at the top left."
+    {
+      "label": "Add a ramp and crates",
+      "prompt": "Edit src/models/track.py to add a second Ramp.* wedge and three Crate.* boxes after the first corner. Open Track, rerun the script through the project's Blender MCP, and save track.blend."
+    },
+    {
+      "label": "Add a boost key",
+      "prompt": "Edit src/models/track.play.ts so holding either Shift key boosts forward top speed from 30 to 45 metres per second. Keep braking unchanged."
+    },
+    {
+      "label": "Rearrange the HUD",
+      "prompt": "Edit src/ui/race-hud.tsx to move the speed panel to the bottom right and show JUMP instead of AIR while airborne. Keep the lap timer at the top left."
+    }
   ]
 }

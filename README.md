@@ -38,8 +38,8 @@ in the integrated terminal. With no subscription agent installed, it offers
 Codex and shows `npm install -g @openai/codex` before running it. The person
 completes the harness's sign-in; Chat checks readiness and reconnects without a
 reload. Empty Chat can offer up to three project-owned prompts from
-`volter.adapter.ts` (`defineAdapter({ editor: { chat: { starterPrompts: ["…"] } } })`);
-clicking fills the input.
+`volter.adapter.ts` (`defineAdapter({ editor: { chat: { starterPrompts: [{ label: "Add a boost key", prompt: "…" }] } } })`);
+short buttons fill their full instructions into that conversation's input.
 These source changes need the new Supercode frontend and a rebuilt workbench
 release before registry installations receive them; see [WORK.md](WORK.md).
 
