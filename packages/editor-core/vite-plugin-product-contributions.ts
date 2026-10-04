@@ -1,3 +1,4 @@
+import { sharedSdkBuildHooks } from './vite-plugin-shared-sdk';
 /**
  * `volter:contributions/<package>` — a package's DECLARED contributions, read at
  * build/serve time and served as a module of static `import()`s.
@@ -170,6 +171,7 @@ export function productContributionsPlugin(): Plugin {
   const manifests = new Map<string, string>();
   return {
     name: 'volter-product-contributions',
+    ...sharedSdkBuildHooks(),
     resolveId(id, importer) {
       if (!id.startsWith(PRODUCT_CONTRIBUTIONS_PREFIX)) return null;
       const packageName = id.slice(PRODUCT_CONTRIBUTIONS_PREFIX.length);

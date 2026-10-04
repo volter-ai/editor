@@ -465,7 +465,9 @@
     "./kit/stories/StoryPreviewMount": "./src/kit/stories/StoryPreviewMount.tsx",
     "./kit/stories/story-capture": "./src/kit/stories/story-capture.ts",
     "./kit/world-adoption": "./src/kit/world-adoption.ts",
-    "./kit/world-document-routing": "./src/kit/world-document-routing.ts"
+    "./kit/world-document-routing": "./src/kit/world-document-routing.ts",
+    "./kit/document-play-extension": "./src/kit/document-play-extension.ts",
+    "./kit/project-play-layers": "./src/kit/project-play-layers.ts"
   },
   "dependencies": {
     "@codemirror/commands": "6.10.4",

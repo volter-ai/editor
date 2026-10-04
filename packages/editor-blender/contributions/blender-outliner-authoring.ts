@@ -1862,7 +1862,14 @@ export function blenderOutlinerAuthoringFor(
     },
   };
   liveOutliners.add(handle);
-  liveOutlinersChanged();
+  // A factory is called during the stage's React render. Notify the other roots
+  // after that render finishes; synchronously publishing here re-enters a commit.
+  let disposed = false;
+  const announce = setTimeout(() => {
+    if (disposed) return;
+    liveOutlinersChanged();
+    syncFromEngine();
+  }, 0);
 
   // THE ENGINE'S SELECTION ARRIVES ON ITS OWN, and this is what listens for
   // it: a frame (every present carries `selected`/`active`) and a tree read
@@ -1874,11 +1881,12 @@ export function blenderOutlinerAuthoringFor(
   // follow the engine whether or not a panel is currently mounted over it.
   const stopEngineFrames = onBlenderFrame(syncFromEngine);
   const stopEngineTree = subscribeBlenderOutliner(syncFromEngine);
-  syncFromEngine();
 
   return {
     adapter,
     dispose: () => {
+      disposed = true;
+      clearTimeout(announce);
       stopEngineFrames();
       stopEngineTree();
       liveOutliners.delete(handle);

@@ -12,8 +12,8 @@ through adapters and contributions. The rulings this follows were made on
 | Row | Here | Knows |
 | --- | --- | --- |
 | Kit | `@volter/editor-core` (host, session server, workbench tier), `@volter/editor-sdk` (the one API integrations import), `@volter/editor-project` (the project contract) | documents, views, selection, history, source writing, stories as portable CSF, the session. No tool, no product, no purpose. |
-| Integration | `@volter/editor-blender`, `@volter/editor-threejs`, `@volter/editor-react`, `@volter/editor-xstate`; a canvas lane is due | one tool made a document kind: its adapters, inspectors, instruments, looks, template fragment. No purpose. |
-| Product | `@volter/model-editor`, `@volter/game-editor` | purpose code only: for the game editor, Play, the transport, input gating, the game layout, ingest of foreign games, the HUD template. The model editor is the Blender integration on the kit. |
+| Integration | `@volter/editor-blender`, `@volter/editor-threejs`, `@volter/editor-react`, `@volter/editor-xstate`, `@volter/editor-model-play`, `@volter/editor-ui`; a canvas lane is due | one tool made a document kind: its adapters, inspectors, instruments, looks, template fragment. No purpose. |
+| Product | `@volter/model-editor`, `@volter/game-editor` | templates and composition for a purpose. The base model template composes Blender and Three; its playable template declares model Play and React UI tools on the project. Tools meet through SDK doors and are available to any composition (owner ruling, 2026-10-03). |
 | Shipped twin | `@volter/threejs-runtime`, `@volter/game-runtime` | helpers a project's own code may call that return the library's own objects. Apache. |
 
 Rules:
@@ -69,6 +69,19 @@ Rules:
   component contracts). `@volter/editor-react` is the first.
 - `@volter/editor-sdk/source-authoring` and `/source-analysis`: the contract types and the
   browser-side analyzer registry shared by the kit and a source-authoring integration.
+
+A product skew is a template and the tool packages its project declares, mounted in the
+same contribution pass as the product's packages. The `models` template declares no Play
+or UI tool. The `playable` template declares `editor-model-play`, `editor-ui` and
+`editor-react`; it retains the Model layout and Blender look. A document lends its detached
+stage through `kit/document-play-extension`; the UI tool offers project DOM roots through
+`kit/project-play-layers`. One mount epoch identifies the script and HUD module graph.
+Packaged compositions publish doorways to the SDK modules they already use; project
+packages resolve those same URLs, preserving registries and project state across both graphs.
+The UI wrapper currently reuses `editor-game`'s DOM authoring implementation. Its
+`RealmServices` imports canvas/Three loaders and its DOM adapter uses game-named types,
+but mounting a DOM root requires no game loop. Those packaging ties remain to extract;
+no Game Editor product code or transport contributions are registered by the UI tool.
 
 ## Measured state (2026-09-25)
 
