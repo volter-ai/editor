@@ -59,6 +59,9 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
     if (!name.trim()) throw new Error('A project name is required.');
     const target = resolve(targetDir);
     const product = JSON.parse(await readFile(join(productRoot, 'package.json'), 'utf8'));
+    // The kit's lockstep version is the one this product was released against, which a
+    // product-only release (a version npm refused) leaves behind its own version.
+    const kit = product.dependencies['@volter/editor-project'];
     const manifest = GameManifestSchema.parse({
       manifestVersion: 2, name, version: '0.1.0',
       engine: { version: product.version },
@@ -79,9 +82,9 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
       ...(playable ? { dependencies: { react: '~19.2.4', 'react-dom': '~19.2.4', three: '^0.180.0' } } : {}),
       devDependencies: {
         '@volter/model-editor': product.version,
-        '@volter/editor-project': product.version,
+        '@volter/editor-project': kit,
         '@volter/editor-blender': product.dependencies['@volter/editor-blender'],
-        ...(playable ? { '@volter/editor-model-play': product.version, '@volter/editor-ui': product.version, '@volter/editor-react': product.version } : {}),
+        ...(playable ? { '@volter/editor-model-play': kit, '@volter/editor-ui': kit, '@volter/editor-react': kit } : {}),
       },
     }, null, 2) + '\n');
     await write('volter.adapter.ts', `import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
