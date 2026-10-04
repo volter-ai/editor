@@ -20,7 +20,7 @@ npx @volter/model-editor create my-race --template playable
 - `src/models/track.py` is the bpy script that built the scene, `src/models/track.play.ts`
   is the script Play runs, and `src/ui/` is the React interface drawn over it.
 - The Chat pane runs the coding agent you already have signed in (Codex on a ChatGPT plan,
-  Claude Code, Gemini, Grok). The editor adds no account and bills nothing.
+  or Claude Code; others from its agent picker). The editor adds no account and bills nothing.
 - Three first things to ask the agent, one per file:
 
   ```text
@@ -38,18 +38,18 @@ npx @volter/model-editor create my-race --template playable
 
 ## Chat and your agent
 
-Chat runs whichever coding agent Volter Harness finds installed and signed in (Claude Code,
-Codex, Grok, Gemini and the others it supports), resuming the project's last conversation
-with the agent that held it. When none is signed in, Chat offers each installed agent's own
-sign-in (Sign in with ChatGPT for Codex) in the integrated terminal; with no agent
-installed, it offers Codex and shows `npm install -g @openai/codex` before running it. Chat
-checks readiness and reconnects without a reload.
+Chat starts Codex or Claude Code by itself when it finds one installed and signed in,
+resuming the project's last conversation with the agent that held it. When neither is signed
+in, Chat offers their own sign-ins (Sign in with ChatGPT for Codex) in the integrated
+terminal; with no agent installed, it offers Codex and shows `npm install -g @openai/codex`
+before running it. Chat checks readiness and reconnects without a reload. Other agents Volter
+Harness supports (Gemini, Grok and more) can be chosen from Chat's agent picker.
 
 The official agent extensions also work in the editor. In the **Extensions** view, search
 `@id:openai.chatgpt` (Codex) or `@id:Anthropic.claude-code` (Claude Code) and choose
 **Install**. Neither is bundled; each brings its own interface and sign-in.
 
-Every project declares the Blender MCP server in both `.mcp.json` and
+Every model editor project declares the Blender MCP server in both `.mcp.json` and
 `.codex/config.toml`, with the same command. Codex loads it once you
 [trust the folder in Codex](https://learn.chatgpt.com/docs/config-file/config-basic).
 Creating a project never writes to your global `~/.codex`.
@@ -79,9 +79,10 @@ history, and Blender keeps the snapshots; redo never reruns a script. History la
 session and resets when another `.blend` opens. An arbitrary Python execution counts as an
 edit, even one that fails part-way, so use the inspection tools for read-only queries.
 
-To move a project to a new release, close the editor, update its `@volter` packages, and
-move `.volter/workbench.json` aside before reopening. The product then downloads the
-matching workbench.
+To move a project to a new release, close the editor, update its `@volter` packages and
+`volter.project.json`'s `engine.version` to the new version, and move
+`.volter/workbench.json` aside before reopening. The product then downloads the matching
+workbench.
 
 ## Game editor
 
@@ -90,8 +91,9 @@ npx @volter/game-editor create my-game
 ```
 
 `create` takes a preset: `game` (the default 3D starter), `prototype`, `full`, `website` or
-`empty`. The game opens in the Game workspace. Scene editing writes the game's own source,
-Play runs it beside the editor, and Export builds a web bundle.
+`empty`. A game with a world (`game`, `prototype`, `full`) opens in the Game workspace: Scene
+editing writes the game's own source, Play runs it beside the editor, and Export builds a web
+bundle.
 
 A game's `node_modules` links to the game editor's runtime image, installed once per version
 under `~/.volter/images/` (or `$VOLTER_HOME/images/`). The image carries every package the
