@@ -2,11 +2,11 @@
   "name": "@volter/game-runtime",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.157",
+  "version": "0.5.158",
   "publishConfig": {
     "access": "public"
   },
-  "description": "THE GAME SHIPPED TWIN: what a shipped game carries because it is a GAME — the host game loop and phase runner, the mount and its adapter registry, input, audio, the dev instruments, data assets and their Vite plugin, the React bindings, the Pixi canvas substrate, and the R3F mount that puts a three.js world inside that host.",
+  "description": "THE GAME SHIPPED TWIN: what a shipped game carries because it is a GAME \u2014 the host game loop and phase runner, the mount and its adapter registry, input, audio, the dev instruments, data assets and their Vite plugin, the React bindings, the Pixi canvas substrate, and the R3F mount that puts a three.js world inside that host.",
   "keywords": [
     "volter",
     "game-engine",

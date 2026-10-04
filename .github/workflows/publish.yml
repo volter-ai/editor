@@ -2,7 +2,7 @@
 # moves each changed package (and what pins it exactly) to its next patch
 # version, the release is built and every version npm lacks is published, and
 # the version commit goes back to publish. Main is built and measured from source.
-# Creating the branch only initializes it; dispatch or a later promotion releases.
+# The first push creating publish is also a promotion; one push releases.
 # Auth is the repository secret NPM_TOKEN
 # (an npm automation token with write on the @volter scope).
 # npm may accept a publish ("+ pkg@ver") and hold it as STAGED until an owner
@@ -22,7 +22,7 @@ permissions:
   id-token: write
 jobs:
   publish:
-    if: github.ref == 'refs/heads/publish' && github.event.created != true
+    if: github.ref == 'refs/heads/publish'
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
@@ -39,7 +39,7 @@ jobs:
           node-version: 24
           registry-url: https://registry.npmjs.org
           cache: npm
-      - name: The release's packages, from release/game.json
+      - name: Both products and the playable tools, from release/game.json
         run: |
           echo "PACKAGES=$(for name in $(node -p "require('./release/game.json').packages.join(' ')"); do grep -l "\"name\": \"$name\"" packages/*/package.json | xargs dirname; done | tr '\n' ' ')" >> "$GITHUB_ENV"
       - run: git config core.fileMode false
@@ -65,7 +65,7 @@ jobs:
       - if: steps.check.outputs.new
         run: npm run build:game
       - if: steps.check.outputs.new
-        run: npm run check:release:game && npm run check:packed-imports:game
+        run: npm run check:release:game && npm run check:release:playable && npm run check:packed-imports:game
       - if: steps.check.outputs.new
         name: Publish
         env:
