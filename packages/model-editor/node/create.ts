@@ -100,11 +100,8 @@ ${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : '
       for (const file of ['game.tsx', 'race-hud.tsx', 'game.stories.tsx'])
         await copyFile(join(productRoot, 'starter/ui', file), join(target, 'src/ui', file));
     } else {
-      for (const file of ['cube.blend', 'cube.py', 'track.py'])
+      for (const file of ['cube.blend', 'cube.py'])
         await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
-      await copyFile(join(productRoot, 'starter', 'base-track.play.ts'), join(target, 'src/models', 'track.play.ts'));
-      // Preserve the base template's existing cube placeholder and authoring path.
-      await copyFile(join(productRoot, 'starter', 'cube.blend'), join(target, 'src/models', 'track.blend'));
     }
     return { targetDir: target, manifest };
 }
