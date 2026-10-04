@@ -85,8 +85,11 @@ export default defineAdapter({
       mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
     await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
-    for (const file of ['cube.blend', 'cube.py']) {
+    for (const file of ['cube.blend', 'cube.py', 'track.py', 'track.play.ts']) {
       await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
     }
+    // THE TRACK'S MODEL STARTS AS THE CUBE: `track.py` replaces the open model and refuses any
+    // file but this one, so running it never writes over another model.
+    await copyFile(join(productRoot, 'starter', 'cube.blend'), join(target, 'src/models', 'track.blend'));
     return { targetDir: target, manifest };
 }

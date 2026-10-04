@@ -42,7 +42,10 @@
 import type { ToolNotice } from '@volter/editor-sdk/contributions';
 import {
   AnchoredMenu,
+  Button,
+  EditorIcon,
   EditorToolbar,
+  editorIcons,
   MenuItem,
   MenuSeparator,
   MenuSubmenu,
@@ -530,6 +533,20 @@ export function BlenderObjectModeHeader({
           Delete
         </MenuItem>
       </MenuWord>
+      <Button
+        size="compact"
+        data-testid="blender-play-button"
+        aria-pressed={playing}
+        disabled={documentId === undefined}
+        title={playing ? 'Stop playing (Escape)' : 'Play this model’s script'}
+        onClick={() => {
+          setOpen(null);
+          if (documentId !== undefined) setModelPlaying(documentId, !playing);
+        }}
+      >
+        <EditorIcon icon={playing ? editorIcons.transport.stop : editorIcons.transport.play} />
+        {playing ? 'Stop' : 'Play'}
+      </Button>
     </EditorToolbar>
   );
 }
