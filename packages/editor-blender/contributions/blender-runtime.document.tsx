@@ -935,7 +935,7 @@ function BlenderViewportArea({
           camera, drawMode: saved.drawMode,
           modes: { preview: {
             lighting: { source: saved.sceneWorld ? 'scene' as const : 'preview' as const, preview: { sceneLights: saved.sceneLights } },
-            ...(saved.sceneWorld ? { backdrop: { source: 'scene' as const } } : {}),
+            backdrop: { source: saved.sceneWorld ? 'scene' as const : 'fill' as const },
           } },
         } : { camera };
       })()}
