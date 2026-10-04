@@ -461,8 +461,11 @@ when reopening the earlier conversation with seven history entries. The walk als
 found the generic New Session button created an unbound `supercode:/untitled-*`
 draft. The source overlay now routes the native toolbar/keyboard New Chat action
 through the resolved non-delegating provider's existing creation command, including
-its Harness/Model/Effort flow. Cancellation returns without opening a generic draft;
-the shared clear helper used by Send to New Chat is unchanged.
+its Harness/Model/Effort flow. Provider-owned creation dispatches before native
+edit confirmation or stopping the old editing session, so picker cancellation
+preserves review tabs as well as the old conversation and draft. It follows the
+same lifecycle as invoking the provider's own New Session command directly.
+The shared clear helper used by Send to New Chat is unchanged.
 
 At this Code-OSS pin, neither the participant API nor internal welcome content has
 `suggestedPrompts`. The source overlay extends the welcome renderer's existing
