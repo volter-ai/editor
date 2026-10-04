@@ -144,7 +144,7 @@ export default function play(context: {
           pitch = THREE.MathUtils.lerp(pitch, slope, 1 - Math.exp(-10 * h));
         } else {
           grounded = false;
-          verticalSpeed -= 18 * h;
+          verticalSpeed -= 30 * h;
           car.position.z += verticalSpeed * h;
           if (car.position.z <= floor && verticalSpeed <= 0) {
             car.position.z = floor;
