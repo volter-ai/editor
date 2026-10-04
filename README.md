@@ -2,6 +2,26 @@
 
 # Volter Editor
 
+![A cube on wheels jumping a ramp in the Volter Model Editor, with the outliner and properties panels beside the viewport and a lap timer over it](docs/media/model-play-race.png)
+
+**Volter Model Editor, built on Blender.** Blender 5.2 compiled to WebAssembly and running in a
+browser tab, with the interface in React, the shell in Code-OSS and the viewport in three.js.
+The model on screen is a live three.js scene, so a script can drive it and a React interface
+can sit over it, in the same window, with no export step.
+
+```bash
+npx @volter/model-editor create my-race --template playable
+```
+
+- Needs macOS on Apple Silicon and Node.js 24. Nothing else to install.
+- Opens a race circuit modelled in the editor. Press **Play** in the viewport header; drive
+  with the arrow keys or WASD; Escape stops and returns the untouched model.
+- `src/models/track.py` is the bpy script that built the scene, `src/models/track.play.ts`
+  is the script Play runs, and `src/ui/` is the React interface drawn over it.
+- The Chat pane runs the coding agent you already have signed in (Codex on a ChatGPT plan,
+  Claude Code, Gemini, Grok). The editor adds no account and bills nothing.
+- `npx @volter/model-editor create my-models` makes a plain modelling project with a cube.
+
 Volter Editor is this stack: a media-neutral editor kit built on Code-OSS, the
 integrations that make each tool a document kind, and the products built on
 them. Two products ship from this repository: the model editor
