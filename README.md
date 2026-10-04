@@ -21,6 +21,9 @@ npx @volter/model-editor create my-race --template playable
   is the script Play runs, and `src/ui/` is the React interface drawn over it.
 - The Chat pane runs the coding agent you already have signed in (Codex on a ChatGPT plan,
   Claude Code, Gemini, Grok). The editor adds no account and bills nothing.
+- A new chat offers three first changes, one per file: add a ramp and crates (`track.py`),
+  add a boost key (`track.play.ts`), rearrange the HUD (`src/ui/race-hud.tsx`). A click puts
+  the request in the message box to edit before sending.
 - `npx @volter/model-editor create my-models` makes a plain modelling project with a cube.
 
 Volter Editor is this stack: a media-neutral editor kit built on Code-OSS, the
