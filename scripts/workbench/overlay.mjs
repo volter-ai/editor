@@ -317,6 +317,26 @@ function patchChatSource(checkout, relative, original, replacement, what) {
 	writeFileSync(file, source.replace(original, replacement));
 }
 
+/** Open VSX installs use the same Node installer from commands and Extensions.
+ * Like VSCodium and code-server, disable Microsoft's repository-signature check:
+ * this Code-OSS build does not ship the proprietary verifier. See
+ * docs/EXTENSION-SIGNATURES.md for pinned references and the remaining checks. */
+function patchExtensionSignatures(checkout) {
+	const path = join(checkout, 'src/vs/platform/extensionManagement/node/extensionManagementService.ts');
+	let source = readFileSync(path, 'utf8');
+	const before = '\t\t\tconst value = this.configurationService.getValue(VerifyExtensionSignatureConfigKey);\n\t\t\tverifySignature = isBoolean(value) ? value : true;';
+	const after = '\t\t\t// VOLTER: Open VSX; no Microsoft repository-signature verifier.\n\t\t\tverifySignature = false;';
+	if (source.includes(after)) { return; }
+	const config = '\t\t@IConfigurationService private readonly configurationService: IConfigurationService,';
+	if (source.split(before).length !== 2 || !source.includes(config) || !source.includes('\tVerifyExtensionSignatureConfigKey,\n')) {
+		fail(`${path}: extension signature installer changed; review the Open VSX patch against the fork pin.`);
+	}
+	source = source.replace(before, after)
+		.replace('\tVerifyExtensionSignatureConfigKey,\n', '')
+		.replace(config, '\t\t// @ts-expect-error no-unused-variable (signature verification is unavailable)\n' + config);
+	writeFileSync(path, source);
+}
+
 function patchNativeChat(checkout) {
 	// The toolbar/keyboard New Chat door must honor a provider-owned creation menu.
 	// Keep this out of the shared clear helper: Send to New Chat also calls that
@@ -670,6 +690,7 @@ function main() {
 	copiedExtensions.push(CHAT_EXTENSION.directory);
 
 	patchNativeChat(checkout);
+	patchExtensionSignatures(checkout);
 	patchRegistrationImports(checkout, tiers);
 	patchWebResources(checkout, tiers);
 	patchRehCopilotShim(checkout);
