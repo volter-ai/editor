@@ -180,6 +180,17 @@ project, `volter-model-editor eval` drives its automation API, and
 inside a project. MCP initialization does not start Blender; its first scene
 request attaches to or opens that project's editor.
 
+Scaffolded projects declare that transport in `.mcp.json`. Node resolves the
+project's `@volter/model-editor/package.json` and imports the CLI named by its
+`bin` declaration in the same process. It needs neither a `.bin` shim nor an
+npm/shell wrapper, including when a source project links a workspace install.
+This uses npm/pnpm or Yarn's `node_modules` linker; the editor's package discovery
+currently requires `node_modules`, so this does not add Yarn PnP support.
+To require an already-open editor, append `--existing-session` after
+`blender-mcp` in the server's args. A scene request then reports an attachment
+failure instead of opening another editor. Without that option, lazy startup
+is unchanged. Initialization itself never starts an editor.
+
 Blender supports explicit native undo in background mode. The editor connects
 its checkpoints to VS Code's history; native snapshots stay in Blender, and
 redo never reruns a Python script. History is session-local and is reset when
