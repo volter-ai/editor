@@ -356,6 +356,21 @@ function patchNativeChat(checkout) {
 		'const defaultAgent = this.chatAgentService.getDefaultAgent(location) ?? this.chatAgentService.getDefaultAgent(ChatAgentLocation.Chat);',
 		'default-agent activation');
 
+	// Session providers may start with an intro response, without inventing a user
+	// message. The native model needs a parent request internally; hide only that
+	// empty parent, leaving the response and its native command buttons visible.
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/common/chatService/chatServiceImpl.ts',
+		'\t\t\t\t// response\n\t\t\t\tif (lastRequest) {',
+		`\t\t\t\t// response
+\t\t\t\tif (!lastRequest) {
+\t\t\t\t\tconst agent = message.participant ? this.chatAgentService.getAgent(message.participant) : undefined;
+\t\t\t\t\tlastRequest = model.addRequest(parseAgentHostHistoryPrompt('', agent), { variables: [] }, 0,
+\t\t\t\t\t\tundefined, agent, undefined, undefined, undefined, undefined, false,
+\t\t\t\t\t\tundefined, undefined, undefined, true, undefined, undefined, false, null,
+\t\t\t\t\t\tfalse, undefined, true); // response-only history: no visible user message
+\t\t\t\t}
+\t\t\t\tif (lastRequest) {`, 'response-only session intro');
+
 	// A product with no authentication provider — ours: `patchProduct` leaves the provider ids
 	// empty, and Supercode fills Chat — has no setup to run. Upstream still registered
 	// Copilot's setup agents, its status entry ("Sign In"), the title-bar and accounts-menu
