@@ -131,6 +131,8 @@ export function runPlayScript(options: {
   let game: ModelPlayGame | null = null;
   let composition: PlayComposition | null = null;
   let pending: { game: ModelPlayGame; composition: PlayComposition | null } | null = null;
+  // A failed mount/update still owns a dependency graph whose next save retries it.
+  let retryEntries: readonly string[] = [];
   const mountLayers = projectPlayLayers();
   const dispose = (ending: ModelPlayGame | null, layers: PlayComposition | null): void => {
     try { ending?.dispose?.(); }
@@ -157,7 +159,11 @@ export function runPlayScript(options: {
         Object.assign(container.style, { position: 'absolute', inset: '0', visibility: 'hidden', pointerEvents: 'none' });
         options.container.appendChild(container);
         let layers;
-        try { layers = await mountLayers({ projectRoot: project.rootPath, epoch, container }); }
+        try {
+          layers = await mountLayers({ projectRoot: project.rootPath, epoch, container,
+            onEntries: (entries) => { if (!stopped && mine === attempt) retryEntries = [...entries]; },
+          });
+        }
         catch (error) { container.remove(); throw error; }
         nextComposition = {
           entries: layers.entries,
@@ -241,7 +247,7 @@ export function runPlayScript(options: {
   const stopChanges = subscribeProjectModuleChange((changed, affected) => {
     // A composed HUD and script must remount together, including shared-store
     // edits. A fresh epoch is threaded to both through the UI tool door.
-    const entries = [modulePath, ...(composition?.entries ?? pending?.composition?.entries ?? [])];
+    const entries = [modulePath, ...retryEntries, ...(composition?.entries ?? []), ...(pending?.composition?.entries ?? [])];
     if ([changed, ...(affected ?? [])].some(path => entries.some(entry => projectModuleChangeMatches(path, entry)))) void start();
   });
   void start();
