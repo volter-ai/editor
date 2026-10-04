@@ -355,7 +355,36 @@ load under 20; at load 40–60 the same opens take 15–30 s. Open: the pack arc
 unpublished while the editor is private. Under 10 s cold needs the substrate to resume
 processes (its W74), not only prebaked files.
 
-## Supported-editing work
+## Chat sign-in and project starter prompts (source, 2026-10-04)
+
+Supercode's native Chat frontend owns sign-in and starter buttons; the editor's
+private host controls supply readiness, revalidated install/login terminal launches
+and project data. Codex is offered first as **Sign in with ChatGPT**; the only
+first-run install is `npm install -g @openai/codex`, shown before the person clicks.
+Passive refresh retries a refused runtime handoff after sign-in, without reloading.
+Default coding launches still inject no provider settings or account credential.
+`volter.chat.json` supplies up to three prompts; buttons fill the composer and send
+nothing. The playable model starter carries race prompts and its scaffold hook;
+that hook becomes reachable when the parallel `model-play-race` template lands.
+Projects with no prompt file, including the plain model starter, offer none.
+
+Verified by reading, Codex/Claude login `--json` plans, frontend TypeScript compile
+and extension packing, the editor host build and the model scaffold typecheck.
+The editor core typecheck passes with its installed `@volter/supercode-client`
+declarations explicitly resolved: the normal command cannot resolve that peer from
+the hoisted UI package. No tests, editor session, browser or actual login ran.
+Live button/layout, cancellation and readiness-transition acceptance remains with
+the pilot. The extension changes are in Supercode's `chat-sign-in` branch; its
+tracker check has 79 existing errors, with no tracker edits in this work.
+
+Not released: the editor still pins frontend 0.1.14. Shipping to
+`npx @volter/model-editor` requires the Supercode PR to land (its main SDK
+autorelease publishes the next frontend version), then that published version's
+editor pin/lock update, a public workbench rebuild/release with a matching
+product artifact hash, and promotion of the measured editor main commit to
+`publish`. This task publishes nothing and changes no released artifact pin.
+
+## Supported-editting work
 
 1. **Native undo/redo:** Code-OSS owns resource ordering and commands; Blender
    owns native snapshots. Redo does not rerun Python. Supported Python/RNA
