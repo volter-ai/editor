@@ -570,7 +570,6 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
   };
   const account = new EditorAccountService();
   const harnessChat = new HarnessChatService({
-    engineRoot,
     getProjectRoot: () => projectRoot,
     resolveCodingInference: (workspace) => account.resolvedCodingInference(workspace),
     onChange: (snapshot) => {

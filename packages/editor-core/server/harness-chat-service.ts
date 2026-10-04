@@ -179,35 +179,7 @@ type SupercodeClientConstructor = new (options?: {
 
 type ChatProcessContext = Awaited<ReturnType<typeof chatProcessEnvironment>> & { supercode: string | undefined };
 
-/**
- * WHETHER THE AGENT ASKS BEFORE IT ACTS, and the one place that is decided.
- *
- * Supercode's runtime launch is policy-gated: `harness_service.rs`'s
- * `runtime_launch(params)` returns a launch ONLY for `yolo`, and the yolo launch for
- * Claude Code is `claude --dangerously-skip-permissions --print …`. Under `default` it
- * returns none and the backend falls back to its OWN prefix
- * (`runtime/adapters.rs`'s `ClaudeCodeRuntimeBackend::new`), which carries
- * `--permission-prompt-tool stdio` instead — so the CLI raises a `can_use_tool` control
- * request, supercode publishes it on `frontend.v2`, and the panel draws Allow / Allow
- * for session / Deny. The same flag decides the terminal attach launch
- * (`resume_instructions`).
- *
- * So the skipped permissions B9c measured on the child process were OURS, not
- * supercode's: the literal is in supercode, the `policy` that selects it was set here.
- *
- * IT HAS A VERSION FLOOR, and that floor is why `packages/editor/package.json` asks for
- * `@volter/supercode` `^0.4.36`. `--permission-prompt-tool stdio` joined the Claude
- * backend's own prefix on 2026-09-04 (`6ef3be26`); the binary an older install resolved here,
- * 0.4.11, is built from 2026-08-24 and predates it. MEASURED on the child of a real session
- * against 0.4.11: `claude --print … --verbose --session-id …` with NO permission handler at
- * all — and supercode's own comment on that flag says a tool call that needs an answer is then
- * refused outright with `permission_denied`. Against 0.4.36 the same launch carries the flag.
- * `default` without the handler is WORSE than `yolo`, so the two move together.
- * The person's approvals are the product's safety and the panel is where they answer
- * them, so the default launch ASKS. Changing this constant changes both launches; there
- * is deliberately no per-call override, because a chat that asks and a terminal that
- * does not is one agent with two safety stories.
- */
+/** Use the native harness's default permission policy for Chat and terminal launches. */
 const RUNTIME_POLICY = 'default' as const;
 
 /**
@@ -270,7 +242,6 @@ export function withManagedRuntimeObserver(
 }
 
 export interface HarnessChatServiceOptions {
-  engineRoot: string;
   getProjectRoot: () => string;
   onChange: (snapshot: HarnessChatSnapshot) => void;
   initializeTimeoutMs?: number;
@@ -526,7 +497,7 @@ async function importOptionalModule<const Names extends readonly string[]>(
   throw unavailableModule(label, failures);
 }
 
-async function importSupercodePackages(engineRoot: string): Promise<{
+async function importSupercodePackages(): Promise<{
   SupercodeHarnessClient: SupercodeClientConstructor;
   SupercodeController: HeadlessControllerConstructor;
   assertSupercodeClientSnapshot: HeadlessSnapshotAssertion;
@@ -534,20 +505,14 @@ async function importSupercodePackages(engineRoot: string): Promise<{
   deriveTaskPlan: HeadlessDeriveTaskPlan;
   sessionReconnectIdentity: HeadlessSessionIdentity;
 }> {
-  const sibling = join(dirname(engineRoot), 'supercode', 'sdk');
-  const cwdSibling = join(dirname(resolve(process.cwd())), 'supercode', 'sdk');
   const controllerCandidates = [
     ...moduleCandidate(process.env['SUPERCODE_CLIENT_PATH'], 'client.mjs'),
     '@volter/supercode-client',
-    join(sibling, 'client', 'client.mjs'),
-    join(cwdSibling, 'client', 'client.mjs'),
   ];
   const [SupercodeHarnessClient, clientModule] = await Promise.all([
     importOptional<SupercodeClientConstructor>('Volter Harness SDK', 'SupercodeHarnessClient', [
       ...moduleCandidate(process.env['SUPERCODE_SDK_PATH'], 'client.mjs'),
       '@volter/supercode-harness-sdk',
-      join(sibling, 'typescript', 'client.mjs'),
-      join(cwdSibling, 'typescript', 'client.mjs'),
     ]),
     importOptionalModule(
       'Volter Harness headless client',
@@ -574,26 +539,16 @@ async function importSupercodePackages(engineRoot: string): Promise<{
   };
 }
 
-async function importSupercodeController(engineRoot: string): Promise<{
+async function importSupercodeController(): Promise<{
   SupercodeController: HeadlessControllerConstructor;
   assertSupercodeClientSnapshot: HeadlessSnapshotAssertion;
   projectConversation: HeadlessProjectConversation;
   deriveTaskPlan: HeadlessDeriveTaskPlan;
   sessionReconnectIdentity: HeadlessSessionIdentity;
 }> {
-  const sibling = join(dirname(engineRoot), 'supercode', 'sdk', 'client', 'client.mjs');
-  const cwdSibling = join(
-    dirname(resolve(process.cwd())),
-    'supercode',
-    'sdk',
-    'client',
-    'client.mjs',
-  );
   const candidates = [
     ...moduleCandidate(process.env['SUPERCODE_CLIENT_PATH'], 'client.mjs'),
     '@volter/supercode-client',
-    sibling,
-    cwdSibling,
   ];
   const clientModule = await importOptionalModule(
     'Volter Harness headless client',
@@ -638,7 +593,7 @@ function findSourceLinkedSupercodeCommand(): string | undefined {
   );
 }
 
-export function findSupercodeCommand(engineRoot: string, cwd = process.cwd(), path = process.env['PATH'] ?? ''): string | undefined {
+export function findSupercodeCommand(cwd = process.cwd(), path = process.env['PATH'] ?? ''): string | undefined {
   const explicit = process.env['SUPERCODE_BIN'];
   if (explicit) {
     const command = chatExecutable(explicit, cwd, path);
@@ -658,13 +613,7 @@ export function findSupercodeCommand(engineRoot: string, cwd = process.cwd(), pa
     if (existsSync(installedCommand) && statSync(installedCommand).isFile())
       return installedCommand;
   } catch {
-    // Optional dependency omitted: retain source-checkout fallbacks below.
-  }
-  for (const candidate of [
-    join(dirname(engineRoot), 'supercode', 'target', 'release', 'supercode'),
-    join(dirname(engineRoot), 'supercode', 'target', 'debug', 'supercode'),
-  ]) {
-    if (existsSync(candidate)) return candidate;
+    // Optional dependency omitted: resolve the executable from PATH.
   }
   return chatExecutable('supercode', cwd, path);
 }
@@ -1052,7 +1001,7 @@ export class HarnessChatService {
     if (this.chatProcess?.workspace !== workspace || (retryFailed && this.chatProcess.failed)) {
       const context = chatProcessEnvironment(workspace).then(environment => ({
         ...environment,
-        supercode: findSupercodeCommand(this.options.engineRoot, workspace, environment.env.PATH),
+        supercode: findSupercodeCommand(workspace, environment.env.PATH),
       }));
       const cached = { workspace, context, failed: false };
       // An installError is a failed discovery even though the promise fulfilled.
@@ -1117,7 +1066,6 @@ export class HarnessChatService {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
       openSessionCommand: 'volter.chat.openSession',
-      responseOnlyHistory: true,
       sessions: [...this.chatCatalog.sessions.values()],
       actualModel: this.observedModel,
       connection: this.frontendHandoffValue?.env,
@@ -1259,7 +1207,7 @@ export class HarnessChatService {
       else this.chatCatalog.create(selection);
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) throw new Error('The selected harness did not start.');
-      const handoff = await mintFrontendHandoff({ engineRoot: this.options.engineRoot, runtimeSessionId: runtimeId,
+      const handoff = await mintFrontendHandoff({ runtimeSessionId: runtimeId,
         directory: join(homedir(), '.volter', 'runtime', `frontend-${process.pid}-${randomUUID()}`) });
       const old = this.frontendHandoffValue;
       this.frontendHandoffValue = handoff;
@@ -1370,7 +1318,6 @@ export class HarnessChatService {
         );
       }
       const handoff = await mintFrontendHandoff({
-        engineRoot: this.options.engineRoot,
         runtimeSessionId: runtimeId,
         directory: join(homedir(), '.volter', 'runtime', `frontend-${process.pid}`),
       });
@@ -1573,7 +1520,7 @@ export class HarnessChatService {
     if (this.options.createClient) {
       const module = this.options.createController
         ? null
-        : await importSupercodeController(this.options.engineRoot);
+        : await importSupercodeController();
       const sessionReconnectIdentity =
         this.options.sessionReconnectIdentity ?? module?.sessionReconnectIdentity;
       if (!sessionReconnectIdentity) {
@@ -1614,7 +1561,7 @@ export class HarnessChatService {
       projectConversation,
       deriveTaskPlan,
       sessionReconnectIdentity,
-    } = await importSupercodePackages(this.options.engineRoot);
+    } = await importSupercodePackages();
     this.assertSnapshot = assertSupercodeClientSnapshot;
     this.projectConversation = projectConversation;
     this.deriveTaskPlan = deriveTaskPlan;

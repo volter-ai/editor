@@ -58,7 +58,7 @@ The resulting playable scaffold would request tools npm does not serve.
 - Published external pins advance from frontend-vscode 0.1.14 to **0.1.17** and
   editor-core's attachment client from supercode-frontend 0.2.6 to **0.2.7**.
   Registry tarball URLs/integrities are recorded in the lockfile without installing.
-  Published 0.1.17 contains the required welcome and restored-history fixes.
+  Published 0.1.17 contains the restored-history fixes.
 
 ## Artifacts that are still missing
 
@@ -70,8 +70,7 @@ verification. The npm tarball's SHA512 matches the lockfile. Its `dist/extension
 `dist/view.js` and `dist/chat-setup.js` are byte-identical to the W64 build at
 `517a27d9e359bed26049a2cb9fdd6f57e13a6071`; source ancestry also contains
 `f2bc8508e85d211a03fda78bd3e3919fe88a265b`. Thus the published bytes include the
-native empty-state welcome/copy and restored native tool history with explicit
-pending-approval labels. This is packed-byte verification, not a new live walk.
+restored native tool history with explicit pending-approval labels. This is packed-byte verification, not a new live walk.
 The attachment client remains **0.2.7**, matching npm latest and its existing lock
 integrity; editor-core needs no further version change. No dependency was installed.
 
@@ -83,8 +82,7 @@ Its public BUILD.json confirms frontend-vscode **0.1.14**, editor source
 `f16dc165c0dffe701a7bbf59aefb1c662b206cee`. Changing the npm extension pin does
 not change this tarball. A new public Model Editor workbench must be cut from the
 overlay now merged to main at `9b098916` (PR40 and PR43) and the actually
-published fixed extension, then pinned by its real tag/hash. This overlay turns
-standalone trusted command links into native welcome buttons and routes provider
+published fixed extension, then pinned by its real tag/hash. This overlay routes provider
 New Chat through its creation command before native edit-session cleanup, so
 picker cancellation preserves the current session. It also prevents repeated
 REH Copilot guards on overlay re-application. The changed native workbench
@@ -101,31 +99,24 @@ or verified unchanged by hash. Evidence is retained under `/tmp/model-play-frame
 
 - **W44:** valid/broken/fixed saves of the HUD and Play script while stopped and
   playing passed all 12 checks without a page reload or Chat state loss. One real
-  boost starter turn finished without a permission prompt or follow-up. Driving
+  boost turn finished without a permission prompt or follow-up. Driving
   measured 108 km/h normally, 132 with left Shift and 121 with right Shift; the
-  requested 162 km/h cap was not exercised. This predates the native empty-state
-  welcome fix and does not validate its presentation.
-- **W50:** Supercode `29d8fac99` on integration `a394e21a` passed the native
-  empty-state welcome, three exact prompt fills without Send, and one real HUD
-  turn (native duration 9 seconds, no permission prompt or follow-up). Starters
-  disappeared after Send and stayed absent when reopening W44's existing
-  conversation. Play visibly showed bottom-right speed and JUMP while airborne.
+  requested 162 km/h cap was not exercised.
+- **W50:** Supercode `29d8fac99` on integration `a394e21a` completed one real HUD
+  turn (native duration 9 seconds, no permission prompt or follow-up).
+  Play visibly showed bottom-right speed and JUMP while airborne.
   The generic New Session button still opened an unbound draft; the provider's
   own creation command worked. A control-command timeout while its manual picker
-  was open is retained as a qualification. W50 did not validate the later native
-  button styling or generic New Session repair. Frames include `w50-intro.png`,
-  `w50-hud-jump.png`; the agent's change is `w50-starter-hud.diff`.
+  was open is retained as a qualification. W50 did not validate the later
+  generic New Session repair. The Play frame is `w50-hud-jump.png`.
 - **W58:** integration `2cbd0bd8`, Supercode `f2bc8508e`, and the W56/W57
   extension/overlay/native compile on Code-OSS `f16dc165` passed the visible
   sidebar New Session picker and one completed creation into a bound conversation.
-  The shorter native welcome and all three short-labelled **buttons** filled the
-  exact prompts with real pointer clicks; no Send or user turn occurred. Cancel
-  preserved the existing conversation/resource, catalogue, connection, layout and
+  Cancel preserved the existing conversation/resource, catalogue, connection, layout and
   `@ClaudeCode ` draft prefix. Longer-draft preservation was not exercised: its
   setup used an unsupported automation fill method, with the error retained and
   no retry. No native review tabs were open, so preservation of open review tabs
-  remains unexercised. Frames include `w58-new-picker.png`, `w58-cancel.png`,
-  `w58-intro.png`, and `w58-fill-1.png` through `w58-fill-3.png`.
+  remains unexercised. Frames include `w58-new-picker.png` and `w58-cancel.png`.
 
 Signed-out/install transitions, recovery from real failed discovery/attachment,
 nonempty draft/review-tab cancellation, and fresh registry-only creation/Chat/Play
@@ -146,10 +137,9 @@ Blender corresponding-source/artifact mapping.
 
 2. **Prepare and publish the public Model Editor workbench.** Editor PR40
    and PR43 are merged on main through `9b098916` and integrated into this branch.
-   The scaffold preserves the playable tools, default Track document and starter
-   Chat declaration; the overlay includes the native buttons and provider New
-   Chat/cancel fixes described above. The real fixed extension and lock entry are now committed. With granted
-   build capacity, materialize that exact published dependency and cut (without publishing):
+   The scaffold declares the playable tools and default Track document; the overlay
+   includes the provider New Chat/cancel fixes described above. The real fixed
+   extension and lock entry are now committed. With granted build capacity, materialize that exact published dependency and cut (without publishing):
 
    ```sh
    volter world run -- node scripts/workbench/build-release.mjs --product model-editor --platform darwin-arm64 --checkout "$CODE_OSS_CHECKOUT" --work "$MODEL_WORKBENCH_WORK" --out "$MODEL_WORKBENCH_OUT"

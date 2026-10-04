@@ -373,9 +373,8 @@ Passive refresh retries a refused runtime handoff after sign-in, without reloadi
 Default coding launches still inject no provider settings or account credential.
 Login and install buttons display quoted absolute executable paths. Login uses
 the same resolver as the running harness: `SUPERCODE_BIN`, a source-linked SDK's
-own binary, the installed `@volter/supercode/bin/supercode.js`, then source/PATH
-fallbacks. The terminal runs that program directly with argument arrays (no
-interactive shell). Both terminal and inventory process receive the launch Node
+own binary, the installed `@volter/supercode/bin/supercode.js`, then PATH. The terminal
+runs that program directly with argument arrays (no interactive shell). Both terminal and inventory process receive the launch Node
 directory, inherited PATH and npm's global bin directory. The install fixes that
 same prefix explicitly, so a new Codex executable is visible to fresh inventory
 probes without restarting the editor. This path is source-verified, not live-walked.
