@@ -1077,6 +1077,8 @@ export class HarnessChatService {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
       openSessionCommand: 'volter.chat.openSession',
+      fillInputCommand: 'volter.chat.fillInput',
+      responseOnlyHistory: true,
       sessions: [...this.chatCatalog.sessions.values()],
       actualModel: this.observedModel,
       connection: this.frontendHandoffValue?.env,

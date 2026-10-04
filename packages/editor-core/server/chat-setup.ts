@@ -62,7 +62,7 @@ export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH
 
 /** Read the loaded adapter's existing wire facet, never evaluate a second project module.
  * Undefined means the project adapter has not reported yet, not an empty declaration. */
-export function chatStarterPrompts(adapter: unknown): string[] | undefined {
+export function chatStarterPrompts(adapter: unknown): { label: string; prompt: string }[] | undefined {
   if (!adapter || typeof adapter !== 'object') return undefined;
   const editor: unknown = Reflect.get(adapter, 'editor');
   const chat: unknown = editor && typeof editor === 'object' ? Reflect.get(editor, 'chat') : undefined;

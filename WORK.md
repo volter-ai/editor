@@ -371,7 +371,7 @@ interactive shell). Both terminal and inventory process receive the launch Node
 directory, inherited PATH and npm's global bin directory. The install fixes that
 same prefix explicitly, so a new Codex executable is visible to fresh inventory
 probes without restarting the editor. This path is source-verified, not live-walked.
-`volter.adapter.ts` declares `editor.chat.starterPrompts` (up to three); buttons
+`volter.adapter.ts` declares `editor.chat.starterPrompts` (up to three `{label, prompt}` pairs); buttons
 fill the composer and send nothing. The existing validated adapter state report
 supplies them to Chat, which waits for project configuration before caching an
 empty conversation's offer. The playable model starter carries race prompts and its scaffold hook;
@@ -386,6 +386,24 @@ the hoisted UI package. No tests, editor session, browser or actual login ran.
 Live button/layout, cancellation and readiness-transition acceptance remains with
 the pilot. The extension changes are in Supercode's `chat-sign-in` branch; its
 tracker check has 79 existing errors, with no tracker edits in this work.
+
+First live READY receipt (race worker, W27): three starters appeared in a new
+conversation and were absent in a restored one. All three native fill commands
+returned null with an empty composer; no harness turn was created. This is a
+failed fill acceptance, not a passed walk. The follow-up targets the exact native
+resource through `volter.chat.fillInput`, verifies its returned draft, and reports
+stale/mismatched actions instead of silently returning. Labels are separate from
+instructions. A native history compatibility patch renders a leading intro response
+with its empty internal request hidden, so there is no fabricated user bubble.
+These follow-up changes await compilation and a new live receipt after W27 teardown.
+The worker's saved tab errors also record `ChatModes.dispose` cancellation during
+`ChatInputPart.setInputModel` / `ChatViewPane.showModel`. The old fill path reopened
+the same session; the new one only reveals its existing widget. General session
+reveal now also uses `revealIfOpened`. The stack confirms a model rebind, but an
+unhandled cancellation is not by itself proof of why the draft remained empty.
+The exact action arguments used the correct host conversation ID. `runCommands`
+discards inner returns and catches errors; native draft inspection is the next
+walk's readback instead of treating its null as a fill receipt.
 
 Safe setup acceptance needs a fresh OS user or supported enrolled Mac with no
 signed-in harness; install Codex without signing in to exercise the signed-out
