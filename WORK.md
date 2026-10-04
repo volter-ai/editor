@@ -468,7 +468,13 @@ resource through `volter.chat.fillInput`, verifies its returned draft, and repor
 stale/mismatched actions instead of silently returning. Labels are separate from
 instructions. A native history compatibility patch renders a leading intro response
 with its empty internal request hidden, so there is no fabricated user bubble.
-These follow-up changes await compilation and a new live receipt after W27 teardown.
+W28 compiled those follow-up changes. W29 passed the short labels and intro with
+no fake user bubble, but every real pointer click was refused by the extension's
+zero-event guard. The native resource matched the active host conversation, idle,
+busy=false and no pending requests; private cursors/history were not exposed.
+W31 compiled and overlaid Supercode `bc4fae859`, replacing zero-event checks with
+sticky semantic user-turn evidence and exposing every guard input plus the last
+click snapshot through `status(true)`. Its live fill acceptance remains pending.
 The worker's saved tab errors also record `ChatModes.dispose` cancellation during
 `ChatInputPart.setInputModel` / `ChatViewPane.showModel`. The old fill path reopened
 the same session; the new one only reveals its existing widget. General session
@@ -477,6 +483,19 @@ unhandled cancellation is not by itself proof of why the draft remained empty.
 The exact action arguments used the correct host conversation ID. `runCommands`
 discards inner returns and catches errors; native draft inspection is the next
 walk's readback instead of treating its null as a fill receipt.
+
+Two first-run retry repairs follow the independent review, source-only until a
+new build grant. The frontend now keeps setup pending until both connection and
+native reveal succeed; a ready host alone cannot stop its retry timer or make
+**Check again** skip a failed reveal. The host caches successful executable/PATH
+discovery but marks npm-prefix errors and rejected executable resolution as failed.
+The next `/state` refresh (including **Check again** and setup polling), explicit
+service refresh or setup action retries failures. If recovery changes PATH or the
+Supercode executable, the idle discovery controller is closed through its own API
+and recreated before inventory refresh. A controller owning a conversation is
+preserved; its eventual replacement uses the recovered context. Verification needs
+frontend build, editor-core server build, then overlay copy, serially; no product
+browser build or Code-OSS compile-client. No live failure/retry acceptance claimed.
 
 Safe setup acceptance needs a fresh OS user or supported enrolled Mac with no
 signed-in harness; install Codex without signing in to exercise the signed-out
