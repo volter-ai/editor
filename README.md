@@ -36,223 +36,101 @@ npx @volter/model-editor create my-race --template playable
   ```
 - `npx @volter/model-editor create my-models` makes a plain modelling project with a cube.
 
-Volter Editor is this stack: a media-neutral editor kit built on Code-OSS, the
-integrations that make each tool a document kind, and the products built on
-them. Two products ship from this repository: the model editor
-(`@volter/model-editor`, Blender) and the game editor (`@volter/game-editor`).
+## Chat and your agent
 
-The public source repositories begin with reviewed snapshots and no inherited
-private git history. The previous repositories and their legacy releases remain
-private under explicit `*-private-history` names.
+Chat runs whichever coding agent Volter Harness finds installed and signed in (Claude Code,
+Codex, Grok, Gemini and the others it supports), resuming the project's last conversation
+with the agent that held it. When none is signed in, Chat offers each installed agent's own
+sign-in (Sign in with ChatGPT for Codex) in the integrated terminal; with no agent
+installed, it offers Codex and shows `npm install -g @openai/codex` before running it. Chat
+checks readiness and reconnects without a reload.
 
-The installed product starts its session
-server and opens Volter Model Editor in a packaged Code-OSS workbench. Installed MCP can
-inspect, edit and photograph the model. Modeling edits persist to the project's
-`.blend` file and survive reopening. Packaged-workbench startup and reuse are
-verified on darwin-arm64. The matching workbench is public and anonymously
-downloadable. The public npm packages download anonymously byte-identical to
-the tested archives, and cache-empty installations of both products from the
-registry have passed live acceptance.
+The official agent extensions also work in the editor. In the **Extensions** view, search
+`@id:openai.chatgpt` (Codex) or `@id:Anthropic.claude-code` (Claude Code) and choose
+**Install**. Neither is bundled; each brings its own interface and sign-in.
 
-The packaged workbench currently supports **macOS on Apple Silicon**
-(`darwin-arm64`). Installation and startup were verified with Node.js 24.
+Every project declares the Blender MCP server in both `.mcp.json` and
+`.codex/config.toml`, with the same command. Codex loads it once you
+[trust the folder in Codex](https://learn.chatgpt.com/docs/config-file/config-basic).
+Creating a project never writes to your global `~/.codex`.
 
-```bash
-npx @volter/model-editor create my-models
-```
-
-The command creates a modeling project, installs the pinned public workbench on
-first use, and opens the model editor.
-
-The Chat pane runs whichever coding agent Volter Harness finds installed and signed in
-(Claude Code, Codex, Grok, Gemini and the others it supports), resuming the
-project's last conversation with the agent that held it. Chat's setup frontend
-offers **Sign in with ChatGPT** for Codex and the installed agents' own sign-ins
-in the integrated terminal. With no subscription agent installed, it offers
-Codex and shows `npm install -g @openai/codex` before running it. The person
-completes the harness's sign-in; Chat checks readiness and reconnects without a
-reload.
-These source changes need the new Supercode frontend and a rebuilt workbench
-release before registry installations receive them; see [WORK.md](WORK.md).
-
-The next workbench build also enables the **Extensions** view's Open VSX gallery.
-Search `@id:openai.chatgpt` (Codex) or `@id:Anthropic.claude-code` (Claude Code)
-and choose **Install** to use their official interfaces and sign-in flows.
-Both are optional, user-installed extensions; neither is bundled with the editor.
-The gallery enables extension search, downloads, update checks and recommendations.
-Code-OSS keeps its defaults: enabled extensions update automatically after a
-12-hour delay, and recommendation notifications are allowed. These remain adjustable
-through `extensions.autoUpdate`, `extensions.autoUpdateDelay`,
-`extensions.autoCheckUpdates` and `extensions.ignoreRecommendations` in Settings.
-No agent recommendation or automatic agent installation is added. This requires
-a rebuilt workbench; updating npm packages alone does not add the gallery to an
-already installed workbench.
-
-To reopen the project later:
+## Working in a project
 
 ```bash
-cd my-models
+cd my-race
 npm run dev
 ```
 
-From that project directory, `npx volter-model-editor status` reports the session,
-`npx volter-model-editor console` reports unresolved diagnostics, and
-`npx volter-model-editor close` stops the session. Release 0.5.58 adds native Blender
-undo/redo for supported model edits through VS Code's history, bundled Blender
-Essentials, coherent duplicate/delete operations, and World mapping/strength
-rendering fixes. Release 0.5.62 additionally makes edit acknowledgment wait for
-the saved file, guards close against failed saves, and fixes rapid history and
-cold-start races, including stale Properties reads after rapid edits.
-Release 0.5.63 adds physical material inputs, normal maps, named UV layers,
-Clip sampling and homogeneous World volumes. Its rebuilt workbench preserves
-the chosen sidebar across cold restarts, and its fresh product install reports
-zero npm vulnerabilities. These renderer features are not full Cycles parity.
-Release 0.5.64 renders a Principled BSDF's or Emission's linked inputs,
-including Normal, from the material's node graph with Blender's own node
-shaders (the procedural textures, image textures with every projection and
-UDIM tiles, bump and normal maps, geometry and attributes, colour and vector
-math) and composes Mix and Add Shader surfaces; see [WORK.md](WORK.md) for the
-compiled node set and its limits. It also keeps
-Properties on screen while an edit re-reads them, removes the empty header
-strips above the model, timeline and side panels, and restores a view's
-orientation after a tab switch. Projects pinned to 0.5.63 update their
-`@volter` pins and `volter.project.json`'s engine version to open in 0.5.64.
-Release 0.5.65 publishes the game editor beside modeling from the same
-source revision, and every bundled dependency notice names its source.
-Projects pinned to 0.5.64 update their `@volter` pins and engine version the
-same way to open in 0.5.65.
-Windows/Linux remain deferred. An older intermittent renderer
-hang remains unexplained; see the acceptance limits in [WORK.md](WORK.md).
+From the project directory, `npx volter-model-editor` provides:
 
-Existing projects keep their machine-local workbench declaration. Updating npm
-packages alone does not replace that explicit choice. To use the newly pinned
-workbench, close the editor, update the project's declared `@volter` packages,
-and move `.volter/workbench.json` aside before reopening; the product downloads and
-records its matching release. Preserve an intentional source-checkout declaration.
+- `edit` opens the project;
+- `status` reports the session;
+- `console` reports unresolved diagnostics;
+- `eval` drives the editor's automation API;
+- `blender-mcp` serves the Blender MCP interface over stdio;
+- `close` stops the session.
+
+MCP initialization does not start Blender; the first scene request attaches to or opens the
+project's editor. Append `--existing-session` after `blender-mcp` to require an editor that
+is already open.
+
+Modelling edits save to the project's `.blend` file. Undo and Redo go through the editor's
+history, and Blender keeps the snapshots; redo never reruns a script. History lasts for the
+session and resets when another `.blend` opens. An arbitrary Python execution counts as an
+edit, even one that fails part-way, so use the inspection tools for read-only queries.
+
+To move a project to a new release, close the editor, update its `@volter` packages, and
+move `.volter/workbench.json` aside before reopening. The product then downloads the
+matching workbench.
 
 ## Game editor
 
 ```bash
-npx @volter/game-editor@0.5.65 create my-game
+npx @volter/game-editor create my-game
 ```
 
-`create` takes a preset: `game` (the default 3D starter), `prototype`,
-`full`, `website` or `empty`. The game opens in the Game workspace: Scene
-editing writes the game's own source and undoes through the workbench's
-history, Play runs it beside the editor, and Export builds a web bundle.
+`create` takes a preset: `game` (the default 3D starter), `prototype`, `full`, `website` or
+`empty`. The game opens in the Game workspace. Scene editing writes the game's own source,
+Play runs it beside the editor, and Export builds a web bundle.
 
-A game is only its code. Its `node_modules` is a link to the game editor's
-**runtime image**: one installation per version, carrying every package the
-template and the capability catalog use (React, Three.js and its React
-bindings, Rapier, Colyseus, Storybook, Vite, TypeScript and the rest). The
-first `create` of a version installs the image into
-`~/.volter/images/game-editor-<version>` (or `$VOLTER_HOME/images/...`); every
-later game of that version installs nothing. `volter.project.json`'s
-`engine.version` names the image a game opens with. A game that needs a
-package outside the image installs its own dependencies into a real
-`node_modules` directory instead of the link.
+A game's `node_modules` links to the game editor's runtime image, installed once per version
+under `~/.volter/images/` (or `$VOLTER_HOME/images/`). The image carries every package the
+template and capability catalog use. A game that needs another package installs its own
+`node_modules` instead.
 
-From a game directory, `npx volter-game-editor` provides `status`, `console`,
-`eval`, `play`, `stop`, `screenshot`, `add`/`remove`/`outdated` for catalog
-capabilities, and `close`. The game editor pins its own public workbench
-release, verified on darwin-arm64.
+From a game directory, `npx volter-game-editor` provides:
+
+- `status`, `console`, `eval`, `close`;
+- `play`, `stop`, `screenshot`;
+- `add`, `remove`, `outdated` for catalog capabilities.
 
 ## Package map
 
-The npm scope is `@volter`.
+The npm scope is `@volter`. Install one product; its supporting packages come with it.
 
 | Package | Responsibility |
 | --- | --- |
-| `@volter/model-editor` | The model editor: installable product and `volter-model-editor` executable |
+| `@volter/model-editor` | The model editor and its `volter-model-editor` command |
+| `@volter/game-editor` | The game editor, its `volter-game-editor` command, template and capability catalog |
 | `@volter/editor-core` | Shared editor host and Code-OSS integration |
 | `@volter/editor-sdk` | Extension and contribution APIs |
-| `@volter/editor-live` | Independently installable session automation client |
+| `@volter/editor-live` | Session automation client |
 | `@volter/editor-project` | Project manifest and adapter contracts |
-| `@volter/editor-threejs` | Shared Three.js editor functionality |
+| `@volter/editor-threejs` | Shared three.js editor functionality |
 | `@volter/editor-blender` | Blender documents, tools and presentation |
 | `@volter/blender-engine` | Blender WebAssembly engine and worker |
-| `@volter/game-editor` | Installable game product, `volter-game-editor` executable, template and capability catalog |
-| `@volter/editor-react` | React source authoring: JSX identity, source writes, component contracts and declared props |
-| `@volter/editor-game` | Game documents, Play, Scene/UI authoring and game host modules |
-| `@volter/game-live` | Session client for a running game: `game`, `page`, recordings |
+| `@volter/editor-react` | React source authoring |
+| `@volter/editor-game` | Game documents, Play, Scene/UI authoring |
+| `@volter/game-live` | Session client for a running game |
 | `@volter/game-runtime` | Runtime a game ships with |
-| `@volter/threejs-runtime` | Three.js runtime a game ships with |
+| `@volter/threejs-runtime` | three.js runtime a game ships with |
 
-Users install one product; required supporting packages install transitively.
-The model editor's CLI ships in `@volter/model-editor`, the game CLI in
-`@volter/game-editor`. Subpath exports represent modules within
-packages, not separately installable packages.
-
-Blender and Code-OSS source forks remain separate repositories, pinned by this
-repository's build configuration. Their source and release provenance
-are part of distribution readiness.
-
-## Release boundary
-
-The publication lists are [release/modeling.json](release/modeling.json) and
-[release/game.json](release/game.json). `npm run check:release` and
-`npm run check:release:game` check their manifest dependency boundaries. Only
-these explicitly reviewed package lists may be published. Repository membership does
-not imply publication.
-
-The modeling release must not depend on unreleased game runtime, game editor,
-DOM/canvas authoring, game templates, examples or provider packages. Renaming,
-bundling or making those dependencies optional does not establish separation.
-Actual packed files, declarations, lazy imports, generated bundles and assets
-must satisfy the boundary as well as package manifests.
-
-The kit is being made media-neutral (owner decision 2026-09-24): the assembled
-Three viewport moves to `@volter/editor-threejs`, and the kit hosts views without
-duplicating Code-OSS workbench responsibilities. The plan is in
-[ARCHITECTURE.md](ARCHITECTURE.md) and the specification in
-[docs/DOCUMENT-VIEW-OWNERSHIP.md](docs/DOCUMENT-VIEW-OWNERSHIP.md).
-
-This repository is authoritative for the released modeling product. The previous
-repositories are archived and private.
-
-See [WORK.md](WORK.md) for the recorded release acceptance.
-
-Source products may open an explicitly supplied matching Code-OSS checkout. The
-identity check still applies. Published product manifests pin a public workbench
-release and its SHA-256.
-
-Licenses vary by component; see [LICENSE.md](LICENSE.md) and each package’s
-license and notice files.
-
-The installed product owns the command line: `volter-model-editor edit` opens the
-project, `volter-model-editor eval` drives its automation API, and
-`volter-model-editor blender-mcp` serves the Blender MCP interface over stdio from
-inside a project. MCP initialization does not start Blender; its first scene
-request attaches to or opens that project's editor.
-
-Scaffolded projects declare that transport in `.mcp.json` and `.codex/config.toml`,
-with identical Blender server commands and arguments. Codex, in either its official
-extension or the terminal, loads the project configuration once the person
-[trusts the folder in Codex](https://learn.chatgpt.com/docs/config-file/config-basic).
-Creation never writes to the person's global `~/.codex` configuration.
-Node resolves the project's `@volter/model-editor/package.json` and imports the CLI named by its
-`bin` declaration in the same process. It needs neither a `.bin` shim nor an
-npm/shell wrapper, including when a source project links a workspace install.
-This uses npm/pnpm or Yarn's `node_modules` linker; the editor's package discovery
-currently requires `node_modules`, so this does not add Yarn PnP support.
-To require an already-open editor, append `--existing-session` after
-`blender-mcp` in the server's args. A scene request then reports an attachment
-failure instead of opening another editor. Without that option, lazy startup
-is unchanged. Initialization itself never starts an editor.
-
-Blender supports explicit native undo in background mode. The editor connects
-its checkpoints to VS Code's history; native snapshots stay in Blender, and
-redo never reruns a Python script. History is session-local and is reset when
-another `.blend` is opened. Use the dedicated inspection tools for read-only
-queries: arbitrary Python executions are conservatively treated as edits,
-including scripts that change data before failing.
-Use the editor's Undo/Redo for integrated history; scripts should not manage
-`bpy.ops.ed.undo_push` themselves. Loading a file or moving Blender's native
-history directly invalidates the workbench's previous model entries.
+Blender and Code-OSS are separate forked repositories, pinned by this repository's build
+configuration. [ARCHITECTURE.md](ARCHITECTURE.md) describes how the pieces fit.
 
 ## Building from source
 
-With Node.js 24 and npm, install the lockfile and build before typechecking:
+With Node.js 24 and npm:
 
 ```bash
 npm ci
@@ -263,31 +141,17 @@ npm run check:release
 npm run check:packed-imports
 ```
 
-`npm run build:game`, `npm run check:release:game` and
-`npm run check:packed-imports:game` do the same for the game release.
+`npm run build:game`, `npm run check:release:game` and `npm run check:packed-imports:game`
+do the same for the game release. To rebuild after a change, name the packages it touched:
+`node scripts/build-release-packages.mjs release/game.json @volter/editor-core @volter/game-editor`.
+[`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs) builds the
+Code-OSS workbench.
 
-To rebuild after a change, name the packages it touched and let the release table order
-them: `node scripts/build-release-packages.mjs release/game.json @volter/editor-core
-@volter/game-editor`. A hand-kept build order goes stale the moment a package gains a build
-step (`@volter/editor-game`'s server half did, and a session would not start without it).
+Only the packages listed in [release/modeling.json](release/modeling.json) and
+[release/game.json](release/game.json) are published, from the `publish` branch after a
+main commit is promoted to it.
 
-The build generates modules needed by the typechecks and packaging checks.
-Building the separate Code-OSS workbench is described in
-[`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs).
+## License
 
-Main is used and measured from these source builds. npm publishing runs only
-from `publish`, after deliberately promoting a measured main commit. Finish
-the preceding publish run, fetch both branches, then merge that exact commit
-into `publish` and push it. The workflow checks out the promotion's exact SHA;
-its version commit returns to `publish` and refuses to overwrite a later
-promotion. Creating the branch only initializes it; the first release can be
-dispatched with `gh workflow run publish.yml --ref publish`. Manual dispatch
-on main is also refused by the job's branch guard. Installed npm products,
-scaffolds and templates continue consuming the last promoted release.
-
-Products are named for their purpose: `@volter/model-editor` and
-`@volter/game-editor`, run as `volter-model-editor` and `volter-game-editor`.
-Projects keep `volter.project.json`, `volter.adapter.ts`, `.volter/` and the existing
-internal protocol identifiers. Their filenames are not aliases: keep the existing names. A full
-format/protocol rename is a separate coordinated migration; existing games are
-not automatically converted into modeling projects.
+Licenses vary by component; see [LICENSE.md](LICENSE.md) and each package's license and
+notice files.
