@@ -425,10 +425,12 @@ and project data. Codex is offered first as **Sign in with ChatGPT**; the only
 first-run install is `npm install -g @openai/codex`, shown before the person clicks.
 Passive refresh retries a refused runtime handoff after sign-in, without reloading.
 Default coding launches still inject no provider settings or account credential.
-`volter.chat.json` supplies up to three prompts; buttons fill the composer and send
-nothing. The playable model starter carries race prompts and its scaffold hook;
+`volter.adapter.ts` declares `editor.chat.starterPrompts` (up to three); buttons
+fill the composer and send nothing. The existing validated adapter state report
+supplies them to Chat, which waits for project configuration before caching an
+empty conversation's offer. The playable model starter carries race prompts and its scaffold hook;
 that hook becomes reachable when the parallel `model-play-race` template lands.
-Projects with no prompt file, including the plain model starter, offer none.
+Projects with no Chat declaration, including the plain model starter, offer none.
 
 Verified by reading, Codex/Claude login `--json` plans, frontend TypeScript compile
 and extension packing, the editor host build and the model scaffold typecheck.
