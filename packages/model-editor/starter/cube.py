@@ -36,8 +36,9 @@ either way.
 
 Run it through the session's Blender, from this project:
 
-    npm run --silent volter -- blender-mcp        # the transport an agent drives
-    # or, in a live editor session:
+    # The agent uses the blender server declared in .mcp.json. It starts
+    # Node with this project's installed Model Editor CLI (no npm/bin shim).
+    # Or, in a live editor session:
     # editor.blender('blender-execute', { code: open('src/models/cube.py').read() })
 
 The session saves the open document about a second after the last call, so a

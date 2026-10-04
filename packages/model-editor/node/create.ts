@@ -95,10 +95,19 @@ ${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : '
 `);
     // THE PROJECT NAMES ITS AGENT'S SERVERS, as every scaffolded project does
     // (editor-core's project-mcp-servers.ts reads this file into the Chat's runtime,
-    // and a person's own Claude Code reads it by hand). Through the package script,
-    // as the game template does, so the command is the project's own install.
+    // and a person's own Claude Code reads it by hand). Resolve the project's
+    // package, then its public bin declaration: checkout-linked node_modules
+    // need not have a .bin shim. Import in this process, without npm or a shell.
+    const mcpEntry = [
+      "const { dirname, resolve } = require('node:path');",
+      "const { pathToFileURL } = require('node:url');",
+      "const manifest = require.resolve('@volter/model-editor/package.json');",
+      "const cli = resolve(dirname(manifest), require(manifest).bin['volter-model-editor']);",
+      'process.argv.splice(1, 0, cli);',
+      'import(pathToFileURL(cli).href);',
+    ].join(' ');
     await write('.mcp.json', JSON.stringify({
-      mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
+      mcpServers: { blender: { command: 'node', args: ['--input-type=commonjs', '--eval', mcpEntry, '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
     await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
     if (playable) {
