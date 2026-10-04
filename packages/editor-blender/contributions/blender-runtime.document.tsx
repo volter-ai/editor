@@ -340,8 +340,19 @@ function BlenderModelViewport(props: ToolContributionProps) {
     if (!documentId) return;
     return () => setModelPlaying(documentId, false);
   }, [documentId]);
-  if (!documentId) return null;
   const game = playing ? played : null;
+  useEffect(() => {
+    if (!game || !documentId) return;
+    const modelViewport = documentViewport(documentId);
+    if (!modelViewport) return;
+    // The photograph follows the visible stage; the model keeps its registered viewport and pose.
+    const capture = modelViewport.capture;
+    modelViewport.capture = (size) => documentViewport(`${documentId}#play`)?.capture?.(size) ?? null;
+    return () => {
+      modelViewport.capture = capture;
+    };
+  }, [game, documentId]);
+  if (!documentId) return null;
   const second = split && !game ? follower : null;
   // PLAYING, THE COPY'S STAGE FILLS THE SLOT and the model's own stands hidden beneath it.
   const filled = { position: 'absolute', inset: 12 } as const;

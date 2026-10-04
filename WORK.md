@@ -363,12 +363,13 @@ project's play script beside the `.blend` (`src/models/<name>.play.ts`,
 `packages/editor-blender/src/play-script.ts`) on that stage's frame hook. The script holds
 three's own objects, the stage's camera and the held keys. The model's stage stays mounted
 and hidden; Stop or Escape disposes the copy. While it plays the document's stage mode is
-`PLAY`, and the frame's stage and panel key rules stand down on it. State: coded, never run.
+`PLAY`, and the frame's stage and panel key rules stand down on it. State: run from source.
 The starter copies `track.py` and `track.play.ts`: a ring, car and wheels, arcade driving,
-Track raycasts and a chase camera. `track.blend` starts as a copy of the cube; running `track.py` with it
-open replaces it with the track. Closes when a person makes it, drives with arrows/WASD, checks
-off-track slowing and wheels, and Stop returns the unchanged model. Open: keymap generation
-(no compiled fork), a collider helper, a visible Play control and the hosted script import.
+Track raycasts and a chase camera. Running `track.py` on the placeholder `track.blend` in
+the session's Blender authors the track. Measured: View ▸ Play, held-arrow motion in two
+captures and Escape restoring a byte-identical authoring frame; capture follows Play's
+visible stage. Open: the cube circuit demo, keymap generation, a collider helper, a visible
+Play control and the hosted script import. No automated tests ran.
 
 ## Supported-editing work
 
