@@ -14,8 +14,9 @@ npx @volter/model-editor create my-race --template playable
 ```
 
 - Needs macOS on Apple Silicon and Node.js 24. Nothing else to install.
-- Opens a race circuit modelled in the editor. Press **Play** in the viewport header; drive
-  with the arrow keys or WASD; Escape stops and returns the untouched model.
+- Opens a race circuit modelled in the editor. Press **Play** in the viewport header: the
+  camera moves from your editing view to the game's, and you drive with the arrow keys or
+  WASD. Escape moves it back and returns the untouched model. A lap is about 30 seconds.
 - `src/models/track.py` is the bpy script that built the scene, `src/models/track.play.ts`
   is the script Play runs, and `src/ui/` is the React interface drawn over it.
 - The Chat pane runs the coding agent you already have signed in (Codex on a ChatGPT plan,
