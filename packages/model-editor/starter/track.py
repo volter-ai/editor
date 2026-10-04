@@ -268,7 +268,11 @@ for screen in bpy.data.screens:
     for area in screen.areas:
         if area.type == "VIEW_3D":
             space = area.spaces.active
-            space.shading.type = "RENDERED"
+            # Blender demotes Rendered to Solid when loading a file. Material
+            # Preview with the scene's World/lights survives that native load.
+            space.shading.type = "MATERIAL"
+            space.shading.use_scene_world = True
+            space.shading.use_scene_lights = True
             space.region_3d.view_location = (32, -22, 1.4)
             space.region_3d.view_distance = 16
             space.region_3d.view_rotation = camera.rotation_euler.to_quaternion()

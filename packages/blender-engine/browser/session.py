@@ -806,6 +806,8 @@ def _saved_view():
                 "distance": float(region.view_distance),
                 "perspective": region.view_perspective,
                 "shading": space.shading.type,
+                "scene_world": bool(space.shading.use_scene_world),
+                "scene_lights": bool(space.shading.use_scene_lights),
             }
     return None
 

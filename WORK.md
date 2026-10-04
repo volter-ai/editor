@@ -398,6 +398,17 @@ inspection pauses and one infield recovery; it is not a racing-time benchmark. O
 was reduced so the capped off-road speed can actually recover onto the track. Temporary
 HUD state attributes used for the check were removed. No automated tests ran.
 
+First-run follow-up: the playable adapter declares Track as its default; available root
+fallbacks wait for the settled document table. Fresh creation opens Track with Cube selected,
+Play visible, Chat open, Outliner/Properties and a thin Timeline. The starter saves Material
+Preview with scene World/lights enabled. Blender deliberately demotes Rendered shading on
+file read; its load rule is unchanged. The presenter now carries Material Preview's two
+scene-lighting flags independently, and uses the scene display transform in Preview too.
+The Play tool owns a 0.8-second eased camera handoff (pose, projection and field of view),
+locks input on entry, freezes the detached scene for the return, and fades its React layer
+away before revealing the editing stage. Escape completes an in-progress blend. The race's
+resting chase distance is 11 metres, keeping the road ahead readable.
+
 Keymap generation is verified on `launch-integration`: an isolated public Code-OSS
 checkout at `f16dc165c0df` was compiled and its own `KeybindingParser`/`keyCodes`
 validated all 102 rules over 60 commands. The generated files are not byte-identical

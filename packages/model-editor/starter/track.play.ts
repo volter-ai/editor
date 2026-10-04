@@ -233,7 +233,7 @@ export default function play(context: {
       // Smooth our own stage-space pose; navigation re-poses the stage camera each frame.
       root.updateMatrixWorld(true);
       const pace = Math.min(30, Math.abs(speed));
-      const distance = grounded ? 6 + pace * 0.07 : 12;
+      const distance = grounded ? 11 + pace * 0.07 : 12;
       const lookAhead = grounded ? 2.5 + pace * 0.04 : 0.5;
       const fov = 36 + pace * 0.28;
       const height = 1.2 + (distance + lookAhead) * Math.tan(THREE.MathUtils.degToRad(fov * 0.22));

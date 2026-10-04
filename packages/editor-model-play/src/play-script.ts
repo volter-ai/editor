@@ -19,6 +19,9 @@
  * tool offers project roots, all entries share one project mount epoch.
  * A save in the mount's dependency graph prepares a replacement against the
  * same detached copy; its first successful update replaces the running mount.
+ * The tool blends the camera from the editing pose for 0.8 seconds after
+ * update, holding keys empty until arrival. Stop freezes the copy and blends
+ * back before disposing it; Escape during either blend completes that blend.
  */
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { surfaceAcceptsKey, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
@@ -33,6 +36,8 @@ import {
 import type * as THREE from 'three';
 import { projectPlayLayers } from '@volter/editor-sdk/kit/project-play-layers';
 import { beginProjectMountEpoch, projectEntryImportUrl } from '@volter/editor-sdk/session/project-module-url';
+import { cameraTransition } from './camera-transition';
+import { finishModelPlay, registerModelPlayStop } from './model-play';
 interface PlayComposition {
   readonly entries: readonly string[];
   loadScript(): Promise<{ default?: unknown }>;
@@ -46,9 +51,9 @@ export interface ModelPlayContext {
   /** The object a Blender object's name presents as, ready to be moved by `position`,
    *  `quaternion` and `scale`; null when the file has no such object. */
   find(name: string): THREE.Object3D | null;
-  /** The camera the stage draws with. The script's pose is the frame's last word, and the
-   *  stage's own navigation re-poses it before each call, so a script states the whole pose
-   *  every frame. */
+  /** The camera the stage draws with. Navigation re-poses it before each call,
+   * so a script states the whole pose every frame. The tool blends that pose
+   * during entry and holds keys empty until the camera arrives. */
   readonly camera: THREE.Camera;
   /** The keys held now, by `KeyboardEvent.code` (`ArrowUp`, `KeyW`, `Space`). */
   readonly keys: ReadonlySet<string>;
@@ -91,17 +96,22 @@ async function startGame(modulePath: string, context: ModelPlayContext, composit
  * error is reported once; the next save starts it again.
  */
 export function runPlayScript(options: {
+  readonly documentId: string;
   readonly blend: string;
   readonly root: THREE.Object3D;
   readonly camera: () => THREE.Camera;
+  readonly editingCamera: () => THREE.Camera;
   readonly onFrame: (fn: (deltaSeconds: number) => void) => () => void;
   readonly report: (title: string, detail: string) => void;
   readonly container: HTMLElement;
   readonly ready: () => void;
+  readonly returning: () => void;
 }): () => void {
   const { blend, root, camera, onFrame, report } = options;
   const modulePath = playScriptPath(blend);
   const keys = new Set<string>();
+  const transition = cameraTransition(options.editingCamera());
+  options.container.style.opacity = '0';
   const context: ModelPlayContext = {
     root,
     find(name) {
@@ -169,7 +179,19 @@ export function runPlayScript(options: {
     }
   };
   let firstFrame = true;
+  let returning = false;
+  const stopRequest = registerModelPlayStop(options.documentId, (escape) => {
+    keys.clear();
+    if (firstFrame || transition.stop(escape)) finishModelPlay(options.documentId);
+  });
   const stopFrames = onFrame((deltaSeconds) => {
+    if (transition.leaving()) {
+      options.container.style.opacity = String(transition.hudOpacity());
+      if (!returning && transition.approachingEdit()) { returning = true; options.returning(); }
+      if (transition.frame(camera(), deltaSeconds)) finishModelPlay(options.documentId);
+      return;
+    }
+    if (!transition.acceptingKeys() || !surfaceHoldsKeyboard()) keys.clear();
     let replacementUpdated = false;
     if (pending) {
       const next = pending;
@@ -187,9 +209,10 @@ export function runPlayScript(options: {
       }
     }
     if (game === null) return;
-    if (!surfaceHoldsKeyboard()) keys.clear();
     try {
       if (!replacementUpdated) game.update(deltaSeconds);
+      transition.frame(camera(), deltaSeconds);
+      options.container.style.opacity = String(transition.hudOpacity());
       if (firstFrame) { firstFrame = false; options.ready(); }
     } catch (error) {
       end();
@@ -199,7 +222,7 @@ export function runPlayScript(options: {
     root.updateMatrixWorld(true);
   });
   const onKeyDown = (event: KeyboardEvent): void => {
-    if (surfaceAcceptsKey(event)) keys.add(event.code);
+    if (transition.acceptingKeys() && surfaceAcceptsKey(event)) keys.add(event.code);
   };
   const onKeyUp = (event: KeyboardEvent): void => {
     keys.delete(event.code);
@@ -217,6 +240,8 @@ export function runPlayScript(options: {
   void start();
   return () => {
     stopped = true;
+    stopRequest();
+    finishModelPlay(options.documentId);
     stopFrames();
     stopChanges();
     window.removeEventListener('keydown', onKeyDown, true);

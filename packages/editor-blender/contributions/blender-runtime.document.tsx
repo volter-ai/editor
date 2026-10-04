@@ -317,7 +317,10 @@ function BlenderModelViewport(props: ToolContributionProps) {
       if (applied?.mapper === mapper && applied.exposure === exposure) return;
       applied = { mapper, exposure };
       for (const id of [documentId, `${documentId}#area-2`, `${documentId}#play`]) {
-        setViewPresentation(id, { modes: { rendered: { lighting: { tone: { mapper, exposure } } } } });
+        setViewPresentation(id, { modes: {
+          rendered: { lighting: { tone: { mapper, exposure } } },
+          preview: { lighting: { tone: { mapper, exposure } } },
+        } });
       }
     };
     const update = () => { void read().catch(error => editorHost().console.error(String(error), 'blender-colour')); };
@@ -394,12 +397,12 @@ function BlenderModelViewport(props: ToolContributionProps) {
   const area = { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } as const;
   return (
     <div style={game || second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
-      <div key="model" style={game ? { position: 'absolute', inset: 12, zIndex: playedReady ? 0 : 2, visibility: playedReady ? 'hidden' : 'visible' } : second ? area : { display: 'contents' }}>
+      <div key="model" style={game ? { position: 'absolute', inset: 12, zIndex: 2, opacity: playedReady ? 0 : 1, pointerEvents: playedReady ? 'none' : 'auto', transition: 'opacity 160ms ease-out' } : second ? area : { display: 'contents' }}>
         <BlenderViewportArea {...props} view={view} main />
       </div>
       {game && (
         <div key="play" style={{ position: 'absolute', inset: 12 }} data-testid="blender-play-area">
-          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play onPlayReady={() => setPlayedReady(true)} />
+          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play onPlayReady={() => setPlayedReady(true)} onPlayReturn={() => setPlayedReady(false)} />
         </div>
       )}
       {second && (
@@ -488,7 +491,8 @@ function BlenderViewportArea({
   main,
   play = false,
   onPlayReady,
-}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly play?: boolean; readonly onPlayReady?: () => void }) {
+  onPlayReturn,
+}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly play?: boolean; readonly onPlayReady?: () => void; readonly onPlayReturn?: () => void }) {
   const reads = readsOf(view);
   const build = useCallback(
     () => ({
@@ -580,6 +584,8 @@ function BlenderViewportArea({
   notifyRef.current = notify;
   const playReadyRef = useRef(onPlayReady);
   playReadyRef.current = onPlayReady;
+  const playReturnRef = useRef(onPlayReturn);
+  playReturnRef.current = onPlayReturn;
   useEffect(() => {
     if (!play || !documentId) return;
     if (blend === undefined) {
@@ -610,11 +616,14 @@ function BlenderViewportArea({
       void view.prepareRendered(stage.rig().drawCamera()).then(() => {
         if (stopped) return;
         stopScript = documentPlayExtension('model')?.run({
+          documentId: modelId,
           container: layers,
           ready: () => { if (!stopped) { setPlayReady(true); playReadyRef.current?.(); } },
+          returning: () => { if (!stopped) playReturnRef.current?.(); },
           sourcePath: blend,
           root: view.root,
           camera: () => stage.rig().drawCamera(),
+          editingCamera: () => viewportStages().find(one => one.documentId === modelId)?.rig().drawCamera() ?? stage.rig().drawCamera(),
           onFrame: (fn) => stage.onFrame(fn),
           report: (title, detail) => {
             editorHost().console.error(`${title}: ${detail}`, 'blender-play');
@@ -641,7 +650,11 @@ function BlenderViewportArea({
     waitForDraw();
     const stopStages = onViewportStages(waitForDraw);
     const onEscape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape' && surfaceAcceptsKey(event)) documentPlayExtension('model')?.setPlaying(modelId, false);
+      if (event.key === 'Escape' && surfaceAcceptsKey(event)) {
+        const extension = documentPlayExtension('model');
+        if (extension?.escape) extension.escape(modelId);
+        else extension?.setPlaying(modelId, false);
+      }
     };
     window.addEventListener('keydown', onEscape, true);
     return () => {
@@ -791,8 +804,11 @@ function BlenderViewportArea({
         stopFrame = stage ? stage.onFrame(() => view.refreshRendered()) : null;
         framed = stage;
       }
-      const { lighting } = viewPresentation(documentId);
-      view.holdRendered(lighting.source === 'scene' && stage ? drawCamera : null);
+      const { lighting, drawMode } = viewPresentation(documentId);
+      const preview = drawMode === 'preview';
+      const sceneLighting = preview ? { world: lighting.source === 'scene', lights: lighting.preview.sceneLights } : undefined;
+      const needsScene = lighting.source === 'scene' || (preview && lighting.preview.sceneLights);
+      view.holdRendered(needsScene && stage ? drawCamera : null, sceneLighting);
       // BLENDER'S SOLID IS BLENDER'S OWN FUNCTION: while the stage lights by Blender's studio, the
       // presenter draws every surface by it (`blender-workbench-material.ts`).
       view.setWorkbench(lighting.source === 'studio' && lighting.studioPreset === DOCUMENT_STUDIO_PRESET.id);
@@ -915,7 +931,13 @@ function BlenderViewportArea({
         const saved = view.savedView();
         if (!saved) return null;
         const camera = { fov: blenderViewFieldOfView(saved.lens) };
-        return main && saved.drawMode ? { camera, drawMode: saved.drawMode } : { camera };
+        return main && saved.drawMode ? {
+          camera, drawMode: saved.drawMode,
+          modes: { preview: {
+            lighting: { source: saved.sceneWorld ? 'scene' as const : 'preview' as const, preview: { sceneLights: saved.sceneLights } },
+            ...(saved.sceneWorld ? { backdrop: { source: 'scene' as const } } : {}),
+          } },
+        } : { camera };
       })()}
       // Every entry this document opens is a `model` stage, the standing `blender:runtime`
       // address included (its id carries no `model:` prefix).

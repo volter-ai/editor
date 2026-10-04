@@ -8,6 +8,7 @@
  */
 const listeners = new Set<() => void>();
 const playing = new Set<string>();
+const stops = new Map<string, (escape: boolean) => void>();
 
 export function modelPlaying(documentId: string): boolean {
   return playing.has(documentId);
@@ -15,9 +16,26 @@ export function modelPlaying(documentId: string): boolean {
 
 export function setModelPlaying(documentId: string, value: boolean): void {
   if (playing.has(documentId) === value) return;
+  if (!value && stops.has(documentId)) { stops.get(documentId)!(false); return; }
   if (value) playing.add(documentId);
   else playing.delete(documentId);
   for (const listener of [...listeners]) listener();
+}
+
+export function finishModelPlay(documentId: string): void {
+  stops.delete(documentId);
+  setModelPlaying(documentId, false);
+}
+
+export function escapeModelPlay(documentId: string): void {
+  const stop = stops.get(documentId);
+  if (stop) stop(true);
+  else finishModelPlay(documentId);
+}
+
+export function registerModelPlayStop(documentId: string, stop: (escape: boolean) => void): () => void {
+  stops.set(documentId, stop);
+  return () => { if (stops.get(documentId) === stop) stops.delete(documentId); };
 }
 
 export function subscribeModelPlay(listener: () => void): () => void {

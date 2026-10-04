@@ -90,7 +90,7 @@ import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 
 export default defineAdapter({
 ${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : ''}  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties'${await starterChatDeclaration(template)} },
-  documents: { find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
+  documents: { ${playable ? "default: 'model:src/models/track.blend', " : ''}find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
 });
 `);
     // THE PROJECT NAMES ITS AGENT'S SERVERS, as every scaffolded project does
