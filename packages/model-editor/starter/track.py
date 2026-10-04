@@ -50,7 +50,12 @@ def material(name, value):
 
 # Volter's light semantic roles from brand.volter.ai/tokens.json, in linear RGB.
 asphalt = material("Asphalt", "#16252c")       # surface.inverse
+# Dry asphalt scatters the low sun; it must not read as a polished mirror.
+asphalt.node_tree.nodes.get("Principled BSDF").inputs["Roughness"].default_value = 1.0
+asphalt.node_tree.nodes.get("Principled BSDF").inputs["Specular IOR Level"].default_value = 0.05
 grass = material("Grass", "#5f9a2e")           # scene.instance
+grass.node_tree.nodes.get("Principled BSDF").inputs["Roughness"].default_value = 1.0
+grass.node_tree.nodes.get("Principled BSDF").inputs["Specular IOR Level"].default_value = 0.05
 orange = material("Orange", "#ff6a1f")         # accent.orange
 white = material("White", "#f3f2ec")           # text.inverse
 rubber = material("Rubber", "#0f1a1f")         # surface.media
@@ -268,7 +273,11 @@ for screen in bpy.data.screens:
     for area in screen.areas:
         if area.type == "VIEW_3D":
             space = area.spaces.active
-            space.shading.type = "RENDERED"
+            # Blender demotes Rendered to Solid when loading a file. Material
+            # Preview with the scene's World/lights survives that native load.
+            space.shading.type = "MATERIAL"
+            space.shading.use_scene_world = True
+            space.shading.use_scene_lights = True
             space.region_3d.view_location = (32, -22, 1.4)
             space.region_3d.view_distance = 16
             space.region_3d.view_rotation = camera.rotation_euler.to_quaternion()

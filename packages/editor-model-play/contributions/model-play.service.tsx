@@ -2,7 +2,7 @@
 import { useSyncExternalStore } from 'react';
 import { Button, EditorIcon, editorIcons, MenuItem } from '@volter/editor-sdk/widgets';
 import { registerDocumentPlayExtension, type DocumentPlayControlProps } from '@volter/editor-sdk/kit/document-play-extension';
-import { modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
+import { escapeModelPlay, modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
 import { runPlayScript } from '../src/play-script';
 import type * as THREE from 'three';
 
@@ -12,7 +12,7 @@ function usePlaying(documentId: string | undefined): boolean {
 }
 function Control({ documentId, onClose }: DocumentPlayControlProps) {
   const playing = usePlaying(documentId);
-  return <Button size="compact" data-testid="blender-play-button" aria-pressed={playing}
+  return <Button size="compact" data-testid="model-play-button" aria-pressed={playing}
     disabled={!documentId} title={playing ? 'Stop playing (Escape)' : 'Play this model’s script'}
     onClick={() => { onClose(); if (documentId) setModelPlaying(documentId, !playing); }}>
     <EditorIcon icon={playing ? editorIcons.transport.stop : editorIcons.transport.play} />
@@ -21,18 +21,18 @@ function Control({ documentId, onClose }: DocumentPlayControlProps) {
 }
 function Menu({ documentId, onClose }: DocumentPlayControlProps) {
   const playing = usePlaying(documentId);
-  return <MenuItem data-testid="blender-play" disabled={!documentId}
+  return <MenuItem data-testid="model-play" disabled={!documentId}
     onSelect={() => { onClose(); if (documentId) setModelPlaying(documentId, !playing); }}>
     {playing ? 'Stop' : 'Play'}
   </MenuItem>;
 }
 export function start(): () => void {
   const unregister = registerDocumentPlayExtension('model', {
-    Control, Menu, playing: modelPlaying, setPlaying: setModelPlaying, subscribe: subscribeModelPlay,
+    Control, Menu, playing: modelPlaying, setPlaying: setModelPlaying, escape: escapeModelPlay, subscribe: subscribeModelPlay,
     run(stage) {
       // The document kind lends native scene objects; this tool owns their Three types.
       return runPlayScript({ ...stage, blend: stage.sourcePath, root: stage.root as THREE.Object3D,
-        camera: stage.camera as () => THREE.Camera });
+        camera: stage.camera as () => THREE.Camera, editingCamera: stage.editingCamera as () => THREE.Camera });
     },
   });
   return unregister;

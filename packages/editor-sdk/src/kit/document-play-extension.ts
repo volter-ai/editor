@@ -8,20 +8,26 @@ export interface DocumentPlayControlProps {
   readonly onClose: () => void;
 }
 export interface DocumentPlayStage {
+  readonly documentId: string;
   readonly sourcePath: string;
   readonly root: unknown;
   readonly camera: () => unknown;
+  /** The editing area's current draw camera, before handing its view to Play. */
+  readonly editingCamera: () => unknown;
   readonly onFrame: (fn: (seconds: number) => void) => () => void;
   readonly report: (title: string, detail: string) => void;
   readonly container: HTMLElement;
   /** The runner has updated its first drawable frame. */
   readonly ready: () => void;
+  /** The return camera is approaching the editing pose; fade authoring chrome back in. */
+  readonly returning: () => void;
 }
 export interface DocumentPlayExtension {
   readonly Control: ComponentType<DocumentPlayControlProps>;
   readonly Menu: ComponentType<DocumentPlayControlProps>;
   playing(documentId: string): boolean;
   setPlaying(documentId: string, value: boolean): void;
+  escape?(documentId: string): void;
   subscribe(listener: () => void): () => void;
   run(stage: DocumentPlayStage): () => void;
 }

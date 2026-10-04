@@ -130,9 +130,9 @@ export default function play(context: {
         const road = surfaceAt(car.position.x, car.position.y);
         const floor = road ?? 0;
         if (road === null && grounded) {
-          speed *= Math.exp(-8 * h);
+          speed *= Math.exp(-2 * h);
           speed = THREE.MathUtils.clamp(speed, -4, 4);
-          velocity.multiplyScalar(Math.exp(-8 * h));
+          velocity.multiplyScalar(Math.exp(-2 * h));
         }
         // Follow a rising surface; retain its launch velocity when the surface drops away.
         if (grounded && floor >= car.position.z - 0.15) {
@@ -233,7 +233,7 @@ export default function play(context: {
       // Smooth our own stage-space pose; navigation re-poses the stage camera each frame.
       root.updateMatrixWorld(true);
       const pace = Math.min(30, Math.abs(speed));
-      const distance = grounded ? 6 + pace * 0.07 : 12;
+      const distance = grounded ? 11 + pace * 0.07 : 12;
       const lookAhead = grounded ? 2.5 + pace * 0.04 : 0.5;
       const fov = 36 + pace * 0.28;
       const height = 1.2 + (distance + lookAhead) * Math.tan(THREE.MathUtils.degToRad(fov * 0.22));

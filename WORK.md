@@ -392,7 +392,31 @@ view at that size (12 settled frames): shadow fitting on every draw took 10.55 m
 13.71 ms. CPU submission medians were 5.09 / 5.00 ms; these samples show no material total
 frame-cost improvement. Scene/shading changes invalidate the fit too. The packaged SDK doorways share tool registries
 and project state. PR #37 carries recording steps; one fresh session is stopped at the
-start line. A full circuit lap has not been driven. No automated tests ran.
+start line. The product key door drove all three ordered checkpoints and crossed the start
+line again: LAP 2, LAST 8:07.41 (`lap-complete.png`). This stop-and-inspect lap includes
+inspection pauses and one infield recovery; it is not a racing-time benchmark. Off-road drag
+was reduced so the capped off-road speed can actually recover onto the track. Temporary
+HUD state attributes used for the check were removed. No automated tests ran.
+
+First-run follow-up: the playable adapter declares Track as its default; available root
+fallbacks wait for the settled document table. Fresh creation opens Track with Cube selected,
+Play visible, Chat open, Outliner/Properties and a thin Timeline. The starter saves Material
+Preview with scene World/lights enabled. Blender deliberately demotes Rendered shading on
+file read; its load rule is unchanged. The presenter now carries Material Preview's two
+scene-lighting flags independently, and uses the scene display transform in Preview too.
+The Play tool owns a 0.8-second eased camera handoff (pose, projection and field of view),
+locks input on entry, freezes the detached scene for the return, and fades its React layer
+away before revealing the editing stage. Escape completes an in-progress blend. The race's
+resting chase distance is 11 metres, keeping the road ahead readable.
+
+Keymap verification remains open: the checked-in play guard was edited by substitution;
+at review time no compiled Code-OSS fork was found in the local checkout/build locations (home checkouts,
+`.volter`, temporary directories; source/parser filename search and Spotlight). The cached
+`~/.volter/workbenches/model-editor-f16dc165c0df-ae7600a80ae8-darwin-arm64` is a packaged
+workbench, not a fork checkout. `generate-keymaps.mjs` requires the fork's
+`out/vs/base/common/keybindingParser.js` and `keyCodes.js`. Closes when it runs against a
+compiled public fork and the resulting manifest/carried-keymap diff is reviewed. The sign-in
+worker has since supplied its compiled integration fork; its generator handoff is pending.
 
 ## Skeletons and actions in Play
 
