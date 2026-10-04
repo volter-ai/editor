@@ -1176,7 +1176,6 @@ export class BlenderRuntimeView {
    * has attached the root to its scene. */
   async prepareRendered(camera: THREE.Camera): Promise<void> {
     await this.applyRendered(true, camera);
-    this.world.refresh();
   }
 
   /**
@@ -1187,10 +1186,7 @@ export class BlenderRuntimeView {
     // A photograph in progress keeps its own state; it returns to this one when it ends.
     if (this.heldRendered === null || this.capturing) return;
     const camera = this.heldRendered();
-    if (this.worldKeyFor(camera) === this.worldApplied) {
-      this.world.refresh();
-      return;
-    }
+    if (this.worldKeyFor(camera) === this.worldApplied) return;
     this.report(this.applyRendered(true, camera));
   }
 

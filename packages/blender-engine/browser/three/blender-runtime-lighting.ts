@@ -835,41 +835,10 @@ export class WorldBackground {
       ? worldTexture(lighting.shader ?? lighting.color, lighting.strength, camera)
       : null;
     scene.environment = this.environmentTexture ?? this.texture;
-    this.paintedBackground = scene.background;
-    this.paintedEnvironment = scene.environment;
-    this.refresh();
   }
-
-  /** The host may reset its neutral background after the model's first apply. */
-  refresh(): void {
-    if (!this.applied || !this.texture) return;
-    this.applied.scene.background = this.paintedBackground;
-    this.applied.scene.environment = this.paintedEnvironment;
-    // The stage renders an outer Scene around the document's own Scene. Three
-    // reads only that outer Scene's background; carry the World through both.
-    let parent = this.applied.scene.parent;
-    while (parent) {
-      if ((parent as THREE.Scene).isScene) {
-        const scene = parent as THREE.Scene;
-        if (!this.mirrors.has(scene)) this.mirrors.set(scene, {background: scene.background, environment: scene.environment});
-        scene.background = this.paintedBackground;
-        scene.environment = this.paintedEnvironment;
-      }
-      parent = parent.parent;
-    }
-  }
-
-  private mirrors = new Map<THREE.Scene, {background: THREE.Scene['background']; environment: THREE.Scene['environment']}>();
-  private paintedBackground: THREE.Scene['background'] = null;
-  private paintedEnvironment: THREE.Scene['environment'] = null;
 
   clear(): void {
     this.generation++;
-    for (const [scene, previous] of this.mirrors) {
-      scene.background = previous.background;
-      scene.environment = previous.environment;
-    }
-    this.mirrors.clear();
     if (!this.applied) return;
     this.applied.scene.background = this.applied.background;
     this.applied.scene.environment = this.applied.environment;
