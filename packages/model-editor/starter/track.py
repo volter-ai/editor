@@ -153,7 +153,7 @@ for row in range(2):
         box(f"Start.{row}.{column}", (27.5 + column, -24 + row * 0.5, 0.015), (1, 0.5, 0.03), white if (row + column) % 2 else asphalt)
 for x in (25.8, 38.2):
     box(f"Gantry.Post.{x}", (x, -24, 3.1), (0.35, 0.5, 6.2), white)
-box("Gantry", (32, -24, 6.0), (13, 0.6, 0.8), orange)
+box("Gantry.Beam", (32, -24, 6.0), (13, 0.6, 0.8), orange)
 for i in range(7):
     box(f"Gantry.Check.{i}", (27.5 + i * 1.5, -24.32, 6.0), (0.75, 0.04, 0.55), white)
 
@@ -273,29 +273,33 @@ for screen in bpy.data.screens:
             space.region_3d.view_distance = 16
             space.region_3d.view_rotation = camera.rotation_euler.to_quaternion()
 
-# Keep the Outliner useful: its native door pages 64 children per collection.
-# Driving objects stay together; repeated scenery is divided into small collections.
+# Collections organize Blender files; parent empties also survive as the Play hierarchy.
+# Identity group transforms keep the script's Blender-space obstacle/kerb positions intact.
 main = bpy.data.collections.get("Collection")
-drive = bpy.data.collections.new("01 Drive")
-main.children.link(drive)
-groups = {"01 Drive": drive}
-counts = {}
+groups = {}
+for name in ("Kerbs", "Cones", "Crates", "Trees", "Tyres", "Scenery", "Gantry", "Ramps"):
+    group = bpy.data.objects.new(name, None)
+    main.objects.link(group)
+    group.empty_display_type = "PLAIN_AXES"
+    group.empty_display_size = 0.5
+    groups[name] = group
+
 for obj in list(bpy.data.objects):
+    if obj.parent or obj.name in groups or obj.name in {"Cube", "Track", "Ground", "Sun", "Camera"}:
+        continue
     prefix = obj.name.split(".")[0]
-    if prefix in {"Cube", "Wheel", "Ramp", "Cone", "ConeBase", "Crate", "CrateBand", "Sun", "Camera", "Checkpoint", "Gantry", "Start"}:
-        group = "01 Drive"
-    elif prefix in {"Track", "Edge", "Centre", "Ground"}:
-        group = "02 Circuit"
+    if prefix in {"Edge", "Centre"}:
+        parent = bpy.data.objects["Track"]
     else:
-        group = {"Kerb": "03 Kerbs", "Barrier": "04 Tyres", "Tree": "05 Trees", "Hill": "06 Hills"}.get(prefix, "07 Stands and signs")
-    counts[group] = counts.get(group, 0) + 1
-    key = group + (f" {(counts[group] - 1) // 48 + 1}" if group not in {"01 Drive", "02 Circuit"} else "")
-    if key not in groups:
-        groups[key] = bpy.data.collections.new(key)
-        main.children.link(groups[key])
-    for old in list(obj.users_collection):
-        old.objects.unlink(obj)
-    groups[key].objects.link(obj)
+        group = {
+            "Kerb": "Kerbs", "Cone": "Cones", "Crate": "Crates", "Tree": "Trees",
+            "Barrier": "Tyres", "Gantry": "Gantry", "Start": "Gantry", "Ramp": "Ramps",
+        }.get(prefix, "Scenery")
+        parent = groups[group]
+    world = obj.matrix_world.copy()
+    obj.parent = parent
+    obj.matrix_world = world
+
 # Cameras are useful for a render, but their overlay rectangle obscures the edit.
 camera.hide_set(True)
 
