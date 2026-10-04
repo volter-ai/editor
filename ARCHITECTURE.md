@@ -76,6 +76,8 @@ or UI tool. The `playable` template declares `editor-model-play`, `editor-ui` an
 `editor-react`; it retains the Model layout and Blender look. A document lends its detached
 stage through `kit/document-play-extension`; the UI tool offers project DOM roots through
 `kit/project-play-layers`. One mount epoch identifies the script and HUD module graph.
+Packaged compositions publish doorways to the SDK modules they already use; project
+packages resolve those same URLs, preserving registries and project state across both graphs.
 The UI wrapper currently reuses `editor-game`'s DOM authoring implementation. Its
 `RealmServices` imports canvas/Three loaders and its DOM adapter uses game-named types,
 but mounting a DOM root requires no game loop. Those packaging ties remain to extract;

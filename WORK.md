@@ -378,11 +378,28 @@ lends its detached Rendered stage. Stop/Escape disposes it and returns to the sa
 The UI tool mounts the declared `dom` root through `kit/project-play-layers`, sharing one
 mount epoch with the script (`editor-model-play/src/play-script.ts`), so its plain race
 store has one instance. The existing UI board opens the HUD's CSF stories beside Track.
-State: walked in a source session of Volter Model Editor, built on Blender; fresh creation
-of both templates. Render and Play from the same camera pose match; the detached stage
-carries the World and fitted sun shadows. Driving at 89 km/h measured 100.1 fps; frameCost
-measured 9.6 ms median / 11.47 ms p95 at 2909×1129. Open: packaged contribution identity,
-clear jump/drift/lap captures and recording steps. No automated tests ran.
+State: walked in source and built sessions of Volter Model Editor, built on Blender;
+fresh `create --template playable` ships the built circuit, script and React HUD, while
+`models` shows no Play control. Scene empties group the circuit; Outliner pages after
+parent folding. Render and Play at the same pose match (1.10/255 mean absolute RGB
+difference after grouping). Play awaits the
+World before revealing its first frame; HUD typography matches the UI board, with chat
+closed and a thin timeline. Ramp selection/gizmo, visible airtime and corner smoke were
+captured under `/tmp/model-play-frames`. Driving measured 85–100 fps; frameCost measured
+8.03 ms median / 10.72 ms p95 at 3209×1129. The packaged SDK doorways share tool registries
+and project state. PR #37 carries recording steps; one fresh session is stopped at the
+start line. A full circuit lap has not been driven. No automated tests ran.
+
+## Skeletons and actions in Play
+
+State: a detached or following copy binds no skeleton; the frame used to build it carries
+no bones or actions. A rigged character is a frozen mesh in Play, and a play script cannot
+start a clip. Skin and Timeline bind only to the presented view
+(`blender-runtime-skin.ts`). Closes when a Timeline-authored character plays the same
+action in Play, started by the script; Blender camera animation can drive the play camera;
+and Timeline and script can hand an object to each other. Cinematic and game then share
+the scene and clips, so a film made in the editor can become playable. Tracker only;
+no animation implementation started.
 
 ## Supported-editing work
 
