@@ -418,6 +418,22 @@ workbench, not a fork checkout. `generate-keymaps.mjs` requires the fork's
 compiled public fork and the resulting manifest/carried-keymap diff is reviewed. The sign-in
 worker has since supplied its compiled integration fork; its generator handoff is pending.
 
+## Tab recorder frame rate
+
+Raise the shared browser controller's optional recording rate without changing its low-rate
+watcher defaults. State: `~/.codex/skills/browser/scripts/open-session.ts:990` clamps
+`/screencast` to 15 fps; `screencast.ts` forwards only after `1000 / fps` milliseconds and
+resets its deadline to the latest send time, losing cadence when incoming frames do not
+divide evenly into the requested rate. CDP already uses `everyNthFrame: 1`; moving frames
+are capped at 1280 pixels wide. The accepted race take is a 15 fps storyboard; the owner
+records the real clip at full frame rate. Closes when an opt-in 30/60 fps recording path
+preserves source timestamps, accumulates deadlines, bounds backpressure and reports actual
+received/sent/dropped frames, with sustained cadence and native 1920×1080 checked on a
+moving tab through the existing shared connection. Coordinate controller maintenance with
+its owners; preserve tabs and leases. Size: roughly 2–3 controller/recording files, 60–120
+lines and half a day including validation. Tracker only; no controller change or fixed-step
+replay work started.
+
 ## Skeletons and actions in Play
 
 State: a detached or following copy binds no skeleton; the frame used to build it carries
