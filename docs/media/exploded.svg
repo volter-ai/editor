@@ -1,11 +1,12 @@
-<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1960" viewBox="0 0 1600 1960" role="img" aria-labelledby="title desc">
-<title id="title">Browser editor: four parts, exploded</title><desc id="desc">An isometric assembly drawing. From bottom to top: the headless Blender WebAssembly engine, the three.js race viewport, the React panels, and the Code-OSS window shell. Dashed guides align the parts. A small assembled editor sits at the upper right.</desc>
+<svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1840" viewBox="0 0 1600 1840" role="img" aria-labelledby="title desc">
+<title id="title">Volter Model Editor, built on Blender: four parts, exploded</title><desc id="desc">An isometric assembly drawing. From bottom to top: the headless Blender WebAssembly engine, the three.js race viewport, the React panels, and the Code-OSS window shell. Dashed guides align the parts. A small assembled editor sits at the upper right.</desc>
 <!-- Palette: @volter-ai/brand light semantic surface.page/raised/subtle/inset; text.primary/muted; border.strong; status.live.soft/status.success.soft; data.soft. Fonts: Geist and Geist Mono, with local system fallbacks. No external resources. -->
 <!-- Architecture sources: README.md (browser workbench, .blend persistence, Python/native undo); ARCHITECTURE.md (kit/integrations/product composition); packages/blender-engine/README.md (WebAssembly worker, Python session, Three.js presenter); packages/editor-blender/README.md (inspectors/layouts). Layer names and Blender 5.2 version supplied by the drawing brief. -->
-<rect width="1600" height="1960" fill="#f7f6f1"/>
+<rect width="1600" height="1840" fill="#f7f6f1"/>
 <g font-family="Geist, Helvetica Neue, Arial, sans-serif" stroke-linecap="square">
-<text x="80" y="91" font-size="56" font-weight="500" fill="#16252c">Browser editor</text>
-<text x="80" y="144" font-size="30" font-weight="400" fill="#5d6970" font-family="Geist Mono, SFMono-Regular, Consolas, monospace">EXPLODED ASSEMBLY</text>
+<text x="80" y="80" font-size="56" font-weight="500" fill="#16252c">Volter Model Editor</text>
+<text x="80" y="126" font-size="34" font-weight="400" fill="#5d6970">built on Blender</text>
+<text x="80" y="166" font-size="28" font-weight="400" fill="#5d6970" font-family="Geist Mono, SFMono-Regular, Consolas, monospace">EXPLODED ASSEMBLY</text>
 <polyline points="80.0,181.0 930.0,181.0" fill="none" stroke="#c4c5bc" stroke-width="2"/>
 <polyline points="400.0,250.0 400.0,1420.0" fill="none" stroke="#c4c5bc" stroke-width="2" stroke-dasharray="9 10"/>
 <polyline points="904.0,466.0 904.0,1636.0" fill="none" stroke="#c4c5bc" stroke-width="2" stroke-dasharray="9 10"/>
@@ -27,16 +28,9 @@
 <polygon points="813.7,1640.1 689.8,1719.7 689.8,1699.7 813.7,1620.1" fill="#f2f1eb" stroke="#16252c" stroke-width="2.4" stroke-linejoin="round"/>
 <polygon points="570.1,1668.4 689.8,1719.7 689.8,1699.7 570.1,1648.4" fill="#e7e6df" stroke="#16252c" stroke-width="2.4" stroke-linejoin="round"/>
 <polygon points="694.0,1568.8 813.7,1620.1 689.8,1699.7 570.1,1648.4" fill="#fbfaf7" stroke="#16252c" stroke-width="2.4" stroke-linejoin="round"/>
-<polyline points="407.7,1463.8 490.6,1499.4" fill="none" stroke="#c4c5bc" stroke-width="2"/>
-<polyline points="390.2,1475.1 473.1,1510.6" fill="none" stroke="#c4c5bc" stroke-width="2"/>
-<polyline points="372.7,1486.3 455.6,1521.9" fill="none" stroke="#c4c5bc" stroke-width="2"/>
-<polyline points="355.2,1497.6 438.1,1533.1" fill="none" stroke="#c4c5bc" stroke-width="2"/>
-<polyline points="337.7,1508.8 420.6,1544.4" fill="none" stroke="#c4c5bc" stroke-width="2"/>
-<polygon points="691.6,1586.2 778.7,1623.5 767.5,1630.8 680.4,1593.4" fill="#ebe6f3" stroke="#c4c5bc" stroke-width="2.4" stroke-linejoin="round"/>
-<polygon points="672.0,1598.8 759.1,1636.2 747.9,1643.4 660.8,1606.0" fill="#ebe6f3" stroke="#c4c5bc" stroke-width="2.4" stroke-linejoin="round"/>
-<polygon points="652.4,1611.4 739.5,1648.8 728.3,1656.0 641.2,1618.6" fill="#ebe6f3" stroke="#c4c5bc" stroke-width="2.4" stroke-linejoin="round"/>
-<polygon points="632.8,1624.0 719.9,1661.4 708.7,1668.5 621.6,1631.2" fill="#ebe6f3" stroke="#c4c5bc" stroke-width="2.4" stroke-linejoin="round"/>
-<polygon points="613.2,1636.6 700.3,1674.0 689.1,1681.2 602.0,1643.8" fill="#ebe6f3" stroke="#c4c5bc" stroke-width="2.4" stroke-linejoin="round"/>
+<text x="356" y="1523" font-size="28" font-weight="400" fill="#16252c" font-family="Geist Mono, SFMono-Regular, Consolas, monospace">.blend</text>
+<text x="555" y="1555" font-size="28" font-weight="400" fill="#16252c" font-family="Geist Mono, SFMono-Regular, Consolas, monospace">bpy</text>
+<text x="617" y="1643" font-size="28" font-weight="400" fill="#16252c" font-family="Geist Mono, SFMono-Regular, Consolas, monospace">modifiers</text>
 <polygon points="479.1,1596.4 558.9,1630.6 547.0,1638.2 467.2,1604.1" fill="#fbfaf7" stroke="#c4c5bc" stroke-width="2.4" stroke-linejoin="round"/>
 <polygon points="456.7,1610.8 536.5,1645.0 524.6,1652.6 444.8,1618.5" fill="#fbfaf7" stroke="#c4c5bc" stroke-width="2.4" stroke-linejoin="round"/>
 <polygon points="434.3,1625.2 514.1,1659.4 502.2,1667.0 422.4,1632.9" fill="#fbfaf7" stroke="#c4c5bc" stroke-width="2.4" stroke-linejoin="round"/>
@@ -241,7 +235,4 @@
 <ellipse cx="1322" cy="333" rx="7" ry="9" fill="#16252c"/>
 <ellipse cx="1362" cy="333" rx="7" ry="9" fill="#16252c"/>
 </g>
-<polyline points="80.0,1858.0 1512.0,1858.0" fill="none" stroke="#c4c5bc" stroke-width="2"/>
-<text x="80" y="1910" font-size="32" font-weight="400" fill="#5d6970" font-family="Geist Mono, SFMono-Regular, Consolas, monospace">bpy · modifiers · .blend</text>
-<text x="1050" y="1910" font-size="30" font-weight="400" fill="#5d6970">Assembly diagram</text>
 </g></svg>
