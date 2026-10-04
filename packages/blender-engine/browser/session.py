@@ -4901,13 +4901,12 @@ def rna_outliner(selected=None):
         # `add_layer_collections_recursive`: an EXCLUDED collection's objects
         # are not added at all -- it is not in the view layer.
         if not lc.exclude:
-            page, more = _outliner_page(collection.objects)
-            for obj in page:
+            # Fold parenting before paging: a parent may follow its children in
+            # collection order, and must not disappear behind the flat cap.
+            for obj in collection.objects:
                 object_row = _outliner_object(obj, view_layer, seen, chosen, active)
                 place(obj, object_row, row)
                 children.append(object_row)
-            if more:
-                row["more"] = more
         row["children"] = children
         return row
 
@@ -4920,13 +4919,10 @@ def rna_outliner(selected=None):
                                _outliner_key("%s.layer_collection.children" % view_layer_path,
                                              child.collection.name))
                 for child in root.children]
-    page, more = _outliner_page(root.collection.objects)
-    for obj in page:
+    for obj in root.collection.objects:
         object_row = _outliner_object(obj, view_layer, seen, chosen, active)
         place(obj, object_row, scene_collection)
         children.append(object_row)
-    if more:
-        scene_collection["more"] = more
     scene_collection["children"] = children
 
     # `ObjectsChildrenBuilder::make_object_parent_hierarchy_collections`, parents
@@ -4973,6 +4969,18 @@ def rna_outliner(selected=None):
                 selected=obj.name in chosen, active=obj.name == active, notInCollection=True)
             parent_row["children"].append(duplicate)
             mine.append([duplicate, parent_row, parent_collection])
+
+    # Cap the hierarchy's visible child lists, not the collection's flat input.
+    # Every parent participates in folding even when its child list needs a page.
+    def page_tree(row):
+        children, more = _outliner_page(row.get("children", []))
+        row["children"] = children
+        if more:
+            row["more"] = more
+        for child in children:
+            page_tree(child)
+
+    page_tree(scene_collection)
 
     return {
         "scene": scene_path,
