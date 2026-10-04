@@ -377,6 +377,24 @@ Live button/layout, cancellation and readiness-transition acceptance remains wit
 the pilot. The extension changes are in Supercode's `chat-sign-in` branch; its
 tracker check has 79 existing errors, with no tracker edits in this work.
 
+Safe setup acceptance needs a fresh OS user or supported enrolled Mac with no
+signed-in harness; install Codex without signing in to exercise the signed-out
+state. Never sign the owner out. A container can inspect inventory and terminal
+actions, but does not prove this macOS workbench's UI. There is no shipped
+readiness-fixture switch: existing `createClient`/`createController` seams permit
+a development harness to replay recorded inventory through the real host controls;
+the standard editor boot does not wire them. `SUPERCODE_BIN` can select an external
+protocol fixture process, but no such replayer is supplied or accepted here.
+
+Local READY acceptance needs no public workbench release: in an isolated editor
+development dependency tree, temporarily match the frontend pin to the locally
+built package version and install that package at the overlay's fixed dependency
+path. Apply `scripts/workbench/overlay.mjs` to a pilot-owned Code-OSS checkout at
+`FORK.json`'s pin, then use the source-workbench inner loop (`dev.mjs`, the fork's
+Node version, and `edit --workbench`). Stop owned sessions before compilation and
+reopen through the editor's doors. The overlay has no direct local-pack override;
+do not publish that temporary development pin or modify another worker's runtime.
+
 Not released: the editor still pins frontend 0.1.14. Shipping to
 `npx @volter/model-editor` requires the Supercode PR to land (its main SDK
 autorelease publishes the next frontend version), then that published version's
@@ -384,7 +402,7 @@ editor pin/lock update, a public workbench rebuild/release with a matching
 product artifact hash, and promotion of the measured editor main commit to
 `publish`. This task publishes nothing and changes no released artifact pin.
 
-## Supported-editting work
+## Supported-editing work
 
 1. **Native undo/redo:** Code-OSS owns resource ordering and commands; Blender
    owns native snapshots. Redo does not rerun Python. Supported Python/RNA
