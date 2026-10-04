@@ -85,6 +85,7 @@ import {
 } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
 import type { ToolObject3DAuthoringProps } from '@volter/editor-threejs/object3d-contributions';
 import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
+import { surfaceAcceptsKey } from '@volter/editor-sdk/kit/surface-keyboard';
 
 /** The second areas' stage stores whose overlays have been opened off (`BlenderViewportArea`). */
 const overlaysOpened = new WeakSet<object>();
@@ -640,7 +641,7 @@ function BlenderViewportArea({
     waitForDraw();
     const stopStages = onViewportStages(waitForDraw);
     const onEscape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape') documentPlayExtension('model')?.setPlaying(modelId, false);
+      if (event.key === 'Escape' && surfaceAcceptsKey(event)) documentPlayExtension('model')?.setPlaying(modelId, false);
     };
     window.addEventListener('keydown', onEscape, true);
     return () => {

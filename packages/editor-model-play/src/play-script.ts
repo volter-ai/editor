@@ -20,6 +20,7 @@
  * A save disposes and rebuilds that composition against the same detached copy.
  */
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { surfaceAcceptsKey, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import {
   projectModuleChangeMatches,
   subscribeProjectModuleChange,
@@ -157,6 +158,7 @@ export function runPlayScript(options: {
   let firstFrame = true;
   const stopFrames = onFrame((deltaSeconds) => {
     if (game === null) return;
+    if (!surfaceHoldsKeyboard()) keys.clear();
     try {
       game.update(deltaSeconds);
       if (firstFrame) { firstFrame = false; options.ready(); }
@@ -167,11 +169,8 @@ export function runPlayScript(options: {
     }
     root.updateMatrixWorld(true);
   });
-  const typing = (target: EventTarget | null): boolean =>
-    target instanceof HTMLElement &&
-    (target.isContentEditable || ['INPUT', 'TEXTAREA', 'SELECT'].includes(target.tagName));
   const onKeyDown = (event: KeyboardEvent): void => {
-    if (!typing(event.target)) keys.add(event.code);
+    if (surfaceAcceptsKey(event)) keys.add(event.code);
   };
   const onKeyUp = (event: KeyboardEvent): void => {
     keys.delete(event.code);
