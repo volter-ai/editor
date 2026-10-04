@@ -110,6 +110,7 @@ export function runPlayScript(options: {
   const { blend, root, camera, onFrame, report } = options;
   const modulePath = playScriptPath(blend);
   const keys = new Set<string>();
+  const heldKeys = new Set<string>();
   const transition = cameraTransition(options.editingCamera());
   options.container.style.opacity = '0';
   const context: ModelPlayContext = {
@@ -182,6 +183,7 @@ export function runPlayScript(options: {
   let returning = false;
   const stopRequest = registerModelPlayStop(options.documentId, (escape) => {
     keys.clear();
+    heldKeys.clear();
     if (firstFrame || transition.stop(escape)) finishModelPlay(options.documentId);
   });
   const stopFrames = onFrame((deltaSeconds) => {
@@ -191,7 +193,9 @@ export function runPlayScript(options: {
       if (transition.frame(camera(), deltaSeconds)) finishModelPlay(options.documentId);
       return;
     }
-    if (!transition.acceptingKeys() || !surfaceHoldsKeyboard()) keys.clear();
+    if (!surfaceHoldsKeyboard()) { keys.clear(); heldKeys.clear(); }
+    else if (!transition.acceptingKeys()) keys.clear();
+    else for (const key of heldKeys) keys.add(key);
     let replacementUpdated = false;
     if (pending) {
       const next = pending;
@@ -222,12 +226,15 @@ export function runPlayScript(options: {
     root.updateMatrixWorld(true);
   });
   const onKeyDown = (event: KeyboardEvent): void => {
-    if (transition.acceptingKeys() && surfaceAcceptsKey(event)) keys.add(event.code);
+    if (!surfaceAcceptsKey(event)) return;
+    heldKeys.add(event.code);
+    if (transition.acceptingKeys()) keys.add(event.code);
   };
   const onKeyUp = (event: KeyboardEvent): void => {
     keys.delete(event.code);
+    heldKeys.delete(event.code);
   };
-  const onBlur = (): void => keys.clear();
+  const onBlur = (): void => { keys.clear(); heldKeys.clear(); };
   window.addEventListener('keydown', onKeyDown, true);
   window.addEventListener('keyup', onKeyUp, true);
   window.addEventListener('blur', onBlur);
