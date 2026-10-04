@@ -14,6 +14,8 @@ export interface DocumentPlayStage {
   readonly onFrame: (fn: (seconds: number) => void) => () => void;
   readonly report: (title: string, detail: string) => void;
   readonly container: HTMLElement;
+  /** The runner has updated its first drawable frame. */
+  readonly ready: () => void;
 }
 export interface DocumentPlayExtension {
   readonly Control: ComponentType<DocumentPlayControlProps>;

@@ -350,12 +350,14 @@ function BlenderModelViewport(props: ToolContributionProps) {
     () => false,
   );
   const [played, setPlayed] = useState<ReturnType<AreaView['detach']> | null>(null);
+  const [playedReady, setPlayedReady] = useState(false);
   useEffect(() => {
     if (!playing || !documentId) return;
     const playId = `${documentId}#play`;
     // A game is seen as the render is: Rendered shading, chosen before the stage binds.
     setViewPresentation(playId, { drawMode: 'rendered' });
     const copy = view.detach();
+    setPlayedReady(false);
     setPlayed(copy);
     // The stage's mode is PLAY for as long as the copy stands, so the keys are the player's.
     view.setPlaying(true);
@@ -391,12 +393,12 @@ function BlenderModelViewport(props: ToolContributionProps) {
   const area = { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } as const;
   return (
     <div style={game || second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
-      <div key="model" style={game ? { position: 'absolute', inset: 12, visibility: 'hidden' } : second ? area : { display: 'contents' }}>
+      <div key="model" style={game ? { position: 'absolute', inset: 12, zIndex: playedReady ? 0 : 2, visibility: playedReady ? 'hidden' : 'visible' } : second ? area : { display: 'contents' }}>
         <BlenderViewportArea {...props} view={view} main />
       </div>
       {game && (
         <div key="play" style={{ position: 'absolute', inset: 12 }} data-testid="blender-play-area">
-          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play />
+          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play onPlayReady={() => setPlayedReady(true)} />
         </div>
       )}
       {second && (
@@ -484,7 +486,8 @@ function BlenderViewportArea({
   view,
   main,
   play = false,
-}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly play?: boolean }) {
+  onPlayReady,
+}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly play?: boolean; readonly onPlayReady?: () => void }) {
   const reads = readsOf(view);
   const build = useCallback(
     () => ({
@@ -572,7 +575,10 @@ function BlenderViewportArea({
    */
   const notifyRef = useRef(notify);
   const surfaceRef = useRef<HTMLDivElement>(null);
+  const [playReady, setPlayReady] = useState(false);
   notifyRef.current = notify;
+  const playReadyRef = useRef(onPlayReady);
+  playReadyRef.current = onPlayReady;
   useEffect(() => {
     if (!play || !documentId) return;
     if (blend === undefined) {
@@ -588,34 +594,59 @@ function BlenderViewportArea({
     Object.assign(layers.style, { position: 'absolute', inset: '0', pointerEvents: 'none' });
     layers.dataset.testid = 'model-play-roots';
     surfaceRef.current?.appendChild(layers);
+    setPlayReady(false);
+    let stopped = false;
+    let preparing = false;
     let stopScript: (() => void) | null = null;
     let orbit: { enabled: boolean } | null = null;
     const start = (): void => {
-      if (stopScript) return;
+      if (stopScript || preparing || stopped) return;
       const stage = viewportStages().find((one) => one.documentId === documentId);
-      if (!stage) return;
+      if (!stage || !view.root.parent) return;
+      preparing = true;
       orbit = stage.rig().orbit;
       orbit.enabled = false;
-      stopScript = documentPlayExtension('model')?.run({
-        container: layers,
-        sourcePath: blend,
-        root: view.root,
-        camera: () => stage.rig().drawCamera(),
-        onFrame: (fn) => stage.onFrame(fn),
-        report: (title, detail) => {
-          editorHost().console.error(`${title}: ${detail}`, 'blender-play');
-          notifyRef.current?.({ tone: 'error', title, detail });
-        },
-      }) ?? null;
+      void view.prepareRendered(stage.rig().drawCamera()).then(() => {
+        if (stopped) return;
+        stopScript = documentPlayExtension('model')?.run({
+          container: layers,
+          ready: () => { if (!stopped) { setPlayReady(true); playReadyRef.current?.(); } },
+          sourcePath: blend,
+          root: view.root,
+          camera: () => stage.rig().drawCamera(),
+          onFrame: (fn) => stage.onFrame(fn),
+          report: (title, detail) => {
+            editorHost().console.error(`${title}: ${detail}`, 'blender-play');
+            notifyRef.current?.({ tone: 'error', title, detail });
+          },
+        }) ?? null;
+      }, error => {
+        if (stopped) return;
+        editorHost().console.error(`Rendered stage preparation failed: ${String(error)}`, 'model-play');
+        documentPlayExtension('model')?.setPlaying(modelId, false);
+      });
     };
     start();
-    const stopStages = onViewportStages(start);
+    let waitingStage: ReturnType<typeof viewportStages>[number] | undefined;
+    let stopPrepareFrames: (() => void) | undefined;
+    const waitForDraw = () => {
+      const stage = viewportStages().find(one => one.documentId === documentId);
+      if (stage === waitingStage) return;
+      stopPrepareFrames?.();
+      waitingStage = stage;
+      stopPrepareFrames = stage?.onFrame(start);
+      start();
+    };
+    waitForDraw();
+    const stopStages = onViewportStages(waitForDraw);
     const onEscape = (event: KeyboardEvent): void => {
       if (event.key === 'Escape') documentPlayExtension('model')?.setPlaying(modelId, false);
     };
     window.addEventListener('keydown', onEscape, true);
     return () => {
+      stopped = true;
       stopStages();
+      stopPrepareFrames?.();
       window.removeEventListener('keydown', onEscape, true);
       stopScript?.();
       layers.remove();
@@ -837,7 +868,8 @@ function BlenderViewportArea({
   return (
     <div
       ref={surfaceRef}
-      style={{ display: 'contents' }}
+      data-play-ready={play ? playReady : undefined}
+      style={play ? { position: 'absolute', inset: 0 } : { display: 'contents' }}
       onPointerDownCapture={onPointerDownCapture}
       onPointerUpCapture={onPointerUpCapture}
       onPointerCancelCapture={dropCursorPress}

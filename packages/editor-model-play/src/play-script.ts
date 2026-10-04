@@ -90,6 +90,7 @@ export function runPlayScript(options: {
   readonly onFrame: (fn: (deltaSeconds: number) => void) => () => void;
   readonly report: (title: string, detail: string) => void;
   readonly container: HTMLElement;
+  readonly ready: () => void;
 }): () => void {
   const { blend, root, camera, onFrame, report } = options;
   const modulePath = playScriptPath(blend);
@@ -153,10 +154,12 @@ export function runPlayScript(options: {
       report(`${modulePath} did not start`, error instanceof Error ? error.message : String(error));
     }
   };
+  let firstFrame = true;
   const stopFrames = onFrame((deltaSeconds) => {
     if (game === null) return;
     try {
       game.update(deltaSeconds);
+      if (firstFrame) { firstFrame = false; options.ready(); }
     } catch (error) {
       end();
       report(`${modulePath} failed`, error instanceof Error ? error.message : String(error));

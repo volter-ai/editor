@@ -1171,6 +1171,14 @@ export class BlenderRuntimeView {
     this.report(drawCamera === null ? this.applyRendered(false) : this.applyRendered(true, drawCamera()));
   }
 
+  /** Prepare a rendered viewport before revealing its first frame, using the
+   * same lighting/image/World readiness as a photograph. Call after the stage
+   * has attached the root to its scene. */
+  async prepareRendered(camera: THREE.Camera): Promise<void> {
+    await this.applyRendered(true, camera);
+    this.world.refresh();
+  }
+
   /**
    * Re-apply the held render lighting if the draw camera or the World changed since it was
    * last applied. Cheap when nothing did; the stage calls it every frame it draws.
