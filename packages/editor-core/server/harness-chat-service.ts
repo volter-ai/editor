@@ -44,6 +44,7 @@ import {
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { ChatSessionCatalog } from './chat-session-catalog';
+import { chatSetupActions, chatStarterPrompts } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -869,7 +870,9 @@ export class HarnessChatService {
   private chatSelection: ChatSelection = { ...DEFAULT_CHAT_SELECTION };
   private selectingChat = false;
   private readonly chatCatalog: ChatSessionCatalog;
-  private readonly frontendControls = new FrontendControls(() => this.chatControlState(), (selection) => this.selectChat(selection), id => this.openChat(id), (id, nativeId) => this.bindChatIdentity(id, nativeId));
+  private readonly frontendControls = new FrontendControls(() => this.chatControlState(), (selection) => this.selectChat(selection), id => this.openChat(id), (id, nativeId) => this.bindChatIdentity(id, nativeId), (kind, harness) => this.prepareChatSetup(kind, harness));
+  private setupHarness: string | null = null;
+  private setupRefresh: Promise<void> | null = null;
   private frontendHandoffValue: FrontendHandoff | null = null;
   /** The standing reason the Chat view has no agent, or `null`. Held because a refusal
    *  OUTLIVES a page load and the console ledger's clearing rule (a) retires an entry whose
@@ -1038,6 +1041,12 @@ export class HarnessChatService {
     // over is waited for, so the answer carries its connection.
     await this.frontendHandoffInFlight?.catch(() => undefined);
     await this.ensureController();
+    // A refused startup is recoverable after a terminal install/sign-in. Serialize
+    // passive inventory refresh and handoff retries across extension-host callers.
+    if (!this.frontendHandoffValue && this.controller && !this.selectingChat) {
+      this.setupRefresh ??= this.refreshChatSetup().finally(() => { this.setupRefresh = null; });
+      await this.setupRefresh;
+    }
     const snapshot = this.snapshot();
     return {
       selection: { ...this.chatSelection },
@@ -1051,6 +1060,41 @@ export class HarnessChatService {
       models: chatModels(this.chatSelection.harness),
       modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id)])),
       configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
+      setup: {
+        ready: Boolean(this.frontendHandoffValue),
+        actions: this.frontendHandoffValue ? [] : chatSetupActions(snapshot.harnesses),
+        reason: this.frontendHandoffValue ? null : this.frontendRefusalValue,
+        cwd: this.options.getProjectRoot(),
+      },
+      starterPrompts: chatStarterPrompts(this.options.getProjectRoot()),
+    };
+  }
+
+  private async refreshChatSetup(): Promise<void> {
+    const controller = this.controller;
+    if (!controller) return;
+    await controller.dispatch({ type: 'refresh', autoObserve: false, silent: true });
+    this.capture();
+    if (this.closed || controller !== this.controller || this.frontendHandoffValue) return;
+    const ready = this.lastSnapshot.harnesses.find(h => h.availableActions.start &&
+      (!this.setupHarness || h.id === this.setupHarness));
+    if (!ready) return;
+    if (this.setupHarness) this.chatSelection = { harness: this.setupHarness, model: '', effort: '' };
+    await this.runtimeFrontendHandoff();
+    if (this.frontendHandoffValue) this.setupHarness = null;
+  }
+
+  private async prepareChatSetup(kind: string, harness: string) {
+    await this.chatControlState();
+    const action = chatSetupActions(this.lastSnapshot.harnesses).find(a => a.kind === kind && a.harness === harness);
+    if (!action || this.frontendHandoffValue) throw new Error('This setup action is no longer available.');
+    this.setupHarness = harness;
+    const program = kind === 'login' ? findSupercodeCommand(this.options.engineRoot) ?? 'supercode' : 'npm';
+    // The extension runs this exact, host-authored command in a visible terminal.
+    // It never executes arbitrary repair prose or receives provider credentials.
+    return { ...action, cwd: this.options.getProjectRoot(),
+      program,
+      arguments: kind === 'login' ? ['harness', 'login', harness] : ['install', '-g', '@openai/codex'],
     };
   }
 

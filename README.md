@@ -32,9 +32,15 @@ first use, and opens the model editor.
 
 The Chat pane runs whichever coding agent Volter Harness finds installed and signed in
 (Claude Code, Codex, Grok, Gemini and the others it supports), resuming the
-project's last conversation with the agent that held it. A machine with none can
-open the modeling surface, and the pane names each agent with Volter Harness's own
-repair; this package does not install or authenticate any agent.
+project's last conversation with the agent that held it. Chat's setup frontend
+offers **Sign in with ChatGPT** for Codex and the installed agents' own sign-ins
+in the integrated terminal. With no subscription agent installed, it offers
+Codex and shows `npm install -g @openai/codex` before running it. The person
+completes the harness's sign-in; Chat checks readiness and reconnects without a
+reload. Empty Chat can offer up to three project-owned prompts from
+`volter.chat.json` (`{ "starterPrompts": ["…"] }`); clicking fills the input.
+These source changes need the new Supercode frontend and a rebuilt workbench
+release before registry installations receive them; see [WORK.md](WORK.md).
 
 To reopen the project later:
 

@@ -45,6 +45,14 @@ function checkoutNodeModules(): string | null {
   return null;
 }
 
+/** The playable starter owns its Chat suggestions; plain model projects supply none.
+ * The playable template is developed on model-play-race and composes this hook. */
+async function copyStarterChat(template: string | undefined, target: string): Promise<void> {
+  if (template === 'playable') {
+    await copyFile(join(productRoot, 'starter', 'volter.chat.json'), join(target, 'volter.chat.json'));
+  }
+}
+
 export async function writeProject({ name, targetDir, template }: Parameters<ProductCreateDeclaration['create']>[0]) {
     if (template !== undefined && !['models', 'playable'].includes(template)) throw new Error('Unknown Model Editor template.');
     const playable = template === 'playable';
@@ -93,6 +101,7 @@ ${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : '
       mcpServers: { blender: { command: 'npm', args: ['run', '--silent', 'volter-model-editor', '--', 'blender-mcp'] } },
     }, null, 2) + '\n');
     await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
+    await copyStarterChat(template, target);
     if (playable) {
       for (const file of ['track.blend', 'track.py', 'track.play.ts', 'race-state.ts'])
         await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
