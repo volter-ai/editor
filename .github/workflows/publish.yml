@@ -26,7 +26,7 @@ jobs:
     runs-on: ubuntu-latest
     timeout-minutes: 60
     env:
-      LOCKSTEP: 1
+      LOCKSTEP: '0.5'
       PIN_FILES: packages/game-editor/catalog/entries/blender.json packages/game-editor/catalog/entries/music.json
       VERSION_TEXT: packages/dawproject/src/render.ts=@volter/dawproject
     steps:

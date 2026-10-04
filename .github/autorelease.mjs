@@ -72,6 +72,15 @@ for (const name of release) {
   const base = latest && newer(latest, manifest.version) ? latest : manifest.version;
   bumped.set(name, { from: manifest.version, to: nextPatch(base) });
 }
+// LOCKSTEP=<major.minor> also makes that release line ONE version: every released package on it
+// takes the highest version any of them reached, so a package released alone (a version npm
+// refused) cannot leave the set on two numbers that each later release carries forward.
+const lockLine = /^\d+\.\d+$/.test(process.env.LOCKSTEP ?? '') ? process.env.LOCKSTEP : null;
+if (lockLine) {
+  const onLine = [...bumped.values()].filter(({ to }) => parse(to).slice(0, 2).join('.') === lockLine);
+  const top = onLine.reduce((best, { to }) => (!best || newer(to, best) ? to : best), null);
+  for (const bump of onLine) bump.to = top;
+}
 
 function repin(value) {
   if (Array.isArray(value)) return value.map(repin);
