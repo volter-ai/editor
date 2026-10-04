@@ -1,7 +1,7 @@
 {
   "name": "@volter/model-editor",
   "author": "Volter AI, Inc.",
-  "version": "0.5.160",
+  "version": "0.5.161",
   "publishConfig": {
     "access": "public"
   },
