@@ -76,7 +76,7 @@
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertAtPin, CHAT_EXTENSION, knownProducts } from './overlay.mjs';
@@ -349,6 +349,22 @@ gulp([`vscode-reh-web-${args.platform}-min-ci`]);
 
 // ---- 7. the tarball.
 if (!args.dryRun && !existsSync(packageDir)) { fail(`the package task wrote no ${packageDir}`); }
+if (!args.dryRun) {
+	// Upstream REH only copies optional remote/LICENSE; the public fork keeps
+	// its license and third-party notices at the root. Preserve both, plus the
+	// licenses of the editor tiers compiled into this product's workbench.
+	for (const file of ['LICENSE.txt', 'ThirdPartyNotices.txt']) {
+		cpSync(join(clone, file), join(packageDir, file));
+	}
+	for (const owner of ['editor-core', args.product]) {
+		const source = join(REPO_ROOT, 'packages', owner);
+		const destination = join(packageDir, 'licenses', owner);
+		mkdirSync(destination, { recursive: true });
+		for (const file of readdirSync(source).filter(file => /^(LICENSE(?:[.-].*)?|NOTICE|BUNDLED_NOTICES)$/.test(file))) {
+			cpSync(join(source, file), join(destination, file), { recursive: true });
+		}
+	}
+}
 step('tar', ['-czf', tarball, '-C', work, `vscode-reh-web-${args.platform}`]);
 
 // ---- 8. BUILD.json — what the release IS. `platform` is what the locator refuses on,
