@@ -398,6 +398,14 @@ inspection pauses and one infield recovery; it is not a racing-time benchmark. O
 was reduced so the capped off-road speed can actually recover onto the track. Temporary
 HUD state attributes used for the check were removed. No automated tests ran.
 
+Keymap verification remains open: the checked-in play guard was edited by substitution;
+no compiled Code-OSS fork was found in the local checkout/build locations (home checkouts,
+`.volter`, temporary directories; source/parser filename search and Spotlight). The cached
+`~/.volter/workbenches/model-editor-f16dc165c0df-ae7600a80ae8-darwin-arm64` is a packaged
+workbench, not a fork checkout. `generate-keymaps.mjs` requires the fork's
+`out/vs/base/common/keybindingParser.js` and `keyCodes.js`. Closes when it runs against a
+compiled public fork and the resulting manifest/carried-keymap diff is reviewed.
+
 ## Skeletons and actions in Play
 
 State: a detached or following copy binds no skeleton; the frame used to build it carries
