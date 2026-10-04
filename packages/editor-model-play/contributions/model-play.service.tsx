@@ -12,7 +12,7 @@ function usePlaying(documentId: string | undefined): boolean {
 }
 function Control({ documentId, onClose }: DocumentPlayControlProps) {
   const playing = usePlaying(documentId);
-  return <Button size="compact" data-testid="blender-play-button" aria-pressed={playing}
+  return <Button size="compact" data-testid="model-play-button" aria-pressed={playing}
     disabled={!documentId} title={playing ? 'Stop playing (Escape)' : 'Play this model’s script'}
     onClick={() => { onClose(); if (documentId) setModelPlaying(documentId, !playing); }}>
     <EditorIcon icon={playing ? editorIcons.transport.stop : editorIcons.transport.play} />
@@ -21,7 +21,7 @@ function Control({ documentId, onClose }: DocumentPlayControlProps) {
 }
 function Menu({ documentId, onClose }: DocumentPlayControlProps) {
   const playing = usePlaying(documentId);
-  return <MenuItem data-testid="blender-play" disabled={!documentId}
+  return <MenuItem data-testid="model-play" disabled={!documentId}
     onSelect={() => { onClose(); if (documentId) setModelPlaying(documentId, !playing); }}>
     {playing ? 'Stop' : 'Play'}
   </MenuItem>;
