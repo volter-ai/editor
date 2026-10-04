@@ -526,14 +526,17 @@ function patchRehCopilotShim(checkout) {
  */
 function patchNpmDirs(checkout) {
 	const path = join(checkout, NPM_DIRS_FILE);
-	const source = readFileSync(path, 'utf8');
-	const entry = `\t'extensions/${COPILOT_EXTENSION}',\n`;
-	const marker = `\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): 'extensions/${COPILOT_EXTENSION}' is not in this build.\n`;
-	if (source.includes(marker)) { return; }
-	if (!source.includes(entry)) {
-		fail(`${path} has no \`${entry.trim()}\` entry and no volter marker — upstream moved the install-directory list and this patch needs re-aiming. Leaving it would die later as \`spawn /bin/sh ENOENT\`, which names neither the file nor the cause.`);
+	let source = readFileSync(path, 'utf8');
+	for (const extension of [COPILOT_EXTENSION, 'vscode-api-tests']) {
+		const entry = `\t'extensions/${extension}',\n`;
+		const marker = `\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): 'extensions/${extension}' is not in this build.\n`;
+		if (source.includes(marker)) { continue; }
+		if (!source.includes(entry)) {
+			fail(`${path} has no \`${entry.trim()}\` entry and no volter marker — upstream moved the install-directory list and this patch needs re-aiming. Leaving it would die later as \`spawn /bin/sh ENOENT\`, which names neither the file nor the cause.`);
+		}
+		source = source.replace(entry, marker);
 	}
-	writeFileSync(path, source.replace(entry, marker));
+	writeFileSync(path, source);
 }
 
 /** The look tiers the builder named (`--look <package dir>`), read from each package's own
