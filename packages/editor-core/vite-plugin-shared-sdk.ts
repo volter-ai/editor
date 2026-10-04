@@ -61,7 +61,8 @@ export function sharedSdkPlugin(urls: Record<string, string>): Plugin {
   return {
     name: 'volter-shared-sdk', enforce: 'pre',
     async resolveId(source, importer, options) {
-      if ((options as { scan?: boolean }).scan) return;
+      // These URLs identify the browser composition, never Node tool modules.
+      if (options.ssr || (options as { scan?: boolean }).scan) return;
       if (!source.startsWith('@volter/editor-sdk') && !(source.startsWith('.') && importer && sdkModule(importer))) return;
       const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
       const name = resolved && sdkModule(resolved.id);
