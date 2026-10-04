@@ -302,28 +302,28 @@ function BlenderModelViewport(props: ToolContributionProps) {
     if (!documentId) return;
     let cancelled = false;
     let revision = 0;
+    let applied: { mapper: string; exposure: number } | null = null;
     const read = async () => {
       const mine = ++revision;
       const context = await blenderRnaContext();
       if (!context) return;
-      const path = context.tabs.find(tab => tab.id === 'render')?.paths.find(item => item.label === 'View Settings')?.path;
-      if (!path) return;
-      const settings = await blenderRna(path);
-      if (cancelled || mine !== revision || settings?.kind !== 'struct') return;
+      const settings = await blenderRna(`${context.scene}.view_settings`);
+      if (cancelled || mine !== revision || settings?.kind !== 'struct' || settings.type !== 'ColorManagedViewSettings') return;
       const rows = settings.groups.flatMap(group => group.rows);
       const transform = rows.find(row => row.identifier === 'view_transform')?.value;
       const stops = rows.find(row => row.identifier === 'exposure')?.value;
       const mapper = transform === 'Standard' ? 'none' : transform === 'Filmic' ? 'filmic' : 'agx';
       const exposure = typeof stops === 'number' ? 2 ** stops : 1;
+      if (applied?.mapper === mapper && applied.exposure === exposure) return;
+      applied = { mapper, exposure };
       for (const id of [documentId, `${documentId}#area-2`, `${documentId}#play`]) {
         setViewPresentation(id, { modes: { rendered: { lighting: { tone: { mapper, exposure } } } } });
       }
     };
     const update = () => { void read().catch(error => editorHost().console.error(String(error), 'blender-colour')); };
     const stopRna = subscribeBlenderRna(update);
-    const stopFrames = view.subscribeFrames(update);
     update();
-    return () => { cancelled = true; stopRna(); stopFrames(); };
+    return () => { cancelled = true; stopRna(); };
   }, [documentId]);
   const split = useSyncExternalStore(
     subscribeAreaSplit,
