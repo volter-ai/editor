@@ -1,0 +1,149 @@
+{
+  "date": "2026-10-04",
+  "extension": "openai.chatgpt",
+  "version": "26.5908.31748",
+  "vsixSha256": "eb3fb4d9cf64c0e236b08ede9a9b44d027e55ed3fe1922fad8db942e58047388",
+  "product": "@volter/model-editor@0.5.167",
+  "forkCommit": "f16dc165c0dffe701a7bbf59aefb1c662b206cee",
+  "workbenchEditorRevision": "3c1e776e77a054ce47124bb235162c50d88d58d5",
+  "enabledApiProposals": [
+    "chatSessionsProvider",
+    "languageModelProxy"
+  ],
+  "signedOutHome": true,
+  "loginAttempted": false,
+  "webviewText": "Codex\nSign in with ChatGPT\nUse API Key\nUse device code\nMore options",
+  "resources": [
+    {
+      "file": "index-9f947c467c0e.js",
+      "status": 200
+    },
+    {
+      "file": "rolldown-runtime-c05d78c594d1.js",
+      "status": 200
+    },
+    {
+      "file": "app-initial-84c784f5e305.js",
+      "status": 200
+    },
+    {
+      "file": "app-initial-c027c57a4b11.js",
+      "status": 200
+    },
+    {
+      "file": "app-initial-972655adec02.js",
+      "status": 200
+    },
+    {
+      "file": "app-initial-1d5eea48aeca.css",
+      "status": 200
+    },
+    {
+      "file": "app-initial-29a46456e6c9.css",
+      "status": 200
+    },
+    {
+      "file": "app-initial-ddb6c251267b.css",
+      "status": 200
+    },
+    {
+      "file": "app-main-a320b17c3c6b.js",
+      "status": 200
+    },
+    {
+      "file": "pkg-1c2f2711a61f.js",
+      "status": 200
+    },
+    {
+      "file": "esm-bac63c22c289.js",
+      "status": 200
+    },
+    {
+      "file": "gracefulDecodeURIComponent-cea762987476.js",
+      "status": 200
+    },
+    {
+      "file": "load-script-3decc54e8de2.js",
+      "status": 200
+    },
+    {
+      "file": "metric-helpers-f8923676366b.js",
+      "status": 200
+    },
+    {
+      "file": "middleware-9b7d713c896f.js",
+      "status": 200
+    },
+    {
+      "file": "login-route-443f90146150.js",
+      "status": 200
+    },
+    {
+      "file": "onboarding-brand-logo-54f42fc2973d.js",
+      "status": 200
+    },
+    {
+      "file": "browser-session-queries-cdea4f9e60da.js",
+      "status": 200
+    },
+    {
+      "file": "chatgpt-desktop-auth-url-1a184db03be8.js",
+      "status": 200
+    },
+    {
+      "file": "login-handoff-page-cfc4aeacb951.js",
+      "status": 200
+    },
+    {
+      "file": "auth-handoff-page-32655d3fa471.js",
+      "status": 200
+    },
+    {
+      "file": "page-layout-2bc36a18cf15.js",
+      "status": 200
+    },
+    {
+      "file": "use-ascii-engine-3ae09136c547.js",
+      "status": 200
+    },
+    {
+      "file": "onboarding-entrypoint-c22e51c4bb03.js",
+      "status": 200
+    },
+    {
+      "file": "onboarding-shell-79fc6397b676.js",
+      "status": 200
+    },
+    {
+      "file": "onboarding-login-content-a9495b734139.js",
+      "status": 200
+    },
+    {
+      "file": "app-prefetch-impl-cc3764ba1c16.js",
+      "status": 200
+    },
+    {
+      "file": "computer-history-suggestions-633fbefad6bf.js",
+      "status": 200
+    },
+    {
+      "file": "computer-history-query-f476682c1856.js",
+      "status": 200
+    },
+    {
+      "file": "use-git-config-value-47c99a1bd67a.js",
+      "status": 200
+    },
+    {
+      "file": "use-git-submodule-paths-da09de9aa68b.js",
+      "status": 200
+    }
+  ],
+  "capture": "Live webview DOM + computed styles, serialized to SVG and rasterized through editor.document.run; not native browser pixels.",
+  "diagnostics": "An isolated copy of the release pre/index.html recorded inner-frame console/CSP events and resource timing, checked the requesting parent origin/source, and returned the live DOM. Its inline-script CSP hash was recomputed. The extension was unchanged.",
+  "guardValidation": {
+    "page": "Editor chrome capture cannot include a visible iframe or extension webview. Its content would be missing from the image; this does not mean the live panel is blank. Use a browser window capture for the whole page, or region: \"document\" for the active document.",
+    "document": "capturable"
+  },
+  "testSuitesRun": false
+}

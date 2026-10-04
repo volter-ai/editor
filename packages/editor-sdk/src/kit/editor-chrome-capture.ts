@@ -24,6 +24,8 @@
  *  - a live game or Pixi canvas goes through the one `canvasFrame` seam
  *    every pixel door shares (`live-canvas-frame.ts`).
  *
+ * Visible iframes are refused: cloning a frame does not capture its browsing
+ * context, so an extension's working UI would otherwise look blank.
  * Everything else reads directly. A canvas this module cannot recognise or
  * re-render photographs as the browser hands it back — possibly black — and
  * `layers.canvases` says how many were drawn, so a reader can tell a black
@@ -112,6 +114,23 @@ export async function captureEditorChrome(
   }
   const scale = options?.scale ?? window.devicePixelRatio ?? 1;
   const rect = root.getBoundingClientRect();
+  // cloneNode does not copy a frame's browsing context. In particular, a
+  // working extension webview becomes an empty rectangle in the SVG clone.
+  // Refuse that misleading evidence instead of reporting a successful capture.
+  // The workbench also has a zero-size extension-host frame; it paints nothing.
+  for (const frame of root.querySelectorAll('iframe')) {
+    const box = frame.getBoundingClientRect();
+    if (
+      box.width <= 0 || box.height <= 0 || box.right <= rect.left ||
+      box.left >= rect.right || box.bottom <= rect.top || box.top >= rect.bottom ||
+      !frame.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })
+    ) continue;
+    throw new Error(
+      'Editor chrome capture cannot include a visible iframe or extension webview. ' +
+      'Its content would be missing from the image; this does not mean the live panel is blank. ' +
+      'Use a browser window capture for the whole page, or region: "document" for the active document.',
+    );
+  }
   const size = {
     width: Math.max(1, Math.round(rect.width * scale)),
     height: Math.max(1, Math.round(rect.height * scale)),
