@@ -693,6 +693,12 @@ export class BlenderRuntimeView {
   private readonly lightExtrasRoot = new THREE.Group();
   private readonly emptyExtrasRoot = new THREE.Group();
   private rendered = false;
+  private shadowFit: {
+    camera: THREE.Camera | undefined;
+    cameraMatrix: THREE.Matrix4 | undefined;
+    projection: THREE.Matrix4 | undefined;
+    objects: Map<THREE.Object3D, { matrix: THREE.Matrix4; visible: boolean }>;
+  } | null = null;
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
   private heldRendered: (() => THREE.Camera) | null = null;
@@ -1346,6 +1352,8 @@ export class BlenderRuntimeView {
   }
 
   private async applyRendered(rendered: boolean, camera?: THREE.Camera): Promise<void> {
+    // A frame or shading change can replace geometry, visibility and lights.
+    this.shadowFit = null;
     const extinction = (rendered ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
     for (const material of [...this.materials.values(), this.fallback]) applyWorldExtinction(material, extinction);
     // An area light cannot be DRAWN until its lookup tables are uploaded, and a
@@ -1397,6 +1405,21 @@ export class BlenderRuntimeView {
    */
   private applyShadows(rendered: boolean, camera?: THREE.Camera): void {
     this.root.updateMatrixWorld(true);
+    const fitted = this.shadowFit;
+    if (rendered && fitted && fitted.camera === camera &&
+      (!camera || (fitted.cameraMatrix?.equals(camera.matrixWorld) && fitted.projection?.equals(camera.projectionMatrix))) &&
+      fitted.objects.size === this.objects.size &&
+      [...this.objects.values()].every(object => {
+        const previous = fitted.objects.get(object);
+        return previous?.visible === object.visible && previous.matrix.equals(object.matrixWorld);
+      })) return;
+    this.shadowFit = rendered ? {
+      camera,
+      cameraMatrix: camera?.matrixWorld.clone(),
+      projection: camera?.projectionMatrix.clone(),
+      objects: new Map([...this.objects.values()].map(object =>
+        [object, { matrix: object.matrixWorld.clone(), visible: object.visible }])),
+    } : null;
     const boxes: THREE.Box3[] = [];
     for (const object of this.objects.values()) {
       const mesh = object as THREE.Mesh;

@@ -386,7 +386,11 @@ difference after grouping). Play awaits the
 World before revealing its first frame; HUD typography matches the UI board, with chat
 closed and a thin timeline. Ramp selection/gizmo, visible airtime and corner smoke were
 captured under `/tmp/model-play-frames`. Driving measured 85–100 fps; frameCost measured
-8.03 ms median / 10.72 ms p95 at 3209×1129. The packaged SDK doorways share tool registries
+8.03 ms median / 10.72 ms p95 at 3209×1129. Review measured the ordinary Rendered editing
+view at that size (12 settled frames): shadow fitting on every draw took 10.55 ms median /
+12.47 ms p95; fitting only when camera/object pose or visibility changed took 10.63 ms /
+13.71 ms. CPU submission medians were 5.09 / 5.00 ms; these samples show no material total
+frame-cost improvement. Scene/shading changes invalidate the fit too. The packaged SDK doorways share tool registries
 and project state. PR #37 carries recording steps; one fresh session is stopped at the
 start line. A full circuit lap has not been driven. No automated tests ran.
 
