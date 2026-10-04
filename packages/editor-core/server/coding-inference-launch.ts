@@ -163,8 +163,9 @@ export async function managedInferenceLaunch(
     }
     return {
       program: 'pi',
+      // No --approve: Supercode's own Pi launch is `--mode rpc` alone, and a provider is not a
+      // permission choice.
       arguments: [
-        '--approve',
         '--provider',
         'openrouter',
         '--model',
