@@ -76,10 +76,11 @@
 
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertAtPin, CHAT_EXTENSION, knownProducts } from './overlay.mjs';
+import { serializeBuild } from './serial-build.mjs';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 /** The measured floor. The emit alone wants a 9 GB heap and the process's RSS is larger than
@@ -256,7 +257,10 @@ const buildRecord = join(out, 'BUILD.json');
  *  90 s later inside the clone's own `preinstall`, "Please use Node.js v24.18.0 or newer …
  *  Currently using v26.8.1". A gate that passes and then fails on the same condition is worse
  *  than no gate, so the check is made TRUE for the children instead of merely asserted here. */
-const CHILD_ENV = { ...process.env, PATH: `${dirname(process.execPath)}:${process.env['PATH'] ?? ''}` };
+const CHILD_ENV = { ...process.env, PATH: `${dirname(process.execPath)}:${process.env['PATH'] ?? ''}`,
+	NODE_OPTIONS: `${process.env['NODE_OPTIONS'] ?? ''} --max-old-space-size=9216`,
+	GOMAXPROCS: '2', GOMEMLIMIT: '2GiB',
+};
 
 function step(command, commandArgs, options = {}) {
 	console.log(`+ ${command} ${commandArgs.join(' ')}${options.cwd ? `   (in ${options.cwd})` : ''}`);
@@ -310,6 +314,9 @@ const assetVersion = overlay ? createHash('sha1').update(JSON.stringify({
 })).digest('hex') : 'dry-run-composition-fingerprint';
 CHILD_ENV.BUILD_SOURCEVERSION = assetVersion;
 
+// Preserve the fork's checks while avoiding concurrent compiler heaps and bundles.
+if (!args.dryRun) { serializeBuild(clone); }
+
 // ---- 3. dependencies (the exclusive resource — see the header).
 step('npm', ['ci'], { cwd: clone });
 
@@ -330,7 +337,8 @@ gulp(['compile-build-without-mangling']);
 //         at ours (ARCHITECTURE-CORE §The core is Code-OSS, rule 7), so packaging it would
 //         ship a second, signed-out chat agent nothing names.
 step('rm', ['-rf', join(clone, '.build/extensions')]);
-gulp(['compile-non-native-extensions-build', 'compile-extension-media-build']);
+gulp(['compile-non-native-extensions-build']);
+gulp(['compile-extension-media-build']);
 
 // ---- 6. the bundle and the package.
 gulp(['minify-vscode-reh-web']);
@@ -341,6 +349,22 @@ gulp([`vscode-reh-web-${args.platform}-min-ci`]);
 
 // ---- 7. the tarball.
 if (!args.dryRun && !existsSync(packageDir)) { fail(`the package task wrote no ${packageDir}`); }
+if (!args.dryRun) {
+	// Upstream REH only copies optional remote/LICENSE; the public fork keeps
+	// its license and third-party notices at the root. Preserve both, plus the
+	// licenses of the editor tiers compiled into this product's workbench.
+	for (const file of ['LICENSE.txt', 'ThirdPartyNotices.txt']) {
+		cpSync(join(clone, file), join(packageDir, file));
+	}
+	for (const owner of ['editor-core', args.product]) {
+		const source = join(REPO_ROOT, 'packages', owner);
+		const destination = join(packageDir, 'licenses', owner);
+		mkdirSync(destination, { recursive: true });
+		for (const file of readdirSync(source).filter(file => /^(LICENSE(?:[.-].*)?|NOTICE|BUNDLED_NOTICES)$/.test(file))) {
+			cpSync(join(source, file), join(destination, file), { recursive: true });
+		}
+	}
+}
 step('tar', ['-czf', tarball, '-C', work, `vscode-reh-web-${args.platform}`]);
 
 // ---- 8. BUILD.json — what the release IS. `platform` is what the locator refuses on,
@@ -359,6 +383,7 @@ if (!args.dryRun) {
 		builtAt: new Date().toISOString(),
 		mangled: false,
 		minified: true,
+		buildScheduling: { serial: true, nodeHeapMiB: 9216, goMaxProcs: 2, goMemoryLimit: '2GiB' },
 		serverBin: 'bin/code-server-oss',
 		// WHAT ANSWERS THE CHAT VIEW, by version. The overlay bundles it and product.json names
 		// it; this is where a person reading a release finds out which supercode frontend it

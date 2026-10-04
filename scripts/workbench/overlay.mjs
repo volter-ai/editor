@@ -436,6 +436,7 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
  *    minified service dereferences, so the shape is simply kept.
  *  - `extensionEnabledApiProposals` grants Supercode its proposals and the user-installed
  *    official Codex extension only the two proposals its reviewed manifest declares.
+ *  - `trustedExtensionPublishers` trusts only OpenAI for the person's one-click Codex install.
  *  - `extensionsGallery` enables user installation from Open VSX; neither official agent
  *    extension is bundled. Code-OSS retains its user-controlled update/recommendation defaults.
  *
@@ -475,6 +476,7 @@ function patchProduct(checkout) {
 		[CHAT_EXTENSION.id]: [...CHAT_EXTENSION.proposals],
 		'openai.chatgpt': ['chatSessionsProvider', 'languageModelProxy'],
 	};
+	product.trustedExtensionPublishers = ['openai'];
 	// Open VSX's Code-OSS adapter, including resources for web extensions.
 	// https://github.com/eclipse-openvsx/openvsx/wiki/Using-Open-VSX-in-VS-Code
 	product.extensionsGallery = {
@@ -526,14 +528,17 @@ function patchRehCopilotShim(checkout) {
  */
 function patchNpmDirs(checkout) {
 	const path = join(checkout, NPM_DIRS_FILE);
-	const source = readFileSync(path, 'utf8');
-	const entry = `\t'extensions/${COPILOT_EXTENSION}',\n`;
-	const marker = `\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): 'extensions/${COPILOT_EXTENSION}' is not in this build.\n`;
-	if (source.includes(marker)) { return; }
-	if (!source.includes(entry)) {
-		fail(`${path} has no \`${entry.trim()}\` entry and no volter marker — upstream moved the install-directory list and this patch needs re-aiming. Leaving it would die later as \`spawn /bin/sh ENOENT\`, which names neither the file nor the cause.`);
+	let source = readFileSync(path, 'utf8');
+	for (const extension of [COPILOT_EXTENSION, 'vscode-api-tests']) {
+		const entry = `\t'extensions/${extension}',\n`;
+		const marker = `\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): 'extensions/${extension}' is not in this build.\n`;
+		if (source.includes(marker)) { continue; }
+		if (!source.includes(entry)) {
+			fail(`${path} has no \`${entry.trim()}\` entry and no volter marker — upstream moved the install-directory list and this patch needs re-aiming. Leaving it would die later as \`spawn /bin/sh ENOENT\`, which names neither the file nor the cause.`);
+		}
+		source = source.replace(entry, marker);
 	}
-	writeFileSync(path, source.replace(entry, marker));
+	writeFileSync(path, source);
 }
 
 /** The look tiers the builder named (`--look <package dir>`), read from each package's own

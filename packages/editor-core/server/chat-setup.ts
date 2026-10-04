@@ -14,7 +14,7 @@ export interface ChatSetupAction {
 
 export function chatSetupActions(harnesses: readonly HarnessChatHarness[], programs: { supercode?: string | undefined; npm?: string | undefined; npmPrefix?: string | undefined }): ChatSetupAction[] {
   const supercode = programs.supercode;
-  const signedOut = harnesses.filter(h => h.installed && h.auth === 'required')
+  const signedOut = harnesses.filter(h => h.availableActions.login === true)
     .sort((a, b) => Number(b.id === 'codex') - Number(a.id === 'codex'));
   if (signedOut.length) return supercode ? signedOut.map(h => ({
     kind: 'login', harness: h.id, name: h.label, command: `${quoteProgram(supercode)} harness login ${h.id}`,
