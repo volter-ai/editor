@@ -96,9 +96,11 @@ Blender corresponding-source/artifact mapping.
    version, not the old 0.1.16. If already merged, observe its run instead of merging
    or publishing again. Any required staging approval is an owner action.
 
-2. **Prepare and publish the public Model Editor workbench.** First merge editor
-   PR40 `e04c0d73`, integrate this preparation, pin the real fixed extension version
-   and refresh its lock entry. Commit the combined editor source. With granted
+2. **Prepare and publish the public Model Editor workbench.** Editor PR40
+   (`e04c0d73`) is merged on main at `2fe1dcf8` and integrated into this branch.
+   Its scaffold preserves the playable tools, default Track document and starter
+   Chat declaration. Still pending: pin the real fixed extension version and
+   refresh its lock entry, then commit the combined editor source. With granted
    build capacity, install locked dependencies and cut (without publishing):
 
    ```sh
