@@ -355,6 +355,7 @@ load under 20; at load 40–60 the same opens take 15–30 s. Open: the pack arc
 unpublished while the editor is private. Under 10 s cold needs the substrate to resume
 processes (its W74), not only prebaked files.
 
+<<<<<<< HEAD
 ## React source authoring through Retrace
 
 Replace `editor-react`'s custom OID/edit planning (`serving/ui-oid-plugin.ts`, `src/source`)
@@ -453,7 +454,36 @@ and Timeline and script can hand an object to each other. Cinematic and game the
 the scene and clips, so a film made in the editor can become playable. Tracker only;
 no animation implementation started.
 
+=======
+>>>>>>> 90e7bb22
 ## Chat sign-in and project starter prompts (source, 2026-10-04)
+
+W50 passed Supercode `29d8fac99` in native empty-state content: all three pointer
+fills, one real HUD turn, starters disappearing after Send and remaining absent
+when reopening the earlier conversation with seven history entries. The walk also
+found the generic New Session button created an unbound `supercode:/untitled-*`
+draft. The source overlay now routes the native toolbar/keyboard New Chat action
+through the resolved non-delegating provider's existing creation command, including
+its Harness/Model/Effort flow. Cancellation returns without opening a generic draft;
+the shared clear helper used by Send to New Chat is unchanged.
+
+At this Code-OSS pin, neither the participant API nor internal welcome content has
+`suggestedPrompts`. The source overlay extends the welcome renderer's existing
+link-to-button mechanism for participant additional content: every trusted command
+link alone in a paragraph becomes a native button. Inline/untrusted links stay
+Markdown. The extension still supplies short labels and the same guarded fill
+command; the native empty-state lifetime removes buttons after a user turn.
+Both introductory strings belong to the Supercode extension's `package.json`.
+These follow-ups are source-only, not covered by W50: next verification needs the
+frontend build, overlay application, then direct Code-OSS `compile-client` serially.
+No host, Model browser or Node bundle build is required. A fresh session must verify
+all button fills, first-turn removal and the visible New Session flow (including
+picker cancellation), with its own capacity grant.
+The REH Copilot shim patch also detects its complete applied block before stripping
+legacy marker comments. Reapplying the overlay now leaves that block untouched,
+including the preserved earlier duplicate-guard evidence in the kept fork; it does
+not append another guard. This idempotence fix is source-reviewed, not applied or
+executed in the source-only follow-up.
 
 Supercode's native Chat frontend owns sign-in and starter buttons; the editor's
 private host controls supply readiness, revalidated install/login terminal launches
@@ -546,6 +576,108 @@ autorelease publishes the next frontend version), then that published version's
 editor pin/lock update, a public workbench rebuild/release with a matching
 product artifact hash, and promotion of the measured editor main commit to
 `publish`. This task publishes nothing and changes no released artifact pin.
+<<<<<<< HEAD
+=======
+
+## React source authoring through Retrace
+
+Replace `editor-react`'s custom OID/edit planning (`serving/ui-oid-plugin.ts`, `src/source`)
+with Volter's `@retrace/core`, `@retrace/element` and `@retrace/format-tsx-babel`
+([Retrace](https://github.com/volter-ai/retrace); local checkout `/Users/yueranyuan/volter/retrace`).
+State: the editor names Retrace nowhere; its three central stamping/writer/plugin files total
+5,626 lines, including shared R3F work. Retrace's element lane parses TSX and plans literal,
+structural and import edits; stamping, OID compatibility, persistence and stale-write guards
+remain caller-owned. Closes when UI selection, literal/style and structural edits use Retrace
+and recorded writes, undo/redo and dynamic-value refusals round-trip through the UI board.
+Size: several days across the serving plugin, source adapters and persistence; scope must
+separate DOM work from the shared R3F bindings. Packages are not on npm yet. Tracker only;
+no migration started.
+
+## Play on the Model document
+
+The `playable` Model Editor template declares `editor-model-play`, `editor-ui` and
+`editor-react` on its project; the base `models` template declares none of them. The Play
+tool contributes header/View controls through `kit/document-play-extension`; Blender
+lends its detached Rendered stage. Stop/Escape disposes it and returns to the saved model.
+The UI tool mounts the declared `dom` root through `kit/project-play-layers`, sharing one
+mount epoch with the script (`editor-model-play/src/play-script.ts`), so its plain race
+store has one instance. The existing UI board opens the HUD's CSF stories beside Track.
+State: walked in source and built sessions of Volter Model Editor, built on Blender;
+fresh `create --template playable` ships the built circuit, script and React HUD, while
+`models` shows no Play control. Scene empties group the circuit; Outliner pages after
+parent folding. Render and Play at the same pose match (1.10/255 mean absolute RGB
+difference after grouping). Play awaits the
+World before revealing its first frame; HUD typography matches the UI board, with chat
+closed and a thin timeline. Ramp selection/gizmo, visible airtime and corner smoke were
+captured under `/tmp/model-play-frames`. Driving measured 85–100 fps; frameCost measured
+8.03 ms median / 10.72 ms p95 at 3209×1129. Review measured the ordinary Rendered editing
+view at that size (12 settled frames): shadow fitting on every draw took 10.55 ms median /
+12.47 ms p95; fitting only when camera/object pose or visibility changed took 10.63 ms /
+13.71 ms. CPU submission medians were 5.09 / 5.00 ms; these samples show no material total
+frame-cost improvement. Scene/shading changes invalidate the fit too. The packaged SDK doorways share tool registries
+and project state. PR #37 carries recording steps; one fresh session is stopped at the
+start line. The product key door drove all three ordered checkpoints and crossed the start
+line again: LAP 2, LAST 8:07.41 (`lap-complete.png`). This stop-and-inspect lap includes
+inspection pauses and one infield recovery; it is not a racing-time benchmark. Off-road drag
+was reduced so the capped off-road speed can actually recover onto the track. Temporary
+HUD state attributes used for the check were removed. No automated tests ran.
+
+First-run follow-up: the playable adapter declares Track as its default; available root
+fallbacks wait for the settled document table. Fresh creation opens Track with Cube selected,
+Play visible, Chat open, Outliner/Properties and a thin Timeline. The starter saves Material
+Preview with scene World/lights enabled. Blender deliberately demotes Rendered shading on
+file read; its load rule is unchanged. The presenter now carries Material Preview's two
+scene-lighting flags independently, and uses the scene display transform in Preview too.
+The Play tool owns a 0.8-second eased camera handoff (pose, projection and field of view),
+locks input on entry, freezes the detached scene for the return, and fades its React layer
+away before revealing the editing stage. Escape completes an in-progress blend. The race's
+resting chase distance is 11 metres, keeping the road ahead readable.
+
+Independent-review follow-up: Material Preview retains viewport visibility independently of
+Scene World/Scene Lights; captures still use render visibility and restore the preview on
+return. The UI Play provider reports all declared entry paths before importing/mounting,
+and the Play tool retains failed-attempt paths through first-update failure so a relevant
+save retries. The second modeling area stays mounted but hidden during Play; only its
+header/shelf chrome stands down. Source review and commit boundary hooks passed; no builds,
+tests or live sessions ran for these fixes. The three checks for the next granted regression
+session B are in [docs/MODEL-PLAY-REGRESSION.md](docs/MODEL-PLAY-REGRESSION.md).
+
+Keymap verification remains open: the checked-in play guard was edited by substitution;
+at review time no compiled Code-OSS fork was found in the local checkout/build locations (home checkouts,
+`.volter`, temporary directories; source/parser filename search and Spotlight). The cached
+`~/.volter/workbenches/model-editor-f16dc165c0df-ae7600a80ae8-darwin-arm64` is a packaged
+workbench, not a fork checkout. `generate-keymaps.mjs` requires the fork's
+`out/vs/base/common/keybindingParser.js` and `keyCodes.js`. Closes when it runs against a
+compiled public fork and the resulting manifest/carried-keymap diff is reviewed. The sign-in
+worker has since supplied its compiled integration fork; its generator handoff is pending.
+
+## Tab recorder frame rate
+
+Raise the shared browser controller's optional recording rate without changing its low-rate
+watcher defaults. State: `~/.codex/skills/browser/scripts/open-session.ts:990` clamps
+`/screencast` to 15 fps; `screencast.ts` forwards only after `1000 / fps` milliseconds and
+resets its deadline to the latest send time, losing cadence when incoming frames do not
+divide evenly into the requested rate. CDP already uses `everyNthFrame: 1`; moving frames
+are capped at 1280 pixels wide. The accepted race take is a 15 fps storyboard; the owner
+records the real clip at full frame rate. Closes when an opt-in 30/60 fps recording path
+preserves source timestamps, accumulates deadlines, bounds backpressure and reports actual
+received/sent/dropped frames, with sustained cadence and native 1920×1080 checked on a
+moving tab through the existing shared connection. Coordinate controller maintenance with
+its owners; preserve tabs and leases. Size: roughly 2–3 controller/recording files, 60–120
+lines and half a day including validation. Tracker only; no controller change or fixed-step
+replay work started.
+
+## Skeletons and actions in Play
+
+State: a detached or following copy binds no skeleton; the frame used to build it carries
+no bones or actions. A rigged character is a frozen mesh in Play, and a play script cannot
+start a clip. Skin and Timeline bind only to the presented view
+(`blender-runtime-skin.ts`). Closes when a Timeline-authored character plays the same
+action in Play, started by the script; Blender camera animation can drive the play camera;
+and Timeline and script can hand an object to each other. Cinematic and game then share
+the scene and clips, so a film made in the editor can become playable. Tracker only;
+no animation implementation started.
+>>>>>>> 90e7bb22
 
 ## Supported-editing work
 
