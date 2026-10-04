@@ -2,7 +2,7 @@
   "name": "@volter/editor-project",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.164",
+  "version": "0.5.166",
   "publishConfig": {
     "access": "public"
   },
