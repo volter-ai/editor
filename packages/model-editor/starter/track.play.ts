@@ -233,22 +233,23 @@ export default function play(context: {
       // Smooth our own stage-space pose; navigation re-poses the stage camera each frame.
       root.updateMatrixWorld(true);
       const pace = Math.min(30, Math.abs(speed));
-      const distance = 7 + pace * 0.16;
-      const lookAhead = 4 + pace * 0.1;
-      const fov = 38 + pace * 0.45;
-      const height = 1.4 + (distance + lookAhead) * Math.tan(THREE.MathUtils.degToRad(fov * 0.26));
+      const distance = grounded ? 6 + pace * 0.07 : 12;
+      const lookAhead = grounded ? 2.5 + pace * 0.04 : 0.5;
+      const fov = 36 + pace * 0.28;
+      const height = 1.2 + (distance + lookAhead) * Math.tan(THREE.MathUtils.degToRad(fov * 0.22));
       const kerb = grounded && kerbs.some(point => Math.hypot(point.x - car.position.x, point.y - car.position.y) < 1.4);
       const rumble = kerb ? Math.sin(elapsed * 90) * Math.min(0.05, pace * 0.003) : 0;
-      root.localToWorld(eye.set(car.position.x + Math.sin(heading) * distance + 1.1 * Math.cos(heading),
-        car.position.y - Math.cos(heading) * distance + 1.1 * Math.sin(heading), car.position.z + height + rumble));
+      const side = grounded ? 3 : 10;
+      root.localToWorld(eye.set(car.position.x + Math.sin(heading) * distance + side * Math.cos(heading),
+        car.position.y - Math.cos(heading) * distance + side * Math.sin(heading), car.position.z + height + rumble));
       root.localToWorld(target.set(car.position.x - Math.sin(heading) * lookAhead,
-        car.position.y + Math.cos(heading) * lookAhead, car.position.z + 1.4));
+        car.position.y + Math.cos(heading) * lookAhead, car.position.z + (grounded ? 1.4 : 0.4)));
       if (!cameraStarted) {
         cameraPosition.copy(eye);
         cameraTarget.copy(target);
         cameraStarted = true;
       }
-      const blend = 1 - Math.exp(-6 * dt);
+      const blend = 1 - Math.exp(-12 * dt);
       cameraPosition.lerp(eye, blend);
       cameraTarget.lerp(target, blend);
       const camera = context.camera;
