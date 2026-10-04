@@ -55,21 +55,25 @@ The resulting playable scaffold would request tools npm does not serve.
   entries, catalog pins and the DAW renderer version move together to the table's
   prepared targets. Autorelease reuses manually prepared unpublished versions;
   if another release consumes them first, it chooses the next patch after npm.
-- Published external pins advance from frontend-vscode 0.1.14 to **0.1.16** and
+- Published external pins advance from frontend-vscode 0.1.14 to **0.1.17** and
   editor-core's attachment client from supercode-frontend 0.2.6 to **0.2.7**.
   Registry tarball URLs/integrities are recorded in the lockfile without installing.
-  **0.1.16 does not contain the starter fix. This is not the final launch pin.**
+  Published 0.1.17 contains the required welcome and restored-history fixes.
 
 ## Artifacts that are still missing
 
-The required Supercode `chat-sign-in` source is
-`f2bc8508e85d211a03fda78bd3e3919fe88a265b` (PR1032). It includes the
-welcome in the native empty state, short introductory text, and preceding
-fill/guard fixes. Its source manifest
-still says frontend-vscode 0.1.16, but npm's immutable 0.1.16 records source
-`5a4a0ce169f1e5c39763e3b6536f482dce915ea5`, which does not contain that commit.
-Do not mistake a development manifest version for published fixed bytes, or guess
-an unpublished replacement number. Wait for Supercode's next actual release.
+The extension prerequisite is now public and pinned: frontend-vscode **0.1.17**,
+`gitHead` `a32f101ab5baac683102b846c781da12770d0ae4`. Autorelease
+[37201264775](https://github.com/volter-ai/supercode/actions/runs/37201264775)'s SDK
+job completed successfully; its separate native release cut was still queued at
+verification. The npm tarball's SHA512 matches the lockfile. Its `dist/extension.js`,
+`dist/view.js` and `dist/chat-setup.js` are byte-identical to the W64 build at
+`517a27d9e359bed26049a2cb9fdd6f57e13a6071`; source ancestry also contains
+`f2bc8508e85d211a03fda78bd3e3919fe88a265b`. Thus the published bytes include the
+native empty-state welcome/copy and restored native tool history with explicit
+pending-approval labels. This is packed-byte verification, not a new live walk.
+The attachment client remains **0.2.7**, matching npm latest and its existing lock
+integrity; editor-core needs no further version change. No dependency was installed.
 
 The Model Editor still pins
 `model-editor-f16dc165c0df-ae7600a80ae8-darwin-arm64`, SHA256
@@ -135,22 +139,17 @@ Builds/tests/installed acceptance require their own granted capacity and run thr
 the intended World. Publish only reviewed public source; retain notices and the
 Blender corresponding-source/artifact mapping.
 
-1. **Publish the fixed Supercode extension.** After PR1032 is accepted, its owner's
-   `gh pr merge 1032 --repo volter-ai/supercode --merge` pushes main and triggers
-   that repository's `autorelease.yml` (SDK build/npm publication). Do not separately
-   dispatch a duplicate release. Wait for completion and read
-   `npm view @volter/supercode-frontend-vscode@latest version gitHead dist.integrity`.
-   Verify that the actual source/packed bytes contain `f2bc8508e`; use the emitted
-   version, not the old 0.1.16. If already merged, observe its run instead of merging
-   or publishing again. Any required staging approval is an owner action.
+1. **Fixed Supercode extension: complete.** PR1032 is merged and the SDK job
+   published verified frontend-vscode **0.1.17**, now pinned with its actual
+   registry tarball/integrity. The attachment client remains **0.2.7**. The
+   packed-byte/source evidence is above. Do not dispatch a duplicate publication.
 
 2. **Prepare and publish the public Model Editor workbench.** Editor PR40
    and PR43 are merged on main through `9b098916` and integrated into this branch.
    The scaffold preserves the playable tools, default Track document and starter
    Chat declaration; the overlay includes the native buttons and provider New
-   Chat/cancel fixes described above. Still pending: pin the real fixed extension version and
-   refresh its lock entry, then commit the combined editor source. With granted
-   build capacity, install locked dependencies and cut (without publishing):
+   Chat/cancel fixes described above. The real fixed extension and lock entry are now committed. With granted
+   build capacity, materialize that exact published dependency and cut (without publishing):
 
    ```sh
    volter world run -- node scripts/workbench/build-release.mjs --product model-editor --platform darwin-arm64 --checkout "$CODE_OSS_CHECKOUT" --work "$MODEL_WORKBENCH_WORK" --out "$MODEL_WORKBENCH_OUT"
