@@ -19,8 +19,9 @@ npx @volter/model-editor create my-race --template playable
   WASD. Escape moves it back and returns the untouched model. A lap is about 30 seconds.
 - `src/models/track.py` is the bpy script that built the scene, `src/models/track.play.ts`
   is the script Play runs, and `src/ui/` is the React interface drawn over it.
-- The Chat pane runs the coding agent you already have signed in (Codex on a ChatGPT plan,
-  or Claude Code; others from its agent picker). The editor adds no account and bills nothing.
+- In the Chat pane, one click signs in with ChatGPT, or Chat runs the coding agent you
+  already have (Codex or Claude Code; others from its agent picker). The editor adds no
+  account and bills nothing.
 - Three first things to ask the agent, one per file:
 
   ```text
@@ -38,16 +39,20 @@ npx @volter/model-editor create my-race --template playable
 
 ## Chat and your agent
 
-Chat starts Codex or Claude Code by itself when it finds one installed and signed in,
-resuming the project's last conversation with the agent that held it. When neither is signed
-in, Chat offers their own sign-ins (Sign in with ChatGPT for Codex) in the integrated
-terminal; with no agent installed, it offers Codex and shows `npm install -g @openai/codex`
-before running it. Chat checks readiness and reconnects without a reload. Other agents Volter
-Harness supports (Gemini, Grok and more) can be chosen from Chat's agent picker.
+Chat offers two ways in. **Sign in with ChatGPT** installs OpenAI's official Codex
+extension (`openai.chatgpt`) if it isn't there yet and opens its own sign-in; no terminal is
+involved.
 
-The official agent extensions also work in the editor. In the **Extensions** view, search
-`@id:openai.chatgpt` (Codex) or `@id:Anthropic.claude-code` (Claude Code) and choose
-**Install**. Neither is bundled; each brings its own interface and sign-in.
+Or Chat uses the agents already on your machine. It starts Codex or Claude Code by itself
+when it finds one installed and signed in, resuming the project's last conversation with the
+agent that held it. When neither is signed in, Chat offers their own sign-ins in the
+integrated terminal; with no agent installed, it offers Codex and shows
+`npm install -g @openai/codex` before running it. Chat checks readiness and reconnects
+without a reload. Other agents Volter Harness supports (Gemini, Grok and more) can be chosen
+from Chat's agent picker.
+
+Other extensions install from the **Extensions** view; Claude Code's official extension is
+`@id:Anthropic.claude-code`. No agent extension is bundled.
 
 Every model editor project declares the Blender MCP server in both `.mcp.json` and
 `.codex/config.toml`, with the same command. Codex loads it once you
