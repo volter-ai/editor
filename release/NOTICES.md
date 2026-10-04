@@ -17,6 +17,19 @@ them together with the generated notice files. `npm run check:packed-imports`
 and `npm run check:packed-imports:game` separately check literal import
 declarations; they are not a license audit.
 
+The playable Model Editor skew uses `release/playable.json`: the eight modeling
+packages plus `editor-model-play`, `editor-ui`, `editor-react`, `editor-game`,
+`game-runtime` and `threejs-runtime` (14 total). The UI tool currently imports DOM
+authoring from `editor-game`; that package declares the two runtimes. These are
+installation dependencies, not a Game Editor product or a registered game transport.
+Build this reviewed closure with `npm run build:playable`; the same release builder
+and notice generator write `provenance/playable-bundled-notices.json` and the actual
+bundles' notices. The new Play/UI tools ship source and their own LICENSE/NOTICE,
+so they have no bundle build step. Run `npm run check:release:playable` and
+`npm run check:packed-imports:playable` (the latter accepts individual package names
+for short checks). Do not distribute this skew until all listed pinned versions,
+corresponding source, built notices and installed acceptance have passed release gates.
+
 The game editor serves a vendored game only the packages the template and the
 catalog's capabilities import (`scripts/check-served-bundle-modules.mjs`, run
 by the pre-commit hook); a package added there adds its notice to the bundle.

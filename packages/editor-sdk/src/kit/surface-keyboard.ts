@@ -75,6 +75,13 @@ export function surfaceHoldsKeyboard(): boolean {
   }
 }
 
+/** Raw play input belongs to the active surface, never to a text field. */
+export function surfaceAcceptsKey(event: KeyboardEvent): boolean {
+  const target = event.target;
+  return surfaceHoldsKeyboard() && !(target instanceof HTMLElement &&
+    (target.isContentEditable || target.closest('input, textarea, select') !== null));
+}
+
 /**
  * Install the frame's answer. Returns the uninstall, which restores the
  * always-true default rather than leaving the last answer pinned — a frame

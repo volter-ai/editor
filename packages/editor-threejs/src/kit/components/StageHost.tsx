@@ -1836,6 +1836,12 @@ export function Object3DDocumentViewport({
         // leave behind. The session runs this before it renders; nothing else may
         // hold a second copy of this field list.
         const syncHostScene = () => {
+          // A document's World is its neutral backdrop. Transfer it when it
+          // changes, before the view's explicit backdrop override is applied.
+          if (nativeBackground !== scene.background) {
+            nativeBackground = scene.background;
+            documentSession.setNeutralBackground(nativeBackground ?? host.defaultBackground);
+          }
           // A document draws through its session's camera, which the viewport's own frame
           // does not know is orthographic.
           host.viewport?.alignGridToView(documentSession.camera(), renderer.domElement.width);
@@ -1898,10 +1904,6 @@ export function Object3DDocumentViewport({
               environmentImagePending: rig.imageReport().pending,
               toneMapping: String(renderer.toneMapping),
             });
-          }
-          if (nativeBackground !== scene.background) {
-            nativeBackground = scene.background;
-            documentSession.setNeutralBackground(nativeBackground ?? host.defaultBackground);
           }
         };
         host.syncHostScene = syncHostScene;

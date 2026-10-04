@@ -1,3 +1,4 @@
+import { readSharedSdkUrls } from '../vite-plugin-shared-sdk';
 /**
  * Packaged editor server — the entry a `@volter/editor-core` npm package resolves from a
  * PROJECT's own `node_modules`, with NO monorepo checkout on disk (Phase B; see
@@ -615,6 +616,7 @@ async function main(): Promise<void> {
         // Omitted (`null`) only when this dist predates the shared-React
         // chunks, which the boot warning above names.
         sharedReactUrls: sharedReactSpecifierUrls,
+        sharedSdkUrls: fromSource ? null : readSharedSdkUrls(distPath),
         // Omitted (`null`) only when this dist predates the shared-three chunk
         // (the boot warning above names it).
         sharedThreeUrl: sharedThreeSpecifierUrl,

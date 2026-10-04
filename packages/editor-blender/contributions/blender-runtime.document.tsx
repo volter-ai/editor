@@ -59,6 +59,9 @@ import * as THREE from 'three';
 import {
   bindModelDocument,
   blenderExecute,
+  blenderRna,
+  blenderRnaContext,
+  subscribeBlenderRna,
   blenderViewShading,
   openModelDocumentBlend,
   modelDocumentMayOpen,
@@ -67,6 +70,8 @@ import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
+import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
+import { notifyWorkspaceDocumentSelectionChanged } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
   documentSecondAreaHeader,
   setDocumentSecondArea,
@@ -80,6 +85,7 @@ import {
 } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
 import type { ToolObject3DAuthoringProps } from '@volter/editor-threejs/object3d-contributions';
 import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
+import { surfaceAcceptsKey } from '@volter/editor-sdk/kit/surface-keyboard';
 
 /** The second areas' stage stores whose overlays have been opened off (`BlenderViewportArea`). */
 const overlaysOpened = new WeakSet<object>();
@@ -281,9 +287,47 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
  * Blender's standard always-on render preview is set up: Rendered shading, through the scene
  * camera. Each area has its own stage, shading, navigation and camera view; the model, its
  * selection and its history are the document's.
+ *
+ * PLAYING (the composed Play tool), the area shows a DETACHED copy of the model
+ * (`BlenderRuntimeView.detach`) on a stage of its own, which the project's play script moves
+ * (the document Play extension). The model's own stage stays mounted underneath, hidden, so Stop
+ * returns to the same view of the same model: nothing a game does reaches Blender.
  */
 function BlenderModelViewport(props: ToolContributionProps) {
   const { documentId } = props;
+  // Rendered areas and Play use the scene's display transform, just as a
+  // photograph does. Solid keeps its studio transform. RNA also announces
+  // colour settings that change without changing the presented geometry.
+  useEffect(() => {
+    if (!documentId) return;
+    let cancelled = false;
+    let revision = 0;
+    let applied: { mapper: string; exposure: number } | null = null;
+    const read = async () => {
+      const mine = ++revision;
+      const context = await blenderRnaContext();
+      if (!context) return;
+      const settings = await blenderRna(`${context.scene}.view_settings`);
+      if (cancelled || mine !== revision || settings?.kind !== 'struct' || settings.type !== 'ColorManagedViewSettings') return;
+      const rows = settings.groups.flatMap(group => group.rows);
+      const transform = rows.find(row => row.identifier === 'view_transform')?.value;
+      const stops = rows.find(row => row.identifier === 'exposure')?.value;
+      const mapper = transform === 'Standard' ? 'none' : transform === 'Filmic' ? 'filmic' : 'agx';
+      const exposure = typeof stops === 'number' ? 2 ** stops : 1;
+      if (applied?.mapper === mapper && applied.exposure === exposure) return;
+      applied = { mapper, exposure };
+      for (const id of [documentId, `${documentId}#area-2`, `${documentId}#play`]) {
+        setViewPresentation(id, { modes: {
+          rendered: { lighting: { tone: { mapper, exposure } } },
+          preview: { lighting: { tone: { mapper, exposure } } },
+        } });
+      }
+    };
+    const update = () => { void read().catch(error => editorHost().console.error(String(error), 'blender-colour')); };
+    const stopRna = subscribeBlenderRna(update);
+    update();
+    return () => { cancelled = true; stopRna(); };
+  }, [documentId]);
   const split = useSyncExternalStore(
     subscribeAreaSplit,
     () => (documentId ? areaSplit(documentId) : false),
@@ -304,22 +348,67 @@ function BlenderModelViewport(props: ToolContributionProps) {
       second.dispose();
     };
   }, [split, documentId]);
+  const playing = useSyncExternalStore(
+    subscribeDocumentPlayExtensions,
+    () => (documentId ? documentPlayExtension('model')?.playing(documentId) ?? false : false),
+    () => false,
+  );
+  const [played, setPlayed] = useState<ReturnType<AreaView['detach']> | null>(null);
+  const [playedReady, setPlayedReady] = useState(false);
+  useEffect(() => {
+    if (!playing || !documentId) return;
+    const playId = `${documentId}#play`;
+    // A game is seen as the render is: Rendered shading, chosen before the stage binds.
+    setViewPresentation(playId, { drawMode: 'rendered' });
+    const copy = view.detach();
+    setPlayedReady(false);
+    setPlayed(copy);
+    // The stage's mode is PLAY for as long as the copy stands, so the keys are the player's.
+    view.setPlaying(true);
+    notifyWorkspaceDocumentSelectionChanged(documentId);
+    return () => {
+      setPlayed(null);
+      copy.dispose();
+      view.setPlaying(false);
+      notifyWorkspaceDocumentSelectionChanged(documentId);
+    };
+  }, [playing, documentId]);
+  // The document closing or going inactive ends its game; a game never outlives its stage.
+  useEffect(() => {
+    if (!documentId) return;
+    return () => documentPlayExtension('model')?.setPlaying(documentId, false);
+  }, [documentId]);
+  const game = playing ? played : null;
+  useEffect(() => {
+    if (!game || !documentId) return;
+    const modelViewport = documentViewport(documentId);
+    if (!modelViewport) return;
+    // registerObject3DDocumentSession creates this document's own viewport object; capture may follow its visible play area.
+    const capture = modelViewport.capture;
+    modelViewport.capture = (size) => documentViewport(`${documentId}#play`)?.capture?.(size) ?? null;
+    return () => {
+      modelViewport.capture = capture;
+    };
+  }, [game, documentId]);
   if (!documentId) return null;
   const second = split ? follower : null;
-  // SPLIT, THE TWO AREAS SHARE THE SLOT the stage alone fills otherwise: each stage's root bleeds
-  // 12 px past its positioned parent (`inset: -12px`), so each area is that parent inset by 12,
-  // and the two stand 2 px apart, Blender's gap between areas. Unsplit, both wrappers are
-  // `contents` and the one stage is placed as it always was.
+  // Keep both authoring areas mounted across Play/Stop. Remounting a stage discards
+  // its pose/session and repeats the second area's initial scene-camera setup.
   const area = { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } as const;
   return (
-    <div style={second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
-      <div style={second ? area : { display: 'contents' }}>
+    <div style={game || second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
+      <div key="model" style={game ? { position: 'absolute', inset: 12, zIndex: 2, opacity: playedReady ? 0 : 1, pointerEvents: playedReady ? 'none' : 'auto', transition: 'opacity 160ms ease-out' } : second ? area : { display: 'contents' }}>
         <BlenderViewportArea {...props} view={view} main />
       </div>
+      {game && (
+        <div key="play" style={{ position: 'absolute', inset: 12 }} data-testid="blender-play-area">
+          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play onPlayReady={() => setPlayedReady(true)} onPlayReturn={() => setPlayedReady(false)} />
+        </div>
+      )}
       {second && (
-        <div style={area} data-testid="blender-second-area">
+        <div key="second" style={{ ...area, visibility: game ? 'hidden' : undefined }} aria-hidden={game ? true : undefined} data-testid="blender-second-area">
           <BlenderViewportArea {...props} documentId={`${documentId}#area-2`} view={second.view} main={false} />
-          <SecondAreaChrome documentId={documentId} areaId={`${documentId}#area-2`} notify={props.notify} />
+          {!game && <SecondAreaChrome documentId={documentId} areaId={`${documentId}#area-2`} notify={props.notify} />}
         </div>
       )}
     </div>
@@ -396,28 +485,38 @@ function BlenderViewportArea({
   active,
   document,
   documentId,
+  notify,
   surfaces,
   view,
   main,
-}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean }) {
+  play = false,
+  onPlayReady,
+  onPlayReturn,
+}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly play?: boolean; readonly onPlayReady?: () => void; readonly onPlayReturn?: () => void }) {
   const reads = readsOf(view);
   const build = useCallback(
     () => ({
       root: view.root,
       prepareDraw: (camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}) => view.prepareDraw(camera, options),
       // What the view draws changes with each frame and the work after it,
-      // and with the skin's poses when the Timeline scrubs.
-      onChange(listener: () => void) {
-        const stopView = view.onChange(listener);
-        const stopSkin = blenderSkin.subscribe(listener);
-        return () => {
-          stopView();
-          stopSkin();
-        };
-      },
+      // and with the skin's poses when the Timeline scrubs. A PLAYING copy announces nothing:
+      // its script moves it every frame, and a source that announces nothing is drawn every
+      // frame (`ToolObject3DPreviewSource.onChange`).
+      ...(play
+        ? {}
+        : {
+            onChange(listener: () => void) {
+              const stopView = view.onChange(listener);
+              const stopSkin = blenderSkin.subscribe(listener);
+              return () => {
+                stopView();
+                stopSkin();
+              };
+            },
+          }),
       dispose() {},
     }),
-    [view],
+    [view, play],
   );
   const blend = document?.source?.path;
   // Re-read on the engine's frames, the skin's publications and every drawn frame of this stage
@@ -457,7 +556,8 @@ function BlenderViewportArea({
    * person's.
    */
   useEffect(() => {
-    if (main || !documentId) return;
+    // A playing copy's camera is its script's.
+    if (main || play || !documentId) return;
     let entered = false;
     const enter = (): void => {
       if (entered) return;
@@ -472,7 +572,101 @@ function BlenderViewportArea({
       stopSessions();
       stopFrames();
     };
-  }, [main, documentId, view]);
+  }, [main, play, documentId, view]);
+  /**
+   * THE PLAYING COPY IS MOVED BY THE PROJECT'S PLAY SCRIPT (the document Play extension), on this
+   * stage's own frame hook, once the stage stands. The stage's orbit stands down while it runs,
+   * so the script's camera is not argued with, and Escape stops the game.
+   */
+  const notifyRef = useRef(notify);
+  const surfaceRef = useRef<HTMLDivElement>(null);
+  const [playReady, setPlayReady] = useState(false);
+  notifyRef.current = notify;
+  const playReadyRef = useRef(onPlayReady);
+  playReadyRef.current = onPlayReady;
+  const playReturnRef = useRef(onPlayReturn);
+  playReturnRef.current = onPlayReturn;
+  useEffect(() => {
+    if (!play || !documentId) return;
+    if (blend === undefined) {
+      notifyRef.current?.({
+        tone: 'error',
+        title: 'This model has no play script',
+        detail: 'A play script stands beside a model\'s .blend file, and this model has no file of its own.',
+      });
+      return;
+    }
+    const modelId = documentId.replace(/#play$/, '');
+    const layers = window.document.createElement('div');
+    Object.assign(layers.style, { position: 'absolute', inset: '0', pointerEvents: 'none' });
+    layers.dataset.testid = 'model-play-roots';
+    surfaceRef.current?.appendChild(layers);
+    setPlayReady(false);
+    let stopped = false;
+    let preparing = false;
+    let stopScript: (() => void) | null = null;
+    let orbit: { enabled: boolean } | null = null;
+    const start = (): void => {
+      if (stopScript || preparing || stopped) return;
+      const stage = viewportStages().find((one) => one.documentId === documentId);
+      if (!stage || !view.root.parent) return;
+      preparing = true;
+      orbit = stage.rig().orbit;
+      orbit.enabled = false;
+      void view.prepareRendered(stage.rig().drawCamera()).then(() => {
+        if (stopped) return;
+        stopScript = documentPlayExtension('model')?.run({
+          documentId: modelId,
+          container: layers,
+          ready: () => { if (!stopped) { setPlayReady(true); playReadyRef.current?.(); } },
+          returning: () => { if (!stopped) playReturnRef.current?.(); },
+          sourcePath: blend,
+          root: view.root,
+          camera: () => stage.rig().drawCamera(),
+          editingCamera: () => viewportStages().find(one => one.documentId === modelId)?.rig().drawCamera() ?? stage.rig().drawCamera(),
+          onFrame: (fn) => stage.onFrame(fn),
+          report: (title, detail) => {
+            editorHost().console.error(`${title}: ${detail}`, 'blender-play');
+            notifyRef.current?.({ tone: 'error', title, detail });
+          },
+        }) ?? null;
+      }, error => {
+        if (stopped) return;
+        editorHost().console.error(`Rendered stage preparation failed: ${String(error)}`, 'model-play');
+        documentPlayExtension('model')?.setPlaying(modelId, false);
+      });
+    };
+    start();
+    let waitingStage: ReturnType<typeof viewportStages>[number] | undefined;
+    let stopPrepareFrames: (() => void) | undefined;
+    const waitForDraw = () => {
+      const stage = viewportStages().find(one => one.documentId === documentId);
+      if (stage === waitingStage) return;
+      stopPrepareFrames?.();
+      waitingStage = stage;
+      stopPrepareFrames = stage?.onFrame(start);
+      start();
+    };
+    waitForDraw();
+    const stopStages = onViewportStages(waitForDraw);
+    const onEscape = (event: KeyboardEvent): void => {
+      if (event.key === 'Escape' && surfaceAcceptsKey(event)) {
+        const extension = documentPlayExtension('model');
+        if (extension?.escape) extension.escape(modelId);
+        else extension?.setPlaying(modelId, false);
+      }
+    };
+    window.addEventListener('keydown', onEscape, true);
+    return () => {
+      stopped = true;
+      stopStages();
+      stopPrepareFrames?.();
+      window.removeEventListener('keydown', onEscape, true);
+      stopScript?.();
+      layers.remove();
+      if (orbit) orbit.enabled = true;
+    };
+  }, [play, documentId, blend, view]);
   /**
    * A SHADING PICK IS KEPT WHERE BLENDER KEEPS IT: in the file's own 3D View, the one it reopens
    * on (`blenderViewShading`), so the next save carries it and a reopen starts from it. Noted on
@@ -610,8 +804,11 @@ function BlenderViewportArea({
         stopFrame = stage ? stage.onFrame(() => view.refreshRendered()) : null;
         framed = stage;
       }
-      const { lighting } = viewPresentation(documentId);
-      view.holdRendered(lighting.source === 'scene' && stage ? drawCamera : null);
+      const { lighting, drawMode } = viewPresentation(documentId);
+      const preview = drawMode === 'preview';
+      const sceneLighting = preview ? { world: lighting.source === 'scene', lights: lighting.preview.sceneLights } : undefined;
+      const needsScene = lighting.source === 'scene' || (preview && lighting.preview.sceneLights);
+      view.holdRendered(needsScene && stage ? drawCamera : null, sceneLighting, preview ? 'viewport' : 'render');
       // BLENDER'S SOLID IS BLENDER'S OWN FUNCTION: while the stage lights by Blender's studio, the
       // presenter draws every surface by it (`blender-workbench-material.ts`).
       view.setWorkbench(lighting.source === 'studio' && lighting.studioPreset === DOCUMENT_STUDIO_PRESET.id);
@@ -639,7 +836,7 @@ function BlenderViewportArea({
    */
   const cursorPress = useRef<{ id: number; x: number; y: number } | null>(null);
   const cursorChord = (event: ReactPointerEvent | ReactMouseEvent): boolean =>
-    event.button === 2 && event.shiftKey && event.target instanceof HTMLCanvasElement;
+    !play && event.button === 2 && event.shiftKey && event.target instanceof HTMLCanvasElement;
   const onPointerDownCapture = (event: ReactPointerEvent): void => {
     if (!cursorChord(event)) {
       cursorPress.current = null;
@@ -687,7 +884,9 @@ function BlenderViewportArea({
   const Surface = surfaces.Object3DAuthoring;
   return (
     <div
-      style={{ display: 'contents' }}
+      ref={surfaceRef}
+      data-play-ready={play ? playReady : undefined}
+      style={play ? { position: 'absolute', inset: 0 } : { display: 'contents' }}
       onPointerDownCapture={onPointerDownCapture}
       onPointerUpCapture={onPointerUpCapture}
       onPointerCancelCapture={dropCursorPress}
@@ -714,7 +913,9 @@ function BlenderViewportArea({
       // provider; the default adapter it delegates to still answers everything
       // about the presentation (WORK.md §Blender in the tab is Blender,
       // "Inspection parity", I3).
-      authoring={authoring}
+      // A PLAYING COPY HAS NO AUTHORING: it is read-only to the editor, and what moves it is its
+      // script. With none given the stage is the native read-only one.
+      {...(play ? {} : { authoring })}
       cameraDirection={[0.8187, 0.4458, 0.3617]}
       // FOR A FILE THAT SAVED NO 3D VIEW: Blender's factory Modeling direction, standing back
       // three fits.
@@ -730,7 +931,13 @@ function BlenderViewportArea({
         const saved = view.savedView();
         if (!saved) return null;
         const camera = { fov: blenderViewFieldOfView(saved.lens) };
-        return main && saved.drawMode ? { camera, drawMode: saved.drawMode } : { camera };
+        return main && saved.drawMode ? {
+          camera, drawMode: saved.drawMode,
+          modes: { preview: {
+            lighting: { source: saved.sceneWorld ? 'scene' as const : 'preview' as const, preview: { sceneLights: saved.sceneLights } },
+            backdrop: { source: saved.sceneWorld ? 'scene' as const : 'fill' as const },
+          } },
+        } : { camera };
       })()}
       // Every entry this document opens is a `model` stage, the standing `blender:runtime`
       // address included (its id carries no `model:` prefix).
