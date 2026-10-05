@@ -2,7 +2,7 @@
   "name": "@volter/editor-sdk",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.171",
+  "version": "0.5.172",
   "publishConfig": {
     "access": "public"
   },
@@ -483,7 +483,7 @@
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@storybook/react": "10.6.0",
     "@types/node": "^22.0.0",
-    "@volter/editor-project": "0.5.171",
+    "@volter/editor-project": "0.5.172",
     "mediabunny": "1.56.2",
     "postcss": "8.5.28",
     "rrweb": "2.1.6",
