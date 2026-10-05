@@ -342,13 +342,20 @@ function patchHarnessChatNavigation(checkout) {
 	const widget = 'src/vs/workbench/contrib/chat/browser/widget/chatWidgetService.ts';
 	const editor = 'src/vs/workbench/contrib/chat/browser/widgetHosts/editor/chatEditor.ts';
 	const view = 'src/vs/workbench/contrib/chat/browser/widgetHosts/viewPane/chatViewPane.ts';
+	const group = 'src/vs/workbench/browser/parts/editor/editorGroupView.ts';
 	const widgetImport = "import { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';";
 	const hostImport = "import { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../../volter/browser/volterChatNavigation.js';";
 	patchChatSource(checkout, widget, "import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';", "import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';\n" + widgetImport, 'harness navigation service import');
 	patchChatSource(checkout, widget, '\t\t@ILogService private readonly logService: ILogService,', '\t\t@ILogService private readonly logService: ILogService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService,', 'harness navigation service injection');
 	const open = '\tasync openSession(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions): Promise<IChatWidget | undefined> {';
 	patchChatSource(checkout, widget, open, `${open}
-		return this.harnessNavigation.run(sessionResource, permit => this.openSessionAfterGuard(sessionResource, target, options, permit), options?.harnessNavigationPermit);
+		return this.harnessNavigation.run(sessionResource, async permit => {
+			const widget = await this.openSessionAfterGuard(sessionResource, target, options, permit);
+			if (permit && widget?.viewModel?.sessionResource.toString() !== sessionResource.toString()) {
+				throw new Error('The requested conversation was not selected by native Chat.');
+			}
+			return widget;
+		}, options?.harnessNavigationPermit);
 	}
 
 	private async openSessionAfterGuard(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions, permit?: HarnessChatNavigationPermit): Promise<IChatWidget | undefined> {
@@ -357,32 +364,130 @@ function patchHarnessChatNavigation(checkout) {
 	const reveal = '\tasync reveal(widget: IChatWidget, preserveFocus?: boolean): Promise<boolean> {';
 	patchChatSource(checkout, widget, reveal, `${reveal}
 		const resource = widget.viewModel?.sessionResource;
-		return resource ? this.harnessNavigation.run(resource, permit => this.revealAfterGuard(widget, preserveFocus, permit)) : this.revealAfterGuard(widget, preserveFocus);
+		return resource ? this.harnessNavigation.run(resource, permit => this.revealAfterGuard(widget, preserveFocus, permit), undefined,
+			() => this._widgets.includes(widget) && widget.viewModel?.sessionResource.toString() === resource.toString()) : this.revealAfterGuard(widget, preserveFocus);
 	}
 
 	private async revealAfterGuard(widget: IChatWidget, preserveFocus?: boolean, permit?: HarnessChatNavigationPermit): Promise<boolean> {`, 'guard before cached widget reveal');
 	patchChatSource(checkout, widget, 'this.revealSessionIfAlreadyOpen(widget.viewModel.sessionResource, { preserveFocus });', 'this.revealSessionIfAlreadyOpen(widget.viewModel.sessionResource, { preserveFocus, harnessNavigationPermit: permit });', 'nested cached editor navigation permit');
 
-	patchChatSource(checkout, editor, "import { ChatEditorInput } from './chatEditorInput.js';", "import { ChatEditorInput } from './chatEditorInput.js';\n" + hostImport, 'editor navigation service import');
+	patchChatSource(checkout, editor, "import { ChatEditorInput } from './chatEditorInput.js';", "import { ChatEditorInput } from './chatEditorInput.js';\nimport { HarnessChatNavigationPermit } from '../../../../volter/browser/volterChatNavigation.js';", 'editor navigation permit import');
 	patchChatSource(checkout, editor, 'export interface IChatEditorOptions extends IEditorOptions {', 'export interface IChatEditorOptions extends IEditorOptions {\n\t/** Internal permit for a nested native load in the same guarded transaction. */\n\tharnessNavigationPermit?: HarnessChatNavigationPermit;', 'nested editor navigation permit option');
-	const setInput = '\toverride async setInput(input: ChatEditorInput, options: IChatEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {';
-	patchChatSource(checkout, editor, setInput, `${setInput}
-		if (token.isCancellationRequested) { return; }
-		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(input.sessionResource, async () => {
-			if (!token.isCancellationRequested) { await this.setInputAfterGuard(input, options, context, token); }
-		}, options?.harnessNavigationPermit));
+	// EditorPanes clears the old input and catches load errors before ChatEditor.setInput.
+	// Guard the group owner instead, before selection/reveal/clear/recovery can begin.
+	patchChatSource(checkout, group, "import { URI } from '../../../../base/common/uri.js';", "import { URI } from '../../../../base/common/uri.js';\nimport { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../contrib/volter/browser/volterChatNavigation.js';", 'editor group navigation service import');
+	const openEditor = '\tprivate async doOpenEditor(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined> {';
+	patchChatSource(checkout, group, openEditor, `${openEditor}
+		const resource = (editor as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? editor.resource;
+		const passive = (options as (IEditorOptions & { harnessPassive?: boolean }) | undefined)?.harnessPassive;
+		if (!resource || resource.scheme !== 'supercode' || options?.inactive || passive) {
+			return this.doOpenEditorAfterHarnessGuard(editor, options, internalOptions);
+		}
+		const parent = (options as (IEditorOptions & { harnessNavigationPermit?: HarnessChatNavigationPermit }) | undefined)?.harnessNavigationPermit;
+		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(resource, async permit => {
+			const guardedOptions: IEditorOptions & { harnessNavigationPermit?: HarnessChatNavigationPermit } = { ...options, harnessNavigationPermit: permit };
+			// The pane's cancellable input operation is created only inside this commit.
+			const pane = await this.doOpenEditorAfterHarnessGuard(editor, guardedOptions, internalOptions);
+			const selected = (pane as (IEditorPane & { widget?: { viewModel?: { sessionResource: URI } } }) | undefined)?.widget?.viewModel?.sessionResource;
+			if (selected?.toString() !== resource.toString()) { throw new Error('The requested conversation was not selected by the native editor.'); }
+			return pane;
+		}, parent, () => !this.disposed && !editor.isDisposed()
+			&& ((editor as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? editor.resource)?.toString() === resource.toString()));
 	}
 
-	private async setInputAfterGuard(input: ChatEditorInput, options: IChatEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {`, 'guard before direct editor input mutation');
+	private async doOpenEditorAfterHarnessGuard(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined> {`, 'guard before native editor group selection');
 
 	patchChatSource(checkout, view, "import './media/chatViewPane.css';", "import './media/chatViewPane.css';\n" + hostImport, 'sidebar navigation service import');
 	const load = '\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {';
 	patchChatSource(checkout, view, load, `\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason, permit?: HarnessChatNavigationPermit): Promise<IChatModel | undefined> {
 		// Keep refusal outside the load's cancellation, clear timer and empty-model recovery.
-		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(sessionResource, () => this.loadSessionAfterGuard(sessionResource, sessionTypeSelectionReason), permit));
+		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(sessionResource, async navigationPermit => {
+			const model = await this.loadSessionAfterGuard(sessionResource, sessionTypeSelectionReason);
+			if (navigationPermit && model?.sessionResource.toString() !== sessionResource.toString()) { throw new Error('The requested conversation was not selected by the native Chat view.'); }
+			return model;
+		}, permit));
 	}
 
 	private async loadSessionAfterGuard(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {`, 'guard before direct sidebar load mutation');
+	// Synchronous move/close APIs relocate or expose an already stored pane passively.
+	// They must not enqueue activation and then close the outgoing pane before its guard.
+	patchChatSource(checkout, group, 'target.doOpenEditor(keepCopy ? editor.copy() : editor, options, internalOptions);', `const transferOptions: IEditorOptions & { harnessPassive?: boolean } = { ...options, harnessPassive: true };
+		target.doOpenEditor(keepCopy ? editor.copy() : editor, transferOptions, internalOptions);`, 'passive group transfer without runtime activation');
+	patchChatSource(checkout, group, 'this.doOpenEditor(nextActiveEditor, options, internalEditorOpenOptions);', `const fallbackOptions: IEditorOptions & { harnessPassive?: boolean } = { ...options, harnessPassive: true };
+			this.doOpenEditor(nextActiveEditor, fallbackOptions, internalEditorOpenOptions);`, 'passive editor exposed after close');
+	patchChatSource(checkout, group, 'const openEditorResult = this.doOpenEditor(activeReplacement.replacement, activeReplacement.options);', `const openEditorResult = this.doOpenEditor(activeReplacement.replacement, activeReplacement.options);
+			const replacementResource = (activeReplacement.replacement as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? activeReplacement.replacement.resource;
+			if (replacementResource?.scheme === 'supercode') { await openEditorResult; }`, 'await harness replacement before closing source');
+	patchHarnessPassiveViews(checkout);
+}
+
+/** Reading an already-visible inactive pane is passive, with all interaction disabled. */
+function patchHarnessPassiveViews(checkout) {
+	const widget = 'src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts';
+	const banner = 'src/vs/workbench/contrib/chat/browser/widget/chatReadOnlyBanner.ts';
+	patchChatSource(checkout, widget, "import * as dom from '../../../../../base/browser/dom.js';", "import * as dom from '../../../../../base/browser/dom.js';\nimport { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';", 'passive conversation policy import');
+	patchChatSource(checkout, widget, '\tprivate _readOnly = false;', '\tprivate _readOnly = false;\n\tprivate _modelReadOnly = false;\n\tprivate _harnessInactive = false;', 'durable inactive read-only reason');
+	patchChatSource(checkout, widget, '\t\t@IInstantiationService private readonly instantiationService: IInstantiationService,', '\t\t@IInstantiationService private readonly instantiationService: IInstantiationService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService,', 'passive conversation policy injection');
+	patchChatSource(checkout, widget, '\t\tthis._persistentContentHeight = viewOptions.persistentContentHeight ?? 0;', `\t\tthis._persistentContentHeight = viewOptions.persistentContentHeight ?? 0;
+		this._register(this.harnessNavigation.onDidChangeActiveResource(() => this.updateHarnessInactive()));
+		this._register(this.onDidChangeViewModel(() => this.updateHarnessInactive()));`, 'update inactive reason on binding and activation');
+	patchChatSource(checkout, widget, '\tsetReadOnly(readOnly: boolean): void {\n\t\tconst wasReadOnly = this._readOnly;', `\tprivate updateHarnessInactive(): void {
+		const resource = this.viewModel?.sessionResource;
+		const inactive = resource?.scheme === 'supercode' && !resource.path.startsWith('/untitled-')
+			&& resource.toString() !== this.harnessNavigation.activeResource;
+		if (inactive !== this._harnessInactive) {
+			this._harnessInactive = inactive;
+			this.setReadOnly(this._modelReadOnly);
+		}
+	}
+
+	setReadOnly(readOnly: boolean): void {
+		this._modelReadOnly = readOnly;
+		readOnly ||= this._harnessInactive;
+		const wasReadOnly = this._readOnly;`, 'compose inactive and model read-only policies');
+	patchChatSource(checkout, widget, '\t\tthis.readOnlyBanner?.setVisible(readOnly);', `\t\tthis.readOnlyBanner?.setMessage(this._harnessInactive && !this._modelReadOnly
+			? localize('chat.inactiveConversation', "Inactive conversation. Open it from history to continue.") : undefined);
+		this.readOnlyBanner?.setVisible(readOnly);`, 'accurate inactive conversation banner');
+	patchChatSource(checkout, widget, "\t\tthis.container = dom.append(parent, $('.interactive-session'));", `\t\tthis.container = dom.append(parent, $('.interactive-session'));
+		// Passive history remains focusable, selectable and copyable. It cannot invoke
+		// transcript buttons/links, tool approvals, questions, restores or handoffs.
+		const blockInactiveAction = (event: globalThis.Event) => {
+			if (!this._harnessInactive) { return; }
+			const target = event.target as Element | null;
+			if (!target || typeof target.closest !== 'function') { return; }
+			const question = target.closest('.chat-question-carousel-container');
+			const interactive = target.closest('a,button,input,textarea,[role="button"],[role="checkbox"],[role="radio"],[role="combobox"],[role="option"],[role="switch"],[role="slider"],[role="spinbutton"],[role^="menuitem"],[contenteditable="true"]');
+			const keyboardScope = event.type === 'keydown' && (question || target.closest('.chat-tool-confirmation-carousel,.chat-confirmation-widget'));
+			if (!interactive && !keyboardScope) { return; }
+			if ('key' in event) {
+				const key = String(event.key);
+				const readingShortcut = 'ctrlKey' in event && (event.ctrlKey || ('metaKey' in event && event.metaKey)) && ['a', 'c', 'f'].includes(key.toLowerCase());
+				if (readingShortcut || ['Tab', 'Shift', 'Control', 'Alt', 'Meta', 'F3'].includes(key) || (key === 'Escape' && !question)) { return; }
+			}
+			event.preventDefault();
+			event.stopImmediatePropagation();
+		};
+		this._register(dom.addDisposableListener(this.container, 'click', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'dblclick', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'keydown', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'pointerdown', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'beforeinput', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'change', blockInactiveAction, true));`, 'passive transcript interaction boundary');
+
+	patchChatSource(checkout, banner, "import { Disposable } from '../../../../../base/common/lifecycle.js';", "import { Disposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';", 'banner hover lifetime');
+	patchChatSource(checkout, banner, '\tprivate _visible = false;', '\tprivate _visible = false;\n\tprivate readonly text: HTMLElement;\n\tprivate readonly messageHover = this._register(new MutableDisposable());', 'mutable banner message ownership');
+	patchChatSource(checkout, banner, '\t\tmessage: string = localize', '\t\tprivate readonly message: string = localize', 'remember original read-only banner meaning');
+	patchChatSource(checkout, banner, '\t\t@IHoverService hoverService: IHoverService,', '\t\t@IHoverService private readonly hoverService: IHoverService,', 'banner hover service ownership');
+	patchChatSource(checkout, banner, `\t\tconst text = dom.append(this.domNode, dom.$('span.chat-readonly-banner-text'));
+		text.textContent = message;
+		this._register(hoverService.setupDelayedHover(text, { content: message }));`, `\t\tthis.text = dom.append(this.domNode, dom.$('span.chat-readonly-banner-text'));
+		this.setMessage();`, 'initialize mutable banner message');
+	patchChatSource(checkout, banner, '\tget visible(): boolean {', `\tsetMessage(message: string = this.message): void {
+		this.text.textContent = message;
+		this.messageHover.value = this.hoverService.setupDelayedHover(this.text, { content: message });
+	}
+
+	get visible(): boolean {`, 'accurate visible and hover banner meaning');
 }
 
 function patchNativeChat(checkout) {

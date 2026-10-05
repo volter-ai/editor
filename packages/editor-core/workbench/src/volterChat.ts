@@ -9,6 +9,7 @@
 
 import { Disposable } from '../../../../base/common/lifecycle.js';
 import { URI } from '../../../../base/common/uri.js';
+import { isCancellationError } from '../../../../base/common/errors.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IAgentHostEnablementService } from '../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
@@ -53,18 +54,27 @@ class HarnessChatFocus extends Disposable {
 	) {
 		super();
 		let last: string | undefined;
+		let lastResource: URI | undefined;
+		let lastWidget: typeof widgets.lastFocusedWidget;
 		let generation = 0;
 		let observingHarness = false;
 		const sync = () => {
-			const resource = widgets.lastFocusedWidget?.viewModel?.sessionResource;
+			const widget = widgets.lastFocusedWidget;
+			const resource = widget?.viewModel?.sessionResource;
 			const key = resource?.toString();
 			if (key === last) { return; }
+			const materialized = widget === lastWidget && lastResource?.scheme === 'supercode'
+				&& lastResource.path.startsWith('/untitled-') && resource?.scheme === 'supercode'
+				&& !resource.path.startsWith('/untitled-');
 			last = key;
+			lastResource = resource;
+			lastWidget = widget;
 			const current = ++generation;
 			observingHarness ||= resource?.scheme === 'supercode';
 			if (!observingHarness) { return; }
 			void navigation.syncFocus(resource, () => current === generation
-				&& widgets.lastFocusedWidget?.viewModel?.sessionResource.toString() === key).catch(error => {
+				&& widgets.lastFocusedWidget?.viewModel?.sessionResource.toString() === key, materialized).catch(error => {
+				if (isCancellationError(error)) { return; }
 				if (current !== generation) { return; }
 				last = undefined;
 				notifications.error(error);
@@ -81,10 +91,16 @@ registerAction2(class extends Action2 {
 	constructor() { super({ id: 'volter.chat.inspect', title: localize2('inspectHarnessChat', 'Inspect Chat Runtime'), f1: false }); }
 	run(accessor: ServicesAccessor) {
 		const widget = accessor.get(IChatWidgetService).lastFocusedWidget;
+		const navigation = accessor.get(IHarnessChatNavigationService);
 		return {
 			builtInAgentHostEnabled: accessor.get(IAgentHostEnablementService).enabled.get(),
 			sessionResource: widget?.viewModel?.sessionResource.toString(),
 			input: widget?.getInput(),
+			activeConversationResource: navigation.activeResource,
+			navigationOutcome: navigation.outcome,
+			passive: widget?.viewModel?.sessionResource.scheme === 'supercode'
+				&& !widget.viewModel.sessionResource.path.startsWith('/untitled-')
+				&& widget.viewModel.sessionResource.toString() !== navigation.activeResource,
 		};
 	}
 });
