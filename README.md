@@ -1,13 +1,10 @@
-<p align="center"><img src="https://brand.volter.ai/logo/volter-editor/svg?size=96" alt="Volter Editor"></p>
+[LOGO: VideoGame AI brand mark]
 
-# Volter Editor
+# [BRAND LINE: Model Editor under VideoGame AI]
 
 ![A cube on wheels jumping a ramp in the Volter Model Editor, with the outliner and properties panels beside the viewport and a lap timer over it](docs/media/model-play-race.png)
 
-**Volter Model Editor, built on Blender.** Blender 5.2 compiled to WebAssembly and running in a
-browser tab, with the interface in React, the shell in Code-OSS and the viewport in three.js.
-The model on screen is a live three.js scene, so a script can drive it and a React interface
-can sit over it, in the same window, with no export step.
+[OPENING: the idea — a free, open-source game editor built from AI's favorite tools: VS Code (Code-OSS), three.js, TypeScript, React and Blender]
 
 ```bash
 npx @volter/model-editor create my-race --template playable
