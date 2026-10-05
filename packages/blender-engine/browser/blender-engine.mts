@@ -210,6 +210,19 @@ export function artifactUrl(file: string): string {
   return new URL(`${ARTIFACT_BASE}/${file}`, import.meta.url).href;
 }
 
+/** Attribute a startup failure without repeating the operation. The worker's
+ * document may never publish, so this message must survive as the diagnosis.
+ * For an import, url is the importing module; the browser's resolved failing
+ * module URL, when supplied, stays in the original cause. */
+export async function startupOperation<T>(url: string, operation: string, run: () => T | Promise<T>): Promise<T> {
+  try {
+    return await run();
+  } catch (cause) {
+    const detail = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
+    throw new Error(`Blender startup ${operation} (${url}): ${detail}`, { cause });
+  }
+}
+
 /** What the editor's artifact door answers. `blender-wasm-artifact.ts` owns it. */
 export interface BlenderArtifactStatus {
   available: boolean;
@@ -231,7 +244,8 @@ export interface BlenderArtifactStatus {
 }
 
 export async function artifactStatus(): Promise<BlenderArtifactStatus> {
-  const answer = await fetch(artifactUrl('status'));
+  const url = artifactUrl('status');
+  const answer = await startupOperation(url, 'fetch status', () => fetch(url));
   if (!answer.ok)
     return {
       available: false,
@@ -241,7 +255,7 @@ export async function artifactStatus(): Promise<BlenderArtifactStatus> {
       encoded: {},
       missing: [`${ARTIFACT_BASE}/status answered ${answer.status}`],
     };
-  return (await answer.json()) as BlenderArtifactStatus;
+  return startupOperation(url, 'decode status JSON', () => answer.json()) as Promise<BlenderArtifactStatus>;
 }
 
 /**
@@ -264,10 +278,10 @@ export async function startBlenderEngine(options: BlenderEngineOptions): Promise
       `The headless Blender WebAssembly build is not served by this editor: ${status.missing.join('; ')}`,
     );
   if (status.skew === 'wali') {
-    const { startWaliBlenderEngine } = await import('./blender-wali-engine.mts');
+    const { startWaliBlenderEngine } = await startupOperation(import.meta.url, 'import WALI engine module from', () => import('./blender-wali-engine.mts'));
     return startWaliBlenderEngine(options, status);
   }
-  const { startEmscriptenBlenderEngine } = await import('./blender-emscripten-engine.mts');
+  const { startEmscriptenBlenderEngine } = await startupOperation(import.meta.url, 'import Emscripten engine module from', () => import('./blender-emscripten-engine.mts'));
   return startEmscriptenBlenderEngine(options, status);
 }
 

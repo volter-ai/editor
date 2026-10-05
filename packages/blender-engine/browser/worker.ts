@@ -39,7 +39,7 @@ import { sendFrameValue } from './frame-stream.mts';
  */
 /// <reference types="vite/client" />
 
-import { type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
+import { startupOperation, type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
 import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
 import { documentChunks } from './document-chunks.mts';
 import { columnsToTypedArrays, describeFrame, isColumnDescriptor } from './session-frame.mts';
@@ -395,10 +395,11 @@ async function startBlender(project: string, document?: string): Promise<unknown
 }
 
 async function blenderIsServed(): Promise<{ available: boolean; missing: string[] }> {
+  const url = '/__editor/blender-wasm/status';
   try {
-    const answer = await fetch('/__editor/blender-wasm/status');
-    if (!answer.ok) return { available: false, missing: [`status answered ${answer.status}`] };
-    return (await answer.json()) as { available: boolean; missing: string[] };
+    const answer = await startupOperation(url, 'fetch initial status', () => fetch(url));
+    if (!answer.ok) return { available: false, missing: [`${url}: HTTP ${answer.status}`] };
+    return await startupOperation(url, 'decode initial status JSON', () => answer.json()) as { available: boolean; missing: string[] };
   } catch (error) {
     return { available: false, missing: [String(error)] };
   }
