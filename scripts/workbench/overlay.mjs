@@ -337,6 +337,20 @@ function patchExtensionSignatures(checkout) {
 	writeFileSync(path, source);
 }
 
+/** This public recipe does not distribute Microsoft's optional VSDA payload.
+ * Declare that capability explicitly, leaving other products' default unchanged.
+ * AbstractSignService owns the existing fallback; do not request missing resources. */
+function patchOptionalVsda(checkout) {
+	patchChatSource(checkout, 'src/vs/base/common/product.ts',
+		'\treadonly serverLicense?: string[];',
+		'\treadonly serverLicense?: string[];\n\t/** False when this distribution omits the optional VSDA payload. */\n\treadonly vsdaEnabled?: boolean;',
+		'optional VSDA product capability');
+	patchChatSource(checkout, 'src/vs/platform/sign/browser/signService.ts',
+		'\tprivate async vsda(): Promise<typeof vsda_web> {\n\t\tconst checkInterval',
+		'\tprivate async vsda(): Promise<typeof vsda_web> {\n\t\tif (this.productService.vsdaEnabled === false) {\n\t\t\tthrow new Error("VSDA is not available in this product build");\n\t\t}\n\t\tconst checkInterval',
+		'optional VSDA capability before resource loading');
+}
+
 function patchNativeChat(checkout) {
 	// Participant welcome uses native buttons for standalone trusted command links.
 	// It stays outside transcript history and shares the extension's guarded action.
@@ -519,6 +533,13 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
 function patchProduct(checkout) {
 	const path = join(checkout, PRODUCT_FILE);
 	const product = JSON.parse(readFileSync(path, 'utf8'));
+	for (const manifest of ['package.json', 'remote/package.json', 'remote/web/package.json']) {
+		const declared = JSON.parse(readFileSync(join(checkout, manifest), 'utf8'));
+		if (declared.dependencies?.vsda || declared.optionalDependencies?.vsda) {
+			fail(`${manifest} now declares VSDA; review the public workbench capability and packaging before disabling its loader.`);
+		}
+	}
+	product.vsdaEnabled = false;
 	const current = product.defaultChatAgent;
 	if (!current || typeof current.extensionId !== 'string') {
 		fail(`${path} declares no defaultChatAgent.extensionId — upstream moved the block this patch replaces, and the Chat view's default participant is what it decides.`);
@@ -743,6 +764,7 @@ function main() {
 
 	patchNativeChat(checkout);
 	patchExtensionSignatures(checkout);
+	patchOptionalVsda(checkout);
 	patchRegistrationImports(checkout, tiers);
 	patchWebResources(checkout, tiers);
 	patchRehCopilotShim(checkout);
