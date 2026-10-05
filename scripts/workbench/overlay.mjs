@@ -337,7 +337,56 @@ function patchExtensionSignatures(checkout) {
 	writeFileSync(path, source);
 }
 
+/** One awaited policy boundary, shared by cached reveals and direct native loads. */
+function patchHarnessChatNavigation(checkout) {
+	const widget = 'src/vs/workbench/contrib/chat/browser/widget/chatWidgetService.ts';
+	const editor = 'src/vs/workbench/contrib/chat/browser/widgetHosts/editor/chatEditor.ts';
+	const view = 'src/vs/workbench/contrib/chat/browser/widgetHosts/viewPane/chatViewPane.ts';
+	const widgetImport = "import { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';";
+	const hostImport = "import { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../../volter/browser/volterChatNavigation.js';";
+	patchChatSource(checkout, widget, "import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';", "import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';\n" + widgetImport, 'harness navigation service import');
+	patchChatSource(checkout, widget, '\t\t@ILogService private readonly logService: ILogService,', '\t\t@ILogService private readonly logService: ILogService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService,', 'harness navigation service injection');
+	const open = '\tasync openSession(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions): Promise<IChatWidget | undefined> {';
+	patchChatSource(checkout, widget, open, `${open}
+		return this.harnessNavigation.run(sessionResource, permit => this.openSessionAfterGuard(sessionResource, target, options, permit), options?.harnessNavigationPermit);
+	}
+
+	private async openSessionAfterGuard(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions, permit?: HarnessChatNavigationPermit): Promise<IChatWidget | undefined> {
+		if (permit) { options = { ...options, harnessNavigationPermit: permit }; }`, 'guard before native session selection');
+	patchChatSource(checkout, widget, 'await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason);', 'await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason, permit);', 'nested sidebar navigation permit');
+	const reveal = '\tasync reveal(widget: IChatWidget, preserveFocus?: boolean): Promise<boolean> {';
+	patchChatSource(checkout, widget, reveal, `${reveal}
+		const resource = widget.viewModel?.sessionResource;
+		return resource ? this.harnessNavigation.run(resource, permit => this.revealAfterGuard(widget, preserveFocus, permit)) : this.revealAfterGuard(widget, preserveFocus);
+	}
+
+	private async revealAfterGuard(widget: IChatWidget, preserveFocus?: boolean, permit?: HarnessChatNavigationPermit): Promise<boolean> {`, 'guard before cached widget reveal');
+	patchChatSource(checkout, widget, 'this.revealSessionIfAlreadyOpen(widget.viewModel.sessionResource, { preserveFocus });', 'this.revealSessionIfAlreadyOpen(widget.viewModel.sessionResource, { preserveFocus, harnessNavigationPermit: permit });', 'nested cached editor navigation permit');
+
+	patchChatSource(checkout, editor, "import { ChatEditorInput } from './chatEditorInput.js';", "import { ChatEditorInput } from './chatEditorInput.js';\n" + hostImport, 'editor navigation service import');
+	patchChatSource(checkout, editor, 'export interface IChatEditorOptions extends IEditorOptions {', 'export interface IChatEditorOptions extends IEditorOptions {\n\t/** Internal permit for a nested native load in the same guarded transaction. */\n\tharnessNavigationPermit?: HarnessChatNavigationPermit;', 'nested editor navigation permit option');
+	const setInput = '\toverride async setInput(input: ChatEditorInput, options: IChatEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {';
+	patchChatSource(checkout, editor, setInput, `${setInput}
+		if (token.isCancellationRequested) { return; }
+		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(input.sessionResource, async () => {
+			if (!token.isCancellationRequested) { await this.setInputAfterGuard(input, options, context, token); }
+		}, options?.harnessNavigationPermit));
+	}
+
+	private async setInputAfterGuard(input: ChatEditorInput, options: IChatEditorOptions | undefined, context: IEditorOpenContext, token: CancellationToken): Promise<void> {`, 'guard before direct editor input mutation');
+
+	patchChatSource(checkout, view, "import './media/chatViewPane.css';", "import './media/chatViewPane.css';\n" + hostImport, 'sidebar navigation service import');
+	const load = '\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {';
+	patchChatSource(checkout, view, load, `\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason, permit?: HarnessChatNavigationPermit): Promise<IChatModel | undefined> {
+		// Keep refusal outside the load's cancellation, clear timer and empty-model recovery.
+		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(sessionResource, () => this.loadSessionAfterGuard(sessionResource, sessionTypeSelectionReason), permit));
+	}
+
+	private async loadSessionAfterGuard(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {`, 'guard before direct sidebar load mutation');
+}
+
 function patchNativeChat(checkout) {
+	patchHarnessChatNavigation(checkout);
 	// Participant welcome uses native buttons for standalone trusted command links.
 	// It stays outside transcript history and shares the extension's guarded action.
 	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `	readonly firstLinkToButton?: boolean;`, `	readonly firstLinkToButton?: boolean;
