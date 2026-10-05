@@ -43,6 +43,8 @@
  * implementation over {@link BlenderFiles}.
  */
 
+import { describeThrown } from './describe-thrown.mts';
+
 export const SESSION_ROOT = '/work/.volter-session';
 export const SESSION_SCRIPT = `${SESSION_ROOT}/session.py`;
 
@@ -218,7 +220,7 @@ export async function startupOperation<T>(url: string, operation: string, run: (
   try {
     return await run();
   } catch (cause) {
-    const detail = cause instanceof Error ? `${cause.name}: ${cause.message}` : String(cause);
+    const detail = describeThrown(cause, false);
     throw new Error(`Blender startup ${operation} (${url}): ${detail}`, { cause });
   }
 }

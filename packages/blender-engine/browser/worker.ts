@@ -1,5 +1,7 @@
 import { PullJob, checkpointStream } from './pull-job.mts';
 import { sendFrameValue } from './frame-stream.mts';
+import { describeThrown } from './describe-thrown.mts';
+export { describeThrown } from './describe-thrown.mts';
 /**
  * THE BLENDER IN THE TAB IS BLENDER (ARCHITECTURE-CORE, owner ruling
  * 2026-09-17): the editor's modeling engine is Blender 5.2 LTS compiled to
@@ -736,30 +738,6 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       return listSessionFiles(files, request.path);
   }
   throw new Error(`Unknown Blender worker request ${(request as { op: string }).op}`);
-}
-
-/** Anything thrown, rendered so the message SURVIVES the boundary.
- *
- * `error instanceof Error ? ... : String(error)` renders a thrown plain object
- * as `[object Object]`, and that is the whole error a script sees: the worker
- * answered `17-workshop-interior` seq 7 with exactly that, which named neither
- * the operation nor the cause and left the next step with nothing to go on.
- * A DOMException carries its name, and a plain object carries its own fields,
- * so both are spelled out rather than coerced. */
-export function describeThrown(error: unknown): string {
-  if (error instanceof Error) return error.stack ?? `${error.name}: ${error.message}`;
-  if (typeof error === 'object' && error !== null) {
-    const named = error as { name?: unknown; message?: unknown };
-    if (typeof named.message === 'string') {
-      return typeof named.name === 'string' ? `${named.name}: ${named.message}` : named.message;
-    }
-    try {
-      return JSON.stringify(error) ?? Object.prototype.toString.call(error);
-    } catch {
-      return Object.prototype.toString.call(error);
-    }
-  }
-  return String(error);
 }
 
 /**
