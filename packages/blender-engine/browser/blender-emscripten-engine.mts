@@ -31,6 +31,7 @@ import { checkpointStream } from './pull-job.mts';
 import { writeStreamedFile, type StreamFileSystem } from './stream-file.mts';
 import {
   artifactUrl,
+  startupOperation,
   type BlenderArtifactStatus,
   type BlenderEngine,
   type BlenderEngineOptions,
@@ -83,19 +84,19 @@ type BlenderModuleFactory = (options: Record<string, unknown>) => Promise<Blende
 /** The glue, evaluated in this worker. It is a UMD bundle, so it is given the
  *  `module`/`exports` pair it looks for and hands back the factory. */
 async function loadFactory(glueUrl: string): Promise<BlenderModuleFactory> {
-  const source = await fetch(glueUrl);
+  const source = await startupOperation(glueUrl, 'fetch glue', () => fetch(glueUrl));
   if (!source.ok) throw new Error(`${glueUrl}: HTTP ${source.status}`);
-  const text = await source.text();
+  const text = await startupOperation(glueUrl, 'read glue body', () => source.text());
   const container = { exports: {} as { default?: BlenderModuleFactory } };
-  const evaluate = new Function(
+  const evaluate = await startupOperation(glueUrl, 'compile glue', () => new Function(
     'module',
     'exports',
     'define',
     `${text}\nreturn typeof createBlenderModule === 'function' ? createBlenderModule : module.exports;`,
-  ) as (module: unknown, exports: unknown, define: unknown) => BlenderModuleFactory;
-  const factory = evaluate(container, container.exports, undefined);
+  ) as (module: unknown, exports: unknown, define: unknown) => BlenderModuleFactory);
+  const factory = await startupOperation(glueUrl, 'evaluate glue', () => evaluate(container, container.exports, undefined));
   if (typeof factory !== 'function')
-    throw new Error('blender_browser.js did not produce a module factory');
+    throw new Error(`${glueUrl}: blender_browser.js did not produce a module factory`);
   return factory;
 }
 
@@ -155,17 +156,21 @@ async function cachedArtifact(file: string, digest: string | undefined, checkpoi
     ? new Response(checkpointStream(response.body, checkpoint), { status: response.status, headers: response.headers })
     : response;
   const url = artifactUrl(file);
-  if (!digest || typeof caches === 'undefined') return bounded(await fetch(url));
+  const fetchArtifact = () => startupOperation(url, 'fetch artifact', () => fetch(url));
+  if (!digest || typeof caches === 'undefined') return bounded(await fetchArtifact());
   const key = `${url}?sha256=${digest}`;
-  const cache = await caches.open(ARTIFACT_CACHE);
-  const hit = await cache.match(key);
+  const cache = await startupOperation(url, 'open artifact cache', () => caches.open(ARTIFACT_CACHE));
+  const hit = await startupOperation(url, 'read artifact cache', () => cache.match(key));
   if (hit) return bounded(hit);
-  const response = bounded(await fetch(url));
+  const response = bounded(await fetchArtifact());
   if (!response.ok) return response;
   // One build's bytes per file: an older build's are dropped as this one lands.
-  for (const old of await cache.keys()) if (old.url.startsWith(`${url}?sha256=`) && old.url !== key) await cache.delete(old);
-  const kept = new Response(await response.blob(), { headers: { 'content-type': response.headers.get('content-type') ?? 'application/octet-stream' } });
-  await cache.put(key, kept.clone());
+  await startupOperation(url, 'prune previous artifact cache entries', async () => {
+    for (const old of await cache.keys()) if (old.url.startsWith(`${url}?sha256=`) && old.url !== key) await cache.delete(old);
+  });
+  const body = await startupOperation(url, 'read artifact body for cache', () => response.blob());
+  const kept = new Response(body, { headers: { 'content-type': response.headers.get('content-type') ?? 'application/octet-stream' } });
+  await startupOperation(url, 'write artifact cache', () => cache.put(key, kept.clone()));
   return kept;
 }
 
@@ -188,8 +193,9 @@ export async function startEmscriptenBlenderEngine(
   const [factory, preloaded] = await Promise.all([
     loadFactory(glueUrl),
     artifact('blender_browser.data').then(async (response) => {
-      if (!response.ok) throw new Error(`blender_browser.data: HTTP ${response.status}`);
-      return response.arrayBuffer();
+      const url = artifactUrl('blender_browser.data');
+      if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
+      return startupOperation(url, 'read data package body', () => response.arrayBuffer());
     }),
   ]);
   await checkpoint('runtime-package-ready');
@@ -222,15 +228,16 @@ export async function startEmscriptenBlenderEngine(
     return made;
   } as unknown as typeof WebAssembly.Memory;
   const heap = (): Uint8Array => (memory ? new Uint8Array(memory.buffer) : module.HEAPU8);
-  const module = await factory({
+  const module = await startupOperation(glueUrl, 'initialize glue runtime', () => factory({
     arguments: ['--background', '--factory-startup', '--python', SESSION_SCRIPT],
     locateFile: (file: string) => artifactUrl(file),
     getPreloadedPackage: () => preloaded,
     instantiateWasm: (imports: WebAssembly.Imports, receive: (instance: WebAssembly.Instance, module: WebAssembly.Module) => void) => {
       void (async () => {
         const response = await artifact('blender_browser.wasm');
-        if (!response.ok) throw new Error(`blender_browser.wasm: HTTP ${response.status}`);
-        const { instance, module: compiled } = await WebAssembly.instantiateStreaming(response, imports);
+        const url = artifactUrl('blender_browser.wasm');
+        if (!response.ok) throw new Error(`${url}: HTTP ${response.status}`);
+        const { instance, module: compiled } = await startupOperation(url, 'read and instantiate Wasm stream', () => WebAssembly.instantiateStreaming(response, imports));
         await checkpoint('wasm-instantiated');
         receive(instance, compiled);
       })().catch((error: unknown) => { bootError = error; });
@@ -280,7 +287,7 @@ export async function startEmscriptenBlenderEngine(
     ],
   }).finally(() => {
     (WebAssembly as { Memory: unknown }).Memory = Memory;
-  });
+  }));
   await checkpoint('runtime-initialized');
   // `main()` runs on a pthread (`-sPROXY_TO_PTHREAD`), so the factory resolves
   // long before the session exists. The ready line is what says it does.
@@ -375,16 +382,18 @@ export async function startEmscriptenBlenderEngine(
  * does not relink the 86 MB Wasm binary. Both payload and per-file bounds are
  * checked before anything enters Blender's filesystem. */
 async function mountEssentials(files: BlenderFiles, digest: string | undefined, checkpoint: (phase: string) => Promise<void>): Promise<void> {
+  const indexUrl = artifactUrl('essentials.json');
+  const payloadUrl = artifactUrl('essentials.bin');
   const [indexResponse, payloadResponse] = await Promise.all([
-    fetch(artifactUrl('essentials.json')), cachedArtifact('essentials.bin', digest, () => checkpoint('artifact/essentials.bin')),
+    startupOperation(indexUrl, 'fetch Essentials index', () => fetch(indexUrl)), cachedArtifact('essentials.bin', digest, () => checkpoint('artifact/essentials.bin')),
   ]);
   if (!indexResponse.ok || !payloadResponse.ok)
-    throw new Error(`Blender Essentials assets are missing (${indexResponse.status}/${payloadResponse.status})`);
-  const index = await indexResponse.json() as {
+    throw new Error(`Blender Essentials assets are missing (${indexUrl}: HTTP ${indexResponse.status}; ${payloadUrl}: HTTP ${payloadResponse.status})`);
+  const index = await startupOperation(indexUrl, 'decode Essentials index JSON', () => indexResponse.json()) as {
     bytes: number; sha256: string;
     files: { path: string; offset: number; bytes: number; sha256: string }[];
   };
-  const payload = await payloadResponse.arrayBuffer();
+  const payload = await startupOperation(payloadUrl, 'read Essentials payload body', () => payloadResponse.arrayBuffer());
   const hash = Array.from(new Uint8Array(await crypto.subtle.digest('SHA-256', payload)),
     (byte) => byte.toString(16).padStart(2, '0')).join('');
   if (payload.byteLength !== index.bytes || hash !== index.sha256)
