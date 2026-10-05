@@ -377,7 +377,10 @@ function patchHarnessChatNavigation(checkout) {
 	// Guard the group owner instead, before selection/reveal/clear/recovery can begin.
 	patchChatSource(checkout, group, "import { URI } from '../../../../base/common/uri.js';", "import { URI } from '../../../../base/common/uri.js';\nimport { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../contrib/volter/browser/volterChatNavigation.js';", 'editor group navigation service import');
 	const openEditor = '\tprivate async doOpenEditor(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined> {';
-	patchChatSource(checkout, group, openEditor, `${openEditor}
+	patchChatSource(checkout, group, openEditor, `\tprivate harnessNavigationRequest = 0;
+
+${openEditor}
+		const request = ++this.harnessNavigationRequest;
 		const resource = (editor as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? editor.resource;
 		const passive = (options as (IEditorOptions & { harnessPassive?: boolean }) | undefined)?.harnessPassive;
 		if (!resource || resource.scheme !== 'supercode' || options?.inactive || passive) {
@@ -389,9 +392,9 @@ function patchHarnessChatNavigation(checkout) {
 			// The pane's cancellable input operation is created only inside this commit.
 			const pane = await this.doOpenEditorAfterHarnessGuard(editor, guardedOptions, internalOptions);
 			const selected = (pane as (IEditorPane & { widget?: { viewModel?: { sessionResource: URI } } }) | undefined)?.widget?.viewModel?.sessionResource;
-			if (selected?.toString() !== resource.toString()) { throw new Error('The requested conversation was not selected by the native editor.'); }
+			if (request !== this.harnessNavigationRequest || selected?.toString() !== resource.toString()) { throw new Error('The requested conversation was not selected by the native editor.'); }
 			return pane;
-		}, parent, () => !this.disposed && !editor.isDisposed()
+		}, parent, () => request === this.harnessNavigationRequest && !this.disposed && !editor.isDisposed()
 			&& ((editor as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? editor.resource)?.toString() === resource.toString()));
 	}
 
