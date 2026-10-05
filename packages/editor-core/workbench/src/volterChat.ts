@@ -12,7 +12,7 @@ import { URI } from '../../../../base/common/uri.js';
 import { localize, localize2 } from '../../../../nls.js';
 import { IAgentHostEnablementService } from '../../../../platform/agentHost/common/agentHostEnablementService.js';
 import { Action2, MenuId, MenuRegistry, registerAction2 } from '../../../../platform/actions/common/actions.js';
-import { ICommandService } from '../../../../platform/commands/common/commands.js';
+import { CommandsRegistry, ICommandService } from '../../../../platform/commands/common/commands.js';
 import { ContextKeyExpr } from '../../../../platform/contextkey/common/contextkey.js';
 import { ExtensionIdentifier } from '../../../../platform/extensions/common/extensions.js';
 import { ServicesAccessor } from '../../../../platform/instantiation/common/instantiation.js';
@@ -56,16 +56,31 @@ class HarnessChatFocus extends Disposable {
 	) {
 		super();
 		let last: string | undefined;
+		let generation = 0;
+		let observingHarness = false;
 		const sync = () => {
 			const resource = widgets.lastFocusedWidget?.viewModel?.sessionResource;
-			if (resource?.scheme !== 'supercode' || resource.path.startsWith('/untitled-')) { return; }
-			const key = resource.toString();
+			const key = resource?.toString();
 			if (key === last) { return; }
 			last = key;
+			const current = ++generation;
+			observingHarness ||= resource?.scheme === 'supercode';
+			if (!observingHarness) { return; }
 			void extensions.activateById(CHAT_EXTENSION, {
 				startup: false, extensionId: CHAT_EXTENSION, activationEvent: 'onChatSession:supercode',
-			}).then(() => commands.executeCommand('supercode.frontend.activateSession', key)).catch(error => {
-				if (last === key) { last = undefined; }
+			}).then(async () => {
+				if (current !== generation) { return; }
+				// Untitled and non-harness focus changes retire draft choices too.
+				// Cached models bypass the content provider on a later return.
+				// Older bundled frontends restore managed focus through activateSession.
+				if (CommandsRegistry.getCommand('supercode.frontend.focusSession')) {
+					await commands.executeCommand('supercode.frontend.focusSession', key);
+				}
+				if (current !== generation || resource?.scheme !== 'supercode' || resource.path.startsWith('/untitled-')) { return; }
+				await commands.executeCommand('supercode.frontend.activateSession', key);
+			}).catch(error => {
+				if (current !== generation) { return; }
+				last = undefined;
 				notifications.error(error);
 			});
 		};
