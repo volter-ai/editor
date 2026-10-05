@@ -53,7 +53,7 @@ import type {
   BlenderRnaRow,
   BlenderRnaView,
 } from '@volter/blender-engine/browser/rna';
-import { useEffect, useState, useSyncExternalStore } from 'react';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { ColorPicker, hexToRgb, parseAlpha, toHex } from '@volter/editor-sdk/widgets';
 import {
   type BlenderSubject,
@@ -353,6 +353,15 @@ function Numeric({
   readonly onWrite: (next: number, index?: number) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  const pendingDraft = useRef<string | null>(null);
+  const commit = () => {
+    const typed = pendingDraft.current;
+    // Enter can also cause blur. Consume the edit before writing, once.
+    pendingDraft.current = null;
+    setDraft(null);
+    const next = Number(typed);
+    if (typed !== null && Number.isFinite(next) && next !== value) onWrite(next, index);
+  };
   const decimals = row.type === 'FLOAT' ? (row.precision ?? 3) : 0;
   const shown = draft ?? (row.type === 'FLOAT' ? value.toFixed(decimals) : String(value));
   if (row.readonly) return <StaticValue>{shown}</StaticValue>;
@@ -369,15 +378,20 @@ function Numeric({
       {...(row.softMin === undefined ? {} : { min: row.softMin })}
       {...(row.softMax === undefined ? {} : { max: row.softMax })}
       {...(row.step === undefined ? {} : { step: row.type === 'FLOAT' ? row.step / 100 : 1 })}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={() => {
-        const next = Number(draft);
-        setDraft(null);
-        if (draft !== null && Number.isFinite(next) && next !== value) onWrite(next, index);
+      onChange={(event) => {
+        pendingDraft.current = event.target.value;
+        setDraft(event.target.value);
       }}
+      onBlur={commit}
       onKeyDown={(event) => {
-        if (event.key === 'Enter') (event.target as HTMLInputElement).blur();
-        if (event.key === 'Escape') setDraft(null);
+        if (event.key === 'Enter') {
+          commit();
+          event.currentTarget.blur();
+        }
+        if (event.key === 'Escape') {
+          pendingDraft.current = null;
+          setDraft(null);
+        }
       }}
       style={fieldStyle}
     />
