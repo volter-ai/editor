@@ -364,7 +364,13 @@ function patchHarnessChatNavigation(checkout) {
 	const reveal = '\tasync reveal(widget: IChatWidget, preserveFocus?: boolean): Promise<boolean> {';
 	patchChatSource(checkout, widget, reveal, `${reveal}
 		const resource = widget.viewModel?.sessionResource;
-		return resource ? this.harnessNavigation.run(resource, permit => this.revealAfterGuard(widget, preserveFocus, permit), undefined,
+		return resource ? this.harnessNavigation.run(resource, async permit => {
+			const revealed = await this.revealAfterGuard(widget, preserveFocus, permit);
+			if (permit && (!revealed || !this._widgets.includes(widget) || widget.viewModel?.sessionResource.toString() !== resource.toString())) {
+				throw new Error('The requested conversation was not revealed by native Chat.');
+			}
+			return revealed;
+		}, undefined,
 			() => this._widgets.includes(widget) && widget.viewModel?.sessionResource.toString() === resource.toString()) : this.revealAfterGuard(widget, preserveFocus);
 	}
 
@@ -428,6 +434,17 @@ ${openEditor}
 function patchHarnessPassiveViews(checkout) {
 	const widget = 'src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts';
 	const banner = 'src/vs/workbench/contrib/chat/browser/widget/chatReadOnlyBanner.ts';
+	const command = 'src/vs/workbench/contrib/chat/browser/widget/chatContentParts/chatCommandContentPart.ts';
+	patchChatSource(checkout, command, "import { Command } from '../../../../../../editor/common/languages.js';",
+		"import { Command } from '../../../../../../editor/common/languages.js';\nimport { IHarnessChatNavigationService } from '../../../../volter/browser/volterChatNavigation.js';", 'passive command button policy import');
+	patchChatSource(checkout, command, '\t\tcontext: IChatContentPartRenderContext,', '\t\tprivate readonly context: IChatContentPartRenderContext,', 'command button conversation ownership');
+	patchChatSource(checkout, command, '\t\t@ICommandService private readonly commandService: ICommandService',
+		'\t\t@ICommandService private readonly commandService: ICommandService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService', 'command button navigation policy injection');
+	patchChatSource(checkout, command, '\t\tthis._register(button.onDidClick(() => this.commandService.executeCommand(command.id, ...(command.arguments ?? []))));',
+		`\t\tthis._register(button.onDidClick(() => {
+			this.harnessNavigation.assertInteractive(this.context.element.sessionResource);
+			return this.commandService.executeCommand(command.id, ...(command.arguments ?? []));
+		}));`, 'guard command button dispatch including native gesture');
 	// Keyboard/command dispatch can originate outside transcript DOM capture.
 	// Check the actual addressed conversation at those response owners too.
 	const actionImport = "import { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';";
@@ -455,7 +472,7 @@ function patchHarnessPassiveViews(checkout) {
 		"\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget.viewModel?.sessionResource);\n\t\tconst chatService = accessor.get(IChatService);\n\t\tif (widget.viewModel) {\n\t\t\tawait chatService.cancelCurrentRequestForSession(widget.viewModel.sessionResource, 'cancelAction');", 'guard cancel command owner');
 	patchChatSource(checkout, execute, '\t\t// Resolve the source custom agent whose handoffs we search (case-insensitive)',
 		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget.viewModel?.sessionResource);\n\t\t// Resolve the source custom agent whose handoffs we search (case-insensitive)', 'guard handoff command owner');
-	patchChatSource(checkout, widget, "import * as dom from '../../../../../base/browser/dom.js';", "import * as dom from '../../../../../base/browser/dom.js';\nimport { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';", 'passive conversation policy import');
+	patchChatSource(checkout, widget, "import * as dom from '../../../../../base/browser/dom.js';", "import * as dom from '../../../../../base/browser/dom.js';\nimport { EventType as TouchEventType } from '../../../../../base/browser/touch.js';\nimport { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';", 'passive conversation policy import');
 	patchChatSource(checkout, widget, '\tprivate _readOnly = false;', '\tprivate _readOnly = false;\n\tprivate _modelReadOnly = false;\n\tprivate _harnessInactive = false;', 'durable inactive read-only reason');
 	patchChatSource(checkout, widget, '\t\t@IInstantiationService private readonly instantiationService: IInstantiationService,', '\t\t@IInstantiationService private readonly instantiationService: IInstantiationService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService,', 'passive conversation policy injection');
 	patchChatSource(checkout, widget, '\t\tthis._persistentContentHeight = viewOptions.persistentContentHeight ?? 0;', `\t\tthis._persistentContentHeight = viewOptions.persistentContentHeight ?? 0;
@@ -498,6 +515,7 @@ function patchHarnessPassiveViews(checkout) {
 			event.stopImmediatePropagation();
 		};
 		this._register(dom.addDisposableListener(this.container, 'click', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, TouchEventType.Tap, blockInactiveAction, true));
 		this._register(dom.addDisposableListener(this.container, 'dblclick', blockInactiveAction, true));
 		this._register(dom.addDisposableListener(this.container, 'keydown', blockInactiveAction, true));
 		this._register(dom.addDisposableListener(this.container, 'pointerdown', blockInactiveAction, true));
