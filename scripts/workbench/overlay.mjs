@@ -425,6 +425,33 @@ function patchHarnessChatNavigation(checkout) {
 function patchHarnessPassiveViews(checkout) {
 	const widget = 'src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts';
 	const banner = 'src/vs/workbench/contrib/chat/browser/widget/chatReadOnlyBanner.ts';
+	// Keyboard/command dispatch can originate outside transcript DOM capture.
+	// Check the actual addressed conversation at those response owners too.
+	const actionImport = "import { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';";
+	for (const action of ['chatToolActions.ts', 'chatElicitationActions.ts']) {
+		patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/actions/' + action,
+			"import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';",
+			"import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';\n" + actionImport,
+			'passive response command policy import');
+	}
+	const tools = 'src/vs/workbench/contrib/chat/browser/actions/chatToolActions.ts';
+	patchChatSource(checkout, tools, '\t\tconst lastItem = widget?.viewModel?.getItems().at(-1);',
+		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget?.viewModel?.sessionResource);\n\t\tconst lastItem = widget?.viewModel?.getItems().at(-1);', 'guard tool approval command owner');
+	const elicitation = 'src/vs/workbench/contrib/chat/browser/actions/chatElicitationActions.ts';
+	patchChatSource(checkout, elicitation, '\t\tconst items = widget.viewModel?.getItems();',
+		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget.viewModel?.sessionResource);\n\t\tconst items = widget.viewModel?.getItems();', 'guard elicitation command owner');
+	const execute = 'src/vs/workbench/contrib/chat/browser/actions/chatExecuteActions.ts';
+	// This file imports the combined context helpers rather than ChatContextKeys alone.
+	patchChatSource(checkout, execute,
+		"import { ChatContextKeyExprs, ChatContextKeys } from '../../common/actions/chatContextKeys.js';",
+		"import { ChatContextKeyExprs, ChatContextKeys } from '../../common/actions/chatContextKeys.js';\n" + actionImport,
+		'passive submit and cancel policy import');
+	patchChatSource(checkout, execute, '\t\t// Check if there\'s a pending delegation target',
+		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget?.viewModel?.sessionResource);\n\t\t// Check if there\'s a pending delegation target', 'guard submit before delegation');
+	patchChatSource(checkout, execute, "\t\tconst chatService = accessor.get(IChatService);\n\t\tif (widget.viewModel) {\n\t\t\tawait chatService.cancelCurrentRequestForSession(widget.viewModel.sessionResource, 'cancelAction');",
+		"\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget.viewModel?.sessionResource);\n\t\tconst chatService = accessor.get(IChatService);\n\t\tif (widget.viewModel) {\n\t\t\tawait chatService.cancelCurrentRequestForSession(widget.viewModel.sessionResource, 'cancelAction');", 'guard cancel command owner');
+	patchChatSource(checkout, execute, '\t\t// Resolve the source custom agent whose handoffs we search (case-insensitive)',
+		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget.viewModel?.sessionResource);\n\t\t// Resolve the source custom agent whose handoffs we search (case-insensitive)', 'guard handoff command owner');
 	patchChatSource(checkout, widget, "import * as dom from '../../../../../base/browser/dom.js';", "import * as dom from '../../../../../base/browser/dom.js';\nimport { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';", 'passive conversation policy import');
 	patchChatSource(checkout, widget, '\tprivate _readOnly = false;', '\tprivate _readOnly = false;\n\tprivate _modelReadOnly = false;\n\tprivate _harnessInactive = false;', 'durable inactive read-only reason');
 	patchChatSource(checkout, widget, '\t\t@IInstantiationService private readonly instantiationService: IInstantiationService,', '\t\t@IInstantiationService private readonly instantiationService: IInstantiationService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService,', 'passive conversation policy injection');

@@ -24,6 +24,7 @@ export interface IHarnessChatNavigationService {
 	readonly activeResource: string | undefined;
 	readonly onDidChangeActiveResource: Event<void>;
 	readonly outcome: 'idle' | 'activating' | 'committing' | 'failed';
+	assertInteractive(resource: URI | undefined): void;
 	run<T>(resource: URI, commit: (permit?: HarnessChatNavigationPermit) => Promise<T>, parent?: HarnessChatNavigationPermit, isCurrent?: () => boolean): Promise<T>;
 	syncFocus(resource: URI | undefined, isCurrent: () => boolean, materialized: boolean): Promise<void>;
 }
@@ -46,6 +47,13 @@ class HarnessChatNavigationService extends Disposable implements IHarnessChatNav
 	private authorize(resource: string): void {
 		this._activeResource = resource;
 		this.changed.fire();
+	}
+
+	assertInteractive(resource: URI | undefined): void {
+		if (resource?.scheme === 'supercode' && !resource.path.startsWith('/untitled-')
+			&& resource.toString() !== this._activeResource) {
+			throw new Error('Open this conversation from history before responding.');
+		}
 	}
 
 	private enqueue<T>(operation: () => Promise<T>): Promise<T> {
