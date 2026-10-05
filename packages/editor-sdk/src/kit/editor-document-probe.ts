@@ -626,7 +626,7 @@ async function dispatchClick(
  *    field in the Properties rail blurs on Enter. So the keys are real and the
  *    Enter is the caller's choice, not an implicit one.
  */
-function typeInto(element: HTMLElement, text: string, replace: boolean, enter: boolean): void {
+async function typeInto(element: HTMLElement, text: string, replace: boolean, enter: boolean): Promise<void> {
   const editable =
     element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement ? element : null;
   if (!editable) {
@@ -660,6 +660,7 @@ function typeInto(element: HTMLElement, text: string, replace: boolean, enter: b
         inputType: 'deleteContentBackward',
       }),
     );
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
   }
   for (const character of [...text]) {
     const init: KeyboardEventInit = {
@@ -680,6 +681,12 @@ function typeInto(element: HTMLElement, text: string, replace: boolean, enter: b
       }),
     );
     editable.dispatchEvent(new KeyboardEvent('keyup', init));
+    // A person's next key arrives in another task. In particular, Properties
+    // commits its controlled draft on Enter's blur: sending input and Enter in
+    // one task can blur before React renders the draft, leaving the field's
+    // text changed but the model untouched. Let the input render before the
+    // next character or commit key, as dispatchClick does between press/release.
+    await new Promise<void>((resolve) => setTimeout(resolve, 0));
   }
   if (enter) {
     const init: KeyboardEventInit = {
@@ -1038,7 +1045,7 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
     }
     case 'type': {
       const target = gestureTarget(scope, step);
-      typeInto(target, step.text, step.replace ?? true, step.enter ?? true);
+      await typeInto(target, step.text, step.replace ?? true, step.enter ?? true);
       return drove(target);
     }
     case 'drag': {
