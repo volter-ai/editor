@@ -77,6 +77,16 @@ export interface DocumentProbeResult {
   /** Total matches inside the scope, before any `limit`. */
   matched: number;
   elements: ProbedElement[];
+  /** Enter's actual focus transition during `type`, including whether Chrome
+   * emitted focusout or the door supplied the event after a native blur in an
+   * unfocused document. Absent when Enter was not requested. */
+  commit?: {
+    documentFocused: boolean;
+    focusedBefore: boolean;
+    focusedAfter: boolean;
+    nativeFocusout: boolean;
+    suppliedFocusout: boolean;
+  };
 }
 
 /** Which named surface a step runs against; `document` when omitted. */

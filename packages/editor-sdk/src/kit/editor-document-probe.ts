@@ -111,6 +111,7 @@
  *    panels around it and stay open.
  */
 
+import { flushSync } from 'react-dom';
 import type {
   DocumentKeyStep,
   DocumentProbeResult,
@@ -626,7 +627,7 @@ async function dispatchClick(
  *    field in the Properties rail blurs on Enter. So the keys are real and the
  *    Enter is the caller's choice, not an implicit one.
  */
-async function typeInto(element: HTMLElement, text: string, replace: boolean, enter: boolean): Promise<void> {
+function typeInto(element: HTMLElement, text: string, replace: boolean, enter: boolean): DocumentProbeResult['commit'] {
   const editable =
     element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement ? element : null;
   if (!editable) {
@@ -653,14 +654,13 @@ async function typeInto(element: HTMLElement, text: string, replace: boolean, en
     editable.select?.();
     held = '';
     write(held);
-    editable.dispatchEvent(
+    flushSync(() => editable.dispatchEvent(
       new InputEvent('input', {
         bubbles: true,
         composed: true,
         inputType: 'deleteContentBackward',
       }),
-    );
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
+    ));
   }
   for (const character of [...text]) {
     const init: KeyboardEventInit = {
@@ -672,21 +672,15 @@ async function typeInto(element: HTMLElement, text: string, replace: boolean, en
     editable.dispatchEvent(new KeyboardEvent('keydown', init));
     held += character;
     write(held);
-    editable.dispatchEvent(
+    flushSync(() => editable.dispatchEvent(
       new InputEvent('input', {
         bubbles: true,
         composed: true,
         inputType: 'insertText',
         data: character,
       }),
-    );
+    ));
     editable.dispatchEvent(new KeyboardEvent('keyup', init));
-    // A person's next key arrives in another task. In particular, Properties
-    // commits its controlled draft on Enter's blur: sending input and Enter in
-    // one task can blur before React renders the draft, leaving the field's
-    // text changed but the model untouched. Let the input render before the
-    // next character or commit key, as dispatchClick does between press/release.
-    await new Promise<void>((resolve) => setTimeout(resolve, 0));
   }
   if (enter) {
     const init: KeyboardEventInit = {
@@ -696,9 +690,30 @@ async function typeInto(element: HTMLElement, text: string, replace: boolean, en
       cancelable: true,
       composed: true,
     };
-    editable.dispatchEvent(new KeyboardEvent('keydown', init));
-    editable.dispatchEvent(new KeyboardEvent('keyup', init));
+    const owner = editable.ownerDocument;
+    const focusedBefore = owner.activeElement === editable;
+    let nativeFocusout = false;
+    const observed = () => { nativeFocusout = true; };
+    editable.addEventListener('focusout', observed);
+    try {
+      editable.dispatchEvent(new KeyboardEvent('keydown', init));
+      editable.dispatchEvent(new KeyboardEvent('keyup', init));
+    } finally {
+      editable.removeEventListener('focusout', observed);
+    }
+    const focusedAfter = owner.activeElement === editable;
+    // In an unfocused Chrome document, blur can change activeElement without
+    // emitting focusout. Supply that missing event only after the field's own
+    // Enter handler actually moved focus, never manufacture a commit or blur.
+    const suppliedFocusout = focusedBefore && !focusedAfter && !nativeFocusout;
+    if (suppliedFocusout) {
+      editable.dispatchEvent(new FocusEvent('focusout', {
+        bubbles: true, composed: true, relatedTarget: owner.activeElement,
+      }));
+    }
+    return { documentFocused: owner.hasFocus(), focusedBefore, focusedAfter, nativeFocusout, suppliedFocusout };
   }
+  return undefined;
 }
 
 /**
@@ -1045,8 +1060,8 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
     }
     case 'type': {
       const target = gestureTarget(scope, step);
-      await typeInto(target, step.text, step.replace ?? true, step.enter ?? true);
-      return drove(target);
+      const commit = typeInto(target, step.text, step.replace ?? true, step.enter ?? true);
+      return { ...drove(target), ...(commit === undefined ? {} : { commit }) };
     }
     case 'drag': {
       if (step.button !== undefined && ![0, 1, 2].includes(step.button))
