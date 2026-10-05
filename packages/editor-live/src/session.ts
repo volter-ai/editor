@@ -174,7 +174,7 @@ function noMatchingSessionRefusal(
 ): Error {
   if (discoveryFailure !== null) {
     return new Error(
-      `@volter/editor-live: could not READ the editor session registry while looking for ${projectRoot} — ` +
+      `@volter/editor-live: could not complete editor session discovery while looking for ${projectRoot} — ` +
         `${discoveryFailure}. This is not the answer "no editor is running": the question went ` +
         'unanswered, so nothing is known about what is live. Retry (a probe can time out while ' +
         `the box is loaded); if it keeps failing, ${sessionsCommandFor(projectRoot)} asks the same question directly.`,
