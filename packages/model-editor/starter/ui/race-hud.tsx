@@ -22,8 +22,8 @@ export function RaceHud({ lap, lapTime, lastLap, speed, fps, airborne }: RaceSta
       <div style={{ color: 'var(--volter-accent-lime, #e4f09c)' }}>km/h</div>
       {airborne && <div style={{ marginTop: 8 }}>AIR</div>}
     </section>
-    <div aria-label="Driving performance" style={{ ...panel, bottom: 24, left: 64, fontSize: 'clamp(14px, 1.15cqw, 30px)' }}>
-      {fps ? `${fps.toFixed(1)} fps` : 'Arrow keys / WASD'} · ESC TO STOP
+    <div aria-label="Driving controls and performance" style={{ ...panel, bottom: 24, left: 64, fontSize: 'clamp(14px, 1.15cqw, 30px)' }}>
+      Arrow keys / WASD · ESC TO STOP{fps ? ` · ${fps.toFixed(1)} fps` : ''}
     </div>
   </div>;
 }
