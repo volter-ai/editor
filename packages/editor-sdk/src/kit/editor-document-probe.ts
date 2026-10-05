@@ -627,7 +627,7 @@ async function dispatchClick(
  *    field in the Properties rail blurs on Enter. So the keys are real and the
  *    Enter is the caller's choice, not an implicit one.
  */
-function typeInto(element: HTMLElement, text: string, replace: boolean, enter: boolean): void {
+function typeInto(element: HTMLElement, text: string, replace: boolean, enter: boolean): DocumentProbeResult['commit'] {
   const editable =
     element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement ? element : null;
   if (!editable) {
@@ -692,9 +692,31 @@ function typeInto(element: HTMLElement, text: string, replace: boolean, enter: b
       cancelable: true,
       composed: true,
     };
-    editable.dispatchEvent(new KeyboardEvent('keydown', init));
-    editable.dispatchEvent(new KeyboardEvent('keyup', init));
+    const owner = editable.ownerDocument;
+    const documentFocused = owner.hasFocus();
+    const focusedBefore = owner.activeElement === editable;
+    let nativeFocusout = false;
+    const observed = () => { nativeFocusout = true; };
+    editable.addEventListener('focusout', observed);
+    try {
+      editable.dispatchEvent(new KeyboardEvent('keydown', init));
+      editable.dispatchEvent(new KeyboardEvent('keyup', init));
+    } finally {
+      editable.removeEventListener('focusout', observed);
+    }
+    const focusedAfter = owner.activeElement === editable;
+    // In an unfocused Chrome document, blur can change activeElement without
+    // emitting focusout. Supply that missing event only after the field's own
+    // Enter handler actually moved focus, never manufacture a commit or blur.
+    const suppliedFocusout = !documentFocused && focusedBefore && !focusedAfter && !nativeFocusout;
+    if (suppliedFocusout) {
+      editable.dispatchEvent(new FocusEvent('focusout', {
+        bubbles: true, composed: true, relatedTarget: owner.activeElement,
+      }));
+    }
+    return { documentFocused, focusedBefore, focusedAfter, nativeFocusout, suppliedFocusout };
   }
+  return undefined;
 }
 
 /**
@@ -1041,8 +1063,8 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
     }
     case 'type': {
       const target = gestureTarget(scope, step);
-      typeInto(target, step.text, step.replace ?? true, step.enter ?? true);
-      return drove(target);
+      const commit = typeInto(target, step.text, step.replace ?? true, step.enter ?? true);
+      return { ...drove(target), ...(commit === undefined ? {} : { commit }) };
     }
     case 'drag': {
       if (step.button !== undefined && ![0, 1, 2].includes(step.button))
