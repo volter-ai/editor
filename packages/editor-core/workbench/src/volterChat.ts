@@ -43,7 +43,7 @@ registerAction2(class extends Action2 {
 });
 
 // Bound conversations activate through the awaited native navigation boundary.
-// Focus bookkeeping for untitled/other views must not race that transaction.
+// Focus bookkeeping (including newly materialized sessions) must not race it.
 class HarnessChatFocus extends Disposable {
 	static readonly ID = 'volter.harnessChatFocus';
 	constructor(
@@ -63,7 +63,6 @@ class HarnessChatFocus extends Disposable {
 			const current = ++generation;
 			observingHarness ||= resource?.scheme === 'supercode';
 			if (!observingHarness) { return; }
-			if (resource?.scheme === 'supercode' && !resource.path.startsWith('/untitled-')) { return; }
 			void navigation.syncFocus(resource, () => current === generation
 				&& widgets.lastFocusedWidget?.viewModel?.sessionResource.toString() === key).catch(error => {
 				if (current !== generation) { return; }
