@@ -25,6 +25,7 @@ export const declaration: ProductCreateDeclaration = {
       symlinkSync(checkout, join(result.targetDir, 'node_modules'), 'dir');
       return result;
     }
+    console.log("Installing project dependencies…");
     await new Promise<void>((done, fail) => {
       const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install'], { cwd: result.targetDir, stdio: 'inherit' });
       child.once('error', fail);
