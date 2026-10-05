@@ -81,6 +81,7 @@ import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertAtPin, CHAT_EXTENSION, knownProducts } from './overlay.mjs';
 import { serializeBuild } from './serial-build.mjs';
+import { preserveRuntimeNotices } from './runtime-notices.mjs';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 /** The measured floor. The emit alone wants a 9 GB heap and the process's RSS is larger than
@@ -187,6 +188,12 @@ function publishRelease(dir, dryRun) {
 	if (!record.editorSource?.revision || record.editorSource.dirty !== false) {
 		fail('This workbench has no clean editor-source revision. Rebuild from a committed editor checkout before publishing.');
 	}
+	if (record.runtimeNotices?.index !== 'licenses/runtime/NOTICE-PROVENANCE.json' ||
+		!(/^[a-f0-9]{64}$/.test(record.runtimeNotices?.sha256 ?? '')) ||
+		!(/^[a-f0-9]{64}$/.test(record.runtimeNotices?.manifestSha256 ?? '')) ||
+		!(record.runtimeNotices?.packageInstances > 0) || !record.runtimeNotices?.nodeVersion) {
+		fail('This workbench has no canonical runtime notice closure record. Rebuild from committed source with the runtime notice packaging step before publishing.');
+	}
 	const tarballPath = join(dir, record.tarball);
 	if (!existsSync(tarballPath)) {
 		fail(`${recordPath} names ${record.tarball}, and it is not beside it in ${dir}. The tarball IS the release; re-cut it.`);
@@ -266,7 +273,9 @@ function step(command, commandArgs, options = {}) {
 	console.log(`+ ${command} ${commandArgs.join(' ')}${options.cwd ? `   (in ${options.cwd})` : ''}`);
 	if (args.dryRun) { return; }
 	const result = spawnSync(command, commandArgs, { stdio: 'inherit', env: CHILD_ENV, ...options });
-	if (result.status !== 0) { fail(`${command} exited ${result.status}`); }
+	if (result.status !== 0) {
+		fail(`${command} ${commandArgs.join(' ')} failed: ${result.status === null ? 'no exit status' : `exit ${result.status}`}${result.signal ? `; signal ${result.signal}` : ''}${result.error ? `; ${result.error.message}` : ''}`);
+	}
 }
 
 const ram = ramGib();
@@ -349,6 +358,7 @@ gulp([`vscode-reh-web-${args.platform}-min-ci`]);
 
 // ---- 7. the tarball.
 if (!args.dryRun && !existsSync(packageDir)) { fail(`the package task wrote no ${packageDir}`); }
+let runtimeNotices;
 if (!args.dryRun) {
 	// Upstream REH only copies optional remote/LICENSE; the public fork keeps
 	// its license and third-party notices at the root. Preserve both, plus the
@@ -364,6 +374,7 @@ if (!args.dryRun) {
 			cpSync(join(source, file), join(destination, file), { recursive: true });
 		}
 	}
+	runtimeNotices = preserveRuntimeNotices(packageDir, clone, args.platform);
 }
 step('tar', ['-czf', tarball, '-C', work, `vscode-reh-web-${args.platform}`]);
 
@@ -385,6 +396,7 @@ if (!args.dryRun) {
 		minified: true,
 		buildScheduling: { serial: true, nodeHeapMiB: 9216, goMaxProcs: 2, goMemoryLimit: '2GiB' },
 		serverBin: 'bin/code-server-oss',
+		runtimeNotices,
 		// WHAT ANSWERS THE CHAT VIEW, by version. The overlay bundles it and product.json names
 		// it; this is where a person reading a release finds out which supercode frontend it
 		// carries, without unpacking 200 MB to look.
