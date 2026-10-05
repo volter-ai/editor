@@ -1,10 +1,8 @@
-[LOGO: VideoGame AI brand mark]
+# Model Editor by VideoGame AI
 
-# [BRAND LINE: Model Editor under VideoGame AI]
+![A cube on wheels jumping a ramp in the Model Editor, with the outliner and properties panels beside the viewport and a lap timer over it](docs/media/model-play-race.png)
 
-![A cube on wheels jumping a ramp in the Volter Model Editor, with the outliner and properties panels beside the viewport and a lap timer over it](docs/media/model-play-race.png)
-
-[OPENING: the idea — a free, open-source game editor built from AI's favorite tools: VS Code (Code-OSS), three.js, TypeScript, React and Blender]
+A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
 
 ```bash
 npx @volter/model-editor create my-race --template playable
