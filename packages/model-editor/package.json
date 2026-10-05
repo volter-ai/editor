@@ -10,13 +10,26 @@
     "node": ">=24"
   },
   "license": "AGPL-3.0-only AND GPL-3.0-or-later AND MIT",
-  "description": "The Volter Model Editor: Blender modeling on the Volter Editor kit.",
+  "description": "A free, open-source game editor by VideoGame AI using Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.",
+  "homepage": "https://model-editor.videogame.ai",
+  "keywords": [
+    "blender",
+    "three.js",
+    "game editor",
+    "webassembly",
+    "code-oss",
+    "react",
+    "mcp",
+    "codex",
+    "claude-code"
+  ],
   "repository": {
     "type": "git",
     "url": "git+https://github.com/volter-ai/editor.git",
     "directory": "packages/model-editor"
   },
   "files": [
+    "README.md",
     "dist",
     "src",
     "LICENSE",
