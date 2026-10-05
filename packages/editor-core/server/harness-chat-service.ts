@@ -1198,11 +1198,22 @@ export class HarnessChatService {
         this.discoveryClient = null;
         const oldHandoff = this.frontendHandoffValue;
         this.frontendHandoffValue = null;
-        await oldHandoff?.dispose();
-        await withTimeout(previousController.close(), 10_000, 'Closing previous chat runtime');
-        this.managedRuntime = null;
-        this.observedModel = null;
-        await this.ensureController(false);
+        // State/load requests can arrive while the old runtime is closing.
+        // Keep them behind the entire replacement, including discovery, so
+        // none starts an auto-observing controller in the disposal gap.
+        const workspace = this.workspace!;
+        const generation = this.workspaceGeneration;
+        const restarting = (async () => {
+          await oldHandoff?.dispose();
+          await withTimeout(previousController.close(), 10_000, 'Closing previous chat runtime');
+          if (this.closed || generation !== this.workspaceGeneration) throw new Error('The chat workspace changed while closing its previous runtime.');
+          this.managedRuntime = null;
+          this.observedModel = null;
+          await this.startController(workspace, false, generation);
+        })();
+        this.starting = restarting;
+        try { await restarting; }
+        finally { if (this.starting === restarting) this.starting = null; }
         const restored = this.lastSnapshot.sessions.find(s => s.identity === entry.identity && s.harness === selection.harness);
         if (!restored) throw new Error('The saved conversation could not be rediscovered after closing its previous runtime.');
         action = {type:'resume', sessionKey:restored.id};
@@ -1404,6 +1415,12 @@ export class HarnessChatService {
 
   private async ensureController(autoObserve = true): Promise<void> {
     if (this.closed) throw new Error('Harness Chat service is closed.');
+    // A controller is assigned before initialize finishes. Its empty inventory
+    // must not be mistaken for completed discovery by concurrent callers.
+    if (this.starting) {
+      await this.starting;
+      return;
+    }
     const next = resolve(this.options.getProjectRoot());
     if (this.controller) {
       if (this.workspace !== next) {
@@ -1411,10 +1428,6 @@ export class HarnessChatService {
         await this.controller.setWorkspace(next, { autoObserve: true });
         this.capture();
       }
-      return;
-    }
-    if (this.starting) {
-      await this.starting;
       return;
     }
     this.beginWorkspace(next);
