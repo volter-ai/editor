@@ -342,7 +342,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
 
   if (active === false || !documentId) return null;
   if (opened?.key !== key || opened.error) return <BlenderModelOpening
-    path={blend ?? 'Model'} error={opened?.key === key ? opened.error : null} preview={preview}
+    documentId={documentId} path={blend ?? 'Model'} error={opened?.key === key ? opened.error : null} preview={preview}
     retry={() => { setOpened(null); setAttempt(value => value + 1); }}
     returnToPreview={() => {
       if (!preview) return;
@@ -353,7 +353,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
   />;
   return <>
     <BlenderModelViewport {...props} />
-    {!documentViewport(documentId) && <BlenderModelOpening path={blend ?? 'Model'} error={null}
+    {!documentViewport(documentId) && <BlenderModelOpening documentId={documentId} path={blend ?? 'Model'} error={null}
       preparingView preview={preview} retry={() => {}} returnToPreview={() => {}} />}
   </>;
 }
