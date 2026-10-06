@@ -30,7 +30,8 @@ export async function play(args: readonly string[], document?: string): Promise<
   if (BARE.has(verb)) {
     if (value !== undefined) usage();
   } else if (verb === 'step') {
-    if (value !== undefined) commandArgs = { count: Number(value) };
+    // Passed as typed: the verb parses it, and names what it was given when it is not a count.
+    if (value !== undefined) commandArgs = { count: value };
   } else if (verb === 'speed') {
     if (value === undefined) usage();
     commandArgs = { speed: value };

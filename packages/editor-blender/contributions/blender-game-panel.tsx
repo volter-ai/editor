@@ -52,6 +52,7 @@ import {
   type DocumentPlayClock,
   type DocumentPlayExtension,
   type DocumentPlayLog,
+  type DocumentPlayTransport,
   documentPlayExtension,
   subscribeDocumentPlayExtensions,
 } from '@volter/editor-sdk/kit/document-play-extension';
@@ -228,8 +229,9 @@ registerViewVerbs({
         requirePlaying(documentId, 'step');
         const { transport } = verbExtension();
         if (!transport.clock(documentId).paused) throw new Error('step runs one tick of a PAUSED game; `pause` first.');
-        const count = args?.['count'] === undefined ? 1 : Number(args['count']);
-        if (!Number.isInteger(count) || count < 1 || count > 600) throw new Error(`step's \`count\` is a whole number from 1 to 600; got ${String(args?.['count'])}.`);
+        const raw = args?.['count'];
+        const count = raw === undefined ? 1 : typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : typeof raw === 'number' ? raw : Number.NaN;
+        if (!Number.isInteger(count) || count < 1 || count > 600) throw new Error(`step's \`count\` is a whole number from 1 to 600; got ${JSON.stringify(raw)}.`);
         for (let index = 0; index < count; index++) transport.step(documentId);
         return gameState(documentId);
       },
@@ -242,7 +244,7 @@ registerViewVerbs({
         const raw = args?.['speed'] ?? args?.['to'];
         const speed = typeof raw === 'string' ? Number(raw.replace(/x$/i, '')) : Number(raw);
         if (!transport.speeds.includes(speed))
-          throw new Error(`speed is one of ${transport.speeds.join(', ')} (simulation seconds per real second); got ${String(raw)}.`);
+          throw new Error(`speed is one of ${transport.speeds.join(', ')} (simulation seconds per real second); got ${JSON.stringify(raw)}.`);
         transport.setSpeed(documentId, speed);
         return gameState(documentId);
       },
@@ -427,7 +429,9 @@ export function BlenderGamePanel() {
             pressed={playing}
             wide
             disabled={!canPlay}
-            onClick={() => { if (documentId !== null) found?.setPlaying(documentId, !playing); }}
+            // The run's state NOW, not the render's: a game can stop between the two (Escape, an
+            // agent's `stop`, a failed script), and a toggle read from a stale render does nothing.
+            onClick={() => { if (documentId !== null && found) found.setPlaying(documentId, !found.playing(documentId)); }}
           >
             {mark(playing ? MARKS.stop : MARKS.play)}
             {playing ? 'Stop' : 'Play'}
@@ -439,7 +443,7 @@ export function BlenderGamePanel() {
                 label={clock.paused ? 'Resume' : 'Pause'}
                 pressed={playing && clock.paused}
                 disabled={!playing}
-                onClick={() => { if (documentId !== null) transport.setPaused(documentId, !clock.paused); }}
+                onClick={() => { if (documentId !== null) transport.setPaused(documentId, !transport.clock(documentId).paused); }}
               >
                 {mark(clock.paused ? MARKS.play : MARKS.pause)}
               </GameButton>
@@ -454,7 +458,7 @@ export function BlenderGamePanel() {
               <GameButton
                 testId="model-play-restart"
                 label="Restart on a fresh copy of the model"
-                disabled={!canPlay}
+                disabled={!playing}
                 onClick={() => { if (documentId !== null) transport.restart(documentId); }}
               >
                 {mark(MARKS.restart)}
@@ -505,7 +509,7 @@ export function BlenderGamePanel() {
             {status}
           </span>
           {transport?.autoplay && documentId !== null && (
-            <AutoplayControl documentId={documentId} playing={playing} autoplay={autoplay} setAutoplay={transport.setAutoplay} />
+            <AutoplayControl documentId={documentId} playing={playing} autoplay={autoplay} transport={transport} />
           )}
         </div>
         {found?.log && documentId !== null && <PlayLogView documentId={documentId} log={found.log} />}
@@ -518,11 +522,11 @@ export function BlenderGamePanel() {
 // AUTOPLAY AND THE PLAY LOG
 // ---------------------------------------------------------------------------------------------
 
-function AutoplayControl({ documentId, playing, autoplay, setAutoplay }: {
+function AutoplayControl({ documentId, playing, autoplay, transport }: {
   readonly documentId: string;
   readonly playing: boolean;
   readonly autoplay: DocumentPlayAutoplay;
-  readonly setAutoplay: ((documentId: string, on: boolean, by: 'panel' | 'cli') => void) | undefined;
+  readonly transport: DocumentPlayTransport;
 }) {
   const label = !playing
     ? 'Autoplay: start the game first (it is off at every Play and Restart)'
@@ -538,8 +542,10 @@ function AutoplayControl({ documentId, playing, autoplay, setAutoplay }: {
         label={label}
         pressed={playing && autoplay.on}
         wide
-        disabled={!playing || !autoplay.available || setAutoplay === undefined}
-        onClick={() => setAutoplay?.(documentId, !autoplay.on, 'panel')}
+        disabled={!playing || !autoplay.available || transport.setAutoplay === undefined}
+        // The switch's state NOW, as the transport's buttons read theirs: a takeover can land
+        // between the render and the click.
+        onClick={() => transport.setAutoplay?.(documentId, !(transport.autoplay?.(documentId).on ?? false), 'panel')}
       >
         Autoplay
       </GameButton>

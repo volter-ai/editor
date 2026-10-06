@@ -120,12 +120,26 @@ export function playModeVersion(): number {
   return version;
 }
 
-/** Changes to the picks, to the served document, and to anything the Play tool answers. */
+/**
+ * Changes to the picks, to the served document, and to anything the Play tool answers.
+ *
+ * THE PLAY TOOL'S ANSWERS MOVE THE VERSION TOO, because the version is the snapshot every reader
+ * takes (`useSyncExternalStore(subscribePlayMode, playModeVersion)`): a script found after the
+ * first render, a run starting or stopping, a restart. Handing the tool's publications straight to
+ * the reader's listener re-ran a snapshot that had not changed, so React kept the old render — a
+ * document with a play script stayed in Movie, and the Game panel kept showing Stop after the game
+ * had stopped. One subscription to the tool's registry, held while anything reads this store,
+ * bumps the version and then tells the readers.
+ */
+let stopToolWatch: (() => void) | null = null;
 export function subscribePlayMode(listener: () => void): () => void {
   listeners.add(listener);
-  const stopExtensions = subscribeDocumentPlayExtensions(listener);
+  stopToolWatch ??= subscribeDocumentPlayExtensions(publish);
   return () => {
     listeners.delete(listener);
-    stopExtensions();
+    if (listeners.size === 0 && stopToolWatch) {
+      stopToolWatch();
+      stopToolWatch = null;
+    }
   };
 }
