@@ -8,8 +8,8 @@
  * whose list cannot be read offers only its default plus an exact model ID, so a new
  * CLI's levels appear without an editor release and a list is never invented.
  */
-import { spawnSync } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { exec, execFile } from 'node:child_process';
+import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { join } from 'node:path';
 
@@ -59,28 +59,44 @@ export function codexChoicesFromCache(cache: unknown): HarnessModelChoice[] {
   ];
 }
 
-const cache = new Map<string, { at: number; choices: HarnessModelChoice[] }>();
+const cache = new Map<string, { at: number; read: boolean; choices: HarnessModelChoice[] }>();
+const reading = new Map<string, Promise<void>>();
 const FRESH_MS = 5 * 60_000;
+/** How long an unreadable list stands before the harness is asked again. */
+const RETRY_MS = 60_000;
+const DEFAULT_ONLY: HarnessModelChoice[] = [{ id: '', name: HARNESS_DEFAULT, efforts: [] }];
 
-/** The choices for `harness`, read at most once every five minutes. `env` is the Chat's launch environment. */
+/** The choices for `harness` as last read, never waiting on the harness: a missing or stale list is read in the
+ *  background (at most one read per harness at a time) and appears in a later snapshot. A list read is kept five
+ *  minutes; an unreadable one (a missing, slow or failing CLI) one minute. `env` is the Chat's launch environment. */
 export function harnessModelChoices(harness: string, env: NodeJS.ProcessEnv = process.env): HarnessModelChoice[] {
   const known = cache.get(harness);
-  if (known && Date.now() - known.at < FRESH_MS) return known.choices;
-  let choices: HarnessModelChoice[] = [{ id: '', name: HARNESS_DEFAULT, efforts: [] }];
-  try {
-    if (harness === 'claude-code') {
-      // A shell on Windows finds an npm `claude.cmd` as well as `claude.exe`; the command line is fixed.
-      const options = { env, encoding: 'utf8' as const, timeout: 10_000, windowsHide: true };
-      const help = process.platform === 'win32'
-        ? spawnSync('claude --help', { ...options, shell: true })
-        : spawnSync('claude', ['--help'], options);
-      if (help.status === 0 && help.stdout) choices = claudeChoicesFromHelp(help.stdout);
-    } else if (harness === 'codex') {
-      const home = env['CODEX_HOME'] || join(homedir(), '.codex');
-      choices = codexChoicesFromCache(JSON.parse(readFileSync(join(home, 'models_cache.json'), 'utf8')));
-    }
-  } catch { /* the harness's list is unreadable: its default and an exact ID remain */ }
-  // Only a list that was read is kept, so a CLI installed a moment ago is read on the next ask.
-  if (choices.length > 1 || choices[0]!.efforts.length) cache.set(harness, { at: Date.now(), choices });
-  return choices;
+  const fresh = known && Date.now() - known.at < (known.read ? FRESH_MS : RETRY_MS);
+  if (!fresh && !reading.has(harness)) {
+    reading.set(harness, readChoices(harness, env)
+      .then(choices => { cache.set(harness, { at: Date.now(), read: true, choices }); })
+      .catch(() => { cache.set(harness, { at: Date.now(), read: false, choices: known?.choices ?? DEFAULT_ONLY }); })
+      .finally(() => { reading.delete(harness); }));
+  }
+  return known?.choices ?? DEFAULT_ONLY;
+}
+
+async function readChoices(harness: string, env: NodeJS.ProcessEnv): Promise<HarnessModelChoice[]> {
+  if (harness === 'claude-code') {
+    // A shell on Windows finds an npm `claude.cmd` as well as `claude.exe`; the command line is fixed.
+    const options = { env, encoding: 'utf8' as const, timeout: 10_000, windowsHide: true };
+    const help = await new Promise<string>((resolve, reject) => {
+      const done = (error: Error | null, stdout: string) => (error ? reject(error) : resolve(stdout));
+      if (process.platform === 'win32') exec('claude --help', options, done);
+      else execFile('claude', ['--help'], options, done);
+    });
+    const choices = claudeChoicesFromHelp(help);
+    if (choices.length > 1 || choices[0]!.efforts.length) return choices;
+    throw new Error('claude --help named no models or efforts');
+  }
+  if (harness === 'codex') {
+    const home = env['CODEX_HOME'] || join(homedir(), '.codex');
+    return codexChoicesFromCache(JSON.parse(await readFile(join(home, 'models_cache.json'), 'utf8')));
+  }
+  return DEFAULT_ONLY;
 }

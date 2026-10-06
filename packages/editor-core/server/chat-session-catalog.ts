@@ -9,6 +9,9 @@ export interface ManagedChatSession {
   identity: string | null;
   title: string;
   created: number;
+  /** The approval mode this chat starts in when no one picked one. Chats created from 0.5.188 on start in
+   *  Auto approve (the owner's ask, for NEW chats); a chat saved before has none, so it keeps asking. */
+  defaultPermission?: 'ask' | 'autoApprove';
 }
 
 /** Durable native-chat identities. Runtime endpoints and credentials are never persisted here. */
@@ -29,7 +32,9 @@ export class ChatSessionCatalog {
     try {
       for (const entry of saved.sessions) {
         if (!/^[a-zA-Z0-9-]+$/.test(entry.id) || (entry.identity !== null && typeof entry.identity !== 'string')) throw new Error('Invalid saved chat session.');
-        this.sessions.set(entry.id, {...entry, selection: validateChatSelection(entry.selection)});
+        const { defaultPermission, ...rest } = entry;
+        this.sessions.set(entry.id, {...rest, selection: validateChatSelection(entry.selection),
+          ...(defaultPermission === 'autoApprove' || defaultPermission === 'ask' ? { defaultPermission } : {})});
       }
       if (saved.active && !this.sessions.has(saved.active)) throw new Error('Saved active chat is missing.');
       this.active = saved.active;
@@ -41,7 +46,7 @@ export class ChatSessionCatalog {
   }
   create(selection: ChatSelection): ManagedChatSession {
     validateChatSelection(selection);
-    const entry = {id: randomUUID(), selection: {...selection}, identity: null, title: selection.model || selection.harness, created: Date.now()};
+    const entry: ManagedChatSession = {id: randomUUID(), selection: {...selection}, identity: null, title: selection.model || selection.harness, created: Date.now(), defaultPermission: 'autoApprove'};
     this.sessions.set(entry.id, entry);
     this.active = entry.id;
     this.save();
