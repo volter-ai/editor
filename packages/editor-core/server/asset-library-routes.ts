@@ -1346,7 +1346,7 @@ export function createAssetLibraryRouter(getPublicRoot: () => string): Router {
       if (isZip) {
         progress('convert', 0, 1);
         await new Promise<void>((resolve, reject) => {
-          execFile('unzip', ['-o', filePath, '-d', stagingDir!], (err) => {
+          execFile('unzip', ['-o', filePath, '-d', stagingDir!], { windowsHide: true }, (err) => {
             if (err) reject(err);
             else resolve();
           });

@@ -47,6 +47,7 @@ export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH
   if (!npm) return { env, installError: 'npm is unavailable to the editor process.' };
   try {
     const { stdout } = await promisify(execFile)(npm, ['prefix', '--global'], {
+      windowsHide: true,
       cwd, env: { ...process.env, ...env }, encoding: 'utf8', timeout: 10_000,
     });
     const prefix = stdout.trim();

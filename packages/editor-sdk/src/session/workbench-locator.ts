@@ -65,7 +65,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { homedir } from 'node:os';
-import { isAbsolute, join, resolve } from 'node:path';
+import { isAbsolute, join, resolve, sep } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import {
@@ -293,7 +293,7 @@ function resolveRelease(dir: string): ResolvedWorkbench {
 function resolveSources(dir: string): ResolvedWorkbench {
   let commit: string;
   try {
-    commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    commit = execFileSync('git', ['rev-parse', 'HEAD'], { windowsHide: true, cwd: dir, encoding: 'utf8' }).trim();
   } catch (error) {
     throw new Error(
       `${dir} carries ${SOURCES_LAUNCHER}, so it reads as a Code-OSS fork checkout, but \`git rev-parse HEAD\` ` +
@@ -405,7 +405,7 @@ export async function resolveWorkbenchForProject(options: {
   // cleared, fetches again instead of opening a stale release or refusing a
   // directory that is gone.
   const declared = readWorkbenchDeclaration(projectRoot);
-  const fetchRecord = declared !== null && product.workbench !== null && declared.startsWith(`${WORKBENCH_CACHE_ROOT}/`);
+  const fetchRecord = declared !== null && product.workbench !== null && declared.startsWith(`${WORKBENCH_CACHE_ROOT}${sep}`);
   if (declared !== null && !fetchRecord)
     return {
       ...resolveWorkbench(declared, productId),
@@ -451,6 +451,7 @@ function githubToken(): string | null {
   if (typeof fromEnv === 'string' && fromEnv.trim() !== '') return fromEnv.trim();
   try {
     const out = execFileSync('gh', ['auth', 'token'], {
+      windowsHide: true,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
@@ -635,7 +636,12 @@ async function fetchDeclaredRelease(
           'partial download was deleted and nothing was extracted.',
       );
     io.log(`  sha256 ${sha.slice(0, 12)}… matches the pin. Extracting…`);
-    execFileSync('tar', ['-xzf', tarballPath, '-C', partial], {
+    // Windows' own tar (bsdtar, System32) — Git's GNU tar, often first on PATH, reads the
+    // "C:" of a path as a remote host.
+    const tar = process.platform === 'win32'
+      ? join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
+    execFileSync(tar, ['-xzf', tarballPath, '-C', partial], {
+      windowsHide: true,
       stdio: ['ignore', 'ignore', 'pipe'],
     });
     // The tarball has done its job and is 216 MB; the extraction is what runs.

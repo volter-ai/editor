@@ -864,7 +864,7 @@ function isEsrch(err: unknown): boolean {
 export function killProcessGroup(pid: number, signal: NodeJS.Signals = 'SIGTERM'): void {
   if (process.platform === 'win32') {
     try {
-      execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], { stdio: 'ignore' });
+      execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
       return;
     } catch {
       // already dead, or taskkill itself unavailable — bare-pid kill below is the last resort
@@ -900,7 +900,7 @@ function processGroupId(pid: number): number | undefined {
   if (process.platform === 'win32') return undefined;
   try {
     const parsed = Number.parseInt(
-      execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)], { encoding: 'utf8' }).trim(),
+      execFileSync('ps', ['-o', 'pgid=', '-p', String(pid)], { windowsHide: true, encoding: 'utf8' }).trim(),
       10,
     );
     return Number.isInteger(parsed) && parsed > 1 ? parsed : undefined;

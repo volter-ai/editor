@@ -1602,10 +1602,13 @@ async function runContributionRefresh(): Promise<void> {
   const bundledFiles = new Map(
     (catalog.contributions ?? []).flatMap((item) => (item.filePath ? [[item.entryPath, item.filePath] as const] : [])),
   );
+  // A Windows host names files `C:\…`; Vite serves them at `/@fs/C:/…`.
   const absolute = (entryPath: string) =>
     entryPath.startsWith('/') || bundledPackageLoaders.has(entryPath)
       ? entryPath
-      : (bundledFiles.get(entryPath) ?? `${project.rootPath}/${entryPath}`);
+      : /^[A-Za-z]:[\\/]/.test(entryPath)
+        ? entryPath.replaceAll('\\', '/')
+        : (bundledFiles.get(entryPath) ?? `${project.rootPath}/${entryPath}`).replaceAll('\\', '/');
   // The host serves a contribution through its own Vite (`/@fs/`,
   // cache-busted per refresh); a package this build bundles is already in the
   // page and loads through its own registered loader.
