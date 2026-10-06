@@ -38,6 +38,32 @@ const bundle = await build({
   }}],
 });
 
+const contextBundle = await build({
+  entryPoints: [fileURLToPath(new URL('../../editor-sdk/src/kit/document-context-registry.ts', import.meta.url))],
+  bundle: true, platform: 'node', format: 'cjs', write: false,
+  plugins: [{name: 'context-viewport-boundary', setup(build) {
+    build.onResolve({filter: /document-viewports$/}, () => ({path: 'viewports', namespace: 'stub'}));
+    build.onLoad({filter: /.*/, namespace: 'stub'}, () => ({contents:
+      'export const documentStageAnnounced = () => false, documentViewport = () => null;'}));
+  }}],
+});
+
+test('a retiring same-file pane cannot withdraw its replacement publication of the same view', async () => {
+  const module = {exports: {}};
+  runInNewContext(contextBundle.outputFiles[0].text, {
+    module, exports: module.exports, queueMicrotask, setTimeout, clearTimeout,
+  });
+  const api = module.exports;
+  const id = 'document:model:A.blend';
+  const view = {};
+  const retireOriginal = api.publishDocumentContext(id, view);
+  const retireReplacement = api.publishDocumentContext(id, view);
+  retireOriginal();
+  assert.equal(await api.waitForDocumentContext(id, 0), view);
+  retireReplacement();
+  assert.equal(api.documentContextFor(id), undefined);
+});
+
 for (const explicit of [false, true]) test(`cold start resolves the declared Model document (explicit=${explicit})`, async () => {
   const probe = {host: {
     session: {open: () => true, onBeforeClose() {}, onEnded() {}, reportWorkerCallMeter() {}},
@@ -238,6 +264,31 @@ test('reopening the same file preserves its worker and history', async () => {
   assert.equal(probe.invalidated.length, 0);
 });
 
+test('a same-file remount republishes its presenter before awaiting the pending boot', async () => {
+  const {probe, api, select, open} = handoffFixture();
+  let finishBoot;
+  const boot = new Promise(resolve => { finishBoot = resolve; });
+  probe.start = () => boot;
+  const first = open(select('A.blend'));
+  await tick();
+  assert.equal(probe.events.filter(([kind]) => kind === 'publish').length, 1);
+  // Native workspace restoration has replaced the original pane. Boot's
+  // first frame now requires this replacement's published context.
+  const replacement = select('A.blend');
+  let published = 0;
+  const reopened = api.openModelDocumentBlend(replacement, () => {
+    published++;
+    finishBoot();
+  });
+  await tick();
+  assert.equal(published, 1, 'replacement publication must not queue behind the boot that needs it');
+  assert.equal(await first, false);
+  assert.equal(await reopened, true);
+  assert.equal(published, 1, 'one pane owns one publication cleanup');
+  assert.equal(probe.instances.length, 1);
+  assert(!probe.events.some(([kind]) => kind === 'flush' || kind === 'terminate'));
+});
+
 test('a selection superseded during startup cannot present into the replacement pane', async () => {
   const {probe, select, open} = handoffFixture();
   await open(select('A.blend'));
@@ -247,6 +298,9 @@ test('a selection superseded during startup cannot present into the replacement 
   await tick();
   const presentsBefore = probe.presents;
   const c = open(select('C.blend'));
+  await tick();
+  assert(!probe.events.some(([kind, file]) => kind === 'publish' && file === 'C.blend'),
+    'a different file still waits for the retiring startup owner');
   loaded();
   assert.equal(await b, false);
   assert.equal(await c, true);

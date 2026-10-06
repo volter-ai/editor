@@ -335,6 +335,7 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
  * boot completion. Return false when the requesting pane has since unmounted.
  */
 let modelOpenTail: Promise<void> = Promise.resolve();
+let modelStartup: { readonly session: BlenderRuntime; readonly project: string; readonly blend: string } | null = null;
 
 function queueModelLifecycle<T>(operation: () => Promise<T>): Promise<T> {
   const result = modelOpenTail.then(operation);
@@ -342,13 +343,31 @@ function queueModelLifecycle<T>(operation: () => Promise<T>): Promise<T> {
   return result;
 }
 
-export function openModelDocumentBlend(
+export async function openModelDocumentBlend(
   binding: ModelDocumentBinding,
   publish: () => void,
 ): Promise<boolean> {
+  let published = false;
+  const publishOnce = () => {
+    if (published) return;
+    publish();
+    published = true;
+  };
+  const host = editorHost();
+  const starting = modelStartup;
+  // A native workspace restore can remount this pane before boot's first
+  // frame. Its predecessor has unpublished, but still owns the queued boot:
+  // waiting behind it before publishing would make boot wait on itself.
+  // Only the SAME starting resource can restore its presenter here. Another
+  // file still waits for the old worker's save/retirement in the queue.
+  if (starting && starting.session === runtime && host.session.open() &&
+      starting.project === host.projectLocalState.projectRootPath() &&
+      starting.blend === binding.blend && modelDocumentMayOpen(binding)) {
+    publishOnce();
+  }
   // Only one handoff may own stop/start. Re-check the mounted requester after
   // every wait: a rapid B -> C selection must not let B publish into C.
-  return queueModelLifecycle(() => openBoundModelDocument(binding, publish));
+  return queueModelLifecycle(() => openBoundModelDocument(binding, publishOnce));
 }
 
 async function openBoundModelDocument(
@@ -373,8 +392,14 @@ async function openBoundModelDocument(
   // start claims its resource synchronously; its first frame may arrive before
   // the returned promise resolves. The getter above rejects a conflicting file.
   const started = session.start(project, binding.blend);
-  publish();
-  await started;
+  const starting = { session, project, blend: binding.blend };
+  modelStartup = starting;
+  try {
+    publish();
+    await started;
+  } finally {
+    if (modelStartup === starting) modelStartup = null;
+  }
   if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
   // bind_document presents the opened file before start resolves. Do not
   // immediately evaluate/export it again: on Stoneguard that redundant RPC
