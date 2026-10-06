@@ -324,6 +324,22 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
   return !anotherModel || active === binding.documentId;
 }
 
+/** A retained photograph must belong to the file and revision still on screen,
+ * not a retiring pane or the next worker's first frame. */
+export function modelDocumentOwnsPresentation(
+  documentId: string,
+  entryId: string,
+  blend: string | undefined,
+  presented: { readonly session: string; readonly revision: number } | null,
+): boolean {
+  const binding = boundModel;
+  const latest = runtime?.presented;
+  return editorHost().session.open() && !!binding && binding.documentId === documentId && binding.entryId === entryId &&
+    binding.blend === blend && modelDocumentMayOpen(binding) &&
+    runtime?.project === editorHost().projectLocalState.projectRootPath() && runtime.document === blend &&
+    !!presented && !!latest && presented.session === latest.session && presented.revision === latest.revision;
+}
+
 /**
  * OPEN A `.blend` IN THE ENGINE — the Model document's own call, the WS-F save
  * path run backwards. `session.py` opens the named file at start and saves

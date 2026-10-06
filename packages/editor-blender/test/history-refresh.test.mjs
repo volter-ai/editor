@@ -187,6 +187,29 @@ function handoffFixture() {
   return {probe, api: module.exports, select, open};
 }
 
+test('retained photographs refuse superseded files, frames and closed sessions', async () => {
+  const {probe, api, select, open} = handoffFixture();
+  const a = select('A.blend');
+  await open(a);
+  const frame = {session: 'session-A', revision: 1};
+  probe.presented = frame;
+  const owns = () => api.modelDocumentOwnsPresentation(a.documentId, a.entryId, a.blend, frame);
+  assert.equal(owns(), true);
+  probe.presented = {session: 'session-A', revision: 2};
+  assert.equal(owns(), false, 'a newer revision invalidates the pending photograph');
+  probe.presented = frame;
+  probe.active = 'timeline';
+  assert.equal(owns(), true, 'utility keyboard focus does not change the model owner');
+  select('B.blend');
+  assert.equal(owns(), false, 'the old file cannot replace the retained preview during the new open');
+  select('A.blend');
+  probe.presented = {session: 'replacement-worker', revision: 1};
+  assert.equal(owns(), false, 'equal revision numbers do not cross worker identities');
+  probe.presented = frame;
+  probe.open = false;
+  assert.equal(owns(), false, 'a late photograph cannot survive project close');
+});
+
 test('file handoff flushes the old owner before starting or publishing the new file', async () => {
   const {probe, api, select, open} = handoffFixture();
   await open(select('A.blend'));

@@ -1,4 +1,5 @@
 import type { ModelDocumentPreview } from '../src/model-document-preview';
+import { modelOpeningErrorMessage } from '../src/model-opening-error';
 import { Button, StateSurface, fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
 
 /** A loading/error surface has no authoring stage and publishes no model. */
@@ -24,7 +25,7 @@ export function BlenderModelOpening({ path, error, preview, retry, returnToPrevi
           title={<span style={{ fontSize: fontSizeVar.lg }}>{error ? 'Could not open model' : preparingView ? 'Preparing model view' : 'Opening model'}</span>}
           description={<>
             <div style={{ color: themeVars.content.primary, marginBottom: spaceVar[3] }}>{path}</div>
-            {error ? error : preparingView ? 'The file is open. Preparing its viewport.' : preview ? 'The previous model stays visible while this file opens.' : 'Preparing Blender and opening this file. The model will appear here when it is ready.'}
+            {error ? modelOpeningErrorMessage(error) : preparingView ? 'The file is open. Preparing its viewport.' : preview ? 'The previous model stays visible while this file opens.' : 'Preparing Blender and opening this file. The model will appear here when it is ready.'}
           </>}
           action={error ? <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: spaceVar[3] }}>
             {preview && <Button onClick={returnToPreview}>Return to previous model</Button>}

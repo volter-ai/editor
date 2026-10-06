@@ -66,6 +66,7 @@ import {
   blenderViewShading,
   openModelDocumentBlend,
   modelDocumentMayOpen,
+  modelDocumentOwnsPresentation,
 } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
@@ -88,6 +89,7 @@ import type { ToolObject3DAuthoringProps } from '@volter/editor-threejs/object3d
 import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
 import { surfaceAcceptsKey } from '@volter/editor-sdk/kit/surface-keyboard';
 import { BlenderModelOpening } from './blender-model-opening';
+import { modelOpeningErrorMessage } from '../src/model-opening-error';
 import {
   clearModelDocumentPreview,
   modelDocumentPreview,
@@ -239,8 +241,13 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     let timer: ReturnType<typeof setTimeout> | undefined;
     const photograph = async () => {
       try {
+        const presented = view.snapshot();
+        const viewport = documentViewport(documentId);
+        if (!viewport || !modelDocumentOwnsPresentation(documentId, entryId, blend, presented)) return;
         const frame = await stage.requestPresentedFrame();
-        if (cancelled) return;
+        if (cancelled || view.snapshot() !== presented ||
+          object3DDocumentSession(documentId) !== stage || documentViewport(documentId) !== viewport ||
+          !modelDocumentOwnsPresentation(documentId, entryId, blend, presented)) return;
         if (frame && frame.width > 0 && frame.height > 0) {
           const copy = window.document.createElement('canvas');
           copy.width = Math.min(frame.width, 1024);
@@ -254,8 +261,9 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
         }
       } catch {
         // An unavailable frame leaves the last good photograph intact.
+      } finally {
+        if (!cancelled) timer = setTimeout(() => { void photograph(); }, 1000);
       }
-      if (!cancelled) timer = setTimeout(() => { void photograph(); }, 1000);
     };
     void photograph();
     return () => { cancelled = true; clearTimeout(timer); };
@@ -307,7 +315,8 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
         unpublish = undefined;
         const detail = error instanceof Error ? error.message : String(error);
         setOpened({ key, error: detail });
-        callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${blend ?? 'the model'}`, detail });
+        editorHost().console.error(detail, 'blender-open');
+        callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${blend ?? 'the model'}`, detail: modelOpeningErrorMessage(detail) });
       } finally {
         starting = false;
       }
