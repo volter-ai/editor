@@ -209,7 +209,9 @@ export async function startFrameWorkbench(options: {
     {
       cwd: workbench.cwd,
       stdio: 'ignore',
-      detached: true,
+      // Not detached on Windows, where detached means no console and every console program
+      // the server forks (its extension host) would open a visible window; see launch.ts.
+      detached: process.platform !== 'win32',
       windowsHide: true,
       env: { ...process.env, ...options.env },
     },
