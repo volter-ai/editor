@@ -25,7 +25,9 @@ const HARNESS_DEFAULT = 'Harness default';
 
 /** Claude Code's models and efforts from its `--help` text. */
 export function claudeChoicesFromHelp(help: string): HarnessModelChoice[] {
-  const effortLine = /--effort <[^>]+>[\s\S]*?\(([^)]*)\)/.exec(help)?.[1] ?? '';
+  // Each option's text runs to the next option line, so another option's parenthetical is never read as its levels.
+  const effortText = /--effort <[^>]+>([\s\S]*?)\n\s{0,4}-/.exec(help)?.[1] ?? '';
+  const effortLine = /\(([^)]*)\)/.exec(effortText)?.[1] ?? '';
   const efforts = effortLine.split(/,\s*|\s+or\s+/).map(level => level.trim()).filter(level => /^[a-z]+$/.test(level));
   const modelText = /--model <[^>]+>([\s\S]*?)\n\s{0,4}-/.exec(help)?.[1] ?? '';
   const aliases = [...modelText.matchAll(/'([a-z][a-z0-9.-]*)'/g)].map(match => match[1]!);
@@ -43,9 +45,11 @@ export function codexChoicesFromCache(cache: unknown): HarnessModelChoice[] {
   const effortsOf = (model: Record<string, unknown>) => Array.isArray(model['supported_reasoning_levels'])
     ? model['supported_reasoning_levels'].map(level => (level as { effort?: unknown })?.effort).filter((effort): effort is string => typeof effort === 'string' && /^[a-z]+$/.test(effort))
     : [];
-  const all = [...new Set(listed.flatMap(effortsOf))];
+  // The default model is the account's, not named here: offer only the efforts every listed model takes.
+  const levels = listed.map(effortsOf);
+  const common = levels.length ? levels[0]!.filter(effort => levels.every(model => model.includes(effort))) : [];
   return [
-    { id: '', name: HARNESS_DEFAULT, efforts: all },
+    { id: '', name: HARNESS_DEFAULT, efforts: common },
     ...listed.map(model => ({
       id: model['slug'] as string,
       name: typeof model['display_name'] === 'string' ? model['display_name'] : model['slug'] as string,
@@ -76,6 +80,7 @@ export function harnessModelChoices(harness: string, env: NodeJS.ProcessEnv = pr
       choices = codexChoicesFromCache(JSON.parse(readFileSync(join(home, 'models_cache.json'), 'utf8')));
     }
   } catch { /* the harness's list is unreadable: its default and an exact ID remain */ }
-  cache.set(harness, { at: Date.now(), choices });
+  // Only a list that was read is kept, so a CLI installed a moment ago is read on the next ask.
+  if (choices.length > 1 || choices[0]!.efforts.length) cache.set(harness, { at: Date.now(), choices });
   return choices;
 }

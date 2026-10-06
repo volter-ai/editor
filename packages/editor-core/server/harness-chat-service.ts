@@ -996,7 +996,9 @@ export class HarnessChatService {
       if (this.managedRuntime !== runtime) return;
       const payload = event.raw?.payload;
       if (!payload || typeof payload !== 'object') return;
-      const record = payload as { model?: unknown; message?: { model?: unknown } };
+      const record = payload as { model?: unknown; message?: { model?: unknown }; parent_tool_use_id?: unknown };
+      // A subagent's reply (a Task on another model) names its own model, not the conversation's.
+      if (typeof record.parent_tool_use_id === 'string') return;
       const model = record.message?.model ?? record.model;
       if (typeof model === 'string' && model.length > 0 && model.length < 200) this.observedModel = model;
     });
