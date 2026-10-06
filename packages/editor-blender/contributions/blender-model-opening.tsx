@@ -29,9 +29,9 @@ export function BlenderModelOpening({ documentId, path, error, preview, retry, r
   return (
     <div data-testid="blender-model-opening" aria-busy={!error}
       style={{ position: 'absolute', inset: 0, overflow: 'auto', background: themeVars.surface.panel, color: themeVars.content.primary }}>
-      <AssetEditorSubject key={title} documentId={documentId} type="Model" title={path}
+      {!preparingView && <AssetEditorSubject key={title} documentId={documentId} type="Model" title={path}
         status={error ? modelOpeningErrorMessage(error) : title}
-        selection={() => ({ adapter, nodeId: null })} />
+        selection={() => ({ adapter, nodeId: null })} />}
       {preview && <img src={preview.image} alt={`Last view of ${preview.path}`} draggable={false}
         style={{ position: 'absolute', inset: 0, width: '100%', height: '100%', objectFit: 'contain', pointerEvents: 'none' }} />}
       <div style={{ position: 'relative', minHeight: '100%', display: 'flex', flexDirection: 'column', justifyContent: preview ? 'flex-end' : 'center', alignItems: preview ? 'flex-start' : 'center', boxSizing: 'border-box', padding: spaceVar[8], gap: spaceVar[4] }}>
