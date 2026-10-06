@@ -542,6 +542,7 @@ ${openEditor}
 			if (replacementResource?.scheme === 'supercode') { await openEditorResult; }`, 'await harness replacement before closing source');
 	patchHarnessMoveActions(checkout);
 	patchHarnessPassiveViews(checkout);
+	patchHarnessDraftAgentMention(checkout);
 }
 
 /** Moving a bound Chat is an intentional activation, guarded before source destruction. */
@@ -599,6 +600,18 @@ function patchHarnessMoveActions(checkout) {
 			&& editorGroupService.getGroup(sourceGroup.id) === sourceGroup
 			&& !chatEditorInput.isDisposed() && chatEditorInput.sessionResource?.toString() === resource.toString());
 		return;`, 'guard before source editor close and nested sidebar move');
+}
+
+/** Session-owned agent identity comes from its native picker, not a sticky text mention. */
+function patchHarnessDraftAgentMention(checkout) {
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/widget/input/editor/chatInputEditorContrib.ts',
+		'\tprivate async repopulateAgentCommand(agent: IChatAgentData, slashCommand: IChatAgentCommand | undefined) {',
+		`\tprivate async repopulateAgentCommand(agent: IChatAgentData, slashCommand: IChatAgentCommand | undefined) {
+		// This participant routes the whole session. Its name can change after the
+		// draft's picker; inserting the previous name leaves a misleading mention.
+		if (!slashCommand && agent.id === 'supercode' && this.widget.lockedAgentId === 'supercode'
+			&& this.widget.viewModel?.sessionResource.scheme === 'supercode') { return; }`,
+		'keep session-owned harness identity out of sticky composer text');
 }
 
 /** Reading an already-visible inactive pane is passive, with all interaction disabled. */
