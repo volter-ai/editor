@@ -24,6 +24,22 @@ like nothing is happening. Make every action legible to them:
 Research the project as you need it, but keep it short between visible steps;
 the person should rarely wait more than a minute without seeing the work move.
 
+### Your first minute
+
+1. Say in Chat, in a sentence or two, what you are going to build.
+2. Open the document you will work in and frame it:
+   `npx --no-install volter-model-editor camera --position x,y,z --target x,y,z`
+   (Blender metres, Z up). For a game in a models-only project, run
+   `npx --no-install volter-model-editor add-play` first, then `npm install`,
+   and reload the editor once as `add-play` says, before your first build step.
+3. Put the `Build Notes` board beside the work with the plan and current step.
+4. Check what the person sees:
+   `npx --no-install volter-model-editor capture --region document`.
+
+Only then read packages or write scripts. The editor nudges you in Chat when
+nothing visible has changed for a minute during your turn; treat that as the
+person asking what is happening.
+
 ## Match the requested result
 
 Read the request and inspect the project before choosing a workflow. Continue
@@ -233,7 +249,9 @@ For a behavior-only repair, preserve the established appearance.
 - Complete the visual pass above before implementing gameplay for a new game.
 - Implement and run the game inside the editor. Continue an existing game's
   runtime and source organization. For a new model-based game,
-  use the `playable` template. Its `src/models/*.play.ts` scripts implement
+  use the `playable` template; in an existing models-only project run
+  `npx --no-install volter-model-editor add-play` (it never overwrites files).
+  Its `src/models/*.play.ts` scripts implement
   gameplay; the Play control runs them on a detached copy of the model.
   When extending an existing model-based project, declare `@volter/editor-model-play`
   and the React/UI dependencies with compatible project versions, and add the
@@ -242,22 +260,23 @@ For a behavior-only repair, preserve the established appearance.
   shared action functions through the same movement, collision and scoring code
   as manual play. Keep the player's controls available.
 - Keep a gameplay log while the game runs; without it, autoplay is a black box
-  and a final position or screenshot cannot tell you what went wrong. Record
-  it in the game's shared state module beside the published state (the one the
-  play script publishes and the HUD reads), as a bounded list of structured
-  events, not free text. Stamp each event with simulation time and the frame,
-  and give it a kind and the facts needed to explain it: phase changes and
+  and a final position or screenshot cannot tell you what went wrong. Use the
+  play script's built-in log, `play.log(kind, facts)`: it stamps each entry
+  with simulation time and tick, keeps a bounded history, and records Play
+  start, stop, script reloads and script errors itself. Give each entry a kind
+  and the facts needed to explain it: phase changes and
   restarts; autoplay's decisions and the inputs it held; manual inputs that
   start an action; contacts that matter (landing on, leaving or being pushed
   by a surface, by object name); checkpoints, pickups, score and inventory
   changes; deaths, failures and finishes with their cause and position. Log
   transitions rather than every frame, so a full run stays readable.
-- Read the gameplay log through the public inspection surface during and after
-  each autoplay or manual run, and explain what happened from it before
+- Read the gameplay log with `npx --no-install volter-model-editor play-log
+  [--since <simTime>] [--kind <kind>]` during and after each autoplay or manual
+  run, and explain what happened from it before
   changing code: where autoplay stalled or died and why, and whether that is a
   level, physics or controller problem. `console.log` lines do not reach the
-  session's console feed (only warnings and errors do), so the log in game
-  state is what you can read back. Keep logging read-only: it must not change
+  session's console feed (only warnings and errors do), so the play log is
+  what you can read back. Keep logging read-only: it must not change
   timing, inputs or game state.
 - Run autoplay in Play and observe representative actions, objectives,
   progression and any relevant failure/restart behavior. Exercise manual
@@ -341,3 +360,20 @@ In `eval`, explicitly `return` any result you need to inspect; for example,
 `eval 'return await editor.currentView()'`. Read `eval --list` for available
 objects rather than assuming globals from another tool runner.
 If the project uses a Volter World, run app and test commands through that World.
+
+Common commands, all through `npx --no-install volter-model-editor`:
+`camera --position x,y,z --target x,y,z [--fov n]` poses the open document's
+view in Blender metres, Z up. In eval, `editor.present({ version: 1, viewport:
+{ camera } })` takes stage space, Y up: a Blender point (x, y, z) is
+`{ x, y: z, z: -y }`, so prefer the `camera` command, which converts for you.
+`capture --region document|play [--out file.png [--force]]` saves what the person sees (default under
+`.volter/captures/`); `add-play` makes a models project playable; `play-log`
+reads the running game's log. In a play script, recolour or fade an object with
+`play.tint(object, color)` and `play.setOpacity(object, value)`: Blender meshes
+carry one material per slot and the presenter reapplies its own materials, so
+editing `mesh.material.color` does not show.
+
+Keep the project clean. Once the real document exists, remove the template
+placeholder (`cube.blend`, `cube.py`) unless the person is using it. Put your
+own helper scripts and evidence images under `.volter/scratch/`, not in the
+project's source folders, and do not leave them behind as project files.
