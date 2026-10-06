@@ -54,11 +54,20 @@ registerAction2(class extends Action2 {
 		const widgets = accessor.get(IChatWidgetService);
 		const navigation = accessor.get(IHarnessChatNavigationService);
 		const focused = widgets.lastFocusedWidget;
-		const focusedResource = focused?.viewModel?.sessionResource.toString() ?? null;
+		// A blank chat that is not a harness conversation holds nothing a person chose: the workbench restores one
+		// on every page reload, and the extension is never told of it (focus is reported once a harness chat is
+		// seen). Counted as focus, it refused every readiness reveal after a reload, leaving the running turn and
+		// its approval cards out of sight (t_39dac582). It counts as no focus; any other focus still guards.
+		const focusOf = (widget: typeof focused) => {
+			const viewModel = widget?.viewModel;
+			if (!viewModel) { return null; }
+			return viewModel.sessionResource.scheme !== 'supercode' && !viewModel.model.hasRequests ? null : viewModel.sessionResource.toString();
+		};
+		const focusedResource = focusOf(focused);
 		let unchanged = true;
 		const isCurrent = () => unchanged && focusedResource === expectedFocus
 			&& widgets.lastFocusedWidget === focused
-			&& (focused?.viewModel?.sessionResource.toString() ?? null) === focusedResource
+			&& focusOf(focused) === focusedResource
 			&& (!focused || widgets.getAllWidgets().includes(focused));
 		const listener = widgets.onDidChangeFocusedSession(() => { unchanged = isCurrent(); });
 		try {
