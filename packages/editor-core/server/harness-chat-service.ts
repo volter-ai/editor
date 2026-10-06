@@ -1084,9 +1084,12 @@ export class HarnessChatService {
       busy: (await this.frontendHandoffValue?.isBusy()) || snapshot.turn.state === 'running' || snapshot.requests.length > 0,
       harnesses: snapshot.harnesses.filter(h => h.availableActions.start).map(h => ({ id: h.id, name: h.label, autoStart: h.availableActions.autoStart === true,
         description: h.auth === 'unknown' || h.auth === 'configured' ? 'Authentication unverified' : undefined })),
-      models: chatModels(this.chatSelection.harness),
-      modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id)])),
+      models: chatModels(this.chatSelection.harness, launchContext.env),
+      modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id, launchContext.env)])),
       configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
+      // A new chat approves its agent's tool calls unless the person picks Ask (the owner's ask, 2026-10-06). The
+      // Chat applies it only where it can answer the runtime's approvals (Claude Code, Codex); others keep their prompts.
+      defaultPermission: 'autoApprove',
       setup: {
         ready: Boolean(this.frontendHandoffValue),
         actions,

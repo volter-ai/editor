@@ -4,32 +4,28 @@ import { createServer, type Server } from 'node:http';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { harnessModelChoices } from './harness-models';
 
 export interface ChatSelection {
   harness: string;
   model: string;
   effort: string;
 }
-export interface ChatChoice { id: string; name: string; description?: string }
+export interface ChatChoice { id: string; name: string; description?: string; efforts?: string[] }
 /** No harness chosen: the Chat view runs whichever harness supercode reports available. */
 export const DEFAULT_CHAT_SELECTION: ChatSelection = { harness: '', model: '', effort: '' };
 
-/** Alias choices belong to the CLI; exact model IDs can also be entered by the user. */
-export function chatModels(harness: string): ChatChoice[] {
-  const defaults = [{ id: '', name: 'Harness default' }];
-  if (harness === 'claude-code') return [...defaults, ...['sonnet', 'opus', 'haiku'].map(id => ({ id, name: `Claude ${id[0]!.toUpperCase()}${id.slice(1)}` }))];
-  // The user's Codex cache can belong to a different provider/account than
-  // the hosted app-server. Offer its default plus exact IDs through settings
-  // until the runtime publishes its own model inventory.
-
-  return defaults;
+/** The models and efforts the harness itself names (harness-models.ts); exact model IDs can also be entered. */
+export function chatModels(harness: string, env?: NodeJS.ProcessEnv): ChatChoice[] {
+  return harnessModelChoices(harness, env);
 }
 
 export function validateChatSelection(value: unknown): ChatSelection {
   const s = value as Partial<ChatSelection> | null;
   if (!s || typeof s.harness !== 'string' || !/^[a-z0-9-]{1,60}$/.test(s.harness) ||
       typeof s.model !== 'string' || s.model.length > 160 || /[\x00-\x1f]/.test(s.model) ||
-      typeof s.effort !== 'string' || !['', 'low', 'medium', 'high'].includes(s.effort)) throw new Error('Invalid chat selection.');
+      // The effort is one word the harness itself lists (harness-models.ts); the harness refuses one it does not take.
+      typeof s.effort !== 'string' || !/^(?:[a-z]{1,16})?$/.test(s.effort)) throw new Error('Invalid chat selection.');
   if ((s.model || s.effort) && !['claude-code', 'codex'].includes(s.harness)) throw new Error('This harness does not expose model or reasoning configuration in this editor yet.');
   return { harness: s.harness, model: s.model, effort: s.effort };
 }
