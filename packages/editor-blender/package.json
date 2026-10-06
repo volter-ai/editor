@@ -69,7 +69,7 @@
     "serving": "./dist-node/serving.mjs"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.30.0",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "@volter/blender-engine": "0.1.120",
     "@volter/editor-threejs": "0.5.183",
     "zod": "^4.3.6"
