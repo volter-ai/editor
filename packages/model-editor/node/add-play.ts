@@ -18,9 +18,9 @@
  * (an adapter whose shape it does not recognise) is printed as the line to add,
  * never guessed at.
  */
-import { constants, existsSync, lstatSync, statSync } from 'node:fs';
-import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, relative, resolve } from 'node:path';
+import { constants, existsSync, lstatSync, realpathSync, statSync } from 'node:fs';
+import { copyFile, mkdir, readFile, readdir, rm, rmdir, writeFile } from 'node:fs/promises';
+import { dirname, isAbsolute, join, relative, resolve } from 'node:path';
 import { GameManifestSchema } from '@volter/editor-project/manifest/schema';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { PLAYABLE, PROJECT_TSCONFIG, productRoot, productVersions } from './create';
@@ -58,19 +58,46 @@ function occupied(path: string): boolean {
   }
 }
 
-/** Why `path` cannot be written as a new file, or null when it can: the path itself is
- *  taken, or one of its folders under `project` is something other than a folder. */
-function blocked(project: string, path: string): string | null {
+/** Whether `path` (already real) is `root` or inside it. */
+function inside(root: string, path: string): boolean {
+  const rel = relative(root, path);
+  return rel === '' || (!rel.startsWith('..') && !isAbsolute(rel));
+}
+
+/**
+ * Why `path` cannot be written as a new file, or null when it can: the path itself is
+ * taken, one of its folders under `project` is something other than a folder, or the
+ * write would land OUTSIDE the project.
+ *
+ * That last one is about links. A folder on the way (`src/ui`, say) that is a symlink
+ * or junction to a real folder elsewhere passes every "is it a folder" check, and the
+ * copy then writes into whatever it points at — another project, a shared checkout.
+ * So the deepest folder that already exists is resolved to its real path (`realpath`
+ * follows every link above it too) and must sit inside the project's own real path;
+ * the folders below it do not exist yet, and `mkdir` creates them as plain folders.
+ */
+function blocked(project: string, realProject: string, path: string): string | null {
   if (occupied(path)) return 'exists';
+  let deepest = project;
   for (let dir = dirname(path); dir.length > project.length; dir = dirname(dir)) {
     if (!occupied(dir)) continue;
+    if (deepest === project) deepest = dir;
     try {
       if (!statSync(dir).isDirectory()) return `${relative(project, dir)} is not a folder`;
     } catch {
       return `${relative(project, dir)} is a dangling link`;
     }
   }
+  const real = realpathSync(deepest);
+  if (!inside(realProject, real)) return `${relative(project, deepest) || '.'} resolves outside the project, to ${real}`;
   return null;
+}
+
+/** The folders `mkdir -p` would create for `file`, deepest first: the ones that do not exist yet. */
+function missingFolders(project: string, file: string): string[] {
+  const missing: string[] = [];
+  for (let dir = dirname(file); dir.length > project.length && !occupied(dir); dir = dirname(dir)) missing.push(dir);
+  return missing;
 }
 
 /**
@@ -90,6 +117,8 @@ export async function addPlay(folder: string): Promise<void> {
   const project = resolve(folder);
   const manifestPath = join(project, MANIFEST_FILENAME);
   if (!existsSync(manifestPath)) throw new Error(`${project} is not a Model Editor project: it has no ${MANIFEST_FILENAME}.`);
+  // Links are judged against where the project REALLY is (see `blocked`).
+  const realProject = realpathSync(project);
   const packagePath = join(project, 'package.json');
   if (!existsSync(packagePath)) throw new Error(`${project} has no package.json to declare the Play dependencies in.`);
   const { kit } = await productVersions();
@@ -128,7 +157,7 @@ export async function addPlay(folder: string): Promise<void> {
     kept.push(`example Play script not added: the project already plays ${scripts.join(', ')}`);
   } else {
     const refusals = PLAYABLE.example.flatMap(([, to]) => {
-      const reason = blocked(project, join(project, to));
+      const reason = blocked(project, realProject, join(project, to));
       return reason === null ? [] : [`${to}: ${reason}`];
     });
     if (refusals.length > 0) {
@@ -193,21 +222,38 @@ export async function addPlay(folder: string): Promise<void> {
   const tsconfigPath = join(project, 'tsconfig.json');
   const writeTsconfig = !occupied(tsconfigPath);
   if (writeTsconfig) added.push('tsconfig.json');
+  // A link with nothing behind it is occupied (nothing is written over it) but is no
+  // tsconfig either: say so, rather than leaving the project without one in silence.
+  else if (!existsSync(tsconfigPath))
+    kept.push('tsconfig.json is a dangling link, so none was written; point it at a real tsconfig, or remove it and run add-play again');
 
   // WRITE. The example goes first: its exclusive copies are the writes that can still
   // be refused (a file appearing since the check above), and if one is, the copies
-  // made so far are removed and nothing else has been touched yet.
+  // made so far — and the folders made for them — are removed, and nothing else has
+  // been touched yet.
   if (exampleAdded) {
     const copied: string[] = [];
+    const created = new Set<string>();
     try {
       for (const [from, to] of PLAYABLE.example) {
-        await mkdir(dirname(join(project, to)), { recursive: true });
-        await copyFile(join(productRoot, 'starter', from), join(project, to), constants.COPYFILE_EXCL);
-        copied.push(join(project, to));
+        const target = join(project, to);
+        for (const dir of missingFolders(project, target)) created.add(dir);
+        await mkdir(dirname(target), { recursive: true });
+        await copyFile(join(productRoot, 'starter', from), target, constants.COPYFILE_EXCL);
+        copied.push(target);
       }
     } catch (error) {
       await Promise.all(copied.map(path => rm(path, { force: true })));
-      throw new Error(`add-play changed nothing: copying the example failed (${error instanceof Error ? error.message : String(error)}).`);
+      // Deepest first, and only when empty: `rmdir` refuses a folder something else has
+      // written into since, and that folder is then named rather than claimed gone.
+      const remaining: string[] = [];
+      for (const dir of [...created].sort((a, b) => b.length - a.length)) {
+        try { await rmdir(dir); } catch { if (occupied(dir)) remaining.push(relative(project, dir)); }
+      }
+      const reason = error instanceof Error ? error.message : String(error);
+      throw new Error(remaining.length === 0
+        ? `add-play changed nothing: copying the example failed (${reason}).`
+        : `add-play copied nothing, but could not remove the folder${remaining.length === 1 ? '' : 's'} it made: ${remaining.join(', ')}. Copying the example failed (${reason}).`);
     }
     added.push(...PLAYABLE.example.map(([, to]) => to));
   }
