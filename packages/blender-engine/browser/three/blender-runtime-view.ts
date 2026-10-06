@@ -1633,7 +1633,7 @@ export class BlenderRuntimeView {
     const next = frameSchema.parse(input);
     const staged = this.staged;
     if (staged && (staged.session !== next.session || staged.revision !== next.revision))
-      throw new Error('Blender frame manifest does not match its staged revision');
+      throw new Error(`Blender frame manifest does not match its staged revision: staged ${JSON.stringify([staged.session, staged.revision])}, manifest ${JSON.stringify([next.session, next.revision])}`);
     if (staged) for (const [name, data] of staged.images) next.images[name] = data;
     if (this.retiredSessions.has(next.session))
       throw new Error(
