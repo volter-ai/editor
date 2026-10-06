@@ -593,6 +593,17 @@ function findSourceLinkedSupercodeCommand(): string | undefined {
   );
 }
 
+/**
+ * How to run `supercode <args>` given the resolved command. The installed front door is
+ * `bin/supercode.js`, which POSIX runs through its shebang and Windows cannot spawn at all
+ * (`spawn UNKNOWN`: a script is not an executable there), so a script runs through this Node.
+ */
+export function supercodeInvocation(command: string, args: readonly string[]): { command: string; args: string[] } {
+  return /\.[cm]?js$/i.test(command)
+    ? { command: process.execPath, args: [command, ...args] }
+    : { command, args: [...args] };
+}
+
 export function findSupercodeCommand(cwd = process.cwd(), path = process.env['PATH'] ?? ''): string | undefined {
   const explicit = process.env['SUPERCODE_BIN'];
   if (explicit) {
@@ -1115,9 +1126,12 @@ export class HarnessChatService {
     this.setupHarness = harness;
     // The extension runs this exact, host-authored command in a visible terminal.
     // It never executes arbitrary repair prose or receives provider credentials.
+    const invocation = kind === 'login'
+      ? supercodeInvocation(program, ['harness', 'login', harness])
+      : { command: program, args: ['install', '-g', '--prefix', launchContext.npmPrefix!, '@openai/codex'] };
     return { ...action, cwd: this.options.getProjectRoot(),
-      program,
-      arguments: kind === 'login' ? ['harness', 'login', harness] : ['install', '-g', '--prefix', launchContext.npmPrefix!, '@openai/codex'],
+      program: invocation.command,
+      arguments: invocation.args,
       env: launchContext.env,
     };
   }
@@ -1600,7 +1614,7 @@ export class HarnessChatService {
       withManagedRuntimeObserver(
         new SupercodeHarnessClient({
           cwd: workspace,
-          ...(command ? { command } : {}),
+          ...(command ? supercodeInvocation(command, ['harness', 'serve']) : {}),
           env: launchContext.env,
         }),
         (runtime) => this.observeChatRuntime(runtime),
