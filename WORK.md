@@ -1680,7 +1680,11 @@ WebSocket idle timeout and a server close before `response.completed`, not
 editor freeze or context overflow. The incomplete game and transcript were
 saved and closed. No provider setting or credentials were changed. Supercode's
 caller-preservation fix is merged in PR1267, cf27eba8. A fresh cycle 15 uses the
-same 18-word prompt/reference with an immutable editor snapshot, published
-frontend 0.1.40 and that merged controller fix. Its author is testing races;
+same 18-word prompt/reference with an immutable editor snapshot and that merged
+controller fix. A provenance audit corrected the packed extension's label:
+the actual installed/packed VS Code extension is 0.1.31, embedding frontend
+contract 0.2.7; an earlier helper incorrectly stamped the requested 0.1.40 into
+BUILD.json. The owned candidate and receipts now distinguish actual bytes from
+the requested pin. Its author is testing races;
 visual acceptance and a complete workflow pass remain pending. Astra xhigh is
 listed by the native catalog but has not been dispatched yet.
