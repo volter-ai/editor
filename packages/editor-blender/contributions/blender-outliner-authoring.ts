@@ -1104,6 +1104,10 @@ export function blenderOutlinerAuthoringFor(
    *  been read, so the same engine selection must be re-derived when the tree
    *  moves under it. */
   let lastEngineKey: string | null = null;
+  // Tree loading publications can arrive before a gesture's write presents.
+  // Keep its optimistic selection until the latest write settles; an older
+  // write's frame must not replace a newer gesture either.
+  let pendingSelection: symbol | null = null;
   /** The world matrix each live gesture started from — see `beginEdit`. */
   const gestureStart = new Map<THREE.Object3D, THREE.Matrix4>();
   // Retain the subject until endEdit, even if a concurrent native edit removes
@@ -1243,6 +1247,7 @@ export function blenderOutlinerAuthoringFor(
    * disagreement this whole unit exists to end.
    */
   const syncFromEngine = (): void => {
+    if (disposed || pendingSelection !== null) return;
     const engine = blenderEngineSelection();
     const key = `${blenderOutlinerVersion()} ${engine.active ?? ''} ${[...engine.selected]
       .sort()
@@ -1260,6 +1265,9 @@ export function blenderOutlinerAuthoringFor(
   const selection: SelectionProvider = {
     get: () => [...selected],
     set: (ids) => {
+      if (disposed) return;
+      const request = Symbol('Blender selection');
+      pendingSelection = request;
       // NORMALIZED, because ids arrive in BOTH SPACES (the header's "both
       // ways"). A hierarchy click and this adapter's own verbs speak ROW ids;
       // the viewport's MARQUEE speaks the presentation's, because it picks
@@ -1305,7 +1313,16 @@ export function blenderOutlinerAuthoringFor(
         );
       // The ACTIVE is the LAST row the gesture named, which is the shell's own
       // reading of `selectedEntityId` and Blender's of an active object.
-      void writeBlenderSelection(names, names.length === 0 ? null : names[names.length - 1]!);
+      void writeBlenderSelection(names, names.length === 0 ? null : names[names.length - 1]!)
+        .catch(error => editorHost().console.error(
+          `Blender refused the selection write: ${String(error)}`, 'blender-outliner',
+        ))
+        .finally(() => {
+          if (disposed || pendingSelection !== request) return;
+          pendingSelection = null;
+          lastEngineKey = null;
+          syncFromEngine();
+        });
     },
   };
 

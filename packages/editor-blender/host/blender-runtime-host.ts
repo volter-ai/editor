@@ -324,6 +324,22 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
   return !anotherModel || active === binding.documentId;
 }
 
+/** A retained photograph must belong to the file and revision still on screen,
+ * not a retiring pane or the next worker's first frame. */
+export function modelDocumentOwnsPresentation(
+  documentId: string,
+  entryId: string,
+  blend: string | undefined,
+  presented: { readonly session: string; readonly revision: number } | null,
+): boolean {
+  const binding = boundModel;
+  const latest = runtime?.presented;
+  return editorHost().session.open() && !!binding && binding.documentId === documentId && binding.entryId === entryId &&
+    binding.blend === blend && modelDocumentMayOpen(binding) &&
+    runtime?.project === editorHost().projectLocalState.projectRootPath() && runtime.document === blend &&
+    !!presented && !!latest && presented.session === latest.session && presented.revision === latest.revision;
+}
+
 /**
  * OPEN A `.blend` IN THE ENGINE — the Model document's own call, the WS-F save
  * path run backwards. `session.py` opens the named file at start and saves
@@ -334,7 +350,43 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
  * identity. Boot itself can present, so the context must exist before awaiting
  * boot completion. Return false when the requesting pane has since unmounted.
  */
+let modelOpenTail: Promise<void> = Promise.resolve();
+let modelStartup: { readonly session: BlenderRuntime; readonly project: string; readonly blend: string } | null = null;
+
+function queueModelLifecycle<T>(operation: () => Promise<T>): Promise<T> {
+  const result = modelOpenTail.then(operation);
+  modelOpenTail = result.then(() => {}, () => {});
+  return result;
+}
+
 export async function openModelDocumentBlend(
+  binding: ModelDocumentBinding,
+  publish: () => void,
+): Promise<boolean> {
+  let published = false;
+  const publishOnce = () => {
+    if (published) return;
+    publish();
+    published = true;
+  };
+  const host = editorHost();
+  const starting = modelStartup;
+  // A native workspace restore can remount this pane before boot's first
+  // frame. Its predecessor has unpublished, but still owns the queued boot:
+  // waiting behind it before publishing would make boot wait on itself.
+  // Only the SAME starting resource can restore its presenter here. Another
+  // file still waits for the old worker's save/retirement in the queue.
+  if (starting && starting.session === runtime && host.session.open() &&
+      starting.project === host.projectLocalState.projectRootPath() &&
+      starting.blend === binding.blend && modelDocumentMayOpen(binding)) {
+    publishOnce();
+  }
+  // Only one handoff may own stop/start. Re-check the mounted requester after
+  // every wait: a rapid B -> C selection must not let B publish into C.
+  return queueModelLifecycle(() => openBoundModelDocument(binding, publishOnce));
+}
+
+async function openBoundModelDocument(
   binding: ModelDocumentBinding,
   publish: () => void,
 ): Promise<boolean> {
@@ -343,13 +395,28 @@ export async function openModelDocumentBlend(
   const project = host.projectLocalState.projectRootPath();
   if (project === null) throw new Error('Opening a model requires a project path.');
   if (!modelDocumentMayOpen(binding)) return false;
+  const previous = runtime;
+  if (previous && (previous.project !== project || previous.document !== binding.blend)) {
+    // stop drains accepted work and flushes the OLD worker's bound file. If
+    // saving fails it stays alive; neither its history nor its ownership moves.
+    const end = beginBlenderWork('saving previous model before opening another');
+    try { await previous.stop(); } finally { end(); }
+    if (runtime === previous) terminateBlenderRuntime();
+    if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
+  }
   const session = blenderRuntime();
   // start claims its resource synchronously; its first frame may arrive before
   // the returned promise resolves. The getter above rejects a conflicting file.
   const started = session.start(project, binding.blend);
-  publish();
-  await started;
-  if (boundModel !== binding) return false;
+  const starting = { session, project, blend: binding.blend };
+  modelStartup = starting;
+  try {
+    publish();
+    await started;
+  } finally {
+    if (modelStartup === starting) modelStartup = null;
+  }
+  if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
   // bind_document presents the opened file before start resolves. Do not
   // immediately evaluate/export it again: on Stoneguard that redundant RPC
   // took 13.8 seconds after the resumable startup had already finished.
@@ -357,12 +424,12 @@ export async function openModelDocumentBlend(
   // nothing at start. Compare the view's actual holding with the runtime's
   // revision so both cases still request the frame they need.
   const shown = (await runtimeView()).snapshot();
-  if (boundModel !== binding) return false;
+  if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
   const latest = session.presented;
   if (!shown || !latest || shown.session !== latest.session || shown.revision !== latest.revision) {
     await session.present();
   }
-  return boundModel === binding;
+  return host.session.open() && modelDocumentMayOpen(binding);
 }
 
 /**
@@ -802,11 +869,14 @@ function terminateBlenderRuntime(): void {
 function watchSessionEnd(): void {
   if (watchingSessionEnd) return;
   watchingSessionEnd = true;
-  editorHost().session.onBeforeClose(async () => {
-    await runtime?.stop();
-    terminateBlenderRuntime();
-  });
+  editorHost().session.onBeforeClose(() => queueModelLifecycle(stopBlenderRuntime));
   editorHost().session.onEnded(terminateBlenderRuntime);
+}
+
+async function stopBlenderRuntime(): Promise<void> {
+  const owner = runtime;
+  await owner?.stop();
+  if (runtime === owner) terminateBlenderRuntime();
 }
 let lastCapture: CaptureRequest | null = null;
 
@@ -1208,8 +1278,7 @@ export async function handleBlenderCommand(cmd: {
     let requestedDocument = typeof cmd['document'] === 'string' ? cmd['document'] : undefined;
     if (cmd.type === 'blender-stop' || (cmd.type === 'blender-start' && cmd['fresh'] === true)) {
       // Do not invalidate history or discard the worker if persistence fails.
-      await runtime?.stop();
-      terminateBlenderRuntime();
+      await queueModelLifecycle(stopBlenderRuntime);
       if (cmd.type === 'blender-stop') return { ok: true, data: { stopped: true } };
     }
     if (cmd.type === 'blender-start' && !host.documents.context(presentationDocumentId())) {
