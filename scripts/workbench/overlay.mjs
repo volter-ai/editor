@@ -427,7 +427,65 @@ ${openEditor}
 	patchChatSource(checkout, group, 'const openEditorResult = this.doOpenEditor(activeReplacement.replacement, activeReplacement.options);', `const openEditorResult = this.doOpenEditor(activeReplacement.replacement, activeReplacement.options);
 			const replacementResource = (activeReplacement.replacement as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? activeReplacement.replacement.resource;
 			if (replacementResource?.scheme === 'supercode') { await openEditorResult; }`, 'await harness replacement before closing source');
+	patchHarnessMoveActions(checkout);
 	patchHarnessPassiveViews(checkout);
+}
+
+/** Moving a bound Chat is an intentional activation, guarded before source destruction. */
+function patchHarnessMoveActions(checkout) {
+	const move = 'src/vs/workbench/contrib/chat/browser/actions/chatMoveActions.ts';
+	patchChatSource(checkout, move, "import { CHAT_CATEGORY } from './chatActions.js';",
+		"import { CHAT_CATEGORY } from './chatActions.js';\nimport { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';", 'move navigation owner import');
+	for (const destination of ['Editor', 'Window']) {
+		patchChatSource(checkout, move, `\t\t\texecuteMoveToAction(accessor, MoveToNewLocation.${destination}, isChatViewTitleActionContext(context) ? context.sessionResource : undefined);`,
+			`\t\t\treturn executeMoveToAction(accessor, MoveToNewLocation.${destination}, isChatViewTitleActionContext(context) ? context.sessionResource : undefined);`, 'await native Chat move command');
+	}
+	patchChatSource(checkout, move, `\t// Todo: can possibly go away with https://github.com/microsoft/vscode/pull/278476
+	const modelInputState = existingWidget.getInputState();
+
+	await widget.clear();
+
+	const options: IChatEditorOptions = { pinned: true, modelInputState, auxiliary };
+	await widgetService.openSession(resourceToOpen, moveTo === MoveToNewLocation.Window ? AUX_WINDOW_GROUP : ACTIVE_GROUP, options);`,
+		`\tawait accessor.get(IHarnessChatNavigationService).run(resourceToOpen, async permit => {
+		// Capture the author draft only after the addressed source passed its guard.
+		const modelInputState = existingWidget.getInputState();
+		await widget.clear();
+		const options: IChatEditorOptions = { pinned: true, modelInputState, auxiliary, harnessNavigationPermit: permit };
+		const destination = await widgetService.openSession(resourceToOpen, moveTo === MoveToNewLocation.Window ? AUX_WINDOW_GROUP : ACTIVE_GROUP, options);
+		if (permit && destination?.viewModel?.sessionResource.toString() !== resourceToOpen.toString()) {
+			throw new Error('The moved conversation was not selected by the native editor.');
+		}
+	}, undefined, () => widget.viewModel?.sessionResource.toString() === resourceToOpen.toString()
+		&& widgetService.getWidgetBySessionResource(resourceToOpen) === existingWidget);`, 'guard before source Chat clear and nested move');
+	patchChatSource(checkout, move, `\t\tconst previousInputState = chatEditor.widget.getInputState();
+		await editorService.closeEditor({ editor: chatEditor.input, groupId: editorGroupService.activeGroup.id });
+		view = await viewsService.openView(ChatViewId) as ChatViewPane;
+
+		// Todo: can possibly go away with https://github.com/microsoft/vscode/pull/278476
+		const newModel = await view.loadSession(chatEditorInput.sessionResource);
+		if (previousInputState && newModel && !newModel.inputModel.state.get()) {
+			newModel.inputModel.setState(previousInputState);
+		}`, `\t\tconst resource = chatEditorInput.sessionResource;
+		const sourceGroup = editorGroupService.activeGroup;
+		await accessor.get(IHarnessChatNavigationService).run(resource, async permit => {
+			const previousInputState = chatEditor.widget.getInputState();
+			const closed = await editorService.closeEditor({ editor: chatEditorInput, groupId: sourceGroup.id });
+			if (permit && !closed) { throw new Error('The source conversation editor was not closed for its move.'); }
+			view = await viewsService.openView(ChatViewId) as ChatViewPane;
+			if (permit && !view) { throw new Error('The destination Chat view was not available for its move.'); }
+			const newModel = await view.loadSession(resource, undefined, permit);
+			if (permit && newModel?.sessionResource.toString() !== resource.toString()) {
+				throw new Error('The moved conversation was not selected by the native Chat view.');
+			}
+			if (previousInputState && newModel && !newModel.inputModel.state.get()) {
+				newModel.inputModel.setState(previousInputState);
+			}
+			view.focus();
+		}, undefined, () => editorService.activeEditorPane === chatEditor && chatEditor.input === chatEditorInput
+			&& editorGroupService.getGroup(sourceGroup.id) === sourceGroup
+			&& !chatEditorInput.isDisposed() && chatEditorInput.sessionResource?.toString() === resource.toString());
+		return;`, 'guard before source editor close and nested sidebar move');
 }
 
 /** Reading an already-visible inactive pane is passive, with all interaction disabled. */
