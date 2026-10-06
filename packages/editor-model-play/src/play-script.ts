@@ -76,6 +76,7 @@ import {
   modelPlayGeneration,
   registerModelPlayStop,
   setModelPlayAutoplay,
+  setModelPlayFailure,
   setModelPlayAutoplayAvailable,
   subscribeModelPlayClock,
   takeModelPlayStep,
@@ -241,6 +242,11 @@ export function runPlayScript(options: {
   const report = (phase: 'start' | 'update' | 'stop' | 'autoplay', title: string, error: unknown): void => {
     const detail = error instanceof Error ? error.message : String(error);
     run.append('play', 'script-error', { phase, message: detail });
+    // NO GAME RUNS NOW (a first start that failed, or the running game threw): the run still
+    // plays, and a save retries it, but what is on screen is not a game. Said on the clock, so
+    // the Game panel can say so and the document drops a Restart's cover (`failure`).
+    if ((phase === 'start' || phase === 'update') && game === null && current())
+      setModelPlayFailure(options.documentId, `${title}: ${detail}`);
     options.report(title, detail);
   };
   // Said once per object: a script that tints every frame would otherwise fill the log.
@@ -491,6 +497,7 @@ export function runPlayScript(options: {
         next.game.update(updates[0]!);
         end();
         game = next.game;
+        setModelPlayFailure(options.documentId, null);
         startedAt = Date.now();
         endedAt = null;
         composition = next.composition;

@@ -23,7 +23,7 @@
 const listeners = new Set<() => void>();
 const clockListeners = new Set<() => void>();
 const playing = new Set<string>();
-const stops = new Map<string, (escape: boolean) => void>();
+const stops = new Map<string, { readonly stop: (escape: boolean) => void; readonly generation: number }>();
 
 /** The speeds the transport offers, slowest first (simulation seconds per real second). */
 export const MODEL_PLAY_SPEEDS: readonly number[] = [0.25, 0.5, 1, 2, 4];
@@ -35,8 +35,10 @@ export interface ModelPlayClock {
   readonly tick: number;
   readonly paused: boolean;
   readonly speed: number;
+  /** The run is playing but no game runs: the script failed to start, or threw (`play-script.ts`). */
+  readonly failure: string | null;
 }
-const STILL: ModelPlayClock = { time: 0, tick: 0, paused: false, speed: 1 };
+const STILL: ModelPlayClock = { time: 0, tick: 0, paused: false, speed: 1, failure: null };
 /** Replaced, never mutated, so a snapshot read by `useSyncExternalStore` changes identity
  *  exactly when it changes value. */
 const clocks = new Map<string, ModelPlayClock>();
@@ -79,13 +81,14 @@ export function modelPlaying(documentId: string): boolean {
 
 export function setModelPlaying(documentId: string, value: boolean): void {
   if (playing.has(documentId) === value) return;
-  if (!value && stops.has(documentId)) { stops.get(documentId)!(false); return; }
+  const stop = value ? null : currentStop(documentId);
+  if (stop) { stop(false); return; }
   if (value) {
     playing.add(documentId);
     // A new run starts its clock at zero and running; the speed is the person's and stays.
     steps.delete(documentId);
     autoplays.delete(documentId);
-    setClock(documentId, { time: 0, tick: 0, paused: false });
+    setClock(documentId, { time: 0, tick: 0, paused: false, failure: null });
   } else {
     playing.delete(documentId);
     restarted.delete(documentId);
@@ -95,7 +98,7 @@ export function setModelPlaying(documentId: string, value: boolean): void {
     // Re-issued even unchanged, after `playing` has changed: every way a game stops (Stop,
     // Escape, a deleted script, a mode switch, an agent's `stop`) ends here, and a reader of
     // the clock alone must see the run end too.
-    setClock(documentId, { paused: false });
+    setClock(documentId, { paused: false, failure: null });
   }
   publish();
 }
@@ -106,14 +109,33 @@ export function finishModelPlay(documentId: string): void {
 }
 
 export function escapeModelPlay(documentId: string): void {
-  const stop = stops.get(documentId);
+  const stop = currentStop(documentId);
   if (stop) stop(true);
   else finishModelPlay(documentId);
 }
 
+/**
+ * A RUNNER'S STOP, BOUND TO ITS GENERATION. Stop and Escape go to the runner of the CURRENT
+ * generation, which blends the camera back first; a stop a Restart has superseded is never
+ * asked, because that runner stands still from the moment its generation passes
+ * (`play-script.ts`) and would never finish the blend — the stop would be lost. With no current
+ * runner (a restarted game still preparing) the play simply ends.
+ */
 export function registerModelPlayStop(documentId: string, stop: (escape: boolean) => void): () => void {
-  stops.set(documentId, stop);
-  return () => { if (stops.get(documentId) === stop) stops.delete(documentId); };
+  const entry = { stop, generation: modelPlayGeneration(documentId) };
+  stops.set(documentId, entry);
+  return () => { if (stops.get(documentId) === entry) stops.delete(documentId); };
+}
+
+function currentStop(documentId: string): ((escape: boolean) => void) | null {
+  const entry = stops.get(documentId);
+  return entry !== undefined && entry.generation === modelPlayGeneration(documentId) ? entry.stop : null;
+}
+
+/** The runner's report that no game runs although the run plays (`null` once one does). */
+export function setModelPlayFailure(documentId: string, failure: string | null): void {
+  if (!playing.has(documentId) || modelPlayClock(documentId).failure === failure) return;
+  setClock(documentId, { failure });
 }
 
 export function subscribeModelPlay(listener: () => void): () => void {
@@ -186,7 +208,7 @@ export function restartModelPlay(documentId: string): void {
   restarted.add(documentId);
   steps.delete(documentId);
   autoplays.delete(documentId);
-  setClock(documentId, { time: 0, tick: 0, paused: false });
+  setClock(documentId, { time: 0, tick: 0, paused: false, failure: null });
   publish();
 }
 

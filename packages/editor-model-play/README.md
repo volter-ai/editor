@@ -132,6 +132,9 @@ summing `dt` is outside the reach of pause and speed.
 The run's clock — simulation time (the sum of the `dt`s handed to the script) and tick (the
 number of updates) — is kept per document beside whether it plays (`src/model-play.ts`).
 Speed is kept for the page's life; pause and the clock reset on every Play.
+When the run plays but no game runs — the script failed to start, or threw — the clock's
+`failure` says why (the Game panel shows it in place of "Playing"); a save of the script
+retries, and the next running game clears it.
 
 ## Controls
 

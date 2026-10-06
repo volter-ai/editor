@@ -475,17 +475,49 @@ function BlenderModelViewport(props: ToolContributionProps) {
   const [shownGeneration, setShownGeneration] = useState(generation);
   const [restartStill, setRestartStill] = useState<string | null>(null);
   const restarting = useRef(false);
+  // A restarted game that has not drawn yet: its stage holds no game to photograph, so a second
+  // Restart in that window keeps the cover it has (or none) rather than photographing a blank.
+  const awaitingDraw = useRef(false);
   useLayoutEffect(() => {
     if (generation === shownGeneration) return;
     if (playing && documentId) {
       restarting.current = true;
-      let still: string | null = null;
-      try { still = documentViewport(`${documentId}#play`)?.capture?.() ?? null; }
-      catch { /* No photograph: the new stage shows as it prepares, still never the model. */ }
-      setRestartStill(still);
+      if (!awaitingDraw.current) {
+        let still: string | null = null;
+        try { still = documentViewport(`${documentId}#play`)?.capture?.() ?? null; }
+        catch { /* No photograph: the new stage shows as it prepares, still never the model. */ }
+        setRestartStill(still);
+      }
+      awaitingDraw.current = true;
     }
     setShownGeneration(generation);
   }, [generation, shownGeneration, playing, documentId]);
+  /**
+   * A RESTARTED GAME THAT FAILS never draws (its script did not start, or threw on its first
+   * update), so the cover would stand over it while the panel said Playing. The runner says so
+   * on the clock (`DocumentPlayClock.failure`); the cover drops and the stage shows what it has.
+   */
+  const transport = documentPlayExtension('model')?.transport;
+  const subscribeFailure = useCallback(
+    (listener: () => void) => transport?.subscribeClock(listener) ?? (() => {}),
+    [transport],
+  );
+  const failure = useSyncExternalStore(
+    subscribeFailure,
+    () => (documentId && transport ? transport.clock(documentId).failure ?? null : null),
+    () => null,
+  );
+  useEffect(() => {
+    if (failure === null) return;
+    awaitingDraw.current = false;
+    setRestartStill(null);
+  }, [failure]);
+  /**
+   * COPIES A RESTART RETIRED, disposed only once the play area that drew them has unmounted:
+   * the commit that renders the new copy removes the old area first, and this runs after it.
+   * Disposed earlier, the old stage could draw a disposed copy for a frame.
+   */
+  const retired = useRef<ReturnType<AreaView['detach']>[]>([]);
   useEffect(() => {
     if (!playing || !documentId) { restarting.current = false; return; }
     const playId = `${documentId}#play`;
@@ -503,16 +535,28 @@ function BlenderModelViewport(props: ToolContributionProps) {
       notifyWorkspaceDocumentSelectionChanged(documentId);
     }
     return () => {
-      copy.dispose();
       // Read at cleanup: the layout effect above has already marked a restart, whose new copy
       // takes over in this same commit with the play mode unchanged.
-      if (restarting.current && documentPlayExtension('model')?.playing(documentId)) return;
+      if (restarting.current && documentPlayExtension('model')?.playing(documentId)) {
+        retired.current.push(copy);
+        return;
+      }
+      copy.dispose();
+      for (const old of retired.current.splice(0)) old.dispose();
+      awaitingDraw.current = false;
       setPlayed(null);
       setRestartStill(null);
       view.setPlaying(false);
       notifyWorkspaceDocumentSelectionChanged(documentId);
     };
   }, [playing, documentId, shownGeneration]);
+  useEffect(() => {
+    for (const old of retired.current.filter(one => one !== played)) old.dispose();
+    retired.current = retired.current.filter(one => one === played);
+  }, [played]);
+  // And whatever is still retired when the document itself goes (declared after the copy's own
+  // effect, so its cleanup has already handed over anything mid-restart).
+  useEffect(() => () => { for (const old of retired.current.splice(0)) old.dispose(); }, []);
   // The document closing or going inactive ends its game; a game never outlives its stage.
   useEffect(() => {
     if (!documentId) return;
@@ -554,7 +598,7 @@ function BlenderModelViewport(props: ToolContributionProps) {
         <div key={`play-${playCopyKey(game)}`} style={{ position: 'absolute', inset: 12, containerType: 'size' }} data-testid="blender-play-area">
           <div data-volter-play-frame style={playFrame}>
           <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} playing
-            onPlayReady={() => { setPlayedReady(true); setRestartStill(null); }} onPlayReturn={() => setPlayedReady(false)} />
+            onPlayReady={() => { awaitingDraw.current = false; setPlayedReady(true); setRestartStill(null); }} onPlayReturn={() => setPlayedReady(false)} />
           </div>
         </div>
       )}
