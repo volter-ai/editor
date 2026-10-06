@@ -3,8 +3,8 @@
  *  THE RELEASE — one product's workbench, bundled, on a machine that can build it.
  *
  *    node scripts/workbench/build-release.mjs --product <editor> \
- *         --platform <darwin-arm64|linux-x64> --checkout <fork dir> [--out <dir>] [--work <dir>] \
- *         [--look <package dir>]… [--publish] [--dry-run]
+ *         --platform <darwin-arm64|linux-x64|win32-x64> --checkout <fork dir> [--out <dir>] [--work <dir>] \
+ *         [--min-ram <GiB>] [--look <package dir>]… [--publish] [--dry-run]
  *    node scripts/workbench/build-release.mjs --publish --out <dir>     # publish a release cut earlier
  *
  *  A CUT RELEASE IS NOT A PRODUCT'S WORKBENCH UNTIL IT IS PUBLISHED. `--publish` uploads the
@@ -113,7 +113,7 @@ function releaseTag(record) {
 }
 
 function parseArgs(argv) {
-	const args = { product: null, platform: null, checkout: null, out: null, work: null, dryRun: false, publish: false, looks: [] };
+	const args = { product: null, platform: null, checkout: null, out: null, work: null, minRam: MIN_RAM_GIB, dryRun: false, publish: false, looks: [] };
 	for (let i = 2; i < argv.length; i++) {
 		const flag = argv[i];
 		if (flag === '--dry-run') { args.dryRun = true; }
@@ -123,6 +123,8 @@ function parseArgs(argv) {
 		else if (flag === '--checkout') { args.checkout = argv[++i]; }
 		else if (flag === '--out') { args.out = argv[++i]; }
 		else if (flag === '--work') { args.work = argv[++i]; }
+		// A lower floor for a machine doing nothing else — a WSL guest capped below 32 GiB.
+		else if (flag === '--min-ram') { args.minRam = Number(argv[++i]); }
 		else if (flag === '--look') { args.looks.push(resolve(argv[++i])); }
 		else { fail(`unknown argument "${flag}"`); }
 	}
@@ -306,8 +308,8 @@ function step(command, commandArgs, options = {}) {
 
 const ram = ramGib();
 console.log(`machine: ${ram} GiB RAM, ${process.platform} ${process.arch}, node ${process.version}`);
-if (ram < MIN_RAM_GIB) {
-	const line = `this build needs at least ${MIN_RAM_GIB} GiB of RAM and this machine has ${ram}. The out-build emit alone wants a 9 GB heap; it is a machine boundary, not a code defect. Build it where there is RAM, with the box quiet.`;
+if (ram < args.minRam) {
+	const line = `this build needs at least ${args.minRam} GiB of RAM and this machine has ${ram}. The out-build emit alone wants a 9 GB heap; it is a machine boundary, not a code defect. Build it where there is RAM, with the box quiet.`;
 	if (args.dryRun) { console.log(`machine: below the floor — a real run would REFUSE here (dry run continues)`); }
 	else { fail(line); }
 }
