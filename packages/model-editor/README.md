@@ -50,7 +50,7 @@ Run from the project folder with `npx --no-install volter-model-editor <command>
 | `status` \| `console` | The editor's state, and its unresolved console entries. Entries print to stderr; the command exits 1 only for an unresolved **error** — warnings alone exit 0. `eval` ends by the same rule. |
 | `eval <JavaScript>` \| `eval --list` | Runs code against the live editor; `--list` prints what is in scope and a few common tasks. |
 | `camera --position x,y,z --target x,y,z [--fov n]` | Poses the current document's viewport camera. Coordinates are Blender's: metres, Z up (the command converts them to the stage's Y up). `--fov` is the vertical field of view in degrees. |
-| `capture [--region document\|play\|page] [--out file.png]` | Saves what the person sees as a PNG and prints its path (default `.volter/captures/<region>-<time>.png`). `document` is the active document with its overlays; `play` is the live Play frame with its UI. |
+| `capture [--region document\|play\|page] [--out file.png [--force]]` | Saves what the person sees as a PNG and prints its path (default `.volter/captures/<region>-<time>.png`). `document` is the active document with its overlays; `play` is the live Play frame with its UI. `--out` refuses to replace an existing file unless `--force` is given. |
 | `screenshot [<target>]` | The active document's render, or a model file or entity staged on its own. |
 | `chat status` \| `chat send "<prompt>"` \| `chat stop` | The editor's Chat conversation. |
 
