@@ -77,12 +77,14 @@ export function preserveRuntimeNotices(packageDir, checkout, platform) {
 		nodeSource?.component?.git?.repositoryUrl !== expectedNode.notice.source.repository) {
 		refuse(`bundled Node ${nodeVersion}: source/version differs from reviewed Node ${expectedNode.version} at ${expectedNode.notice.source.revision}`);
 	}
-	const nodeBytes = readFileSync(join(packageDir, 'node'));
+	// The server package's runtime is `node`, and `node.exe` in a win32 one.
+	const nodeBinary = platform.startsWith('win32') ? 'node.exe' : 'node';
+	const nodeBytes = readFileSync(join(packageDir, nodeBinary));
 	const nodeSha256 = digest(nodeBytes);
-	if (nodeSha256 !== digest(readFileSync(join(checkout, '.build/node', `v${nodeVersion}`, platform, 'node')))) {
+	if (nodeSha256 !== digest(readFileSync(join(checkout, '.build/node', `v${nodeVersion}`, platform, nodeBinary)))) {
 		refuse(`bundled Node ${nodeVersion}: packaged binary differs from the canonical downloaded runtime`);
 	}
-	const node = { version: nodeVersion, binary: 'node', binarySha256: nodeSha256,
+	const node = { version: nodeVersion, binary: nodeBinary, binarySha256: nodeSha256,
 		notice: cover(packageDir, `node/${nodeVersion}`, expectedNode.notice) };
 	// Node's LICENSE must not be confused with a distribution-root LICENSE belonging
 	// to another component. The canonical package currently has LICENSE.txt only.

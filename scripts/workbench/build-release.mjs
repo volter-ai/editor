@@ -77,7 +77,8 @@
 import { spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { totalmem, tmpdir } from 'node:os';
+import { basename, delimiter, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { assertAtPin, CHAT_EXTENSION, knownProducts } from './overlay.mjs';
 import { serializeBuild } from './serial-build.mjs';
@@ -88,7 +89,11 @@ const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
  *  its heap; 16 GB is where it took a machine to 18 % free and the standing memory rule killed
  *  it with 34 of `out-build`'s entries written. */
 const MIN_RAM_GIB = 32;
-const PLATFORMS = ['darwin-arm64', 'linux-x64'];
+const PLATFORMS = ['darwin-arm64', 'linux-x64', 'win32-x64'];
+/** A RELEASE IS BUILT ON ITS OWN PLATFORM: the package task copies this machine's native modules
+ *  and the node downloaded for the target, so a win32 release comes from Windows and a linux one
+ *  from Linux (WSL counts). */
+const WINDOWS = process.platform === 'win32';
 /** WHERE A RELEASE LIVES ONCE IT IS CUT. The fork's own repository holds it, because a release
  *  IS the fork at a commit with our overlay on it — one place for the bytes and the tree they
  *  were built from. The public release is downloadable without credentials. */
@@ -144,13 +149,11 @@ function parseArgs(argv) {
 	return args;
 }
 
+/** Installed RAM, rounded: a 32 GiB machine reports a little under 32 once firmware and the
+ *  GPU take their share (31.7 on a 32 GiB Windows desktop), and that is still the machine the
+ *  floor means. */
 function ramGib() {
-	if (process.platform === 'darwin') {
-		const out = spawnSync('sysctl', ['-n', 'hw.memsize'], { encoding: 'utf8' });
-		return Math.floor(Number(out.stdout.trim()) / 1024 ** 3);
-	}
-	const meminfo = readFileSync('/proc/meminfo', 'utf8').match(/MemTotal:\s+(\d+)/);
-	return meminfo ? Math.floor(Number(meminfo[1]) / 1024 ** 2) : 0;
+	return Math.round(totalmem() / 1024 ** 3);
 }
 
 function directoryBytes(dir) {
@@ -251,7 +254,7 @@ if (args.publishOnly) {
 const pin = assertAtPin(resolve(args.checkout));
 const checkout = resolve(args.checkout);
 const out = resolve(args.out ?? join(REPO_ROOT, '.volter/releases'));
-const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? '/tmp', `volter-workbench-build-${args.product}`));
+const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? tmpdir(), `volter-workbench-build-${args.product}`));
 const clone = join(work, 'code-oss');
 const packageDir = join(work, `vscode-reh-web-${args.platform}`);
 const tarball = join(out, `vscode-reh-web-${args.platform}-${pin.commit.slice(0, 12)}-${args.product}.tar.gz`);
@@ -264,15 +267,24 @@ const buildRecord = join(out, 'BUILD.json');
  *  90 s later inside the clone's own `preinstall`, "Please use Node.js v24.18.0 or newer …
  *  Currently using v26.8.1". A gate that passes and then fails on the same condition is worse
  *  than no gate, so the check is made TRUE for the children instead of merely asserted here. */
-const CHILD_ENV = { ...process.env, PATH: `${dirname(process.execPath)}:${process.env['PATH'] ?? ''}`,
+const CHILD_ENV = { ...process.env, PATH: `${dirname(process.execPath)}${delimiter}${process.env['PATH'] ?? ''}`,
+	// A local clone of the fork must not fetch its LFS objects: they are all under
+	// extensions/copilot, which the overlay removes before anything reads the tree.
+	GIT_LFS_SKIP_SMUDGE: '1',
 	NODE_OPTIONS: `${process.env['NODE_OPTIONS'] ?? ''} --max-old-space-size=9216`,
 	GOMAXPROCS: '2', GOMEMLIMIT: '2GiB',
 };
 
+function remove(dir) {
+	console.log(`+ rm -rf ${dir}`);
+	if (!args.dryRun) { rmSync(dir, { recursive: true, force: true, maxRetries: 3 }); }
+}
+
 function step(command, commandArgs, options = {}) {
 	console.log(`+ ${command} ${commandArgs.join(' ')}${options.cwd ? `   (in ${options.cwd})` : ''}`);
 	if (args.dryRun) { return; }
-	const result = spawnSync(command, commandArgs, { stdio: 'inherit', env: CHILD_ENV, ...options });
+	// npm is npm.cmd on Windows, and node refuses to spawn a .cmd without a shell (EINVAL).
+	const result = spawnSync(command, commandArgs, { stdio: 'inherit', env: CHILD_ENV, shell: WINDOWS && command === 'npm', ...options });
 	if (result.status !== 0) {
 		fail(`${command} ${commandArgs.join(' ')} failed: ${result.status === null ? 'no exit status' : `exit ${result.status}`}${result.signal ? `; signal ${result.signal}` : ''}${result.error ? `; ${result.error.message}` : ''}`);
 	}
@@ -299,7 +311,7 @@ if (!process.env['npm_config_python']) {
 // ---- 1. a CLEAN clone at the pin. Never the checkout you develop in: the package task rimrafs
 //         ../vscode-reh-web-<platform> and the compile tasks rimraf out-build, so a build
 //         pointed at a live tree eats a working directory's neighbours.
-step('rm', ['-rf', work]);
+remove(work);
 if (!args.dryRun) { mkdirSync(work, { recursive: true }); mkdirSync(out, { recursive: true }); }
 step('git', ['clone', '--quiet', checkout, clone]);
 step('git', ['-C', clone, 'checkout', '--quiet', '--detach', pin.commit]);
@@ -345,7 +357,7 @@ gulp(['compile-build-without-mangling']);
 //         it. The overlay removed the directory and re-aimed `product.json#defaultChatAgent`
 //         at ours (ARCHITECTURE-CORE §The core is Code-OSS, rule 7), so packaging it would
 //         ship a second, signed-out chat agent nothing names.
-step('rm', ['-rf', join(clone, '.build/extensions')]);
+remove(join(clone, '.build/extensions'));
 gulp(['compile-non-native-extensions-build']);
 gulp(['compile-extension-media-build']);
 
@@ -380,7 +392,8 @@ if (!args.dryRun) {
 	}
 	runtimeNotices = preserveRuntimeNotices(packageDir, clone, args.platform);
 }
-step('tar', ['-czf', tarball, '-C', work, `vscode-reh-web-${args.platform}`]);
+// Windows' own tar (bsdtar in System32): Git's GNU tar reads the "C:" of a path as a remote host.
+step(WINDOWS ? join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar', ['-czf', tarball, '-C', work, `vscode-reh-web-${args.platform}`]);
 
 // ---- 8. BUILD.json — what the release IS. `platform` is what the locator refuses on,
 //         `serverBin` is what the session spawns, and `product` is which workbench this is.
@@ -399,7 +412,7 @@ if (!args.dryRun) {
 		mangled: false,
 		minified: true,
 		buildScheduling: { serial: true, nodeHeapMiB: 9216, goMaxProcs: 2, goMemoryLimit: '2GiB' },
-		serverBin: 'bin/code-server-oss',
+		serverBin: args.platform.startsWith('win32') ? 'bin/code-server-oss.cmd' : 'bin/code-server-oss',
 		runtimeNotices,
 		// WHAT ANSWERS THE CHAT VIEW, by version. The overlay bundles it and product.json names
 		// it; this is where a person reading a release finds out which supercode frontend it
@@ -408,7 +421,7 @@ if (!args.dryRun) {
 			id: CHAT_EXTENSION.id,
 			version: JSON.parse(readFileSync(join(clone, 'extensions', CHAT_EXTENSION.directory, 'package.json'), 'utf8')).version,
 		},
-		tarball: tarball.split('/').pop(),
+		tarball: basename(tarball),
 		tarballBytes: statSync(tarball).size,
 		tarballSha256: createHash('sha256').update(readFileSync(tarball)).digest('hex'),
 		unpackedBytes: directoryBytes(packageDir),

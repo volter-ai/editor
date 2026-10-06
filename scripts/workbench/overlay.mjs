@@ -64,7 +64,7 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -1115,7 +1115,7 @@ function treeHash(dirs) {
 			if (entry.isDirectory()) { walk(root, path); } else { hash.update(path.slice(root.length)).update(readFileSync(path)); }
 		}
 	};
-	for (const dir of dirs) { if (existsSync(dir)) { hash.update(`\0${dir.split('/').pop()}`); walk(dir, dir); } }
+	for (const dir of dirs) { if (existsSync(dir)) { hash.update(`\0${basename(dir)}`); walk(dir, dir); } }
 	return hash.digest('hex');
 }
 
