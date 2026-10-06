@@ -314,8 +314,8 @@ if (!process.env['npm_config_python']) {
 remove(work);
 if (!args.dryRun) { mkdirSync(work, { recursive: true }); mkdirSync(out, { recursive: true }); }
 // The overlay patches upstream by exact text, so the clone keeps the fork's LF endings even
-// where git is configured to check out CRLF (Git for Windows' default).
-step('git', ['clone', '--quiet', '--config', 'core.autocrlf=false', checkout, clone]);
+// where git would check out CRLF (Git for Windows' autocrlf, and text=auto's native eol).
+step('git', ['clone', '--quiet', '--config', 'core.autocrlf=false', '--config', 'core.eol=lf', checkout, clone]);
 step('git', ['-C', clone, 'checkout', '--quiet', '--detach', pin.commit]);
 
 // ---- 2. the overlay — BEFORE `npm ci`, so the bundle's every input exists before anything
