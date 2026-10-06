@@ -73,6 +73,7 @@ import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
+import { noteModelDocument } from '../src/play-mode';
 import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
 import { notifyWorkspaceDocumentSelectionChanged } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
@@ -98,6 +99,15 @@ import {
   subscribeModelDocumentPreview,
   type ModelDocumentPreview,
 } from '../src/model-document-preview';
+
+/** A detached copy's identity as a React key (the play area is keyed on the copy it draws). */
+const playCopyKeys = new WeakMap<object, number>();
+let nextPlayCopyKey = 0;
+function playCopyKey(copy: object): number {
+  let key = playCopyKeys.get(copy);
+  if (key === undefined) { key = ++nextPlayCopyKey; playCopyKeys.set(copy, key); }
+  return key;
+}
 
 /** The second areas' stage stores whose overlays have been opened off (`BlenderViewportArea`). */
 const overlaysOpened = new WeakSet<object>();
@@ -374,6 +384,10 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
  */
 function BlenderModelViewport(props: ToolContributionProps) {
   const { documentId } = props;
+  const blend = props.document?.source?.path;
+  // THE BOTTOM AREA SERVES THIS DOCUMENT while it is the model on screen (`../src/play-mode.ts`):
+  // the Game panel drives this id's run, and Game or Movie is chosen by this file's play script.
+  useEffect(() => (documentId ? noteModelDocument(documentId, blend) : undefined), [documentId, blend]);
   // Rendered areas and Play use the scene's display transform, just as a
   // photograph does. Solid keeps its studio transform. RNA also announces
   // colour settings that change without changing the presented geometry.
@@ -439,30 +453,77 @@ function BlenderModelViewport(props: ToolContributionProps) {
     () => null,
   );
   const [playedReady, setPlayedReady] = useState(false);
+  /**
+   * RESTART IS A NEW GENERATION OF THE SAME PLAY (`DocumentPlayTransport.generation`): the copy
+   * below is detached per generation, so a restart disposes the played copy and detaches a fresh
+   * one from the model, which never moved, while playing stays true throughout.
+   *
+   * THE OLD GAME STAYS ON SCREEN UNTIL THE NEW ONE HAS DRAWN. Between the two the new copy's
+   * stage is still preparing its rendered draw, and the model area is what lies under the play
+   * area — so a restart would flash the editing model between two games. The generation is
+   * therefore taken in two steps: a layout effect photographs the old play stage while it still
+   * stands (`capture`, the frame it draws) and only then moves `shownGeneration`, which is what
+   * detaches the new copy. The photograph covers the play area until the new runner's first
+   * frame (`onPlayReady`), the model area stays hidden throughout, and the old runner, no longer
+   * the current generation, stands still meanwhile (`play-script.ts`).
+   */
+  const generation = useSyncExternalStore(
+    subscribeDocumentPlayExtensions,
+    () => (documentId ? documentPlayExtension('model')?.transport?.generation(documentId) ?? 0 : 0),
+    () => 0,
+  );
+  const [shownGeneration, setShownGeneration] = useState(generation);
+  const [restartStill, setRestartStill] = useState<string | null>(null);
+  const restarting = useRef(false);
+  useLayoutEffect(() => {
+    if (generation === shownGeneration) return;
+    if (playing && documentId) {
+      restarting.current = true;
+      let still: string | null = null;
+      try { still = documentViewport(`${documentId}#play`)?.capture?.() ?? null; }
+      catch { /* No photograph: the new stage shows as it prepares, still never the model. */ }
+      setRestartStill(still);
+    }
+    setShownGeneration(generation);
+  }, [generation, shownGeneration, playing, documentId]);
   useEffect(() => {
-    if (!playing || !documentId) return;
+    if (!playing || !documentId) { restarting.current = false; return; }
     const playId = `${documentId}#play`;
     // A game is seen as the render is: Rendered shading, chosen before the stage binds.
     setViewPresentation(playId, { drawMode: 'rendered' });
     const copy = view.detach();
-    setPlayedReady(false);
+    const restart = restarting.current;
+    restarting.current = false;
+    // A restart keeps the model area hidden: the old game's photograph stands in until ready.
+    if (!restart) setPlayedReady(false);
     setPlayed(copy);
-    // The stage's mode is PLAY for as long as the copy stands, so the keys are the player's.
-    view.setPlaying(true);
-    notifyWorkspaceDocumentSelectionChanged(documentId);
+    if (!restart) {
+      // The stage's mode is PLAY for as long as a copy stands, so the keys are the player's.
+      view.setPlaying(true);
+      notifyWorkspaceDocumentSelectionChanged(documentId);
+    }
     return () => {
-      setPlayed(null);
       copy.dispose();
+      // Read at cleanup: the layout effect above has already marked a restart, whose new copy
+      // takes over in this same commit with the play mode unchanged.
+      if (restarting.current && documentPlayExtension('model')?.playing(documentId)) return;
+      setPlayed(null);
+      setRestartStill(null);
       view.setPlaying(false);
       notifyWorkspaceDocumentSelectionChanged(documentId);
     };
-  }, [playing, documentId]);
+  }, [playing, documentId, shownGeneration]);
   // The document closing or going inactive ends its game; a game never outlives its stage.
   useEffect(() => {
     if (!documentId) return;
     return () => documentPlayExtension('model')?.setPlaying(documentId, false);
   }, [documentId]);
   const game = playing ? played : null;
+  const playFrame = playAspect === null ? { position: 'absolute', inset: 0 } as const : {
+    position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+    width: `min(100cqw, calc(100cqh * ${playAspect}))`,
+    height: `min(100cqh, calc(100cqw / ${playAspect}))`,
+  } as const;
   useEffect(() => {
     if (!game || !documentId) return;
     const modelViewport = documentViewport(documentId);
@@ -488,14 +549,18 @@ function BlenderModelViewport(props: ToolContributionProps) {
         <BlenderViewportArea {...props} view={view} main />
       </div>
       {game && (
-        <div key="play" style={{ position: 'absolute', inset: 12, containerType: 'size' }} data-testid="blender-play-area">
-          <div data-volter-play-frame style={playAspect === null ? { position: 'absolute', inset: 0 } : {
-            position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
-            width: `min(100cqw, calc(100cqh * ${playAspect}))`,
-            height: `min(100cqh, calc(100cqw / ${playAspect}))`,
-          }}>
-          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} playing onPlayReady={() => setPlayedReady(true)} onPlayReturn={() => setPlayedReady(false)} />
+        // Keyed on the COPY, so a restart mounts a new stage and runner exactly when the new copy
+        // is the one rendered — never over the old, disposed one.
+        <div key={`play-${playCopyKey(game)}`} style={{ position: 'absolute', inset: 12, containerType: 'size' }} data-testid="blender-play-area">
+          <div data-volter-play-frame style={playFrame}>
+          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} playing
+            onPlayReady={() => { setPlayedReady(true); setRestartStill(null); }} onPlayReturn={() => setPlayedReady(false)} />
           </div>
+        </div>
+      )}
+      {game && restartStill !== null && (
+        <div key="restart-still" style={{ position: 'absolute', inset: 12, containerType: 'size', zIndex: 3, pointerEvents: 'none' }} data-testid="blender-play-restart-still">
+          <img alt="" src={restartStill} style={{ ...playFrame, display: 'block', objectFit: 'fill' }} />
         </div>
       )}
       {second && (
@@ -561,7 +626,7 @@ function SecondAreaChrome({
       {header &&
         createPortal(
           <div className="volter-dock-document-toolbar-own" data-testid={`document-header:${areaId}`} style={{ display: 'flex', alignItems: 'center' }}>
-            <BlenderObjectModeHeader documentId={documentId} notify={notify} />
+            <BlenderObjectModeHeader documentId={documentId} notify={notify} modeSwitch={false} />
             {HeaderControls && (
               <Suspense fallback={null}>
                 <HeaderControls documentId={areaId} />

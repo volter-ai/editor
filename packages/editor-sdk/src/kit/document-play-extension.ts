@@ -26,6 +26,43 @@ export interface DocumentPlayStage {
    *  document's. Absent, a runner clones. */
   readonly ownMaterial?: (material: unknown) => unknown;
 }
+/**
+ * A RUNNING GAME'S CLOCK, as the Play tool keeps it. The numbers are the ones the runner handed
+ * the game, not the page's: `time` is the sum of every `dt` the script's `update` was given, so it
+ * stands still while paused and runs at `speed` times the page's own clock otherwise.
+ */
+export interface DocumentPlayClock {
+  /** Simulation seconds since this run began (the sum of the `dt`s the game was handed). */
+  readonly time: number;
+  /** Updates the game has run since this run began. */
+  readonly tick: number;
+  readonly paused: boolean;
+  /** Simulation seconds per real second; one of the transport's `speeds`. */
+  readonly speed: number;
+}
+/**
+ * THE GAME'S TRANSPORT — what a Play tool offers beyond Play and Stop, for a layout that draws a
+ * game panel (the Model Editor's Game mode, `@volter/editor-blender`). Optional: a tool without
+ * one still plays and stops, and a layout draws only the controls a tool answers.
+ */
+export interface DocumentPlayTransport {
+  /** The speeds `setSpeed` accepts, slowest first. */
+  readonly speeds: readonly number[];
+  clock(documentId: string): DocumentPlayClock;
+  /** The clock moves every played frame, so it has a subscription of its own: `subscribe` would
+   *  re-render everything that only asks whether a document plays. */
+  subscribeClock(listener: () => void): () => void;
+  /** Hold or release the game's updates; the stage keeps drawing the frozen copy. */
+  setPaused(documentId: string, paused: boolean): void;
+  /** One update while paused, with one nominal frame's `dt`. */
+  step(documentId: string): void;
+  setSpeed(documentId: string, speed: number): void;
+  /** Begin the run again on a FRESH detached copy, the clock at zero. */
+  restart(documentId: string): void;
+  /** Changes on every restart. The document that lends the stage keys its detached copy on it,
+   *  so a new generation is a new copy; the change is announced through `subscribe`. */
+  generation(documentId: string): number;
+}
 export interface DocumentPlayExtension {
   readonly Control: ComponentType<DocumentPlayControlProps>;
   readonly Menu: ComponentType<DocumentPlayControlProps>;
@@ -36,6 +73,13 @@ export interface DocumentPlayExtension {
   escape?(documentId: string): void;
   subscribe(listener: () => void): () => void;
   run(stage: DocumentPlayStage): () => void;
+  /** Pause, step, speed, restart and the clock, when the tool keeps them. */
+  readonly transport?: DocumentPlayTransport;
+  /** The project path of the script this tool would run for a document's source file. */
+  scriptPath?(sourcePath: string): string;
+  /** Whether that script exists: `null` while the tool has not looked yet. A change is announced
+   *  through `subscribe`. A layout uses it to open a document as a game or as a model. */
+  hasScript?(sourcePath: string): boolean | null;
 }
 const key = Symbol.for('volter.document-play-extensions');
 interface Registry {

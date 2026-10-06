@@ -22,6 +22,21 @@
  * The tool blends the camera from the editing pose for 0.8 seconds after
  * update, holding keys empty until arrival. Stop freezes the copy and blends
  * back before disposing it; Escape during either blend completes that blend.
+ *
+ * THE GAME'S TIME IS THE `dt` IT IS HANDED, and the runner decides it (`model-play.ts` keeps
+ * the run's clock): paused, `update` is not called at all and the camera holds the last drawn
+ * pose; a Step is one `update` of one nominal frame; a speed scales the frame's seconds, and a
+ * scaled frame longer than a tenth of a second is run as several updates so the promise below —
+ * at most a tenth per call — holds at 4× too. The camera's own blends run on the page's time,
+ * because they are the editor's motion and not the game's. Restart is the document detaching a
+ * fresh copy for a new runner (`restartModelPlay`); this runner, no longer the current
+ * generation, stands down without ending the play.
+ *
+ * THE PLAY LOG KEEPS THE SAME CLOCK (`play-log.ts`): the run's log is advanced by exactly the
+ * `dt` of each `update` the panel's clock counts, at the same call, so an entry's `simT` and
+ * `tick` are the numbers the Game panel shows. A Restart is a fresh copy and so a fresh log,
+ * opened by `play-start` and then `play-restart`; pause, resume, each step and a speed change
+ * are lifecycle entries of their own.
  */
 import { editorHost } from '@volter/editor-sdk/host';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
@@ -38,7 +53,17 @@ import type * as THREE from 'three';
 import { projectPlayLayers } from '@volter/editor-sdk/kit/project-play-layers';
 import { beginProjectMountEpoch, projectEntryImportUrl } from '@volter/editor-sdk/session/project-module-url';
 import { cameraTransition } from './camera-transition';
-import { finishModelPlay, registerModelPlayStop } from './model-play';
+import {
+  advanceModelPlayClock,
+  consumeModelPlayRestart,
+  finishModelPlay,
+  MODEL_PLAY_STEP_SECONDS,
+  modelPlayClock,
+  modelPlayGeneration,
+  registerModelPlayStop,
+  subscribeModelPlayClock,
+  takeModelPlayStep,
+} from './model-play';
 import { beginModelPlayLog } from './play-log';
 import { materialOverrides } from './play-materials';
 interface PlayComposition {
@@ -95,9 +120,27 @@ export interface ModelPlayContext {
 }
 
 export interface ModelPlayGame {
-  /** Once per drawn frame, with the seconds since the last one (at most a tenth). */
+  /** Once per drawn frame, with the simulation seconds since the last call (at most a tenth).
+   *  Not called while the game is paused; called once per Step; at a speed other than 1× the
+   *  seconds are scaled, and a fast frame may call it more than once. */
   update(deltaSeconds: number): void;
   dispose?(): void;
+}
+
+/** The longest `dt` one update is handed; longer scaled frames are split (`frameUpdates`). */
+const MAX_UPDATE_SECONDS = 0.1;
+
+/**
+ * THE UPDATES THIS DRAWN FRAME RUNS, as the `dt` each is handed: none while paused, one nominal
+ * frame for a Step, and otherwise the frame's seconds times the speed, split into equal parts of
+ * at most {@link MAX_UPDATE_SECONDS}.
+ */
+function frameUpdates(documentId: string, frameSeconds: number): number[] {
+  const clock = modelPlayClock(documentId);
+  if (clock.paused) return takeModelPlayStep(documentId) ? [MODEL_PLAY_STEP_SECONDS] : [];
+  const scaled = frameSeconds * clock.speed;
+  const parts = Math.max(1, Math.ceil(scaled / MAX_UPDATE_SECONDS - 1e-9));
+  return Array.from({ length: parts }, () => scaled / parts);
 }
 
 /** The play script's project path for a model's `.blend`. */
@@ -173,7 +216,25 @@ export function runPlayScript(options: {
   };
   const keys = new Set<string>();
   const heldKeys = new Set<string>();
-  const transition = cameraTransition(options.editingCamera());
+  // The run this runner belongs to. A Restart moves the document to the next generation, whose
+  // own runner takes over; this one must then stand down without ending the play.
+  const generation = modelPlayGeneration(options.documentId);
+  const current = (): boolean => modelPlayGeneration(options.documentId) === generation;
+  const restarted = consumeModelPlayRestart(options.documentId);
+  const transition = cameraTransition(options.editingCamera(), { instant: restarted });
+  // THE TRANSPORT'S CHANGES, IN THE LOG. Pause, resume and speed are the person's (or an
+  // agent's) calls on `model-play.ts`, between frames; this run notes each as it lands. A run
+  // that Restart has replaced notes nothing more — its successor's log has the restart.
+  let seen = modelPlayClock(options.documentId);
+  if (restarted) run.append('play', 'play-restart', { speed: seen.speed });
+  else if (seen.speed !== 1) run.append('play', 'speed', { speed: seen.speed });
+  const stopClock = subscribeModelPlayClock(() => {
+    const now = modelPlayClock(options.documentId);
+    if (!current()) return;
+    if (now.paused !== seen.paused) run.append('play', now.paused ? 'pause' : 'resume');
+    if (now.speed !== seen.speed) run.append('play', 'speed', { speed: now.speed, from: seen.speed });
+    seen = now;
+  });
   options.container.style.opacity = '0';
   /** One script's context: its log, tint and opacity do nothing once that script is gone
    *  (replaced, failed, or the run stopped), so a stale timer cannot reach a later one. */
@@ -291,6 +352,13 @@ export function runPlayScript(options: {
     if (firstFrame || transition.stop(escape)) finishModelPlay(options.documentId);
   });
   const stopFrames = onFrame((deltaSeconds) => {
+    // REPLACED BY A RESTART, and not yet unmounted: the document keeps this copy on screen until
+    // the new one has drawn, so it stands as it is — no update, no clock, the camera held.
+    if (!current()) {
+      if (game !== null) transition.hold(camera());
+      keys.clear();
+      return;
+    }
     if (transition.leaving()) {
       options.container.style.opacity = String(transition.hudOpacity());
       if (!returning && transition.approachingEdit()) { returning = true; options.returning(); }
@@ -300,13 +368,37 @@ export function runPlayScript(options: {
     if (!surfaceHoldsKeyboard()) { keys.clear(); heldKeys.clear(); }
     else if (!transition.acceptingKeys()) keys.clear();
     else for (const key of heldKeys) keys.add(key);
-    let replacementUpdated = false;
-    if (pending || game) run.advance(deltaSeconds);
+    const updates = frameUpdates(options.documentId, deltaSeconds);
+    if (updates.length === 0) {
+      // PAUSED: no update, so nothing states the camera; hold the pose the last frame drew.
+      // A pending replacement waits too — its first update is a tick of the game's time.
+      // A tap made while paused is dropped; a key still held is seen by the next step.
+      if (game !== null) transition.hold(camera());
+      keys.clear();
+      return;
+    }
+    // Each update is counted — by the panel's clock and the log alike — as it is CALLED, so an
+    // update that throws still took its tick, in both.
+    let ran = 0;
+    let simulated = 0;
+    // A paused frame that runs an update is a Step; its entry carries the step's own tick.
+    const stepping = modelPlayClock(options.documentId).paused;
+    const tick = (dt: number): void => {
+      run.advance(dt);
+      ran += 1;
+      simulated += dt;
+      if (stepping) run.append('play', 'step', { dt });
+    };
+    // A replacement's first update takes the frame's first slot whether it starts or throws; a
+    // running game that a failed replacement leaves in place runs the rest of the frame.
+    let firstSlot = 0;
     if (pending) {
+      firstSlot = 1;
       const next = pending;
       pending = null;
       try {
-        next.game.update(deltaSeconds);
+        tick(updates[0]!);
+        next.game.update(updates[0]!);
         end();
         game = next.game;
         startedAt = Date.now();
@@ -314,19 +406,24 @@ export function runPlayScript(options: {
         composition = next.composition;
         live.notifyChanged();
         composition?.reveal();
-        replacementUpdated = true;
       } catch (error) {
         dispose(next.game, next.composition);
         report('start', `${modulePath} did not start`, error);
       }
     }
-    if (game === null) return;
+    if (game === null) { advanceModelPlayClock(options.documentId, simulated, ran); return; }
     try {
-      if (!replacementUpdated) game.update(deltaSeconds);
+      for (let index = firstSlot; index < updates.length; index++) {
+        tick(updates[index]!);
+        game.update(updates[index]!);
+      }
+      advanceModelPlayClock(options.documentId, simulated, ran);
+      ran = 0;
       transition.frame(camera(), deltaSeconds);
       options.container.style.opacity = String(transition.hudOpacity());
       if (firstFrame) { firstFrame = false; options.ready(); }
     } catch (error) {
+      advanceModelPlayClock(options.documentId, simulated, ran);
       end();
       report('update', `${modulePath} failed`, error);
       return;
@@ -369,8 +466,10 @@ export function runPlayScript(options: {
     stopped = true;
     unregisterLive();
     stopRequest();
-    finishModelPlay(options.documentId);
+    // A runner replaced by Restart leaves the play running for its successor.
+    if (current()) finishModelPlay(options.documentId);
     stopFrames();
+    stopClock();
     stopChanges();
     window.removeEventListener('keydown', onKeyDown, true);
     window.removeEventListener('keyup', onKeyUp, true);

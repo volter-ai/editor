@@ -67,6 +67,8 @@ import {
   timelineViewVersion,
 } from '../src/timeline-view-state';
 import { blenderSkin, blenderSkinVersion, subscribeBlenderSkin } from './blender-runtime-skin';
+import { BlenderGamePanel } from './blender-game-panel';
+import { modelPlayMode, playModeVersion, servedModelDocument, subscribePlayMode } from '../src/play-mode';
 import {
   CHANNEL_HEIGHT,
   DIAMOND_RADIUS,
@@ -360,7 +362,23 @@ registerViewVerbs({
   ],
 });
 
-export default function BlenderTimeline() {
+/**
+ * THE BOTTOM AREA IS THE TIMELINE IN MOVIE MODE AND THE GAME PANEL IN GAME MODE
+ * (`../src/play-mode.ts`, for the model document on screen). Same area, same
+ * size: the layout's `areas` entry names this document either way, so the
+ * proportion `model.layout.ts` measured holds for both, and a person who has
+ * resized the area keeps the size across a switch. The Timeline unmounts in
+ * Game mode; a document that opens as a game therefore never pays for the
+ * rig bind (the cost note in `BlenderTimeline`), and one bound earlier keeps
+ * its bind, which the Timeline never undoes.
+ */
+export default function BlenderBottomArea() {
+  useSyncExternalStore(subscribePlayMode, playModeVersion, playModeVersion);
+  const documentId = servedModelDocument();
+  return documentId !== null && modelPlayMode(documentId) === 'game' ? <BlenderGamePanel /> : <BlenderTimeline />;
+}
+
+function BlenderTimeline() {
   // THE FRESHNESS IS THE RNA DOOR'S (ruling 3, 2026-09-19): every write and
   // every presented frame bumps it, which is exactly when a rig or an action
   // can have moved.

@@ -11,9 +11,12 @@
  * Every entry carries `simT` (the seconds of simulation since Play started: the sum of the
  * `dt`s the runner has handed to `update`) and `tick` (the number of the update in
  * progress; 0 while the script's default export runs), the same two stamps the game
- * editor's entries carry. The runner adds its own lifecycle entries (`source: 'play'`):
- * `play-start`, `script-reload` with its reason, `script-error`, `tint-unsupported`,
- * `play-stop`.
+ * editor's entries carry. They are the Game panel's clock too: the runner advances both at
+ * the same call (`play-script.ts`), so they stand still while paused and run at the speed. The
+ * runner adds its own lifecycle entries (`source: 'play'`): `play-start`, `play-restart` (a
+ * Restart's fresh run, right after its `play-start`), `script-reload` with its reason,
+ * `script-error`, `tint-unsupported`, `pause`, `resume`, `step` (one per stepped update, with
+ * its `dt`), `speed` (on a change, and at a start that is not 1×), `play-stop`.
  *
  * ONE LOG PER MODEL DOCUMENT, each its document's latest run. Two documents playing at once
  * keep separate logs; a read names its document or takes the active Play's (the latest
