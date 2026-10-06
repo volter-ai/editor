@@ -1051,6 +1051,25 @@ function patchRehCopilotShim(checkout) {
 }
 
 /**
+ * A WIN32 RELEASE KEEPS ITS NATIVE BINARIES' PUBLISHED BYTES. Upstream's package task strips
+ * the Authenticode signature from every `.node`, `rg.exe` and `tgrep.exe` and rewrites its
+ * version resource with rcedit, so Microsoft's signing service can sign them afterwards. This
+ * release is never signed by that service, and the rewrite only changes each file's hash —
+ * which is what Smart App Control's reputation check reads. Measured 2026-10-06 on a Windows 11
+ * machine with Smart App Control on: the published rg.exe and a node-gyp built
+ * @vscode/deviceid ran, the rcedited copies were blocked ("An Application Control policy has
+ * blocked this file"), and search and the terminal's tools failed with `spawn UNKNOWN`.
+ */
+function patchWin32Dependencies(checkout) {
+	patchChatSource(checkout, REH_GULPFILE,
+		"\t\t\tif (platform === 'win32') {\n\t\t\t\tpackageTasks.push(patchWin32DependenciesTask(destinationFolderName));\n\t\t\t}\n",
+		"\t\t\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): no signing service re-signs\n" +
+		"\t\t\t// this release, so win32 binaries keep their published bytes (patchWin32Dependencies).\n" +
+		"\t\t\tvoid patchWin32DependenciesTask;\n",
+		'the win32 dependency patch task');
+}
+
+/**
  * `build/npm/dirs.ts` NAMES `extensions/copilot`, and the extension is not there any more.
  *
  * MEASURED 2026-09-21, twice, before this patch existed: `npm ci` in an overlaid clone ran
@@ -1211,6 +1230,7 @@ function main() {
 	patchRegistrationImports(checkout, tiers);
 	patchWebResources(checkout, tiers);
 	patchRehCopilotShim(checkout);
+	patchWin32Dependencies(checkout);
 	patchNpmDirs(checkout);
 	patchProduct(checkout);
 
