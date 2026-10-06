@@ -391,10 +391,10 @@ export function allowCrossOriginFrameEmbedding(res: {
   res.setHeader('Cross-Origin-Resource-Policy', 'cross-origin');
 }
 
-/** True for loopback hostnames (localhost / 127.0.0.0/8 / ::1). */
+/** True for loopback hostnames (localhost and its subdomains / 127.0.0.0/8 / ::1). */
 export function isLoopbackHostname(host: string): boolean {
   const h = host.replace(/^\[|\]$/g, '').toLowerCase();
-  if (h === 'localhost' || h === '::1') return true;
+  if (h === 'localhost' || h.endsWith('.localhost') || h === '::1') return true;
   return /^127\.\d{1,3}\.\d{1,3}\.\d{1,3}$/.test(h);
 }
 

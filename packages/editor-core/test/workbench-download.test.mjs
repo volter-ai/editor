@@ -15,6 +15,23 @@ const tag = 'test-workbench';
 const releaseUrl = `https://api.github.com/repos/volter-ai/code-oss/releases/tags/${tag}`;
 const assetUrl = id => `https://api.github.com/repos/volter-ai/code-oss/releases/assets/${id}`;
 
+test('project hosts isolate cookies across folders and survive a port change', () => {
+  const exports = {};
+  vm.runInNewContext(js, {
+    exports, process, URL,
+    require: name => name === './product-locator'
+      ? { PRODUCT_DECLARATION_KEY: 'volter.product', workbenchProductId: () => 'model-editor' }
+      : require(name),
+  });
+  const first = new URL(exports.workbenchUrl(28000, '/tmp/first/project'));
+  const otherFolder = new URL(exports.workbenchUrl(28000, '/tmp/second/project'));
+  const otherPort = new URL(exports.workbenchUrl(28001, '/tmp/first/project'));
+  assert.notEqual(first.hostname, otherFolder.hostname, 'A common folder name must not share cookies');
+  assert.equal(first.hostname, otherPort.hostname, 'Reopening a project retains its browser identity');
+  assert.equal(first.searchParams.get('project'), 'project');
+  assert.equal(first.port, '28000');
+});
+
 async function refusal({ failRequest, failBody, malformed, cause }) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-download-test-'));
   const requests = [];

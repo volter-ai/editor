@@ -418,7 +418,10 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
         // keys on the listener (`editor-sessions.ts`), so a page that never
         // comes up ends in a named, non-zero failure instead of a lie.
         if (record !== undefined && !record.listenerThisEpoch) return 'arriving';
-        options.sendToTab(blessed, 'tab-refocus', { url: options.editorUrl });
+        // A ready blessed page is already on this session's project. Its boot
+        // URL may have redirected or gained view parameters; replaying that
+        // URL reloads a live editor and discards its current view and Play.
+        options.sendToTab(blessed, 'tab-refocus', {});
         return 'focused';
       }
       if (tabArriving(state, at, options.lastIndexRequestAt(), config)) return 'arriving';
