@@ -23,6 +23,7 @@
   },
   "volter": {
     "contributions": [
+      "./contributions/model-play.command.ts",
       "./contributions/model-play.service.tsx"
     ]
   },

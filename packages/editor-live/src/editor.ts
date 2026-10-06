@@ -22,6 +22,7 @@ import type {
   InspectedHierarchy,
   InspectedInspection,
   LabeledShotSetCapture,
+  ModelPlayLogReading,
   OpenedDocument,
   PresentedEditorView,
   ShadingMode,
@@ -143,6 +144,20 @@ export class LiveEditor {
     fields: Record<string, unknown> = {},
   ): Promise<T> {
     return this.#client.blender<T>(type, fields);
+  }
+
+  /**
+   * MODEL PLAY'S LOG, from `volter-model-editor eval` — the same read as
+   * `volter-model-editor play-log`. A play script writes it with
+   * `play.log(kind, facts)`; the runner adds `play-start`, `script-reload`,
+   * `script-error` and `play-stop`. Every entry carries `simT` (simulation
+   * seconds) and `tick` (the frame). It holds the current run, or the last
+   * one after Stop; Play from a fresh copy empties it.
+   *
+   *   volter-model-editor eval "(await editor.modelPlayLog({ kind: 'death' })).entries"
+   */
+  async modelPlayLog(query?: { readonly since?: number; readonly kind?: string }): Promise<ModelPlayLogReading> {
+    return this.#client.modelPlayLog(query);
   }
 
   /**

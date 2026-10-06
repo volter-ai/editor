@@ -30,6 +30,7 @@ import {
   type BlenderRuntimeView,
   blenderModelView,
 } from '@volter/blender-engine/browser/three/blender-runtime-view';
+import { ownedSurfaceMaterial } from '@volter/blender-engine/browser/three/blender-physical-material';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
 import {
@@ -717,6 +718,7 @@ function BlenderViewportArea({
           camera: () => stage.rig().drawCamera(),
           editingCamera: () => viewportStages().find(one => one.documentId === modelId)?.rig().drawCamera() ?? stage.rig().drawCamera(),
           onFrame: (fn) => stage.onFrame(fn),
+          ownMaterial: (material) => ownedSurfaceMaterial(material as THREE.Material),
           report: (title, detail) => {
             editorHost().console.error(`${title}: ${detail}`, 'blender-play');
             notifyRef.current?.({ tone: 'error', title, detail });
