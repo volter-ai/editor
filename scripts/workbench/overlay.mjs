@@ -519,6 +519,13 @@ ${openEditor}
 	private async updateWidgetLockState`, 'release unbound owned candidate on cancellation or error');
 	patchChatSource(checkout, view, 'this.showModel(token, newModelRef, true, false, inputBeforeLoad, localFallbackSelectionReason);', `this.showModel(token, newModelRef, true, false, inputBeforeLoad, localFallbackSelectionReason,
 					!!openingToken && sessionResource.scheme === 'supercode' && sessionResource.path.startsWith('/untitled-'));`, 'scope model retention to owned untitled loading');
+	patchChatSource(checkout, view, 'await this.updateWidgetLockState(getChatSessionType(model.sessionResource));', 'await this.updateWidgetLockState(getChatSessionType(model.sessionResource), retainOutgoingModel ? token : undefined);', 'owned opening cancellation at lock owner');
+	patchChatSource(checkout, view, '\tprivate async updateWidgetLockState(sessionType: string): Promise<void> {', `\tprivate async updateWidgetLockState(sessionType: string, openingToken?: CancellationToken): Promise<void> {
+		if (openingToken?.isCancellationRequested) { return; }`, 'guard owned synchronous provider lock changes');
+	patchChatSource(checkout, view, '\t\tif (!canResolve) {\n\t\t\tthis._widget.unlockFromCodingAgent();', `\t\t// An older resolver must not change the composer selected by a newer load.
+		if (openingToken?.isCancellationRequested) { return; }
+		if (!canResolve) {
+			this._widget.unlockFromCodingAgent();`, 'guard owned provider lock after awaited resolution');
 	patchChatSource(checkout, view, '\t\t\tconst clearWidget = disposableTimeout(() => {', `\t\t\tconst clearWidget = disposableTimeout(() => {
 				// This opening already owns an untitled draft. Keep the outgoing model
 				// until binding, rather than publishing an unrelated empty focus event.
