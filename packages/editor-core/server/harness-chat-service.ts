@@ -274,14 +274,6 @@ export type ChatRuntimeActivity =
   | 'other';
 
 /**
- * How long an unanswered runtime request may go with no runtime event at all
- * before it is presumed resolved, in ms. Generous, because a person reading an
- * approval may take minutes; bounded, because a lost `request_resolved` would
- * otherwise read as `waiting` for the rest of the session.
- */
-const PENDING_REQUEST_STALE_MS = 10 * 60_000;
-
-/**
  * How long after this editor's own steer a synthetic turn reopen is read as
  * that steer's consequence rather than a new turn, in ms. A steer sent just
  * after Claude Code's `result`, while the runtime still reports busy, can
@@ -328,8 +320,10 @@ function runtimeRequestKey(event: ObservedChatRuntimeEvent, type: 'request' | 'r
   return String(id ?? null);
 }
 
-/** Where a Chat turn stands, for a caller deciding whether to steer it. */
-export type ChatTurnState = 'idle' | 'running' | 'waiting';
+/** Where a Chat turn stands, for a caller deciding whether to steer it.
+ *  `unknown` — the runtime could not be read this time (a failed or timed-out
+ *  `describe`); nothing was learned, so nothing may be decided on it. */
+export type ChatTurnState = 'idle' | 'running' | 'waiting' | 'unknown';
 
 export interface HarnessChatServiceOptions {
   getProjectRoot: () => string;
@@ -911,9 +905,6 @@ export class HarnessChatService {
   private managedRuntime: HeadlessManagedRuntime | null = null;
   /** Runtime requests (approvals, questions) the person has not answered. */
   private readonly pendingRuntimeRequests = new Set<string>();
-  /** When the Chat runtime last emitted anything — what bounds a `waiting`
-   *  whose `request_resolved` never arrived. */
-  private lastRuntimeEventAt = 0;
   /** Whether the Chat runtime's current turn is open, from its own boundary
    *  events and the synthetic reopen: `null` before any runtime is observed,
    *  `false` when a new one is. */
@@ -1063,8 +1054,8 @@ export class HarnessChatService {
    * resolved). A busy turn that is waiting is not a turn to steer: the line
    * would land on top of the question the person is reading.
    *
-   * Never throws: a runtime that cannot be asked is not running anything this
-   * editor can see.
+   * Never throws: a runtime that cannot be asked this time is `unknown`, and
+   * leaves every pending ask exactly as it was.
    */
   async chatTurnState(): Promise<ChatTurnState> {
     if (this.lastSnapshot.requests.some((request) => request.status === 'pending')) return 'waiting';
@@ -1073,23 +1064,22 @@ export class HarnessChatService {
       try {
         busy = (await this.frontendHandoffValue?.isBusy()) === true;
       } catch {
-        busy = false;
+        // A failed or timed-out read is not a reading of `idle`: dropping the
+        // person's open ask on it would let the next tick steer onto it.
+        return 'unknown';
       }
     }
-    // An approval can only be outstanding while a turn runs (the runtime's
-    // `decide_approval` blocks the agent loop — the bundled Chat extension
-    // clears its own `pendingRequests` on an idle descriptor for this reason),
-    // and one with no runtime event for `PENDING_REQUEST_STALE_MS` is a
-    // `request_resolved` this listener missed. Either way the ask is gone, so
-    // a lost resolution can never refuse steers, or keep the clock up, forever.
-    if (
-      !busy ||
-      (this.pendingRuntimeRequests.size > 0 &&
-        Date.now() - this.lastRuntimeEventAt > PENDING_REQUEST_STALE_MS)
-    ) {
+    // Only a SUCCESSFUL not-busy reading ends an ask: an approval can only be
+    // outstanding while a turn runs (the runtime's `decide_approval` blocks
+    // the agent loop — the bundled Chat extension clears its own
+    // `pendingRequests` on an idle descriptor for this reason). Silence never
+    // does: a person may leave an approval open for as long as they like, and
+    // until its `request_resolved`, a turn boundary or an idle runtime, the
+    // turn is `waiting` and nothing is steered onto it.
+    if (!busy) {
       this.pendingRuntimeRequests.clear();
+      return 'idle';
     }
-    if (!busy) return 'idle';
     return this.pendingRuntimeRequests.size > 0 ? 'waiting' : 'running';
   }
 
@@ -1171,7 +1161,6 @@ export class HarnessChatService {
     this.runtimeTurnGeneration++;
     runtime.on?.('event', event => {
       if (this.managedRuntime !== runtime) return;
-      this.lastRuntimeEventAt = Date.now();
       this.options.onRuntimeActivity?.(this.runtimeActivity(event));
       const payload = event.raw?.payload;
       if (!payload || typeof payload !== 'object') return;
@@ -1233,7 +1222,7 @@ export class HarnessChatService {
         // NOT a reason to clear a pending approval: in Claude Code a subagent
         // can stream while the main thread waits on the person's decision.
         // An ask ends only on its own `request_resolved`, a turn boundary,
-        // an idle runtime, or the no-event bound in `chatTurnState`.
+        // or a successful idle reading in `chatTurnState` — never silence.
         return this.reopenOnActivity() ?? (isNarration(event) ? 'narration' : 'other');
       case 'message':
         // This editor's own steer echoing back is not a new turn.

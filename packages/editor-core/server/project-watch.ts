@@ -615,6 +615,8 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   let lastViewKey: string | null = null;
   let turnClock: ReturnType<typeof setInterval> | null = null;
   let turnClockAsking = false;
+  /** Did the last ask find the turn waiting on the person? */
+  let turnWaitingOnPerson = false;
   /** Has this turn already heard a tripwire line? See `nudgeChatAgent`. */
   let chatNudgedThisTurn = false;
   /** `chatNudgedThisTurn` as the last stopped clock left it. */
@@ -655,6 +657,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     // Remembered for a `turn-resumed`: the same real turn keeps its spent line.
     previousTurnNudged = chatNudgedThisTurn;
     chatNudgedThisTurn = false;
+    turnWaitingOnPerson = false;
   }
 
   /** A new turn is a new stall clock and a fresh nudge allowance: the quiet
@@ -730,7 +733,18 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     turnClockAsking = true;
     try {
       const state = await withinDeadline(host.chatTurnState(), VISIBLE_PROGRESS_CHECK_INTERVAL_MS / 2);
-      if (state === null || state === 'waiting') return; // unknown, or the person's move
+      if (state === null || state === 'unknown') return; // nothing learned: keep everything
+      if (state === 'waiting') {
+        turnWaitingOnPerson = true; // the person's move; nothing is stalled
+        return;
+      }
+      if (turnWaitingOnPerson) {
+        // The ask just resolved (by `request_resolved` or by the controller's
+        // own request list): the agent gets a full step from THIS moment
+        // before any nudge, however long the person took.
+        turnWaitingOnPerson = false;
+        noteVisibleChange();
+      }
       if (state === 'idle' || host.projectRoot() === engineRoot) {
         stopTurnClock();
         return;
