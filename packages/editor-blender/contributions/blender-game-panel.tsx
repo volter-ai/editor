@@ -541,6 +541,9 @@ function AutoplayControl({ documentId, playing, autoplay, transport }: {
     <div style={{ display: 'flex', alignItems: 'center', gap: TIMELINE_CHROME.headerGap, minWidth: 0 }}>
       {/* The tooltip lives on a wrapper too: a disabled button is the one that most needs it. */}
       <span title={label} style={{ display: 'inline-flex' }}>
+      {/* KEEP THE KEYBOARD OFF THIS BUTTON (`GameButton`'s `keepFocus`). Left focused, a person
+          taking over with Space — a key the game hears, which turns autoplay off — would also
+          click this button and turn autoplay straight back on. */}
       <GameButton
         testId="model-play-autoplay"
         label={label}
