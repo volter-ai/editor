@@ -268,7 +268,7 @@
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.121",
+      "version": "0.1.122",
       "license": "GPL-3.0-or-later",
       "notices": [
         {
@@ -279,7 +279,7 @@
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.123",
+      "version": "0.1.124",
       "license": "AGPL-3.0-only AND GPL-3.0-or-later",
       "notices": [
         {
@@ -294,7 +294,7 @@
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.184",
+      "version": "0.5.185",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -313,7 +313,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.184",
+      "version": "0.5.185",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -324,7 +324,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.184",
+      "version": "0.5.185",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -339,7 +339,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.184",
+      "version": "0.5.185",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -645,7 +645,7 @@
   "editor-core": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.184",
+      "version": "0.5.185",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -656,7 +656,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.184",
+      "version": "0.5.185",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -788,7 +788,7 @@
   "editor-live": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.184",
+      "version": "0.5.185",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -799,7 +799,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.184",
+      "version": "0.5.185",
       "license": "Apache-2.0",
       "notices": [
         {
