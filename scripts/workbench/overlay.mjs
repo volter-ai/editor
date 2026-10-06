@@ -470,7 +470,7 @@ function patchHarnessMoveActions(checkout) {
 		const sourceGroup = editorGroupService.activeGroup;
 		await accessor.get(IHarnessChatNavigationService).run(resource, async permit => {
 			const previousInputState = chatEditor.widget.getInputState();
-			const closed = await editorService.closeEditor({ editor: chatEditorInput, groupId: sourceGroup.id });
+			const closed = await sourceGroup.closeEditor(chatEditorInput);
 			if (permit && !closed) { throw new Error('The source conversation editor was not closed for its move.'); }
 			view = await viewsService.openView(ChatViewId) as ChatViewPane;
 			if (permit && !view) { throw new Error('The destination Chat view was not available for its move.'); }
