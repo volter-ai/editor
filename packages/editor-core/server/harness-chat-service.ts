@@ -1089,9 +1089,12 @@ export class HarnessChatService {
       models: chatModels(this.chatSelection.harness, launchContext.env),
       modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id, launchContext.env)])),
       configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
-      // A new chat approves its agent's tool calls unless the person picks Ask (the owner's ask, 2026-10-06). The
-      // Chat applies it only where it can answer the runtime's approvals (Claude Code, Codex); others keep their prompts.
-      defaultPermission: 'autoApprove',
+      // A NEW chat approves its agent's tool calls unless the person picks Ask (the owner's ask, 2026-10-06); each
+      // chat created from now on carries it (chat-session-catalog.ts), so a chat saved before keeps asking. Not
+      // `defaultPermission`: frontend-vscode 0.1.36-0.1.38 applies that to every chat without a stored pick,
+      // which turned Auto on for existing chats (0.5.187). The Chat applies it only where it can answer the
+      // runtime's approvals (Claude Code, Codex); other harnesses keep their prompts.
+      newChatPermission: 'autoApprove',
       setup: {
         ready: Boolean(this.frontendHandoffValue),
         actions,
