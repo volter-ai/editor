@@ -1159,8 +1159,8 @@ export class HarnessChatService {
   private async openChat(id: string) {
     const entry = this.chatCatalog.sessions.get(id);
     if (!entry) throw new Error('This chat session is not available. Start a new chat explicitly.');
+    await this.frontendHandoffInFlight;
     if (!(id === this.chatCatalog.active && this.frontendHandoffValue && !this.managedRuntime?.closed)) {
-      if (!entry.identity) throw new Error('This chat has no persisted harness session to resume. Start a new chat.');
       await this.selectChat(entry.selection, id);
     }
     let history: unknown[] = [];
@@ -1187,13 +1187,16 @@ export class HarnessChatService {
     const previous = this.chatSelection;
     let activated = false;
     try {
+      // The catalog also keeps unsent chats. They retain their selection and
+      // catalog id, but have no durable harness identity to resume yet.
+      const resumeIdentity = resumeId ? this.chatCatalog.sessions.get(resumeId)?.identity : null;
       await this.ensureController();
       this.capture();
       if ((await this.frontendHandoffValue?.isBusy()) || this.lastSnapshot.turn.state === 'running' || this.lastSnapshot.requests.length) throw new Error('Finish or cancel the current turn before starting a new chat.');
-      if (!this.lastSnapshot.harnesses.some(h => h.id === selection.harness && (resumeId ? h.availableActions.resume : h.availableActions.start))) throw new Error('This harness is unavailable or cannot perform the requested chat action.');
+      if (!this.lastSnapshot.harnesses.some(h => h.id === selection.harness && (resumeIdentity ? h.availableActions.resume : h.availableActions.start))) throw new Error('This harness is unavailable or cannot perform the requested chat action.');
       this.chatSelection = selection;
       let action: HeadlessAction = {type:'start', harness:selection.harness};
-      if (resumeId) {
+      if (resumeId && resumeIdentity) {
         const entry = this.chatCatalog.sessions.get(resumeId)!;
         await this.controller!.dispatch({type:'refresh', autoObserve:false, silent:true});
         this.capture();
