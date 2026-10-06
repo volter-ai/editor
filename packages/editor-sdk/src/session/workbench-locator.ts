@@ -293,7 +293,7 @@ function resolveRelease(dir: string): ResolvedWorkbench {
 function resolveSources(dir: string): ResolvedWorkbench {
   let commit: string;
   try {
-    commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    commit = execFileSync('git', ['rev-parse', 'HEAD'], { windowsHide: true, cwd: dir, encoding: 'utf8' }).trim();
   } catch (error) {
     throw new Error(
       `${dir} carries ${SOURCES_LAUNCHER}, so it reads as a Code-OSS fork checkout, but \`git rev-parse HEAD\` ` +
@@ -451,6 +451,7 @@ function githubToken(): string | null {
   if (typeof fromEnv === 'string' && fromEnv.trim() !== '') return fromEnv.trim();
   try {
     const out = execFileSync('gh', ['auth', 'token'], {
+      windowsHide: true,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
@@ -640,6 +641,7 @@ async function fetchDeclaredRelease(
     const tar = process.platform === 'win32'
       ? join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
     execFileSync(tar, ['-xzf', tarballPath, '-C', partial], {
+      windowsHide: true,
       stdio: ['ignore', 'ignore', 'pipe'],
     });
     // The tarball has done its job and is 216 MB; the extraction is what runs.

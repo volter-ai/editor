@@ -214,7 +214,7 @@ export function dirtyPathsFromPorcelain(porcelain: string): string[] {
  *  unborn HEAD, non-zero exit — because each of those means "this project
  *  cannot be asked the question", not "this project is behind". */
 function git(cwd: string, args: string[]): string | null {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf-8' });
+  const result = spawnSync('git', args, { windowsHide: true, cwd, encoding: 'utf-8' });
   if (result.error || result.status !== 0) return null;
   return result.stdout ?? '';
 }

@@ -207,6 +207,7 @@ function deltaBetween(previous, current) {
 function gitRevision() {
   try {
     return execFileSync('git', ['rev-parse', 'HEAD'], {
+      windowsHide: true,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();

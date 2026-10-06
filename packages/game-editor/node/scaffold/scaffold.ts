@@ -622,6 +622,7 @@ function copyMissingProjectSupport(templateDir: string, source: string, destinat
  */
 function trackedExampleFiles(exampleDir: string): string[] | null {
   const result = spawnSync('git', ['-C', exampleDir, 'ls-files', '--cached', '-z', '--', '.'], {
+    windowsHide: true,
     stdio: ['ignore', 'pipe', 'ignore'],
   });
   if (result.status !== 0 || !result.stdout) return null;
@@ -1024,6 +1025,7 @@ const runNpmLink: NpmLinkRunner = (projectDir, packageDirs) => {
   mkdirSync(join(prefix, 'lib', 'node_modules'), { recursive: true });
   mkdirSync(join(prefix, 'bin'), { recursive: true });
   const result = spawnSync('npm', ['link', '--no-save', ...packageDirs], {
+    windowsHide: true,
     cwd: projectDir,
     stdio: 'inherit',
     shell: true,
@@ -1215,6 +1217,7 @@ export type PackageBuildRunner = (packageDir: string) => void;
 
 const runPackageBuild: PackageBuildRunner = (packageDir) => {
   const result = spawnSync('npm', ['run', 'build'], {
+    windowsHide: true,
     cwd: packageDir,
     stdio: 'inherit',
     shell: true,

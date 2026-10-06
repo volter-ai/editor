@@ -23,7 +23,7 @@ export function stopProcess(proc: ChildProcess, graceMs = DEFAULT_STOP_GRACE_MS)
     if (proc.pid === undefined) return;
     if (process.platform === 'win32') {
       try {
-        execFileSync('taskkill', ['/PID', String(proc.pid), '/T', '/F'], { stdio: 'ignore' });
+        execFileSync('taskkill', ['/PID', String(proc.pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
       } catch {
         /* already dead, or taskkill unavailable */
       }

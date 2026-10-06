@@ -727,7 +727,7 @@ const GAMEPLAY_PATHS = [
  *  means "this project cannot be asked the question", not "this project is
  *  drifting". */
 function git(args: string[]): string | null {
-  const result = spawnSync('git', args, { cwd: rootDir, encoding: 'utf-8' });
+  const result = spawnSync('git', args, { windowsHide: true, cwd: rootDir, encoding: 'utf-8' });
   if (result.error || result.status !== 0) return null;
   return (result.stdout ?? '').trim();
 }

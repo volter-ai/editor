@@ -58,8 +58,14 @@ export async function launch(folder: string, launching: LaunchingProduct, option
   const clearLaunch = announceEditorLaunch(project);
   let child;
   try {
+    // DETACHED ON WINDOWS MEANS NO CONSOLE AT ALL (libuv's DETACHED_PROCESS), and then every
+    // console program the session starts that does not hide itself (a harness, a git, an
+    // extension host) opens a new visible terminal window. Hidden but attached, the session
+    // owns one invisible console its whole process tree inherits; Windows keeps it running
+    // after this CLI exits, and close stops the tree with taskkill /T.
     child = spawn(process.execPath, [entry], {
-      cwd: project, detached: true, stdio: ['ignore', log, log],
+      windowsHide: true,
+      cwd: project, detached: process.platform !== 'win32', stdio: ['ignore', log, log],
       env: { ...process.env, VOLTER_CLI_ENTRY: resolve(process.argv[1]!),
         VOLTER_PROJECT: project, VOLTER_PRODUCT_DIR: product.dir, VOLTER_EDITOR_PORT: String(port),
         VOLTER_WORKBENCH_DIR: workbench.dir, VOLTER_FRAME_PORT: String(framePort), VOLTER_FRAME_PROXY_PORT: String(proxyPort),
@@ -99,6 +105,7 @@ export async function prepareSession(folder: string, launching: LaunchingProduct
   const entry = createRequire(join(product.dir, 'package.json')).resolve('@volter/editor-core/server/packaged');
   const code = await new Promise<number | null>((done, fail) => {
     const child = spawn(process.execPath, [entry], {
+      windowsHide: true,
       cwd: project, stdio: ['ignore', 'inherit', 'inherit'],
       env: { ...process.env, VOLTER_PROJECT: project, VOLTER_PRODUCT_DIR: product.dir, VOLTER_NO_OPEN: '1', VOLTER_PREPARE: '1' },
     });

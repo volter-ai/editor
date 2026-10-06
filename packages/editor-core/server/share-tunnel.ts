@@ -40,7 +40,7 @@ function startTunnelProcess(input: {
   parseUrl(line: string): string | null;
   prerequisite: string;
 }): Promise<ShareTunnel> {
-  const child = spawn(input.command, input.args, { stdio: ['ignore', 'pipe', 'pipe'] });
+  const child = spawn(input.command, input.args, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'] });
   return new Promise<ShareTunnel>((resolveUrl, rejectUrl) => {
     let settled = false;
     let output = '';
