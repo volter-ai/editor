@@ -307,37 +307,14 @@ function defaultTableEntry(table: ResolvedDocumentTable): DocumentEntry | null {
   return candidates[0] ?? null;
 }
 
-/**
- * THE THING BEING WORKED ON IS THE DOCUMENT. Blender opens on its scene,
- * Photoshop on its file; a models project should open on the model the agent
- * or the person is making, not on the starter cube it scaffolded. Measured
- * 2026-09-06: an owner watched a bench session write `mushroom.ts`, look at it
- * nine times, and the viewport showed `cage` throughout, because the only
- * automatic open was the boot-time default.
- *
- * So: when the adapter table gains a NEW non-scene entry after its first
- * settled resolution (a model module written to `src/models/`, a page added),
- * the latest entry opens as a replaceable preview, selected the way a Content
- * click leaves it. Explicitly opened or edited tabs stay open. A discovery
- * batch opens only one preview: importing a scene with 35 model modules must
- * not create 35 GPU contexts. Entries already in the table are the user's to open;
- * an entry that comes back after a rename is new to the table and opens.
- * Installed once per project load; the previous watch is dropped.
- */
+/** Discovery can fill an empty workspace, but it must not replace a document
+ * the person already has open. Adding or generating a file advertises it in
+ * Content; activating it remains an explicit document-open operation. */
 let stopFollowingTableDocuments: (() => void) | null = null;
 /** The follow rule's baseline, persisted as this kind's own session state. */
 let seenTableIds: Set<string> | null = null;
-/**
- * A table entry that APPEARS while this workspace is open is the document
- * being worked on (Blender opens on its scene, Photoshop on its file): open
- * it, active, selected the way a Content click leaves it. `seen` is the
- * baseline a previous page of this workspace persisted — without it every
- * Vite full reload (a tsconfig event, an invalidation the graph cannot
- * patch) reset the baseline to "everything now", and a model written in
- * the seconds around a reload was never opened (measured 2026-09-06: an
- * agent iterated a mushroom 24 times while the owner's viewport showed the
- * starter cube).
- */
+/** Keep the discovery baseline across reloads so a new entry can fill an
+ * otherwise empty workspace once, without reopening existing entries. */
 function followNewTableDocuments(seen?: readonly string[]): void {
   stopFollowingTableDocuments?.();
   let known: Set<string> | null = seen ? new Set(seen) : null;
@@ -363,6 +340,7 @@ function followNewTableDocuments(seen?: readonly string[]): void {
     // Advance before opening: document activation can publish the table again.
     known = ids;
     seenTableIds = ids;
+    if (openWorkspaceDocuments().some((document) => !document.descriptor.area)) return;
     if (entry?.source && openKindDocument(entry, { activate: true, preview: true })) {
       setSelectedAsset({
         path: `/${entry.source.path}`,
