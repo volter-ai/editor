@@ -179,13 +179,14 @@ export type SessionJournalEvent =
    * both unplayed-session crossings and the agent's transcript held neither,
    * and nothing on disk said so. `steered` — the line went into the running
    * turn; `no-turn` — no AI turn was running, so nobody was there to hear it
-   * (the crossing's own row and the terminal banner remain its record);
-   * `failed` — the harness refused the steer, with its reason.
+   * (the crossing's own row and the terminal banner remain its record) or it
+   * was waiting on the person; `capped` — this turn already heard its one
+   * line; `failed` — the harness refused the steer, with its reason.
    */
   | {
       readonly kind: 'tripwire-nudge';
       readonly tripwire: AnyTripwireName;
-      readonly outcome: 'steered' | 'no-turn' | 'failed';
+      readonly outcome: 'steered' | 'no-turn' | 'capped' | 'failed';
       readonly error?: string;
     }
   /**

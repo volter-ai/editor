@@ -126,7 +126,10 @@ type HeadlessControllerConstructor = new (options: {
 }) => HeadlessController;
 type HeadlessManagedRuntime = {
   readonly closed?: boolean;
-  on?(event: 'event', listener: (event: { raw?: { payload?: unknown } }) => void): unknown;
+  on?(
+    event: 'event',
+    listener: (event: { type?: string; role?: string; requestId?: unknown; raw?: { payload?: unknown } }) => void,
+  ): unknown;
   /** The SDK's own `RuntimeHandle`. `runtime_id` is the string the runtime wrote into
    *  its live receipt as `runtime_session_id`, so it is how the frontend handoff finds
    *  the loopback address and the mint door. */
@@ -242,6 +245,23 @@ export function withManagedRuntimeObserver(
   });
 }
 
+/**
+ * One Chat runtime event, reduced to what the tripwires need: where a turn
+ * starts and ends, when the agent is talking in the Chat (a watcher can see
+ * that), and when the turn is waiting on the person (an approval or question
+ * is pending — never a moment to steer).
+ */
+export type ChatRuntimeActivity =
+  | 'turn-started'
+  | 'turn-ended'
+  | 'narration'
+  | 'waiting'
+  | 'answered'
+  | 'other';
+
+/** Where a Chat turn stands, for a caller deciding whether to steer it. */
+export type ChatTurnState = 'idle' | 'running' | 'waiting';
+
 export interface HarnessChatServiceOptions {
   getProjectRoot: () => string;
   onChange: (snapshot: HarnessChatSnapshot) => void;
@@ -251,11 +271,11 @@ export interface HarnessChatServiceOptions {
   discoveryPollMs?: number;
   /** Sessions that invoked volter for this project from outside its workspace. */
   callerSessions?: readonly HarnessChatCallerSession[];
-  /** Any event from the Chat's own runtime. The native Chat's turns do not pass
+  /** What the Chat's own runtime just did. The native Chat's turns do not pass
    *  through the headless controller, so `onChange` never sees them run; this is
    *  the push signal that one is, for a listener (the visible-progress tripwire)
    *  that must stay idle until a turn starts. Called on every event: cheap. */
-  onRuntimeActivity?: () => void;
+  onRuntimeActivity?: (activity: ChatRuntimeActivity) => void;
   /** Trusted account route resolved only when Supercode launches a process. */
   resolveCodingInference?: (workspace: string) => Promise<ResolvedCodingInference | null>;
   /** Test seam. Production loads the real zero-dependency Supercode SDK. */
@@ -820,6 +840,8 @@ export class HarnessChatService {
   );
   /** The last managed runtime the SDK handed back, for the frontend handoff's receipt lookup. */
   private managedRuntime: HeadlessManagedRuntime | null = null;
+  /** Runtime requests (approvals, questions) the person has not answered. */
+  private readonly pendingRuntimeRequests = new Set<string>();
   private observedModel: string | null = null;
   private chatSelection: ChatSelection = { ...DEFAULT_CHAT_SELECTION };
   private selectingChat = false;
@@ -943,20 +965,33 @@ export class HarnessChatService {
 
 
   /**
-   * Is an AI turn running in the Chat right now?
+   * Where the Chat's AI turn stands right now.
    *
    * Two places can know, because there are two ways a turn starts: the native
    * Chat view drives its runtime directly (only the runtime's own `turn_state`
    * sees it — the same read `chatControlState` makes), and an `@agent` hand-off
-   * runs through the headless controller (its snapshot sees it). Never throws:
-   * a runtime that cannot be asked is not running anything this editor can see.
+   * runs through the headless controller (its snapshot sees it).
+   *
+   * `waiting` — the turn is blocked on the PERSON (an approval or a question is
+   * pending: the controller's `requests`, or a runtime `request` event not yet
+   * resolved). A busy turn that is waiting is not a turn to steer: the line
+   * would land on top of the question the person is reading.
+   *
+   * Never throws: a runtime that cannot be asked is not running anything this
+   * editor can see.
    */
-  async chatTurnRunning(): Promise<boolean> {
-    if (this.lastSnapshot.turn.state === 'running') return true;
+  async chatTurnState(): Promise<ChatTurnState> {
+    if (
+      this.lastSnapshot.requests.some((request) => request.status === 'pending') ||
+      this.pendingRuntimeRequests.size > 0
+    ) {
+      return 'waiting';
+    }
+    if (this.lastSnapshot.turn.state === 'running') return 'running';
     try {
-      return (await this.frontendHandoffValue?.isBusy()) === true;
+      return (await this.frontendHandoffValue?.isBusy()) === true ? 'running' : 'idle';
     } catch {
-      return false;
+      return 'idle';
     }
   }
 
@@ -967,11 +1002,11 @@ export class HarnessChatService {
    * conversation, between its own tool calls, and the person sees it in the Chat.
    *
    * `false` when no turn is running (an idle agent is not working, and a steer
-   * would start nothing). Throws when the harness refuses the steer, so the
-   * caller can record why.
+   * would start nothing) or the turn is waiting on the person. Throws when the
+   * harness refuses the steer, so the caller can record why.
    */
   async steerRunningTurn(text: string): Promise<boolean> {
-    if (!(await this.chatTurnRunning())) return false;
+    if ((await this.chatTurnState()) !== 'running') return false;
     const runtime = this.managedRuntime;
     if (runtime && !runtime.closed) {
       await runtime.steer(text);
@@ -1020,9 +1055,10 @@ export class HarnessChatService {
   private observeChatRuntime(runtime: HeadlessManagedRuntime): void {
     this.managedRuntime = runtime;
     this.observedModel = null;
+    this.pendingRuntimeRequests.clear();
     runtime.on?.('event', event => {
       if (this.managedRuntime !== runtime) return;
-      this.options.onRuntimeActivity?.();
+      this.options.onRuntimeActivity?.(this.runtimeActivity(event));
       const payload = event.raw?.payload;
       if (!payload || typeof payload !== 'object') return;
       const record = payload as { model?: unknown; message?: { model?: unknown }; parent_tool_use_id?: unknown };
@@ -1031,6 +1067,34 @@ export class HarnessChatService {
       const model = record.message?.model ?? record.model;
       if (typeof model === 'string' && model.length > 0 && model.length < 200) this.observedModel = model;
     });
+  }
+
+  /**
+   * Reduce one runtime event to a `ChatRuntimeActivity`, keeping the set of
+   * requests the person has not answered yet — the native Chat answers them
+   * itself, so these events are the only place this service sees them.
+   */
+  private runtimeActivity(event: { type?: string; role?: string; requestId?: unknown }): ChatRuntimeActivity {
+    switch (event.type) {
+      case 'turn_started':
+        this.pendingRuntimeRequests.clear();
+        return 'turn-started';
+      case 'turn_completed':
+        this.pendingRuntimeRequests.clear();
+        return 'turn-ended';
+      case 'request':
+        this.pendingRuntimeRequests.add(JSON.stringify(event.requestId ?? null));
+        return 'waiting';
+      case 'request_resolved':
+        this.pendingRuntimeRequests.delete(JSON.stringify(event.requestId ?? null));
+        return 'answered';
+      case 'output_delta':
+        return 'narration';
+      case 'message':
+        return event.role === 'assistant' ? 'narration' : 'other';
+      default:
+        return 'other';
+    }
   }
 
   /** The private controls channel's environment for the extension host: started

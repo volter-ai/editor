@@ -575,8 +575,9 @@ export function unplayedSessionNotice(
  * ONE step, at a minute, and no loud step. A minute is long enough that a
  * single tool call, a typecheck or a file read never trips it, and short
  * enough that the watcher is still watching when the window changes. There is
- * no escalation because the remedy never changes: the next stall is a new
- * stall, re-armed by the visible change that ended the last one.
+ * no escalation because the remedy never changes. The crossing re-arms on the
+ * visible change that ends a stall, but the Chat hears at most one tripwire
+ * line per turn (the caller's cap): a steered line costs the agent context.
  */
 const VISIBLE_STALL_NOTICE_MS = 60_000;
 
