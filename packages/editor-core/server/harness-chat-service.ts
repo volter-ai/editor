@@ -263,6 +263,10 @@ export function withManagedRuntimeObserver(
  */
 export type ChatRuntimeActivity =
   | 'turn-started'
+  /** A synthetic reopen within `STEER_ECHO_WINDOW_MS` of this editor's own
+   *  steer: the same real turn carrying on (or the turn the steer itself
+   *  started), so the per-turn nudge allowance must NOT reset. */
+  | 'turn-resumed'
   | 'turn-ended'
   | 'narration'
   | 'waiting'
@@ -276,6 +280,15 @@ export type ChatRuntimeActivity =
  * otherwise read as `waiting` for the rest of the session.
  */
 const PENDING_REQUEST_STALE_MS = 10 * 60_000;
+
+/**
+ * How long after this editor's own steer a synthetic turn reopen is read as
+ * that steer's consequence rather than a new turn, in ms. A steer sent just
+ * after Claude Code's `result`, while the runtime still reports busy, can
+ * echo back and be answered within seconds; counting that as a fresh turn
+ * would hand the same real turn a second nudge.
+ */
+const STEER_ECHO_WINDOW_MS = 10_000;
 
 /**
  * Is this event the agent's own words, visible to the person in the Chat?
@@ -902,7 +915,8 @@ export class HarnessChatService {
    *  whose `request_resolved` never arrived. */
   private lastRuntimeEventAt = 0;
   /** Whether the Chat runtime's current turn is open, from its own boundary
-   *  events: `null` until a boundary is seen (a harness may report none). */
+   *  events and the synthetic reopen: `null` before any runtime is observed,
+   *  `false` when a new one is. */
   private runtimeTurnOpen: boolean | null = null;
   /** Bumped at every runtime turn boundary, so a steer that awaited across one
    *  can tell. */
@@ -911,6 +925,9 @@ export class HarnessChatService {
    *  ends turns (`result`) but never starts one, so for such a runtime the
    *  open/closed bit is inferred and steering must not be gated on it. */
   private runtimeReportsTurnStarts = false;
+  /** The last line this service steered in, and when — so its echo as a user
+   *  message, and the reopen it causes, are recognised as ours. */
+  private lastSteer: { readonly text: string; readonly at: number } | null = null;
   private observedModel: string | null = null;
   private chatSelection: ChatSelection = { ...DEFAULT_CHAT_SELECTION };
   private selectingChat = false;
@@ -1097,6 +1114,7 @@ export class HarnessChatService {
     // descriptor's `turn_state` busy, read just above.
     if (generation !== this.runtimeTurnGeneration) return false;
     if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return false;
+    this.lastSteer = { text, at: Date.now() };
     const runtime = this.managedRuntime;
     if (runtime && !runtime.closed) {
       await runtime.steer(text);
@@ -1146,7 +1164,9 @@ export class HarnessChatService {
     this.managedRuntime = runtime;
     this.observedModel = null;
     this.pendingRuntimeRequests.clear();
-    this.runtimeTurnOpen = null;
+    // A fresh runtime starts CLOSED, so its first activity is a (synthetic)
+    // turn start — the watcher arms nothing after a turn end until one.
+    this.runtimeTurnOpen = false;
     this.runtimeReportsTurnStarts = false;
     this.runtimeTurnGeneration++;
     runtime.on?.('event', event => {
@@ -1200,9 +1220,9 @@ export class HarnessChatService {
       case 'request': {
         // A request opens a turn that never announced itself (it is raised
         // from inside one); the ask is added after, so the reopen keeps it.
-        const opened = this.reopenOnActivity();
+        const reopened = this.reopenOnActivity();
         this.pendingRuntimeRequests.add(runtimeRequestKey(event, 'request'));
-        return opened ? 'turn-started' : 'waiting';
+        return reopened ?? 'waiting';
       }
       case 'request_resolved':
         this.pendingRuntimeRequests.delete(runtimeRequestKey(event, 'request_resolved'));
@@ -1210,16 +1230,19 @@ export class HarnessChatService {
       case 'output_delta':
       case 'reasoning_delta':
       case 'tool':
-        if (this.reopenOnActivity()) return 'turn-started';
-        // The agent is moving again, so no ask is still open: a resolution
-        // that was lost on the wire must not leave the turn `waiting`.
-        this.pendingRuntimeRequests.clear();
-        return isNarration(event) ? 'narration' : 'other';
+        // NOT a reason to clear a pending approval: in Claude Code a subagent
+        // can stream while the main thread waits on the person's decision.
+        // An ask ends only on its own `request_resolved`, a turn boundary,
+        // an idle runtime, or the no-event bound in `chatTurnState`.
+        return this.reopenOnActivity() ?? (isNarration(event) ? 'narration' : 'other');
       case 'message':
+        // This editor's own steer echoing back is not a new turn.
+        if (event.role === 'user' && this.isOwnSteerEcho(event)) return 'other';
         // A new user message, or the agent speaking, after a turn ended is
         // the next turn beginning.
-        if ((event.role === 'user' || isNarration(event)) && this.reopenOnActivity()) {
-          return 'turn-started';
+        if (event.role === 'user' || isNarration(event)) {
+          const reopened = this.reopenOnActivity();
+          if (reopened) return reopened;
         }
         return isNarration(event) ? 'narration' : 'other';
       default:
@@ -1232,12 +1255,23 @@ export class HarnessChatService {
    * turn, because Claude Code's native stream ends every turn (`result`) and
    * starts none. Reported upward as `turn-started`, so the visible-progress
    * stall clock and the per-turn nudge allowance reset exactly as they do for
-   * a runtime that announces its turns. `true` when it opened one.
+   * a runtime that announces its turns — unless it follows this editor's own
+   * steer within `STEER_ECHO_WINDOW_MS`, when it is `turn-resumed` and the
+   * allowance stands. `null` when no turn was reopened.
    */
-  private reopenOnActivity(): boolean {
-    if (this.runtimeTurnOpen !== false) return false;
+  private reopenOnActivity(): 'turn-started' | 'turn-resumed' | null {
+    if (this.runtimeTurnOpen !== false) return null;
     this.openRuntimeTurn(true);
-    return true;
+    const sinceSteer = this.lastSteer ? Date.now() - this.lastSteer.at : Infinity;
+    return sinceSteer < STEER_ECHO_WINDOW_MS ? 'turn-resumed' : 'turn-started';
+  }
+
+  /** Is this user message the line this service last steered in? Matched on
+   *  the text, either way round, because a harness may trim or wrap it. */
+  private isOwnSteerEcho(event: ObservedChatRuntimeEvent): boolean {
+    const sent = this.lastSteer?.text.trim();
+    const seen = typeof event.text === 'string' ? event.text.trim() : '';
+    return Boolean(sent && seen && (seen.includes(sent) || sent.includes(seen)));
   }
 
   /** A runtime turn boundary: any open ask belongs to the turn it ended. */

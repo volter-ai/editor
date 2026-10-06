@@ -617,6 +617,11 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   let turnClockAsking = false;
   /** Has this turn already heard a tripwire line? See `nudgeChatAgent`. */
   let chatNudgedThisTurn = false;
+  /** `chatNudgedThisTurn` as the last stopped clock left it. */
+  let previousTurnNudged = false;
+  /** A turn END was the last boundary seen: until a turn (re)starts, stray
+   *  activity must not arm a fresh clock — and with it a fresh allowance. */
+  let chatTurnEnded = false;
   let revisionsRoom: CollaborationSession | null = null;
   let revisionsUnsubscribe: (() => void) | null = null;
 
@@ -647,6 +652,8 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     lastVisibleChangeAt = null;
     lastViewKey = null;
     visibleGate = IDLE_TRIPWIRE_GATE;
+    // Remembered for a `turn-resumed`: the same real turn keeps its spent line.
+    previousTurnNudged = chatNudgedThisTurn;
     chatNudgedThisTurn = false;
   }
 
@@ -664,11 +671,28 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     if (host.projectRoot() === engineRoot) return;
     if (activity === 'turn-ended') {
       stopTurnClock();
+      chatTurnEnded = true;
       return;
     }
-    // A harness that reports no turn boundaries still arms on any activity;
-    // the clock then stops itself on the first ask that finds no turn.
-    if (activity === 'turn-started' || !turnClock) startTurnClock();
+    if (activity === 'turn-resumed') {
+      // Read before the restart: `startTurnClock` stops the clock first, and
+      // a stop records the (already-cleared) flag over it.
+      const spent = turnClock ? chatNudgedThisTurn : previousTurnNudged;
+      startTurnClock();
+      chatNudgedThisTurn = spent;
+      chatTurnEnded = false;
+      return;
+    }
+    if (activity === 'turn-started') {
+      startTurnClock();
+      chatTurnEnded = false;
+    } else if (!turnClock) {
+      // A harness that reports no turn boundaries still arms on any activity
+      // (the clock stops itself on the first ask that finds no turn) — but
+      // never after a turn END, where only a (re)start may arm it.
+      if (chatTurnEnded) return;
+      startTurnClock();
+    }
     if (activity === 'narration' || activity === 'answered') noteVisibleChange();
   }
 
