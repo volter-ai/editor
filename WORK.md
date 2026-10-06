@@ -1723,3 +1723,37 @@ Full settled verification is recorded in
 `.volter/kart-cycles-20261006/probe-real-frontend40/verification-receipt.json`;
 the origin receipt is `origin-refresh-reproduction.json`. No game sources were
 edited and no new chat matcher was duplicated.
+
+
+### 2026-10-06 — source browser product matches the framed server
+
+Preparing the fresh Astra trial exposed a source-only startup difference: the
+browser fallback in `vs/platform/product/common/product.ts` still named upstream
+Copilot and its GitHub default account, while overlaid `product.json` named the
+Volter frontend and no default account. The public console recorded a GitHub
+provider timeout before the remote extension host registered it. The packaged
+Workbench receives build-time product injection; the unbundled browser did not.
+
+The overlay now copies the reviewed product configuration into that empty
+browser fallback after configuring the product. It preserves the release
+builder's insertion marker and replaces its generated block on repeat. No
+credentials, sign-in state, authentication timeout or game prompt was changed.
+
+Verification: the isolated pinned fork completed `compile-client` with zero
+errors and `compile-web`. Importing the compiled fallback verified the exact
+agent, proposal grants and extension gallery against the server's product.json;
+the release insertion marker remains intact. Two full overlay repeats preserved
+the exact generated source bytes and a single marker block. Fifteen public
+startup/focus/reopen checks passed on the fresh GPT-6 Astra xhigh project.
+Delayed-startup observations are retained in cycle-16/persistent-startup-receipt.json.
+The first pre-prompt timeout and screenshot remain retained; no authoring turn
+was sent before the repair. No packages were published.
+
+Cycle 15 completed and passed all 15 independent public gameplay checks: manual
+forward/reverse/steering, boost cost, pause freeze/resume, all six racers finishing
+and parking separately, restart and settled Stop/Play reset. Minimum parked
+separation was 3.298m. Directly viewed static/game captures still differ in
+cliffs, lighting, kart/character proportions and UI/map. The old immutable
+candidate unloaded during idle after completion; shutdown diagnostics do not
+establish why. Its saved project was reopened for review and gracefully closed.
+This is a gameplay pass, not a visual or uninterrupted smoothness acceptance.

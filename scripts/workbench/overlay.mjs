@@ -1024,6 +1024,29 @@ function patchProduct(checkout) {
 	writeFileSync(path, `${JSON.stringify(product, null, '\t')}\n`);
 }
 
+/** The unbundled browser has upstream defaults instead of the build-time product injection. */
+function patchSourcesProduct(checkout) {
+	const relative = 'src/vs/platform/product/common/product.ts';
+	const path = join(checkout, relative);
+	let source = readFileSync(path, 'utf8');
+	const begin = '\t\t// VOLTER BEGIN source product configuration\n';
+	const end = '\t\t// VOLTER END source product configuration\n';
+	const start = source.indexOf(begin);
+	if (start !== -1) {
+		const finish = source.indexOf(end, start);
+		if (finish === -1) { fail(`${relative}: incomplete source product configuration overlay.`); }
+		source = source.slice(0, start) + source.slice(finish + end.length);
+	}
+	const tail = '\t}\n}\n\nexport default product;';
+	if (!source.includes(tail)) { fail(`${relative}: source product fallback changed upstream; re-aim this repair.`); }
+	const product = JSON.parse(readFileSync(join(checkout, PRODUCT_FILE), 'utf8'));
+	// Preserve the release builder's insertion marker. Only the empty, unbundled
+	// browser fallback needs this override; otherwise it requests Copilot's GitHub
+	// account and uses different capabilities from the extension host.
+	source = source.replace(tail, `${begin}\t\tObject.assign(product, ${JSON.stringify(product)});\n${end}${tail}`);
+	writeFileSync(path, source);
+}
+
 /**
  * The REH package task shims ripgrep INTO the built-in Copilot extension and THROWS when that
  * extension is not there (`build/lib/copilot.ts`'s `prepareBuiltInCopilotRipgrepShim`: "Copilot
@@ -1240,6 +1263,7 @@ function main() {
 		"\t// VOLTER (overlaid tier): vscode-api-tests is not in this build.\n",
 		'the removed API test extension compilation');
 	patchProduct(checkout);
+	patchSourcesProduct(checkout);
 
 	// THE MARKER IS WHAT MAKES A SOURCES WORKBENCH SELF-DESCRIBING. A release says what it is in
 	// `BUILD.json`; a checkout has no such file, and "which product is this workbench" is not a
