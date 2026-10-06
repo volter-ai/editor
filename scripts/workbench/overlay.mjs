@@ -347,20 +347,84 @@ function patchHarnessChatNavigation(checkout) {
 	const hostImport = "import { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../../volter/browser/volterChatNavigation.js';";
 	patchChatSource(checkout, widget, "import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';", "import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';\n" + widgetImport, 'harness navigation service import');
 	patchChatSource(checkout, widget, '\t\t@ILogService private readonly logService: ILogService,', '\t\t@ILogService private readonly logService: ILogService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService,', 'harness navigation service injection');
+	patchChatSource(checkout, widget, "import { timeout } from '../../../../../base/common/async.js';", "import { timeout } from '../../../../../base/common/async.js';\nimport { CancellationError } from '../../../../../base/common/errors.js';", 'untitled opening cancellation import');
+	patchChatSource(checkout, widget, "import { CancellationError } from '../../../../../base/common/errors.js';", "import { CancellationError } from '../../../../../base/common/errors.js';\nimport { CancellationTokenSource } from '../../../../../base/common/cancellation.js';", 'untitled opening cancellation token');
+	patchChatSource(checkout, widget, '\tprivate _widgets: IChatWidget[] = [];', '\tprivate _widgets: IChatWidget[] = [];\n\tprivate harnessOpenGeneration = 0;\n\tprivate harnessUntitledOpening: (() => boolean) | undefined;\n\tprivate cancelHarnessUntitledOpening: (() => void) | undefined;', 'native open request generation');
 	const open = '\tasync openSession(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions): Promise<IChatWidget | undefined> {';
 	patchChatSource(checkout, widget, open, `${open}
-		return this.harnessNavigation.run(sessionResource, async permit => {
-			const widget = await this.openSessionAfterGuard(sessionResource, target, options, permit);
-			if (permit && widget?.viewModel?.sessionResource.toString() !== sessionResource.toString()) {
-				throw new Error('The requested conversation was not selected by native Chat.');
-			}
-			return widget;
-		}, options?.harnessNavigationPermit);
+		this.cancelHarnessUntitledOpening?.();
+		const generation = ++this.harnessOpenGeneration;
+		const untitledSidebar = sessionResource.scheme === 'supercode' && sessionResource.path.startsWith('/untitled-')
+			&& (target === ChatViewPaneTarget || typeof target === 'undefined') && !this.getWidgetBySessionResource(sessionResource);
+		const focused = this.lastFocusedWidget;
+		const focusedResource = focused?.viewModel?.sessionResource.toString();
+		let bindingWidget: IChatWidget | undefined;
+		let focusing = false;
+		let unchanged = true;
+		const cancellation = untitledSidebar ? new CancellationTokenSource() : undefined;
+		const invalidate = () => { unchanged = false; cancellation?.cancel(); };
+		const isCurrent = () => unchanged && generation === this.harnessOpenGeneration
+			&& (!bindingWidget || this._widgets.includes(bindingWidget));
+		if (untitledSidebar) { this.harnessUntitledOpening = isCurrent; this.cancelHarnessUntitledOpening = invalidate; }
+		const focusListeners: IDisposable[] = [];
+		const observeFocus = (widget: IChatWidget) => focusListeners.push(widget.onDidFocus(() => {
+			if (!focusing || widget !== bindingWidget || widget.viewModel?.sessionResource.toString() !== sessionResource.toString()) { invalidate(); }
+		}));
+		if (untitledSidebar) {
+			this._widgets.forEach(observeFocus);
+			focusListeners.push(this.editorService.onDidActiveEditorChange(invalidate), this.editorGroupsService.onDidChangeActiveGroup(invalidate));
+			focusListeners.push(this.onDidRemoveWidget(widget => { if (widget === bindingWidget) { invalidate(); } }));
+		}
+		const added = untitledSidebar ? this.onDidAddWidget(widget => {
+			if (isIChatViewViewContext(widget.viewContext) && widget.viewContext.viewId === ChatViewId) { bindingWidget = widget; }
+			observeFocus(widget);
+		}) : undefined;
+		const listener = untitledSidebar ? this.onDidChangeFocusedSession(() => {
+			const widget = this.lastFocusedWidget;
+			const key = widget?.viewModel?.sessionResource.toString();
+			// The original focus may stay put, or its own load may bind the target.
+			// Any other selection invalidates this opening permanently.
+			if (widget === focused && key === focusedResource) { return; }
+			if (bindingWidget && widget === bindingWidget && key === sessionResource.toString()) { return; }
+			invalidate();
+		}) : undefined;
+		try {
+			return await this.harnessNavigation.run(sessionResource, async permit => {
+				const opening = untitledSidebar ? { isCurrent, token: cancellation!.token,
+					willBind: (widget: IChatWidget) => { bindingWidget = widget; }, willFocus: () => { focusing = true; } } : undefined;
+				const widget = await this.openSessionAfterGuard(sessionResource, target, options, permit, opening);
+				if (untitledSidebar && !isCurrent()) { throw new CancellationError(); }
+				if ((permit || untitledSidebar) && widget?.viewModel?.sessionResource.toString() !== sessionResource.toString()) {
+					throw new Error('The requested conversation was not selected by native Chat.');
+				}
+				return widget;
+			}, options?.harnessNavigationPermit, untitledSidebar ? isCurrent : undefined);
+		} finally {
+			listener?.dispose(); added?.dispose(); focusListeners.forEach(listener => listener.dispose()); cancellation?.dispose();
+			if (this.harnessUntitledOpening === isCurrent) { this.harnessUntitledOpening = undefined; this.cancelHarnessUntitledOpening = undefined; }
+		}
 	}
 
-	private async openSessionAfterGuard(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions, permit?: HarnessChatNavigationPermit): Promise<IChatWidget | undefined> {
+	private async openSessionAfterGuard(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions, permit?: HarnessChatNavigationPermit, opening?: { isCurrent: () => boolean; token: CancellationTokenSource['token']; willBind: (widget: IChatWidget) => void; willFocus: () => void }): Promise<IChatWidget | undefined> {
 		if (permit) { options = { ...options, harnessNavigationPermit: permit }; }`, 'guard before native session selection');
-	patchChatSource(checkout, widget, 'await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason);', 'await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason, permit);', 'nested sidebar navigation permit');
+	patchChatSource(checkout, widget, '\t\tif (!this._lastFocusedWidget) {\n\t\t\tthis.setLastFocusedWidget(newWidget);', `\t\t// An unfocused sidebar created by this current draft open is not a focus
+		// gesture. Its requested focus will be published after target binding.
+		if (!this._lastFocusedWidget && !(this.harnessUntitledOpening?.()
+			&& isIChatViewViewContext(newWidget.viewContext) && newWidget.viewContext.viewId === ChatViewId)) {
+			this.setLastFocusedWidget(newWidget);`, 'defer owned sidebar registration focus until binding');
+	patchChatSource(checkout, widget, 'await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason);', `if (opening && !opening.isCurrent()) { throw new CancellationError(); }
+				opening?.willBind(chatView.widget);
+				await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason, permit, opening?.token);`, 'nested sidebar navigation permit and opening currentness');
+	patchChatSource(checkout, widget, 'const chatView = await this.viewsService.openView<ChatViewPane>(ChatViewId, !options?.preserveFocus);', `// A harness draft owns its requested URI before this awaited open. Do not
+			// publish the outgoing sidebar's focus before binding that URI.
+			const chatView = await this.viewsService.openView<ChatViewPane>(ChatViewId, sessionResource.scheme === 'supercode' ? false : !options?.preserveFocus);`, 'bind harness sidebar before requested focus');
+	patchChatSource(checkout, widget, 'await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason, permit, opening?.token);\n\t\t\t\tif (!options?.preserveFocus)', `await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason, permit, opening?.token);
+				if (sessionResource.scheme === 'supercode' && chatView.widget?.viewModel?.sessionResource.toString() !== sessionResource.toString()) {
+					throw new Error('The requested conversation was not bound by the native Chat view.');
+				}
+				if (opening && !opening.isCurrent()) { throw new CancellationError(); }
+				if (!options?.preserveFocus)`, 'validate harness sidebar binding before requested focus');
+	patchChatSource(checkout, widget, '\t\t\t\t\tchatView.focusInput();', '\t\t\t\t\topening?.willFocus();\n\t\t\t\t\tchatView.focusInput();', 'own final requested draft focus');
 	const reveal = '\tasync reveal(widget: IChatWidget, preserveFocus?: boolean): Promise<boolean> {';
 	patchChatSource(checkout, widget, reveal, `${reveal}
 		const resource = widget.viewModel?.sessionResource;
@@ -408,16 +472,22 @@ ${openEditor}
 
 	patchChatSource(checkout, view, "import './media/chatViewPane.css';", "import './media/chatViewPane.css';\n" + hostImport, 'sidebar navigation service import');
 	const load = '\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {';
-	patchChatSource(checkout, view, load, `\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason, permit?: HarnessChatNavigationPermit): Promise<IChatModel | undefined> {
+	patchChatSource(checkout, view, load, `\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason, permit?: HarnessChatNavigationPermit, openingToken?: CancellationToken): Promise<IChatModel | undefined> {
 		// Keep refusal outside the load's cancellation, clear timer and empty-model recovery.
 		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(sessionResource, async navigationPermit => {
-			const model = await this.loadSessionAfterGuard(sessionResource, sessionTypeSelectionReason);
+			const model = await this.loadSessionAfterGuard(sessionResource, sessionTypeSelectionReason, openingToken);
 			if (navigationPermit && model?.sessionResource.toString() !== sessionResource.toString()) { throw new Error('The requested conversation was not selected by the native Chat view.'); }
 			return model;
 		}, permit));
 	}
 
-	private async loadSessionAfterGuard(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {`, 'guard before direct sidebar load mutation');
+	private async loadSessionAfterGuard(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason, openingToken?: CancellationToken): Promise<IChatModel | undefined> {`, 'guard before direct sidebar load mutation');
+	patchChatSource(checkout, view, 'const cts = this.loadSessionCts.value = new CancellationTokenSource();', 'const cts = this.loadSessionCts.value = new CancellationTokenSource(openingToken);', 'cancel superseded native draft acquisition');
+	patchChatSource(checkout, view, '\t\t\tconst clearWidget = disposableTimeout(() => {', `\t\t\tconst clearWidget = disposableTimeout(() => {
+				// This opening already owns an untitled draft. Keep the outgoing model
+				// until binding, rather than publishing an unrelated empty focus event.
+				// Explicit user clear/new loads still cancel through loadSessionCts.
+				if (openingToken && sessionResource.scheme === 'supercode' && sessionResource.path.startsWith('/untitled-')) { return; }`, 'retain model through owned untitled binding');
 	// Synchronous move/close APIs relocate or expose an already stored pane passively.
 	// They must not enqueue activation and then close the outgoing pane before its guard.
 	patchChatSource(checkout, group, 'target.doOpenEditor(keepCopy ? editor.copy() : editor, options, internalOptions);', `const transferOptions: IEditorOptions & { harnessPassive?: boolean } = { ...options, harnessPassive: true };
