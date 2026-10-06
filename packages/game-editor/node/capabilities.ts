@@ -133,6 +133,7 @@ export function runCapabilityCommand(verb: CapabilityVerb, ids: string[], option
       }
       if (!json) log(`Installing dependencies: ${dependencyNames.join(', ')}`);
       execFileSync('npm', ['install', '--prefer-offline', '--no-audit', '--no-fund', '--loglevel=error'], {
+        windowsHide: true,
         cwd: projectDir, stdio: json ? 'ignore' : 'inherit', shell: process.platform === 'win32',
       });
       // That install re-resolved the project's packages from the registry;

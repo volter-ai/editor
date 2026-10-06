@@ -28,7 +28,7 @@ export const declaration: ProductCreateDeclaration = {
     console.log("Installing project dependencies…");
     await new Promise<void>((done, fail) => {
       // npm is npm.cmd on Windows, and node refuses to spawn a .cmd without a shell (EINVAL).
-      const child = spawn('npm', ['install'], { cwd: result.targetDir, stdio: 'inherit', shell: process.platform === 'win32' });
+      const child = spawn('npm', ['install'], { windowsHide: true, cwd: result.targetDir, stdio: 'inherit', shell: process.platform === 'win32' });
       child.once('error', fail);
       child.once('exit', code => code === 0 ? done() : fail(new Error(`Dependency installation failed (${code}); project source remains at ${result.targetDir}.`)));
     });

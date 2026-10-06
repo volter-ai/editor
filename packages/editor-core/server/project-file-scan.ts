@@ -21,6 +21,7 @@ export async function installProjectDependencies(projectPath: string): Promise<v
       'npm',
       ['install', '--prefer-offline', '--no-audit', '--no-fund', '--loglevel=error'],
       {
+        windowsHide: true,
         cwd: projectPath,
         stdio: 'ignore',
         shell: true,

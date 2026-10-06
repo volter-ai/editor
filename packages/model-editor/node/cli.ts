@@ -57,6 +57,7 @@ try {
       try { await resolveSession(project); return; } catch { /* launch diagnoses stale sessions */ }
       await new Promise<void>((done, fail) => {
         const child = spawn(process.execPath, [fileURLToPath(import.meta.url), 'edit', project], {
+          windowsHide: true,
           cwd: project, stdio: ['ignore', 2, 2], env: process.env,
         });
         child.once('error', fail);

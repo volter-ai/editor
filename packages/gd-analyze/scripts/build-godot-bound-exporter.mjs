@@ -175,10 +175,11 @@ writeFileSync(
 
 try {
   mkdirSync(buildSource, { recursive: true });
-  const clone = spawnSync('cp', ['-cR', `${sourceRoot}/.`, buildSource], { stdio: 'inherit' });
+  const clone = spawnSync('cp', ['-cR', `${sourceRoot}/.`, buildSource], { windowsHide: true, stdio: 'inherit' });
   if (clone.error !== undefined) fail(`could not clone pinned source: ${clone.error.message}`);
   if (clone.status !== 0) fail(`source clone exited ${String(clone.status)}`);
   const instrument = spawnSync('patch', ['-p1', '--forward', '-i', OFFICIAL_SOURCE_PATCH], {
+    windowsHide: true,
     cwd: buildSource,
     stdio: 'inherit',
   });
@@ -211,7 +212,7 @@ try {
       `cache_path=${cacheDir}`,
       `custom_modules=${customModules}`,
     ],
-    { cwd: buildSource, stdio: 'inherit' },
+    { windowsHide: true, cwd: buildSource, stdio: 'inherit' },
   );
   if (result.error !== undefined) fail(`could not execute scons: ${result.error.message}`);
   if (result.status !== 0) fail(`scons exited ${String(result.status)}`);

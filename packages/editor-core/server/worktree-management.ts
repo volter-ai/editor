@@ -134,6 +134,7 @@ function applyPorcelainField(record: WorktreePorcelainRecord, key: string, value
 function git(cwd: string, args: readonly string[]): string {
   try {
     return execFileSync('git', ['-C', cwd, ...args], {
+      windowsHide: true,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
     }).trim();
@@ -146,7 +147,7 @@ function git(cwd: string, args: readonly string[]): string {
 
 function gitAsync(cwd: string, args: readonly string[]): Promise<string> {
   return new Promise((resolveOutput, rejectOutput) => {
-    execFile('git', ['-C', cwd, ...args], { encoding: 'utf8' }, (error, stdout, stderr) => {
+    execFile('git', ['-C', cwd, ...args], { windowsHide: true, encoding: 'utf8' }, (error, stdout, stderr) => {
       if (error) {
         rejectOutput(new Error(stderr.trim() || `git ${args.join(' ')} failed in ${cwd}.`));
         return;
@@ -325,7 +326,7 @@ export function createRepositoryWorktree(
 
 function runInherited(command: string, args: readonly string[], cwd?: string): Promise<void> {
   return new Promise((resolveRun, rejectRun) => {
-    const child = execFile(command, args, { ...(cwd ? { cwd } : {}) });
+    const child = execFile(command, args, { windowsHide: true, ...(cwd ? { cwd } : {}) });
     child.stdout?.pipe(process.stdout);
     child.stderr?.pipe(process.stderr);
     child.once('error', rejectRun);

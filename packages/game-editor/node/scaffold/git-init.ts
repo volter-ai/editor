@@ -46,7 +46,7 @@ interface GitRun {
 }
 
 function runGit(cwd: string, args: string[]): GitRun {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf-8' });
+  const result = spawnSync('git', args, { windowsHide: true, cwd, encoding: 'utf-8' });
   if (result.error) {
     // ENOENT from spawnSync means the BINARY was not found (the cwd here is a
     // directory this process just scaffolded, so it exists by construction).
