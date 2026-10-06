@@ -362,7 +362,8 @@ function patchNativeChat(checkout) {
 	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/common/widget/annotations.ts',
 		"\t\t} else if (item.kind === 'voiceProgress') {",
 		`\t\t} else if (item.kind === 'command' && item.harnessAnswerGroup
-\t\t\t&& previousItem?.kind === 'command' && previousItem.harnessAnswerGroup === item.harnessAnswerGroup) {
+\t\t\t&& previousItem?.kind === 'command' && previousItem.harnessAnswerGroup === item.harnessAnswerGroup
+\t\t\t&& previousEntry.sourceIndexes.at(-1) === currentSourceIndex - 1) {
 \t\t\tresult[previousItemIndex] = {
 \t\t\t\tcontent: { ...previousItem, additionalCommands: [...(previousItem.additionalCommands ?? []), item.command, ...(item.additionalCommands ?? [])] },
 \t\t\t\tsourceIndexes: [...previousEntry.sourceIndexes, currentSourceIndex],
