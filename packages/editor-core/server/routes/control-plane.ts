@@ -1161,6 +1161,9 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     }
     ctx.editorState = nextState;
     ctx.editorStateUpdatedAt = updatedAt;
+    // The tab's own report of what the window shows — the visible-progress
+    // tripwire's view signal (`visibleViewKey`). Free when no turn is running.
+    ctx.noteEditorView(nextState);
     if (clientId) {
       editorStatesByClient.set(clientId, { state: nextState, updatedAt });
       const pageErrors = nextState['pageErrors'];

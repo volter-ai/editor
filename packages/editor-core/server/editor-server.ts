@@ -569,13 +569,28 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     postMirroredTeamMessages(snapshot);
   };
   const account = new EditorAccountService();
+  /** The headless controller's running turn, so its start is seen once. */
+  let headlessTurnId: string | null = null;
   const harnessChat = new HarnessChatService({
     getProjectRoot: () => projectRoot,
     resolveCodingInference: (workspace) => account.resolvedCodingInference(workspace),
     onChange: (snapshot) => {
       broadcast('harness-chat', snapshot);
       syncHarnessParticipant(snapshot);
+      // An `@agent` turn runs through the controller, so its snapshot is the
+      // signal; the native Chat's turns arrive through `onRuntimeActivity`.
+      if (snapshot.turn.state === 'running') {
+        const turnId = snapshot.turn.id ?? null;
+        watch.noteChatActivity(turnId !== headlessTurnId ? 'turn-started' : 'other');
+        headlessTurnId = turnId;
+      } else if (headlessTurnId !== null) {
+        headlessTurnId = null;
+        watch.noteChatActivity('turn-ended');
+      }
     },
+    // The visible-progress tripwire's clock arms on the Chat runtime's own
+    // activity and stops itself when no turn is running (`project-watch.ts`).
+    onRuntimeActivity: (activity) => watch.noteChatActivity(activity),
     ...(initialHarnessCaller ? { callerSessions: [initialHarnessCaller] } : {}),
   });
   const projectWork = new ProjectWorkCoordinator({
@@ -817,6 +832,8 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     bindCollaboration,
     recentAgentAuthor: () => recentAgentAuthor,
     readProjectManifest,
+    chatTurnState: () => harnessChat.chatTurnState(),
+    steerChatTurn: (text) => harnessChat.steerRunningTurn(text),
   });
   const startWatcher = watch.start;
   // ---- Editor command relay + state ----
@@ -1233,6 +1250,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     projectWork,
     journalEvent,
     announceBuildDisciplineTripwires: watch.announceBuildDisciplineTripwires,
+    noteEditorView: watch.noteEditorView,
     get activeLogFile() {
       return activeLogFile;
     },
