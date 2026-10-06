@@ -685,6 +685,31 @@
       ]
     },
     {
+      "name": "@github/copilot-linux-x64",
+      "version": "1.0.84-4",
+      "distribution": {
+        "url": "https://registry.npmjs.org/@github/copilot-linux-x64/-/copilot-linux-x64-1.0.84-4.tgz",
+        "integrity": "sha512-wwHJvZix5CubatpYc/qz8CuvdljoZovyfzMvgBxIw/zYNIRiindQ4xIYO+haGvkVPvZjiCBOXzHfWxr8Ql2iKg==",
+        "sha256": "c2737df9b51d7f98865b0facafb25b15bd541f4160f09681aa28ece05b675b6f"
+      },
+      "notices": [
+        {
+          "path": "foundry-local-sdk/node_modules/foundry-local-sdk/node_modules/adm-zip/LICENSE",
+          "sha256": "6bb5b2d4c07d793ca928daa63a8899c6914fafb5ac3aa04ec10cae07f3d57dca",
+          "whenDirectory": "foundry-local-sdk/node_modules/foundry-local-sdk/node_modules/adm-zip"
+        },
+        {
+          "path": "LICENSE.md",
+          "sha256": "b9680937e10425bf19862908856c16ed274e6b81a1368bd62be7a757eab21628"
+        },
+        {
+          "path": "webview/node_modules/@webviewjs/webview/LICENSE",
+          "sha256": "9cac72e0573f14d3f9bcb8f70922d589ba07dd1051a5c12229f111e154923f0a",
+          "whenDirectory": "webview/node_modules/@webviewjs/webview"
+        }
+      ]
+    },
+    {
       "name": "@github/copilot-sdk",
       "version": "1.0.13",
       "distribution": {
