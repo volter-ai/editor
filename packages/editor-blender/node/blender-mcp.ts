@@ -304,7 +304,8 @@ export async function serveBlenderMcp(
   // it goes rendered one, wrote it into the project and ran the OS `open` on it: Preview started
   // outside the editor. The editor already shows a picture as one of its documents.
   const photographs = `A photograph is shown to the person in the editor, never in another app: get_viewport_screenshot returns one, and an image file written inside the project opens as an editor document with \`npx ${command} eval 'editor.openAsset("<project-relative path>")'\`. Do not run the OS \`open\` on it.`;
-  const instructions = `${runtimeIdentity}\n${photographs}`;
+  const filesystem = `Project files are mounted in Blender at the project's actual absolute path: ${project}. Use that root for image loads, saves and exports; /project is not an alias.`;
+  const instructions = `${runtimeIdentity}\n${filesystem}\n${photographs}`;
   const tools = (blenderTools as ToolShape[]).map((tool) =>
     tool.name === 'execute_blender_code'
       ? { ...tool, description: `${instructions}\n${tool.description}` }

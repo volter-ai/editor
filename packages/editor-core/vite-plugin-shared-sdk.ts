@@ -31,7 +31,7 @@ export function sharedSdkBuildHooks(): Pick<Plugin, 'moduleParsed' | 'generateBu
     },
     moduleParsed(module) {
       const name = sdkModule(module.id);
-      if (!name || entries.has(name) || module.exports.length === 0) return;
+      if (!name || entries.has(name) || !module.exports?.length) return;
       entries.set(name, this.emitFile({
         type: 'chunk', id: module.id,
         name: `volter-sdk-${name.replaceAll('/', '-')}`,

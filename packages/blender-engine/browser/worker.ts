@@ -541,10 +541,15 @@ async function stageProjectFiles(files_: BlenderFiles, project: string): Promise
       say(`${file.path}: HTTP ${answer.status}`);
       continue;
     }
+    // The index can precede an append or rewrite. Stream the response's own size,
+    // not an earlier index entry's size; keep the old stamp so the next sync rechecks.
+    const declaredSize = Number(answer.headers.get('content-length'));
+    const responseSize = answer.headers.has('content-length') && Number.isSafeInteger(declaredSize) && declaredSize >= 0
+      ? declaredSize : file.size;
     const dir = path.slice(0, path.lastIndexOf('/'));
     if (dir) await files_.mkdirTree(dir);
     if (files_.writeFileStream && answer.body) {
-      await files_.writeFileStream(path, loadCheckpoint ? checkpointStream(answer.body, () => loadCheckpoint!("file-import")) : answer.body, file.size);
+      await files_.writeFileStream(path, loadCheckpoint ? checkpointStream(answer.body, () => loadCheckpoint!("file-import")) : answer.body, responseSize);
     } else {
       await files_.writeFile(path, new Uint8Array(await answer.arrayBuffer()));
     }

@@ -1541,6 +1541,20 @@ const MODULE_SERVING_ORIGIN = new URL(import.meta.url).origin;
 
 let latestContributionRefresh: Promise<void> | null = null;
 
+// A load version identifies the imported module instance, not a catalog scan.
+// Document hosts key their mounts by it; changing it for an unchanged bundled
+// module tears down live documents on an unrelated manifest refresh.
+const contributionModuleVersions = new WeakMap<object, number>();
+let nextContributionModuleVersion = 0;
+function contributionModuleVersion(module: unknown): number {
+  if (module === null || (typeof module !== 'object' && typeof module !== 'function')) return 0;
+  const previous = contributionModuleVersions.get(module);
+  if (previous !== undefined) return previous;
+  const version = ++nextContributionModuleVersion;
+  contributionModuleVersions.set(module, version);
+  return version;
+}
+
 export async function refreshProjectToolContributions(): Promise<void> {
   const pass = runContributionRefresh();
   latestContributionRefresh = pass;
@@ -1747,7 +1761,7 @@ async function runContributionRefresh(): Promise<void> {
       const result = extractProjectToolContribution(
         mod,
         entryPath,
-        version,
+        contributionModuleVersion(mod),
         catalog.tools,
         presentation,
       );

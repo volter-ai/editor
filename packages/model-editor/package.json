@@ -44,7 +44,8 @@
   "scripts": {
     "build": "vite build --config vite.config.ts",
     "build:node": "node scripts/build-node.mjs",
-    "typecheck": "tsc -p tsconfig.node.json"
+    "typecheck": "tsc -p tsconfig.node.json",
+    "test": "npm run build:node && node --test test/first-run.test.mjs"
   },
   "volter": {
     "product": {

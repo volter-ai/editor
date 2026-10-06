@@ -655,6 +655,9 @@ export interface EditorState {
    */
   product?: { id: string; dir: string; version: string; command: string; displayName: string } | null;
   playState: 'stopped' | 'playing' | 'paused';
+  /** Latest successful live lane's run window. Independent of video recording;
+   * null when no registered lane reports a run, absent on older editors. */
+  liveRunWindow?: import('./host').LiveRunWindow | null;
   /**
    * Issue #175 — the REAL engine `GameLoop.liveness` behind the current play
    * session, distinct from `playState` above (editor UI state — a store
@@ -1327,8 +1330,10 @@ export interface EditorChromeCaptureOptions {
   readonly scale?: number;
   /** `page` (the default): the whole editor. `document`: the active document's own box as the
    *  person sees it, overlays included (a viewport's navigation gizmo, its readouts). The door
-   *  a stage is judged through; `captureActiveDocument` is the document's render alone. */
-  readonly region?: 'page' | 'document';
+   *  a stage is judged through; `captureActiveDocument` is the document's render alone.
+   * `play`: the active document's live world and UI frame, excluding authoring chrome
+   * and surrounding letterboxing. Refused when the document has no live frame. */
+  readonly region?: 'page' | 'document' | 'play';
 }
 
 export interface ActiveDocumentCapture extends ViewportCapture {

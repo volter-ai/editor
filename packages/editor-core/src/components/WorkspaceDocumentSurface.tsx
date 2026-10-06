@@ -12,6 +12,10 @@ import {
 } from '@volter/editor-sdk/kit/document-areas';
 import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
 import {
+  documentPlaying,
+  subscribeDocumentPlayExtensions,
+} from '@volter/editor-sdk/kit/document-play-extension';
+import {
   documentViewport,
   documentViewportsVersion,
   subscribeDocumentViewports,
@@ -107,8 +111,16 @@ export function WorkspaceDocumentSurface({
   useSyncExternalStore(subscribeActiveAuthoring, activeAuthoringVersion, activeAuthoringVersion);
   useSyncExternalStore(subscribeDocumentViewports, documentViewportsVersion, documentViewportsVersion);
   useSyncExternalStore(subscribeStageTransforms, stageTransformsVersion, stageTransformsVersion);
+  // The optional Play owner lends this document's area to its runner. Its
+  // authoring viewport may stay mounted for Stop, but its controls must not
+  // cover or intercept the runner's surface.
+  const playing = useSyncExternalStore(
+    subscribeDocumentPlayExtensions,
+    () => documentPlaying(descriptor.id),
+    () => false,
+  );
   const stage = documentViewport(descriptor.id);
-  const driver = active && descriptor.kind !== 'game' ? (stage?.transformTools?.() ?? 'none') : 'none';
+  const driver = active && !playing && descriptor.kind !== 'game' ? (stage?.transformTools?.() ?? 'none') : 'none';
   const TransformTools = stage?.TransformTools;
   const TransformControls = stage?.TransformControls;
   // WHERE THE STAGE'S OWN CONTROLS SIT is the look's (`StageContribution.chrome`): the content
@@ -118,7 +130,7 @@ export function WorkspaceDocumentSurface({
   const stageChrome = useViewportChrome();
   // Only a 3D stage takes it (the one kind of document that registers a stage here), and not a
   // backdrop world, whose overlays already clear the floating header by their own offset.
-  const placesStage = chrome && stage !== null && stage !== undefined && !backdrop;
+  const placesStage = chrome && !playing && stage !== null && stage !== undefined && !backdrop;
   // The transform tools alone move to the bar; a document's own shelf stays on its rail.
   const toolsOnBar = placesStage && stageChrome.bar !== 'none' && stageChrome.tools !== 'shelf';
   // The rail's own switch (`EditorWorkspaceRegions.shelf`), which `DocumentShelfRail` also reads.
@@ -186,7 +198,7 @@ export function WorkspaceDocumentSurface({
         data-volter-stage-bar={placesStage && stageChrome.bar !== 'none' ? stageChrome.bar : undefined}
         // Whether the shelf rail draws anything, so a control placed at the stage's left edge
         // (Godot's view pill) stands past it only when it is there.
-        data-volter-stage-rail={chrome && !shelfHidden && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
+        data-volter-stage-rail={chrome && !playing && !shelfHidden && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
       >
         <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
         {/* THE STAGE'S BAR, when the look draws one (`workspace-surfaces.css`, "THE STAGE'S BAR"). */}
@@ -199,7 +211,7 @@ export function WorkspaceDocumentSurface({
         {chrome && !shelfHidden && secondShelf && transformTools && !toolsOnBar
           ? createPortal(transformTools, secondShelf)
           : null}
-        {chrome && (
+        {chrome && !playing && (
           <DocumentShelfRail documentId={descriptor.id}>
             {(transformTools && !toolsOnBar) || Shelf ? (
               <>

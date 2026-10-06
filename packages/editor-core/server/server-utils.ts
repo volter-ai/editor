@@ -899,8 +899,8 @@ export const RELAY_DELIVERY_MAX_WAIT_MS = 45_000;
  * the same "keep the informative timer the one that fires" rule
  * {@link relayCommandTimeoutMs} states for its client-side counterparts.
  */
-export function relayCommandAckDeadlineMs(type: unknown): number | null {
-  return relayCommandTimeoutMs(type) > RELAY_DELIVERY_ACK_MS ? RELAY_DELIVERY_ACK_MS : null;
+export function relayCommandAckDeadlineMs(type: unknown, command?: Record<string, unknown>): number | null {
+  return relayCommandTimeoutMs(type, command) > RELAY_DELIVERY_ACK_MS ? RELAY_DELIVERY_ACK_MS : null;
 }
 
 /**

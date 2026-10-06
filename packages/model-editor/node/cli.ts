@@ -6,6 +6,8 @@ import { fileURLToPath } from 'node:url';
 import { hasManifest } from '@volter/editor-project/manifest/locate';
 import productPackage from '../package.json';
 import { declaration } from './create';
+import { startupProject } from './startup';
+import { chat, CHAT_USAGE } from './chat';
 import { launch, prepareSession, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { listRecentProjects, listSessions, openProject, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
@@ -33,7 +35,9 @@ try {
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Model Editor\n  volter-model-editor create <folder> [--template models|playable] [--workbench <dir>]\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
+    console.log(`Volter Model Editor\n  volter-model-editor                 # open this project, or prepare your starter model\n  volter-model-editor create <folder> [--template models|playable] [--workbench <dir>]\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor ${CHAT_USAGE}\n  volter-model-editor status | console | close\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
+  } else if (verb === 'chat') {
+    console.log(JSON.stringify(await chat(positionals.slice(1)), null, 2));
   } else if (verb === 'hosted') {
     await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {
@@ -93,8 +97,9 @@ try {
       if (values.workbench) writeWorkbenchDeclaration(resolve(folder), resolve(values.workbench));
 
     }
-    console.log(`Opening Model Editor for ${resolve(folder)}…`);
-    await launch(folder, PRODUCT, {
+    const project = verb === 'edit' && positionals.length < 2 ? await startupProject(declaration.create) : folder;
+    console.log(`Opening Model Editor for ${resolve(project)}…`);
+    await launch(project, PRODUCT, {
       ...(values.workbench ? { workbench: values.workbench } : {}),
       ...(values['no-open'] ? { noOpen: true } : {}),
       ...(values.port ? { port: Number(values.port) } : {}),

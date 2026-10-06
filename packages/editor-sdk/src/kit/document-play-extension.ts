@@ -26,6 +26,8 @@ export interface DocumentPlayExtension {
   readonly Control: ComponentType<DocumentPlayControlProps>;
   readonly Menu: ComponentType<DocumentPlayControlProps>;
   playing(documentId: string): boolean;
+  /** Intended live frame shape; absent/null lets the document fill its area. */
+  aspectRatio?(documentId: string): number | null;
   setPlaying(documentId: string, value: boolean): void;
   escape?(documentId: string): void;
   subscribe(listener: () => void): () => void;
@@ -41,6 +43,15 @@ const registry = page[key] ??= { extensions: new Map(), listeners: new Set() };
 function publish(): void { for (const listener of registry.listeners) listener(); }
 export function documentPlayExtension(kind: string): DocumentPlayExtension | null {
   return registry.extensions.get(kind) ?? null;
+}
+/** Host shells wrap adapter entries as generic documents. Ask the capability
+ * owners about this document's identity rather than treating that wrapper's
+ * semantic kind as the adapter's registered Play kind. */
+export function documentPlaying(documentId: string): boolean {
+  for (const extension of registry.extensions.values()) {
+    if (extension.playing(documentId)) return true;
+  }
+  return false;
 }
 export function subscribeDocumentPlayExtensions(listener: () => void): () => void {
   registry.listeners.add(listener);

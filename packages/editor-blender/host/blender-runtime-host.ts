@@ -901,16 +901,26 @@ async function runtimeView(): Promise<RuntimeView> {
   // command (3 s of boot, then the full wait).
   const deadline = Date.now() + 15_000;
   let id = presentationDocumentId();
+  let publication = 'no context';
   for (;;) {
     id = presentationDocumentId();
     const published = await documents.waitForContext(id, Math.max(0, Math.min(250, deadline - Date.now())));
     if (isRuntimeView(published)) return published;
+    if (published !== undefined) {
+      const required = ['applyFrame', 'stageFrame', 'snapshot', 'captureSnapshot', 'recordPresentation', 'recordPhotograph'];
+      const handle = published as Record<string, unknown> | null;
+      publication = `${typeof published} context missing ${required.filter(method => typeof handle?.[method] !== 'function').join(', ')}`;
+      // An incompatible published context resolves waitForContext immediately.
+      // Yield so a pending document commit can replace it; a microtask loop
+      // otherwise prevents that publication for the whole timeout window.
+      await new Promise<void>(resolve => setTimeout(resolve, Math.max(0, Math.min(25, deadline - Date.now()))));
+    }
     if (Date.now() >= deadline) break;
   }
   throw new Error(
     `The Blender Model document is not open, or the open one is not a Model this engine can present ` +
       `to (it must answer stageFrame, applyFrame, captureSnapshot, recordPresentation and recordPhotograph): nothing ` +
-      `published a presentable view as ${id} within 15 s (bound model: ${boundModel?.documentId ?? 'none'}). ` +
+      `published a presentable view as ${id} within 15 s (bound model: ${boundModel?.documentId ?? 'none'}; last publication: ${publication}). ` +
       'Open the Model document first (`volter blender-mcp` opens it before its first call).',
   );
 }

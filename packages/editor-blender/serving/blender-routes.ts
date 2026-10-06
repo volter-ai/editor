@@ -333,8 +333,10 @@ export function blenderRoutesPlugin(services: ProjectServingServices): Plugin {
         }
         res.setHeader('content-type', 'application/octet-stream');
         res.setHeader('content-length', String(size));
+        if (size === 0) { res.end(); return; }
         await new Promise<void>((resolve) => {
-          const stream = createReadStream(absolute);
+          // Bound an append-only file to the exact response length advertised above.
+          const stream = createReadStream(absolute, { start: 0, end: size - 1 });
           stream.once('error', () => {
             res.destroy();
             resolve();

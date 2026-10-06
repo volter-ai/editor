@@ -1,5 +1,5 @@
 import { createPerformanceProfiler } from '@volter/editor-sdk/kit/performance-profiler';
-import { resetViewPresentation, type ViewportXray } from '@volter/editor-sdk/kit/viewport-presentation';
+import { resetViewPresentation, setViewPresentation, type ViewportXray } from '@volter/editor-sdk/kit/viewport-presentation';
 import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
@@ -7,6 +7,7 @@ import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-boun
 import { setUserData } from '@volter/editor-threejs/ecs/user-data';
 import {
   type ViewportShadingMode,
+  VIEWPORT_SHADING_MODES,
   ViewportShadingRenderer,
 } from '@volter/editor-threejs/render/viewport-shading';
 import type { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
@@ -630,6 +631,9 @@ export class Object3DDocumentSession {
     invalidateStages();
     this.leaveCameraView(false);
     this.settleFlight('superseded');
+    if (fov !== undefined && Number.isFinite(fov) && fov > 0 && fov < 180) {
+      setViewPresentation(this.documentId, { camera: { fov: { degrees: fov, axis: 'vertical' } } });
+    }
     this.viewport.setPose(position, target, fov);
   }
 
@@ -1062,6 +1066,10 @@ export class Object3DDocumentSession {
   }
 
   setMode(mode: Object3DDocumentViewMode): void {
+    if (mode !== 'uv' && mode !== 'vertex-colors' &&
+      !(VIEWPORT_SHADING_MODES as readonly string[]).includes(mode)) {
+      throw new Error(`Unknown document shading mode "${mode}".`);
+    }
     invalidateStages();
     if (this.state.mode === mode) return;
     this.clearDiagnosticPresentation();

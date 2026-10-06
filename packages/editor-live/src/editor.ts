@@ -401,7 +401,7 @@ export class LiveEditor {
   async openAsset(path: string, kind?: AssetKind): Promise<void> {
     // A `.blend` is not an asset but a Model document the project's finder lists; opened as an
     // asset it fell to the extension guess's `json` and showed its bytes.
-    if (kind === undefined && path.toLowerCase().endsWith('.blend'))
+    if (path.toLowerCase().endsWith('.blend'))
       throw new Error(
         `${path} is a Blender Model document, not an asset: open it with editor.open("model:${path}").`,
       );

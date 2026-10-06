@@ -81,13 +81,24 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
         ...(playable ? { '@volter/editor-model-play': kit, '@volter/editor-ui': kit, '@volter/editor-react': kit } : {}),
       },
     }, null, 2) + '\n');
+    // Source authoring can grow from a model into Play and React UI. Create the
+    // shared compiler configuration before Vite starts, so the first check does
+    // not have to create a tsconfig and reload the person's live editor.
+    await write('tsconfig.json', JSON.stringify({
+      compilerOptions: {
+        target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler',
+        jsx: 'react-jsx', resolveJsonModule: true, esModuleInterop: true,
+        strict: true, skipLibCheck: true, noEmit: true,
+      },
+      include: ['src/**/*.ts', 'src/**/*.tsx'],
+    }, null, 2) + '\n');
     await write('volter.adapter.ts', `import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
 import { ModelLayout } from '@volter/editor-blender/layouts';
 import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 
 export default defineAdapter({
 ${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : ''}  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties' },
-  documents: { ${playable ? "default: 'model:src/models/track.blend', " : ''}find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
+  documents: { default: 'model:src/models/${playable ? 'track' : 'cube'}.blend', find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
 });
 `);
     // THE PROJECT NAMES ITS AGENT'S SERVERS, as every scaffolded project does
@@ -115,6 +126,8 @@ ${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : '
       '',
     ].join('\n'));
     await write('.gitignore', 'node_modules\n.volter/\nlogs/\n');
+    for (const file of ['AGENTS.md', 'CLAUDE.md'])
+      await copyFile(join(productRoot, 'starter', file), join(target, file));
     if (playable) {
       for (const file of ['track.blend', 'track.py', 'track.play.ts', 'race-state.ts'])
         await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));

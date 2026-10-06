@@ -729,6 +729,13 @@ async function main(): Promise<void> {
         // Project tool contributions load this after the shell is visible;
         // discovering it then would invalidate the already-loaded React graph.
         'zod',
+        // Browser tool services can become available after the project's manifest
+        // adds a UI region or contribution package. Their CommonJS utilities are
+        // not reachable from the initial model-only crawl. Discovering these on
+        // that first use replaces the optimizer graph and reloads the entire
+        // workbench (measured: typescript + axe-core when adding a React HUD).
+        // Prepare installed utilities at boot; missing optional tools stay absent.
+        ...['typescript', 'axe-core'].filter((name) => projectHasPackage(projectPath, name)),
         // The story runtime (`/__volter-story-runtime`) re-exports
         // `@storybook/react`, which a project's CSF files import ONLY as
         // types (erased) — so the entries crawl never discovers it, and the

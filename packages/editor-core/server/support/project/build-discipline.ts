@@ -47,6 +47,7 @@ import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { latestLiveRunEvidence } from './live-run-evidence';
 
 // ---------------------------------------------------------------------------
 // Shared vocabulary
@@ -362,10 +363,11 @@ export function newestSourceMtime(projectRoot: string): number | null {
  * played" rule reads, for the same reason: it is written by the editor server
  * itself while a real browser runs the real game, so it cannot be produced by
  * intending to play.
- *   - `logs/play-*.jsonl` — one per Play session, opened by the editor server.
+ *   - `logs/play-*.jsonl` — one per recorded Play session, opened by the editor server.
+ *   - `logs/live-run.json` — the server's observation of a successful live lane.
  */
 export function newestEvidenceMtime(projectRoot: string): number | null {
-  let newest: number | null = null;
+  let newest: number | null = latestLiveRunEvidence(projectRoot);
   const consider = (file: string): void => {
     try {
       const at = statSync(file).mtimeMs;
@@ -413,7 +415,7 @@ export function staleEvidenceBanner(
   if (newestEvidence !== null && newestEvidence >= newestSource) return null;
   const gap =
     newestEvidence === null
-      ? '  no live evidence exists at all — no logs/play-*.jsonl.'
+      ? '  no recorded Play or successful live-run evidence exists.'
       : `  newest source: ${new Date(newestSource).toISOString()}\n` +
         `  newest live evidence: ${new Date(newestEvidence).toISOString()}`;
   return [
@@ -477,12 +479,11 @@ export function unplayedSessionTier(
  * The escalating line/banner for a session that has served this project
  * without ever producing live-play evidence — pure, driven directly by a test.
  *
- * The evidence signal is the SAME pair `newestEvidenceMtime` walks (a Play
- * session's `logs/play-*.jsonl`), so this
+ * The evidence signal is the SAME set `newestEvidenceMtime` reads (recorded
+ * Play logs and the server's successful live-run observation), so this
  * banner and the staleness banner can never disagree about what counts as
- * having run. Nothing new is instrumented on the game side: both artifacts are
- * already written by the tools themselves while a real browser runs the real
- * game, which is exactly why neither can be produced by intending to play.
+ * having run. The tools report their own live run through the shared registry;
+ * no game-specific instrumentation or recording is required.
  */
 export function unplayedSessionBanner(
   sessionStartedAtMs: number | null,

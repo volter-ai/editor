@@ -66,9 +66,9 @@ export interface EditorChromeCaptureOptions {
    * are upscaled past it.
    */
   scale?: number;
-  /** `page`, the default: the whole editor. `document`: the active document's own box, as
-   *  the person sees it, overlays included. */
-  region?: 'page' | 'document';
+  /** `page`: the whole editor; `document`: the active document with authoring overlays;
+   * `play`: the document's live frame, world and UI together, without letterboxing. */
+  region?: 'page' | 'document' | 'play';
 }
 
 /** A data URL as something `drawImage` accepts. */
@@ -106,11 +106,18 @@ export async function captureEditorChrome(
   // photographed with what the person sees over it (its navigation gizmo, its readouts), not
   // as the document's render alone.
   let root: HTMLElement = page;
-  if (options?.region === 'document') {
+  if (options?.region === 'document' || options?.region === 'play') {
     const documentId = activeWorkspaceDocumentId();
     const box = documentId ? activeDocumentContainer(documentId) : null;
     if (!box) throw new Error('No active document is showing, so there is no document region to photograph.');
     root = box;
+    if (options.region === 'play') {
+      const frame = box.querySelector<HTMLElement>('[data-volter-play-frame]');
+      if (!frame || !frame.checkVisibility({checkVisibilityCSS: true, checkOpacity: true})) {
+        throw new Error('The active document has no visible live frame to photograph.');
+      }
+      root = frame;
+    }
   }
   const scale = options?.scale ?? window.devicePixelRatio ?? 1;
   const rect = root.getBoundingClientRect();

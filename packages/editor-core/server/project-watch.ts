@@ -67,6 +67,12 @@ import {
   resolveWatcherPollOptions,
 } from './server-utils';
 
+/** Ignore project metadata, not a hidden directory containing the project. */
+function projectDotPath(projectRoot: string, watchedPath: string): boolean {
+  const path = relative(projectRoot, resolve(projectRoot, watchedPath));
+  return path.split(sep).some(part => part.startsWith('.') && part !== '.' && part !== '..');
+}
+
 /** What the watcher needs from the session it belongs to. */
 export interface ProjectWatchHost {
   readonly engineRoot: string;
@@ -761,7 +767,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
 
     watcher = chokidar.watch(host.publicRoot(), {
       ignoreInitial: true,
-      ignored: /(^|[/\\])\../, // ignore dotfiles
+      ignored: path => projectDotPath(host.projectRoot(), path),
       ...pollOptions,
     });
 
@@ -892,7 +898,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       // contract matches dev.ts's poller; auto-on for drvfs projects).
       srcWatcher = chokidar.watch(watchDirs, {
         ignoreInitial: true,
-        ignored: /(^|[/\\])\../, // ignore dotfiles
+        ignored: path => projectDotPath(host.projectRoot(), path),
         ...pollOptions,
       });
       const onListChange = (filePath: string) => {
@@ -1008,7 +1014,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     if (host.projectRoot() !== engineRoot) {
       referencesWatcher = chokidar.watch(join(host.projectRoot(), 'references'), {
         ignoreInitial: true,
-        ignored: /(^|[/\\])\../,
+        ignored: path => projectDotPath(host.projectRoot(), path),
         ...pollOptions,
       });
       const onReferenceChange = (event: string): void => {

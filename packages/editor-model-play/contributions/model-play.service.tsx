@@ -5,6 +5,7 @@ import { registerDocumentPlayExtension, type DocumentPlayControlProps } from '@v
 import { escapeModelPlay, modelPlaying, setModelPlaying, subscribeModelPlay } from '../src/model-play';
 import { runPlayScript } from '../src/play-script';
 import type * as THREE from 'three';
+import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 
 export const point = 'workspace.service';
 function usePlaying(documentId: string | undefined): boolean {
@@ -28,7 +29,16 @@ function Menu({ documentId, onClose }: DocumentPlayControlProps) {
 }
 export function start(): () => void {
   const unregister = registerDocumentPlayExtension('model', {
-    Control, Menu, playing: modelPlaying, setPlaying: setModelPlaying, escape: escapeModelPlay, subscribe: subscribeModelPlay,
+    Control, Menu, playing: modelPlaying, setPlaying: setModelPlaying, escape: escapeModelPlay,
+    subscribe(listener) {
+      const stopPlay = subscribeModelPlay(listener), stopProject = onProjectChange(listener);
+      return () => { stopPlay(); stopProject(); };
+    },
+    aspectRatio() {
+      const size = getCurrentProject()?.config.resolution;
+      const ratio = size ? size.width / size.height : null;
+      return ratio !== null && Number.isFinite(ratio) && ratio > 0 ? ratio : null;
+    },
     run(stage) {
       // The document kind lends native scene objects; this tool owns their Three types.
       return runPlayScript({ ...stage, blend: stage.sourcePath, root: stage.root as THREE.Object3D,

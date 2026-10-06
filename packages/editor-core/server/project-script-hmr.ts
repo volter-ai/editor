@@ -514,7 +514,11 @@ function handleProjectFileAppearance(
   server.ws.send({
     type: 'custom',
     event: kind === 'tool' ? 'volter:script-update' : 'volter:restart-required',
-    data: { file: file.replaceAll('\\', '/'), affected: affectedProjectFiles(server.moduleGraph, file, args.projectRoot) },
+    data: {
+      file: file.replaceAll('\\', '/'),
+      type: args.type,
+      affected: affectedProjectFiles(server.moduleGraph, file, args.projectRoot),
+    },
   });
   return [];
 }

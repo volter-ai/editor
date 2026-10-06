@@ -110,7 +110,7 @@ type HeadlessController = {
   subscribe(listener: () => void): () => void;
   initialize(): Promise<HeadlessSnapshot>;
   dispatch(action: HeadlessAction): Promise<HeadlessSnapshot>;
-  loadSession(sessionKey: string): Promise<HeadlessLoadedSession>;
+  loadSession(sessionKey: string, options?: {view?: {displayHistory?: boolean; tailMessages?: number; maxMessageChars?: number; includeSubagents?: boolean}}): Promise<HeadlessLoadedSession>;
   setWorkspace(workspace: string, options?: { autoObserve?: boolean }): Promise<HeadlessSnapshot>;
   close(): Promise<void>;
 };
@@ -141,6 +141,7 @@ type SupercodeClient = {
   close(): Promise<void>;
   discover(query: {
     workspace?: string;
+    query?: string;
     harnesses?: string[];
     limit?: number;
     include_topic_candidates?: boolean;
@@ -149,7 +150,7 @@ type SupercodeClient = {
   load(
     locator: HeadlessSessionDescriptor['locator'],
     options?: {
-      view?: { tailMessages?: number; maxMessageChars?: number; includeSubagents?: boolean };
+      view?: { tailMessages?: number; maxMessageChars?: number; includeSubagents?: boolean; displayHistory?: boolean };
     },
   ): Promise<{ session: NormalizedSession }>;
   /** Supercode's own readiness inventory — `installed`, `auth`, and the `repair` text
@@ -245,7 +246,8 @@ export interface HarnessChatServiceOptions {
   getProjectRoot: () => string;
   onChange: (snapshot: HarnessChatSnapshot) => void;
   initializeTimeoutMs?: number;
-  /** Test seam; production periodically discovers sessions launched after editor boot. */
+  /** Compatibility refresh for clients without an index or external caller sessions.
+   * Ordinary indexed workspace sessions do not poll. Zero disables the fallback. */
   discoveryPollMs?: number;
   /** Sessions that invoked volter for this project from outside its workspace. */
   callerSessions?: readonly HarnessChatCallerSession[];
@@ -274,35 +276,6 @@ function locatorKey(descriptor: HeadlessSessionDescriptor): string {
   return `${locator.harness}\0${locator.session_id}\0${storage}`;
 }
 
-function descriptorPresentationFingerprint(sessions: readonly HeadlessSessionDescriptor[]): string {
-  return JSON.stringify(
-    sessions
-      .map((session) => ({
-        locator: locatorKey(session),
-        title: session.title,
-        previewCandidates: session.preview_candidates,
-        latestMessageCandidates: session.latest_message_candidates,
-        updatedAt: session.updated_at_ms,
-        messageCount: session.message_count,
-        liveStatus: session.live_status,
-        activity: session.activity
-          ? {
-              presence: session.activity.presence,
-              turn: session.activity.turn,
-              source: session.activity.evidence.source,
-              nativeState: session.activity.evidence.native_state,
-              harnessVersion: session.activity.evidence.harness_version,
-            }
-          : null,
-      }))
-      .sort((left, right) => left.locator.localeCompare(right.locator)),
-  );
-}
-
-function sessionIdentityFingerprint(identities: Iterable<string>): string {
-  return JSON.stringify([...identities].sort());
-}
-
 /**
  * Supercode's ordinary controller discovers by workspace. A caller session is
  * different evidence: its native id is authoritative even when its cwd is
@@ -314,6 +287,7 @@ export function withCallerSessionDiscovery(
   client: SupercodeClient,
   getCallers: () => readonly HarnessChatCallerSession[],
   onDiscover: (sessions: readonly HeadlessSessionDescriptor[]) => void | Promise<void> = () => {},
+  getSelectedHarness: () => string = () => '',
 ): SupercodeClient {
   const topicCandidatesByLocator = new Map<string, HeadlessDescriptorMessage[]>();
   const retainTopicCandidates = (
@@ -336,6 +310,7 @@ export function withCallerSessionDiscovery(
       }
       return async (query: {
         workspace?: string;
+        query?: string;
         harnesses?: string[];
         limit?: number;
         include_topic_candidates?: boolean;
@@ -343,9 +318,13 @@ export function withCallerSessionDiscovery(
       }): Promise<{ sessions: HeadlessSessionDescriptor[] }> => {
         const discover = target.discover.bind(target);
         const includeTopicCandidates = query.include_topic_candidates !== false;
-        const base = await discover({ ...query, include_topic_candidates: includeTopicCandidates });
+        // The selected agent's project inbox need not scan unrelated native stores.
+        // Explicit query harnesses remain authoritative; the picker inventory stays complete.
+        const selected = getSelectedHarness();
+        const basePromise = discover({ ...query, ...(selected && !query.harnesses?.length ? { harnesses: [selected] } : {}), include_topic_candidates: includeTopicCandidates });
         const callers = getCallers();
         if (callers.length === 0) {
+          const base = await basePromise;
           const sessions = retainTopicCandidates(base.sessions);
           await onDiscover(sessions);
           return { sessions };
@@ -357,18 +336,22 @@ export function withCallerSessionDiscovery(
           ids.add(caller.sessionId);
           wantedByHarness.set(caller.harness, ids);
         }
-        const supplemental = await Promise.all(
-          [...wantedByHarness].map(async ([harness, ids]) => {
-            const global = await discover({
+        const supplementalPromise = Promise.all(
+          [...wantedByHarness].flatMap(([harness, ids]) => [...ids].map(async (sessionId) => {
+            const exact = await discover({
               harnesses: [harness],
+              query: sessionId,
+              limit: 1,
+              include_child_sessions: true,
               include_topic_candidates: includeTopicCandidates,
             });
-            return global.sessions.filter(
+            return exact.sessions.filter(
               (descriptor) =>
-                descriptor.locator.harness === harness && ids.has(descriptor.locator.session_id),
+                descriptor.locator.harness === harness && descriptor.locator.session_id === sessionId,
             );
-          }),
+          })),
         );
+        const [base, supplemental] = await Promise.all([basePromise, supplementalPromise]);
         const union = new Map(
           base.sessions.map((descriptor) => [locatorKey(descriptor), descriptor]),
         );
@@ -808,7 +791,6 @@ export class HarnessChatService {
   private workspaceGeneration = 0;
   private closed = false;
   private discoveryTimer: ReturnType<typeof setTimeout> | null = null;
-  private discoveryInFlight = false;
   private discoveryClient: SupercodeClient | null = null;
   private assertSnapshot: HeadlessSnapshotAssertion = (value) => value as HeadlessSnapshot;
   private projectConversation: HeadlessProjectConversation = () => [];
@@ -824,7 +806,6 @@ export class HarnessChatService {
   private subagentDescriptorsByKey = new Map<string, HeadlessSessionDescriptor>();
   private subagentInspector: SupercodeUiState['subagentInspector'] = null;
   private inventoryCaptureGeneration = 0;
-  private renderedInventoryFingerprint: string | null = null;
   private readonly bridgeListeners = new Set<() => void>();
   private lastSnapshot: HarnessChatSnapshot = unavailable(
     null,
@@ -892,6 +873,7 @@ export class HarnessChatService {
     if (this.controller && this.workspace === workspace) {
       await this.controller.dispatch({ type: 'refresh', autoObserve: false });
       this.capture();
+      this.scheduleDiscovery();
     }
     return this.snapshot();
   }
@@ -936,8 +918,10 @@ export class HarnessChatService {
   }
 
   /** Ensure the live controller exists without re-running full harness/session
-   * discovery when an editor tab mounts or reloads. The service's idle probe
-   * detects inventory changes without coupling discovery to browser views. */
+   * discovery when an editor tab mounts or reloads. Supercode's controller owns
+   * the retained session index and delivers inventory changes through subscribe.
+   * Compatibility clients and external callers get a bounded fallback; explicit
+   * Refresh remains immediate. */
   async load(autoObserve = true): Promise<HarnessChatSnapshot> {
     const next = resolve(this.options.getProjectRoot());
     if (!this.controller && !this.starting) {
@@ -1065,7 +1049,7 @@ export class HarnessChatService {
     // over is waited for, so the answer carries its connection.
     await this.frontendHandoffInFlight?.catch(() => undefined);
     if (retryDiscovery) await this.refreshChatProcessContext();
-    await this.ensureController();
+    await this.ensureController(false);
     // A refused startup is recoverable after a terminal install/sign-in. Serialize
     // passive inventory refresh and handoff retries across extension-host callers.
     if ((!this.frontendHandoffValue || this.setupHarness) && this.controller && !this.selectingChat) {
@@ -1184,8 +1168,12 @@ export class HarnessChatService {
     if (entry.identity) {
       const session = this.lastSnapshot.sessions.find(s => s.identity === entry.identity);
       if (!session) throw new Error('The saved conversation history is unavailable.');
-      const loaded = await this.controller!.loadSession(session.id);
-      const transcript = loaded as unknown as NormalizedSession;
+      // This read fills visible scrollback, not a model's continuation input.
+      // The harness owns its native display projection and keeps the source
+      // transcript intact for resume/export through their separate doors.
+      const transcript = await this.controller!.loadSession(session.id, {
+        view: { displayHistory: true, tailMessages: 120, maxMessageChars: 16_000, includeSubagents: false },
+      }) as unknown as NormalizedSession;
       const messages = transcript.messages;
       historyTruncated = Math.max(messages.length, transcript.total_message_count ?? 0) > 120;
       history = messages.slice(-120);
@@ -1315,9 +1303,11 @@ export class HarnessChatService {
 
   private async mintFrontendHandoff(): Promise<FrontendHandoffResult> {
     try {
-      await this.ensureController();
+      // Native Chat owns its conversation. Inventory must not first mirror the
+      // newest caller transcript merely because it was discovered most recently.
+      await this.ensureController(false);
       const controller = this.controller;
-      if (!controller) throw new Error('Volter Harness is unavailable.');
+      if (!controller) throw new Error(this.lastSnapshot.error?.message ?? 'Volter Harness is unavailable.');
       if (!this.managedRuntime || this.managedRuntime.closed) {
         // REOPENING A PROJECT RESUMES ITS LAST SESSION, it does not start a second one.
         // the editor's `close` command ends the runtime with the session, so without this every reopen
@@ -1397,6 +1387,7 @@ export class HarnessChatService {
     if (this.controller) {
       await this.controller.setWorkspace(next, { autoObserve: true });
       this.capture();
+      this.scheduleDiscovery();
       return;
     }
     await this.ensureController(true);
@@ -1405,9 +1396,9 @@ export class HarnessChatService {
   async close(): Promise<void> {
     if (this.closing) return this.closing;
     this.closed = true;
-    this.frontendControls.close();
     if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
     this.discoveryTimer = null;
+    this.frontendControls.close();
     this.unsubscribe?.();
     this.unsubscribe = null;
     this.remoteHost?.close();
@@ -1421,7 +1412,6 @@ export class HarnessChatService {
     this.subagentDescriptorsByKey.clear();
     this.subagentInspector = null;
     this.inventoryCaptureGeneration++;
-    this.renderedInventoryFingerprint = null;
     this.bridgeListeners.clear();
     const handoff = this.frontendHandoffValue;
     this.frontendHandoffValue = null;
@@ -1450,6 +1440,7 @@ export class HarnessChatService {
         this.beginWorkspace(next);
         await this.controller.setWorkspace(next, { autoObserve: true });
         this.capture();
+        this.scheduleDiscovery();
       }
       return;
     }
@@ -1586,6 +1577,7 @@ export class HarnessChatService {
         ),
         () => this.callerSessions(),
         (sessions) => this.rememberSessionInventory(sessions, sessionReconnectIdentity, workspace),
+        () => this.chatSelection.harness,
       );
       this.discoveryClient = client;
       if (this.options.createController) {
@@ -1630,6 +1622,7 @@ export class HarnessChatService {
       ),
       () => this.callerSessions(),
       (sessions) => this.rememberSessionInventory(sessions, sessionReconnectIdentity, workspace),
+        () => this.chatSelection.harness,
     );
     this.discoveryClient = client;
     return new SupercodeController({
@@ -1881,9 +1874,6 @@ export class HarnessChatService {
     this.lastHeadlessSnapshot = snapshot;
     this.lastSnapshot = toSnapshot(snapshot, frame);
     this.rememberChatSession();
-    this.renderedInventoryFingerprint = descriptorPresentationFingerprint([
-      ...this.sessionDescriptorsByIdentity.values(),
-    ]);
     this.options.onChange(this.snapshot());
     for (const listener of this.bridgeListeners) listener();
   }
@@ -1891,72 +1881,35 @@ export class HarnessChatService {
   private scheduleDiscovery(): void {
     if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
     this.discoveryTimer = null;
-    const delay = this.options.discoveryPollMs ?? 4_000;
-    if (this.closed || delay <= 0) return;
-    this.discoveryTimer = setTimeout(() => {
-      this.discoveryTimer = null;
-      void this.pollDiscovery();
-    }, delay);
-  }
-
-  private async pollDiscovery(): Promise<void> {
-    if (this.closed || this.discoveryInFlight) return;
-    if (this.selectingChat) { this.scheduleDiscovery(); return; }
+    // Supercode owns indexed workspace inventory. Only compatibility clients
+    // and explicitly included callers outside that index need a bounded refresh.
+    // A refresh goes through the controller once; do not scan and then scan again.
+    const delay = this.options.discoveryPollMs ?? 60_000;
+    if (this.closed || delay <= 0 || !this.controller || !this.discoveryClient) return;
+    if (typeof this.discoveryClient['subscribeSessionIndex'] === 'function'
+      && this.callerSessions().length === 0) return;
     const controller = this.controller;
-    const client = this.discoveryClient;
-    const snapshot = this.lastSnapshot;
-    const raw = this.lastHeadlessSnapshot;
-    if (
-      !controller ||
-      !client ||
-      !raw ||
-      !this.workspace ||
-      snapshot.operation !== null ||
-      snapshot.turn.state !== 'idle'
-    ) {
-      this.scheduleDiscovery();
-      return;
-    }
-    this.discoveryInFlight = true;
-    try {
-      const discovered = await client.discover({
-        workspace: this.workspace,
-        limit: 100,
-        include_topic_candidates: false,
-      });
-      const presentationFingerprint = descriptorPresentationFingerprint(discovered.sessions);
-      const controllerInventoryChanged =
-        sessionIdentityFingerprint(this.sessionDescriptorsByIdentity.keys()) !==
-        sessionIdentityFingerprint(raw.sessions.map((session) => session.identity));
-      if (controllerInventoryChanged) {
-        await controller.dispatch({
-          type: 'refresh',
-          autoObserve: false,
-          silent: true,
-        });
-        if (!this.closed && controller === this.controller) this.capture();
-      } else if (presentationFingerprint !== this.renderedInventoryFingerprint) {
-        // Presentation evidence belongs in the controller snapshot too. Feed
-        // the changed inventory back through Supercode instead of joining raw
-        // descriptors into a second VOLTER-owned list projection.
-        await controller.dispatch({
-          type: 'refresh',
-          autoObserve: false,
-          silent: true,
-        });
-        if (!this.closed && controller === this.controller) this.capture();
+    const generation = this.workspaceGeneration;
+    this.discoveryTimer = setTimeout(async () => {
+      this.discoveryTimer = null;
+      if (this.closed || this.controller !== controller || generation !== this.workspaceGeneration) return;
+      try {
+        if (!this.selectingChat && this.lastSnapshot.operation === null
+          && this.lastSnapshot.turn.state === 'idle') {
+          await controller.dispatch({ type: 'refresh', autoObserve: false, silent: true });
+        }
+      } catch {
+        // Explicit Refresh remains the visible recovery path.
+      } finally {
+        if (this.controller === controller && generation === this.workspaceGeneration) this.scheduleDiscovery();
       }
-    } catch {
-      // Explicit Refresh remains the visible recovery path. Background discovery
-      // is observational and must not replace a healthy chat snapshot with noise.
-    } finally {
-      this.discoveryInFlight = false;
-      this.scheduleDiscovery();
-    }
+    }, delay);
   }
 
   private beginWorkspace(workspace: string): void {
     if (this.workspace === workspace) return;
+    if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
+    this.discoveryTimer = null;
     this.workspace = workspace;
     this.workspaceGeneration++;
     this.lastHeadlessSnapshot = null;
@@ -1964,7 +1917,6 @@ export class HarnessChatService {
     this.subagentDescriptorsByKey.clear();
     this.subagentInspector = null;
     this.inventoryCaptureGeneration++;
-    this.renderedInventoryFingerprint = null;
     this.lastSnapshot = loading(workspace, this.workspaceGeneration, this.serverInstanceId);
     this.options.onChange(this.snapshot());
     for (const listener of this.bridgeListeners) listener();
