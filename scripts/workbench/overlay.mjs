@@ -1232,6 +1232,13 @@ function main() {
 	patchRehCopilotShim(checkout);
 	patchWin32Dependencies(checkout);
 	patchNpmDirs(checkout);
+	// Sources builds use the same exclusions as the packaged editor. The API
+	// test extension is removed above; leaving its tsconfig in the dev compiler
+	// makes `dev.mjs` fail before it can produce the updated workbench.
+	patchChatSource(checkout, 'build/gulpfile.extensions.ts',
+		"\t'extensions/vscode-api-tests/tsconfig.json',\n",
+		"\t// VOLTER (overlaid tier): vscode-api-tests is not in this build.\n",
+		'the removed API test extension compilation');
 	patchProduct(checkout);
 
 	// THE MARKER IS WHAT MAKES A SOURCES WORKBENCH SELF-DESCRIBING. A release says what it is in
