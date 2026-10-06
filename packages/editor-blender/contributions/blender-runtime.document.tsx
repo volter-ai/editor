@@ -248,7 +248,8 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
           const context = copy.getContext('2d');
           if (context) {
             context.drawImage(frame, 0, 0, copy.width, copy.height);
-            lastFrame.current = { project, entryId, path: blend ?? 'Model', image: copy.toDataURL('image/png') };
+            lastFrame.current = { project, entryId, path: blend ?? 'Model', image: copy.toDataURL('image/png'), capturedAt: performance.now() };
+            rememberModelDocumentPreview(lastFrame.current);
           }
         }
       } catch {

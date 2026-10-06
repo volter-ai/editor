@@ -4,6 +4,7 @@ export interface ModelDocumentPreview {
   readonly entryId: string;
   readonly path: string;
   readonly image: string;
+  readonly capturedAt: number;
 }
 
 let preview: ModelDocumentPreview | null = null;
@@ -21,6 +22,10 @@ function changed(): void {
 }
 
 export function rememberModelDocumentPreview(value: ModelDocumentPreview): void {
+  // Retained panes may clean up after their replacement. An older photograph
+  // must not overwrite the most recent visible model's frame.
+  if (preview?.project === value.project && preview.capturedAt > value.capturedAt) return;
+  if (preview === value) return;
   preview = value;
   changed();
 }
