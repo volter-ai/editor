@@ -124,7 +124,10 @@ function parseArgs(argv) {
 		else if (flag === '--out') { args.out = argv[++i]; }
 		else if (flag === '--work') { args.work = argv[++i]; }
 		// A lower floor for a machine doing nothing else — a WSL guest capped below 32 GiB.
-		else if (flag === '--min-ram') { args.minRam = Number(argv[++i]); }
+		else if (flag === '--min-ram') {
+			args.minRam = Number(argv[++i]);
+			if (!Number.isFinite(args.minRam) || args.minRam <= 0) { fail(`--min-ram takes a whole number of GiB; got "${argv[i]}"`); }
+		}
 		else if (flag === '--look') { args.looks.push(resolve(argv[++i])); }
 		else { fail(`unknown argument "${flag}"`); }
 	}
