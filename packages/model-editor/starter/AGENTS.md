@@ -211,6 +211,24 @@ For a behavior-only repair, preserve the established appearance.
 - Provide a switchable autoplay/demo controller. Have it drive player inputs or
   shared action functions through the same movement, collision and scoring code
   as manual play. Keep the player's controls available.
+- Keep a gameplay log while the game runs; without it, autoplay is a black box
+  and a final position or screenshot cannot tell you what went wrong. Record
+  it in the game's shared state module beside the published state (the one the
+  play script publishes and the HUD reads), as a bounded list of structured
+  events, not free text. Stamp each event with simulation time and the frame,
+  and give it a kind and the facts needed to explain it: phase changes and
+  restarts; autoplay's decisions and the inputs it held; manual inputs that
+  start an action; contacts that matter (landing on, leaving or being pushed
+  by a surface, by object name); checkpoints, pickups, score and inventory
+  changes; deaths, failures and finishes with their cause and position. Log
+  transitions rather than every frame, so a full run stays readable.
+- Read the gameplay log through the public inspection surface during and after
+  each autoplay or manual run, and explain what happened from it before
+  changing code: where autoplay stalled or died and why, and whether that is a
+  level, physics or controller problem. `console.log` lines do not reach the
+  session's console feed (only warnings and errors do), so the log in game
+  state is what you can read back. Keep logging read-only: it must not change
+  timing, inputs or game state.
 - Run autoplay in Play and observe representative actions, objectives,
   progression and any relevant failure/restart behavior. Exercise manual
   controls too. Inspect runtime errors and game state alongside screenshots;
