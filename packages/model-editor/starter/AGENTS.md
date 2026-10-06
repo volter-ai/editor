@@ -368,7 +368,14 @@ view in Blender metres, Z up. In eval, `editor.present({ version: 1, viewport:
 `{ x, y: z, z: -y }`, so prefer the `camera` command, which converts for you.
 `capture --region document|play [--out file.png [--force]]` saves what the person sees (default under
 `.volter/captures/`); `add-play` makes a models project playable; `play-log`
-reads the running game's log. In a play script, recolour or fade an object with
+reads the running game's log. The Game panel's controls, each printing its state:
+`play pause` holds the game (no `update` calls; its clock stops);
+`play resume` lets it run again;
+`play step [count]` runs one 1/60 s update of a paused game per count;
+`play speed 0.25|0.5|1|2|4` scales the `dt` the script is handed;
+`play restart` begins again on a fresh copy of the model, the clock at zero;
+`play mode game|movie` swaps the bottom area between the Game panel and the Timeline.
+In a play script, recolour or fade an object with
 `play.tint(object, color)` and `play.setOpacity(object, value)`: Blender meshes
 carry one material per slot and the presenter reapplies its own materials, so
 editing `mesh.material.color` does not show.
