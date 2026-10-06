@@ -407,8 +407,15 @@ async function blenderIsServed(): Promise<{ available: boolean; missing: string[
   }
 }
 
-async function start(project: string, document?: string): Promise<unknown> {
+/** The engine's filesystem is POSIX, so a Windows project root (`C:\Users\me\p`) is
+ *  mounted at its URI path (`/C:/Users/me/p`); a POSIX root is its own mount. */
+export function projectMount(project: string): string {
+  return /^[A-Za-z]:[\\/]/.test(project) ? `/${project.replaceAll('\\', '/')}` : project;
+}
+
+async function start(hostProject: string, document?: string): Promise<unknown> {
   if (session) throw new Error('The Blender session is already started');
+  const project = projectMount(hostProject);
   if (!project.startsWith('/'))
     throw new Error("The Blender session needs the project's absolute path");
   // The document is the project's own file and is named the project's own way.
@@ -473,7 +480,7 @@ async function projectIndex(project: string): Promise<ProjectFile[] | null> {
     return unreadable(String(error));
   }
   const { root, files } = payload;
-  if (root !== project)
+  if (projectMount(root) !== project)
     say(
       `The editor serving this tab has ${root} open, not ${project}; its files ` +
         `are mounted at ${project}, which is where Python is looking.`,

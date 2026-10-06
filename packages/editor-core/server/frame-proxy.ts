@@ -292,7 +292,10 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         }
         const next = new URL(url);
         next.searchParams.delete('project');
-        next.searchParams.set('folder', projectRoot);
+        // The workbench reads `folder` as a URI path, so a Windows root is
+        // `/C:/Users/…` — `C:\Users\…` resolves to no filesystem provider.
+        next.searchParams.set('folder', process.platform === 'win32'
+          ? `/${projectRoot.replaceAll('\\', '/')}` : projectRoot);
         res.writeHead(302, {
           ...isolation,
           location: `${next.pathname}${next.search}`,

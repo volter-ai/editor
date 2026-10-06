@@ -9,7 +9,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {build} from 'vite';
 function run(workspace,script,metafile){
-  execFileSync('npm',['run',script,'-w',workspace],{stdio:'inherit',env:{...process.env,
+  execFileSync('npm',['run',script,'-w',workspace],{stdio:'inherit',shell:process.platform==='win32',env:{...process.env,
     ...(metafile?{VOLTER_BUILD_METAFILE:resolve('.artifacts',metafile)}:{})}});
 }
 // A product's browser bundle: the modules that rendered into its chunks. Each

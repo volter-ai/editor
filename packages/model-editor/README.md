@@ -6,7 +6,7 @@ A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled
 npx @volter/model-editor create my-race --template playable
 ```
 
-macOS on Apple Silicon · Node.js 24
+Node.js 24
 
 ![A cube on wheels jumping a ramp in the editor, with the outliner and properties panels beside the viewport and a lap timer over it](https://raw.githubusercontent.com/volter-ai/editor/main/docs/media/model-play-race.png)
 
