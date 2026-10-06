@@ -164,7 +164,7 @@ const reconciler = Reconciler({
   resolveEventType: () => null,
   resolveEventTimeStamp: () => -1.1,
   rendererPackageName: '@volter/dawproject',
-  rendererVersion: '0.5.185',
+  rendererVersion: '0.5.186',
 } as never);
 
 function snapshot(instance: Instance): DawNode {
