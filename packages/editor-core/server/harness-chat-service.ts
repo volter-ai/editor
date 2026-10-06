@@ -297,6 +297,24 @@ function isNarration(event: ObservedChatRuntimeEvent): boolean {
   return String(delta?.type ?? '').toLowerCase() === 'text_delta';
 }
 
+/**
+ * The key one runtime request is tracked under, the same on both of its
+ * events. From the wire payload the runtime sent — `payload.request.id` on a
+ * `request`, `payload.request_id` on its `request_resolved` (the bundled Chat
+ * extension's reads) — because the SDK's normalized `requestId` on a request
+ * is read after spreading the request's own inner payload over it, which can
+ * replace the id. Stringified, so a numeric id and its string form match.
+ */
+function runtimeRequestKey(event: ObservedChatRuntimeEvent, type: 'request' | 'request_resolved'): string {
+  const wire = event.raw?.payload as
+    | { request?: { id?: unknown }; request_id?: unknown }
+    | undefined;
+  const id = type === 'request'
+    ? (wire?.request?.id ?? wire?.request_id ?? event.requestId)
+    : (wire?.request_id ?? event.requestId);
+  return String(id ?? null);
+}
+
 /** Where a Chat turn stands, for a caller deciding whether to steer it. */
 export type ChatTurnState = 'idle' | 'running' | 'waiting';
 
@@ -889,6 +907,10 @@ export class HarnessChatService {
   /** Bumped at every runtime turn boundary, so a steer that awaited across one
    *  can tell. */
   private runtimeTurnGeneration = 0;
+  /** Has this runtime ever reported a turn START? Claude Code's native stream
+   *  ends turns (`result`) but never starts one, so for such a runtime the
+   *  open/closed bit is inferred and steering must not be gated on it. */
+  private runtimeReportsTurnStarts = false;
   private observedModel: string | null = null;
   private chatSelection: ChatSelection = { ...DEFAULT_CHAT_SELECTION };
   private selectingChat = false;
@@ -1070,7 +1092,11 @@ export class HarnessChatService {
     // Re-checked AFTER the await, immediately before the steer: a turn that
     // ended while its state was being read must not be steered, because a
     // steer into an idle runtime can START a turn nobody asked for.
-    if (generation !== this.runtimeTurnGeneration || this.runtimeTurnOpen === false) return false;
+    // The open/closed bit gates only a runtime that reports turn starts; one
+    // that never does (Claude Code's native stream) falls back to the
+    // descriptor's `turn_state` busy, read just above.
+    if (generation !== this.runtimeTurnGeneration) return false;
+    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return false;
     const runtime = this.managedRuntime;
     if (runtime && !runtime.closed) {
       await runtime.steer(text);
@@ -1121,6 +1147,7 @@ export class HarnessChatService {
     this.observedModel = null;
     this.pendingRuntimeRequests.clear();
     this.runtimeTurnOpen = null;
+    this.runtimeReportsTurnStarts = false;
     this.runtimeTurnGeneration++;
     runtime.on?.('event', event => {
       if (this.managedRuntime !== runtime) return;
@@ -1163,30 +1190,54 @@ export class HarnessChatService {
   private runtimeActivity(event: ObservedChatRuntimeEvent): ChatRuntimeActivity {
     switch (event.type) {
       case 'turn_started':
+        this.runtimeReportsTurnStarts = true;
         this.openRuntimeTurn(true);
         return 'turn-started';
       case 'turn_completed':
       case 'closed':
         this.openRuntimeTurn(false);
         return 'turn-ended';
-      case 'request':
-        this.pendingRuntimeRequests.add(JSON.stringify(event.requestId ?? null));
-        return 'waiting';
+      case 'request': {
+        // A request opens a turn that never announced itself (it is raised
+        // from inside one); the ask is added after, so the reopen keeps it.
+        const opened = this.reopenOnActivity();
+        this.pendingRuntimeRequests.add(runtimeRequestKey(event, 'request'));
+        return opened ? 'turn-started' : 'waiting';
+      }
       case 'request_resolved':
-        this.pendingRuntimeRequests.delete(JSON.stringify(event.requestId ?? null));
+        this.pendingRuntimeRequests.delete(runtimeRequestKey(event, 'request_resolved'));
         return 'answered';
       case 'output_delta':
       case 'reasoning_delta':
       case 'tool':
+        if (this.reopenOnActivity()) return 'turn-started';
         // The agent is moving again, so no ask is still open: a resolution
         // that was lost on the wire must not leave the turn `waiting`.
         this.pendingRuntimeRequests.clear();
         return isNarration(event) ? 'narration' : 'other';
       case 'message':
+        // A new user message, or the agent speaking, after a turn ended is
+        // the next turn beginning.
+        if ((event.role === 'user' || isNarration(event)) && this.reopenOnActivity()) {
+          return 'turn-started';
+        }
         return isNarration(event) ? 'narration' : 'other';
       default:
         return 'other';
     }
+  }
+
+  /**
+   * The SYNTHETIC turn start: agent activity after a turn END opens the next
+   * turn, because Claude Code's native stream ends every turn (`result`) and
+   * starts none. Reported upward as `turn-started`, so the visible-progress
+   * stall clock and the per-turn nudge allowance reset exactly as they do for
+   * a runtime that announces its turns. `true` when it opened one.
+   */
+  private reopenOnActivity(): boolean {
+    if (this.runtimeTurnOpen !== false) return false;
+    this.openRuntimeTurn(true);
+    return true;
   }
 
   /** A runtime turn boundary: any open ask belongs to the turn it ended. */
