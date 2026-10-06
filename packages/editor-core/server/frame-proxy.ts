@@ -96,9 +96,11 @@ export interface FrameProxy {
  * The workbench's own paths. `<product segment>` (`/oss-dev` out of a source
  * checkout, the quality segment out of a build — `getServerProductSegment`) is
  * DISCOVERED at boot rather than spelled here, because the page states it.
+ * The serve-web CLI owns the exact secret-key mint route outside that segment;
+ * its advertised cookie path must reach that upstream rather than the project.
  */
 const VSCODE_PATH_BASE =
-  '^\\/$|^\\/(static|favicon|manifest\\.json|code-192|code-512|callback|oauth|out|extensions|builtin|remote|vscode-remote|_static|web-extension|version|delay-shutdown)';
+  '^\\/$|^\\/_vscode-cli/mint-key$|^\\/(static|favicon|manifest\\.json|code-192|code-512|callback|oauth|out|extensions|builtin|remote|vscode-remote|_static|web-extension|version|delay-shutdown)';
 
 /** What is worth compressing. Everything else goes through byte for byte. */
 const COMPRESSIBLE =
