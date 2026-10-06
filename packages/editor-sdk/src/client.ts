@@ -32,6 +32,7 @@ import type {
   InspectedHierarchy,
   InspectedInspection,
   LabeledShotSetCapture,
+  ModelPlayLogReading,
   PlayStarted,
   PresentedEditorView,
   ProjectInfo,
@@ -1225,6 +1226,18 @@ export class EditorClient {
     // over a dense mesh measured 80-90 s under Wasm); the relay's server-side
     // budget for blender-execute is the same half hour.
     return this.command<T>({ type, ...fields }, { deadlineMs: BLENDER_DEADLINE_MS });
+  }
+
+  /**
+   * Model Play's log (`model-play-log`, contributed by `@volter/editor-model-play`): what the
+   * running play script logged with `play.log`, and the runner's lifecycle entries, stamped
+   * with simulation time and frame. `documentId` names the model document (the active Play's
+   * when omitted); `since` keeps entries at or after that many simulation seconds; `kind`
+   * keeps one kind.
+   */
+  async modelPlayLog(query: { readonly documentId?: string; readonly since?: number; readonly kind?: string } = {}): Promise<ModelPlayLogReading> {
+    const { ok: _ok, ...reading } = await this.command<ModelPlayLogReading & { ok: boolean }>({ type: 'model-play-log', ...query });
+    return reading;
   }
 
   async documentScript<T = unknown>(src: string): Promise<T> {

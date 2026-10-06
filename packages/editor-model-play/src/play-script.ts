@@ -39,6 +39,8 @@ import { projectPlayLayers } from '@volter/editor-sdk/kit/project-play-layers';
 import { beginProjectMountEpoch, projectEntryImportUrl } from '@volter/editor-sdk/session/project-module-url';
 import { cameraTransition } from './camera-transition';
 import { finishModelPlay, registerModelPlayStop } from './model-play';
+import { beginModelPlayLog } from './play-log';
+import { materialOverrides } from './play-materials';
 interface PlayComposition {
   readonly entries: readonly string[];
   loadScript(): Promise<{ default?: unknown }>;
@@ -58,6 +60,38 @@ export interface ModelPlayContext {
   readonly camera: THREE.Camera;
   /** The keys held now, by `KeyboardEvent.code` (`ArrowUp`, `KeyW`, `Space`). */
   readonly keys: ReadonlySet<string>;
+  /**
+   * Write one entry to the play log, stamped with the run's simulation time and frame
+   * (`play-log.ts`): a kind and the facts that explain it, JSON-serialisable and snapshotted
+   * now. Log transitions (a landing, a death and its cause, autoplay's choice), not every
+   * frame. Read back with `volter-model-editor play-log [--since <simT>] [--kind <k>] [--json]`
+   * or `editor.modelPlayLog({ since, kind })` in `eval`. Never throws, never changes the game,
+   * and does nothing once this script has been replaced or Play has stopped.
+   *
+   *     play.log('death', { cause: 'lava', at: player.position, stage });
+   */
+  log(kind: string, facts?: Record<string, unknown>): void;
+  /**
+   * Draw an object and the meshes under it in `color` (a `THREE.Color`, `'#2bff6b'`,
+   * `0x2bff6b`); an emitting surface glows in it too, an image texture is multiplied by it.
+   * `null` returns the authored colours. Other objects wearing the same Blender material keep
+   * theirs. An object is a name or one `find` answered.
+   *
+   * THE PRESENTED MATERIALS, which is why this exists: a mesh's `material` is an array with
+   * one shared `MeshPhysicalMaterial` per Blender material slot (a lone material only for an
+   * object without slots), so `material.color` is undefined, and editing an entry recolours
+   * every object wearing that Blender material. The presenter re-assigns those slots
+   * whenever it re-applies shading, `clone()` drops its shader hooks, and a node graph
+   * driving Base Color or Alpha ignores `color` and `opacity`. A tinted or faded object
+   * wears copies of its own slots, drawn from their constant inputs (a node graph's
+   * other inputs are not drawn while it does), and keeps them through a script reload. An
+   * object with a material the document cannot copy (one the script made) is left as it is,
+   * and the log says so once with a `tint-unsupported` entry.
+   */
+  tint(object: THREE.Object3D | string, color: THREE.ColorRepresentation | null): void;
+  /** Fade an object and the meshes under it to `opacity` (0 to 1); `null` returns the
+   *  authored opacity. Its colour is untouched, and the copies are `tint`'s. */
+  setOpacity(object: THREE.Object3D | string, opacity: number | null): void;
 }
 
 export interface ModelPlayGame {
@@ -107,14 +141,43 @@ export function runPlayScript(options: {
   readonly container: HTMLElement;
   readonly ready: () => void;
   readonly returning: () => void;
+  readonly ownMaterial?: ((material: THREE.Material) => THREE.Material | null) | undefined;
 }): () => void {
-  const { blend, root, camera, onFrame, report } = options;
+  const { blend, root, camera, onFrame } = options;
   const modulePath = playScriptPath(blend);
+  // A fresh copy is a fresh run: its log starts empty, its clock at zero. Writes go through
+  // this run's handle, which is inert once the run has ended.
+  const run = beginModelPlayLog(options.documentId, modulePath);
+  const report = (phase: 'start' | 'update' | 'stop', title: string, error: unknown): void => {
+    const detail = error instanceof Error ? error.message : String(error);
+    run.append('play', 'script-error', { phase, message: detail });
+    options.report(title, detail);
+  };
+  // Said once per object: a script that tints every frame would otherwise fill the log.
+  const unsupported = new WeakSet<THREE.Mesh>();
+  const materials = materialOverrides({
+    root,
+    ownMaterial: options.ownMaterial,
+    unsupported: (mesh, material) => {
+      if (unsupported.has(mesh)) return;
+      unsupported.add(mesh);
+      run.append('play', 'tint-unsupported', { object: mesh.name, material: material.name,
+        why: options.ownMaterial ? 'the material is not one the document presents' : 'this document lends no material copies' });
+    },
+  });
+  const objectOf = (target: THREE.Object3D | string): THREE.Object3D => {
+    if (typeof target !== 'string') return target;
+    const object = root.getObjectByName(target);
+    if (!object) throw new Error(`The model has no object named ${target}.`);
+    return object;
+  };
   const keys = new Set<string>();
   const heldKeys = new Set<string>();
   const transition = cameraTransition(options.editingCamera());
   options.container.style.opacity = '0';
-  const context: ModelPlayContext = {
+  /** One script's context: its log, tint and opacity do nothing once that script is gone
+   *  (replaced, failed, or the run stopped), so a stale timer cannot reach a later one. */
+  const contextFor = (alive: { value: boolean }): ModelPlayContext => ({
     root,
     find(name) {
       const object = root.getObjectByName(name) ?? null;
@@ -126,7 +189,11 @@ export function runPlayScript(options: {
       return camera();
     },
     keys,
-  };
+    log(kind, facts) { if (alive.value) run.append('script', kind, facts); },
+    tint(object, color) { if (alive.value) materials.tint(objectOf(object), color); },
+    setOpacity(object, opacity) { if (alive.value) materials.setOpacity(objectOf(object), opacity); },
+  });
+  const scripts = new WeakMap<ModelPlayGame, { value: boolean }>();
   let stopped = false;
   let attempt = 0;
   let game: ModelPlayGame | null = null;
@@ -153,8 +220,13 @@ export function runPlayScript(options: {
   const dispose = (ending: ModelPlayGame | null, layers: PlayComposition | null): void => {
     try { ending?.dispose?.(); }
     catch (error) {
-      report(`${modulePath} failed while stopping`, error instanceof Error ? error.message : String(error));
-    } finally { layers?.dispose(); }
+      report('stop', `${modulePath} failed while stopping`, error);
+    } finally {
+      // After its own dispose, which may still log; nothing it scheduled may.
+      const alive = ending && scripts.get(ending);
+      if (alive) alive.value = false;
+      layers?.dispose();
+    }
   };
   const end = (): void => {
     dispose(game, composition);
@@ -163,10 +235,12 @@ export function runPlayScript(options: {
     if (startedAt !== null) endedAt = Date.now();
     live.notifyChanged();
   };
-  const start = async (): Promise<void> => {
+  /** `reload` says why a replacement mounts, for the log's `script-reload`; null for Play's first start. */
+  const start = async (reload: { readonly reason: string; readonly path: string } | null): Promise<void> => {
     const mine = ++attempt;
     if (pending) { dispose(pending.game, pending.composition); pending = null; }
     let nextComposition: PlayComposition | undefined;
+    const alive = { value: true };
     try {
       if (mountLayers) {
         const project = getCurrentProject();
@@ -191,21 +265,27 @@ export function runPlayScript(options: {
         };
       }
       if (stopped || mine !== attempt) { nextComposition?.dispose(); return; }
-      const next = await startGame(modulePath, context, nextComposition);
+      // Before the replacement's default export runs, so what it logs follows this.
+      if (reload) run.append('play', 'script-reload', reload);
+      const next = await startGame(modulePath, contextFor(alive), nextComposition);
+      scripts.set(next, alive);
       if (stopped || mine !== attempt) {
         dispose(next, nextComposition ?? null);
         return;
       }
       pending = { game: next, composition: nextComposition ?? null };
     } catch (error) {
+      alive.value = false;
       nextComposition?.dispose();
       if (stopped || mine !== attempt) return;
-      report(`${modulePath} did not start`, error instanceof Error ? error.message : String(error));
+      report('start', `${modulePath} did not start`, error);
     }
   };
   let firstFrame = true;
   let returning = false;
+  let stopReason = 'stop';
   const stopRequest = registerModelPlayStop(options.documentId, (escape) => {
+    if (escape) stopReason = 'escape';
     keys.clear();
     heldKeys.clear();
     if (firstFrame || transition.stop(escape)) finishModelPlay(options.documentId);
@@ -221,6 +301,7 @@ export function runPlayScript(options: {
     else if (!transition.acceptingKeys()) keys.clear();
     else for (const key of heldKeys) keys.add(key);
     let replacementUpdated = false;
+    if (pending || game) run.advance(deltaSeconds);
     if (pending) {
       const next = pending;
       pending = null;
@@ -236,7 +317,7 @@ export function runPlayScript(options: {
         replacementUpdated = true;
       } catch (error) {
         dispose(next.game, next.composition);
-        report(`${modulePath} did not start`, error instanceof Error ? error.message : String(error));
+        report('start', `${modulePath} did not start`, error);
       }
     }
     if (game === null) return;
@@ -247,9 +328,10 @@ export function runPlayScript(options: {
       if (firstFrame) { firstFrame = false; options.ready(); }
     } catch (error) {
       end();
-      report(`${modulePath} failed`, error instanceof Error ? error.message : String(error));
+      report('update', `${modulePath} failed`, error);
       return;
     }
+    materials.frame();
     keys.clear();
     root.updateMatrixWorld(true);
   });
@@ -272,15 +354,17 @@ export function runPlayScript(options: {
     // would manufacture a mount failure while the old game is still alive.
     // A missing dependency continues through the ordinary error-reporting path.
     if (type === 'delete' && projectModuleChangeMatches(changed, modulePath)) {
+      stopReason = 'script-deleted';
       finishModelPlay(options.documentId);
       return;
     }
     // A composed HUD and script must remount together, including shared-store
     // edits. A fresh epoch is threaded to both through the UI tool door.
     const entries = [modulePath, ...retryEntries, ...(composition?.entries ?? []), ...(pending?.composition?.entries ?? [])];
-    if ([changed, ...(affected ?? [])].some(path => entries.some(entry => projectModuleChangeMatches(path, entry)))) void start();
+    if ([changed, ...(affected ?? [])].some(path => entries.some(entry => projectModuleChangeMatches(path, entry))))
+      void start({ reason: type === 'delete' ? 'dependency-deleted' : 'saved', path: changed });
   });
-  void start();
+  void start(null);
   return () => {
     stopped = true;
     unregisterLive();
@@ -293,5 +377,7 @@ export function runPlayScript(options: {
     window.removeEventListener('blur', onBlur);
     if (pending) { dispose(pending.game, pending.composition); pending = null; }
     end();
+    materials.dispose();
+    run.end({ reason: stopReason });
   };
 }
