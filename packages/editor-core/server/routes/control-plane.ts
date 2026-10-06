@@ -498,7 +498,15 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       const last = lastReceipt.get(pending.tabId);
       if (last?.requestId === id && result.timedOut !== true) last.answered = true;
       const table = tabTableOwning(pending.tabId);
-      if (result.timedOut === true) table?.onCommandOutcome(pending.tabId, 'timed-out');
+      if (result.timedOut === true) {
+        // Native completion can await asynchronous installation, activation or
+        // user interaction. Receipt plus expiry does not prove a hung page.
+        // Keep its failed caller/ledger outcome without inventing that health
+        // inference. Unreceipted and other relay timeouts retain their rule.
+        if (pending.command?.['type'] !== 'run-command' || pending.acknowledged !== true) {
+          table?.onCommandOutcome(pending.tabId, 'timed-out');
+        }
+      }
       else if (result.ok === true) table?.onCommandOutcome(pending.tabId, 'answered');
     }
     pending.resolve({ result, ...(callerReceipt ? { callerReceipt } : {}) });
