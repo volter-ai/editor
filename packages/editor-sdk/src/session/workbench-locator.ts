@@ -65,7 +65,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { homedir } from 'node:os';
-import { isAbsolute, join, resolve, sep } from 'node:path';
+import { basename, isAbsolute, join, resolve, sep } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import {
@@ -177,7 +177,7 @@ export function writeWorkbenchDeclaration(projectRoot: string, workbenchDir: str
  * `frame-proxy.ts` says why it must be a redirect.
  */
 export function workbenchUrl(proxyPort: number, projectRoot: string): string {
-  const id = projectRoot.split('/').filter(Boolean).pop() ?? '';
+  const id = basename(resolve(projectRoot));
   // Cookies ignore ports. A shared loopback hostname can inherit another
   // local VS Code app's secret-storage cookie and select its absent key server.
   // Give each project a stable host; browsers resolve *.localhost to loopback.

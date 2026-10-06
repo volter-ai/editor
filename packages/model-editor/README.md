@@ -38,6 +38,22 @@ and Chat ready. Later launches reopen that starter and preserve your edits.
   `chat send "your prompt"`, and `chat stop` control the same conversation visible
   in the editor. Sending is asynchronous; status reports busy state and pending requests.
 
+## Commands
+
+Run from the project folder with `npx --no-install volter-model-editor <command>`;
+`--help` prints the full list.
+
+| Command | What it does |
+| --- | --- |
+| `create <folder> [--template models\|playable]` | A new project. |
+| `add-play [folder]` | Makes a `models` project playable: adds the Play and React UI dependencies, the manifest's UI root and resolution, the adapter's `regionIncludes.ui`, and — when the project has no `*.play.ts` yet — the example `track.blend` + `track.play.ts` + `race-state.ts` + `src/ui/`. Never overwrites a file; prints what it added, what it left and the next step (`npm install` when dependencies changed, then reload the editor). |
+| `status` \| `console` | The editor's state, and its unresolved console entries. Entries print to stderr; the command exits 1 only for an unresolved **error** — warnings alone exit 0. `eval` ends by the same rule. |
+| `eval <JavaScript>` \| `eval --list` | Runs code against the live editor; `--list` prints what is in scope and a few common tasks. |
+| `camera --position x,y,z --target x,y,z [--fov n]` | Poses the current document's viewport camera. Coordinates are Blender's: metres, Z up (the command converts them to the stage's Y up). `--fov` is the vertical field of view in degrees. |
+| `capture [--region document\|play\|page] [--out file.png]` | Saves what the person sees as a PNG and prints its path (default `.volter/captures/<region>-<time>.png`). `document` is the active document with its overlays; `play` is the live Play frame with its UI. |
+| `screenshot [<target>]` | The active document's render, or a model file or entity staged on its own. |
+| `chat status` \| `chat send "<prompt>"` \| `chat stop` | The editor's Chat conversation. |
+
 ## Free and open source
 
 - Price: free.

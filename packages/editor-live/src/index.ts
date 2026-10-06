@@ -5,11 +5,13 @@ import { LiveTools } from './tools.js';
 import { lazyChainProxy } from './lazy-proxy.js';
 import { resolveSession, type ResolvedSession, type SessionResolutionDeps } from './session.js';
 import { createLazySession } from './singleton.js';
+import { editorMemberHint } from './member-hints.js';
 
 export { LiveEditor, inferAssetKind, type PanelName } from './editor.js';
 export { LiveEditorDocument } from './editor-document.js';
 export type { DocumentGestureOptions, DocumentKeyOptions, DocumentPasteOptions } from './editor-document.js';
 export { LiveTools } from './tools.js';
+export { editorMemberHint, withEditorMemberHints } from './member-hints.js';
 export { resolveSession, findProjectRootFrom } from './session.js';
 export type { ResolvedSession, SessionResolutionDeps, SessionListingTransport, ProjectSessionHint } from './session.js';
 export type { ActiveDocumentCapture, EditorView, PresentedEditorView } from '@volter/editor-sdk';
@@ -34,5 +36,5 @@ export async function connect(projectDir?: string, deps?: SessionResolutionDeps)
   return { ...bindTo(session.port), session };
 }
 const lazySession = createLazySession(() => connect());
-export const editor: LiveEditor = lazyChainProxy<LiveEditor>(() => lazySession.ensure().then(s => s.editor));
+export const editor: LiveEditor = lazyChainProxy<LiveEditor>(() => lazySession.ensure().then(s => s.editor), [], editorMemberHint);
 export const tools: LiveTools = lazyChainProxy<LiveTools>(() => lazySession.ensure().then(s => s.tools));

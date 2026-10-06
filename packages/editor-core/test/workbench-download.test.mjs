@@ -32,6 +32,28 @@ test('project hosts isolate cookies across folders and survive a port change', (
   assert.equal(first.port, '28000');
 });
 
+
+test('printed launch URLs use the project name on Windows and POSIX', () => {
+  for (const [paths, projectRoot, expected] of [
+    [path.win32, "C:\\Users\\person\\My Models\\cube-project\\", "cube-project"],
+    [path.win32, "\\\\server\\share\\My Models\\cube project", "cube project"],
+    [path.posix, "/Users/person/My Models/cube-project/", "cube-project"],
+    [path.posix, "/tmp/literal\\name", "literal\\name"],
+  ]) {
+    const exports = {};
+    vm.runInNewContext(js, {
+      exports, process, URL,
+      require: name => name === 'node:path' ? paths
+        : name === './product-locator' ? { PRODUCT_DECLARATION_KEY: 'volter.product', workbenchProductId: () => 'model-editor' }
+        : require(name),
+    });
+    const printed = new URL(exports.workbenchUrl(28000, projectRoot));
+    assert.equal(printed.searchParams.get('project'), expected);
+    assert.match(printed.hostname, /^editor-[a-f0-9]{16}\.localhost$/);
+    assert.equal(new URL(exports.workbenchUrl(28001, projectRoot)).hostname, printed.hostname);
+  }
+});
+
 async function refusal({ failRequest, failBody, malformed, cause }) {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'workbench-download-test-'));
   const requests = [];

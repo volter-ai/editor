@@ -143,6 +143,10 @@ are changing, why, and how far along it is.
   The user's explicit changes take precedence. Preserve unaffected details
   from existing work. Ask only when conflicting references or a missing detail
   materially prevent progress; use reasonable assumptions for other gaps.
+- Requests for original or different characters and objects change their
+  identities, not the reference's art style. Preserve proportions, curvature,
+  material finish, surface detail and lighting unless the user requests a
+  different treatment. A stylized reference still has a specific visual style.
 - Distinguish visible evidence from assumptions. A still image does not prove
   controls, collisions, unseen geometry or gameplay rules. Infer appropriate
   conventions from the requested kind of result, then verify implemented
@@ -210,14 +214,19 @@ For a behavior-only repair, preserve the established appearance.
   the reference view after behavior is added.
 - Before moving to gameplay, save and inspect a comparison of the reference
   and static scene with React UI at matching crop, aspect ratio and resolution.
+  Track capture, comparison and visual match as separate results. Saving a
+  comparison proves the images were captured; it does not prove a match.
   Record the largest remaining differences in shape, screen position, regional
-  color, lighting and UI scale in Build Notes. Resolve those differences or
+  color, lighting and UI scale in Build Notes, with actual observations rather
+  than a list of categories. Use pixel measurements for representative regions
+  and landmark positions when available. Resolve those differences or
   report the specific rendering limitation before checking off the visual pass.
   Support a claimed renderer limitation with a focused comparison or reproduction.
   Continue correcting authorable geometry, framing, materials and UI differences.
   Keep this milestone pending while those differences remain. Continue the
   visual work before adding gameplay instead of checking off object coverage
-  as a completed visual match.
+  as a completed visual match. Calling the result a stylized recreation or
+  simpler interpretation does not satisfy a request to match the reference.
 
 ## Working games
 

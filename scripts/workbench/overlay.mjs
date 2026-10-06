@@ -880,6 +880,26 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
 \t\tfor (const inputState of controllerData.inputStates) {
 \t\t\tif (!isEqual(inputState.sessionResource ?? inputState.untitledSessionResource, sessionResource)) { continue; }`, 'input-state routing');
 
+
+	// The previous input state is type-wide. Pass only this request's native
+	// options separately, so a new draft cannot inherit another chat's mode.
+	const inputStateHost = 'src/vs/workbench/api/common/extHostChatSessions.ts';
+	patchChatSource(checkout, inputStateHost,
+		'previousInputState: this._createInputStateFromOptions(controllerData.optionGroups ?? [], context.initialSessionOptions),',
+		'previousInputState: this._createInputStateFromOptions(controllerData.optionGroups ?? [], context.initialSessionOptions),\n\t\t\t\tinitialSessionOptions: context.initialSessionOptions ?? [],', 'content input-option provenance');
+	patchChatSource(checkout, inputStateHost,
+		'{ previousInputState: this._createInputStateFromOptions(controllerData.optionGroups ?? [], initialSessionOptions) },',
+		'{ previousInputState: this._createInputStateFromOptions(controllerData.optionGroups ?? [], initialSessionOptions), initialSessionOptions: initialSessionOptions ?? [] },', 'session input-option provenance');
+	patchChatSource(checkout, inputStateHost,
+		'getChatSessionInputState(undefined, { previousInputState }, token)',
+		'getChatSessionInputState(undefined, { previousInputState, initialSessionOptions: request.initialSessionOptions ?? [] }, token)', 'new-chat input-option provenance');
+	patchChatSource(checkout, inputStateHost,
+		'{ previousInputState: undefined }, token)',
+		'{ previousInputState: undefined, initialSessionOptions: [] }, token)', 'blank input-option provenance');
+	patchChatSource(checkout, 'src/vscode-dts/vscode.proposed.chatSessionsProvider.d.ts',
+		'\t\treadonly previousInputState: ChatSessionInputState | undefined;',
+		'\t\treadonly previousInputState: ChatSessionInputState | undefined;\n\t\t/** Options supplied for this input/request, independently of type-wide previous state. */\n\t\treadonly initialSessionOptions?: ReadonlyArray<{ optionId: string; value: string }>;', 'input-option provenance API');
+
 	// Tree height changes mutate layout. Deliver them outside ResizeObserver's
 	// notification phase, retaining the latest measurement and the row's identity.
 	const renderer = 'src/vs/workbench/contrib/chat/browser/widget/chatListRenderer.ts';

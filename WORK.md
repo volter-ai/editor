@@ -1757,3 +1757,25 @@ cliffs, lighting, kart/character proportions and UI/map. The old immutable
 candidate unloaded during idle after completion; shutdown diagnostics do not
 establish why. Its saved project was reopened for review and gracefully closed.
 This is a gameplay pass, not a visual or uninterrupted smoothness acceptance.
+
+### 2026-10-06 — distinguish reference comparison from a visual match
+
+The fresh GPT-6 Astra xhigh author completed cycle 16 in the native editor.
+All 18 independent public gameplay checks passed, including drift release,
+manual takeover from autoplay, pause, restart and six separate parked finishes.
+The original page remained connected with one epoch and no unresolved errors.
+Minimum parked separation was 3.667m. The visual comparison still differs in
+canyon depth and detail, kart proportions, pavement, shadows and route-map shape;
+the author proceeded to gameplay while describing it as a simpler recreation.
+
+The shared starter now separates captured, compared and matched results and
+requires concrete comparison observations. Requests for original assets retain
+the reference's visual style unless the user explicitly changes that style.
+Calling the output stylized or simpler does not complete the visual milestone.
+The short task prompt and reference remain unchanged. This instruction change
+has not yet been validated by another complete native authoring cycle.
+
+Fresh Models and Playable project generation both copied the exact shared
+instructions and retained CLAUDE's AGENTS import. The generation receipt is
+`.volter/kart-cycles-20261006/probe-visual-gate-defaults-1791327717838/receipt.json`.
+Cycle 16 evidence remains in its parent static and controls review folders.

@@ -34,7 +34,7 @@
 
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import type { TripwireTier } from './build-discipline';
+import type { AnyTripwireName, TripwireTier } from './build-discipline';
 import type {
   RecordedTabCensus,
   TabStallMetrics,
@@ -163,6 +163,31 @@ export type SessionJournalEvent =
       readonly tripwire: 'unplayed-session';
       readonly tier: TripwireTier;
       readonly servingForMs: number;
+    }
+  /** A running Chat turn left the editor window unchanged past the step. */
+  | {
+      readonly kind: 'tripwire';
+      readonly tripwire: 'visible-progress';
+      readonly tier: TripwireTier;
+      readonly stalledForMs: number;
+    }
+  /**
+   * What became of a tripwire crossing's line on its way into the Chat agent's
+   * running turn — the row that answers "did the agent hear it?".
+   *
+   * It exists because that question had no answer: the "obby" run journaled
+   * both unplayed-session crossings and the agent's transcript held neither,
+   * and nothing on disk said so. `steered` — the line went into the running
+   * turn; `no-turn` — no AI turn was running, so nobody was there to hear it
+   * (the crossing's own row and the terminal banner remain its record) or it
+   * was waiting on the person; `capped` — this turn already heard its one
+   * line; `failed` — the harness refused the steer, with its reason.
+   */
+  | {
+      readonly kind: 'tripwire-nudge';
+      readonly tripwire: AnyTripwireName;
+      readonly outcome: 'steered' | 'no-turn' | 'capped' | 'failed';
+      readonly error?: string;
     }
   /**
    * A play-mode log session opened or closed.
@@ -683,9 +708,14 @@ export function formatJournalLine(line: SessionJournalLine): string {
   const at = line.at.slice(11, 19);
   switch (line.kind) {
     case 'tripwire':
-      return line.tripwire === 'commit-cadence'
-        ? `journal: ${at} tripwire commit-cadence ${line.tier} (${line.fileCount} files, ${Math.round(line.ageMs / 60_000)}m)`
-        : `journal: ${at} tripwire unplayed-session ${line.tier} (${Math.round(line.servingForMs / 60_000)}m)`;
+      if (line.tripwire === 'commit-cadence') {
+        return `journal: ${at} tripwire commit-cadence ${line.tier} (${line.fileCount} files, ${Math.round(line.ageMs / 60_000)}m)`;
+      }
+      return line.tripwire === 'unplayed-session'
+        ? `journal: ${at} tripwire unplayed-session ${line.tier} (${Math.round(line.servingForMs / 60_000)}m)`
+        : `journal: ${at} tripwire visible-progress ${line.tier} (${Math.round(line.stalledForMs / 1000)}s)`;
+    case 'tripwire-nudge':
+      return `journal: ${at} tripwire-nudge ${line.tripwire} ${line.outcome}${line.error ? ` (${line.error})` : ''}`;
     case 'validation':
       return `journal: ${at} validation ${line.ok ? 'ok' : 'FAILED'} ${line.path}`;
     case 'play':
