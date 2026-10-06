@@ -67,7 +67,10 @@ export function setModelPlaying(documentId: string, value: boolean): void {
     restarted.delete(documentId);
     steps.delete(documentId);
     // The clock keeps the stopped run's time and tick, so the panel still says how far it got.
-    if (modelPlayClock(documentId).paused) setClock(documentId, { paused: false });
+    // Re-issued even unchanged, after `playing` has changed: every way a game stops (Stop,
+    // Escape, a deleted script, a mode switch, an agent's `stop`) ends here, and a reader of
+    // the clock alone must see the run end too.
+    setClock(documentId, { paused: false });
   }
   publish();
 }

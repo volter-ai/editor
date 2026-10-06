@@ -352,6 +352,13 @@ export function runPlayScript(options: {
     if (firstFrame || transition.stop(escape)) finishModelPlay(options.documentId);
   });
   const stopFrames = onFrame((deltaSeconds) => {
+    // REPLACED BY A RESTART, and not yet unmounted: the document keeps this copy on screen until
+    // the new one has drawn, so it stands as it is — no update, no clock, the camera held.
+    if (!current()) {
+      if (game !== null) transition.hold(camera());
+      keys.clear();
+      return;
+    }
     if (transition.leaving()) {
       options.container.style.opacity = String(transition.hudOpacity());
       if (!returning && transition.approachingEdit()) { returning = true; options.returning(); }

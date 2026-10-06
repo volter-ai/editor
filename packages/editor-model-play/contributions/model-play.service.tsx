@@ -25,6 +25,7 @@ export const point = 'workspace.service';
 function usePlaying(documentId: string | undefined): boolean {
   return useSyncExternalStore(subscribeModelPlay, () => documentId ? modelPlaying(documentId) : false, () => false);
 }
+// Kept because `DocumentPlayExtension` requires `Control` and `Menu` for a layout that draws Play in its header; the Model Editor's layout no longer does (its Play is the Game panel's).
 function Control({ documentId, onClose }: DocumentPlayControlProps) {
   const playing = usePlaying(documentId);
   return <Button size="compact" data-testid="model-play-button" aria-pressed={playing}

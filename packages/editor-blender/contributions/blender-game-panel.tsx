@@ -190,8 +190,9 @@ registerViewVerbs({
         requirePlaying(documentId, 'step');
         const { transport } = verbExtension();
         if (!transport.clock(documentId).paused) throw new Error('step runs one tick of a PAUSED game; `pause` first.');
-        const count = args?.['count'] === undefined ? 1 : Number(args['count']);
-        if (!Number.isInteger(count) || count < 1 || count > 600) throw new Error(`step's \`count\` is a whole number from 1 to 600; got ${String(args?.['count'])}.`);
+        const raw = args?.['count'];
+        const count = raw === undefined ? 1 : typeof raw === 'string' && raw.trim() !== '' ? Number(raw) : typeof raw === 'number' ? raw : Number.NaN;
+        if (!Number.isInteger(count) || count < 1 || count > 600) throw new Error(`step's \`count\` is a whole number from 1 to 600; got ${JSON.stringify(raw)}.`);
         for (let index = 0; index < count; index++) transport.step(documentId);
         return gameState(documentId);
       },
@@ -204,7 +205,7 @@ registerViewVerbs({
         const raw = args?.['speed'] ?? args?.['to'];
         const speed = typeof raw === 'string' ? Number(raw.replace(/x$/i, '')) : Number(raw);
         if (!transport.speeds.includes(speed))
-          throw new Error(`speed is one of ${transport.speeds.join(', ')} (simulation seconds per real second); got ${String(raw)}.`);
+          throw new Error(`speed is one of ${transport.speeds.join(', ')} (simulation seconds per real second); got ${JSON.stringify(raw)}.`);
         transport.setSpeed(documentId, speed);
         return gameState(documentId);
       },
@@ -365,7 +366,9 @@ export function BlenderGamePanel() {
             pressed={playing}
             wide
             disabled={!canPlay}
-            onClick={() => { if (documentId !== null) found?.setPlaying(documentId, !playing); }}
+            // The run's state NOW, not the render's: a game can stop between the two (Escape, an
+            // agent's `stop`, a failed script), and a toggle read from a stale render does nothing.
+            onClick={() => { if (documentId !== null && found) found.setPlaying(documentId, !found.playing(documentId)); }}
           >
             {mark(playing ? MARKS.stop : MARKS.play)}
             {playing ? 'Stop' : 'Play'}
@@ -377,7 +380,7 @@ export function BlenderGamePanel() {
                 label={clock.paused ? 'Resume' : 'Pause'}
                 pressed={playing && clock.paused}
                 disabled={!playing}
-                onClick={() => { if (documentId !== null) transport.setPaused(documentId, !clock.paused); }}
+                onClick={() => { if (documentId !== null) transport.setPaused(documentId, !transport.clock(documentId).paused); }}
               >
                 {mark(clock.paused ? MARKS.play : MARKS.pause)}
               </GameButton>
@@ -392,7 +395,7 @@ export function BlenderGamePanel() {
               <GameButton
                 testId="model-play-restart"
                 label="Restart on a fresh copy of the model"
-                disabled={!canPlay}
+                disabled={!playing}
                 onClick={() => { if (documentId !== null) transport.restart(documentId); }}
               >
                 {mark(MARKS.restart)}
