@@ -764,6 +764,23 @@ function patchNativeChat(checkout) {
 \t\t\t&& other.command === this.commandButton.command
 \t\t\t&& (other.additionalCommands?.length ?? 0) === (this.commandButton.additionalCommands?.length ?? 0)
 \t\t\t&& (other.additionalCommands ?? []).every((command, index) => command === this.commandButton.additionalCommands?.[index]);`, 'refresh native answer alternatives during streaming');
+	// Reuse the native tool-confirmation card, but keep live harness approval
+	// dispatch inside the current turn. Stock confirmations retain their handler.
+	const confirmationPart = 'src/vs/workbench/contrib/chat/browser/widget/chatContentParts/chatConfirmationContentPart.ts';
+	patchChatSource(checkout, confirmationPart, "import { IChatContentPart, IChatContentPartRenderContext } from './chatContentParts.js';",
+		"import { IChatContentPart, IChatContentPartRenderContext } from './chatContentParts.js';\nimport { HarnessChatApprovalContentPart, isHarnessApproval } from '../../../../volter/browser/volterChatApproval.js';", 'native in-turn approval presentation import');
+	patchChatSource(checkout, confirmationPart, '\t\tconfirmation: IChatConfirmation,', '\t\tprivate readonly confirmation: IChatConfirmation,', 'native approval content identity');
+	patchChatSource(checkout, confirmationPart, '\t\tsuper();\n\n\t\tconst element', `\t\tsuper();
+\t\tif (isHarnessApproval(confirmation.data)) {
+\t\t\tconst approval = this._register(this.instantiationService.createInstance(HarnessChatApprovalContentPart, confirmation, context));
+\t\t\tthis.domNode = approval.domNode;
+\t\t\treturn;
+\t\t}
+
+\t\tconst element`, 'native approval without a new chat request');
+	patchChatSource(checkout, confirmationPart, "\t\treturn other.kind === 'confirmation';",
+		"\t\treturn other.kind === 'confirmation' && (!isHarnessApproval(this.confirmation.data) || other === this.confirmation);", 'native approval response identity');
+
 	patchHarnessChatNavigation(checkout);
 	// Participant welcome uses native buttons for standalone trusted command links.
 	// It stays outside transcript history and shares the extension's guarded action.

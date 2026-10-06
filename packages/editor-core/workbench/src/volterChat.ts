@@ -115,6 +115,12 @@ class HarnessChatFocus extends Disposable {
 }
 registerWorkbenchContribution2(HarnessChatFocus.ID, HarnessChatFocus, WorkbenchPhase.AfterRestored);
 
+// Versioned support for native confirmation cards that answer a running turn.
+registerAction2(class extends Action2 {
+	constructor() { super({ id: 'volter.chat.inTurnApprovalCapability', title: localize2('inTurnApprovalCapability', 'Native In-Turn Approval Capability'), f1: false }); }
+	run() { return { version: 1 }; }
+});
+
 // Read-only diagnostics for the product's native Chat/runtime boundary.
 registerAction2(class extends Action2 {
 	constructor() { super({ id: 'volter.chat.inspect', title: localize2('inspectHarnessChat', 'Inspect Chat Runtime'), f1: false }); }
