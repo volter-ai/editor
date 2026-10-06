@@ -294,6 +294,35 @@ export type SessionJournalEvent =
       /** Present only when `ok` is false; the refusal/failure text. */
       readonly error?: string;
     }
+  /** Native delivery/completion expiry; this does not cancel the operation. */
+  | {
+      readonly kind: 'command-timeout';
+      readonly command: 'run-command';
+      readonly commandId: string;
+      readonly requestId8: string;
+      readonly tabId8: string | null;
+      readonly clientId8: string | null;
+      readonly epochAtRelay: number | null;
+      readonly phase: 'delivery' | 'completion';
+      readonly waitedMs: number;
+      readonly receivedAt: number | null;
+    }
+  /** A verified same-page result arrived after its caller already timed out.
+   *  The failed caller result remains; no command arguments/result data logged. */
+  | {
+      readonly kind: 'command-late-result';
+      readonly command: 'run-command';
+      readonly commandId: string;
+      readonly requestId8: string;
+      readonly clientId8: string;
+      readonly tabId8: string;
+      readonly epochAtRelay: number;
+      readonly receivedAt: number;
+      readonly timedOutAt: number;
+      readonly completedAt: number;
+      readonly afterTimeoutMs: number;
+      readonly ok: boolean;
+    }
   /**
    * The relay HELD a command instead of refusing it: the target tab is
    * present by heartbeat but its command channel is not carrying right now
@@ -710,6 +739,10 @@ export function formatJournalLine(line: SessionJournalLine): string {
       return `journal: ${at} command-swept-on-last-tab-gone ${line.settled} unreceipted`;
     case 'command-result':
       return `journal: ${at} command-result ${line.requestId8} ${line.ok ? 'ok' : `FAILED ${line.error ?? ''}`}`;
+    case 'command-timeout':
+      return `journal: ${at} command-timeout ${line.commandId} ${line.requestId8} waiting for ${line.phase} after ${line.waitedMs}ms`;
+    case 'command-late-result':
+      return `journal: ${at} command-late-result ${line.commandId} ${line.requestId8} ${line.ok ? 'ok' : 'FAILED'} +${line.afterTimeoutMs}ms after caller timeout`;
     case 'command-held':
       return `journal: ${at} command-held ${line.requestId8} tab ${line.tabId8} (${line.reason})`;
     case 'echo-probe':

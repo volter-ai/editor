@@ -365,6 +365,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
        *  timer: the final refusal awaits a main-thread echo, and a receipt
        *  arriving inside that window must win. */
       acknowledged?: boolean;
+      receivedAt?: number;
+      receiptLifecycle?: EditorControlLifecycle;
       /** When the relay sent it, so a timeout can tell whether the tab's last receipt came before. */
       relayedAt?: number;
       /** Long-budget commands have separate delivery and work budgets. The
@@ -378,6 +380,24 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       controllerClientId?: string;
     }
   >();
+  // Keep only addressing/timing facts after a native caller times out. The
+  // operation is not canceled by expiry, so its eventual completion must have
+  // a separate record; never retain its arguments, data or expired resolver.
+  const lateNativeCommands = new Map<string, {
+    commandId: string;
+    tabId: string;
+    lifecycle: EditorControlLifecycle;
+    epochAtRelay: number;
+    receivedAt: number;
+    timedOutAt: number;
+  }>();
+  const LATE_NATIVE_COMMANDS_MAX = 128;
+  const LATE_NATIVE_COMMAND_TTL_MS = 10 * 60_000;
+  function pruneLateNativeCommands(now: number): void {
+    for (const [id, command] of lateNativeCommands) {
+      if (now - command.timedOutAt > LATE_NATIVE_COMMAND_TTL_MS) lateNativeCommands.delete(id);
+    }
+  }
   // Per-command relay budgets live in ONE pure, unit-tested table
   // (`server-utils.ts`'s `relayCommandTimeoutMs`) — including the reason each
   // entry exists. Testing it here would mean booting a server and standing
@@ -445,6 +465,24 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     if (pending.ackTimer) clearTimeout(pending.ackTimer);
     if (pending.holdTimer) clearTimeout(pending.holdTimer);
     pendingCommands.delete(id);
+    if (result.timedOut === true && pending.command?.['type'] === 'run-command' &&
+        pending.receiptLifecycle && pending.tabId && pending.receivedAt !== undefined) {
+      const now = Date.now();
+      pruneLateNativeCommands(now);
+      while (lateNativeCommands.size >= LATE_NATIVE_COMMANDS_MAX) {
+        const oldest = lateNativeCommands.keys().next().value;
+        if (oldest === undefined) break;
+        lateNativeCommands.delete(oldest);
+      }
+      lateNativeCommands.set(id, {
+        commandId: String(pending.command['commandId'] ?? 'unknown').slice(0, 256),
+        tabId: pending.tabId,
+        lifecycle: pending.receiptLifecycle,
+        epochAtRelay: pending.epochAtRelay ?? 0,
+        receivedAt: pending.receivedAt,
+        timedOutAt: now,
+      });
+    }
     journalEvent({
       kind: 'command-result',
       requestId8: short(id),
@@ -460,7 +498,15 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       const last = lastReceipt.get(pending.tabId);
       if (last?.requestId === id && result.timedOut !== true) last.answered = true;
       const table = tabTableOwning(pending.tabId);
-      if (result.timedOut === true) table?.onCommandOutcome(pending.tabId, 'timed-out');
+      if (result.timedOut === true) {
+        // Native completion can await asynchronous installation, activation or
+        // user interaction. Receipt plus expiry does not prove a hung page.
+        // Keep its failed caller/ledger outcome without inventing that health
+        // inference. Unreceipted and other relay timeouts retain their rule.
+        if (pending.command?.['type'] !== 'run-command' || pending.acknowledged !== true) {
+          table?.onCommandOutcome(pending.tabId, 'timed-out');
+        }
+      }
       else if (result.ok === true) table?.onCommandOutcome(pending.tabId, 'answered');
     }
     pending.resolve({ result, ...(callerReceipt ? { callerReceipt } : {}) });
@@ -732,9 +778,20 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     if (typeof requestId === 'string') {
       const pending = pendingCommands.get(requestId);
       if (pending) {
+        if (pending.controllerClientId && typeof payload['_clientId'] === 'string' &&
+            pending.controllerClientId !== payload['_clientId']) {
+          return { status: 403, error: 'Command receipt came from a different editor tab.' };
+        }
         journalEvent({ kind: 'command-receipt', requestId8: short(requestId) });
         const firstReceipt = pending.acknowledged !== true;
         pending.acknowledged = true;
+        if (firstReceipt) {
+          pending.receivedAt = Date.now();
+          const lifecycle = pending.controllerClientId
+            ? controlLifecycleByClientId.get(pending.controllerClientId)
+            : undefined;
+          if (lifecycle !== undefined) pending.receiptLifecycle = lifecycle;
+        }
         if (pending.tabId) {
           lastReceipt.set(pending.tabId, {
             requestId,
@@ -974,11 +1031,6 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       _clientId?: string;
       _awaitCallerReceipt?: boolean;
     };
-    // A result, late or on time, answers the tab's last receipt: a command that outlived its
-    // budget but finished no longer holds the tab.
-    for (const last of lastReceipt.values()) {
-      if (last.requestId === body._requestId) last.answered = true;
-    }
     const pending = pendingCommands.get(body._requestId);
     if (pending) {
       // Only when the reporter NAMES itself. Over the socket the server fills
@@ -1018,6 +1070,46 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         },
         callerReceipt,
       );
+    } else {
+      const now = Date.now();
+      pruneLateNativeCommands(now);
+      const late = lateNativeCommands.get(body._requestId);
+      if (late === undefined) {
+        // Preserve the existing late receipt bookkeeping for other relay
+        // families; this bounded native journal does not change their contract.
+        for (const last of lastReceipt.values()) {
+          if (last.requestId === body._requestId && last.type !== 'run-command') last.answered = true;
+        }
+        return CONTROL_OK;
+      }
+      const reported = parseEditorControlLifecycle(payload['_controlLifecycle']);
+      // A reconnect of the same page is legitimate, but another client, tab,
+      // server or page-load cannot finish this operation. The current envelope
+      // was validated above; legacy unnamed results cannot certify completion.
+      if (body._clientId !== late.lifecycle.clientId || reported === null ||
+          editorControlLifecycleMismatch({
+            ...late.lifecycle, connectionGeneration: reported.connectionGeneration,
+          }, reported) !== null) {
+        return { status: 409, error: 'Late command result does not belong to its original editor page.' };
+      }
+      lateNativeCommands.delete(body._requestId);
+      journalEvent({
+        kind: 'command-late-result',
+        command: 'run-command',
+        commandId: late.commandId,
+        requestId8: short(body._requestId),
+        clientId8: short(late.lifecycle.clientId),
+        tabId8: short(late.tabId),
+        epochAtRelay: late.epochAtRelay,
+        receivedAt: late.receivedAt,
+        timedOutAt: late.timedOutAt,
+        completedAt: now,
+        afterTimeoutMs: now - late.timedOutAt,
+        ok: body.ok === true,
+      });
+      const last = lastReceipt.get(late.tabId);
+      if (last?.requestId === body._requestId) last.answered = true;
+      // No caller is left to answer, and its failure/ledger entry is unchanged.
     }
     return CONTROL_OK;
   }
@@ -1471,7 +1563,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         case 'command-result':
           // The socket KNOWS which tab spoke, so the tab cannot claim to be
           // another one — stronger than the POST route's self-reported id.
-          handleCommandResult({ ...payload, _clientId: clientId });
+          handleCommandResult({ ...payload, _clientId: clientId,
+            _controlLifecycle: lifecycle ?? undefined });
           return;
         case 'state':
           handleEditorState({ ...payload, _clientId: clientId });
@@ -1752,6 +1845,28 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         const tab = table?.tab(targetTabId);
         const pending = pendingCommands.get(requestId);
         const expiredAt = Date.now();
+        if (body['type'] === 'run-command') {
+          const received = pending?.acknowledged === true;
+          const commandId = String(body['commandId'] ?? 'unknown').slice(0, 256);
+          const phase = received ? 'completion' : 'delivery';
+          const message = received
+            ? `Native command \`${commandId}\` was received by the editor but did not complete ` +
+              `within ${timeoutMs / 1000}s. It may still finish; this timeout does not cancel it.`
+            : `Native command \`${commandId}\` timed out before the editor acknowledged delivery.`;
+          journalEvent({
+            kind: 'command-timeout', command: 'run-command', commandId,
+            requestId8: short(requestId), tabId8: short(targetTabId),
+            clientId8: short(pending?.controllerClientId),
+            epochAtRelay: pending?.epochAtRelay ?? null,
+            phase, waitedMs: timeoutMs, receivedAt: pending?.receivedAt ?? null,
+          });
+          consoleLedger.observe({
+            severity: 'error', source: 'command-timeout', message,
+            loadId: pending?.controllerClientId ?? targetTabId,
+          });
+          settlePendingCommand(requestId, { ok: false, timedOut: true, error: message });
+          return;
+        }
         const base =
           tab === undefined
             ? 'Command timed out — editor connected but did not respond.'
