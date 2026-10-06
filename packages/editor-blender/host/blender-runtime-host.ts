@@ -853,7 +853,12 @@ export function blenderRuntime(): BlenderRuntime {
   const lifetime = new AbortController();
   captureLifetime = lifetime;
   let photographing = false;
-  let streamedView: RuntimeView | null = null;
+  let streamedFrame: { view: RuntimeView; session: string; revision: number } | null = null;
+  const discardStreamedFrame = () => {
+    const staged = streamedFrame;
+    streamedFrame = null;
+    if (staged) staged.view.stageFrame({ session: staged.session, revision: staged.revision, abort: true });
+  };
   runtime = new BlenderRuntime({
     work: beginBlenderWork,
     history: (entries) => {
@@ -884,16 +889,21 @@ export function blenderRuntime(): BlenderRuntime {
       }
     },
     stage: async part => {
-      if (part.abort) { streamedView?.stageFrame(part); streamedView = null; return; }
+      if (part.abort) { discardStreamedFrame(); return; }
       const conflict = modelDocumentConflict();
       if (conflict) throw new Error(conflict);
-      if (boundModel === null) return;
+      if (boundModel === null) {
+        discardStreamedFrame();
+        return;
+      }
       const documentId = presentationDocumentId();
       const view = await runtimeView();
       lifetime.signal.throwIfAborted();
       if (presentationDocumentId() !== documentId) throw new Error('Blender document changed during frame transfer');
-      streamedView = view;
+      if (streamedFrame && streamedFrame.view !== view)
+        throw new Error('Blender presenter changed during frame transfer');
       view.stageFrame(part);
+      streamedFrame = { view, session: part.session, revision: part.revision };
     },
     present: async (frame, description, capture) => {
       const conflict = modelDocumentConflict();
@@ -903,6 +913,9 @@ export function blenderRuntime(): BlenderRuntime {
       // on close). The Model document presents the session's current state when it binds. Only a
       // photograph needs a view, so only a capture is refused.
       if (boundModel === null) {
+        // A headless present accepts no staged geometry. Abort its owned
+        // transfer before the retained Model view can be opened again.
+        discardStreamedFrame();
         if (capture?.render) {
           throw new Error('Rendering a Blender frame needs the Model document open; nothing is presenting.');
         }
@@ -915,6 +928,8 @@ export function blenderRuntime(): BlenderRuntime {
       lifetime.signal.throwIfAborted();
       if (presentationDocumentId() !== documentId)
         throw new Error('Blender document changed before its frame could be presented');
+      if (streamedFrame && streamedFrame.view !== view)
+        throw new Error('Blender presenter changed before its frame could be presented');
       // WHAT THE PRESENTER HELD BEFORE THIS FRAME, carried back to the session
       // beside whatever this present produced. The session only has a RECORD of
       // what it sent; this view is the authority on what it actually holds, and
@@ -927,6 +942,7 @@ export function blenderRuntime(): BlenderRuntime {
         try { return view.applyFrame(frame) as { held?: unknown } | null | undefined; }
         finally { endApply(); }
       })();
+      streamedFrame = null;
       const reports = typeof applied === 'object' && applied !== null && 'held' in applied;
       const held = reports ? (applied.held as { session: string; revision: number } | null) : null;
       const answer = (capture: unknown): PresentAnswer => ({
