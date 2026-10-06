@@ -54,11 +54,23 @@ registerAction2(class extends Action2 {
 		const widgets = accessor.get(IChatWidgetService);
 		const navigation = accessor.get(IHarnessChatNavigationService);
 		const focused = widgets.lastFocusedWidget;
-		const focusedResource = focused?.viewModel?.sessionResource.toString() ?? null;
+		// A blank chat that is not a harness conversation holds nothing a person chose: the workbench restores one
+		// on every page reload, and the extension is never told of it (focus is reported once a harness chat is
+		// seen). Counted as focus, it refused every readiness reveal after a reload, leaving the running turn and
+		// its approval cards out of sight (t_39dac582). It also matches no focus; a chat with requests or typed input,
+		// and every harness chat, still guard. An extension that was told of the blank chat still matches it exactly.
+		const resourceOf = (widget: typeof focused) => widget?.viewModel?.sessionResource.toString() ?? null;
+		const blank = (widget: typeof focused) => {
+			const viewModel = widget?.viewModel;
+			return Boolean(viewModel && viewModel.sessionResource.scheme !== 'supercode' && !viewModel.model.hasRequests && !widget!.getInput().trim());
+		};
+		const matches = () => expectedFocus === resourceOf(focused) || (expectedFocus === null && blank(focused));
+		const focusedResource = resourceOf(focused);
+		const expected = matches();
 		let unchanged = true;
-		const isCurrent = () => unchanged && focusedResource === expectedFocus
+		const isCurrent = () => unchanged && expected && matches()
 			&& widgets.lastFocusedWidget === focused
-			&& (focused?.viewModel?.sessionResource.toString() ?? null) === focusedResource
+			&& resourceOf(focused) === focusedResource
 			&& (!focused || widgets.getAllWidgets().includes(focused));
 		const listener = widgets.onDidChangeFocusedSession(() => { unchanged = isCurrent(); });
 		try {
