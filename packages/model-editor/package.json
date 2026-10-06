@@ -1,7 +1,7 @@
 {
   "name": "@volter/model-editor",
   "author": "Volter AI, Inc.",
-  "version": "0.5.183",
+  "version": "0.5.184",
   "publishConfig": {
     "access": "public"
   },
@@ -68,13 +68,13 @@
     }
   },
   "dependencies": {
-    "@volter/editor-core": "0.5.183",
-    "@volter/editor-blender": "0.1.122",
-    "@volter/editor-threejs": "0.5.183",
-    "@volter/blender-engine": "0.1.120",
-    "@volter/editor-project": "0.5.183",
-    "@volter/editor-sdk": "0.5.183",
-    "@volter/editor-live": "0.5.183",
+    "@volter/editor-core": "0.5.184",
+    "@volter/editor-blender": "0.1.123",
+    "@volter/editor-threejs": "0.5.184",
+    "@volter/blender-engine": "0.1.121",
+    "@volter/editor-project": "0.5.184",
+    "@volter/editor-sdk": "0.5.184",
+    "@volter/editor-live": "0.5.184",
     "@modelcontextprotocol/sdk": "1.32.1",
     "undici": "7.29.1"
   },

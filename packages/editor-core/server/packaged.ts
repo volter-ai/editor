@@ -1,3 +1,5 @@
+// First, before any dependency loads: on Windows every child of the session starts without a window.
+import './windows-hidden-children';
 import { readSharedSdkUrls } from '../vite-plugin-shared-sdk';
 /**
  * Packaged editor server — the entry a `@volter/editor-core` npm package resolves from a
