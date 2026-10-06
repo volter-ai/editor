@@ -482,6 +482,54 @@ function tokenDoors(): string {
   );
 }
 
+/** The CLI prints only Error.message. Keep the public request/stage and Node's
+ * nested transport code there, without printing auth headers or signed redirects.
+ * The original thrown value is retained as cause for callers that can inspect it. */
+async function downloadOperation<T>(
+  stage: string,
+  url: string,
+  token: string | null,
+  operation: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (cause) {
+    const seen = new Set<unknown>();
+    const redact = (text: string): string => {
+      const withoutToken = token === null ? text : text.replaceAll(token, '[redacted]');
+      return withoutToken.replace(/https?:\/\/[^\s"<>]+/g, (raw) => {
+        try {
+          const parsed = new URL(raw);
+          parsed.username = '';
+          parsed.password = '';
+          parsed.search = '';
+          parsed.hash = '';
+          return parsed.href;
+        } catch { return '[redacted URL]'; }
+      }).slice(0, 1000);
+    };
+    const describe = (error: unknown, depth: number): string => {
+      if (seen.has(error) || depth > 4) return '[cause omitted]';
+      seen.add(error);
+      if (typeof error !== 'object' || error === null) return redact(String(error));
+      const fields = error as { name?: unknown; message?: unknown; code?: unknown; cause?: unknown; errors?: unknown };
+      const name = typeof fields.name === 'string' ? fields.name : 'Error';
+      const message = typeof fields.message === 'string' ? fields.message : 'Unknown transport error';
+      const code = typeof fields.code === 'string' ? ` [${fields.code}]` : '';
+      let detail = redact(`${name}${code}: ${message}`);
+      if (fields.cause !== undefined) detail += `; caused by ${describe(fields.cause, depth + 1)}`;
+      if (Array.isArray(fields.errors))
+        detail += `; ${fields.errors.slice(0, 4).map((error) => describe(error, depth + 1)).join('; ')}`;
+      return detail;
+    };
+    throw new Error(`Workbench download failed during ${stage} at ${url}: ${describe(cause, 0)}`, { cause });
+  }
+}
+
+function assetUrl(asset: ReleaseAsset): string {
+  return `https://api.github.com/repos/${RELEASE_REPO}/releases/assets/${asset.id}`;
+}
+
 /**
  * FETCH ONE PUBLISHED RELEASE into `dir`, atomically: everything lands in a
  * sibling `.partial` directory and is renamed into place at the end, so a
@@ -504,10 +552,9 @@ async function fetchDeclaredRelease(
     `  node scripts/workbench/build-release.mjs --product ${productId} --platform ${machine} ` +
     '--checkout <fork dir> --publish';
 
-  const response = await fetch(
-    `https://api.github.com/repos/${RELEASE_REPO}/releases/tags/${encodeURIComponent(tag)}`,
-    { headers: apiHeaders(token) },
-  );
+  const releaseUrl = `https://api.github.com/repos/${RELEASE_REPO}/releases/tags/${encodeURIComponent(tag)}`;
+  const response = await downloadOperation('release metadata request', releaseUrl, token,
+    () => fetch(releaseUrl, { headers: apiHeaders(token) }));
   if (response.status === 404 && token === null)
     throw new Error(
       `${product.name} opens in the Code-OSS workbench published as ${tag} on ${RELEASE_REPO}, and ` +
@@ -531,7 +578,8 @@ async function fetchDeclaredRelease(
         `${token === null ? 'no token was found' : 'the token this machine has was used'}.` +
         (token === null ? `\n${tokenDoors()}` : ''),
     );
-  const assets = ((await response.json()) as { assets?: ReleaseAsset[] }).assets ?? [];
+  const metadata = await downloadOperation('release metadata response', releaseUrl, token, () => response.json());
+  const assets = (metadata as { assets?: ReleaseAsset[] }).assets ?? [];
   const record = assets.find((asset) => asset.name === RELEASE_RECORD);
   const tarball = assets.find((asset) => asset.name.endsWith('.tar.gz'));
   if (record === undefined || tarball === undefined)
@@ -549,7 +597,8 @@ async function fetchDeclaredRelease(
     // can run on this machine at all. Downloading 216 MB and refusing afterwards
     // would be a refusal that cost a person ten minutes.
     const recordText = await downloadAssetText(record, token);
-    const built = JSON.parse(recordText) as Record<string, unknown>;
+    const built = await downloadOperation('BUILD.json parse', assetUrl(record), token,
+      async () => JSON.parse(recordText) as Record<string, unknown>);
     if (built['platform'] !== machine)
       throw new Error(
         `Release ${tag} was built for ${String(built['platform'])} and this machine is ${machine}. A ` +
@@ -608,15 +657,14 @@ async function fetchDeclaredRelease(
 
 /** One asset's bytes as text — for `BUILD.json`, which is a kilobyte. */
 async function downloadAssetText(asset: ReleaseAsset, token: string | null): Promise<string> {
-  const response = await fetch(
-    `https://api.github.com/repos/${RELEASE_REPO}/releases/assets/${asset.id}`,
-    { headers: { ...apiHeaders(token), Accept: 'application/octet-stream' } },
-  );
+  const url = assetUrl(asset);
+  const response = await downloadOperation('BUILD.json request', url, token,
+    () => fetch(url, { headers: { ...apiHeaders(token), Accept: 'application/octet-stream' } }));
   if (!response.ok)
     throw new Error(
       `${asset.name} of ${RELEASE_REPO} answered ${response.status} ${response.statusText}.`,
     );
-  return await response.text();
+  return await downloadOperation('BUILD.json response', url, token, () => response.text());
 }
 
 /**
@@ -629,17 +677,16 @@ async function downloadAsset(
   destination: string,
   onProgress: (received: number) => void,
 ): Promise<string> {
-  const response = await fetch(
-    `https://api.github.com/repos/${RELEASE_REPO}/releases/assets/${asset.id}`,
-    { headers: { ...apiHeaders(token), Accept: 'application/octet-stream' } },
-  );
+  const url = assetUrl(asset);
+  const response = await downloadOperation('archive request', url, token,
+    () => fetch(url, { headers: { ...apiHeaders(token), Accept: 'application/octet-stream' } }));
   if (!response.ok || response.body === null)
     throw new Error(
       `${asset.name} of ${RELEASE_REPO} answered ${response.status} ${response.statusText}.`,
     );
   const hash = createHash('sha256');
   let received = 0;
-  await pipeline(
+  await downloadOperation('archive transfer', url, token, () => pipeline(
     Readable.fromWeb(response.body as never),
     async function* (source: AsyncIterable<Buffer>) {
       for await (const chunk of source) {
@@ -650,6 +697,6 @@ async function downloadAsset(
       }
     },
     createWriteStream(destination),
-  );
+  ));
   return hash.digest('hex');
 }
