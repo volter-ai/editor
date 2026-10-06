@@ -497,7 +497,7 @@ async function downloadOperation<T>(
     const seen = new Set<unknown>();
     const redact = (text: string): string => {
       const withoutToken = token === null ? text : text.replaceAll(token, '[redacted]');
-      return withoutToken.replace(/https?:\/\/[^\s"<>]+/g, (raw) => {
+      return withoutToken.replace(/https?:\/\/[^\s"<>]+/gi, (raw) => {
         try {
           const parsed = new URL(raw);
           parsed.username = '';

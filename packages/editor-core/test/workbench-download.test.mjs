@@ -89,6 +89,8 @@ test('diagnostics redact tokens and signed URLs while preserving aggregate cause
   const cause = new TypeError(`fetch failed ${token}`, { cause: new AggregateError([
     Object.assign(new Error(`https://user:password@downloads.example/asset?secret=hidden#fragment ${token}`), { code: 'ECONNREFUSED' }),
     Object.assign(new Error('second connection failed'), { code: 'ETIMEDOUT' }),
+    new Error('HTTPS://user:password@downloads.example/asset?secret=hidden#fragment'),
+    new Error('hTtPs://user:password@downloads.example/asset?secret=hidden#fragment'),
   ], 'connections failed') });
   const { message } = await refusal({ failRequest: 1, cause });
   for (const secret of [token, 'password', 'hidden', 'fragment', 'user:']) assert.equal(message.includes(secret), false);
