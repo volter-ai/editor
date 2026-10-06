@@ -575,7 +575,13 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     onChange: (snapshot) => {
       broadcast('harness-chat', snapshot);
       syncHarnessParticipant(snapshot);
+      // An `@agent` turn runs through the controller, so its snapshot is the
+      // signal; the native Chat's turns arrive through `onRuntimeActivity`.
+      if (snapshot.turn.state === 'running') watch.noteChatActivity();
     },
+    // The visible-progress tripwire's clock arms on the Chat runtime's own
+    // activity and stops itself when no turn is running (`project-watch.ts`).
+    onRuntimeActivity: () => watch.noteChatActivity(),
     ...(initialHarnessCaller ? { callerSessions: [initialHarnessCaller] } : {}),
   });
   const projectWork = new ProjectWorkCoordinator({
@@ -817,6 +823,8 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     bindCollaboration,
     recentAgentAuthor: () => recentAgentAuthor,
     readProjectManifest,
+    chatTurnRunning: () => harnessChat.chatTurnRunning(),
+    steerChatTurn: (text) => harnessChat.steerRunningTurn(text),
   });
   const startWatcher = watch.start;
   // ---- Editor command relay + state ----
@@ -1233,6 +1241,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     projectWork,
     journalEvent,
     announceBuildDisciplineTripwires: watch.announceBuildDisciplineTripwires,
+    noteEditorView: watch.noteEditorView,
     get activeLogFile() {
       return activeLogFile;
     },

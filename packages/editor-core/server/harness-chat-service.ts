@@ -251,6 +251,11 @@ export interface HarnessChatServiceOptions {
   discoveryPollMs?: number;
   /** Sessions that invoked volter for this project from outside its workspace. */
   callerSessions?: readonly HarnessChatCallerSession[];
+  /** Any event from the Chat's own runtime. The native Chat's turns do not pass
+   *  through the headless controller, so `onChange` never sees them run; this is
+   *  the push signal that one is, for a listener (the visible-progress tripwire)
+   *  that must stay idle until a turn starts. Called on every event: cheap. */
+  onRuntimeActivity?: () => void;
   /** Trusted account route resolved only when Supercode launches a process. */
   resolveCodingInference?: (workspace: string) => Promise<ResolvedCodingInference | null>;
   /** Test seam. Production loads the real zero-dependency Supercode SDK. */
@@ -937,6 +942,45 @@ export class HarnessChatService {
   }
 
 
+  /**
+   * Is an AI turn running in the Chat right now?
+   *
+   * Two places can know, because there are two ways a turn starts: the native
+   * Chat view drives its runtime directly (only the runtime's own `turn_state`
+   * sees it — the same read `chatControlState` makes), and an `@agent` hand-off
+   * runs through the headless controller (its snapshot sees it). Never throws:
+   * a runtime that cannot be asked is not running anything this editor can see.
+   */
+  async chatTurnRunning(): Promise<boolean> {
+    if (this.lastSnapshot.turn.state === 'running') return true;
+    try {
+      return (await this.frontendHandoffValue?.isBusy()) === true;
+    } catch {
+      return false;
+    }
+  }
+
+  /**
+   * Put `text` into the Chat's RUNNING turn — the one door by which something
+   * the editor notices reaches the in-editor agent's context. An in-editor agent
+   * tails no journal and watches no terminal; a steered line lands in its
+   * conversation, between its own tool calls, and the person sees it in the Chat.
+   *
+   * `false` when no turn is running (an idle agent is not working, and a steer
+   * would start nothing). Throws when the harness refuses the steer, so the
+   * caller can record why.
+   */
+  async steerRunningTurn(text: string): Promise<boolean> {
+    if (!(await this.chatTurnRunning())) return false;
+    const runtime = this.managedRuntime;
+    if (runtime && !runtime.closed) {
+      await runtime.steer(text);
+      return true;
+    }
+    await this.actIntent({ action: 'steer', text });
+    return true;
+  }
+
   /** Dispatch the package-owned messenger intent without translating it into
    * a second Volter action vocabulary. */
   async actIntent(intent: SupercodeUiIntent): Promise<HarnessChatSnapshot> {
@@ -978,6 +1022,7 @@ export class HarnessChatService {
     this.observedModel = null;
     runtime.on?.('event', event => {
       if (this.managedRuntime !== runtime) return;
+      this.options.onRuntimeActivity?.();
       const payload = event.raw?.payload;
       if (!payload || typeof payload !== 'object') return;
       const record = payload as { model?: unknown; message?: { model?: unknown }; parent_tool_use_id?: unknown };
