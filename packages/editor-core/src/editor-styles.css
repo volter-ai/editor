@@ -29,4 +29,5 @@
 @import "./components/asset-workflow.css";
 @import "./components/compact-inspector.css";
 @import "./components/workspace-surfaces.css";
+@import "./components/panel-states.css";
 @import "./theme.css";

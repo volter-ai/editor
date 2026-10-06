@@ -26,8 +26,14 @@ if(process.argv[2]==='--product'){
   const collect=()=>({
     name:'bundled-license-inputs',
     generateBundle(_options,bundle){
-      for(const chunk of Object.values(bundle))if(chunk.type==='chunk')
-        for(const [id,info] of Object.entries(chunk.modules))if(info.renderedLength>0)ids.add(id);
+      for(const chunk of Object.values(bundle)){
+        if(chunk.type==='chunk'){
+          for(const [id,info] of Object.entries(chunk.modules))if(info.renderedLength>0)ids.add(id);
+        }
+        // CSS can ship dependency artwork without importing its JS. Preserve
+        // its actual emitted source files in the same license-input inventory.
+        else for(const file of chunk.originalFileNames??[])ids.add(resolve(file));
+      }
     },
   });
   // Workers are separate Rollup graphs but ship in the same product. Collect
