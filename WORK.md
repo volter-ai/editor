@@ -1636,3 +1636,14 @@ controls review passed driving, pause/resume, boost, coins, all-six finish and
 restart, then failed the observer's immediate Stop/Play read. Retain that failure
 and investigate settled teardown before claiming a workflow pass. No general
 shadow-quality fix or Astra trial is included in this integration.
+
+Integration verification against origin/main caf05824: all 103 existing and
+first-run tests passed through the owned World (2 session, 83 Node, 12 native
+history, 6 first-run/chat). Typechecks passed for SDK, Three.js, Blender editor,
+core, Model Editor, Blender engine, game editor and live editor. The Model Play
+package does not declare a standalone typecheck script; its source was included
+in the successful Model Editor browser build. Core plugin/server builds and
+Model Editor browser/node builds passed. Ownership/publication conflicts retain
+main's newer queued lifecycle and generation guards; the branch's incompatible
+context wait yields and richer diagnostics remain. Main's release versions and
+frontend 0.1.40 are preserved. No packages are being released in this merge.
