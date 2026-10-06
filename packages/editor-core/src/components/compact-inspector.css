@@ -225,42 +225,13 @@
    while the cards below it landed at 1458.5. The same doubling the bands unit
    found in `InspectorToolSection.tsx`, one level up.
 
-   THE VERTICAL RHYTHM, measured on `properties-object.png` at 2x (device px,
-   halve for CSS): area header bottom 47 → breadcrumb row 68..108 (20 CSS,
-   centred on its 14 px glyph at 74..101) → datablock row 140..179 → first card
-   200. So 10.5 CSS above the breadcrumb, 16 between the two rows, 10.5 below
-   the pair. `modeling-edit-none.png`'s Modifier tab confirms the middle gap
-   from the other side: no datablock row there, and `Add Modifier` starts at
-   the same y=140. Ours ran 8 / 2 / 0. */
+   The Properties identity uses one name row; notes and multi-selection
+   remain separate beneath it. */
 .volter-inspector-identity[data-volter-identity-layout="properties"] {
   display: flex;
   flex-direction: column;
   gap: var(--volter-space-8);
   padding: var(--volter-space-1) 0 var(--volter-space-5);
-}
-/* Glyph to name, INK TO INK: `properties-modifier.png` runs the glyph out at
-   x=107 and starts `Cube` at x=127 — 20 device px, 10 CSS. Our glyph box
-   carries ~1.5 CSS of its own bearing each side, so the gap token that lands
-   on 10 is 8 (measured after: 9.5). It was 4. */
-.volter-inspector-breadcrumb {
-  display: flex;
-  align-items: center;
-  gap: var(--volter-space-4);
-  min-height: var(--volter-control-default-height);
-}
-/* THE CHAIN IS A NAME IN PLAIN INK. Blender's breadcrumb inks its glyph, its
-   datablock names and its `>` at 229 on every one of the three tab frames —
-   the muted grey we used belongs to the pin (155) and to nothing else on the
-   row. Tail ellipsis, like every other name in the chrome; the head-ellipsis
-   this rule carried was for the file path, which is now the row's tooltip. */
-.volter-inspector-breadcrumb-chain {
-  flex: 1;
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
-  font-size: var(--volter-font-base);
-  color: var(--volter-content-primary);
 }
 /* The datablock row is ONE composite: the wells share a border, so the pair
    reads as a single 20 px control the way Blender's does rather than as two
