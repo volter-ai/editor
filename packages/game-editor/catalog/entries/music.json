@@ -15,8 +15,8 @@
   "id": "music",
   "packageJson": {
     "dependencies": {
-      "@volter/dawproject": "0.5.180",
-      "@volter/editor-dawproject": "0.5.180"
+      "@volter/dawproject": "0.5.181",
+      "@volter/editor-dawproject": "0.5.181"
     },
     "volterTools": [
       "./src/tools/music-render.tool.ts"
