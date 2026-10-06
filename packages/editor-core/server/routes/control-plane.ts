@@ -1066,7 +1066,14 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       const now = Date.now();
       pruneLateNativeCommands(now);
       const late = lateNativeCommands.get(body._requestId);
-      if (late === undefined) return CONTROL_OK;
+      if (late === undefined) {
+        // Preserve the existing late receipt bookkeeping for other relay
+        // families; this bounded native journal does not change their contract.
+        for (const last of lastReceipt.values()) {
+          if (last.requestId === body._requestId && last.type !== 'run-command') last.answered = true;
+        }
+        return CONTROL_OK;
+      }
       const reported = parseEditorControlLifecycle(payload['_controlLifecycle']);
       // A reconnect of the same page is legitimate, but another client, tab,
       // server or page-load cannot finish this operation. The current envelope
