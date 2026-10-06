@@ -50,6 +50,7 @@ import {
   Suspense,
   useCallback,
   useEffect,
+  useLayoutEffect,
   useMemo,
   useRef,
   useState,
@@ -86,6 +87,14 @@ import {
 import type { ToolObject3DAuthoringProps } from '@volter/editor-threejs/object3d-contributions';
 import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
 import { surfaceAcceptsKey } from '@volter/editor-sdk/kit/surface-keyboard';
+import { BlenderModelOpening } from './blender-model-opening';
+import {
+  clearModelDocumentPreview,
+  modelDocumentPreview,
+  rememberModelDocumentPreview,
+  subscribeModelDocumentPreview,
+  type ModelDocumentPreview,
+} from '../src/model-document-preview';
 
 /** The second areas' stage stores whose overlays have been opened off (`BlenderViewportArea`). */
 const overlaysOpened = new WeakSet<object>();
@@ -211,8 +220,55 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
   const entryId = document?.id;
   const key = JSON.stringify([documentId, entryId, blend]);
   const [opened, setOpened] = useState<{ key: string; error: string | null } | null>(null);
+  const [attempt, setAttempt] = useState(0);
+  const project = editorHost().projectLocalState.projectRootPath();
+  const preview = useSyncExternalStore(subscribeModelDocumentPreview, () => modelDocumentPreview(project), () => null);
+  const viewportVersion = useSyncExternalStore(subscribeDocumentViewports, documentViewportsVersion, documentViewportsVersion);
+  const lastFrame = useRef<ModelDocumentPreview | null>(null);
   const callbacks = useRef({ notify, publishContext });
   callbacks.current = { notify, publishContext };
+
+  useEffect(() => editorHost().session.onEnded(clearModelDocumentPreview), []);
+  // Retain a bounded photograph while the stage is healthy. Teardown can
+  // already have changed its scene/camera, so it is too late to re-render then.
+  useEffect(() => {
+    if (active === false || !documentId || !entryId || !project || opened?.key !== key || opened.error) return;
+    const stage = object3DDocumentSession(documentId);
+    if (!stage) return;
+    let cancelled = false;
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const photograph = async () => {
+      try {
+        const frame = await stage.requestPresentedFrame();
+        if (cancelled) return;
+        if (frame && frame.width > 0 && frame.height > 0) {
+          const copy = window.document.createElement('canvas');
+          copy.width = Math.min(frame.width, 1024);
+          copy.height = Math.max(1, Math.round(copy.width * frame.height / frame.width));
+          const context = copy.getContext('2d');
+          if (context) {
+            context.drawImage(frame, 0, 0, copy.width, copy.height);
+            lastFrame.current = { project, entryId, path: blend ?? 'Model', image: copy.toDataURL('image/png') };
+          }
+        }
+      } catch {
+        // An unavailable frame leaves the last good photograph intact.
+      }
+      if (!cancelled) timer = setTimeout(() => { void photograph(); }, 1000);
+    };
+    void photograph();
+    return () => { cancelled = true; clearTimeout(timer); };
+  }, [active, blend, documentId, entryId, project, key, opened, viewportVersion]);
+
+  // Publish only an image, never the old file's authoring stage or context.
+  useLayoutEffect(() => {
+    if (active === false || !documentId || !entryId || !project || opened?.key !== key || opened.error) return;
+    return () => {
+      if (!editorHost().session.open()) return;
+      const frame = lastFrame.current;
+      if (frame?.project === project && frame.entryId === entryId) rememberModelDocumentPreview(frame);
+    };
+  }, [active, blend, documentId, entryId, project, key, opened]);
 
   useEffect(() => {
     if (active === false || !documentId) return;
@@ -272,12 +328,24 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
       unpublish?.();
       unbind();
     };
-  }, [active, blend, documentId, entryId, key]);
+  }, [active, blend, documentId, entryId, key, attempt]);
 
   if (active === false || !documentId) return null;
-  if (opened?.key !== key) return <div role="status">Opening model…</div>;
-  if (opened.error) return <div role="alert">{opened.error}</div>;
-  return <BlenderModelViewport {...props} />;
+  if (opened?.key !== key || opened.error) return <BlenderModelOpening
+    path={blend ?? 'Model'} error={opened?.key === key ? opened.error : null} preview={preview}
+    retry={() => { setOpened(null); setAttempt(value => value + 1); }}
+    returnToPreview={() => {
+      if (!preview) return;
+      void editorHost().workspace.open({ kind: 'document', id: preview.entryId }).then(opened => {
+        if (!opened) throw new Error('The previous model is no longer available in this project.');
+      }).catch(error => callbacks.current.notify?.({ tone: 'error', title: 'Could not return to the previous model', detail: String(error) }));
+    }}
+  />;
+  return <>
+    <BlenderModelViewport {...props} />
+    {!documentViewport(documentId) && <BlenderModelOpening path={blend ?? 'Model'} error={null}
+      preparingView preview={preview} retry={() => {}} returnToPreview={() => {}} />}
+  </>;
 }
 
 /**
