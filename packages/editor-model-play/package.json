@@ -1,6 +1,6 @@
 {
   "name": "@volter/editor-model-play",
-  "version": "0.5.179",
+  "version": "0.5.180",
   "author": "Volter AI, Inc.",
   "license": "AGPL-3.0-only",
   "type": "module",
@@ -27,7 +27,7 @@
     ]
   },
   "dependencies": {
-    "@volter/editor-sdk": "0.5.179"
+    "@volter/editor-sdk": "0.5.180"
   },
   "peerDependencies": {
     "react": "^19.0.0",
