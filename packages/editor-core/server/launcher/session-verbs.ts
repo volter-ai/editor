@@ -360,9 +360,9 @@ async function sessionLook(client: EditorClient, projectRoot: string): Promise<v
 // ---------------------------------------------------------------------------
 
 /** `parseArgs` option declarations for {@link capture}'s flags. */
-export const CAPTURE_OPTIONS = { region: { type: 'string' }, out: { type: 'string' } } as const;
+export const CAPTURE_OPTIONS = { region: { type: 'string' }, out: { type: 'string' }, force: { type: 'boolean' } } as const;
 
-export const CAPTURE_USAGE = 'capture [--region document|play|page] [--out <file.png>]';
+export const CAPTURE_USAGE = 'capture [--region document|play|page] [--out <file.png> [--force]]';
 
 const CAPTURE_REGIONS = ['document', 'play', 'page'] as const;
 
@@ -380,18 +380,28 @@ const CAPTURE_REGIONS = ['document', 'play', 'page'] as const;
  * same `writeFileSync(Buffer.from(base64))` {@link sessionLook} does, behind
  * a name. The default lands beside the screenshots, in the project's
  * gitignored `.volter/`.
+ *
+ * `--out` NEVER REPLACES A FILE unless `--force` says to: a named path is the
+ * caller's, and a capture silently landing on a reference image or an earlier
+ * capture destroys the very thing it was going to be compared with. The check
+ * runs before the capture, so a refusal costs nothing; the write itself is
+ * exclusive too, so a file appearing in between is refused rather than lost.
  */
-export async function capture(options: { region?: string | undefined; out?: string | undefined }): Promise<void> {
+export async function capture(options: { region?: string | undefined; out?: string | undefined; force?: boolean | undefined }): Promise<void> {
   const region = options.region ?? 'document';
   if (!(CAPTURE_REGIONS as readonly string[]).includes(region))
     throw new Error(`--region must be one of ${CAPTURE_REGIONS.join(', ')}; got ${region}.`);
   if (options.out !== undefined && !/\.png$/i.test(options.out)) throw new Error('--out names a .png file.');
+  if (options.force === true && options.out === undefined) throw new Error('--force belongs to --out: the default path is always new.');
+  const named = options.out === undefined ? null : resolve(process.cwd(), options.out);
+  if (named !== null && options.force !== true && existsSync(named))
+    throw new Error(`${named} already exists; pass --force to replace it, or choose another --out.`);
   const session = await sessionClient();
   const shot = await session.client.captureEditorChrome({ region: region as (typeof CAPTURE_REGIONS)[number] });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const outPath = options.out !== undefined ? resolve(process.cwd(), options.out) : join(session.projectRoot, '.volter', 'captures', `${region}-${stamp}.png`);
+  const outPath = named ?? join(session.projectRoot, '.volter', 'captures', `${region}-${stamp}.png`);
   mkdirSync(dirname(outPath), { recursive: true });
-  writeFileSync(outPath, Buffer.from(shot.base64, 'base64'));
+  writeFileSync(outPath, Buffer.from(shot.base64, 'base64'), { flag: options.force === true ? 'w' : 'wx' });
   console.log(outPath);
   console.error(`${region}: ${shot.size.width}x${shot.size.height} at ${shot.scale}x (${shot.layers.canvases} canvas, ${shot.layers.domOverlays} DOM layer${shot.layers.domOverlays === 1 ? '' : 's'})`);
   if (shot.flatness?.degenerate === true && shot.flatness.warning !== undefined) console.error(`warning — ${shot.flatness.warning}`);

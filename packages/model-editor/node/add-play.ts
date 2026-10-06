@@ -18,9 +18,9 @@
  * (an adapter whose shape it does not recognise) is printed as the line to add,
  * never guessed at.
  */
-import { constants, existsSync, lstatSync } from 'node:fs';
-import { copyFile, mkdir, readFile, readdir, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { constants, existsSync, lstatSync, statSync } from 'node:fs';
+import { copyFile, mkdir, readFile, readdir, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve } from 'node:path';
 import { GameManifestSchema } from '@volter/editor-project/manifest/schema';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { PLAYABLE, PROJECT_TSCONFIG, productRoot, productVersions } from './create';
@@ -44,6 +44,48 @@ async function playScripts(project: string): Promise<string[]> {
     .filter(path => path.endsWith('.play.ts') && !path.includes('/node_modules/'));
 }
 
+/**
+ * Whether anything at all sits at `path` — a dangling symlink included. `existsSync`
+ * follows links and answers false for a dangling one, and the exclusive copy onto it
+ * then failed partway through the example, after `package.json` was already rewritten.
+ */
+function occupied(path: string): boolean {
+  try {
+    lstatSync(path);
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+/** Why `path` cannot be written as a new file, or null when it can: the path itself is
+ *  taken, or one of its folders under `project` is something other than a folder. */
+function blocked(project: string, path: string): string | null {
+  if (occupied(path)) return 'exists';
+  for (let dir = dirname(path); dir.length > project.length; dir = dirname(dir)) {
+    if (!occupied(dir)) continue;
+    try {
+      if (!statSync(dir).isDirectory()) return `${relative(project, dir)} is not a folder`;
+    } catch {
+      return `${relative(project, dir)} is a dangling link`;
+    }
+  }
+  return null;
+}
+
+/**
+ * A JSON file's own layout — its indent and line ending, and whether it ends in
+ * one — so a merge rewrites the rows it adds and nothing else. `JSON.stringify(…, 2)`
+ * re-indented a tab- or four-space-indented `package.json` whole, turning a
+ * two-line change into a diff of every line.
+ */
+function jsonLayout(raw: string): (value: unknown) => string {
+  const indent = /^[{[]\r?\n([ \t]+)\S/.exec(raw)?.[1] ?? '  ';
+  const eol = raw.includes('\r\n') ? '\r\n' : '\n';
+  const trailing = /\r?\n$/.test(raw) ? eol : '';
+  return value => JSON.stringify(value, null, indent).replace(/\n/g, eol) + trailing;
+}
+
 export async function addPlay(folder: string): Promise<void> {
   const project = resolve(folder);
   const manifestPath = join(project, MANIFEST_FILENAME);
@@ -54,10 +96,15 @@ export async function addPlay(folder: string): Promise<void> {
   const added: string[] = [];
   const kept: string[] = [];
 
+  // PLAN EVERYTHING, THEN WRITE. Every check below runs before the first byte is
+  // written, so a refusal leaves the project exactly as it was: the example is
+  // a whole set or nothing, and so is the command's edit as a whole.
+
   // 1. DEPENDENCIES — the playable template's, merged. A name the project
   // already declares in any section keeps the author's range: a project that
   // pinned React differently chose that, and a silent bump could break it.
-  const pkg = JSON.parse(await readFile(packagePath, 'utf8')) as PackageJson;
+  const packageRaw = await readFile(packagePath, 'utf8');
+  const pkg = JSON.parse(packageRaw) as PackageJson;
   let dependenciesChanged = false;
   for (const [section, wanted] of [['dependencies', PLAYABLE.dependencies], ['devDependencies', PLAYABLE.devDependencies(kit)]] as const) {
     for (const [name, version] of Object.entries(wanted)) {
@@ -71,38 +118,35 @@ export async function addPlay(folder: string): Promise<void> {
       added.push(`package.json ${section}: ${name}@${version}`);
     }
   }
-  if (dependenciesChanged) await writeFile(packagePath, JSON.stringify(pkg, null, 2) + '\n');
 
   // 2. THE EXAMPLE PLAY SCRIPT, STATE AND UI — only into a project with no Play
-  // script yet, and only whole (see the header).
+  // script yet, and only whole (see the header). Every target is checked with
+  // `lstat` (see `occupied`), its folders too, before any of it is copied.
   let exampleAdded = false;
   const scripts = await playScripts(project);
   if (scripts.length > 0) {
     kept.push(`example Play script not added: the project already plays ${scripts.join(', ')}`);
   } else {
-    const taken = PLAYABLE.example.filter(([, to]) => existsSync(join(project, to)));
-    if (taken.length > 0) {
-      for (const [, to] of taken)
-        kept.push(`${to} exists, so the example (track.blend + track.play.ts + race-state.ts + src/ui) was not added; it is one set and would not run in part`);
-    } else {
-      for (const [from, to] of PLAYABLE.example) {
-        await mkdir(dirname(join(project, to)), { recursive: true });
-        await copyFile(join(productRoot, 'starter', from), join(project, to), constants.COPYFILE_EXCL);
-        added.push(to);
-      }
-      exampleAdded = true;
-    }
+    const refusals = PLAYABLE.example.flatMap(([, to]) => {
+      const reason = blocked(project, join(project, to));
+      return reason === null ? [] : [`${to}: ${reason}`];
+    });
+    if (refusals.length > 0) {
+      for (const refusal of refusals)
+        kept.push(`${refusal}, so the example (track.blend + track.play.ts + race-state.ts + src/ui) was not added; it is one set and would not run in part`);
+    } else exampleAdded = true;
   }
 
   // 3. THE MANIFEST — the DOM root and the Play resolution. The root is
-  // declared only when its entry exists: a root naming a missing file is an
-  // error on every load, not a step towards one.
-  const manifest = JSON.parse(await readFile(manifestPath, 'utf8')) as { roots?: { id?: unknown }[]; resolution?: unknown; [key: string]: unknown };
+  // declared only when its entry exists (or the example above brings it): a
+  // root naming a missing file is an error on every load, not a step towards one.
+  const manifestRaw = await readFile(manifestPath, 'utf8');
+  const manifest = JSON.parse(manifestRaw) as { roots?: { id?: unknown }[]; resolution?: unknown; [key: string]: unknown };
   let manifestChanged = false;
   const roots = manifest.roots ?? [];
   if (roots.some(root => root.id === PLAYABLE.uiRoot.id)) {
     kept.push(`${MANIFEST_FILENAME} already has a "${PLAYABLE.uiRoot.id}" root`);
-  } else if (existsSync(join(project, PLAYABLE.uiRoot.entry))) {
+  } else if (exampleAdded || existsSync(join(project, PLAYABLE.uiRoot.entry))) {
     manifest.roots = [...roots, { ...PLAYABLE.uiRoot }];
     manifestChanged = true;
     added.push(`${MANIFEST_FILENAME} root: ${JSON.stringify(PLAYABLE.uiRoot)}`);
@@ -114,44 +158,64 @@ export async function addPlay(folder: string): Promise<void> {
     manifestChanged = true;
     added.push(`${MANIFEST_FILENAME} resolution: ${PLAYABLE.resolution.width}x${PLAYABLE.resolution.height}`);
   }
-  if (manifestChanged) {
-    // Validate what will be written, then write the author's own object, not the parse:
-    // parsing fills defaults, and the file should gain only the rows above.
-    GameManifestSchema.parse(manifest);
-    await writeFile(manifestPath, JSON.stringify(manifest, null, 2) + '\n');
-  }
+  // Validate what will be written, then write the author's own object, not the parse:
+  // parsing fills defaults, and the file should gain only the rows above.
+  if (manifestChanged) GameManifestSchema.parse(manifest);
 
   // 4. THE ADAPTER — TypeScript source, so it is edited only where its shape is
   // the one `writeProject` wrote. Anything else gets the line to add, by hand.
   const adapterPath = join(project, 'volter.adapter.ts');
+  let adapter: { original: string; next: string } | null = null;
   if (!existsSync(adapterPath)) {
     kept.push(`volter.adapter.ts not found; a playable adapter declares ${PLAYABLE.regionIncludes.trim()}`);
   } else {
-    let adapter = await readFile(adapterPath, 'utf8');
-    const original = adapter;
-    if (adapter.includes('regionIncludes')) {
+    const original = await readFile(adapterPath, 'utf8');
+    let next = original;
+    if (next.includes('regionIncludes')) {
       kept.push(`volter.adapter.ts already declares regionIncludes; it needs ui: { include: ['src/ui/**/*.tsx'] } for UI stories`);
-    } else if (/defineAdapter\(\{\r?\n/.test(adapter)) {
-      adapter = adapter.replace(/defineAdapter\(\{\r?\n/, match => match + PLAYABLE.regionIncludes);
+    } else if (/defineAdapter\(\{\r?\n/.test(next)) {
+      next = next.replace(/defineAdapter\(\{\r?\n/, match => match + PLAYABLE.regionIncludes);
       added.push(`volter.adapter.ts: ${PLAYABLE.regionIncludes.trim()}`);
     } else {
       kept.push(`volter.adapter.ts has a shape this command does not edit; add ${PLAYABLE.regionIncludes.trim()} to its defineAdapter({ … })`);
     }
     // The starter cube was only ever a placeholder default. Move the default to the
-    // example track this command just added — never off a model the author chose.
+    // example track this command adds — never off a model the author chose.
     const starterDefault = "default: 'model:src/models/cube.blend'";
-    if (exampleAdded && adapter.includes(starterDefault)) {
-      adapter = adapter.replace(starterDefault, `default: '${PLAYABLE.defaultDocument}'`);
+    if (exampleAdded && next.includes(starterDefault)) {
+      next = next.replace(starterDefault, `default: '${PLAYABLE.defaultDocument}'`);
       added.push(`volter.adapter.ts: default document ${PLAYABLE.defaultDocument}`);
     }
-    if (adapter !== original) await writeFile(adapterPath, adapter);
+    adapter = { original, next };
   }
 
   // 5. A project from before `writeProject` wrote tsconfig.json needs one for TSX.
-  if (!existsSync(join(project, 'tsconfig.json'))) {
-    await writeFile(join(project, 'tsconfig.json'), PROJECT_TSCONFIG, { flag: 'wx' });
-    added.push('tsconfig.json');
+  const tsconfigPath = join(project, 'tsconfig.json');
+  const writeTsconfig = !occupied(tsconfigPath);
+  if (writeTsconfig) added.push('tsconfig.json');
+
+  // WRITE. The example goes first: its exclusive copies are the writes that can still
+  // be refused (a file appearing since the check above), and if one is, the copies
+  // made so far are removed and nothing else has been touched yet.
+  if (exampleAdded) {
+    const copied: string[] = [];
+    try {
+      for (const [from, to] of PLAYABLE.example) {
+        await mkdir(dirname(join(project, to)), { recursive: true });
+        await copyFile(join(productRoot, 'starter', from), join(project, to), constants.COPYFILE_EXCL);
+        copied.push(join(project, to));
+      }
+    } catch (error) {
+      await Promise.all(copied.map(path => rm(path, { force: true })));
+      throw new Error(`add-play changed nothing: copying the example failed (${error instanceof Error ? error.message : String(error)}).`);
+    }
+    added.push(...PLAYABLE.example.map(([, to]) => to));
   }
+  if (dependenciesChanged) await writeFile(packagePath, jsonLayout(packageRaw)(pkg));
+  if (manifestChanged) await writeFile(manifestPath, jsonLayout(manifestRaw)(manifest));
+  if (adapter !== null && adapter.next !== adapter.original) await writeFile(adapterPath, adapter.next);
+  if (writeTsconfig) await writeFile(tsconfigPath, PROJECT_TSCONFIG, { flag: 'wx' });
+
 
   console.log(added.length > 0 ? `Made ${project} playable:` : `${project} already had everything add-play adds.`);
   for (const line of added) console.log(`  + ${line}`);
