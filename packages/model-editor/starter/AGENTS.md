@@ -30,7 +30,8 @@ the person should rarely wait more than a minute without seeing the work move.
 2. Open the document you will work in and frame it:
    `npx --no-install volter-model-editor camera --position x,y,z --target x,y,z`
    (Blender metres, Z up). For a game in a models-only project, run
-   `npx --no-install volter-model-editor add-play` first, then `npm install`.
+   `npx --no-install volter-model-editor add-play` first, then `npm install`,
+   and reload the editor once as `add-play` says, before your first build step.
 3. Put the `Build Notes` board beside the work with the plan and current step.
 4. Check what the person sees:
    `npx --no-install volter-model-editor capture --region document`.
@@ -362,9 +363,10 @@ If the project uses a Volter World, run app and test commands through that World
 
 Common commands, all through `npx --no-install volter-model-editor`:
 `camera --position x,y,z --target x,y,z [--fov n]` poses the open document's
-view (Blender metres, Z up; in eval use
-`editor.present({ version: 1, viewport: { camera } })`); `capture --region
-document|play [--out file.png]` saves what the person sees (default under
+view in Blender metres, Z up. In eval, `editor.present({ version: 1, viewport:
+{ camera } })` takes stage space, Y up: a Blender point (x, y, z) is
+`{ x, y: z, z: -y }`, so prefer the `camera` command, which converts for you.
+`capture --region document|play [--out file.png [--force]]` saves what the person sees (default under
 `.volter/captures/`); `add-play` makes a models project playable; `play-log`
 reads the running game's log. In a play script, recolour or fade an object with
 `play.tint(object, color)` and `play.setOpacity(object, value)`: Blender meshes

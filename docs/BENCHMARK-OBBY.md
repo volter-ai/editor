@@ -33,10 +33,10 @@ test.
 | Printed URL opens the project | yes / no |
 | Chat starts on a local agent without setup | yes / no |
 | Time to first visible change | from send to the first change in the document on screen |
-| Longest stretch with nothing visible changing | from the recording or the journal's document events |
+| Longest stretch with nothing visible changing | from the recording (the journal only marks stalls past ~60–75 s, as tripwire rows) |
 | Approval prompts | count |
 | Page reloads during the turn | count; any reload that loses the conversation is a failure |
-| Nudges steered into the turn | count, from `tripwire-nudge` journal rows |
+| Nudges steered into the turn | count `tripwire-nudge` journal rows with outcome `steered` |
 | Level saved to its own `.blend` | yes / no |
 | Play starts without errors | yes / no |
 | Autoplay completions | completed runs / runs the agent tried |
