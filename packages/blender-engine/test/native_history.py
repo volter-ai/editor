@@ -1,5 +1,6 @@
 """Address/grouping tests; native restoration itself is verified in the editor."""
 import ast
+import json
 from pathlib import Path
 from types import SimpleNamespace
 import unittest
@@ -27,7 +28,10 @@ class NativeHistoryTest(unittest.TestCase):
         session = SimpleNamespace(session="test", document_relative="cube.blend",
                                   forget=lambda: None, present=lambda: None)
         namespace = {
+            "json": json,
+            "_say": lambda message: self.calls.append(("warn", message)),
             "bpy": SimpleNamespace(
+                data=SimpleNamespace(objects=[]),
                 context=SimpleNamespace(preferences=SimpleNamespace(edit=self.preferences),
                                         view_layer=SimpleNamespace(update=lambda: None)),
                 ops=SimpleNamespace(ed=SimpleNamespace(undo=self.undo, redo=self.redo,
@@ -38,7 +42,10 @@ class NativeHistoryTest(unittest.TestCase):
         tree = ast.parse((Path(__file__).parent.parent / "browser/session.py").read_text())
         nodes = [node for node in tree.body
                  if isinstance(node, (ast.ClassDef, ast.FunctionDef))
-                 and node.name in ("NativeHistory", "dispatch")]
+                 and node.name in ("NativeHistory", "dispatch", "_dispatch_request")]
+        nodes += [node for node in tree.body if isinstance(node, ast.Assign)
+                  and any(isinstance(target, ast.Name) and target.id == "_WATCHED_OPS"
+                          for target in node.targets)]
         exec(compile(ast.Module(body=nodes, type_ignores=[]), "session.py", "exec"), namespace)
         self.history = namespace["HISTORY"] = namespace["NativeHistory"]()
         self.dispatch = namespace["dispatch"]

@@ -5,11 +5,13 @@ import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 
 const bundle = await build({
-  entryPoints: [fileURLToPath(new URL('../src/command-registry.ts', import.meta.url))],
+  stdin: { contents: `export { resolveContributedCommand } from './resolve-contributed-command';
+    export { registerContributedCommands } from './command-registry';`,
+    resolveDir: fileURLToPath(new URL('../../editor-sdk/src/kit/', import.meta.url)), loader: 'ts' },
   bundle: true, platform: 'node', format: 'cjs', write: false,
   plugins: [{name: 'discovery-boundaries', setup(build) {
-    build.onResolve({filter: /^\.\/(initial-project|tool-loader)$/}, args => ({path: args.path, namespace: 'stub'}));
-    build.onLoad({filter: /.*/, namespace: 'stub'}, args => ({contents: args.path === './initial-project'
+    build.onResolve({filter: /^@volter\/editor-sdk\/kit\/(initial-project|tool-loader)$/}, args => ({path: args.path, namespace: 'stub'}));
+    build.onLoad({filter: /.*/, namespace: 'stub'}, args => ({contents: args.path.endsWith('/initial-project')
       ? 'export const projectBootstrapSettled = () => probe.bootstrap;'
       : 'export const refreshProjectToolContributions = () => { probe.loads++; return probe.load(); };'}));
   }}],

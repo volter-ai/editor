@@ -243,10 +243,10 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
       try {
         const presented = view.snapshot();
         const viewport = documentViewport(documentId);
-        if (!viewport || !modelDocumentOwnsPresentation(documentId, entryId, blend, presented)) return;
+        if (!viewport || stage.root !== view.root || !modelDocumentOwnsPresentation(documentId, entryId, blend, presented)) return;
         const frame = await stage.requestPresentedFrame();
         if (cancelled || view.snapshot() !== presented ||
-          object3DDocumentSession(documentId) !== stage || documentViewport(documentId) !== viewport ||
+          object3DDocumentSession(documentId) !== stage || stage.root !== view.root || documentViewport(documentId) !== viewport ||
           !modelDocumentOwnsPresentation(documentId, entryId, blend, presented)) return;
         if (frame && frame.width > 0 && frame.height > 0) {
           const copy = window.document.createElement('canvas');
@@ -463,9 +463,12 @@ function BlenderModelViewport(props: ToolContributionProps) {
     if (!modelViewport) return;
     // registerObject3DDocumentSession creates this document's own viewport object; capture may follow its visible play area.
     const capture = modelViewport.capture;
-    modelViewport.capture = (size) => documentViewport(`${documentId}#play`)?.capture?.(size) ?? null;
+    const playCapture = (size: Parameters<NonNullable<typeof capture>>[0]) => documentViewport(`${documentId}#play`)?.capture?.(size) ?? null;
+    modelViewport.capture = playCapture;
     return () => {
-      modelViewport.capture = capture;
+      if (modelViewport.capture !== playCapture) return;
+      if (capture) modelViewport.capture = capture;
+      else delete modelViewport.capture;
     };
   }, [game, documentId]);
   if (!documentId) return null;
@@ -480,7 +483,7 @@ function BlenderModelViewport(props: ToolContributionProps) {
       </div>
       {game && (
         <div key="play" style={{ position: 'absolute', inset: 12 }} data-testid="blender-play-area">
-          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play onPlayReady={() => setPlayedReady(true)} onPlayReturn={() => setPlayedReady(false)} />
+          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} playing onPlayReady={() => setPlayedReady(true)} onPlayReturn={() => setPlayedReady(false)} />
         </div>
       )}
       {second && (
@@ -567,10 +570,10 @@ function BlenderViewportArea({
   surfaces,
   view,
   main,
-  play = false,
+  playing = false,
   onPlayReady,
   onPlayReturn,
-}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly play?: boolean; readonly onPlayReady?: () => void; readonly onPlayReturn?: () => void }) {
+}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly playing?: boolean; readonly onPlayReady?: () => void; readonly onPlayReturn?: () => void }) {
   const reads = readsOf(view);
   const build = useCallback(
     () => ({
@@ -580,7 +583,7 @@ function BlenderViewportArea({
       // and with the skin's poses when the Timeline scrubs. A PLAYING copy announces nothing:
       // its script moves it every frame, and a source that announces nothing is drawn every
       // frame (`ToolObject3DPreviewSource.onChange`).
-      ...(play
+      ...(playing
         ? {}
         : {
             onChange(listener: () => void) {
@@ -594,7 +597,7 @@ function BlenderViewportArea({
           }),
       dispose() {},
     }),
-    [view, play],
+    [view, playing],
   );
   const blend = document?.source?.path;
   // Re-read on the engine's frames, the skin's publications and every drawn frame of this stage
@@ -635,7 +638,7 @@ function BlenderViewportArea({
    */
   useEffect(() => {
     // A playing copy's camera is its script's.
-    if (main || play || !documentId) return;
+    if (main || playing || !documentId) return;
     let entered = false;
     const enter = (): void => {
       if (entered) return;
@@ -650,7 +653,7 @@ function BlenderViewportArea({
       stopSessions();
       stopFrames();
     };
-  }, [main, play, documentId, view]);
+  }, [main, playing, documentId, view]);
   /**
    * THE PLAYING COPY IS MOVED BY THE PROJECT'S PLAY SCRIPT (the document Play extension), on this
    * stage's own frame hook, once the stage stands. The stage's orbit stands down while it runs,
@@ -665,7 +668,7 @@ function BlenderViewportArea({
   const playReturnRef = useRef(onPlayReturn);
   playReturnRef.current = onPlayReturn;
   useEffect(() => {
-    if (!play || !documentId) return;
+    if (!playing || !documentId) return;
     if (blend === undefined) {
       notifyRef.current?.({
         tone: 'error',
@@ -677,7 +680,7 @@ function BlenderViewportArea({
     const modelId = documentId.replace(/#play$/, '');
     const layers = window.document.createElement('div');
     Object.assign(layers.style, { position: 'absolute', inset: '0', pointerEvents: 'none' });
-    layers.dataset.testid = 'model-play-roots';
+    layers.dataset['testid'] = 'model-play-roots';
     surfaceRef.current?.appendChild(layers);
     setPlayReady(false);
     let stopped = false;
@@ -744,7 +747,7 @@ function BlenderViewportArea({
       layers.remove();
       if (orbit) orbit.enabled = true;
     };
-  }, [play, documentId, blend, view]);
+  }, [playing, documentId, blend, view]);
   /**
    * A SHADING PICK IS KEPT WHERE BLENDER KEEPS IT: in the file's own 3D View, the one it reopens
    * on (`blenderViewShading`), so the next save carries it and a reopen starts from it. Noted on
@@ -914,7 +917,7 @@ function BlenderViewportArea({
    */
   const cursorPress = useRef<{ id: number; x: number; y: number } | null>(null);
   const cursorChord = (event: ReactPointerEvent | ReactMouseEvent): boolean =>
-    !play && event.button === 2 && event.shiftKey && event.target instanceof HTMLCanvasElement;
+    !playing && event.button === 2 && event.shiftKey && event.target instanceof HTMLCanvasElement;
   const onPointerDownCapture = (event: ReactPointerEvent): void => {
     if (!cursorChord(event)) {
       cursorPress.current = null;
@@ -963,8 +966,8 @@ function BlenderViewportArea({
   return (
     <div
       ref={surfaceRef}
-      data-play-ready={play ? playReady : undefined}
-      style={play ? { position: 'absolute', inset: 0 } : { display: 'contents' }}
+      data-play-ready={playing ? playReady : undefined}
+      style={playing ? { position: 'absolute', inset: 0 } : { display: 'contents' }}
       onPointerDownCapture={onPointerDownCapture}
       onPointerUpCapture={onPointerUpCapture}
       onPointerCancelCapture={dropCursorPress}
@@ -993,7 +996,7 @@ function BlenderViewportArea({
       // "Inspection parity", I3).
       // A PLAYING COPY HAS NO AUTHORING: it is read-only to the editor, and what moves it is its
       // script. With none given the stage is the native read-only one.
-      {...(play ? {} : { authoring })}
+      {...(playing ? {} : { authoring })}
       cameraDirection={[0.8187, 0.4458, 0.3617]}
       // FOR A FILE THAT SAVED NO 3D VIEW: Blender's factory Modeling direction, standing back
       // three fits.
