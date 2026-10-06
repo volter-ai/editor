@@ -22,6 +22,15 @@
  * The tool blends the camera from the editing pose for 0.8 seconds after
  * update, holding keys empty until arrival. Stop freezes the copy and blends
  * back before disposing it; Escape during either blend completes that blend.
+ *
+ * THE GAME'S TIME IS THE `dt` IT IS HANDED, and the runner decides it (`model-play.ts` keeps
+ * the run's clock): paused, `update` is not called at all and the camera holds the last drawn
+ * pose; a Step is one `update` of one nominal frame; a speed scales the frame's seconds, and a
+ * scaled frame longer than a tenth of a second is run as several updates so the promise below —
+ * at most a tenth per call — holds at 4× too. The camera's own blends run on the page's time,
+ * because they are the editor's motion and not the game's. Restart is the document detaching a
+ * fresh copy for a new runner (`restartModelPlay`); this runner, no longer the current
+ * generation, stands down without ending the play.
  */
 import { editorHost } from '@volter/editor-sdk/host';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
@@ -38,7 +47,16 @@ import type * as THREE from 'three';
 import { projectPlayLayers } from '@volter/editor-sdk/kit/project-play-layers';
 import { beginProjectMountEpoch, projectEntryImportUrl } from '@volter/editor-sdk/session/project-module-url';
 import { cameraTransition } from './camera-transition';
-import { finishModelPlay, registerModelPlayStop } from './model-play';
+import {
+  advanceModelPlayClock,
+  consumeModelPlayRestart,
+  finishModelPlay,
+  MODEL_PLAY_STEP_SECONDS,
+  modelPlayClock,
+  modelPlayGeneration,
+  registerModelPlayStop,
+  takeModelPlayStep,
+} from './model-play';
 interface PlayComposition {
   readonly entries: readonly string[];
   loadScript(): Promise<{ default?: unknown }>;
@@ -61,9 +79,27 @@ export interface ModelPlayContext {
 }
 
 export interface ModelPlayGame {
-  /** Once per drawn frame, with the seconds since the last one (at most a tenth). */
+  /** Once per drawn frame, with the simulation seconds since the last call (at most a tenth).
+   *  Not called while the game is paused; called once per Step; at a speed other than 1× the
+   *  seconds are scaled, and a fast frame may call it more than once. */
   update(deltaSeconds: number): void;
   dispose?(): void;
+}
+
+/** The longest `dt` one update is handed; longer scaled frames are split (`frameUpdates`). */
+const MAX_UPDATE_SECONDS = 0.1;
+
+/**
+ * THE UPDATES THIS DRAWN FRAME RUNS, as the `dt` each is handed: none while paused, one nominal
+ * frame for a Step, and otherwise the frame's seconds times the speed, split into equal parts of
+ * at most {@link MAX_UPDATE_SECONDS}.
+ */
+function frameUpdates(documentId: string, frameSeconds: number): number[] {
+  const clock = modelPlayClock(documentId);
+  if (clock.paused) return takeModelPlayStep(documentId) ? [MODEL_PLAY_STEP_SECONDS] : [];
+  const scaled = frameSeconds * clock.speed;
+  const parts = Math.max(1, Math.ceil(scaled / MAX_UPDATE_SECONDS - 1e-9));
+  return Array.from({ length: parts }, () => scaled / parts);
 }
 
 /** The play script's project path for a model's `.blend`. */
@@ -112,7 +148,11 @@ export function runPlayScript(options: {
   const modulePath = playScriptPath(blend);
   const keys = new Set<string>();
   const heldKeys = new Set<string>();
-  const transition = cameraTransition(options.editingCamera());
+  // The run this runner belongs to. A Restart moves the document to the next generation, whose
+  // own runner takes over; this one must then stand down without ending the play.
+  const generation = modelPlayGeneration(options.documentId);
+  const current = (): boolean => modelPlayGeneration(options.documentId) === generation;
+  const transition = cameraTransition(options.editingCamera(), { instant: consumeModelPlayRestart(options.documentId) });
   options.container.style.opacity = '0';
   const context: ModelPlayContext = {
     root,
@@ -220,12 +260,25 @@ export function runPlayScript(options: {
     if (!surfaceHoldsKeyboard()) { keys.clear(); heldKeys.clear(); }
     else if (!transition.acceptingKeys()) keys.clear();
     else for (const key of heldKeys) keys.add(key);
+    const updates = frameUpdates(options.documentId, deltaSeconds);
+    if (updates.length === 0) {
+      // PAUSED: no update, so nothing states the camera; hold the pose the last frame drew.
+      // A pending replacement waits too — its first update is a tick of the game's time.
+      // A tap made while paused is dropped; a key still held is seen by the next step.
+      if (game !== null) transition.hold(camera());
+      keys.clear();
+      return;
+    }
+    let ran = 0;
+    let simulated = 0;
     let replacementUpdated = false;
     if (pending) {
       const next = pending;
       pending = null;
       try {
-        next.game.update(deltaSeconds);
+        next.game.update(updates[0]!);
+        ran = 1;
+        simulated = updates[0]!;
         end();
         game = next.game;
         startedAt = Date.now();
@@ -241,11 +294,18 @@ export function runPlayScript(options: {
     }
     if (game === null) return;
     try {
-      if (!replacementUpdated) game.update(deltaSeconds);
+      for (let index = replacementUpdated ? 1 : 0; index < updates.length; index++) {
+        game.update(updates[index]!);
+        ran += 1;
+        simulated += updates[index]!;
+      }
+      advanceModelPlayClock(options.documentId, simulated, ran);
+      ran = 0;
       transition.frame(camera(), deltaSeconds);
       options.container.style.opacity = String(transition.hudOpacity());
       if (firstFrame) { firstFrame = false; options.ready(); }
     } catch (error) {
+      advanceModelPlayClock(options.documentId, simulated, ran);
       end();
       report(`${modulePath} failed`, error instanceof Error ? error.message : String(error));
       return;
@@ -285,7 +345,8 @@ export function runPlayScript(options: {
     stopped = true;
     unregisterLive();
     stopRequest();
-    finishModelPlay(options.documentId);
+    // A runner replaced by Restart leaves the play running for its successor.
+    if (current()) finishModelPlay(options.documentId);
     stopFrames();
     stopChanges();
     window.removeEventListener('keydown', onKeyDown, true);

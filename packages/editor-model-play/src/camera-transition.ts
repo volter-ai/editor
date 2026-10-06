@@ -14,10 +14,14 @@ type Pose = ReturnType<typeof pose>;
 /** The tool blends AFTER the script has stated its complete camera pose.
  * Projection matrices also interpolate, preserving an orthographic editing
  * view exactly at the handoff to a perspective game. Neither editing camera
- * nor its orbit target is ever written. */
-export function cameraTransition(editingCamera: THREE.Camera) {
+ * nor its orbit target is ever written.
+ *
+ * `instant` enters already arrived: a Restart replaces a game that was on screen a frame ago,
+ * and flying in again from the editing pose would show the model between two games. The return
+ * on Stop still blends. */
+export function cameraTransition(editingCamera: THREE.Camera, options?: { readonly instant?: boolean }) {
   const editing = pose(editingCamera);
-  let phase: 'entering' | 'playing' | 'leaving' = 'entering';
+  let phase: 'entering' | 'playing' | 'leaving' = options?.instant ? 'playing' : 'entering';
   let elapsed = 0;
   let last = editing;
   let leavingFrom = editing;
@@ -52,6 +56,12 @@ export function cameraTransition(editingCamera: THREE.Camera) {
       ? Math.min(1, elapsed / duration)
       : Math.max(0, 1 - elapsed / (duration - 0.16)),
     approachingEdit: () => phase === 'leaving' && elapsed >= duration - 0.16,
+    /** A PAUSED frame: put the camera back where the last drawn frame had it. Nothing else
+     *  states the pose while the game's update is held, and the stage's navigation runs before
+     *  this hook each frame; the blend's own clock stands still with the game's. */
+    hold(camera: THREE.Camera): void {
+      blend(camera, last, last, 1);
+    },
     /** Escape completes an existing blend; otherwise begin the return. */
     stop(escape: boolean): boolean {
       if (escape && phase === 'entering') { phase = 'playing'; return false; }

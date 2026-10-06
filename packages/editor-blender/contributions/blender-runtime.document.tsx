@@ -72,6 +72,7 @@ import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
+import { noteModelDocument } from '../src/play-mode';
 import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
 import { notifyWorkspaceDocumentSelectionChanged } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
@@ -373,6 +374,10 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
  */
 function BlenderModelViewport(props: ToolContributionProps) {
   const { documentId } = props;
+  const blend = props.document?.source?.path;
+  // THE BOTTOM AREA SERVES THIS DOCUMENT while it is the model on screen (`../src/play-mode.ts`):
+  // the Game panel drives this id's run, and Game or Movie is chosen by this file's play script.
+  useEffect(() => (documentId ? noteModelDocument(documentId, blend) : undefined), [documentId, blend]);
   // Rendered areas and Play use the scene's display transform, just as a
   // photograph does. Solid keeps its studio transform. RNA also announces
   // colour settings that change without changing the presented geometry.
@@ -438,6 +443,14 @@ function BlenderModelViewport(props: ToolContributionProps) {
     () => null,
   );
   const [playedReady, setPlayedReady] = useState(false);
+  // RESTART IS A NEW GENERATION OF THE SAME PLAY (`DocumentPlayTransport.generation`): the copy
+  // below is detached per generation, so a restart disposes the played copy and detaches a fresh
+  // one from the model, which never moved, while playing stays true throughout.
+  const generation = useSyncExternalStore(
+    subscribeDocumentPlayExtensions,
+    () => (documentId ? documentPlayExtension('model')?.transport?.generation(documentId) ?? 0 : 0),
+    () => 0,
+  );
   useEffect(() => {
     if (!playing || !documentId) return;
     const playId = `${documentId}#play`;
@@ -455,7 +468,7 @@ function BlenderModelViewport(props: ToolContributionProps) {
       view.setPlaying(false);
       notifyWorkspaceDocumentSelectionChanged(documentId);
     };
-  }, [playing, documentId]);
+  }, [playing, documentId, generation]);
   // The document closing or going inactive ends its game; a game never outlives its stage.
   useEffect(() => {
     if (!documentId) return;
@@ -487,7 +500,8 @@ function BlenderModelViewport(props: ToolContributionProps) {
         <BlenderViewportArea {...props} view={view} main />
       </div>
       {game && (
-        <div key="play" style={{ position: 'absolute', inset: 12, containerType: 'size' }} data-testid="blender-play-area">
+        // Keyed on the generation, so a restart mounts a new stage and runner over the new copy.
+        <div key={`play-${generation}`} style={{ position: 'absolute', inset: 12, containerType: 'size' }} data-testid="blender-play-area">
           <div data-volter-play-frame style={playAspect === null ? { position: 'absolute', inset: 0 } : {
             position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
             width: `min(100cqw, calc(100cqh * ${playAspect}))`,
@@ -560,7 +574,7 @@ function SecondAreaChrome({
       {header &&
         createPortal(
           <div className="volter-dock-document-toolbar-own" data-testid={`document-header:${areaId}`} style={{ display: 'flex', alignItems: 'center' }}>
-            <BlenderObjectModeHeader documentId={documentId} notify={notify} />
+            <BlenderObjectModeHeader documentId={documentId} notify={notify} modeSwitch={false} />
             {HeaderControls && (
               <Suspense fallback={null}>
                 <HeaderControls documentId={areaId} />

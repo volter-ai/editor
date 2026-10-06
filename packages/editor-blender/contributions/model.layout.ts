@@ -49,5 +49,9 @@ export const layout: WorkspaceLayoutContribution = {
   // It is stated to four places because it is a measurement, not a preference;
   // the dock uses it once, to size the group the first time this workspace
   // stands up, and a capture of the settled grid wins afterwards.
+  //
+  // IN GAME MODE THE SAME AREA HOLDS THE GAME PANEL (`../src/play-mode.ts`):
+  // the document below draws the Timeline or the panel by the model's mode,
+  // so the area, its proportion and a person's resize all carry over.
   areas: [{ id: 'timeline', document: 'blender-timeline.document', place: 'below', ratio: 0.0719 }],
 };
