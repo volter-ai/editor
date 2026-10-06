@@ -43,6 +43,35 @@ registerAction2(class extends Action2 {
 	}
 });
 
+// Readiness may reveal automatically after an extension-host round trip. Keep
+// the observed native focus current throughout the same activation transaction.
+registerAction2(class extends Action2 {
+	constructor() { super({ id: 'volter.chat.revealReadySession', title: localize2('revealReadyHarnessChat', 'Reveal Ready Harness Conversation'), f1: false }); }
+	async run(accessor: ServicesAccessor, value: string, expectedFocus: string | null): Promise<{ resource: string }> {
+		const resource = URI.parse(value);
+		if (resource.scheme !== 'supercode') { throw new Error('Expected a Volter Harness chat session.'); }
+		if (expectedFocus !== null && typeof expectedFocus !== 'string') { throw new Error('Expected the observed native conversation focus.'); }
+		const widgets = accessor.get(IChatWidgetService);
+		const navigation = accessor.get(IHarnessChatNavigationService);
+		const focused = widgets.lastFocusedWidget;
+		const focusedResource = focused?.viewModel?.sessionResource.toString() ?? null;
+		let unchanged = true;
+		const isCurrent = () => unchanged && focusedResource === expectedFocus
+			&& widgets.lastFocusedWidget === focused
+			&& (focused?.viewModel?.sessionResource.toString() ?? null) === focusedResource
+			&& (!focused || widgets.getAllWidgets().includes(focused));
+		const listener = widgets.onDidChangeFocusedSession(() => { unchanged = isCurrent(); });
+		try {
+			return await navigation.run(resource, async permit => {
+				const widget = await widgets.openSession(resource, ChatViewPaneTarget, { revealIfOpened: true, harnessNavigationPermit: permit });
+				const selected = widget?.viewModel?.sessionResource.toString();
+				if (selected !== resource.toString()) { throw new Error('The ready conversation was not selected.'); }
+				return { resource: selected };
+			}, undefined, isCurrent);
+		} finally { listener.dispose(); }
+	}
+});
+
 // Bound conversations activate through the awaited native navigation boundary.
 // Focus bookkeeping (including newly materialized sessions) must not race it.
 class HarnessChatFocus extends Disposable {
