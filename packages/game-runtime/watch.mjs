@@ -4,7 +4,7 @@ import { context } from 'esbuild';
 const typecheck = spawn(
   process.platform === 'win32' ? 'npx.cmd' : 'npx',
   ['tsc', '-p', 'tsconfig.json', '--watch', '--preserveWatchOutput'],
-  { cwd: import.meta.dirname, stdio: 'inherit' },
+  { windowsHide: true, cwd: import.meta.dirname, stdio: 'inherit' },
 );
 
 const config = await context({

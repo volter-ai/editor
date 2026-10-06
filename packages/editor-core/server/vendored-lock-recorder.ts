@@ -466,6 +466,7 @@ function inScratch<T>(body: (dir: string) => T): T {
  */
 function gitInScratch(dir: string, args: readonly string[]): string {
   return execFileSync('git', args, {
+    windowsHide: true,
     cwd: dir,
     env: { ...process.env, GIT_CEILING_DIRECTORIES: dirname(dir) },
     encoding: 'utf8',

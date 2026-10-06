@@ -64,7 +64,7 @@
 import { createHash } from 'node:crypto';
 import { execFileSync } from 'node:child_process';
 import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { basename, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
@@ -337,7 +337,464 @@ function patchExtensionSignatures(checkout) {
 	writeFileSync(path, source);
 }
 
+/** One awaited policy boundary, shared by cached reveals and direct native loads. */
+function patchHarnessChatNavigation(checkout) {
+	const widget = 'src/vs/workbench/contrib/chat/browser/widget/chatWidgetService.ts';
+	const editor = 'src/vs/workbench/contrib/chat/browser/widgetHosts/editor/chatEditor.ts';
+	const view = 'src/vs/workbench/contrib/chat/browser/widgetHosts/viewPane/chatViewPane.ts';
+	const group = 'src/vs/workbench/browser/parts/editor/editorGroupView.ts';
+	const widgetImport = "import { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';";
+	const hostImport = "import { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../../volter/browser/volterChatNavigation.js';";
+	patchChatSource(checkout, widget, "import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';", "import { ChatViewPane } from '../widgetHosts/viewPane/chatViewPane.js';\n" + widgetImport, 'harness navigation service import');
+	patchChatSource(checkout, widget, '\t\t@ILogService private readonly logService: ILogService,', '\t\t@ILogService private readonly logService: ILogService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService,', 'harness navigation service injection');
+	patchChatSource(checkout, widget, "import { timeout } from '../../../../../base/common/async.js';", "import { timeout } from '../../../../../base/common/async.js';\nimport { CancellationError } from '../../../../../base/common/errors.js';", 'untitled opening cancellation import');
+	patchChatSource(checkout, widget, "import { CancellationError } from '../../../../../base/common/errors.js';", "import { CancellationError } from '../../../../../base/common/errors.js';\nimport { CancellationTokenSource } from '../../../../../base/common/cancellation.js';", 'untitled opening cancellation token');
+	patchChatSource(checkout, widget, '\tprivate _widgets: IChatWidget[] = [];', '\tprivate _widgets: IChatWidget[] = [];\n\tprivate harnessOpenGeneration = 0;\n\tprivate harnessUntitledOpening: (() => boolean) | undefined;\n\tprivate cancelHarnessUntitledOpening: (() => void) | undefined;', 'native open request generation');
+	const open = '\tasync openSession(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions): Promise<IChatWidget | undefined> {';
+	patchChatSource(checkout, widget, open, `${open}
+		this.cancelHarnessUntitledOpening?.();
+		const generation = ++this.harnessOpenGeneration;
+		const untitledSidebar = sessionResource.scheme === 'supercode' && sessionResource.path.startsWith('/untitled-')
+			&& (target === ChatViewPaneTarget || typeof target === 'undefined') && !this.getWidgetBySessionResource(sessionResource);
+		const focused = this.lastFocusedWidget;
+		const focusedResource = focused?.viewModel?.sessionResource.toString();
+		let bindingWidget: IChatWidget | undefined;
+		let focusing = false;
+		let unchanged = true;
+		const cancellation = untitledSidebar ? new CancellationTokenSource() : undefined;
+		const invalidate = () => { unchanged = false; cancellation?.cancel(); };
+		const isCurrent = () => unchanged && generation === this.harnessOpenGeneration
+			&& (!bindingWidget || this._widgets.includes(bindingWidget));
+		if (untitledSidebar) { this.harnessUntitledOpening = isCurrent; this.cancelHarnessUntitledOpening = invalidate; }
+		const focusListeners: IDisposable[] = [];
+		const observeFocus = (widget: IChatWidget) => focusListeners.push(widget.onDidFocus(() => {
+			if (!focusing || widget !== bindingWidget || widget.viewModel?.sessionResource.toString() !== sessionResource.toString()) { invalidate(); }
+		}));
+		if (untitledSidebar) {
+			this._widgets.forEach(observeFocus);
+			focusListeners.push(this.editorService.onDidActiveEditorChange(invalidate), this.editorGroupsService.onDidChangeActiveGroup(invalidate));
+			focusListeners.push(this.onDidRemoveWidget(widget => { if (widget === bindingWidget) { invalidate(); } }));
+		}
+		const added = untitledSidebar ? this.onDidAddWidget(widget => {
+			if (isIChatViewViewContext(widget.viewContext) && widget.viewContext.viewId === ChatViewId) { bindingWidget = widget; }
+			observeFocus(widget);
+		}) : undefined;
+		const listener = untitledSidebar ? this.onDidChangeFocusedSession(() => {
+			const widget = this.lastFocusedWidget;
+			const key = widget?.viewModel?.sessionResource.toString();
+			// The original focus may stay put, or its own load may bind the target.
+			// Any other selection invalidates this opening permanently.
+			if (widget === focused && key === focusedResource) { return; }
+			if (bindingWidget && widget === bindingWidget && key === sessionResource.toString()) { return; }
+			invalidate();
+		}) : undefined;
+		try {
+			return await this.harnessNavigation.run(sessionResource, async permit => {
+				const opening = untitledSidebar ? { isCurrent, token: cancellation!.token,
+					willBind: (widget: IChatWidget) => { bindingWidget = widget; }, willFocus: () => { focusing = true; } } : undefined;
+				const widget = await this.openSessionAfterGuard(sessionResource, target, options, permit, opening);
+				if (untitledSidebar && !isCurrent()) { throw new CancellationError(); }
+				if ((permit || untitledSidebar) && widget?.viewModel?.sessionResource.toString() !== sessionResource.toString()) {
+					throw new Error('The requested conversation was not selected by native Chat.');
+				}
+				return widget;
+			}, options?.harnessNavigationPermit, untitledSidebar ? isCurrent : undefined);
+		} finally {
+			listener?.dispose(); added?.dispose(); focusListeners.forEach(listener => listener.dispose()); cancellation?.dispose();
+			if (this.harnessUntitledOpening === isCurrent) { this.harnessUntitledOpening = undefined; this.cancelHarnessUntitledOpening = undefined; }
+		}
+	}
+
+	private async openSessionAfterGuard(sessionResource: URI, target?: typeof ChatViewPaneTarget | PreferredGroup, options?: IChatEditorOptions, permit?: HarnessChatNavigationPermit, opening?: { isCurrent: () => boolean; token: CancellationTokenSource['token']; willBind: (widget: IChatWidget) => void; willFocus: () => void }): Promise<IChatWidget | undefined> {
+		if (permit) { options = { ...options, harnessNavigationPermit: permit }; }`, 'guard before native session selection');
+	patchChatSource(checkout, widget, '\t\tif (!this._lastFocusedWidget) {\n\t\t\tthis.setLastFocusedWidget(newWidget);', `\t\t// An unfocused sidebar created by this current draft open is not a focus
+		// gesture. Its requested focus will be published after target binding.
+		if (!this._lastFocusedWidget && !(this.harnessUntitledOpening?.()
+			&& isIChatViewViewContext(newWidget.viewContext) && newWidget.viewContext.viewId === ChatViewId)) {
+			this.setLastFocusedWidget(newWidget);`, 'defer owned sidebar registration focus until binding');
+	patchChatSource(checkout, widget, 'await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason);', `if (opening && !opening.isCurrent()) { throw new CancellationError(); }
+				opening?.willBind(chatView.widget);
+				await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason, permit, opening?.token);`, 'nested sidebar navigation permit and opening currentness');
+	patchChatSource(checkout, widget, 'const chatView = await this.viewsService.openView<ChatViewPane>(ChatViewId, !options?.preserveFocus);', `// A harness draft owns its requested URI before this awaited open. Do not
+			// publish the outgoing sidebar's focus before binding that URI.
+			const chatView = await this.viewsService.openView<ChatViewPane>(ChatViewId, sessionResource.scheme === 'supercode' ? false : !options?.preserveFocus);`, 'bind harness sidebar before requested focus');
+	patchChatSource(checkout, widget, 'await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason, permit, opening?.token);\n\t\t\t\tif (!options?.preserveFocus)', `await chatView.loadSession(sessionResource, options?.sessionTypeSelectionReason, permit, opening?.token);
+				if (sessionResource.scheme === 'supercode' && chatView.widget?.viewModel?.sessionResource.toString() !== sessionResource.toString()) {
+					throw new Error('The requested conversation was not bound by the native Chat view.');
+				}
+				if (opening && !opening.isCurrent()) { throw new CancellationError(); }
+				if (!options?.preserveFocus)`, 'validate harness sidebar binding before requested focus');
+	patchChatSource(checkout, widget, '\t\t\t\t\tchatView.focusInput();', '\t\t\t\t\topening?.willFocus();\n\t\t\t\t\tchatView.focusInput();', 'own final requested draft focus');
+	const reveal = '\tasync reveal(widget: IChatWidget, preserveFocus?: boolean): Promise<boolean> {';
+	patchChatSource(checkout, widget, reveal, `${reveal}
+		const resource = widget.viewModel?.sessionResource;
+		return resource ? this.harnessNavigation.run(resource, async permit => {
+			const revealed = await this.revealAfterGuard(widget, preserveFocus, permit);
+			if (permit && (!revealed || !this._widgets.includes(widget) || widget.viewModel?.sessionResource.toString() !== resource.toString())) {
+				throw new Error('The requested conversation was not revealed by native Chat.');
+			}
+			return revealed;
+		}, undefined,
+			() => this._widgets.includes(widget) && widget.viewModel?.sessionResource.toString() === resource.toString()) : this.revealAfterGuard(widget, preserveFocus);
+	}
+
+	private async revealAfterGuard(widget: IChatWidget, preserveFocus?: boolean, permit?: HarnessChatNavigationPermit): Promise<boolean> {`, 'guard before cached widget reveal');
+	patchChatSource(checkout, widget, 'this.revealSessionIfAlreadyOpen(widget.viewModel.sessionResource, { preserveFocus });', 'this.revealSessionIfAlreadyOpen(widget.viewModel.sessionResource, { preserveFocus, harnessNavigationPermit: permit });', 'nested cached editor navigation permit');
+
+	patchChatSource(checkout, editor, "import { ChatEditorInput } from './chatEditorInput.js';", "import { ChatEditorInput } from './chatEditorInput.js';\nimport { HarnessChatNavigationPermit } from '../../../../volter/browser/volterChatNavigation.js';", 'editor navigation permit import');
+	patchChatSource(checkout, editor, 'export interface IChatEditorOptions extends IEditorOptions {', 'export interface IChatEditorOptions extends IEditorOptions {\n\t/** Internal permit for a nested native load in the same guarded transaction. */\n\tharnessNavigationPermit?: HarnessChatNavigationPermit;', 'nested editor navigation permit option');
+	// EditorPanes clears the old input and catches load errors before ChatEditor.setInput.
+	// Guard the group owner instead, before selection/reveal/clear/recovery can begin.
+	patchChatSource(checkout, group, "import { URI } from '../../../../base/common/uri.js';", "import { URI } from '../../../../base/common/uri.js';\nimport { HarnessChatNavigationPermit, IHarnessChatNavigationService } from '../../../contrib/volter/browser/volterChatNavigation.js';", 'editor group navigation service import');
+	const openEditor = '\tprivate async doOpenEditor(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined> {';
+	patchChatSource(checkout, group, openEditor, `\tprivate harnessNavigationRequest = 0;
+
+${openEditor}
+		const request = ++this.harnessNavigationRequest;
+		const resource = (editor as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? editor.resource;
+		const passive = (options as (IEditorOptions & { harnessPassive?: boolean }) | undefined)?.harnessPassive;
+		if (!resource || resource.scheme !== 'supercode' || options?.inactive || passive) {
+			return this.doOpenEditorAfterHarnessGuard(editor, options, internalOptions);
+		}
+		const parent = (options as (IEditorOptions & { harnessNavigationPermit?: HarnessChatNavigationPermit }) | undefined)?.harnessNavigationPermit;
+		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(resource, async permit => {
+			const guardedOptions: IEditorOptions & { harnessNavigationPermit?: HarnessChatNavigationPermit } = { ...options, harnessNavigationPermit: permit };
+			// The pane's cancellable input operation is created only inside this commit.
+			const pane = await this.doOpenEditorAfterHarnessGuard(editor, guardedOptions, internalOptions);
+			const selected = (pane as (IEditorPane & { widget?: { viewModel?: { sessionResource: URI } } }) | undefined)?.widget?.viewModel?.sessionResource;
+			if (request !== this.harnessNavigationRequest || selected?.toString() !== resource.toString()) { throw new Error('The requested conversation was not selected by the native editor.'); }
+			return pane;
+		}, parent, () => request === this.harnessNavigationRequest && !this.disposed && !editor.isDisposed()
+			&& ((editor as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? editor.resource)?.toString() === resource.toString()));
+	}
+
+	private async doOpenEditorAfterHarnessGuard(editor: EditorInput, options?: IEditorOptions, internalOptions?: IInternalEditorOpenOptions): Promise<IEditorPane | undefined> {`, 'guard before native editor group selection');
+
+	patchChatSource(checkout, view, "import './media/chatViewPane.css';", "import './media/chatViewPane.css';\n" + hostImport, 'sidebar navigation service import');
+	const load = '\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {';
+	patchChatSource(checkout, view, load, `\tasync loadSession(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason, permit?: HarnessChatNavigationPermit, openingToken?: CancellationToken): Promise<IChatModel | undefined> {
+		// Keep refusal outside the load's cancellation, clear timer and empty-model recovery.
+		return this.instantiationService.invokeFunction(accessor => accessor.get(IHarnessChatNavigationService).run(sessionResource, async navigationPermit => {
+			const model = await this.loadSessionAfterGuard(sessionResource, sessionTypeSelectionReason, openingToken);
+			if (navigationPermit && model?.sessionResource.toString() !== sessionResource.toString()) { throw new Error('The requested conversation was not selected by the native Chat view.'); }
+			return model;
+		}, permit));
+	}
+
+	private async loadSessionAfterGuard(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason, openingToken?: CancellationToken): Promise<IChatModel | undefined> {`, 'guard before direct sidebar load mutation');
+	patchChatSource(checkout, view, 'const cts = this.loadSessionCts.value = new CancellationTokenSource();', 'const cts = this.loadSessionCts.value = new CancellationTokenSource(openingToken);', 'cancel superseded native draft acquisition');
+	patchChatSource(checkout, view, 'localFallbackSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {\n\t\tconst oldModelResource', 'localFallbackSelectionReason?: SessionTypeSelectionReason, retainOutgoingModel = false): Promise<IChatModel | undefined> {\n\t\tconst oldModelResource', 'owned draft model lifetime option');
+	patchChatSource(checkout, view, '\t\tthis.modelRef.value = undefined;\n\n\t\t// Baseline draft', `\t\t// Keep the outgoing holder alive during this owned draft's lock wait.
+		// The new reference stays local until the widget actually binds it.
+		let ref: IChatModelReference | undefined = startNewSession ? modelRef : undefined;
+		let referenceTransferred = false;
+		try {
+		if (!retainOutgoingModel) { this.modelRef.value = undefined; }
+
+		// Baseline draft`, 'retain outgoing reference until owned bind');
+	patchChatSource(checkout, view, '\t\tlet ref: IChatModelReference | undefined;\n\t\tif (startNewSession)', '\t\t// The candidate is owned by the outer lifetime finally until transfer.\n\t\tif (startNewSession)', 'local owned model reference');
+	patchChatSource(checkout, view, '\t\t\tref?.dispose();\n\t\t\treturn undefined;\n\t\t}\n\n\t\tthis.modelRef.value = ref;', `\t\t\tif (!retainOutgoingModel) { ref?.dispose(); }
+			return undefined;
+		}
+
+		if (!retainOutgoingModel) { this.modelRef.value = ref; referenceTransferred = true; }`, 'owned candidate cancellation cleanup');
+	patchChatSource(checkout, view, '\t\t\t\tthis.modelRef.value = undefined;\n\t\t\t\treturn undefined;', '\t\t\t\tif (!retainOutgoingModel && this.modelRef.value === ref) { this.modelRef.value = undefined; }\n\t\t\t\treturn undefined;', 'cancel only the owned model holder');
+	patchChatSource(checkout, view, '\t\t// Update title control\n\t\tthis.titleControl?.update(model);', `\t\tif (retainOutgoingModel) {
+			// Binding is synchronous and token-checked above. Release the old
+			// holder only after its widget no longer observes that model.
+			this.modelRef.value = ref;
+			referenceTransferred = true;
+		}
+
+		// Update title control
+		this.titleControl?.update(model);`, 'transfer reference after owned widget binding');
+	patchChatSource(checkout, view, '\t\treturn model;\n\t}\n\n\tprivate async updateWidgetLockState', `\t\treturn model;
+		} finally {
+			// A cancelled/failed opening owns only this local candidate. Never
+			// clear the shared holder, which a newer load may have replaced.
+			if (retainOutgoingModel && !referenceTransferred) { ref?.dispose(); }
+		}
+	}
+
+	private async updateWidgetLockState`, 'release unbound owned candidate on cancellation or error');
+	patchChatSource(checkout, view, 'this.showModel(token, newModelRef, true, false, inputBeforeLoad, localFallbackSelectionReason);', `this.showModel(token, newModelRef, true, false, inputBeforeLoad, localFallbackSelectionReason,
+					!!openingToken && sessionResource.scheme === 'supercode' && sessionResource.path.startsWith('/untitled-'));`, 'scope model retention to owned untitled loading');
+	patchChatSource(checkout, view, 'await this.updateWidgetLockState(getChatSessionType(model.sessionResource));', 'await this.updateWidgetLockState(getChatSessionType(model.sessionResource), retainOutgoingModel ? token : undefined);', 'owned opening cancellation at lock owner');
+	patchChatSource(checkout, view, '\tprivate async updateWidgetLockState(sessionType: string): Promise<void> {', `\tprivate async updateWidgetLockState(sessionType: string, openingToken?: CancellationToken): Promise<void> {
+		if (openingToken?.isCancellationRequested) { return; }`, 'guard owned synchronous provider lock changes');
+	patchChatSource(checkout, view, '\t\tif (!canResolve) {\n\t\t\tthis._widget.unlockFromCodingAgent();', `\t\t// An older resolver must not change the composer selected by a newer load.
+		if (openingToken?.isCancellationRequested) { return; }
+		if (!canResolve) {
+			this._widget.unlockFromCodingAgent();`, 'guard owned provider lock after awaited resolution');
+	patchChatSource(checkout, view, '\t\t\tconst clearWidget = disposableTimeout(() => {', `\t\t\tconst clearWidget = disposableTimeout(() => {
+				// This opening already owns an untitled draft. Keep the outgoing model
+				// until binding, rather than publishing an unrelated empty focus event.
+				// Explicit user clear/new loads still cancel through loadSessionCts.
+				if (openingToken && sessionResource.scheme === 'supercode' && sessionResource.path.startsWith('/untitled-')) { return; }`, 'retain model through owned untitled binding');
+	// Synchronous move/close APIs relocate or expose an already stored pane passively.
+	// They must not enqueue activation and then close the outgoing pane before its guard.
+	patchChatSource(checkout, group, 'target.doOpenEditor(keepCopy ? editor.copy() : editor, options, internalOptions);', `const transferOptions: IEditorOptions & { harnessPassive?: boolean } = { ...options, harnessPassive: true };
+		target.doOpenEditor(keepCopy ? editor.copy() : editor, transferOptions, internalOptions);`, 'passive group transfer without runtime activation');
+	patchChatSource(checkout, group, 'this.doOpenEditor(nextActiveEditor, options, internalEditorOpenOptions);', `const fallbackOptions: IEditorOptions & { harnessPassive?: boolean } = { ...options, harnessPassive: true };
+			this.doOpenEditor(nextActiveEditor, fallbackOptions, internalEditorOpenOptions);`, 'passive editor exposed after close');
+	patchChatSource(checkout, group, 'const openEditorResult = this.doOpenEditor(activeReplacement.replacement, activeReplacement.options);', `const openEditorResult = this.doOpenEditor(activeReplacement.replacement, activeReplacement.options);
+			const replacementResource = (activeReplacement.replacement as EditorInput & { readonly sessionResource?: URI }).sessionResource ?? activeReplacement.replacement.resource;
+			if (replacementResource?.scheme === 'supercode') { await openEditorResult; }`, 'await harness replacement before closing source');
+	patchHarnessMoveActions(checkout);
+	patchHarnessPassiveViews(checkout);
+	patchHarnessDraftAgentMention(checkout);
+}
+
+/** Moving a bound Chat is an intentional activation, guarded before source destruction. */
+function patchHarnessMoveActions(checkout) {
+	const move = 'src/vs/workbench/contrib/chat/browser/actions/chatMoveActions.ts';
+	patchChatSource(checkout, move, "import { CHAT_CATEGORY } from './chatActions.js';",
+		"import { CHAT_CATEGORY } from './chatActions.js';\nimport { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';", 'move navigation owner import');
+	for (const destination of ['Editor', 'Window']) {
+		patchChatSource(checkout, move, `\t\t\texecuteMoveToAction(accessor, MoveToNewLocation.${destination}, isChatViewTitleActionContext(context) ? context.sessionResource : undefined);`,
+			`\t\t\treturn executeMoveToAction(accessor, MoveToNewLocation.${destination}, isChatViewTitleActionContext(context) ? context.sessionResource : undefined);`, 'await native Chat move command');
+	}
+	patchChatSource(checkout, move, `\t// Todo: can possibly go away with https://github.com/microsoft/vscode/pull/278476
+	const modelInputState = existingWidget.getInputState();
+
+	await widget.clear();
+
+	const options: IChatEditorOptions = { pinned: true, modelInputState, auxiliary };
+	await widgetService.openSession(resourceToOpen, moveTo === MoveToNewLocation.Window ? AUX_WINDOW_GROUP : ACTIVE_GROUP, options);`,
+		`\tawait accessor.get(IHarnessChatNavigationService).run(resourceToOpen, async permit => {
+		// Capture the author draft only after the addressed source passed its guard.
+		const modelInputState = existingWidget.getInputState();
+		await widget.clear();
+		const options: IChatEditorOptions = { pinned: true, modelInputState, auxiliary, harnessNavigationPermit: permit };
+		const destination = await widgetService.openSession(resourceToOpen, moveTo === MoveToNewLocation.Window ? AUX_WINDOW_GROUP : ACTIVE_GROUP, options);
+		if (permit && destination?.viewModel?.sessionResource.toString() !== resourceToOpen.toString()) {
+			throw new Error('The moved conversation was not selected by the native editor.');
+		}
+	}, undefined, () => widget.viewModel?.sessionResource.toString() === resourceToOpen.toString()
+		&& widgetService.getWidgetBySessionResource(resourceToOpen) === existingWidget);`, 'guard before source Chat clear and nested move');
+	patchChatSource(checkout, move, `\t\tconst previousInputState = chatEditor.widget.getInputState();
+		await editorService.closeEditor({ editor: chatEditor.input, groupId: editorGroupService.activeGroup.id });
+		view = await viewsService.openView(ChatViewId) as ChatViewPane;
+
+		// Todo: can possibly go away with https://github.com/microsoft/vscode/pull/278476
+		const newModel = await view.loadSession(chatEditorInput.sessionResource);
+		if (previousInputState && newModel && !newModel.inputModel.state.get()) {
+			newModel.inputModel.setState(previousInputState);
+		}`, `\t\tconst resource = chatEditorInput.sessionResource;
+		const sourceGroup = editorGroupService.activeGroup;
+		await accessor.get(IHarnessChatNavigationService).run(resource, async permit => {
+			const previousInputState = chatEditor.widget.getInputState();
+			const closed = await sourceGroup.closeEditor(chatEditorInput);
+			if (permit && !closed) { throw new Error('The source conversation editor was not closed for its move.'); }
+			view = await viewsService.openView(ChatViewId) as ChatViewPane;
+			if (permit && !view) { throw new Error('The destination Chat view was not available for its move.'); }
+			const newModel = await view.loadSession(resource, undefined, permit);
+			if (permit && newModel?.sessionResource.toString() !== resource.toString()) {
+				throw new Error('The moved conversation was not selected by the native Chat view.');
+			}
+			if (previousInputState && newModel && !newModel.inputModel.state.get()) {
+				newModel.inputModel.setState(previousInputState);
+			}
+			view.focus();
+		}, undefined, () => editorService.activeEditorPane === chatEditor && chatEditor.input === chatEditorInput
+			&& editorGroupService.getGroup(sourceGroup.id) === sourceGroup
+			&& !chatEditorInput.isDisposed() && chatEditorInput.sessionResource?.toString() === resource.toString());
+		return;`, 'guard before source editor close and nested sidebar move');
+}
+
+/** Session-owned agent identity comes from its native picker, not a sticky text mention. */
+function patchHarnessDraftAgentMention(checkout) {
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/widget/input/editor/chatInputEditorContrib.ts',
+		'\tprivate async repopulateAgentCommand(agent: IChatAgentData, slashCommand: IChatAgentCommand | undefined) {',
+		`\tprivate async repopulateAgentCommand(agent: IChatAgentData, slashCommand: IChatAgentCommand | undefined) {
+		// This participant routes the whole session. Its name can change after the
+		// draft's picker; inserting the previous name leaves a misleading mention.
+		if (!slashCommand && agent.id === 'supercode' && this.widget.lockedAgentId === 'supercode'
+			&& this.widget.viewModel?.sessionResource.scheme === 'supercode') { return; }`,
+		'keep session-owned harness identity out of sticky composer text');
+}
+
+/** Reading an already-visible inactive pane is passive, with all interaction disabled. */
+function patchHarnessPassiveViews(checkout) {
+	const widget = 'src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts';
+	const banner = 'src/vs/workbench/contrib/chat/browser/widget/chatReadOnlyBanner.ts';
+	const command = 'src/vs/workbench/contrib/chat/browser/widget/chatContentParts/chatCommandContentPart.ts';
+	patchChatSource(checkout, command, "import { Command } from '../../../../../../editor/common/languages.js';",
+		"import { Command } from '../../../../../../editor/common/languages.js';\nimport { IHarnessChatNavigationService } from '../../../../volter/browser/volterChatNavigation.js';", 'passive command button policy import');
+	patchChatSource(checkout, command, '\t\tcontext: IChatContentPartRenderContext,', '\t\tprivate readonly context: IChatContentPartRenderContext,', 'command button conversation ownership');
+	patchChatSource(checkout, command, '\t\t@ICommandService private readonly commandService: ICommandService',
+		'\t\t@ICommandService private readonly commandService: ICommandService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService', 'command button navigation policy injection');
+	patchChatSource(checkout, command, '\t\tthis._register(button.onDidClick(() => this.commandService.executeCommand(command.id, ...(command.arguments ?? []))));',
+		`\t\tthis._register(button.onDidClick(() => {
+			this.harnessNavigation.assertInteractive(this.context.element.sessionResource);
+			return this.commandService.executeCommand(command.id, ...(command.arguments ?? []));
+		}));`, 'guard command button dispatch including native gesture');
+	// Keyboard/command dispatch can originate outside transcript DOM capture.
+	// Check the actual addressed conversation at those response owners too.
+	const actionImport = "import { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';";
+	for (const action of ['chatToolActions.ts', 'chatElicitationActions.ts']) {
+		patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/actions/' + action,
+			"import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';",
+			"import { ChatContextKeys } from '../../common/actions/chatContextKeys.js';\n" + actionImport,
+			'passive response command policy import');
+	}
+	const tools = 'src/vs/workbench/contrib/chat/browser/actions/chatToolActions.ts';
+	patchChatSource(checkout, tools, '\t\tconst lastItem = widget?.viewModel?.getItems().at(-1);',
+		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget?.viewModel?.sessionResource);\n\t\tconst lastItem = widget?.viewModel?.getItems().at(-1);', 'guard tool approval command owner');
+	const elicitation = 'src/vs/workbench/contrib/chat/browser/actions/chatElicitationActions.ts';
+	patchChatSource(checkout, elicitation, '\t\tconst items = widget.viewModel?.getItems();',
+		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget.viewModel?.sessionResource);\n\t\tconst items = widget.viewModel?.getItems();', 'guard elicitation command owner');
+	const execute = 'src/vs/workbench/contrib/chat/browser/actions/chatExecuteActions.ts';
+	// This file imports the combined context helpers rather than ChatContextKeys alone.
+	patchChatSource(checkout, execute,
+		"import { ChatContextKeyExprs, ChatContextKeys } from '../../common/actions/chatContextKeys.js';",
+		"import { ChatContextKeyExprs, ChatContextKeys } from '../../common/actions/chatContextKeys.js';\n" + actionImport,
+		'passive submit and cancel policy import');
+	patchChatSource(checkout, execute, '\t\t// Check if there\'s a pending delegation target',
+		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget?.viewModel?.sessionResource);\n\t\t// Check if there\'s a pending delegation target', 'guard submit before delegation');
+	patchChatSource(checkout, execute, "\t\tconst chatService = accessor.get(IChatService);\n\t\tif (widget.viewModel) {\n\t\t\tawait chatService.cancelCurrentRequestForSession(widget.viewModel.sessionResource, 'cancelAction');",
+		"\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget.viewModel?.sessionResource);\n\t\tconst chatService = accessor.get(IChatService);\n\t\tif (widget.viewModel) {\n\t\t\tawait chatService.cancelCurrentRequestForSession(widget.viewModel.sessionResource, 'cancelAction');", 'guard cancel command owner');
+	patchChatSource(checkout, execute, '\t\t// Resolve the source custom agent whose handoffs we search (case-insensitive)',
+		'\t\taccessor.get(IHarnessChatNavigationService).assertInteractive(widget.viewModel?.sessionResource);\n\t\t// Resolve the source custom agent whose handoffs we search (case-insensitive)', 'guard handoff command owner');
+	patchChatSource(checkout, widget, "import * as dom from '../../../../../base/browser/dom.js';", "import * as dom from '../../../../../base/browser/dom.js';\nimport { EventType as TouchEventType } from '../../../../../base/browser/touch.js';\nimport { IHarnessChatNavigationService } from '../../../volter/browser/volterChatNavigation.js';", 'passive conversation policy import');
+	patchChatSource(checkout, widget, '\tprivate _readOnly = false;', '\tprivate _readOnly = false;\n\tprivate _modelReadOnly = false;\n\tprivate _harnessInactive = false;', 'durable inactive read-only reason');
+	patchChatSource(checkout, widget, '\t\t@IInstantiationService private readonly instantiationService: IInstantiationService,', '\t\t@IInstantiationService private readonly instantiationService: IInstantiationService,\n\t\t@IHarnessChatNavigationService private readonly harnessNavigation: IHarnessChatNavigationService,', 'passive conversation policy injection');
+	patchChatSource(checkout, widget, '\t\tthis._persistentContentHeight = viewOptions.persistentContentHeight ?? 0;', `\t\tthis._persistentContentHeight = viewOptions.persistentContentHeight ?? 0;
+		this._register(this.harnessNavigation.onDidChangeActiveResource(() => this.updateHarnessInactive()));
+		this._register(this.onDidChangeViewModel(() => this.updateHarnessInactive()));`, 'update inactive reason on binding and activation');
+	patchChatSource(checkout, widget, '\tsetReadOnly(readOnly: boolean): void {\n\t\tconst wasReadOnly = this._readOnly;', `\tprivate updateHarnessInactive(): void {
+		const resource = this.viewModel?.sessionResource;
+		const inactive = resource?.scheme === 'supercode' && !resource.path.startsWith('/untitled-')
+			&& resource.toString() !== this.harnessNavigation.activeResource;
+		if (inactive !== this._harnessInactive) {
+			this._harnessInactive = inactive;
+			this.setReadOnly(this._modelReadOnly);
+		}
+	}
+
+	setReadOnly(readOnly: boolean): void {
+		this._modelReadOnly = readOnly;
+		readOnly ||= this._harnessInactive;
+		const wasReadOnly = this._readOnly;`, 'compose inactive and model read-only policies');
+	patchChatSource(checkout, widget, '\t\tthis.readOnlyBanner?.setVisible(readOnly);', `\t\tthis.readOnlyBanner?.setMessage(this._harnessInactive && !this._modelReadOnly
+			? localize('chat.inactiveConversation', "Inactive conversation. Open it from history to continue.") : undefined);
+		this.readOnlyBanner?.setVisible(readOnly);`, 'accurate inactive conversation banner');
+	patchChatSource(checkout, widget, "\t\tthis.container = dom.append(parent, $('.interactive-session'));", `\t\tthis.container = dom.append(parent, $('.interactive-session'));
+		// Passive history remains focusable, selectable and copyable. It cannot invoke
+		// transcript buttons/links, tool approvals, questions, restores or handoffs.
+		const blockInactiveAction = (event: globalThis.Event) => {
+			if (!this._harnessInactive) { return; }
+			const target = event.target as Element | null;
+			if (!target || typeof target.closest !== 'function') { return; }
+			const question = target.closest('.chat-question-carousel-container');
+			const interactive = target.closest('a,button,input,textarea,[role="button"],[role="checkbox"],[role="radio"],[role="combobox"],[role="option"],[role="switch"],[role="slider"],[role="spinbutton"],[role^="menuitem"],[contenteditable="true"]');
+			const keyboardScope = event.type === 'keydown' && (question || target.closest('.chat-tool-confirmation-carousel,.chat-confirmation-widget'));
+			if (!interactive && !keyboardScope) { return; }
+			if ('key' in event) {
+				const key = String(event.key);
+				const readingShortcut = 'ctrlKey' in event && (event.ctrlKey || ('metaKey' in event && event.metaKey)) && ['a', 'c', 'f'].includes(key.toLowerCase());
+				if (readingShortcut || ['Tab', 'Shift', 'Control', 'Alt', 'Meta', 'F3'].includes(key) || (key === 'Escape' && !question)) { return; }
+			}
+			event.preventDefault();
+			event.stopImmediatePropagation();
+		};
+		this._register(dom.addDisposableListener(this.container, 'click', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, TouchEventType.Tap, blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'dblclick', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'keydown', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'pointerdown', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'beforeinput', blockInactiveAction, true));
+		this._register(dom.addDisposableListener(this.container, 'change', blockInactiveAction, true));`, 'passive transcript interaction boundary');
+
+	patchChatSource(checkout, banner, "import { Disposable } from '../../../../../base/common/lifecycle.js';", "import { Disposable, MutableDisposable } from '../../../../../base/common/lifecycle.js';", 'banner hover lifetime');
+	patchChatSource(checkout, banner, '\tprivate _visible = false;', '\tprivate _visible = false;\n\tprivate readonly text: HTMLElement;\n\tprivate readonly messageHover = this._register(new MutableDisposable());', 'mutable banner message ownership');
+	patchChatSource(checkout, banner, '\t\tmessage: string = localize', '\t\tprivate readonly message: string = localize', 'remember original read-only banner meaning');
+	patchChatSource(checkout, banner, '\t\t@IHoverService hoverService: IHoverService,', '\t\t@IHoverService private readonly hoverService: IHoverService,', 'banner hover service ownership');
+	patchChatSource(checkout, banner, `\t\tconst text = dom.append(this.domNode, dom.$('span.chat-readonly-banner-text'));
+		text.textContent = message;
+		this._register(hoverService.setupDelayedHover(text, { content: message }));`, `\t\tthis.text = dom.append(this.domNode, dom.$('span.chat-readonly-banner-text'));
+		this.setMessage();`, 'initialize mutable banner message');
+	patchChatSource(checkout, banner, '\tget visible(): boolean {', `\tsetMessage(message: string = this.message): void {
+		this.text.textContent = message;
+		this.messageHover.value = this.hoverService.setupDelayedHover(this.text, { content: message });
+	}
+
+	get visible(): boolean {`, 'accurate visible and hover banner meaning');
+}
+
+/** This public recipe does not distribute Microsoft's optional VSDA payload.
+ * Declare that capability explicitly, leaving other products' default unchanged.
+ * AbstractSignService owns the existing fallback; do not request missing resources. */
+function patchOptionalVsda(checkout) {
+	patchChatSource(checkout, 'src/vs/base/common/product.ts',
+		'\treadonly serverLicense?: string[];',
+		'\treadonly serverLicense?: string[];\n\t/** False when this distribution omits the optional VSDA payload. */\n\treadonly vsdaEnabled?: boolean;',
+		'optional VSDA product capability');
+	patchChatSource(checkout, 'src/vs/platform/sign/browser/signService.ts',
+		'\tprivate async vsda(): Promise<typeof vsda_web> {\n\t\tconst checkInterval',
+		'\tprivate async vsda(): Promise<typeof vsda_web> {\n\t\tif (this.productService.vsdaEnabled === false) {\n\t\t\tthrow new Error("VSDA is not available in this product build");\n\t\t}\n\t\tconst checkInterval',
+		'optional VSDA capability before resource loading');
+}
+
 function patchNativeChat(checkout) {
+	// Live harness approvals answer through commands, not a second chat request.
+	// Keep their choices in the native primary/secondary button row rather than
+	// rendering every option as an unrelated primary action.
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/common/chatService/chatService.ts',
+		'\tadditionalCommands?: Command[]; // rendered as secondary buttons',
+		'\tadditionalCommands?: Command[]; // rendered as secondary buttons\n\t/** Presentation only: consecutive answers to one live harness request. */\n\tharnessAnswerGroup?: string;', 'live answer presentation group');
+	patchChatSource(checkout, 'src/vs/workbench/api/common/extHostTypeConverters.ts',
+		'\t\tconst command = commandsConverter.toInternal(part.value, commandDisposables) ?? { command: part.value.command, title: part.value.title };\n\t\treturn {\n\t\t\tkind: \'command\',\n\t\t\tcommand\n\t\t};',
+		`\t\tconst command = commandsConverter.toInternal(part.value, commandDisposables) ?? { command: part.value.command, title: part.value.title };
+\t\tconst answer = part.value.command === 'supercode.frontend.respond' ? part.value.arguments?.[0] : undefined;
+\t\tconst harnessAnswerGroup = answer && typeof answer === 'object' && !Array.isArray(answer)
+\t\t\t&& typeof answer.connectionId === 'string' && answer.connectionId.length > 0 && answer.connectionId.length <= 256
+\t\t\t&& Number.isSafeInteger(answer.requestId) && answer.requestId >= 0
+\t\t\t&& answer.response && typeof answer.response === 'object' && !Array.isArray(answer.response)
+\t\t\t&& answer.response.request_id === answer.requestId
+\t\t\t? JSON.stringify([answer.connectionId, answer.requestId]) : undefined;
+\t\treturn {
+\t\t\tkind: 'command',
+\t\t\tcommand,
+\t\t\tharnessAnswerGroup
+\t\t};`, 'identify live answer grouping before command delegation');
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/common/widget/annotations.ts',
+		"\t\t} else if (item.kind === 'voiceProgress') {",
+		`\t\t} else if (item.kind === 'command' && item.harnessAnswerGroup
+\t\t\t&& previousItem?.kind === 'command' && previousItem.harnessAnswerGroup === item.harnessAnswerGroup
+\t\t\t&& previousEntry.sourceIndexes.at(-1) === currentSourceIndex - 1) {
+\t\t\tresult[previousItemIndex] = {
+\t\t\t\tcontent: { ...previousItem, additionalCommands: [...(previousItem.additionalCommands ?? []), item.command, ...(item.additionalCommands ?? [])] },
+\t\t\t\tsourceIndexes: [...previousEntry.sourceIndexes, currentSourceIndex],
+\t\t\t};
+\t\t} else if (item.kind === 'voiceProgress') {`, 'group consecutive live answers without changing response content');
+	const commandPart = 'src/vs/workbench/contrib/chat/browser/widget/chatContentParts/chatCommandContentPart.ts';
+	patchChatSource(checkout, commandPart, '\t\tcommandButton: IChatCommandButton,', '\t\tprivate readonly commandButton: IChatCommandButton,', 'retain rendered answer group membership');
+	patchChatSource(checkout, commandPart, "\t\treturn other.kind === 'command';",
+		`\t\tif (other.kind !== 'command') { return false; }
+\t\tif (!this.commandButton.harnessAnswerGroup && !other.harnessAnswerGroup) { return true; }
+\t\treturn other.harnessAnswerGroup === this.commandButton.harnessAnswerGroup
+\t\t\t&& other.command === this.commandButton.command
+\t\t\t&& (other.additionalCommands?.length ?? 0) === (this.commandButton.additionalCommands?.length ?? 0)
+\t\t\t&& (other.additionalCommands ?? []).every((command, index) => command === this.commandButton.additionalCommands?.[index]);`, 'refresh native answer alternatives during streaming');
+	// Reuse the native tool-confirmation card, but keep live harness approval
+	// dispatch inside the current turn. Stock confirmations retain their handler.
+	const confirmationPart = 'src/vs/workbench/contrib/chat/browser/widget/chatContentParts/chatConfirmationContentPart.ts';
+	patchChatSource(checkout, confirmationPart, "import { IChatContentPart, IChatContentPartRenderContext } from './chatContentParts.js';",
+		"import { IChatContentPart, IChatContentPartRenderContext } from './chatContentParts.js';\nimport { HarnessChatApprovalContentPart, isHarnessApproval } from '../../../../volter/browser/volterChatApproval.js';", 'native in-turn approval presentation import');
+	patchChatSource(checkout, confirmationPart, '\t\tconfirmation: IChatConfirmation,', '\t\tprivate readonly confirmation: IChatConfirmation,', 'native approval content identity');
+	patchChatSource(checkout, confirmationPart, '\t\tsuper();\n\n\t\tconst element', `\t\tsuper();
+\t\tif (isHarnessApproval(confirmation.data)) {
+\t\t\tconst approval = this._register(this.instantiationService.createInstance(HarnessChatApprovalContentPart, confirmation, context));
+\t\t\tthis.domNode = approval.domNode;
+\t\t\treturn;
+\t\t}
+
+\t\tconst element`, 'native approval without a new chat request');
+	patchChatSource(checkout, confirmationPart, "\t\treturn other.kind === 'confirmation';",
+		"\t\treturn other.kind === 'confirmation' && (!isHarnessApproval(this.confirmation.data) || other === this.confirmation);", 'native approval response identity');
+
+	patchHarnessChatNavigation(checkout);
 	// Participant welcome uses native buttons for standalone trusted command links.
 	// It stays outside transcript history and shares the extension's guarded action.
 	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `	readonly firstLinkToButton?: boolean;`, `	readonly firstLinkToButton?: boolean;
@@ -519,6 +976,13 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
 function patchProduct(checkout) {
 	const path = join(checkout, PRODUCT_FILE);
 	const product = JSON.parse(readFileSync(path, 'utf8'));
+	for (const manifest of ['package.json', 'remote/package.json', 'remote/web/package.json']) {
+		const declared = JSON.parse(readFileSync(join(checkout, manifest), 'utf8'));
+		if (declared.dependencies?.vsda || declared.optionalDependencies?.vsda) {
+			fail(`${manifest} now declares VSDA; review the public workbench capability and packaging before disabling its loader.`);
+		}
+	}
+	product.vsdaEnabled = false;
 	const current = product.defaultChatAgent;
 	if (!current || typeof current.extensionId !== 'string') {
 		fail(`${path} declares no defaultChatAgent.extensionId — upstream moved the block this patch replaces, and the Chat view's default participant is what it decides.`);
@@ -587,6 +1051,25 @@ function patchRehCopilotShim(checkout) {
 }
 
 /**
+ * A WIN32 RELEASE KEEPS ITS NATIVE BINARIES' PUBLISHED BYTES. Upstream's package task strips
+ * the Authenticode signature from every `.node`, `rg.exe` and `tgrep.exe` and rewrites its
+ * version resource with rcedit, so Microsoft's signing service can sign them afterwards. This
+ * release is never signed by that service, and the rewrite only changes each file's hash —
+ * which is what Smart App Control's reputation check reads. Measured 2026-10-06 on a Windows 11
+ * machine with Smart App Control on: the published rg.exe and a node-gyp built
+ * @vscode/deviceid ran, the rcedited copies were blocked ("An Application Control policy has
+ * blocked this file"), and search and the terminal's tools failed with `spawn UNKNOWN`.
+ */
+function patchWin32Dependencies(checkout) {
+	patchChatSource(checkout, REH_GULPFILE,
+		"\t\t\tif (platform === 'win32') {\n\t\t\t\tpackageTasks.push(patchWin32DependenciesTask(destinationFolderName));\n\t\t\t}\n",
+		"\t\t\t// VOLTER (overlaid tier — scripts/workbench/overlay.mjs): no signing service re-signs\n" +
+		"\t\t\t// this release, so win32 binaries keep their published bytes (patchWin32Dependencies).\n" +
+		"\t\t\tvoid patchWin32DependenciesTask;\n",
+		'the win32 dependency patch task');
+}
+
+/**
  * `build/npm/dirs.ts` NAMES `extensions/copilot`, and the extension is not there any more.
  *
  * MEASURED 2026-09-21, twice, before this patch existed: `npm ci` in an overlaid clone ran
@@ -651,7 +1134,7 @@ function treeHash(dirs) {
 			if (entry.isDirectory()) { walk(root, path); } else { hash.update(path.slice(root.length)).update(readFileSync(path)); }
 		}
 	};
-	for (const dir of dirs) { if (existsSync(dir)) { hash.update(`\0${dir.split('/').pop()}`); walk(dir, dir); } }
+	for (const dir of dirs) { if (existsSync(dir)) { hash.update(`\0${basename(dir)}`); walk(dir, dir); } }
 	return hash.digest('hex');
 }
 
@@ -743,9 +1226,11 @@ function main() {
 
 	patchNativeChat(checkout);
 	patchExtensionSignatures(checkout);
+	patchOptionalVsda(checkout);
 	patchRegistrationImports(checkout, tiers);
 	patchWebResources(checkout, tiers);
 	patchRehCopilotShim(checkout);
+	patchWin32Dependencies(checkout);
 	patchNpmDirs(checkout);
 	patchProduct(checkout);
 

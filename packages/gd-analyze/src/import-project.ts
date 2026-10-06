@@ -47,7 +47,7 @@ function runAcceptance(projectDir: string): void {
     ['npm', ['run', 'build']],
   ];
   for (const [command, args] of commands) {
-    const result = spawnSync(command, [...args], { cwd: projectDir, stdio: 'inherit' });
+    const result = spawnSync(command, [...args], { windowsHide: true, cwd: projectDir, stdio: 'inherit' });
     if (result.error !== undefined) throw result.error;
     if (result.status !== 0) {
       throw new Error(`${command} ${args.join(' ')} failed with exit ${String(result.status)}`);

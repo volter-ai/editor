@@ -44,8 +44,16 @@ missing notice bytes without a pinned supplement, and a changed Node target or
 source mapping refuse before tar. Updating a runtime dependency requires reading
 its exact official archive and corresponding source, then updating this reviewed
 inventory; a newer version is never assigned an older version's license by name.
-Only the macOS runtime inventory was audited here. A Linux build with additional
-platform packages will refuse until those exact distributions are audited.
+The macOS inventory was audited first. The win32-x64 and linux-x64 server
+packages add their platform's own npm packages, audited the same way (official
+archive fetched, sha512 integrity checked against the registry, every notice in
+it hashed against the packaged copy): `@github/copilot-win32-x64` and
+`@github/copilot-linux-x64@1.0.84-4` (LICENSE.md shipped; the adm-zip and
+webview notices are owed only when those subtrees ship), `@vscode/windows-process-tree@0.8.0`
+and `@vscode/windows-registry@1.2.0` (notices shipped), and
+`@vscode/windows-ca-certs@0.3.4`, whose archive's BSD-3-Clause LICENSE the packaged
+copy drops and which is supplemented from that archive's exact bytes. A platform
+with further packages refuses until those exact distributions are audited.
 
 Verification for this change was source parsing and data comparison of the
 retained archive, official archives, and immutable public source. No build,

@@ -576,6 +576,17 @@ function findSourceLinkedSupercodeCommand(): string | undefined {
   );
 }
 
+/**
+ * How to run `supercode <args>` given the resolved command. The installed front door is
+ * `bin/supercode.js`, which POSIX runs through its shebang and Windows cannot spawn at all
+ * (`spawn UNKNOWN`: a script is not an executable there), so a script runs through this Node.
+ */
+export function supercodeInvocation(command: string, args: readonly string[]): { command: string; args: string[] } {
+  return /\.[cm]?js$/i.test(command)
+    ? { command: process.execPath, args: [command, ...args] }
+    : { command, args: [...args] };
+}
+
 export function findSupercodeCommand(cwd = process.cwd(), path = process.env['PATH'] ?? ''): string | undefined {
   const explicit = process.env['SUPERCODE_BIN'];
   if (explicit) {
@@ -969,7 +980,9 @@ export class HarnessChatService {
       if (this.managedRuntime !== runtime) return;
       const payload = event.raw?.payload;
       if (!payload || typeof payload !== 'object') return;
-      const record = payload as { model?: unknown; message?: { model?: unknown } };
+      const record = payload as { model?: unknown; message?: { model?: unknown }; parent_tool_use_id?: unknown };
+      // A subagent's reply (a Task on another model) names its own model, not the conversation's.
+      if (typeof record.parent_tool_use_id === 'string') return;
       const model = record.message?.model ?? record.model;
       if (typeof model === 'string' && model.length > 0 && model.length < 200) this.observedModel = model;
     });
@@ -1050,15 +1063,22 @@ export class HarnessChatService {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
       openSessionCommand: 'volter.chat.openSession',
+      revealReadySessionCommand: 'volter.chat.revealReadySession',
       sessions: [...this.chatCatalog.sessions.values()],
       actualModel: this.observedModel,
       connection: this.frontendHandoffValue?.env,
       busy: (await this.frontendHandoffValue?.isBusy()) || snapshot.turn.state === 'running' || snapshot.requests.length > 0,
       harnesses: snapshot.harnesses.filter(h => h.availableActions.start).map(h => ({ id: h.id, name: h.label, autoStart: h.availableActions.autoStart === true,
         description: h.auth === 'unknown' || h.auth === 'configured' ? 'Authentication unverified' : undefined })),
-      models: chatModels(this.chatSelection.harness),
-      modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id)])),
+      models: chatModels(this.chatSelection.harness, launchContext.env),
+      modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id, launchContext.env)])),
       configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
+      // A NEW chat approves its agent's tool calls unless the person picks Ask (the owner's ask, 2026-10-06); each
+      // chat created from now on carries it (chat-session-catalog.ts), so a chat saved before keeps asking. Not
+      // `defaultPermission`: frontend-vscode 0.1.36-0.1.38 applies that to every chat without a stored pick,
+      // which turned Auto on for existing chats (0.5.187). The Chat applies it only where it can answer the
+      // runtime's approvals (Claude Code, Codex); other harnesses keep their prompts.
+      newChatPermission: 'autoApprove',
       setup: {
         ready: Boolean(this.frontendHandoffValue),
         actions,
@@ -1098,9 +1118,12 @@ export class HarnessChatService {
     this.setupHarness = harness;
     // The extension runs this exact, host-authored command in a visible terminal.
     // It never executes arbitrary repair prose or receives provider credentials.
+    const invocation = kind === 'login'
+      ? supercodeInvocation(program, ['harness', 'login', harness])
+      : { command: program, args: ['install', '-g', '--prefix', launchContext.npmPrefix!, '@openai/codex'] };
     return { ...action, cwd: this.options.getProjectRoot(),
-      program,
-      arguments: kind === 'login' ? ['harness', 'login', harness] : ['install', '-g', '--prefix', launchContext.npmPrefix!, '@openai/codex'],
+      program: invocation.command,
+      arguments: invocation.args,
       env: launchContext.env,
     };
   }
@@ -1591,7 +1614,7 @@ export class HarnessChatService {
       withManagedRuntimeObserver(
         new SupercodeHarnessClient({
           cwd: workspace,
-          ...(command ? { command } : {}),
+          ...(command ? supercodeInvocation(command, ['harness', 'serve']) : {}),
           env: launchContext.env,
         }),
         (runtime) => this.observeChatRuntime(runtime),

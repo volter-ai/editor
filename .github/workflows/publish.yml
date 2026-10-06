@@ -70,13 +70,9 @@ jobs:
         name: Publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-        run: |
-          for dir in ${{ steps.check.outputs.new }}; do
-            if ! (cd "$dir" && npm publish --access public --provenance --ignore-scripts 2>"$RUNNER_TEMP/err"); then
-              cat "$RUNNER_TEMP/err"
-              grep -qi 'cannot publish over' "$RUNNER_TEMP/err" || exit 1
-            fi
-          done
+        # Dependencies first, each dependent only once npm serves its dependencies' exact versions
+        # and tarballs (.github/publish-in-order.mjs), so `latest` never names an uninstallable tree.
+        run: node .github/publish-in-order.mjs ${{ steps.check.outputs.new }}
       - name: The version commit goes back to publish
         run: |
           [ -s "$RUNNER_TEMP/release-files" ] || exit 0
@@ -90,19 +86,6 @@ jobs:
           git push origin HEAD:publish
       - if: steps.check.outputs.new
         name: npm serves every version this run published
-        run: |
-          specs=""
-          for dir in ${{ steps.check.outputs.new }}; do
-            specs="$specs $(node -p "const p=require('./$dir/package.json'); p.name+'@'+p.version")"
-          done
-          # npm can take minutes to serve an accepted version: @volter/model-editor@0.5.99 was
-          # accepted at 01:28:22Z and served at 01:35:33Z. Wait up to 15 minutes before calling it staged.
-          for attempt in $(seq 1 60); do
-            missing=""
-            for spec in $specs; do [ -n "$(npm view "$spec" version 2>/dev/null)" ] || missing="$missing $spec"; done
-            [ -z "$missing" ] && exit 0
-            specs="$missing"
-            [ "$attempt" = 60 ] || sleep 15
-          done
-          echo "::error::npm accepted but does not serve:$missing. They are likely staged: an owner lists them with npx npm@latest stage list <pkg> and approves each with npx npm@latest stage approve <id> (2FA), unless a newer version has gone out since."
-          exit 1
+        # The exact version AND its tarball, retried with a bound: npm has listed a version whose
+        # tarball still answered 404 (@volter/blender-engine@0.1.122, 2026-10-06).
+        run: node .github/publish-in-order.mjs --served ${{ steps.check.outputs.new }}

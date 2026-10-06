@@ -28,7 +28,7 @@ import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
  */
 
 const _contexts = new Map<string, unknown>();
-const _publicationOwners = new Map<string, object>();
+const _contextOwners = new Map<string, symbol>();
 const _listeners = new Set<() => void>();
 const _mounted = new Set<string>();
 const _mountListeners = new Set<() => void>();
@@ -43,23 +43,23 @@ function _notifyContexts(): void {
   // unwound; direct context readers still see the new handle immediately.
   if (_notificationPending) return;
   _notificationPending = true;
-  setTimeout(() => {
+  queueMicrotask(() => {
     _notificationPending = false;
     _version += 1;
     for (const listener of [..._listeners]) listener();
-  }, 0);
+  });
 }
 
 export function publishDocumentContext(documentId: string, context: unknown): () => void {
-  const owner = {};
-  _publicationOwners.set(documentId, owner);
+  // Remounted panes can publish the same long-lived view object. Cleanup
+  // belongs to this registration, not to the identity of that shared view.
+  const owner = Symbol(documentId);
+  _contextOwners.set(documentId, owner);
   _contexts.set(documentId, context);
   _notifyContexts();
   return () => {
-    // Replacements may publish the same live handle. Only this publication
-    // owns its cleanup; object identity does not identify a pane lifetime.
-    if (_publicationOwners.get(documentId) !== owner) return;
-    _publicationOwners.delete(documentId);
+    if (_contextOwners.get(documentId) !== owner) return;
+    _contextOwners.delete(documentId);
     _contexts.delete(documentId);
     _notifyContexts();
   };
@@ -124,7 +124,7 @@ export function waitForDocumentContext(documentId: string, timeoutMs = 10_000): 
 
 export function __resetDocumentContextsForTest(): void {
   _contexts.clear();
-  _publicationOwners.clear();
+  _contextOwners.clear();
   _mounted.clear();
 }
 

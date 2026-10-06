@@ -1,7 +1,7 @@
 {
   "name": "@volter/model-editor",
   "author": "Volter AI, Inc.",
-  "version": "0.5.178",
+  "version": "0.5.187",
   "publishConfig": {
     "access": "public"
   },
@@ -53,20 +53,30 @@
       "displayName": "Volter Model Editor",
       "colorTheme": "dark",
       "workbench": {
-        "release": "model-editor-f16dc165c0df-1c8fe55711f6-darwin-arm64",
-        "tarballSha256": "95e706dc8f4bcffdde404a5d942e57b6c2a511999b1bda51d8fb07f3b4d10e5d"
+        "darwin-arm64": {
+          "release": "model-editor-f16dc165c0df-bcb58a166b10-darwin-arm64",
+          "tarballSha256": "5d9b987274f2f06355041b272c637d9e471122af9a3ab0139930e314d1852c01"
+        },
+        "linux-x64": {
+          "release": "model-editor-f16dc165c0df-29e1a79727a1-linux-x64",
+          "tarballSha256": "9e91ba4ba8540b468eaed6b329902e8bd3ba80af5126b2b282096491fd8ca4ff"
+        },
+        "win32-x64": {
+          "release": "model-editor-f16dc165c0df-91d8be2deef0-win32-x64",
+          "tarballSha256": "074725b6d275dcbe543932f09e76a981c1365698c9ef1c94ca05fbd4760848d0"
+        }
       }
     }
   },
   "dependencies": {
-    "@volter/editor-core": "0.5.178",
-    "@volter/editor-blender": "0.1.117",
-    "@volter/editor-threejs": "0.5.178",
-    "@volter/blender-engine": "0.1.115",
-    "@volter/editor-project": "0.5.178",
-    "@volter/editor-sdk": "0.5.178",
-    "@volter/editor-live": "0.5.178",
-    "@modelcontextprotocol/sdk": "1.30.0",
+    "@volter/editor-core": "0.5.187",
+    "@volter/editor-blender": "0.1.126",
+    "@volter/editor-threejs": "0.5.187",
+    "@volter/blender-engine": "0.1.124",
+    "@volter/editor-project": "0.5.187",
+    "@volter/editor-sdk": "0.5.187",
+    "@volter/editor-live": "0.5.187",
+    "@modelcontextprotocol/sdk": "1.32.1",
     "undici": "7.29.1"
   },
   "bin": {

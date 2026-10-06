@@ -619,8 +619,12 @@ no animation implementation started.
    Blender's modal duplicate-and-move UI and expanded editing of inspection-only
    panels are not claimed.
 
-**Windows/Linux remain deferred by the owner.** Do not provision runners or
-pursue these builds in this pass. Only darwin-arm64 is supported.
+**Windows and Linux (owner, 2026-10-06).** The Model Editor ships darwin-arm64, win32-x64 and
+linux-x64 workbench releases, each cut on its own platform (win32 on a Windows 11 desktop, linux
+in WSL), declared per platform in `packages/model-editor/package.json`. Code-OSS's win32 package
+task no longer rcedits native binaries (Smart App Control blocks the rewritten hashes). Open:
+Chat on Windows reports no ready local agent though `supercode harness list` reports Claude Code
+and Codex ready; Linux (WSL) finds them.
 
 ## Persistence and startup corrections
 

@@ -58,7 +58,13 @@ export async function launch(folder: string, launching: LaunchingProduct, option
   const clearLaunch = announceEditorLaunch(project);
   let child;
   try {
+    // DETACHED ON EVERY PLATFORM: on Windows libuv puts a child that is not detached in a job
+    // object killed with this CLI, so an attached session died the moment `npx … edit` returned
+    // (measured on 0.5.184). Detached there also means no console of its own, so every child
+    // the session starts hides its own console (windowsHide), and the Code-OSS server it starts
+    // is hidden but attached, giving the extension host and its gits one invisible console.
     child = spawn(process.execPath, [entry], {
+      windowsHide: true,
       cwd: project, detached: true, stdio: ['ignore', log, log],
       env: { ...process.env, VOLTER_CLI_ENTRY: resolve(process.argv[1]!),
         VOLTER_PROJECT: project, VOLTER_PRODUCT_DIR: product.dir, VOLTER_EDITOR_PORT: String(port),
@@ -99,6 +105,7 @@ export async function prepareSession(folder: string, launching: LaunchingProduct
   const entry = createRequire(join(product.dir, 'package.json')).resolve('@volter/editor-core/server/packaged');
   const code = await new Promise<number | null>((done, fail) => {
     const child = spawn(process.execPath, [entry], {
+      windowsHide: true,
       cwd: project, stdio: ['ignore', 'inherit', 'inherit'],
       env: { ...process.env, VOLTER_PROJECT: project, VOLTER_PRODUCT_DIR: product.dir, VOLTER_NO_OPEN: '1', VOLTER_PREPARE: '1' },
     });

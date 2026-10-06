@@ -22,12 +22,13 @@ export const declaration: ProductCreateDeclaration = {
     // packages are not in any registry a checkout could install from.
     const checkout = checkoutNodeModules();
     if (checkout) {
-      symlinkSync(checkout, join(result.targetDir, 'node_modules'), 'dir');
+      symlinkSync(checkout, join(result.targetDir, 'node_modules'), 'junction');
       return result;
     }
     console.log("Installing project dependencies…");
     await new Promise<void>((done, fail) => {
-      const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install'], { cwd: result.targetDir, stdio: 'inherit' });
+      // npm is npm.cmd on Windows, and node refuses to spawn a .cmd without a shell (EINVAL).
+      const child = spawn('npm', ['install'], { windowsHide: true, cwd: result.targetDir, stdio: 'inherit', shell: process.platform === 'win32' });
       child.once('error', fail);
       child.once('exit', code => code === 0 ? done() : fail(new Error(`Dependency installation failed (${code}); project source remains at ${result.targetDir}.`)));
     });

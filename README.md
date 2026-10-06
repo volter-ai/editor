@@ -8,7 +8,7 @@ A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled
 npx @volter/model-editor create my-race --template playable
 ```
 
-- Needs macOS on Apple Silicon and Node.js 24. Nothing else to install.
+- Needs Node.js 24. Nothing else to install.
 - Opens a race circuit modelled in the editor. Press **Play** in the viewport header: the
   camera moves from your editing view to the game's, and you drive with the arrow keys or
   WASD. Escape moves it back and returns the untouched model. A lap is about 30 seconds.

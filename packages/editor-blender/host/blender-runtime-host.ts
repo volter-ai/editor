@@ -324,6 +324,22 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
   return !anotherModel || active === binding.documentId;
 }
 
+/** A retained photograph must belong to the file and revision still on screen,
+ * not a retiring pane or the next worker's first frame. */
+export function modelDocumentOwnsPresentation(
+  documentId: string,
+  entryId: string,
+  blend: string | undefined,
+  presented: { readonly session: string; readonly revision: number } | null,
+): boolean {
+  const binding = boundModel;
+  const latest = runtime?.presented;
+  return editorHost().session.open() && !!binding && binding.documentId === documentId && binding.entryId === entryId &&
+    binding.blend === blend && modelDocumentMayOpen(binding) &&
+    runtime?.project === editorHost().projectLocalState.projectRootPath() && runtime.document === blend &&
+    !!presented && !!latest && presented.session === latest.session && presented.revision === latest.revision;
+}
+
 /**
  * OPEN A `.blend` IN THE ENGINE — the Model document's own call, the WS-F save
  * path run backwards. `session.py` opens the named file at start and saves
@@ -334,25 +350,43 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
  * identity. Boot itself can present, so the context must exist before awaiting
  * boot completion. Return false when the requesting pane has since unmounted.
  */
-let modelDocumentOpenTail: Promise<void> = Promise.resolve();
+let modelOpenTail: Promise<void> = Promise.resolve();
+let modelStartup: { readonly session: BlenderRuntime; readonly project: string; readonly blend: string } | null = null;
 
-export function openModelDocumentBlend(
+function queueModelLifecycle<T>(operation: () => Promise<T>): Promise<T> {
+  const result = modelOpenTail.then(operation);
+  modelOpenTail = result.then(() => {}, () => {});
+  return result;
+}
+
+export async function openModelDocumentBlend(
   binding: ModelDocumentBinding,
   publish: () => void,
 ): Promise<boolean> {
-  // A replacement pane for the already claimed file must publish before
-  // waiting on an earlier open. That open's pending worker frame needs this
-  // presenter; serializing publication behind boot would deadlock them.
-  // A different file still waits for the save/switch transition to own it.
-  if (runtime?.document === binding.blend && modelDocumentMayOpen(binding)) publish();
-  // Opening a document owns the save/switch transition. Commands still refuse
-  // a conflicting resource, and a superseded pane never claims the worker.
-  const opened = modelDocumentOpenTail.then(() => openBoundModelDocumentBlend(binding, publish));
-  modelDocumentOpenTail = opened.then(() => {}, () => {});
-  return opened;
+  let published = false;
+  const publishOnce = () => {
+    if (published) return;
+    publish();
+    published = true;
+  };
+  const host = editorHost();
+  const starting = modelStartup;
+  // A native workspace restore can remount this pane before boot's first
+  // frame. Its predecessor has unpublished, but still owns the queued boot:
+  // waiting behind it before publishing would make boot wait on itself.
+  // Only the SAME starting resource can restore its presenter here. Another
+  // file still waits for the old worker's save/retirement in the queue.
+  if (starting && starting.session === runtime && host.session.open() &&
+      starting.project === host.projectLocalState.projectRootPath() &&
+      starting.blend === binding.blend && modelDocumentMayOpen(binding)) {
+    publishOnce();
+  }
+  // Only one handoff may own stop/start. Re-check the mounted requester after
+  // every wait: a rapid B -> C selection must not let B publish into C.
+  return queueModelLifecycle(() => openBoundModelDocument(binding, publishOnce));
 }
 
-async function openBoundModelDocumentBlend(
+async function openBoundModelDocument(
   binding: ModelDocumentBinding,
   publish: () => void,
 ): Promise<boolean> {
@@ -361,21 +395,28 @@ async function openBoundModelDocumentBlend(
   const project = host.projectLocalState.projectRootPath();
   if (project === null) throw new Error('Opening a model requires a project path.');
   if (!modelDocumentMayOpen(binding)) return false;
-  if (runtime?.document && runtime.document !== binding.blend) {
-    const previous = runtime;
-    // stop drains accepted work and saves before releasing the only copy.
-    // A failed save leaves that worker alive and refuses the document switch.
-    await previous.stop();
+  const previous = runtime;
+  if (previous && (previous.project !== project || previous.document !== binding.blend)) {
+    // stop drains accepted work and flushes the OLD worker's bound file. If
+    // saving fails it stays alive; neither its history nor its ownership moves.
+    const end = beginBlenderWork('saving previous model before opening another');
+    try { await previous.stop(); } finally { end(); }
     if (runtime === previous) terminateBlenderRuntime();
-    if (!modelDocumentMayOpen(binding)) return false;
+    if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
   }
   const session = blenderRuntime();
   // start claims its resource synchronously; its first frame may arrive before
   // the returned promise resolves. The getter above rejects a conflicting file.
   const started = session.start(project, binding.blend);
-  publish();
-  await started;
-  if (boundModel !== binding) return false;
+  const starting = { session, project, blend: binding.blend };
+  modelStartup = starting;
+  try {
+    publish();
+    await started;
+  } finally {
+    if (modelStartup === starting) modelStartup = null;
+  }
+  if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
   // bind_document presents the opened file before start resolves. Do not
   // immediately evaluate/export it again: on Stoneguard that redundant RPC
   // took 13.8 seconds after the resumable startup had already finished.
@@ -383,12 +424,12 @@ async function openBoundModelDocumentBlend(
   // nothing at start. Compare the view's actual holding with the runtime's
   // revision so both cases still request the frame they need.
   const shown = (await runtimeView()).snapshot();
-  if (boundModel !== binding) return false;
+  if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
   const latest = session.presented;
   if (!shown || !latest || shown.session !== latest.session || shown.revision !== latest.revision) {
     await session.present();
   }
-  return boundModel === binding;
+  return host.session.open() && modelDocumentMayOpen(binding);
 }
 
 /**
@@ -828,11 +869,14 @@ function terminateBlenderRuntime(): void {
 function watchSessionEnd(): void {
   if (watchingSessionEnd) return;
   watchingSessionEnd = true;
-  editorHost().session.onBeforeClose(async () => {
-    await runtime?.stop();
-    terminateBlenderRuntime();
-  });
+  editorHost().session.onBeforeClose(() => queueModelLifecycle(stopBlenderRuntime));
   editorHost().session.onEnded(terminateBlenderRuntime);
+}
+
+async function stopBlenderRuntime(): Promise<void> {
+  const owner = runtime;
+  await owner?.stop();
+  if (runtime === owner) terminateBlenderRuntime();
 }
 let lastCapture: CaptureRequest | null = null;
 
@@ -889,7 +933,12 @@ export function blenderRuntime(): BlenderRuntime {
   const lifetime = new AbortController();
   captureLifetime = lifetime;
   let photographing = false;
-  let streamedView: RuntimeView | null = null;
+  let streamedFrame: { view: RuntimeView; session: string; revision: number } | null = null;
+  const discardStreamedFrame = () => {
+    const staged = streamedFrame;
+    streamedFrame = null;
+    if (staged) staged.view.stageFrame({ session: staged.session, revision: staged.revision, abort: true });
+  };
   runtime = new BlenderRuntime({
     work: beginBlenderWork,
     history: (entries) => {
@@ -920,16 +969,21 @@ export function blenderRuntime(): BlenderRuntime {
       }
     },
     stage: async part => {
-      if (part.abort) { streamedView?.stageFrame(part); streamedView = null; return; }
+      if (part.abort) { discardStreamedFrame(); return; }
       const conflict = modelDocumentConflict();
       if (conflict) throw new Error(conflict);
-      if (boundModel === null) return;
+      if (boundModel === null) {
+        discardStreamedFrame();
+        return;
+      }
       const documentId = presentationDocumentId();
       const view = await runtimeView();
       lifetime.signal.throwIfAborted();
       if (presentationDocumentId() !== documentId) throw new Error('Blender document changed during frame transfer');
-      streamedView = view;
+      if (streamedFrame && streamedFrame.view !== view)
+        throw new Error('Blender presenter changed during frame transfer');
       view.stageFrame(part);
+      streamedFrame = { view, session: part.session, revision: part.revision };
     },
     present: async (frame, description, capture) => {
       const conflict = modelDocumentConflict();
@@ -939,6 +993,9 @@ export function blenderRuntime(): BlenderRuntime {
       // on close). The Model document presents the session's current state when it binds. Only a
       // photograph needs a view, so only a capture is refused.
       if (boundModel === null) {
+        // A headless present accepts no staged geometry. Abort its owned
+        // transfer before the retained Model view can be opened again.
+        discardStreamedFrame();
         if (capture?.render) {
           throw new Error('Rendering a Blender frame needs the Model document open; nothing is presenting.');
         }
@@ -951,6 +1008,8 @@ export function blenderRuntime(): BlenderRuntime {
       lifetime.signal.throwIfAborted();
       if (presentationDocumentId() !== documentId)
         throw new Error('Blender document changed before its frame could be presented');
+      if (streamedFrame && streamedFrame.view !== view)
+        throw new Error('Blender presenter changed before its frame could be presented');
       // WHAT THE PRESENTER HELD BEFORE THIS FRAME, carried back to the session
       // beside whatever this present produced. The session only has a RECORD of
       // what it sent; this view is the authority on what it actually holds, and
@@ -963,6 +1022,7 @@ export function blenderRuntime(): BlenderRuntime {
         try { return view.applyFrame(frame) as { held?: unknown } | null | undefined; }
         finally { endApply(); }
       })();
+      streamedFrame = null;
       const reports = typeof applied === 'object' && applied !== null && 'held' in applied;
       const held = reports ? (applied.held as { session: string; revision: number } | null) : null;
       const answer = (capture: unknown): PresentAnswer => ({
@@ -1228,8 +1288,7 @@ export async function handleBlenderCommand(cmd: {
     let requestedDocument = typeof cmd['document'] === 'string' ? cmd['document'] : undefined;
     if (cmd.type === 'blender-stop' || (cmd.type === 'blender-start' && cmd['fresh'] === true)) {
       // Do not invalidate history or discard the worker if persistence fails.
-      await runtime?.stop();
-      terminateBlenderRuntime();
+      await queueModelLifecycle(stopBlenderRuntime);
       if (cmd.type === 'blender-stop') return { ok: true, data: { stopped: true } };
     }
     if (cmd.type === 'blender-start' && !host.documents.context(presentationDocumentId())) {

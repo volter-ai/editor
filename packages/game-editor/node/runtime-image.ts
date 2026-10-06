@@ -64,6 +64,7 @@ export async function ensureRuntimeImage(productRoot: string, version: string): 
   console.error(`Installing the Volter Game Editor ${version} runtime image (once per version) into ${dir}`);
   await new Promise<void>((done, fail) => {
     const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install', '--no-audit', '--no-fund'], {
+      windowsHide: true,
       cwd: dir,
       stdio: 'inherit',
     });

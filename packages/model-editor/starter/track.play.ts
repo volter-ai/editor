@@ -14,16 +14,20 @@ export default function play(context: {
   const { root, find, keys } = context;
   const car = find('Cube');
   if (!car || !find('Track')) throw new Error('Open track.blend and run track.py first.');
+  const startPosition = car.position.clone();
+  const startHeading = car.rotation.z;
   const wheels = ['Wheel.FL', 'Wheel.FR', 'Wheel.RL', 'Wheel.RR'].map((name) => {
     const wheel = find(name);
     if (!wheel) throw new Error(`The track model has no ${name}.`);
     wheel.rotation.reorder('ZXY');
     return wheel;
   });
+  const startWheelRotations = wheels.map(wheel => wheel.quaternion.clone());
   const surfaces: THREE.Object3D[] = [];
   const kerbs: THREE.Vector3[] = [];
   const obstacles: {
-    object: THREE.Object3D; velocity: THREE.Vector3; spin: THREE.Vector3; floor: number; hit: boolean;
+    object: THREE.Object3D; position: THREE.Vector3; rotation: THREE.Quaternion;
+    velocity: THREE.Vector3; spin: THREE.Vector3; floor: number; hit: boolean;
   }[] = [];
   root.traverse((object) => {
     if (!(object as THREE.Mesh).isMesh) return;
@@ -31,7 +35,8 @@ export default function play(context: {
     if (object.name === 'Track' || object.name.startsWith('Ramp')) surfaces.push(object);
     if (/^(Cone|Crate)\./.test(object.name)) {
       find(object.name);
-      obstacles.push({ object, velocity: new THREE.Vector3(), spin: new THREE.Vector3(), floor: object.position.z, hit: false });
+      obstacles.push({ object, position: object.position.clone(), rotation: object.quaternion.clone(),
+        velocity: new THREE.Vector3(), spin: new THREE.Vector3(), floor: object.position.z, hit: false });
     }
   });
   let speed = 0;
@@ -49,6 +54,7 @@ export default function play(context: {
   let previousY = car.position.y;
   let effectClock = 0;
   let hudClock = 0;
+  let restartHeld = false;
   const checkpoints = [1, 2, 3].map(i => find(`Checkpoint.${i}`)).filter((o): o is THREE.Object3D => o !== null);
   const velocity = new THREE.Vector2();
   const effects = new THREE.Group();
@@ -95,9 +101,43 @@ export default function play(context: {
     return hit ? root.worldToLocal(hitPoint.copy(hit.point)).z : null;
   };
 
+  const restart = () => {
+    car.position.copy(startPosition);
+    heading = startHeading;
+    car.rotation.set(0, 0, heading, 'ZXY');
+    speed = steering = verticalSpeed = pitch = 0;
+    velocity.set(0, 0);
+    grounded = true;
+    cameraStarted = false;
+    elapsed = lap = lapStarted = lastLap = checkpoint = effectClock = hudClock = 0;
+    previousY = startPosition.y;
+    for (const [index, wheel] of wheels.entries()) wheel.quaternion.copy(startWheelRotations[index]!);
+    for (const obstacle of obstacles) {
+      obstacle.object.position.copy(obstacle.position);
+      obstacle.object.quaternion.copy(obstacle.rotation);
+      obstacle.velocity.set(0, 0, 0);
+      obstacle.spin.set(0, 0, 0);
+      obstacle.hit = false;
+    }
+    for (const mark of marks) mark.visible = false;
+    for (const puff of puffs) {
+      puff.life = 0;
+      puff.mesh.visible = false;
+      puff.mesh.material.opacity = 0;
+    }
+    publishRaceState({ lap: 1, lapTime: 0, lastLap: 0, speed: 0, fps, airborne: false });
+  };
+
   return {
     update(dt: number) {
       if (dt <= 0) return;
+      const restarting = keys.has('KeyR');
+      const firstRestartFrame = restarting && !restartHeld;
+      restartHeld = restarting;
+      if (firstRestartFrame) {
+        restart();
+        return;
+      }
       elapsed += dt;
       measuredFrames++;
       const now = performance.now();

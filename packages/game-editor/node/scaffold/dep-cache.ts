@@ -154,7 +154,7 @@ function cloneCommand(src: string, dest: string): { cmd: string; args: string[] 
 function cloneTree(src: string, dest: string): boolean {
   const spec = cloneCommand(src, dest);
   if (!spec) return false;
-  const r = spawnSync(spec.cmd, spec.args, { stdio: 'ignore' });
+  const r = spawnSync(spec.cmd, spec.args, { windowsHide: true, stdio: 'ignore' });
   if (r.status === 0) return true;
   rmSync(dest, { force: true, recursive: true });
   return false;
@@ -178,7 +178,7 @@ function npmVersion(): string {
   // This one failed SILENTLY — the status check below turns ENOENT into the
   // string 'unknown', so on Windows the cache key was a constant, not a
   // version, and nothing ever said so.
-  const r = spawnSync('npm', ['--version'], { encoding: 'utf8', shell: true });
+  const r = spawnSync('npm', ['--version'], { windowsHide: true, encoding: 'utf8', shell: true });
   return r.status === 0 ? (r.stdout ?? '').trim() : 'unknown';
 }
 

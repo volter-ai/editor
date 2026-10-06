@@ -42,6 +42,7 @@ func _init() -> void:
 `,
   );
   const result = spawnSync(binary, ['--headless', '--path', temp, '--script', 'res://probe.gd'], {
+    windowsHide: true,
     encoding: 'utf8',
     timeout: 120_000,
     maxBuffer: 64 * 1024 * 1024,
