@@ -87,10 +87,12 @@ try {
     if (verb === 'create') {
       if (!positionals[1]) throw new Error('create requires a new folder name.');
       if (values.workbench) resolveWorkbench(resolve(values.workbench), PRODUCT.id);
+      console.log(`Creating Model Editor project at ${resolve(folder)}…`);
       await declaration.create({ name: folder.split(/[\\/]/).at(-1)!, targetDir: resolve(folder), ...(values.template ? { template: values.template } : {}) });
       if (values.workbench) writeWorkbenchDeclaration(resolve(folder), resolve(values.workbench));
 
     }
+    console.log(`Opening Model Editor for ${resolve(folder)}…`);
     await launch(folder, PRODUCT, {
       ...(values.workbench ? { workbench: values.workbench } : {}),
       ...(values['no-open'] ? { noOpen: true } : {}),
