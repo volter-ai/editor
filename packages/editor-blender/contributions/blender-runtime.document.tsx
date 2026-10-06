@@ -262,7 +262,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     const requestOpen = () => {
       if (cancelled || queued) return;
       queued = true;
-      queueMicrotask(() => { queued = false; void open(); });
+      setTimeout(() => { queued = false; void open(); }, 0);
     };
     const unsubscribe = documents.subscribe(requestOpen);
     requestOpen();
@@ -354,6 +354,11 @@ function BlenderModelViewport(props: ToolContributionProps) {
     () => false,
   );
   const [played, setPlayed] = useState<ReturnType<AreaView['detach']> | null>(null);
+  const playAspect = useSyncExternalStore(
+    subscribeDocumentPlayExtensions,
+    () => (documentId ? documentPlayExtension('model')?.aspectRatio?.(documentId) ?? null : null),
+    () => null,
+  );
   const [playedReady, setPlayedReady] = useState(false);
   useEffect(() => {
     if (!playing || !documentId) return;
@@ -387,7 +392,8 @@ function BlenderModelViewport(props: ToolContributionProps) {
     const capture = modelViewport.capture;
     modelViewport.capture = (size) => documentViewport(`${documentId}#play`)?.capture?.(size) ?? null;
     return () => {
-      modelViewport.capture = capture;
+      if (capture) modelViewport.capture = capture;
+      else delete modelViewport.capture;
     };
   }, [game, documentId]);
   if (!documentId) return null;
@@ -401,8 +407,14 @@ function BlenderModelViewport(props: ToolContributionProps) {
         <BlenderViewportArea {...props} view={view} main />
       </div>
       {game && (
-        <div key="play" style={{ position: 'absolute', inset: 12 }} data-testid="blender-play-area">
-          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} play onPlayReady={() => setPlayedReady(true)} onPlayReturn={() => setPlayedReady(false)} />
+        <div key="play" style={{ position: 'absolute', inset: 12, containerType: 'size' }} data-testid="blender-play-area">
+          <div data-volter-play-frame style={playAspect === null ? { position: 'absolute', inset: 0 } : {
+            position: 'absolute', left: '50%', top: '50%', transform: 'translate(-50%, -50%)',
+            width: `min(100cqw, calc(100cqh * ${playAspect}))`,
+            height: `min(100cqh, calc(100cqw / ${playAspect}))`,
+          }}>
+          <BlenderViewportArea {...props} documentId={`${documentId}#play`} view={game.view} main={false} playingCopy onPlayReady={() => setPlayedReady(true)} onPlayReturn={() => setPlayedReady(false)} />
+          </div>
         </div>
       )}
       {second && (
@@ -489,10 +501,10 @@ function BlenderViewportArea({
   surfaces,
   view,
   main,
-  play = false,
+  playingCopy: play = false,
   onPlayReady,
   onPlayReturn,
-}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly play?: boolean; readonly onPlayReady?: () => void; readonly onPlayReturn?: () => void }) {
+}: ToolContributionProps & { readonly view: AreaView; readonly main: boolean; readonly playingCopy?: boolean; readonly onPlayReady?: () => void; readonly onPlayReturn?: () => void }) {
   const reads = readsOf(view);
   const build = useCallback(
     () => ({
@@ -599,7 +611,7 @@ function BlenderViewportArea({
     const modelId = documentId.replace(/#play$/, '');
     const layers = window.document.createElement('div');
     Object.assign(layers.style, { position: 'absolute', inset: '0', pointerEvents: 'none' });
-    layers.dataset.testid = 'model-play-roots';
+    layers.dataset['testid'] = 'model-play-roots';
     surfaceRef.current?.appendChild(layers);
     setPlayReady(false);
     let stopped = false;
@@ -613,7 +625,7 @@ function BlenderViewportArea({
       preparing = true;
       orbit = stage.rig().orbit;
       orbit.enabled = false;
-      void view.prepareRendered(stage.rig().drawCamera()).then(() => {
+      void view.prepareRendered(stage.rig().drawCamera(), 'render').then(() => {
         if (stopped) return;
         stopScript = documentPlayExtension('model')?.run({
           documentId: modelId,
@@ -783,7 +795,7 @@ function BlenderViewportArea({
    * BLENDER'S RENDERED SHADING IS THE SCENE'S OWN LIGHT. When this stage's view lights by the
    * `scene` (the Rendered shading cell, or the Lighting row's Scene), the presenter holds the viewport
    * in the lighting its render photographs with (`BlenderRuntimeView.holdRendered`): the
-   * scene's lights, its World, `hide_render` and shadows, through the camera the stage draws
+   * scene's lights, its World and shadows, through the camera the stage draws
    * with, re-applied from the stage's frame loop when that camera or the World changes. Any
    * other source returns it to modeling. The stage itself draws a `scene` source unlit
    * (`standard-viewport-dressing.ts`), because Blender's lights live in the presenter.
@@ -808,7 +820,9 @@ function BlenderViewportArea({
       const preview = drawMode === 'preview';
       const sceneLighting = preview ? { world: lighting.source === 'scene', lights: lighting.preview.sceneLights } : undefined;
       const needsScene = lighting.source === 'scene' || (preview && lighting.preview.sceneLights);
-      view.holdRendered(needsScene && stage ? drawCamera : null, sceneLighting, preview ? 'viewport' : 'render');
+      // Shading changes lighting, not which objects an editing viewport shows.
+      // Only the detached game uses render visibility, as a clean capture does.
+      view.holdRendered(needsScene && stage ? drawCamera : null, sceneLighting, play ? 'render' : 'viewport');
       // BLENDER'S SOLID IS BLENDER'S OWN FUNCTION: while the stage lights by Blender's studio, the
       // presenter draws every surface by it (`blender-workbench-material.ts`).
       view.setWorkbench(lighting.source === 'studio' && lighting.studioPreset === DOCUMENT_STUDIO_PRESET.id);
@@ -823,7 +837,7 @@ function BlenderViewportArea({
       view.holdRendered(null);
       view.setWorkbench(false);
     };
-  }, [documentId, view]);
+  }, [documentId, view, play]);
   /**
    * SHIFT+RIGHT-CLICK PLACES THE 3D CURSOR, Blender's own chord for
    * `view3d.cursor3d` (`blender_default.py`, `params.cursor_set_event`). The
@@ -895,6 +909,7 @@ function BlenderViewportArea({
     >
     <Surface
       active={active ?? true}
+      fillContainer={play}
       documentId={documentId}
       sourcePath={blend ?? 'blender:runtime'}
       displayName={document?.label ?? 'Model'}

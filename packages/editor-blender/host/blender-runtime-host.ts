@@ -334,7 +334,25 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
  * identity. Boot itself can present, so the context must exist before awaiting
  * boot completion. Return false when the requesting pane has since unmounted.
  */
-export async function openModelDocumentBlend(
+let modelDocumentOpenTail: Promise<void> = Promise.resolve();
+
+export function openModelDocumentBlend(
+  binding: ModelDocumentBinding,
+  publish: () => void,
+): Promise<boolean> {
+  // A replacement pane for the already claimed file must publish before
+  // waiting on an earlier open. That open's pending worker frame needs this
+  // presenter; serializing publication behind boot would deadlock them.
+  // A different file still waits for the save/switch transition to own it.
+  if (runtime?.document === binding.blend && modelDocumentMayOpen(binding)) publish();
+  // Opening a document owns the save/switch transition. Commands still refuse
+  // a conflicting resource, and a superseded pane never claims the worker.
+  const opened = modelDocumentOpenTail.then(() => openBoundModelDocumentBlend(binding, publish));
+  modelDocumentOpenTail = opened.then(() => {}, () => {});
+  return opened;
+}
+
+async function openBoundModelDocumentBlend(
   binding: ModelDocumentBinding,
   publish: () => void,
 ): Promise<boolean> {
@@ -343,6 +361,14 @@ export async function openModelDocumentBlend(
   const project = host.projectLocalState.projectRootPath();
   if (project === null) throw new Error('Opening a model requires a project path.');
   if (!modelDocumentMayOpen(binding)) return false;
+  if (runtime?.document && runtime.document !== binding.blend) {
+    const previous = runtime;
+    // stop drains accepted work and saves before releasing the only copy.
+    // A failed save leaves that worker alive and refuses the document switch.
+    await previous.stop();
+    if (runtime === previous) terminateBlenderRuntime();
+    if (!modelDocumentMayOpen(binding)) return false;
+  }
   const session = blenderRuntime();
   // start claims its resource synchronously; its first frame may arrive before
   // the returned promise resolves. The getter above rejects a conflicting file.
@@ -831,16 +857,26 @@ async function runtimeView(): Promise<RuntimeView> {
   // command (3 s of boot, then the full wait).
   const deadline = Date.now() + 15_000;
   let id = presentationDocumentId();
+  let publication = 'no context';
   for (;;) {
     id = presentationDocumentId();
     const published = await documents.waitForContext(id, Math.max(0, Math.min(250, deadline - Date.now())));
     if (isRuntimeView(published)) return published;
+    if (published !== undefined) {
+      const required = ['applyFrame', 'stageFrame', 'snapshot', 'captureSnapshot', 'recordPresentation', 'recordPhotograph'];
+      const handle = published as Record<string, unknown> | null;
+      publication = `${typeof published} context missing ${required.filter(method => typeof handle?.[method] !== 'function').join(', ')}`;
+      // An incompatible published context resolves waitForContext immediately.
+      // Yield so a pending document commit can replace it; a microtask loop
+      // otherwise prevents that publication for the whole timeout window.
+      await new Promise<void>(resolve => setTimeout(resolve, Math.max(0, Math.min(25, deadline - Date.now()))));
+    }
     if (Date.now() >= deadline) break;
   }
   throw new Error(
     `The Blender Model document is not open, or the open one is not a Model this engine can present ` +
       `to (it must answer stageFrame, applyFrame, captureSnapshot, recordPresentation and recordPhotograph): nothing ` +
-      `published a presentable view as ${id} within 15 s (bound model: ${boundModel?.documentId ?? 'none'}). ` +
+      `published a presentable view as ${id} within 15 s (bound model: ${boundModel?.documentId ?? 'none'}; last publication: ${publication}). ` +
       'Open the Model document first (`volter blender-mcp` opens it before its first call).',
   );
 }

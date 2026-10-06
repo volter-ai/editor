@@ -23,6 +23,7 @@
  * update, holding keys empty until arrival. Stop freezes the copy and blends
  * back before disposing it; Escape during either blend completes that blend.
  */
+import { editorHost } from '@volter/editor-sdk/host';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
 import { surfaceAcceptsKey, surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import {
@@ -130,6 +131,21 @@ export function runPlayScript(options: {
   let attempt = 0;
   let game: ModelPlayGame | null = null;
   let composition: PlayComposition | null = null;
+  let startedAt: number | null = null;
+  let endedAt: number | null = null;
+  const live = editorHost().live;
+  const unregisterLive = live.register({
+    id: `model-script:${options.documentId}`,
+    mounted: () => !stopped && game !== null,
+    // The live game owns the viewport through the camera return. Its update
+    // loop is held during that transition; Edit begins when disposal completes.
+    playing: () => !stopped && game !== null,
+    stop: () => { if (!stopped) finishModelPlay(options.documentId); },
+    instanceContainer: (id) => !id && !stopped && game !== null ? options.container : null,
+    startedAt: () => startedAt,
+    endedAt: () => endedAt,
+    surface: () => 'three',
+  });
   let pending: { game: ModelPlayGame; composition: PlayComposition | null } | null = null;
   // A failed mount/update still owns a dependency graph whose next save retries it.
   let retryEntries: readonly string[] = [];
@@ -144,6 +160,8 @@ export function runPlayScript(options: {
     dispose(game, composition);
     game = null;
     composition = null;
+    if (startedAt !== null) endedAt = Date.now();
+    live.notifyChanged();
   };
   const start = async (): Promise<void> => {
     const mine = ++attempt;
@@ -155,7 +173,7 @@ export function runPlayScript(options: {
         if (!project) throw new Error('No project is open.');
         const epoch = beginProjectMountEpoch();
         const container = document.createElement('div');
-        container.dataset.mountEpoch = String(epoch);
+        container.dataset['mountEpoch'] = String(epoch);
         Object.assign(container.style, { position: 'absolute', inset: '0', visibility: 'hidden', pointerEvents: 'none' });
         options.container.appendChild(container);
         let layers;
@@ -210,7 +228,10 @@ export function runPlayScript(options: {
         next.game.update(deltaSeconds);
         end();
         game = next.game;
+        startedAt = Date.now();
+        endedAt = null;
         composition = next.composition;
+        live.notifyChanged();
         composition?.reveal();
         replacementUpdated = true;
       } catch (error) {
@@ -229,6 +250,7 @@ export function runPlayScript(options: {
       report(`${modulePath} failed`, error instanceof Error ? error.message : String(error));
       return;
     }
+    keys.clear();
     root.updateMatrixWorld(true);
   });
   const onKeyDown = (event: KeyboardEvent): void => {
@@ -237,14 +259,22 @@ export function runPlayScript(options: {
     if (transition.acceptingKeys()) keys.add(event.code);
   };
   const onKeyUp = (event: KeyboardEvent): void => {
-    keys.delete(event.code);
+    // Preserve a between-frame tap until one game update has observed it.
     heldKeys.delete(event.code);
   };
   const onBlur = (): void => { keys.clear(); heldKeys.clear(); };
   window.addEventListener('keydown', onKeyDown, true);
   window.addEventListener('keyup', onKeyUp, true);
   window.addEventListener('blur', onBlur);
-  const stopChanges = subscribeProjectModuleChange((changed, affected) => {
+  const stopChanges = subscribeProjectModuleChange((changed, affected, type) => {
+    // Removing this run's entry ends its lifetime. A rename can remove it
+    // before the model document switches; importing that vanished entry
+    // would manufacture a mount failure while the old game is still alive.
+    // A missing dependency continues through the ordinary error-reporting path.
+    if (type === 'delete' && projectModuleChangeMatches(changed, modulePath)) {
+      finishModelPlay(options.documentId);
+      return;
+    }
     // A composed HUD and script must remount together, including shared-store
     // edits. A fresh epoch is threaded to both through the UI tool door.
     const entries = [modulePath, ...retryEntries, ...(composition?.entries ?? []), ...(pending?.composition?.entries ?? [])];
@@ -253,6 +283,7 @@ export function runPlayScript(options: {
   void start();
   return () => {
     stopped = true;
+    unregisterLive();
     stopRequest();
     finishModelPlay(options.documentId);
     stopFrames();

@@ -209,10 +209,10 @@ function ProjectToolMount({
       rootRef.current = null;
       endWork.current?.();
       endWork.current = null;
-      queueMicrotask(() => {
+      setTimeout(() => {
         root.unmount();
         container.remove();
-      });
+      }, 0);
     };
   }, []);
 
@@ -277,12 +277,12 @@ function ProjectToolMount({
     // through that store notification. Coalesce superseded props and reject a
     // deferred render after teardown/StrictMode has replaced its root.
     let cancelled = false;
-    queueMicrotask(() => {
+    setTimeout(() => {
       if (cancelled || rootRef.current !== root) return;
       root.render(
         documentId ? createEditorElement(ContributionMountSignal, { documentId }, element) : element,
       );
-    });
+    }, 0);
     return () => { cancelled = true; };
   }, [accountRevision, active, contribution, override, documentId, documentEntry, playKey]);
 

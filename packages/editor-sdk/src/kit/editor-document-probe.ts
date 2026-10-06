@@ -118,6 +118,7 @@ import type {
   DocumentProbeStep,
   ProbedElement,
 } from '@volter/editor-sdk/document-probe';
+import { MAX_DOCUMENT_KEY_HOLD_MS } from '@volter/editor-sdk/document-probe';
 import { surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
 import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
 import { framedCapture } from '@volter/editor-sdk/kit/framed-document-capture';
@@ -1084,6 +1085,10 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
     case 'release':
       return drove(releaseDrag());
     case 'key': {
+      if (step.holdMs !== undefined && (!Number.isFinite(step.holdMs) ||
+          step.holdMs < 0 || step.holdMs > MAX_DOCUMENT_KEY_HOLD_MS)) {
+        throw new Error(`key holdMs must be finite, nonnegative and at most ${MAX_DOCUMENT_KEY_HOLD_MS}.`);
+      }
       const target = gestureTarget(scope, step);
       // A person's keystroke lands where their click put focus; what the workbench decides a
       // chord means follows that focus (its `volter.stage.focused` context), so the target takes
@@ -1098,8 +1103,11 @@ export async function runDocumentProbe(step: DocumentProbeStep): Promise<Documen
       const active = document.activeElement;
       const receiver = active instanceof HTMLElement && target.contains(active) ? active : target;
       receiver.dispatchEvent(keyEvent('keydown', step));
-      if (step.holdMs) await new Promise((settle) => setTimeout(settle, step.holdMs));
-      receiver.dispatchEvent(keyEvent('keyup', step));
+      try {
+        if (step.holdMs) await new Promise((settle) => setTimeout(settle, step.holdMs));
+      } finally {
+        receiver.dispatchEvent(keyEvent('keyup', step));
+      }
       return drove(target);
     }
     case 'select': {

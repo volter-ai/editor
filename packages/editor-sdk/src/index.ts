@@ -33,7 +33,7 @@ export type {
   DocumentTypeStep,
   ProbedElement,
 } from './document-probe.js';
-export { editorViewFromUrl, editorViewUrl } from './editor-view.js';
+export { EDITOR_VIEW_DIAGNOSTICS, editorViewFromUrl, editorViewUrl } from './editor-view.js';
 export type { ExtensionContributionState } from './extension.js';
 export type {
   ActiveDocumentCapture,

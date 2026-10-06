@@ -1,5 +1,107 @@
 # Public release status
 
+## Model Editor first-run walkthrough (2026-10-05)
+
+Bare `volter-model-editor` now opens the current project, or creates and reopens
+`~/Documents/Volter Models/Untitled Model` with a saved cube. Occupied unrelated
+folders get a numbered sibling. Explicit `create <folder>` still creates a separate
+project. This saved folder is our product choice: Blender's
+[startup file](https://docs.blender.org/manual/en/dev/getting_started/configuration/defaults.html)
+opens an unsaved scene. Native Blender 5.2.0 LTS was measured with factory startup:
+a selected 2 m Cube, Camera and Light, with an empty filepath. The modeling starter
+keeps the existing 1 m cube without a camera or light.
+
+New projects carry `AGENTS.md` and `CLAUDE.md` (`@AGENTS.md`), plus the existing
+project-local MCP configurations. Walked from the source checkout with the pinned
+released workbench: Claude Code and Codex reused their existing sign-ins, read the
+instructions and inspected the live cube through MCP. Claude changed a test cube
+to blue with a bevel, updated `cube.py` and saved `cube.blend`; native Blender read
+back its dimensions, material and modifier from disk. `chat send`, `chat status`
+and `chat stop` drive the visible native Chat. Switching to Codex, stopping a turn,
+and closing/reopening resumed the exact Codex session. Frontend attachment finishes
+after the launcher returns; wait for Chat readiness before sending.
+
+Remaining evidence gaps: fresh OAuth sign-in and a fresh registry install were
+not walked. One Claude conversation completed a turn but retained a null resume
+identity in the existing host catalog; another Claude test conversation bound
+successfully. Do not count that first conversation as verified resumable. Six new
+first-run tests, the Model Editor typecheck and the modeling release build pass.
+The full repository suite currently fails in seven unchanged fixtures referencing
+removed source paths or missing mock exports, before reaching the model tests.
+
+Game-panel follow-up: a fresh checkout-linked `playable` project opened Track
+with Play, Chat, Outliner/Properties and Timeline. Play mounted the React HUD;
+Stop returned to the model. The UI board opened through
+`editor.present({version:1,document:{kind:'workspace',id:'workspace:ui-components'}})`
+and showed the three HUD stories with the UI hierarchy. These were live visual
+checks, without a new model inference turn.
+
+Native Chat game walkthrough: submitted only `Make a really simple 3D game with
+UI.` to a new Codex conversation in the default project's actual editor Chat.
+The editor agent created Pocket Collector, generated a reference image and
+packed it into the Blender scene, added the playable model and React HUD, and
+rendered five HUD states in the UI canvas. It inspected screenshots, repaired
+the initial stylesheet and primary-button contrast problems, and tested manual
+movement, coin pickups, rail bounds, timeout, restart, demo win and manual
+takeover. Final screenshots show the playable scene with Chat and Properties;
+the agent's saved status reports no current page or session errors. The editor
+is left in Play, ready at 0/6 coins and 45 seconds, with native Chat idle.
+The supervising session did not author game code. Native session
+`01a10f08-f891-7641-9dbb-53e1f237ebdb` completed; its JSONL is retained in
+`.volter/native-game-session.jsonl` and the full editor still is
+`.volter/native-game-editor.png`. The project and its detailed visual evidence
+are in `~/Documents/Volter Models/Untitled Model`. This demonstrates native Chat
+creation and transcript retention; replay had not been run at that boundary.
+
+Requested 8× video: replayed the retained transcript at speed 1 in a disposable
+project and owned workbench copy, using the retained development Supercode binary
+and the frontend candidate's ordinary connection handoff. Scoped path mappings
+preserved the finished project and original temporary helpers. A local performer
+adapter supplied real Blender MCP calls and persistent code-mode storage; image
+generation reused the original cached asset. All 153 events were delivered and
+38 calls performed, with zero runner failures. Tool execution adds wall time;
+live gameplay is not deterministic transcript playback (the replay's timeout
+capture was still playing at 1/6, while its demo reached 6/6 with 40 seconds).
+The final saved game returned to ready at 0/6. Reloads required reattachment;
+the last reload cached a failed Chat widget. Opening a fresh native view of the
+same attached conversation restored its completed history for the final still.
+The original capture and diagnostics are retained, including that failure.
+Recorded 1,622 full editor frames over 851.047 seconds and accelerated the video
+timestamps by exactly eight. The export is 1920×1080 H.264 at 24 fps, 108.417
+seconds including a two-second restored final-view hold. Timestamp error is
+−0.006 seconds; full-file decoding and visual review passed. Artifacts, video and
+metrics are in `.volter/pocket-replay-20261005/`. The replay observer was detached
+and revoked, the replay editor closed gracefully and its runtime stopped. The
+original game editor and its World remain available.
+
+Video review correction after owner feedback: the original game-start screenshot
+(`.volter/game-request-chat.png`) shows a plain gray cube. The replay copy was
+made from the earlier Claude test project's blue, beveled cube. That was the
+wrong starting state; this export is not a faithful reproduction of the initial
+project. Earlier review used sampled frames and decoding, not continuous visual
+review, and missed the opening's extended loss of Chat. At video 18.808 s Vite
+finished optimizing newly reached `typescript` and `axe-core` dependencies and
+automatically reloaded the editor. At 30.407 s the recorded agent's explicit
+`editor.reloadPage()` reloaded it again. The replay attachment was restored only
+at 37.386 s; during that interval Chat fell back to the default Claude placeholder
+even though the replay runtime continued. These are editor reloads plus a replay
+reattachment failure, not video speed changes or new Claude inference. The later
+reload at 92.987 s hit the cached failed-widget problem described above. The
+opening has now been inspected at half-second intervals and correlated with
+the original replay calls, Vite output and tab-reload ledger. Do not describe
+the first export as a clean or faithful replay.
+
+Recording/replay audit: the reusable Abrams capture workflow is retained in
+`/Users/yueranyuan/volter/media-creation/model-comparison/README.md`, and the
+Supercode development workflow is in
+`/Users/yueranyuan/volter/supercode-chair-replay-20261005/docs/guides/editor-replay.md`.
+Full-page capture plus native transcripts is available. The installed Supercode
+CLI rejects `replay`; the retained `feat/replay` binary's help works. The pinned
+frontend 0.1.31 ignores connection-handoff arguments to `supercode.frontend.connect`,
+whereas the replay frontend candidate accepts them. The retained performer
+executes shell/file/Codex code-mode calls but skips direct Blender MCP calls.
+Re-executing an arbitrary session from these defaults is therefore not verified.
+
 Volter Editor 0.5.72 (editor-blender 0.1.13, blender-engine 0.1.11) is published by CI:
 `.github/workflows/publish.yml` builds the game release only after a measured main commit is promoted to `publish`, runs `check:release:game` and
 `check:packed-imports:game`, moves every package of [release/game.json](release/game.json) together to its next
@@ -909,3 +1011,624 @@ proofs, not a reproduction or fix of the older intermittent hang.
   A full rename is a separate migration. Game publication and full viewport
   extraction remain outside this release. Emscripten is shipped; optional WALI
   requires external artifacts and is not a shipped browser-substrate claim.
+
+### Model-to-UI authoring reload, 2026-10-06 (unpublished worktree)
+
+The retained game replay still showed two opening reloads. The first was Vite
+discovering `typescript` and `axe-core` only after a running model-only project
+declared React/UI tooling; the second was an explicit `editor.reloadPage()` in
+the original agent transcript. Connection recovery did not prevent either.
+
+The packaged host now prepares those two installed browser-tool utilities in
+its initial optimizer pass. A fresh gray-cube project then received the UI
+dependencies, UI manifest root, adapter story region and five HUD stories while
+open. The UI canvas rendered all five states without a reload: the same tab
+`0f18783c` remained at page generation 1, with no current console errors or
+warnings and no story failures. Its server log has no optimizer reload.
+Receipts and the inspected capture are retained in this worktree under
+`.volter/reload-prevention-20261006/`.
+
+The generated AGENTS.md tells future authoring sessions to use normal file
+watchers and inspect the current document rather than reload to reveal source,
+UI boards or references. This guidance cannot change reload calls already in
+a recorded transcript. A faithful replay retains those deliberate calls.
+The editor host and project instructions contain no replay-specific behavior.
+
+The server build and diff whitespace check passed. Core typechecking stops at
+the unchanged `vite-plugin-shared-sdk.ts:34` nullability error (`module.exports`
+may be null); the same expression is present in HEAD. No automated tests were
+added or run for this follow-up. Arbitrary new third-party dependencies can
+still require a new optimizer generation; this check covers the observed
+model-to-UI tool activation, not every possible package installation.
+
+### Fresh kart authoring cycle follow-up, 2026-10-06 (unpublished)
+
+Cycle 1 remains an unsuccessful smooth-workflow check: the agent recovered a wrong
+reference mount path, Unicode export lookup, model worker ownership, a material-preview
+exception, excessive rendered material ranges, and one crashed renderer. The parent
+reopened the saved project after that crash. Native conversation identity recovered;
+recording has an explicit capture gap. Its visual match still needs improvement.
+No replay-specific behavior was added to the editor.
+
+Generic candidate fixes now use UTF-8 for the native export JSON door, serialize
+opening another saved model after draining/saving its worker, scope dot-directory
+watcher exclusions to the project root, and enable existing bounded opaque material
+range grouping in rendered mode. MCP/starter guidance names the actual project mount
+and recommends batched Blender geometry operations. Removal diagnostics compare
+Blender session IDs so renaming does not claim deletion.
+
+Manual probes retained under `.volter/kart-cycles-20261006/` establish: a newly
+saved second blend appeared and opened without reloading, with zero console errors
+or warnings; Unicode bullet/accent/CJK/emoji object and mesh names export and display;
+400 alternating opaque faces group to two ranges (398 ranges saved, 9,600 cached
+index bytes) in rendered mode, with an unchanged 1,200×350 interior pixel crop.
+The combined rename/material probe also reported React #177 twice. Those errors
+were retained, not acknowledged away; it is not a clean overall probe. The separate
+frontend worktree fixes harness-switch registration and filters the known
+account-update lifecycle notice; fresh native visual checks confirm both behaviors.
+
+Browser, Node and editor-server builds pass. Blender-engine typechecking stops at
+existing missing `session.py?raw` declarations; editor-core has the previously
+recorded nullability failure. No automated tests were added or run for this follow-up.
+The cycle loop and recordings remain ongoing; none of these probes counts toward
+its required five fresh native game-authoring cycles.
+
+
+## Cycle 2 recovery continuation
+
+Full editor close interrupted the native author and a null durable native binding
+caused a fresh native conversation on reopen. Host-verified rememberSession bound
+the exact original native ID, and ordinary close/open then resumed it. The private
+frontend now saves during submitted and observed turns; the fresh automatic path
+still needs manual interruption verification. Frontend build and docs check pass.
+
+The Blender hold diagnostic found an absent context even though the public REPL
+had earlier observed the same registry's valid runtime view. A remounted same-file
+pane queued its publication behind the still-booting open that needed it. The
+candidate publishes the current worker's same-file replacement before that queue,
+and SDK publication cleanup now identifies its own publication rather than a shared
+live handle. The previously failing Cycle 2 scene now opens and Blender status
+reports started/document true. This is one recovered saved-scene check, not a claim
+that all crashes or general smoothness are resolved. Long restored chat history
+still emits Code-OSS listener warnings/errors; these remain in the console ledger.
+
+Macro-task document updates and one-shot capture resource cleanup build and have
+limited small-scene manual checks. The context-wait diagnostic also yields when an
+incompatible context already exists, avoiding a timeout-long microtask spin. The
+no-context case, not an incompatible object, was observed in Cycle 2.
+
+Cycle 1 encoded video sampled visual review is complete: 64 opening and 64 timeline
+samples in addition to source frame review. Normal-speed recording runs 2548.083 s;
+8x derived from that video runs 318.5 s. Capture errors and a final 103.376 s image
+hold remain visible and documented. Cycle 1 fails smoothness and full visual match.
+Cycle 2's original native author resumed with a disclosed infrastructure intervention;
+only one game authoring cycle is complete. The five-cycle goal remains active.
+
+
+## Continued recovery checks and fresh Cycle 3
+
+The fresh persistence probe saved its exact native ID while busy and restored that
+same ID after a full owned close/open without manual binding. The native turn was
+aborted by closing; its original prompt and tool-abort result remain displayed.
+The probe exposed setup turns shown as user messages. The generic display loader
+now omits only Codex user messages explicitly tagged entirely as agents_md.instructions
+or environments.environment_context. Raw and continuation loading are unchanged.
+Headless loadSession forwards a read view through its verified full-locator lookup;
+the editor requests bounded display history. A coherent private CLI/client/TypeScript
+SDK recovered the same conversation with its human prompt and tool result visible,
+no setup block, and zero console errors/warnings. Prior binary-only runtime failure
+and an intermediate missing-locator failure remain in probe receipts. Rust build,
+formatting, editor Node build and documentation checks pass; no tests run.
+
+Cycle 2's original author completed a live three-lap race; parent observation saw
+all six finish. Its renderer disappeared again at 06:15:54.950 UTC with last JS
+heap 329.49 MB, WASM 512 MB and no in-flight Blender call/close beacon. Cause remains
+unproven; one-shot capture cleanup did not eliminate it. A retained recording
+segment lowers capture to one image per five seconds. This is a capture limitation,
+not accepted smoothness. Cycle 3's clean placeholder project opened but empty-to-Codex
+selection still produced a native content-provider error and lost prompt dispatch;
+no game authoring turn started yet. This opening is retained as another failure.
+
+## Six-cycle continuation, 2026-10-06
+
+Five fresh native authors have completed. All five original-speed videos and the
+8x videos derived from them pass full decoding and timing checks. Every encoded
+opening and timeline contact page was inspected. All five cycles fail smoothness
+or full reference match; none is accepted merely because it completed a race.
+These editor recordings use timestamped screenshots, with capture errors and held
+gaps preserved. They do not establish continuous gameplay fluidity.
+
+Cycle 6 is authoring in a fresh project with all Volter packages privately
+snapshotted. Its first opening and native prompt dispatch had zero console errors
+and one browser epoch. Keep its private source and workbench immutable until the
+session closes. The active cycle and exact native IDs are tracked under
+`.volter/kart-cycles-20261006/cycles.json`.
+
+After the earlier projects closed, the reviewed key latch, Play return ownership,
+game CSS host scope, bounded file streaming and passive native startup candidates
+were transferred into this worktree. Actual editor-core server, Blender serving
+and model browser builds pass. No automated tests were added or run. A disposable
+manual file fixture verified a stale index, append-after-response-headers with
+actual wire EOF, and Blender importing while the file grew through 109 appends.
+The worker opened the cube with zero errors or warnings and one browser epoch.
+
+Restoring Cycle 4's exact completed conversation now produces nine canvases,
+compared with 175 before the tool-history display change. Its saved native bytes
+are an exact prefix of the current transcript; reconnection appended one settings
+event. A startup No default agent error remains in that recovery receipt. This
+does not establish the cause of the earlier renderer losses. Model projects still
+lack the game editor's public continuous gameplay recording commands.
+
+Cycle 6 exposed a separate generic timeout: its 6.5-second key hold exceeded the
+document-probe relay's fixed five-second budget. The relay now adds a validated
+explicit key duration to the ordinary probe budget, retaining fast reads. Holds
+are bounded to 120 seconds, with invalid durations refused before keydown and
+keyup in a finally block. Core server and model browser builds pass. A disposable
+public control walk verified a 6.5-second hold, a subsequent new press, and refusal
+of an oversized hold with the visible React counter unchanged; zero console
+errors/warnings after corrected fixture setup. The observer's two fixture setup
+mistakes are retained separately.
+
+Cycle 6's later full reload has an identified trigger: creating tsconfig.json at
+08:33:21 UTC caused Vite to reload. Project creation now writes the shared compiler
+configuration before boot. Node build passes, and a fresh native-ready project
+contains the configuration in its 12-file baseline. Its live authoring check is
+still pending; existing Cycle 6 packages were not changed.
+
+Cycle 6's native author completed at 08:53:11.666 UTC. Its renderer disappeared
+about 29 seconds later; public reopening restored the exact original idle native
+conversation. Parent autoplay independently finished all six racers and all 24
+ordered checkpoints, and manual acceleration, braking to zero, exact pause and
+a fresh ready grid were observed. Reverse was not independently verified. This
+cycle still fails smoothness and full visual match. No renderer-crash cause is
+established, and all failure receipts remain retained.
+
+A parent public-document MediaRecorder walk captured the world canvas at its
+original speed. It excludes DOM HUD, editor chrome and audio. All six encoded
+contact sheets were reviewed, precise decoding emitted no diagnostics, and the
+normal video was actually sped up to 8x. Half-second frame gaps lined up with
+concurrent five-second full-editor screenshots. A second moving clip after
+stopping screenshots had 575 frames and a 70 ms maximum interval, versus 496
+frames and a 935 ms maximum (513 ms during racing) with screenshots. All six
+second-clip contact sheets were also reviewed. This supports an observer effect
+for frame delivery in these clips, not a renderer-crash explanation. An invalid
+parent selector and its resulting static clip remain in the evidence.
+
+Cycle 6's full editor recording ended with 666 sparse images and 20 capture
+errors. Original timing includes the shared-capacity pause and renderer-loss gap;
+the 1x export decodes completely and differs from source timing by 2.7 ms. Older
+closed cycles' frame archives were moved to PeakSSD only after full byte/SHA256
+verification, with logical paths preserved. No other actor's files were removed.
+
+Cycle 7 now runs a fresh native author from the private typed-starter snapshot.
+Its 12-file baseline includes tsconfig before boot. Opening had zero console
+errors/warnings and one browser epoch; the first prompt is verified busy in its
+original native conversation. Its sources and workbench remain immutable while
+the author works. The additional visual feedback names the actual previous
+lighting, canyon-shape, camera and UI-preview gaps.
+
+The shared-capacity peer paused Cycle 7's owned screenshot consumer at
+09:16:51.989 UTC. The native author and editor remained live. Completed Cycle
+2/4/6 media was copied to PeakSSD and every file's byte count, SHA256 and inventory
+verified before original paths became symlinks. Cycle 2's shared image hardlinks
+were preserved. Actual local free space recovered to 22 GiB and the owner resumed
+the exact recorder PID through the World; frame receipts preserve a 216.911-second
+pixel gap. No other actor's World, cache, worktree or process was changed.
+If another fresh cycle is needed, its screenshot directory should be allocated
+on the evidence volume before capture starts, with the same logical project
+path. Do not move a live recorder's directory underneath its open writes.
+
+Cycle 7 exposed two source-opening problems in the public editor doors. The
+generic asset opener previously allowed a `.blend` when an explicit asset kind
+was supplied, bypassing its Model document. The SDK now refuses that form too,
+and starter guidance uses `editor.open('model:<path>')`. The editor-live build
+passes. An idle disposable fixture verified refusal without changing its
+document, selection or camera, then opened the suggested Model ID successfully.
+That fixture's existing No default agent startup error was retained; its public
+close completed gracefully.
+
+Opening Cycle 7's React HUD source also invoked its default component as an
+Object3D builder, producing an invalid hook call. Source opening now consults
+the actual manifest root entries and loaded adapter region declarations before
+calling a candidate model builder. Declared DOM/canvas files remain readable
+source; unplaced modules retain the Object3D contract. The model browser build
+passes in 31.76 seconds and the editor-sdk TypeScript check passes. A separate manual public SDK walk opened a DOM root
+using useSyncExternalStore, a declared include using useState outside the UI
+folder, and an ordinary Three Object3D builder. Both components showed their
+source, the builder showed its cube and model inspector, and all three had zero
+errors/warnings/acknowledgments. Screenshots and receipts are retained under
+`.volter/kart-cycles-20261006/probe-key-hold/`. All three screenshots were inspected
+and the fixture closed gracefully. No automated tests were run.
+Cycle 7's private packages remain unchanged, so its original errors remain
+part of that cycle's evidence. A later renderer frame error was also retained;
+the loop and same browser epoch continued, and its cause is not established.
+
+Cycle 7 completed at 10:05:53.397 UTC. One renderer loss required reopening the
+same native conversation. Public crash vitals show 388.97 MB last heap, 512 MB
+Blender WASM and no in-flight Blender call; they do not establish the cause. An
+owned auxiliary UI fixture was open in that interval, so Cycle 8 will run without
+one. No initial pair of reloads occurred. Parent fresh autoplay finished all five
+racers, cleared/parked them after the line, and observed all 24 player gates and
+three laps. Public pause held an item, exact race time and all racer positions
+for over 16 seconds. Manual acceleration, braking to zero, hopping, item use and
+restart were observed. An observer durationMs/holdMs mistake is retained and was
+repeated correctly; manual race completion and reverse were not proved.
+
+The final public UI-canvas walk selected Ready with seven preview states and no
+mount/story failures. A separate before-boot DOM-root fixture also selected Ready
+when Countdown was first; the earlier default-selection issue remains unresolved,
+so no speculative production change was made. The final game remains simpler
+than the reference in canyon/cloud shape and sculpted kart details. It fails
+smoothness and style acceptance.
+
+The full editor recording ended with 736 sparse images, 21 errors and retained
+216.911-, 30.318- and 108.461-second missing-pixel intervals. Its 1x video fully
+decodes and differs from requested timing by 18 ms. After stopping screenshots,
+a separate 24.003-second moving world-only clip was recorded; 576 frames decode,
+with 51 ms p95 and 57 ms maximum intervals. All six contact pages / 96 samples
+were viewed. The world-only 8x video is derived from the normal encoded video,
+decodes and lasts three seconds; it excludes DOM HUD/editor/audio. Cycle 7 then
+returned to a fresh manual grid and its public close completed gracefully.
+
+Cycle 8 is prepared from a private all-package snapshot of the compiled generic
+source guards and all earlier fixes. Its frames directory was allocated directly
+on PeakSSD before any capture, with the logical project path retained. It has not
+yet been opened or dispatched. The author prompt includes precise visual feedback;
+the parent still does not write cycle game code.
+
+Cycle 7's actual-derived full-editor 8x video passes decoding and timing at
+502.291667 seconds, 12,055 frames and -10.4 ms timing error. All four opening
+contact pages and seven timeline pages were viewed (64 opening / 100 timeline
+samples), plus the final encoded frame. The opening shows the new placeholder
+and then the actual prompt, without a pair of reloads or recovered transcript.
+The later renderer recovery is visible. The finalized frame archive was moved
+only after every file's SHA256, size and inventory matched; it preserves logical
+paths and contains 978,796,618 bytes. Cycle 7 is reviewed-failed; seven authors
+have completed, and none is accepted as smooth. Cycle 8 opening has now begun.
+
+Cycle8 independent review failed: interrupted native verification, late renderer replacement, finish overlap, retained parking lanes on restart and incorrect Countdown/three-racer UI fixtures. Native original transcript preserved; no final completion claimed. Full1x/actual8x and world clip fully decode/timing pass; all17 contact pages plus encoded final frame viewed. Video ends on UI canvas, finalReady separate PNG only. Root Play chrome/async sampler build23.80s and corrected Blender typecheck pass; manual verification pending.
+
+Manual public comparison PASS after correction: previous packages36 missing-image warnings on first Play and visible shelf; corrected root first+repeat Play0 new missing-image warnings/0 errors/0 acknowledgements, shelf absent, public Stop button retained; both Stops restore5 tools, same public viewport camera. No-extension plain Models control5 tools/noPlaybutton preserved. All relevant screenshots directly viewed. Startup warning1 retained; selection was empty, so selected-object restoration was not exercised. SDK typecheckPASS and browserbuild16.71s. Owned fixture gracefully closed. Final recorder fixture9frames ends on actual stopped Model; requested1791288131746/completed1791288131913 before end1791288131916, lastPNG directly viewed.
+
+Cycle9 native author started from fresh12-file Models preset and20 private current packages, originalsession01a1111a-4f9a-7ea0-bc54-b4f84b1f562c. Ready cube/zero errors+warnings/one epoch verified before actual Ask prompt. Recorder23646/PID82212 .2FPS/direct external; no auxiliary editors/builds. Prompt includesC8finish-overlap, restart lane, Countdown/five-racer fixture and manual handling feedback. Active snapshot immutable.
+
+## Reference interpretation and visual-first defaults (2026-10-06)
+
+User clarified that reusable failures belong first in the owning engine/editor, otherwise in default agent guidance, and that the task prompt should stay short. Repository AGENTS.md records that iteration policy. Model Editor starter AGENTS.md now derives requirements from actual images, videos, specs, linked sources and existing assets, distinguishes observations from assumptions, and requires a static authored 3D scene plus React UI reference match before new gameplay. Comparisons cover framing, geometry, palette, lighting, display color space, exposure and tone mapping. Generic restart, complete-session, active-pause, sustained manual-input and deterministic UI-preview checks are default guidance. CLAUDE.md continues importing the shared file.
+
+The next-cycle user prompt is fixed at 18 words in .volter/kart-cycles-20261006/next-user-prompt.txt. Historical prompts and live/private cycle packages were preserved. Manual calls to the real product preset created fresh Models and Playable projects inside the owned World; both copied the exact updated defaults and CLAUDE import. No editor was opened or AI turn dispatched for this check. These are instruction and scaffold delivery changes, not proof that a new author achieves visual convergence. No automated tests or runtime changes were added for this follow-up.
+
+## Capture diagnosis after cycle 9
+
+Cycle 9's original native author completed; parent autoplay independently finished
+and parked all five racers with 24 gates and three laps, and actual Restart
+restored the full initial grid/counters. The planned uninterrupted second race
+was not observed because the original page closed with an explicit close beacon.
+Recovery preserved the original native session; the cause of closure remains
+unknown. Visual fidelity still fails. Parent pause-with-item and all UI previews
+were not independently verified. Native claims remain distinct from parent checks.
+
+The five-second full-editor PNG recorder caused roughly 317–333 ms gaps in the
+original C9 A/B, while capture-off had no >100 ms gaps and a 25 ms maximum. This
+capture is DOM/canvas reconstruction, not CDP or desktop capture. A closed-scene
+fixture reproduced up to 493 ms gaps. The owning editor capture code now avoids
+duplicate megapixel encoding for the Three host viewport, skips invisible retained
+canvases, respects ancestor overflow clips and encodes final PNG in an owned
+worker. Initial async-only candidates did not solve the problem and were rejected.
+Manual image checks, SDK typechecks, browser builds and diff checks passed.
+Warm screenshot completion reached 355 ms, but active-race full-page DOM/SVG
+reconstruction still caused 141–142 ms gaps; capture-off again measured 25 ms max.
+Do not claim smooth capture or blame the earlier whole-machine freeze on this
+proof. All probes/editors/recorders are stopped; private author packages preserved.
+See .volter/kart-cycles-20261006/probe-async-capture/REVIEW.md and raw receipts.
+
+Cycle 9's preserved full-session segments contain 1,059 successful source images
+and 210 capture errors. Their original timing, resize failures and page-closure
+gaps are retained; varying window dimensions are letterboxed at export only.
+Media review and the next reference-first cycle remain pending.
+
+## Cycle 9 review and capture scope (2026-10-06T15:02:56.451525+00:00)
+
+Cycle 9 is closed and not accepted: visual match fails; parent all-five finish and
+actual Restart reset pass, uninterrupted second race/manual/held-item Pause remain
+unverified. All 1060 decoded editor frames reviewed; both 1× and actual derived
+8× decode/timing pass, errors and gaps preserved. Canvas clip reviewed separately
+with its HUD omission explicit. Full-page capture worker/clip improvements still
+leave 141–142 ms running-race stalls. Capture scope documented in SDK README and
+project defaults. Videos retained and linked from watch-recordings.html.
+
+## Continuous visible authoring defaults (2026-10-06)
+
+The user requires the work to remain understandable to a person watching while
+it is being built. Starter AGENTS now requires opening and framing the current
+work before edits, useful model/detail/reference/UI/Play views throughout the
+task, and preserving deliberate human layout changes. Substantial work keeps
+an internal Blender `Build Notes` Text data-block and readable in-scene notes
+with current, pending and timestamped verified milestones. Procedural rebuilds
+preserve Notes alongside References. Notes must be checked outside actual
+game/render/export output, rather than assuming hide_render covers every path.
+
+Both real Models and Playable preset calls copied the exact new AGENTS and
+CLAUDE import. Unopened fixtures and receipt live at
+.volter/kart-cycles-20261006/visible-authoring-defaults/. Cycle 10's original
+native author completed; a distinct native follow-up now applies the user's
+visibility/notes request using the updated defaults. Original baseline
+instructions, short task prompt and references remain archived. Visibility and
+note persistence/exclusion are still awaiting direct inspection of that phase.
+
+The original native follow-up completed at 16:09:45 UTC. Parent directly inspected
+the final editor view: readable timestamped checklist and reference on the left,
+focused karts on the right. Native evidence records text roundtrip persistence,
+fake-user retention and GLB exclusion. The instructions remain authoring guidance;
+this retroactive setup is not proof of continuous compliance in a fresh build.
+
+That author exposed a generic engine bug: Rendered editing views incorrectly
+applied hide_render. Blender runtime/editor now keep viewport visibility for
+authoring in every shading mode and explicitly select render visibility for the
+detached game, including preparation. Actual render snapshots still select
+render visibility. An owned closed fixture directly verified readable Rendered
+notes, their exclusion from a real bpy render, restoration afterward, ordinary
+game/HUD Play and restoration after a fully completed Stop. Public camera,
+selection and shading were retained. Renderer/SDK typechecks and browser build
+(43.85s) passed. Full editor-core typecheck failed in harness client declarations,
+project-work-coordinator and shared-SDK nullability; it is not a full-check pass.
+One startup error retained, zero new Play/Stop errors and no acknowledgements.
+Raw limits and premature capture/file-transfer mistakes are retained in
+.volter/kart-cycles-20261006/probe-notes-visibility/REVIEW.md. A viewport capture
+was initially mistaken for a final render; SDK docs now distinguish that too.
+Native split-area Stop/FOV observation is separate and not yet reproduced/fixed.
+
+Cycle 10 was subsequently closed through its own public CLI (graceful, exit 0),
+after verifying idle author/no pending requests and the saved 20,422,015-byte
+model. Exact PID 12859 and its listeners exited. A peer reported repeated costly
+session discovery and machine slowness; source confirms four-second idle polling.
+Its cost needs investigation before another fresh build. No new editor/build was
+started for this step. Receipt and peer delivery record live in the cycle evidence;
+this closes the completed editor, without accepting the still-incomplete cycle.
+
+Idle discovery correction: ordinary indexed project sessions now use Supercode's
+existing controller subscription, without Volter's repeated scan/fingerprint/
+second refresh. Legacy clients and explicitly linked caller sessions retain a
+60-second idle-only refresh through the controller, instead of the 4-second
+scan-then-refresh pair. Explicit Refresh remains immediate; workspace changes
+and closure cancel fallback timers. The legacy/caller fallback does not prove
+cross-workspace caller retention by Supercode's workspace index; that coverage
+still needs independent review before claiming complete external-session support.
+
+The workspace UI dependency could not resolve its optional client peer: the
+locked 0.3.66 client was nested under editor-core. Declared that same version as
+a root development dependency and installed offline with scripts disabled;
+lockfile now hoists that existing exact package. This resolved the harness and
+coordinator type errors. The remaining shared-SDK plugin nullability was fixed
+by skipping modules without an exports list. Core typecheck and server/plugin
+builds passed before the final compatibility fallback change; final source is
+being rechecked. Manual isolated service exercise uses the installed real
+SupercodeController with a synthetic inventory, not an editor or AI author:
+session-discovery-review/receipt.json under the cycle evidence. It verifies idle
+and tab-load scan suppression, indexed add/update/remove, explicit Refresh,
+index release, and automatic legacy fallback with timer cancellation. The first
+manual receipt's strict subscription-count check ran before asynchronous
+replacement settled; that failed receipt is preserved. The corrected check
+waits for settling and verifies no remaining active subscription identifiers.
+No new fresh cycle has been launched; continuous visible work and matching the
+reference before gameplay remain unverified in a fresh build.
+
+Final discovery source check: editor-core typecheck passed (exit 0), packaged
+server rebuild passed, and the plugin build passed. Final manual receipt passes
+all three service cases with zero active subscriptions after Close. Diff check
+passed. The public editor remains closed. Read-only uptime still reported load
+averages 12.89/12.00/15.68; that is machine evidence, not attribution to this editor.
+Remaining before a fresh cycle: split-viewport Play/Stop camera restoration,
+root/dependency entry-deletion lifecycle review, and scoped external-caller index
+coverage. Notes/reference defaults and actual render exclusion are already checked.
+
+Continuation verification: split authoring Play/Stop reproduced the 38-to-71.5
+degree jump. Explicit setPose wrote only the current camera, leaving resize to
+reuse the old field-of-view source. The shared Three viewport now updates that
+source; document camera requests also record their explicit lens in the view's
+presentation, and shell camera actions go through the same session setter.
+Three typecheck and browser build passed (17.88s). Manual two-area fixture
+restored main pose/FOV/selection/shading exactly and retained the second area's
+presentation; before/after PNGs were directly inspected. A comparison of whole
+presentation responses initially included timestamps/bound-stage inventories;
+only actual presentation settings are the restoration comparison. The original
+baseline visibly shrank notes; fixed output preserves their readability.
+
+The pending entry-deletion lifetime candidate now passed a real public editor
+exercise: removing the Play entry stops Play/disposes HUD, restoring it plays
+again, removing a dependency reports the missing module without treating it as
+entry removal, and restoring the dependency recovers. No page reloads (one epoch),
+files restored, final Stop complete and public CLI close graceful. Missing-module
+errors are retained and unacknowledged. Evidence lives in play-module-lifetime/.
+
+External caller review confirmed the pinned Supercode workspace index removed an
+explicitly included caller from another folder. Owning fix is in the existing
+isolated supercode-replay-recovery-20261006/sdk/client/client.mjs: replacement
+removals apply only to rows in the index's workspace. Manual review passed with
+that real owner-source controller and a private same-fix candidate of the exact
+installed 0.3.66 client. Both preserve the caller, exclude unrelated sessions,
+still remove a stale in-workspace row, and release subscriptions. No shared
+package modified, native session/store written, or package published. The private
+candidate records original/candidate hashes and source provenance; next cycle
+uses that immutable candidate without downgrading to the owner checkout's 0.3.60.
+No automated Supercode tests were written or run. All editor fixtures are closed.
+
+2026-10-06 cycle 11 supersedes closed-editor guidance above. All three pending
+checks completed: main split-camera 38-degree FOV now preserved across Play/Stop;
+entry deletion stops Play/HUD, dependency restoration recovers in one page epoch;
+Supercode scoped index preserves explicit external caller and removes stale local
+row. Read WORK.md and split-play-stop-fixed/REVIEW.md for evidence/limits.
+C11 fresh native author dispatched at 1791306898637, original unchanged prompt.
+Project cycle-11/project; URL http://127.0.0.1:20414/?project=project. Native
+01a11232-d954-7f62-9c88-1e938fec2999, connection
+2f829fb9-6240-4e42-b708-f9d019edd7ac. Immutable private snapshot on PeakSSD
+source-snapshot-visible-authoring-scoped-client-20261006 and private pinned
+0.3.66 scoped-index candidate; runtime-candidate.json owns paths/hashes.
+No periodic full-page recorder. Baseline and opening-author PNGs directly viewed;
+startup secret-storage Not Found retained, no reload yet (one page epoch).
+Nine completed authors/zero accepted remains until C11 actually completes.
+Parent must monitor continuous human-visible static/reference/UI-first compliance
+and independently review visuals/gameplay. Do not edit private live snapshot.
+
+C11 first substantial canyon capture at17:19UTC: one healthy page epoch; scene
+visible, reference and notes offscreen. Parent directly inspected
+cycle-11/canyon-static-stage.png. This fails continuous human-visible compliance
+although the assets are present in the Outliner. Native continues unchanged;
+no parent correction prompt/game authoring. Default AGENTS now adds an explicit
+pre-build captured layout check plus a second authoring view when the target
+camera excludes references/notes. This new default is for future projects, not
+an unrecorded modification to live C11.
+SDK unchanged-styles capture cache prepared and manually checked; see
+style-capture-cache-corrected/REVIEW.md. Root SDK typecheck/browser build passed;
+fixture closed. C11 serves older immutable snapshot, so this optimization is
+not in C11. No claim remaining game/capture stalls are all solved.
+
+Live-run evidence owning fix: shared SDK status now reports the live registry's
+successful run window. Core observes a new valid run since the current project
+was opened and retains logs/live-run.json; the canonical freshness reader uses
+its recorded observation timestamp, never a later file touch. No document,
+product or replay knowledge. Actual C11 logs incorrectly escalated to NEVER
+ONCE PLAYED after its static composed Play had run three times, confirming the
+previous recording-only evidence gap. New root candidate is not in immutable C11.
+Core/SDK typechecks passed; packaged server build passed; browser build35.05s
+passed with existing nonfatal bundler warnings. Final SDK public type field
+check pending13315. Owned idle fixture public UI review live-run-evidence/receipt.json:
+first successful Play recorded; repeated status/Stop did not rewrite evidence;
+first-frame throwing game stayed stopped and did not manufacture new evidence;
+restored entry's next successful Play produced a newer run. Original source
+restored, final Stop/CLIclose graceful, expected failure console retained.
+Next defaults add pre-build visible-layout capture and actual comparison artifact
+with largest remaining mismatches before gameplay. Models and Playable fresh
+scaffolds exact defaults and shared CLAUDE import verified, SHA
+864ebf01d4e3a3611a1c228052b106bf11175a4d7d2126d0f3bd775b2bf98db8.
+C11 parent directly viewed author static-refined and UI-start images; visual match
+is still insufficient (geometry, light, scale). Native progressed to gameplay
+anyway, a visual-gate failure. Parent observed six finished/stopped at17:34UTC,
+parent-race-observations.jsonl, not yet a parent full-race/restart/control check.
+Native author still active. No original prompt changes or parent game source edits.
+
+2026-10-06 18:08 UTC continuation supersedes C11 active guidance: native author
+completed17:50:34.312Z; independent review in cycle-11/parent-review.md. Actual
+public inputs verified Restart, exact pause with boost through W/Space/T, Resume,
+fresh full three-lap autoplay race/all six stopped/stable, manual forward and
+reverse, opposing steering, boost consumption and settled Stop/Play Ready.
+Retained failed helper receipt: incorrect left-heading convention and transient
+No HUD during remount; separate settled return review passed. No full manual
+race or Mario Kart handling equivalence claim. Two racers show46 collisions.
+Directly viewed Ready/Pause/Finish/full editor. Still visually insufficient;
+reference/notes offscreen during build. 10 completed authors,0accepted across11
+started. Closed C11 via public CLI,11,273,576-byte model retained. No videos
+deleted; C11 original native transcript retained, no periodic recorder/video.
+
+New Model Play frame candidate now checked in the actual copied idle editor:
+play-frame-fit-final/REVIEW.md and receipt.json. Declared aspect contained and
+exact world-canvas/HUD bounds at landscape/portrait; unspecified fills document.
+Generic Three surface fillContainer suppresses dock-padding bleed for composed
+Play. SDK region:play photographs visible live frame with React HUD, excludes
+authoring navigation, refuses after Stop. Authoring view exact/FOV38 restored.
+All three PNGs directly viewed; portrait fixture UI itself overlaps (project
+responsiveness remains its responsibility). Three/SDK/Blender checks passed,
+browser build26.84s passed with existing warnings; final SDK run evidence types
+had also passed13315. Owned fixture manifest restored/editor gracefulclose.
+Earlier failed frame reviews retained. Configuration refresh stops/remounts
+Play (frame-refresh-diagnostic), not a scope-query omission; not fixed here.
+No live resolution-change continuity claim, no replay-specific engine API.
+
+Starter capture guidance now chooses composed Play frame and reference resolution
+for visual comparisons. Fresh Models/Playable exact defaults/shared CLAUDE import
+verified without editor or AI via visible-authoring-defaults-play-frame/receipt,
+SHA5f13ce8cd07d46dccf9c354d486f6add3dd2895893422a270bd1800322c1febf.
+Prepared fresh20-package immutable snapshot source-snapshot-composed-frame-visible-
+gate-20261006 on PeakSSD for C12. Original18-word prompt/reference unchanged;
+no source/game/transcript from C11 carried into its project.
+
+2026-10-06 later continuation: C12 original native Codex dispatched18:09:31.080Z,
+session01a11267-7ea6-77f0-9ab6-b2066e06ba21, editor21000/session29474; unchanged
+18-word prompt/reference, source-snapshot-composed-frame-visible-gate-20261006.
+Pre-build captured reference/readable notes/placeholder together, directly viewed.
+Later target-camera shots exclude notes/reference; returned authoring board shows
+both again. Continuous visibility still unproved/failed at those moments. Parent
+directly inspected saved static-comparison and static-final1672×941: exact reference
+dimensions now; geometry/framing/kart details/shadows/map outline still differ.
+parent-static-review.json records descriptive RGB MAE46.85/42.97/42.33, no inferred
+acceptance threshold. Author cited shadow limitation but no focused reproduction
+independently verified. New future-default sentence requires such support while
+continuing authorable corrections; immutable C12 instructions unchanged. Original
+native still active, fixing guardrail snag and canyon/road overlap before final
+race/UI checks; do not count its claims as parent review.
+
+Generic SDK contribution module-version fix prepared and verified after C12's
+snapshot. Scans previously assigned Date.now to every contribution's React mount
+key, tearing down unchanged bundled document modules on configuration refresh.
+WeakMap versions now identify imported namespace instances; new imports get a new
+version. SDK check/browser build19.50s passed. Actual owned fixture moving race
+kept same live run ID through landscape→portrait→landscape, HUD/state retained,
+simulation advanced; Stop exact authoring view/FOV38 restored. Directly viewed
+paused image; original manifest restored/fixture gracefulclosed. See module-
+version-continuity/REVIEW.md. Real source edit/removal review passed in module-
+version-changed-source-corrected: First0→First1 click, edit→Second0, removal→noUI;
+probe removed/fixtureclosed. Project-authored contribution cache-busting behavior
+is unchanged; no claim every source contribution avoids refresh.
+Earlier look-registration retention candidate did not keep Play and was rolled
+back. Its receipts retained. First HMR probe used wrong folder/open API, was
+stopped after retries; both owned probe links removed, fixtureclosed, failed
+receipt retained. No source fix claiming success from that failed attempt.
+
+Answered peer ownership inquiry via supercode-teams: this exact task tree, install,
+toolchain, active World, unique source/evidence and linked snapshots remain held;
+no release/prune authorization. Native C12 author and our task remain active.
+
+2026-10-06 19:14 UTC: tool access recovered. Timing probe took3824ms despite hook error: PostToolUse ran AFTER command and hid successful result. Read hooks.json confirmed PostToolUse/Stop/UserPromptSubmit message hook. No global hook config edited. Earlier rollback DID execute: renderer source exact byte-equal saved original (SHA2ea1c69ab4b83ef1667d3f7963b4d48076e4894bfee0a8b73619ce018b1a6c5f). Root browser rebuilt32.44s from restored source. probe-shadow-extent/restoration-receipt.json; fixture graceful closed. Earlier claim rollback was blocked was incorrect. Original/small→large→small images show contact shadow disappears on enlarged floor. Rebuilt zero-bias large-floor has only faint broad shadow; candidate NOT accepted. Source restored. No general shadow-quality fix landed.
+
+C12 native no transcript rows18:36:50→19:08:46 (~32min), screenshot parent-stalled-native.png shows Retry warnings as unsupported JSON; healthy editor/epoch1, no pendingapprovals. Normal chatCancel19:08:46 and minimal Continue19:09:31 preserved exact session/connection and recovered progress. native-recovery.jsonl and continuations.jsonl retain intervention. Cycle12state authoring-after-native-recovery, not authorcomplete or accepted. Original prompt/ref unchanged; recovery is NOT a clean uninterrupted blindcycle. Latestauthor19:13:39 checking UIpreview buttons then two final races.
+
+Owning Supercodefrontend source sdk/frontend-vscode/src/view.ts now treats warning through existing bounded cache_warning path. Locked dependency compile passed (missing @types/vscode on first tries; npmci normal registry installed4deps into previously absent owned frontendnode_modules). Manual compiled projection receipt frontend-warning-projection.json verifies warningpart/proposal fallback; unknownkinds retainbounded raw. No automated tests, publish, shared install or liveC12Workbench changed. This candidate is NOT live-editor-UI verified.
+
+### 2026-10-06 — cycle 12 closed; cycle 13 dispatched
+
+Cycle 12 completed at 19:20:35.093Z. Independent public-control review passed forward, reverse, separate fresh-grid left/right steering, boost consumption/effects, pause freeze, one complete autoplay race with all six racers stopped, finish restart and Stop/Play reset. The earlier combined steering sample was inconclusive after boundary contact and remains retained. No full manual race or handling-quality claim. Visual reference match remains false. Reviewed artifacts: cycle-12/parent-review.md and parent-review.json. Public CLI close succeeded and retained the saved Blender scene.
+
+Cycle 13 launched from a fresh baseline with the exact 18-word original prompt and approved reference. Immutable product snapshot carries stable imported-module versions and focused renderer-blocker proof guidance; rejected zero-bias shadow experiment and unverified frontend warning display candidate are excluded. Fresh original native session 01a112ae-de11-7251-98b9-c7ac12d1f10e dispatched at 2026-10-06T19:30:03.101Z. URL http://127.0.0.1:27237/?project=project . Initial page epoch 1; one recurring startup secret-storage 404 retained. 13 started, 11 completed authors, 0 accepted visual/smoothness cycles. No periodic full-page recorder; transcripts and existing videos retained.
+
+### 2026-10-06 — cycle 13 visual gate failed; general diagnostic fix verified
+
+Cycle 13 remains the exact original native editor session, one page epoch. Independent saved-static review: cycle-13/parent-static-review.json. Matching aspect and saved side-by-side comparison improved; cliff/kart silhouettes, material/shadow appearance, framing and oval minimap remain visibly different. Author called terrain a simpler interpretation and moved to gameplay at 19:46:03.128Z. It independently found and corrected racing-corridor cliff intersections and overlapping finished karts; gameplay review is pending original author completion.
+
+Owning defect identified: public diagnostic material was accepted despite the API vocabulary preview. The diagnostic renderer indexed variants by the invalid name, temporarily assigning undefined draw materials; the author image-Empty diagnosis was incorrect. Public presentEditorView now rejects invalid diagnostics before any view mutation, and Object3D setMode guards its own state. URL diagnostics share the published list (also restores clay/matcap parsing). Temporary pre-draw instrumentation removed. SDK/Three typechecks, browser build14.88s and diff check passed. Actual fresh public editor fixture rejects material with camera/shading/grid unchanged; valid preview/text/packed image Empty, clay/matcap/Solid/Rendered captures pass with epoch1/no new frame errors. Directly viewed image/cube/notes capture. The first two image checks were invalid (image outside mounted project); retained and corrected in probe-diagnostic-validation-image/review. Report: probe-diagnostic-validation/REVIEW.md. All parent fixtures closed. No shadow quality fix landed; zero-bias experiment remains restored/rejected.
+
+Default starter instruction refinement checks silhouette curvature/proportions/surface detail instead of object coverage; leaves visual milestone pending for remaining authorable differences; checks actual note words/contrast at normal view size. Both fresh models/playable defaults match SHA252b2c75c4ab77edf159a05e6eccd3a712771199581b6887dc4a474e70f7e653 and CLAUDE imports shared AGENTS. Prompt/ref unchanged. Cycle14 baseline prepared (12 files; original cube/reference), not yet launched/dispatched. Immutable snapshot /Volumes/PeakSSD/model-editor-kart-evidence-20261006/source-snapshot-diagnostic-validation-fidelity-gate-20261006 contains compiled diagnostic fix; unverified SC frontend warning candidate excluded. Ledger: 13 started,11 completed,0 accepted. Existing videos retained.
+
+### 2026-10-06 — cycle 13 completed and independently reviewed
+
+Original author completed20:09:16.097Z without a parent continuation. Final saved reference comparison directly viewed: visual match and visual milestone remain false. Gameplay independent review passed; initialReset=true, forward=true, boost=true, pauseFreeze=true, resume=true, reverse=true, left=true, right=true, allSixFinish=true, finishStable=true, finishEffectsClear=true, autoplayCoins=true, separateFinishPositions=true, finishRestartReset=true, stopPlayReady=true.  Minimum parked separation 5.9999999999999964m. No complete manual race/handling-quality claim. Notes/reference not continuously legible. Reports cycle-13/parent-review.md/json and parent-controls-review/receipt.json; failures retained. Ledger 13 started,4 completed authors,0 accepted. C12 closed flag corrected to actual nested closed.code receipt. C14 prepared same prompt/reference, not yet launched.
+
+Cycle13 review bookkeeping correction: older cycles use differing completion fields; counting only nativeAuthorComplete incorrectly gave4. Retained historical aggregate11 + newly completedC13 =12 completed authors. Gameplay15checks pass; no acceptance. Initial observer screenshots caught telemetry open or first-camera/HUD transition; settled public page+Play captures directly viewed correct chase frame/opaque HUD, details closed. No new engine capture bug established by these observer images.
+
+### 2026-10-06 — cycle 14 dispatched
+
+Cycle13 public CLI gracefulclose retained8,008,904byte canyon.blend; all evidence and videos retained. Cycle14 fresh baseline opened onhttp://127.0.0.1:29864/?project=project and original18word prompt dispatched2026-10-06T20:13:56.637Z, native01a112d9-a986-7810-aeed-61cf0d45fd1c, connectionda1b76d8-ceb4-4871-81e0-2055b2179933. Ready page directly viewed; cube/no copied chat, epoch1, one known startup404, no pending requests. Immutable snapshot diagnostic-validation-fidelity-gate carries verified invalid-mode rejection and stricter visual/notes defaults. Same prompt/reference hashes. Ledger14 started,12 completed authors,0 accepted. No periodic full-page recorder.
+
+Installed resumable World remains running with zero services; app and helper commands run through it. This installed volter CLI has no world app-url verb and no volter-world executable, so endpoint registration requested by current instructions is unavailable here. No second runtime version or upgrade introduced over the active World. Actual editor URL retained in runtime/ledger.
+
+### User-directed next model trial
+
+Once the editor workflow is totally smooth, repeat the fresh-project experiment with GPT-6 Astra at xhigh to nail the look and game. Keep the same approved reference and short request. Current native author/model unchanged. Workflow smoothness and overall visual acceptance are separate assessments: do not wait for perfect reference fidelity before the requested stronger-model trial, and do not call tooling improvements a visual success. Resolve the actual native model selection when the trial begins; no availability claim or switch made now.
+
+
+## Integrate verified editor batches (owner instruction, 2026-10-06)
+
+The owner requires routine integration into shared main so other agents can see
+and reuse completed fixes. A worktree is for isolation, not delayed integration.
+This batch contains the Model Editor starter/native Chat controls, shared agent
+defaults, document/Play lifetime and camera fixes, module discovery, composed
+Play capture, PNG encoding, diagnostics and successful-run evidence described
+above. Integrate with current origin/main and verify the combined result before
+merging; preserve independent release and concurrent-agent changes.
+
+The kart trials are evidence, not an accepted finished game. Cycle 14's static
+comparison still fails its visual target; the native author required cancellation
+and continuation after a provider stall and has not completed. Its independent
+controls review passed driving, pause/resume, boost, coins, all-six finish and
+restart, then failed the observer's immediate Stop/Play read. Retain that failure
+and investigate settled teardown before claiming a workflow pass. No general
+shadow-quality fix or Astra trial is included in this integration.

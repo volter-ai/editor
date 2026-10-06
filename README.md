@@ -32,6 +32,12 @@ npx @volter/model-editor create my-race --template playable
   ```
 - `npx @volter/model-editor create my-models` makes a plain modelling project with a cube.
 
+For modelling, run `npx @volter/model-editor` with no arguments. Inside an existing
+project it opens that project. Elsewhere it creates a ready cube project at
+`~/Documents/Volter Models/Untitled Model` and opens it with Chat alongside the
+viewport. Later launches reopen that starter with your edits intact; an occupied
+unrelated folder is preserved and a numbered folder is used instead.
+
 ## Chat and your agent
 
 Chat offers two ways in. **Sign in with ChatGPT** installs OpenAI's official Codex
@@ -53,6 +59,34 @@ Every model editor project declares the Blender MCP server in both `.mcp.json` a
 `.codex/config.toml`, with the same command. Codex loads it once you
 [trust the folder in Codex](https://learn.chatgpt.com/docs/config-file/config-basic).
 Creating a project never writes to your global `~/.codex`.
+
+New projects include `AGENTS.md` with the model workflow and `CLAUDE.md` importing
+it. Both agents receive the same guidance for inspecting the live scene, updating
+scripts, using Blender MCP and verifying the saved model.
+The defaults also require an in-scene supplied or generated reference, regular
+visual comparison, live gameplay with an autoplay/demo controller, and React
+game UI shown in the editor's UI canvas and in Play.
+The agent derives appearance and requirements from supplied images, videos,
+specifications and existing assets. For a new game, it first matches a static
+scene and React UI screenshot to the reference, including framing and display
+colors, before implementing gameplay. These workflows come from the project
+defaults rather than a detailed user prompt.
+
+Another agent can drive the conversation already visible in Chat, from the
+project directory:
+
+```bash
+npx --no-install volter-model-editor chat status
+npx --no-install volter-model-editor chat send "Make the cube blue with softly rounded edges."
+npx --no-install volter-model-editor chat stop
+```
+
+These commands use the native Chat and its Supercode runtime, retain the person's
+draft, and keep prompts and replies in the same transcript. `send` reports dispatch
+without waiting for the turn to finish. `status` reports the native session ID,
+busy state and pending requests. Finish approvals in Chat; sending another prompt
+while a turn or request is pending is refused. Choose the agent/model or complete
+sign-in in the editor before sending when Chat is not ready.
 
 ## Working in a project
 

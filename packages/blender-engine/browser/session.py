@@ -1405,10 +1405,10 @@ class Session:
         if hasattr(_blender_web, "memory_reset_peak"):
             _blender_web.memory_reset_peak()
         if hasattr(_blender_web, "export_frame_chunked"):
-            exported = _blender_web.export_frame_chunked(json.dumps(options),
+            exported = _blender_web.export_frame_chunked(json.dumps(options, ensure_ascii=False),
                 lambda: _asked({"checkpoint": "native-export"}))
         else:
-            exported = _blender_web.export_frame(json.dumps(options))
+            exported = _blender_web.export_frame(json.dumps(options, ensure_ascii=False))
         _mark("export:door")
         frame = json.loads(exported)
         del exported
@@ -1627,7 +1627,9 @@ class Session:
                 if kind == "image" and self._send_encoded_image(key, frame["images"][key]):
                     continue
                 options["key"] = key
-                piece = json.loads(door(json.dumps(options)))
+                # The native door reads UTF-8 keys. Preserve Unicode datablock
+                # names rather than turning them into JSON \u escape sequences.
+                piece = json.loads(door(json.dumps(options, ensure_ascii=False)))
                 if piece.get("error"):
                     raise RuntimeError("Blender export door: %s" % piece["error"])
                 frame["warnings"].extend(piece.get("warnings", []))
@@ -5060,11 +5062,14 @@ def dispatch(request):
     op = request.get("op")
     if op not in _WATCHED_OPS:
         return _dispatch_request(request)
-    before = {o.name for o in bpy.data.objects}
+    # ID.session_uid survives renames, reallocations and file reloads.
+    # Names alone falsely reported an ordinary rename as a deleted object.
+    before = {o.session_uid: o.name for o in bpy.data.objects}
     try:
         return _dispatch_request(request)
     finally:
-        removed = before - {o.name for o in bpy.data.objects}
+        remaining = {o.session_uid for o in bpy.data.objects}
+        removed = [name for uid, name in before.items() if uid not in remaining]
         if removed:
             cause = {k: request[k] for k in ("label", "property", "column", "direction", "token", "path")
                      if k in request}

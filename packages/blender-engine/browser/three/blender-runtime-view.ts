@@ -705,8 +705,8 @@ export class BlenderRuntimeView {
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
   private heldRendered: (() => THREE.Camera) | null = null;
-  /** Material Preview can use scene lighting while retaining viewport visibility. */
-  private heldVisibility: 'viewport' | 'render' = 'render';
+  /** Editing retains viewport visibility in every shading mode; Play selects render visibility. */
+  private heldVisibility: 'viewport' | 'render' = 'viewport';
   /** What the World was last composed for ({@link worldKeyFor}), or null when it is cleared:
    *  composing rebuilds its textures, so it happens only when the key changes. */
   private worldApplied: string | null = null;
@@ -1175,13 +1175,14 @@ export class BlenderRuntimeView {
   /**
    * BLENDER'S RENDERED SHADING: the viewport held in the lighting a render photographs with
    * ({@link setRendered}) — the scene's own lights, its World behind and around the model,
-   * `hide_render` visibility and shadows — seen through `drawCamera()`, the camera the stage
+   * viewport visibility and shadows — seen through `drawCamera()`, the camera the stage
    * draws with (orthographic in an orthographic view). `null` returns the viewport to modeling.
-   * Material Preview passes viewport visibility independently of its lighting choices.
+   * Render visibility is explicitly selected for a detached Play view; editing
+   * keeps viewport visibility independently of its shading and lighting choices.
    * A render taken meanwhile ends back in this state rather than in modeling.
    */
   private heldSceneLighting: { world: boolean; lights: boolean } | undefined;
-  holdRendered(drawCamera: (() => THREE.Camera) | null, sceneLighting?: { world: boolean; lights: boolean }, visibility: 'viewport' | 'render' = 'render'): void {
+  holdRendered(drawCamera: (() => THREE.Camera) | null, sceneLighting?: { world: boolean; lights: boolean }, visibility: 'viewport' | 'render' = 'viewport'): void {
     if (drawCamera === this.heldRendered && sceneLighting?.world === this.heldSceneLighting?.world && sceneLighting?.lights === this.heldSceneLighting?.lights && visibility === this.heldVisibility) return;
     this.heldRendered = drawCamera;
     this.heldSceneLighting = sceneLighting;
@@ -1193,7 +1194,8 @@ export class BlenderRuntimeView {
   /** Prepare a rendered viewport before revealing its first frame, using the
    * same lighting/image/World readiness as a photograph. Call after the stage
    * has attached the root to its scene. */
-  async prepareRendered(camera: THREE.Camera): Promise<void> {
+  async prepareRendered(camera: THREE.Camera, visibility: 'viewport' | 'render' = 'viewport'): Promise<void> {
+    this.heldVisibility = visibility;
     await this.applyRendered(true, camera);
   }
 
@@ -1276,7 +1278,9 @@ export class BlenderRuntimeView {
     this.instances.rebuild(this.objects.values(), this.drawBatching && !this.rendered);
     if (this.drawBatching && !this.rendered) this.transparentInstances.setObjects(this.objects.values());
     this.motionGeometry.setObjects(this.objects.values());
-    this.materialRanges.setObjects(this.drawBatching && !this.rendered ? this.objects.values() : []);
+    // Opaque material ranges also preserve Rendered's materials and shadows.
+    // The range planner itself excludes transparency and custom shaders.
+    this.materialRanges.setObjects(this.drawBatching ? this.objects.values() : []);
   }
 
   /** Presentation-only comparison door; never changes Blender or its data. */

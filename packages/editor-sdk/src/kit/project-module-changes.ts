@@ -35,7 +35,11 @@
  */
 
 /** Project-relative path of the module that changed, e.g. `src/prefabs/probe.ts`. */
-export type ProjectModuleChangeListener = (relativePath: string, affected?: readonly string[]) => void;
+export type ProjectModuleChangeListener = (
+  relativePath: string,
+  affected?: readonly string[],
+  type?: 'create' | 'update' | 'delete',
+) => void;
 
 /**
  * WHY THE TRANSFORM ERROR IS RECORDED SEPARATELY: a dynamic `import()` of a
@@ -127,6 +131,7 @@ export function clearProjectModuleTransformError(relativePath: string): void {
 interface HotFilePayload {
   readonly file?: unknown;
   readonly affected?: unknown;
+  readonly type?: unknown;
 }
 
 /** Vite's own `vite:afterUpdate` payload, narrowed to what is read here. */
@@ -168,12 +173,17 @@ function wireChanges(): void {
   if (!hot || bus.changesWired) return;
   bus.changesWired = true;
   wireTransformErrors();
-  const publish: ProjectModuleChangeListener = (path, affected) => {
-    for (const listener of [...bus.listeners]) listener(path, affected);
+  const publish: ProjectModuleChangeListener = (path, affected, type) => {
+    for (const listener of [...bus.listeners]) listener(path, affected, type);
   };
   const onFileEvent = (payload: HotFilePayload): void => {
-    if (typeof payload?.file === 'string') publish(normalize(payload.file),
-      Array.isArray(payload.affected) ? payload.affected.filter((path): path is string => typeof path === 'string').map(normalize) : undefined);
+    if (typeof payload?.file !== 'string') return;
+    const affected = Array.isArray(payload.affected)
+      ? payload.affected.filter((path): path is string => typeof path === 'string').map(normalize)
+      : undefined;
+    const type = payload.type === 'create' || payload.type === 'update' || payload.type === 'delete'
+      ? payload.type : undefined;
+    publish(normalize(payload.file), affected, type);
   };
   const onViteUpdate = (payload: ViteUpdatePayload): void => {
     for (const update of payload?.updates ?? []) {

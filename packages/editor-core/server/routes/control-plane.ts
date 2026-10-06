@@ -83,6 +83,7 @@ import {
   tabWaitingMessage,
 } from '../tab-presence';
 import type { ControlOutcome, RouteContext, TrustedShareIdentity } from './context';
+import { recordLiveRunEvidence } from '../support/project/live-run-evidence';
 
 /** How many distinct pre-listener page errors one page-load may file. Enough
  *  for a cause plus a little of its cascade; a page in a rejection loop must
@@ -474,7 +475,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
    * one that stands.
    */
   const contributedCommandTimeouts = new Map<string, number>();
-  function commandTimeoutMs(type: unknown): number {
+  function commandTimeoutMs(type: unknown, command?: Record<string, unknown>): number {
     if (typeof type === 'string') {
       const contributed = contributedCommandTimeouts.get(type);
       if (contributed !== undefined) return contributed;
@@ -482,12 +483,12 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       // its row. Allow bounded discovery, then adopt its real work budget.
       if (!isRelayCommandType(type)) return RELAY_DELIVERY_MAX_WAIT_MS;
     }
-    return relayCommandTimeoutMs(type);
+    return relayCommandTimeoutMs(type, command);
   }
-  function commandAckDeadlineMs(type: unknown): number | null {
+  function commandAckDeadlineMs(type: unknown, command?: Record<string, unknown>): number | null {
     if (typeof type === 'string' && !isRelayCommandType(type))
       return commandTimeoutMs(type) > RELAY_DELIVERY_ACK_MS ? RELAY_DELIVERY_ACK_MS : null;
-    return relayCommandAckDeadlineMs(type);
+    return relayCommandAckDeadlineMs(type, command);
   }
   function handleContributedCommands(payload: Record<string, unknown>): ControlOutcome {
     const rows = payload['commands'];
@@ -538,7 +539,8 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
    * no command listener" — see `unacknowledgedCommandMessage`.
    */
   function armDeliveryReceiptWindow(requestId: string, type: unknown): void {
-    if (commandAckDeadlineMs(type) === null) return;
+    const command = pendingCommands.get(requestId)?.command;
+    if (commandAckDeadlineMs(type, command) === null) return;
     const windowMs = options.relayDeliveryAckMs ?? RELAY_DELIVERY_ACK_MS;
     // Never outlive the command's own timer. `stop` (30s),
     // `capture-asset-preview` (30s) and `bridge-screenshot` (15s) all have
@@ -548,7 +550,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     // they would never see this path's guidance at all.
     const maxWaitMs = Math.min(
       options.relayDeliveryMaxWaitMs ?? RELAY_DELIVERY_MAX_WAIT_MS,
-      commandTimeoutMs(type),
+      commandTimeoutMs(type, command),
     );
     const armedAt = Date.now();
     const expire = (): void => {
@@ -1041,6 +1043,16 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     }
     const nextState = statePatch === true ? { ...previous, ...state } : state;
     const updatedAt = Date.now();
+    const run = nextState['liveRunWindow'];
+    const previousRun = previous?.['liveRunWindow'];
+    if (ctx.projectRoot !== ctx.engineRoot && run && typeof run === 'object' &&
+        (run as Record<string, unknown>)['startedAt'] !==
+          (previousRun && typeof previousRun === 'object' ? (previousRun as Record<string, unknown>)['startedAt'] : null)) {
+      try { recordLiveRunEvidence(ctx.projectRoot, run, ctx.servingProjectSince, updatedAt); }
+      catch (error) {
+        console.warn(`Could not retain live-run evidence: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }
     ctx.editorState = nextState;
     ctx.editorStateUpdatedAt = updatedAt;
     if (clientId) {
@@ -1744,9 +1756,9 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     const requestId = randomUUID();
     const commandWithId = { ...body, _requestId: requestId };
 
-    let timeoutMs = commandTimeoutMs(body['type']);
+    let timeoutMs = commandTimeoutMs(body['type'], body);
     let workStartedAt = Date.now();
-    const hasSeparateDeliveryBudget = commandAckDeadlineMs(body['type']) !== null;
+    const hasSeparateDeliveryBudget = commandAckDeadlineMs(body['type'], body) !== null;
     const resultPromise = new Promise<SettledCommandResult>((resolve) => {
       const expire = (): void => {
         const tab = table?.tab(targetTabId);
@@ -1818,7 +1830,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
       const refreshWorkTimer = (): void => {
         const pending = pendingCommands.get(requestId);
         if (pending === undefined) return;
-        timeoutMs = commandTimeoutMs(body['type']);
+        timeoutMs = commandTimeoutMs(body['type'], body);
         clearTimeout(pending.timer);
         pending.timer = setTimeout(expire, Math.max(0, workStartedAt + timeoutMs - Date.now()));
       };

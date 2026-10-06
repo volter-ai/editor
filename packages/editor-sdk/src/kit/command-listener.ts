@@ -462,6 +462,8 @@ export function collectState(
       livePlaying: anyLiveSessionPlaying(),
       mountFailures,
     }),
+    // The lane's successful run window, independent of recording or document kind.
+    liveRunWindow: liveRunWindow(),
     // Every world whose mount FAILED, with the error that killed it. `[]` on a
     // healthy session; non-empty with `ingest: null` is what a dead game looks
     // like from the control API, instead of a silent "playing". (`ingest` and
@@ -1582,8 +1584,8 @@ export async function handleCommand(
         };
       }
       const region = cmd['region'];
-      if (region !== undefined && region !== 'page' && region !== 'document') {
-        return { ok: false, error: 'capture-editor-chrome: "region" is "page" or "document".' };
+      if (region !== undefined && region !== 'page' && region !== 'document' && region !== 'play') {
+        return { ok: false, error: 'capture-editor-chrome: "region" is "page", "document" or "play".' };
       }
       try {
         const capture = await captureEditorChrome(store, {
