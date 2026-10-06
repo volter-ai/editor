@@ -94,6 +94,7 @@ class HarnessChatNavigationService extends Disposable implements IHarnessChatNav
 			try {
 				if (!isCurrent()) { throw new Error('Conversation activated, but its native navigation target became unavailable.'); }
 				await this.focus(resource);
+				if (!isCurrent()) { throw new Error('Conversation focused, but its native navigation target became unavailable.'); }
 				const result = await commit(permit);
 				this.outcome = 'idle';
 				return result;
