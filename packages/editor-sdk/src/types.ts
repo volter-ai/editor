@@ -185,10 +185,13 @@ export interface ModelPlayLogEntry {
   readonly facts?: Record<string, unknown>;
 }
 
-/** Model Play's log as `model-play-log` reads it: the current run's, or the last one's. */
+/** One model document's Model Play log as `model-play-log` reads it: the current run's, or
+ *  the last one's. */
 export interface ModelPlayLogReading {
   readonly playing: boolean;
   readonly documentId: string | null;
+  /** Every model document with a log; a read names one, or takes the active Play's. */
+  readonly documents: readonly string[];
   readonly script: string | null;
   readonly startedAt: number | null;
   /** The run's clock at the read. */

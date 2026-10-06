@@ -17,9 +17,15 @@
  *
  * So an override is per OBJECT: the object's slots are swapped for copies of their own (the
  * document's `ownMaterial`, which keeps its hooks and draws the material's constants, its
- * image texture included), the copies carry the tint and opacity, and the authored slots are
- * remembered. Each frame, an object whose slots the presenter has put back is given copies of
- * the slots it now has. Clearing both returns the authored slots.
+ * image texture included), the copies carry the tint and opacity, and the slots the presenter
+ * gave are remembered. A slot the document cannot copy (no `ownMaterial`, or a material that
+ * is not the document's) leaves the object as it is and says so through `unsupported`; a
+ * `clone()` would draw without the presenter's hooks.
+ *
+ * The presenter's slots are re-read whenever they may have moved: an object whose slots the
+ * presenter has put back is given copies of the slots it now has, both each frame and before
+ * any change, so clearing returns the presenter's current slots, never a stale set. An object
+ * the script removed from the copy is let go on the next frame.
  */
 import type * as THREE from 'three';
 
@@ -42,25 +48,47 @@ const isColor = (value: unknown): value is THREE.Color =>
 export interface MaterialOverrides {
   tint(target: THREE.Object3D, color: THREE.ColorRepresentation | null): void;
   setOpacity(target: THREE.Object3D, opacity: number | null): void;
-  /** After the script's update: re-wear the copies on any object the presenter re-dressed. */
+  /** After the script's update: let go of removed objects, and re-wear the copies on any
+   *  object the presenter re-dressed. */
   frame(): void;
-  /** Return every object its authored slots and release the copies. */
+  /** Return every object the presenter's slots and release the copies; later calls do nothing. */
   dispose(): void;
 }
 
-/** `ownMaterial` answers the document's copy of one of its materials, or null for one that is
- *  not the document's (a material the script made), which is cloned. */
-export function materialOverrides(ownMaterial: ((material: THREE.Material) => THREE.Material | null) | undefined): MaterialOverrides {
+/**
+ * `ownMaterial` answers the document's copy of one of its materials, or null for one that is
+ * not the document's. `unsupported` hears of an object that could not be overridden.
+ */
+export function materialOverrides(options: {
+  readonly root: THREE.Object3D;
+  readonly ownMaterial: ((material: THREE.Material) => THREE.Material | null) | undefined;
+  readonly unsupported: (mesh: THREE.Mesh, material: THREE.Material) => void;
+}): MaterialOverrides {
+  const { root, ownMaterial } = options;
   const overrides = new Map<THREE.Mesh, Override>();
+  let disposed = false;
   const release = (override: Override): void => {
     for (const copy of override.copies) copy.dispose();
     override.copies = [];
   };
-  const dress = (override: Override): void => {
+  /** Wear copies of the object's slots; false (and nothing worn) when one cannot be copied. */
+  const dress = (override: Override): boolean => {
     release(override);
-    override.copies = slotsOf(override.authored).map((material) => (ownMaterial?.(material) ?? material.clone()) as Colored);
-    override.shown = Array.isArray(override.authored) ? override.copies : override.copies[0]!;
+    const copies: Colored[] = [];
+    for (const material of slotsOf(override.authored)) {
+      const copy = ownMaterial?.(material) ?? null;
+      if (!copy) {
+        for (const made of copies) made.dispose();
+        override.mesh.material = override.authored;
+        options.unsupported(override.mesh, material);
+        return false;
+      }
+      copies.push(copy as Colored);
+    }
+    override.copies = copies;
+    override.shown = Array.isArray(override.authored) ? copies : copies[0]!;
     override.mesh.material = override.shown;
+    return true;
   };
   // Values only: the copies were made from the authored slots, so each starts from its own.
   const paint = (override: Override): void => {
@@ -85,26 +113,44 @@ export function materialOverrides(ownMaterial: ((material: THREE.Material) => TH
       }
     });
   };
+  const forget = (override: Override): void => {
+    if (override.mesh.material === override.shown) override.mesh.material = override.authored;
+    release(override);
+    overrides.delete(override.mesh);
+  };
+  /** The presenter re-assigned the object's slots since it last wore copies: adopt its slots
+   *  as the authored ones and dress again. False when they cannot be copied. */
+  const resync = (override: Override): boolean => {
+    if (override.mesh.material === override.shown) return true;
+    override.authored = override.mesh.material;
+    override.shown = override.mesh.material;
+    if (dress(override)) return true;
+    release(override);
+    overrides.delete(override.mesh);
+    return false;
+  };
   const change = (target: THREE.Object3D, edit: (override: Override) => void): void => {
+    if (disposed) return;
     target.traverse((object) => {
       const mesh = object as THREE.Mesh;
       if (mesh.isMesh !== true || !mesh.material) return;
       let override = overrides.get(mesh);
+      if (override && !resync(override)) override = undefined;
       if (!override) {
-        override = { mesh, authored: mesh.material, shown: mesh.material, copies: [], color: null, opacity: null };
-        edit(override);
-        if (override.color === null && override.opacity === null) return;
-        overrides.set(mesh, override);
-        dress(override);
+        const fresh: Override = { mesh, authored: mesh.material, shown: mesh.material, copies: [], color: null, opacity: null };
+        edit(fresh);
+        if (fresh.color === null && fresh.opacity === null) return;
+        if (!dress(fresh)) return;
+        overrides.set(mesh, fresh);
+        override = fresh;
       } else edit(override);
-      if (override.color === null && override.opacity === null) {
-        mesh.material = override.authored;
-        release(override);
-        overrides.delete(mesh);
-        return;
-      }
-      paint(override);
+      if (override.color === null && override.opacity === null) forget(override);
+      else paint(override);
     });
+  };
+  const inCopy = (object: THREE.Object3D): boolean => {
+    for (let at: THREE.Object3D | null = object; at; at = at.parent) if (at === root) return true;
+    return false;
   };
   return {
     tint(target, color) { change(target, (override) => { override.color = color; }); },
@@ -114,19 +160,14 @@ export function materialOverrides(ownMaterial: ((material: THREE.Material) => TH
       change(target, (override) => { override.opacity = value; });
     },
     frame() {
-      for (const override of overrides.values()) {
-        if (override.mesh.material === override.shown) continue;
-        override.authored = override.mesh.material;
-        dress(override);
-        paint(override);
+      for (const override of [...overrides.values()]) {
+        if (!inCopy(override.mesh)) { forget(override); continue; }
+        if (override.mesh.material !== override.shown && resync(override)) paint(override);
       }
     },
     dispose() {
-      for (const override of overrides.values()) {
-        if (override.mesh.material === override.shown) override.mesh.material = override.authored;
-        release(override);
-      }
-      overrides.clear();
+      disposed = true;
+      for (const override of [...overrides.values()]) forget(override);
     },
   };
 }

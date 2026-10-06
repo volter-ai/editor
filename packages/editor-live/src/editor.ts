@@ -151,12 +151,13 @@ export class LiveEditor {
    * `volter-model-editor play-log`. A play script writes it with
    * `play.log(kind, facts)`; the runner adds `play-start`, `script-reload`,
    * `script-error` and `play-stop`. Every entry carries `simT` (simulation
-   * seconds) and `tick` (the frame). It holds the current run, or the last
-   * one after Stop; Play from a fresh copy empties it.
+   * seconds) and `tick` (the frame). Each model document keeps its own: the
+   * current run, or the last one after Stop; Play from a fresh copy empties it.
+   * `documentId` picks one (`documents` lists them); the active Play's by default.
    *
    *   volter-model-editor eval "(await editor.modelPlayLog({ kind: 'death' })).entries"
    */
-  async modelPlayLog(query?: { readonly since?: number; readonly kind?: string }): Promise<ModelPlayLogReading> {
+  async modelPlayLog(query?: { readonly documentId?: string; readonly since?: number; readonly kind?: string }): Promise<ModelPlayLogReading> {
     return this.#client.modelPlayLog(query);
   }
 

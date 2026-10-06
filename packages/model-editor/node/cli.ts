@@ -27,7 +27,7 @@ try {
     workbench: { type: 'string' }, template: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' },
     'existing-session': { type: 'boolean' },
-    since: { type: 'string' }, kind: { type: 'string' }, json: { type: 'boolean' },
+    since: { type: 'string' }, kind: { type: 'string' }, document: { type: 'string' }, json: { type: 'boolean' },
     ...SCREENSHOT_OPTIONS, ...CAPTURE_OPTIONS, ...CAMERA_OPTIONS,
   } });
   const [verb = 'edit', folder = '.'] = positionals;
@@ -36,7 +36,7 @@ try {
   if (values['existing-session'] && verb !== 'blender-mcp') throw new Error('--existing-session belongs to blender-mcp.');
   for (const key of Object.keys(SCREENSHOT_OPTIONS) as (keyof typeof SCREENSHOT_OPTIONS)[])
     if (values[key] !== undefined && verb !== 'screenshot') throw new Error(`--${key} belongs to screenshot.`);
-  for (const key of ['since', 'kind', 'json'] as const)
+  for (const key of ['since', 'kind', 'document', 'json'] as const)
     if (values[key] !== undefined && verb !== 'play-log') throw new Error(`--${key} belongs to play-log.`);
   for (const [owner, options] of [['capture', CAPTURE_OPTIONS], ['camera', CAMERA_OPTIONS]] as const)
     for (const key of Object.keys(options) as (keyof typeof options)[])

@@ -31,13 +31,15 @@ export default (play: ModelPlayContext): ModelPlayGame => {
 simulation since Play started, the sum of the `dt`s given to `update`) and
 `tick` (the update in progress). Facts are snapshotted as JSON when logged. The
 runner adds `play-start`, `script-reload` (`{ reason: 'saved' | 'dependency-deleted', path }`),
-`script-error` (`{ phase, message }`) and `play-stop` (`{ reason }`).
-Log transitions rather than every frame. Logging never throws and never changes
-timing or state.
+`script-error` (`{ phase, message }`), `tint-unsupported` (`{ object, material, why }`)
+and `play-stop` (`{ reason }`). Log transitions rather than every frame. Logging
+never throws and never changes timing or state; a script's `log`, `tint` and
+`setOpacity` do nothing once it has been replaced or Play has stopped.
 
-The newest 5000 entries are kept (older ones are counted as `dropped`), each
-entry's facts up to 2048 characters of JSON. Play from a fresh copy empties the
-log; a script reload does not, and the log stays readable after Stop until the
+Each model document keeps its own log; a read takes the active Play's unless it
+names a document. The newest 5000 entries are kept (older ones are counted as
+`dropped`), each entry's facts up to 2048 characters of JSON. Play from a fresh
+copy empties the document's log; a script reload does not, and the log stays readable after Stop until the
 next Play. `console.log` does not reach the session's console feed (only
 warnings and errors do); the play log does.
 
@@ -45,6 +47,7 @@ warnings and errors do); the play log does.
 volter-model-editor play-log                     # every kept entry, one per line
 volter-model-editor play-log --kind death        # one kind
 volter-model-editor play-log --since 12.5 --json # entries at or after simT 12.5, as JSON
+volter-model-editor play-log --document <id>     # another model document's log
 volter-model-editor eval "(await editor.modelPlayLog({ kind: 'death' })).entries"
 ```
 
@@ -63,4 +66,6 @@ it re-applies shading; `clone()` drops its shader hooks; and a node graph that
 drives Base Color or Alpha ignores `color` and `opacity`. A tinted or faded
 object wears copies of its own slots that draw the material's constant inputs
 (so a node graph's other inputs are not drawn while it does), and keeps them
-across a script reload.
+across a script reload. An object with a material the document cannot copy
+(one the script made itself) is left as it is, and the log says so once with
+`tint-unsupported`.
