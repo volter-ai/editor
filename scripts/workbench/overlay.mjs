@@ -338,6 +338,45 @@ function patchExtensionSignatures(checkout) {
 }
 
 function patchNativeChat(checkout) {
+	// Live harness approvals answer through commands, not a second chat request.
+	// Keep their choices in the native primary/secondary button row rather than
+	// rendering every option as an unrelated primary action.
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/common/chatService/chatService.ts',
+		'\tadditionalCommands?: Command[]; // rendered as secondary buttons',
+		'\tadditionalCommands?: Command[]; // rendered as secondary buttons\n\t/** Presentation only: consecutive answers to one live harness request. */\n\tharnessAnswerGroup?: string;', 'live answer presentation group');
+	patchChatSource(checkout, 'src/vs/workbench/api/common/extHostTypeConverters.ts',
+		'\t\tconst command = commandsConverter.toInternal(part.value, commandDisposables) ?? { command: part.value.command, title: part.value.title };\n\t\treturn {\n\t\t\tkind: \'command\',\n\t\t\tcommand\n\t\t};',
+		`\t\tconst command = commandsConverter.toInternal(part.value, commandDisposables) ?? { command: part.value.command, title: part.value.title };
+\t\tconst answer = part.value.command === 'supercode.frontend.respond' ? part.value.arguments?.[0] : undefined;
+\t\tconst harnessAnswerGroup = answer && typeof answer === 'object' && !Array.isArray(answer)
+\t\t\t&& typeof answer.connectionId === 'string' && answer.connectionId.length > 0 && answer.connectionId.length <= 256
+\t\t\t&& Number.isSafeInteger(answer.requestId) && answer.requestId >= 0
+\t\t\t&& answer.response && typeof answer.response === 'object' && !Array.isArray(answer.response)
+\t\t\t&& answer.response.request_id === answer.requestId
+\t\t\t? JSON.stringify([answer.connectionId, answer.requestId]) : undefined;
+\t\treturn {
+\t\t\tkind: 'command',
+\t\t\tcommand,
+\t\t\tharnessAnswerGroup
+\t\t};`, 'identify live answer grouping before command delegation');
+	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/common/widget/annotations.ts',
+		"\t\t} else if (item.kind === 'voiceProgress') {",
+		`\t\t} else if (item.kind === 'command' && item.harnessAnswerGroup
+\t\t\t&& previousItem?.kind === 'command' && previousItem.harnessAnswerGroup === item.harnessAnswerGroup) {
+\t\t\tresult[previousItemIndex] = {
+\t\t\t\tcontent: { ...previousItem, additionalCommands: [...(previousItem.additionalCommands ?? []), item.command, ...(item.additionalCommands ?? [])] },
+\t\t\t\tsourceIndexes: [...previousEntry.sourceIndexes, currentSourceIndex],
+\t\t\t};
+\t\t} else if (item.kind === 'voiceProgress') {`, 'group consecutive live answers without changing response content');
+	const commandPart = 'src/vs/workbench/contrib/chat/browser/widget/chatContentParts/chatCommandContentPart.ts';
+	patchChatSource(checkout, commandPart, '\t\tcommandButton: IChatCommandButton,', '\t\tprivate readonly commandButton: IChatCommandButton,', 'retain rendered answer group membership');
+	patchChatSource(checkout, commandPart, "\t\treturn other.kind === 'command';",
+		`\t\tif (other.kind !== 'command') { return false; }
+\t\tif (!this.commandButton.harnessAnswerGroup && !other.harnessAnswerGroup) { return true; }
+\t\treturn other.harnessAnswerGroup === this.commandButton.harnessAnswerGroup
+\t\t\t&& other.command === this.commandButton.command
+\t\t\t&& (other.additionalCommands?.length ?? 0) === (this.commandButton.additionalCommands?.length ?? 0)
+\t\t\t&& (other.additionalCommands ?? []).every((command, index) => command === this.commandButton.additionalCommands?.[index]);`, 'refresh native answer alternatives during streaming');
 	// Participant welcome uses native buttons for standalone trusted command links.
 	// It stays outside transcript history and shares the extension's guarded action.
 	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts', `	readonly firstLinkToButton?: boolean;`, `	readonly firstLinkToButton?: boolean;
