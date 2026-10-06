@@ -32,7 +32,9 @@ function hidden(name: (typeof NAMES)[number], args: unknown[]): unknown[] {
   const current = next[at];
   if (isOptions(current)) {
     if (current['windowsHide'] === undefined) next[at] = { ...current, windowsHide: true };
-  } else if (current === undefined && next.length <= at) {
+  } else if (current === null || (current === undefined && at < next.length)) {
+    next[at] = { windowsHide: true }; // an explicit null/undefined slot reads as "no options"
+  } else if (current === undefined) {
     next.push({ windowsHide: true });
   } else if (typeof current === 'function') {
     next.splice(at, 0, { windowsHide: true }); // options go before the callback
