@@ -444,6 +444,10 @@ export type SessionJournalEvent =
       readonly kind: 'page-error';
       readonly tabId8: string;
       readonly message: string;
+      /** Present when the stack proves the Code-OSS workbench threw it and no
+       *  code of the session's was involved (`console-ledger.ts`'s
+       *  `isWorkbenchOrigin`): kept for debugging, not a fault of the page. */
+      readonly origin?: 'workbench';
     }
   /**
    * One batch of occurrences of ONE console error/warning condition, as the
@@ -772,7 +776,7 @@ export function formatJournalLine(line: SessionJournalLine): string {
     case 'tab-unresponsive':
       return `journal: ${at} tab-unresponsive ${line.tabId8} ${line.reason} for ${Math.round(line.unresponsiveForMs / 1000)}s`;
     case 'page-error':
-      return `journal: ${at} page-error ${line.tabId8} ${line.message}`;
+      return `journal: ${at} page-error ${line.tabId8} ${line.origin === undefined ? '' : `[${line.origin}] `}${line.message}`;
     case 'tab-death-profile':
       return `journal: ${at} tab-death-profile ${line.tabId8} code ${line.code} — ${tabDeathProfileBody(line)}`;
     // The CONSOLE arm. `count` is the running total for that condition, so a

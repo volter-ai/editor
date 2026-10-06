@@ -84,6 +84,7 @@ import {
 } from '../tab-presence';
 import type { ControlOutcome, RouteContext, TrustedShareIdentity } from './context';
 import { recordLiveRunEvidence } from '../support/project/live-run-evidence';
+import { isWorkbenchOrigin } from '../console-ledger';
 
 /** How many distinct pre-listener page errors one page-load may file. Enough
  *  for a cause plus a little of its cascade; a page in a rejection loop must
@@ -1013,10 +1014,14 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     // cause while the tail is the echo.
     if (existing.length < PAGE_ERRORS_PER_CLIENT && !existing.includes(capped)) {
       pageErrorsByClient.set(clientId, [...existing, capped]);
+      // Journaled either way; a workbench-origin one is MARKED, and the tab
+      // table below leaves it out of the page's `pageErrors` — it says nothing
+      // about why this session's page is or is not up (`isWorkbenchOrigin`).
       journalEvent({
         kind: 'page-error',
         tabId8: short(tabIdForClient(clientId)),
         message: capped,
+        ...(isWorkbenchOrigin(capped) ? { origin: 'workbench' as const } : {}),
       });
     }
     return CONTROL_OK;
@@ -1676,6 +1681,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         // real, and the outgoing page's error is often the reason the incoming
         // one exists.
         for (const message of pageErrorsByClient.get(clientId) ?? []) {
+          if (isWorkbenchOrigin(message)) continue;
           if (!pageErrors.includes(message)) pageErrors.push(message);
         }
         const lifecycle = controlLifecycleByClientId.get(clientId);
