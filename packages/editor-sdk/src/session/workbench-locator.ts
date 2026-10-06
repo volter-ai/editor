@@ -178,7 +178,11 @@ export function writeWorkbenchDeclaration(projectRoot: string, workbenchDir: str
  */
 export function workbenchUrl(proxyPort: number, projectRoot: string): string {
   const id = projectRoot.split('/').filter(Boolean).pop() ?? '';
-  return `http://127.0.0.1:${proxyPort}/?project=${encodeURIComponent(id)}`;
+  // Cookies ignore ports. A shared loopback hostname can inherit another
+  // local VS Code app's secret-storage cookie and select its absent key server.
+  // Give each project a stable host; browsers resolve *.localhost to loopback.
+  const hostId = createHash('sha256').update(resolve(projectRoot)).digest('hex').slice(0, 16);
+  return `http://editor-${hostId}.localhost:${proxyPort}/?project=${encodeURIComponent(id)}`;
 }
 
 /** This machine in the build script's own platform vocabulary. */

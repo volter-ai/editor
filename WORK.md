@@ -1647,3 +1647,40 @@ Model Editor browser/node builds passed. Ownership/publication conflicts retain
 main's newer queued lifecycle and generation guards; the branch's incompatible
 context wait yields and richer diagnostics remain. Main's release versions and
 frontend 0.1.40 are preserved. No packages are being released in this merge.
+
+2026-10-06 continuation: the repeated startup `Not Found` came from a browser
+cookie, `vscode-secret-key-path=/_vscode-cli/mint-key`, shared by every port on
+127.0.0.1. The pinned REH workbench does not own that serve-web CLI endpoint.
+Forwarding the path alone cannot fix an unrelated app's cookie selecting the
+wrong secret-storage provider. The editor now opens each project on a stable
+hashed `editor-<id>.localhost` hostname and redirects legacy document URLs there.
+The proxy, launcher and tab identity use the same URL. The origin guard accepts
+localhost subdomains and still rejects remote lookalikes. Existing cookies are
+untouched; browser-local profile settings begin at the new origin, while native
+AI login remains owned by the harness and workspace state by the project.
+
+The public CLI focus check exposed another reload: `tab-refocus` replayed the
+launch URL, while the live page had already redirected to its workspace URL.
+Ready project tabs now receive a focus event without navigation. Launcher tabs
+retain adoption. A fresh real Workbench opened with no console entries and one
+page epoch; three successive `edit` calls preserved that epoch and its view.
+Close/reopen reached a ready single-epoch page, but retained a distinct older
+Workbench chat startup error, `No default agent contributed`; that is not a
+clean reopen claim. Original failed probes and diagnostics remain at
+`.volter/kart-cycles-20261006/probe-origin-focus-final/verification-receipt.json`.
+World verification passed 105 repository tests, five workbench download/origin
+tests, SDK/core typechecks and core server/Model CLI builds. No temporary cookie
+instrumentation is included.
+
+Cycle 14's settled teardown review passed three Stop/Play pairs (HUD removal
+920–1041 ms, fresh mounts 551–823 ms); the earlier fixed-400-ms observer failure
+is retained. The native author never completed after three cancellations and
+two continuations. Public frontend observer evidence identified native response
+WebSocket idle timeout and a server close before `response.completed`, not
+editor freeze or context overflow. The incomplete game and transcript were
+saved and closed. No provider setting or credentials were changed. Supercode's
+caller-preservation fix is merged in PR1267, cf27eba8. A fresh cycle 15 uses the
+same 18-word prompt/reference with an immutable editor snapshot, published
+frontend 0.1.40 and that merged controller fix. Its author is testing races;
+visual acceptance and a complete workflow pass remain pending. Astra xhigh is
+listed by the native catalog but has not been dispatched yet.
