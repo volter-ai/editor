@@ -228,33 +228,39 @@ export const projectFiles = {
    *  whether its write would be EXTERNAL to the workbench. */
   frameOwned: filesProviderInstalled,
 
+  // Every door below `return await`s, never returns the promise bare. With a
+  // bare return this frame leaves V8's async stack, and a workbench file
+  // provider's rejection (`FileOperationError`) then carries ONLY `/out/vs/`
+  // frames — which the console ledger reads as the workbench's own failure
+  // (`isWorkbenchOrigin`) and holds out of the project's unresolved set,
+  // hiding a Play script's `await host.files.read('missing.json')`.
   async read(path: string): Promise<string> {
     const key = assertContained(path);
-    return filesProvider()?.read(key) ?? hostRead(key);
+    return await (filesProvider()?.read(key) ?? hostRead(key));
   },
 
   async readBytes(path: string): Promise<Uint8Array> {
     const key = assertContained(path);
     const provider = filesProvider();
-    return provider?.readBytes ? provider.readBytes(key) : hostReadBytes(key);
+    return await (provider?.readBytes ? provider.readBytes(key) : hostReadBytes(key));
   },
 
   async write(path: string, data: string | Uint8Array): Promise<void> {
     const key = assertContained(path);
     const provider = filesProvider();
-    if (provider) return provider.write(key, data);
-    return hostWrite(key, data);
+    if (provider) return await provider.write(key, data);
+    return await hostWrite(key, data);
   },
 
   async exists(path: string): Promise<boolean> {
     const key = assertContained(path);
-    return filesProvider()?.exists(key) ?? hostExists(key);
+    return await (filesProvider()?.exists(key) ?? hostExists(key));
   },
 
   async list(dir: string): Promise<readonly ProjectFileEntry[]> {
     const key = assertContainedDir(dir);
     const provider = filesProvider();
-    return provider?.list ? provider.list(key) : hostList(key);
+    return await (provider?.list ? provider.list(key) : hostList(key));
   },
 
   watch(listener: (event: ProjectFileEvent) => void): () => void {

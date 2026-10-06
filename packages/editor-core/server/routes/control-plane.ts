@@ -207,6 +207,11 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
   const currentConnectionByClientId = new Map<string, EditorEventClient>();
   const confirmedLifecycleConnections = new Set<EditorEventClient>();
 
+  /** Page errors whose stack is the workbench's alone, deduped and bounded
+   *  exactly like `pageErrorsByClient` but never read back as the page's —
+   *  see `handlePageError`. */
+  const workbenchPageErrorsByClient = new Map<string, string[]>();
+
   /**
    * THE THING THE LEDGER CANNOT OTHERWISE TELL APART: a page with no errors,
    * and a page that is not reporting its errors. Both are an empty ledger.
@@ -1005,23 +1010,27 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
     if (clientId === null) return { status: 400, error: 'page-error requires a client id.' };
     if (message === '') return { status: 400, error: 'page-error requires { message: string }.' };
     const capped = message.slice(0, PAGE_ERROR_MAX_CHARS);
-    if (!pageErrorsByClient.has(clientId) && pageErrorsByClient.size >= PAGE_ERROR_CLIENTS_MAX) {
+    // A workbench-origin error (`isWorkbenchOrigin`, read on the uncapped
+    // text) is journaled, MARKED, but kept in a budget of its own: it says
+    // nothing about why this session's page is or is not up, so it must never
+    // reach the tab table's `pageErrors` nor take a first-kept slot from the
+    // boot error that does.
+    const workbench = isWorkbenchOrigin(message);
+    const kept = workbench ? workbenchPageErrorsByClient : pageErrorsByClient;
+    if (!kept.has(clientId) && kept.size >= PAGE_ERROR_CLIENTS_MAX) {
       return { status: 400, error: 'page-error: too many reporting clients.' };
     }
-    const existing = pageErrorsByClient.get(clientId) ?? [];
+    const existing = kept.get(clientId) ?? [];
     // Bounded, and the FIRST errors are the ones kept: a boot failure cascades
     // (one bad module, then every consumer of it), and the first line is the
     // cause while the tail is the echo.
     if (existing.length < PAGE_ERRORS_PER_CLIENT && !existing.includes(capped)) {
-      pageErrorsByClient.set(clientId, [...existing, capped]);
-      // Journaled either way; a workbench-origin one is MARKED, and the tab
-      // table below leaves it out of the page's `pageErrors` — it says nothing
-      // about why this session's page is or is not up (`isWorkbenchOrigin`).
+      kept.set(clientId, [...existing, capped]);
       journalEvent({
         kind: 'page-error',
         tabId8: short(tabIdForClient(clientId)),
         message: capped,
-        ...(isWorkbenchOrigin(capped) ? { origin: 'workbench' as const } : {}),
+        ...(workbench ? { origin: 'workbench' as const } : {}),
       });
     }
     return CONTROL_OK;
@@ -1408,6 +1417,7 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         controlLifecycleByClientId.delete(clientId);
         clientTabIds.delete(clientId);
         pageErrorsByClient.delete(clientId);
+        workbenchPageErrorsByClient.delete(clientId);
       }
       // A socket that ended with NO CLOSE FRAME (1006) is what a killed
       // renderer process leaves behind — an ordinary tab close sends one. Read
@@ -1681,7 +1691,6 @@ export function createControlPlane(router: EditorServerRouter, ctx: RouteContext
         // real, and the outgoing page's error is often the reason the incoming
         // one exists.
         for (const message of pageErrorsByClient.get(clientId) ?? []) {
-          if (isWorkbenchOrigin(message)) continue;
           if (!pageErrors.includes(message)) pageErrors.push(message);
         }
         const lifecycle = controlLifecycleByClientId.get(clientId);

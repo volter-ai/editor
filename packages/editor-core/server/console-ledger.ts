@@ -215,16 +215,29 @@ export function normalizeConsoleFingerprintText(text: string): string {
 export const WORKBENCH_CONSOLE_SOURCE = 'workbench';
 
 /**
- * Where Code-OSS's own code runs from, in every runtime that can feed this
- * ledger: `/out/vs/` is the compiled core (the workbench page, the node
- * extension host's `extensionHostProcess.js`, its workers); an extracted
- * `vscode-reh-web-*` release holds that tree AND the bundled extensions
- * (`extensions/supercode-chat/…`); `/static/extensions/` is a built-in
- * extension served to the browser; `vscode-file://vscode-app/` is the desktop
- * app's own resources. Nothing the session serves (the editor's modules, the
- * project's game, models, UI roots and Play scripts) lives under any of them.
+ * WHAT COUNTS AS THE WORKBENCH: upstream Code-OSS, its extension host, and the
+ * extensions bundled into the release — code this session's agent did not
+ * write, cannot edit, and whose failure says nothing about the project.
+ * `/out/vs/` is the compiled core in every runtime that can feed this ledger
+ * (the workbench page, the node extension host's `extensionHostProcess.js`,
+ * its workers); an extracted `vscode-reh-web-*` release holds that tree AND
+ * the bundled extensions (`extensions/supercode-chat/…`); `/static/extensions/`
+ * is a built-in extension served to the browser; `vscode-file://vscode-app/`
+ * is the desktop app's own resources. Nothing the session serves (the editor's
+ * modules, the project's game, models, UI roots and Play scripts) lives under
+ * any of them.
  */
-const WORKBENCH_FRAME = /\/out\/vs\/|\/vscode-reh-web-[^/]+\/|\/static\/extensions\/|^vscode-file:\/\/vscode-app\//;
+const WORKBENCH_FRAME =
+  /\/out\/vs\/|\/vscode-reh-web-[^/]+\/|\/static\/extensions\/|^vscode-file:\/\/vscode-app\//;
+/**
+ * …EXCEPT the editor's own frame tier. `packages/editor-core/workbench/src` is
+ * compiled INTO that tree (`out/vs/workbench/contrib/volter/`,
+ * `contrib/volterProduct/`), but it is ours: a throw there is an editor bug,
+ * and it stays reported like any other. Only visible where the path survives —
+ * a minified release bundles these into the workbench's main file, and a frame
+ * there cannot be told apart from upstream's.
+ */
+const EDITOR_FRAME_TIER = /\/out\/vs\/workbench\/contrib\/volter[^/]*\//;
 /** A frame with no location of anybody's: runtime internals and builtins. */
 const NEUTRAL_FRAME = /^(?:node:|<anonymous>$|native$|index \d+$)/;
 const FRAME_LINE = /^\s*at\s+(.*?)\s*$/;
@@ -246,11 +259,18 @@ const FRAME_LINE = /^\s*at\s+(.*?)\s*$/;
  * Why this is not "exempting a source" (`editor-console.ts`'s doctrine): the
  * capture's `source` is a guess about who was speaking; this is read from the
  * STACK the message carries, and it holds only when that stack has at least
- * one workbench frame and NO frame anywhere else. One frame of editor or
- * project code — a project UI root's handler under a workbench event, a React
- * component stack, a Play script — and the error stays the project's, exactly
- * as before. A message with no stack is never classified. Origin, never the
- * message's words: one sentence matched today is the next one missed.
+ * one workbench frame and NO frame anywhere else. Any frame of editor or
+ * project code that is ON the stack — a project UI root's handler under a
+ * workbench event, a React component stack, a Play script — keeps the error
+ * the project's, exactly as before. A message with no stack is never
+ * classified. Origin, never the message's words: one sentence matched today
+ * is the next one missed.
+ *
+ * ON the stack is the catch: V8's async stack keeps a caller's frame only
+ * while the caller AWAITS. A door into the workbench that returns its promise
+ * bare drops out, and a rejection from inside the workbench then reads as
+ * workbench-only — which is why `projectFiles`' doors `return await`. A
+ * project-facing door onto a workbench service must do the same.
  *
  * Exported so the page-error door (`control-plane.ts`) rules the same way.
  */
@@ -263,11 +283,18 @@ export function isWorkbenchOrigin(message: string): boolean {
     // through to the whole text, which can only make the answer "not ours".
     const body = frame[1] ?? '';
     const location = (/\(([^()]*)\)$/.exec(body)?.[1] ?? body).replace(/\\/g, '/');
-    if (WORKBENCH_FRAME.test(location)) workbench = true;
+    if (WORKBENCH_FRAME.test(location) && !EDITOR_FRAME_TIER.test(location)) workbench = true;
     else if (location !== '' && !NEUTRAL_FRAME.test(location)) return false;
   }
   return workbench;
 }
+
+/** The capture labels that only name the DOOR an error came through, so the
+ *  stack may overrule them. `game` (realm attribution, play-mode's patch) is
+ *  direct evidence of who logged it — `console.error(msg, e)` of a
+ *  workbench-thrown `e` carries only `e`'s frames — and every server-raised
+ *  source names its owner; neither is ever reclassified. */
+const DOOR_ONLY_SOURCES: ReadonlySet<string | null> = new Set([null, 'editor', 'runtime']);
 
 /** FNV-1a over normalized severity|message → 8 lowercase hex chars.
  * Short enough to type into the editor's `console ack` command, wide enough that a session's
@@ -394,11 +421,14 @@ export function createConsoleLedger(options?: {
     observe(observation: ConsoleObservation): ConsoleLedgerEntry {
       const at = observation.at ?? now();
       const message = observation.message.slice(0, MESSAGE_MAX_CHARS);
-      // A workbench-origin stack outranks whatever door reported it: 'editor'
-      // and 'runtime' only name the capture that heard it.
-      const source = isWorkbenchOrigin(message)
-        ? WORKBENCH_CONSOLE_SOURCE
-        : (observation.source ?? null);
+      // A workbench-origin stack outranks a label that only names the door
+      // (see DOOR_ONLY_SOURCES). Classified on the UNCAPPED text, so the cap
+      // cannot cut away the one project frame that keeps it the project's.
+      const reported = observation.source ?? null;
+      const source =
+        DOOR_ONLY_SOURCES.has(reported) && isWorkbenchOrigin(observation.message)
+          ? WORKBENCH_CONSOLE_SOURCE
+          : reported;
       const added = Math.max(1, Math.trunc(observation.occurrences ?? 1));
       const id = consoleEntryId(observation.severity, message);
       const existing = entries.get(id);
@@ -410,9 +440,13 @@ export function createConsoleLedger(options?: {
         // Keep the STRONGEST attribution any occurrence proved. 'editor' is
         // the capture's default label (least evidence — see consoleEntryId's
         // note on why one fact can arrive under two labels), so it never
-        // overwrites a specific one; between specific sources, newest wins.
+        // overwrites a specific one; between specific sources, newest wins —
+        // except that 'workbench' never overwrites an owner a door could not
+        // have guessed (DOOR_ONLY_SOURCES), such as 'game'.
         existing.source =
-          source === null || (source === 'editor' && existing.source !== null)
+          source === null ||
+          (source === 'editor' && existing.source !== null) ||
+          (source === WORKBENCH_CONSOLE_SOURCE && !DOOR_ONLY_SOURCES.has(existing.source))
             ? existing.source
             : source;
         existing.count += added;
