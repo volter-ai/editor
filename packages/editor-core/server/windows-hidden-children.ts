@@ -28,11 +28,16 @@ const isOptions = (value: unknown): value is Record<string, unknown> =>
  *  exec/execSync(command, options?, callback?); the others (file, args?, options?, callback?). */
 function hidden(name: (typeof NAMES)[number], args: unknown[]): unknown[] {
   const next = [...args];
-  const at = name !== 'exec' && name !== 'execSync' && Array.isArray(next[1]) ? 2 : 1;
+  // For the (file, args?, …) functions slot 1 is args: an array, or a null/undefined "no args"
+  // followed by the options; only a null/undefined in the options slot itself means no options.
+  const takesArgs = name !== 'exec' && name !== 'execSync';
+  const at = takesArgs && (Array.isArray(next[1]) || (next[1] == null && next.length > 2)) ? 2 : 1;
   const current = next[at];
   if (isOptions(current)) {
     if (current['windowsHide'] === undefined) next[at] = { ...current, windowsHide: true };
-  } else if (current === undefined && next.length <= at) {
+  } else if (current === null || (current === undefined && at < next.length)) {
+    next[at] = { windowsHide: true }; // an explicit null/undefined slot reads as "no options"
+  } else if (current === undefined) {
     next.push({ windowsHide: true });
   } else if (typeof current === 'function') {
     next.splice(at, 0, { windowsHide: true }); // options go before the callback

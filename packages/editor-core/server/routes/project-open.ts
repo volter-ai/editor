@@ -279,7 +279,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
     } else if (os === 'linux') {
       spawn('xdg-open', [dirname(targetPath)], { windowsHide: true, stdio: 'ignore', detached: true }).unref();
     } else if (os === 'win32') {
-      spawn('explorer', ['/select,', targetPath], { stdio: 'ignore', detached: true }).unref();
+      spawn('explorer', ['/select,', targetPath], { windowsHide: false, stdio: 'ignore', detached: true }).unref();
     }
     res.json({ ok: true });
   });
