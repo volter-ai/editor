@@ -483,6 +483,42 @@ ${openEditor}
 
 	private async loadSessionAfterGuard(sessionResource: URI, sessionTypeSelectionReason?: SessionTypeSelectionReason, openingToken?: CancellationToken): Promise<IChatModel | undefined> {`, 'guard before direct sidebar load mutation');
 	patchChatSource(checkout, view, 'const cts = this.loadSessionCts.value = new CancellationTokenSource();', 'const cts = this.loadSessionCts.value = new CancellationTokenSource(openingToken);', 'cancel superseded native draft acquisition');
+	patchChatSource(checkout, view, 'localFallbackSelectionReason?: SessionTypeSelectionReason): Promise<IChatModel | undefined> {\n\t\tconst oldModelResource', 'localFallbackSelectionReason?: SessionTypeSelectionReason, retainOutgoingModel = false): Promise<IChatModel | undefined> {\n\t\tconst oldModelResource', 'owned draft model lifetime option');
+	patchChatSource(checkout, view, '\t\tthis.modelRef.value = undefined;\n\n\t\t// Baseline draft', `\t\t// Keep the outgoing holder alive during this owned draft's lock wait.
+		// The new reference stays local until the widget actually binds it.
+		let ref: IChatModelReference | undefined = startNewSession ? modelRef : undefined;
+		let referenceTransferred = false;
+		try {
+		if (!retainOutgoingModel) { this.modelRef.value = undefined; }
+
+		// Baseline draft`, 'retain outgoing reference until owned bind');
+	patchChatSource(checkout, view, '\t\tlet ref: IChatModelReference | undefined;\n\t\tif (startNewSession)', '\t\t// The candidate is owned by the outer lifetime finally until transfer.\n\t\tif (startNewSession)', 'local owned model reference');
+	patchChatSource(checkout, view, '\t\t\tref?.dispose();\n\t\t\treturn undefined;\n\t\t}\n\n\t\tthis.modelRef.value = ref;', `\t\t\tif (!retainOutgoingModel) { ref?.dispose(); }
+			return undefined;
+		}
+
+		if (!retainOutgoingModel) { this.modelRef.value = ref; referenceTransferred = true; }`, 'owned candidate cancellation cleanup');
+	patchChatSource(checkout, view, '\t\t\t\tthis.modelRef.value = undefined;\n\t\t\t\treturn undefined;', '\t\t\t\tif (!retainOutgoingModel && this.modelRef.value === ref) { this.modelRef.value = undefined; }\n\t\t\t\treturn undefined;', 'cancel only the owned model holder');
+	patchChatSource(checkout, view, '\t\t// Update title control\n\t\tthis.titleControl?.update(model);', `\t\tif (retainOutgoingModel) {
+			// Binding is synchronous and token-checked above. Release the old
+			// holder only after its widget no longer observes that model.
+			this.modelRef.value = ref;
+			referenceTransferred = true;
+		}
+
+		// Update title control
+		this.titleControl?.update(model);`, 'transfer reference after owned widget binding');
+	patchChatSource(checkout, view, '\t\treturn model;\n\t}\n\n\tprivate async updateWidgetLockState', `\t\treturn model;
+		} finally {
+			// A cancelled/failed opening owns only this local candidate. Never
+			// clear the shared holder, which a newer load may have replaced.
+			if (retainOutgoingModel && !referenceTransferred) { ref?.dispose(); }
+		}
+	}
+
+	private async updateWidgetLockState`, 'release unbound owned candidate on cancellation or error');
+	patchChatSource(checkout, view, 'this.showModel(token, newModelRef, true, false, inputBeforeLoad, localFallbackSelectionReason);', `this.showModel(token, newModelRef, true, false, inputBeforeLoad, localFallbackSelectionReason,
+					!!openingToken && sessionResource.scheme === 'supercode' && sessionResource.path.startsWith('/untitled-'));`, 'scope model retention to owned untitled loading');
 	patchChatSource(checkout, view, '\t\t\tconst clearWidget = disposableTimeout(() => {', `\t\t\tconst clearWidget = disposableTimeout(() => {
 				// This opening already owns an untitled draft. Keep the outgoing model
 				// until binding, rather than publishing an unrelated empty focus event.
