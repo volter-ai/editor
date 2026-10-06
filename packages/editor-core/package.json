@@ -93,7 +93,7 @@
     "express": "^5.2.1",
     "chokidar": "^5.0.0",
     "ws": "^8.21.0",
-    "@volter/supercode-harness-sdk": "0.3.74",
+    "@volter/supercode-harness-sdk": "0.3.77",
     "@volter/supercode-ui": "^0.1.97",
     "jsonc-parser": "3.3.1",
     "es-module-lexer": "^1.7.0",
