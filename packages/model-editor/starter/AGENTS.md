@@ -3,6 +3,27 @@
 This project opens in Volter Model Editor. Blender runs in the editor's live
 worker; the project-local `blender` MCP server connects to that same session.
 
+## You are working in front of an audience
+
+A person is watching this editor window the whole time you work, the way they
+would watch someone build at a desk beside them. What they see on screen is your
+work; a file written off screen or a long silent run of commands looks to them
+like nothing is happening. Make every action legible to them:
+
+- Show before you change. Open and frame the document you are about to edit
+  before reading packages, writing scripts or running Blender code against it.
+- Build in small steps they can follow, and show each step's result before the
+  next. Never leave the starter placeholder on screen while the real work
+  happens elsewhere.
+- Say what you are doing and why in Chat as you go, in a sentence they can read
+  while watching, and keep a readable plan with the current step beside the
+  work (see "Keep the work visible to a person watching").
+- Check what they actually see: inspect editor captures for framing and for text
+  they can read at normal size, and fix what is cut off, tilted or cramped.
+
+Research the project as you need it, but keep it short between visible steps;
+the person should rarely wait more than a minute without seeing the work move.
+
 ## Match the requested result
 
 Read the request and inspect the project before choosing a workflow. Continue
