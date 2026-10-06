@@ -712,6 +712,35 @@
       ]
     },
     {
+      "name": "@github/copilot-win32-x64",
+      "version": "1.0.84-4",
+      "distribution": {
+        "url": "https://registry.npmjs.org/@github/copilot-win32-x64/-/copilot-win32-x64-1.0.84-4.tgz",
+        "integrity": "sha512-p3FONA3SvOm0+7Zew2U5dkMLbbBrL/kwt4kfpfdOGPvb7CXul4zKfONA0Zz3dWsLoDrcKjTsNKDp+31KKp3byg==",
+        "sha256": "3883049c9d9bebd07d0ca17b479b3c800d2f28a4202398e7300ab318f2f4c090"
+      },
+      "notices": [
+        {
+          "path": "foundry-local-sdk/node_modules/foundry-local-sdk/node_modules/adm-zip/LICENSE",
+          "sha256": "6bb5b2d4c07d793ca928daa63a8899c6914fafb5ac3aa04ec10cae07f3d57dca",
+          "whenDirectory": "foundry-local-sdk/node_modules/foundry-local-sdk/node_modules/adm-zip"
+        },
+        {
+          "path": "LICENSE.md",
+          "sha256": "b9680937e10425bf19862908856c16ed274e6b81a1368bd62be7a757eab21628"
+        },
+        {
+          "path": "prebuilds/win32-x64/OneAuthInterop.LICENSE.txt",
+          "sha256": "0fe665c2ada5962fd01190ab5b2947b9a9d2c625a9f8225577441eb3256e14e3"
+        },
+        {
+          "path": "webview/node_modules/@webviewjs/webview/LICENSE",
+          "sha256": "9cac72e0573f14d3f9bcb8f70922d589ba07dd1051a5c12229f111e154923f0a",
+          "whenDirectory": "webview/node_modules/@webviewjs/webview"
+        }
+      ]
+    },
+    {
       "name": "@isaacs/fs-minipass",
       "version": "4.0.1",
       "distribution": {
@@ -1123,6 +1152,58 @@
         {
           "path": "dist/lib/index.js.LICENSE.txt",
           "sha256": "74211f635da078323a211492288d7f841eefd5d6a91adec9b5d545bc56e33ec5"
+        }
+      ]
+    },
+    {
+      "name": "@vscode/windows-ca-certs",
+      "version": "0.3.4",
+      "distribution": {
+        "url": "https://registry.npmjs.org/@vscode/windows-ca-certs/-/windows-ca-certs-0.3.4.tgz",
+        "integrity": "sha512-DcDLjBpu8srh6wUiZqEMyhXHzNDO81ecZOttL3+1u3Iht4CS6Qtxy5WkTPX/aDgbheASO/MK8yg6uLq58RzEWg==",
+        "sha256": "3183756d8606de4aba08231f93033b0d87ba94387e0fdddcc8c1e27fa6fe65d9"
+      },
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "37b41c6f1f881cea96d4912799769d6a6dcf9ed738af956efc586d660f2e3215",
+          "bundle": "windows-ca-certs-LICENSE",
+          "source": {
+            "archive": "https://registry.npmjs.org/@vscode/windows-ca-certs/-/windows-ca-certs-0.3.4.tgz",
+            "integrity": "sha512-DcDLjBpu8srh6wUiZqEMyhXHzNDO81ecZOttL3+1u3Iht4CS6Qtxy5WkTPX/aDgbheASO/MK8yg6uLq58RzEWg==",
+            "path": "package/LICENSE",
+            "kind": "official npm archive notice; the packaged runtime strips it"
+          }
+        }
+      ]
+    },
+    {
+      "name": "@vscode/windows-process-tree",
+      "version": "0.8.0",
+      "distribution": {
+        "url": "https://registry.npmjs.org/@vscode/windows-process-tree/-/windows-process-tree-0.8.0.tgz",
+        "integrity": "sha512-TI+h2GRwX+igD/YYJMQQVAFcsCNSg7Te2yYxQpKMzwto5RsJ8d2KKgOeur/p/6sAOQwZvopiTDOClyTHEn9MhQ==",
+        "sha256": "019b2e4cb383ffbfa195e571d9a87a31331df95e4a5d4a5c09ca990c3bb3f401"
+      },
+      "notices": [
+        {
+          "path": "LICENSE",
+          "sha256": "38106abd8a2088fdce6ba679b1949d253a8debcabaecda8ed3bcdabd5be014dd"
+        }
+      ]
+    },
+    {
+      "name": "@vscode/windows-registry",
+      "version": "1.2.0",
+      "distribution": {
+        "url": "https://registry.npmjs.org/@vscode/windows-registry/-/windows-registry-1.2.0.tgz",
+        "integrity": "sha512-IouvAGIIjPDKsLlBkdjVgfHrE+s4aESXzyQWwEPzbzHumKbCqIL5n54PNX0R4PHkYQlbinVrXn282KGSO4cr9A==",
+        "sha256": "bbb0201548f52f2ab642f26c10741ec30dbd4b0db11af423af30722884c841e8"
+      },
+      "notices": [
+        {
+          "path": "License.txt",
+          "sha256": "5e1954b83e2f8087070a3fcef317b872c3ac383a6fe595a2d85e0d7cd9e8cd03"
         }
       ]
     },
