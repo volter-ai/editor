@@ -58,14 +58,14 @@ export async function launch(folder: string, launching: LaunchingProduct, option
   const clearLaunch = announceEditorLaunch(project);
   let child;
   try {
-    // DETACHED ON WINDOWS MEANS NO CONSOLE AT ALL (libuv's DETACHED_PROCESS), and then every
-    // console program the session starts that does not hide itself (a harness, a git, an
-    // extension host) opens a new visible terminal window. Hidden but attached, the session
-    // owns one invisible console its whole process tree inherits; Windows keeps it running
-    // after this CLI exits, and close stops the tree with taskkill /T.
+    // DETACHED ON EVERY PLATFORM: on Windows libuv puts a child that is not detached in a job
+    // object killed with this CLI, so an attached session died the moment `npx … edit` returned
+    // (measured on 0.5.184). Detached there also means no console of its own, so every child
+    // the session starts hides its own console (windowsHide), and the Code-OSS server it starts
+    // is hidden but attached, giving the extension host and its gits one invisible console.
     child = spawn(process.execPath, [entry], {
       windowsHide: true,
-      cwd: project, detached: process.platform !== 'win32', stdio: ['ignore', log, log],
+      cwd: project, detached: true, stdio: ['ignore', log, log],
       env: { ...process.env, VOLTER_CLI_ENTRY: resolve(process.argv[1]!),
         VOLTER_PROJECT: project, VOLTER_PRODUCT_DIR: product.dir, VOLTER_EDITOR_PORT: String(port),
         VOLTER_WORKBENCH_DIR: workbench.dir, VOLTER_FRAME_PORT: String(framePort), VOLTER_FRAME_PROXY_PORT: String(proxyPort),
