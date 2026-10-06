@@ -359,8 +359,10 @@ function Numeric({
     // Enter can also cause blur. Consume the edit before writing, once.
     pendingDraft.current = null;
     setDraft(null);
+    // Empty or incomplete number inputs have no numeric value to commit.
+    if (typed === null || typed.trim() === '') return;
     const next = Number(typed);
-    if (typed !== null && Number.isFinite(next) && next !== value) onWrite(next, index);
+    if (Number.isFinite(next) && next !== value) onWrite(next, index);
   };
   const decimals = row.type === 'FLOAT' ? (row.precision ?? 3) : 0;
   const shown = draft ?? (row.type === 'FLOAT' ? value.toFixed(decimals) : String(value));
