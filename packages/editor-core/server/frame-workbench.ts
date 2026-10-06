@@ -28,6 +28,7 @@
 
 import { type ChildProcess, spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
+import { join } from 'node:path';
 import { workbenchProductId } from '@volter/editor-sdk/session/product-locator';
 import {
   resolveWorkbench,
@@ -188,9 +189,16 @@ export async function startFrameWorkbench(options: {
   log(
     `frame: Code-OSS ${workbench.kind} ${workbench.commit.slice(0, 12)} (${workbench.dir}) on ${launch.rehPort}`,
   );
+  // A win32 release's server bin is `code-server-oss.cmd`, which node will not spawn without a
+  // shell (EINVAL) and which only runs the release's own node.exe on out/server-main.js — so
+  // that pair is spawned directly, with no shell to quote the project path through.
+  const [command, entry]: [string, string[]] = process.platform === 'win32' && workbench.serverBin.endsWith('.cmd')
+    ? [join(workbench.cwd, 'node.exe'), [join(workbench.cwd, 'out', 'server-main.js')]]
+    : [workbench.serverBin, []];
   const reh = spawn(
-    workbench.serverBin,
+    command,
     [
+      ...entry,
       '--host',
       '127.0.0.1',
       '--port',
@@ -202,6 +210,7 @@ export async function startFrameWorkbench(options: {
       cwd: workbench.cwd,
       stdio: 'ignore',
       detached: true,
+      windowsHide: true,
       env: { ...process.env, ...options.env },
     },
   );

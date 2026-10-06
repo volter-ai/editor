@@ -35,7 +35,7 @@ const edges = new Set();
 for (const pkg of readdirSync(join(root, 'packages'))) {
   const dir = `packages/${pkg}`;
   for (const file of walk(join(root, dir))) {
-    const rel = relative(root, file);
+    const rel = relative(root, file).replaceAll('\\', '/'); // the baseline's separator on Windows too
     const code = readFileSync(file, 'utf8');
     for (const spec of specifiers(code)) {
       if (KIT.includes(dir) && MEDIA.test(spec)) edges.add(`kit-media  ${rel} -> ${spec}`);

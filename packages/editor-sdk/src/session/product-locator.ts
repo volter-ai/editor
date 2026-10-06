@@ -52,6 +52,12 @@ export type ProductColorTheme = 'dark' | 'light';
  * and not a person's choice — it is what the product IS, declared beside
  * `entry` and `colorTheme` and read without running anything (rule 8).
  *
+ * A release runs on one platform, so a product that ships on several declares
+ * one release per platform, keyed the way a release names it
+ * (`{ "darwin-arm64": {…}, "linux-x64": {…}, "win32-x64": {…} }`), and this
+ * is the entry for the machine reading it. A single `{ release, tarballSha256 }`
+ * is a product with one platform.
+ *
  * `release` is the tag `scripts/workbench/build-release.mjs --publish` cuts on
  * the fork's own repository, `<product>-<fork sha 12>-<platform>`;
  * `tarballSha256` is the pin, verified against the downloaded bytes before a
@@ -243,6 +249,29 @@ function readProductWorkbench(manifestPath: string, declared: unknown): ProductW
       `${manifestPath} declares ${PRODUCT_DECLARATION_KEY} but its "workbench" is ` +
         `${JSON.stringify(declared)}. A product IS the Code-OSS workbench it was compiled into, ` +
         `so it names the published release those bytes are:\n${example}`,
+    );
+  const platforms = declared as Record<string, unknown>;
+  if (!('release' in platforms) && !('tarballSha256' in platforms)) {
+    const machine = `${process.platform}-${process.arch}`;
+    const declaredHere = platforms[machine];
+    if (declaredHere === undefined)
+      throw new Error(
+        `${manifestPath}'s ${PRODUCT_DECLARATION_KEY}.workbench declares releases for ` +
+          `${Object.keys(platforms).join(', ') || 'no platform'} and this machine is ${machine}. A ` +
+          "Code-OSS server package carries its own platform's node binary and native modules, so " +
+          `there is nothing this product can run in here until a ${machine} release is cut:\n` +
+          `  node scripts/workbench/build-release.mjs --product <id> --platform ${machine} --checkout <fork dir> --publish`,
+      );
+    return readPlatformWorkbench(manifestPath, declaredHere, example);
+  }
+  return readPlatformWorkbench(manifestPath, declared, example);
+}
+
+function readPlatformWorkbench(manifestPath: string, declared: unknown, example: string): ProductWorkbench {
+  if (typeof declared !== 'object' || declared === null || Array.isArray(declared))
+    throw new Error(
+      `${manifestPath}'s ${PRODUCT_DECLARATION_KEY}.workbench names ${JSON.stringify(declared)} ` +
+        `for this platform, which is not a release:\n${example}`,
     );
   const record = declared as Record<string, unknown>;
   const extra = Object.keys(record).filter((key) => key !== 'release' && key !== 'tarballSha256');
