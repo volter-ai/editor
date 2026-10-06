@@ -11,6 +11,14 @@
  * `dt` a script's `update` receives is the only time a play script is given, so holding it is
  * what freezes the game and scaling it is what speeds the game up. A script that reads the
  * page's own clock (`performance.now()`, `Date.now()`) instead is outside that reach.
+ *
+ * AND WHO DRIVES. Autoplay is the editor's switch, not the game's: a script only offers a bot
+ * (`play.autoplay(controller)`, `play-script.ts`), and whether that bot drives is kept here. It
+ * is off whenever a run begins — Play, Restart, Stop — and only the Game panel's toggle or its
+ * verb (`volter.model-play.autoplay`) turns it on. The runner turns it off the moment a person
+ * presses a key or touches the game (`takeover`), or when the running script stops offering a
+ * bot (`script`). Its changes are announced through the clock's subscription, which the panel
+ * and the runner already hold.
  */
 const listeners = new Set<() => void>();
 const clockListeners = new Set<() => void>();
@@ -39,6 +47,21 @@ const generations = new Map<string, number>();
 /** Documents whose next run was begun by Restart, and so enters without the camera's blend. */
 const restarted = new Set<string>();
 
+/** Who last switched autoplay: the panel's toggle, a verb (CLI or `eval`), a person's input
+ *  in the game, or the running script no longer offering a bot (replaced, failed, or its bot
+ *  threw). */
+export type ModelPlayAutoplayBy = 'panel' | 'cli' | 'takeover' | 'script';
+export interface ModelPlayAutoplay {
+  /** The bot drives: its keys are merged into the keys the script reads. */
+  readonly on: boolean;
+  /** The running script registered a bot with `play.autoplay`. */
+  readonly available: boolean;
+  readonly by: ModelPlayAutoplayBy | null;
+}
+const NO_BOT: ModelPlayAutoplay = { on: false, available: false, by: null };
+/** Replaced, never mutated, as the clocks are. Absent is {@link NO_BOT}: a new run's state. */
+const autoplays = new Map<string, ModelPlayAutoplay>();
+
 function publish(): void {
   for (const listener of [...listeners]) listener();
 }
@@ -61,13 +84,16 @@ export function setModelPlaying(documentId: string, value: boolean): void {
     playing.add(documentId);
     // A new run starts its clock at zero and running; the speed is the person's and stays.
     steps.delete(documentId);
+    autoplays.delete(documentId);
     setClock(documentId, { time: 0, tick: 0, paused: false });
   } else {
     playing.delete(documentId);
     restarted.delete(documentId);
     steps.delete(documentId);
+    const hadBot = autoplays.delete(documentId);
     // The clock keeps the stopped run's time and tick, so the panel still says how far it got.
     if (modelPlayClock(documentId).paused) setClock(documentId, { paused: false });
+    else if (hadBot) publishClock();
   }
   publish();
 }
@@ -157,6 +183,7 @@ export function restartModelPlay(documentId: string): void {
   generations.set(documentId, modelPlayGeneration(documentId) + 1);
   restarted.add(documentId);
   steps.delete(documentId);
+  autoplays.delete(documentId);
   setClock(documentId, { time: 0, tick: 0, paused: false });
   publish();
 }
@@ -164,4 +191,31 @@ export function restartModelPlay(documentId: string): void {
 /** Whether the run starting now was begun by Restart (asked once, by that run's runner). */
 export function consumeModelPlayRestart(documentId: string): boolean {
   return restarted.delete(documentId);
+}
+
+export function modelPlayAutoplay(documentId: string): ModelPlayAutoplay {
+  return autoplays.get(documentId) ?? NO_BOT;
+}
+
+function setAutoplay(documentId: string, next: Partial<ModelPlayAutoplay>): void {
+  autoplays.set(documentId, { ...modelPlayAutoplay(documentId), ...next });
+  publishClock();
+}
+
+/** Switch the running script's bot on or off. On asks for a playing document whose script
+ *  registered a bot; off always succeeds. */
+export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelPlayAutoplayBy): void {
+  const now = modelPlayAutoplay(documentId);
+  if (on && !playing.has(documentId))
+    throw new Error(`Nothing is playing in ${documentId}, so there is no bot to switch on; \`play\` starts it.`);
+  if (on && !now.available)
+    throw new Error('This game provides no bot: its play script registers none with `play.autoplay(controller)`.');
+  if (now.on !== on) setAutoplay(documentId, { on, by });
+}
+
+/** The runner's report of whether the running script offers a bot. Losing it turns autoplay off. */
+export function setModelPlayAutoplayAvailable(documentId: string, available: boolean): void {
+  const now = modelPlayAutoplay(documentId);
+  if (now.available === available || !playing.has(documentId)) return;
+  setAutoplay(documentId, available || !now.on ? { available } : { available, on: false, by: 'script' });
 }

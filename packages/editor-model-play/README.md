@@ -34,6 +34,9 @@ clock: they stand still while paused and run at the speed (see Time below). The
 runner adds `play-start`, `play-restart` (`{ speed }`, right after a Restart's
 `play-start`), `script-reload` (`{ reason: 'saved' | 'dependency-deleted', path }`),
 `script-error` (`{ phase, message }`), `tint-unsupported` (`{ object, material, why }`),
+`tint-unknown-object` (`{ object, call }`, once per name: `tint` or `setOpacity` was given a
+name the model has none of, and did nothing), `autoplay-on` / `autoplay-off`
+(`{ by: 'panel' | 'cli' | 'takeover' | 'script' }`, see Autoplay below),
 `pause`, `resume`, `step` (`{ dt }`, one per stepped update), `speed`
 (`{ speed, from }` on a change; `{ speed }` at a start that is not 1×) and
 `play-stop` (`{ reason }`). Log transitions rather than every frame. Logging
@@ -74,6 +77,43 @@ across a script reload. An object with a material the document cannot copy
 (one the script made itself) is left as it is, and the log says so once with
 `tint-unsupported`.
 
+## Autoplay
+
+A game offers its bot; the editor decides whether it drives.
+
+```ts
+play.autoplay(({ dt, simT, tick, keys }) => {
+  // the game's own decision, from its own state
+  return car.speed < 20 ? ['ArrowUp'] : [];
+});
+```
+
+The controller is a plain function. While autoplay is on it is called before each `update`
+with that update's `dt`, `simT` and `tick` (the stamps that update's log entries carry) and
+`keys`, the keys the person holds; it returns the `KeyboardEvent.code` keys the bot holds for
+that update (any iterable, or nothing). The runner merges them into `play.keys`, so the bot
+drives through the script's own input code exactly as a person does. One bot per script:
+registering again replaces it, `play.autoplay(null)` withdraws it, and it goes with the script
+on a reload or Stop. The bot is called only inside the editor's Play runner; a game run
+anywhere else never drives itself.
+
+Whether it drives is the editor's:
+
+- Autoplay is **off** whenever Play starts or restarts.
+- Only the Game panel's **Autoplay** toggle, `volter-model-editor play autoplay on|off` or
+  `await editor.command('volter.model-play.autoplay', { on: true })` turn it on (or off). A
+  script that offers no bot leaves the toggle disabled, and `on` is refused.
+- **The person always wins.** A new key press the game would hear, or a pointer pressed in the
+  game's area (the HUD included), turns autoplay off before that key reaches `play.keys`, and
+  the panel reads "You're driving" until someone switches the bot on again. Synthetic keys and
+  clicks (`editor.document.key`, `click`) count as a person's: they are how an agent plays by
+  hand. A key repeat is not a new press; keys typed in a text field, or while the game's surface
+  does not hold the keyboard, are not the game's and do not take over.
+- A bot that throws turns autoplay off (`by: 'script'`, with a `script-error` of phase
+  `autoplay`), as does a reload whose script offers no bot.
+
+Each change is a play-log entry, `autoplay-on` or `autoplay-off`, with `by`.
+
 ## Time
 
 `update(dt)` is the only clock a play script is given, and the editor decides it:
@@ -101,6 +141,10 @@ The tool registers the `model` document Play extension
 - `transport` — `setPaused`, `step`, `setSpeed`, `restart`, the `clock` and its own
   subscription, the offered `speeds`, and the restart `generation` the document keys its
   detached copy on.
+- `transport.autoplay(documentId)` and `transport.setAutoplay(documentId, on, by)` — the bot's
+  switch: `{ on, available, by }`, announced through `subscribeClock`.
+- `log` — `tail(documentId, last, kind?)` (the newest entries and every kind the run wrote) and
+  `subscribe`, which the Game panel draws live.
 - `scriptPath(sourcePath)` and `hasScript(sourcePath)` — where a model's play script goes and
   whether it exists, so a layout can open a model with a script as a game.
 
@@ -118,6 +162,7 @@ sees:
 | `volter.model-play.speed` | `{ speed: 0.25 \| 0.5 \| 1 \| 2 \| 4 }` |
 | `volter.model-play.restart` | — |
 | `volter.model-play.mode` | `{ mode?: 'game' \| 'movie' }` |
+| `volter.model-play.autoplay` | `{ on: boolean }` — the game's bot drives, or the person does |
 
 Each takes an optional `document` (the model document's id) and otherwise acts on the model
 document on screen; each answers with the panel's state. From the shell:

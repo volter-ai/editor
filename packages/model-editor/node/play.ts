@@ -12,11 +12,13 @@
  *
  * The verbs act on the model document on screen, or the one `--document <id>` names (the same
  * id `play-log --document` takes). Speed takes the panel's own steps — 0.25, 0.5,
- * 1, 2, 4 — written bare or with an `x`.
+ * 1, 2, 4 — written bare or with an `x`. `play autoplay on|off` is the panel's Autoplay toggle:
+ * on lets the game's own bot (`play.autoplay` in its play script) drive until a person presses a
+ * key or clicks in the game; it is off at every Play and Restart.
  */
 import { connect } from '@volter/editor-live';
 
-export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|movie]  [--document <id>]';
+export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|movie] | play autoplay on|off  [--document <id>]';
 
 const BARE = new Set(['state', 'play', 'stop', 'pause', 'resume', 'restart']);
 
@@ -32,6 +34,9 @@ export async function play(args: readonly string[], document?: string): Promise<
   } else if (verb === 'speed') {
     if (value === undefined) usage();
     commandArgs = { speed: value };
+  } else if (verb === 'autoplay') {
+    if (value !== 'on' && value !== 'off') usage();
+    commandArgs = { on: value === 'on' };
   } else if (verb === 'mode') {
     if (value !== undefined) commandArgs = { mode: value };
   } else usage();

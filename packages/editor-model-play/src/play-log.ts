@@ -15,8 +15,10 @@
  * the same call (`play-script.ts`), so they stand still while paused and run at the speed. The
  * runner adds its own lifecycle entries (`source: 'play'`): `play-start`, `play-restart` (a
  * Restart's fresh run, right after its `play-start`), `script-reload` with its reason,
- * `script-error`, `tint-unsupported`, `pause`, `resume`, `step` (one per stepped update, with
- * its `dt`), `speed` (on a change, and at a start that is not 1×), `play-stop`.
+ * `script-error`, `tint-unsupported`, `tint-unknown-object`, `pause`, `resume`, `step` (one per
+ * stepped update, with its `dt`), `speed` (on a change, and at a start that is not 1×),
+ * `autoplay-on` and `autoplay-off` (each with `by`: `panel`, `cli`, `takeover`, `script`),
+ * `play-stop`.
  *
  * ONE LOG PER MODEL DOCUMENT, each its document's latest run. Two documents playing at once
  * keep separate logs; a read names its document or takes the active Play's (the latest
@@ -30,6 +32,9 @@
  * kept in a ring (older ones are counted in `dropped`); one entry's facts are kept as JSON of
  * at most {@link MODEL_PLAY_LOG_FACTS_CHARS} characters. It is never stored: a reload of the
  * page forgets it, as it forgets the game.
+ *
+ * THE GAME PANEL DRAWS IT LIVE: {@link subscribeModelPlayLog} hears every write, and
+ * {@link tailModelPlayLog} reads the newest entries of one document without copying the ring.
  *
  * Logging is a read of the script's own values: it never throws into the script and touches
  * neither the clock nor the copy.
@@ -93,6 +98,8 @@ interface Run {
   tick: number;
   readonly ring: ModelPlayLogEntry[];
   total: number;
+  /** Every kind this run has written, for the panel's filter. */
+  readonly kinds: Set<string>;
 }
 
 /** The runner's door onto its own run's log: inert once the run has ended. */
@@ -109,6 +116,21 @@ export interface ModelPlayRun {
 const key = Symbol.for('volter.model-play-log');
 const page = globalThis as typeof globalThis & { [key]?: Map<string, Run> };
 const runs: Map<string, Run> = page[key] ??= new Map();
+const listenersKey = Symbol.for('volter.model-play-log.listeners');
+const pageListeners = globalThis as typeof globalThis & { [listenersKey]?: Set<() => void> };
+const listeners: Set<() => void> = pageListeners[listenersKey] ??= new Set();
+
+function publish(): void {
+  for (const listener of [...listeners]) {
+    try { listener(); } catch { /* A reader's failure is not the writer's. */ }
+  }
+}
+
+/** Hear every write to any document's log (several may land in one frame; coalesce). */
+export function subscribeModelPlayLog(listener: () => void): () => void {
+  listeners.add(listener);
+  return () => { listeners.delete(listener); };
+}
 
 function keptFacts(facts: unknown): Record<string, unknown> | undefined {
   if (facts === undefined || facts === null) return undefined;
@@ -131,13 +153,15 @@ function append(run: Run, source: ModelPlayLogEntry['source'], kind: string, fac
     };
     run.ring[run.total % MODEL_PLAY_LOG_CAPACITY] = entry;
     run.total += 1;
+    run.kinds.add(entry.kind);
   } catch { /* A log that cannot be written is not the script's failure. */ }
+  publish();
 }
 
 /** Play started from a fresh copy: the document's log replaced by an empty one at zero,
  *  opened by `play-start`. */
 export function beginModelPlayLog(documentId: string, script: string): ModelPlayRun {
-  const run: Run = { documentId, script, startedAt: Date.now(), playing: true, simT: 0, tick: 0, ring: [], total: 0 };
+  const run: Run = { documentId, script, startedAt: Date.now(), playing: true, simT: 0, tick: 0, ring: [], total: 0, kinds: new Set() };
   // Re-inserted, so the map's order is the order Plays started.
   runs.delete(documentId);
   runs.set(documentId, run);
@@ -183,4 +207,26 @@ export function readModelPlayLog(query: ModelPlayLogQuery = {}): ModelPlayLogRea
     playing: run.playing, documentId: run.documentId, script: run.script, startedAt: run.startedAt, documents,
     simT: run.simT, tick: run.tick, capacity: MODEL_PLAY_LOG_CAPACITY, total: run.total, dropped, entries,
   };
+}
+
+export interface ModelPlayLogTail {
+  /** Entries the document's latest run has written; 0 when it has no log. */
+  readonly total: number;
+  /** Every kind that run has written, in the order first seen. */
+  readonly kinds: readonly string[];
+  /** The newest kept entries (of the asked kind), at most `last`, oldest first. */
+  readonly entries: readonly ModelPlayLogEntry[];
+}
+
+/** The newest `last` entries of one document's log, walked from the newest end. */
+export function tailModelPlayLog(documentId: string, last: number, kind?: string): ModelPlayLogTail {
+  const run = runs.get(documentId);
+  if (!run) return { total: 0, kinds: [], entries: [] };
+  const oldest = Math.max(0, run.total - MODEL_PLAY_LOG_CAPACITY);
+  const entries: ModelPlayLogEntry[] = [];
+  for (let seq = run.total - 1; seq >= oldest && entries.length < last; seq--) {
+    const entry = run.ring[seq % MODEL_PLAY_LOG_CAPACITY]!;
+    if (kind === undefined || entry.kind === kind) entries.push(entry);
+  }
+  return { total: run.total, kinds: [...run.kinds], entries: entries.reverse() };
 }

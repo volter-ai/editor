@@ -6,10 +6,12 @@ import { registerDocumentPlayExtension, type DocumentPlayControlProps } from '@v
 import {
   escapeModelPlay,
   MODEL_PLAY_SPEEDS,
+  modelPlayAutoplay,
   modelPlayClock,
   modelPlayGeneration,
   modelPlaying,
   restartModelPlay,
+  setModelPlayAutoplay,
   setModelPlayPaused,
   setModelPlaying,
   setModelPlaySpeed,
@@ -18,6 +20,7 @@ import {
   subscribeModelPlayClock,
 } from '../src/model-play';
 import { playScriptPath, runPlayScript } from '../src/play-script';
+import { subscribeModelPlayLog, tailModelPlayLog } from '../src/play-log';
 import type * as THREE from 'three';
 import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 
@@ -121,7 +124,10 @@ export function start(): () => void {
       setSpeed: setModelPlaySpeed,
       restart: restartModelPlay,
       generation: modelPlayGeneration,
+      autoplay: modelPlayAutoplay,
+      setAutoplay: setModelPlayAutoplay,
     },
+    log: { tail: tailModelPlayLog, subscribe: subscribeModelPlayLog },
     scriptPath: playScriptPath,
     hasScript,
   });

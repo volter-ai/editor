@@ -2,6 +2,7 @@
  * a document kind owns the detached stage it lends that runner. Products name
  * neither side. The page-wide registry joins packaged and served contributions. */
 import type { ComponentType } from 'react';
+import type { ModelPlayLogEntry } from '../types';
 
 export interface DocumentPlayControlProps {
   readonly documentId: string | undefined;
@@ -62,6 +63,32 @@ export interface DocumentPlayTransport {
   /** Changes on every restart. The document that lends the stage keys its detached copy on it,
    *  so a new generation is a new copy; the change is announced through `subscribe`. */
   generation(documentId: string): number;
+  /** Whether the running game's own bot drives, and whether it offers one; a change is
+   *  announced through `subscribeClock`. Absent, the tool has no autoplay. */
+  autoplay?(documentId: string): DocumentPlayAutoplay;
+  /** Switch the bot on (it must be offered, and the game playing) or off. */
+  setAutoplay?(documentId: string, on: boolean, by: 'panel' | 'cli'): void;
+}
+/**
+ * AUTOPLAY, AS THE EDITOR OWNS IT: a game offers a bot, the editor decides whether it drives.
+ * Off whenever a run begins; a person's input in the game turns it off (`takeover`).
+ */
+export interface DocumentPlayAutoplay {
+  readonly on: boolean;
+  /** The running game registered a bot. */
+  readonly available: boolean;
+  /** Who made the last change: `script` is the game no longer offering a bot. */
+  readonly by: 'panel' | 'cli' | 'takeover' | 'script' | null;
+}
+/** The newest entries of one document's play log, for a panel that draws it live. */
+export interface DocumentPlayLog {
+  tail(documentId: string, last: number, kind?: string): {
+    readonly total: number;
+    readonly kinds: readonly string[];
+    readonly entries: readonly ModelPlayLogEntry[];
+  };
+  /** Every write to any document's log; several land in one frame, so coalesce. */
+  subscribe(listener: () => void): () => void;
 }
 export interface DocumentPlayExtension {
   readonly Control: ComponentType<DocumentPlayControlProps>;
@@ -75,6 +102,8 @@ export interface DocumentPlayExtension {
   run(stage: DocumentPlayStage): () => void;
   /** Pause, step, speed, restart and the clock, when the tool keeps them. */
   readonly transport?: DocumentPlayTransport;
+  /** The run's play log, when the tool keeps one. */
+  readonly log?: DocumentPlayLog;
   /** The project path of the script this tool would run for a document's source file. */
   scriptPath?(sourcePath: string): string;
   /** Whether that script exists: `null` while the tool has not looked yet. A change is announced

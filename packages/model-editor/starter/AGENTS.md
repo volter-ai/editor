@@ -256,9 +256,15 @@ For a behavior-only repair, preserve the established appearance.
   When extending an existing model-based project, declare `@volter/editor-model-play`
   and the React/UI dependencies with compatible project versions, and add the
   UI root as needed. Preserve its models, source and settings.
-- Provide a switchable autoplay/demo controller. Have it drive player inputs or
-  shared action functions through the same movement, collision and scoring code
-  as manual play. Keep the player's controls available.
+- Register your bot with `play.autoplay(controller)`; never bind autoplay to a
+  game key or start it yourself; the person turns it on in the Game panel (or
+  you, with `play autoplay on`). The controller is a plain function called
+  before each `update` while autoplay is on, given `{ dt, simT, tick, keys }`
+  (`keys` are the person's), and returns the `KeyboardEvent.code` keys it holds
+  for that update; they are merged into `keys`, so the bot drives through the
+  same movement, collision and scoring code as manual play. Autoplay is off at
+  every Play and Restart, and any key or click in the game hands control back
+  to the person (`autoplay-off` with `by: 'takeover'` in the play log).
 - Keep a gameplay log while the game runs; without it, autoplay is a black box
   and a final position or screenshot cannot tell you what went wrong. Use the
   play script's built-in log, `play.log(kind, facts)`: it stamps each entry
@@ -278,7 +284,7 @@ For a behavior-only repair, preserve the established appearance.
   session's console feed (only warnings and errors do), so the play log is
   what you can read back. Keep logging read-only: it must not change
   timing, inputs or game state.
-- Run autoplay in Play and observe representative actions, objectives,
+- Run autoplay in Play (`play autoplay on`) and observe representative actions, objectives,
   progression and any relevant failure/restart behavior. Exercise manual
   controls too. Inspect runtime errors and game state alongside screenshots;
   a still image alone does not verify gameplay.
@@ -369,6 +375,7 @@ view in Blender metres, Z up. In eval, `editor.present({ version: 1, viewport:
 `capture --region document|play [--out file.png [--force]]` saves what the person sees (default under
 `.volter/captures/`); `add-play` makes a models project playable; `play-log`
 reads the running game's log. The Game panel's controls, each printing its state:
+`play autoplay on|off` switches the game's bot (the Game panel's Autoplay toggle);
 `play pause` holds the game (no `update` calls; its clock stops);
 `play resume` lets it run again;
 `play step [count]` runs one 1/60 s update of a paused game per count;

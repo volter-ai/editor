@@ -24,6 +24,21 @@
  * exactly what the person does: `volter-model-editor play pause`, or
  * `await editor.command('volter.model-play.pause')` under `eval`.
  *
+ * ## Autoplay is the editor's switch, and the person always wins
+ *
+ * A game offers its bot (`play.autoplay(controller)` in its play script); whether the bot drives
+ * is this panel's toggle (or `volter.model-play.autoplay`), never a game key, and it is off at
+ * every Play and Restart. A person's key or pointer in the game turns it off on the spot (the
+ * Play tool's runner does that), so the driver line reads "You're driving" and stays so until
+ * someone switches the bot on again. A game that offers no bot leaves the toggle disabled.
+ *
+ * ## The play log, live
+ *
+ * The right of the panel is the run's play log as it is written (the Play tool's `log` door):
+ * the newest entries of this document, newest at the bottom, filtered by kind. It follows the
+ * newest entry until the person scrolls up to read, and follows again once they scroll back to
+ * the bottom.
+ *
  * ## It is drawn as the Timeline is
  *
  * Same area, same header band, the same widget table (`blender-timeline-geometry.ts`), so the
@@ -33,12 +48,24 @@
 import { blenderSkin } from './blender-runtime-skin';
 import { registerViewVerbs } from '@volter/editor-sdk/views';
 import {
+  type DocumentPlayAutoplay,
   type DocumentPlayClock,
   type DocumentPlayExtension,
+  type DocumentPlayLog,
   documentPlayExtension,
   subscribeDocumentPlayExtensions,
 } from '@volter/editor-sdk/kit/document-play-extension';
-import { type MouseEvent, type ReactNode, useCallback, useSyncExternalStore } from 'react';
+import {
+  type MouseEvent,
+  type ReactNode,
+  useCallback,
+  useEffect,
+  useLayoutEffect,
+  useReducer,
+  useRef,
+  useState,
+  useSyncExternalStore,
+} from 'react';
 import {
   type ModelPlayMode,
   modelDocumentSource,
@@ -51,6 +78,7 @@ import {
 import { HEADER_HEIGHT, TIMELINE_CHROME, TIMELINE_THEME } from './blender-timeline-geometry';
 
 const STILL: DocumentPlayClock = { time: 0, tick: 0, paused: false, speed: 1 };
+const NO_BOT: DocumentPlayAutoplay = { on: false, available: false, by: null };
 
 function extension(): DocumentPlayExtension | null {
   return documentPlayExtension('model');
@@ -104,7 +132,17 @@ function gameState(documentId: string): unknown {
     },
     clock: found?.transport?.clock(documentId) ?? STILL,
     speeds: found?.transport?.speeds ?? [],
+    autoplay: autoplayState(documentId),
   };
+}
+
+/** The bot's switch and who drives: `bot` while autoplay is on, `person` otherwise, null when
+ *  nothing plays. `by` is who made the last change (`takeover`: a person's key or pointer). */
+function autoplayState(documentId: string): unknown {
+  const found = extension();
+  const autoplay = found?.transport?.autoplay?.(documentId) ?? NO_BOT;
+  const playing = found?.playing(documentId) ?? false;
+  return { ...autoplay, driver: playing ? (autoplay.on ? 'bot' : 'person') : null };
 }
 
 function requirePlaying(documentId: string, verb: string): void {
@@ -206,6 +244,24 @@ registerViewVerbs({
         if (!transport.speeds.includes(speed))
           throw new Error(`speed is one of ${transport.speeds.join(', ')} (simulation seconds per real second); got ${String(raw)}.`);
         transport.setSpeed(documentId, speed);
+        return gameState(documentId);
+      },
+    },
+    {
+      // THE EDITOR'S AUTOPLAY SWITCH: on drives the game's own bot (`play.autoplay`), off hands
+      // the game back to the person. Off at every Play and Restart.
+      id: 'autoplay',
+      run: (args) => {
+        const documentId = verbDocument(args);
+        const raw = args?.['on'];
+        const on = raw === true || raw === 'on' || raw === 'true' ? true
+          : raw === false || raw === 'off' || raw === 'false' ? false : undefined;
+        if (on === undefined) throw new Error(`autoplay's \`on\` is true or false (\`play autoplay on|off\`); got ${String(raw)}.`);
+        const { transport } = verbExtension();
+        if (transport.setAutoplay === undefined)
+          throw new Error('The installed Play tool has no autoplay; update @volter/editor-model-play.');
+        if (on) requirePlaying(documentId, 'drive');
+        transport.setAutoplay(documentId, on, 'cli');
         return gameState(documentId);
       },
     },
@@ -314,6 +370,12 @@ export function BlenderGamePanel() {
     subscribeClock,
     () => (documentId !== null && transport ? transport.clock(documentId) : STILL),
     () => STILL,
+  );
+  // Its changes are announced with the clock's.
+  const autoplay = useSyncExternalStore(
+    subscribeClock,
+    () => (documentId !== null && transport?.autoplay ? transport.autoplay(documentId) : NO_BOT),
+    () => NO_BOT,
   );
   const blend = documentId === null ? undefined : modelDocumentSource(documentId);
   const scriptPath = blend === undefined ? null : (found?.scriptPath?.(blend) ?? null);
@@ -432,22 +494,151 @@ export function BlenderGamePanel() {
           flex: 1,
           minHeight: 0,
           display: 'flex',
-          alignItems: 'flex-start',
+          alignItems: 'stretch',
           gap: TIMELINE_CHROME.headerGap,
           padding: TIMELINE_CHROME.statusPadding,
           overflow: 'hidden',
         }}
       >
-        <span data-testid="model-play-status" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
-          {status}
+        <div style={{ flex: '0 1 260px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
+          <span data-testid="model-play-status" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+            {status}
+          </span>
+          {transport?.autoplay && documentId !== null && (
+            <AutoplayControl documentId={documentId} playing={playing} autoplay={autoplay} setAutoplay={transport.setAutoplay} />
+          )}
+        </div>
+        {found?.log && documentId !== null && <PlayLogView documentId={documentId} log={found.log} />}
+      </div>
+    </div>
+  );
+}
+
+// ---------------------------------------------------------------------------------------------
+// AUTOPLAY AND THE PLAY LOG
+// ---------------------------------------------------------------------------------------------
+
+function AutoplayControl({ documentId, playing, autoplay, setAutoplay }: {
+  readonly documentId: string;
+  readonly playing: boolean;
+  readonly autoplay: DocumentPlayAutoplay;
+  readonly setAutoplay: ((documentId: string, on: boolean, by: 'panel' | 'cli') => void) | undefined;
+}) {
+  const label = !playing
+    ? 'Autoplay: start the game first (it is off at every Play and Restart)'
+    : !autoplay.available
+      ? 'This game provides no bot: its play script registers none with play.autoplay(controller)'
+      : autoplay.on ? 'Stop autoplay and drive yourself' : 'Let the game’s bot drive (any key or click in the game takes over)';
+  return (
+    <div style={{ display: 'flex', alignItems: 'center', gap: TIMELINE_CHROME.headerGap, minWidth: 0 }}>
+      {/* The tooltip lives on a wrapper too: a disabled button is the one that most needs it. */}
+      <span title={label} style={{ display: 'inline-flex' }}>
+      <GameButton
+        testId="model-play-autoplay"
+        label={label}
+        pressed={playing && autoplay.on}
+        wide
+        disabled={!playing || !autoplay.available || setAutoplay === undefined}
+        onClick={() => setAutoplay?.(documentId, !autoplay.on, 'panel')}
+      >
+        Autoplay
+      </GameButton>
+      </span>
+      {playing && (
+        <span
+          data-testid="model-play-driver"
+          data-driver={autoplay.on ? 'bot' : 'person'}
+          style={{ color: autoplay.on ? TIMELINE_THEME.playhead : TIMELINE_CHROME.widgetText, whiteSpace: 'nowrap' }}
+        >
+          {autoplay.on ? 'Bot driving' : 'You’re driving'}
         </span>
-        {/* ── RESERVED FOR STEP 2 ─────────────────────────────────────────────────────────────
-            The rest of this row is where the editor's own autoplay lands: an AUTOPLAY toggle the
-            editor owns (rather than each game's key), a WHO'S DRIVING indicator (the person, or
-            autoplay), and the live PLAY LOG streamed from the run. Not built yet, and nothing
-            about how a game handles its own autoplay changes until it is; the element is here
-            so the area is held and findable (`data-reserved`). */}
-        <div data-testid="model-play-reserved" data-reserved="autoplay, driver, play log" style={{ flex: 1, minWidth: 0 }} />
+      )}
+    </div>
+  );
+}
+
+/** Enough to read back what just happened; the whole log is `volter-model-editor play-log`. */
+const LOG_LINES = 200;
+
+function factsText(facts: Record<string, unknown> | undefined): string {
+  if (facts === undefined) return '';
+  try { return JSON.stringify(facts); } catch { return ''; }
+}
+
+function PlayLogView({ documentId, log }: { readonly documentId: string; readonly log: DocumentPlayLog }) {
+  const [kind, setKind] = useState('');
+  // Writes land several to a frame; the view redraws at most once per drawn frame.
+  const [, redraw] = useReducer((count: number) => count + 1, 0);
+  useEffect(() => {
+    let frame = 0;
+    const stop = log.subscribe(() => {
+      if (frame === 0) frame = requestAnimationFrame(() => { frame = 0; redraw(); });
+    });
+    return () => { stop(); cancelAnimationFrame(frame); };
+  }, [log]);
+  const tail = log.tail(documentId, LOG_LINES, kind === '' ? undefined : kind);
+  const list = useRef<HTMLDivElement>(null);
+  // Follows the newest entry until the person scrolls up; back at the bottom, it follows again.
+  const following = useRef(true);
+  useLayoutEffect(() => {
+    const element = list.current;
+    if (element && following.current) element.scrollTop = element.scrollHeight;
+  });
+  const newest = tail.entries.at(-1)?.seq;
+  return (
+    <div data-testid="model-play-log" style={{ flex: 1, minWidth: 0, display: 'flex', flexDirection: 'column', gap: 4 }}>
+      <div style={{ display: 'flex', alignItems: 'center', gap: TIMELINE_CHROME.headerGap }}>
+        <span>Play log</span>
+        <select
+          data-testid="model-play-log-kind"
+          aria-label="Show entries of kind"
+          value={kind}
+          // Blurred once chosen, so the player's next arrow key moves the game, not this list.
+          onChange={(event) => { setKind(event.target.value); event.target.blur(); }}
+          style={{
+            height: TIMELINE_CHROME.unit,
+            background: TIMELINE_CHROME.widget,
+            color: TIMELINE_CHROME.widgetText,
+            border: `1px solid ${TIMELINE_CHROME.widgetOutline}`,
+            font: 'inherit',
+          }}
+        >
+          <option value="">All kinds</option>
+          {[...new Set([...tail.kinds, ...(kind === '' ? [] : [kind])])].map((one) => <option key={one} value={one}>{one}</option>)}
+        </select>
+        <span style={{ color: TIMELINE_CHROME.widgetText }}>
+          {tail.total === 0 ? 'Nothing logged yet' : `${tail.total} written${tail.total > LOG_LINES ? ` · newest ${LOG_LINES} shown` : ''}`}
+        </span>
+      </div>
+      <div
+        ref={list}
+        data-testid="model-play-log-entries"
+        data-newest={newest}
+        onScroll={(event) => {
+          const element = event.currentTarget;
+          following.current = element.scrollTop + element.clientHeight >= element.scrollHeight - 4;
+        }}
+        style={{
+          flex: 1,
+          minHeight: 0,
+          overflowY: 'auto',
+          font: '12px/1.45 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace',
+          background: TIMELINE_THEME.header,
+          border: `1px solid ${TIMELINE_CHROME.rule}`,
+          padding: '2px 6px',
+        }}
+      >
+        {tail.entries.map((entry) => (
+          <div
+            key={entry.seq}
+            data-kind={entry.kind}
+            style={{ display: 'flex', gap: 10, whiteSpace: 'nowrap', color: entry.source === 'play' ? TIMELINE_CHROME.widgetText : TIMELINE_CHROME.text }}
+          >
+            <span style={{ flex: '0 0 auto', fontVariantNumeric: 'tabular-nums' }}>{clockText(entry.simT)}</span>
+            <span style={{ flex: '0 0 auto' }}>{entry.kind}</span>
+            <span style={{ minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis' }} title={factsText(entry.facts)}>{factsText(entry.facts)}</span>
+          </div>
+        ))}
       </div>
     </div>
   );

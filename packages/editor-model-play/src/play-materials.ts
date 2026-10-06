@@ -25,7 +25,10 @@
  * The presenter's slots are re-read whenever they may have moved: an object whose slots the
  * presenter has put back is given copies of the slots it now has, both each frame and before
  * any change, so clearing returns the presenter's current slots, never a stale set. An object
- * the script removed from the copy is let go on the next frame.
+ * the script removed from the copy is let go on the next frame. That is heard, not searched
+ * for: each overridden mesh and its parents up to the copy's root report their own removal
+ * (three's `removed` event, which `remove`, `add` elsewhere and `attach` all dispatch), and only
+ * a mesh one of them reported is walked up to see whether it is still in the copy.
  */
 import type * as THREE from 'three';
 
@@ -39,6 +42,11 @@ interface Override {
   copies: Colored[];
   color: THREE.ColorRepresentation | null;
   opacity: number | null;
+  /** The mesh and its parents below the copy's root, each told to report its removal. */
+  watched: THREE.Object3D[];
+  /** One of them was removed from its parent since the last frame. */
+  moved: boolean;
+  readonly onRemoved: () => void;
 }
 
 const slotsOf = (slots: Slots): THREE.Material[] => Array.isArray(slots) ? slots : [slots];
@@ -70,6 +78,20 @@ export function materialOverrides(options: {
   const release = (override: Override): void => {
     for (const copy of override.copies) copy.dispose();
     override.copies = [];
+  };
+  const unwatch = (override: Override): void => {
+    for (const object of override.watched) object.removeEventListener('removed', override.onRemoved);
+    override.watched = [];
+  };
+  /** Hear the mesh or a parent leave; a mesh not under the copy's root is let go next frame. */
+  const watch = (override: Override): void => {
+    unwatch(override);
+    let at: THREE.Object3D | null = override.mesh;
+    for (; at && at !== root; at = at.parent) {
+      at.addEventListener('removed', override.onRemoved);
+      override.watched.push(at);
+    }
+    override.moved = at !== root;
   };
   /** Wear copies of the object's slots; false (and nothing worn) when one cannot be copied. */
   const dress = (override: Override): boolean => {
@@ -116,6 +138,7 @@ export function materialOverrides(options: {
   const forget = (override: Override): void => {
     if (override.mesh.material === override.shown) override.mesh.material = override.authored;
     release(override);
+    unwatch(override);
     overrides.delete(override.mesh);
   };
   /** The presenter re-assigned the object's slots since it last wore copies: adopt its slots
@@ -126,6 +149,7 @@ export function materialOverrides(options: {
     override.shown = override.mesh.material;
     if (dress(override)) return true;
     release(override);
+    unwatch(override);
     overrides.delete(override.mesh);
     return false;
   };
@@ -137,20 +161,18 @@ export function materialOverrides(options: {
       let override = overrides.get(mesh);
       if (override && !resync(override)) override = undefined;
       if (!override) {
-        const fresh: Override = { mesh, authored: mesh.material, shown: mesh.material, copies: [], color: null, opacity: null };
+        const fresh: Override = { mesh, authored: mesh.material, shown: mesh.material, copies: [], color: null, opacity: null,
+          watched: [], moved: false, onRemoved: () => { fresh.moved = true; } };
         edit(fresh);
         if (fresh.color === null && fresh.opacity === null) return;
         if (!dress(fresh)) return;
         overrides.set(mesh, fresh);
+        watch(fresh);
         override = fresh;
       } else edit(override);
       if (override.color === null && override.opacity === null) forget(override);
       else paint(override);
     });
-  };
-  const inCopy = (object: THREE.Object3D): boolean => {
-    for (let at: THREE.Object3D | null = object; at; at = at.parent) if (at === root) return true;
-    return false;
   };
   return {
     tint(target, color) { change(target, (override) => { override.color = color; }); },
@@ -161,7 +183,11 @@ export function materialOverrides(options: {
     },
     frame() {
       for (const override of [...overrides.values()]) {
-        if (!inCopy(override.mesh)) { forget(override); continue; }
+        if (override.moved) {
+          // Re-walked only after a reported removal; one put back under the copy is watched anew.
+          watch(override);
+          if (override.moved) { forget(override); continue; }
+        }
         if (override.mesh.material !== override.shown && resync(override)) paint(override);
       }
     },

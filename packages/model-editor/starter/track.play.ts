@@ -10,6 +10,8 @@ export default function play(context: {
   find(name: string): THREE.Object3D | null;
   readonly camera: THREE.Camera;
   readonly keys: ReadonlySet<string>;
+  /** Offers the bot the Game panel's Autoplay switches on; absent outside the editor. */
+  autoplay?(controller: (input: { readonly tick: number }) => Iterable<string>): void;
 }) {
   const { root, find, keys } = context;
   const car = find('Cube');
@@ -127,6 +129,32 @@ export default function play(context: {
     }
     publishRaceState({ lap: 1, lapTime: 0, lastLap: 0, speed: 0, fps, airborne: false });
   };
+
+  // THE BOT, offered to the editor: Autoplay in the Game panel lets it drive, and any key or
+  // click in the game hands the car back. It holds the same keys a person would, aiming at the
+  // next of track.py's control points and braking into turns it is taking too fast.
+  const route = [[32, -30], [32, -10], [32, 10], [32, 26], [22, 36], [8, 32], [4, 18], [-8, 16], [-16, 28],
+    [-30, 24], [-34, 10], [-22, 0], [-10, -4], [-16, -18], [-34, -28], [-30, -42], [-12, -44], [10, -44], [26, -40]]
+    .map(([x, y]) => new THREE.Vector2(x, y));
+  let waypoint = 0;
+  let botTick = -1;
+  context.autoplay?.(({ tick }) => {
+    const at = new THREE.Vector2(car.position.x, car.position.y);
+    // Switched on (again): aim past the nearest point, wherever the person left the car.
+    if (tick !== botTick + 1) {
+      const nearest = route.reduce((best, point, index) => point.distanceTo(at) < route[best]!.distanceTo(at) ? index : best, 0);
+      waypoint = (nearest + 1) % route.length;
+    }
+    botTick = tick;
+    if (route[waypoint]!.distanceTo(at) < 9) waypoint = (waypoint + 1) % route.length;
+    const target = route[waypoint]!;
+    const error = Math.atan2(target.y - at.y, target.x - at.x) - (heading + Math.PI / 2);
+    const turn = Math.atan2(Math.sin(error), Math.cos(error));
+    const hold = [Math.abs(turn) > 0.6 && speed > 14 ? 'ArrowDown' : 'ArrowUp'];
+    if (turn > 0.08) hold.push('ArrowLeft');
+    else if (turn < -0.08) hold.push('ArrowRight');
+    return hold;
+  });
 
   return {
     update(dt: number) {

@@ -37,6 +37,19 @@
  * `tick` are the numbers the Game panel shows. A Restart is a fresh copy and so a fresh log,
  * opened by `play-start` and then `play-restart`; pause, resume, each step and a speed change
  * are lifecycle entries of their own.
+ *
+ * AUTOPLAY IS THE GAME'S BOT AND THE EDITOR'S SWITCH. A script offers one bot,
+ * `play.autoplay(controller)`: a plain function the runner calls before each `update` while
+ * autoplay is on, handed that update's `dt`, `simT`, `tick` and the keys the person holds, and
+ * answering the keys the bot holds. The runner merges those into `keys` for that update, so the
+ * bot drives through the script's own input code, exactly as a person's keys do. Whether it
+ * drives is not the script's to say (`model-play.ts`): off at every Play and Restart, on only
+ * from the Game panel or its verb, and off again the moment a person presses a key the game
+ * would hear or presses a pointer in the game — before that key reaches `keys`. A synthetic key
+ * (`editor.document.key`) is dispatched as a DOM event like a person's and is handled as one;
+ * the bot's own keys never pass through the DOM, so they cannot take over from themselves. The
+ * controller is called only here, inside the editor's runner: a game run anywhere else never
+ * drives itself.
  */
 import { editorHost } from '@volter/editor-sdk/host';
 import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
@@ -58,9 +71,12 @@ import {
   consumeModelPlayRestart,
   finishModelPlay,
   MODEL_PLAY_STEP_SECONDS,
+  modelPlayAutoplay,
   modelPlayClock,
   modelPlayGeneration,
   registerModelPlayStop,
+  setModelPlayAutoplay,
+  setModelPlayAutoplayAvailable,
   subscribeModelPlayClock,
   takeModelPlayStep,
 } from './model-play';
@@ -117,7 +133,31 @@ export interface ModelPlayContext {
   /** Fade an object and the meshes under it to `opacity` (0 to 1); `null` returns the
    *  authored opacity. Its colour is untouched, and the copies are `tint`'s. */
   setOpacity(object: THREE.Object3D | string, opacity: number | null): void;
+  /**
+   * Offer this game's bot. While the person (or an agent, `play autoplay on`) has autoplay on in
+   * the Game panel, `controller` is called before each `update` and the keys it answers are held
+   * for that update, merged into `keys`. Autoplay is off at every Play and Restart, and a
+   * person's key or pointer in the game turns it off. One bot per script: registering again
+   * replaces it, `null` withdraws it, and it goes with the script. Never bind autoplay to a game
+   * key, and never start it from the script.
+   *
+   *     play.autoplay(({ dt }) => (car.speed < 20 ? ['ArrowUp'] : []));
+   */
+  autoplay(controller: ModelPlayAutoplayController | null): void;
 }
+
+/** What the bot is handed before each `update` it drives. */
+export interface ModelPlayAutoplayInput {
+  /** The `dt` the coming `update` is handed. */
+  readonly dt: number;
+  /** Simulation seconds and the update's number, as that update's log entries carry them. */
+  readonly simT: number;
+  readonly tick: number;
+  /** The keys the person holds, by `KeyboardEvent.code`; the bot's are merged with them. */
+  readonly keys: ReadonlySet<string>;
+}
+/** A game's bot: the keys (`KeyboardEvent.code`) it holds for the coming update. */
+export type ModelPlayAutoplayController = (input: ModelPlayAutoplayInput) => Iterable<string> | null | undefined;
 
 export interface ModelPlayGame {
   /** Once per drawn frame, with the simulation seconds since the last call (at most a tenth).
@@ -125,6 +165,13 @@ export interface ModelPlayGame {
    *  seconds are scaled, and a fast frame may call it more than once. */
   update(deltaSeconds: number): void;
   dispose?(): void;
+}
+
+/** One script's lifetime: `value` until it is replaced, fails or the run stops; `bot` is what it
+ *  offered `play.autoplay`. */
+interface Script {
+  value: boolean;
+  bot: ModelPlayAutoplayController | null;
 }
 
 /** The longest `dt` one update is handed; longer scaled frames are split (`frameUpdates`). */
@@ -191,7 +238,7 @@ export function runPlayScript(options: {
   // A fresh copy is a fresh run: its log starts empty, its clock at zero. Writes go through
   // this run's handle, which is inert once the run has ended.
   const run = beginModelPlayLog(options.documentId, modulePath);
-  const report = (phase: 'start' | 'update' | 'stop', title: string, error: unknown): void => {
+  const report = (phase: 'start' | 'update' | 'stop' | 'autoplay', title: string, error: unknown): void => {
     const detail = error instanceof Error ? error.message : String(error);
     run.append('play', 'script-error', { phase, message: detail });
     options.report(title, detail);
@@ -208,10 +255,15 @@ export function runPlayScript(options: {
         why: options.ownMaterial ? 'the material is not one the document presents' : 'this document lends no material copies' });
     },
   });
-  const objectOf = (target: THREE.Object3D | string): THREE.Object3D => {
+  // An unknown name is the script's typo, not a reason to stop its game: said once per name.
+  const unknown = new Set<string>();
+  const objectOf = (target: THREE.Object3D | string, call: 'tint' | 'setOpacity'): THREE.Object3D | null => {
     if (typeof target !== 'string') return target;
-    const object = root.getObjectByName(target);
-    if (!object) throw new Error(`The model has no object named ${target}.`);
+    const object = root.getObjectByName(target) ?? null;
+    if (!object && !unknown.has(target)) {
+      unknown.add(target);
+      run.append('play', 'tint-unknown-object', { object: target, call });
+    }
     return object;
   };
   const keys = new Set<string>();
@@ -226,6 +278,7 @@ export function runPlayScript(options: {
   // agent's) calls on `model-play.ts`, between frames; this run notes each as it lands. A run
   // that Restart has replaced notes nothing more — its successor's log has the restart.
   let seen = modelPlayClock(options.documentId);
+  let seenBot = modelPlayAutoplay(options.documentId);
   if (restarted) run.append('play', 'play-restart', { speed: seen.speed });
   else if (seen.speed !== 1) run.append('play', 'speed', { speed: seen.speed });
   const stopClock = subscribeModelPlayClock(() => {
@@ -234,11 +287,14 @@ export function runPlayScript(options: {
     if (now.paused !== seen.paused) run.append('play', now.paused ? 'pause' : 'resume');
     if (now.speed !== seen.speed) run.append('play', 'speed', { speed: now.speed, from: seen.speed });
     seen = now;
+    const bot = modelPlayAutoplay(options.documentId);
+    if (bot.on !== seenBot.on) run.append('play', bot.on ? 'autoplay-on' : 'autoplay-off', { by: bot.by });
+    seenBot = bot;
   });
   options.container.style.opacity = '0';
-  /** One script's context: its log, tint and opacity do nothing once that script is gone
+  /** One script's context: its log, tint, opacity and bot do nothing once that script is gone
    *  (replaced, failed, or the run stopped), so a stale timer cannot reach a later one. */
-  const contextFor = (alive: { value: boolean }): ModelPlayContext => ({
+  const contextFor = (alive: Script): ModelPlayContext => ({
     root,
     find(name) {
       const object = root.getObjectByName(name) ?? null;
@@ -251,10 +307,21 @@ export function runPlayScript(options: {
     },
     keys,
     log(kind, facts) { if (alive.value) run.append('script', kind, facts); },
-    tint(object, color) { if (alive.value) materials.tint(objectOf(object), color); },
-    setOpacity(object, opacity) { if (alive.value) materials.setOpacity(objectOf(object), opacity); },
+    tint(object, color) {
+      const target = alive.value ? objectOf(object, 'tint') : null;
+      if (target) materials.tint(target, color);
+    },
+    setOpacity(object, opacity) {
+      const target = alive.value ? objectOf(object, 'setOpacity') : null;
+      if (target) materials.setOpacity(target, opacity);
+    },
+    autoplay(controller) {
+      if (controller !== null && typeof controller !== 'function')
+        throw new Error('play.autoplay takes a function (the bot) or null.');
+      if (alive.value) alive.bot = controller;
+    },
   });
-  const scripts = new WeakMap<ModelPlayGame, { value: boolean }>();
+  const scripts = new WeakMap<ModelPlayGame, Script>();
   let stopped = false;
   let attempt = 0;
   let game: ModelPlayGame | null = null;
@@ -285,7 +352,7 @@ export function runPlayScript(options: {
     } finally {
       // After its own dispose, which may still log; nothing it scheduled may.
       const alive = ending && scripts.get(ending);
-      if (alive) alive.value = false;
+      if (alive) { alive.value = false; alive.bot = null; }
       layers?.dispose();
     }
   };
@@ -301,7 +368,7 @@ export function runPlayScript(options: {
     const mine = ++attempt;
     if (pending) { dispose(pending.game, pending.composition); pending = null; }
     let nextComposition: PlayComposition | undefined;
-    const alive = { value: true };
+    const alive: Script = { value: true, bot: null };
     try {
       if (mountLayers) {
         const project = getCurrentProject();
@@ -361,6 +428,8 @@ export function runPlayScript(options: {
     if (!surfaceHoldsKeyboard()) { keys.clear(); heldKeys.clear(); }
     else if (!transition.acceptingKeys()) keys.clear();
     else for (const key of heldKeys) keys.add(key);
+    // The panel's toggle is enabled by the bot the running script offers, as of the last frame.
+    if (current()) setModelPlayAutoplayAvailable(options.documentId, game !== null && scripts.get(game)?.bot != null);
     const updates = frameUpdates(options.documentId, deltaSeconds);
     if (updates.length === 0) {
       // PAUSED: no update, so nothing states the camera; hold the pose the last frame drew.
@@ -374,6 +443,26 @@ export function runPlayScript(options: {
     // update that throws still took its tick, in both.
     let ran = 0;
     let simulated = 0;
+    // THE BOT'S KEYS, per update: the person's keys of this frame and what the bot holds now. It
+    // drives only once the camera has arrived, as a person's keys reach the game only then.
+    const clock = modelPlayClock(options.documentId);
+    const driving = current() && modelPlayAutoplay(options.documentId).on && transition.acceptingKeys();
+    const person: ReadonlySet<string> = driving ? new Set(keys) : keys;
+    const drive = (script: ModelPlayGame, dt: number): void => {
+      const bot = driving ? scripts.get(script)?.bot : null;
+      // Asked again per update: the bot's own failure, or a takeover, ends it mid-frame.
+      if (!bot || !modelPlayAutoplay(options.documentId).on) return;
+      keys.clear();
+      for (const key of person) keys.add(key);
+      try {
+        for (const key of bot({ dt, simT: clock.time + simulated, tick: clock.tick + ran, keys: person }) ?? []) keys.add(String(key));
+      } catch (error) {
+        keys.clear();
+        for (const key of person) keys.add(key);
+        setModelPlayAutoplay(options.documentId, false, 'script');
+        report('autoplay', `${modulePath}'s autoplay failed`, error);
+      }
+    };
     // A paused frame that runs an update is a Step; its entry carries the step's own tick.
     const stepping = modelPlayClock(options.documentId).paused;
     const tick = (dt: number): void => {
@@ -391,6 +480,7 @@ export function runPlayScript(options: {
       pending = null;
       try {
         tick(updates[0]!);
+        drive(next.game, updates[0]!);
         next.game.update(updates[0]!);
         end();
         game = next.game;
@@ -408,6 +498,7 @@ export function runPlayScript(options: {
     try {
       for (let index = firstSlot; index < updates.length; index++) {
         tick(updates[index]!);
+        drive(game, updates[index]!);
         game.update(updates[index]!);
       }
       advanceModelPlayClock(options.documentId, simulated, ran);
@@ -425,8 +516,18 @@ export function runPlayScript(options: {
     keys.clear();
     root.updateMatrixWorld(true);
   });
+  // THE PERSON ALWAYS WINS: a new key press the game would hear, or a pointer pressed anywhere
+  // in the game's area (its HUD included), hands control back before the input is the game's.
+  // Untrusted events count: `editor.document.key` and the probe's clicks are how an agent plays
+  // by hand.
+  const surface = options.container.parentElement ?? options.container;
+  const takeover = (): void => {
+    if (current() && modelPlayAutoplay(options.documentId).on) setModelPlayAutoplay(options.documentId, false, 'takeover');
+  };
   const onKeyDown = (event: KeyboardEvent): void => {
     if (!surfaceAcceptsKey(event)) return;
+    // A repeat is a key already held, not a new press.
+    if (!event.repeat) takeover();
     heldKeys.add(event.code);
     if (transition.acceptingKeys()) keys.add(event.code);
   };
@@ -434,7 +535,11 @@ export function runPlayScript(options: {
     // Preserve a between-frame tap until one game update has observed it.
     heldKeys.delete(event.code);
   };
+  const onPointerDown = (event: PointerEvent): void => {
+    if (event.target instanceof Node && surface.contains(event.target)) takeover();
+  };
   const onBlur = (): void => { keys.clear(); heldKeys.clear(); };
+  window.addEventListener('pointerdown', onPointerDown, true);
   window.addEventListener('keydown', onKeyDown, true);
   window.addEventListener('keyup', onKeyUp, true);
   window.addEventListener('blur', onBlur);
@@ -464,6 +569,7 @@ export function runPlayScript(options: {
     stopFrames();
     stopClock();
     stopChanges();
+    window.removeEventListener('pointerdown', onPointerDown, true);
     window.removeEventListener('keydown', onKeyDown, true);
     window.removeEventListener('keyup', onKeyUp, true);
     window.removeEventListener('blur', onBlur);
