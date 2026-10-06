@@ -52,8 +52,18 @@
       "displayName": "Volter Model Editor",
       "colorTheme": "dark",
       "workbench": {
-        "release": "model-editor-f16dc165c0df-bcb58a166b10-darwin-arm64",
-        "tarballSha256": "5d9b987274f2f06355041b272c637d9e471122af9a3ab0139930e314d1852c01"
+        "darwin-arm64": {
+          "release": "model-editor-f16dc165c0df-bcb58a166b10-darwin-arm64",
+          "tarballSha256": "5d9b987274f2f06355041b272c637d9e471122af9a3ab0139930e314d1852c01"
+        },
+        "linux-x64": {
+          "release": "model-editor-f16dc165c0df-29e1a79727a1-linux-x64",
+          "tarballSha256": "9e91ba4ba8540b468eaed6b329902e8bd3ba80af5126b2b282096491fd8ca4ff"
+        },
+        "win32-x64": {
+          "release": "model-editor-f16dc165c0df-91d8be2deef0-win32-x64",
+          "tarballSha256": "074725b6d275dcbe543932f09e76a981c1365698c9ef1c94ca05fbd4760848d0"
+        }
       }
     }
   },
