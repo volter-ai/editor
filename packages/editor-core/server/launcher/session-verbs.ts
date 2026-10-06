@@ -355,6 +355,48 @@ async function sessionLook(client: EditorClient, projectRoot: string): Promise<v
   console.error(`${capture.document.title} (${capture.document.kind}${capture.document.sourcePath ? `, ${capture.document.sourcePath}` : ''}) — ${capture.source}`);
 }
 
+// ---------------------------------------------------------------------------
+// capture
+// ---------------------------------------------------------------------------
+
+/** `parseArgs` option declarations for {@link capture}'s flags. */
+export const CAPTURE_OPTIONS = { region: { type: 'string' }, out: { type: 'string' } } as const;
+
+export const CAPTURE_USAGE = 'capture [--region document|play|page] [--out <file.png>]';
+
+const CAPTURE_REGIONS = ['document', 'play', 'page'] as const;
+
+/**
+ * `capture` — `editor.captureEditorChrome({ region })`, saved as a PNG, its
+ * path printed. The editor as the PERSON sees it: `document` is the active
+ * document's box with its overlays (navigation gizmo, readouts), `play` the
+ * live Play frame with its React UI and no authoring chrome, `page` the whole
+ * editor. `screenshot` with no target is the document's RENDER alone
+ * (`captureActiveDocument`), a different question.
+ *
+ * Why a verb and not an `eval` line: the eval answer is base64 inside JSON,
+ * and an agent that wants a file it can open had to write its own decoder
+ * script first (measured 2026-10, an agent building an obby). This is the
+ * same `writeFileSync(Buffer.from(base64))` {@link sessionLook} does, behind
+ * a name. The default lands beside the screenshots, in the project's
+ * gitignored `.volter/`.
+ */
+export async function capture(options: { region?: string | undefined; out?: string | undefined }): Promise<void> {
+  const region = options.region ?? 'document';
+  if (!(CAPTURE_REGIONS as readonly string[]).includes(region))
+    throw new Error(`--region must be one of ${CAPTURE_REGIONS.join(', ')}; got ${region}.`);
+  if (options.out !== undefined && !/\.png$/i.test(options.out)) throw new Error('--out names a .png file.');
+  const session = await sessionClient();
+  const shot = await session.client.captureEditorChrome({ region: region as (typeof CAPTURE_REGIONS)[number] });
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const outPath = options.out !== undefined ? resolve(process.cwd(), options.out) : join(session.projectRoot, '.volter', 'captures', `${region}-${stamp}.png`);
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, Buffer.from(shot.base64, 'base64'));
+  console.log(outPath);
+  console.error(`${region}: ${shot.size.width}x${shot.size.height} at ${shot.scale}x (${shot.layers.canvases} canvas, ${shot.layers.domOverlays} DOM layer${shot.layers.domOverlays === 1 ? '' : 's'})`);
+  if (shot.flatness?.degenerate === true && shot.flatness.warning !== undefined) console.error(`warning — ${shot.flatness.warning}`);
+}
+
 /** Refuse a target that reads BOTH as a file and as a live entity. */
 async function assertUnambiguousTarget(client: EditorClient, target: string, file: string): Promise<void> {
   const entities = await liveEntityRows(client);

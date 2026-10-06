@@ -8,7 +8,54 @@ import { GameManifestSchema } from '@volter/editor-project/manifest/schema';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import type { ProductCreateDeclaration } from '@volter/editor-sdk/session/product-create';
 
-const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+export const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+/**
+ * WHAT "PLAYABLE" ADDS TO A MODELS PROJECT, declared once. `writeProject`'s
+ * `playable` template scaffolds from it, and `add-play` (`add-play.ts`) merges
+ * the same rows into a project that started as `models` — so a project made
+ * playable later declares exactly what one created playable does, and a change
+ * to the template (a React bump, a second root) reaches both doors at once.
+ *
+ * The example is ONE SET, not seven files: `track.play.ts` drives the objects
+ * `track.blend` names (`Cube`, `Track`, the wheels), publishes `race-state.ts`,
+ * and `src/ui/game.tsx` — the manifest root's entry — reads that state.
+ */
+export const PLAYABLE = {
+  uiRoot: { id: 'ui', adapter: 'dom', entry: 'src/ui/game.tsx', zOrder: 1 },
+  resolution: { width: 1280, height: 720 },
+  dependencies: { react: '~19.2.4', 'react-dom': '~19.2.4', three: '^0.180.0' } as Record<string, string>,
+  /** The kit packages Play and the DOM root need, at the kit version this product was released against. */
+  devDependencies: (kit: string): Record<string, string> => ({ '@volter/editor-model-play': kit, '@volter/editor-ui': kit, '@volter/editor-react': kit }),
+  /** The adapter line that lets the UI board discover `src/ui` stories. */
+  regionIncludes: "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n",
+  defaultDocument: 'model:src/models/track.blend',
+  /** Starter file → project path. */
+  example: [
+    ['track.blend', 'src/models/track.blend'], ['track.py', 'src/models/track.py'],
+    ['track.play.ts', 'src/models/track.play.ts'], ['race-state.ts', 'src/models/race-state.ts'],
+    ['ui/game.tsx', 'src/ui/game.tsx'], ['ui/race-hud.tsx', 'src/ui/race-hud.tsx'], ['ui/game.stories.tsx', 'src/ui/game.stories.tsx'],
+  ] as const,
+} as const;
+
+/** The compiler configuration every Model Editor project starts with (see `writeProject`). */
+export const PROJECT_TSCONFIG = JSON.stringify({
+  compilerOptions: {
+    target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler',
+    jsx: 'react-jsx', resolveJsonModule: true, esModuleInterop: true,
+    strict: true, skipLibCheck: true, noEmit: true,
+  },
+  include: ['src/**/*.ts', 'src/**/*.tsx'],
+}, null, 2) + '\n';
+
+/** This product's own release and the kit version its projects install beside it. The kit a
+ *  project installs is the version this product was released against. The engine it pins is
+ *  editor-core's: that is the version the editor reports as running. */
+export async function productVersions(): Promise<{ product: { version: string; dependencies: Record<string, string> }; kit: string }> {
+  const product = JSON.parse(await readFile(join(productRoot, 'package.json'), 'utf8')) as { version: string; dependencies: Record<string, string> };
+  return { product, kit: product.dependencies['@volter/editor-project']! };
+}
+
 export const declaration: ProductCreateDeclaration = {
   product: '@volter/model-editor',
   templates: [
@@ -52,15 +99,12 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
     const playable = template === 'playable';
     if (!name.trim()) throw new Error('A project name is required.');
     const target = resolve(targetDir);
-    const product = JSON.parse(await readFile(join(productRoot, 'package.json'), 'utf8'));
-    // The kit a project installs is the version this product was released against. The engine
-    // it pins is editor-core's: that is the version the editor reports as running.
-    const kit = product.dependencies['@volter/editor-project'];
+    const { product, kit } = await productVersions();
     const manifest = GameManifestSchema.parse({
       manifestVersion: 2, name, version: '0.1.0',
       engine: { version: product.dependencies['@volter/editor-core'] },
-      roots: playable ? [{ id: 'ui', adapter: 'dom', entry: 'src/ui/game.tsx', zOrder: 1 }] : [],
-      ...(playable ? { resolution: { width: 1280, height: 720 } } : {}),
+      roots: playable ? [PLAYABLE.uiRoot] : [],
+      ...(playable ? { resolution: PLAYABLE.resolution } : {}),
     });
     // Exclusive mkdir refuses even an existing empty directory. Creation never
     // overwrites an author's files, and a failed install leaves source intact.
@@ -73,32 +117,25 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
       name: name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '') || 'models',
       private: true, version: '0.1.0', type: 'module',
       scripts: { dev: 'volter-model-editor edit .', 'volter-model-editor': 'volter-model-editor' },
-      ...(playable ? { dependencies: { react: '~19.2.4', 'react-dom': '~19.2.4', three: '^0.180.0' } } : {}),
+      ...(playable ? { dependencies: PLAYABLE.dependencies } : {}),
       devDependencies: {
         '@volter/model-editor': product.version,
         '@volter/editor-project': kit,
         '@volter/editor-blender': product.dependencies['@volter/editor-blender'],
-        ...(playable ? { '@volter/editor-model-play': kit, '@volter/editor-ui': kit, '@volter/editor-react': kit } : {}),
+        ...(playable ? PLAYABLE.devDependencies(kit) : {}),
       },
     }, null, 2) + '\n');
     // Source authoring can grow from a model into Play and React UI. Create the
     // shared compiler configuration before Vite starts, so the first check does
     // not have to create a tsconfig and reload the person's live editor.
-    await write('tsconfig.json', JSON.stringify({
-      compilerOptions: {
-        target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler',
-        jsx: 'react-jsx', resolveJsonModule: true, esModuleInterop: true,
-        strict: true, skipLibCheck: true, noEmit: true,
-      },
-      include: ['src/**/*.ts', 'src/**/*.tsx'],
-    }, null, 2) + '\n');
+    await write('tsconfig.json', PROJECT_TSCONFIG);
     await write('volter.adapter.ts', `import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
 import { ModelLayout } from '@volter/editor-blender/layouts';
 import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 
 export default defineAdapter({
-${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : ''}  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties' },
-  documents: { default: 'model:src/models/${playable ? 'track' : 'cube'}.blend', find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
+${playable ? PLAYABLE.regionIncludes : ''}  editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap, inspector: 'properties' },
+  documents: { default: '${playable ? PLAYABLE.defaultDocument : 'model:src/models/cube.blend'}', find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**/*.blend'] }] },
 });
 `);
     // THE PROJECT NAMES ITS AGENT'S SERVERS, as every scaffolded project does
@@ -129,11 +166,8 @@ ${playable ? "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n" : '
     for (const file of ['AGENTS.md', 'CLAUDE.md'])
       await copyFile(join(productRoot, 'starter', file), join(target, file));
     if (playable) {
-      for (const file of ['track.blend', 'track.py', 'track.play.ts', 'race-state.ts'])
-        await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
       await mkdir(join(target, 'src/ui'));
-      for (const file of ['game.tsx', 'race-hud.tsx', 'game.stories.tsx'])
-        await copyFile(join(productRoot, 'starter/ui', file), join(target, 'src/ui', file));
+      for (const [from, to] of PLAYABLE.example) await copyFile(join(productRoot, 'starter', from), join(target, to));
     } else {
       for (const file of ['cube.blend', 'cube.py'])
         await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));

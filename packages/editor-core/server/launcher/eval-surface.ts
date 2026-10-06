@@ -83,6 +83,31 @@ export function surfaceMembers(target: unknown): SurfaceMember[] {
   return members.sort((a, b) => a.name.localeCompare(b.name));
 }
 
+/**
+ * COMMON TASKS — a handful of one-line examples printed under the member list.
+ *
+ * The member list answers "what could I call?"; it cannot answer "which call
+ * does the thing I want?". Measured 2026-10 (an agent building an obby): with
+ * the full list in hand it still looked for `setCamera`, improvised a camera
+ * pose from `frame()` + `orbit()`, and wrote its own helper to turn a capture's
+ * base64 into a file. Every one of those was already a single call on this
+ * surface. The examples are the editor façade's own calls (every product binds
+ * `editor`), so they hold for every product that prints this listing; the
+ * camera names the façade does not have are refused with a pointer to the same
+ * call (`@volter/editor-live`'s `member-hints.ts`). An empty task continues the
+ * line above it.
+ */
+const COMMON_TASKS: readonly (readonly [task: string, code: string])[] = [
+  ['Pose the camera', 'await editor.present({ version: 1, viewport: { camera: { position: { x: 6, y: 4, z: 8 }, target: { x: 0, y: 0, z: 0 }, fov: 50 } } })'],
+  ['', 'stage space: metres, Y up; a Blender point (x, y, z) is { x, y: z, z: -y }. Read it: return (await editor.currentView()).viewport'],
+  ['Capture to a file', "const shot = await editor.captureEditorChrome({ region: 'play' }); (await import('node:fs')).writeFileSync('shot.png', Buffer.from(shot.base64, 'base64'))"],
+  ['', "region 'document': the document as the person sees it, overlays included; 'play': the live Play frame and its UI"],
+  ['Open a model', "return await editor.open('model:src/models/track.blend')"],
+  ['Hold a key in Play', "return await editor.document.key('w', { code: 'KeyW', holdMs: 1500 })"],
+  ['Read game state', "return await editor.document.query('[aria-label]', { limit: 20 })"],
+  ['', "the running document's DOM, its HUD included: show the state you need to read there (text or data-* attributes)"],
+];
+
 /** The listing for a terminal: each binding and its members, three columns. */
 export function formatSurface(command: string, bindings: Record<string, unknown>): string {
   const lines = [`In scope for \`${command} eval\` (read from the objects themselves):`, ''];
@@ -96,5 +121,8 @@ export function formatSurface(command: string, bindings: Record<string, unknown>
     lines.push('');
   }
   lines.push('Parens mark a method; the number is its declared parameter count. A bare name is a field.');
+  lines.push('', `Common tasks (each is one \`${command} eval '…'\` argument):`);
+  const width = Math.max(...COMMON_TASKS.map(([task]) => task.length)) + 2;
+  for (const [task, code] of COMMON_TASKS) lines.push(`  ${task.padEnd(width)}${task === '' ? '  ' : ''}${code}`);
   return lines.join('\n');
 }
