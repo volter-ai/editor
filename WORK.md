@@ -1688,3 +1688,38 @@ BUILD.json. The owned candidate and receipts now distinguish actual bytes from
 the requested pin. Its author is testing races;
 visual acceptance and a complete workflow pass remain pending. Astra xhigh is
 listed by the native catalog but has not been dispatched yet.
+
+
+### 2026-10-06 — locate blank Local chat reveal and repair source builds
+
+The genuine published frontend 0.1.40 connected Codex but left the native chat
+on an empty Local session. The public `supercode.frontend.refreshSetup` command
+reproduced `Canceled` with the empty native resource unchanged and
+`setupHandoff.complete: false`. The guarded reveal command is present in the
+compiled browser bundle; this is not a missing-command failure. The pinned
+Workbench was built 2026-10-06T10:18:47.450Z from bcb58a166b10, before shared
+main's a1825177/578ae6b5 blank-untyped-chat matcher. Its exact-focus guard treats
+the empty Local placeholder as a person-selected conversation while the
+frontend reports no harness focus. The existing source fix allows the blank
+placeholder to match null while preserving typed drafts and existing chats.
+
+A separate source-build defect originated in 585f71a0: the overlay removes
+`extensions/vscode-api-tests` and its install directory but left its tsconfig in
+the development compiler list. The overlay now excludes that compilation entry
+with an idempotent, pinned-upstream patch. An isolated warm fork copy at
+f16dc165c0df and the genuine frontend 0.1.40 package completed `dev.mjs`:
+`compile-client` typechecked/emitted with zero errors and `compile-web` passed.
+No shared Workbench, dependency installation, credentials or other actor's
+checkout was changed. The candidate is an unpublished sources Workbench.
+
+The public startup/reopen observer now checks handoff completion and the exact
+selected/active native conversation rather than inferring success from console
+health. Both visibility checks passed on the matched source build. Its first
+viewport-preservation check sampled before Blender had loaded the initial view;
+that failure is retained, and the observer now waits for the initial viewport
+camera before testing repeated focus. All 15 settled checks passed: startup/reopen visible chat, clean console, one
+page epoch, and three focus operations preserving both page and viewport.
+Full settled verification is recorded in
+`.volter/kart-cycles-20261006/probe-real-frontend40/verification-receipt.json`;
+the origin receipt is `origin-refresh-reproduction.json`. No game sources were
+edited and no new chat matcher was duplicated.
