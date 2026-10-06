@@ -360,6 +360,10 @@ gulp([`vscode-reh-web-${args.platform}-min-ci`]);
 if (!args.dryRun && !existsSync(packageDir)) { fail(`the package task wrote no ${packageDir}`); }
 let runtimeNotices;
 if (!args.dryRun) {
+	const packagedProduct = JSON.parse(readFileSync(join(packageDir, 'product.json'), 'utf8'));
+	if (packagedProduct.vsdaEnabled !== false || existsSync(join(packageDir, 'node_modules/vsda'))) {
+		fail('Public workbench VSDA capability does not match its packaged payload; review before archiving.');
+	}
 	// Upstream REH only copies optional remote/LICENSE; the public fork keeps
 	// its license and third-party notices at the root. Preserve both, plus the
 	// licenses of the editor tiers compiled into this product's workbench.
