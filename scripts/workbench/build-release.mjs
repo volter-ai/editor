@@ -233,13 +233,15 @@ function publishRelease(dir, dryRun) {
   ${dryRun ? `Would publish ${tag} on ${RELEASE_REPO} (dry run — nothing was uploaded).` : `Published ${tag} on ${RELEASE_REPO}.`}
 
   Declare it — this is what makes \`npx @volter/${record.product} create <name>\` open with nothing
-  else on the machine (packages/${record.product}/package.json):
+  else on the machine (packages/${record.product}/package.json; one entry per platform, beside the others):
 
       "volter": {
         "product": {
           "workbench": {
-            "release": "${tag}",
-            "tarballSha256": "${record.tarballSha256}"
+            "${record.platform}": {
+              "release": "${tag}",
+              "tarballSha256": "${record.tarballSha256}"
+            }
           }
         }
       }
@@ -267,7 +269,19 @@ const buildRecord = join(out, 'BUILD.json');
  *  90 s later inside the clone's own `preinstall`, "Please use Node.js v24.18.0 or newer …
  *  Currently using v26.8.1". A gate that passes and then fails on the same condition is worse
  *  than no gate, so the check is made TRUE for the children instead of merely asserted here. */
-const CHILD_ENV = { ...process.env, PATH: `${dirname(process.execPath)}${delimiter}${process.env['PATH'] ?? ''}`,
+/** The win32 package task strips Authenticode signatures from native modules with `signtool.exe`,
+ *  which the Windows SDK (installed with the Visual Studio Build Tools) carries but never puts on
+ *  PATH. The newest SDK's x64 tools, when there is one. */
+function windowsSdkTools() {
+	const kits = join(process.env['ProgramFiles(x86)'] ?? 'C:\\Program Files (x86)', 'Windows Kits', '10', 'bin');
+	if (!existsSync(kits)) { return []; }
+	const versions = readdirSync(kits).filter((name) => /^10\./.test(name) && existsSync(join(kits, name, 'x64', 'signtool.exe')));
+	versions.sort((a, b) => a.localeCompare(b, undefined, { numeric: true }));
+	return versions.length > 0 ? [join(kits, versions.at(-1), 'x64')] : [];
+}
+
+const CHILD_ENV = { ...process.env,
+	PATH: [dirname(process.execPath), ...(WINDOWS ? windowsSdkTools() : []), process.env['PATH'] ?? ''].join(delimiter),
 	// A local clone of the fork must not fetch its LFS objects: they are all under
 	// extensions/copilot, which the overlay removes before anything reads the tree.
 	GIT_LFS_SKIP_SMUDGE: '1',
