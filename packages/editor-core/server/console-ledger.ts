@@ -50,8 +50,8 @@
  *      the moment it is gone — never a general "clear the console".
  *
  * ONE CLASS IS HELD BUT NOT COUNTED: conditions whose stack proves they came
- * from the Code-OSS workbench itself — its own UI, its extension host, the
- * extensions bundled into the release — and from nothing of this session's.
+ * from the Code-OSS workbench's extension host or the extensions bundled into
+ * the release, and from nothing of this session's.
  * See {@link isWorkbenchOrigin}. They are journaled, retire and ack like any
  * other entry, and stay readable under the editor's `console --all` command; they are left
  * out of {@link ConsoleLedger.unresolved} and the summary's error/warning
@@ -215,29 +215,28 @@ export function normalizeConsoleFingerprintText(text: string): string {
 export const WORKBENCH_CONSOLE_SOURCE = 'workbench';
 
 /**
- * WHAT COUNTS AS THE WORKBENCH: upstream Code-OSS, its extension host, and the
- * extensions bundled into the release — code this session's agent did not
- * write, cannot edit, and whose failure says nothing about the project.
- * `/out/vs/` is the compiled core in every runtime that can feed this ledger
- * (the workbench page, the node extension host's `extensionHostProcess.js`,
- * its workers); an extracted `vscode-reh-web-*` release holds that tree AND
- * the bundled extensions (`extensions/supercode-chat/…`); `/static/extensions/`
- * is a built-in extension served to the browser; `vscode-file://vscode-app/`
- * is the desktop app's own resources. Nothing the session serves (the editor's
- * modules, the project's game, models, UI roots and Play scripts) lives under
- * any of them.
+ * WHAT COUNTS AS THE WORKBENCH: the extension host and the extensions bundled
+ * into the release, and nothing else. `/out/vs/workbench/api/` is where the
+ * extension host runs from (node: `api/node/extensionHostProcess.js`; web
+ * worker: `api/worker/`); an extracted `vscode-reh-web-*` release's
+ * `extensions/` directory holds the bundled extensions
+ * (`extensions/supercode-chat/…`), and `/static/extensions/` is one served to
+ * the browser. Code this session's agent did not write and cannot edit, and
+ * whose failure says nothing about the project.
+ *
+ * The workbench PAGE's own code (`out/vs/workbench/workbench.*.js`,
+ * `vscode-file://vscode-app/`) deliberately does NOT count. The editor's frame
+ * tier (`packages/editor-core/workbench/src`) compiles into that page as
+ * `contrib/volter*`, and a minified release bundles it into the same main file
+ * as upstream's UI, so a frame there cannot say whose it is. Hiding a real
+ * editor bug is worse than showing an upstream UI crash, so those stay
+ * reported. The editor ships no code in `extensions/` (`volter-keymaps` is
+ * declarative), so the two kinds that do count are never ours. Nothing the
+ * session serves (the editor's modules, the project's game, models, UI roots
+ * and Play scripts) lives under them either.
  */
 const WORKBENCH_FRAME =
-  /\/out\/vs\/|\/vscode-reh-web-[^/]+\/|\/static\/extensions\/|^vscode-file:\/\/vscode-app\//;
-/**
- * …EXCEPT the editor's own frame tier. `packages/editor-core/workbench/src` is
- * compiled INTO that tree (`out/vs/workbench/contrib/volter/`,
- * `contrib/volterProduct/`), but it is ours: a throw there is an editor bug,
- * and it stays reported like any other. Only visible where the path survives —
- * a minified release bundles these into the workbench's main file, and a frame
- * there cannot be told apart from upstream's.
- */
-const EDITOR_FRAME_TIER = /\/out\/vs\/workbench\/contrib\/volter[^/]*\//;
+  /\/out\/vs\/workbench\/api\/|\/vscode-reh-web-[^/]+\/extensions\/|\/static\/extensions\//;
 /** A frame with no location of anybody's: runtime internals and builtins. */
 const NEUTRAL_FRAME = /^(?:node:|<anonymous>$|native$|index \d+$)/;
 const FRAME_LINE = /^\s*at\s+(.*?)\s*$/;
@@ -268,9 +267,11 @@ const FRAME_LINE = /^\s*at\s+(.*?)\s*$/;
  *
  * ON the stack is the catch: V8's async stack keeps a caller's frame only
  * while the caller AWAITS. A door into the workbench that returns its promise
- * bare drops out, and a rejection from inside the workbench then reads as
- * workbench-only — which is why `projectFiles`' doors `return await`. A
- * project-facing door onto a workbench service must do the same.
+ * bare drops out, and a rejection from inside the extension host would then
+ * read as workbench-only. `projectFiles`' doors `return await` for that reason
+ * (their provider lives in the page, whose frames do not count, so today this
+ * is belt and braces); any project-facing door onto an extension-host service
+ * must do the same.
  *
  * Exported so the page-error door (`control-plane.ts`) rules the same way.
  */
@@ -283,7 +284,7 @@ export function isWorkbenchOrigin(message: string): boolean {
     // through to the whole text, which can only make the answer "not ours".
     const body = frame[1] ?? '';
     const location = (/\(([^()]*)\)$/.exec(body)?.[1] ?? body).replace(/\\/g, '/');
-    if (WORKBENCH_FRAME.test(location) && !EDITOR_FRAME_TIER.test(location)) workbench = true;
+    if (WORKBENCH_FRAME.test(location)) workbench = true;
     else if (location !== '' && !NEUTRAL_FRAME.test(location)) return false;
   }
   return workbench;

@@ -230,10 +230,10 @@ export const projectFiles = {
 
   // Every door below `return await`s, never returns the promise bare. With a
   // bare return this frame leaves V8's async stack, and a workbench file
-  // provider's rejection (`FileOperationError`) then carries ONLY `/out/vs/`
-  // frames — which the console ledger reads as the workbench's own failure
-  // (`isWorkbenchOrigin`) and holds out of the project's unresolved set,
-  // hiding a Play script's `await host.files.read('missing.json')`.
+  // provider's rejection (`FileOperationError`) then carries ONLY workbench
+  // frames — the stack the console ledger reads to decide whether an error is
+  // the project's (`isWorkbenchOrigin`). A Play script's
+  // `await host.files.read('missing.json')` must keep its own frames on it.
   async read(path: string): Promise<string> {
     const key = assertContained(path);
     return await (filesProvider()?.read(key) ?? hostRead(key));
