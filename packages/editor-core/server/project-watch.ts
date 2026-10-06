@@ -554,6 +554,13 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
    */
   function nudgeChatAgent(tripwire: AnyTripwireName, line: string | null): void {
     if (!line) return;
+    // No turn clock means this watcher saw the turn END (or never saw one
+    // start): drop the line rather than ask the service, so a crossing that
+    // fires just after a turn can never become a steer into an idle runtime.
+    if (!turnClock) {
+      journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'no-turn' });
+      return;
+    }
     if (chatNudgedThisTurn) {
       journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'capped' });
       return;

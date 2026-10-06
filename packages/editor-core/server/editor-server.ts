@@ -569,8 +569,11 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     postMirroredTeamMessages(snapshot);
   };
   const account = new EditorAccountService();
-  /** The headless controller's running turn, so its start is seen once. */
+  /** The headless controller's running turn, so its start and end are each
+   *  seen once. A turn the controller reports without an id gets a synthetic
+   *  one for its run, so `null === null` cannot hide a boundary. */
   let headlessTurnId: string | null = null;
+  let headlessTurnSequence = 0;
   const harnessChat = new HarnessChatService({
     getProjectRoot: () => projectRoot,
     resolveCodingInference: (workspace) => account.resolvedCodingInference(workspace),
@@ -580,7 +583,11 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
       // An `@agent` turn runs through the controller, so its snapshot is the
       // signal; the native Chat's turns arrive through `onRuntimeActivity`.
       if (snapshot.turn.state === 'running') {
-        const turnId = snapshot.turn.id ?? null;
+        const turnId =
+          snapshot.turn.id ??
+          (headlessTurnId?.startsWith('synthetic:')
+            ? headlessTurnId
+            : `synthetic:${++headlessTurnSequence}`);
         watch.noteChatActivity(turnId !== headlessTurnId ? 'turn-started' : 'other');
         headlessTurnId = turnId;
       } else if (headlessTurnId !== null) {
