@@ -108,7 +108,8 @@ export function start(): () => void {
     run(stage) {
       // The document kind lends native scene objects; this tool owns their Three types.
       return runPlayScript({ ...stage, blend: stage.sourcePath, root: stage.root as THREE.Object3D,
-        camera: stage.camera as () => THREE.Camera, editingCamera: stage.editingCamera as () => THREE.Camera });
+        camera: stage.camera as () => THREE.Camera, editingCamera: stage.editingCamera as () => THREE.Camera,
+        ownMaterial: stage.ownMaterial as ((material: THREE.Material) => THREE.Material | null) | undefined });
     },
     // THE RUN'S TRANSPORT (`model-play.ts`): the runner reads all of it each frame.
     transport: {

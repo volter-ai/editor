@@ -21,6 +21,10 @@ export interface DocumentPlayStage {
   readonly ready: () => void;
   /** The return camera is approaching the editing pose; fade authoring chrome back in. */
   readonly returning: () => void;
+  /** A copy of one of `root`'s materials that one object can wear alone and a runner can
+   *  recolour, keeping the document's own draw hooks; null for a material that is not the
+   *  document's. Absent, a runner clones. */
+  readonly ownMaterial?: (material: unknown) => unknown;
 }
 /**
  * A RUNNING GAME'S CLOCK, as the Play tool keeps it. The numbers are the ones the runner handed

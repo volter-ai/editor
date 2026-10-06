@@ -165,6 +165,45 @@ export interface StageFrameCostReading {
   readonly drawMode: string;
 }
 
+/**
+ * One entry of Model Play's log (`model-play-log`, written by a play script's `play.log` and by
+ * the runner; `@volter/editor-model-play`'s `play-log.ts` is the writer and documents it).
+ */
+export interface ModelPlayLogEntry {
+  /** The entry's place in its run, from 0; a gap is entries the bounded log dropped. */
+  readonly seq: number;
+  /** Wall-clock ms. */
+  readonly t: number;
+  /** Seconds of simulation since Play started. */
+  readonly simT: number;
+  /** The update the entry was written in (the first is 1); 0 before the first. */
+  readonly tick: number;
+  readonly kind: string;
+  /** `script` for the play script's entries; `play` for `play-start`, `script-reload`,
+   *  `script-error` and `play-stop`. */
+  readonly source: 'script' | 'play';
+  readonly facts?: Record<string, unknown>;
+}
+
+/** One model document's Model Play log as `model-play-log` reads it: the current run's, or
+ *  the last one's. */
+export interface ModelPlayLogReading {
+  readonly playing: boolean;
+  readonly documentId: string | null;
+  /** Every model document with a log; a read names one, or takes the active Play's. */
+  readonly documents: readonly string[];
+  readonly script: string | null;
+  readonly startedAt: number | null;
+  /** The run's clock at the read. */
+  readonly simT: number;
+  readonly tick: number;
+  /** Entries the log keeps; `dropped` of the run's `total` fell off its front. */
+  readonly capacity: number;
+  readonly total: number;
+  readonly dropped: number;
+  readonly entries: readonly ModelPlayLogEntry[];
+}
+
 /** Where the open document's camera is standing and what it is aimed at. */
 export interface DocumentCameraPose {
   position: [number, number, number];

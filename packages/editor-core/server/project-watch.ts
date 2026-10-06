@@ -554,6 +554,13 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
    */
   function nudgeChatAgent(tripwire: AnyTripwireName, line: string | null): void {
     if (!line) return;
+    // No turn clock means this watcher saw the turn END (or never saw one
+    // start): drop the line rather than ask the service, so a crossing that
+    // fires just after a turn can never become a steer into an idle runtime.
+    if (!turnClock) {
+      journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'no-turn' });
+      return;
+    }
     if (chatNudgedThisTurn) {
       journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'capped' });
       return;
@@ -608,8 +615,15 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   let lastViewKey: string | null = null;
   let turnClock: ReturnType<typeof setInterval> | null = null;
   let turnClockAsking = false;
+  /** Did the last ask find the turn waiting on the person? */
+  let turnWaitingOnPerson = false;
   /** Has this turn already heard a tripwire line? See `nudgeChatAgent`. */
   let chatNudgedThisTurn = false;
+  /** `chatNudgedThisTurn` as the last stopped clock left it. */
+  let previousTurnNudged = false;
+  /** A turn END was the last boundary seen: until a turn (re)starts, stray
+   *  activity must not arm a fresh clock — and with it a fresh allowance. */
+  let chatTurnEnded = false;
   let revisionsRoom: CollaborationSession | null = null;
   let revisionsUnsubscribe: (() => void) | null = null;
 
@@ -640,7 +654,10 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     lastVisibleChangeAt = null;
     lastViewKey = null;
     visibleGate = IDLE_TRIPWIRE_GATE;
+    // Remembered for a `turn-resumed`: the same real turn keeps its spent line.
+    previousTurnNudged = chatNudgedThisTurn;
     chatNudgedThisTurn = false;
+    turnWaitingOnPerson = false;
   }
 
   /** A new turn is a new stall clock and a fresh nudge allowance: the quiet
@@ -657,11 +674,28 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     if (host.projectRoot() === engineRoot) return;
     if (activity === 'turn-ended') {
       stopTurnClock();
+      chatTurnEnded = true;
       return;
     }
-    // A harness that reports no turn boundaries still arms on any activity;
-    // the clock then stops itself on the first ask that finds no turn.
-    if (activity === 'turn-started' || !turnClock) startTurnClock();
+    if (activity === 'turn-resumed') {
+      // Read before the restart: `startTurnClock` stops the clock first, and
+      // a stop records the (already-cleared) flag over it.
+      const spent = turnClock ? chatNudgedThisTurn : previousTurnNudged;
+      startTurnClock();
+      chatNudgedThisTurn = spent;
+      chatTurnEnded = false;
+      return;
+    }
+    if (activity === 'turn-started') {
+      startTurnClock();
+      chatTurnEnded = false;
+    } else if (!turnClock) {
+      // A harness that reports no turn boundaries still arms on any activity
+      // (the clock stops itself on the first ask that finds no turn) — but
+      // never after a turn END, where only a (re)start may arm it.
+      if (chatTurnEnded) return;
+      startTurnClock();
+    }
     if (activity === 'narration' || activity === 'answered') noteVisibleChange();
   }
 
@@ -699,7 +733,18 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     turnClockAsking = true;
     try {
       const state = await withinDeadline(host.chatTurnState(), VISIBLE_PROGRESS_CHECK_INTERVAL_MS / 2);
-      if (state === null || state === 'waiting') return; // unknown, or the person's move
+      if (state === null || state === 'unknown') return; // nothing learned: keep everything
+      if (state === 'waiting') {
+        turnWaitingOnPerson = true; // the person's move; nothing is stalled
+        return;
+      }
+      if (turnWaitingOnPerson) {
+        // The ask just resolved (by `request_resolved` or by the controller's
+        // own request list): the agent gets a full step from THIS moment
+        // before any nudge, however long the person took.
+        turnWaitingOnPerson = false;
+        noteVisibleChange();
+      }
       if (state === 'idle' || host.projectRoot() === engineRoot) {
         stopTurnClock();
         return;

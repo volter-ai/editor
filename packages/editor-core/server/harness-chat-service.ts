@@ -124,11 +124,21 @@ type HeadlessControllerConstructor = new (options: {
   autoObserve: boolean;
   allowHarnessConfiguration?: boolean;
 }) => HeadlessController;
+/** The fields of the SDK's `ObservedRuntimeEvent` (its `NormalizedRuntimeEvent`)
+ *  this service reads. Optional because the runtime is an optional peer. */
+type ObservedChatRuntimeEvent = {
+  type?: string;
+  kind?: string;
+  role?: string;
+  text?: string | null;
+  requestId?: unknown;
+  raw?: { payload?: unknown };
+};
 type HeadlessManagedRuntime = {
   readonly closed?: boolean;
   on?(
     event: 'event',
-    listener: (event: { type?: string; role?: string; requestId?: unknown; raw?: { payload?: unknown } }) => void,
+    listener: (event: ObservedChatRuntimeEvent) => void,
   ): unknown;
   /** The SDK's own `RuntimeHandle`. `runtime_id` is the string the runtime wrote into
    *  its live receipt as `runtime_session_id`, so it is how the frontend handoff finds
@@ -253,14 +263,67 @@ export function withManagedRuntimeObserver(
  */
 export type ChatRuntimeActivity =
   | 'turn-started'
+  /** A synthetic reopen within `STEER_ECHO_WINDOW_MS` of this editor's own
+   *  steer: the same real turn carrying on (or the turn the steer itself
+   *  started), so the per-turn nudge allowance must NOT reset. */
+  | 'turn-resumed'
   | 'turn-ended'
   | 'narration'
   | 'waiting'
   | 'answered'
   | 'other';
 
-/** Where a Chat turn stands, for a caller deciding whether to steer it. */
-export type ChatTurnState = 'idle' | 'running' | 'waiting';
+/**
+ * How long after this editor's own steer a synthetic turn reopen is read as
+ * that steer's consequence rather than a new turn, in ms. A steer sent just
+ * after Claude Code's `result`, while the runtime still reports busy, can
+ * echo back and be answered within seconds; counting that as a fresh turn
+ * would hand the same real turn a second nudge.
+ */
+const STEER_ECHO_WINDOW_MS = 10_000;
+
+/**
+ * Is this event the agent's own words, visible to the person in the Chat?
+ * Assistant text only — never thinking (`reasoning_delta`), never a tool's
+ * streamed input. The SDK projects Claude Code's `stream_event` content-block
+ * deltas to `output_delta` whatever the block, so there the delta's own type
+ * must be `text_delta`; a hosted runtime's `output_delta` is already text.
+ */
+function isNarration(event: ObservedChatRuntimeEvent): boolean {
+  if (event.type === 'message') {
+    return event.role === 'assistant' && typeof event.text === 'string' && event.text.trim() !== '';
+  }
+  if (event.type !== 'output_delta') return false;
+  if (String(event.kind ?? '').toLowerCase() !== 'stream_event') return true;
+  const payload = event.raw?.payload as
+    | { event?: { delta?: { type?: unknown } }; stream_event?: { delta?: { type?: unknown } }; delta?: { type?: unknown } }
+    | undefined;
+  const delta = (payload?.event ?? payload?.stream_event ?? payload)?.delta;
+  return String(delta?.type ?? '').toLowerCase() === 'text_delta';
+}
+
+/**
+ * The key one runtime request is tracked under, the same on both of its
+ * events. From the wire payload the runtime sent — `payload.request.id` on a
+ * `request`, `payload.request_id` on its `request_resolved` (the bundled Chat
+ * extension's reads) — because the SDK's normalized `requestId` on a request
+ * is read after spreading the request's own inner payload over it, which can
+ * replace the id. Stringified, so a numeric id and its string form match.
+ */
+function runtimeRequestKey(event: ObservedChatRuntimeEvent, type: 'request' | 'request_resolved'): string {
+  const wire = event.raw?.payload as
+    | { request?: { id?: unknown }; request_id?: unknown }
+    | undefined;
+  const id = type === 'request'
+    ? (wire?.request?.id ?? wire?.request_id ?? event.requestId)
+    : (wire?.request_id ?? event.requestId);
+  return String(id ?? null);
+}
+
+/** Where a Chat turn stands, for a caller deciding whether to steer it.
+ *  `unknown` — the runtime could not be read this time (a failed or timed-out
+ *  `describe`); nothing was learned, so nothing may be decided on it. */
+export type ChatTurnState = 'idle' | 'running' | 'waiting' | 'unknown';
 
 export interface HarnessChatServiceOptions {
   getProjectRoot: () => string;
@@ -842,6 +905,20 @@ export class HarnessChatService {
   private managedRuntime: HeadlessManagedRuntime | null = null;
   /** Runtime requests (approvals, questions) the person has not answered. */
   private readonly pendingRuntimeRequests = new Set<string>();
+  /** Whether the Chat runtime's current turn is open, from its own boundary
+   *  events and the synthetic reopen: `null` before any runtime is observed,
+   *  `false` when a new one is. */
+  private runtimeTurnOpen: boolean | null = null;
+  /** Bumped at every runtime turn boundary, so a steer that awaited across one
+   *  can tell. */
+  private runtimeTurnGeneration = 0;
+  /** Has this runtime ever reported a turn START? Claude Code's native stream
+   *  ends turns (`result`) but never starts one, so for such a runtime the
+   *  open/closed bit is inferred and steering must not be gated on it. */
+  private runtimeReportsTurnStarts = false;
+  /** The last line this service steered in, and when — so its echo as a user
+   *  message, and the reopen it causes, are recognised as ours. */
+  private lastSteer: { readonly text: string; readonly at: number } | null = null;
   private observedModel: string | null = null;
   private chatSelection: ChatSelection = { ...DEFAULT_CHAT_SELECTION };
   private selectingChat = false;
@@ -977,22 +1054,33 @@ export class HarnessChatService {
    * resolved). A busy turn that is waiting is not a turn to steer: the line
    * would land on top of the question the person is reading.
    *
-   * Never throws: a runtime that cannot be asked is not running anything this
-   * editor can see.
+   * Never throws: a runtime that cannot be asked this time is `unknown`, and
+   * leaves every pending ask exactly as it was.
    */
   async chatTurnState(): Promise<ChatTurnState> {
-    if (
-      this.lastSnapshot.requests.some((request) => request.status === 'pending') ||
-      this.pendingRuntimeRequests.size > 0
-    ) {
-      return 'waiting';
+    if (this.lastSnapshot.requests.some((request) => request.status === 'pending')) return 'waiting';
+    let busy = this.lastSnapshot.turn.state === 'running';
+    if (!busy) {
+      try {
+        busy = (await this.frontendHandoffValue?.isBusy()) === true;
+      } catch {
+        // A failed or timed-out read is not a reading of `idle`: dropping the
+        // person's open ask on it would let the next tick steer onto it.
+        return 'unknown';
+      }
     }
-    if (this.lastSnapshot.turn.state === 'running') return 'running';
-    try {
-      return (await this.frontendHandoffValue?.isBusy()) === true ? 'running' : 'idle';
-    } catch {
+    // Only a SUCCESSFUL not-busy reading ends an ask: an approval can only be
+    // outstanding while a turn runs (the runtime's `decide_approval` blocks
+    // the agent loop — the bundled Chat extension clears its own
+    // `pendingRequests` on an idle descriptor for this reason). Silence never
+    // does: a person may leave an approval open for as long as they like, and
+    // until its `request_resolved`, a turn boundary or an idle runtime, the
+    // turn is `waiting` and nothing is steered onto it.
+    if (!busy) {
+      this.pendingRuntimeRequests.clear();
       return 'idle';
     }
+    return this.pendingRuntimeRequests.size > 0 ? 'waiting' : 'running';
   }
 
   /**
@@ -1006,7 +1094,17 @@ export class HarnessChatService {
    * harness refuses the steer, so the caller can record why.
    */
   async steerRunningTurn(text: string): Promise<boolean> {
+    const generation = this.runtimeTurnGeneration;
     if ((await this.chatTurnState()) !== 'running') return false;
+    // Re-checked AFTER the await, immediately before the steer: a turn that
+    // ended while its state was being read must not be steered, because a
+    // steer into an idle runtime can START a turn nobody asked for.
+    // The open/closed bit gates only a runtime that reports turn starts; one
+    // that never does (Claude Code's native stream) falls back to the
+    // descriptor's `turn_state` busy, read just above.
+    if (generation !== this.runtimeTurnGeneration) return false;
+    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return false;
+    this.lastSteer = { text, at: Date.now() };
     const runtime = this.managedRuntime;
     if (runtime && !runtime.closed) {
       await runtime.steer(text);
@@ -1056,6 +1154,11 @@ export class HarnessChatService {
     this.managedRuntime = runtime;
     this.observedModel = null;
     this.pendingRuntimeRequests.clear();
+    // A fresh runtime starts CLOSED, so its first activity is a (synthetic)
+    // turn start — the watcher arms nothing after a turn end until one.
+    this.runtimeTurnOpen = false;
+    this.runtimeReportsTurnStarts = false;
+    this.runtimeTurnGeneration++;
     runtime.on?.('event', event => {
       if (this.managedRuntime !== runtime) return;
       this.options.onRuntimeActivity?.(this.runtimeActivity(event));
@@ -1073,28 +1176,98 @@ export class HarnessChatService {
    * Reduce one runtime event to a `ChatRuntimeActivity`, keeping the set of
    * requests the person has not answered yet — the native Chat answers them
    * itself, so these events are the only place this service sees them.
+   *
+   * THE NAMES ARE THE SDK'S NORMALIZED `type`s (`@volter/supercode-harness-sdk`
+   * `normalizeRuntimeEvent`, checked against 0.3.77), not the runtime's wire
+   * `kind`s. The hosted runtime's wire kinds — the ones the bundled Chat
+   * extension's `projectEvent` reads — map onto them as:
+   *   - `turn_started` → `turn_started`;
+   *   - `turn_succeeded` / `turn_failed` / `turn_interrupted` → `turn_completed`
+   *     (the END of a submitted turn). The wire `turn_completed` is one model
+   *     round-trip and the SDK passes it through as `native`, so it never
+   *     reads as an end here — the extension's own comment: treating it as
+   *     idle ends the turn exactly when an approval is about to be raised;
+   *   - `request` (`payload.request.id`) → `request`, `request_resolved`
+   *     (`payload.request_id`) → `request_resolved`, same numeric id;
+   *   - `runtime_disconnected` → `closed`;
+   *   - `text_delta` → `output_delta`, `thinking_delta` → `reasoning_delta`.
+   * A Claude Code runtime's native stream ends its turn with `result` →
+   * `turn_completed` and streams `stream_event` content-block deltas, where
+   * the SDK labels TOOL-INPUT deltas (`input_json_delta`) `output_delta` too —
+   * which is why narration below reads the delta's own type there.
    */
-  private runtimeActivity(event: { type?: string; role?: string; requestId?: unknown }): ChatRuntimeActivity {
+  private runtimeActivity(event: ObservedChatRuntimeEvent): ChatRuntimeActivity {
     switch (event.type) {
       case 'turn_started':
-        this.pendingRuntimeRequests.clear();
+        this.runtimeReportsTurnStarts = true;
+        this.openRuntimeTurn(true);
         return 'turn-started';
       case 'turn_completed':
-        this.pendingRuntimeRequests.clear();
+      case 'closed':
+        this.openRuntimeTurn(false);
         return 'turn-ended';
-      case 'request':
-        this.pendingRuntimeRequests.add(JSON.stringify(event.requestId ?? null));
-        return 'waiting';
+      case 'request': {
+        // A request opens a turn that never announced itself (it is raised
+        // from inside one); the ask is added after, so the reopen keeps it.
+        const reopened = this.reopenOnActivity();
+        this.pendingRuntimeRequests.add(runtimeRequestKey(event, 'request'));
+        return reopened ?? 'waiting';
+      }
       case 'request_resolved':
-        this.pendingRuntimeRequests.delete(JSON.stringify(event.requestId ?? null));
+        this.pendingRuntimeRequests.delete(runtimeRequestKey(event, 'request_resolved'));
         return 'answered';
       case 'output_delta':
-        return 'narration';
+      case 'reasoning_delta':
+      case 'tool':
+        // NOT a reason to clear a pending approval: in Claude Code a subagent
+        // can stream while the main thread waits on the person's decision.
+        // An ask ends only on its own `request_resolved`, a turn boundary,
+        // or a successful idle reading in `chatTurnState` — never silence.
+        return this.reopenOnActivity() ?? (isNarration(event) ? 'narration' : 'other');
       case 'message':
-        return event.role === 'assistant' ? 'narration' : 'other';
+        // This editor's own steer echoing back is not a new turn.
+        if (event.role === 'user' && this.isOwnSteerEcho(event)) return 'other';
+        // A new user message, or the agent speaking, after a turn ended is
+        // the next turn beginning.
+        if (event.role === 'user' || isNarration(event)) {
+          const reopened = this.reopenOnActivity();
+          if (reopened) return reopened;
+        }
+        return isNarration(event) ? 'narration' : 'other';
       default:
         return 'other';
     }
+  }
+
+  /**
+   * The SYNTHETIC turn start: agent activity after a turn END opens the next
+   * turn, because Claude Code's native stream ends every turn (`result`) and
+   * starts none. Reported upward as `turn-started`, so the visible-progress
+   * stall clock and the per-turn nudge allowance reset exactly as they do for
+   * a runtime that announces its turns — unless it follows this editor's own
+   * steer within `STEER_ECHO_WINDOW_MS`, when it is `turn-resumed` and the
+   * allowance stands. `null` when no turn was reopened.
+   */
+  private reopenOnActivity(): 'turn-started' | 'turn-resumed' | null {
+    if (this.runtimeTurnOpen !== false) return null;
+    this.openRuntimeTurn(true);
+    const sinceSteer = this.lastSteer ? Date.now() - this.lastSteer.at : Infinity;
+    return sinceSteer < STEER_ECHO_WINDOW_MS ? 'turn-resumed' : 'turn-started';
+  }
+
+  /** Is this user message the line this service last steered in? Matched on
+   *  the text, either way round, because a harness may trim or wrap it. */
+  private isOwnSteerEcho(event: ObservedChatRuntimeEvent): boolean {
+    const sent = this.lastSteer?.text.trim();
+    const seen = typeof event.text === 'string' ? event.text.trim() : '';
+    return Boolean(sent && seen && (seen.includes(sent) || sent.includes(seen)));
+  }
+
+  /** A runtime turn boundary: any open ask belongs to the turn it ended. */
+  private openRuntimeTurn(open: boolean): void {
+    this.pendingRuntimeRequests.clear();
+    this.runtimeTurnOpen = open;
+    this.runtimeTurnGeneration++;
   }
 
   /** The private controls channel's environment for the extension host: started

@@ -10,16 +10,17 @@
  * prints the panel's state afterwards; a control lands on the next drawn frame, so `play state`
  * again reads its effect (a step's tick, a resumed clock).
  *
- * The verbs act on the model document on screen. Speed takes the panel's own steps — 0.25, 0.5,
+ * The verbs act on the model document on screen, or the one `--document <id>` names (the same
+ * id `play-log --document` takes). Speed takes the panel's own steps — 0.25, 0.5,
  * 1, 2, 4 — written bare or with an `x`.
  */
 import { connect } from '@volter/editor-live';
 
-export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|movie]';
+export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|movie]  [--document <id>]';
 
 const BARE = new Set(['state', 'play', 'stop', 'pause', 'resume', 'restart']);
 
-export async function play(args: readonly string[]): Promise<unknown> {
+export async function play(args: readonly string[], document?: string): Promise<unknown> {
   const [verb = 'state', value, ...rest] = args;
   const usage = (): never => { throw new Error(`Usage: volter-model-editor ${PLAY_USAGE}`); };
   if (rest.length > 0) usage();
@@ -34,6 +35,7 @@ export async function play(args: readonly string[]): Promise<unknown> {
   } else if (verb === 'mode') {
     if (value !== undefined) commandArgs = { mode: value };
   } else usage();
+  if (document !== undefined) commandArgs = { ...commandArgs, document };
   const { editor } = await connect();
   return editor.command(`volter.model-play.${verb}`, commandArgs);
 }

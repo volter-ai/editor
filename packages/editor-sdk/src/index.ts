@@ -89,6 +89,8 @@ export type {
   InspectionPresentationKind,
   InspectionSurface,
   LabeledShotSetCapture,
+  ModelPlayLogEntry,
+  ModelPlayLogReading,
   PlayRecordingStatus,
   PlayStarted,
   PresentedEditorView,
