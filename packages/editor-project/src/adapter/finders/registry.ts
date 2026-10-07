@@ -27,6 +27,16 @@ export interface FinderRegistration<
    *  same rule as every other adapter table. */
   readonly schema: ZodType<S>;
   readonly run: (selection: S, input: I) => FinderResult;
+  /**
+   * WHAT OF THE MATCHED PROJECT IT READS. `sources` (the default) is the text of every file
+   * under the selection's `include` globs (`input.sources`) and their paths; `files` is the
+   * paths alone (`input.files`). A finder over BINARY documents says `files`, so the host never
+   * fetches a file it could not hand over as text: `@volter/editor-blender`'s
+   * `modelsFromBlendFiles` lists `.blend` files, and reading each one through the text-source
+   * route asked a multi-megabyte binary of a route capped at 2 MiB of text — a
+   * `413 Payload Too Large` per model per resolve, for bytes nothing would have read.
+   */
+  readonly reads?: 'sources' | 'files';
 }
 
 const registry = new Map<string, FinderRegistration>();
@@ -63,8 +73,19 @@ export function registerContributedFinder(value: unknown, source: string): () =>
   if (!schema || typeof schema.safeParse !== 'function')
     problems.push('`schema` must be a Zod schema');
   if (typeof record.run !== 'function') problems.push('`run(selection, input)` must be a function');
+  if (record.reads !== undefined && record.reads !== 'sources' && record.reads !== 'files')
+    problems.push('`reads`, when given, must be `sources` or `files`');
   if (problems.length > 0) throw new Error(`${source}: not a finder — ${problems.join('; ')}`);
   return registerFinder(record as FinderContribution);
+}
+
+/** Whether the named finder reads its files' TEXT ({@link FinderRegistration.reads}). An
+ *  unregistered name answers false: its selection refuses by name when it runs
+ *  ({@link runRegisteredFinder}), so text fetched for it would be read by nothing — and a
+ *  contribution still loading is exactly when a paths-only finder is not registered yet. */
+export function finderReadsSources(name: string): boolean {
+  const registration = registry.get(name);
+  return registration !== undefined && registration.reads !== 'files';
 }
 
 /** Every registered finder name, in registration order. */

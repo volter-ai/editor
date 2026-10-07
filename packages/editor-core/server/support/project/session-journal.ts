@@ -34,7 +34,7 @@
 
 import { appendFileSync, mkdirSync, readdirSync, readFileSync, unlinkSync } from 'node:fs';
 import { join } from 'node:path';
-import type { TripwireTier } from './build-discipline';
+import type { AnyTripwireName, TripwireTier } from './build-discipline';
 import type {
   RecordedTabCensus,
   TabStallMetrics,
@@ -163,6 +163,31 @@ export type SessionJournalEvent =
       readonly tripwire: 'unplayed-session';
       readonly tier: TripwireTier;
       readonly servingForMs: number;
+    }
+  /** A running Chat turn left the editor window unchanged past the step. */
+  | {
+      readonly kind: 'tripwire';
+      readonly tripwire: 'visible-progress';
+      readonly tier: TripwireTier;
+      readonly stalledForMs: number;
+    }
+  /**
+   * What became of a tripwire crossing's line on its way into the Chat agent's
+   * running turn — the row that answers "did the agent hear it?".
+   *
+   * It exists because that question had no answer: the "obby" run journaled
+   * both unplayed-session crossings and the agent's transcript held neither,
+   * and nothing on disk said so. `steered` — the line went into the running
+   * turn; `no-turn` — no AI turn was running, so nobody was there to hear it
+   * (the crossing's own row and the terminal banner remain its record) or it
+   * was waiting on the person; `capped` — this turn already heard its one
+   * line; `failed` — the harness refused the steer, with its reason.
+   */
+  | {
+      readonly kind: 'tripwire-nudge';
+      readonly tripwire: AnyTripwireName;
+      readonly outcome: 'steered' | 'no-turn' | 'capped' | 'failed';
+      readonly error?: string;
     }
   /**
    * A play-mode log session opened or closed.
@@ -294,6 +319,35 @@ export type SessionJournalEvent =
       /** Present only when `ok` is false; the refusal/failure text. */
       readonly error?: string;
     }
+  /** Native delivery/completion expiry; this does not cancel the operation. */
+  | {
+      readonly kind: 'command-timeout';
+      readonly command: 'run-command';
+      readonly commandId: string;
+      readonly requestId8: string;
+      readonly tabId8: string | null;
+      readonly clientId8: string | null;
+      readonly epochAtRelay: number | null;
+      readonly phase: 'delivery' | 'completion';
+      readonly waitedMs: number;
+      readonly receivedAt: number | null;
+    }
+  /** A verified same-page result arrived after its caller already timed out.
+   *  The failed caller result remains; no command arguments/result data logged. */
+  | {
+      readonly kind: 'command-late-result';
+      readonly command: 'run-command';
+      readonly commandId: string;
+      readonly requestId8: string;
+      readonly clientId8: string;
+      readonly tabId8: string;
+      readonly epochAtRelay: number;
+      readonly receivedAt: number;
+      readonly timedOutAt: number;
+      readonly completedAt: number;
+      readonly afterTimeoutMs: number;
+      readonly ok: boolean;
+    }
   /**
    * The relay HELD a command instead of refusing it: the target tab is
    * present by heartbeat but its command channel is not carrying right now
@@ -415,6 +469,10 @@ export type SessionJournalEvent =
       readonly kind: 'page-error';
       readonly tabId8: string;
       readonly message: string;
+      /** Present when the stack proves the Code-OSS workbench threw it and no
+       *  code of the session's was involved (`console-ledger.ts`'s
+       *  `isWorkbenchOrigin`): kept for debugging, not a fault of the page. */
+      readonly origin?: 'workbench';
     }
   /**
    * One batch of occurrences of ONE console error/warning condition, as the
@@ -650,9 +708,14 @@ export function formatJournalLine(line: SessionJournalLine): string {
   const at = line.at.slice(11, 19);
   switch (line.kind) {
     case 'tripwire':
-      return line.tripwire === 'commit-cadence'
-        ? `journal: ${at} tripwire commit-cadence ${line.tier} (${line.fileCount} files, ${Math.round(line.ageMs / 60_000)}m)`
-        : `journal: ${at} tripwire unplayed-session ${line.tier} (${Math.round(line.servingForMs / 60_000)}m)`;
+      if (line.tripwire === 'commit-cadence') {
+        return `journal: ${at} tripwire commit-cadence ${line.tier} (${line.fileCount} files, ${Math.round(line.ageMs / 60_000)}m)`;
+      }
+      return line.tripwire === 'unplayed-session'
+        ? `journal: ${at} tripwire unplayed-session ${line.tier} (${Math.round(line.servingForMs / 60_000)}m)`
+        : `journal: ${at} tripwire visible-progress ${line.tier} (${Math.round(line.stalledForMs / 1000)}s)`;
+    case 'tripwire-nudge':
+      return `journal: ${at} tripwire-nudge ${line.tripwire} ${line.outcome}${line.error ? ` (${line.error})` : ''}`;
     case 'validation':
       return `journal: ${at} validation ${line.ok ? 'ok' : 'FAILED'} ${line.path}`;
     case 'play':
@@ -710,6 +773,10 @@ export function formatJournalLine(line: SessionJournalLine): string {
       return `journal: ${at} command-swept-on-last-tab-gone ${line.settled} unreceipted`;
     case 'command-result':
       return `journal: ${at} command-result ${line.requestId8} ${line.ok ? 'ok' : `FAILED ${line.error ?? ''}`}`;
+    case 'command-timeout':
+      return `journal: ${at} command-timeout ${line.commandId} ${line.requestId8} waiting for ${line.phase} after ${line.waitedMs}ms`;
+    case 'command-late-result':
+      return `journal: ${at} command-late-result ${line.commandId} ${line.requestId8} ${line.ok ? 'ok' : 'FAILED'} +${line.afterTimeoutMs}ms after caller timeout`;
     case 'command-held':
       return `journal: ${at} command-held ${line.requestId8} tab ${line.tabId8} (${line.reason})`;
     case 'echo-probe':
@@ -739,7 +806,7 @@ export function formatJournalLine(line: SessionJournalLine): string {
     case 'tab-unresponsive':
       return `journal: ${at} tab-unresponsive ${line.tabId8} ${line.reason} for ${Math.round(line.unresponsiveForMs / 1000)}s`;
     case 'page-error':
-      return `journal: ${at} page-error ${line.tabId8} ${line.message}`;
+      return `journal: ${at} page-error ${line.tabId8} ${line.origin === undefined ? '' : `[${line.origin}] `}${line.message}`;
     case 'tab-death-profile':
       return `journal: ${at} tab-death-profile ${line.tabId8} code ${line.code} — ${tabDeathProfileBody(line)}`;
     // The CONSOLE arm. `count` is the running total for that condition, so a

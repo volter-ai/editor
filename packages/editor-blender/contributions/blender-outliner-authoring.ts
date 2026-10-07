@@ -1012,9 +1012,9 @@ async function writeBlenderSelection(
     '    _wanted = _o.name in _sel',
     '    if _o.select_get() != _wanted:',
     '        _o.select_set(_wanted)',
-    active === null
-      ? '_vl.objects.active = None'
-      : `_vl.objects.active = bpy.data.objects.get(${py(active)})`,
+    // object_select.cc::base_deselect_all_ex changes BASE_SELECTED without
+    // clearing the active base. Properties continues to inspect that object.
+    ...(active === null ? [] : [`_vl.objects.active = bpy.data.objects.get(${py(active)})`]),
   ].join('\n');
   const answer = await blenderExecute(body, false);
   // THE ENGINE'S REFUSAL, VERBATIM — never a shrug. A selection that did not
@@ -1106,6 +1106,10 @@ export function blenderOutlinerAuthoringFor(
    *  been read, so the same engine selection must be re-derived when the tree
    *  moves under it. */
   let lastEngineKey: string | null = null;
+  // Tree loading publications can arrive before a gesture's write presents.
+  // Keep its optimistic selection until the latest write settles; an older
+  // write's frame must not replace a newer gesture either.
+  let pendingSelection: symbol | null = null;
   /** The world matrix each live gesture started from — see `beginEdit`. */
   const gestureStart = new Map<THREE.Object3D, THREE.Matrix4>();
   // Retain the subject until endEdit, even if a concurrent native edit removes
@@ -1240,11 +1244,11 @@ export function blenderOutlinerAuthoringFor(
    * `EditorShellStore.selectedEntityId` — the subject the Properties rail and
    * the gizmo take — is the LAST member of the selected set, and Blender's
    * active object is the same idea under its own name. An active object that
-   * is not selected still lands in the list: it is the subject the Properties
-   * editor is showing, and a rail pointing at a row nobody can see is the
-   * disagreement this whole unit exists to end.
+   * is not selected stays outside this list: Properties reads the active
+   * object from the frame independently, without adding an outline or gizmo.
    */
   const syncFromEngine = (): void => {
+    if (disposed || pendingSelection !== null) return;
     const engine = blenderEngineSelection();
     const key = `${blenderOutlinerVersion()} ${engine.active ?? ''} ${[...engine.selected]
       .sort()
@@ -1252,7 +1256,7 @@ export function blenderOutlinerAuthoringFor(
     if (key === lastEngineKey) return;
     lastEngineKey = key;
     const names = engine.selected.filter((name) => name !== engine.active);
-    if (engine.active !== null) names.push(engine.active);
+    if (engine.active !== null && engine.selected.includes(engine.active)) names.push(engine.active);
     const next = names.map(rowIdForName).filter((id): id is string => id !== null);
     if (next.length === selected.length && next.every((id, at) => id === selected[at])) return;
     selected = next;
@@ -1262,6 +1266,9 @@ export function blenderOutlinerAuthoringFor(
   const selection: SelectionProvider = {
     get: () => [...selected],
     set: (ids) => {
+      if (disposed) return;
+      const request = Symbol('Blender selection');
+      pendingSelection = request;
       // NORMALIZED, because ids arrive in BOTH SPACES (the header's "both
       // ways"). A hierarchy click and this adapter's own verbs speak ROW ids;
       // the viewport's MARQUEE speaks the presentation's, because it picks
@@ -1307,7 +1314,16 @@ export function blenderOutlinerAuthoringFor(
         );
       // The ACTIVE is the LAST row the gesture named, which is the shell's own
       // reading of `selectedEntityId` and Blender's of an active object.
-      void writeBlenderSelection(names, names.length === 0 ? null : names[names.length - 1]!);
+      void writeBlenderSelection(names, names.length === 0 ? null : names[names.length - 1]!)
+        .catch(error => editorHost().console.error(
+          `Blender refused the selection write: ${String(error)}`, 'blender-outliner',
+        ))
+        .finally(() => {
+          if (disposed || pendingSelection !== request) return;
+          pendingSelection = null;
+          lastEngineKey = null;
+          syncFromEngine();
+        });
     },
   };
 
@@ -1864,7 +1880,14 @@ export function blenderOutlinerAuthoringFor(
     },
   };
   liveOutliners.add(handle);
-  liveOutlinersChanged();
+  // A factory is called during the stage's React render. Notify the other roots
+  // after that render finishes; synchronously publishing here re-enters a commit.
+  let disposed = false;
+  const announce = setTimeout(() => {
+    if (disposed) return;
+    liveOutlinersChanged();
+    syncFromEngine();
+  }, 0);
 
   // THE ENGINE'S SELECTION ARRIVES ON ITS OWN, and this is what listens for
   // it: a frame (every present carries `selected`/`active`) and a tree read
@@ -1876,11 +1899,12 @@ export function blenderOutlinerAuthoringFor(
   // follow the engine whether or not a panel is currently mounted over it.
   const stopEngineFrames = onBlenderFrame(syncFromEngine);
   const stopEngineTree = subscribeBlenderOutliner(syncFromEngine);
-  syncFromEngine();
 
   return {
     adapter,
     dispose: () => {
+      disposed = true;
+      clearTimeout(announce);
       stopEngineFrames();
       stopEngineTree();
       liveOutliners.delete(handle);

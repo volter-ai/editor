@@ -3,6 +3,8 @@
 import * as THREE from 'three';
 import { acquireInspectorPreviewRenderer } from '../viewport/preview-renderer';
 import { viewportCaptureOutputPass } from './output-pass';
+import type { DocumentDisplayTransform } from '../render/document-display-transform';
+import {resolveSceneLinearSize} from './linear-resolve';
 
 export interface SceneCaptureOptions {
   width: number;
@@ -10,6 +12,8 @@ export interface SceneCaptureOptions {
   transparent?: boolean;
   toneMapping?: THREE.ToneMapping;
   exposure?: number;
+  /** Integration-owned GPU display resolve, shared with its live viewport. */
+  displayTransform?: DocumentDisplayTransform;
   /** Caller-owned scene-linear effect. The input carries a depth texture;
    * the returned target remains caller-owned and must contain half floats. */
   effect?: {
@@ -69,6 +73,7 @@ function capture(
   };
   let hdr: THREE.WebGLRenderTarget | undefined;
   let display: THREE.WebGLRenderTarget | undefined;
+  let displayInput: THREE.WebGLRenderTarget | undefined;
   let completed = false;
   try {
     hdr = new THREE.WebGLRenderTarget(renderWidth, renderHeight, { type: THREE.HalfFloatType });
@@ -92,26 +97,24 @@ function capture(
       completed = true;
       return { pixels, width, height };
     }
-    display = new THREE.WebGLRenderTarget(renderWidth, renderHeight);
-    viewportCaptureOutputPass(options.transparent === true).render(
-      renderer,
-      display,
-      resolved,
-      0,
-      false,
-    );
-    const pixels = new Uint8Array(renderWidth * renderHeight * 4);
-    renderer.readRenderTargetPixels(display, 0, 0, renderWidth, renderHeight, pixels);
+    display = new THREE.WebGLRenderTarget(options.displayTransform ? width : renderWidth, options.displayTransform ? height : renderHeight);
+    if (options.displayTransform) {
+      displayInput=resolveSceneLinearSize(renderer,resolved,width,height);
+      options.displayTransform.render(renderer, displayInput, display, options.transparent === true);
+    }
+    else viewportCaptureOutputPass(options.transparent === true).render(renderer, display, resolved, 0, false);
+    const pixels = new Uint8Array(display.width * display.height * 4);
+    renderer.readRenderTargetPixels(display, 0, 0, display.width, display.height, pixels);
     const full = document.createElement('canvas');
-    full.width = renderWidth;
-    full.height = renderHeight;
+    full.width = display.width;
+    full.height = display.height;
     const context = full.getContext('2d');
     if (!context) throw new Error('Scene capture could not create an image canvas');
-    const image = context.createImageData(renderWidth, renderHeight);
-    const stride = renderWidth * 4;
-    for (let y = 0; y < renderHeight; y++)
+    const image = context.createImageData(display.width, display.height);
+    const stride = display.width * 4;
+    for (let y = 0; y < display.height; y++)
       image.data.set(
-        pixels.subarray((renderHeight - 1 - y) * stride, (renderHeight - y) * stride),
+        pixels.subarray((display.height - 1 - y) * stride, (display.height - y) * stride),
         y * stride,
       );
     context.putImageData(image, 0, 0);
@@ -134,6 +137,7 @@ function capture(
     renderer.shadowMap.type = previous.shadowType;
     renderer.setClearColor(previous.clearColor, previous.clearAlpha);
     display?.dispose();
+    displayInput?.dispose();
     hdr?.dispose();
     lease.release({ discard: !completed });
   }
@@ -153,4 +157,31 @@ export function captureSceneImage(
   options: SceneCaptureOptions,
 ): string {
   return capture(scene, camera, options, false);
+}
+
+/** Resolve a compositor/EXR frame through the SAME GPU display pipeline as
+ * the document. The input stays scene-linear; only the returned bytes are
+ * display encoded. Pixels retain GL's bottom-up ordering. */
+export function resolveSceneLinearDisplay(
+  frame: LinearCaptureFrame,
+  transform: DocumentDisplayTransform,
+): Uint8Array {
+  const lease = acquireInspectorPreviewRenderer();
+  const renderer = lease.renderer;
+  const previous = renderer.getRenderTarget();
+  const input = new THREE.DataTexture(frame.pixels, frame.width, frame.height, THREE.RGBAFormat, THREE.HalfFloatType);
+  input.needsUpdate = true;
+  const output = new THREE.WebGLRenderTarget(frame.width, frame.height);
+  let completed = false;
+  try {
+    transform.render(renderer, {texture: input}, output, true);
+    const pixels = new Uint8Array(frame.width * frame.height * 4);
+    renderer.readRenderTargetPixels(output, 0, 0, frame.width, frame.height, pixels);
+    completed = true;
+    return pixels;
+  } finally {
+    renderer.setRenderTarget(previous);
+    input.dispose(); output.dispose();
+    lease.release({discard: !completed});
+  }
 }

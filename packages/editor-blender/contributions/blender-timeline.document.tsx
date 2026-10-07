@@ -67,6 +67,9 @@ import {
   timelineViewVersion,
 } from '../src/timeline-view-state';
 import { blenderSkin, blenderSkinVersion, subscribeBlenderSkin } from './blender-runtime-skin';
+import { BlenderGamePanel, GAME_PANEL_RATIO, PlayModeSwitch } from './blender-game-panel';
+import { setWorkspaceAreaRatio } from '@volter/editor-sdk/kit/workspace-areas';
+import { modelPlayMode, playModeVersion, servedModelDocument, subscribePlayMode } from '../src/play-mode';
 import {
   CHANNEL_HEIGHT,
   DIAMOND_RADIUS,
@@ -228,7 +231,7 @@ function report(): unknown {
  *  no mixer (`blender-runtime-skin.ts`), so the seek was a no-op and
  *  `report()` then answered `frame: 1` — the playhead's honest position and a
  *  complete lie about the gesture. Measured on walk 5 over a fresh
- *  `model-editor create` scaffold: `volter.timeline.frame {frame:120}` and
+ *  `cyclotron create` scaffold: `volter.timeline.frame {frame:120}` and
  *  `volter.timeline.jump-end` (frame 250) both answered `frame: 1`,
  *  `refusal: null`. This is the half of walk 4's W5 (#7740) that the header
  *  got and the VERBS did not — there the buttons were disabled wearing this
@@ -360,7 +363,32 @@ registerViewVerbs({
   ],
 });
 
-export default function BlenderTimeline() {
+/** This area's id in `model.layout.ts`, the one workspace that places this document. */
+const BOTTOM_AREA = 'timeline';
+
+/**
+ * THE BOTTOM AREA IS THE TIMELINE IN MOVIE MODE AND THE GAME PANEL IN GAME MODE
+ * (`../src/play-mode.ts`, for the model document on screen). Same area: the
+ * layout's `areas` entry names this document either way. NOT THE SAME SIZE:
+ * Blender's measured Timeline strip (`model.layout.ts`) left the Game panel's
+ * play log one clipped line, so Game mode asks the area for the panel's own
+ * share (`GAME_PANEL_RATIO`) and Movie mode hands Blender's back. Each switch
+ * stands the area up at its mode's size; a person's resize holds until the
+ * next switch. The Timeline unmounts in Game mode; a document that opens as a
+ * game therefore never pays for the rig bind (the cost note in
+ * `BlenderTimeline`), and one bound earlier keeps its bind, which the Timeline
+ * never undoes.
+ */
+export default function BlenderBottomArea() {
+  useSyncExternalStore(subscribePlayMode, playModeVersion, playModeVersion);
+  const documentId = servedModelDocument();
+  const game = documentId !== null && modelPlayMode(documentId) === 'game';
+  useEffect(() => setWorkspaceAreaRatio(BOTTOM_AREA, game ? GAME_PANEL_RATIO : null), [game]);
+  useEffect(() => () => setWorkspaceAreaRatio(BOTTOM_AREA, null), []);
+  return game ? <BlenderGamePanel /> : <BlenderTimeline />;
+}
+
+function BlenderTimeline() {
   // THE FRESHNESS IS THE RNA DOOR'S (ruling 3, 2026-09-19): every write and
   // every presented frame bumps it, which is exactly when a rig or an action
   // can have moved.
@@ -919,7 +947,9 @@ function TimelineHeader() {
         borderBottom: `1px solid ${TIMELINE_CHROME.rule}`,
       }}
     >
-      <span style={{ color: TIMELINE_CHROME.text }}>Timeline</span>
+      {/* GAME | MOVIE in place of the title, as in the Game panel, so the person switches back
+          from either (`blender-game-panel.tsx`); without a Play tool or a model, the title. */}
+      <PlayModeSwitch title="Timeline" />
       <TimelineViewMenu />
       {/* TWO SPACERS, which is what CENTRES the transport. Blender's Timeline
           header is three clusters: the menus at the leading edge, the

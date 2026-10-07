@@ -49,7 +49,7 @@ export const GRAPH_NODE_TYPES = [
   'ShaderNodeGamma', 'ShaderNodeRGBToBW', 'ShaderNodeSeparateColor', 'ShaderNodeCombineColor',
   'ShaderNodeVectorRotate', 'ShaderNodeFresnel', 'ShaderNodeLayerWeight', 'ShaderNodeBump',
   'ShaderNodeNormalMap', 'ShaderNodeNewGeometry', 'ShaderNodeVertexColor', 'ShaderNodeAttribute',
-  'ShaderNodeRGBCurve', 'ShaderNodeVectorCurve', 'ShaderNodeFloatCurve',
+  'ShaderNodeRGBCurve', 'ShaderNodeVectorCurve', 'ShaderNodeFloatCurve', 'ShaderNodeObjectInfo',
 ] as const;
 
 const nodeSchema = z.object({
@@ -138,6 +138,8 @@ export interface CompiledGraph {
   /** The mesh attributes the graph reads, by Blender name; '' is the mesh's
    *  default colour attribute (a Color Attribute node with no layer). */
   readonly attributes: readonly string[];
+  /** Requires a draw identity with this object's native inputs. */
+  readonly objectInfo: boolean;
   /** Which surface inputs the graph drives, each a GLSL global of `type`. */
   readonly outputs: Readonly<Record<string, {readonly global: string; readonly type: GpuType}>>;
   readonly surface: MaterialGraph['surface'];
@@ -480,6 +482,15 @@ class Compiler {
       case 'ShaderNodeRGB': {
         const type = outputs[0]!.type;
         body.push(`${outputs[0]!.name} = ${this.uniform(type, prop<number | number[]>(node, 'value'))};`);
+        break;
+      }
+      case 'ShaderNodeObjectInfo': {
+        // node_shader_gpu_object_info / node_object_info. Location is the
+        // object's origin, never the current fragment's world position.
+        const values = ['object_matrices_get().model[3].xyz', 'blenderObjectColor',
+          'blenderObjectColor.a', 'blenderObjectIndexRandom.x',
+          this.uniform('float', prop<number>(node, 'material_index')), 'blenderObjectIndexRandom.y'];
+        values.forEach((v,i)=>{if(outputs[i]) body.push(`${outputs[i]!.name} = ${v};`);});
         break;
       }
       case 'ShaderNodeTexCoord': {
@@ -939,6 +950,8 @@ class Compiler {
       BLENDER_NODE_GLSL_PRELUDE,
       shakeLibrary(EEVEE_GLOBALS + ordered.map(f => BLENDER_NODE_GLSL[f]!.code).join('\n') + '\n' + COORDINATES,
         [...this.s.functions, graphBody].join('\n')),
+      ...(Object.values(this.graph.nodes).some(n=>n.type==='ShaderNodeObjectInfo')
+        ? ['uniform vec4 blenderObjectColor;', 'uniform vec2 blenderObjectIndexRandom;'] : []),
       ...[...this.s.uniformTypes].map(([n, t]) => `uniform ${t} ${n};`),
       ...this.images.map(i => i.tiled
         ? `uniform highp sampler2DArray ${i.uniform};\nuniform highp sampler2D ${i.uniform}Map;`
@@ -957,6 +970,7 @@ class Compiler {
       ramps: this.ramps,
       uvs: [...this.s.uvs],
       attributes: [...this.s.attributes],
+      objectInfo: Object.values(this.graph.nodes).some(n=>n.type==='ShaderNodeObjectInfo'),
       outputs,
       surface: this.graph.surface,
       closure: closure !== undefined,

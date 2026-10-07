@@ -47,6 +47,9 @@
  */
 export type DocumentProbeScope = 'document' | 'header' | 'shelf' | 'rail' | 'outliner' | 'content' | 'utility' | 'menubar';
 
+/** Keep an explicit key hold within the SDK's bounded command deadline. */
+export const MAX_DOCUMENT_KEY_HOLD_MS = 120_000;
+
 /** One element as the probe reports it — everything a caller needs to assert
  *  on, and nothing that requires a second round trip. */
 export interface ProbedElement {
@@ -229,7 +232,8 @@ export interface DocumentKeyStep extends ScopedStep {
   shiftKey?: boolean;
   altKey?: boolean;
   /** Hold the key this long before releasing it, as a person holding W does;
-   *  omitted, it is pressed and released at once. */
+   *  omitted, it is pressed and released at once. Must be finite, nonnegative
+   *  and at most MAX_DOCUMENT_KEY_HOLD_MS (120 seconds). */
   holdMs?: number;
 }
 

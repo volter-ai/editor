@@ -7,7 +7,6 @@
     "@volter/editor-blender",
     "@volter/editor-core",
     "@volter/editor-live",
-    "@volter/model-editor",
     "@volter/threejs-runtime",
     "@volter/game-runtime",
     "@volter/editor-react",
@@ -16,6 +15,9 @@
     "@volter/game-live",
     "@volter/dawproject",
     "@volter/editor-dawproject",
+    "@volter/editor-model-play",
+    "@volter/editor-ui",
+    "@volter/cyclotron",
     "@volter/game-editor"
   ]
 }

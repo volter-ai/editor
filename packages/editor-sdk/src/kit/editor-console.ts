@@ -445,9 +445,13 @@ export function installEditorConsoleCapture(): () => void {
    * installs that patch. Without this read, every such row landed in the
    * ledger as editor-owned noise, telling an agent to fix editor code for a
    * warning the game's own library printed. The label changes; the loudness
-   * does not — a game-sourced warning still gates `volter` exit-0 exactly like
+   * does not — a game-sourced warning lands in the unresolved set exactly like
    * an editor one (severity decides, never source), because exempting a
-   * source would teach the gate to find less.
+   * source would teach the gate to find less. What that set gates differs by
+   * severity: since editor#129 the CLI (`control.ts`) exits 1 only for an
+   * unresolved ERROR, in both editors; a warning prints to stderr and exits 0.
+   * So the game template's "`console` must be silent" step holds for warnings
+   * only through that stderr output, never through the exit code.
    */
   const captured = (level: 'error' | 'warn', args: unknown[]): void => {
     if (_captureSuspensions !== 0) return;

@@ -393,6 +393,10 @@ function mountViewportSurface(
   );
   const { canvas, renderer } = lease;
   canvas.setAttribute('aria-label', `${displayName} authoring viewport`);
+  // This is the document's main renderer, rather than a canvas embedded in UI.
+  // Capture draws it once beneath the document overlays; encoding it again in
+  // the DOM clone duplicates megapixel PNG work and can hide the React HUD.
+  canvas.setAttribute('data-volter-root-surface', 'true');
   canvasHost.appendChild(canvas);
   return { canvas, renderer, lease };
 }
@@ -531,6 +535,7 @@ class Object3DDocumentHost {
       () => this.viewport?.dispose(),
       () => this.rendererSession.dispose(),
       () => this.dressing?.dispose(),
+      () => canvas.removeAttribute('data-volter-root-surface'),
       ...(lease
         ? [() => lease.release()]
         : [() => renderer.dispose(), () => renderer.forceContextLoss(), () => canvas.remove()]),
@@ -589,6 +594,7 @@ export function Object3DDocumentViewport({
   active = true,
   audit = true,
   chromeless = false,
+  fillContainer = false,
   modelSource,
   assetType,
   sourceAuthoring,
@@ -1374,7 +1380,7 @@ export function Object3DDocumentViewport({
             onProjectionChange: setProjection,
             // The same expression that places the DOM furniture, for the one
             // piece of furniture that is drawn on the canvas instead.
-            chromeInsetPx: chromeless || hasShell ? 0 : STAGE_BLEED_PX,
+            chromeInsetPx: chromeless || hasShell || fillContainer ? 0 : STAGE_BLEED_PX,
             // A document that turns the dressing's key light off has said it
             // lights itself, and the editor's design-time rig answers exactly
             // the same question. MEASURED on the Model stage before this
@@ -1835,6 +1841,12 @@ export function Object3DDocumentViewport({
         // leave behind. The session runs this before it renders; nothing else may
         // hold a second copy of this field list.
         const syncHostScene = () => {
+          // A document's World is its neutral backdrop. Transfer it when it
+          // changes, before the view's explicit backdrop override is applied.
+          if (nativeBackground !== scene.background) {
+            nativeBackground = scene.background;
+            documentSession.setNeutralBackground(nativeBackground ?? host.defaultBackground);
+          }
           // A document draws through its session's camera, which the viewport's own frame
           // does not know is orthographic.
           host.viewport?.alignGridToView(documentSession.camera(), renderer.domElement.width);
@@ -1897,10 +1909,6 @@ export function Object3DDocumentViewport({
               environmentImagePending: rig.imageReport().pending,
               toneMapping: String(renderer.toneMapping),
             });
-          }
-          if (nativeBackground !== scene.background) {
-            nativeBackground = scene.background;
-            documentSession.setNeutralBackground(nativeBackground ?? host.defaultBackground);
           }
         };
         host.syncHostScene = syncHostScene;
@@ -2347,7 +2355,8 @@ export function Object3DDocumentViewport({
                   break;
                 }
                 case 'set-camera-pose':
-                  viewport.setPose(action.position, action.target, action.fov);
+                  if (host.session) host.session.setCameraPose(action.position, action.target, action.fov);
+                  else viewport.setPose(action.position, action.target, action.fov);
                   break;
               }
             }),
@@ -2431,6 +2440,7 @@ export function Object3DDocumentViewport({
     dressingViewLocked,
     dressingToneMapping,
     chromeless,
+    fillContainer,
     modelSourceEntityId,
     modelSourceKind,
     modelSourcePath,
@@ -2492,7 +2502,7 @@ export function Object3DDocumentViewport({
           ? { width: '100%', height: '100%' }
           : hasShell
             ? { flex: 1, minHeight: 0 }
-            : { inset: -STAGE_BLEED_PX }),
+            : { inset: fillContainer ? 0 : -STAGE_BLEED_PX }),
         overflow: 'hidden',
         // Asset documents paint the shared studio stage through their class.
         // An inline background here would win the cascade and hide it.
@@ -2601,7 +2611,7 @@ export function Object3DDocumentViewport({
         <div
           style={{
             position: 'absolute',
-            inset: chromeless || hasShell ? 0 : STAGE_BLEED_PX,
+            inset: chromeless || hasShell || fillContainer ? 0 : STAGE_BLEED_PX,
             pointerEvents: 'none',
           }}
         >

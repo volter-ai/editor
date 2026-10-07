@@ -134,9 +134,10 @@ interface LoadedToolContributionBase {
    * Render (measured against Blender 5.2 LTS, walk 5 parity row 3). Without a
    * declaration the presentation falls back to the first tab, which is what
    * every non-Blender rail wants. Read by `selection.inspector` alone, like
-   * `order`, `icon` and `railGroup`.
+   * `order`, `icon` and `railGroup`. A `(node, adapter)` resolver chooses a
+   * subject-dependent fallback, such as Scene when no active object exists.
    */
-  railDefault?: boolean;
+  railDefault?: boolean | ((node: ToolContributionNode | null, adapter: unknown) => boolean);
   /**
    * `export const order = 2` — where this contribution sits among its
    * siblings, low first, INSIDE the contributed band
@@ -632,12 +633,12 @@ export function extractProjectToolContribution(
    *  `SpaceProperties.context`, which at factory settings is OBJECT and not
    *  the rail's first tab. */
   const declaredRailDefault = record['railDefault'];
-  if (declaredRailDefault !== undefined && typeof declaredRailDefault !== 'boolean') {
+  if (declaredRailDefault !== undefined && typeof declaredRailDefault !== 'boolean' && typeof declaredRailDefault !== 'function') {
     return {
       error:
-        `[tool contributions] ${file} exports a \`railDefault\` that is not a boolean. ` +
+        `[tool contributions] ${file} exports a \`railDefault\` that is not a boolean or subject resolver. ` +
         'It says this is the tab the Properties rail opens on — `export const railDefault = ' +
-        'true;` — and nothing else takes a value. Skipped.',
+        'true;` or a function of (node, adapter). Skipped.',
     };
   }
   const base = {
@@ -658,7 +659,9 @@ export function extractProjectToolContribution(
               : declaredIcon.trim(),
         }),
     ...(typeof declaredRailGroup === 'string' ? { railGroup: declaredRailGroup.trim() } : {}),
-    ...(declaredRailDefault === true ? { railDefault: true } : {}),
+    ...(declaredRailDefault === true || typeof declaredRailDefault === 'function'
+      ? { railDefault: declaredRailDefault as NonNullable<LoadedToolContributionBase['railDefault']> }
+      : {}),
   };
   // The two points with no required callable, returned before `tool` is
   // narrowed below.
@@ -1541,6 +1544,20 @@ const MODULE_SERVING_ORIGIN = new URL(import.meta.url).origin;
 
 let latestContributionRefresh: Promise<void> | null = null;
 
+// A load version identifies the imported module instance, not a catalog scan.
+// Document hosts key their mounts by it; changing it for an unchanged bundled
+// module tears down live documents on an unrelated manifest refresh.
+const contributionModuleVersions = new WeakMap<object, number>();
+let nextContributionModuleVersion = 0;
+function contributionModuleVersion(module: unknown): number {
+  if (module === null || (typeof module !== 'object' && typeof module !== 'function')) return 0;
+  const previous = contributionModuleVersions.get(module);
+  if (previous !== undefined) return previous;
+  const version = ++nextContributionModuleVersion;
+  contributionModuleVersions.set(module, version);
+  return version;
+}
+
 export async function refreshProjectToolContributions(): Promise<void> {
   const pass = runContributionRefresh();
   latestContributionRefresh = pass;
@@ -1602,10 +1619,13 @@ async function runContributionRefresh(): Promise<void> {
   const bundledFiles = new Map(
     (catalog.contributions ?? []).flatMap((item) => (item.filePath ? [[item.entryPath, item.filePath] as const] : [])),
   );
+  // A Windows host names files `C:\…`; Vite serves them at `/@fs/C:/…`.
   const absolute = (entryPath: string) =>
     entryPath.startsWith('/') || bundledPackageLoaders.has(entryPath)
       ? entryPath
-      : (bundledFiles.get(entryPath) ?? `${project.rootPath}/${entryPath}`);
+      : /^[A-Za-z]:[\\/]/.test(entryPath)
+        ? entryPath.replaceAll('\\', '/')
+        : (bundledFiles.get(entryPath) ?? `${project.rootPath}/${entryPath}`).replaceAll('\\', '/');
   // The host serves a contribution through its own Vite (`/@fs/`,
   // cache-busted per refresh); a package this build bundles is already in the
   // page and loads through its own registered loader.
@@ -1744,7 +1764,7 @@ async function runContributionRefresh(): Promise<void> {
       const result = extractProjectToolContribution(
         mod,
         entryPath,
-        version,
+        contributionModuleVersion(mod),
         catalog.tools,
         presentation,
       );

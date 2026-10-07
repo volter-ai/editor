@@ -4,8 +4,9 @@
 // check fails naming each package the table is missing or no longer needs.
 import { readFileSync, readdirSync } from 'node:fs';
 import { join } from 'node:path';
+import { fileURLToPath } from 'node:url';
 
-const root = new URL('..', import.meta.url).pathname;
+const root = fileURLToPath(new URL('..', import.meta.url));
 const product = join(root, 'packages/game-editor');
 const tablePath = join(root, 'packages/editor-game/src/host/served-bundle-runtime-modules.ts');
 const packageOf = (specifier) =>

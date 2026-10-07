@@ -1,8 +1,13 @@
 import { AssetViewerSlot } from '@volter/editor-sdk/kit/asset-viewers';
 import { themeVars } from '@volter/editor-sdk/widgets';
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useSyncExternalStore } from 'react';
+import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
+import { loadGameManifest, type ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
 import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
+import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
+import { resolveFileRegion } from '@volter/editor-sdk/kit/ui-source/file-region-resolver';
+import { editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
 import {
   projectModuleChangeMatches,
   subscribeProjectModuleChange,
@@ -215,6 +220,60 @@ function NoNativeViewer({
   );
 }
 
+/** Read the file's declared surface before executing a possible model builder.
+ * A DOM or canvas component is source here; calling it outside its renderer
+ * can throw (React hooks), or perform work just to discover it is not a model.
+ * Unplaced modules retain the existing Object3D builder contract. */
+function ProjectModuleSourceViewer({ documentId, assetPath, active }: {
+  documentId: string;
+  assetPath: string;
+  active: boolean;
+}) {
+  const projectRoot = getCurrentProject()?.rootPath;
+  const facet = useSyncExternalStore(subscribeProjectAdapter, projectAdapterFacet);
+  const [roots, setRoots] = useState<readonly ResolvedAdapterRoot[] | null>(null);
+  const [declarationError, setDeclarationError] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setRoots(null);
+    setDeclarationError(null);
+    if (!projectRoot || !facet) return;
+    void (async () => {
+      try {
+        const raw = await editorServerJson<unknown>(
+          await fetch('/volter.project.json', { cache: 'no-store' }),
+          'Reading this source file’s declared surface failed',
+        );
+        const manifest = loadGameManifest(raw, { configurationKinds: 'defer' });
+        if (!cancelled) setRoots(declaredRoots(manifest));
+      } catch (error) {
+        if (!cancelled) setDeclarationError(error instanceof Error ? error.message : String(error));
+      }
+    })();
+    return () => { cancelled = true; };
+  }, [projectRoot, facet]);
+  const preview = <TextSourcePreview documentId={documentId} assetPath={assetPath} active={active} />;
+  // Unknown declarations are not permission to execute the source.
+  if (!projectRoot || !facet || !roots || declarationError) return <>
+    {declarationError && <div role="alert">{declarationError}</div>}
+    {preview}
+  </>;
+  const path = (assetPath.split(/[?#]/, 1)[0] ?? '').replaceAll('\\', '/').replace(/^\.\//, '').replace(/^\//, '');
+  const region = resolveFileRegion({
+    file: path,
+    projectRelative: path,
+    regions: facet.regions,
+    regionOfEntry: (file) => {
+      const root = roots.find((candidate) => candidate.entry?.replace(/^\.\//, '') === file);
+      return root ? facet.regions.find((candidate) => candidate.id === root.id) : undefined;
+    },
+  });
+  if (region.surface === 'dom' || region.surface === 'canvas') return preview;
+  return <AssetViewerSlot route="module" documentId={documentId} assetPath={assetPath}
+    projectRoot={projectRoot} displayName={assetPath.split('/').pop() ?? assetPath}
+    active={active} fallback={preview} whenUnregistered={preview} />;
+}
+
 /** Viewer for downloaded catalog source/animation files without a magic fallback. */
 export function SourceAssetViewer({
   documentId,
@@ -266,23 +325,7 @@ export function SourceAssetViewer({
       // Content-routed, like the quarks JSON above: a project script that
       // BUILDS an Object3D opens as the live modeling document; anything else
       // keeps this viewer's text preview.
-      const projectRoot = getCurrentProject()?.rootPath;
-      const preview = (
-        <TextSourcePreview documentId={documentId} assetPath={assetPath} active={active} />
-      );
-      if (!projectRoot) return preview;
-      return (
-        <AssetViewerSlot
-          route="module"
-          documentId={documentId}
-          assetPath={assetPath}
-          projectRoot={projectRoot}
-          displayName={assetPath.split('/').pop() ?? assetPath}
-          active={active}
-          fallback={preview}
-          whenUnregistered={preview}
-        />
-      );
+      return <ProjectModuleSourceViewer documentId={documentId} assetPath={assetPath} active={active} />;
     }
     case 'text':
       return <TextSourcePreview documentId={documentId} assetPath={assetPath} active={active} />;

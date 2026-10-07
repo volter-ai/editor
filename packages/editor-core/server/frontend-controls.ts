@@ -4,32 +4,28 @@ import { createServer, type Server } from 'node:http';
 import { mkdirSync, writeFileSync, rmSync } from 'node:fs';
 import { join } from 'node:path';
 import { homedir } from 'node:os';
+import { harnessModelChoices } from './harness-models';
 
 export interface ChatSelection {
   harness: string;
   model: string;
   effort: string;
 }
-export interface ChatChoice { id: string; name: string; description?: string }
+export interface ChatChoice { id: string; name: string; description?: string; efforts?: string[] }
 /** No harness chosen: the Chat view runs whichever harness supercode reports available. */
 export const DEFAULT_CHAT_SELECTION: ChatSelection = { harness: '', model: '', effort: '' };
 
-/** Alias choices belong to the CLI; exact model IDs can also be entered by the user. */
-export function chatModels(harness: string): ChatChoice[] {
-  const defaults = [{ id: '', name: 'Harness default' }];
-  if (harness === 'claude-code') return [...defaults, ...['sonnet', 'opus', 'haiku'].map(id => ({ id, name: `Claude ${id[0]!.toUpperCase()}${id.slice(1)}` }))];
-  // The user's Codex cache can belong to a different provider/account than
-  // the hosted app-server. Offer its default plus exact IDs through settings
-  // until the runtime publishes its own model inventory.
-
-  return defaults;
+/** The models and efforts the harness itself names (harness-models.ts); exact model IDs can also be entered. */
+export function chatModels(harness: string, env?: NodeJS.ProcessEnv): ChatChoice[] {
+  return harnessModelChoices(harness, env);
 }
 
 export function validateChatSelection(value: unknown): ChatSelection {
   const s = value as Partial<ChatSelection> | null;
   if (!s || typeof s.harness !== 'string' || !/^[a-z0-9-]{1,60}$/.test(s.harness) ||
       typeof s.model !== 'string' || s.model.length > 160 || /[\x00-\x1f]/.test(s.model) ||
-      typeof s.effort !== 'string' || !['', 'low', 'medium', 'high'].includes(s.effort)) throw new Error('Invalid chat selection.');
+      // The effort is one word the harness itself lists (harness-models.ts); the harness refuses one it does not take.
+      typeof s.effort !== 'string' || !/^(?:[a-z]{1,16})?$/.test(s.effort)) throw new Error('Invalid chat selection.');
   if ((s.model || s.effort) && !['claude-code', 'codex'].includes(s.harness)) throw new Error('This harness does not expose model or reasoning configuration in this editor yet.');
   return { harness: s.harness, model: s.model, effort: s.effort };
 }
@@ -53,7 +49,7 @@ export class FrontendControls {
   private readonly directory = join(homedir(), '.volter', 'runtime', `chat-controls-${process.pid}-${randomBytes(6).toString('hex')}`);
   private readonly state: () => Promise<unknown>;
   private readonly select: (s: ChatSelection) => Promise<unknown>;
-  constructor(state: () => Promise<unknown>, select: (s: ChatSelection) => Promise<unknown>, private readonly open?: (id: string) => Promise<unknown>, private readonly remember?: (id:string, nativeId:string) => Promise<unknown>) { this.state = state; this.select = select; }
+  constructor(state: () => Promise<unknown>, select: (s: ChatSelection) => Promise<unknown>, private readonly open?: (id: string) => Promise<unknown>, private readonly remember?: (id:string, nativeId:string) => Promise<unknown>, private readonly setup?: (kind: string, harness: string) => Promise<unknown>) { this.state = state; this.select = select; }
   private starting: Promise<Record<string, string>> | undefined;
   /** Starts the channel once; callers that arrive while it binds share that start. */
   start(): Promise<Record<string, string>> {
@@ -71,14 +67,17 @@ export class FrontendControls {
         }
         try {
           if (req.method === 'GET' && req.url === '/state') { res.end(JSON.stringify(await this.state())); return; }
-          if (req.method !== 'POST' || !['/select', '/open', '/remember'].includes(req.url ?? '')) { res.writeHead(404).end('{}'); return; }
+          if (req.method !== 'POST' || !['/select', '/open', '/remember', '/setup'].includes(req.url ?? '')) { res.writeHead(404).end('{}'); return; }
           let body = '';
           for await (const chunk of req) {
             body += chunk;
             if (body.length > 4096) throw new Error('Chat selection is too large.');
           }
           const value = JSON.parse(body);
-          if (req.url === '/remember') {
+          if (req.url === '/setup') {
+            if (!this.setup || !['login', 'install'].includes(value.kind) || typeof value.harness !== 'string' || !/^[a-z0-9-]{1,60}$/.test(value.harness)) throw new Error('Invalid chat setup action.');
+            res.end(JSON.stringify(await this.setup(value.kind, value.harness)));
+          } else if (req.url === '/remember') {
             if (!this.remember || typeof value.id !== 'string' || typeof value.nativeId !== 'string' || value.nativeId.length > 200) throw new Error('Invalid chat identity.');
             res.end(JSON.stringify(await this.remember(value.id, value.nativeId)));
           } else if (req.url === '/open') {

@@ -34,6 +34,7 @@ import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import type { ShellDocumentState } from '@volter/editor-sdk/kit/shell-document-state';
 import type {
   InspectionAction,
+  InspectionIdentity,
   InspectionNote,
   InspectionSection,
   InspectionSurfaceKind,
@@ -58,6 +59,9 @@ export interface NullInspectionSubject {
   readonly id: string;
   /** What this surface calls its empty state ("Scene", the UI root's name). */
   readonly title: string;
+  /** A context can inspect an active datablock independently of selection.
+   * Its identity keeps the ordinary name control and kind glyph. */
+  readonly identity?: InspectionIdentity;
   /** The quiet line under the title, for a subject with nothing to edit. */
   readonly hint?: string;
   /** What to CALL this thing's type, under the name — an Asset Lab document

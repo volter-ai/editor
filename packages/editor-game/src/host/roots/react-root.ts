@@ -20,6 +20,7 @@ import type { GameDomHostContext } from '../../runtime/host-context';
 import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
 import type { ComponentType } from 'react';
 import type { RealmServices } from '../realm-services';
+import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
 
 /**
  * The shape a react world's `entry` module must satisfy: default-export a
@@ -80,6 +81,9 @@ function reactMount(
   return {
     id: world.id,
     async mount(host: GameDomHostContext): Promise<MountedReactGame> {
+      // The host owns this DOM surface, so its served project CSS must have
+      // a scope root even when the entry component has no special wrapper.
+      markGameCssScope(host.container);
       // The runtime comes from the realm — the PROJECT's own react under the
       // packaged runtime, the editor's static imports otherwise — so this
       // mount always shares ONE react instance with the entry component's own

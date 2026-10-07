@@ -25,13 +25,17 @@
  * This module is a plain object the HOST registers; it mounts no UI. It reads
  * the project only through `input.files` — the PATHS matching those globs.
  * Deliberately not `input.sources`: a `.blend` is binary, there is nothing in
- * it a text walk could honestly read, and the entry is the file itself.
+ * it a text walk could honestly read, and the entry is the file itself. It says
+ * so (`reads: 'files'`), and the host then lists the files without fetching them.
  */
 
 import { z } from 'zod';
 
 export const finder = {
   name: 'modelsFromBlendFiles',
+  // PATHS ONLY, so the host never fetches a `.blend` through its text-source route (a
+  // multi-megabyte binary there is a `413`, and nothing here would read the text).
+  reads: 'files',
   schema: z
     .object({
       finder: z.literal('modelsFromBlendFiles'),

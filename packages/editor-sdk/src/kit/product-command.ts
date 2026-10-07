@@ -1,7 +1,7 @@
 /**
  * THE PRODUCT'S COMMAND, as every kit message names it.
  *
- * The kit has no command of its own: a person runs `volter-model-editor` or
+ * The kit has no command of its own: a person runs `cyclotron` or
  * `volter-game-editor`, and a message that tells them to run a verb must name
  * the one they have. The owner of the answer is the served product's
  * package.json — its single `bin` key and `volter.product.displayName`
@@ -18,13 +18,19 @@ export interface ProductNames {
   readonly command: string;
   /** The name a person sees — `Volter Game Editor`. */
   readonly displayName: string;
+  /**
+   * Whether the command has `upgrade [version]` (`volter.product.upgrade` in the
+   * product's package.json), so a pinned-engine refusal can name it. Absent is
+   * no: a message must never tell a person to run a verb their command lacks.
+   */
+  readonly upgrade?: boolean;
 }
 
 let names: ProductNames | null = null;
 
 /** Record the served product's names. Called once per process/page. */
 export function setProductNames(next: ProductNames): void {
-  names = { command: next.command, displayName: next.displayName };
+  names = { command: next.command, displayName: next.displayName, upgrade: next.upgrade === true };
 }
 
 /** The served product's names, or `null` before they are known. */
@@ -74,7 +80,7 @@ export function loadProductNames(): Promise<void> {
     .then((body) => {
       const product = body.product;
       if (product && typeof product.command === 'string' && typeof product.displayName === 'string') {
-        setProductNames({ command: product.command, displayName: product.displayName });
+        setProductNames({ command: product.command, displayName: product.displayName, upgrade: product.upgrade === true });
       }
     })
     .catch(() => {

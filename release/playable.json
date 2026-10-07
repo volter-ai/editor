@@ -1,0 +1,18 @@
+{
+  "packages": [
+    "@volter/editor-project",
+    "@volter/editor-sdk",
+    "@volter/editor-threejs",
+    "@volter/blender-engine",
+    "@volter/editor-blender",
+    "@volter/editor-core",
+    "@volter/editor-live",
+    "@volter/cyclotron",
+    "@volter/threejs-runtime",
+    "@volter/game-runtime",
+    "@volter/editor-react",
+    "@volter/editor-game",
+    "@volter/editor-model-play",
+    "@volter/editor-ui"
+  ]
+}

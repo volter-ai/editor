@@ -569,14 +569,35 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     postMirroredTeamMessages(snapshot);
   };
   const account = new EditorAccountService();
+  /** The headless controller's running turn, so its start and end are each
+   *  seen once. A turn the controller reports without an id gets a synthetic
+   *  one for its run, so `null === null` cannot hide a boundary. */
+  let headlessTurnId: string | null = null;
+  let headlessTurnSequence = 0;
   const harnessChat = new HarnessChatService({
-    engineRoot,
     getProjectRoot: () => projectRoot,
     resolveCodingInference: (workspace) => account.resolvedCodingInference(workspace),
     onChange: (snapshot) => {
       broadcast('harness-chat', snapshot);
       syncHarnessParticipant(snapshot);
+      // An `@agent` turn runs through the controller, so its snapshot is the
+      // signal; the native Chat's turns arrive through `onRuntimeActivity`.
+      if (snapshot.turn.state === 'running') {
+        const turnId =
+          snapshot.turn.id ??
+          (headlessTurnId?.startsWith('synthetic:')
+            ? headlessTurnId
+            : `synthetic:${++headlessTurnSequence}`);
+        watch.noteChatActivity(turnId !== headlessTurnId ? 'turn-started' : 'other');
+        headlessTurnId = turnId;
+      } else if (headlessTurnId !== null) {
+        headlessTurnId = null;
+        watch.noteChatActivity('turn-ended');
+      }
     },
+    // The visible-progress tripwire's clock arms on the Chat runtime's own
+    // activity and stops itself when no turn is running (`project-watch.ts`).
+    onRuntimeActivity: (activity) => watch.noteChatActivity(activity),
     ...(initialHarnessCaller ? { callerSessions: [initialHarnessCaller] } : {}),
   });
   const projectWork = new ProjectWorkCoordinator({
@@ -818,6 +839,8 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     bindCollaboration,
     recentAgentAuthor: () => recentAgentAuthor,
     readProjectManifest,
+    chatTurnState: () => harnessChat.chatTurnState(),
+    steerChatTurn: (text) => harnessChat.steerRunningTurn(text),
   });
   const startWatcher = watch.start;
   // ---- Editor command relay + state ----
@@ -1260,6 +1283,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     projectWork,
     journalEvent,
     announceBuildDisciplineTripwires: watch.announceBuildDisciplineTripwires,
+    noteEditorView: watch.noteEditorView,
     get activeLogFile() {
       return activeLogFile;
     },

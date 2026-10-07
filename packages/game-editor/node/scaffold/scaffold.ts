@@ -622,6 +622,7 @@ function copyMissingProjectSupport(templateDir: string, source: string, destinat
  */
 function trackedExampleFiles(exampleDir: string): string[] | null {
   const result = spawnSync('git', ['-C', exampleDir, 'ls-files', '--cached', '-z', '--', '.'], {
+    windowsHide: true,
     stdio: ['ignore', 'pipe', 'ignore'],
   });
   if (result.status !== 0 || !result.stdout) return null;
@@ -1024,6 +1025,7 @@ const runNpmLink: NpmLinkRunner = (projectDir, packageDirs) => {
   mkdirSync(join(prefix, 'lib', 'node_modules'), { recursive: true });
   mkdirSync(join(prefix, 'bin'), { recursive: true });
   const result = spawnSync('npm', ['link', '--no-save', ...packageDirs], {
+    windowsHide: true,
     cwd: projectDir,
     stdio: 'inherit',
     shell: true,
@@ -1215,6 +1217,7 @@ export type PackageBuildRunner = (packageDir: string) => void;
 
 const runPackageBuild: PackageBuildRunner = (packageDir) => {
   const result = spawnSync('npm', ['run', 'build'], {
+    windowsHide: true,
     cwd: packageDir,
     stdio: 'inherit',
     shell: true,
@@ -1343,7 +1346,7 @@ export function linkCheckoutPackages(
  *
  * A composition's product and lanes are a REPLACEMENT, not an addition: the
  * base template is the game editor's full set, and a modeling scaffold must
- * end up with the model editor and none of the game editor's lanes — two
+ * end up with Cyclotron and none of the game editor's lanes — two
  * products in one project is a refusal `volter-game-editor edit` states by name.
  *
  * WHICH of the template's `@volter/*` are "editor-side" is read from the KIT's

@@ -21,6 +21,7 @@ fi
 if git diff --cached --name-only | grep -qE '^(release/[^/]+\.json|packages/[^/]+/package\.json)$'; then
   node scripts/check-release.mjs release/modeling.json || exit 1
   node scripts/check-release.mjs release/game.json || exit 1
+  node scripts/check-release.mjs release/playable.json || exit 1
 fi
 
 # A game's .gitignore has two copies: template/.gitignore (scaffolded from a checkout) and

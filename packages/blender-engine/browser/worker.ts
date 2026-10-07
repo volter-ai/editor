@@ -1,5 +1,7 @@
 import { PullJob, checkpointStream } from './pull-job.mts';
 import { releaseFrameBuffers, sendFrameValue } from './frame-stream.mts';
+import { describeThrown } from './describe-thrown.mts';
+export { describeThrown } from './describe-thrown.mts';
 /**
  * THE BLENDER IN THE TAB IS BLENDER (ARCHITECTURE-CORE, owner ruling
  * 2026-09-17): the editor's modeling engine is Blender 5.2 LTS compiled to
@@ -39,7 +41,7 @@ import { releaseFrameBuffers, sendFrameValue } from './frame-stream.mts';
  */
 /// <reference types="vite/client" />
 
-import { type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
+import { startupOperation, type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
 import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
 import { documentChunks, documentChunksFromFile } from './document-chunks.mts';
 import { columnsToTypedArrays, describeFrame, isColumnDescriptor } from './session-frame.mts';
@@ -429,7 +431,13 @@ async function startBlender(project: string, document?: string): Promise<unknown
   // be `open_mainfile` on the document — which lives on the host's disk and is
   // not in the engine's filesystem until it is staged. Every other call stages
   // on its way in (`execute`); start had nothing to open before it did.
-  if (document) await stageProjectFiles(started.files, project);
+  if (document) {
+    // The document itself not reaching the engine is a refusal, not a footnote: the open below
+    // would fail on a missing file (or open a stale copy) without saying why.
+    const failed = await stageProjectFiles(started.files, project);
+    const mine = failed.find((line) => line.startsWith("The project's files are not readable") || line.startsWith(`${document} `));
+    if (mine) throw new Error(`${document} could not be copied into Blender, so it cannot be opened: ${mine}`);
+  }
   await loadCheckpoint?.("project-imported");
   const banner = (await started.request({
     op: 'start',
@@ -475,17 +483,25 @@ async function startBlender(project: string, document?: string): Promise<unknown
 }
 
 async function blenderIsServed(): Promise<{ available: boolean; missing: string[] }> {
+  const url = '/__editor/blender-wasm/status';
   try {
-    const answer = await fetch('/__editor/blender-wasm/status');
-    if (!answer.ok) return { available: false, missing: [`status answered ${answer.status}`] };
-    return (await answer.json()) as { available: boolean; missing: string[] };
+    const answer = await startupOperation(url, 'fetch initial status', () => fetch(url));
+    if (!answer.ok) return { available: false, missing: [`${url}: HTTP ${answer.status}`] };
+    return await startupOperation(url, 'decode initial status JSON', () => answer.json()) as { available: boolean; missing: string[] };
   } catch (error) {
     return { available: false, missing: [String(error)] };
   }
 }
 
-async function start(project: string, document?: string): Promise<unknown> {
+/** The engine's filesystem is POSIX, so a Windows project root (`C:\Users\me\p`) is
+ *  mounted at its URI path (`/C:/Users/me/p`); a POSIX root is its own mount. */
+export function projectMount(project: string): string {
+  return /^[A-Za-z]:[\\/]/.test(project) ? `/${project.replaceAll('\\', '/')}` : project;
+}
+
+async function start(hostProject: string, document?: string): Promise<unknown> {
   if (session) throw new Error('The Blender session is already started');
+  const project = projectMount(hostProject);
   if (!project.startsWith('/'))
     throw new Error("The Blender session needs the project's absolute path");
   // The document is the project's own file and is named the project's own way.
@@ -529,10 +545,11 @@ function say(line: string): void {
   log('error', line);
 }
 
-async function projectIndex(project: string): Promise<ProjectFile[] | null> {
-  const unreadable = (reason: string): null => {
-    say(`The project's files are not readable from Python: ${reason}`);
-    return null;
+async function projectIndex(project: string): Promise<ProjectFile[] | string> {
+  const unreadable = (reason: string): string => {
+    const line = `The project's files are not readable from Python: ${reason}`;
+    say(line);
+    return line;
   };
   let answer: Response;
   try {
@@ -550,7 +567,7 @@ async function projectIndex(project: string): Promise<ProjectFile[] | null> {
     return unreadable(String(error));
   }
   const { root, files } = payload;
-  if (root !== project)
+  if (projectMount(root) !== project)
     say(
       `The editor serving this tab has ${root} open, not ${project}; its files ` +
         `are mounted at ${project}, which is where Python is looking.`,
@@ -585,9 +602,20 @@ async function stampOf(files_: BlenderFiles, path: string): Promise<string> {
   return info ? `${info.size}:${info.mtimeMs}` : '';
 }
 
-async function stageProjectFiles(files_: BlenderFiles, project: string): Promise<void> {
+/**
+ * Copy the project's changed files into the engine, and answer what could NOT be copied.
+ *
+ * THE ANSWER IS THE POINT (2026-10-06 audit: files that failed to copy were "reported to the
+ * console only"). `say` writes the page console once per line, which nobody running a script
+ * reads; a script that then opens or loads the missing file fails, or worse succeeds on a
+ * stale copy, with no word of why. So every call returns its failures, and the callers put
+ * them where the caller of THAT is looking: `execute` appends them to the script's answer, and
+ * `start` refuses when the document itself is among them.
+ */
+async function stageProjectFiles(files_: BlenderFiles, project: string): Promise<string[]> {
   const files = await projectIndex(project);
-  if (!files) return;
+  if (typeof files === 'string') return [files];
+  const failed: string[] = [];
   const present = new Set(files.map((file) => `${project}/${file.path}`));
   for (const path of [...staged.keys()]) {
     if (present.has(path)) continue;
@@ -609,31 +637,51 @@ async function stageProjectFiles(files_: BlenderFiles, project: string): Promise
     );
     if (!answer.ok) {
       say(`${file.path}: HTTP ${answer.status}`);
+      failed.push(`${file.path} (the session answered HTTP ${answer.status})`);
       continue;
     }
+    // The index can precede an append or rewrite. Stream the response's own size,
+    // not an earlier index entry's size; keep the old stamp so the next sync rechecks.
+    const declaredSize = Number(answer.headers.get('content-length'));
+    const responseSize = answer.headers.has('content-length') && Number.isSafeInteger(declaredSize) && declaredSize >= 0
+      ? declaredSize : file.size;
     const dir = path.slice(0, path.lastIndexOf('/'));
     if (dir) await files_.mkdirTree(dir);
     if (files_.writeFileStream && answer.body) {
-      await files_.writeFileStream(path, loadCheckpoint ? checkpointStream(answer.body, () => loadCheckpoint!("file-import")) : answer.body, file.size);
+      await files_.writeFileStream(path, loadCheckpoint ? checkpointStream(answer.body, () => loadCheckpoint!("file-import")) : answer.body, responseSize);
     } else {
       await files_.writeFile(path, new Uint8Array(await answer.arrayBuffer()));
     }
     staged.set(path, { host: stamp, engine: await stampOf(files_, path) });
   }
+  return failed;
+}
+
+/** The failures `stageProjectFiles` answered, as one paragraph a script's caller can read. */
+function stagingNote(failed: readonly string[]): string {
+  return failed.length === 0 ? '' :
+    `\n\nThese project files could not be copied into Blender, so this code did not see their current contents: ${failed.join('; ')}`;
 }
 
 /** Everything under `root` this SESSION owns -- what the transport mirrors out.
  *  A host file staged in and NEVER WRITTEN is the host's and is not output;
  *  one Python has written over since it was staged is this session's output,
  *  the same as a path it created (see {@link staged}). */
-async function listSessionFiles(files: BlenderFiles, root: string): Promise<FileEntry[]> {
+async function listSessionFiles(files: BlenderFiles, hostRoot: string): Promise<FileEntry[]> {
+  // A host root reaches the engine in the engine's spelling, as the project itself does.
+  const root = projectMount(hostRoot);
   const out: FileEntry[] = [];
+  // A root the engine has no directory at holds no output yet, and that is an honest empty
+  // listing. A directory that exists and cannot be read is NOT: until 2026-10-06 every readdir
+  // failure was answered as "no files", which is how a Windows root the engine never had (the
+  // host's `C:\…` instead of `/C:/…`) reported success while nothing reached disk.
+  if ((await files.stat(root)) === null) return out;
   const walk = async (dir: string): Promise<void> => {
     let names: string[];
     try {
       names = await files.readdir(dir);
-    } catch {
-      return;
+    } catch (error) {
+      throw new Error(`Blender's files under ${dir} could not be listed, so its outputs there cannot be written back: ${String(error)}`);
     }
     for (const name of names) {
       if (name === '.' || name === '..') continue;
@@ -709,12 +757,12 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       // A selection script presents too. Keep its native/export/transfer
       // checkpoints on the same bounded pull door used for initial loading.
       return pullWork('execute', async () => {
-        await stageProjectFiles(files, projectRoot!);
+        const note = stagingNote(await stageProjectFiles(files, projectRoot!));
         const answer = await ask({ op: 'execute', code: request.code, history: request.history ?? true,
           label: request.label ?? 'Blender Python' }) as {
           error?: string; result: string;
         };
-        return answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`;
+        return (answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`) + note;
       });
     case 'present':
       // Straight through to `session.py`'s own `present` op — the worker adds
@@ -817,30 +865,6 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       return listSessionFiles(files, request.path);
   }
   throw new Error(`Unknown Blender worker request ${(request as { op: string }).op}`);
-}
-
-/** Anything thrown, rendered so the message SURVIVES the boundary.
- *
- * `error instanceof Error ? ... : String(error)` renders a thrown plain object
- * as `[object Object]`, and that is the whole error a script sees: the worker
- * answered `17-workshop-interior` seq 7 with exactly that, which named neither
- * the operation nor the cause and left the next step with nothing to go on.
- * A DOMException carries its name, and a plain object carries its own fields,
- * so both are spelled out rather than coerced. */
-export function describeThrown(error: unknown): string {
-  if (error instanceof Error) return error.stack ?? `${error.name}: ${error.message}`;
-  if (typeof error === 'object' && error !== null) {
-    const named = error as { name?: unknown; message?: unknown };
-    if (typeof named.message === 'string') {
-      return typeof named.name === 'string' ? `${named.name}: ${named.message}` : named.message;
-    }
-    try {
-      return JSON.stringify(error) ?? Object.prototype.toString.call(error);
-    } catch {
-      return Object.prototype.toString.call(error);
-    }
-  }
-  return String(error);
 }
 
 /**

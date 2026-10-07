@@ -12,7 +12,7 @@
  * probe, so it answers 200 even when it has nothing to serve.
  *
  * WHAT IT SERVES: the PRODUCT's one source entry — `@volter/game-editor`'s or
- * `@volter/model-editor`'s `src/index.ts`, which composes the product and
+ * `@volter/cyclotron`'s `src/index.ts`, which composes the product and
  * re-exports `mountVolter` (`packages/editor/src/frame/product.ts`). Which
  * product that is comes from the project's own dependencies, resolved by the
  * CLI and handed over (`session-product.ts`); the kit's own mount,
@@ -126,7 +126,7 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
             message:
               'This session is serving no Volter product, so there is no editor for the Code-OSS ' +
               'frame to import. A product is the running program — the editor IS ' +
-              '@volter/game-editor or @volter/model-editor — and which one runs is what the project ' +
+              '@volter/game-editor or @volter/cyclotron — and which one runs is what the project ' +
               `installed. Install one and run ${commandLine('edit')} again:\n` +
               `${PRODUCT_INSTALL_LINES.join('\n')}`,
           },

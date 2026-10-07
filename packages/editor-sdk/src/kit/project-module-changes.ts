@@ -35,7 +35,11 @@
  */
 
 /** Project-relative path of the module that changed, e.g. `src/prefabs/probe.ts`. */
-export type ProjectModuleChangeListener = (relativePath: string) => void;
+export type ProjectModuleChangeListener = (
+  relativePath: string,
+  affected?: readonly string[],
+  type?: 'create' | 'update' | 'delete',
+) => void;
 
 /**
  * WHY THE TRANSFORM ERROR IS RECORDED SEPARATELY: a dynamic `import()` of a
@@ -62,8 +66,18 @@ interface ViteErrorPayload {
 }
 
 /** Keyed by the normalized absolute file path Vite reports. */
-const lastTransformError = new Map<string, string>();
-let transformErrorsWired = false;
+const busKey = Symbol.for('volter.project-module-changes');
+interface ModuleChangesBus {
+  readonly listeners: Set<ProjectModuleChangeListener>;
+  readonly errors: Map<string, string>;
+  transformErrorsWired: boolean;
+  changesWired: boolean;
+}
+const page = globalThis as typeof globalThis & { [busKey]?: ModuleChangesBus };
+const bus = page[busKey] ??= {
+  listeners: new Set(), errors: new Map(), transformErrorsWired: false, changesWired: false,
+};
+const lastTransformError = bus.errors;
 
 /** Vite's HMR context when a dev server serves this module, typed here so the SDK carries no
  *  bundler types. */
@@ -77,10 +91,10 @@ const viteHot = (
 ).hot;
 
 function wireTransformErrors(): void {
-  if (transformErrorsWired) return;
+  if (bus.transformErrorsWired) return;
   const hot = viteHot;
   if (!hot) return;
-  transformErrorsWired = true;
+  bus.transformErrorsWired = true;
   hot.on('vite:error', (payload: ViteErrorPayload) => {
     const err = payload?.err;
     if (!err || typeof err.message !== 'string') return;
@@ -116,6 +130,8 @@ export function clearProjectModuleTransformError(relativePath: string): void {
 /** Server-sent event payloads all carry `{ file }` as an ABSOLUTE path. */
 interface HotFilePayload {
   readonly file?: unknown;
+  readonly affected?: unknown;
+  readonly type?: unknown;
 }
 
 /** Vite's own `vite:afterUpdate` payload, narrowed to what is read here. */
@@ -143,32 +159,43 @@ export function projectModuleChangeMatches(changedPath: string, relativePath: st
 
 /**
  * Call `listener` whenever the dev server reports that a project source module
- * was saved. Returns the unsubscribe. A no-op (and an immediately-returned
- * unsubscribe) outside a Vite dev client — the packaged host has no HMR
- * channel, and a surface that needs one says so itself.
+ * was saved. A dev-served copy connects Vite to the page-wide bus, so bundled
+ * consumers hear the same channel. Outside a dev client no events arrive.
  */
 export function subscribeProjectModuleChange(listener: ProjectModuleChangeListener): () => void {
+  bus.listeners.add(listener);
+  wireChanges();
+  return () => { bus.listeners.delete(listener); };
+}
+
+function wireChanges(): void {
   const hot = viteHot;
-  if (!hot) return () => {};
+  if (!hot || bus.changesWired) return;
+  bus.changesWired = true;
   wireTransformErrors();
+  const publish: ProjectModuleChangeListener = (path, affected, type) => {
+    for (const listener of [...bus.listeners]) listener(path, affected, type);
+  };
   const onFileEvent = (payload: HotFilePayload): void => {
-    if (typeof payload?.file === 'string') listener(normalize(payload.file));
+    if (typeof payload?.file !== 'string') return;
+    const affected = Array.isArray(payload.affected)
+      ? payload.affected.filter((path): path is string => typeof path === 'string').map(normalize)
+      : undefined;
+    const type = payload.type === 'create' || payload.type === 'update' || payload.type === 'delete'
+      ? payload.type : undefined;
+    publish(normalize(payload.file), affected, type);
   };
   const onViteUpdate = (payload: ViteUpdatePayload): void => {
     for (const update of payload?.updates ?? []) {
       const path = update.acceptedPath ?? update.path;
       // Vite's urls carry the transform query (`?t=…`); the path half is the file.
-      if (typeof path === 'string') listener(normalize(path.split('?')[0] ?? path));
+      if (typeof path === 'string') publish(normalize(path.split('?')[0] ?? path));
     }
   };
   hot.on('volter:restart-required', onFileEvent);
   hot.on('volter:script-update', onFileEvent);
   hot.on('volter:r3f-entry-update', onFileEvent);
   hot.on('vite:afterUpdate', onViteUpdate);
-  return () => {
-    hot.off('volter:restart-required', onFileEvent);
-    hot.off('volter:script-update', onFileEvent);
-    hot.off('volter:r3f-entry-update', onFileEvent);
-    hot.off('vite:afterUpdate', onViteUpdate);
-  };
 }
+
+wireChanges();

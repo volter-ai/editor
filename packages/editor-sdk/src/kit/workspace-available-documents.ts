@@ -4,11 +4,13 @@
 import {
   closeWorkspaceDocument,
   openWorkspaceDocument,
+  openWorkspaceDocuments,
   WORKSPACE_DOCUMENT_KINDS,
   type WorkspaceDocumentDescriptor,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
 import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
+import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
 
 export interface AvailableWorkspaceDocument {
   readonly descriptor: WorkspaceDocumentDescriptor;
@@ -54,6 +56,15 @@ function restoreAvailableDocuments(): void {
     if (openAvailableWorkspaceDocument(id, active && !liveDocumentHeld())) pending.delete(id);
   }
   if (sessionStarted && !hasDocumentsRestoring && !defaultOpened) {
+    // A root's fallback must wait for the project's declared document. Boards
+    // can register before the asynchronous document finders have settled.
+    const facet = projectAdapterFacet();
+    if (!facet || facet.documentsPending) return;
+    const declared = facet.scenes.entries.find((entry) => entry.id === facet.scenes.default);
+    if (
+      (declared && declared.kind !== 'scene' && declared.kind !== 'prefab') ||
+      openWorkspaceDocuments().some((document) => !document.descriptor.area)
+    ) return;
     const entry = documents.find((item) => item.default);
     if (entry) {
       defaultOpened = true;
@@ -61,6 +72,8 @@ function restoreAvailableDocuments(): void {
     }
   }
 }
+
+subscribeProjectAdapter(restoreAvailableDocuments);
 
 export function registerAvailableWorkspaceDocument(
   descriptor: WorkspaceDocumentDescriptor,

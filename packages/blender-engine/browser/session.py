@@ -414,13 +414,13 @@ def _describe_world_socket(root_socket, camera_ray):
                 return float(default) if isinstance(default, (float, int)) else [float(c) for c in list(default)[:3]]
             if kind == "ShaderNodeTexSky" and socket == "Color":
                 model = node.sky_type
-                if model != "MULTIPLE_SCATTERING":
+                if model not in ("SINGLE_SCATTERING", "MULTIPLE_SCATTERING"):
                     raise NotImplementedError(
-                        "World Sky Texture: sky_type %r is not implemented (MULTIPLE_SCATTERING is)" % model)
+                        "World Sky Texture: sky_type %r is not implemented (SINGLE_SCATTERING and MULTIPLE_SCATTERING are)" % model)
                 vector = node.inputs.get("Vector")
                 if vector is not None and vector.links:
                     raise NotImplementedError("Linked World Sky Texture Vector")
-                return {"kind": "sky", "sun_elevation": float(node.sun_elevation),
+                return {"kind": "sky", "sky_model": model, "sun_elevation": float(node.sun_elevation),
                         "sun_rotation": float(node.sun_rotation), "altitude": float(node.altitude),
                         "air_density": float(node.air_density), "aerosol_density": float(node.aerosol_density),
                         "ozone_density": float(node.ozone_density)}
@@ -615,7 +615,7 @@ _GRAPH_NODES = frozenset((
     "ShaderNodeGamma", "ShaderNodeRGBToBW", "ShaderNodeSeparateColor", "ShaderNodeCombineColor",
     "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight", "ShaderNodeBump",
     "ShaderNodeNormalMap", "ShaderNodeNewGeometry", "ShaderNodeVertexColor", "ShaderNodeAttribute",
-    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve",
+    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve", "ShaderNodeObjectInfo",
 ))
 # The surfaces whose inputs map onto the presenter's standard material, and
 # the inputs of each the presenter reads from a graph.
@@ -813,6 +813,8 @@ def _saved_view():
                 "distance": float(region.view_distance),
                 "perspective": region.view_perspective,
                 "shading": space.shading.type,
+                "scene_world": bool(space.shading.use_scene_world),
+                "scene_lights": bool(space.shading.use_scene_lights),
             }
     return None
 
@@ -964,6 +966,10 @@ class _MaterialGraph:
         if node.bl_idname in _GENERATED_BY_DEFAULT and not bool(_links_into(node.inputs[0])):
             self.generated = True
         props = _node_properties(node)
+        if node.bl_idname == "ShaderNodeObjectInfo":
+            # node_shader_gpu_object_info: the index belongs to this material,
+            # even when the node itself is inside a shared node group.
+            props["material_index"] = float(self.material.pass_index)
         if props.get("image"):
             self.images.add(props["image"])
         return {
@@ -1136,6 +1142,33 @@ def _mixed_graph(material, stack, surface):
         "images": sorted(graph.images),
         "generated": graph.generated,
     }
+
+
+def _object_info_random(name):
+    """Ordinary-object Random, shared by EEVEE and Cycles: hash_string then
+    Jenkins hash_uint2(name_hash, 0), converted to float32 * 2**-32.
+    Instances must use depsgraph.random_id instead; their export is separate.
+    See draw_handle.hh::random and cycles/blender/object.cpp.
+    """
+    import struct
+
+    mask = 0xffffffff
+    h = 0
+    # Blender's platform flags specify -funsigned-char (native and WASM).
+    for byte in name.encode("utf8"):
+        h = (h * 37 + byte) & mask
+    a = (0xdeadbeef + 21 + h) & mask
+    b = c = (0xdeadbeef + 21) & mask
+    def rotate(x, bits):
+        return ((x << bits) | (x >> (32 - bits))) & mask
+    c = ((c ^ b) - rotate(b, 14)) & mask
+    a = ((a ^ c) - rotate(c, 11)) & mask
+    b = ((b ^ a) - rotate(a, 25)) & mask
+    c = ((c ^ b) - rotate(b, 16)) & mask
+    a = ((a ^ c) - rotate(c, 4)) & mask
+    b = ((b ^ a) - rotate(a, 14)) & mask
+    c = ((c ^ b) - rotate(b, 24)) & mask
+    return struct.unpack("f", struct.pack("f", c / 4294967296.0))[0]
 
 
 def material_graphs(scene):
@@ -1461,10 +1494,10 @@ class Session:
         if hasattr(_blender_web, "memory_reset_peak"):
             _blender_web.memory_reset_peak()
         if hasattr(_blender_web, "export_frame_chunked"):
-            exported = _blender_web.export_frame_chunked(json.dumps(options),
+            exported = _blender_web.export_frame_chunked(json.dumps(options, ensure_ascii=False),
                 lambda: _asked({"checkpoint": "native-export"}))
         else:
-            exported = _blender_web.export_frame(json.dumps(options))
+            exported = _blender_web.export_frame(json.dumps(options, ensure_ascii=False))
         _mark("export:door")
         frame = json.loads(exported)
         del exported
@@ -1510,6 +1543,12 @@ class Session:
                 if not any(m in graphs for m in row["materials"] if m is not None):
                     continue
                 obj = by_name.get(row["name"])
+                if obj is not None:
+                    row["object_info"] = {
+                        "color": [float(v) for v in obj.color],
+                        "index": float(obj.pass_index),
+                        "random": _object_info_random(obj.name),
+                    }
                 data = obj.evaluated_get(depsgraph).data if obj is not None else None
                 if getattr(data, "use_auto_texspace", True) is False:
                     row["texspace"] = [[float(v) for v in data.texspace_location],
@@ -1683,7 +1722,9 @@ class Session:
                 if kind == "image" and self._send_encoded_image(key, frame["images"][key]):
                     continue
                 options["key"] = key
-                piece = json.loads(door(json.dumps(options)))
+                # The native door reads UTF-8 keys. Preserve Unicode datablock
+                # names rather than turning them into JSON \u escape sequences.
+                piece = json.loads(door(json.dumps(options, ensure_ascii=False)))
                 if piece.get("error"):
                     raise RuntimeError("Blender export door: %s" % piece["error"])
                 frame["warnings"].extend(piece.get("warnings", []))
@@ -2097,7 +2138,7 @@ _ASK_SEQUENCE = [0]
 def _drop(path):
     """Remove one of THIS side's own channel files. A failure here means the
     ownership rule was broken by the other side, so it is named rather than
-    swallowed -- and named where `volter-model-editor console` reads it, not into a log."""
+    swallowed -- and named where `cyclotron console` reads it, not into a log."""
     try:
         os.unlink(path)
     except OSError as error:
@@ -2224,15 +2265,12 @@ def _photograph(depsgraph, width, height, linear=False):
         "fov": _vertical_extent(camera.data, int(width), int(height)),
         "toneMapping": transform,
         "exposure": float(2.0 ** view.exposure),
+        "gamma": float(view.gamma),
         "orthographic": camera.data.type == "ORTHO",
         "transparent": bool(scene.render.film_transparent),
     }
-    # The renderer keys its baked look tables by the config's FULL name
-    # (`AgX - Medium High Contrast`), and `AgX - Base Contrast` is the AgX base
-    # view itself -- the same table as no look at all. Send the full name for a
-    # non-identity look and nothing for the identity; a look with no table is
-    # refused BY NAME on the other side (`blender-runtime-host.ts`).
-    if look not in ("None", "AgX - Base Contrast"):
+    # Preserve the full look name: the native OCIO display processor owns it.
+    if look != "None":
         render["look"] = look
     # The capture's scene-referred frame rides along when asked for: a render
     # result is what a render leaves, and it holds scene-linear pixels.
@@ -2299,6 +2337,20 @@ class VolterRenderEngine(bpy.types.RenderEngine):
     bl_label = "three.js"
     bl_use_preview = False
 
+    def view_update(self, context, depsgraph):
+        """The tab presents the depsgraph; Blender owns the shading selection."""
+        pass
+
+    def view_draw(self, context, depsgraph):
+        """Advertise viewport rendering to RNA without asking headless Blender for a GPU.
+
+        `rna_SpaceView3DShading_type_itemf` only offers RENDERED for a Python
+        engine with `view_draw`. The Three presenter draws that viewport; this
+        callback is never its drawing path. Without it, opening a Cycles file
+        makes the ordinary Rendered control reject its own enum value.
+        """
+        pass
+
     def render(self, depsgraph):
         scene = depsgraph.scene
         scale = scene.render.resolution_percentage / 100.0
@@ -2322,7 +2374,7 @@ def _fill_result(engine, result, answer, png, width, height):
     view transform over them wherever it shows or saves one (`write_still`, the
     Image Editor), as it does over Cycles'. The photograph's PNG is the display
     image -- the transform already ran -- so loading it put every render
-    through AgX or Filmic twice. Measured 2026-09-28 by the model editor's
+    through AgX or Filmic twice. Measured 2026-09-28 by Cyclotron's
     render view: a background 53 against the viewport's 59, a shadow's blue 2
     against 7. The same capture's linear frame goes in instead: half floats,
     RGBA, bottom row first, which is Blender's own row order. Linear 0.005,
@@ -4239,7 +4291,7 @@ def _node_row(node):
 
 
 def _node_tree_of(path, material):
-    """WHICH TREE. Either an explicit RNA address (so a `volter-model-editor eval` can open a
+    """WHICH TREE. Either an explicit RNA address (so a `cyclotron eval` can open a
     world's or a group's tree with the engine's own spelling), or a material by
     name, or -- given neither -- the active object's active material, which is
     what Blender's own Shading header resolves (`space_node.py:89-93`,
@@ -4497,7 +4549,7 @@ def rna_rig(object_name=None):
     presented frame carries every object at once, and the presenter has to know
     which of its meshes are `THREE.SkinnedMesh`es before it builds them. Asking
     per object would be one round trip per mesh; asking by NAME stays available
-    for a `volter-model-editor eval` that wants to read one.
+    for a `cyclotron eval` that wants to read one.
     """
     scene_frame = int(bpy.context.scene.frame_current)
     if object_name:
@@ -4989,13 +5041,12 @@ def rna_outliner(selected=None):
         # `add_layer_collections_recursive`: an EXCLUDED collection's objects
         # are not added at all -- it is not in the view layer.
         if not lc.exclude:
-            page, more = _outliner_page(collection.objects)
-            for obj in page:
+            # Fold parenting before paging: a parent may follow its children in
+            # collection order, and must not disappear behind the flat cap.
+            for obj in collection.objects:
                 object_row = _outliner_object(obj, view_layer, seen, chosen, active)
                 place(obj, object_row, row)
                 children.append(object_row)
-            if more:
-                row["more"] = more
         row["children"] = children
         return row
 
@@ -5008,13 +5059,10 @@ def rna_outliner(selected=None):
                                _outliner_key("%s.layer_collection.children" % view_layer_path,
                                              child.collection.name))
                 for child in root.children]
-    page, more = _outliner_page(root.collection.objects)
-    for obj in page:
+    for obj in root.collection.objects:
         object_row = _outliner_object(obj, view_layer, seen, chosen, active)
         place(obj, object_row, scene_collection)
         children.append(object_row)
-    if more:
-        scene_collection["more"] = more
     scene_collection["children"] = children
 
     # `ObjectsChildrenBuilder::make_object_parent_hierarchy_collections`, parents
@@ -5061,6 +5109,18 @@ def rna_outliner(selected=None):
                 selected=obj.name in chosen, active=obj.name == active, notInCollection=True)
             parent_row["children"].append(duplicate)
             mine.append([duplicate, parent_row, parent_collection])
+
+    # Cap the hierarchy's visible child lists, not the collection's flat input.
+    # Every parent participates in folding even when its child list needs a page.
+    def page_tree(row):
+        children, more = _outliner_page(row.get("children", []))
+        row["children"] = children
+        if more:
+            row["more"] = more
+        for child in children:
+            page_tree(child)
+
+    page_tree(scene_collection)
 
     return {
         "scene": scene_path,
@@ -5138,11 +5198,14 @@ def dispatch(request):
     op = request.get("op")
     if op not in _WATCHED_OPS:
         return _dispatch_request(request)
-    before = {o.name for o in bpy.data.objects}
+    # ID.session_uid survives renames, reallocations and file reloads.
+    # Names alone falsely reported an ordinary rename as a deleted object.
+    before = {o.session_uid: o.name for o in bpy.data.objects}
     try:
         return _dispatch_request(request)
     finally:
-        removed = before - {o.name for o in bpy.data.objects}
+        remaining = {o.session_uid for o in bpy.data.objects}
+        removed = [name for uid, name in before.items() if uid not in remaining]
         if removed:
             cause = {k: request[k] for k in ("label", "property", "column", "direction", "token", "path")
                      if k in request}
@@ -5234,7 +5297,7 @@ def _dispatch(request):
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `volter-model-editor console` silent throughout.
+            # `blender-execute` calls with `cyclotron console` silent throughout.
             _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer
@@ -5284,7 +5347,7 @@ def _dispatch(request):
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `volter-model-editor console` silent throughout.
+            # `blender-execute` calls with `cyclotron console` silent throughout.
             _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer
@@ -5307,7 +5370,7 @@ def _dispatch(request):
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `volter-model-editor console` silent throughout.
+            # `blender-execute` calls with `cyclotron console` silent throughout.
             _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer

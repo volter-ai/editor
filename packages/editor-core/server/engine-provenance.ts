@@ -63,6 +63,7 @@ export function createGitRunner(cwd: string): GitRunner {
   return async (args) => {
     try {
       const { stdout } = await execFileAsync('git', args, {
+        windowsHide: true,
         cwd,
         encoding: 'utf8',
         timeout: 5_000,

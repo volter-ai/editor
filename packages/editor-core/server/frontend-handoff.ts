@@ -42,7 +42,7 @@
 import { randomUUID } from 'node:crypto';
 import { FrontendClient } from '@volter/supercode-frontend';
 import { chmodSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
-import { dirname, join, resolve } from 'node:path';
+import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
 
 /** `observe` watches, `interact` sends, `approve` answers a permission request.
@@ -70,9 +70,6 @@ export interface FrontendHandoff {
   readonly env: Readonly<Record<string, string>>;
   /** The client id the runtime's lease coordinator will see. */
   readonly clientId: string;
-  /** True when the runtime's mint door answered; false when it 404'd and the receipt's own
-   *  bearer was handed over instead (see the measurement in `mintFrontendHandoff`). */
-  readonly minted: boolean;
   /** Read the runtime itself: frontend turns do not pass through the headless controller. */
   isBusy(): Promise<boolean>;
   /** Revoke the grant and delete the credential file. Idempotent. */
@@ -101,26 +98,12 @@ function moduleCandidate(root: string | undefined, file: string): string[] {
   return [root.endsWith('.mjs') ? root : join(root, file)];
 }
 
-/**
- * The supercode door, resolved the way every other optional supercode import in
- * this server is: the published package first, a sibling checkout after, and a
- * refusal that names every location tried rather than an opaque `ERR_MODULE_NOT_FOUND`.
- */
-async function importLiveRuntimeDoor(engineRoot: string): Promise<LiveRuntimeDoor> {
-  const sibling = join(dirname(engineRoot), 'supercode', 'sdk', 'typescript', 'live-runtime.mjs');
-  const cwdSibling = join(
-    dirname(resolve(process.cwd())),
-    'supercode',
-    'sdk',
-    'typescript',
-    'live-runtime.mjs',
-  );
+/** Load the live-runtime door from an explicit SDK path or the installed package. */
+async function importLiveRuntimeDoor(): Promise<LiveRuntimeDoor> {
   const failures: string[] = [];
   for (const candidate of [
     ...moduleCandidate(process.env['SUPERCODE_SDK_PATH'], 'live-runtime.mjs'),
     '@volter/supercode-harness-sdk/live-runtime',
-    sibling,
-    cwdSibling,
   ]) {
     try {
       const specifier = candidate.startsWith('/') ? pathToFileURL(candidate).href : candidate;
@@ -146,12 +129,11 @@ async function importLiveRuntimeDoor(engineRoot: string): Promise<LiveRuntimeDoo
  * runtime wrote into its receipt as `runtime_session_id`.
  */
 export async function mintFrontendHandoff(options: {
-  readonly engineRoot: string;
   readonly runtimeSessionId: string;
   /** Where the 0600 credential goes. One directory per session, removed with it. */
   readonly directory: string;
 }): Promise<FrontendHandoff> {
-  const door = await importLiveRuntimeDoor(options.engineRoot);
+  const door = await importLiveRuntimeDoor();
   const receipt = door.findLiveReceipt(options.runtimeSessionId);
   if (!receipt) {
     throw new Error(
@@ -159,46 +141,14 @@ export async function mintFrontendHandoff(options: {
     );
   }
   const clientId = `volter-editor-${process.pid}-${randomUUID().slice(0, 8)}`;
-  // THERE ARE TWO HTTP SERVERS IN A SUPERCODE RUNTIME, and a MANAGED runtime's receipt
-  // points at the one WITHOUT the mint door. Measured against supercode 0.4.36 on
-  // 2026-09-21, on a runtime started through `startManagedRuntime`:
-  //
-  //   POST /rpc                                    200   (frontend.v2.describe answered)
-  //   POST /_supercode/frontend-credentials/mint   404   {"error":"not found"}
-  //   …the same path with no bearer                401   — so it IS supercode's server
-  //
-  // `crates/harness/src/server.rs`: `handle_http_conn` (~:2611) serves the mint door and is
-  // what `supercode serve` runs; `handle_frontend_http_conn` (~:2962) is what
-  // `insert_hosted_runtime` starts and registers in the receipt, and it serves `POST /rpc`,
-  // `GET /frontend/events` and the observer assets — everything else is that 404.
-  //
-  // So the credential is minted WHEN THE DOOR EXISTS and is the receipt's own bearer when it
-  // does not. That is not an invention: it is supercode's own fallback, transcribed from
-  // `sdk/teams`'s HTTP door (`if (!/^mint 404/.test(error.message)) throw error;`), and it is
-  // still SCOPED — the generated frontend client sends `x-supercode-client-id` and
-  // `x-supercode-permissions` on every request (`sdk/frontend/client.mjs` :104-105), and
-  // `coordinated_http_client` (~:2491) takes the supplied id for an unbound credential and
-  // RESTRICTS the authorization to the header's permissions. What the fallback loses is the
-  // server-side BINDING: a client that stripped those headers would keep the bootstrap's
-  // authorization. Serving the mint door on the frontend server is supercode's to add.
-  let token: string;
-  let minted: boolean;
-  try {
-    token = await door.mintFrontendCredential(receipt, { clientId, grant: 'interactive' });
-    minted = true;
-  } catch (error) {
-    const message = error instanceof Error ? error.message : String(error);
-    if (!/^mint 404/.test(message)) throw error;
-    token = receipt.token;
-    minted = false;
-  }
+  const token = await door.mintFrontendCredential(receipt, { clientId, grant: 'interactive' });
   // The reader's own rules (`sdk/frontend-vscode`'s `credential.ts`): a regular,
   // private, single-linked file of exactly 64 lowercase hex bytes. Checked HERE too,
   // because a malformed secret should name the door it came from rather than surface later
   // as "the credential is malformed" from inside an extension host with no logs a person reads.
   if (!/^[0-9a-f]{64}$/.test(token)) {
     throw new Error(
-      `The runtime's ${minted ? 'mint door' : 'receipt'} carried ${token.length} bytes that are not 64 hex characters; the Chat view's credential reader would refuse them.`,
+      `The runtime's mint door carried ${token.length} bytes that are not 64 hex characters; the Chat view's credential reader would refuse them.`,
     );
   }
   mkdirSync(options.directory, { recursive: true, mode: 0o700 });
@@ -218,7 +168,6 @@ export async function mintFrontendHandoff(options: {
       SUPERCODE_FRONTEND_PERMISSIONS: FRONTEND_PERMISSIONS,
     },
     clientId,
-    minted,
     async isBusy() {
       if (disposed) throw new Error('The chat runtime handoff is no longer active.');
       return (await observer.describe({signal:AbortSignal.timeout(5000)})).turn_state === 'busy';
@@ -227,10 +176,8 @@ export async function mintFrontendHandoff(options: {
       if (disposed) return;
       disposed = true;
       rmSync(options.directory, { recursive: true, force: true });
-      // Only a MINTED grant is ours to give back; the receipt's own bearer is the runtime's
-      // and dies with it. A runtime that has already exited cannot take anything back either,
-      // and saying so would be reporting the shutdown we are already performing.
-      if (minted) await door.revokeFrontendCredential(receipt, { clientId }).catch(() => undefined);
+      // A runtime that has already exited cannot accept revocation.
+      await door.revokeFrontendCredential(receipt, { clientId }).catch(() => undefined);
     },
   };
 }

@@ -2,7 +2,7 @@
  * WHICH PRODUCT OPENS THIS PROJECT — one declaration, one resolver.
  *
  * A PRODUCT is the running program (ARCHITECTURE-CORE §The target shape, rule
- * 4): `@volter/game-editor` and `@volter/model-editor` each stitch packages onto
+ * 4): `@volter/game-editor` and `@volter/cyclotron` each stitch packages onto
  * the editor kit in code and each carry a `bin`. **Which product runs is never
  * a switch** — there is no `--product` flag, no id in the manifest, no setting,
  * the same way a folder never names which VS Code opens it and a `.blend` never
@@ -52,6 +52,12 @@ export type ProductColorTheme = 'dark' | 'light';
  * and not a person's choice — it is what the product IS, declared beside
  * `entry` and `colorTheme` and read without running anything (rule 8).
  *
+ * A release runs on one platform, so a product that ships on several declares
+ * one release per platform, keyed the way a release names it
+ * (`{ "darwin-arm64": {…}, "linux-x64": {…}, "win32-x64": {…} }`), and this
+ * is the entry for the machine reading it. A single `{ release, tarballSha256 }`
+ * is a product with one platform.
+ *
  * `release` is the tag `scripts/workbench/build-release.mjs --publish` cuts on
  * the fork's own repository, `<product>-<fork sha 12>-<platform>`;
  * `tarballSha256` is the pin, verified against the downloaded bytes before a
@@ -84,6 +90,12 @@ export interface ProductIdentity {
   readonly command: string;
   /** The name a person sees — `volter.product.displayName` (`Volter Game Editor`). */
   readonly displayName: string;
+  /**
+   * `volter.product.upgrade: true` — its command has `upgrade [version]`
+   * (`@volter/editor-sdk/session/project-upgrade`), so a pinned-engine refusal
+   * may tell a person to run it. Optional: a product that says nothing has none.
+   */
+  readonly upgrade?: boolean;
   /** Its package root, absolute. */
   readonly dir: string;
   /**
@@ -115,13 +127,22 @@ export interface ProductIdentity {
   readonly colorTheme: ProductColorTheme;
   /** WHICH WORKBENCH THIS PRODUCT IS — see {@link ProductWorkbench}. */
   readonly workbench: ProductWorkbench | null;
+  /**
+   * The ONE LINE that installs this product and starts a project in it —
+   * `volter.product.install` (`npx @volter/cyclotron create my-game`). A limited view quotes
+   * it wherever it cannot do what the local editor does (its chat answers with it, and every
+   * route it does not carry names it), so it is a declaration read without running the product.
+   * An undeclared one is `npx <name> create my-game`, which is what every product's `create`
+   * verb accepts.
+   */
+  readonly install: string;
 }
 
 /** The install line a refusal quotes, for a project that already EXISTS. Both
  *  products, because a person choosing between them is choosing what they are
  *  building, not a flag. */
 export const PRODUCT_INSTALL_LINES = [
-  '  npm install --save-dev @volter/model-editor',
+  '  npm install --save-dev @volter/cyclotron',
   '  npm install --save-dev @volter/game-editor',
 ] as const;
 
@@ -142,7 +163,7 @@ interface ProductManifestShape {
   name?: unknown;
   version?: unknown;
   bin?: unknown;
-  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown } };
+  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown; install?: unknown; upgrade?: unknown } };
 }
 
 const PRODUCT_COLOR_THEMES: readonly ProductColorTheme[] = ['dark', 'light'];
@@ -205,11 +226,20 @@ export function readProductManifest(packageDir: string): ProductIdentity | null 
       `${manifestPath} declares ${PRODUCT_DECLARATION_KEY} but its "displayName" is ` +
         `${JSON.stringify(displayName)}. It must be the name a person sees (e.g. "Volter Editor").`,
     );
+  const name = typeof manifest.name === 'string' ? manifest.name : packageDir;
+  const install = declared.install;
+  if (install !== undefined && (typeof install !== 'string' || install.trim() === ''))
+    throw new Error(
+      `${manifestPath} declares ${PRODUCT_DECLARATION_KEY} but its "install" is ` +
+        `${JSON.stringify(install)}. It is the one line that installs this product and starts a ` +
+        `project (e.g. "npx ${name} create my-game"), or absent.`,
+    );
   return {
-    name: typeof manifest.name === 'string' ? manifest.name : packageDir,
+    name,
     version: typeof manifest.version === 'string' ? manifest.version : 'unknown',
     command: commands[0]!,
     displayName,
+    upgrade: declared.upgrade === true,
     dir: packageDir,
     entry,
     colorTheme: colorTheme as ProductColorTheme,
@@ -217,6 +247,7 @@ export function readProductManifest(packageDir: string): ProductIdentity | null 
     // Public packages must always carry a downloadable, checksummed workbench.
     workbench: manifest.private === true && declared.workbench === undefined
       ? null : readProductWorkbench(manifestPath, declared.workbench),
+    install: typeof install === 'string' ? install.trim() : `npx ${name} create my-game`,
   };
 }
 
@@ -244,6 +275,29 @@ function readProductWorkbench(manifestPath: string, declared: unknown): ProductW
         `${JSON.stringify(declared)}. A product IS the Code-OSS workbench it was compiled into, ` +
         `so it names the published release those bytes are:\n${example}`,
     );
+  const platforms = declared as Record<string, unknown>;
+  if (!('release' in platforms) && !('tarballSha256' in platforms)) {
+    const machine = `${process.platform}-${process.arch}`;
+    const declaredHere = platforms[machine];
+    if (declaredHere === undefined)
+      throw new Error(
+        `${manifestPath}'s ${PRODUCT_DECLARATION_KEY}.workbench declares releases for ` +
+          `${Object.keys(platforms).join(', ') || 'no platform'} and this machine is ${machine}. A ` +
+          "Code-OSS server package carries its own platform's node binary and native modules, so " +
+          `there is nothing this product can run in here until a ${machine} release is cut:\n` +
+          `  node scripts/workbench/build-release.mjs --product <id> --platform ${machine} --checkout <fork dir> --publish`,
+      );
+    return readPlatformWorkbench(manifestPath, declaredHere, example);
+  }
+  return readPlatformWorkbench(manifestPath, declared, example);
+}
+
+function readPlatformWorkbench(manifestPath: string, declared: unknown, example: string): ProductWorkbench {
+  if (typeof declared !== 'object' || declared === null || Array.isArray(declared))
+    throw new Error(
+      `${manifestPath}'s ${PRODUCT_DECLARATION_KEY}.workbench names ${JSON.stringify(declared)} ` +
+        `for this platform, which is not a release:\n${example}`,
+    );
   const record = declared as Record<string, unknown>;
   const extra = Object.keys(record).filter((key) => key !== 'release' && key !== 'tarballSha256');
   if (extra.length > 0)
@@ -270,7 +324,7 @@ function readProductWorkbench(manifestPath: string, declared: unknown): ProductW
 }
 
 /**
- * A product's SHORT id — `@volter/model-editor` → `model-editor`.
+ * A product's SHORT id — `@volter/cyclotron` → `cyclotron`.
  *
  * It is the product's own `product({ id })`, the directory its workbench half
  * lives in (`packages/<id>/workbench`), the `--product` flag the overlay and the

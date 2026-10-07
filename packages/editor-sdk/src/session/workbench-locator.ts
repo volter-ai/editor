@@ -17,7 +17,7 @@
  * session.
  *
  * AND A PRODUCT THAT IS INSTALLED CARRIES ITS OWN (B2, 2026-09-21). A person
- * who has just run `npx @volter/model-editor create my-models` has no release on
+ * who has just run `npx @volter/cyclotron create my-models` has no release on
  * their machine and no reason to have one, so the third step of the resolution
  * is the PRODUCT'S declaration — `package.json#volter.product.workbench`, the
  * published release those bytes are (ARCHITECTURE-CORE §The target shape: one
@@ -65,7 +65,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { homedir } from 'node:os';
-import { isAbsolute, join, resolve } from 'node:path';
+import { basename, isAbsolute, join, resolve, sep } from 'node:path';
 import { Readable } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import {
@@ -92,7 +92,7 @@ export interface WorkbenchIdentity {
   readonly dir: string;
   /** The Code-OSS fork commit these bytes are. */
   readonly commit: string;
-  /** The product whose workbench half is overlaid on them — `model-editor`,
+  /** The product whose workbench half is overlaid on them — `cyclotron`,
    *  `game-editor`. Reported beside the commit by the editor's `status` command. */
   readonly product: string;
 }
@@ -177,8 +177,12 @@ export function writeWorkbenchDeclaration(projectRoot: string, workbenchDir: str
  * `frame-proxy.ts` says why it must be a redirect.
  */
 export function workbenchUrl(proxyPort: number, projectRoot: string): string {
-  const id = projectRoot.split('/').filter(Boolean).pop() ?? '';
-  return `http://127.0.0.1:${proxyPort}/?project=${encodeURIComponent(id)}`;
+  const id = basename(resolve(projectRoot));
+  // Cookies ignore ports. A shared loopback hostname can inherit another
+  // local VS Code app's secret-storage cookie and select its absent key server.
+  // Give each project a stable host; browsers resolve *.localhost to loopback.
+  const hostId = createHash('sha256').update(resolve(projectRoot)).digest('hex').slice(0, 16);
+  return `http://editor-${hostId}.localhost:${proxyPort}/?project=${encodeURIComponent(id)}`;
 }
 
 /** This machine in the build script's own platform vocabulary. */
@@ -293,7 +297,7 @@ function resolveRelease(dir: string): ResolvedWorkbench {
 function resolveSources(dir: string): ResolvedWorkbench {
   let commit: string;
   try {
-    commit = execFileSync('git', ['rev-parse', 'HEAD'], { cwd: dir, encoding: 'utf8' }).trim();
+    commit = execFileSync('git', ['rev-parse', 'HEAD'], { windowsHide: true, cwd: dir, encoding: 'utf8' }).trim();
   } catch (error) {
     throw new Error(
       `${dir} carries ${SOURCES_LAUNCHER}, so it reads as a Code-OSS fork checkout, but \`git rev-parse HEAD\` ` +
@@ -306,7 +310,7 @@ function resolveSources(dir: string): ResolvedWorkbench {
     throw new Error(
       `${dir} is a Code-OSS checkout with no volter overlay: ${OVERLAY_RECORD} is not there, so nothing of the ` +
         'editor is compiled into it and the workbench would come up as plain Code-OSS. Overlay and compile it:\n' +
-        `  node scripts/workbench/dev.mjs --checkout ${dir} --product <model-editor|game-editor>`,
+        `  node scripts/workbench/dev.mjs --checkout ${dir} --product <cyclotron|game-editor>`,
     );
   }
   let product: unknown;
@@ -380,7 +384,7 @@ export interface WorkbenchFetchIO {
  *   2. `<project>/.volter/workbench.json` — this machine's record for this project.
  *   3. the PRODUCT's declared release — fetched once, then written into (2).
  *
- * Step 3 is what makes `npx @volter/model-editor create my-models` open something
+ * Step 3 is what makes `npx @volter/cyclotron create my-models` open something
  * on a machine that has never built anything, and it is why the CLI resolves
  * the product BEFORE the workbench.
  */
@@ -405,7 +409,7 @@ export async function resolveWorkbenchForProject(options: {
   // cleared, fetches again instead of opening a stale release or refusing a
   // directory that is gone.
   const declared = readWorkbenchDeclaration(projectRoot);
-  const fetchRecord = declared !== null && product.workbench !== null && declared.startsWith(`${WORKBENCH_CACHE_ROOT}/`);
+  const fetchRecord = declared !== null && product.workbench !== null && declared.startsWith(`${WORKBENCH_CACHE_ROOT}${sep}`);
   if (declared !== null && !fetchRecord)
     return {
       ...resolveWorkbench(declared, productId),
@@ -451,6 +455,7 @@ function githubToken(): string | null {
   if (typeof fromEnv === 'string' && fromEnv.trim() !== '') return fromEnv.trim();
   try {
     const out = execFileSync('gh', ['auth', 'token'], {
+      windowsHide: true,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
@@ -482,6 +487,54 @@ function tokenDoors(): string {
   );
 }
 
+/** The CLI prints only Error.message. Keep the public request/stage and Node's
+ * nested transport code there, without printing auth headers or signed redirects.
+ * The original thrown value is retained as cause for callers that can inspect it. */
+async function downloadOperation<T>(
+  stage: string,
+  url: string,
+  token: string | null,
+  operation: () => Promise<T>,
+): Promise<T> {
+  try {
+    return await operation();
+  } catch (cause) {
+    const seen = new Set<unknown>();
+    const redact = (text: string): string => {
+      const withoutToken = token === null ? text : text.replaceAll(token, '[redacted]');
+      return withoutToken.replace(/https?:\/\/[^\s"<>]+/gi, (raw) => {
+        try {
+          const parsed = new URL(raw);
+          parsed.username = '';
+          parsed.password = '';
+          parsed.search = '';
+          parsed.hash = '';
+          return parsed.href;
+        } catch { return '[redacted URL]'; }
+      }).slice(0, 1000);
+    };
+    const describe = (error: unknown, depth: number): string => {
+      if (seen.has(error) || depth > 4) return '[cause omitted]';
+      seen.add(error);
+      if (typeof error !== 'object' || error === null) return redact(String(error));
+      const fields = error as { name?: unknown; message?: unknown; code?: unknown; cause?: unknown; errors?: unknown };
+      const name = typeof fields.name === 'string' ? fields.name : 'Error';
+      const message = typeof fields.message === 'string' ? fields.message : 'Unknown transport error';
+      const code = typeof fields.code === 'string' ? ` [${fields.code}]` : '';
+      let detail = redact(`${name}${code}: ${message}`);
+      if (fields.cause !== undefined) detail += `; caused by ${describe(fields.cause, depth + 1)}`;
+      if (Array.isArray(fields.errors))
+        detail += `; ${fields.errors.slice(0, 4).map((error) => describe(error, depth + 1)).join('; ')}`;
+      return detail;
+    };
+    throw new Error(`Workbench download failed during ${stage} at ${url}: ${describe(cause, 0)}`, { cause });
+  }
+}
+
+function assetUrl(asset: ReleaseAsset): string {
+  return `https://api.github.com/repos/${RELEASE_REPO}/releases/assets/${asset.id}`;
+}
+
 /**
  * FETCH ONE PUBLISHED RELEASE into `dir`, atomically: everything lands in a
  * sibling `.partial` directory and is renamed into place at the end, so a
@@ -504,10 +557,9 @@ async function fetchDeclaredRelease(
     `  node scripts/workbench/build-release.mjs --product ${productId} --platform ${machine} ` +
     '--checkout <fork dir> --publish';
 
-  const response = await fetch(
-    `https://api.github.com/repos/${RELEASE_REPO}/releases/tags/${encodeURIComponent(tag)}`,
-    { headers: apiHeaders(token) },
-  );
+  const releaseUrl = `https://api.github.com/repos/${RELEASE_REPO}/releases/tags/${encodeURIComponent(tag)}`;
+  const response = await downloadOperation('release metadata request', releaseUrl, token,
+    () => fetch(releaseUrl, { headers: apiHeaders(token) }));
   if (response.status === 404 && token === null)
     throw new Error(
       `${product.name} opens in the Code-OSS workbench published as ${tag} on ${RELEASE_REPO}, and ` +
@@ -531,7 +583,8 @@ async function fetchDeclaredRelease(
         `${token === null ? 'no token was found' : 'the token this machine has was used'}.` +
         (token === null ? `\n${tokenDoors()}` : ''),
     );
-  const assets = ((await response.json()) as { assets?: ReleaseAsset[] }).assets ?? [];
+  const metadata = await downloadOperation('release metadata response', releaseUrl, token, () => response.json());
+  const assets = (metadata as { assets?: ReleaseAsset[] }).assets ?? [];
   const record = assets.find((asset) => asset.name === RELEASE_RECORD);
   const tarball = assets.find((asset) => asset.name.endsWith('.tar.gz'));
   if (record === undefined || tarball === undefined)
@@ -549,7 +602,8 @@ async function fetchDeclaredRelease(
     // can run on this machine at all. Downloading 216 MB and refusing afterwards
     // would be a refusal that cost a person ten minutes.
     const recordText = await downloadAssetText(record, token);
-    const built = JSON.parse(recordText) as Record<string, unknown>;
+    const built = await downloadOperation('BUILD.json parse', assetUrl(record), token,
+      async () => JSON.parse(recordText) as Record<string, unknown>);
     if (built['platform'] !== machine)
       throw new Error(
         `Release ${tag} was built for ${String(built['platform'])} and this machine is ${machine}. A ` +
@@ -586,7 +640,12 @@ async function fetchDeclaredRelease(
           'partial download was deleted and nothing was extracted.',
       );
     io.log(`  sha256 ${sha.slice(0, 12)}… matches the pin. Extracting…`);
-    execFileSync('tar', ['-xzf', tarballPath, '-C', partial], {
+    // Windows' own tar (bsdtar, System32) — Git's GNU tar, often first on PATH, reads the
+    // "C:" of a path as a remote host.
+    const tar = process.platform === 'win32'
+      ? join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar';
+    execFileSync(tar, ['-xzf', tarballPath, '-C', partial], {
+      windowsHide: true,
       stdio: ['ignore', 'ignore', 'pipe'],
     });
     // The tarball has done its job and is 216 MB; the extraction is what runs.
@@ -608,15 +667,14 @@ async function fetchDeclaredRelease(
 
 /** One asset's bytes as text — for `BUILD.json`, which is a kilobyte. */
 async function downloadAssetText(asset: ReleaseAsset, token: string | null): Promise<string> {
-  const response = await fetch(
-    `https://api.github.com/repos/${RELEASE_REPO}/releases/assets/${asset.id}`,
-    { headers: { ...apiHeaders(token), Accept: 'application/octet-stream' } },
-  );
+  const url = assetUrl(asset);
+  const response = await downloadOperation('BUILD.json request', url, token,
+    () => fetch(url, { headers: { ...apiHeaders(token), Accept: 'application/octet-stream' } }));
   if (!response.ok)
     throw new Error(
       `${asset.name} of ${RELEASE_REPO} answered ${response.status} ${response.statusText}.`,
     );
-  return await response.text();
+  return await downloadOperation('BUILD.json response', url, token, () => response.text());
 }
 
 /**
@@ -629,17 +687,16 @@ async function downloadAsset(
   destination: string,
   onProgress: (received: number) => void,
 ): Promise<string> {
-  const response = await fetch(
-    `https://api.github.com/repos/${RELEASE_REPO}/releases/assets/${asset.id}`,
-    { headers: { ...apiHeaders(token), Accept: 'application/octet-stream' } },
-  );
+  const url = assetUrl(asset);
+  const response = await downloadOperation('archive request', url, token,
+    () => fetch(url, { headers: { ...apiHeaders(token), Accept: 'application/octet-stream' } }));
   if (!response.ok || response.body === null)
     throw new Error(
       `${asset.name} of ${RELEASE_REPO} answered ${response.status} ${response.statusText}.`,
     );
   const hash = createHash('sha256');
   let received = 0;
-  await pipeline(
+  await downloadOperation('archive transfer', url, token, () => pipeline(
     Readable.fromWeb(response.body as never),
     async function* (source: AsyncIterable<Buffer>) {
       for await (const chunk of source) {
@@ -650,6 +707,6 @@ async function downloadAsset(
       }
     },
     createWriteStream(destination),
-  );
+  ));
   return hash.digest('hex');
 }

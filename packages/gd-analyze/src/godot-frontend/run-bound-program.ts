@@ -148,6 +148,7 @@ function runOfficialImport(importer: GodotOfficialImporter, project: string): vo
   }
   const reportsBefore = godotCrashReports();
   const result = spawnSync(importer.binary, ['--headless', '--path', project, '--import'], {
+    windowsHide: true,
     encoding: 'utf8',
     maxBuffer: 64 * 1024 * 1024,
     timeout: 600_000,
@@ -183,7 +184,7 @@ export function captureGodotBoundProgramFromSnapshot(options: {
     });
     if (options.importer !== undefined) {
       // Only this disposable copy gains write access: the import writes `.godot` and sidecars.
-      spawnSync('chmod', ['-R', 'u+w', project]);
+      spawnSync('chmod', ['-R', 'u+w', project], { windowsHide: true });
       runOfficialImport(options.importer, project);
     }
     const projectCaptureScript = path.join(project, '.volter-bound-capture.gd');
@@ -203,7 +204,7 @@ export function captureGodotBoundProgramFromSnapshot(options: {
         '--binary-sha256',
         options.exporter.executableSha256,
       ],
-      { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
+      { windowsHide: true, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024 },
     );
     if (result.error !== undefined) {
       throw new Error(`Could not run Godot bound exporter: ${result.error.message}`);

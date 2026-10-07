@@ -24,7 +24,7 @@
  *  IT NAMES NO PRODUCT. The title is `registerVolterProduct`'s, read HERE rather than at module
  *  load so a product that registers late still names the cover, and every colour is a workbench
  *  theme variable — so a product's look paints this element through its OWN theme registration
- *  (`packages/model-editor/workbench/extensions/theme-blender` and the type in its
+ *  (`packages/cyclotron/workbench/extensions/theme-blender` and the type in its
  *  `media/blender-look.css`, both of which reach the cover because it is a child of
  *  `.monaco-workbench`) and this file spells no product's palette.
  *
@@ -107,6 +107,38 @@ export class VolterOpeningCover {
 		mainWindow.requestAnimationFrame(() => this.attach(frame + 1));
 	}
 
+	/** The progress line, while one is shown. See {@link note}. */
+	private noteElement: HTMLElement | undefined;
+
+	/**
+	 * SAY WHAT A SLOW OPEN IS WAITING ON, without calling it a failure (#147 review: a deadline
+	 * that flipped the cover to a refusal turned a healthy slow start into a reported failure, and
+	 * a refusal is one-way). A line along the bottom, under whichever splash is drawn; `null`
+	 * takes it away. A refusal already shown is never replaced by progress.
+	 */
+	note(text: string | null): void {
+		if (this.removed || this.element.classList.contains('volter-opening-cover-failed')) { return; }
+		if (text === null) { this.noteElement?.remove(); this.noteElement = undefined; return; }
+		if (!this.noteElement) {
+			this.noteElement = $('.volter-opening-cover-note');
+			this.element.appendChild(this.noteElement);
+		}
+		this.noteElement.textContent = text;
+	}
+
+	/**
+	 * A WAY OUT FROM A LONG WAIT, not only from a refusal (#147 re-review): a cover that only
+	 * narrates seals the workbench behind it for as long as the wait lasts. The same Dismiss a
+	 * refusal grows, offered once the open has been slow for a while; the open goes on behind.
+	 */
+	offerDismiss(): void {
+		if (this.removed || this.element.querySelector('.volter-opening-cover-dismiss')) { return; }
+		const dismiss = $<HTMLButtonElement>('button.volter-opening-cover-dismiss.volter-opening-cover-dismiss-waiting');
+		dismiss.textContent = localize('volterCoverDismiss', "Dismiss");
+		dismiss.addEventListener('click', () => this.remove());
+		this.element.appendChild(dismiss);
+	}
+
 	/** The editor is there: take the cover away, whole — the product's splash with it. */
 	remove(): void {
 		this.removed = true;
@@ -126,11 +158,19 @@ export class VolterOpeningCover {
 	 * which is also what guarantees a Dismiss exists no matter what a product rendered.
 	 */
 	fail(message: string): void {
-		if (this.removed || this.element.classList.contains('volter-opening-cover-failed')) { return; }
+		if (this.removed) { return; }
+		// A SECOND REFUSAL REPLACES THE FIRST, never queues behind it: the open's deadline can
+		// fire first and the editor's own reason arrive after, and the reason is the better
+		// sentence. The Dismiss already drawn stays.
+		if (this.element.classList.contains('volter-opening-cover-failed')) {
+			if (this.state) { this.state.textContent = message; }
+			return;
+		}
 		this.productCover?.dispose();
 		this.productCover = undefined;
 		this.element.classList.remove('volter-opening-cover-product');
 		this.element.textContent = '';
+		this.noteElement = undefined;
 		this.drawKitContent();
 		this.element.classList.add('volter-opening-cover-failed');
 		if (this.state) { this.state.textContent = message; }

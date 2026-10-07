@@ -70,6 +70,7 @@ export interface ScaffoldBaseline {
 export function readEngineSourceState(engineDir: string): EngineSourceState | undefined {
   try {
     const sha = execFileSync('git', ['-C', engineDir, 'rev-parse', 'HEAD'], {
+      windowsHide: true,
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
@@ -86,6 +87,7 @@ export function readEngineSourceState(engineDir: string): EngineSourceState | un
     // runs once per scaffold/upgrade call; scoped to just the runtime package
     // it's ~0.9s.
     const status = execFileSync('git', ['-C', engineDir, 'status', '--porcelain', '--', '.'], {
+      windowsHide: true,
       encoding: 'utf-8',
       stdio: ['ignore', 'pipe', 'ignore'],
     });

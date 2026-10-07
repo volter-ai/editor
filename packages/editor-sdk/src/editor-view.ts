@@ -21,19 +21,22 @@ const CAMERAS = new Set<ViewPreset | 'isometric'>([
   'isometric',
 ]);
 type EditorViewDiagnostic = NonNullable<NonNullable<EditorView['viewport']>['diagnostic']>;
-const DIAGNOSTICS = new Set<EditorViewDiagnostic>([
+export const EDITOR_VIEW_DIAGNOSTICS = [
   'solid',
   'preview',
   'rendered',
+  'clay',
   'unlit',
   'wireframe',
+  'matcap',
   'normals',
   'overdraw',
   'uv',
   'vertex-colors',
   'bounds',
   'skeleton',
-]);
+] as const satisfies readonly EditorViewDiagnostic[];
+const DIAGNOSTICS = new Set<EditorViewDiagnostic>(EDITOR_VIEW_DIAGNOSTICS);
 function nonEmpty(value: string | null): string | null {
   const trimmed = value?.trim();
   return trimmed ? trimmed : null;

@@ -35,7 +35,7 @@ export const OPENER_EXIT_WATCH_TIMEOUT_MS = 20_000;
 export function spawnOpener(cmd: string, cmdArgs: string[], fallback?: () => void): void {
   let child: ChildProcess;
   try {
-    child = spawn(cmd, cmdArgs, { stdio: ['ignore', 'ignore', 'pipe'], detached: true });
+    child = spawn(cmd, cmdArgs, { windowsHide: true, stdio: ['ignore', 'ignore', 'pipe'], detached: true });
   } catch (err) {
     console.error(`volter: auto-open via ${cmd} failed: ${(err as Error).message}`);
     fallback?.();

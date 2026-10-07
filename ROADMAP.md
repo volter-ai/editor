@@ -1,6 +1,6 @@
 # Volter Editor roadmap
 
-Open work for both products this repository ships, the model editor and the game editor: one
+Open work for both products this repository ships, Cyclotron and the game editor: one
 `## <id>: <title>` section each, with its `Status:` (planned, active, proposed) and the `Completion:` lines
 that define done. What shipped and each release's known limits are in [`WORK.md`](WORK.md); the design
 records these items cite (`docs/WORK.md`, `docs/ARCHITECTURE-CORE.md`) remain in `volter-ai/volter-engine`,

@@ -24,6 +24,9 @@ interface Binding {
   ramps: THREE.DataTexture[];
   /** Named UV layer to the channel the current draw's geometry holds it in. */
   channels: Record<string, number>;
+  borrowedFrom?: Binding;
+  borrowedSource?: THREE.MeshPhysicalMaterial;
+  objectInfoUniforms?: {color: THREE.IUniform<THREE.Vector4>; indexRandom: THREE.IUniform<THREE.Vector2>};
 }
 const bindings = new WeakMap<THREE.MeshPhysicalMaterial, Binding>();
 /** Graph structures whose program the GPU refused. A material whose graph is
@@ -106,20 +109,40 @@ export function setMaterialGraph(
 }
 
 /** A disposable draw material borrows the source's live uniform values, never
- * its owned ramp textures or geometry-dependent UV selector. Pending graphs
- * must first draw through their source so its asynchronous compile can finish. */
-export function borrowGraphDrawBinding(source: THREE.MeshPhysicalMaterial, target: THREE.MeshPhysicalMaterial): boolean {
-  if (pendings.has(source)) return false;
+ * its owned ramp textures or geometry-dependent UV selector. Ordinary copies
+ * wait for pending graphs; retained copies draw the previous graph and start
+ * their source's compilation from their draw hook. */
+export function borrowGraphDrawBinding(source: THREE.MeshPhysicalMaterial, target: THREE.MeshPhysicalMaterial,
+  retainCurrent = false): boolean {
+  if (pendings.has(source) && !retainCurrent) return false;
   const sourceBinding = bindings.get(source);
   const binding = sourceBinding && !failed.has(sourceBinding.compiled.key) ? sourceBinding : undefined;
   const held = bindings.get(target);
   if (!binding) {
     if (held) { bindings.delete(target); target.needsUpdate = true; }
-  } else if (!held || held.compiled.key !== binding.compiled.key || held.uniforms !== binding.uniforms) {
-    bindings.set(target, {compiled: binding.compiled, uniforms: binding.uniforms, ramps: [], channels: {}});
+  } else if (!held || held.compiled.key !== binding.compiled.key || held.borrowedFrom !== binding) {
+    bindings.set(target, {compiled: binding.compiled, uniforms: binding.uniforms, ramps: [], channels: {},
+      borrowedFrom: binding, ...(retainCurrent ? {borrowedSource: source} : {})});
     target.needsUpdate = true;
   }
   return true;
+}
+
+/** Draw copies borrow authored graph values/textures, but Object Info values
+ * belong to ONE object. A distinct material identity makes Three upload them
+ * when it switches between objects sharing an authored material. */
+export function bindGraphObjectInfo(material: THREE.MeshPhysicalMaterial,
+  info: {color: readonly number[]; index: number; random: number}): void {
+  const binding=bindings.get(material);
+  if (!binding?.compiled.objectInfo) return;
+  const values=binding.objectInfoUniforms ??= {
+    color:{value:new THREE.Vector4()}, indexRandom:{value:new THREE.Vector2()},
+  };
+  if (binding.uniforms['blenderObjectColor']!==values.color) {
+    binding.uniforms={...binding.uniforms,blenderObjectColor:values.color,blenderObjectIndexRandom:values.indexRandom};
+  }
+  values.color.value.fromArray(info.color);
+  values.indexRandom.value.set(info.index,info.random);
 }
 
 /** A binding's values: uniforms, ramp tables and textures. */
@@ -214,6 +237,10 @@ function channelsFor(compiled: CompiledGraph, geometry: THREE.BufferGeometry): R
 export function bindGraphDraw(material: THREE.MeshPhysicalMaterial, geometry: THREE.BufferGeometry,
   renderer: THREE.WebGLRenderer, scene: THREE.Scene, camera: THREE.Camera, object: THREE.Object3D,
   shadowOf: (material: THREE.MeshPhysicalMaterial) => THREE.MeshPhysicalMaterial): void {
+  // A per-object copy can be the only visible wearer. Keep its authored
+  // material's asynchronous compilation alive while drawing the old graph.
+  const source=bindings.get(material)?.borrowedSource;
+  if(source && source!==material) bindGraphDraw(source,geometry,renderer,scene,camera,object,shadowOf);
   const retired = retiring.get(material);
   if (retired && ++retired.draws > 1) {
     retired.shadow.dispose();

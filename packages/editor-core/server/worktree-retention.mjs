@@ -13,7 +13,7 @@ import {
 } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 
-const git = (root, args) => execFileSync('git', ['-C', root, ...args], { encoding: 'utf8' }).trim();
+const git = (root, args) => execFileSync('git', ['-C', root, ...args], { windowsHide: true, encoding: 'utf8' }).trim();
 function canonical(target) {
   const absolute = resolve(target);
   return existsSync(absolute)

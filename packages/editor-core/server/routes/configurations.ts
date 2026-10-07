@@ -133,6 +133,7 @@ async function startProcess(
   const cwd = fields.cwd ? join(ctx.projectRoot, fields.cwd) : ctx.projectRoot;
   const command = fields.command ?? `npx tsx ${fields.entry}`;
   const child = spawn(command, {
+    windowsHide: true,
     cwd,
     env: { ...process.env, ...(fields.env ?? {}) },
     shell: true,
@@ -347,6 +348,7 @@ export function registerConfigurationRoutes(router: EditorServerRouter, ctx: Rou
     });
     res.write(':ok\n\n');
     const child = spawn('npm', ['run', script, ...(args.length > 0 ? ['--', ...args] : [])], {
+      windowsHide: true,
       cwd: ctx.projectRoot,
       // The editor runs in development mode. A bundled artifact must compile
       // production branches, including the exported-game boundary.

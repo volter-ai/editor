@@ -3,6 +3,16 @@
 A standalone game built with Volter — work here, not in the engine repo.
 The editor is the authoring and verification surface.
 
+## You are working in front of an audience
+
+A person watches the editor window the whole time you work. What is on screen
+IS the work; files written off screen or a long silent run of commands look
+like nothing is happening. Show the document or running game you are about to
+change before you change it, build in slices they can watch land, narrate each
+step in a sentence they can read, and check your captures for what they can
+actually see and read. Research in short bursts between visible steps: the
+person should rarely wait more than a minute without the work moving.
+
 ## Route the request first
 
 | Intent | First action |

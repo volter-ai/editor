@@ -268,7 +268,7 @@
     },
     {
       "name": "@volter/blender-engine",
-      "version": "0.1.95",
+      "version": "0.1.119",
       "license": "GPL-3.0-or-later",
       "notices": [
         {
@@ -279,7 +279,7 @@
     },
     {
       "name": "@volter/editor-blender",
-      "version": "0.1.97",
+      "version": "0.1.121",
       "license": "AGPL-3.0-only AND GPL-3.0-or-later",
       "notices": [
         {
@@ -294,7 +294,7 @@
     },
     {
       "name": "@volter/editor-core",
-      "version": "0.5.157",
+      "version": "0.5.182",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -313,7 +313,7 @@
     },
     {
       "name": "@volter/editor-project",
-      "version": "0.5.157",
+      "version": "0.5.182",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -324,7 +324,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.157",
+      "version": "0.5.182",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -339,7 +339,7 @@
     },
     {
       "name": "@volter/editor-threejs",
-      "version": "0.5.157",
+      "version": "0.5.182",
       "license": "AGPL-3.0-only AND Apache-2.0",
       "notices": [
         {
@@ -353,6 +353,25 @@
         {
           "file": "packages/editor-threejs/NOTICE",
           "sha256": "fb2f1e09a74419d423ae2984c812974863c03af6a22a50985d7c761bc0c88cf2"
+        }
+      ]
+    },
+    {
+      "name": "@volter/supercode-frontend-vscode",
+      "version": "0.1.35",
+      "license": "MIT OR Apache-2.0",
+      "notices": [
+        {
+          "file": "node_modules/@volter/supercode-frontend-vscode/LICENSE-APACHE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "file": "node_modules/@volter/supercode-frontend-vscode/LICENSE-MIT",
+          "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6"
+        },
+        {
+          "file": "node_modules/@volter/supercode-frontend-vscode/NOTICE.md",
+          "sha256": "7d119018cc0f45cc51b050d674e4208c5beb44de22f8c1b0c0edbe34d9fb949c"
         }
       ]
     },
@@ -430,6 +449,17 @@
         {
           "file": "node_modules/lz-string/LICENSE",
           "sha256": "433fc9dfe659dbfb1e91eed8351f13651e97bfa3ac6d03394c3d63f61d4bbc80"
+        }
+      ]
+    },
+    {
+      "name": "mediabunny",
+      "version": "1.56.2",
+      "license": "MPL-2.0",
+      "notices": [
+        {
+          "file": "node_modules/mediabunny/LICENSE",
+          "sha256": "3f3d9e0024b1921b067d6f7f88deb4a60cbe7a78e76c64e3f1d7fc3b779b9d04"
         }
       ]
     },
@@ -615,7 +645,7 @@
   "editor-core": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.157",
+      "version": "0.5.182",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -626,7 +656,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.157",
+      "version": "0.5.182",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -641,13 +671,16 @@
     },
     {
       "name": "@volter/supercode-frontend",
-      "version": "0.2.6",
+      "version": "0.2.7",
       "license": "MIT OR Apache-2.0",
       "notices": [
         {
-          "file": "release/licenses/supercode-frontend.txt",
-          "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6",
-          "source": "https://github.com/volter-ai/supercode/blob/fc9962d0f88520c5661f299663a298bc17edda40/LICENSE-MIT"
+          "file": "node_modules/@volter/supercode-frontend/LICENSE-APACHE",
+          "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+        },
+        {
+          "file": "node_modules/@volter/supercode-frontend/LICENSE-MIT",
+          "sha256": "47650bbb438e759a9398efc9f5f1156dd33a93f8d4a83c1e9e28fc5797d5fca6"
         }
       ]
     },
@@ -755,7 +788,7 @@
   "editor-live": [
     {
       "name": "@volter/editor-project",
-      "version": "0.5.157",
+      "version": "0.5.182",
       "license": "Apache-2.0",
       "notices": [
         {
@@ -766,7 +799,7 @@
     },
     {
       "name": "@volter/editor-sdk",
-      "version": "0.5.157",
+      "version": "0.5.182",
       "license": "Apache-2.0",
       "notices": [
         {

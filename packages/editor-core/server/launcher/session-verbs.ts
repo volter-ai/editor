@@ -13,7 +13,9 @@ import { resolveSession } from '@volter/editor-live';
 import { EditorClient } from '@volter/editor-sdk/client';
 import { relayCommandTimeoutMs } from '@volter/editor-sdk/session/command-table';
 import type { AssetPreviewShotSetDefinition, AssetPreviewSource, EditorState } from '@volter/editor-sdk';
+import { currentPageErrors, startupRefusals } from './launch';
 import {
+  fetchEditorState,
   requestEditorTabEnsure,
   verifiedSessions,
   waitForEditorTabAdopted,
@@ -72,11 +74,81 @@ export async function listRecentProjects(): Promise<void> {
   for (const p of projects) console.log(`${p.name}  ${p.path}  (${p.lastOpened})`);
 }
 
-/** `open <path>` — switch the running editor to a project (`POST /__editor/open-project`). */
-export async function openProject(path: string): Promise<void> {
-  const { client } = await sessionClient();
+/**
+ * `open <path>` — switch the running editor to a project (`POST /__editor/open-project`).
+ *
+ * THE SWITCH IS THE SERVER'S; THE OPEN IS THE TAB'S. The route switches the session and
+ * broadcasts `project-changed`, on which the page reloads onto the new project
+ * (`command-listener.ts`). Until 2026-10-06 this printed "Opened project" the moment the route
+ * answered, whether or not any page existed to show the project or the reloaded page came up —
+ * a project the page then refused (a pinned engine, a broken manifest) read as success.
+ *
+ * NOW IT WAITS ON THE PAGE, NOT ON A CLOCK. A healthy switch can take a long time (a cold Vite
+ * transform, a big project, a loaded machine), so there is no deadline: it says what it is
+ * waiting on every 20 s and ends only on an answer — the new page-load running the editor
+ * (success), the page's own refusal (its words), the server's verdict that the page is never
+ * coming up, or no page left at all.
+ */
+export async function openProject(path: string, command: string): Promise<void> {
+  const { client, url } = await sessionClient();
+  const before = await fetchEditorState(url);
+  const loadBefore = await currentLoadId(url);
+  const openAttemptAt = Date.now();
   await client.openProject(path);
+  if (before.tabs.length === 0 && before.editorsConnected === 0) {
+    throw new Error(
+      `The session now serves ${path}, but no editor page is open to show it. Open one: \`${command} edit ${path}\`.`,
+    );
+  }
+  let lastProgressAt = openAttemptAt;
+  let noPageSince: number | null = null;
+  for (;;) {
+    const refused = await startupRefusals(url, openAttemptAt);
+    if (refused.length > 0) {
+      throw new Error(`The session now serves ${path}, but its editor page refused it:\n${refused.map((message) => `  ${message}`).join('\n')}`);
+    }
+    const state = await fetchEditorState(url);
+    // A NEW page-load running the document: the old page answers until it reloads, and the
+    // ledger's load id moves only when the new one's editor has mounted (`noteLoad`).
+    const load = await currentLoadId(url);
+    if (load !== null && load !== loadBefore && state.tabs.some((tab) => tab.commandListener === 'ready')) break;
+    if (state.tabs.some((tab) => tab.unresponsive)) {
+      const said = await currentPageErrors(url);
+      throw new Error(
+        `The session now serves ${path}, but its editor page is not coming up (the session's own verdict)` +
+          (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : `; \`${command} console\` has what it reported.`),
+      );
+    }
+    const now = Date.now();
+    // NO PAGE AT ALL, for longer than a reload's own gap, is a dead end rather than a slow start.
+    if (state.tabs.length === 0 && state.editorsConnected === 0) {
+      noPageSince ??= now;
+      if (now - noPageSince >= NO_PAGE_DEAD_END_MS)
+        throw new Error(`The session now serves ${path}, but its editor page closed instead of reopening it. Open one: \`${command} edit ${path}\`.`);
+    } else noPageSince = null;
+    if (now - lastProgressAt >= 20_000) {
+      lastProgressAt = now;
+      console.log(`Waiting for the editor page to reopen on ${path} (${Math.round((now - openAttemptAt) / 1000)}s)…`);
+    }
+    await delay(500);
+  }
   console.log(`Opened project: ${path}`);
+}
+
+/** How long `open` lets the session see NO page before calling it closed: a reload keeps its
+ *  tab row, so a session with no tab at all for this long has lost the page. */
+const NO_PAGE_DEAD_END_MS = 10_000;
+
+/** The page-load the session's console ledger calls current, or null with no page / no answer. */
+async function currentLoadId(url: string): Promise<string | null> {
+  try {
+    const response = await fetch(new URL('/__editor/console?all=1', url), { signal: AbortSignal.timeout(3000) });
+    if (!response.ok) return null;
+    const body = (await response.json()) as { currentLoadId?: unknown };
+    return typeof body.currentLoadId === 'string' ? body.currentLoadId : null;
+  } catch {
+    return null;
+  }
 }
 
 // ---------------------------------------------------------------------------
@@ -353,6 +425,58 @@ async function sessionLook(client: EditorClient, projectRoot: string): Promise<v
   writeFileSync(outPath, Buffer.from(capture.base64, 'base64'));
   console.log(outPath);
   console.error(`${capture.document.title} (${capture.document.kind}${capture.document.sourcePath ? `, ${capture.document.sourcePath}` : ''}) — ${capture.source}`);
+}
+
+// ---------------------------------------------------------------------------
+// capture
+// ---------------------------------------------------------------------------
+
+/** `parseArgs` option declarations for {@link capture}'s flags. */
+export const CAPTURE_OPTIONS = { region: { type: 'string' }, out: { type: 'string' }, force: { type: 'boolean' } } as const;
+
+export const CAPTURE_USAGE = 'capture [--region document|play|page] [--out <file.png> [--force]]';
+
+const CAPTURE_REGIONS = ['document', 'play', 'page'] as const;
+
+/**
+ * `capture` — `editor.captureEditorChrome({ region })`, saved as a PNG, its
+ * path printed. The editor as the PERSON sees it: `document` is the active
+ * document's box with its overlays (navigation gizmo, readouts), `play` the
+ * live Play frame with its React UI and no authoring chrome, `page` the whole
+ * editor. `screenshot` with no target is the document's RENDER alone
+ * (`captureActiveDocument`), a different question.
+ *
+ * Why a verb and not an `eval` line: the eval answer is base64 inside JSON,
+ * and an agent that wants a file it can open had to write its own decoder
+ * script first (measured 2026-10, an agent building an obby). This is the
+ * same `writeFileSync(Buffer.from(base64))` {@link sessionLook} does, behind
+ * a name. The default lands beside the screenshots, in the project's
+ * gitignored `.volter/`.
+ *
+ * `--out` NEVER REPLACES A FILE unless `--force` says to: a named path is the
+ * caller's, and a capture silently landing on a reference image or an earlier
+ * capture destroys the very thing it was going to be compared with. The check
+ * runs before the capture, so a refusal costs nothing; the write itself is
+ * exclusive too, so a file appearing in between is refused rather than lost.
+ */
+export async function capture(options: { region?: string | undefined; out?: string | undefined; force?: boolean | undefined }): Promise<void> {
+  const region = options.region ?? 'document';
+  if (!(CAPTURE_REGIONS as readonly string[]).includes(region))
+    throw new Error(`--region must be one of ${CAPTURE_REGIONS.join(', ')}; got ${region}.`);
+  if (options.out !== undefined && !/\.png$/i.test(options.out)) throw new Error('--out names a .png file.');
+  if (options.force === true && options.out === undefined) throw new Error('--force belongs to --out: the default path is always new.');
+  const named = options.out === undefined ? null : resolve(process.cwd(), options.out);
+  if (named !== null && options.force !== true && existsSync(named))
+    throw new Error(`${named} already exists; pass --force to replace it, or choose another --out.`);
+  const session = await sessionClient();
+  const shot = await session.client.captureEditorChrome({ region: region as (typeof CAPTURE_REGIONS)[number] });
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const outPath = named ?? join(session.projectRoot, '.volter', 'captures', `${region}-${stamp}.png`);
+  mkdirSync(dirname(outPath), { recursive: true });
+  writeFileSync(outPath, Buffer.from(shot.base64, 'base64'), { flag: options.force === true ? 'w' : 'wx' });
+  console.log(outPath);
+  console.error(`${region}: ${shot.size.width}x${shot.size.height} at ${shot.scale}x (${shot.layers.canvases} canvas, ${shot.layers.domOverlays} DOM layer${shot.layers.domOverlays === 1 ? '' : 's'})`);
+  if (shot.flatness?.degenerate === true && shot.flatness.warning !== undefined) console.error(`warning — ${shot.flatness.warning}`);
 }
 
 /** Refuse a target that reads BOTH as a file and as a live entity. */

@@ -359,9 +359,12 @@ function markEditorTree(id: string): string {
     : `${id}${id.includes('?') ? '&' : '?'}${EDITOR_TREE_QUERY}`;
 }
 
+/** A Vite id's file, in this platform's own spelling: on Windows Vite names files
+ *  `C:/Users/…`, and every directory this plugin compares against is `C:\Users\…`. */
 function stripQuery(id: string): string {
   const cut = id.indexOf('?');
-  return cut === -1 ? id : id.slice(0, cut);
+  const file = cut === -1 ? id : id.slice(0, cut);
+  return /^[A-Za-z]:\//.test(file) ? path.normalize(file) : file;
 }
 
 function isUnder(file: string, directory: string): boolean {

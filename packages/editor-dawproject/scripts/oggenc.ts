@@ -12,6 +12,7 @@ export async function oggenc(audio: Float32Array, sampleRate: number): Promise<U
   // A fixed stream serial: oggenc otherwise draws a random one per stream, so the same library
   // built different bytes every time.
   const ogg = execFileSync('oggenc', ['-Q', '-r', '-B', '16', '-C', '1', '-R', String(sampleRate), '--raw-endianness', '0', '-q', '6', '--serial', '1', '-o', '-', '-'], {
+    windowsHide: true,
     input: pcm,
     maxBuffer: 1 << 30,
   });

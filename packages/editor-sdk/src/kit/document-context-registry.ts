@@ -28,10 +28,10 @@ import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
  */
 
 const _contexts = new Map<string, unknown>();
+const _contextOwners = new Map<string, symbol>();
 const _listeners = new Set<() => void>();
 const _mounted = new Set<string>();
 const _mountListeners = new Set<() => void>();
-const _loads = new Map<string, { label: string; failed: boolean; token: symbol }>();
 
 let _version = 0;
 let _notificationPending = false;
@@ -51,10 +51,15 @@ function _notifyContexts(): void {
 }
 
 export function publishDocumentContext(documentId: string, context: unknown): () => void {
+  // Remounted panes can publish the same long-lived view object. Cleanup
+  // belongs to this registration, not to the identity of that shared view.
+  const owner = Symbol(documentId);
+  _contextOwners.set(documentId, owner);
   _contexts.set(documentId, context);
   _notifyContexts();
   return () => {
-    if (_contexts.get(documentId) !== context) return;
+    if (_contextOwners.get(documentId) !== owner) return;
+    _contextOwners.delete(documentId);
     _contexts.delete(documentId);
     _notifyContexts();
   };
@@ -95,37 +100,6 @@ export function documentContextFor(documentId: string): unknown {
   return _contexts.get(documentId);
 }
 
-/** A document owns its pending subject. Shared panels must not substitute
- * another document's selection or preview artwork while it opens. */
-export function documentLoadFor(documentId: string | null): { readonly label: string; readonly failed: boolean } | null {
-  return documentId === null ? null : _loads.get(documentId) ?? null;
-}
-
-export function beginDocumentLoad(documentId: string, label: string): {
-  ready(): void;
-  fail(): void;
-  dispose(): void;
-} {
-  const token = Symbol(documentId);
-  _loads.set(documentId, {label, failed: false, token});
-  _notifyContexts();
-  const dispose = () => {
-    if (_loads.get(documentId)?.token !== token) return;
-    _loads.delete(documentId);
-    _notifyContexts();
-  };
-  return {
-    ready: dispose,
-    dispose,
-    fail: () => {
-      const load = _loads.get(documentId);
-      if (load?.token !== token) return;
-      _loads.set(documentId, {...load, failed: true});
-      _notifyContexts();
-    },
-  };
-}
-
 /** Opening a document activates its tab before an async model import can
  * publish its context. The REPL waits for that publication; it never executes
  * against a placeholder or mistakes a loading document for an unsupported one. */
@@ -150,8 +124,8 @@ export function waitForDocumentContext(documentId: string, timeoutMs = 10_000): 
 
 export function __resetDocumentContextsForTest(): void {
   _contexts.clear();
+  _contextOwners.clear();
   _mounted.clear();
-  _loads.clear();
 }
 
 /**

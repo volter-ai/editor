@@ -250,7 +250,7 @@ const REORDER_MIME = 'application/x-hierarchy-reorder';
  *
  * What is short is the PANEL. On a first boot in a 953-CSS-tall window the
  * Outliner view's pane is 155 px of an 860 px sidebar column — 18.0 %, which is
- * the `weight: 18` that `packages/model-editor/workbench/src/
+ * the `weight: 18` that `packages/cyclotron/workbench/src/
  * product.contribution.ts` declares from Blender's own area measurement
  * (189/1028). Of those 155, 22 go to the workbench's pane title bar (Blender's
  * area has none) and ~22 to this panel's header, leaving 109 px = 5.45 rows

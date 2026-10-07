@@ -48,7 +48,7 @@ interface DocumentsRegistry {
  * A workspace's own `areas` open WITH THE LAYOUT, before the adapter's table has settled,
  * and they are never activatable, so counting one calls the product open over an empty
  * pane. It is walk 4's W2 (#7739) — the rule `openDefaultTableDocument` states in as many
- * words — reappearing in a `ready` written after it. Measured on the MODEL editor (walk 5
+ * words — reappearing in a `ready` written after it. Measured on Cyclotron (walk 5
  * beat 3: `openDocumentIds: ["tool:blender-timeline.document"]` answered as "open"); this
  * product carries the same predicate, and a `game` scaffold links `@volter/editor-blender`, so its
  * Model workspace's Timeline area registers here too.
@@ -61,9 +61,9 @@ function openDocument(registry: DocumentsRegistry): boolean {
 }
 
 /**
- * HOW LONG THIS PRODUCT WAITS FOR ITS FIRST DOCUMENT. Shorter than the model editor's 90 s
+ * HOW LONG THIS PRODUCT WAITS FOR ITS FIRST DOCUMENT. Shorter than Cyclotron's 90 s
  * because what is being waited for is smaller: a game editor boots its project's own modules
- * and draws a scene, where the model editor waits for Blender itself to come up in the tab's
+ * and draws a scene, where Cyclotron waits for Blender itself to come up in the tab's
  * worker. Past it the honest thing is to say the game did not open, which the kit turns into
  * the cover's refusal with a way out.
  */
@@ -96,6 +96,8 @@ registerVolterProduct({
 		],
 	},
 	title: localize('volterGameTitle', "Volter Game Editor"),
+	// The package's own `bin` (packages/game-editor/package.json), named in the kit's messages.
+	command: 'volter-game-editor',
 	// The workbench's own trust prompt, in this product's words: a game project runs its own
 	// code the moment it opens — its contributions from its `node_modules`, its dev server, and
 	// the game itself in the pane.

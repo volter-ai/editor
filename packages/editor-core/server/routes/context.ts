@@ -219,6 +219,9 @@ export interface RouteContext {
   readonly journalEvent: (event: SessionJournalEvent) => void;
   /** Re-evaluate the commit-cadence / never-played banners. Guarded inside. */
   readonly announceBuildDisciplineTripwires: () => void;
+  /** Hand the tab's posted state to the visible-progress tripwire. A no-op
+   *  unless an AI turn is running in the Chat. */
+  readonly noteEditorView: (state: Readonly<Record<string, unknown>>) => void;
   /** The play-run log file currently being appended to, or `null`. */
   activeLogFile: string | null;
 

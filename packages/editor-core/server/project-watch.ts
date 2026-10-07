@@ -15,8 +15,9 @@
  *  - **Per-file validation**, whose verdicts reach the terminal, the SSE
  *    broadcast and the replayable validation log through ONE formatter, so a
  *    replayed line and a live one render identically.
- *  - **The build-discipline tripwires**, which ride the save event and the
- *    play event and nothing else.
+ *  - **The build-discipline tripwires**, which ride the save event, the
+ *    play event and — only while an AI turn is running in the Chat — that
+ *    turn's own clock, and nothing else.
  *
  * It takes a `ProjectWatchHost` rather than the full route context: this runs
  * BEFORE the context exists (the context reads several of its outputs), and
@@ -34,8 +35,12 @@ import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
 import {
   advancePersistedTripwireGate,
+  advanceTripwireGate,
+  type AnyTripwireName,
+  chatTripwireNudge,
   commitCadenceBanner,
   commitCadenceGateKey,
+  commitCadenceNotice,
   commitCadenceTier,
   IDLE_TRIPWIRE_GATE,
   newestEvidenceMtime,
@@ -44,9 +49,16 @@ import {
   type TripwireGate,
   unplayedSessionBanner,
   unplayedSessionGateKey,
+  unplayedSessionNotice,
   unplayedSessionTier,
+  VISIBLE_PROGRESS_CHECK_INTERVAL_MS,
+  visibleProgressNotice,
+  visibleProgressTier,
+  visibleStallMs,
+  visibleViewKey,
 } from './support/project/build-discipline';
 import type { SessionJournalEvent } from './support/project/session-journal';
+import type { ChatRuntimeActivity, ChatTurnState } from './harness-chat-service';
 import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
 import { ADAPTER_MODULE_FILENAME } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
 import { canonicalProjectRoot } from './canonical-path';
@@ -67,6 +79,12 @@ import {
   resolveWatcherPollOptions,
 } from './server-utils';
 
+/** Ignore project metadata, not a hidden directory containing the project. */
+function projectDotPath(projectRoot: string, watchedPath: string): boolean {
+  const path = relative(projectRoot, resolve(projectRoot, watchedPath));
+  return path.split(sep).some(part => part.startsWith('.') && part !== '.' && part !== '..');
+}
+
 /** What the watcher needs from the session it belongs to. */
 export interface ProjectWatchHost {
   readonly engineRoot: string;
@@ -84,6 +102,11 @@ export interface ProjectWatchHost {
   readonly recentAgentAuthor: () => AgentAuthorLease | null;
   /** The open project's parsed manifest, or `null` when it cannot be read. */
   readonly readProjectManifest: () => unknown;
+  /** Where the editor Chat's AI turn stands (`waiting` = on the person). Never throws. */
+  readonly chatTurnState: () => Promise<ChatTurnState>;
+  /** Put a line into the Chat's running turn; `false` when none is running
+   *  or the turn is waiting on the person. */
+  readonly steerChatTurn: (text: string) => Promise<boolean>;
 }
 
 export interface ProjectWatch {
@@ -92,6 +115,11 @@ export interface ProjectWatch {
   readonly currentProjectComponents: () => Promise<ProjectComponentEntry[]>;
   readonly currentValidationLogEntries: () => { level: 'error' | 'warn'; message: string }[];
   readonly announceBuildDisciplineTripwires: () => void;
+  /** The Chat's runtime did something. Cheap; a turn start (re)arms the
+   *  visible-progress clock, a turn end stops it, narration counts as visible. */
+  readonly noteChatActivity: (activity: ChatRuntimeActivity) => void;
+  /** The editor tab posted its state; a changed view re-arms visible progress. */
+  readonly noteEditorView: (state: Readonly<Record<string, unknown>>) => void;
   readonly projectValidation: Map<string, { errors: string[]; at: number }>;
   readonly projectWarnings: Map<string, { warnings: string[]; at: number }>;
   readonly expectedEditorMutations: Map<string, { sha: string | null; expiresAt: number }>;
@@ -472,6 +500,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
         });
         const banner = commitCadenceBanner(work);
         if (banner) console.warn(`\n${banner}\n`);
+        nudgeChatAgent('commit-cadence', commitCadenceNotice(work));
       }
 
       const evidence = newestEvidenceMtime(host.projectRoot());
@@ -495,9 +524,254 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
         });
         const banner = unplayedSessionBanner(host.servingProjectSince(), evidence, now, playable);
         if (banner) console.warn(`\n${banner}\n`);
+        nudgeChatAgent(
+          'unplayed-session',
+          unplayedSessionNotice(host.servingProjectSince(), evidence, now, playable),
+        );
       }
     } catch {
       // A tripwire that breaks a save is worse than a tripwire that misses one.
+    }
+  }
+
+  /**
+   * The third renderer of a crossing: the Chat agent's own running turn.
+   *
+   * Measured on the "obby" run (2026-10-06): the unplayed-session tripwire
+   * crossed notice at 8 minutes and loud at 18, both lines are in that
+   * session's journal and both banners in its terminal, and the in-editor
+   * Chat agent's transcript holds neither — it tails no journal and watches
+   * no terminal. A steered line is the one surface that agent reads. Same
+   * one-line sentence the notice step prints; the outcome is journaled, so
+   * "did the agent hear it?" is a line on disk rather than a guess.
+   *
+   * AT MOST ONE PER TURN, across every tripwire. A steered line spends the
+   * agent's context and lands in the middle of its work; the owner's rule
+   * (2026-10-06) is that these must be rare and never land at a bad moment.
+   * So the first line a turn hears is the only one — the rest are journaled
+   * as `capped` and stay in the terminal and the journal — and a turn that is
+   * waiting on the person hears nothing (`steerChatTurn` refuses it).
+   */
+  function nudgeChatAgent(tripwire: AnyTripwireName, line: string | null): void {
+    if (!line) return;
+    // No turn clock means this watcher saw the turn END (or never saw one
+    // start): drop the line rather than ask the service, so a crossing that
+    // fires just after a turn can never become a steer into an idle runtime.
+    if (!turnClock) {
+      journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'no-turn' });
+      return;
+    }
+    if (chatNudgedThisTurn) {
+      journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'capped' });
+      return;
+    }
+    // Claimed BEFORE the steer resolves, so two crossings in one tick cannot
+    // both pass the cap; released if the line never landed.
+    chatNudgedThisTurn = true;
+    void host.steerChatTurn(chatTripwireNudge(line)).then(
+      (steered) => {
+        if (!steered) chatNudgedThisTurn = false;
+        journalEvent({
+          kind: 'tripwire-nudge',
+          tripwire,
+          outcome: steered ? 'steered' : 'no-turn',
+        });
+      },
+      (error: unknown) => {
+        chatNudgedThisTurn = false;
+        journalEvent({
+          kind: 'tripwire-nudge',
+          tripwire,
+          outcome: 'failed',
+          error: error instanceof Error ? error.message : String(error),
+        });
+      },
+    );
+  }
+
+  // ---- The visible-progress tripwire on the Chat turn's clock ----
+  //
+  // Every tripwire above rides an event a build already produces. The stall
+  // this one names is the ABSENCE of events — an agent researching for eight
+  // minutes writes nothing, plays nothing and moves nothing — so it needs a
+  // clock, and the clock is the running turn's: (re)started at each turn's
+  // start by the Chat runtime's own activity (`noteChatActivity`), asked every
+  // `VISIBLE_PROGRESS_CHECK_INTERVAL_MS`, and stopped at the turn's end or the
+  // first time it finds no turn running. No turn, no timer, no subscription,
+  // no reads.
+  //
+  // A visible change is one of three things the editor already tracks: a
+  // source revision in the collaboration room (every document write, `.blend`
+  // scene writes included), a changed `visibleViewKey` in the state the editor
+  // tab posts (document opened or framed, camera moved, Play started), and the
+  // agent's own words arriving in the Chat (narration is something the
+  // watcher sees). A turn waiting on the person is not stalled; the stall
+  // clock restarts when the person answers. The
+  // turn clock also gives the two save-driven tripwires above a moment to
+  // fire during exactly this kind of quiet stretch; their read cap holds.
+  let visibleGate: TripwireGate = IDLE_TRIPWIRE_GATE;
+  let chatTurnSince: number | null = null;
+  let lastVisibleChangeAt: number | null = null;
+  let lastViewKey: string | null = null;
+  let turnClock: ReturnType<typeof setInterval> | null = null;
+  let turnClockAsking = false;
+  /** Did the last ask find the turn waiting on the person? */
+  let turnWaitingOnPerson = false;
+  /** Has this turn already heard a tripwire line? See `nudgeChatAgent`. */
+  let chatNudgedThisTurn = false;
+  /** `chatNudgedThisTurn` as the last stopped clock left it. */
+  let previousTurnNudged = false;
+  /** A turn END was the last boundary seen: until a turn (re)starts, stray
+   *  activity must not arm a fresh clock — and with it a fresh allowance. */
+  let chatTurnEnded = false;
+  let revisionsRoom: CollaborationSession | null = null;
+  let revisionsUnsubscribe: (() => void) | null = null;
+
+  function noteVisibleChange(): void {
+    lastVisibleChangeAt = Date.now();
+  }
+
+  /** Follow the CURRENT room's source revisions — re-followed on every ask,
+   *  because a project switch replaces the room under a running clock. */
+  function followRevisions(): void {
+    const room = currentCollaboration();
+    if (room === revisionsRoom) return;
+    revisionsUnsubscribe?.();
+    revisionsRoom = room;
+    revisionsUnsubscribe =
+      room?.subscribeEvents((event) => {
+        if (event.channel === 'revisions') noteVisibleChange();
+      }) ?? null;
+  }
+
+  function stopTurnClock(): void {
+    if (turnClock) clearInterval(turnClock);
+    turnClock = null;
+    revisionsUnsubscribe?.();
+    revisionsUnsubscribe = null;
+    revisionsRoom = null;
+    chatTurnSince = null;
+    lastVisibleChangeAt = null;
+    lastViewKey = null;
+    visibleGate = IDLE_TRIPWIRE_GATE;
+    // Remembered for a `turn-resumed`: the same real turn keeps its spent line.
+    previousTurnNudged = chatNudgedThisTurn;
+    chatNudgedThisTurn = false;
+    turnWaitingOnPerson = false;
+  }
+
+  /** A new turn is a new stall clock and a fresh nudge allowance: the quiet
+   *  BEFORE the turn is not the agent's, and the last turn's line is spent. */
+  function startTurnClock(): void {
+    stopTurnClock();
+    chatTurnSince = Date.now();
+    followRevisions();
+    turnClock = setInterval(() => void askTurnClock(), VISIBLE_PROGRESS_CHECK_INTERVAL_MS);
+    turnClock.unref?.();
+  }
+
+  function noteChatActivity(activity: ChatRuntimeActivity): void {
+    if (host.projectRoot() === engineRoot) return;
+    if (activity === 'turn-ended') {
+      stopTurnClock();
+      chatTurnEnded = true;
+      return;
+    }
+    if (activity === 'turn-resumed') {
+      // Read before the restart: `startTurnClock` stops the clock first, and
+      // a stop records the (already-cleared) flag over it.
+      const spent = turnClock ? chatNudgedThisTurn : previousTurnNudged;
+      startTurnClock();
+      chatNudgedThisTurn = spent;
+      chatTurnEnded = false;
+      return;
+    }
+    if (activity === 'turn-started') {
+      startTurnClock();
+      chatTurnEnded = false;
+    } else if (!turnClock) {
+      // A harness that reports no turn boundaries still arms on any activity
+      // (the clock stops itself on the first ask that finds no turn) — but
+      // never after a turn END, where only a (re)start may arm it.
+      if (chatTurnEnded) return;
+      startTurnClock();
+    }
+    if (activity === 'narration' || activity === 'answered') noteVisibleChange();
+  }
+
+  /** `null` when `promise` has not settled within `ms` — a hung runtime read
+   *  must cost one skipped tick, never the clock. */
+  function withinDeadline<T>(promise: Promise<T>, ms: number): Promise<T | null> {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const deadline = new Promise<null>((resolve) => {
+      timer = setTimeout(() => resolve(null), ms);
+      timer.unref?.();
+    });
+    return Promise.race([promise, deadline]).finally(() => clearTimeout(timer));
+  }
+
+  function noteEditorView(state: Readonly<Record<string, unknown>>): void {
+    if (!turnClock) return;
+    const key = visibleViewKey(state);
+    // The first report after arming is the baseline, not a change.
+    if (lastViewKey !== null && key !== lastViewKey) noteVisibleChange();
+    lastViewKey = key;
+  }
+
+  /**
+   * One tick of the turn clock: stop if no turn is running, otherwise give the
+   * save-driven tripwires their moment and report a stall at most once.
+   *
+   * The gate is the in-memory `advanceTripwireGate`, not the persisted one —
+   * see `build-discipline.ts` for why `visible-progress` has no disk entry. A
+   * visible change drops the tier to `silent` within one tick, which re-arms
+   * the crossing for the terminal and the journal; the Chat still hears at
+   * most one line per turn (`nudgeChatAgent`).
+   */
+  async function askTurnClock(): Promise<void> {
+    if (turnClockAsking) return;
+    turnClockAsking = true;
+    try {
+      const state = await withinDeadline(host.chatTurnState(), VISIBLE_PROGRESS_CHECK_INTERVAL_MS / 2);
+      if (state === null || state === 'unknown') return; // nothing learned: keep everything
+      if (state === 'waiting') {
+        turnWaitingOnPerson = true; // the person's move; nothing is stalled
+        return;
+      }
+      if (turnWaitingOnPerson) {
+        // The ask just resolved (by `request_resolved` or by the controller's
+        // own request list): the agent gets a full step from THIS moment
+        // before any nudge, however long the person took.
+        turnWaitingOnPerson = false;
+        noteVisibleChange();
+      }
+      if (state === 'idle' || host.projectRoot() === engineRoot) {
+        stopTurnClock();
+        return;
+      }
+      if (!turnClock) return; // stopped while asking
+      followRevisions();
+      announceBuildDisciplineTripwires();
+      const now = Date.now();
+      const tier = visibleProgressTier(chatTurnSince, lastVisibleChangeAt, now);
+      const step = advanceTripwireGate(visibleGate, tier, now);
+      visibleGate = step.gate;
+      const notice = step.announce
+        ? visibleProgressNotice(chatTurnSince, lastVisibleChangeAt, now)
+        : null;
+      if (!notice) return;
+      journalEvent({
+        kind: 'tripwire',
+        tripwire: 'visible-progress',
+        tier,
+        stalledForMs: visibleStallMs(chatTurnSince, lastVisibleChangeAt, now) ?? 0,
+      });
+      console.warn(`\n${notice}\n`);
+      nudgeChatAgent('visible-progress', notice);
+    } catch {
+      // Same rule as the save path: a tripwire never breaks what it rides.
+    } finally {
+      turnClockAsking = false;
     }
   }
 
@@ -761,7 +1035,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
 
     watcher = chokidar.watch(host.publicRoot(), {
       ignoreInitial: true,
-      ignored: /(^|[/\\])\../, // ignore dotfiles
+      ignored: path => projectDotPath(host.projectRoot(), path),
       ...pollOptions,
     });
 
@@ -892,7 +1166,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       // contract matches dev.ts's poller; auto-on for drvfs projects).
       srcWatcher = chokidar.watch(watchDirs, {
         ignoreInitial: true,
-        ignored: /(^|[/\\])\../, // ignore dotfiles
+        ignored: path => projectDotPath(host.projectRoot(), path),
         ...pollOptions,
       });
       const onListChange = (filePath: string) => {
@@ -1008,7 +1282,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     if (host.projectRoot() !== engineRoot) {
       referencesWatcher = chokidar.watch(join(host.projectRoot(), 'references'), {
         ignoreInitial: true,
-        ignored: /(^|[/\\])\../,
+        ignored: path => projectDotPath(host.projectRoot(), path),
         ...pollOptions,
       });
       const onReferenceChange = (event: string): void => {
@@ -1077,6 +1351,8 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     currentProjectComponents,
     currentValidationLogEntries,
     announceBuildDisciplineTripwires,
+    noteChatActivity,
+    noteEditorView,
     projectValidation,
     projectWarnings,
     expectedEditorMutations,
@@ -1118,6 +1394,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     },
     close: async () => {
       clearInterval(moveSweepTimer);
+      stopTurnClock();
       for (const timer of validationDebounceTimers.values()) clearTimeout(timer);
       validationDebounceTimers.clear();
       for (const timer of pendingBroadcasts.values()) clearTimeout(timer);

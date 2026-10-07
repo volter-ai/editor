@@ -37,6 +37,13 @@
  * `StructureProvider` for Add / Duplicate / Delete, and
  * `runBlenderObjectOperator` for Apply / Clear / Set Origin. Nothing here
  * reimplements a transform apply or an origin move.
+ *
+ * NO GAME CONTROLS (owner, 2026-10-06: "it's very confusing that the timeline at the bottom has
+ * a play button AND there's a play button at the top"). The header carries no Play of its own,
+ * nor View's Play row: in Game mode the one Play is the Game panel's (`blender-game-panel.tsx`),
+ * in Movie mode the one transport is the Timeline's. The Game / Movie switch that chooses
+ * between them is the bottom area's, at the leading edge of its header row (`PlayModeSwitch`),
+ * because switching modes swaps that area and nothing here.
  */
 
 import type { ToolNotice } from '@volter/editor-sdk/contributions';

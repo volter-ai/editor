@@ -29,6 +29,7 @@ import { fitModelDirectionalShadow, visibleShadowReceivers } from './blender-run
 import { volumeMesh, volumeSchema } from './blender-runtime-volume';
 import { applyPhysicalMaterial, applyWorldExtinction, physicalMaterialSchema } from './blender-physical-material';
 import { prepareGraphGeometry, setMaterialGraph } from './blender-graph-material';
+import {BlenderObjectInfoMaterials} from './blender-object-info-materials';
 import { type CompiledGraph, compileMaterialGraph, graphSeeThrough, materialGraphSchema } from './blender-node-graph';
 import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
@@ -648,6 +649,9 @@ export const frameSchema = z
            *  the evaluated bounds (`blender-graph-material.ts`'s orco). */
           texspace: z.tuple([z.tuple([scalar, scalar, scalar]), z.tuple([scalar, scalar, scalar])]).optional(),
           default_color: z.string().optional(),
+          object_info: z.object({
+            color:z.tuple([scalar,scalar,scalar,scalar]),index:scalar,random:scalar,
+          }).strict().optional(),
         })
         .strict(),
     ),
@@ -699,6 +703,8 @@ export const frameSchema = z
         perspective: z.enum(['PERSP', 'ORTHO', 'CAMERA']),
         lens: z.number().finite().positive().default(50),
         shading: z.enum(['WIREFRAME', 'SOLID', 'MATERIAL', 'RENDERED']).optional(),
+        scene_world: z.boolean().optional(),
+        scene_lights: z.boolean().optional(),
       })
       .nullable()
       .optional(),
@@ -782,6 +788,7 @@ export class BlenderRuntimeView {
     { signature: string; mesh: ReturnType<typeof volumeMesh> }
   >();
   private readonly materials = new Map<string, THREE.MeshPhysicalMaterial>();
+  private readonly objectInfoMaterials=new BlenderObjectInfoMaterials();
   private readonly lights = new Map<string, THREE.Light>();
   private readonly lighting = new ViewportLighting();
   private readonly world = new WorldBackground();
@@ -816,9 +823,18 @@ export class BlenderRuntimeView {
   private readonly lightExtrasRoot = new THREE.Group();
   private readonly emptyExtrasRoot = new THREE.Group();
   private rendered = false;
+  private sceneLights = false;
+  private shadowFit: {
+    camera: THREE.Camera | undefined;
+    cameraMatrix: THREE.Matrix4 | undefined;
+    projection: THREE.Matrix4 | undefined;
+    objects: Map<THREE.Object3D, { matrix: THREE.Matrix4; visible: boolean }>;
+  } | null = null;
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
    *  or null when the viewport shows modeling lighting. See {@link holdRendered}. */
   private heldRendered: (() => THREE.Camera) | null = null;
+  /** Editing retains viewport visibility in every shading mode; Play selects render visibility. */
+  private heldVisibility: 'viewport' | 'render' = 'viewport';
   /** What the World was last composed for ({@link worldKeyFor}), or null when it is cleared:
    *  composing rebuilds its textures, so it happens only when the key changes. */
   private worldApplied: string | null = null;
@@ -1006,6 +1022,8 @@ export class BlenderRuntimeView {
     readonly projection: 'perspective' | 'orthographic';
     readonly lens: number;
     readonly drawMode: 'wireframe' | 'solid' | 'preview' | 'rendered' | null;
+    readonly sceneWorld: boolean;
+    readonly sceneLights: boolean;
   } | null {
     const saved = this.frame?.view;
     if (!saved) return null;
@@ -1021,6 +1039,8 @@ export class BlenderRuntimeView {
       projection: saved.perspective === 'ORTHO' ? 'orthographic' : 'perspective',
       lens: saved.lens,
       drawMode: saved.shading ? SAVED_SHADING[saved.shading] : null,
+      sceneWorld: saved.scene_world ?? false,
+      sceneLights: saved.scene_lights ?? false,
     };
   }
 
@@ -1130,7 +1150,16 @@ export class BlenderRuntimeView {
   }
 
   stageMode(): string | null {
-    return this.mode;
+    return this.playing ? 'PLAY' : this.mode;
+  }
+
+  /** PLAY IS A MODE OF THE STAGE: while the document plays, the keys are the player's, and the
+   *  mode this context publishes is what the frame's key rules stand down on
+   *  (`scripts/workbench/generate-keymaps.mjs`, `whenFor`). Blender's own mode returns on stop. */
+  private playing = false;
+
+  setPlaying(playing: boolean): void {
+    this.playing = playing;
   }
 
   /** The inverse: the presented object for a Blender datablock NAME, or null
@@ -1276,15 +1305,28 @@ export class BlenderRuntimeView {
   /**
    * BLENDER'S RENDERED SHADING: the viewport held in the lighting a render photographs with
    * ({@link setRendered}) — the scene's own lights, its World behind and around the model,
-   * `hide_render` visibility and shadows — seen through `drawCamera()`, the camera the stage
+   * viewport visibility and shadows — seen through `drawCamera()`, the camera the stage
    * draws with (orthographic in an orthographic view). `null` returns the viewport to modeling.
+   * Render visibility is explicitly selected for a detached Play view; editing
+   * keeps viewport visibility independently of its shading and lighting choices.
    * A render taken meanwhile ends back in this state rather than in modeling.
    */
-  holdRendered(drawCamera: (() => THREE.Camera) | null): void {
-    if (drawCamera === this.heldRendered) return;
+  private heldSceneLighting: { world: boolean; lights: boolean } | undefined;
+  holdRendered(drawCamera: (() => THREE.Camera) | null, sceneLighting?: { world: boolean; lights: boolean }, visibility: 'viewport' | 'render' = 'viewport'): void {
+    if (drawCamera === this.heldRendered && sceneLighting?.world === this.heldSceneLighting?.world && sceneLighting?.lights === this.heldSceneLighting?.lights && visibility === this.heldVisibility) return;
     this.heldRendered = drawCamera;
+    this.heldSceneLighting = sceneLighting;
+    this.heldVisibility = visibility;
     if (this.capturing) return;
     this.report(drawCamera === null ? this.applyRendered(false) : this.applyRendered(true, drawCamera()));
+  }
+
+  /** Prepare a rendered viewport before revealing its first frame, using the
+   * same lighting/image/World readiness as a photograph. Call after the stage
+   * has attached the root to its scene. */
+  async prepareRendered(camera: THREE.Camera, visibility: 'viewport' | 'render' = 'viewport'): Promise<void> {
+    this.heldVisibility = visibility;
+    await this.applyRendered(true, camera);
   }
 
   /**
@@ -1295,7 +1337,8 @@ export class BlenderRuntimeView {
     // A photograph in progress keeps its own state; it returns to this one when it ends.
     if (this.heldRendered === null || this.capturing) return;
     const camera = this.heldRendered();
-    if (this.worldKeyFor(camera) === this.worldApplied) return;
+    const worldKey = this.heldSceneLighting?.world === false ? null : this.worldKeyFor(camera);
+    if (worldKey === this.worldApplied) return;
     this.report(this.applyRendered(true, camera));
   }
 
@@ -1308,7 +1351,12 @@ export class BlenderRuntimeView {
     const ortho = (camera as THREE.OrthographicCamera).isOrthographicCamera;
     // Coarse, so an orbit recomposes a handful of times rather than every frame.
     const turn = ortho ? camera.getWorldDirection(new THREE.Vector3()).toArray().map((v) => v.toFixed(1)).join(',') : '';
-    return `${camera.uuid}:${turn}:${this.worldKey}`;
+    // A stage can announce itself before parenting the model into its Scene.
+    // Retry after that attachment; the first World apply otherwise finds no Scene
+    // and its cached key leaves the viewport with no sky or ambient light.
+    let owner: THREE.Object3D = this.root;
+    while (owner.parent) owner = owner.parent;
+    return `${owner.uuid}:${camera.uuid}:${turn}:${this.worldKey}`;
   }
 
   private report(work: Promise<void>): void {
@@ -1335,6 +1383,7 @@ export class BlenderRuntimeView {
   private applyWorkbench(): void {
     const solid = this.workbench && !this.rendered;
     const used = new Set<string>();
+    this.objectInfoMaterials.begin();
     for (const obj of this.frame?.objects ?? []) {
       if (obj.mesh === null || obj.volume) continue;
       const mesh = this.objects.get(obj.id) as THREE.Mesh | undefined;
@@ -1342,10 +1391,12 @@ export class BlenderRuntimeView {
       const slots: readonly (string | null)[] = obj.materials.length ? obj.materials : [null];
       const shown = slots.map((id) => {
         const authored = id === null ? this.fallback : (this.materials.get(id) ?? this.fallback);
-        return solid ? this.workbenchFor(id, authored.side, used) : authored;
+        return solid ? this.workbenchFor(id, authored.side, used) : this.objectInfoMaterials.get(authored,mesh);
       });
       mesh.material = obj.materials.length ? shown : shown[0]!;
+      prepareGraphGeometry(mesh);
     }
+    this.objectInfoMaterials.end();
     // Released as soon as no surface wears it: a dragged viewport colour makes one per value.
     for (const [key, material] of this.workbenchMaterials) {
       if (used.has(key)) continue;
@@ -1360,7 +1411,9 @@ export class BlenderRuntimeView {
     this.instances.rebuild(this.objects.values(), this.drawBatching && !this.rendered);
     if (this.drawBatching && !this.rendered) this.transparentInstances.setObjects(this.objects.values());
     this.motionGeometry.setObjects(this.objects.values());
-    this.materialRanges.setObjects(this.drawBatching && !this.rendered ? this.objects.values() : []);
+    // Opaque material ranges also preserve Rendered's materials and shadows.
+    // The range planner itself excludes transparency and custom shaders.
+    this.materialRanges.setObjects(this.drawBatching ? this.objects.values() : []);
   }
 
   /** Presentation-only comparison door; never changes Blender or its data. */
@@ -1375,12 +1428,20 @@ export class BlenderRuntimeView {
    * actual camera. Transparent instance runs are camera-order dependent. */
   prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}): () => void {
     try {
+      if (!this.workbench || this.rendered) {
+        if(this.objectInfoMaterials.needsRemap()) this.applyWorkbench();
+        this.objectInfoMaterials.refresh();
+      }
       if (options?.renderer) for (const held of this.textures.values())
         held.upload?.(options.renderer, () => this.extraImageTextures.has(held.texture)
           ? [...this.textureSamplers.variants(held.texture), held.texture]
           : this.textureSamplers.variants(held.texture));
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
+      // The script/navigation has just posed the camera and the detached
+      // objects. Fit shadows for that draw, rather than the camera's pose
+      // when Rendered shading was first entered. Captures use this path too.
+      if (this.rendered) this.applyShadows(true, camera);
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
         options?.interactive === true, options?.height ?? 0);
       // A changed navigation geometry is an ordinary-draw fallback for an
@@ -1437,7 +1498,11 @@ export class BlenderRuntimeView {
   }
 
   private async applyRendered(rendered: boolean, camera?: THREE.Camera): Promise<void> {
-    const extinction = (rendered ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
+    // A frame or shading change can replace geometry, visibility and lights.
+    this.shadowFit = null;
+    const sceneWorld = rendered && (this.capturing || this.heldSceneLighting?.world !== false);
+    const sceneLights = rendered && (this.capturing || this.heldSceneLighting?.lights !== false);
+    const extinction = (sceneWorld ? worldMedium(this.frame?.world)?.extinction : null) ?? new THREE.Vector3();
     for (const material of [...this.materials.values(), this.fallback]) applyWorldExtinction(material, extinction);
     // An area light cannot be DRAWN until its lookup tables are uploaded, and a
     // render is one photograph with no second chance at it.
@@ -1445,12 +1510,15 @@ export class BlenderRuntimeView {
     // same way it waits for area-light tables and image decodes: one
     // photograph, no second chance at it.
     this.rendered = rendered;
+    this.sceneLights = sceneLights;
+    // This is the studio rig, not the authored lights. A scene-lit preview
+    // never adds the Solid studio, including World-only Material Preview.
     this.lighting.setRendered(rendered);
     // The scene's world is what a render sees past the geometry AND its
     // ambient light; modeling keeps the document's own backdrop and fill.
     // A photograph always composes its own; the viewport recomposes only when the key changed.
-    const worldKey = rendered && camera ? this.worldKeyFor(camera) : null;
-    if (!rendered) this.world.clear();
+    const worldKey = sceneWorld && camera ? this.worldKeyFor(camera) : null;
+    if (!sceneWorld) this.world.clear();
     else if (this.capturing || worldKey !== this.worldApplied) this.world.apply(this.root, this.frame?.world ?? null, camera);
     this.worldApplied = this.capturing ? null : worldKey;
     this.applyVisibility();
@@ -1488,6 +1556,21 @@ export class BlenderRuntimeView {
    */
   private applyShadows(rendered: boolean, camera?: THREE.Camera): void {
     this.root.updateMatrixWorld(true);
+    const fitted = this.shadowFit;
+    if (rendered && fitted && fitted.camera === camera &&
+      (!camera || (fitted.cameraMatrix?.equals(camera.matrixWorld) && fitted.projection?.equals(camera.projectionMatrix))) &&
+      fitted.objects.size === this.objects.size &&
+      [...this.objects.values()].every(object => {
+        const previous = fitted.objects.get(object);
+        return previous?.visible === object.visible && previous.matrix.equals(object.matrixWorld);
+      })) return;
+    this.shadowFit = rendered ? {
+      camera,
+      cameraMatrix: camera?.matrixWorld.clone(),
+      projection: camera?.projectionMatrix.clone(),
+      objects: new Map([...this.objects.values()].map(object =>
+        [object, { matrix: object.matrixWorld.clone(), visible: object.visible }])),
+    } : null;
     const boxes: THREE.Box3[] = [];
     for (const object of this.objects.values()) {
       const mesh = object as THREE.Mesh;
@@ -1615,12 +1698,14 @@ export class BlenderRuntimeView {
   }
 
   private applyVisibility(): void {
+    const renderVisibility = this.rendered && (this.capturing || this.heldVisibility === 'render');
     for (const obj of this.frame?.objects ?? []) {
       const object = this.objects.get(obj.id);
-      if (object) object.visible = this.rendered ? obj.render_visible : obj.visible;
+      const visible = renderVisibility ? obj.render_visible : obj.visible;
+      if (object) object.visible = visible;
       if (!obj.light) continue;
       const light = this.lights.get(obj.light);
-      if (light) light.visible = this.rendered && obj.render_visible;
+      if (light) light.visible = this.sceneLights && visible;
     }
     // AN OVERLAY IS MODELING CHROME AND IS NEVER PHOTOGRAPHED. The same
     // distinction the loop above draws between what the viewport shows and
@@ -1690,7 +1775,7 @@ export class BlenderRuntimeView {
     const next = frameSchema.parse(input);
     const staged = this.staged;
     if (staged && (staged.session !== next.session || staged.revision !== next.revision))
-      throw new Error('Blender frame manifest does not match its staged revision');
+      throw new Error(`Blender frame manifest does not match its staged revision: staged ${JSON.stringify([staged.session, staged.revision])}, manifest ${JSON.stringify([next.session, next.revision])}`);
     if (staged) for (const [name, data] of staged.images) next.images[name] = data;
     if (this.retiredSessions.has(next.session))
       throw new Error(
@@ -2107,6 +2192,8 @@ export class BlenderRuntimeView {
       else delete object.userData['blenderTexspace'];
       if (obj.default_color !== undefined) object.userData['blenderDefaultColor'] = obj.default_color;
       else delete object.userData['blenderDefaultColor'];
+      if(obj.object_info) object.userData['blenderObjectInfo']=obj.object_info;
+      else delete object.userData['blenderObjectInfo'];
       if (obj.mesh !== null) {
         const mesh = object as THREE.Mesh;
         mesh.geometry = this.meshes.get(obj.mesh)!.geometry;
@@ -2399,6 +2486,26 @@ export class BlenderRuntimeView {
     };
   }
 
+  /**
+   * A COPY OF THE MODEL THAT NO LONGER FOLLOWS IT, for Play: the graph `follow` builds, from the
+   * frame this view holds now, and handed nothing afterwards. What moves its objects is the
+   * caller's; Blender's data and this view never see it, and disposing it is the whole undo.
+   */
+  detach(): { readonly view: BlenderRuntimeView; dispose(): void } {
+    const detached = new BlenderRuntimeView();
+    if (this.frame) detached.applyFrame(this.fullFrame());
+    let disposed = false;
+    return {
+      view: detached,
+      dispose: () => {
+        if (disposed) return;
+        disposed = true;
+        detached.dispose();
+        detached.root.removeFromParent();
+      },
+    };
+  }
+
   captureSnapshot() {
     const frame = this.fullFrame();
     const source = this.frame!;
@@ -2479,6 +2586,7 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
+    this.objectInfoMaterials.clear();
     this.materialRanges.clear();
     this.motionGeometry.clear();
     this.transparentInstances.clear();

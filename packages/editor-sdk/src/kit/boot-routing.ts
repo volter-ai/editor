@@ -257,7 +257,7 @@ export class ProjectDetectionTimeoutError extends Error {
  *
  * Everything else is a definite answer and stays terminal: an unreadable
  * manifest, and every OTHER compatibility recovery kind — `restart-editor`,
- * `use-compatible-editor` — each of which names an action
+ * `use-compatible-editor`, `upgrade-project` — each of which names an action
  * only the user can take. The same ask returns the same answer until a file
  * changes or a command is run, so a spinner would be a lie.
  *

@@ -6,7 +6,7 @@
  * own header says so: "a selector resolving outside that document's container
  * is refused by a message naming the scope". The node editor is a DRAWER
  * utility, so nothing in the product could read or drive it: the sighted door
- * (`editor.captureEditorChrome`, `volter-model-editor screenshot editor`) photographs it, and
+ * (`editor.captureEditorChrome`, `cyclotron screenshot editor`) photographs it, and
  * a photograph cannot click.
  *
  * So the view's actions are SESSION VERBS, which is the pattern the keyboard

@@ -2,6 +2,7 @@ import {
   type ActiveDocumentCapture,
   type CaptureDimensions,
   EDITOR_VIEW_DOCUMENT_KINDS,
+  EDITOR_VIEW_DIAGNOSTICS,
   EDITOR_VIEW_KEYS,
   EDITOR_VIEW_TOOL_UTILITY_PREFIX,
   type EditorView,
@@ -677,6 +678,11 @@ export async function presentEditorView(
   options: { updateUrl?: boolean; origin?: 'agent' | 'link' | 'return' } = {},
 ): Promise<PresentedEditorView> {
   if (view?.version !== 1) throw new Error('present-view requires EditorView version 1.');
+  if (view.viewport?.diagnostic !== undefined &&
+    !(EDITOR_VIEW_DIAGNOSTICS as readonly string[]).includes(view.viewport.diagnostic)) {
+    throw new Error(`Unknown viewport diagnostic "${view.viewport.diagnostic}". ` +
+      `Use one of: ${EDITOR_VIEW_DIAGNOSTICS.join(', ')}. Material Preview is "preview".`);
+  }
   // AN UNRECOGNIZED KEY IS A REFUSAL, not a silent pass-through. Every named
   // field below refuses by name; an unnamed one used to be ignored AND echoed
   // back in the answer, so `{version: 1, kind: 'story', …}` — the document's

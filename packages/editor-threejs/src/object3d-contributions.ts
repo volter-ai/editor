@@ -207,6 +207,8 @@ export interface ToolObject3DAuthoringProps {
    * Object Data tab is the mesh's own, not an importer's report.
    */
   readonly audit?: boolean;
+  /** Fill the supplied container exactly, without the bare dock panel's padding bleed. */
+  readonly fillContainer?: boolean;
   readonly cameraDirection?: readonly [number, number, number];
   /** Per-document overrides of the standard viewport dressing. */
   readonly dressing?: ToolViewportDressing;

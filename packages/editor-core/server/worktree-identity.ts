@@ -32,6 +32,7 @@ function canonical(path: string): string {
 function git(cwd: string, args: readonly string[]): string | null {
   try {
     const output = execFileSync('git', ['-C', cwd, ...args], {
+      windowsHide: true,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'ignore'],
     }).trim();
