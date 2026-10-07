@@ -194,7 +194,9 @@ export function registerSessionTabRoutes(
           'try{await fetch("/__editor/tab/claim",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({participantId})})}catch{}' +
           'let back="/";' +
           'try{const target=new URL(query.get("return")||"/",location.origin);' +
-          'if(target.origin===location.origin&&!target.pathname.startsWith("/__editor/"))back=target.pathname+target.search+target.hash}catch{}' +
+          // The full href, never the bare pathname: `?return=/.//evil.com` parses to this origin with the
+          // pathname `//evil.com`, which location.replace would read as protocol-relative.
+          'if(target.origin===location.origin&&!target.pathname.toLowerCase().startsWith("/__editor/"))back=target.href}catch{}' +
           'location.replace(back)});',
       }),
     );
