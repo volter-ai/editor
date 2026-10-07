@@ -8,7 +8,7 @@ const { outputFiles } = await build({
   bundle: true, write: false, platform: 'browser', format: 'iife', target: 'es2022',
 });
 
-function worker({ embedded = true, announced = true, owner = true } = {}) {
+function worker({ embedded = true, announced = true, owner = true, recordedEntries = () => ({}) } = {}) {
   const listeners = {};
   const deliveries = [];
   const origin = 'https://trial.example';
@@ -39,14 +39,16 @@ function worker({ embedded = true, announced = true, owner = true } = {}) {
     },
     location: { origin }, Request, Response, Headers, URL, TextEncoder,
     setTimeout, clearTimeout, MessageChannel: Channel,
-    fetch: async () => Response.json({ entries: {} }),
+    fetch: async url => String(url).startsWith('/__view/r/')
+      ? new Response(String(url), { headers: { 'Content-Type': 'text/javascript' } })
+      : Response.json({ entries: recordedEntries() }),
   });
   if (owner && announced) listeners.message({ data: { type: 'volter-view:page-ready' }, source: editor });
   return {
     deliveries,
-    request(clientId, navigation = false) {
+    request(clientId, navigation = false, pathname = '/__editor/assets') {
       let response;
-      const request = navigation ? { url: `${origin}/`, mode: 'navigate', method: 'GET' } : new Request(`${origin}/__editor/assets`);
+      const request = navigation ? { url: `${origin}/`, mode: 'navigate', method: 'GET' } : new Request(`${origin}${pathname}`);
       listeners.fetch({ request, clientId, resultingClientId: '', respondWith: value => { response = value; } });
       return response;
     },
@@ -66,6 +68,20 @@ test('the view document opts in to cross-origin embedding after worker control',
   assert.equal(response.headers.get('Cross-Origin-Resource-Policy'), 'cross-origin');
   assert.equal(response.headers.get('Cross-Origin-Embedder-Policy'), 'credentialless');
   assert.equal(response.headers.get('Cross-Origin-Opener-Policy'), 'same-origin');
+});
+
+test('opening a replacement build refreshes the worker module table', async () => {
+  let version = 'old';
+  const view = worker({ recordedEntries: () => ({
+    [`/node_modules/react.js?v=${version}`]: { file: `${version}.js`, type: 'text/javascript', status: 200 },
+  }) });
+  const first = await view.request('editor', false, '/node_modules/react.js?v=old');
+  assert.equal(await first.text(), '/__view/r/old.js');
+  version = 'new';
+  await view.request('editor', true);
+  const second = await view.request('editor', false, '/node_modules/react.js?v=new');
+  assert.equal(await second.text(), '/__view/r/new.js');
+  assert.deepEqual(view.deliveries, []);
 });
 
 test('extension-host requests go to the announced editor, not the extension iframe', async () => {

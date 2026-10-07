@@ -181,7 +181,12 @@ async function handle(event: FetchLike): Promise<Response> {
   if (url.pathname.startsWith('/@fs//')) url.pathname = url.pathname.replace(/^\/@fs\/+/, '/@fs/');
   // The public view can be embedded by another isolated origin. Its resources remain
   // same-origin; the navigation itself must opt in to cross-origin embedding.
-  if (request.mode === 'navigate') return isolated(await fetch(request), { 'Cross-Origin-Resource-Policy': 'cross-origin' });
+  if (request.mode === 'navigate') {
+    // A new page may load a replacement build while this same worker remains
+    // alive. Its memoized table must not keep the previous build's Vite hashes.
+    if (url.pathname === '/' || url.pathname === '/index.html') routes = null;
+    return isolated(await fetch(request), { 'Cross-Origin-Resource-Policy': 'cross-origin' });
+  }
   if (request.method === 'GET' || request.method === 'HEAD') {
     const table = await recorded();
     const exact = table.entries[url.pathname + url.search];
