@@ -86,22 +86,28 @@ export interface ModelPlayAutoplay {
   /** What the bot last said it is doing (`{ keys, state }` from its controller); kept after
    *  autoplay goes off, so a limit or takeover still shows where the bot was. */
   readonly state: string | null;
+  /** Why the last arm was not taken at start (the bot offers no bot, or not the behaviour it asked
+   *  for, or several with none named); null otherwise. Said in the panel and the play log. */
+  readonly refused: string | null;
 }
 /** What a switch-on asks for: the behaviour (required when the bot offers several) and the limit. */
 export interface ModelPlayAutoplayRequest {
   readonly behavior?: string | null;
   readonly limit?: number | null;
 }
-const NO_BOT: ModelPlayAutoplay = { on: false, available: false, behaviors: [], behavior: null, limit: null, since: null, by: null, armed: false, person: false, state: null };
+const NO_BOT: ModelPlayAutoplay = { on: false, available: false, behaviors: [], behavior: null, limit: null, since: null, by: null, armed: false, person: false, state: null, refused: null };
 const ARMED: ModelPlayAutoplay = { ...NO_BOT, armed: true };
 /** Replaced, never mutated, as the clocks are. Absent is {@link NO_BOT}: a new run's state. */
 const autoplays = new Map<string, ModelPlayAutoplay>();
 
 /** A new run's autoplay: off, no bot yet, nobody driving. Play keeps an arm made while stopped
- *  (with the behaviour and limit it asked for); Stop drops it. */
+ *  (with the behaviour and limit it asked for); Stop drops it. The behaviours the last run's bot
+ *  offered are kept, not available: while stopped they are what the panel's picker offers for an
+ *  arm, which is checked against the bot the next start offers. */
 function resetAutoplay(documentId: string, keepArm: boolean): void {
   const now = modelPlayAutoplay(documentId);
-  if (keepArm && now.armed) autoplays.set(documentId, { ...ARMED, behavior: now.behavior, limit: now.limit });
+  if (keepArm && now.armed) autoplays.set(documentId, { ...ARMED, behaviors: now.behaviors, behavior: now.behavior, limit: now.limit });
+  else if (now.behaviors.length) autoplays.set(documentId, { ...NO_BOT, behaviors: now.behaviors });
   else autoplays.delete(documentId);
 }
 
@@ -313,7 +319,7 @@ export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelP
     const behavior = chosenBehavior(now.behaviors, request.behavior);
     const limit = autoplayLimit(request.limit);
     // Switching on again (another behaviour, a new limit) is a new run of the bot.
-    setAutoplay(documentId, { on, by, behavior, limit, since: clock.time, armed: false, state: null });
+    setAutoplay(documentId, { on, by, behavior, limit, since: clock.time, armed: false, state: null, refused: null });
   } else if (now.on || now.armed) setAutoplay(documentId, { on, by, armed: false, since: null });
 }
 
@@ -323,7 +329,7 @@ export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelP
 export function armModelPlayAutoplay(documentId: string, armed: boolean, request: ModelPlayAutoplayRequest = {}): void {
   if (armed && playing.has(documentId))
     throw new Error(`${documentId} is already playing; switch autoplay on instead of arming it.`);
-  if (armed) setAutoplay(documentId, { armed, behavior: request.behavior ?? null, limit: request.limit === undefined || request.limit === null ? null : autoplayLimit(request.limit) });
+  if (armed) setAutoplay(documentId, { armed, refused: null, behavior: request.behavior ?? null, limit: request.limit === undefined || request.limit === null ? null : autoplayLimit(request.limit) });
   else if (modelPlayAutoplay(documentId).armed) setAutoplay(documentId, { armed, behavior: null, limit: null });
 }
 
@@ -335,10 +341,15 @@ export function settleModelPlayAutoplay(documentId: string, behaviors: readonly 
   if (!playing.has(documentId)) return;
   if (!now.armed) { setModelPlayAutoplayAvailable(documentId, behaviors); return; }
   let behavior: string | null = null;
-  try { behavior = behaviors.length ? chosenBehavior(behaviors, now.behavior) : null; } catch { behavior = null; }
+  let refused: string | null = null;
+  if (!behaviors.length) refused = 'the play script registers no bot with play.autoplay';
+  else {
+    try { behavior = chosenBehavior(behaviors, now.behavior); }
+    catch (error) { refused = error instanceof Error ? error.message : String(error); }
+  }
   setAutoplay(documentId, behavior !== null
-    ? { available: true, behaviors, armed: false, on: true, by: 'panel', behavior, limit: now.limit ?? MODEL_PLAY_AUTOPLAY_LIMIT_SECONDS, since: modelPlayClock(documentId).time, state: null }
-    : { available: behaviors.length > 0, behaviors, armed: false, behavior: null, limit: null, by: 'script' });
+    ? { available: true, behaviors, armed: false, on: true, by: 'panel', behavior, limit: now.limit ?? MODEL_PLAY_AUTOPLAY_LIMIT_SECONDS, since: modelPlayClock(documentId).time, state: null, refused: null }
+    : { available: behaviors.length > 0, behaviors, armed: false, behavior: null, limit: null, by: 'script', refused });
 }
 
 /** The runner's report of the behaviours the running script's bot offers (none: no bot). Losing

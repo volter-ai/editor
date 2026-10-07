@@ -118,6 +118,8 @@ export interface DocumentPlayAutoplay {
   readonly person?: boolean;
   /** What the bot last said it is doing. */
   readonly state?: string | null;
+  /** Why the last arm was not taken when the game started; null otherwise. */
+  readonly refused?: string | null;
 }
 /** The newest entries of one document's play log, for a panel that draws it live. */
 export interface DocumentPlayLog {

@@ -354,7 +354,7 @@ export function runPlayScript(options: {
       run.append('play', bot.on ? 'autoplay-on' : 'autoplay-off', bot.on ? { by: bot.by, behavior: bot.behavior, limit: bot.limit } : { by: bot.by, behavior: seenBot.behavior });
     // An arm dropped before it was taken: a takeover, or a script that offers no bot. (Stop's
     // reset has no `by`, and its `play-stop` says enough.)
-    else if (seenBot.armed && !bot.armed && bot.by !== null) run.append('play', 'autoplay-off', { by: bot.by, armed: true });
+    else if (seenBot.armed && !bot.armed && bot.by !== null) run.append('play', 'autoplay-off', { by: bot.by, armed: true, ...(bot.refused ? { why: bot.refused } : {}) });
     seenBot = bot;
   });
   options.container.style.opacity = '0';
