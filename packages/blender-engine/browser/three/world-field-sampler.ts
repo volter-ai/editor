@@ -101,6 +101,9 @@ export function worldField(
     // rebuilding it per direction would be a 65,536-pixel job per texel.
     const field = skyField({
       ...(expression.sky_model === undefined ? {} : {model: expression.sky_model}),
+      ...(expression.sun_disc === undefined ? {} : {sunDisc: expression.sun_disc}),
+      ...(expression.sun_size === undefined ? {} : {sunSize: expression.sun_size}),
+      ...(expression.sun_intensity === undefined ? {} : {sunIntensity: expression.sun_intensity}),
       sunElevation: expression.sun_elevation,
       sunRotation: expression.sun_rotation,
       altitude: expression.altitude,
@@ -255,6 +258,9 @@ export function collectSkyParameters(expression: WorldExpression): SkyParameters
       case 'sky':
         found.push({
           ...(node.sky_model === undefined ? {} : {model: node.sky_model}),
+          ...(node.sun_disc === undefined ? {} : {sunDisc: node.sun_disc}),
+          ...(node.sun_size === undefined ? {} : {sunSize: node.sun_size}),
+          ...(node.sun_intensity === undefined ? {} : {sunIntensity: node.sun_intensity}),
           sunElevation: node.sun_elevation,
           sunRotation: node.sun_rotation,
           altitude: node.altitude,
@@ -296,6 +302,58 @@ export function collectSkyParameters(expression: WorldExpression): SkyParameters
   };
   walk(expression);
   return found;
+}
+
+/** Keep the broad sky in IBL and integrate its small bright disc separately.
+ * A 256-wide environment map cannot resolve a one-degree sun reliably, and
+ * IBL has no geometric shadow visibility. A directional shadow light carries
+ * the disc's integrated irradiance; it is an angular-size approximation,
+ * rather than a replacement for Cycles' finite-disc path sampling. */
+export function withoutSolarDiscs(expression: WorldExpression): WorldExpression {
+  return JSON.parse(JSON.stringify(expression), (_key, value) =>
+    value?.kind === 'sky' && value.sky_model === 'SINGLE_SCATTERING'
+      ? {...value, sun_disc: false} : value) as WorldExpression;
+}
+
+export function worldSolarIrradiance(expression: WorldExpression): {direction: THREE.Vector3; irradiance: THREE.Vector3}[] {
+  const suns = collectSkyParameters(expression).filter(p => p.model === 'SINGLE_SCATTERING' &&
+    p.sunDisc && (p.sunSize ?? 0) > 0 && (p.sunIntensity ?? 1) > 0);
+  if (!suns.length) return [];
+  // Window-dependent world shaders need ray origins as well as directions;
+  // there is no position-independent directional light for that field.
+  if (usesWindowCoordinates(expression)) return [];
+  const diffuse = worldField(withoutSolarDiscs(expression));
+  const unique = [...new Map(suns.map(p => [JSON.stringify([p.sunElevation, p.sunRotation, p.sunSize]), p])).values()];
+  return unique.map(p => {
+    // Other discs must not be counted again when they overlap this one's
+    // integration domain. Equal domains are one group, including mixed nodes.
+    const complete = worldField(JSON.parse(JSON.stringify(expression), (_key, value) =>
+      value?.kind === 'sky' && value.sky_model === 'SINGLE_SCATTERING' &&
+      (value.sun_elevation !== p.sunElevation || value.sun_rotation !== p.sunRotation || value.sun_size !== p.sunSize)
+        ? {...value,sun_disc:false} : value) as WorldExpression);
+    const direction = new THREE.Vector3(Math.cos(p.sunElevation) * Math.cos(p.sunRotation),
+      Math.cos(p.sunElevation) * Math.sin(p.sunRotation), Math.sin(p.sunElevation));
+    const u = new THREE.Vector3().crossVectors(direction, Math.abs(direction.z) < .9
+      ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0)).normalize();
+    const v = new THREE.Vector3().crossVectors(direction, u);
+    const irradiance = new THREE.Vector3(), ray = new THREE.Vector3(), delta = new THREE.Vector3();
+    const solidAngle = 2 * Math.PI * (1 - Math.cos(p.sunSize! / 2));
+    const radial = 32, azimuthal = 32;
+    for (let i = 0; i < radial; i++) {
+      const cos = 1 - (i + .5) / radial * (1 - Math.cos(p.sunSize! / 2));
+      const sin = Math.sqrt(1 - cos * cos);
+      for (let j = 0; j < azimuthal; j++) {
+        const phi = (j + .5) / azimuthal * 2 * Math.PI;
+        ray.copy(direction).multiplyScalar(cos).addScaledVector(u, sin * Math.cos(phi)).addScaledVector(v, sin * Math.sin(phi));
+        const all = complete(ray);
+        if (typeof all === 'number') delta.setScalar(all); else delta.copy(all);
+        const base = diffuse(ray);
+        if (typeof base === 'number') delta.addScalar(-base); else delta.sub(base);
+        irradiance.addScaledVector(delta, cos * solidAngle / (radial * azimuthal));
+      }
+    }
+    return {direction, irradiance};
+  });
 }
 
 /** Whether this expression depends on the camera's normalized image coordinates. */

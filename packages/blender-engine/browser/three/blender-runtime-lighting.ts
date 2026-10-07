@@ -47,6 +47,8 @@ import {
   sampleWorldScreen,
   usesWindowCoordinates,
   worldField,
+  worldSolarIrradiance,
+  withoutSolarDiscs,
 } from './world-field-sampler';
 import { type WorldMathOperation, worldMath } from './world-math';
 
@@ -436,6 +438,9 @@ export type WorldExpression =
   | {
       kind: 'sky';
       sky_model?: 'SINGLE_SCATTERING' | 'MULTIPLE_SCATTERING' | undefined;
+      sun_disc?: boolean | undefined;
+      sun_size?: number | undefined;
+      sun_intensity?: number | undefined;
       sun_elevation: number;
       sun_rotation: number;
       altitude: number;
@@ -533,6 +538,9 @@ const worldExpression: z.ZodType<WorldExpression> = z.lazy(() =>
       .object({
         kind: z.literal('sky'),
         sky_model: z.enum(['SINGLE_SCATTERING', 'MULTIPLE_SCATTERING']).optional(),
+        sun_disc: z.boolean().optional(),
+        sun_size: scalar.optional(),
+        sun_intensity: scalar.optional(),
         sun_elevation: scalar,
         sun_rotation: scalar,
         altitude: scalar,
@@ -690,9 +698,18 @@ function worldDataTexture(
   width: number,
   height: number,
 ): THREE.DataTexture {
-  const data = new Uint16Array(width * height * 4);
-  writeScaled(data, samples, strength, width * height);
-  const texture = new THREE.DataTexture(data, width, height, THREE.RGBAFormat, THREE.HalfFloatType);
+  // Solar radiance can exceed half-float's 65504 limit even at native default
+  // intensity. Keep those backgrounds in float32 instead of clipping the field.
+  const fullFloat = samples.some(value => Math.abs(value * strength) > 65504);
+  const data = fullFloat ? new Float32Array(width * height * 4) : new Uint16Array(width * height * 4);
+  if (data instanceof Float32Array) {
+    for (let i = 0; i < width * height; i++) {
+      for (let c = 0; c < 3; c++) data[i * 4 + c] = samples[i * 3 + c]! * strength;
+      data[i * 4 + 3] = 1;
+    }
+  } else writeScaled(data, samples, strength, width * height);
+  const texture = new THREE.DataTexture(data, width, height, THREE.RGBAFormat,
+    fullFloat ? THREE.FloatType : THREE.HalfFloatType);
   texture.mapping = THREE.EquirectangularReflectionMapping;
   texture.colorSpace = THREE.LinearSRGBColorSpace;
   texture.minFilter = THREE.LinearFilter;
@@ -707,6 +724,13 @@ export type WorldData = z.infer<typeof worldSchema>;
  * Constants and linked colors use the same radiometric path. The environment
  * samples the field at 256×128; features below a texel are filtered. */
 export class WorldBackground {
+  readonly solarLights: THREE.DirectionalLight[] = [];
+  private readonly solarDirections = new Map<THREE.DirectionalLight, THREE.Vector3>();
+
+  updateSolarDirections(root: THREE.Object3D): void {
+    for (const [light, direction] of this.solarDirections)
+      light.position.copy(direction).transformDirection(root.matrixWorld);
+  }
   private pending: Promise<void> | null = null;
 
   /** Await this world's preparation, including a failure that settled before
@@ -772,7 +796,7 @@ export class WorldBackground {
     ];
     const missing = skies.filter((parameters) => !hasSkyTexture(parameters));
     if (missing.length === 0) {
-      this.compose(scene, world, expression, camera);
+      this.compose(scene, world, expression, camera, root);
       return;
     }
     const pending = (async () => {
@@ -783,7 +807,7 @@ export class WorldBackground {
       // The world moved on (another apply, or a clear) while the worker ran:
       // composing now would paint a sky nobody asked for over the current one.
       if (this.generation !== generation || this.applied?.scene !== scene) return;
-      this.compose(scene, world, expression, camera);
+      this.compose(scene, world, expression, camera, root);
       presenterChanged();
     })();
     this.pending = pending;
@@ -802,6 +826,7 @@ export class WorldBackground {
     world: WorldData,
     expression: WorldExpression,
     camera?: THREE.Camera,
+    root?: THREE.Object3D,
   ): void {
     this.texture = worldTexture(expression, world.strength, camera);
     if (usesWindowCoordinates(expression)) {
@@ -833,14 +858,37 @@ export class WorldBackground {
     // 0.30 behind a 0.95 backdrop -- and three keeps the two apart, so using
     // the backdrop here would light that scene three times too brightly.
     const { lighting } = world;
-    this.environmentTexture = lighting
-      ? worldTexture(lighting.shader ?? lighting.color, lighting.strength, camera)
+    const lightingExpression = lighting?.shader ?? lighting?.color ?? expression;
+    const solar = worldSolarIrradiance(lightingExpression);
+    this.environmentTexture = lighting || solar.length
+      ? worldTexture(solar.length ? withoutSolarDiscs(lightingExpression) : lightingExpression,
+        lighting?.strength ?? world.strength, camera)
       : null;
     scene.environment = this.environmentTexture ?? this.texture;
+    root?.updateMatrixWorld(true);
+    for (const {direction, irradiance} of solar) {
+      const light = new THREE.DirectionalLight(0xffffff, lighting?.strength ?? world.strength);
+      light.name = 'BlenderWorldSun';
+      light.color.setRGB(irradiance.x, irradiance.y, irradiance.z, THREE.LinearSRGBColorSpace);
+      light.position.copy(direction);
+      if (root) light.position.transformDirection(root.matrixWorld);
+      light.castShadow = true;
+      light.shadow.mapSize.set(2048, 2048);
+      scene.add(light, light.target);
+      this.solarLights.push(light);
+      this.solarDirections.set(light, direction.clone());
+    }
   }
 
   clear(): void {
     this.generation++;
+    for (const light of this.solarLights) {
+      light.removeFromParent();
+      light.target.removeFromParent();
+      light.dispose();
+    }
+    this.solarLights.length = 0;
+    this.solarDirections.clear();
     if (!this.applied) return;
     this.applied.scene.background = this.applied.background;
     this.applied.scene.environment = this.applied.environment;

@@ -71,6 +71,26 @@ function spectrumToXyz(spectrum: Float32Array): V {
   return [f(x * 20), f(y * 20), f(z * 20)];
 }
 
+/** SKY_single_scattering_precompute_sun: native spectral radiance at the
+ * bottom and top of the solar disc, before intensity and limb darkening. */
+export function precomputeSingleScatteringSun(p: SkyParameters, angularDiameter: number): [V, V] {
+  const diameter = f(angularDiameter), half = f(diameter / 2);
+  const solidAngle = f(TWO_PI * f(1 - f(Math.cos(half))));
+  if (!(solidAngle > 0) || f(p.sunElevation + half) <= 0) return [[0, 0, 0], [0, 0, 0]];
+  const origin: V = [0, 0, f(EARTH_RADIUS + Math.min(59999, Math.max(1, f(p.altitude))))];
+  const pixel = (elevation: number): V => {
+    const depth = opticalDepth(origin, direction(Math.max(0, elevation), 0));
+    const spectrum = new Float32Array(21);
+    for (let i = 0; i < 21; i++) {
+      const extinction = f(f(f(RAYLEIGH_COEFF[i]! * depth[0]) * f(p.airDensity)) +
+        f(f(f(f(1.11 * MIE_COEFF) * depth[1])) * f(p.aerosolDensity)));
+      spectrum[i] = f(f(IRRADIANCE[i]! * f(Math.exp(-extinction))) / solidAngle);
+    }
+    return spectrumToXyz(spectrum);
+  };
+  return [pixel(f(f(p.sunElevation) - half)), pixel(f(f(p.sunElevation) + half))];
+}
+
 function inscattering(ray: V, sun: V, origin: V, factors: V): V {
   const end = add(origin, scale(ray, atmosphereDistance(origin, ray)));
   const rayLength = length([f(end[0] - origin[0]), f(end[1] - origin[1]), f(end[2] - origin[2])]);

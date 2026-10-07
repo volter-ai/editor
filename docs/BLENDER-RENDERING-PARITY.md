@@ -66,6 +66,38 @@ This isolates input evaluation; the live HDR target still uses half precision.
 Depsgraph instances require their native `random_id`, which the current exporter
 does not carry. Do not claim instance-input parity.
 
+## Single-scattering sun: implemented, scene still gated
+
+World export now carries the native sun-disc flag, angular diameter and intensity.
+The single-scattering disc's spectral radiance follows
+`SKY_single_scattering_precompute_sun`, including atmospheric extinction and
+native limb darkening. Four independently compiled native fixtures cover noon,
+low elevation, below the horizon and altered atmosphere/altitude. Disc intensity,
+world expression weights, rotation, repeated composition and cleanup are tested.
+
+The browser separates the small solar disc from diffuse IBL and integrates its
+irradiance into a shadow-casting directional light. Its shadow fit retains
+offscreen casters. This is a finite-disc approximation: native angular shadow
+softness, indirect illumination and nonlinear combinations of overlapping suns
+are not established. Multiple-scattering sun discs and position-dependent
+Window worlds also remain unsupported. Backgrounds exceeding half-float range
+retain float32 radiance rather than clipping during texture creation.
+
+A comparison of the unchanged courtyard source at the native camera, 1431×805
+at 50%, Filmic/Medium Contrast and exposure −2 shows added direct illumination,
+but still fails full-scene parity. Native evaluation reports 7,632 object
+placements, including 6,287 instances from 26 source objects. The current door
+walks view-layer bases instead of those placements; missing foreground columns,
+arcade pieces and vegetation make a lighting-only comparison insufficient.
+
+Real Cycles is compiled into the WASM build and provides an additional diagnostic
+oracle when its original engine class is temporarily restored. Preserve the
+file's render passes and compositor inputs: this courtyard's compositor links
+Noisy Image, so disabling denoising changes that graph's result. These diagnostic
+renders do not establish equivalence of the live Three viewport.
+The Three-backed render engine currently supplies only Combined; native Mist,
+Noisy Image and other compositor pass inputs are a separate remaining gate.
+
 ## Remaining scene gates
 
 The Lone Monk courtyard still fails scene parity. Its unsupported Particle Info
