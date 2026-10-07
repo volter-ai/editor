@@ -373,8 +373,10 @@ const BOTTOM_AREA = 'timeline';
  * Blender's measured Timeline strip (`model.layout.ts`) left the Game panel's
  * play log one clipped line, so Game mode asks the area for the panel's own
  * share (`GAME_PANEL_RATIO`) and Movie mode hands Blender's back. Each switch
- * stands the area up at its mode's size; a person's resize holds until the
- * next switch. The Timeline unmounts in Game mode; a document that opens as a
+ * stands the area up at its mode's size — the person's last drag in that mode
+ * when there was one (the frame keeps it per request, `volterDocuments.ts`),
+ * so flipping between a game's tab and a movie's does not undo a resize. The
+ * Timeline unmounts in Game mode; a document that opens as a
  * game therefore never pays for the rig bind (the cost note in
  * `BlenderTimeline`), and one bound earlier keeps its bind, which the Timeline
  * never undoes.
@@ -947,8 +949,8 @@ function TimelineHeader() {
         borderBottom: `1px solid ${TIMELINE_CHROME.rule}`,
       }}
     >
-      {/* GAME | MOVIE where the title stood, as in the Game panel, so the person switches back
-          from either (`blender-game-panel.tsx`); without a Play tool, the title. */}
+      {/* GAME | MOVIE in place of the title, as in the Game panel, so the person switches back
+          from either (`blender-game-panel.tsx`); without a Play tool or a model, the title. */}
       <PlayModeSwitch title="Timeline" />
       <TimelineViewMenu />
       {/* TWO SPACERS, which is what CENTRES the transport. Blender's Timeline

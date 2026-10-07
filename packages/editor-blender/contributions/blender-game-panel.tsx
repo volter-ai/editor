@@ -15,19 +15,19 @@
  * ## The Game | Movie switch is the bottom area's own
  *
  * Switching modes swaps this area and nothing else, so the switch stands at the leading edge of
- * the area's header row, where its title stood — in this panel and in the Timeline alike
- * ({@link PlayModeSwitch}), so the person switches back from whichever one is showing (owner,
- * 2026-10-06, moving it off the viewport header where it first stood). It is drawn only when a
- * Play tool is installed; without one there is no game to switch to and the Timeline keeps its
- * title.
+ * the area's header row, in place of its title — in this panel and in the Timeline alike
+ * ({@link PlayModeSwitch}), so the person switches back from whichever one is showing. It is
+ * drawn only when a Play tool is installed and a model is on screen; otherwise there is nothing
+ * to switch and the Timeline keeps its title.
  *
  * ## It is tall enough to read
  *
  * Blender's Timeline strip (`model.layout.ts`'s measured 0.0719 — 63 px of an 880-px column)
  * showed this panel's play log as one clipped line. So Game mode asks the area for
  * {@link GAME_PANEL_RATIO} (`setWorkspaceAreaRatio`, by the bottom area's document) and Movie
- * mode gives Blender's back: each switch stands the area up at its mode's size, as a workspace
- * switch does, and the sash stays the person's in between.
+ * mode gives Blender's back. A person's drag is kept per mode: the frame remembers the share
+ * the area had under each mode's request and stands it up at that share when the mode returns
+ * (`volterDocuments.ts`).
  *
  * ## What it drives is the Play tool's own run
  *
@@ -375,23 +375,22 @@ function GameButton({ label, testId, disabled, pressed, wide, onClick, children 
  * Timeline alike (the head of this file says why it is here). Two joined cells with the current
  * one lit in the playhead's blue — the same widgets as the transport beside it, at the same
  * height, so it reads as one of this row's controls and not a smaller one. It serves the model
- * document the bottom area serves. With no Play tool installed there is nothing to switch to,
- * and the row keeps its `title` instead.
+ * document the bottom area serves. With no Play tool installed, or no model on screen, there is
+ * nothing to switch, and the row keeps its `title` instead.
  */
 export function PlayModeSwitch({ title }: { readonly title: string }) {
   useSyncExternalStore(subscribePlayMode, playModeVersion, playModeVersion);
   const found = useSyncExternalStore(subscribeDocumentPlayExtensions, extension, () => null);
   const documentId = servedModelDocument();
-  if (found === null) return <span style={{ color: TIMELINE_CHROME.text }}>{title}</span>;
-  const mode = documentId === null ? 'movie' : modelPlayMode(documentId);
+  if (found === null || documentId === null) return <span style={{ color: TIMELINE_CHROME.text }}>{title}</span>;
+  const mode = modelPlayMode(documentId);
   const cell = (value: ModelPlayMode, label: string, tip: string) => (
     <GameButton
       testId={`model-play-mode-${value}`}
       label={tip}
       pressed={mode === value}
       wide
-      disabled={documentId === null}
-      onClick={() => { if (documentId !== null) switchPlayMode(documentId, value); }}
+      onClick={() => switchPlayMode(documentId, value)}
     >
       {label}
     </GameButton>

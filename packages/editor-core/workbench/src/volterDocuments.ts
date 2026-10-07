@@ -53,7 +53,7 @@
  *  Its counterpart is `bridge.tsx`'s `VolterDocumentsHandle`.
  *--------------------------------------------------------------------------------------------*/
 
-import { Disposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { Disposable, IDisposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
 import { EditorCloseContext } from '../../../common/editor.js';
 import { GroupDirection, GroupsOrder, IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
@@ -132,6 +132,15 @@ export class VolterDocuments extends Disposable {
 	 *  — the model workspace's bottom area is the Timeline in Movie mode and the Game panel in
 	 *  Game mode). The same ratio keeps the person's drag. */
 	private readonly areaRatios = new Map<number, number>();
+	/** THE PERSON'S SIZE PER JOB: the share an area had when its document left a ratio it had
+	 *  asked for, keyed `areaId|documentId|ratio`. Flipping between a Game-mode model's tab and a
+	 *  Movie-mode model's changes the bottom area's job on every switch; without this each flip
+	 *  stood the area up at the job's bootstrap and undid the person's drag. With it the area
+	 *  returns to a job at the share it last had there — the bootstrap only the first time. */
+	private readonly areaShares = new Map<string, number>();
+	/** Each area's settle window (`sizeAreaGroup`), so a stand-up inside the last one's second
+	 *  ends it rather than leaving two targets re-applied on the same layouts. */
+	private readonly areaSettling = new Map<string, IDisposable>();
 	/** Areas stood up during the pass now running, sized once it has finished opening AND
 	 *  closing — see `groupForArea` for why the order matters. */
 	private readonly areaToSize = new Map<string, { group: IEditorGroup; area: VolterDocumentArea }>();
@@ -299,6 +308,15 @@ export class VolterDocuments extends Disposable {
 		// and all — and the same document at the same ratio keeps whatever size the person
 		// dragged it to.
 		if (this.areaDocuments.get(group.id) !== documentId || this.areaRatios.get(group.id) !== area.ratio) {
+			// A NEW JOB FOR THE SAME DOCUMENT keeps the share the person left the old one at, and
+			// takes the share they left the new one at, if they ever did (`areaShares`).
+			const leftRatio = this.areaDocuments.get(group.id) === documentId ? this.areaRatios.get(group.id) : undefined;
+			const shareKey = (ratio: number) => `${area.id}|${documentId}|${ratio}`;
+			if (leftRatio !== undefined) {
+				const share = this.areaShare(group, area);
+				if (share !== null) { this.areaShares.set(shareKey(leftRatio), share); }
+			}
+			const kept = leftRatio !== undefined ? this.areaShares.get(shareKey(area.ratio)) : undefined;
 			this.areaDocuments.set(group.id, documentId);
 			this.areaRatios.set(group.id, area.ratio);
 			// SIZED AT THE END OF THE PASS, never here. A stand-up that REPLACES a document —
@@ -307,9 +325,20 @@ export class VolterDocuments extends Disposable {
 			// holds two editors and the split it would be sized against is not the one that
 			// will exist a few lines later. Measured 2026-09-20: sizing here left the Shading
 			// area at 651 of 952 against its declared 0.5.
-			if (area.ratio > 0 && area.ratio < 1) { this.areaToSize.set(area.id, { group, area }); }
+			const target = kept === undefined ? area : { ...area, ratio: kept };
+			if (target.ratio > 0 && target.ratio < 1) { this.areaToSize.set(area.id, { group, area: target }); }
 		}
 		return group;
+	}
+
+	/** The area group's share of its split with the main group, as it stands, or null when the
+	 *  two have no extent yet. */
+	private areaShare(group: IEditorGroup, area: VolterDocumentArea): number | null {
+		const horizontal = area.place === 'left' || area.place === 'right';
+		const extentOf = (size: { width: number; height: number }) => (horizontal ? size.width : size.height);
+		const own = extentOf(this.editorGroupsService.getSize(group));
+		const combined = own + extentOf(this.editorGroupsService.getSize(this.group));
+		return combined > 0 ? own / combined : null;
 	}
 
 	/**
@@ -370,10 +399,12 @@ export class VolterDocuments extends Disposable {
 		// repeated on every layout for one second and then the listener disposes itself.
 		// After that the sash is the person's and nothing here touches it.
 		const until = Date.now() + 1000;
+		this.areaSettling.get(area.id)?.dispose();
 		const settling = this.editorGroupsService.mainPart.onDidLayout(() => {
 			if (Date.now() > until) { settling.dispose(); return; }
 			apply();
 		});
+		this.areaSettling.set(area.id, settling);
 		this._register(settling);
 	}
 

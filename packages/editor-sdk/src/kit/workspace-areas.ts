@@ -158,9 +158,10 @@ export function setWorkspaceAreas(areas: readonly WorkspaceAreaContribution[]): 
  *
  * It is the same BOOTSTRAP the declared ratio is, applied the same way: under the frame a
  * changed ratio stands the area up again (`volterDocuments.ts`), exactly as a workspace switch
- * that puts a different document there does, and a person's drag on the sash is theirs until
- * the next change of job. An id the active workspace does not declare is remembered and has no
- * effect until one does.
+ * that puts a different document there does. A person's drag on the sash is kept per job: the
+ * frame stands the area up at the share the person last left a job at, and at the asked-for
+ * ratio only the first time. An id the active workspace does not declare is remembered and has
+ * no effect until one does.
  */
 export function setWorkspaceAreaRatio(areaId: string, ratio: number | null): void {
   if (ratio !== null && !(ratio > 0 && ratio < 1))
