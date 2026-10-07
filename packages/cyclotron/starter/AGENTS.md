@@ -196,6 +196,13 @@ are changing, why, and how far along it is.
 - Compare composition, silhouette, proportions, colors and materials after
   meaningful visual changes, then correct visible differences. For UI work,
   also open the reference as an editor image document alongside the UI canvas.
+- For Blender rendering comparisons, `scene.render.engine = 'CYCLES'` and
+  `bpy.ops.render.render(write_still=True)` use native Cycles. Use CPU in the
+  browser build and an appropriate sample count; retain the source's compositor
+  and required passes. `VOLTER_THREE` explicitly requests a raster photograph.
+  A native render is a reference, not evidence that live Play matches it: compare
+  the actual viewport and composed game/UI capture too. Keep gameplay behind
+  that visible comparison gate when a reference match is required.
 - Choose capture scope deliberately. A full editor-page capture shows authoring,
   chat and panels; a game comparison needs the composed 3D scene and React UI
   in `editor.captureEditorChrome({ region: 'play' })` when using Model Play.
