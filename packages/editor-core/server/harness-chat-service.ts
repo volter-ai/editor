@@ -1457,7 +1457,11 @@ export class HarnessChatService {
     const entry = this.chatCatalog.sessions.get(id);
     const session = this.lastSnapshot.sessions.find(s => s.nativeId === nativeId && s.harness === entry?.selection.harness && s.cwd && resolve(s.cwd) === resolve(this.options.getProjectRoot()));
     if (!entry || !session) throw new Error('The harness has not persisted this conversation yet.');
-    if (entry.identity && entry.identity !== session.identity) throw new Error('The conversation is already bound to a different harness session.');
+    // A saved identity the harness no longer lists (an earlier runtime home's; see openChat) binds nothing: the chat
+    // takes the conversation it now has instead of refusing every New Chat that lands on it.
+    if (entry.identity && entry.identity !== session.identity && this.lastSnapshot.sessions.some(s => s.identity === entry.identity)) {
+      throw new Error('The conversation is already bound to a different harness session.');
+    }
     entry.identity = session.identity;
     entry.title = session.title;
     this.chatCatalog.save();
@@ -1467,9 +1471,18 @@ export class HarnessChatService {
   private async openChat(id: string) {
     const entry = this.chatCatalog.sessions.get(id);
     if (!entry) throw new Error('This chat session is not available. Start a new chat explicitly.');
+    // Each editor start makes a new runtime home, and a conversation saved under an earlier one is not listed there:
+    // it cannot be resumed or read. Such a chat opens fresh in its place. Throwing "The saved conversation history is
+    // unavailable." on every open left the active chat stuck, and with it every send and New Chat (t_41195fa5).
+    const gone = entry.identity !== null && await this.savedIdentityGone(entry.identity);
+    if (gone) {
+      console.warn(`[chat] The saved conversation of chat ${id} (${entry.identity}) is no longer listed by its harness; the chat opens fresh.`);
+      entry.identity = null;
+      this.chatCatalog.save();
+    }
     if (!(id === this.chatCatalog.active && this.frontendHandoffValue && !this.managedRuntime?.closed)) {
-      if (!entry.identity) throw new Error('This chat has no persisted harness session to resume. Start a new chat.');
-      await this.selectChat(entry.selection, id);
+      if (!entry.identity && !gone) throw new Error('This chat has no persisted harness session to resume. Start a new chat.');
+      await this.selectChat(entry.selection, gone ? undefined : id, gone ? id : undefined);
     }
     let history: unknown[] = [];
     let historyTruncated = false;
@@ -1489,7 +1502,16 @@ export class HarnessChatService {
     return {...await this.chatControlState(), history, historyTruncated};
   }
 
-  private async selectChat(selection: ChatSelection, resumeId?: string) {
+  /** Whether `identity` is a conversation the harness no longer lists, after asking it afresh. */
+  private async savedIdentityGone(identity: string): Promise<boolean> {
+    await this.ensureController();
+    await this.controller!.dispatch({type:'refresh', autoObserve:false, silent:true});
+    this.capture();
+    return !this.lastSnapshot.sessions.some(s => s.identity === identity);
+  }
+
+  /** `freshFor`: start a new conversation for that saved chat, whose own conversation is gone, rather than a new chat. */
+  private async selectChat(selection: ChatSelection, resumeId?: string, freshFor?: string) {
     if (this.selectingChat) throw new Error('A chat selection is already being applied.');
     this.selectingChat = true;
     const previous = this.chatSelection;
@@ -1541,6 +1563,7 @@ export class HarnessChatService {
       if (result.error) throw new Error(result.error.message);
       activated = true;
       if (resumeId) { this.chatCatalog.active = resumeId; this.chatCatalog.save(); }
+      else if (freshFor && this.chatCatalog.sessions.has(freshFor)) { this.chatCatalog.active = freshFor; this.chatCatalog.save(); }
       else this.chatCatalog.create(selection);
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) throw new Error('The selected harness did not start.');
