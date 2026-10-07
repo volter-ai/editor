@@ -21,6 +21,8 @@ Native depsgraph collection/particle instances and their inputs, sky sun-disc
 illumination, indirect lighting and the full native camera/image comparison
 remain to implement. Preserve the original source and reference; gameplay stays
 behind the matching static model/React UI screenshot gate.
+World-volume image integration also remains capture-only; live and saved scene
+passes must agree in addition to sharing their display transform.
 
 
 ## Blender Properties with no selection (2026-10-07)
