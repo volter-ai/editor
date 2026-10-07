@@ -37,7 +37,7 @@ The kit's workbench code runs unchanged:
 
 1. It starts the project's own packaged session headless: no workbench, no tab, and an ephemeral identity. The modules are therefore compiled by the same Vite instance and plugins `edit` uses (`server/packaged.ts`, `project-serving-plugins.ts`).
 2. It records what that session serves into `__view/routes.json` and `__view/r/`:
-   - The kit's fixed answers: `compatibility`, `project` (the session identity is scrubbed), `project-verbs`, `project-components`, `project-tools`, `project-attribution`, `story-files`, `scoped-game-css`, `configurations`, `gameplay-sessions`, `project-thumbnail`, `tab-bootstrap.js`.
+   - The kit's fixed answers: `compatibility`, `project` (the session identity is scrubbed), `project-verbs`, `project-components`, `project-tools`, `project-attribution`, `story-files`, `scoped-game-css`, `configurations`, `project-thumbnail`, `tab-bootstrap.js`. The play-session catalog is not recorded: it comes from the project's `logs/`, which a view does not publish.
    - Each composed integration's `viewSnapshotRoutes()`. For Blender these are the WebAssembly engine files.
    - Every project module and everything it imports, crawled from the project's source files, its packages' contributions and the kit's module doorways. Each project module is also recorded under a sentinel mount id. The worker puts the page's real `?volter-mount=<id>` back into the URL and body, so per-mount module instances still work.
 3. It stops the session by its own PID, then writes:
@@ -59,7 +59,7 @@ __view/frame-bridge.js
 A limited view is made to be shared, so it publishes only what the project would commit, and never
 a secret (`server/launcher/view-files.ts`). A file is published only if it passes all four rules:
 
-1. **Never a secret.** This applies whatever `.gitignore` says: `.env*`, `.envrc`, `*.local`, `.npmrc`, `.yarnrc.yml`, `.pypirc`, `.netrc`, `.git-credentials`, `.dockercfg`, `.htpasswd`, `credentials*.json`, `service-account*.json`, `secrets.*`, `*.tfvars`, `kubeconfig`, `*.db`, `*.sqlite`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `*.jks`, and SSH keys (`id_*`, `*.ppk`).
+1. **Never a secret.** This applies whatever `.gitignore` says: `.env*`, `.envrc`, `*.local`, `.npmrc`, `.yarnrc.yml`, `.pypirc`, `.netrc`, `.git-credentials`, `.dockercfg`, `.htpasswd`, `credentials*.json`, `service-account*.json`, any file in a `secrets/` folder, a root-level `secrets.<env|yaml|yml|toml|json|ini|txt|conf>`, `*.tfvars`, `kubeconfig`, `*.db`, `*.sqlite`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `*.jks`, and SSH keys (`id_*`, `*.ppk`).
 2. **Not dependencies or output.** `node_modules`, `dist*`, `logs/`, `server/`, and every dot-folder except `.volter` and `.storybook` (so `.git` is never published).
 3. **Only the project's own `.volter` files.** That means `.volter/settings.json` and `.volter/themes/*.json`. The editor state and workbench storage are a person's workspace: open documents, search history, and URIs naming their home folder. So a view always opens on the editor's default layout.
 4. **Nothing `.gitignore` ignores.** In a git work tree, git answers (`git ls-files --cached --others --exclude-standard`). Elsewhere, every `.gitignore` is read with git's rules.
@@ -123,8 +123,9 @@ themes. A view must not carry its builder's.
 **Reports a session collects, accepted and dropped:** `state`, `heartbeat`, `tab/*`,
 `page-error`, `play-phase`, `console-entries`, `console-resolved`, `console/ack`,
 `command-result`, `command-received`, `command-listener`, `contributed-commands`,
-`log-session`, `log-entries`, `server-log`. `events` answers 204, so an EventSource does not
-reconnect. `tab-heartbeat.js` is a no-op worker.
+`log-session`, `log-entries`, `server-log`, `collaboration/presence`. `events` answers 204, so an
+EventSource does not reconnect. `tab-heartbeat.js` is a no-op worker. `gameplay-sessions` answers an
+empty catalog (`{ sessions: [] }`).
 
 **Blender (`editor-blender/view/blender-view-routes.ts`):** `blender-file` (an in-memory spool),
 `blender-project-index`, `blender-project-file`, `blender-output`, `blender-document-chunk` and
@@ -139,11 +140,12 @@ These are the routes that need the person's machine or account:
 | `account/*`, `twin*` | No account is signed in on a static page |
 | `harness-chat/*`, `worktrees/*`, `project-work*`, `repository-presence` | Agents run in the local editor's runtime; the Chat view says so in place |
 | `git/*`, `share-control/*` | No repository and no sharing host |
-| `collaboration/*` | No session to collaborate in |
+| `collaboration/*` (its `presence` reports are accepted and dropped) | No session to collaborate in |
+| `gameplay-sessions/*` | The recorded play sessions are the builder's, from `logs/`. The catalog itself answers empty. |
 | `recording/*` | Recording writes to the session's disk |
 | `generations*`, `project-tools/run`, `asset-library/*` | Tools and providers run in Node with credentials |
 | `configurations/*/{start,build,stop}` | Running the project's own server or build |
-| `open-project`, `create-project`, `inspect-project`, `adapt-project`, `browse-folder`, `reveal`, `recent-projects`, `launcher-settings`, `templates`, `examples` | A view is one project |
+| `open-project`, `create-project`, `inspect-project`, `adapt-project`, `browse-folder`, `reveal`, `recent-projects`, `launcher-settings`, `templates`, `examples`, `save-thumbnail` | A view is one project |
 | `download`, `export` | No build to export |
 | `command` | Terminal control of a session |
 | `/__ui-source/*`, `/__ingest-source/*` (outside `/__editor/`) | Writing edits back into the project's source needs the session's source-authoring routes. The recorded `/__editor/project` says `sourceWrite: false` and `ingestSourceWrite: false`. |

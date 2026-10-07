@@ -62,6 +62,7 @@ const UNAVAILABLE_FEATURES: readonly [RegExp, string][] = [
   [/^\/__editor\/(open-project|create-project|inspect-project|adapt-project|browse-folder|reveal|recent-projects|launcher-settings|templates|examples|save-thumbnail)/, 'Opening and creating projects'],
   [/^\/__editor\/(download|export)/, 'Exporting a build'],
   [/^\/__editor\/command$/, 'Driving the editor from a terminal'],
+  [/^\/__editor\/gameplay-sessions\//, 'Opening a recorded play session'],
   [/^\/__editor\/source-conflict\/resolve/, 'Resolving a source conflict'],
   // The source-authoring integrations' write routes live outside `/__editor/`; a view's recorded
   // `/__editor/project` says it serves neither (`sourceWrite`, `ingestSourceWrite`: false).
@@ -201,6 +202,9 @@ export function createLimitedViewRouter(options: LimitedViewRouterOptions): (req
       match: /^\/__editor\/served-modules$/,
       handle: () => json({ modules: [{ id: FRAME_BRIDGE_MODULE_ID, url: `/${VIEW_DIR}/frame-bridge.js` }], refusals: [] }),
     },
+    // The builder's recorded play sessions live in the project's `logs/`, which a view does not
+    // publish: the catalog is empty here, and opening one is refused by name.
+    { method: 'GET', match: /^\/__editor\/gameplay-sessions$/, handle: () => json({ sessions: [] }) },
     // The session's event stream: a static page has no events, and 204 tells an EventSource
     // not to reconnect.
     { method: 'GET', match: /^\/__editor\/events$/, handle: () => respond(null, 204, null) },

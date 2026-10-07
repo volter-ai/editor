@@ -86,7 +86,6 @@ const KIT_SNAPSHOT_ROUTES = [
   '/__editor/story-files',
   '/__editor/scoped-game-css',
   '/__editor/configurations',
-  '/__editor/gameplay-sessions',
   '/__editor/project-thumbnail',
   '/__editor/tab-bootstrap.js',
   '/__editor/tab-bootstrap.js?surface=vscode',
@@ -158,6 +157,45 @@ function prepareOut(final: string): { final: string; staging: string } {
   rmSync(staging, { recursive: true, force: true, maxRetries: 3 });
   mkdirSync(join(staging, VIEW_DIR, 'r'), { recursive: true });
   return { final, staging };
+}
+
+/** A rename Windows refuses for a moment (Defender scanning a file, a server holding one open)
+ *  is retried with backoff; anything else, or a refusal that lasts, is thrown. */
+async function renameWithRetries(from: string, to: string): Promise<void> {
+  for (let attempt = 0; ; attempt++) {
+    try {
+      renameSync(from, to);
+      return;
+    } catch (error) {
+      const code = (error as NodeJS.ErrnoException).code;
+      if (attempt >= 6 || (code !== 'EPERM' && code !== 'EBUSY' && code !== 'EACCES')) throw error;
+      await new Promise((resolve) => setTimeout(resolve, 150 * 2 ** attempt));
+    }
+  }
+}
+
+/**
+ * Put the finished view in place without ever losing one: the previous `--out` is renamed aside,
+ * the staged view takes its name, and only then is the previous one deleted. If the swap cannot be
+ * made, the previous view is put back and the error is thrown (the staging folder is deleted by
+ * the caller).
+ */
+async function swapIntoPlace(staging: string, final: string, log: (line: string) => void): Promise<void> {
+  const aside = existsSync(final) ? `${final}.previous-${process.pid}` : null;
+  if (aside) await renameWithRetries(final, aside);
+  try {
+    await renameWithRetries(staging, final);
+  } catch (error) {
+    if (aside) await renameWithRetries(aside, final).catch(() => log(`  the previous view is left at ${aside}`));
+    throw error;
+  }
+  if (aside) {
+    try {
+      rmSync(aside, { recursive: true, force: true, maxRetries: 3 });
+    } catch {
+      log(`  the previous view could not be deleted yet: ${aside}`);
+    }
+  }
 }
 
 /** A path with its symlinks resolved, as far as it exists (`--out` usually does not yet). */
@@ -471,8 +509,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
           leaks.map((leak) => `  ${leak.file}: …${leak.context}…`).join('\n'),
       );
     }
-    rmSync(final, { recursive: true, force: true, maxRetries: 3 });
-    renameSync(out, final);
+    await swapIntoPlace(out, final, log);
   } catch (error) {
     rmSync(out, { recursive: true, force: true, maxRetries: 3 });
     throw error;

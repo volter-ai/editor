@@ -32,7 +32,15 @@ import {
 
 /** The few service-worker globals used here, declared rather than pulling the WebWorker lib into
  *  a project compiled against the DOM. */
-interface WorkerClient { readonly id: string; readonly type: string; postMessage(message: unknown, transfer?: Transferable[]): void }
+interface WorkerClient {
+  readonly id: string;
+  readonly type: string;
+  /** Window clients only: `top-level` for a tab, `nested` for an iframe (the extension host's). */
+  readonly frameType?: string;
+  readonly focused?: boolean;
+  readonly visibilityState?: string;
+  postMessage(message: unknown, transfer?: Transferable[]): void;
+}
 interface WorkerScope {
   readonly clients: { get(id: string): Promise<WorkerClient | undefined>; matchAll(options: { type: 'window' }): Promise<readonly WorkerClient[]>; claim(): Promise<void> };
   skipWaiting(): Promise<void>;
@@ -83,22 +91,51 @@ function recorded(): Promise<LimitedViewRoutes> {
   return routes;
 }
 
-/** The page that holds the project's files: the requester when it is one, else the last page
- *  that said it was ready, else any window of this view. */
+/**
+ * THE PAGE THAT HOLDS THE PROJECT'S FILES for a request — never a guess.
+ *
+ * A browser stops an idle worker whenever it likes, and what it remembered goes with it, so the
+ * set of pages that said they are ready ({@link pages}) can be empty while pages are open. The
+ * answer is, in order:
+ *
+ *  1. the requester itself, when it is a TAB of this view (a top-level window client);
+ *  2. otherwise (a worker, the extension host's iframe) a tab that holds the project — asking the
+ *     open tabs to say so again when none is known — preferring the focused one, then a visible
+ *     one, then the one that announced last.
+ *
+ * An iframe is never the answer: it holds no files, and a request handed to it waits out the whole
+ * timeout. With no tab holding the project the request fails by name.
+ */
 const pages = new Set<string>();
-async function pageFor(event: FetchLike): Promise<WorkerClient | undefined> {
-  for (const id of [event.clientId, event.resultingClientId]) {
-    if (id && pages.has(id)) {
-      const client = await self.clients.get(id);
-      if (client) return client;
-    }
-  }
-  for (const id of [...pages].reverse()) {
+const isTab = (client: WorkerClient | undefined): client is WorkerClient =>
+  client !== undefined && client.type === 'window' && client.frameType === 'top-level';
+
+async function tabsHoldingTheProject(): Promise<WorkerClient[]> {
+  const held: WorkerClient[] = [];
+  for (const id of pages) {
     const client = await self.clients.get(id);
-    if (client) return client;
-    pages.delete(id);
+    if (isTab(client)) held.push(client);
+    else pages.delete(id);
   }
-  return (await self.clients.matchAll({ type: 'window' }))[0];
+  return held;
+}
+
+/** Ask every open tab of this view to announce itself again, and give them a moment to. */
+async function askTabsToAnnounce(): Promise<void> {
+  const tabs = (await self.clients.matchAll({ type: 'window' })).filter(isTab);
+  for (const tab of tabs) tab.postMessage({ type: 'volter-view:announce' });
+  await new Promise((resolve) => setTimeout(resolve, 400));
+}
+
+async function pageFor(event: FetchLike): Promise<WorkerClient | undefined> {
+  const requester = event.clientId ? await self.clients.get(event.clientId) : undefined;
+  if (isTab(requester)) return requester;
+  let held = await tabsHoldingTheProject();
+  if (held.length === 0) {
+    await askTabsToAnnounce();
+    held = await tabsHoldingTheProject();
+  }
+  return held.find((tab) => tab.focused) ?? held.find((tab) => tab.visibilityState === 'visible') ?? held.at(-1);
 }
 
 async function serveRecorded(entry: LimitedViewRouteEntry, mount: string | null): Promise<Response> {
@@ -176,7 +213,11 @@ self.addEventListener('install', (event) => event.waitUntil(self.skipWaiting()))
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 self.addEventListener('message', (event) => {
   const data = event.data as { type?: string } | null;
-  if (data?.type === 'volter-view:page-ready' && event.source) pages.add(event.source.id);
+  if (data?.type === 'volter-view:page-ready' && event.source) {
+    // Most recent last, so a tab that announces again moves to the end.
+    pages.delete(event.source.id);
+    pages.add(event.source.id);
+  }
 });
 self.addEventListener('fetch', (event) => {
   // Another origin's request is left to the browser: a worker that re-fetches it changes its mode

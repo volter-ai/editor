@@ -120,7 +120,18 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
     integrations: integrations.flatMap((module) => module.viewRoutes(services)),
   });
 
+  // This tab holds the project: it says so on start, whenever it comes back into view or focus,
+  // and whenever the worker asks (a restarted worker remembers nothing).
+  const announce = () => navigator.serviceWorker.controller?.postMessage({ type: 'volter-view:page-ready' });
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') announce();
+  });
+  window.addEventListener('focus', announce);
   navigator.serviceWorker.addEventListener('message', (event: MessageEvent) => {
+    if ((event.data as { type?: string } | null)?.type === 'volter-view:announce') {
+      announce();
+      return;
+    }
     const request = event.data as ForwardedRequest | null;
     const port = event.ports[0];
     if (request?.type !== 'volter-view:request' || !port) return;
@@ -142,7 +153,7 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
     })();
   });
   navigator.serviceWorker.startMessages();
-  navigator.serviceWorker.controller?.postMessage({ type: 'volter-view:page-ready' });
+  announce();
 
   installQuietSessionSockets();
   (globalThis as Record<string, unknown>)['__volterLimitedView'] = { files: store, folder: config.project.name };
