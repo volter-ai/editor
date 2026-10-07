@@ -35,13 +35,15 @@
  */
 import { blenderPropertiesTabMatch, blenderPropertiesTabSection } from './blender-properties-tab';
 import type { BlenderCuratedPanel } from './blender-properties-view';
+import { resolveBlenderSubject } from './blender-properties-model';
+import type { ToolContributionNode } from '@volter/editor-sdk/contributions';
 
 /** `properties_scene.py`, panel by panel. Line numbers are that file's. */
 const CURATED: readonly BlenderCuratedPanel[] = [
   {
     // SCENE_PT_scene, :49.
     title: 'Scene',
-    properties: ['camera', 'background_set', 'active_clip'],
+    properties: ['camera', 'background_set', { property: 'active_clip', label: 'Active Clip' }],
   },
   {
     // SCENE_PT_unit, :64 — `unit = scene.unit_settings` (:74).
@@ -64,7 +66,8 @@ const CURATED: readonly BlenderCuratedPanel[] = [
     // (`draw_header`, :307) and `gravity` its one row.
     title: 'Gravity',
     closed: true,
-    properties: ['use_gravity', 'gravity'],
+    headerProperty: 'use_gravity',
+    properties: ['gravity'],
   },
   {
     // SCENE_PT_simulation, :320.
@@ -170,5 +173,9 @@ export const order = 40;
  *  object group (Object … Material), then Texture. The presentation draws a
  *  separator wherever this changes. */
 export const railGroup = 'scene';
+/** buttons_context_compute falls back to SCENE when no object context exists.
+ * Keep the remembered tab when valid; otherwise use Blender's scene fallback. */
+export const railDefault = (node: ToolContributionNode | null, adapter: unknown): boolean =>
+  resolveBlenderSubject(node, adapter)?.kind === 'scene';
 export const match = blenderPropertiesTabMatch(TAB);
 export default blenderPropertiesTabSection(TAB);
