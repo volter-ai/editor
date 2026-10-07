@@ -420,6 +420,9 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
         // keys on the listener (`editor-sessions.ts`), so a page that never
         // comes up ends in a named, non-zero failure instead of a lie.
         if (record !== undefined && !record.listenerThisEpoch) return 'arriving';
+        // A blessing held for a claimant that has not beaten back in yet (`blessedByClaim`):
+        // there is no page to refocus, and the claimant is on its way in.
+        if (record === undefined) return 'arriving';
         // A ready blessed page is already on this session's project. Its boot
         // URL may have redirected or gained view parameters; replaying that
         // URL reloads a live editor and discards its current view and Play.
