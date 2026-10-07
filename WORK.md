@@ -527,7 +527,11 @@ Passive refresh retries a refused runtime handoff after sign-in, without reloadi
 Default coding launches still inject no provider settings or account credential.
 Login and install buttons display quoted absolute executable paths. Login uses
 the same resolver as the running harness: `SUPERCODE_BIN`, a source-linked SDK's
-own binary, the installed `@volter/supercode/bin/supercode.js`, then PATH. The terminal
+own binary, the installed `@volter/supercode/bin/supercode.js`, then PATH. A
+`SUPERCODE_BIN` naming the Teams daemon's own per-version core
+(`<teams home>/service/bin/<version>/`, the Teams home resolved as supercode does) is skipped: the daemon sets it for the
+panes it launches, so an editor started from one would otherwise run Chat on whatever
+release the daemon ran when that pane opened. The terminal
 runs that program directly with argument arrays (no interactive shell). Both terminal and inventory process receive the launch Node
 directory, inherited PATH and npm's global bin directory. The install fixes that
 same prefix explicitly, so a new Codex executable is visible to fresh inventory
