@@ -4877,7 +4877,12 @@ def rna_armature_actions():
                         total += float(key.co[0]) * 7.0 + float(key.co[1])
         out.append({"armature": arm.name, "current": current, "actions": sorted(names),
                     "keys": "%d:%.6f" % (keys, total)})
-    return {"armatures": out}
+    scene = bpy.context.scene
+    # THE SCENE'S CLOCK TOO: a reader that skips a re-bind on an unchanged listing must still see
+    # the playhead and range move when an agent sets them.
+    return {"armatures": out, "scene": {"frameCurrent": int(scene.frame_current),
+                                        "frameStart": int(scene.frame_start), "frameEnd": int(scene.frame_end),
+                                        "fps": float(scene.render.fps) / float(scene.render.fps_base or 1.0)}}
 
 
 def rna_action_clip(object_name=None, bake=True, action_name=None):

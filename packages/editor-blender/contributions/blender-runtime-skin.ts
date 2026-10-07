@@ -384,8 +384,12 @@ export class BlenderSkinDirector {
    *  skip the rig read on the edits that touch no rig. */
   stale(presentation: SkinPresentation): boolean {
     if (this.#rigs.size === 0) return true;
-    for (const rig of this.#rigs.values())
+    for (const rig of this.#rigs.values()) {
       if (presentation.objectForBlenderName(rig.object) !== rig.mesh) return true;
+      // A redraw that kept the object but replaced its geometry (a weight or mesh edit with the same
+      // vertex count) leaves the skinned mesh without its skin attributes.
+      if (!rig.mesh.geometry.getAttribute('skinIndex')) return true;
+    }
     return false;
   }
 

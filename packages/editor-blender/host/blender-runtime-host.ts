@@ -685,7 +685,7 @@ export async function blenderActionClip(options?: {
 }
 
 /** Every armature and the actions that can play on it, for Play's clip library. Never starts the engine. */
-export async function blenderArmatureActions(): Promise<{ armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[] } | null> {
+export async function blenderArmatureActions(): Promise<{ armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[]; scene?: { frameCurrent: number; frameStart: number; frameEnd: number; fps: number } } | null> {
   if (!blenderSessionStarted()) return null;
   return blenderRuntime().armatureActions();
 }

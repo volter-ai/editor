@@ -103,6 +103,8 @@ interface Armature {
   readonly clips: Map<string, THREE.AnimationClip>;
   /** Bakes in flight, by action name. */
   readonly baking: Map<string, Promise<void>>;
+  /** Actions whose bake gave nothing to play: asked once, never re-baked every update. */
+  readonly failed: Set<string>;
   current: { readonly name: string; readonly action: THREE.AnimationAction } | null;
   /** The action most recently set, which a bake in flight starts when it lands. */
   wanted: { readonly name: string; readonly options: PlayAnimateOptions } | null;
@@ -140,7 +142,7 @@ export function bindPlayAnimation(presentation: SkinPresentation, library: PlayC
       const built = toClip(action, clip, bones);
       if (built) clips.set(action, built);
     }
-    armatures.set(name, { name, object, mixer: new THREE.AnimationMixer(object), names: actions, bones, clips, baking: new Map(), current: null, wanted: null });
+    armatures.set(name, { name, object, mixer: new THREE.AnimationMixer(object), names: actions, bones, clips, baking: new Map(), failed: new Set(), current: null, wanted: null });
   }
   const objectArmature = new Map<THREE.Object3D, Armature>();
   for (const armature of armatures.values()) objectArmature.set(armature.object, armature);
@@ -192,6 +194,7 @@ export function bindPlayAnimation(presentation: SkinPresentation, library: PlayC
       const armature = armatureOf(object);
       if (!armature) return { ok: false, why: `${object.name || 'this object'} has no armature with actions` };
       if (!armature.names.includes(clip)) return { ok: false, why: `${armature.name} has no action "${clip}"; it has ${armature.names.join(', ')}` };
+      if (armature.failed.has(clip)) return { ok: false, why: `${armature.name}'s action "${clip}" has nothing this armature can play (see the console)` };
       armature.wanted = { name: clip, options };
       if (!armature.clips.has(clip)) {
         // FIRST USE: baked now, and started when it lands if it is still the one wanted.
@@ -200,6 +203,10 @@ export function bindPlayAnimation(presentation: SkinPresentation, library: PlayC
             armature.baking.delete(clip);
             const built = baked ? toClip(clip, baked, armature.bones) : null;
             if (built) armature.clips.set(clip, built);
+            else {
+              armature.failed.add(clip);
+              if (armature.wanted?.name === clip) armature.wanted = null;
+            }
             if (built && !disposed && armature.wanted?.name === clip) start(armature, clip, armature.wanted.options);
           }));
         return { ok: true, armature: armature.name };

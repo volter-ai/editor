@@ -1072,7 +1072,7 @@ function BlenderViewportArea({
       void (async () => {
         const listing = await blenderArmatureActions();
         if (!live || !listing?.armatures.length) return;
-        const key = JSON.stringify(listing.armatures);
+        const key = JSON.stringify([listing.armatures, listing.scene ?? null]);
         if (key === boundListing.current && !blenderSkin.stale(view)) return;
         await blenderSkin.bind(view, { rig: () => blenderRig(), clip: () => blenderActionClip() });
         boundListing.current = key;

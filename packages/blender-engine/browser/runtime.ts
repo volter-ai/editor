@@ -434,9 +434,9 @@ export class BlenderRuntime {
   }
 
   /** Every armature and the actions that can play on it, assigned or not (a game's clip library). */
-  async armatureActions(): Promise<{ armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[] }> {
+  async armatureActions(): Promise<{ armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[]; scene?: { frameCurrent: number; frameStart: number; frameEnd: number; fps: number } }> {
     await this.#ready();
-    return (await this.#request({ op: 'armature-actions' })) as { armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[] };
+    return (await this.#request({ op: 'armature-actions' })) as { armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[]; scene?: { frameCurrent: number; frameStart: number; frameEnd: number; fps: number } };
   }
 
   /** Write ONE restriction column (the eye, the render camera, a collection's
