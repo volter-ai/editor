@@ -8,7 +8,7 @@ import { resolveProductForProject } from '@volter/editor-sdk/session/product-loc
 import { resolveWorkbenchForProject, workbenchUrl } from '@volter/editor-sdk/session/workbench-locator';
 import { announceEditorLaunch, waitForPendingEditorLaunch } from '@volter/editor-sdk/session/registry-format';
 import { allocateWorktreeEditorPort, resolveEditorPortPreference } from './project-editor-port';
-import { verifiedSessions, requestEditorTabEnsure, waitForSessionWorkbench, waitForVerifiedEditorOpen } from './editor-sessions';
+import { fetchEditorState, verifiedSessions, requestEditorTabEnsure, waitForSessionWorkbench, waitForVerifiedEditorOpen } from './editor-sessions';
 import { classifyProjectSession } from './session-resolution';
 import { loopbackPortFree } from './loopback-port';
 import { waitForOwnEditorServer, describeEditorBootFailure, DEFAULT_EDITOR_BOOT_TIMEOUT_MS, type ChildExitStatus } from './editor-boot';
@@ -131,40 +131,85 @@ export async function prepareSession(folder: string, launching: LaunchingProduct
  */
 async function refuseIncompatibleProject(serverUrl: string, command: string, noOpen: boolean): Promise<void> {
   type Refusal = { error?: unknown; recovery?: { kind?: unknown; guidance?: unknown; verbs?: unknown } };
-  let refusal: Refusal | null = null;
-  try {
-    const response = await fetch(`${serverUrl}/__editor/state`, { signal: AbortSignal.timeout(5000) });
-    if (response.ok) refusal = ((await response.json()) as { projectCompatibility?: Refusal | null }).projectCompatibility ?? null;
-  } catch {
-    // An unreadable answer is not a refusal; the tab wait below still reports a page that fails.
-    return;
+  const read = async (): Promise<Refusal | null> => {
+    try {
+      const response = await fetch(`${serverUrl}/__editor/state`, { signal: AbortSignal.timeout(5000) });
+      if (!response.ok) return null;
+      const refusal = ((await response.json()) as { projectCompatibility?: Refusal | null }).projectCompatibility ?? null;
+      return refusal && typeof refusal.error === 'string' ? refusal : null;
+    } catch {
+      // An unreadable answer is not a refusal; the tab wait below still reports a page that fails.
+      return null;
+    }
+  };
+  let refusal = await read();
+  // EVERY VERDICT REFUSES, not only the project's (the engine pin). A server-staleness verdict
+  // (`retry-editor`, `restart-editor`) can be a dev host's restart in flight, so it is re-read for
+  // a bounded moment first; one that outlives the restart window is as final as the pin, and
+  // until 2026-10-06 it too exited 0 under `--no-open`.
+  const projectVerdict = (verdict: Refusal) =>
+    verdict.recovery?.kind === 'use-compatible-editor' || verdict.recovery?.kind === 'upgrade-project';
+  const settleBy = Date.now() + STALE_VERDICT_SETTLE_MS;
+  while (refusal && !projectVerdict(refusal) && Date.now() < settleBy) {
+    await new Promise((r) => setTimeout(r, 1000));
+    refusal = await read();
   }
-  if (!refusal || typeof refusal.error !== 'string') return;
-  // Only the PROJECT's verdicts (the engine pin). A server-staleness verdict can be a dev host's
-  // restart in flight, which the tab wait below already rides out.
-  const kind = refusal.recovery?.kind;
-  if (kind !== 'use-compatible-editor' && kind !== 'upgrade-project') return;
+  if (!refusal) return;
+  const message = refusal.error as string;
   const guidance = typeof refusal.recovery?.guidance === 'string' ? refusal.recovery.guidance : null;
   const verbs: unknown = refusal.recovery?.verbs;
   const run = (Array.isArray(verbs) ? verbs : []).filter((verb): verb is string => typeof verb === 'string')
     .map((verb) => `${command} ${verb}`).join(' && ');
+  // A message that already names its fix (the engine pin's does) is not followed by the same
+  // command a second time — `AppRoot`'s console line dedupes the same way.
+  const named = run !== '' && (message.includes(run) || !!guidance?.includes(run));
   if (!noOpen) await requestEditorTabEnsure(serverUrl, true);
   throw new Error([
-    `This session cannot open the project: ${refusal.error}`,
+    `This session cannot open the project: ${message}`,
     ...(guidance ? [guidance] : []),
-    ...(run ? [`Run from the project folder:\n  ${run}`] : []),
+    ...(run && !named ? [`Run from the project folder:\n  ${run}`] : []),
     `The session is still running at the URL above; after the fix, press Retry on its page, or run \`${command} edit .\` again.`,
   ].join('\n\n'));
 }
+
+/** How long a server-staleness verdict is re-read before `edit` calls it final: a dev host's
+ *  source-change restart hands over within a few seconds (`restartPendingSessionHint`'s window). */
+const STALE_VERDICT_SETTLE_MS = 15_000;
 
 async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   const openAttemptAt = Date.now();
   const result = await requestEditorTabEnsure(serverUrl, !noOpen);
   if (result === 'unsupported') throw new Error(`Session ${serverUrl} could not ensure its tab.`);
-  if (noOpen) return;
+  if (noOpen) {
+    // NO TAB IS OPENED, BUT ONE MAY ALREADY BE THERE (an attach to a session with its tab up),
+    // and a page that refused to start has said so in the console ledger. That is a failure this
+    // command can know about, so it is one it reports, rather than printing the URL and exit 0.
+    const refused = await startupRefusals(serverUrl);
+    if (refused.length > 0)
+      throw new Error(`The session's open page did not start:\n${refused.map((message) => `  ${message}`).join('\n')}`);
+    return;
+  }
   if (result === 'disabled') throw new Error('This session was started with automatic tab opening disabled; open its printed URL.');
-  const outcome = await waitForVerifiedEditorOpen(serverUrl, { openAttemptAt,
-    onProgress: ms => console.log(`Waiting for the editor page (${Math.round(ms / 1000)}s)…`) });
+  // A PAGE THAT HAS REFUSED IS AN ANSWER, not a page still loading: a refused startup never
+  // attaches its command listener, so the wait below would sit out its whole budget (two
+  // minutes) before saying what the page said in its first second.
+  let settled = false;
+  const refusal = (async (): Promise<string[]> => {
+    while (!settled) {
+      await new Promise((r) => setTimeout(r, 2000));
+      if (settled) break;
+      const refused = await startupRefusals(serverUrl);
+      if (refused.length > 0) return refused;
+    }
+    return [];
+  })();
+  const outcome = await Promise.race([
+    waitForVerifiedEditorOpen(serverUrl, { openAttemptAt,
+      onProgress: ms => console.log(`Waiting for the editor page (${Math.round(ms / 1000)}s)…`) }),
+    refusal.then((refused) => (refused.length > 0 ? { status: 'refused' as const, refused } : new Promise<never>(() => {}))),
+  ]).finally(() => { settled = true; });
+  if (outcome.status === 'refused')
+    throw new Error(`Editor page did not start:\n${outcome.refused.map((message) => `  ${message}`).join('\n')}`);
   if (outcome.status !== 'connected') {
     // A page that arrived and refused to start says why in the session's console ledger (a pinned
     // engine version, a failed startup): print that, not only where to look.
@@ -176,9 +221,18 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   }
 }
 
+/** The startup refusals (`Startup failed: …`, `AppRoot`'s console line) of the page now open —
+ *  `[]` while any tab is command-ready, since a page that got past its refusal (Retry after the
+ *  fix) keeps the old line in its load's ledger but is no longer refusing. */
+export async function startupRefusals(serverUrl: string): Promise<string[]> {
+  const state = await fetchEditorState(serverUrl);
+  if (state.tabs.some((tab) => tab.commandListener === 'ready')) return [];
+  return (await currentPageErrors(serverUrl)).filter((message) => message.startsWith('Startup failed'));
+}
+
 /** The console errors the page now open recorded (acknowledged or not: an error seen before and
  *  acknowledged is still this page's answer), newest last; `[]` when the ledger cannot be read. */
-async function currentPageErrors(serverUrl: string): Promise<string[]> {
+export async function currentPageErrors(serverUrl: string): Promise<string[]> {
   try {
     const response = await fetch(new URL('/__editor/console?all=1', serverUrl), { signal: AbortSignal.timeout(3000) });
     if (!response.ok) return [];

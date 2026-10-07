@@ -445,7 +445,7 @@ export function BlenderGamePanel() {
       ? `No play script yet — Play runs ${scriptPath}. \`volter-model-editor add-play\` adds an example.`
       : playing && clock.failure
         // The run plays but no game runs (`DocumentPlayClock.failure`): say so, not "Playing".
-        ? `Not running — ${clock.failure}. Save the script to retry, or Stop.`
+        ? `Not running — ${clock.failure.replace(/\.$/, '')}. Restart (or save the script) to retry, or Stop.`
         : playing
         ? `${clock.paused ? 'Paused' : 'Playing'} ${scriptPath ?? ''}`.trim()
         : scriptPath === null ? 'Stopped.' : `Stopped · Play runs ${scriptPath}`;

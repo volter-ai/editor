@@ -43,5 +43,51 @@ export async function play(args: readonly string[], document?: string): Promise<
   } else usage();
   if (document !== undefined) commandArgs = { ...commandArgs, document };
   const { editor } = await connect();
-  return editor.command(`volter.model-play.${verb}`, commandArgs);
+  const answer = await editor.command(`volter.model-play.${verb}`, commandArgs);
+  if (verb !== 'play' && verb !== 'restart') return answer;
+  return startedOrRefused(answer, (args) => editor.command('volter.model-play.state', args));
+}
+
+/** How long `play play` / `play restart` wait for the game to start: a cold rendered stage
+ *  compiles its shaders on the first draw, which takes seconds, never this long. */
+const START_BUDGET_MS = 30_000;
+
+interface PlayState {
+  readonly document?: string;
+  readonly playing?: boolean;
+  readonly clock?: { readonly failure?: string | null; readonly running?: boolean };
+}
+
+/**
+ * A PLAY THAT DID NOT START IS A FAILED COMMAND. The verb answers the moment Play is switched
+ * on, and the game starts frames later, so until 2026-10-06 `play play` printed `playing: true`
+ * and exited 0 for a script that never started — the reason only a toast in the tab and a line
+ * in the play log. So the run is read until it says: `running` (the game's first update ran),
+ * or `failure` (why not), or Play went off. A refusal exits 1 with the reason and where to read
+ * more. A tool that predates `running` can only be read for a failure.
+ */
+async function startedOrRefused(first: unknown, state: (args: Record<string, unknown>) => Promise<unknown>): Promise<unknown> {
+  let current = first as PlayState;
+  const documentId = current.document;
+  const args = documentId === undefined ? {} : { document: documentId };
+  const knowsRunning = typeof current.clock?.running === 'boolean';
+  const deadline = Date.now() + (knowsRunning ? START_BUDGET_MS : 3_000);
+  for (;;) {
+    const failure = current.clock?.failure;
+    if (typeof failure === 'string' && failure !== '')
+      throw new Error(
+        `Play did not start: ${failure}\n` +
+          `The play log has the entry: volter-model-editor play-log --kind script-error${documentId ? ` --document ${documentId}` : ''}`,
+      );
+    if (current.playing === false) throw new Error('Play switched itself off before a game started; `volter-model-editor console` says why.');
+    if (current.clock?.running === true || Date.now() >= deadline) break;
+    await new Promise((resolve) => setTimeout(resolve, 250));
+    current = (await state(args)) as PlayState;
+  }
+  if (knowsRunning && current.clock?.running !== true)
+    throw new Error(
+      `Play is on, but no game has started after ${START_BUDGET_MS / 1000}s and nothing has said why. ` +
+        '`volter-model-editor play state` reads it again; `volter-model-editor console` has what the tab reported.',
+    );
+  return current;
 }

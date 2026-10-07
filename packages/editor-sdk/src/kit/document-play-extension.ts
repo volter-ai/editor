@@ -43,6 +43,11 @@ export interface DocumentPlayClock {
   /** While playing with no game running because the script failed to start or threw: why. The
    *  run stays playing (a save of the script retries it); a running game clears it. */
   readonly failure?: string | null;
+  /** A game has started in this run and is running (its first update ran). False while the run
+   *  is still preparing, and while it plays with a `failure`. Absent from a tool that predates
+   *  it, which cannot say. A reader that must know whether Play WORKED (the CLI's `play`) waits
+   *  for this or for `failure`, never for "playing" alone. */
+  readonly running?: boolean;
 }
 /**
  * THE GAME'S TRANSPORT — what a Play tool offers beyond Play and Stop, for a layout that draws a
@@ -63,6 +68,13 @@ export interface DocumentPlayTransport {
   setSpeed(documentId: string, speed: number): void;
   /** Begin the run again on a FRESH detached copy, the clock at zero. */
   restart(documentId: string): void;
+  /**
+   * THE DOCUMENT COULD NOT LEND A STAGE (its rendered draw failed to prepare), so no runner
+   * ever started. The run stays playing with `failure` on the clock and a `script-error` entry
+   * (phase `stage`) in the play log, so the Game panel and `play-log` say why; Stop ends it and
+   * Restart tries again. Absent, the document stops the play and reports by notification.
+   */
+  fail?(documentId: string, sourcePath: string, failure: string): void;
   /** Changes on every restart. The document that lends the stage keys its detached copy on it,
    *  so a new generation is a new copy; the change is announced through `subscribe`. */
   generation(documentId: string): number;

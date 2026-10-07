@@ -100,7 +100,7 @@ try {
     await prepareSession(folder, PRODUCT);
   } else if (verb === 'open') {
     if (positionals.length !== 2) throw new Error('Usage: volter-game-editor open <path>');
-    await openProject(positionals[1]!);
+    await openProject(positionals[1]!, PRODUCT.command);
   } else if (verb === 'console' && positionals[1] === 'ack') {
     if (positionals.length !== 3 || !values.reason?.trim()) throw new Error('Usage: volter-game-editor console ack <id> --reason <text>');
     await control(PRODUCT.command, 'console-ack', positionals[2], values.reason);

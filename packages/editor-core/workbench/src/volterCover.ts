@@ -126,7 +126,14 @@ export class VolterOpeningCover {
 	 * which is also what guarantees a Dismiss exists no matter what a product rendered.
 	 */
 	fail(message: string): void {
-		if (this.removed || this.element.classList.contains('volter-opening-cover-failed')) { return; }
+		if (this.removed) { return; }
+		// A SECOND REFUSAL REPLACES THE FIRST, never queues behind it: the open's deadline can
+		// fire first and the editor's own reason arrive after, and the reason is the better
+		// sentence. The Dismiss already drawn stays.
+		if (this.element.classList.contains('volter-opening-cover-failed')) {
+			if (this.state) { this.state.textContent = message; }
+			return;
+		}
 		this.productCover?.dispose();
 		this.productCover = undefined;
 		this.element.classList.remove('volter-opening-cover-product');

@@ -92,6 +92,15 @@ import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-s
 import { surfaceAcceptsKey } from '@volter/editor-sdk/kit/surface-keyboard';
 import { BlenderModelOpening } from './blender-model-opening';
 import { modelOpeningErrorMessage } from '../src/model-opening-error';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
+import { clearStartupFailure, reportStartupFailure } from '@volter/editor-sdk/kit/startup-failure';
+
+/** This document's model open, as a source in the page's startup-failure registry. */
+const MODEL_OPEN_STARTUP_SOURCE = 'blender-model-open';
+/** How long "Opening model…" may stand before the pane says it is stuck: past the product
+ *  cover's own 90 s budget for the first model, so the two never race on a cold boot. */
+const MODEL_OPEN_DEADLINE_MS = 120_000;
 import {
   clearModelDocumentPreview,
   modelDocumentPreview,
@@ -305,18 +314,23 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     const documents = editorHost().documents;
     let starting = false;
     let finished = false;
+    let declined = false;
+    const path = blend ?? 'the model';
     const open = async () => {
-      if (cancelled || starting || finished || (binding && !modelDocumentMayOpen(binding))) return;
+      if (cancelled || starting || finished) return;
+      if (binding && !modelDocumentMayOpen(binding)) { declined = true; return; }
       starting = true;
+      declined = false;
       try {
         if (binding) {
-          if (!await openModelDocumentBlend(binding, publish)) return;
+          if (!await openModelDocumentBlend(binding, publish)) { declined = true; return; }
         } else {
           // The standing Model document is the explicit blender-start target.
           publish();
         }
         if (!cancelled) {
           finished = true;
+          clearStartupFailure(MODEL_OPEN_STARTUP_SOURCE);
           setOpened({ key, error: null });
         }
       } catch (error) {
@@ -327,11 +341,33 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
         const detail = error instanceof Error ? error.message : String(error);
         setOpened({ key, error: detail });
         editorHost().console.error(detail, 'blender-open');
-        callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${blend ?? 'the model'}`, detail: modelOpeningErrorMessage(detail) });
+        callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${path}`, detail: modelOpeningErrorMessage(detail) });
+        // AND TO THE PRODUCT'S COVER, which is still up while the first model opens and
+        // would otherwise go on saying "Opening the first model…" over this pane's error
+        // until its own budget ran out. After the cover has lifted, this changes nothing.
+        reportStartupFailure(MODEL_OPEN_STARTUP_SOURCE, {
+          message: `Blender could not open ${path}: ${detail}`,
+          guidance: `${modelOpeningErrorMessage(detail)} Dismiss this to reach the model's Retry.`,
+          command: null,
+        });
       } finally {
         starting = false;
       }
     };
+    // "OPENING MODEL…" HAS A DEADLINE (2026-10-06 audit: the engine's worker calls carry no
+    // per-call timeout, and a declined open left this pane on "Opening model" indefinitely).
+    // Past it the pane says so, with what it knows — still working, or declined because
+    // another model holds the engine — and offers Retry. The open is not cancelled: if it
+    // finishes after all, the model replaces the message.
+    const stall = setTimeout(() => {
+      if (cancelled || finished) return;
+      const seconds = Math.round(MODEL_OPEN_DEADLINE_MS / 1000);
+      const detail = declined
+        ? `Blender has not opened ${path} after ${seconds}s: the engine is holding another model, and this one waits for it. Switch to that model and back, or press Retry.`
+        : `Blender has not finished opening ${path} after ${seconds}s. It may still finish (the model will replace this); if it does not, press Retry, and ${commandLine('status')} shows what the engine is busy with.`;
+      setOpened({ key, error: detail });
+      editorHost().console.error(detail, 'blender-open');
+    }, MODEL_OPEN_DEADLINE_MS);
     // Opening publishes context to other React roots. Start outside this
     // effect (or a host activation listener's synchronous notification stack)
     // so those roots cannot synchronously commit through a pending commit here.
@@ -345,6 +381,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     requestOpen();
     return () => {
       cancelled = true;
+      clearTimeout(stall);
       unsubscribe();
       unpublish?.();
       unbind();
@@ -610,6 +647,18 @@ function BlenderModelViewport(props: ToolContributionProps) {
           </div>
         </div>
       )}
+      {game && failure !== null && (
+        // A PLAY WITH NO GAME, said over the area itself. When the script did not start (or the
+        // stage could not be prepared) the game never draws and the model area stays in front,
+        // so the area looked like plain editing while Play was on and the reason was a toast
+        // that had already gone (2026-10-06 audit). The Game panel says the same in its line.
+        <div key="play-failure" role="alert" data-testid="blender-play-failure"
+          style={{ position: 'absolute', left: 24, right: 24, top: 24, zIndex: 4, padding: `${spaceVar[2]} ${spaceVar[3]}`,
+            background: themeVars.surface.chrome, border: `1px solid ${themeVars.semantic.danger}`, borderRadius: themeVars.shape.small,
+            color: themeVars.content.primary, fontSize: fontSizeVar.sm, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', userSelect: 'text' }}>
+          <strong style={{ color: themeVars.semantic.danger }}>Play is not running.</strong> {failure} Restart (or save the script) to try again, or Stop.
+        </div>
+      )}
       {game && restartStill !== null && (
         <div key="restart-still" style={{ position: 'absolute', inset: 12, containerType: 'size', zIndex: 3, pointerEvents: 'none' }} data-testid="blender-play-restart-still">
           <img alt="" src={restartStill} style={{ ...playFrame, display: 'block', objectFit: 'fill' }} />
@@ -843,8 +892,17 @@ function BlenderViewportArea({
         }) ?? null;
       }, error => {
         if (stopped) return;
-        editorHost().console.error(`Rendered stage preparation failed: ${String(error)}`, 'model-play');
-        documentPlayExtension('model')?.setPlaying(modelId, false);
+        const failure = `The game's stage could not be prepared for a rendered draw: ${error instanceof Error ? error.message : String(error)}`;
+        editorHost().console.error(failure, 'model-play');
+        // SAID WHERE THE PERSON IS LOOKING: on the run's clock, which the Game panel and the
+        // play area draw, and in the play log. Turning Play off (what this did until
+        // 2026-10-06) erased the only trace a person could have seen.
+        const extension = documentPlayExtension('model');
+        if (extension?.transport?.fail) extension.transport.fail(modelId, blend, failure);
+        else {
+          notifyRef.current?.({ tone: 'error', title: 'Play could not start', detail: failure });
+          extension?.setPlaying(modelId, false);
+        }
       });
     };
     start();

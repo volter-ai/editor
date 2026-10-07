@@ -467,7 +467,8 @@
     "./kit/world-adoption": "./src/kit/world-adoption.ts",
     "./kit/world-document-routing": "./src/kit/world-document-routing.ts",
     "./kit/document-play-extension": "./src/kit/document-play-extension.ts",
-    "./kit/project-play-layers": "./src/kit/project-play-layers.ts"
+    "./kit/project-play-layers": "./src/kit/project-play-layers.ts",
+    "./kit/startup-failure": "./src/kit/startup-failure.ts"
   },
   "dependencies": {
     "@codemirror/commands": "6.10.4",

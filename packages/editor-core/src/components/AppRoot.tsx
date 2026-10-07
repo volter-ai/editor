@@ -24,6 +24,11 @@
  */
 
 import { commandLine, commandSequence } from '@volter/editor-sdk/kit/product-command';
+import {
+  clearStartupFailure,
+  reportStartupFailure,
+  type StartupFailureNotice,
+} from '@volter/editor-sdk/kit/startup-failure';
 import { editorDocumentTitle } from '@volter/editor-sdk/session/editor-brand';
 import {
   ProjectCompatibilityError,
@@ -93,6 +98,19 @@ class EditorRuntimeBoundary extends Component<
       `Editor chrome crashed while the command listener stayed attached: ${error.message}\n${info.componentStack ?? ''}`,
       'editor',
     );
+    // A crash while the product's cover is still up (the editor is ready, the
+    // product's first document is not) draws this screen UNDER the cover, so it
+    // is published like any other startup failure. After the cover has lifted
+    // the cover ignores it, and this screen is what the person sees.
+    reportStartupFailure('editor-surface', {
+      message: `The editor surface crashed: ${error.message}`,
+      guidance: 'Dismiss this, then press Retry on the error screen to draw the editor again.',
+      command: null,
+    });
+  }
+
+  override componentWillUnmount(): void {
+    clearStartupFailure('editor-surface');
   }
 
   override render(): ReactNode {
@@ -100,7 +118,10 @@ class EditorRuntimeBoundary extends Component<
     return (
       <StartupErrorScreen
         error={{ message: `The editor surface crashed: ${this.state.error.message}` }}
-        onRetry={() => this.setState({ error: null })}
+        onRetry={() => {
+          clearStartupFailure('editor-surface');
+          this.setState({ error: null });
+        }}
       />
     );
   }
@@ -198,39 +219,20 @@ export function createFromParam(search: string): string | null {
 /** Attempts before a still-retrying detection reports itself to the console. */
 const PROJECT_DETECTION_REPORT_AFTER = 3;
 
-/**
- * A TERMINAL startup failure, as the FRAME needs it: the product's loading
- * cover sits over this whole tree (`volterCover.ts`, z-index above every part),
- * so the error screen AppRoot renders is underneath it and nobody sees it.
- * Measured on the owner's stream 2026-10-06: a pinned-engine refusal rendered
- * here while the cover said "Starting Blender…" with a moving bar forever —
- * the cover waits for the workspace to restore, and a project that never opens
- * never restores. So the failure is published, and the bridge hands it to the
- * cover (`mountEditor`'s `startup` door), which replaces its splash with it.
- */
-export interface StartupFailureNotice {
-  readonly message: string;
-  readonly guidance: string | null;
-  /** The recovery as one pasteable line (`commandSequence`), when it has verbs. */
-  readonly command: string | null;
+function noProjectMessage(): string {
+  return (
+    'This window has no project open. A session serves one project: open a folder ' +
+    `that carries a volter.project.json, or start one from a terminal — ${commandLine('edit <folder>')}.`
+  );
 }
 
-let startupFailureNotice: StartupFailureNotice | null = null;
-const startupFailureListeners = new Set<(notice: StartupFailureNotice | null) => void>();
+/** This tree's own startup failures, under one source in the page's registry
+ *  (`@volter/editor-sdk/kit/startup-failure`, which the frame's cover hears). */
+const STARTUP_SOURCE = 'editor';
 
 function publishStartupFailure(notice: StartupFailureNotice | null): void {
-  if (notice === startupFailureNotice) return;
-  startupFailureNotice = notice;
-  for (const listener of startupFailureListeners) listener(notice);
-}
-
-/** Hear this page's terminal startup failure — at once if it already happened. */
-export function subscribeStartupFailure(
-  listener: (notice: StartupFailureNotice | null) => void,
-): () => void {
-  startupFailureListeners.add(listener);
-  if (startupFailureNotice) listener(startupFailureNotice);
-  return () => startupFailureListeners.delete(listener);
+  if (notice) reportStartupFailure(STARTUP_SOURCE, notice);
+  else clearStartupFailure(STARTUP_SOURCE);
 }
 
 export function AppRoot() {
@@ -274,6 +276,10 @@ export function AppRoot() {
             publishStartupFailure(null);
             setState({ status: 'ready', project });
           } else {
+            // A page with no project is a dead end too, and the cover is over it.
+            const message = noProjectMessage();
+            editorConsole.error(`Startup failed: ${message}`, 'editor');
+            publishStartupFailure({ message, guidance: null, command: null });
             setState({ status: 'no-project' });
           }
         },
@@ -325,6 +331,17 @@ export function AppRoot() {
               `Project detection has failed ${failures} times and is still retrying: ${reason}`,
               'editor',
             );
+          }
+          // AND TO THE PERSON: the waiting clock and the reason are drawn by
+          // the loading screen, which is under the product's cover. From the
+          // same attempt on, the cover carries them instead; a later success
+          // clears it, so a slow cold boot that does finish lifts as usual.
+          if (failures >= PROJECT_DETECTION_REPORT_AFTER) {
+            publishStartupFailure({
+              message: `The editor has not been able to read this project after ${failures} attempts (${Math.round((Date.now() - startedAt) / 1000)}s), and is still trying: ${reason}`,
+              guidance: `If it does not recover, ${commandLine('status')} says what the session knows, and the session log is in the project's logs/ folder.`,
+              command: null,
+            });
           }
           setState({
             status: 'detecting',
@@ -408,11 +425,7 @@ export function AppRoot() {
     return (
       <EditorSurface>
         <StartupErrorScreen
-          error={{
-            message:
-              'This window has no project open. A session serves one project: open a folder ' +
-              `that carries a volter.project.json, or start one from a terminal — ${commandLine('edit <folder>')}.`,
-          }}
+          error={{ message: noProjectMessage() }}
           onRetry={() => setDetectionAttempt((attempt) => attempt + 1)}
         />
       </EditorSurface>

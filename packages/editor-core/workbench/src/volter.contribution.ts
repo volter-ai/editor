@@ -195,7 +195,7 @@ let sessionTab: Promise<string> | undefined;
 function connectSessionTab(fileService: IFileService, workspaceService: IWorkspaceContextService, workspaceTrust: IWorkspaceTrustManagementService): Promise<string> {
 	if (!sessionTab) {
 		sessionTab = (async () => {
-			const sessionOrigin = await resolveSessionOrigin(fileService, workspaceService);
+			const sessionOrigin = await resolveSessionOrigin(fileService, workspaceService, product?.command);
 			installSessionOriginShim(sessionOrigin);
 			// BEFORE the bootstrap: assigning `script.src` is a TrustedScriptURL
 			// sink on this page (`volterSessionOrigin.ts` states the measurement).
@@ -450,17 +450,48 @@ const keyboardStore = new DisposableStore();
 
 /**
  * THE PRODUCT'S COVER over this open (`volterCover.ts`). Raised by `VolterSessionTab` at the first
- * moment the workspace folder is known and taken away by whichever outcome arrives first —
- * there is deliberately no timer here that decides one for it:
+ * moment the workspace folder is known and taken away by whichever outcome arrives first:
  *
- *   * this folder has no session   → `VolterSessionTab`'s rejection removes it (an ordinary
- *                                    workbench on an ordinary folder, which is the truth)
  *   * this folder is not a project → `VolterProjectAutoOpen` removes it (nothing of ours will run)
+ *   * a project with no session    → the mount command FAILS it with the reason and the command
+ *                                    that starts one (until 2026-10-06 `VolterSessionTab`'s
+ *                                    rejection removed it, and the reason reached nobody)
  *   * the person declines trust    → the mount command removes it (the workbench is what is left)
  *   * the editor mounts            → the mount command removes it
  *   * the open refuses or throws   → the cover SAYS SO and grows a way out
+ *   * the editor reports a startup failure → the cover says that, in the editor's words
+ *   * the open outlives {@link OPEN_DEADLINE_MS} → the cover says which step it still waits on
  */
 let cover: VolterOpeningCover | undefined;
+
+/**
+ * HOW LONG THE OPEN MAY TAKE before the cover says it is stuck — up to the product's `ready`,
+ * which bounds its own wait. Until 2026-10-06 nothing did: the open awaited the editor's
+ * workspace restore with no deadline, so any step that never finished (a serving door that
+ * never answered, a module that never loaded, a workspace that never restored) left the
+ * product's splash running forever with its cause nowhere. 120 s is the editor's `edit`
+ * command's own budget for the page coming up (`waitForVerifiedEditorOpen`), so a cold Vite
+ * boot that `edit` would still wait for is not called stuck here first.
+ *
+ * IT DOES NOT CANCEL THE OPEN. Nothing has refused, so the open carries on and the cover still
+ * lifts if it finishes; the cover only stops presenting the wait as normal.
+ */
+const OPEN_DEADLINE_MS = 120_000;
+/** The step the open is waiting on now, named for the deadline's sentence. */
+let openStep = '';
+/** Whether the editor's own startup failure stands: the deadline's guess must never replace
+ *  the editor's reason on the cover. */
+let startupRefused = false;
+
+/** A refusal's message and its fix, without the command twice when the message or guidance
+ *  already names it (the engine pin's does — `AppRoot`'s console line dedupes the same way). */
+function startupRefusalText(failure: { message: string; guidance: string | null; command: string | null }): string {
+	const named = (text: string | null) => !!failure.command && !!text?.includes(failure.command);
+	const run = failure.command && !named(failure.message) && !named(failure.guidance)
+		? localize('volterStartupRun', "Run from the project folder:\n{0}", failure.command)
+		: null;
+	return [failure.message, failure.guidance, run].filter(Boolean).join('\n\n');
+}
 
 function hostedSlot(parentSelector: string, className: string): HTMLElement {
 	const parent = mainWindow.document.querySelector<HTMLElement>(parentSelector);
@@ -548,6 +579,13 @@ registerAction2(class extends Action2 {
 				return;
 			}
 		}
+		// THE OPEN'S DEADLINE ({@link OPEN_DEADLINE_MS}): past it, the cover names the step still
+		// pending and where to look, unless the editor has already said why it stopped.
+		openStep = localize('volterStepLayout', "the workbench layout");
+		const deadline = mainWindow.setTimeout(() => {
+			if (startupRefused) { return; }
+			cover?.fail(localize('volterOpenStuck', "{0} has not opened after {1}s: it is still waiting for {2}.\n\nNothing has refused, so the open goes on and this lifts if it finishes. `{3} status` says what the session knows; the session's log is in the project's logs folder.", product.title, Math.round(OPEN_DEADLINE_MS / 1000), openStep, product.command));
+		}, OPEN_DEADLINE_MS);
 		try {
 			// Discard only upstream's onboarding, including a restored Welcome tab.
 			await editorService.closeEditors(editorService.getEditors(EditorsOrder.SEQUENTIAL).filter(({ editor }) => editor.typeId === GettingStartedInput.ID));
@@ -584,6 +622,7 @@ registerAction2(class extends Action2 {
 					}
 				}
 			}
+			openStep = localize('volterStepParts', "the editor's panes to be laid out");
 			await waitForParts(['center'], 8000);
 			if (firstLayout) {
 				const sidebar = layoutService.getSize(Parts.SIDEBAR_PART);
@@ -607,6 +646,7 @@ registerAction2(class extends Action2 {
 					// `.volter/session.json` names on desktop), points this page's root-relative
 					// URLs there, installs the session's tab bootstrap and records the trust
 					// the session implies.
+					openStep = localize('volterStepSession', "the Volter session to answer this window");
 					const sessionOrigin = await connectSessionTab(fileService, workspaceService, workspaceTrust);
 					// THE EDITOR IS THE SESSION'S, and the session says where: its serving door
 					// (`/__editor/served-modules`) hands back the url of its own frame entry,
@@ -614,6 +654,7 @@ registerAction2(class extends Action2 {
 					// declares anything and nothing is copied — the door answers with the module
 					// the session is already serving.
 					const doorUrl = `${sessionOrigin}/__editor/served-modules`;
+					openStep = localize('volterStepDoor', "the session's serving door ({0})", doorUrl);
 					const door = await fetch(doorUrl, { headers: { accept: 'application/json' } });
 					if (!door.ok) { throw new Error(`the Volter session's serving door answered ${door.status} at ${doorUrl}`); }
 					const served = await door.json() as { modules: { id: string; url: string }[]; refusals?: { id: string | null; message: string }[] };
@@ -625,7 +666,9 @@ registerAction2(class extends Action2 {
 					const bridgeUrl = `${sessionOrigin}${bridge.url}`;
 					// The serving host owns any development preamble. A packaged product
 					// is a normal ESM entry and has no Vite Fast Refresh endpoint.
+					openStep = localize('volterStepModules', "the editor's modules to load from the session ({0})", bridgeUrl);
 					const mod = await import(bridgeUrl) as BridgeModule;
+					openStep = localize('volterStepMount', "the editor to mount");
 					const mount = await mod.mountVolter(
 						{ chromeRoot, header, center: parts.get('center')!, outliner: parts.get('outliner'), properties: parts.get('properties'), content: parts.get('content') },
 						// The project's state lives in the workbench's WORKSPACE scope, which this
@@ -656,11 +699,15 @@ registerAction2(class extends Action2 {
 					// The cover fails in the editor's words instead. The open is left waiting on
 					// purpose: Dismiss shows the editor's error screen, and its Retry — after the
 					// fix — finishes this same open rather than mounting a second editor.
+					// ANY STARTUP FAILURE, not only the pin's: since 2026-10-06 every part of the boot
+					// publishes into the same door (`@volter/editor-sdk/kit/startup-failure`) — a
+					// project that cannot be read, a page with no project, a crashed surface, a
+					// Blender worker that could not open the model.
 					if (mount.startup) {
 						keyboardStore.add(toDisposable(mount.startup.subscribe(failure => {
+							startupRefused = failure !== null;
 							if (!failure) { return; }
-							const fix = [failure.guidance, failure.command && localize('volterStartupRun', "Run from the project folder:\n{0}", failure.command)].filter(Boolean).join('\n\n');
-							cover?.fail(localize('volterStartupRefused', "{0} did not open.\n\n{1}", product.title, fix ? `${failure.message}\n\n${fix}` : failure.message));
+							cover?.fail(localize('volterStartupRefused', "{0} did not open.\n\n{1}", product.title, startupRefusalText(failure)));
 						})));
 					}
 					// UNDO OWNERSHIP, on the same beat and for the same reason (volterHistory.ts,
@@ -740,6 +787,7 @@ registerAction2(class extends Action2 {
 					const documentsBridge = mount.documents;
 					if (documentsBridge?.setView) { installDocumentViewSink((view, closed) => documentsBridge.setView?.(view, closed)); }
 					keyboardStore.add(instantiationService.createInstance(VolterDocumentViews));
+					openStep = localize('volterStepRestore', "the editor to restore the project's workspace");
 					await documentsBridge?.whenRestored?.();
 					if (mount.documents) { keyboardStore.add(instantiationService.createInstance(VolterDocuments, mount.documents)); }
 					return mount;
@@ -751,6 +799,8 @@ registerAction2(class extends Action2 {
 				mounted.catch(() => { mounted = undefined; });
 			}
 			const mount = await mounted;
+			// The product's `ready` bounds its own wait, in its own words.
+			mainWindow.clearTimeout(deadline);
 			// AND THEN THE PRODUCT DECIDES WHEN IT IS OPEN (`VolterProduct.ready`, owner
 			// 2026-09-21). The bridge mounting means the EDITOR is assembled; it does not
 			// mean the thing a person came to see is on screen. Measured on the model
@@ -771,8 +821,11 @@ registerAction2(class extends Action2 {
 			// notifications are the channel), so a rejected `waitForParts` left a window that
 			// simply never became the editor and never said why. The cover is what says it now,
 			// in the words of whichever step refused, with a way out underneath.
+			mainWindow.clearTimeout(deadline);
 			const message = error instanceof Error ? error.message : String(error);
-			cover?.fail(localize('volterDidNotOpen', "{0} did not open.\n\n{1}", product.title, message));
+			// The editor's own startup reason, when one stands, is the better sentence (a
+			// product's `ready` timing out behind it is a consequence, not the cause).
+			if (!startupRefused) { cover?.fail(localize('volterDidNotOpen', "{0} did not open.\n\n{1}", product.title, message)); }
 			notifications.error(`volter did not mount: ${message}`);
 		}
 	}
@@ -858,6 +911,7 @@ class VolterProjectAutoOpen implements IWorkbenchContribution {
 		@IWorkspaceContextService workspaceService: IWorkspaceContextService,
 		@IFileService fileService: IFileService,
 		@ICommandService commandService: ICommandService,
+		@INotificationService notifications: INotificationService,
 	) {
 		const folder = workspaceService.getWorkspace().folders[0]?.uri;
 		if (!folder) { return; }
@@ -871,11 +925,15 @@ class VolterProjectAutoOpen implements IWorkbenchContribution {
 				return;
 			}
 			await commandService.executeCommand('volter.workspace.open');
-		})().catch(() => {
-			// The command reports its own refusals through the workbench's
-			// notifications and through the cover; a throw here would be a
-			// second, worse channel.
-			cover?.remove();
+		})().catch((error: unknown) => {
+			// The command reports its own refusals through the workbench's notifications and
+			// through the cover. What reaches here escaped it (a throw before its own try, the
+			// trust prompt itself failing), and until 2026-10-06 it took the cover down and said
+			// nothing: a bare workbench on a project, with no reason anywhere. It says why now,
+			// on the cover and in the tray.
+			const message = error instanceof Error ? error.message : String(error);
+			cover?.fail(localize('volterAutoOpenFailed', "{0} did not open.\n\n{1}", product?.title ?? 'Volter', message));
+			notifications.error(`volter did not open this project: ${message}`);
 		});
 	}
 }
@@ -924,12 +982,15 @@ class VolterSessionTab implements IWorkbenchContribution {
 		if (!folder) { return; }
 		cover = raiseOpeningCover(basename(folder));
 		connectSessionTab(fileService, workspaceService, workspaceTrust).catch(() => {
-			// A folder with no live Volter session is an ordinary workbench on an
-			// ordinary folder — so the cover comes down and VS Code's own trust
-			// prompt is left exactly as it is. The mount command is where a
-			// person asking for the editor learns that there is none, in its own
-			// words.
-			cover?.remove();
+			// NOT HERE, and not silently. This used to take the cover down at once — "a folder
+			// with no live session is an ordinary workbench" — and for a folder that is not a
+			// project that is still what happens, by `VolterProjectAutoOpen`, which is the one
+			// reader of `volter.project.json`. For a PROJECT it hid the reason: the cover went,
+			// the open's own retry of this connection failed under it, and its refusal landed
+			// on a cover already removed (2026-10-06 audit, the workbench's
+			// `.catch(()=>{cover.remove()})`). So the cover stays up — below the modal layers,
+			// so VS Code's trust prompt is still readable and clickable over it — and the open
+			// fails it with the reason and the command that starts a session.
 		});
 	}
 }

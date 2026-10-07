@@ -58,7 +58,8 @@ import {
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { subscribeAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
-import { AppRoot, subscribeStartupFailure, type StartupFailureNotice } from '../components/AppRoot';
+import { AppRoot } from '../components/AppRoot';
+import { subscribeStartupFailure, type StartupFailureNotice } from '@volter/editor-sdk/kit/startup-failure';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
 import { Inspector, InspectorShownAsCard } from '@volter/editor-sdk/kit/components/Inspector';
@@ -177,7 +178,9 @@ export interface VolterKeyboardHandle {
     documentKind: string | null;
     play: string;
   };
-  report(level: 'warn' | 'error', message: string): void;
+  /** `notify`: the refusal answers a gesture the person just made (a key, a palette pick), so
+   *  it reaches the tray too even at `warn`. An `error` always does. */
+  report(level: 'warn' | 'error', message: string, options?: { readonly notify?: boolean }): void;
 }
 
 /**
@@ -1239,10 +1242,26 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     // than restating "failed to apply" (`history-service.ts`'s
     // `causeSentence`). A notification per refusal would also fire on every
     // Cmd+Z at the bottom of a stack, which VS Code itself is silent about.
-    report: (level, message) => {
+    //
+    // AND THE TRAY, FOR WHAT THE PERSON HIT (2026-10-06 audit: "settings-apply and keyboard
+    // refusals go to the console only"). An `error` — settings that could not be applied or
+    // written, a file write refused — is a failure of something the person or their project
+    // asked for, and a ledger line they never open is not telling them. A refusal the caller
+    // marks `notify` answers a gesture just made (a key that ran nothing, a palette pick the
+    // editor no longer offers). The rest — "Nothing to undo" at the bottom of a stack — stay
+    // ledger-only, for the reason above.
+    report: (level, message, options) => {
       const door = editorHost();
       if (level === 'error') door.console.error(message, 'editor');
       else door.console.warn(message, 'editor');
+      if (level === 'error' || options?.notify) {
+        const [title, ...rest] = message.split(/(?<=[.:])\s+/);
+        door.notify({
+          tone: level === 'error' ? 'error' : 'warning',
+          title: title ?? message,
+          ...(rest.length > 0 ? { detail: rest.join(' ') } : {}),
+        });
+      }
     },
   };
   // The frame's documents contribution reports the editor its native restoration chose BEFORE it

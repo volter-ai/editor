@@ -143,7 +143,7 @@ export function usesNoPinnedEngineApi(project: ProjectIdentity): boolean {
 
 const EXACT_SEMVER = /^(\d+)\.(\d+)\.(\d+)(?:-[0-9A-Za-z.-]+)?(?:\+[0-9A-Za-z.-]+)?$/;
 
-function compareSemver(a: string, b: string): -1 | 0 | 1 | null {
+export function compareSemver(a: string, b: string): -1 | 0 | 1 | null {
   const aMatch = EXACT_SEMVER.exec(a);
   const bMatch = EXACT_SEMVER.exec(b);
   if (!aMatch || !bMatch) return null;
@@ -284,7 +284,14 @@ export function assertProjectCompatibility(
       {
         kind: 'upgrade-project',
         title: 'Upgrade this project',
-        guidance: `This project targets a newer engine. \`upgrade\` moves its @volter packages to ${projectEngine}; npm install then installs that editor.`,
+        // AND THE CASE `upgrade` CANNOT FIX: the project's packages are already at its pin,
+        // and what is running is an older editor from somewhere else (a global install, another
+        // checkout). `upgrade` then says "already on" and stops, so the guidance names the way
+        // out the older message had: open it from the installation that matches.
+        guidance:
+          `This project targets a newer engine. \`upgrade\` moves its @volter packages to ${projectEngine}; npm install then installs that editor. ` +
+          `If \`upgrade\` says the project is already on ${projectEngine}, this editor is not the project's own installation: ` +
+          `open it from the matching newer one — ${commandLine('edit .')} run through the project's own install (\`npx\` in the project folder).`,
         verbs: [`upgrade ${projectEngine}`],
         summary,
       },
