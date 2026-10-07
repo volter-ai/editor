@@ -106,8 +106,27 @@ Regenerate the native fixture with `test/generate-particle-info-fixture.py`.
 
 This removes the courtyard's Particle Info graph refusals for grass, bushes
 and one book material. The rendered editor capture shows the restored book
-textures. Mixed Principled closures and geometry-dependent environment lighting
-still fail their gates; this input check does not establish full-scene parity.
+textures. Mixed Principled closures and full-scene lighting still fail their
+gates; this input check does not establish full-scene parity.
+
+## Geometry Random Per Island: measured
+
+The EEVEE node library returns zero for Random Per Island, while Cycles derives
+it from the evaluated mesh. The browser now follows Cycles' stored-edge order,
+union-by-rank representative and uint hash. Loose edges join islands too. The
+derived value follows each source vertex through normal and UV splits; a flat
+shader varying keeps it face constant. Scalar storage and revision-owned render
+snapshots preserve the value without adding an authored Blender attribute.
+
+Independent desktop Cycles emission renders and actual WebGL cover four separate
+islands and two connected pairs. Their maximum linear channel difference is
+2.9802322387695312e-8, one float32 step at the affected value. Both native and
+fallback column drawing paths, source immutability and snapshot ownership pass.
+[GPU results](media/blender-island-random-20261007.json). Regenerate with
+`test/generate-island-random-fixture.py`. Native frames supply evaluated stored
+edges; legacy JSON without edge order retains the previous zero input.
+This covers the courtyard roof's color/UV input, not Pointiness, native normal
+mapping, indirect lighting or the full scene comparison, which still fails.
 
 ## Single-scattering sun: implemented, scene still gated
 
@@ -239,9 +258,10 @@ Principled shader graphs still fall back to constants. Particle Info Random
 no longer rejects the grass, bush and book texture graphs; other Particle Info
 outputs remain unsupported. Ordinary-object Object
 Info no longer rejects the entire material graph. The
-exporter now carries depsgraph collection/particle placements, but the browser
-lighting does not reproduce geometry-dependent environment visibility or the
-source scene's Cycles indirect illumination.
+exporter now carries depsgraph collection/particle placements and opaque direct
+environment visibility is implemented with the finite atlas described above.
+The source scene's Cycles indirect illumination and full-scene material/evaluation
+equivalence remain incomplete.
 
 World-volume image integration currently runs on render snapshots through
 `createWorldVolumePass()`/`snapshot.effect`. Live material views apply surface

@@ -14,6 +14,7 @@
  * built from the mesh's texture space (`orcoAttribute`).
  */
 import * as THREE from 'three';
+import {ISLAND_RANDOM_ATTRIBUTE} from './blender-island-random';
 import {presenterChanged} from './blender-presenter-change';
 import {attributeVarying, type CompiledGraph, rampTexture, uvVarying} from './blender-node-graph';
 import {graphAttributeName} from './blender-runtime-geometry';
@@ -458,7 +459,7 @@ varying vec3 vBlenderObjectNormal;
 varying vec3 vBlenderWorldPosition;
 varying vec3 vBlenderWorldNormal;
 varying vec3 vBlenderOrco;
-${compiled.attributes.map(n => `varying vec4 ${attributeVarying(n)};`).join('\n')}
+${compiled.attributes.map(n => `${n===ISLAND_RANDOM_ATTRIBUTE?'flat ':''}varying vec4 ${attributeVarying(n)};`).join('\n')}
 ${compiled.uvs.map(n => `varying vec2 ${uvVarying(n)};`).join('\n')}`;
   const attributes = compiled.attributes.map(n => `attribute vec4 ${graphAttributeName(n)};`).join('\n');
   shader.vertexShader = `attribute vec3 blenderOrco;\n${attributes}\n${varyings}\n${shader.vertexShader}`.replace(
