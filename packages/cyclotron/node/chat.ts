@@ -35,7 +35,13 @@ export async function chat(args: string[]): Promise<unknown> {
   if (!resource && connection) await editor.command('volter.chat.openSession', `supercode://${connection.id}/conversation`);
   if (action === 'stop') {
     await editor.command('workbench.action.chat.cancel');
-    return { stopRequested: true, sessionId: connection?.sessionId };
+    // A turn the harness started itself (after a background task or a Monitor's event) has no Chat response to
+    // cancel, and an agent waiting on an approval does not hear an interrupt: the frontend's own stop answers what
+    // it waits on and interrupts its runtime. A frontend that predates it leaves the Chat's cancel as the stop.
+    let runtimeStopped: unknown = null;
+    try { runtimeStopped = await editor.command('supercode.frontend.stopTurn', connection?.id); }
+    catch { /* an older frontend: no runtime stop */ }
+    return { stopRequested: true, sessionId: connection?.sessionId, runtimeStopped };
   }
   await editor.command('workbench.action.chat.open', { query: prompt, isPartialQuery: false, preserveInput: true });
   // The native command does not await acceptInput. Its return cannot confirm a turn:
