@@ -34,6 +34,16 @@ downsampling before display conversion. Evidence:
 [GPU results](media/blender-display-parity-20261007.json).
 This isolates color conversion from scene lighting and material evaluation.
 
+The plain HDR viewport and document photographs explicitly clear their color
+and depth targets before drawing. Creating the outline compositor disables
+Three's automatic clearing globally; its own RenderPass clears, but bypassing
+that pass with no selection previously retained stale depth. With a texture
+background, geometry moving away from the camera could then disappear.
+An actual WebGL regression renders a red plane, moves it away and changes it to
+green: both the next live frame and photograph retain the green plane.
+The compositor's automatic-clearing setting remains unchanged. Evidence:
+[HDR depth regression](media/blender-hdr-depth-clear-20261007.json).
+
 Regenerate the native fixture with `test/generate-display-fixture.py` in Blender.
 Regenerate GPU shader/data assets with `test/generate-display-shaders.py`,
 OpenColorIO 2.5.0 and NumPy, passing `config.ocio` and `browser/three` as arguments.

@@ -2010,3 +2010,25 @@ still too bright; environment visibility and indirect illumination remain gates.
 Temporary lighting instrumentation showed the black initial frame preceding
 asynchronous sky composition; it recovered without another toggle. The diagnostic
 instrumentation was removed. No startup readiness repair is claimed here.
+
+### 2026-10-07 — clear depth in plain HDR frames and photographs
+
+The courtyard's unselected Rendered view retained the sky but lost most
+architecture. EffectComposer sets renderer.autoClear to false when created;
+its RenderPass clears, but the direct HDR draw bypassed it and reused old
+depth. Texture backgrounds do not force a depth clear. The plain live frame
+and photograph now explicitly clear their target before rendering, leaving
+the compositor's own setting intact.
+
+The new regression fails on the original implementation and passes after the
+repair. All four document-display tests and Three typechecking pass. A real
+WebGL check renders a red plane, moves it farther away and changes it to green;
+the next live frame and photograph both read exactly green. The courtyard's
+unselected full-editor capture was viewed and retains its complete geometry.
+This does not claim all asynchronous startup black frames are resolved.
+
+The owner asked to keep the window open. The frontend was built into a separate
+directory, copied only after completion with the manifest replaced last, then
+the existing page was refreshed through the public SDK. The window remained
+open throughout. Lighting still fails the native Blender gate; no packages
+were published.
