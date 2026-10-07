@@ -235,9 +235,11 @@ function modelDocumentConflict(): string | null {
   // Say how to get Blender onto the document the editor shows, not only how to go back: an agent told
   // just "return to <held>" took it as the Blender door being unusable and built its level by
   // another route (2026-10-06, the WSL obby run).
+  // Plain words: people see this in error notices too. Re-opening the document already showing does not
+  // remount a failed open (blender-runtime.document.tsx), so the steps that do are named instead.
   return `Blender is editing ${held}, but the editor is showing ${requested}, which Blender has not loaded. ` +
-    `Wait for ${requested} to finish opening and retry; if it stays, open it again with ` +
-    `\`editor.open("model:${requested}")\` (\`editor.reloadPage()\` also reopens it), or return to ${held}.`;
+    `Wait for ${requested} to finish opening and retry. If it stays, switch to another document and back, ` +
+    `or reload the page; or return to ${held}.`;
 }
 
 /** The document id a present must reach: the open Model document's, or the

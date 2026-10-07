@@ -82,12 +82,15 @@ Apply this section to models, scenes and the Blender parts of games.
   rebuilding procedural content.
 - For procedural changes, update the relevant `.py` and execute it through
   `execute_blender_code` in the project Blender MCP, running the file itself:
-  `exec(open('<project root>/src/models/<name>.py').read())`, with the root the
-  tool's description names (files you just wrote are in place when the call
-  runs). Pass the user's request verbatim as `user_prompt` when the tool asks
-  for it. Use the existing editor session rather than a separate Blender
-  process. If the tool says Blender is editing another document, follow its
-  instruction to open yours; do not build through `eval` instead.
+  `exec(open("<project root>/src/models/<name>.py").read())`, with the root the
+  tool's description names (source files you just wrote are in place when the
+  call runs; keep scripts out of dot-directories, `node_modules`, `dist`,
+  `coverage` and `logs`, which are not copied in). Pass the user's request
+  verbatim as `user_prompt` when the tool asks for it. Use the existing editor
+  session rather than a separate Blender process. If the tool says Blender is
+  editing another document, wait and retry, then switch to another document
+  and back or run `editor.reloadPage()` in eval; do not build through `eval`
+  instead.
 - Orient procedural closed-mesh faces outward and inspect their exterior in
   Rendered shading before building many copies. Recalculate normals when needed.
 - Verify object properties and inspect screenshots after meaningful changes.
