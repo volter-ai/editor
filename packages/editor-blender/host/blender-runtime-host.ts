@@ -1364,7 +1364,7 @@ export async function handleBlenderCommand(cmd: {
         // shows holds that file (`unlistedFollow`), and a start naming none
         // asks for it, not for the file the tab was opened on.
         const shown =
-          unlistedFollow !== null && unlistedFollow.owner === session && unlistedFollow.from === boundModel?.blend
+          unlistedFollow !== null && unlistedFollow.owner === session && unlistedFollow.from === (boundModel?.blend ?? DEFAULT_BLENDER_DOCUMENT)
             ? unlistedFollow.document
             : boundModel?.blend;
         const document =
