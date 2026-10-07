@@ -15,6 +15,10 @@ import { waitForOwnEditorServer, describeEditorBootFailure, DEFAULT_EDITOR_BOOT_
 
 /** Who is launching: the package a project declares, the id its workbench
  * build carries, and the names a person sees and types. */
+/** A static limited view of a project (docs/LIMITED-VIEW.md): a launcher verb, because it runs
+ *  the project's own session headless and records what it serves. */
+export { VIEW_BUILD_USAGE, viewBuild } from './view-build';
+
 export interface LaunchingProduct {
   readonly packageName: string;
   readonly id: string;

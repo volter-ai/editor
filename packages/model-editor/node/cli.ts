@@ -12,7 +12,7 @@ import { playLog, PLAY_LOG_USAGE } from './play-log';
 import { addPlay, ADD_PLAY_USAGE } from './add-play';
 import { camera, CAMERA_OPTIONS, CAMERA_USAGE } from './camera';
 import { play, PLAY_USAGE } from './play';
-import { launch, prepareSession, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
+import { launch, prepareSession, VIEW_BUILD_USAGE, viewBuild, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { capture, CAPTURE_OPTIONS, CAPTURE_USAGE, listRecentProjects, listSessions, openProject, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
 import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
@@ -42,15 +42,22 @@ try {
   if (values.document !== undefined && verb !== 'play-log' && verb !== 'play') throw new Error('--document belongs to play-log and play.');
   for (const [owner, options] of [['capture', CAPTURE_OPTIONS], ['camera', CAMERA_OPTIONS]] as const)
     for (const key of Object.keys(options) as (keyof typeof options)[])
-      if (values[key] !== undefined && verb !== owner) throw new Error(`--${key} belongs to ${owner}.`);
+      // `--out` is also view build's: where the static view is written.
+      if (values[key] !== undefined && verb !== owner && !(key === 'out' && verb === 'view')) throw new Error(`--${key} belongs to ${owner}.`);
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Model Editor\n  volter-model-editor                 # open this project, or prepare your starter model\n  volter-model-editor create <folder> [--template models|playable] [--workbench <dir>]\n  volter-model-editor ${ADD_PLAY_USAGE}\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor ${CHAT_USAGE}\n  volter-model-editor status | console | close    # exit 1 for an unresolved console error; warnings print, exit 0\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${PLAY_LOG_USAGE}    # what the running model play script logged\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  volter-model-editor ${CAMERA_USAGE}\n  volter-model-editor ${PLAY_USAGE}    # the Game panel's controls\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
+    console.log(`Volter Model Editor\n  volter-model-editor                 # open this project, or prepare your starter model\n  volter-model-editor create <folder> [--template models|playable] [--workbench <dir>]\n  volter-model-editor ${ADD_PLAY_USAGE}\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor ${CHAT_USAGE}\n  volter-model-editor status | console | close    # exit 1 for an unresolved console error; warnings print, exit 0\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${PLAY_LOG_USAGE}    # what the running model play script logged\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  volter-model-editor ${CAMERA_USAGE}\n  volter-model-editor ${PLAY_USAGE}    # the Game panel's controls\n  volter-model-editor ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
   } else if (verb === 'play') {
     console.log(JSON.stringify(await play(positionals.slice(1), values.document), null, 2));
   } else if (verb === 'chat') {
     console.log(JSON.stringify(await chat(positionals.slice(1)), null, 2));
+  } else if (verb === 'view') {
+    if (positionals[1] !== 'build' || positionals.length > 3) throw new Error(`Usage: volter-model-editor ${VIEW_BUILD_USAGE}`);
+    await viewBuild(positionals[2] ?? '.', PRODUCT, {
+      ...(values.out ? { out: values.out } : {}),
+      ...(values.workbench ? { workbench: values.workbench } : {}),
+    });
   } else if (verb === 'hosted') {
     await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {

@@ -135,7 +135,8 @@ export function viewServingServices(config: LimitedViewConfig, store: SeededProj
 export function createLimitedViewRouter(options: LimitedViewRouterOptions): (request: Request) => Promise<Response> {
   const { config, store } = options;
   const services = viewServingServices(config, store);
-  const root = config.project.root.replace(/\/+$/, '');
+  // A Windows root is spelled with `/` in every URL the browser sends (`\` is `/` in an http path).
+  const root = config.project.root.replaceAll('\\', '/').replace(/\/+$/, '');
   /** `/@fs/<root>/` as Vite spells it: a POSIX root carries its own leading slash, a Windows one does not. */
   const fsPrefix = root.startsWith('/') ? `/@fs${root}/` : `/@fs/${root}/`;
   /** The person's own layers: empty at load, kept in this page. */
