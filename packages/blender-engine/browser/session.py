@@ -1161,6 +1161,57 @@ def _object_info_random(name):
     return struct.unpack("f", struct.pack("f", c / 4294967296.0))[0]
 
 
+def _depsgraph_placements(frame, depsgraph):
+    """Placement metadata only; every vertex stays in the native C++ arena.
+
+    Keep this table separate from authoring objects. No realization, datablock
+    edits, vertex arrays or generated scene objects.
+    """
+    import struct
+    by_name = {row["name"]: row for row in frame["objects"]}
+    # Frame-local native addresses are comparison tokens, not authoring IDs.
+    # Consume them here so neither the presenter nor saved projects retain them.
+    geometry = frame.pop("instance_geometry", {})
+    placements = []
+    for instance in depsgraph.object_instances:
+        source = instance.object.original
+        row = by_name.get(source.name)
+        if not instance.is_instance:
+            if row is not None:
+                row["render_visible"] = row["render_visible"] and not source.hide_render
+                row["viewport_show_self"] = bool(instance.show_self)
+                row["render_show_self"] = not source.is_instancer or source.show_instancer_for_render
+            continue
+        if not instance.show_self:
+            continue
+        if (instance.instance_object is not None and instance.object.data != instance.instance_object.data and
+                (instance.object.data is None or geometry.get(source.name) != instance.object.data.as_pointer())):
+            raise NotImplementedError("Depsgraph instance geometry differs from its native source: %s" % source.name)
+        if row is None or (source.type == "MESH" and row["mesh"] is None):
+            raise NotImplementedError("Depsgraph instance source has no native exported geometry: %s" % source.name)
+        if row["mesh"] is None:
+            if source.type not in ("EMPTY", "CAMERA"):
+                warn("Depsgraph instance %r of type %s is not drawn" % (source.name, source.type))
+            continue
+        owner = instance.parent.original if instance.parent is not None else None
+        owner_row = by_name.get(owner.name) if owner is not None else None
+        if owner is not None and owner_row is None:
+            raise NotImplementedError("Depsgraph instance owner is not exported: %s" % owner.name)
+        persistent = list(instance.persistent_id)
+        random = struct.unpack("f", struct.pack("f", (int(instance.random_id) & 0xffffffff) / 4294967296.0))[0]
+        placements.append({
+            "id": "@instance:" + json.dumps([owner.name if owner else None, source.name, persistent], separators=(",", ":"), ensure_ascii=False),
+            "source": row["id"], "owner": owner_row["id"] if owner_row is not None else None,
+            "matrix": [[float(v) for v in r] for r in instance.matrix_world],
+            "visible": True,
+            "render_visible": not source.hide_render and (owner is None or not owner.hide_render) and
+                (owner_row is None or bool(owner_row["render_visible"])),
+            "random": random,
+            "color": [float(v) for v in instance.object.color],
+        })
+    return placements
+
+
 def material_graphs(scene):
     """Every graph the scene's materials need, by material name."""
     _TREE_LINKS.clear()
@@ -1414,7 +1465,7 @@ class Session:
         # (`overlay_empty.hh` `image_sync`).
         empty_images = {obj.data.name for obj in scene.objects
                         if obj.type == "EMPTY" and obj.empty_display_type == "IMAGE" and obj.data is not None}
-        options = {"session": self.session, "evaluate": True, "known": self._known,
+        options = {"session": self.session, "evaluate": True, "known": self._known, "instance_sources": True,
                    "graph_materials": sorted(graphs),
                    "graph_images": sorted({i for g in graphs.values() for i in g["images"]} | empty_images),
                    "graph_generated": sorted(n for n, g in graphs.items() if g["generated"])}
@@ -1507,6 +1558,7 @@ class Session:
                     "roughness": float(material.roughness),
                     "metallic": float(material.metallic),
                 }
+        frame["instances"] = _depsgraph_placements(frame, bpy.context.evaluated_depsgraph_get())
         frame["world"] = draw_world(scene)
         frame["cameras"] = {
             obj.name: draw_camera(obj) for obj in scene.objects if obj.type == "CAMERA"

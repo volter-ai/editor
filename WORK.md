@@ -1850,3 +1850,25 @@ Fresh Models and Playable project generation both copied the exact shared
 instructions and retained CLAUDE's AGENTS import. The generation receipt is
 `.volter/kart-cycles-20261006/probe-visual-gate-defaults-1791327717838/receipt.json`.
 Cycle 16 evidence remains in its parent static and controls review folders.
+
+### 2026-10-07 — present native collection and particle placements
+
+The browser bridge now asks the source-owned export door for stable evaluated
+instance source meshes. Excluded collection libraries and converted curves use
+native geometry; a separate metadata table carries each depsgraph placement's
+world matrix, owner, random input and color. Presentation borrows the existing
+mesh/material resources and leaves authoring datablocks unchanged. Emitter
+surface visibility no longer hides its placed children. Missing resources and
+unrepresented geometry variants refuse explicitly.
+
+The corresponding public Blender source is
+`976c8632ab56583cfc6fcb4cc2fcd6e4e6d900dc` (Blender PR 4). The pinned
+Emscripten 6.0.5 Release build completed; the bundle records raw and shipped
+SHA-256 values and Brotli round-trip checks. On the exact Lone Monk source,
+all 6,287 drawable placements resolve to 26 source objects and 24 deferred mesh
+resources, including pulls after the native iterator was destroyed. The editor
+opened and both raster captures completed. The captures restore geometry but
+still differ substantially in face visibility, shadows and indirect lighting;
+this is not visual-parity acceptance. Twelve focused placement/Object Info/sky
+checks, four native metadata checks, engine typechecking and the modeling
+frontend build passed. No npm packages were published.
