@@ -724,6 +724,7 @@ export type WorldData = z.infer<typeof worldSchema>;
  * Constants and linked colors use the same radiometric path. The environment
  * samples the field at 256×128; features below a texel are filtered. */
 export class WorldBackground {
+  lightingTexture():THREE.Texture|null {return this.environmentTexture??this.texture;}
   readonly solarLights: THREE.DirectionalLight[] = [];
   private readonly solarDirections = new Map<THREE.DirectionalLight, THREE.Vector3>();
 

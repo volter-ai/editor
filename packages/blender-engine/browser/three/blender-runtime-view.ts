@@ -26,6 +26,7 @@ import {
   worldSchema,
 } from './blender-runtime-lighting';
 import { fitModelDirectionalShadow, visibleShadowReceivers } from './blender-runtime-shadows';
+import {BlenderWorldVisibility,bindWorldVisibility} from './blender-world-visibility';
 import { volumeMesh, volumeSchema } from './blender-runtime-volume';
 import { applyPhysicalMaterial, applyWorldExtinction, physicalMaterialSchema } from './blender-physical-material';
 import { prepareGraphGeometry, setMaterialGraph } from './blender-graph-material';
@@ -681,6 +682,7 @@ export class BlenderRuntimeView {
   private readonly lights = new Map<string, THREE.Light>();
   private readonly lighting = new ViewportLighting();
   private readonly world = new WorldBackground();
+  private readonly worldVisibility=new BlenderWorldVisibility();
   /**
    * THE INSPECTION OVERLAYS (I4). They are NOT children of {@link root}, and
    * that is the whole design: an overlay is EDITOR FURNITURE, so its
@@ -1333,6 +1335,13 @@ export class BlenderRuntimeView {
       // objects. Fit shadows for that draw, rather than the camera's pose
       // when Rendered shading was first entered. Captures use this path too.
       if (this.rendered) this.applyShadows(true, camera);
+      this.worldVisibility.sync(this.objects.values(),this.world.lightingTexture(),this.root,this.rendered);
+      for(const material of [...this.materials.values(),this.fallback])bindWorldVisibility(material,this.worldVisibility);
+      for(const object of this.objects.values()) {
+        const mesh=object as THREE.Mesh;if(!mesh.isMesh)continue;
+        for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material])bindWorldVisibility(material,this.worldVisibility);
+      }
+      if(options?.renderer)this.worldVisibility.prepare(options.renderer);
       const opaqueDone = performance.now();
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
         options?.interactive === true, options?.height ?? 0);
@@ -2222,7 +2231,7 @@ export class BlenderRuntimeView {
   }
 
   drawStatistics() {
-    return {enabled: this.drawBatching, preparation: {...this.drawPreparation}, materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
+    return {enabled: this.drawBatching, preparation: {...this.drawPreparation}, worldVisibility:this.worldVisibility.diagnostics(), materialRanges: this.materialRanges.inspect(), opaque: this.instances.inspect(), transparent: this.transparentInstances.inspect(), motion: this.motionGeometry.inspect()};
   }
 
   snapshot() {
@@ -2404,6 +2413,10 @@ export class BlenderRuntimeView {
         if (disposed) throw new Error('Blender capture snapshot is disposed');
         return detached.setRendered(true, camera);
       },
+      prepareDraw:(renderer:THREE.WebGLRenderer,camera:THREE.Camera)=>{
+        if(disposed)throw new Error('Blender capture snapshot is disposed');
+        return detached.prepareDraw(camera,{interactive:false,height:renderer.domElement.height,renderer});
+      },
       dispose,
     };
   }
@@ -2452,6 +2465,7 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
+    this.worldVisibility.dispose();
     this.objectInfoMaterials.clear();
     this.materialRanges.clear();
     this.motionGeometry.clear();

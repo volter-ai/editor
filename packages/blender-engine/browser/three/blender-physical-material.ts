@@ -7,6 +7,7 @@ import {z} from 'zod';
 import {applyGraphShader, bindGraphDraw, bindPaletteGraph, borrowGraphDrawBinding, graphProgramKey, graphUvChannels, setGraphViewport} from './blender-graph-material';
 import type {CompiledGraph} from './blender-node-graph';
 import {bindNamedUvChannels} from './blender-texture-samplers';
+import {copyWorldVisibility,worldVisibilityShader,worldVisibilityUniforms} from './blender-world-visibility';
 
 const scalar = z.number().finite();
 const color = z.tuple([scalar, scalar, scalar]);
@@ -55,6 +56,7 @@ function graphShadow(material: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMa
   // which `copy` replaces with the material's own (it leaves hooks alone).
   applyPhysicalMaterial(shadow);
   shadow.copy(material);
+  copyWorldVisibility(material,shadow);
   const values = uniforms.get(shadow)!;
   if (held) {
     values.blenderCoatIor.value = held.blenderCoatIor.value;
@@ -149,6 +151,7 @@ export function syncPhysicalDrawMaterial(source: THREE.Material, target?: THREE.
     return null;
   }
   copy.copy(source);
+  copyWorldVisibility(source,copy);
   const held = uniforms.get(source)!;
   const values = uniforms.get(copy)!;
   values.blenderCoatIor.value = held.blenderCoatIor.value;
@@ -192,7 +195,7 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
       blenderWorldExtinction: {value: new THREE.Vector3()}};
     uniforms.set(material, values);
     const held = values;
-    material.customProgramCacheKey = () => `blender-principled-physical-v5${graphProgramKey(material)}`;
+    material.customProgramCacheKey = () => `blender-principled-physical-v6${graphProgramKey(material)}`;
     material.onBeforeRender = (renderer, scene, camera, geometry, object) => {
       bindNamedUvChannels(material, geometry);
       bindGraphDraw(material, geometry, renderer, scene, camera, object, graphShadow);
@@ -210,6 +213,12 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
         .map(i => (i <= 3 ? `#ifndef USE_UV${i}\nattribute vec2 uv${i};\n#endif` : `attribute vec2 uv${i};`))
         .join('\n') + '\n' + shader.vertexShader;
       Object.assign(shader.uniforms, held);
+      worldVisibilityUniforms(material,shader.uniforms);
+      shader.vertexShader='varying vec3 blenderWorldPosition;\n'+shader.vertexShader;
+      shader.vertexShader=shader.vertexShader.replace('#include <worldpos_vertex>',
+        '#include <worldpos_vertex>\n#if defined(USE_ENVMAP) || defined(USE_SHADOWMAP) || defined(USE_TRANSMISSION)\nblenderWorldPosition=worldPosition.xyz;\n#else\nblenderWorldPosition=(modelMatrix*vec4(transformed,1.)).xyz;\n#endif');
+      shader.fragmentShader=shader.fragmentShader.replace('#include <envmap_physical_pars_fragment>',
+        '#include <envmap_physical_pars_fragment>\n'+worldVisibilityShader);
       shader.fragmentShader = `uniform float blenderCoatIor;
         uniform vec3 blenderWorldExtinction;
         vec3 blenderInfiniteTransmission() { return vec3(
@@ -255,6 +264,10 @@ export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, inpu
           'rectAreaLight = rectAreaLights[ i ]; rectAreaLight.color *= exp(-blenderWorldExtinction * length(rectAreaLight.position-geometryPosition));')
         .replace('getAmbientLightIrradiance( ambientLightColor )', 'getAmbientLightIrradiance( ambientLightColor ) * blenderInfiniteTransmission()');
       const environment = THREE.ShaderChunk.lights_fragment_maps
+        .replace('getIBLIrradiance( geometryNormal )',
+          'blenderWorldIrradiance( geometryNormal, getIBLIrradiance( geometryNormal ) )')
+        .replaceAll(/(getIBL(?:Radiance|AnisotropyRadiance)\([^;]+\))/g,
+          '$1 * blenderWorldReflectionVisibility(geometryViewDir,geometryNormal,material.roughness)')
         .replaceAll(/(getIBL(?:Irradiance|Radiance|AnisotropyRadiance)\([^;]+\))/g, '$1 * blenderInfiniteTransmission()');
       shader.fragmentShader = shader.fragmentShader.replace('#include <lights_physical_fragment>', physical)
         .replace('#include <lights_fragment_begin>', lighting)

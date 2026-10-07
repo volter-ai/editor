@@ -31,11 +31,20 @@ and rendered the source courtyard at 715×402/64 samples in 18.43 seconds. Two
 engine-ownership and twelve history checks, the product build and boundary check
 pass. Native output remains noisy; complete pixel equivalence is not claimed.
 
-The courtyard still fails full-scene parity. Its remaining material conditions
-include Particle Info, tinted transparency and multiple Principled closures.
-Particle Info, geometry-dependent environment visibility, sun-disc shadow
-softness, indirect lighting and the full native camera/image comparison
-remain to complete. Preserve the original source and reference; gameplay stays
+Opaque direct environment visibility now uses a cached directional depth atlas;
+the independent closed-room Cycles and actual WebGL controls both return zero,
+and the open control retains its prior radiance. First-draw sun shadow fitting
+also updates fresh light/target transforms before fitting; detached photographs
+no longer fit their bounds in stale axes. Moving objects update a separate atlas
+after initial promotion so later poses retain the static environment depth.
+Lifecycle tests, actual HiDPI WebGL and independent desktop controls pass.
+Finite sampling, opaque caster treatment and shader deformation are limitations.
+
+The courtyard still fails full-scene parity. Particle Info Random is covered,
+but tinted transparency and multiple Principled closures remain. Native material
+equivalence, sun-disc shadow softness, indirect lighting, render-only geometry
+evaluation and the full native camera/image comparison remain to complete.
+Preserve the original source and reference; gameplay stays
 behind the matching static model/React UI screenshot gate.
 World-volume image integration also remains capture-only; live and saved scene
 passes must agree in addition to sharing their display transform.
