@@ -6,7 +6,10 @@ A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled
 npx @volter/cyclotron create my-race --template playable
 ```
 
-Node.js 24
+Node.js 24. Without it, one line installs everything and opens the same starter game at
+`~/Cyclotron/my-race`: in PowerShell on Windows,
+`irm https://cyclotron.videogame.ai/install.ps1 | iex`; in Terminal on a Mac with Apple
+Silicon or Linux on x64, `curl -fsSL https://cyclotron.videogame.ai/install.sh | sh`.
 
 For a model, run `npx @volter/cyclotron` without arguments. It opens the current
 project, or prepares `~/Documents/Volter Models/Untitled Model` with a saved cube

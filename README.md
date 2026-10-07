@@ -4,11 +4,23 @@
 
 A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
 
-```bash
-npx @volter/cyclotron create my-race --template playable
+On Windows, open PowerShell and paste:
+
+```powershell
+irm https://cyclotron.videogame.ai/install.ps1 | iex
 ```
 
-- Needs Node.js 24. Nothing else to install.
+On a Mac with Apple Silicon, or Linux on x64, open Terminal and paste:
+
+```bash
+curl -fsSL https://cyclotron.videogame.ai/install.sh | sh
+```
+
+- Nothing else to install. The line uses your Node.js 24 or later if you have it, or downloads
+  Node.js 24 from nodejs.org (checked against its published SHA-256) into `~/.volter/node`.
+  It makes the starter racing game at `~/Cyclotron/my-race` and opens it in your browser; paste
+  the same line again to reopen it. With Node.js 24 already, the same is
+  `npx @volter/cyclotron create my-race --template playable`.
 - Opens a race circuit modelled in the editor. Press **Play** in the viewport header: the
   camera moves from your editing view to the game's, and you drive with the arrow keys or
   WASD. Escape moves it back and returns the untouched model. A lap is about 30 seconds.
@@ -40,17 +52,14 @@ unrelated folder is preserved and a numbered folder is used instead.
 
 ## Chat and your agent
 
-Chat offers two ways in. **Sign in with ChatGPT** installs OpenAI's official Codex
-extension (`openai.chatgpt`) if it isn't there yet and opens its own sign-in; no terminal is
-involved.
-
-Or Chat uses the agents already on your machine. It starts Codex or Claude Code by itself
-when it finds one installed and signed in, resuming the project's last conversation with the
-agent that held it. When neither is signed in, Chat offers their own sign-ins in the
-integrated terminal; with no agent installed, it offers Codex and shows
-`npm install -g @openai/codex` before running it. Chat checks readiness and reconnects
-without a reload. Other agents Volter Harness supports (Gemini, Grok and more) can be chosen
-from Chat's agent picker.
+Chat uses the agent already signed in on your machine: it starts Codex or Claude Code by
+itself when it finds one installed and signed in, resuming the project's last conversation
+with the agent that held it. With none, Chat shows one button, **Sign in with ChatGPT**. It
+installs OpenAI's Codex from its official npm package (`@openai/codex`) when Codex is
+missing, then opens Codex's ChatGPT sign-in in your browser, and the chat opens once you're
+signed in ([docs/CHAT-WELCOME.md](docs/CHAT-WELCOME.md)). Chat checks readiness and
+reconnects without a reload. Other agents Volter Harness supports (Gemini, Grok and more) can
+be chosen from Chat's agent picker.
 
 Other extensions install from the **Extensions** view; Claude Code's official extension is
 `@id:Anthropic.claude-code`. No agent extension is bundled.
