@@ -20,12 +20,9 @@
  * through `capture-active-document`, after `blender-screenshot-view` has
  * presented the model with the viewport's own camera.
  *
- * A RENDER photographs a detached revision through its own camera. three.js is
- * the renderer (ARCHITECTURE-CORE, "No second implementation of a substrate
- * capability ships"), so `bpy.ops.render.render()` arrives here as a present
- * whose capture carries the SCENE camera and `scene.render`'s resolution, and
- * the PNG goes straight back to the operator that asked — the one case where
- * presenting answers with pixels instead of remembering a view.
+ * VOLTER_THREE photographs a detached revision through its own camera.
+ * Native CYCLES renders inside the Blender worker. A native preview is a
+ * read of that document through Cycles, separate from its Three presentation.
  */
 
 import {
@@ -512,9 +509,8 @@ export async function blenderViewShading(shading: 'WIREFRAME' | 'SOLID' | 'MATER
  * a first version read `answer.executed`/`answer.error` off the string, where
  * both are `undefined` — every operator RAN and every caller was told it had
  * failed, which is how an added sphere reached `bpy.data.objects` and the
- * Outliner and was never selected. `sessionDocumentPath` below parses the same
- * two prefixes and records the same lesson from its own bug; this is the
- * second time, so the parse lives at the door now and both read it.
+ * Outliner and was never selected. Read-only metadata uses dedicated native
+ * reads rather than this execute path, which always presents a mutation.
  */
 export async function blenderExecute(code: string, history = true, label = 'Blender Python'): Promise<BlenderExecuteAnswer> {
   const text = await blenderRuntime().execute(code, history, label);
@@ -1130,32 +1126,9 @@ const string = (cmd: Record<string, unknown>, key: string): string => {
  * is no file (a scene modelled from scratch has never been saved) or when the
  * path is outside the project, because a record is better absent than wrong.
  */
-async function sessionDocumentPath(session: {
-  execute(code: string, history?: boolean): Promise<string>;
-}): Promise<{ document?: string }> {
+function sessionDocumentPath(filepath: string): { document?: string } {
   const project = editorHost().projectLocalState.projectRootPath();
   if (project === null) return {};
-  let answer: string;
-  try {
-    answer = await session.execute('import bpy\nprint(bpy.data.filepath)\n', false);
-  } catch {
-    return {};
-  }
-  // PARSE WHAT `execute` ACTUALLY ANSWERS, which is the MCP door's shape and
-  // not raw stdout: `Code executed successfully: <stdout>` on ONE line, or
-  // `Error executing code: …`. A first version filtered for lines starting
-  // with `/` and therefore matched nothing, because the path sits after that
-  // prefix on the same line — and a document that cannot be read is
-  // indistinguishable from a session that has none, so the failure was silent
-  // and the nine bakes recorded no input at all.
-  if (/^Error executing code:/m.test(answer)) return {};
-  const filepath =
-    answer
-      .replace(/^Code executed successfully:/, '')
-      .split('\n')
-      .map((line) => line.trim())
-      .filter((line) => line.startsWith('/'))
-      .pop() ?? '';
   if (filepath === '') return {};
   const root = project.endsWith('/') ? project : `${project}/`;
   if (!filepath.startsWith(root)) return {};
@@ -1409,6 +1382,17 @@ export async function handleBlenderCommand(cmd: {
         const document = { kind: 'document', id: boundModel?.entryId ?? 'blender:runtime' };
         return { ok: true, data: { ...await session.screenshotView(maxSize), document } };
       }
+      case 'blender-native-preview': {
+        const camera = cmd['camera'];
+        if (camera !== undefined && typeof camera !== 'string') throw new Error('Native preview camera must be a name');
+        const preview = await session.nativePreview({
+          width: cmd['width'] as number,
+          height: cmd['height'] as number,
+          samples: cmd['samples'] as number,
+          ...(camera === undefined ? {} : { camera }),
+        });
+        return { ok: true, data: { ...preview } };
+      }
       case 'blender-read-file': {
         // The bytes go out as a BODY, not inside this command's answer -- see
         // `/__editor/blender-file` in `server/routes/relay.ts` for the
@@ -1438,13 +1422,13 @@ export async function handleBlenderCommand(cmd: {
         // what it can honestly name is this session and the model state it had
         // reached — taken here, at the instant of the listing, rather than
         // asked for afterwards when another call may have moved it.
-        const entries = await session.listFiles(string(cmd, 'path'));
-        const presented = session.presented;
+        const { entries, document } = await session.listFilesSnapshot(string(cmd, 'path'));
         return {
           ok: true,
           data: {
             entries,
-            ...(presented ? { session: presented.session, revision: presented.revision } : {}),
+            session: document.session,
+            revision: document.revision,
             // AND WHAT THE BYTES WERE MADE FROM. A session-written `.glb` is
             // exported from a `.blend`, and that path is the one fact that
             // lets a reader go DOWN by kind later — from a prefab's glTF to
@@ -1462,7 +1446,7 @@ export async function handleBlenderCommand(cmd: {
             // characters — whichever one the tab happened to show — which is
             // worse than no record, because it is a confident wrong answer.
             // `bpy.data.filepath` is what the export actually came out of.
-            ...(await sessionDocumentPath(session)),
+            ...sessionDocumentPath(document.filepath),
           },
         };
       }

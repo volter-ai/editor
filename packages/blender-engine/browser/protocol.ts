@@ -12,6 +12,10 @@ export type WorkerRequest =
    *  empty and is created by the first save. */
   | { id: number; op: 'start'; project: string; document?: string }
   | { id: number; op: 'execute'; code: string; history?: boolean; label?: string }
+  /** A native Cycles photograph, isolated from authoring/history and the
+   * Three frame exporter. This is a preview request, not a modeling edit. */
+  | { id: number; op: 'native-preview'; width: number; height: number; samples: number; camera?: string }
+  | { id: number; op: 'list-files-snapshot'; path: string }
   | { id: number; op: 'scene-info' }
   | { id: number; op: 'object-info'; name: string }
   | { id: number; op: 'screenshot-view'; maxSize: number }
@@ -138,6 +142,36 @@ export type NativeHistoryEntry = { reset: true } | {
   label: string;
   resource: string | null;
 };
+
+export interface NativePreviewRequest {
+  width: number;
+  height: number;
+  samples: number;
+  camera?: string;
+}
+
+export interface NativePreviewResult {
+  path: string;
+  renderer: 'CYCLES';
+  session: string;
+  revision: number;
+  camera: string;
+  width: number;
+  height: number;
+  samples: number;
+  seconds: number;
+}
+
+export interface NativeDocumentInfo {
+  filepath: string;
+  session: string;
+  revision: number;
+}
+
+export interface FileListSnapshot {
+  entries: FileEntry[];
+  document: NativeDocumentInfo;
+}
 
 export interface CaptureRequest {
   /** A viewport screenshot's bound, the longer side of a square frame.

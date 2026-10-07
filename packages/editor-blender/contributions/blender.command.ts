@@ -57,6 +57,7 @@ export const commands: CommandContribution['commands'] = {
   // Stop drains accepted modeling work and persists it before teardown.
   'blender-stop': verb('none', 30 * 60_000),
   'blender-execute': verb('always', 30 * 60_000),
+  'blender-native-preview': verb('none', 120_000),
   'blender-scene-info': verb('none', 60_000),
   'blender-object-info': verb('none', 60_000),
   'blender-screenshot-view': verb('always', 60_000),

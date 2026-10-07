@@ -1,4 +1,4 @@
-export type { CaptureRequest, FileEntry, RuntimeStart } from './protocol';
+export type { CaptureRequest, FileEntry, RuntimeStart, NativePreviewRequest, NativePreviewResult, NativeDocumentInfo, FileListSnapshot } from './protocol';
 export {
   BlenderRuntime,
   type BlenderRuntimeOptions,

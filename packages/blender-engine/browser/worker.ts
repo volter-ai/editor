@@ -686,6 +686,13 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       // Straight through to `session.py`'s own `present` op — the worker adds
       // nothing, and a capture-less present answers `{ presented, revision }`.
       return pullWork('present', () => ask({ op: 'present' }));
+    case 'native-preview':
+      return ask({ op: 'native-preview', width: request.width, height: request.height,
+        samples: request.samples, ...(request.camera === undefined ? {} : { camera: request.camera }) });
+    case 'list-files-snapshot': {
+      const document = await ask({ op: 'document-info' });
+      return { entries: await listSessionFiles(files, request.path), document };
+    }
     case 'scene-info':
       return session.sceneInfo();
     case 'object-info':

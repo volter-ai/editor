@@ -12,6 +12,9 @@ import type {
   WorkerReply,
   WorkerRequest,
   NativeHistoryEntry,
+  NativePreviewRequest,
+  NativePreviewResult,
+  FileListSnapshot,
 } from './protocol';
 import type {
   BlenderActionClip,
@@ -285,6 +288,13 @@ export class BlenderRuntime {
     return (await this.#request({ op: 'execute', code, history, label })) as string;
   }
 
+  /** Render in native Cycles without changing or re-exporting the document.
+   * The returned PNG is read through readFile; no pixels cross the JSON relay. */
+  async nativePreview(request: NativePreviewRequest): Promise<NativePreviewResult> {
+    await this.#ready();
+    return await this.#request({ op: 'native-preview', ...request }) as NativePreviewResult;
+  }
+
   async historyGesture(op: 'history-begin' | 'history-end'): Promise<void> {
     await this.#ready();
     await this.#request({ op });
@@ -464,6 +474,13 @@ export class BlenderRuntime {
   async listFiles(path: string): Promise<FileEntry[]> {
     await this.#ready();
     return (await this.#request({ op: 'list-files', path })) as FileEntry[];
+  }
+
+  /** Files and their native document identity, without executing Python or
+   * exporting/saving the model. The worker serializes this with authoring. */
+  async listFilesSnapshot(path: string): Promise<FileListSnapshot> {
+    await this.#ready();
+    return await this.#request({ op: 'list-files-snapshot', path }) as FileListSnapshot;
   }
 
   /** The session and revision of the last frame this runtime forwarded; null
