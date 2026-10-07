@@ -1926,3 +1926,20 @@ capture completed and was viewed; it remains substantially too bright. A native
 environment visibility remains a rendering gap in addition to indirect light.
 The native and browser camera matrix, frame, lens, shift and exposure agree.
 No visual-parity acceptance or package publication is claimed.
+
+### 2026-10-07 — bind outlined HDR passes to the drawing camera
+
+The outlined HDR path drove the scene/outline passes directly without updating
+their scene and camera. A native camera view could therefore draw with the old
+free camera, including its different clipping; a scene change made this visible
+as missing courtyard architecture. Both passes now receive the current scene
+and drawing camera before rendering. The ordinary composer path already did so.
+
+The new regression fails before this repair and passes afterward, checking live
+HDR draws, scene/camera changes and the shared offscreen pass path. All three
+document-display tests, Three integration typechecking, the modeling frontend
+build and boundary checks passed. The editor was rebuilt and reopened; a full
+editor capture with an object selected shows the restored courtyard through its
+native camera. The active-document capture still produced an incorrect dark
+image and remains a separate capture-path investigation. Environment visibility
+and indirect lighting still fail the visual gate. No packages were published.

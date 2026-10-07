@@ -1806,6 +1806,11 @@ export class Object3DDocumentSession {
       return;
     }
     try {
+      // These passes are driven directly rather than by composer.render().
+      // Update both passes to the drawing camera, including native camera views
+      // and offscreen captures; the composer's previous free camera can differ.
+      composer.setMainScene(this.scene);
+      composer.setMainCamera(camera);
       this.sceneRenderPass.renderToScreen = false;
       this.selectionOutlinePass.renderToScreen = false;
       this.sceneRenderPass.render(this.renderer, composer.inputBuffer, composer.outputBuffer, 0);

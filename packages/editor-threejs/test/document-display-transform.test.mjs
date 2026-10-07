@@ -54,3 +54,34 @@ test('studio diagnostics bypass scene grading and a failed resolve restores the 
   assert.equal(s.current(),null);
   s.session.setDisplayTransform(null);
 });
+
+test('outlined HDR draws and photographs use the current authored camera after a scene change',()=>{
+  const s=stage(), free=new PerspectiveCamera(60,2,.01,10);
+  let camera=new PerspectiveCamera(40,2,1.12,50);
+  const draws=[];
+  const makePass=()=>({mainCamera:free,mainScene:{},render(){draws.push({camera:this.mainCamera,scene:this.mainScene});}});
+  const scenePass=makePass(), outlinePass=makePass();
+  s.session.sceneRenderPass=scenePass;
+  s.session.selectionOutlinePass=outlinePass;
+  s.session.selectionOutline={selection:new Set(['selected'])};
+  s.session.composer={inputBuffer:{},outputBuffer:{},
+    setMainCamera(value){scenePass.mainCamera=outlinePass.mainCamera=value;},
+    setMainScene(value){scenePass.mainScene=outlinePass.mainScene=value;}};
+  s.session.render=draw=>draw(camera);
+  s.session.setDisplayTransform({render(){}});
+  s.session.renderViewport();
+  assert.equal(draws.length,2);
+  for(const draw of draws){assert.equal(draw.camera,camera);assert.equal(draw.scene,s.session.scene);}
+  const first=camera;
+  camera=new PerspectiveCamera(35,1.5,.3,300);
+  s.session.scene={replacement:true};
+  s.session.renderViewport();
+  for(const draw of draws.slice(2)){assert.equal(draw.camera,camera);assert.equal(draw.scene,s.session.scene);}
+  assert.notEqual(draws[2].camera,first,'camera changes reach both passes');
+  assert.equal(draws[0].camera.near,1.12);assert.equal(draws[0].camera.far,50);
+  // Offscreen HDR photographs call the same prepared pass path.
+  draws.length=0;
+  s.session.renderLinearScene(first,{});
+  for(const draw of draws)assert.equal(draw.camera,first);
+  s.session.setDisplayTransform(null);
+});
