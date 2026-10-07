@@ -150,7 +150,7 @@ export function bindRig(
   const blenderVertex = geometry.getAttribute('blenderVertex');
   if (!blenderVertex) {
     warnings.push(
-      `"${rig.object}" cannot be skinned: its presented geometry carries no \`blenderVertex\` attribute, so a per-Blender-vertex weight cannot be expanded onto its drawn vertices.`,
+      `"${rig.object}" cannot be skinned: its presented geometry carries no \`blenderVertex\` attribute, so a per-Blender-vertex weight cannot be expanded onto its drawn vertices (presented as ${(meshObject as THREE.Object3D).type} with ${Object.keys(geometry.attributes).join(', ') || 'no attributes'}).`,
     );
     return null;
   }

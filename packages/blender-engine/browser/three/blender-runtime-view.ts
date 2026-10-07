@@ -147,6 +147,8 @@ const drawArraysSchema = z
         })
         .strict(),
     ),
+    /** The draw's vertex map (`DrawArrays.sourceVertex`), kept by a copy that plays (skins bind over it). */
+    sourceVertex: z.instanceof(Uint32Array).optional(),
     hash: z.string(),
   })
   .strict();
