@@ -66,9 +66,14 @@ export async function control(command: string, verb: string, argument?: string, 
     const result: unknown = await body(...Object.values(bindings));
     if (result !== undefined) console.log(JSON.stringify(result, null, 2));
   } else if (verb !== 'console') throw new Error(`Unknown command: ${verb}`);
+  // `console --all`: every retained entry — acknowledged, retired and workbench-origin ones the
+  // unresolved set holds out (console-ledger.ts) — so what is held out stays readable. The exit
+  // code below still answers only the unresolved set.
+  const showAll = verb === 'console' && argument === '--all';
+  if (showAll) console.log(JSON.stringify(await client.getUnresolvedConsole({ all: true }), null, 2));
   const consoleState = await client.getUnresolvedConsole() as { entries?: { severity?: unknown }[] };
   if (consoleState.entries?.length) {
-    console.error(JSON.stringify(consoleState, null, 2));
+    if (!showAll) console.error(JSON.stringify(consoleState, null, 2));
     // Hosted control reports the operation's result independently of the
     // session's retained diagnostics. An optional workbench addon error (or
     // an older warning) must not turn a successful status/eval into failure.
