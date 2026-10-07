@@ -138,7 +138,7 @@ export interface InspectorSectionRegistration extends InspectorContributionBase 
   readonly railGroup?: string | undefined;
   /** This is the tab the Properties rail OPENS ON before a person has chosen
    *  one for the subject. See `InspectionSection.railDefault`. */
-  readonly railDefault?: boolean | undefined;
+  readonly railDefault?: boolean | ((node: EditorNode | null, adapter: AuthoringAdapter) => boolean) | undefined;
   /** Display order on `InspectionSection.order`'s scale
    *  (`CONTRIBUTED_SECTION_ORDER` unless this section belongs elsewhere). */
   readonly order: number;

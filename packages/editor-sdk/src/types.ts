@@ -692,7 +692,7 @@ export interface EditorState {
    * this is a REPORT and never a thing to branch on. Absent against an older
    * server that predates the field.
    */
-  product?: { id: string; dir: string; version: string; command: string; displayName: string } | null;
+  product?: { id: string; dir: string; version: string; command: string; displayName: string; upgrade?: boolean } | null;
   playState: 'stopped' | 'playing' | 'paused';
   /** Latest successful live lane's run window. Independent of video recording;
    * null when no registered lane reports a run, absent on older editors. */

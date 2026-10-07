@@ -1,12 +1,12 @@
 import type { ModelDocumentPreview } from '../src/model-document-preview';
 import { modelOpeningErrorMessage } from '../src/model-opening-error';
-import { Button, StateSurface, fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
+import { Button, StateSurface, fontMono, fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
 import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
 import { AssetEditorSubject } from '@volter/editor-sdk/kit/components/AssetEditorShell';
 import { useMemo } from 'react';
 
 /** A loading/error surface has no authoring stage and publishes no model. */
-export function BlenderModelOpening({ documentId, path, error, preview, retry, returnToPreview, preparingView = false }: {
+export function BlenderModelOpening({ documentId, path, error, preview, retry, returnToPreview, preparingView = false, note = null }: {
   readonly documentId: string;
   readonly path: string;
   readonly error: string | null;
@@ -14,6 +14,8 @@ export function BlenderModelOpening({ documentId, path, error, preview, retry, r
   readonly retry: () => void;
   readonly returnToPreview: () => void;
   readonly preparingView?: boolean;
+  /** What a slow open is waiting on — progress beside the spinner, not an error. */
+  readonly note?: string | null;
 }) {
   const title = error ? 'Could not open model' : preparingView ? 'Preparing model view' : 'Opening model';
   // This document has not published an authoring stage yet. Its panels still
@@ -44,6 +46,14 @@ export function BlenderModelOpening({ documentId, path, error, preview, retry, r
           description={<>
             <div style={{ color: themeVars.content.primary, marginBottom: spaceVar[3] }}>{path}</div>
             {error ? modelOpeningErrorMessage(error) : preparingView ? 'The file is open. Preparing its viewport.' : preview ? 'The previous model stays visible while this file opens.' : 'Preparing Blender and opening this file. The model will appear here when it is ready.'}
+            {/* THE CAUSE, VERBATIM, where the person is looking: the sentence above is a
+                category, and "details are available in the console" sent people to a console
+                they could not see (2026-10-06 audit). Selectable, so it can be copied. */}
+            {!error && note && <div data-testid="blender-model-opening-note" style={{ marginTop: spaceVar[3], color: themeVars.content.muted, userSelect: 'text' }}>{note}</div>}
+            {error && <div data-testid="blender-model-opening-detail"
+              style={{ marginTop: spaceVar[3], fontFamily: fontMono, fontSize: fontSizeVar.sm, color: themeVars.content.muted, whiteSpace: 'pre-wrap', userSelect: 'text', textAlign: 'left' }}>
+              {error}
+            </div>}
           </>}
           action={error ? <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: spaceVar[3] }}>
             {preview && <Button onClick={returnToPreview}>Return to previous model</Button>}

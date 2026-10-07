@@ -53,6 +53,9 @@ const DESKTOP_PAGE_ORIGIN = 'vscode-file://vscode-app';
 export async function resolveSessionOrigin(
 	fileService: IFileService,
 	workspaceService: IWorkspaceContextService,
+	/** The product's own command (`VolterProduct.command`), for the sentence that says how to
+	 *  start a session; never a generic name the person does not have. */
+	command: string | undefined,
 ): Promise<string> {
 	const pageOrigin = mainWindow.location.origin;
 	// An http(s) page is USUALLY the session: the web harness and the WEB + SERVER shape
@@ -77,7 +80,7 @@ export async function resolveSessionOrigin(
 		const content = await fileService.readFile(sessionFile);
 		parsed = JSON.parse(content.value.toString()) as typeof parsed;
 	} catch (error) {
-		throw new Error(`no live Volter session for ${folder.fsPath}: ${sessionFile.fsPath} is not readable (${error instanceof Error ? error.message : String(error)}). Start one with \`volter-editor edit . --no-open\` in that folder.`);
+		throw new Error(`no live Volter session for ${folder.fsPath}: ${sessionFile.fsPath} is not readable (${error instanceof Error ? error.message : String(error)}). Start one with ${command ? `\`${command} edit .\`` : "the editor's `edit .` command"} in that folder.`);
 	}
 	const origin = parsed.url ? new URL(parsed.url).origin : parsed.port ? `http://127.0.0.1:${parsed.port}` : undefined;
 	if (!origin) {

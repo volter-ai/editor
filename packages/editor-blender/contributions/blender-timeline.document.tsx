@@ -947,8 +947,8 @@ function TimelineHeader() {
         borderBottom: `1px solid ${TIMELINE_CHROME.rule}`,
       }}
     >
-      {/* GAME | MOVIE where the title stood, as in the Game panel, so the person switches back
-          from either (`blender-game-panel.tsx`); without a Play tool, the title. */}
+      {/* GAME | MOVIE in place of the title, as in the Game panel, so the person switches back
+          from either (`blender-game-panel.tsx`); without a Play tool or a model, the title. */}
       <PlayModeSwitch title="Timeline" />
       <TimelineViewMenu />
       {/* TWO SPACERS, which is what CENTRES the transport. Blender's Timeline

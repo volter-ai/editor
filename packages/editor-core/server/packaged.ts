@@ -1075,6 +1075,7 @@ async function main(): Promise<void> {
       version: sessionProductIdentity.version,
       command: sessionProductIdentity.command,
       displayName: sessionProductIdentity.displayName,
+      upgrade: sessionProductIdentity.upgrade === true,
     }),
     loadProjectModule: freshProjectModuleLoader(vite, () => projectPath),
     // Same contract as dev.ts: a dependency installed under a live session

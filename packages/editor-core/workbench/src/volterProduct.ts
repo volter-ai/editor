@@ -103,6 +103,15 @@ export interface VolterProduct {
 	/** What the thing being edited is called: the document pane's registered name and the
 	 *  sidebar container's title. */
 	readonly title: string;
+	/**
+	 * The command a person types for this product (`volter-model-editor`) — its package.json
+	 * `bin`, which `@volter/editor-sdk/kit/product-command` reads on the editor's side. The frame
+	 * needs it BEFORE any session exists (the cover's "no live session, start one with …"), so it
+	 * cannot ask one; a message that names a command must name the one the person has, never a
+	 * generic `volter-editor` (2026-10-06 audit: the model editor's own timeout told people to
+	 * run a command they did not have).
+	 */
+	readonly command: string;
 	readonly layout: VolterProductLayout;
 	/** The product's own sentence in the workbench's trust prompt. */
 	readonly trustSentence: string;

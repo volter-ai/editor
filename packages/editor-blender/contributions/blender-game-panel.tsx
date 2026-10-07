@@ -15,11 +15,10 @@
  * ## The Game | Movie switch is the bottom area's own
  *
  * Switching modes swaps this area and nothing else, so the switch stands at the leading edge of
- * the area's header row, where its title stood — in this panel and in the Timeline alike
- * ({@link PlayModeSwitch}), so the person switches back from whichever one is showing (owner,
- * 2026-10-06, moving it off the viewport header where it first stood). It is drawn only when a
- * Play tool is installed; without one there is no game to switch to and the Timeline keeps its
- * title.
+ * the area's header row, in place of its title — in this panel and in the Timeline alike
+ * ({@link PlayModeSwitch}), so the person switches back from whichever one is showing. It is
+ * drawn only when a Play tool is installed and a model is on screen; otherwise there is nothing
+ * to switch and the Timeline keeps its title.
  *
  * ## It is tall enough to read
  *
@@ -46,7 +45,10 @@
  * is this panel's toggle (or `volter.model-play.autoplay`), never a game key, and it is off at
  * every Play and Restart. A person's key or pointer in the game turns it off on the spot (the
  * Play tool's runner does that), so the driver line reads "You're driving" and stays so until
- * someone switches the bot on again. A game that offers no bot leaves the toggle disabled.
+ * someone switches the bot on again. A game offers its bot only once its play script runs, so
+ * the panel SAYS when there is none to switch: stopped, "available once the game is running"
+ * (and pressing Autoplay then arms it for the next start); running, "No autoplay — this game
+ * doesn't provide a bot". `play state` carries the same reason as `autoplay.why`.
  *
  * ## The play log, live
  *
@@ -162,12 +164,35 @@ function gameState(documentId: string): unknown {
 }
 
 /** The bot's switch and who drives: `bot` while autoplay is on, `person` otherwise, null when
- *  nothing plays. `by` is who made the last change (`takeover`: a person's key or pointer). */
+ *  nothing plays. `by` is who made the last change (`takeover`: a person's key or pointer);
+ *  `why` says why there is no bot to switch, null when there is one. */
 function autoplayState(documentId: string): unknown {
   const found = extension();
   const autoplay = found?.transport?.autoplay?.(documentId) ?? NO_BOT;
   const playing = found?.playing(documentId) ?? false;
-  return { ...autoplay, driver: playing ? (autoplay.on ? 'bot' : 'person') : null };
+  const why = autoplayWhy(playing, found?.transport?.clock(documentId) ?? STILL, autoplay);
+  return { ...autoplay, driver: playing ? (autoplay.on ? 'bot' : 'person') : null, why };
+}
+
+/**
+ * WHY THERE IS NO BOT TO SWITCH ON: `not-running` while stopped or still starting (a game offers
+ * its bot only once its play script runs), `no-bot` once it runs without one, null when it offers
+ * one. A tool that predates `running` counts a playing run without a failure as running.
+ */
+function autoplayUnavailable(playing: boolean, clock: DocumentPlayClock, autoplay: DocumentPlayAutoplay): 'not-running' | 'no-bot' | null {
+  if (autoplay.available) return null;
+  return playing && (clock.running ?? !clock.failure) ? 'no-bot' : 'not-running';
+}
+
+/** {@link autoplayUnavailable} as the CLI says it. */
+function autoplayWhy(playing: boolean, clock: DocumentPlayClock, autoplay: DocumentPlayAutoplay): string | null {
+  switch (autoplayUnavailable(playing, clock, autoplay)) {
+    case null: return null;
+    case 'no-bot': return 'No autoplay — this game doesn’t provide a bot: its play script registers none with play.autoplay(controller).';
+    case 'not-running': return !playing
+      ? 'Autoplay is available once the game is running, and nothing is playing; `play` starts it.'
+      : `Autoplay is available once the game is running, and it is not running yet${clock.failure ? `: ${clock.failure}` : '.'}`;
+  }
 }
 
 function requirePlaying(documentId: string, verb: string): void {
@@ -283,10 +308,13 @@ registerViewVerbs({
         const on = raw === true || raw === 'on' || raw === 'true' ? true
           : raw === false || raw === 'off' || raw === 'false' ? false : undefined;
         if (on === undefined) throw new Error(`autoplay's \`on\` is true or false (\`play autoplay on|off\`); got ${String(raw)}.`);
-        const { transport } = verbExtension();
+        const found = verbExtension();
+        const { transport } = found;
         if (transport.setAutoplay === undefined)
           throw new Error('The installed Play tool has no autoplay; update @volter/editor-model-play.');
-        if (on) requirePlaying(documentId, 'drive');
+        // Refused with the reason, stopped or no bot, as `play state`'s `autoplay.why` gives it.
+        const why = on ? autoplayWhy(found.playing(documentId), transport.clock(documentId), transport.autoplay?.(documentId) ?? NO_BOT) : null;
+        if (why !== null) throw new Error(why);
         transport.setAutoplay(documentId, on, 'cli');
         return gameState(documentId);
       },
@@ -375,23 +403,22 @@ function GameButton({ label, testId, disabled, pressed, wide, onClick, children 
  * Timeline alike (the head of this file says why it is here). Two joined cells with the current
  * one lit in the playhead's blue — the same widgets as the transport beside it, at the same
  * height, so it reads as one of this row's controls and not a smaller one. It serves the model
- * document the bottom area serves. With no Play tool installed there is nothing to switch to,
- * and the row keeps its `title` instead.
+ * document the bottom area serves. With no Play tool installed, or no model on screen, there is
+ * nothing to switch, and the row keeps its `title` instead.
  */
 export function PlayModeSwitch({ title }: { readonly title: string }) {
   useSyncExternalStore(subscribePlayMode, playModeVersion, playModeVersion);
   const found = useSyncExternalStore(subscribeDocumentPlayExtensions, extension, () => null);
   const documentId = servedModelDocument();
-  if (found === null) return <span style={{ color: TIMELINE_CHROME.text }}>{title}</span>;
-  const mode = documentId === null ? 'movie' : modelPlayMode(documentId);
+  if (found === null || documentId === null) return <span style={{ color: TIMELINE_CHROME.text }}>{title}</span>;
+  const mode = modelPlayMode(documentId);
   const cell = (value: ModelPlayMode, label: string, tip: string) => (
     <GameButton
       testId={`model-play-mode-${value}`}
       label={tip}
       pressed={mode === value}
       wide
-      disabled={documentId === null}
-      onClick={() => { if (documentId !== null) switchPlayMode(documentId, value); }}
+      onClick={() => switchPlayMode(documentId, value)}
     >
       {label}
     </GameButton>
@@ -447,7 +474,7 @@ export function BlenderGamePanel() {
       ? `No play script yet — Play runs ${scriptPath}. \`volter-model-editor add-play\` adds an example.`
       : playing && clock.failure
         // The run plays but no game runs (`DocumentPlayClock.failure`): say so, not "Playing".
-        ? `Not running — ${clock.failure}. Save the script to retry, or Stop.`
+        ? `Not running — ${clock.failure.replace(/\.$/, '')}. Restart (or save the script) to retry, or Stop.`
         : playing
         ? `${clock.paused ? 'Paused' : 'Playing'} ${scriptPath ?? ''}`.trim()
         : scriptPath === null ? 'Stopped.' : `Stopped · Play runs ${scriptPath}`;
@@ -571,7 +598,7 @@ export function BlenderGamePanel() {
             {status}
           </span>
           {transport?.autoplay && documentId !== null && (
-            <AutoplayControl documentId={documentId} playing={playing} autoplay={autoplay} transport={transport} />
+            <AutoplayControl documentId={documentId} playing={playing} clock={clock} autoplay={autoplay} transport={transport} />
           )}
         </div>
         {found?.log && documentId !== null && <PlayLogView documentId={documentId} log={found.log} />}
@@ -584,17 +611,30 @@ export function BlenderGamePanel() {
 // AUTOPLAY AND THE PLAY LOG
 // ---------------------------------------------------------------------------------------------
 
-function AutoplayControl({ documentId, playing, autoplay, transport }: {
+function AutoplayControl({ documentId, playing, clock, autoplay, transport }: {
   readonly documentId: string;
   readonly playing: boolean;
+  readonly clock: DocumentPlayClock;
   readonly autoplay: DocumentPlayAutoplay;
   readonly transport: DocumentPlayTransport;
 }) {
-  const label = !playing
-    ? 'Autoplay: start the game first (it is off at every Play and Restart)'
-    : !autoplay.available
-      ? 'This game provides no bot: its play script registers none with play.autoplay(controller)'
+  const unavailable = autoplayUnavailable(playing, clock, autoplay);
+  const armed = autoplay.armed === true;
+  // STOPPED, the button ARMS: the next start switches the bot on once its script offers one.
+  const canArm = !playing && transport.armAutoplay !== undefined;
+  const label = unavailable === 'no-bot'
+    ? 'This game provides no bot: its play script registers none with play.autoplay(controller)'
+    : unavailable === 'not-running'
+      ? canArm
+        ? armed ? 'Autoplay is armed for the next Play; press to disarm' : 'Turn autoplay on as soon as the game is running (if it offers a bot)'
+        : 'Autoplay is available once the game is running'
       : autoplay.on ? 'Stop autoplay and drive yourself' : 'Let the game’s bot drive (any key or click in the game takes over)';
+  // SAID, NOT ONLY HOVERED: why there is nothing to switch.
+  const note = unavailable === 'no-bot'
+    ? 'No autoplay — this game doesn’t provide a bot'
+    : unavailable === 'not-running'
+      ? armed ? 'Armed — turns on once the game is running' : 'Available once the game is running'
+      : null;
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: TIMELINE_CHROME.headerGap, minWidth: 0 }}>
       {/* The tooltip lives on a wrapper too: a disabled button is the one that most needs it. */}
@@ -605,17 +645,25 @@ function AutoplayControl({ documentId, playing, autoplay, transport }: {
       <GameButton
         testId="model-play-autoplay"
         label={label}
-        pressed={playing && autoplay.on}
+        pressed={autoplay.on || armed}
         wide
-        disabled={!playing || !autoplay.available || transport.setAutoplay === undefined}
+        disabled={canArm ? false : !playing || !autoplay.available || transport.setAutoplay === undefined}
         // The switch's state NOW, as the transport's buttons read theirs: a takeover can land
         // between the render and the click.
-        onClick={() => transport.setAutoplay?.(documentId, !(transport.autoplay?.(documentId).on ?? false), 'panel')}
+        onClick={() => {
+          const now = transport.autoplay?.(documentId) ?? NO_BOT;
+          if (!(extension()?.playing(documentId) ?? false)) transport.armAutoplay?.(documentId, !now.armed);
+          else transport.setAutoplay?.(documentId, !now.on, 'panel');
+        }}
       >
         Autoplay
       </GameButton>
       </span>
-      {playing && (
+      {note !== null ? (
+        <span data-testid="model-play-autoplay-note" data-reason={unavailable ?? undefined} style={{ color: TIMELINE_CHROME.widgetText, minWidth: 0 }}>
+          {note}
+        </span>
+      ) : playing && (
         <span
           data-testid="model-play-driver"
           data-driver={autoplay.on ? 'bot' : 'person'}

@@ -8,7 +8,7 @@ import { resolveProductForProject } from '@volter/editor-sdk/session/product-loc
 import { resolveWorkbenchForProject, workbenchUrl } from '@volter/editor-sdk/session/workbench-locator';
 import { announceEditorLaunch, waitForPendingEditorLaunch } from '@volter/editor-sdk/session/registry-format';
 import { allocateWorktreeEditorPort, resolveEditorPortPreference } from './project-editor-port';
-import { verifiedSessions, requestEditorTabEnsure, waitForSessionWorkbench, waitForVerifiedEditorOpen } from './editor-sessions';
+import { fetchEditorState, verifiedSessions, requestEditorTabEnsure, waitForSessionWorkbench, waitForVerifiedEditorOpen } from './editor-sessions';
 import { classifyProjectSession } from './session-resolution';
 import { loopbackPortFree } from './loopback-port';
 import { waitForOwnEditorServer, describeEditorBootFailure, DEFAULT_EDITOR_BOOT_TIMEOUT_MS, type ChildExitStatus } from './editor-boot';
@@ -58,6 +58,7 @@ export async function launch(folder: string, launching: LaunchingProduct, option
       // The proxy port is reserved by project identity, just like the server.
       console.log(workbenchUrl(allocateWorktreeEditorPort(project, undefined, 'frame-proxy'), project));
     } else console.log(state.workbenchUrl);
+    await refuseIncompatibleProject(serverUrl, launching.command, !!options.noOpen);
     await ensureTab(serverUrl, !!options.noOpen);
     return;
   }
@@ -107,6 +108,7 @@ export async function launch(folder: string, launching: LaunchingProduct, option
     await waitForSessionWorkbench(serverUrl);
     console.log(`${launching.displayName}: ${workbenchUrl(proxyPort, project)}`);
     console.log(`Logs: ${logPath}`);
+    await refuseIncompatibleProject(serverUrl, launching.command, !!options.noOpen);
     await ensureTab(serverUrl, !!options.noOpen);
   } finally { clearLaunch(); }
 }
@@ -134,14 +136,90 @@ export async function prepareSession(folder: string, launching: LaunchingProduct
   if (code !== 0) throw new Error(`${launching.command} prepare exited with code ${code} for ${project}.`);
 }
 
+/**
+ * THE SESSION CANNOT OPEN THIS PROJECT, and the server already knows it: `/__editor/state`'s
+ * `projectCompatibility` is the same verdict the page refuses on, computed server-side on every
+ * read. Until 2026-10-06 `edit` printed the URL and exited
+ * 0 regardless — measured on the owner's stream, `edit . --no-open` on a project pinned to
+ * 0.5.185 under a 0.5.189 editor: exit 0, a tab stuck on the product's splash, and the cause only
+ * in `status`. So the refusal is printed here, with its fix, and the command fails.
+ *
+ * The session is left running and (unless `--no-open`) its tab is opened: the page shows the same
+ * refusal with a Copy button, and its Retry opens the project once the fix is in, with no second
+ * `edit` needed.
+ */
+async function refuseIncompatibleProject(serverUrl: string, command: string, noOpen: boolean): Promise<void> {
+  type Refusal = { error?: unknown; recovery?: { kind?: unknown; guidance?: unknown; verbs?: unknown } };
+  const read = async (): Promise<Refusal | null> => {
+    try {
+      const response = await fetch(`${serverUrl}/__editor/state`, { signal: AbortSignal.timeout(5000) });
+      if (!response.ok) return null;
+      const refusal = ((await response.json()) as { projectCompatibility?: Refusal | null }).projectCompatibility ?? null;
+      return refusal && typeof refusal.error === 'string' ? refusal : null;
+    } catch {
+      // An unreadable answer is not a refusal; the tab wait below still reports a page that fails.
+      return null;
+    }
+  };
+  const refusal = await read();
+  if (!refusal) return;
+  // Only the PROJECT's verdicts (the engine pin). A server-staleness verdict can be a dev host's
+  // restart in flight, which the tab wait below already rides out; a deadline here turned a slow
+  // healthy restart into a failed `edit` (#147 review).
+  const kind = refusal.recovery?.kind;
+  if (kind !== 'use-compatible-editor' && kind !== 'upgrade-project') return;
+  const message = refusal.error as string;
+  const guidance = typeof refusal.recovery?.guidance === 'string' ? refusal.recovery.guidance : null;
+  const verbs: unknown = refusal.recovery?.verbs;
+  const run = (Array.isArray(verbs) ? verbs : []).filter((verb): verb is string => typeof verb === 'string')
+    .map((verb) => `${command} ${verb}`).join(' && ');
+  // A message that already names its fix (the engine pin's does) is not followed by the same
+  // command a second time — `AppRoot`'s console line dedupes the same way.
+  const named = run !== '' && (message.includes(run) || !!guidance?.includes(run));
+  if (!noOpen) await requestEditorTabEnsure(serverUrl, true);
+  throw new Error([
+    `This session cannot open the project: ${message}`,
+    ...(guidance ? [guidance] : []),
+    ...(run && !named ? [`Run from the project folder:\n  ${run}`] : []),
+    `The session is still running at the URL above; after the fix, press Retry on its page, or run \`${command} edit .\` again.`,
+  ].join('\n\n'));
+}
+
 async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   const openAttemptAt = Date.now();
   const result = await requestEditorTabEnsure(serverUrl, !noOpen);
   if (result === 'unsupported') throw new Error(`Session ${serverUrl} could not ensure its tab.`);
-  if (noOpen) return;
+  if (noOpen) {
+    // NO TAB IS OPENED, BUT ONE MAY ALREADY BE THERE (an attach to a session with its tab up),
+    // and a page that refused to start has said so in the console ledger. That is a failure this
+    // command can know about, so it is one it reports, rather than printing the URL and exit 0.
+    const refused = await startupRefusals(serverUrl);
+    if (refused.length > 0)
+      throw new Error(`The session's open page did not start:\n${refused.map((message) => `  ${message}`).join('\n')}`);
+    return;
+  }
   if (result === 'disabled') throw new Error('This session was started with automatic tab opening disabled; open its printed URL.');
-  const outcome = await waitForVerifiedEditorOpen(serverUrl, { openAttemptAt,
-    onProgress: ms => console.log(`Waiting for the editor page (${Math.round(ms / 1000)}s)…`) });
+  // A PAGE THAT HAS REFUSED IS AN ANSWER, not a page still loading: a refused startup never
+  // attaches its command listener, so the wait below would sit out its whole budget (two
+  // minutes) before saying what the page said in its first second.
+  let settled = false;
+  const refusal = (async (): Promise<string[]> => {
+    while (!settled) {
+      await new Promise((r) => setTimeout(r, 2000));
+      if (settled) break;
+      // Said by a page that loaded for THIS open, never an earlier page's line.
+      const refused = await startupRefusals(serverUrl, openAttemptAt);
+      if (refused.length > 0) return refused;
+    }
+    return [];
+  })();
+  const outcome = await Promise.race([
+    waitForVerifiedEditorOpen(serverUrl, { openAttemptAt,
+      onProgress: ms => console.log(`Waiting for the editor page (${Math.round(ms / 1000)}s)…`) }),
+    refusal.then((refused) => (refused.length > 0 ? { status: 'refused' as const, refused } : new Promise<never>(() => {}))),
+  ]).finally(() => { settled = true; });
+  if (outcome.status === 'refused')
+    throw new Error(`Editor page did not start:\n${outcome.refused.map((message) => `  ${message}`).join('\n')}`);
   if (outcome.status !== 'connected') {
     // A page that arrived and refused to start says why in the session's console ledger (a pinned
     // engine version, a failed startup): print that, not only where to look.
@@ -153,9 +231,37 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   }
 }
 
+/**
+ * THE REFUSAL A PAGE THAT IS OPEN NOW IS SHOWING (`Startup failed: …`, `AppRoot`'s console line),
+ * or `[]`. Only a confirmed one counts (#147 review): a tab must be present, none command-ready,
+ * and every present tab must have reported the `no-project` route — which `AppRoot` reports only
+ * from its terminal screens, never while detection is still trying. Without those, the ledger's
+ * newest "Startup failed" could be a page that has since closed, or one a Retry got past.
+ * `since` (epoch ms) keeps only refusals said at or after it — an `open` reading the page it
+ * just reloaded.
+ */
+export async function startupRefusals(serverUrl: string, since = 0): Promise<string[]> {
+  const state = await fetchEditorState(serverUrl);
+  if (state.tabs.length === 0 || state.tabs.some((tab) => tab.commandListener === 'ready')) return [];
+  if (!state.tabs.every((tab) => tab.route === 'no-project')) return [];
+  try {
+    const response = await fetch(new URL('/__editor/console?all=1', serverUrl), { signal: AbortSignal.timeout(3000) });
+    if (!response.ok) return [];
+    const body = (await response.json()) as { entries?: { severity?: string; message?: string; lastAt?: number }[] };
+    // The NEWEST one: the terminal page said its refusal on its own load, so older lines in the
+    // ledger are earlier pages'.
+    const newest = (body.entries ?? [])
+      .filter((entry) => entry.severity === 'error' && entry.message?.startsWith('Startup failed') && (entry.lastAt ?? 0) >= since)
+      .sort((a, b) => (b.lastAt ?? 0) - (a.lastAt ?? 0))[0];
+    return newest ? [newest.message!.split('\n')[0]!] : [];
+  } catch {
+    return [];
+  }
+}
+
 /** The console errors the page now open recorded (acknowledged or not: an error seen before and
  *  acknowledged is still this page's answer), newest last; `[]` when the ledger cannot be read. */
-async function currentPageErrors(serverUrl: string): Promise<string[]> {
+export async function currentPageErrors(serverUrl: string): Promise<string[]> {
   try {
     const response = await fetch(new URL('/__editor/console?all=1', serverUrl), { signal: AbortSignal.timeout(3000) });
     if (!response.ok) return [];

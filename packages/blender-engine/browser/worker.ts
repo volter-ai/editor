@@ -351,7 +351,13 @@ async function startBlender(project: string, document?: string): Promise<unknown
   // be `open_mainfile` on the document — which lives on the host's disk and is
   // not in the engine's filesystem until it is staged. Every other call stages
   // on its way in (`execute`); start had nothing to open before it did.
-  if (document) await stageProjectFiles(started.files, project);
+  if (document) {
+    // The document itself not reaching the engine is a refusal, not a footnote: the open below
+    // would fail on a missing file (or open a stale copy) without saying why.
+    const failed = await stageProjectFiles(started.files, project);
+    const mine = failed.find((line) => line.startsWith("The project's files are not readable") || line.startsWith(`${document} `));
+    if (mine) throw new Error(`${document} could not be copied into Blender, so it cannot be opened: ${mine}`);
+  }
   await loadCheckpoint?.("project-imported");
   const banner = (await started.request({
     op: 'start',
@@ -459,10 +465,11 @@ function say(line: string): void {
   log('error', line);
 }
 
-async function projectIndex(project: string): Promise<ProjectFile[] | null> {
-  const unreadable = (reason: string): null => {
-    say(`The project's files are not readable from Python: ${reason}`);
-    return null;
+async function projectIndex(project: string): Promise<ProjectFile[] | string> {
+  const unreadable = (reason: string): string => {
+    const line = `The project's files are not readable from Python: ${reason}`;
+    say(line);
+    return line;
   };
   let answer: Response;
   try {
@@ -515,9 +522,20 @@ async function stampOf(files_: BlenderFiles, path: string): Promise<string> {
   return info ? `${info.size}:${info.mtimeMs}` : '';
 }
 
-async function stageProjectFiles(files_: BlenderFiles, project: string): Promise<void> {
+/**
+ * Copy the project's changed files into the engine, and answer what could NOT be copied.
+ *
+ * THE ANSWER IS THE POINT (2026-10-06 audit: files that failed to copy were "reported to the
+ * console only"). `say` writes the page console once per line, which nobody running a script
+ * reads; a script that then opens or loads the missing file fails, or worse succeeds on a
+ * stale copy, with no word of why. So every call returns its failures, and the callers put
+ * them where the caller of THAT is looking: `execute` appends them to the script's answer, and
+ * `start` refuses when the document itself is among them.
+ */
+async function stageProjectFiles(files_: BlenderFiles, project: string): Promise<string[]> {
   const files = await projectIndex(project);
-  if (!files) return;
+  if (typeof files === 'string') return [files];
+  const failed: string[] = [];
   const present = new Set(files.map((file) => `${project}/${file.path}`));
   for (const path of [...staged.keys()]) {
     if (present.has(path)) continue;
@@ -539,6 +557,7 @@ async function stageProjectFiles(files_: BlenderFiles, project: string): Promise
     );
     if (!answer.ok) {
       say(`${file.path}: HTTP ${answer.status}`);
+      failed.push(`${file.path} (the session answered HTTP ${answer.status})`);
       continue;
     }
     // The index can precede an append or rewrite. Stream the response's own size,
@@ -555,20 +574,34 @@ async function stageProjectFiles(files_: BlenderFiles, project: string): Promise
     }
     staged.set(path, { host: stamp, engine: await stampOf(files_, path) });
   }
+  return failed;
+}
+
+/** The failures `stageProjectFiles` answered, as one paragraph a script's caller can read. */
+function stagingNote(failed: readonly string[]): string {
+  return failed.length === 0 ? '' :
+    `\n\nThese project files could not be copied into Blender, so this code did not see their current contents: ${failed.join('; ')}`;
 }
 
 /** Everything under `root` this SESSION owns -- what the transport mirrors out.
  *  A host file staged in and NEVER WRITTEN is the host's and is not output;
  *  one Python has written over since it was staged is this session's output,
  *  the same as a path it created (see {@link staged}). */
-async function listSessionFiles(files: BlenderFiles, root: string): Promise<FileEntry[]> {
+async function listSessionFiles(files: BlenderFiles, hostRoot: string): Promise<FileEntry[]> {
+  // A host root reaches the engine in the engine's spelling, as the project itself does.
+  const root = projectMount(hostRoot);
   const out: FileEntry[] = [];
+  // A root the engine has no directory at holds no output yet, and that is an honest empty
+  // listing. A directory that exists and cannot be read is NOT: until 2026-10-06 every readdir
+  // failure was answered as "no files", which is how a Windows root the engine never had (the
+  // host's `C:\…` instead of `/C:/…`) reported success while nothing reached disk.
+  if ((await files.stat(root)) === null) return out;
   const walk = async (dir: string): Promise<void> => {
     let names: string[];
     try {
       names = await files.readdir(dir);
-    } catch {
-      return;
+    } catch (error) {
+      throw new Error(`Blender's files under ${dir} could not be listed, so its outputs there cannot be written back: ${String(error)}`);
     }
     for (const name of names) {
       if (name === '.' || name === '..') continue;
@@ -641,13 +674,13 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       return ask({ op: 'history-step', token: request.token, direction: request.direction });
     case 'execute':
       // Code about to run may open a file the host wrote since the last call.
-      await stageProjectFiles(files, projectRoot);
       {
+        const note = stagingNote(await stageProjectFiles(files, projectRoot));
         const answer = await ask({ op: 'execute', code: request.code, history: request.history ?? true,
           label: request.label ?? 'Blender Python' }) as {
           error?: string; result: string;
         };
-        return answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`;
+        return (answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`) + note;
       }
     case 'present':
       // Straight through to `session.py`'s own `present` op — the worker adds

@@ -7,7 +7,7 @@
  * pulling React into its closure, and the sections read it through one
  * `useSyncExternalStore` (`blender-properties-view.tsx`).
  *
- * THE SUBJECT IS OUR SELECTION, RESOLVED BY IDENTITY. The person clicks a node
+ * THE SUBJECT IS THE PRESENTED BLENDER CONTEXT. The person clicks a node
  * in our viewport; the adapter hands that node's `THREE.Object3D`; the
  * presented view answers which Blender object that three object IS
  * (`BlenderRuntimeView.blenderObjectName`, a lookup by object identity in the
@@ -16,6 +16,8 @@
  * exactly as `buttons_context.cc` builds one around
  * `BKE_view_layer_active_object_get`. Reading our selection never WRITES the
  * engine's active object: that is a mutation, and the document would save it.
+ * With no selected node, the presented frame's active object remains the
+ * Properties subject; no active object resolves the scene instead.
  *
  * WHEN IT RE-READS. Three times, and each is a signal rather than a poll:
  *  - a PRESENT (`BlenderRuntimeView.subscribeFrames`) — every mutation
@@ -53,13 +55,15 @@ interface PresentedView {
   readonly root: THREE.Object3D;
   subscribeFrames(listener: () => void): () => void;
   blenderObjectName(object: THREE.Object3D): string | null;
+  blenderSelection(): { readonly active: string | null };
 }
 
 const isPresentedView = (value: unknown): value is PresentedView =>
   typeof value === 'object' &&
   value !== null &&
   typeof (value as PresentedView).subscribeFrames === 'function' &&
-  typeof (value as PresentedView).blenderObjectName === 'function';
+  typeof (value as PresentedView).blenderObjectName === 'function' &&
+  typeof (value as PresentedView).blenderSelection === 'function';
 
 /** The active authoring adapter, as much of it as this module reads. The
  *  adapter is deliberately `unknown` at the contribution point (adapter-native
@@ -109,9 +113,17 @@ export function resolveBlenderSubject(
   node: { readonly id: string } | null,
   adapter: unknown,
 ): BlenderSubject | null {
-  if (node === null || !isObject3DAuthoring(adapter)) return null;
+  if (!isObject3DAuthoring(adapter)) return null;
   const view = presentedView();
   if (view === null) return null;
+  if (node === null) {
+    // buttons_context_path_object follows the active object, independently of
+    // BASE_SELECTED. The frame carries both; no active object still leaves
+    // the scene's Properties tabs. Scope this to the presented Model document.
+    if (adapter.documentRootObject !== view.root) return null;
+    const active = view.blenderSelection().active;
+    return active === null ? { kind: 'scene' } : { kind: 'object', name: active };
+  }
   if (node.id === adapter.documentId)
     return adapter.documentRootObject === view.root ? { kind: 'scene' } : null;
   // A COLLECTION ROW HAS NO OBJECT, so it has to be resolved before the object

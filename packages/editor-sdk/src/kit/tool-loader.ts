@@ -134,9 +134,10 @@ interface LoadedToolContributionBase {
    * Render (measured against Blender 5.2 LTS, walk 5 parity row 3). Without a
    * declaration the presentation falls back to the first tab, which is what
    * every non-Blender rail wants. Read by `selection.inspector` alone, like
-   * `order`, `icon` and `railGroup`.
+   * `order`, `icon` and `railGroup`. A `(node, adapter)` resolver chooses a
+   * subject-dependent fallback, such as Scene when no active object exists.
    */
-  railDefault?: boolean;
+  railDefault?: boolean | ((node: ToolContributionNode | null, adapter: unknown) => boolean);
   /**
    * `export const order = 2` — where this contribution sits among its
    * siblings, low first, INSIDE the contributed band
@@ -632,12 +633,12 @@ export function extractProjectToolContribution(
    *  `SpaceProperties.context`, which at factory settings is OBJECT and not
    *  the rail's first tab. */
   const declaredRailDefault = record['railDefault'];
-  if (declaredRailDefault !== undefined && typeof declaredRailDefault !== 'boolean') {
+  if (declaredRailDefault !== undefined && typeof declaredRailDefault !== 'boolean' && typeof declaredRailDefault !== 'function') {
     return {
       error:
-        `[tool contributions] ${file} exports a \`railDefault\` that is not a boolean. ` +
+        `[tool contributions] ${file} exports a \`railDefault\` that is not a boolean or subject resolver. ` +
         'It says this is the tab the Properties rail opens on — `export const railDefault = ' +
-        'true;` — and nothing else takes a value. Skipped.',
+        'true;` or a function of (node, adapter). Skipped.',
     };
   }
   const base = {
@@ -658,7 +659,9 @@ export function extractProjectToolContribution(
               : declaredIcon.trim(),
         }),
     ...(typeof declaredRailGroup === 'string' ? { railGroup: declaredRailGroup.trim() } : {}),
-    ...(declaredRailDefault === true ? { railDefault: true } : {}),
+    ...(declaredRailDefault === true || typeof declaredRailDefault === 'function'
+      ? { railDefault: declaredRailDefault as NonNullable<LoadedToolContributionBase['railDefault']> }
+      : {}),
   };
   // The two points with no required callable, returned before `tool` is
   // narrowed below.

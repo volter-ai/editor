@@ -43,6 +43,11 @@ export interface DocumentPlayClock {
   /** While playing with no game running because the script failed to start or threw: why. The
    *  run stays playing (a save of the script retries it); a running game clears it. */
   readonly failure?: string | null;
+  /** A game has started in this run and is running (its first update ran). False while the run
+   *  is still preparing, and while it plays with a `failure`. Absent from a tool that predates
+   *  it, which cannot say. A reader that must know whether Play WORKED (the CLI's `play`) waits
+   *  for this or for `failure`, never for "playing" alone. */
+  readonly running?: boolean;
 }
 /**
  * THE GAME'S TRANSPORT — what a Play tool offers beyond Play and Stop, for a layout that draws a
@@ -63,6 +68,13 @@ export interface DocumentPlayTransport {
   setSpeed(documentId: string, speed: number): void;
   /** Begin the run again on a FRESH detached copy, the clock at zero. */
   restart(documentId: string): void;
+  /**
+   * THE DOCUMENT COULD NOT LEND A STAGE (its rendered draw failed to prepare), so no runner
+   * ever started. The run stays playing with `failure` on the clock and a `script-error` entry
+   * (phase `stage`) in the play log, so the Game panel and `play-log` say why; Stop ends it and
+   * Restart tries again. Absent, the document stops the play and reports by notification.
+   */
+  fail?(documentId: string, sourcePath: string, failure: string): void;
   /** Changes on every restart. The document that lends the stage keys its detached copy on it,
    *  so a new generation is a new copy; the change is announced through `subscribe`. */
   generation(documentId: string): number;
@@ -71,6 +83,9 @@ export interface DocumentPlayTransport {
   autoplay?(documentId: string): DocumentPlayAutoplay;
   /** Switch the bot on (it must be offered, and the game playing) or off. */
   setAutoplay?(documentId: string, on: boolean, by: 'panel' | 'cli'): void;
+  /** While stopped, ask the next start to switch the bot on as soon as its script offers one
+   *  (`armed`); dropped if it offers none. Absent, autoplay can only be switched while running. */
+  armAutoplay?(documentId: string, armed: boolean): void;
 }
 /**
  * AUTOPLAY, AS THE EDITOR OWNS IT: a game offers a bot, the editor decides whether it drives.
@@ -82,6 +97,8 @@ export interface DocumentPlayAutoplay {
   readonly available: boolean;
   /** Who made the last change: `script` is the game no longer offering a bot. */
   readonly by: 'panel' | 'cli' | 'takeover' | 'script' | null;
+  /** Armed while stopped (`armAutoplay`): the next start turns it on once a bot is offered. */
+  readonly armed?: boolean;
 }
 /** The newest entries of one document's play log, for a panel that draws it live. */
 export interface DocumentPlayLog {
