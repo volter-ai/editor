@@ -428,10 +428,15 @@ export class BlenderSkinDirector {
       }
       wanted.add(rig.object);
       const signature = rigSignature(rig, answer.frame);
-      if (this.#rigs.get(rig.object)?.signature === signature) continue;
+      const held = this.#rigs.get(rig.object);
+      // Unchanged only while what it bound is still what is presented, skinned: a redraw that
+      // replaced the object or its geometry (same vertex count, same signature) is bound again.
+      if (held?.signature === signature && presentation.objectForBlenderName(rig.object) === held.mesh
+        && held.mesh.geometry.getAttribute('skinIndex')) continue;
       const bound = this.#bindOne(presentation, rig, answer.frame, warnings);
       if (bound) {
-        this.#rigs.get(rig.object)?.skeleton.dispose();
+        held?.skeleton.dispose();
+        held?.boneRoot.removeFromParent();
         this.#rigs.set(rig.object, bound);
         changed = true;
       }
