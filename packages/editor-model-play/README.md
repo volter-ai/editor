@@ -111,7 +111,9 @@ Whether it drives is the editor's:
   same reason, which `play state` also gives as `autoplay.why`.
 - **Arming.** Pressed while stopped, the panel's Autoplay arms the next start: autoplay turns
   on (`by: 'panel'`) as soon as that run's script has run its first update with a bot, and the
-  arm is dropped if it offers none. Only an explicit arm carries over; Stop drops it.
+  arm is dropped if it offers none. A person's key or click in the game before then drops it
+  too (`autoplay-off` with `{ by: 'takeover', armed: true }`): the person always wins. Only an
+  explicit arm carries over; Stop, and closing the model, drop it.
 - **The person always wins.** A new key press the game would hear, or a pointer pressed in the
   game's area (the HUD included), turns autoplay off before that key reaches `play.keys`, and
   the panel reads "You're driving" until someone switches the bot on again. Synthetic keys and

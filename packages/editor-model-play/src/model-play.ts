@@ -94,7 +94,12 @@ export function modelPlaying(documentId: string): boolean {
 }
 
 export function setModelPlaying(documentId: string, value: boolean): void {
-  if (playing.has(documentId) === value) return;
+  if (playing.has(documentId) === value) {
+    // Stop with nothing playing is how a closing document lets go of its play: an arm made while
+    // stopped goes with it, or reopening the model and pressing Play would still take it.
+    if (!value && modelPlayAutoplay(documentId).armed) { resetAutoplay(documentId, false); publishClock(); }
+    return;
+  }
   const stop = value ? null : currentStop(documentId);
   if (stop) { stop(false); return; }
   if (value) {
@@ -245,7 +250,8 @@ function setAutoplay(documentId: string, next: Partial<ModelPlayAutoplay>): void
 }
 
 /** Switch the running script's bot on or off. On asks for a playing document whose script
- *  registered a bot; off always succeeds. */
+ *  registered a bot; off always succeeds, and also drops an arm not yet taken — a person who
+ *  takes over while the game is still starting is driving, and the arm must not override them. */
 export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelPlayAutoplayBy): void {
   const now = modelPlayAutoplay(documentId);
   if (on && !playing.has(documentId))
@@ -255,7 +261,7 @@ export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelP
     throw new Error(clock.running
       ? 'No autoplay: this game doesn’t provide a bot — its play script registers none with `play.autoplay(controller)`.'
       : `Autoplay is available once the game is running, and it is not running yet${clock.failure ? ` (${clock.failure})` : ''}.`);
-  if (now.on !== on) setAutoplay(documentId, { on, by });
+  if (on ? !now.on : now.on || now.armed) setAutoplay(documentId, on ? { on, by } : { on, by, armed: false });
 }
 
 /** Arm (or disarm) autoplay for the next start, while stopped: the Game panel's Autoplay button
@@ -272,7 +278,7 @@ export function settleModelPlayAutoplay(documentId: string, offered: boolean): v
   const now = modelPlayAutoplay(documentId);
   if (!playing.has(documentId)) return;
   if (!now.armed) { setModelPlayAutoplayAvailable(documentId, offered); return; }
-  setAutoplay(documentId, offered ? { available: true, armed: false, on: true, by: 'panel' } : { available: false, armed: false });
+  setAutoplay(documentId, offered ? { available: true, armed: false, on: true, by: 'panel' } : { available: false, armed: false, by: 'script' });
 }
 
 /** The runner's report of whether the running script offers a bot. Losing it turns autoplay off. */

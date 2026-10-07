@@ -297,6 +297,9 @@ export function runPlayScript(options: {
     seen = now;
     const bot = modelPlayAutoplay(options.documentId);
     if (bot.on !== seenBot.on) run.append('play', bot.on ? 'autoplay-on' : 'autoplay-off', { by: bot.by });
+    // An arm dropped before it was taken: a takeover, or a script that offers no bot. (Stop's
+    // reset has no `by`, and its `play-stop` says enough.)
+    else if (seenBot.armed && !bot.armed && bot.by !== null) run.append('play', 'autoplay-off', { by: bot.by, armed: true });
     seenBot = bot;
   });
   options.container.style.opacity = '0';
@@ -564,7 +567,9 @@ export function runPlayScript(options: {
   // by hand.
   const surface = options.container.parentElement ?? options.container;
   const takeover = (): void => {
-    if (current() && modelPlayAutoplay(options.documentId).on) setModelPlayAutoplay(options.documentId, false, 'takeover');
+    // An arm still waiting for the bot counts too: the person is driving before it could start.
+    const now = modelPlayAutoplay(options.documentId);
+    if (current() && (now.on || now.armed)) setModelPlayAutoplay(options.documentId, false, 'takeover');
   };
   const onKeyDown = (event: KeyboardEvent): void => {
     if (!surfaceAcceptsKey(event)) return;
