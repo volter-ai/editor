@@ -38,20 +38,18 @@
  * `runBlenderObjectOperator` for Apply / Clear / Set Origin. Nothing here
  * reimplements a transform apply or an origin move.
  *
- * AT THE TRAILING EDGE, THE GAME / MOVIE SWITCH — where the Play tool's Play button stood
- * (owner, 2026-10-06: "it's very confusing that the timeline at the bottom has a play button
- * AND there's a play button at the top"). The header no longer carries a Play of its own, nor
- * View's Play row: in Game mode the one Play is the Game panel's (`blender-game-panel.tsx`), in
- * Movie mode the one transport is the Timeline's, and this switch says which one the bottom
- * area holds (`../src/play-mode.ts`). It is drawn only when a Play tool is installed — without
- * one there is no game to switch to — and only in the document's own header, never the second
- * area's, because the mode is the document's and not an area's.
+ * NO GAME CONTROLS (owner, 2026-10-06: "it's very confusing that the timeline at the bottom has
+ * a play button AND there's a play button at the top"). The header carries no Play of its own,
+ * nor View's Play row: in Game mode the one Play is the Game panel's (`blender-game-panel.tsx`),
+ * in Movie mode the one transport is the Timeline's. The Game / Movie switch that chooses
+ * between them stood at this header's trailing edge for a day; it is the bottom area's own now,
+ * at the leading edge of its header row (`PlayModeSwitch`), because switching modes swaps that
+ * area and nothing here.
  */
 
 import type { ToolNotice } from '@volter/editor-sdk/contributions';
 import {
   AnchoredMenu,
-  Button,
   EditorToolbar,
   MenuItem,
   MenuSeparator,
@@ -70,9 +68,6 @@ import {
 } from './blender-outliner-authoring';
 import { blenderOutlinerVersion, subscribeBlenderOutliner } from './blender-outliner-model';
 import { areaSplit, setAreaSplit, subscribeAreaSplit } from '../src/area-split';
-import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
-import { type ModelPlayMode, modelPlayMode, playModeVersion, subscribePlayMode } from '../src/play-mode';
-import { switchPlayMode } from './blender-game-panel';
 
 type MenuId = 'view' | 'select' | 'add' | 'object';
 
@@ -263,48 +258,12 @@ function reportAck(
   })();
 }
 
-/**
- * GAME | MOVIE, two joined cells with the current one lit — the shape the shading cells in this
- * same header row take (`ViewportShadingMenu`'s segments): square inner corners and one shared
- * border, so the pair reads as one control with one choice.
- */
-function PlayModeSwitch({ documentId }: { documentId: string | undefined }) {
-  useSyncExternalStore(subscribePlayMode, playModeVersion, playModeVersion);
-  const mode = documentId === undefined ? 'movie' : modelPlayMode(documentId);
-  const cell = (value: ModelPlayMode, label: string, title: string, first: boolean) => (
-    <Button
-      size="compact"
-      shape="segment"
-      variant="secondary"
-      data-testid={`model-play-mode-${value}`}
-      aria-pressed={mode === value}
-      disabled={documentId === undefined}
-      title={title}
-      onClick={() => { if (documentId !== undefined) switchPlayMode(documentId, value); }}
-      style={first
-        ? { borderTopRightRadius: 0, borderBottomRightRadius: 0, ...(mode === value ? { position: 'relative', zIndex: 1 } : {}) }
-        : { borderTopLeftRadius: 0, borderBottomLeftRadius: 0, borderLeftWidth: 0, ...(mode === value ? { position: 'relative', zIndex: 1 } : {}) }}
-    >
-      {label}
-    </Button>
-  );
-  return (
-    <span role="group" aria-label="Game or Movie mode" data-testid="model-play-mode" style={{ display: 'inline-flex' }}>
-      {cell('game', 'Game', 'Game mode: the bottom area is the Game panel, with Play, pause, step, speed and restart', true)}
-      {cell('movie', 'Movie', 'Movie mode: the bottom area is the Timeline, playing the file’s animation', false)}
-    </span>
-  );
-}
-
 export function BlenderObjectModeHeader({
   documentId,
   notify,
-  modeSwitch = true,
 }: {
   documentId?: string | undefined;
   notify?: ((notice: ToolNotice) => () => void) | undefined;
-  /** The document's own header draws the Game / Movie switch; a second area's does not. */
-  modeSwitch?: boolean;
 }) {
   // The tree is what says which objects exist and which are selected, and both
   // menus read it, so the bar re-renders on the Outliner's own version.
@@ -322,7 +281,6 @@ export function BlenderObjectModeHeader({
     () => (documentId === undefined ? false : areaSplit(documentId)),
     () => false,
   );
-  const playExtension = useSyncExternalStore(subscribeDocumentPlayExtensions, () => documentPlayExtension('model'), () => null);
   const handle = blenderOutlinerHandle(documentId);
   // NOTHING RATHER THAN A DEAD BAR: with no Outliner published for this
   // document there is no subject for any of these rows, and a menu of rows
@@ -561,7 +519,6 @@ export function BlenderObjectModeHeader({
           Delete
         </MenuItem>
       </MenuWord>
-      {playExtension && modeSwitch && <PlayModeSwitch documentId={documentId} />}
     </EditorToolbar>
   );
 }

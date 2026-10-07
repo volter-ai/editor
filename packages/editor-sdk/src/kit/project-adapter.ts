@@ -78,6 +78,7 @@ import type { EntrypointSource, FinderInput, ProjectComponentRef } from './finde
 import {
   type FinderResult,
   type ProjectSourceFile,
+  finderReadsSources,
   registerContributedFinder,
   runFinderSelection,
 } from './finders/index';
@@ -429,11 +430,17 @@ async function gatherFinderInput(
   }
 
   // Every selection's `include` globs, read once: a contributed finder sees
-  // the project through these sources and nothing else.
+  // the project through these sources and nothing else. The globs whose finder
+  // reads TEXT are kept apart from the ones whose finder takes paths alone
+  // (`FinderRegistration.reads`), so only the first are ever fetched.
   const includes = new Set<string>();
+  const textIncludes: RegExp[] = [];
   for (const selection of definition.documents.find ?? []) {
-    for (const glob of (selection as { include?: readonly string[] }).include ?? [])
+    const readsText = finderReadsSources(selection.finder);
+    for (const glob of (selection as { include?: readonly string[] }).include ?? []) {
       includes.add(glob);
+      if (readsText) textIncludes.push(globToRegExp(glob));
+    }
   }
   const sources: ProjectSourceFile[] = [];
   const files: string[] = [];
@@ -445,15 +452,17 @@ async function gatherFinderInput(
     );
     for (const path of paths) {
       files.push(path);
-      // A BINARY document is listed, never decoded. `@volter/editor-blender`'s finder
-      // includes `.blend` files, and reading one as text would hand a finder a
-      // string of replacement characters and call it a source. A NUL byte is
-      // the test because it is the one thing no text source contains, and it
-      // asks the bytes rather than a list of extensions the host would then
-      // own. COST, named rather than hidden: the bytes are fetched and decoded
-      // before the test can run, so a binary under a finder's globs is read
-      // once per adapter resolve. A selection that declared it wants paths
-      // only would close it; no shipped finder needs that yet.
+      // A PATHS-ONLY FINDER'S FILES ARE LISTED, NEVER FETCHED. `@volter/editor-blender`'s
+      // `modelsFromBlendFiles` includes `.blend` files and says `reads: 'files'`;
+      // fetching each one through the text-source route asked a multi-megabyte
+      // binary of a route capped at 2 MiB of text — measured live, a `413` per
+      // model per resolve, five on one page load, for bytes nothing read.
+      if (!textIncludes.some((glob) => glob.test(path))) continue;
+      // A BINARY under a TEXT finder's globs is still never decoded into a
+      // source: reading one as text would hand a finder a string of replacement
+      // characters and call it a source. A NUL byte is the test because it is
+      // the one thing no text source contains, and it asks the bytes rather
+      // than a list of extensions the host would then own.
       const source = await readProjectSourceText(path);
       if (source !== null && !source.includes('\0')) sources.push({ path, source });
     }

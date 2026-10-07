@@ -8,8 +8,9 @@
  * - **Game** replaces the Timeline with the Game panel (`../contributions/blender-game-panel.tsx`):
  *   the ONE Play, and the run's pause, step, speed, restart and clock.
  *
- * The switch is in the model document's header, where Play used to be
- * (`blender-header-menus.tsx`); this module is the state both sides read. A document opens as a
+ * The switch is the bottom area's own, at the leading edge of its header row in the Game panel
+ * and the Timeline alike (`PlayModeSwitch`, `blender-game-panel.tsx`); this module is the state
+ * both sides read. A document opens as a
  * Game when its model has a play script (`*.play.ts` beside the `.blend`, as the Play tool finds
  * it — `DocumentPlayExtension.hasScript`) and as a Movie otherwise, and the person's own pick
  * then stands for that document for the browser session, kept the way `area-split.ts` keeps the

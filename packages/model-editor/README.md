@@ -26,7 +26,7 @@ and Chat ready. Later launches reopen that starter and preserve your edits.
 
 ## Game and Movie
 
-The switch at the right of the model's header chooses what the bottom of the screen is for.
+The Game | Movie switch at the left of the bottom panel's header chooses what that panel is for.
 **Game** (the default for a model with a `*.play.ts` beside its `.blend`) shows the Game
 panel: Play / Stop, Pause / Resume, Step one tick, Restart, speed (0.25× to 4×) and the
 game's clock — simulation time and tick. Beside them, the **Autoplay** toggle lets the game's
