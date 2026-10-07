@@ -25,6 +25,7 @@
  */
 
 // How the `model` stage this document builds behaves (its starting presentation).
+import './blender-properties-context';
 import { blenderViewFieldOfView } from '../src/presentation';
 import {
   type BlenderRuntimeView,

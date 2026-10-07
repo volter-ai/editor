@@ -34,7 +34,7 @@ async function fixture() {
     treeListeners: new Set(), frameListeners: new Set(), published: [],
     rows: new Map([...objects].map(([name]) => [name, {id: name, name, object: name, type: 'TSE_SOME_ID', struct: 'Object'}])),
     view: {root: {}, objectForBlenderName: name => objects.get(name)},
-    execute: () => new Promise((resolve, reject) => probe.writes.push({resolve, reject})),
+    execute: code => new Promise((resolve, reject) => probe.writes.push({code, resolve, reject})),
   };
   const module = {exports: {}};
   runInNewContext(bundle.outputFiles[0].text, {module, exports: module.exports, probe, setTimeout, clearTimeout, queueMicrotask});
@@ -98,5 +98,28 @@ test('a rejected worker call restores the native selection without an unhandled 
   await new Promise(resolve => setImmediate(resolve));
   assert.deepEqual(f.probe.published, [['Cube'], []]);
   assert.match(f.probe.errors[0][0], /worker disconnected/);
+  f.dispose();
+});
+
+test('an active but unselected Blender object is not reselected by a frame', async () => {
+  const f = await fixture();
+  f.probe.engine = {selected: [], active: 'Cube'};
+  f.frame();
+  assert.deepEqual([...f.adapter.selection.get()], []);
+  assert.deepEqual(f.probe.published, [], 'no outline or gizmo is published');
+  f.dispose();
+});
+
+test('deselect preserves the active object and stays empty after its native frame', async () => {
+  const f = await fixture();
+  f.probe.engine = {selected: ['Cube'], active: 'Cube'}; f.frame();
+  f.adapter.selection.set([]);
+  assert.doesNotMatch(f.probe.writes[0].code, /objects\.active\s*=/,
+    'native deselect changes selected flags without clearing the active base');
+  f.probe.engine = {selected: [], active: 'Cube'}; f.frame();
+  f.probe.writes[0].resolve({error: null});
+  await new Promise(resolve => setImmediate(resolve));
+  assert.deepEqual([...f.adapter.selection.get()], []);
+  assert.deepEqual(f.probe.published, [['Cube'], []]);
   f.dispose();
 });

@@ -1,5 +1,32 @@
 # Public release status
 
+## Blender Properties with no selection (2026-10-07)
+
+Properties now follows Blender's active object independently of its selected
+set. Deselecting preserves the active object and its Properties without adding
+an outline or gizmo; no active object resolves the scene. The Scene tab becomes
+the fallback when the previous object tab is unavailable, while a valid chosen
+tab such as World stays open. The null-subject provider is scoped to the
+presented Blender document, so another document's empty state stays its own.
+
+Read Blender's `buttons_context_path_object`, `buttons_context_compute`,
+`ED_buttons_tabs_list` and `base_deselect_all_ex`, and verified the transitions
+in native Blender 5.2.0 LTS with factory startup. The visible Object panel also
+now follows `properties_object.py`: one rotation representation, adjacent
+component locks, the Mode label and Delta Transform nested under Transform.
+Scene uses its datablock name, the Active Clip label and Gravity's header
+checkbox from `properties_scene.py`. These changes reuse the existing
+source-derived widgets and tab rail.
+
+Seventeen focused regression checks, SDK and Blender typechecks, the modeling
+build and architecture boundary check pass. A fresh checkout-linked editor
+was walked through selection, deselection, no-active-object Scene fallback,
+World tab retention, component lock writes and Gravity writes; full editor
+captures were visually compared with native Blender. Evidence is retained in
+the task worktree's `.volter/empty-properties-evidence/`. This verifies the
+selection-context fix and the specified layouts; complete parity of every
+Blender panel remains the inspection program described below.
+
 ## Model Editor first-run walkthrough (2026-10-05)
 
 Bare `volter-model-editor` now opens the current project, or creates and reopens

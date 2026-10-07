@@ -10,7 +10,7 @@ const bundle=await build({
   plugins:[{name:'engine-boundaries',setup(build){
     build.onResolve({filter:/.*/},args=>args.kind==='entry-point'?undefined:{path:args.path,namespace:'stub'});
     build.onLoad({filter:/.*/,namespace:'stub'},args=>({contents:args.path==='@volter/editor-sdk/host'
-      ? 'export const editorHost=()=>({documents:{context:()=>null,contextChanged(){}}});'
+      ? 'export const editorHost=()=>({documents:{context:()=>probe.view ?? null,contextChanged(){}}});'
       : args.path==='./blender-outliner-model'
         ? 'export const blenderOutlinerState=()=>({byId:new Map()});'
         : `export const blenderPresentationDocumentId=()=>"model", blenderSessionStarted=()=>true,
@@ -65,4 +65,22 @@ test('a new subject never displays the previous subject context while loading',a
   assert.equal(api.blenderPropertiesState().loading,true);
   next.resolve({object:'B'});await turn();
   assert.equal(api.blenderPropertiesState().context.object,'B');
+});
+
+test('Properties resolves the active object independently of the selected set',()=>{
+  const root={},probe={view:{root,subscribeFrames(){},blenderObjectName(){return null;},
+    blenderSelection:()=>({selected:[],active:'Cube'})}};
+  const api=model(probe),adapter={documentId:'cube',documentRootObject:root,hierarchy:{object3D(){return null;}}};
+  const subject=api.resolveBlenderSubject(null,adapter);
+  assert.equal(subject.kind,'object');assert.equal(subject.name,'Cube');
+  probe.view.blenderSelection=()=>({selected:[],active:null});
+  assert.equal(api.resolveBlenderSubject(null,adapter).kind,'scene');
+});
+
+test('a null selection on another document never gets Blender Properties',()=>{
+  const root={},probe={view:{root,subscribeFrames(){},blenderObjectName(){return null;},
+    blenderSelection:()=>({active:'Cube'})}};
+  const api=model(probe);
+  assert.equal(api.resolveBlenderSubject(null,{documentId:'another',documentRootObject:{},hierarchy:{object3D(){return null;}}}),null);
+  assert.equal(api.resolveBlenderSubject(null,{}),null);
 });
