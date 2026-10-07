@@ -292,7 +292,9 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       if (current !== null && current !== tabId) {
         options.sendToTab(current, 'tab-yield', { reason: 'claimed' });
       }
-      state = { ...state, blessedTabId: tabId ?? null, blessedAt: now() };
+      // A claimant that names itself holds the blessing while it reloads onto the project
+      // (`blessedByClaim`, tab-presence chooseBlessed): it is on the yield page, not yet present.
+      state = { ...state, blessedTabId: tabId ?? null, blessedAt: now(), blessedByClaim: tabId !== undefined };
       if (tabId !== undefined) {
         journal({
           kind: 'tab-blessed',
