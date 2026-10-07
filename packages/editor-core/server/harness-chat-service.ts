@@ -44,7 +44,7 @@ import {
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { ChatSessionCatalog } from './chat-session-catalog';
-import { chatExecutable, chatProcessEnvironment, chatSetupActions } from './chat-setup';
+import { CHAT_SETUP_PROVIDERS, chatExecutable, chatProcessEnvironment, chatSetupActions, chatSetupAgents } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -1390,6 +1390,8 @@ export class HarnessChatService {
       setup: {
         ready: Boolean(this.frontendHandoffValue),
         actions,
+        // Per agent: installed, signed in, account (docs/CHAT-WELCOME.md). The welcome renders its rows from these.
+        agents: chatSetupAgents(snapshot.harnesses),
         reason: this.frontendHandoffValue ? null : [this.frontendRefusalValue, actions.length ? null : launchContext.installError].filter(Boolean).join('\n') || null,
         cwd: this.options.getProjectRoot(),
       },
@@ -1428,7 +1430,7 @@ export class HarnessChatService {
     // It never executes arbitrary repair prose or receives provider credentials.
     const invocation = kind === 'login'
       ? supercodeInvocation(program, ['harness', 'login', harness])
-      : { command: program, args: ['install', '-g', '--prefix', launchContext.npmPrefix!, '@openai/codex'] };
+      : { command: program, args: ['install', '-g', '--prefix', launchContext.npmPrefix!, CHAT_SETUP_PROVIDERS[harness]!.npmPackage] };
     return { ...action, cwd: this.options.getProjectRoot(),
       program: invocation.command,
       arguments: invocation.args,
