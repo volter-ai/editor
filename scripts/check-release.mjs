@@ -10,6 +10,7 @@ const root = dirname(dirname(fileURLToPath(import.meta.url)));
 const read = path => JSON.parse(readFileSync(join(root, path), 'utf8'));
 const list = process.argv[2] ?? 'release/modeling.json';
 const { packages } = read(list);
+const lock = read('package-lock.json');
 assert.equal(new Set(packages).size, packages.length, 'Duplicate release package');
 const manifests = new Map(readdirSync(join(root, 'packages')).map(folder => {
   const manifest = read(`packages/${folder}/package.json`);
@@ -34,6 +35,14 @@ for (const name of packages) {
         }
       }
       assert.ok(!/^(file:|link:|workspace:)/.test(version), `${name} has local dependency ${dependency}`);
+      // supercode is measured at the version this repo's lockfile resolves; a range would let a
+      // fresh install of the published editor resolve a supercode nobody measured.
+      if (dependency.startsWith('@volter/supercode')) {
+        const locked = (lock.packages[`packages/${folder}/node_modules/${dependency}`]
+          ?? lock.packages[`node_modules/${dependency}`])?.version;
+        assert.equal(version, locked,
+          `${name} must pin ${dependency} exactly to the lockfile's ${locked ?? '(unlocked)'}, not ${version}`);
+      }
     }
   }
 }

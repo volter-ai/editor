@@ -8,7 +8,10 @@
 # npm may accept a publish ("+ pkg@ver") and hold it as STAGED until an owner
 # approves it with 2FA (`npm stage list|approve`); a staged version isn't on
 # the registry. The last step reads every published version back and fails
-# the run, naming each one npm doesn't serve.
+# the run, naming each one npm doesn't serve. The log keeps npm publish's own
+# output, and the served checks wait (backoff, up to 20 min) before saying a
+# version npm accepted is not served yet, so a slow registry never reads as a
+# lost release.
 name: publish
 on:
   push:
