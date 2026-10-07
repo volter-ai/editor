@@ -49,6 +49,11 @@ export interface BlenderRuntimeOptions {
     capture?: CaptureRequest,
   ): Promise<PresentAnswer> | PresentAnswer;
   log?(level: 'log' | 'warn' | 'error', text: string): void;
+  /** The session's document followed Blender to another project `.blend` (a script's Save As,
+   *  `protocol.ts`'s `document-moved`). Called after {@link BlenderRuntime.document} already
+   *  names the new file and before the call that moved it answers. An observer: a throw here
+   *  changes nothing. */
+  documentMoved?(moved: { readonly from: string; readonly document: string }): void;
 }
 
 /**
@@ -234,7 +239,9 @@ export class BlenderRuntime {
     return this.#project;
   }
 
-  /** The startup document owned by this worker, including while boot is pending. */
+  /** The document owned by this worker, including while boot is pending: the startup one, until
+   *  a script's Save As leaves Blender holding another project `.blend` and the session follows
+   *  it there (`session.py::follow_open_file`). */
   get document(): string | null {
     return this.#document;
   }
@@ -655,6 +662,14 @@ export class BlenderRuntime {
       }
       if (reply.op === 'document-dirty') {
         this.#dirty = reply.dirty;
+        return;
+      }
+      if (reply.op === 'document-moved') {
+        // The worker already saves to the new file; this handle must claim it too, or the
+        // editor refuses the new file's own Model tab as a resource conflict.
+        this.#document = reply.document;
+        try { this.#options.documentMoved?.({ from: reply.from, document: reply.document }); }
+        catch { /* an observer cannot undo the move Blender made */ }
         return;
       }
       if (reply.op === 'history') {

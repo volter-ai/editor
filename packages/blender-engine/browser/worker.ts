@@ -577,6 +577,43 @@ async function stageProjectFiles(files_: BlenderFiles, project: string): Promise
   return failed;
 }
 
+/** What `session.py::follow_open_file` says after a script changed the file Blender holds. */
+type FollowedDocument =
+  | { moved: true; from: string; document: string }
+  | { moved: false; from: string; outside: string };
+
+/**
+ * THE DOCUMENT FOLLOWS BLENDER'S SAVE AS, and the script's caller is told in its own answer.
+ *
+ * A move retargets the session's saves here (the save this call ends with lands the new file
+ * in the project, which is where the editor's Model tab for it opens from) and tells the tab,
+ * whose runtime handle holds the same path. A file outside the project is refused: the editor
+ * has no document there, so the session keeps its own and keeps saving to it, and says so
+ * naming both files, since the script believes it is now working in the other one.
+ */
+function followDocument(followed: FollowedDocument | undefined): string {
+  if (!followed) return '';
+  if (!followed.moved) {
+    const line = `Blender now has ${followed.outside} open, which is outside the project, so the editor cannot ` +
+      `follow it there: this session's document stays ${followed.from}, and the model keeps saving to ` +
+      `${followed.from}. To move the model to another file, save it inside the project (src/models/<name>.blend).`;
+    log('warn', line);
+    return `\n\n${line}`;
+  }
+  if (!isDocumentPath(followed.document)) {
+    // The session checks the same shape, so this is a broken promise, not a refusal to explain.
+    throw new Error(`Blender moved its document to ${JSON.stringify(followed.document)}, which is not a project .blend path`);
+  }
+  documentPath = followed.document;
+  // Even a present that failed must not leave the new file only in the engine's filesystem.
+  setDocumentDirty(true);
+  post({ op: 'document-moved', from: followed.from, document: followed.document });
+  const line = `Blender now has ${followed.document} open (this code saved or opened it), so the editor follows it: ` +
+    `the model saves to ${followed.document} from now on, and ${followed.from} keeps what it last saved.`;
+  log('log', `@@VOLTER-DOCUMENT-MOVED ${JSON.stringify({ from: followed.from, document: followed.document })}`);
+  return `\n\n${line}`;
+}
+
 /** The failures `stageProjectFiles` answered, as one paragraph a script's caller can read. */
 function stagingNote(failed: readonly string[]): string {
   return failed.length === 0 ? '' :
@@ -678,9 +715,10 @@ async function handle(request: WorkerRequest): Promise<unknown> {
         const note = stagingNote(await stageProjectFiles(files, projectRoot));
         const answer = await ask({ op: 'execute', code: request.code, history: request.history ?? true,
           label: request.label ?? 'Blender Python' }) as {
-          error?: string; result: string;
+          error?: string; result: string; document?: FollowedDocument;
         };
-        return (answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`) + note;
+        return (answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`) +
+          note + followDocument(answer.document);
       }
     case 'present':
       // Straight through to `session.py`'s own `present` op — the worker adds

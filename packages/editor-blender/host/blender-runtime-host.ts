@@ -222,15 +222,20 @@ export function bindModelDocument(bound: ModelDocumentBinding | null): () => voi
   };
 }
 
-function modelDocumentConflict(): string | null {
-  const held = runtime?.document;
-  // The finder owns model:<path>, wrapped by the host as document:<entry>.
-  // Read the active address too: activation precedes the contributed pane's
-  // effect, so an immediate command must not slip through that binding gap.
+/** The `.blend` the editor is showing as the Model: the active tab's own file, or the bound one.
+ * The finder owns model:<path>, wrapped by the host as document:<entry>. Read the active address
+ * too: activation precedes the contributed pane's effect, so an immediate command must not slip
+ * through that binding gap. */
+function shownModelBlend(): string | undefined {
   const activeId = editorHost().documents.activeId();
-  const requested = activeId?.startsWith('document:model:')
+  return activeId?.startsWith('document:model:')
     ? activeId.slice('document:model:'.length)
     : boundModel?.blend;
+}
+
+function modelDocumentConflict(): string | null {
+  const held = runtime?.document;
+  const requested = shownModelBlend();
   if (!requested || !held || requested === held) return null;
   // Say how to get Blender onto the document the editor shows, not only how to go back: an agent told
   // just "return to <held>" took it as the Blender door being unusable and built its level by
@@ -518,7 +523,10 @@ export async function blenderViewShading(shading: 'WIREFRAME' | 'SOLID' | 'MATER
  * second time, so the parse lives at the door now and both read it.
  */
 export async function blenderExecute(code: string, history = true, label = 'Blender Python'): Promise<BlenderExecuteAnswer> {
-  const text = await blenderRuntime().execute(code, history, label);
+  const session = blenderRuntime();
+  const text = await session.execute(code, history, label);
+  // Before the caller hears back: its next call must find the tab on the file Blender now holds.
+  await followMovedDocument(session);
   noteBlenderRnaChanged();
   const failed = /^Error executing code:/.exec(text);
   return {
@@ -527,6 +535,57 @@ export async function blenderExecute(code: string, history = true, label = 'Blen
     result: failed === null ? text.replace(/^Code executed successfully: ?/, '') : '',
     error: failed === null ? null : text.replace(/^Error executing code: ?/, ''),
   };
+}
+
+/**
+ * A Save As the worker reported (`BlenderRuntimeOptions.documentMoved`) that the open Model tab
+ * has not followed yet. Taken by the {@link blenderExecute} whose script moved it, once that
+ * call's own save has landed the new file in the project.
+ */
+let unfollowedMove: { readonly owner: BlenderRuntime; readonly from: string; readonly document: string } | null = null;
+
+/**
+ * THE MODEL TAB FOLLOWS BLENDER'S SAVE AS. The runtime already holds the new file and its saves
+ * go there (`session.py::follow_open_file`); what is left is the tab. Until it moves, the editor
+ * is showing the old file while Blender edits the new one, which `modelDocumentConflict` refuses
+ * on every later call. So the new file's own Model document is opened: it binds to the session
+ * that already holds that file (no stop, no reload), and the old tab, no longer active, releases
+ * its binding. Re-activating the old tab later opens the old file the ordinary way.
+ *
+ * Only a tab that was showing the old file (or the standing Model of a project that had no
+ * `.blend`) is moved; a person who has since switched elsewhere is not pulled back. A new file
+ * no Model document lists (outside the project's model finder) is said, not guessed at.
+ */
+async function followMovedDocument(owner: BlenderRuntime): Promise<void> {
+  const move = unfollowedMove;
+  if (!move || move.owner !== owner) return;
+  unfollowedMove = null;
+  const host = editorHost();
+  const stillShowingOld = () => {
+    if (runtime !== owner || owner.document !== move.document) return false;
+    const shown = shownModelBlend();
+    return shown === move.from || (shown === undefined && host.documents.activeId() === BLENDER_RUNTIME_DOCUMENT_ID);
+  };
+  if (!stillShowingOld()) return;
+  try {
+    // The table re-reads the project's files, which now include the file this call saved.
+    const table = await host.project.documentTable();
+    const entry = table.entries.find(candidate => candidate.kind === 'model' && candidate.source?.path === move.document);
+    if (!entry) {
+      host.console.warn(
+        `Blender now has ${move.document} open and the model saves there, but no Model document lists that ` +
+          `file (the project's model finder does not include its folder), so the editor is still showing ` +
+          `${move.from}, which Blender is no longer editing. Save the model under src/models/ to keep editing it here.`,
+        'blender-document',
+      );
+      return;
+    }
+    if (!stillShowingOld()) return;
+    if (!await host.workspace.open({ kind: 'document', id: entry.id }))
+      host.console.warn(`Blender now has ${move.document} open, but its Model document ${entry.id} did not open.`, 'blender-document');
+  } catch (error) {
+    host.console.error(`The Model tab could not follow Blender to ${move.document}: ${error instanceof Error ? error.message : String(error)}`, 'blender-document');
+  }
 }
 
 /** Coalesce a human gesture; Blender retains the states, Code-OSS the ordering. */
@@ -1107,6 +1166,19 @@ export function blenderRuntime(): BlenderRuntime {
     // traceback out of it.
     // biome-ignore lint/suspicious/noConsole: the Blender worker's log is page output by design.
     log: (level, text) => console[level](`[blender] ${text}`),
+    // A SCRIPT'S SAVE AS MOVED THE DOCUMENT. Said in the editor's console, where the change of
+    // file is a fact a person needs; the tab follows once the script's call answers
+    // (`followMovedDocument`), when the new file is in the project to open.
+    documentMoved: (moved) => {
+      const owner = runtime;
+      if (!owner) return;
+      unfollowedMove = { owner, from: moved.from, document: moved.document };
+      editorHost().console.log(
+        `Blender now has ${moved.document} open (a script saved or opened it there), so the model saves to ` +
+          `${moved.document} from now on; ${moved.from} keeps what it last saved.`,
+        'blender-document',
+      );
+    },
   });
   const session = runtime;
   // MEASUREMENT, PUBLISHED THE MOMENT THE SESSION EXISTS. The worker cannot say
@@ -1152,7 +1224,8 @@ const string = (cmd: Record<string, unknown>, key: string): string => {
 /**
  * The project-relative path of the `.blend` the SESSION'S PYTHON currently
  * holds — `bpy.data.filepath`, which a bake script's own `open_mainfile`
- * retargets and the session's bound document does not. Answers `{}` when there
+ * retargets as it runs (the session's document follows only once the call has
+ * ended, and only inside the project). Answers `{}` when there
  * is no file (a scene modelled from scratch has never been saved) or when the
  * path is outside the project, because a record is better absent than wrong.
  */
@@ -1481,9 +1554,9 @@ export async function handleBlenderCommand(cmd: {
             // IT IS ASKED OF PYTHON, NOT OF `boundModel`, and that distinction
             // is a measurement rather than a preference. `boundModel` is the
             // document the TAB opened; a bake script opens its own file with
-            // `wm.open_mainfile`, which `bind_document` deliberately leaves
-            // alone (it retargets `bpy.data.filepath`, not the session's
-            // document). Measured 2026-09-19: reading `boundModel` recorded
+            // `wm.open_mainfile`, which retargets `bpy.data.filepath` at once,
+            // the tab only after the call (`followMovedDocument`), and never
+            // for a file outside the project. Measured 2026-09-19: reading `boundModel` recorded
             // the SAME `.blend` as the input of all three of first-person's
             // characters — whichever one the tab happened to show — which is
             // worse than no record, because it is a confident wrong answer.
