@@ -754,6 +754,31 @@ export interface PackageContributionCrawl {
    * registry install (measured on the 0.5.67 packed acceptance).
    */
   readonly commonJs: string[];
+  /**
+   * The bare specifiers by which one contribution package's `contributions/` reach ANOTHER
+   * contribution package (`@volter/editor-ui`'s re-exports of
+   * `@volter/editor-game/contributions/react/*.service.ts`, its `@volter/editor-game/host/*`
+   * imports), to be kept OUT of prebundling.
+   *
+   * The scanner records such a specifier as a dependency like any bare import, and the
+   * optimizer then bundles the target WITH the project's React inside it. What it bundled is
+   * editor-tree code — a contribution that renders inside the editor's own React tree — so every
+   * hook it called read the project's dispatcher while the shell's React reconciled it.
+   * Measured on raiku-walk (0.5.189, Windows, 2026-10-07): the React inspector's `ClassesBlock`
+   * threw "Invalid hook call" from
+   * `.vite/deps/@volter_editor-game_contributions_react_react-inspector__service__ts.js` calling
+   * `useState` out of `.vite/deps/chunk-*.js` while the shell's `volter-sdk-*.js` rendered it, and
+   * took the whole editor surface down. `vite-plugin-shared-react.ts`'s scope cannot reach a
+   * prebundled chunk; its React is decided at prebundle time. Excluded, the target is served
+   * as source and joins the editor tree like the package's own contribution files do, and
+   * a module with state (`host/realm-services`) is one instance again instead of a prebundled
+   * twin beside the source one its own package's contributions import.
+   *
+   * The modules so reached are followed through their own relative imports, and what they
+   * import counts toward `unresolvable`, `sourceServed` and `commonJs` as a declared package's
+   * tree does, because their dependencies are now served from their source too.
+   */
+  readonly editorTree: string[];
 }
 
 export function computePackageContributionCrawlEntries(
@@ -761,6 +786,7 @@ export function computePackageContributionCrawlEntries(
 ): PackageContributionCrawl {
   const entries: string[] = [];
   const specifiers = new Set<string>();
+  const editorTree = new Set<string>();
   let declared: string[] = [];
   try {
     const pkg = JSON.parse(readFileSync(join(projectRoot, 'package.json'), 'utf-8')) as {
@@ -769,9 +795,35 @@ export function computePackageContributionCrawlEntries(
     };
     declared = [...Object.keys(pkg.dependencies ?? {}), ...Object.keys(pkg.devDependencies ?? {})];
   } catch {
-    return { entries, unresolvable: [], sourceServed: [], commonJs: [] };
+    return { entries, unresolvable: [], sourceServed: [], commonJs: [], editorTree: [] };
   }
   const req = createRequire(join(projectRoot, 'package.json'));
+  const walk = (directory: string): void => {
+    for (const file of sourceFilesUnder(directory))
+      for (const imported of importedPackageNames(file)) specifiers.add(imported);
+  };
+  // What another contribution package lends by name is followed through its own relative
+  // imports — the modules actually reached — and not walked whole: `@volter/editor-ui` reaches six
+  // of `@volter/editor-game`'s modules, and walking all of that package would prebundle at boot
+  // what this project never loads (measured on raiku-walk: `esbuild-wasm`, `draco3d`).
+  const reachedFiles = new Set<string>();
+  const followLent = (file: string, packageDir: string): void => {
+    for (const lent of contributionPackageImports(file, packageDir)) {
+      editorTree.add(lent.specifier);
+      if (lent.file) followReached(lent.file, lent.packageDir);
+    }
+  };
+  const followReached = (file: string, packageDir: string): void => {
+    if (reachedFiles.has(file)) return;
+    reachedFiles.add(file);
+    for (const specifier of valueImportSpecifiers(file)) {
+      if (isLocalSpecifier(specifier)) continue;
+      const name = packageNameOf(specifier);
+      if (PACKAGE_NAME_PATTERN.test(name)) specifiers.add(name);
+    }
+    for (const next of relativeImportFiles(file, packageDir)) followReached(next, packageDir);
+    followLent(file, packageDir);
+  };
   for (const name of declared) {
     let manifestPath: string;
     try {
@@ -794,23 +846,9 @@ export function computePackageContributionCrawlEntries(
       const file = join(dir, entry);
       if (existsSync(file)) entries.push(file);
     }
-    const walk = (directory: string): void => {
-      let found: Dirent[];
-      try {
-        found = readdirSync(directory, { withFileTypes: true });
-      } catch {
-        return;
-      }
-      for (const item of found) {
-        if (item.name.startsWith('.') || item.name === 'node_modules') continue;
-        const absolute = join(directory, item.name);
-        if (item.isDirectory()) walk(absolute);
-        else if (item.isFile() && SOURCE_FILE_PATTERN.test(item.name))
-          for (const imported of importedPackageNames(absolute)) specifiers.add(imported);
-      }
-    };
     walk(join(dir, 'contributions'));
     walk(join(dir, 'src'));
+    for (const file of sourceFilesUnder(join(dir, 'contributions'))) followLent(file, dir);
   }
   const unresolvable = [...specifiers]
     .filter((name) => !specifierResolvesFrom(projectRoot, name))
@@ -819,7 +857,142 @@ export function computePackageContributionCrawlEntries(
     .filter((name) => !unresolvable.includes(name) && spawnsModuleRelativeWorker(req, name))
     .sort();
   const commonJs = [...specifiers].filter((name) => !unresolvable.includes(name) && isCommonJsOnly(req, name)).sort();
-  return { entries, unresolvable, sourceServed, commonJs };
+  return { entries, unresolvable, sourceServed, commonJs, editorTree: [...editorTree].sort() };
+}
+
+/** Every source file under `directory`, skipping dot-entries and `node_modules`. */
+function sourceFilesUnder(directory: string): string[] {
+  const files: string[] = [];
+  const visit = (current: string): void => {
+    let found: Dirent[];
+    try {
+      found = readdirSync(current, { withFileTypes: true });
+    } catch {
+      return;
+    }
+    for (const item of found) {
+      if (item.name.startsWith('.') || item.name === 'node_modules') continue;
+      const absolute = join(current, item.name);
+      if (item.isDirectory()) visit(absolute);
+      else if (item.isFile() && SOURCE_FILE_PATTERN.test(item.name)) files.push(absolute);
+    }
+  };
+  visit(directory);
+  return files;
+}
+
+/** A TypeScript `import type` / `export type … from` statement: erased, never requested. */
+const TYPE_ONLY_STATEMENT = /^\s*(?:import|export)\s+type\b[^;'"]*?\bfrom\s*['"][^'"\n]+['"]/gm;
+
+/** The specifiers a source file imports for their VALUES; `[]` if unreadable. */
+function valueImportSpecifiers(file: string): string[] {
+  let source: string;
+  try {
+    source = readFileSync(file, 'utf-8');
+  } catch {
+    return [];
+  }
+  const specifiers: string[] = [];
+  for (const match of source.replace(TYPE_ONLY_STATEMENT, '').matchAll(IMPORT_PATTERN)) {
+    if (match[1]) specifiers.push(match[1]);
+  }
+  return specifiers;
+}
+
+/** The package's own files `file` reaches by relative import, extension-probed as Vite does. */
+function relativeImportFiles(file: string, packageDir: string): string[] {
+  const files: string[] = [];
+  for (const raw of valueImportSpecifiers(file)) {
+    if (!raw.startsWith('.')) continue;
+    const specifier = raw.split('?')[0]!;
+    const target =
+      packageSubpathFile(dirname(file), specifier) ??
+      (/\.[cm]?jsx?$/.test(specifier)
+        ? packageSubpathFile(dirname(file), specifier.replace(/\.[cm]?jsx?$/, ''))
+        : null);
+    if (target && target.startsWith(`${packageDir}${sep}`)) files.push(target);
+  }
+  return files;
+}
+
+/** The file a package's `exports` (or, without one, its layout) answers for `./<subpath>`. */
+function packageExportFile(packageDir: string, subpath: string): string | null {
+  let exportsField: unknown;
+  try {
+    exportsField = (JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf-8')) as { exports?: unknown }).exports;
+  } catch {
+    return null;
+  }
+  if (!exportsField || typeof exportsField !== 'object' || Array.isArray(exportsField)) {
+    return packageSubpathFile(packageDir, subpath);
+  }
+  const target = (entry: unknown): string | null => {
+    if (typeof entry === 'string') return entry;
+    if (!entry || typeof entry !== 'object' || Array.isArray(entry)) return null;
+    const record = entry as Record<string, unknown>;
+    for (const condition of ['browser', 'import', 'module', 'default']) {
+      const found = condition in record ? target(record[condition]) : null;
+      if (found) return found;
+    }
+    return null;
+  };
+  const map = exportsField as Record<string, unknown>;
+  const key = `./${subpath}`;
+  const exact = key in map ? target(map[key]) : null;
+  if (exact) return packageSubpathFile(packageDir, exact);
+  for (const [pattern, value] of Object.entries(map)) {
+    const star = pattern.indexOf('*');
+    if (star === -1) continue;
+    const head = pattern.slice(0, star);
+    const tail = pattern.slice(star + 1);
+    if (!key.startsWith(head) || !key.endsWith(tail) || key.length < pattern.length - 1) continue;
+    const found = target(value);
+    if (found) {
+      return packageSubpathFile(packageDir, found.replaceAll('*', key.slice(head.length, key.length - tail.length)));
+    }
+  }
+  return null;
+}
+
+/**
+ * The bare imports in `file` (a module of the package at `packageDir`) that land in ANOTHER
+ * package declaring `volter.contributions` — editor-tree code reached by name, which
+ * {@link PackageContributionCrawl.editorTree} keeps out of prebundling — each with the file it
+ * names, so the crawl can follow it. The target is resolved from the importing package, as
+ * Node and Vite resolve it (a nested install is found there). Type-only imports are erased and
+ * never requested; the runtime packages are excluded whole already.
+ */
+function contributionPackageImports(
+  file: string,
+  packageDir: string,
+): { specifier: string; packageDir: string; file: string | null }[] {
+  let ownName: string | undefined;
+  try {
+    ownName = (JSON.parse(readFileSync(join(packageDir, 'package.json'), 'utf-8')) as { name?: string }).name;
+  } catch {
+    return [];
+  }
+  const req = createRequire(join(packageDir, 'package.json'));
+  const lent: { specifier: string; packageDir: string; file: string | null }[] = [];
+  for (const specifier of valueImportSpecifiers(file)) {
+    if (!specifier.startsWith('@volter/') || isRuntimePackageSpecifier(specifier)) continue;
+    const name = packageNameOf(specifier);
+    if (name === ownName || specifier === name || !PACKAGE_NAME_PATTERN.test(name)) continue;
+    let manifestPath: string;
+    let declares: unknown;
+    try {
+      manifestPath = req.resolve(`${name}/package.json`);
+      declares = (
+        JSON.parse(readFileSync(manifestPath, 'utf-8')) as { volter?: { contributions?: unknown } }
+      ).volter?.contributions;
+    } catch {
+      continue;
+    }
+    if (!Array.isArray(declares)) continue;
+    const targetDir = dirname(manifestPath);
+    lent.push({ specifier, packageDir: targetDir, file: packageExportFile(targetDir, specifier.slice(name.length + 1)) });
+  }
+  return lent;
 }
 
 /** Whether an installed package offers no ES module entry (no `type: module`, `module` or `import` export). */

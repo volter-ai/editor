@@ -83,13 +83,31 @@ import {
 import { compactInspectorTabs, setInspectorPresentationOverride } from '../inspector-presentation';
 import { useCompactInspectorHost } from './CompactInspectorShell';
 import { InspectorFieldsSection } from './InspectorFieldsSection';
+import { SurfaceCrashBoundary } from './SurfaceCrashBoundary';
 import { useAfterPaint } from '@volter/editor-sdk/kit/components/use-after-paint';
 
 /** The body of one composed section, rendered by whichever layout asked for
  *  it: a `fields` body is the generic descriptor grid, a `custom` body is an
  *  opaque block that renders itself, a `preview` body is the subject's live
- *  square view. No projection looks past this. */
+ *  square view. No projection looks past this.
+ *
+ *  Each body sits in its OWN crash boundary, and `render()` is called inside
+ *  it: a contributed section that throws (a hook from the wrong React, a hook
+ *  called from its render helper) shows its error in place of that one
+ *  section instead of unmounting the inspector and the editor around it. */
 function sectionBody(section: InspectionSection): ReactNode {
+  return (
+    <SurfaceCrashBoundary
+      key={section.id}
+      surface={`inspector-section:${section.id}`}
+      label={`The "${section.title}" inspector section`}
+    >
+      <SectionBodyContent section={section} />
+    </SurfaceCrashBoundary>
+  );
+}
+
+function SectionBodyContent({ section }: { readonly section: InspectionSection }): ReactNode {
   return section.body.kind === 'fields' ? (
     <InspectorFieldsSection fields={section.body.fields} io={section.body.io} />
   ) : (
