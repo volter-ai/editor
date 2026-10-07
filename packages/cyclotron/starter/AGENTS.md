@@ -346,7 +346,7 @@ For a behavior-only repair, preserve the established appearance.
   animated, not slid as a frozen mesh. Its clips are Blender actions on its
   armature; Movie and Play play the same actions.
 - Look in the asset library for rigged and animated assets before authoring
-  your own: `GET <editor>/__editor/asset-library/search?q=<words>` at the
+  your own: `GET <editor>/__editor/asset-library/search?source=local&type=model&q=<words>` at the
   editor's address, then import the result through Blender.
 - In a play script, `play.animate(object, clip, options)` plays a clip on the
   game's clock; `play.clips(object)` lists them. Check the result in captures.
