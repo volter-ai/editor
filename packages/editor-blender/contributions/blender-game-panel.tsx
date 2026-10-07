@@ -25,9 +25,8 @@
  * Blender's Timeline strip (`model.layout.ts`'s measured 0.0719 — 63 px of an 880-px column)
  * showed this panel's play log as one clipped line. So Game mode asks the area for
  * {@link GAME_PANEL_RATIO} (`setWorkspaceAreaRatio`, by the bottom area's document) and Movie
- * mode gives Blender's back. A person's drag is kept per mode: the frame remembers the share
- * the area had under each mode's request and stands it up at that share when the mode returns
- * (`volterDocuments.ts`).
+ * mode gives Blender's back: each switch stands the area up at its mode's size, as a workspace
+ * switch does, and the sash stays the person's in between.
  *
  * ## What it drives is the Play tool's own run
  *
