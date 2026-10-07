@@ -672,9 +672,11 @@ replay work started.
 
 ## Skeletons and actions in Play
 
-State: a detached or following copy binds no skeleton; the frame used to build it carries
-no bones or actions. A rigged character is a frozen mesh in Play, and a play script cannot
-start a clip. Skin and Timeline bind only to the presented view
+State (2026-10-07): Play's detached copy binds the document's skins (`blender-play-skin.ts`,
+over the Timeline's own `bindRig`/`clipTracks`) and every action that animates an armature's
+bones, assigned or not; a play script plays them with `play.animate(object, clip, options)`
+on the game's clock. Still open: object-level (non-bone) actions, shape keys and constraints
+in Play; a following copy binds no skeleton. Skin and Timeline bind only to the presented view
 (`blender-runtime-skin.ts`). Closes when a Timeline-authored character plays the same
 action in Play, started by the script; Blender camera animation can drive the play camera;
 and Timeline and script can hand an object to each other. Cinematic and game then share

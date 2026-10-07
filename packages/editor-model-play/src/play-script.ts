@@ -86,6 +86,7 @@ import {
   takeModelPlayStep,
 } from './model-play';
 import { beginModelPlayLog } from './play-log';
+import type { DocumentPlayAnimation } from '@volter/editor-sdk/kit/document-play-extension';
 import { materialOverrides } from './play-materials';
 interface PlayComposition {
   readonly entries: readonly string[];
@@ -157,6 +158,32 @@ export interface ModelPlayContext {
    *     });
    */
   autoplay(bot: ModelPlayAutoplayController | Readonly<Record<string, ModelPlayAutoplayController>> | null): void;
+  /**
+   * Play one of a character's clips: any action in the file that animates its armature's bones,
+   * by name, assigned or not (a clip library: `Idle`, `Run`, `Attack`). `object` is the character
+   * (its armature, its rigged mesh, or an object above or below them) or its name. It crossfades
+   * from what that armature played before over `fade` seconds (0.2), loops unless `loop: false`
+   * (which holds the last frame), and plays at `speed`. Calling it again with the playing clip does
+   * nothing, so call it every frame with the clip the character's state wants. Clips run on the
+   * game's clock: paused, stepped and sped up with it. A clip change is logged (`animation`); a
+   * name the character lacks is logged once (`animation-unknown`) and returns false.
+   *
+   *     play.animate('Helper', moving ? 'Run' : 'Idle');
+   *     play.animate(enemy, 'Die', { loop: false });
+   */
+  animate(object: THREE.Object3D | string, clip: string, options?: ModelPlayAnimateOptions): boolean;
+  /** Fade out what a character plays, leaving its current pose. */
+  stopAnimation(object: THREE.Object3D | string, fade?: number): void;
+  /** The clips a character can play, by name (empty without an armature with actions). */
+  clips(object: THREE.Object3D | string): readonly string[];
+}
+
+export interface ModelPlayAnimateOptions {
+  readonly loop?: boolean;
+  readonly fade?: number;
+  readonly speed?: number;
+  /** Start again from the first frame when this clip is already playing. */
+  readonly restart?: boolean;
 }
 
 /** What the bot is handed before each `update` it drives. */
@@ -290,8 +317,11 @@ export function runPlayScript(options: {
   readonly ready: () => void;
   readonly returning: () => void;
   readonly ownMaterial?: ((material: THREE.Material) => THREE.Material | null) | undefined;
+  /** The document's skins and clips bound to `root`; absent, characters stand in their exported pose. */
+  readonly animation?: DocumentPlayAnimation | undefined;
 }): () => void {
   const { blend, root, camera, onFrame } = options;
+  const options_ = options;
   const modulePath = playScriptPath(blend);
   // A fresh copy is a fresh run: its log starts empty, its clock at zero. Writes go through
   // this run's handle, which is inert once the run has ended.
@@ -384,6 +414,35 @@ export function runPlayScript(options: {
     autoplay(bot) {
       const behaviors = botBehaviors(bot);
       if (alive.value) alive.bot = behaviors;
+    },
+    animate(object, clip, options) {
+      if (!alive.value) return false;
+      const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
+      const key = `${typeof object === 'string' ? object : object.name} ${clip}`;
+      if (!target || !options_.animation) {
+        if (!alive.unknown.has(key)) {
+          alive.unknown.add(key);
+          run.append('play', 'animation-unknown', { object: typeof object === 'string' ? object : object.name, clip,
+            why: !target ? 'the model has no such object' : 'this document lends no animation' });
+        }
+        return false;
+      }
+      const before = options_.animation.playing(target);
+      const answer = options_.animation.play(target, clip, options);
+      if (!answer.ok) {
+        if (!alive.unknown.has(key)) { alive.unknown.add(key); run.append('play', 'animation-unknown', { object: target.name, clip, why: answer.why }); }
+        return false;
+      }
+      if (before !== clip || options?.restart) run.append('play', 'animation', { armature: answer.armature, clip, from: before });
+      return true;
+    },
+    stopAnimation(object, fade) {
+      const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
+      if (alive.value && target) options_.animation?.stop(target, fade);
+    },
+    clips(object) {
+      const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
+      return target && options_.animation ? options_.animation.clips(target) : [];
     },
   });
   const scripts = new WeakMap<ModelPlayGame, Script>();
@@ -566,6 +625,8 @@ export function runPlayScript(options: {
     // A paused frame that runs an update is a Step; its entry carries the step's own tick.
     const stepping = modelPlayClock(options.documentId).paused;
     const tick = (dt: number): void => {
+      // The characters' clips move on the game's clock, one update's `dt` at a time.
+      options.animation?.update(dt);
       run.advance(dt);
       ran += 1;
       simulated += dt;

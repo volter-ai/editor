@@ -340,6 +340,47 @@ For a behavior-only repair, preserve the established appearance.
   captures using the visible editor document. Fix observed problems, play again
   and report what was actually observed.
 
+## Characters move: animation in games and movies
+
+In a game or a movie, every character and creature that moves is animated: it
+walks, runs, attacks, reacts and dies through clips, not by sliding a frozen
+mesh. A still scene or a single model needs no animation unless one is asked
+for.
+
+- Clips are Blender actions on an armature, in the `.blend`. The same actions
+  play in Movie (the Timeline) and in Play, so a game and its cut-scenes share
+  them. Keep a character's clips side by side as named actions (`Idle`, `Walk`,
+  `Run`, `Attack`, `Hit`, `Die`, and whatever the result needs); an action need
+  not be assigned to play.
+- Start from the asset library rather than hand-keying a humanoid. The library
+  holds rigged, animated assets with their licenses: humanoid animation sets
+  that share one skeleton, and animated creatures. Query it at the editor's
+  address, the one `cyclotron edit` printed (its port is
+  `npx --no-install cyclotron eval 'return session.port'`):
+  `GET <editor>/__editor/asset-library/search?source=local&type=model&q=<words>`.
+  Results carry `tags` (`animated`, `humanoid`, `creature`), a license and
+  attribution. Fetch one with `POST <editor>/__editor/asset-library/download`
+  and import it into the `.blend` through Blender. Record the asset and its
+  license in the project.
+- Humanoids: rig the character to a library humanoid skeleton and use that
+  set's clips, or retarget them onto the character's own armature. Creatures
+  and other non-humanoids: use a library rig of the same body plan when one
+  fits, otherwise build an armature and key its actions in Blender; a few
+  short loops are enough for a low-detail creature.
+- In a play script, `play.animate(character, 'Run')` plays a clip on the
+  character's armature, crossfading from the last (`fade`, 0.2 s), looping
+  unless `loop: false`. Call it every update with the clip the character's
+  state wants; repeating the playing clip does nothing. `play.clips(character)`
+  lists what it can play and `play.stopAnimation` fades it out. Clips run on
+  the game's clock, so pause, step, speed and Restart hold for them. Each clip
+  change is an `animation` entry in the play log; a name the character lacks is
+  `animation-unknown` once.
+- Check animation where it is seen: capture representative moments in Movie
+  and in Play (idle, moving, attacking, dying) and confirm the pose matches the
+  state the log reports. A skinned mesh with a generative modifier (Subdivision,
+  Mirror, Array) above its Armature modifier is not skinned in the presenter;
+  the console says so. Apply the modifier or move it below the Armature.
+
 ## React UI
 
 - Build HUDs, menus and screens as React components in `src/ui/`. A game's

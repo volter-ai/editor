@@ -78,7 +78,10 @@ export type WorkerRequest =
    *  bone, the LOCAL transform at every integer frame of the action's range,
    *  plus the scene's frame range/fps and the summary row's key columns.
    *  READ ONLY: keying, moving a key and setting a range are edits. */
-  | { id: number; op: 'action-clip'; object?: string; bake?: boolean }
+  | { id: number; op: 'action-clip'; object?: string; bake?: boolean; action?: string }
+  /** EVERY ARMATURE AND THE ACTIONS THAT CAN PLAY ON IT (`session.py`'s `rna_armature_actions`):
+   *  each action that animates one of its pose bones, assigned or not. READ ONLY. */
+  | { id: number; op: 'armature-actions' }
   /** ONE RESTRICTION COLUMN, written (`session.py`'s `outliner_set`). A column
    *  Blender draws on no row of that type is refused by name. */
   | { id: number; op: 'outliner-set'; path: string; column: string; value: boolean }

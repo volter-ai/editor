@@ -74,6 +74,7 @@ import {
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
+import { bindPlayAnimation, readPlayClipLibrary, type PlayAnimation } from './blender-play-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
 import { noteModelDocument } from '../src/play-mode';
 import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
@@ -897,6 +898,7 @@ function BlenderViewportArea({
     let preparing = false;
     let stopScript: (() => void) | null = null;
     let orbit: { enabled: boolean } | null = null;
+    let animation: PlayAnimation | null = null;
     const start = (): void => {
       if (stopScript || preparing || stopped) return;
       const stage = viewportStages().find((one) => one.documentId === documentId);
@@ -904,9 +906,21 @@ function BlenderViewportArea({
       preparing = true;
       orbit = stage.rig().orbit;
       orbit.enabled = false;
-      void view.prepareRendered(stage.rig().drawCamera(), 'render').then(() => {
+      // THE COPY'S CHARACTERS ANIMATE: their skins and every clip they can play, read once for
+      // this run and bound to the copy (`blender-play-skin.ts`). A read that fails costs the game its
+      // animation, said in the console, never the game itself.
+      void Promise.all([
+        view.prepareRendered(stage.rig().drawCamera(), 'render'),
+        readPlayClipLibrary().catch((error: unknown) => {
+          editorHost().console.warn(`The game's animation could not be read: ${error instanceof Error ? error.message : String(error)}`, 'blender-play');
+          return null;
+        }),
+      ]).then(([, library]) => {
         if (stopped) return;
+        animation = library ? bindPlayAnimation(view, library) : null;
+        for (const warning of animation?.warnings ?? []) editorHost().console.warn(warning, 'blender-play');
         stopScript = documentPlayExtension('model')?.run({
+          ...(animation ? { animation } : {}),
           documentId: modelId,
           container: layers,
           ready: () => { if (!stopped) { setPlayReady(true); playReadyRef.current?.(); } },
@@ -964,6 +978,8 @@ function BlenderViewportArea({
       stopPrepareFrames?.();
       window.removeEventListener('keydown', onEscape, true);
       stopScript?.();
+      animation?.dispose();
+      animation = null;
       layers.remove();
       if (orbit) orbit.enabled = true;
     };

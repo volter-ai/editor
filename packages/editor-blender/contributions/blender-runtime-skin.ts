@@ -84,7 +84,7 @@ export interface SkinPresentation {
   root: THREE.Object3D;
 }
 
-interface BoundRig {
+export interface BoundRig {
   /** The MESH object's Blender name. */
   readonly object: string;
   readonly armature: string;
@@ -101,6 +101,150 @@ interface BoundRig {
 
 function rigSignature(rig: BlenderRigBinding, frame: number): string {
   return [rig.object, rig.mesh, rig.armature, rig.vertexCount, rig.bones.length, frame].join('|');
+}
+
+/**
+ * A BLENDER ACTION'S BAKED TRACKS as three.js keyframe tracks over `bones` (by Blender's bone
+ * name), addressed by bone UUID because three's track-name grammar splits on `.` and `hand.L`
+ * is an ordinary bone name. A track for a bone this binding lacks is named in `warnings`.
+ */
+export function clipTracks(clip: BlenderActionClip, bones: ReadonlyMap<string, THREE.Bone>, warnings: string[]): THREE.KeyframeTrack[] {
+  const tracks: THREE.KeyframeTrack[] = [];
+  const missing = new Set<string>();
+  for (const track of clip.tracks) {
+    const bone = bones.get(track.bone);
+    if (!bone) {
+      missing.add(track.bone);
+      continue;
+    }
+    const times = float32Of(track.timeBase64);
+    const values = float32Of(track.valueBase64);
+    const path = `${bone.uuid}.${track.property}`;
+    tracks.push(
+      track.property === 'quaternion'
+        ? new THREE.QuaternionKeyframeTrack(path, Array.from(times), Array.from(values))
+        : new THREE.VectorKeyframeTrack(path, Array.from(times), Array.from(values)),
+    );
+  }
+  if (missing.size) warnings.push(`${clip.action} animates ${[...missing].join(', ')}, which this binding has no bone for.`);
+  return tracks;
+}
+
+/**
+ * BIND ONE RIGGED MESH of a presentation: its drawn mesh becomes a `THREE.SkinnedMesh` over a
+ * `Skeleton` built from Blender's bones, in the pose the columns were exported at (so the bind
+ * is an identity there). Shared by the Timeline's director and Play's copy (`blender-play-skin.ts`).
+ */
+export function bindRig(
+  presentation: SkinPresentation,
+  rig: BlenderRigBinding,
+  frame: number,
+  warnings: string[],
+): BoundRig | null {
+  const meshObject = presentation.objectForBlenderName(rig.object ?? '');
+  const armatureObject = presentation.objectForBlenderName(rig.armature ?? '');
+  if (!meshObject || !armatureObject) return null;
+  const source = meshObject as THREE.Mesh;
+  const geometry = source.geometry;
+  if (!geometry) return null;
+  const blenderVertex = geometry.getAttribute('blenderVertex');
+  if (!blenderVertex) {
+    warnings.push(
+      `"${rig.object}" cannot be skinned: its presented geometry carries no \`blenderVertex\` attribute, so a per-Blender-vertex weight cannot be expanded onto its drawn vertices.`,
+    );
+    return null;
+  }
+  if (rig.vertexCount === 0) return null;
+  // THE COLUMNS AND THE BINDING MUST BE THE SAME MESH. `rna_rig` reads the
+  // ORIGINAL mesh's vertices (a deform layer is not geometry, so that is
+  // where the weights live); a generative modifier — Subdivision, Mirror,
+  // Array — makes the EVALUATED mesh the export door ships a different
+  // vertex set, and a skin bound across that mismatch would weight the wrong
+  // vertices. Named, never silently drawn.
+  let highest = 0;
+  for (let i = 0; i < blenderVertex.count; i++)
+    highest = Math.max(highest, blenderVertex.getX(i));
+  if (highest >= rig.vertexCount) {
+    warnings.push(
+      `"${rig.object}" is not skinned here: its presented geometry references Blender vertex ${highest} while the mesh declares ${rig.vertexCount}, which is a generative modifier (Subdivision, Mirror, Array…) between the two. Blender's own viewport shows the evaluated result; this presenter shows the exported columns unskinned.`,
+    );
+    return null;
+  }
+  const skinIndex = uint16Of(rig.skinIndexBase64 ?? '');
+  const skinWeight = float32Of(rig.skinWeightBase64 ?? '');
+  const drawn = blenderVertex.count;
+  const indices = new Uint16Array(drawn * 4);
+  const weights = new Float32Array(drawn * 4);
+  for (let i = 0; i < drawn; i++) {
+    const vertex = blenderVertex.getX(i);
+    for (let k = 0; k < 4; k++) {
+      indices[i * 4 + k] = skinIndex[vertex * 4 + k] ?? 0;
+      weights[i * 4 + k] = skinWeight[vertex * 4 + k] ?? 0;
+    }
+  }
+  geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(indices, 4));
+  geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
+
+  const boneRoot = new THREE.Group();
+  boneRoot.name = `${rig.armature}:bones`;
+  const bones: THREE.Bone[] = [];
+  const armatureSpace = rig.bones.map((bone) => matrixOf(bone.pose));
+  const indexByName = new Map(rig.bones.map((bone, index) => [bone.name, index]));
+  rig.bones.forEach((declared, index) => {
+    const bone = new THREE.Bone();
+    // THE NAME IS BLENDER'S, unsanitized, because a game reads it: the
+    // arena's `Player.tsx` finds its bones by Blender's own names. The CLIP
+    // therefore addresses bones by UUID rather than by name — three's
+    // `PropertyBinding` track-name grammar splits on `.`, and Blender's
+    // `hand.L` is an ordinary bone name.
+    bone.name = declared.name;
+    bones.push(bone);
+    const parentIndex = declared.parent === null ? undefined : indexByName.get(declared.parent);
+    const local =
+      parentIndex === undefined
+        ? armatureSpace[index]!.clone()
+        : armatureSpace[parentIndex]!.clone().invert().multiply(armatureSpace[index]!);
+    local.decompose(bone.position, bone.quaternion, bone.scale);
+    (parentIndex === undefined ? boneRoot : bones[parentIndex]!).add(bone);
+  });
+  armatureObject.add(boneRoot);
+
+  const skinned = new THREE.SkinnedMesh(geometry, source.material);
+  skinned.name = source.name;
+  skinned.matrixAutoUpdate = false;
+  skinned.matrix.copy(source.matrix);
+  skinned.matrix.decompose(skinned.position, skinned.quaternion, skinned.scale);
+  skinned.userData = source.userData;
+  // A SKIN MOVES PAST ITS BIND BOUNDS. three computes a SkinnedMesh's
+  // bounding sphere from the bind pose, so a raised arm at frame 24 is
+  // culled while its bind-pose sphere is off screen — a picture that
+  // vanishes mid-scrub with no error anywhere.
+  skinned.frustumCulled = false;
+  presentation.replacePresentedObject(source, skinned);
+  // THE BIND IS TAKEN AFTER THE GRAPH STANDS, because both halves of it are
+  // WORLD matrices: `Skeleton`'s bone inverses are the bones' `matrixWorld`
+  // at this instant and `bindMatrix` is the mesh's.
+  presentation.root.updateMatrixWorld(true);
+  const skeleton = new THREE.Skeleton(bones);
+  skinned.bind(skeleton, skinned.matrixWorld.clone());
+  if (rig.constrainedBones?.length)
+    warnings.push(
+      `Bone constraints on ${rig.constrainedBones.join(', ')}: the clip is derived from the F-Curves alone, so those bones play their channels rather than Blender's solved pose.`,
+    );
+  if (rig.unmappedGroups?.length)
+    warnings.push(
+      `${rig.object} carries vertex groups no bone is named for (${rig.unmappedGroups.join(', ')}); they weight nothing here, exactly as they deform nothing in Blender.`,
+    );
+  return {
+    object: rig.object ?? '',
+    armature: rig.armature ?? '',
+    mesh: skinned,
+    boneRoot,
+    bones,
+    skeleton,
+    frame,
+    signature: rigSignature(rig, frame),
+  };
 }
 
 /**
@@ -318,116 +462,8 @@ export class BlenderSkinDirector {
     this.#publish();
   }
 
-  #bindOne(
-    presentation: SkinPresentation,
-    rig: BlenderRigBinding,
-    frame: number,
-    warnings: string[],
-  ): BoundRig | null {
-    const meshObject = presentation.objectForBlenderName(rig.object ?? '');
-    const armatureObject = presentation.objectForBlenderName(rig.armature ?? '');
-    if (!meshObject || !armatureObject) return null;
-    const source = meshObject as THREE.Mesh;
-    const geometry = source.geometry;
-    if (!geometry) return null;
-    const blenderVertex = geometry.getAttribute('blenderVertex');
-    if (!blenderVertex) {
-      warnings.push(
-        `"${rig.object}" cannot be skinned: its presented geometry carries no \`blenderVertex\` attribute, so a per-Blender-vertex weight cannot be expanded onto its drawn vertices.`,
-      );
-      return null;
-    }
-    if (rig.vertexCount === 0) return null;
-    // THE COLUMNS AND THE BINDING MUST BE THE SAME MESH. `rna_rig` reads the
-    // ORIGINAL mesh's vertices (a deform layer is not geometry, so that is
-    // where the weights live); a generative modifier — Subdivision, Mirror,
-    // Array — makes the EVALUATED mesh the export door ships a different
-    // vertex set, and a skin bound across that mismatch would weight the wrong
-    // vertices. Named, never silently drawn.
-    let highest = 0;
-    for (let i = 0; i < blenderVertex.count; i++)
-      highest = Math.max(highest, blenderVertex.getX(i));
-    if (highest >= rig.vertexCount) {
-      warnings.push(
-        `"${rig.object}" is not skinned here: its presented geometry references Blender vertex ${highest} while the mesh declares ${rig.vertexCount}, which is a generative modifier (Subdivision, Mirror, Array…) between the two. Blender's own viewport shows the evaluated result; this presenter shows the exported columns unskinned.`,
-      );
-      return null;
-    }
-    const skinIndex = uint16Of(rig.skinIndexBase64 ?? '');
-    const skinWeight = float32Of(rig.skinWeightBase64 ?? '');
-    const drawn = blenderVertex.count;
-    const indices = new Uint16Array(drawn * 4);
-    const weights = new Float32Array(drawn * 4);
-    for (let i = 0; i < drawn; i++) {
-      const vertex = blenderVertex.getX(i);
-      for (let k = 0; k < 4; k++) {
-        indices[i * 4 + k] = skinIndex[vertex * 4 + k] ?? 0;
-        weights[i * 4 + k] = skinWeight[vertex * 4 + k] ?? 0;
-      }
-    }
-    geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(indices, 4));
-    geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
-
-    const boneRoot = new THREE.Group();
-    boneRoot.name = `${rig.armature}:bones`;
-    const bones: THREE.Bone[] = [];
-    const armatureSpace = rig.bones.map((bone) => matrixOf(bone.pose));
-    const indexByName = new Map(rig.bones.map((bone, index) => [bone.name, index]));
-    rig.bones.forEach((declared, index) => {
-      const bone = new THREE.Bone();
-      // THE NAME IS BLENDER'S, unsanitized, because a game reads it: the
-      // arena's `Player.tsx` finds its bones by Blender's own names. The CLIP
-      // therefore addresses bones by UUID rather than by name — three's
-      // `PropertyBinding` track-name grammar splits on `.`, and Blender's
-      // `hand.L` is an ordinary bone name.
-      bone.name = declared.name;
-      bones.push(bone);
-      const parentIndex = declared.parent === null ? undefined : indexByName.get(declared.parent);
-      const local =
-        parentIndex === undefined
-          ? armatureSpace[index]!.clone()
-          : armatureSpace[parentIndex]!.clone().invert().multiply(armatureSpace[index]!);
-      local.decompose(bone.position, bone.quaternion, bone.scale);
-      (parentIndex === undefined ? boneRoot : bones[parentIndex]!).add(bone);
-    });
-    armatureObject.add(boneRoot);
-
-    const skinned = new THREE.SkinnedMesh(geometry, source.material);
-    skinned.name = source.name;
-    skinned.matrixAutoUpdate = false;
-    skinned.matrix.copy(source.matrix);
-    skinned.matrix.decompose(skinned.position, skinned.quaternion, skinned.scale);
-    skinned.userData = source.userData;
-    // A SKIN MOVES PAST ITS BIND BOUNDS. three computes a SkinnedMesh's
-    // bounding sphere from the bind pose, so a raised arm at frame 24 is
-    // culled while its bind-pose sphere is off screen — a picture that
-    // vanishes mid-scrub with no error anywhere.
-    skinned.frustumCulled = false;
-    presentation.replacePresentedObject(source, skinned);
-    // THE BIND IS TAKEN AFTER THE GRAPH STANDS, because both halves of it are
-    // WORLD matrices: `Skeleton`'s bone inverses are the bones' `matrixWorld`
-    // at this instant and `bindMatrix` is the mesh's.
-    presentation.root.updateMatrixWorld(true);
-    const skeleton = new THREE.Skeleton(bones);
-    skinned.bind(skeleton, skinned.matrixWorld.clone());
-    if (rig.constrainedBones?.length)
-      warnings.push(
-        `Bone constraints on ${rig.constrainedBones.join(', ')}: the clip is derived from the F-Curves alone, so those bones play their channels rather than Blender's solved pose.`,
-      );
-    if (rig.unmappedGroups?.length)
-      warnings.push(
-        `${rig.object} carries vertex groups no bone is named for (${rig.unmappedGroups.join(', ')}); they weight nothing here, exactly as they deform nothing in Blender.`,
-      );
-    return {
-      object: rig.object ?? '',
-      armature: rig.armature ?? '',
-      mesh: skinned,
-      boneRoot,
-      bones,
-      skeleton,
-      frame,
-      signature: rigSignature(rig, frame),
-    };
+  #bindOne(presentation: SkinPresentation, rig: BlenderRigBinding, frame: number, warnings: string[]): BoundRig | null {
+    return bindRig(presentation, rig, frame, warnings);
   }
 
   #loadClip(presentation: SkinPresentation, clip: BlenderActionClip, warnings: string[]): void {
@@ -440,28 +476,7 @@ export class BlenderSkinDirector {
     const byName = new Map<string, THREE.Bone>();
     for (const rig of this.#rigs.values())
       if (rig.armature === clip.armature) for (const bone of rig.bones) byName.set(bone.name, bone);
-    const tracks: THREE.KeyframeTrack[] = [];
-    const missing = new Set<string>();
-    for (const track of clip.tracks) {
-      const bone = byName.get(track.bone);
-      if (!bone) {
-        missing.add(track.bone);
-        continue;
-      }
-      const times = float32Of(track.timeBase64);
-      const values = float32Of(track.valueBase64);
-      // ADDRESSED BY UUID, not by name — see the bone-naming note above.
-      const path = `${bone.uuid}.${track.property}`;
-      tracks.push(
-        track.property === 'quaternion'
-          ? new THREE.QuaternionKeyframeTrack(path, Array.from(times), Array.from(values))
-          : new THREE.VectorKeyframeTrack(path, Array.from(times), Array.from(values)),
-      );
-    }
-    if (missing.size)
-      warnings.push(
-        `${clip.action} animates ${[...missing].join(', ')}, which this binding has no bone for.`,
-      );
+    const tracks = clipTracks(clip, byName, warnings);
     if (!tracks.length) return;
     const duration = clip.duration ?? (clip.clipEnd - clip.clipStart) / clip.fps;
     const mixer = new THREE.AnimationMixer(armature);
