@@ -68,11 +68,12 @@ const chatBundle = await build({ entryPoints: [fileURLToPath(new URL('../node/ch
     builder.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export const connect = globalThis.connect;' }));
   } }] });
 
-function chatFixture(state, resource = 'supercode://conversation/conversation') {
+function chatFixture(state, resource = 'supercode://conversation/conversation', submit = async () => null) {
   const calls = [];
   const context = { URL, module: { exports: {} }, connect: async () => ({ editor: { command: async (id, args) => {
     calls.push({ id, args });
-    return id === 'supercode.frontend.status' ? state : id === 'volter.chat.inspect' ? { sessionResource: resource } : null;
+    return id === 'supercode.frontend.status' ? state : id === 'volter.chat.inspect' ? { sessionResource: resource }
+      : id === 'workbench.action.chat.submit' ? submit(args) : null;
   } } }) };
   runInNewContext(chatBundle.outputFiles[0].text, context);
   return { chat: context.module.exports.chat, calls };
@@ -80,25 +81,36 @@ function chatFixture(state, resource = 'supercode://conversation/conversation') 
 const ready = { activeSession: 'conversation', setupHandoff: { complete: true },
   connections: [{ id: 'conversation', sessionId: 'native-session', pendingRequests: [] }] };
 
-test('external prompts use the visible native conversation and preserve the human draft', async () => {
+test('external prompts request native Send on the focused chat without claiming a turn started', async () => {
   const { chat, calls } = chatFixture(ready);
   const receipt = await chat(['send', 'Round the cube']);
-  assert.equal(receipt.dispatched, true);
+  assert.equal(receipt.submissionRequested, true);
+  assert.equal(receipt.submissionConfirmed, false);
+  assert.equal(receipt.dispatched, undefined);
   assert.deepEqual(JSON.parse(JSON.stringify(calls.slice(2))), [
-    { id: 'workbench.action.chat.open', args: { query: 'Round the cube', isPartialQuery: false, preserveInput: true } },
+    { id: 'workbench.action.chat.submit', args: { inputValue: 'Round the cube', acceptInputOptions: { preserveInput: true } } },
   ]);
   await chat(['stop']);
   assert.equal(calls.at(-1).id, 'workbench.action.chat.cancel');
 });
 
+test('native refusal propagates without a second submit or opening a different chat', async () => {
+  const { chat, calls } = chatFixture(ready, 'supercode://conversation/conversation', async () => {
+    throw new Error('Open this conversation from history before responding.');
+  });
+  await assert.rejects(chat(['send', 'Round the cube']), /Open this conversation from history/);
+  assert.equal(calls.filter(c => c.id === 'workbench.action.chat.submit').length, 1);
+  assert.ok(!calls.some(c => c.id === 'workbench.action.chat.open' || c.id === 'volter.chat.openSession'));
+});
+
 test('a visible new-chat draft retains its chosen agent and unrelated chats are refused', async () => {
   const draft = chatFixture(ready, 'supercode:/untitled-new-chat');
-  assert.equal((await draft.chat(['send', 'Inspect the cube'])).dispatched, true);
+  assert.equal((await draft.chat(['send', 'Inspect the cube'])).submissionConfirmed, false);
   assert.ok(!draft.calls.some(c => c.id === 'volter.chat.openSession'));
   const unrelated = chatFixture(ready, 'other-agent:/conversation');
   await assert.rejects(unrelated.chat(['send', 'Inspect the cube']), /focused Chat/);
   const switched = chatFixture({ ...ready, setupHandoff: { complete: false } });
-  assert.equal((await switched.chat(['send', 'Inspect the cube'])).dispatched, true);
+  assert.equal((await switched.chat(['send', 'Inspect the cube'])).submissionRequested, true);
 });
 
 test('signed-out, busy and pending-approval states refuse another prompt', async () => {

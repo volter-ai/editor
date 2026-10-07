@@ -47,7 +47,9 @@ Timeline, playing the file's animation. Each model keeps your choice for the ses
 - New projects include `tsconfig.json` before the editor opens, ready for TypeScript play scripts and React UI source.
 - From the project folder, `npx --no-install volter-model-editor chat status`,
   `chat send "your prompt"`, and `chat stop` control the same conversation visible
-  in the editor. Sending is asynchronous; status reports busy state and pending requests.
+  in the editor. `send` requests the focused chat's native Send action; its
+  `submissionConfirmed: false` receipt does not confirm a started turn.
+  Status reports busy state and pending requests.
 
 ## Commands
 
