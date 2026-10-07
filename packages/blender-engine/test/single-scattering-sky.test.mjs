@@ -6,17 +6,23 @@ import {build} from 'esbuild';
 
 const result = await build({stdin: {contents: `
   export {precomputeSingleScatteringSky, precomputeSingleScatteringSun} from './blender-single-scattering-sky';
-  export {skyTextureKey, primeSkyTexture, hasSkyTexture, skyField} from './blender-sky';
+  export {skyTextureKey, primeSkyTexture, hasSkyTexture, skyField, skySunDirection} from './blender-sky';
   export {collectSkyParameters, worldField, worldSolarIrradiance, withoutSolarDiscs} from './world-field-sampler';
   export {WorldBackground} from './blender-runtime-lighting';
   export {Vector3, Scene, Group, FloatType} from 'three';`,
   resolveDir: fileURLToPath(new URL('../browser/three/', import.meta.url)), loader: 'ts'},
   bundle: true, platform: 'node', format: 'esm', write: false});
 const {precomputeSingleScatteringSky, precomputeSingleScatteringSun, skyTextureKey, primeSkyTexture, hasSkyTexture,
-  skyField, collectSkyParameters, worldField, worldSolarIrradiance, withoutSolarDiscs, WorldBackground, Vector3, Scene, Group, FloatType} = await import('data:text/javascript;base64,' +
+  skyField, skySunDirection, collectSkyParameters, worldField, worldSolarIrradiance, withoutSolarDiscs, WorldBackground, Vector3, Scene, Group, FloatType} = await import('data:text/javascript;base64,' +
   Buffer.from(result.outputFiles[0].contents).toString('base64'));
 const reference = JSON.parse(await readFile(new URL('./fixtures/single-scattering-sky.json', import.meta.url)));
 const solarReference = JSON.parse(await readFile(new URL('./fixtures/single-scattering-sun.json', import.meta.url)));
+const directionReference = JSON.parse(await readFile(new URL('./fixtures/sky-sun-directions.json', import.meta.url)));
+
+test('sky sun direction matches the independently compiled Cycles shader', () => {
+  for (const c of directionReference.cases)
+    assert.ok(skySunDirection(c).distanceTo(new Vector3(...c.direction)) < 6e-7, c.name);
+});
 
 test('solar spectral radiance matches pinned native sun precomputation', () => {
   for (const {parameters, bottom, top} of solarReference.cases) {
@@ -36,9 +42,13 @@ test('world sunlight follows rotation, intensity, expression weights and native 
     ozone_density:p.ozoneDensity};
   const [sun] = worldSolarIrradiance(expression);
   assert.ok(sun.irradiance.length() > 100);
-  assert.ok(sun.direction.distanceTo(new Vector3(Math.cos(p.sunElevation)*Math.cos(expression.sun_rotation),
-    Math.cos(p.sunElevation)*Math.sin(expression.sun_rotation), Math.sin(p.sunElevation))) < 1e-12);
-  const field = worldField(expression), center = field(sun.direction).clone();
+  const nativeDirection = new Vector3(...directionReference.cases.find(c => c.name === 'courtyard').direction);
+  assert.ok(sun.direction.distanceTo(nativeDirection) < 6e-7);
+  assert.ok(sun.direction.dot(new Vector3(0,-1,0)) > 0, 'courtyard facade faces the native sunlight');
+  const field = worldField(expression), center = field(nativeDirection).clone();
+  assert.ok(center.length() > 100, 'disc sits at the native Cycles direction');
+  assert.equal(field(new Vector3(nativeDirection.y, nativeDirection.x, nativeDirection.z)).length(), 0,
+    'the swapped azimuth has no disc');
   const edge = sun.direction.clone().applyAxisAngle(new Vector3().crossVectors(sun.direction, new Vector3(0,0,1)).normalize(), p.sunSize*.49);
   assert.ok(field(edge).length() < center.length() * .6);
   assert.equal(worldField(withoutSolarDiscs(expression))(sun.direction).length(), 0);
@@ -55,7 +65,7 @@ test('world sun composes once, keeps HDR radiance, and releases lights with its 
   // Aim at a sampled background texel, whose native solar radiance exceeds
   // half-float range. This must neither clip nor enter the diffuse IBL twice.
   const expression = {kind:'sky',sky_model:p.model,sun_disc:true,sun_size:p.sunSize,sun_intensity:1,
-    sun_elevation:(101.5/128-.5)*Math.PI,sun_rotation:Math.PI/256,
+    sun_elevation:(101.5/128-.5)*Math.PI,sun_rotation:Math.PI/2-Math.PI/256,
     altitude:0,air_density:1,aerosol_density:1,ozone_density:1};
   primeSkyTexture({...p,sunElevation:expression.sun_elevation}, new Float32Array(512*256*3));
   const scene = new Scene(), root = new Group();scene.add(root);

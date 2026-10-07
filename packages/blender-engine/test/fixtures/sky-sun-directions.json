@@ -1,0 +1,81 @@
+{
+  "source": "https://github.com/volter-ai/blender/tree/976c8632ab56583cfc6fcb4cc2fcd6e4e6d900dc",
+  "compiler": "clang++ -std=c++20 -O2 -ffp-contract=off",
+  "native": [
+    "SkyTextureNode::simplify_settings",
+    "sky_radiance_nishita",
+    "spherical_to_direction"
+  ],
+  "cases": [
+    {
+      "name": "rotation-zero",
+      "sunElevation": 0.4,
+      "sunRotation": 0,
+      "direction": [
+        -1.0983543e-08,
+        0.921061039,
+        0.389418274
+      ]
+    },
+    {
+      "name": "rotation-quarter",
+      "sunElevation": 0.4,
+      "sunRotation": 1.5707963267948966,
+      "direction": [
+        0.921061039,
+        -1.39076349e-07,
+        0.389418274
+      ]
+    },
+    {
+      "name": "courtyard",
+      "sunElevation": 0.9250245094299316,
+      "sunRotation": 2.6179938316345215,
+      "direction": [
+        0.300907552,
+        -0.521187127,
+        0.798635483
+      ]
+    },
+    {
+      "name": "negative-rotation",
+      "sunElevation": 0.6,
+      "sunRotation": -0.8,
+      "direction": [
+        -0.592059612,
+        0.575016797,
+        0.564642429
+      ]
+    },
+    {
+      "name": "wrapped-rotation",
+      "sunElevation": 0.6,
+      "sunRotation": 7.1,
+      "direction": [
+        0.60164398,
+        0.564980924,
+        0.564642429
+      ]
+    },
+    {
+      "name": "below-horizon",
+      "sunElevation": -0.05,
+      "sunRotation": 0.9,
+      "direction": [
+        0.782348037,
+        0.620833099,
+        -0.0499791652
+      ]
+    },
+    {
+      "name": "folded-elevation",
+      "sunElevation": 2.1,
+      "sunRotation": 0.3,
+      "direction": [
+        -0.149192154,
+        -0.482297808,
+        0.863209426
+      ]
+    }
+  ]
+}
