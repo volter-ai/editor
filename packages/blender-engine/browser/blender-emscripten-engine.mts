@@ -151,7 +151,13 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
  */
 const ARTIFACT_CACHE = 'volter-blender-artifacts';
 
-async function cachedArtifact(file: string, digest: string | undefined, checkpoint: () => Promise<void>): Promise<Response> {
+/**
+ * THE CACHE SPEEDS AN OPEN UP; IT NEVER DECIDES WHETHER BLENDER OPENS. A Cache Storage that cannot
+ * open or answer (measured 2026-10-07, headless Chrome on Windows: `caches.open` threw "Unexpected
+ * internal error", and the model failed to open on it) means the artifact is fetched from the editor
+ * as it would be with no digest; bytes that cannot be kept are used anyway. `note` says which, per artifact, as page output (not an unresolved console entry).
+ */
+async function cachedArtifact(file: string, digest: string | undefined, checkpoint: () => Promise<void>, note: (text: string) => void): Promise<Response> {
   const bounded = (response: Response): Response => response.ok && response.body
     ? new Response(checkpointStream(response.body, checkpoint), { status: response.status, headers: response.headers })
     : response;
@@ -159,18 +165,29 @@ async function cachedArtifact(file: string, digest: string | undefined, checkpoi
   const fetchArtifact = () => startupOperation(url, 'fetch artifact', () => fetch(url));
   if (!digest || typeof caches === 'undefined') return bounded(await fetchArtifact());
   const key = `${url}?sha256=${digest}`;
-  const cache = await startupOperation(url, 'open artifact cache', () => caches.open(ARTIFACT_CACHE));
-  const hit = await startupOperation(url, 'read artifact cache', () => cache.match(key));
-  if (hit) return bounded(hit);
+  const reason = (error: unknown) => (error instanceof Error ? error.message : String(error));
+  const opened = await startupOperation(url, 'open artifact cache', () => caches.open(ARTIFACT_CACHE))
+    .then(async (cache) => ({ cache, hit: await startupOperation(url, 'read artifact cache', () => cache.match(key)) }))
+    .catch((error: unknown) => {
+      note(`Blender's artifact cache is unavailable (${reason(error)}); ${file} is fetched from the editor instead.`);
+      return null;
+    });
+  if (!opened) return bounded(await fetchArtifact());
+  if (opened.hit) return bounded(opened.hit);
+  const { cache } = opened;
   const response = bounded(await fetchArtifact());
   if (!response.ok) return response;
-  // One build's bytes per file: an older build's are dropped as this one lands.
-  await startupOperation(url, 'prune previous artifact cache entries', async () => {
-    for (const old of await cache.keys()) if (old.url.startsWith(`${url}?sha256=`) && old.url !== key) await cache.delete(old);
-  });
   const body = await startupOperation(url, 'read artifact body for cache', () => response.blob());
   const kept = new Response(body, { headers: { 'content-type': response.headers.get('content-type') ?? 'application/octet-stream' } });
-  await startupOperation(url, 'write artifact cache', () => cache.put(key, kept.clone()));
+  try {
+    // One build's bytes per file: an older build's are dropped as this one lands.
+    await startupOperation(url, 'prune previous artifact cache entries', async () => {
+      for (const old of await cache.keys()) if (old.url.startsWith(`${url}?sha256=`) && old.url !== key) await cache.delete(old);
+    });
+    await startupOperation(url, 'write artifact cache', () => cache.put(key, kept.clone()));
+  } catch (error) {
+    note(`Blender's artifact cache could not keep ${file} (${reason(error)}); the next open fetches it again.`);
+  }
   return kept;
 }
 
@@ -187,7 +204,9 @@ export async function startEmscriptenBlenderEngine(
   const glueUrl = artifactUrl('blender_browser.js');
   const digests = status.digests ?? {};
   const checkpoint = async (phase: string): Promise<void> => { await options.ask({ checkpoint: phase }); };
-  const artifact = (file: string) => cachedArtifact(file, digests[file], () => checkpoint(`artifact/${file}`));
+  // Page output, not an editor-console condition: nothing in the project can resolve the browser's cache.
+  const noteCache = (text: string) => options.log('log', text);
+  const artifact = (file: string) => cachedArtifact(file, digests[file], () => checkpoint(`artifact/${file}`), noteCache);
   // The `.data` package is handed to the glue whole (`getPreloadedPackage`),
   // so it is read before the module starts; the wasm streams in beside it.
   const [factory, preloaded] = await Promise.all([
@@ -354,7 +373,7 @@ export async function startEmscriptenBlenderEngine(
   const files = moduleFiles(module);
   FS.chmod('/bw/datafiles', 0o755);
   await checkpoint('python-ready');
-  await mountEssentials(files, digests['essentials.bin'], checkpoint);
+  await mountEssentials(files, digests['essentials.bin'], checkpoint, noteCache);
   const { request } = openSessionChannel(files, options);
 
   return {
@@ -381,11 +400,11 @@ export async function startEmscriptenBlenderEngine(
 /** Assets are data, not a second engine. Ship them separately so a data update
  * does not relink the 86 MB Wasm binary. Both payload and per-file bounds are
  * checked before anything enters Blender's filesystem. */
-async function mountEssentials(files: BlenderFiles, digest: string | undefined, checkpoint: (phase: string) => Promise<void>): Promise<void> {
+async function mountEssentials(files: BlenderFiles, digest: string | undefined, checkpoint: (phase: string) => Promise<void>, noteCache: (text: string) => void): Promise<void> {
   const indexUrl = artifactUrl('essentials.json');
   const payloadUrl = artifactUrl('essentials.bin');
   const [indexResponse, payloadResponse] = await Promise.all([
-    startupOperation(indexUrl, 'fetch Essentials index', () => fetch(indexUrl)), cachedArtifact('essentials.bin', digest, () => checkpoint('artifact/essentials.bin')),
+    startupOperation(indexUrl, 'fetch Essentials index', () => fetch(indexUrl)), cachedArtifact('essentials.bin', digest, () => checkpoint('artifact/essentials.bin'), noteCache),
   ]);
   if (!indexResponse.ok || !payloadResponse.ok)
     throw new Error(`Blender Essentials assets are missing (${indexUrl}: HTTP ${indexResponse.status}; ${payloadUrl}: HTTP ${payloadResponse.status})`);
