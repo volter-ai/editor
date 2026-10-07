@@ -43,6 +43,7 @@ import {
   mintFrontendHandoff,
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
+import { effectiveChat } from './harness-effective';
 import { ChatSessionCatalog } from './chat-session-catalog';
 import { chatExecutable, chatProcessEnvironment, chatSetupActions } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
@@ -1380,6 +1381,12 @@ export class HarnessChatService {
         description: h.auth === 'unknown' || h.auth === 'configured' ? 'Authentication unverified' : undefined })),
       models: chatModels(this.chatSelection.harness, launchContext.env),
       modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id, launchContext.env)])),
+      // What each chat actually runs with, so the Chat names its model and effort and never says "default model"
+      // (harness-effective.ts): this conversation's, with its runtime's reported model once a turn has run, and a new
+      // chat's for every startable harness.
+      effective: effectiveChat(this.chatSelection, this.options.getProjectRoot(), launchContext.env, this.observedModel),
+      effectiveByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start)
+        .map(h => [h.id, effectiveChat({ harness: h.id, model: '', effort: '' }, this.options.getProjectRoot(), launchContext.env)])),
       configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
       // A NEW chat approves its agent's tool calls unless the person picks Ask (the owner's ask, 2026-10-06); each
       // chat created from now on carries it (chat-session-catalog.ts), so a chat saved before keeps asking. Not
