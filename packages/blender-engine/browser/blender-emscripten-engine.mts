@@ -155,7 +155,7 @@ const ARTIFACT_CACHE = 'volter-blender-artifacts';
  * THE CACHE SPEEDS AN OPEN UP; IT NEVER DECIDES WHETHER BLENDER OPENS. A Cache Storage that cannot
  * open or answer (measured 2026-10-07, headless Chrome on Windows: `caches.open` threw "Unexpected
  * internal error", and the model failed to open on it) means the artifact is fetched from the editor
- * as it would be with no digest; bytes that cannot be kept are used anyway. `note` says which, per artifact.
+ * as it would be with no digest; bytes that cannot be kept are used anyway. `note` says which, per artifact, as page output (not an unresolved console entry).
  */
 async function cachedArtifact(file: string, digest: string | undefined, checkpoint: () => Promise<void>, note: (text: string) => void): Promise<Response> {
   const bounded = (response: Response): Response => response.ok && response.body
@@ -204,7 +204,8 @@ export async function startEmscriptenBlenderEngine(
   const glueUrl = artifactUrl('blender_browser.js');
   const digests = status.digests ?? {};
   const checkpoint = async (phase: string): Promise<void> => { await options.ask({ checkpoint: phase }); };
-  const noteCache = (text: string) => options.log('warn', text);
+  // Page output, not an editor-console condition: nothing in the project can resolve the browser's cache.
+  const noteCache = (text: string) => options.log('log', text);
   const artifact = (file: string) => cachedArtifact(file, digests[file], () => checkpoint(`artifact/${file}`), noteCache);
   // The `.data` package is handed to the glue whole (`getPreloadedPackage`),
   // so it is read before the module starts; the wasm streams in beside it.
