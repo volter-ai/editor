@@ -49,6 +49,14 @@
  *      condition. This door is for the code that RAISED a condition and knows
  *      the moment it is gone — never a general "clear the console".
  *
+ * ONE CLASS IS HELD BUT NOT COUNTED: conditions whose stack proves they came
+ * from the Code-OSS workbench's extension host or the extensions bundled into
+ * the release, and from nothing of this session's.
+ * See {@link isWorkbenchOrigin}. They are journaled, retire and ack like any
+ * other entry, and stay readable under the editor's `console --all` command; they are left
+ * out of {@link ConsoleLedger.unresolved} and the summary's error/warning
+ * counts, because those are the project's to-do list.
+ *
  * Pure and clock-injected — no I/O, no timers, no globals — so
  * `packages/editor/test/console-ledger.test.ts` drives every one of those
  * transitions directly.
@@ -102,6 +110,9 @@ export interface UnresolvedConsoleSummary {
   readonly errorOccurrences: number;
   readonly warningOccurrences: number;
   readonly acked: number;
+  /** Distinct conditions held as workbench-origin ({@link isWorkbenchOrigin}):
+   *  not in `errors`/`warnings`, never silent either. */
+  readonly workbench: number;
   /** Distinct conditions evicted by {@link MAX_ENTRIES}. Never silent: the
    *  banner says so, because a dropped error is exactly what this file exists
    *  to prevent. */
@@ -200,6 +211,92 @@ export function normalizeConsoleFingerprintText(text: string): string {
   );
 }
 
+/** The `source` a workbench-origin entry carries — see {@link isWorkbenchOrigin}. */
+export const WORKBENCH_CONSOLE_SOURCE = 'workbench';
+
+/**
+ * WHAT COUNTS AS THE WORKBENCH: the extension host and the extensions bundled
+ * into the release, and nothing else. `/out/vs/workbench/api/` is where the
+ * extension host runs from (node: `api/node/extensionHostProcess.js`; web
+ * worker: `api/worker/`); an extracted `vscode-reh-web-*` release's
+ * `extensions/` directory holds the bundled extensions
+ * (`extensions/supercode-chat/…`), and `/static/extensions/` is one served to
+ * the browser. Code this session's agent did not write and cannot edit, and
+ * whose failure says nothing about the project.
+ *
+ * The workbench PAGE's own code (`out/vs/workbench/workbench.*.js`,
+ * `vscode-file://vscode-app/`) deliberately does NOT count. The editor's frame
+ * tier (`packages/editor-core/workbench/src`) compiles into that page as
+ * `contrib/volter*`, and a minified release bundles it into the same main file
+ * as upstream's UI, so a frame there cannot say whose it is. Hiding a real
+ * editor bug is worse than showing an upstream UI crash, so those stay
+ * reported. The editor ships no code in `extensions/` (`volter-keymaps` is
+ * declarative), so the two kinds that do count are never ours. Nothing the
+ * session serves (the editor's modules, the project's game, models, UI roots
+ * and Play scripts) lives under them either.
+ */
+const WORKBENCH_FRAME =
+  /\/out\/vs\/workbench\/api\/|\/vscode-reh-web-[^/]+\/extensions\/|\/static\/extensions\//;
+/** A frame with no location of anybody's: runtime internals and builtins. */
+const NEUTRAL_FRAME = /^(?:node:|<anonymous>$|native$|index \d+$)/;
+const FRAME_LINE = /^\s*at\s+(.*?)\s*$/;
+
+/**
+ * DID THIS COME FROM THE WORKBENCH, AND FROM NOTHING OF THE SESSION'S?
+ *
+ * Under the Code-OSS frame the editor's page IS a workbench, so every
+ * page-level door (`console.error` capture, `error`/`unhandledrejection`
+ * listeners, the tab bootstrap) also hears the workbench's own failures.
+ * Measured 2026-10-06: clicking Chat's "Model settings" made the bundled chat
+ * extension throw `Model settings have no matching conversation binding.`
+ * inside `_executeContributedCommand`; it reached this ledger three times
+ * (the workbench's `ERR` log, the page's unhandled rejection, the presence
+ * reporter's runtime error) as three unresolved errors, and the in-editor
+ * agent — told to keep this feed clean — had to stop and argue its project was
+ * not at fault. It could not have fixed it in any case.
+ *
+ * Why this is not "exempting a source" (`editor-console.ts`'s doctrine): the
+ * capture's `source` is a guess about who was speaking; this is read from the
+ * STACK the message carries, and it holds only when that stack has at least
+ * one workbench frame and NO frame anywhere else. Any frame of editor or
+ * project code that is ON the stack — a project UI root's handler under a
+ * workbench event, a React component stack, a Play script — keeps the error
+ * the project's, exactly as before. A message with no stack is never
+ * classified. Origin, never the message's words: one sentence matched today
+ * is the next one missed.
+ *
+ * ON the stack is the catch: V8's async stack keeps a caller's frame only
+ * while the caller AWAITS. A door into the workbench that returns its promise
+ * bare drops out, and a rejection from inside the extension host would then
+ * read as workbench-only. `projectFiles`' doors `return await` for that reason
+ * (their provider lives in the page, whose frames do not count, so today this
+ * is belt and braces); any project-facing door onto an extension-host service
+ * must do the same.
+ *
+ * Exported so the page-error door (`control-plane.ts`) rules the same way.
+ */
+export function isWorkbenchOrigin(message: string): boolean {
+  let workbench = false;
+  for (const line of message.split('\n')) {
+    const frame = FRAME_LINE.exec(line);
+    if (!frame) continue;
+    // `fn (location)` or bare `location`; an eval frame's nested parens fall
+    // through to the whole text, which can only make the answer "not ours".
+    const body = frame[1] ?? '';
+    const location = (/\(([^()]*)\)$/.exec(body)?.[1] ?? body).replace(/\\/g, '/');
+    if (WORKBENCH_FRAME.test(location)) workbench = true;
+    else if (location !== '' && !NEUTRAL_FRAME.test(location)) return false;
+  }
+  return workbench;
+}
+
+/** The capture labels that only name the DOOR an error came through, so the
+ *  stack may overrule them. `game` (realm attribution, play-mode's patch) is
+ *  direct evidence of who logged it — `console.error(msg, e)` of a
+ *  workbench-thrown `e` carries only `e`'s frames — and every server-raised
+ *  source names its owner; neither is ever reclassified. */
+const DOOR_ONLY_SOURCES: ReadonlySet<string | null> = new Set([null, 'editor', 'runtime']);
+
 /** FNV-1a over normalized severity|message → 8 lowercase hex chars.
  * Short enough to type into the editor's `console ack` command, wide enough that a session's
  * few hundred conditions never collide.
@@ -263,7 +360,7 @@ export interface ConsoleLedger {
     conditions: readonly { severity: ConsoleSeverity; message: string }[],
     by: string,
   ): string[];
-  /** Unresolved conditions (never acked, not retired), oldest first. */
+  /** Unresolved conditions (never acked, not retired, not workbench-origin), oldest first. */
   unresolved(): ConsoleLedgerEntry[];
   /** Everything still held, acked included — what the editor's `console --all` command shows. */
   all(): ConsoleLedgerEntry[];
@@ -311,6 +408,12 @@ export function createConsoleLedger(options?: {
     }
   }
 
+  /** Whether an entry is on the project's to-do list: not acked, and not
+   *  held as workbench-origin. */
+  function counts(entry: MutableEntry): boolean {
+    return entry.acked === null && entry.source !== WORKBENCH_CONSOLE_SOURCE;
+  }
+
   function snapshot(entry: MutableEntry): ConsoleLedgerEntry {
     return { ...entry };
   }
@@ -319,7 +422,14 @@ export function createConsoleLedger(options?: {
     observe(observation: ConsoleObservation): ConsoleLedgerEntry {
       const at = observation.at ?? now();
       const message = observation.message.slice(0, MESSAGE_MAX_CHARS);
-      const source = observation.source ?? null;
+      // A workbench-origin stack outranks a label that only names the door
+      // (see DOOR_ONLY_SOURCES). Classified on the UNCAPPED text, so the cap
+      // cannot cut away the one project frame that keeps it the project's.
+      const reported = observation.source ?? null;
+      const source =
+        DOOR_ONLY_SOURCES.has(reported) && isWorkbenchOrigin(observation.message)
+          ? WORKBENCH_CONSOLE_SOURCE
+          : reported;
       const added = Math.max(1, Math.trunc(observation.occurrences ?? 1));
       const id = consoleEntryId(observation.severity, message);
       const existing = entries.get(id);
@@ -331,9 +441,13 @@ export function createConsoleLedger(options?: {
         // Keep the STRONGEST attribution any occurrence proved. 'editor' is
         // the capture's default label (least evidence — see consoleEntryId's
         // note on why one fact can arrive under two labels), so it never
-        // overwrites a specific one; between specific sources, newest wins.
+        // overwrites a specific one; between specific sources, newest wins —
+        // except that 'workbench' never overwrites an owner a door could not
+        // have guessed (DOOR_ONLY_SOURCES), such as 'game'.
         existing.source =
-          source === null || (source === 'editor' && existing.source !== null)
+          source === null ||
+          (source === 'editor' && existing.source !== null) ||
+          (source === WORKBENCH_CONSOLE_SOURCE && !DOOR_ONLY_SOURCES.has(existing.source))
             ? existing.source
             : source;
         existing.count += added;
@@ -351,17 +465,18 @@ export function createConsoleLedger(options?: {
         return snapshot(existing);
       }
       if (entries.size >= MAX_ENTRIES) {
-        // Evict the oldest ACKED record first — it has already been read and
-        // reasoned about. Only when there is no such record does an unresolved
-        // one go, and that is counted and reported, never silent.
+        // Evict the oldest ACKED or workbench-origin record first — the one
+        // has already been read and reasoned about, the other was never the
+        // project's. Only when there is no such record does an unresolved one
+        // go, and that is counted and reported, never silent.
         const victim =
           [...entries.values()]
-            .filter((e) => e.acked !== null)
+            .filter((e) => !counts(e))
             .sort((a, b) => a.lastAt - b.lastAt)[0] ??
           [...entries.values()].sort((a, b) => a.lastAt - b.lastAt)[0];
         if (victim) {
           entries.delete(victim.id);
-          if (victim.acked === null) dropped++;
+          if (counts(victim)) dropped++;
         }
       }
       const entry: MutableEntry = {
@@ -440,7 +555,7 @@ export function createConsoleLedger(options?: {
     unresolved(): ConsoleLedgerEntry[] {
       sweep();
       return [...entries.values()]
-        .filter((e) => e.acked === null)
+        .filter(counts)
         .sort((a, b) => a.firstAt - b.firstAt)
         .map(snapshot);
     },
@@ -464,9 +579,14 @@ export function createConsoleLedger(options?: {
       let errorOccurrences = 0;
       let warningOccurrences = 0;
       let acked = 0;
+      let workbench = 0;
       for (const entry of entries.values()) {
         if (entry.acked !== null) {
           acked++;
+          continue;
+        }
+        if (entry.source === WORKBENCH_CONSOLE_SOURCE) {
+          workbench++;
           continue;
         }
         if (entry.severity === 'error') {
@@ -483,6 +603,7 @@ export function createConsoleLedger(options?: {
         errorOccurrences,
         warningOccurrences,
         acked,
+        workbench,
         dropped,
         measuredAt: now(),
       };
@@ -504,6 +625,7 @@ export const EMPTY_UNRESOLVED_CONSOLE: UnresolvedConsoleSummary = {
   errorOccurrences: 0,
   warningOccurrences: 0,
   acked: 0,
+  workbench: 0,
   dropped: 0,
   measuredAt: 0,
 };

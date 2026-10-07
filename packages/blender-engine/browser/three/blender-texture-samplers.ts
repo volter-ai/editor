@@ -3,6 +3,16 @@ import {presenterChanged} from './blender-presenter-change';
 
 export type TextureExtension = 'REPEAT' | 'EXTEND' | 'MIRROR' | 'CLIP';
 
+/** Texture.copy requests an upload even when an encoded image has not yet
+ * decoded. Keep the sampler object (and its shared Source) stable, but defer
+ * that request until the owner actually supplies image data. Graph sampler
+ * filter changes go through this same setter while decoding is pending. */
+class PendingImageSampler extends THREE.Texture {
+  override set needsUpdate(value: boolean) {
+    if (value && this.image) super.needsUpdate = value;
+  }
+}
+
 /** A shared material may draw meshes whose named layers have different
  * channel positions. Resolve at Three's per-draw hook, before program choice. */
 export function bindNamedUvChannels(material: THREE.MeshPhysicalMaterial, geometry: THREE.BufferGeometry): void {
@@ -40,13 +50,17 @@ export class BlenderTextureSamplers {
     let binding = this.bindings.get(key);
     if (!binding || binding.source !== source) {
       this.delete(key);
-      binding = {source, texture: source.clone(), version: -1, disposed: false};
+      // Ready raster/DataTextures keep their own subtype's clone behavior.
+      // Only an empty encoded-image Texture with an owner decode promise
+      // needs the gate; an unexplained missing image keeps its diagnostics.
+      const texture = !source.image && ready ? new PendingImageSampler().copy(source) : source.clone();
+      binding = {source, texture, version: -1, disposed: false};
       this.bindings.set(key, binding);
       const held = binding;
       // The owner awaits and reports decode failures. Avoid an unhandled
       // rejection here, and never upload a clone removed during the decode.
       if (ready) void ready.then(() => {
-        if (!held.disposed) {
+        if (!held.disposed && source.image) {
           held.texture.needsUpdate = true;
           held.version = source.version;
           presenterChanged();

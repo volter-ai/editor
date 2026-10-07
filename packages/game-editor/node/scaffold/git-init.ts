@@ -14,7 +14,7 @@
  * by the scaffold-typecheck gate, by probe harnesses, and by the editor
  * dev-server's create-project route — paths that want a cheap, side-effect-free
  * tree on disk and no child processes. So the init belongs to the CREATE
- * COMMANDS — a product's `create` (`game-editor create`, `model-editor
+ * COMMANDS — a product's `create` (`game-editor create`, `cyclotron
  * create`), which is where a human/agent actually starts a project. Every one
  * of them calls this one function, so the paths cannot drift.
  *
@@ -46,7 +46,7 @@ interface GitRun {
 }
 
 function runGit(cwd: string, args: string[]): GitRun {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf-8' });
+  const result = spawnSync('git', args, { windowsHide: true, cwd, encoding: 'utf-8' });
   if (result.error) {
     // ENOENT from spawnSync means the BINARY was not found (the cwd here is a
     // directory this process just scaffolded, so it exists by construction).

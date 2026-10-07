@@ -61,7 +61,8 @@ export interface DocumentKeyOptions extends DocumentGestureOptions {
   metaKey?: boolean;
   shiftKey?: boolean;
   altKey?: boolean;
-  /** Hold the key this long before releasing it (a person holding W). */
+  /** Hold the key this long before releasing it (a person holding W).
+   * Finite, nonnegative, and at most 120,000 ms. */
   holdMs?: number;
 }
 

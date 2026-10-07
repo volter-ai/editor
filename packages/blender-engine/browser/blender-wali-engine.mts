@@ -574,7 +574,7 @@ export async function startWaliBlenderEngine(
     readArena: () => filesystem.readFile(ARENA_PATH),
     bootMs,
     // The module's memory is the program worker's and no door reports it.
-    // Null rather than zero: `volter-model-editor status` prints "unreported", which is true,
+    // Null rather than zero: `cyclotron status` prints "unreported", which is true,
     // where a zero would be a measurement that was never taken.
     memoryBytes: () => null,
     // There is no packed payload on this skew: Blender's runtime tree is

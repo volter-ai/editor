@@ -3,8 +3,15 @@ import {
   editorMarkImg,
   editorDocumentTitle,
 } from '@volter/editor-sdk/session/editor-brand';
+import { productNames } from '@volter/editor-sdk/kit/product-command';
 
-function escapeHtml(value: string): string {
+/** The running product's display name ("Volter Cyclotron"), which the server learns at start
+ *  (packaged.ts `setProductNames`); the platform's name when it has none. */
+export function editorBrandName(): string {
+  return productNames()?.displayName ?? EDITOR_BRAND.name;
+}
+
+export function escapeHtml(value: string): string {
   return value.replace(
     /[&<>"']/g,
     (character) =>
@@ -34,10 +41,11 @@ export interface EditorBrandPageOptions {
  * while the main editor bundle is unavailable.
  */
 export function renderEditorBrandPage(options: EditorBrandPageOptions): string {
-  const title = editorDocumentTitle(options.subject);
+  const brand = editorBrandName();
+  const title = editorDocumentTitle(options.subject, brand);
   const social = options.socialPreview
     ? `<meta property="og:type" content="website">
-<meta property="og:site_name" content="${escapeHtml(EDITOR_BRAND.name)}">
+<meta property="og:site_name" content="${escapeHtml(brand)}">
 <meta property="og:title" content="${escapeHtml(title)}">
 <meta property="og:description" content="${escapeHtml(options.description)}">
 

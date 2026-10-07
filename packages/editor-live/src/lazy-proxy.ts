@@ -40,10 +40,16 @@ function walk(root: unknown, path: PropertyKey[]): { thisArg: unknown; fn: unkno
  * function call reached through the returned proxy — callers typically wire
  * it to a memoized `connect()` (see `index.ts`), so repeated calls across
  * many proxy invocations still resolve only once.
+ *
+ * `hint` names where a member the root does NOT have lives instead
+ * (`member-hints.ts`): consulted for the FIRST step of the path only, because
+ * that is the member the caller named on the façade — `editor.camera.set(…)`
+ * fails at `camera`, not at `set`.
  */
 export function lazyChainProxy<T>(
   resolveRoot: () => Promise<unknown>,
   path: PropertyKey[] = [],
+  hint?: (member: PropertyKey) => string | undefined,
 ): T {
   const callableTarget = (() => {}) as unknown as object;
   return new Proxy(callableTarget, {
@@ -52,10 +58,13 @@ export function lazyChainProxy<T>(
       // generic helper checking `typeof x.then`) must not trigger resolution
       // or hang; there is no promise here, only a call-shaped stand-in.
       if (prop === 'then' || prop === 'catch' || prop === 'finally') return undefined;
-      return lazyChainProxy(resolveRoot, [...path, prop]);
+      return lazyChainProxy(resolveRoot, [...path, prop], hint);
     },
     apply(_target, _thisArg, args) {
       return resolveRoot().then((root) => {
+        const first = path[0];
+        const pointer = first !== undefined && hint !== undefined && !(first in (root as object)) ? hint(first) : undefined;
+        if (pointer !== undefined) throw new TypeError(`@volter/editor-live: editor.${String(first)} does not exist. ${pointer}`);
         const { thisArg, fn } = walk(root, path);
         if (!isFunction(fn)) {
           const label = path.length > 0 ? path.map(String).join('.') : '(the connected value)';

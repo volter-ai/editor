@@ -51,6 +51,15 @@ export class MemStorage implements StorageBackend {
     return existed;
   }
 
+  /**
+   * Put bytes in place WITHOUT announcing a change: a backend that fills itself lazily from
+   * somewhere else (the limited view's seed, `editor-core/view/page/project-store.ts`) is not
+   * editing the file when its first read arrives, so no watcher may hear it as one.
+   */
+  seed(path: string, data: string | Uint8Array): void {
+    this.writeSync(path, data);
+  }
+
   async read(path: string): Promise<string> {
     return new TextDecoder().decode(await this.readBytes(path));
   }

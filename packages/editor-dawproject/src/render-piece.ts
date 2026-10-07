@@ -71,7 +71,7 @@ export async function renderPieceInChildProcess(
       ...(options.oneShot ? ['--one-shot'] : []),
     ];
     await new Promise<void>((done, fail) => {
-      const child = spawn(process.execPath, args, { cwd: project, stdio: ['ignore', 'ignore', 'pipe'] });
+      const child = spawn(process.execPath, args, { windowsHide: true, cwd: project, stdio: ['ignore', 'ignore', 'pipe'] });
       let stderr = '';
       child.stderr.on('data', (chunk: Buffer) => {
         stderr = (stderr + chunk.toString()).slice(-4000);
@@ -181,7 +181,7 @@ export async function renderPiece({
 
     /** ffmpeg's EBU R128 summary for a WAV: integrated loudness, loudness range, true peak. */
     function measure(path: string): { integrated: number; range: number; truePeak: number } {
-      const run = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', path, '-af', 'ebur128=peak=true', '-f', 'null', '-'], { encoding: 'utf8' });
+      const run = spawnSync('ffmpeg', ['-hide_banner', '-nostats', '-i', path, '-af', 'ebur128=peak=true', '-f', 'null', '-'], { windowsHide: true, encoding: 'utf8' });
       const text = run.stderr ?? '';
       const summary = text.slice(text.lastIndexOf('Summary:'));
       return {
@@ -218,8 +218,8 @@ export async function renderPiece({
      */
     function encode(wav: string, base: string): void {
       const exact = ['-fflags', '+bitexact', '-flags:a', '+bitexact'];
-      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, ...exact, '-c:a', 'vorbis', '-strict', '-2', '-b:a', '224k', `${base}.ogg`]);
-      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, ...exact, '-c:a', 'aac', '-b:a', '192k', `${base}.m4a`]);
+      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, ...exact, '-c:a', 'vorbis', '-strict', '-2', '-b:a', '224k', `${base}.ogg`], { windowsHide: true });
+      execFileSync('ffmpeg', ['-hide_banner', '-loglevel', 'error', '-y', '-i', wav, ...exact, '-c:a', 'aac', '-b:a', '192k', `${base}.m4a`], { windowsHide: true });
     }
     const safeName = (value: string): string => value.replace(/[/\\:*?"<>|]/g, '-') || 'unnamed';
     /** A file name not yet used in its folder: `name`, else `name-2`, `name-3`, … */

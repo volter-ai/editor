@@ -16,6 +16,7 @@ export type { GitChangedPath, GitDiffHunk, GitHistoryCommit, GitWorkflowStatus }
 function git(root: string, args: readonly string[]): string {
   try {
     return execFileSync('git', ['-C', root, ...args], {
+      windowsHide: true,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
       maxBuffer: 8 * 1024 * 1024,
@@ -32,6 +33,7 @@ function git(root: string, args: readonly string[]): string {
 function gitRaw(root: string, args: readonly string[]): string {
   try {
     return execFileSync('git', ['-C', root, ...args], {
+      windowsHide: true,
       encoding: 'utf8',
       stdio: ['ignore', 'pipe', 'pipe'],
       maxBuffer: 8 * 1024 * 1024,
@@ -48,6 +50,7 @@ function gitRaw(root: string, args: readonly string[]): string {
 function gitInput(root: string, args: readonly string[], input: string): string {
   try {
     return execFileSync('git', ['-C', root, ...args], {
+      windowsHide: true,
       encoding: 'utf8',
       input,
       stdio: ['pipe', 'pipe', 'pipe'],
@@ -72,6 +75,7 @@ function commandAsync(
       command,
       [...args],
       {
+        windowsHide: true,
         cwd: options.cwd,
         signal: options.signal,
         encoding: 'utf8',
@@ -351,6 +355,7 @@ export function resolveGitRebase(
     if (status.conflicts.length > 0) throw new Error('Resolve and stage every conflict first.');
     try {
       execFileSync('git', ['-C', status.worktreeRoot, 'rebase', '--continue'], {
+        windowsHide: true,
         encoding: 'utf8',
         env: { ...process.env, GIT_EDITOR: 'true' },
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -448,6 +453,7 @@ export function createGitPullRequest(
   const args = ['pr', 'create', '--title', title, '--body', (input.body ?? '').slice(0, 20_000)];
   if (status.baseRef) args.push('--base', status.baseRef.replace(/^origin\//, ''));
   const url = execFileSync('gh', args, {
+    windowsHide: true,
     cwd: status.worktreeRoot,
     encoding: 'utf8',
     stdio: ['ignore', 'pipe', 'pipe'],
@@ -502,6 +508,7 @@ export function gitPullRequestStatus(projectRoot: string): {
         'url,state,isDraft,mergeStateStatus,reviewDecision,statusCheckRollup',
       ],
       {
+        windowsHide: true,
         cwd: status.worktreeRoot,
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],
@@ -602,6 +609,7 @@ export function validateGitMergeReadiness(projectRoot: string): {
     };
     if (typeof pkg.scripts?.['validate-merge-integrity'] === 'string') {
       validation = execFileSync('npm', ['run', 'validate-merge-integrity'], {
+        windowsHide: true,
         cwd: status.worktreeRoot,
         encoding: 'utf8',
         stdio: ['ignore', 'pipe', 'pipe'],

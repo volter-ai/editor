@@ -34,6 +34,7 @@
     "src",
     "host",
     "contributions",
-    "node"
+    "node",
+    "view"
   ]
 }

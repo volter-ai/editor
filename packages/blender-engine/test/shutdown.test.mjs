@@ -154,7 +154,7 @@ test('worker edit acknowledgment waits for durable upload; failed saves stay dir
       builder.onResolve({ filter: /blender-engine\.mts|session-frame\.mts/ }, args => ({ path: args.path, namespace: 'fixture' }));
       builder.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ contents:
         args.path.includes('blender-engine')
-          ? 'export const startBlenderEngine = globalThis.startEngine;'
+          ? 'export const startBlenderEngine = globalThis.startEngine; export const startupOperation = (_url, _operation, run) => run();'
           : 'export const isColumnDescriptor = () => false; export const describeFrame = (_, frame) => frame; export const columnsToTypedArrays = (_, frame) => frame;',
       }));
     } }],

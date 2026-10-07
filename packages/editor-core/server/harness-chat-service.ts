@@ -12,7 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, statSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { NormalizedSession, SessionDescriptor } from '@volter/supercode-harness-sdk';
 import {
@@ -44,6 +44,7 @@ import {
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { ChatSessionCatalog } from './chat-session-catalog';
+import { chatExecutable, chatProcessEnvironment, chatSetupActions } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -109,7 +110,7 @@ type HeadlessController = {
   subscribe(listener: () => void): () => void;
   initialize(): Promise<HeadlessSnapshot>;
   dispatch(action: HeadlessAction): Promise<HeadlessSnapshot>;
-  loadSession(sessionKey: string): Promise<HeadlessLoadedSession>;
+  loadSession(sessionKey: string, options?: {view?: {displayHistory?: boolean; tailMessages?: number; maxMessageChars?: number; includeSubagents?: boolean}}): Promise<HeadlessLoadedSession>;
   setWorkspace(workspace: string, options?: { autoObserve?: boolean }): Promise<HeadlessSnapshot>;
   close(): Promise<void>;
 };
@@ -123,9 +124,22 @@ type HeadlessControllerConstructor = new (options: {
   autoObserve: boolean;
   allowHarnessConfiguration?: boolean;
 }) => HeadlessController;
+/** The fields of the SDK's `ObservedRuntimeEvent` (its `NormalizedRuntimeEvent`)
+ *  this service reads. Optional because the runtime is an optional peer. */
+type ObservedChatRuntimeEvent = {
+  type?: string;
+  kind?: string;
+  role?: string;
+  text?: string | null;
+  requestId?: unknown;
+  raw?: { payload?: unknown };
+};
 type HeadlessManagedRuntime = {
   readonly closed?: boolean;
-  on?(event: 'event', listener: (event: { raw?: { payload?: unknown } }) => void): unknown;
+  on?(
+    event: 'event',
+    listener: (event: ObservedChatRuntimeEvent) => void,
+  ): unknown;
   /** The SDK's own `RuntimeHandle`. `runtime_id` is the string the runtime wrote into
    *  its live receipt as `runtime_session_id`, so it is how the frontend handoff finds
    *  the loopback address and the mint door. */
@@ -140,6 +154,7 @@ type SupercodeClient = {
   close(): Promise<void>;
   discover(query: {
     workspace?: string;
+    query?: string;
     harnesses?: string[];
     limit?: number;
     include_topic_candidates?: boolean;
@@ -148,7 +163,7 @@ type SupercodeClient = {
   load(
     locator: HeadlessSessionDescriptor['locator'],
     options?: {
-      view?: { tailMessages?: number; maxMessageChars?: number; includeSubagents?: boolean };
+      view?: { tailMessages?: number; maxMessageChars?: number; includeSubagents?: boolean; displayHistory?: boolean };
     },
   ): Promise<{ session: NormalizedSession }>;
   /** Supercode's own readiness inventory — `installed`, `auth`, and the `repair` text
@@ -173,37 +188,12 @@ type SupercodeLocalHarness = {
 type SupercodeClientConstructor = new (options?: {
   command?: string;
   cwd?: string;
+  env?: Record<string, string>;
 }) => SupercodeClient;
 
-/**
- * WHETHER THE AGENT ASKS BEFORE IT ACTS, and the one place that is decided.
- *
- * Supercode's runtime launch is policy-gated: `harness_service.rs`'s
- * `runtime_launch(params)` returns a launch ONLY for `yolo`, and the yolo launch for
- * Claude Code is `claude --dangerously-skip-permissions --print …`. Under `default` it
- * returns none and the backend falls back to its OWN prefix
- * (`runtime/adapters.rs`'s `ClaudeCodeRuntimeBackend::new`), which carries
- * `--permission-prompt-tool stdio` instead — so the CLI raises a `can_use_tool` control
- * request, supercode publishes it on `frontend.v2`, and the panel draws Allow / Allow
- * for session / Deny. The same flag decides the terminal attach launch
- * (`resume_instructions`).
- *
- * So the skipped permissions B9c measured on the child process were OURS, not
- * supercode's: the literal is in supercode, the `policy` that selects it was set here.
- *
- * IT HAS A VERSION FLOOR, and that floor is why `packages/editor/package.json` asks for
- * `@volter/supercode` `^0.4.36`. `--permission-prompt-tool stdio` joined the Claude
- * backend's own prefix on 2026-09-04 (`6ef3be26`); the binary an older install resolved here,
- * 0.4.11, is built from 2026-08-24 and predates it. MEASURED on the child of a real session
- * against 0.4.11: `claude --print … --verbose --session-id …` with NO permission handler at
- * all — and supercode's own comment on that flag says a tool call that needs an answer is then
- * refused outright with `permission_denied`. Against 0.4.36 the same launch carries the flag.
- * `default` without the handler is WORSE than `yolo`, so the two move together.
- * The person's approvals are the product's safety and the panel is where they answer
- * them, so the default launch ASKS. Changing this constant changes both launches; there
- * is deliberately no per-call override, because a chat that asks and a terminal that
- * does not is one agent with two safety stories.
- */
+type ChatProcessContext = Awaited<ReturnType<typeof chatProcessEnvironment>> & { supercode: string | undefined };
+
+/** Use the native harness's default permission policy for Chat and terminal launches. */
 const RUNTIME_POLICY = 'default' as const;
 
 /**
@@ -212,7 +202,7 @@ const RUNTIME_POLICY = 'default' as const;
  * harness, whether it is installed and signed in and what it can do now
  * (`availableActions`); the editor names none of them. A project's own most recent
  * session is resumed with the harness that ran it, when that harness can still resume;
- * otherwise the first harness supercode lists as able to start is started. When none
+ * otherwise only a harness the SDK marks autoStart is selected automatically. When none
  * can, the refusal names each one with supercode's own reason and repair.
  */
 function harnessRefusal(harnesses: readonly HarnessChatHarness[]): string {
@@ -221,7 +211,7 @@ function harnessRefusal(harnesses: readonly HarnessChatHarness[]): string {
     const why = harness.reason ?? (harness.installed ? `not ready (${harness.auth})` : 'not installed');
     return `${harness.label}: ${why}${harness.repair ? ` — ${harness.repair}` : ''}`;
   });
-  return `No coding agent is available for the Chat view. ${lines.join('; ')}.`;
+  return `No coding agent was automatically selected. Sign in or choose an installed agent. ${lines.join('; ')}.`;
 }
 
 /** What the host gets back: the environment to spawn the REH with, or why there is none. */
@@ -265,15 +255,90 @@ export function withManagedRuntimeObserver(
   });
 }
 
+/**
+ * One Chat runtime event, reduced to what the tripwires need: where a turn
+ * starts and ends, when the agent is talking in the Chat (a watcher can see
+ * that), and when the turn is waiting on the person (an approval or question
+ * is pending — never a moment to steer).
+ */
+export type ChatRuntimeActivity =
+  | 'turn-started'
+  /** A synthetic reopen within `STEER_ECHO_WINDOW_MS` of this editor's own
+   *  steer: the same real turn carrying on (or the turn the steer itself
+   *  started), so the per-turn nudge allowance must NOT reset. */
+  | 'turn-resumed'
+  | 'turn-ended'
+  | 'narration'
+  | 'waiting'
+  | 'answered'
+  | 'other';
+
+/**
+ * How long after this editor's own steer a synthetic turn reopen is read as
+ * that steer's consequence rather than a new turn, in ms. A steer sent just
+ * after Claude Code's `result`, while the runtime still reports busy, can
+ * echo back and be answered within seconds; counting that as a fresh turn
+ * would hand the same real turn a second nudge.
+ */
+const STEER_ECHO_WINDOW_MS = 10_000;
+
+/**
+ * Is this event the agent's own words, visible to the person in the Chat?
+ * Assistant text only — never thinking (`reasoning_delta`), never a tool's
+ * streamed input. The SDK projects Claude Code's `stream_event` content-block
+ * deltas to `output_delta` whatever the block, so there the delta's own type
+ * must be `text_delta`; a hosted runtime's `output_delta` is already text.
+ */
+function isNarration(event: ObservedChatRuntimeEvent): boolean {
+  if (event.type === 'message') {
+    return event.role === 'assistant' && typeof event.text === 'string' && event.text.trim() !== '';
+  }
+  if (event.type !== 'output_delta') return false;
+  if (String(event.kind ?? '').toLowerCase() !== 'stream_event') return true;
+  const payload = event.raw?.payload as
+    | { event?: { delta?: { type?: unknown } }; stream_event?: { delta?: { type?: unknown } }; delta?: { type?: unknown } }
+    | undefined;
+  const delta = (payload?.event ?? payload?.stream_event ?? payload)?.delta;
+  return String(delta?.type ?? '').toLowerCase() === 'text_delta';
+}
+
+/**
+ * The key one runtime request is tracked under, the same on both of its
+ * events. From the wire payload the runtime sent — `payload.request.id` on a
+ * `request`, `payload.request_id` on its `request_resolved` (the bundled Chat
+ * extension's reads) — because the SDK's normalized `requestId` on a request
+ * is read after spreading the request's own inner payload over it, which can
+ * replace the id. Stringified, so a numeric id and its string form match.
+ */
+function runtimeRequestKey(event: ObservedChatRuntimeEvent, type: 'request' | 'request_resolved'): string {
+  const wire = event.raw?.payload as
+    | { request?: { id?: unknown }; request_id?: unknown }
+    | undefined;
+  const id = type === 'request'
+    ? (wire?.request?.id ?? wire?.request_id ?? event.requestId)
+    : (wire?.request_id ?? event.requestId);
+  return String(id ?? null);
+}
+
+/** Where a Chat turn stands, for a caller deciding whether to steer it.
+ *  `unknown` — the runtime could not be read this time (a failed or timed-out
+ *  `describe`); nothing was learned, so nothing may be decided on it. */
+export type ChatTurnState = 'idle' | 'running' | 'waiting' | 'unknown';
+
 export interface HarnessChatServiceOptions {
-  engineRoot: string;
   getProjectRoot: () => string;
   onChange: (snapshot: HarnessChatSnapshot) => void;
   initializeTimeoutMs?: number;
-  /** Test seam; production periodically discovers sessions launched after editor boot. */
+  /** Compatibility refresh for clients without an index or external caller sessions.
+   * Ordinary indexed workspace sessions do not poll. Zero disables the fallback. */
   discoveryPollMs?: number;
   /** Sessions that invoked volter for this project from outside its workspace. */
   callerSessions?: readonly HarnessChatCallerSession[];
+  /** What the Chat's own runtime just did. The native Chat's turns do not pass
+   *  through the headless controller, so `onChange` never sees them run; this is
+   *  the push signal that one is, for a listener (the visible-progress tripwire)
+   *  that must stay idle until a turn starts. Called on every event: cheap. */
+  onRuntimeActivity?: (activity: ChatRuntimeActivity) => void;
   /** Trusted account route resolved only when Supercode launches a process. */
   resolveCodingInference?: (workspace: string) => Promise<ResolvedCodingInference | null>;
   /** Test seam. Production loads the real zero-dependency Supercode SDK. */
@@ -299,35 +364,6 @@ function locatorKey(descriptor: HeadlessSessionDescriptor): string {
   return `${locator.harness}\0${locator.session_id}\0${storage}`;
 }
 
-function descriptorPresentationFingerprint(sessions: readonly HeadlessSessionDescriptor[]): string {
-  return JSON.stringify(
-    sessions
-      .map((session) => ({
-        locator: locatorKey(session),
-        title: session.title,
-        previewCandidates: session.preview_candidates,
-        latestMessageCandidates: session.latest_message_candidates,
-        updatedAt: session.updated_at_ms,
-        messageCount: session.message_count,
-        liveStatus: session.live_status,
-        activity: session.activity
-          ? {
-              presence: session.activity.presence,
-              turn: session.activity.turn,
-              source: session.activity.evidence.source,
-              nativeState: session.activity.evidence.native_state,
-              harnessVersion: session.activity.evidence.harness_version,
-            }
-          : null,
-      }))
-      .sort((left, right) => left.locator.localeCompare(right.locator)),
-  );
-}
-
-function sessionIdentityFingerprint(identities: Iterable<string>): string {
-  return JSON.stringify([...identities].sort());
-}
-
 /**
  * Supercode's ordinary controller discovers by workspace. A caller session is
  * different evidence: its native id is authoritative even when its cwd is
@@ -339,6 +375,7 @@ export function withCallerSessionDiscovery(
   client: SupercodeClient,
   getCallers: () => readonly HarnessChatCallerSession[],
   onDiscover: (sessions: readonly HeadlessSessionDescriptor[]) => void | Promise<void> = () => {},
+  getSelectedHarness: () => string = () => '',
 ): SupercodeClient {
   const topicCandidatesByLocator = new Map<string, HeadlessDescriptorMessage[]>();
   const retainTopicCandidates = (
@@ -361,6 +398,7 @@ export function withCallerSessionDiscovery(
       }
       return async (query: {
         workspace?: string;
+        query?: string;
         harnesses?: string[];
         limit?: number;
         include_topic_candidates?: boolean;
@@ -368,9 +406,13 @@ export function withCallerSessionDiscovery(
       }): Promise<{ sessions: HeadlessSessionDescriptor[] }> => {
         const discover = target.discover.bind(target);
         const includeTopicCandidates = query.include_topic_candidates !== false;
-        const base = await discover({ ...query, include_topic_candidates: includeTopicCandidates });
+        // The selected agent's project inbox need not scan unrelated native stores.
+        // Explicit query harnesses remain authoritative; the picker inventory stays complete.
+        const selected = getSelectedHarness();
+        const basePromise = discover({ ...query, ...(selected && !query.harnesses?.length ? { harnesses: [selected] } : {}), include_topic_candidates: includeTopicCandidates });
         const callers = getCallers();
         if (callers.length === 0) {
+          const base = await basePromise;
           const sessions = retainTopicCandidates(base.sessions);
           await onDiscover(sessions);
           return { sessions };
@@ -382,18 +424,22 @@ export function withCallerSessionDiscovery(
           ids.add(caller.sessionId);
           wantedByHarness.set(caller.harness, ids);
         }
-        const supplemental = await Promise.all(
-          [...wantedByHarness].map(async ([harness, ids]) => {
-            const global = await discover({
+        const supplementalPromise = Promise.all(
+          [...wantedByHarness].flatMap(([harness, ids]) => [...ids].map(async (sessionId) => {
+            const exact = await discover({
               harnesses: [harness],
+              query: sessionId,
+              limit: 1,
+              include_child_sessions: true,
               include_topic_candidates: includeTopicCandidates,
             });
-            return global.sessions.filter(
+            return exact.sessions.filter(
               (descriptor) =>
-                descriptor.locator.harness === harness && ids.has(descriptor.locator.session_id),
+                descriptor.locator.harness === harness && descriptor.locator.session_id === sessionId,
             );
-          }),
+          })),
         );
+        const [base, supplemental] = await Promise.all([basePromise, supplementalPromise]);
         const union = new Map(
           base.sessions.map((descriptor) => [locatorKey(descriptor), descriptor]),
         );
@@ -522,7 +568,7 @@ async function importOptionalModule<const Names extends readonly string[]>(
   throw unavailableModule(label, failures);
 }
 
-async function importSupercodePackages(engineRoot: string): Promise<{
+async function importSupercodePackages(): Promise<{
   SupercodeHarnessClient: SupercodeClientConstructor;
   SupercodeController: HeadlessControllerConstructor;
   assertSupercodeClientSnapshot: HeadlessSnapshotAssertion;
@@ -530,20 +576,14 @@ async function importSupercodePackages(engineRoot: string): Promise<{
   deriveTaskPlan: HeadlessDeriveTaskPlan;
   sessionReconnectIdentity: HeadlessSessionIdentity;
 }> {
-  const sibling = join(dirname(engineRoot), 'supercode', 'sdk');
-  const cwdSibling = join(dirname(resolve(process.cwd())), 'supercode', 'sdk');
   const controllerCandidates = [
     ...moduleCandidate(process.env['SUPERCODE_CLIENT_PATH'], 'client.mjs'),
     '@volter/supercode-client',
-    join(sibling, 'client', 'client.mjs'),
-    join(cwdSibling, 'client', 'client.mjs'),
   ];
   const [SupercodeHarnessClient, clientModule] = await Promise.all([
     importOptional<SupercodeClientConstructor>('Volter Harness SDK', 'SupercodeHarnessClient', [
       ...moduleCandidate(process.env['SUPERCODE_SDK_PATH'], 'client.mjs'),
       '@volter/supercode-harness-sdk',
-      join(sibling, 'typescript', 'client.mjs'),
-      join(cwdSibling, 'typescript', 'client.mjs'),
     ]),
     importOptionalModule(
       'Volter Harness headless client',
@@ -570,26 +610,16 @@ async function importSupercodePackages(engineRoot: string): Promise<{
   };
 }
 
-async function importSupercodeController(engineRoot: string): Promise<{
+async function importSupercodeController(): Promise<{
   SupercodeController: HeadlessControllerConstructor;
   assertSupercodeClientSnapshot: HeadlessSnapshotAssertion;
   projectConversation: HeadlessProjectConversation;
   deriveTaskPlan: HeadlessDeriveTaskPlan;
   sessionReconnectIdentity: HeadlessSessionIdentity;
 }> {
-  const sibling = join(dirname(engineRoot), 'supercode', 'sdk', 'client', 'client.mjs');
-  const cwdSibling = join(
-    dirname(resolve(process.cwd())),
-    'supercode',
-    'sdk',
-    'client',
-    'client.mjs',
-  );
   const candidates = [
     ...moduleCandidate(process.env['SUPERCODE_CLIENT_PATH'], 'client.mjs'),
     '@volter/supercode-client',
-    sibling,
-    cwdSibling,
   ];
   const clientModule = await importOptionalModule(
     'Volter Harness headless client',
@@ -634,8 +664,50 @@ function findSourceLinkedSupercodeCommand(): string | undefined {
   );
 }
 
-export function findSupercodeCommand(engineRoot: string): string | undefined {
-  if (process.env['SUPERCODE_BIN']) return process.env['SUPERCODE_BIN'];
+/**
+ * How to run `supercode <args>` given the resolved command. The installed front door is
+ * `bin/supercode.js`, which POSIX runs through its shebang and Windows cannot spawn at all
+ * (`spawn UNKNOWN`: a script is not an executable there), so a script runs through this Node.
+ */
+export function supercodeInvocation(command: string, args: readonly string[]): { command: string; args: string[] } {
+  return /\.[cm]?js$/i.test(command)
+    ? { command: process.execPath, args: [command, ...args] }
+    : { command, args: [...args] };
+}
+
+/**
+ * Whether `command` is the Teams daemon's own per-version core (`<teams home>/service/bin/<version>/…`).
+ * The daemon sets SUPERCODE_BIN to it for the panes it launches, so its hooks call back into the same build; an
+ * editor started from such a pane inherits that value, which names whatever release the daemon ran when the pane
+ * opened (hours old, and older than the machine's install). It is not a person's override, so Chat does not run on it.
+ */
+export function isTeamsServiceSupercode(command: string, teamsHome = supercodeTeamsHome()): boolean {
+  const normalize = (value: string) => {
+    const full = resolve(value);
+    return process.platform === 'win32' ? full.toLowerCase() : full;
+  };
+  const serviceBin = normalize(join(teamsHome, 'service', 'bin'));
+  const target = normalize(command);
+  return target.startsWith(serviceBin + sep);
+}
+
+/** The Teams home as supercode resolves it (crates/harness teams_home, agent global_instructions_dir):
+ *  SUPERCODE_TEAMS_HOME, else SUPERCODE_HOME/teams, else XDG_CONFIG_HOME/supercode/teams, else
+ *  ~/.config/supercode/teams. An empty variable counts as unset, as it does there. */
+function supercodeTeamsHome(env = process.env): string {
+  if (env['SUPERCODE_TEAMS_HOME']) return env['SUPERCODE_TEAMS_HOME'];
+  if (env['SUPERCODE_HOME']) return join(env['SUPERCODE_HOME'], 'teams');
+  if (env['XDG_CONFIG_HOME']) return join(env['XDG_CONFIG_HOME'], 'supercode', 'teams');
+  return join(homedir(), '.config', 'supercode', 'teams');
+}
+
+export function findSupercodeCommand(cwd = process.cwd(), path = process.env['PATH'] ?? ''): string | undefined {
+  const explicit = process.env['SUPERCODE_BIN'];
+  if (explicit && !isTeamsServiceSupercode(explicit)) {
+    const command = chatExecutable(explicit, cwd, path);
+    if (!command) throw new Error(`SUPERCODE_BIN does not resolve to an executable: ${explicit}`);
+    return command;
+  }
   // A source-linked SDK must run the core from that same checkout. Falling
   // through to an unrelated npm install creates a mixed-version system that
   // can be protocol-compatible enough to start while returning stale or
@@ -649,15 +721,9 @@ export function findSupercodeCommand(engineRoot: string): string | undefined {
     if (existsSync(installedCommand) && statSync(installedCommand).isFile())
       return installedCommand;
   } catch {
-    // Optional dependency omitted: retain source-checkout fallbacks below.
+    // Optional dependency omitted: resolve the executable from PATH.
   }
-  for (const candidate of [
-    join(dirname(engineRoot), 'supercode', 'target', 'release', 'supercode'),
-    join(dirname(engineRoot), 'supercode', 'target', 'debug', 'supercode'),
-  ]) {
-    if (existsSync(candidate)) return candidate;
-  }
-  return undefined;
+  return chatExecutable('supercode', cwd, path);
 }
 
 function shellQuote(value: string): string {
@@ -839,7 +905,6 @@ export class HarnessChatService {
   private workspaceGeneration = 0;
   private closed = false;
   private discoveryTimer: ReturnType<typeof setTimeout> | null = null;
-  private discoveryInFlight = false;
   private discoveryClient: SupercodeClient | null = null;
   private assertSnapshot: HeadlessSnapshotAssertion = (value) => value as HeadlessSnapshot;
   private projectConversation: HeadlessProjectConversation = () => [];
@@ -855,7 +920,6 @@ export class HarnessChatService {
   private subagentDescriptorsByKey = new Map<string, HeadlessSessionDescriptor>();
   private subagentInspector: SupercodeUiState['subagentInspector'] = null;
   private inventoryCaptureGeneration = 0;
-  private renderedInventoryFingerprint: string | null = null;
   private readonly bridgeListeners = new Set<() => void>();
   private lastSnapshot: HarnessChatSnapshot = unavailable(
     null,
@@ -865,11 +929,32 @@ export class HarnessChatService {
   );
   /** The last managed runtime the SDK handed back, for the frontend handoff's receipt lookup. */
   private managedRuntime: HeadlessManagedRuntime | null = null;
+  /** Runtime requests (approvals, questions) the person has not answered. */
+  private readonly pendingRuntimeRequests = new Set<string>();
+  /** Whether the Chat runtime's current turn is open, from its own boundary
+   *  events and the synthetic reopen: `null` before any runtime is observed,
+   *  `false` when a new one is. */
+  private runtimeTurnOpen: boolean | null = null;
+  /** Bumped at every runtime turn boundary, so a steer that awaited across one
+   *  can tell. */
+  private runtimeTurnGeneration = 0;
+  /** Has this runtime ever reported a turn START? Claude Code's native stream
+   *  ends turns (`result`) but never starts one, so for such a runtime the
+   *  open/closed bit is inferred and steering must not be gated on it. */
+  private runtimeReportsTurnStarts = false;
+  /** The last line this service steered in, and when — so its echo as a user
+   *  message, and the reopen it causes, are recognised as ours. */
+  private lastSteer: { readonly text: string; readonly at: number } | null = null;
   private observedModel: string | null = null;
   private chatSelection: ChatSelection = { ...DEFAULT_CHAT_SELECTION };
   private selectingChat = false;
   private readonly chatCatalog: ChatSessionCatalog;
-  private readonly frontendControls = new FrontendControls(() => this.chatControlState(), (selection) => this.selectChat(selection), id => this.openChat(id), (id, nativeId) => this.bindChatIdentity(id, nativeId));
+  private readonly frontendControls = new FrontendControls(() => this.chatControlState(true), (selection) => this.selectChat(selection), id => this.openChat(id), (id, nativeId) => this.bindChatIdentity(id, nativeId), (kind, harness) => this.prepareChatSetup(kind, harness));
+  private setupHarness: string | null = null;
+  private setupRefresh: Promise<void> | null = null;
+  private chatProcess: { workspace: string; context: Promise<ChatProcessContext>; failed: boolean } | null = null;
+  private controllerProcess: ChatProcessContext | null = null;
+  private chatProcessRefresh: Promise<void> | null = null;
   private frontendHandoffValue: FrontendHandoff | null = null;
   /** The standing reason the Chat view has no agent, or `null`. Held because a refusal
    *  OUTLIVES a page load and the console ledger's clearing rule (a) retires an entry whose
@@ -918,6 +1003,7 @@ export class HarnessChatService {
     if (this.controller && this.workspace === workspace) {
       await this.controller.dispatch({ type: 'refresh', autoObserve: false });
       this.capture();
+      this.scheduleDiscovery();
     }
     return this.snapshot();
   }
@@ -952,6 +1038,7 @@ export class HarnessChatService {
   }
 
   async refresh(autoObserve = true): Promise<HarnessChatSnapshot> {
+    await this.refreshChatProcessContext();
     const created = !this.controller;
     await this.ensureController(autoObserve);
     if (!this.controller) return this.snapshot();
@@ -961,8 +1048,10 @@ export class HarnessChatService {
   }
 
   /** Ensure the live controller exists without re-running full harness/session
-   * discovery when an editor tab mounts or reloads. The service's idle probe
-   * detects inventory changes without coupling discovery to browser views. */
+   * discovery when an editor tab mounts or reloads. Supercode's controller owns
+   * the retained session index and delivers inventory changes through subscribe.
+   * Compatibility clients and external callers get a bounded fallback; explicit
+   * Refresh remains immediate. */
   async load(autoObserve = true): Promise<HarnessChatSnapshot> {
     const next = resolve(this.options.getProjectRoot());
     if (!this.controller && !this.starting) {
@@ -977,6 +1066,79 @@ export class HarnessChatService {
     return this.snapshot();
   }
 
+
+  /**
+   * Where the Chat's AI turn stands right now.
+   *
+   * Two places can know, because there are two ways a turn starts: the native
+   * Chat view drives its runtime directly (only the runtime's own `turn_state`
+   * sees it — the same read `chatControlState` makes), and an `@agent` hand-off
+   * runs through the headless controller (its snapshot sees it).
+   *
+   * `waiting` — the turn is blocked on the PERSON (an approval or a question is
+   * pending: the controller's `requests`, or a runtime `request` event not yet
+   * resolved). A busy turn that is waiting is not a turn to steer: the line
+   * would land on top of the question the person is reading.
+   *
+   * Never throws: a runtime that cannot be asked this time is `unknown`, and
+   * leaves every pending ask exactly as it was.
+   */
+  async chatTurnState(): Promise<ChatTurnState> {
+    if (this.lastSnapshot.requests.some((request) => request.status === 'pending')) return 'waiting';
+    let busy = this.lastSnapshot.turn.state === 'running';
+    if (!busy) {
+      try {
+        busy = (await this.frontendHandoffValue?.isBusy()) === true;
+      } catch {
+        // A failed or timed-out read is not a reading of `idle`: dropping the
+        // person's open ask on it would let the next tick steer onto it.
+        return 'unknown';
+      }
+    }
+    // Only a SUCCESSFUL not-busy reading ends an ask: an approval can only be
+    // outstanding while a turn runs (the runtime's `decide_approval` blocks
+    // the agent loop — the bundled Chat extension clears its own
+    // `pendingRequests` on an idle descriptor for this reason). Silence never
+    // does: a person may leave an approval open for as long as they like, and
+    // until its `request_resolved`, a turn boundary or an idle runtime, the
+    // turn is `waiting` and nothing is steered onto it.
+    if (!busy) {
+      this.pendingRuntimeRequests.clear();
+      return 'idle';
+    }
+    return this.pendingRuntimeRequests.size > 0 ? 'waiting' : 'running';
+  }
+
+  /**
+   * Put `text` into the Chat's RUNNING turn — the one door by which something
+   * the editor notices reaches the in-editor agent's context. An in-editor agent
+   * tails no journal and watches no terminal; a steered line lands in its
+   * conversation, between its own tool calls, and the person sees it in the Chat.
+   *
+   * `false` when no turn is running (an idle agent is not working, and a steer
+   * would start nothing) or the turn is waiting on the person. Throws when the
+   * harness refuses the steer, so the caller can record why.
+   */
+  async steerRunningTurn(text: string): Promise<boolean> {
+    const generation = this.runtimeTurnGeneration;
+    if ((await this.chatTurnState()) !== 'running') return false;
+    // Re-checked AFTER the await, immediately before the steer: a turn that
+    // ended while its state was being read must not be steered, because a
+    // steer into an idle runtime can START a turn nobody asked for.
+    // The open/closed bit gates only a runtime that reports turn starts; one
+    // that never does (Claude Code's native stream) falls back to the
+    // descriptor's `turn_state` busy, read just above.
+    if (generation !== this.runtimeTurnGeneration) return false;
+    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return false;
+    this.lastSteer = { text, at: Date.now() };
+    const runtime = this.managedRuntime;
+    if (runtime && !runtime.closed) {
+      await runtime.steer(text);
+      return true;
+    }
+    await this.actIntent({ action: 'steer', text });
+    return true;
+  }
 
   /** Dispatch the package-owned messenger intent without translating it into
    * a second Volter action vocabulary. */
@@ -1017,14 +1179,121 @@ export class HarnessChatService {
   private observeChatRuntime(runtime: HeadlessManagedRuntime): void {
     this.managedRuntime = runtime;
     this.observedModel = null;
+    this.pendingRuntimeRequests.clear();
+    // A fresh runtime starts CLOSED, so its first activity is a (synthetic)
+    // turn start — the watcher arms nothing after a turn end until one.
+    this.runtimeTurnOpen = false;
+    this.runtimeReportsTurnStarts = false;
+    this.runtimeTurnGeneration++;
     runtime.on?.('event', event => {
       if (this.managedRuntime !== runtime) return;
+      this.options.onRuntimeActivity?.(this.runtimeActivity(event));
       const payload = event.raw?.payload;
       if (!payload || typeof payload !== 'object') return;
-      const record = payload as { model?: unknown; message?: { model?: unknown } };
+      const record = payload as { model?: unknown; message?: { model?: unknown }; parent_tool_use_id?: unknown };
+      // A subagent's reply (a Task on another model) names its own model, not the conversation's.
+      if (typeof record.parent_tool_use_id === 'string') return;
       const model = record.message?.model ?? record.model;
       if (typeof model === 'string' && model.length > 0 && model.length < 200) this.observedModel = model;
     });
+  }
+
+  /**
+   * Reduce one runtime event to a `ChatRuntimeActivity`, keeping the set of
+   * requests the person has not answered yet — the native Chat answers them
+   * itself, so these events are the only place this service sees them.
+   *
+   * THE NAMES ARE THE SDK'S NORMALIZED `type`s (`@volter/supercode-harness-sdk`
+   * `normalizeRuntimeEvent`, checked against 0.3.77), not the runtime's wire
+   * `kind`s. The hosted runtime's wire kinds — the ones the bundled Chat
+   * extension's `projectEvent` reads — map onto them as:
+   *   - `turn_started` → `turn_started`;
+   *   - `turn_succeeded` / `turn_failed` / `turn_interrupted` → `turn_completed`
+   *     (the END of a submitted turn). The wire `turn_completed` is one model
+   *     round-trip and the SDK passes it through as `native`, so it never
+   *     reads as an end here — the extension's own comment: treating it as
+   *     idle ends the turn exactly when an approval is about to be raised;
+   *   - `request` (`payload.request.id`) → `request`, `request_resolved`
+   *     (`payload.request_id`) → `request_resolved`, same numeric id;
+   *   - `runtime_disconnected` → `closed`;
+   *   - `text_delta` → `output_delta`, `thinking_delta` → `reasoning_delta`.
+   * A Claude Code runtime's native stream ends its turn with `result` →
+   * `turn_completed` and streams `stream_event` content-block deltas, where
+   * the SDK labels TOOL-INPUT deltas (`input_json_delta`) `output_delta` too —
+   * which is why narration below reads the delta's own type there.
+   */
+  private runtimeActivity(event: ObservedChatRuntimeEvent): ChatRuntimeActivity {
+    switch (event.type) {
+      case 'turn_started':
+        this.runtimeReportsTurnStarts = true;
+        this.openRuntimeTurn(true);
+        return 'turn-started';
+      case 'turn_completed':
+      case 'closed':
+        this.openRuntimeTurn(false);
+        return 'turn-ended';
+      case 'request': {
+        // A request opens a turn that never announced itself (it is raised
+        // from inside one); the ask is added after, so the reopen keeps it.
+        const reopened = this.reopenOnActivity();
+        this.pendingRuntimeRequests.add(runtimeRequestKey(event, 'request'));
+        return reopened ?? 'waiting';
+      }
+      case 'request_resolved':
+        this.pendingRuntimeRequests.delete(runtimeRequestKey(event, 'request_resolved'));
+        return 'answered';
+      case 'output_delta':
+      case 'reasoning_delta':
+      case 'tool':
+        // NOT a reason to clear a pending approval: in Claude Code a subagent
+        // can stream while the main thread waits on the person's decision.
+        // An ask ends only on its own `request_resolved`, a turn boundary,
+        // or a successful idle reading in `chatTurnState` — never silence.
+        return this.reopenOnActivity() ?? (isNarration(event) ? 'narration' : 'other');
+      case 'message':
+        // This editor's own steer echoing back is not a new turn.
+        if (event.role === 'user' && this.isOwnSteerEcho(event)) return 'other';
+        // A new user message, or the agent speaking, after a turn ended is
+        // the next turn beginning.
+        if (event.role === 'user' || isNarration(event)) {
+          const reopened = this.reopenOnActivity();
+          if (reopened) return reopened;
+        }
+        return isNarration(event) ? 'narration' : 'other';
+      default:
+        return 'other';
+    }
+  }
+
+  /**
+   * The SYNTHETIC turn start: agent activity after a turn END opens the next
+   * turn, because Claude Code's native stream ends every turn (`result`) and
+   * starts none. Reported upward as `turn-started`, so the visible-progress
+   * stall clock and the per-turn nudge allowance reset exactly as they do for
+   * a runtime that announces its turns — unless it follows this editor's own
+   * steer within `STEER_ECHO_WINDOW_MS`, when it is `turn-resumed` and the
+   * allowance stands. `null` when no turn was reopened.
+   */
+  private reopenOnActivity(): 'turn-started' | 'turn-resumed' | null {
+    if (this.runtimeTurnOpen !== false) return null;
+    this.openRuntimeTurn(true);
+    const sinceSteer = this.lastSteer ? Date.now() - this.lastSteer.at : Infinity;
+    return sinceSteer < STEER_ECHO_WINDOW_MS ? 'turn-resumed' : 'turn-started';
+  }
+
+  /** Is this user message the line this service last steered in? Matched on
+   *  the text, either way round, because a harness may trim or wrap it. */
+  private isOwnSteerEcho(event: ObservedChatRuntimeEvent): boolean {
+    const sent = this.lastSteer?.text.trim();
+    const seen = typeof event.text === 'string' ? event.text.trim() : '';
+    return Boolean(sent && seen && (seen.includes(sent) || sent.includes(seen)));
+  }
+
+  /** A runtime turn boundary: any open ask belongs to the turn it ended. */
+  private openRuntimeTurn(open: boolean): void {
+    this.pendingRuntimeRequests.clear();
+    this.runtimeTurnOpen = open;
+    this.runtimeTurnGeneration++;
   }
 
   /** The private controls channel's environment for the extension host: started
@@ -1033,24 +1302,137 @@ export class HarnessChatService {
     return this.frontendControls.start();
   }
 
-  private async chatControlState() {
+  private chatProcessContext(workspace = resolve(this.options.getProjectRoot()), retryFailed = false): Promise<ChatProcessContext> {
+    if (this.chatProcess?.workspace !== workspace || (retryFailed && this.chatProcess.failed)) {
+      const context = chatProcessEnvironment(workspace).then(environment => ({
+        ...environment,
+        supercode: findSupercodeCommand(workspace, environment.env.PATH),
+      }));
+      const cached = { workspace, context, failed: false };
+      // An installError is a failed discovery even though the promise fulfilled.
+      // Keep it for this request; the next explicit state/refresh request retries.
+      void context.then(value => { cached.failed = Boolean(value.installError); }, () => { cached.failed = true; });
+      this.chatProcess = cached;
+    }
+    return this.chatProcess.context;
+  }
+
+  private refreshChatProcessContext(): Promise<void> {
+    if (this.options.createClient) return Promise.resolve();
+    this.chatProcessRefresh ??= (async () => {
+      await this.starting;
+      const workspace = resolve(this.options.getProjectRoot());
+      const next = await this.chatProcessContext(workspace, true);
+      if (workspace !== resolve(this.options.getProjectRoot())) return;
+      const previous = this.controllerProcess;
+      if (!this.controller || !previous || (previous.env.PATH === next.env.PATH && previous.supercode === next.supercode)) return;
+      // Never retire a controller that owns a conversation. A later controller
+      // will use the recovered context; first-run discovery has no runtime yet.
+      if (this.closed || this.selectingChat || this.frontendHandoffValue || this.managedRuntime
+        || this.lastSnapshot.turn.state === 'running' || this.lastSnapshot.requests.length) return;
+      const controller = this.controller;
+      if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
+      this.discoveryTimer = null;
+      this.unsubscribe?.(); this.unsubscribe = null;
+      this.remoteHost?.close(); this.remoteHost = null;
+      this.controller = null;
+      this.discoveryClient = null;
+      this.controllerProcess = null;
+      const generation = this.workspaceGeneration;
+      const restarting = (async () => {
+        await controller.close();
+        if (!this.closed && generation === this.workspaceGeneration) {
+          await this.startController(workspace, false, generation);
+        }
+      })();
+      this.starting = restarting;
+      try { await restarting; }
+      finally { if (this.starting === restarting) this.starting = null; }
+    })().finally(() => { this.chatProcessRefresh = null; });
+    return this.chatProcessRefresh;
+  }
+
+  private async chatControlState(retryDiscovery = false) {
     // The extension asks for this at activation; a runtime still being handed
     // over is waited for, so the answer carries its connection.
     await this.frontendHandoffInFlight?.catch(() => undefined);
-    await this.ensureController();
+    if (retryDiscovery) await this.refreshChatProcessContext();
+    await this.ensureController(false);
+    // A refused startup is recoverable after a terminal install/sign-in. Serialize
+    // passive inventory refresh and handoff retries across extension-host callers.
+    if ((!this.frontendHandoffValue || this.setupHarness) && this.controller && !this.selectingChat) {
+      this.setupRefresh ??= this.refreshChatSetup().finally(() => { this.setupRefresh = null; });
+      await this.setupRefresh;
+    }
     const snapshot = this.snapshot();
+    const launchContext = await this.chatProcessContext();
+    const actions = chatSetupActions(snapshot.harnesses, launchContext);
     return {
       selection: { ...this.chatSelection },
       activeSession: this.chatCatalog.active,
       openSessionCommand: 'volter.chat.openSession',
+      revealReadySessionCommand: 'volter.chat.revealReadySession',
       sessions: [...this.chatCatalog.sessions.values()],
       actualModel: this.observedModel,
       connection: this.frontendHandoffValue?.env,
       busy: (await this.frontendHandoffValue?.isBusy()) || snapshot.turn.state === 'running' || snapshot.requests.length > 0,
-      harnesses: snapshot.harnesses.filter(h => h.availableActions.start).map(h => ({ id: h.id, name: h.label })),
-      models: chatModels(this.chatSelection.harness),
-      modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id)])),
+      harnesses: snapshot.harnesses.filter(h => h.availableActions.start).map(h => ({ id: h.id, name: h.label, autoStart: h.availableActions.autoStart === true,
+        description: h.auth === 'unknown' || h.auth === 'configured' ? 'Authentication unverified' : undefined })),
+      models: chatModels(this.chatSelection.harness, launchContext.env),
+      modelsByHarness: Object.fromEntries(snapshot.harnesses.filter(h => h.availableActions.start).map(h => [h.id, chatModels(h.id, launchContext.env)])),
       configurable: ['claude-code', 'codex'].includes(this.chatSelection.harness),
+      // A NEW chat approves its agent's tool calls unless the person picks Ask (the owner's ask, 2026-10-06); each
+      // chat created from now on carries it (chat-session-catalog.ts), so a chat saved before keeps asking. Not
+      // `defaultPermission`: frontend-vscode 0.1.36-0.1.38 applies that to every chat without a stored pick,
+      // which turned Auto on for existing chats (0.5.187). The Chat applies it only where it can answer the
+      // runtime's approvals (Claude Code, Codex); other harnesses keep their prompts.
+      newChatPermission: 'autoApprove',
+      setup: {
+        ready: Boolean(this.frontendHandoffValue),
+        actions,
+        reason: this.frontendHandoffValue ? null : [this.frontendRefusalValue, actions.length ? null : launchContext.installError].filter(Boolean).join('\n') || null,
+        cwd: this.options.getProjectRoot(),
+      },
+    };
+  }
+
+  private async refreshChatSetup(): Promise<void> {
+    const controller = this.controller;
+    if (!controller) return;
+    await controller.dispatch({ type: 'refresh', autoObserve: false, silent: true });
+    this.capture();
+    if (this.closed || controller !== this.controller) return;
+    if (this.frontendHandoffValue) {
+      // A sign-in from the picker refreshes availability without replacing the
+      // conversation underneath the person. New Session applies their next choice.
+      if (this.setupHarness && this.lastSnapshot.harnesses.some(h => h.id === this.setupHarness && h.availableActions.autoStart)) this.setupHarness = null;
+      return;
+    }
+    const ready = this.lastSnapshot.harnesses.find(h => h.availableActions.autoStart === true &&
+      (!this.setupHarness || h.id === this.setupHarness));
+    if (!ready) return;
+    if (this.setupHarness) this.chatSelection = { harness: this.setupHarness, model: '', effort: '' };
+    await this.runtimeFrontendHandoff();
+    if (this.frontendHandoffValue) this.setupHarness = null;
+  }
+
+  private async prepareChatSetup(kind: string, harness: string) {
+    await this.chatControlState(true);
+    const launchContext = await this.chatProcessContext();
+    const action = chatSetupActions(this.lastSnapshot.harnesses, launchContext).find(a => a.kind === kind && a.harness === harness);
+    if (!action) throw new Error('This setup action is no longer available.');
+    const program = kind === 'login' ? launchContext.supercode : launchContext.npm;
+    if (!program) throw new Error('The setup executable is no longer available.');
+    this.setupHarness = harness;
+    // The extension runs this exact, host-authored command in a visible terminal.
+    // It never executes arbitrary repair prose or receives provider credentials.
+    const invocation = kind === 'login'
+      ? supercodeInvocation(program, ['harness', 'login', harness])
+      : { command: program, args: ['install', '-g', '--prefix', launchContext.npmPrefix!, '@openai/codex'] };
+    return { ...action, cwd: this.options.getProjectRoot(),
+      program: invocation.command,
+      arguments: invocation.args,
+      env: launchContext.env,
     };
   }
 
@@ -1094,8 +1476,12 @@ export class HarnessChatService {
     if (entry.identity) {
       const session = this.lastSnapshot.sessions.find(s => s.identity === entry.identity);
       if (!session) throw new Error('The saved conversation history is unavailable.');
-      const loaded = await this.controller!.loadSession(session.id);
-      const transcript = loaded as unknown as NormalizedSession;
+      // This read fills visible scrollback, not a model's continuation input.
+      // The harness owns its native display projection and keeps the source
+      // transcript intact for resume/export through their separate doors.
+      const transcript = await this.controller!.loadSession(session.id, {
+        view: { displayHistory: true, tailMessages: 120, maxMessageChars: 16_000, includeSubagents: false },
+      }) as unknown as NormalizedSession;
       const messages = transcript.messages;
       historyTruncated = Math.max(messages.length, transcript.total_message_count ?? 0) > 120;
       history = messages.slice(-120);
@@ -1131,11 +1517,22 @@ export class HarnessChatService {
         this.discoveryClient = null;
         const oldHandoff = this.frontendHandoffValue;
         this.frontendHandoffValue = null;
-        await oldHandoff?.dispose();
-        await withTimeout(previousController.close(), 10_000, 'Closing previous chat runtime');
-        this.managedRuntime = null;
-        this.observedModel = null;
-        await this.ensureController(false);
+        // State/load requests can arrive while the old runtime is closing.
+        // Keep them behind the entire replacement, including discovery, so
+        // none starts an auto-observing controller in the disposal gap.
+        const workspace = this.workspace!;
+        const generation = this.workspaceGeneration;
+        const restarting = (async () => {
+          await oldHandoff?.dispose();
+          await withTimeout(previousController.close(), 10_000, 'Closing previous chat runtime');
+          if (this.closed || generation !== this.workspaceGeneration) throw new Error('The chat workspace changed while closing its previous runtime.');
+          this.managedRuntime = null;
+          this.observedModel = null;
+          await this.startController(workspace, false, generation);
+        })();
+        this.starting = restarting;
+        try { await restarting; }
+        finally { if (this.starting === restarting) this.starting = null; }
         const restored = this.lastSnapshot.sessions.find(s => s.identity === entry.identity && s.harness === selection.harness);
         if (!restored) throw new Error('The saved conversation could not be rediscovered after closing its previous runtime.');
         action = {type:'resume', sessionKey:restored.id};
@@ -1147,7 +1544,7 @@ export class HarnessChatService {
       else this.chatCatalog.create(selection);
       const runtimeId = this.managedRuntime?.handle?.runtime_id;
       if (!runtimeId) throw new Error('The selected harness did not start.');
-      const handoff = await mintFrontendHandoff({ engineRoot: this.options.engineRoot, runtimeSessionId: runtimeId,
+      const handoff = await mintFrontendHandoff({ runtimeSessionId: runtimeId,
         directory: join(homedir(), '.volter', 'runtime', `frontend-${process.pid}-${randomUUID()}`) });
       const old = this.frontendHandoffValue;
       this.frontendHandoffValue = handoff;
@@ -1178,7 +1575,8 @@ export class HarnessChatService {
 
   /**
    * The key of this project's saved conversation, or else of its most recent session whose
-   * harness can still resume (the selected harness's, when one was chosen), or `null` when it
+   * harness the SDK permits to resume automatically (or the explicitly selected harness
+   * can resume), or `null` when it
    * has none. Only sessions whose `cwd` IS this project count: a session the person ran
    * somewhere else is not this project's history, and resuming it would put another folder's
    * conversation in this folder's panel.
@@ -1194,8 +1592,14 @@ export class HarnessChatService {
     }
     if (saved) return null;
     const root = resolve(this.options.getProjectRoot());
+    // A discovered session is not a saved choice. Apply the SDK's automatic
+    // policy only when the person has chosen neither a conversation nor an agent.
     const resumable = new Set(
-      this.lastSnapshot.harnesses.filter((harness) => harness.availableActions.resume).map((harness) => harness.id),
+      this.lastSnapshot.harnesses.filter((harness) =>
+        this.chatSelection.harness
+          ? harness.availableActions.resume
+          : harness.availableActions.autoResume === true,
+      ).map((harness) => harness.id),
     );
     const mine = this.lastSnapshot.sessions
       .filter((session) => resumable.has(session.harness) && session.cwd !== null)
@@ -1207,9 +1611,11 @@ export class HarnessChatService {
 
   private async mintFrontendHandoff(): Promise<FrontendHandoffResult> {
     try {
-      await this.ensureController();
+      // Native Chat owns its conversation. Inventory must not first mirror the
+      // newest caller transcript merely because it was discovered most recently.
+      await this.ensureController(false);
       const controller = this.controller;
-      if (!controller) throw new Error('Volter Harness is unavailable.');
+      if (!controller) throw new Error(this.lastSnapshot.error?.message ?? 'Volter Harness is unavailable.');
       if (!this.managedRuntime || this.managedRuntime.closed) {
         // REOPENING A PROJECT RESUMES ITS LAST SESSION, it does not start a second one.
         // the editor's `close` command ends the runtime with the session, so without this every reopen
@@ -1227,13 +1633,12 @@ export class HarnessChatService {
           this.capture();
         }
         const resumable = this.resumableSessionKey();
-        // A harness that reports a login goes before one whose login is unknown, so a
-        // signed-in agent is never passed over for one that will refuse; within each group
-        // supercode's own order stands.
-        const signedIn = (harness: HarnessChatHarness) => harness.auth === 'ready' || harness.auth === 'configured';
-        const startable = [...this.lastSnapshot.harnesses]
-          .filter((harness) => harness.availableActions.start)
-          .sort((left, right) => Number(signedIn(right)) - Number(signedIn(left)))[0];
+        // Selection policy belongs to the SDK. Unknown authentication is not an
+        // automatic fallback; an explicitly selected agent can still be started.
+        const startable = this.lastSnapshot.harnesses.find(harness =>
+          this.chatSelection.harness
+            ? harness.id === this.chatSelection.harness && harness.availableActions.start
+            : harness.availableActions.autoStart === true);
         if (resumable === null && !startable) throw new Error(harnessRefusal(this.lastSnapshot.harnesses));
         // With no choice made, the conversation's selection is the harness this dispatch
         // runs: the resumed session's, or the one started. Decided before dispatching,
@@ -1258,7 +1663,6 @@ export class HarnessChatService {
         );
       }
       const handoff = await mintFrontendHandoff({
-        engineRoot: this.options.engineRoot,
         runtimeSessionId: runtimeId,
         directory: join(homedir(), '.volter', 'runtime', `frontend-${process.pid}`),
       });
@@ -1291,6 +1695,7 @@ export class HarnessChatService {
     if (this.controller) {
       await this.controller.setWorkspace(next, { autoObserve: true });
       this.capture();
+      this.scheduleDiscovery();
       return;
     }
     await this.ensureController(true);
@@ -1299,9 +1704,9 @@ export class HarnessChatService {
   async close(): Promise<void> {
     if (this.closing) return this.closing;
     this.closed = true;
-    this.frontendControls.close();
     if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
     this.discoveryTimer = null;
+    this.frontendControls.close();
     this.unsubscribe?.();
     this.unsubscribe = null;
     this.remoteHost?.close();
@@ -1315,7 +1720,6 @@ export class HarnessChatService {
     this.subagentDescriptorsByKey.clear();
     this.subagentInspector = null;
     this.inventoryCaptureGeneration++;
-    this.renderedInventoryFingerprint = null;
     this.bridgeListeners.clear();
     const handoff = this.frontendHandoffValue;
     this.frontendHandoffValue = null;
@@ -1332,17 +1736,20 @@ export class HarnessChatService {
 
   private async ensureController(autoObserve = true): Promise<void> {
     if (this.closed) throw new Error('Harness Chat service is closed.');
+    // A controller is assigned before initialize finishes. Its empty inventory
+    // must not be mistaken for completed discovery by concurrent callers.
+    if (this.starting) {
+      await this.starting;
+      return;
+    }
     const next = resolve(this.options.getProjectRoot());
     if (this.controller) {
       if (this.workspace !== next) {
         this.beginWorkspace(next);
         await this.controller.setWorkspace(next, { autoObserve: true });
         this.capture();
+        this.scheduleDiscovery();
       }
-      return;
-    }
-    if (this.starting) {
-      await this.starting;
       return;
     }
     this.beginWorkspace(next);
@@ -1461,7 +1868,7 @@ export class HarnessChatService {
     if (this.options.createClient) {
       const module = this.options.createController
         ? null
-        : await importSupercodeController(this.options.engineRoot);
+        : await importSupercodeController();
       const sessionReconnectIdentity =
         this.options.sessionReconnectIdentity ?? module?.sessionReconnectIdentity;
       if (!sessionReconnectIdentity) {
@@ -1478,6 +1885,7 @@ export class HarnessChatService {
         ),
         () => this.callerSessions(),
         (sessions) => this.rememberSessionInventory(sessions, sessionReconnectIdentity, workspace),
+        () => this.chatSelection.harness,
       );
       this.discoveryClient = client;
       if (this.options.createController) {
@@ -1502,23 +1910,27 @@ export class HarnessChatService {
       projectConversation,
       deriveTaskPlan,
       sessionReconnectIdentity,
-    } = await importSupercodePackages(this.options.engineRoot);
+    } = await importSupercodePackages();
     this.assertSnapshot = assertSupercodeClientSnapshot;
     this.projectConversation = projectConversation;
     this.deriveTaskPlan = deriveTaskPlan;
     this.sessionIdentity = sessionReconnectIdentity;
-    const command = findSupercodeCommand(this.options.engineRoot);
+    const launchContext = await this.chatProcessContext(workspace);
+    this.controllerProcess = launchContext;
+    const command = launchContext.supercode;
     const client = withCallerSessionDiscovery(
       withManagedRuntimeObserver(
         new SupercodeHarnessClient({
           cwd: workspace,
-          ...(command ? { command } : {}),
+          ...(command ? supercodeInvocation(command, ['harness', 'serve']) : {}),
+          env: launchContext.env,
         }),
         (runtime) => this.observeChatRuntime(runtime),
         transformBackend,
       ),
       () => this.callerSessions(),
       (sessions) => this.rememberSessionInventory(sessions, sessionReconnectIdentity, workspace),
+        () => this.chatSelection.harness,
     );
     this.discoveryClient = client;
     return new SupercodeController({
@@ -1539,19 +1951,8 @@ export class HarnessChatService {
    * a client without it. `null` means Supercode had nothing to say, and nothing is
    * refused on silence.
    *
-   * A passive probe that answers `unknown` is escalated to the HANDSHAKE probe for this
-   * one harness — Supercode's own recommended next step, and the only way to tell "not
-   * signed in" from "cannot tell without opening it". Measured 2026-09-21: OpenCode on
-   * this box reads `auth: unknown` passively and `auth: ready` under the handshake (3.9s),
-   * so treating the passive answer as a refusal would have blocked a working harness.
-   *
-   * WHAT THIS ADDS OVER SUPERCODE'S OWN DOOR, so the next reader does not take it for a
-   * duplicate: the controller already refuses a not-installed or `required` harness in
-   * `harnessActions` (`start: installed && auth !== 'required' && …`) from its LAST
-   * INVENTORY — measured verbatim here on a not-installed harness, which never reaches
-   * this seam. This read is FRESH at the moment of launch, so a sign-in or sign-out since
-   * that refresh counts, and it escalates the `unknown` the controller treats as
-   * startable into a verdict instead of an opaque failure inside the harness.
+   * Native authentication status belongs to Supercode. A protocol handshake is
+   * not authentication and must never promote an unknown agent into an automatic choice.
    */
   private async harnessReadiness(
     harness: string,
@@ -1569,8 +1970,7 @@ export class HarnessChatService {
         return harnesses.find((item) => item.id === harness);
       };
       try {
-        let entry = await ask('passive');
-        if (entry?.installed && entry.auth === 'unknown') entry = (await ask('handshake')) ?? entry;
+        const entry = await ask('passive');
         if (entry) {
           return {
             id: entry.id,
@@ -1782,9 +2182,6 @@ export class HarnessChatService {
     this.lastHeadlessSnapshot = snapshot;
     this.lastSnapshot = toSnapshot(snapshot, frame);
     this.rememberChatSession();
-    this.renderedInventoryFingerprint = descriptorPresentationFingerprint([
-      ...this.sessionDescriptorsByIdentity.values(),
-    ]);
     this.options.onChange(this.snapshot());
     for (const listener of this.bridgeListeners) listener();
   }
@@ -1792,72 +2189,35 @@ export class HarnessChatService {
   private scheduleDiscovery(): void {
     if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
     this.discoveryTimer = null;
-    const delay = this.options.discoveryPollMs ?? 4_000;
-    if (this.closed || delay <= 0) return;
-    this.discoveryTimer = setTimeout(() => {
-      this.discoveryTimer = null;
-      void this.pollDiscovery();
-    }, delay);
-  }
-
-  private async pollDiscovery(): Promise<void> {
-    if (this.closed || this.discoveryInFlight) return;
-    if (this.selectingChat) { this.scheduleDiscovery(); return; }
+    // Supercode owns indexed workspace inventory. Only compatibility clients
+    // and explicitly included callers outside that index need a bounded refresh.
+    // A refresh goes through the controller once; do not scan and then scan again.
+    const delay = this.options.discoveryPollMs ?? 60_000;
+    if (this.closed || delay <= 0 || !this.controller || !this.discoveryClient) return;
+    if (typeof this.discoveryClient['subscribeSessionIndex'] === 'function'
+      && this.callerSessions().length === 0) return;
     const controller = this.controller;
-    const client = this.discoveryClient;
-    const snapshot = this.lastSnapshot;
-    const raw = this.lastHeadlessSnapshot;
-    if (
-      !controller ||
-      !client ||
-      !raw ||
-      !this.workspace ||
-      snapshot.operation !== null ||
-      snapshot.turn.state !== 'idle'
-    ) {
-      this.scheduleDiscovery();
-      return;
-    }
-    this.discoveryInFlight = true;
-    try {
-      const discovered = await client.discover({
-        workspace: this.workspace,
-        limit: 100,
-        include_topic_candidates: false,
-      });
-      const presentationFingerprint = descriptorPresentationFingerprint(discovered.sessions);
-      const controllerInventoryChanged =
-        sessionIdentityFingerprint(this.sessionDescriptorsByIdentity.keys()) !==
-        sessionIdentityFingerprint(raw.sessions.map((session) => session.identity));
-      if (controllerInventoryChanged) {
-        await controller.dispatch({
-          type: 'refresh',
-          autoObserve: false,
-          silent: true,
-        });
-        if (!this.closed && controller === this.controller) this.capture();
-      } else if (presentationFingerprint !== this.renderedInventoryFingerprint) {
-        // Presentation evidence belongs in the controller snapshot too. Feed
-        // the changed inventory back through Supercode instead of joining raw
-        // descriptors into a second VOLTER-owned list projection.
-        await controller.dispatch({
-          type: 'refresh',
-          autoObserve: false,
-          silent: true,
-        });
-        if (!this.closed && controller === this.controller) this.capture();
+    const generation = this.workspaceGeneration;
+    this.discoveryTimer = setTimeout(async () => {
+      this.discoveryTimer = null;
+      if (this.closed || this.controller !== controller || generation !== this.workspaceGeneration) return;
+      try {
+        if (!this.selectingChat && this.lastSnapshot.operation === null
+          && this.lastSnapshot.turn.state === 'idle') {
+          await controller.dispatch({ type: 'refresh', autoObserve: false, silent: true });
+        }
+      } catch {
+        // Explicit Refresh remains the visible recovery path.
+      } finally {
+        if (this.controller === controller && generation === this.workspaceGeneration) this.scheduleDiscovery();
       }
-    } catch {
-      // Explicit Refresh remains the visible recovery path. Background discovery
-      // is observational and must not replace a healthy chat snapshot with noise.
-    } finally {
-      this.discoveryInFlight = false;
-      this.scheduleDiscovery();
-    }
+    }, delay);
   }
 
   private beginWorkspace(workspace: string): void {
     if (this.workspace === workspace) return;
+    if (this.discoveryTimer) clearTimeout(this.discoveryTimer);
+    this.discoveryTimer = null;
     this.workspace = workspace;
     this.workspaceGeneration++;
     this.lastHeadlessSnapshot = null;
@@ -1865,7 +2225,6 @@ export class HarnessChatService {
     this.subagentDescriptorsByKey.clear();
     this.subagentInspector = null;
     this.inventoryCaptureGeneration++;
-    this.renderedInventoryFingerprint = null;
     this.lastSnapshot = loading(workspace, this.workspaceGeneration, this.serverInstanceId);
     this.options.onChange(this.snapshot());
     for (const listener of this.bridgeListeners) listener();

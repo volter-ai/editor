@@ -9,7 +9,8 @@ import { fileURLToPath } from 'node:url';
 import ts from 'typescript';
 
 const root = dirname(dirname(fileURLToPath(import.meta.url)));
-const list = process.argv[2] ?? 'release/modeling.json';
+const [list = 'release/modeling.json', ...only] = process.argv.slice(2);
+const selected = new Set(only);
 const release = new Set(JSON.parse(readFileSync(join(root, list))).packages);
 // This repository's own packages: one outside the release list is excluded from it. Other
 // @volter packages (Volter Harness's) are ordinary dependencies.
@@ -17,11 +18,14 @@ const own = new Set(readdirSync(join(root, 'packages'))
   .filter((folder) => existsSync(join(root, 'packages', folder, 'package.json')))
   .map((folder) => JSON.parse(readFileSync(join(root, 'packages', folder, 'package.json'))).name));
 const failures = new Set();
+for (const name of selected) if (!release.has(name)) throw new Error(`Package ${name} is outside ${list}`);
 let fileCount = 0;
+let packageCount = 0;
 for (const folder of readdirSync(join(root, 'packages'))) {
   const directory = join(root, 'packages', folder);
   const manifest = JSON.parse(readFileSync(join(directory, 'package.json')));
-  if (!release.has(manifest.name)) continue;
+  if (!release.has(manifest.name) || (selected.size && !selected.has(manifest.name))) continue;
+  packageCount++;
   const declared = new Set([manifest.name, ...Object.keys(manifest.dependencies ?? {}),
     ...Object.keys(manifest.optionalDependencies ?? {}), ...Object.keys(manifest.peerDependencies ?? {})]);
   const [packed] = JSON.parse(execFileSync('npm', ['pack', '--dry-run', '--json', '--ignore-scripts'],
@@ -97,4 +101,4 @@ for (const folder of readdirSync(join(root, 'packages'))) {
 if (failures.size) {
   console.error([...failures, `Packed import declarations of ${list}: ${failures.size} findings.`].join('\n'));
   process.exitCode = 1;
-} else console.log(`Packed import declarations of ${list}: ${fileCount} source/declaration/bundle files across ${release.size} packages. Nonliteral loading, assets and licenses require separate review.`);
+} else console.log(`Packed import declarations of ${list}: ${fileCount} source/declaration/bundle files across ${packageCount} packages. Nonliteral loading, assets and licenses require separate review.`);

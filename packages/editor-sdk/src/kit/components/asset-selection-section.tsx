@@ -506,6 +506,14 @@ export function describeAssetSelectionSubject(): NullInspectionSubject | null {
   ) {
     return null;
   }
+  // A preview section earns its space with a picture. Generic document,
+  // folder and audio glyphs are file metadata, not previews: scaling them to
+  // fill the Inspector makes a temporary document selection look broken.
+  const hasVisualPreview =
+    Boolean(asset.componentPreview) ||
+    asset.kind === 'model' ||
+    asset.kind === 'video' ||
+    (asset.kind === 'image' && asset.capabilities?.editor !== 'environment');
   return {
     quickActions: contributedAssetActions(asset.path),
     id: `asset:${asset.path}`,
@@ -513,13 +521,15 @@ export function describeAssetSelectionSubject(): NullInspectionSubject | null {
     kindLabel: asset.online ? `${asset.kind} · ${asset.online.source}` : asset.kind,
     note: { text: asset.sourcePath ?? asset.path, testId: 'inspector-asset-path' },
     sections: [
-      {
-        id: PREVIEW_SECTION_ID,
-        title: 'Preview',
-        icon: faImage,
-        order: PREVIEW_SECTION_ORDER,
-        body: { kind: 'preview', render: () => <AssetSelectionThumbnail asset={asset} /> },
-      },
+      ...(hasVisualPreview
+        ? [{
+            id: PREVIEW_SECTION_ID,
+            title: 'Preview',
+            icon: faImage,
+            order: PREVIEW_SECTION_ORDER,
+            body: { kind: 'preview' as const, render: () => <AssetSelectionThumbnail asset={asset} /> },
+          }]
+        : []),
       {
         id: 'asset-selection',
         title: 'Asset',

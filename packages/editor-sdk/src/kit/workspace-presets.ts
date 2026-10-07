@@ -286,7 +286,7 @@ export function workspaceApplies(id: EditorWorkspaceId): boolean {
  *  2. THE PRODUCT — `frame/product.ts`'s `workspace`. A product is
  *     composition-scoped (ARCHITECTURE-CORE §The target shape, rule 3), and
  *     which workspace its editor opens in is exactly that kind of choice: the
- *     game editor opens in Game, the model editor in Model;
+ *     game editor opens in Game, Cyclotron in Model;
  *  3. registry order — the first workspace whose requirement this project
  *     meets, which is what a host with no product composed answers.
  *

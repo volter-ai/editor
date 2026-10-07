@@ -45,17 +45,15 @@ import type {
   BlenderRnaWrite,
   BlenderUvLayout,
 } from '@volter/blender-engine/browser/rna';
-import { AGX_LOOK_TABLES, agxEncodeFrame } from '@volter/blender-engine/browser/three/blender-agx';
-import { displayTableUrl } from '@volter/blender-engine/browser/three/blender-display-lut';
-import { filmicEncodeFrame } from '@volter/blender-engine/browser/three/blender-filmic';
+import { createBlenderDisplayTransform, blenderDisplaySettingsForRender } from '@volter/blender-engine/browser/three/blender-display-transform';
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
-import { standardEncodeFrame } from '@volter/blender-engine/browser/three/blender-standard';
 import type { EditorCommandResult } from '@volter/editor-sdk/commands';
 import { editorHost } from '@volter/editor-sdk/host';
 import { invokeViewVerb, type ViewVerbContribution } from '@volter/editor-sdk/views';
 import {
   captureSceneImage,
   captureSceneLinear,
+  resolveSceneLinearDisplay,
   type LinearCaptureFrame,
 } from '@volter/editor-threejs/capture/scene';
 import { fitClipPlanes } from '@volter/editor-threejs/viewport/clip-planes';
@@ -69,21 +67,6 @@ import {
   requestNodeViewAll,
   setNodeViewState,
 } from '../src/node-view-state';
-
-/** Pinned OCIO display tables, loaded once. Missing data is a render failure. */
-const displayTables = new Map<string, Promise<Uint16Array>>();
-function displayTable(file: string): Promise<Uint16Array> {
-  let pending = displayTables.get(file);
-  if (!pending) {
-    pending = fetch(displayTableUrl(file)).then(async (response) => {
-      if (!response.ok)
-        throw new Error(`Blender display table ${file}: ${response.status} ${response.statusText}`);
-      return new Uint16Array(await response.arrayBuffer());
-    });
-    displayTables.set(file, pending);
-  }
-  return pending;
-}
 
 /** Raw bytes of a base64 payload, as the half-float words a linear frame is. */
 function halfFloatFrame(base64: string): Uint16Array {
@@ -105,36 +88,14 @@ async function displayPhotograph(
     width: number;
     height: number;
     exposure: number;
-    toneMapping: string;
+    toneMapping: RenderRequest['toneMapping'];
     look?: string;
+    gamma?: number;
     linear?: boolean;
     transparent?: boolean;
     linearInput?: { base64: string; width: number; height: number };
   },
 ): Promise<{ base64: string; mimeType: string }> {
-  const look = render.look ?? 'None';
-  const filmic = render.toneMapping === 'filmic';
-  const standard = render.toneMapping === 'none';
-  if (!standard && render.toneMapping !== 'agx' && !filmic)
-    // `neutral` is three's own curve and has no scene-linear implementation
-    // here — refused BY NAME rather than answered with a different transform.
-    throw new Error(
-      `Blender's Khronos PBR Neutral view transform has no scene-linear implementation in the ` +
-        `browser, so it cannot resolve a composited or scene-referred frame (implemented: ` +
-        `Standard, AgX, Filmic)`,
-    );
-  // Standard is a curve, not a table (`blender-standard.ts`); the other two are
-  // the config's own baked LUTs.
-  const file = standard
-    ? null
-    : filmic
-      ? 'filmic-srgb.lut'
-      : look === 'None'
-        ? 'agx-base-srgb.lut'
-        : AGX_LOOK_TABLES[look as keyof typeof AGX_LOOK_TABLES];
-  if (file === undefined)
-    throw new Error(`Blender display transform has no table for look ${look}`);
-  const lut = file ? await displayTable(file) : null;
   const provided = render.linearInput;
   const linear = provided
     ? {
@@ -145,14 +106,10 @@ async function displayPhotograph(
     : linearFrame;
   if (!linear) throw new Error('Blender display transform requires a linear capture');
   const { pixels, width, height } = linear;
-  const bytes = standard
-    ? standardEncodeFrame(pixels, width * height, render.exposure)
-    : filmic
-      ? filmicEncodeFrame(lut!, pixels, width * height, render.exposure)
-      : agxEncodeFrame(lut!, pixels, width * height, {
-          exposure: render.exposure,
-          composedLook: look !== 'None',
-        });
+  const transform = await createBlenderDisplayTransform(blenderDisplaySettingsForRender(render));
+  let bytes: Uint8Array;
+  try { bytes = resolveSceneLinearDisplay(linear, transform); }
+  finally { transform.dispose(); }
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -202,19 +159,6 @@ export async function photographSnapshot(
   render: RenderRequest,
   assertCurrent: () => void = () => {},
 ): Promise<{ base64: string; mimeType: string }> {
-  // THE SCENE'S OWN VIEW TRANSFORM, for the duration of the photograph.
-  // Blender states one (`view_settings.view_transform`, AgX by default) and
-  // three.js has a curve of the same name, so the render is tone mapped the
-  // way the scene asks rather than the way the modeling viewport prefers —
-  // without this, every lit pixel differs by the gap between two unrelated
-  // curves and no difference in the image can be attributed to anything
-  // else. Python refuses a transform with no curve here, so the map is total.
-  const mappings: Record<string, THREE.ToneMapping> = {
-    none: THREE.NoToneMapping,
-    agx: THREE.AgXToneMapping,
-    neutral: THREE.NeutralToneMapping,
-    filmic: THREE.NoToneMapping,
-  };
   await snapshot.prepare(renderCamera);
   assertCurrent();
   const captureOptions = {
@@ -222,31 +166,20 @@ export async function photographSnapshot(
     width: render.width,
     height: render.height,
     transparent: render.transparent === true,
-    toneMapping: mappings[render.toneMapping] ?? THREE.AgXToneMapping,
-    exposure: render.exposure,
+    toneMapping: THREE.NoToneMapping,
+    exposure: 1,
   };
-  // BLENDER'S OWN VIEW TRANSFORM, off the linear frame. three's AgX is
-  // Filament's approximation and lands 23 to 48 levels of 255 away from
-  // Blender (42 at middle grey); the config's actual transform is a 57^3
-  // LUT over a log allocation, and a LOOK grades in a log space with two
-  // LUT inversions in it. Neither is reachable from resolved bytes, and
-  // both are reachable from the half-float target `captureImage` already
-  // allocates -- so an AgX render reads that and runs
-  // `blender-agx.ts`, which is verified byte-for-byte against OCIO.
-  // AND WHENEVER THE SCENE-REFERRED FRAME IS WANTED, whatever the
-  // transform: `captureImage` answers with resolved bytes and nothing
-  // else, so a Standard render asked for an EXR — or asked to be
-  // composited — has no linear frame in it at all. Reading the
-  // half-float target is the only path that has one.
-  const display =
-    render.toneMapping === 'agx' || render.toneMapping === 'filmic' || render.linear === true
-      ? await displayPhotograph(captureSceneLinear(scene, renderCamera, captureOptions), render)
-      : null;
-  assertCurrent();
-  if (display) return display;
-  const dataUrl = captureSceneImage(scene, renderCamera, captureOptions);
-  if (!dataUrl) throw new Error('Blender render could not capture its image');
-  return { base64: dataUrl.slice(dataUrl.indexOf(',') + 1), mimeType: 'image/png' };
+  if (render.linear === true) {
+    const display = await displayPhotograph(captureSceneLinear(scene, renderCamera, captureOptions), render);
+    assertCurrent();
+    return display;
+  }
+  const transform = await createBlenderDisplayTransform(blenderDisplaySettingsForRender(render));
+  try {
+    assertCurrent();
+    const dataUrl = captureSceneImage(scene, renderCamera, {...captureOptions, displayTransform: transform});
+    return {base64: dataUrl.slice(dataUrl.indexOf(',') + 1), mimeType: 'image/png'};
+  } finally { transform.dispose(); }
 }
 
 export const BLENDER_RUNTIME_DOCUMENT_ID = 'document:blender:runtime';
@@ -299,7 +232,14 @@ function modelDocumentConflict(): string | null {
     ? activeId.slice('document:model:'.length)
     : boundModel?.blend;
   if (!requested || !held || requested === held) return null;
-  return `Blender is editing ${held}; ${requested} is not open. Return to ${held} before editing.`;
+  // Say how to get Blender onto the document the editor shows, not only how to go back: an agent told
+  // just "return to <held>" took it as the Blender door being unusable and built its level by
+  // another route (2026-10-06, the WSL obby run).
+  // Plain words: people see this in error notices too. Re-opening the document already showing does not
+  // remount a failed open (blender-runtime.document.tsx), so the steps that do are named instead.
+  return `Blender is editing ${held}, but the editor is showing ${requested}, which Blender has not loaded. ` +
+    `Wait for ${requested} to finish opening and retry. If it stays, switch to another document and back, ` +
+    `or reload the page; or return to ${held}.`;
 }
 
 /** The document id a present must reach: the open Model document's, or the
@@ -324,6 +264,22 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
   return !anotherModel || active === binding.documentId;
 }
 
+/** A retained photograph must belong to the file and revision still on screen,
+ * not a retiring pane or the next worker's first frame. */
+export function modelDocumentOwnsPresentation(
+  documentId: string,
+  entryId: string,
+  blend: string | undefined,
+  presented: { readonly session: string; readonly revision: number } | null,
+): boolean {
+  const binding = boundModel;
+  const latest = runtime?.presented;
+  return editorHost().session.open() && !!binding && binding.documentId === documentId && binding.entryId === entryId &&
+    binding.blend === blend && modelDocumentMayOpen(binding) &&
+    runtime?.project === editorHost().projectLocalState.projectRootPath() && runtime.document === blend &&
+    !!presented && !!latest && presented.session === latest.session && presented.revision === latest.revision;
+}
+
 /**
  * OPEN A `.blend` IN THE ENGINE — the Model document's own call, the WS-F save
  * path run backwards. `session.py` opens the named file at start and saves
@@ -334,7 +290,43 @@ export function modelDocumentMayOpen(binding: ModelDocumentBinding): boolean {
  * identity. Boot itself can present, so the context must exist before awaiting
  * boot completion. Return false when the requesting pane has since unmounted.
  */
+let modelOpenTail: Promise<void> = Promise.resolve();
+let modelStartup: { readonly session: BlenderRuntime; readonly project: string; readonly blend: string } | null = null;
+
+function queueModelLifecycle<T>(operation: () => Promise<T>): Promise<T> {
+  const result = modelOpenTail.then(operation);
+  modelOpenTail = result.then(() => {}, () => {});
+  return result;
+}
+
 export async function openModelDocumentBlend(
+  binding: ModelDocumentBinding,
+  publish: () => void,
+): Promise<boolean> {
+  let published = false;
+  const publishOnce = () => {
+    if (published) return;
+    publish();
+    published = true;
+  };
+  const host = editorHost();
+  const starting = modelStartup;
+  // A native workspace restore can remount this pane before boot's first
+  // frame. Its predecessor has unpublished, but still owns the queued boot:
+  // waiting behind it before publishing would make boot wait on itself.
+  // Only the SAME starting resource can restore its presenter here. Another
+  // file still waits for the old worker's save/retirement in the queue.
+  if (starting && starting.session === runtime && host.session.open() &&
+      starting.project === host.projectLocalState.projectRootPath() &&
+      starting.blend === binding.blend && modelDocumentMayOpen(binding)) {
+    publishOnce();
+  }
+  // Only one handoff may own stop/start. Re-check the mounted requester after
+  // every wait: a rapid B -> C selection must not let B publish into C.
+  return queueModelLifecycle(() => openBoundModelDocument(binding, publishOnce));
+}
+
+async function openBoundModelDocument(
   binding: ModelDocumentBinding,
   publish: () => void,
 ): Promise<boolean> {
@@ -343,13 +335,28 @@ export async function openModelDocumentBlend(
   const project = host.projectLocalState.projectRootPath();
   if (project === null) throw new Error('Opening a model requires a project path.');
   if (!modelDocumentMayOpen(binding)) return false;
+  const previous = runtime;
+  if (previous && (previous.project !== project || previous.document !== binding.blend)) {
+    // stop drains accepted work and flushes the OLD worker's bound file. If
+    // saving fails it stays alive; neither its history nor its ownership moves.
+    const end = beginBlenderWork('saving previous model before opening another');
+    try { await previous.stop(); } finally { end(); }
+    if (runtime === previous) terminateBlenderRuntime();
+    if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
+  }
   const session = blenderRuntime();
   // start claims its resource synchronously; its first frame may arrive before
   // the returned promise resolves. The getter above rejects a conflicting file.
   const started = session.start(project, binding.blend);
-  publish();
-  await started;
-  if (boundModel !== binding) return false;
+  const starting = { session, project, blend: binding.blend };
+  modelStartup = starting;
+  try {
+    publish();
+    await started;
+  } finally {
+    if (modelStartup === starting) modelStartup = null;
+  }
+  if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
   // bind_document presents the opened file before start resolves. Do not
   // immediately evaluate/export it again: on Stoneguard that redundant RPC
   // took 13.8 seconds after the resumable startup had already finished.
@@ -357,12 +364,12 @@ export async function openModelDocumentBlend(
   // nothing at start. Compare the view's actual holding with the runtime's
   // revision so both cases still request the frame they need.
   const shown = (await runtimeView()).snapshot();
-  if (boundModel !== binding) return false;
+  if (!host.session.open() || !modelDocumentMayOpen(binding)) return false;
   const latest = session.presented;
   if (!shown || !latest || shown.session !== latest.session || shown.revision !== latest.revision) {
     await session.present();
   }
-  return boundModel === binding;
+  return host.session.open() && modelDocumentMayOpen(binding);
 }
 
 /**
@@ -370,7 +377,7 @@ export async function openModelDocumentBlend(
  * (`../contributions/blender-properties-*`) call these three rather than the
  * `blender-rna*` commands: same session, same `session.py` functions, one
  * fewer hop, and no `EditorCommandResult` envelope to unwrap in a render.
- * The COMMANDS remain the wire's door onto the same calls, so a `volter-model-editor eval`
+ * The COMMANDS remain the wire's door onto the same calls, so a `cyclotron eval`
  * and the panel read one thing.
  *
  * THEY NEVER START THE ENGINE. A panel asking what the engine holds must not
@@ -401,7 +408,7 @@ export function blenderSessionStarted(): boolean {
  * So the version is minted HERE, at the door every RNA write goes through,
  * and it is bumped by the write rather than by the picture. Both halves of
  * each door bump it once: the in-page function is what the wire's
- * `blender-rna-set` / `blender-outliner-set` case calls, so a `volter-model-editor eval` and
+ * `blender-rna-set` / `blender-outliner-set` case calls, so a `cyclotron eval` and
  * a panel click are one path. `blender-execute` bumps it too — arbitrary bpy
  * can change anything RNA answers, and a view that went stale under a probe's
  * own script would be the same defect one layer out.
@@ -612,7 +619,7 @@ export async function blenderOutlinerSet(
 /**
  * THE NODE EDITOR'S VERBS, published ONCE and reached two ways (U8's ruling 1,
  * 2026-09-19). Under the Code-OSS frame each is a `volter.blender-node-view.<verb>`
- * command the bridge dispatches into the view; standalone `volter-model-editor edit`, which has
+ * command the bridge dispatches into the view; standalone `cyclotron edit`, which has
  * no command service, reaches the SAME table through the session's
  * `blender-node-view` verb below. One table, two doors — the shape
  * `key-actions.ts`'s action table already has, and the reason the next
@@ -802,11 +809,14 @@ function terminateBlenderRuntime(): void {
 function watchSessionEnd(): void {
   if (watchingSessionEnd) return;
   watchingSessionEnd = true;
-  editorHost().session.onBeforeClose(async () => {
-    await runtime?.stop();
-    terminateBlenderRuntime();
-  });
+  editorHost().session.onBeforeClose(() => queueModelLifecycle(stopBlenderRuntime));
   editorHost().session.onEnded(terminateBlenderRuntime);
+}
+
+async function stopBlenderRuntime(): Promise<void> {
+  const owner = runtime;
+  await owner?.stop();
+  if (runtime === owner) terminateBlenderRuntime();
 }
 let lastCapture: CaptureRequest | null = null;
 
@@ -831,16 +841,26 @@ async function runtimeView(): Promise<RuntimeView> {
   // command (3 s of boot, then the full wait).
   const deadline = Date.now() + 15_000;
   let id = presentationDocumentId();
+  let publication = 'no context';
   for (;;) {
     id = presentationDocumentId();
     const published = await documents.waitForContext(id, Math.max(0, Math.min(250, deadline - Date.now())));
     if (isRuntimeView(published)) return published;
+    if (published !== undefined) {
+      const required = ['applyFrame', 'stageFrame', 'snapshot', 'captureSnapshot', 'recordPresentation', 'recordPhotograph'];
+      const handle = published as Record<string, unknown> | null;
+      publication = `${typeof published} context missing ${required.filter(method => typeof handle?.[method] !== 'function').join(', ')}`;
+      // An incompatible published context resolves waitForContext immediately.
+      // Yield so a pending document commit can replace it; a microtask loop
+      // otherwise prevents that publication for the whole timeout window.
+      await new Promise<void>(resolve => setTimeout(resolve, Math.max(0, Math.min(25, deadline - Date.now()))));
+    }
     if (Date.now() >= deadline) break;
   }
   throw new Error(
     `The Blender Model document is not open, or the open one is not a Model this engine can present ` +
       `to (it must answer stageFrame, applyFrame, captureSnapshot, recordPresentation and recordPhotograph): nothing ` +
-      `published a presentable view as ${id} within 15 s (bound model: ${boundModel?.documentId ?? 'none'}). ` +
+      `published a presentable view as ${id} within 15 s (bound model: ${boundModel?.documentId ?? 'none'}; last publication: ${publication}). ` +
       'Open the Model document first (`volter blender-mcp` opens it before its first call).',
   );
 }
@@ -853,7 +873,12 @@ export function blenderRuntime(): BlenderRuntime {
   const lifetime = new AbortController();
   captureLifetime = lifetime;
   let photographing = false;
-  let streamedView: RuntimeView | null = null;
+  let streamedFrame: { view: RuntimeView; session: string; revision: number } | null = null;
+  const discardStreamedFrame = () => {
+    const staged = streamedFrame;
+    streamedFrame = null;
+    if (staged) staged.view.stageFrame({ session: staged.session, revision: staged.revision, abort: true });
+  };
   runtime = new BlenderRuntime({
     work: beginBlenderWork,
     history: (entries) => {
@@ -884,16 +909,21 @@ export function blenderRuntime(): BlenderRuntime {
       }
     },
     stage: async part => {
-      if (part.abort) { streamedView?.stageFrame(part); streamedView = null; return; }
+      if (part.abort) { discardStreamedFrame(); return; }
       const conflict = modelDocumentConflict();
       if (conflict) throw new Error(conflict);
-      if (boundModel === null) return;
+      if (boundModel === null) {
+        discardStreamedFrame();
+        return;
+      }
       const documentId = presentationDocumentId();
       const view = await runtimeView();
       lifetime.signal.throwIfAborted();
       if (presentationDocumentId() !== documentId) throw new Error('Blender document changed during frame transfer');
-      streamedView = view;
+      if (streamedFrame && streamedFrame.view !== view)
+        throw new Error('Blender presenter changed during frame transfer');
       view.stageFrame(part);
+      streamedFrame = { view, session: part.session, revision: part.revision };
     },
     present: async (frame, description, capture) => {
       const conflict = modelDocumentConflict();
@@ -903,6 +933,9 @@ export function blenderRuntime(): BlenderRuntime {
       // on close). The Model document presents the session's current state when it binds. Only a
       // photograph needs a view, so only a capture is refused.
       if (boundModel === null) {
+        // A headless present accepts no staged geometry. Abort its owned
+        // transfer before the retained Model view can be opened again.
+        discardStreamedFrame();
         if (capture?.render) {
           throw new Error('Rendering a Blender frame needs the Model document open; nothing is presenting.');
         }
@@ -915,6 +948,8 @@ export function blenderRuntime(): BlenderRuntime {
       lifetime.signal.throwIfAborted();
       if (presentationDocumentId() !== documentId)
         throw new Error('Blender document changed before its frame could be presented');
+      if (streamedFrame && streamedFrame.view !== view)
+        throw new Error('Blender presenter changed before its frame could be presented');
       // WHAT THE PRESENTER HELD BEFORE THIS FRAME, carried back to the session
       // beside whatever this present produced. The session only has a RECORD of
       // what it sent; this view is the authority on what it actually holds, and
@@ -927,6 +962,7 @@ export function blenderRuntime(): BlenderRuntime {
         try { return view.applyFrame(frame) as { held?: unknown } | null | undefined; }
         finally { endApply(); }
       })();
+      streamedFrame = null;
       const reports = typeof applied === 'object' && applied !== null && 'held' in applied;
       const held = reports ? (applied.held as { session: string; revision: number } | null) : null;
       const answer = (capture: unknown): PresentAnswer => ({
@@ -1077,7 +1113,7 @@ export function blenderRuntime(): BlenderRuntime {
   // how long it has been stuck — the loop that would send the number is the loop
   // that is stuck — so this side keeps the clock and the host carries it out on
   // the heartbeat, the one channel that still beats through a blocked main
-  // thread. `volter-model-editor status` prints the block. Published as a READ of the live
+  // thread. `cyclotron status` prints the block. Published as a READ of the live
   // meter rather than a snapshot, so the host always asks the running session:
   // an in-flight call's age has to be computed at the moment it is reported.
   // The page's own long-task half is the HOST's, behind this same door.
@@ -1192,8 +1228,7 @@ export async function handleBlenderCommand(cmd: {
     let requestedDocument = typeof cmd['document'] === 'string' ? cmd['document'] : undefined;
     if (cmd.type === 'blender-stop' || (cmd.type === 'blender-start' && cmd['fresh'] === true)) {
       // Do not invalidate history or discard the worker if persistence fails.
-      await runtime?.stop();
-      terminateBlenderRuntime();
+      await queueModelLifecycle(stopBlenderRuntime);
       if (cmd.type === 'blender-stop') return { ok: true, data: { stopped: true } };
     }
     if (cmd.type === 'blender-start' && !host.documents.context(presentationDocumentId())) {
@@ -1249,7 +1284,7 @@ export async function handleBlenderCommand(cmd: {
         // RNA version is minted at the door (ruling 3, 2026-09-19), and
         // ARBITRARY bpy can change anything RNA answers, so a script that
         // reached the engine around it would leave every view drawing the tree
-        // it had. One path for a `volter-model-editor eval`, an MCP call and a panel's own
+        // it had. One path for a `cyclotron eval`, an MCP call and a panel's own
         // operator.
         // THE DOOR'S TEXT, verbatim — `execute_blender_code`'s MCP contract is
         // that one string, so the wire keeps answering it while the in-page
@@ -1296,7 +1331,7 @@ export async function handleBlenderCommand(cmd: {
       }
       // THE TREE DOOR on the wire, beside the RNA one: `blender-outliner`
       // answers Blender's View Layer tree and `blender-outliner-set` writes one
-      // restriction column, so a `volter-model-editor eval` reads exactly what the hierarchy
+      // restriction column, so a `cyclotron eval` reads exactly what the hierarchy
       // panel draws.
       case 'blender-outliner': {
         const selected = Array.isArray(cmd['selected'])
@@ -1307,7 +1342,7 @@ export async function handleBlenderCommand(cmd: {
         return { ok: true, data: { result: await session.outliner(selected) } };
       }
       // THE NODE-TREE DOOR on the wire, beside the other two: one material's
-      // shader node tree, whole, so a `volter-model-editor eval` reads exactly what the node
+      // shader node tree, whole, so a `cyclotron eval` reads exactly what the node
       // view draws.
       case 'blender-node-tree':
         return {
@@ -1320,7 +1355,7 @@ export async function handleBlenderCommand(cmd: {
           },
         };
       // THE UV DOOR on the wire, beside the node one: one mesh's UV layout,
-      // so a `volter-model-editor eval` reads exactly what the UV view draws.
+      // so a `cyclotron eval` reads exactly what the UV view draws.
       case 'blender-uv-layout':
         return {
           ok: true,
@@ -1332,7 +1367,7 @@ export async function handleBlenderCommand(cmd: {
           },
         };
       // THE RIG AND CLIP DOORS on the wire, beside the UV one: the skin
-      // binding and the action as three.js tracks, so a `volter-model-editor eval` reads
+      // binding and the action as three.js tracks, so a `cyclotron eval` reads
       // exactly what the presenter bound and what the Timeline plays.
       case 'blender-rig':
         return {
@@ -1359,7 +1394,7 @@ export async function handleBlenderCommand(cmd: {
       //
       // THE SESSION IS THE STANDALONE DOOR ONTO `NODE_VIEW_VERBS`, not a second
       // implementation (U8's ruling 1). Under the Code-OSS frame each verb is a
-      // `volter.blender-node-view.<verb>` command; standalone `volter-model-editor edit` has no
+      // `volter.blender-node-view.<verb>` command; standalone `cyclotron edit` has no
       // command service, so this verb routes the SAME table. `invokeViewVerb`
       // throws the view's own refusal, which is the sentence this door already
       // answered with.

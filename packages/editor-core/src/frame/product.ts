@@ -4,14 +4,14 @@
  *
  * A product is the last mile (ARCHITECTURE-CORE §The target shape): thin code
  * that stitches packages onto the kit and holds only purpose-specific choices.
- * `@volter/game-editor` and `@volter/model-editor` each have ONE source entry, and
+ * `@volter/game-editor` and `@volter/cyclotron` each have ONE source entry, and
  * it IS that product's frame entry:
  *
  *   import { product } from '@editor/frame/product';
  *   import blender from 'volter:contributions/@volter/editor-blender';
  *
  *   export const { mountVolter } = product({
- *     id: 'model-editor',
+ *     id: 'cyclotron',
  *     packages: { '@volter/editor-blender': blender },
  *     look: 'blender',
  *     workspace: 'model',
@@ -37,7 +37,7 @@ import { mountEditor } from './bridge';
 /** What a product's entry declares. Every field is a decision only a product
  *  can make: which packages it is, what it looks like, what it opens in. */
 export interface ProductDefinition {
-  /** The product's id — `game-editor`, `model-editor`. Reported beside the
+  /** The product's id — `game-editor`, `cyclotron`. Reported beside the
    *  workbench by the editor's `status` command; never branched on. */
   readonly id: string;
   /**

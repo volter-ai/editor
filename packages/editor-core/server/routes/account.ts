@@ -10,7 +10,7 @@
 
 import express, { type Request, type Response } from 'express';
 import { ProviderCredentialIdSchema } from '@volter/editor-sdk/account';
-import { renderEditorBrandPage } from '../editor-brand-html';
+import { editorBrandName, escapeHtml as escapeBrandHtml, renderEditorBrandPage } from '../editor-brand-html';
 import type { EditorServerRouter } from '../editor-server';
 import type { RouteContext } from './context';
 
@@ -307,7 +307,7 @@ export function registerAccountRoutes(router: EditorServerRouter, ctx: RouteCont
               subject: 'Signed in',
               description: 'Volter account authorization is complete.',
               contentHtml:
-                '<h1>Signed in to Volter Editor</h1><p>You can close this tab and return to the editor.</p>',
+                `<h1>Signed in to ${escapeBrandHtml(editorBrandName())}</h1><p>You can close this tab and return to the editor.</p>`,
             }),
           );
       } catch {

@@ -1,4 +1,4 @@
-import { connect, unconnectedBindings, type LiveSession } from '@volter/editor-live';
+import { connect, unconnectedBindings, withEditorMemberHints, type LiveSession } from '@volter/editor-live';
 import { EditorClient } from '@volter/editor-sdk/client';
 import { verifiedSessions, terminateEditorSession } from './editor-sessions';
 import { formatSurface } from './eval-surface';
@@ -55,7 +55,9 @@ export async function control(command: string, verb: string, argument?: string, 
   else if (verb === 'eval') {
     if (!argument) throw new Error(`eval requires JavaScript; \`${command} eval --list\` shows what is in scope.`);
     const AsyncFunction = Object.getPrototypeOf(async function () {}).constructor;
-    const bindings: Record<string, unknown> = { editor: live.editor, tools: live.tools, session: live.session, ...scope?.(live) };
+    // `editor` answers a hinted missing name (`editor.setCamera`, `editor.camera`) with the
+    // door it was looking for rather than the engine's bare TypeError (`member-hints.ts`).
+    const bindings: Record<string, unknown> = { editor: withEditorMemberHints(live.editor), tools: live.tools, session: live.session, ...scope?.(live) };
     // Expression first, statements as the fallback (the Node REPL's rule), so
     // `eval 'editor.status()'` prints without the caller writing `return`.
     let body: (...values: unknown[]) => Promise<unknown>;
@@ -64,15 +66,28 @@ export async function control(command: string, verb: string, argument?: string, 
     const result: unknown = await body(...Object.values(bindings));
     if (result !== undefined) console.log(JSON.stringify(result, null, 2));
   } else if (verb !== 'console') throw new Error(`Unknown command: ${verb}`);
-  const consoleState = await client.getUnresolvedConsole() as { entries?: unknown[] };
+  // `console --all`: every retained entry — acknowledged and workbench-origin ones the
+  // unresolved set holds out (console-ledger.ts) — so what is held out stays readable. The exit
+  // code below still answers only the unresolved set.
+  const showAll = verb === 'console' && argument === '--all';
+  if (showAll) console.log(JSON.stringify(await client.getUnresolvedConsole({ all: true }), null, 2));
+  const consoleState = await client.getUnresolvedConsole() as { entries?: { severity?: unknown }[] };
   if (consoleState.entries?.length) {
-    console.error(JSON.stringify(consoleState, null, 2));
+    if (!showAll) console.error(JSON.stringify(consoleState, null, 2));
     // Hosted control reports the operation's result independently of the
     // session's retained diagnostics. An optional workbench addon error (or
     // an older warning) must not turn a successful status/eval into failure.
     // Keep the entries loud and unacknowledged; command/transport exceptions
     // still propagate to the CLI's normal nonzero exit path.
-    if (attachment?.consolePolicy !== 'report') process.exitCode = 1;
+    //
+    // Locally, only an unresolved ERROR fails the command. A warning is printed
+    // above, exactly as loud, but exits 0: measured 2026-10, an agent's script
+    // gated each step on `status` and stopped dead on one standing console
+    // WARNING it had no reason to fix, which taught it to ignore the exit code —
+    // errors included. Anything not positively a warning (`ConsoleSeverity` is
+    // `error | warn`) still fails, so a severity this side does not know stays loud.
+    const errors = consoleState.entries.filter(entry => entry.severity !== 'warn');
+    if (errors.length > 0 && attachment?.consolePolicy !== 'report') process.exitCode = 1;
   }
 }
 

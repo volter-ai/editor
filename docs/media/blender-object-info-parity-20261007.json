@@ -1,0 +1,404 @@
+{
+  "ok": true,
+  "oracle": {
+    "version": "5.2.0 LTS",
+    "build": "fbe6228777e7",
+    "engine": "CYCLES"
+  },
+  "passed": true,
+  "maxAbsoluteError": 0,
+  "cases": [
+    {
+      "name": "Cube",
+      "socket": "Location",
+      "actual": [
+        -0.5,
+        1.25,
+        2
+      ],
+      "native": [
+        -0.5,
+        1.25,
+        2
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube.001",
+      "socket": "Location",
+      "actual": [
+        -0.5,
+        1.25,
+        2
+      ],
+      "native": [
+        -0.5,
+        1.25,
+        2
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u00c1rbol",
+      "socket": "Location",
+      "actual": [
+        -0.5,
+        1.25,
+        2
+      ],
+      "native": [
+        -0.5,
+        1.25,
+        2
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u9634\u5f71",
+      "socket": "Location",
+      "actual": [
+        -0.5,
+        1.25,
+        2
+      ],
+      "native": [
+        -0.5,
+        1.25,
+        2
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube",
+      "socket": "Color",
+      "actual": [
+        0.125,
+        0.25,
+        0.75
+      ],
+      "native": [
+        0.125,
+        0.25,
+        0.75
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube.001",
+      "socket": "Color",
+      "actual": [
+        0.125,
+        0.25,
+        0.75
+      ],
+      "native": [
+        0.125,
+        0.25,
+        0.75
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u00c1rbol",
+      "socket": "Color",
+      "actual": [
+        0.125,
+        0.25,
+        0.75
+      ],
+      "native": [
+        0.125,
+        0.25,
+        0.75
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u9634\u5f71",
+      "socket": "Color",
+      "actual": [
+        0.125,
+        0.25,
+        0.75
+      ],
+      "native": [
+        0.125,
+        0.25,
+        0.75
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube",
+      "socket": "Alpha",
+      "actual": [
+        0.625,
+        0.625,
+        0.625
+      ],
+      "native": [
+        0.625,
+        0.625,
+        0.625
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube.001",
+      "socket": "Alpha",
+      "actual": [
+        0.625,
+        0.625,
+        0.625
+      ],
+      "native": [
+        0.625,
+        0.625,
+        0.625
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u00c1rbol",
+      "socket": "Alpha",
+      "actual": [
+        0.625,
+        0.625,
+        0.625
+      ],
+      "native": [
+        0.625,
+        0.625,
+        0.625
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u9634\u5f71",
+      "socket": "Alpha",
+      "actual": [
+        0.625,
+        0.625,
+        0.625
+      ],
+      "native": [
+        0.625,
+        0.625,
+        0.625
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube",
+      "socket": "Object Index",
+      "actual": [
+        7,
+        7,
+        7
+      ],
+      "native": [
+        7,
+        7,
+        7
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube.001",
+      "socket": "Object Index",
+      "actual": [
+        7,
+        7,
+        7
+      ],
+      "native": [
+        7,
+        7,
+        7
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u00c1rbol",
+      "socket": "Object Index",
+      "actual": [
+        7,
+        7,
+        7
+      ],
+      "native": [
+        7,
+        7,
+        7
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u9634\u5f71",
+      "socket": "Object Index",
+      "actual": [
+        7,
+        7,
+        7
+      ],
+      "native": [
+        7,
+        7,
+        7
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube",
+      "socket": "Material Index",
+      "actual": [
+        11,
+        11,
+        11
+      ],
+      "native": [
+        11,
+        11,
+        11
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube.001",
+      "socket": "Material Index",
+      "actual": [
+        11,
+        11,
+        11
+      ],
+      "native": [
+        11,
+        11,
+        11
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u00c1rbol",
+      "socket": "Material Index",
+      "actual": [
+        11,
+        11,
+        11
+      ],
+      "native": [
+        11,
+        11,
+        11
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u9634\u5f71",
+      "socket": "Material Index",
+      "actual": [
+        11,
+        11,
+        11
+      ],
+      "native": [
+        11,
+        11,
+        11
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube",
+      "socket": "Random",
+      "actual": [
+        0.31314194202423096,
+        0.31314194202423096,
+        0.31314194202423096
+      ],
+      "native": [
+        0.31314194202423096,
+        0.31314194202423096,
+        0.31314194202423096
+      ],
+      "worst": 0
+    },
+    {
+      "name": "Cube.001",
+      "socket": "Random",
+      "actual": [
+        0.9427134990692139,
+        0.9427134990692139,
+        0.9427134990692139
+      ],
+      "native": [
+        0.9427134990692139,
+        0.9427134990692139,
+        0.9427134990692139
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u00c1rbol",
+      "socket": "Random",
+      "actual": [
+        0.952967643737793,
+        0.952967643737793,
+        0.952967643737793
+      ],
+      "native": [
+        0.952967643737793,
+        0.952967643737793,
+        0.952967643737793
+      ],
+      "worst": 0
+    },
+    {
+      "name": "\u9634\u5f71",
+      "socket": "Random",
+      "actual": [
+        0.6313115954399109,
+        0.6313115954399109,
+        0.6313115954399109
+      ],
+      "native": [
+        0.6313115954399109,
+        0.6313115954399109,
+        0.6313115954399109
+      ],
+      "worst": 0
+    }
+  ],
+  "shared": [
+    {
+      "name": "Cube",
+      "actual": 0.31314194202423096,
+      "native": 0.31314194202423096,
+      "error": 0
+    },
+    {
+      "name": "Cube.001",
+      "actual": 0.9427134990692139,
+      "native": 0.9427134990692139,
+      "error": 0
+    },
+    {
+      "name": "\u00c1rbol",
+      "actual": 0.952967643737793,
+      "native": 0.952967643737793,
+      "error": 0
+    },
+    {
+      "name": "\u9634\u5f71",
+      "actual": 0.6313115954399109,
+      "native": 0.6313115954399109,
+      "error": 0
+    }
+  ],
+  "asyncEdit": {
+    "passed": true,
+    "linked": true,
+    "alpha": 0.625
+  },
+  "scope": "Ordinary-object Object Info shader inputs and asynchronous graph replacement in float32 targets; not instance IDs or lighting parity"
+}

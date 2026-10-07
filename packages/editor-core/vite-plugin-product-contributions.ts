@@ -1,10 +1,11 @@
+import { sharedSdkBuildHooks } from './vite-plugin-shared-sdk';
 /**
  * `volter:contributions/<package>` — a package's DECLARED contributions, read at
  * build/serve time and served as a module of static `import()`s.
  *
  * A PRODUCT is code (ARCHITECTURE-CORE §The target shape, rule 8: "Compositions
  * are code; the frame's and the loader's manifests are declarations and stay").
- * `packages/game-editor/src/index.ts` and `packages/model-editor/src/index.ts`
+ * `packages/game-editor/src/index.ts` and `packages/cyclotron/src/index.ts`
  * name the packages they mount, in TypeScript, and each name is spelled as an
  * import of this virtual module:
  *
@@ -170,6 +171,7 @@ export function productContributionsPlugin(): Plugin {
   const manifests = new Map<string, string>();
   return {
     name: 'volter-product-contributions',
+    ...sharedSdkBuildHooks(),
     resolveId(id, importer) {
       if (!id.startsWith(PRODUCT_CONTRIBUTIONS_PREFIX)) return null;
       const packageName = id.slice(PRODUCT_CONTRIBUTIONS_PREFIX.length);

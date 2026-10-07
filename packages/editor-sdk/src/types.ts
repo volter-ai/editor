@@ -165,6 +165,45 @@ export interface StageFrameCostReading {
   readonly drawMode: string;
 }
 
+/**
+ * One entry of Model Play's log (`model-play-log`, written by a play script's `play.log` and by
+ * the runner; `@volter/editor-model-play`'s `play-log.ts` is the writer and documents it).
+ */
+export interface ModelPlayLogEntry {
+  /** The entry's place in its run, from 0; a gap is entries the bounded log dropped. */
+  readonly seq: number;
+  /** Wall-clock ms. */
+  readonly t: number;
+  /** Seconds of simulation since Play started. */
+  readonly simT: number;
+  /** The update the entry was written in (the first is 1); 0 before the first. */
+  readonly tick: number;
+  readonly kind: string;
+  /** `script` for the play script's entries; `play` for `play-start`, `script-reload`,
+   *  `script-error` and `play-stop`. */
+  readonly source: 'script' | 'play';
+  readonly facts?: Record<string, unknown>;
+}
+
+/** One model document's Model Play log as `model-play-log` reads it: the current run's, or
+ *  the last one's. */
+export interface ModelPlayLogReading {
+  readonly playing: boolean;
+  readonly documentId: string | null;
+  /** Every model document with a log; a read names one, or takes the active Play's. */
+  readonly documents: readonly string[];
+  readonly script: string | null;
+  readonly startedAt: number | null;
+  /** The run's clock at the read. */
+  readonly simT: number;
+  readonly tick: number;
+  /** Entries the log keeps; `dropped` of the run's `total` fell off its front. */
+  readonly capacity: number;
+  readonly total: number;
+  readonly dropped: number;
+  readonly entries: readonly ModelPlayLogEntry[];
+}
+
 /** Where the open document's camera is standing and what it is aimed at. */
 export interface DocumentCameraPose {
   position: [number, number, number];
@@ -642,7 +681,7 @@ export interface EditorState {
   } | null;
   /**
    * The PRODUCT this session is serving — `@volter/game-editor` or
-   * `@volter/model-editor` — or `null` when it is serving none. SERVER-computed
+   * `@volter/cyclotron` — or `null` when it is serving none. SERVER-computed
    * on every read, beside {@link workbench}, for the same reason: what a
    * session is running is its own fact, not something the page reports about
    * itself.
@@ -653,8 +692,11 @@ export interface EditorState {
    * this is a REPORT and never a thing to branch on. Absent against an older
    * server that predates the field.
    */
-  product?: { id: string; dir: string; version: string; command: string; displayName: string } | null;
+  product?: { id: string; dir: string; version: string; command: string; displayName: string; upgrade?: boolean } | null;
   playState: 'stopped' | 'playing' | 'paused';
+  /** Latest successful live lane's run window. Independent of video recording;
+   * null when no registered lane reports a run, absent on older editors. */
+  liveRunWindow?: import('./host').LiveRunWindow | null;
   /**
    * Issue #175 — the REAL engine `GameLoop.liveness` behind the current play
    * session, distinct from `playState` above (editor UI state — a store
@@ -1327,8 +1369,10 @@ export interface EditorChromeCaptureOptions {
   readonly scale?: number;
   /** `page` (the default): the whole editor. `document`: the active document's own box as the
    *  person sees it, overlays included (a viewport's navigation gizmo, its readouts). The door
-   *  a stage is judged through; `captureActiveDocument` is the document's render alone. */
-  readonly region?: 'page' | 'document';
+   *  a stage is judged through; `captureActiveDocument` is the document's render alone.
+   * `play`: the active document's live world and UI frame, excluding authoring chrome
+   * and surrounding letterboxing. Refused when the document has no live frame. */
+  readonly region?: 'page' | 'document' | 'play';
 }
 
 export interface ActiveDocumentCapture extends ViewportCapture {

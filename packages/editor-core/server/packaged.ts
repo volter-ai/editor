@@ -1,3 +1,6 @@
+// First, before any dependency loads: on Windows every child of the session starts without a window.
+import './windows-hidden-children';
+import { readSharedSdkUrls } from '../vite-plugin-shared-sdk';
 /**
  * Packaged editor server — the entry a `@volter/editor-core` npm package resolves from a
  * PROJECT's own `node_modules`, with NO monorepo checkout on disk (Phase B; see
@@ -304,7 +307,7 @@ if (!process.env['VOLTER_PROJECT']) {
 const projectPath = canonicalProjectRoot(process.env['VOLTER_PROJECT']);
 
 // THE PRODUCT'S BUILD is what this host serves — `npm run build -w
-// @volter/game-editor` / `-w @volter/model-editor`, each into its own package's
+// @volter/game-editor` / `-w @volter/cyclotron`, each into its own package's
 // `dist/` (`packages/editor/vite-product-build.ts`). The kit has no browser
 // build of its own any more: `frame/bridge.tsx` is a module the product's entry
 // imports, and the ENTRY is what a build has (ARCHITECTURE-CORE §The target
@@ -615,6 +618,7 @@ async function main(): Promise<void> {
         // Omitted (`null`) only when this dist predates the shared-React
         // chunks, which the boot warning above names.
         sharedReactUrls: sharedReactSpecifierUrls,
+        sharedSdkUrls: fromSource ? null : readSharedSdkUrls(distPath),
         // Omitted (`null`) only when this dist predates the shared-three chunk
         // (the boot warning above names it).
         sharedThreeUrl: sharedThreeSpecifierUrl,
@@ -725,6 +729,13 @@ async function main(): Promise<void> {
         // Project tool contributions load this after the shell is visible;
         // discovering it then would invalidate the already-loaded React graph.
         'zod',
+        // Browser tool services can become available after the project's manifest
+        // adds a UI region or contribution package. Their CommonJS utilities are
+        // not reachable from the initial model-only crawl. Discovering these on
+        // that first use replaces the optimizer graph and reloads the entire
+        // workbench (measured: typescript + axe-core when adding a React HUD).
+        // Prepare installed utilities at boot; missing optional tools stay absent.
+        ...['typescript', 'axe-core'].filter((name) => projectHasPackage(projectPath, name)),
         // The story runtime (`/__volter-story-runtime`) re-exports
         // `@storybook/react`, which a project's CSF files import ONLY as
         // types (erased) — so the entries crawl never discovers it, and the
@@ -1064,6 +1075,7 @@ async function main(): Promise<void> {
       version: sessionProductIdentity.version,
       command: sessionProductIdentity.command,
       displayName: sessionProductIdentity.displayName,
+      upgrade: sessionProductIdentity.upgrade === true,
     }),
     loadProjectModule: freshProjectModuleLoader(vite, () => projectPath),
     // Same contract as dev.ts: a dependency installed under a live session

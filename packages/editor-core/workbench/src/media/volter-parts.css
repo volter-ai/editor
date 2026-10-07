@@ -2,7 +2,7 @@
    `volter.contribution.ts` hands these elements over and `bridge.tsx` portals the editor's own
    panels into them, so every rule here is about WHERE a part is and what the workbench must
    stop drawing over it. Colour, type and corner radii are the PRODUCT's look
-   (`packages/model-editor/workbench/src/media/blender-look.css` is the worked one); this file
+   (`packages/cyclotron/workbench/src/media/blender-look.css` is the worked one); this file
    is what any product needs whatever it looks like. */
 .monaco-workbench .volter-host-part { width: 100%; height: 100%; overflow: hidden; position: relative; }
 /* A part takes focus on pointer down (`offerPart`, so the editor's keybindings are gated on it),

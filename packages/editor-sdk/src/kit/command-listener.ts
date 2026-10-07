@@ -462,6 +462,8 @@ export function collectState(
       livePlaying: anyLiveSessionPlaying(),
       mountFailures,
     }),
+    // The lane's successful run window, independent of recording or document kind.
+    liveRunWindow: liveRunWindow(),
     // Every world whose mount FAILED, with the error that killed it. `[]` on a
     // healthy session; non-empty with `ingest: null` is what a dead game looks
     // like from the control API, instead of a silent "playing". (`ingest` and
@@ -1060,7 +1062,7 @@ export async function handleCommand(
     //
     // It is the HOST's for that last reason. It was a `@volter/editor-game` command
     // contribution until walk 5, so `page.reload()` answered `unknown command
-    // type "page-reload"` in the model editor, which declares no `@volter/editor-game`.
+    // type "page-reload"` in Cyclotron, which declares no `@volter/editor-game`.
     //
     // Scheduled for the NEXT task rather than run inline, so this handler can
     // return and the caller's ack can travel before the navigation tears the
@@ -1582,8 +1584,8 @@ export async function handleCommand(
         };
       }
       const region = cmd['region'];
-      if (region !== undefined && region !== 'page' && region !== 'document') {
-        return { ok: false, error: 'capture-editor-chrome: "region" is "page" or "document".' };
+      if (region !== undefined && region !== 'page' && region !== 'document' && region !== 'play') {
+        return { ok: false, error: 'capture-editor-chrome: "region" is "page", "document" or "play".' };
       }
       try {
         const capture = await captureEditorChrome(store, {

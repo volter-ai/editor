@@ -38,15 +38,31 @@
  * which is the only one that can see the OPENING stretch of a build (a session
  * that has never played has no evidence for the source to be stale against).
  *
+ * VISIBLE PROGRESS. Measured failure (the "obby" first-time-user run,
+ * 2026-10-06): the in-editor Chat agent researched for the first eight minutes
+ * of a build while the person watching the editor window saw the starter cube
+ * and nothing else. Every tripwire above is about the WORK; this one is about
+ * the WINDOW — `visibleProgressNotice` asks whether anything a watcher can see
+ * has changed while an AI turn is running.
+ *
+ * WHO HEARS IT. The same run proved the delivery assumption false again:
+ * the unplayed-session tripwire crossed notice AND loud (both lines are
+ * in that session's journal) and the Chat agent's transcript holds neither —
+ * an in-editor agent tails no journal and watches no terminal. Every line here
+ * therefore also travels into the running Chat turn, framed by
+ * `chatTripwireNudge`; the journal and the terminal stay its record.
+ *
  * None of this is a poller and none of it is a hook: every function here is
  * either pure or a handful of `git`/`stat` reads made on an event the caller
- * already handles.
+ * already handles. The one clock — the running Chat turn's — is the caller's,
+ * and it stops with the turn.
  */
 
 import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { spawnSync } from 'node:child_process';
 import { existsSync, mkdirSync, readdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { dirname, join } from 'node:path';
+import { latestLiveRunEvidence } from './live-run-evidence';
 
 // ---------------------------------------------------------------------------
 // Shared vocabulary
@@ -214,7 +230,7 @@ export function dirtyPathsFromPorcelain(porcelain: string): string[] {
  *  unborn HEAD, non-zero exit — because each of those means "this project
  *  cannot be asked the question", not "this project is behind". */
 function git(cwd: string, args: string[]): string | null {
-  const result = spawnSync('git', args, { cwd, encoding: 'utf-8' });
+  const result = spawnSync('git', args, { windowsHide: true, cwd, encoding: 'utf-8' });
   if (result.error || result.status !== 0) return null;
   return result.stdout ?? '';
 }
@@ -362,10 +378,11 @@ export function newestSourceMtime(projectRoot: string): number | null {
  * played" rule reads, for the same reason: it is written by the editor server
  * itself while a real browser runs the real game, so it cannot be produced by
  * intending to play.
- *   - `logs/play-*.jsonl` — one per Play session, opened by the editor server.
+ *   - `logs/play-*.jsonl` — one per recorded Play session, opened by the editor server.
+ *   - `logs/live-run.json` — the server's observation of a successful live lane.
  */
 export function newestEvidenceMtime(projectRoot: string): number | null {
-  let newest: number | null = null;
+  let newest: number | null = latestLiveRunEvidence(projectRoot);
   const consider = (file: string): void => {
     try {
       const at = statSync(file).mtimeMs;
@@ -413,7 +430,7 @@ export function staleEvidenceBanner(
   if (newestEvidence !== null && newestEvidence >= newestSource) return null;
   const gap =
     newestEvidence === null
-      ? '  no live evidence exists at all — no logs/play-*.jsonl.'
+      ? '  no recorded Play or successful live-run evidence exists.'
       : `  newest source: ${new Date(newestSource).toISOString()}\n` +
         `  newest live evidence: ${new Date(newestEvidence).toISOString()}`;
   return [
@@ -477,12 +494,11 @@ export function unplayedSessionTier(
  * The escalating line/banner for a session that has served this project
  * without ever producing live-play evidence — pure, driven directly by a test.
  *
- * The evidence signal is the SAME pair `newestEvidenceMtime` walks (a Play
- * session's `logs/play-*.jsonl`), so this
+ * The evidence signal is the SAME set `newestEvidenceMtime` reads (recorded
+ * Play logs and the server's successful live-run observation), so this
  * banner and the staleness banner can never disagree about what counts as
- * having run. Nothing new is instrumented on the game side: both artifacts are
- * already written by the tools themselves while a real browser runs the real
- * game, which is exactly why neither can be produced by intending to play.
+ * having run. The tools report their own live run through the shared registry;
+ * no game-specific instrumentation or recording is required.
  */
 export function unplayedSessionBanner(
   sessionStartedAtMs: number | null,
@@ -493,12 +509,7 @@ export function unplayedSessionBanner(
   const tier = unplayedSessionTier(sessionStartedAtMs, newestEvidence, now, playable);
   if (tier === 'silent' || sessionStartedAtMs === null) return null;
   const elapsed = formatElapsed(now - sessionStartedAtMs);
-  if (tier === 'notice') {
-    return (
-      `unplayed for ${elapsed} — this editor session has never run the game; ` +
-      `start it now (${commandLine('play')}) rather than at the end`
-    );
-  }
+  if (tier === 'notice') return unplayedLine(elapsed);
   return [
     '================================================================',
     `  ${elapsed.toUpperCase()} SERVING THIS PROJECT, NEVER ONCE PLAYED`,
@@ -516,6 +527,167 @@ export function unplayedSessionBanner(
     `  from the live session (${commandLine('eval')}).`,
     '================================================================',
   ].join('\n');
+}
+
+/** The ONE sentence the unplayed-session tripwire says in a single line —
+ *  `cadenceLine`'s twin, shared by the notice step of the banner and by
+ *  `unplayedSessionNotice`. */
+function unplayedLine(elapsed: string): string {
+  return (
+    `unplayed for ${elapsed} — this editor session has never run the game; ` +
+    `start it now (${commandLine('play')}) rather than at the end`
+  );
+}
+
+/**
+ * The same tripwire as ONE line, at every step including the loud one.
+ *
+ * For the running Chat turn (`chatTripwireNudge`): a steered message lands in
+ * the middle of an agent's work, where a fifteen-line block reads as an
+ * interruption rather than a fact. Same sentence as the notice step of the
+ * banner; the only thing dropped is the block — `commitCadenceNotice`'s rule.
+ */
+export function unplayedSessionNotice(
+  sessionStartedAtMs: number | null,
+  newestEvidence: number | null,
+  now: number,
+  playable = true,
+): string | null {
+  const tier = unplayedSessionTier(sessionStartedAtMs, newestEvidence, now, playable);
+  if (tier === 'silent' || sessionStartedAtMs === null) return null;
+  return unplayedLine(formatElapsed(now - sessionStartedAtMs));
+}
+
+// ---------------------------------------------------------------------------
+// Visible progress
+// ---------------------------------------------------------------------------
+
+/**
+ * How long a running Chat turn may leave the editor window unchanged before
+ * the agent hears about it, in ms.
+ *
+ * Measured failure (the "obby" run, 2026-10-06): the session journal holds no
+ * document revision between 21:45:39 (the scaffold) and 21:54:09 (the first
+ * manifest edit), and the agent's transcript is research the whole way — eight
+ * minutes in which the person watching the editor saw the starter cube and
+ * had no way to tell a working agent from a stuck one.
+ *
+ * ONE step, at a minute, and no loud step. A minute is long enough that a
+ * single tool call, a typecheck or a file read never trips it, and short
+ * enough that the watcher is still watching when the window changes. There is
+ * no escalation because the remedy never changes. The crossing re-arms on the
+ * visible change that ends a stall, but the Chat hears at most one tripwire
+ * line per turn (the caller's cap): a steered line costs the agent context.
+ */
+const VISIBLE_STALL_NOTICE_MS = 60_000;
+
+/**
+ * How often the caller's turn clock asks, in ms — a quarter of the step, so a
+ * stall is heard within 75 s of its last visible change, and a visible change
+ * always lands between two asks (which is what re-arms the gate: a tier that
+ * read `silent` once is a stall that ended).
+ */
+export const VISIBLE_PROGRESS_CHECK_INTERVAL_MS = 15_000;
+
+/**
+ * The fields of the editor tab's posted state that ARE the visible view:
+ * which document is open and in front, which viewport tab, where the camera
+ * stands, whether the game is playing, what is selected, and how much is in
+ * the scene. Deliberately not the whole state — it also carries ages, focus
+ * and per-frame renderer counters that change while the picture does not.
+ */
+const VISIBLE_VIEW_FIELDS = [
+  'activeDocumentId',
+  'openDocumentIds',
+  'activeTabKey',
+  'activeViewportTab',
+  'activeUtilityId',
+  'camera',
+  'playState',
+  'selectedEntityIds',
+  'entityCount',
+] as const;
+
+/**
+ * A comparable fingerprint of what the editor window shows — pure, so "did the
+ * view change" is one string comparison against the previous report.
+ *
+ * This is the editor's OWN report of its view (the tab already posts it after
+ * commands and on store changes), not a screen diff: an opened or framed
+ * document, a camera move and Play starting all change it, and a document
+ * edit or a Blender scene write to its `.blend` arrives beside it as a source
+ * revision (the caller's other signal).
+ */
+export function visibleViewKey(state: Readonly<Record<string, unknown>>): string {
+  return JSON.stringify(VISIBLE_VIEW_FIELDS.map((field) => state[field] ?? null));
+}
+
+/** How long the window has gone unchanged during this turn — `null` when no
+ *  turn is running. The stall starts at the later of the turn's start and the
+ *  last visible change: a turn is not behind for the quiet before it began. */
+export function visibleStallMs(
+  turnRunningSinceMs: number | null,
+  lastVisibleChangeAtMs: number | null,
+  now: number,
+): number | null {
+  if (turnRunningSinceMs === null) return null;
+  const since = latestOf(turnRunningSinceMs, lastVisibleChangeAtMs) ?? turnRunningSinceMs;
+  return Math.max(0, now - since);
+}
+
+/**
+ * Which step the visible-progress clock has reached — the ONE place the stall
+ * threshold is compared.
+ *
+ * `silent` in the honest silences: no AI turn running (an idle agent owes the
+ * window nothing, and a person editing by hand is the change), and any stall
+ * shorter than a minute.
+ */
+export function visibleProgressTier(
+  turnRunningSinceMs: number | null,
+  lastVisibleChangeAtMs: number | null,
+  now: number,
+): TripwireTier {
+  const stalledForMs = visibleStallMs(turnRunningSinceMs, lastVisibleChangeAtMs, now);
+  if (stalledForMs === null || stalledForMs < VISIBLE_STALL_NOTICE_MS) return 'silent';
+  return 'notice';
+}
+
+/**
+ * The line for a running turn the watcher cannot see — pure, driven directly
+ * by a test. `null` whenever the tier is `silent`.
+ *
+ * It PRESCRIBES, like the loud cadence step and for the same reason: the agent
+ * is not ignorant that a person can see the editor, it is busy, and a
+ * sentence that only describes the stall changes nothing. So it names the
+ * three moves that change what the watcher sees.
+ */
+export function visibleProgressNotice(
+  turnRunningSinceMs: number | null,
+  lastVisibleChangeAtMs: number | null,
+  now: number,
+): string | null {
+  const tier = visibleProgressTier(turnRunningSinceMs, lastVisibleChangeAtMs, now);
+  const stalledForMs = visibleStallMs(turnRunningSinceMs, lastVisibleChangeAtMs, now);
+  if (tier === 'silent' || stalledForMs === null) return null;
+  return (
+    `nothing visible has changed for ${Math.floor(stalledForMs / 1000)}s — a person is watching ` +
+    'this editor window; show the work: open or frame the document you are working on, ' +
+    'update the visible Build Notes, and say in Chat what you are doing'
+  );
+}
+
+/**
+ * A tripwire line as the in-editor Chat agent receives it.
+ *
+ * It arrives as a steered message in the middle of a running turn, where the
+ * agent would otherwise read it as the PERSON speaking — and an agent that
+ * believes the person interrupted it stops to answer them. The frame says
+ * where the line came from and that no reply is owed; the line itself is
+ * unchanged, so the Chat, the journal and the terminal say one sentence.
+ */
+export function chatTripwireNudge(line: string): string {
+  return `[Volter editor tripwire — automatic, not a message from the person; no reply needed] ${line}`;
 }
 
 // ---------------------------------------------------------------------------
@@ -604,6 +776,18 @@ export function advanceTripwireGate(
  *   - `unplayed-session` — the newest live evidence
  *     (`unplayedSessionGateKey`). A play happens, the key changes, the clock
  *     starts over.
+ * `visible-progress` has no entry: its stall lasts a minute and ends with the
+ * Chat turn, and a restarted process starts with no turn clock at all (it arms
+ * on the next turn's activity), so there is nothing for a restart to re-arm
+ * wrongly.
+ *
+ * WHAT `announced: 'silent'` ON DISK MEANS. Every read writes the tier it just
+ * measured, so `silent` is an ARMED gate — the last read found the tripwire
+ * below its first step, or its key moved (a commit landed, a play happened) —
+ * never an announcement that was swallowed. The crossings themselves are in
+ * the session journal (`kind: "tripwire"`), and whether the Chat agent heard
+ * one is the `tripwire-nudge` line beside it.
+ *
  * `evaluatedAtMs` is deliberately NOT persisted: it is the read cap, a fact
  * about one process's event rate, and carrying it across a restart would blind
  * the first minute of the new session for no benefit.
@@ -613,6 +797,10 @@ export function advanceTripwireGate(
  *  uses, so a journal line and a gate entry can never disagree about which
  *  tripwire is meant. */
 export type TripwireName = 'commit-cadence' | 'unplayed-session';
+
+/** Every tripwire the journal and the Chat nudge can name: the persisted ones
+ *  plus `visible-progress`, whose gate lives only in memory (see above). */
+export type AnyTripwireName = TripwireName | 'visible-progress';
 
 /** One tripwire's persisted state. */
 interface PersistedGate {

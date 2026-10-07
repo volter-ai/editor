@@ -1,0 +1,86 @@
+{
+  "name": "@volter/cyclotron",
+  "author": "Volter AI, Inc.",
+  "version": "0.5.190",
+  "publishConfig": {
+    "access": "public"
+  },
+  "type": "module",
+  "engines": {
+    "node": ">=24"
+  },
+  "license": "AGPL-3.0-only AND GPL-3.0-or-later AND MIT",
+  "description": "A free, open-source game editor by VideoGame AI using Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.",
+  "keywords": [
+    "blender",
+    "three.js",
+    "game editor",
+    "webassembly",
+    "code-oss",
+    "react",
+    "mcp",
+    "codex",
+    "claude-code"
+  ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/volter-ai/editor.git",
+    "directory": "packages/cyclotron"
+  },
+  "files": [
+    "README.md",
+    "dist",
+    "src",
+    "LICENSE",
+    "LICENSE-BLENDER",
+    "NOTICE",
+    "dist-node",
+    "presets.mjs",
+    "starter",
+    "LICENSE-MCP",
+    "BUNDLED_NOTICES"
+  ],
+  "scripts": {
+    "build": "vite build --config vite.config.ts",
+    "build:node": "node scripts/build-node.mjs",
+    "typecheck": "tsc -p tsconfig.node.json",
+    "test": "npm run build:node && node --test test/first-run.test.mjs"
+  },
+  "volter": {
+    "product": {
+      "entry": "./src/index.ts",
+      "displayName": "Volter Cyclotron",
+      "install": "npx @volter/cyclotron create my-game",
+      "colorTheme": "dark",
+      "upgrade": true,
+      "workbench": {
+        "darwin-arm64": {
+          "release": "cyclotron-f16dc165c0df-336473f30026-darwin-arm64",
+          "tarballSha256": "e7cbbbcd353057db1a0490888a3b300b3020d97f9fd8b4bb4aa7d6bfe9e36319"
+        },
+        "linux-x64": {
+          "release": "cyclotron-f16dc165c0df-336473f30026-linux-x64",
+          "tarballSha256": "54759a22c26ce8f6dfd0a155bbf0ee86013ca2d8b5f3648713d1cc1e313b6afc"
+        },
+        "win32-x64": {
+          "release": "cyclotron-f16dc165c0df-336473f30026-win32-x64",
+          "tarballSha256": "28e2995d1a28490be99064cce9898a98e95ff2f053279cf694e9df1f9393fa1a"
+        }
+      }
+    }
+  },
+  "dependencies": {
+    "@volter/editor-core": "0.5.190",
+    "@volter/editor-blender": "0.1.129",
+    "@volter/editor-threejs": "0.5.190",
+    "@volter/blender-engine": "0.1.127",
+    "@volter/editor-project": "0.5.190",
+    "@volter/editor-sdk": "0.5.190",
+    "@volter/editor-live": "0.5.190",
+    "@modelcontextprotocol/sdk": "1.32.1",
+    "undici": "7.29.1"
+  },
+  "bin": {
+    "cyclotron": "./dist-node/cli.js"
+  }
+}

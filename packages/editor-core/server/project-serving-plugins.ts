@@ -1,3 +1,4 @@
+import { sharedSdkPlugin } from '../vite-plugin-shared-sdk';
 /**
  * The ONE ordered plugin list every editor host serves an opened PROJECT
  * through — `dev.ts` (checkout, one shared Vite instance) and `packaged.ts`
@@ -71,6 +72,7 @@ export interface PackagedOnlyServingOptions {
    * `../vite-plugin-shared-three.ts`.
    */
   readonly sharedThreeUrl: string | null;
+  readonly sharedSdkUrls?: Record<string, string> | null;
   /** Where the editor package itself lives — `sharedReactPlugin`'s own scope. */
   readonly editorPackageRoot: string;
   /**
@@ -191,6 +193,7 @@ function scriptHmrPlugin(options: ScriptHmrServingOptions): Plugin {
 export function createProjectServingPlugins(options: ProjectServingPluginOptions): PluginOption[] {
   const { projectRoots, currentProjectRoot, packagedOnly, scriptHmr, contributed = [] } = options;
   return [
+    ...(packagedOnly?.sharedSdkUrls ? [sharedSdkPlugin(packagedOnly.sharedSdkUrls)] : []),
     ...(packagedOnly?.sharedReactUrls
       ? [
           sharedReactPlugin({

@@ -80,6 +80,7 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
         launch.command,
         launch.args,
         {
+          windowsHide: true,
           cwd: launch.cwd,
           env,
           maxBuffer: 4 * 1024 * 1024,

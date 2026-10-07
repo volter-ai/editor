@@ -2,7 +2,7 @@
   "name": "@volter/editor-sdk",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.157",
+  "version": "0.5.190",
   "publishConfig": {
     "access": "public"
   },
@@ -59,6 +59,7 @@
     "./session/entrypoint-selection-source": "./src/session/entrypoint-selection-source.ts",
     "./tools/types": "./src/tools/types.ts",
     "./session/editor-brand": "./src/session/editor-brand.ts",
+    "./session/limited-view": "./src/session/limited-view.ts",
     "./tools/errors": "./src/tools/errors.ts",
     "./project/output-roots": "./src/project/output-roots.ts",
     "./source-authoring": "./src/source-authoring.ts",
@@ -465,7 +466,10 @@
     "./kit/stories/StoryPreviewMount": "./src/kit/stories/StoryPreviewMount.tsx",
     "./kit/stories/story-capture": "./src/kit/stories/story-capture.ts",
     "./kit/world-adoption": "./src/kit/world-adoption.ts",
-    "./kit/world-document-routing": "./src/kit/world-document-routing.ts"
+    "./kit/world-document-routing": "./src/kit/world-document-routing.ts",
+    "./kit/document-play-extension": "./src/kit/document-play-extension.ts",
+    "./kit/project-play-layers": "./src/kit/project-play-layers.ts",
+    "./kit/startup-failure": "./src/kit/startup-failure.ts"
   },
   "dependencies": {
     "@codemirror/commands": "6.10.4",
@@ -481,7 +485,7 @@
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@storybook/react": "10.6.0",
     "@types/node": "^22.0.0",
-    "@volter/editor-project": "0.5.157",
+    "@volter/editor-project": "0.5.190",
     "mediabunny": "1.56.2",
     "postcss": "8.5.28",
     "rrweb": "2.1.6",

@@ -439,123 +439,43 @@ function SubjectIdentity({ subject }: { readonly subject: InspectionSubject }) {
 }
 
 /**
- * The PROPERTIES presentation's identity — Blender's Properties editor opens
- * with TWO rows, transcribed from the reference frames at 2x rather than
- * described from memory, and neither is a title bar:
- *
- *  - the BREADCRUMB row: a 14 px datablock glyph, the chain it belongs to, and
- *    ONE trailing control. `properties-data-edit.png`: the glyph's bounding box
- *    is x 80..107 / y 74..101 (28 device px = 14 CSS) and the trailing pin's is
- *    x 559..586 at the same size, on the panel's own fill with no well.
- *    WHAT THE CHAIN OWNS IS THE CONTEXT CHAIN, NOT A FILE (measured
- *    2026-09-18 on all three tab frames): each link is `glyph + NAME`, the
- *    datablock's own name in PLAIN ink, innermost last, `>` between —
- *    `[▣] Cube` on the Object and Modifier tabs, `[▣] Cube > [▽] Cube` on
- *    Data. Blender has no file anywhere on this row. Ours carried
- *    `identity.document.path` here, which is the one fact the reference
- *    never shows; the path is now the row's TOOLTIP (and still the
- *    `data-document-path` attribute an agent reads), because the Model
- *    document's source path has NO other home in our chrome — the editor tab
- *    renders the bare title with no `title` attribute, and the window title
- *    is the PROJECT's. A reachable fact is not deleted to match a
- *    picture; it is moved off the row the picture owns.
- *    INK, measured on every frame: the glyph, the name and the `>` are all
- *    229/229/229 — PLAIN UI ink, never the tab's category colour. Only the
- *    RAIL is coloured (`#73a1ff` modifiers, `#00d3a2` data). The pin alone
- *    is dimmer, 155. Ours inked the breadcrumb glyph `dim` (150) and let the
- *    datablock well's glyph fall through to its category (`#73a1ff`), which
- *    is the loudest thing on the row and is nowhere in the reference.
- *  - the DATABLOCK row: one 20 CSS px composite spanning the panel's inset
- *    width — an icon WELL in `widget.menu` (x 76..135 = 30 CSS wide, #272727),
- *    a 1 px divider, the name TEXT WELL in `widget.field` (x 138..550,
- *    #1c1c1c), and a trailing pushbutton in `widget.regular` (x 553..590,
- *    #535353), the whole thing outlined in #3c3c3c at x 74..75 / 591..592 and
- *    y 140..141 / 178..179.
- *
- * What we DO NOT draw, by the standing rule that a control writing nowhere is
- * not drawn: Blender's well carries a `⌄` because it PICKS a datablock and its
- * trailing button is the fake-user shield — this editor has neither verb, so
- * the well is the kind glyph alone and the trailing slot carries the subject's
- * own identity verbs (the visibility eye) instead. That eye's home in the
- * reference is the Outliner, which our Hierarchy row already has; this is the
- * shortcut, on the row whose trailing slot the reference spends the same way.
- *
- * Every fact the narrow column's row shows is still here — name, kind, the
- * document path, the identity verbs, the definition link, the multi-selection
- * warning and the note — rearranged into the reference's two rows.
- * {@link SubjectIdentity} is untouched, so the narrow column (every other
- * skin's default) is pixel-identical.
+ * Properties keeps one identity row: kind, name and the subject's actions.
+ * The editable name field already identifies the subject, so a second
+ * breadcrumb with that same name adds no context. Keep the document details
+ * on the row's tooltip and data attribute, and preserve notes/multi-selection.
  */
 function PropertiesIdentity({ subject }: { readonly subject: InspectionSubject }) {
   const identity = subject.identity;
   if (!identity) return <SubjectIdentity subject={subject} />;
   const definition = definitionLink(subject);
-  /**
-   * THE SUBJECT'S KIND GLYPH — not the open tab's, and not the rail's first.
-   *
-   * MEASURED, and it settles a reading this row has had wrong twice. Blender's
-   * breadcrumb leads with the DATABLOCK the editor is about, on every tab:
-   * crop the first breadcrumb glyph (28x28 device at x 80..107, y 74..101)
-   * out of `properties-object.png`, `properties-modifier.png` and
-   * `properties-data-edit.png` and the three are byte-identical — 0 of 784
-   * pixels differ — while the open tab is Object, Modifier and Data in turn.
-   * On the Modifier tab Blender draws the object square, NOT the wrench.
-   *
-   * The row first derived this from `sections[0].icon`, which is RAIL ORDER;
-   * that looked right only while Data happened to be first, and the rail unit
-   * that put Modifiers above Data (Blender's order) broke it. The fix then
-   * was the ACTIVE TAB's icon, which is right for the rail's own active plate
-   * and wrong here — it agrees with the frames on Object and Data only
-   * because those two tabs' glyphs coincide with their datablock's, and
-   * disagrees on the one tab that discriminates.
-   *
-   * `hierarchy-kind-icon.ts` is the host's single kind-name-to-glyph table
-   * and the Outliner's rows already read it, so the breadcrumb and the well
-   * now read the same table for the same subject. Fallback stays the first
-   * section's glyph, for a subject whose adapter names no kind.
-   */
+  // The subject's kind glyph follows the same table as its Hierarchy row.
   const glyph = identity.kind
     ? hierarchyKindIcon(identity.kind, firstSectionGlyph(subject))
     : firstSectionGlyph(subject);
-  const chain = subject.title || identity.kindLabel || '';
   const chainTitle = [identity.kindLabel, identity.document?.path, identity.document?.title]
     .filter(Boolean)
     .join(' — ');
   return (
     <div className="volter-inspector-identity" data-volter-identity-layout="properties">
-      <div className="volter-inspector-breadcrumb">
-        <EditorIcon icon={glyph} tone="primary" />
-        {/* A NAME, not a path: it ellipsizes at the TAIL like every other
-            name in the chrome. The head-ellipsis (`direction: rtl`) this row
-            used to carry existed for the path, which is now the tooltip. */}
+      <div
+        className="volter-inspector-datablock"
+        data-testid="inspector-document-path"
+        {...(identity.document ? { 'data-document-path': identity.document.path } : {})}
+        {...(chainTitle ? { title: chainTitle } : {})}
+      >
         <span
-          className="volter-inspector-breadcrumb-chain"
-          data-testid="inspector-document-path"
-          {...(identity.document ? { 'data-document-path': identity.document.path } : {})}
-          {...(chainTitle ? { title: chainTitle } : {})}
+          className="volter-inspector-datablock-kind"
+          data-testid="inspector-kind-label"
+          {...(identity.kindLabel ? { title: identity.kindLabel } : {})}
         >
-          <bdi>{chain}</bdi>
+          <EditorIcon icon={glyph} tone="primary" />
         </span>
+        <SubjectNameField subject={subject} />
         {actionsPlacedAt(subject, 'identity').map((action) => (
           <QuickActionIconButton key={action.id} action={action} />
         ))}
+        {definition && <EditDefinitionButton link={definition} />}
       </div>
-      {
-        <div className="volter-inspector-datablock">
-          <span
-            className="volter-inspector-datablock-kind"
-            data-testid="inspector-kind-label"
-            {...(identity.kindLabel ? { title: identity.kindLabel } : {})}
-          >
-            {/* PLAIN ink, not the category's: Blender's well glyph measures 229
-                on every frame, the same white as the breadcrumb's. The category
-                colour lives in the RAIL and nowhere else in this body. */}
-            <EditorIcon icon={glyph} tone="primary" />
-          </span>
-          <SubjectNameField subject={subject} />
-          {definition && <EditDefinitionButton link={definition} />}
-        </div>
-      }
       {subject.alsoSelected ? (
         <div
           data-testid="inspector-also-selected"

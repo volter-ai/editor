@@ -41,6 +41,7 @@ export interface OverlaySvg {
   svg: string;
   /** How many non-canvas layers were serialized (0 ⇒ callers skip the leg). */
   overlayCount: number;
+  snapshotMs?: number;
 }
 
 const ROOT_SURFACE_SELECTOR = '[data-volter-root-surface="true"]';
@@ -328,8 +329,8 @@ export type CanvasPixels = ReadonlyMap<HTMLCanvasElement, CanvasImageSource>;
  *  `null` when the source cannot be read back (a tainted canvas), which puts
  *  the caller back on the honest strip-it path. */
 function canvasDataUrl(document: Document, pixels: CanvasImageSource): string | null {
+  const copy = document.createElement('canvas');
   try {
-    const copy = document.createElement('canvas');
     const image = pixels as HTMLImageElement;
     // A VIDEO's frame size is `videoWidth/Height`: it has no `naturalWidth`,
     // and its `width` attribute is 0 unless someone set one — which sized the
@@ -354,6 +355,9 @@ function canvasDataUrl(document: Document, pixels: CanvasImageSource): string | 
     return copy.toDataURL('image/png');
   } catch {
     return null;
+  } finally {
+    copy.width = 0;
+    copy.height = 0;
   }
 }
 
@@ -410,9 +414,27 @@ function projectModuleStylesCssText(document: Document, projectRoot: string | un
 
 /** SVG images cannot fetch external fonts, even ones already loaded by the page.
  * Carry the bytes with the capture so provider and toolbar glyphs remain legible. */
+const embeddedStylesByDocument = new WeakMap<Document, { css: string; embedded: Promise<string> }>();
+
 async function embeddedDocumentStyles(document: Document): Promise<string> {
   await document.fonts.ready;
-  let css = documentStylesCssText(document);
+  const css = documentStylesCssText(document);
+  const previous = embeddedStylesByDocument.get(document);
+  if (previous?.css === css) return previous.embedded;
+  // Read the live CSSOM each time so style edits invalidate this snapshot.
+  // Reuse font bytes/encoding for unchanged styles, including simultaneous
+  // document and page captures; retain only the latest snapshot per document.
+  const entry = { css, embedded: embedStylesFonts(css) };
+  embeddedStylesByDocument.set(document, entry);
+  try {
+    return await entry.embedded;
+  } catch (error) {
+    if (embeddedStylesByDocument.get(document) === entry) embeddedStylesByDocument.delete(document);
+    throw error;
+  }
+}
+
+async function embedStylesFonts(css: string): Promise<string> {
   const urls = new Set<string>();
   for (const face of css.matchAll(/@font-face\s*\{[^}]*\}/g)) {
     for (const match of face[0].matchAll(/url\("([^"]+)"\)/g)) {
@@ -510,7 +532,7 @@ export function rootSurfaceBackdrops(container: HTMLElement): HTMLElement[] {
   const chain: HTMLElement[] = [];
   const seen = new Set<Element>();
   for (const canvas of Array.from(container.querySelectorAll('canvas'))) {
-    if (!isRootCanvas(canvas)) continue;
+    if (!isRootCanvas(canvas) || !canvas.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true })) continue;
     const ancestors: HTMLElement[] = [];
     for (
       let node = canvas.parentElement;
@@ -789,6 +811,12 @@ export function buildOverlaySvg(
   if (overlays.length === 0) return null;
 
   const includeDocumentStyles = options?.includeDocumentStyles === true;
+  let snapshotMs = 0;
+  const snapshot = (pixels: CanvasImageSource): string | null => {
+    const started = performance.now();
+    try { return canvasDataUrl(container.ownerDocument, pixels); }
+    finally { snapshotMs += performance.now() - started; }
+  };
   const wrapper = includeDocumentStyles
     ? (container.cloneNode(false) as HTMLElement)
     : container.ownerDocument.createElement('div');
@@ -900,7 +928,7 @@ export function buildOverlaySvg(
       const src = source.currentSrc || source.src;
       const cached = options?.snapshots?.imgs.get(source);
       const url =
-        cached && cached.src === src ? cached.url : canvasDataUrl(container.ownerDocument, source);
+        cached && cached.src === src ? cached.url : snapshot(source);
       if (!cached || cached.src !== src) options?.snapshots?.imgs.set(source, { src, url });
       if (url) image.setAttribute('src', url);
     });
@@ -924,7 +952,7 @@ export function buildOverlaySvg(
     clonedVideos.forEach((video, index) => {
       const source = sourceVideos[index];
       if (!source || source.readyState < 2 || source.videoWidth <= 0) return;
-      const url = canvasDataUrl(container.ownerDocument, source);
+      const url = snapshot(source);
       if (!url) return;
       const image = container.ownerDocument.createElement('img');
       image.setAttribute('src', url);
@@ -954,7 +982,7 @@ export function buildOverlaySvg(
         return;
       }
       const pixels = source ? options?.canvasPixels?.get(source) : undefined;
-      const url = pixels ? canvasDataUrl(container.ownerDocument, pixels) : null;
+      const url = pixels ? snapshot(pixels) : null;
       if (!url) {
         nested.remove();
         return;
@@ -980,7 +1008,7 @@ export function buildOverlaySvg(
   const svg =
     `<svg xmlns="http://www.w3.org/2000/svg" width="${rasterWidth}" height="${rasterHeight}"${viewBox}>` +
     `<foreignObject width="100%" height="100%">${serialized}</foreignObject></svg>`;
-  return { svg, overlayCount: overlays.length };
+  return { svg, overlayCount: overlays.length, snapshotMs };
 }
 
 export interface CompositeCapture {
@@ -992,6 +1020,17 @@ export interface CompositeCapture {
   /** How much of the frame is one flat surface — see {@link measureFlatness}.
    *  Absent only when the readback itself was unavailable (tainted canvas). */
   flatness?: CaptureFlatness;
+  /** Wall times include asynchronous scheduling; they are not CPU timings. */
+  timings?: { compositeMs: number; pngEncodeMs: number } & CompositeFrameTimings;
+}
+
+interface CompositeFrameTimings {
+  canvasDrawMs?: number;
+  documentStylesMs?: number;
+  overlayBuildMs?: number;
+  overlaySnapshotMs?: number;
+  overlayDecodeMs?: number;
+  overlayDrawMs?: number;
 }
 
 export interface CompositeFrame {
@@ -999,6 +1038,8 @@ export interface CompositeFrame {
   canvases: number;
   /** Number of DOM overlay roots painted above those canvases. */
   domOverlays: number;
+  /** Capture stage wall times, including asynchronous scheduling. */
+  timings?: CompositeFrameTimings;
 }
 
 /** The three independently fallible legs of a full game-frame capture. */
@@ -1430,121 +1471,180 @@ function contentAlphaBounds(
   return right < 0 ? null : { left, top, right: right + 1, bottom: bottom + 1 };
 }
 
+/** Encode the owned output without synchronously compressing PNG on the UI thread. */
+async function canvasPngBase64(canvas: HTMLCanvasElement): Promise<string> {
+  let blob: Blob;
+  if (typeof Worker !== 'undefined' && typeof OffscreenCanvas !== 'undefined' && typeof createImageBitmap !== 'undefined') {
+    const bitmap = await createImageBitmap(canvas);
+    let encoder: Worker | undefined;
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    try {
+      encoder = new Worker(new URL('./png-encode.worker.ts', import.meta.url), { type: 'module' });
+      blob = await new Promise<Blob>((resolve, reject) => {
+        timeout = setTimeout(() => reject(new Error('PNG worker encoding timed out')), 30_000);
+        encoder!.onerror = event => reject(new Error(event.message || 'PNG worker encoding failed'));
+        encoder!.onmessageerror = () => reject(new Error('PNG worker returned an unreadable result'));
+        encoder!.onmessage = ({ data }: MessageEvent<{ blob?: Blob; error?: string }>) => {
+          if (data.blob instanceof Blob) resolve(data.blob);
+          else reject(new Error(data.error ?? 'PNG worker returned no image'));
+        };
+        encoder!.postMessage(bitmap, [bitmap]);
+      });
+    } finally {
+      if (timeout !== undefined) clearTimeout(timeout);
+      encoder?.terminate();
+      bitmap.close();
+    }
+  } else {
+    blob = await new Promise<Blob>((resolve, reject) => {
+      canvas.toBlob((value) => {
+        if (value) resolve(value);
+        else reject(new Error('PNG encoding returned no image'));
+      }, 'image/png');
+    });
+  }
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onerror = () => reject(reader.error ?? new Error('Failed to read encoded PNG'));
+    reader.onload = () => {
+      const value = reader.result;
+      if (typeof value !== 'string' || !value.startsWith('data:image/png;base64,')) {
+        reject(new Error('PNG encoder returned an unexpected data URL'));
+        return;
+      }
+      resolve(value.slice(value.indexOf(',') + 1));
+    };
+    reader.readAsDataURL(blob);
+  });
+}
+
 async function capturePlayCompositeAttempt(
   container: HTMLElement,
   retriesRemaining: number,
   options: CaptureOptions,
 ): Promise<CompositeCapture> {
   const out = container.ownerDocument.createElement('canvas');
-  const layers = await drawPlayCompositeFrame(container, out, options);
-  const width = out.width;
-  const height = out.height;
-  const ctx2d = out.getContext('2d');
-  if (!ctx2d) {
-    throw new CaptureLayerError('composite-output', 'no 2d canvas context');
-  }
+  try {
+    const compositeStarted = performance.now();
+    const layers = await drawPlayCompositeFrame(container, out, options);
+    const compositeMs = performance.now() - compositeStarted;
+    const width = out.width;
+    const height = out.height;
+    const ctx2d = out.getContext('2d');
+    if (!ctx2d) {
+      throw new CaptureLayerError('composite-output', 'no 2d canvas context');
+    }
 
-  if (layers.canvases === 0 && layers.domOverlays > 0 && options?.cropToContent === true) {
-    // The crop path's own emptiness test: the frame deliberately has no
-    // backdrop yet, so painted alpha IS the content. Nothing painted after
-    // the retries is the same blank refusal as below; content crops to its
-    // measured union plus padding, on the container's own backdrop.
-    const bounds = contentAlphaBounds(ctx2d, width, height);
-    if (bounds === null) {
-      if (options.allowTransparent)
-        return { base64: out.toDataURL('image/png').split(',')[1]!, mimeType: 'image/png', layers };
-      if (retriesRemaining > 0) {
+    if (layers.canvases === 0 && layers.domOverlays > 0 && options?.cropToContent === true) {
+      // The crop path's own emptiness test: the frame deliberately has no
+      // backdrop yet, so painted alpha IS the content. Nothing painted after
+      // the retries is the same blank refusal as below; content crops to its
+      // measured union plus padding, on the container's own backdrop.
+      const bounds = contentAlphaBounds(ctx2d, width, height);
+      if (bounds === null) {
+        if (options.allowTransparent)
+          return { base64: await canvasPngBase64(out), mimeType: 'image/png', layers };
+        if (retriesRemaining > 0) {
+          await new Promise<void>((resolve) => setTimeout(resolve, 300));
+          await waitForPaint(container);
+          return capturePlayCompositeAttempt(container, retriesRemaining - 1, options);
+        }
+        throw new CaptureLayerError(
+          'dom-overlay',
+          'the composite is ~100% fully transparent after two repaints — nothing in it painted ' +
+            "a backdrop, so the PNG would read as a flat black frame. This subject's background " +
+            'is painted by an element OUTSIDE what is being photographed (a detached clone ' +
+            'carries no ancestors), or its own DOM never mounted.',
+        );
+      }
+      const CROP_PAD = 16;
+      const x0 = Math.max(0, bounds.left - CROP_PAD);
+      const y0 = Math.max(0, bounds.top - CROP_PAD);
+      const x1 = Math.min(width, bounds.right + CROP_PAD);
+      const y1 = Math.min(height, bounds.bottom + CROP_PAD);
+      const cropped = container.ownerDocument.createElement('canvas');
+      cropped.width = Math.max(1, x1 - x0);
+      cropped.height = Math.max(1, y1 - y0);
+      const croppedCtx = cropped.getContext('2d');
+      if (!croppedCtx) throw new CaptureLayerError('composite-output', 'no 2d canvas context');
+      const ownBackground = getComputedStyle(container).backgroundColor;
+      if (ownBackground && ownBackground !== 'transparent' && ownBackground !== 'rgba(0, 0, 0, 0)') {
+        croppedCtx.fillStyle = ownBackground;
+        croppedCtx.fillRect(0, 0, cropped.width, cropped.height);
+      }
+      croppedCtx.drawImage(
+        out,
+        x0,
+        y0,
+        cropped.width,
+        cropped.height,
+        0,
+        0,
+        cropped.width,
+        cropped.height,
+      );
+      const flatness = sampleFlatness(cropped, container.ownerDocument);
+      let base64: string;
+      try {
+        base64 = await canvasPngBase64(cropped);
+      } catch (error) {
+        throw layerFailure('composite-output', error);
+      } finally {
+        cropped.width = 0;
+        cropped.height = 0;
+      }
+      return {
+        base64,
+        mimeType: 'image/png',
+        layers,
+        ...(flatness ? { flatness } : {}),
+      };
+    }
+    if (layers.canvases === 0 && layers.domOverlays > 0 && !options.allowTransparent) {
+      const verdict = judgeDomOnlyFrame(ctx2d, width, height, retriesRemaining);
+      if (verdict.kind === 'retry') {
         await new Promise<void>((resolve) => setTimeout(resolve, 300));
         await waitForPaint(container);
         return capturePlayCompositeAttempt(container, retriesRemaining - 1, options);
       }
-      throw new CaptureLayerError(
-        'dom-overlay',
-        'the composite is ~100% fully transparent after two repaints — nothing in it painted ' +
-          "a backdrop, so the PNG would read as a flat black frame. This subject's background " +
-          'is painted by an element OUTSIDE what is being photographed (a detached clone ' +
-          'carries no ancestors), or its own DOM never mounted.',
-      );
+      if (verdict.kind === 'blank') {
+        throw new CaptureLayerError(
+          'dom-overlay',
+          `the composite is ~${Math.round(verdict.transparentFraction * 100)}% fully transparent ` +
+            'after two repaints — nothing in it painted a backdrop, so the PNG would read as a flat ' +
+            "black frame. This subject's background is painted by an element OUTSIDE what is being " +
+            'photographed (a detached clone carries no ancestors), or its own DOM never mounted.',
+        );
+      }
     }
-    const CROP_PAD = 16;
-    const x0 = Math.max(0, bounds.left - CROP_PAD);
-    const y0 = Math.max(0, bounds.top - CROP_PAD);
-    const x1 = Math.min(width, bounds.right + CROP_PAD);
-    const y1 = Math.min(height, bounds.bottom + CROP_PAD);
-    const cropped = container.ownerDocument.createElement('canvas');
-    cropped.width = Math.max(1, x1 - x0);
-    cropped.height = Math.max(1, y1 - y0);
-    const croppedCtx = cropped.getContext('2d');
-    if (!croppedCtx) throw new CaptureLayerError('composite-output', 'no 2d canvas context');
-    const ownBackground = getComputedStyle(container).backgroundColor;
-    if (ownBackground && ownBackground !== 'transparent' && ownBackground !== 'rgba(0, 0, 0, 0)') {
-      croppedCtx.fillStyle = ownBackground;
-      croppedCtx.fillRect(0, 0, cropped.width, cropped.height);
-    }
-    croppedCtx.drawImage(
-      out,
-      x0,
-      y0,
-      cropped.width,
-      cropped.height,
-      0,
-      0,
-      cropped.width,
-      cropped.height,
-    );
-    const flatness = sampleFlatness(cropped, container.ownerDocument);
-    let croppedUrl: string;
+
+    // Measure BEFORE encoding, off the composite we just drew: the pixels are
+    // already here, so honesty costs one downsample and no PNG decode anywhere
+    // downstream. (The alternative — measuring in Node from the CLI — would need
+    // a PNG decoder this repo does not ship, in a process that never has the
+    // frame in memory in the first place.)
+    const flatness = sampleFlatness(out, container.ownerDocument);
+
+    const pngStarted = performance.now();
+    let base64: string;
     try {
-      croppedUrl = cropped.toDataURL('image/png');
+      base64 = await canvasPngBase64(out);
     } catch (error) {
       throw layerFailure('composite-output', error);
     }
-    const croppedComma = croppedUrl.indexOf(',');
     return {
-      base64: croppedComma >= 0 ? croppedUrl.slice(croppedComma + 1) : croppedUrl,
+      base64,
       mimeType: 'image/png',
       layers,
       ...(flatness ? { flatness } : {}),
+      timings: { compositeMs, ...layers.timings, pngEncodeMs: performance.now() - pngStarted },
     };
+  } finally {
+    // This one-shot capture owns its backing store. Release native pixels as
+    // soon as its PNG is encoded, including retries and refused captures.
+    out.width = 0;
+    out.height = 0;
   }
-  if (layers.canvases === 0 && layers.domOverlays > 0 && !options.allowTransparent) {
-    const verdict = judgeDomOnlyFrame(ctx2d, width, height, retriesRemaining);
-    if (verdict.kind === 'retry') {
-      await new Promise<void>((resolve) => setTimeout(resolve, 300));
-      await waitForPaint(container);
-      return capturePlayCompositeAttempt(container, retriesRemaining - 1, options);
-    }
-    if (verdict.kind === 'blank') {
-      throw new CaptureLayerError(
-        'dom-overlay',
-        `the composite is ~${Math.round(verdict.transparentFraction * 100)}% fully transparent ` +
-          'after two repaints — nothing in it painted a backdrop, so the PNG would read as a flat ' +
-          "black frame. This subject's background is painted by an element OUTSIDE what is being " +
-          'photographed (a detached clone carries no ancestors), or its own DOM never mounted.',
-      );
-    }
-  }
-
-  // Measure BEFORE encoding, off the composite we just drew: the pixels are
-  // already here, so honesty costs one downsample and no PNG decode anywhere
-  // downstream. (The alternative — measuring in Node from the CLI — would need
-  // a PNG decoder this repo does not ship, in a process that never has the
-  // frame in memory in the first place.)
-  const flatness = sampleFlatness(out, container.ownerDocument);
-
-  let dataUrl: string;
-  try {
-    dataUrl = out.toDataURL('image/png');
-  } catch (error) {
-    throw layerFailure('composite-output', error);
-  }
-  const comma = dataUrl.indexOf(',');
-  return {
-    base64: comma >= 0 ? dataUrl.slice(comma + 1) : dataUrl,
-    mimeType: 'image/png',
-    layers,
-    ...(flatness ? { flatness } : {}),
-  };
 }
 
 /** Fill each element's own painted background at its own on-screen box,
@@ -1569,6 +1669,33 @@ function paintBackdrops(
       box.height * scaleY,
     );
   }
+}
+
+/** Root surfaces still obey their live DOM's overflow clips. A dock viewport
+ * can extend behind its toolbar while an ancestor hides that overflow. */
+function canvasPaintBounds(canvas: HTMLCanvasElement, container: HTMLElement): {
+  left: number; top: number; right: number; bottom: number;
+} | null {
+  const box = canvas.getBoundingClientRect();
+  const root = container.getBoundingClientRect();
+  let left = Math.max(box.left, root.left), top = Math.max(box.top, root.top);
+  let right = Math.min(box.right, root.right), bottom = Math.min(box.bottom, root.bottom);
+  for (let node = canvas.parentElement; node && container.contains(node); node = node.parentElement) {
+    const style = getComputedStyle(node);
+    const clipX = style.overflowX !== 'visible';
+    const clipY = style.overflowY !== 'visible';
+    if (clipX || clipY) {
+      const rect = node.getBoundingClientRect();
+      const scaleX = node.offsetWidth ? rect.width / node.offsetWidth : 1;
+      const scaleY = node.offsetHeight ? rect.height / node.offsetHeight : 1;
+      const x = rect.left + node.clientLeft * scaleX;
+      const y = rect.top + node.clientTop * scaleY;
+      if (clipX) { left = Math.max(left, x); right = Math.min(right, x + node.clientWidth * scaleX); }
+      if (clipY) { top = Math.max(top, y); bottom = Math.min(bottom, y + node.clientHeight * scaleY); }
+    }
+    if (node === container) break;
+  }
+  return right > left && bottom > top ? { left, top, right, bottom } : null;
 }
 
 /**
@@ -1641,29 +1768,41 @@ export async function drawPlayCompositeFrame(
   // actually contribute pixels to the frame.
   const canvases = Array.from(container.querySelectorAll('canvas')).filter((canvas) => {
     const canvasRect = canvas.getBoundingClientRect();
-    return canvas.width > 0 && canvas.height > 0 && canvasRect.width > 0 && canvasRect.height > 0;
+    return canvas.width > 0 && canvas.height > 0 && canvasRect.width > 0 && canvasRect.height > 0 &&
+      canvas.checkVisibility({ checkOpacity: true, checkVisibilityCSS: true });
   });
   const canvasPixels = new Map<HTMLCanvasElement, CanvasImageSource>();
+  const canvasStarted = performance.now();
   for (const canvas of canvases) {
     try {
       const canvasRect = canvas.getBoundingClientRect();
+      const clip = canvasPaintBounds(canvas, container);
+      if (!clip) continue;
       // `?? canvas` is the unchanged path: no seam offered, or the seam had no
       // frame for THIS canvas, means read the canvas itself.
       const pixels = (await options?.canvasFrame?.(canvas)) ?? canvas;
       canvasPixels.set(canvas, pixels);
-      ctx2d.drawImage(
-        pixels,
-        (canvasRect.left - rect.left) * scaleX,
-        (canvasRect.top - rect.top) * scaleY,
-        canvasRect.width * scaleX,
-        canvasRect.height * scaleY,
-      );
+      ctx2d.save();
+      try {
+        ctx2d.beginPath();
+        ctx2d.rect((clip.left - rect.left) * scaleX, (clip.top - rect.top) * scaleY,
+          (clip.right - clip.left) * scaleX, (clip.bottom - clip.top) * scaleY);
+        ctx2d.clip();
+        ctx2d.drawImage(
+          pixels,
+          (canvasRect.left - rect.left) * scaleX,
+          (canvasRect.top - rect.top) * scaleY,
+          canvasRect.width * scaleX,
+          canvasRect.height * scaleY,
+        );
+      } finally { ctx2d.restore(); }
     } catch (error) {
       throw layerFailure('canvas', error);
     }
   }
 
   let domOverlays = 0;
+  const timings: CompositeFrameTimings = { canvasDrawMs: performance.now() - canvasStarted };
   // The same pixels ride the overlay leg, so a canvas nested inside an overlay
   // layer keeps its z-order instead of being painted over by its own layer.
   try {
@@ -1672,6 +1811,11 @@ export async function drawPlayCompositeFrame(
       domOverlays = cached.overlayCount;
     } else {
       const buildStart = performance.now();
+      const documentCssText = options?.includeDocumentStyles
+        ? await embeddedDocumentStyles(container.ownerDocument)
+        : undefined;
+      timings.documentStylesMs = performance.now() - buildStart;
+      const overlayStarted = performance.now();
       // LAYOUT in CSS pixels, RASTER at the output size. `size` scales the
       // frame, never the DOM's own geometry: the clone is laid out in the
       // pixels its stylesheet is written in and the SVG's viewBox does the
@@ -1680,27 +1824,39 @@ export async function drawPlayCompositeFrame(
       const overlay = buildOverlaySvg(container, width / scaleX, height / scaleY, {
         includeDocumentStyles: options?.includeDocumentStyles,
         projectRoot: options?.projectRoot,
-        documentCssText: options?.includeDocumentStyles
-          ? await embeddedDocumentStyles(container.ownerDocument)
-          : undefined,
+        documentCssText,
         canvasPixels,
         transparentBackdrops: new Set<Element>(backdrops),
         snapshots: options?.snapshots,
         rasterSize: { width, height },
       });
+      timings.overlayBuildMs = performance.now() - overlayStarted;
+      timings.overlaySnapshotMs = overlay?.snapshotMs ?? 0;
       if (overlay) {
         const image = new Image();
-        image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(overlay.svg)}`;
-        await image.decode();
-        ctx2d.drawImage(image, 0, 0, width, height);
-        domOverlays = overlay.overlayCount;
-        options?.overlayCache?.store(
-          container,
-          width,
-          height,
-          { image, overlayCount: overlay.overlayCount, backdrops },
-          performance.now() - buildStart,
-        );
+        let retained = false;
+        try {
+          image.src = `data:image/svg+xml;charset=utf-8,${encodeURIComponent(overlay.svg)}`;
+          const decodeStarted = performance.now();
+          await image.decode();
+          timings.overlayDecodeMs = performance.now() - decodeStarted;
+          const drawStarted = performance.now();
+          ctx2d.drawImage(image, 0, 0, width, height);
+          timings.overlayDrawMs = performance.now() - drawStarted;
+          domOverlays = overlay.overlayCount;
+          options?.overlayCache?.store(
+            container,
+            width,
+            height,
+            { image, overlayCount: overlay.overlayCount, backdrops },
+            performance.now() - buildStart,
+          );
+          retained = Boolean(options?.overlayCache);
+        } finally {
+          // A recorder cache owns its decoded raster; a one-shot screenshot
+          // does not. Detach that SVG resource after drawing its pixels.
+          if (!retained) image.removeAttribute('src');
+        }
       } else {
         options?.overlayCache?.store(
           container,
@@ -1715,5 +1871,5 @@ export async function drawPlayCompositeFrame(
     throw layerFailure('dom-overlay', error);
   }
 
-  return { canvases: canvases.length, domOverlays };
+  return { canvases: canvasPixels.size, domOverlays, timings };
 }

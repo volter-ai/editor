@@ -140,10 +140,11 @@ export function physicalPaletteMaterial(compiled: CompiledGraph, sources: readon
 
 /** Copy physical values into an independently cached draw form. Textures and
  * graph uniform values remain borrowed from the authoritative source material. */
-export function syncPhysicalDrawMaterial(source: THREE.Material, target?: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMaterial | null {
+export function syncPhysicalDrawMaterial(source: THREE.Material, target?: THREE.MeshPhysicalMaterial,
+  retainCurrentGraph = false): THREE.MeshPhysicalMaterial | null {
   if (!(source instanceof THREE.MeshPhysicalMaterial) || !uniforms.has(source) || !materialDrawHooksSupported(source)) return null;
   const copy = target ?? graphShadow(source);
-  if (!borrowGraphDrawBinding(source, copy)) {
+  if (!borrowGraphDrawBinding(source, copy, retainCurrentGraph)) {
     if (!target) copy.dispose();
     return null;
   }
@@ -157,6 +158,16 @@ export function syncPhysicalDrawMaterial(source: THREE.Material, target?: THREE.
   values.blenderNormalClip.value = held.blenderNormalClip.value;
   values.blenderWorldExtinction.value.copy(held.blenderWorldExtinction.value);
   return copy;
+}
+
+/** A copy of a presented material that ONE object can wear and a script can recolour (Model
+ *  Play's `tint`/`setOpacity`): the same hooks, physical values, maps and private uniforms,
+ *  drawn from the material's constants -- `color`, `opacity`, `map`, `emissive` -- with no
+ *  node graph, since a graph's Base Color and Alpha replace those constants in the shader.
+ *  Null for a material that is not one of the presenter's. The caller owns and disposes it. */
+export function ownedSurfaceMaterial(source: THREE.Material): THREE.MeshPhysicalMaterial | null {
+  if (!(source instanceof THREE.MeshPhysicalMaterial) || !uniforms.has(source) || !materialDrawHooksSupported(source)) return null;
+  return graphShadow(source);
 }
 
 export function applyPhysicalMaterial(material: THREE.MeshPhysicalMaterial, input?: Physical,

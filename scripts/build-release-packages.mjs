@@ -9,7 +9,7 @@ import {resolve} from 'node:path';
 import {fileURLToPath} from 'node:url';
 import {build} from 'vite';
 function run(workspace,script,metafile){
-  execFileSync('npm',['run',script,'-w',workspace],{stdio:'inherit',env:{...process.env,
+  execFileSync('npm',['run',script,'-w',workspace],{stdio:'inherit',shell:process.platform==='win32',env:{...process.env,
     ...(metafile?{VOLTER_BUILD_METAFILE:resolve('.artifacts',metafile)}:{})}});
 }
 // A product's browser bundle: the modules that rendered into its chunks. Each
@@ -26,8 +26,14 @@ if(process.argv[2]==='--product'){
   const collect=()=>({
     name:'bundled-license-inputs',
     generateBundle(_options,bundle){
-      for(const chunk of Object.values(bundle))if(chunk.type==='chunk')
-        for(const [id,info] of Object.entries(chunk.modules))if(info.renderedLength>0)ids.add(id);
+      for(const chunk of Object.values(bundle)){
+        if(chunk.type==='chunk'){
+          for(const [id,info] of Object.entries(chunk.modules))if(info.renderedLength>0)ids.add(id);
+        }
+        // CSS can ship dependency artwork without importing its JS. Preserve
+        // its actual emitted source files in the same license-input inventory.
+        else for(const file of chunk.originalFileNames??[])ids.add(resolve(file));
+      }
     },
   });
   // Workers are separate Rollup graphs but ship in the same product. Collect
@@ -55,9 +61,9 @@ const steps=[
   ['@volter/editor-blender',()=>run('@volter/editor-blender','build')],
   ['@volter/editor-react',()=>run('@volter/editor-react','build')],
   ['@volter/editor-xstate',()=>run('@volter/editor-xstate','build')],
-  ['@volter/model-editor',()=>{
-    run('@volter/model-editor','build:node','node-bundle-meta.json');
-    product('model-editor','product-bundle-inputs.json');
+  ['@volter/cyclotron',()=>{
+    run('@volter/cyclotron','build:node','node-bundle-meta.json');
+    product('cyclotron','product-bundle-inputs.json');
   }],
   ['@volter/game-editor',()=>{
     run('@volter/game-editor','build:node','game-editor-node-bundle-meta.json');

@@ -400,9 +400,13 @@ function keybindingStrings(chord, apis) {
 // A RUNNING GAME'S STAGE is the game's keyboard: with the Game document active, a stage or
 // panel chord is the player's key, not an editor verb (measured on `arena`: W held in Play ran
 // `transform.translate`, which refused and warned). Global chords still reach the editor there.
+//
+// SO IS A PLAYING STAGE OF ANY OTHER DOCUMENT: a document whose stage plays publishes the mode
+// `PLAY` on its own context (`volter.stage.mode`; the Model document's play script,
+// `@volter/editor-blender`'s `src/play-script.ts`), and the same chords stand down for it.
 function whenFor(id, scope, keymapId) {
 	const focus = scope === 'stage' ? 'volter.stage.focused' : 'volter.focused';
-	const game = scope === 'global' ? '' : " && volter.document.kind != 'game'";
+	const game = scope === 'global' ? '' : " && volter.document.kind != 'game' && volter.stage.mode != 'PLAY'";
 	// A `canvas.*` action has a handler only on a 2D canvas stage, which the stage context reports
 	// as `canvas` (a mounted canvas document marks itself: `markCanvasStageDocument`).
 	const surface = id.startsWith('canvas.') ? " && volter.stage.surface == 'canvas'" : '';

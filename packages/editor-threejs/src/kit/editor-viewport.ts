@@ -3820,8 +3820,10 @@ export class EditorViewport {
     this.orbitControls.target.set(target.x, target.y, target.z);
     this.camera.lookAt(this.orbitControls.target);
     if (fov !== undefined) {
-      this.camera.fov = fov;
-      this.camera.updateProjectionMatrix();
+      // A free pose states three's vertical angle. Keep the resize source in
+      // sync; writing only camera.fov lets the next layout change restore the
+      // previous lens, even when the camera position and target were retained.
+      this.setFieldOfView({ degrees: fov, axis: 'vertical' });
     }
     this.orbitControls.update();
   }

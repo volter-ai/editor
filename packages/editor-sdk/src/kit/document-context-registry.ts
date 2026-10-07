@@ -28,6 +28,7 @@ import { DOCUMENT_REGISTRATION_TIMEOUT_MS, waitUntil } from './wait-until';
  */
 
 const _contexts = new Map<string, unknown>();
+const _contextOwners = new Map<string, symbol>();
 const _listeners = new Set<() => void>();
 const _mounted = new Set<string>();
 const _mountListeners = new Set<() => void>();
@@ -50,10 +51,15 @@ function _notifyContexts(): void {
 }
 
 export function publishDocumentContext(documentId: string, context: unknown): () => void {
+  // Remounted panes can publish the same long-lived view object. Cleanup
+  // belongs to this registration, not to the identity of that shared view.
+  const owner = Symbol(documentId);
+  _contextOwners.set(documentId, owner);
   _contexts.set(documentId, context);
   _notifyContexts();
   return () => {
-    if (_contexts.get(documentId) !== context) return;
+    if (_contextOwners.get(documentId) !== owner) return;
+    _contextOwners.delete(documentId);
     _contexts.delete(documentId);
     _notifyContexts();
   };
@@ -118,6 +124,7 @@ export function waitForDocumentContext(documentId: string, timeoutMs = 10_000): 
 
 export function __resetDocumentContextsForTest(): void {
   _contexts.clear();
+  _contextOwners.clear();
   _mounted.clear();
 }
 

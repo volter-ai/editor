@@ -3,7 +3,7 @@
    EVERY COLOUR HERE IS A WORKBENCH THEME VARIABLE, never a product literal. The cover is a
    child of `.monaco-workbench`, which is the selector the colour theme's generated stylesheet
    is scoped to, so a product's look reaches it through that product's OWN theme extension
-   (`theme-blender` for the model editor) and its type through the look's own stylesheet
+   (`theme-blender` for Cyclotron) and its type through the look's own stylesheet
    (`blender-look.css`'s `.monaco-workbench` font rules). The kit spells no palette; an
    unthemed workbench paints the cover in the workbench's own defaults, which is the same rule
    `volterColors.ts` states for its null defaults. */
@@ -61,6 +61,15 @@
 
 .monaco-workbench .volter-opening-cover.volter-opening-cover-failed .volter-opening-cover-state {
 	color: var(--vscode-errorForeground);
+	/* A REFUSAL IS READ, not glanced at: it carries the cause and the fix (a pinned engine's
+	   `upgrade` line), so it is body-size, left-aligned as the paragraphs it is, and
+	   selectable so the command can be copied off the cover. */
+	font-size: 14px;
+	line-height: 1.5;
+	max-width: 80ch;
+	padding: 0 16px;
+	text-align: left;
+	user-select: text;
 }
 
 .monaco-workbench .volter-opening-cover-dismiss {
@@ -75,4 +84,29 @@
 
 .monaco-workbench .volter-opening-cover-dismiss:hover {
 	background: var(--vscode-button-hoverBackground);
+}
+
+/* WHAT A SLOW OPEN IS WAITING ON (`VolterOpeningCover.note`): progress, not a refusal, so it
+   rides along the bottom under whatever splash is drawn — the product's or the kit's — and
+   comes away when the wait it names is over. */
+.monaco-workbench .volter-opening-cover-note {
+	position: absolute;
+	left: 16px;
+	right: 16px;
+	bottom: 24px;
+	font-size: 12px;
+	text-align: center;
+	white-space: pre-wrap;
+	user-select: text;
+	color: var(--vscode-descriptionForeground);
+}
+
+/* THE WAY OUT OF A LONG WAIT (`VolterOpeningCover.offerDismiss`): beside the progress line, under
+   whatever splash is drawn, so a slow open never seals the workbench behind it. */
+.monaco-workbench .volter-opening-cover-dismiss.volter-opening-cover-dismiss-waiting {
+	position: absolute;
+	left: 50%;
+	bottom: 56px;
+	transform: translateX(-50%);
+	margin-top: 0;
 }

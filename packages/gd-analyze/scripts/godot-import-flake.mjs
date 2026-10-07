@@ -32,7 +32,7 @@ for (let run = 0; run < Number(runs); run += 1) {
   const copy = path.join(temp, 'project');
   cpSync(project, copy, { recursive: true, filter: (source) => !['.git', '.godot', '.import'].includes(path.basename(source)) });
   const started = Date.now();
-  const result = spawnSync(godot, ['--headless', '--path', copy, '--import'], { encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 600_000 });
+  const result = spawnSync(godot, ['--headless', '--path', copy, '--import'], { windowsHide: true, encoding: 'utf8', maxBuffer: 64 * 1024 * 1024, timeout: 600_000 });
   const crash = [...reports()]
     .filter((name) => !before.has(name))
     .map((name) => ({ path: path.join(REPORTS, name), head: readFileSync(path.join(REPORTS, name), 'utf8').slice(0, 6000) }));

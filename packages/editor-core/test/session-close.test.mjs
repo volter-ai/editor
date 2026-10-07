@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 
 const bundle = await build({
-  entryPoints: [fileURLToPath(new URL('../src/session-close.ts', import.meta.url))],
+  entryPoints: [fileURLToPath(new URL('../../editor-sdk/src/kit/session-close.ts', import.meta.url))],
   bundle: true, platform: 'node', format: 'esm', write: false,
 });
 const { onBeforeSessionClose, prepareSessionClose } = await import(
@@ -38,9 +38,11 @@ const cli = await build({
   entryPoints: [fileURLToPath(new URL('../server/launcher/control.ts', import.meta.url))],
   bundle: true, platform: 'node', format: 'cjs', write: false,
   plugins: [{ name: 'session-fixture', setup(builder) {
-    builder.onResolve({ filter: /^@volter\/editor-live$|^@volter\/editor-sdk\/client$|^\.\/editor-sessions$/ }, args => ({ path: args.path, namespace: 'fixture' }));
-    builder.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: `
+    builder.onResolve({ filter: /^@volter\/editor-live$|^@volter\/editor-sdk\/client$|^\.\/(editor-sessions|hosted)$/ }, args => ({ path: args.path, namespace: 'fixture' }));
+    builder.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ contents: args.path === './hosted'
+      ? 'export const HOSTED_USAGE = "hosted"; export function hostedControl() { throw Error("Not a local-close operation"); }' : `
       export const connect = globalThis.fixture.connect;
+      export function unconnectedBindings() { throw Error("Not a local-close operation"); }
       export const EditorClient = globalThis.fixture.Client;
       export const verifiedSessions = globalThis.fixture.sessions;
       export const terminateEditorSession = globalThis.fixture.terminate;
@@ -64,12 +66,12 @@ test('CLI never signals the process before saves, refuses failed saves, and clos
   };
   runInNewContext(cli.outputFiles[0].text, context);
   const { control } = context.module.exports;
-  await control('volter-model-editor', 'close');
+  await control('cyclotron', 'close');
   assert.deepEqual(events.splice(0), ['save', 'terminate']);
   fail = true;
-  await assert.rejects(control('volter-model-editor', 'close'), /disk full/);
+  await assert.rejects(control('cyclotron', 'close'), /disk full/);
   assert.deepEqual(events.splice(0), ['save']);
   headless = true;
-  await control('volter-model-editor', 'close');
+  await control('cyclotron', 'close');
   assert.deepEqual(events, ['terminate']);
 });

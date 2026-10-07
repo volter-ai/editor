@@ -108,7 +108,7 @@ export function productContributionFiles(product: ProductIdentity): string[] {
 }
 
 interface ContributingManifest {
-  volter?: { contributions?: unknown; serving?: unknown };
+  volter?: { contributions?: unknown; serving?: unknown; viewServing?: unknown };
 }
 
 /**
@@ -157,6 +157,36 @@ export function productServingModules(product: ProductIdentity): string[] {
     const file = join(dirname(manifestPath), declared);
     if (!existsSync(file)) {
       throw new Error(`${name} declares volter.serving ${declared}, and ${file} does not exist. Build the package.`);
+    }
+    files.push(file);
+  }
+  return files;
+}
+
+/**
+ * EVERY LIMITED-VIEW ROUTE MODULE THE PRODUCT COMPOSES — each composed package's
+ * `package.json#volter.viewServing`, as an absolute file: the BROWSER module whose
+ * `viewRoutes(services)` answers that integration's own routes in a limited view
+ * (`@volter/editor-sdk/session/limited-view`). `view build` bundles them into the view's page.
+ */
+export function productViewServingModules(product: ProductIdentity): string[] {
+  const resolveFrom = createRequire(pathToFileURL(join(product.dir, 'package.json')));
+  const files: string[] = [];
+  for (const name of composedPackages(product)) {
+    let manifestPath: string;
+    try {
+      manifestPath = resolveFrom.resolve(`${name}/package.json`);
+    } catch {
+      continue;
+    }
+    const declared = (JSON.parse(readFileSync(manifestPath, 'utf8')) as ContributingManifest).volter?.viewServing;
+    if (declared === undefined) continue;
+    if (typeof declared !== 'string') {
+      throw new Error(`${name}'s package.json#volter.viewServing must name one module file.`);
+    }
+    const file = join(dirname(manifestPath), declared);
+    if (!existsSync(file)) {
+      throw new Error(`${name} declares volter.viewServing ${declared}, and ${file} does not exist.`);
     }
     files.push(file);
   }

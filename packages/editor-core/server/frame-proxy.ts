@@ -63,6 +63,7 @@ import { basename } from 'node:path';
 import type { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createBrotliCompress, createGzip, constants as zlibConstants } from 'node:zlib';
+import { workbenchUrl } from '@volter/editor-sdk/session/workbench-locator';
 import { JS_PROFILING_POLICY_HEADER, JS_PROFILING_POLICY_VALUE } from './js-profiling-policy';
 
 export interface FrameProxyOptions {
@@ -95,9 +96,11 @@ export interface FrameProxy {
  * The workbench's own paths. `<product segment>` (`/oss-dev` out of a source
  * checkout, the quality segment out of a build — `getServerProductSegment`) is
  * DISCOVERED at boot rather than spelled here, because the page states it.
+ * The serve-web CLI owns the exact secret-key mint route outside that segment;
+ * its advertised cookie path must reach that upstream rather than the project.
  */
 const VSCODE_PATH_BASE =
-  '^\\/$|^\\/(static|favicon|manifest\\.json|code-192|code-512|callback|oauth|out|extensions|builtin|remote|vscode-remote|_static|web-extension|version|delay-shutdown)';
+  '^\\/$|^\\/_vscode-cli/mint-key$|^\\/(static|favicon|manifest\\.json|code-192|code-512|callback|oauth|out|extensions|builtin|remote|vscode-remote|_static|web-extension|version|delay-shutdown)';
 
 /** What is worth compressing. Everything else goes through byte for byte. */
 const COMPRESSIBLE =
@@ -147,7 +150,8 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
   const upstream = { host: '127.0.0.1', port: upstreamPort };
   const session = { host: '127.0.0.1', port: sessionPort };
   const upstreamOrigin = `http://${upstream.host}:${upstream.port}`;
-  const selfOrigin = `http://127.0.0.1:${port}`;
+  const urlToOpen = workbenchUrl(port, projectRoot);
+  const selfOrigin = new URL(urlToOpen).origin;
   const webviewOriginTemplate = `http://{{uuid}}.localhost:${port}`;
   const webviewOriginPattern = `http://*.localhost:${port}`;
   const projectId = basename(projectRoot);
@@ -273,6 +277,18 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
   const handleRequest = (req: IncomingMessage, res: ServerResponse): void => {
     const url = new URL(req.url ?? '/', selfOrigin);
     const pathname = url.pathname;
+    // Old links and manually opened loopback aliases must land on the same
+    // project host as the CLI. Redirect the document before VS Code reads
+    // cookies, without deleting credentials belonging to another local app.
+    if (pathname === '/' && req.method === 'GET' && req.headers.host !== new URL(selfOrigin).host) {
+      res.writeHead(302, {
+        ...isolation,
+        location: `${selfOrigin}${url.pathname}${url.search}`,
+        'cache-control': 'no-store',
+      });
+      res.end();
+      return;
+    }
     // THE ONE HOSTED BOOT PARAM, ONTO THE WORKBENCH'S OWN. `?project=<id>` is
     // what a link to the Volter editor carries; the workbench's own boot contract
     // is `?folder=<path>` (`WorkspaceProvider.create`, which reads a bare path
@@ -292,7 +308,10 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         }
         const next = new URL(url);
         next.searchParams.delete('project');
-        next.searchParams.set('folder', projectRoot);
+        // The workbench reads `folder` as a URI path, so a Windows root is
+        // `/C:/Users/…` — `C:\Users\…` resolves to no filesystem provider.
+        next.searchParams.set('folder', process.platform === 'win32'
+          ? `/${projectRoot.replaceAll('\\', '/')}` : projectRoot);
         res.writeHead(302, {
           ...isolation,
           location: `${next.pathname}${next.search}`,
@@ -515,7 +534,7 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
   });
 
   return {
-    url: `${selfOrigin}/?project=${encodeURIComponent(projectId)}`,
+    url: urlToOpen,
     close: async () => {
       await Promise.all(
         servers.map(

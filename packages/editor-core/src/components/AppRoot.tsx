@@ -23,7 +23,12 @@
  * is readable.
  */
 
-import { commandLine, commandSequence } from '@volter/editor-sdk/kit/product-command';
+import { commandLine, commandSequence, loadProductNames, productNames } from '@volter/editor-sdk/kit/product-command';
+import {
+  clearStartupFailure,
+  reportStartupFailure,
+  type StartupFailureNotice,
+} from '@volter/editor-sdk/kit/startup-failure';
 import { editorDocumentTitle } from '@volter/editor-sdk/session/editor-brand';
 import {
   ProjectCompatibilityError,
@@ -93,6 +98,19 @@ class EditorRuntimeBoundary extends Component<
       `Editor chrome crashed while the command listener stayed attached: ${error.message}\n${info.componentStack ?? ''}`,
       'editor',
     );
+    // A crash while the product's cover is still up (the editor is ready, the
+    // product's first document is not) draws this screen UNDER the cover, so it
+    // is published like any other startup failure. After the cover has lifted
+    // the cover ignores it, and this screen is what the person sees.
+    reportStartupFailure('editor-surface', {
+      message: `The editor surface crashed: ${error.message}`,
+      guidance: 'Dismiss this, then press Retry on the error screen to draw the editor again.',
+      command: null,
+    });
+  }
+
+  override componentWillUnmount(): void {
+    clearStartupFailure('editor-surface');
   }
 
   override render(): ReactNode {
@@ -100,7 +118,10 @@ class EditorRuntimeBoundary extends Component<
     return (
       <StartupErrorScreen
         error={{ message: `The editor surface crashed: ${this.state.error.message}` }}
-        onRetry={() => this.setState({ error: null })}
+        onRetry={() => {
+          clearStartupFailure('editor-surface');
+          this.setState({ error: null });
+        }}
       />
     );
   }
@@ -198,6 +219,22 @@ export function createFromParam(search: string): string | null {
 /** Attempts before a still-retrying detection reports itself to the console. */
 const PROJECT_DETECTION_REPORT_AFTER = 3;
 
+function noProjectMessage(): string {
+  return (
+    'This window has no project open. A session serves one project: open a folder ' +
+    `that carries a volter.project.json, or start one from a terminal — ${commandLine('edit <folder>')}.`
+  );
+}
+
+/** This tree's own startup failures, under one source in the page's registry
+ *  (`@volter/editor-sdk/kit/startup-failure`, which the frame's cover hears). */
+const STARTUP_SOURCE = 'editor';
+
+function publishStartupFailure(notice: StartupFailureNotice | null): void {
+  if (notice) reportStartupFailure(STARTUP_SOURCE, notice);
+  else clearStartupFailure(STARTUP_SOURCE);
+}
+
 export function AppRoot() {
   const [state, setState] = useState<State>({ status: 'detecting', waitingSince: null });
   const [detectionAttempt, setDetectionAttempt] = useState(0);
@@ -229,14 +266,20 @@ export function AppRoot() {
     let failures = 0;
     const startedAt = Date.now();
     setState({ status: 'detecting', waitingSince: null });
+    publishStartupFailure(null);
 
     const ask = () => {
       detectProjectWithTimeout().then(
         (project) => {
           if (cancelled) return;
           if (project) {
+            publishStartupFailure(null);
             setState({ status: 'ready', project });
           } else {
+            // A page with no project is a dead end too, and the cover is over it.
+            const message = noProjectMessage();
+            editorConsole.error(`Startup failed: ${message}`, 'editor');
+            publishStartupFailure({ message, guidance: null, command: null });
             setState({ status: 'no-project' });
           }
         },
@@ -257,10 +300,17 @@ export function AppRoot() {
             // the editor's `console` command whether or not anyone looks at the tab.
             const command =
               failure.recovery && 'verbs' in failure.recovery ? commandSequence(failure.recovery.verbs) : null;
+            // A message that already names its fix (the engine pin's does) is
+            // not followed by the same command a second time.
             editorConsole.error(
-              `Startup failed: ${failure.message}${command ? ` Run: ${command}` : ''}`,
+              `Startup failed: ${failure.message}${command && !failure.message.includes(command) ? ` Run: ${command}` : ''}`,
               'editor',
             );
+            publishStartupFailure({
+              message: failure.message,
+              guidance: failure.recovery?.guidance ?? null,
+              command,
+            });
             setState(failure);
             return;
           }
@@ -281,6 +331,19 @@ export function AppRoot() {
               `Project detection has failed ${failures} times and is still retrying: ${reason}`,
               'editor',
             );
+          }
+          // AND TO THE PERSON, AS PROGRESS: the waiting clock and the reason
+          // are drawn by the loading screen, which is under the product's
+          // cover. From the same attempt on, the cover carries them as a
+          // still-trying line — never as a refusal, because this may yet
+          // succeed (a cold first boot does) — and a success clears it.
+          if (failures >= PROJECT_DETECTION_REPORT_AFTER) {
+            publishStartupFailure({
+              message: `Still reading the project (${Math.round((Date.now() - startedAt) / 1000)}s, ${failures} attempts): ${reason}`,
+              guidance: null,
+              command: null,
+              transient: true,
+            });
           }
           setState({
             status: 'detecting',
@@ -326,14 +389,29 @@ export function AppRoot() {
     reportTabRoute(state.status === 'ready' ? 'project' : 'no-project');
   }, [state.status]);
 
+  // The tab title carries the REASON, not only the verdict: a person looking at
+  // a row of tabs (or a stream) reads "pinned to 0.5.185, editor is 0.5.189"
+  // without opening the one that failed.
+  const failureReason =
+    state.status === 'error' && state.recovery
+      ? ('summary' in state.recovery ? state.recovery.summary : undefined) ?? state.recovery.title
+      : null;
   const titleSubject =
     state.status === 'ready'
       ? state.project.config.name
       : state.status === 'error'
-        ? "Couldn't open project"
+        ? `Couldn't open project${failureReason ? ` — ${failureReason}` : ''}`
         : null;
   useEffect(() => {
-    document.title = editorDocumentTitle(titleSubject);
+    // The product's own name when the page has learnt it; the names arrive with the project
+    // answer, so a title set before they land is set again once they do.
+    document.title = editorDocumentTitle(titleSubject, productNames()?.displayName);
+    if (productNames()) return;
+    let current = true;
+    void loadProductNames().then(() => {
+      if (current) document.title = editorDocumentTitle(titleSubject, productNames()?.displayName);
+    });
+    return () => { current = false; };
   }, [titleSubject]);
 
   if (state.status === 'detecting') {
@@ -357,11 +435,7 @@ export function AppRoot() {
     return (
       <EditorSurface>
         <StartupErrorScreen
-          error={{
-            message:
-              'This window has no project open. A session serves one project: open a folder ' +
-              `that carries a volter.project.json, or start one from a terminal — ${commandLine('edit <folder>')}.`,
-          }}
+          error={{ message: noProjectMessage() }}
           onRetry={() => setDetectionAttempt((attempt) => attempt + 1)}
         />
       </EditorSurface>

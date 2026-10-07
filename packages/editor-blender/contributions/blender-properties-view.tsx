@@ -53,8 +53,9 @@ import type {
   BlenderRnaRow,
   BlenderRnaView,
 } from '@volter/blender-engine/browser/rna';
-import { useEffect, useState, useSyncExternalStore } from 'react';
-import { ColorPicker, hexToRgb, parseAlpha, toHex } from '@volter/editor-sdk/widgets';
+import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
+import { faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
+import { ColorPicker, EditorIcon, hexToRgb, parseAlpha, toHex } from '@volter/editor-sdk/widgets';
 import {
   type BlenderSubject,
   blenderPropertiesState,
@@ -135,6 +136,7 @@ function Panel({
   closed = false,
   note,
   count,
+  headerControl,
   children,
 }: {
   readonly title: string;
@@ -147,6 +149,7 @@ function Panel({
   /** A list panel's length, beside its title — Blender's `template_list`
    *  shows the rows and the count is what a collapsed panel can still say. */
   readonly count?: number;
+  readonly headerControl?: React.ReactNode;
   readonly children: React.ReactNode;
 }) {
   const [open, setOpen] = useState(!closed);
@@ -162,6 +165,7 @@ function Panel({
         overflow: 'hidden',
       }}
     >
+      <div style={{ position: 'relative' }}>
       <button
         type="button"
         onClick={() => setOpen(!open)}
@@ -196,13 +200,16 @@ function Panel({
         >
           {open ? '▼' : '▶'}
         </span>
-        <span style={{ fontWeight: 400 }} title={note}>
+        <span style={{ fontWeight: 400, marginLeft: headerControl ? CHECKBOX + TRIANGLE_GAP : 0 }} title={note}>
           {title}
         </span>
         {count === undefined ? null : (
           <span style={{ opacity: READONLY_ALPHA, marginLeft: 'auto' }}>{count}</span>
         )}
       </button>
+      {headerControl ? <div style={{position: 'absolute', left: PANEL_LABEL_X, top: 0,
+        height: PANEL_HEADER, display: 'flex', alignItems: 'center'}}>{headerControl}</div> : null}
+      </div>
       {open ? <div style={{ padding: PANEL_PAD }}>{children}</div> : null}
     </div>
   );
@@ -353,6 +360,17 @@ function Numeric({
   readonly onWrite: (next: number, index?: number) => void;
 }) {
   const [draft, setDraft] = useState<string | null>(null);
+  const pendingDraft = useRef<string | null>(null);
+  const commit = () => {
+    const typed = pendingDraft.current;
+    // Enter can also cause blur. Consume the edit before writing, once.
+    pendingDraft.current = null;
+    setDraft(null);
+    // Empty or incomplete number inputs have no numeric value to commit.
+    if (typed === null || typed.trim() === '') return;
+    const next = Number(typed);
+    if (Number.isFinite(next) && next !== value) onWrite(next, index);
+  };
   const decimals = row.type === 'FLOAT' ? (row.precision ?? 3) : 0;
   const shown = draft ?? (row.type === 'FLOAT' ? value.toFixed(decimals) : String(value));
   if (row.readonly) return <StaticValue>{shown}</StaticValue>;
@@ -369,15 +387,20 @@ function Numeric({
       {...(row.softMin === undefined ? {} : { min: row.softMin })}
       {...(row.softMax === undefined ? {} : { max: row.softMax })}
       {...(row.step === undefined ? {} : { step: row.type === 'FLOAT' ? row.step / 100 : 1 })}
-      onChange={(event) => setDraft(event.target.value)}
-      onBlur={() => {
-        const next = Number(draft);
-        setDraft(null);
-        if (draft !== null && Number.isFinite(next) && next !== value) onWrite(next, index);
+      onChange={(event) => {
+        pendingDraft.current = event.target.value;
+        setDraft(event.target.value);
       }}
+      onBlur={commit}
       onKeyDown={(event) => {
-        if (event.key === 'Enter') (event.target as HTMLInputElement).blur();
-        if (event.key === 'Escape') setDraft(null);
+        if (event.key === 'Enter') {
+          commit();
+          event.currentTarget.blur();
+        }
+        if (event.key === 'Escape') {
+          pendingDraft.current = null;
+          setDraft(null);
+        }
       }}
       style={fieldStyle}
     />
@@ -560,7 +583,10 @@ function ColourWidget({ row, write }: WidgetProps) {
  *  scalar into a three-element array, which is a refusal rather than the lock
  *  the person asked for. Each toggle here writes its own index (the door's
  *  `index` argument, `session.py::rna_set`'s `getattr(target, id)[index]`). */
-function ArrayRows({ row, label, title, write }: WidgetProps & { label: string; title: string }) {
+function ArrayRows({ row, path, label, title, write, locks }: WidgetProps & {
+  label: string; title: string;
+  locks?: readonly { row: BlenderRnaRow; index?: number }[] | undefined;
+}) {
   const values = (row.value as readonly (number | boolean)[] | null) ?? [];
   return (
     <>
@@ -587,10 +613,29 @@ function ArrayRows({ row, label, title, write }: WidgetProps & { label: string; 
               onWrite={(next, at) => write(next, at)}
             />
           )}
+          <LockToggle path={path} lock={locks?.[index]} />
         </Row>
       ))}
     </>
   );
+}
+
+function lockValue(lock: { row: BlenderRnaRow; index?: number }): boolean {
+  return lock.index === undefined ? lock.row.value === true
+    : Array.isArray(lock.row.value) && lock.row.value[lock.index] === true;
+}
+
+function LockToggle({path, lock}: {path: string;
+  lock: {row: BlenderRnaRow; index?: number} | undefined}) {
+  if (lock === undefined) return null;
+  const value = lockValue(lock);
+  return <button type="button" aria-label={fieldName(lock.row, lock.index)} aria-pressed={value}
+    disabled={lock.row.readonly}
+    onClick={() => void writeBlenderRnaProperty(path, lock.row.identifier, !value, lock.index)}
+    style={{height: UNIT, width: UNIT, flexShrink: 0, padding: 0, background: 'transparent',
+      border: 'none', color: INK, cursor: 'pointer'}}>
+    <EditorIcon icon={value ? faLock : faLockOpen} size="sm" />
+  </button>;
 }
 
 function componentLabel(label: string, index: number, subtype: string): string {
@@ -626,14 +671,18 @@ function PropertyRow({
   row,
   path,
   onOpen,
+  label: overrideLabel,
+  locks,
 }: {
   readonly row: BlenderRnaRow;
   readonly path: string;
   readonly onOpen: (path: string) => void;
+  readonly label?: string | undefined;
+  readonly locks?: readonly { row: BlenderRnaRow; index?: number }[] | undefined;
 }) {
   const write = (next: unknown, index?: number) =>
     void writeBlenderRnaProperty(path, row.identifier, next, index);
-  const label = row.name || row.identifier;
+  const label = overrideLabel ?? (row.name || row.identifier);
   const title = `${row.identifier} — ${row.type}${row.subtype === 'NONE' ? '' : `/${row.subtype}`}${
     row.readonly ? ' (read-only)' : ''
   }${row.description ? `\n${row.description}` : ''}`;
@@ -664,7 +713,7 @@ function PropertyRow({
           <ColourWidget {...props} />
         </Row>
       );
-    return <ArrayRows {...props} label={label} title={title} />;
+    return <ArrayRows {...props} label={label} title={title} locks={locks} />;
   }
   return (
     <Row label={label} title={title} readonly={row.readonly} identifier={row.identifier}>
@@ -778,7 +827,18 @@ function CollectionRow({
  * what this is for; the alternative — a nested block per struct — would put
  * the rows in an order Blender does not use.
  */
-export type BlenderCuratedProperty = string | { readonly from: string; readonly property: string };
+export type BlenderCuratedProperty = string | {
+  readonly from?: string;
+  readonly property: string;
+  /** Blender's layout.prop(text=...) label. */
+  readonly label?: string;
+  /** A draw branch over a live RNA value, e.g. Object.rotation_mode. */
+  readonly when?: Omit<BlenderPanelCondition, 'from'>;
+  /** Whole-array lock toggles drawn beside the vector, not as extra rows. */
+  readonly lock?: string;
+  /** Quaternion/axis-angle W has a separate scalar lock. */
+  readonly firstLock?: string;
+};
 
 const identifierOf = (entry: BlenderCuratedProperty): string =>
   typeof entry === 'string' ? entry : entry.property;
@@ -805,6 +865,8 @@ export interface BlenderCuratedPanel {
   readonly properties: readonly BlenderCuratedProperty[];
   /** Blender's `bl_options = {'DEFAULT_CLOSED'}`. */
   readonly closed?: boolean;
+  /** A draw_header checkbox, such as Scene.use_gravity. */
+  readonly headerProperty?: string;
   /** A `bl_parent_id` child panel. */
   readonly sub?: readonly BlenderCuratedPanel[];
   /**
@@ -1045,18 +1107,37 @@ function CuratedPanel({
   // EACH ENTRY IS READ FROM THE DATABLOCK BLENDER READS IT FROM: the panel's
   // own, or the one a qualified entry names ({@link BlenderCuratedProperty}).
   // Order is Blender's list, whichever struct a row comes from.
-  const found: { identifier: string; row: BlenderRnaRow; path: string }[] = [];
+  const found: { identifier: string; row: BlenderRnaRow; path: string;
+    label?: string; locks?: readonly { row: BlenderRnaRow; index?: number }[] }[] = [];
   const missing: string[] = [];
   for (const item of panel.properties) {
     const identifier = identifierOf(item);
-    const where = typeof item === 'string' ? entry : paths.find((path) => path.label === item.from);
+    const where = typeof item === 'string' || item.from === undefined
+      ? entry : paths.find((path) => path.label === item.from);
     const source = where === undefined ? undefined : blenderRnaViewFor(where.path);
+    const rows = source?.kind === 'struct' ? source.groups.flatMap((group) => group.rows) : [];
+    if (typeof item !== 'string' && item.when) {
+      const value = rows.find((row) => row.identifier === item.when?.property)?.value;
+      if (typeof value !== 'string' && typeof value !== 'number' && typeof value !== 'boolean') continue;
+      if (item.when.is && !item.when.is.includes(value)) continue;
+      if (item.when.isNot?.includes(value)) continue;
+    }
     const row =
       source?.kind === 'struct'
         ? source.groups.flatMap((group) => group.rows).find((it) => it.identifier === identifier)
         : undefined;
     if (row === undefined || where === undefined) missing.push(identifier);
-    else found.push({ identifier, row, path: where.path });
+    else {
+      const lock = typeof item === 'string' ? undefined : rows.find((row) => row.identifier === item.lock);
+      const firstLock = typeof item === 'string' ? undefined : rows.find((row) => row.identifier === item.firstLock);
+      found.push({ identifier, row, path: where.path,
+        ...(typeof item === 'string' || item.label === undefined ? {} : { label: item.label }),
+        ...(lock === undefined ? {} : { locks: [
+          ...(firstLock === undefined ? [] : [{ row: firstLock }]),
+          ...Array.from({length: lock.arrayLength}, (_, index) => ({row: lock, index})),
+        ] }),
+      });
+    }
   }
   if (view === undefined)
     return (
@@ -1071,6 +1152,14 @@ function CuratedPanel({
     <Panel
       title={panel.title}
       closed={panel.closed === true}
+      headerControl={(() => {
+        const row = view.kind === 'struct' ? view.groups.flatMap(group => group.rows)
+          .find(row => row.identifier === panel.headerProperty) : undefined;
+        return row ? <span onClick={event => event.stopPropagation()}><Checkbox
+          value={row.value === true} readonly={row.readonly} label={row.name}
+          onChange={value => void writeBlenderRnaProperty(entry.path, row.identifier, value)}
+        /></span> : null;
+      })()}
       note={
         missing.length === 0
           ? `${entry.path}`
@@ -1078,7 +1167,8 @@ function CuratedPanel({
       }
     >
       {found.map((item) => (
-        <PropertyRow key={item.identifier} row={item.row} path={item.path} onOpen={onOpen} />
+        <PropertyRow key={item.identifier} row={item.row} path={item.path} onOpen={onOpen}
+          label={item.label} locks={item.locks} />
       ))}
       {/* KEYED BY POSITION, NOT BY TITLE: Blender ships two panels with the
           same `bl_label` under different engines and expects the poll to pick

@@ -13,7 +13,7 @@
  */
 
 import type { Request, Response } from 'express';
-import { renderEditorBrandPage } from '../editor-brand-html';
+import { editorBrandName, renderEditorBrandPage } from '../editor-brand-html';
 import type { EditorServerRouter } from '../editor-server';
 import { allowCrossOriginFrameEmbedding } from '../server-utils';
 import { readTabBootstrapSource, TAB_BOOTSTRAP_PATH } from '../tab-bootstrap';
@@ -140,8 +140,8 @@ export function registerSessionTabRoutes(
   });
 
   // POST /__editor/tab/claim — the yield page's "Use here instead": the
-  // current blessed tab is told to yield; the claimant reloads `/` and its
-  // fresh connection takes the blessing.
+  // current blessed tab is told to yield; the claimant reloads the page it
+  // yielded from (`return`, else `/`) and its fresh connection takes the blessing.
   router.post('/__editor/tab/claim', (req: Request, res: Response) => {
     const claimedParticipantId = (req.body as { participantId?: unknown } | undefined)
       ?.participantId;
@@ -176,20 +176,28 @@ export function registerSessionTabRoutes(
 
   // GET /__editor/tab-yielded — the static page a yielded tab lands on when
   // `window.close()` is refused (user-opened tabs). Minimal on purpose: the
-  // editor must never RUN in two tabs for one session.
+  // editor must never RUN in two tabs for one session. "Use here instead"
+  // returns to `?return=` (the yielded page, so its `?project=` survives) only
+  // when that is a path on this origin outside `/__editor/`; anything else is `/`.
   router.get('/__editor/tab-yielded', (_req: Request, res: Response) => {
     res.type('html').send(
       renderEditorBrandPage({
         subject: 'Editor open in another tab',
-        description: 'This Volter Editor session is active in another browser tab.',
+        description: `This ${editorBrandName()} session is active in another browser tab.`,
         contentHtml:
           "<h1>Editor open in another tab</h1><p>This game's editor is active elsewhere.</p>" +
           '<button id="claim">Use here instead</button>',
         scriptHtml:
           'document.getElementById("claim").addEventListener("click",async()=>{' +
-          'const participantId=new URLSearchParams(location.search).get("participantId");' +
+          'const query=new URLSearchParams(location.search);' +
+          'const participantId=query.get("participantId");' +
           'try{await fetch("/__editor/tab/claim",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({participantId})})}catch{}' +
-          'location.replace("/")});',
+          'let back="/";' +
+          'try{const target=new URL(query.get("return")||"/",location.origin);' +
+          // The full href, never the bare pathname: `?return=/.//evil.com` parses to this origin with the
+          // pathname `//evil.com`, which location.replace would read as protocol-relative.
+          'if(target.origin===location.origin&&!target.pathname.toLowerCase().startsWith("/__editor/"))back=target.href}catch{}' +
+          'location.replace(back)});',
       }),
     );
   });

@@ -224,7 +224,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
               '-e',
               'return POSIX path of theFolder',
             ],
-            (err, stdout) => {
+            { windowsHide: true }, (err, stdout) => {
               if (err) fail(err);
               else ok(stdout.trim());
             },
@@ -237,13 +237,13 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
           execFile(
             'zenity',
             ['--file-selection', '--directory', `--title=${title}`],
-            (err, stdout) => {
+            { windowsHide: true }, (err, stdout) => {
               if (err) {
                 // Try kdialog as fallback
                 execFile(
                   'kdialog',
                   ['--getexistingdirectory', homedir(), '--title', title],
-                  (err2, stdout2) => {
+                  { windowsHide: true }, (err2, stdout2) => {
                     if (err2) fail(err2);
                     else ok(stdout2.trim());
                   },
@@ -275,11 +275,11 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
 
     const os = platform();
     if (os === 'darwin') {
-      spawn('open', ['-R', targetPath], { stdio: 'ignore', detached: true }).unref();
+      spawn('open', ['-R', targetPath], { windowsHide: true, stdio: 'ignore', detached: true }).unref();
     } else if (os === 'linux') {
-      spawn('xdg-open', [dirname(targetPath)], { stdio: 'ignore', detached: true }).unref();
+      spawn('xdg-open', [dirname(targetPath)], { windowsHide: true, stdio: 'ignore', detached: true }).unref();
     } else if (os === 'win32') {
-      spawn('explorer', ['/select,', targetPath], { stdio: 'ignore', detached: true }).unref();
+      spawn('explorer', ['/select,', targetPath], { windowsHide: false, stdio: 'ignore', detached: true }).unref();
     }
     res.json({ ok: true });
   });

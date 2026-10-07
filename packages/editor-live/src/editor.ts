@@ -22,6 +22,7 @@ import type {
   InspectedHierarchy,
   InspectedInspection,
   LabeledShotSetCapture,
+  ModelPlayLogReading,
   OpenedDocument,
   PresentedEditorView,
   ShadingMode,
@@ -100,7 +101,7 @@ export function inferAssetKind(path: string): AssetKind {
 }
 
 export class LiveEditor {
-  /** `#`-private, not `private`: `volter-model-editor eval --list` enumerates this object's
+  /** `#`-private, not `private`: `cyclotron eval --list` enumerates this object's
    *  real runtime members, and TypeScript's erased `private` would leave the
    *  raw `EditorClient` advertised beside them. */
   readonly #client: EditorClient;
@@ -121,7 +122,7 @@ export class LiveEditor {
   }
 
   /**
-   * THE BLENDER LANE'S VERBS, from `volter-model-editor eval`.
+   * THE BLENDER LANE'S VERBS, from `cyclotron eval`.
    *
    * Blender runs headless in the editor tab's worker (ARCHITECTURE-CORE, "THE
    * BLENDER IN THE TAB IS BLENDER") and answers `blender-start`,
@@ -133,7 +134,7 @@ export class LiveEditor {
    * per question — the same discovery failure `eval-surface.ts`'s header
    * records, in a lane that had not noticed it yet.
    *
-   *   volter-model-editor eval "await editor.blender('blender-execute', { code: 'import bpy; print(len(bpy.data.objects))' })"
+   *   cyclotron eval "await editor.blender('blender-execute', { code: 'import bpy; print(len(bpy.data.objects))' })"
    *
    * `blender-status` is the only verb that creates nothing: it answers whether
    * this tab already has a session without starting one.
@@ -143,6 +144,21 @@ export class LiveEditor {
     fields: Record<string, unknown> = {},
   ): Promise<T> {
     return this.#client.blender<T>(type, fields);
+  }
+
+  /**
+   * MODEL PLAY'S LOG, from `cyclotron eval` — the same read as
+   * `cyclotron play-log`. A play script writes it with
+   * `play.log(kind, facts)`; the runner adds `play-start`, `script-reload`,
+   * `script-error` and `play-stop`. Every entry carries `simT` (simulation
+   * seconds) and `tick` (the frame). Each model document keeps its own: the
+   * current run, or the last one after Stop; Play from a fresh copy empties it.
+   * `documentId` picks one (`documents` lists them); the active Play's by default.
+   *
+   *   cyclotron eval "(await editor.modelPlayLog({ kind: 'death' })).entries"
+   */
+  async modelPlayLog(query?: { readonly documentId?: string; readonly since?: number; readonly kind?: string }): Promise<ModelPlayLogReading> {
+    return this.#client.modelPlayLog(query);
   }
 
   /**
@@ -401,7 +417,7 @@ export class LiveEditor {
   async openAsset(path: string, kind?: AssetKind): Promise<void> {
     // A `.blend` is not an asset but a Model document the project's finder lists; opened as an
     // asset it fell to the extension guess's `json` and showed its bytes.
-    if (kind === undefined && path.toLowerCase().endsWith('.blend'))
+    if (path.toLowerCase().endsWith('.blend'))
       throw new Error(
         `${path} is a Blender Model document, not an asset: open it with editor.open("model:${path}").`,
       );

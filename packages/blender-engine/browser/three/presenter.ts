@@ -1,3 +1,4 @@
+import { createBlenderDisplayTransform, blenderDisplaySettingsForRender } from './blender-display-transform';
 /**
  * THE PRESENTER FOR A HOST WITHOUT A STAGE (WS-AC, cut 1b).
  *
@@ -15,16 +16,12 @@
  * What it does NOT do, on purpose: overlays (modeling chrome, hidden for a
  * render anyway), selection outlines, the editor's supersampled `captureImage`
  * for the Standard transform. Every transform here goes through the linear
- * capture and the same encoders the editor uses for AgX and Filmic.
+ * capture and the same OCIO GPU display processors the editor uses.
  */
 import * as THREE from 'three';
-import type { CaptureRequest, RenderRequest } from '../protocol';
+import type { CaptureRequest } from '../protocol';
 import type { PresentAnswer } from '../runtime';
-import { AGX_LOOK_TABLES, agxEncodeFrame } from './blender-agx';
-import { displayTableUrl } from './blender-display-lut';
-import { filmicEncodeFrame } from './blender-filmic';
 import { BlenderRuntimeView } from './blender-runtime-view';
-import { standardEncodeFrame } from './blender-standard';
 
 export interface PresenterOptions {
   /** The canvas to render into; an OffscreenCanvas of 1x1 when absent. */
@@ -44,35 +41,6 @@ export interface Presenter {
 }
 
 const MAXIMUM_EDGE = 2048;
-
-const displayTables = new Map<string, Promise<Uint16Array>>();
-function displayTable(file: string): Promise<Uint16Array> {
-  let pending = displayTables.get(file);
-  if (!pending) {
-    pending = fetch(displayTableUrl(file)).then(async (response) => {
-      if (!response.ok)
-        throw new Error(`Blender display table ${file}: ${response.status} ${response.statusText}`);
-      return new Uint16Array(await response.arrayBuffer());
-    });
-    displayTables.set(file, pending);
-  }
-  return pending;
-}
-
-function displayTableFor(render: RenderRequest): string | null {
-  const look = render.look ?? 'None';
-  if (render.toneMapping === 'none') return null;
-  if (render.toneMapping === 'filmic') return 'filmic-srgb.lut';
-  if (render.toneMapping !== 'agx')
-    throw new Error(
-      `Blender's Khronos PBR Neutral view transform has no scene-linear implementation in the ` +
-        `browser (implemented: Standard, AgX, Filmic)`,
-    );
-  if (look === 'None') return 'agx-base-srgb.lut';
-  const file = AGX_LOOK_TABLES[look as keyof typeof AGX_LOOK_TABLES];
-  if (file === undefined) throw new Error(`Blender display transform has no table for look ${look}`);
-  return file;
-}
 
 async function pngBase64(bytes: Uint8Array | Uint8ClampedArray, width: number, height: number): Promise<string> {
   // The linear capture is bottom-up (GL); the image is top-down.
@@ -178,18 +146,11 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
       render: { width, height, fov: render.fov, orthographic: render.orthographic },
     });
 
-    const tableFile = displayTableFor(render);
-    const table = tableFile ? await displayTable(tableFile) : null;
-    const mappings: Record<string, THREE.ToneMapping> = {
-      none: THREE.NoToneMapping,
-      agx: THREE.AgXToneMapping,
-      neutral: THREE.NeutralToneMapping,
-      filmic: THREE.NoToneMapping,
-    };
+    const displayTransform = await createBlenderDisplayTransform(blenderDisplaySettingsForRender(render));
     const previousMapping = renderer.toneMapping;
     const previousExposure = renderer.toneMappingExposure;
-    renderer.toneMapping = mappings[render.toneMapping] ?? THREE.AgXToneMapping;
-    renderer.toneMappingExposure = render.exposure;
+    renderer.toneMapping = THREE.NoToneMapping;
+    renderer.toneMappingExposure = 1;
     const sceneTarget = new THREE.WebGLRenderTarget(width, height, { type: THREE.HalfFloatType });
     let effect: ReturnType<BlenderRuntimeView['createWorldVolumePass']>;
     try {
@@ -217,16 +178,7 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
         renderer.readRenderTargetPixels(resolved, 0, 0, width, height, pixels);
         renderer.setRenderTarget(null);
       }
-      const count = width * height;
-      const bytes =
-        render.toneMapping === 'none'
-          ? standardEncodeFrame(pixels, count, render.exposure)
-          : render.toneMapping === 'filmic'
-            ? filmicEncodeFrame(table!, pixels, count, render.exposure)
-            : agxEncodeFrame(table!, pixels, count, {
-                exposure: render.exposure,
-                composedLook: (render.look ?? 'None') !== 'None',
-              });
+      const bytes = displayTransform.encodeFrame(renderer, pixels, width, height);
       const photograph: Record<string, unknown> = {
         base64: await pngBase64(bytes, width, height),
         mimeType: 'image/png',
@@ -245,6 +197,7 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
     } finally {
       effect?.dispose();
       sceneTarget.dispose();
+      displayTransform.dispose();
       renderer.toneMapping = previousMapping;
       renderer.toneMappingExposure = previousExposure;
       await view.setRendered(false);

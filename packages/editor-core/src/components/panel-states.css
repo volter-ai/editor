@@ -1,0 +1,134 @@
+/* Native Chat owns its state, Markdown and command links. This stylesheet
+   gives welcome, sign-in, setup and unavailable states the same readable
+   panel layout without replacing their contents or changing visibility. */
+.volter-editor-theme .interactive-session .chat-welcome-view-container {
+  align-items: stretch;
+  justify-content: flex-start;
+  overflow: auto;
+}
+
+.volter-editor-theme .pane-body > .chat-view-welcome {
+  justify-content: flex-start;
+  overflow: auto;
+}
+
+.volter-editor-theme div.chat-welcome-view {
+  box-sizing: border-box;
+  width: 100%;
+  max-width: 400px;
+  align-items: stretch;
+  margin-inline: auto;
+  padding: var(--volter-space-12) var(--volter-space-8);
+  color: var(--volter-content-primary);
+  text-align: left;
+}
+
+/* Decorative 72px icons dominated the panel and told the person nothing
+   about the state. The actual title, explanation and actions remain. */
+.volter-editor-theme .chat-welcome-view > .chat-welcome-view-icon {
+  display: none;
+}
+
+.volter-editor-theme .chat-welcome-view > .chat-welcome-view-title {
+  padding: 0;
+  margin: 0;
+  font-size: var(--volter-font-lg);
+  font-weight: 600;
+  line-height: var(--volter-leading-normal);
+  text-align: left;
+}
+
+/* These are the locked frontend's own packaged logos. Vite emits local
+   assets with the editor; no extension path or remote logo service is used. */
+.volter-editor-theme .chat-welcome-view:has(a[data-href^="command:supercode.frontend"])
+  > .chat-welcome-view-title::before {
+  content: "";
+  display: inline-block;
+  width: 24px;
+  height: 24px;
+  margin-right: var(--volter-space-4);
+  vertical-align: middle;
+  background: url("../../../../node_modules/@volter/supercode-frontend-vscode/media/icon.png?no-inline") center / contain no-repeat;
+}
+
+.volter-editor-theme .chat-welcome-view > .chat-welcome-view-message,
+.volter-editor-theme .chat-welcome-view > .chat-welcome-view-disclaimer,
+.volter-editor-theme .chat-welcome-view > .chat-welcome-view-tips {
+  max-width: none;
+  padding: 0;
+  margin: var(--volter-space-4) 0 0;
+  font-size: var(--volter-font-md);
+  line-height: var(--volter-leading-normal);
+  color: var(--volter-content-muted);
+  overflow-wrap: anywhere;
+  text-align: left;
+}
+
+.volter-editor-theme .chat-welcome-view > .chat-welcome-view-disclaimer {
+  border-top: var(--volter-line-hairline, 1px) solid var(--volter-boundary-default);
+  margin-top: var(--volter-space-8);
+  padding-top: var(--volter-space-8);
+}
+
+.volter-editor-theme .chat-welcome-view .rendered-markdown > p + p,
+.volter-editor-theme .chat-welcome-view .rendered-markdown > ul + p {
+  margin-top: var(--volter-space-4);
+}
+
+.volter-editor-theme .chat-welcome-view strong {
+  color: var(--volter-content-primary);
+  font-weight: 600;
+}
+
+.volter-editor-theme .chat-welcome-view .monaco-button {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 32px;
+  padding: var(--volter-space-3) var(--volter-space-4);
+  border-radius: var(--volter-radius-sm);
+  white-space: normal;
+  text-align: center;
+}
+
+/* Standalone setup links keep their native command/keyboard semantics.
+   Give each one a clear hit area instead of a cramped bullet list. */
+.volter-editor-theme .chat-welcome-view .rendered-markdown ul {
+  display: grid;
+  gap: var(--volter-space-3);
+  padding: 0;
+  margin: var(--volter-space-4) 0;
+  list-style: none;
+}
+
+.volter-editor-theme .chat-welcome-view .rendered-markdown li > a:only-child {
+  display: block;
+  box-sizing: border-box;
+  min-height: 32px;
+  padding: var(--volter-space-3) var(--volter-space-4);
+  border: var(--volter-line-hairline, 1px) solid var(--volter-boundary-default);
+  border-radius: var(--volter-radius-sm);
+  color: var(--volter-content-primary);
+}
+
+.volter-editor-theme .chat-welcome-view .rendered-markdown li > a:only-child:hover {
+  background: var(--volter-surface-chrome);
+}
+
+.volter-editor-theme .chat-welcome-view a[data-href^="command:supercode.frontend.setup?"][data-href*="%22codex%22"]::before,
+.volter-editor-theme .chat-welcome-view a[data-href^="command:supercode.frontend.setup?"][data-href*="%22claude-code%22"]::before {
+  content: "";
+  display: inline-block;
+  width: 16px;
+  height: 16px;
+  margin-right: var(--volter-space-4);
+  vertical-align: middle;
+  background: var(--volter-chat-agent-logo) center / contain no-repeat;
+}
+
+.volter-editor-theme .chat-welcome-view a[data-href^="command:supercode.frontend.setup?"][data-href*="%22codex%22"] {
+  --volter-chat-agent-logo: url("../../../../node_modules/@volter/supercode-frontend-vscode/media/openai.svg?no-inline");
+}
+
+.volter-editor-theme .chat-welcome-view a[data-href^="command:supercode.frontend.setup?"][data-href*="%22claude-code%22"] {
+  --volter-chat-agent-logo: url("../../../../node_modules/@volter/supercode-frontend-vscode/media/anthropic.svg?no-inline");
+}

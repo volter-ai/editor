@@ -1,3 +1,5 @@
+import { MAX_DOCUMENT_KEY_HOLD_MS } from '../document-probe';
+
 /**
  * THE RELAY COMMAND VOCABULARY, in one typed table.
  *
@@ -140,7 +142,7 @@ export const RELAY_COMMANDS = {
   // is what the tab is, and until walk 5 it was a `@volter/editor-game` command
   // contribution, so a project without that package — every model project —
   // answered `unknown command type "page-reload"` for a door `@volter/game-live`
-  // documents as general (measured on a `model-editor create` scaffold,
+  // documents as general (measured on a `cyclotron create` scaffold,
   // 2026-09-21). The handler schedules the navigation for the next task so
   // this ack can travel before the channel is torn down; the client waits for
   // the new page load on the server's own tab table.
@@ -244,10 +246,19 @@ export function isRelayCommandType(value: unknown): value is RelayCommandType {
  * the generic budget rather than an error: the relay's job is to hand the
  * string to the tab and let the TAB say it does not know it.
  */
-export function relayCommandTimeoutMs(type: unknown): number {
-  return isRelayCommandType(type)
+export function relayCommandTimeoutMs(type: unknown, command?: Record<string, unknown>): number {
+  const base = isRelayCommandType(type)
     ? RELAY_COMMANDS[type].timeoutMs
     : DEFAULT_RELAY_COMMAND_TIMEOUT_MS;
+  // A held key answers after release. Its requested duration is work, not a
+  // stalled tab; ordinary probes retain their short completion budget.
+  if (type === 'document-probe' && command?.['step'] && typeof command['step'] === 'object') {
+    const step = command['step'] as Record<string, unknown>;
+    const hold = step['holdMs'];
+    if (step['action'] === 'key' && typeof hold === 'number' && Number.isFinite(hold) &&
+        hold >= 0 && hold <= MAX_DOCUMENT_KEY_HOLD_MS) return base + Math.ceil(hold);
+  }
+  return base;
 }
 
 /** The status-derivation policy owned by the same command row as its timeout. */

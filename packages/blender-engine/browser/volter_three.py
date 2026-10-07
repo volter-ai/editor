@@ -225,8 +225,10 @@ def _export():
         "known": {},
         "buffer_path": EXPORT_BUFFER_PATH,
     }
-    # Names as UTF-8, not escaped: the door does not decode `\\uXXXX`
-    # (session.py `_door_json`).
+    # The native door reads UTF-8 and does not decode `\\uXXXX` escapes (it
+    # drops the backslash), so the request goes unescaped, as session.py's door
+    # calls send theirs: a non-ASCII presenter root in `buffer_path` would
+    # otherwise reach the door misspelled.
     frame = json.loads(_blender_web.export_frame(json.dumps(options, ensure_ascii=False)))
     error = frame.get("error")
     if error:
@@ -320,13 +322,12 @@ def _photograph(depsgraph, width, height, linear=False):
         "fov": _vertical_extent(camera.data, int(width), int(height)),
         "toneMapping": transform,
         "exposure": float(2.0 ** view.exposure),
+        "gamma": float(view.gamma),
         "orthographic": camera.data.type == "ORTHO",
         "transparent": bool(scene.render.film_transparent),
     }
-    # The renderer keys its baked look tables by the config's FULL name
-    # (`AgX - Medium High Contrast`), and `AgX - Base Contrast` is the AgX base
-    # view itself -- the same table as no look at all.
-    if look not in ("None", "AgX - Base Contrast"):
+    # Preserve the full look name for the native OCIO display processor.
+    if look != "None":
         render["look"] = look
     # The capture's scene-referred frame rides along when asked for: a render
     # result is what a render leaves, and it holds scene-linear pixels.
@@ -414,7 +415,7 @@ def _fill_result(engine, result, answer, png, width, height):
     view transform over them wherever it shows or saves one (`write_still`, the
     Image Editor), as it does over Cycles'. The photograph's PNG is the display
     image -- the transform already ran -- so loading it put every render
-    through AgX or Filmic twice. Measured 2026-09-28 by the model editor's
+    through AgX or Filmic twice. Measured 2026-09-28 by Cyclotron's
     render view: a background 53 against the viewport's 59, a shadow's blue 2
     against 7. The same capture's linear frame goes in instead: half floats,
     RGBA, bottom row first, which is Blender's own row order. Linear 0.005,
