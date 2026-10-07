@@ -112,6 +112,16 @@ raster capture remains bright. Direct environment visibility is therefore a
 required lighting gate alongside indirect illumination, rather than a color or
 exposure adjustment.
 
+The closed-room diagnostic isolates this behavior without the imported asset:
+a camera inside a closed diffuse cube, with a white exterior world and no
+interior lights, renders RGB 0–1 with native Cycles and RGB 230–232 with
+VOLTER_THREE in the same WASM session. Both use Standard/None, exposure 0,
+32×32 output, eight samples and zero indirect bounces. This is a failing gate,
+not an accepted approximation. [Measured ranges](media/blender-environment-visibility-20261007.json).
+`test/environment_visibility.py` captures the native/raster pair and restores
+the original scene, removing only its own temporary datablocks. It also accepts
+native-only execution for a desktop reference.
+
 Real Cycles is compiled into the WASM build and now retains its original engine
 class. `scene.render.engine = 'CYCLES'` followed by `bpy.ops.render.render`
 runs the native CPU path tracer, including evaluated placements, native closures,
