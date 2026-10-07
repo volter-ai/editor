@@ -173,6 +173,12 @@ export interface RenderRequest {
   height: number;
   /** The camera's VERTICAL field of view, in degrees. */
   fov: number;
+  /** Authored camera clipping and sensor shift; not viewport navigation. */
+  clipStart?: number;
+  clipEnd?: number;
+  shiftX?: number;
+  shiftY?: number;
+  horizontalFit?: boolean;
   /** The scene's own view transform, as the three.js tone mapping of the same
    *  NAME (`bpy/_render_three.py`). A transform with no curve here never
    *  reaches this point: Python refuses it. */

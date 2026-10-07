@@ -2224,6 +2224,12 @@ def _photograph(depsgraph, width, height, linear=False):
         "width": int(width),
         "height": int(height),
         "fov": _vertical_extent(camera.data, int(width), int(height)),
+        "clipStart": float(camera.data.clip_start),
+        "clipEnd": float(camera.data.clip_end),
+        "shiftX": float(camera.data.shift_x),
+        "shiftY": float(camera.data.shift_y),
+        "horizontalFit": camera.data.sensor_fit == "HORIZONTAL" or
+            (camera.data.sensor_fit == "AUTO" and width >= height),
         "toneMapping": transform,
         "exposure": float(2.0 ** view.exposure),
         "gamma": float(view.gamma),

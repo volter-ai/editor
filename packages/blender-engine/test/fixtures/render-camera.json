@@ -1,0 +1,227 @@
+{
+  "blender": "5.2.0 LTS",
+  "build": "fbe6228777e7",
+  "oracle": "Object.calc_matrix_camera",
+  "cases": [
+    {
+      "name": "courtyard",
+      "render": {
+        "width": 715,
+        "height": 402,
+        "fov": 43.293653737094125,
+        "clipStart": 1.119999885559082,
+        "clipEnd": 50.0,
+        "shiftX": 0.0,
+        "shiftY": 0.07099999487400055,
+        "horizontalFit": true,
+        "toneMapping": "agx",
+        "exposure": 1.0,
+        "gamma": 1.0,
+        "orthographic": false,
+        "transparent": false
+      },
+      "projection": [
+        [
+          1.4166666269302368,
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          2.51969313621521,
+          0.25256216526031494,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0458264350891113,
+          -2.291325330734253
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "portrait",
+      "render": {
+        "width": 400,
+        "height": 900,
+        "fov": 70.43518593638544,
+        "clipStart": 1.119999885559082,
+        "clipEnd": 50.0,
+        "shiftX": -0.17000000178813934,
+        "shiftY": 0.23000000417232513,
+        "horizontalFit": false,
+        "toneMapping": "agx",
+        "exposure": 1.0,
+        "gamma": 1.0,
+        "orthographic": false,
+        "transparent": false
+      },
+      "projection": [
+        [
+          3.187500238418579,
+          0.0,
+          -0.76500004529953,
+          0.0
+        ],
+        [
+          0.0,
+          1.4166667461395264,
+          0.46000000834465027,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0458264350891113,
+          -2.291325330734253
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "vertical",
+      "render": {
+        "width": 900,
+        "height": 400,
+        "fov": 50.40224729095014,
+        "clipStart": 1.119999885559082,
+        "clipEnd": 50.0,
+        "shiftX": 0.11999999731779099,
+        "shiftY": -0.18000000715255737,
+        "horizontalFit": false,
+        "toneMapping": "agx",
+        "exposure": 1.0,
+        "gamma": 1.0,
+        "orthographic": false,
+        "transparent": false
+      },
+      "projection": [
+        [
+          0.9444443583488464,
+          0.0,
+          0.10666666179895401,
+          0.0
+        ],
+        [
+          0.0,
+          2.125,
+          -0.35999998450279236,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0458264350891113,
+          -2.291325330734253
+        ],
+        [
+          0.0,
+          0.0,
+          -1.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "name": "ortho-landscape",
+      "render": {
+        "width": 900,
+        "height": 400,
+        "fov": 3.5555555555555554,
+        "clipStart": 1.119999885559082,
+        "clipEnd": 50.0,
+        "shiftX": 0.20000000298023224,
+        "shiftY": -0.10000000149011612,
+        "horizontalFit": true,
+        "toneMapping": "agx",
+        "exposure": 1.0,
+        "gamma": 1.0,
+        "orthographic": true,
+        "transparent": false
+      },
+      "projection": [
+        [
+          0.25,
+          0.0,
+          0.0,
+          -0.3999999761581421
+        ],
+        [
+          0.0,
+          0.5625,
+          0.0,
+          0.4500000476837158
+        ],
+        [
+          0.0,
+          0.0,
+          -0.040916528552770615,
+          -1.0458264350891113
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    },
+    {
+      "name": "ortho-portrait",
+      "render": {
+        "width": 400,
+        "height": 900,
+        "fov": 8.0,
+        "clipStart": 1.119999885559082,
+        "clipEnd": 50.0,
+        "shiftX": -0.20000000298023224,
+        "shiftY": 0.10000000149011612,
+        "horizontalFit": false,
+        "toneMapping": "agx",
+        "exposure": 1.0,
+        "gamma": 1.0,
+        "orthographic": true,
+        "transparent": false
+      },
+      "projection": [
+        [
+          0.5625,
+          0.0,
+          0.0,
+          0.9000000357627869
+        ],
+        [
+          0.0,
+          0.25,
+          0.0,
+          -0.20000001788139343
+        ],
+        [
+          0.0,
+          0.0,
+          -0.040916528552770615,
+          -1.0458264350891113
+        ],
+        [
+          0.0,
+          0.0,
+          0.0,
+          1.0
+        ]
+      ]
+    }
+  ]
+}

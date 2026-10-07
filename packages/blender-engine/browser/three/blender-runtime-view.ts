@@ -735,7 +735,7 @@ export class BlenderRuntimeView {
    *  (`blender-workbench-material.ts`) over their viewport display. */
   private workbench = false;
   private readonly workbenchMaterials = new Map<string, THREE.Material>();
-  private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72 });
+  private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72, side: THREE.DoubleSide });
   /** Base Color images, by image name -- ONE texture per image however many
    *  materials read it, and the cache OWNS it: a material points at one and
    *  never disposes it. Held with the size and revision the resident bytes
@@ -1880,7 +1880,9 @@ export class BlenderRuntimeView {
       });
     }
     for (const [id, data] of Object.entries(next.materials)) {
-      const material = this.materials.get(id) ?? new THREE.MeshPhysicalMaterial();
+      // Cycles intersects and shades both faces, including an arcade viewed
+      // from underneath. Three's front-face default drops those surfaces.
+      const material = this.materials.get(id) ?? new THREE.MeshPhysicalMaterial({ side: THREE.DoubleSide });
       material.name = data.name;
       // A LINKED BASE COLOUR REPLACES THE SOCKET'S VALUE, it does not multiply
       // it. Python's `_reduce` fills `color` from the Base Color socket's
