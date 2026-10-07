@@ -293,11 +293,13 @@ function patchNextWebResources(checkout, tiers) {
 	const anchorLine = 'const webResourcePatterns = [\n\t...commonResourcePatterns,\n';
 	let source = readFileSync(path, 'utf8')
 		.split('\n')
-		.filter((line) => !line.includes('// VOLTER (overlaid tier — web media') && !/^\t'vs\/workbench\/contrib\/volter[A-Za-z]*\/browser\/media\/\*\*',$/.test(line))
+		.filter((line) => !line.includes('// VOLTER (overlaid tier — web media') && !/^\t'vs\/workbench\/contrib\/volter[A-Za-z]*\/browser\/media\/\*\*(\/\*\.\*)?',$/.test(line))
 		.join('\n');
 	if (!source.includes(anchorLine)) { fail(`${relative} has no \`const webResourcePatterns = [ ...commonResourcePatterns,\` — upstream moved the web resource list and this patch needs re-aiming.`); }
 	const ours = [KIT_TARGET, PRODUCT_TARGET, ...tiers.map((tier) => `src/vs/workbench/contrib/${tier.contrib}/browser`)]
-		.map((target) => `\t'${target.replace(/^src\//, '')}/media/**',`);
+		// FILES only: node-glob's `**` also matches the directories, and the builder's copyFile on a
+		// directory is EPERM on Windows (measured: the web build died in its resources step).
+		.map((target) => `\t'${target.replace(/^src\//, '')}/media/**/*.*',`);
 	source = source.replace(anchorLine, `${anchorLine}\t// VOLTER (overlaid tier — web media, scripts/workbench/overlay.mjs)\n${ours.join('\n')}\n`);
 	writeFileSync(path, source);
 }
