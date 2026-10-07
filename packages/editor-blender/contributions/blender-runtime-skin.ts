@@ -379,6 +379,16 @@ export class BlenderSkinDirector {
   }
 
   /** Blender's scene clock exists even when the scene has no action. */
+  /** Whether a bind would change anything: nothing is bound yet, or a bound mesh is no longer the
+   *  object presented for its name (the presenter replaced it with a new draw). Lets the model
+   *  skip the rig read on the edits that touch no rig. */
+  stale(presentation: SkinPresentation): boolean {
+    if (this.#rigs.size === 0) return true;
+    for (const rig of this.#rigs.values())
+      if (presentation.objectForBlenderName(rig.object) !== rig.mesh) return true;
+    return false;
+  }
+
   get playable(): boolean {
     return this.#clip !== null && this.#transport !== null;
   }

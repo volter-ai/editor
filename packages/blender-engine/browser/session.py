@@ -4856,6 +4856,7 @@ def rna_armature_actions():
         bones = {pchan.name for pchan in arm.pose.bones}
         current = arm.animation_data.action.name if (arm.animation_data and arm.animation_data.action) else None
         names = []
+        keys, total = 0, 0.0
         for action in bpy.data.actions:
             curves = []
             legacy = getattr(action, "fcurves", None)
@@ -4868,7 +4869,14 @@ def rna_armature_actions():
                             curves.extend(bag.fcurves)
             if any((m := _BONE_PATH.match(fc.data_path)) is not None and m.group(1) in bones for fc in curves):
                 names.append(action.name)
-        out.append({"armature": arm.name, "current": current, "actions": sorted(names)})
+                # A CHEAP SIGNATURE of the keys, so a reader can tell a key edit from no change
+                # without baking: the count and the sum of every key's frame and value.
+                for fc in curves:
+                    for key in fc.keyframe_points:
+                        keys += 1
+                        total += float(key.co[0]) * 7.0 + float(key.co[1])
+        out.append({"armature": arm.name, "current": current, "actions": sorted(names),
+                    "keys": "%d:%.6f" % (keys, total)})
     return {"armatures": out}
 
 
@@ -4956,7 +4964,17 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
         action = bpy.data.actions.get(action_name)
         if action is None:
             raise ValueError("The engine holds no action named %r" % (action_name,))
-        slot = None
+        # THE SLOT FOR THIS ARMATURE, as Blender would pick it on assignment: the one whose
+        # identifier names this object (`OB<name>`), else the only object slot. A layered action
+        # with several object slots and none for this armature has no right answer; its first
+        # object slot is used and said in the reason.
+        slots = [one for one in getattr(action, "slots", ()) if getattr(one, "target_id_type", "OBJECT") == "OBJECT"]
+        slot = next((one for one in slots if getattr(one, "identifier", "") == "OB" + arm_obj.name), None)
+        if slot is None and slots:
+            slot = slots[0]
+            if len(slots) > 1:
+                header["reason"] = ("%r has %d object slots and none named for %r; the first, %r, is played."
+                                    % (action.name, len(slots), arm_obj.name, getattr(slot, "identifier", "?")))
     curves, shape = _action_channelbag(action, getattr(slot, "handle", None))
     header.update({
         "action": action.name,
