@@ -15,7 +15,7 @@ test('native placements borrow source geometry and retain owner selection and th
     object_info:{color:[.2,.3,.4,1],index:7,random:.8}};
   const owner={id:'owner',name:'Chair',type:'EMPTY',mesh:null,parent:null,selected:true,matrix};
   const input={objects:[source,owner],meshes:{geometry:{positions:new Float32Array([1,2,3])}},
-    instances:[{id:'dupli',source:'mesh',owner:'owner',matrix,visible:true,render_visible:true,shadow_visible:false,random:.125,color:[1,0,0,.5]}]};
+    instances:[{id:'dupli',source:'mesh',owner:'owner',matrix,visible:true,render_visible:true,shadow_visible:false,random:.125,particle_random:.75,color:[1,0,0,.5]}]};
   const output=expandDrawPlacements(input);
   assert.equal(input.objects.length,2,'no authored objects added');
   assert.equal(input.instances.length,1);
@@ -27,6 +27,7 @@ test('native placements borrow source geometry and retain owner selection and th
   assert.equal(draw.parent,'owner');assert.equal(draw.name,'Chair');assert.equal(draw.selected,true);
   assert.equal(draw.viewport_show_self,true);assert.equal(draw.visible,true);
   assert.equal(draw.shadow_visible,false);
+  assert.equal(draw.object_info.particle_random,.75);
   assert.equal(draw.object_info.random,.125);assert.deepEqual(draw.object_info.color,[1,0,0,.5]);assert.equal(source.object_info.random,.8);
   assert.equal(expandDrawPlacements(output),output);
 });

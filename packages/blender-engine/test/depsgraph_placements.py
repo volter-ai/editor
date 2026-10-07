@@ -27,13 +27,16 @@ class DepsgraphPlacements(unittest.TestCase):
             parent=self.objects[row['owner']] if row['owner'] else None,
             is_instance=row['is_instance'], show_self=row['show_self'],
             persistent_id=row['persistent_id'], random_id=row['random_id'],
+            particle_system=SimpleNamespace(particles=[None]*7) if row['owner']=='Emitter' else None,
             matrix_world=row['matrix']) for row in self.fixture['native']]
         tree = ast.parse((root.parent / 'browser/session.py').read_text())
         fn = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and
                   node.name == '_depsgraph_placements')
         namespace = {'json': json, 'warn': lambda msg: self.fail(msg),
                      'bpy': SimpleNamespace(data=SimpleNamespace(objects=self.objects))}
-        exec(compile(ast.Module(body=[fn], type_ignores=[]), 'session.py', 'exec'), namespace)
+        helper = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and
+                      node.name == '_particle_info_random')
+        exec(compile(ast.Module(body=[helper, fn], type_ignores=[]), 'session.py', 'exec'), namespace)
         self.export = namespace[fn.name]
         self.frame = {'objects': copy.deepcopy(self.fixture['objects']),
                       'instance_geometry':self.fixture['instance_geometry']}

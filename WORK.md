@@ -1987,3 +1987,26 @@ Filmic/Medium Contrast display settings were preserved. Compositing was disabled
 for viewport lighting comparison. A before/after SHA-256 check confirms that the
 input file was not modified. The clean PNG was viewed and opened in the editor's
 image document. Three lighting parity still fails; no packages were published.
+
+
+### 2026-10-07 — preserve Particle Info Random and its texture graphs
+
+The courtyard's grass, bush and one book material linked Particle Info Random.
+The unsupported input rejected their whole graph, including its images and
+ramps. Native Cycles derives this input from the parent particle index, while
+Object Info uses a different placement random_id. Child particles and ordinary
+objects use Cycles' default particle record. The exporter now carries that
+separate scalar, and the material compiler binds it per draw. Identical geometry
+and particle-only inputs share materials; other Particle Info outputs remain
+explicit refusals. No native binary changes or package publication.
+
+Seven independent desktop Cycles emission cases match actual WebGL float32
+RGBA exactly. Twenty focused renderer tests, five native placement tests, engine
+and Blender typechecking and the modeling frontend build pass. The editor was
+reopened and its native camera captured and viewed: book texture patterns are
+restored, and the three Particle Info graph warnings disappear. The arcade is
+still too bright; environment visibility and indirect illumination remain gates.
+
+Temporary lighting instrumentation showed the black initial frame preceding
+asynchronous sky composition; it recovered without another toggle. The diagnostic
+instrumentation was removed. No startup readiness repair is claimed here.
