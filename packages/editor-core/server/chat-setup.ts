@@ -1,6 +1,6 @@
 /** Host data for Supercode's native Chat setup. Credentials stay with the harness. */
 import { execFile } from 'node:child_process';
-import { accessSync, constants, existsSync, mkdirSync, statSync } from 'node:fs';
+import { accessSync, constants, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
@@ -13,11 +13,14 @@ export interface ChatSetupAction {
   command: string;
 }
 
-/** The agents the Chat welcome offers by the plan people pay for (docs/CHAT-WELCOME.md), each with the
- *  vendor's own npm package: Codex from OpenAI, Claude Code from Anthropic. */
-export const CHAT_SETUP_PROVIDERS: Readonly<Record<string, { provider: 'openai' | 'anthropic'; npmPackage: string }>> = {
-  codex: { provider: 'openai', npmPackage: '@openai/codex' },
-  'claude-code': { provider: 'anthropic', npmPackage: '@anthropic-ai/claude-code' },
+/** The agents the Chat welcome installs and signs in, each with the vendor's own npm package and the command it
+ *  installs. Codex is Sign in with ChatGPT (docs/CHAT-WELCOME.md). The owner's ruling (2026-10-07) drops Sign in
+ *  with Claude, but Chat frontend 0.1.51 draws that row whatever the host lists, and a row the host doesn't list
+ *  fails as "That coding agent is unavailable." with nothing on screen, so Claude Code stays installable here until
+ *  the frontend drops the row. */
+export const CHAT_SETUP_PROVIDERS: Readonly<Record<string, { provider: 'openai' | 'anthropic'; npmPackage: string; command: string }>> = {
+  codex: { provider: 'openai', npmPackage: '@openai/codex', command: 'codex' },
+  'claude-code': { provider: 'anthropic', npmPackage: '@anthropic-ai/claude-code', command: 'claude' },
 };
 
 /** One row per agent the welcome can show: what is installed and signed in. No credentials. Supercode's
@@ -116,8 +119,29 @@ export function agentInstallPrefix(globalPrefix: string, home = homedir()): stri
   });
   if (writable) return globalPrefix;
   const own = join(home, '.volter', 'agents');
-  mkdirSync(own, { recursive: true });
+  // A home that refuses the folder keeps the global prefix: its install then fails visibly, and agents already
+  // installed there stay on PATH instead of the whole probe failing.
+  try { mkdirSync(own, { recursive: true }); } catch { return globalPrefix; }
   return own;
+}
+
+/** The PATH a sign-in terminal runs with. On Windows npm installs an extensionless shell script beside each agent's
+ *  `.cmd` shim, and supercode's sign-in lookup (harness_auth.rs `find_executable`, 0.5.184 and main on
+ *  2026-10-07) takes the bare name first, so `harness login codex` started that script and failed with os error 193
+ *  ("not a valid Win32 application"): a first-time user's Sign in with ChatGPT ended in "Sign-in didn't finish."
+ *  When the agent's `command` was installed by npm into `prefix`, a folder holding only `<command>.cmd`, which calls
+ *  npm's shim, comes first on that terminal's PATH, and the lookup finds a file Windows can start. Elsewhere, or for
+ *  an agent installed any other way, PATH is unchanged. */
+export function signInPath(path: string, prefix: string | undefined, command: string, home = homedir()): string {
+  if (process.platform !== 'win32' || !prefix) return path;
+  const shim = join(prefix, `${command}.cmd`);
+  if (!existsSync(join(prefix, command)) || !existsSync(shim)) return path;
+  const dir = join(home, '.volter', 'sign-in-shims');
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, `${command}.cmd`), ['@echo off', `call "${shim}" %*`, ''].join('\r\n'));
+  } catch { return path; }
+  return dir + delimiter + path;
 }
 
 function prefixBin(prefix: string): string { return process.platform === 'win32' ? prefix : join(prefix, 'bin'); }
@@ -138,9 +162,10 @@ export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH
     if (!isAbsolute(prefix) || /[\r\n]/.test(prefix)) throw new Error('npm returned no absolute global prefix.');
     // Agents the person installed globally stay findable; Chat's own installs go where this user can write.
     const installPrefix = agentInstallPrefix(prefix);
-    for (const bin of new Set([prefixBin(prefix), prefixBin(installPrefix)])) {
-      if (!env.PATH.split(delimiter).includes(bin)) env.PATH += delimiter + bin;
-    }
+    if (!env.PATH.split(delimiter).includes(prefixBin(prefix))) env.PATH += delimiter + prefixBin(prefix);
+    // An agent Chat installed into its own prefix comes first, so an older copy in the root-owned prefix (or anywhere
+    // else on PATH) doesn't shadow it.
+    if (installPrefix !== prefix) env.PATH = prefixBin(installPrefix) + delimiter + env.PATH;
     return { env, npm, npmArgs, npmPrefix: installPrefix };
   } catch (error) {
     return { env, installError: `Cannot resolve npm's install directory: ${error instanceof Error ? error.message : String(error)}` };
