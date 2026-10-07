@@ -10,7 +10,7 @@ tree = ast.parse(open(session).read())
 functions = [n for n in tree.body if isinstance(n, ast.FunctionDef) and
              n.name in ('_vertical_extent', '_photograph', '_assert_photographed_from')]
 class Capture:
-    def present(self, request):
+    def photograph(self, depsgraph, request):
         return {'base64': '', 'camera': {k: request[k] for k in ('position', 'target', 'up')}}
 scope = {'base64': base64, 'SESSION': Capture(), 'bpy': bpy}
 exec(compile(ast.Module(body=functions, type_ignores=[]), session, 'exec'), scope)

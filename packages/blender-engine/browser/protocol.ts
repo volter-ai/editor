@@ -182,6 +182,9 @@ export interface FileListSnapshot {
 }
 
 export interface CaptureRequest {
+  /** Geometry was exported from the render engine's RENDER depsgraph. It belongs
+   * to this capture alone and must never replace the live viewport frame. */
+  evaluation?: 'render';
   /** A viewport screenshot's bound, the longer side of a square frame.
    *  Absent on a render, which states its exact pixel dimensions instead. */
   size?: number;

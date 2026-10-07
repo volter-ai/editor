@@ -1,9 +1,9 @@
 {
   "blender": "5.2.0 LTS",
-  "source": "434072350c0577eb155068d5a1b62bb45daf19f9",
+  "source": "5a3cb1250fc1fd7df59e3ff823949c06e52d9422",
   "upstream": "fbe6228777e7d9afefcd61a413844e790ae75db7",
   "sourceRepository": "https://github.com/volter-ai/blender",
-  "sourceRecipe": "https://github.com/volter-ai/blender/blob/434072350c0577eb155068d5a1b62bb45daf19f9/build_files/emscripten/RELEASE.md",
+  "sourceRecipe": "https://github.com/volter-ai/blender/blob/5a3cb1250fc1fd7df59e3ff823949c06e52d9422/build_files/emscripten/RELEASE.md",
   "factoryEngine": "BLENDER_EEVEE",
   "files": {
     "blender_browser.js": "raw",
@@ -16,8 +16,8 @@
       "sha256": "d818e8d746bc62ebf810206ac564d2dc75dc645b3121f4a3919d13ecef11e419"
     },
     "blender_browser.wasm": {
-      "bytes": 86344416,
-      "sha256": "f5b988d30a9f29708254bc84600f7b88d9c9eb41af904b84c9f398d5c41595e4"
+      "bytes": 86351436,
+      "sha256": "d4c3a8002cb1686f3c5299e28bcbb356934bbe910f2485b2572032b115cf67bd"
     },
     "blender_browser.data": {
       "bytes": 52699590,
@@ -30,8 +30,8 @@
       "sha256": "d818e8d746bc62ebf810206ac564d2dc75dc645b3121f4a3919d13ecef11e419"
     },
     "blender_browser.wasm.br": {
-      "bytes": 18611942,
-      "sha256": "b415a2fce0f2d2f796a2a3362b38420df063866898cc04c61d4604c5caf13e0d"
+      "bytes": 18605311,
+      "sha256": "97e3bc2c772e9fd6da5a3e28086c1ee1dfd62b35ebdeb127a413b4bd5904031f"
     },
     "blender_browser.data.br": {
       "bytes": 8056485,
@@ -42,9 +42,9 @@
       "sha256": "4085e9336266cf66f061d4d5c962a5929cc96d5732c746b5c13ea05cd104a75b"
     }
   },
-  "note": "Stoneguard c7/c14/c15 engine. Emscripten 6.0.5, Release -O3 objects and -O2 link. Portable native arm64 matrix reciprocal plus fused generic OpenSubdiv stencil and patch accumulation; bodice four-stage comparison 28/28 arrays exact. Full-scene comparison and memory scope recorded in provenance/stoneguard-memory.json. Historical battery absent; no full-battery or hosted acceptance claim. Rebuilt from the public instance-source commit with the same Emscripten 6.0.5, Release -O3 objects and -O2 link. All 6287 drawable Lone Monk placements resolve to 26 native source objects and 24 deferred mesh resources. Live raster rendering still differs from native Cycles; no full-scene visual parity claim. Rebuilt from the public evaluated-geometry identity commit with the same Emscripten 6.0.5 Release recipe. Distinct Array/Mirror/deformation outputs no longer borrow another object’s geometry. Native linked-input sharing and every deferred probe vertex are checked independently. Live raster illumination remains unoccluded environment lighting and differs substantially from native Cycles; no visual parity claim.",
+  "note": "Emscripten 6.0.5, Release -O3 objects and -O2 link, retained public build recipe and dependency licenses. Scoped render-evaluated export preserves render-only geometry and render-specific modifier results without replacing the viewport export state. Prior geometry identity and memory fixes remain. Full-scene Three versus Cycles rendering parity remains incomplete.",
   "callTrampoline": "CPython 3.13.13 is compiled with PY_CALL_TRAMPOLINE for Blender CPython slot arity casts. This applies to CPython dispatch, not arbitrary indirect calls.",
   "engineIds": "The session preserves the compiled native CYCLES engine. VOLTER_THREE selects the explicit raster presenter; BLENDER_EEVEE and BLENDER_WORKBENCH remain presentation engines.",
-  "exportDoor": "The source-owned bpy_web_export.cc exports Principled physical inputs, normal images, eight named UV layers and evaluated corner normals, and takes graph_materials/graph_images/graph_generated (a graph-drawn shader mix reduced to the one Principled BSDF it reaches, graph images at the door revisions with every UDIM tile, orco for deformed meshes whose graph reads Generated coordinates). A frame can defer its changed meshes and pictures (defer) for the caller to pull one at a time (export_mesh, export_image), each call freeing the previous one's columns and a picture it decoded; an undo step keeps the revisions when Blender kept the depsgraph (session_undo); Blender's CPU subdivision descriptor is released once a mesh is read; the memory door reports malloc in-use and free. Datablock revisions are keyed by session_uid. writefile.cc writes one copy of the document per save in the browser build. CPU evaluators adopt stencil tables without cloning; browser subdivision descriptors are released immediately after CPU tessellation/deformation. Native evaluated corner triangles accompany corner normals. Consumed local conversion stencils are released before later UV channels are constructed. Caller-thread file-read, evaluated-object and subdivision checkpoints provide backpressure for resumable startup. Shared geometry revisions advance once per frame. Existing synchronous export remains available. Optional instance_sources exports stable evaluated collection and particle source meshes, including excluded library meshes and converted curves. Frame-local instance_geometry tokens verify Python placement metadata against the exported geometry and are consumed before presentation. Geometry resource identity preserves implicit input storage only for unmodified geometry and separates evaluated modifier/deformation outputs. Object and mesh resource keys have independent namespaces.",
+  "exportDoor": "The source-owned bpy_web_export.cc exports Principled physical inputs, normal images, eight named UV layers and evaluated corner normals, and takes graph_materials/graph_images/graph_generated (a graph-drawn shader mix reduced to the one Principled BSDF it reaches, graph images at the door revisions with every UDIM tile, orco for deformed meshes whose graph reads Generated coordinates). A frame can defer its changed meshes and pictures (defer) for the caller to pull one at a time (export_mesh, export_image), each call freeing the previous one's columns and a picture it decoded; an undo step keeps the revisions when Blender kept the depsgraph (session_undo); Blender's CPU subdivision descriptor is released once a mesh is read; the memory door reports malloc in-use and free. Datablock revisions are keyed by session_uid. writefile.cc writes one copy of the document per save in the browser build. CPU evaluators adopt stencil tables without cloning; browser subdivision descriptors are released immediately after CPU tessellation/deformation. Native evaluated corner triangles accompany corner normals. Consumed local conversion stencils are released before later UV channels are constructed. Caller-thread file-read, evaluated-object and subdivision checkpoints provide backpressure for resumable startup. Shared geometry revisions advance once per frame. Existing synchronous export remains available. Optional instance_sources exports stable evaluated collection and particle source meshes, including excluded library meshes and converted curves. Frame-local instance_geometry tokens verify Python placement metadata against the exported geometry and are consumed before presentation. Geometry resource identity preserves implicit input storage only for unmodified geometry and separates evaluated modifier/deformation outputs. Object and mesh resource keys have independent namespaces. Scoped begin_render_export/end_render_export reads the render engine depsgraph and isolates viewport revision, undo, deferred resource and image watcher state. Geometry resource identity preserves implicit input storage only for unmodified geometry and separates evaluated modifier/deformation outputs. Object and mesh resource keys have independent namespaces.",
   "preloadedPayload": "releasePreloadedFileData releases the JS preload buffer after session ready. The measured working payload exclusions are retained."
 }

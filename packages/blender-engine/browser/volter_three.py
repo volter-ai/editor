@@ -212,7 +212,7 @@ def _world(scene):
     }
 
 
-def _export():
+def _export(depsgraph):
     """The C++ door's frame, with what the door does not describe merged in.
 
     `known` is ALWAYS EMPTY: this process keeps no record of what a presenter
@@ -221,7 +221,7 @@ def _export():
     """
     options = {
         "session": SESSION,
-        "evaluate": True,
+        "evaluate": False,
         "known": {},
         "buffer_path": EXPORT_BUFFER_PATH,
     }
@@ -236,7 +236,7 @@ def _export():
     _REVISION[0] += 1
     frame["session"] = SESSION
     frame["revision"] = _REVISION[0]
-    scene = bpy.context.scene
+    scene = depsgraph.scene
     frame["world"] = _world(scene)
     frame["volumes"] = {}
     # THE INSPECTION OVERLAYS ARE THE EDITOR'S, and a render hides them anyway.
@@ -249,8 +249,14 @@ def _export():
     return frame
 
 
-def _present(capture):
-    answer = ask({"frame": _export(), "capture": capture})
+def _present(depsgraph, capture):
+    if not hasattr(_blender_web, "begin_render_export"):
+        raise RuntimeError("This Blender artifact has no render-evaluated export")
+    _blender_web.begin_render_export(depsgraph)
+    try:
+        answer = ask({"frame": _export(depsgraph), "capture": {**capture, "evaluation": "render"}})
+    finally:
+        _blender_web.end_render_export()
     if isinstance(answer, dict) and answer.get("error"):
         raise RuntimeError(answer["error"])
     return answer
@@ -334,7 +340,7 @@ def _photograph(depsgraph, width, height, linear=False):
     if linear:
         render["linear"] = True
     answer = _present(
-        {"position": position, "target": target, "up": up, "render": render}
+        depsgraph, {"position": position, "target": target, "up": up, "render": render}
     )
     if not isinstance(answer, dict) or "base64" not in answer:
         raise RuntimeError("The renderer did not answer with a photograph")

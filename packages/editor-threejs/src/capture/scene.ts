@@ -58,7 +58,10 @@ function capture(
     throw new Error('Scene capture requires finite positive dimensions');
   const width = Math.min(2048, Math.round(options.width));
   const height = Math.min(2048, Math.round(options.height));
-  const scale = linear ? 1 : 2;
+  // Render Result/EXR captures need the same scene-linear antialiasing as PNG
+  // captures. Resolving only the display path left Blender renders with one
+  // raster sample per pixel, particularly visible on textured roof tiles.
+  const scale = 2;
   const renderWidth = width * scale;
   const renderHeight = height * scale;
   const lease = acquireInspectorPreviewRenderer();
@@ -97,8 +100,9 @@ function capture(
     if (resolved.texture.type !== THREE.HalfFloatType || resolved.width !== renderWidth || resolved.height !== renderHeight)
       throw new Error('Scene capture effect must return a same-size half-float target');
     if (linear) {
-      const pixels = new Uint16Array(renderWidth * renderHeight * 4);
-      renderer.readRenderTargetPixels(resolved, 0, 0, renderWidth, renderHeight, pixels);
+      displayInput=resolveSceneLinearSize(renderer,resolved,width,height);
+      const pixels = new Uint16Array(width * height * 4);
+      renderer.readRenderTargetPixels(displayInput, 0, 0, width, height, pixels);
       completed = true;
       return { pixels, width, height };
     }

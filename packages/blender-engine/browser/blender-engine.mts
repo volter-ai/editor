@@ -129,6 +129,7 @@ export interface BlenderEngineOptions {
  * answered as a whole frame is.
  */
 export interface SessionAsk {
+  evaluation?: 'render';
   checkpoint?: string;
   frame?: unknown;
   hold?: unknown;

@@ -65,6 +65,34 @@ test('work diagnostics precede posting and balance presentation, failure and ter
   assert(!events.some(x=>x.includes('SECRET')));
 });
 
+test('render transfer preserves viewport identity and retains its purpose when aborted', async t => {
+  fakeWorker(t);
+  const stages=[];
+  const runtime=new BlenderRuntime({stage:part=>stages.push(part),present:(_frame,_description,capture)=>{
+    if(capture)throw Error('capture failed');
+    return {};
+  }});
+  const worker=FakeWorker.latest;
+  worker.onmessage({data:{op:'present',id:90,frame:{session:'viewport',revision:17},description:{}}});
+  await tick();
+  assert.deepEqual(runtime.presented,{session:'viewport',revision:17});
+  const {sendFrameValue}=await import(`data:text/javascript;base64,${Buffer.from((await build({
+    entryPoints:[fileURLToPath(new URL('../browser/frame-stream.mts',import.meta.url))],bundle:true,platform:'node',format:'esm',write:false,
+  })).outputFiles[0].text).toString('base64')}`);
+  let id=100;
+  await sendFrameValue({op:'stage',session:'capture',revision:1,evaluation:'render'},async chunk=>{
+    const current=++id;
+    worker.onmessage({data:{op:'frame-stream',id:current,chunk}});
+    for(let i=0;i<20&&!worker.messages.some(m=>m.id===current);i++)await tick();
+    assert(worker.messages.some(m=>m.id===current));
+  });
+  worker.onmessage({data:{op:'present',id:200,frame:{session:'capture',revision:1},description:{},capture:{evaluation:'render'}}});
+  await tick();
+  assert.deepEqual(runtime.presented,{session:'viewport',revision:17});
+  assert.deepEqual(stages.at(-1),{session:'capture',revision:1,evaluation:'render',abort:true});
+  runtime.terminate();
+});
+
 test('throwing work observers and failed postMessage cannot leak a pending call', async t => {
   fakeWorker(t);
   for(const throwsAt of ['begin','end']){

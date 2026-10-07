@@ -2,6 +2,21 @@
 
 ## Blender rendering parity (2026-10-07)
 
+Constant Emission now retains its unlit graph even without linked inputs, and
+Render Result captures resolve four scene-linear samples per output pixel as
+PNG captures already did. An actual WebGL half-red/half-blue one-pixel control
+returns exactly `[0.5, 0, 0.5, 1]`. Roof normal-input error improves but still
+fails; scaled tangent frames and indirect lighting remain under investigation.
+Evidence: `docs/media/blender-emission-capture-sampling-20261007.json`.
+
+Render captures now use the render engine's native RENDER depsgraph, with a
+separate export scope and owned Three capture view. The courtyard's render-only
+cloud planes regain their native transforms. Two native regression runs verify
+render-only visibility, render-specific Array geometry, exception cleanup and
+retained viewport cache/undo identity. Unit coverage checks capture resources,
+runtime revision and abort isolation. Full courtyard parity still fails on roof
+material response and indirect light; Play's render-evaluated start is pending.
+
 Rendering is now an explicit visual gate before reference-driven gameplay work.
 Blender WASM evaluates the file, but Three presents its surfaces and lighting;
 opening the same file alone cannot establish render equivalence. The subsystem
