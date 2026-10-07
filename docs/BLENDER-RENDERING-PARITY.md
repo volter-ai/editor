@@ -41,10 +41,36 @@ The configuration and table hashes are recorded; tests reject mismatched or
 truncated data. `test/display-transform.browser.ts` runs the real GPU check
 through a temporary project command contribution and the public editor SDK.
 
+## Ordinary-object Object Info: measured
+
+Object Info now compiles all six outputs from the native object/material data:
+Location (object origin), Color, Alpha, Object Index, Material Index and Random.
+Ordinary-object Random follows Blender's UTF-8 byte hash and Jenkins mixing;
+Blender's native and WASM builds both specify unsigned characters. It must not
+be replaced with a position hash or a shared material constant.
+
+Draw copies own each object's uniforms while borrowing authored graph values,
+images and ramps. Unique draw identities prevent Three's material upload cache
+from reusing the previous object's inputs. Copies keep the previous graph during
+asynchronous recompilation, follow live value edits, and are released when no
+object wears them. Palette merging is disabled for these graphs until it can
+carry per-instance inputs.
+
+Independent native Cycles emission renders cover four names, including UTF-8,
+and all six outputs. Actual WebGL float32 results are identical for all 24
+cases; four objects sharing one authored material also preserve distinct Random
+values in one render. A structural edit also compiles and swaps while per-object
+copies remain visible. Native and browser evidence:
+[Object Info GPU results](media/blender-object-info-parity-20261007.json).
+This isolates input evaluation; the live HDR target still uses half precision.
+Depsgraph instances require their native `random_id`, which the current exporter
+does not carry. Do not claim instance-input parity.
+
 ## Remaining scene gates
 
-The Lone Monk courtyard still fails scene parity. Its unsupported Object Info,
-Particle Info and mixed shader graphs currently fall back to constants. The
+The Lone Monk courtyard still fails scene parity. Its unsupported Particle Info
+and mixed shader graphs still fall back to constants. Ordinary-object Object
+Info no longer rejects the entire material graph. The
 exporter omits depsgraph collection/particle instances, and the browser lighting
 does not reproduce the source scene's Cycles indirect illumination.
 
