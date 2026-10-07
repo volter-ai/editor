@@ -349,7 +349,10 @@ export async function serveBlenderMcp(
   // Blender's own spelling of the root: on Windows the project's `C:\…` is `/C:/…` inside it, and
   // a script told the host spelling writes to a path that is not the project's.
   const mounted = engineSpelling(project);
-  const filesystem = `Project files are mounted in Blender at the project's actual absolute path: ${mounted}${mounted !== project ? ` (this machine's ${project})` : ''}. Use that root for image loads, saves and exports; /project is not an alias.`;
+  // Files the agent wrote a moment ago are copied in before each call (blender-engine worker,
+  // stageProjectFiles), so a project script runs from its file; an agent unsure of that built its level
+  // through the eval CLI instead of this door (2026-10-06, the WSL obby run).
+  const filesystem = `Project files are mounted in Blender at the project's actual absolute path: ${mounted}${mounted !== project ? ` (this machine's ${project})` : ''}. Use that root for image loads, saves and exports; /project is not an alias. The project's source files written before a call, including ones written just now, are in place when that call runs (dotfiles and dot-directories, node_modules, dist, coverage and logs are not copied in), so run a project script from its file: exec(open(${JSON.stringify(`${mounted}/src/models/<name>.py`)}).read()).`;
   const instructions = `${runtimeIdentity}\n${filesystem}\n${photographs}`;
   const tools = (blenderTools as ToolShape[]).map((tool) =>
     tool.name === 'execute_blender_code'
