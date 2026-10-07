@@ -59,7 +59,17 @@ import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { subscribeAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
 import { AppRoot } from '../components/AppRoot';
-import { subscribeStartupFailure, type StartupFailureNotice } from '@volter/editor-sdk/kit/startup-failure';
+import {
+  clearStartupFailure,
+  reportStartupFailure,
+  subscribeStartupFailure,
+  type StartupFailureNotice,
+} from '@volter/editor-sdk/kit/startup-failure';
+import {
+  getToolContributionLoadFailures,
+  subscribeToolContributions,
+  toolContributionsPublished,
+} from '@volter/editor-sdk/kit/tool-loader';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
 import { Inspector, InspectorShownAsCard } from '@volter/editor-sdk/kit/components/Inspector';
@@ -78,6 +88,7 @@ import {
   subscribePaletteActions,
 } from '@volter/editor-sdk/kit/editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
 import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';
 import { type EditorNotification, setNotificationDelegate } from '@volter/editor-sdk/kit/editor-notifications';
@@ -1078,6 +1089,40 @@ export interface VolterStartupHandle {
   subscribe(listener: (failure: StartupFailureNotice | null) => void): () => void;
 }
 
+/**
+ * A CONFIRMED DEAD END, not a slow start (#147 re-review): the workspace has restored, the
+ * project's contributions have loaded — and some FAILED — and no document is open. The
+ * product's cover waits for a document to open; with the package that registers it unloadable,
+ * none ever will, and the cover would narrate a wait with nothing behind it. So it is said, with
+ * the failed modules and the fix, through the same startup-failure door the cover hears. A
+ * document that opens after all (a reload of a fixed package) withdraws it.
+ */
+const NO_DOCUMENT_SOURCE = 'no-document';
+function watchForNoDocumentDeadEnd(): void {
+  void waitForWorkspaceStateRestore().then(() => {
+    let said: string | null = null;
+    const check = (): void => {
+      const open = openWorkspaceDocuments().some((document) => !document.descriptor.area);
+      if (open) { said = null; clearStartupFailure(NO_DOCUMENT_SOURCE); return; }
+      if (!toolContributionsPublished()) return;
+      const failures = getToolContributionLoadFailures();
+      if (failures.length === 0) return;
+      const listed = failures.map((failure) => `${failure.entryPath}: ${failure.error.split('\n')[0]}`).join('\n');
+      if (listed === said) return;
+      said = listed;
+      editorConsole.error(`Startup failed: no document can open, because these contributions did not load:\n${listed}`, 'editor');
+      reportStartupFailure(NO_DOCUMENT_SOURCE, {
+        message: `No document can open: the editor's contributions that provide them did not load.\n${listed}`,
+        guidance: `Reinstall the project's packages (npm install in the project folder), then reload this window; ${commandLine('console')} has the full errors.`,
+        command: null,
+      });
+    };
+    subscribeToolContributions(check);
+    subscribeWorkspaceDocuments(check);
+    check();
+  });
+}
+
 /** What the frame hands over besides its parts, before anything of the editor runs. */
 export interface VscodeFrameServices {
   /** The workbench's workspace storage (`kit/workspace-storage`). */
@@ -1560,6 +1605,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     },
     report: (level, message) => keyboard.report(level, message),
   };
+  watchForNoDocumentDeadEnd();
   const statusItems: VolterStatusHandle = {
     list: () =>
       (['left', 'right'] as const).flatMap((align) =>

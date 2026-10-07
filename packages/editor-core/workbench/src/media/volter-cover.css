@@ -100,3 +100,13 @@
 	user-select: text;
 	color: var(--vscode-descriptionForeground);
 }
+
+/* THE WAY OUT OF A LONG WAIT (`VolterOpeningCover.offerDismiss`): beside the progress line, under
+   whatever splash is drawn, so a slow open never seals the workbench behind it. */
+.monaco-workbench .volter-opening-cover-dismiss.volter-opening-cover-dismiss-waiting {
+	position: absolute;
+	left: 50%;
+	bottom: 56px;
+	transform: translateX(-50%);
+	margin-top: 0;
+}

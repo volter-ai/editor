@@ -126,6 +126,19 @@ export class VolterOpeningCover {
 		this.noteElement.textContent = text;
 	}
 
+	/**
+	 * A WAY OUT FROM A LONG WAIT, not only from a refusal (#147 re-review): a cover that only
+	 * narrates seals the workbench behind it for as long as the wait lasts. The same Dismiss a
+	 * refusal grows, offered once the open has been slow for a while; the open goes on behind.
+	 */
+	offerDismiss(): void {
+		if (this.removed || this.element.querySelector('.volter-opening-cover-dismiss')) { return; }
+		const dismiss = $<HTMLButtonElement>('button.volter-opening-cover-dismiss.volter-opening-cover-dismiss-waiting');
+		dismiss.textContent = localize('volterCoverDismiss', "Dismiss");
+		dismiss.addEventListener('click', () => this.remove());
+		this.element.appendChild(dismiss);
+	}
+
 	/** The editor is there: take the cover away, whole — the product's splash with it. */
 	remove(): void {
 		this.removed = true;

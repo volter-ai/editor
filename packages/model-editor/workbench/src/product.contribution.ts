@@ -120,7 +120,9 @@ let documents: DocumentsSource | undefined;
  * IT IS NOT A DEADLINE ANY MORE (#147 review). This used to reject at 90 s, which turned a slow
  * but healthy boot (a cold page cache, a busy box, a large file) into the cover's refusal. A
  * Blender that cannot open the model says so itself — the Model document publishes its failure
- * to the cover (`@volter/editor-sdk/kit/startup-failure`) — so the wait here only narrates.
+ * to the cover (`@volter/editor-sdk/kit/startup-failure`) — and so does an editor whose
+ * contributions failed to load with no document open (`bridge.tsx`'s no-document dead end), so
+ * the wait here only narrates; the kit's cover offers Dismiss once it has been long.
  */
 const MODEL_OPEN_NARRATE_AFTER_MS = 30_000;
 
@@ -215,7 +217,7 @@ registerVolterProduct({
 				timer = mainWindow.setInterval(() => {
 					const elapsed = Date.now() - startedAt;
 					if (elapsed < MODEL_OPEN_NARRATE_AFTER_MS) { return; }
-					splash?.say(localize('volterModelCoverSlow', "Still opening the first model ({0}s) — Blender is starting in this tab. `volter-model-editor status` says what it is doing.", Math.round(elapsed / 1000)));
+					splash?.say(localize('volterModelCoverSlow', "Waiting for the first model to open ({0}s). `volter-model-editor status` says what the editor is doing.", Math.round(elapsed / 1000)));
 				}, 1000);
 				unsubscribe = registry.subscribe?.(() => { if (open()) { stop(); resolve(); } });
 				// One more read after subscribing: the document can land between the check

@@ -473,6 +473,9 @@ let cover: VolterOpeningCover | undefined;
  * naming the step and how long, updated as it goes, and the open ends only on an answer.
  */
 const OPEN_PROGRESS_AFTER_S = 15;
+/** When a still-waiting cover also offers Dismiss (#147 re-review: narrating alone sealed the
+ *  workbench for as long as the wait lasted). */
+const OPEN_DISMISS_AFTER_S = 60;
 /** The step the open is waiting on now, named in the progress line. */
 let openStep = '';
 /** The editor's own still-trying line (a transient startup notice), which the progress line
@@ -586,6 +589,10 @@ registerAction2(class extends Action2 {
 			if (seconds < OPEN_PROGRESS_AFTER_S) { return; }
 			cover?.note(startupProgress ?? localize('volterOpenWaiting', "Still waiting for {0} ({1}s). `{2} status` says what the session knows.", openStep, seconds, product.command));
 		}, 1000);
+		// AND A WAY OUT once the wait is long, through the product's `ready` too (which narrates
+		// its own wait and may never end if nothing ever opens): the cover never seals the
+		// workbench. Not cleared at `ready` on purpose; the cover's removal makes it a no-op.
+		mainWindow.setTimeout(() => cover?.offerDismiss(), OPEN_DISMISS_AFTER_S * 1000);
 		try {
 			// Discard only upstream's onboarding, including a restored Welcome tab.
 			await editorService.closeEditors(editorService.getEditors(EditorsOrder.SEQUENTIAL).filter(({ editor }) => editor.typeId === GettingStartedInput.ID));
