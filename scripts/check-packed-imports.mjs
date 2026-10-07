@@ -40,10 +40,13 @@ for (const folder of readdirSync(join(root, 'packages'))) {
   // one; a catalog's `project-source/` lands in a project begun from that
   // template, which also gains the declaring entry's `packageJson` and those
   // of the entries it `requires`. A vendored package's peers resolve through
-  // the enclosing package, so they count only where it declares them.
+  // the enclosing package, so they count only where it declares them. A packed
+  // VS Code extension (its manifest names `engines.vscode`) imports `vscode`
+  // from the extension host that loads it.
   const projects = paths.filter(path => /\/package\.json$/.test(path)).map(path => {
     const nested = readJson(path);
     return { prefix: path.slice(0, -'package.json'.length), declared: new Set([...names(nested),
+      ...(nested.engines?.vscode ? ['vscode'] : []),
       ...Object.keys(nested.peerDependencies ?? {}).filter(name => declared.has(name))]) };
   })
     .sort((a, b) => b.prefix.length - a.prefix.length);
