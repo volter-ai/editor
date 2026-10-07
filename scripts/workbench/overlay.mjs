@@ -791,6 +791,128 @@ function patchOptionalVsda(checkout) {
 		'optional VSDA capability before resource loading');
 }
 
+/**
+ * THE CHAT WELCOME WHILE NO AGENT IS READY (docs/CHAT-WELCOME.md), drawn natively from the chat
+ * extension's `supercode.frontend.setupState` (version 1) by the kit's `volterChatWelcome.ts`.
+ * ChatWidget reads it on each welcome render, scoped to the newest read for the conversation it
+ * shows, and hands it to ChatViewWelcomePart; `visible` alone decides the welcome and the
+ * composer. With no command, a throw or another version, today's Markdown welcome is untouched.
+ */
+function patchChatSetupWelcome(checkout) {
+	const welcome = 'src/vs/workbench/contrib/chat/browser/viewsWelcome/chatViewWelcomeController.ts';
+	const widget = 'src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts';
+	patchChatSource(checkout, welcome, "import { chatViewsWelcomeRegistry, IChatViewsWelcomeDescriptor } from './chatViewsWelcome.js';",
+		"import { chatViewsWelcomeRegistry, IChatViewsWelcomeDescriptor } from './chatViewsWelcome.js';\nimport { ICommandService } from '../../../../../platform/commands/common/commands.js';\nimport { ChatSetupState, renderChatSetupWelcome, renderChatSignedInNotice } from '../../../volter/browser/volterChatWelcome.js';", 'setup welcome imports');
+	patchChatSource(checkout, welcome, '\treadonly useLargeIcon?: boolean;\n}',
+		"\treadonly useLargeIcon?: boolean;\n\t/** The chat extension's setup state; while visible it replaces the Markdown welcome. */\n\treadonly setup?: ChatSetupState;\n}", 'setup welcome content');
+	patchChatSource(checkout, welcome, '\t\t@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,\n\t) {',
+		'\t\t@IMarkdownRendererService private readonly markdownRendererService: IMarkdownRendererService,\n\t\t@ICommandService private readonly commandService: ICommandService,\n\t) {', 'setup welcome actions');
+	patchChatSource(checkout, welcome, '\t\ttry {\n\n\t\t\t// Icon\n', `\t\ttry {
+\t\t\t// No agent ready: the extension's setup state replaces the Markdown welcome.
+\t\t\t// Without a visible one, everything below renders as it always has.
+\t\t\tif (content.setup?.visible) {
+\t\t\t\tthis._register(renderChatSetupWelcome(this.element, content.setup, this.commandService, this.logService));
+\t\t\t\treturn;
+\t\t\t}
+\t\t\tif (content.setup?.signedInNotice) {
+\t\t\t\trenderChatSignedInNotice(this.element, content.setup.signedInNotice);
+\t\t\t}
+
+\t\t\t// Icon
+`, 'native setup welcome rendering');
+	patchChatSource(checkout, welcome, '\t\t// Heuristic based on content that changes between states\n\t\treturn !!(', `\t\t// A visible setup state replaces the Markdown welcome, so then it alone decides.
+\t\tconst setupChanged = JSON.stringify(this.content.setup) !== JSON.stringify(content.setup);
+\t\tif (this.content.setup?.visible && content.setup?.visible) {
+\t\t\treturn setupChanged;
+\t\t}
+\t\t// Heuristic based on content that changes between states
+\t\treturn setupChanged || !!(`, 'setup welcome rerender');
+
+	patchChatSource(checkout, widget, "import { ChatViewWelcomePart, IChatViewWelcomeContent } from '../viewsWelcome/chatViewWelcomeController.js';",
+		"import { ChatViewWelcomePart, IChatViewWelcomeContent } from '../viewsWelcome/chatViewWelcomeController.js';\nimport { ChatSetupState, readChatSetupState, showChatSetupProgress } from '../../../volter/browser/volterChatWelcome.js';", 'setup state import');
+	patchChatSource(checkout, widget, '\tprivate _isRenderingWelcome = false;', `\tprivate _isRenderingWelcome = false;
+\t/** The chat extension's setup state for this conversation once a read answered, and the newest read. */
+\tprivate _setupWelcome: { readonly state: ChatSetupState | undefined } | undefined;
+\tprivate _setupWelcomeRead = 0;
+\t/** The editor's own placeholder while the setup state's replaces it. */
+\tprivate _setupComposer: { readonly placeholder: string | undefined } | undefined;
+\tprivate readonly _setupProgress = this._register(new MutableDisposable());`, 'setup state generation');
+	patchChatSource(checkout, widget, '\t\tthis._register(this.onDidChangeViewModel(() => this._onDidChangeFindableContent.fire()));', `\t\tthis._register(this.onDidChangeViewModel(() => this._onDidChangeFindableContent.fire()));
+\t\t// A setup state read for one conversation never draws on, or disables, another.
+\t\tthis._register(this.onDidChangeViewModel(() => {
+\t\t\tthis._setupWelcome = undefined;
+\t\t\tthis._setupWelcomeRead++;
+\t\t\tif (!this.isEmpty()) {
+\t\t\t\tthis.applySetupWelcome(undefined);
+\t\t\t}
+\t\t}));`, 'setup state per conversation');
+	patchChatSource(checkout, widget, '\tprivate renderWelcomeViewContentIfNeeded() {', '\tprivate renderWelcomeViewContentIfNeeded(readSetup = true) {', 'redraw from an answered setup read');
+	patchChatSource(checkout, widget, '\t\t\tconst numItems = this.viewModel?.getItems().length ?? 0;\n\t\t\tif (!numItems) {', `\t\t\tconst numItems = this.viewModel?.getItems().length ?? 0;
+\t\t\t// The setup state draws only an empty chat, from the newest read for this conversation.
+\t\t\t// Until the first read answers, the welcome it may replace stays hidden and the composer
+\t\t\t// as it was, rather than flashing; with no extension to ask, nothing waits.
+\t\t\tconst asked = !numItems && readSetup && this.readSetupWelcome();
+\t\t\tif (!numItems && readSetup && !asked) {
+\t\t\t\t// Nothing can answer any more (say the extension host restarted): drop the last
+\t\t\t\t// answer, so the Markdown welcome and a usable composer come back.
+\t\t\t\tthis._setupWelcome = undefined;
+\t\t\t}
+\t\t\tconst setup = numItems ? undefined : this._setupWelcome?.state;
+\t\t\tconst pending = asked && !this._setupWelcome;
+\t\t\tthis.welcomeMessageContainer.style.visibility = pending ? 'hidden' : '';
+\t\t\tif (!pending) {
+\t\t\t\tthis.applySetupWelcome(setup);
+\t\t\t}
+\t\t\tif (!numItems) {`, 'read setup state on each welcome render');
+	patchChatSource(checkout, widget, '\t\t\t\tconst welcomeContent = this.getWelcomeViewContent(additionalMessage);',
+		'\t\t\t\tconst welcomeContent: IChatViewWelcomeContent = { ...this.getWelcomeViewContent(additionalMessage), setup };', 'setup state into the welcome');
+	patchChatSource(checkout, widget, '\tprivate renderGettingStartedTipIfNeeded(): void {', `\t/** Asks the chat extension for its setup state; false when no extension answers that. */
+\tprivate readSetupWelcome(): boolean {
+\t\tconst read = ++this._setupWelcomeRead;
+\t\tconst reply = this.instantiationService.invokeFunction(readChatSetupState);
+\t\treply?.then(state => {
+\t\t\t// A newer render, or another conversation, supersedes this read.
+\t\t\tif (read === this._setupWelcomeRead && !this._store.isDisposed) {
+\t\t\t\tthis._setupWelcome = { state };
+\t\t\t\tthis.renderWelcomeViewContentIfNeeded(false);
+\t\t\t}
+\t\t});
+\t\treturn !!reply;
+\t}
+
+\t/**
+\t * While no agent is ready the composer stays in place with the extension's placeholder (the
+\t * editor's own placeholder option, kept and restored as dictation does) and takes no input
+\t * unless the state allows it. A busy agent runs the view's progress bar.
+\t */
+\tprivate applySetupWelcome(setup: ChatSetupState | undefined): void {
+\t\tconst shown = setup?.visible ? setup : undefined;
+\t\tconst input = this.inputPartDisposable.value;
+\t\tif (input && shown) {
+\t\t\tthis._setupComposer ??= { placeholder: input.inputEditor.getRawOptions().placeholder };
+\t\t\tinput.inputEditor.updateOptions({ placeholder: shown.composerPlaceholder, readOnly: !shown.composerEnabled });
+\t\t} else if (input && this._setupComposer) {
+\t\t\t// A placeholder the conversation set meanwhile (setModel, a locked agent) wins over the saved one.
+\t\t\tinput.inputEditor.updateOptions({ placeholder: this.viewModel?.inputPlaceholder ?? this._setupComposer.placeholder, readOnly: false });
+\t\t\tthis._setupComposer = undefined;
+\t\t}
+\t\tinput?.inputContainerElement?.classList.toggle('volter-chat-setup-disabled', !!shown && !shown.composerEnabled);
+\t\tconst busy = !!shown?.rows.some(row => row.busy);
+\t\tif (busy !== !!this._setupProgress.value) {
+\t\t\tthis._setupProgress.value = busy && isIChatViewViewContext(this.viewContext)
+\t\t\t\t? this.instantiationService.invokeFunction(showChatSetupProgress, this.viewContext.viewId) : undefined;
+\t\t}
+\t}
+
+\tprivate renderGettingStartedTipIfNeeded(): void {`, 'setup state composer and progress');
+	// The first request (Enter on a read-only draft, composerEnabled, or a chat opened with a
+	// query) ends the empty chat without a welcome render: restore the composer and progress here.
+	patchChatSource(checkout, widget, '\t\t\tif (items.length > 0) {\n\t\t\t\tthis.updateChatViewVisibility();\n\t\t\t} else {', `\t\t\tif (items.length > 0) {
+\t\t\t\tthis.updateChatViewVisibility();
+\t\t\t\tthis.applySetupWelcome(undefined);
+\t\t\t} else {`, 'setup state ends with the first request');
+}
+
 function patchNativeChat(checkout) {
 	// Live harness approvals answer through commands, not a second chat request.
 	// Keep their choices in the native primary/secondary button row rather than
@@ -901,6 +1023,7 @@ function patchNativeChat(checkout) {
 	}`, 'standalone trusted welcome commands');
 	patchChatSource(checkout, 'src/vs/workbench/contrib/chat/browser/widget/chatWidget.ts', `							isWidgetAgentWelcomeViewContent: this.input?.currentModeKind === ChatModeKind.Agent`, `							isWidgetAgentWelcomeViewContent: this.input?.currentModeKind === ChatModeKind.Agent,
 							additionalMessageLinksToButtons: true`, 'participant welcome action styling');
+	patchChatSetupWelcome(checkout);
 
 	// The toolbar/keyboard New Chat door must honor a provider-owned creation menu.
 	// Keep this out of the shared clear helper: Send to New Chat also calls that
