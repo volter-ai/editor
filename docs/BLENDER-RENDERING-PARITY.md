@@ -145,19 +145,37 @@ with the old ordering. Shadow-ray visibility follows native source flags and
 the intersection with an instancer's flags, as Cycles does; camera-visible sky
 planes that disable shadows remain visible and do not become casters.
 
-The environment still lights surfaces through a position-independent IBL. It
-does not trace which sky directions geometry blocks. A native courtyard control
-with indirect bounces disabled still has a dark foreground arcade, while the
-raster capture remains bright. Direct environment visibility is therefore a
-required lighting gate alongside indirect illumination, rather than a color or
-exposure adjustment.
+Opaque direct environment lighting now samples geometry visibility through a
+shared directional depth atlas. Sixteen directions use 512-square tiles; the
+atlas is cached across unchanged geometry and camera movement. Once an object
+moves, its subsequent poses update a separate dynamic atlas without redrawing
+the static environment. These are derived draw resources, not edits to the
+Blender file or a scene-specific lighting bake. Diffuse sky quadrature is
+normalized to retain the unoccluded constant-world control; specular visibility
+uses a finite weighted approximation. This is not indirect light transport.
+
+The first-draw sun fit also updates the light and target's world matrices before
+fitting shadow bounds. Newly composed lights previously fitted in stale axes;
+their first photograph could illuminate the foreground while later viewport
+frames shaded it. An offset closed-room GPU control and parent/target movement
+regressions cover this first-versus-settled-frame difference.
+
+The independent desktop Cycles closed-room control and actual WebGL both now
+return linear RGB zero, while the open WebGL control retains its baseline
+0.787598 versus native Principled 0.799691. HiDPI drawing, shadow exclusion,
+movement, unchanged-frame caching and restoration after failure are checked.
+[Measured results and limits](media/blender-world-visibility-20261007.json).
+The atlas treats casters as opaque and does not evaluate GPU skinning/morph
+positions. Finite direction and depth resolution remain approximations. Native
+material equivalence, indirect illumination and the full courtyard visual gate
+remain incomplete; the corrected courtyard foreground is still too dark.
 
 The closed-room diagnostic isolates this behavior without the imported asset:
 a camera inside a closed diffuse cube, with a white exterior world and no
 interior lights, renders RGB 0–1 with native Cycles and RGB 230–232 with
 VOLTER_THREE in the same WASM session. Both use Standard/None, exposure 0,
-32×32 output, eight samples and zero indirect bounces. This is a failing gate,
-not an accepted approximation. [Measured ranges](media/blender-environment-visibility-20261007.json).
+32×32 output, eight samples and zero indirect bounces. Those are the retained
+pre-fix failing results. [Measured ranges](media/blender-environment-visibility-20261007.json).
 `test/environment_visibility.py` captures the native/raster pair and restores
 the original scene, removing only its own temporary datablocks. It also accepts
 native-only execution for a desktop reference.

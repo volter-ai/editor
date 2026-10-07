@@ -54,7 +54,7 @@ test('surface light attenuation is live and cleared after a render',()=>{
   assert.deepEqual(shader.uniforms.blenderWorldExtinction.value.toArray(),[1,2,3]);
   assert(shader.fragmentShader.includes('length(pointLight.position-geometryPosition)'));
   assert(shader.fragmentShader.includes('length(spotLight.position-geometryPosition)'));
-  assert(shader.fragmentShader.includes('getIBLIrradiance( geometryNormal ) * blenderInfiniteTransmission()'));
+  assert(shader.fragmentShader.includes('blenderWorldIrradiance( geometryNormal, getIBLIrradiance( geometryNormal ) ) * blenderInfiniteTransmission()'));
   applyWorldExtinction(material,new Vector3());
   assert.deepEqual(shader.uniforms.blenderWorldExtinction.value.toArray(),[0,0,0]);
 });

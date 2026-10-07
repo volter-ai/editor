@@ -58,6 +58,11 @@ export function fitModelDirectionalShadow(
   casters: THREE.Box3[],
 ): void {
   if (!light.castShadow || !receivers.length) return;
+  // A detached photograph fits before its first render. Newly composed suns
+  // and their targets have not yet passed through Scene.updateMatrixWorld;
+  // fitting in those stale axes produces a different map on the first draw.
+  light.updateWorldMatrix(true, false);
+  light.target.updateWorldMatrix(true, false);
   light.shadow.updateMatrices(light);
   const camera = light.shadow.camera;
   const view = camera.matrixWorldInverse;

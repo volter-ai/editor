@@ -158,6 +158,7 @@ export async function photographSnapshot(
   await snapshot.prepare(renderCamera);
   assertCurrent();
   const captureOptions = {
+    prepareDraw:snapshot.prepareDraw,
     effect: snapshot.effect,
     width: render.width,
     height: render.height,

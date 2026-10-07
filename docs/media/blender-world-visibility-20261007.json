@@ -1,0 +1,114 @@
+{
+  "date": "2026-10-07",
+  "fixture": "packages/blender-engine/test/world-visibility.browser.ts",
+  "nativeFixture": "packages/blender-engine/test/generate-world-visibility-fixture.py",
+  "native": {
+    "blender": "5.2.0 LTS",
+    "build": "fbe6228777e7",
+    "engine": "CYCLES",
+    "samples": 512,
+    "indirect_bounces": 0,
+    "width": 32,
+    "height": 32,
+    "closed": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "open": [
+      0.7996914386749268,
+      0.7996914386749268,
+      0.7996914386749268,
+      1
+    ]
+  },
+  "gpu": {
+    "unresolvedConsole": {
+      "errors": 0,
+      "warnings": 3,
+      "errorOccurrences": 0,
+      "warningOccurrences": 64,
+      "acked": 0,
+      "workbench": 0,
+      "dropped": 0,
+      "measuredAt": 1791404216811
+    },
+    "ok": true,
+    "passed": true,
+    "closed": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "cached": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "open": [
+      0.7875984907150269,
+      0.7875984907150269,
+      0.7875984907150269,
+      1
+    ],
+    "noShadowCaster": [
+      0.7875984907150269,
+      0.7875984907150269,
+      0.7875984907150269,
+      1
+    ],
+    "moved": [
+      0.7875984907150269,
+      0.7875984907150269,
+      0.7875984907150269,
+      1
+    ],
+    "firstSun": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "settledSun": [
+      0,
+      0,
+      0,
+      1
+    ],
+    "closedPasses": 16,
+    "cachedPasses": 16,
+    "diagnostics": {
+      "enabled": true,
+      "world": true,
+      "depth": true,
+      "passes": 80,
+      "staticPasses": 64,
+      "dynamicPasses": 16,
+      "dynamicObjects": 1,
+      "vertices": 6,
+      "casters": 1,
+      "dirty": false
+    }
+  },
+  "devicePixelRatio": 2,
+  "atlas": {
+    "directions": 16,
+    "tileSize": 512,
+    "dimensions": [
+      2048,
+      2048
+    ]
+  },
+  "fullSceneGate": false,
+  "scope": "Opaque direct environment visibility and first-draw sunlight fit. Open control retains baseline radiance but does not establish native Principled equivalence.",
+  "limitations": [
+    "No indirect illumination",
+    "Finite directional and spatial sampling",
+    "Specular visibility uses a finite weighted approximation",
+    "Depth atlas treats casters as opaque",
+    "GPU skinning/morph positions are not evaluated by this atlas"
+  ]
+}

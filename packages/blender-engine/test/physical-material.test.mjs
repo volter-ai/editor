@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
-const result=await build({stdin:{contents:`export * from './blender-physical-material'; export * from './blender-texture-samplers'; export * from './blender-runtime-geometry'; export {BlenderRuntimeView} from './blender-runtime-view'; export {MeshPhysicalMaterial,ShaderLib,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,Raycaster,Vector3,Scene,PerspectiveCamera} from 'three';`,
+const result=await build({stdin:{contents:`export * from './blender-physical-material'; export * from './blender-texture-samplers'; export * from './blender-runtime-geometry'; export {fitModelDirectionalShadow} from './blender-runtime-shadows'; export {BlenderRuntimeView} from './blender-runtime-view'; export {DirectionalLight,Box3,Group,MeshPhysicalMaterial,ShaderLib,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,Raycaster,Vector3,Scene,PerspectiveCamera} from 'three';`,
   resolveDir:fileURLToPath(new URL('../browser/three/',import.meta.url)),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {applyPhysicalMaterial,physicalMaterialSchema,MeshPhysicalMaterial,ShaderLib,BlenderTextureSamplers,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,bindNamedUvChannels,drawArraysFromColumns,geometryFromDrawArrays,BlenderRuntimeView,Raycaster,Vector3,Scene,PerspectiveCamera}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].contents).toString('base64'));
+const {fitModelDirectionalShadow,DirectionalLight,Box3,Group,applyPhysicalMaterial,physicalMaterialSchema,MeshPhysicalMaterial,ShaderLib,BlenderTextureSamplers,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,bindNamedUvChannels,drawArraysFromColumns,geometryFromDrawArrays,BlenderRuntimeView,Raycaster,Vector3,Scene,PerspectiveCamera}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].contents).toString('base64'));
 const values={coat:0.8,coat_roughness:0.12,coat_ior:1.8,coat_tint:[0.2,0.4,0.6],
   sheen:0.7,sheen_roughness:0.35,sheen_tint:[0.5,0.2,0.1],anisotropy:0.6,anisotropy_rotation:0.25,
   specular_level:0.75,specular_tint:[0.7,0.8,0.9],film_thickness:450,film_ior:1.4};
@@ -19,7 +19,7 @@ test('Principled physical sockets map with turns and nanometres intact',()=>{
 });
 test('shader carries coat IOR, absorption, normal strength and grazing reflection',()=>{
   const material=new MeshPhysicalMaterial();applyPhysicalMaterial(material,values);
-  const shader={uniforms:{},fragmentShader:ShaderLib.physical.fragmentShader};
+  const shader={uniforms:{},vertexShader:ShaderLib.physical.vertexShader,fragmentShader:ShaderLib.physical.fragmentShader};
   material.onBeforeCompile(shader,{});
   assert.equal(shader.uniforms.blenderCoatIor.value,1.8);
   assert(shader.fragmentShader.includes('blenderCoatIor - 1.0'));
@@ -38,7 +38,7 @@ test('restoration resets every physical feature without retaining old frame valu
 });
 test('Clip applies to each sampler independently; Base Color does not connect Alpha',()=>{
   const material=new MeshPhysicalMaterial();applyPhysicalMaterial(material,values,{map:true,normal:true});
-  const shader={uniforms:{},fragmentShader:ShaderLib.physical.fragmentShader};material.onBeforeCompile(shader,{});
+  const shader={uniforms:{},vertexShader:ShaderLib.physical.vertexShader,fragmentShader:ShaderLib.physical.fragmentShader};material.onBeforeCompile(shader,{});
   assert.equal(shader.uniforms.blenderMapClip.value,true);
   assert.equal(shader.uniforms.blenderRoughnessClip.value,false);
   assert(shader.fragmentShader.includes('blenderImageSample(map, vMapUv, blenderMapClip)'));
@@ -178,4 +178,18 @@ test('first detached capture fits sunlight after sky derivation and preserves ra
       assert.equal(mesh.castShadow,false,'repeated capture retains native shadow exclusion');
     } finally {capture.dispose();}
   } finally {view.dispose();}
+});
+
+test('sun shadow fit agrees before and after the first scene draw, including moved parents and targets',()=>{
+  const scene=new Scene(),parent=new Group(),targetParent=new Group(),sun=new DirectionalLight();
+  sun.castShadow=true;sun.shadow.mapSize.set(2048,2048);sun.position.set(.4,.8,.2);
+  parent.add(sun);targetParent.add(sun.target);scene.add(parent,targetParent);
+  const receivers=[new Vector3(-3,0,-3),new Vector3(3,0,3),new Vector3(3,2,-3)];
+  const casters=[new Box3(new Vector3(-5,0,-5),new Vector3(5,4,5))];
+  const fit=()=>{fitModelDirectionalShadow(sun,receivers,casters);const c=sun.shadow.camera;
+    return [c.left,c.right,c.top,c.bottom,c.near,c.far,...c.matrixWorld.elements];};
+  const first=fit();scene.updateMatrixWorld(true);assert.deepEqual(fit(),first);
+  parent.position.set(1,2,3);targetParent.position.set(-1,.5,2);
+  const moved=fit();assert.notDeepEqual(moved,first);
+  scene.updateMatrixWorld(true);assert.deepEqual(fit(),moved);
 });

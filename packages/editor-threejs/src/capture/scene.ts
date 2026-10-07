@@ -12,6 +12,9 @@ export interface SceneCaptureOptions {
   transparent?: boolean;
   toneMapping?: THREE.ToneMapping;
   exposure?: number;
+  /** Caller-owned draw resources for this renderer/camera. The returned
+   * cleanup runs after success or failure, before releasing the renderer. */
+  prepareDraw?: (renderer:THREE.WebGLRenderer,camera:THREE.Camera)=>void|(()=>void);
   /** Integration-owned GPU display resolve, shared with its live viewport. */
   displayTransform?: DocumentDisplayTransform;
   /** Caller-owned scene-linear effect. The input carries a depth texture;
@@ -75,6 +78,7 @@ function capture(
   let display: THREE.WebGLRenderTarget | undefined;
   let displayInput: THREE.WebGLRenderTarget | undefined;
   let completed = false;
+  let finishDraw:(()=>void)|void=undefined;
   try {
     hdr = new THREE.WebGLRenderTarget(renderWidth, renderHeight, { type: THREE.HalfFloatType });
     if (options.effect) hdr.depthTexture = new THREE.DepthTexture(renderWidth, renderHeight);
@@ -86,6 +90,7 @@ function capture(
     renderer.setClearColor(0, options.transparent ? 0 : 1);
     if (options.transparent) scene.background = null;
     renderer.setRenderTarget(hdr);
+    finishDraw=options.prepareDraw?.(renderer,camera);
     renderer.clear();
     renderer.render(scene, camera);
     const resolved = options.effect?.render(renderer, hdr, scene, camera) ?? hdr;
@@ -128,18 +133,20 @@ function capture(
     completed = true;
     return imageUrl;
   } finally {
-    scene.background = previous.background;
-    renderer.setRenderTarget(previous.target);
-    renderer.toneMapping = previous.toneMapping;
-    renderer.toneMappingExposure = previous.exposure;
-    renderer.outputColorSpace = previous.colorSpace;
-    renderer.shadowMap.enabled = previous.shadows;
-    renderer.shadowMap.type = previous.shadowType;
-    renderer.setClearColor(previous.clearColor, previous.clearAlpha);
-    display?.dispose();
-    displayInput?.dispose();
-    hdr?.dispose();
-    lease.release({ discard: !completed });
+    try {finishDraw?.();} finally {
+      scene.background = previous.background;
+      renderer.setRenderTarget(previous.target);
+      renderer.toneMapping = previous.toneMapping;
+      renderer.toneMappingExposure = previous.exposure;
+      renderer.outputColorSpace = previous.colorSpace;
+      renderer.shadowMap.enabled = previous.shadows;
+      renderer.shadowMap.type = previous.shadowType;
+      renderer.setClearColor(previous.clearColor, previous.clearAlpha);
+      display?.dispose();
+      displayInput?.dispose();
+      hdr?.dispose();
+      lease.release({ discard: !completed });
+    }
   }
 }
 
