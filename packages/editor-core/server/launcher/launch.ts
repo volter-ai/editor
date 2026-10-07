@@ -13,8 +13,6 @@ import { classifyProjectSession } from './session-resolution';
 import { loopbackPortFree } from './loopback-port';
 import { waitForOwnEditorServer, describeEditorBootFailure, DEFAULT_EDITOR_BOOT_TIMEOUT_MS, type ChildExitStatus } from './editor-boot';
 
-/** Who is launching: the package a project declares, the id its workbench
- * build carries, and the names a person sees and types. */
 /** A static limited view of a project (docs/LIMITED-VIEW.md): a launcher verb, because it runs
  *  the project's own session headless and records what it serves. */
 export const VIEW_BUILD_USAGE = 'view build [folder] --out <dir> --workbench <vscode-web dir>';
@@ -34,6 +32,8 @@ export async function viewBuild(
   return implementation.viewBuild(...args);
 }
 
+/** Who is launching: the package a project declares, the id its workbench
+ * build carries, and the names a person sees and types. */
 export interface LaunchingProduct {
   readonly packageName: string;
   readonly id: string;

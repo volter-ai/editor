@@ -220,6 +220,9 @@ function publishRelease(dir, dryRun) {
 	for (const key of ['product', 'platform', 'commit', 'tarball', 'tarballBytes', 'tarballSha256']) {
 		if (record[key] === undefined) { fail(`${recordPath} names no ${key}; it is not a release record this can publish.`); }
 	}
+	if (record.target === 'vscode-web') {
+		fail(`${recordPath} is a limited view's web workbench, which is not published yet: no product declares a web release.`);
+	}
 	if ((record.lookTiers ?? []).length > 0) {
 		fail(`This release carries look tiers (${record.lookTiers.map((tier) => tier.package).join(', ')}), built with --look. The fork's Releases are public and a look tier is its package's own code, so it is not published; cut the release without --look.`);
 	}
@@ -283,9 +286,21 @@ function publishRelease(dir, dryRun) {
 `);
 }
 
+/** `--publish` with no `--out`: builds write to `.volter/releases/<build>`, so the release to
+ *  publish is the one cut there — refused by name when there is none, or more than one. */
+function defaultReleaseToPublish() {
+	const root = join(REPO_ROOT, '.volter/releases');
+	const cut = existsSync(root)
+		? readdirSync(root, { withFileTypes: true }).filter((entry) => entry.isDirectory() && existsSync(join(root, entry.name, 'BUILD.json'))).map((entry) => join(root, entry.name))
+		: [];
+	if (cut.length === 1) { return cut[0]; }
+	if (cut.length === 0) { fail(`--publish found no release under ${root}; cut one first, or name it with --out <dir>.`); }
+	fail(`--publish found ${cut.length} releases under ${root} (${cut.map((dir) => basename(dir)).join(', ')}); name the one to publish with --out <dir>.`);
+}
+
 const args = parseArgs(process.argv);
 if (args.publishOnly) {
-	publishRelease(resolve(args.out ?? join(REPO_ROOT, '.volter/releases')), args.dryRun);
+	publishRelease(resolve(args.out ?? defaultReleaseToPublish()), args.dryRun);
 	process.exit(0);
 }
 const pin = assertAtPin(resolve(args.checkout));

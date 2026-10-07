@@ -30,7 +30,7 @@
 
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, statSync, writeFileSync } from 'node:fs';
+import { cpSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -47,9 +47,10 @@ import { builtFrameBridgeModule, readBuiltProductEntry } from '../frame-bridge';
 import { waitForOwnEditorServer } from './editor-boot';
 import { computePackageContributionCrawlEntries } from '../project-optimize-deps-entries';
 import { productServingModules, productViewServingModules } from '../session-product';
+import { selectProjectFiles } from './view-files';
+import { PathNeutralizer, scanForLocalPaths } from './view-paths';
 import {
   type LimitedViewConfig,
-  type LimitedViewProjectFile,
   type LimitedViewRouteEntry,
   MOUNT_SENTINEL,
   neutralProjectRoot,
@@ -95,10 +96,6 @@ const KIT_SNAPSHOT_ROUTES = [
 const NOT_CRAWLED = /^\/@vite\/client|^\/@vite\/env|^\/@react-refresh|^\/__editor\//;
 /** Source files a project's modules are compiled from. */
 const MODULE_EXTENSIONS = /\.(?:[cm]?[jt]sx?|json|css)$/;
-/** Folders of a project that are not its source and not its content. */
-const SKIPPED_DIRS = new Set(['node_modules', 'dist', 'dist-ssr', 'dist-wip', 'logs', 'server', '.git']);
-/** What of `.volter/` a view carries: the project's own editor state, never a session's. */
-const VOLTER_DIR_KEPT = /^\.volter\/(?:editor-state\.json|workbench-storage\.json|settings\.json|themes\/[^/]+\.json|provenance[^/]*\.json)$/;
 /** How many requests are in flight against the session at once. */
 const CRAWL_CONCURRENCY = 4;
 /** A runaway crawl is a defect to name, not a view to write. */
@@ -160,29 +157,6 @@ function prepareOut(dir: string | undefined): string {
   return out;
 }
 
-/** The project's files a view ships: its source and content, without dependencies, builds,
- *  logs, secrets or anything a session keeps for itself. */
-function projectFiles(root: string): LimitedViewProjectFile[] {
-  const files: LimitedViewProjectFile[] = [];
-  const walk = (dir: string, rel: string): void => {
-    for (const entry of readdirSync(dir, { withFileTypes: true })) {
-      const path = rel ? `${rel}/${entry.name}` : entry.name;
-      if (entry.isDirectory()) {
-        if (SKIPPED_DIRS.has(entry.name) && rel === '') continue;
-        if (entry.name === 'node_modules') continue;
-        if (entry.name.startsWith('.') && !(rel === '' && (entry.name === '.volter' || entry.name === '.storybook')) && !rel.startsWith('.volter')) continue;
-        walk(join(dir, entry.name), path);
-      } else if (entry.isFile()) {
-        if (path.startsWith('.volter/') ? !VOLTER_DIR_KEPT.test(path) : entry.name.startsWith('.env')) continue;
-        const info = statSync(join(dir, entry.name));
-        files.push({ path, size: info.size, mtime: Math.floor(info.mtimeMs) });
-      }
-    }
-  };
-  walk(root, '');
-  return files;
-}
-
 /** `/@fs/<absolute>` as Vite spells it on this platform (`fsImportPath`'s rule). */
 function fsUrl(absolute: string): string {
   const posix = absolute.split(sep).join('/');
@@ -196,28 +170,6 @@ function extensionFor(type: string): string {
   if (/^text\//.test(type)) return 'txt';
   if (/^image\/png/.test(type)) return 'png';
   return 'bin';
-}
-
-/**
- * Replace every spelling of a project root in recorded text with `neutral`: Vite's `/@fs/` URL
- * first (so it does not become `/@fs//…`), then the root with `/`, JSON-escaped `\\` and plain
- * `\` separators, each with either case of drive letter.
- */
-function rootRewrite(roots: readonly string[], neutral: string): (text: string) => string {
-  const pairs: [string, string][] = [];
-  for (const root of new Set(roots)) {
-    const forward = root.split('\\').join('/').replace(/\/+$/, '');
-    const variants = new Set([forward, forward.replace(/^[a-z]:/, (d) => d.toUpperCase()), forward.replace(/^[A-Z]:/, (d) => d.toLowerCase())]);
-    for (const variant of variants) {
-      pairs.push([variant.startsWith('/') ? `/@fs${variant}` : `/@fs/${variant}`, `/@fs${neutral}`]);
-    }
-    for (const variant of variants) {
-      pairs.push([variant, neutral]);
-      pairs.push([variant.split('/').join('\\\\'), neutral]);
-      pairs.push([variant.split('/').join('\\'), neutral]);
-    }
-  }
-  return (text) => pairs.reduce((acc, [from, to]) => (from.length > 1 ? acc.split(from).join(to) : acc), text);
 }
 
 /** The absolute paths each compiled module imports from the same origin. */
@@ -245,10 +197,26 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
   const distPath = join(product.dir, 'dist');
   // The product's production build is what the page runs; without it there is nothing to frame.
   const frameBridge = builtFrameBridgeModule(readBuiltProductEntry(distPath, product));
+  // A view written inside its project would publish itself on the next build, and a workbench
+  // inside the output would be deleted before it is copied.
+  if (options.out) {
+    const target = resolve(options.out);
+    const inside = (child: string, parent: string) => {
+      const rel = relative(parent, child);
+      return rel === '' || (!rel.startsWith('..') && !/^[A-Za-z]:/.test(rel));
+    };
+    if (inside(target, project)) fail(`--out ${target} is inside the project ${project}; a view there would be published with the project's own files. Write it somewhere else.`);
+    if (inside(workbench, target) || inside(target, workbench)) fail(`--out ${target} and --workbench ${workbench} overlap; the output is replaced whole before the workbench is copied into it. Keep them apart.`);
+  }
   const out = prepareOut(options.out);
   const resolveFromProduct = createRequire(join(product.dir, 'package.json'));
   const sessionEntry = resolveFromProduct.resolve('@volter/editor-core/server/packaged');
   const editorCoreRoot = dirname(dirname(sessionEntry));
+
+  // What of the project is published: what it would commit, never a secret (`view-files.ts`).
+  const published = selectProjectFiles(project);
+  log(`Publishing ${published.files.length} project files.`);
+  for (const [rule, count] of published.excluded) log(`  left out: ${count} × ${rule}`);
 
   // ---- 1. the project's own session, headless.
   const port = await freePort();
@@ -311,9 +279,14 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     const projectAnswer = entries['/__editor/project'];
     if (projectAnswer) {
       const path = join(out, VIEW_DIR, 'r', projectAnswer.file);
-      const answer = JSON.parse(readFileSync(path, 'utf8')) as { project?: { path?: string }; session?: unknown };
+      const answer = JSON.parse(readFileSync(path, 'utf8')) as { project?: { path?: string }; session?: unknown; engine?: unknown; sourceWrite?: boolean; ingestSourceWrite?: boolean };
       if (answer.project?.path) sessionRoot = answer.project.path;
       answer.session = { pid: 0, ephemeral: true, sessionId: 'limited-view', repositoryId: null, worktreeId: null, worktreeRoot: null, projectRelativePath: null, branch: null, headCommit: null, baseCommit: null };
+      // The engine's git state is the building checkout's, and source writes need the session's
+      // `/__ui-source/*` and `/__ingest-source/*` routes, which a view refuses.
+      answer.engine = { branch: null, commit: null, behindOriginMain: null, dirty: null };
+      answer.sourceWrite = false;
+      answer.ingestSourceWrite = false;
       writeFileSync(path, JSON.stringify(answer));
     }
     // A heartbeat worker with nobody to beat to.
@@ -332,7 +305,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     // The modules: every source file of the project, as the editor imports it (`/@fs/<root>/…`,
     // plain and under the mount sentinel) and as a relative import reaches it (`/<path>`), every
     // contribution the project's packages declare, and the kit's doorways.
-    const files = projectFiles(project);
+    const files = published.files;
     const seeds = new Set<string>(PACKAGED_MODULE_DOORWAYS.map((doorway) => doorway.path));
     const rootUrl = fsUrl(sessionRoot);
     for (const file of files) {
@@ -387,15 +360,22 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
   //          view does not carry `C:/Users/<you>/…`. Paths outside the project (a workspace's
   //          hoisted packages) keep their own spelling.
   const neutral = neutralProjectRoot(basename(project));
-  const rewrite = rootRewrite([sessionRoot, project], neutral);
+  const paths = new PathNeutralizer([sessionRoot, project], neutral, [product.dir, editorCoreRoot]);
   const recordedEntries = Object.entries(entries);
+  const textOf = new Map<string, string>();
+  for (const [key, entry] of recordedEntries) {
+    paths.learn(key);
+    if (/javascript|json|^text\//.test(entry.type)) {
+      const text = readFileSync(join(out, VIEW_DIR, 'r', entry.file), 'utf8');
+      textOf.set(entry.file, text);
+      paths.learn(text);
+    }
+  }
   for (const key of Object.keys(entries)) delete entries[key];
   for (const [key, entry] of recordedEntries) {
-    if (/javascript|json|^text\//.test(entry.type)) {
-      const path = join(out, VIEW_DIR, 'r', entry.file);
-      writeFileSync(path, rewrite(readFileSync(path, 'utf8')));
-    }
-    entries[rewrite(key)] = entry;
+    const text = textOf.get(entry.file);
+    if (text !== undefined) writeFileSync(join(out, VIEW_DIR, 'r', entry.file), paths.rewrite(text));
+    entries[paths.rewrite(key)] = entry;
   }
 
   // ---- 3. the view.
@@ -409,7 +389,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
   writeFileSync(join(out, VIEW_DIR, 'frame-bridge.js'), frameBridge);
   cpSync(workbench, join(out, WORKBENCH_DIR), { recursive: true });
 
-  const files = projectFiles(project);
+  const files = published.files;
   for (const file of files) {
     const target = join(out, VIEW_DIR, 'project', ...file.path.split('/'));
     mkdirSync(dirname(target), { recursive: true });
@@ -445,6 +425,17 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
 
   writeFileSync(join(out, 'index.html'), indexHtml(config));
   writeFileSync(join(out, '_headers'), HEADERS_FILE);
+
+  // ---- 4. nothing of the building machine. A hit fails the build, and the page is taken out so
+  //         the output cannot be served as a view by mistake (`view-paths.ts`).
+  const leaks = scanForLocalPaths(out);
+  if (leaks.length > 0) {
+    rmSync(join(out, 'index.html'), { force: true });
+    fail(
+      `the output still names this machine (${leaks.length}${leaks.length >= 12 ? '+' : ''} places); it is not publishable and its index.html was removed:\n` +
+        leaks.map((leak) => `  ${leak.file}: …${leak.context}…`).join('\n'),
+    );
+  }
   log(`
   ${out}
 

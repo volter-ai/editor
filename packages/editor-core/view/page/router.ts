@@ -63,6 +63,9 @@ const UNAVAILABLE_FEATURES: readonly [RegExp, string][] = [
   [/^\/__editor\/(download|export)/, 'Exporting a build'],
   [/^\/__editor\/command$/, 'Driving the editor from a terminal'],
   [/^\/__editor\/source-conflict\/resolve/, 'Resolving a source conflict'],
+  // The source-authoring integrations' write routes live outside `/__editor/`; a view's recorded
+  // `/__editor/project` says it serves neither (`sourceWrite`, `ingestSourceWrite`: false).
+  [/^\/__(?:ui|ingest)-source\//, "Writing edits back into the project's source"],
 ];
 
 export function unavailableFeature(pathname: string): string {
@@ -478,7 +481,7 @@ export function createLimitedViewRouter(options: LimitedViewRouterOptions): (req
         return json({ error: error instanceof Error ? error.message : String(error) }, 500);
       }
     }
-    if (url.pathname.startsWith('/__editor/')) {
+    if (url.pathname.startsWith('/__editor/') || /^\/__(?:ui|ingest)-source\//.test(url.pathname)) {
       if (method !== 'GET' && DROPPED_REPORTS.test(url.pathname)) return ok();
       return services.unavailable(unavailableFeature(url.pathname));
     }

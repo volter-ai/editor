@@ -54,9 +54,33 @@ __view/boot.js      the page, with each integration's volter.viewServing routes 
 __view/frame-bridge.js
 ```
 
-`view build` copies the project's files without `node_modules`, build output, `logs/`, `server/`,
-`.git`, `.env*`, or any `.volter/` file a session keeps for itself. From `.volter/` it carries only
-`editor-state.json`, `workbench-storage.json`, `settings.json`, `themes/` and provenance.
+### What of the project is published
+
+A limited view is made to be shared, so it publishes only what the project would commit, and never
+a secret (`server/launcher/view-files.ts`). A file is published only if it passes all four rules:
+
+1. **Never a secret.** This applies whatever `.gitignore` says: `.env*`, `*.local`, `.npmrc`, `.yarnrc.yml`, `.pypirc`, `.netrc`, `.git-credentials`, `.dockercfg`, `credentials*.json`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `*.jks`, and SSH keys (`id_*`).
+2. **Not dependencies or output.** `node_modules`, `dist*`, `logs/`, `server/`, and every dot-folder except `.volter` and `.storybook` (so `.git` is never published).
+3. **Only the project's own `.volter` files.** That means `.volter/settings.json` and `.volter/themes/*.json`. The editor state and workbench storage are a person's workspace: open documents, search history, and URIs naming their home folder. So a view always opens on the editor's default layout.
+4. **Nothing `.gitignore` ignores.** In a git work tree, git answers (`git ls-files --cached --others --exclude-standard`). Elsewhere, every `.gitignore` is read with git's rules.
+
+`view build` prints what it left out, by rule, as counts only.
+
+### No path of the building machine
+
+Recorded URLs and bodies name the project root as `/volter-view/<name>`, which is also what the
+page tells the editor it opened. Every other absolute path gets its own `/volter-fs/<n>/` prefix:
+a workspace's hoisted packages, an editor checkout, an engine's folder
+(`server/launcher/view-paths.ts`). The recorded `/__editor/project` also drops the session's
+identity and the engine's git state.
+
+The finished output is then scanned for any of these:
+
+- the builder's home folder;
+- their user name inside a home path;
+- any `/@fs/` URL that is still absolute.
+
+A hit fails the build and removes the output's `index.html`, so it cannot be served by mistake.
 
 ## The routes the page answers
 
@@ -104,6 +128,7 @@ These are the routes that need the person's machine or account:
 | `open-project`, `create-project`, `inspect-project`, `adapt-project`, `browse-folder`, `reveal`, `recent-projects`, `launcher-settings`, `templates`, `examples` | A view is one project |
 | `download`, `export` | No build to export |
 | `command` | Terminal control of a session |
+| `/__ui-source/*`, `/__ingest-source/*` (outside `/__editor/`) | Writing edits back into the project's source needs the session's source-authoring routes. The recorded `/__editor/project` says `sourceWrite: false` and `ingestSourceWrite: false`. |
 
 ## What a limited view is not
 
@@ -137,11 +162,13 @@ Hosting rules:
 - **Secure context.** Serve it over https, or from localhost; service workers need a secure context.
 - **Cross-origin isolation.** It is required for Blender's threads. `_headers` states it for hosts that read one (Netlify, Cloudflare Pages). On any other host the view's worker adds the headers, after at most one reload.
 - **File sizes.** Blender's recorded engine files are stored uncompressed, around 100 MB together. Hosts with a per-file cap (Cloudflare Pages: 25 MiB) cannot serve them; Netlify and most object stores can.
+- **Where `--out` can go.** It may not be inside the project, because the view would publish itself on the next build. It may not overlap `--workbench`, because the output is replaced whole before the workbench is copied in.
 
 ## Known limits and risks (unverified: built typecheck-only)
 
 - **The module crawl is best effort.** Anything the editor imports by a URL that is neither crawled nor reducible by the worker's key rule gets the page's raw file or a 404. The worker's key rule drops `t`, `volter-source` and `volter-reload`, and maps `volter-mount`. Watch the network panel on the first walk.
-- **The view leaks local paths.** Compiled module URLs and `/__editor/project` carry the build machine's absolute project path (`/@fs/C:/…`).
+- **The product's chunks shadow `public/assets/`.** The product's production build is served at `/assets/…`, and the static host answers it before the page's router sees the request. So a project file at `public/assets/<same name>` would not be the one served. Real chunk names are content-hashed, so this is latent.
+- **Imported ignored files are still compiled.** A committed module that imports a gitignored one is compiled with it, as the session serves it. Only the ignored file's own source is left out of the published files.
 - **One page holds the files.** Requests from workers go to the page that registered last. Two tabs of one view are two separate projects.
 - **Synchronous XHR would deadlock.** A synchronous XHR to a forwarded route would block the page that has to answer it. None is known.
 - **The WALI Blender skew is partial.** Its substrate modules (`blender-wasm/wali/…`) are named at run time and are not recorded. The default Emscripten skew is complete.
