@@ -676,19 +676,29 @@ export function supercodeInvocation(command: string, args: readonly string[]): {
 }
 
 /**
- * Whether `command` is the Teams daemon's own per-version core (`<supercode home>/teams/service/bin/<version>/…`).
+ * Whether `command` is the Teams daemon's own per-version core (`<teams home>/service/bin/<version>/…`).
  * The daemon sets SUPERCODE_BIN to it for the panes it launches, so its hooks call back into the same build; an
  * editor started from such a pane inherits that value, which names whatever release the daemon ran when the pane
  * opened (hours old, and older than the machine's install). It is not a person's override, so Chat does not run on it.
  */
-export function isTeamsServiceSupercode(command: string, home = process.env['SUPERCODE_HOME'] || join(homedir(), '.config', 'supercode')): boolean {
+export function isTeamsServiceSupercode(command: string, teamsHome = supercodeTeamsHome()): boolean {
   const normalize = (value: string) => {
     const full = resolve(value);
     return process.platform === 'win32' ? full.toLowerCase() : full;
   };
-  const serviceBin = normalize(join(home, 'teams', 'service', 'bin'));
+  const serviceBin = normalize(join(teamsHome, 'service', 'bin'));
   const target = normalize(command);
   return target.startsWith(serviceBin + sep);
+}
+
+/** The Teams home as supercode resolves it (crates/harness teams_home, agent global_instructions_dir):
+ *  SUPERCODE_TEAMS_HOME, else SUPERCODE_HOME/teams, else XDG_CONFIG_HOME/supercode/teams, else
+ *  ~/.config/supercode/teams. An empty variable counts as unset, as it does there. */
+function supercodeTeamsHome(env = process.env): string {
+  if (env['SUPERCODE_TEAMS_HOME']) return env['SUPERCODE_TEAMS_HOME'];
+  if (env['SUPERCODE_HOME']) return join(env['SUPERCODE_HOME'], 'teams');
+  if (env['XDG_CONFIG_HOME']) return join(env['XDG_CONFIG_HOME'], 'supercode', 'teams');
+  return join(homedir(), '.config', 'supercode', 'teams');
 }
 
 export function findSupercodeCommand(cwd = process.cwd(), path = process.env['PATH'] ?? ''): string | undefined {
