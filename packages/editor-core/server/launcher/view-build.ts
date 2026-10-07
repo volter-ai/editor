@@ -315,7 +315,8 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     const seeds = new Set<string>(PACKAGED_MODULE_DOORWAYS.map((doorway) => doorway.path));
     const rootUrl = fsUrl(sessionRoot);
     for (const file of files) {
-      if (!MODULE_EXTENSIONS.test(file.path) || file.path.startsWith('public/') || file.path.startsWith('.')) continue;
+      if (!MODULE_EXTENSIONS.test(file.path) || file.path.startsWith('public/')) continue;
+      if (file.path.startsWith('.') && !file.path.startsWith('.storybook/')) continue;
       seeds.add(`${rootUrl}/${file.path}`);
       seeds.add(`/${file.path}`);
       if (!file.path.endsWith('.json') && !file.path.endsWith('.css')) seeds.add(`${rootUrl}/${file.path}?volter-mount=${MOUNT_SENTINEL}`);
