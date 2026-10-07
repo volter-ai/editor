@@ -74,10 +74,13 @@ import {
   modelPlayAutoplay,
   modelPlayClock,
   modelPlayGeneration,
+  noteModelPlayPerson,
   registerModelPlayStop,
   setModelPlayAutoplay,
+  setModelPlayBotState,
   setModelPlayFailure,
   setModelPlayAutoplayAvailable,
+  setModelPlayPaused,
   settleModelPlayAutoplay,
   subscribeModelPlayClock,
   takeModelPlayStep,
@@ -136,20 +139,30 @@ export interface ModelPlayContext {
    *  authored opacity. Its colour is untouched, and the copies are `tint`'s. */
   setOpacity(object: THREE.Object3D | string, opacity: number | null): void;
   /**
-   * Offer this game's bot. While the person (or an agent, `play autoplay on`) has autoplay on in
-   * the Game panel, `controller` is called before each `update` and the keys it answers are held
-   * for that update, merged into `keys`. Autoplay is off at every Play and Restart, and a
-   * person's key or pointer in the game turns it off. One bot per script: registering again
-   * replaces it, `null` withdraws it, and it goes with the script. Never bind autoplay to a game
-   * key, and never start it from the script.
+   * Offer this game's bot, as named BEHAVIOURS: what the bot sets out to do, each its own
+   * controller. While the person (or an agent, `play autoplay on <behaviour>`) has autoplay on in
+   * the Game panel, the chosen behaviour's controller is called before each `update` and the keys
+   * it answers are held for that update, merged into `keys`. Offer the outcomes worth checking —
+   * one that plays to win and one that loses on purpose — so a run tests an ending by saying so,
+   * not by leaving the game alone. A bare function is the one behaviour `play`. Every run has a
+   * limit in simulation seconds (`play autoplay on <behaviour> --for <seconds>`, 300 unless
+   * given): reaching it turns autoplay off and pauses the game. Autoplay is off at every Play and
+   * Restart, and a person's key or pointer in the game turns it off. One bot per script:
+   * registering again replaces it, `null` withdraws it, and it goes with the script. Never bind
+   * autoplay to a game key, and never start it from the script.
    *
-   *     play.autoplay(({ dt }) => (car.speed < 20 ? ['ArrowUp'] : []));
+   *     play.autoplay({
+   *       win: ({ dt }) => (car.speed < 20 ? ['ArrowUp'] : []),
+   *       lose: () => ['ArrowLeft'],   // drives off the track
+   *     });
    */
-  autoplay(controller: ModelPlayAutoplayController | null): void;
+  autoplay(bot: ModelPlayAutoplayController | Readonly<Record<string, ModelPlayAutoplayController>> | null): void;
 }
 
 /** What the bot is handed before each `update` it drives. */
 export interface ModelPlayAutoplayInput {
+  /** The behaviour driving (`play autoplay on <behaviour>`), for a controller shared by several. */
+  readonly behavior: string;
   /** The `dt` the coming `update` is handed. */
   readonly dt: number;
   /** Simulation seconds and the update's number, as that update's log entries carry them. */
@@ -158,8 +171,27 @@ export interface ModelPlayAutoplayInput {
   /** The keys the person holds, by `KeyboardEvent.code`; the bot's are merged with them. */
   readonly keys: ReadonlySet<string>;
 }
-/** A game's bot: the keys (`KeyboardEvent.code`) it holds for the coming update. */
-export type ModelPlayAutoplayController = (input: ModelPlayAutoplayInput) => Iterable<string> | null | undefined;
+/**
+ * A game's bot: the keys (`KeyboardEvent.code`) it holds for the coming update — or those keys
+ * with what it is doing now, `{ keys, state: 'heading to nest 2' }`. The state is the bot
+ * explaining itself: the Game panel shows it beside the driver, `play state` reports it, and
+ * each change is a `bot-state` entry in the play log. Say intentions and their reasons (a goal,
+ * a target, why it is waiting), not per-frame numbers.
+ */
+export type ModelPlayAutoplayController = (input: ModelPlayAutoplayInput) =>
+  Iterable<string> | { readonly keys?: Iterable<string> | null; readonly state?: string | null } | null | undefined;
+
+/** The longest bot state kept: a line for the panel, not a report. */
+const BOT_STATE_CHARACTERS = 160;
+
+/** A controller's answer as its keys and its state (undefined: it said nothing about its state). */
+function botAnswer(answer: ReturnType<ModelPlayAutoplayController>): { keys: Iterable<string>; state: string | null | undefined } {
+  if (answer === null || answer === undefined) return { keys: [], state: undefined };
+  if (typeof (answer as Iterable<string>)[Symbol.iterator] === 'function') return { keys: answer as Iterable<string>, state: undefined };
+  const { keys, state } = answer as { keys?: Iterable<string> | null; state?: string | null };
+  const said = state === undefined ? undefined : state === null ? null : String(state).replace(/\s+/g, ' ').trim().slice(0, BOT_STATE_CHARACTERS) || null;
+  return { keys: keys ?? [], state: said };
+}
 
 export interface ModelPlayGame {
   /** Once per drawn frame, with the simulation seconds since the last call (at most a tenth).
@@ -174,8 +206,30 @@ export interface ModelPlayGame {
  *  logged once — per script, so a typo that survives a reload is said again for the new one. */
 interface Script {
   value: boolean;
-  bot: ModelPlayAutoplayController | null;
+  /** The bot's behaviours by name, in the order offered; null without a bot. */
+  bot: Readonly<Record<string, ModelPlayAutoplayController>> | null;
   readonly unknown: Set<string>;
+}
+
+/** The behaviour names a script's bot offers, in its order. */
+function behaviorsOf(script: Script | undefined): string[] {
+  return script?.bot ? Object.keys(script.bot) : [];
+}
+
+/** `play.autoplay`'s argument as behaviours by name: a bare function is the one behaviour `play`. */
+function botBehaviors(bot: unknown): Readonly<Record<string, ModelPlayAutoplayController>> | null {
+  if (bot === null) return null;
+  if (typeof bot === 'function') return { play: bot as ModelPlayAutoplayController };
+  if (typeof bot === 'object' && !Array.isArray(bot)) {
+    const entries = Object.entries(bot as Record<string, unknown>);
+    if (entries.length === 0) throw new Error('play.autoplay was given no behaviours: offer at least one, `{ win: (input) => keys }`.');
+    for (const [name, controller] of entries) {
+      if (!/^[A-Za-z][\w-]{0,39}$/.test(name)) throw new Error(`play.autoplay behaviour "${name}" is not a name: letters, digits, - and _, starting with a letter.`);
+      if (typeof controller !== 'function') throw new Error(`play.autoplay behaviour "${name}" is not a function (the controller).`);
+    }
+    return Object.freeze({ ...(bot as Record<string, ModelPlayAutoplayController>) });
+  }
+  throw new Error('play.autoplay takes a function (the bot), its behaviours by name (`{ win, lose }`), or null.');
 }
 
 /** The longest `dt` one update is handed; longer scaled frames are split (`frameUpdates`). */
@@ -296,7 +350,8 @@ export function runPlayScript(options: {
     if (now.speed !== seen.speed) run.append('play', 'speed', { speed: now.speed, from: seen.speed });
     seen = now;
     const bot = modelPlayAutoplay(options.documentId);
-    if (bot.on !== seenBot.on) run.append('play', bot.on ? 'autoplay-on' : 'autoplay-off', { by: bot.by });
+    if (bot.on !== seenBot.on || (bot.on && (bot.behavior !== seenBot.behavior || bot.since !== seenBot.since)))
+      run.append('play', bot.on ? 'autoplay-on' : 'autoplay-off', bot.on ? { by: bot.by, behavior: bot.behavior, limit: bot.limit } : { by: bot.by, behavior: seenBot.behavior });
     // An arm dropped before it was taken: a takeover, or a script that offers no bot. (Stop's
     // reset has no `by`, and its `play-stop` says enough.)
     else if (seenBot.armed && !bot.armed && bot.by !== null) run.append('play', 'autoplay-off', { by: bot.by, armed: true });
@@ -326,10 +381,9 @@ export function runPlayScript(options: {
       const target = alive.value ? objectOf(alive, object, 'setOpacity') : null;
       if (target) materials.setOpacity(target, opacity);
     },
-    autoplay(controller) {
-      if (controller !== null && typeof controller !== 'function')
-        throw new Error('play.autoplay takes a function (the bot) or null.');
-      if (alive.value) alive.bot = controller;
+    autoplay(bot) {
+      const behaviors = botBehaviors(bot);
+      if (alive.value) alive.bot = behaviors;
     },
   });
   const scripts = new WeakMap<ModelPlayGame, Script>();
@@ -450,7 +504,7 @@ export function runPlayScript(options: {
     else if (!transition.acceptingKeys()) keys.clear();
     else for (const key of heldKeys) keys.add(key);
     // The panel's toggle is enabled by the bot the running script offers, as of the last frame.
-    if (current()) setModelPlayAutoplayAvailable(options.documentId, game !== null && scripts.get(game)?.bot != null);
+    if (current()) setModelPlayAutoplayAvailable(options.documentId, game !== null ? behaviorsOf(scripts.get(game)) : []);
     const updates = frameUpdates(options.documentId, deltaSeconds);
     if (updates.length === 0) {
       // PAUSED: no update, so nothing states the camera; hold the pose the last frame drew.
@@ -478,13 +532,20 @@ export function runPlayScript(options: {
     /** Merge the bot's keys into `keys` for one update; true when it did, and the caller then
      *  restores the person's keys after that update, however it ends. */
     const drive = (script: ModelPlayGame, dt: number): boolean => {
-      const bot = driving ? scripts.get(script)?.bot : null;
-      // Asked again per update: the bot's own failure, a takeover, or `play.autoplay(null)`
-      // ends it mid-frame.
-      if (!bot || !modelPlayAutoplay(options.documentId).on) return false;
+      // Asked again per update: the bot's own failure, a takeover, its limit, or
+      // `play.autoplay(null)` ends it mid-frame.
+      const now = modelPlayAutoplay(options.documentId);
+      const behavior = driving && now.on ? now.behavior : null;
+      const bot = behavior !== null ? scripts.get(script)?.bot?.[behavior] : undefined;
+      if (!bot || behavior === null) return false;
       restorePerson();
       try {
-        for (const key of bot({ dt, simT: clock.time + simulated, tick: clock.tick + ran, keys: person }) ?? []) keys.add(String(key));
+        const answer = botAnswer(bot({ behavior, dt, simT: clock.time + simulated, tick: clock.tick + ran, keys: person }));
+        for (const key of answer.keys) keys.add(String(key));
+        if (answer.state !== undefined && answer.state !== now.state) {
+          setModelPlayBotState(options.documentId, answer.state);
+          run.append('play', 'bot-state', { behavior, state: answer.state });
+        }
         return true;
       } catch (error) {
         restorePerson();
@@ -524,7 +585,8 @@ export function runPlayScript(options: {
         // NOW THE SCRIPT HAS SAID WHETHER IT OFFERS A BOT (its default export and first update
         // are where `play.autoplay` is called): said before `running`, so no reader sees a running
         // game with its bot not yet counted, and an arm made while stopped is taken or dropped.
-        const offered = scripts.get(next.game)?.bot != null;
+        const behaviors = behaviorsOf(scripts.get(next.game));
+        const offered = behaviors.length > 0;
         if (!offered && offeredBot !== false)
           run.append('play', 'autoplay-unavailable', { why: 'the play script registers no bot with play.autoplay(controller)' });
         offeredBot = offered;
@@ -532,7 +594,7 @@ export function runPlayScript(options: {
         // the stage was still preparing, before these listeners existed, and has only repeated
         // since. The person is driving, so an arm waiting for this update is dropped.
         if (heldKeys.size > 0 && modelPlayAutoplay(options.documentId).armed) takeover();
-        settleModelPlayAutoplay(options.documentId, offered);
+        settleModelPlayAutoplay(options.documentId, behaviors);
         setModelPlayFailure(options.documentId, null);
         startedAt = Date.now();
         endedAt = null;
@@ -551,6 +613,17 @@ export function runPlayScript(options: {
       }
       advanceModelPlayClock(options.documentId, simulated, ran);
       ran = 0;
+      // THE RUN'S LIMIT: a bot still driving when its simulation seconds are spent is stopped and
+      // the game held, so a game that never ends cannot keep a bot (and whoever waits on it) going.
+      const bot = modelPlayAutoplay(options.documentId);
+      if (current() && bot.on && bot.limit !== null && bot.since !== null) {
+        const now = modelPlayClock(options.documentId).time;
+        if (now - bot.since >= bot.limit) {
+          run.append('play', 'autoplay-limit', { behavior: bot.behavior, limit: bot.limit, ran: now - bot.since, state: bot.state });
+          setModelPlayAutoplay(options.documentId, false, 'limit');
+          setModelPlayPaused(options.documentId, true);
+        }
+      }
       transition.frame(camera(), deltaSeconds);
       options.container.style.opacity = String(transition.hudOpacity());
       if (firstFrame) { firstFrame = false; options.ready(); }
@@ -571,9 +644,12 @@ export function runPlayScript(options: {
   // by hand.
   const surface = options.container.parentElement ?? options.container;
   const takeover = (): void => {
+    if (!current()) return;
+    // Whether or not a bot was driving, the person is driving from here on in this run.
+    noteModelPlayPerson(options.documentId);
     // An arm still waiting for the bot counts too: the person is driving before it could start.
     const now = modelPlayAutoplay(options.documentId);
-    if (current() && (now.on || now.armed)) setModelPlayAutoplay(options.documentId, false, 'takeover');
+    if (now.on || now.armed) setModelPlayAutoplay(options.documentId, false, 'takeover');
   };
   const onKeyDown = (event: KeyboardEvent): void => {
     if (!surfaceAcceptsKey(event)) return;

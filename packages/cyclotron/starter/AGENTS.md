@@ -270,15 +270,30 @@ For a behavior-only repair, preserve the established appearance.
   When extending an existing model-based project, declare `@volter/editor-model-play`
   and the React/UI dependencies with compatible project versions, and add the
   UI root as needed. Preserve its models, source and settings.
-- Register your bot with `play.autoplay(controller)`; never bind autoplay to a
-  game key or start it yourself; the person turns it on in the Game panel (or
-  you, with `play autoplay on`). The controller is a plain function called
-  before each `update` while autoplay is on, given `{ dt, simT, tick, keys }`
-  (`keys` are the person's), and returns the `KeyboardEvent.code` keys it holds
-  for that update; they are merged into `keys`, so the bot drives through the
-  same movement, collision and scoring code as manual play. Autoplay is off at
-  every Play and Restart, and any key or click in the game hands control back
-  to the person (`autoplay-off` with `by: 'takeover'` in the play log).
+- Register your bot as named behaviours, one per outcome worth checking:
+  `play.autoplay({ win: …, lose: … })`, at least one that plays to win and one
+  that loses on purpose (walks into enemies, lets the timer run out). Test an
+  ending by running the behaviour that reaches it, never by leaving the game
+  alone. Never bind autoplay to a game key or start it yourself; the person
+  turns it on in the Game panel (or you, with `play autoplay on <behaviour>`).
+  Each controller is a plain function called before each `update` while its
+  behaviour drives, given `{ behavior, dt, simT, tick, keys }` (`keys` are the
+  person's), and returns the `KeyboardEvent.code` keys it holds for that
+  update, or `{ keys, state }` where `state` says in a few words what it is
+  doing and why ("heading to nest 2", "waiting for resupply"). The Game panel
+  shows that state beside the driver and the play log records each change
+  (`bot-state`), so return it whenever the bot's intention changes. The keys
+  are merged into `keys`, so the bot drives through the same movement,
+  collision and scoring code as manual play. Autoplay is off at every Play and
+  Restart, and any key or click in the game hands control back to the person
+  (`autoplay-off` with `by: 'takeover'` in the play log).
+- Every autoplay run is limited to simulation seconds, 300 unless you pass
+  `--for <seconds>`; at the limit autoplay turns off, the game pauses and the
+  log says `autoplay-limit` with the bot's last state. A run that reaches its
+  limit is a finding: the game has no reachable ending for that behaviour, or
+  the bot is stuck. Give every game a terminal state reachable in bounded
+  time (a mission timer that fails the mission, for example), and wait on a
+  run by reading `play-log` until a deadline, never open-ended.
 - Keep a gameplay log while the game runs; without it, autoplay is a black box
   and a final position or screenshot cannot tell you what went wrong. Use the
   play script's built-in log, `play.log(kind, facts)`: it stamps each entry
@@ -298,7 +313,7 @@ For a behavior-only repair, preserve the established appearance.
   session's console feed (only warnings and errors do), so the play log is
   what you can read back. Keep logging read-only: it must not change
   timing, inputs or game state.
-- Run autoplay in Play (`play autoplay on`) and observe representative actions, objectives,
+- Run each behaviour in Play (`play autoplay on <behaviour>`) and observe representative actions, objectives,
   progression and any relevant failure/restart behavior. Exercise manual
   controls too. Inspect runtime errors and game state alongside screenshots;
   a still image alone does not verify gameplay.
@@ -389,7 +404,7 @@ view in Blender metres, Z up. In eval, `editor.present({ version: 1, viewport:
 `capture --region document|play [--out file.png [--force]]` saves what the person sees (default under
 `.volter/captures/`); `add-play` makes a models project playable; `play-log`
 reads the running game's log. The Game panel's controls, each printing its state:
-`play autoplay on|off` switches the game's bot (the Game panel's Autoplay toggle);
+`play autoplay on <behaviour> [--for <seconds>]` runs one of the game's bot behaviours for at most that many simulation seconds (300 by default), and `play autoplay off` stops it (the Game panel's Autoplay toggle);
 `play pause` holds the game (no `update` calls; its clock stops);
 `play resume` lets it run again;
 `play step [count]` runs one 1/60 s update of a paused game per count;

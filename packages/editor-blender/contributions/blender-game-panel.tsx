@@ -163,15 +163,24 @@ function gameState(documentId: string): unknown {
   };
 }
 
-/** The bot's switch and who drives: `bot` while autoplay is on, `person` otherwise, null when
- *  nothing plays. `by` is who made the last change (`takeover`: a person's key or pointer);
- *  `why` says why there is no bot to switch, null when there is one. */
+/** Who drives a playing game: the bot while autoplay is on; the person once their key or pointer
+ *  has reached the game this run; otherwise nobody — the game runs on no input. A tool that
+ *  predates `person` cannot say, and counts autoplay off as the person driving, as it always did. */
+function driverOf(playing: boolean, autoplay: DocumentPlayAutoplay): 'bot' | 'person' | 'none' | null {
+  if (!playing) return null;
+  if (autoplay.on) return 'bot';
+  return autoplay.person === false ? 'none' : 'person';
+}
+
+/** The bot's switch and who drives (`driverOf`), null when nothing plays. `by` is who made the
+ *  last change (`takeover`: a person's key or pointer; `limit`: the run's seconds spent); `state`
+ *  what the bot says it is doing; `why` says why there is no bot to switch, null when there is one. */
 function autoplayState(documentId: string): unknown {
   const found = extension();
   const autoplay = found?.transport?.autoplay?.(documentId) ?? NO_BOT;
   const playing = found?.playing(documentId) ?? false;
   const why = autoplayWhy(playing, found?.transport?.clock(documentId) ?? STILL, autoplay);
-  return { ...autoplay, driver: playing ? (autoplay.on ? 'bot' : 'person') : null, why };
+  return { ...autoplay, driver: driverOf(playing, autoplay), why };
 }
 
 /**
@@ -299,8 +308,9 @@ registerViewVerbs({
       },
     },
     {
-      // THE EDITOR'S AUTOPLAY SWITCH: on drives the game's own bot (`play.autoplay`), off hands
-      // the game back to the person. Off at every Play and Restart.
+      // THE EDITOR'S AUTOPLAY SWITCH: on drives one of the game's bot behaviours (`play.autoplay`)
+      // for at most `for` simulation seconds, off hands the game back to the person. Off at every
+      // Play and Restart. `behavior` is required when the bot offers several.
       id: 'autoplay',
       run: (args) => {
         const documentId = verbDocument(args);
@@ -308,6 +318,11 @@ registerViewVerbs({
         const on = raw === true || raw === 'on' || raw === 'true' ? true
           : raw === false || raw === 'off' || raw === 'false' ? false : undefined;
         if (on === undefined) throw new Error(`autoplay's \`on\` is true or false (\`play autoplay on|off\`); got ${String(raw)}.`);
+        const behavior = typeof args?.['behavior'] === 'string' && args['behavior'] !== '' ? args['behavior'] : null;
+        const rawLimit = args?.['for'] ?? args?.['limit'];
+        const limit = rawLimit === undefined || rawLimit === null ? null : Number(rawLimit);
+        if (limit !== null && !(Number.isFinite(limit) && limit > 0))
+          throw new Error(`autoplay's \`for\` is a positive number of simulation seconds; got ${JSON.stringify(rawLimit)}.`);
         const found = verbExtension();
         const { transport } = found;
         if (transport.setAutoplay === undefined)
@@ -315,7 +330,7 @@ registerViewVerbs({
         // Refused with the reason, stopped or no bot, as `play state`'s `autoplay.why` gives it.
         const why = on ? autoplayWhy(found.playing(documentId), transport.clock(documentId), transport.autoplay?.(documentId) ?? NO_BOT) : null;
         if (why !== null) throw new Error(why);
-        transport.setAutoplay(documentId, on, 'cli');
+        transport.setAutoplay(documentId, on, 'cli', on ? { behavior, limit } : undefined);
         return gameState(documentId);
       },
     },
@@ -635,8 +650,28 @@ function AutoplayControl({ documentId, playing, clock, autoplay, transport }: {
     : unavailable === 'not-running'
       ? armed ? 'Armed — turns on once the game is running' : 'Available once the game is running'
       : null;
+  // THE BEHAVIOUR TO RUN, when the bot offers several: chosen here, as `play autoplay on <behaviour>`
+  // names it. Shown with the one driving (or armed) selected, else the bot's first.
+  const behaviors = autoplay.behaviors ?? [];
+  const [picked, setPicked] = useState<string | null>(null);
+  const behavior = autoplay.on || armed ? autoplay.behavior ?? null : picked !== null && behaviors.includes(picked) ? picked : behaviors[0] ?? null;
+  const driver = driverOf(playing, autoplay);
+  const limitNote = !autoplay.on && autoplay.by === 'limit' && autoplay.limit ? `Autoplay stopped at its ${Math.round(autoplay.limit)} s limit` : null;
+  const botLine = [autoplay.behavior, autoplay.state].filter(Boolean).join(' — ');
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: TIMELINE_CHROME.headerGap, minWidth: 0 }}>
+      {behaviors.length > 1 && (
+        <select
+          data-testid="model-play-autoplay-behavior"
+          title="The bot behaviour Autoplay runs"
+          value={behavior ?? ''}
+          disabled={autoplay.on}
+          onChange={(event) => setPicked(event.target.value)}
+          style={{ background: TIMELINE_CHROME.widget, color: TIMELINE_CHROME.widgetText, border: 'none', borderRadius: TIMELINE_CHROME.widgetRadius, font: 'inherit', minWidth: 0 }}
+        >
+          {behaviors.map((name) => <option key={name} value={name}>{name}</option>)}
+        </select>
+      )}
       {/* The tooltip lives on a wrapper too: a disabled button is the one that most needs it. */}
       <span title={label} style={{ display: 'inline-flex' }}>
       {/* KEEP THE KEYBOARD OFF THIS BUTTON (`GameButton`'s `keepFocus`). Left focused, a person
@@ -652,8 +687,8 @@ function AutoplayControl({ documentId, playing, clock, autoplay, transport }: {
         // between the render and the click.
         onClick={() => {
           const now = transport.autoplay?.(documentId) ?? NO_BOT;
-          if (!(extension()?.playing(documentId) ?? false)) transport.armAutoplay?.(documentId, !now.armed);
-          else transport.setAutoplay?.(documentId, !now.on, 'panel');
+          if (!(extension()?.playing(documentId) ?? false)) transport.armAutoplay?.(documentId, !now.armed, { behavior });
+          else transport.setAutoplay?.(documentId, !now.on, 'panel', now.on ? undefined : { behavior });
         }}
       >
         Autoplay
@@ -664,12 +699,17 @@ function AutoplayControl({ documentId, playing, clock, autoplay, transport }: {
           {note}
         </span>
       ) : playing && (
+        // WHO DRIVES, AND WHAT THE BOT SAYS IT IS DOING: "Bot driving · win — heading to nest 2".
+        // Nobody drives a game that runs on no input; the person only once their input reached it.
         <span
           data-testid="model-play-driver"
-          data-driver={autoplay.on ? 'bot' : 'person'}
-          style={{ color: autoplay.on ? TIMELINE_THEME.playhead : TIMELINE_CHROME.widgetText, whiteSpace: 'nowrap' }}
+          data-driver={driver ?? undefined}
+          title={autoplay.state ? `The bot: ${autoplay.state}` : undefined}
+          style={{ color: autoplay.on ? TIMELINE_THEME.playhead : TIMELINE_CHROME.widgetText, whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis', minWidth: 0 }}
         >
-          {autoplay.on ? 'Bot driving' : 'You’re driving'}
+          {driver === 'bot' ? `Bot driving${botLine ? ` · ${botLine}` : ''}`
+            : limitNote ? `${limitNote}${autoplay.state ? ` — ${autoplay.state}` : ''}`
+            : driver === 'person' ? 'You’re driving' : 'Nobody’s driving'}
         </span>
       )}
     </div>

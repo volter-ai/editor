@@ -55,27 +55,74 @@ const generations = new Map<string, number>();
 const restarted = new Set<string>();
 
 /** Who last switched autoplay: the panel's toggle, a verb (CLI or `eval`), a person's input
- *  in the game, or the running script no longer offering a bot (replaced, failed, or its bot
- *  threw). */
-export type ModelPlayAutoplayBy = 'panel' | 'cli' | 'takeover' | 'script';
+ *  in the game, the running script no longer offering a bot (replaced, failed, or its bot
+ *  threw), or the run's time limit. */
+export type ModelPlayAutoplayBy = 'panel' | 'cli' | 'takeover' | 'script' | 'limit';
+/**
+ * EVERY AUTOPLAY RUN HAS A LIMIT, in simulation seconds: a bot whose game never ends would
+ * otherwise drive forever, and an agent waiting on it would wait forever. Reaching it turns
+ * autoplay off, pauses the game and logs `autoplay-limit` (`play-script.ts`).
+ */
+export const MODEL_PLAY_AUTOPLAY_LIMIT_SECONDS = 300;
 export interface ModelPlayAutoplay {
   /** The bot drives: its keys are merged into the keys the script reads. */
   readonly on: boolean;
   /** The running script registered a bot with `play.autoplay`. */
   readonly available: boolean;
+  /** The behaviours the running script's bot offers (`play.autoplay({ win, lose })`), in its
+   *  order; a bare function is the one behaviour `play`. */
+  readonly behaviors: readonly string[];
+  /** The behaviour driving now, or armed for the next start. */
+  readonly behavior: string | null;
+  /** This run's limit and the simulation time it began at; null while autoplay is off. */
+  readonly limit: number | null;
+  readonly since: number | null;
   readonly by: ModelPlayAutoplayBy | null;
   /** Pressed while stopped: the next start turns autoplay on once its script offers a bot. */
   readonly armed: boolean;
+  /** A person's key or pointer reached the game in this run. Until one does, nobody drives
+   *  while autoplay is off — the game runs on no input. */
+  readonly person: boolean;
+  /** What the bot last said it is doing (`{ keys, state }` from its controller); kept after
+   *  autoplay goes off, so a limit or takeover still shows where the bot was. */
+  readonly state: string | null;
 }
-const NO_BOT: ModelPlayAutoplay = { on: false, available: false, by: null, armed: false };
+/** What a switch-on asks for: the behaviour (required when the bot offers several) and the limit. */
+export interface ModelPlayAutoplayRequest {
+  readonly behavior?: string | null;
+  readonly limit?: number | null;
+}
+const NO_BOT: ModelPlayAutoplay = { on: false, available: false, behaviors: [], behavior: null, limit: null, since: null, by: null, armed: false, person: false, state: null };
 const ARMED: ModelPlayAutoplay = { ...NO_BOT, armed: true };
 /** Replaced, never mutated, as the clocks are. Absent is {@link NO_BOT}: a new run's state. */
 const autoplays = new Map<string, ModelPlayAutoplay>();
 
-/** A new run's autoplay: off, no bot yet. Play keeps an arm made while stopped; Stop drops it. */
+/** A new run's autoplay: off, no bot yet, nobody driving. Play keeps an arm made while stopped
+ *  (with the behaviour and limit it asked for); Stop drops it. */
 function resetAutoplay(documentId: string, keepArm: boolean): void {
-  if (keepArm && modelPlayAutoplay(documentId).armed) autoplays.set(documentId, ARMED);
+  const now = modelPlayAutoplay(documentId);
+  if (keepArm && now.armed) autoplays.set(documentId, { ...ARMED, behavior: now.behavior, limit: now.limit });
   else autoplays.delete(documentId);
+}
+
+/** A limit as given: a positive number of simulation seconds, or the default. */
+function autoplayLimit(limit: number | null | undefined): number {
+  if (limit === undefined || limit === null) return MODEL_PLAY_AUTOPLAY_LIMIT_SECONDS;
+  if (!Number.isFinite(limit) || limit <= 0) throw new Error(`An autoplay limit is a positive number of simulation seconds; got ${String(limit)}.`);
+  return limit;
+}
+
+/** The behaviour a switch-on drives: the one named, which the bot must offer; with none named,
+ *  the bot's only behaviour. A bot with several needs one named, so a run always says what its
+ *  bot was trying to do. */
+function chosenBehavior(behaviors: readonly string[], named: string | null | undefined): string {
+  if (named) {
+    if (!behaviors.includes(named))
+      throw new Error(`This game's bot has no behaviour "${named}"; it offers ${behaviors.map(b => `"${b}"`).join(', ')}.`);
+    return named;
+  }
+  if (behaviors.length === 1) return behaviors[0]!;
+  throw new Error(`This game's bot offers several behaviours (${behaviors.join(', ')}); name the one to run: \`play autoplay on <behaviour>\`.`);
 }
 
 function publish(): void {
@@ -250,9 +297,10 @@ function setAutoplay(documentId: string, next: Partial<ModelPlayAutoplay>): void
 }
 
 /** Switch the running script's bot on or off. On asks for a playing document whose script
- *  registered a bot; off always succeeds, and also drops an arm not yet taken — a person who
- *  takes over while the game is still starting is driving, and the arm must not override them. */
-export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelPlayAutoplayBy): void {
+ *  registered a bot, names the behaviour to drive (required when the bot offers several) and
+ *  starts the run's limit; off always succeeds, and also drops an arm not yet taken — a person
+ *  who takes over while the game is still starting is driving, and the arm must not override them. */
+export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelPlayAutoplayBy, request: ModelPlayAutoplayRequest = {}): void {
   const now = modelPlayAutoplay(documentId);
   if (on && !playing.has(documentId))
     throw new Error(`Autoplay is available once the game is running, and nothing is playing in ${documentId}; \`play\` starts it, then \`play autoplay on\`.`);
@@ -261,29 +309,57 @@ export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelP
     throw new Error(clock.running
       ? 'No autoplay: this game doesn’t provide a bot — its play script registers none with `play.autoplay(controller)`.'
       : `Autoplay is available once the game is running, and it is not running yet${clock.failure ? ` (${clock.failure})` : ''}.`);
-  if (on ? !now.on : now.on || now.armed) setAutoplay(documentId, on ? { on, by } : { on, by, armed: false });
+  if (on) {
+    const behavior = chosenBehavior(now.behaviors, request.behavior);
+    const limit = autoplayLimit(request.limit);
+    // Switching on again (another behaviour, a new limit) is a new run of the bot.
+    setAutoplay(documentId, { on, by, behavior, limit, since: clock.time, armed: false, state: null });
+  } else if (now.on || now.armed) setAutoplay(documentId, { on, by, armed: false, since: null });
 }
 
 /** Arm (or disarm) autoplay for the next start, while stopped: the Game panel's Autoplay button
- *  before Play. Disarming always succeeds. */
-export function armModelPlayAutoplay(documentId: string, armed: boolean): void {
+ *  before Play. The behaviour and limit are checked when the start takes the arm, since the bot
+ *  is offered only then. Disarming always succeeds. */
+export function armModelPlayAutoplay(documentId: string, armed: boolean, request: ModelPlayAutoplayRequest = {}): void {
   if (armed && playing.has(documentId))
     throw new Error(`${documentId} is already playing; switch autoplay on instead of arming it.`);
-  if (modelPlayAutoplay(documentId).armed !== armed) setAutoplay(documentId, { armed });
+  if (armed) setAutoplay(documentId, { armed, behavior: request.behavior ?? null, limit: request.limit === undefined || request.limit === null ? null : autoplayLimit(request.limit) });
+  else if (modelPlayAutoplay(documentId).armed) setAutoplay(documentId, { armed, behavior: null, limit: null });
 }
 
-/** The runner's report that a script has run its first update, offering a bot or not. An arm is
- *  taken here: on with a bot, dropped without one. */
-export function settleModelPlayAutoplay(documentId: string, offered: boolean): void {
+/** The runner's report that a script has run its first update, offering a bot's behaviours or
+ *  none. An arm is taken here: on with a bot that has the behaviour it asked for (or only one),
+ *  dropped otherwise. */
+export function settleModelPlayAutoplay(documentId: string, behaviors: readonly string[]): void {
   const now = modelPlayAutoplay(documentId);
   if (!playing.has(documentId)) return;
-  if (!now.armed) { setModelPlayAutoplayAvailable(documentId, offered); return; }
-  setAutoplay(documentId, offered ? { available: true, armed: false, on: true, by: 'panel' } : { available: false, armed: false, by: 'script' });
+  if (!now.armed) { setModelPlayAutoplayAvailable(documentId, behaviors); return; }
+  let behavior: string | null = null;
+  try { behavior = behaviors.length ? chosenBehavior(behaviors, now.behavior) : null; } catch { behavior = null; }
+  setAutoplay(documentId, behavior !== null
+    ? { available: true, behaviors, armed: false, on: true, by: 'panel', behavior, limit: now.limit ?? MODEL_PLAY_AUTOPLAY_LIMIT_SECONDS, since: modelPlayClock(documentId).time, state: null }
+    : { available: behaviors.length > 0, behaviors, armed: false, behavior: null, limit: null, by: 'script' });
 }
 
-/** The runner's report of whether the running script offers a bot. Losing it turns autoplay off. */
-export function setModelPlayAutoplayAvailable(documentId: string, available: boolean): void {
+/** The runner's report of the behaviours the running script's bot offers (none: no bot). Losing
+ *  the bot, or the behaviour driving, turns autoplay off. */
+export function setModelPlayAutoplayAvailable(documentId: string, behaviors: readonly string[]): void {
   const now = modelPlayAutoplay(documentId);
-  if (now.available === available || !playing.has(documentId)) return;
-  setAutoplay(documentId, available || !now.on ? { available } : { available, on: false, by: 'script' });
+  if (!playing.has(documentId)) return;
+  const available = behaviors.length > 0;
+  const same = now.available === available && now.behaviors.length === behaviors.length && now.behaviors.every((b, i) => b === behaviors[i]);
+  if (same) return;
+  const lost = now.on && (now.behavior === null || !behaviors.includes(now.behavior));
+  setAutoplay(documentId, lost ? { available, behaviors, on: false, by: 'script', since: null } : { available, behaviors });
+}
+
+/** The runner's report of what the driving bot says it is doing; announced only when it changes. */
+export function setModelPlayBotState(documentId: string, state: string | null): void {
+  if (playing.has(documentId) && modelPlayAutoplay(documentId).state !== state) setAutoplay(documentId, { state });
+}
+
+/** The runner's report that a person's key or pointer reached the game: from now on in this run,
+ *  autoplay off means the person drives. */
+export function noteModelPlayPerson(documentId: string): void {
+  if (playing.has(documentId) && !modelPlayAutoplay(documentId).person) setAutoplay(documentId, { person: true });
 }
