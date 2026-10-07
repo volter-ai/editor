@@ -92,6 +92,15 @@ export const MOUNT_SENTINEL = 'volterviewmount';
 
 /** Cache busters the editor appends that change nothing about the module served. */
 const BUSTER_KEYS = new Set(['t', 'volter-source', 'volter-reload']);
+/** A script module's own source: Vite's `?import` marker changes nothing about how one is
+ *  compiled (it matters for assets and JSON, which keep it). */
+export const SCRIPT_SOURCE = /\.(?:[cm]?[jt]sx?)$/;
+
+/** The neutral project root a view's recorded URLs and bodies are spelled against, instead of the
+ *  building machine's own absolute path. POSIX-shaped, so `/@fs/<root>/…` is `/@fs/volter-view/…`. */
+export function neutralProjectRoot(projectName: string): string {
+  return `/volter-view/${projectName.replace(/[^A-Za-z0-9._-]/g, '-')}`;
+}
 
 /**
  * The key a recorded answer is looked up by when the exact URL is not recorded: busters
@@ -106,6 +115,7 @@ export function recordedKey(pathname: string, search: string): { key: string; mo
     const [rawKey = '', ...rest] = pair.split('=');
     const key = decodeURIComponent(rawKey);
     if (BUSTER_KEYS.has(key)) continue;
+    if (key === 'import' && SCRIPT_SOURCE.test(pathname)) continue;
     if (key === 'volter-mount') {
       mount = decodeURIComponent(rest.join('='));
       kept.push(`volter-mount=${MOUNT_SENTINEL}`);

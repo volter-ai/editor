@@ -485,7 +485,8 @@ export function createLimitedViewRouter(options: LimitedViewRouterOptions): (req
     if (method === 'GET' || method === 'HEAD') {
       // Vite's module transport for a file inside the project, and root-relative paths: what the
       // project-rooted Vite serves at `/<path>` (its `public/` first, then the file itself).
-      const path = decodeURIComponent(url.pathname);
+      // `/@fs/` + a POSIX-shaped root is `/@fs//…` when a caller joins them naively; Vite takes both.
+      const path = decodeURIComponent(url.pathname).replace(/^\/@fs\/+/, '/@fs/');
       const answered = path.startsWith(fsPrefix)
         ? await serveFile(path.slice(fsPrefix.length), url.searchParams)
         : !path.startsWith('/@')

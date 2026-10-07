@@ -140,7 +140,10 @@ export const CHAT_EXTENSION = {
 export const VIEW_CHAT_EXTENSION = {
 	directory: 'volter-view-chat',
 	id: 'volter-ai-dev.volter-view-chat',
-	proposals: ['defaultChatParticipant', 'chatParticipantPrivate'],
+	// `chatParticipantAdditions` is what `locations` needs: without it the workbench drops the
+	// participant (`chatParticipant.contribution.ts`) and the extension's registration then fails
+	// with "chatParticipant must be declared in package.json" (measured on the first live view).
+	proposals: ['defaultChatParticipant', 'chatParticipantPrivate', 'chatParticipantAdditions'],
 	icon: 'chat-sparkle',
 };
 /** What leaves the release with it: the vendored GitHub Copilot Chat, 272 MB unpacked. */

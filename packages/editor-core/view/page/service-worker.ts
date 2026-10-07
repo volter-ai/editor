@@ -139,6 +139,8 @@ async function forward(event: FetchLike): Promise<Response> {
 async function handle(event: FetchLike): Promise<Response> {
   const request = event.request;
   const url = new URL(request.url);
+  // `/@fs//root/…` and `/@fs/root/…` are one module to Vite; the recordings are keyed by the latter.
+  if (url.pathname.startsWith('/@fs//')) url.pathname = url.pathname.replace(/^\/@fs\/+/, '/@fs/');
   // Another origin's request is the network's; only this view's own origin is routed.
   if (url.origin !== (globalThis as unknown as { location: { origin: string } }).location.origin) return fetch(request);
   if (request.mode === 'navigate') return isolated(await fetch(request));
@@ -151,6 +153,22 @@ async function handle(event: FetchLike): Promise<Response> {
     if (normalized) return serveRecorded(normalized, mount);
   }
   if (STATIC_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return isolated(await fetch(request));
+  // A project module the build did not compile has no honest answer here: its raw TypeScript or
+  // JSX is not a module (plain `.js` may be, and stays the page's). Answer with one that fails in
+  // words, instead of a MIME error naming nothing. `?raw` (the text itself) is the page's, and so
+  // is any read that is not an import.
+  if (
+    (request.method === 'GET' || request.method === 'HEAD') &&
+    /\.(?:[cm]?ts|tsx|jsx)$/.test(url.pathname) &&
+    !url.searchParams.has('raw') &&
+    (request.destination === 'script' || request.destination === 'worker' || url.searchParams.has('import') || url.searchParams.has('volter-mount'))
+  ) {
+    const message = `The limited view has no compiled ${url.pathname}${url.search}: it was not reached when this view was built, and a limited view compiles nothing after that. Rebuild the view (\`view build\`) or open the project in the local editor.`;
+    return new Response(`throw new Error(${JSON.stringify(message)});\n`, {
+      status: 200,
+      headers: { ...ISOLATION, 'Content-Type': 'text/javascript', [LIMITED_VIEW_HEADER]: 'not-compiled' },
+    });
+  }
   const answered = await forward(event);
   if (answered.status === 404 && answered.headers.get(VIEW_MISS_HEADER)) return isolated(await fetch(request));
   return answered;

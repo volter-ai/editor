@@ -14,7 +14,8 @@
 	],
 	"enabledApiProposals": [
 		"defaultChatParticipant",
-		"chatParticipantPrivate"
+		"chatParticipantPrivate",
+		"chatParticipantAdditions"
 	],
 	"capabilities": {
 		"untrustedWorkspaces": {

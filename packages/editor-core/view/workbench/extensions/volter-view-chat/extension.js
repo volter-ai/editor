@@ -54,6 +54,20 @@ async function activate(context) {
 		return {};
 	});
 	participant.iconPath = new vscode.ThemeIcon('chat-sparkle');
+	// What the empty Chat view says before anyone types (the `defaultChatParticipant` proposal's
+	// welcome): the same fact and command, with a button the overlay's welcome patch draws for a
+	// standalone trusted command link.
+	const welcome = new vscode.MarkdownString([
+		`**This is a limited view.** Chat runs in the local version of ${product.displayName}. Install it and start a project:`,
+		'',
+		'```sh',
+		product.install,
+		'```',
+		'',
+		'[Copy install command](command:volter.viewChat.copyInstall)',
+	].join('\n'));
+	welcome.isTrusted = { enabledCommands: ['volter.viewChat.copyInstall'] };
+	participant.additionalWelcomeMessage = welcome;
 	context.subscriptions.push(participant);
 
 	if (vscode.lm && typeof vscode.lm.registerLanguageModelChatProvider === 'function') {

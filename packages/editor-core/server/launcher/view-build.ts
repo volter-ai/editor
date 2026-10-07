@@ -52,6 +52,7 @@ import {
   type LimitedViewProjectFile,
   type LimitedViewRouteEntry,
   MOUNT_SENTINEL,
+  neutralProjectRoot,
   SERVICE_WORKER_FILE,
   VIEW_DIR,
   WORKBENCH_DIR,
@@ -195,6 +196,28 @@ function extensionFor(type: string): string {
   if (/^text\//.test(type)) return 'txt';
   if (/^image\/png/.test(type)) return 'png';
   return 'bin';
+}
+
+/**
+ * Replace every spelling of a project root in recorded text with `neutral`: Vite's `/@fs/` URL
+ * first (so it does not become `/@fs//…`), then the root with `/`, JSON-escaped `\\` and plain
+ * `\` separators, each with either case of drive letter.
+ */
+function rootRewrite(roots: readonly string[], neutral: string): (text: string) => string {
+  const pairs: [string, string][] = [];
+  for (const root of new Set(roots)) {
+    const forward = root.split('\\').join('/').replace(/\/+$/, '');
+    const variants = new Set([forward, forward.replace(/^[a-z]:/, (d) => d.toUpperCase()), forward.replace(/^[A-Z]:/, (d) => d.toLowerCase())]);
+    for (const variant of variants) {
+      pairs.push([variant.startsWith('/') ? `/@fs${variant}` : `/@fs/${variant}`, `/@fs${neutral}`]);
+    }
+    for (const variant of variants) {
+      pairs.push([variant, neutral]);
+      pairs.push([variant.split('/').join('\\\\'), neutral]);
+      pairs.push([variant.split('/').join('\\'), neutral]);
+    }
+  }
+  return (text) => pairs.reduce((acc, [from, to]) => (from.length > 1 ? acc.split(from).join(to) : acc), text);
 }
 
 /** The absolute paths each compiled module imports from the same origin. */
@@ -358,6 +381,23 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     logFile.end();
   }
 
+  // ---- 2b. the building machine's path out of what was recorded. Every URL and body names the
+  //          project's root as `/volter-view/<name>`: what the editor builds from
+  //          `/__editor/project` and what the compiled modules import then agree, and a published
+  //          view does not carry `C:/Users/<you>/…`. Paths outside the project (a workspace's
+  //          hoisted packages) keep their own spelling.
+  const neutral = neutralProjectRoot(basename(project));
+  const rewrite = rootRewrite([sessionRoot, project], neutral);
+  const recordedEntries = Object.entries(entries);
+  for (const key of Object.keys(entries)) delete entries[key];
+  for (const [key, entry] of recordedEntries) {
+    if (/javascript|json|^text\//.test(entry.type)) {
+      const path = join(out, VIEW_DIR, 'r', entry.file);
+      writeFileSync(path, rewrite(readFileSync(path, 'utf8')));
+    }
+    entries[rewrite(key)] = entry;
+  }
+
   // ---- 3. the view.
   log('Writing the view…');
   const vite = 'vite-client.js';
@@ -379,7 +419,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
   const config: LimitedViewConfig = {
     version: 1,
     product: { name: product.name, displayName: product.displayName, colorTheme: product.colorTheme, install: product.install },
-    project: { root: sessionRoot, name: basename(project) },
+    project: { root: neutral, name: basename(project) },
     builtAt: new Date().toISOString(),
   };
   writeFileSync(join(out, VIEW_DIR, 'view.json'), JSON.stringify(config, null, 2));
