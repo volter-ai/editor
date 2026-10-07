@@ -182,6 +182,7 @@ Hosting rules:
 - **Secure context.** Serve it over https, or from localhost; service workers need a secure context.
 - **Cross-origin isolation.** It is required for Blender's threads. `_headers` states it for hosts that read one (Netlify, Cloudflare Pages). On any other host the view's worker adds the headers, after at most one reload.
 - **Embedding.** The parent page must send `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: credentialless`, and its iframe must allow `cross-origin-isolated`. The view announces that it holds the project whether it is a standalone page or an iframe; extension-host frames do not hold project files.
+- **Lifetime.** The recorded project identity reports `session.lease: 'page'`. The server-process watchdog stops for this explicit page-owned lifetime; a quiet control socket or delayed request cannot establish that a nonexistent local server died. Ordinary server sessions retain their watchdog.
 - **File sizes.** Blender's recorded engine files are stored uncompressed, around 100 MB together. Hosts with a per-file cap (Cloudflare Pages: 25 MiB) cannot serve them; Netlify and most object stores can.
 - **Where `--out` can go.** It may not be inside the project, because the view would publish itself on the next build. It may not overlap `--workbench`, because the output is replaced whole before the workbench is copied in. Both checks resolve symlinks first.
 

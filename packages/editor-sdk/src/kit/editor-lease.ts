@@ -83,7 +83,7 @@ export interface LeaseIdentity {
 
 /** The outcome of one poll: either the server answered with its identity, or
  *  the request failed (connection refused / non-OK / timeout). */
-export type LeasePollResult = { ok: true; identity: LeaseIdentity } | { ok: false };
+export type LeasePollResult = { ok: true; identity: LeaseIdentity; lease?: 'page' } | { ok: false };
 
 /**
  * What the tab's own control channel said at the moment of a poll — the
