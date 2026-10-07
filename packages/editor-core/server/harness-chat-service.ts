@@ -1474,7 +1474,7 @@ export class HarnessChatService {
     // Each editor start makes a new runtime home, and a conversation saved under an earlier one is not listed there:
     // it cannot be resumed or read. Such a chat opens fresh in its place. Throwing "The saved conversation history is
     // unavailable." on every open left the active chat stuck, and with it every send and New Chat (t_41195fa5).
-    const gone = entry.identity !== null && await this.savedIdentityGone(entry.identity);
+    const gone = entry.identity !== null && await this.savedIdentityGone(entry.identity, entry.selection.harness);
     if (gone) {
       console.warn(`[chat] The saved conversation of chat ${id} (${entry.identity}) is no longer listed by its harness; the chat opens fresh.`);
       entry.identity = null;
@@ -1502,12 +1502,31 @@ export class HarnessChatService {
     return {...await this.chatControlState(), history, historyTruncated};
   }
 
-  /** Whether `identity` is a conversation the harness no longer lists, after asking it afresh. */
-  private async savedIdentityGone(identity: string): Promise<boolean> {
+  /** Whether `identity` is a conversation its own harness no longer lists, after asking that harness afresh. The
+   *  controller's refresh can't say: it lists only the active chat's harness (a saved chat of another agent would
+   *  read as gone) and at most its discovery limit (an older conversation would too). Only a complete listing of
+   *  the saved chat's harness proves a conversation gone; anything less keeps the saved link. */
+  private async savedIdentityGone(identity: string, harness: string): Promise<boolean> {
     await this.ensureController();
+    const listedGone = await this.unlistedByHarness(identity, harness);
+    // After that listing, so the controller's own refresh is the inventory left standing (the discovery client
+    // remembers each listing's sessions), and the open below reads history from a current snapshot.
     await this.controller!.dispatch({type:'refresh', autoObserve:false, silent:true});
     this.capture();
-    return !this.lastSnapshot.sessions.some(s => s.identity === identity);
+    return listedGone && !this.lastSnapshot.sessions.some(s => s.identity === identity);
+  }
+
+  private async unlistedByHarness(identity: string, harness: string): Promise<boolean> {
+    const client = this.discoveryClient;
+    const identityFor = this.sessionIdentity;
+    if (!client || !identityFor || !this.workspace) return false;
+    const limit = 500;
+    const listed = await client.discover({workspace: this.workspace, harnesses: [harness], limit, include_topic_candidates: false});
+    if (listed.sessions.length >= limit) return false;
+    for (const descriptor of listed.sessions) {
+      if (descriptor.locator.harness === harness && await identityFor(descriptor.locator) === identity) return false;
+    }
+    return true;
   }
 
   /** `freshFor`: start a new conversation for that saved chat, whose own conversation is gone, rather than a new chat. */
