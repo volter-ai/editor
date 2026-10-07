@@ -43,7 +43,7 @@ import type {
   BlenderUvLayout,
 } from '@volter/blender-engine/browser/rna';
 import { createBlenderDisplayTransform, blenderDisplaySettingsForRender } from '@volter/blender-engine/browser/three/blender-display-transform';
-import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
+import { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { EditorCommandResult } from '@volter/editor-sdk/commands';
 import { editorHost } from '@volter/editor-sdk/host';
 import { invokeViewVerb, type ViewVerbContribution } from '@volter/editor-sdk/views';
@@ -821,6 +821,7 @@ function driveNodeView(cmd: { type: string; [key: string]: unknown }): NodeViewS
 }
 
 interface RuntimeView {
+  readonly root: THREE.Group;
   stageFrame(part: { session: string; revision: number; abort?: boolean; mesh?: string; image?: string; piece?: unknown }): void;
   applyFrame(frame: unknown): unknown;
   snapshot(): ReturnType<BlenderRuntimeView['snapshot']>;
@@ -903,6 +904,7 @@ const isRuntimeView = (value: unknown): value is RuntimeView =>
   typeof (value as RuntimeView).applyFrame === 'function' &&
   typeof (value as RuntimeView).stageFrame === 'function' &&
   typeof (value as RuntimeView).snapshot === 'function' &&
+  (value as RuntimeView).root?.isObject3D === true &&
   typeof (value as RuntimeView).captureSnapshot === 'function' &&
   typeof (value as RuntimeView).recordPresentation === 'function' &&
   typeof (value as RuntimeView).recordPhotograph === 'function';
@@ -951,11 +953,20 @@ export function blenderRuntime(): BlenderRuntime {
   captureLifetime = lifetime;
   let photographing = false;
   let streamedFrame: { view: RuntimeView; session: string; revision: number } | null = null;
+  let renderFrame: { view: BlenderRuntimeView; source: RuntimeView; sourceFrame: ReturnType<RuntimeView['snapshot']>; documentId: string; session: string; revision: number } | null = null;
+  const discardRenderFrame = () => {
+    const owned = renderFrame;
+    renderFrame = null;
+    owned?.view.dispose();
+    owned?.view.root.removeFromParent();
+  };
   const discardStreamedFrame = () => {
     const staged = streamedFrame;
     streamedFrame = null;
     if (staged) staged.view.stageFrame({ session: staged.session, revision: staged.revision, abort: true });
+    discardRenderFrame();
   };
+  lifetime.signal.addEventListener('abort', discardStreamedFrame, { once: true });
   runtime = new BlenderRuntime({
     work: beginBlenderWork,
     history: (entries) => {
@@ -997,6 +1008,20 @@ export function blenderRuntime(): BlenderRuntime {
       const view = await runtimeView();
       lifetime.signal.throwIfAborted();
       if (presentationDocumentId() !== documentId) throw new Error('Blender document changed during frame transfer');
+      if (part.evaluation === 'render') {
+        if (!renderFrame) {
+          if (part.mesh !== undefined || part.image !== undefined) throw new Error('Render resource arrived before its frame');
+          const detached = BlenderRuntimeView.forPhotograph();
+          view.root.updateWorldMatrix(true, false);
+          detached.root.matrix.copy(view.root.matrixWorld);
+          renderFrame = { view: detached, source: view, sourceFrame: view.snapshot(), documentId, session: part.session, revision: part.revision };
+        }
+        if (renderFrame.source !== view || renderFrame.sourceFrame !== view.snapshot() || renderFrame.documentId !== documentId || renderFrame.session !== part.session || renderFrame.revision !== part.revision)
+          throw new Error('Blender capture source changed during render transfer');
+        renderFrame.view.stageFrame(part);
+        return;
+      }
+      if (renderFrame) throw new Error('Viewport frame arrived during render transfer');
       if (streamedFrame && streamedFrame.view !== view)
         throw new Error('Blender presenter changed during frame transfer');
       view.stageFrame(part);
@@ -1027,6 +1052,12 @@ export function blenderRuntime(): BlenderRuntime {
         throw new Error('Blender document changed before its frame could be presented');
       if (streamedFrame && streamedFrame.view !== view)
         throw new Error('Blender presenter changed before its frame could be presented');
+      const rendering = capture?.evaluation === 'render' ? renderFrame : null;
+      if (capture?.evaluation === 'render' && !rendering)
+        throw new Error('Render-evaluated frame arrived without its staged resources');
+      if (rendering && (rendering.source !== view || rendering.sourceFrame !== view.snapshot() || rendering.documentId !== documentId))
+        throw new Error('Blender capture source changed before render presentation');
+      const presenter = rendering?.view ?? view;
       // WHAT THE PRESENTER HELD BEFORE THIS FRAME, carried back to the session
       // beside whatever this present produced. The session only has a RECORD of
       // what it sent; this view is the authority on what it actually holds, and
@@ -1036,7 +1067,7 @@ export function blenderRuntime(): BlenderRuntime {
       // all, rather than a wrong `null`.
       const endApply = beginBlenderWork('applying frame to Model');
       const applied = (() => {
-        try { return view.applyFrame(frame) as { held?: unknown } | null | undefined; }
+        try { return presenter.applyFrame(frame) as { held?: unknown } | null | undefined; }
         finally { endApply(); }
       })();
       streamedFrame = null;
@@ -1049,7 +1080,7 @@ export function blenderRuntime(): BlenderRuntime {
       // THE RECORD OF WHAT WAS SUBMITTED, kept only once the frame was taken:
       // a refused frame is not displayed and must not be described as if it
       // were.
-      view.recordPresentation(description);
+      presenter.recordPresentation(description);
       if (!capture) return answer(undefined);
       lastCapture = capture;
       if (!capture.render) return answer(undefined);
@@ -1091,7 +1122,7 @@ export function blenderRuntime(): BlenderRuntime {
           'A Blender render capture must carry the scene camera position, target and up',
         );
       if (photographing) throw new Error('A Blender render capture is already in progress');
-      const snapshot = view.captureSnapshot();
+      const snapshot = rendering ? rendering.view.takeCaptureSnapshot() : view.captureSnapshot();
       photographing = true;
       lifetime.signal.addEventListener('abort', snapshot.dispose, { once: true });
       try {
@@ -1150,6 +1181,7 @@ export function blenderRuntime(): BlenderRuntime {
         photographing = false;
         lifetime.signal.removeEventListener('abort', snapshot.dispose);
         snapshot.dispose();
+        if (rendering && renderFrame === rendering) renderFrame = null;
       }
     },
     // The worker's OWN stdout and stderr, forwarded so a developer can read

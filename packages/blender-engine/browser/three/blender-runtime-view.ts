@@ -2421,6 +2421,40 @@ export class BlenderRuntimeView {
     };
   }
 
+  /** Build a render-evaluated frame without ever publishing it to a viewport. */
+  static forPhotograph(): BlenderRuntimeView {
+    const view = new BlenderRuntimeView();
+    view.photograph = true;
+    return view;
+  }
+
+  /** Transfer this render-only view to its capture owner. Its resources are
+   * already independent, so a second geometry/texture copy is unnecessary. */
+  takeCaptureSnapshot(): ReturnType<BlenderRuntimeView['captureSnapshot']> {
+    if (!this.photograph || !this.frame) throw new Error('A render-evaluated frame is required');
+    const source = this.frame;
+    const effect = this.createWorldVolumePass();
+    let disposed = false;
+    return {
+      effect, root: this.root, session: source.session, revision: source.revision,
+      prepare: camera => {
+        if (disposed) throw new Error('Blender capture snapshot is disposed');
+        return this.setRendered(true, camera);
+      },
+      prepareDraw: (renderer, camera) => {
+        if (disposed) throw new Error('Blender capture snapshot is disposed');
+        return this.prepareDraw(camera, { interactive: false, height: renderer.domElement.height, renderer });
+      },
+      dispose: () => {
+        if (disposed) return;
+        disposed = true;
+        effect?.dispose();
+        this.dispose();
+        this.root.removeFromParent();
+      },
+    };
+  }
+
   createWorldVolumePass(): WorldVolumePass | undefined {
     const medium = worldMedium(this.frame?.world);
     return medium ? new WorldVolumePass(medium) : undefined;

@@ -116,6 +116,7 @@ interface Copied {
   description: unknown;
 }
 interface PendingFrame {
+  evaluation?: 'render';
   session: string;
   revision: number;
   columns: Map<number, Copied>;
@@ -270,7 +271,7 @@ async function startBlender(project: string, document?: string): Promise<unknown
   const started = await startBlenderEngine({
     project,
     log,
-    ask: async ({ frame, hold, mesh, image, piece, present, capture, saveDue, checkpoint }) => {
+    ask: async ({ frame, hold, mesh, image, piece, present, capture, saveDue, checkpoint, evaluation }) => {
       if (typeof checkpoint === 'string') { await loadCheckpoint?.(checkpoint); return {}; }
       if (!holder.engine) throw new Error('The Blender session presented before it started');
       // Save once after the whole command, never during a partial frame.
@@ -286,8 +287,8 @@ async function startBlender(project: string, document?: string): Promise<unknown
       // gets the whole frame at `present`.
       if (hold !== undefined) {
         const identity = hold as { session: string; revision: number };
-        pending = { session: identity.session, revision: identity.revision, columns: await copyColumns(arena, hold), meshes: new Map(), images: new Map() };
-        await streamToTab({ op: 'stage', session: identity.session, revision: identity.revision });
+        pending = { ...(evaluation ? { evaluation } : {}), session: identity.session, revision: identity.revision, columns: await copyColumns(arena, hold), meshes: new Map(), images: new Map() };
+        await streamToTab({ op: 'stage', evaluation, session: identity.session, revision: identity.revision });
         return {};
       }
       if (mesh !== undefined || image !== undefined) {
@@ -312,7 +313,7 @@ async function startBlender(project: string, document?: string): Promise<unknown
             description: await describeFrame(arena, piece),
           };
         }
-        await streamToTab({ op: 'stage', session: pending.session, revision: pending.revision,
+        await streamToTab({ op: 'stage', evaluation: pending.evaluation, session: pending.session, revision: pending.revision,
           ...(mesh !== undefined ? { mesh } : { image }), piece: copied.typed });
         // Keep only the manifest and digest; the presenter already built this
         // resource, and the next pull may overwrite the engine arena.
