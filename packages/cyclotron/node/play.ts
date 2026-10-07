@@ -18,14 +18,21 @@
  */
 import { connect } from '@volter/editor-live';
 
-export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|movie] | play autoplay on|off  [--document <id>]';
+export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|movie] | play autoplay on [<behaviour>] [--for <seconds>] | play autoplay off  [--document <id>]';
 
 const BARE = new Set(['state', 'play', 'stop', 'pause', 'resume', 'restart']);
 
-export async function play(args: readonly string[], document?: string): Promise<unknown> {
+/**
+ * `play autoplay on <behaviour> --for <seconds>` runs one of the bot's behaviours (`play.autoplay({ win,
+ * lose })`; required when it offers several) for at most that many simulation seconds — 300 unless
+ * given. Reaching the limit turns autoplay off and pauses the game, so a run always ends.
+ */
+export async function play(args: readonly string[], document?: string, limit?: string): Promise<unknown> {
   const [verb = 'state', value, ...rest] = args;
   const usage = (): never => { throw new Error(`Usage: cyclotron ${PLAY_USAGE}`); };
+  const behavior = verb === 'autoplay' && value === 'on' ? rest.shift() : undefined;
   if (rest.length > 0) usage();
+  if (limit !== undefined && !(verb === 'autoplay' && value === 'on')) throw new Error('--for belongs to `play autoplay on`.');
   let commandArgs: Record<string, unknown> | undefined;
   if (BARE.has(verb)) {
     if (value !== undefined) usage();
@@ -37,7 +44,7 @@ export async function play(args: readonly string[], document?: string): Promise<
     commandArgs = { speed: value };
   } else if (verb === 'autoplay') {
     if (value !== 'on' && value !== 'off') usage();
-    commandArgs = { on: value === 'on' };
+    commandArgs = { on: value === 'on', ...(behavior !== undefined ? { behavior } : {}), ...(limit !== undefined ? { for: limit } : {}) };
   } else if (verb === 'mode') {
     if (value !== undefined) commandArgs = { mode: value };
   } else usage();
