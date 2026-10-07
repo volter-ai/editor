@@ -681,7 +681,7 @@ export interface EditorState {
   } | null;
   /**
    * The PRODUCT this session is serving — `@volter/game-editor` or
-   * `@volter/model-editor` — or `null` when it is serving none. SERVER-computed
+   * `@volter/cyclotron` — or `null` when it is serving none. SERVER-computed
    * on every read, beside {@link workbench}, for the same reason: what a
    * session is running is its own fact, not something the page reports about
    * itself.

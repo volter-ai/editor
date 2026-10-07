@@ -72,10 +72,10 @@ export interface WorkspaceDocumentKindRestoreContext {
    * record at all" — and the two decorrelate in the one case that hurts: a
    * record that EXISTS and lists nothing. Closing the last document writes
    * exactly that (`{"open":[],"activeId":"tool:blender-timeline.document"}`,
-   * measured on a `model-editor create` scaffold, walk 5 beat 0), and from
+   * measured on a `cyclotron create` scaffold, walk 5 beat 0), and from
    * then on every boot of that project restored nothing, opened no default,
-   * and left the workspace with no document a person is in — which on the
-   * model editor is the product's cover waiting out its whole 90 s budget and
+   * and left the workspace with no document a person is in — which on
+   * Cyclotron is the product's cover waiting out its whole 90 s budget and
    * then blaming Blender for a model nobody ever asked it to open. A closed
    * tab is not a standing instruction across page loads; "nothing to restore"
    * is one fact however the record spells it.

@@ -110,7 +110,7 @@ export const title = 'Shader Editor';
 // THE VIEW'S PRODUCT DOOR (WORK.md §The core is Code-OSS U8, ruling 1). This
 // view's verbs are published ONCE, here, where the view itself is contributed:
 // under the Code-OSS frame each becomes a `volter.blender-node-view.<verb>`
-// command the bridge dispatches into the view, and standalone `volter-model-editor edit` —
+// command the bridge dispatches into the view, and standalone `cyclotron edit` —
 // which has no command service — reaches the SAME table through the session's
 // `blender-node-view` verb. One table, two doors, which is why the remaining
 // read-only editors (UV Editing, Animation, Texture Paint) add no session verb

@@ -7,7 +7,7 @@ private-history repositories and their legacy releases remain private.
 Read `README.md` for the release boundaries and `WORK.md` for remaining work.
 Publish only the packages a reviewed list names: `release/modeling.json` (the
 modeling product, eight packages), `release/game.json` (the game editor), or
-`release/playable.json` (the playable Model Editor skew and its tool dependency
+`release/playable.json` (the playable Cyclotron skew and its tool dependency
 closure). Keep Blender's corresponding source publicly available
 before distributing its binary. Preserve package licenses, notices and the exact
 source/artifact mapping.
@@ -37,7 +37,7 @@ before implementing gameplay. Retain failures and report independently verified
 results separately from the author's claims.
 
 Volter Editor names this whole stack. Its products are named for their purpose:
-`@volter/model-editor` and `@volter/game-editor` (owner ruling 2026-09-24).
+`@volter/cyclotron` and `@volter/game-editor` (owner ruling 2026-09-24).
 [ARCHITECTURE.md](ARCHITECTURE.md) states the rows and rules every package follows.
 
 The Godot lane (`packages/gd-analyze`) is under the owner's 2026-09-27 law

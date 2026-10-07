@@ -307,7 +307,7 @@ if (!process.env['VOLTER_PROJECT']) {
 const projectPath = canonicalProjectRoot(process.env['VOLTER_PROJECT']);
 
 // THE PRODUCT'S BUILD is what this host serves — `npm run build -w
-// @volter/game-editor` / `-w @volter/model-editor`, each into its own package's
+// @volter/game-editor` / `-w @volter/cyclotron`, each into its own package's
 // `dist/` (`packages/editor/vite-product-build.ts`). The kit has no browser
 // build of its own any more: `frame/bridge.tsx` is a module the product's entry
 // imports, and the ENTRY is what a build has (ARCHITECTURE-CORE §The target

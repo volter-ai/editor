@@ -1,6 +1,6 @@
 # Volter Model Play
 
-Play scripts on detached model documents. Play (the Game panel's, in the Model Editor) runs
+Play scripts on detached model documents. Play (the Game panel's, in Cyclotron) runs
 `src/models/<name>.play.ts` beside `src/models/<name>.blend` on a detached copy
 of the model; the model, its selection and its history stand as they were, and
 Stop returns to them. The script's default export is called once with the play
@@ -53,11 +53,11 @@ next Play. `console.log` does not reach the session's console feed (only
 warnings and errors do); the play log does.
 
 ```sh
-volter-model-editor play-log                     # every kept entry, one per line
-volter-model-editor play-log --kind death        # one kind
-volter-model-editor play-log --since 12.5 --json # entries at or after simT 12.5, as JSON
-volter-model-editor play-log --document <id>     # another model document's log
-volter-model-editor eval "(await editor.modelPlayLog({ kind: 'death' })).entries"
+cyclotron play-log                     # every kept entry, one per line
+cyclotron play-log --kind death        # one kind
+cyclotron play-log --since 12.5 --json # entries at or after simT 12.5, as JSON
+cyclotron play-log --document <id>     # another model document's log
+cyclotron eval "(await editor.modelPlayLog({ kind: 'death' })).entries"
 ```
 
 ## Recolouring the copy
@@ -102,7 +102,7 @@ anywhere else never drives itself.
 Whether it drives is the editor's:
 
 - Autoplay is **off** whenever Play starts or restarts.
-- Only the Game panel's **Autoplay** toggle, `volter-model-editor play autoplay on|off` or
+- Only the Game panel's **Autoplay** toggle, `cyclotron play autoplay on|off` or
   `await editor.command('volter.model-play.autoplay', { on: true })` turn it on (or off).
 - **A bot exists only while the game runs**: `play.autoplay` is called by the play script, so
   a stopped game (or one still starting) has none, and neither has a running script that never
@@ -163,7 +163,7 @@ The tool registers the `model` document Play extension
 - `scriptPath(sourcePath)` and `hasScript(sourcePath)` — where a model's play script goes and
   whether it exists, so a layout can open a model with a script as a game.
 
-In the Model Editor these are drawn by the Game panel (`@volter/editor-blender`): the Game /
+In Cyclotron these are drawn by the Game panel (`@volter/editor-blender`): the Game /
 Movie switch at the left of the bottom area's header puts it there in place of the Timeline. The panel's controls
 are also commands, `volter.model-play.<verb>`, so an agent drives the same run the person
 sees:
@@ -181,5 +181,5 @@ sees:
 
 Each takes an optional `document` (the model document's id) and otherwise acts on the model
 document on screen; each answers with the panel's state. From the shell:
-`volter-model-editor play pause`; under `eval`:
+`cyclotron play pause`; under `eval`:
 `await editor.command('volter.model-play.speed', { speed: 0.5 })`.

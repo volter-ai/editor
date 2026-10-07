@@ -437,7 +437,7 @@ async function openBoundModelDocument(
  * (`../contributions/blender-properties-*`) call these three rather than the
  * `blender-rna*` commands: same session, same `session.py` functions, one
  * fewer hop, and no `EditorCommandResult` envelope to unwrap in a render.
- * The COMMANDS remain the wire's door onto the same calls, so a `volter-model-editor eval`
+ * The COMMANDS remain the wire's door onto the same calls, so a `cyclotron eval`
  * and the panel read one thing.
  *
  * THEY NEVER START THE ENGINE. A panel asking what the engine holds must not
@@ -468,7 +468,7 @@ export function blenderSessionStarted(): boolean {
  * So the version is minted HERE, at the door every RNA write goes through,
  * and it is bumped by the write rather than by the picture. Both halves of
  * each door bump it once: the in-page function is what the wire's
- * `blender-rna-set` / `blender-outliner-set` case calls, so a `volter-model-editor eval` and
+ * `blender-rna-set` / `blender-outliner-set` case calls, so a `cyclotron eval` and
  * a panel click are one path. `blender-execute` bumps it too — arbitrary bpy
  * can change anything RNA answers, and a view that went stale under a probe's
  * own script would be the same defect one layer out.
@@ -679,7 +679,7 @@ export async function blenderOutlinerSet(
 /**
  * THE NODE EDITOR'S VERBS, published ONCE and reached two ways (U8's ruling 1,
  * 2026-09-19). Under the Code-OSS frame each is a `volter.blender-node-view.<verb>`
- * command the bridge dispatches into the view; standalone `volter-model-editor edit`, which has
+ * command the bridge dispatches into the view; standalone `cyclotron edit`, which has
  * no command service, reaches the SAME table through the session's
  * `blender-node-view` verb below. One table, two doors — the shape
  * `key-actions.ts`'s action table already has, and the reason the next
@@ -1173,7 +1173,7 @@ export function blenderRuntime(): BlenderRuntime {
   // how long it has been stuck — the loop that would send the number is the loop
   // that is stuck — so this side keeps the clock and the host carries it out on
   // the heartbeat, the one channel that still beats through a blocked main
-  // thread. `volter-model-editor status` prints the block. Published as a READ of the live
+  // thread. `cyclotron status` prints the block. Published as a READ of the live
   // meter rather than a snapshot, so the host always asks the running session:
   // an in-flight call's age has to be computed at the moment it is reported.
   // The page's own long-task half is the HOST's, behind this same door.
@@ -1344,7 +1344,7 @@ export async function handleBlenderCommand(cmd: {
         // RNA version is minted at the door (ruling 3, 2026-09-19), and
         // ARBITRARY bpy can change anything RNA answers, so a script that
         // reached the engine around it would leave every view drawing the tree
-        // it had. One path for a `volter-model-editor eval`, an MCP call and a panel's own
+        // it had. One path for a `cyclotron eval`, an MCP call and a panel's own
         // operator.
         // THE DOOR'S TEXT, verbatim — `execute_blender_code`'s MCP contract is
         // that one string, so the wire keeps answering it while the in-page
@@ -1391,7 +1391,7 @@ export async function handleBlenderCommand(cmd: {
       }
       // THE TREE DOOR on the wire, beside the RNA one: `blender-outliner`
       // answers Blender's View Layer tree and `blender-outliner-set` writes one
-      // restriction column, so a `volter-model-editor eval` reads exactly what the hierarchy
+      // restriction column, so a `cyclotron eval` reads exactly what the hierarchy
       // panel draws.
       case 'blender-outliner': {
         const selected = Array.isArray(cmd['selected'])
@@ -1402,7 +1402,7 @@ export async function handleBlenderCommand(cmd: {
         return { ok: true, data: { result: await session.outliner(selected) } };
       }
       // THE NODE-TREE DOOR on the wire, beside the other two: one material's
-      // shader node tree, whole, so a `volter-model-editor eval` reads exactly what the node
+      // shader node tree, whole, so a `cyclotron eval` reads exactly what the node
       // view draws.
       case 'blender-node-tree':
         return {
@@ -1415,7 +1415,7 @@ export async function handleBlenderCommand(cmd: {
           },
         };
       // THE UV DOOR on the wire, beside the node one: one mesh's UV layout,
-      // so a `volter-model-editor eval` reads exactly what the UV view draws.
+      // so a `cyclotron eval` reads exactly what the UV view draws.
       case 'blender-uv-layout':
         return {
           ok: true,
@@ -1427,7 +1427,7 @@ export async function handleBlenderCommand(cmd: {
           },
         };
       // THE RIG AND CLIP DOORS on the wire, beside the UV one: the skin
-      // binding and the action as three.js tracks, so a `volter-model-editor eval` reads
+      // binding and the action as three.js tracks, so a `cyclotron eval` reads
       // exactly what the presenter bound and what the Timeline plays.
       case 'blender-rig':
         return {
@@ -1454,7 +1454,7 @@ export async function handleBlenderCommand(cmd: {
       //
       // THE SESSION IS THE STANDALONE DOOR ONTO `NODE_VIEW_VERBS`, not a second
       // implementation (U8's ruling 1). Under the Code-OSS frame each verb is a
-      // `volter.blender-node-view.<verb>` command; standalone `volter-model-editor edit` has no
+      // `volter.blender-node-view.<verb>` command; standalone `cyclotron edit` has no
       // command service, so this verb routes the SAME table. `invokeViewVerb`
       // throws the view's own refusal, which is the sentence this door already
       // answered with.

@@ -1,11 +1,11 @@
-# Model Editor by VideoGame AI
+# Cyclotron by VideoGame AI
 
-![A cube on wheels jumping a ramp in the Model Editor, with the outliner and properties panels beside the viewport and a lap timer over it](docs/media/model-play-race.png)
+![A cube on wheels jumping a ramp in Cyclotron, with the outliner and properties panels beside the viewport and a lap timer over it](docs/media/model-play-race.png)
 
 A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
 
 ```bash
-npx @volter/model-editor create my-race --template playable
+npx @volter/cyclotron create my-race --template playable
 ```
 
 - Needs Node.js 24. Nothing else to install.
@@ -30,9 +30,9 @@ npx @volter/model-editor create my-race --template playable
   ```text
   Edit src/ui/race-hud.tsx to move the speed panel to the bottom right and show JUMP instead of AIR while airborne. Keep the lap timer at the top left.
   ```
-- `npx @volter/model-editor create my-models` makes a plain modelling project with a cube.
+- `npx @volter/cyclotron create my-models` makes a plain modelling project with a cube.
 
-For modelling, run `npx @volter/model-editor` with no arguments. Inside an existing
+For modelling, run `npx @volter/cyclotron` with no arguments. Inside an existing
 project it opens that project. Elsewhere it creates a ready cube project at
 `~/Documents/Volter Models/Untitled Model` and opens it with Chat alongside the
 viewport. Later launches reopen that starter with your edits intact; an occupied
@@ -55,7 +55,7 @@ from Chat's agent picker.
 Other extensions install from the **Extensions** view; Claude Code's official extension is
 `@id:Anthropic.claude-code`. No agent extension is bundled.
 
-Every model editor project declares the Blender MCP server in both `.mcp.json` and
+Every Cyclotron project declares the Blender MCP server in both `.mcp.json` and
 `.codex/config.toml`, with the same command. Codex loads it once you
 [trust the folder in Codex](https://learn.chatgpt.com/docs/config-file/config-basic).
 Creating a project never writes to your global `~/.codex`.
@@ -76,9 +76,9 @@ Another agent can drive the conversation already visible in Chat, from the
 project directory:
 
 ```bash
-npx --no-install volter-model-editor chat status
-npx --no-install volter-model-editor chat send "Make the cube blue with softly rounded edges."
-npx --no-install volter-model-editor chat stop
+npx --no-install cyclotron chat status
+npx --no-install cyclotron chat send "Make the cube blue with softly rounded edges."
+npx --no-install cyclotron chat stop
 ```
 
 These commands use the native Chat and its Supercode runtime, retain the person's
@@ -97,7 +97,7 @@ cd my-race
 npm run dev
 ```
 
-From the project directory, `npx volter-model-editor` provides:
+From the project directory, `npx cyclotron` provides:
 
 - `edit` opens the project;
 - `status` reports the session;
@@ -115,10 +115,15 @@ history, and Blender keeps the snapshots; redo never reruns a script. History la
 session and resets when another `.blend` opens. An arbitrary Python execution counts as an
 edit, even one that fails part-way, so use the inspection tools for read-only queries.
 
-To move a project to a new release, close the editor, update its `@volter` packages and
-`volter.project.json`'s `engine.version` to the new version, and move
-`.volter/workbench.json` aside before reopening. The product then downloads the matching
-workbench.
+To move a project to a new release, from whichever version it is on, run this in its folder:
+
+```bash
+npx @volter/cyclotron upgrade
+```
+
+It moves the project's `@volter` packages and `volter.project.json`'s `engine.version`
+together, and prints what to run next (`npm install`, then reopen the editor). The product
+then downloads the matching workbench.
 
 ## Package map
 
@@ -126,7 +131,7 @@ The npm scope is `@volter`. Install one product; its supporting packages come wi
 
 | Package | Responsibility |
 | --- | --- |
-| `@volter/model-editor` | The model editor and its `volter-model-editor` command |
+| `@volter/cyclotron` | Cyclotron and its `cyclotron` command |
 | `@volter/editor-core` | Shared editor host and Code-OSS integration |
 | `@volter/editor-sdk` | Extension and contribution APIs |
 | `@volter/editor-live` | Session automation client |
@@ -157,7 +162,7 @@ npm run check:packed-imports
 ```
 
 To rebuild after a change, name the packages it touched:
-`node scripts/build-release-packages.mjs release/modeling.json @volter/editor-core @volter/model-editor`.
+`node scripts/build-release-packages.mjs release/modeling.json @volter/editor-core @volter/cyclotron`.
 [`scripts/workbench/build-release.mjs`](scripts/workbench/build-release.mjs) builds the
 Code-OSS workbench.
 

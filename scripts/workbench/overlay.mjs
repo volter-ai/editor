@@ -33,7 +33,7 @@
  *  so a build of this repository never carries a look package's code unless its builder named
  *  it — the Volter brand's private package (`volter-ai/brand`, its Plotter look) in particular.
  *
- *  WHY THE PRODUCT'S DIRECTORY IS ONE FIXED NAME. `volterProduct` rather than `volterModelEditor`:
+ *  WHY THE PRODUCT'S DIRECTORY IS ONE FIXED NAME. `volterProduct` rather than `volterCyclotron`:
  *  the registration import line, the build's resource glob and the product's own
  *  `FileAccess.asBrowserUri('vs/workbench/contrib/volterProduct/browser/media/Inter.woff2')` are
  *  then the same strings for every product, so the patch this writes is one shape and a product
@@ -1208,7 +1208,7 @@ function main() {
 	const extension = chatExtension();
 
 	// EVERY product's extensions are removed before this product's are copied, so a checkout
-	// overlaid for the model editor and then for the game editor does not keep `theme-blender`.
+	// overlaid for Cyclotron and then for the game editor does not keep `theme-blender`.
 	const extensionsDir = join(checkout, 'extensions');
 	for (const owner of [KIT_DIR, ...knownProducts().map((id) => join(REPO_ROOT, 'packages', id, 'workbench'))]) {
 		const dir = join(owner, 'extensions');

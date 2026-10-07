@@ -2013,7 +2013,7 @@ _ASK_SEQUENCE = [0]
 def _drop(path):
     """Remove one of THIS side's own channel files. A failure here means the
     ownership rule was broken by the other side, so it is named rather than
-    swallowed -- and named where `volter-model-editor console` reads it, not into a log."""
+    swallowed -- and named where `cyclotron console` reads it, not into a log."""
     try:
         os.unlink(path)
     except OSError as error:
@@ -2238,7 +2238,7 @@ def _fill_result(engine, result, answer, png, width, height):
     view transform over them wherever it shows or saves one (`write_still`, the
     Image Editor), as it does over Cycles'. The photograph's PNG is the display
     image -- the transform already ran -- so loading it put every render
-    through AgX or Filmic twice. Measured 2026-09-28 by the model editor's
+    through AgX or Filmic twice. Measured 2026-09-28 by Cyclotron's
     render view: a background 53 against the viewport's 59, a shadow's blue 2
     against 7. The same capture's linear frame goes in instead: half floats,
     RGBA, bottom row first, which is Blender's own row order. Linear 0.005,
@@ -4155,7 +4155,7 @@ def _node_row(node):
 
 
 def _node_tree_of(path, material):
-    """WHICH TREE. Either an explicit RNA address (so a `volter-model-editor eval` can open a
+    """WHICH TREE. Either an explicit RNA address (so a `cyclotron eval` can open a
     world's or a group's tree with the engine's own spelling), or a material by
     name, or -- given neither -- the active object's active material, which is
     what Blender's own Shading header resolves (`space_node.py:89-93`,
@@ -4413,7 +4413,7 @@ def rna_rig(object_name=None):
     presented frame carries every object at once, and the presenter has to know
     which of its meshes are `THREE.SkinnedMesh`es before it builds them. Asking
     per object would be one round trip per mesh; asking by NAME stays available
-    for a `volter-model-editor eval` that wants to read one.
+    for a `cyclotron eval` that wants to read one.
     """
     scene_frame = int(bpy.context.scene.frame_current)
     if object_name:
@@ -5150,7 +5150,7 @@ def _dispatch(request):
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `volter-model-editor console` silent throughout.
+            # `blender-execute` calls with `cyclotron console` silent throughout.
             _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer
@@ -5200,7 +5200,7 @@ def _dispatch(request):
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `volter-model-editor console` silent throughout.
+            # `blender-execute` calls with `cyclotron console` silent throughout.
             _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer
@@ -5223,7 +5223,7 @@ def _dispatch(request):
             # to the console and nothing else), so it logged at `log` level and
             # reached no counter -- measured 2026-09-19 (I4), when a throw in
             # the overlay walk froze the viewport through a dozen successful
-            # `blender-execute` calls with `volter-model-editor console` silent throughout.
+            # `blender-execute` calls with `cyclotron console` silent throughout.
             _say("@@VOLTER-ERROR the present after this call failed, so the Model document is "
                  "showing the state before it: " + repr(thrown))
         return answer

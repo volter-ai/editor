@@ -311,7 +311,7 @@
 /* THE MENU WORDS KEEP THEIR OWN WIDTH, AND THE TAB STRIP SCROLLS — Blender's
    own top bar, transcribed.
 
-   MEASURED on the model editor release at 1280 CSS px: `Help` ran x 258..298
+   MEASURED on the Cyclotron release at 1280 CSS px: `Help` ran x 258..298
    and the `Model` workspace tab x 268..320, a 30px overlap; at 1728 the same
    pair had a 17px gap. The cause is here and not in the strip: this cluster
    took flex's default `0 1 auto`, so the leading column's squeeze SHRANK ITS

@@ -21,7 +21,7 @@ const CAMERA_HINT =
   'await editor.present({ version: 1, viewport: { camera: { position: { x, y, z }, target: { x, y, z }, fov } } }) ' +
   '(stage space: metres, Y up; a Blender point (x, y, z) is { x, y: z, z: -y }), ' +
   'and read back with (await editor.currentView()).viewport.camera. ' +
-  'From the Model Editor\'s shell: volter-model-editor camera --position x,y,z --target x,y,z [--fov n] (Blender coordinates). ' +
+  'From Cyclotron\'s shell: cyclotron camera --position x,y,z --target x,y,z [--fov n] (Blender coordinates). ' +
   'editor.frame() and editor.orbit() frame or swing around the subject instead.';
 
 /** Missing `editor` member → what to use instead. */

@@ -9,7 +9,7 @@
  * what they are called, which editor-side packages a project declares, or
  * which layout and look its adapter states. Those are a PRODUCT's declaration,
  * and a product is the program a person runs (`game-editor create`,
- * `model-editor create`).
+ * `cyclotron create`).
  *
  * The declaration is ordinary ESM the product owns — data for the presets, a
  * FUNCTION for the rule that reads them, because compositions are code (rule

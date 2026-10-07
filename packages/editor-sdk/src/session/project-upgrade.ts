@@ -149,7 +149,7 @@ const EXACT_VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
 /**
  * A JSON file's own layout, so a rewrite changes the rows it moves and nothing else. The same rule
- * as `add-play`'s `jsonLayout` (packages/model-editor/node/add-play.ts, #133); kept beside the
+ * as `add-play`'s `jsonLayout` (packages/cyclotron/node/add-play.ts, #133); kept beside the
  * verb that shares it across products rather than reaching into one product's CLI.
  */
 function jsonLayout(raw: string): (value: unknown) => string {

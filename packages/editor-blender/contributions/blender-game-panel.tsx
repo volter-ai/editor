@@ -36,7 +36,7 @@
  * simulation itself — the `dt` the script is handed — and the clock drawn here is that
  * simulation's: the seconds the script was given and the updates it ran. The verbs below are
  * the same calls behind command ids (`volter.model-play.<verb>`), which is how an agent drives
- * exactly what the person does: `volter-model-editor play pause`, or
+ * exactly what the person does: `cyclotron play pause`, or
  * `await editor.command('volter.model-play.pause')` under `eval`.
  *
  * ## Autoplay is the editor's switch, and the person always wins
@@ -138,7 +138,7 @@ function verbDocument(args: Record<string, unknown> | undefined): string {
 function verbExtension(): DocumentPlayExtension & { transport: NonNullable<DocumentPlayExtension['transport']> } {
   const found = extension();
   if (found === null)
-    throw new Error('This project has no Play tool: `volter-model-editor add-play` adds @volter/editor-model-play.');
+    throw new Error('This project has no Play tool: `cyclotron add-play` adds @volter/editor-model-play.');
   if (found.transport === undefined)
     throw new Error('The installed Play tool has no pause, step, speed or restart; update @volter/editor-model-play.');
   return found as DocumentPlayExtension & { transport: NonNullable<DocumentPlayExtension['transport']> };
@@ -471,7 +471,7 @@ export function BlenderGamePanel() {
   const status = documentId === null
     ? 'No model document is open.'
     : scriptExists === false && scriptPath !== null
-      ? `No play script yet — Play runs ${scriptPath}. \`volter-model-editor add-play\` adds an example.`
+      ? `No play script yet — Play runs ${scriptPath}. \`cyclotron add-play\` adds an example.`
       : playing && clock.failure
         // The run plays but no game runs (`DocumentPlayClock.failure`): say so, not "Playing".
         ? `Not running — ${clock.failure.replace(/\.$/, '')}. Restart (or save the script) to retry, or Stop.`
@@ -676,7 +676,7 @@ function AutoplayControl({ documentId, playing, clock, autoplay, transport }: {
   );
 }
 
-/** Enough to read back what just happened; the whole log is `volter-model-editor play-log`. */
+/** Enough to read back what just happened; the whole log is `cyclotron play-log`. */
 const LOG_LINES = 200;
 
 function factsText(facts: Record<string, unknown> | undefined): string {

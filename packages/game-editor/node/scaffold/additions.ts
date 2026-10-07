@@ -7,7 +7,7 @@
  * THE ADDITIONS ARE THE KIT'S; THE PRESETS ARE A PRODUCT'S. Which additions a
  * named preset composes, what that preset is called, and what the project then
  * declares are a product's declaration (`./product.ts`), because creation is
- * the product's: `game-editor create`, `model-editor create`.
+ * the product's: `game-editor create`, `cyclotron create`.
  */
 
 import type { ScaffoldEditorDeclaration } from './product.js';
@@ -390,7 +390,7 @@ export const REACT_ONLY_FILES: Readonly<Record<string, string>> = {
  * models project's LOOK, for instance, is the palette, material, icon set,
  * chrome regions and key bindings the Blender package carries, imported as the
  * objects they are (ARCHITECTURE-CORE §Adapters and contributions are code,
- * not configs); the model editor is what knows to ask for them. This function
+ * not configs); Cyclotron is what knows to ask for them. This function
  * only renders what it is handed: the imports, in the order the declaration
  * gives them, and the one `editor:` line.
  */

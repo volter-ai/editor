@@ -17,7 +17,7 @@
  * session.
  *
  * AND A PRODUCT THAT IS INSTALLED CARRIES ITS OWN (B2, 2026-09-21). A person
- * who has just run `npx @volter/model-editor create my-models` has no release on
+ * who has just run `npx @volter/cyclotron create my-models` has no release on
  * their machine and no reason to have one, so the third step of the resolution
  * is the PRODUCT'S declaration — `package.json#volter.product.workbench`, the
  * published release those bytes are (ARCHITECTURE-CORE §The target shape: one
@@ -92,7 +92,7 @@ export interface WorkbenchIdentity {
   readonly dir: string;
   /** The Code-OSS fork commit these bytes are. */
   readonly commit: string;
-  /** The product whose workbench half is overlaid on them — `model-editor`,
+  /** The product whose workbench half is overlaid on them — `cyclotron`,
    *  `game-editor`. Reported beside the commit by the editor's `status` command. */
   readonly product: string;
 }
@@ -310,7 +310,7 @@ function resolveSources(dir: string): ResolvedWorkbench {
     throw new Error(
       `${dir} is a Code-OSS checkout with no volter overlay: ${OVERLAY_RECORD} is not there, so nothing of the ` +
         'editor is compiled into it and the workbench would come up as plain Code-OSS. Overlay and compile it:\n' +
-        `  node scripts/workbench/dev.mjs --checkout ${dir} --product <model-editor|game-editor>`,
+        `  node scripts/workbench/dev.mjs --checkout ${dir} --product <cyclotron|game-editor>`,
     );
   }
   let product: unknown;
@@ -384,7 +384,7 @@ export interface WorkbenchFetchIO {
  *   2. `<project>/.volter/workbench.json` — this machine's record for this project.
  *   3. the PRODUCT's declared release — fetched once, then written into (2).
  *
- * Step 3 is what makes `npx @volter/model-editor create my-models` open something
+ * Step 3 is what makes `npx @volter/cyclotron create my-models` open something
  * on a machine that has never built anything, and it is why the CLI resolves
  * the product BEFORE the workbench.
  */

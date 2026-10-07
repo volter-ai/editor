@@ -556,7 +556,7 @@ registerAction2(class extends Action2 {
 		// looking at our extension manifests sees.
 		//
 		// THE SENTENCE IS THE PRODUCT'S, because what runs when the folder is trusted differs
-		// by product: a model editor has no game and a game editor has no Blender engine in
+		// by product: Cyclotron has no game and a game editor has no Blender engine in
 		// the tab. The REFUSAL below is this command's own and names it.
 		//
 		// AND IT IS READ AFTER THE SESSION TAB HAS SETTLED, never beside it: a folder with a
@@ -781,7 +781,7 @@ registerAction2(class extends Action2 {
 					// semantic dock commands (which would otherwise QUEUE forever under the frame,
 					// because only the deleted dock ever installed an implementation), and the
 					// surface-keyboard probe that keeps a keystroke aimed at Monaco beside a running
-					// game out of the game. The model editor installs nothing here. The ids are
+					// game out of the game. Cyclotron installs nothing here. The ids are
 					// PASSED, so a product never becomes a second author of an id this file spells.
 					product.mount?.(productContext(mount));
 					// AND THE OPEN DOCUMENTS (volterDocuments.ts, walk 3's beat 19). One editor in this

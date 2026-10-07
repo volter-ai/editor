@@ -24,7 +24,7 @@
  *  IT NAMES NO PRODUCT. The title is `registerVolterProduct`'s, read HERE rather than at module
  *  load so a product that registers late still names the cover, and every colour is a workbench
  *  theme variable — so a product's look paints this element through its OWN theme registration
- *  (`packages/model-editor/workbench/extensions/theme-blender` and the type in its
+ *  (`packages/cyclotron/workbench/extensions/theme-blender` and the type in its
  *  `media/blender-look.css`, both of which reach the cover because it is a child of
  *  `.monaco-workbench`) and this file spells no product's palette.
  *

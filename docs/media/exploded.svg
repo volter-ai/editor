@@ -1,10 +1,10 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1600" height="1840" viewBox="0 0 1600 1840" role="img" aria-labelledby="title desc">
-<title id="title">Volter Model Editor, built on Blender: four parts, exploded</title><desc id="desc">An isometric assembly drawing. From bottom to top: the headless Blender WebAssembly engine, the three.js race viewport, the React panels, and the Code-OSS window shell. Dashed guides align the parts. A small assembled editor sits at the upper right.</desc>
+<title id="title">Volter Cyclotron, built on Blender: four parts, exploded</title><desc id="desc">An isometric assembly drawing. From bottom to top: the headless Blender WebAssembly engine, the three.js race viewport, the React panels, and the Code-OSS window shell. Dashed guides align the parts. A small assembled editor sits at the upper right.</desc>
 <!-- Palette: @volter-ai/brand light semantic surface.page/raised/subtle/inset; text.primary/muted; border.strong; status.live.soft/status.success.soft; data.soft. Fonts: Geist and Geist Mono, with local system fallbacks. No external resources. -->
 <!-- Architecture sources: README.md (browser workbench, .blend persistence, Python/native undo); ARCHITECTURE.md (kit/integrations/product composition); packages/blender-engine/README.md (WebAssembly worker, Python session, Three.js presenter); packages/editor-blender/README.md (inspectors/layouts). Layer names and Blender 5.2 version supplied by the drawing brief. -->
 <rect width="1600" height="1840" fill="#f7f6f1"/>
 <g font-family="Geist, Helvetica Neue, Arial, sans-serif" stroke-linecap="square">
-<text x="80" y="80" font-size="56" font-weight="500" fill="#16252c">Volter Model Editor</text>
+<text x="80" y="80" font-size="56" font-weight="500" fill="#16252c">Volter Cyclotron</text>
 <text x="80" y="126" font-size="34" font-weight="400" fill="#5d6970">built on Blender</text>
 <text x="80" y="166" font-size="28" font-weight="400" fill="#5d6970" font-family="Geist Mono, SFMono-Regular, Consolas, monospace">EXPLODED ASSEMBLY</text>
 <polyline points="80.0,181.0 930.0,181.0" fill="none" stroke="#c4c5bc" stroke-width="2"/>

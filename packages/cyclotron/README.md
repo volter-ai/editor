@@ -62,6 +62,7 @@ Run from the project folder with `npx --no-install cyclotron <command>`;
 | Command | What it does |
 | --- | --- |
 | `create <folder> [--template models\|playable]` | A new project. |
+| `upgrade [version]` | Moves the project's `@volter` packages and its engine pin to one release (default: latest). From a project on any earlier version, run it as `npx @volter/cyclotron upgrade`. Prints what changed and what to run next. |
 | `add-play [folder]` | Makes a `models` project playable: adds the Play and React UI dependencies, the manifest's UI root and resolution, the adapter's `regionIncludes.ui`, and — when the project has no `*.play.ts` yet — the example `track.blend` + `track.play.ts` + `race-state.ts` + `src/ui/`. Never overwrites a file; prints what it added, what it left and the next step (`npm install` when dependencies changed, then reload the editor). |
 | `status` \| `console` | The editor's state, and its unresolved console entries. Entries print to stderr; the command exits 1 only for an unresolved **error** — warnings alone exit 0. `eval` ends by the same rule. |
 | `eval <JavaScript>` \| `eval --list` | Runs code against the live editor; `--list` prints what is in scope and a few common tasks. |

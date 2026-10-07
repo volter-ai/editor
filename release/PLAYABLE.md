@@ -47,7 +47,7 @@ The resulting playable scaffold would request tools npm does not serve.
 ## What this preparation changes
 
 - `release/game.json` becomes the reviewed 19-package superset, with the two
-  source-only tools before Model Editor. The 14-package `release/playable.json`
+  source-only tools before Cyclotron. The 14-package `release/playable.json`
   stays the narrower installation boundary; no Game Editor product is added to it.
 - The existing push/dispatch workflow retains one publish job and also checks the
   playable boundary. A first push creating `publish` now releases, too.
@@ -74,13 +74,13 @@ restored native tool history with explicit pending-approval labels. This is pack
 The attachment client remains **0.2.7**, matching npm latest and its existing lock
 integrity; editor-core needs no further version change. No dependency was installed.
 
-The Model Editor still pins
+Cyclotron still pins
 `model-editor-f16dc165c0df-ae7600a80ae8-darwin-arm64`, SHA256
 `cb5922a25786c658e9cea452a5c9bab42125366154ed53ff84721d9f41418c46`.
 Its public BUILD.json confirms frontend-vscode **0.1.14**, editor source
 `ae7600a80ae8d595a6a843b3f8e5028f94260742`, and Code-OSS source
 `f16dc165c0dffe701a7bbf59aefb1c662b206cee`. Changing the npm extension pin does
-not change this tarball. A new public Model Editor workbench must be cut from the
+not change this tarball. A new public Cyclotron workbench must be cut from the
 overlay now merged to main at `9b098916` (PR40 and PR43) and the actually
 published fixed extension, then pinned by its real tag/hash. This overlay routes provider
 New Chat through its creation command before native edit-session cleanup, so
@@ -135,14 +135,14 @@ Blender corresponding-source/artifact mapping.
    registry tarball/integrity. The attachment client remains **0.2.7**. The
    packed-byte/source evidence is above. Do not dispatch a duplicate publication.
 
-2. **Prepare and publish the public Model Editor workbench.** Editor PR40
+2. **Prepare and publish the public Cyclotron workbench.** Editor PR40
    and PR43 are merged on main through `9b098916` and integrated into this branch.
    The scaffold declares the playable tools and default Track document; the overlay
    includes the provider New Chat/cancel fixes described above. The real fixed
    extension and lock entry are now committed. With granted build capacity, materialize that exact published dependency and cut (without publishing):
 
    ```sh
-   volter world run -- node scripts/workbench/build-release.mjs --product model-editor --platform darwin-arm64 --checkout "$CODE_OSS_CHECKOUT" --work "$MODEL_WORKBENCH_WORK" --out "$MODEL_WORKBENCH_OUT"
+   volter world run -- node scripts/workbench/build-release.mjs --product cyclotron --platform darwin-arm64 --checkout "$CODE_OSS_CHECKOUT" --work "$MODEL_WORKBENCH_WORK" --out "$MODEL_WORKBENCH_OUT"
    ```
 
    `CODE_OSS_CHECKOUT` must be at `packages/editor-core/workbench/FORK.json`'s exact
@@ -156,7 +156,7 @@ Blender corresponding-source/artifact mapping.
    ```
 
    This uploads the immutable tarball and BUILD.json to `volter-ai/code-oss`.
-   Commit the returned actual release tag and SHA256 to Model Editor's manifest.
+   Commit the returned actual release tag and SHA256 to Cyclotron's manifest.
    Verify anonymous access. Rebuild/check/measure the final pinned source before
    the npm promotion; these checks must not silently use the integration checkout.
 

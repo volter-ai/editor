@@ -66,7 +66,7 @@ import svgpath from 'svgpath';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 // The product's OWN extension: the font is traced from `@volter/editor-blender`'s glyphs and only the
-// model editor ships a theme that selects it (P3, 2026-09-21).
+// Cyclotron ships a theme that selects it (P3, 2026-09-21).
 const OUT_DIR = join(REPO_ROOT, 'packages/cyclotron/workbench/extensions/theme-blender/producticons');
 const FONT_PATH = join(OUT_DIR, 'blender-icons.otf');
 const THEME_PATH = join(OUT_DIR, 'blender-product-icon-theme.json');

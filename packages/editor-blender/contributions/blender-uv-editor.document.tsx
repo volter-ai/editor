@@ -94,7 +94,7 @@ const REFUSALS = {
 
 /** THE VIEW'S VERBS, published once, here — U8's ruling 1 (2026-09-19). Under
  *  the Code-OSS frame each becomes a `volter.blender-uv-view.<verb>` command the
- *  bridge dispatches into the view, and standalone `volter-model-editor edit` reaches the
+ *  bridge dispatches into the view, and standalone `cyclotron edit` reaches the
  *  SAME table through the session. **This view adds no `blender-*` session
  *  verb at all**, which is exactly what the ruling asked the remaining I5
  *  views to stop paying for. */

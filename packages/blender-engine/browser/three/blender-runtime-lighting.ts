@@ -264,7 +264,7 @@ export const SOLID_LIGHTS: readonly {
  * and AgX within 3, so the curve is NOT what row 1's 13-vs-30 spread was made
  * of and the stage keeps its own operator).
  *
- * THE ROUNDS, on a `model-editor create` scaffold driven through `volter-model-editor
+ * THE ROUNDS, on a `cyclotron create` scaffold driven through `cyclotron
  * screenshot editor`, 30x30 means (std 0 — every patch inside one flat face)
  * of the factory cube's three visible faces against Blender 5.2's own frame,
  * (141,143,145) top / (129,131,131) left / (111,112,113) front:

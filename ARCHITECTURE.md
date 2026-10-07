@@ -13,7 +13,7 @@ through adapters and contributions. The rulings this follows were made on
 | --- | --- | --- |
 | Kit | `@volter/editor-core` (host, session server, workbench tier), `@volter/editor-sdk` (the one API integrations import), `@volter/editor-project` (the project contract) | documents, views, selection, history, source writing, stories as portable CSF, the session. No tool, no product, no purpose. |
 | Integration | `@volter/editor-blender`, `@volter/editor-threejs`, `@volter/editor-react`, `@volter/editor-xstate`, `@volter/editor-model-play`, `@volter/editor-ui`; a canvas lane is due | one tool made a document kind: its adapters, inspectors, instruments, looks, template fragment. No purpose. |
-| Product | `@volter/model-editor`, `@volter/game-editor` | templates and composition for a purpose. The base model template composes Blender and Three; its playable template declares model Play and React UI tools on the project. Tools meet through SDK doors and are available to any composition (owner ruling, 2026-10-03). |
+| Product | `@volter/cyclotron`, `@volter/game-editor` | templates and composition for a purpose. The base model template composes Blender and Three; its playable template declares model Play and React UI tools on the project. Tools meet through SDK doors and are available to any composition (owner ruling, 2026-10-03). |
 | Shipped twin | `@volter/threejs-runtime`, `@volter/game-runtime` | helpers a project's own code may call that return the library's own objects. Apache. |
 
 Rules:
@@ -128,7 +128,7 @@ The extraction deferred on 2026-09-22 proceeds. [docs/DOCUMENT-VIEW-OWNERSHIP.md
 is the specification (ownership, identity, lifecycle, the A1–A18 acceptance matrix) with
 this repository's measured corrections at its head. Units, in order:
 
-1. `@volter/editor` becomes `@volter/model-editor` (package, directory, command, product id,
+1. `@volter/editor` becomes `@volter/cyclotron` (package, directory, command, product id,
    workbench).
 2. Every current reverse edge is frozen by exact importer and imported module as a baseline
    that may only shrink, checked before each commit.
@@ -137,7 +137,7 @@ this repository's measured corrections at its head. Units, in order:
    defaults become `@volter/editor-blender`'s specialization; the Three-typed adapter contract
    leaves `@volter/editor-project`; the kit's Blender server pieces (the WASM route, the verb
    relay, tab metrics) and the injected model document leave the kit. Acceptance: the kit
-   constructs no viewport; the model editor's closure carries no game or React Three Fiber
+   constructs no viewport; Cyclotron's closure carries no game or React Three Fiber
    code; a composition without Three carries none.
 4. Blender as the first consumer of document-owned evaluation and native views, walked on the
    product: open, edit, save, undo, hide/reveal, capture, disposal. The game editor's Scene edit
