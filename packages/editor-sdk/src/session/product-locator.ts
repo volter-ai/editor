@@ -127,6 +127,15 @@ export interface ProductIdentity {
   readonly colorTheme: ProductColorTheme;
   /** WHICH WORKBENCH THIS PRODUCT IS — see {@link ProductWorkbench}. */
   readonly workbench: ProductWorkbench | null;
+  /**
+   * The ONE LINE that installs this product and starts a project in it —
+   * `volter.product.install` (`npx @volter/model-editor create my-game`). A limited view quotes
+   * it wherever it cannot do what the local editor does (its chat answers with it, and every
+   * route it does not carry names it), so it is a declaration read without running the product.
+   * An undeclared one is `npx <name> create my-game`, which is what every product's `create`
+   * verb accepts.
+   */
+  readonly install: string;
 }
 
 /** The install line a refusal quotes, for a project that already EXISTS. Both
@@ -154,7 +163,7 @@ interface ProductManifestShape {
   name?: unknown;
   version?: unknown;
   bin?: unknown;
-  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown; upgrade?: unknown } };
+  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown; install?: unknown; upgrade?: unknown } };
 }
 
 const PRODUCT_COLOR_THEMES: readonly ProductColorTheme[] = ['dark', 'light'];
@@ -217,8 +226,16 @@ export function readProductManifest(packageDir: string): ProductIdentity | null 
       `${manifestPath} declares ${PRODUCT_DECLARATION_KEY} but its "displayName" is ` +
         `${JSON.stringify(displayName)}. It must be the name a person sees (e.g. "Volter Editor").`,
     );
+  const name = typeof manifest.name === 'string' ? manifest.name : packageDir;
+  const install = declared.install;
+  if (install !== undefined && (typeof install !== 'string' || install.trim() === ''))
+    throw new Error(
+      `${manifestPath} declares ${PRODUCT_DECLARATION_KEY} but its "install" is ` +
+        `${JSON.stringify(install)}. It is the one line that installs this product and starts a ` +
+        `project (e.g. "npx ${name} create my-game"), or absent.`,
+    );
   return {
-    name: typeof manifest.name === 'string' ? manifest.name : packageDir,
+    name,
     version: typeof manifest.version === 'string' ? manifest.version : 'unknown',
     command: commands[0]!,
     displayName,
@@ -230,6 +247,7 @@ export function readProductManifest(packageDir: string): ProductIdentity | null 
     // Public packages must always carry a downloadable, checksummed workbench.
     workbench: manifest.private === true && declared.workbench === undefined
       ? null : readProductWorkbench(manifestPath, declared.workbench),
+    install: typeof install === 'string' ? install.trim() : `npx ${name} create my-game`,
   };
 }
 

@@ -21,6 +21,7 @@
     "LICENSE",
     "LICENSE-MCP",
     "serving",
+    "view",
     "dist-node"
   ],
   "exports": {
@@ -66,7 +67,8 @@
       "./contributions/uv-editing.layout.ts",
       "./contributions/texture.layout.ts"
     ],
-    "serving": "./dist-node/serving.mjs"
+    "serving": "./dist-node/serving.mjs",
+    "viewServing": "./view/blender-view-routes.ts"
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.32.1",

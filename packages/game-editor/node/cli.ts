@@ -6,7 +6,7 @@ import { fileURLToPath } from 'node:url';
 import productPackage from '../package.json';
 import { createGameProject, presets } from './create';
 import { isScaffoldAddition, SCAFFOLD_ADDITIONS, type ScaffoldAddition } from './scaffold/additions';
-import { launch, prepareSession, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
+import { launch, prepareSession, VIEW_BUILD_USAGE, viewBuild, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { listRecentProjects, listSessions, openProject, restart, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
 import { hasManifest } from '@volter/editor-project/manifest/locate';
@@ -32,13 +32,14 @@ try {
   // Explicit args: a project's .mcp.json starts this CLI under `node --eval`, where parseArgs'
   // default drops only the exec path and reads the CLI's own path as the verb.
   const { values, positionals } = parseArgs({ args: process.argv.slice(2), allowPositionals: true, options: {
-    workbench: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
+    workbench: { type: 'string' }, out: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     template: { type: 'string' }, with: { type: 'string' },
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' },
     ...SCREENSHOT_OPTIONS, ...CAPABILITY_OPTIONS,
   } });
   const [verb = 'edit', folder = '.'] = positionals;
   if (values.list && verb !== 'eval') throw new Error('--list belongs to eval.');
+  if (values.out !== undefined && verb !== 'view') throw new Error('--out belongs to view build.');
   for (const key of Object.keys(SCREENSHOT_OPTIONS) as (keyof typeof SCREENSHOT_OPTIONS)[])
     if (values[key] !== undefined && verb !== 'screenshot') throw new Error(`--${key} belongs to screenshot.`);
   for (const key of Object.keys(CAPABILITY_OPTIONS) as (keyof typeof CAPABILITY_OPTIONS)[])
@@ -54,10 +55,16 @@ try {
   volter-game-editor eval <JavaScript> | --list   # { editor, game, page, tools, session } in scope
   volter-game-editor play | stop | restart
   volter-game-editor ${SCREENSHOT_USAGE}
-  volter-game-editor ${HOSTED_USAGE}\n  volter-game-editor sessions | project | projects
+  volter-game-editor ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)\n  volter-game-editor ${HOSTED_USAGE}\n  volter-game-editor sessions | project | projects
   volter-game-editor open <path>
   volter-game-editor add [id...] | remove <id...> | outdated   [--project <path>] [--dry-run] [--json]
   volter-game-editor blender-mcp    # stdio MCP transport to Blender in the editor`);
+  } else if (verb === 'view') {
+    if (positionals[1] !== 'build' || positionals.length > 3) throw new Error(`Usage: volter-game-editor ${VIEW_BUILD_USAGE}`);
+    await viewBuild(positionals[2] ?? '.', PRODUCT, {
+      ...(values.out ? { out: values.out } : {}),
+      ...(values.workbench ? { workbench: values.workbench } : {}),
+    });
   } else if (verb === 'hosted') {
     await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {

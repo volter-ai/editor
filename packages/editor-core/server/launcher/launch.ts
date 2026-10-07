@@ -13,6 +13,25 @@ import { classifyProjectSession } from './session-resolution';
 import { loopbackPortFree } from './loopback-port';
 import { waitForOwnEditorServer, describeEditorBootFailure, DEFAULT_EDITOR_BOOT_TIMEOUT_MS, type ChildExitStatus } from './editor-boot';
 
+/** A static limited view of a project (docs/LIMITED-VIEW.md): a launcher verb, because it runs
+ *  the project's own session headless and records what it serves. */
+export const VIEW_BUILD_USAGE = 'view build [folder] --out <dir> --workbench <vscode-web dir>';
+
+/**
+ * `view build`, loaded only when it runs. Its implementation reaches the session's toolchain
+ * (TypeScript, the module crawl), which must never be inlined into a product's CLI bundle: every
+ * other verb would pay for it, and TypeScript's CommonJS does not survive an ESM bundle. So it is
+ * its own built entry (`scripts/build-session.mjs`) and is imported by package specifier from a
+ * variable, which no bundler follows.
+ */
+export async function viewBuild(
+  ...args: Parameters<typeof import('./view-build').viewBuild>
+): ReturnType<typeof import('./view-build').viewBuild> {
+  const specifier = '@volter/editor-core/server/launcher/view-build';
+  const implementation = (await import(/* @vite-ignore */ specifier)) as typeof import('./view-build');
+  return implementation.viewBuild(...args);
+}
+
 /** Who is launching: the package a project declares, the id its workbench
  * build carries, and the names a person sees and types. */
 export interface LaunchingProduct {

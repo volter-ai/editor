@@ -51,6 +51,7 @@
     "product": {
       "entry": "./src/index.ts",
       "displayName": "Volter Model Editor",
+      "install": "npx @volter/model-editor create my-game",
       "colorTheme": "dark",
       "upgrade": true,
       "workbench": {
