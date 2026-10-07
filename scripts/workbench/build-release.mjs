@@ -7,7 +7,8 @@
  *         [--min-ram <GiB>] [--look <package dir>]… [--publish] [--dry-run] [--wipe-work]
  *
  *  EACH BUILD HAS ITS OWN WORK DIRECTORY. The default is
- *  `<tmp>/volter-workbench-build/<product>-<target>-<platform>` (`<product>-web` for the web
+ *  `<tmp>/volter-workbench-build/<product>-<target>-<platform>` (`C:\vwbuild\…` on Windows, whose
+ *  path limit the fork's clone exceeds under Temp; `<product>-web` for the web
  *  target), and its output defaults to `.volter/releases/<same name>`. A work directory is marked
  *  (`.volter-build-work.json`) when this creates it and is wiped only by the same build; any other
  *  directory refuses by name unless `--wipe-work` says to delete it anyway.
@@ -298,7 +299,13 @@ const WEB = args.target === 'web';
 const identity = { product: args.product, target: args.target, platform: args.platform };
 const identityName = WEB ? `${args.product}-web` : `${args.product}-${args.target}-${args.platform}`;
 const out = resolve(args.out ?? join(REPO_ROOT, '.volter/releases', identityName));
-const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? tmpdir(), 'volter-workbench-build', identityName));
+/** THE DEFAULT WORK ROOT IS SHORT ON WINDOWS. The fork's `extensions/copilot` holds paths past
+ *  Windows' 260-character limit until the overlay removes it, so a clone under
+ *  `%LOCALAPPDATA%\Temp\…` fails with "Filename too long" (measured 2026-10-06). The root is its
+ *  own, `<system drive>\vwbuild`, and never `\vwb` itself: that directory has been passed as a
+ *  whole `--work`, and an older build's `rm -rf` of it would take every build nested inside. */
+const WORK_ROOT = WINDOWS ? join(`${process.env['SystemDrive'] ?? 'C:'}\\`, 'vwbuild') : join(process.env['TMPDIR'] ?? tmpdir(), 'volter-workbench-build');
+const work = resolve(args.work ?? join(WORK_ROOT, identityName));
 /** What a work directory says about who made it. */
 const WORK_MARKER = '.volter-build-work.json';
 const clone = join(work, 'code-oss');
