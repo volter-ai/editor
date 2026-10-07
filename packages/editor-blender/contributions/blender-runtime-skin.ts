@@ -256,6 +256,17 @@ export function bindRig(
  */
 export class BlenderSkinDirector {
   #rigs = new Map<string, BoundRig>();
+  /** Rigs that could not be bound, by mesh name, at the signature tried: not retried until the
+   *  rig changes (a generative modifier, no vertex map), so a settle does not re-read and re-warn. */
+  #unbindable = new Map<string, string>();
+
+  /** What could not be bound, keyed by the rig AND what is presented for its mesh: the fix for a
+   *  refusal (removing a generative modifier, showing a hidden object) changes the presentation,
+   *  not the rig, and must be retried. */
+  static #tried(presentation: SkinPresentation, mesh: string, signature: string): string {
+    const object = presentation.objectForBlenderName(mesh) as THREE.Mesh | null;
+    return `${signature}|${object?.uuid ?? 'absent'}|${object?.geometry?.uuid ?? 'none'}`;
+  }
   #mixer: THREE.AnimationMixer | null = null;
   #action: THREE.AnimationAction | null = null;
   #clip: BlenderActionClip | null = null;
@@ -383,7 +394,12 @@ export class BlenderSkinDirector {
    *  object presented for its name (the presenter replaced it with a new draw). Lets the model
    *  skip the rig read on the edits that touch no rig. */
   stale(presentation: SkinPresentation): boolean {
-    if (this.#rigs.size === 0) return true;
+    // An unbindable rig whose presentation changed since it was tried is worth trying again.
+    for (const [mesh, tried] of this.#unbindable) {
+      const signature = tried.split('|').slice(0, -2).join('|');
+      if (BlenderSkinDirector.#tried(presentation, mesh, signature) !== tried) return true;
+    }
+    if (this.#rigs.size === 0) return this.#unbindable.size === 0;
     for (const rig of this.#rigs.values()) {
       if (presentation.objectForBlenderName(rig.object) !== rig.mesh) return true;
       // A redraw that kept the object but replaced its geometry (a weight or mesh edit with the same
@@ -433,8 +449,31 @@ export class BlenderSkinDirector {
       // replaced the object or its geometry (same vertex count, same signature) is bound again.
       if (held?.signature === signature && presentation.objectForBlenderName(rig.object) === held.mesh
         && held.mesh.geometry.getAttribute('skinIndex')) continue;
+      const tried = BlenderSkinDirector.#tried(presentation, rig.object, signature);
+      if (this.#unbindable.get(rig.object) === tried) continue;
       const bound = this.#bindOne(presentation, rig, answer.frame, warnings);
+      if (!bound) {
+        this.#unbindable.set(rig.object, tried);
+        if (held) {
+          held.skeleton.dispose();
+          held.boneRoot.removeFromParent();
+          // A skinned mesh still presented with no skeleton would hold its last pose; it draws as
+          // the plain mesh it is again.
+          if (presentation.objectForBlenderName(rig.object) === held.mesh) {
+            const plain = new THREE.Mesh(held.mesh.geometry, held.mesh.material);
+            plain.name = held.mesh.name;
+            plain.matrixAutoUpdate = false;
+            plain.matrix.copy(held.mesh.matrix);
+            plain.matrix.decompose(plain.position, plain.quaternion, plain.scale);
+            plain.userData = held.mesh.userData;
+            presentation.replacePresentedObject(held.mesh, plain);
+          }
+          this.#rigs.delete(rig.object);
+          changed = true;
+        }
+      }
       if (bound) {
+        this.#unbindable.delete(rig.object);
         held?.skeleton.dispose();
         held?.boneRoot.removeFromParent();
         this.#rigs.set(rig.object, bound);
