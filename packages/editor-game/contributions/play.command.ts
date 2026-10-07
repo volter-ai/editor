@@ -20,9 +20,10 @@
  * `instances.command.ts`); the doors a lane is meant to use are
  * `@volter/editor-sdk/host`.
  *
- * `play-recording.ts` is Play's own (`../src/play/`): its idle watchdog reads
- * every relayed command through `host.session.onCommandDispatched`, the door
- * P4b added, so the stamp is no longer a host call. `gameplay-recording.ts`
+ * `play-recording.ts` is Play's own (`../src/play/`): its idle watchdog counts
+ * only a person's input (trusted DOM input events and held gamepads) — relayed
+ * commands no longer reset it, so an agent's game-eval stream cannot hold a
+ * recording open (see that module's note). `gameplay-recording.ts`
  * stays in the host — `components/GameplaySessionTimeline.tsx`, which
  * `ToolHost.tsx` mounts directly for the `workspace.analytics` point, imports
  * it, and no contribution point injects a panel's header component.

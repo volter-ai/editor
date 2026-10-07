@@ -841,6 +841,14 @@ async function main(): Promise<void> {
         // declared package's tree reaches that spawns a module-relative worker
         // is found on disk, not named here (`packageContributionCrawl.sourceServed`).
         ...packageContributionCrawl.sourceServed,
+        // One contribution package's contributions naming ANOTHER's by bare
+        // specifier (`@volter/editor-ui` re-exporting `@volter/editor-game`'s React
+        // inspector, component board and story documents): prebundled, each is
+        // editor-tree code bound to the PROJECT's React, and the inspector died
+        // on "Invalid hook call" inside the shell's tree. Source-served, they
+        // take the shell's React like the package's own contributions do
+        // (`packageContributionCrawl.editorTree`).
+        ...packageContributionCrawl.editorTree,
         '@volter/editor-sdk/layouts',
         '@volter/editor-sdk/layout-arrangements',
         // The SDK's OTHER doors, same rule: each holds module state or calls

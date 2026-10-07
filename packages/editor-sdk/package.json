@@ -2,7 +2,7 @@
   "name": "@volter/editor-sdk",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.192",
+  "version": "0.5.193",
   "publishConfig": {
     "access": "public"
   },
@@ -383,6 +383,7 @@
     "./kit/authoring/mounted-root-subjects": "./src/kit/authoring/mounted-root-subjects.ts",
     "./kit/components/GameplaySessionTimeline": "./src/kit/components/GameplaySessionTimeline.tsx",
     "./kit/components/InspectorToolSection": "./src/kit/components/InspectorToolSection.tsx",
+    "./kit/components/SurfaceCrashBoundary": "./src/kit/components/SurfaceCrashBoundary.tsx",
     "./kit/components/ToolHost": "./src/kit/components/ToolHost.tsx",
     "./kit/components/VolterLogo": "./src/kit/components/VolterLogo.tsx",
     "./kit/components/account-documents": "./src/kit/components/account-documents.tsx",
@@ -485,7 +486,7 @@
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@storybook/react": "10.6.0",
     "@types/node": "^22.0.0",
-    "@volter/editor-project": "0.5.192",
+    "@volter/editor-project": "0.5.193",
     "mediabunny": "1.56.2",
     "postcss": "8.5.28",
     "rrweb": "2.1.6",

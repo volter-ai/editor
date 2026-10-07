@@ -41,7 +41,7 @@ try {
     workbench: { type: 'string' }, template: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' }, all: { type: 'boolean' },
     'existing-session': { type: 'boolean' },
-    since: { type: 'string' }, kind: { type: 'string' }, document: { type: 'string' }, json: { type: 'boolean' },
+    since: { type: 'string' }, kind: { type: 'string' }, document: { type: 'string' }, json: { type: 'boolean' }, for: { type: 'string' },
     ...SCREENSHOT_OPTIONS, ...CAPTURE_OPTIONS, ...CAMERA_OPTIONS,
   } });
   const [verb = 'edit', folder = '.'] = positionals;
@@ -54,6 +54,7 @@ try {
   for (const key of ['since', 'kind', 'json'] as const)
     if (values[key] !== undefined && verb !== 'play-log') throw new Error(`--${key} belongs to play-log.`);
   if (values.document !== undefined && verb !== 'play-log' && verb !== 'play') throw new Error('--document belongs to play-log and play.');
+  if (values.for !== undefined && verb !== 'play') throw new Error('--for belongs to `play autoplay on`.');
   for (const [owner, options] of [['capture', CAPTURE_OPTIONS], ['camera', CAMERA_OPTIONS]] as const)
     for (const key of Object.keys(options) as (keyof typeof options)[])
       // `--out` is also view build's: where the static view is written.
@@ -71,7 +72,7 @@ try {
     console.log(`Volter Cyclotron\n  cyclotron                 # open this project, or prepare your starter model\n  cyclotron create <folder> [--template models|playable] [--workbench <dir>]\n  cyclotron ${ADD_PLAY_USAGE}\n  cyclotron ${UPGRADE_USAGE}\n  cyclotron prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  cyclotron edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  cyclotron ${CHAT_USAGE}\n  cyclotron status | console [--all] | close    # exit 1 for an unresolved console error; warnings print, exit 0; --all prints every retained entry\n  cyclotron console ack <id> --reason <text>\n  cyclotron eval <JavaScript> | --list\n  cyclotron ${PLAY_LOG_USAGE}    # what the running model play script logged\n  cyclotron ${SCREENSHOT_USAGE}\n  cyclotron ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  cyclotron ${CAMERA_USAGE}\n  cyclotron ${PLAY_USAGE}    # the Game panel's controls\n  cyclotron ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)
   cyclotron ${HOSTED_USAGE}\n  cyclotron sessions | project | projects\n  cyclotron open <path>\n  cyclotron blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
   } else if (verb === 'play') {
-    console.log(JSON.stringify(await play(positionals.slice(1), values.document), null, 2));
+    console.log(JSON.stringify(await play(positionals.slice(1), values.document, values.for), null, 2));
   } else if (verb === 'chat') {
     console.log(JSON.stringify(await chat(positionals.slice(1)), null, 2));
   } else if (verb === 'view') {

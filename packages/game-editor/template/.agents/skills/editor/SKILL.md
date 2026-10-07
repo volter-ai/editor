@@ -40,7 +40,9 @@ a bare global `volter` command, which may come from a different checkout.
 - **Every `npx volter-game-editor play` records video automatically** — the ack prints the
   recording path (`.volter/recordings/play-latest.webm`, replaced by the next
   play; `npx volter-game-editor play --record <name>` keeps a clip forever), play auto-stops
-  after 2 idle minutes, and stopping finalizes the WebM. A claim about
+  after 2 minutes with no PLAYER input (agent commands, `eval` included, do not count),
+  every recording stops at a 10-minute length cap (play continues unrecorded), and
+  stopping finalizes the WebM. A claim about
   MOTION (an effect, an animation, a stutter, anything that lives between
   frames) is judged from that clip: find the moment via the play log's
   event timestamps against the recording's start time, then examine at

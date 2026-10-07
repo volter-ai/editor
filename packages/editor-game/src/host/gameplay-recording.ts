@@ -52,7 +52,27 @@ import {
 } from '@volter/editor-sdk/kit/editor-api';
 import { type GameplayDomRecording, startGameplayDomRecording } from '@volter/editor-sdk/kit/gameplay-dom-recording';
 import { publishToolContributionRecording } from '@volter/editor-sdk/kit/gameplay-sessions';
+import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { holdIngestFrameCopy } from '../ingest/ingest-frame-snapshot';
 import { createRecordingPreviewEncoder } from './recording-preview';
+
+/**
+ * THE HARD LENGTH CAP. No recording runs longer than this, whoever started it
+ * and whatever is still happening in the run.
+ *
+ * The idle auto-stop (`../play/play-recording.ts`) is not a bound: it only
+ * fires when nobody is at the controls, and a run kept busy for an hour — an
+ * agent's tester looping, a human who never puts the pad down — is a
+ * recording that never closes, a WebM nobody can open, a manifest that reads
+ * `'recording'` forever and a tab whose memory grows with it. Ten minutes is
+ * far past any clip a reviewer watches end to end (the evidence bar is ten
+ * frames inside five seconds) and short enough that a forgotten run is
+ * finished, readable evidence inside the same sitting. Reaching it is the
+ * designed outcome, not an error: the clip is finalized with reason
+ * `'length-cap'` and a console note says so. A longer record is a new
+ * recording (`volter-game-editor play` again, or `editor.recording.start()`).
+ */
+export const GAMEPLAY_RECORDING_MAX_MS = 10 * 60_000;
 
 export interface GameplayRecordingStartOptions {
   readonly fps?: number | undefined;
@@ -82,6 +102,14 @@ export interface GameplayRecordingStartOptions {
    * stream keeps running on the preceding good frame.
    */
   readonly refreshFrame?: (() => void) | undefined;
+  /**
+   * Called once when the recording reaches {@link GAMEPLAY_RECORDING_MAX_MS},
+   * to END it. A caller with its own stop bookkeeping (the play run's
+   * recording, `../play/play-recording.ts`) supplies its own ordinary stop
+   * here, so there is one finalize per clip. Absent, the recorder finalizes
+   * itself with reason `'length-cap'`.
+   */
+  readonly onLengthCap?: (() => void) | undefined;
 }
 
 export interface GameplayRecordingStarted {
@@ -149,6 +177,14 @@ interface ActiveRecording {
   readonly intervalMs: number;
   readonly container: HTMLElement;
   readonly options: Pick<GameplayRecordingStartOptions, 'canvasFrame' | 'refreshFrame'>;
+  /** Called once at {@link GAMEPLAY_RECORDING_MAX_MS}; see
+   *  {@link GameplayRecordingStartOptions.onLengthCap}. */
+  readonly onLengthCap: () => void;
+  /** Set when the cap fired, so it fires once. */
+  capped: boolean;
+  /** Releases this recording's one same-frame copy canvas
+   *  (`../ingest/ingest-frame-snapshot.ts`'s `holdIngestFrameCopy`). */
+  readonly releaseFrameCopy: () => void;
   clock: FrameClock | null;
   frameTask: Promise<void> | null;
   drawing: boolean;
@@ -398,6 +434,18 @@ function assertCanStartRecording(): void {
  */
 function paintFrame(recording: ActiveRecording): void {
   if (recording.stopping || recording.drawing) return;
+  // The length cap rides the frame clock rather than a timer of its own: the
+  // clock is the one pacer that keeps ticking in a hidden tab (see
+  // `startFrameClock`), and a cap that a hidden tab could clamp to once a
+  // minute is the case it exists for.
+  if (
+    !recording.capped &&
+    performance.now() - recording.startedWallMs >= GAMEPLAY_RECORDING_MAX_MS
+  ) {
+    recording.capped = true;
+    recording.onLengthCap();
+    return;
+  }
   if (performance.now() < recording.nextFrameAt) return;
   if (typeof document !== 'undefined' && document.hidden) recording.hidden = true;
   recording.drawing = true;
@@ -475,6 +523,9 @@ export async function startGameplayRecording(
   let domRecording: GameplayDomRecording | null = null;
   const snapshots = createImageSnapshotCache();
   const overlayCache = createOverlayFrameCache();
+  // ONE copy canvas for the whole recording, not one per frame — see
+  // `ingest-frame-snapshot.ts`. Released on every exit below.
+  const releaseFrameCopy = holdIngestFrameCopy();
   try {
     // The hybrid still takes one composite at startup to validate the mounted
     // surface and report an honest layer inventory. It never enters this DOM
@@ -543,6 +594,9 @@ export async function startGameplayRecording(
         canvasFrame: options.canvasFrame,
         refreshFrame: options.refreshFrame,
       },
+      onLengthCap: options.onLengthCap ?? (() => void stopCappedGameplayRecording(recording)),
+      capped: false,
+      releaseFrameCopy,
       clock: null,
       frameTask: null,
       drawing: false,
@@ -603,6 +657,7 @@ export async function startGameplayRecording(
     recording.clock = startFrameClock(recording.intervalMs, () => paintFrame(recording));
     return started;
   } catch (error) {
+    releaseFrameCopy();
     await domRecording?.abort();
     overlayCache.dispose();
     if (sink) await abortGameplayRecordingSink(sink);
@@ -620,14 +675,18 @@ export async function stopGameplayRecording(
   const recording = active;
   if (!recording) throw new Error('no gameplay recording is active');
   recording.stopping = true;
-  recording.clock?.stop();
-  recording.clock = null;
-  await recording.frameTask;
-  recording.previewEncoder.dispose();
-  await recording.previewTask;
 
+  // EVERY stop leaves through the `finally` below — the sink is finished or
+  // aborted, so the server's replay manifest never keeps reading
+  // `'recording'` — which is why even the clock and preview teardown sit
+  // inside the `try` rather than ahead of it.
   let finalized = false;
   try {
+    recording.clock?.stop();
+    recording.clock = null;
+    await recording.frameTask;
+    recording.previewEncoder.dispose();
+    await recording.previewTask;
     if (recording.recorder.state !== 'inactive') {
       const stopped = new Promise<void>((resolve) => {
         recording.recorder.addEventListener('stop', () => resolve(), { once: true });
@@ -683,9 +742,35 @@ export async function stopGameplayRecording(
     active = null;
     notifyPreviewListeners();
     releasePreviewFrames(recording);
+    recording.releaseFrameCopy();
     recording.overlayCache?.dispose();
     for (const track of recording.stream.getTracks()) track.stop();
     recording.audio?.dispose();
+  }
+}
+
+/**
+ * The recorder's own close at the length cap, for a recording nobody else
+ * owns the stop of (`editor.recording.start()`). Not an error — see
+ * {@link GAMEPLAY_RECORDING_MAX_MS} — so the finalized clip is a console note;
+ * the journal's `play-recording` row carries the same fact as its reason.
+ */
+async function stopCappedGameplayRecording(recording: ActiveRecording): Promise<void> {
+  if (active !== recording || recording.stopping) return;
+  const minutes = Math.round(GAMEPLAY_RECORDING_MAX_MS / 60_000);
+  try {
+    const capture = await stopGameplayRecording('length-cap');
+    editorConsole.log(
+      `Gameplay recording stopped at its ${minutes}-minute length cap. Recording finalized: ${capture.path}`,
+      'gameplay-recording',
+    );
+  } catch (error) {
+    editorConsole.warn(
+      `Gameplay recording reached its ${minutes}-minute length cap and could not be finalized: ${
+        error instanceof Error ? error.message : String(error)
+      }`,
+      'gameplay-recording',
+    );
   }
 }
 

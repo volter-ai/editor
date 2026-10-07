@@ -407,6 +407,23 @@ export function registerRelayRoutes(
       }
       await unlink(recording.path).catch(() => undefined);
       if (recording.replayPath !== null) {
+        // Flip the manifest BEFORE removing the replay: a removal that fails (a
+        // Windows file lock) must not leave a manifest still reading
+        // `'recording'` for a recording that has ended.
+        await writeFile(
+          join(recording.replayPath, 'manifest.json'),
+          `${JSON.stringify(
+            {
+              version: 1,
+              status: 'aborted',
+              format: recording.format,
+              abortedAt: new Date().toISOString(),
+            },
+            null,
+            2,
+          )}\n`,
+          'utf-8',
+        ).catch(() => undefined);
         await rm(recording.replayPath, { recursive: true, force: true }).catch(() => undefined);
       }
     }

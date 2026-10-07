@@ -81,24 +81,45 @@ export interface DocumentPlayTransport {
   /** Whether the running game's own bot drives, and whether it offers one; a change is
    *  announced through `subscribeClock`. Absent, the tool has no autoplay. */
   autoplay?(documentId: string): DocumentPlayAutoplay;
-  /** Switch the bot on (it must be offered, and the game playing) or off. */
-  setAutoplay?(documentId: string, on: boolean, by: 'panel' | 'cli'): void;
+  /** Switch the bot on (it must be offered, and the game playing) or off. On drives one of the
+   *  bot's behaviours (`behavior`, required when it offers several) for at most `limit`
+   *  simulation seconds (the tool's default when absent). */
+  setAutoplay?(documentId: string, on: boolean, by: 'panel' | 'cli', request?: DocumentPlayAutoplayRequest): void;
   /** While stopped, ask the next start to switch the bot on as soon as its script offers one
-   *  (`armed`); dropped if it offers none. Absent, autoplay can only be switched while running. */
-  armAutoplay?(documentId: string, armed: boolean): void;
+   *  (`armed`); dropped if it offers none, or not the behaviour asked for. Absent, autoplay can
+   *  only be switched while running. */
+  armAutoplay?(documentId: string, armed: boolean, request?: DocumentPlayAutoplayRequest): void;
+}
+export interface DocumentPlayAutoplayRequest {
+  readonly behavior?: string | null;
+  readonly limit?: number | null;
 }
 /**
  * AUTOPLAY, AS THE EDITOR OWNS IT: a game offers a bot, the editor decides whether it drives.
- * Off whenever a run begins; a person's input in the game turns it off (`takeover`).
+ * Off whenever a run begins; a person's input in the game turns it off (`takeover`), and so does
+ * the run's limit (`limit`).
  */
 export interface DocumentPlayAutoplay {
   readonly on: boolean;
   /** The running game registered a bot. */
   readonly available: boolean;
-  /** Who made the last change: `script` is the game no longer offering a bot. */
-  readonly by: 'panel' | 'cli' | 'takeover' | 'script' | null;
+  /** Who made the last change: `script` is the game no longer offering a bot, `limit` the run's
+   *  simulation seconds spent. */
+  readonly by: 'panel' | 'cli' | 'takeover' | 'script' | 'limit' | null;
   /** Armed while stopped (`armAutoplay`): the next start turns it on once a bot is offered. */
   readonly armed?: boolean;
+  /** The behaviours the bot offers, and the one driving (or armed). Absent from older tools. */
+  readonly behaviors?: readonly string[];
+  readonly behavior?: string | null;
+  /** This run's limit and the simulation time it began at, in simulation seconds. */
+  readonly limit?: number | null;
+  readonly since?: number | null;
+  /** A person's key or pointer reached the game in this run: with autoplay off, they drive. */
+  readonly person?: boolean;
+  /** What the bot last said it is doing. */
+  readonly state?: string | null;
+  /** Why the last arm was not taken when the game started; null otherwise. */
+  readonly refused?: string | null;
 }
 /** The newest entries of one document's play log, for a panel that draws it live. */
 export interface DocumentPlayLog {

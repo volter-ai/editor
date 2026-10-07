@@ -50,6 +50,19 @@
  * {@link clearIngestFrameSource}. SHARERS: none; at most one ingest session is
  * mounted at a time (`mount-ingest-root.ts` fails a second by name), which is
  * why the armed state below is module-scoped rather than per-mount.
+ *
+ * THE COPY CANVAS IS A RECORDING'S, NOT A FRAME'S. A recorder asks for a
+ * same-frame snapshot on every frame it paints (`host/gameplay-recording.ts`,
+ * 30 times a second), and a fresh full-size 2D canvas per answer is ~3.7 MB at
+ * 1280×720 — about 110 MB/s of canvas backing store that GC never caught up
+ * with (measured: a renderer at 3.2 GB under one long agent-driven run). So a
+ * recording HOLDS one copy canvas for its lifetime ({@link holdIngestFrameCopy})
+ * and every delivery while it is held overwrites that one. OWNER: the
+ * recording that took the hold; its stop is the one release. A one-off
+ * snapshot with no hold (a screenshot outside a recording) still gets its own
+ * canvas, which is the unchanged path. Sharing is safe because every consumer
+ * draws the copy in the same task the snapshot settles in, and the next
+ * delivery can only come from a later render pass.
  */
 
 /** What the module needs from the captured runtime to take a snapshot. */
@@ -72,6 +85,30 @@ interface ArmedSnapshot {
   delivering: boolean;
 }
 let armed: ArmedSnapshot | null = null;
+
+interface FrameCopyHold {
+  /** Created by the first delivery under this hold, then reused. */
+  canvas: HTMLCanvasElement | null;
+}
+/** The live recording's hold on its reusable copy target, or `null` while no
+ *  recording holds one. See {@link holdIngestFrameCopy}. */
+let frameCopyHold: FrameCopyHold | null = null;
+
+/**
+ * Hold ONE copy canvas for a recording's lifetime; every snapshot delivered
+ * while it is held is written into it rather than into a new canvas. Returns
+ * the release, which drops the canvas. Idempotent, and a stale release (a
+ * recording whose hold a newer one already replaced) leaves the newer hold
+ * alone.
+ */
+export function holdIngestFrameCopy(): () => void {
+  const hold: FrameCopyHold = { canvas: null };
+  frameCopyHold = hold;
+  return () => {
+    hold.canvas = null;
+    if (frameCopyHold === hold) frameCopyHold = null;
+  };
+}
 
 /** Install the live mount's runtime. Called by the one installer. */
 export function setIngestFrameSource(next: IngestFrameSource | null): void {
@@ -140,11 +177,19 @@ export function deliverArmedIngestFrame(): void {
     }
     const canvas = ingestFrameCanvas();
     if (!canvas || canvas.width === 0 || canvas.height === 0) return;
-    const copy = pending.image ?? canvas.ownerDocument.createElement('canvas');
-    copy.width = canvas.width;
-    copy.height = canvas.height;
+    const hold = frameCopyHold;
+    const copy =
+      pending.image ?? hold?.canvas ?? canvas.ownerDocument.createElement('canvas');
+    if (hold && !hold.canvas) hold.canvas = copy;
+    // Resizing reallocates (and clears) the backing store, so only a size
+    // change pays for it; a reused copy of the same size is cleared instead —
+    // a game canvas with alpha must not composite over the previous frame.
+    const resized = copy.width !== canvas.width || copy.height !== canvas.height;
+    if (copy.width !== canvas.width) copy.width = canvas.width;
+    if (copy.height !== canvas.height) copy.height = canvas.height;
     const ctx = copy.getContext('2d');
     if (!ctx) return;
+    if (!resized) ctx.clearRect(0, 0, copy.width, copy.height);
     ctx.drawImage(canvas, 0, 0);
     pending.image = copy;
     if (pending.delivering) return;

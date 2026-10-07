@@ -1,0 +1,532 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Chat Welcome Design</title>
+<style>
+*{box-sizing:border-box}
+:root{
+  --page:#111111;
+  --bar:#181818;            /* title bar, activity bar, status bar, tab strip */
+  --side:#181818;           /* Chat panel */
+  --editor:#1f1f1f;
+  --border:#2b2b2b;
+  --fg:#cccccc;
+  --muted:#9d9d9d;
+  --primary:#0078d4; --primary-hover:#026ec1; --primary-fg:#ffffff;
+  --secondary:#313131; --secondary-hover:#3c3c3c; --secondary-fg:#cccccc;
+  --btn-border:rgba(255,255,255,.07);
+  --focus:#0078d4;
+  --input:#313131; --input-border:#3c3c3c; --placeholder:#989898; --cursor:#aeafad;
+  --toolbar-hover:rgba(90,93,94,.31);
+  --qp:#222222; --qp-title:rgba(255,255,255,.105); --qp-border:#313131;
+  --hover:#2a2d2e; --selection:#04395e; --separator:#3c3c3c;
+  --link:#4daafc; --error:#f85149;
+  --ab-fg:#d7d7d7; --ab-inactive:#868686;
+  --font:"Segoe UI",system-ui,-apple-system,sans-serif;
+}
+html,body{margin:0;background:var(--page);color:var(--fg);font:13px/1.4 var(--font)}
+.page{padding:40px 40px 96px}
+
+/* page header */
+.page-head{display:flex;align-items:flex-end;gap:24px;flex-wrap:wrap;max-width:2240px;margin:0 auto 32px}
+.page-head h1{margin:0 0 4px;font-size:16px;font-weight:600;line-height:24px}
+.page-head p{margin:0;font-size:12px;line-height:16px;color:var(--muted)}
+.scale{margin-left:auto;display:flex;border:1px solid var(--border);border-radius:2px;overflow:hidden}
+.scale button{font:12px/16px var(--font);color:var(--muted);background:transparent;border:0;padding:4px 12px;cursor:pointer}
+.scale button+button{border-left:1px solid var(--border)}
+.scale button[aria-pressed="true"]{background:var(--border);color:var(--fg)}
+.scale button:focus-visible{outline:1px solid var(--focus);outline-offset:-1px}
+
+/* frame grid */
+.grid{display:grid;grid-template-columns:repeat(auto-fill,1100px);gap:48px 40px;justify-content:center}
+.frame{margin:0}
+.frame figcaption{margin-top:12px;font-size:12px;line-height:16px;color:var(--muted)}
+.cap-n{display:inline-block;min-width:16px;color:var(--fg)}
+
+/* ===== mini editor window ===== */
+.win{position:relative;width:1100px;height:700px;display:flex;flex-direction:column;overflow:hidden;background:var(--editor);border:1px solid var(--border);color:var(--fg);font:13px/1.4 var(--font);user-select:none;cursor:default}
+.win svg{display:block;flex:none}
+.win h2,.win h3,.win p{margin:0}
+
+.titlebar{position:relative;flex:none;height:30px;display:flex;align-items:center;background:var(--bar);border-bottom:1px solid var(--border);font-size:12px}
+.tb-app{width:36px;height:100%;display:grid;place-items:center;color:var(--muted)}
+.tb-title{position:absolute;inset:0;text-align:center;line-height:29px;pointer-events:none}
+.tb-wc{position:relative;margin-left:auto;display:flex;height:100%}
+.tb-wc>span{width:46px;height:100%;display:grid;place-items:center}
+.tb-wc>span:hover{background:rgba(255,255,255,.1)}
+.tb-wc>span.close:hover{background:#c42b1c;color:#fff}
+
+.main{flex:1;min-height:0;display:flex}
+
+.activitybar{flex:none;width:48px;display:flex;flex-direction:column;justify-content:space-between;background:var(--bar);border-right:1px solid var(--border)}
+.ab-item{position:relative;height:48px;display:grid;place-items:center;color:var(--ab-inactive)}
+.ab-item:hover,.ab-item.active{color:var(--ab-fg)}
+.ab-item.active::before{content:"";position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--focus)}
+
+/* Chat panel */
+.chat{position:relative;flex:none;width:360px;min-height:0;display:flex;flex-direction:column;background:var(--side);border-right:1px solid var(--border)}
+.view-head{flex:none;height:35px;display:flex;align-items:center;padding:0 8px 0 20px}
+.view-title{font-size:11px;font-weight:400;line-height:35px;text-transform:uppercase}
+.view-actions{margin-left:auto;display:flex;gap:4px}
+.act,.tbtn{width:22px;height:22px;display:grid;place-items:center;border-radius:5px;color:var(--fg)}
+.act:hover{background:var(--toolbar-hover)}
+
+.progress{position:absolute;top:35px;left:0;right:0;height:2px;overflow:hidden;pointer-events:none}
+.progress .bit{position:absolute;left:0;top:0;width:2%;height:2px;background:var(--focus);animation:progress 4s linear infinite}
+@keyframes progress{0%{transform:translateX(0) scaleX(1)}50%{transform:translateX(2500%) scaleX(3)}100%{transform:translateX(4900%) scaleX(1)}}
+
+.chat-body{flex:1;min-height:0;display:flex;flex-direction:column}
+
+/* welcome */
+.welcome{margin:auto 0;padding:0 32px;text-align:center}
+.w-title{font-size:16px;font-weight:600;line-height:24px}
+.welcome .w-sub{margin-top:4px;line-height:20px;color:var(--muted)}
+.w-group{margin-top:24px}
+.welcome .w-status{margin-top:8px;min-height:16px;display:flex;align-items:center;justify-content:center;gap:4px;font-size:12px;line-height:16px;color:var(--muted)}
+.w-error .err-ic{color:var(--error)}
+.welcome .w-foot{margin-top:32px;font-size:12px;line-height:16px;color:var(--muted)}
+.link{color:var(--link);text-decoration:none;cursor:pointer}
+.link:hover{text-decoration:underline}
+
+/* VS Code button (monaco-button) */
+.btn{display:flex;align-items:center;justify-content:center;gap:6px;width:100%;height:28px;margin:0;padding:4px 8px;border:1px solid var(--btn-border);border-radius:2px;font:13px/18px var(--font);white-space:nowrap;cursor:pointer;appearance:none}
+.btn.primary{background:var(--primary);color:var(--primary-fg)}
+.btn.primary:hover{background:var(--primary-hover)}
+.btn.secondary{background:var(--secondary);color:var(--secondary-fg)}
+.btn.secondary:hover{background:var(--secondary-hover)}
+.btn:focus-visible{outline:1px solid var(--focus);outline-offset:2px}
+.btn:disabled{opacity:.4;cursor:default}
+.btn.primary:disabled:hover{background:var(--primary)}
+.btn.secondary:disabled:hover{background:var(--secondary)}
+.btn .badge{opacity:.8}
+
+.spin{animation:spin 1.5s steps(30) infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* signed-in note */
+.signed-note{display:flex;align-items:center;gap:6px;padding:8px 20px;font-size:12px;line-height:16px;color:var(--muted)}
+
+/* composer (chat input) */
+.composer{flex:none;margin:8px 16px 16px;background:var(--input);border:1px solid var(--input-border);border-radius:4px}
+.composer.focused{border-color:var(--focus)}
+.composer.disabled{cursor:not-allowed}
+.composer.disabled .c-bar{opacity:.4}
+.c-text{position:relative;height:34px;padding:8px 8px 0;line-height:18px;white-space:nowrap;overflow:hidden}
+.ph{color:var(--placeholder)}
+.caret{position:absolute;left:8px;top:8px;width:2px;height:18px;background:var(--cursor);animation:blink 1.06s steps(1,end) infinite}
+@keyframes blink{50%{opacity:0}}
+.c-bar{height:30px;display:flex;align-items:center;gap:4px;padding:0 4px 4px}
+.c-spacer{flex:1}
+.composer:not(.disabled) .tbtn:hover{background:var(--toolbar-hover)}
+.chip{display:inline-flex;align-items:center;gap:4px;height:22px;padding:0 2px 0 4px;border-radius:5px;font-size:12px;line-height:16px;white-space:nowrap}
+.chip:hover{background:var(--toolbar-hover)}
+.chip .badge,.chip .chev{color:var(--muted)}
+
+/* editor side: dim placeholder (unfocused group) */
+.editor{flex:1;min-width:0;display:flex;flex-direction:column;background:var(--editor)}
+.tabs{flex:none;height:35px;display:flex;background:var(--bar);border-bottom:1px solid var(--border)}
+.tab{height:35px;margin-bottom:-1px;display:flex;align-items:center;gap:6px;padding:0 8px 0 12px;background:var(--editor);border-right:1px solid var(--border);color:rgba(255,255,255,.5)}
+.tab .i{color:rgba(255,255,255,.35)}
+.viewport{position:relative;flex:1;background:#1b1b1b url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='32' height='32'%3E%3Cpath d='M0 .5H32M.5 0V32' fill='none' stroke='%23232323'/%3E%3C/svg%3E")}
+.vp-label{position:absolute;left:12px;top:8px;font-size:12px;line-height:16px;color:#5f5f5f}
+
+.statusbar{flex:none;height:22px;display:flex;align-items:center;padding:0 4px;background:var(--bar);border-top:1px solid var(--border);font-size:12px;line-height:16px}
+.sb-item{height:100%;display:inline-flex;align-items:center;gap:4px;padding:0 6px}
+.sb-spacer{flex:1}
+
+/* quick pick */
+.qp{position:absolute;z-index:10;top:38px;left:50%;width:600px;margin-left:-300px;overflow:hidden;background:var(--qp);color:var(--fg);border:1px solid var(--qp-border);border-radius:6px;box-shadow:0 0 8px 2px rgba(0,0,0,.36)}
+.qp-title{height:26px;line-height:26px;text-align:center;background:var(--qp-title)}
+.qp-head{padding:6px}
+.qp-input{position:relative;height:26px;display:flex;align-items:center;padding:0 6px;background:var(--input);border:1px solid var(--focus);border-radius:2px;line-height:18px}
+.qp-input .caret{left:6px;top:3px}
+.qp-list{padding:0 6px 6px}
+.qp-row{height:22px;display:flex;align-items:center;gap:6px;padding:0 6px;border-radius:3px;white-space:nowrap}
+.qp-row:hover{background:var(--hover)}
+.qp-row.selected{background:var(--selection);color:#ffffff}
+.qp-row .badge,.qp-row .i{color:var(--muted)}
+.qp-row.selected .badge{color:#ffffff;opacity:.8}
+.qp-desc{font-size:.9em;opacity:.7}
+.qp-sep{height:1px;margin:4px 0;background:var(--separator)}
+
+/* spec sections */
+.spec{max-width:1100px;margin:72px auto 0}
+.spec h2{margin:0 0 12px;font-size:13px;font-weight:600;line-height:20px}
+.spec h2+p{margin:-8px 0 12px;font-size:12px;color:var(--muted)}
+.spec section+section{margin-top:48px}
+.spec table{width:100%;border-collapse:collapse;font-size:12px;line-height:16px}
+.spec th,.spec td{padding:6px 8px;text-align:left;vertical-align:top;border-bottom:1px solid var(--border)}
+.spec th{font-weight:400;color:var(--muted);border-bottom-color:#3c3c3c}
+.spec td{color:var(--muted)}
+.spec td.st{color:var(--fg);white-space:nowrap;width:200px}
+.s{display:inline-block;margin:1px 0;padding:0 4px;color:#e0e0e0;background:var(--editor);border:1px solid var(--border);border-radius:2px;white-space:nowrap}
+.var{margin-left:4px;color:var(--muted)}
+.removed{margin:16px 0 0;font-size:12px;line-height:22px;color:var(--muted)}
+.removed b{font-weight:600;color:var(--fg)}
+.behavior{margin:0;padding-left:20px;font-size:13px;line-height:20px;color:var(--muted)}
+.behavior li{margin-bottom:8px}
+.behavior b{font-weight:600;color:var(--fg)}
+
+@media (prefers-reduced-motion:reduce){.spin,.progress .bit,.caret{animation:none}}
+</style>
+</head>
+<body>
+<div class="page">
+<header class="page-head">
+  <div>
+    <h1>Chat welcome and agent picker</h1>
+    <p>Cyclotron · design for the native Chat view in Code-OSS · Dark Modern · each frame is 1100×700 at 1:1</p>
+  </div>
+  <div class="scale" role="group" aria-label="Frame scale">
+    <button type="button" data-z="1" aria-pressed="true">100%</button><button type="button" data-z="0.75" aria-pressed="false">75%</button><button type="button" data-z="0.5" aria-pressed="false">50%</button>
+  </div>
+</header>
+
+<main class="grid" id="grid">
+<figure class="frame" id="frame-1">
+  <div class="win">
+    <div class="titlebar">
+      <span class="tb-app"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/></svg></span>
+      <span class="tb-title">signin-race — Cyclotron</span>
+      <span class="tb-wc"><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 5.5h10"/></svg></span><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="9" height="9"/></svg></span><span class="close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M.5.5l9 9M9.5.5l-9 9"/></svg></span></span>
+    </div>
+    <div class="main">
+      <nav class="activitybar" aria-hidden="true">
+        <div><span class="ab-item" data-view="menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5h15M4.5 12h15M4.5 17.5h15"/></svg></span><span class="ab-item" data-view="explorer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h-6v14h11v-9z"/><path d="M13.5 3.5v5h5"/><path d="M4.5 7.5v13h10"/></svg></span><span class="ab-item" data-view="search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="10" r="5.5"/><path d="M10.1 13.9L4.5 19.5"/></svg></span><span class="ab-item" data-view="scm"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="5.5" r="2"/><circle cx="7" cy="18.5" r="2"/><circle cx="17" cy="7.5" r="2"/><path d="M7 7.5v9M17 9.5c0 4.5-10 3-10 7"/></svg></span><span class="ab-item" data-view="debug"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 5v14l11-7z"/></svg></span><span class="ab-item" data-view="marketplace"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5h5v5h-5zM4.5 14.5h5v5h-5zM9.5 14.5h5v5h-5zM13.5 5.5h5v5h-5z"/></svg></span><span class="ab-item active" data-view="chat"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4.5h12v9h-7l-3.5 3v-3h-1.5z"/><path d="M15.5 8.5h5v9h-2v3l-3.5-3h-4.5v-4"/></svg></span></div>
+        <div><span class="ab-item" data-view="accounts"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg></span><span class="ab-item" data-view="manage"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.30 10.39L20.38 10.56L20.38 13.44L18.30 13.61L17.59 15.32L18.94 16.91L16.91 18.94L15.32 17.59L13.61 18.30L13.44 20.38L10.56 20.38L10.39 18.30L8.68 17.59L7.09 18.94L5.06 16.91L6.41 15.32L5.70 13.61L3.62 13.44L3.62 10.56L5.70 10.39L6.41 8.68L5.06 7.09L7.09 5.06L8.68 6.41L10.39 5.70L10.56 3.62L13.44 3.62L13.61 5.70L15.32 6.41L16.91 5.06L18.94 7.09L17.59 8.68Z"/><circle cx="12" cy="12" r="2.75"/></svg></span></div>
+      </nav>
+      <section class="chat" aria-label="Chat">
+        <div class="view-head"><h2 class="view-title">Chat</h2><div class="view-actions"><span class="act" role="button" title="New chat" aria-label="New chat"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3v11M3 8.5h11"/></svg></span><span class="act" role="button" title="Chat history" aria-label="Chat history"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M8.5 5.5v3h2.5"/></svg></span><span class="act" role="button" title="More actions" aria-label="More actions"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8.5" r="1"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="13.5" cy="8.5" r="1"/></g></svg></span></div></div>
+        
+        <div class="chat-body"><div class="welcome">
+          <h3 class="w-title">Chat</h3>
+          <p class="w-sub">Use the AI plan you already pay for.</p>
+          <div class="w-group"><button class="btn primary" type="button"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M10.26 5.74A3.2 3.2 0 1 0 10.26 10.26"/></svg><span>Sign in with ChatGPT</span></button><p class="w-status">Runs Codex · ChatGPT Plus, Pro or Business</p></div>
+          <div class="w-group"><button class="btn secondary" type="button"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M5.25 11.5L8 4.5l2.75 7M6.13 9.25h3.74"/></svg><span>Sign in with Claude</span></button><p class="w-status">Runs Claude Code · Claude Pro or Max</p></div>
+          <p class="w-foot">Runs on this computer with your own account.</p>
+        </div></div>
+        <div class="composer disabled" aria-disabled="true">
+          <div class="c-text"><span class="ph">Sign in to start a chat</span></div>
+          <div class="c-bar">
+            <span class="tbtn" title="Add context"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 6v5a3 3 0 0 1-6 0V4.5a2 2 0 0 1 4 0V11a1 1 0 0 1-2 0V6"/></svg></span>
+            
+            <span class="c-spacer"></span>
+            <span class="tbtn" title="Send"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5l11.5 6-11.5 6 2-6z"/><path d="M4.5 8.5H9"/></svg></span>
+          </div>
+        </div>
+      </section>
+      <div class="editor" aria-hidden="true">
+        <div class="tabs"><div class="tab"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l5 2.75v6.5l-5 2.75-5-2.75v-6.5z"/><path d="M3.5 5.25l5 2.75 5-2.75M8.5 8v6.5"/></svg><span>main.scene</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 5.5l6 6M11.5 5.5l-6 6"/></svg></div></div>
+        <div class="viewport"><span class="vp-label">Viewport</span></div>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="4" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11.5" cy="5.5" r="1.5"/><path d="M5 5.5v6M11.5 7c0 3-6.5 2.5-6.5 4.5"/></svg><span>main</span></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M6.75 6.75l3.5 3.5M10.25 6.75l-3.5 3.5"/></svg><span>0</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l6 11h-12z"/><path d="M8.5 6.5v3M8.5 11.5v.01"/></svg><span>0</span></span>
+      <span class="sb-spacer"></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 11.5v-4a4 4 0 0 1 8 0v4l1 1.5h-10z"/><path d="M7.25 14.5h2.5"/></svg></span>
+    </div>
+  </div>
+  <figcaption><span class="cap-n">1</span>No agent ready<span class="cap-sub"> — the welcome</span></figcaption>
+</figure>
+<figure class="frame" id="frame-2">
+  <div class="win">
+    <div class="titlebar">
+      <span class="tb-app"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/></svg></span>
+      <span class="tb-title">signin-race — Cyclotron</span>
+      <span class="tb-wc"><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 5.5h10"/></svg></span><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="9" height="9"/></svg></span><span class="close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M.5.5l9 9M9.5.5l-9 9"/></svg></span></span>
+    </div>
+    <div class="main">
+      <nav class="activitybar" aria-hidden="true">
+        <div><span class="ab-item" data-view="menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5h15M4.5 12h15M4.5 17.5h15"/></svg></span><span class="ab-item" data-view="explorer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h-6v14h11v-9z"/><path d="M13.5 3.5v5h5"/><path d="M4.5 7.5v13h10"/></svg></span><span class="ab-item" data-view="search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="10" r="5.5"/><path d="M10.1 13.9L4.5 19.5"/></svg></span><span class="ab-item" data-view="scm"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="5.5" r="2"/><circle cx="7" cy="18.5" r="2"/><circle cx="17" cy="7.5" r="2"/><path d="M7 7.5v9M17 9.5c0 4.5-10 3-10 7"/></svg></span><span class="ab-item" data-view="debug"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 5v14l11-7z"/></svg></span><span class="ab-item" data-view="marketplace"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5h5v5h-5zM4.5 14.5h5v5h-5zM9.5 14.5h5v5h-5zM13.5 5.5h5v5h-5z"/></svg></span><span class="ab-item active" data-view="chat"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4.5h12v9h-7l-3.5 3v-3h-1.5z"/><path d="M15.5 8.5h5v9h-2v3l-3.5-3h-4.5v-4"/></svg></span></div>
+        <div><span class="ab-item" data-view="accounts"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg></span><span class="ab-item" data-view="manage"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.30 10.39L20.38 10.56L20.38 13.44L18.30 13.61L17.59 15.32L18.94 16.91L16.91 18.94L15.32 17.59L13.61 18.30L13.44 20.38L10.56 20.38L10.39 18.30L8.68 17.59L7.09 18.94L5.06 16.91L6.41 15.32L5.70 13.61L3.62 13.44L3.62 10.56L5.70 10.39L6.41 8.68L5.06 7.09L7.09 5.06L8.68 6.41L10.39 5.70L10.56 3.62L13.44 3.62L13.61 5.70L15.32 6.41L16.91 5.06L18.94 7.09L17.59 8.68Z"/><circle cx="12" cy="12" r="2.75"/></svg></span></div>
+      </nav>
+      <section class="chat" aria-label="Chat">
+        <div class="view-head"><h2 class="view-title">Chat</h2><div class="view-actions"><span class="act" role="button" title="New chat" aria-label="New chat"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3v11M3 8.5h11"/></svg></span><span class="act" role="button" title="Chat history" aria-label="Chat history"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M8.5 5.5v3h2.5"/></svg></span><span class="act" role="button" title="More actions" aria-label="More actions"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8.5" r="1"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="13.5" cy="8.5" r="1"/></g></svg></span></div></div>
+        <div class="progress" aria-hidden="true"><div class="bit"></div></div>
+        <div class="chat-body"><div class="welcome">
+          <h3 class="w-title">Chat</h3>
+          <p class="w-sub">Use the AI plan you already pay for.</p>
+          <div class="w-group"><button class="btn primary" type="button" disabled><svg class="spin" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="26 9" stroke-linecap="round"/></svg><span>Installing Codex…</span></button><p class="w-status">Runs Codex · ChatGPT Plus, Pro or Business</p></div>
+          <div class="w-group"><button class="btn secondary" type="button"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M5.25 11.5L8 4.5l2.75 7M6.13 9.25h3.74"/></svg><span>Sign in with Claude</span></button><p class="w-status">Runs Claude Code · Claude Pro or Max</p></div>
+          <p class="w-foot">Runs on this computer with your own account.</p>
+        </div></div>
+        <div class="composer disabled" aria-disabled="true">
+          <div class="c-text"><span class="ph">Sign in to start a chat</span></div>
+          <div class="c-bar">
+            <span class="tbtn" title="Add context"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 6v5a3 3 0 0 1-6 0V4.5a2 2 0 0 1 4 0V11a1 1 0 0 1-2 0V6"/></svg></span>
+            
+            <span class="c-spacer"></span>
+            <span class="tbtn" title="Send"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5l11.5 6-11.5 6 2-6z"/><path d="M4.5 8.5H9"/></svg></span>
+          </div>
+        </div>
+      </section>
+      <div class="editor" aria-hidden="true">
+        <div class="tabs"><div class="tab"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l5 2.75v6.5l-5 2.75-5-2.75v-6.5z"/><path d="M3.5 5.25l5 2.75 5-2.75M8.5 8v6.5"/></svg><span>main.scene</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 5.5l6 6M11.5 5.5l-6 6"/></svg></div></div>
+        <div class="viewport"><span class="vp-label">Viewport</span></div>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="4" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11.5" cy="5.5" r="1.5"/><path d="M5 5.5v6M11.5 7c0 3-6.5 2.5-6.5 4.5"/></svg><span>main</span></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M6.75 6.75l3.5 3.5M10.25 6.75l-3.5 3.5"/></svg><span>0</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l6 11h-12z"/><path d="M8.5 6.5v3M8.5 11.5v.01"/></svg><span>0</span></span>
+      <span class="sb-spacer"></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 11.5v-4a4 4 0 0 1 8 0v4l1 1.5h-10z"/><path d="M7.25 14.5h2.5"/></svg></span>
+    </div>
+  </div>
+  <figcaption><span class="cap-n">2</span>Installing<span class="cap-sub"> — Codex is missing; the ChatGPT button installs it, then signs in</span></figcaption>
+</figure>
+<figure class="frame" id="frame-3">
+  <div class="win">
+    <div class="titlebar">
+      <span class="tb-app"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/></svg></span>
+      <span class="tb-title">signin-race — Cyclotron</span>
+      <span class="tb-wc"><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 5.5h10"/></svg></span><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="9" height="9"/></svg></span><span class="close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M.5.5l9 9M9.5.5l-9 9"/></svg></span></span>
+    </div>
+    <div class="main">
+      <nav class="activitybar" aria-hidden="true">
+        <div><span class="ab-item" data-view="menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5h15M4.5 12h15M4.5 17.5h15"/></svg></span><span class="ab-item" data-view="explorer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h-6v14h11v-9z"/><path d="M13.5 3.5v5h5"/><path d="M4.5 7.5v13h10"/></svg></span><span class="ab-item" data-view="search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="10" r="5.5"/><path d="M10.1 13.9L4.5 19.5"/></svg></span><span class="ab-item" data-view="scm"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="5.5" r="2"/><circle cx="7" cy="18.5" r="2"/><circle cx="17" cy="7.5" r="2"/><path d="M7 7.5v9M17 9.5c0 4.5-10 3-10 7"/></svg></span><span class="ab-item" data-view="debug"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 5v14l11-7z"/></svg></span><span class="ab-item" data-view="marketplace"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5h5v5h-5zM4.5 14.5h5v5h-5zM9.5 14.5h5v5h-5zM13.5 5.5h5v5h-5z"/></svg></span><span class="ab-item active" data-view="chat"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4.5h12v9h-7l-3.5 3v-3h-1.5z"/><path d="M15.5 8.5h5v9h-2v3l-3.5-3h-4.5v-4"/></svg></span></div>
+        <div><span class="ab-item" data-view="accounts"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg></span><span class="ab-item" data-view="manage"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.30 10.39L20.38 10.56L20.38 13.44L18.30 13.61L17.59 15.32L18.94 16.91L16.91 18.94L15.32 17.59L13.61 18.30L13.44 20.38L10.56 20.38L10.39 18.30L8.68 17.59L7.09 18.94L5.06 16.91L6.41 15.32L5.70 13.61L3.62 13.44L3.62 10.56L5.70 10.39L6.41 8.68L5.06 7.09L7.09 5.06L8.68 6.41L10.39 5.70L10.56 3.62L13.44 3.62L13.61 5.70L15.32 6.41L16.91 5.06L18.94 7.09L17.59 8.68Z"/><circle cx="12" cy="12" r="2.75"/></svg></span></div>
+      </nav>
+      <section class="chat" aria-label="Chat">
+        <div class="view-head"><h2 class="view-title">Chat</h2><div class="view-actions"><span class="act" role="button" title="New chat" aria-label="New chat"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3v11M3 8.5h11"/></svg></span><span class="act" role="button" title="Chat history" aria-label="Chat history"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M8.5 5.5v3h2.5"/></svg></span><span class="act" role="button" title="More actions" aria-label="More actions"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8.5" r="1"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="13.5" cy="8.5" r="1"/></g></svg></span></div></div>
+        <div class="progress" aria-hidden="true"><div class="bit"></div></div>
+        <div class="chat-body"><div class="welcome">
+          <h3 class="w-title">Chat</h3>
+          <p class="w-sub">Use the AI plan you already pay for.</p>
+          <div class="w-group"><button class="btn primary" type="button" disabled><svg class="spin" width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><circle cx="8" cy="8" r="5.5" fill="none" stroke="currentColor" stroke-width="1.5" stroke-dasharray="26 9" stroke-linecap="round"/></svg><span>Finish signing in in your browser…</span></button><p class="w-status"><a class="link" href="#" onclick="return false">Cancel</a></p></div>
+          <div class="w-group"><button class="btn secondary" type="button"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M5.25 11.5L8 4.5l2.75 7M6.13 9.25h3.74"/></svg><span>Sign in with Claude</span></button><p class="w-status">Runs Claude Code · Claude Pro or Max</p></div>
+          <p class="w-foot">Runs on this computer with your own account.</p>
+        </div></div>
+        <div class="composer disabled" aria-disabled="true">
+          <div class="c-text"><span class="ph">Sign in to start a chat</span></div>
+          <div class="c-bar">
+            <span class="tbtn" title="Add context"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 6v5a3 3 0 0 1-6 0V4.5a2 2 0 0 1 4 0V11a1 1 0 0 1-2 0V6"/></svg></span>
+            
+            <span class="c-spacer"></span>
+            <span class="tbtn" title="Send"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5l11.5 6-11.5 6 2-6z"/><path d="M4.5 8.5H9"/></svg></span>
+          </div>
+        </div>
+      </section>
+      <div class="editor" aria-hidden="true">
+        <div class="tabs"><div class="tab"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l5 2.75v6.5l-5 2.75-5-2.75v-6.5z"/><path d="M3.5 5.25l5 2.75 5-2.75M8.5 8v6.5"/></svg><span>main.scene</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 5.5l6 6M11.5 5.5l-6 6"/></svg></div></div>
+        <div class="viewport"><span class="vp-label">Viewport</span></div>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="4" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11.5" cy="5.5" r="1.5"/><path d="M5 5.5v6M11.5 7c0 3-6.5 2.5-6.5 4.5"/></svg><span>main</span></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M6.75 6.75l3.5 3.5M10.25 6.75l-3.5 3.5"/></svg><span>0</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l6 11h-12z"/><path d="M8.5 6.5v3M8.5 11.5v.01"/></svg><span>0</span></span>
+      <span class="sb-spacer"></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 11.5v-4a4 4 0 0 1 8 0v4l1 1.5h-10z"/><path d="M7.25 14.5h2.5"/></svg></span>
+    </div>
+  </div>
+  <figcaption><span class="cap-n">3</span>Waiting for the browser<span class="cap-sub"> — ChatGPT sign-in is open in the default browser</span></figcaption>
+</figure>
+<figure class="frame" id="frame-4">
+  <div class="win">
+    <div class="titlebar">
+      <span class="tb-app"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/></svg></span>
+      <span class="tb-title">signin-race — Cyclotron</span>
+      <span class="tb-wc"><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 5.5h10"/></svg></span><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="9" height="9"/></svg></span><span class="close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M.5.5l9 9M9.5.5l-9 9"/></svg></span></span>
+    </div>
+    <div class="main">
+      <nav class="activitybar" aria-hidden="true">
+        <div><span class="ab-item" data-view="menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5h15M4.5 12h15M4.5 17.5h15"/></svg></span><span class="ab-item" data-view="explorer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h-6v14h11v-9z"/><path d="M13.5 3.5v5h5"/><path d="M4.5 7.5v13h10"/></svg></span><span class="ab-item" data-view="search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="10" r="5.5"/><path d="M10.1 13.9L4.5 19.5"/></svg></span><span class="ab-item" data-view="scm"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="5.5" r="2"/><circle cx="7" cy="18.5" r="2"/><circle cx="17" cy="7.5" r="2"/><path d="M7 7.5v9M17 9.5c0 4.5-10 3-10 7"/></svg></span><span class="ab-item" data-view="debug"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 5v14l11-7z"/></svg></span><span class="ab-item" data-view="marketplace"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5h5v5h-5zM4.5 14.5h5v5h-5zM9.5 14.5h5v5h-5zM13.5 5.5h5v5h-5z"/></svg></span><span class="ab-item active" data-view="chat"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4.5h12v9h-7l-3.5 3v-3h-1.5z"/><path d="M15.5 8.5h5v9h-2v3l-3.5-3h-4.5v-4"/></svg></span></div>
+        <div><span class="ab-item" data-view="accounts"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg></span><span class="ab-item" data-view="manage"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.30 10.39L20.38 10.56L20.38 13.44L18.30 13.61L17.59 15.32L18.94 16.91L16.91 18.94L15.32 17.59L13.61 18.30L13.44 20.38L10.56 20.38L10.39 18.30L8.68 17.59L7.09 18.94L5.06 16.91L6.41 15.32L5.70 13.61L3.62 13.44L3.62 10.56L5.70 10.39L6.41 8.68L5.06 7.09L7.09 5.06L8.68 6.41L10.39 5.70L10.56 3.62L13.44 3.62L13.61 5.70L15.32 6.41L16.91 5.06L18.94 7.09L17.59 8.68Z"/><circle cx="12" cy="12" r="2.75"/></svg></span></div>
+      </nav>
+      <section class="chat" aria-label="Chat">
+        <div class="view-head"><h2 class="view-title">Chat</h2><div class="view-actions"><span class="act" role="button" title="New chat" aria-label="New chat"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3v11M3 8.5h11"/></svg></span><span class="act" role="button" title="Chat history" aria-label="Chat history"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M8.5 5.5v3h2.5"/></svg></span><span class="act" role="button" title="More actions" aria-label="More actions"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8.5" r="1"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="13.5" cy="8.5" r="1"/></g></svg></span></div></div>
+        
+        <div class="chat-body"><div class="welcome">
+          <h3 class="w-title">Chat</h3>
+          <p class="w-sub">Use the AI plan you already pay for.</p>
+          <div class="w-group"><button class="btn primary" type="button"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M10.26 5.74A3.2 3.2 0 1 0 10.26 10.26"/></svg><span>Try again</span></button><p class="w-status w-error"><span class="err-ic"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M6.75 6.75l3.5 3.5M10.25 6.75l-3.5 3.5"/></svg></span><span>Sign-in didn't finish.</span></p></div>
+          <div class="w-group"><button class="btn secondary" type="button"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M5.25 11.5L8 4.5l2.75 7M6.13 9.25h3.74"/></svg><span>Sign in with Claude</span></button><p class="w-status">Runs Claude Code · Claude Pro or Max</p></div>
+          <p class="w-foot">Runs on this computer with your own account.</p>
+        </div></div>
+        <div class="composer disabled" aria-disabled="true">
+          <div class="c-text"><span class="ph">Sign in to start a chat</span></div>
+          <div class="c-bar">
+            <span class="tbtn" title="Add context"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 6v5a3 3 0 0 1-6 0V4.5a2 2 0 0 1 4 0V11a1 1 0 0 1-2 0V6"/></svg></span>
+            
+            <span class="c-spacer"></span>
+            <span class="tbtn" title="Send"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5l11.5 6-11.5 6 2-6z"/><path d="M4.5 8.5H9"/></svg></span>
+          </div>
+        </div>
+      </section>
+      <div class="editor" aria-hidden="true">
+        <div class="tabs"><div class="tab"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l5 2.75v6.5l-5 2.75-5-2.75v-6.5z"/><path d="M3.5 5.25l5 2.75 5-2.75M8.5 8v6.5"/></svg><span>main.scene</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 5.5l6 6M11.5 5.5l-6 6"/></svg></div></div>
+        <div class="viewport"><span class="vp-label">Viewport</span></div>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="4" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11.5" cy="5.5" r="1.5"/><path d="M5 5.5v6M11.5 7c0 3-6.5 2.5-6.5 4.5"/></svg><span>main</span></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M6.75 6.75l3.5 3.5M10.25 6.75l-3.5 3.5"/></svg><span>0</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l6 11h-12z"/><path d="M8.5 6.5v3M8.5 11.5v.01"/></svg><span>0</span></span>
+      <span class="sb-spacer"></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 11.5v-4a4 4 0 0 1 8 0v4l1 1.5h-10z"/><path d="M7.25 14.5h2.5"/></svg></span>
+    </div>
+  </div>
+  <figcaption><span class="cap-n">4</span>Sign-in didn't finish<span class="cap-sub"> — sign-in ended without an account</span></figcaption>
+</figure>
+<figure class="frame" id="frame-5">
+  <div class="win">
+    <div class="titlebar">
+      <span class="tb-app"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/></svg></span>
+      <span class="tb-title">signin-race — Cyclotron</span>
+      <span class="tb-wc"><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 5.5h10"/></svg></span><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="9" height="9"/></svg></span><span class="close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M.5.5l9 9M9.5.5l-9 9"/></svg></span></span>
+    </div>
+    <div class="main">
+      <nav class="activitybar" aria-hidden="true">
+        <div><span class="ab-item" data-view="menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5h15M4.5 12h15M4.5 17.5h15"/></svg></span><span class="ab-item" data-view="explorer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h-6v14h11v-9z"/><path d="M13.5 3.5v5h5"/><path d="M4.5 7.5v13h10"/></svg></span><span class="ab-item" data-view="search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="10" r="5.5"/><path d="M10.1 13.9L4.5 19.5"/></svg></span><span class="ab-item" data-view="scm"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="5.5" r="2"/><circle cx="7" cy="18.5" r="2"/><circle cx="17" cy="7.5" r="2"/><path d="M7 7.5v9M17 9.5c0 4.5-10 3-10 7"/></svg></span><span class="ab-item" data-view="debug"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 5v14l11-7z"/></svg></span><span class="ab-item" data-view="marketplace"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5h5v5h-5zM4.5 14.5h5v5h-5zM9.5 14.5h5v5h-5zM13.5 5.5h5v5h-5z"/></svg></span><span class="ab-item active" data-view="chat"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4.5h12v9h-7l-3.5 3v-3h-1.5z"/><path d="M15.5 8.5h5v9h-2v3l-3.5-3h-4.5v-4"/></svg></span></div>
+        <div><span class="ab-item" data-view="accounts"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg></span><span class="ab-item" data-view="manage"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.30 10.39L20.38 10.56L20.38 13.44L18.30 13.61L17.59 15.32L18.94 16.91L16.91 18.94L15.32 17.59L13.61 18.30L13.44 20.38L10.56 20.38L10.39 18.30L8.68 17.59L7.09 18.94L5.06 16.91L6.41 15.32L5.70 13.61L3.62 13.44L3.62 10.56L5.70 10.39L6.41 8.68L5.06 7.09L7.09 5.06L8.68 6.41L10.39 5.70L10.56 3.62L13.44 3.62L13.61 5.70L15.32 6.41L16.91 5.06L18.94 7.09L17.59 8.68Z"/><circle cx="12" cy="12" r="2.75"/></svg></span></div>
+      </nav>
+      <section class="chat" aria-label="Chat">
+        <div class="view-head"><h2 class="view-title">Chat</h2><div class="view-actions"><span class="act" role="button" title="New chat" aria-label="New chat"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3v11M3 8.5h11"/></svg></span><span class="act" role="button" title="Chat history" aria-label="Chat history"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M8.5 5.5v3h2.5"/></svg></span><span class="act" role="button" title="More actions" aria-label="More actions"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8.5" r="1"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="13.5" cy="8.5" r="1"/></g></svg></span></div></div>
+        
+        <div class="chat-body"><div class="signed-note"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M6.25 8.75l1.5 1.5L11 7"/></svg><span>Signed in with ChatGPT</span></div></div>
+        <div class="composer focused">
+          <div class="c-text"><span class="caret"></span><span class="ph">Ask a question or describe a task</span></div>
+          <div class="c-bar">
+            <span class="tbtn" title="Add context"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 6v5a3 3 0 0 1-6 0V4.5a2 2 0 0 1 4 0V11a1 1 0 0 1-2 0V6"/></svg></span>
+            <span class="chip" role="button" title="Choose agent and model"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M10.26 5.74A3.2 3.2 0 1 0 10.26 10.26"/></svg><span>Codex · default model</span><svg class="i chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5l4 4 4-4"/></svg></span>
+            <span class="c-spacer"></span>
+            <span class="tbtn" title="Send"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5l11.5 6-11.5 6 2-6z"/><path d="M4.5 8.5H9"/></svg></span>
+          </div>
+        </div>
+      </section>
+      <div class="editor" aria-hidden="true">
+        <div class="tabs"><div class="tab"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l5 2.75v6.5l-5 2.75-5-2.75v-6.5z"/><path d="M3.5 5.25l5 2.75 5-2.75M8.5 8v6.5"/></svg><span>main.scene</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 5.5l6 6M11.5 5.5l-6 6"/></svg></div></div>
+        <div class="viewport"><span class="vp-label">Viewport</span></div>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="4" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11.5" cy="5.5" r="1.5"/><path d="M5 5.5v6M11.5 7c0 3-6.5 2.5-6.5 4.5"/></svg><span>main</span></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M6.75 6.75l3.5 3.5M10.25 6.75l-3.5 3.5"/></svg><span>0</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l6 11h-12z"/><path d="M8.5 6.5v3M8.5 11.5v.01"/></svg><span>0</span></span>
+      <span class="sb-spacer"></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 11.5v-4a4 4 0 0 1 8 0v4l1 1.5h-10z"/><path d="M7.25 14.5h2.5"/></svg></span>
+    </div>
+  </div>
+  <figcaption><span class="cap-n">5</span>Signed in<span class="cap-sub"> — the chat opens by itself; the welcome is gone</span></figcaption>
+</figure>
+<figure class="frame" id="frame-6">
+  <div class="win">
+    <div class="titlebar">
+      <span class="tb-app"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8" cy="8" r="6"/><circle cx="8" cy="8" r="2.5"/></svg></span>
+      <span class="tb-title">signin-race — Cyclotron</span>
+      <span class="tb-wc"><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M0 5.5h10"/></svg></span><span><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><rect x=".5" y=".5" width="9" height="9"/></svg></span><span class="close"><svg width="10" height="10" viewBox="0 0 10 10" fill="none" stroke="currentColor" stroke-width="1" aria-hidden="true"><path d="M.5.5l9 9M9.5.5l-9 9"/></svg></span></span>
+    </div>
+    <div class="main">
+      <nav class="activitybar" aria-hidden="true">
+        <div><span class="ab-item" data-view="menu"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5h15M4.5 12h15M4.5 17.5h15"/></svg></span><span class="ab-item" data-view="explorer"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.5 3.5h-6v14h11v-9z"/><path d="M13.5 3.5v5h5"/><path d="M4.5 7.5v13h10"/></svg></span><span class="ab-item" data-view="search"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="14" cy="10" r="5.5"/><path d="M10.1 13.9L4.5 19.5"/></svg></span><span class="ab-item" data-view="scm"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="7" cy="5.5" r="2"/><circle cx="7" cy="18.5" r="2"/><circle cx="17" cy="7.5" r="2"/><path d="M7 7.5v9M17 9.5c0 4.5-10 3-10 7"/></svg></span><span class="ab-item" data-view="debug"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M7.5 5v14l11-7z"/></svg></span><span class="ab-item" data-view="marketplace"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 9.5h5v5h-5zM4.5 14.5h5v5h-5zM9.5 14.5h5v5h-5zM13.5 5.5h5v5h-5z"/></svg></span><span class="ab-item active" data-view="chat"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3.5 4.5h12v9h-7l-3.5 3v-3h-1.5z"/><path d="M15.5 8.5h5v9h-2v3l-3.5-3h-4.5v-4"/></svg></span></div>
+        <div><span class="ab-item" data-view="accounts"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="8.5" r="3.5"/><path d="M5 20c.8-3.8 3.6-6 7-6s6.2 2.2 7 6"/></svg></span><span class="ab-item" data-view="manage"><svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18.30 10.39L20.38 10.56L20.38 13.44L18.30 13.61L17.59 15.32L18.94 16.91L16.91 18.94L15.32 17.59L13.61 18.30L13.44 20.38L10.56 20.38L10.39 18.30L8.68 17.59L7.09 18.94L5.06 16.91L6.41 15.32L5.70 13.61L3.62 13.44L3.62 10.56L5.70 10.39L6.41 8.68L5.06 7.09L7.09 5.06L8.68 6.41L10.39 5.70L10.56 3.62L13.44 3.62L13.61 5.70L15.32 6.41L16.91 5.06L18.94 7.09L17.59 8.68Z"/><circle cx="12" cy="12" r="2.75"/></svg></span></div>
+      </nav>
+      <section class="chat" aria-label="Chat">
+        <div class="view-head"><h2 class="view-title">Chat</h2><div class="view-actions"><span class="act" role="button" title="New chat" aria-label="New chat"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 3v11M3 8.5h11"/></svg></span><span class="act" role="button" title="Chat history" aria-label="Chat history"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M8.5 5.5v3h2.5"/></svg></span><span class="act" role="button" title="More actions" aria-label="More actions"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><g fill="currentColor" stroke="none"><circle cx="3.5" cy="8.5" r="1"/><circle cx="8.5" cy="8.5" r="1"/><circle cx="13.5" cy="8.5" r="1"/></g></svg></span></div></div>
+        
+        <div class="chat-body"></div>
+        <div class="composer">
+          <div class="c-text"><span class="ph">Ask a question or describe a task</span></div>
+          <div class="c-bar">
+            <span class="tbtn" title="Add context"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M11.5 6v5a3 3 0 0 1-6 0V4.5a2 2 0 0 1 4 0V11a1 1 0 0 1-2 0V6"/></svg></span>
+            <span class="chip" role="button" title="Choose agent and model"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M10.26 5.74A3.2 3.2 0 1 0 10.26 10.26"/></svg><span>Codex · default model</span><svg class="i chev" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 6.5l4 4 4-4"/></svg></span>
+            <span class="c-spacer"></span>
+            <span class="tbtn" title="Send"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M2.5 2.5l11.5 6-11.5 6 2-6z"/><path d="M4.5 8.5H9"/></svg></span>
+          </div>
+        </div>
+      </section>
+      <div class="editor" aria-hidden="true">
+        <div class="tabs"><div class="tab"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l5 2.75v6.5l-5 2.75-5-2.75v-6.5z"/><path d="M3.5 5.25l5 2.75 5-2.75M8.5 8v6.5"/></svg><span>main.scene</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5.5 5.5l6 6M11.5 5.5l-6 6"/></svg></div></div>
+        <div class="viewport"><span class="vp-label">Viewport</span></div>
+      </div>
+    </div>
+    <div class="statusbar">
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="5" cy="4" r="1.5"/><circle cx="5" cy="13" r="1.5"/><circle cx="11.5" cy="5.5" r="1.5"/><path d="M5 5.5v6M11.5 7c0 3-6.5 2.5-6.5 4.5"/></svg><span>main</span></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="8.5" cy="8.5" r="5.5"/><path d="M6.75 6.75l3.5 3.5M10.25 6.75l-3.5 3.5"/></svg><span>0</span><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M8.5 2.5l6 11h-12z"/><path d="M8.5 6.5v3M8.5 11.5v.01"/></svg><span>0</span></span>
+      <span class="sb-spacer"></span>
+      <span class="sb-item"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4.5 11.5v-4a4 4 0 0 1 8 0v4l1 1.5h-10z"/><path d="M7.25 14.5h2.5"/></svg></span>
+    </div>
+    <div class="qp" role="dialog" aria-label="New chat">
+      <div class="qp-title">New chat</div>
+      <div class="qp-head"><div class="qp-input"><span class="caret"></span><span class="ph">Choose your coding agent</span></div></div>
+      <div class="qp-list" role="listbox">
+        <div class="qp-row selected" role="option" aria-selected="true"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M10.26 5.74A3.2 3.2 0 1 0 10.26 10.26"/></svg><span class="qp-label">Codex</span><span class="qp-desc">Signed in with ChatGPT</span></div>
+        <div class="qp-row" role="option"><svg class="badge" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="1.5" y="1.5" width="13" height="13" rx="3"/><path stroke-width="1.25" d="M5.25 11.5L8 4.5l2.75 7M6.13 9.25h3.74"/></svg><span class="qp-label">Claude Code</span><span class="qp-desc">Sign in with Claude…</span></div>
+        <div class="qp-sep" role="separator"></div>
+        <div class="qp-row" role="option"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.38 7.41L14.93 7.53L14.93 9.47L13.38 9.59L12.72 11.18L13.73 12.36L12.36 13.73L11.18 12.72L9.59 13.38L9.47 14.93L7.53 14.93L7.41 13.38L5.82 12.72L4.64 13.73L3.27 12.36L4.28 11.18L3.62 9.59L2.07 9.47L2.07 7.53L3.62 7.41L4.28 5.82L3.27 4.64L4.64 3.27L5.82 4.28L7.41 3.62L7.53 2.07L9.47 2.07L9.59 3.62L11.18 4.28L12.36 3.27L13.73 4.64L12.72 5.82Z"/><circle cx="8.5" cy="8.5" r="2"/></svg><span class="qp-label">Codex: model and reasoning…</span></div>
+        <div class="qp-row" role="option"><svg class="i" width="16" height="16" viewBox="0 0 16 16" fill="none" stroke="currentColor" stroke-width="1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M13.38 7.41L14.93 7.53L14.93 9.47L13.38 9.59L12.72 11.18L13.73 12.36L12.36 13.73L11.18 12.72L9.59 13.38L9.47 14.93L7.53 14.93L7.41 13.38L5.82 12.72L4.64 13.73L3.27 12.36L4.28 11.18L3.62 9.59L2.07 9.47L2.07 7.53L3.62 7.41L4.28 5.82L3.27 4.64L4.64 3.27L5.82 4.28L7.41 3.62L7.53 2.07L9.47 2.07L9.59 3.62L11.18 4.28L12.36 3.27L13.73 4.64L12.72 5.82Z"/><circle cx="8.5" cy="8.5" r="2"/></svg><span class="qp-label">Claude Code: model and reasoning…</span></div>
+      </div>
+    </div>
+  </div>
+  <figcaption><span class="cap-n">6</span>Agent picker<span class="cap-sub"> — New chat</span></figcaption>
+</figure>
+</main>
+
+<div class="spec">
+  <section>
+    <h2>Strings</h2>
+    <p>Every user-visible string, by state. Claude variants follow the same pattern.</p>
+    
+<table>
+  <thead><tr><th>State</th><th>Where</th><th>String</th></tr></thead>
+  <tbody>
+    <tr><td class="st" rowspan="9">1 · No agent ready</td><td>View title (header shows it uppercase)</td><td><span class="s">Chat</span></td></tr>
+    <tr><td>Heading</td><td><span class="s">Chat</span></td></tr>
+    <tr><td>Subtitle</td><td><span class="s">Use the AI plan you already pay for.</span></td></tr>
+    <tr><td>Primary button</td><td><span class="s">Sign in with ChatGPT</span></td></tr>
+    <tr><td>Line under it</td><td><span class="s">Runs Codex · ChatGPT Plus, Pro or Business</span></td></tr>
+    <tr><td>Secondary button</td><td><span class="s">Sign in with Claude</span></td></tr>
+    <tr><td>Line under it</td><td><span class="s">Runs Claude Code · Claude Pro or Max</span></td></tr>
+    <tr><td>Footnote</td><td><span class="s">Runs on this computer with your own account.</span></td></tr>
+    <tr><td>Composer placeholder (disabled)</td><td><span class="s">Sign in to start a chat</span></td></tr>
+    <tr><td class="st">2 · Installing</td><td>Button (disabled, spinner)</td><td><span class="s">Installing Codex…</span> <span class="var">Claude: <span class="s">Installing Claude Code…</span></span></td></tr>
+    <tr><td class="st" rowspan="2">3 · Waiting for the browser</td><td>Button (disabled, spinner)</td><td><span class="s">Finish signing in in your browser…</span> <span class="var">Claude: same string</span></td></tr>
+    <tr><td>Link under it</td><td><span class="s">Cancel</span></td></tr>
+    <tr><td class="st" rowspan="2">4 · Sign-in didn't finish</td><td>Line under the button</td><td><span class="s">Sign-in didn't finish.</span></td></tr>
+    <tr><td>Button (primary or secondary, as before)</td><td><span class="s">Try again</span></td></tr>
+    <tr><td class="st" rowspan="3">5 · Signed in</td><td>Note above the chat</td><td><span class="s">Signed in with ChatGPT</span> <span class="var">Claude: <span class="s">Signed in with Claude</span></span></td></tr>
+    <tr><td>Composer placeholder</td><td><span class="s">Ask a question or describe a task</span></td></tr>
+    <tr><td>Agent chip in the composer</td><td><span class="s">Codex · default model</span> <span class="var">Claude: <span class="s">Claude Code · default model</span></span></td></tr>
+    <tr><td class="st" rowspan="8">6 · Agent picker</td><td>Title</td><td><span class="s">New chat</span></td></tr>
+    <tr><td>Placeholder</td><td><span class="s">Choose your coding agent</span></td></tr>
+    <tr><td>Row 1 label</td><td><span class="s">Codex</span></td></tr>
+    <tr><td>Row 1 description</td><td><span class="s">Signed in with ChatGPT</span> <span class="var">not signed in: <span class="s">Sign in with ChatGPT…</span></span></td></tr>
+    <tr><td>Row 2 label</td><td><span class="s">Claude Code</span></td></tr>
+    <tr><td>Row 2 description</td><td><span class="s">Sign in with Claude…</span> <span class="var">signed in: <span class="s">Signed in with Claude</span></span></td></tr>
+    <tr><td>Row 3 (after separator)</td><td><span class="s">Codex: model and reasoning…</span></td></tr>
+    <tr><td>Row 4</td><td><span class="s">Claude Code: model and reasoning…</span></td></tr>
+    <tr><td class="st">All states</td><td>Tooltips</td><td><span class="s">New chat</span> <span class="s">Chat history</span> <span class="s">More actions</span> <span class="s">Add context</span> <span class="s">Send</span> <span class="s">Choose agent and model</span></td></tr>
+  </tbody>
+</table>
+<p class="removed"><b>Removed from today's welcome:</b> the ChatGPT button that installed OpenAI's separate extension and opened a second chat panel, <span class="s">Supercode · local agents</span>, <span class="s">Sign in with Claude Code</span>, <span class="s">Sign in with Codex</span>, <span class="s">Each agent opens its own sign-in.</span>, <span class="s">Already signed in? Check again.</span></p>
+  </section>
+  <section>
+    <h2>Behavior</h2>
+    
+<ul class="behavior">
+  <li><b>Zero ready → welcome.</b> The welcome shows only while no agent is both installed and signed in. The composer stays in place, disabled, reading <span class="s">Sign in to start a chat</span>.</li>
+  <li><b>One ready → chat.</b> With exactly one agent signed in, Chat opens straight to an empty chat on that agent. No welcome, no picker.</li>
+  <li><b>Two or more → last used.</b> Chat opens on the agent used last; the others are one step away in New chat (frame 6), which lists every agent, signed in or not.</li>
+  <li><b>Button states.</b> Sign in → Installing (only when the agent is missing) → Waiting for the browser → signed in. While busy the button is disabled with a spinner and the view's progress bar runs; the other provider's button stays usable. The line under each button is one status slot (caption → Cancel → error), so nothing below it moves.</li>
+  <li><b>Not installed → install, then sign in.</b> The same button installs the agent from its vendor's official package (Codex from OpenAI, Claude Code from Anthropic), then goes straight into that agent's own sign-in, which opens ChatGPT or Claude in the default browser. One click. Codex runs in this Chat; nothing opens a second chat panel.</li>
+  <li><b>Cancel and failure.</b> Cancel stops the pending sign-in and returns the button to <span class="s">Sign in with ChatGPT</span> with its caption, no error. If install or sign-in ends without a signed-in account, the slot shows <span class="s">Sign-in didn't finish.</span> and the button reads <span class="s">Try again</span>; the full reason goes to the Chat output log, not the welcome.</li>
+  <li><b>Live detection replaces "Check again".</b> Cyclotron watches each agent's sign-in state continuously, including sign-ins made outside Cyclotron (for example in a terminal). The moment one lands, the welcome is replaced by an empty chat (frame 5), the composer takes focus, and <span class="s">Signed in with ChatGPT</span> shows until the first message is sent.</li>
+  <li><b>Picker.</b> Choosing a signed-in agent starts a new chat with it. Choosing a <span class="s">Sign in with …</span> row runs the same install-and-sign-in flow, with its progress in the Chat panel. The "model and reasoning…" rows open that agent's model and reasoning-effort choices. Signing out of every agent brings the welcome back.</li>
+</ul>
+  </section>
+</div>
+</div>
+<script>
+(function () {
+  var grid = document.getElementById('grid');
+  var buttons = document.querySelectorAll('.scale button');
+  buttons.forEach(function (b) {
+    b.addEventListener('click', function () {
+      grid.style.zoom = b.getAttribute('data-z');
+      buttons.forEach(function (x) { x.setAttribute('aria-pressed', x === b ? 'true' : 'false'); });
+    });
+  });
+})();
+</script>
+</body>
+</html>

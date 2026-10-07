@@ -28,6 +28,7 @@ import type {
   WorkspaceDocumentKind,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import { assetDocumentSpec } from '@volter/editor-sdk/kit/components/asset-documents';
+import { SurfaceCrashBoundary } from '@volter/editor-sdk/kit/components/SurfaceCrashBoundary';
 import { DocumentHeaderStrip } from './DocumentHeaderStrip';
 import { DocumentShelfRail } from './DocumentShelfRail';
 
@@ -200,7 +201,16 @@ export function WorkspaceDocumentSurface({
         // (Godot's view pill) stands past it only when it is there.
         data-volter-stage-rail={chrome && !playing && !shelfHidden && ((transformTools && !toolsOnBar) || Shelf) ? undefined : 'empty'}
       >
-        <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
+        {/* A document that throws while rendering (the UI component board, a package's
+            document) shows its error HERE, in its own content box; the header, the other
+            documents and the panels around it stay up (`SurfaceCrashBoundary`). */}
+        <SurfaceCrashBoundary
+          key={descriptor.id}
+          surface={`document:${descriptor.id}`}
+          label={`The ${descriptor.title} document`}
+        >
+          <Content documentId={descriptor.id} {...(viewId ? { viewId } : {})} active={active} />
+        </SurfaceCrashBoundary>
         {/* THE STAGE'S BAR, when the look draws one (`workspace-surfaces.css`, "THE STAGE'S BAR"). */}
         {onBar ? (
           <div className="volter-stage-bar" data-form={stageChrome.bar} role="toolbar" aria-label="Viewport">
