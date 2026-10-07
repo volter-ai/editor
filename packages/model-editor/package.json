@@ -56,16 +56,16 @@
       "upgrade": true,
       "workbench": {
         "darwin-arm64": {
-          "release": "model-editor-f16dc165c0df-bcb58a166b10-darwin-arm64",
-          "tarballSha256": "5d9b987274f2f06355041b272c637d9e471122af9a3ab0139930e314d1852c01"
+          "release": "model-editor-f16dc165c0df-265ec54a5aaa-darwin-arm64",
+          "tarballSha256": "1dee8d56404844f45b4c4ee629b9957e7f36a25093bcf03bff666455da9087ef"
         },
         "linux-x64": {
-          "release": "model-editor-f16dc165c0df-29e1a79727a1-linux-x64",
-          "tarballSha256": "9e91ba4ba8540b468eaed6b329902e8bd3ba80af5126b2b282096491fd8ca4ff"
+          "release": "model-editor-f16dc165c0df-265ec54a5aaa-linux-x64",
+          "tarballSha256": "132689868bf5e681b317efc65b2ff060d8c1fbe807dd6b4290e352461e52f33c"
         },
         "win32-x64": {
-          "release": "model-editor-f16dc165c0df-91d8be2deef0-win32-x64",
-          "tarballSha256": "074725b6d275dcbe543932f09e76a981c1365698c9ef1c94ca05fbd4760848d0"
+          "release": "model-editor-f16dc165c0df-265ec54a5aaa-win32-x64",
+          "tarballSha256": "aba673812e515538b3d51f6e284081b259c1279fe156b2c5af084607a761f1ea"
         }
       }
     }
