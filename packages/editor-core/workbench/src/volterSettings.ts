@@ -80,7 +80,9 @@ import { TITLE_BAR_HEIGHT_KEY } from './volterTitleBar.js';
 // manifest: configuration, unlike keybindings (U6b), is honoured at load from here.
 Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerConfiguration(VOLTER_CONFIGURATION_NODE);
 // A product opens its project document; upstream onboarding is not a project.
-Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerDefaultConfigurations([{ overrides: { 'workbench.startupEditor': 'none', 'zenMode.showTabs': 'none', 'workbench.layoutControl.enabled': true, 'workbench.layoutControl.type': 'toggles' } }]);
+// One chat panel: `stacked` shows the agent session list in the chat view itself when no chat
+// is open (and keeps upstream's "Go Back" to it), instead of a side-by-side sessions column.
+Registry.as<IConfigurationRegistry>(ConfigurationExtensions.Configuration).registerDefaultConfigurations([{ overrides: { 'workbench.startupEditor': 'none', 'zenMode.showTabs': 'none', 'workbench.layoutControl.enabled': true, 'workbench.layoutControl.type': 'toggles', 'chat.viewSessions.orientation': 'stacked' } }]);
 
 /**
  * THE WORKBENCH KEYS A volter PROJECT NEEDS, carried by the SAME adapter layer.
