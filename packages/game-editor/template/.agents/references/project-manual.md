@@ -234,6 +234,12 @@ npm run --silent volter -- eval 'return editor.recording.stop()'
 Recordings are standard WebM files under `.volter/recordings/`. Use ordinary
 `ffprobe`/`ffmpeg` to inspect and trim them.
 
+Every recording stops itself at a 10-minute length cap and is finalized (the
+journal row's reason is `length-cap`); start a new one for a longer record. A
+CLI Play run also auto-stops after 2 minutes with no PLAYER input — a person's
+keys, pointer, touch or gamepad. Agent commands, `eval` included, do not keep
+a run alive.
+
 ## Game data
 
 Game rules and content are plain typed TS literals under `src/data/`, named

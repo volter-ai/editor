@@ -25,6 +25,7 @@ import {
   getPlayRuntimeAccess,
   isPlayModeActive,
 } from '../play/play-mode';
+import { GAMEPLAY_RECORDING_MAX_MS } from '../host/gameplay-recording';
 import { livePlayRecording } from '../play/play-recording';
 import { hasLiveDebugPlane } from './dispatch';
 import { captureLiveCanvasFrame } from './live-frames';
@@ -148,7 +149,8 @@ function screenshotRecordingNotice(): GameCaptureRecordingNote | null {
       'guess a single screenshot was.',
       '',
       `The clip is finalized and readable when play stops — ${commandLine('stop')}, or the idle`,
-      `auto-stop after ${Math.round(live.idleAutoStopMs / 1000)}s with no session command and no player input.`,
+      `auto-stop after ${Math.round(live.idleAutoStopMs / 1000)}s with no player input (agent commands do not count) —`,
+      `or at the recording's ${Math.round(GAMEPLAY_RECORDING_MAX_MS / 60_000)}-minute length cap, after which play continues unrecorded.`,
     ].join('\n'),
   };
 }
