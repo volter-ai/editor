@@ -5248,13 +5248,36 @@ def rna_outliner(selected=None):
             parent_row["children"].append(duplicate)
             mine.append([duplicate, parent_row, parent_collection])
 
+    # THE SELECTION KEEPS ITS ROWS PAST THE PAGE. A row is how the editor
+    # addresses an object -- the viewport's outline and gizmo, the Properties
+    # rail -- so a selected or active object, the caller's or the engine's, keeps
+    # its row and every row above it however far down a long list it sits.
+    kept = set(chosen)
+    kept.update(o.name for o in view_layer.objects if o.select_get(view_layer=view_layer))
+    if active is not None:
+        kept.add(active)
+    holding = set()
+
+    def hold(row):
+        inside = row.get("struct") == "Object" and row.get("object") in kept
+        for child in row.get("children", []):
+            inside = hold(child) or inside
+        if inside:
+            holding.add(id(row))
+        return inside
+
+    hold(scene_collection)
+
     # Cap the hierarchy's visible child lists, not the collection's flat input.
     # Every parent participates in folding even when its child list needs a page.
     def page_tree(row):
-        children, more = _outliner_page(row.get("children", []))
+        members = row.get("children", [])
+        children, more = _outliner_page(members)
+        beyond = [child for child in members[len(children):] if id(child) in holding]
+        children = children + beyond
         row["children"] = children
-        if more:
-            row["more"] = more
+        if more - len(beyond):
+            row["more"] = more - len(beyond)
         for child in children:
             page_tree(child)
 
