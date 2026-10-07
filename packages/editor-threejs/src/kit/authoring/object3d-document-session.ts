@@ -1534,7 +1534,6 @@ export class Object3DDocumentSession {
     const target = new THREE.WebGLRenderTarget(transform ? outputWidth : renderWidth, transform ? outputHeight : renderHeight);
     let resolved: THREE.WebGLRenderTarget | null = null;
     const previousTarget = this.renderer.getRenderTarget();
-    const previousPixelRatio = this.renderer.getPixelRatio();
     const perspective = this.viewport.camera;
     const previousAspect = perspective.aspect;
     try {
@@ -1545,7 +1544,6 @@ export class Object3DDocumentSession {
         perspective.aspect = outputWidth / outputHeight;
         perspective.updateProjectionMatrix();
       }
-      this.renderer.setPixelRatio(1);
       this.renderer.setRenderTarget(sceneTarget);
       this.renderCapture(
         (camera) => this.renderSolidForCapture(camera, sceneTarget, renderWidth, renderHeight),
@@ -1586,21 +1584,11 @@ export class Object3DDocumentSession {
       perspective.aspect = previousAspect;
       perspective.updateProjectionMatrix();
       this.renderer.setRenderTarget(previousTarget);
-      this.renderer.setPixelRatio(previousPixelRatio);
-      // THE COMPOSER IS SIZED AGAIN AT THE DISPLAY'S RATIO. The capture's own draw restores the
-      // composer's size while the ratio is still 1 (`renderSolidForCapture`), and the composer
-      // sizes its buffers from the renderer's drawing buffer: every capture (a selection's
-      // preview takes one) left the view and its outline mask at CSS resolution until the next
-      // resize. Measured on the stage: a crisp outline stating 4 device px drew 10 right after a
-      // selection and 4 after a repaint that resized.
-      this.composer?.setSize(this.renderWidth, this.renderHeight, false);
       target.dispose();
       resolved?.dispose();
       sceneTarget.dispose();
-      // AND THE VIEW IS DRAWN AGAIN. Sizing the composer clears what the view showed, and a stage
-      // that draws on demand had nothing asking it to: on the browser-substrate page every photograph
-      // (Save Screenshot, an agent's get_viewport_screenshot) left the viewport a flat grey until the
-      // pointer next moved over it (measured 2026-09-28: stddev 0 across the view, restored on hover).
+      // Refresh any draw-time state after the offscreen photograph. Neither
+      // renderer pixel ratio nor canvas dimensions change during capture.
       invalidateStages();
     }
   }
@@ -1783,16 +1771,25 @@ export class Object3DDocumentSession {
       this.renderLinearScene(camera, target);
       return;
     }
-    const previousWidth = this.renderWidth;
-    const previousHeight = this.renderHeight;
+    const previousSize = this.renderer.getDrawingBufferSize(new THREE.Vector2());
     try {
-      composer.setSize(width, height, false);
+      this.resizeComposerBuffers(width, height);
       this.renderLinearScene(camera, target);
     } finally {
-      composer.setSize(previousWidth, previousHeight, false);
+      this.resizeComposerBuffers(previousSize.x, previousSize.y);
       this.syncComposerOutput();
       this.renderer.setRenderTarget(target);
     }
+  }
+
+  /** Offscreen sizing must not call EffectComposer.setSize: it also resizes
+   * the renderer's visible canvas, clearing the frame a human is watching. */
+  private resizeComposerBuffers(width: number, height: number): void {
+    const composer = this.composer;
+    if (!composer) return;
+    composer.inputBuffer.setSize(width, height);
+    composer.outputBuffer.setSize(width, height);
+    for (const pass of composer.passes) pass.setSize(width, height);
   }
 
   /** Live HDR draw at the renderer's CURRENT size. Resizing the composer with

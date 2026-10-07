@@ -2032,3 +2032,23 @@ directory, copied only after completion with the manifest replaced last, then
 the existing page was refreshed through the public SDK. The window remained
 open throughout. Lighting still fails the native Blender gate; no packages
 were published.
+
+### 2026-10-07 — preserve the visible canvas during photographs
+
+Repeated document photographs briefly blanked the editor viewport. Capture
+changed the renderer's pixel ratio, and outlined captures called
+EffectComposer.setSize, which also resizes the visible canvas even with
+updateStyle=false. Redrawing afterward could recover the image but could not
+prevent that interruption. Captures now resize only the compositor's offscreen
+buffers and passes, restoring their device-pixel size after both success and
+failure. They leave the renderer's pixel ratio and visible canvas untouched.
+
+All six document-display regressions pass, including failed-capture restoration,
+and Three typechecking passes. A real WebGL capture at pixel ratio 2 preserves
+the already drawn green canvas pixel exactly: RGBA [0,255,0,255] before and
+after, with the original 32-pixel canvas and pixel ratio retained.
+The staged frontend build and boundary check pass. Two consecutive public
+document captures were followed immediately by full-editor captures and viewed;
+the courtyard stays visible. The existing window remained open. Asynchronous
+initial lighting preparation and full-scene lighting parity remain separate
+issues; no package publication.

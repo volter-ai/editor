@@ -44,6 +44,12 @@ green: both the next live frame and photograph retain the green plane.
 The compositor's automatic-clearing setting remains unchanged. Evidence:
 [HDR depth regression](media/blender-hdr-depth-clear-20261007.json).
 
+Photographs also preserve the visible canvas: they resize only offscreen
+compositor buffers and passes, never the renderer's pixel ratio or canvas.
+The GPU fixture verifies that a visible green pixel remains exactly
+RGBA [0,255,0,255] across a capture at device pixel ratio 2. Buffer sizes and
+camera projection restore after failure as well.
+
 Regenerate the native fixture with `test/generate-display-fixture.py` in Blender.
 Regenerate GPU shader/data assets with `test/generate-display-shaders.py`,
 OpenColorIO 2.5.0 and NumPy, passing `config.ocio` and `browser/three` as arguments.
