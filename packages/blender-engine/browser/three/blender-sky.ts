@@ -15,7 +15,7 @@
  * `Linear CIE-XYZ D65`.
  */
 import * as THREE from 'three';
-import {precomputeSingleScatteringSky} from './blender-single-scattering-sky';
+import {precomputeSingleScatteringSky, precomputeSingleScatteringSun} from './blender-single-scattering-sky';
 
 const M_PI_2_F = 1.5707963267948966;
 const M_2PI_F = 6.2831853071795864;
@@ -104,6 +104,9 @@ const aerosolDensity = (h: number): number =>
 export interface SkyParameters {
   /** Omitted in older frames, whose only supported model was multiple scattering. */
   model?: 'SINGLE_SCATTERING' | 'MULTIPLE_SCATTERING';
+  sunDisc?: boolean | undefined;
+  sunSize?: number | undefined;
+  sunIntensity?: number | undefined;
   sunElevation: number;
   sunRotation: number;
   altitude: number;
@@ -422,6 +425,13 @@ export function skyField(p: SkyParameters): (direction: THREE.Vector3) => THREE.
     primeSkyTexture(p, pixels);
   }
   const colour = new THREE.Vector3();
+  const diameter = p.sunSize ?? 0;
+  const solar = p.model === 'SINGLE_SCATTERING' && p.sunDisc && diameter > 0
+    ? precomputeSingleScatteringSun(p, diameter) : null;
+  const sun = new THREE.Vector3(Math.cos(p.sunElevation) * Math.cos(p.sunRotation),
+    Math.cos(p.sunElevation) * Math.sin(p.sunRotation), Math.sin(p.sunElevation));
+  const earthAngle = -Math.acos(6360000 / (6360000 + Math.min(59999, Math.max(1, p.altitude))));
+  const cross = new THREE.Vector3();
   return (direction) => {
     const horizontal = Math.hypot(direction.x, direction.y);
     const dirElevation = Math.atan2(direction.z, horizontal);
@@ -455,6 +465,14 @@ export function skyField(p: SkyParameters): (direction: THREE.Vector3) => THREE.
         tx,
       );
       xyz[i] = mix(top, bottom, ty);
+    }
+    if (solar && dirElevation > earthAngle) {
+      const angle = Math.atan2(cross.crossVectors(direction, sun).length(), direction.dot(sun));
+      if (angle < diameter / 2) {
+        const limb = 1 - .6 * (1 - Math.sqrt(Math.max(0, 1 - (angle / (diameter / 2)) ** 2)));
+        const t = (dirElevation - p.sunElevation) / diameter + .5;
+        for (let i = 0; i < 3; i++) xyz[i]! += mix(solar[0][i]!, solar[1][i]!, t) * (p.sunIntensity ?? 1) * limb;
+      }
     }
     return colour.set(
       XYZ_TO_RGB[0]![0]! * xyz[0]! + XYZ_TO_RGB[0]![1]! * xyz[1]! + XYZ_TO_RGB[0]![2]! * xyz[2]!,

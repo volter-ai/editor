@@ -705,6 +705,7 @@ export class BlenderRuntimeView {
     camera: THREE.Camera | undefined;
     cameraMatrix: THREE.Matrix4 | undefined;
     projection: THREE.Matrix4 | undefined;
+    solarLights: THREE.DirectionalLight[];
     objects: Map<THREE.Object3D, { matrix: THREE.Matrix4; visible: boolean }>;
   } | null = null;
   /** The camera the VIEWPORT is held in render lighting through (Blender's Rendered shading),
@@ -1440,9 +1441,12 @@ export class BlenderRuntimeView {
    */
   private applyShadows(rendered: boolean, camera?: THREE.Camera): void {
     this.root.updateMatrixWorld(true);
+    this.world.updateSolarDirections(this.root);
     const fitted = this.shadowFit;
     if (rendered && fitted && fitted.camera === camera &&
       (!camera || (fitted.cameraMatrix?.equals(camera.matrixWorld) && fitted.projection?.equals(camera.projectionMatrix))) &&
+      fitted.solarLights.length === this.world.solarLights.length &&
+      fitted.solarLights.every((light, index) => light === this.world.solarLights[index]) &&
       fitted.objects.size === this.objects.size &&
       [...this.objects.values()].every(object => {
         const previous = fitted.objects.get(object);
@@ -1452,6 +1456,7 @@ export class BlenderRuntimeView {
       camera,
       cameraMatrix: camera?.matrixWorld.clone(),
       projection: camera?.projectionMatrix.clone(),
+      solarLights: [...this.world.solarLights],
       objects: new Map([...this.objects.values()].map(object =>
         [object, { matrix: object.matrixWorld.clone(), visible: object.visible }])),
     } : null;
@@ -1477,7 +1482,7 @@ export class BlenderRuntimeView {
     const receivers = frustum
       ? boxes.flatMap((bounds) => visibleShadowReceivers(bounds, frustum))
       : [];
-    for (const light of this.lights.values()) {
+    for (const light of [...this.lights.values(), ...this.world.solarLights]) {
       if ((light as THREE.DirectionalLight).isDirectionalLight && camera)
         fitModelDirectionalShadow(light as THREE.DirectionalLight, receivers, boxes);
       else fitShadow(light, sphere.center, sphere.radius);

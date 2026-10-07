@@ -15,11 +15,19 @@ Object Info's six outputs also match native Cycles float32 fixtures exactly;
 shared-material and asynchronous graph replacement checks pass. These fixes
 belong to the engine, not asset recoloring or longer task prompts.
 
+Native single-scattering sun-disc settings and spectral radiance now reach the
+browser. Direct irradiance is separated from diffuse IBL and casts fitted
+shadows; native finite-disc softness and indirect lighting remain gaps. Four
+native sun fixtures and world expression/lifecycle checks pass. Same-source,
+same-camera courtyard comparisons still fail: native evaluation includes 6,287
+instances which the exporter's view-layer-base walk omits. Native Cycles is also
+available inside WASM as a diagnostic oracle; preserve compositor/pass settings.
+
 The courtyard still fails full-scene parity. Its remaining material conditions
 include Particle Info, tinted transparency and multiple Principled closures.
 Native depsgraph collection/particle instances and their inputs, sky sun-disc
 illumination, indirect lighting and the full native camera/image comparison
-remain to implement. Preserve the original source and reference; gameplay stays
+remain to complete. Preserve the original source and reference; gameplay stays
 behind the matching static model/React UI screenshot gate.
 World-volume image integration also remains capture-only; live and saved scene
 passes must agree in addition to sharing their display transform.

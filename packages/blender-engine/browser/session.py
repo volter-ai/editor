@@ -413,7 +413,9 @@ def _describe_world_socket(root_socket, camera_ray):
                 vector = node.inputs.get("Vector")
                 if vector is not None and vector.links:
                     raise NotImplementedError("Linked World Sky Texture Vector")
-                return {"kind": "sky", "sky_model": model, "sun_elevation": float(node.sun_elevation),
+                return {"kind": "sky", "sky_model": model, "sun_disc": bool(node.sun_disc),
+                        "sun_size": float(node.sun_size), "sun_intensity": float(node.sun_intensity),
+                        "sun_elevation": float(node.sun_elevation),
                         "sun_rotation": float(node.sun_rotation), "altitude": float(node.altitude),
                         "air_density": float(node.air_density), "aerosol_density": float(node.aerosol_density),
                         "ozone_density": float(node.ozone_density)}

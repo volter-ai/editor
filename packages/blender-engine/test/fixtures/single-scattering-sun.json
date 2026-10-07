@@ -1,0 +1,93 @@
+{
+  "source": "Blender 071e080: intern/sky/source/sky_single_scattering.cpp, SKY_single_scattering_precompute_sun; clang++ -O2 -ffp-contract=off",
+  "cases": [
+    {
+      "parameters": {
+        "model": "SINGLE_SCATTERING",
+        "sunElevation": 0.925024509,
+        "sunSize": 0.0174532924,
+        "altitude": 0,
+        "airDensity": 1,
+        "aerosolDensity": 1,
+        "ozoneDensity": 1,
+        "sunRotation": 0
+      },
+      "bottom": [
+        639502.875,
+        658833.75,
+        568526.938
+      ],
+      "top": [
+        640791.938,
+        660171.25,
+        570782.875
+      ]
+    },
+    {
+      "parameters": {
+        "model": "SINGLE_SCATTERING",
+        "sunElevation": 0.00999999978,
+        "sunSize": 0.00925024506,
+        "altitude": 100,
+        "airDensity": 1.20000005,
+        "aerosolDensity": 0.699999988,
+        "ozoneDensity": 1,
+        "sunRotation": 0
+      },
+      "bottom": [
+        50896.9883,
+        34936.4766,
+        851.310303
+      ],
+      "top": [
+        113238.781,
+        83205.6719,
+        3414.68774
+      ]
+    },
+    {
+      "parameters": {
+        "model": "SINGLE_SCATTERING",
+        "sunElevation": -0.0299999993,
+        "sunSize": 0.0174532924,
+        "altitude": 0,
+        "airDensity": 1,
+        "aerosolDensity": 1,
+        "ozoneDensity": 1,
+        "sunRotation": 0
+      },
+      "bottom": [
+        0,
+        0,
+        0
+      ],
+      "top": [
+        0,
+        0,
+        0
+      ]
+    },
+    {
+      "parameters": {
+        "model": "SINGLE_SCATTERING",
+        "sunElevation": 0.300000012,
+        "sunSize": 0.0500000007,
+        "altitude": 2000,
+        "airDensity": 0.5,
+        "aerosolDensity": 2,
+        "ozoneDensity": 1,
+        "sunRotation": 0
+      },
+      "bottom": [
+        76542.5312,
+        78843.375,
+        66820.3281
+      ],
+      "top": [
+        78501.5234,
+        80877.9609,
+        70228.8203
+      ]
+    }
+  ]
+}
