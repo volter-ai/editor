@@ -74,6 +74,12 @@ Info no longer rejects the entire material graph. The
 exporter omits depsgraph collection/particle instances, and the browser lighting
 does not reproduce the source scene's Cycles indirect illumination.
 
+World-volume image integration currently runs on render snapshots through
+`createWorldVolumePass()`/`snapshot.effect`. Live material views apply surface
+extinction but do not run that image pass. Sharing the display processor does
+not close this scene-pass difference: bring live and capture scene-linear
+composition through the same effects before judging their images equivalent.
+
 Build native comparisons for each owning subsystem:
 
 1. Material graphs: linked textures, mapping, per-object inputs, shader mixing,
