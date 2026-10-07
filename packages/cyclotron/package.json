@@ -11,6 +11,7 @@
   },
   "license": "AGPL-3.0-only AND GPL-3.0-or-later AND MIT",
   "description": "A free, open-source game editor by VideoGame AI using Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.",
+  "homepage": "https://cyclotron.videogame.ai",
   "keywords": [
     "blender",
     "three.js",
