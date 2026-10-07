@@ -32,7 +32,10 @@ panel: Play / Stop, Pause / Resume, Step one tick, Restart, speed (0.25× to 4×
 game's clock — simulation time and tick. Beside them, the **Autoplay** toggle lets the game's
 own bot drive (a play script offers one with `play.autoplay(controller)`), with a line saying
 who is driving, and the play log as it is written, filterable by kind. Autoplay is off at every
-Play and Restart, and any key or click in the game hands control back to you. **Movie** (the default otherwise) shows Blender's
+Play and Restart, and any key or click in the game hands control back to you. A bot exists
+only once the game runs, so the panel says "Available once the game is running" while stopped
+(pressing Autoplay then arms it for the next Play) and "No autoplay — this game doesn't
+provide a bot" for a game without one. **Movie** (the default otherwise) shows Blender's
 Timeline, playing the file's animation. Each model keeps your choice for the session.
 
 ## Your agent
@@ -62,7 +65,7 @@ Run from the project folder with `npx --no-install volter-model-editor <command>
 | `eval <JavaScript>` \| `eval --list` | Runs code against the live editor; `--list` prints what is in scope and a few common tasks. |
 | `camera --position x,y,z --target x,y,z [--fov n]` | Poses the current document's viewport camera. Coordinates are Blender's: metres, Z up (the command converts them to the stage's Y up). `--fov` is the vertical field of view in degrees. |
 | `capture [--region document\|play\|page] [--out file.png [--force]]` | Saves what the person sees as a PNG and prints its path (default `.volter/captures/<region>-<time>.png`). `document` is the active document with its overlays; `play` is the live Play frame with its UI. `--out` refuses to replace an existing file unless `--force` is given. |
-| `play [state]` \| `play play\|stop\|pause\|resume\|restart` \| `play step [count]` \| `play speed <0.25\|0.5\|1\|2\|4>` \| `play mode [game\|movie]` \| `play autoplay on\|off` | The Game panel's controls, for the model document on screen, and its state as JSON afterwards (`mode`, `playing`, the play script, and the clock: simulation `time`, `tick`, `paused`, `speed`). Pause stops the script's `update` calls; `step` runs one 1/60 s update of a paused game; speed scales the `dt` the script is handed; `restart` begins again on a fresh copy of the model. A control lands on the next drawn frame, so `play state` reads its effect. `play` and `restart` switch the document to Game mode. `autoplay on` lets the game's bot drive until a person presses a key or clicks in the game; the state's `autoplay` says `{ on, available, by, driver }`. Under `eval` the same commands are `await editor.command('volter.model-play.pause')`, `…('volter.model-play.speed', { speed: 2 })`. |
+| `play [state]` \| `play play\|stop\|pause\|resume\|restart` \| `play step [count]` \| `play speed <0.25\|0.5\|1\|2\|4>` \| `play mode [game\|movie]` \| `play autoplay on\|off` | The Game panel's controls, for the model document on screen, and its state as JSON afterwards (`mode`, `playing`, the play script, and the clock: simulation `time`, `tick`, `paused`, `speed`). Pause stops the script's `update` calls; `step` runs one 1/60 s update of a paused game; speed scales the `dt` the script is handed; `restart` begins again on a fresh copy of the model. A control lands on the next drawn frame, so `play state` reads its effect. `play` and `restart` switch the document to Game mode. `autoplay on` lets the game's bot drive until a person presses a key or clicks in the game; the state's `autoplay` says `{ on, available, by, armed, driver, why }`, `why` being the reason there is no bot to switch (stopped or not yet running, or no bot), which a refused `autoplay on` prints too. Under `eval` the same commands are `await editor.command('volter.model-play.pause')`, `…('volter.model-play.speed', { speed: 2 })`. |
 | `screenshot [<target>]` | The active document's render, or a model file or entity staged on its own. |
 | `chat status` \| `chat send "<prompt>"` \| `chat stop` | The editor's Chat conversation. |
 

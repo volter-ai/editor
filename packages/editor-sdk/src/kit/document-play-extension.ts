@@ -83,6 +83,9 @@ export interface DocumentPlayTransport {
   autoplay?(documentId: string): DocumentPlayAutoplay;
   /** Switch the bot on (it must be offered, and the game playing) or off. */
   setAutoplay?(documentId: string, on: boolean, by: 'panel' | 'cli'): void;
+  /** While stopped, ask the next start to switch the bot on as soon as its script offers one
+   *  (`armed`); dropped if it offers none. Absent, autoplay can only be switched while running. */
+  armAutoplay?(documentId: string, armed: boolean): void;
 }
 /**
  * AUTOPLAY, AS THE EDITOR OWNS IT: a game offers a bot, the editor decides whether it drives.
@@ -94,6 +97,8 @@ export interface DocumentPlayAutoplay {
   readonly available: boolean;
   /** Who made the last change: `script` is the game no longer offering a bot. */
   readonly by: 'panel' | 'cli' | 'takeover' | 'script' | null;
+  /** Armed while stopped (`armAutoplay`): the next start turns it on once a bot is offered. */
+  readonly armed?: boolean;
 }
 /** The newest entries of one document's play log, for a panel that draws it live. */
 export interface DocumentPlayLog {

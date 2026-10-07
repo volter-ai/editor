@@ -37,6 +37,8 @@ runner adds `play-start`, `play-restart` (`{ speed }`, right after a Restart's
 `tint-unknown-object` (`{ object, call }`, once per name: `tint` or `setOpacity` was given a
 name the model has none of, and did nothing), `autoplay-on` / `autoplay-off`
 (`{ by: 'panel' | 'cli' | 'takeover' | 'script' }`, see Autoplay below),
+`autoplay-unavailable` (`{ why }`, when a script's first update has run and it registered no
+bot; once per run, and again only if a bot came and went),
 `pause`, `resume`, `step` (`{ dt }`, one per stepped update), `speed`
 (`{ speed, from }` on a change; `{ speed }` at a start that is not 1×) and
 `play-stop` (`{ reason }`). Log transitions rather than every frame. Logging
@@ -101,8 +103,17 @@ Whether it drives is the editor's:
 
 - Autoplay is **off** whenever Play starts or restarts.
 - Only the Game panel's **Autoplay** toggle, `volter-model-editor play autoplay on|off` or
-  `await editor.command('volter.model-play.autoplay', { on: true })` turn it on (or off). A
-  script that offers no bot leaves the toggle disabled, and `on` is refused.
+  `await editor.command('volter.model-play.autoplay', { on: true })` turn it on (or off).
+- **A bot exists only while the game runs**: `play.autoplay` is called by the play script, so
+  a stopped game (or one still starting) has none, and neither has a running script that never
+  registers one. The panel says which, in words beside the toggle — "Available once the game is
+  running" or "No autoplay — this game doesn't provide a bot" — and `on` is refused with the
+  same reason, which `play state` also gives as `autoplay.why`.
+- **Arming.** Pressed while stopped, the panel's Autoplay arms the next start: autoplay turns
+  on (`by: 'panel'`) as soon as that run's script has run its first update with a bot, and the
+  arm is dropped if it offers none. A person's key or click in the game before then drops it
+  too (`autoplay-off` with `{ by: 'takeover', armed: true }`): the person always wins. Only an
+  explicit arm carries over; Stop, and closing the model, drop it.
 - **The person always wins.** A new key press the game would hear, or a pointer pressed in the
   game's area (the HUD included), turns autoplay off before that key reaches `play.keys`, and
   the panel reads "You're driving" until someone switches the bot on again. Synthetic keys and
@@ -145,7 +156,8 @@ The tool registers the `model` document Play extension
   subscription, the offered `speeds`, and the restart `generation` the document keys its
   detached copy on.
 - `transport.autoplay(documentId)` and `transport.setAutoplay(documentId, on, by)` — the bot's
-  switch: `{ on, available, by }`, announced through `subscribeClock`.
+  switch: `{ on, available, by, armed }`, announced through `subscribeClock`;
+  `transport.armAutoplay(documentId, armed)` arms it, while stopped, for the next start.
 - `log` — `tail(documentId, last, kind?)` (the newest entries and every kind the run wrote) and
   `subscribe`, which the Game panel draws live.
 - `scriptPath(sourcePath)` and `hasScript(sourcePath)` — where a model's play script goes and

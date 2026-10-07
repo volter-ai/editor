@@ -78,6 +78,7 @@ import {
   setModelPlayAutoplay,
   setModelPlayFailure,
   setModelPlayAutoplayAvailable,
+  settleModelPlayAutoplay,
   subscribeModelPlayClock,
   takeModelPlayStep,
 } from './model-play';
@@ -296,6 +297,9 @@ export function runPlayScript(options: {
     seen = now;
     const bot = modelPlayAutoplay(options.documentId);
     if (bot.on !== seenBot.on) run.append('play', bot.on ? 'autoplay-on' : 'autoplay-off', { by: bot.by });
+    // An arm dropped before it was taken: a takeover, or a script that offers no bot. (Stop's
+    // reset has no `by`, and its `play-stop` says enough.)
+    else if (seenBot.armed && !bot.armed && bot.by !== null) run.append('play', 'autoplay-off', { by: bot.by, armed: true });
     seenBot = bot;
   });
   options.container.style.opacity = '0';
@@ -417,6 +421,9 @@ export function runPlayScript(options: {
     }
   };
   let firstFrame = true;
+  /** Whether the last script to run its first update offered a bot (null before any did), so
+   *  `autoplay-unavailable` is said once per run, and again only after a bot came and went. */
+  let offeredBot: boolean | null = null;
   let returning = false;
   let stopReason = 'stop';
   const stopRequest = registerModelPlayStop(options.documentId, (escape) => {
@@ -514,6 +521,14 @@ export function runPlayScript(options: {
         update(next.game, updates[0]!);
         end();
         game = next.game;
+        // NOW THE SCRIPT HAS SAID WHETHER IT OFFERS A BOT (its default export and first update
+        // are where `play.autoplay` is called): said before `running`, so no reader sees a running
+        // game with its bot not yet counted, and an arm made while stopped is taken or dropped.
+        const offered = scripts.get(next.game)?.bot != null;
+        if (!offered && offeredBot !== false)
+          run.append('play', 'autoplay-unavailable', { why: 'the play script registers no bot with play.autoplay(controller)' });
+        offeredBot = offered;
+        settleModelPlayAutoplay(options.documentId, offered);
         setModelPlayFailure(options.documentId, null);
         startedAt = Date.now();
         endedAt = null;
@@ -552,7 +567,9 @@ export function runPlayScript(options: {
   // by hand.
   const surface = options.container.parentElement ?? options.container;
   const takeover = (): void => {
-    if (current() && modelPlayAutoplay(options.documentId).on) setModelPlayAutoplay(options.documentId, false, 'takeover');
+    // An arm still waiting for the bot counts too: the person is driving before it could start.
+    const now = modelPlayAutoplay(options.documentId);
+    if (current() && (now.on || now.armed)) setModelPlayAutoplay(options.documentId, false, 'takeover');
   };
   const onKeyDown = (event: KeyboardEvent): void => {
     if (!surfaceAcceptsKey(event)) return;

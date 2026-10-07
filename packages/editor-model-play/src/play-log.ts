@@ -18,6 +18,7 @@
  * `script-error`, `tint-unsupported`, `tint-unknown-object`, `pause`, `resume`, `step` (one per
  * stepped update, with its `dt`), `speed` (on a change, and at a start that is not 1×),
  * `autoplay-on` and `autoplay-off` (each with `by`: `panel`, `cli`, `takeover`, `script`),
+ * `autoplay-unavailable` (a script ran its first update without offering a bot),
  * `play-stop`.
  *
  * ONE LOG PER MODEL DOCUMENT, each its document's latest run. Two documents playing at once

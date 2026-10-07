@@ -15,7 +15,10 @@
  * AND WHO DRIVES. Autoplay is the editor's switch, not the game's: a script only offers a bot
  * (`play.autoplay(controller)`, `play-script.ts`), and whether that bot drives is kept here. It
  * is off whenever a run begins — Play, Restart, Stop — and only the Game panel's toggle or its
- * verb (`volter.model-play.autoplay`) turns it on. The runner turns it off the moment a person
+ * verb (`volter.model-play.autoplay`) turns it on. The one carry-over is an ARM: a person may
+ * press Autoplay while stopped (there is no bot yet — a script offers it only once it runs), and
+ * the next start turns autoplay on the moment its script has run its first update with a bot, or
+ * drops the arm if it offers none. The runner turns it off the moment a person
  * presses a key or touches the game (`takeover`), or when the running script stops offering a
  * bot (`script`). Its changes are announced through the clock's subscription, which the panel
  * and the runner already hold.
@@ -61,10 +64,19 @@ export interface ModelPlayAutoplay {
   /** The running script registered a bot with `play.autoplay`. */
   readonly available: boolean;
   readonly by: ModelPlayAutoplayBy | null;
+  /** Pressed while stopped: the next start turns autoplay on once its script offers a bot. */
+  readonly armed: boolean;
 }
-const NO_BOT: ModelPlayAutoplay = { on: false, available: false, by: null };
+const NO_BOT: ModelPlayAutoplay = { on: false, available: false, by: null, armed: false };
+const ARMED: ModelPlayAutoplay = { ...NO_BOT, armed: true };
 /** Replaced, never mutated, as the clocks are. Absent is {@link NO_BOT}: a new run's state. */
 const autoplays = new Map<string, ModelPlayAutoplay>();
+
+/** A new run's autoplay: off, no bot yet. Play keeps an arm made while stopped; Stop drops it. */
+function resetAutoplay(documentId: string, keepArm: boolean): void {
+  if (keepArm && modelPlayAutoplay(documentId).armed) autoplays.set(documentId, ARMED);
+  else autoplays.delete(documentId);
+}
 
 function publish(): void {
   for (const listener of [...listeners]) listener();
@@ -82,20 +94,25 @@ export function modelPlaying(documentId: string): boolean {
 }
 
 export function setModelPlaying(documentId: string, value: boolean): void {
-  if (playing.has(documentId) === value) return;
+  if (playing.has(documentId) === value) {
+    // Stop with nothing playing is how a closing document lets go of its play: an arm made while
+    // stopped goes with it, or reopening the model and pressing Play would still take it.
+    if (!value && modelPlayAutoplay(documentId).armed) { resetAutoplay(documentId, false); publishClock(); }
+    return;
+  }
   const stop = value ? null : currentStop(documentId);
   if (stop) { stop(false); return; }
   if (value) {
     playing.add(documentId);
     // A new run starts its clock at zero and running; the speed is the person's and stays.
     steps.delete(documentId);
-    autoplays.delete(documentId);
+    resetAutoplay(documentId, true);
     setClock(documentId, { time: 0, tick: 0, paused: false, failure: null, running: false });
   } else {
     playing.delete(documentId);
     restarted.delete(documentId);
     steps.delete(documentId);
-    autoplays.delete(documentId);
+    resetAutoplay(documentId, false);
     // The clock keeps the stopped run's time and tick, so the panel still says how far it got.
     // Re-issued even unchanged, after `playing` has changed: every way a game stops (Stop,
     // Escape, a deleted script, a mode switch, an agent's `stop`) ends here, and a reader of
@@ -212,7 +229,8 @@ export function restartModelPlay(documentId: string): void {
   generations.set(documentId, modelPlayGeneration(documentId) + 1);
   restarted.add(documentId);
   steps.delete(documentId);
-  autoplays.delete(documentId);
+  // An arm not yet taken (the game was still starting) carries to the fresh run.
+  resetAutoplay(documentId, true);
   setClock(documentId, { time: 0, tick: 0, paused: false, failure: null, running: false });
   publish();
 }
@@ -232,14 +250,35 @@ function setAutoplay(documentId: string, next: Partial<ModelPlayAutoplay>): void
 }
 
 /** Switch the running script's bot on or off. On asks for a playing document whose script
- *  registered a bot; off always succeeds. */
+ *  registered a bot; off always succeeds, and also drops an arm not yet taken — a person who
+ *  takes over while the game is still starting is driving, and the arm must not override them. */
 export function setModelPlayAutoplay(documentId: string, on: boolean, by: ModelPlayAutoplayBy): void {
   const now = modelPlayAutoplay(documentId);
   if (on && !playing.has(documentId))
-    throw new Error(`Nothing is playing in ${documentId}, so there is no bot to switch on; \`play\` starts it.`);
+    throw new Error(`Autoplay is available once the game is running, and nothing is playing in ${documentId}; \`play\` starts it, then \`play autoplay on\`.`);
+  const clock = modelPlayClock(documentId);
   if (on && !now.available)
-    throw new Error('This game provides no bot: its play script registers none with `play.autoplay(controller)`.');
-  if (now.on !== on) setAutoplay(documentId, { on, by });
+    throw new Error(clock.running
+      ? 'No autoplay: this game doesn’t provide a bot — its play script registers none with `play.autoplay(controller)`.'
+      : `Autoplay is available once the game is running, and it is not running yet${clock.failure ? ` (${clock.failure})` : ''}.`);
+  if (on ? !now.on : now.on || now.armed) setAutoplay(documentId, on ? { on, by } : { on, by, armed: false });
+}
+
+/** Arm (or disarm) autoplay for the next start, while stopped: the Game panel's Autoplay button
+ *  before Play. Disarming always succeeds. */
+export function armModelPlayAutoplay(documentId: string, armed: boolean): void {
+  if (armed && playing.has(documentId))
+    throw new Error(`${documentId} is already playing; switch autoplay on instead of arming it.`);
+  if (modelPlayAutoplay(documentId).armed !== armed) setAutoplay(documentId, { armed });
+}
+
+/** The runner's report that a script has run its first update, offering a bot or not. An arm is
+ *  taken here: on with a bot, dropped without one. */
+export function settleModelPlayAutoplay(documentId: string, offered: boolean): void {
+  const now = modelPlayAutoplay(documentId);
+  if (!playing.has(documentId)) return;
+  if (!now.armed) { setModelPlayAutoplayAvailable(documentId, offered); return; }
+  setAutoplay(documentId, offered ? { available: true, armed: false, on: true, by: 'panel' } : { available: false, armed: false, by: 'script' });
 }
 
 /** The runner's report of whether the running script offers a bot. Losing it turns autoplay off. */
