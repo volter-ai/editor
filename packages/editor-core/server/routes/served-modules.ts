@@ -126,7 +126,7 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
             message:
               'This session is serving no Volter product, so there is no editor for the Code-OSS ' +
               'frame to import. A product is the running program — the editor IS ' +
-              '@volter/game-editor or @volter/model-editor — and which one runs is what the project ' +
+              '@volter/game-editor or @volter/cyclotron — and which one runs is what the project ' +
               `installed. Install one and run ${commandLine('edit')} again:\n` +
               `${PRODUCT_INSTALL_LINES.join('\n')}`,
           },

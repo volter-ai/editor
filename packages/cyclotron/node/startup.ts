@@ -29,6 +29,6 @@ export async function startupProject(
     // overwritten or turned into a project, even if it has the same name.
     if (!hasManifest(targetDir)) continue;
     const pkg = JSON.parse(await readFile(join(targetDir, 'package.json'), 'utf8'));
-    if (pkg.dependencies?.['@volter/model-editor'] || pkg.devDependencies?.['@volter/model-editor']) return targetDir;
+    if (pkg.dependencies?.['@volter/cyclotron'] || pkg.devDependencies?.['@volter/cyclotron']) return targetDir;
   }
 }

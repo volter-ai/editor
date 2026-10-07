@@ -20,7 +20,7 @@ import { upgradeProject, UPGRADE_USAGE } from '@volter/editor-sdk/session/projec
 
 // The command and the name a person sees are the package's own declarations
 // (`bin`, `volter.product.displayName`), the same ones the session reads.
-const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'model-editor', displayName: productPackage.volter.product.displayName, command: Object.keys(productPackage.bin)[0]! };
+const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'cyclotron', displayName: productPackage.volter.product.displayName, command: Object.keys(productPackage.bin)[0]! };
 
 try {
   // Explicit args: a project's .mcp.json starts this CLI under `node --eval`, where parseArgs'
@@ -47,7 +47,7 @@ try {
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Model Editor\n  volter-model-editor                 # open this project, or prepare your starter model\n  volter-model-editor create <folder> [--template models|playable] [--workbench <dir>]\n  volter-model-editor ${ADD_PLAY_USAGE}\n  volter-model-editor ${UPGRADE_USAGE}\n  volter-model-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-model-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  volter-model-editor ${CHAT_USAGE}\n  volter-model-editor status | console | close    # exit 1 for an unresolved console error; warnings print, exit 0\n  volter-model-editor console ack <id> --reason <text>\n  volter-model-editor eval <JavaScript> | --list\n  volter-model-editor ${PLAY_LOG_USAGE}    # what the running model play script logged\n  volter-model-editor ${SCREENSHOT_USAGE}\n  volter-model-editor ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  volter-model-editor ${CAMERA_USAGE}\n  volter-model-editor ${PLAY_USAGE}    # the Game panel's controls\n  volter-model-editor ${HOSTED_USAGE}\n  volter-model-editor sessions | project | projects\n  volter-model-editor open <path>\n  volter-model-editor blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
+    console.log(`Volter Cyclotron\n  cyclotron                 # open this project, or prepare your starter model\n  cyclotron create <folder> [--template models|playable] [--workbench <dir>]\n  cyclotron ${ADD_PLAY_USAGE}\n  cyclotron ${UPGRADE_USAGE}\n  cyclotron prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  cyclotron edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  cyclotron ${CHAT_USAGE}\n  cyclotron status | console | close    # exit 1 for an unresolved console error; warnings print, exit 0\n  cyclotron console ack <id> --reason <text>\n  cyclotron eval <JavaScript> | --list\n  cyclotron ${PLAY_LOG_USAGE}    # what the running model play script logged\n  cyclotron ${SCREENSHOT_USAGE}\n  cyclotron ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  cyclotron ${CAMERA_USAGE}\n  cyclotron ${PLAY_USAGE}    # the Game panel's controls\n  cyclotron ${HOSTED_USAGE}\n  cyclotron sessions | project | projects\n  cyclotron open <path>\n  cyclotron blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
   } else if (verb === 'play') {
     console.log(JSON.stringify(await play(positionals.slice(1), values.document), null, 2));
   } else if (verb === 'chat') {
@@ -55,11 +55,11 @@ try {
   } else if (verb === 'hosted') {
     await hostedControl(PRODUCT.command, positionals.slice(1));
   } else if (verb === 'blender-mcp') {
-    if (positionals.length !== 1) throw new Error('Usage: volter-model-editor blender-mcp');
+    if (positionals.length !== 1) throw new Error('Usage: cyclotron blender-mcp');
     let project = resolve(process.cwd());
     while (!hasManifest(project)) {
       const parent = dirname(project);
-      if (parent === project) throw new Error('Run volter-model-editor blender-mcp inside a modeling project.');
+      if (parent === project) throw new Error('Run cyclotron blender-mcp inside a modeling project.');
       project = parent;
     }
     const { serveBlenderMcp } = await import('@volter/editor-blender/mcp');
@@ -83,34 +83,34 @@ try {
       });
     }, PRODUCT.command);
   } else if (verb === 'play-log') {
-    if (positionals.length > 1) throw new Error(`Usage: volter-model-editor ${PLAY_LOG_USAGE}`);
+    if (positionals.length > 1) throw new Error(`Usage: cyclotron ${PLAY_LOG_USAGE}`);
     await playLog(values);
   } else if (verb === 'add-play') {
-    if (positionals.length > 2) throw new Error(`Usage: volter-model-editor ${ADD_PLAY_USAGE}`);
+    if (positionals.length > 2) throw new Error(`Usage: cyclotron ${ADD_PLAY_USAGE}`);
     await addPlay(folder);
   } else if (verb === 'upgrade') {
-    if (positionals.length > 2) throw new Error(`Usage: volter-model-editor ${UPGRADE_USAGE}`);
+    if (positionals.length > 2) throw new Error(`Usage: cyclotron ${UPGRADE_USAGE}`);
     await upgradeProject({ packageName: PRODUCT.packageName, command: PRODUCT.command, dir: productRoot }, positionals[1]);
   } else if (verb === 'camera') {
-    if (positionals.length > 1) throw new Error(`Usage: volter-model-editor ${CAMERA_USAGE}`);
+    if (positionals.length > 1) throw new Error(`Usage: cyclotron ${CAMERA_USAGE}`);
     await camera(values);
   } else if (verb === 'capture') {
-    if (positionals.length > 1) throw new Error(`Usage: volter-model-editor ${CAPTURE_USAGE}`);
+    if (positionals.length > 1) throw new Error(`Usage: cyclotron ${CAPTURE_USAGE}`);
     await capture(values);
   } else if (verb === 'screenshot') {
-    if (positionals.length > 2) throw new Error(`Usage: volter-model-editor ${SCREENSHOT_USAGE}`);
+    if (positionals.length > 2) throw new Error(`Usage: cyclotron ${SCREENSHOT_USAGE}`);
     await screenshot(positionals[1], values);
   } else if (verb === 'sessions' || verb === 'project' || verb === 'projects') {
-    if (positionals.length > 1) throw new Error(`Usage: volter-model-editor ${verb}`);
+    if (positionals.length > 1) throw new Error(`Usage: cyclotron ${verb}`);
     await (verb === 'sessions' ? listSessions() : verb === 'project' ? showProject() : listRecentProjects());
   } else if (verb === 'prepare') {
-    if (positionals.length > 2) throw new Error('Usage: volter-model-editor prepare [folder]');
+    if (positionals.length > 2) throw new Error('Usage: cyclotron prepare [folder]');
     await prepareSession(folder, PRODUCT);
   } else if (verb === 'open') {
-    if (positionals.length !== 2) throw new Error('Usage: volter-model-editor open <path>');
+    if (positionals.length !== 2) throw new Error('Usage: cyclotron open <path>');
     await openProject(positionals[1]!, PRODUCT.command);
   } else if (verb === 'console' && positionals[1] === 'ack') {
-    if (positionals.length !== 3 || !values.reason?.trim()) throw new Error('Usage: volter-model-editor console ack <id> --reason <text>');
+    if (positionals.length !== 3 || !values.reason?.trim()) throw new Error('Usage: cyclotron console ack <id> --reason <text>');
     await control(PRODUCT.command, 'console-ack', positionals[2], values.reason);
   } else if (['status', 'console', 'eval', 'close'].includes(verb)) {
     if (positionals.length > (verb === 'eval' ? 2 : 1)) throw new Error('Unexpected arguments.');
@@ -121,13 +121,13 @@ try {
     if (verb === 'create') {
       if (!positionals[1]) throw new Error('create requires a new folder name.');
       if (values.workbench) resolveWorkbench(resolve(values.workbench), PRODUCT.id);
-      console.log(`Creating Model Editor project at ${resolve(folder)}…`);
+      console.log(`Creating Cyclotron project at ${resolve(folder)}…`);
       await declaration.create({ name: folder.split(/[\\/]/).at(-1)!, targetDir: resolve(folder), ...(values.template ? { template: values.template } : {}) });
       if (values.workbench) writeWorkbenchDeclaration(resolve(folder), resolve(values.workbench));
 
     }
     const project = verb === 'edit' && positionals.length < 2 ? await startupProject(declaration.create) : folder;
-    console.log(`Opening Model Editor for ${resolve(project)}…`);
+    console.log(`Opening Cyclotron for ${resolve(project)}…`);
     await launch(project, PRODUCT, {
       ...(values.workbench ? { workbench: values.workbench } : {}),
       ...(values['no-open'] ? { noOpen: true } : {}),

@@ -1,6 +1,6 @@
-# Model Editor project
+# Cyclotron project
 
-This project opens in Volter Model Editor. Blender runs in the editor's live
+This project opens in Volter Cyclotron. Blender runs in the editor's live
 worker; the project-local `blender` MCP server connects to that same session.
 
 ## You are working in front of an audience
@@ -28,13 +28,13 @@ the person should rarely wait more than a minute without seeing the work move.
 
 1. Say in Chat, in a sentence or two, what you are going to build.
 2. Open the document you will work in and frame it:
-   `npx --no-install volter-model-editor camera --position x,y,z --target x,y,z`
+   `npx --no-install cyclotron camera --position x,y,z --target x,y,z`
    (Blender metres, Z up). For a game in a models-only project, run
-   `npx --no-install volter-model-editor add-play` first, then `npm install`,
+   `npx --no-install cyclotron add-play` first, then `npm install`,
    and reload the editor once as `add-play` says, before your first build step.
 3. Put the `Build Notes` board beside the work with the plan and current step.
 4. Check what the person sees:
-   `npx --no-install volter-model-editor capture --region document`.
+   `npx --no-install cyclotron capture --region document`.
 
 Only then read packages or write scripts. The editor nudges you in Chat when
 nothing visible has changed for a minute during your turn; treat that as the
@@ -250,7 +250,7 @@ For a behavior-only repair, preserve the established appearance.
 - Implement and run the game inside the editor. Continue an existing game's
   runtime and source organization. For a new model-based game,
   use the `playable` template; in an existing models-only project run
-  `npx --no-install volter-model-editor add-play` (it never overwrites files).
+  `npx --no-install cyclotron add-play` (it never overwrites files).
   Its `src/models/*.play.ts` scripts implement
   gameplay; the Play control runs them on a detached copy of the model.
   When extending an existing model-based project, declare `@volter/editor-model-play`
@@ -276,7 +276,7 @@ For a behavior-only repair, preserve the established appearance.
   by a surface, by object name); checkpoints, pickups, score and inventory
   changes; deaths, failures and finishes with their cause and position. Log
   transitions rather than every frame, so a full run stays readable.
-- Read the gameplay log with `npx --no-install volter-model-editor play-log
+- Read the gameplay log with `npx --no-install cyclotron play-log
   [--since <simTime>] [--kind <kind>]` during and after each autoplay or manual
   run, and explain what happened from it before
   changing code: where autoplay stalled or died and why, and whether that is a
@@ -357,7 +357,7 @@ Do not call `editor.reloadPage()` just to reveal new files, UI boards, reference
 or gameplay scripts. A page reload interrupts the visible editor and its chat;
 reserve it for an explicitly requested reload or a diagnosed problem that needs it.
 
-The project-local CLI is `npx --no-install volter-model-editor`: `status`,
+The project-local CLI is `npx --no-install cyclotron`: `status`,
 `console`, `eval --list`, and `chat status` expose the current editor and AI
 session. `chat send "your prompt"` sends to the same visible conversation;
 `chat stop` stops its current turn. Inspect the transcript and pending requests
@@ -367,7 +367,7 @@ In `eval`, explicitly `return` any result you need to inspect; for example,
 objects rather than assuming globals from another tool runner.
 If the project uses a Volter World, run app and test commands through that World.
 
-Common commands, all through `npx --no-install volter-model-editor`:
+Common commands, all through `npx --no-install cyclotron`:
 `camera --position x,y,z --target x,y,z [--fov n]` poses the open document's
 view in Blender metres, Z up. In eval, `editor.present({ version: 1, viewport:
 { camera } })` takes stage space, Y up: a Blender point (x, y, z) is

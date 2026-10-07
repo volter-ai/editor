@@ -24,7 +24,7 @@ const BARE = new Set(['state', 'play', 'stop', 'pause', 'resume', 'restart']);
 
 export async function play(args: readonly string[], document?: string): Promise<unknown> {
   const [verb = 'state', value, ...rest] = args;
-  const usage = (): never => { throw new Error(`Usage: volter-model-editor ${PLAY_USAGE}`); };
+  const usage = (): never => { throw new Error(`Usage: cyclotron ${PLAY_USAGE}`); };
   if (rest.length > 0) usage();
   let commandArgs: Record<string, unknown> | undefined;
   if (BARE.has(verb)) {
@@ -84,9 +84,9 @@ async function startedOrRefused(first: unknown, state: (args: Record<string, unk
     if (typeof failure === 'string' && failure !== '')
       throw new Error(
         `Play did not start: ${failure}\n` +
-          `The play log has the entry: volter-model-editor play-log --kind script-error${documentId ? ` --document ${documentId}` : ''}`,
+          `The play log has the entry: cyclotron play-log --kind script-error${documentId ? ` --document ${documentId}` : ''}`,
       );
-    if (current.playing === false) throw new Error('Play switched itself off before a game started; `volter-model-editor console` says why.');
+    if (current.playing === false) throw new Error('Play switched itself off before a game started; `cyclotron console` says why.');
     if (current.clock?.running === true || (!knowsRunning && Date.now() >= oldToolBy)) break;
     const now = Date.now();
     if (now - lastProgressAt >= PROGRESS_EVERY_MS) {

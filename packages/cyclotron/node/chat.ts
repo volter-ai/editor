@@ -13,7 +13,7 @@ interface ChatState {
 export async function chat(args: string[]): Promise<unknown> {
   const [action, prompt] = args;
   if (!['status', 'send', 'stop'].includes(action ?? '') || args.length !== (action === 'send' ? 2 : 1) ||
-      (action === 'send' && !prompt?.trim())) throw new Error(`Usage: volter-model-editor ${CHAT_USAGE}`);
+      (action === 'send' && !prompt?.trim())) throw new Error(`Usage: cyclotron ${CHAT_USAGE}`);
   const { editor } = await connect();
   const state = await editor.command('supercode.frontend.status', true) as ChatState;
   const view = await editor.command('volter.chat.inspect') as { sessionResource?: string };

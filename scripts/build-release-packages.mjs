@@ -61,9 +61,9 @@ const steps=[
   ['@volter/editor-blender',()=>run('@volter/editor-blender','build')],
   ['@volter/editor-react',()=>run('@volter/editor-react','build')],
   ['@volter/editor-xstate',()=>run('@volter/editor-xstate','build')],
-  ['@volter/model-editor',()=>{
-    run('@volter/model-editor','build:node','node-bundle-meta.json');
-    product('model-editor','product-bundle-inputs.json');
+  ['@volter/cyclotron',()=>{
+    run('@volter/cyclotron','build:node','node-bundle-meta.json');
+    product('cyclotron','product-bundle-inputs.json');
   }],
   ['@volter/game-editor',()=>{
     run('@volter/game-editor','build:node','game-editor-node-bundle-meta.json');

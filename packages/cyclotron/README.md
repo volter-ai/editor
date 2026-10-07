@@ -1,14 +1,14 @@
-# Model Editor by VideoGame AI
+# Cyclotron by VideoGame AI
 
 A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
 
 ```bash
-npx @volter/model-editor create my-race --template playable
+npx @volter/cyclotron create my-race --template playable
 ```
 
 Node.js 24
 
-For a model, run `npx @volter/model-editor` without arguments. It opens the current
+For a model, run `npx @volter/cyclotron` without arguments. It opens the current
 project, or prepares `~/Documents/Volter Models/Untitled Model` with a saved cube
 and Chat ready. Later launches reopen that starter and preserve your edits.
 
@@ -48,7 +48,7 @@ Timeline, playing the file's animation. Each model keeps your choice for the ses
   matches a static 3D scene and React UI screenshot to the visual reference
   before implementing gameplay, including framing, palette and color management.
 - New projects include `tsconfig.json` before the editor opens, ready for TypeScript play scripts and React UI source.
-- From the project folder, `npx --no-install volter-model-editor chat status`,
+- From the project folder, `npx --no-install cyclotron chat status`,
   `chat send "your prompt"`, and `chat stop` control the same conversation visible
   in the editor. `send` requests a native Chat submission; its
   `submissionConfirmed: false` receipt does not confirm a started turn.
@@ -56,7 +56,7 @@ Timeline, playing the file's animation. Each model keeps your choice for the ses
 
 ## Commands
 
-Run from the project folder with `npx --no-install volter-model-editor <command>`;
+Run from the project folder with `npx --no-install cyclotron <command>`;
 `--help` prints the full list.
 
 | Command | What it does |
@@ -80,4 +80,4 @@ Run from the project folder with `npx --no-install volter-model-editor <command>
 
 [Licences and notices](https://github.com/volter-ai/editor/blob/main/LICENSE.md)
 
-[Model Editor by VideoGame AI](https://model-editor.videogame.ai) · [Source on GitHub](https://github.com/volter-ai/editor)
+[Cyclotron by VideoGame AI](https://cyclotron.videogame.ai) · [Source on GitHub](https://github.com/volter-ai/editor)

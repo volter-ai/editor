@@ -1,11 +1,11 @@
 /*---------------------------------------------------------------------------------------------
- *  THE MODEL EDITOR'S WORKBENCH HALF — everything about this build that is Blender's rather
+ *  CYCLOTRON'S WORKBENCH HALF — everything about this build that is Blender's rather
  *  than the editor kit's.
  *
- *  THIS FILE LIVES IN THIS REPOSITORY (`packages/model-editor/workbench/src/`) and is OVERLAID on a
+ *  THIS FILE LIVES IN THIS REPOSITORY (`packages/cyclotron/workbench/src/`) and is OVERLAID on a
  *  Code-OSS checkout at a pin by `scripts/workbench/overlay.mjs --product editor`. Edit it here.
  *
- *  It is the counterpart of `packages/model-editor/src/index.ts`, which composes the SAME
+ *  It is the counterpart of `packages/cyclotron/src/index.ts`, which composes the SAME
  *  product in the editor's own realm: that file says which packages this editor is, what it
  *  looks like and what workspace it opens; this one says what the WORKBENCH around them is
  *  called, what it says when it asks for trust, and which of this build's theme artifacts the
@@ -54,7 +54,7 @@ import { registerVolterProduct, type VolterProductCover, type VolterProductCover
 /**
  * THE NODE EDITOR'S OWN BACKDROP — U8's ruling (2), and I5's open item.
  *
- * The colour id and its row are the MODEL EDITOR's, because both halves are: the utility is
+ * The colour id and its row are CYCLOTRON's, because both halves are: the utility is
  * `@volter/editor-blender`'s node editor and the value is `theme-blender`'s traced `TH_BACK`. The kit
  * keeps the generic `volter.view.background` that every other view resolves to. The default is
  * null for the reason `volterColors.ts` states: a default of `#1a1a1a` would make an unthemed
@@ -96,7 +96,7 @@ interface DocumentsSource {
  * whose own comment states the rule; `ready` below was written afterwards with the
  * naive predicate and inherited it.
  *
- * MEASURED, walk 5 beat 3, on a fresh `model-editor create` scaffold: after `View:
+ * MEASURED, walk 5 beat 3, on a fresh `cyclotron create` scaffold: after `View:
  * Close Editor` the session answered `openDocumentIds:
  * ["tool:blender-timeline.document"]`, `activeDocumentId:
  * "tool:blender-timeline.document"` — so `Volter Editor: Open Workspace` re-ran, `ready`
@@ -131,7 +131,7 @@ const MODEL_OPEN_NARRATE_AFTER_MS = 30_000;
 let splash: { say(text: string): void } | undefined;
 
 registerVolterProduct({
-	id: 'model-editor',
+	id: 'cyclotron',
 	layout: {
 		sidebarWidth: 255,
 		containers: [
@@ -146,14 +146,14 @@ registerVolterProduct({
 			},
 		],
 	},
-	title: localize('volterModelTitle', "Volter Model Editor"),
-	// The package's own `bin` (packages/model-editor/package.json), named in the kit's messages.
-	command: 'volter-model-editor',
+	title: localize('volterModelTitle', "Volter Cyclotron"),
+	// The package's own `bin` (packages/cyclotron/package.json), named in the kit's messages.
+	command: 'cyclotron',
 	// The workbench's own trust prompt, in this product's words: what actually runs when the
 	// folder is trusted is this project's contributions, its dev server and Blender itself in
-	// the tab's worker. A model editor has no game, which is what the one shared sentence used
+	// the tab's worker. Cyclotron has no game, which is what the one shared sentence used
 	// to claim for both products.
-	trustSentence: localize('volterModelTrustRequest', "Volter Model Editor runs this project's own code — its editor contributions, its dev server, and Blender itself in this tab. Trust this folder to open it."),
+	trustSentence: localize('volterModelTrustRequest', "Volter Cyclotron runs this project's own code — its editor contributions, its dev server, and Blender itself in this tab. Trust this folder to open it."),
 	// THIS PRODUCT'S OWN SPLASH (F4). The kit owns the cover's mechanism — when it goes up,
 	// that it comes away whole, what a refusal looks like; this is the picture inside it, in
 	// Blender's own palette and this product's own words, drawn with no image to fetch so the
@@ -173,7 +173,7 @@ registerVolterProduct({
 		);
 		axes.append(group, $.SVG<SVGElement>('circle', { cx: '24', cy: '28', r: '3.2', fill: '#e6e6e6' }));
 		const title = $('.volter-model-cover-title');
-		title.textContent = localize('volterModelCoverTitle', "Model");
+		title.textContent = localize('volterModelCoverTitle', "Cyclotron");
 		const folder = $('.volter-model-cover-folder');
 		folder.textContent = context.folderName;
 		const state = $('.volter-model-cover-state');
@@ -217,7 +217,7 @@ registerVolterProduct({
 				timer = mainWindow.setInterval(() => {
 					const elapsed = Date.now() - startedAt;
 					if (elapsed < MODEL_OPEN_NARRATE_AFTER_MS) { return; }
-					splash?.say(localize('volterModelCoverSlow', "Waiting for the first model to open ({0}s). `volter-model-editor status` says what the editor is doing.", Math.round(elapsed / 1000)));
+					splash?.say(localize('volterModelCoverSlow', "Waiting for the first model to open ({0}s). `cyclotron status` says what the editor is doing.", Math.round(elapsed / 1000)));
 				}, 1000);
 				unsubscribe = registry.subscribe?.(() => { if (open()) { stop(); resolve(); } });
 				// One more read after subscribing: the document can land between the check
@@ -240,7 +240,7 @@ registerVolterProduct({
 // ---- Native VS Code beside the volter panels: the Explorer on the opposite side bar, and the
 // active model's SOURCE in VS Code's own text editor, split next to the Model document.
 //
-// IT IS THE MODEL EDITOR'S, not the kit's: what it opens is the `<name>.py` beside a
+// IT IS CYCLOTRON'S, not the kit's: what it opens is the `<name>.py` beside a
 // `<name>.blend`, which is Blender's own authoring pair (ARCHITECTURE-CORE §Blender north
 // star). A product editing something else has a different sibling or none.
 registerAction2(class extends Action2 {

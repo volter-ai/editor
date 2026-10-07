@@ -1,7 +1,7 @@
 Blender look — theme-blender
 
-This extension is the MODEL EDITOR's, and it lives in the volter-ai/editor
-repository (`packages/model-editor/workbench/extensions/theme-blender/`). It is
+This extension is CYCLOTRON's, and it lives in the volter-ai/editor
+repository (`packages/cyclotron/workbench/extensions/theme-blender/`). It is
 copied into a Code-OSS checkout at build time by
 `scripts/workbench/overlay.mjs`, so in a built workbench it sits under
 `extensions/theme-blender/` beside Code-OSS's own MIT extensions. This
@@ -44,7 +44,7 @@ drawings and re-points `blender-product-icon-theme.json` at them; the theme
 colours and the layout defaults in `package.json` are unaffected.
 
 THE UI FONT. The Blender look also loads `Inter.woff2`, which this product
-carries beside its contribution (`packages/model-editor/workbench/src/media/`)
+carries beside its contribution (`packages/cyclotron/workbench/src/media/`)
 and the overlay copies into the workbench under
 `src/vs/workbench/contrib/volterProduct/browser/media/`. It is the Inter typeface,
 copyright (c) 2016 The Inter Project Authors, under the SIL Open Font License

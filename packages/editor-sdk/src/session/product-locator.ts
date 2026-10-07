@@ -2,7 +2,7 @@
  * WHICH PRODUCT OPENS THIS PROJECT — one declaration, one resolver.
  *
  * A PRODUCT is the running program (ARCHITECTURE-CORE §The target shape, rule
- * 4): `@volter/game-editor` and `@volter/model-editor` each stitch packages onto
+ * 4): `@volter/game-editor` and `@volter/cyclotron` each stitch packages onto
  * the editor kit in code and each carry a `bin`. **Which product runs is never
  * a switch** — there is no `--product` flag, no id in the manifest, no setting,
  * the same way a folder never names which VS Code opens it and a `.blend` never
@@ -133,7 +133,7 @@ export interface ProductIdentity {
  *  products, because a person choosing between them is choosing what they are
  *  building, not a flag. */
 export const PRODUCT_INSTALL_LINES = [
-  '  npm install --save-dev @volter/model-editor',
+  '  npm install --save-dev @volter/cyclotron',
   '  npm install --save-dev @volter/game-editor',
 ] as const;
 
@@ -306,7 +306,7 @@ function readPlatformWorkbench(manifestPath: string, declared: unknown, example:
 }
 
 /**
- * A product's SHORT id — `@volter/model-editor` → `model-editor`.
+ * A product's SHORT id — `@volter/cyclotron` → `cyclotron`.
  *
  * It is the product's own `product({ id })`, the directory its workbench half
  * lives in (`packages/<id>/workbench`), the `--product` flag the overlay and the

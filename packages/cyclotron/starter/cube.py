@@ -37,7 +37,7 @@ either way.
 Run it through the session's Blender, from this project:
 
     # The agent uses the blender server declared in .mcp.json. It starts
-    # Node with this project's installed Model Editor CLI (no npm/bin shim).
+    # Node with this project's installed Cyclotron CLI (no npm/bin shim).
     # Or, in a live editor session:
     # editor.blender('blender-execute', { code: open('src/models/cube.py').read() })
 

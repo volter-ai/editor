@@ -1,5 +1,5 @@
 {
-  "name": "@volter/model-editor",
+  "name": "@volter/cyclotron",
   "author": "Volter AI, Inc.",
   "version": "0.5.189",
   "publishConfig": {
@@ -11,7 +11,7 @@
   },
   "license": "AGPL-3.0-only AND GPL-3.0-or-later AND MIT",
   "description": "A free, open-source game editor by VideoGame AI using Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.",
-  "homepage": "https://model-editor.videogame.ai",
+  "homepage": "https://cyclotron.videogame.ai",
   "keywords": [
     "blender",
     "three.js",
@@ -26,7 +26,7 @@
   "repository": {
     "type": "git",
     "url": "git+https://github.com/volter-ai/editor.git",
-    "directory": "packages/model-editor"
+    "directory": "packages/cyclotron"
   },
   "files": [
     "README.md",
@@ -50,7 +50,7 @@
   "volter": {
     "product": {
       "entry": "./src/index.ts",
-      "displayName": "Volter Model Editor",
+      "displayName": "Volter Cyclotron",
       "colorTheme": "dark",
       "upgrade": true,
       "workbench": {
@@ -81,6 +81,6 @@
     "undici": "7.29.1"
   },
   "bin": {
-    "volter-model-editor": "./dist-node/cli.js"
+    "cyclotron": "./dist-node/cli.js"
   }
 }

@@ -1,6 +1,6 @@
                                   NOTICE
 
-`packages/model-editor` is licensed under the GNU Affero General Public License,
+`packages/cyclotron` is licensed under the GNU Affero General Public License,
 version 3 only, whose text follows. The capability distribution that is copied
 into users' games is not part of this package: it is
 `packages/game-editor/catalog/project-source/`, licensed MIT.
