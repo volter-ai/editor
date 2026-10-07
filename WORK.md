@@ -1891,3 +1891,20 @@ passed. An exact-source same-camera capture completed and was viewed. It remains
 far too bright and some shapes differ; evaluated meshes with different modifier
 outputs were found sharing export keys and are the next native repair. No visual
 parity or gameplay acceptance is claimed, and no packages were published.
+
+### 2026-10-07 — separate evaluated geometry resources
+
+The native export key no longer aliases different Array, Mirror or deformation
+results merely because they came from one mesh datablock. Unmodified linked
+objects still share their input storage. Object and mesh keys use separate
+namespaces. The public corresponding source is Blender PR 5, commit
+`434072350c0577eb155068d5a1b62bb45daf19f9`; the rebuilt Emscripten 6.0.5
+Release bundle records raw and compressed hashes and passed Brotli round trips.
+
+The native regression passed through the public editor: ordinary linked objects
+share, different Array results remain separate, and every deferred probe vertex
+matches Blender's evaluated data. The courtyard's sampled evaluated-resource
+audit found no remaining conflicting keys. Same-camera captures restore the
+foreground arch opening and roof arrangement, but raster illumination remains
+substantially brighter than native Cycles. This is geometry correctness, not
+visual-parity acceptance. No packages were published.
