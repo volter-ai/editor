@@ -7,7 +7,7 @@
  *
  *  1. SECRETS, always and regardless of anything else: `.env*`, `.envrc`, `*.local`, `.npmrc`,
  *     `.yarnrc.yml`, `.pypirc`, `.netrc`, `.git-credentials`, `.dockercfg`, `credentials*.json`,
- *     `service-account*.json`, a `secrets/` folder or root `secrets.<config>`, `*.tfvars`, `.htpasswd`, `kubeconfig`, `*.db`, `*.sqlite`,
+ *     `service-account*.json`, a `secrets/` folder or a `secrets.<config>` file, `*.tfvars`, `.htpasswd`, `kubeconfig`, `*.db`, `*.sqlite`,
  *     `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `*.jks`, SSH keys (`id_rsa`, `*.ppk`, …).
  *  2. WHAT THE PROJECT IS NOT: dependencies (`node_modules`), build output (`dist*`), `logs`, the
  *     project's `server/`, VCS and tool folders (any dot-folder but `.volter` and `.storybook`).
@@ -43,9 +43,9 @@ const SECRET_FILES: readonly [string, RegExp][] = [
   ['databases (*.db, *.sqlite)', /\.(?:db|sqlite3?)$/i],
 ];
 /** Rule 2: folders that are not the project, at the root. `node_modules` is skipped at any depth. */
-/** Rule 1 by place: a `secrets/` folder at any depth, and a root-level `secrets.<config>` file.
+/** Rule 1 by place: a `secrets/` folder at any depth, and a file named exactly `secrets.<config>` at any depth.
  *  Narrower than any `secrets.*`, so game data such as `src/data/secrets.data.json` stays. */
-const SECRET_PATHS = /(?:^|\/)secrets\/|^secrets\.(?:env|ya?ml|toml|json|ini|txt|conf)$/i;
+const SECRET_PATHS = /(?:^|\/)secrets\/|(?:^|\/)secrets\.(?:env|ya?ml|toml|json|ini|txt|conf)$/i;
 const ROOT_SKIPPED = new Set(['dist', 'dist-ssr', 'dist-wip', 'logs', 'server']);
 /** Rule 3: what of `.volter/` is the project's own. */
 const VOLTER_KEPT = /^\.volter\/(?:settings\.json|themes\/[^/]+\.json)$/;
@@ -177,7 +177,7 @@ export function selectProjectFiles(root: string): ProjectFileSelection {
       }
       if (!entry.isFile()) continue;
       if (SECRET_PATHS.test(path)) {
-        leaveOut('secrets: a secrets/ folder or a root secrets.<config> file');
+        leaveOut('secrets: a secrets/ folder or a secrets.<config> file');
         continue;
       }
       const secret = SECRET_FILES.find(([, pattern]) => pattern.test(entry.name));

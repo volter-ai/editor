@@ -35,7 +35,8 @@ import {
 interface WorkerClient {
   readonly id: string;
   readonly type: string;
-  /** Window clients only: `top-level` for a tab, `nested` for an iframe (the extension host's). */
+  /** Window clients only: `top-level` or `auxiliary` (opened with an opener) for a tab, `nested`
+   *  for an iframe (the extension host's). */
   readonly frameType?: string;
   readonly focused?: boolean;
   readonly visibilityState?: string;
@@ -108,7 +109,7 @@ function recorded(): Promise<LimitedViewRoutes> {
  */
 const pages = new Set<string>();
 const isTab = (client: WorkerClient | undefined): client is WorkerClient =>
-  client !== undefined && client.type === 'window' && client.frameType === 'top-level';
+  client !== undefined && client.type === 'window' && client.frameType !== 'nested';
 
 async function tabsHoldingTheProject(): Promise<WorkerClient[]> {
   const held: WorkerClient[] = [];
