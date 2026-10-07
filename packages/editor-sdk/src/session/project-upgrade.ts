@@ -44,8 +44,8 @@ export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter
 export interface RetiredProduct {
   readonly packageName: string;
   readonly command: string;
-  /** The words a project's own files use for the retired product, longest first, each with the
-   *  words that replace it. */
+  /** The names a project's own files use for the retired product, longest first, each with the
+   *  name that replaces it. Each is replaced only as a whole word. */
   readonly names: readonly (readonly [retired: string, current: string])[];
 }
 
@@ -88,9 +88,11 @@ export function retiredProjectError(product: Pick<UpgradingProduct, 'packageName
 /** The files `create` writes that name the product's package or command, project-relative. */
 const RENAMED_PRODUCT_FILES = ['.mcp.json', '.codex/config.toml', 'AGENTS.md', 'CLAUDE.md'] as const;
 
-/** `command` as a whole word — not a longer command it is the start or the end of. */
-function commandPattern(command: string): RegExp {
-  return new RegExp(`(?<![\\w-])${command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`, 'g');
+/** `text` as a whole word — not part of a longer command, package or name it is the start or the
+ *  end of (`volter-model-editor-x`, `Model Editors`). A path after it (`<package>/package.json`) or
+ *  punctuation (`Model Editor's`) still ends the word. */
+function wholeWord(text: string): RegExp {
+  return new RegExp(`(?<![\\w-])${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`, 'g');
 }
 
 /** `entries` with the key `from` renamed to `to` where it stands, so a rewrite keeps its order. */
@@ -271,7 +273,7 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)) {
       let rewritten = scripts as Record<string, unknown>;
       for (const [name, body] of Object.entries(rewritten)) {
-        const nextBody = typeof body === 'string' ? body.replace(commandPattern(retired.command), product.command) : body;
+        const nextBody = typeof body === 'string' ? body.replace(wholeWord(retired.command), product.command) : body;
         const nextName = name === retired.command && !(product.command in rewritten) ? product.command : name;
         if (nextBody === body && nextName === name) continue;
         rewritten = renameKey(rewritten, name, nextName, nextBody);
@@ -285,8 +287,10 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
       const path = join(project, file);
       if (!existsSync(path)) continue;
       const original = await readFile(path, 'utf8');
-      let content = original.split(retired.packageName).join(product.packageName).replace(commandPattern(retired.command), product.command);
-      for (const [from, to] of retired.names) content = content.split(from).join(to);
+      // Only exact references to the product move — its package, its command and its names, each
+      // as a whole word; any other phrase that happens to contain them is the author's and stays.
+      let content = original.replace(wholeWord(retired.packageName), product.packageName).replace(wholeWord(retired.command), product.command);
+      for (const [from, to] of retired.names) content = content.replace(wholeWord(from), to);
       if (content === original) continue;
       textFiles.push({ path, content, original });
       changed.push(`${file}: names ${product.packageName} and \`${product.command}\``);

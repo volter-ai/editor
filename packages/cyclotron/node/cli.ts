@@ -56,8 +56,12 @@ try {
   for (const [owner, options] of [['capture', CAPTURE_OPTIONS], ['camera', CAMERA_OPTIONS]] as const)
     for (const key of Object.keys(options) as (keyof typeof options)[])
       if (values[key] !== undefined && verb !== owner) throw new Error(`--${key} belongs to ${owner}.`);
-  if (!values.help && !values.version && verb !== 'create' && verb !== 'upgrade')
+  if (!values.help && !values.version && verb !== 'create' && verb !== 'upgrade') {
+    // The project a verb acts on: the folder it names, or the one around the working directory —
+    // and for `open <path>`, the project that owns that path as well, wherever this runs from.
     refuseRetired(['edit', 'add-play', 'prepare'].includes(verb) && positionals.length > 1 ? folder : process.cwd());
+    if (verb === 'open' && positionals[1] !== undefined) refuseRetired(positionals[1]);
+  }
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
