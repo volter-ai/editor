@@ -66,6 +66,7 @@ import {
   type StartupFailureNotice,
 } from '@volter/editor-sdk/kit/startup-failure';
 import {
+  getDocumentToolContributions,
   getToolContributionLoadFailures,
   subscribeToolContributions,
   toolContributionsPublished,
@@ -1091,22 +1092,44 @@ export interface VolterStartupHandle {
 
 /**
  * A CONFIRMED DEAD END, not a slow start (#147 re-review): the workspace has restored, the
- * project's contributions have loaded — and some FAILED — and no document is open. The
- * product's cover waits for a document to open; with the package that registers it unloadable,
- * none ever will, and the cover would narrate a wait with nothing behind it. So it is said, with
- * the failed modules and the fix, through the same startup-failure door the cover hears. A
- * document that opens after all (a reload of a fixed package) withdraws it.
+ * project's contributions have loaded — and some FAILED — NO document kind is registered, and
+ * no document is open. The product's cover waits for a document to open; with every package
+ * that registers one unloadable, none ever will, and the cover would narrate a wait with nothing
+ * behind it. So it is said, with the failed modules and the fix, through the same
+ * startup-failure door the cover hears.
+ *
+ * ONLY THAT, AND ONLY DURING STARTUP (follow-up review). A broken optional panel beside a
+ * working document contribution is not a dead end — the document still opens, about 12 s after
+ * mount on the model editor — so a registered document kind settles it. And the first document
+ * to open ends startup: the watcher stops there (withdrawing anything it said), so closing the
+ * last document later in a working editor never raises a refusal nobody can see. A remount
+ * stops the previous mount's watcher first.
  */
 const NO_DOCUMENT_SOURCE = 'no-document';
+let stopNoDocumentWatch: (() => void) | null = null;
 function watchForNoDocumentDeadEnd(): void {
+  stopNoDocumentWatch?.();
+  let stopped = false;
+  const unsubscribers: (() => void)[] = [];
+  const stop = (): void => {
+    stopped = true;
+    for (const unsubscribe of unsubscribers.splice(0)) unsubscribe();
+    clearStartupFailure(NO_DOCUMENT_SOURCE);
+    if (stopNoDocumentWatch === stop) stopNoDocumentWatch = null;
+  };
+  stopNoDocumentWatch = stop;
   void waitForWorkspaceStateRestore().then(() => {
+    if (stopped) return;
     let said: string | null = null;
     const check = (): void => {
-      const open = openWorkspaceDocuments().some((document) => !document.descriptor.area);
-      if (open) { said = null; clearStartupFailure(NO_DOCUMENT_SOURCE); return; }
+      if (stopped) return;
+      if (openWorkspaceDocuments().some((document) => !document.descriptor.area)) { stop(); return; }
       if (!toolContributionsPublished()) return;
       const failures = getToolContributionLoadFailures();
-      if (failures.length === 0) return;
+      if (getDocumentToolContributions().length > 0 || failures.length === 0) {
+        if (said !== null) { said = null; clearStartupFailure(NO_DOCUMENT_SOURCE); }
+        return;
+      }
       const listed = failures.map((failure) => `${failure.entryPath}: ${failure.error.split('\n')[0]}`).join('\n');
       if (listed === said) return;
       said = listed;
@@ -1117,8 +1140,7 @@ function watchForNoDocumentDeadEnd(): void {
         command: null,
       });
     };
-    subscribeToolContributions(check);
-    subscribeWorkspaceDocuments(check);
+    unsubscribers.push(subscribeToolContributions(check), subscribeWorkspaceDocuments(check));
     check();
   });
 }
