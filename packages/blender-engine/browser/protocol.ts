@@ -181,6 +181,8 @@ export interface RenderRequest {
    *  `'None'` means the base transform; anything else is a look the view holds
    *  a baked table for, because the renderer refuses the rest by name. */
   look?: string;
+  /** Display gamma, applied after the view transform; alpha is unaffected. */
+  gamma?: number;
   /** Hand back the SCENE-REFERRED half-float frame too. An EXR is written
    *  from it, and so is the COMPOSITOR's input. */
   linear?: boolean;

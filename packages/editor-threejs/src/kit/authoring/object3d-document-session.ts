@@ -3,6 +3,7 @@ import { resetViewPresentation, setViewPresentation, type ViewportXray } from '@
 import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
 import type { AuthoringAdapter } from '@volter/editor-project/adapter';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
+import { resolveSceneLinearSize } from '@volter/editor-threejs/capture/linear-resolve';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import { setUserData } from '@volter/editor-threejs/ecs/user-data';
 import {
@@ -13,6 +14,7 @@ import {
 import type { EffectComposer, EffectPass, RenderPass } from 'postprocessing';
 import * as THREE from 'three';
 import { DepthDrawMaterials } from '../../render/depth-draw-materials';
+import type { DocumentDisplayTransform } from '../../render/document-display-transform';
 import { threeObject } from '../../adapter/three-contract';
 import { axisViewName, cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
 import { activeKeymapNavigation } from '@volter/editor-sdk/kit/keymap-presets';
@@ -127,6 +129,25 @@ export class Object3DDocumentSession {
   private boneSelectionHighlight: BoneSelectionHighlight | null = null;
   private boneSelectionSignature = '';
   private composer: EffectComposer | null = null;
+  private displayTransform: DocumentDisplayTransform | null = null;
+  private displayTarget: THREE.WebGLRenderTarget | null = null;
+
+  /** Authoring diagnostics retain their studio display; authored materials
+   * and scene-lit views use the integration's color pipeline. */
+  setDisplayTransform(transform: DocumentDisplayTransform | null): void {
+    if (this.displayTransform === transform) return;
+    this.displayTransform = transform;
+    if (!transform) {
+      this.displayTarget?.dispose();
+      this.displayTarget = null;
+    }
+    invalidateStages();
+  }
+
+  private materialDisplayTransform(): DocumentDisplayTransform | null {
+    return this.state.mode === 'rendered' || this.state.mode === 'preview'
+      ? this.displayTransform : null;
+  }
   /** One in-flight `import('postprocessing')` at a time — {@link ensureComposer}
    *  is called from every frame. */
   private composerLoading = false;
@@ -1406,6 +1427,24 @@ export class Object3DDocumentSession {
   renderViewport(deltaSeconds = 0, interactive = false): void {
     this.advanceLook(deltaSeconds);
     this.ensureComposer();
+    const transform = this.materialDisplayTransform();
+    if (transform) {
+      const size = this.renderer.getDrawingBufferSize(new THREE.Vector2());
+      const target = this.displayTarget ??= new THREE.WebGLRenderTarget(size.x, size.y, {
+        type: THREE.HalfFloatType,
+        samples: 4,
+      });
+      target.setSize(size.x, size.y);
+      const previous = this.renderer.getRenderTarget();
+      try {
+        this.renderer.setRenderTarget(target);
+        this.render(camera => this.renderLinearScene(camera, target), interactive);
+        transform.render(this.renderer, target, previous, false);
+      } finally {
+        this.renderer.setRenderTarget(previous);
+      }
+      return;
+    }
     this.render((camera) => {
       const composer = this.composer;
       if (!composer) {
@@ -1491,7 +1530,9 @@ export class Object3DDocumentSession {
     const sceneTarget = new THREE.WebGLRenderTarget(renderWidth, renderHeight, {
       type: THREE.HalfFloatType,
     });
-    const target = new THREE.WebGLRenderTarget(renderWidth, renderHeight);
+    const transform = this.materialDisplayTransform();
+    const target = new THREE.WebGLRenderTarget(transform ? outputWidth : renderWidth, transform ? outputHeight : renderHeight);
+    let resolved: THREE.WebGLRenderTarget | null = null;
     const previousTarget = this.renderer.getRenderTarget();
     const previousPixelRatio = this.renderer.getPixelRatio();
     const perspective = this.viewport.camera;
@@ -1510,25 +1551,24 @@ export class Object3DDocumentSession {
         (camera) => this.renderSolidForCapture(camera, sceneTarget, renderWidth, renderHeight),
         typeof size !== 'number' && size.transparent === true,
       );
-      viewportCaptureOutputPass(typeof size !== 'number' && size.transparent === true).render(
-        this.renderer,
-        target,
-        sceneTarget,
-        0,
-        false,
-      );
+      const straightAlpha = typeof size !== 'number' && size.transparent === true;
+      if (transform) {
+        resolved = resolveSceneLinearSize(this.renderer, sceneTarget, outputWidth, outputHeight);
+        transform.render(this.renderer, resolved, target, straightAlpha);
+      }
+      else viewportCaptureOutputPass(straightAlpha).render(this.renderer, target, sceneTarget, 0, false);
 
-      const rowBytes = renderWidth * 4;
-      const pixels = new Uint8Array(rowBytes * renderHeight);
-      this.renderer.readRenderTargetPixels(target, 0, 0, renderWidth, renderHeight, pixels);
+      const rowBytes = target.width * 4;
+      const pixels = new Uint8Array(rowBytes * target.height);
+      this.renderer.readRenderTargetPixels(target, 0, 0, target.width, target.height, pixels);
       const fullCanvas = document.createElement('canvas');
-      fullCanvas.width = renderWidth;
-      fullCanvas.height = renderHeight;
+      fullCanvas.width = target.width;
+      fullCanvas.height = target.height;
       const fullContext = fullCanvas.getContext('2d');
       if (!fullContext) return null;
-      const imageData = fullContext.createImageData(renderWidth, renderHeight);
-      for (let y = 0; y < renderHeight; y++) {
-        const sourceRow = (renderHeight - 1 - y) * rowBytes;
+      const imageData = fullContext.createImageData(target.width, target.height);
+      for (let y = 0; y < target.height; y++) {
+        const sourceRow = (target.height - 1 - y) * rowBytes;
         const destinationRow = y * rowBytes;
         imageData.data.set(pixels.subarray(sourceRow, sourceRow + rowBytes), destinationRow);
       }
@@ -1555,6 +1595,7 @@ export class Object3DDocumentSession {
       // selection and 4 after a repaint that resized.
       this.composer?.setSize(this.renderWidth, this.renderHeight, false);
       target.dispose();
+      resolved?.dispose();
       sceneTarget.dispose();
       // AND THE VIEW IS DRAWN AGAIN. Sizing the composer clears what the view showed, and a stage
       // that draws on demand had nothing asking it to: on the browser-substrate page every photograph
@@ -1583,6 +1624,9 @@ export class Object3DDocumentSession {
     if (this.selectionOutline)
       releaseThreeSelectionOutline(this.renderer, this.selectionOutline, this.selectionOutlinePass);
     this.composer?.dispose();
+    this.displayTarget?.dispose();
+    this.displayTarget = null;
+    this.displayTransform = null;
     this.sceneRenderPass = null;
     this.selectionOutline = null;
     this.selectionOutlinePass = null;
@@ -1673,7 +1717,9 @@ export class Object3DDocumentSession {
         this.composerLoading = false;
         if (this.disposed || this.composer) return;
         const camera = this.camera();
-        const composer = new postprocessing.EffectComposer(this.renderer);
+        const composer = new postprocessing.EffectComposer(this.renderer, {
+          frameBufferType: THREE.HalfFloatType,
+        });
         this.sceneRenderPass = new postprocessing.RenderPass(this.scene, camera);
         composer.addPass(this.sceneRenderPass);
         this.selectionOutline = acquireThreeSelectionOutline(
@@ -1740,13 +1786,31 @@ export class Object3DDocumentSession {
     const previousWidth = this.renderWidth;
     const previousHeight = this.renderHeight;
     try {
+      composer.setSize(width, height, false);
+      this.renderLinearScene(camera, target);
+    } finally {
+      composer.setSize(previousWidth, previousHeight, false);
+      this.syncComposerOutput();
+      this.renderer.setRenderTarget(target);
+    }
+  }
+
+  /** Live HDR draw at the renderer's CURRENT size. Resizing the composer with
+   * device pixels here would resize the canvas and multiply HiDPI twice on
+   * every frame. Only an offscreen photograph changes its sizing. */
+  private renderLinearScene(camera: THREE.Camera, target: THREE.WebGLRenderTarget): void {
+    const composer = this.composer;
+    const outlined = (this.selectionOutline?.selection.size ?? 0) > 0;
+    if (!composer || !outlined || !this.sceneRenderPass || !this.selectionOutlinePass) {
+      this.renderer.render(this.scene, camera);
+      return;
+    }
+    try {
       this.sceneRenderPass.renderToScreen = false;
       this.selectionOutlinePass.renderToScreen = false;
-      composer.setSize(width, height, false);
       this.sceneRenderPass.render(this.renderer, composer.inputBuffer, composer.outputBuffer, 0);
       this.selectionOutlinePass.render(this.renderer, composer.inputBuffer, target, 0);
     } finally {
-      composer.setSize(previousWidth, previousHeight, false);
       this.syncComposerOutput();
       this.renderer.setRenderTarget(target);
     }
