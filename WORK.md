@@ -2,6 +2,13 @@
 
 ## Blender rendering parity (2026-10-07)
 
+Constant Emission now retains its unlit graph even without linked inputs, and
+Render Result captures resolve four scene-linear samples per output pixel as
+PNG captures already did. An actual WebGL half-red/half-blue one-pixel control
+returns exactly `[0.5, 0, 0.5, 1]`. Roof normal-input error improves but still
+fails; scaled tangent frames and indirect lighting remain under investigation.
+Evidence: `docs/media/blender-emission-capture-sampling-20261007.json`.
+
 Render captures now use the render engine's native RENDER depsgraph, with a
 separate export scope and owned Three capture view. The courtyard's render-only
 cloud planes regain their native transforms. Two native regression runs verify

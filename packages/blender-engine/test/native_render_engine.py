@@ -133,6 +133,27 @@ class NativePreviewIsolation(unittest.TestCase):
 
 
 class RenderExportIsolation(unittest.TestCase):
+    def test_constant_emission_retains_an_unlit_graph(self):
+        tree=ast.parse((Path(__file__).parent.parent/'browser/session.py').read_text())
+        fn=next(n for n in tree.body if isinstance(n,ast.FunctionDef) and n.name=='material_graph')
+        color=SimpleNamespace(name='Color',default_value=[0,0,0,1])
+        strength=SimpleNamespace(name='Strength',default_value=1)
+        surface=SimpleNamespace(bl_idname='ShaderNodeEmission',inputs={'Color':color,'Strength':strength})
+        class Graph:
+            def __init__(self,material):self.nodes={};self.images=set();self.generated=False
+            def source(self,stack,socket):return {'value':socket.default_value}
+        namespace={'_GRAPH_SURFACES':{'ShaderNodeEmission':['Color','Strength']},
+            '_surface_node':lambda tree:(None,surface),'_collapse':lambda stack,node:(stack,node),
+            '_links_into':lambda socket:[], '_MaterialGraph':Graph,'warn':self.fail}
+        exec(compile(ast.Module(body=[fn],type_ignores=[]),'session.py','exec'),namespace)
+        # Blender's socket collection iterates sockets, while indexing by name.
+        class Sockets(dict):
+            def __iter__(self):return iter(self.values())
+        surface.inputs=Sockets(surface.inputs)
+        result=namespace['material_graph'](SimpleNamespace(use_nodes=True,node_tree=object()))
+        self.assertEqual(result['surface'],'ShaderNodeEmission')
+        self.assertEqual(result['inputs'],{'Color':{'value':[0,0,0,1]},'Strength':{'value':1}})
+
     def test_capture_failure_restores_export_scope_and_keeps_authoring_session(self):
         for failure in (False,True):
             events=[]

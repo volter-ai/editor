@@ -23,7 +23,7 @@ test('isolated photographs prepare caller GPU resources through the leased rende
   return ()=>f.order.push('finish');
  }});
  assert.equal(frame.width,4);assert.equal(suppliedRenderer,f.renderer);assert.equal(suppliedCamera,f.camera);
- assert.deepEqual(f.order,['prepare','draw','finish']);assert.equal(f.current(),f.target);
+ assert.deepEqual(f.order,['prepare','draw','draw','finish']);assert.equal(f.current(),f.target);
  assert.equal(f.renderer.toneMapping,3);assert.equal(f.renderer.shadowMap.enabled,false);assert.equal(f.released().discard,false);
 });
 test('failed scene draws finish caller resources and discard the renderer lease',()=>{

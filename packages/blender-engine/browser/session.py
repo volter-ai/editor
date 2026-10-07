@@ -1085,7 +1085,10 @@ def material_graph(material):
     if surface is None or surface.bl_idname not in _GRAPH_SURFACES:
         return None
     sockets = [surface.inputs[name] for name in _GRAPH_SURFACES[surface.bl_idname]]
-    if not any(_links_into(s) for s in sockets):
+    # Emission reflects no light even when its inputs are constants. The
+    # reduced MeshPhysicalMaterial otherwise adds diffuse/specular response
+    # to it (including a black Emission used as an unlit control).
+    if surface.bl_idname != "ShaderNodeEmission" and not any(_links_into(s) for s in sockets):
         return None
     # The door is quiet about a material whose graph ships, so a linked input
     # the graph does not carry is named here.
