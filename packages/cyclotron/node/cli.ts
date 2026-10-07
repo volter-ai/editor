@@ -39,7 +39,7 @@ try {
   // default drops only the exec path and reads the CLI's own path as the verb.
   const { values, positionals } = parseArgs({ args: process.argv.slice(2), allowPositionals: true, options: {
     workbench: { type: 'string' }, template: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
-    port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' },
+    port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' }, all: { type: 'boolean' },
     'existing-session': { type: 'boolean' },
     since: { type: 'string' }, kind: { type: 'string' }, document: { type: 'string' }, json: { type: 'boolean' },
     ...SCREENSHOT_OPTIONS, ...CAPTURE_OPTIONS, ...CAMERA_OPTIONS,
@@ -47,6 +47,7 @@ try {
   const [verb = 'edit', folder = '.'] = positionals;
   if (values.template && verb !== 'create') throw new Error('--template belongs to create.');
   if (values.list && verb !== 'eval') throw new Error('--list belongs to eval.');
+  if (values.all && verb !== 'console') throw new Error('--all belongs to console.');
   if (values['existing-session'] && verb !== 'blender-mcp') throw new Error('--existing-session belongs to blender-mcp.');
   for (const key of Object.keys(SCREENSHOT_OPTIONS) as (keyof typeof SCREENSHOT_OPTIONS)[])
     if (values[key] !== undefined && verb !== 'screenshot') throw new Error(`--${key} belongs to screenshot.`);
@@ -67,7 +68,7 @@ try {
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Cyclotron\n  cyclotron                 # open this project, or prepare your starter model\n  cyclotron create <folder> [--template models|playable] [--workbench <dir>]\n  cyclotron ${ADD_PLAY_USAGE}\n  cyclotron ${UPGRADE_USAGE}\n  cyclotron prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  cyclotron edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  cyclotron ${CHAT_USAGE}\n  cyclotron status | console | close    # exit 1 for an unresolved console error; warnings print, exit 0\n  cyclotron console ack <id> --reason <text>\n  cyclotron eval <JavaScript> | --list\n  cyclotron ${PLAY_LOG_USAGE}    # what the running model play script logged\n  cyclotron ${SCREENSHOT_USAGE}\n  cyclotron ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  cyclotron ${CAMERA_USAGE}\n  cyclotron ${PLAY_USAGE}    # the Game panel's controls\n  cyclotron ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)
+    console.log(`Volter Cyclotron\n  cyclotron                 # open this project, or prepare your starter model\n  cyclotron create <folder> [--template models|playable] [--workbench <dir>]\n  cyclotron ${ADD_PLAY_USAGE}\n  cyclotron ${UPGRADE_USAGE}\n  cyclotron prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  cyclotron edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  cyclotron ${CHAT_USAGE}\n  cyclotron status | console [--all] | close    # exit 1 for an unresolved console error; warnings print, exit 0; --all prints every retained entry\n  cyclotron console ack <id> --reason <text>\n  cyclotron eval <JavaScript> | --list\n  cyclotron ${PLAY_LOG_USAGE}    # what the running model play script logged\n  cyclotron ${SCREENSHOT_USAGE}\n  cyclotron ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  cyclotron ${CAMERA_USAGE}\n  cyclotron ${PLAY_USAGE}    # the Game panel's controls\n  cyclotron ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)
   cyclotron ${HOSTED_USAGE}\n  cyclotron sessions | project | projects\n  cyclotron open <path>\n  cyclotron blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
   } else if (verb === 'play') {
     console.log(JSON.stringify(await play(positionals.slice(1), values.document), null, 2));
@@ -141,7 +142,7 @@ try {
     await control(PRODUCT.command, 'console-ack', positionals[2], values.reason);
   } else if (['status', 'console', 'eval', 'close'].includes(verb)) {
     if (positionals.length > (verb === 'eval' ? 2 : 1)) throw new Error('Unexpected arguments.');
-    await control(PRODUCT.command, verb, values.list ? '--list' : positionals[1]);
+    await control(PRODUCT.command, verb, values.list ? '--list' : values.all ? '--all' : positionals[1]);
   } else {
     if (positionals.length > 2) throw new Error('Unexpected positional arguments.');
     if (verb !== 'create' && verb !== 'edit') throw new Error(`Unknown command: ${verb}`);
