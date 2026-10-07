@@ -6,9 +6,10 @@
 // command comes from the product's own declaration (`volter.product.install`), which the overlay
 // writes into `view-product.json` beside this file.
 //
-// The participant is the workbench's default one. A language model provider answering with the
-// same text is registered too, so a request the workbench routes to a model instead of the
-// participant reads the same sentence rather than "no language model available".
+// The participant is the workbench's default one, and it registers NO language model: with none
+// in the build, the workbench hands every request straight to the default participant
+// (`extHostChatAgents2.ts`'s `getModelForRequest`); one model that is not the default makes every
+// request fail with "Language model unavailable" (measured on the first live view).
 
 const vscode = require('vscode');
 
@@ -69,28 +70,6 @@ async function activate(context) {
 	welcome.isTrusted = { enabledCommands: ['volter.viewChat.copyInstall'] };
 	participant.additionalWelcomeMessage = welcome;
 	context.subscriptions.push(participant);
-
-	if (vscode.lm && typeof vscode.lm.registerLanguageModelChatProvider === 'function') {
-		try {
-			context.subscriptions.push(vscode.lm.registerLanguageModelChatProvider('volter-view', {
-				provideLanguageModelChatInformation: () => [{
-					id: 'volter-view',
-					name: 'Limited view',
-					family: 'volter-view',
-					version: '1',
-					maxInputTokens: 100000,
-					maxOutputTokens: 1000,
-					capabilities: {},
-				}],
-				provideLanguageModelChatResponse: async (_model, _messages, _options, progress) => {
-					progress.report(new vscode.LanguageModelTextPart(text));
-				},
-				provideTokenCount: async (_model, value) => (typeof value === 'string' ? Math.ceil(value.length / 4) : 1),
-			}));
-		} catch {
-			// An API shape this workbench does not have leaves the participant as the only answer.
-		}
-	}
 }
 
 function deactivate() { }

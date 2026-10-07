@@ -115,7 +115,9 @@ export function recordedKey(pathname: string, search: string): { key: string; mo
     const [rawKey = '', ...rest] = pair.split('=');
     const key = decodeURIComponent(rawKey);
     if (BUSTER_KEYS.has(key)) continue;
-    if (key === 'import' && SCRIPT_SOURCE.test(pathname)) continue;
+    // A virtual module (`/__volter-react-world-runtime`, `/@id/…`) has no extension at all and is
+    // compiled the same either way too.
+    if (key === 'import' && (SCRIPT_SOURCE.test(pathname) || !/\.[^/]+$/.test(pathname))) continue;
     if (key === 'volter-mount') {
       mount = decodeURIComponent(rest.join('='));
       kept.push(`volter-mount=${MOUNT_SENTINEL}`);

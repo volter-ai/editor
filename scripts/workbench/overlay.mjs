@@ -281,6 +281,28 @@ function patchWebResources(checkout, tiers) {
 }
 
 /**
+ * THE WEB TARGET'S RESOURCE LIST. `--target web` bundles with upstream's esbuild builder
+ * (`build/next/index.ts`), whose `webResourcePatterns` — not `vscodeWebResourceIncludes` — decide
+ * what is copied beside the bundle. Without our media there, the packaged web workbench 404s on
+ * `volterProduct/browser/media/Inter.woff2` (measured on the first live limited view). Patterns
+ * are relative to `src/`. Idempotent: our lines are stripped and written again.
+ */
+function patchNextWebResources(checkout, tiers) {
+	const relative = 'build/next/index.ts';
+	const path = join(checkout, relative);
+	const anchorLine = 'const webResourcePatterns = [\n\t...commonResourcePatterns,\n';
+	let source = readFileSync(path, 'utf8')
+		.split('\n')
+		.filter((line) => !line.includes('// VOLTER (overlaid tier — web media') && !/^\t'vs\/workbench\/contrib\/volter[A-Za-z]*\/browser\/media\/\*\*',$/.test(line))
+		.join('\n');
+	if (!source.includes(anchorLine)) { fail(`${relative} has no \`const webResourcePatterns = [ ...commonResourcePatterns,\` — upstream moved the web resource list and this patch needs re-aiming.`); }
+	const ours = [KIT_TARGET, PRODUCT_TARGET, ...tiers.map((tier) => `src/vs/workbench/contrib/${tier.contrib}/browser`)]
+		.map((target) => `\t'${target.replace(/^src\//, '')}/media/**',`);
+	source = source.replace(anchorLine, `${anchorLine}\t// VOLTER (overlaid tier — web media, scripts/workbench/overlay.mjs)\n${ours.join('\n')}\n`);
+	writeFileSync(path, source);
+}
+
+/**
  * THE PIN IS THE DECLARED DEPENDENCY, and it is EXACT on purpose. `^0.1.1` would let a machine
  * whose install is a week old bundle different bytes into a release whose `BUILD.json` names one
  * version, and a release is the one artifact whose contents have to be a function of this
@@ -1340,6 +1362,7 @@ function main() {
 	patchOptionalVsda(checkout);
 	patchRegistrationImports(checkout, tiers);
 	patchWebResources(checkout, tiers);
+	patchNextWebResources(checkout, tiers);
 	patchRehCopilotShim(checkout);
 	patchWin32Dependencies(checkout);
 	patchNpmDirs(checkout);

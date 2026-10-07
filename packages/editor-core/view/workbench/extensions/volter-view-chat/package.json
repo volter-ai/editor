@@ -40,12 +40,6 @@
 				]
 			}
 		],
-		"languageModelChatProviders": [
-			{
-				"vendor": "volter-view",
-				"displayName": "Limited view"
-			}
-		],
 		"commands": [
 			{
 				"command": "volter.viewChat.copyInstall",

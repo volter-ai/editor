@@ -141,8 +141,6 @@ async function handle(event: FetchLike): Promise<Response> {
   const url = new URL(request.url);
   // `/@fs//root/…` and `/@fs/root/…` are one module to Vite; the recordings are keyed by the latter.
   if (url.pathname.startsWith('/@fs//')) url.pathname = url.pathname.replace(/^\/@fs\/+/, '/@fs/');
-  // Another origin's request is the network's; only this view's own origin is routed.
-  if (url.origin !== (globalThis as unknown as { location: { origin: string } }).location.origin) return fetch(request);
   if (request.mode === 'navigate') return isolated(await fetch(request));
   if (request.method === 'GET' || request.method === 'HEAD') {
     const table = await recorded();
@@ -181,6 +179,9 @@ self.addEventListener('message', (event) => {
   if (data?.type === 'volter-view:page-ready' && event.source) pages.add(event.source.id);
 });
 self.addEventListener('fetch', (event) => {
+  // Another origin's request is left to the browser: a worker that re-fetches it changes its mode
+  // and credentials, and a brand image from a CDN came back "Failed to fetch" (measured).
+  if (new URL(event.request.url).origin !== (globalThis as unknown as { location: { origin: string } }).location.origin) return;
   event.respondWith(
     handle(event).catch(
       (error: unknown) =>

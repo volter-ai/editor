@@ -73,7 +73,7 @@ export function unavailableFeature(pathname: string): string {
 const DROPPED_REPORTS = new RegExp(
   '^/__editor/(state|heartbeat|tab/(ensure|route|claim|expect-restart|close)|page-error|play-phase|' +
     'console-entries|console-resolved|console/ack|command-result|command-received|command-listener|' +
-    'contributed-commands|log-session|log-entries|server-log)$',
+    'contributed-commands|log-session|log-entries|server-log|collaboration/presence)$',
 );
 
 /** A project-relative path the routes may touch: no traversal, no absolute path, no backslash. */
