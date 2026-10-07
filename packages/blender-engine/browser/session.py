@@ -608,7 +608,7 @@ _GRAPH_NODES = frozenset((
     "ShaderNodeGamma", "ShaderNodeRGBToBW", "ShaderNodeSeparateColor", "ShaderNodeCombineColor",
     "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight", "ShaderNodeBump",
     "ShaderNodeNormalMap", "ShaderNodeNewGeometry", "ShaderNodeVertexColor", "ShaderNodeAttribute",
-    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve",
+    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve", "ShaderNodeObjectInfo",
 ))
 # The surfaces whose inputs map onto the presenter's standard material, and
 # the inputs of each the presenter reads from a graph.
@@ -959,6 +959,10 @@ class _MaterialGraph:
         if node.bl_idname in _GENERATED_BY_DEFAULT and not bool(_links_into(node.inputs[0])):
             self.generated = True
         props = _node_properties(node)
+        if node.bl_idname == "ShaderNodeObjectInfo":
+            # node_shader_gpu_object_info: the index belongs to this material,
+            # even when the node itself is inside a shared node group.
+            props["material_index"] = float(self.material.pass_index)
         if props.get("image"):
             self.images.add(props["image"])
         return {
@@ -1131,6 +1135,33 @@ def _mixed_graph(material, stack, surface):
         "images": sorted(graph.images),
         "generated": graph.generated,
     }
+
+
+def _object_info_random(name):
+    """Ordinary-object Random, shared by EEVEE and Cycles: hash_string then
+    Jenkins hash_uint2(name_hash, 0), converted to float32 * 2**-32.
+    Instances must use depsgraph.random_id instead; their export is separate.
+    See draw_handle.hh::random and cycles/blender/object.cpp.
+    """
+    import struct
+
+    mask = 0xffffffff
+    h = 0
+    # Blender's platform flags specify -funsigned-char (native and WASM).
+    for byte in name.encode("utf8"):
+        h = (h * 37 + byte) & mask
+    a = (0xdeadbeef + 21 + h) & mask
+    b = c = (0xdeadbeef + 21) & mask
+    def rotate(x, bits):
+        return ((x << bits) | (x >> (32 - bits))) & mask
+    c = ((c ^ b) - rotate(b, 14)) & mask
+    a = ((a ^ c) - rotate(c, 11)) & mask
+    b = ((b ^ a) - rotate(a, 25)) & mask
+    c = ((c ^ b) - rotate(b, 16)) & mask
+    a = ((a ^ c) - rotate(c, 4)) & mask
+    b = ((b ^ a) - rotate(a, 14)) & mask
+    c = ((c ^ b) - rotate(b, 24)) & mask
+    return struct.unpack("f", struct.pack("f", c / 4294967296.0))[0]
 
 
 def material_graphs(scene):
@@ -1454,6 +1485,12 @@ class Session:
                 if not any(m in graphs for m in row["materials"] if m is not None):
                     continue
                 obj = by_name.get(row["name"])
+                if obj is not None:
+                    row["object_info"] = {
+                        "color": [float(v) for v in obj.color],
+                        "index": float(obj.pass_index),
+                        "random": _object_info_random(obj.name),
+                    }
                 data = obj.evaluated_get(depsgraph).data if obj is not None else None
                 if getattr(data, "use_auto_texspace", True) is False:
                     row["texspace"] = [[float(v) for v in data.texspace_location],

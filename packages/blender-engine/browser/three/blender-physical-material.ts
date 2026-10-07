@@ -140,10 +140,11 @@ export function physicalPaletteMaterial(compiled: CompiledGraph, sources: readon
 
 /** Copy physical values into an independently cached draw form. Textures and
  * graph uniform values remain borrowed from the authoritative source material. */
-export function syncPhysicalDrawMaterial(source: THREE.Material, target?: THREE.MeshPhysicalMaterial): THREE.MeshPhysicalMaterial | null {
+export function syncPhysicalDrawMaterial(source: THREE.Material, target?: THREE.MeshPhysicalMaterial,
+  retainCurrentGraph = false): THREE.MeshPhysicalMaterial | null {
   if (!(source instanceof THREE.MeshPhysicalMaterial) || !uniforms.has(source) || !materialDrawHooksSupported(source)) return null;
   const copy = target ?? graphShadow(source);
-  if (!borrowGraphDrawBinding(source, copy)) {
+  if (!borrowGraphDrawBinding(source, copy, retainCurrentGraph)) {
     if (!target) copy.dispose();
     return null;
   }

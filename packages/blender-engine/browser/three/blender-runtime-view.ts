@@ -28,6 +28,7 @@ import { fitModelDirectionalShadow, visibleShadowReceivers } from './blender-run
 import { volumeMesh, volumeSchema } from './blender-runtime-volume';
 import { applyPhysicalMaterial, applyWorldExtinction, physicalMaterialSchema } from './blender-physical-material';
 import { prepareGraphGeometry, setMaterialGraph } from './blender-graph-material';
+import {BlenderObjectInfoMaterials} from './blender-object-info-materials';
 import { type CompiledGraph, compileMaterialGraph, graphSeeThrough, materialGraphSchema } from './blender-node-graph';
 import {worldMedium, WorldVolumePass} from './blender-world-volume';
 import { BlenderTextureSamplers } from './blender-texture-samplers';
@@ -525,6 +526,9 @@ export const frameSchema = z
            *  the evaluated bounds (`blender-graph-material.ts`'s orco). */
           texspace: z.tuple([z.tuple([scalar, scalar, scalar]), z.tuple([scalar, scalar, scalar])]).optional(),
           default_color: z.string().optional(),
+          object_info: z.object({
+            color:z.tuple([scalar,scalar,scalar,scalar]),index:scalar,random:scalar,
+          }).strict().optional(),
         })
         .strict(),
     ),
@@ -661,6 +665,7 @@ export class BlenderRuntimeView {
     { signature: string; mesh: ReturnType<typeof volumeMesh> }
   >();
   private readonly materials = new Map<string, THREE.MeshPhysicalMaterial>();
+  private readonly objectInfoMaterials=new BlenderObjectInfoMaterials();
   private readonly lights = new Map<string, THREE.Light>();
   private readonly lighting = new ViewportLighting();
   private readonly world = new WorldBackground();
@@ -1253,6 +1258,7 @@ export class BlenderRuntimeView {
   private applyWorkbench(): void {
     const solid = this.workbench && !this.rendered;
     const used = new Set<string>();
+    this.objectInfoMaterials.begin();
     for (const obj of this.frame?.objects ?? []) {
       if (obj.mesh === null || obj.volume) continue;
       const mesh = this.objects.get(obj.id) as THREE.Mesh | undefined;
@@ -1260,10 +1266,12 @@ export class BlenderRuntimeView {
       const slots: readonly (string | null)[] = obj.materials.length ? obj.materials : [null];
       const shown = slots.map((id) => {
         const authored = id === null ? this.fallback : (this.materials.get(id) ?? this.fallback);
-        return solid ? this.workbenchFor(id, authored.side, used) : authored;
+        return solid ? this.workbenchFor(id, authored.side, used) : this.objectInfoMaterials.get(authored,mesh);
       });
       mesh.material = obj.materials.length ? shown : shown[0]!;
+      prepareGraphGeometry(mesh);
     }
+    this.objectInfoMaterials.end();
     // Released as soon as no surface wears it: a dragged viewport colour makes one per value.
     for (const [key, material] of this.workbenchMaterials) {
       if (used.has(key)) continue;
@@ -1300,6 +1308,10 @@ export class BlenderRuntimeView {
    * actual camera. Transparent instance runs are camera-order dependent. */
   prepareDraw(camera: THREE.Camera, options?: {interactive: boolean; height: number; multiDraw?: boolean; renderer?: THREE.WebGLRenderer}): () => void {
     try {
+      if (!this.workbench || this.rendered) {
+        if(this.objectInfoMaterials.needsRemap()) this.applyWorkbench();
+        this.objectInfoMaterials.refresh();
+      }
       const start = performance.now();
       this.instances.prepareDraw(camera);
       this.root.updateMatrixWorld(true);
@@ -2052,6 +2064,8 @@ export class BlenderRuntimeView {
       else delete object.userData['blenderTexspace'];
       if (obj.default_color !== undefined) object.userData['blenderDefaultColor'] = obj.default_color;
       else delete object.userData['blenderDefaultColor'];
+      if(obj.object_info) object.userData['blenderObjectInfo']=obj.object_info;
+      else delete object.userData['blenderObjectInfo'];
       if (obj.mesh !== null) {
         const mesh = object as THREE.Mesh;
         mesh.geometry = this.meshes.get(obj.mesh)!.geometry;
@@ -2397,6 +2411,7 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
+    this.objectInfoMaterials.clear();
     this.materialRanges.clear();
     this.motionGeometry.clear();
     this.transparentInstances.clear();

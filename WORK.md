@@ -1,5 +1,28 @@
 # Public release status
 
+## Blender rendering parity (2026-10-07)
+
+Rendering is now an explicit visual gate before reference-driven gameplay work.
+Blender WASM evaluates the file, but Three presents its surfaces and lighting;
+opening the same file alone cannot establish render equivalence. The subsystem
+comparisons and remaining gates are in [BLENDER-RENDERING-PARITY.md](docs/BLENDER-RENDERING-PARITY.md).
+
+Native OCIO-generated GPU display processors replace the divergent live and
+capture transforms. Actual WebGL matches native Blender within one 8-bit channel
+level for 1,380 color samples, including all supported views/looks and exposure/
+gamma variants. Transparency and linear screenshot downsampling pass. Ordinary
+Object Info's six outputs also match native Cycles float32 fixtures exactly;
+shared-material and asynchronous graph replacement checks pass. These fixes
+belong to the engine, not asset recoloring or longer task prompts.
+
+The courtyard still fails full-scene parity. Its remaining material conditions
+include Particle Info, tinted transparency and multiple Principled closures.
+Native depsgraph collection/particle instances and their inputs, sky sun-disc
+illumination, indirect lighting and the full native camera/image comparison
+remain to implement. Preserve the original source and reference; gameplay stays
+behind the matching static model/React UI screenshot gate.
+
+
 ## Blender Properties with no selection (2026-10-07)
 
 Properties now follows Blender's active object independently of its selected
