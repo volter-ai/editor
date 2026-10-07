@@ -168,19 +168,62 @@ export interface ModelPlayContext {
    * `null` fades it out. Actions run on the game's clock. Each change is an `action` entry in the
    * play log; a name the armature lacks is `action-unknown` once and returns false.
    *
+   * LAYERS: an action plays on the `base` layer, every bone, unless `layer` names another. A named
+   * layer plays from one bone down (`from`, given the first time) and takes those bones from the
+   * base, so the legs can run while the upper body does something else. Blender has no layers at
+   * run time; its NLA tracks are the nearest thing, and they are not read here.
+   *
    *     play.setAction('Hero', moving ? 'Run' : 'Idle');
+   *     play.setAction('Hero', 'Wave', { layer: 'upper', from: 'spine_01' });
    */
   setAction(object: THREE.Object3D | string, action: string | null, options?: ModelPlayActionOptions): boolean;
+  /**
+   * Play several actions on one layer at once, at weights (0 to 1), blended: poses between authored
+   * ones, such as aiming up, level and down by the aim's angle. An action left out fades to nothing.
+   * Weights take effect at once unless `fade` is given, so a script may set them every update.
+   * Returns false, with `action-unknown` in the log, as `setAction` does.
+   *
+   *     const up = Math.max(0, pitch), down = Math.max(0, -pitch);
+   *     play.blend('Hero', { Aim_Up: up, Aim_Level: 1 - up - down, Aim_Down: down }, { layer: 'upper', from: 'spine_01' });
+   */
+  blend(object: THREE.Object3D | string, weights: Readonly<Record<string, number>>, options?: ModelPlayActionOptions): boolean;
+  /**
+   * Turn one bone of an object's armature toward a world point or an object, every update after
+   * its actions, until set to `null`. It is the game's own: Blender's constraints and IK are not run
+   * in a game (an action holds what they made); this aims at what exists only while the game runs.
+   * What points at it is the bone's forward: the way it faced when the character faced its
+   * armature's -Y (Blender's front) in the file, so a head looks with its face. `axis` names one
+   * of the bone's own axes instead (`y` runs along a Blender bone). `weight` is how far (1),
+   * `limit` the most it turns from the animated pose (75 degrees).
+   *
+   *     play.lookAt('Hero', 'head', player);
+   */
+  lookAt(object: THREE.Object3D | string, bone: string, target: THREE.Object3D | THREE.Vector3 | null, options?: ModelPlayLookAtOptions): boolean;
   /** The actions an object's armature can play, by name (empty without an armature). */
   actions(object: THREE.Object3D | string): readonly string[];
 }
 
 export interface ModelPlayActionOptions {
+  /** The layer: `base` (every bone, the default) or a name of the script's choosing. */
+  readonly layer?: string;
+  /** A named layer's first bone: it plays on that bone and every bone below it. */
+  readonly from?: string;
   readonly loop?: boolean;
   readonly fade?: number;
   readonly speed?: number;
   /** Start again from the first frame when this clip is already playing. */
   readonly restart?: boolean;
+}
+
+export interface ModelPlayLookAtOptions {
+  readonly weight?: number;
+  readonly axis?: 'forward' | 'x' | 'y' | 'z' | '-x' | '-y' | '-z';
+  readonly limit?: number;
+}
+
+/** Weights as a log shows them: two decimals. */
+function rounded(weights: Readonly<Record<string, number>>): Record<string, number> {
+  return Object.fromEntries(Object.entries(weights).map(([name, weight]) => [name, Math.round(weight * 100) / 100]));
 }
 
 /** What the bot is handed before each `update` it drives. */
@@ -387,6 +430,21 @@ export function runPlayScript(options: {
   options.container.style.opacity = '0';
   /** One script's context: its log, tint, opacity and bot do nothing once that script is gone
    *  (replaced, failed, or the run stopped), so a stale timer cannot reach a later one. */
+  /** The object an animation call names, and the document's animation; `action-unknown` once
+   *  per object and name when either is missing. */
+  const animated = (alive: Script, object: THREE.Object3D | string, what: string | null, call: string) => {
+    const name = typeof object === 'string' ? object : object.name;
+    const unknown = (why: string): false => {
+      const key = `${name}\u0000${call}\u0000${what}`;
+      if (!alive.unknown.has(key)) { alive.unknown.add(key); run.append('play', 'action-unknown', { object: name, call, action: what, why }); }
+      return false;
+    };
+    if (!alive.value) return { ok: false as const };
+    const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
+    if (!target) return { ok: unknown('the model has no such object') };
+    if (!options_.animation) return { ok: unknown('this document lends no animation') };
+    return { ok: true as const, target, animation: options_.animation, unknown };
+  };
   const contextFor = (alive: Script): ModelPlayContext => ({
     root,
     find(name) {
@@ -413,26 +471,39 @@ export function runPlayScript(options: {
       if (alive.value) alive.bot = behaviors;
     },
     setAction(object, action, options) {
-      if (!alive.value) return false;
-      const name = typeof object === 'string' ? object : object.name;
-      const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
-      const unknown = (why: string): false => {
-        const key = `${name}\u0000${action}`;
-        if (!alive.unknown.has(key)) { alive.unknown.add(key); run.append('play', 'action-unknown', { object: name, action, why }); }
-        return false;
-      };
-      if (!target) return unknown('the model has no such object');
-      if (!options_.animation) return unknown('this document lends no animation');
-      const before = options_.animation.playing(target);
+      const found = animated(alive, object, action, 'setAction');
+      if (!found.ok) return false;
+      const { target, animation } = found;
+      const layer = options?.layer ?? 'base';
+      const before = animation.playing(target, layer);
       if (action === null) {
-        options_.animation.stop(target, options?.fade);
-        if (before !== null) run.append('play', 'action', { object: target.name, action: null, from: before });
+        animation.stop(target, options?.fade, layer);
+        if (before !== null) run.append('play', 'action', { object: target.name, layer, action: null, from: before });
         return true;
       }
-      const answer = options_.animation.play(target, action, options);
-      if (!answer.ok) return unknown(answer.why);
-      if (before !== action || options?.restart) run.append('play', 'action', { armature: answer.armature, action, from: before });
+      const answer = animation.play(target, action, options);
+      if (!answer.ok) return found.unknown(answer.why);
+      if (before !== action || options?.restart) run.append('play', 'action', { armature: answer.armature, layer, action, from: before });
       return true;
+    },
+    blend(object, weights, options) {
+      const found = animated(alive, object, Object.keys(weights).join('+'), 'blend');
+      if (!found.ok) return false;
+      const { target, animation } = found;
+      const layer = options?.layer ?? 'base';
+      const before = animation.playing(target, layer);
+      const answer = animation.blend(target, weights, options);
+      if (!answer.ok) return found.unknown(answer.why);
+      // Weights change every update; the log keeps only a change of the action that leads.
+      const now = animation.playing(target, layer);
+      if (before !== now) run.append('play', 'action', { armature: answer.armature, layer, action: now, from: before, blend: rounded(weights) });
+      return true;
+    },
+    lookAt(object, bone, at, options) {
+      const found = animated(alive, object, bone, 'lookAt');
+      if (!found.ok) return false;
+      const answer = found.animation.lookAt(found.target, bone, at, options);
+      return answer.ok || found.unknown(answer.why);
     },
     actions(object) {
       const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;

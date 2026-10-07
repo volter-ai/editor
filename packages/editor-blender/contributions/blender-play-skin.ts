@@ -12,6 +12,9 @@
  * frame is the frame it was detached from, so its revisions hold for the run. Until a bake lands
  * the armature keeps what it showed before (at first, the pose Blender exported).
  *
+ * LAYERS, BLENDS AND LOOK-AT: each armature has a layered mixer (`blender-play-mixer.ts`), so a
+ * game plays actions on parts of a body, at weights, and turns a bone toward what only it knows.
+ *
  * THE GAME'S CLOCK DRIVES IT: the runner advances the mixers by each update's `dt`
  * (`@volter/editor-model-play`'s `play-script.ts`), so pause, step, speed and Restart hold for
  * animation exactly as they do for the script.
@@ -21,25 +24,26 @@ import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/bl
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
 import * as THREE from 'three';
 import { clipTracks } from './blender-runtime-skin';
+import { LayeredMixer, type LayerOptions, type LookAtOptions } from './blender-play-mixer';
 
-export interface PlayAnimateOptions {
-  /** Repeat until something else plays (default true). */
-  readonly loop?: boolean;
-  /** Seconds to crossfade from what this armature played before (default 0.2). */
-  readonly fade?: number;
-  /** Playback rate, 1 is the clip's own speed. */
-  readonly speed?: number;
-  /** Start again from the first frame when this action is already playing (default false). */
-  readonly restart?: boolean;
-}
+export type PlayAnimateOptions = LayerOptions;
 
-/** The game's door to its characters' actions (`ModelPlayContext.setAction`). */
+type Answer = { ok: true; armature: string } | { ok: false; why: string };
+
+/** The game's door to its characters' actions (`ModelPlayContext.setAction`, `blend`, `lookAt`). */
 export interface PlayAnimation {
   /** The actions in the file, which an object's armature may be set to play. */
   clips(object: THREE.Object3D): readonly string[];
-  play(object: THREE.Object3D, clip: string, options?: PlayAnimateOptions): { ok: true; armature: string } | { ok: false; why: string };
-  stop(object: THREE.Object3D, fade?: number): void;
-  playing(object: THREE.Object3D): string | null;
+  /** Play one action on a layer of an object's armature; the reason when it cannot. */
+  play(object: THREE.Object3D, clip: string, options?: PlayAnimateOptions): Answer;
+  /** Set a layer's actions at weights. */
+  blend(object: THREE.Object3D, weights: Readonly<Record<string, number>>, options?: PlayAnimateOptions): Answer;
+  /** Fade out what a layer plays. */
+  stop(object: THREE.Object3D, fade?: number, layer?: string): void;
+  /** The action that weighs most on a layer, as last set, or null. */
+  playing(object: THREE.Object3D, layer?: string): string | null;
+  /** Turn one of an object's bones toward a point (or object) every update, until `null`. */
+  lookAt(object: THREE.Object3D, bone: string, target: THREE.Vector3 | THREE.Object3D | null, options?: LookAtOptions): Answer;
   update(dt: number): void;
   readonly warnings: readonly string[];
   dispose(): void;
@@ -47,13 +51,11 @@ export interface PlayAnimation {
 
 interface Armature {
   readonly rig: ArmatureRig;
-  readonly mixer: THREE.AnimationMixer;
+  readonly mixer: LayeredMixer;
   readonly clips: Map<string, THREE.AnimationClip>;
   readonly baking: Set<string>;
   /** Actions with nothing this armature can play: asked once, never re-baked every update. */
   readonly failed: Map<string, string>;
-  current: { readonly name: string; readonly action: THREE.AnimationAction } | null;
-  wanted: { readonly name: string; readonly options: PlayAnimateOptions } | null;
 }
 
 /** The copy's animation. `bake` reads one action of one armature through the clip door. */
@@ -62,38 +64,17 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const facts = view.animationFacts();
   const actions = Object.keys(facts.actions);
   const armatures = new Map<string, Armature>();
-  for (const rig of view.skeletons.rigs())
-    armatures.set(rig.armature, { rig, mixer: new THREE.AnimationMixer(rig.object), clips: new Map(), baking: new Set(), failed: new Map(), current: null, wanted: null });
   let disposed = false;
-
-  const start = (armature: Armature, clip: string, options: PlayAnimateOptions): void => {
-    const source = armature.clips.get(clip)!;
-    const fade = Math.max(0, options.fade ?? 0.2);
-    const action = armature.mixer.clipAction(source);
-    action.setLoop(options.loop === false ? THREE.LoopOnce : THREE.LoopRepeat, Number.POSITIVE_INFINITY);
-    action.clampWhenFinished = options.loop === false;
-    action.setEffectiveTimeScale(options.speed ?? 1);
-    if (armature.current?.name === clip) {
-      if (options.restart) action.reset().play();
-      return;
-    }
-    action.reset().setEffectiveWeight(1).play();
-    if (armature.current && fade > 0) armature.current.action.crossFadeTo(action, fade, false);
-    else armature.current?.action.stop();
-    armature.current = { name: clip, action };
-  };
 
   const refuse = (armature: Armature, clip: string, why: string): void => {
     armature.failed.set(clip, why);
     warnings.push(`${armature.rig.armature} / ${clip}: ${why}`);
-    if (armature.wanted?.name === clip) armature.wanted = null;
   };
 
-  /** Bake `clip` for `armature` once, and start it when it lands if it is still the one wanted. */
-  const want = (armature: Armature, clip: string, options: PlayAnimateOptions): void => {
-    armature.wanted = { name: clip, options };
-    if (armature.clips.has(clip)) { start(armature, clip, options); return; }
-    if (armature.baking.has(clip)) return;
+  /** The clip the mixer asks for: baked, or baked now (once) and given on a later update. */
+  const clipFor = (armature: Armature, clip: string): THREE.AnimationClip | null => {
+    const held = armature.clips.get(clip);
+    if (held || disposed || armature.failed.has(clip) || armature.baking.has(clip)) return held ?? null;
     armature.baking.add(clip);
     void bake(armature.rig.armature, clip).then((baked) => {
       armature.baking.delete(clip);
@@ -105,17 +86,25 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       }
       const duration = baked.duration ?? (baked.clipEnd! - baked.clipStart!) / baked.fps;
       armature.clips.set(clip, new THREE.AnimationClip(clip, duration, tracks));
-      if (!disposed && armature.wanted?.name === clip) start(armature, clip, armature.wanted.options);
     }, (error: unknown) => {
       armature.baking.delete(clip);
       refuse(armature, clip, `it could not be read: ${error instanceof Error ? error.message : String(error)}`);
     });
+    return null;
   };
+
+  for (const rig of view.skeletons.rigs()) {
+    const armature: Armature = {
+      rig, clips: new Map(), baking: new Set(), failed: new Map(),
+      mixer: new LayeredMixer(rig.object, rig.bones, (clip) => clipFor(armature, clip)),
+    };
+    armatures.set(rig.armature, armature);
+  }
 
   // EACH ARMATURE STARTS ON ITS ASSIGNED ACTION, as Blender's viewport plays it.
   for (const armature of armatures.values()) {
     const assigned = facts.armatures[armature.rig.armature]?.action;
-    if (assigned) want(armature, assigned, {});
+    if (assigned) armature.mixer.set(assigned, { fade: 0 });
   }
 
   /** The armature that animates `object`: its own, the one its skin is bound to, or the nearest
@@ -135,35 +124,45 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     return found;
   };
 
+  /** The armature, after checking every action named is one it can play. */
+  const resolve = (object: THREE.Object3D, clips: readonly string[]): Armature | { why: string } => {
+    const armature = armatureOf(object);
+    if (!armature) return { why: `${object.name || 'this object'} has no armature` };
+    for (const clip of clips) {
+      if (!(clip in facts.actions)) return { why: `the file has no action "${clip}"` };
+      const failed = armature.failed.get(clip);
+      if (failed) return { why: failed };
+    }
+    return armature;
+  };
+  const answer = (armature: Armature, refused: string | null): Answer =>
+    refused ? { ok: false, why: refused } : { ok: true, armature: armature.rig.armature };
+
   return {
     warnings,
     clips: (object) => (armatureOf(object) ? actions : []),
     play(object, clip, options = {}) {
-      const armature = armatureOf(object);
-      if (!armature) return { ok: false, why: `${object.name || 'this object'} has no armature` };
-      if (!(clip in facts.actions)) return { ok: false, why: `the file has no action "${clip}"` };
-      const failed = armature.failed.get(clip);
-      if (failed) return { ok: false, why: failed };
-      want(armature, clip, options);
-      return { ok: true, armature: armature.rig.armature };
+      const armature = resolve(object, [clip]);
+      return 'why' in armature ? { ok: false, why: armature.why } : answer(armature, armature.mixer.set(clip, options));
     },
-    stop(object, fade = 0.2) {
-      const armature = armatureOf(object);
-      if (!armature) return;
-      armature.wanted = null;
-      if (!armature.current) return;
-      if (fade > 0) armature.current.action.fadeOut(fade); else armature.current.action.stop();
-      armature.current = null;
+    blend(object, weights, options = {}) {
+      const armature = resolve(object, Object.keys(weights));
+      return 'why' in armature ? { ok: false, why: armature.why } : answer(armature, armature.mixer.blend(weights, options));
+    },
+    stop(object, fade = 0.2, layer) {
+      armatureOf(object)?.mixer.stop({ fade, ...(layer ? { layer } : {}) });
     },
     // What was last set, so a script setting the same action every update while it bakes asks once.
-    playing: (object) => {
+    playing: (object, layer) => armatureOf(object)?.mixer.playing(layer) ?? null,
+    lookAt(object, bone, target, options = {}) {
       const armature = armatureOf(object);
-      return armature?.wanted?.name ?? armature?.current?.name ?? null;
+      if (!armature) return { ok: false, why: `${object.name || 'this object'} has no armature` };
+      return answer(armature, armature.mixer.lookAt(bone, target, options));
     },
     update(dt) { for (const armature of armatures.values()) armature.mixer.update(dt); },
     dispose() {
       disposed = true;
-      for (const armature of armatures.values()) armature.mixer.stopAllAction();
+      for (const armature of armatures.values()) armature.mixer.dispose();
     },
   };
 }
