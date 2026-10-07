@@ -863,11 +863,24 @@ function isEsrch(err: unknown): boolean {
  */
 export function killProcessGroup(pid: number, signal: NodeJS.Signals = 'SIGTERM'): void {
   if (process.platform === 'win32') {
-    try {
-      execFileSync('taskkill', ['/PID', String(pid), '/T', '/F'], { windowsHide: true, stdio: 'ignore' });
-      return;
-    } catch {
-      // already dead, or taskkill itself unavailable — bare-pid kill below is the last resort
+    // The editor's tree is killed process by process, and a browser in it is not the editor's: Chat's agent runs
+    // under the editor server (supercode, then codex and its tools), and a browser one of those started or restarted
+    // is the person's browser from then on. `taskkill /T` took it with the tree, and every `close` restarted the
+    // person's Chrome and closed their other pages (volter-desktop, three times on 2026-10-07).
+    const table = windowsProcessTable();
+    if (table) {
+      const pids = windowsTreeSparingBrowsers(pid, table);
+      try {
+        execFileSync('taskkill', [...pids.flatMap((each) => ['/PID', String(each)]), '/F'], { windowsHide: true, stdio: 'ignore' });
+        return;
+      } catch {
+        // taskkill answers non-zero when any one of them had already gone; the rest were killed. The bare-pid kill
+        // below makes sure of the root.
+      }
+    } else {
+      // Without the process table no tree can be told from the browser in it, so only the editor's own process
+      // ends; a child left running is named rather than a browser closed.
+      console.warn(`[editor close] could not read the process table; ending ${pid} alone. Its child processes may still be running.`);
     }
     try {
       process.kill(pid, signal);
@@ -889,6 +902,54 @@ export function killProcessGroup(pid: number, signal: NodeJS.Signals = 'SIGTERM'
       if (!isEsrch(err2)) throw err2;
     }
   }
+}
+
+/** The browsers a person runs; one found in an editor's tree is theirs, and outlives the editor. */
+const BROWSER_IMAGES = new Set(['chrome.exe', 'msedge.exe', 'firefox.exe', 'brave.exe', 'opera.exe', 'vivaldi.exe', 'chromium.exe', 'arc.exe']);
+
+/** One row of Windows' process table: its pid, its parent's, its image name (lower case) and when it started (ms since 1601). */
+export interface WindowsProcess { pid: number; ppid: number; name: string; created: number }
+
+/** Windows' process table, through the PowerShell every Windows 10 and 11 ships; undefined when it cannot be read. */
+function windowsProcessTable(): WindowsProcess[] | undefined {
+  try {
+    const out = execFileSync('powershell.exe', ['-NoProfile', '-NonInteractive', '-Command',
+      'Get-CimInstance Win32_Process | Select-Object ProcessId,ParentProcessId,Name,@{n="Created";e={if ($_.CreationDate) { [long]($_.CreationDate.ToFileTimeUtc() / 10000) } else { 0 }}} | ConvertTo-Json -Compress'],
+    { windowsHide: true, encoding: 'utf8', timeout: 15_000, maxBuffer: 32 * 1024 * 1024, stdio: ['ignore', 'pipe', 'ignore'] });
+    const parsed = JSON.parse(out) as unknown;
+    const rows = (Array.isArray(parsed) ? parsed : [parsed]) as Array<{ ProcessId?: unknown; ParentProcessId?: unknown; Name?: unknown; Created?: unknown }>;
+    return rows.map((row) => ({ pid: Number(row.ProcessId), ppid: Number(row.ParentProcessId), name: String(row.Name ?? '').toLowerCase(), created: Number(row.Created ?? 0) }))
+      .filter((row) => Number.isSafeInteger(row.pid) && row.pid > 0);
+  } catch {
+    return undefined;
+  }
+}
+
+/**
+ * `pid` and every process under it, except a browser and everything under that browser. Windows keeps a dead
+ * parent's pid in its children's rows and may give that pid to a new process, so a row counts as a child only
+ * when it started no earlier than the parent it names.
+ */
+export function windowsTreeSparingBrowsers(pid: number, table: readonly WindowsProcess[]): number[] {
+  const byPid = new Map(table.map((row) => [row.pid, row]));
+  const children = new Map<number, WindowsProcess[]>();
+  for (const row of table) {
+    if (row.ppid === row.pid) continue;
+    const list = children.get(row.ppid);
+    if (list) list.push(row); else children.set(row.ppid, [row]);
+  }
+  const kill = [pid];
+  const seen = new Set([pid]);
+  for (let index = 0; index < kill.length; index++) {
+    const parent = byPid.get(kill[index]!);
+    for (const child of children.get(kill[index]!) ?? []) {
+      if (seen.has(child.pid) || (parent && child.created < parent.created)) continue;
+      seen.add(child.pid);
+      if (BROWSER_IMAGES.has(child.name)) continue;
+      kill.push(child.pid);
+    }
+  }
+  return kill;
 }
 
 /** Return the POSIX process-group id for `pid`, or `undefined` when it cannot
