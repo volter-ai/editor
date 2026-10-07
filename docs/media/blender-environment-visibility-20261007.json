@@ -1,0 +1,23 @@
+{
+  "fixture": "packages/blender-engine/test/environment_visibility.py",
+  "passed": false,
+  "scene": "closed diffuse cube, camera inside, no interior lights, white exterior world",
+  "render": {
+    "width": 32,
+    "height": 32,
+    "samples": 8,
+    "maxBounces": 0,
+    "compositor": false,
+    "view": "Standard",
+    "look": "None",
+    "exposure": 0,
+    "gamma": 1,
+    "format": "8-bit RGBA PNG"
+  },
+  "nativeSource": "434072350c0577eb155068d5a1b62bb45daf19f9",
+  "rasterSource": "ada0e19e6075e996f50d4f3748676ab948f53fb4",
+  "execution": "CYCLES and VOLTER_THREE in the same Blender WASM session through the public editor API",
+  "nativeRgbRanges": [[0, 1], [0, 1], [0, 1]],
+  "rasterRgbRanges": [[230, 232], [230, 232], [230, 232]],
+  "finding": "Raster diffuse environment illumination does not evaluate enclosing geometry visibility. Native dithering can produce one channel level above black; the raster discrepancy is much larger."
+}
