@@ -529,6 +529,10 @@ const HEADERS_FILE = `/*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
   Cross-Origin-Resource-Policy: same-origin
+/
+  Cross-Origin-Resource-Policy: cross-origin
+/index.html
+  Cross-Origin-Resource-Policy: cross-origin
 /${SERVICE_WORKER_FILE}
   Service-Worker-Allowed: /
   Cache-Control: no-cache

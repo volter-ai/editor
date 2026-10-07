@@ -35,8 +35,7 @@ import {
 interface WorkerClient {
   readonly id: string;
   readonly type: string;
-  /** Window clients only: `top-level` or `auxiliary` (opened with an opener) for a tab, `nested`
-   *  for an iframe (the extension host's). */
+  /** An editor may itself be embedded. A nested window is not necessarily an extension host. */
   readonly frameType?: string;
   readonly focused?: boolean;
   readonly visibilityState?: string;
@@ -99,23 +98,24 @@ function recorded(): Promise<LimitedViewRoutes> {
  * set of pages that said they are ready ({@link pages}) can be empty while pages are open. The
  * answer is, in order:
  *
- *  1. the requester itself, when it is a TAB of this view (any window client but a nested iframe, so a view opened with an opener counts too);
- *  2. otherwise (a worker, the extension host's iframe) a tab that holds the project — asking the
- *     open tabs to say so again when none is known — preferring the focused one, then a visible
+ *  1. the requester itself, when it announced that it holds the project;
+ *  2. otherwise (a worker, the extension host's iframe) a page that holds the project — asking the
+ *     open windows to say so again when none is known — preferring the focused one, then a visible
  *     one, then the one that announced last.
  *
- * An iframe is never the answer: it holds no files, and a request handed to it waits out the whole
- * timeout. With no tab holding the project the request fails by name.
+ * Only the editor's boot announces a project. This distinguishes a whole editor embedded in an
+ * iframe from its extension-host iframe, which holds no files. Frame type alone cannot do that.
+ * With no announced page holding the project the request fails by name.
  */
 const pages = new Set<string>();
-const isTab = (client: WorkerClient | undefined): client is WorkerClient =>
-  client !== undefined && client.type === 'window' && client.frameType !== 'nested';
+const isWindow = (client: WorkerClient | undefined): client is WorkerClient =>
+  client !== undefined && client.type === 'window';
 
 async function tabsHoldingTheProject(): Promise<WorkerClient[]> {
   const held: WorkerClient[] = [];
   for (const id of pages) {
     const client = await self.clients.get(id);
-    if (isTab(client)) held.push(client);
+    if (isWindow(client)) held.push(client);
     else pages.delete(id);
   }
   return held;
@@ -123,14 +123,14 @@ async function tabsHoldingTheProject(): Promise<WorkerClient[]> {
 
 /** Ask every open tab of this view to announce itself again, and give them a moment to. */
 async function askTabsToAnnounce(): Promise<void> {
-  const tabs = (await self.clients.matchAll({ type: 'window' })).filter(isTab);
+  const tabs = (await self.clients.matchAll({ type: 'window' })).filter(isWindow);
   for (const tab of tabs) tab.postMessage({ type: 'volter-view:announce' });
   await new Promise((resolve) => setTimeout(resolve, 400));
 }
 
 async function pageFor(event: FetchLike): Promise<WorkerClient | undefined> {
   const requester = event.clientId ? await self.clients.get(event.clientId) : undefined;
-  if (isTab(requester)) return requester;
+  if (isWindow(requester) && pages.has(requester.id)) return requester;
   let held = await tabsHoldingTheProject();
   if (held.length === 0) {
     await askTabsToAnnounce();
@@ -179,7 +179,9 @@ async function handle(event: FetchLike): Promise<Response> {
   const url = new URL(request.url);
   // `/@fs//root/…` and `/@fs/root/…` are one module to Vite; the recordings are keyed by the latter.
   if (url.pathname.startsWith('/@fs//')) url.pathname = url.pathname.replace(/^\/@fs\/+/, '/@fs/');
-  if (request.mode === 'navigate') return isolated(await fetch(request));
+  // The public view can be embedded by another isolated origin. Its resources remain
+  // same-origin; the navigation itself must opt in to cross-origin embedding.
+  if (request.mode === 'navigate') return isolated(await fetch(request), { 'Cross-Origin-Resource-Policy': 'cross-origin' });
   if (request.method === 'GET' || request.method === 'HEAD') {
     const table = await recorded();
     const exact = table.entries[url.pathname + url.search];
@@ -214,7 +216,7 @@ self.addEventListener('install', (event) => event.waitUntil(self.skipWaiting()))
 self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
 self.addEventListener('message', (event) => {
   const data = event.data as { type?: string } | null;
-  if (data?.type === 'volter-view:page-ready' && event.source) {
+  if (data?.type === 'volter-view:page-ready' && event.source && isWindow(event.source)) {
     // Most recent last, so a tab that announces again moves to the end.
     pages.delete(event.source.id);
     pages.add(event.source.id);

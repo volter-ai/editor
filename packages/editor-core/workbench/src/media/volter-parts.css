@@ -36,7 +36,10 @@
    toolbar lives inside its editor pane, below the native tab strip. */
 
 /* Keep the native layout controls beside the product header. */
-.monaco-workbench .part.titlebar .titlebar-container.volter-hosted > .titlebar-right { order: 2; flex: 0 0 auto; width: auto; padding-left: 0; }
+/* The web bundle loads upstream's .has-center rule later at the same specificity.
+   Outrank it: otherwise an empty control area grows across the product's workspace tabs. */
+.monaco-workbench .part.titlebar .titlebar-container.volter-hosted > .titlebar-right,
+.monaco-workbench .part.titlebar .titlebar-container.volter-hosted.has-center > .titlebar-right { order: 2; flex: 0 0 auto; width: auto; padding-left: 0; }
 .monaco-workbench .volter-titlebar-host { min-width: 0; }
 
 .monaco-workbench.volter-native-menus .part.titlebar .titlebar-container.volter-hosted > .titlebar-left { display: flex !important; flex: 0 0 auto; width: auto; }
