@@ -1464,6 +1464,9 @@ class Session:
         # Set by a present that left the document behind the model; cleared by
         # the save. The tab reads it as `saveDue` beside the frame.
         self.save_due = False
+        # The OUTSIDE-THE-PROJECT file Blender was last found holding, once said
+        # (`follow_open_file`): the refusal is told once per file, not per call.
+        self._outside_file = None
         # WHAT THE PRESENTER LAST REPORTED HOLDING, as an instrument: the
         # `(session, revision)` it held BEFORE the last frame, None when it
         # held nothing, and the string "unreported" for a presenter that does
@@ -1964,10 +1967,11 @@ class Session:
     def bind_document(self, relative_path):
         """Name the session's document and OPEN it when the project has one.
 
-        One session holds one document. The path is stated at start and never
-        moves afterwards: a script's own `save_as_mainfile` to somewhere else
-        is an ordinary thing for a script to do and is left alone -- it retargets
-        Blender's `bpy.data.filepath`, not this.
+        One session holds one document. The path is stated at start and moves
+        only where Blender itself moved: a script's own `save_as_mainfile` (or
+        `open_mainfile`) to another `.blend` in the project retargets
+        `bpy.data.filepath`, and `follow_open_file` moves the document with it
+        after the call.
 
         `open_mainfile` runs the session's `_load_post` like any other load
         (the export door's revision table is reset, the render engine ids are
@@ -2010,6 +2014,58 @@ class Session:
         `saveDue`, and the tab saves after an idle second."""
         if self.document is not None:
             self.save_due = True
+
+    def follow_open_file(self):
+        """FOLLOW BLENDER'S SAVE AS: the document is the file Blender has open.
+
+        Read after every `execute`, because a script is the one request that can
+        change which file Blender holds. `save_as_mainfile(filepath=X)` writes X
+        and leaves X OPEN -- `bpy.data.filepath` becomes X, and Blender's next
+        Save goes there. The session used to keep saving to the file it was
+        started on, so the model a script had just saved as X was written over
+        the OLD file on the next idle save, and the editor refused X's own tab
+        because the worker still claimed the old one. SEEN 2026-10-07: an
+        agent built an obby through the Blender MCP, saved it as
+        `src/models/obby.blend`, and its level landed in `src/models/cube.blend`
+        instead -- so Play looked for `cube.play.ts`.
+
+        What does NOT move, by Blender's own rules rather than ours:
+        `save_mainfile()` and a Save As to the same path leave the path where it
+        is, and `save_as_mainfile(copy=True)` writes a copy and keeps the
+        original open (which is also how `save_document` writes, so the
+        session's own save never moves anything). `open_mainfile` does move it:
+        Blender then holds that file, and saving the old path would write one
+        file's model over another's.
+
+        Answers None when nothing moved, `{"moved": True, "from", "document"}`
+        when the document followed Blender to another project `.blend`, and
+        `{"moved": False, "from", "outside"}` -- once per file -- when Blender
+        holds a file outside the project: the editor has no document there, so
+        the session keeps its own and keeps saving to it.
+        """
+        if self.document is None or not bpy.data.filepath:
+            return None
+        current = os.path.normpath(os.path.abspath(bpy.data.filepath))
+        if current == os.path.normpath(self.document):
+            self._outside_file = None
+            return None
+        root = os.path.normpath(self.project)
+        relative = current[len(root) + 1:] if current.startswith(root + "/") else None
+        # The same shape the worker and the server check (`worker.ts::isDocumentPath`).
+        if (relative is not None and relative.endswith(".blend") and "\\" not in relative
+                and all(part not in ("", ".", "..") for part in relative.split("/"))):
+            previous = self.document_relative
+            self.document = current
+            self.document_relative = relative
+            self._outside_file = None
+            # The file Blender wrote sits only in the engine's filesystem until the
+            # session's own save carries it to the project.
+            self.save_due = True
+            return {"moved": True, "from": previous, "document": relative}
+        if current == self._outside_file:
+            return None
+        self._outside_file = current
+        return {"moved": False, "from": self.document_relative, "outside": current}
 
     def save_document(self):
         """Write the document -- Blender's own format, by Blender's own operator.
@@ -5329,6 +5385,11 @@ def _dispatch(request):
         HISTORY.changed()
         SESSION.mark_changed()
         answer = execute(request["code"])
+        # Read before the present, so the save that present asks for goes to the
+        # file Blender now holds (`Session.follow_open_file`).
+        followed = SESSION.follow_open_file()
+        if followed is not None:
+            answer["document"] = followed
         # Every mutation is presented, the rule: the Model
         # document is what the agent is looking at.
         try:

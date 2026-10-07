@@ -105,6 +105,11 @@ export type WorkerRequest =
 export type WorkerReply =
   | { op: 'frame-stream'; id: number; chunk: FrameChunk }
   | { op: 'document-dirty'; dirty: boolean }
+  /** THE DOCUMENT FOLLOWED BLENDER: a script's `save_as_mainfile` (or `open_mainfile`) left
+   *  another project `.blend` open, and the session's saves now go there
+   *  (`session.py::follow_open_file`). Both paths are project-relative. Posted before the
+   *  call's own answer, so the tab's handle already names the new file when the call returns. */
+  | { op: 'document-moved'; from: string; document: string }
   | { op: 'history'; entries: NativeHistoryEntry[] }
   | { id: number; result: unknown }
   | { id: number; error: string }
