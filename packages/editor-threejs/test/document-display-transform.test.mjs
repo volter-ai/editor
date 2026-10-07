@@ -19,7 +19,7 @@ function stage(mode='rendered') {
   const draws=[];
   session.renderer={
     getDrawingBufferSize:v=>v.set(512,256), getRenderTarget:()=>current,
-    setRenderTarget:t=>{current=t;}, render:()=>draws.push(current),
+    setRenderTarget:t=>{current=t;}, clear:()=>{}, render:()=>draws.push(current),
   };
   session.state={mode}; session.composer=null; session.displayTarget=null;
   session.scene={}; session.advanceLook=()=>{}; session.ensureComposer=()=>{};
@@ -83,5 +83,25 @@ test('outlined HDR draws and photographs use the current authored camera after a
   draws.length=0;
   s.session.renderLinearScene(first,{});
   for(const draw of draws)assert.equal(draw.camera,first);
+  s.session.setDisplayTransform(null);
+});
+
+test('plain HDR frames and photographs clear old depth when the compositor disables autoClear',()=>{
+  const s=stage(),order=[];
+  s.session.renderer.autoClear=false;
+  s.session.renderer.clear=(...flags)=>order.push({kind:'clear',target:s.current(),flags});
+  s.session.renderer.render=()=>order.push({kind:'draw',target:s.current()});
+  s.session.setDisplayTransform({render(){}});
+  s.session.renderViewport();s.session.renderViewport();
+  assert.deepEqual(order.map(o=>o.kind),['clear','draw','clear','draw']);
+  for(const clear of order.filter(o=>o.kind==='clear')) assert.deepEqual(clear.flags,[true,true,false]);
+  assert.equal(order[0].target,order[1].target);
+  assert.equal(order[2].target,order[3].target);
+  assert.equal(s.session.renderer.autoClear,false,"leave the compositor owner's setting intact");
+  order.length=0;
+  const photograph={};s.session.renderer.setRenderTarget(photograph);
+  s.session.renderSolidForCapture(new PerspectiveCamera(),photograph,512,512);
+  assert.deepEqual(order.map(o=>o.kind),['clear','draw']);
+  assert.equal(order[0].target,photograph);assert.equal(order[1].target,photograph);
   s.session.setDisplayTransform(null);
 });

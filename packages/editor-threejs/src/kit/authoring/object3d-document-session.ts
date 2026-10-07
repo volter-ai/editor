@@ -1780,7 +1780,7 @@ export class Object3DDocumentSession {
     const composer = this.composer;
     const outlined = (this.selectionOutline?.selection.size ?? 0) > 0;
     if (!composer || !outlined || !this.sceneRenderPass || !this.selectionOutlinePass) {
-      this.renderer.render(this.scene, camera);
+      this.renderLinearScene(camera, target);
       return;
     }
     const previousWidth = this.renderWidth;
@@ -1802,6 +1802,11 @@ export class Object3DDocumentSession {
     const composer = this.composer;
     const outlined = (this.selectionOutline?.selection.size ?? 0) > 0;
     if (!composer || !outlined || !this.sceneRenderPass || !this.selectionOutlinePass) {
+      // EffectComposer disables renderer.autoClear when it is created. This
+      // direct path owns a whole scene frame too, including an unselected HDR
+      // viewport and plain photographs, so it must clear its previous depth.
+      this.renderer.setRenderTarget(target);
+      this.renderer.clear(true, true, false);
       this.renderer.render(this.scene, camera);
       return;
     }
