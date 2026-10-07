@@ -1,0 +1,22 @@
+{
+  "scope": "Constant Emission surfaces and scene-linear photograph sampling",
+  "constantEmission": {
+    "defect": "An unlinked Emission surface skipped shader-graph export and inherited reflected diffuse/specular light from the reduced physical material.",
+    "fix": "Always retain the Emission graph, including black constant Emission.",
+    "verification": "Nine Python export/ownership tests passed; native and public-editor roof-input captures use black Emission for every other surface. The browser surfaces now remain black."
+  },
+  "linearCapture": {
+    "defect": "Render Result/EXR capture used one raster sample per output pixel while PNG capture already resolved four scene-linear samples.",
+    "fix": "Both paths render twice the requested width and height, then resolve scene-linear radiance before readback or display conversion.",
+    "gpuControl": {"width": 1, "height": 1, "expectedRGBA": [0.5, 0, 0.5, 1], "actualRGBA": [0.5, 0, 0.5, 1], "maximumAbsoluteError": 0},
+    "verification": "Nine capture/display tests, engine and Three typechecks, staged product build, and actual WebGL control passed. The existing editor window stayed open."
+  },
+  "courtyard": {
+    "normalInputMeanAbsoluteError8bitBefore": 18.434,
+    "normalInputMeanAbsoluteError8bitAfter": 15.767834663391113,
+    "maskPixels": 14382,
+    "comparison": "Same-camera native Cycles and public-editor emission controls; roof mask eroded two pixels. This is an input comparison, not a shaded-material acceptance gate.",
+    "remaining": "Significant normal response and indirect-light differences remain. Full courtyard parity has not passed."
+  },
+  "publication": "No packages published."
+}
