@@ -181,6 +181,8 @@ Hosting rules:
 - **Origin root.** Serve the view from the root of an origin, because the editor's URLs are root-relative.
 - **Secure context.** Serve it over https, or from localhost; service workers need a secure context.
 - **Cross-origin isolation.** It is required for Blender's threads. `_headers` states it for hosts that read one (Netlify, Cloudflare Pages). On any other host the view's worker adds the headers, after at most one reload.
+- **Embedding.** The parent page must send `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: credentialless`, and its iframe must allow `cross-origin-isolated`. The view announces that it holds the project whether it is a standalone page or an iframe; extension-host frames do not hold project files.
+- **Lifetime.** The recorded project identity reports `session.lease: 'page'`. The server-process watchdog stops for this explicit page-owned lifetime; a quiet control socket or delayed request cannot establish that a nonexistent local server died. Ordinary server sessions retain their watchdog.
 - **File sizes.** Blender's recorded engine files are stored uncompressed, around 100 MB together. Hosts with a per-file cap (Cloudflare Pages: 25 MiB) cannot serve them; Netlify and most object stores can.
 - **Where `--out` can go.** It may not be inside the project, because the view would publish itself on the next build. It may not overlap `--workbench`, because the output is replaced whole before the workbench is copied in. Both checks resolve symlinks first.
 
@@ -189,6 +191,6 @@ Hosting rules:
 - **The module crawl is best effort.** Anything the editor imports by a URL that is neither crawled nor reducible by the worker's key rule gets the page's raw file or a 404. The worker's key rule drops `t`, `volter-source` and `volter-reload`, and maps `volter-mount`. Watch the network panel on the first walk.
 - **The product's chunks shadow `public/assets/`.** The product's production build is served at `/assets/…`, and the static host answers it before the page's router sees the request. So a project file at `public/assets/<same name>` would not be the one served. Real chunk names are content-hashed, so this is latent.
 - **Imported ignored files are still compiled.** A committed module that imports a gitignored one is compiled with it, as the session serves it. Only the ignored file's own source is left out of the published files.
-- **One page holds the files.** Requests from workers go to the page that registered last. Two tabs of one view are two separate projects.
+- **One page holds the files.** A request from an announced editor page goes back to that page. Requests from workers and extension-host frames prefer a focused announced editor, then a visible one, then the one that announced last. A restarted worker asks open windows to announce again. Two tabs of one view are two separate projects; worker requests still cannot be attributed to their owning tab when several are open.
 - **Synchronous XHR would deadlock.** A synchronous XHR to a forwarded route would block the page that has to answer it. None is known.
 - **The WALI Blender skew is partial.** Its substrate modules (`blender-wasm/wali/…`) are named at run time and are not recorded. The default Emscripten skew is complete.

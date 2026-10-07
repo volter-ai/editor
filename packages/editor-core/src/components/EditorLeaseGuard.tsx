@@ -217,9 +217,17 @@ export function EditorLeaseGuard() {
 
     const tick = async () => {
       const result = await pollEditorLeaseIdentity();
+      if (cancelled) return;
+      // The transport owns the lifetime. A static project lives in this page;
+      // there is no server process or control socket whose death we can infer.
+      // Keep this watchdog for process-backed sessions, including older servers.
+      if (result.ok && result.lease === 'page') {
+        cancelled = true;
+        stop();
+        return;
+      }
       const channel = readControlChannelState();
       const now = Date.now();
-      if (cancelled) return;
 
       if (voidedRef.current !== null) {
         tickTombstone(result, channel, now);

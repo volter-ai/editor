@@ -41,17 +41,18 @@ export async function getServerValidationLog(): Promise<{ level: string; message
  * failure, not stall the poll.
  */
 export async function pollEditorLeaseIdentity(timeoutMs = 3000): Promise<LeasePollResult> {
-  // Browser mode has no Node server to lease from; the watchdog never mounts
-  // there, but guard anyway so a stray call can never false-void a page.
+  // Static transports report a page-owned lease; process-backed sessions keep
+  // reporting their server identity, including older servers without a lease field.
   if (typeof fetch === 'undefined') return { ok: false };
   try {
     const res = await fetch(`${BASE}/project`, { signal: AbortSignal.timeout(timeoutMs) });
     const body = await editorServerJson<{
       project?: { path?: unknown } | null;
-      session?: { pid?: unknown } | null;
+      session?: { pid?: unknown; lease?: unknown } | null;
     }>(res, 'Editor lease poll failed');
     return {
       ok: true,
+      ...(body.session?.lease === 'page' ? { lease: 'page' as const } : {}),
       identity: {
         project: typeof body.project?.path === 'string' ? body.project.path : null,
         pid: typeof body.session?.pid === 'number' ? body.session.pid : null,

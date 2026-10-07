@@ -338,7 +338,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
         const path = join(out, VIEW_DIR, 'r', projectAnswer.file);
         const answer = JSON.parse(readFileSync(path, 'utf8')) as { project?: { path?: string }; session?: unknown; engine?: unknown; sourceWrite?: boolean; ingestSourceWrite?: boolean };
         if (answer.project?.path) sessionRoot = answer.project.path;
-        answer.session = { pid: 0, ephemeral: true, sessionId: 'limited-view', repositoryId: null, worktreeId: null, worktreeRoot: null, projectRelativePath: null, branch: null, headCommit: null, baseCommit: null };
+        answer.session = { pid: 0, lease: 'page', ephemeral: true, sessionId: 'limited-view', repositoryId: null, worktreeId: null, worktreeRoot: null, projectRelativePath: null, branch: null, headCommit: null, baseCommit: null };
         // The engine's git state is the building checkout's, and source writes need the session's
         // `/__ui-source/*` and `/__ingest-source/*` routes, which a view refuses.
         answer.engine = { branch: null, commit: null, behindOriginMain: null, dirty: null };
@@ -529,6 +529,10 @@ const HEADERS_FILE = `/*
   Cross-Origin-Opener-Policy: same-origin
   Cross-Origin-Embedder-Policy: credentialless
   Cross-Origin-Resource-Policy: same-origin
+/
+  Cross-Origin-Resource-Policy: cross-origin
+/index.html
+  Cross-Origin-Resource-Policy: cross-origin
 /${SERVICE_WORKER_FILE}
   Service-Worker-Allowed: /
   Cache-Control: no-cache
