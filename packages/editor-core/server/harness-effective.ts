@@ -46,7 +46,9 @@ export function resolveClaudeAlias(alias: string, recorded: readonly string[]): 
   const version = (id: string) => (/^claude-[a-z]+-((?:\d+-?)+)/.exec(id)?.[1] ?? '').split('-').filter(Boolean).map(Number);
   const newer = (a: number[], b: number[]) => { for (let i = 0; i < Math.max(a.length, b.length); i++) if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) > (b[i] ?? 0); return false; };
   let best = '';
-  for (const id of recorded) if (id.startsWith(`claude-${alias}-`) && !/\d{8}$/.test(id) && (!best || newer(version(id), version(best)))) best = id;
+  // Only plain versioned IDs: a dated one is a pinned snapshot, and a `[1m]` one is a context choice the alias does not
+  // make (the caller re-adds the alias's own suffix).
+  for (const id of recorded) if (new RegExp(`^claude-${alias}(?:-\\d{1,2})+$`).test(id) && (!best || newer(version(id), version(best)))) best = id;
   return best;
 }
 

@@ -38,10 +38,12 @@ export async function chat(args: string[]): Promise<unknown> {
     // A turn the harness started itself (after a background task or a Monitor's event) has no Chat response to
     // cancel, and an agent waiting on an approval does not hear an interrupt: the frontend's own stop answers what
     // it waits on and interrupts its runtime. A frontend that predates it leaves the Chat's cancel as the stop.
-    // Only the focused conversation's runtime: with a New Chat draft focused there is none, and the host's other
-    // conversation is not the one the person asked to stop.
+    // Only the focused conversation's runtime. A focused New Chat draft has no authority, so `connection` above fell
+    // back to the host's active conversation, which is not the one the person asked to stop; and whether the draft
+    // is bound is the frontend's to know. A draft's own running turn is a Chat response, which the cancel above
+    // stops (the frontend answers its approvals first), so a draft gets the cancel alone.
     let runtimeStopped: unknown = null;
-    if (connection) {
+    if (connection && !draft && (!resource || resource.hostname === connection.id)) {
       try { runtimeStopped = await editor.command('supercode.frontend.stopTurn', connection.id); }
       catch { /* an older frontend: no runtime stop */ }
     }
