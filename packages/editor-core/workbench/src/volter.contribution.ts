@@ -81,7 +81,7 @@ import { NO_PRODUCT_REGISTERED, volterProduct, type VolterProductMountContext } 
 import { raiseOpeningCover, VolterOpeningCover } from './volterCover.js';
 import { VolterDocuments, VolterDocumentsBridge } from './volterDocuments.js';
 import { VolterDocumentInput, VolterDocumentInputSerializer } from './volterDocumentInput.js';
-import { DisposableStore } from '../../../../base/common/lifecycle.js';
+import { DisposableStore, toDisposable } from '../../../../base/common/lifecycle.js';
 import { IWorkbenchContribution, registerWorkbenchContribution2, WorkbenchPhase } from '../../../common/contributions.js';
 import { CommandsRegistry } from '../../../../platform/commands/common/commands.js';
 import { IListService } from '../../../../platform/list/browser/listService.js';
@@ -439,7 +439,9 @@ if (product) {
 // `VolterGameHandle`, which the game editor's `volterGameSkew.ts` consumes) rides the same object
 // and is read by the product's `mount` hook, which declares the shape it expects — the two
 // sides have always been mirrors, because nothing under `src/vs/` can import React TSX.
-interface BridgeMount { output?: VolterOutputBridge; host: HTMLElement; keyboard: VolterKeyboardBridge; offerPart?(id: 'center' | 'outliner' | 'properties' | 'content', element: HTMLElement | null): void; documents?: VolterDocumentsBridge; history?: VolterHistoryBridge; files?: VolterFilesBridge; settings?: VolterSettingsBridge; commands?: VolterCommandsBridge; notifications?: VolterNotificationsBridge; views?: VolterViewsBridge; utilities?: VolterUtilitiesBridge; status?: VolterStatusBridge }
+interface BridgeMount { output?: VolterOutputBridge; host: HTMLElement; keyboard: VolterKeyboardBridge; offerPart?(id: 'center' | 'outliner' | 'properties' | 'content', element: HTMLElement | null): void; documents?: VolterDocumentsBridge; history?: VolterHistoryBridge; files?: VolterFilesBridge; settings?: VolterSettingsBridge; commands?: VolterCommandsBridge; notifications?: VolterNotificationsBridge; views?: VolterViewsBridge; utilities?: VolterUtilitiesBridge; status?: VolterStatusBridge; startup?: VolterStartupBridge }
+/** The editor's terminal boot failure (`bridge.tsx`'s `VolterStartupHandle`), a mirror like the rest. */
+interface VolterStartupBridge { subscribe(listener: (failure: { message: string; guidance: string | null; command: string | null } | null) => void): () => void }
 interface BridgeModule {
 	mountVolter(parts: { chromeRoot: HTMLElement; header: HTMLElement; center: HTMLElement; outliner?: HTMLElement; properties?: HTMLElement; content?: HTMLElement }, frame?: { workspaceStorage?: { get(key: string): string | undefined; store(key: string, value: string | undefined): void; flush(): Promise<void> } }): Promise<BridgeMount>;
 }
@@ -646,6 +648,21 @@ registerAction2(class extends Action2 {
 					// installed — and what arrives here is that editor's action table.
 					keyboard = keyboardStore.add(new VolterKeyboard(mount.keyboard, contextKeyService));
 					for (const [id, element] of parts) { keyboard.trackPart(id, element); }
+					// THE EDITOR REFUSED TO OPEN THE PROJECT, and the cover is what a person is
+					// looking at. The editor's own error screen renders beneath it; the open below
+					// then waits on a workspace restore that a project which never opened never
+					// makes, so the product's splash ran forever over the refusal (owner's stream,
+					// 2026-10-06: "Starting Blender…" and a moving bar, the cause only in `status`).
+					// The cover fails in the editor's words instead. The open is left waiting on
+					// purpose: Dismiss shows the editor's error screen, and its Retry — after the
+					// fix — finishes this same open rather than mounting a second editor.
+					if (mount.startup) {
+						keyboardStore.add(toDisposable(mount.startup.subscribe(failure => {
+							if (!failure) { return; }
+							const fix = [failure.guidance, failure.command && localize('volterStartupRun', "Run from the project folder:\n{0}", failure.command)].filter(Boolean).join('\n\n');
+							cover?.fail(localize('volterStartupRefused', "{0} did not open.\n\n{1}", product.title, fix ? `${failure.message}\n\n${fix}` : failure.message));
+						})));
+					}
 					// UNDO OWNERSHIP, on the same beat and for the same reason (volterHistory.ts,
 					// and ARCHITECTURE-CORE §The core is Code-OSS). The bridge has already told
 					// the editor the frame owns undo — BEFORE mounting, so no entry is ever

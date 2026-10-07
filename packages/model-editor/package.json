@@ -52,6 +52,7 @@
       "entry": "./src/index.ts",
       "displayName": "Volter Model Editor",
       "colorTheme": "dark",
+      "upgrade": true,
       "workbench": {
         "darwin-arm64": {
           "release": "model-editor-f16dc165c0df-bcb58a166b10-darwin-arm64",

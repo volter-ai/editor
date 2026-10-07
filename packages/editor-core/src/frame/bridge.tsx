@@ -58,7 +58,7 @@ import {
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { subscribeAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
-import { AppRoot } from '../components/AppRoot';
+import { AppRoot, subscribeStartupFailure, type StartupFailureNotice } from '../components/AppRoot';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
 import { Inspector, InspectorShownAsCard } from '@volter/editor-sdk/kit/components/Inspector';
@@ -1062,6 +1062,18 @@ export interface VolterGameHandle {
   report(level: 'warn' | 'error', message: string): void;
 }
 
+/**
+ * THE BOOT'S TERMINAL FAILURE, for the frame's loading cover. The cover sits
+ * over the editor root, so the startup error screen AppRoot draws is beneath
+ * it; without this door a project that refuses to open (a pinned engine) left
+ * the product's splash running forever over the refusal. The listener hears
+ * the failure at once if it already happened, and `null` when a Retry clears
+ * it.
+ */
+export interface VolterStartupHandle {
+  subscribe(listener: (failure: StartupFailureNotice | null) => void): () => void;
+}
+
 /** What the frame hands over besides its parts, before anything of the editor runs. */
 export interface VscodeFrameServices {
   /** The workbench's workspace storage (`kit/workspace-storage`). */
@@ -1082,6 +1094,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   output: { setProvider: typeof setOutputProvider };
   status: VolterStatusHandle;
   game: VolterGameHandle;
+  startup: VolterStartupHandle;
   /** Re-offer or withdraw one handed-over part after the mount — see
    *  {@link offerVolterPart}. */
   offerPart(id: keyof VscodeParts, element: HTMLElement | null): void;
@@ -1167,7 +1180,10 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
   // the discovery scan. The kit's own CSF needs no contribution to exist, so
   // the registrations are direct (`stories/story-lane.ts`).
   installStoryLane();
-  await Promise.all([preloadSettings(), preloadEditorThemeLibrary(), preloadUserLocalState()]);
+  // The product's names join the preload (the ask started above is the one
+  // awaited): the boot's compatibility refusal names the product's verbs, and
+  // `upgrade` only when the product has it, so it must not race that answer.
+  await Promise.all([preloadSettings(), preloadEditorThemeLibrary(), preloadUserLocalState(), loadProductNames()]);
   installEditorTheme(next.chromeRoot);
   next.chromeRoot.classList.toggle('volter-native-menus', activeProduct()?.nativeMenus === true);
   // AppRoot's own overlays (startup screens, notifications, the palette) render
@@ -1554,6 +1570,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     settings,
     status: statusItems,
     game,
+    startup: { subscribe: subscribeStartupFailure },
     offerPart: offerVolterPart,
   };
 }

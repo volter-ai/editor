@@ -18,13 +18,19 @@ export interface ProductNames {
   readonly command: string;
   /** The name a person sees — `Volter Game Editor`. */
   readonly displayName: string;
+  /**
+   * Whether the command has `upgrade [version]` (`volter.product.upgrade` in the
+   * product's package.json), so a pinned-engine refusal can name it. Absent is
+   * no: a message must never tell a person to run a verb their command lacks.
+   */
+  readonly upgrade?: boolean;
 }
 
 let names: ProductNames | null = null;
 
 /** Record the served product's names. Called once per process/page. */
 export function setProductNames(next: ProductNames): void {
-  names = { command: next.command, displayName: next.displayName };
+  names = { command: next.command, displayName: next.displayName, upgrade: next.upgrade === true };
 }
 
 /** The served product's names, or `null` before they are known. */
@@ -74,7 +80,7 @@ export function loadProductNames(): Promise<void> {
     .then((body) => {
       const product = body.product;
       if (product && typeof product.command === 'string' && typeof product.displayName === 'string') {
-        setProductNames({ command: product.command, displayName: product.displayName });
+        setProductNames({ command: product.command, displayName: product.displayName, upgrade: product.upgrade === true });
       }
     })
     .catch(() => {

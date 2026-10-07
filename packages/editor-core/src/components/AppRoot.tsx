@@ -198,6 +198,41 @@ export function createFromParam(search: string): string | null {
 /** Attempts before a still-retrying detection reports itself to the console. */
 const PROJECT_DETECTION_REPORT_AFTER = 3;
 
+/**
+ * A TERMINAL startup failure, as the FRAME needs it: the product's loading
+ * cover sits over this whole tree (`volterCover.ts`, z-index above every part),
+ * so the error screen AppRoot renders is underneath it and nobody sees it.
+ * Measured on the owner's stream 2026-10-06: a pinned-engine refusal rendered
+ * here while the cover said "Starting Blender…" with a moving bar forever —
+ * the cover waits for the workspace to restore, and a project that never opens
+ * never restores. So the failure is published, and the bridge hands it to the
+ * cover (`mountEditor`'s `startup` door), which replaces its splash with it.
+ */
+export interface StartupFailureNotice {
+  readonly message: string;
+  readonly guidance: string | null;
+  /** The recovery as one pasteable line (`commandSequence`), when it has verbs. */
+  readonly command: string | null;
+}
+
+let startupFailureNotice: StartupFailureNotice | null = null;
+const startupFailureListeners = new Set<(notice: StartupFailureNotice | null) => void>();
+
+function publishStartupFailure(notice: StartupFailureNotice | null): void {
+  if (notice === startupFailureNotice) return;
+  startupFailureNotice = notice;
+  for (const listener of startupFailureListeners) listener(notice);
+}
+
+/** Hear this page's terminal startup failure — at once if it already happened. */
+export function subscribeStartupFailure(
+  listener: (notice: StartupFailureNotice | null) => void,
+): () => void {
+  startupFailureListeners.add(listener);
+  if (startupFailureNotice) listener(startupFailureNotice);
+  return () => startupFailureListeners.delete(listener);
+}
+
 export function AppRoot() {
   const [state, setState] = useState<State>({ status: 'detecting', waitingSince: null });
   const [detectionAttempt, setDetectionAttempt] = useState(0);
@@ -229,12 +264,14 @@ export function AppRoot() {
     let failures = 0;
     const startedAt = Date.now();
     setState({ status: 'detecting', waitingSince: null });
+    publishStartupFailure(null);
 
     const ask = () => {
       detectProjectWithTimeout().then(
         (project) => {
           if (cancelled) return;
           if (project) {
+            publishStartupFailure(null);
             setState({ status: 'ready', project });
           } else {
             setState({ status: 'no-project' });
@@ -257,10 +294,17 @@ export function AppRoot() {
             // the editor's `console` command whether or not anyone looks at the tab.
             const command =
               failure.recovery && 'verbs' in failure.recovery ? commandSequence(failure.recovery.verbs) : null;
+            // A message that already names its fix (the engine pin's does) is
+            // not followed by the same command a second time.
             editorConsole.error(
-              `Startup failed: ${failure.message}${command ? ` Run: ${command}` : ''}`,
+              `Startup failed: ${failure.message}${command && !failure.message.includes(command) ? ` Run: ${command}` : ''}`,
               'editor',
             );
+            publishStartupFailure({
+              message: failure.message,
+              guidance: failure.recovery?.guidance ?? null,
+              command,
+            });
             setState(failure);
             return;
           }
@@ -326,11 +370,18 @@ export function AppRoot() {
     reportTabRoute(state.status === 'ready' ? 'project' : 'no-project');
   }, [state.status]);
 
+  // The tab title carries the REASON, not only the verdict: a person looking at
+  // a row of tabs (or a stream) reads "pinned to 0.5.185, editor is 0.5.189"
+  // without opening the one that failed.
+  const failureReason =
+    state.status === 'error' && state.recovery
+      ? ('summary' in state.recovery ? state.recovery.summary : undefined) ?? state.recovery.title
+      : null;
   const titleSubject =
     state.status === 'ready'
       ? state.project.config.name
       : state.status === 'error'
-        ? "Couldn't open project"
+        ? `Couldn't open project${failureReason ? ` — ${failureReason}` : ''}`
         : null;
   useEffect(() => {
     document.title = editorDocumentTitle(titleSubject);
