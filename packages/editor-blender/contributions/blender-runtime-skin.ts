@@ -8,11 +8,14 @@
  * it and re-exports the mesh columns. That is the wrong architecture: it puts
  * a WASM depsgraph evaluation and a full geometry round trip between the
  * person's pointer and the picture, and it moves `scene.frame_current` sixty
- * times a second under every bpy reader in the session. So instead the tab
- * reads the rig ONCE (`session.py`'s `rna_rig`) and the action ONCE
- * (`rna_action_clip`), builds a real `THREE.SkinnedMesh` + `Skeleton` +
- * `AnimationMixer`, and every scrub and every played frame after that costs
- * ZERO calls into Blender.
+ * times a second under every bpy reader in the session. So the skin travels in the
+ * frame itself: the export door ships each Armature-deformed mesh's weights per
+ * exported vertex (`bpy_web_export.cc` `write_skin`), the frame names every bone's
+ * pose, and the presenter builds the `THREE.SkinnedMesh`es and their skeletons
+ * (`blender-runtime-skeleton.ts`). This director only plays the assigned action on
+ * those bones with an `AnimationMixer`: every scrub and every played frame costs
+ * ZERO calls into Blender, and the clip is baked again exactly when the frame says
+ * its action's revision moved.
  *
  * ## The bind pose is the EXPORT pose, and that is the whole trick
  *
@@ -36,11 +39,8 @@
  * from the F-Curves alone.
  */
 
-import type {
-  BlenderActionClip,
-  BlenderRig,
-  BlenderRigBinding,
-} from '@volter/blender-engine/browser/rna';
+import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
+import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { StageTransportHandle } from '@volter/editor-sdk/host';
 import * as THREE from 'three';
 import { blenderRnaSet } from '../host/blender-runtime-host';
@@ -59,50 +59,6 @@ function float32Of(base64: string): Float32Array {
   const bytes = bytesOf(base64);
   return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >> 2);
 }
-function uint16Of(base64: string): Uint16Array {
-  const bytes = bytesOf(base64);
-  return new Uint16Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >> 1);
-}
-
-/** A row-major four-row matrix, as every matrix in the RNA doors crosses —
- *  `THREE.Matrix4.set` takes its arguments row-major too, so this is a spread
- *  and not a transpose. */
-function matrixOf(rows: readonly (readonly [number, number, number, number])[]): THREE.Matrix4 {
-  return new THREE.Matrix4().set(...(rows.flat() as unknown as Parameters<THREE.Matrix4['set']>));
-}
-
-/** What the presenter needs of the view to swap a Mesh for a SkinnedMesh and
- *  to hang bones off an armature. Deliberately three methods and not the view:
- *  this module has no business knowing about frames, materials or overlays. */
-export interface SkinPresentation {
-  /** The presented `Object3D` for a Blender object NAME, or null. */
-  objectForBlenderName(name: string): THREE.Object3D | null;
-  /** Put `next` where `previous` was — same parent, same place in the object
-   *  table — so the next frame's reuse check finds it. */
-  replacePresentedObject(previous: THREE.Object3D, next: THREE.Object3D): void;
-  /** The presented root, for the one forced `updateMatrixWorld` a bind needs. */
-  root: THREE.Object3D;
-}
-
-export interface BoundRig {
-  /** The MESH object's Blender name. */
-  readonly object: string;
-  readonly armature: string;
-  readonly mesh: THREE.SkinnedMesh;
-  readonly boneRoot: THREE.Group;
-  readonly bones: readonly THREE.Bone[];
-  readonly skeleton: THREE.Skeleton;
-  /** `scene.frame_current` the binding was read at. */
-  readonly frame: number;
-  /** The identity a re-read is compared against: rebuilding a skeleton on
-   *  every present would throw away the mixer's time sixty times a minute. */
-  readonly signature: string;
-}
-
-function rigSignature(rig: BlenderRigBinding, frame: number): string {
-  return [rig.object, rig.mesh, rig.armature, rig.vertexCount, rig.bones.length, frame].join('|');
-}
-
 /**
  * A BLENDER ACTION'S BAKED TRACKS as three.js keyframe tracks over `bones` (by Blender's bone
  * name), addressed by bone UUID because three's track-name grammar splits on `.` and `hand.L`
@@ -131,123 +87,6 @@ export function clipTracks(clip: BlenderActionClip, bones: ReadonlyMap<string, T
 }
 
 /**
- * BIND ONE RIGGED MESH of a presentation: its drawn mesh becomes a `THREE.SkinnedMesh` over a
- * `Skeleton` built from Blender's bones, in the pose the columns were exported at (so the bind
- * is an identity there). Shared by the Timeline's director and Play's copy (`blender-play-skin.ts`).
- */
-export function bindRig(
-  presentation: SkinPresentation,
-  rig: BlenderRigBinding,
-  frame: number,
-  warnings: string[],
-): BoundRig | null {
-  const meshObject = presentation.objectForBlenderName(rig.object ?? '');
-  const armatureObject = presentation.objectForBlenderName(rig.armature ?? '');
-  if (!meshObject || !armatureObject) return null;
-  const source = meshObject as THREE.Mesh;
-  const geometry = source.geometry;
-  if (!geometry) return null;
-  const blenderVertex = geometry.getAttribute('blenderVertex');
-  if (!blenderVertex) {
-    warnings.push(
-      `"${rig.object}" cannot be skinned: its presented geometry carries no \`blenderVertex\` attribute, so a per-Blender-vertex weight cannot be expanded onto its drawn vertices (presented as ${(meshObject as THREE.Object3D).type} with ${Object.keys(geometry.attributes).join(', ') || 'no attributes'}).`,
-    );
-    return null;
-  }
-  if (rig.vertexCount === 0) return null;
-  // THE COLUMNS AND THE BINDING MUST BE THE SAME MESH. `rna_rig` reads the
-  // ORIGINAL mesh's vertices (a deform layer is not geometry, so that is
-  // where the weights live); a generative modifier — Subdivision, Mirror,
-  // Array — makes the EVALUATED mesh the export door ships a different
-  // vertex set, and a skin bound across that mismatch would weight the wrong
-  // vertices. Named, never silently drawn.
-  let highest = 0;
-  for (let i = 0; i < blenderVertex.count; i++)
-    highest = Math.max(highest, blenderVertex.getX(i));
-  if (highest >= rig.vertexCount) {
-    warnings.push(
-      `"${rig.object}" is not skinned here: its presented geometry references Blender vertex ${highest} while the mesh declares ${rig.vertexCount}, which is a generative modifier (Subdivision, Mirror, Array…) between the two. Blender's own viewport shows the evaluated result; this presenter shows the exported columns unskinned.`,
-    );
-    return null;
-  }
-  const skinIndex = uint16Of(rig.skinIndexBase64 ?? '');
-  const skinWeight = float32Of(rig.skinWeightBase64 ?? '');
-  const drawn = blenderVertex.count;
-  const indices = new Uint16Array(drawn * 4);
-  const weights = new Float32Array(drawn * 4);
-  for (let i = 0; i < drawn; i++) {
-    const vertex = blenderVertex.getX(i);
-    for (let k = 0; k < 4; k++) {
-      indices[i * 4 + k] = skinIndex[vertex * 4 + k] ?? 0;
-      weights[i * 4 + k] = skinWeight[vertex * 4 + k] ?? 0;
-    }
-  }
-  geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(indices, 4));
-  geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(weights, 4));
-
-  const boneRoot = new THREE.Group();
-  boneRoot.name = `${rig.armature}:bones`;
-  const bones: THREE.Bone[] = [];
-  const armatureSpace = rig.bones.map((bone) => matrixOf(bone.pose));
-  const indexByName = new Map(rig.bones.map((bone, index) => [bone.name, index]));
-  rig.bones.forEach((declared, index) => {
-    const bone = new THREE.Bone();
-    // THE NAME IS BLENDER'S, unsanitized, because a game reads it: the
-    // arena's `Player.tsx` finds its bones by Blender's own names. The CLIP
-    // therefore addresses bones by UUID rather than by name — three's
-    // `PropertyBinding` track-name grammar splits on `.`, and Blender's
-    // `hand.L` is an ordinary bone name.
-    bone.name = declared.name;
-    bones.push(bone);
-    const parentIndex = declared.parent === null ? undefined : indexByName.get(declared.parent);
-    const local =
-      parentIndex === undefined
-        ? armatureSpace[index]!.clone()
-        : armatureSpace[parentIndex]!.clone().invert().multiply(armatureSpace[index]!);
-    local.decompose(bone.position, bone.quaternion, bone.scale);
-    (parentIndex === undefined ? boneRoot : bones[parentIndex]!).add(bone);
-  });
-  armatureObject.add(boneRoot);
-
-  const skinned = new THREE.SkinnedMesh(geometry, source.material);
-  skinned.name = source.name;
-  skinned.matrixAutoUpdate = false;
-  skinned.matrix.copy(source.matrix);
-  skinned.matrix.decompose(skinned.position, skinned.quaternion, skinned.scale);
-  skinned.userData = source.userData;
-  // A SKIN MOVES PAST ITS BIND BOUNDS. three computes a SkinnedMesh's
-  // bounding sphere from the bind pose, so a raised arm at frame 24 is
-  // culled while its bind-pose sphere is off screen — a picture that
-  // vanishes mid-scrub with no error anywhere.
-  skinned.frustumCulled = false;
-  presentation.replacePresentedObject(source, skinned);
-  // THE BIND IS TAKEN AFTER THE GRAPH STANDS, because both halves of it are
-  // WORLD matrices: `Skeleton`'s bone inverses are the bones' `matrixWorld`
-  // at this instant and `bindMatrix` is the mesh's.
-  presentation.root.updateMatrixWorld(true);
-  const skeleton = new THREE.Skeleton(bones);
-  skinned.bind(skeleton, skinned.matrixWorld.clone());
-  if (rig.constrainedBones?.length)
-    warnings.push(
-      `Bone constraints on ${rig.constrainedBones.join(', ')}: the clip is derived from the F-Curves alone, so those bones play their channels rather than Blender's solved pose.`,
-    );
-  if (rig.unmappedGroups?.length)
-    warnings.push(
-      `${rig.object} carries vertex groups no bone is named for (${rig.unmappedGroups.join(', ')}); they weight nothing here, exactly as they deform nothing in Blender.`,
-    );
-  return {
-    object: rig.object ?? '',
-    armature: rig.armature ?? '',
-    mesh: skinned,
-    boneRoot,
-    bones,
-    skeleton,
-    frame,
-    signature: rigSignature(rig, frame),
-  };
-}
-
-/**
  * THE ONE DIRECTOR, module-scoped for the reason `BlenderRuntimeView` itself
  * is (`blender-runtime.document.tsx`): the Python session outlives workspace
  * switches and document remounts, so the skeleton it bound must too. The
@@ -255,18 +94,12 @@ export function bindRig(
  * copy of the playback state anywhere.
  */
 export class BlenderSkinDirector {
-  #rigs = new Map<string, BoundRig>();
-  /** Rigs that could not be bound, by mesh name, at the signature tried: not retried until the
-   *  rig changes (a generative modifier, no vertex map), so a settle does not re-read and re-warn. */
-  #unbindable = new Map<string, string>();
-
-  /** What could not be bound, keyed by the rig AND what is presented for its mesh: the fix for a
-   *  refusal (removing a generative modifier, showing a hidden object) changes the presentation,
-   *  not the rig, and must be retried. */
-  static #tried(presentation: SkinPresentation, mesh: string, signature: string): string {
-    const object = presentation.objectForBlenderName(mesh) as THREE.Mesh | null;
-    return `${signature}|${object?.uuid ?? 'absent'}|${object?.geometry?.uuid ?? 'none'}`;
-  }
+  /** The presented view whose skeletons the clip plays on (`sync`). */
+  #view: BlenderRuntimeView | null = null;
+  /** The armature the clip plays on, and what the clip was read for: armature, action, the
+   *  action's revision, the scene's clock and frame. Read again only when this changes. */
+  #armature: string | null = null;
+  #clipKey: string | null = null;
   #mixer: THREE.AnimationMixer | null = null;
   #action: THREE.AnimationAction | null = null;
   #clip: BlenderActionClip | null = null;
@@ -349,13 +182,14 @@ export class BlenderSkinDirector {
       action: clip?.action ?? null,
       object: clip?.object ?? null,
       armature: clip?.armature ?? null,
-      bones: [...this.#rigs.values()].reduce((sum, rig) => sum + rig.bones.length, 0),
+      bones: this.#armature ? this.#view?.skeletons.rig(this.#armature)?.bones.size ?? 0 : 0,
       keyframes: clip?.keyframes ?? [],
       summary: clip?.summary ?? [],
       clipStart: clip?.clipStart ?? null,
       clipEnd: clip?.clipEnd ?? null,
       tracks: clip?.tracks.length ?? 0,
-      bound: [...this.#rigs.keys()],
+      // The armature the clip plays on, when the presenter holds its skeleton.
+      bound: this.#armature && this.#view?.skeletons.rig(this.#armature) ? [this.#armature] : [],
       warnings: this.#warnings,
       engineCalls: this.#engineCalls,
       blenderFrame: clip?.frameCurrent ?? null,
@@ -390,150 +224,80 @@ export class BlenderSkinDirector {
   }
 
   /** Blender's scene clock exists even when the scene has no action. */
-  /** Whether a bind would change anything: nothing is bound yet, or a bound mesh is no longer the
-   *  object presented for its name (the presenter replaced it with a new draw). Lets the model
-   *  skip the rig read on the edits that touch no rig. */
-  stale(presentation: SkinPresentation): boolean {
-    // An unbindable rig whose presentation changed since it was tried is worth trying again.
-    for (const [mesh, tried] of this.#unbindable) {
-      const signature = tried.split('|').slice(0, -2).join('|');
-      if (BlenderSkinDirector.#tried(presentation, mesh, signature) !== tried) return true;
-    }
-    if (this.#rigs.size === 0) return this.#unbindable.size === 0;
-    for (const rig of this.#rigs.values()) {
-      if (presentation.objectForBlenderName(rig.object) !== rig.mesh) return true;
-      // A redraw that kept the object but replaced its geometry (a weight or mesh edit with the same
-      // vertex count) leaves the skinned mesh without its skin attributes.
-      if (!rig.mesh.geometry.getAttribute('skinIndex')) return true;
-    }
-    return false;
-  }
-
   get playable(): boolean {
     return this.#clip !== null && this.#transport !== null;
   }
 
-  // ------------------------------------------------------------ the binding
+  // ------------------------------------------------------------ the frame
 
   /**
-   * Bind every rigged mesh the frame carries, and load the active action.
-   *
-   * IDEMPOTENT BY SIGNATURE: a rig whose mesh, armature, vertex count, bone
-   * count and export frame are unchanged is left exactly as it is, mixer time
-   * included. That is what lets the presenter call this after EVERY frame
-   * without the picture jumping back to the bind pose each time something
-   * unrelated moved.
+   * FOLLOW THE PRESENTED FRAME. The armature played is the active object's (itself, or the one its
+   * skin is bound to), else the one armature that has an action. Its assigned action is read
+   * through the clip door when the frame says something about it moved: another armature or
+   * action, the action's revision, the scene's clock, or Blender's own frame. Otherwise this costs
+   * nothing, which is what lets the model call it after every present.
    */
-  async bind(
-    presentation: SkinPresentation,
-    read: {
-      rig(): Promise<BlenderRig | null>;
-      clip(): Promise<BlenderActionClip | null>;
-    },
-  ): Promise<void> {
-    this.#engineCalls++;
-    const answer = await read.rig();
-    if (!answer) return;
+  async sync(view: BlenderRuntimeView, read: { clip(armature: string): Promise<BlenderActionClip | null> }): Promise<void> {
+    this.#view = view;
+    const facts = view.animationFacts();
+    const names = Object.keys(facts.armatures);
+    const active = facts.active;
+    const armature = active && facts.armatures[active] ? active
+      : (active ? facts.skinArmature(active) : null)
+        ?? (names.filter((name) => facts.armatures[name]!.action).length === 1
+          ? names.find((name) => facts.armatures[name]!.action)! : null);
+    const action = armature ? facts.armatures[armature]?.action ?? null : null;
+    const key = JSON.stringify([armature, action, action ? facts.actions[action] ?? null : null, facts.clock, facts.frame,
+      armature ? view.skeletons.rig(armature) !== null : false]);
+    if (key === this.#clipKey && (!armature || this.#rig() === view.skeletons.rig(armature))) return;
+    this.#clipKey = key;
+    if (this.#armature && this.#armature !== armature) view.skeletons.restorePose(this.#armature);
+    this.#armature = armature;
+    this.#boundRig = armature ? view.skeletons.rig(armature) : null;
     const warnings: string[] = [];
-    const wanted = new Set<string>();
-    let changed = false;
-    for (const rig of answer.rigs) {
-      if (!rig.object || !rig.armature || !rig.skinIndexBase64 || !rig.skinWeightBase64) {
-        if (rig.reason) warnings.push(rig.reason);
-        continue;
-      }
-      wanted.add(rig.object);
-      const signature = rigSignature(rig, answer.frame);
-      const held = this.#rigs.get(rig.object);
-      // Unchanged only while what it bound is still what is presented, skinned: a redraw that
-      // replaced the object or its geometry (same vertex count, same signature) is bound again.
-      if (held?.signature === signature && presentation.objectForBlenderName(rig.object) === held.mesh
-        && held.mesh.geometry.getAttribute('skinIndex')) continue;
-      const tried = BlenderSkinDirector.#tried(presentation, rig.object, signature);
-      if (this.#unbindable.get(rig.object) === tried) continue;
-      const bound = this.#bindOne(presentation, rig, answer.frame, warnings);
-      if (!bound) {
-        this.#unbindable.set(rig.object, tried);
-        if (held) {
-          held.skeleton.dispose();
-          held.boneRoot.removeFromParent();
-          // A skinned mesh still presented with no skeleton would hold its last pose; it draws as
-          // the plain mesh it is again.
-          if (presentation.objectForBlenderName(rig.object) === held.mesh) {
-            const plain = new THREE.Mesh(held.mesh.geometry, held.mesh.material);
-            plain.name = held.mesh.name;
-            plain.matrixAutoUpdate = false;
-            plain.matrix.copy(held.mesh.matrix);
-            plain.matrix.decompose(plain.position, plain.quaternion, plain.scale);
-            plain.userData = held.mesh.userData;
-            presentation.replacePresentedObject(held.mesh, plain);
-          }
-          this.#rigs.delete(rig.object);
-          changed = true;
-        }
-      }
-      if (bound) {
-        this.#unbindable.delete(rig.object);
-        held?.skeleton.dispose();
-        held?.boneRoot.removeFromParent();
-        this.#rigs.set(rig.object, bound);
-        changed = true;
-      }
+    let clip: BlenderActionClip | null = null;
+    if (armature) {
+      this.#engineCalls++;
+      clip = await read.clip(armature);
     }
-    for (const [name, rig] of [...this.#rigs])
-      if (!wanted.has(name)) {
-        rig.skeleton.dispose();
-        rig.boneRoot.removeFromParent();
-        this.#rigs.delete(name);
-        changed = true;
-      }
-    this.#engineCalls++;
-    const clip = await read.clip();
     const previous = this.#clip;
     const rangeChanged = clip?.frameStart !== previous?.frameStart ||
       clip?.frameEnd !== previous?.frameEnd || clip?.fps !== previous?.fps;
-    const movedAction =
-      clip?.action !== previous?.action ||
-      clip?.tracks.length !== previous?.tracks.length ||
-      clip?.clipStart !== previous?.clipStart ||
-      clip?.clipEnd !== previous?.clipEnd;
     this.#clip = clip ?? null;
     if (!clip || clip.scene !== previous?.scene) this.#seeked = null;
     if (clip?.reason) warnings.push(clip.reason);
-    if (clip && (movedAction || changed)) this.#loadClip(presentation, clip, warnings);
-    // The subject can attach before the asynchronous scene read arrives.
-    // Refresh its clock range through the transport's own subject door.
+    if (clip) this.#loadClip(clip, warnings);
+    else {
+      this.#mixer?.stopAllAction();
+      this.#mixer = null;
+      this.#action = null;
+    }
     const activeSubject = this.#transport?.snapshot().activeSubject;
     if (rangeChanged && activeSubject) this.#transport?.setActiveSubject(activeSubject);
-    // BLENDER'S OWN FRAME RE-SYNCS THE PLAYHEAD. An agent that set
-    // `scene.frame_current` in bpy has said where it wants to be, and a
-    // present is how we hear about it; while the transport is PLAYING it would
-    // be the Timeline arguing with itself, so it is honoured only at rest.
     const playing = this.#transport?.snapshot().playbackState === 'playing';
-    if (clip && !playing && (rangeChanged || previous?.frameCurrent !== clip.frameCurrent)) {
+    if (clip && !playing) {
       this.#seek(clip.frameCurrent);
-      // THE BOOKMARK READ, once per bind: the file says where it was left, and
-      // the transport is what everything else now asks.
       if (this.#transport && clip.fps > 0) this.#transport.seek(clip.frameCurrent / clip.fps);
     }
     this.#warnings = warnings;
     this.#publish();
   }
 
-  #bindOne(presentation: SkinPresentation, rig: BlenderRigBinding, frame: number, warnings: string[]): BoundRig | null {
-    return bindRig(presentation, rig, frame, warnings);
+  /** The rig the clip was loaded over: a rebuilt rig (new bones) needs the clip loaded again. */
+  #boundRig: object | null = null;
+  #rig(): object | null {
+    return this.#boundRig;
   }
 
-  #loadClip(presentation: SkinPresentation, clip: BlenderActionClip, warnings: string[]): void {
+  #loadClip(clip: BlenderActionClip, warnings: string[]): void {
     this.#mixer?.stopAllAction();
     this.#mixer = null;
     this.#action = null;
     if (!clip.tracks.length || clip.clipStart === undefined || clip.clipEnd === undefined) return;
-    const armature = clip.armature ? presentation.objectForBlenderName(clip.armature) : null;
-    if (!armature) return;
-    const byName = new Map<string, THREE.Bone>();
-    for (const rig of this.#rigs.values())
-      if (rig.armature === clip.armature) for (const bone of rig.bones) byName.set(bone.name, bone);
+    const rig = clip.armature ? this.#view?.skeletons.rig(clip.armature) : null;
+    if (!rig) return;
+    const armature = rig.object;
+    const byName = rig.bones;
     const tracks = clipTracks(clip, byName, warnings);
     if (!tracks.length) return;
     const duration = clip.duration ?? (clip.clipEnd - clip.clipStart) / clip.fps;
@@ -579,10 +343,8 @@ export class BlenderSkinDirector {
    *  render reads them. A `Bone` keeps `matrixAutoUpdate`, so this is a forced
    *  pass over a handful of nodes rather than a recomposition of the scene. */
   #refresh(): void {
-    for (const rig of this.#rigs.values()) {
-      rig.boneRoot.updateMatrixWorld(true);
-      rig.skeleton.update();
-    }
+    const rig = this.#armature ? this.#view?.skeletons.rig(this.#armature) : null;
+    rig?.object.updateMatrixWorld(true);
   }
 
   /** The scene's name, for the one address the Timeline writes to. */
@@ -690,11 +452,9 @@ export class BlenderSkinDirector {
     this.#action = null;
     this.#clip = null;
     this.#seeked = null;
-    for (const rig of this.#rigs.values()) {
-      rig.skeleton.dispose();
-      rig.boneRoot.removeFromParent();
-    }
-    this.#rigs.clear();
+    if (this.#armature) this.#view?.skeletons.restorePose(this.#armature);
+    this.#armature = null;
+    this.#clipKey = null;
   }
 }
 

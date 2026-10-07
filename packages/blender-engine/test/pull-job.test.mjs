@@ -96,7 +96,7 @@ test('actual worker startup parks the engine and completes streamed presentation
   assert.equal(result.load, 'done'); assert.equal(result.value.session, 'proof');
   assert.deepEqual(events, ['start', 'evaluated', 'presented', 'history-events']);
   assert(replies.some(r => r.op === 'frame-stream'));
-  for (const op of ['rig', 'present']) {
+  for (const op of ['present']) {
     events.length = 0;
     result = await send({ op });
     assert.equal(result.load, 'continue');

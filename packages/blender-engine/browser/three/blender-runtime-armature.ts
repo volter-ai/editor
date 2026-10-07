@@ -61,6 +61,8 @@ export const armatureSchema = z
     showInFront: z.boolean(),
     mode: z.string(),
     bones: z.array(boneSchema),
+    /** `animation_data.action`, the action it plays (`session.py` `_armatures`). */
+    action: z.string().nullable().optional(),
   })
   .strict();
 

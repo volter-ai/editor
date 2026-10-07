@@ -71,14 +71,12 @@ import {
   modelDocumentMayOpen,
   modelDocumentOwnsPresentation,
   blenderActionClip,
-  blenderArmatureActions,
-  blenderRig,
   blenderRnaVersion,
 } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
 import { blenderSkin } from './blender-runtime-skin';
-import { bindPlayAnimation, readPlayClipLibrary, type PlayAnimation } from './blender-play-skin';
+import { playAnimation, type PlayAnimation } from './blender-play-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
 import { noteModelDocument } from '../src/play-mode';
 import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
@@ -910,19 +908,12 @@ function BlenderViewportArea({
       preparing = true;
       orbit = stage.rig().orbit;
       orbit.enabled = false;
-      // THE COPY'S CHARACTERS ANIMATE: their skins and every clip they can play, read once for
-      // this run and bound to the copy (`blender-play-skin.ts`). A read that fails costs the game its
-      // animation, said in the console, never the game itself.
-      void Promise.all([
-        view.prepareRendered(stage.rig().drawCamera(), 'render'),
-        readPlayClipLibrary().catch((error: unknown) => {
-          editorHost().console.warn(`The game's animation could not be read: ${error instanceof Error ? error.message : String(error)}`, 'blender-play');
-          return null;
-        }),
-      ]).then(([, library]) => {
+      // THE COPY'S CHARACTERS ANIMATE: its view bound their skins from the copied frame, and each
+      // armature plays the action the file assigns it until the game sets another
+      // (`blender-play-skin.ts`). Nothing is read before the game starts.
+      void view.prepareRendered(stage.rig().drawCamera(), 'render').then(() => {
         if (stopped) return;
-        animation = library ? bindPlayAnimation(view, library) : null;
-        for (const warning of animation?.warnings ?? []) editorHost().console.warn(warning, 'blender-play');
+        animation = playAnimation(view, (armature, action) => blenderActionClip({ object: armature, action }));
         stopScript = documentPlayExtension('model')?.run({
           ...(animation ? { animation } : {}),
           documentId: modelId,
@@ -1056,31 +1047,18 @@ function BlenderViewportArea({
     };
   }, [documentId, view]);
   /**
-   * THE MODEL'S SKINS AND ASSIGNED ACTION, AS BLENDER'S VIEWPORT SHOWS THEM: a rigged object is
-   * presented skinned, whatever editors are open, and plays the action assigned to it. Bound on
-   * every change of the file, a moment after it settles, because `rna_rig` walks every vertex of
-   * every rigged mesh; a file with no armature pays only the cheap listing.
+   * THE ASSIGNED ACTION ON THE PRESENTED SKELETONS. The skins themselves come with every frame (the
+   * presenter binds them, `blender-runtime-skeleton.ts`); after each present the director follows
+   * the frame, and reads a clip only when the frame says its action, revision or clock moved.
    */
   const rnaVersion = useSyncExternalStore(subscribeBlenderRna, blenderRnaVersion, blenderRnaVersion);
-  /** The armatures, their actions and what each is assigned, as last bound: an edit that changes
-   *  none of them and replaced no skinned mesh costs no rig read and no bake. */
-  const boundListing = useRef<string | null>(null);
   useEffect(() => {
     if (!documentId || !main) return;
     let live = true;
-    const timer = setTimeout(() => {
-      void (async () => {
-        const listing = await blenderArmatureActions();
-        if (!live || !listing?.armatures.length) return;
-        const key = JSON.stringify([listing.armatures, listing.scene ?? null]);
-        if (key === boundListing.current && !blenderSkin.stale(view)) return;
-        await blenderSkin.bind(view, { rig: () => blenderRig(), clip: () => blenderActionClip() });
-        boundListing.current = key;
-      })().catch((thrown: unknown) => {
-        if (live) editorHost().console.warn(`This file's rig could not be read: ${thrown instanceof Error ? thrown.message : String(thrown)}`, 'blender-skin');
-      });
-    }, 400);
-    return () => { live = false; clearTimeout(timer); };
+    void blenderSkin.sync(view, { clip: (armature) => blenderActionClip({ object: armature }) }).catch((thrown: unknown) => {
+      if (live) editorHost().console.warn(`This file's action could not be read: ${thrown instanceof Error ? thrown.message : String(thrown)}`, 'blender-skin');
+    });
+    return () => { live = false; };
   }, [documentId, main, view, rnaVersion]);
   /**
    * ATTACH THE SKIN TO THIS STAGE'S TRANSPORT.

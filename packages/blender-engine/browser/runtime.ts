@@ -21,7 +21,6 @@ import type {
   BlenderNodeTree,
   BlenderOutlinerTree,
   BlenderOutlinerWrite,
-  BlenderRig,
   BlenderRnaContext,
   BlenderRnaView,
   BlenderRnaWrite,
@@ -408,16 +407,6 @@ export class BlenderRuntime {
     })) as BlenderUvLayout;
   }
 
-  /** ONE MESH'S SKIN BINDING (`./rna.ts`, `BlenderRig`) — the armature's
-   *  bones and the per-vertex influences a `THREE.SkinnedMesh` needs. Given no
-   *  `object`, the view layer's ACTIVE mesh answers. */
-  async rig(options?: { object?: string }): Promise<BlenderRig> {
-    await this.#ready();
-    return (await this.#request({
-      op: 'rig',
-      ...(options?.object === undefined ? {} : { object: options.object }),
-    })) as BlenderRig;
-  }
 
   /** ONE ACTION AS A THREE.JS CLIP (`./rna.ts`, `BlenderActionClip`). `bake:
    *  false` answers the header and the summary row's key columns without the
@@ -433,11 +422,6 @@ export class BlenderRuntime {
     })) as BlenderActionClip;
   }
 
-  /** Every armature and the actions that can play on it, assigned or not (a game's clip library). */
-  async armatureActions(): Promise<{ armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[]; scene?: { frameCurrent: number; frameStart: number; frameEnd: number; fps: number } }> {
-    await this.#ready();
-    return (await this.#request({ op: 'armature-actions' })) as { armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[]; scene?: { frameCurrent: number; frameStart: number; frameEnd: number; fps: number } };
-  }
 
   /** Write ONE restriction column (the eye, the render camera, a collection's
    *  Exclude). A column Blender draws on no row of that type is refused by

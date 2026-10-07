@@ -93,7 +93,6 @@ export const commands: CommandContribution['commands'] = {
   // and the ONE write the Timeline makes (`scene.frame_current`, once on
   // pause and at scrub-end) goes through `blender-rna-set`, which already
   // exists and already presents.
-  'blender-rig': verb('none', 60_000),
   'blender-action-clip': verb('none', 120_000),
   // THE NODE VIEW'S OWN ACTIONS as a session verb — the keyboard ruling's
   // `volter.*`-command-per-action pattern, and the only way the drawer's view

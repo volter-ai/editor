@@ -36,7 +36,6 @@ import type {
   BlenderNodeTree,
   BlenderOutlinerTree,
   BlenderOutlinerWrite,
-  BlenderRig,
   BlenderRnaContext,
   BlenderRnaView,
   BlenderRnaWrite,
@@ -661,15 +660,6 @@ export async function blenderUvLayout(options?: {
   return blenderRuntime().uvLayout(options);
 }
 
-/** THE RIG DOOR, in-page — one mesh's skin binding, which the presenter turns
- *  into a `THREE.SkinnedMesh` (`../contributions/blender-runtime-skin.ts`).
- *  WE VISUALIZE WITH THREE.JS, NOT BLENDER (owner rule, 2026-09-20): this is
- *  called once per rig, never per played frame. Same rule as the doors above:
- *  it never starts the engine. */
-export async function blenderRig(options?: { object?: string }): Promise<BlenderRig | null> {
-  if (!blenderSessionStarted()) return null;
-  return blenderRuntime().rig(options);
-}
 
 /** THE CLIP DOOR, in-page — one action as three.js keyframe tracks plus the
  *  scene's frame range and the Timeline's summary columns. Called when the
@@ -684,11 +674,6 @@ export async function blenderActionClip(options?: {
   return blenderRuntime().actionClip(options);
 }
 
-/** Every armature and the actions that can play on it, for Play's clip library. Never starts the engine. */
-export async function blenderArmatureActions(): Promise<{ armatures: { armature: string; current: string | null; actions: string[]; keys?: string }[]; scene?: { frameCurrent: number; frameStart: number; frameEnd: number; fps: number } } | null> {
-  if (!blenderSessionStarted()) return null;
-  return blenderRuntime().armatureActions();
-}
 
 export async function blenderOutlinerSet(
   path: string,
@@ -1456,18 +1441,8 @@ export async function handleBlenderCommand(cmd: {
             }),
           },
         };
-      // THE RIG AND CLIP DOORS on the wire, beside the UV one: the skin
-      // binding and the action as three.js tracks, so a `cyclotron eval` reads
-      // exactly what the presenter bound and what the Timeline plays.
-      case 'blender-rig':
-        return {
-          ok: true,
-          data: {
-            result: await session.rig({
-              ...(typeof cmd['object'] === 'string' ? { object: cmd['object'] } : {}),
-            }),
-          },
-        };
+      // THE CLIP DOOR on the wire, beside the UV one: an action as three.js tracks, so a
+      // `cyclotron eval` reads exactly what the Timeline and a game play.
       case 'blender-action-clip':
         return {
           ok: true,
