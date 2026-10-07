@@ -1943,3 +1943,32 @@ editor capture with an object selected shows the restored courtyard through its
 native camera. The active-document capture still produced an incorrect dark
 image and remains a separate capture-path investigation. Environment visibility
 and indirect lighting still fail the visual gate. No packages were published.
+
+### 2026-10-07 — isolated native Cycles preview and read-only file listings
+
+The public `blender-native-preview` command renders the current native scene
+through its camera in Cycles. Preview resolution and sampling apply to an owned
+scene copy, removed on both success and failure. It leaves authoring settings,
+history and revisions alone and avoids the Three exporter and document save.
+Its session-local PNG is available through the existing binary file-read door.
+Compositing and denoising are disabled for this preview; the original settings
+remain intact. This is a camera photograph, not a progressive Rendered viewport.
+
+Verification first caught a separate mutation: `blender-list-files` ran Python
+to print the active filepath. Execute marks the scene changed even with history
+disabled, so a read exported the scene, advanced its revision and scheduled a
+save. Listings now read native filepath/session/revision through a dedicated
+operation serialized with the filesystem snapshot.
+
+The public editor command produced and transferred a 360×202, eight-sample
+native courtyard preview in 3.49 seconds (3.52 seconds round trip). Listings
+before and after retain the same native session and revision. The PNG was
+viewed: the arcade is dark as in the native reference, with visible sampling
+noise. Seven native engine/preview isolation tests, engine and Blender
+typechecking and the modeling frontend build passed. The live viewport and
+Play remain Three, and still fail lighting parity. No packages were published.
+
+The rejected per-pixel Three environment-visibility experiment is retained in
+an owned stash, not shipped. It introduced unacceptable live viewport latency
+and did not fully pass the closed-room visibility oracle. Its source and
+measurements remain available for diagnosis; no visual gate is accepted.

@@ -5225,8 +5225,63 @@ def _dispatch_request(request):
             }[op])
 
 
+def _native_preview(request):
+    """Native Cycles in an owned scene copy, never in the authoring scene.
+
+    Preview settings, Render Result and temporary files are derived render
+    resources. No history checkpoint, save, frame export or revision bump is
+    owed by this operation. Remove the owned scene before another operation
+    can serialize a project or enumerate its scene datablocks.
+    """
+    for key, maximum in (("width", 1024), ("height", 1024), ("samples", 512)):
+        value = request.get(key)
+        if type(value) is not int or not 1 <= value <= maximum:
+            raise ValueError("Native preview %s must be an integer from 1 to %d" % (key, maximum))
+    engine = _engine_class("CYCLES")
+    if engine is None or issubclass(engine, VolterRenderEngine):
+        raise RuntimeError("Native Cycles is unavailable; a Three photograph cannot answer this request")
+    original = bpy.context.scene
+    camera = original.objects.get(request["camera"]) if request.get("camera") else original.camera
+    if camera is None or camera.type != "CAMERA":
+        raise ValueError("Native preview needs a camera belonging to this scene")
+    preview = original.copy()
+    path = os.path.join(ROOT, "native-preview.png")
+    try:
+        preview.camera = camera
+        preview.render.engine = "CYCLES"
+        preview.render.resolution_x = request["width"]
+        preview.render.resolution_y = request["height"]
+        preview.render.resolution_percentage = 100
+        # Rendered viewport shading precedes the compositor and uses its own
+        # sampling budget; the authoring scene's settings remain untouched.
+        preview.render.use_compositing = False
+        preview.render.use_persistent_data = False
+        preview.cycles.samples = request["samples"]
+        preview.cycles.use_denoising = False
+        preview.render.image_settings.file_format = "PNG"
+        preview.render.image_settings.color_mode = "RGBA"
+        preview.render.image_settings.color_depth = "8"
+        preview.render.filepath = path
+        if os.path.exists(path):
+            os.unlink(path)
+        start = time.perf_counter()
+        result = bpy.ops.render.render(write_still=True, scene=preview.name, layer=bpy.context.view_layer.name)
+        if "FINISHED" not in result or not os.path.isfile(path):
+            raise RuntimeError("Native Cycles preview did not produce its PNG")
+        return {"path": path, "renderer": "CYCLES", "session": SESSION.session,
+                "revision": SESSION.revision, "camera": camera.name,
+                "width": request["width"], "height": request["height"],
+                "samples": request["samples"], "seconds": time.perf_counter() - start}
+    finally:
+        bpy.data.scenes.remove(preview, do_unlink=True)
+
+
 def _dispatch(request):
     op = request.get("op")
+    if op == "native-preview":
+        return _native_preview(request)
+    if op == "document-info":
+        return {"filepath": bpy.data.filepath, "session": SESSION.session, "revision": SESSION.revision}
     if op == "execute":
         engine = bpy.context.scene.render.engine
         if engine in UNAVAILABLE_ENGINES and "render.render" in request["code"]:

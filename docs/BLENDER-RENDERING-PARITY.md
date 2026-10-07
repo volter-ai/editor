@@ -140,6 +140,25 @@ and complete native-WASM/desktop pixel equivalence is not claimed.
 The Three-backed render engine currently supplies only Combined; matching native
 Mist, Noisy Image and other pass inputs in raster captures remains a separate gate.
 
+`blender-native-preview` is a read-only native Cycles camera preview. Supply
+integer `width`, `height` (1–1024) and `samples` (1–512), with an optional camera
+name belonging to the current scene. It renders an owned scene copy without
+compositing or denoising, removes that copy even on failure, and returns a
+session-local PNG path plus the native session/revision and render timing.
+Read the PNG through `blender-read-file`. It does not alter authoring settings,
+advance history/revisions, export a Three frame or schedule a document save.
+The current operation rebuilds its render scene on each call; it is not a
+progressive viewport or a frame-rate game renderer.
+
+The public editor command rendered the unchanged courtyard at 360×202 with eight
+samples in 3.49 seconds (3.52 seconds including the command round trip). File
+listings before and after reported the same native session and revision. The
+viewed result preserves the dark arcade but remains noisy; this is native
+preview verification, not acceptance of live Three rendering parity.
+File listings now obtain their document path and identity through a dedicated
+native read. The previous Python `print` used the execute mutation path even
+with history disabled, unnecessarily exporting the scene and scheduling a save.
+
 ## Remaining scene gates
 
 The Lone Monk courtyard still fails scene parity. Its unsupported Particle Info
