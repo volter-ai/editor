@@ -360,7 +360,7 @@ function followNewTableDocuments(seen?: readonly string[]): void {
 /**
  * A RECORD WHOSE FILES ARE ALL GONE opens the project's default, not nothing: a models project
  * whose only `.blend` was deleted between sessions would otherwise sit on an empty workspace
- * (on the model editor, the cover's 90 s refusal). Decided once, for the whole record, and only
+ * (on Cyclotron, the cover's 90 s refusal). Decided once, for the whole record, and only
  * on a table that loaded cleanly for this project — a failed or partial load lists nothing and
  * proves nothing gone.
  */
@@ -468,7 +468,7 @@ registerWorkspaceDocumentRestorer({
     // open' keeps nothing open" stood beside it as if it were a decision. It
     // was a hole: closing the last document writes `open: []`, and every boot
     // after that restored nothing and opened nothing (walk 5 beat 0 —
-    // measured on a `model-editor create` scaffold, where the product's cover
+    // measured on a `cyclotron create` scaffold, where the product's cover
     // then sat out its 90 s budget and blamed Blender for a model nobody had
     // asked it to open).
     if (!hasDocumentsToRestore) openDefaultTableDocument();

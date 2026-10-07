@@ -7,7 +7,7 @@
     "@volter/editor-blender",
     "@volter/editor-core",
     "@volter/editor-live",
-    "@volter/model-editor",
+    "@volter/cyclotron",
     "@volter/threejs-runtime",
     "@volter/game-runtime",
     "@volter/editor-react",

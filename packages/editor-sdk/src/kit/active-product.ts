@@ -4,7 +4,7 @@
  *
  * A product is the last mile: thin code that stitches packages onto the kit and
  * holds only purpose-specific choices (ARCHITECTURE-CORE §The target shape).
- * `@volter/game-editor` and `@volter/model-editor` each have ONE source entry which
+ * `@volter/game-editor` and `@volter/cyclotron` each have ONE source entry which
  * IS that product's frame entry, and the first thing it does is call
  * `product({ … })` (`frame/product.ts`), which lands here.
  *
@@ -29,7 +29,7 @@
 
 /** What a product's entry composed, as the kit reads it. */
 export interface ActiveProduct {
-  /** The product's id — `game-editor`, `model-editor`. Reported by the session
+  /** The product's id — `game-editor`, `cyclotron`. Reported by the session
    *  beside the workbench (the editor's `status` command), never read as a branch. */
   readonly id: string;
   /** The packages it mounts, by name, in composition order. The contributions

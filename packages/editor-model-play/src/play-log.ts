@@ -4,7 +4,7 @@
  * The game editor's play log is the receipt of a run (`play-*.jsonl`, `log-format.ts`); this
  * is Model Play's. A script calls `play.log(kind, facts)` (`play-script.ts`) on the
  * transitions that explain a run — a jump, a landing, a death and its cause, autoplay's
- * choice — and an agent reads them back with `volter-model-editor play-log` or
+ * choice — and an agent reads them back with `cyclotron play-log` or
  * `editor.modelPlayLog()` in `eval`. `console.log` cannot do this job: the session's
  * console feed keeps warnings and errors only.
  *

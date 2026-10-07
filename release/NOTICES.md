@@ -17,7 +17,7 @@ them together with the generated notice files. `npm run check:packed-imports`
 and `npm run check:packed-imports:game` separately check literal import
 declarations; they are not a license audit.
 
-The playable Model Editor skew uses `release/playable.json`: the eight modeling
+The playable Cyclotron skew uses `release/playable.json`: the eight modeling
 packages plus `editor-model-play`, `editor-ui`, `editor-react`, `editor-game`,
 `game-runtime` and `threejs-runtime` (14 total). The UI tool currently imports DOM
 authoring from `editor-game`; that package declares the two runtimes. These are

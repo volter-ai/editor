@@ -52,9 +52,9 @@ the task worktree's `.volter/empty-properties-evidence/`. This verifies the
 selection-context fix and the specified layouts; complete parity of every
 Blender panel remains the inspection program described below.
 
-## Model Editor first-run walkthrough (2026-10-05)
+## Cyclotron first-run walkthrough (2026-10-05)
 
-Bare `volter-model-editor` now opens the current project, or creates and reopens
+Bare `cyclotron` now opens the current project, or creates and reopens
 `~/Documents/Volter Models/Untitled Model` with a saved cube. Occupied unrelated
 folders get a numbered sibling. Explicit `create <folder>` still creates a separate
 project. This saved folder is our product choice: Blender's
@@ -77,7 +77,7 @@ Remaining evidence gaps: fresh OAuth sign-in and a fresh registry install were
 not walked. One Claude conversation completed a turn but retained a null resume
 identity in the existing host catalog; another Claude test conversation bound
 successfully. Do not count that first conversation as verified resumable. Six new
-first-run tests, the Model Editor typecheck and the modeling release build pass.
+first-run tests, the Cyclotron typecheck and the modeling release build pass.
 The full repository suite currently fails in seven unchanged fixtures referencing
 removed source paths or missing mock exports, before reaching the model tests.
 
@@ -245,7 +245,7 @@ changes); all three are fixed in the release.
 
 Remaining:
 
-1. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): the model editor
+1. **The architecture plan** ([ARCHITECTURE.md](ARCHITECTURE.md) §The plan): Cyclotron
    rename, the frozen reverse-edge baseline, the viewport unit, Blender as its first consumer,
    then idiomatic games.
    The kit's Blender server routes are `@volter/editor-blender`'s serving half (walked: Blender
@@ -264,8 +264,8 @@ Remaining:
    key moves the player; another document turns the tab to Edit; Stop restores the pre-play
    document; an Inspector edit and its undo round-trip source byte for byte. Product builds need
    3–5 GB and thrash this box while other workloads hold its memory.
-   Units 1–2 are done (`@volter/model-editor`; `release/boundary-baseline.json`, 696 edges). The
-   model editor's workbench is released for its own product id; both products pin releases cut
+   Units 1–2 are done (`@volter/cyclotron`; `release/boundary-baseline.json`, 696 edges).
+   Cyclotron's workbench is released for its own product id; both products pin releases cut
    from Code-OSS `9ef15b1f` (W71: extension-host reconnections reach the host),
    `model-editor-9ef15b1f345b-7b9222405623` and `game-editor-9ef15b1f345b-e22708e88dca`, private,
    both with the native Chat repairs and `supercode-frontend-vscode` 0.1.7.
@@ -290,7 +290,7 @@ Remaining:
    is `@volter/editor-game`'s. Walked on `arena` from product builds: select and inspect with
    preview, the shelf's tools reaching status, a source edit and undo byte for byte, Play with W
    and Stop restoring the scene, selection and camera pose, a glb and a Blender Model document.
-   Unit 4, walked in the model editor on this code (a fresh `create`d project): the Cube moved
+   Unit 4, walked in Cyclotron on this code (a fresh `create`d project): the Cube moved
    through `blender-execute` shows moved and its `.blend` is rewritten on disk; undo returns it;
    the Outliner eye hides and reveals it; the state survives a full editor reopen; closing the
    Model document unbinds it from the engine and returns its renderer to the pool. The game
@@ -493,7 +493,7 @@ Both products run as images of `browser-substrate`'s `examples/volter-editor`
 (branch `examples/volter-editor-products`: `/model-editor`, `/game-editor`). The image's
 build step is the product's own `prepare` (the session's dependency optimizer), so its
 packs cover what the session pre-bundles and the tab builds none. Measured on a warm
-origin, navigation to the Model Editor's model read in Blender: 19.5–25 s, from 80 s to
+origin, navigation to Cyclotron's model read in Blender: 19.5–25 s, from 80 s to
 the workbench alone before the image carried its pre-bundle (load 12–35, so single
 runs vary by seconds). Where it goes (ms): runtime and image link 0–3,600; `edit` to the
 session listening 4,300; Code-OSS server 2,500; workbench and product bundle 3,300; the
@@ -566,14 +566,14 @@ no migration started.
 
 ## Play on the Model document
 
-The `playable` Model Editor template declares `editor-model-play`, `editor-ui` and
+The `playable` Cyclotron template declares `editor-model-play`, `editor-ui` and
 `editor-react` on its project; the base `models` template declares none of them. The Play
 tool contributes header/View controls through `kit/document-play-extension`; Blender
 lends its detached Rendered stage. Stop/Escape disposes it and returns to the saved model.
 The UI tool mounts the declared `dom` root through `kit/project-play-layers`, sharing one
 mount epoch with the script (`editor-model-play/src/play-script.ts`), so its plain race
 store has one instance. The existing UI board opens the HUD's CSF stories beside Track.
-State: walked in source and built sessions of Volter Model Editor, built on Blender;
+State: walked in source and built sessions of Volter Cyclotron, built on Blender;
 fresh `create --template playable` ships the built circuit, script and React HUD, while
 `models` shows no Play control. Scene empties group the circuit; Outliner pages after
 parent folding. Render and Play at the same pose match (1.10/255 mean absolute RGB
@@ -675,9 +675,9 @@ no animation implementation started.
    Blender's modal duplicate-and-move UI and expanded editing of inspection-only
    panels are not claimed.
 
-**Windows and Linux (owner, 2026-10-06).** The Model Editor ships darwin-arm64, win32-x64 and
+**Windows and Linux (owner, 2026-10-06).** Cyclotron ships darwin-arm64, win32-x64 and
 linux-x64 workbench releases, each cut on its own platform (win32 on a Windows 11 desktop, linux
-in WSL), declared per platform in `packages/model-editor/package.json`. Code-OSS's win32 package
+in WSL), declared per platform in `packages/cyclotron/package.json`. Code-OSS's win32 package
 task no longer rcedits native binaries (Smart App Control blocks the rewritten hashes). Open:
 Chat on Windows reports no ready local agent though `supercode harness list` reports Claude Code
 and Codex ready; Linux (WSL) finds them.
@@ -1354,7 +1354,7 @@ Cycle9 native author started from fresh12-file Models preset and20 private curre
 
 ## Reference interpretation and visual-first defaults (2026-10-06)
 
-User clarified that reusable failures belong first in the owning engine/editor, otherwise in default agent guidance, and that the task prompt should stay short. Repository AGENTS.md records that iteration policy. Model Editor starter AGENTS.md now derives requirements from actual images, videos, specs, linked sources and existing assets, distinguishes observations from assumptions, and requires a static authored 3D scene plus React UI reference match before new gameplay. Comparisons cover framing, geometry, palette, lighting, display color space, exposure and tone mapping. Generic restart, complete-session, active-pause, sustained manual-input and deterministic UI-preview checks are default guidance. CLAUDE.md continues importing the shared file.
+User clarified that reusable failures belong first in the owning engine/editor, otherwise in default agent guidance, and that the task prompt should stay short. Repository AGENTS.md records that iteration policy. Cyclotron starter AGENTS.md now derives requirements from actual images, videos, specs, linked sources and existing assets, distinguishes observations from assumptions, and requires a static authored 3D scene plus React UI reference match before new gameplay. Comparisons cover framing, geometry, palette, lighting, display color space, exposure and tone mapping. Generic restart, complete-session, active-pause, sustained manual-input and deterministic UI-preview checks are default guidance. CLAUDE.md continues importing the shared file.
 
 The next-cycle user prompt is fixed at 18 words in .volter/kart-cycles-20261006/next-user-prompt.txt. Historical prompts and live/private cycle packages were preserved. Manual calls to the real product preset created fresh Models and Playable projects inside the owned World; both copied the exact updated defaults and CLAUDE import. No editor was opened or AI turn dispatched for this check. These are instruction and scaffold delivery changes, not proof that a new author achieves visual convergence. No automated tests or runtime changes were added for this follow-up.
 
@@ -1679,7 +1679,7 @@ Once the editor workflow is totally smooth, repeat the fresh-project experiment 
 
 The owner requires routine integration into shared main so other agents can see
 and reuse completed fixes. A worktree is for isolation, not delayed integration.
-This batch contains the Model Editor starter/native Chat controls, shared agent
+This batch contains the Cyclotron starter/native Chat controls, shared agent
 defaults, document/Play lifetime and camera fixes, module discovery, composed
 Play capture, PNG encoding, diagnostics and successful-run evidence described
 above. Integrate with current origin/main and verify the combined result before
@@ -1696,10 +1696,10 @@ shadow-quality fix or Astra trial is included in this integration.
 Integration verification against origin/main caf05824: all 103 existing and
 first-run tests passed through the owned World (2 session, 83 Node, 12 native
 history, 6 first-run/chat). Typechecks passed for SDK, Three.js, Blender editor,
-core, Model Editor, Blender engine, game editor and live editor. The Model Play
+core, Cyclotron, Blender engine, game editor and live editor. The Model Play
 package does not declare a standalone typecheck script; its source was included
-in the successful Model Editor browser build. Core plugin/server builds and
-Model Editor browser/node builds passed. Ownership/publication conflicts retain
+in the successful Cyclotron browser build. Core plugin/server builds and
+Cyclotron browser/node builds passed. Ownership/publication conflicts retain
 main's newer queued lifecycle and generation guards; the branch's incompatible
 context wait yields and richer diagnostics remain. Main's release versions and
 frontend 0.1.40 are preserved. No packages are being released in this merge.

@@ -11,8 +11,8 @@ required behavior; it is not a claim that the current implementation satisfies i
 **Scope, owner decision 2026-09-24:** the extraction proceeds. The 2026-09-22 deferral
 (a Three-aware core for the first modeling release) is lifted: editor-core is the library
 other editors are built on, Blender is one editor that uses it, and the core must not be
-tied to Blender or to Three. "Volter Editor" names the whole stack; the model editor is
-`@volter/model-editor`, the game editor `@volter/game-editor`.
+tied to Blender or to Three. "Volter Editor" names the whole stack; Cyclotron is
+`@volter/cyclotron`, the game editor `@volter/game-editor`.
 
 **Corrections measured against this repository (2026-09-24)** — these amend the sections
 below where they differ:
@@ -25,9 +25,9 @@ below where they differ:
   their framework a game is written against (`createRuntime`, `input-manager`, system
   adapters) retires in a later unit into the ingest-style adapter the editor already has. `game-runtime`'s imports of
   the contract are recorded debt until then.
-- **The model editor's closure.** `@volter/editor-threejs` ships in the model release; its
+- **Cyclotron's closure.** `@volter/editor-threejs` ships in the model release; its
   shared viewport entry imports no React Three Fiber, React authoring, `@volter/threejs-runtime`
-  or `@volter/game-runtime`. Checked on the model editor's closure, not inferred.
+  or `@volter/game-runtime`. Checked on Cyclotron's closure, not inferred.
 - **Blender's defaults leave the shared viewport.** Core's viewport carries Blender's lens,
   grid brightness, axis colours and opening direction (`editor-viewport.ts`); they become
   `@volter/editor-blender`'s specialization, and the game's Three integration states its own.
@@ -348,12 +348,12 @@ are contributed product policy: Prefabs, Scenes, Canvases first in game-editor.
 
 ## 8. Migration units, in order
 
-The first delivery is the open-source Blender/model-editor system, including
+The first delivery is the open-source Blender/Cyclotron system, including
 everything it imports or distributes. This order supersedes the earlier
 Three-first sequence. The complete editor migration still requires A1–A18;
 shipping Blender does not mark the deferred game work complete.
 
-1. Preserve unrelated changes. Inventory the actual model-editor release graph
+1. Preserve unrelated changes. Inventory the actual Cyclotron release graph
    and packed files using the release gates below. Record every offending edge
    and its intended owner in WORK before extraction; lazy loading is not removal.
 2. Transfer the assembled Three viewport, its native contracts and its callers
@@ -388,11 +388,11 @@ edges with the release evidence in WORK and the implementing PRs.
 
 | Gate | Required evidence |
 | --- | --- |
-| Release inventory | Start from model-editor, its CLI, workbench/bridge and Blender packages. Enumerate transitive runtime and public-type imports, dynamic imports, workers, assets/WASM, generated bundles, build inputs and host-injected implementations. Separately enumerate every packed/distributed file: unreachable code still shipped is still release scope. Resolve external package versions and availability; bare npm specifiers are not terminal proof. |
+| Release inventory | Start from Cyclotron, its CLI, workbench/bridge and Blender packages. Enumerate transitive runtime and public-type imports, dynamic imports, workers, assets/WASM, generated bundles, build inputs and host-injected implementations. Separately enumerate every packed/distributed file: unreachable code still shipped is still release scope. Resolve external package versions and availability; bare npm specifiers are not terminal proof. |
 | Shared boundary | Blender uses explicit shared renderer/capture exports without editor-internal imports, game services or unrelated contribution activation. Neutral host, SDK and project contracts require no native media types. Verify public declarations as well as runtime imports and the actual product bundle. A smaller static value-import count alone cannot pass. |
 | Native document lifecycle | With a real `.blend`, observe one model/evaluation and two native ViewIds; independent cameras/helpers, shared native selection/time, one edit and native resource undo history. Save/reopen, undo across views, hide/reveal, move and reload retain correct revision/view state. Closing one leaves the other usable; final close respects dirty state and disposes once. Failed/stale rebuilds cannot replace the last good revision. Different-file conflicts never retarget the live worker. |
 | Capture isolation | Exercise same-file capture during edits, cancellation, provider failure and late completion; no live model replacement or change to selection/time/cameras, no stale image publication, no leaked snapshot/renderer. Different-file capture either has an explicitly isolated evaluation or refuses without changing the live binding. Observe resource counts through repeated split/hide/capture/close cycles. |
-| Packed consumer | In a clean directory/profile outside the checkout, install the exact packed closure without workspace links, source aliases or private credentials. Build a public-type consumer and use current `model-editor create` and the editor's `edit` command entrypoints with the declared workbench. Exercise the lifecycle above; verify worker/WASM/asset URLs resolve from shipped files and the editor console is clear. Any local registry test must serve the actual packed artifacts and include all required packages. |
+| Packed consumer | In a clean directory/profile outside the checkout, install the exact packed closure without workspace links, source aliases or private credentials. Build a public-type consumer and use current `cyclotron create` and the editor's `edit` command entrypoints with the declared workbench. Exercise the lifecycle above; verify worker/WASM/asset URLs resolve from shipped files and the editor console is clear. Any local registry test must serve the actual packed artifacts and include all required packages. |
 | Source and distribution | Audit licenses/notices for all distributed files and bundled dependencies. Tie the exact WASM and worker payload hashes to the actual modified fork commit, corresponding source, dependency sources and build recipe; reproduce under L0's clean-room rules. An upstream-only SHA, machine-local path or older registry dry-run is insufficient. Release evidence must describe the bytes being conveyed, including the workbench. |
 
 The current `validate-editor-closure.mjs` is a static value-import ratchet. Its

@@ -7,8 +7,26 @@ import { fileURLToPath } from 'node:url';
 import { GameManifestSchema } from '@volter/editor-project/manifest/schema';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import type { ProductCreateDeclaration } from '@volter/editor-sdk/session/product-create';
+import type { UpgradingProduct } from '@volter/editor-sdk/session/project-upgrade';
+import productPackage from '../package.json';
 
 export const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+/**
+ * WHO UPGRADES A PROJECT, and the name this product replaced (owner decision D235). Nothing
+ * publishes that name any more, so a project that still declares it is moved here by
+ * `npx @volter/cyclotron upgrade`, and every other verb refuses it with that line.
+ */
+export const UPGRADING: UpgradingProduct = {
+  packageName: productPackage.name,
+  command: Object.keys(productPackage.bin)[0]!,
+  dir: productRoot,
+  replaces: [{
+    packageName: '@volter/model-editor',
+    command: 'volter-model-editor',
+    names: [['Volter Model Editor', 'Volter Cyclotron'], ['Model Editor', 'Cyclotron']],
+  }],
+};
 
 /**
  * WHAT "PLAYABLE" ADDS TO A MODELS PROJECT, declared once. `writeProject`'s
@@ -38,7 +56,7 @@ export const PLAYABLE = {
   ] as const,
 } as const;
 
-/** The compiler configuration every Model Editor project starts with (see `writeProject`). */
+/** The compiler configuration every Cyclotron project starts with (see `writeProject`). */
 export const PROJECT_TSCONFIG = JSON.stringify({
   compilerOptions: {
     target: 'ES2022', module: 'ESNext', moduleResolution: 'Bundler',
@@ -57,7 +75,7 @@ export async function productVersions(): Promise<{ product: { version: string; d
 }
 
 export const declaration: ProductCreateDeclaration = {
-  product: '@volter/model-editor',
+  product: '@volter/cyclotron',
   templates: [
     { id: 'models', name: 'Models', description: 'Blender modeling with a starter cube.' },
     { id: 'playable', name: 'Playable', description: 'A cube circuit with a model play script and React HUD.' },
@@ -86,7 +104,7 @@ export const declaration: ProductCreateDeclaration = {
 /** The checkout root's `node_modules` when this product runs from a checkout. */
 function checkoutNodeModules(): string | null {
   for (let dir = productRoot; dirname(dir) !== dir; dir = dirname(dir)) {
-    if (existsSync(join(dir, 'packages', 'model-editor', 'package.json'))) {
+    if (existsSync(join(dir, 'packages', 'cyclotron', 'package.json'))) {
       const nodeModules = join(dir, 'node_modules');
       return existsSync(join(nodeModules, '@volter', 'editor-project', 'package.json')) ? nodeModules : null;
     }
@@ -95,7 +113,7 @@ function checkoutNodeModules(): string | null {
 }
 
 export async function writeProject({ name, targetDir, template }: Parameters<ProductCreateDeclaration['create']>[0]) {
-    if (template !== undefined && !['models', 'playable'].includes(template)) throw new Error('Unknown Model Editor template.');
+    if (template !== undefined && !['models', 'playable'].includes(template)) throw new Error('Unknown Cyclotron template.');
     const playable = template === 'playable';
     if (!name.trim()) throw new Error('A project name is required.');
     const target = resolve(targetDir);
@@ -116,10 +134,10 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
     await write('package.json', JSON.stringify({
       name: name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '') || 'models',
       private: true, version: '0.1.0', type: 'module',
-      scripts: { dev: 'volter-model-editor edit .', 'volter-model-editor': 'volter-model-editor' },
+      scripts: { dev: 'cyclotron edit .', cyclotron: 'cyclotron' },
       ...(playable ? { dependencies: PLAYABLE.dependencies } : {}),
       devDependencies: {
-        '@volter/model-editor': product.version,
+        '@volter/cyclotron': product.version,
         '@volter/editor-project': kit,
         '@volter/editor-blender': product.dependencies['@volter/editor-blender'],
         ...(playable ? PLAYABLE.devDependencies(kit) : {}),
@@ -146,8 +164,8 @@ ${playable ? PLAYABLE.regionIncludes : ''}  editor: { Layout: ModelLayout, style
     const mcpEntry = [
       "const { dirname, resolve } = require('node:path');",
       "const { pathToFileURL } = require('node:url');",
-      "const manifest = require.resolve('@volter/model-editor/package.json');",
-      "const cli = resolve(dirname(manifest), require(manifest).bin['volter-model-editor']);",
+      "const manifest = require.resolve('@volter/cyclotron/package.json');",
+      "const cli = resolve(dirname(manifest), require(manifest).bin['cyclotron']);",
       'process.argv.splice(1, 0, cli);',
       'import(pathToFileURL(cli).href);',
     ].join(' ');

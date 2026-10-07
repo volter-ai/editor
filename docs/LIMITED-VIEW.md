@@ -6,7 +6,7 @@ the project's own UI. It leaves out what needs the person's machine. It is the r
 authoring peer (ROADMAP.md, editor-and-contributions), and owner/fleet decision D231 shaped it.
 
 ```
-volter-model-editor view build [project] --out <dir> --workbench <vscode-web dir>
+cyclotron view build [project] --out <dir> --workbench <vscode-web dir>
 volter-game-editor  view build [project] --out <dir> --workbench <vscode-web dir>
 ```
 
@@ -162,19 +162,19 @@ These are the routes that need the person's machine or account:
 1. **The web workbench (once per fork pin and editor revision):**
 
    ```
-   node scripts/workbench/build-release.mjs --target web --product model-editor \
+   node scripts/workbench/build-release.mjs --target web --product cyclotron \
         --checkout <code-oss fork at FORK.json's pin> --work C:\vwb-web --out C:\vwb-web-out
    ```
 
    This runs `npm ci` and then `gulp vscode-web-min-ci`: the esbuild bundle of `src/` with no `compile-build-without-mangling`. The workbench lands in `<work>/vscode-web`, with a tarball and `BUILD.json` in `--out`. Keep `--work` on a short path, because the fork's `extensions/copilot` paths exceed Windows' limit until the overlay removes them.
 
 2. **The pieces `view build` reads, built from a checkout:**
-   - The product's production build: `npm run build -w @volter/model-editor`.
+   - The product's production build: `npm run build -w @volter/cyclotron`.
    - The kit's session and launcher: `npm run build:server -w @volter/editor-core` and `npm run build:session -w @volter/editor-core`.
    - Blender's serving module: `npm run build -w @volter/editor-blender`.
-   - The product's CLI: `npm run build:node -w @volter/model-editor`.
+   - The product's CLI: `npm run build:node -w @volter/cyclotron`.
 
-3. **The view:** `volter-model-editor view build <project> --out <dir> --workbench <work>/vscode-web`.
+3. **The view:** `cyclotron view build <project> --out <dir> --workbench <work>/vscode-web`.
 
 Hosting rules:
 

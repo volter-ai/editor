@@ -29,7 +29,7 @@ export const CAMERA_OPTIONS = { position: { type: 'string' }, target: { type: 's
 type Triple = readonly [number, number, number];
 
 function triple(flag: string, raw: string | undefined): Triple {
-  if (raw === undefined) throw new Error(`Usage: volter-model-editor ${CAMERA_USAGE}\n--${flag} is required.`);
+  if (raw === undefined) throw new Error(`Usage: cyclotron ${CAMERA_USAGE}\n--${flag} is required.`);
   const parts = raw.split(',').map(part => Number(part.trim()));
   if (parts.length !== 3 || parts.some(part => !Number.isFinite(part)))
     throw new Error(`--${flag} takes three comma-separated numbers in Blender metres, Z up (e.g. --${flag} 6,-8,4); got ${raw}.`);

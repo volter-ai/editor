@@ -40,7 +40,7 @@ export const VIEW_MISS_HEADER = 'x-volter-view-miss';
 export interface LimitedViewConfig {
   readonly version: 1;
   readonly product: {
-    /** `@volter/model-editor`. */
+    /** `@volter/cyclotron`. */
     readonly name: string;
     readonly displayName: string;
     readonly colorTheme: 'dark' | 'light';

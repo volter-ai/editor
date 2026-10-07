@@ -116,7 +116,7 @@ function jsonLayout(raw: string): (value: unknown) => string {
 export async function addPlay(folder: string): Promise<void> {
   const project = resolve(folder);
   const manifestPath = join(project, MANIFEST_FILENAME);
-  if (!existsSync(manifestPath)) throw new Error(`${project} is not a Model Editor project: it has no ${MANIFEST_FILENAME}.`);
+  if (!existsSync(manifestPath)) throw new Error(`${project} is not a Cyclotron project: it has no ${MANIFEST_FILENAME}.`);
   // Links are judged against where the project REALLY is (see `blocked`).
   const realProject = realpathSync(project);
   const packagePath = join(project, 'package.json');

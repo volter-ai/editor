@@ -20,7 +20,7 @@ test('project hosts isolate cookies across folders and survive a port change', (
   vm.runInNewContext(js, {
     exports, process, URL,
     require: name => name === './product-locator'
-      ? { PRODUCT_DECLARATION_KEY: 'volter.product', workbenchProductId: () => 'model-editor' }
+      ? { PRODUCT_DECLARATION_KEY: 'volter.product', workbenchProductId: () => 'cyclotron' }
       : require(name),
   });
   const first = new URL(exports.workbenchUrl(28000, '/tmp/first/project'));
@@ -44,7 +44,7 @@ test('printed launch URLs use the project name on Windows and POSIX', () => {
     vm.runInNewContext(js, {
       exports, process, URL,
       require: name => name === 'node:path' ? paths
-        : name === './product-locator' ? { PRODUCT_DECLARATION_KEY: 'volter.product', workbenchProductId: () => 'model-editor' }
+        : name === './product-locator' ? { PRODUCT_DECLARATION_KEY: 'volter.product', workbenchProductId: () => 'cyclotron' }
         : require(name),
     });
     const printed = new URL(exports.workbenchUrl(28000, projectRoot));
@@ -74,7 +74,7 @@ async function refusal({ failRequest, failBody, malformed, cause }) {
     exports, fetch, URL, console,
     process: { ...process, env: { ...process.env, GITHUB_TOKEN: token } },
     require: name => name === 'node:os' ? { ...os, homedir: () => root }
-      : name === './product-locator' ? { PRODUCT_DECLARATION_KEY: 'volter.product', workbenchProductId: () => 'model-editor' }
+      : name === './product-locator' ? { PRODUCT_DECLARATION_KEY: 'volter.product', workbenchProductId: () => 'cyclotron' }
       : require(name),
   });
   try {
@@ -82,7 +82,7 @@ async function refusal({ failRequest, failBody, malformed, cause }) {
     try {
       await exports.resolveWorkbenchForProject({
         projectRoot: path.join(root, 'project'),
-        product: { name: '@volter/model-editor', command: 'volter-model-editor', workbench: { release: tag, tarballSha256: sha } },
+        product: { name: '@volter/cyclotron', command: 'cyclotron', workbench: { release: tag, tarballSha256: sha } },
         io: { log() {} },
       });
     } catch (caught) { error = caught; }

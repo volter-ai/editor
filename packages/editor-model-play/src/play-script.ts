@@ -107,7 +107,7 @@ export interface ModelPlayContext {
    * Write one entry to the play log, stamped with the run's simulation time and frame
    * (`play-log.ts`): a kind and the facts that explain it, JSON-serialisable and snapshotted
    * now. Log transitions (a landing, a death and its cause, autoplay's choice), not every
-   * frame. Read back with `volter-model-editor play-log [--since <simT>] [--kind <k>] [--json]`
+   * frame. Read back with `cyclotron play-log [--since <simT>] [--kind <k>] [--json]`
    * or `editor.modelPlayLog({ since, kind })` in `eval`. Never throws, never changes the game,
    * and does nothing once this script has been replaced or Play has stopped.
    *

@@ -231,7 +231,7 @@ function report(): unknown {
  *  no mixer (`blender-runtime-skin.ts`), so the seek was a no-op and
  *  `report()` then answered `frame: 1` — the playhead's honest position and a
  *  complete lie about the gesture. Measured on walk 5 over a fresh
- *  `model-editor create` scaffold: `volter.timeline.frame {frame:120}` and
+ *  `cyclotron create` scaffold: `volter.timeline.frame {frame:120}` and
  *  `volter.timeline.jump-end` (frame 250) both answered `frame: 1`,
  *  `refusal: null`. This is the half of walk 4's W5 (#7740) that the header
  *  got and the VERBS did not — there the buttons were disabled wearing this

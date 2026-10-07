@@ -7,7 +7,7 @@ import type { ProductIdentity } from '@volter/editor-sdk/session/product-locator
  * kit's.
  *
  * The module the Code-OSS contribution imports (`/__editor/served-modules`,
- * routes/served-modules.ts) is `@volter/game-editor`'s or `@volter/model-editor`'s
+ * routes/served-modules.ts) is `@volter/game-editor`'s or `@volter/cyclotron`'s
  * ONE source entry, which composes the product and re-exports `mountVolter`
  * (`packages/editor/src/frame/product.ts`). The kit's own mount is
  * `frame/bridge.tsx`'s `mountEditor`, which names no product and is not served
