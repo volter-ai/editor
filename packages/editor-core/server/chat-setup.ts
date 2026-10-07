@@ -1,6 +1,6 @@
 /** Host data for Supercode's native Chat setup. Credentials stay with the harness. */
 import { execFile } from 'node:child_process';
-import { accessSync, constants, existsSync, mkdirSync, statSync } from 'node:fs';
+import { accessSync, constants, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
@@ -121,6 +121,25 @@ export function agentInstallPrefix(globalPrefix: string, home = homedir()): stri
   // installed there stay on PATH instead of the whole probe failing.
   try { mkdirSync(own, { recursive: true }); } catch { return globalPrefix; }
   return own;
+}
+
+/** The PATH a sign-in terminal runs with. On Windows npm installs an extensionless shell script beside each agent's
+ *  `.cmd` shim, and supercode's sign-in lookup (harness_auth.rs `find_executable`, 0.5.184 and main on
+ *  2026-10-07) takes the bare name first, so `harness login codex` started that script and failed with os error 193
+ *  ("not a valid Win32 application"): a first-time user's Sign in with ChatGPT ended in "Sign-in didn't finish."
+ *  When the agent was installed by npm into `prefix`, a folder holding only `<harness>.cmd`, which calls npm's
+ *  shim, comes first on that terminal's PATH, and the lookup finds a file Windows can start. Elsewhere, or for an
+ *  agent installed any other way, PATH is unchanged. */
+export function signInPath(path: string, prefix: string | undefined, harness: string, home = homedir()): string {
+  if (process.platform !== 'win32' || !prefix) return path;
+  const shim = join(prefix, `${harness}.cmd`);
+  if (!existsSync(join(prefix, harness)) || !existsSync(shim)) return path;
+  const dir = join(home, '.volter', 'sign-in-shims');
+  try {
+    mkdirSync(dir, { recursive: true });
+    writeFileSync(join(dir, `${harness}.cmd`), ['@echo off', `call "${shim}" %*`, ''].join('\r\n'));
+  } catch { return path; }
+  return dir + delimiter + path;
 }
 
 function prefixBin(prefix: string): string { return process.platform === 'win32' ? prefix : join(prefix, 'bin'); }

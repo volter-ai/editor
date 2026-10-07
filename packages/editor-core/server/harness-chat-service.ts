@@ -45,7 +45,7 @@ import {
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { effectiveChat } from './harness-effective';
 import { ChatSessionCatalog } from './chat-session-catalog';
-import { CHAT_SETUP_PROVIDERS, chatExecutable, chatProcessEnvironment, chatSetupActions, chatSetupAgents } from './chat-setup';
+import { CHAT_SETUP_PROVIDERS, chatExecutable, chatProcessEnvironment, chatSetupActions, chatSetupAgents, signInPath } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -1452,7 +1452,7 @@ export class HarnessChatService {
     return { ...action, cwd: this.options.getProjectRoot(),
       program: invocation.command,
       arguments: invocation.args,
-      env: launchContext.env,
+      env: kind === 'login' ? { ...launchContext.env, PATH: signInPath(launchContext.env.PATH, launchContext.npmPrefix, harness) } : launchContext.env,
     };
   }
 
