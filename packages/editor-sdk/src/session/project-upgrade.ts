@@ -21,9 +21,17 @@
  * only the rows it moves, in the file's own layout (add-play's rule, #133). It does not install:
  * like `add-play`, it says `npm install` when a version changed, because the install is the
  * person's and a checkout-linked project has nothing to install at all.
+ *
+ * A PRODUCT THAT WAS RENAMED (`UpgradingProduct.replaces`) is the one exception, because a
+ * project on the old name has no other way across: the old package is no longer published, and
+ * its own `upgrade` only knows its own name. So the NEW package's `upgrade` is the door — run as
+ * `npx <new package> upgrade` from inside the old project (`upgradeLine`) — and it moves the
+ * dependency to the new name, the `package.json` scripts that call the old command, and the
+ * files `create` wrote that name the old package or command (`.mcp.json`, `.codex/config.toml`,
+ * `AGENTS.md`, `CLAUDE.md`), so the project's agent servers and instructions keep working.
  */
 import { spawn } from 'node:child_process';
-import { existsSync, lstatSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
@@ -32,12 +40,62 @@ import { compareSemver } from './editor-compatibility';
 
 export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter packages and its engine pin to one release (default: latest)";
 
+/** A product name that is no longer published, as a project still spells it. */
+export interface RetiredProduct {
+  readonly packageName: string;
+  readonly command: string;
+  /** The words a project's own files use for the retired product, longest first, each with the
+   *  words that replace it. */
+  readonly names: readonly (readonly [retired: string, current: string])[];
+}
+
 /** Who is upgrading: the product package a project declares, its command, and where it is installed. */
 export interface UpgradingProduct {
   readonly packageName: string;
   readonly command: string;
   /** The running product's package root — it answers for its own version without the registry. */
   readonly dir: string;
+  /** The names this product replaced: a project declaring one is moved onto this product. */
+  readonly replaces?: readonly RetiredProduct[];
+}
+
+/** The ONE line that moves a project onto `product`, from any version — including a project on a
+ *  name `product` replaced, whose own installed command does not know `product` exists. */
+export function upgradeLine(product: Pick<UpgradingProduct, 'packageName'>): string {
+  return `npx ${product.packageName} upgrade`;
+}
+
+/** The retired product a project's `package.json` still declares, or null. */
+export function declaredRetiredProduct(product: Pick<UpgradingProduct, 'replaces'>, project: string): RetiredProduct | null {
+  let pkg: PackageJson;
+  try {
+    pkg = JSON.parse(readFileSync(join(project, 'package.json'), 'utf8')) as PackageJson;
+  } catch {
+    return null;
+  }
+  return product.replaces?.find(retired =>
+    pkg.dependencies?.[retired.packageName] !== undefined || pkg.devDependencies?.[retired.packageName] !== undefined) ?? null;
+}
+
+/** The refusal every verb but `upgrade` gives a project still on a retired name. */
+export function retiredProjectError(product: Pick<UpgradingProduct, 'packageName' | 'command'>, retired: RetiredProduct, project: string): Error {
+  return new Error(
+    `${project} is a ${retired.packageName} project, and ${retired.packageName} is now ${product.packageName} (command: ${product.command}). ` +
+      `Move the project onto it from the project folder, then run ${product.command} again:\n  ${upgradeLine(product)}`,
+  );
+}
+
+/** The files `create` writes that name the product's package or command, project-relative. */
+const RENAMED_PRODUCT_FILES = ['.mcp.json', '.codex/config.toml', 'AGENTS.md', 'CLAUDE.md'] as const;
+
+/** `command` as a whole word — not a longer command it is the start or the end of. */
+function commandPattern(command: string): RegExp {
+  return new RegExp(`(?<![\\w-])${command.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`, 'g');
+}
+
+/** `entries` with the key `from` renamed to `to` where it stands, so a rewrite keeps its order. */
+function renameKey<T>(entries: Record<string, T>, from: string, to: string, value: T): Record<string, T> {
+  return Object.fromEntries(Object.entries(entries).map(([key, current]) => key === from ? [to, value] : [key, current]));
 }
 
 interface Release {
@@ -170,6 +228,9 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   const packageRaw = await readFile(packagePath, 'utf8');
   const pkg = JSON.parse(packageRaw) as PackageJson;
   const previousKit = pkg.devDependencies?.['@volter/editor-project'] ?? pkg.dependencies?.['@volter/editor-project'];
+  // Read before a retired name is moved below: a project on a retired name declares none of
+  // this product, and its direction is then read by its engine pin.
+  const currentProduct = declaredVersion(pkg.dependencies?.[product.packageName] ?? pkg.devDependencies?.[product.packageName]);
 
   // NAMED, NOT MOVED: what this verb deliberately leaves to the author is listed, never skipped
   // silently (#146 review) — peer and optional ranges are a package author's contract, and a
@@ -186,6 +247,51 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   }
 
   let packagesChanged = false;
+  // 0. A RETIRED NAME becomes this product, where it stood and at the release — a project that
+  // already declares this product as well just loses the old row.
+  const retired = declaredRetiredProduct(product, project);
+  const textFiles: { path: string; content: string; original: string }[] = [];
+  if (retired !== null) {
+    const declaresProduct = pkg.dependencies?.[product.packageName] !== undefined || pkg.devDependencies?.[product.packageName] !== undefined;
+    for (const section of ['dependencies', 'devDependencies'] as const) {
+      const declared = pkg[section];
+      const current = declared?.[retired.packageName];
+      if (declared === undefined || current === undefined) continue;
+      if (declaresProduct) {
+        delete declared[retired.packageName];
+        changed.push(`package.json ${section}: ${retired.packageName} ${current} removed (${product.packageName} is already declared)`);
+      } else {
+        pkg[section] = renameKey(declared, retired.packageName, product.packageName, release.version);
+        changed.push(`package.json ${section}: ${retired.packageName} ${current} -> ${product.packageName} ${release.version}`);
+      }
+      packagesChanged = true;
+    }
+    // The scripts that call the old command (`create` wrote `dev` and one named for the command).
+    const scripts = pkg['scripts'];
+    if (scripts !== null && typeof scripts === 'object' && !Array.isArray(scripts)) {
+      let rewritten = scripts as Record<string, unknown>;
+      for (const [name, body] of Object.entries(rewritten)) {
+        const nextBody = typeof body === 'string' ? body.replace(commandPattern(retired.command), product.command) : body;
+        const nextName = name === retired.command && !(product.command in rewritten) ? product.command : name;
+        if (nextBody === body && nextName === name) continue;
+        rewritten = renameKey(rewritten, name, nextName, nextBody);
+        changed.push(`package.json scripts: ${name === nextName ? name : `${name} -> ${nextName}`}${nextBody === body ? '' : ` runs "${String(nextBody)}"`}`);
+      }
+      pkg['scripts'] = rewritten;
+    }
+    // The files that name the package or the command: the agent servers resolve the product's
+    // `bin` by package name, and the instructions tell the agent which command to run.
+    for (const file of RENAMED_PRODUCT_FILES) {
+      const path = join(project, file);
+      if (!existsSync(path)) continue;
+      const original = await readFile(path, 'utf8');
+      let content = original.split(retired.packageName).join(product.packageName).replace(commandPattern(retired.command), product.command);
+      for (const [from, to] of retired.names) content = content.split(from).join(to);
+      if (content === original) continue;
+      textFiles.push({ path, content, original });
+      changed.push(`${file}: names ${product.packageName} and \`${product.command}\``);
+    }
+  }
   for (const section of ['dependencies', 'devDependencies'] as const) {
     const declared = pkg[section];
     if (!declared) continue;
@@ -215,7 +321,6 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   // its engine under it. So a backwards move happens only when the version was named, and is said.
   // The product's own declared version decides; a project that declares it as a range or a link
   // is read by its engine pin instead.
-  const currentProduct = declaredVersion(pkg.dependencies?.[product.packageName] ?? pkg.devDependencies?.[product.packageName]);
   const backwards = currentProduct !== null
     ? (compareSemver(release.version, currentProduct) === -1 ? `${product.packageName}@${currentProduct}` : null)
     : typeof pinned === 'string' && compareSemver(engine, pinned) === -1 ? `engine ${pinned}` : null;
@@ -235,6 +340,7 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   await writeAll([
     ...(packagesChanged ? [{ path: packagePath, content: jsonLayout(packageRaw)(pkg), original: packageRaw }] : []),
     ...(pinChanged ? [{ path: manifestPath, content: jsonLayout(manifestRaw)(manifest), original: manifestRaw }] : []),
+    ...textFiles,
   ]);
   for (const line of warnings) console.warn(`! ${line}`);
 
@@ -251,6 +357,8 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     console.log(`If an editor still refuses this project, it is running from another installation: open it with this project's own, \`npx ${product.command} edit .\` in ${project}.`);
     return;
   }
+  if (retired !== null)
+    console.log(`This project now opens in ${product.packageName}. Its command is ${product.command}: from the project folder, \`npx --no-install ${product.command} <command>\`.`);
   console.log('Next:');
   // A checkout's project links the checkout's own install, which already holds every kit
   // package; `npm install` there would write into the checkout (`add-play`'s same rule).

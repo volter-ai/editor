@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { hasManifest } from '@volter/editor-project/manifest/locate';
 import productPackage from '../package.json';
-import { declaration, productRoot } from './create';
+import { declaration, UPGRADING } from './create';
 import { startupProject } from './startup';
 import { chat, CHAT_USAGE } from './chat';
 import { playLog, PLAY_LOG_USAGE } from './play-log';
@@ -16,11 +16,23 @@ import { launch, prepareSession, type LaunchingProduct } from '@volter/editor-co
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { capture, CAPTURE_OPTIONS, CAPTURE_USAGE, listRecentProjects, listSessions, openProject, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
 import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
-import { upgradeProject, UPGRADE_USAGE } from '@volter/editor-sdk/session/project-upgrade';
+import { declaredRetiredProduct, retiredProjectError, upgradeProject, UPGRADE_USAGE } from '@volter/editor-sdk/session/project-upgrade';
 
 // The command and the name a person sees are the package's own declarations
 // (`bin`, `volter.product.displayName`), the same ones the session reads.
 const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'cyclotron', displayName: productPackage.volter.product.displayName, command: Object.keys(productPackage.bin)[0]! };
+
+/** A project still on a name this product replaced opens nowhere but `upgrade`, which moves it. */
+function refuseRetired(from: string): void {
+  for (let dir = resolve(from); ; dir = dirname(dir)) {
+    if (hasManifest(dir)) {
+      const retired = declaredRetiredProduct(UPGRADING, dir);
+      if (retired !== null) throw retiredProjectError(UPGRADING, retired, dir);
+      return;
+    }
+    if (dirname(dir) === dir) return;
+  }
+}
 
 try {
   // Explicit args: a project's .mcp.json starts this CLI under `node --eval`, where parseArgs'
@@ -44,6 +56,8 @@ try {
   for (const [owner, options] of [['capture', CAPTURE_OPTIONS], ['camera', CAMERA_OPTIONS]] as const)
     for (const key of Object.keys(options) as (keyof typeof options)[])
       if (values[key] !== undefined && verb !== owner) throw new Error(`--${key} belongs to ${owner}.`);
+  if (!values.help && !values.version && verb !== 'create' && verb !== 'upgrade')
+    refuseRetired(['edit', 'add-play', 'prepare'].includes(verb) && positionals.length > 1 ? folder : process.cwd());
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
@@ -90,7 +104,7 @@ try {
     await addPlay(folder);
   } else if (verb === 'upgrade') {
     if (positionals.length > 2) throw new Error(`Usage: cyclotron ${UPGRADE_USAGE}`);
-    await upgradeProject({ packageName: PRODUCT.packageName, command: PRODUCT.command, dir: productRoot }, positionals[1]);
+    await upgradeProject(UPGRADING, positionals[1]);
   } else if (verb === 'camera') {
     if (positionals.length > 1) throw new Error(`Usage: cyclotron ${CAMERA_USAGE}`);
     await camera(values);

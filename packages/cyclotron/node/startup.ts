@@ -5,6 +5,8 @@ import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import { hasManifest } from '@volter/editor-project/manifest/locate';
 import type { ProductCreateDeclaration } from '@volter/editor-sdk/session/product-create';
+import { declaredRetiredProduct, retiredProjectError } from '@volter/editor-sdk/session/project-upgrade';
+import { UPGRADING } from './create';
 
 export async function startupProject(
   create: ProductCreateDeclaration['create'],
@@ -28,6 +30,10 @@ export async function startupProject(
     // Reopen the starter with its edits intact. An unrelated folder is never
     // overwritten or turned into a project, even if it has the same name.
     if (!hasManifest(targetDir)) continue;
+    // A starter made under the name this product replaced is the person's work: it is moved, by
+    // them, never shadowed by a fresh "Untitled Model 2".
+    const retired = declaredRetiredProduct(UPGRADING, targetDir);
+    if (retired !== null) throw retiredProjectError(UPGRADING, retired, targetDir);
     const pkg = JSON.parse(await readFile(join(targetDir, 'package.json'), 'utf8'));
     if (pkg.dependencies?.['@volter/cyclotron'] || pkg.devDependencies?.['@volter/cyclotron']) return targetDir;
   }

@@ -7,8 +7,26 @@ import { fileURLToPath } from 'node:url';
 import { GameManifestSchema } from '@volter/editor-project/manifest/schema';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import type { ProductCreateDeclaration } from '@volter/editor-sdk/session/product-create';
+import type { UpgradingProduct } from '@volter/editor-sdk/session/project-upgrade';
+import productPackage from '../package.json';
 
 export const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
+
+/**
+ * WHO UPGRADES A PROJECT, and the name this product replaced (owner decision D235). Nothing
+ * publishes that name any more, so a project that still declares it is moved here by
+ * `npx @volter/cyclotron upgrade`, and every other verb refuses it with that line.
+ */
+export const UPGRADING: UpgradingProduct = {
+  packageName: productPackage.name,
+  command: Object.keys(productPackage.bin)[0]!,
+  dir: productRoot,
+  replaces: [{
+    packageName: '@volter/model-editor',
+    command: 'volter-model-editor',
+    names: [['Volter Model Editor', 'Volter Cyclotron'], ['Model Editor', 'Cyclotron']],
+  }],
+};
 
 /**
  * WHAT "PLAYABLE" ADDS TO A MODELS PROJECT, declared once. `writeProject`'s
