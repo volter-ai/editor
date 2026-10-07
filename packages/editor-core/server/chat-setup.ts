@@ -47,7 +47,7 @@ function setupOrder(id: string): number {
   return index === -1 ? Number.MAX_SAFE_INTEGER : index;
 }
 
-export function chatSetupActions(harnesses: readonly HarnessChatHarness[], programs: { supercode?: string | undefined; npm?: string | undefined; npmPrefix?: string | undefined }): ChatSetupAction[] {
+export function chatSetupActions(harnesses: readonly HarnessChatHarness[], programs: { supercode?: string | undefined; npm?: string | undefined; npmArgs?: readonly string[] | undefined; npmPrefix?: string | undefined }): ChatSetupAction[] {
   const supercode = programs.supercode;
   const signedOut = harnesses.filter(h => h.availableActions.login === true)
     .sort((a, b) => setupOrder(a.id) - setupOrder(b.id));
@@ -61,7 +61,8 @@ export function chatSetupActions(harnesses: readonly HarnessChatHarness[], progr
       .sort((a, b) => setupOrder(a.id) - setupOrder(b.id))
       .map(h => ({
         kind: 'install', harness: h.id, name: h.label,
-        command: `${quoteProgram(programs.npm!)} install -g --prefix ${quoteProgram(programs.npmPrefix!)} ${CHAT_SETUP_PROVIDERS[h.id]!.npmPackage}`,
+        command: [programs.npm!, ...(programs.npmArgs ?? [])].map(quoteProgram).join(' ') +
+          ` install -g --prefix ${quoteProgram(programs.npmPrefix!)} ${CHAT_SETUP_PROVIDERS[h.id]!.npmPackage}`,
       }))
     : [];
   return [...logins, ...installs];
@@ -78,14 +79,34 @@ export function chatExecutable(command: string, cwd: string, path = process.env[
   });
 }
 
+/** npm as a process the editor can start directly, with no shell between: the program and its leading arguments.
+ *  On Windows the `npm` on PATH is a shell script and `npm.cmd` a batch file, and neither is a native executable,
+ *  so npm runs as Node on its own CLI script: first the npm beside this Node, then the one beside an npm.cmd on
+ *  PATH. Elsewhere `npm` itself is executable. */
+export function chatNpm(cwd: string, path: string): { program: string; args: string[] } | undefined {
+  if (process.platform !== 'win32') {
+    const npm = chatExecutable('npm', cwd, path);
+    return npm ? { program: npm, args: [] } : undefined;
+  }
+  const dirs = [dirname(process.execPath), ...path.split(delimiter).filter(dir => {
+    try { return statSync(join(dir, 'npm.cmd')).isFile(); } catch { return false; }
+  })];
+  for (const dir of dirs) {
+    const cli = join(dir, 'node_modules', 'npm', 'bin', 'npm-cli.js');
+    try { if (statSync(cli).isFile()) return { program: process.execPath, args: [cli] }; } catch { /* the next */ }
+  }
+  return undefined;
+}
+
 /** Put npm's actual global bin on the long-lived probe's PATH before the first inventory.
  * Installing later adds a file to an already-searched directory; no process restart is needed. */
-export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH: string }; npm?: string; npmPrefix?: string; installError?: string }> {
+export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH: string }; npm?: string; npmArgs?: string[]; npmPrefix?: string; installError?: string }> {
   const env = { PATH: [dirname(process.execPath), process.env['PATH'] ?? ''].join(delimiter) };
-  const npm = chatExecutable('npm', cwd, env.PATH);
-  if (!npm) return { env, installError: 'npm is unavailable to the editor process.' };
+  const resolved = chatNpm(cwd, env.PATH);
+  if (!resolved) return { env, installError: 'npm is unavailable to the editor process.' };
+  const { program: npm, args: npmArgs } = resolved;
   try {
-    const { stdout } = await promisify(execFile)(npm, ['prefix', '--global'], {
+    const { stdout } = await promisify(execFile)(npm, [...npmArgs, 'prefix', '--global'], {
       windowsHide: true,
       cwd, env: { ...process.env, ...env }, encoding: 'utf8', timeout: 10_000,
     });
@@ -93,7 +114,7 @@ export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH
     if (!isAbsolute(prefix) || /[\r\n]/.test(prefix)) throw new Error('npm returned no absolute global prefix.');
     const bin = process.platform === 'win32' ? prefix : join(prefix, 'bin');
     if (!env.PATH.split(delimiter).includes(bin)) env.PATH += delimiter + bin;
-    return { env, npm, npmPrefix: prefix };
+    return { env, npm, npmArgs, npmPrefix: prefix };
   } catch (error) {
     return { env, installError: `Cannot resolve npm's install directory: ${error instanceof Error ? error.message : String(error)}` };
   }
