@@ -24,6 +24,7 @@
  */
 
 import { editorDocumentTitle, editorMarkImg } from '@volter/editor-sdk/session/editor-brand';
+import { productNames } from '@volter/editor-sdk/kit/product-command';
 import { markSessionEnded } from './session-tombstone';
 import { workspaceStorageProvider } from './workspace-storage';
 
@@ -149,7 +150,7 @@ function handleSessionEnded(base: string, identity: TabIdentity): void {
   void persistWorkspaceState().then(() => {
     acknowledgeSessionEnd(base, identity);
     closeOrFallback(() => {
-      document.title = editorDocumentTitle('Session ended');
+      document.title = editorDocumentTitle('Session ended', productNames()?.displayName);
       document.body.innerHTML = `<style>
         :root{color-scheme:dark;background:#101318;color:#e8edf3;font-family:Inter,ui-sans-serif,system-ui,sans-serif}
         body{margin:0;min-height:100vh;display:grid;place-items:center;padding:24px;background:radial-gradient(circle at 50% 30%,#1c2a3a 0,#101318 52%,#0b0e13 100%)}

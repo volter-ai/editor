@@ -18,10 +18,13 @@ export const EDITOR_BRAND = {
   logo: 'https://brand.volter.ai/logo/volter-editor/svg',
 } as const;
 
-/** Format the live browser window title around the current surface. */
-export function editorDocumentTitle(subject?: string | null): string {
+/** Format the live browser window title around the current surface. `brand` is the running
+ *  product's display name (e.g. "Volter Cyclotron") when the page knows it; the platform's own
+ *  name otherwise, so a tab always says which product it is once the product has answered. */
+export function editorDocumentTitle(subject?: string | null, brand?: string | null): string {
   const normalized = subject?.trim();
-  return normalized ? `${normalized} — ${EDITOR_BRAND.name}` : EDITOR_BRAND.name;
+  const name = brand?.trim() || EDITOR_BRAND.name;
+  return normalized ? `${normalized} — ${name}` : name;
 }
 
 /** The mark as markup for server-owned and fallback pages. */

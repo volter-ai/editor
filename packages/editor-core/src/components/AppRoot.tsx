@@ -23,7 +23,7 @@
  * is readable.
  */
 
-import { commandLine, commandSequence } from '@volter/editor-sdk/kit/product-command';
+import { commandLine, commandSequence, loadProductNames, productNames } from '@volter/editor-sdk/kit/product-command';
 import {
   clearStartupFailure,
   reportStartupFailure,
@@ -403,7 +403,15 @@ export function AppRoot() {
         ? `Couldn't open project${failureReason ? ` — ${failureReason}` : ''}`
         : null;
   useEffect(() => {
-    document.title = editorDocumentTitle(titleSubject);
+    // The product's own name when the page has learnt it; the names arrive with the project
+    // answer, so a title set before they land is set again once they do.
+    document.title = editorDocumentTitle(titleSubject, productNames()?.displayName);
+    if (productNames()) return;
+    let current = true;
+    void loadProductNames().then(() => {
+      if (current) document.title = editorDocumentTitle(titleSubject, productNames()?.displayName);
+    });
+    return () => { current = false; };
   }, [titleSubject]);
 
   if (state.status === 'detecting') {
