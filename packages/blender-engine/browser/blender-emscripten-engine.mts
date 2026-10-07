@@ -140,16 +140,44 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
 }
 
 /**
- * BLENDER'S ARTIFACTS ARE FETCHED ONCE PER BUILD. The wasm (86 MB decoded), the
- * `.data` package (53 MB) and the Essentials payload are immutable for a build,
- * and the page keeps them in Cache Storage under the digest the artifact door
- * reports, so a later open reads them at the browser's own speed instead of
- * from the editor's server. Measured in the browser substrate, where that
- * server runs in the tab: the three took 7.2 s per open (4.2 s for the wasm
- * alone), about half of it decoding their brotli. A file the door gives no
- * digest for is fetched as it always was.
+ * BLENDER'S ARTIFACTS ARE FETCHED ONCE PER BUILD -- WHERE THE SERVER RUNS IN THE TAB. The wasm
+ * (86 MB decoded), the `.data` package (53 MB) and the Essentials payload are immutable for a
+ * build, and a page whose editor server runs in its own tab (browser-substrate; the door says so
+ * as `status.inTab`) keeps them in Cache Storage under the digest the door reports, so a later
+ * open reads them at the browser's own speed instead of from that server. Measured there: the
+ * three took 7.2 s per open (4.2 s for the wasm alone), about half of it decoding their brotli
+ * in the tab. A file the door gives no digest for is fetched as it always was.
+ *
+ * NOT WHERE THE SERVER IS A PROCESS ON THIS MACHINE. There the door answers from local disk over
+ * loopback with `no-cache` and an ETag, brotli as stored to a client that accepts it
+ * (`editor-blender/serving/blender-routes.ts`), so the browser's HTTP cache keeps the bytes as
+ * sent (~38 MB) and a repeat open is a 304 and the browser's own decode. Cache Storage there
+ * held a second, decoded copy (~144 MiB) per origin, and an editor origin is per project folder
+ * (`editor-<id>.localhost:<port>`, before 0.5.190 `127.0.0.1:<port>`): measured 2026-10-07 in
+ * one Chrome profile, 113 origins held ~16.3 GB. The HTTP cache is size-bounded and evicted by the browser; Cache Storage is
+ * kept until the origin deletes it. So such a page fetches through the HTTP cache and releases
+ * any copy an earlier build left in its origin ({@link releaseArtifactCache}).
+ *
+ * The cache was never made persistent (nothing here calls `navigator.storage.persist`), so it is
+ * best-effort storage Chrome may evict under storage pressure; it stays that way.
  */
 const ARTIFACT_CACHE = 'volter-blender-artifacts';
+
+/**
+ * RELEASE THIS ORIGIN'S COPY, on every boot of a page that does not keep one. A page can only
+ * delete its own origin's storage: an origin nobody opens again is reclaimed by Chrome's own
+ * eviction, not here. Best-effort and off the boot's path: a Cache Storage that cannot answer
+ * (see {@link cachedArtifact}) costs one line of page output, never the open.
+ */
+function releaseArtifactCache(note: (text: string) => void): void {
+  if (typeof caches === 'undefined') return;
+  void caches.delete(ARTIFACT_CACHE).then(
+    (released) => {
+      if (released) note(`Released Blender's artifact cache in this origin: this editor's server runs on this machine, so the browser's HTTP cache keeps the engine instead.`);
+    },
+    (error: unknown) => note(`Blender's artifact cache in this origin could not be released (${error instanceof Error ? error.message : String(error)}); Chrome may still evict it.`),
+  );
+}
 
 /**
  * THE CACHE SPEEDS AN OPEN UP; IT NEVER DECIDES WHETHER BLENDER OPENS. A Cache Storage that cannot
@@ -202,10 +230,14 @@ export async function startEmscriptenBlenderEngine(
         'every response). This worker reports crossOriginIsolated=false.',
     );
   const glueUrl = artifactUrl('blender_browser.js');
-  const digests = status.digests ?? {};
-  const checkpoint = async (phase: string): Promise<void> => { await options.ask({ checkpoint: phase }); };
   // Page output, not an editor-console condition: nothing in the project can resolve the browser's cache.
   const noteCache = (text: string) => options.log('log', text);
+  // Digests are what `cachedArtifact` keeps a file under; with none, every file goes through the
+  // HTTP cache. Only a server in this tab is worth a Cache Storage copy (see ARTIFACT_CACHE).
+  const keepsArtifacts = status.inTab === true;
+  if (!keepsArtifacts) releaseArtifactCache(noteCache);
+  const digests = keepsArtifacts ? (status.digests ?? {}) : {};
+  const checkpoint = async (phase: string): Promise<void> => { await options.ask({ checkpoint: phase }); };
   const artifact = (file: string) => cachedArtifact(file, digests[file], () => checkpoint(`artifact/${file}`), noteCache);
   // The `.data` package is handed to the glue whole (`getPreloadedPackage`),
   // so it is read before the module starts; the wasm streams in beside it.

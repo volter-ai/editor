@@ -190,6 +190,10 @@ export interface BlenderWasmStatus {
   /** Emscripten: each file's SHA-256 as it decodes (`BUNDLE.json#rawFiles`,
    *  `essentials.json`), so a page can keep the bytes it fetched once. */
   digests?: Record<string, string>;
+  /** Emscripten: this server runs in the page's own tab ({@link servedFromTab}). Only then does
+   *  the page keep the files in its Cache Storage; served by a process on this machine, the
+   *  browser's HTTP cache keeps them (`blender-emscripten-engine.mts`, `cachedArtifact`). */
+  inTab?: boolean;
   /** WALI only: the `sha256-` SRI of `blender.wasm`. The program loader
    *  refuses any non-blob URL without one, so the session names the exact
    *  bytes it ran. */
@@ -236,10 +240,22 @@ export async function blenderWasmStatus(
           `${BLENDER_WALI_ARTIFACT} (the substrate skew)`,
       ],
     };
-  return skew === 'wali' ? waliStatus(dir) : emscriptenStatus(dir);
+  return skew === 'wali' ? waliStatus(dir) : emscriptenStatus(dir, env);
 }
 
-async function emscriptenStatus(dir: string): Promise<BlenderWasmStatus> {
+/**
+ * WHETHER THIS SERVER RUNS IN THE BROWSER TAB IT SERVES. browser-substrate names its page to the
+ * first process it starts (`BROWSER_SUBSTRATE_URL`, its `openProject`), the project's Procfile runs
+ * `edit` as that process, and `edit` hands its environment to the session it spawns
+ * (`launcher/launch.ts`). A session started on this machine has no such variable.
+ */
+export const BROWSER_SUBSTRATE_VARIABLE = 'BROWSER_SUBSTRATE_URL';
+
+export function servedFromTab(env: NodeJS.ProcessEnv = process.env): boolean {
+  return (env[BROWSER_SUBSTRATE_VARIABLE] ?? '').trim() !== '';
+}
+
+async function emscriptenStatus(dir: string, env: NodeJS.ProcessEnv): Promise<BlenderWasmStatus> {
   const sizes: Record<string, number> = {};
   const encoded: Record<string, 'br'> = {};
   const missing: string[] = [];
@@ -252,7 +268,7 @@ async function emscriptenStatus(dir: string): Promise<BlenderWasmStatus> {
     sizes[file] = found.size;
     if (found.encoding) encoded[file] = found.encoding;
   }
-  return { available: missing.length === 0, skew: 'emscripten', dir, sizes, encoded, missing, digests: await emscriptenDigests(dir) };
+  return { available: missing.length === 0, skew: 'emscripten', dir, sizes, encoded, missing, digests: await emscriptenDigests(dir), inTab: servedFromTab(env) };
 }
 
 /** The decoded bytes' digests the build records, for the files it records them for. */
