@@ -1360,10 +1360,17 @@ export async function handleBlenderCommand(cmd: {
         // project's document is its own `src/models/<name>.blend`, and a
         // `blender-start` that named none is asking for the session this tab
         // is showing, not for a second file beside it.
+        // After a script's Save As to a file no Model lists, the session this tab
+        // shows holds that file (`unlistedFollow`), and a start naming none
+        // asks for it, not for the file the tab was opened on.
+        const shown =
+          unlistedFollow !== null && unlistedFollow.owner === session && unlistedFollow.from === boundModel?.blend
+            ? unlistedFollow.document
+            : boundModel?.blend;
         const document =
           requestedDocument !== undefined
             ? requestedDocument
-            : (boundModel?.blend ?? DEFAULT_BLENDER_DOCUMENT);
+            : (shown ?? DEFAULT_BLENDER_DOCUMENT);
         return { ok: true, data: { ...(await session.start(project!, document)) } };
       }
       case 'blender-execute': {
