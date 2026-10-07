@@ -81,4 +81,4 @@ Run from the project folder with `npx --no-install cyclotron <command>`;
 
 [Licences and notices](https://github.com/volter-ai/editor/blob/main/LICENSE.md)
 
-[Cyclotron by VideoGame AI](https://cyclotron.videogame.ai) · [Source on GitHub](https://github.com/volter-ai/editor)
+[Source on GitHub](https://github.com/volter-ai/editor)
