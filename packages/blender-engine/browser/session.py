@@ -1169,6 +1169,10 @@ def _depsgraph_placements(frame, depsgraph):
     """
     import struct
     by_name = {row["name"]: row for row in frame["objects"]}
+    for row in frame["objects"]:
+        source = bpy.data.objects.get(row["name"])
+        if source is not None:
+            row["shadow_visible"] = bool(source.visible_shadow)
     # Frame-local native addresses are comparison tokens, not authoring IDs.
     # Consume them here so neither the presenter nor saved projects retain them.
     geometry = frame.pop("instance_geometry", {})
@@ -1206,6 +1210,8 @@ def _depsgraph_placements(frame, depsgraph):
             "visible": True,
             "render_visible": not source.hide_render and (owner is None or not owner.hide_render) and
                 (owner_row is None or bool(owner_row["render_visible"])),
+            # Cycles intersects source and instancer ray visibility.
+            "shadow_visible": bool(source.visible_shadow) and (owner is None or bool(owner.visible_shadow)),
             "random": random,
             "color": [float(v) for v in instance.object.color],
         })

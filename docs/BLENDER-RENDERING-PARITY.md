@@ -63,8 +63,11 @@ values in one render. A structural edit also compiles and swaps while per-object
 copies remain visible. Native and browser evidence:
 [Object Info GPU results](media/blender-object-info-parity-20261007.json).
 This isolates input evaluation; the live HDR target still uses half precision.
-Depsgraph instances require their native `random_id`, which the current exporter
-does not carry. Do not claim instance-input parity.
+Depsgraph instances now carry native placement `random_id`, color, world matrix
+and source/owner identity separately from ordinary authoring objects. The
+native placement fixture checks these inputs, including particle, nested
+collection and converted-curve placements. Particle Info is a separate shader
+input and remains unsupported.
 
 ## Single-scattering sun: implemented, scene still gated
 
@@ -86,9 +89,28 @@ retain float32 radiance rather than clipping during texture creation.
 A comparison of the unchanged courtyard source at the native camera, 1431×805
 at 50%, Filmic/Medium Contrast and exposure −2 shows added direct illumination,
 but still fails full-scene parity. Native evaluation reports 7,632 object
-placements, including 6,287 instances from 26 source objects. The current door
-walks view-layer bases instead of those placements; missing foreground columns,
-arcade pieces and vegetation make a lighting-only comparison insufficient.
+placements, including 6,287 instances from 26 source objects. The door now
+exports stable evaluated instance sources and deferred geometry resources;
+presentation borrows them for every placement without realizing authoring data.
+Different modifier outputs have separate resource identities, while unmodified
+linked meshes retain sharing. Native vertex comparisons check the geometry
+identity regression. Both surface faces, authored clipping and lens shift are
+preserved; native camera projection fixtures cover perspective and orthographic
+sensor fits. These repairs restore the arcade and roof arrangement, but do not
+pass the full-scene visual gate.
+
+The first detached photograph now fits solar shadows after asynchronous sky
+composition creates the lights. A regression reproduces the unfitted light
+with the old ordering. Shadow-ray visibility follows native source flags and
+the intersection with an instancer's flags, as Cycles does; camera-visible sky
+planes that disable shadows remain visible and do not become casters.
+
+The environment still lights surfaces through a position-independent IBL. It
+does not trace which sky directions geometry blocks. A native courtyard control
+with indirect bounces disabled still has a dark foreground arcade, while the
+raster capture remains bright. Direct environment visibility is therefore a
+required lighting gate alongside indirect illumination, rather than a color or
+exposure adjustment.
 
 Real Cycles is compiled into the WASM build and now retains its original engine
 class. `scene.render.engine = 'CYCLES'` followed by `bpy.ops.render.render`
@@ -113,8 +135,9 @@ Mist, Noisy Image and other pass inputs in raster captures remains a separate ga
 The Lone Monk courtyard still fails scene parity. Its unsupported Particle Info
 and mixed shader graphs still fall back to constants. Ordinary-object Object
 Info no longer rejects the entire material graph. The
-exporter omits depsgraph collection/particle instances, and the browser lighting
-does not reproduce the source scene's Cycles indirect illumination.
+exporter now carries depsgraph collection/particle placements, but the browser
+lighting does not reproduce geometry-dependent environment visibility or the
+source scene's Cycles indirect illumination.
 
 World-volume image integration currently runs on render snapshots through
 `createWorldVolumePass()`/`snapshot.effect`. Live material views apply surface

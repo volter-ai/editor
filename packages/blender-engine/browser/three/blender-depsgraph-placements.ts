@@ -2,7 +2,7 @@
  * unchanged; followers receive these records without expanding them twice. */
 type Placement = {
   id:string;source:string;owner:string|null;matrix:number[][];
-  visible:boolean;render_visible:boolean;random:number;color:number[];
+  visible:boolean;render_visible:boolean;shadow_visible?:boolean | undefined;random:number;color:number[];
 };
 type DrawSource = {
   id:string;name:string;parent:string|null;selected:boolean;
@@ -19,6 +19,7 @@ export function expandDrawPlacements<T extends {objects:DrawSource[];instances?:
       instance_owner:instance.owner,matrix:instance.matrix,visible:instance.visible,
       viewport_show_self:true,render_show_self:true,
       render_visible:instance.render_visible,selected:owner?.selected ?? false,
+      shadow_visible:instance.shadow_visible ?? true,
       ...(source.object_info ? {object_info:{...source.object_info,random:instance.random,color:instance.color}} : {})};
   });
   const {instances: _placements,...rest} = frame;
