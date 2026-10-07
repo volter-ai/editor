@@ -141,10 +141,14 @@ export function registerSessionTabRoutes(
 
   // POST /__editor/tab/claim — the yield page's "Use here instead": the
   // current blessed tab is told to yield; the claimant reloads the page it
-  // yielded from (`return`, else `/`) and its fresh connection takes the blessing.
+  // yielded from (`return`, else `/`) and takes the blessing. It names its own
+  // tab (`tabId`, the tab identity that survives its reloads), so the blessing is
+  // held for it while it reloads instead of falling back to the yielding tab.
   router.post('/__editor/tab/claim', (req: Request, res: Response) => {
-    const claimedParticipantId = (req.body as { participantId?: unknown } | undefined)
-      ?.participantId;
+    const body = req.body as { participantId?: unknown; tabId?: unknown } | undefined;
+    const claimedParticipantId = body?.participantId;
+    const claimantTabId =
+      typeof body?.tabId === 'string' && /^[A-Za-z0-9._-]{8,80}$/.test(body.tabId) ? body.tabId : undefined;
     const trusted = trustedShareIdentity(req);
     if (
       trusted &&
@@ -161,7 +165,7 @@ export function registerSessionTabRoutes(
         : trusted
           ? undefined
           : hostTabLifecycle;
-    lifecycle?.claim();
+    lifecycle?.claim(claimantTabId);
     res.json({ ok: true });
   });
 
@@ -191,7 +195,9 @@ export function registerSessionTabRoutes(
           'document.getElementById("claim").addEventListener("click",async()=>{' +
           'const query=new URLSearchParams(location.search);' +
           'const participantId=query.get("participantId");' +
-          'try{await fetch("/__editor/tab/claim",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({participantId})})}catch{}' +
+          // This tab's own identity (tab-bootstrap.js, sessionStorage) names the claimant.
+          'let tabId=null;try{tabId=sessionStorage.getItem("volter.tab.v1")}catch{}' +
+          'try{await fetch("/__editor/tab/claim",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({participantId,tabId})})}catch{}' +
           'let back="/";' +
           'try{const target=new URL(query.get("return")||"/",location.origin);' +
           // The full href, never the bare pathname: `?return=/.//evil.com` parses to this origin with the

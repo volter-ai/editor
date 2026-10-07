@@ -292,7 +292,9 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       if (current !== null && current !== tabId) {
         options.sendToTab(current, 'tab-yield', { reason: 'claimed' });
       }
-      state = { ...state, blessedTabId: tabId ?? null, blessedAt: now() };
+      // A claimant that names itself holds the blessing while it reloads onto the project
+      // (`blessedByClaim`, tab-presence chooseBlessed): it is on the yield page, not yet present.
+      state = { ...state, blessedTabId: tabId ?? null, blessedAt: now(), blessedByClaim: tabId !== undefined };
       if (tabId !== undefined) {
         journal({
           kind: 'tab-blessed',
@@ -418,6 +420,9 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
         // keys on the listener (`editor-sessions.ts`), so a page that never
         // comes up ends in a named, non-zero failure instead of a lie.
         if (record !== undefined && !record.listenerThisEpoch) return 'arriving';
+        // A blessing held for a claimant that has not beaten back in yet (`blessedByClaim`):
+        // there is no page to refocus, and the claimant is on its way in.
+        if (record === undefined) return 'arriving';
         // A ready blessed page is already on this session's project. Its boot
         // URL may have redirected or gained view parameters; replaying that
         // URL reloads a live editor and discards its current view and Play.

@@ -368,6 +368,8 @@ export interface TabPresenceConfig {
    * upgrade, never a repair.
    */
   readonly blessDwellMs: number;
+  /** How long a blessing handed over by a claim waits for its claimant to arrive (`blessedByClaim`). */
+  readonly claimHoldMs?: number;
   /**
    * A tab that requested the index page this recently is ARRIVING — booting,
    * no worker yet. Neither auto-open nor `ensure` may open a duplicate under
@@ -410,6 +412,7 @@ export const DEFAULT_TAB_PRESENCE_CONFIG: TabPresenceConfig = {
   channelBudgetMs: 30_000,
   listenerBudgetMs: 120_000,
   blessDwellMs: 2_000,
+  claimHoldMs: 10_000,
   arrivalGraceMs: 120_000,
   hungAfterMs: 15_000,
   departedMemoryMs: 120_000,
@@ -438,6 +441,13 @@ export interface TabPresenceState {
   readonly blessedTabId: string | null;
   /** When the blessing last changed — the dwell clock for `blessDwellMs`. */
   readonly blessedAt: number | null;
+  /**
+   * The blessing was handed over by "Use here instead" to the tab that named itself. That tab is on the
+   * static yield page, reloading onto the project, so for `claimHoldMs` it keeps the blessing before it is
+   * present again; otherwise the claimed-away tab, still connected for its last moments, was re-blessed as
+   * the oldest and the claimant was told to yield on arrival, leaving no tab on the editor.
+   */
+  readonly blessedByClaim?: boolean;
   /** Since when the table has had ZERO present tabs; null while any is present. */
   readonly absentSince: number | null;
   /** True once any tab has ever been present. Auto-open only REPLACES. */
@@ -1061,7 +1071,8 @@ function chooseBlessed(
   const holderEligible = eligible.some((tab) => tab.tabId === blessedTabId);
   const holderPresent = present.some((tab) => tab.tabId === blessedTabId);
   const dwelling = blessedAt !== null && now - blessedAt < config.blessDwellMs;
-  if (blessedTabId !== null && !holderEligible && !(holderPresent && dwelling)) {
+  const claimHold = state.blessedByClaim === true && blessedAt !== null && now - blessedAt < (config.claimHoldMs ?? 10_000);
+  if (blessedTabId !== null && !holderEligible && !(holderPresent && dwelling) && !claimHold) {
     blessedTabId = null;
   }
   if (blessedTabId === null && eligible.length > 0) {
@@ -1077,7 +1088,8 @@ function chooseBlessed(
     blessedTabId = chosen.tabId;
     blessedAt = now;
   }
-  return { ...state, blessedTabId, blessedAt };
+  // The claim's hold belongs to the tab it named; any other blessing clears it.
+  return { ...state, blessedTabId, blessedAt, blessedByClaim: blessedTabId === state.blessedTabId && state.blessedByClaim === true };
 }
 
 export function reconcile(
