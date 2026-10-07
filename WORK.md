@@ -1972,3 +1972,18 @@ The rejected per-pixel Three environment-visibility experiment is retained in
 an owned stash, not shipped. It introduced unacceptable live viewport latency
 and did not fully pass the closed-room visibility oracle. Its source and
 measurements remain available for diagnosis; no visual gate is accepted.
+
+### 2026-10-07 — desktop Blender supplies comparison references
+
+The owner directed local references to installed desktop Blender. The unfinished
+visible-WASM-preview UI experiment is retained in an owned stash and is not
+shipped. The merged native preview/read-only listing API remains available for
+engine diagnostics. Current comparison renders use desktop Blender's native
+Cycles on Metal, leaving the live viewport and Play on Three.
+
+The exact saved courtyard `.blend` rendered at 715×402/64 samples with native
+OpenImageDenoise in 7.44 seconds. Camera `cam.001`, frame 4 and the authored
+Filmic/Medium Contrast display settings were preserved. Compositing was disabled
+for viewport lighting comparison. A before/after SHA-256 check confirms that the
+input file was not modified. The clean PNG was viewed and opened in the editor's
+image document. Three lighting parity still fails; no packages were published.

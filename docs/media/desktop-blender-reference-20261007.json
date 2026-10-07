@@ -1,0 +1,28 @@
+{
+  "source_sha256": "4b3241e7fa5c50cae3b033870167203e932cb9a63859e7893fd551de890236d6",
+  "source_unchanged": true,
+  "blender": "5.2.0 LTS",
+  "engine": "CYCLES",
+  "device": "METAL",
+  "devices": [
+    "Apple M3 Pro (GPU - 18 cores)"
+  ],
+  "scene": "daylight",
+  "camera": "cam.001",
+  "frame": 4,
+  "width": 715,
+  "height": 402,
+  "samples": 64,
+  "denoising": true,
+  "compositing": false,
+  "view_transform": "Filmic",
+  "look": "Medium Contrast",
+  "exposure": -2.0,
+  "gamma": 1.0,
+  "seconds": 7.438424416000089,
+  "source_asset": "Lone Monk courtyard: saved editor scene",
+  "output": "Desktop Blender Cycles Reference.png",
+  "reviewed_image": true,
+  "live_renderer": "Three",
+  "three_parity_accepted": false
+}

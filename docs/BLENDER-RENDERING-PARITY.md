@@ -159,6 +159,21 @@ File listings now obtain their document path and identity through a dedicated
 native read. The previous Python `print` used the execute mutation path even
 with history disabled, unnecessarily exporting the scene and scheduling a save.
 
+For this local scene-parity workflow, use installed desktop Blender for reference
+renders. Read the exact saved editor `.blend`, keep its camera, frame and display
+settings, select native Cycles and the available Metal GPU, and write only a
+derived PNG. Open that PNG in the editor's image document. The live viewport and
+Play remain Three. Browser-WASM Cycles renders are reserved for diagnostics of
+that build; a self-contained browser preview is not needed for these comparisons.
+
+Desktop Blender 5.2.0 LTS rendered the saved courtyard through `cam.001`, frame 4,
+at 715×402/64 samples with OpenImageDenoise in 7.44 seconds using Metal. The saved
+source hash was unchanged after rendering. Filmic/Medium Contrast, exposure −2
+and gamma 1 were retained; compositing was disabled for the viewport-lighting
+comparison. The PNG was viewed and opened inside the editor. This establishes a
+clean desktop reference, not acceptance of Three's illumination.
+[Reference receipt](media/desktop-blender-reference-20261007.json).
+
 ## Remaining scene gates
 
 The Lone Monk courtyard still fails scene parity. Its unsupported Particle Info
