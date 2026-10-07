@@ -225,7 +225,11 @@ def _export():
         "known": {},
         "buffer_path": EXPORT_BUFFER_PATH,
     }
-    frame = json.loads(_blender_web.export_frame(json.dumps(options)))
+    # The native door reads UTF-8 and does not decode `\\uXXXX` escapes (it
+    # drops the backslash), so the request goes unescaped, as session.py's door
+    # calls send theirs: a non-ASCII presenter root in `buffer_path` would
+    # otherwise reach the door misspelled.
+    frame = json.loads(_blender_web.export_frame(json.dumps(options, ensure_ascii=False)))
     error = frame.get("error")
     if error:
         raise RuntimeError("Blender export door: %s" % error)
