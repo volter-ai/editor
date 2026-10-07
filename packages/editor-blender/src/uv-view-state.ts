@@ -7,7 +7,7 @@
  *
  * WHAT DRIVES IT IS NOT A SESSION VERB. U8's ruling 1 (2026-09-19): every view
  * publishes `volter.<view>.<verb>` commands through `@volter/editor-sdk/views`,
- * one table behind the frame's command service and standalone `volter-model-editor edit`'s
+ * one table behind the frame's command service and standalone `cyclotron edit`'s
  * session verb — so this view adds NO `blender-*` verb of its own, which is
  * exactly what the ruling asked the remaining I5 views to stop paying for.
  *

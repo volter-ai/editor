@@ -1,6 +1,6 @@
 # The obby benchmark
 
-One fixed request, run the way a new user would run it, on every Model Editor
+One fixed request, run the way a new user would run it, on every Cyclotron
 release. It measures whether an AI agent working in the editor's own Chat can
 build a playable game in front of a person, and whether the editor helps or gets
 in the way. It is a live run observed by a person or an agent, not an automated
@@ -10,7 +10,7 @@ test.
 
 1. On the platform under test (Windows first; it is where most regressions
    surfaced), in an empty folder:
-   `npx -y @volter/model-editor@latest create obby`.
+   `npx -y @volter/cyclotron@latest create obby`.
    Do not reuse a project, a workbench override or packages from a checkout:
    the point is what a user gets.
 2. Open the editor from the URL `create` prints. Record whether that URL opens
@@ -43,7 +43,7 @@ test.
 | Uses the play log to explain a failure | yes / no, from the transcript |
 | Total turn time | minutes |
 | Files left outside `src/` and `.volter/` | count |
-| Unresolved console errors at the end | `volter-model-editor status` |
+| Unresolved console errors at the end | `cyclotron status` |
 
 Add one line on what the person watching saw that a report would not show.
 

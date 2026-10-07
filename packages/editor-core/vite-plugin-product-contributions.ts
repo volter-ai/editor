@@ -5,7 +5,7 @@ import { sharedSdkBuildHooks } from './vite-plugin-shared-sdk';
  *
  * A PRODUCT is code (ARCHITECTURE-CORE §The target shape, rule 8: "Compositions
  * are code; the frame's and the loader's manifests are declarations and stay").
- * `packages/game-editor/src/index.ts` and `packages/model-editor/src/index.ts`
+ * `packages/game-editor/src/index.ts` and `packages/cyclotron/src/index.ts`
  * name the packages they mount, in TypeScript, and each name is spelled as an
  * import of this virtual module:
  *

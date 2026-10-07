@@ -411,7 +411,7 @@ def _fill_result(engine, result, answer, png, width, height):
     view transform over them wherever it shows or saves one (`write_still`, the
     Image Editor), as it does over Cycles'. The photograph's PNG is the display
     image -- the transform already ran -- so loading it put every render
-    through AgX or Filmic twice. Measured 2026-09-28 by the model editor's
+    through AgX or Filmic twice. Measured 2026-09-28 by Cyclotron's
     render view: a background 53 against the viewport's 59, a shadow's blue 2
     against 7. The same capture's linear frame goes in instead: half floats,
     RGBA, bottom row first, which is Blender's own row order. Linear 0.005,

@@ -51,7 +51,7 @@ export interface DocumentPlayClock {
 }
 /**
  * THE GAME'S TRANSPORT — what a Play tool offers beyond Play and Stop, for a layout that draws a
- * game panel (the Model Editor's Game mode, `@volter/editor-blender`). Optional: a tool without
+ * game panel (Cyclotron's Game mode, `@volter/editor-blender`). Optional: a tool without
  * one still plays and stops, and a layout draws only the controls a tool answers.
  */
 export interface DocumentPlayTransport {

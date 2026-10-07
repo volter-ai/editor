@@ -10,7 +10,7 @@
  *
  *      import { registerVolterProduct } from '../../volter/browser/volterProduct.js';
  *
- *      registerVolterProduct({ id: 'model-editor', title: 'Model', trustSentence: … });
+ *      registerVolterProduct({ id: 'cyclotron', title: 'Model', trustSentence: … });
  *
  *  THE SHAPE IS THE UNION OF WHAT THE FORK'S PRODUCT-SPECIFIC IDENTIFIERS PARAMETERISED, and
  *  nothing more. Measured against the tier as it stood at fork 53bf66e4205f:
@@ -20,7 +20,7 @@
  *                      two places the word `Model` reached a person through the frame.
  *    `trustSentence` — `localize('volterTrustRequest', "The volter Model workspace runs this
  *                      project's own code — its editor contributions, its dev server and its
- *                      game. Trust this folder to open it.")`. A model editor has no game and
+ *                      game. Trust this folder to open it.")`. Cyclotron has no game and
  *                      a game editor has no Blender engine in the tab, so the WHOLE sentence is
  *                      the product's; the refusal beside it named the command and is the kit's
  *                      now that the command is `Volter: Open Workspace`.
@@ -97,18 +97,18 @@ export interface VolterProductLayout {
 
 /** Everything a product tells the kit's contribution. */
 export interface VolterProduct {
-	/** `model-editor`, `game-editor` — the product package's own short name. Reported by the
+	/** `cyclotron`, `game-editor` — the product package's own short name. Reported by the
 	 *  release's `BUILD.json` and never branched on. */
 	readonly id: string;
 	/** What the thing being edited is called: the document pane's registered name and the
 	 *  sidebar container's title. */
 	readonly title: string;
 	/**
-	 * The command a person types for this product (`volter-model-editor`) — its package.json
+	 * The command a person types for this product (`cyclotron`) — its package.json
 	 * `bin`, which `@volter/editor-sdk/kit/product-command` reads on the editor's side. The frame
 	 * needs it BEFORE any session exists (the cover's "no live session, start one with …"), so it
 	 * cannot ask one; a message that names a command must name the one the person has, never a
-	 * generic `volter-editor` (2026-10-06 audit: the model editor's own timeout told people to
+	 * generic `volter-editor` (2026-10-06 audit: Cyclotron's own timeout told people to
 	 * run a command they did not have).
 	 */
 	readonly command: string;
@@ -142,10 +142,10 @@ export interface VolterProduct {
 	 * WHEN THIS PRODUCT IS OPEN, in its own terms — and the kit takes the cover down then.
 	 *
 	 * `mountVolter` resolving means the EDITOR is assembled, which is not the same as the thing
-	 * a person came to see being on screen. Measured 2026-09-21 on the model editor: the
+	 * a person came to see being on screen. Measured 2026-09-21 on Cyclotron: the
 	 * mount resolved and the person then watched the editor's own "No document open yet (0
 	 * registered)" for ~12 s while Blender booted. That gap is this member's whole reason:
-	 * the model editor resolves when its Model document is open and drawn, the game editor
+	 * Cyclotron resolves when its Model document is open and drawn, the game editor
 	 * when the Game document is.
 	 *
 	 * A REJECTION is the same path as a mount failure: the cover stays and carries the
@@ -193,5 +193,5 @@ export function volterProduct(): VolterProduct | undefined {
 export const NO_PRODUCT_REGISTERED =
 	'No Volter product is registered in this workbench, so there is nothing to open. The build overlays ' +
 	'the editor kit AND one product on the Code-OSS fork at a pin (ARCHITECTURE-CORE §The target shape, ' +
-	'rule 6): run scripts/workbench/overlay.mjs --checkout <fork dir> --product <model-editor|game-editor> ' +
+	'rule 6): run scripts/workbench/overlay.mjs --checkout <fork dir> --product <cyclotron|game-editor> ' +
 	'from a volter-engine checkout, then compile the fork again.';

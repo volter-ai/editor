@@ -17,7 +17,7 @@
     "@volter/editor-dawproject",
     "@volter/editor-model-play",
     "@volter/editor-ui",
-    "@volter/model-editor",
+    "@volter/cyclotron",
     "@volter/game-editor"
   ]
 }

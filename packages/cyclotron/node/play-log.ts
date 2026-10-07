@@ -1,5 +1,5 @@
 /**
- * `volter-model-editor play-log`: Model Play's log, read from the running session
+ * `cyclotron play-log`: Model Play's log, read from the running session
  * (`editor.modelPlayLog()`, the `model-play-log` verb `@volter/editor-model-play` contributes).
  * One line per entry — simulation seconds, frame, kind, facts — or the whole reading as JSON.
  */

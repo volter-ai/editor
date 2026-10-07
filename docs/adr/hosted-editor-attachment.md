@@ -53,12 +53,12 @@ A separate reviewer runs the hosted product and reads its viewport screenshot.
 From one working directory:
 
 ```sh
-volter-model-editor hosted attach https://host.example/model-editor/my-project
-volter-model-editor hosted status
-volter-model-editor hosted eval 'editor.open("model:src/models/example.blend")'
-volter-model-editor hosted eval 'editor.frameCost({frames:3})'
-volter-model-editor hosted screenshot /tmp/model.png
-volter-model-editor hosted detach
+cyclotron hosted attach https://host.example/cyclotron/my-project
+cyclotron hosted status
+cyclotron hosted eval 'editor.open("model:src/models/example.blend")'
+cyclotron hosted eval 'editor.frameCost({frames:3})'
+cyclotron hosted screenshot /tmp/model.png
+cyclotron hosted detach
 ```
 
 The same commands exist on `volter-game-editor`; hosted eval exposes the neutral

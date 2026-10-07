@@ -4,12 +4,12 @@
 # Like cube.py, this bpy script is GPL-3.0-or-later; the .blend it authors
 # is your artwork, and the project's other starter source is MIT.
 
-"""The race source for Volter Model Editor, built on Blender.
+"""The race source for Volter Cyclotron, built on Blender.
 
 Open Track, then run through the session's Blender:
     editor.blender('blender-execute', { code: open('src/models/track.py').read() })
 The agent's blender MCP server is declared in .mcp.json and runs the project's
-installed Model Editor CLI directly in Node, without an npm/bin shim.
+installed Cyclotron CLI directly in Node, without an npm/bin shim.
 
 Only track.blend may be replaced; the session saves it. View > Play drives
 its grey Cube with arrows/WASD. Move any Ramp* mesh onto the circuit to jump.

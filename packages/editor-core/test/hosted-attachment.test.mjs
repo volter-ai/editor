@@ -15,7 +15,7 @@ async function fixture(t, options = {}) {
   relay = createHostedAttachmentRelay({ origin, ...options }); relay.install(server);
   t.after(async () => { relay.close(); server.closeAllConnections(); await new Promise(resolve => server.close(resolve)); });
   const create = async () => {
-    const response = await fetch(`${origin}/__editor-hosted`, { method: 'POST', body: JSON.stringify({ page: `${origin}/model-editor/example` }) });
+    const response = await fetch(`${origin}/__editor-hosted`, { method: 'POST', body: JSON.stringify({ page: `${origin}/cyclotron/example` }) });
     return await response.json();
   };
   return { origin, create };
@@ -157,7 +157,7 @@ test('simultaneous page opens elect one boot owner; closing releases ownership; 
 });
 
 test('a silent lock owner refuses a handoff instead of authorizing another boot', async () => {
-  const page = `https://host.example/model-editor/${crypto.randomUUID()}`;
+  const page = `https://host.example/cyclotron/${crypto.randomUUID()}`;
   let release, acquired;
   const held = new Promise(resolve => { acquired = resolve; });
   const lock = navigator.locks.request(`volter-editor-hosted:${page}`, async () => {

@@ -142,7 +142,7 @@ export const RELAY_COMMANDS = {
   // is what the tab is, and until walk 5 it was a `@volter/editor-game` command
   // contribution, so a project without that package — every model project —
   // answered `unknown command type "page-reload"` for a door `@volter/game-live`
-  // documents as general (measured on a `model-editor create` scaffold,
+  // documents as general (measured on a `cyclotron create` scaffold,
   // 2026-09-21). The handler schedules the navigation for the next task so
   // this ack can travel before the channel is torn down; the client waits for
   // the new page load on the server's own tab table.

@@ -191,7 +191,7 @@ async function locatePackageJson(fromDir: string, name: string): Promise<string 
  *
  * THE PRODUCT ANSWERS SEPARATELY, and the difference is deliberate: a product
  * bundles what its own entry composes (`packages/game-editor/src/index.ts`), so
- * the model editor carries neither this package nor the game lane, and each
+ * Cyclotron carries neither this package nor the game lane, and each
  * panel's place renders the honest emptiness a chrome slot with no filler
  * gives. This list is the SESSION's own answer, for chrome that is about the
  * worktree rather than about the project.
@@ -211,7 +211,7 @@ const SESSION_PACKAGES: readonly string[] = [];
  * EVERY PACKAGE THIS SESSION MOUNTS, from the two places one can come from.
  *
  * 1. THE PRODUCT'S COMPOSITION. `@volter/game-editor`'s and
- *    `@volter/model-editor`'s entries name the packages they mount in code, and
+ *    `@volter/cyclotron`'s entries name the packages they mount in code, and
  *    `productComposedPackages` reads those imports (never the product's
  *    dependencies, which also carry what a game's capabilities add). They
  *    resolve from the PRODUCT's install, so a project declaring none of them

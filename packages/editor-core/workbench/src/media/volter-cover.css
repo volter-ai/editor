@@ -3,7 +3,7 @@
    EVERY COLOUR HERE IS A WORKBENCH THEME VARIABLE, never a product literal. The cover is a
    child of `.monaco-workbench`, which is the selector the colour theme's generated stylesheet
    is scoped to, so a product's look reaches it through that product's OWN theme extension
-   (`theme-blender` for the model editor) and its type through the look's own stylesheet
+   (`theme-blender` for Cyclotron) and its type through the look's own stylesheet
    (`blender-look.css`'s `.monaco-workbench` font rules). The kit spells no palette; an
    unthemed workbench paints the cover in the workbench's own defaults, which is the same rule
    `volterColors.ts` states for its null defaults. */

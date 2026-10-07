@@ -13,7 +13,7 @@ const startupBundle = await build({ entryPoints: [fileURLToPath(new URL('../node
 const { startupProject } = await import(`data:text/javascript;base64,${Buffer.from(startupBundle.outputFiles[0].contents).toString('base64')}`);
 
 async function fixture(t) {
-  const home = await mkdtemp(join(tmpdir(), 'model-editor-first-run-'));
+  const home = await mkdtemp(join(tmpdir(), 'cyclotron-first-run-'));
   t.after(() => rm(home, { recursive: true, force: true }));
   const cwd = join(home, 'launch');
   await mkdir(cwd);

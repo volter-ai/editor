@@ -19,7 +19,7 @@
  *
  * IT IS THE KIT'S MOUNT, AND IT IS NOT THE SERVED MODULE. A PRODUCT is what the
  * session serves (`packages/game-editor/src/index.ts`,
- * `packages/model-editor/src/index.ts`): it composes its packages, its look and
+ * `packages/cyclotron/src/index.ts`): it composes its packages, its look and
  * its workspace in code and re-exports this function as `mountVolter`, which is
  * the name the fork's contribution reads off whatever module
  * `/__editor/served-modules` hands it. So this file is product-neutral — it
@@ -1100,7 +1100,7 @@ export interface VolterStartupHandle {
  *
  * ONLY THAT, AND ONLY DURING STARTUP (follow-up review). A broken optional panel beside a
  * working document contribution is not a dead end — the document still opens, about 12 s after
- * mount on the model editor — so a registered document kind settles it. And the first document
+ * mount on Cyclotron — so a registered document kind settles it. And the first document
  * to open ends startup: the watcher stops there (withdrawing anything it said), so closing the
  * last document later in a working editor never raises a refusal nobody can see. A remount
  * stops the previous mount's watcher first.

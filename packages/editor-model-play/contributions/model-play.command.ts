@@ -1,7 +1,7 @@
 /**
  * THE MODEL PLAY VERB of the session wire (`@volter/editor-sdk/commands`, a
  * `workspace.command` contribution): `model-play-log`, the read behind
- * `volter-model-editor play-log` and `editor.modelPlayLog()` in `eval`.
+ * `cyclotron play-log` and `editor.modelPlayLog()` in `eval`.
  *
  * It answers one model document's play log (`../src/play-log.ts`) — `documentId`'s, or the
  * active Play's when omitted; the current run's, or the last one's after Stop — filtered by

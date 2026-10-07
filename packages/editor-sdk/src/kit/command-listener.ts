@@ -1062,7 +1062,7 @@ export async function handleCommand(
     //
     // It is the HOST's for that last reason. It was a `@volter/editor-game` command
     // contribution until walk 5, so `page.reload()` answered `unknown command
-    // type "page-reload"` in the model editor, which declares no `@volter/editor-game`.
+    // type "page-reload"` in Cyclotron, which declares no `@volter/editor-game`.
     //
     // Scheduled for the NEXT task rather than run inline, so this handler can
     // return and the caller's ack can travel before the navigation tears the
