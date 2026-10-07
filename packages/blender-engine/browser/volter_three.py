@@ -318,13 +318,12 @@ def _photograph(depsgraph, width, height, linear=False):
         "fov": _vertical_extent(camera.data, int(width), int(height)),
         "toneMapping": transform,
         "exposure": float(2.0 ** view.exposure),
+        "gamma": float(view.gamma),
         "orthographic": camera.data.type == "ORTHO",
         "transparent": bool(scene.render.film_transparent),
     }
-    # The renderer keys its baked look tables by the config's FULL name
-    # (`AgX - Medium High Contrast`), and `AgX - Base Contrast` is the AgX base
-    # view itself -- the same table as no look at all.
-    if look not in ("None", "AgX - Base Contrast"):
+    # Preserve the full look name for the native OCIO display processor.
+    if look != "None":
         render["look"] = look
     # The capture's scene-referred frame rides along when asked for: a render
     # result is what a render leaves, and it holds scene-linear pixels.
