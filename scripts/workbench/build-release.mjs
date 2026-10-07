@@ -6,6 +6,17 @@
  *         --platform <darwin-arm64|linux-x64|win32-x64> --checkout <fork dir> [--out <dir>] [--work <dir>] \
  *         [--min-ram <GiB>] [--look <package dir>]… [--publish] [--dry-run]
  *    node scripts/workbench/build-release.mjs --publish --out <dir>     # publish a release cut earlier
+ *    node scripts/workbench/build-release.mjs --target web --product <editor> --checkout <fork dir> \
+ *         [--out <dir>] [--work <dir>] [--min-ram <GiB>] [--dry-run]       # a limited view's workbench
+ *
+ *  `--target web` CUTS THE STATIC WORKBENCH A LIMITED VIEW SHIPS (docs/LIMITED-VIEW.md): the same
+ *  fork at the same pin, the same kit and product overlay plus the view's own half
+ *  (`overlay.mjs --target web`), built as upstream's `vscode-web` package -- the browser workbench
+ *  `web.factory.ts`'s `create()` boots, with no server. It is one package for every platform
+ *  (no node, no native modules), so it takes no `--platform`. Its build is upstream's
+ *  `vscode-web-min-ci`: codicons, the web extensions, and the esbuild bundle of `src/` straight to
+ *  `out-vscode-web-min` -- no `compile-build-without-mangling` and no `out-build`, which is what
+ *  the REH target pays the 9 GB emit for. Not publishable yet: no product declares a web release.
  *
  *  A CUT RELEASE IS NOT A PRODUCT'S WORKBENCH UNTIL IT IS PUBLISHED. `--publish` uploads the
  *  tarball and its `BUILD.json` as a GitHub Release on the fork's own repository, tagged
@@ -80,7 +91,7 @@ import { cpSync, existsSync, mkdirSync, readFileSync, readdirSync, rmSync, statS
 import { totalmem, tmpdir } from 'node:os';
 import { basename, delimiter, dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assertAtPin, CHAT_EXTENSION, knownProducts } from './overlay.mjs';
+import { assertAtPin, CHAT_EXTENSION, knownProducts, TARGETS } from './overlay.mjs';
 import { serializeBuild } from './serial-build.mjs';
 import { preserveRuntimeNotices } from './runtime-notices.mjs';
 
@@ -113,10 +124,11 @@ function releaseTag(record) {
 }
 
 function parseArgs(argv) {
-	const args = { product: null, platform: null, checkout: null, out: null, work: null, minRam: MIN_RAM_GIB, dryRun: false, publish: false, looks: [] };
+	const args = { product: null, platform: null, checkout: null, out: null, work: null, minRam: MIN_RAM_GIB, dryRun: false, publish: false, looks: [], target: 'reh-web' };
 	for (let i = 2; i < argv.length; i++) {
 		const flag = argv[i];
 		if (flag === '--dry-run') { args.dryRun = true; }
+		else if (flag === '--target') { args.target = argv[++i]; }
 		else if (flag === '--publish') { args.publish = true; }
 		else if (flag === '--product') { args.product = argv[++i]; }
 		else if (flag === '--platform') { args.platform = argv[++i]; }
@@ -135,6 +147,10 @@ function parseArgs(argv) {
 	// directory already names its product, its platform and its commit in BUILD.json, so
 	// demanding them again on the command line would be asking for three facts the bytes
 	// already carry — and getting one of them wrong would publish a mislabelled tag.
+	if (!TARGETS.includes(args.target)) { fail(`--target ${args.target} is not one this builds (${TARGETS.join(' | ')}).`); }
+	if (args.target === 'web' && args.publish) {
+		fail("--target web with --publish: a limited view's workbench is not published yet -- no product declares a web release, so there is nothing a tag would be read by. Cut it and point `view build --workbench` at the directory.");
+	}
 	if (args.publish && args.looks.length > 0) {
 		fail('--publish with --look: a release carrying a look tier is never published (the fork\'s Releases are public and a tier is its package\'s own code). Cut it without --publish, or publish one cut without --look.');
 	}
@@ -146,6 +162,12 @@ function parseArgs(argv) {
 	}
 	if (!args.product) { fail(`--product <id> is required (${knownProducts().join(' | ')}).`); }
 	if (!knownProducts().includes(args.product)) { fail(`--product ${args.product} has no workbench half here. Products with one: ${knownProducts().join(', ')}.`); }
+	if (args.target === 'web') {
+		if (args.platform && args.platform !== 'web') { fail(`--target web is one package for every platform; drop --platform ${args.platform}.`); }
+		args.platform = 'web';
+		if (!args.checkout) { fail('--checkout <fork dir> is required -- the Code-OSS checkout this clones at the pin. A build from "whatever is checked out" cannot name what it built.'); }
+		return args;
+	}
 	if (!args.platform) { fail(`--platform is required (${PLATFORMS.join(' | ')}).`); }
 	if (!PLATFORMS.includes(args.platform)) {
 		fail(`--platform ${args.platform} is not one this builds. The two shapes the launch ships are ${PLATFORMS.join(' and ')}; anything else means editing the gulp targets' consumers, not passing a flag.`);
@@ -261,10 +283,13 @@ if (args.publishOnly) {
 const pin = assertAtPin(resolve(args.checkout));
 const checkout = resolve(args.checkout);
 const out = resolve(args.out ?? join(REPO_ROOT, '.volter/releases'));
-const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? tmpdir(), `volter-workbench-build-${args.product}`));
+const WEB = args.target === 'web';
+const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? tmpdir(), `volter-workbench-build-${args.product}${WEB ? '-web' : ''}`));
 const clone = join(work, 'code-oss');
-const packageDir = join(work, `vscode-reh-web-${args.platform}`);
-const tarball = join(out, `vscode-reh-web-${args.platform}-${pin.commit.slice(0, 12)}-${args.product}.tar.gz`);
+/** Upstream's package tasks write beside the clone: `vscode-web` for the web target. */
+const packageName = WEB ? 'vscode-web' : `vscode-reh-web-${args.platform}`;
+const packageDir = join(work, packageName);
+const tarball = join(out, `${packageName}-${pin.commit.slice(0, 12)}-${args.product}.tar.gz`);
 const buildRecord = join(out, 'BUILD.json');
 
 /** THE NODE THIS RUNS UNDER IS THE NODE EVERY CHILD RUNS UNDER. The `.nvmrc` check below
@@ -329,7 +354,7 @@ step('git', ['-C', clone, 'checkout', '--quiet', '--detach', pin.commit]);
 // ---- 2. the overlay — BEFORE `npm ci`, so the bundle's every input exists before anything
 //         reads the tree. The clone carries none of it: `git clone` takes committed files only,
 //         which is exactly why the overlay is re-applied here rather than assumed.
-step(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--checkout', clone, '--product', args.product, ...args.looks.flatMap((dir) => ['--look', dir])]);
+step(process.execPath, [join(REPO_ROOT, 'scripts/workbench/overlay.mjs'), '--checkout', clone, '--product', args.product, '--target', args.target, ...args.looks.flatMap((dir) => ['--look', dir])]);
 
 // Code-OSS serves assets with a one-year cache under product.commit. The fork
 // commit alone is NOT the build identity: a new editor overlay otherwise loads
@@ -358,6 +383,16 @@ const gulp = (task) => step(
 	['--experimental-strip-types', '--max-old-space-size=9216', './node_modules/gulp/bin/gulp.js', ...task],
 	{ cwd: clone },
 );
+if (WEB) {
+	// ---- 4w. THE WEB TARGET IS ONE UPSTREAM TASK: codicons, `.build/web/extensions` (every local
+	//          extension with a browser entry or none at all -- ours included), the esbuild bundle of
+	//          `src/` for `--target web` (product.json and the built-in extension list inserted), and
+	//          the package into `<work>/vscode-web`.
+	gulp(['vscode-web-min-ci']);
+	if (!args.dryRun && !existsSync(join(packageDir, 'out/vs/workbench/workbench.web.main.internal.js'))) {
+		fail(`vscode-web-min-ci wrote no ${join(packageDir, 'out/vs/workbench/workbench.web.main.internal.js')}`);
+	}
+} else {
 gulp(['compile-build-without-mangling']);
 
 // ---- 5. the extensions, exactly as `serverTask` composes them, in its order — MINUS
@@ -377,12 +412,15 @@ if (!args.dryRun && !existsSync(join(clone, 'out-vscode-reh-web-min/server-main.
 	fail('minify-vscode-reh-web wrote no out-vscode-reh-web-min/server-main.js');
 }
 gulp([`vscode-reh-web-${args.platform}-min-ci`]);
+}
 
 // ---- 7. the tarball.
 if (!args.dryRun && !existsSync(packageDir)) { fail(`the package task wrote no ${packageDir}`); }
 let runtimeNotices;
 if (!args.dryRun) {
-	const packagedProduct = JSON.parse(readFileSync(join(packageDir, 'product.json'), 'utf8'));
+	// The web package embeds product.json in its bundle rather than shipping it; the overlay's
+	// product.json in the clone is what was embedded.
+	const packagedProduct = JSON.parse(readFileSync(join(WEB ? clone : packageDir, 'product.json'), 'utf8'));
 	if (packagedProduct.vsdaEnabled !== false || existsSync(join(packageDir, 'node_modules/vsda'))) {
 		fail('Public workbench VSDA capability does not match its packaged payload; review before archiving.');
 	}
@@ -400,16 +438,18 @@ if (!args.dryRun) {
 			cpSync(join(source, file), join(destination, file), { recursive: true });
 		}
 	}
-	runtimeNotices = preserveRuntimeNotices(packageDir, clone, args.platform);
+	// The runtime notice closure is the REH's (its node binary and server modules); the web
+	// package carries neither, and is not published until it has its own review.
+	runtimeNotices = WEB ? null : preserveRuntimeNotices(packageDir, clone, args.platform);
 }
 // Windows' own tar (bsdtar in System32): Git's GNU tar reads the "C:" of a path as a remote host.
-step(WINDOWS ? join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar', ['-czf', tarball, '-C', work, `vscode-reh-web-${args.platform}`]);
+step(WINDOWS ? join(process.env['SystemRoot'] ?? 'C:\\Windows', 'System32', 'tar.exe') : 'tar', ['-czf', tarball, '-C', work, packageName]);
 
 // ---- 8. BUILD.json — what the release IS. `platform` is what the locator refuses on,
 //         `serverBin` is what the session spawns, and `product` is which workbench this is.
 if (!args.dryRun) {
 	writeFileSync(buildRecord, `${JSON.stringify({
-		target: `vscode-reh-web-${args.platform}`,
+		target: packageName,
 		platform: args.platform,
 		product: args.product,
 		commit: pin.commit,
@@ -422,15 +462,17 @@ if (!args.dryRun) {
 		mangled: false,
 		minified: true,
 		buildScheduling: { serial: true, nodeHeapMiB: 9216, goMaxProcs: 2, goMemoryLimit: '2GiB' },
-		serverBin: args.platform.startsWith('win32') ? 'bin/code-server-oss.cmd' : 'bin/code-server-oss',
+		serverBin: WEB ? null : args.platform.startsWith('win32') ? 'bin/code-server-oss.cmd' : 'bin/code-server-oss',
 		runtimeNotices,
 		// WHAT ANSWERS THE CHAT VIEW, by version. The overlay bundles it and product.json names
 		// it; this is where a person reading a release finds out which supercode frontend it
 		// carries, without unpacking 200 MB to look.
-		chatExtension: {
-			id: CHAT_EXTENSION.id,
-			version: JSON.parse(readFileSync(join(clone, 'extensions', CHAT_EXTENSION.directory, 'package.json'), 'utf8')).version,
-		},
+		chatExtension: WEB
+			? JSON.parse(readFileSync(join(clone, '.volter-overlay.json'), 'utf8')).chatExtension
+			: {
+				id: CHAT_EXTENSION.id,
+				version: JSON.parse(readFileSync(join(clone, 'extensions', CHAT_EXTENSION.directory, 'package.json'), 'utf8')).version,
+			},
 		tarball: basename(tarball),
 		tarballBytes: statSync(tarball).size,
 		tarballSha256: createHash('sha256').update(readFileSync(tarball)).digest('hex'),
@@ -443,9 +485,12 @@ console.log(`
   ${tarball}
   ${buildRecord}
 
-  Use it:  extract the tarball beside BUILD.json, then name that directory in
+  Use it:  ${WEB
+		? `this is a limited view's workbench (docs/LIMITED-VIEW.md): ${packageDir}, also in the tarball.
+           volter-${args.product} view build <project> --out <dir> --workbench ${packageDir}`
+		: `extract the tarball beside BUILD.json, then name that directory in
            <project>/.volter/workbench.json — docs/CODE-OSS.md §Boot, WEB + SERVER.
-           tar -xzf ${tarball} -C ${out}
+           tar -xzf ${tarball} -C ${out}`}
 `);
 
 // ---- 9. the release, if this run is also publishing it. Same directory, same BUILD.json;
