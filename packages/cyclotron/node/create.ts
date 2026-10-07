@@ -140,6 +140,10 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
       name: name.toLowerCase().replace(/[^a-z0-9-]+/g, '-').replace(/^-|-$/g, '') || 'models',
       private: true, version: '0.1.0', type: 'module',
       scripts: { dev: 'cyclotron edit .', cyclotron: 'cyclotron' },
+      // The two install scripts the editor's tree runs, reviewed: npm 11 lists unreviewed ones in a new user's first
+      // install ("not yet covered by allowScripts") and a later npm blocks them. The entries are npm's own
+      // name-only form (`npm approve-scripts --no-allow-scripts-pin`).
+      allowScripts: { esbuild: true, 'msgpackr-extract': true },
       ...(playable ? { dependencies: PLAYABLE.dependencies } : {}),
       devDependencies: {
         '@volter/cyclotron': product.version,
