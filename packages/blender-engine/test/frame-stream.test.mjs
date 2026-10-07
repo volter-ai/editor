@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { test } from 'node:test';
 import { build } from 'esbuild';
 import { fileURLToPath } from 'node:url';
+import { PerspectiveCamera } from 'three';
 const bundle = await build({ entryPoints: [fileURLToPath(new URL('../browser/frame-stream.mts', import.meta.url))], bundle: true, platform: 'node', format: 'esm', write: false });
 const { FrameStreamReader, sendFrameValue, FRAME_CHUNK_BYTES } = await import(`data:text/javascript;base64,${Buffer.from(bundle.outputFiles[0].text).toString('base64')}`);
 
@@ -61,6 +62,32 @@ test('streamed geometry is prepared once, committed by matching manifest and reu
   assert.equal(delta.geometryBuilds, 1); assert.deepEqual(delta.held, { session: 'test', revision: 1 });
   assert.throws(() => view.stageFrame({ session: 'test', revision: 2, mesh: 'triangle', piece: triangle }), /pending revision/);
   view.dispose();
+});
+
+test('render-evaluated resources and visibility never replace the viewport revision', async () => {
+  const viewport = new BlenderRuntimeView();
+  const capture = BlenderRuntimeView.forPhotograph();
+  const object = { id:'RenderOnly',name:'RenderOnly',type:'MESH',mesh:'triangle',materials:[],
+    matrix:[[1,0,0,13],[0,1,0,7],[0,0,1,5],[0,0,0,1]], visible:false,render_visible:true,selected:false,parent:null };
+  const presented = {...frame(1),meshes:{triangle},objects:[object]};
+  viewport.applyFrame(presented);
+  const source = viewport.snapshot();
+  const liveObject = viewport.root.getObjectByName('RenderOnly');
+  assert.equal(liveObject.visible,false);
+  capture.stageFrame({session:'render',revision:1});
+  capture.stageFrame({session:'render',revision:1,mesh:'triangle',piece:triangle});
+  capture.applyFrame({...presented,session:'render',meshes:{triangle:{revision:1,unchanged:true}}});
+  const snapshot=capture.takeCaptureSnapshot();
+  await snapshot.prepare(new PerspectiveCamera());
+  assert.equal(capture.root.getObjectByName('RenderOnly').visible,true);
+  assert.equal(snapshot.root,capture.root,'no second copy of the capture geometry');
+  snapshot.dispose();snapshot.dispose();
+  assert.equal(viewport.snapshot(),source);
+  assert.equal(viewport.root.getObjectByName('RenderOnly'),liveObject);
+  assert.equal(liveObject.visible,false);
+  assert.deepEqual(viewport.applyFrame(frame(2)).held,{session:'test',revision:1});
+  assert.throws(()=>snapshot.prepare(new PerspectiveCamera()),/disposed/);
+  viewport.dispose();
 });
 
 const geometryBundle = await build({ entryPoints: [fileURLToPath(new URL('../browser/three/blender-runtime-geometry.ts', import.meta.url))], bundle: true, platform: 'node', format: 'esm', write: false });

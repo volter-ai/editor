@@ -57,6 +57,36 @@ The configuration and table hashes are recorded; tests reject mismatched or
 truncated data. `test/display-transform.browser.ts` runs the real GPU check
 through a temporary project command contribution and the public editor SDK.
 
+## Render evaluation: measured
+
+Three-backed render captures now export the actual `RenderEngine.render`
+RENDER depsgraph. The persistent viewport graph is a different evaluation:
+render-only collections can retain unevaluated transforms there, and modifiers
+can have different viewport and render settings. In the courtyard, the two
+emissive cloud planes previously exported at the origin instead of their
+native render positions. Both now appear in the same-camera photograph.
+
+Native `begin_render_export`/`end_render_export` scopes isolate revisions,
+deferred geometry/image pointers, image-change readers and arena ownership.
+Viewport update callbacks continue recording into the saved viewport state.
+Python pairs the scope in `finally`; the host stages a separate render view
+and disposes it after success, failure, abort or worker teardown. It never
+applies the render frame to the displayed authoring view, and it transfers
+the owned render resources directly to the capture without another scene copy.
+
+The native browser regression uses a viewport-hidden collection translated to
+(13,7,5), and an Array modifier enabled only for rendering. Twice, the export
+matches Blender's native transform and nine evaluated vertices while viewport
+evaluation has three vertices. An exceptional capture restores the viewport
+cache and undo graph. Runtime tests also preserve viewport revision identity
+and render-purpose abort cleanup. Evidence:
+[render evaluation](media/blender-render-evaluation-20261007.json).
+
+This fixes capture evaluation, not full scene appearance. The roof's material
+response and indirect illumination still differ markedly from native Cycles.
+Live authoring remains viewport evaluation; Play still starts from a detached
+viewport frame, so its render-only evaluated content remains a separate gate.
+
 ## Ordinary-object Object Info: measured
 
 Object Info now compiles all six outputs from the native object/material data:

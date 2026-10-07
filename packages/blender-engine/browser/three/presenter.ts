@@ -91,6 +91,22 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
     description: unknown,
     capture?: CaptureRequest,
   ): Promise<PresentAnswer> {
+    if (capture?.evaluation === 'render') {
+      const detached = BlenderRuntimeView.forPhotograph();
+      const captureScene = new THREE.Scene();
+      view.root.updateWorldMatrix(true, false);
+      detached.root.matrix.copy(view.root.matrixWorld);
+      captureScene.add(detached.root);
+      try { return await presentFrame(detached, captureScene, frame, description, capture); }
+      finally { detached.dispose(); detached.root.removeFromParent(); }
+    }
+    return presentFrame(view, scene, frame, description, capture);
+  }
+
+  async function presentFrame(
+    view: BlenderRuntimeView, scene: THREE.Scene, frame: unknown, description: unknown,
+    capture?: CaptureRequest,
+  ): Promise<PresentAnswer> {
     const applied = view.applyFrame(frame) as { held?: unknown } | null | undefined;
     const held =
       typeof applied === 'object' && applied !== null && 'held' in applied
@@ -169,6 +185,7 @@ export function createPresenter(options: PresenterOptions = {}): Presenter {
           renderer.setClearColor(0, 0);
         }
         try {
+          view.prepareDraw(camera, { interactive: false, height, renderer });
           renderer.render(scene, camera);
         } finally {
           scene.background = background;

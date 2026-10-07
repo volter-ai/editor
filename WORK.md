@@ -2,6 +2,14 @@
 
 ## Blender rendering parity (2026-10-07)
 
+Render captures now use the render engine's native RENDER depsgraph, with a
+separate export scope and owned Three capture view. The courtyard's render-only
+cloud planes regain their native transforms. Two native regression runs verify
+render-only visibility, render-specific Array geometry, exception cleanup and
+retained viewport cache/undo identity. Unit coverage checks capture resources,
+runtime revision and abort isolation. Full courtyard parity still fails on roof
+material response and indirect light; Play's render-evaluated start is pending.
+
 Rendering is now an explicit visual gate before reference-driven gameplay work.
 Blender WASM evaluates the file, but Three presents its surfaces and lighting;
 opening the same file alone cannot establish render equivalence. The subsystem

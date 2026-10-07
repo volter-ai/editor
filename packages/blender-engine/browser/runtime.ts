@@ -33,7 +33,7 @@ type Request = DistributiveOmit<WorkerRequest, 'id'>;
 
 export interface BlenderRuntimeOptions {
   /** Stage one verified mesh/image without replacing the displayed frame. */
-  stage?(part: { session: string; revision: number; abort?: boolean; mesh?: string; image?: string; piece?: unknown }): Promise<void> | void;
+  stage?(part: { session: string; revision: number; evaluation?: 'render'; abort?: boolean; mesh?: string; image?: string; piece?: unknown }): Promise<void> | void;
   /** Operation-only diagnostics, never request payloads. The optional observer
    * must not affect work, even if it throws. End calls balance overlapping work. */
   work?(label: string): () => void;
@@ -645,7 +645,7 @@ export class BlenderRuntime {
   }
 
   readonly #frameStream = new FrameStreamReader();
-  #stagedIdentity: { session: string; revision: number } | null = null;
+  #stagedIdentity: { session: string; revision: number; evaluation?: 'render' } | null = null;
   #discardStagedFrame(): void {
     this.#frameStream.reset();
     const part = this.#stagedIdentity; this.#stagedIdentity = null;
@@ -661,13 +661,13 @@ export class BlenderRuntime {
         try {
           const decoded = await this.#frameStream.accept(reply.chunk);
           if (decoded) {
-            const value = decoded.value as ({ op: 'stage'; session: string; revision: number } | Omit<Extract<WorkerReply, { op: 'present' }>, 'id'>);
+            const value = decoded.value as ({ op: 'stage'; session: string; revision: number; evaluation?: 'render' } | Omit<Extract<WorkerReply, { op: 'present' }>, 'id'>);
             if (value.op === 'present') {
               await this.#receive({ ...value, id: reply.id } as WorkerReply);
               return;
             }
             if (value.op !== 'stage' || !this.#options.stage) throw new Error('The presenter does not support staged Blender frames');
-            this.#stagedIdentity = { session: value.session, revision: value.revision };
+            this.#stagedIdentity = { session: value.session, revision: value.revision, ...(value.evaluation ? { evaluation: value.evaluation } : {}) };
             await this.#options.stage(value);
           }
           this.#worker.postMessage({ op: 'present-result', id: reply.id } satisfies WorkerRequest);
@@ -708,7 +708,7 @@ export class BlenderRuntime {
       // true the moment the frame arrives. A presenter that refuses the frame
       // has not un-modelled it.
       const frame = reply.frame as { session?: unknown; revision?: unknown } | null;
-      if (typeof frame?.session === 'string' && typeof frame.revision === 'number')
+      if (reply.capture?.evaluation !== 'render' && typeof frame?.session === 'string' && typeof frame.revision === 'number')
         this.#presented = { session: frame.session, revision: frame.revision };
       const end = this.#work('presenting worker frame');
       try {

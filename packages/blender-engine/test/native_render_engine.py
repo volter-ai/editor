@@ -132,4 +132,30 @@ class NativePreviewIsolation(unittest.TestCase):
         self.assertEqual(namespace['SESSION'].revision,17)
 
 
+class RenderExportIsolation(unittest.TestCase):
+    def test_capture_failure_restores_export_scope_and_keeps_authoring_session(self):
+        for failure in (False,True):
+            events=[]
+            class CaptureSession:
+                def _present(self,capture,depsgraph):
+                    events.append((capture,depsgraph,self.session))
+                    if failure:raise RuntimeError('capture failed')
+                    return {'base64':'pixels'}
+            namespace={'Session':CaptureSession,'time':time,
+                '_blender_web':SimpleNamespace(begin_render_export=lambda graph:events.append(('begin',graph)),
+                    end_render_export=lambda:events.append(('end',)))}
+            tree=ast.parse((Path(__file__).parent.parent/'browser/session.py').read_text())
+            cls=next(n for n in tree.body if isinstance(n,ast.ClassDef) and n.name=='Session')
+            fn=next(n for n in cls.body if isinstance(n,ast.FunctionDef) and n.name=='photograph')
+            exec(compile(ast.Module(body=[fn],type_ignores=[]),'session.py','exec'),namespace)
+            author=SimpleNamespace(session='author',revision=17,_known={'mesh:authored':3})
+            if failure:
+                with self.assertRaisesRegex(RuntimeError,'capture failed'):namespace['photograph'](author,'RENDER',{'render':{}})
+            else:self.assertEqual(namespace['photograph'](author,'RENDER',{'render':{}}),{'base64':'pixels'})
+            self.assertEqual(events[0],('begin','RENDER'));self.assertEqual(events[-1],('end',))
+            self.assertEqual(events[1][0]['evaluation'],'render')
+            self.assertTrue(events[1][2].startswith('author:render:'))
+            self.assertEqual((author.revision,author._known),(17,{'mesh:authored':3}))
+
+
 if __name__=='__main__': unittest.main()

@@ -1480,7 +1480,7 @@ class Session:
 
     # -- the export
 
-    def _export(self):
+    def _export(self, depsgraph=None):
         """THE EXPORT IS THE C++ DOOR (`bpy_web_export.cc`).
 
         One call evaluates the scene, walks the depsgraph's own update record
@@ -1497,14 +1497,14 @@ class Session:
         bones and the active vertex group's weights (`_armatures`,
         `_weights`). All per-scene, none of them geometry.
         """
-        scene = bpy.context.scene
+        scene = depsgraph.scene if depsgraph is not None else bpy.context.scene
         graphs = material_graphs(scene)
         _mark("export:graphs")
         # An IMAGE EMPTY's picture travels with the graphs' images: the overlay draws it
         # (`overlay_empty.hh` `image_sync`).
         empty_images = {obj.data.name for obj in scene.objects
                         if obj.type == "EMPTY" and obj.empty_display_type == "IMAGE" and obj.data is not None}
-        options = {"session": self.session, "evaluate": True, "known": self._known, "instance_sources": True,
+        options = {"session": self.session, "evaluate": depsgraph is None, "known": self._known, "instance_sources": True,
                    "graph_materials": sorted(graphs),
                    "graph_images": sorted({i for g in graphs.values() for i in g["images"]} | empty_images),
                    "graph_generated": sorted(n for n, g in graphs.items() if g["generated"])}
@@ -1563,7 +1563,7 @@ class Session:
         # A MANUAL TEXTURE SPACE, which Generated coordinates map through; the
         # automatic one is the evaluated bounds the presenter already holds.
         if graphs:
-            depsgraph = bpy.context.evaluated_depsgraph_get()
+            depsgraph = depsgraph if depsgraph is not None else bpy.context.evaluated_depsgraph_get()
             # BY NAME THROUGH ONE MAP: `scene.objects.get` searches the collection linearly, so a
             # lookup per row was quadratic -- measured on the Stoneguard file (11,702 rows): 11,343
             # calls, 14.4 s of every present.
@@ -1598,7 +1598,8 @@ class Session:
                     "roughness": float(material.roughness),
                     "metallic": float(material.metallic),
                 }
-        frame["instances"] = _depsgraph_placements(frame, bpy.context.evaluated_depsgraph_get())
+        graph = depsgraph if depsgraph is not None else bpy.context.evaluated_depsgraph_get()
+        frame["instances"] = _depsgraph_placements(frame, graph)
         frame["world"] = draw_world(scene)
         frame["cameras"] = {
             obj.name: draw_camera(obj) for obj in scene.objects if obj.type == "CAMERA"
@@ -1610,7 +1611,7 @@ class Session:
         render = scene.render
         frame["camera_view"] = {
             "scene_camera": scene.camera.name if scene.camera is not None else None,
-            "view_layer_cameras": [o.name for o in bpy.context.view_layer.objects if o.type == "CAMERA"],
+            "view_layer_cameras": [o.name for o in graph.view_layer.objects if o.type == "CAMERA"],
             "aspect": (render.resolution_x * render.pixel_aspect_x) / max(render.resolution_y * render.pixel_aspect_y, 1e-6),
         }
         # THE 3D CURSOR, `Scene.cursor`: where Blender's own "to 3D Cursor"
@@ -1620,7 +1621,7 @@ class Session:
         frame["cursor"] = [[float(v) for v in row] for row in scene.cursor.matrix]
         # THE OVERLAYS, after the door's frame stands: `_weights` reads the
         # mesh's own revision out of it (see there), so it cannot run before.
-        view_layer = bpy.context.view_layer
+        view_layer = graph.view_layer
         # THE VIEWPORT'S SUBJECT LINE and the units its grid step is named in: Blender composes
         # both from the scene, so they come from here (`_subject_line`).
         frame["subject"] = _subject_line(scene, view_layer)
@@ -1665,12 +1666,12 @@ class Session:
             self._known.clear()
             return self._present(capture)
 
-    def _present(self, capture=None):
+    def _present(self, capture=None, depsgraph=None):
         known = dict(self._known)
         _mark("present:before")
-        frame = self._export()
+        frame = self._export(depsgraph)
         _mark("present:exported")
-        pulled = self._pull(frame)
+        pulled = self._pull(frame, render=depsgraph is not None)
         _mark("present:pulled")
         self._drop_unreachable_textures(frame)
         # WHAT THIS FRAME SHIPPED, for the session's own accounting: the ids
@@ -1729,7 +1730,7 @@ class Session:
         self._reconcile_with_presenter(answer, frame)
         return answer
 
-    def _pull(self, frame):
+    def _pull(self, frame, render=False):
         """THE PULL, one datablock at a time, as Hydra's render delegate pulls each prim's data
         during Sync after the scene index's notice (`HydraSceneIndex::populate`). The door named
         the changed meshes and pictures as deferred; the worker first copies the frame's own
@@ -1743,9 +1744,9 @@ class Session:
         anything was pulled; the worker then presents the frame with its pieces."""
         meshes = [key for key, mesh in frame["meshes"].items() if mesh.get("deferred")]
         images = [name for name, image in frame["images"].items() if image.get("deferred")]
-        if not meshes and not images:
+        if not meshes and not images and not render:
             return False
-        _asked({"hold": frame})
+        _asked({"hold": frame, **({"evaluation": "render"} if render else {})})
         options = {"buffer_path": EXPORT_BUFFER_PATH} if EXPORT_BUFFER_PATH else {}
         for kind, keys, door in (("mesh", meshes, _blender_web.export_mesh),
                                  ("image", images, _blender_web.export_image)):
@@ -1764,6 +1765,20 @@ class Session:
                     continue
                 _asked({kind: key, "piece": piece[kind]})
         return True
+
+    def photograph(self, depsgraph, capture):
+        """Render evaluation owns different geometry and visibility than a viewport.
+        Keep its native revisions, deferred pulls and presenter separate for the
+        entire blocking capture, and restore the authoring export in finally."""
+        if not hasattr(_blender_web, "begin_render_export"):
+            raise RuntimeError("This Blender artifact has no render-evaluated export; update the artifact and its corresponding source")
+        _blender_web.begin_render_export(depsgraph)
+        try:
+            rendering = Session()
+            rendering.session = "%s:render:%d" % (self.session, time.time_ns())
+            return rendering._present({**capture, "evaluation": "render"}, depsgraph)
+        finally:
+            _blender_web.end_render_export()
 
     def _send_encoded_image(self, key, deferred):
         """A PICTURE AS ITS FILE'S OWN BYTES, when that is exactly what the frame would carry.
@@ -2336,8 +2351,8 @@ def _photograph(depsgraph, width, height, linear=False):
     # result is what a render leaves, and it holds scene-linear pixels.
     if linear:
         render["linear"] = True
-    answer = SESSION.present(
-        {"position": position, "target": target, "up": up, "render": render}
+    answer = SESSION.photograph(
+        depsgraph, {"position": position, "target": target, "up": up, "render": render}
     )
     if not isinstance(answer, dict) or "base64" not in answer:
         raise RuntimeError("The renderer did not answer with a photograph")

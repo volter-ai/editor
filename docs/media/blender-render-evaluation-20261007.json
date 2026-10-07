@@ -1,0 +1,58 @@
+{
+  "nativeSource": "5a3cb1250fc1fd7df59e3ff823949c06e52d9422",
+  "nativeSourceRepository": "https://github.com/volter-ai/blender",
+  "artifacts": {
+    "blender_browser.js": {
+      "bytes": 408423,
+      "sha256": "d818e8d746bc62ebf810206ac564d2dc75dc645b3121f4a3919d13ecef11e419"
+    },
+    "blender_browser.wasm": {
+      "bytes": 86351436,
+      "sha256": "d4c3a8002cb1686f3c5299e28bcbb356934bbe910f2485b2572032b115cf67bd"
+    },
+    "blender_browser.data": {
+      "bytes": 52699590,
+      "sha256": "89cfee5131d8a7c7361b1f8d249fb08a81b14102963ae161e1146eabab56e558"
+    }
+  },
+  "nativeRegression": {
+    "unresolvedConsole": {
+      "errors": 0,
+      "warnings": 3,
+      "errorOccurrences": 0,
+      "warningOccurrences": 82,
+      "acked": 0,
+      "workbench": 0,
+      "dropped": 0,
+      "measuredAt": 1791407310885
+    },
+    "ok": true,
+    "result": "Code executed successfully: WEB_RENDER_GRAPH_PASS [{\"hiddenMatrix\": [[1, 0, 0, 13], [0, 1, 0, 7], [0, 0, 1, 5], [0, 0, 0, 1]], \"renderVertices\": 9}, {\"hiddenMatrix\": [[1, 0, 0, 13], [0, 1, 0, 7], [0, 0, 1, 5], [0, 0, 0, 1]], \"renderVertices\": 9}]\n"
+  },
+  "nativeOracle": "Desktop Blender RenderEngine RENDER graph audit, same frame and source",
+  "courtyard": {
+    "camera": "cam.001",
+    "frame": 4,
+    "width": 715,
+    "height": 402,
+    "view": "Filmic",
+    "look": "Medium Contrast",
+    "exposure": -2,
+    "compositing": false,
+    "captureSha256": "7a52ddb8dcba2bc461bbd4a666c16134bb48fd08ebe06bf58ed5f5a3b83a6ba7",
+    "cloudPlanesRestored": true,
+    "visualGatePassed": false,
+    "remaining": [
+      "roof material response",
+      "indirect illumination",
+      "Play render-evaluated starting frame"
+    ]
+  },
+  "validation": {
+    "runtimeAndTransferTests": 16,
+    "pythonOwnershipTests": 8,
+    "placementTests": 5,
+    "engineAndHostTypechecks": "pass",
+    "stagedProductBuild": "pass"
+  }
+}
