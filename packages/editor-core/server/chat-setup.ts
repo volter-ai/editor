@@ -1,6 +1,7 @@
 /** Host data for Supercode's native Chat setup. Credentials stay with the harness. */
 import { execFile } from 'node:child_process';
-import { accessSync, constants, statSync } from 'node:fs';
+import { accessSync, constants, existsSync, mkdirSync, statSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
 import type { HarnessChatHarness } from '../src/harness-chat-types';
@@ -100,6 +101,27 @@ export function chatNpm(cwd: string, path: string): { program: string; args: str
   return undefined;
 }
 
+/** Where Chat installs an agent: npm's global prefix when this user can write it, otherwise a prefix of the editor's
+ *  own in the home directory. The nodejs.org installer on macOS (and a system Node on Linux) leaves the global prefix
+ *  to root, so `npm install -g` there fails with EACCES, and the welcome's one-click install would end in "Sign-in
+ *  didn't finish." for exactly the people installing their first agent. Windows' access check reads only the
+ *  read-only attribute, not ACLs, so there npm's per-user default prefix is taken as it is. */
+export function agentInstallPrefix(globalPrefix: string, home = homedir()): string {
+  const targets = process.platform === 'win32' ? [join(globalPrefix, 'node_modules'), globalPrefix]
+    : [join(globalPrefix, 'lib', 'node_modules'), join(globalPrefix, 'bin')];
+  const writable = targets.every(target => {
+    let dir = target;
+    while (!existsSync(dir) && dirname(dir) !== dir) dir = dirname(dir);
+    try { accessSync(dir, constants.W_OK); return true; } catch { return false; }
+  });
+  if (writable) return globalPrefix;
+  const own = join(home, '.volter', 'agents');
+  mkdirSync(own, { recursive: true });
+  return own;
+}
+
+function prefixBin(prefix: string): string { return process.platform === 'win32' ? prefix : join(prefix, 'bin'); }
+
 /** Put npm's actual global bin on the long-lived probe's PATH before the first inventory.
  * Installing later adds a file to an already-searched directory; no process restart is needed. */
 export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH: string }; npm?: string; npmArgs?: string[]; npmPrefix?: string; installError?: string }> {
@@ -114,9 +136,12 @@ export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH
     });
     const prefix = stdout.trim();
     if (!isAbsolute(prefix) || /[\r\n]/.test(prefix)) throw new Error('npm returned no absolute global prefix.');
-    const bin = process.platform === 'win32' ? prefix : join(prefix, 'bin');
-    if (!env.PATH.split(delimiter).includes(bin)) env.PATH += delimiter + bin;
-    return { env, npm, npmArgs, npmPrefix: prefix };
+    // Agents the person installed globally stay findable; Chat's own installs go where this user can write.
+    const installPrefix = agentInstallPrefix(prefix);
+    for (const bin of new Set([prefixBin(prefix), prefixBin(installPrefix)])) {
+      if (!env.PATH.split(delimiter).includes(bin)) env.PATH += delimiter + bin;
+    }
+    return { env, npm, npmArgs, npmPrefix: installPrefix };
   } catch (error) {
     return { env, installError: `Cannot resolve npm's install directory: ${error instanceof Error ? error.message : String(error)}` };
   }
