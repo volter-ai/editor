@@ -2215,6 +2215,20 @@ class VolterRenderEngine(bpy.types.RenderEngine):
     bl_label = "three.js"
     bl_use_preview = False
 
+    def view_update(self, context, depsgraph):
+        """The tab presents the depsgraph; Blender owns the shading selection."""
+        pass
+
+    def view_draw(self, context, depsgraph):
+        """Advertise viewport rendering to RNA without asking headless Blender for a GPU.
+
+        `rna_SpaceView3DShading_type_itemf` only offers RENDERED for a Python
+        engine with `view_draw`. The Three presenter draws that viewport; this
+        callback is never its drawing path. Without it, opening a Cycles file
+        makes the ordinary Rendered control reject its own enum value.
+        """
+        pass
+
     def render(self, depsgraph):
         scene = depsgraph.scene
         scale = scene.render.resolution_percentage / 100.0
