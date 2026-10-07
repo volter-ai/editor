@@ -237,6 +237,9 @@ export interface BlenderArtifactStatus {
   missing: string[];
   /** Emscripten: each file's SHA-256 as it decodes, the key a page keeps it under. */
   digests?: Record<string, string>;
+  /** Emscripten: the server answering runs in this tab (browser-substrate). Only then are the
+   *  digests used to keep the files in Cache Storage; absent (an older server) means false. */
+  inTab?: boolean;
   /** WALI only: the `sha256-` SRI of `blender.wasm`, which the program loader
    *  requires for any non-blob URL. */
   integrity?: string;
