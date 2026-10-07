@@ -16,7 +16,7 @@ export async function verifyDocumentHdrDepth() {
   vertexShader:'precision highp float;attribute vec3 position;attribute vec2 uv;varying vec2 vUv;void main(){vUv=uv;gl_Position=vec4(position,1.0);}',
   fragmentShader:'precision highp float;uniform sampler2D frame;varying vec2 vUv;void main(){gl_FragColor=texture2D(frame,vUv);}'});
  const quad=new FullScreenQuad(copy),session=Object.create(Object3DDocumentSession.prototype);
- Object.assign(session,{renderer,scene,state:{mode:'rendered'},composer:null,displayTarget:null,
+ Object.assign(session,{renderer,scene,viewport:{camera},state:{mode:'rendered'},composer:null,displayTarget:null,
   advanceLook:()=>{},ensureComposer:()=>{},render:(draw:(c:THREE.Camera)=>void)=>draw(camera)});
  session.setDisplayTransform({render:(r:THREE.WebGLRenderer,input:THREE.WebGLRenderTarget,target:THREE.WebGLRenderTarget)=>{
   copy.uniforms['frame']!.value=input.texture;r.setRenderTarget(target);quad.render(r);
@@ -29,8 +29,17 @@ export async function verifyDocumentHdrDepth() {
   // A photograph may reuse a target too; it has the same full-frame contract.
   renderer.setRenderTarget(output);
   session.renderSolidForCapture(camera,output,16,16);const photograph=pixel();
-  const passed=first[0]!>.99 && receded[1]!>.99 && receded[0]!<.01 && photograph[1]!>.99;
-  return {passed,first,receded,photograph,autoClear:renderer.autoClear};
+  renderer.setPixelRatio(2);renderer.setRenderTarget(null);session.renderViewport();
+  const canvasPixel=()=>{
+   const gl=renderer.getContext(),p=new Uint8Array(4);
+   gl.readPixels(16,16,1,1,gl.RGBA,gl.UNSIGNED_BYTE,p);return Array.from(p);
+  };
+  const canvasBefore=canvasPixel();
+  const capture=session.captureImage(16);
+  const canvasAfter=canvasPixel();
+  const canvasPreserved=JSON.stringify(canvasBefore)===JSON.stringify(canvasAfter) && canvasBefore[1]===255 && renderer.getPixelRatio()===2 && renderer.domElement.width===32;
+  const passed=first[0]!>.99 && receded[1]!>.99 && receded[0]!<.01 && photograph[1]!>.99 && canvasPreserved && capture?.startsWith('data:image/png');
+  return {passed,first,receded,photograph,autoClear:renderer.autoClear,canvasBefore,canvasAfter,canvasPreserved};
  } finally {
   session.setDisplayTransform(null);quad.dispose();copy.dispose();geometry.dispose();material.dispose();background.dispose();output.dispose();renderer.dispose();renderer.forceContextLoss();
  }

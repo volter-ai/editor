@@ -6,6 +6,11 @@
   "receded": [0, 1, 0, 1],
   "photograph": [0, 1, 0, 1],
   "autoClear": false,
+  "canvasBefore": [0, 255, 0, 255],
+  "canvasAfter": [0, 255, 0, 255],
+  "canvasPreserved": true,
+  "canvasPixelRatio": 2,
+  "canvasWidth": 32,
   "unitRegression": "Fails on the original implementation; all four document-display tests pass after the fix",
   "scope": "Plain HDR frame and photograph depth clearing; not full-scene lighting parity"
 }

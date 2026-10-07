@@ -105,3 +105,31 @@ test('plain HDR frames and photographs clear old depth when the compositor disab
   assert.equal(order[0].target,photograph);assert.equal(order[1].target,photograph);
   s.session.setDisplayTransform(null);
 });
+
+test('an outlined photograph sizes only offscreen buffers and restores them after failure',()=>{
+  const s=stage(),sizes=[];
+  const sizeable=name=>({setSize:(width,height)=>sizes.push({name,width,height})});
+  const passes=[sizeable('scene'),sizeable('outline')];
+  s.session.composer={inputBuffer:sizeable('input'),outputBuffer:sizeable('output'),passes,
+    setSize(){assert.fail('composer.setSize resizes the visible canvas');}};
+  s.session.sceneRenderPass=passes[0];s.session.selectionOutlinePass=passes[1];
+  s.session.selectionOutline={selection:new Set(['selected'])};
+  s.session.renderLinearScene=()=>{throw new Error('draw failed');};
+  const photograph={};
+  assert.throws(()=>s.session.renderSolidForCapture(new PerspectiveCamera(),photograph,1024,1024),/draw failed/);
+  assert.deepEqual(sizes.slice(0,4),['input','output','scene','outline'].map(name=>({name,width:1024,height:1024})));
+  assert.deepEqual(sizes.slice(4),['input','output','scene','outline'].map(name=>({name,width:512,height:256})));
+  assert.equal(s.current(),photograph);
+});
+
+test('a failed document capture preserves visible canvas pixel ratio and camera projection',()=>{
+  const s=stage(),camera=new PerspectiveCamera(50,2,.1,100);
+  s.session.viewport={camera};
+  s.session.renderer.getPixelRatio=()=>2;
+  s.session.renderer.setPixelRatio=()=>assert.fail('capture must not resize the visible canvas');
+  s.session.composer={setSize:()=>assert.fail('capture must not resize the visible canvas')};
+  s.session.renderCapture=()=>{throw new Error('capture failed');};
+  assert.throws(()=>s.session.captureImage(512),/capture failed/);
+  assert.equal(camera.aspect,2);assert.equal(s.current(),null);
+  assert.equal(s.session.captureAspect,null);assert.equal(s.session.cameraOverride,null);
+});
