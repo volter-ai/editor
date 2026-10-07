@@ -82,8 +82,8 @@ npx --no-install volter-model-editor chat stop
 ```
 
 These commands use the native Chat and its Supercode runtime, retain the person's
-draft, and keep prompts and replies in the same transcript. `send` requests the
-focused chat's native Send action and returns `submissionRequested: true` with
+draft, and keep prompts and replies in the same transcript. `send` requests a
+native Chat submission and returns `submissionRequested: true` with
 `submissionConfirmed: false`. This action returns before submission settles, so
 its receipt does not establish that a turn started. `status` reports the native session ID,
 busy state and pending requests. Finish approvals in Chat; sending another prompt

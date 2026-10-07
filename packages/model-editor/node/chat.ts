@@ -37,11 +37,8 @@ export async function chat(args: string[]): Promise<unknown> {
     await editor.command('workbench.action.chat.cancel');
     return { stopRequested: true, sessionId: connection?.sessionId };
   }
-  await editor.command('workbench.action.chat.submit', {
-    inputValue: prompt, acceptInputOptions: { preserveInput: true },
-  });
-  // The native Send action enforces the focused conversation's interaction
-  // guard, but does not await acceptInput. Its return cannot confirm a turn:
+  await editor.command('workbench.action.chat.open', { query: prompt, isPartialQuery: false, preserveInput: true });
+  // The native command does not await acceptInput. Its return cannot confirm a turn:
   // acceptInput can refuse a read-only composer or pending model selection.
   return { submissionRequested: true, submissionConfirmed: false };
 }
