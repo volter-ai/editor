@@ -38,6 +38,7 @@ export type {
   FinderRegistration,
 } from '@volter/editor-project/adapter/finders/registry';
 export {
+  finderReadsSources,
   registerContributedFinder,
   registeredFinderNames,
   registerFinder,

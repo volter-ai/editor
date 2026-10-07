@@ -587,9 +587,17 @@ function BlenderModelViewport(props: ToolContributionProps) {
   // Keep both authoring areas mounted across Play/Stop. Remounting a stage discards
   // its pose/session and repeats the second area's initial scene-camera setup.
   const area = { position: 'relative', flex: '1 1 0', minWidth: 0, margin: 12 } as const;
+  // THE HIDDEN MODEL AREA IS INERT, not merely `pointer-events: none`. It lies OVER the play
+  // area (z-index 2, faded out once the game has drawn), and the stage inside it sets its own
+  // `pointer-events: auto` (`StageHost`'s viewport box), which a parent's `none` does not reach:
+  // a real click on the game hit the invisible editing canvas, never the play surface, so the
+  // runner's takeover (`play-script.ts`, which asks whether the press landed in the game) never
+  // saw it and the game never got it — while keys, read off the window, took over fine. `inert`
+  // takes the whole subtree out of hit testing and focus.
+  const hidden = game !== null && playedReady;
   return (
     <div style={game || second ? { position: 'absolute', inset: -12, display: 'flex', gap: 2 } : { display: 'contents' }}>
-      <div key="model" style={game ? { position: 'absolute', inset: 12, zIndex: 2, opacity: playedReady ? 0 : 1, pointerEvents: playedReady ? 'none' : 'auto', transition: 'opacity 160ms ease-out' } : second ? area : { display: 'contents' }}>
+      <div key="model" inert={hidden || undefined} style={game ? { position: 'absolute', inset: 12, zIndex: 2, opacity: playedReady ? 0 : 1, pointerEvents: playedReady ? 'none' : 'auto', transition: 'opacity 160ms ease-out' } : second ? area : { display: 'contents' }}>
         <BlenderViewportArea {...props} view={view} main />
       </div>
       {game && (
@@ -670,7 +678,7 @@ function SecondAreaChrome({
       {header &&
         createPortal(
           <div className="volter-dock-document-toolbar-own" data-testid={`document-header:${areaId}`} style={{ display: 'flex', alignItems: 'center' }}>
-            <BlenderObjectModeHeader documentId={documentId} notify={notify} modeSwitch={false} />
+            <BlenderObjectModeHeader documentId={documentId} notify={notify} />
             {HeaderControls && (
               <Suspense fallback={null}>
                 <HeaderControls documentId={areaId} />

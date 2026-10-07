@@ -44,7 +44,9 @@ export interface WorkspaceAreaContribution {
    *  creation, against the two groups' combined extent — a person's drag on
    *  the sash is never overwritten, and a group they closed is re-created at
    *  this ratio on the next reconcile, because a Blender area is resized or
-   *  joined, never closed. */
+   *  joined, never closed. The one other stand-up is the area's document
+   *  changing its job and asking for that job's size
+   *  (`@volter/editor-sdk/kit/workspace-areas`' `setWorkspaceAreaRatio`). */
   readonly ratio: number;
 }
 

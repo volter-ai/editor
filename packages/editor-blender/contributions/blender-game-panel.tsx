@@ -8,10 +8,26 @@
  *
  * The confusion it ends was two Plays on one screen: the header's (the play script) and the
  * Timeline's (the file's animation). A mode now chooses which one exists. In Movie mode the
- * Timeline's transport is the only one and the header has no Play; in Game mode this panel's
- * Play is the only one — the header carries the Game / Movie switch where its Play stood
- * (`blender-header-menus.tsx`), and the Timeline is not mounted. Escape still stops a game, from
- * the stage, as before.
+ * Timeline's transport is the only one; in Game mode this panel's Play is the only one, and the
+ * Timeline is not mounted. The 3D viewport's header carries neither (`blender-header-menus.tsx`
+ * is its menus alone). Escape still stops a game, from the stage, as before.
+ *
+ * ## The Game | Movie switch is the bottom area's own
+ *
+ * Switching modes swaps this area and nothing else, so the switch stands at the leading edge of
+ * the area's header row, where its title stood — in this panel and in the Timeline alike
+ * ({@link PlayModeSwitch}), so the person switches back from whichever one is showing (owner,
+ * 2026-10-06, moving it off the viewport header where it first stood). It is drawn only when a
+ * Play tool is installed; without one there is no game to switch to and the Timeline keeps its
+ * title.
+ *
+ * ## It is tall enough to read
+ *
+ * Blender's Timeline strip (`model.layout.ts`'s measured 0.0719 — 63 px of an 880-px column)
+ * showed this panel's play log as one clipped line. So Game mode asks the area for
+ * {@link GAME_PANEL_RATIO} (`setWorkspaceAreaRatio`, by the bottom area's document) and Movie
+ * mode gives Blender's back: each switch stands the area up at its mode's size, as a workspace
+ * switch does, and the sash stays the person's in between.
  *
  * ## What it drives is the Play tool's own run
  *
@@ -77,6 +93,14 @@ import {
   subscribePlayMode,
 } from '../src/play-mode';
 import { HEADER_HEIGHT, TIMELINE_CHROME, TIMELINE_THEME } from './blender-timeline-geometry';
+
+/**
+ * THE GAME PANEL'S SHARE OF THE COLUMN, asked of the bottom area in Game mode. A 1000-px window
+ * gives the centre column about 935 px, and 0.2 of it is 187: the 26-px header, the status
+ * band's padding, the log's own row (one widget, 20 px) and seven 12-px log lines at their
+ * 1.45 line height with room to spare. Taller windows show more lines; the sash still moves.
+ */
+export const GAME_PANEL_RATIO = 0.2;
 
 const STILL: DocumentPlayClock = { time: 0, tick: 0, paused: false, speed: 1 };
 const NO_BOT: DocumentPlayAutoplay = { on: false, available: false, by: null };
@@ -346,6 +370,40 @@ function GameButton({ label, testId, disabled, pressed, wide, onClick, children 
   );
 }
 
+/**
+ * GAME | MOVIE, at the leading edge of the bottom area's header row, in the Game panel and the
+ * Timeline alike (the head of this file says why it is here). Two joined cells with the current
+ * one lit in the playhead's blue — the same widgets as the transport beside it, at the same
+ * height, so it reads as one of this row's controls and not a smaller one. It serves the model
+ * document the bottom area serves. With no Play tool installed there is nothing to switch to,
+ * and the row keeps its `title` instead.
+ */
+export function PlayModeSwitch({ title }: { readonly title: string }) {
+  useSyncExternalStore(subscribePlayMode, playModeVersion, playModeVersion);
+  const found = useSyncExternalStore(subscribeDocumentPlayExtensions, extension, () => null);
+  const documentId = servedModelDocument();
+  if (found === null) return <span style={{ color: TIMELINE_CHROME.text }}>{title}</span>;
+  const mode = documentId === null ? 'movie' : modelPlayMode(documentId);
+  const cell = (value: ModelPlayMode, label: string, tip: string) => (
+    <GameButton
+      testId={`model-play-mode-${value}`}
+      label={tip}
+      pressed={mode === value}
+      wide
+      disabled={documentId === null}
+      onClick={() => { if (documentId !== null) switchPlayMode(documentId, value); }}
+    >
+      {label}
+    </GameButton>
+  );
+  return (
+    <div role="group" aria-label="Game or Movie mode" data-testid="model-play-mode" style={{ display: 'flex' }}>
+      {cell('game', 'Game', 'Game mode: this area is the Game panel, with Play, pause, step, speed, restart and autoplay')}
+      {cell('movie', 'Movie', 'Movie mode: this area is the Timeline, playing the file’s animation')}
+    </div>
+  );
+}
+
 /** Simulation seconds as a clock reads them: `m:ss.ss`, hours only when there are some. */
 function clockText(seconds: number): string {
   const whole = Math.floor(seconds / 60);
@@ -423,7 +481,7 @@ export function BlenderGamePanel() {
           borderBottom: `1px solid ${TIMELINE_CHROME.rule}`,
         }}
       >
-        <span style={{ color: TIMELINE_CHROME.text }}>Game</span>
+        <PlayModeSwitch title="Game" />
         {/* THE TRANSPORT IN THE MIDDLE, between two spacers, where the Timeline centres its own. */}
         <div style={{ flex: 1 }} />
         <div style={{ display: 'flex' }} role="group" aria-label="Game transport">

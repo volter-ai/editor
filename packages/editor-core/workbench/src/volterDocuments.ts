@@ -39,9 +39,9 @@
  *  `display:none` on everything but the active document — which is not a bottom area at all.
  *
  *  THE SIZE IS A BOOTSTRAP, NOT AN ASSERTION, exactly as `WorkspaceAreaContribution.ratio`
- *  says: it is applied when the area is STOOD UP — the first open, and every workspace switch
- *  that puts a different document there — and never while the same document sits in it, so a
- *  person's drag on the sash is theirs. A group the person CLOSED is re-created on the next
+ *  says: it is applied when the area is STOOD UP — the first open, every workspace switch
+ *  that puts a different document there, and the area's document asking for a new ratio when it
+ *  changes its job — and never otherwise, so a person's drag on the sash is theirs. A group the person CLOSED is re-created on the next
  *  reconcile, because a Blender area is resized or joined, never closed. `sizeAreaGroup` below
  *  carries the measurement that says why one `setSize` is not enough.
  *
@@ -126,6 +126,12 @@ export class VolterDocuments extends Disposable {
 	 *  Model came back at 476/476 instead of 882/70). The same document sitting in the same
 	 *  group keeps whatever size the person dragged it to. */
 	private readonly areaDocuments = new Map<number, string>();
+	/** The ratio each area GROUP was last stood up at, keyed as `areaDocuments` is. A new ratio
+	 *  for the same document is a stand-up too: the document changed its job and asked for the
+	 *  size the new one needs (`@volter/editor-sdk/kit/workspace-areas`' `setWorkspaceAreaRatio`
+	 *  — the model workspace's bottom area is the Timeline in Movie mode and the Game panel in
+	 *  Game mode). The same ratio keeps the person's drag. */
+	private readonly areaRatios = new Map<number, number>();
 	/** Areas stood up during the pass now running, sized once it has finished opening AND
 	 *  closing — see `groupForArea` for why the order matters. */
 	private readonly areaToSize = new Map<string, { group: IEditorGroup; area: VolterDocumentArea }>();
@@ -276,6 +282,7 @@ export class VolterDocuments extends Disposable {
 		if (!this.areaGroups.has(area.id) && restored) {
 			this.areaGroups.set(area.id, restored);
 			this.areaDocuments.set(restored.id, documentId);
+			this.areaRatios.set(restored.id, area.ratio);
 			return restored;
 		}
 		const known = this.areaGroups.get(area.id);
@@ -284,13 +291,16 @@ export class VolterDocuments extends Disposable {
 			? neighbour
 			: this.editorGroupsService.addGroup(this.group, AREA_DIRECTION[area.place]);
 		this.areaGroups.set(area.id, group);
-		// A STAND-UP IS A NEW DOCUMENT IN THE AREA, and only that: the first open, and every
-		// workspace switch that puts a different document there (the Shading workspace's node
-		// editor where the Model workspace's Timeline was). Blender does the same — switching
-		// workspaces restores that workspace's screen, ratios and all — and the same document
-		// staying put keeps whatever size the person dragged it to.
-		if (this.areaDocuments.get(group.id) !== documentId) {
+		// A STAND-UP IS A NEW DOCUMENT IN THE AREA, or a new job for the one there: the first
+		// open, every workspace switch that puts a different document there (the Shading
+		// workspace's node editor where the Model workspace's Timeline was), and a new ratio the
+		// area's document asked for (the Game panel where the Timeline was, `areaRatios`).
+		// Blender does the same — switching workspaces restores that workspace's screen, ratios
+		// and all — and the same document at the same ratio keeps whatever size the person
+		// dragged it to.
+		if (this.areaDocuments.get(group.id) !== documentId || this.areaRatios.get(group.id) !== area.ratio) {
 			this.areaDocuments.set(group.id, documentId);
+			this.areaRatios.set(group.id, area.ratio);
 			// SIZED AT THE END OF THE PASS, never here. A stand-up that REPLACES a document —
 			// the Shading workspace's node editor where the Model workspace's Timeline was —
 			// opens the new one before it closes the old, so at this moment the area's group

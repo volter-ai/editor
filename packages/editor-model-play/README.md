@@ -151,8 +151,8 @@ The tool registers the `model` document Play extension
 - `scriptPath(sourcePath)` and `hasScript(sourcePath)` — where a model's play script goes and
   whether it exists, so a layout can open a model with a script as a game.
 
-In the Model Editor these are drawn by the Game panel (`@volter/editor-blender`): the header's
-Game / Movie switch puts it in the bottom area in place of the Timeline. The panel's controls
+In the Model Editor these are drawn by the Game panel (`@volter/editor-blender`): the Game /
+Movie switch at the left of the bottom area's header puts it there in place of the Timeline. The panel's controls
 are also commands, `volter.model-play.<verb>`, so an agent drives the same run the person
 sees:
 

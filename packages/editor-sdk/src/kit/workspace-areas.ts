@@ -33,11 +33,15 @@ import { openToolDocument, toolDocumentId } from './components/tool-documents';
 import { subscribeToolContributions } from './tool-loader';
 import { closeWorkspaceDocument, openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
 
+let _declared: readonly WorkspaceAreaContribution[] = [];
 let _areas: readonly WorkspaceAreaContribution[] = [];
+/** Ratios an area's own document asked for ({@link setWorkspaceAreaRatio}), by area id. */
+const _ratios = new Map<string, number>();
 let _version = 0;
 const _listeners = new Set<() => void>();
 
-/** The active workspace's areas, in declaration order. */
+/** The active workspace's areas, in declaration order, each at the ratio its document asked
+ *  for when it asked for one. */
 export function activeWorkspaceAreas(): readonly WorkspaceAreaContribution[] {
   return _areas;
 }
@@ -140,9 +144,40 @@ function areasKey(areas: readonly WorkspaceAreaContribution[]): string {
  * documents it names and closing the ones the previous workspace had.
  */
 export function setWorkspaceAreas(areas: readonly WorkspaceAreaContribution[]): void {
-  const changed = areasKey(areas) !== areasKey(_areas);
-  _areas = areas;
+  _declared = areas;
   scheduleOpenPass();
+  publishAreas();
+}
+
+/**
+ * AN AREA'S DOCUMENT CHANGED ITS JOB, and asks for the size that job needs — or, with `null`,
+ * for the workspace's declared ratio back. The model workspace's bottom area is the Timeline in
+ * Movie mode and the Game panel in Game mode (`@volter/editor-blender`): one document, two
+ * jobs, and Blender's measured Timeline strip (63 px of an 880-px column) shows the Game
+ * panel's play log as one clipped line.
+ *
+ * It is the same BOOTSTRAP the declared ratio is, applied the same way: under the frame a
+ * changed ratio stands the area up again (`volterDocuments.ts`), exactly as a workspace switch
+ * that puts a different document there does, and a person's drag on the sash is theirs until
+ * the next change of job. An id the active workspace does not declare is remembered and has no
+ * effect until one does.
+ */
+export function setWorkspaceAreaRatio(areaId: string, ratio: number | null): void {
+  if (ratio !== null && !(ratio > 0 && ratio < 1))
+    throw new Error(`An area's ratio is its share of the split, between 0 and 1; got ${ratio}.`);
+  if ((_ratios.get(areaId) ?? null) === ratio) return;
+  if (ratio === null) _ratios.delete(areaId);
+  else _ratios.set(areaId, ratio);
+  publishAreas();
+}
+
+function publishAreas(): void {
+  const next = _declared.map((area) => {
+    const ratio = _ratios.get(area.id);
+    return ratio === undefined || ratio === area.ratio ? area : { ...area, ratio };
+  });
+  const changed = areasKey(next) !== areasKey(_areas);
+  _areas = next;
   if (!changed) return;
   _version += 1;
   for (const listener of _listeners) listener();
