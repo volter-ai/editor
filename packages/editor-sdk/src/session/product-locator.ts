@@ -129,7 +129,7 @@ export interface ProductIdentity {
   readonly workbench: ProductWorkbench | null;
   /**
    * The ONE LINE that installs this product and starts a project in it —
-   * `volter.product.install` (`npx @volter/model-editor create my-game`). A limited view quotes
+   * `volter.product.install` (`npx @volter/cyclotron create my-game`). A limited view quotes
    * it wherever it cannot do what the local editor does (its chat answers with it, and every
    * route it does not carry names it), so it is a declaration read without running the product.
    * An undeclared one is `npx <name> create my-game`, which is what every product's `create`

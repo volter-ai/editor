@@ -89,8 +89,8 @@ export function retiredProjectError(product: Pick<UpgradingProduct, 'packageName
 const RENAMED_PRODUCT_FILES = ['.mcp.json', '.codex/config.toml', 'AGENTS.md', 'CLAUDE.md'] as const;
 
 /** `text` as a whole word — not part of a longer command, package or name it is the start or the
- *  end of (`volter-model-editor-x`, `Model Editors`). A path after it (`<package>/package.json`) or
- *  punctuation (`Model Editor's`) still ends the word. */
+ *  end of (`<command>-x`, a name's plural). A path after it (`<package>/package.json`) or
+ *  punctuation (a name's `'s`) still ends the word. */
 function wholeWord(text: string): RegExp {
   return new RegExp(`(?<![\\w-])${text.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')}(?![\\w-])`, 'g');
 }

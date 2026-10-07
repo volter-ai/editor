@@ -13,7 +13,7 @@
 
 const vscode = require('vscode');
 
-const FALLBACK = { displayName: 'the editor', install: 'npx @volter/model-editor create my-game' };
+const FALLBACK = { displayName: 'the editor', install: 'npx @volter/cyclotron create my-game' };
 
 async function readProduct(context) {
 	try {

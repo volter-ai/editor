@@ -59,9 +59,10 @@ try {
       if (values[key] !== undefined && verb !== owner && !(key === 'out' && verb === 'view')) throw new Error(`--${key} belongs to ${owner}.`);
   if (!values.help && !values.version && verb !== 'create' && verb !== 'upgrade') {
     // The project a verb acts on: the folder it names, or the one around the working directory —
-    // and for `open <path>`, the project that owns that path as well, wherever this runs from.
+    // and for `open <path>` and `view build <folder>`, the project that owns that path as well.
     refuseRetired(['edit', 'add-play', 'prepare'].includes(verb) && positionals.length > 1 ? folder : process.cwd());
     if (verb === 'open' && positionals[1] !== undefined) refuseRetired(positionals[1]);
+    if (verb === 'view' && positionals[2] !== undefined) refuseRetired(positionals[2]);
   }
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
@@ -73,7 +74,7 @@ try {
   } else if (verb === 'chat') {
     console.log(JSON.stringify(await chat(positionals.slice(1)), null, 2));
   } else if (verb === 'view') {
-    if (positionals[1] !== 'build' || positionals.length > 3) throw new Error(`Usage: volter-model-editor ${VIEW_BUILD_USAGE}`);
+    if (positionals[1] !== 'build' || positionals.length > 3) throw new Error(`Usage: cyclotron ${VIEW_BUILD_USAGE}`);
     await viewBuild(positionals[2] ?? '.', PRODUCT, {
       ...(values.out ? { out: values.out } : {}),
       ...(values.workbench ? { workbench: values.workbench } : {}),
