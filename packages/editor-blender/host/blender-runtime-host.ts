@@ -596,10 +596,17 @@ async function followMovedDocument(owner: BlenderRuntime): Promise<void> {
       return;
     }
     if (!stillShowingOld()) return;
-    if (!await host.workspace.open({ kind: 'document', id: entry.id }))
-      host.console.warn(`Blender now has ${move.document} open, but its Model document ${entry.id} did not open.`, 'blender-document');
+    if (!await host.workspace.open({ kind: 'document', id: entry.id })) {
+      keepShowing();
+      host.console.warn(`Blender now has ${move.document} open, but its Model document ${entry.id} did not open; the ${shownFrom} tab keeps showing Blender, which edits ${move.document}.`, 'blender-document');
+    }
   } catch (error) {
+    keepShowing();
     host.console.error(`The Model tab could not follow Blender to ${move.document}: ${error instanceof Error ? error.message : String(error)}`, 'blender-document');
+  }
+  /** A tab that could not move keeps working on the file Blender holds, as for an unlisted file. */
+  function keepShowing(): void {
+    if (stillShowingOld()) unlistedFollow = { owner, from: shownFrom, document: move!.document };
   }
 }
 
