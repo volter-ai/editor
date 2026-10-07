@@ -26,6 +26,21 @@ export interface DocumentPlayStage {
    *  recolour, keeping the document's own draw hooks; null for a material that is not the
    *  document's. Absent, a runner clones. */
   readonly ownMaterial?: (material: unknown) => unknown;
+  /** The copy's characters' clips, bound to `root` (the document's skins and actions), which the
+   *  runner advances on the game's clock. Absent, the document lends no animation and rigged
+   *  objects stand in their exported pose. */
+  readonly animation?: DocumentPlayAnimation;
+}
+/** A document's animation, lent to a runner. Objects are the runner's own (`root`'s descendants). */
+export interface DocumentPlayAnimation {
+  clips(object: unknown): readonly string[];
+  play(object: unknown, clip: string, options?: { loop?: boolean; fade?: number; speed?: number; restart?: boolean }):
+    { ok: true; armature: string } | { ok: false; why: string };
+  stop(object: unknown, fade?: number): void;
+  playing(object: unknown): string | null;
+  update(dt: number): void;
+  readonly warnings: readonly string[];
+  dispose(): void;
 }
 /**
  * A RUNNING GAME'S CLOCK, as the Play tool keeps it. The numbers are the ones the runner handed

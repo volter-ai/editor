@@ -4841,7 +4841,38 @@ def _summary_objects():
     return out
 
 
-def rna_action_clip(object_name=None, bake=True):
+def rna_armature_actions():
+    """EVERY ARMATURE AND THE ACTIONS THAT CAN PLAY ON IT -- what a game picks its clips from.
+
+    An action can play on an armature when it animates at least one of that armature's pose bones
+    (`pose.bones["<name>"]...` on a bone the armature has). Read off each action's F-Curves through
+    `_action_channelbag`, every channelbag, so an action assigned to nothing (a clip library: Idle,
+    Run, Attack beside each other in the file) is offered as well as the one each armature plays now.
+    READ ONLY."""
+    out = []
+    for arm in bpy.data.objects:
+        if arm.type != "ARMATURE" or arm.pose is None:
+            continue
+        bones = {pchan.name for pchan in arm.pose.bones}
+        current = arm.animation_data.action.name if (arm.animation_data and arm.animation_data.action) else None
+        names = []
+        for action in bpy.data.actions:
+            curves = []
+            legacy = getattr(action, "fcurves", None)
+            if legacy is not None:
+                curves = list(legacy)
+            else:
+                for layer in getattr(action, "layers", ()):
+                    for strip in getattr(layer, "strips", ()):
+                        for bag in (getattr(strip, "channelbags", None) or ()):
+                            curves.extend(bag.fcurves)
+            if any((m := _BONE_PATH.match(fc.data_path)) is not None and m.group(1) in bones for fc in curves):
+                names.append(action.name)
+        out.append({"armature": arm.name, "current": current, "actions": sorted(names)})
+    return {"armatures": out}
+
+
+def rna_action_clip(object_name=None, bake=True, action_name=None):
     """ONE ACTION AS A THREE.JS CLIP: per bone, the LOCAL transform it has at
     every integer frame of the action's own range.
 
@@ -4910,13 +4941,22 @@ def rna_action_clip(object_name=None, bake=True):
         # when the subject below turns out to be nothing at all.
         "summary": _summary_objects(),
     }
-    if arm_obj is None or arm_obj.animation_data is None or arm_obj.animation_data.action is None:
+    adt = arm_obj.animation_data if arm_obj is not None else None
+    assigned = adt.action if adt is not None else None
+    if arm_obj is None or (assigned is None and not action_name):
         header["reason"] = ("Nothing here carries an action: the Timeline draws the scene range "
                             "and an empty summary row, which is Blender's own empty state.")
         return header
-    adt = arm_obj.animation_data
-    action = adt.action
-    slot = getattr(adt, "action_slot", None)
+    action = assigned
+    slot = getattr(adt, "action_slot", None) if adt is not None else None
+    if action_name and (assigned is None or action_name != assigned.name):
+        # A NAMED ACTION, assigned or not (a game's clip library: Idle, Run, Attack side by side):
+        # baked against this armature WITHOUT assigning it, so the file is untouched. Its curves
+        # are its first channelbag's (no slot of this object chooses among them).
+        action = bpy.data.actions.get(action_name)
+        if action is None:
+            raise ValueError("The engine holds no action named %r" % (action_name,))
+        slot = None
     curves, shape = _action_channelbag(action, getattr(slot, "handle", None))
     header.update({
         "action": action.name,
@@ -5451,7 +5491,9 @@ def _dispatch(request):
     if op == "rig":
         return rna_rig(request.get("object"))
     if op == "action-clip":
-        return rna_action_clip(request.get("object"), request.get("bake", True))
+        return rna_action_clip(request.get("object"), request.get("bake", True), request.get("action"))
+    if op == "armature-actions":
+        return rna_armature_actions()
     if op == "outliner":
         return rna_outliner(request.get("selected"))
     if op == "outliner-set":

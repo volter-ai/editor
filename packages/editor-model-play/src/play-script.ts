@@ -86,6 +86,7 @@ import {
   takeModelPlayStep,
 } from './model-play';
 import { beginModelPlayLog } from './play-log';
+import type { DocumentPlayAnimation } from '@volter/editor-sdk/kit/document-play-extension';
 import { materialOverrides } from './play-materials';
 interface PlayComposition {
   readonly entries: readonly string[];
@@ -157,6 +158,29 @@ export interface ModelPlayContext {
    *     });
    */
   autoplay(bot: ModelPlayAutoplayController | Readonly<Record<string, ModelPlayAutoplayController>> | null): void;
+  /**
+   * Set the action an object's armature plays, as Blender's `animation_data.action` does: any
+   * action in the file that animates that armature's bones, by name. `object` is the armature, its
+   * skinned mesh, or an object above or below them, or its name. Each armature starts a run playing
+   * the action the file assigns it. Setting another crossfades over `fade` seconds (0.2), loops
+   * unless `loop: false` (which holds the last frame), and plays at `speed`; setting the action
+   * already playing does nothing, so a script may set it every update from the character's state.
+   * `null` fades it out. Actions run on the game's clock. Each change is an `action` entry in the
+   * play log; a name the armature lacks is `action-unknown` once and returns false.
+   *
+   *     play.setAction('Hero', moving ? 'Run' : 'Idle');
+   */
+  setAction(object: THREE.Object3D | string, action: string | null, options?: ModelPlayActionOptions): boolean;
+  /** The actions an object's armature can play, by name (empty without an armature). */
+  actions(object: THREE.Object3D | string): readonly string[];
+}
+
+export interface ModelPlayActionOptions {
+  readonly loop?: boolean;
+  readonly fade?: number;
+  readonly speed?: number;
+  /** Start again from the first frame when this clip is already playing. */
+  readonly restart?: boolean;
 }
 
 /** What the bot is handed before each `update` it drives. */
@@ -290,8 +314,11 @@ export function runPlayScript(options: {
   readonly ready: () => void;
   readonly returning: () => void;
   readonly ownMaterial?: ((material: THREE.Material) => THREE.Material | null) | undefined;
+  /** The document's skins and clips bound to `root`; absent, characters stand in their exported pose. */
+  readonly animation?: DocumentPlayAnimation | undefined;
 }): () => void {
   const { blend, root, camera, onFrame } = options;
+  const options_ = options;
   const modulePath = playScriptPath(blend);
   // A fresh copy is a fresh run: its log starts empty, its clock at zero. Writes go through
   // this run's handle, which is inert once the run has ended.
@@ -384,6 +411,32 @@ export function runPlayScript(options: {
     autoplay(bot) {
       const behaviors = botBehaviors(bot);
       if (alive.value) alive.bot = behaviors;
+    },
+    setAction(object, action, options) {
+      if (!alive.value) return false;
+      const name = typeof object === 'string' ? object : object.name;
+      const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
+      const unknown = (why: string): false => {
+        const key = `${name}\u0000${action}`;
+        if (!alive.unknown.has(key)) { alive.unknown.add(key); run.append('play', 'action-unknown', { object: name, action, why }); }
+        return false;
+      };
+      if (!target) return unknown('the model has no such object');
+      if (!options_.animation) return unknown('this document lends no animation');
+      const before = options_.animation.playing(target);
+      if (action === null) {
+        options_.animation.stop(target, options?.fade);
+        if (before !== null) run.append('play', 'action', { object: target.name, action: null, from: before });
+        return true;
+      }
+      const answer = options_.animation.play(target, action, options);
+      if (!answer.ok) return unknown(answer.why);
+      if (before !== action || options?.restart) run.append('play', 'action', { armature: answer.armature, action, from: before });
+      return true;
+    },
+    actions(object) {
+      const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;
+      return target && options_.animation ? options_.animation.clips(target) : [];
     },
   });
   const scripts = new WeakMap<ModelPlayGame, Script>();
@@ -566,6 +619,8 @@ export function runPlayScript(options: {
     // A paused frame that runs an update is a Step; its entry carries the step's own tick.
     const stepping = modelPlayClock(options.documentId).paused;
     const tick = (dt: number): void => {
+      // The characters' clips move on the game's clock, one update's `dt` at a time.
+      options.animation?.update(dt);
       run.advance(dt);
       ran += 1;
       simulated += dt;

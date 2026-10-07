@@ -423,13 +423,20 @@ export class BlenderRuntime {
    *  false` answers the header and the summary row's key columns without the
    *  sampled tracks, which is what a Timeline that only needs to DRAW asks
    *  for. */
-  async actionClip(options?: { object?: string; bake?: boolean }): Promise<BlenderActionClip> {
+  async actionClip(options?: { object?: string; bake?: boolean; action?: string }): Promise<BlenderActionClip> {
     await this.#ready();
     return (await this.#request({
       op: 'action-clip',
       ...(options?.object === undefined ? {} : { object: options.object }),
       ...(options?.bake === undefined ? {} : { bake: options.bake }),
+      ...(options?.action === undefined ? {} : { action: options.action }),
     })) as BlenderActionClip;
+  }
+
+  /** Every armature and the actions that can play on it, assigned or not (a game's clip library). */
+  async armatureActions(): Promise<{ armatures: { armature: string; current: string | null; actions: string[] }[] }> {
+    await this.#ready();
+    return (await this.#request({ op: 'armature-actions' })) as { armatures: { armature: string; current: string | null; actions: string[] }[] };
   }
 
   /** Write ONE restriction column (the eye, the render camera, a collection's

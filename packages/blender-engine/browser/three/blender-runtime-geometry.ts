@@ -277,7 +277,7 @@ export function graphAttributeName(name: string): string {
 }
 
 export function geometryFromDrawArrays(
-  arrays: Omit<DrawArrays, 'hash' | 'sourceVertex'> & { sourceVertex?: Uint32Array },
+  arrays: Omit<DrawArrays, 'hash' | 'sourceVertex'> & { sourceVertex?: Uint32Array | undefined },
 ): THREE.BufferGeometry {
   const geometry = new THREE.BufferGeometry();
   geometry.setAttribute('position', new THREE.BufferAttribute(arrays.positions, 3));

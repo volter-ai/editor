@@ -340,6 +340,18 @@ For a behavior-only repair, preserve the established appearance.
   captures using the visible editor document. Fix observed problems, play again
   and report what was actually observed.
 
+## Animation
+
+- Characters and creatures that move are animated, as in Blender: an armature,
+  and its motions as named actions in the `.blend`. The action an object has
+  assigned (`animation_data.action`) is the one it plays.
+- Look in the asset library for rigged and animated assets before authoring
+  your own: `GET <editor>/__editor/asset-library/search?source=local&type=model&q=<words>`
+  at the editor's address, then import the result through Blender.
+- In a play script, `play.setAction(object, name)` sets the action an object
+  plays, crossfading from the last; `play.actions(object)` lists them. Check
+  the result in captures.
+
 ## React UI
 
 - Build HUDs, menus and screens as React components in `src/ui/`. A game's

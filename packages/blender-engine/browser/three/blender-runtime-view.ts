@@ -147,6 +147,8 @@ const drawArraysSchema = z
         })
         .strict(),
     ),
+    /** The draw's vertex map (`DrawArrays.sourceVertex`), kept by a copy that plays (skins bind over it). */
+    sourceVertex: z.instanceof(Uint32Array).optional(),
     hash: z.string(),
   })
   .strict();
@@ -2248,7 +2250,7 @@ export class BlenderRuntimeView {
   /** Everything this view holds, as ONE self-contained frame another view can be built from:
    *  every mesh's resident geometry and every resident image, with no reference to what a
    *  receiver already holds. */
-  private fullFrame(): Frame {
+  private fullFrame(options: { sourceVertices?: boolean } = {}): Frame {
     const source = this.frame;
     if (!source) throw new Error('Blender capture requires a presented frame');
     // Inspection overlays are not render content. In particular weight-paint
@@ -2290,6 +2292,12 @@ export class BlenderRuntimeView {
           count: group.count,
           materialIndex: group.materialIndex ?? 0,
         })),
+        // A COPY THAT PLAYS keeps the draw's vertex map: Play binds skins over it (a Blender
+        // vertex's weights expand onto its drawn vertices through it), where a render snapshot
+        // needs none.
+        ...(options.sourceVertices && geometry.getAttribute('blenderVertex')
+          ? { sourceVertex: new Uint32Array((geometry.getAttribute('blenderVertex') as THREE.BufferAttribute).array) }
+          : {}),
       };
     }
     for (const [id, { signature }] of this.volumes)
@@ -2368,7 +2376,7 @@ export class BlenderRuntimeView {
    */
   detach(): { readonly view: BlenderRuntimeView; dispose(): void } {
     const detached = new BlenderRuntimeView();
-    if (this.frame) detached.applyFrame(this.fullFrame());
+    if (this.frame) detached.applyFrame(this.fullFrame({ sourceVertices: true }));
     let disposed = false;
     return {
       view: detached,

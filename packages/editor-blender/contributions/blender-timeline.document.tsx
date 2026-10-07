@@ -38,7 +38,6 @@
  * you are looking.
  */
 
-import { blenderModelView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { StageTransportHandle } from '@volter/editor-sdk/host';
 import { registerViewVerbs } from '@volter/editor-sdk/views';
 import {
@@ -51,8 +50,6 @@ import {
   useSyncExternalStore,
 } from 'react';
 import {
-  blenderActionClip,
-  blenderRig,
   blenderRnaVersion,
   subscribeBlenderRna,
 } from '../host/blender-runtime-host';
@@ -392,7 +389,7 @@ function BlenderTimeline() {
   // THE FRESHNESS IS THE RNA DOOR'S (ruling 3, 2026-09-19): every write and
   // every presented frame bumps it, which is exactly when a rig or an action
   // can have moved.
-  const rnaVersion = useSyncExternalStore(
+  useSyncExternalStore(
     subscribeBlenderRna,
     blenderRnaVersion,
     blenderRnaVersion,
@@ -404,30 +401,9 @@ function BlenderTimeline() {
   const { transform, size, refusal, onlySelected } = timelineViewState();
   const play = blenderSkin.state();
 
-  // THE BIND LIVES WITH THE TIMELINE, not with every present, and that is a
-  // cost decision stated rather than implied: `rna_rig` walks every vertex of
-  // every rigged mesh and `rna_action_clip` bakes every bone per frame, so
-  // paying for both on each of a session's hundreds of `blender-execute`
-  // presents would be a round trip nobody asked for. A project with no
-  // Timeline open therefore presents exactly as it did before this unit, with
-  // ordinary `THREE.Mesh`es.
-  useEffect(() => {
-    let live = true;
-    void blenderSkin
-      .bind(blenderModelView, {
-        rig: () => blenderRig(),
-        clip: () => blenderActionClip(),
-      })
-      .catch((thrown: unknown) => {
-        if (!live) return;
-        refuseTimelineGesture(
-          `The Timeline could not read this file's rig: ${thrown instanceof Error ? thrown.message : String(thrown)}`,
-        );
-      });
-    return () => {
-      live = false;
-    };
-  }, [rnaVersion]);
+  // The skins and the assigned action are the presented model's (`blender-runtime.document.tsx`
+  // binds them whatever is on screen, as Blender's viewport evaluates whatever editor is open);
+  // the Timeline only shows and drives their clock.
 
   useEffect(() => {
     const element = canvas.current;

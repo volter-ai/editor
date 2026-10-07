@@ -677,9 +677,17 @@ export async function blenderRig(options?: { object?: string }): Promise<Blender
 export async function blenderActionClip(options?: {
   object?: string;
   bake?: boolean;
+  /** A named action baked against `object`'s armature, assigned or not. */
+  action?: string;
 }): Promise<BlenderActionClip | null> {
   if (!blenderSessionStarted()) return null;
   return blenderRuntime().actionClip(options);
+}
+
+/** Every armature and the actions that can play on it, for Play's clip library. Never starts the engine. */
+export async function blenderArmatureActions(): Promise<{ armatures: { armature: string; current: string | null; actions: string[] }[] } | null> {
+  if (!blenderSessionStarted()) return null;
+  return blenderRuntime().armatureActions();
 }
 
 export async function blenderOutlinerSet(

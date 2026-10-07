@@ -806,7 +806,10 @@ async function handle(request: WorkerRequest): Promise<unknown> {
         op: 'action-clip',
         ...(request.object === undefined ? {} : { object: request.object }),
         ...(request.bake === undefined ? {} : { bake: request.bake }),
+        ...(request.action === undefined ? {} : { action: request.action }),
       });
+    case 'armature-actions':
+      return ask({ op: 'armature-actions' });
     case 'outliner-set':
       return ask({
         op: 'outliner-set',
