@@ -45,7 +45,7 @@ import {
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { effectiveChat } from './harness-effective';
 import { ChatSessionCatalog } from './chat-session-catalog';
-import { chatExecutable, chatProcessEnvironment, chatSetupActions } from './chat-setup';
+import { CHAT_SETUP_PROVIDERS, chatExecutable, chatProcessEnvironment, chatSetupActions, chatSetupAgents } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
 import type { HarnessChatCallerSession } from './harness-chat-caller';
 
@@ -952,6 +952,10 @@ export class HarnessChatService {
   private readonly chatCatalog: ChatSessionCatalog;
   private readonly frontendControls = new FrontendControls(() => this.chatControlState(true), (selection) => this.selectChat(selection), id => this.openChat(id), (id, nativeId) => this.bindChatIdentity(id, nativeId), (kind, harness) => this.prepareChatSetup(kind, harness));
   private setupHarness: string | null = null;
+  /** An install or sign-in started from Chat and not yet seen in the inventory: while it runs, /state re-probes
+   *  the inventory even with a conversation handed off, so the flow sees the agent arrive. Not the handoff target
+   *  (`setupHarness`, sign-ins only). */
+  private setupProbe: { kind: string; harness: string } | null = null;
   private setupRefresh: Promise<void> | null = null;
   private chatProcess: { workspace: string; context: Promise<ChatProcessContext>; failed: boolean } | null = null;
   private controllerProcess: ChatProcessContext | null = null;
@@ -1361,7 +1365,7 @@ export class HarnessChatService {
     await this.ensureController(false);
     // A refused startup is recoverable after a terminal install/sign-in. Serialize
     // passive inventory refresh and handoff retries across extension-host callers.
-    if ((!this.frontendHandoffValue || this.setupHarness) && this.controller && !this.selectingChat) {
+    if ((!this.frontendHandoffValue || this.setupHarness || this.setupProbe) && this.controller && !this.selectingChat) {
       this.setupRefresh ??= this.refreshChatSetup().finally(() => { this.setupRefresh = null; });
       await this.setupRefresh;
     }
@@ -1397,6 +1401,8 @@ export class HarnessChatService {
       setup: {
         ready: Boolean(this.frontendHandoffValue),
         actions,
+        // Per agent: installed, signed in, account (docs/CHAT-WELCOME.md). The welcome renders its rows from these.
+        agents: chatSetupAgents(snapshot.harnesses),
         reason: this.frontendHandoffValue ? null : [this.frontendRefusalValue, actions.length ? null : launchContext.installError].filter(Boolean).join('\n') || null,
         cwd: this.options.getProjectRoot(),
       },
@@ -1409,6 +1415,10 @@ export class HarnessChatService {
     await controller.dispatch({ type: 'refresh', autoObserve: false, silent: true });
     this.capture();
     if (this.closed || controller !== this.controller) return;
+    // The operation is over once the inventory shows its result: an install the agent installed, a sign-in the
+    // agent able to start.
+    const probed = this.setupProbe && this.lastSnapshot.harnesses.find(h => h.id === this.setupProbe!.harness);
+    if (probed && (this.setupProbe!.kind === 'install' ? probed.installed : probed.availableActions.autoStart === true)) this.setupProbe = null;
     if (this.frontendHandoffValue) {
       // A sign-in from the picker refreshes availability without replacing the
       // conversation underneath the person. New Session applies their next choice.
@@ -1430,12 +1440,15 @@ export class HarnessChatService {
     if (!action) throw new Error('This setup action is no longer available.');
     const program = kind === 'login' ? launchContext.supercode : launchContext.npm;
     if (!program) throw new Error('The setup executable is no longer available.');
-    this.setupHarness = harness;
+    // Only a sign-in names the agent the chat hands off to: an install that is cancelled or
+    // fails must not keep another agent, signed in elsewhere, from opening the chat by itself.
+    if (kind === 'login') this.setupHarness = harness;
+    this.setupProbe = { kind, harness };
     // The extension runs this exact, host-authored command in a visible terminal.
     // It never executes arbitrary repair prose or receives provider credentials.
     const invocation = kind === 'login'
       ? supercodeInvocation(program, ['harness', 'login', harness])
-      : { command: program, args: ['install', '-g', '--prefix', launchContext.npmPrefix!, '@openai/codex'] };
+      : { command: program, args: [...(launchContext.npmArgs ?? []), 'install', '-g', '--prefix', launchContext.npmPrefix!, CHAT_SETUP_PROVIDERS[harness]!.npmPackage] };
     return { ...action, cwd: this.options.getProjectRoot(),
       program: invocation.command,
       arguments: invocation.args,

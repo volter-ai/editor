@@ -1,0 +1,24 @@
+/* THE CHAT WELCOME WHILE NO AGENT IS READY (volterChatWelcome.ts, docs/CHAT-WELCOME.md).
+   Spacing and type only; every color is a workbench theme token, so it follows the theme. */
+.chat-welcome-view .volter-chat-setup { width: 100%; max-width: 296px; text-align: center; }
+.chat-welcome-view .volter-chat-setup-title { font-size: 16px; font-weight: 600; line-height: 24px; color: var(--vscode-foreground); }
+.chat-welcome-view .volter-chat-setup-subtitle { margin-top: 4px; line-height: 20px; color: var(--vscode-descriptionForeground); }
+.chat-welcome-view .volter-chat-setup-row { margin-top: 24px; }
+/* Upstream sizes a welcome button to its label (chatViewWelcome.css); these are full-width choices. */
+.chat-welcome-view .volter-chat-setup-row .monaco-button { display: flex; width: 100%; }
+/* One slot under each button: the caption, Cancel or the error, at one height so nothing below moves. */
+.chat-welcome-view .volter-chat-setup-status { margin-top: 8px; min-height: 16px; display: flex; align-items: center; justify-content: center; gap: 4px; font-size: 12px; line-height: 16px; color: var(--vscode-descriptionForeground); }
+.chat-welcome-view .volter-chat-setup-status.error .codicon { color: var(--vscode-errorForeground); }
+.chat-welcome-view .volter-chat-setup-cancel { color: var(--vscode-textLink-foreground); cursor: pointer; }
+.chat-welcome-view .volter-chat-setup-cancel:hover { color: var(--vscode-textLink-activeForeground); text-decoration: underline; }
+.chat-welcome-view .volter-chat-setup-cancel:focus-visible { outline: 1px solid var(--vscode-focusBorder); outline-offset: 1px; }
+.chat-welcome-view .volter-chat-setup-footnote { margin-top: 32px; font-size: 12px; line-height: 16px; color: var(--vscode-descriptionForeground); }
+
+/* After an explicit sign-in: one muted line at the top of the empty chat (the welcome
+   container is the positioned ancestor), gone with the welcome once the chat has a request. */
+.chat-welcome-view .volter-chat-signed-in { position: absolute; top: 0; left: 0; right: 0; display: flex; align-items: center; gap: 6px; padding: 8px 20px; font-size: 12px; line-height: 16px; color: var(--vscode-descriptionForeground); }
+
+/* While no agent is ready the composer stays in place, not enabled for input. */
+.interactive-session .chat-input-container.volter-chat-setup-disabled { cursor: not-allowed; }
+.interactive-session .chat-input-container.volter-chat-setup-disabled .monaco-editor .view-lines { cursor: not-allowed; }
+.interactive-session .chat-input-container.volter-chat-setup-disabled .chat-input-toolbars { opacity: 0.4; pointer-events: none; }
