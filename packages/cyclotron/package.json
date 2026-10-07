@@ -55,16 +55,16 @@
       "upgrade": true,
       "workbench": {
         "darwin-arm64": {
-          "release": "model-editor-f16dc165c0df-265ec54a5aaa-darwin-arm64",
-          "tarballSha256": "1dee8d56404844f45b4c4ee629b9957e7f36a25093bcf03bff666455da9087ef"
+          "release": "cyclotron-f16dc165c0df-336473f30026-darwin-arm64",
+          "tarballSha256": "e7cbbbcd353057db1a0490888a3b300b3020d97f9fd8b4bb4aa7d6bfe9e36319"
         },
         "linux-x64": {
-          "release": "model-editor-f16dc165c0df-265ec54a5aaa-linux-x64",
-          "tarballSha256": "132689868bf5e681b317efc65b2ff060d8c1fbe807dd6b4290e352461e52f33c"
+          "release": "cyclotron-f16dc165c0df-336473f30026-linux-x64",
+          "tarballSha256": "54759a22c26ce8f6dfd0a155bbf0ee86013ca2d8b5f3648713d1cc1e313b6afc"
         },
         "win32-x64": {
-          "release": "model-editor-f16dc165c0df-265ec54a5aaa-win32-x64",
-          "tarballSha256": "aba673812e515538b3d51f6e284081b259c1279fe156b2c5af084607a761f1ea"
+          "release": "cyclotron-f16dc165c0df-336473f30026-win32-x64",
+          "tarballSha256": "28e2995d1a28490be99064cce9898a98e95ff2f053279cf694e9df1f9393fa1a"
         }
       }
     }
