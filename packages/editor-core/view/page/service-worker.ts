@@ -99,7 +99,7 @@ function recorded(): Promise<LimitedViewRoutes> {
  * set of pages that said they are ready ({@link pages}) can be empty while pages are open. The
  * answer is, in order:
  *
- *  1. the requester itself, when it is a TAB of this view (a top-level window client);
+ *  1. the requester itself, when it is a TAB of this view (any window client but a nested iframe, so a view opened with an opener counts too);
  *  2. otherwise (a worker, the extension host's iframe) a tab that holds the project — asking the
  *     open tabs to say so again when none is known — preferring the focused one, then a visible
  *     one, then the one that announced last.
