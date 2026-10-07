@@ -38,7 +38,7 @@ export async function chat(args: string[]): Promise<unknown> {
     return { stopRequested: true, sessionId: connection?.sessionId };
   }
   await editor.command('workbench.action.chat.open', { query: prompt, isPartialQuery: false, preserveInput: true });
-  // Native Chat submits asynchronously. This receipt means dispatch, not a
-  // completed model edit; the transcript and chat status report the outcome.
-  return { dispatched: true };
+  // The native command does not await acceptInput. Its return cannot confirm a turn:
+  // acceptInput can refuse a read-only composer or pending model selection.
+  return { submissionRequested: true, submissionConfirmed: false };
 }
