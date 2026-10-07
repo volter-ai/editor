@@ -20,9 +20,9 @@ import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-comm
 import { ViewportOverlaysMenu } from '@volter/editor-sdk/kit/components/ViewportOverlaysMenu';
 import {
   setViewGridVisible,
-  subscribeViewportPresentation,
+  subscribeViewportPresentationSnapshot,
   viewGridVisible,
-  viewportPresentationVersion,
+  viewportPresentationSnapshotVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { ViewportShadingMenu } from './ViewportShadingMenu';
 import type { ViewportShadingMode } from '@volter/editor-threejs/render/viewport-shading';
@@ -57,7 +57,7 @@ export function ViewportOverlay({
   const { adapter } = resolvePanelAuthoring(store.shell);
   const session = object3DDocumentSession(documentId);
   useSyncExternalStore(session?.subscribe ?? NO_SESSION_SUBSCRIBE, session?.getSnapshot ?? ZERO);
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion);
   const grid = viewGridVisible(documentId);
   // THE VIEW'S NAME ON THE BAR (the look's `stage.chrome.viewName` `bar`, Unreal's
   // "Perspective" pill) leads these controls and opens the view menu; wherever the name opens

@@ -15,9 +15,9 @@ import {
   workspaceDocumentRegistryVersion,
 } from '@volter/editor-sdk/kit/workspace-document-registry';
 import {
-  subscribeViewportPresentation,
+  subscribeViewportPresentationSnapshot,
   viewPresentation,
-  viewportPresentationVersion,
+  viewportPresentationSnapshotVersion,
 } from '@volter/editor-sdk/kit/viewport-presentation';
 import { CameraInfo } from './CameraInfo';
 import { StatsOverlay } from './StatsOverlay';
@@ -74,7 +74,7 @@ export function StageOverlaySet({
   const showsSelectionTools = threeSelectionToolsApply(ctx);
   // The camera readout is the editor's own; a view whose target draws none leaves it off
   // (`overlays.cameraReadout`).
-  useSyncExternalStore(subscribeViewportPresentation, viewportPresentationVersion, viewportPresentationVersion);
+  useSyncExternalStore(subscribeViewportPresentationSnapshot, viewportPresentationSnapshotVersion, viewportPresentationSnapshotVersion);
   const cameraReadout = viewPresentation(documentId).overlays.cameraReadout;
   return (
     <>

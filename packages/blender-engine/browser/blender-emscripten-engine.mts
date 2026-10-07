@@ -48,6 +48,7 @@ import sessionPython from './session.py?raw';
 /** What the module factory is, in the only shape this file uses. */
 interface BlenderModule {
   FS: StreamFileSystem & {
+    read(stream: { fd: number }, buffer: Uint8Array, offset: number, length: number, position: number): number;
     readFile(path: string): Uint8Array;
     writeFile(path: string, data: string | Uint8Array): void;
     mkdirTree(path: string): void;
@@ -116,6 +117,23 @@ function moduleFiles(module: BlenderModule): BlenderFiles {
   const FS = module.FS;
   return {
     readFile: async (path) => FS.readFile(path),
+    readFileRange: async (path, offset, length) => {
+      if (!Number.isSafeInteger(offset) || offset < 0 || !Number.isSafeInteger(length) || length < 0 || length > 4 * 1024 * 1024)
+        throw new Error(`${path}: invalid document read range`);
+      const stream = FS.open(path, 'r');
+      try {
+        const bytes = new Uint8Array(length);
+        let filled = 0;
+        while (filled < length) {
+          // WasmFS's bridge allocates a temporary Wasm buffer for each read.
+          const amount = Math.min(1024 * 1024, length - filled);
+          const read = FS.read(stream, bytes, filled, amount, offset + filled);
+          if (read <= 0 || read > amount) throw new Error(`${path}: document read was incomplete`);
+          filled += read;
+        }
+        return bytes;
+      } finally { FS.close(stream); }
+    },
     // Not `async`: a write that throws throws here, so `request` never starts `.done` after a failed `.json`.
     writeFile: (path, data) => { FS.writeFile(path, data); return Promise.resolve(); },
     writeFileStream: (path, body, size) => writeStreamedFile(FS, path, body, size),

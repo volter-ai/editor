@@ -160,6 +160,7 @@ export function workerCallTabMetrics(
       callsOver30s: calls.callsOver30s,
       lastCallLongestTaskMs: duringCall === null ? null : Math.round(duringCall),
       wasmMemoryMB: calls.wasmMemoryMB,
+      ...(calls.workerHeldMB === undefined ? {} : {workerHeldMB: calls.workerHeldMB}),
     };
   }
   return out;

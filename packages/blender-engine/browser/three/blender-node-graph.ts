@@ -129,11 +129,6 @@ export interface CompiledGraph {
   /** Declarations: the prelude, the library files in dependency order, the
    *  uniforms, the graph function. Goes before `main`. */
   readonly declarations: string;
-  /** Shared library and graph-local declarations, kept separately so an
-   * ordered material palette can namespace graph inputs without copying the
-   * coordinate/library globals. Their join is exactly `declarations`. */
-  readonly library: string;
-  readonly program: string;
   /** Uniform name to value; refreshed on every frame without recompiling. */
   readonly uniforms: ReadonlyMap<string, number | readonly number[]>;
   readonly images: readonly GraphImage[];
@@ -951,12 +946,10 @@ class Compiler {
     };
     for (const file of this.s.files) visit(file);
     const graphBody = `void blenderGraph() {\n  blender_init_globals();\n  ${[...this.lines, ...assignments].join('\n  ')}\n}`;
-    const library = [
+    const declarations = [
       BLENDER_NODE_GLSL_PRELUDE,
       shakeLibrary(EEVEE_GLOBALS + ordered.map(f => BLENDER_NODE_GLSL[f]!.code).join('\n') + '\n' + COORDINATES,
         [...this.s.functions, graphBody].join('\n')),
-    ].join('\n');
-    const program = [
       ...(Object.values(this.graph.nodes).some(n=>n.type==='ShaderNodeObjectInfo')
         ? ['uniform vec4 blenderObjectColor;', 'uniform vec2 blenderObjectIndexRandom;'] : []),
       ...[...this.s.uniformTypes].map(([n, t]) => `uniform ${t} ${n};`),
@@ -971,9 +964,7 @@ class Compiler {
     ].join('\n');
     return {
       key: JSON.stringify([this.graph.surface, this.s.structure, [...this.s.uvs].sort()]),
-      declarations: `${library}\n${program}`,
-      library,
-      program,
+      declarations,
       uniforms: this.uniforms,
       images: this.images,
       ramps: this.ramps,

@@ -748,6 +748,7 @@ interface RuntimeView {
   applyFrame(frame: unknown): unknown;
   snapshot(): ReturnType<BlenderRuntimeView['snapshot']>;
   drawStatistics(): ReturnType<BlenderRuntimeView['drawStatistics']>;
+  retainedGeometry(): ReturnType<BlenderRuntimeView['retainedGeometry']>;
   setDrawBatching(enabled: boolean): void;
   /** Own a detached revision for render lighting, never the interactive view. */
   captureSnapshot(): ReturnType<BlenderRuntimeView['captureSnapshot']>;
@@ -1188,6 +1189,42 @@ async function sessionDocumentPath(session: {
   return { document: filepath.slice(root.length) };
 }
 
+/**
+ * THE BROWSER'S OWN MEMORY MEASUREMENT of this tab's realms: the page, its frames and its
+ * workers, each with the bytes the browser attributes to it (JavaScript heaps, the buffers behind
+ * typed arrays, a worker's Wasm memory). It answers what `performance.memory` cannot: whose the
+ * memory outside the page's JS heap is. Chromium answers it only in a cross-origin-isolated page,
+ * and only at a garbage collection it schedules, so the read is bounded; null where the browser
+ * offers none or did not answer in time.
+ */
+async function userAgentMemory(): Promise<{
+  readonly bytes: number;
+  readonly realms: readonly { readonly bytes: number; readonly scope: string; readonly url: string; readonly types: readonly string[] }[];
+} | null> {
+  type Measurement = {
+    bytes: number;
+    breakdown: { bytes: number; types: string[]; attribution: { url: string; scope: string }[] }[];
+  };
+  const measure = (performance as unknown as { measureUserAgentSpecificMemory?: () => Promise<Measurement> })
+    .measureUserAgentSpecificMemory;
+  if (typeof measure !== 'function' || !globalThis.crossOriginIsolated) return null;
+  const measured = await Promise.race([
+    measure.call(performance).catch(() => null),
+    new Promise<null>((resolve) => setTimeout(() => resolve(null), 30_000)),
+  ]);
+  if (!measured) return null;
+  const realms = measured.breakdown
+    .filter((entry) => entry.bytes > 0)
+    .map((entry) => ({
+      bytes: entry.bytes,
+      scope: entry.attribution.map((one) => one.scope).join('+') || 'shared',
+      url: entry.attribution.map((one) => one.url.replace(/[?#].*$/, '')).join(' + '),
+      types: entry.types,
+    }))
+    .sort((a, b) => b.bytes - a.bytes);
+  return { bytes: measured.bytes, realms };
+}
+
 export async function handleBlenderCommand(cmd: {
   type: string;
   [key: string]: unknown;
@@ -1211,6 +1248,17 @@ export async function handleBlenderCommand(cmd: {
         started: runtime?.project != null,
         document: host.documents.context(presentationDocumentId()) !== undefined,
         instancing: runtime?.project != null ? (await runtimeView()).drawStatistics() : null,
+        // `memory: true` asks for the tab's memory by category as well: the geometry the view
+        // keeps (`retainedGeometry`) and the browser's own per-realm measurement. Opt-in,
+        // because the browser answers that measurement at its next garbage collection.
+        ...(cmd['memory'] === true
+          ? {
+              memory: {
+                geometry: runtime?.project != null ? (await runtimeView()).retainedGeometry() : null,
+                userAgent: await userAgentMemory(),
+              },
+            }
+          : {}),
         lastOutput: runtime?.lastOutput ?? [],
       },
     };

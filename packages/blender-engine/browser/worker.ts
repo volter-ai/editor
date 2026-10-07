@@ -1,5 +1,5 @@
 import { PullJob, checkpointStream } from './pull-job.mts';
-import { sendFrameValue } from './frame-stream.mts';
+import { releaseFrameBuffers, sendFrameValue } from './frame-stream.mts';
 import { describeThrown } from './describe-thrown.mts';
 export { describeThrown } from './describe-thrown.mts';
 /**
@@ -43,7 +43,7 @@ export { describeThrown } from './describe-thrown.mts';
 
 import { startupOperation, type BlenderEngine, type BlenderFiles, startBlenderEngine } from './blender-engine.mts';
 import type { CaptureRequest, FileEntry, WorkerReply, WorkerRequest } from './protocol';
-import { documentChunks } from './document-chunks.mts';
+import { documentChunks, documentChunksFromFile } from './document-chunks.mts';
 import { columnsToTypedArrays, describeFrame, isColumnDescriptor } from './session-frame.mts';
 
 const post = (reply: WorkerReply) => (self as unknown as Worker).postMessage(reply);
@@ -124,6 +124,45 @@ interface PendingFrame {
 }
 let pending: PendingFrame | null = null;
 
+/**
+ * WHAT THIS WORKER HOLDS OF A FRAME, in bytes: the held frame's own columns (`pending.columns`),
+ * any bytes still kept for its pulled pieces, and the copies in flight to the tab (made off the
+ * engine arena, not yet released). The browser's per-realm measurement attributes this worker's
+ * JavaScript memory as one number (786 MiB live mid-transfer on the Stoneguard bridge,
+ * t_2def0a16); this is the ledger that names which of these holds it. Posted beside the engine's
+ * memory after every call (`reportMemory`) and logged as `@@VOLTER-HELD` as a frame arrives.
+ */
+let inFlightBytes = 0;
+let piecesSinceLedger = 0;
+function bufferBytes(value: unknown): number {
+  const seen = new Set<ArrayBufferLike>();
+  const visited = new Set<unknown>();
+  let total = 0;
+  const walk = (item: unknown): void => {
+    if (item === null || typeof item !== 'object' || visited.has(item)) return;
+    visited.add(item);
+    if (ArrayBuffer.isView(item)) {
+      if (!seen.has(item.buffer)) { seen.add(item.buffer); total += item.buffer.byteLength; }
+      return;
+    }
+    for (const held of item instanceof Map ? item.values() : Array.isArray(item) ? item : Object.values(item)) walk(held);
+  };
+  walk(value);
+  return total;
+}
+function heldLedger(): { hold: number; pieces: number; inFlight: number; meshes: number; images: number } {
+  const hold = pending ? bufferBytes([...pending.columns.values()].map((c) => c.typed)) : 0;
+  const pieces = pending
+    ? bufferBytes([...pending.meshes.values(), ...pending.images.values()].map((c) => c.typed))
+    : 0;
+  return { hold, pieces, inFlight: inFlightBytes, meshes: pending?.meshes.size ?? 0, images: pending?.images.size ?? 0 };
+}
+function logLedger(at: string): void {
+  const l = heldLedger();
+  const mib = (b: number) => Math.round(b / 1048576);
+  log('log', `@@VOLTER-HELD ${at} hold=${mib(l.hold)}MiB pieces=${mib(l.pieces)}MiB inFlight=${mib(l.inFlight)}MiB meshes=${l.meshes} images=${l.images}`);
+}
+
 /** Every column the held frame names, copied now and keyed by its offset (unique in its arena). */
 async function copyColumns(arena: Uint8Array, frame: unknown): Promise<Map<number, Copied>> {
   const columns = new Map<number, Copied>();
@@ -191,10 +230,15 @@ async function saveDocument(): Promise<void> {
   // edit's cost, and where it goes differs by host (a tab-served project runs the server here).
   const ms: Record<string, number> = {};
   let mark = performance.now();
+  // And the engine's linear memory after each phase, in MiB: what the write and the read-back
+  // cost the module, beside what they cost in time.
+  const heapMiB: Record<string, number> = {};
   const lap = (phase: string) => {
     const now = performance.now();
     ms[phase] = Math.round(now - mark);
     mark = now;
+    const bytes = engine?.memoryBytes();
+    if (typeof bytes === 'number') heapMiB[phase] = Math.round(bytes / 1048576);
   };
   let answer: { saved?: boolean; path?: string; size?: number };
   try {
@@ -207,9 +251,23 @@ async function saveDocument(): Promise<void> {
   }
   if (!answer?.saved || typeof answer.path !== 'string')
     throw new Error(`Blender did not save the document ${relative}`);
-  let bytes: Uint8Array;
+  let bytes: Uint8Array | undefined;
+  let size: number;
+  let read: (offset: number, length: number) => Promise<Uint8Array>;
   try {
-    bytes = await engine.files.readFile(answer.path);
+    const info = await engine.files.stat(answer.path);
+    if (!info || !Number.isSafeInteger(info.size) || info.size < 0) throw new Error('Saved document has no valid size');
+    size = info.size;
+    if (engine.files.readFileRange) {
+      const files = engine.files, path = answer.path;
+      read = (offset, length) => files.readFileRange!(path, offset, length);
+    } else {
+      // Legacy filesystem seams retain their prior whole-file behavior.
+      bytes = await engine.files.readFile(answer.path);
+      if (bytes.length !== size) throw new Error('Saved document changed before reading');
+      const held = bytes;
+      read = async (offset, length) => held.subarray(offset, offset + length);
+    }
     lap('read');
   } catch (error) {
     throw new Error(`The Blender document ${relative} could not be read back out of the engine: ${describeThrown(error)}`);
@@ -221,7 +279,7 @@ async function saveDocument(): Promise<void> {
   staged.delete(answer.path);
   let sent = 0;
   try {
-    const chunks = await documentChunks(bytes);
+    const chunks = bytes ? await documentChunks(bytes) : await documentChunksFromFile(size, read);
     lap('chunk');
     const query = `path=${encodeURIComponent(relative)}`;
     const manifest = JSON.stringify({ chunks: chunks.map(({ hash, start, end }) => [hash, end - start]) });
@@ -246,10 +304,12 @@ async function saveDocument(): Promise<void> {
       const wanted = new Set(said.missing);
       for (const chunk of chunks) {
         if (!wanted.delete(chunk.hash)) continue;
+        const body = await read(chunk.start, chunk.end - chunk.start);
+        if (body.byteLength !== chunk.end - chunk.start) throw new Error('Saved document changed during upload');
         const part = await fetch(`/__editor/blender-document-chunk?${query}&hash=${chunk.hash}`, {
           method: 'POST',
           headers: { 'content-type': 'application/octet-stream' },
-          body: new Blob([bytes.subarray(chunk.start, chunk.end) as BlobPart]),
+          body: new Blob([body as BlobPart]),
         });
         if (!part.ok) throw new Error(`HTTP ${part.status} ${await part.text().catch(() => '')}`);
         sent += chunk.end - chunk.start;
@@ -260,7 +320,7 @@ async function saveDocument(): Promise<void> {
     throw new Error(`The Blender document ${relative} was not written to the project: ${describeThrown(error)}`);
   }
   setDocumentDirty(false);
-  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: bytes.length, sent, ms })}`);
+  log('log', `@@VOLTER-DOCUMENT ${JSON.stringify({ path: relative, bytes: size, sent, ms, heapMiB })}`);
 }
 
 async function startBlender(project: string, document?: string): Promise<unknown> {
@@ -287,6 +347,8 @@ async function startBlender(project: string, document?: string): Promise<unknown
       if (hold !== undefined) {
         const identity = hold as { session: string; revision: number };
         pending = { session: identity.session, revision: identity.revision, columns: await copyColumns(arena, hold), meshes: new Map(), images: new Map() };
+        piecesSinceLedger = 0;
+        logLedger('hold');
         await streamToTab({ op: 'stage', session: identity.session, revision: identity.revision });
         return {};
       }
@@ -312,8 +374,17 @@ async function startBlender(project: string, document?: string): Promise<unknown
             description: await describeFrame(arena, piece),
           };
         }
-        await streamToTab({ op: 'stage', session: pending.session, revision: pending.revision,
-          ...(mesh !== undefined ? { mesh } : { image }), piece: copied.typed });
+        const copiedBytes = bufferBytes(copied.typed);
+        inFlightBytes += copiedBytes;
+        try {
+          await streamToTab({ op: 'stage', session: pending.session, revision: pending.revision,
+            ...(mesh !== undefined ? { mesh } : { image }), piece: copied.typed });
+        } finally {
+          // The tab holds its own copy now; this one is released, not left to the collector.
+          releaseFrameBuffers(copied.typed);
+          inFlightBytes -= copiedBytes;
+        }
+        if (++piecesSinceLedger % 100 === 0) logLedger(`piece ${piecesSinceLedger}`);
         // Keep only the manifest and digest; the presenter already built this
         // resource, and the next pull may overwrite the engine arena.
         if (mesh !== undefined) {
@@ -332,7 +403,16 @@ async function startBlender(project: string, document?: string): Promise<unknown
         typed = columnsToTypedArrays(arena, frame);
         description = await describeFrame(arena, frame);
       }
-      const answered = await presentToTab(typed, description, capture as CaptureRequest | undefined);
+      if (present) logLedger('present');
+      const typedBytes = bufferBytes(typed);
+      inFlightBytes += typedBytes;
+      let answered: PresentAnswer;
+      try {
+        answered = await presentToTab(typed, description, capture as CaptureRequest | undefined);
+      } finally {
+        releaseFrameBuffers(typed);
+        inFlightBytes -= typedBytes;
+      }
       // THE CAPTURE IS THE ANSWER'S BODY, and `held` rides beside it: the
       // session reads a photograph's own fields off this object
       // (`session.py::_photograph`), and reads `held` to judge whether its
@@ -674,14 +754,16 @@ async function handle(request: WorkerRequest): Promise<unknown> {
       return ask({ op: 'history-step', token: request.token, direction: request.direction });
     case 'execute':
       // Code about to run may open a file the host wrote since the last call.
-      {
-        const note = stagingNote(await stageProjectFiles(files, projectRoot));
+      // A selection script presents too. Keep its native/export/transfer
+      // checkpoints on the same bounded pull door used for initial loading.
+      return pullWork('execute', async () => {
+        const note = stagingNote(await stageProjectFiles(files, projectRoot!));
         const answer = await ask({ op: 'execute', code: request.code, history: request.history ?? true,
           label: request.label ?? 'Blender Python' }) as {
           error?: string; result: string;
         };
         return (answer.error ? `Error executing code: ${answer.error}` : `Code executed successfully: ${answer.result}`) + note;
-      }
+      });
     case 'present':
       // Straight through to `session.py`'s own `present` op — the worker adds
       // nothing, and a capture-less present answers `{ presented, revision }`.
@@ -800,7 +882,8 @@ async function handle(request: WorkerRequest): Promise<unknown> {
 function reportMemory(): void {
   if (!engine) return;
   const bytes = engine.memoryBytes();
-  if (bytes !== null) post({ op: 'memory', bytes });
+  const l = heldLedger();
+  if (bytes !== null) post({ op: 'memory', bytes, held: l.hold + l.pieces + l.inFlight });
 }
 
 // A BLENDER THREAD THAT DIES IS WEIGHED FIRST: its error reaches this scope before the page's

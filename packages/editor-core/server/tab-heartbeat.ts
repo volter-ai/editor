@@ -277,6 +277,7 @@ function parseWorkerCallLane(raw: unknown): WorkerCallTabMetrics | undefined {
     callsOver30s,
     lastCallLongestTaskMs: finite(record['lastCallLongestTaskMs']),
     wasmMemoryMB: finite(record['wasmMemoryMB']),
+    ...(finite(record['workerHeldMB']) === null ? {} : { workerHeldMB: finite(record['workerHeldMB'])! }),
   };
 }
 

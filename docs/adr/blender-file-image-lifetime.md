@@ -1,0 +1,42 @@
+# Blender file images: decoded pixels live until their upload
+
+Status: Accepted
+Date: 2026-10-01
+Card: t_65c85042
+
+A file image (a PNG or JPEG that is its file's own bytes) crosses to the tab
+encoded and is decoded by the browser. The Stoneguard Bridge carries 84 such
+images: 171 MiB encoded, 1,343 MiB as RGBA.
+
+## Decision
+
+Decodes run one image at a time. Blob creation is inside
+the queue, a disposed texture skips its queued decode or closes a decode
+already running, and a failed image rejects its own readiness without stopping
+the images after it. Decoder options (flip, alpha, colour), sizes, samplers and
+the `texturesReady` barrier are unchanged.
+
+Only one viewport image's pixels are held at a time. A viewport image keeps its
+bitmap until the next drawn frame uploads it, and while a loading page's main
+thread is busy its frames are starved but decodes still resolve between tasks,
+so a queue that waited only for the previous decode could run ahead and hold
+every decoded image at once. That is read from the code, not measured: the
+Bridge's loads showed a ~2 GB transient that one moment released, the size of
+its decoded images, and `decodedImageBytes` is the reading that would show it. The next viewport image's decode therefore waits until
+the previous image's pixels are uploaded or released; a failed or closed image
+releases the queue at once. A photograph's images keep their pixels and draw no
+frames, so they queue separately and wait only for the previous decode. The
+held bytes are reported (`drawStatistics().decodedImageBytes`).
+
+Decoded pixels belong to the upload, not to the presented model. The stage
+passes its renderer to `prepareDraw`; the image uploads through three's public
+`initTexture` for every material sampler that shares its `Source` (and for its
+own texture when an image empty draws it), then closes the bitmap. The texture
+keeps its dimensions and the original encoded bytes, with `dataReady` false so
+closed pixels never reach GL. A document with no viewport learns the image's
+dimensions and closes the bitmap at once.
+
+A new renderer, a restored context or a changed sampler decodes the image again
+from its encoded bytes with the same options, uploads, and closes it again.
+Raster and UDIM images and detached capture snapshots keep their own lifetimes.
+No image is resized, recompressed, dropped or colour-converted.

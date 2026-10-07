@@ -45,6 +45,9 @@ export class BlenderTextureSamplers {
   private readonly bindings = new Map<string, {
     source: THREE.Texture; texture: THREE.Texture; version: number; disposed: boolean;
   }>();
+  /** Each image's samplers, kept as bindings come and go: the per-frame upload check asks it
+   *  once per image, so it must not scan every binding. */
+  private readonly bySource = new Map<THREE.Texture, THREE.Texture[]>();
 
   get(key: string, source: THREE.Texture, extension: TextureExtension, ready?: Promise<void>, uv = ''): THREE.Texture {
     let binding = this.bindings.get(key);
@@ -56,6 +59,7 @@ export class BlenderTextureSamplers {
       const texture = !source.image && ready ? new PendingImageSampler().copy(source) : source.clone();
       binding = {source, texture, version: -1, disposed: false};
       this.bindings.set(key, binding);
+      this.bySource.set(source, [...(this.bySource.get(source) ?? []), binding.texture]);
       const held = binding;
       // The owner awaits and reports decode failures. Avoid an unhandled
       // rejection here, and never upload a clone removed during the decode.
@@ -79,12 +83,20 @@ export class BlenderTextureSamplers {
     return binding.texture;
   }
 
+  /** All material-input samplers sharing an image's Source. */
+  variants(source: THREE.Texture): readonly THREE.Texture[] {
+    return this.bySource.get(source) ?? [];
+  }
+
   delete(key: string): void {
     const binding = this.bindings.get(key);
     if (!binding) return;
     binding.disposed = true;
     binding.texture.dispose();
     this.bindings.delete(key);
+    const rest = (this.bySource.get(binding.source) ?? []).filter(texture => texture !== binding.texture);
+    if (rest.length) this.bySource.set(binding.source, rest);
+    else this.bySource.delete(binding.source);
   }
 
   clear(): void {
