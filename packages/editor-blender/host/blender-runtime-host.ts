@@ -232,7 +232,12 @@ function modelDocumentConflict(): string | null {
     ? activeId.slice('document:model:'.length)
     : boundModel?.blend;
   if (!requested || !held || requested === held) return null;
-  return `Blender is editing ${held}; ${requested} is not open. Return to ${held} before editing.`;
+  // Say how to get Blender onto the document the editor shows, not only how to go back: an agent told
+  // just "return to <held>" took it as the Blender door being unusable and built its level by
+  // another route (2026-10-06, the WSL obby run).
+  return `Blender is editing ${held}, but the editor is showing ${requested}, which Blender has not loaded. ` +
+    `Wait for ${requested} to finish opening and retry; if it stays, open it again with ` +
+    `\`editor.open("model:${requested}")\` (\`editor.reloadPage()\` also reopens it), or return to ${held}.`;
 }
 
 /** The document id a present must reach: the open Model document's, or the
