@@ -4,7 +4,13 @@
  *
  *    node scripts/workbench/build-release.mjs --product <editor> \
  *         --platform <darwin-arm64|linux-x64|win32-x64> --checkout <fork dir> [--out <dir>] [--work <dir>] \
- *         [--min-ram <GiB>] [--look <package dir>]… [--publish] [--dry-run]
+ *         [--min-ram <GiB>] [--look <package dir>]… [--publish] [--dry-run] [--wipe-work]
+ *
+ *  EACH BUILD HAS ITS OWN WORK DIRECTORY. The default is
+ *  `<tmp>/volter-workbench-build/<product>-<target>-<platform>` (`<product>-web` for the web
+ *  target), and its output defaults to `.volter/releases/<same name>`. A work directory is marked
+ *  (`.volter-build-work.json`) when this creates it and is wiped only by the same build; any other
+ *  directory refuses by name unless `--wipe-work` says to delete it anyway.
  *    node scripts/workbench/build-release.mjs --publish --out <dir>     # publish a release cut earlier
  *    node scripts/workbench/build-release.mjs --target web --product <editor> --checkout <fork dir> \
  *         [--out <dir>] [--work <dir>] [--min-ram <GiB>] [--dry-run]       # a limited view's workbench
@@ -124,11 +130,12 @@ function releaseTag(record) {
 }
 
 function parseArgs(argv) {
-	const args = { product: null, platform: null, checkout: null, out: null, work: null, minRam: MIN_RAM_GIB, dryRun: false, publish: false, looks: [], target: 'reh-web' };
+	const args = { product: null, platform: null, checkout: null, out: null, work: null, minRam: MIN_RAM_GIB, dryRun: false, publish: false, looks: [], target: 'reh-web', wipeWork: false };
 	for (let i = 2; i < argv.length; i++) {
 		const flag = argv[i];
 		if (flag === '--dry-run') { args.dryRun = true; }
 		else if (flag === '--target') { args.target = argv[++i]; }
+		else if (flag === '--wipe-work') { args.wipeWork = true; }
 		else if (flag === '--publish') { args.publish = true; }
 		else if (flag === '--product') { args.product = argv[++i]; }
 		else if (flag === '--platform') { args.platform = argv[++i]; }
@@ -282,9 +289,18 @@ if (args.publishOnly) {
 }
 const pin = assertAtPin(resolve(args.checkout));
 const checkout = resolve(args.checkout);
-const out = resolve(args.out ?? join(REPO_ROOT, '.volter/releases'));
 const WEB = args.target === 'web';
-const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? tmpdir(), `volter-workbench-build-${args.product}${WEB ? '-web' : ''}`));
+/** WHICH BUILD THIS IS — product, target and platform. Two builds that differ in any of them
+ *  never share a default work or output directory, and a work directory is only ever wiped by the
+ *  build that made it (see {@link prepareWork}). Measured 2026-10-06: a win32 REH build and a web
+ *  build both defaulted to one `--work`, and the REH build's `rm -rf <work>` deleted the web
+ *  build's finished `vscode-web` while it was in use. */
+const identity = { product: args.product, target: args.target, platform: args.platform };
+const identityName = WEB ? `${args.product}-web` : `${args.product}-${args.target}-${args.platform}`;
+const out = resolve(args.out ?? join(REPO_ROOT, '.volter/releases', identityName));
+const work = resolve(args.work ?? join(process.env['TMPDIR'] ?? tmpdir(), 'volter-workbench-build', identityName));
+/** What a work directory says about who made it. */
+const WORK_MARKER = '.volter-build-work.json';
 const clone = join(work, 'code-oss');
 /** Upstream's package tasks write beside the clone: `vscode-web` for the web target. */
 const packageName = WEB ? 'vscode-web' : `vscode-reh-web-${args.platform}`;
@@ -311,6 +327,55 @@ const CHILD_ENV = { ...process.env,
 function remove(dir) {
 	console.log(`+ rm -rf ${dir}`);
 	if (!args.dryRun) { rmSync(dir, { recursive: true, force: true, maxRetries: 3 }); }
+}
+
+const sameBuild = (record) => record && record.product === identity.product && record.target === identity.target && record.platform === identity.platform;
+const describe = (record) => `${record.product} ${record.target} ${record.platform}${record.createdAt ? `, created ${record.createdAt}` : ''}`;
+
+/**
+ * A WORK DIRECTORY IS WIPED ONLY BY THE BUILD THAT MADE IT. Missing or empty: it is created and
+ * marked. Marked by this same build (product, target, platform): it is wiped and marked again.
+ * Anything else — another build's marker, or contents with no marker at all — refuses by name,
+ * unless the builder said `--wipe-work`. The package task writes its output (`vscode-web`,
+ * `vscode-reh-web-<platform>`) beside the clone, INSIDE this directory, so the same guard covers
+ * the packaged output.
+ */
+function prepareWork() {
+	const markerPath = join(work, WORK_MARKER);
+	if (existsSync(work)) {
+		const entries = readdirSync(work);
+		if (entries.length > 0) {
+			let record = null;
+			try { record = JSON.parse(readFileSync(markerPath, 'utf8')); } catch { /* no marker, or not ours to read */ }
+			if (!sameBuild(record) && !args.wipeWork) {
+				const what = record
+					? `another build's work directory (${describe(record)})`
+					: `a directory this script did not create (no ${WORK_MARKER}; it holds ${entries.slice(0, 6).join(', ')}${entries.length > 6 ? ', …' : ''})`;
+				fail(`--work ${work} is ${what}, and this build (${describe(identity)}) starts by deleting its work directory. Nothing was touched.\n  Use another directory:   --work <empty or new dir>\n  Or delete it anyway:     --wipe-work`);
+			}
+			console.log(record ? `work: ${work} is this build's own (${describe(record)}); starting it over` : `work: ${work} is wiped (--wipe-work)`);
+		}
+		remove(work);
+	}
+	console.log(`+ mkdir ${work}   (marked ${WORK_MARKER}: ${describe(identity)})`);
+	if (!args.dryRun) {
+		mkdirSync(work, { recursive: true });
+		writeFileSync(markerPath, `${JSON.stringify({ ...identity, createdAt: new Date().toISOString() }, null, 2)}\n`);
+	}
+}
+
+/** The output directory may hold earlier tarballs, but its BUILD.json is the release it names:
+ *  a build never replaces another target's or platform's record. */
+function prepareOut() {
+	if (existsSync(buildRecord)) {
+		let record = null;
+		try { record = JSON.parse(readFileSync(buildRecord, 'utf8')); } catch { /* unreadable: treated as foreign */ }
+		// A release record names its package (`vscode-web`, `vscode-reh-web-<platform>`) as its target.
+		if (!(record && record.product === args.product && record.target === packageName)) {
+			fail(`--out ${out} holds ${record ? `the BUILD.json of another release (${record.product} ${record.target} ${record.platform})` : 'an unreadable BUILD.json'}, which this build would replace. Pass another --out.`);
+		}
+	}
+	if (!args.dryRun) { mkdirSync(out, { recursive: true }); }
 }
 
 function step(command, commandArgs, options = {}) {
@@ -344,8 +409,8 @@ if (!process.env['npm_config_python']) {
 // ---- 1. a CLEAN clone at the pin. Never the checkout you develop in: the package task rimrafs
 //         ../vscode-reh-web-<platform> and the compile tasks rimraf out-build, so a build
 //         pointed at a live tree eats a working directory's neighbours.
-remove(work);
-if (!args.dryRun) { mkdirSync(work, { recursive: true }); mkdirSync(out, { recursive: true }); }
+prepareWork();
+prepareOut();
 // The overlay patches upstream by exact text, so the clone keeps the fork's LF endings even
 // where git would check out CRLF (Git for Windows' autocrlf, and text=auto's native eol).
 step('git', ['clone', '--quiet', '--config', 'core.autocrlf=false', '--config', 'core.eol=lf', checkout, clone]);
