@@ -383,6 +383,7 @@
     "./kit/authoring/mounted-root-subjects": "./src/kit/authoring/mounted-root-subjects.ts",
     "./kit/components/GameplaySessionTimeline": "./src/kit/components/GameplaySessionTimeline.tsx",
     "./kit/components/InspectorToolSection": "./src/kit/components/InspectorToolSection.tsx",
+    "./kit/components/SurfaceCrashBoundary": "./src/kit/components/SurfaceCrashBoundary.tsx",
     "./kit/components/ToolHost": "./src/kit/components/ToolHost.tsx",
     "./kit/components/VolterLogo": "./src/kit/components/VolterLogo.tsx",
     "./kit/components/account-documents": "./src/kit/components/account-documents.tsx",
