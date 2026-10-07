@@ -342,14 +342,15 @@ For a behavior-only repair, preserve the established appearance.
 
 ## Animation
 
-- In a game or a movie, anything that moves as a character or creature is
-  animated, not slid as a frozen mesh. Its clips are Blender actions on its
-  armature; Movie and Play play the same actions.
+- Characters and creatures that move are animated, as in Blender: an armature,
+  and its motions as named actions in the `.blend`. The action an object has
+  assigned (`animation_data.action`) is the one it plays.
 - Look in the asset library for rigged and animated assets before authoring
-  your own: `GET <editor>/__editor/asset-library/search?source=local&type=model&q=<words>` at the
-  editor's address, then import the result through Blender.
-- In a play script, `play.animate(object, clip, options)` plays a clip on the
-  game's clock; `play.clips(object)` lists them. Check the result in captures.
+  your own: `GET <editor>/__editor/asset-library/search?source=local&type=model&q=<words>`
+  at the editor's address, then import the result through Blender.
+- In a play script, `play.setAction(object, name)` sets the action an object
+  plays, crossfading from the last; `play.actions(object)` lists them. Check
+  the result in captures.
 
 ## React UI
 

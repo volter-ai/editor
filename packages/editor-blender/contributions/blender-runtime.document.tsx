@@ -70,6 +70,10 @@ import {
   openModelDocumentBlend,
   modelDocumentMayOpen,
   modelDocumentOwnsPresentation,
+  blenderActionClip,
+  blenderArmatureActions,
+  blenderRig,
+  blenderRnaVersion,
 } from '../host/blender-runtime-host';
 import { BlenderObjectModeHeader } from './blender-header-menus';
 import { blenderOutlinerAuthoringFor, createBlenderOutlinerAuthoring } from './blender-outliner-authoring';
@@ -1051,6 +1055,27 @@ function BlenderViewportArea({
       for (const { kind } of groups) stage?.setHelper(kind, null);
     };
   }, [documentId, view]);
+  /**
+   * THE MODEL'S SKINS AND ASSIGNED ACTION, AS BLENDER'S VIEWPORT SHOWS THEM: a rigged object is
+   * presented skinned, whatever editors are open, and plays the action assigned to it. Bound on
+   * every change of the file, a moment after it settles, because `rna_rig` walks every vertex of
+   * every rigged mesh; a file with no armature pays only the cheap listing.
+   */
+  const rnaVersion = useSyncExternalStore(subscribeBlenderRna, blenderRnaVersion, blenderRnaVersion);
+  useEffect(() => {
+    if (!documentId || !main) return;
+    let live = true;
+    const timer = setTimeout(() => {
+      void (async () => {
+        const listing = await blenderArmatureActions();
+        if (!live || !listing?.armatures.length) return;
+        await blenderSkin.bind(view, { rig: () => blenderRig(), clip: () => blenderActionClip() });
+      })().catch((thrown: unknown) => {
+        if (live) editorHost().console.warn(`This file's rig could not be read: ${thrown instanceof Error ? thrown.message : String(thrown)}`, 'blender-skin');
+      });
+    }, 400);
+    return () => { live = false; clearTimeout(timer); };
+  }, [documentId, main, view, rnaVersion]);
   /**
    * ATTACH THE SKIN TO THIS STAGE'S TRANSPORT.
    *

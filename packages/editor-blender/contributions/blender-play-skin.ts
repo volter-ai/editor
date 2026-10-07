@@ -28,6 +28,9 @@ export interface PlayClipLibrary {
   readonly rig: BlenderRig | null;
   /** Armature name → its clips by action name. */
   readonly clips: ReadonlyMap<string, ReadonlyMap<string, BlenderActionClip>>;
+  /** Armature name → the action assigned to it in the file (`animation_data.action`), which it
+   *  plays from the start of a run, as Blender would. */
+  readonly assigned: ReadonlyMap<string, string>;
   readonly warnings: readonly string[];
 }
 
@@ -36,7 +39,9 @@ export async function readPlayClipLibrary(): Promise<PlayClipLibrary> {
   const warnings: string[] = [];
   const [rig, listing] = await Promise.all([blenderRig(), blenderArmatureActions()]);
   const clips = new Map<string, Map<string, BlenderActionClip>>();
-  for (const { armature, actions } of listing?.armatures ?? []) {
+  const assigned = new Map<string, string>();
+  for (const { armature, actions, current } of listing?.armatures ?? []) {
+    if (current) assigned.set(armature, current);
     const byName = new Map<string, BlenderActionClip>();
     for (const action of actions) {
       try {
@@ -49,7 +54,7 @@ export async function readPlayClipLibrary(): Promise<PlayClipLibrary> {
     }
     if (byName.size) clips.set(armature, byName);
   }
-  return { rig, clips, warnings };
+  return { rig, clips, assigned, warnings };
 }
 
 export interface PlayAnimateOptions {
@@ -120,6 +125,16 @@ export function bindPlayAnimation(presentation: SkinPresentation, library: PlayC
   }
   const objectArmature = new Map<THREE.Object3D, Armature>();
   for (const armature of armatures.values()) objectArmature.set(armature.object, armature);
+  // EACH ARMATURE PLAYS ITS ASSIGNED ACTION from the first update, as Blender's viewport does.
+  for (const armature of armatures.values()) {
+    const name = library.assigned.get(armature.name);
+    const source = name ? armature.clips.get(name) : undefined;
+    if (!name || !source) continue;
+    const action = armature.mixer.clipAction(source);
+    action.setLoop(THREE.LoopRepeat, Number.POSITIVE_INFINITY);
+    action.play();
+    armature.current = { name, action };
+  }
   /** The armature that animates `object`: itself, the one its skin is bound to, or the nearest
    *  armature among its ancestors and descendants (a character's root empty holds its armature). */
   const armatureOf = (object: THREE.Object3D): Armature | null => {
