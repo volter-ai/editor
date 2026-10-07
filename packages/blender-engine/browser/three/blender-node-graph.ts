@@ -49,7 +49,7 @@ export const GRAPH_NODE_TYPES = [
   'ShaderNodeGamma', 'ShaderNodeRGBToBW', 'ShaderNodeSeparateColor', 'ShaderNodeCombineColor',
   'ShaderNodeVectorRotate', 'ShaderNodeFresnel', 'ShaderNodeLayerWeight', 'ShaderNodeBump',
   'ShaderNodeNormalMap', 'ShaderNodeNewGeometry', 'ShaderNodeVertexColor', 'ShaderNodeAttribute',
-  'ShaderNodeRGBCurve', 'ShaderNodeVectorCurve', 'ShaderNodeFloatCurve', 'ShaderNodeObjectInfo',
+  'ShaderNodeRGBCurve', 'ShaderNodeVectorCurve', 'ShaderNodeFloatCurve', 'ShaderNodeObjectInfo', 'ShaderNodeParticleInfo',
 ] as const;
 
 const nodeSchema = z.object({
@@ -145,6 +145,7 @@ export interface CompiledGraph {
   readonly attributes: readonly string[];
   /** Requires a draw identity with this object's native inputs. */
   readonly objectInfo: boolean;
+  readonly particleInfo: boolean;
   /** Which surface inputs the graph drives, each a GLSL global of `type`. */
   readonly outputs: Readonly<Record<string, {readonly global: string; readonly type: GpuType}>>;
   readonly surface: MaterialGraph['surface'];
@@ -433,6 +434,8 @@ class Compiler {
     const [key, index] = source.link;
     const node = this.graph.nodes[key];
     if (!node) throw new Error(`The graph links to ${key}, which it does not carry`);
+    if (node.type === 'ShaderNodeParticleInfo' && node.outputs[index]?.id !== 'Random')
+      throw new Error(`Particle Info output ${node.outputs[index]?.id ?? index} is not compiled by the presenter`);
     const outputs = this.node(key, node);
     const output = outputs[index];
     if (!output) throw new Error(`${key} has no output ${index}`);
@@ -487,6 +490,12 @@ class Compiler {
       case 'ShaderNodeRGB': {
         const type = outputs[0]!.type;
         body.push(`${outputs[0]!.name} = ${this.uniform(type, prop<number | number[]>(node, 'value'))};`);
+        break;
+      }
+      case 'ShaderNodeParticleInfo': {
+        // Cycles uses the originating particle's index hash, not Object Info
+        // Random. The exporter refuses other outputs until their data travels.
+        body.push(`${outputs[1]!.name} = blenderParticleRandom;`);
         break;
       }
       case 'ShaderNodeObjectInfo': {
@@ -959,6 +968,8 @@ class Compiler {
     const program = [
       ...(Object.values(this.graph.nodes).some(n=>n.type==='ShaderNodeObjectInfo')
         ? ['uniform vec4 blenderObjectColor;', 'uniform vec2 blenderObjectIndexRandom;'] : []),
+      ...(Object.values(this.graph.nodes).some(n=>n.type==='ShaderNodeParticleInfo')
+        ? ['uniform float blenderParticleRandom;'] : []),
       ...[...this.s.uniformTypes].map(([n, t]) => `uniform ${t} ${n};`),
       ...this.images.map(i => i.tiled
         ? `uniform highp sampler2DArray ${i.uniform};\nuniform highp sampler2D ${i.uniform}Map;`
@@ -980,6 +991,7 @@ class Compiler {
       uvs: [...this.s.uvs],
       attributes: [...this.s.attributes],
       objectInfo: Object.values(this.graph.nodes).some(n=>n.type==='ShaderNodeObjectInfo'),
+      particleInfo: Object.values(this.graph.nodes).some(n=>n.type==='ShaderNodeParticleInfo'),
       outputs,
       surface: this.graph.surface,
       closure: closure !== undefined,

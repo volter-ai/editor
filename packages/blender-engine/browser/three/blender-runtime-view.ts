@@ -496,7 +496,7 @@ export const frameSchema = z
       id:z.string(),source:z.string(),owner:z.string().nullable(),
       matrix:z.array(z.tuple([scalar,scalar,scalar,scalar])).length(4),
       visible:z.boolean(),render_visible:z.boolean(),random:scalar,color:z.tuple([scalar,scalar,scalar,scalar]),
-      shadow_visible:z.boolean().optional(),
+      shadow_visible:z.boolean().optional(),particle_random:scalar.optional(),
     }).strict()).optional(),
     objects: z.array(
       z
@@ -539,7 +539,7 @@ export const frameSchema = z
           texspace: z.tuple([z.tuple([scalar, scalar, scalar]), z.tuple([scalar, scalar, scalar])]).optional(),
           default_color: z.string().optional(),
           object_info: z.object({
-            color:z.tuple([scalar,scalar,scalar,scalar]),index:scalar,random:scalar,
+            color:z.tuple([scalar,scalar,scalar,scalar]),index:scalar,random:scalar,particle_random:scalar.optional(),
           }).strict().optional(),
         })
         .strict(),

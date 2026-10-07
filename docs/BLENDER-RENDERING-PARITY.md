@@ -67,7 +67,31 @@ Depsgraph instances now carry native placement `random_id`, color, world matrix
 and source/owner identity separately from ordinary authoring objects. The
 native placement fixture checks these inputs, including particle, nested
 collection and converted-curve placements. Particle Info is a separate shader
-input and remains unsupported.
+input; its Random output is now verified independently below.
+
+## Particle Info Random: measured
+
+Particle Info Random now travels separately from Object Info Random. Cycles
+hashes the originating parent particle's index; it does not use the placement's
+`random_id`. Native Cycles currently excludes child particles from particle
+records. Children, collection instances and ordinary objects therefore read
+its zero-index dummy record, including a nonzero Random value. The exporter
+and graph compiler preserve this behavior rather than inventing per-child
+variation or rejecting the entire material graph.
+
+Independent desktop Cycles emission renders cover an ordinary object, four
+parent indices and two children. Actual WebGL float32 output matches all seven
+RGBA cases exactly. Shared authored materials preserve distinct particle inputs;
+identical geometry and particle-only inputs share draw materials. Input changes
+remap before the next draw. Other Particle Info outputs remain explicitly
+unsupported, and palettes cannot flatten per-draw inputs. Evidence:
+[Particle Info GPU results](media/blender-particle-info-parity-20261007.json).
+Regenerate the native fixture with `test/generate-particle-info-fixture.py`.
+
+This removes the courtyard's Particle Info graph refusals for grass, bushes
+and one book material. The rendered editor capture shows the restored book
+textures. Mixed Principled closures and geometry-dependent environment lighting
+still fail their gates; this input check does not establish full-scene parity.
 
 ## Single-scattering sun: implemented, scene still gated
 
@@ -176,8 +200,10 @@ clean desktop reference, not acceptance of Three's illumination.
 
 ## Remaining scene gates
 
-The Lone Monk courtyard still fails scene parity. Its unsupported Particle Info
-and mixed shader graphs still fall back to constants. Ordinary-object Object
+The Lone Monk courtyard still fails scene parity. Its unsupported mixed
+Principled shader graphs still fall back to constants. Particle Info Random
+no longer rejects the grass, bush and book texture graphs; other Particle Info
+outputs remain unsupported. Ordinary-object Object
 Info no longer rejects the entire material graph. The
 exporter now carries depsgraph collection/particle placements, but the browser
 lighting does not reproduce geometry-dependent environment visibility or the

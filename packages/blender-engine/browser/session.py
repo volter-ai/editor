@@ -605,7 +605,7 @@ _GRAPH_NODES = frozenset((
     "ShaderNodeGamma", "ShaderNodeRGBToBW", "ShaderNodeSeparateColor", "ShaderNodeCombineColor",
     "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight", "ShaderNodeBump",
     "ShaderNodeNormalMap", "ShaderNodeNewGeometry", "ShaderNodeVertexColor", "ShaderNodeAttribute",
-    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve", "ShaderNodeObjectInfo",
+    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve", "ShaderNodeObjectInfo", "ShaderNodeParticleInfo",
 ))
 # The surfaces whose inputs map onto the presenter's standard material, and
 # the inputs of each the presenter reads from a graph.
@@ -934,6 +934,8 @@ class _MaterialGraph:
             return self.source(stack[:-1], outer_socket)
         if kind not in _GRAPH_NODES:
             raise _GraphRefusal("%s (%s) is not compiled by the presenter" % (node.name, kind))
+        if kind == "ShaderNodeParticleInfo" and socket.name != "Random":
+            raise _GraphRefusal("Particle Info output %s is not compiled by the presenter" % socket.name)
         refusal = _refusal(node)
         if refusal is not None:
             raise _GraphRefusal(refusal)
@@ -1161,6 +1163,29 @@ def _object_info_random(name):
     return struct.unpack("f", struct.pack("f", c / 4294967296.0))[0]
 
 
+def _particle_info_random(index=0):
+    """Cycles Particle Info Random: hash_uint2(particle.index, 0).
+
+    Native sync_dupli_particle excludes child particles; they and objects
+    without a particle record use the zero-index dummy KernelParticle.
+    This is distinct from Object Info's placement random_id.
+    """
+    import struct
+    mask = 0xffffffff
+    a = (0xdeadbeef + 21 + index) & mask
+    b = c = (0xdeadbeef + 21) & mask
+    def rotate(x, bits):
+        return ((x << bits) | (x >> (32 - bits))) & mask
+    c = ((c ^ b) - rotate(b, 14)) & mask
+    a = ((a ^ c) - rotate(c, 11)) & mask
+    b = ((b ^ a) - rotate(a, 25)) & mask
+    c = ((c ^ b) - rotate(b, 16)) & mask
+    a = ((a ^ c) - rotate(c, 4)) & mask
+    b = ((b ^ a) - rotate(a, 14)) & mask
+    c = ((c ^ b) - rotate(b, 24)) & mask
+    return struct.unpack("f", struct.pack("f", c / 4294967296.0))[0]
+
+
 def _depsgraph_placements(frame, depsgraph):
     """Placement metadata only; every vertex stays in the native C++ arena.
 
@@ -1202,6 +1227,10 @@ def _depsgraph_placements(frame, depsgraph):
         if owner is not None and owner_row is None:
             raise NotImplementedError("Depsgraph instance owner is not exported: %s" % owner.name)
         persistent = list(instance.persistent_id)
+        particle_index = persistent[0]
+        psys = instance.particle_system
+        if psys is None or not 0 <= particle_index < len(psys.particles):
+            particle_index = 0
         random = struct.unpack("f", struct.pack("f", (int(instance.random_id) & 0xffffffff) / 4294967296.0))[0]
         placements.append({
             "id": "@instance:" + json.dumps([owner.name if owner else None, source.name, persistent], separators=(",", ":"), ensure_ascii=False),
@@ -1213,6 +1242,7 @@ def _depsgraph_placements(frame, depsgraph):
             # Cycles intersects source and instancer ray visibility.
             "shadow_visible": bool(source.visible_shadow) and (owner is None or bool(owner.visible_shadow)),
             "random": random,
+            "particle_random": _particle_info_random(particle_index),
             "color": [float(v) for v in instance.object.color],
         })
     return placements
@@ -1544,6 +1574,7 @@ class Session:
                         "color": [float(v) for v in obj.color],
                         "index": float(obj.pass_index),
                         "random": _object_info_random(obj.name),
+                        "particle_random": _particle_info_random(),
                     }
                 data = obj.evaluated_get(depsgraph).data if obj is not None else None
                 if getattr(data, "use_auto_texspace", True) is False:

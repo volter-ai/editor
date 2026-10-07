@@ -26,7 +26,7 @@ interface Binding {
   channels: Record<string, number>;
   borrowedFrom?: Binding;
   borrowedSource?: THREE.MeshPhysicalMaterial;
-  objectInfoUniforms?: {color: THREE.IUniform<THREE.Vector4>; indexRandom: THREE.IUniform<THREE.Vector2>};
+  objectInfoUniforms?: {color: THREE.IUniform<THREE.Vector4>; indexRandom: THREE.IUniform<THREE.Vector2>; particleRandom: THREE.IUniform<number>};
   palette?: {indices: Int32Array; sources: readonly THREE.MeshPhysicalMaterial[]};
 }
 const bindings = new WeakMap<THREE.MeshPhysicalMaterial, Binding>();
@@ -46,7 +46,7 @@ function compatiblePaletteGraphs(sources: readonly THREE.MeshPhysicalMaterial[])
   if (sources.length !== 2 || sources.some(source => pendings.has(source))) return null;
   const graphs = sources.map(source => bindings.get(source)?.compiled);
   const graph = graphs[0];
-  if (!graph || graph.objectInfo || failed.has(graph.key) || graphs.some(other => !other || other.key !== graph.key ||
+  if (!graph || graph.objectInfo || graph.particleInfo || failed.has(graph.key) || graphs.some(other => !other || other.key !== graph.key ||
       other.declarations !== graph.declarations || other.library !== graph.library ||
       JSON.stringify([other.uvs, other.attributes, other.outputs]) !== JSON.stringify([graph.uvs, graph.attributes, graph.outputs]))) return null;
   // Leave room for the physical material's environment and lighting samplers.
@@ -186,17 +186,20 @@ export function borrowGraphDrawBinding(source: THREE.MeshPhysicalMaterial, targe
  * belong to ONE object. A distinct material identity makes Three upload them
  * when it switches between objects sharing an authored material. */
 export function bindGraphObjectInfo(material: THREE.MeshPhysicalMaterial,
-  info: {color: readonly number[]; index: number; random: number}): void {
+  info: {color: readonly number[]; index: number; random: number; particle_random?: number}): void {
   const binding=bindings.get(material);
-  if (!binding?.compiled.objectInfo) return;
+  if (!binding || (!binding.compiled.objectInfo && !binding.compiled.particleInfo)) return;
+  if (binding.compiled.particleInfo && info.particle_random === undefined)
+    throw new Error('Particle Info Random input missing for Blender object');
   const values=binding.objectInfoUniforms ??= {
-    color:{value:new THREE.Vector4()}, indexRandom:{value:new THREE.Vector2()},
+    color:{value:new THREE.Vector4()}, indexRandom:{value:new THREE.Vector2()}, particleRandom:{value:0},
   };
   if (binding.uniforms['blenderObjectColor']!==values.color) {
-    binding.uniforms={...binding.uniforms,blenderObjectColor:values.color,blenderObjectIndexRandom:values.indexRandom};
+    binding.uniforms={...binding.uniforms,blenderObjectColor:values.color,blenderObjectIndexRandom:values.indexRandom, blenderParticleRandom:values.particleRandom};
   }
   values.color.value.fromArray(info.color);
   values.indexRandom.value.set(info.index,info.random);
+  if (info.particle_random !== undefined) values.particleRandom.value=info.particle_random;
 }
 
 /** A binding's values: uniforms, ramp tables and textures. */
