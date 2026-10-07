@@ -66,7 +66,7 @@ export async function control(command: string, verb: string, argument?: string, 
     const result: unknown = await body(...Object.values(bindings));
     if (result !== undefined) console.log(JSON.stringify(result, null, 2));
   } else if (verb !== 'console') throw new Error(`Unknown command: ${verb}`);
-  // `console --all`: every retained entry — acknowledged, retired and workbench-origin ones the
+  // `console --all`: every retained entry — acknowledged and workbench-origin ones the
   // unresolved set holds out (console-ledger.ts) — so what is held out stays readable. The exit
   // code below still answers only the unresolved set.
   const showAll = verb === 'console' && argument === '--all';
