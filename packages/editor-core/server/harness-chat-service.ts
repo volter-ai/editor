@@ -1425,7 +1425,9 @@ export class HarnessChatService {
     if (!action) throw new Error('This setup action is no longer available.');
     const program = kind === 'login' ? launchContext.supercode : launchContext.npm;
     if (!program) throw new Error('The setup executable is no longer available.');
-    this.setupHarness = harness;
+    // Only a sign-in names the agent the chat hands off to: an install that is cancelled or
+    // fails must not keep another agent, signed in elsewhere, from opening the chat by itself.
+    if (kind === 'login') this.setupHarness = harness;
     // The extension runs this exact, host-authored command in a visible terminal.
     // It never executes arbitrary repair prose or receives provider credentials.
     const invocation = kind === 'login'

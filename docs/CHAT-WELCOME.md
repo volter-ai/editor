@@ -68,3 +68,8 @@ the behavior rules. Open it in a browser; it is one self-contained file.
 The host needs, for each agent, whether it is installed, whether it is signed in, and with
 what account (when known). Today's `setup.actions` (`login` and `install`) already carry
 most of this.
+
+The workbench draws this welcome natively (`scripts/workbench/overlay.mjs`, `patchChatSetupWelcome`)
+and reads `supercode.frontend.setupState` only when the welcome renders, so the extension must
+re-render it on every setup state change by re-assigning its participant's
+`additionalWelcomeMessage`.

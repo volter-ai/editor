@@ -851,8 +851,14 @@ function patchChatSetupWelcome(checkout) {
 \t\t\t// The setup state draws only an empty chat, from the newest read for this conversation.
 \t\t\t// Until the first read answers, the welcome it may replace stays hidden and the composer
 \t\t\t// as it was, rather than flashing; with no extension to ask, nothing waits.
+\t\t\tconst asked = !numItems && readSetup && this.readSetupWelcome();
+\t\t\tif (!numItems && readSetup && !asked) {
+\t\t\t\t// Nothing can answer any more (say the extension host restarted): drop the last
+\t\t\t\t// answer, so the Markdown welcome and a usable composer come back.
+\t\t\t\tthis._setupWelcome = undefined;
+\t\t\t}
 \t\t\tconst setup = numItems ? undefined : this._setupWelcome?.state;
-\t\t\tconst pending = !numItems && readSetup && this.readSetupWelcome() && !this._setupWelcome;
+\t\t\tconst pending = asked && !this._setupWelcome;
 \t\t\tthis.welcomeMessageContainer.style.visibility = pending ? 'hidden' : '';
 \t\t\tif (!pending) {
 \t\t\t\tthis.applySetupWelcome(setup);
@@ -886,7 +892,8 @@ function patchChatSetupWelcome(checkout) {
 \t\t\tthis._setupComposer ??= { placeholder: input.inputEditor.getRawOptions().placeholder };
 \t\t\tinput.inputEditor.updateOptions({ placeholder: shown.composerPlaceholder, readOnly: !shown.composerEnabled });
 \t\t} else if (input && this._setupComposer) {
-\t\t\tinput.inputEditor.updateOptions({ placeholder: this._setupComposer.placeholder, readOnly: false });
+\t\t\t// A placeholder the conversation set meanwhile (setModel, a locked agent) wins over the saved one.
+\t\t\tinput.inputEditor.updateOptions({ placeholder: this.viewModel?.inputPlaceholder ?? this._setupComposer.placeholder, readOnly: false });
 \t\t\tthis._setupComposer = undefined;
 \t\t}
 \t\tinput?.inputContainerElement?.classList.toggle('volter-chat-setup-disabled', !!shown && !shown.composerEnabled);
@@ -898,6 +905,12 @@ function patchChatSetupWelcome(checkout) {
 \t}
 
 \tprivate renderGettingStartedTipIfNeeded(): void {`, 'setup state composer and progress');
+	// The first request (Enter on a read-only draft, composerEnabled, or a chat opened with a
+	// query) ends the empty chat without a welcome render: restore the composer and progress here.
+	patchChatSource(checkout, widget, '\t\t\tif (items.length > 0) {\n\t\t\t\tthis.updateChatViewVisibility();\n\t\t\t} else {', `\t\t\tif (items.length > 0) {
+\t\t\t\tthis.updateChatViewVisibility();
+\t\t\t\tthis.applySetupWelcome(undefined);
+\t\t\t} else {`, 'setup state ends with the first request');
 }
 
 function patchNativeChat(checkout) {

@@ -38,7 +38,9 @@ export function chatSetupAgents(harnesses: readonly HarnessChatHarness[]): ChatS
     .sort((a, b) => setupOrder(a.id) - setupOrder(b.id))
     .map(h => ({
       harness: h.id, name: h.label, provider: CHAT_SETUP_PROVIDERS[h.id]?.provider ?? null,
-      installed: h.installed, signedIn: h.installed && h.auth === 'ready', account: null,
+      // 'configured' auth also starts a chat (autoStart) and offers no sign-in.
+      installed: h.installed, signedIn: h.installed && h.availableActions.login !== true && (h.auth === 'ready' || h.auth === 'configured'),
+      account: null,
     }));
 }
 
