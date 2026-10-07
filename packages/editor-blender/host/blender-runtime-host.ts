@@ -233,10 +233,18 @@ function shownModelBlend(): string | undefined {
     : boundModel?.blend;
 }
 
+/**
+ * A script's Save As into a project `.blend` that no Model document lists (`followMovedDocument`): Blender edits
+ * that file and saves there, and the tab it left (`from`) keeps showing Blender, since there is no tab to move to.
+ * Without this, every later call was refused as a conflict naming a file no tab can show.
+ */
+let unlistedFollow: { readonly owner: BlenderRuntime; readonly from: string; readonly document: string } | null = null;
+
 function modelDocumentConflict(): string | null {
   const held = runtime?.document;
   const requested = shownModelBlend();
   if (!requested || !held || requested === held) return null;
+  if (unlistedFollow !== null && unlistedFollow.owner === runtime && unlistedFollow.document === held && unlistedFollow.from === requested) return null;
   // Say how to get Blender onto the document the editor shows, not only how to go back: an agent told
   // just "return to <held>" took it as the Blender door being unusable and built its level by
   // another route (2026-10-06, the WSL obby run).
@@ -561,10 +569,14 @@ async function followMovedDocument(owner: BlenderRuntime): Promise<void> {
   if (!move || move.owner !== owner) return;
   unfollowedMove = null;
   const host = editorHost();
+  // The tab showing Blender: the file Blender left, or, after an earlier Save As to an unlisted file, the tab
+  // that one left.
+  const shownFrom = unlistedFollow !== null && unlistedFollow.owner === owner && unlistedFollow.document === move.from ? unlistedFollow.from : move.from;
+  unlistedFollow = null;
   const stillShowingOld = () => {
     if (runtime !== owner || owner.document !== move.document) return false;
     const shown = shownModelBlend();
-    return shown === move.from || (shown === undefined && host.documents.activeId() === BLENDER_RUNTIME_DOCUMENT_ID);
+    return shown === shownFrom || (shown === undefined && host.documents.activeId() === BLENDER_RUNTIME_DOCUMENT_ID);
   };
   if (!stillShowingOld()) return;
   try {
@@ -572,10 +584,13 @@ async function followMovedDocument(owner: BlenderRuntime): Promise<void> {
     const table = await host.project.documentTable();
     const entry = table.entries.find(candidate => candidate.kind === 'model' && candidate.source?.path === move.document);
     if (!entry) {
+      if (!stillShowingOld()) return;
+      unlistedFollow = { owner, from: shownFrom, document: move.document };
       host.console.warn(
-        `Blender now has ${move.document} open and the model saves there, but no Model document lists that ` +
-          `file (the project's model finder does not include its folder), so the editor is still showing ` +
-          `${move.from}, which Blender is no longer editing. Save the model under src/models/ to keep editing it here.`,
+        `Blender now has ${move.document} open and the model saves there. No Model document lists that file ` +
+          `(the project's model finder does not include its folder), so the ${shownFrom} tab keeps showing ` +
+          `Blender, which now edits ${move.document}; ${shownFrom} keeps what it last saved. Save the model ` +
+          `under src/models/ to give it a Model tab of its own.`,
         'blender-document',
       );
       return;
