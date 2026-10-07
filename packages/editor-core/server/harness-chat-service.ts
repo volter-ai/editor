@@ -1430,7 +1430,7 @@ export class HarnessChatService {
     // It never executes arbitrary repair prose or receives provider credentials.
     const invocation = kind === 'login'
       ? supercodeInvocation(program, ['harness', 'login', harness])
-      : { command: program, args: ['install', '-g', '--prefix', launchContext.npmPrefix!, CHAT_SETUP_PROVIDERS[harness]!.npmPackage] };
+      : { command: program, args: [...(launchContext.npmArgs ?? []), 'install', '-g', '--prefix', launchContext.npmPrefix!, CHAT_SETUP_PROVIDERS[harness]!.npmPackage] };
     return { ...action, cwd: this.options.getProjectRoot(),
       program: invocation.command,
       arguments: invocation.args,
