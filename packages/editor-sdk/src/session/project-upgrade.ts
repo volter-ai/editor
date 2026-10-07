@@ -24,10 +24,11 @@
  */
 import { spawn } from 'node:child_process';
 import { existsSync, lstatSync } from 'node:fs';
-import { readFile, writeFile } from 'node:fs/promises';
+import { readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { dirname, join, resolve } from 'node:path';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { hasManifest } from '@volter/editor-project/manifest/locate';
+import { compareSemver } from './editor-compatibility';
 
 export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter packages and its engine pin to one release (default: latest)";
 
@@ -47,7 +48,42 @@ interface Release {
 interface PackageJson {
   dependencies?: Record<string, string>;
   devDependencies?: Record<string, string>;
+  peerDependencies?: Record<string, string>;
+  optionalDependencies?: Record<string, string>;
+  workspaces?: unknown;
   [key: string]: unknown;
+}
+
+/** The exact version a declared spec names (`0.5.185`, `^0.5.185`, `=0.5.185`), or null for a
+ *  range, a tag, a path or a link — nothing a direction can be read from. */
+function declaredVersion(spec: string | undefined): string | null {
+  const bare = spec?.replace(/^[\^~=v]+/, '');
+  return bare !== undefined && EXACT_VERSION.test(bare) ? bare : null;
+}
+
+/**
+ * Write every planned file, or none: each to a temp file beside it first, then all renamed into
+ * place. A failure while writing leaves the project as it was; a failure between the renames
+ * puts back what was already moved. Until 2026-10-06 (#146 review) the two files were written
+ * one after the other, so a failure on the second left a project with new packages and the old
+ * pin — exactly the mismatch this verb exists to end.
+ */
+async function writeAll(files: readonly { readonly path: string; readonly content: string; readonly original: string }[]): Promise<void> {
+  const temp = (path: string) => `${path}.upgrade-${process.pid}.tmp`;
+  try {
+    for (const file of files) await writeFile(temp(file.path), file.content);
+  } catch (error) {
+    await Promise.all(files.map(file => rm(temp(file.path), { force: true })));
+    throw new Error(`The upgrade was not written (nothing changed): ${error instanceof Error ? error.message : String(error)}`);
+  }
+  const moved: typeof files[number][] = [];
+  try {
+    for (const file of files) { await rename(temp(file.path), file.path); moved.push(file); }
+  } catch (error) {
+    for (const file of moved) await writeFile(file.path, file.original).catch(() => {});
+    await Promise.all(files.map(file => rm(temp(file.path), { force: true })));
+    throw new Error(`The upgrade could not be put in place, and what had moved was put back: ${error instanceof Error ? error.message : String(error)}`);
+  }
 }
 
 /** An exact release — a range would leave the pin and the install free to disagree again. */
@@ -126,6 +162,7 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   // PLAN BOTH FILES, THEN WRITE: a refusal below leaves the project as it was.
   const changed: string[] = [];
   const kept: string[] = [];
+  const warnings: string[] = [];
 
   // 1. THE PACKAGES. The product moves to the release; a package the release depends on moves
   // to that version; a lockstep kit package (declared at the project's old kit version) moves to
@@ -133,6 +170,21 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   const packageRaw = await readFile(packagePath, 'utf8');
   const pkg = JSON.parse(packageRaw) as PackageJson;
   const previousKit = pkg.devDependencies?.['@volter/editor-project'] ?? pkg.dependencies?.['@volter/editor-project'];
+
+  // NAMED, NOT MOVED: what this verb deliberately leaves to the author is listed, never skipped
+  // silently (#146 review) — peer and optional ranges are a package author's contract, and a
+  // workspace's members are projects of their own.
+  for (const section of ['peerDependencies', 'optionalDependencies'] as const) {
+    for (const [name, current] of Object.entries(pkg[section] ?? {})) {
+      if (name.startsWith('@volter/')) kept.push(`package.json ${section} keeps ${name}@${current}: ${section} are not moved by upgrade; edit them by hand if they should follow`);
+    }
+  }
+  if (pkg.workspaces !== undefined) {
+    const members = Array.isArray(pkg.workspaces) ? pkg.workspaces
+      : Array.isArray((pkg.workspaces as { packages?: unknown }).packages) ? (pkg.workspaces as { packages: unknown[] }).packages : [];
+    kept.push(`workspace members${members.length > 0 ? ` (${members.map(String).join(', ')})` : ''} are not upgraded: run ${product.command} upgrade in each member that is a project`);
+  }
+
   let packagesChanged = false;
   for (const section of ['dependencies', 'devDependencies'] as const) {
     const declared = pkg[section];
@@ -157,13 +209,34 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   const manifest = JSON.parse(manifestRaw) as { engine?: Record<string, unknown>; [key: string]: unknown };
   const pinned = manifest.engine?.['version'];
   const pinChanged = pinned !== engine;
+
+  // NEVER BACKWARDS BY ACCIDENT (#146 review). `latest` can be older than what a project is on (a
+  // prerelease, a version published from a branch), and moving a project back silently downgrades
+  // its engine under it. So a backwards move happens only when the version was named, and is said.
+  // The product's own declared version decides; a project that declares it as a range or a link
+  // is read by its engine pin instead.
+  const currentProduct = declaredVersion(pkg.dependencies?.[product.packageName] ?? pkg.devDependencies?.[product.packageName]);
+  const backwards = currentProduct !== null
+    ? (compareSemver(release.version, currentProduct) === -1 ? `${product.packageName}@${currentProduct}` : null)
+    : typeof pinned === 'string' && compareSemver(engine, pinned) === -1 ? `engine ${pinned}` : null;
+  if (backwards !== null) {
+    if (requested === undefined)
+      throw new Error(
+        `${product.packageName}@latest is ${release.version} (engine ${engine}), older than the ${backwards} this project is on, so upgrading to it would move the project backwards. ` +
+          `Nothing was changed. To go back on purpose, name the version: ${product.command} upgrade ${release.version}.`,
+      );
+    warnings.push(`This moves the project BACKWARDS, from ${backwards} to ${product.packageName}@${release.version} (engine ${engine}), because that version was named.`);
+  }
   if (pinChanged) {
     manifest.engine = { ...manifest.engine, version: engine };
     changed.push(`${MANIFEST_FILENAME} engine.version: ${typeof pinned === 'string' ? pinned : '(none)'} -> ${engine}`);
   }
 
-  if (packagesChanged) await writeFile(packagePath, jsonLayout(packageRaw)(pkg));
-  if (pinChanged) await writeFile(manifestPath, jsonLayout(manifestRaw)(manifest));
+  await writeAll([
+    ...(packagesChanged ? [{ path: packagePath, content: jsonLayout(packageRaw)(pkg), original: packageRaw }] : []),
+    ...(pinChanged ? [{ path: manifestPath, content: jsonLayout(manifestRaw)(manifest), original: manifestRaw }] : []),
+  ]);
+  for (const line of warnings) console.warn(`! ${line}`);
 
   console.log(changed.length > 0
     ? `Upgraded ${project} to ${product.packageName}@${release.version} (engine ${engine}):`
@@ -171,7 +244,13 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   for (const line of changed) console.log(`  + ${line}`);
   if (kept.length > 0) console.log('Left as it was:');
   for (const line of kept) console.log(`  = ${line}`);
-  if (changed.length === 0) return;
+  if (changed.length === 0) {
+    // NOTHING TO MOVE, YET AN EDITOR REFUSED: then the editor that refused is not this project's
+    // own installation (an older global install, another checkout), and saying "already on"
+    // alone left the person with no next step (#146 review).
+    console.log(`If an editor still refuses this project, it is running from another installation: open it with this project's own, \`npx ${product.command} edit .\` in ${project}.`);
+    return;
+  }
   console.log('Next:');
   // A checkout's project links the checkout's own install, which already holds every kit
   // package; `npm install` there would write into the checkout (`add-play`'s same rule).

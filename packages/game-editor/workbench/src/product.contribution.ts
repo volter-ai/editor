@@ -96,6 +96,8 @@ registerVolterProduct({
 		],
 	},
 	title: localize('volterGameTitle', "Volter Game Editor"),
+	// The package's own `bin` (packages/game-editor/package.json), named in the kit's messages.
+	command: 'volter-game-editor',
 	// The workbench's own trust prompt, in this product's words: a game project runs its own
 	// code the moment it opens — its contributions from its `node_modules`, its dev server, and
 	// the game itself in the pane.

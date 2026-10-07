@@ -12,6 +12,7 @@ import {
   modelPlaying,
   restartModelPlay,
   setModelPlayAutoplay,
+  setModelPlayFailure,
   setModelPlayPaused,
   setModelPlaying,
   setModelPlaySpeed,
@@ -20,7 +21,7 @@ import {
   subscribeModelPlayClock,
 } from '../src/model-play';
 import { playScriptPath, runPlayScript } from '../src/play-script';
-import { subscribeModelPlayLog, tailModelPlayLog } from '../src/play-log';
+import { beginModelPlayLog, subscribeModelPlayLog, tailModelPlayLog } from '../src/play-log';
 import type * as THREE from 'three';
 import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
 
@@ -127,6 +128,15 @@ export function start(): () => void {
       generation: modelPlayGeneration,
       autoplay: modelPlayAutoplay,
       setAutoplay: setModelPlayAutoplay,
+      // NO STAGE, SO NO RUNNER, and until 2026-10-06 the document turned Play off and wrote the
+      // reason to the console: Play flicked on and off with nothing said where anyone looks.
+      // Now the run stands with its failure — the Game panel draws it, the log records it.
+      fail(documentId, sourcePath, failure) {
+        const run = beginModelPlayLog(documentId, playScriptPath(sourcePath));
+        run.append('play', 'script-error', { phase: 'stage', message: failure });
+        run.end({ reason: 'stage-failed' });
+        setModelPlayFailure(documentId, failure);
+      },
     },
     log: { tail: tailModelPlayLog, subscribe: subscribeModelPlayLog },
     scriptPath: playScriptPath,

@@ -60,7 +60,8 @@ export interface VolterCommandsBridge {
 	 */
 	setCommandExecutor?(run: (id: string, args?: unknown) => Promise<unknown>): void;
 	/** Say something in the Volter editor's OWN console, where the editor's `console` command reads it. */
-	report(level: 'warn' | 'error', message: string): void;
+	/** `notify`: the refusal answers the person's own gesture, so it reaches the tray too. */
+	report(level: 'warn' | 'error', message: string, options?: { readonly notify?: boolean }): void;
 }
 
 /** One VS Code command id per editor palette action. The `action` segment keeps this namespace
@@ -143,7 +144,7 @@ export class VolterCommands extends Disposable {
 					// (a selection changed, a tool document closed, a package unloaded). Say so in
 					// the session's ledger rather than doing nothing.
 					if (!this.bridge.invoke(actionId)) {
-						this.bridge.report('warn', `The palette action "${actionId}" did not run: the editor no longer offers it.`);
+						this.bridge.report('warn', `The palette action "${actionId}" did not run: the editor no longer offers it.`, { notify: true });
 					}
 				},
 			}));

@@ -92,6 +92,14 @@ import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-s
 import { surfaceAcceptsKey } from '@volter/editor-sdk/kit/surface-keyboard';
 import { BlenderModelOpening } from './blender-model-opening';
 import { modelOpeningErrorMessage } from '../src/model-opening-error';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
+import { clearStartupFailure, reportStartupFailure } from '@volter/editor-sdk/kit/startup-failure';
+
+/** This document's model open, as a source in the page's startup-failure registry. */
+const MODEL_OPEN_STARTUP_SOURCE = 'blender-model-open';
+/** How long "Opening model…" stands before the pane also says what it is waiting on. */
+const MODEL_OPEN_NOTE_AFTER_MS = 30_000;
 import {
   clearModelDocumentPreview,
   modelDocumentPreview,
@@ -233,6 +241,8 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
   const entryId = document?.id;
   const key = JSON.stringify([documentId, entryId, blend]);
   const [opened, setOpened] = useState<{ key: string; error: string | null } | null>(null);
+  /** What a slow open is waiting on, once it has been slow (`MODEL_OPEN_NOTE_AFTER_MS`). */
+  const [stillOpening, setStillOpening] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const project = editorHost().projectLocalState.projectRootPath();
   const preview = useSyncExternalStore(subscribeModelDocumentPreview, () => modelDocumentPreview(project), () => null);
@@ -298,6 +308,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     const unbind = bindModelDocument(binding);
     const publish = () => { unpublish = callbacks.current.publishContext?.(view); };
     setOpened(null);
+    setStillOpening(null);
     // Native focus can arrive after the contributed pane mounts. A declined
     // open is not an in-flight load: retry when the host activates this model,
     // rather than leaving "Opening model…" latched forever. Utility focus
@@ -305,18 +316,23 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     const documents = editorHost().documents;
     let starting = false;
     let finished = false;
+    let declined = false;
+    const path = blend ?? 'the model';
     const open = async () => {
-      if (cancelled || starting || finished || (binding && !modelDocumentMayOpen(binding))) return;
+      if (cancelled || starting || finished) return;
+      if (binding && !modelDocumentMayOpen(binding)) { declined = true; return; }
       starting = true;
+      declined = false;
       try {
         if (binding) {
-          if (!await openModelDocumentBlend(binding, publish)) return;
+          if (!await openModelDocumentBlend(binding, publish)) { declined = true; return; }
         } else {
           // The standing Model document is the explicit blender-start target.
           publish();
         }
         if (!cancelled) {
           finished = true;
+          clearStartupFailure(MODEL_OPEN_STARTUP_SOURCE);
           setOpened({ key, error: null });
         }
       } catch (error) {
@@ -327,11 +343,29 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
         const detail = error instanceof Error ? error.message : String(error);
         setOpened({ key, error: detail });
         editorHost().console.error(detail, 'blender-open');
-        callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${blend ?? 'the model'}`, detail: modelOpeningErrorMessage(detail) });
+        callbacks.current.notify?.({ tone: 'error', title: `Blender could not open ${path}`, detail: modelOpeningErrorMessage(detail) });
+        // AND TO THE PRODUCT'S COVER, which is still up while the first model opens and
+        // would otherwise go on saying "Opening the first model…" over this pane's error
+        // until its own budget ran out. After the cover has lifted, this changes nothing.
+        reportStartupFailure(MODEL_OPEN_STARTUP_SOURCE, {
+          message: `Blender could not open ${path}: ${detail}`,
+          guidance: `${modelOpeningErrorMessage(detail)} Dismiss this to reach the model's Retry.`,
+          command: null,
+        });
       } finally {
         starting = false;
       }
     };
+    // A SLOW OPEN SAYS WHAT IT IS WAITING ON (2026-10-06 audit: "Opening model…" had no word
+    // past its spinner, and a declined open sat there indefinitely). It is progress, never an
+    // error, and it offers no Retry (#147 review): the open is still running, and a second one
+    // would queue behind it. A real failure arrives through the catch above.
+    const slow = setInterval(() => {
+      if (cancelled || finished) return;
+      setStillOpening(declined
+        ? `Still waiting: Blender is holding another model, and opens ${path} when it is free.`
+        : `Still opening ${path}: Blender is working (a large file, or a cold start). ${commandLine('status')} shows what it is busy with.`);
+    }, MODEL_OPEN_NOTE_AFTER_MS);
     // Opening publishes context to other React roots. Start outside this
     // effect (or a host activation listener's synchronous notification stack)
     // so those roots cannot synchronously commit through a pending commit here.
@@ -345,6 +379,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     requestOpen();
     return () => {
       cancelled = true;
+      clearInterval(slow);
       unsubscribe();
       unpublish?.();
       unbind();
@@ -354,6 +389,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
   if (active === false || !documentId) return null;
   if (opened?.key !== key || opened.error) return <BlenderModelOpening
     documentId={documentId} path={blend ?? 'Model'} error={opened?.key === key ? opened.error : null} preview={preview}
+    note={stillOpening}
     retry={() => { setOpened(null); setAttempt(value => value + 1); }}
     returnToPreview={() => {
       if (!preview) return;
@@ -610,6 +646,18 @@ function BlenderModelViewport(props: ToolContributionProps) {
           </div>
         </div>
       )}
+      {game && failure !== null && (
+        // A PLAY WITH NO GAME, said over the area itself. When the script did not start (or the
+        // stage could not be prepared) the game never draws and the model area stays in front,
+        // so the area looked like plain editing while Play was on and the reason was a toast
+        // that had already gone (2026-10-06 audit). The Game panel says the same in its line.
+        <div key="play-failure" role="alert" data-testid="blender-play-failure"
+          style={{ position: 'absolute', left: 24, right: 24, top: 24, zIndex: 4, padding: `${spaceVar[2]} ${spaceVar[3]}`,
+            background: themeVars.surface.chrome, border: `1px solid ${themeVars.semantic.danger}`, borderRadius: themeVars.shape.small,
+            color: themeVars.content.primary, fontSize: fontSizeVar.sm, whiteSpace: 'pre-wrap', overflowWrap: 'anywhere', userSelect: 'text' }}>
+          <strong style={{ color: themeVars.semantic.danger }}>Play is not running.</strong> {failure} Restart (or save the script) to try again, or Stop.
+        </div>
+      )}
       {game && restartStill !== null && (
         <div key="restart-still" style={{ position: 'absolute', inset: 12, containerType: 'size', zIndex: 3, pointerEvents: 'none' }} data-testid="blender-play-restart-still">
           <img alt="" src={restartStill} style={{ ...playFrame, display: 'block', objectFit: 'fill' }} />
@@ -843,8 +891,17 @@ function BlenderViewportArea({
         }) ?? null;
       }, error => {
         if (stopped) return;
-        editorHost().console.error(`Rendered stage preparation failed: ${String(error)}`, 'model-play');
-        documentPlayExtension('model')?.setPlaying(modelId, false);
+        const failure = `The game's stage could not be prepared for a rendered draw: ${error instanceof Error ? error.message : String(error)}`;
+        editorHost().console.error(failure, 'model-play');
+        // SAID WHERE THE PERSON IS LOOKING: on the run's clock, which the Game panel and the
+        // play area draw, and in the play log. Turning Play off (what this did until
+        // 2026-10-06) erased the only trace a person could have seen.
+        const extension = documentPlayExtension('model');
+        if (extension?.transport?.fail) extension.transport.fail(modelId, blend, failure);
+        else {
+          notifyRef.current?.({ tone: 'error', title: 'Play could not start', detail: failure });
+          extension?.setPlaying(modelId, false);
+        }
       });
     };
     start();

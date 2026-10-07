@@ -13,7 +13,7 @@
  */
 import { randomUUID } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync } from 'node:fs';
-import { dirname, relative, sep } from 'node:path';
+import { delimiter, dirname, isAbsolute, relative, sep } from 'node:path';
 import { Server } from '@modelcontextprotocol/sdk/server/index.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
 import {
@@ -106,10 +106,30 @@ function projectRelative(project: string, absolute: string): string | null {
 }
 
 /**
+ * BLENDER'S FILESYSTEM IS POSIX, the host's may not be. The worker mounts a Windows root
+ * (`C:\Users\me\p`) at its URI path (`/C:/Users/me/p`) — `projectMount` in
+ * `@volter/blender-engine/browser/worker.ts`, which this mirrors because that module is the
+ * worker's and cannot load here. Every path crossing the transport goes through these two:
+ * the engine's spelling on the wire, the host's on disk. Until 2026-10-06 the Mirror sent the
+ * host's spelling, the worker listed nothing at a path it did not have, and on Windows no
+ * script output ever reached disk while every call reported success.
+ */
+export function engineSpelling(host: string): string {
+  return /^[A-Za-z]:[\\/]/.test(host) ? `/${host.replaceAll('\\', '/')}` : host;
+}
+
+/** {@link engineSpelling} backwards: `/C:/Users/me/p/x.glb` → `C:\Users\me\p\x.glb` on
+ *  Windows; a POSIX host's paths are the engine's own. */
+export function hostSpelling(engine: string, platform: NodeJS.Platform = process.platform): string {
+  return platform === 'win32' && /^\/[A-Za-z]:\//.test(engine) ? engine.slice(1).replaceAll('/', '\\') : engine;
+}
+
+/**
  * The worker's filesystem is the only place a script's outputs exist; this
  * mirrors them to disk. Roots: the project (a script's `public/models/x.glb`
- * lands in the project) plus any `VOLTER_BLENDER_MIRROR_ROOTS` (colon-separated
- * absolute paths — the replay harness names its run directory). Only files
+ * lands in the project) plus any `VOLTER_BLENDER_MIRROR_ROOTS` (absolute paths separated by
+ * the platform's own `path.delimiter` — `:` on POSIX, `;` on Windows, where a drive letter's
+ * colon is part of the path — the replay harness names its run directory). Only files
  * whose size or mtime changed since the last mirror are read back, and only
  * files the SESSION owns are listed at all — a project file it merely read
  * belongs to the host and is never written back over it.
@@ -153,11 +173,14 @@ class Mirror {
         session?: string;
         revision?: number;
         document?: string;
-      }>('blender-list-files', { path: root });
+      }>('blender-list-files', { path: engineSpelling(root) });
       for (const entry of listing.entries) {
         const stamp = `${entry.size}:${entry.mtime}`;
         if (this.#seen.get(entry.path) === stamp) continue;
-        const projectPath = projectRelative(this.project, entry.path);
+        // `entry.path` is the engine's spelling (what `blender-read-file` takes); `onDisk` is
+        // where the same file lives on this machine.
+        const onDisk = hostSpelling(entry.path);
+        const projectPath = projectRelative(this.project, onDisk);
         const shipped =
           projectPath !== null && projectOutputRootOf(projectPath) === 'public'
             ? projectPath
@@ -184,15 +207,15 @@ class Mirror {
           // adapter triggers project reload during this very MCP request.
           // Only changed bytes should reach the filesystem watcher.
           try {
-            if (readFileSync(entry.path).equals(bytes)) {
+            if (readFileSync(onDisk).equals(bytes)) {
               this.#seen.set(entry.path, stamp);
               continue;
             }
           } catch (error) {
             if ((error as NodeJS.ErrnoException).code !== 'ENOENT') throw error;
           }
-          mkdirSync(dirname(entry.path), { recursive: true });
-          writeFileSync(entry.path, bytes);
+          mkdirSync(dirname(onDisk), { recursive: true });
+          writeFileSync(onDisk, bytes);
         } else {
           const query = new URLSearchParams({
             path: shipped,
@@ -294,6 +317,25 @@ class TabSession {
 
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }] });
 
+/** `VOLTER_BLENDER_MIRROR_ROOTS`, split on the platform's delimiter. A root Blender cannot mount
+ *  is REFUSED by name rather than dropped: dropping it was how a Windows root (`C:\…`, split on
+ *  its own colon) silently mirrored nothing. Blender's filesystem has a mount for a POSIX root
+ *  (`/runs/x`) and a drive root (`C:\runs\x`, as `/C:/runs/x`) only, so a relative path, a UNC
+ *  share (`\\server\share`) and a drive-less rooted path (`\runs\x`) — all of which Node calls
+ *  absolute or nearly — are refused too (#147 review). */
+function mirrorRoots(raw: string | undefined): string[] {
+  const roots = (raw ?? '').split(delimiter).filter((root) => root !== '');
+  const mountable = (root: string) => /^[A-Za-z]:[\\/]/.test(root) || (root.startsWith('/') && !root.startsWith('//'));
+  const refused = roots.filter((root) => !mountable(root) || !isAbsolute(root));
+  if (refused.length > 0)
+    throw new Error(
+      `VOLTER_BLENDER_MIRROR_ROOTS names ${refused.map((root) => JSON.stringify(root)).join(', ')}, ` +
+        `which Blender cannot mount: a root must be an absolute POSIX path (/runs/x) or a drive path (C:\\runs\\x), ` +
+        `not a relative path, a UNC share or a path without its drive. Separate roots with "${delimiter}".`,
+    );
+  return roots;
+}
+
 export async function serveBlenderMcp(
   project: string,
   ensureEditor: () => Promise<void>,
@@ -304,7 +346,10 @@ export async function serveBlenderMcp(
   // it goes rendered one, wrote it into the project and ran the OS `open` on it: Preview started
   // outside the editor. The editor already shows a picture as one of its documents.
   const photographs = `A photograph is shown to the person in the editor, never in another app: get_viewport_screenshot returns one, and an image file written inside the project opens as an editor document with \`npx ${command} eval 'editor.openAsset("<project-relative path>")'\`. Do not run the OS \`open\` on it.`;
-  const filesystem = `Project files are mounted in Blender at the project's actual absolute path: ${project}. Use that root for image loads, saves and exports; /project is not an alias.`;
+  // Blender's own spelling of the root: on Windows the project's `C:\…` is `/C:/…` inside it, and
+  // a script told the host spelling writes to a path that is not the project's.
+  const mounted = engineSpelling(project);
+  const filesystem = `Project files are mounted in Blender at the project's actual absolute path: ${mounted}${mounted !== project ? ` (this machine's ${project})` : ''}. Use that root for image loads, saves and exports; /project is not an alias.`;
   const instructions = `${runtimeIdentity}\n${filesystem}\n${photographs}`;
   const tools = (blenderTools as ToolShape[]).map((tool) =>
     tool.name === 'execute_blender_code'
@@ -314,9 +359,7 @@ export async function serveBlenderMcp(
   const defaults = blenderDefaults as Record<string, string>;
   const mirror = new Mirror(project, [
     project,
-    ...(process.env['VOLTER_BLENDER_MIRROR_ROOTS'] ?? '')
-      .split(':')
-      .filter((root) => root.startsWith('/')),
+    ...mirrorRoots(process.env['VOLTER_BLENDER_MIRROR_ROOTS']),
   ], `${command} blender-mcp`);
   const tab = new TabSession(project, ensureEditor);
   const server = new Server(

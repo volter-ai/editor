@@ -724,6 +724,11 @@ export function recordBeat(
     epochCount: base.epochCount + (epochChanged || base.epochCount === 0 ? 1 : 0),
     epochs,
     visibility: beat.visibility,
+    // A ROUTE BELONGS TO THE PAGE-LOAD THAT REPORTED IT, as a listener does: a reload starts
+    // `unknown` until its own AppRoot reports. Carried over, a reloaded page still detecting read
+    // as the previous load's terminal `no-project`, and `edit` counted that load's old refusal
+    // as this one's (#147 re-review).
+    route: epochChanged ? 'unknown' : base.route,
     // A new page-load starts owing a channel again — and gets a fresh chance
     // to be called unresponsive, or not.
     channelThisEpoch: epochChanged ? base.connected : base.channelThisEpoch,

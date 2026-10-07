@@ -58,7 +58,18 @@ import {
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
 import { subscribeAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
-import { AppRoot, subscribeStartupFailure, type StartupFailureNotice } from '../components/AppRoot';
+import { AppRoot } from '../components/AppRoot';
+import {
+  clearStartupFailure,
+  reportStartupFailure,
+  subscribeStartupFailure,
+  type StartupFailureNotice,
+} from '@volter/editor-sdk/kit/startup-failure';
+import {
+  getToolContributionLoadFailures,
+  subscribeToolContributions,
+  toolContributionsPublished,
+} from '@volter/editor-sdk/kit/tool-loader';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
 import { Inspector, InspectorShownAsCard } from '@volter/editor-sdk/kit/components/Inspector';
@@ -77,6 +88,7 @@ import {
   subscribePaletteActions,
 } from '@volter/editor-sdk/kit/editor-commands';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { commandLine } from '@volter/editor-sdk/kit/product-command';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
 import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';
 import { type EditorNotification, setNotificationDelegate } from '@volter/editor-sdk/kit/editor-notifications';
@@ -177,7 +189,9 @@ export interface VolterKeyboardHandle {
     documentKind: string | null;
     play: string;
   };
-  report(level: 'warn' | 'error', message: string): void;
+  /** `notify`: the refusal answers a gesture the person just made (a palette pick), so it
+   *  reaches the tray too even at `warn`. An `error` always does. */
+  report(level: 'warn' | 'error', message: string, options?: { readonly notify?: boolean }): void;
 }
 
 /**
@@ -1031,7 +1045,8 @@ export interface VolterCommandsHandle {
    *  Standalone the same door answers a `volter.<view>.<verb>` id off the views registry, so this
    *  is the second implementation of one table, never a second table. */
   setCommandExecutor(run: ((id: string, args?: unknown) => Promise<unknown>) | null): void;
-  report(level: 'warn' | 'error', message: string): void;
+  /** `notify`: a palette pick that ran nothing answers the person's own gesture (tray too). */
+  report(level: 'warn' | 'error', message: string, options?: { readonly notify?: boolean }): void;
 }
 
 /**
@@ -1072,6 +1087,40 @@ export interface VolterGameHandle {
  */
 export interface VolterStartupHandle {
   subscribe(listener: (failure: StartupFailureNotice | null) => void): () => void;
+}
+
+/**
+ * A CONFIRMED DEAD END, not a slow start (#147 re-review): the workspace has restored, the
+ * project's contributions have loaded — and some FAILED — and no document is open. The
+ * product's cover waits for a document to open; with the package that registers it unloadable,
+ * none ever will, and the cover would narrate a wait with nothing behind it. So it is said, with
+ * the failed modules and the fix, through the same startup-failure door the cover hears. A
+ * document that opens after all (a reload of a fixed package) withdraws it.
+ */
+const NO_DOCUMENT_SOURCE = 'no-document';
+function watchForNoDocumentDeadEnd(): void {
+  void waitForWorkspaceStateRestore().then(() => {
+    let said: string | null = null;
+    const check = (): void => {
+      const open = openWorkspaceDocuments().some((document) => !document.descriptor.area);
+      if (open) { said = null; clearStartupFailure(NO_DOCUMENT_SOURCE); return; }
+      if (!toolContributionsPublished()) return;
+      const failures = getToolContributionLoadFailures();
+      if (failures.length === 0) return;
+      const listed = failures.map((failure) => `${failure.entryPath}: ${failure.error.split('\n')[0]}`).join('\n');
+      if (listed === said) return;
+      said = listed;
+      editorConsole.error(`Startup failed: no document can open, because these contributions did not load:\n${listed}`, 'editor');
+      reportStartupFailure(NO_DOCUMENT_SOURCE, {
+        message: `No document can open: the editor's contributions that provide them did not load.\n${listed}`,
+        guidance: `Reinstall the project's packages (npm install in the project folder), then reload this window; ${commandLine('console')} has the full errors.`,
+        command: null,
+      });
+    };
+    subscribeToolContributions(check);
+    subscribeWorkspaceDocuments(check);
+    check();
+  });
 }
 
 /** What the frame hands over besides its parts, before anything of the editor runs. */
@@ -1239,10 +1288,27 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     // than restating "failed to apply" (`history-service.ts`'s
     // `causeSentence`). A notification per refusal would also fire on every
     // Cmd+Z at the bottom of a stack, which VS Code itself is silent about.
-    report: (level, message) => {
+    //
+    // AND THE TRAY, FOR WHAT THE PERSON HIT (2026-10-06 audit: "settings-apply and keyboard
+    // refusals go to the console only"). An `error` — settings that could not be applied or
+    // written, a file write refused — is a failure of something the person or their project
+    // asked for, and a ledger line they never open is not telling them. A refusal the caller
+    // marks `notify` answers a gesture just made (a palette pick the editor no longer offers).
+    // The rest stay ledger-only, for the reason above: "Nothing to undo" at the bottom of a
+    // stack, and a keyboard action whose gate refused — which is every Ctrl+C with text
+    // selected in a pane, far too common to toast (#147 review).
+    report: (level, message, options) => {
       const door = editorHost();
       if (level === 'error') door.console.error(message, 'editor');
       else door.console.warn(message, 'editor');
+      if (level === 'error' || options?.notify) {
+        const [title, ...rest] = message.split(/(?<=[.:])\s+/);
+        door.notify({
+          tone: level === 'error' ? 'error' : 'warning',
+          title: title ?? message,
+          ...(rest.length > 0 ? { detail: rest.join(' ') } : {}),
+        });
+      }
     },
   };
   // The frame's documents contribution reports the editor its native restoration chose BEFORE it
@@ -1539,6 +1605,7 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     },
     report: (level, message) => keyboard.report(level, message),
   };
+  watchForNoDocumentDeadEnd();
   const statusItems: VolterStatusHandle = {
     list: () =>
       (['left', 'right'] as const).flatMap((align) =>

@@ -37,8 +37,10 @@ export interface ModelPlayClock {
   readonly speed: number;
   /** The run is playing but no game runs: the script failed to start, or threw (`play-script.ts`). */
   readonly failure: string | null;
+  /** A game has started in this run and runs (`DocumentPlayClock.running`). */
+  readonly running: boolean;
 }
-const STILL: ModelPlayClock = { time: 0, tick: 0, paused: false, speed: 1, failure: null };
+const STILL: ModelPlayClock = { time: 0, tick: 0, paused: false, speed: 1, failure: null, running: false };
 /** Replaced, never mutated, so a snapshot read by `useSyncExternalStore` changes identity
  *  exactly when it changes value. */
 const clocks = new Map<string, ModelPlayClock>();
@@ -88,7 +90,7 @@ export function setModelPlaying(documentId: string, value: boolean): void {
     // A new run starts its clock at zero and running; the speed is the person's and stays.
     steps.delete(documentId);
     autoplays.delete(documentId);
-    setClock(documentId, { time: 0, tick: 0, paused: false, failure: null });
+    setClock(documentId, { time: 0, tick: 0, paused: false, failure: null, running: false });
   } else {
     playing.delete(documentId);
     restarted.delete(documentId);
@@ -98,7 +100,7 @@ export function setModelPlaying(documentId: string, value: boolean): void {
     // Re-issued even unchanged, after `playing` has changed: every way a game stops (Stop,
     // Escape, a deleted script, a mode switch, an agent's `stop`) ends here, and a reader of
     // the clock alone must see the run end too.
-    setClock(documentId, { paused: false, failure: null });
+    setClock(documentId, { paused: false, failure: null, running: false });
   }
   publish();
 }
@@ -132,10 +134,13 @@ function currentStop(documentId: string): ((escape: boolean) => void) | null {
   return entry !== undefined && entry.generation === modelPlayGeneration(documentId) ? entry.stop : null;
 }
 
-/** The runner's report that no game runs although the run plays (`null` once one does). */
+/** The runner's report that no game runs although the run plays (`null` once one does, which
+ *  is also the moment the run is `running`). */
 export function setModelPlayFailure(documentId: string, failure: string | null): void {
-  if (!playing.has(documentId) || modelPlayClock(documentId).failure === failure) return;
-  setClock(documentId, { failure });
+  const clock = modelPlayClock(documentId);
+  const running = failure === null;
+  if (!playing.has(documentId) || (clock.failure === failure && clock.running === running)) return;
+  setClock(documentId, { failure, running });
 }
 
 export function subscribeModelPlay(listener: () => void): () => void {
@@ -208,7 +213,7 @@ export function restartModelPlay(documentId: string): void {
   restarted.add(documentId);
   steps.delete(documentId);
   autoplays.delete(documentId);
-  setClock(documentId, { time: 0, tick: 0, paused: false, failure: null });
+  setClock(documentId, { time: 0, tick: 0, paused: false, failure: null, running: false });
   publish();
 }
 
