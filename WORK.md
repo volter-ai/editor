@@ -19,8 +19,9 @@ Native single-scattering sun-disc settings and spectral radiance now reach the
 browser. Direct irradiance is separated from diffuse IBL and casts fitted
 shadows; native finite-disc softness and indirect lighting remain gaps. Four
 native sun fixtures and world expression/lifecycle checks pass. Same-source,
-same-camera courtyard comparisons still fail: native evaluation includes 6,287
-instances which the exporter's view-layer-base walk omits. Native Cycles now
+same-camera courtyard comparisons still fail. Native evaluation's 6,287
+instances now reach presentation through stable evaluated source resources and
+placement metadata; the completed repairs are recorded below. Native Cycles now
 retains its own engine class inside WASM: requesting CYCLES produces a native
 CPU render rather than a Three photograph registered under that name. Raster
 captures remain available as VOLTER_THREE. The live viewport/Play remain Three
@@ -32,7 +33,7 @@ pass. Native output remains noisy; complete pixel equivalence is not claimed.
 
 The courtyard still fails full-scene parity. Its remaining material conditions
 include Particle Info, tinted transparency and multiple Principled closures.
-Native depsgraph collection/particle instances and their inputs, sun-disc shadow
+Particle Info, geometry-dependent environment visibility, sun-disc shadow
 softness, indirect lighting and the full native camera/image comparison
 remain to complete. Preserve the original source and reference; gameplay stays
 behind the matching static model/React UI screenshot gate.
@@ -1908,3 +1909,20 @@ audit found no remaining conflicting keys. Same-camera captures restore the
 foreground arch opening and roof arrangement, but raster illumination remains
 substantially brighter than native Cycles. This is geometry correctness, not
 visual-parity acceptance. No packages were published.
+
+### 2026-10-07 — wait for sunlight before fitting capture shadows
+
+An asynchronously derived sky creates its sunlight after the initial shadow
+fit. Detached captures now fit again after world readiness, before rendering.
+The new capture regression fails with the old ordering and passes with the
+repair. Shadow visibility now reads native object flags, including excluded
+instance sources, and intersects source/instancer flags as Cycles does. Visible
+objects can receive illumination without becoming shadow casters.
+
+Thirteen focused material/placement checks, five Python metadata checks, engine
+typechecking and the modeling frontend build passed. A public-editor courtyard
+capture completed and was viewed; it remains substantially too bright. A native
+16-sample zero-indirect-bounce control still has a dark arcade. Position-dependent
+environment visibility remains a rendering gap in addition to indirect light.
+The native and browser camera matrix, frame, lens, shift and exposure agree.
+No visual-parity acceptance or package publication is claimed.

@@ -14,6 +14,7 @@ class DepsgraphPlacements(unittest.TestCase):
         self.objects = {}
         for row in self.fixture['objects']:
             obj = SimpleNamespace(name=row['name'], type=row['type'], hide_render=row['hide_render'],
+                                  visible_shadow=True,
                                   is_instancer=row['is_instancer'],
                                   show_instancer_for_render=row['show_instancer_for_render'])
             obj.original = obj
@@ -30,7 +31,8 @@ class DepsgraphPlacements(unittest.TestCase):
         tree = ast.parse((root.parent / 'browser/session.py').read_text())
         fn = next(node for node in tree.body if isinstance(node, ast.FunctionDef) and
                   node.name == '_depsgraph_placements')
-        namespace = {'json': json, 'warn': lambda msg: self.fail(msg)}
+        namespace = {'json': json, 'warn': lambda msg: self.fail(msg),
+                     'bpy': SimpleNamespace(data=SimpleNamespace(objects=self.objects))}
         exec(compile(ast.Module(body=[fn], type_ignores=[]), 'session.py', 'exec'), namespace)
         self.export = namespace[fn.name]
         self.frame = {'objects': copy.deepcopy(self.fixture['objects']),
@@ -75,6 +77,18 @@ class DepsgraphPlacements(unittest.TestCase):
         self.frame['objects'] = [row for row in self.frame['objects'] if row['name'] != 'SourceCube']
         with self.assertRaisesRegex(NotImplementedError, 'SourceCube'):
             self.export(self.frame, SimpleNamespace(object_instances=self.native))
+
+    def test_shadow_visibility_intersects_source_and_instancer_like_cycles(self):
+        self.objects['Emitter'].visible_shadow = False
+        self.objects['SourceCube'].visible_shadow = False
+        draws = self.export(self.frame, SimpleNamespace(object_instances=self.native))
+        for draw in draws:
+            expected = self.objects[draw['source']].visible_shadow and (
+                draw['owner'] is None or self.objects[draw['owner']].visible_shadow)
+            self.assertEqual(draw['shadow_visible'], expected)
+            self.assertTrue(draw['visible'], 'ray visibility does not hide the camera draw')
+        for row in self.frame['objects']:
+            self.assertEqual(row['shadow_visible'], self.objects[row['name']].visible_shadow)
 
 
 if __name__ == '__main__':

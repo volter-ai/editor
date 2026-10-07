@@ -496,6 +496,7 @@ export const frameSchema = z
       id:z.string(),source:z.string(),owner:z.string().nullable(),
       matrix:z.array(z.tuple([scalar,scalar,scalar,scalar])).length(4),
       visible:z.boolean(),render_visible:z.boolean(),random:scalar,color:z.tuple([scalar,scalar,scalar,scalar]),
+      shadow_visible:z.boolean().optional(),
     }).strict()).optional(),
     objects: z.array(
       z
@@ -526,6 +527,7 @@ export const frameSchema = z
           matrix: z.array(z.tuple([scalar, scalar, scalar, scalar])).length(4),
           visible: z.boolean(),
           render_visible: z.boolean().default(true),
+          shadow_visible: z.boolean().default(true),
           selected: z.boolean(),
           parent: z.string().nullable(),
           instance_owner: z.string().nullable().optional(),
@@ -1430,6 +1432,9 @@ export class BlenderRuntimeView {
       await lightingReady();
       await Promise.all([...this.textures.values()].map((held) => held.ready));
       await this.world.ready();
+      // The asynchronous sky composition creates solar lights. Fit their
+      // shadows only after they exist, including the first detached capture.
+      this.applyShadows(rendered, camera);
     }
   }
 
@@ -1472,14 +1477,17 @@ export class BlenderRuntimeView {
         [object, { matrix: object.matrixWorld.clone(), visible: object.visible }])),
     } : null;
     const boxes: THREE.Box3[] = [];
-    for (const object of this.objects.values()) {
+    const casters: THREE.Box3[] = [];
+    const shadowVisibility = new Map(this.frame?.objects.map(row => [row.id, row.shadow_visible]) ?? []);
+    for (const [id, object] of this.objects) {
       const mesh = object as THREE.Mesh;
       if (!mesh.isMesh) continue;
-      mesh.castShadow = rendered;
+      mesh.castShadow = rendered && shadowVisibility.get(id) !== false;
       mesh.receiveShadow = rendered;
       if (rendered && mesh.visible) {
         const bounds = new THREE.Box3().setFromObject(mesh);
         if (!bounds.isEmpty()) boxes.push(bounds);
+        if (!bounds.isEmpty() && mesh.castShadow) casters.push(bounds);
       }
     }
     if (!rendered || !boxes.length) return;
@@ -1495,7 +1503,7 @@ export class BlenderRuntimeView {
       : [];
     for (const light of [...this.lights.values(), ...this.world.solarLights]) {
       if ((light as THREE.DirectionalLight).isDirectionalLight && camera)
-        fitModelDirectionalShadow(light as THREE.DirectionalLight, receivers, boxes);
+        fitModelDirectionalShadow(light as THREE.DirectionalLight, receivers, casters);
       else fitShadow(light, sphere.center, sphere.radius);
     }
   }

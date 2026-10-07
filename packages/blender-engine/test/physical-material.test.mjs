@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
-const result=await build({stdin:{contents:`export * from './blender-physical-material'; export * from './blender-texture-samplers'; export * from './blender-runtime-geometry'; export {BlenderRuntimeView} from './blender-runtime-view'; export {MeshPhysicalMaterial,ShaderLib,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,Raycaster,Vector3} from 'three';`,
+const result=await build({stdin:{contents:`export * from './blender-physical-material'; export * from './blender-texture-samplers'; export * from './blender-runtime-geometry'; export {BlenderRuntimeView} from './blender-runtime-view'; export {MeshPhysicalMaterial,ShaderLib,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,Raycaster,Vector3,Scene,PerspectiveCamera} from 'three';`,
   resolveDir:fileURLToPath(new URL('../browser/three/',import.meta.url)),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {applyPhysicalMaterial,physicalMaterialSchema,MeshPhysicalMaterial,ShaderLib,BlenderTextureSamplers,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,bindNamedUvChannels,drawArraysFromColumns,geometryFromDrawArrays,BlenderRuntimeView,Raycaster,Vector3}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].contents).toString('base64'));
+const {applyPhysicalMaterial,physicalMaterialSchema,MeshPhysicalMaterial,ShaderLib,BlenderTextureSamplers,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,bindNamedUvChannels,drawArraysFromColumns,geometryFromDrawArrays,BlenderRuntimeView,Raycaster,Vector3,Scene,PerspectiveCamera}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].contents).toString('base64'));
 const values={coat:0.8,coat_roughness:0.12,coat_ior:1.8,coat_tint:[0.2,0.4,0.6],
   sheen:0.7,sheen_roughness:0.35,sheen_tint:[0.5,0.2,0.1],anisotropy:0.6,anisotropy_rotation:0.25,
   specular_level:0.75,specular_tint:[0.7,0.8,0.9],film_thickness:450,film_ior:1.4};
@@ -149,4 +149,33 @@ test('Blender surfaces remain visible from underneath, including capture and Sol
   const capture=view.captureSnapshot();check(capture.root);capture.dispose();
   view.setWorkbench(true);check(view.root);view.setWorkbench(false);check(view.root);
   view.dispose();
+});
+
+test('first detached capture fits sunlight after sky derivation and preserves ray visibility',async()=>{
+  const view=new BlenderRuntimeView(), scene=new Scene();
+  const identity=[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]];
+  const camera=new PerspectiveCamera(50,1,.1,100);
+  camera.position.set(21,10,-21);camera.lookAt(21,0,-21);camera.updateMatrixWorld(true);
+  try {
+    view.applyFrame({session:'async-sun',revision:1,active:null,mode:'OBJECT',materials:{},
+      world:{color:[0,0,0],strength:1,shader:{kind:'sky',sky_model:'SINGLE_SCATTERING',sun_disc:true,
+        sun_size:.02,sun_intensity:1,sun_elevation:.8,sun_rotation:.4,
+        altitude:0,air_density:1,aerosol_density:1,ozone_density:1}},
+      meshes:{plane:{hash:'plane',positions:new Float32Array([20,20,0,22,20,0,20,22,0]),
+        normals:new Float32Array([0,0,1,0,0,1,0,0,1]),uv:null,indices:new Uint32Array([0,1,2]),
+        groups:[{start:0,count:3,materialIndex:0}]}},
+      objects:[{id:'no-shadow',name:'no-shadow',type:'MESH',mesh:'plane',materials:[],matrix:identity,
+        visible:true,shadow_visible:false,selected:false,parent:null}]});
+    const capture=view.captureSnapshot();scene.add(capture.root);
+    try {
+      await capture.prepare(camera);
+      const sun=scene.children.find(child=>child.name==='BlenderWorldSun');
+      assert(sun,'capture waits for world sunlight');
+      assert(sun.shadow.camera.right-sun.shadow.camera.left<4,'new solar light is fitted before first render');
+      const mesh=capture.root.getObjectByName('no-shadow');
+      assert.equal(mesh.visible,true);assert.equal(mesh.castShadow,false);assert.equal(mesh.receiveShadow,true);
+      await capture.prepare(camera);
+      assert.equal(mesh.castShadow,false,'repeated capture retains native shadow exclusion');
+    } finally {capture.dispose();}
+  } finally {view.dispose();}
 });
