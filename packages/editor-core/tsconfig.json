@@ -38,6 +38,7 @@
   "include": [
     "src",
     "vite-plugin-*.ts",
-    "server"
+    "server",
+    "view/page"
   ]
 }

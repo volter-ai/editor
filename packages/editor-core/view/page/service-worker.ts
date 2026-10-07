@@ -1,0 +1,175 @@
+/**
+ * THE LIMITED VIEW'S SERVICE WORKER — the transport behind `/__editor/*` when there is no session.
+ *
+ * The editor and the workbench make the same requests they make against a session; this worker
+ * decides who answers each one, in order:
+ *
+ *  1. A NAVIGATION is the static host's page, re-served with cross-origin isolation
+ *     (COOP `same-origin`, COEP `credentialless`), so a host that cannot set headers still runs
+ *     Blender's threads. The page reloads itself once when it was not isolated on first load.
+ *  2. A GET recorded at build time (`__view/routes.json`): a compiled project module, a fixed
+ *     answer of the session, an integration's engine bytes. Looked up by the exact URL, then by
+ *     {@link recordedKey} (cache busters dropped, the mount id swapped for the sentinel and put
+ *     back into the body).
+ *  3. The view's own files, the workbench and the product's chunks: the static host.
+ *  4. Everything else goes to THE PAGE, whose router answers it against the project's files in
+ *     memory (`router.ts`). The files live in the page because a worker's memory does not last:
+ *     the browser stops an idle worker whenever it likes.
+ *
+ * Built to `<out>/view-sw.js` by `server/view/view-build.ts`.
+ */
+
+import { LIMITED_VIEW_HEADER } from '@volter/editor-sdk/session/limited-view';
+import {
+  type LimitedViewRouteEntry,
+  type LimitedViewRoutes,
+  MOUNT_SENTINEL,
+  recordedKey,
+  STATIC_PREFIXES,
+  VIEW_DIR,
+  VIEW_MISS_HEADER,
+} from './view-contract';
+
+/** The few service-worker globals used here, declared rather than pulling the WebWorker lib into
+ *  a project compiled against the DOM. */
+interface WorkerClient { readonly id: string; readonly type: string; postMessage(message: unknown, transfer?: Transferable[]): void }
+interface WorkerScope {
+  readonly clients: { get(id: string): Promise<WorkerClient | undefined>; matchAll(options: { type: 'window' }): Promise<readonly WorkerClient[]>; claim(): Promise<void> };
+  skipWaiting(): Promise<void>;
+  addEventListener(type: 'install' | 'activate', listener: (event: { waitUntil(p: Promise<unknown>): void }) => void): void;
+  addEventListener(type: 'fetch', listener: (event: FetchLike) => void): void;
+  addEventListener(type: 'message', listener: (event: { data: unknown; source: WorkerClient | null }) => void): void;
+}
+interface FetchLike { readonly request: Request; readonly clientId: string; readonly resultingClientId: string; respondWith(response: Promise<Response>): void }
+
+declare const self: WorkerScope;
+
+/** The message a forwarded request travels to the page in, and the reply it comes back as. */
+export interface ForwardedRequest {
+  readonly type: 'volter-view:request';
+  readonly url: string;
+  readonly method: string;
+  readonly headers: [string, string][];
+  readonly body: ArrayBuffer | null;
+}
+export interface ForwardedResponse {
+  readonly status: number;
+  readonly headers: [string, string][];
+  readonly body: ArrayBuffer | null;
+}
+
+const ISOLATION: Record<string, string> = {
+  'Cross-Origin-Opener-Policy': 'same-origin',
+  'Cross-Origin-Embedder-Policy': 'credentialless',
+  'Cross-Origin-Resource-Policy': 'same-origin',
+};
+/** How long a page may take to answer before the request fails by name. */
+const PAGE_TIMEOUT_MS = 120_000;
+
+function isolated(response: Response, extra: Record<string, string> = {}): Response {
+  const headers = new Headers(response.headers);
+  for (const [key, value] of Object.entries({ ...ISOLATION, ...extra })) headers.set(key, value);
+  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+let routes: Promise<LimitedViewRoutes> | null = null;
+function recorded(): Promise<LimitedViewRoutes> {
+  routes ??= fetch(`/${VIEW_DIR}/routes.json`, { cache: 'no-cache' })
+    .then((response) => (response.ok ? (response.json() as Promise<LimitedViewRoutes>) : { mountSentinel: MOUNT_SENTINEL, entries: {} }))
+    .catch(() => {
+      routes = null;
+      return { mountSentinel: MOUNT_SENTINEL, entries: {} };
+    });
+  return routes;
+}
+
+/** The page that holds the project's files: the requester when it is one, else the last page
+ *  that said it was ready, else any window of this view. */
+const pages = new Set<string>();
+async function pageFor(event: FetchLike): Promise<WorkerClient | undefined> {
+  for (const id of [event.clientId, event.resultingClientId]) {
+    if (id && pages.has(id)) {
+      const client = await self.clients.get(id);
+      if (client) return client;
+    }
+  }
+  for (const id of [...pages].reverse()) {
+    const client = await self.clients.get(id);
+    if (client) return client;
+    pages.delete(id);
+  }
+  return (await self.clients.matchAll({ type: 'window' }))[0];
+}
+
+async function serveRecorded(entry: LimitedViewRouteEntry, mount: string | null): Promise<Response> {
+  const stored = await fetch(`/${VIEW_DIR}/r/${entry.file}`);
+  if (!stored.ok) return new Response(`The limited view lost ${entry.file}.`, { status: 500, headers: ISOLATION });
+  const headers = { ...ISOLATION, 'Content-Type': entry.type, 'Cache-Control': 'no-cache' };
+  if (entry.mount && mount !== null) {
+    const body = (await stored.text()).replaceAll(MOUNT_SENTINEL, mount);
+    return new Response(body, { status: entry.status, headers });
+  }
+  return new Response(stored.body, { status: entry.status, headers });
+}
+
+async function forward(event: FetchLike): Promise<Response> {
+  const page = await pageFor(event);
+  if (!page) {
+    return new Response(JSON.stringify({ error: 'The limited view page is not open, so nothing holds the project.' }), {
+      status: 503,
+      headers: { ...ISOLATION, 'Content-Type': 'application/json', [LIMITED_VIEW_HEADER]: 'no-page' },
+    });
+  }
+  const request = event.request;
+  const body = request.method === 'GET' || request.method === 'HEAD' ? null : await request.arrayBuffer();
+  const channel = new MessageChannel();
+  const reply = new Promise<ForwardedResponse>((resolve, reject) => {
+    const timer = setTimeout(() => reject(new Error(`the page did not answer ${request.method} ${request.url}`)), PAGE_TIMEOUT_MS);
+    channel.port1.onmessage = (message) => {
+      clearTimeout(timer);
+      resolve(message.data as ForwardedResponse);
+    };
+  });
+  const message: ForwardedRequest = { type: 'volter-view:request', url: request.url, method: request.method, headers: [...request.headers], body };
+  page.postMessage(message, body ? [channel.port2, body] : [channel.port2]);
+  const answer = await reply;
+  return new Response(answer.status === 204 || answer.status === 304 ? null : answer.body, { status: answer.status, headers: answer.headers });
+}
+
+async function handle(event: FetchLike): Promise<Response> {
+  const request = event.request;
+  const url = new URL(request.url);
+  // Another origin's request is the network's; only this view's own origin is routed.
+  if (url.origin !== (globalThis as unknown as { location: { origin: string } }).location.origin) return fetch(request);
+  if (request.mode === 'navigate') return isolated(await fetch(request));
+  if (request.method === 'GET' || request.method === 'HEAD') {
+    const table = await recorded();
+    const exact = table.entries[url.pathname + url.search];
+    if (exact) return serveRecorded(exact, null);
+    const { key, mount } = recordedKey(url.pathname, url.search);
+    const normalized = table.entries[key];
+    if (normalized) return serveRecorded(normalized, mount);
+  }
+  if (STATIC_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return isolated(await fetch(request));
+  const answered = await forward(event);
+  if (answered.status === 404 && answered.headers.get(VIEW_MISS_HEADER)) return isolated(await fetch(request));
+  return answered;
+}
+
+self.addEventListener('install', (event) => event.waitUntil(self.skipWaiting()));
+self.addEventListener('activate', (event) => event.waitUntil(self.clients.claim()));
+self.addEventListener('message', (event) => {
+  const data = event.data as { type?: string } | null;
+  if (data?.type === 'volter-view:page-ready' && event.source) pages.add(event.source.id);
+});
+self.addEventListener('fetch', (event) => {
+  event.respondWith(
+    handle(event).catch(
+      (error: unknown) =>
+        new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
+          status: 502,
+          headers: { ...ISOLATION, 'Content-Type': 'application/json' },
+        }),
+    ),
+  );
+});

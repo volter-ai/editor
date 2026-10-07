@@ -143,6 +143,13 @@ export interface ProjectServingModule {
   /** The component-contract analyzer the kit's Content index uses on the server
    *  (`@volter/editor-sdk/source-analysis`; the browser registers its own). */
   readonly componentContracts?: ComponentContractAnalyzer;
+  /**
+   * The GET routes of this module's plugins whose answers a limited view ships as they are
+   * (`@volter/editor-sdk/session/limited-view`): bytes fixed for a build, such as an engine's
+   * WebAssembly. `<product> view build` asks a headless session for each and serves the answer
+   * at the same URL. Routes that read or write the project belong in `volter.viewServing`.
+   */
+  readonly viewSnapshotRoutes?: () => Promise<readonly string[]>;
 }
 
 /** The plugin name a serving module gives the plugin that serves `/__ui-source/*`, so the kit

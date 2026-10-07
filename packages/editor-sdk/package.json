@@ -59,6 +59,7 @@
     "./session/entrypoint-selection-source": "./src/session/entrypoint-selection-source.ts",
     "./tools/types": "./src/tools/types.ts",
     "./session/editor-brand": "./src/session/editor-brand.ts",
+    "./session/limited-view": "./src/session/limited-view.ts",
     "./tools/errors": "./src/tools/errors.ts",
     "./project/output-roots": "./src/project/output-roots.ts",
     "./source-authoring": "./src/source-authoring.ts",
