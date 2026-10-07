@@ -62,7 +62,9 @@ npm run volter -- eval 'return editor.recording.stop()'
 
 Recordings are standard WebM files under `.volter/recordings/`. Inspect and trim
 them with ordinary `ffmpeg`/`ffprobe`; promote only reviewed evidence into
-`media/`. Structured Gameplay Session logs live under `logs/play-*.jsonl` and
+`media/`. Every recording stops itself at a 10-minute length cap, and a CLI
+Play run auto-stops after 2 minutes with no player input (agent commands do
+not count). Structured Gameplay Session logs live under `logs/play-*.jsonl` and
 remain the durable Analytics source after Stop or reload.
 
 The project manifest is `volter.project.json`. `ROADMAP.md` owns major feature

@@ -12,14 +12,27 @@
  * WHY THE RELAYED PLAY AND NOT THE PLAY BUTTON. The binding is in
  * `play.command.ts`'s `'play'` handler, so it covers `volter-game-editor play`, the SDK's
  * `play.start`, and nothing else. Clicking Play in the editor is a HUMAN at
- * the surface: they are the witness, the idle rule below ("no session
- * commands and no player input") is meaningless for them, and auto-stopping
- * someone who is watching a cutscene would be a bug, not evidence.
+ * the surface: they are the witness, the idle rule below ("no player input")
+ * is meaningless for them, and auto-stopping someone who is watching a
+ * cutscene would be a bug, not evidence.
  *
  * WHY AUTO-STOP AT ALL. A WebM is only readable once the recorder finalizes
  * it, so an abandoned play — the agent's turn ended, the harness died, the
  * script threw — leaves a growing file that nobody can open. The idle window
  * is what converts an abandoned run into finished evidence.
+ *
+ * ONLY A PERSON'S INPUT KEEPS A RUN ALIVE (2026-10-07). The idle clock used to
+ * reset on every relayed session command too, on the argument that an agent
+ * still driving through `volter-game-editor eval` is not idle. Measured, that
+ * argument is how a recording never ends: an agent's game-eval stream keeps
+ * polling for as long as anything is watching, so the clock never ran out,
+ * the clip never finalized, its manifest read `'recording'` for the whole
+ * session, and the tab grew to 3.2 GB at 119% CPU. Agent commands — and the
+ * synthetic DOM events they dispatch (`isTrusted: false`) — no longer count.
+ * An agent that needs a longer run starts play again; each run's clip is its
+ * own evidence. Every recording also has a hard length cap
+ * (`../host/gameplay-recording.ts`'s `GAMEPLAY_RECORDING_MAX_MS`); reaching it
+ * finalizes the clip and play continues unrecorded.
  *
  * WHAT RECORDING DOES *NOT* DO: gate the still (2026-08-29). `volter-game-editor screenshot`
  * used to REFUSE while a recording was live, on the argument that a single
@@ -40,6 +53,7 @@
 import { isRootCanvas } from '@volter/editor-sdk/kit/composite-screenshot';
 import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
 import {
+  GAMEPLAY_RECORDING_MAX_MS,
   type GameplayRecordingCapture,
   type GameplayRecordingStarted,
   type GameplayRecordingStartOptions,
@@ -47,19 +61,18 @@ import {
   startGameplayRecording,
   stopGameplayRecording,
 } from '../host/gameplay-recording';
-import { editorHost } from '@volter/editor-sdk/host';
 import type { AudioRecordingHandle } from '@volter/editor-project/adapter';
 
 /**
- * How long a play run may go with NO session command and NO player input
- * before it stops itself and finalizes its recording.
+ * How long a play run may go with NO player input before it stops itself and
+ * finalizes its recording. Session commands do not count — see the module
+ * note.
  *
  * ONE constant, editor-side, and deliberately generous: the thing it must
- * never do is cut a run that someone is still working with. Two minutes is
- * longer than any gap between an agent's own commands (`volter-game-editor eval` round
- * trips are seconds) and longer than a human's pause at the keyboard, while
- * still being short enough that an abandoned run becomes a readable file
- * inside the same working session rather than the next day.
+ * never do is cut a run that a person is still playing. Two minutes is longer
+ * than a human's pause at the controls, while still being short enough that
+ * an abandoned run becomes a readable file inside the same working session
+ * rather than the next day.
  */
 export const PLAY_IDLE_AUTOSTOP_MS = 120_000;
 
@@ -71,7 +84,13 @@ const IDLE_POLL_MS = 5_000;
 /** Discrete signals that a human is at the controls. Movement is included
  *  because for most games it IS the input; a player aiming a mouse is not
  *  idle. Every listener is passive and capture-phase, so nothing here can
- *  affect what the game or the editor sees. */
+ *  affect what the game or the editor sees. Only TRUSTED events count: an
+ *  event a script dispatched (an agent's game-eval pressing a key) is
+ *  `isTrusted: false`, and is exactly the activity that must not hold a
+ *  recording open. Input injected through DevTools emulation IS trusted and
+ *  is indistinguishable from a person here; the length cap is the bound for
+ *  it. Gamepads have no input events, so the watchdog samples them instead
+ *  ({@link gamepadEngaged}). */
 const INPUT_EVENTS = [
   'keydown',
   'keyup',
@@ -80,7 +99,36 @@ const INPUT_EVENTS = [
   'wheel',
   'touchstart',
   'touchmove',
+  'gamepadconnected',
 ] as const;
+
+/** A stick past this is a hand on it, not resting drift. */
+const GAMEPAD_AXIS_DEADZONE = 0.25;
+
+/**
+ * Whether any connected gamepad is being held right now — a button down or a
+ * stick off-centre. Sampled on the watchdog's poll, so a tap between two
+ * samples is missed; a person playing with a pad holds something at some
+ * sample inside a two-minute window. Never throws: a page whose permissions
+ * policy blocks the Gamepad API simply has no pads.
+ */
+function gamepadEngaged(): boolean {
+  try {
+    if (typeof navigator === 'undefined' || typeof navigator.getGamepads !== 'function') {
+      return false;
+    }
+    return navigator
+      .getGamepads()
+      .some(
+        (pad) =>
+          pad !== null &&
+          (pad.buttons.some((button) => button.pressed) ||
+            pad.axes.some((axis) => Math.abs(axis) > GAMEPAD_AXIS_DEADZONE)),
+      );
+  } catch {
+    return false;
+  }
+}
 
 interface LivePlayRecording {
   readonly started: GameplayRecordingStarted;
@@ -122,7 +170,12 @@ let lastFinalized: GameplayRecordingCapture | null = null;
  * whoever tore play down, so a reader of the journal never has to guess
  * whether a clip ended because the run ended or because nobody was there.
  */
-export type PlayRecordingEndReason = 'stop' | 'idle-autostop' | 'restart' | 'teardown';
+export type PlayRecordingEndReason =
+  | 'stop'
+  | 'idle-autostop'
+  | 'length-cap'
+  | 'restart'
+  | 'teardown';
 
 /** Called by the auto-stop to end play itself. Bound once, by `play-mode.ts`,
  *  so this module never imports the play lifecycle it is driven by. */
@@ -166,11 +219,12 @@ export function lastPlayRecording(): GameplayRecordingCapture | null {
 /**
  * Reset the idle clock.
  *
- * Two callers, and the pair is the whole definition of "idle": every relayed
- * session command (`host.session.onCommandDispatched`, subscribed below) and
- * every player input event (the listeners installed below). A run is idle only
- * when BOTH have gone quiet — an agent driving through `volter-game-editor eval` and a human
- * holding a movement key are each, alone, enough to keep it alive.
+ * "Not idle" means a PERSON at the controls: a trusted key, pointer, wheel or
+ * touch event (the listeners installed below) or a held gamepad (sampled by
+ * the watchdog). Relayed session commands deliberately do not reset it — see
+ * the module note. The one other caller is the video export
+ * (`play.command.ts`'s `bridge-recording-export`), an editor operation that
+ * owns the paused run frame by frame and must not have it stopped under it.
  */
 export function notePlayActivity(): void {
   if (live) live.lastActivityMs = Date.now();
@@ -178,7 +232,9 @@ export function notePlayActivity(): void {
 
 function installInputListeners(): () => void {
   if (typeof window === 'undefined') return () => undefined;
-  const onInput = (): void => notePlayActivity();
+  const onInput = (event: Event): void => {
+    if (event.isTrusted) notePlayActivity();
+  };
   for (const type of INPUT_EVENTS) {
     window.addEventListener(type, onInput, { capture: true, passive: true });
   }
@@ -231,6 +287,10 @@ export async function beginPlayRecording(
       ...(options.audio ? { audio: options.audio } : {}),
       ...(options.refreshFrame ? { refreshFrame: options.refreshFrame } : {}),
       ...(options.canvasFrame ? { canvasFrame: options.canvasFrame } : {}),
+      // The recorder's length cap ends the clip through OUR stop, so it is the
+      // same finalize every other end takes (`pendingStop`, `lastFinalized`)
+      // rather than a second one racing it.
+      onLengthCap: () => void capPlayRecording(),
     });
     live = {
       started,
@@ -242,6 +302,7 @@ export async function beginPlayRecording(
     live.poll = window.setInterval(() => {
       const current = live;
       if (!current || current.ending) return;
+      if (gamepadEngaged()) notePlayActivity();
       if (Date.now() - current.lastActivityMs < PLAY_IDLE_AUTOSTOP_MS) return;
       void autoStopIdlePlay();
     }, IDLE_POLL_MS);
@@ -319,17 +380,33 @@ async function autoStopIdlePlay(): Promise<void> {
   const capture = await endPlayRecording('idle-autostop');
   editorConsole.log(
     capture === null
-      ? `Play auto-stopped after ${idleSeconds}s with no session command and no player input.`
-      : `Play auto-stopped after ${idleSeconds}s with no session command and no player input. ` +
+      ? `Play auto-stopped after ${idleSeconds}s with no player input.`
+      : `Play auto-stopped after ${idleSeconds}s with no player input. ` +
           `Recording finalized: ${describeCapture(capture)}`,
     'play-recording',
   );
   stopPlay?.();
 }
 
-// HALF OF "IS THIS RUN IDLE" — the other half is player input, watched
-// above. Every relayed command counts: an agent that is still driving a game
-// through `volter-game-editor eval` is not idle, whatever the command was, and a stamp
-// filed per verb would quietly exclude whichever verb someone forgot.
-// No-op unless a recording is live.
-editorHost().session.onCommandDispatched(() => notePlayActivity());
+/**
+ * The recording reached its hard length cap (`GAMEPLAY_RECORDING_MAX_MS`):
+ * finalize it and let play continue.
+ *
+ * Play is NOT stopped. A run still busy at the cap has a person at the
+ * controls (the idle window would have closed it otherwise), and taking the
+ * game away from them would be a bug; what the cap bounds is the clip and
+ * everything it holds open. Like the idle stop this is the designed outcome,
+ * so it is a console note, and the journal's `play-recording` row carries
+ * `reason: 'length-cap'`.
+ */
+async function capPlayRecording(): Promise<void> {
+  const minutes = Math.round(GAMEPLAY_RECORDING_MAX_MS / 60_000);
+  const capture = await endPlayRecording('length-cap');
+  editorConsole.log(
+    capture === null
+      ? `Gameplay recording stopped at its ${minutes}-minute length cap; play continues unrecorded.`
+      : `Gameplay recording stopped at its ${minutes}-minute length cap; play continues unrecorded. ` +
+          `Recording finalized: ${describeCapture(capture)}`,
+    'play-recording',
+  );
+}
