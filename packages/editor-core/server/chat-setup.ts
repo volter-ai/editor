@@ -116,7 +116,9 @@ export function agentInstallPrefix(globalPrefix: string, home = homedir()): stri
   });
   if (writable) return globalPrefix;
   const own = join(home, '.volter', 'agents');
-  mkdirSync(own, { recursive: true });
+  // A home that refuses the folder keeps the global prefix: its install then fails visibly, and agents already
+  // installed there stay on PATH instead of the whole probe failing.
+  try { mkdirSync(own, { recursive: true }); } catch { return globalPrefix; }
   return own;
 }
 
@@ -138,9 +140,10 @@ export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH
     if (!isAbsolute(prefix) || /[\r\n]/.test(prefix)) throw new Error('npm returned no absolute global prefix.');
     // Agents the person installed globally stay findable; Chat's own installs go where this user can write.
     const installPrefix = agentInstallPrefix(prefix);
-    for (const bin of new Set([prefixBin(prefix), prefixBin(installPrefix)])) {
-      if (!env.PATH.split(delimiter).includes(bin)) env.PATH += delimiter + bin;
-    }
+    if (!env.PATH.split(delimiter).includes(prefixBin(prefix))) env.PATH += delimiter + prefixBin(prefix);
+    // An agent Chat installed into its own prefix comes first, so an older copy in the root-owned prefix (or anywhere
+    // else on PATH) doesn't shadow it.
+    if (installPrefix !== prefix) env.PATH = prefixBin(installPrefix) + delimiter + env.PATH;
     return { env, npm, npmArgs, npmPrefix: installPrefix };
   } catch (error) {
     return { env, installError: `Cannot resolve npm's install directory: ${error instanceof Error ? error.message : String(error)}` };
