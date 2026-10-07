@@ -62,8 +62,12 @@ function handleYield(base: string, event: MessageEvent): void {
     // The unscoped legacy route remains a safe fallback.
   }
   closeOrFallback(() => {
-    const query = participantId ? `?participantId=${encodeURIComponent(participantId)}` : '';
-    window.location.replace(`${base}/tab-yielded${query}`);
+    // The yield page's "Use here instead" comes back to this page, project query and all;
+    // without it the claimant reloaded a bare `/` that names no project.
+    const query = new URLSearchParams();
+    if (participantId) query.set('participantId', participantId);
+    query.set('return', window.location.pathname + window.location.search + window.location.hash);
+    window.location.replace(`${base}/tab-yielded?${query}`);
   });
 }
 
