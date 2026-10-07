@@ -402,6 +402,14 @@ export function primeSkyTexture(p: SkyParameters, pixels: Float32Array): void {
   }
 }
 
+/** Cycles' Z-up solar direction: rotation zero points along +Y. */
+export function skySunDirection(p: Pick<SkyParameters, 'sunElevation' | 'sunRotation'>): THREE.Vector3 {
+  // sky_radiance_nishita uses spherical_to_direction(elevation - PI/2,
+  // (2PI - rotation) - PI/2), after SkyTextureNode::simplify_settings.
+  return new THREE.Vector3(Math.cos(p.sunElevation) * Math.sin(p.sunRotation),
+    Math.cos(p.sunElevation) * Math.cos(p.sunRotation), Math.sin(p.sunElevation));
+}
+
 /**
  * One Sky Texture node as a field over directions, in Blender's Z-up frame.
  *
@@ -428,8 +436,7 @@ export function skyField(p: SkyParameters): (direction: THREE.Vector3) => THREE.
   const diameter = p.sunSize ?? 0;
   const solar = p.model === 'SINGLE_SCATTERING' && p.sunDisc && diameter > 0
     ? precomputeSingleScatteringSun(p, diameter) : null;
-  const sun = new THREE.Vector3(Math.cos(p.sunElevation) * Math.cos(p.sunRotation),
-    Math.cos(p.sunElevation) * Math.sin(p.sunRotation), Math.sin(p.sunElevation));
+  const sun = skySunDirection(p);
   const earthAngle = -Math.acos(6360000 / (6360000 + Math.min(59999, Math.max(1, p.altitude))));
   const cross = new THREE.Vector3();
   return (direction) => {

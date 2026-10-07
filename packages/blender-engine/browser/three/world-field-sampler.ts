@@ -18,7 +18,7 @@ import { gradientTexture } from './blender-gradient-texture';
 // Type-only, so this module keeps NO runtime edge back to the contribution
 // that uses it -- which is what lets a worker import it alone.
 import type { WorldExpression } from './blender-runtime-lighting';
-import { type SkyParameters, skyField } from './blender-sky';
+import { type SkyParameters, skyField, skySunDirection } from './blender-sky';
 import { worldMath } from './world-math';
 
 export function worldField(
@@ -331,8 +331,7 @@ export function worldSolarIrradiance(expression: WorldExpression): {direction: T
       value?.kind === 'sky' && value.sky_model === 'SINGLE_SCATTERING' &&
       (value.sun_elevation !== p.sunElevation || value.sun_rotation !== p.sunRotation || value.sun_size !== p.sunSize)
         ? {...value,sun_disc:false} : value) as WorldExpression);
-    const direction = new THREE.Vector3(Math.cos(p.sunElevation) * Math.cos(p.sunRotation),
-      Math.cos(p.sunElevation) * Math.sin(p.sunRotation), Math.sin(p.sunElevation));
+    const direction = skySunDirection(p);
     const u = new THREE.Vector3().crossVectors(direction, Math.abs(direction.z) < .9
       ? new THREE.Vector3(0, 0, 1) : new THREE.Vector3(0, 1, 0)).normalize();
     const v = new THREE.Vector3().crossVectors(direction, u);
