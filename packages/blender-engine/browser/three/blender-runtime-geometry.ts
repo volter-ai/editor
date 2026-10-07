@@ -19,6 +19,7 @@ import * as THREE from 'three';
 import { customCornerNormals, type Normal } from './blender-corner-normals';
 import { ATTRIBUTE_LAYOUT, type MeshColumns } from './blender-frame-columns';
 import { triangulatePolygon } from './blender-triangulate';
+import {cyclesIslandRandom,ISLAND_RANDOM_ATTRIBUTE,storedMeshEdges} from './blender-island-random';
 
 type MeshData = {
   v: [number, number, number][];
@@ -43,7 +44,8 @@ export interface DrawArrays {
   uvLayers?: {name: string; data: Float32Array}[] | undefined;
   /** The mesh's generic attribute layers a material's Attribute or Color
    *  Attribute node can read, four floats per drawn vertex as EEVEE loads them
-   *  (`graphAttributeLayers`). */
+   *  (`graphAttributeLayers`). The derived Cycles island layer stores one
+   *  scalar per drawn vertex rather than an authored float4. */
   attributeLayers?: {name: string; data: Float32Array}[] | undefined;
   /** Per drawn vertex, a deformed mesh's Generated coordinates (0..1), or
    *  null when the positions are undeformed and orco derives from them. */
@@ -294,7 +296,11 @@ export function geometryFromDrawArrays(
   }
   geometry.userData['blenderUvChannels'] = channels;
   for (const layer of arrays.attributeLayers ?? [])
-    geometry.setAttribute(graphAttributeName(layer.name), new THREE.BufferAttribute(layer.data, 4));
+    // Engine-derived island values use one float, while ordinary Blender
+    // material attributes retain EEVEE's float4 storage. Snapshots preserve
+    // the same name/stride, without inventing an authored mesh attribute.
+    geometry.setAttribute(graphAttributeName(layer.name), new THREE.BufferAttribute(layer.data,
+      layer.name===ISLAND_RANDOM_ATTRIBUTE?1:4));
   geometry.userData['blenderAttributes'] = (arrays.attributeLayers ?? []).map(layer => layer.name);
   if (arrays.orco) {
     geometry.setAttribute('blenderOrco', new THREE.BufferAttribute(arrays.orco, 3));
@@ -419,7 +425,7 @@ function drawNativeColumns(c: MeshColumns, hash: string): DrawArrays {
 
 /** The worker's door: the mesh store's columns, drawn into buffers. */
 export function drawArraysFromColumns(c: MeshColumns, hash: string): DrawArrays {
-  if (c.cornerTri && c.cornerNormal) return drawNativeColumns(c, hash);
+  if (c.cornerTri && c.cornerNormal) return withIslandRandom(drawNativeColumns(c, hash),c.co.length/3,storedMeshEdges(c.edge));
   const nv = c.co.length / 3;
   const maps = c.attributes.filter((a) => a.type === 'FLOAT2' && a.domain === 'CORNER');
   const mapName = c.renderUv ?? c.activeUv ?? maps[0]?.name;
@@ -482,7 +488,15 @@ export function drawArraysFromColumns(c: MeshColumns, hash: string): DrawArrays 
     attributeLayers: graphAttributeLayers(c.attributes, data => data as ArrayLike<number>),
   };
   if (map && ATTRIBUTE_LAYOUT.FLOAT2.size !== 2) throw new Error('FLOAT2 layout');
-  return { ...drawCore(view), hash };
+  return {...withIslandRandom(drawCore(view),nv,edges),hash};
+}
+
+function withIslandRandom<T extends Omit<DrawArrays,'hash'>>(arrays:T,vertexCount:number,
+  edges:Iterable<readonly [number,number]>):T {
+  const native=cyclesIslandRandom(vertexCount,edges);
+  const data=Float32Array.from(arrays.sourceVertex,vertex=>native[vertex]!);
+  arrays.attributeLayers=[...(arrays.attributeLayers??[]),{name:ISLAND_RANDOM_ATTRIBUTE,data}];
+  return arrays;
 }
 
 /** The boundary JSON door. */
@@ -546,5 +560,8 @@ export function drawRuntimeGeometry(data: MeshData): THREE.BufferGeometry {
     attributeLayers: graphAttributeLayers(data.attributes ?? [],
       values => (Array.from(values) as (number | number[])[]).flat()),
   };
-  return geometryFromDrawArrays(drawCore(view));
+  // Native frames always supply stored edges. Legacy JSON without that
+  // order retains its old unsupported zero input rather than guessing IDs.
+  const arrays=drawCore(view);
+  return geometryFromDrawArrays(view.edges?withIslandRandom(arrays,vertices.length,view.edges):arrays);
 }

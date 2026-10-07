@@ -40,6 +40,13 @@ after initial promotion so later poses retain the static environment depth.
 Lifecycle tests, actual HiDPI WebGL and independent desktop controls pass.
 Finite sampling, opaque caster treatment and shader deformation are limitations.
 
+Geometry Random Per Island now follows Cycles' evaluated edge connectivity,
+union-by-rank representative and hash instead of the EEVEE library's zero.
+Independent Cycles emission and actual WebGL cover separate islands and loose
+edge connections within one float32 step; normal/UV draw splitting and detached
+snapshot storage preserve the value. This is the roof's color and UV input,
+not an acceptance of its complete material shading or the courtyard image.
+
 The courtyard still fails full-scene parity. Particle Info Random is covered,
 but tinted transparency and multiple Principled closures remain. Native material
 equivalence, sun-disc shadow softness, indirect lighting, render-only geometry

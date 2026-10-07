@@ -25,6 +25,7 @@ import * as THREE from 'three';
 import {z} from 'zod';
 import {BLENDER_NODE_GLSL, BLENDER_NODE_GLSL_PRELUDE} from './blender-node-glsl.generated';
 import {graphAttributeName} from './blender-runtime-geometry';
+import {ISLAND_RANDOM_ATTRIBUTE} from './blender-island-random';
 
 const scalar = z.number().finite();
 const gpuType = z.enum(['float', 'vec2', 'vec3', 'vec4']);
@@ -436,6 +437,13 @@ class Compiler {
     if (!node) throw new Error(`The graph links to ${key}, which it does not carry`);
     if (node.type === 'ShaderNodeParticleInfo' && node.outputs[index]?.id !== 'Random')
       throw new Error(`Particle Info output ${node.outputs[index]?.id ?? index} is not compiled by the presenter`);
+    // EEVEE's node_geometry returns zero here; reference rendering uses
+    // Cycles' evaluated per-island attribute instead. Keep it face constant.
+    if(node.type==='ShaderNodeNewGeometry' && node.outputs[index]?.id==='Random Per Island') {
+      this.s.attributes.add(ISLAND_RANDOM_ATTRIBUTE);
+      this.s.structure.push(['cycles-island',key,index]);
+      return convert(`${attributeVarying(ISLAND_RANDOM_ATTRIBUTE)}.x`,'float',to);
+    }
     const outputs = this.node(key, node);
     const output = outputs[index];
     if (!output) throw new Error(`${key} has no output ${index}`);
