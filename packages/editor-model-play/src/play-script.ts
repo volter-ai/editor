@@ -78,6 +78,7 @@ import {
   setModelPlayAutoplay,
   setModelPlayFailure,
   setModelPlayAutoplayAvailable,
+  settleModelPlayAutoplay,
   subscribeModelPlayClock,
   takeModelPlayStep,
 } from './model-play';
@@ -417,6 +418,9 @@ export function runPlayScript(options: {
     }
   };
   let firstFrame = true;
+  /** Whether the last script to run its first update offered a bot (null before any did), so
+   *  `autoplay-unavailable` is said once per run, and again only after a bot came and went. */
+  let offeredBot: boolean | null = null;
   let returning = false;
   let stopReason = 'stop';
   const stopRequest = registerModelPlayStop(options.documentId, (escape) => {
@@ -514,6 +518,14 @@ export function runPlayScript(options: {
         update(next.game, updates[0]!);
         end();
         game = next.game;
+        // NOW THE SCRIPT HAS SAID WHETHER IT OFFERS A BOT (its default export and first update
+        // are where `play.autoplay` is called): said before `running`, so no reader sees a running
+        // game with its bot not yet counted, and an arm made while stopped is taken or dropped.
+        const offered = scripts.get(next.game)?.bot != null;
+        if (!offered && offeredBot !== false)
+          run.append('play', 'autoplay-unavailable', { why: 'the play script registers no bot with play.autoplay(controller)' });
+        offeredBot = offered;
+        settleModelPlayAutoplay(options.documentId, offered);
         setModelPlayFailure(options.documentId, null);
         startedAt = Date.now();
         endedAt = null;

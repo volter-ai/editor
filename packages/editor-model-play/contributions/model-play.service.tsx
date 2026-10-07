@@ -4,6 +4,7 @@ import { Button, EditorIcon, editorIcons, MenuItem } from '@volter/editor-sdk/wi
 import { editorHost } from '@volter/editor-sdk/host';
 import { registerDocumentPlayExtension, type DocumentPlayControlProps } from '@volter/editor-sdk/kit/document-play-extension';
 import {
+  armModelPlayAutoplay,
   escapeModelPlay,
   MODEL_PLAY_SPEEDS,
   modelPlayAutoplay,
@@ -128,6 +129,7 @@ export function start(): () => void {
       generation: modelPlayGeneration,
       autoplay: modelPlayAutoplay,
       setAutoplay: setModelPlayAutoplay,
+      armAutoplay: armModelPlayAutoplay,
       // NO STAGE, SO NO RUNNER, and until 2026-10-06 the document turned Play off and wrote the
       // reason to the console: Play flicked on and off with nothing said where anyone looks.
       // Now the run stands with its failure — the Game panel draws it, the log records it.
