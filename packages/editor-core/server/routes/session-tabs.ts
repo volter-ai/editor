@@ -13,7 +13,7 @@
  */
 
 import type { Request, Response } from 'express';
-import { renderEditorBrandPage } from '../editor-brand-html';
+import { editorBrandName, renderEditorBrandPage } from '../editor-brand-html';
 import type { EditorServerRouter } from '../editor-server';
 import { allowCrossOriginFrameEmbedding } from '../server-utils';
 import { readTabBootstrapSource, TAB_BOOTSTRAP_PATH } from '../tab-bootstrap';
@@ -183,7 +183,7 @@ export function registerSessionTabRoutes(
     res.type('html').send(
       renderEditorBrandPage({
         subject: 'Editor open in another tab',
-        description: 'This Volter Editor session is active in another browser tab.',
+        description: `This ${editorBrandName()} session is active in another browser tab.`,
         contentHtml:
           "<h1>Editor open in another tab</h1><p>This game's editor is active elsewhere.</p>" +
           '<button id="claim">Use here instead</button>',
