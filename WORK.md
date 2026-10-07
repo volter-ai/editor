@@ -1872,3 +1872,22 @@ still differ substantially in face visibility, shadows and indirect lighting;
 this is not visual-parity acceptance. Twelve focused placement/Object Info/sky
 checks, four native metadata checks, engine typechecking and the modeling
 frontend build passed. No npm packages were published.
+
+### 2026-10-07 — preserve the authored render camera and both surface faces
+
+Raster captures now preserve the scene camera's near/far clipping and sensor
+shift rather than fitting clipping to scene bounds. Surface and fallback
+materials draw both faces, as Cycles does; capture copies and Solid materials
+retain this behavior. The Lone Monk camera's deliberate 1.12 m near plane
+excludes nearby enclosing geometry. Dropping that clipping while enabling both
+faces reproduced a camera-filling white surface; preserving it restores the
+courtyard and overhead arcade.
+
+Twelve physical-material/camera tests passed, including native projection
+fixtures generated with Object.calc_matrix_camera for perspective/orthographic
+and horizontal/vertical/portrait sensor fits. The generator exercises the real
+Python photograph request. Engine typechecking and the modeling frontend build
+passed. An exact-source same-camera capture completed and was viewed. It remains
+far too bright and some shapes differ; evaluated meshes with different modifier
+outputs were found sharing export keys and are the next native repair. No visual
+parity or gameplay acceptance is claimed, and no packages were published.

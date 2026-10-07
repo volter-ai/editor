@@ -2,9 +2,9 @@ import assert from 'node:assert/strict';
 import {test} from 'node:test';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
-const result=await build({stdin:{contents:`export * from './blender-physical-material'; export * from './blender-texture-samplers'; export * from './blender-runtime-geometry'; export {BlenderRuntimeView} from './blender-runtime-view'; export {MeshPhysicalMaterial,ShaderLib,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping} from 'three';`,
+const result=await build({stdin:{contents:`export * from './blender-physical-material'; export * from './blender-texture-samplers'; export * from './blender-runtime-geometry'; export {BlenderRuntimeView} from './blender-runtime-view'; export {MeshPhysicalMaterial,ShaderLib,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,Raycaster,Vector3} from 'three';`,
   resolveDir:fileURLToPath(new URL('../browser/three/',import.meta.url)),loader:'ts'},bundle:true,platform:'node',format:'esm',write:false});
-const {applyPhysicalMaterial,physicalMaterialSchema,MeshPhysicalMaterial,ShaderLib,BlenderTextureSamplers,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,bindNamedUvChannels,drawArraysFromColumns,geometryFromDrawArrays,BlenderRuntimeView}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].contents).toString('base64'));
+const {applyPhysicalMaterial,physicalMaterialSchema,MeshPhysicalMaterial,ShaderLib,BlenderTextureSamplers,Texture,BufferGeometry,RepeatWrapping,ClampToEdgeWrapping,bindNamedUvChannels,drawArraysFromColumns,geometryFromDrawArrays,BlenderRuntimeView,Raycaster,Vector3}=await import('data:text/javascript;base64,'+Buffer.from(result.outputFiles[0].contents).toString('base64'));
 const values={coat:0.8,coat_roughness:0.12,coat_ior:1.8,coat_tint:[0.2,0.4,0.6],
   sheen:0.7,sheen_roughness:0.35,sheen_tint:[0.5,0.2,0.1],anisotropy:0.6,anisotropy_rotation:0.25,
   specular_level:0.75,specular_tint:[0.7,0.8,0.9],film_thickness:450,film_ior:1.4};
@@ -127,4 +127,26 @@ test('revision-owned render snapshots preserve all named UVs and native normals'
   current.geometry.getAttribute('uv8').setX(0,99);
   assert.equal(mesh.geometry.getAttribute('uv8').getX(0),7);
   capture.dispose();view.dispose();
+});
+
+
+test('Blender surfaces remain visible from underneath, including capture and Solid clones',()=>{
+  const view=new BlenderRuntimeView();
+  const material={name:'stone',color:[.5,.5,.5,1],roughness:.5,metallic:0,transmission:0,ior:1.5};
+  const identity=[[1,0,0,0],[0,1,0,0],[0,0,1,0],[0,0,0,1]];
+  view.applyFrame({session:'backfaces',revision:1,active:'stone',mode:'OBJECT',materials:{stone:material},
+    meshes:{plane:{hash:'plane',positions:new Float32Array([0,0,0,1,0,0,0,1,0]),
+      normals:new Float32Array([0,0,1,0,0,1,0,0,1]),uv:null,indices:new Uint32Array([0,1,2]),
+      groups:[{start:0,count:3,materialIndex:0}]}},
+    objects:['stone','fallback'].map((id,i)=>({id,name:id,type:'MESH',mesh:'plane',materials:i?[]:['stone'],
+      matrix:identity,visible:true,selected:false,parent:null}))});
+  const ray=new Raycaster(new Vector3(.2,.2,-1),new Vector3(0,0,1));
+  const check=root=>{root.updateMatrixWorld(true);
+    ray.set(new Vector3(.2,.2,-1).applyMatrix4(root.matrixWorld),new Vector3(0,0,1).transformDirection(root.matrixWorld));
+    for(const name of ['stone','fallback'])
+    assert.equal(ray.intersectObject(root.getObjectByName(name),false).length,1,name);};
+  check(view.root);
+  const capture=view.captureSnapshot();check(capture.root);capture.dispose();
+  view.setWorkbench(true);check(view.root);view.setWorkbench(false);check(view.root);
+  view.dispose();
 });

@@ -56,8 +56,7 @@ import {
   resolveSceneLinearDisplay,
   type LinearCaptureFrame,
 } from '@volter/editor-threejs/capture/scene';
-import { fitClipPlanes } from '@volter/editor-threejs/viewport/clip-planes';
-import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
+import {blenderRenderCamera} from '@volter/blender-engine/browser/three/blender-render-camera';
 import * as THREE from 'three';
 import { blenderEngineSelection, refreshBlenderOutliner } from '../contributions/blender-outliner-model';
 import {
@@ -1033,35 +1032,10 @@ export function blenderRuntime(): BlenderRuntime {
         );
         const focus = new THREE.Vector3(target[0], target[1], target[2]).applyMatrix4(toDocument);
         const upward = new THREE.Vector3(up[0], up[1], up[2]).applyMatrix3(documentBasis);
-        const aspect =
-          Math.min(2048, Math.round(render.width)) / Math.min(2048, Math.round(render.height));
-        // Fit clipping to this snapshot and photograph's eye, independently of
-        // the user's navigation. Editor furniture never enters this scene.
-        const bounds = contentWorldBounds(snapshot.root).getBoundingSphere(new THREE.Sphere());
-        const documentView = fitClipPlanes(eye.distanceTo(bounds.center), bounds.radius);
-        let renderCamera: THREE.Camera;
-        if (render.orthographic) {
-          // An ORTHO scene camera. `fov` carries `ortho_scale` as the VERTICAL
-          // extent in Blender units (`_vertical_extent` applies `sensor_fit`), so
-          // the frustum is stated outright instead of being reverse-derived from
-          // a perspective camera's distance and angle.
-          const halfHeight = render.fov / 2;
-          renderCamera = new THREE.OrthographicCamera(
-            -halfHeight * aspect,
-            halfHeight * aspect,
-            halfHeight,
-            -halfHeight,
-            documentView.near,
-            documentView.far,
-          );
-        } else {
-          renderCamera = new THREE.PerspectiveCamera(
-            render.fov,
-            aspect,
-            documentView.near,
-            documentView.far,
-          );
-        }
+        // The native camera's near/far and lens shift describe this picture.
+        // Geometry bounds are for interactive navigation, not render framing.
+        const documentScale = eye.distanceTo(focus);
+        const renderCamera = blenderRenderCamera(render, documentScale);
         renderCamera.up.copy(upward);
         renderCamera.position.copy(eye);
         renderCamera.lookAt(focus);
