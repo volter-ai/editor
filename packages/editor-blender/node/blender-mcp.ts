@@ -317,16 +317,21 @@ class TabSession {
 
 const text = (value: string) => ({ content: [{ type: 'text' as const, text: value }] });
 
-/** `VOLTER_BLENDER_MIRROR_ROOTS`, split on the platform's delimiter. A root that is not absolute
+/** `VOLTER_BLENDER_MIRROR_ROOTS`, split on the platform's delimiter. A root Blender cannot mount
  *  is REFUSED by name rather than dropped: dropping it was how a Windows root (`C:\…`, split on
- *  its own colon) silently mirrored nothing. */
+ *  its own colon) silently mirrored nothing. Blender's filesystem has a mount for a POSIX root
+ *  (`/runs/x`) and a drive root (`C:\runs\x`, as `/C:/runs/x`) only, so a relative path, a UNC
+ *  share (`\\server\share`) and a drive-less rooted path (`\runs\x`) — all of which Node calls
+ *  absolute or nearly — are refused too (#147 review). */
 function mirrorRoots(raw: string | undefined): string[] {
   const roots = (raw ?? '').split(delimiter).filter((root) => root !== '');
-  const notAbsolute = roots.filter((root) => !isAbsolute(root));
-  if (notAbsolute.length > 0)
+  const mountable = (root: string) => /^[A-Za-z]:[\\/]/.test(root) || (root.startsWith('/') && !root.startsWith('//'));
+  const refused = roots.filter((root) => !mountable(root) || !isAbsolute(root));
+  if (refused.length > 0)
     throw new Error(
-      `VOLTER_BLENDER_MIRROR_ROOTS names ${notAbsolute.map((root) => JSON.stringify(root)).join(', ')}, ` +
-        `which ${notAbsolute.length === 1 ? 'is' : 'are'} not absolute. Separate absolute paths with "${delimiter}".`,
+      `VOLTER_BLENDER_MIRROR_ROOTS names ${refused.map((root) => JSON.stringify(root)).join(', ')}, ` +
+        `which Blender cannot mount: a root must be an absolute POSIX path (/runs/x) or a drive path (C:\\runs\\x), ` +
+        `not a relative path, a UNC share or a path without its drive. Separate roots with "${delimiter}".`,
     );
   return roots;
 }

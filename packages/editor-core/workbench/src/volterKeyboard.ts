@@ -64,8 +64,7 @@ export interface VolterKeyboardBridge {
 	};
 	/** Say something in the Volter editor's OWN console, where the editor's `console` command reads it —
 	 *  the frame's refusals belong in the session's ledger, not in a toast. */
-	/** `notify`: the refusal answers the person's own gesture, so it reaches the tray too. */
-	report(level: 'warn' | 'error', message: string, options?: { readonly notify?: boolean }): void;
+	report(level: 'warn' | 'error', message: string): void;
 }
 
 // ---- The context keys.
@@ -99,7 +98,7 @@ for (const id of CARRIED_ACTION_IDS) {
 				throw new Error(localize('volterNoEditor', "The Volter Editor is not mounted in this window. Run \"Volter Editor: Open Workspace\" first."));
 			}
 			if (!liveBridge.invoke(id)) {
-				liveBridge.report('warn', `The keyboard action "${id}" did not run: the editor has no live handler for it right now (its stage or panel is not mounted), or the action's own gate refused.`, { notify: true });
+				liveBridge.report('warn', `The keyboard action "${id}" did not run: the editor has no live handler for it right now (its stage or panel is not mounted), or the action's own gate refused.`);
 			}
 		},
 	});

@@ -332,15 +332,17 @@ export function AppRoot() {
               'editor',
             );
           }
-          // AND TO THE PERSON: the waiting clock and the reason are drawn by
-          // the loading screen, which is under the product's cover. From the
-          // same attempt on, the cover carries them instead; a later success
-          // clears it, so a slow cold boot that does finish lifts as usual.
+          // AND TO THE PERSON, AS PROGRESS: the waiting clock and the reason
+          // are drawn by the loading screen, which is under the product's
+          // cover. From the same attempt on, the cover carries them as a
+          // still-trying line — never as a refusal, because this may yet
+          // succeed (a cold first boot does) — and a success clears it.
           if (failures >= PROJECT_DETECTION_REPORT_AFTER) {
             publishStartupFailure({
-              message: `The editor has not been able to read this project after ${failures} attempts (${Math.round((Date.now() - startedAt) / 1000)}s), and is still trying: ${reason}`,
-              guidance: `If it does not recover, ${commandLine('status')} says what the session knows, and the session log is in the project's logs/ folder.`,
+              message: `Still reading the project (${Math.round((Date.now() - startedAt) / 1000)}s, ${failures} attempts): ${reason}`,
+              guidance: null,
               command: null,
+              transient: true,
             });
           }
           setState({

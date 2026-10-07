@@ -6,7 +6,7 @@ import { AssetEditorSubject } from '@volter/editor-sdk/kit/components/AssetEdito
 import { useMemo } from 'react';
 
 /** A loading/error surface has no authoring stage and publishes no model. */
-export function BlenderModelOpening({ documentId, path, error, preview, retry, returnToPreview, preparingView = false }: {
+export function BlenderModelOpening({ documentId, path, error, preview, retry, returnToPreview, preparingView = false, note = null }: {
   readonly documentId: string;
   readonly path: string;
   readonly error: string | null;
@@ -14,6 +14,8 @@ export function BlenderModelOpening({ documentId, path, error, preview, retry, r
   readonly retry: () => void;
   readonly returnToPreview: () => void;
   readonly preparingView?: boolean;
+  /** What a slow open is waiting on — progress beside the spinner, not an error. */
+  readonly note?: string | null;
 }) {
   const title = error ? 'Could not open model' : preparingView ? 'Preparing model view' : 'Opening model';
   // This document has not published an authoring stage yet. Its panels still
@@ -47,6 +49,7 @@ export function BlenderModelOpening({ documentId, path, error, preview, retry, r
             {/* THE CAUSE, VERBATIM, where the person is looking: the sentence above is a
                 category, and "details are available in the console" sent people to a console
                 they could not see (2026-10-06 audit). Selectable, so it can be copied. */}
+            {!error && note && <div data-testid="blender-model-opening-note" style={{ marginTop: spaceVar[3], color: themeVars.content.muted, userSelect: 'text' }}>{note}</div>}
             {error && <div data-testid="blender-model-opening-detail"
               style={{ marginTop: spaceVar[3], fontFamily: fontMono, fontSize: fontSizeVar.sm, color: themeVars.content.muted, whiteSpace: 'pre-wrap', userSelect: 'text', textAlign: 'left' }}>
               {error}

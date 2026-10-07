@@ -24,6 +24,13 @@ export interface StartupFailureNotice {
   readonly guidance: string | null;
   /** The recovery as one pasteable line (`commandSequence`), when it has one. */
   readonly command: string | null;
+  /**
+   * STILL TRYING, not refused: a slow start that may yet succeed (detection that keeps being
+   * re-asked). The cover shows it as progress under its splash, never as a refusal — a
+   * refusal is one-way, and a healthy slow start called failed is the reverse of the silent
+   * hang this door exists for (#147 review).
+   */
+  readonly transient?: boolean;
 }
 
 interface Registry {
@@ -36,8 +43,10 @@ const key = Symbol.for('volter.startup-failure');
 const page = globalThis as typeof globalThis & { [key]?: Registry };
 const registry: Registry = page[key] ??= { failures: new Map(), listeners: new Set() };
 
+/** The newest refusal, else the newest still-trying notice: a refusal is the stronger fact. */
 function current(): StartupFailureNotice | null {
-  return [...registry.failures.values()].at(-1) ?? null;
+  const all = [...registry.failures.values()];
+  return all.filter((notice) => !notice.transient).at(-1) ?? all.at(-1) ?? null;
 }
 
 function publish(): void {

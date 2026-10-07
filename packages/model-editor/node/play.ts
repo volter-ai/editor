@@ -48,9 +48,8 @@ export async function play(args: readonly string[], document?: string): Promise<
   return startedOrRefused(answer, (args) => editor.command('volter.model-play.state', args));
 }
 
-/** How long `play play` / `play restart` wait for the game to start: a cold rendered stage
- *  compiles its shaders on the first draw, which takes seconds, never this long. */
-const START_BUDGET_MS = 30_000;
+/** How often a start still waiting says what it waits on. */
+const PROGRESS_EVERY_MS = 10_000;
 
 interface PlayState {
   readonly document?: string;
@@ -65,13 +64,21 @@ interface PlayState {
  * in the play log. So the run is read until it says: `running` (the game's first update ran),
  * or `failure` (why not), or Play went off. A refusal exits 1 with the reason and where to read
  * more. A tool that predates `running` can only be read for a failure.
+ *
+ * NO DEADLINE ON A HEALTHY WAIT (#147 review). The runner moves on drawn frames, and a browser
+ * draws no frames for a hidden tab, so a game that is fine can take as long as the tab stays
+ * hidden; a cold rendered stage also compiles its shaders first. So it waits, and every 10 s
+ * says what for, rather than calling that a failure.
  */
 async function startedOrRefused(first: unknown, state: (args: Record<string, unknown>) => Promise<unknown>): Promise<unknown> {
   let current = first as PlayState;
   const documentId = current.document;
   const args = documentId === undefined ? {} : { document: documentId };
   const knowsRunning = typeof current.clock?.running === 'boolean';
-  const deadline = Date.now() + (knowsRunning ? START_BUDGET_MS : 3_000);
+  const startedAt = Date.now();
+  // A tool without `running` cannot say it started; a moment is enough to catch its refusal.
+  const oldToolBy = startedAt + 3_000;
+  let lastProgressAt = startedAt;
   for (;;) {
     const failure = current.clock?.failure;
     if (typeof failure === 'string' && failure !== '')
@@ -80,14 +87,14 @@ async function startedOrRefused(first: unknown, state: (args: Record<string, unk
           `The play log has the entry: volter-model-editor play-log --kind script-error${documentId ? ` --document ${documentId}` : ''}`,
       );
     if (current.playing === false) throw new Error('Play switched itself off before a game started; `volter-model-editor console` says why.');
-    if (current.clock?.running === true || Date.now() >= deadline) break;
+    if (current.clock?.running === true || (!knowsRunning && Date.now() >= oldToolBy)) break;
+    const now = Date.now();
+    if (now - lastProgressAt >= PROGRESS_EVERY_MS) {
+      lastProgressAt = now;
+      console.error(`Play is on; waiting for the game's first frame (${Math.round((now - startedAt) / 1000)}s). The tab draws frames only while it is visible — is it hidden or minimised?`);
+    }
     await new Promise((resolve) => setTimeout(resolve, 250));
     current = (await state(args)) as PlayState;
   }
-  if (knowsRunning && current.clock?.running !== true)
-    throw new Error(
-      `Play is on, but no game has started after ${START_BUDGET_MS / 1000}s and nothing has said why. ` +
-        '`volter-model-editor play state` reads it again; `volter-model-editor console` has what the tab reported.',
-    );
   return current;
 }

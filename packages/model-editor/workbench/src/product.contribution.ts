@@ -112,14 +112,17 @@ function openDocument(registry: DocumentsSource): boolean {
 let documents: DocumentsSource | undefined;
 
 /**
- * HOW LONG THIS PRODUCT WAITS FOR ITS FIRST MODEL, and it is this product's number because the
- * thing being waited for is this product's: Blender itself, compiled to WebAssembly, booting in
- * the tab's worker. Measured 2026-09-21 on both releases, cold: the Model document appeared
- * about 12 s after the mount resolved. 90 s is that with room for a cold page cache and a busy
- * box; past it the honest thing is to SAY Blender did not come up, which the kit turns into the
- * cover's refusal with a way out.
+ * WHEN THE SPLASH STARTS SAYING HOW LONG THE FIRST MODEL HAS TAKEN, and it is this product's
+ * number because the thing being waited for is this product's: Blender itself, compiled to
+ * WebAssembly, booting in the tab's worker. Measured 2026-09-21 on both releases, cold: the
+ * Model document appeared about 12 s after the mount resolved.
+ *
+ * IT IS NOT A DEADLINE ANY MORE (#147 review). This used to reject at 90 s, which turned a slow
+ * but healthy boot (a cold page cache, a busy box, a large file) into the cover's refusal. A
+ * Blender that cannot open the model says so itself — the Model document publishes its failure
+ * to the cover (`@volter/editor-sdk/kit/startup-failure`) — so the wait here only narrates.
  */
-const MODEL_OPEN_BUDGET_MS = 90_000;
+const MODEL_OPEN_NARRATE_AFTER_MS = 30_000;
 
 /** This product's splash while it is opening, so `ready` below can narrate its own wait into
  *  the cover it drew. Set by `cover`, cleared by the handle's `dispose`. */
@@ -197,21 +200,23 @@ registerVolterProduct({
 		const open = (): boolean => openDocument(registry);
 		if (!open()) {
 			splash?.say(localize('volterModelCoverWaiting', "Opening the first model…"));
-			await new Promise<void>((resolve, reject) => {
+			await new Promise<void>((resolve) => {
 				let unsubscribe: (() => void) | undefined;
 				let timer: number | undefined;
+				const startedAt = Date.now();
 				// DECLARED BEFORE EITHER IS INSTALLED, because a registry that notifies
 				// synchronously from `subscribe` would otherwise reach a `const` still in its
 				// temporal dead zone and throw out of this promise.
 				const stop = () => {
-					if (timer !== undefined) { mainWindow.clearTimeout(timer); }
+					if (timer !== undefined) { mainWindow.clearInterval(timer); }
 					unsubscribe?.();
 					unsubscribe = undefined;
 				};
-				timer = mainWindow.setTimeout(() => {
-					stop();
-					reject(new Error(localize('volterModelCoverTimedOut', "Blender did not open a model within {0}s. The engine runs in this tab's worker; the Volter session's console (`volter-model-editor console`) is where it says why.", Math.round(MODEL_OPEN_BUDGET_MS / 1000))));
-				}, MODEL_OPEN_BUDGET_MS);
+				timer = mainWindow.setInterval(() => {
+					const elapsed = Date.now() - startedAt;
+					if (elapsed < MODEL_OPEN_NARRATE_AFTER_MS) { return; }
+					splash?.say(localize('volterModelCoverSlow', "Still opening the first model ({0}s) — Blender is starting in this tab. `volter-model-editor status` says what it is doing.", Math.round(elapsed / 1000)));
+				}, 1000);
 				unsubscribe = registry.subscribe?.(() => { if (open()) { stop(); resolve(); } });
 				// One more read after subscribing: the document can land between the check
 				// above and this listener, and then no further change is coming.

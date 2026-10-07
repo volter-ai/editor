@@ -98,9 +98,8 @@ import { clearStartupFailure, reportStartupFailure } from '@volter/editor-sdk/ki
 
 /** This document's model open, as a source in the page's startup-failure registry. */
 const MODEL_OPEN_STARTUP_SOURCE = 'blender-model-open';
-/** How long "Opening model…" may stand before the pane says it is stuck: past the product
- *  cover's own 90 s budget for the first model, so the two never race on a cold boot. */
-const MODEL_OPEN_DEADLINE_MS = 120_000;
+/** How long "Opening model…" stands before the pane also says what it is waiting on. */
+const MODEL_OPEN_NOTE_AFTER_MS = 30_000;
 import {
   clearModelDocumentPreview,
   modelDocumentPreview,
@@ -242,6 +241,8 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
   const entryId = document?.id;
   const key = JSON.stringify([documentId, entryId, blend]);
   const [opened, setOpened] = useState<{ key: string; error: string | null } | null>(null);
+  /** What a slow open is waiting on, once it has been slow (`MODEL_OPEN_NOTE_AFTER_MS`). */
+  const [stillOpening, setStillOpening] = useState<string | null>(null);
   const [attempt, setAttempt] = useState(0);
   const project = editorHost().projectLocalState.projectRootPath();
   const preview = useSyncExternalStore(subscribeModelDocumentPreview, () => modelDocumentPreview(project), () => null);
@@ -307,6 +308,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     const unbind = bindModelDocument(binding);
     const publish = () => { unpublish = callbacks.current.publishContext?.(view); };
     setOpened(null);
+    setStillOpening(null);
     // Native focus can arrive after the contributed pane mounts. A declined
     // open is not an in-flight load: retry when the host activates this model,
     // rather than leaving "Opening model…" latched forever. Utility focus
@@ -354,20 +356,16 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
         starting = false;
       }
     };
-    // "OPENING MODEL…" HAS A DEADLINE (2026-10-06 audit: the engine's worker calls carry no
-    // per-call timeout, and a declined open left this pane on "Opening model" indefinitely).
-    // Past it the pane says so, with what it knows — still working, or declined because
-    // another model holds the engine — and offers Retry. The open is not cancelled: if it
-    // finishes after all, the model replaces the message.
-    const stall = setTimeout(() => {
+    // A SLOW OPEN SAYS WHAT IT IS WAITING ON (2026-10-06 audit: "Opening model…" had no word
+    // past its spinner, and a declined open sat there indefinitely). It is progress, never an
+    // error, and it offers no Retry (#147 review): the open is still running, and a second one
+    // would queue behind it. A real failure arrives through the catch above.
+    const slow = setInterval(() => {
       if (cancelled || finished) return;
-      const seconds = Math.round(MODEL_OPEN_DEADLINE_MS / 1000);
-      const detail = declined
-        ? `Blender has not opened ${path} after ${seconds}s: the engine is holding another model, and this one waits for it. Switch to that model and back, or press Retry.`
-        : `Blender has not finished opening ${path} after ${seconds}s. It may still finish (the model will replace this); if it does not, press Retry, and ${commandLine('status')} shows what the engine is busy with.`;
-      setOpened({ key, error: detail });
-      editorHost().console.error(detail, 'blender-open');
-    }, MODEL_OPEN_DEADLINE_MS);
+      setStillOpening(declined
+        ? `Still waiting: Blender is holding another model, and opens ${path} when it is free.`
+        : `Still opening ${path}: Blender is working (a large file, or a cold start). ${commandLine('status')} shows what it is busy with.`);
+    }, MODEL_OPEN_NOTE_AFTER_MS);
     // Opening publishes context to other React roots. Start outside this
     // effect (or a host activation listener's synchronous notification stack)
     // so those roots cannot synchronously commit through a pending commit here.
@@ -381,7 +379,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
     requestOpen();
     return () => {
       cancelled = true;
-      clearTimeout(stall);
+      clearInterval(slow);
       unsubscribe();
       unpublish?.();
       unbind();
@@ -391,6 +389,7 @@ export default function BlenderModelDocument(props: ToolContributionProps) {
   if (active === false || !documentId) return null;
   if (opened?.key !== key || opened.error) return <BlenderModelOpening
     documentId={documentId} path={blend ?? 'Model'} error={opened?.key === key ? opened.error : null} preview={preview}
+    note={stillOpening}
     retry={() => { setOpened(null); setAttempt(value => value + 1); }}
     returnToPreview={() => {
       if (!preview) return;

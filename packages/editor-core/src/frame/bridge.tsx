@@ -178,8 +178,8 @@ export interface VolterKeyboardHandle {
     documentKind: string | null;
     play: string;
   };
-  /** `notify`: the refusal answers a gesture the person just made (a key, a palette pick), so
-   *  it reaches the tray too even at `warn`. An `error` always does. */
+  /** `notify`: the refusal answers a gesture the person just made (a palette pick), so it
+   *  reaches the tray too even at `warn`. An `error` always does. */
   report(level: 'warn' | 'error', message: string, options?: { readonly notify?: boolean }): void;
 }
 
@@ -1034,7 +1034,8 @@ export interface VolterCommandsHandle {
    *  Standalone the same door answers a `volter.<view>.<verb>` id off the views registry, so this
    *  is the second implementation of one table, never a second table. */
   setCommandExecutor(run: ((id: string, args?: unknown) => Promise<unknown>) | null): void;
-  report(level: 'warn' | 'error', message: string): void;
+  /** `notify`: a palette pick that ran nothing answers the person's own gesture (tray too). */
+  report(level: 'warn' | 'error', message: string, options?: { readonly notify?: boolean }): void;
 }
 
 /**
@@ -1247,9 +1248,10 @@ export async function mountEditor(next: VscodeParts, frame: VscodeFrameServices 
     // refusals go to the console only"). An `error` — settings that could not be applied or
     // written, a file write refused — is a failure of something the person or their project
     // asked for, and a ledger line they never open is not telling them. A refusal the caller
-    // marks `notify` answers a gesture just made (a key that ran nothing, a palette pick the
-    // editor no longer offers). The rest — "Nothing to undo" at the bottom of a stack — stay
-    // ledger-only, for the reason above.
+    // marks `notify` answers a gesture just made (a palette pick the editor no longer offers).
+    // The rest stay ledger-only, for the reason above: "Nothing to undo" at the bottom of a
+    // stack, and a keyboard action whose gate refused — which is every Ctrl+C with text
+    // selected in a pane, far too common to toast (#147 review).
     report: (level, message, options) => {
       const door = editorHost();
       if (level === 'error') door.console.error(message, 'editor');

@@ -107,6 +107,25 @@ export class VolterOpeningCover {
 		mainWindow.requestAnimationFrame(() => this.attach(frame + 1));
 	}
 
+	/** The progress line, while one is shown. See {@link note}. */
+	private noteElement: HTMLElement | undefined;
+
+	/**
+	 * SAY WHAT A SLOW OPEN IS WAITING ON, without calling it a failure (#147 review: a deadline
+	 * that flipped the cover to a refusal turned a healthy slow start into a reported failure, and
+	 * a refusal is one-way). A line along the bottom, under whichever splash is drawn; `null`
+	 * takes it away. A refusal already shown is never replaced by progress.
+	 */
+	note(text: string | null): void {
+		if (this.removed || this.element.classList.contains('volter-opening-cover-failed')) { return; }
+		if (text === null) { this.noteElement?.remove(); this.noteElement = undefined; return; }
+		if (!this.noteElement) {
+			this.noteElement = $('.volter-opening-cover-note');
+			this.element.appendChild(this.noteElement);
+		}
+		this.noteElement.textContent = text;
+	}
+
 	/** The editor is there: take the cover away, whole — the product's splash with it. */
 	remove(): void {
 		this.removed = true;
@@ -138,6 +157,7 @@ export class VolterOpeningCover {
 		this.productCover = undefined;
 		this.element.classList.remove('volter-opening-cover-product');
 		this.element.textContent = '';
+		this.noteElement = undefined;
 		this.drawKitContent();
 		this.element.classList.add('volter-opening-cover-failed');
 		if (this.state) { this.state.textContent = message; }

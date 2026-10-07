@@ -441,7 +441,7 @@ if (product) {
 // sides have always been mirrors, because nothing under `src/vs/` can import React TSX.
 interface BridgeMount { output?: VolterOutputBridge; host: HTMLElement; keyboard: VolterKeyboardBridge; offerPart?(id: 'center' | 'outliner' | 'properties' | 'content', element: HTMLElement | null): void; documents?: VolterDocumentsBridge; history?: VolterHistoryBridge; files?: VolterFilesBridge; settings?: VolterSettingsBridge; commands?: VolterCommandsBridge; notifications?: VolterNotificationsBridge; views?: VolterViewsBridge; utilities?: VolterUtilitiesBridge; status?: VolterStatusBridge; startup?: VolterStartupBridge }
 /** The editor's terminal boot failure (`bridge.tsx`'s `VolterStartupHandle`), a mirror like the rest. */
-interface VolterStartupBridge { subscribe(listener: (failure: { message: string; guidance: string | null; command: string | null } | null) => void): () => void }
+interface VolterStartupBridge { subscribe(listener: (failure: { message: string; guidance: string | null; command: string | null; transient?: boolean } | null) => void): () => void }
 interface BridgeModule {
 	mountVolter(parts: { chromeRoot: HTMLElement; header: HTMLElement; center: HTMLElement; outliner?: HTMLElement; properties?: HTMLElement; content?: HTMLElement }, frame?: { workspaceStorage?: { get(key: string): string | undefined; store(key: string, value: string | undefined): void; flush(): Promise<void> } }): Promise<BridgeMount>;
 }
@@ -460,27 +460,25 @@ const keyboardStore = new DisposableStore();
  *   * the editor mounts            → the mount command removes it
  *   * the open refuses or throws   → the cover SAYS SO and grows a way out
  *   * the editor reports a startup failure → the cover says that, in the editor's words
- *   * the open outlives {@link OPEN_DEADLINE_MS} → the cover says which step it still waits on
+ *   * the open is slow             → the cover SAYS what it is waiting on, and keeps waiting
  */
 let cover: VolterOpeningCover | undefined;
 
 /**
- * HOW LONG THE OPEN MAY TAKE before the cover says it is stuck — up to the product's `ready`,
- * which bounds its own wait. Until 2026-10-06 nothing did: the open awaited the editor's
- * workspace restore with no deadline, so any step that never finished (a serving door that
- * never answered, a module that never loaded, a workspace that never restored) left the
- * product's splash running forever with its cause nowhere. 120 s is the editor's `edit`
- * command's own budget for the page coming up (`waitForVerifiedEditorOpen`), so a cold Vite
- * boot that `edit` would still wait for is not called stuck here first.
- *
- * IT DOES NOT CANCEL THE OPEN. Nothing has refused, so the open carries on and the cover still
- * lifts if it finishes; the cover only stops presenting the wait as normal.
+ * WHEN A SLOW OPEN STARTS SAYING WHAT IT IS WAITING ON. Until 2026-10-06 nothing did: the open
+ * awaited the editor's workspace restore with no word, so a step that never finished left the
+ * product's splash running with its cause nowhere. There is still NO DEADLINE (#147 review: one
+ * turned a healthy slow start — a cold Vite boot, a big project — into a reported failure, and
+ * a refusal on the cover is one-way). Past this many seconds the cover carries a progress line
+ * naming the step and how long, updated as it goes, and the open ends only on an answer.
  */
-const OPEN_DEADLINE_MS = 120_000;
-/** The step the open is waiting on now, named for the deadline's sentence. */
+const OPEN_PROGRESS_AFTER_S = 15;
+/** The step the open is waiting on now, named in the progress line. */
 let openStep = '';
-/** Whether the editor's own startup failure stands: the deadline's guess must never replace
- *  the editor's reason on the cover. */
+/** The editor's own still-trying line (a transient startup notice), which the progress line
+ *  shows instead of the step while it stands. */
+let startupProgress: string | null = null;
+/** Whether the editor's own startup REFUSAL stands: then nothing else replaces it on the cover. */
 let startupRefused = false;
 
 /** A refusal's message and its fix, without the command twice when the message or guidance
@@ -579,13 +577,15 @@ registerAction2(class extends Action2 {
 				return;
 			}
 		}
-		// THE OPEN'S DEADLINE ({@link OPEN_DEADLINE_MS}): past it, the cover names the step still
-		// pending and where to look, unless the editor has already said why it stopped.
+		// THE OPEN'S PROGRESS LINE ({@link OPEN_PROGRESS_AFTER_S}): what it waits on, and for how
+		// long, under the splash — progress, never a refusal.
 		openStep = localize('volterStepLayout', "the workbench layout");
-		const deadline = mainWindow.setTimeout(() => {
-			if (startupRefused) { return; }
-			cover?.fail(localize('volterOpenStuck', "{0} has not opened after {1}s: it is still waiting for {2}.\n\nNothing has refused, so the open goes on and this lifts if it finishes. `{3} status` says what the session knows; the session's log is in the project's logs folder.", product.title, Math.round(OPEN_DEADLINE_MS / 1000), openStep, product.command));
-		}, OPEN_DEADLINE_MS);
+		const openStartedAt = Date.now();
+		const progress = mainWindow.setInterval(() => {
+			const seconds = Math.round((Date.now() - openStartedAt) / 1000);
+			if (seconds < OPEN_PROGRESS_AFTER_S) { return; }
+			cover?.note(startupProgress ?? localize('volterOpenWaiting', "Still waiting for {0} ({1}s). `{2} status` says what the session knows.", openStep, seconds, product.command));
+		}, 1000);
 		try {
 			// Discard only upstream's onboarding, including a restored Welcome tab.
 			await editorService.closeEditors(editorService.getEditors(EditorsOrder.SEQUENTIAL).filter(({ editor }) => editor.typeId === GettingStartedInput.ID));
@@ -705,8 +705,11 @@ registerAction2(class extends Action2 {
 					// Blender worker that could not open the model.
 					if (mount.startup) {
 						keyboardStore.add(toDisposable(mount.startup.subscribe(failure => {
-							startupRefused = failure !== null;
-							if (!failure) { return; }
+							// STILL TRYING is progress under the splash; only a refusal fails the cover.
+							startupProgress = failure?.transient ? failure.message : null;
+							startupRefused = failure !== null && !failure.transient;
+							if (!failure) { cover?.note(null); return; }
+							if (failure.transient) { cover?.note(failure.message); return; }
 							cover?.fail(localize('volterStartupRefused', "{0} did not open.\n\n{1}", product.title, startupRefusalText(failure)));
 						})));
 					}
@@ -799,8 +802,9 @@ registerAction2(class extends Action2 {
 				mounted.catch(() => { mounted = undefined; });
 			}
 			const mount = await mounted;
-			// The product's `ready` bounds its own wait, in its own words.
-			mainWindow.clearTimeout(deadline);
+			// The product's `ready` narrates its own wait, in its own words.
+			mainWindow.clearInterval(progress);
+			cover?.note(null);
 			// AND THEN THE PRODUCT DECIDES WHEN IT IS OPEN (`VolterProduct.ready`, owner
 			// 2026-09-21). The bridge mounting means the EDITOR is assembled; it does not
 			// mean the thing a person came to see is on screen. Measured on the model
@@ -821,7 +825,7 @@ registerAction2(class extends Action2 {
 			// notifications are the channel), so a rejected `waitForParts` left a window that
 			// simply never became the editor and never said why. The cover is what says it now,
 			// in the words of whichever step refused, with a way out underneath.
-			mainWindow.clearTimeout(deadline);
+			mainWindow.clearInterval(progress);
 			const message = error instanceof Error ? error.message : String(error);
 			// The editor's own startup reason, when one stands, is the better sentence (a
 			// product's `ready` timing out behind it is a consequence, not the cause).

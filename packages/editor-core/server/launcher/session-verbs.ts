@@ -13,7 +13,7 @@ import { resolveSession } from '@volter/editor-live';
 import { EditorClient } from '@volter/editor-sdk/client';
 import { relayCommandTimeoutMs } from '@volter/editor-sdk/session/command-table';
 import type { AssetPreviewShotSetDefinition, AssetPreviewSource, EditorState } from '@volter/editor-sdk';
-import { startupRefusals } from './launch';
+import { currentPageErrors, startupRefusals } from './launch';
 import {
   fetchEditorState,
   requestEditorTabEnsure,
@@ -81,9 +81,13 @@ export async function listRecentProjects(): Promise<void> {
  * broadcasts `project-changed`, on which the page reloads onto the new project
  * (`command-listener.ts`). Until 2026-10-06 this printed "Opened project" the moment the route
  * answered, whether or not any page existed to show the project or the reloaded page came up —
- * a project the page then refused (a pinned engine, a broken manifest) read as success. Now it
- * waits for the reloaded page, and fails, with the page's own words, when there is none or it
- * did not start.
+ * a project the page then refused (a pinned engine, a broken manifest) read as success.
+ *
+ * NOW IT WAITS ON THE PAGE, NOT ON A CLOCK. A healthy switch can take a long time (a cold Vite
+ * transform, a big project, a loaded machine), so there is no deadline: it says what it is
+ * waiting on every 20 s and ends only on an answer — the new page-load running the editor
+ * (success), the page's own refusal (its words), the server's verdict that the page is never
+ * coming up, or no page left at all.
  */
 export async function openProject(path: string, command: string): Promise<void> {
   const { client, url } = await sessionClient();
@@ -96,36 +100,44 @@ export async function openProject(path: string, command: string): Promise<void> 
       `The session now serves ${path}, but no editor page is open to show it. Open one: \`${command} edit ${path}\`.`,
     );
   }
-  // The old page answers until it reloads; only a NEW page-load is this open's answer.
-  const reloadBy = Date.now() + OPEN_RELOAD_WAIT_MS;
-  let reloaded = false;
-  while (Date.now() < reloadBy) {
+  let lastProgressAt = openAttemptAt;
+  let noPageSince: number | null = null;
+  for (;;) {
+    const refused = await startupRefusals(url, openAttemptAt);
+    if (refused.length > 0) {
+      throw new Error(`The session now serves ${path}, but its editor page refused it:\n${refused.map((message) => `  ${message}`).join('\n')}`);
+    }
+    const state = await fetchEditorState(url);
+    // A NEW page-load running the document: the old page answers until it reloads, and the
+    // ledger's load id moves only when the new one's editor has mounted (`noteLoad`).
     const load = await currentLoadId(url);
-    if (load !== null && load !== loadBefore) { reloaded = true; break; }
-    await delay(300);
-  }
-  if (!reloaded) {
-    throw new Error(
-      `The session now serves ${path}, but its editor page did not reload onto it within ${OPEN_RELOAD_WAIT_MS / 1000}s. ` +
-        `\`${command} status\` says what the session sees; \`${command} edit ${path}\` reopens the page.`,
-    );
-  }
-  const outcome = await waitForVerifiedEditorOpen(url, { openAttemptAt,
-    onProgress: (ms) => console.log(`Waiting for the editor page (${Math.round(ms / 1000)}s)…`) });
-  const said = await startupRefusals(url);
-  if (outcome.status !== 'connected' || said.length > 0) {
-    throw new Error(
-      `The session now serves ${path}, but its editor page did not open it` +
-        (said.length > 0
-          ? `:\n${said.map((message) => `  ${message}`).join('\n')}`
-          : `; \`${command} status\` and \`${command} console\` say what the page reported.`),
-    );
+    if (load !== null && load !== loadBefore && state.tabs.some((tab) => tab.commandListener === 'ready')) break;
+    if (state.tabs.some((tab) => tab.unresponsive)) {
+      const said = await currentPageErrors(url);
+      throw new Error(
+        `The session now serves ${path}, but its editor page is not coming up (the session's own verdict)` +
+          (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : `; \`${command} console\` has what it reported.`),
+      );
+    }
+    const now = Date.now();
+    // NO PAGE AT ALL, for longer than a reload's own gap, is a dead end rather than a slow start.
+    if (state.tabs.length === 0 && state.editorsConnected === 0) {
+      noPageSince ??= now;
+      if (now - noPageSince >= NO_PAGE_DEAD_END_MS)
+        throw new Error(`The session now serves ${path}, but its editor page closed instead of reopening it. Open one: \`${command} edit ${path}\`.`);
+    } else noPageSince = null;
+    if (now - lastProgressAt >= 20_000) {
+      lastProgressAt = now;
+      console.log(`Waiting for the editor page to reopen on ${path} (${Math.round((now - openAttemptAt) / 1000)}s)…`);
+    }
+    await delay(500);
   }
   console.log(`Opened project: ${path}`);
 }
 
-/** How long `open` waits for the page to reload after the switch (it reloads on the broadcast). */
-const OPEN_RELOAD_WAIT_MS = 20_000;
+/** How long `open` lets the session see NO page before calling it closed: a reload keeps its
+ *  tab row, so a session with no tab at all for this long has lost the page. */
+const NO_PAGE_DEAD_END_MS = 10_000;
 
 /** The page-load the session's console ledger calls current, or null with no page / no answer. */
 async function currentLoadId(url: string): Promise<string | null> {

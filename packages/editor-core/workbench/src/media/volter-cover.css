@@ -85,3 +85,18 @@
 .monaco-workbench .volter-opening-cover-dismiss:hover {
 	background: var(--vscode-button-hoverBackground);
 }
+
+/* WHAT A SLOW OPEN IS WAITING ON (`VolterOpeningCover.note`): progress, not a refusal, so it
+   rides along the bottom under whatever splash is drawn — the product's or the kit's — and
+   comes away when the wait it names is over. */
+.monaco-workbench .volter-opening-cover-note {
+	position: absolute;
+	left: 16px;
+	right: 16px;
+	bottom: 24px;
+	font-size: 12px;
+	text-align: center;
+	white-space: pre-wrap;
+	user-select: text;
+	color: var(--vscode-descriptionForeground);
+}

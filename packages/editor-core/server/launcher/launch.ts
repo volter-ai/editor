@@ -142,19 +142,13 @@ async function refuseIncompatibleProject(serverUrl: string, command: string, noO
       return null;
     }
   };
-  let refusal = await read();
-  // EVERY VERDICT REFUSES, not only the project's (the engine pin). A server-staleness verdict
-  // (`retry-editor`, `restart-editor`) can be a dev host's restart in flight, so it is re-read for
-  // a bounded moment first; one that outlives the restart window is as final as the pin, and
-  // until 2026-10-06 it too exited 0 under `--no-open`.
-  const projectVerdict = (verdict: Refusal) =>
-    verdict.recovery?.kind === 'use-compatible-editor' || verdict.recovery?.kind === 'upgrade-project';
-  const settleBy = Date.now() + STALE_VERDICT_SETTLE_MS;
-  while (refusal && !projectVerdict(refusal) && Date.now() < settleBy) {
-    await new Promise((r) => setTimeout(r, 1000));
-    refusal = await read();
-  }
+  const refusal = await read();
   if (!refusal) return;
+  // Only the PROJECT's verdicts (the engine pin). A server-staleness verdict can be a dev host's
+  // restart in flight, which the tab wait below already rides out; a deadline here turned a slow
+  // healthy restart into a failed `edit` (#147 review).
+  const kind = refusal.recovery?.kind;
+  if (kind !== 'use-compatible-editor' && kind !== 'upgrade-project') return;
   const message = refusal.error as string;
   const guidance = typeof refusal.recovery?.guidance === 'string' ? refusal.recovery.guidance : null;
   const verbs: unknown = refusal.recovery?.verbs;
@@ -171,10 +165,6 @@ async function refuseIncompatibleProject(serverUrl: string, command: string, noO
     `The session is still running at the URL above; after the fix, press Retry on its page, or run \`${command} edit .\` again.`,
   ].join('\n\n'));
 }
-
-/** How long a server-staleness verdict is re-read before `edit` calls it final: a dev host's
- *  source-change restart hands over within a few seconds (`restartPendingSessionHint`'s window). */
-const STALE_VERDICT_SETTLE_MS = 15_000;
 
 async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   const openAttemptAt = Date.now();
@@ -198,7 +188,8 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
     while (!settled) {
       await new Promise((r) => setTimeout(r, 2000));
       if (settled) break;
-      const refused = await startupRefusals(serverUrl);
+      // Said by a page that loaded for THIS open, never an earlier page's line.
+      const refused = await startupRefusals(serverUrl, openAttemptAt);
       if (refused.length > 0) return refused;
     }
     return [];
@@ -221,13 +212,32 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   }
 }
 
-/** The startup refusals (`Startup failed: …`, `AppRoot`'s console line) of the page now open —
- *  `[]` while any tab is command-ready, since a page that got past its refusal (Retry after the
- *  fix) keeps the old line in its load's ledger but is no longer refusing. */
-export async function startupRefusals(serverUrl: string): Promise<string[]> {
+/**
+ * THE REFUSAL A PAGE THAT IS OPEN NOW IS SHOWING (`Startup failed: …`, `AppRoot`'s console line),
+ * or `[]`. Only a confirmed one counts (#147 review): a tab must be present, none command-ready,
+ * and every present tab must have reported the `no-project` route — which `AppRoot` reports only
+ * from its terminal screens, never while detection is still trying. Without those, the ledger's
+ * newest "Startup failed" could be a page that has since closed, or one a Retry got past.
+ * `since` (epoch ms) keeps only refusals said at or after it — an `open` reading the page it
+ * just reloaded.
+ */
+export async function startupRefusals(serverUrl: string, since = 0): Promise<string[]> {
   const state = await fetchEditorState(serverUrl);
-  if (state.tabs.some((tab) => tab.commandListener === 'ready')) return [];
-  return (await currentPageErrors(serverUrl)).filter((message) => message.startsWith('Startup failed'));
+  if (state.tabs.length === 0 || state.tabs.some((tab) => tab.commandListener === 'ready')) return [];
+  if (!state.tabs.every((tab) => tab.route === 'no-project')) return [];
+  try {
+    const response = await fetch(new URL('/__editor/console?all=1', serverUrl), { signal: AbortSignal.timeout(3000) });
+    if (!response.ok) return [];
+    const body = (await response.json()) as { entries?: { severity?: string; message?: string; lastAt?: number }[] };
+    // The NEWEST one: the terminal page said its refusal on its own load, so older lines in the
+    // ledger are earlier pages'.
+    const newest = (body.entries ?? [])
+      .filter((entry) => entry.severity === 'error' && entry.message?.startsWith('Startup failed') && (entry.lastAt ?? 0) >= since)
+      .sort((a, b) => (b.lastAt ?? 0) - (a.lastAt ?? 0))[0];
+    return newest ? [newest.message!.split('\n')[0]!] : [];
+  } catch {
+    return [];
+  }
 }
 
 /** The console errors the page now open recorded (acknowledged or not: an error seen before and
