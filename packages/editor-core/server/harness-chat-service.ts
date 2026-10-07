@@ -12,7 +12,7 @@ import { randomUUID } from 'node:crypto';
 import { existsSync, statSync, readFileSync, writeFileSync, mkdirSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { homedir } from 'node:os';
-import { dirname, join, resolve } from 'node:path';
+import { dirname, join, resolve, sep } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
 import type { NormalizedSession, SessionDescriptor } from '@volter/supercode-harness-sdk';
 import {
@@ -675,9 +675,25 @@ export function supercodeInvocation(command: string, args: readonly string[]): {
     : { command, args: [...args] };
 }
 
+/**
+ * Whether `command` is the Teams daemon's own per-version core (`<supercode home>/teams/service/bin/<version>/…`).
+ * The daemon sets SUPERCODE_BIN to it for the panes it launches, so its hooks call back into the same build; an
+ * editor started from such a pane inherits that value, which names whatever release the daemon ran when the pane
+ * opened (hours old, and older than the machine's install). It is not a person's override, so Chat does not run on it.
+ */
+export function isTeamsServiceSupercode(command: string, home = process.env['SUPERCODE_HOME'] || join(homedir(), '.config', 'supercode')): boolean {
+  const normalize = (value: string) => {
+    const full = resolve(value);
+    return process.platform === 'win32' ? full.toLowerCase() : full;
+  };
+  const serviceBin = normalize(join(home, 'teams', 'service', 'bin'));
+  const target = normalize(command);
+  return target.startsWith(serviceBin + sep);
+}
+
 export function findSupercodeCommand(cwd = process.cwd(), path = process.env['PATH'] ?? ''): string | undefined {
   const explicit = process.env['SUPERCODE_BIN'];
-  if (explicit) {
+  if (explicit && !isTeamsServiceSupercode(explicit)) {
     const command = chatExecutable(explicit, cwd, path);
     if (!command) throw new Error(`SUPERCODE_BIN does not resolve to an executable: ${explicit}`);
     return command;
