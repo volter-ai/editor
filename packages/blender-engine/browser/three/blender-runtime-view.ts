@@ -2,6 +2,7 @@
  * No modeling operations or source builds run here. Stable datablock addresses
  * retain objects/resources; changed meshes replace only their draw geometry.
  */
+import {expandDrawPlacements} from './blender-depsgraph-placements';
 import * as THREE from 'three';
 import { z } from 'zod';
 import { onPresenterChange, presenterChanged } from './blender-presenter-change';
@@ -490,6 +491,12 @@ export const frameSchema = z
     meshes: z.record(z.string(), meshSchema),
     materials: z.record(z.string(), materialSchema),
     images: z.record(z.string(), frameImageSchema).default({}),
+    /** Evaluated draws borrowing geometry/materials from native source rows. */
+    instances: z.array(z.object({
+      id:z.string(),source:z.string(),owner:z.string().nullable(),
+      matrix:z.array(z.tuple([scalar,scalar,scalar,scalar])).length(4),
+      visible:z.boolean(),render_visible:z.boolean(),random:scalar,color:z.tuple([scalar,scalar,scalar,scalar]),
+    }).strict()).optional(),
     objects: z.array(
       z
         .object({
@@ -521,6 +528,9 @@ export const frameSchema = z
           render_visible: z.boolean().default(true),
           selected: z.boolean(),
           parent: z.string().nullable(),
+          instance_owner: z.string().nullable().optional(),
+          viewport_show_self:z.boolean().optional(),
+          render_show_self:z.boolean().optional(),
           /** A manual texture space (`[location, size]`), which Generated
            *  coordinates map through; absent means Blender's automatic one,
            *  the evaluated bounds (`blender-graph-material.ts`'s orco). */
@@ -701,6 +711,7 @@ export class BlenderRuntimeView {
   private readonly emptyExtrasRoot = new THREE.Group();
   private rendered = false;
   private sceneLights = false;
+  private readonly hiddenSurfaceLayers = new WeakMap<THREE.Object3D,number>();
   private shadowFit: {
     camera: THREE.Camera | undefined;
     cameraMatrix: THREE.Matrix4 | undefined;
@@ -1585,11 +1596,26 @@ export class BlenderRuntimeView {
   }
 
   private applyVisibility(): void {
+    // Restore canonical masks before suppressing an instancer's own surface.
+    // Its geometry can be hidden while its placed children remain visible.
+    this.instances.clear();
+    this.transparentInstances.clear();
     const renderVisibility = this.rendered && (this.capturing || this.heldVisibility === 'render');
     for (const obj of this.frame?.objects ?? []) {
       const object = this.objects.get(obj.id);
       const visible = renderVisibility ? obj.render_visible : obj.visible;
       if (object) object.visible = visible;
+      if ((object as THREE.Mesh | undefined)?.isMesh) {
+        const showSelf = (renderVisibility ? obj.render_show_self : obj.viewport_show_self) ?? true;
+        const previous = this.hiddenSurfaceLayers.get(object!);
+        if (!showSelf) {
+          if (previous === undefined) this.hiddenSurfaceLayers.set(object!,object!.layers.mask);
+          object!.layers.mask = 0;
+        } else if (previous !== undefined) {
+          object!.layers.mask = previous;
+          this.hiddenSurfaceLayers.delete(object!);
+        }
+      }
       if (!obj.light) continue;
       const light = this.lights.get(obj.light);
       if (light) light.visible = this.sceneLights && visible;
@@ -1651,7 +1677,7 @@ export class BlenderRuntimeView {
     // the session correct its own tables BEFORE it decides what to ship.
     const held =
       this.frame === null ? null : { session: this.frame.session, revision: this.frame.revision };
-    const next = frameSchema.parse(input);
+    const next = expandDrawPlacements(frameSchema.parse(input));
     const staged = this.staged;
     if (staged && (staged.session !== next.session || staged.revision !== next.revision))
       throw new Error(`Blender frame manifest does not match its staged revision: staged ${JSON.stringify([staged.session, staged.revision])}, manifest ${JSON.stringify([next.session, next.revision])}`);
