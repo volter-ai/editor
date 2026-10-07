@@ -34,11 +34,12 @@ try {
   const { values, positionals } = parseArgs({ args: process.argv.slice(2), allowPositionals: true, options: {
     workbench: { type: 'string' }, out: { type: 'string' }, reason: { type: 'string' }, 'no-open': { type: 'boolean' },
     template: { type: 'string' }, with: { type: 'string' },
-    port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' },
+    port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' }, all: { type: 'boolean' },
     ...SCREENSHOT_OPTIONS, ...CAPABILITY_OPTIONS,
   } });
   const [verb = 'edit', folder = '.'] = positionals;
   if (values.list && verb !== 'eval') throw new Error('--list belongs to eval.');
+  if (values.all && verb !== 'console') throw new Error('--all belongs to console.');
   if (values.out !== undefined && verb !== 'view') throw new Error('--out belongs to view build.');
   for (const key of Object.keys(SCREENSHOT_OPTIONS) as (keyof typeof SCREENSHOT_OPTIONS)[])
     if (values[key] !== undefined && verb !== 'screenshot') throw new Error(`--${key} belongs to screenshot.`);
@@ -50,7 +51,7 @@ try {
     console.log(`Volter Game Editor
   volter-game-editor create <folder> [--template ${Object.keys(presets.templates).join('|')}] [--with ${SCAFFOLD_ADDITIONS.join(',')}] [--workbench <dir>]
   volter-game-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-game-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]
-  volter-game-editor status | console | close
+  volter-game-editor status | console [--all] | close
   volter-game-editor console ack <id> --reason <text>
   volter-game-editor eval <JavaScript> | --list   # { editor, game, page, tools, session } in scope
   volter-game-editor play | stop | restart
@@ -115,7 +116,7 @@ try {
     if (positionals.length > (verb === 'eval' ? 2 : 1)) throw new Error('Unexpected arguments.');
     // `eval`'s scope adds the game half (`@volter/game-live`) on the same session.
     const { gameBindings } = await import('@volter/game-live');
-    await control(PRODUCT.command, verb, values.list ? '--list' : positionals[1], undefined, live => {
+    await control(PRODUCT.command, verb, values.list ? '--list' : values.all ? '--all' : positionals[1], undefined, live => {
       const { game, page, recording } = gameBindings(live.session);
       return { editor: Object.assign(live.editor, { recording }), game, page };
     });
