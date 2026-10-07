@@ -39,6 +39,7 @@ export async function launch(folder: string, launching: LaunchingProduct, option
       // The proxy port is reserved by project identity, just like the server.
       console.log(workbenchUrl(allocateWorktreeEditorPort(project, undefined, 'frame-proxy'), project));
     } else console.log(state.workbenchUrl);
+    await refuseIncompatibleProject(serverUrl, launching.command, !!options.noOpen);
     await ensureTab(serverUrl, !!options.noOpen);
     return;
   }
@@ -88,6 +89,7 @@ export async function launch(folder: string, launching: LaunchingProduct, option
     await waitForSessionWorkbench(serverUrl);
     console.log(`${launching.displayName}: ${workbenchUrl(proxyPort, project)}`);
     console.log(`Logs: ${logPath}`);
+    await refuseIncompatibleProject(serverUrl, launching.command, !!options.noOpen);
     await ensureTab(serverUrl, !!options.noOpen);
   } finally { clearLaunch(); }
 }
@@ -113,6 +115,46 @@ export async function prepareSession(folder: string, launching: LaunchingProduct
     child.once('exit', done);
   });
   if (code !== 0) throw new Error(`${launching.command} prepare exited with code ${code} for ${project}.`);
+}
+
+/**
+ * THE SESSION CANNOT OPEN THIS PROJECT, and the server already knows it: `/__editor/state`'s
+ * `projectCompatibility` is the same verdict the page refuses on, computed server-side on every
+ * read. Until 2026-10-06 `edit` printed the URL and exited
+ * 0 regardless — measured on the owner's stream, `edit . --no-open` on a project pinned to
+ * 0.5.185 under a 0.5.189 editor: exit 0, a tab stuck on the product's splash, and the cause only
+ * in `status`. So the refusal is printed here, with its fix, and the command fails.
+ *
+ * The session is left running and (unless `--no-open`) its tab is opened: the page shows the same
+ * refusal with a Copy button, and its Retry opens the project once the fix is in, with no second
+ * `edit` needed.
+ */
+async function refuseIncompatibleProject(serverUrl: string, command: string, noOpen: boolean): Promise<void> {
+  type Refusal = { error?: unknown; recovery?: { kind?: unknown; guidance?: unknown; verbs?: unknown } };
+  let refusal: Refusal | null = null;
+  try {
+    const response = await fetch(`${serverUrl}/__editor/state`, { signal: AbortSignal.timeout(5000) });
+    if (response.ok) refusal = ((await response.json()) as { projectCompatibility?: Refusal | null }).projectCompatibility ?? null;
+  } catch {
+    // An unreadable answer is not a refusal; the tab wait below still reports a page that fails.
+    return;
+  }
+  if (!refusal || typeof refusal.error !== 'string') return;
+  // Only the PROJECT's verdicts (the engine pin). A server-staleness verdict can be a dev host's
+  // restart in flight, which the tab wait below already rides out.
+  const kind = refusal.recovery?.kind;
+  if (kind !== 'use-compatible-editor' && kind !== 'upgrade-project') return;
+  const guidance = typeof refusal.recovery?.guidance === 'string' ? refusal.recovery.guidance : null;
+  const verbs: unknown = refusal.recovery?.verbs;
+  const run = (Array.isArray(verbs) ? verbs : []).filter((verb): verb is string => typeof verb === 'string')
+    .map((verb) => `${command} ${verb}`).join(' && ');
+  if (!noOpen) await requestEditorTabEnsure(serverUrl, true);
+  throw new Error([
+    `This session cannot open the project: ${refusal.error}`,
+    ...(guidance ? [guidance] : []),
+    ...(run ? [`Run from the project folder:\n  ${run}`] : []),
+    `The session is still running at the URL above; after the fix, press Retry on its page, or run \`${command} edit .\` again.`,
+  ].join('\n\n'));
 }
 
 async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {

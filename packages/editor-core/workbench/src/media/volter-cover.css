@@ -61,6 +61,15 @@
 
 .monaco-workbench .volter-opening-cover.volter-opening-cover-failed .volter-opening-cover-state {
 	color: var(--vscode-errorForeground);
+	/* A REFUSAL IS READ, not glanced at: it carries the cause and the fix (a pinned engine's
+	   `upgrade` line), so it is body-size, left-aligned as the paragraphs it is, and
+	   selectable so the command can be copied off the cover. */
+	font-size: 14px;
+	line-height: 1.5;
+	max-width: 80ch;
+	padding: 0 16px;
+	text-align: left;
+	user-select: text;
 }
 
 .monaco-workbench .volter-opening-cover-dismiss {

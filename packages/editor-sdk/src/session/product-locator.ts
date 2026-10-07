@@ -90,6 +90,12 @@ export interface ProductIdentity {
   readonly command: string;
   /** The name a person sees — `volter.product.displayName` (`Volter Game Editor`). */
   readonly displayName: string;
+  /**
+   * `volter.product.upgrade: true` — its command has `upgrade [version]`
+   * (`@volter/editor-sdk/session/project-upgrade`), so a pinned-engine refusal
+   * may tell a person to run it. Optional: a product that says nothing has none.
+   */
+  readonly upgrade?: boolean;
   /** Its package root, absolute. */
   readonly dir: string;
   /**
@@ -148,7 +154,7 @@ interface ProductManifestShape {
   name?: unknown;
   version?: unknown;
   bin?: unknown;
-  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown } };
+  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown; upgrade?: unknown } };
 }
 
 const PRODUCT_COLOR_THEMES: readonly ProductColorTheme[] = ['dark', 'light'];
@@ -216,6 +222,7 @@ export function readProductManifest(packageDir: string): ProductIdentity | null 
     version: typeof manifest.version === 'string' ? manifest.version : 'unknown',
     command: commands[0]!,
     displayName,
+    upgrade: declared.upgrade === true,
     dir: packageDir,
     entry,
     colorTheme: colorTheme as ProductColorTheme,

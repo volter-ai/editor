@@ -1,4 +1,5 @@
 import { GAME_MANIFEST_VERSION } from '@volter/editor-project/manifest/schema';
+import { commandLine, productNames } from '@volter/editor-sdk/kit/product-command';
 
 export interface EditorServerCompatibility {
   apiVersion: 1;
@@ -32,6 +33,22 @@ export type StartupRecovery =
       kind: 'use-compatible-editor';
       title: 'Use a compatible editor';
       guidance: string;
+      /** The reason in a few words, for the tab title (`pinned to X, editor is Y`). */
+      summary?: string;
+    }
+  | {
+      /**
+       * The engine pin and the editor disagree, and the served product has an
+       * `upgrade [version]` verb (`@volter/editor-sdk/session/project-upgrade`)
+       * that moves the project's @volter packages and its `engine.version`
+       * together.
+       */
+      kind: 'upgrade-project';
+      title: 'Upgrade this project';
+      guidance: string;
+      verbs: readonly [`upgrade ${string}`];
+      /** As on `use-compatible-editor`. */
+      summary?: string;
     };
 
 export class ProjectCompatibilityError extends Error {
@@ -70,6 +87,8 @@ export function isStartupRecovery(value: unknown): value is StartupRecovery {
       return verbs === 'edit .' || verbs === 'close | edit .';
     case 'use-compatible-editor':
       return candidate['verbs'] === undefined;
+    case 'upgrade-project':
+      return verbs !== null && /^upgrade \S+$/.test(verbs);
     default:
       return false;
   }
@@ -225,27 +244,60 @@ export function assertProjectCompatibility(
   if (usesNoPinnedEngineApi(project)) return;
 
   const comparison = compareSemver(projectEngine, editorEngine);
+  const pinned = `This project is pinned to @volter/editor-project ${projectEngine}, but this editor is running ${editorEngine}.`;
+  // THE MESSAGE CARRIES ITS OWN FIX. It is the one string every door repeats —
+  // the tab, the console ledger the editor's `status` command prints, and the
+  // `edit` command's refusal — so a reader of any one of them learns what to
+  // run, not just what is wrong. Measured on the owner's stream 2026-10-06: a
+  // 0.5.185 pin under a 0.5.189 editor sat behind "Starting Blender…" with the
+  // cause only in `status`, and nothing anywhere said how to move the pin.
+  // Upgrading the packages never moves it, so every upgrade arrives here.
+  const upgrades = productNames()?.upgrade === true;
+  const summary = `pinned to ${projectEngine}, editor is ${editorEngine}`;
   if (comparison === -1) {
+    const manual = `set "engine": { "version": "${editorEngine}" } in volter.project.json`;
+    if (upgrades) {
+      throw new ProjectCompatibilityError(
+        `${pinned} To fix it, run ${commandLine(`upgrade ${editorEngine}`)} in the project folder, or ${manual}.`,
+        {
+          kind: 'upgrade-project',
+          title: 'Upgrade this project',
+          guidance: "Upgrading the @volter packages does not move the project's engine pin; `upgrade` moves both together.",
+          verbs: [`upgrade ${editorEngine}`],
+          summary,
+        },
+      );
+    }
+    throw new ProjectCompatibilityError(`${pinned} To fix it, ${manual}.`, {
+      kind: 'use-compatible-editor',
+      title: 'Use a compatible editor',
+      guidance:
+        `The project's engine pin is older than this editor. The one-line fix is to ${manual}; ` +
+        'this product does not rewrite project source on its own.',
+      summary,
+    });
+  }
+
+  if (comparison === 1 && upgrades) {
     throw new ProjectCompatibilityError(
-      `This project is pinned to @volter/editor-project ${projectEngine}, but this editor is running ${editorEngine}.`,
+      `${pinned} To fix it, run ${commandLine(`upgrade ${projectEngine}`)} in the project folder, then \`npm install\`.`,
       {
-        kind: 'use-compatible-editor',
-        title: 'Use a compatible editor',
-        guidance:
-          'Open the project with the editor version matching its pinned project API. This product does not automatically rewrite project source.',
+        kind: 'upgrade-project',
+        title: 'Upgrade this project',
+        guidance: `This project targets a newer engine. \`upgrade\` moves its @volter packages to ${projectEngine}; npm install then installs that editor.`,
+        verbs: [`upgrade ${projectEngine}`],
+        summary,
       },
     );
   }
 
-  throw new ProjectCompatibilityError(
-    `This project is pinned to @volter/editor-project ${projectEngine}, but this editor is running ${editorEngine}.`,
-    {
-      kind: 'use-compatible-editor',
-      title: 'Use a compatible editor',
-      guidance:
-        comparison === 1
-          ? 'This project targets a newer engine. Open it from the matching newer Volter Editor checkout or installation.'
-          : 'The engine identities differ. Open the project with the exact Volter Editor version it is pinned to.',
-    },
-  );
+  throw new ProjectCompatibilityError(pinned, {
+    kind: 'use-compatible-editor',
+    title: 'Use a compatible editor',
+    guidance:
+      comparison === 1
+        ? 'This project targets a newer engine. Open it from the matching newer Volter Editor checkout or installation.'
+        : 'The engine identities differ. Open the project with the exact Volter Editor version it is pinned to.',
+    summary,
+  });
 }
