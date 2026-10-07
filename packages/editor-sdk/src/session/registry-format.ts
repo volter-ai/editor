@@ -87,12 +87,19 @@ export function normalizeEditorSessionEntry(session: EditorSessionEntry): Editor
   };
 }
 
+/**
+ * Whether `pid` is a running process. Signal 0 checks existence only. EPERM means the
+ * process exists but this caller may not signal it: another user's process, or any
+ * process outside a sandboxed agent's shell (Codex on macOS runs commands under
+ * Seatbelt, which denies signals to the editor it did not start). Reading EPERM as
+ * dead made the CLI report "NO live sessions" beside a running editor.
+ */
 export function pidAlive(pid: number): boolean {
   try {
     process.kill(pid, 0);
     return true;
-  } catch {
-    return false;
+  } catch (error) {
+    return (error as NodeJS.ErrnoException).code === 'EPERM';
   }
 }
 
