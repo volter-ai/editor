@@ -387,7 +387,10 @@ export function BlenderGamePanel() {
     ? 'No model document is open.'
     : scriptExists === false && scriptPath !== null
       ? `No play script yet — Play runs ${scriptPath}. \`volter-model-editor add-play\` adds an example.`
-      : playing
+      : playing && clock.failure
+        // The run plays but no game runs (`DocumentPlayClock.failure`): say so, not "Playing".
+        ? `Not running — ${clock.failure}. Save the script to retry, or Stop.`
+        : playing
         ? `${clock.paused ? 'Paused' : 'Playing'} ${scriptPath ?? ''}`.trim()
         : scriptPath === null ? 'Stopped.' : `Stopped · Play runs ${scriptPath}`;
   return (
@@ -395,6 +398,7 @@ export function BlenderGamePanel() {
       data-testid="blender-game-panel"
       data-playing={playing || undefined}
       data-paused={(playing && clock.paused) || undefined}
+      data-failed={(playing && Boolean(clock.failure)) || undefined}
       style={{
         // Filled from the host box, as the Timeline is and for the reason its own comment gives.
         position: 'absolute',
@@ -505,7 +509,7 @@ export function BlenderGamePanel() {
         }}
       >
         <div style={{ flex: '0 1 260px', minWidth: 0, display: 'flex', flexDirection: 'column', gap: 6 }}>
-          <span data-testid="model-play-status" style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
+          <span data-testid="model-play-status" title={status} style={{ whiteSpace: 'nowrap', overflow: 'hidden', textOverflow: 'ellipsis' }}>
             {status}
           </span>
           {transport?.autoplay && documentId !== null && (
@@ -537,6 +541,9 @@ function AutoplayControl({ documentId, playing, autoplay, transport }: {
     <div style={{ display: 'flex', alignItems: 'center', gap: TIMELINE_CHROME.headerGap, minWidth: 0 }}>
       {/* The tooltip lives on a wrapper too: a disabled button is the one that most needs it. */}
       <span title={label} style={{ display: 'inline-flex' }}>
+      {/* KEEP THE KEYBOARD OFF THIS BUTTON (`GameButton`'s `keepFocus`). Left focused, a person
+          taking over with Space — a key the game hears, which turns autoplay off — would also
+          click this button and turn autoplay straight back on. */}
       <GameButton
         testId="model-play-autoplay"
         label={label}

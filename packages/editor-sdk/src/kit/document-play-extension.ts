@@ -40,6 +40,9 @@ export interface DocumentPlayClock {
   readonly paused: boolean;
   /** Simulation seconds per real second; one of the transport's `speeds`. */
   readonly speed: number;
+  /** While playing with no game running because the script failed to start or threw: why. The
+   *  run stays playing (a save of the script retries it); a running game clears it. */
+  readonly failure?: string | null;
 }
 /**
  * THE GAME'S TRANSPORT — what a Play tool offers beyond Play and Stop, for a layout that draws a

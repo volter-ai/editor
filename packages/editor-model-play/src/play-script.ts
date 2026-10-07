@@ -76,6 +76,7 @@ import {
   modelPlayGeneration,
   registerModelPlayStop,
   setModelPlayAutoplay,
+  setModelPlayFailure,
   setModelPlayAutoplayAvailable,
   subscribeModelPlayClock,
   takeModelPlayStep,
@@ -168,10 +169,12 @@ export interface ModelPlayGame {
 }
 
 /** One script's lifetime: `value` until it is replaced, fails or the run stops; `bot` is what it
- *  offered `play.autoplay`. */
+ *  offered `play.autoplay`; `unknown` the object names it asked for that the model lacks, each
+ *  logged once — per script, so a typo that survives a reload is said again for the new one. */
 interface Script {
   value: boolean;
   bot: ModelPlayAutoplayController | null;
+  readonly unknown: Set<string>;
 }
 
 /** The longest `dt` one update is handed; longer scaled frames are split (`frameUpdates`). */
@@ -241,6 +244,11 @@ export function runPlayScript(options: {
   const report = (phase: 'start' | 'update' | 'stop' | 'autoplay', title: string, error: unknown): void => {
     const detail = error instanceof Error ? error.message : String(error);
     run.append('play', 'script-error', { phase, message: detail });
+    // NO GAME RUNS NOW (a first start that failed, or the running game threw): the run still
+    // plays, and a save retries it, but what is on screen is not a game. Said on the clock, so
+    // the Game panel can say so and the document drops a Restart's cover (`failure`).
+    if ((phase === 'start' || phase === 'update') && game === null && current())
+      setModelPlayFailure(options.documentId, `${title}: ${detail}`);
     options.report(title, detail);
   };
   // Said once per object: a script that tints every frame would otherwise fill the log.
@@ -255,13 +263,12 @@ export function runPlayScript(options: {
         why: options.ownMaterial ? 'the material is not one the document presents' : 'this document lends no material copies' });
     },
   });
-  // An unknown name is the script's typo, not a reason to stop its game: said once per name.
-  const unknown = new Set<string>();
-  const objectOf = (target: THREE.Object3D | string, call: 'tint' | 'setOpacity'): THREE.Object3D | null => {
+  // An unknown name is the script's typo, not a reason to stop its game: said once per name, per script.
+  const objectOf = (script: Script, target: THREE.Object3D | string, call: 'tint' | 'setOpacity'): THREE.Object3D | null => {
     if (typeof target !== 'string') return target;
     const object = root.getObjectByName(target) ?? null;
-    if (!object && !unknown.has(target)) {
-      unknown.add(target);
+    if (!object && !script.unknown.has(target)) {
+      script.unknown.add(target);
       run.append('play', 'tint-unknown-object', { object: target, call });
     }
     return object;
@@ -308,11 +315,11 @@ export function runPlayScript(options: {
     keys,
     log(kind, facts) { if (alive.value) run.append('script', kind, facts); },
     tint(object, color) {
-      const target = alive.value ? objectOf(object, 'tint') : null;
+      const target = alive.value ? objectOf(alive, object, 'tint') : null;
       if (target) materials.tint(target, color);
     },
     setOpacity(object, opacity) {
-      const target = alive.value ? objectOf(object, 'setOpacity') : null;
+      const target = alive.value ? objectOf(alive, object, 'setOpacity') : null;
       if (target) materials.setOpacity(target, opacity);
     },
     autoplay(controller) {
@@ -368,7 +375,7 @@ export function runPlayScript(options: {
     const mine = ++attempt;
     if (pending) { dispose(pending.game, pending.composition); pending = null; }
     let nextComposition: PlayComposition | undefined;
-    const alive: Script = { value: true, bot: null };
+    const alive: Script = { value: true, bot: null, unknown: new Set() };
     try {
       if (mountLayers) {
         const project = getCurrentProject();
@@ -455,20 +462,38 @@ export function runPlayScript(options: {
     const clock = modelPlayClock(options.documentId);
     const driving = current() && modelPlayAutoplay(options.documentId).on && transition.acceptingKeys();
     const person: ReadonlySet<string> = driving ? new Set(keys) : keys;
-    const drive = (script: ModelPlayGame, dt: number): void => {
-      const bot = driving ? scripts.get(script)?.bot : null;
-      // Asked again per update: the bot's own failure, or a takeover, ends it mid-frame.
-      if (!bot || !modelPlayAutoplay(options.documentId).on) return;
+    /** `keys` back to the person's alone. Only ever after `drive` has added the bot's, when
+     *  `person` is a copy — never `keys` itself. */
+    const restorePerson = (): void => {
       keys.clear();
       for (const key of person) keys.add(key);
+    };
+    /** Merge the bot's keys into `keys` for one update; true when it did, and the caller then
+     *  restores the person's keys after that update, however it ends. */
+    const drive = (script: ModelPlayGame, dt: number): boolean => {
+      const bot = driving ? scripts.get(script)?.bot : null;
+      // Asked again per update: the bot's own failure, a takeover, or `play.autoplay(null)`
+      // ends it mid-frame.
+      if (!bot || !modelPlayAutoplay(options.documentId).on) return false;
+      restorePerson();
       try {
         for (const key of bot({ dt, simT: clock.time + simulated, tick: clock.tick + ran, keys: person }) ?? []) keys.add(String(key));
+        return true;
       } catch (error) {
-        keys.clear();
-        for (const key of person) keys.add(key);
+        restorePerson();
         setModelPlayAutoplay(options.documentId, false, 'script');
         report('autoplay', `${modulePath}'s autoplay failed`, error);
+        return false;
       }
+    };
+    /** One update, bot-driven or not. The bot's keys hold for this update only: restored in a
+     *  `finally`, so neither a bot withdrawn mid-frame, nor an update that throws, nor a reloaded
+     *  script leaves them reading as held. */
+    const update = (script: ModelPlayGame, dt: number): void => {
+      tick(dt);
+      const driven = drive(script, dt);
+      try { script.update(dt); }
+      finally { if (driven) restorePerson(); }
     };
     // A paused frame that runs an update is a Step; its entry carries the step's own tick.
     const stepping = modelPlayClock(options.documentId).paused;
@@ -486,11 +511,10 @@ export function runPlayScript(options: {
       const next = pending;
       pending = null;
       try {
-        tick(updates[0]!);
-        drive(next.game, updates[0]!);
-        next.game.update(updates[0]!);
+        update(next.game, updates[0]!);
         end();
         game = next.game;
+        setModelPlayFailure(options.documentId, null);
         startedAt = Date.now();
         endedAt = null;
         composition = next.composition;
@@ -501,12 +525,10 @@ export function runPlayScript(options: {
         report('start', `${modulePath} did not start`, error);
       }
     }
-    if (game === null) { advanceModelPlayClock(options.documentId, simulated, ran); return; }
+    if (game === null) { advanceModelPlayClock(options.documentId, simulated, ran); keys.clear(); return; }
     try {
       for (let index = firstSlot; index < updates.length; index++) {
-        tick(updates[index]!);
-        drive(game, updates[index]!);
-        game.update(updates[index]!);
+        update(game, updates[index]!);
       }
       advanceModelPlayClock(options.documentId, simulated, ran);
       ran = 0;
@@ -515,6 +537,7 @@ export function runPlayScript(options: {
       if (firstFrame) { firstFrame = false; options.ready(); }
     } catch (error) {
       advanceModelPlayClock(options.documentId, simulated, ran);
+      keys.clear();
       end();
       report('update', `${modulePath} failed`, error);
       return;
