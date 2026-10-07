@@ -528,6 +528,10 @@ export function runPlayScript(options: {
         if (!offered && offeredBot !== false)
           run.append('play', 'autoplay-unavailable', { why: 'the play script registers no bot with play.autoplay(controller)' });
         offeredBot = offered;
+        // A KEY THE PERSON ALREADY HOLDS is a takeover the runner did not hear: it was pressed while
+        // the stage was still preparing, before these listeners existed, and has only repeated
+        // since. The person is driving, so an arm waiting for this update is dropped.
+        if (heldKeys.size > 0 && modelPlayAutoplay(options.documentId).armed) takeover();
         settleModelPlayAutoplay(options.documentId, offered);
         setModelPlayFailure(options.documentId, null);
         startedAt = Date.now();
@@ -573,8 +577,9 @@ export function runPlayScript(options: {
   };
   const onKeyDown = (event: KeyboardEvent): void => {
     if (!surfaceAcceptsKey(event)) return;
-    // A repeat is a key already held, not a new press.
-    if (!event.repeat) takeover();
+    // A repeat is a key already held, not a new press — unless this runner never saw it go down:
+    // then it was pressed before the runner was listening, and that press was a takeover.
+    if (!event.repeat || !heldKeys.has(event.code)) takeover();
     heldKeys.add(event.code);
     if (transition.acceptingKeys()) keys.add(event.code);
   };
