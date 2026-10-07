@@ -23,3 +23,17 @@ export const viewSnapshotRoutes: NonNullable<ProjectServingModule['viewSnapshotR
   if (status.skew === 'wali') return [`${base}/status`, `${base}/runtime.idx`, `${base}/runtime.bin`, `${base}/${BLENDER_WALI_ARTIFACT}`];
   return [`${base}/status`, ...BLENDER_WASM_FILES.map((file) => `${base}/${file}`)];
 };
+
+/**
+ * The recorded status, as a view may publish it: what the page reads (whether the engine is there,
+ * which skew, sizes, encodings, digests, integrity, workers) and never `dir` — the engine's folder on
+ * the machine that built the view, `VOLTER_BLENDER_WASM_DIR` or the installed package — nor the
+ * `missing` sentences, which quote paths.
+ */
+export const viewSnapshotScrub: NonNullable<ProjectServingModule['viewSnapshotScrub']> = (route, body) => {
+  if (route !== '/__editor/blender-wasm/status') return body;
+  const status = JSON.parse(body) as Record<string, unknown>;
+  delete status['dir'];
+  status['missing'] = status['available'] === true ? [] : ['The Blender engine was not recorded into this limited view.'];
+  return JSON.stringify(status);
+};

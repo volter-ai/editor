@@ -30,7 +30,7 @@
 
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -145,16 +145,32 @@ function checkWorkbench(dir: string | undefined, product: ProductIdentity): stri
   return root;
 }
 
-/** The output directory: new, empty, or a view this command wrote before (replaced whole). */
-function prepareOut(dir: string | undefined): string {
-  if (!dir) fail('--out <dir> is required: the directory the static view is written to.');
-  const out = resolve(dir);
-  if (existsSync(out) && readdirSync(out).length > 0) {
-    if (!existsSync(join(out, VIEW_DIR, 'view.json'))) fail(`${out} is not empty and holds no earlier limited view; refusing to write over it.`);
-    rmSync(out, { recursive: true, force: true, maxRetries: 3 });
+/**
+ * The output directory — new, empty, or a view this command wrote before — and the STAGING
+ * directory beside it that the view is actually built in. The view is moved into place only once
+ * it is whole and its scan for machine paths passed; a failed build leaves nothing in `--out`.
+ */
+function prepareOut(final: string): { final: string; staging: string } {
+  if (existsSync(final) && readdirSync(final).length > 0 && !existsSync(join(final, VIEW_DIR, 'view.json'))) {
+    fail(`${final} is not empty and holds no earlier limited view; refusing to write over it.`);
   }
-  mkdirSync(join(out, VIEW_DIR, 'r'), { recursive: true });
-  return out;
+  const staging = `${final}.building-${process.pid}`;
+  rmSync(staging, { recursive: true, force: true, maxRetries: 3 });
+  mkdirSync(join(staging, VIEW_DIR, 'r'), { recursive: true });
+  return { final, staging };
+}
+
+/** A path with its symlinks resolved, as far as it exists (`--out` usually does not yet). */
+function realOrNearest(path: string): string {
+  let existing = resolve(path);
+  const rest: string[] = [];
+  while (!existsSync(existing)) {
+    const parent = dirname(existing);
+    if (parent === existing) return resolve(path);
+    rest.unshift(basename(existing));
+    existing = parent;
+  }
+  return join(realpathSync(existing), ...rest);
 }
 
 /** `/@fs/<absolute>` as Vite spells it on this platform (`fsImportPath`'s rule). */
@@ -199,251 +215,276 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
   const frameBridge = builtFrameBridgeModule(readBuiltProductEntry(distPath, product));
   // A view written inside its project would publish itself on the next build, and a workbench
   // inside the output would be deleted before it is copied.
-  if (options.out) {
-    const target = resolve(options.out);
+  if (!options.out) fail('--out <dir> is required: the directory the static view is written to.');
+  {
+    const target = realOrNearest(options.out);
     const inside = (child: string, parent: string) => {
       const rel = relative(parent, child);
       return rel === '' || (!rel.startsWith('..') && !/^[A-Za-z]:/.test(rel));
     };
     if (inside(target, project)) fail(`--out ${target} is inside the project ${project}; a view there would be published with the project's own files. Write it somewhere else.`);
-    if (inside(workbench, target) || inside(target, workbench)) fail(`--out ${target} and --workbench ${workbench} overlap; the output is replaced whole before the workbench is copied into it. Keep them apart.`);
+    const realWorkbench = realpathSync(workbench);
+    if (inside(realWorkbench, target) || inside(target, realWorkbench)) fail(`--out ${target} and --workbench ${workbench} overlap; the output is replaced whole before the workbench is copied into it. Keep them apart.`);
   }
-  const out = prepareOut(options.out);
-  const resolveFromProduct = createRequire(join(product.dir, 'package.json'));
-  const sessionEntry = resolveFromProduct.resolve('@volter/editor-core/server/packaged');
-  const editorCoreRoot = dirname(dirname(sessionEntry));
-
-  // What of the project is published: what it would commit, never a secret (`view-files.ts`).
-  const published = selectProjectFiles(project);
-  log(`Publishing ${published.files.length} project files.`);
-  for (const [rule, count] of published.excluded) log(`  left out: ${count} × ${rule}`);
-
-  // ---- 1. the project's own session, headless.
-  const port = await freePort();
-  const hmrPort = await freePort();
-  const logPath = join(tmpdir(), `volter-view-build-${port}.log`);
-  const logFile = createWriteStream(logPath);
-  log(`Compiling ${project} through its own session (log: ${logPath})…`);
-  const child = spawn(process.execPath, [sessionEntry], {
-    cwd: project,
-    windowsHide: true,
-    detached: process.platform !== 'win32',
-    stdio: ['ignore', 'pipe', 'pipe'],
-    env: {
-      ...process.env,
-      VOLTER_PROJECT: project,
-      VOLTER_PRODUCT_DIR: product.dir,
-      VOLTER_EDITOR_PORT: String(port),
-      VOLTER_HMR_PORT: String(hmrPort),
-      VOLTER_NO_OPEN: '1',
-      VOLTER_EPHEMERAL_SESSION: '1',
-    },
-  });
-  child.stdout?.pipe(logFile);
-  child.stderr?.pipe(logFile);
-  let exit: { code: number | null; signal: NodeJS.Signals | null } | null = null;
-  child.once('exit', (code, signal) => { exit = { code, signal }; });
-  const serverUrl = `http://127.0.0.1:${port}`;
-  const entries: Record<string, LimitedViewRouteEntry> = {};
-  let sessionRoot = project;
+  const { final, staging: out } = prepareOut(realOrNearest(options.out));
   try {
-    const booted = await waitForOwnEditorServer({ serverUrl, isOurs: (reported) => reported === project, childExit: () => exit });
-    if (booted.status !== 'ready') fail(`the project's session did not start (${booted.status}); see ${logPath}.`);
+    const resolveFromProduct = createRequire(join(product.dir, 'package.json'));
+    const sessionEntry = resolveFromProduct.resolve('@volter/editor-core/server/packaged');
+    const editorCoreRoot = dirname(dirname(sessionEntry));
 
-    // ---- 2. what it serves.
-    await initLexer;
-    const record = async (url: string, options: { modulesOnly: boolean }): Promise<string | null> => {
-      const response = await fetch(`${serverUrl}${url}`, { headers: { accept: '*/*' } });
-      const type = (response.headers.get('content-type') ?? 'application/octet-stream').split(';')[0]!.trim();
-      if (options.modulesOnly && (!response.ok || !/javascript/.test(type))) {
-        await response.body?.cancel();
-        return null;
+    // What of the project is published: what it would commit, never a secret (`view-files.ts`).
+    const published = selectProjectFiles(project);
+    log(`Publishing ${published.files.length} project files.`);
+    for (const [rule, count] of published.excluded) log(`  left out: ${count} × ${rule}`);
+
+    // ---- 1. the project's own session, headless.
+    const port = await freePort();
+    const hmrPort = await freePort();
+    const logPath = join(tmpdir(), `volter-view-build-${port}.log`);
+    const logFile = createWriteStream(logPath);
+    log(`Compiling ${project} through its own session (log: ${logPath})…`);
+    const child = spawn(process.execPath, [sessionEntry], {
+      cwd: project,
+      windowsHide: true,
+      detached: process.platform !== 'win32',
+      stdio: ['ignore', 'pipe', 'pipe'],
+      env: {
+        ...process.env,
+        VOLTER_PROJECT: project,
+        VOLTER_PRODUCT_DIR: product.dir,
+        VOLTER_EDITOR_PORT: String(port),
+        VOLTER_HMR_PORT: String(hmrPort),
+        VOLTER_NO_OPEN: '1',
+        VOLTER_EPHEMERAL_SESSION: '1',
+      },
+    });
+    child.stdout?.pipe(logFile);
+    child.stderr?.pipe(logFile);
+    let exit: { code: number | null; signal: NodeJS.Signals | null } | null = null;
+    child.once('exit', (code, signal) => { exit = { code, signal }; });
+    const serverUrl = `http://127.0.0.1:${port}`;
+    const entries: Record<string, LimitedViewRouteEntry> = {};
+    let sessionRoot = project;
+    try {
+      const booted = await waitForOwnEditorServer({ serverUrl, isOurs: (reported) => reported === project, childExit: () => exit });
+      if (booted.status !== 'ready') fail(`the project's session did not start (${booted.status}); see ${logPath}.`);
+
+      // ---- 2. what it serves.
+      await initLexer;
+      const record = async (url: string, options: { modulesOnly: boolean }): Promise<string | null> => {
+        const response = await fetch(`${serverUrl}${url}`, { headers: { accept: '*/*' } });
+        const type = (response.headers.get('content-type') ?? 'application/octet-stream').split(';')[0]!.trim();
+        if (options.modulesOnly && (!response.ok || !/javascript/.test(type))) {
+          await response.body?.cancel();
+          return null;
+        }
+        const file = `${createHash('sha1').update(url).digest('hex').slice(0, 20)}.${extensionFor(type)}`;
+        const target = join(out, VIEW_DIR, 'r', file);
+        let text: string | null = null;
+        if (/javascript|json|^text\//.test(type)) {
+          text = await response.text();
+          writeFileSync(target, text);
+        } else if (response.body) {
+          await pipeline(Readable.fromWeb(response.body as unknown as WebReadableStream<Uint8Array>), createWriteStream(target));
+        } else writeFileSync(target, '');
+        const mount = url.includes(MOUNT_SENTINEL) || (text?.includes(MOUNT_SENTINEL) ?? false);
+        entries[url] = { file, type, status: response.status, ...(mount ? { mount: true as const } : {}) };
+        return text;
+      };
+
+      for (const url of KIT_SNAPSHOT_ROUTES) await record(url, { modulesOnly: false });
+      // The session's own identity is not the view's: a pid, a worktree and a branch of the
+      // machine that built it.
+      const projectAnswer = entries['/__editor/project'];
+      if (projectAnswer) {
+        const path = join(out, VIEW_DIR, 'r', projectAnswer.file);
+        const answer = JSON.parse(readFileSync(path, 'utf8')) as { project?: { path?: string }; session?: unknown; engine?: unknown; sourceWrite?: boolean; ingestSourceWrite?: boolean };
+        if (answer.project?.path) sessionRoot = answer.project.path;
+        answer.session = { pid: 0, ephemeral: true, sessionId: 'limited-view', repositoryId: null, worktreeId: null, worktreeRoot: null, projectRelativePath: null, branch: null, headCommit: null, baseCommit: null };
+        // The engine's git state is the building checkout's, and source writes need the session's
+        // `/__ui-source/*` and `/__ingest-source/*` routes, which a view refuses.
+        answer.engine = { branch: null, commit: null, behindOriginMain: null, dirty: null };
+        answer.sourceWrite = false;
+        answer.ingestSourceWrite = false;
+        writeFileSync(path, JSON.stringify(answer));
       }
-      const file = `${createHash('sha1').update(url).digest('hex').slice(0, 20)}.${extensionFor(type)}`;
-      const target = join(out, VIEW_DIR, 'r', file);
-      let text: string | null = null;
-      if (/javascript|json|^text\//.test(type)) {
-        text = await response.text();
-        writeFileSync(target, text);
-      } else if (response.body) {
-        await pipeline(Readable.fromWeb(response.body as unknown as WebReadableStream<Uint8Array>), createWriteStream(target));
-      } else writeFileSync(target, '');
-      const mount = url.includes(MOUNT_SENTINEL) || (text?.includes(MOUNT_SENTINEL) ?? false);
-      entries[url] = { file, type, status: response.status, ...(mount ? { mount: true as const } : {}) };
-      return text;
-    };
+      // A heartbeat worker with nobody to beat to.
+      const heartbeat = 'tab-heartbeat.js';
+      writeFileSync(join(out, VIEW_DIR, 'r', heartbeat), 'self.onmessage = () => {};\n');
+      entries['/__editor/tab-heartbeat.js'] = { file: heartbeat, type: 'text/javascript', status: 200 };
 
-    for (const url of KIT_SNAPSHOT_ROUTES) await record(url, { modulesOnly: false });
-    // The session's own identity is not the view's: a pid, a worktree and a branch of the
-    // machine that built it.
-    const projectAnswer = entries['/__editor/project'];
-    if (projectAnswer) {
-      const path = join(out, VIEW_DIR, 'r', projectAnswer.file);
-      const answer = JSON.parse(readFileSync(path, 'utf8')) as { project?: { path?: string }; session?: unknown; engine?: unknown; sourceWrite?: boolean; ingestSourceWrite?: boolean };
-      if (answer.project?.path) sessionRoot = answer.project.path;
-      answer.session = { pid: 0, ephemeral: true, sessionId: 'limited-view', repositoryId: null, worktreeId: null, worktreeRoot: null, projectRelativePath: null, branch: null, headCommit: null, baseCommit: null };
-      // The engine's git state is the building checkout's, and source writes need the session's
-      // `/__ui-source/*` and `/__ingest-source/*` routes, which a view refuses.
-      answer.engine = { branch: null, commit: null, behindOriginMain: null, dirty: null };
-      answer.sourceWrite = false;
-      answer.ingestSourceWrite = false;
-      writeFileSync(path, JSON.stringify(answer));
-    }
-    // A heartbeat worker with nobody to beat to.
-    const heartbeat = 'tab-heartbeat.js';
-    writeFileSync(join(out, VIEW_DIR, 'r', heartbeat), 'self.onmessage = () => {};\n');
-    entries['/__editor/tab-heartbeat.js'] = { file: heartbeat, type: 'text/javascript', status: 200 };
-
-    for (const file of productServingModules(product)) {
-      const module = (await import(pathToFileURL(file).href)) as Partial<ProjectServingModule>;
-      for (const url of (await module.viewSnapshotRoutes?.()) ?? []) {
-        log(`  ${url}`);
-        await record(url, { modulesOnly: false });
+      for (const file of productServingModules(product)) {
+        const module = (await import(pathToFileURL(file).href)) as Partial<ProjectServingModule>;
+        for (const url of (await module.viewSnapshotRoutes?.()) ?? []) {
+          log(`  ${url}`);
+          const text = await record(url, { modulesOnly: false });
+          const recorded = entries[url];
+          if (text !== null && recorded && module.viewSnapshotScrub) {
+            writeFileSync(join(out, VIEW_DIR, 'r', recorded.file), module.viewSnapshotScrub(url, text));
+          }
+        }
       }
-    }
 
-    // The modules: every source file of the project, as the editor imports it (`/@fs/<root>/…`,
-    // plain and under the mount sentinel) and as a relative import reaches it (`/<path>`), every
-    // contribution the project's packages declare, and the kit's doorways.
-    const files = published.files;
-    const seeds = new Set<string>(PACKAGED_MODULE_DOORWAYS.map((doorway) => doorway.path));
-    const rootUrl = fsUrl(sessionRoot);
-    for (const file of files) {
-      if (!MODULE_EXTENSIONS.test(file.path) || file.path.startsWith('public/')) continue;
-      if (file.path.startsWith('.') && !file.path.startsWith('.storybook/')) continue;
-      seeds.add(`${rootUrl}/${file.path}`);
-      seeds.add(`/${file.path}`);
-      if (!file.path.endsWith('.json') && !file.path.endsWith('.css')) seeds.add(`${rootUrl}/${file.path}?volter-mount=${MOUNT_SENTINEL}`);
-    }
-    // Vite names a file by its real path, so a contribution reached through a link is recorded there.
-    for (const entry of computePackageContributionCrawlEntries(project).entries) {
-      try {
-        seeds.add(fsUrl(realpathSync(entry)));
-      } catch {
-        /* a declared file that is not there is the session's to report, not the view's */
+      // The modules: every source file of the project, as the editor imports it (`/@fs/<root>/…`,
+      // plain and under the mount sentinel) and as a relative import reaches it (`/<path>`), every
+      // contribution the project's packages declare, and the kit's doorways.
+      const files = published.files;
+      const seeds = new Set<string>(PACKAGED_MODULE_DOORWAYS.map((doorway) => doorway.path));
+      const rootUrl = fsUrl(sessionRoot);
+      for (const file of files) {
+        if (!MODULE_EXTENSIONS.test(file.path) || file.path.startsWith('public/')) continue;
+        if (file.path.startsWith('.') && !file.path.startsWith('.storybook/')) continue;
+        seeds.add(`${rootUrl}/${file.path}`);
+        seeds.add(`/${file.path}`);
+        if (!file.path.endsWith('.json') && !file.path.endsWith('.css')) seeds.add(`${rootUrl}/${file.path}?volter-mount=${MOUNT_SENTINEL}`);
       }
-    }
-    const queue = [...seeds];
-    const seen = new Set(queue);
-    let recorded = 0;
-    const worker = async (): Promise<void> => {
-      for (let url = queue.shift(); url !== undefined; url = queue.shift()) {
-        if (NOT_CRAWLED.test(url)) continue;
-        let code: string | null;
+      // Vite names a file by its real path, so a contribution reached through a link is recorded there.
+      for (const entry of computePackageContributionCrawlEntries(project).entries) {
         try {
-          code = await record(url, { modulesOnly: true });
+          seeds.add(fsUrl(realpathSync(entry)));
         } catch {
-          continue;
-        }
-        if (code === null) continue;
-        recorded++;
-        for (const next of importedUrls(code)) {
-          if (seen.has(next)) continue;
-          if (seen.size >= CRAWL_LIMIT) fail(`the module crawl passed ${CRAWL_LIMIT} URLs; something imports without end (last: ${next}).`);
-          seen.add(next);
-          queue.push(next);
+          /* a declared file that is not there is the session's to report, not the view's */
         }
       }
-    };
-    // Workers drain a shared queue; one that finds it empty while others still add to it simply
-    // ends, so the crawl is re-run until nothing new arrived.
-    while (queue.length > 0) await Promise.all(Array.from({ length: CRAWL_CONCURRENCY }, worker));
-    log(`  ${recorded} modules compiled by the session`);
-  } finally {
-    stopSession(child);
-    logFile.end();
-  }
-
-  // ---- 2b. the building machine's path out of what was recorded. Every URL and body names the
-  //          project's root as `/volter-view/<name>`: what the editor builds from
-  //          `/__editor/project` and what the compiled modules import then agree, and a published
-  //          view does not carry `C:/Users/<you>/…`. Paths outside the project (a workspace's
-  //          hoisted packages) keep their own spelling.
-  const neutral = neutralProjectRoot(basename(project));
-  const paths = new PathNeutralizer([sessionRoot, project], neutral, [product.dir, editorCoreRoot]);
-  const recordedEntries = Object.entries(entries);
-  const textOf = new Map<string, string>();
-  for (const [key, entry] of recordedEntries) {
-    paths.learn(key);
-    if (/javascript|json|^text\//.test(entry.type)) {
-      const text = readFileSync(join(out, VIEW_DIR, 'r', entry.file), 'utf8');
-      textOf.set(entry.file, text);
-      paths.learn(text);
+      const queue = [...seeds];
+      const seen = new Set(queue);
+      let recorded = 0;
+      const worker = async (): Promise<void> => {
+        for (let url = queue.shift(); url !== undefined; url = queue.shift()) {
+          if (NOT_CRAWLED.test(url)) continue;
+          let code: string | null;
+          try {
+            code = await record(url, { modulesOnly: true });
+          } catch {
+            continue;
+          }
+          if (code === null) continue;
+          recorded++;
+          for (const next of importedUrls(code)) {
+            if (seen.has(next)) continue;
+            if (seen.size >= CRAWL_LIMIT) fail(`the module crawl passed ${CRAWL_LIMIT} URLs; something imports without end (last: ${next}).`);
+            seen.add(next);
+            queue.push(next);
+          }
+        }
+      };
+      // Workers drain a shared queue; one that finds it empty while others still add to it simply
+      // ends, so the crawl is re-run until nothing new arrived.
+      while (queue.length > 0) await Promise.all(Array.from({ length: CRAWL_CONCURRENCY }, worker));
+      log(`  ${recorded} modules compiled by the session`);
+    } finally {
+      stopSession(child);
+      logFile.end();
     }
-  }
-  for (const key of Object.keys(entries)) delete entries[key];
-  for (const [key, entry] of recordedEntries) {
-    const text = textOf.get(entry.file);
-    if (text !== undefined) writeFileSync(join(out, VIEW_DIR, 'r', entry.file), paths.rewrite(text));
-    entries[paths.rewrite(key)] = entry;
-  }
 
-  // ---- 3. the view.
-  log('Writing the view…');
-  const vite = 'vite-client.js';
-  entries['/@vite/client'] = { file: vite, type: 'text/javascript', status: 200 };
-  writeFileSync(join(out, VIEW_DIR, 'routes.json'), JSON.stringify({ mountSentinel: MOUNT_SENTINEL, entries }));
+    // ---- 2b. the building machine's path out of what was recorded. Every URL and body names the
+    //          project's root as `/volter-view/<name>`: what the editor builds from
+    //          `/__editor/project` and what the compiled modules import then agree, and a published
+    //          view does not carry `C:/Users/<you>/…`. Paths outside the project (a workspace's
+    //          hoisted packages) keep their own spelling.
+    const neutral = neutralProjectRoot(basename(project));
+    const paths = new PathNeutralizer([sessionRoot, project], neutral, [product.dir, editorCoreRoot]);
+    const recordedEntries = Object.entries(entries);
+    const textOf = new Map<string, string>();
+    for (const [key, entry] of recordedEntries) {
+      paths.learn(key);
+      if (/javascript|json|^text\//.test(entry.type)) {
+        const text = readFileSync(join(out, VIEW_DIR, 'r', entry.file), 'utf8');
+        textOf.set(entry.file, text);
+        paths.learn(text);
+      }
+    }
+    for (const key of Object.keys(entries)) delete entries[key];
+    for (const [key, entry] of recordedEntries) {
+      const published = paths.rewrite(key);
+      // A recording is named for its PUBLISHED url: named for the session's, a guessed home path could
+      // be confirmed against the file names offline.
+      const file = `${createHash('sha1').update(published).digest('hex').slice(0, 20)}${entry.file.slice(entry.file.lastIndexOf('.'))}`;
+      const text = textOf.get(entry.file);
+      if (text !== undefined) {
+        // Vite's inline source maps carry every original source and its absolute path, base64'd
+        // where no scan reads them; a view ships none.
+        const stripped = paths.rewrite(text).replace(/\n?\/\/# sourceMappingURL=[^\n]*/g, '').replace(/\/\*# sourceMappingURL=[\s\S]*?\*\//g, '');
+        writeFileSync(join(out, VIEW_DIR, 'r', file), stripped);
+        if (file !== entry.file) rmSync(join(out, VIEW_DIR, 'r', entry.file), { force: true });
+      } else if (file !== entry.file) {
+        renameSync(join(out, VIEW_DIR, 'r', entry.file), join(out, VIEW_DIR, 'r', file));
+      }
+      entries[published] = { ...entry, file };
+    }
 
-  // The product's production build, minus its build manifest (a fact for the session, not a page).
-  cpSync(distPath, out, { recursive: true, filter: (source) => !source.includes(`${sep}.vite`) });
-  writeFileSync(join(out, VIEW_DIR, 'frame-bridge.js'), frameBridge);
-  cpSync(workbench, join(out, WORKBENCH_DIR), { recursive: true });
+    // ---- 3. the view.
+    log('Writing the view…');
+    const vite = 'vite-client.js';
+    entries['/@vite/client'] = { file: vite, type: 'text/javascript', status: 200 };
+    writeFileSync(join(out, VIEW_DIR, 'routes.json'), JSON.stringify({ mountSentinel: MOUNT_SENTINEL, entries }));
 
-  const files = published.files;
-  for (const file of files) {
-    const target = join(out, VIEW_DIR, 'project', ...file.path.split('/'));
-    mkdirSync(dirname(target), { recursive: true });
-    cpSync(join(project, ...file.path.split('/')), target);
-  }
-  writeFileSync(join(out, VIEW_DIR, 'files.json'), JSON.stringify({ files }));
-  const config: LimitedViewConfig = {
-    version: 1,
-    product: { name: product.name, displayName: product.displayName, colorTheme: product.colorTheme, install: product.install },
-    project: { root: neutral, name: basename(project) },
-    builtAt: new Date().toISOString(),
-  };
-  writeFileSync(join(out, VIEW_DIR, 'view.json'), JSON.stringify(config, null, 2));
+    // The product's production build, minus its build manifest (a fact for the session, not a page).
+    // No source maps in a published view: they carry sources and their paths.
+    cpSync(distPath, out, { recursive: true, filter: (source) => !source.includes(`${sep}.vite`) && !source.endsWith('.map') });
+    writeFileSync(join(out, VIEW_DIR, 'frame-bridge.js'), frameBridge);
+    cpSync(workbench, join(out, WORKBENCH_DIR), { recursive: true, filter: (source) => !source.endsWith('.map') });
 
-  // The page and its worker, bundled from the kit's own sources with each integration's view
-  // routes compiled in.
-  const esbuild = (await import(pathToFileURL(createRequire(join(editorCoreRoot, 'package.json')).resolve('esbuild')).href)) as typeof import('esbuild');
-  const pageDir = join(editorCoreRoot, 'view', 'page');
-  const integrations = productViewServingModules(product);
-  const entry = [
-    `import { startLimitedView } from ${JSON.stringify(join(pageDir, 'boot.ts').split(sep).join('/'))};`,
-    ...integrations.map((file, index) => `import * as integration${index} from ${JSON.stringify(file.split(sep).join('/'))};`),
-    `startLimitedView([${integrations.map((_file, index) => `integration${index}`).join(', ')}]).catch((error) => {`,
-    `  const status = document.getElementById('volter-view-status');`,
-    `  if (status) status.textContent = 'The limited view did not open: ' + (error && error.message ? error.message : String(error));`,
-    '  throw error;',
-    '});',
-  ].join('\n');
-  const common = { bundle: true, minify: true, platform: 'browser' as const, target: 'es2022', logLevel: 'warning' as const, define: { 'process.env.NODE_ENV': '"production"' } };
-  await esbuild.build({ ...common, stdin: { contents: entry, resolveDir: pageDir, sourcefile: 'limited-view-entry.ts', loader: 'ts' }, format: 'esm', outfile: join(out, VIEW_DIR, 'boot.js') });
-  await esbuild.build({ ...common, entryPoints: [join(pageDir, 'service-worker.ts')], format: 'iife', outfile: join(out, SERVICE_WORKER_FILE) });
-  await esbuild.build({ ...common, entryPoints: [join(pageDir, 'vite-client.ts')], format: 'esm', outfile: join(out, VIEW_DIR, 'r', vite) });
+    const files = published.files;
+    for (const file of files) {
+      const target = join(out, VIEW_DIR, 'project', ...file.path.split('/'));
+      mkdirSync(dirname(target), { recursive: true });
+      cpSync(join(project, ...file.path.split('/')), target);
+    }
+    writeFileSync(join(out, VIEW_DIR, 'files.json'), JSON.stringify({ files }));
+    const config: LimitedViewConfig = {
+      version: 1,
+      product: { name: product.name, displayName: product.displayName, colorTheme: product.colorTheme, install: product.install },
+      project: { root: neutral, name: basename(project) },
+      builtAt: new Date().toISOString(),
+    };
+    writeFileSync(join(out, VIEW_DIR, 'view.json'), JSON.stringify(config, null, 2));
 
-  writeFileSync(join(out, 'index.html'), indexHtml(config));
-  writeFileSync(join(out, '_headers'), HEADERS_FILE);
+    // The page and its worker, bundled from the kit's own sources with each integration's view
+    // routes compiled in.
+    const esbuild = (await import(pathToFileURL(createRequire(join(editorCoreRoot, 'package.json')).resolve('esbuild')).href)) as typeof import('esbuild');
+    const pageDir = join(editorCoreRoot, 'view', 'page');
+    const integrations = productViewServingModules(product);
+    const entry = [
+      `import { startLimitedView } from ${JSON.stringify(join(pageDir, 'boot.ts').split(sep).join('/'))};`,
+      ...integrations.map((file, index) => `import * as integration${index} from ${JSON.stringify(file.split(sep).join('/'))};`),
+      `startLimitedView([${integrations.map((_file, index) => `integration${index}`).join(', ')}]).catch((error) => {`,
+      `  const status = document.getElementById('volter-view-status');`,
+      `  if (status) status.textContent = 'The limited view did not open: ' + (error && error.message ? error.message : String(error));`,
+      '  throw error;',
+      '});',
+    ].join('\n');
+    const common = { bundle: true, minify: true, platform: 'browser' as const, target: 'es2022', logLevel: 'warning' as const, define: { 'process.env.NODE_ENV': '"production"' } };
+    await esbuild.build({ ...common, stdin: { contents: entry, resolveDir: pageDir, sourcefile: 'limited-view-entry.ts', loader: 'ts' }, format: 'esm', outfile: join(out, VIEW_DIR, 'boot.js') });
+    await esbuild.build({ ...common, entryPoints: [join(pageDir, 'service-worker.ts')], format: 'iife', outfile: join(out, SERVICE_WORKER_FILE) });
+    await esbuild.build({ ...common, entryPoints: [join(pageDir, 'vite-client.ts')], format: 'esm', outfile: join(out, VIEW_DIR, 'r', vite) });
 
-  // ---- 4. nothing of the building machine. A hit fails the build, and the page is taken out so
-  //         the output cannot be served as a view by mistake (`view-paths.ts`).
-  const leaks = scanForLocalPaths(out);
-  if (leaks.length > 0) {
-    rmSync(join(out, 'index.html'), { force: true });
-    fail(
-      `the output still names this machine (${leaks.length}${leaks.length >= 12 ? '+' : ''} places); it is not publishable and its index.html was removed:\n` +
-        leaks.map((leak) => `  ${leak.file}: …${leak.context}…`).join('\n'),
-    );
+    writeFileSync(join(out, 'index.html'), indexHtml(config));
+    writeFileSync(join(out, '_headers'), HEADERS_FILE);
+
+    // ---- 4. nothing of the building machine. A hit fails the build, and the page is taken out so
+    //         the output cannot be served as a view by mistake (`view-paths.ts`).
+    const leaks = scanForLocalPaths(out);
+    if (leaks.length > 0) {
+      fail(
+        `the view would still name this machine (${leaks.length}${leaks.length >= 12 ? '+' : ''} places), so it was not written to ${final}:\n` +
+          leaks.map((leak) => `  ${leak.file}: …${leak.context}…`).join('\n'),
+      );
+    }
+    rmSync(final, { recursive: true, force: true, maxRetries: 3 });
+    renameSync(out, final);
+  } catch (error) {
+    rmSync(out, { recursive: true, force: true, maxRetries: 3 });
+    throw error;
   }
   log(`
-  ${out}
+  ${final}
 
   Serve it from the ROOT of an origin (the editor's URLs are root-relative), over https or
   localhost (service workers need a secure context). Cross-origin isolation: _headers states it
   for hosts that read it; on any other host the view's own worker adds it after one reload.
-    npx serve ${relative(process.cwd(), out) || '.'}`);
-  return out;
+    npx serve ${relative(process.cwd(), final) || '.'}`);
+  return final;
 }
 
 /** Cross-origin isolation for hosts that read a `_headers` file (Netlify, Cloudflare Pages). */

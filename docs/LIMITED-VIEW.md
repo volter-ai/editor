@@ -59,28 +59,46 @@ __view/frame-bridge.js
 A limited view is made to be shared, so it publishes only what the project would commit, and never
 a secret (`server/launcher/view-files.ts`). A file is published only if it passes all four rules:
 
-1. **Never a secret.** This applies whatever `.gitignore` says: `.env*`, `*.local`, `.npmrc`, `.yarnrc.yml`, `.pypirc`, `.netrc`, `.git-credentials`, `.dockercfg`, `credentials*.json`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `*.jks`, and SSH keys (`id_*`).
+1. **Never a secret.** This applies whatever `.gitignore` says: `.env*`, `.envrc`, `*.local`, `.npmrc`, `.yarnrc.yml`, `.pypirc`, `.netrc`, `.git-credentials`, `.dockercfg`, `.htpasswd`, `credentials*.json`, `service-account*.json`, `secrets.*`, `*.tfvars`, `kubeconfig`, `*.db`, `*.sqlite`, `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `*.jks`, and SSH keys (`id_*`, `*.ppk`).
 2. **Not dependencies or output.** `node_modules`, `dist*`, `logs/`, `server/`, and every dot-folder except `.volter` and `.storybook` (so `.git` is never published).
 3. **Only the project's own `.volter` files.** That means `.volter/settings.json` and `.volter/themes/*.json`. The editor state and workbench storage are a person's workspace: open documents, search history, and URIs naming their home folder. So a view always opens on the editor's default layout.
 4. **Nothing `.gitignore` ignores.** In a git work tree, git answers (`git ls-files --cached --others --exclude-standard`). Elsewhere, every `.gitignore` is read with git's rules.
 
 `view build` prints what it left out, by rule, as counts only.
 
+**What these rules cannot stop.** Code is compiled into the view, so anything the code imports
+ships inside its module. That includes a secret file a committed module imports, and every
+`import.meta.env.VITE_*` value, which Vite inlines at compile time. Keep secrets out of code that
+runs in the browser, as you would for any static deploy.
+
+**Limits of the no-git fallback.** Outside a git work tree, only the project's `.gitignore` files
+are read. git's global excludes (`core.excludesFile`) and `.git/info/exclude` are not, and neither
+are Windows 8.3 short names. Build from a git work tree when that matters.
+
 ### No path of the building machine
 
 Recorded URLs and bodies name the project root as `/volter-view/<name>`, which is also what the
-page tells the editor it opened. Every other absolute path gets its own `/volter-fs/<n>/` prefix:
-a workspace's hoisted packages, an editor checkout, an engine's folder
-(`server/launcher/view-paths.ts`). The recorded `/__editor/project` also drops the session's
-identity and the engine's git state.
+page tells the editor it opened. Every other root that a recorded `/@fs/` URL names gets its own
+`/volter-fs/<n>/` prefix, such as a workspace's hoisted packages or an editor checkout
+(`server/launcher/view-paths.ts`). Recordings are named by the hash of their published URL.
 
-The finished output is then scanned for any of these:
+The session's other answers drop what names the machine:
+
+- The recorded `/__editor/project` drops the session's identity and the engine's git state.
+- An integration's recorded answers pass through its own `viewSnapshotScrub`. Blender's engine status keeps what the page reads and drops `dir` (the engine folder, which may be `VOLTER_BLENDER_WASM_DIR` and named by no URL) and its path-quoting `missing` messages.
+- Recorded modules lose their inline source maps.
+- No `.map` file is copied from the product's build or the workbench.
+
+The view is built in a staging folder beside `--out`, and that folder is scanned. The scan reads
+every file except known binaries, as written, %-decoded and JSON-unescaped, and looks for:
 
 - the builder's home folder;
 - their user name inside a home path;
-- any `/@fs/` URL that is still absolute.
+- any `/@fs/` URL that is still a real path;
+- any inline source map.
 
-A hit fails the build and removes the output's `index.html`, so it cannot be served by mistake.
+A hit fails the build and deletes the staging folder, so `--out` keeps whatever it held before. The
+view moves into `--out` only once it is whole and clean.
 
 ## The routes the page answers
 
@@ -162,7 +180,7 @@ Hosting rules:
 - **Secure context.** Serve it over https, or from localhost; service workers need a secure context.
 - **Cross-origin isolation.** It is required for Blender's threads. `_headers` states it for hosts that read one (Netlify, Cloudflare Pages). On any other host the view's worker adds the headers, after at most one reload.
 - **File sizes.** Blender's recorded engine files are stored uncompressed, around 100 MB together. Hosts with a per-file cap (Cloudflare Pages: 25 MiB) cannot serve them; Netlify and most object stores can.
-- **Where `--out` can go.** It may not be inside the project, because the view would publish itself on the next build. It may not overlap `--workbench`, because the output is replaced whole before the workbench is copied in.
+- **Where `--out` can go.** It may not be inside the project, because the view would publish itself on the next build. It may not overlap `--workbench`, because the output is replaced whole before the workbench is copied in. Both checks resolve symlinks first.
 
 ## Known limits and risks (unverified: built typecheck-only)
 

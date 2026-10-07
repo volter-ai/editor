@@ -5,9 +5,10 @@
  * A limited view is made to be shared, so the default is to publish less. A file is published
  * when every rule lets it through, in this order:
  *
- *  1. SECRETS, always and regardless of anything else: `.env*`, `*.local`, `.npmrc`, `.yarnrc.yml`,
- *     `.pypirc`, `.netrc`, `.git-credentials`, `.dockercfg`, `credentials*.json`, `*.pem`, `*.key`,
- *     `*.p12`, `*.pfx`, `*.keystore`, `*.jks`, SSH keys (`id_rsa`, `id_ed25519.pub`, …).
+ *  1. SECRETS, always and regardless of anything else: `.env*`, `.envrc`, `*.local`, `.npmrc`,
+ *     `.yarnrc.yml`, `.pypirc`, `.netrc`, `.git-credentials`, `.dockercfg`, `credentials*.json`,
+ *     `service-account*.json`, `secrets.*`, `*.tfvars`, `.htpasswd`, `kubeconfig`, `*.db`, `*.sqlite`,
+ *     `*.pem`, `*.key`, `*.p12`, `*.pfx`, `*.keystore`, `*.jks`, SSH keys (`id_rsa`, `*.ppk`, …).
  *  2. WHAT THE PROJECT IS NOT: dependencies (`node_modules`), build output (`dist*`), `logs`, the
  *     project's `server/`, VCS and tool folders (any dot-folder but `.volter` and `.storybook`).
  *  3. WHAT A SESSION KEEPS FOR ITSELF: of `.volter/`, only the project's own settings and themes.
@@ -28,13 +29,18 @@ import type { LimitedViewProjectFile } from '../../view/page/view-contract';
 
 /** Rule 1: by base name. */
 const SECRET_FILES: readonly [string, RegExp][] = [
-  ['.env files', /^\.env(?:\..*)?$/i],
+  ['.env files (.env*, .envrc)', /^\.env(?:rc|\..*)?$/i],
   ['*.local files', /\.local$/i],
   ['package-manager credentials (.npmrc, .yarnrc.yml, .pypirc)', /^(?:\.npmrc|\.yarnrc\.yml|\.pypirc)$/i],
   ['machine credentials (.netrc, .git-credentials, .dockercfg)', /^(?:\.netrc|_netrc|\.git-credentials|\.dockercfg)$/i],
   ['credentials*.json', /^credentials.*\.json$/i],
   ['keys and certificates (*.pem, *.key, *.p12, *.pfx, *.keystore, *.jks)', /\.(?:pem|key|p12|pfx|keystore|jks)$/i],
-  ['SSH keys (id_*)', /^id_[a-z0-9]+(?:\.pub)?$/i],
+  ['SSH keys (id_*, *.ppk)', /^id_[a-z0-9]+(?:\.pub)?$|\.ppk$/i],
+  ['secrets.* and service-account*.json', /^secrets\.|^service-account.*\.json$/i],
+  ['Terraform variables (*.tfvars)', /\.tfvars(?:\.json)?$/i],
+  ['server passwords (.htpasswd)', /^\.htpasswd$/i],
+  ['kubeconfig', /^(?:kubeconfig|.*\.kubeconfig)$/i],
+  ['databases (*.db, *.sqlite)', /\.(?:db|sqlite3?)$/i],
 ];
 /** Rule 2: folders that are not the project, at the root. `node_modules` is skipped at any depth. */
 const ROOT_SKIPPED = new Set(['dist', 'dist-ssr', 'dist-wip', 'logs', 'server']);

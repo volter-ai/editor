@@ -103,8 +103,8 @@ export class PathNeutralizer {
   }
 }
 
-/** Text files worth reading for paths; everything else is binary payload. */
-const TEXT_FILE = /\.(?:m?js|cjs|json|html|css|txt|svg|md|ts|tsx|map|xml|webmanifest)$/i;
+/** Payloads that are binary by kind; every other file is read, unless its first bytes hold a NUL. */
+const BINARY_FILE = /\.(?:wasm|data|bin|png|jpe?g|gif|webp|avif|ico|bmp|woff2?|ttf|otf|eot|glb|gltf\.bin|exr|hdr|ktx2|basis|mp3|ogg|wav|flac|mp4|webm|mov|gz|br|zip|tgz|7z|blend|fbx|pdf)$/i;
 
 export interface LocalPathFinding {
   readonly file: string;
@@ -115,8 +115,17 @@ function escape(value: string): string {
   return value.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 }
 
+/** The text as a reader would see it: as written, with `%XX` decoded, and with JSON's escapes
+ *  (`\\` and `\/`) undone — a path hides in any of the three. */
+function readings(text: string): string[] {
+  const decoded = text.replace(/%([0-9A-Fa-f]{2})/g, (_match, hex: string) => String.fromCharCode(parseInt(hex, 16)));
+  const unescaped = text.replace(/\\\\/g, '\\').replace(/\\\//g, '/');
+  return [text, decoded, unescaped];
+}
+
 /** Every place under `dir` that still names the building machine: its home directory, its user's
- *  home path, or an absolute `/@fs/` URL. */
+ *  home path, any `/@fs/` URL that is still a real path (anything but `/volter-view/` and
+ *  `/volter-fs/`), or an inline source map. */
 export function scanForLocalPaths(dir: string, limit = 12): LocalPathFinding[] {
   const home = forward(homedir());
   const user = userInfo().username;
@@ -124,7 +133,10 @@ export function scanForLocalPaths(dir: string, limit = 12): LocalPathFinding[] {
   const userForms = user.length >= 2
     ? [`[A-Za-z]:(?:/|\\\\{1,2})Users(?:/|\\\\{1,2})${escape(user)}(?![A-Za-z0-9])`, `/(?:Users|home)/${escape(user)}(?![A-Za-z0-9])`]
     : [];
-  const pattern = new RegExp([...homeForms, ...userForms, '/@fs/[A-Za-z]:/', '/@fs/(?:Users|home)/'].join('|'), 'i');
+  // A real path after `/@fs/` starts like one; code that builds such URLs (`/@fs/${…}`, `"/@fs/" +`)
+  // does not.
+  const absoluteFs = '/@fs/(?!volter-view/|volter-fs/)[A-Za-z0-9._~%-]';
+  const pattern = new RegExp([...homeForms, ...userForms, absoluteFs, 'sourceMappingURL=data:'].join('|'), 'i');
   const findings: LocalPathFinding[] = [];
   const walk = (current: string): void => {
     for (const entry of readdirSync(current, { withFileTypes: true })) {
@@ -134,15 +146,19 @@ export function scanForLocalPaths(dir: string, limit = 12): LocalPathFinding[] {
         walk(path);
         continue;
       }
-      if (!entry.isFile() || !TEXT_FILE.test(entry.name)) continue;
-      const text = readFileSync(path, 'utf8');
-      const hit = pattern.exec(text);
-      if (!hit) continue;
-      const at = hit.index;
-      findings.push({
-        file: relative(dir, path),
-        context: text.slice(Math.max(0, at - 30), at + hit[0].length + 30).replace(/\s+/g, ' '),
-      });
+      if (!entry.isFile() || BINARY_FILE.test(entry.name)) continue;
+      const bytes = readFileSync(path);
+      if (bytes.subarray(0, 512).includes(0)) continue;
+      const text = bytes.toString('utf8');
+      for (const reading of readings(text)) {
+        const hit = pattern.exec(reading);
+        if (!hit) continue;
+        findings.push({
+          file: relative(dir, path),
+          context: reading.slice(Math.max(0, hit.index - 30), hit.index + hit[0].length + 30).replace(/\s+/g, ' '),
+        });
+        break;
+      }
     }
   };
   walk(dir);

@@ -150,6 +150,13 @@ export interface ProjectServingModule {
    * at the same URL. Routes that read or write the project belong in `volter.viewServing`.
    */
   readonly viewSnapshotRoutes?: () => Promise<readonly string[]>;
+  /**
+   * What of a recorded {@link viewSnapshotRoutes} answer a view may publish: called with the route
+   * and the text the session answered, it returns the text to ship. A view is made to be shared,
+   * so an answer that names this machine (a directory, a message quoting a path) keeps only what
+   * the page reads.
+   */
+  readonly viewSnapshotScrub?: (route: string, body: string) => string;
 }
 
 /** The plugin name a serving module gives the plugin that serves `/__ui-source/*`, so the kit
