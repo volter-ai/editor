@@ -1,16 +1,13 @@
 /**
- * Blender's MULTIPLE SCATTERING sky, transcribed from the pinned source.
+ * Blender's scattering skies, transcribed from the pinned source.
  *
  * `intern/sky/source/sky_multiple_scattering.cpp` precomputes a 512x256 XYZ
  * texture and `gpu_shader_material_tex_sky.glsl`'s `node_tex_sky_nishita` reads
  * it back per direction; both halves are here because both are what a script
- * sees through `ShaderNodeTexSky`.
- *
- * This is the MULTIPLE scattering model, not Nishita's single scattering. The
- * courtyard's own recording is why: its seq 31 sets `sky_type = 'NISHITA'` and
- * native REFUSES -- `enum "NISHITA" not found in ('SINGLE_SCATTERING',
- * 'MULTIPLE_SCATTERING', 'PREETHAM', 'HOSEK_WILKIE')` -- so the sky it renders
- * is the untouched default, which is MULTIPLE_SCATTERING.
+ * sees through `ShaderNodeTexSky`. The single-scattering atmosphere is in
+ * `blender-single-scattering-sky.ts`; model selection, caching and the shared
+ * GPU lookup convention live here. Each model keeps its own native elevation
+ * and azimuth conventions.
  *
  * The constants and the arithmetic are the source's. The XYZ-to-scene-linear
  * matrix is not in the source -- it comes from the colour configuration -- and
@@ -18,6 +15,7 @@
  * `Linear CIE-XYZ D65`.
  */
 import * as THREE from 'three';
+import {precomputeSingleScatteringSky} from './blender-single-scattering-sky';
 
 const M_PI_2_F = 1.5707963267948966;
 const M_2PI_F = 6.2831853071795864;
@@ -104,6 +102,8 @@ const aerosolDensity = (h: number): number =>
   (Math.exp(-h / AEROSOL_HEIGHT_SCALE) + AEROSOL_BACKGROUND_DENSITY / AEROSOL_BASE_DENSITY);
 
 export interface SkyParameters {
+  /** Omitted in older frames, whose only supported model was multiple scattering. */
+  model?: 'SINGLE_SCATTERING' | 'MULTIPLE_SCATTERING';
   sunElevation: number;
   sunRotation: number;
   altitude: number;
@@ -363,16 +363,17 @@ function precomputeTexture(p: SkyParameters, sunElevation: number): Float32Array
  * post the Float32Array back. See `contributions/sky-precompute-worker.ts`.
  */
 export function precomputeSkyTexture(p: SkyParameters): Float32Array {
+  if (p.model === 'SINGLE_SCATTERING') return precomputeSingleScatteringSky(p);
   const [elevation] = simplify(p.sunElevation, p.sunRotation);
   return precomputeTexture(p, elevation);
 }
 
-/** The identity of a precomputed sky: every parameter the texture depends on.
- *  Rotation is NOT one of them -- `simplify` can fold half a turn of elevation
- *  into it, so it is folded here too and the texture keyed on what is left. */
+/** Texture identity: model, native elevation, altitude and three densities.
+ * Rotation only changes the lookup. Multiple scattering folds elevation;
+ * single scattering keeps it as supplied to Blender's precompute. */
 export function skyTextureKey(p: SkyParameters): string {
-  const [elevation] = simplify(p.sunElevation, p.sunRotation);
-  return JSON.stringify([elevation, p.altitude, p.airDensity, p.aerosolDensity, p.ozoneDensity]);
+  const elevation = p.model === 'SINGLE_SCATTERING' ? p.sunElevation : simplify(p.sunElevation, p.sunRotation)[0];
+  return JSON.stringify([p.model ?? 'MULTIPLE_SCATTERING', elevation, p.altitude, p.airDensity, p.aerosolDensity, p.ozoneDensity]);
 }
 
 /** Precomputed sky textures, however they were derived. `skyField` is
@@ -410,11 +411,14 @@ export function primeSkyTexture(p: SkyParameters, pixels: Float32Array): void {
  * who cares about the main thread primes the cache first.
  */
 export function skyField(p: SkyParameters): (direction: THREE.Vector3) => THREE.Vector3 {
-  const [elevation, rotation] = simplify(p.sunElevation, p.sunRotation);
+  // Single scattering only wraps azimuth; it does not fold sun elevation.
+  const rotation = p.model === 'SINGLE_SCATTERING'
+    ? M_2PI_F - ((p.sunRotation % M_2PI_F + M_2PI_F) % M_2PI_F)
+    : simplify(p.sunElevation, p.sunRotation)[1];
   const key = skyTextureKey(p);
   let pixels = skyTextures.get(key);
   if (pixels === undefined) {
-    pixels = precomputeTexture(p, elevation);
+    pixels = precomputeSkyTexture(p);
     primeSkyTexture(p, pixels);
   }
   const colour = new THREE.Vector3();

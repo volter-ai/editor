@@ -100,6 +100,7 @@ export function worldField(
     // Built ONCE per node: the model precomputes a 512x256 texture, and
     // rebuilding it per direction would be a 65,536-pixel job per texel.
     const field = skyField({
+      ...(expression.sky_model === undefined ? {} : {model: expression.sky_model}),
       sunElevation: expression.sun_elevation,
       sunRotation: expression.sun_rotation,
       altitude: expression.altitude,
@@ -253,6 +254,7 @@ export function collectSkyParameters(expression: WorldExpression): SkyParameters
     switch (node.kind) {
       case 'sky':
         found.push({
+          ...(node.sky_model === undefined ? {} : {model: node.sky_model}),
           sunElevation: node.sun_elevation,
           sunRotation: node.sun_rotation,
           altitude: node.altitude,

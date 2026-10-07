@@ -407,13 +407,13 @@ def _describe_world_socket(root_socket, camera_ray):
                 return float(default) if isinstance(default, (float, int)) else [float(c) for c in list(default)[:3]]
             if kind == "ShaderNodeTexSky" and socket == "Color":
                 model = node.sky_type
-                if model != "MULTIPLE_SCATTERING":
+                if model not in ("SINGLE_SCATTERING", "MULTIPLE_SCATTERING"):
                     raise NotImplementedError(
-                        "World Sky Texture: sky_type %r is not implemented (MULTIPLE_SCATTERING is)" % model)
+                        "World Sky Texture: sky_type %r is not implemented (SINGLE_SCATTERING and MULTIPLE_SCATTERING are)" % model)
                 vector = node.inputs.get("Vector")
                 if vector is not None and vector.links:
                     raise NotImplementedError("Linked World Sky Texture Vector")
-                return {"kind": "sky", "sun_elevation": float(node.sun_elevation),
+                return {"kind": "sky", "sky_model": model, "sun_elevation": float(node.sun_elevation),
                         "sun_rotation": float(node.sun_rotation), "altitude": float(node.altitude),
                         "air_density": float(node.air_density), "aerosol_density": float(node.aerosol_density),
                         "ozone_density": float(node.ozone_density)}
