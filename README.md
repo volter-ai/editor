@@ -106,6 +106,13 @@ From the project directory, `npx cyclotron` provides:
 - `blender-mcp` serves the Blender MCP interface over stdio;
 - `close` stops the session.
 
+`edit` prints the editor's address, `http://editor-<id>.localhost:<port>/?project=<name>`: each
+project has its own host (a stable hash of its folder), and `http://127.0.0.1:<port>/` redirects
+there. A tool that drives the editor in a browser binds that printed host and reuses its tab;
+binding `127.0.0.1:<port>` opens a fresh tab each time, the editor yields the previous one, and
+tabs pile up. Running `edit` again prints the same address and focuses the open tab. See
+[CHANGELOG.md](CHANGELOG.md) (0.5.190).
+
 MCP initialization does not start Blender; the first scene request attaches to or opens the
 project's editor. Append `--existing-session` after `blender-mcp` to require an editor that
 is already open.

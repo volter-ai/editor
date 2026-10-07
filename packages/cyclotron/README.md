@@ -72,6 +72,14 @@ Run from the project folder with `npx --no-install cyclotron <command>`;
 | `screenshot [<target>]` | The active document's render, or a model file or entity staged on its own. |
 | `chat status` \| `chat send "<prompt>"` \| `chat stop` | The editor's Chat conversation. |
 
+## The editor's address
+
+`edit` prints `http://editor-<id>.localhost:<port>/?project=<name>`: each project has its own
+host (a stable hash of its folder), and `http://127.0.0.1:<port>/` redirects there. A tool that
+drives the editor in a browser should bind that printed host and reuse its tab. Binding
+`127.0.0.1:<port>` opens a fresh tab each time, the editor yields the previous one, and tabs pile
+up. Running `edit` again prints the same address and focuses the open tab.
+
 ## Free and open source
 
 - Price: free.
