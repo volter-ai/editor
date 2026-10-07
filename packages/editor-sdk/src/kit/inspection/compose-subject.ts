@@ -311,7 +311,11 @@ export function contributionSections(
           : contribution.icon,
       order: contribution.order,
       ...(contribution.railGroup === undefined ? {} : { railGroup: contribution.railGroup }),
-      ...(contribution.railDefault === undefined ? {} : { railDefault: contribution.railDefault }),
+      ...(contribution.railDefault === undefined ? {} : {
+        railDefault: typeof contribution.railDefault === 'function'
+          ? contribution.railDefault(node, adapter)
+          : contribution.railDefault,
+      }),
       body: { kind: 'custom', render: () => createElement(Section, { adapter, nodeId }) },
     },
   ];
@@ -470,13 +474,13 @@ export function composeNullInspectionSubject(input: ComposeNullInspectionInput):
     // never shown and never serialized.
     id: nullSubject?.id ?? 'nothing-selected',
     title: nullSubject?.title ?? 'Nothing selected',
-    identity: nullSubject?.kindLabel
+    identity: nullSubject?.identity ?? (nullSubject?.kindLabel
       ? {
           rename: { readOnly: true, set: () => undefined },
           kindLabel: nullSubject.kindLabel,
           ...(nullSubject.note ? { note: nullSubject.note } : {}),
         }
-      : null,
+      : null),
     ...(nullSubject?.hint ? { hint: nullSubject.hint } : {}),
     presentation: { preferred: inspectionAffinityFor(input.surface) },
     quickActions: nullSubject?.quickActions ?? [],

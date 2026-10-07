@@ -13,9 +13,10 @@
  * this tab shows, and our widgets draw them from the door's rows.
  *
  * WHAT THE TRANSCRIPTION DELIBERATELY DROPS:
- *  - the `poll`/`if` branches. `show_all_edges` is mesh-only in Python; here
+ *  - type-only `poll`/`if` branches. `show_all_edges` is mesh-only in Python; here
  *    it is simply not on a Camera's RNA, so it does not draw. Same outcome,
  *    from the datablock rather than from a copy of Blender's conditions.
+ *    Rotation mode is a value on every object, so its draw branch is retained.
  *  - `OBJECT_PT_context_object` (`bl_label = ""`) — the breadcrumb row, which
  *    is the host's identity row here.
  *  - the four panels whose datablock is NOT the object: Motion Paths reads
@@ -35,35 +36,33 @@ import type { BlenderCuratedPanel } from './blender-properties-view';
 /** `properties_object.py`, panel by panel. Line numbers are that file's. */
 const CURATED: readonly BlenderCuratedPanel[] = [
   {
-    // OBJECT_PT_transform, :36. Blender draws the rotation channel that
-    // `rotation_mode` selects; all three are listed, and the two the object is
-    // not in are still real RNA, so all three draw. That is MORE than Blender
-    // shows and it is the honest reading: the door reports what the object
-    // holds, and a quaternion object's euler is not a fiction.
+    // OBJECT_PT_transform, :36-83: only the current rotation channel, with
+    // lock toggles aligned beside its components and the Mode label.
     title: 'Transform',
     properties: [
-      'location',
-      'lock_location',
-      'rotation_quaternion',
-      'rotation_axis_angle',
-      'rotation_euler',
-      'lock_rotation_w',
-      'lock_rotation',
-      'rotation_mode',
-      'scale',
-      'lock_scale',
+      { property: 'location', lock: 'lock_location' },
+      { property: 'rotation_quaternion', label: 'Rotation', lock: 'lock_rotation', firstLock: 'lock_rotation_w',
+        when: { property: 'rotation_mode', is: ['QUATERNION'] } },
+      { property: 'rotation_axis_angle', label: 'Rotation', lock: 'lock_rotation', firstLock: 'lock_rotation_w',
+        when: { property: 'rotation_mode', is: ['AXIS_ANGLE'] } },
+      { property: 'rotation_euler', label: 'Rotation', lock: 'lock_rotation',
+        when: { property: 'rotation_mode', isNot: ['QUATERNION', 'AXIS_ANGLE'] } },
+      { property: 'rotation_mode', label: 'Mode' },
+      { property: 'scale', lock: 'lock_scale' },
     ],
-  },
-  {
-    // OBJECT_PT_delta_transform, :86.
-    title: 'Delta Transform',
-    closed: true,
-    properties: [
-      'delta_location',
-      'delta_rotation_quaternion',
-      'delta_rotation_euler',
-      'delta_scale',
-    ],
+    sub: [{
+      // OBJECT_PT_delta_transform, :86-107: a child of Transform, with no
+      // rotation field for AXIS_ANGLE, exactly as its draw branch specifies.
+      title: 'Delta Transform', closed: true,
+      properties: [
+        { property: 'delta_location', label: 'Location' },
+        { property: 'delta_rotation_quaternion', label: 'Rotation',
+          when: { property: 'rotation_mode', is: ['QUATERNION'] } },
+        { property: 'delta_rotation_euler', label: 'Rotation',
+          when: { property: 'rotation_mode', isNot: ['QUATERNION', 'AXIS_ANGLE'] } },
+        { property: 'delta_scale', label: 'Scale' },
+      ],
+    }],
   },
   {
     // OBJECT_PT_relations, :132.

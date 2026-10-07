@@ -1,0 +1,51 @@
+{
+	"name": "volter-view-chat",
+	"displayName": "Volter limited view chat",
+	"description": "The Chat view's default participant in a limited view (docs/LIMITED-VIEW.md): every request is answered in place with the fact that chat runs in the local editor, and the product's install command with a copy button. The overlay writes view-product.json beside this manifest from the product's declaration.",
+	"version": "0.0.1",
+	"publisher": "volter-ai-dev",
+	"license": "AGPL-3.0-only",
+	"engines": {
+		"vscode": "^1.104.0"
+	},
+	"browser": "./extension.js",
+	"activationEvents": [
+		"onStartupFinished"
+	],
+	"enabledApiProposals": [
+		"defaultChatParticipant",
+		"chatParticipantPrivate",
+		"chatParticipantAdditions"
+	],
+	"capabilities": {
+		"untrustedWorkspaces": {
+			"supported": true
+		},
+		"virtualWorkspaces": true
+	},
+	"contributes": {
+		"chatParticipants": [
+			{
+				"id": "volter.viewChat",
+				"name": "volter",
+				"fullName": "Assistant",
+				"description": "Chat runs in the local editor",
+				"isDefault": true,
+				"locations": [
+					"panel"
+				],
+				"modes": [
+					"agent",
+					"ask"
+				]
+			}
+		],
+		"commands": [
+			{
+				"command": "volter.viewChat.copyInstall",
+				"title": "Copy install command",
+				"category": "Volter"
+			}
+		]
+	}
+}

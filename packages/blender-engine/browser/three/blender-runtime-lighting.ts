@@ -435,6 +435,7 @@ export type WorldExpression =
     }
   | {
       kind: 'sky';
+      sky_model?: 'SINGLE_SCATTERING' | 'MULTIPLE_SCATTERING' | undefined;
       sun_elevation: number;
       sun_rotation: number;
       altitude: number;
@@ -531,6 +532,7 @@ const worldExpression: z.ZodType<WorldExpression> = z.lazy(() =>
     z
       .object({
         kind: z.literal('sky'),
+        sky_model: z.enum(['SINGLE_SCATTERING', 'MULTIPLE_SCATTERING']).optional(),
         sun_elevation: scalar,
         sun_rotation: scalar,
         altitude: scalar,

@@ -407,13 +407,13 @@ def _describe_world_socket(root_socket, camera_ray):
                 return float(default) if isinstance(default, (float, int)) else [float(c) for c in list(default)[:3]]
             if kind == "ShaderNodeTexSky" and socket == "Color":
                 model = node.sky_type
-                if model != "MULTIPLE_SCATTERING":
+                if model not in ("SINGLE_SCATTERING", "MULTIPLE_SCATTERING"):
                     raise NotImplementedError(
-                        "World Sky Texture: sky_type %r is not implemented (MULTIPLE_SCATTERING is)" % model)
+                        "World Sky Texture: sky_type %r is not implemented (SINGLE_SCATTERING and MULTIPLE_SCATTERING are)" % model)
                 vector = node.inputs.get("Vector")
                 if vector is not None and vector.links:
                     raise NotImplementedError("Linked World Sky Texture Vector")
-                return {"kind": "sky", "sun_elevation": float(node.sun_elevation),
+                return {"kind": "sky", "sky_model": model, "sun_elevation": float(node.sun_elevation),
                         "sun_rotation": float(node.sun_rotation), "altitude": float(node.altitude),
                         "air_density": float(node.air_density), "aerosol_density": float(node.aerosol_density),
                         "ozone_density": float(node.ozone_density)}
@@ -608,7 +608,7 @@ _GRAPH_NODES = frozenset((
     "ShaderNodeGamma", "ShaderNodeRGBToBW", "ShaderNodeSeparateColor", "ShaderNodeCombineColor",
     "ShaderNodeVectorRotate", "ShaderNodeFresnel", "ShaderNodeLayerWeight", "ShaderNodeBump",
     "ShaderNodeNormalMap", "ShaderNodeNewGeometry", "ShaderNodeVertexColor", "ShaderNodeAttribute",
-    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve",
+    "ShaderNodeRGBCurve", "ShaderNodeVectorCurve", "ShaderNodeFloatCurve", "ShaderNodeObjectInfo",
 ))
 # The surfaces whose inputs map onto the presenter's standard material, and
 # the inputs of each the presenter reads from a graph.
@@ -959,6 +959,10 @@ class _MaterialGraph:
         if node.bl_idname in _GENERATED_BY_DEFAULT and not bool(_links_into(node.inputs[0])):
             self.generated = True
         props = _node_properties(node)
+        if node.bl_idname == "ShaderNodeObjectInfo":
+            # node_shader_gpu_object_info: the index belongs to this material,
+            # even when the node itself is inside a shared node group.
+            props["material_index"] = float(self.material.pass_index)
         if props.get("image"):
             self.images.add(props["image"])
         return {
@@ -1131,6 +1135,33 @@ def _mixed_graph(material, stack, surface):
         "images": sorted(graph.images),
         "generated": graph.generated,
     }
+
+
+def _object_info_random(name):
+    """Ordinary-object Random, shared by EEVEE and Cycles: hash_string then
+    Jenkins hash_uint2(name_hash, 0), converted to float32 * 2**-32.
+    Instances must use depsgraph.random_id instead; their export is separate.
+    See draw_handle.hh::random and cycles/blender/object.cpp.
+    """
+    import struct
+
+    mask = 0xffffffff
+    h = 0
+    # Blender's platform flags specify -funsigned-char (native and WASM).
+    for byte in name.encode("utf8"):
+        h = (h * 37 + byte) & mask
+    a = (0xdeadbeef + 21 + h) & mask
+    b = c = (0xdeadbeef + 21) & mask
+    def rotate(x, bits):
+        return ((x << bits) | (x >> (32 - bits))) & mask
+    c = ((c ^ b) - rotate(b, 14)) & mask
+    a = ((a ^ c) - rotate(c, 11)) & mask
+    b = ((b ^ a) - rotate(a, 25)) & mask
+    c = ((c ^ b) - rotate(b, 16)) & mask
+    a = ((a ^ c) - rotate(c, 4)) & mask
+    b = ((b ^ a) - rotate(a, 14)) & mask
+    c = ((c ^ b) - rotate(b, 24)) & mask
+    return struct.unpack("f", struct.pack("f", c / 4294967296.0))[0]
 
 
 def material_graphs(scene):
@@ -1454,6 +1485,12 @@ class Session:
                 if not any(m in graphs for m in row["materials"] if m is not None):
                     continue
                 obj = by_name.get(row["name"])
+                if obj is not None:
+                    row["object_info"] = {
+                        "color": [float(v) for v in obj.color],
+                        "index": float(obj.pass_index),
+                        "random": _object_info_random(obj.name),
+                    }
                 data = obj.evaluated_get(depsgraph).data if obj is not None else None
                 if getattr(data, "use_auto_texspace", True) is False:
                     row["texspace"] = [[float(v) for v in data.texspace_location],
@@ -2140,15 +2177,12 @@ def _photograph(depsgraph, width, height, linear=False):
         "fov": _vertical_extent(camera.data, int(width), int(height)),
         "toneMapping": transform,
         "exposure": float(2.0 ** view.exposure),
+        "gamma": float(view.gamma),
         "orthographic": camera.data.type == "ORTHO",
         "transparent": bool(scene.render.film_transparent),
     }
-    # The renderer keys its baked look tables by the config's FULL name
-    # (`AgX - Medium High Contrast`), and `AgX - Base Contrast` is the AgX base
-    # view itself -- the same table as no look at all. Send the full name for a
-    # non-identity look and nothing for the identity; a look with no table is
-    # refused BY NAME on the other side (`blender-runtime-host.ts`).
-    if look not in ("None", "AgX - Base Contrast"):
+    # Preserve the full look name: the native OCIO display processor owns it.
+    if look != "None":
         render["look"] = look
     # The capture's scene-referred frame rides along when asked for: a render
     # result is what a render leaves, and it holds scene-linear pixels.
@@ -2214,6 +2248,20 @@ class VolterRenderEngine(bpy.types.RenderEngine):
     bl_idname = "VOLTER_THREE"
     bl_label = "three.js"
     bl_use_preview = False
+
+    def view_update(self, context, depsgraph):
+        """The tab presents the depsgraph; Blender owns the shading selection."""
+        pass
+
+    def view_draw(self, context, depsgraph):
+        """Advertise viewport rendering to RNA without asking headless Blender for a GPU.
+
+        `rna_SpaceView3DShading_type_itemf` only offers RENDERED for a Python
+        engine with `view_draw`. The Three presenter draws that viewport; this
+        callback is never its drawing path. Without it, opening a Cycles file
+        makes the ordinary Rendered control reject its own enum value.
+        """
+        pass
 
     def render(self, depsgraph):
         scene = depsgraph.scene

@@ -45,17 +45,15 @@ import type {
   BlenderRnaWrite,
   BlenderUvLayout,
 } from '@volter/blender-engine/browser/rna';
-import { AGX_LOOK_TABLES, agxEncodeFrame } from '@volter/blender-engine/browser/three/blender-agx';
-import { displayTableUrl } from '@volter/blender-engine/browser/three/blender-display-lut';
-import { filmicEncodeFrame } from '@volter/blender-engine/browser/three/blender-filmic';
+import { createBlenderDisplayTransform, blenderDisplaySettingsForRender } from '@volter/blender-engine/browser/three/blender-display-transform';
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
-import { standardEncodeFrame } from '@volter/blender-engine/browser/three/blender-standard';
 import type { EditorCommandResult } from '@volter/editor-sdk/commands';
 import { editorHost } from '@volter/editor-sdk/host';
 import { invokeViewVerb, type ViewVerbContribution } from '@volter/editor-sdk/views';
 import {
   captureSceneImage,
   captureSceneLinear,
+  resolveSceneLinearDisplay,
   type LinearCaptureFrame,
 } from '@volter/editor-threejs/capture/scene';
 import { fitClipPlanes } from '@volter/editor-threejs/viewport/clip-planes';
@@ -69,21 +67,6 @@ import {
   requestNodeViewAll,
   setNodeViewState,
 } from '../src/node-view-state';
-
-/** Pinned OCIO display tables, loaded once. Missing data is a render failure. */
-const displayTables = new Map<string, Promise<Uint16Array>>();
-function displayTable(file: string): Promise<Uint16Array> {
-  let pending = displayTables.get(file);
-  if (!pending) {
-    pending = fetch(displayTableUrl(file)).then(async (response) => {
-      if (!response.ok)
-        throw new Error(`Blender display table ${file}: ${response.status} ${response.statusText}`);
-      return new Uint16Array(await response.arrayBuffer());
-    });
-    displayTables.set(file, pending);
-  }
-  return pending;
-}
 
 /** Raw bytes of a base64 payload, as the half-float words a linear frame is. */
 function halfFloatFrame(base64: string): Uint16Array {
@@ -105,36 +88,14 @@ async function displayPhotograph(
     width: number;
     height: number;
     exposure: number;
-    toneMapping: string;
+    toneMapping: RenderRequest['toneMapping'];
     look?: string;
+    gamma?: number;
     linear?: boolean;
     transparent?: boolean;
     linearInput?: { base64: string; width: number; height: number };
   },
 ): Promise<{ base64: string; mimeType: string }> {
-  const look = render.look ?? 'None';
-  const filmic = render.toneMapping === 'filmic';
-  const standard = render.toneMapping === 'none';
-  if (!standard && render.toneMapping !== 'agx' && !filmic)
-    // `neutral` is three's own curve and has no scene-linear implementation
-    // here — refused BY NAME rather than answered with a different transform.
-    throw new Error(
-      `Blender's Khronos PBR Neutral view transform has no scene-linear implementation in the ` +
-        `browser, so it cannot resolve a composited or scene-referred frame (implemented: ` +
-        `Standard, AgX, Filmic)`,
-    );
-  // Standard is a curve, not a table (`blender-standard.ts`); the other two are
-  // the config's own baked LUTs.
-  const file = standard
-    ? null
-    : filmic
-      ? 'filmic-srgb.lut'
-      : look === 'None'
-        ? 'agx-base-srgb.lut'
-        : AGX_LOOK_TABLES[look as keyof typeof AGX_LOOK_TABLES];
-  if (file === undefined)
-    throw new Error(`Blender display transform has no table for look ${look}`);
-  const lut = file ? await displayTable(file) : null;
   const provided = render.linearInput;
   const linear = provided
     ? {
@@ -145,14 +106,10 @@ async function displayPhotograph(
     : linearFrame;
   if (!linear) throw new Error('Blender display transform requires a linear capture');
   const { pixels, width, height } = linear;
-  const bytes = standard
-    ? standardEncodeFrame(pixels, width * height, render.exposure)
-    : filmic
-      ? filmicEncodeFrame(lut!, pixels, width * height, render.exposure)
-      : agxEncodeFrame(lut!, pixels, width * height, {
-          exposure: render.exposure,
-          composedLook: look !== 'None',
-        });
+  const transform = await createBlenderDisplayTransform(blenderDisplaySettingsForRender(render));
+  let bytes: Uint8Array;
+  try { bytes = resolveSceneLinearDisplay(linear, transform); }
+  finally { transform.dispose(); }
   const canvas = document.createElement('canvas');
   canvas.width = width;
   canvas.height = height;
@@ -202,19 +159,6 @@ export async function photographSnapshot(
   render: RenderRequest,
   assertCurrent: () => void = () => {},
 ): Promise<{ base64: string; mimeType: string }> {
-  // THE SCENE'S OWN VIEW TRANSFORM, for the duration of the photograph.
-  // Blender states one (`view_settings.view_transform`, AgX by default) and
-  // three.js has a curve of the same name, so the render is tone mapped the
-  // way the scene asks rather than the way the modeling viewport prefers —
-  // without this, every lit pixel differs by the gap between two unrelated
-  // curves and no difference in the image can be attributed to anything
-  // else. Python refuses a transform with no curve here, so the map is total.
-  const mappings: Record<string, THREE.ToneMapping> = {
-    none: THREE.NoToneMapping,
-    agx: THREE.AgXToneMapping,
-    neutral: THREE.NeutralToneMapping,
-    filmic: THREE.NoToneMapping,
-  };
   await snapshot.prepare(renderCamera);
   assertCurrent();
   const captureOptions = {
@@ -222,31 +166,20 @@ export async function photographSnapshot(
     width: render.width,
     height: render.height,
     transparent: render.transparent === true,
-    toneMapping: mappings[render.toneMapping] ?? THREE.AgXToneMapping,
-    exposure: render.exposure,
+    toneMapping: THREE.NoToneMapping,
+    exposure: 1,
   };
-  // BLENDER'S OWN VIEW TRANSFORM, off the linear frame. three's AgX is
-  // Filament's approximation and lands 23 to 48 levels of 255 away from
-  // Blender (42 at middle grey); the config's actual transform is a 57^3
-  // LUT over a log allocation, and a LOOK grades in a log space with two
-  // LUT inversions in it. Neither is reachable from resolved bytes, and
-  // both are reachable from the half-float target `captureImage` already
-  // allocates -- so an AgX render reads that and runs
-  // `blender-agx.ts`, which is verified byte-for-byte against OCIO.
-  // AND WHENEVER THE SCENE-REFERRED FRAME IS WANTED, whatever the
-  // transform: `captureImage` answers with resolved bytes and nothing
-  // else, so a Standard render asked for an EXR — or asked to be
-  // composited — has no linear frame in it at all. Reading the
-  // half-float target is the only path that has one.
-  const display =
-    render.toneMapping === 'agx' || render.toneMapping === 'filmic' || render.linear === true
-      ? await displayPhotograph(captureSceneLinear(scene, renderCamera, captureOptions), render)
-      : null;
-  assertCurrent();
-  if (display) return display;
-  const dataUrl = captureSceneImage(scene, renderCamera, captureOptions);
-  if (!dataUrl) throw new Error('Blender render could not capture its image');
-  return { base64: dataUrl.slice(dataUrl.indexOf(',') + 1), mimeType: 'image/png' };
+  if (render.linear === true) {
+    const display = await displayPhotograph(captureSceneLinear(scene, renderCamera, captureOptions), render);
+    assertCurrent();
+    return display;
+  }
+  const transform = await createBlenderDisplayTransform(blenderDisplaySettingsForRender(render));
+  try {
+    assertCurrent();
+    const dataUrl = captureSceneImage(scene, renderCamera, {...captureOptions, displayTransform: transform});
+    return {base64: dataUrl.slice(dataUrl.indexOf(',') + 1), mimeType: 'image/png'};
+  } finally { transform.dispose(); }
 }
 
 export const BLENDER_RUNTIME_DOCUMENT_ID = 'document:blender:runtime';

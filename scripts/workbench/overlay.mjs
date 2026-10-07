@@ -7,7 +7,15 @@
  *  (a release) both run this first, and it is the only thing that ever writes volter files into a
  *  fork checkout.
  *
- *    node scripts/workbench/overlay.mjs --checkout <fork dir> --product <editor>
+ *    node scripts/workbench/overlay.mjs --checkout <fork dir> --product <editor> [--target reh-web|web]
+ *
+ *  TWO TARGETS, ONE OVERLAY. `reh-web` (the default) is the workbench a session serves through the
+ *  Code-OSS server. `web` is the static workbench a LIMITED VIEW ships (docs/LIMITED-VIEW.md): the
+ *  same kit and product half, plus `packages/editor-core/view/workbench/` — the in-memory project
+ *  folder (`contrib/volterView/browser/`, imported from `workbench.web.main.ts`) and the chat
+ *  stand-in (`extensions/volter-view-chat`), which takes the default participant's place because
+ *  supercode's chat needs a runtime a static page does not have. A target is a composition chosen
+ *  at build time, never a mode the kit reads.
  *
  *  WHY IT EXISTS. ARCHITECTURE-CORE §The target shape, rule 6: *"Nothing of ours is built inside
  *  a fork: the product build OVERLAYS the tier on the fork at a pin."* Until 2026-09-21 the tier
@@ -69,6 +77,12 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const KIT_DIR = join(REPO_ROOT, 'packages/editor-core/workbench');
+/** The limited view's workbench half, overlaid for `--target web` only. */
+const VIEW_DIR = join(REPO_ROOT, 'packages/editor-core/view/workbench');
+const VIEW_TARGET = 'src/vs/workbench/contrib/volterView/browser';
+const VIEW_IMPORT = "import './contrib/volterView/browser/volterView.contribution.js';";
+const WEB_MAIN_FILE = 'src/vs/workbench/workbench.web.main.ts';
+export const TARGETS = ['reh-web', 'web'];
 const PIN_PATH = join(KIT_DIR, 'FORK.json');
 
 /** Where each half lands inside the fork. Both are four levels under `src/vs/`, which is what
@@ -117,6 +131,21 @@ export const CHAT_EXTENSION = {
 	 *  (`chatParticipant.contribution.ts`'s `chat-view-icon`), so the two now agree. */
 	icon: 'chat-sparkle',
 };
+/**
+ * THE LIMITED VIEW'S CHAT — `--target web`'s default participant, in this repository
+ * (`packages/editor-core/view/workbench/extensions/volter-view-chat`). It answers every request
+ * with the product's install command (`volter.product.install`), which this overlay writes beside
+ * it as `view-product.json`.
+ */
+export const VIEW_CHAT_EXTENSION = {
+	directory: 'volter-view-chat',
+	id: 'volter-ai-dev.volter-view-chat',
+	// `chatParticipantAdditions` is what `locations` needs: without it the workbench drops the
+	// participant (`chatParticipant.contribution.ts`) and the extension's registration then fails
+	// with "chatParticipant must be declared in package.json" (measured on the first live view).
+	proposals: ['defaultChatParticipant', 'chatParticipantPrivate', 'chatParticipantAdditions'],
+	icon: 'chat-sparkle',
+};
 /** What leaves the release with it: the vendored GitHub Copilot Chat, 272 MB unpacked. */
 const COPILOT_EXTENSION = 'copilot';
 
@@ -126,16 +155,18 @@ function fail(message) {
 }
 
 function parseArgs(argv) {
-	const args = { checkout: null, product: null, looks: [] };
+	const args = { checkout: null, product: null, looks: [], target: 'reh-web' };
 	for (let i = 2; i < argv.length; i++) {
-		if (argv[i] === '--checkout') { args.checkout = argv[++i]; }
+		if (argv[i] === '--target') { args.target = argv[++i]; }
+		else if (argv[i] === '--checkout') { args.checkout = argv[++i]; }
 		else if (argv[i] === '--product') { args.product = argv[++i]; }
 		else if (argv[i] === '--look') { args.looks.push(resolve(argv[++i])); }
-		else { fail(`unknown argument "${argv[i]}". Usage: node scripts/workbench/overlay.mjs --checkout <fork dir> --product <editor> [--look <package dir>]…`); }
+		else { fail(`unknown argument "${argv[i]}". Usage: node scripts/workbench/overlay.mjs --checkout <fork dir> --product <editor> [--look <package dir>]… [--target reh-web|web]`); }
 	}
 	if (!args.checkout) { fail('--checkout <fork dir> is required — the Code-OSS checkout to overlay.'); }
 	if (!args.product) { fail(`--product <id> is required. Products with a workbench half here: ${knownProducts().join(', ')}.`); }
-	return { checkout: resolve(args.checkout), product: args.product, looks: args.looks };
+	if (!TARGETS.includes(args.target)) { fail(`--target ${args.target} is not one this overlays (${TARGETS.join(' | ')}).`); }
+	return { checkout: resolve(args.checkout), product: args.product, looks: args.looks, target: args.target };
 }
 
 /** Every package that carries a workbench half, by its directory name under `packages/`. */
@@ -247,6 +278,30 @@ function patchWebResources(checkout, tiers) {
 			.map((target, index, all) => `\t'${outBuild(target)}/media/**'${index === all.length - 1 ? '' : ','}`),
 	].join('\n');
 	writeFileSync(path, `${head}${body}${ours}${tail}`);
+}
+
+/**
+ * THE WEB TARGET'S RESOURCE LIST. `--target web` bundles with upstream's esbuild builder
+ * (`build/next/index.ts`), whose `webResourcePatterns` — not `vscodeWebResourceIncludes` — decide
+ * what is copied beside the bundle. Without our media there, the packaged web workbench 404s on
+ * `volterProduct/browser/media/Inter.woff2` (measured on the first live limited view). Patterns
+ * are relative to `src/`. Idempotent: our lines are stripped and written again.
+ */
+function patchNextWebResources(checkout, tiers) {
+	const relative = 'build/next/index.ts';
+	const path = join(checkout, relative);
+	const anchorLine = 'const webResourcePatterns = [\n\t...commonResourcePatterns,\n';
+	let source = readFileSync(path, 'utf8')
+		.split('\n')
+		.filter((line) => !line.includes('// VOLTER (overlaid tier — web media') && !/^\t'vs\/workbench\/contrib\/volter[A-Za-z]*\/browser\/media\/\*\*(\/\*\.\*)?',$/.test(line))
+		.join('\n');
+	if (!source.includes(anchorLine)) { fail(`${relative} has no \`const webResourcePatterns = [ ...commonResourcePatterns,\` — upstream moved the web resource list and this patch needs re-aiming.`); }
+	const ours = [KIT_TARGET, PRODUCT_TARGET, ...tiers.map((tier) => `src/vs/workbench/contrib/${tier.contrib}/browser`)]
+		// FILES only: node-glob's `**` also matches the directories, and the builder's copyFile on a
+		// directory is EPERM on Windows (measured: the web build died in its resources step).
+		.map((target) => `\t'${target.replace(/^src\//, '')}/media/**/*.*',`);
+	source = source.replace(anchorLine, `${anchorLine}\t// VOLTER (overlaid tier — web media, scripts/workbench/overlay.mjs)\n${ours.join('\n')}\n`);
+	writeFileSync(path, source);
 }
 
 /**
@@ -993,7 +1048,8 @@ import { getChatSessionType } from '../../common/model/chatUri.js';`, 'provider-
  * Service` returns early with no `defaultChatAgent`), but it would silence the Chat view's whole
  * entitlement/session surface with it. Rule 7 says name ours; this names ours.
  */
-function patchProduct(checkout) {
+function patchProduct(checkout, target) {
+	const chat = target === 'web' ? VIEW_CHAT_EXTENSION : CHAT_EXTENSION;
 	const path = join(checkout, PRODUCT_FILE);
 	const product = JSON.parse(readFileSync(path, 'utf8'));
 	for (const manifest of ['package.json', 'remote/package.json', 'remote/web/package.json']) {
@@ -1022,14 +1078,14 @@ function patchProduct(checkout) {
 		// fields the extension was scanned, valid, and never activated; emptying this one makes
 		// it activate on the next launch with nothing else changed.
 		extensionId: '',
-		chatExtensionId: CHAT_EXTENSION.id,
-		icon: CHAT_EXTENSION.icon,
+		chatExtensionId: chat.id,
+		icon: chat.icon,
 		// The shape `defaultAccount.ts` dereferences, with upstream's own empty values.
 		provider: { default: { id: '', name: '' }, enterprise: { id: '', name: '' } },
 		providerScopes: [],
 	};
 	product.extensionEnabledApiProposals = {
-		[CHAT_EXTENSION.id]: [...CHAT_EXTENSION.proposals],
+		[chat.id]: [...chat.proposals],
 		'openai.chatgpt': ['chatSessionsProvider', 'languageModelProxy'],
 	};
 	product.trustedExtensionPublishers = ['openai'];
@@ -1181,8 +1237,32 @@ function treeHash(dirs) {
 	return hash.digest('hex');
 }
 
+/**
+ * The chat stand-in's product facts, written beside it: what it says the product is called and
+ * the one line that installs it (`volter.product.install`, defaulting the way
+ * `@volter/editor-sdk/session/product-locator` does).
+ */
+function writeViewChatProduct(checkout, productManifest) {
+	const declared = productManifest.volter?.product ?? {};
+	const target = join(checkout, 'extensions', VIEW_CHAT_EXTENSION.directory);
+	if (!existsSync(join(target, 'package.json'))) { fail(`${target} was not copied; the web target's chat stand-in is packages/editor-core/view/workbench/extensions/${VIEW_CHAT_EXTENSION.directory}.`); }
+	const install = typeof declared.install === 'string' && declared.install.trim() !== '' ? declared.install.trim() : `npx ${productManifest.name} create my-game`;
+	writeFileSync(join(target, 'view-product.json'), `${JSON.stringify({ name: productManifest.name, displayName: declared.displayName ?? productManifest.name, install }, null, '\t')}\n`);
+	const manifest = JSON.parse(readFileSync(join(target, 'package.json'), 'utf8'));
+	if (`${manifest.publisher}.${manifest.name}` !== VIEW_CHAT_EXTENSION.id) { fail(`the chat stand-in's id is ${manifest.publisher}.${manifest.name} and product.json is written for ${VIEW_CHAT_EXTENSION.id}.`); }
+	return { id: VIEW_CHAT_EXTENSION.id, version: manifest.version };
+}
+
+/** The limited view's folder provider is imported by the web workbench's main, for `--target web`
+ *  only; any other target strips the line, so one clone can be re-overlaid either way. */
+function patchWebMainView(checkout, target) {
+	const path = join(checkout, WEB_MAIN_FILE);
+	const source = readFileSync(path, 'utf8').replaceAll(`${VIEW_IMPORT}\n`, '').replaceAll(VIEW_IMPORT, '').trimEnd();
+	writeFileSync(path, target === 'web' ? `${source}\n\n${VIEW_IMPORT}\n` : `${source}\n`);
+}
+
 function main() {
-	const { checkout, product, looks } = parseArgs(process.argv);
+	const { checkout, product, looks, target } = parseArgs(process.argv);
 	const productDir = join(REPO_ROOT, 'packages', product, 'workbench');
 	if (!existsSync(join(productDir, 'src/product.contribution.ts'))) {
 		fail(`${product} has no workbench half: ${join(productDir, 'src/product.contribution.ts')} does not exist. Products with one: ${knownProducts().join(', ')}.`);
@@ -1193,7 +1273,8 @@ function main() {
 	// A look tier ADDS extensions and never replaces one, checked before anything is written: an
 	// extension directory that is neither the last overlay's nor the kit's or this product's is
 	// upstream's, and a name another half ships is that half's.
-	const shipped = new Set([...[KIT_DIR, productDir].flatMap((owner) => (existsSync(join(owner, 'extensions')) ? readdirSync(join(owner, 'extensions')) : [])), CHAT_EXTENSION.directory]);
+	const owners = target === 'web' ? [KIT_DIR, VIEW_DIR, productDir] : [KIT_DIR, productDir];
+	const shipped = new Set([...owners.flatMap((owner) => (existsSync(join(owner, 'extensions')) ? readdirSync(join(owner, 'extensions')) : [])), CHAT_EXTENSION.directory, VIEW_CHAT_EXTENSION.directory]);
 	const ours = new Set([...(previous.extensions ?? []), ...shipped]);
 	const claimed = new Set();
 	for (const tier of tiers) {
@@ -1205,12 +1286,14 @@ function main() {
 		}
 	}
 	// Resolved BEFORE anything is written, so a stale or missing install refuses on a clean tree.
-	const extension = chatExtension();
+	// The web target carries no supercode chat: it needs a runtime a static page does not have.
+	const extension = target === 'web' ? null : chatExtension();
+	const productManifest = JSON.parse(readFileSync(join(REPO_ROOT, 'packages', product, 'package.json'), 'utf8'));
 
 	// EVERY product's extensions are removed before this product's are copied, so a checkout
 	// overlaid for Cyclotron and then for the game editor does not keep `theme-blender`.
 	const extensionsDir = join(checkout, 'extensions');
-	for (const owner of [KIT_DIR, ...knownProducts().map((id) => join(REPO_ROOT, 'packages', id, 'workbench'))]) {
+	for (const owner of [KIT_DIR, VIEW_DIR, ...knownProducts().map((id) => join(REPO_ROOT, 'packages', id, 'workbench'))]) {
 		const dir = join(owner, 'extensions');
 		if (!existsSync(dir)) { continue; }
 		for (const name of readdirSync(dir)) { rmSync(join(extensionsDir, name), { recursive: true, force: true }); }
@@ -1236,8 +1319,10 @@ function main() {
 
 	replaceTree(join(KIT_DIR, 'src'), join(checkout, KIT_TARGET));
 	replaceTree(join(productDir, 'src'), join(checkout, PRODUCT_TARGET));
+	rmSync(join(checkout, VIEW_TARGET), { recursive: true, force: true });
+	if (target === 'web') { replaceTree(join(VIEW_DIR, 'src'), join(checkout, VIEW_TARGET)); }
 	const copiedExtensions = [];
-	for (const owner of [KIT_DIR, productDir]) {
+	for (const owner of owners) {
 		const dir = join(owner, 'extensions');
 		if (!existsSync(dir)) { continue; }
 		for (const name of readdirSync(dir)) {
@@ -1264,14 +1349,22 @@ function main() {
 		};
 	});
 
-	const chatExtensionVersion = writeChatExtension(checkout, extension);
-	copiedExtensions.push(CHAT_EXTENSION.directory);
+	let chatRecord;
+	if (extension) {
+		const chatExtensionVersion = writeChatExtension(checkout, extension);
+		copiedExtensions.push(CHAT_EXTENSION.directory);
+		chatRecord = { id: CHAT_EXTENSION.id, version: chatExtensionVersion };
+	} else {
+		chatRecord = writeViewChatProduct(checkout, productManifest);
+	}
+	patchWebMainView(checkout, target);
 
 	patchNativeChat(checkout);
 	patchExtensionSignatures(checkout);
 	patchOptionalVsda(checkout);
 	patchRegistrationImports(checkout, tiers);
 	patchWebResources(checkout, tiers);
+	patchNextWebResources(checkout, tiers);
 	patchRehCopilotShim(checkout);
 	patchWin32Dependencies(checkout);
 	patchNpmDirs(checkout);
@@ -1282,7 +1375,7 @@ function main() {
 		"\t'extensions/vscode-api-tests/tsconfig.json',\n",
 		"\t// VOLTER (overlaid tier): vscode-api-tests is not in this build.\n",
 		'the removed API test extension compilation');
-	patchProduct(checkout);
+	patchProduct(checkout, target);
 	patchSourcesProduct(checkout);
 
 	// THE MARKER IS WHAT MAKES A SOURCES WORKBENCH SELF-DESCRIBING. A release says what it is in
@@ -1291,6 +1384,7 @@ function main() {
 	// and refuses a workbench built for another product than the project's own.
 	writeFileSync(join(checkout, MARKER), `${JSON.stringify({
 		product,
+		target,
 		commit: pin.commit,
 		editorSource: {
 			repository: 'https://github.com/volter-ai/editor',
@@ -1301,16 +1395,17 @@ function main() {
 		productHalf: `packages/${product}/workbench`,
 		extensions: copiedExtensions,
 		lookTiers: tierRecords,
-		chatExtension: { id: CHAT_EXTENSION.id, version: chatExtensionVersion },
+		chatExtension: chatRecord,
 		overlaidAt: new Date().toISOString(),
 	}, null, 2)}\n`);
 
-	console.log(`overlay: ${product} + the editor kit onto ${checkout} at ${pin.commit.slice(0, 12)}`);
+	console.log(`overlay: ${product} + the editor kit onto ${checkout} at ${pin.commit.slice(0, 12)} (target ${target})`);
 	console.log(`  ${KIT_TARGET}`);
 	console.log(`  ${PRODUCT_TARGET}`);
 	for (const tier of tierRecords) { console.log(`  src/vs/workbench/contrib/${tier.contrib}/browser   (look tier: ${tier.package}@${tier.version})`); }
-	console.log(`  extensions/{${copiedExtensions.join(', ')}}   (${CHAT_EXTENSION.id}@${chatExtensionVersion})`);
-	console.log(`  removed extensions/${COPILOT_EXTENSION}; ${PRODUCT_FILE}#defaultChatAgent names ${CHAT_EXTENSION.id}`);
+	if (target === 'web') { console.log(`  ${VIEW_TARGET}`); }
+	console.log(`  extensions/{${copiedExtensions.join(', ')}}   (${chatRecord.id}@${chatRecord.version})`);
+	console.log(`  removed extensions/${COPILOT_EXTENSION}; ${PRODUCT_FILE}#defaultChatAgent names ${chatRecord.id}`);
 	console.log(`  patched ${MAIN_FILE}, ${WEB_GULPFILE}, ${REH_GULPFILE} and ${NPM_DIRS_FILE}`);
 }
 

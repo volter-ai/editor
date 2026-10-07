@@ -25,12 +25,14 @@
  */
 
 // How the `model` stage this document builds behaves (its starting presentation).
+import './blender-properties-context';
 import { blenderViewFieldOfView } from '../src/presentation';
 import {
   type BlenderRuntimeView,
   blenderModelView,
 } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import { ownedSurfaceMaterial } from '@volter/blender-engine/browser/three/blender-physical-material';
+import { createBlenderDisplayTransform, type BlenderDisplayTransform } from '@volter/blender-engine/browser/three/blender-display-transform';
 import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
 import { editorHost } from '@volter/editor-sdk/host';
 import {
@@ -431,31 +433,62 @@ function BlenderModelViewport(props: ToolContributionProps) {
     if (!documentId) return;
     let cancelled = false;
     let revision = 0;
-    let applied: { mapper: string; exposure: number } | null = null;
+    let applied: { key: string; transform: BlenderDisplayTransform } | null = null;
+    const ids = [documentId, `${documentId}#area-2`, `${documentId}#play`];
+    const attach = () => {
+      for (const id of ids) object3DDocumentSession(id)?.setDisplayTransform(applied?.transform ?? null);
+    };
     const read = async () => {
       const mine = ++revision;
       const context = await blenderRnaContext();
       if (!context) return;
-      const settings = await blenderRna(`${context.scene}.view_settings`);
+      const [settings, displaySettings] = await Promise.all([
+        blenderRna(`${context.scene}.view_settings`),
+        blenderRna(`${context.scene}.display_settings`),
+      ]);
       if (cancelled || mine !== revision || settings?.kind !== 'struct' || settings.type !== 'ColorManagedViewSettings') return;
+      if (displaySettings?.kind === 'struct') {
+        const device = displaySettings.groups.flatMap(group => group.rows).find(row => row.identifier === 'display_device')?.value;
+        if (typeof device === 'string' && device !== 'sRGB')
+          throw new Error(`Blender display device ${device} has no browser display processor yet`);
+      }
       const rows = settings.groups.flatMap(group => group.rows);
       const transform = rows.find(row => row.identifier === 'view_transform')?.value;
       const stops = rows.find(row => row.identifier === 'exposure')?.value;
-      const mapper = transform === 'Standard' ? 'none' : transform === 'Filmic' ? 'filmic' : 'agx';
+      const look = rows.find(row => row.identifier === 'look')?.value;
+      const gamma = rows.find(row => row.identifier === 'gamma')?.value;
       const exposure = typeof stops === 'number' ? 2 ** stops : 1;
-      if (applied?.mapper === mapper && applied.exposure === exposure) return;
-      applied = { mapper, exposure };
-      for (const id of [documentId, `${documentId}#area-2`, `${documentId}#play`]) {
+      const display = {
+        transform: typeof transform === 'string' ? transform : 'AgX',
+        look: typeof look === 'string' ? look : 'None',
+        exposure, gamma: typeof gamma === 'number' ? gamma : 1,
+      };
+      const key = JSON.stringify(display);
+      if (applied?.key === key) return;
+      const resolved = await createBlenderDisplayTransform(display);
+      if (cancelled || mine !== revision) { resolved.dispose(); return; }
+      const previous = applied;
+      applied = { key, transform: resolved };
+      attach();
+      previous?.transform.dispose();
+      for (const id of ids) {
         setViewPresentation(id, { modes: {
-          rendered: { lighting: { tone: { mapper, exposure } } },
-          preview: { lighting: { tone: { mapper, exposure } } },
+          rendered: { lighting: { tone: { mapper: 'none', exposure: 1 } } },
+          preview: { lighting: { tone: { mapper: 'none', exposure: 1 } } },
         } });
       }
     };
     const update = () => { void read().catch(error => editorHost().console.error(String(error), 'blender-colour')); };
     const stopRna = subscribeBlenderRna(update);
+    const stopSessions = subscribeObject3DDocumentSessions(attach);
     update();
-    return () => { cancelled = true; stopRna(); };
+    return () => {
+      cancelled = true; stopRna(); stopSessions();
+      const previous = applied;
+      applied = null;
+      attach();
+      previous?.transform.dispose();
+    };
   }, [documentId]);
   const split = useSyncExternalStore(
     subscribeAreaSplit,

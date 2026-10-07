@@ -1010,9 +1010,9 @@ async function writeBlenderSelection(
     '_vl = bpy.context.view_layer',
     'for _o in _vl.objects:',
     '    _o.select_set(_o.name in _sel)',
-    active === null
-      ? '_vl.objects.active = None'
-      : `_vl.objects.active = bpy.data.objects.get(${py(active)})`,
+    // object_select.cc::base_deselect_all_ex changes BASE_SELECTED without
+    // clearing the active base. Properties continues to inspect that object.
+    ...(active === null ? [] : [`_vl.objects.active = bpy.data.objects.get(${py(active)})`]),
   ].join('\n');
   const answer = await blenderExecute(body, false);
   // THE ENGINE'S REFUSAL, VERBATIM — never a shrug. A selection that did not
@@ -1242,9 +1242,8 @@ export function blenderOutlinerAuthoringFor(
    * `EditorShellStore.selectedEntityId` — the subject the Properties rail and
    * the gizmo take — is the LAST member of the selected set, and Blender's
    * active object is the same idea under its own name. An active object that
-   * is not selected still lands in the list: it is the subject the Properties
-   * editor is showing, and a rail pointing at a row nobody can see is the
-   * disagreement this whole unit exists to end.
+   * is not selected stays outside this list: Properties reads the active
+   * object from the frame independently, without adding an outline or gizmo.
    */
   const syncFromEngine = (): void => {
     if (disposed || pendingSelection !== null) return;
@@ -1255,7 +1254,7 @@ export function blenderOutlinerAuthoringFor(
     if (key === lastEngineKey) return;
     lastEngineKey = key;
     const names = engine.selected.filter((name) => name !== engine.active);
-    if (engine.active !== null) names.push(engine.active);
+    if (engine.active !== null && engine.selected.includes(engine.active)) names.push(engine.active);
     const next = names.map(rowIdForName).filter((id): id is string => id !== null);
     if (next.length === selected.length && next.every((id, at) => id === selected[at])) return;
     selected = next;
