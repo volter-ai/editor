@@ -1062,6 +1062,9 @@ function BlenderViewportArea({
    * every rigged mesh; a file with no armature pays only the cheap listing.
    */
   const rnaVersion = useSyncExternalStore(subscribeBlenderRna, blenderRnaVersion, blenderRnaVersion);
+  /** The armatures, their actions and what each is assigned, as last bound: an edit that changes
+   *  none of them and replaced no skinned mesh costs no rig read and no bake. */
+  const boundListing = useRef<string | null>(null);
   useEffect(() => {
     if (!documentId || !main) return;
     let live = true;
@@ -1069,7 +1072,10 @@ function BlenderViewportArea({
       void (async () => {
         const listing = await blenderArmatureActions();
         if (!live || !listing?.armatures.length) return;
+        const key = JSON.stringify([listing.armatures, listing.scene ?? null]);
+        if (key === boundListing.current && !blenderSkin.stale(view)) return;
         await blenderSkin.bind(view, { rig: () => blenderRig(), clip: () => blenderActionClip() });
+        boundListing.current = key;
       })().catch((thrown: unknown) => {
         if (live) editorHost().console.warn(`This file's rig could not be read: ${thrown instanceof Error ? thrown.message : String(thrown)}`, 'blender-skin');
       });
