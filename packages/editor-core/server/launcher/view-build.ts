@@ -57,8 +57,6 @@ import {
   WORKBENCH_DIR,
 } from '../../view/page/view-contract';
 
-export const VIEW_BUILD_USAGE = 'view build [folder] --out <dir> --workbench <vscode-web dir>';
-
 /** Who is building: the package a project declares, and the name a person sees (a product's
  *  `LaunchingProduct` is one). */
 export interface ViewBuildingProduct {
