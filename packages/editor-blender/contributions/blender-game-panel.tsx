@@ -656,9 +656,11 @@ function AutoplayControl({ documentId, playing, clock, autoplay, transport }: {
   const [picked, setPicked] = useState<string | null>(null);
   const behavior = autoplay.on || armed ? autoplay.behavior ?? null : picked !== null && behaviors.includes(picked) ? picked : behaviors[0] ?? null;
   const driver = driverOf(playing, autoplay);
-  const limitNote = !autoplay.on && autoplay.by === 'limit' && autoplay.limit ? `Autoplay stopped at its ${Math.round(autoplay.limit)} s limit`
+  // Said while nobody drives; once the person's input reaches the game, the driver line says they are.
+  const limitNote = driver !== 'none' ? null
+    : autoplay.by === 'limit' && autoplay.limit ? `Autoplay stopped at its ${Math.round(autoplay.limit)} s limit`
     // An arm the start could not take says why, rather than leaving the person to wonder.
-    : !autoplay.on && autoplay.refused ? `Autoplay didn’t start: ${autoplay.refused}` : null;
+    : autoplay.refused ? `Autoplay didn’t start: ${autoplay.refused}` : null;
   const botLine = [autoplay.behavior, autoplay.state].filter(Boolean).join(' — ');
   return (
     <div style={{ display: 'flex', alignItems: 'center', gap: TIMELINE_CHROME.headerGap, minWidth: 0 }}>

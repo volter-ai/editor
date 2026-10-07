@@ -33,9 +33,11 @@ const text = (value: unknown) => typeof value === 'string' && value.trim() ? val
 
 /** "claude-opus-5-5" → "Claude Opus 5.5"; an alias "opus" → "Claude Opus". Anything else stays as given. */
 export function claudeModelName(model: string): string {
-  const match = /^claude-([a-z]+)((?:-\d+)*)(?:-\d{8})?(\[1m\])?$/.exec(model);
+  // Version parts are one or two digits; an eight-digit date suffix (claude-sonnet-4-5-20250929) is not part of it.
+  const match = /^claude-([a-z]+)((?:-\d{1,2})*)(?:-\d{8})?(\[1m\])?$/.exec(model);
   if (match) return `Claude ${match[1]![0]!.toUpperCase()}${match[1]!.slice(1)}${match[2] ? ' ' + match[2].slice(1).replace(/-/g, '.') : ''}${match[3] ? ' (1M)' : ''}`;
-  if (/^[a-z]+$/.test(model)) return `Claude ${model[0]!.toUpperCase()}${model.slice(1)}`;
+  const alias = /^([a-z]+)(\[1m\])?$/.exec(model);
+  if (alias) return `Claude ${alias[1]![0]!.toUpperCase()}${alias[1]!.slice(1)}${alias[2] ? ' (1M)' : ''}`;
   return model;
 }
 
@@ -44,7 +46,9 @@ export function resolveClaudeAlias(alias: string, recorded: readonly string[]): 
   const version = (id: string) => (/^claude-[a-z]+-((?:\d+-?)+)/.exec(id)?.[1] ?? '').split('-').filter(Boolean).map(Number);
   const newer = (a: number[], b: number[]) => { for (let i = 0; i < Math.max(a.length, b.length); i++) if ((a[i] ?? 0) !== (b[i] ?? 0)) return (a[i] ?? 0) > (b[i] ?? 0); return false; };
   let best = '';
-  for (const id of recorded) if (id.startsWith(`claude-${alias}-`) && !/\d{8}$/.test(id) && (!best || newer(version(id), version(best)))) best = id;
+  // Only plain versioned IDs: a dated one is a pinned snapshot, and a `[1m]` one is a context choice the alias does not
+  // make (the caller re-adds the alias's own suffix).
+  for (const id of recorded) if (new RegExp(`^claude-${alias}(?:-\\d{1,2})+$`).test(id) && (!best || newer(version(id), version(best)))) best = id;
   return best;
 }
 
@@ -68,9 +72,14 @@ export function effectiveClaude(selection: ChatSelection, projectRoot: string, e
   const first = (pick: (layer: Record<string, unknown>) => unknown) => { for (const layer of layers) { const value = layer ? text(pick(layer)) : ''; if (value) return value; } return ''; };
   const configured = text(selection.model) || text(env['ANTHROPIC_MODEL']) || first(layer => layer['model']);
   let model = text(observed) || configured;
-  if (/^[a-z]+$/.test(model)) model = resolveClaudeAlias(model, recordedClaudeModels(...layers, json(join(home, '.claude.json')))) || model;
+  // An alias, with Claude Code's context suffix kept: `opus[1m]` resolves as `opus` and stays 1M.
+  const alias = /^([a-z]+)(\[1m\])?$/.exec(model);
+  if (alias) {
+    const resolved = resolveClaudeAlias(alias[1]!, recordedClaudeModels(...layers, json(join(home, '.claude.json'))));
+    if (resolved) model = resolved + (alias[2] ?? '');
+  }
   const perModel = (id: string) => first(layer => ((layer['modelSettings'] as Record<string, { effortLevel?: unknown }> | undefined)?.[id])?.effortLevel);
-  const effort = text(selection.effort) || text(env['CLAUDE_CODE_EFFORT_LEVEL']) || (model ? perModel(model) : '') || first(layer => layer['effortLevel']);
+  const effort = text(selection.effort) || text(env['CLAUDE_CODE_EFFORT_LEVEL']) || (model ? perModel(model) || perModel(model.replace(/\[1m\]$/, '')) : '') || first(layer => layer['effortLevel']);
   return { model, modelName: model ? claudeModelName(model) : '', effort };
 }
 
