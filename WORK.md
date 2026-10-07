@@ -20,13 +20,20 @@ browser. Direct irradiance is separated from diffuse IBL and casts fitted
 shadows; native finite-disc softness and indirect lighting remain gaps. Four
 native sun fixtures and world expression/lifecycle checks pass. Same-source,
 same-camera courtyard comparisons still fail: native evaluation includes 6,287
-instances which the exporter's view-layer-base walk omits. Native Cycles is also
-available inside WASM as a diagnostic oracle; preserve compositor/pass settings.
+instances which the exporter's view-layer-base walk omits. Native Cycles now
+retains its own engine class inside WASM: requesting CYCLES produces a native
+CPU render rather than a Three photograph registered under that name. Raster
+captures remain available as VOLTER_THREE. The live viewport/Play remain Three
+and still fail the visual gate; preserve compositor/pass settings in comparisons.
+Verified the default native class in the running editor and after factory reset,
+and rendered the source courtyard at 715×402/64 samples in 18.43 seconds. Two
+engine-ownership and twelve history checks, the product build and boundary check
+pass. Native output remains noisy; complete pixel equivalence is not claimed.
 
 The courtyard still fails full-scene parity. Its remaining material conditions
 include Particle Info, tinted transparency and multiple Principled closures.
-Native depsgraph collection/particle instances and their inputs, sky sun-disc
-illumination, indirect lighting and the full native camera/image comparison
+Native depsgraph collection/particle instances and their inputs, sun-disc shadow
+softness, indirect lighting and the full native camera/image comparison
 remain to complete. Preserve the original source and reference; gameplay stays
 behind the matching static model/React UI screenshot gate.
 World-volume image integration also remains capture-only; live and saved scene

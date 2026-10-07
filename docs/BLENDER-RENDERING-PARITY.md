@@ -8,7 +8,7 @@ visual target or implementing gameplay.
 ## Display transform: measured
 
 The live Rendered/Material Preview areas, detached Play, document photographs,
-`bpy.ops.render.render` and compositor display resolves use the same GPU
+Three-backed `bpy.ops.render.render` and compositor display resolves use the same GPU
 display processor. Solid and other authoring diagnostics retain their studio
 presentation. The scene is composed in a half-float target before display
 conversion; alpha is unassociated first, exposure is applied in scene linear,
@@ -90,13 +90,23 @@ placements, including 6,287 instances from 26 source objects. The current door
 walks view-layer bases instead of those placements; missing foreground columns,
 arcade pieces and vegetation make a lighting-only comparison insufficient.
 
-Real Cycles is compiled into the WASM build and provides an additional diagnostic
-oracle when its original engine class is temporarily restored. Preserve the
+Real Cycles is compiled into the WASM build and now retains its original engine
+class. `scene.render.engine = 'CYCLES'` followed by `bpy.ops.render.render`
+runs the native CPU path tracer, including evaluated placements, native closures,
+indirect illumination and render passes. `VOLTER_THREE` is the explicit raster
+photograph. The live viewport and Play still use Three and remain visually gated.
+Native Cycles renders take the scene's sample count and settings; they are not
+frame-rate game rendering. Preserve the
 file's render passes and compositor inputs: this courtyard's compositor links
 Noisy Image, so disabling denoising changes that graph's result. These diagnostic
 renders do not establish equivalence of the live Three viewport.
-The Three-backed render engine currently supplies only Combined; native Mist,
-Noisy Image and other compositor pass inputs are a separate remaining gate.
+The unchanged source courtyard rendered through the public editor API at
+715×402/64 samples in 18.43 seconds. Its foreground arcade, columns and particle
+placements are present. The native class also survives factory reset; the
+registration ownership tests and history tests pass. The output remains noisy,
+and complete native-WASM/desktop pixel equivalence is not claimed.
+The Three-backed render engine currently supplies only Combined; matching native
+Mist, Noisy Image and other pass inputs in raster captures remains a separate gate.
 
 ## Remaining scene gates
 

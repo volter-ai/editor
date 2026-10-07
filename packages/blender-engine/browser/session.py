@@ -207,13 +207,8 @@ def _load_post(_arg):
     # The DOOR resets its own revision table on LOAD_POST (it holds ID pointers
     # into the Main that just went away); this is the session's half.
     SESSION.forget()
-    # A factory reset reloads every add-on (`bpy.utils.load_scripts(reload_scripts=True)`
-    # runs inside `read_factory_settings`), and the Cycles add-on's own engine
-    # class comes back under `CYCLES` while ours is gone -- measured in the tab:
-    # after the battery's opening reset, `scene.render.engine = 'CYCLES'`
-    # resolved to `cycles.CyclesRender`, every render was a real path trace
-    # in wasm (35 s at 1280x720, 48 samples) and `_photograph` never ran. The
-    # engine ids are taken again on every load.
+    # Factory reset reloads add-ons. Preserve native Cycles and re-register
+    # only the headless GPU presenters we own.
     ENGINES[:], UNAVAILABLE_ENGINES[:] = _register_engine()
     HISTORY.reset()
 
@@ -2241,10 +2236,8 @@ class VolterRenderEngine(bpy.types.RenderEngine):
     """The scene's renderer, so `write_still`, `save_render` and Render Result
     behave as Blender's own.
 
-    Registered under the three engine ids a script names. The port has real
-    Cycles compiled in, so the Cycles add-on's own engine is unregistered
-    first -- otherwise `scene.render.engine = 'CYCLES'` resolves to it and
-    starts a path trace nobody asked for inside the tab.
+    Registered as VOLTER_THREE and for headless GPU-engine substitutes.
+    CYCLES remains Blender's compiled CPU path tracer.
     """
 
     bl_idname = "VOLTER_THREE"
@@ -2374,22 +2367,21 @@ def _release_from_owning_addon(existing):
 
 
 def _register_engine():
-    """Take the three engine ids a script can name.
+    """Keep native Cycles and install the headless GPU presenters.
 
-    Blender refuses two classes with one `bl_idname`, so the add-on's engine
-    class is unregistered first and the bundle's patched registration sets a
-    built-in type aside; `bpy.utils.register_class` on a subclass whose
-    `bl_idname` is `CYCLES` (or `BLENDER_EEVEE`, the factory default) then
-    makes `scene.render.engine` resolve here. `BLENDER_EEVEE` is the factory engine's id in 5.x (measured on the
-    oracle: the enum holds exactly that name; `BLENDER_EEVEE_NEXT` was 4.2's). Only the Cycles ENGINE CLASS goes: the add-on stays enabled, because
-    `scene.cycles` is the add-on's property group and a script sets `samples`,
-    `use_denoising` and the rest on it (disabling the add-on removed it, and
-    every workshop render died on `'Scene' object has no attribute 'cycles'`
-    before it reached the photograph).
+    Native Cycles needs no browser GPU. Replacing its class with a Combined-only
+    Three photograph drops evaluated instances, GI, shader closures and other
+    compositor pass inputs. VOLTER_THREE is the explicit raster photograph;
+    the live viewport and Play use Three independently of this engine choice.
     """
     made, unavailable = [], []
+    cycles = _engine_class("CYCLES")
+    if cycles is not None and not issubclass(cycles, VolterRenderEngine):
+        made.append("CYCLES")
+    else:
+        # Do not report a raster substitute as an available native path tracer.
+        unavailable.append("CYCLES")
     for identifier, label in (
-        ("CYCLES", "Cycles"),
         ("BLENDER_EEVEE", "EEVEE"),
         ("BLENDER_WORKBENCH", "Workbench"),
     ):
@@ -2416,7 +2408,7 @@ def _register_engine():
             # Upstream Blender refuses to let a Python engine take a BUILT-IN
             # id ("is built-in"); the shipped bundle carries a patch that sets
             # the built-in type aside instead, since headless has no GPU for it
-            # to render with, so all three ids are taken there (measured
+            # to render with, so the two GPU ids are taken there (measured
             # 2026-09-17). A bundle without that patch keeps `BLENDER_EEVEE`
             # and `BLENDER_WORKBENCH`: that is a fact about the build, stated
             # in the start reply and refused by name at the render, never a
