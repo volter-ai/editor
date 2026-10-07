@@ -1452,7 +1452,9 @@ export class HarnessChatService {
     return { ...action, cwd: this.options.getProjectRoot(),
       program: invocation.command,
       arguments: invocation.args,
-      env: kind === 'login' ? { ...launchContext.env, PATH: signInPath(launchContext.env.PATH, launchContext.npmPrefix, harness) } : launchContext.env,
+      env: kind === 'login'
+        ? { ...launchContext.env, PATH: signInPath(launchContext.env.PATH, launchContext.npmPrefix, CHAT_SETUP_PROVIDERS[harness]?.command ?? harness) }
+        : launchContext.env,
     };
   }
 

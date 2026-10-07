@@ -13,12 +13,14 @@ export interface ChatSetupAction {
   command: string;
 }
 
-/** The one agent the Chat welcome installs and signs in, with the vendor's own npm package: Codex, by Sign in with
- *  ChatGPT (docs/CHAT-WELCOME.md). Any other agent already on this machine is used as it is, never offered for
- *  install (the owner's ruling, 2026-10-07: "sign in with chat gpt or use whatever we're already signed into
- *  locally"). */
-export const CHAT_SETUP_PROVIDERS: Readonly<Record<string, { provider: 'openai' | 'anthropic'; npmPackage: string }>> = {
-  codex: { provider: 'openai', npmPackage: '@openai/codex' },
+/** The agents the Chat welcome installs and signs in, each with the vendor's own npm package and the command it
+ *  installs. Codex is Sign in with ChatGPT (docs/CHAT-WELCOME.md). The owner's ruling (2026-10-07) drops Sign in
+ *  with Claude, but Chat frontend 0.1.51 draws that row whatever the host lists, and a row the host doesn't list
+ *  fails as "That coding agent is unavailable." with nothing on screen, so Claude Code stays installable here until
+ *  the frontend drops the row. */
+export const CHAT_SETUP_PROVIDERS: Readonly<Record<string, { provider: 'openai' | 'anthropic'; npmPackage: string; command: string }>> = {
+  codex: { provider: 'openai', npmPackage: '@openai/codex', command: 'codex' },
+  'claude-code': { provider: 'anthropic', npmPackage: '@anthropic-ai/claude-code', command: 'claude' },
 };
 
 /** One row per agent the welcome can show: what is installed and signed in. No credentials. Supercode's
@@ -127,17 +129,17 @@ export function agentInstallPrefix(globalPrefix: string, home = homedir()): stri
  *  `.cmd` shim, and supercode's sign-in lookup (harness_auth.rs `find_executable`, 0.5.184 and main on
  *  2026-10-07) takes the bare name first, so `harness login codex` started that script and failed with os error 193
  *  ("not a valid Win32 application"): a first-time user's Sign in with ChatGPT ended in "Sign-in didn't finish."
- *  When the agent was installed by npm into `prefix`, a folder holding only `<harness>.cmd`, which calls npm's
- *  shim, comes first on that terminal's PATH, and the lookup finds a file Windows can start. Elsewhere, or for an
- *  agent installed any other way, PATH is unchanged. */
-export function signInPath(path: string, prefix: string | undefined, harness: string, home = homedir()): string {
+ *  When the agent's `command` was installed by npm into `prefix`, a folder holding only `<command>.cmd`, which calls
+ *  npm's shim, comes first on that terminal's PATH, and the lookup finds a file Windows can start. Elsewhere, or for
+ *  an agent installed any other way, PATH is unchanged. */
+export function signInPath(path: string, prefix: string | undefined, command: string, home = homedir()): string {
   if (process.platform !== 'win32' || !prefix) return path;
-  const shim = join(prefix, `${harness}.cmd`);
-  if (!existsSync(join(prefix, harness)) || !existsSync(shim)) return path;
+  const shim = join(prefix, `${command}.cmd`);
+  if (!existsSync(join(prefix, command)) || !existsSync(shim)) return path;
   const dir = join(home, '.volter', 'sign-in-shims');
   try {
     mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, `${harness}.cmd`), ['@echo off', `call "${shim}" %*`, ''].join('\r\n'));
+    writeFileSync(join(dir, `${command}.cmd`), ['@echo off', `call "${shim}" %*`, ''].join('\r\n'));
   } catch { return path; }
   return dir + delimiter + path;
 }

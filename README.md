@@ -20,7 +20,11 @@ curl -fsSL https://cyclotron.videogame.ai/install.sh | sh
   Node.js 24 from nodejs.org (checked against its published SHA-256) into `~/.volter/node`.
   It makes the starter racing game at `~/Cyclotron/my-race` and opens it in your browser; paste
   the same line again to reopen it. With Node.js 24 already, the same is
-  `npx @volter/cyclotron create my-race --template playable`.
+  `npx @volter/cyclotron create my-race --template playable` (on Windows, in Command Prompt:
+  PowerShell's default policy refuses npm's `npx.ps1`). To change the editor itself, see
+  [Building from source](#building-from-source).
+- To try it without installing, open [cyclotron-web.videogame.ai](https://cyclotron-web.videogame.ai/):
+  the editor with Blender and Play in your browser, without Chat.
 - Opens a race circuit modelled in the editor. Press **Play** in the viewport header: the
   camera moves from your editing view to the game's, and you drive with the arrow keys or
   WASD. Escape moves it back and returns the untouched model. A lap is about 30 seconds.
@@ -57,7 +61,9 @@ itself when it finds one installed and signed in, resuming the project's last co
 with the agent that held it. With none, Chat shows one button, **Sign in with ChatGPT**. It
 installs OpenAI's Codex from its official npm package (`@openai/codex`) when Codex is
 missing, then opens Codex's ChatGPT sign-in in your browser, and the chat opens once you're
-signed in ([docs/CHAT-WELCOME.md](docs/CHAT-WELCOME.md)). Chat checks readiness and
+signed in ([docs/CHAT-WELCOME.md](docs/CHAT-WELCOME.md)). Until a coming Chat release removes
+it, the welcome also shows Sign in with Claude, which does the same for Claude Code
+(`@anthropic-ai/claude-code`). Chat checks readiness and
 reconnects without a reload. Other agents Volter Harness supports (Gemini, Grok and more) can
 be chosen from Chat's agent picker.
 

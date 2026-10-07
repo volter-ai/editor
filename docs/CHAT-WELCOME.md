@@ -30,7 +30,10 @@ the behavior rules. Open it in a browser; it is one self-contained file.
   locally". An agent already signed in on this machine (Claude Code, Codex or another) is used
   as it is, with no welcome. With none, the welcome offers one button, named for the account
   people pay for: **Sign in with ChatGPT**. There is no "Sign in with Claude"; an earlier draft
-  of this design added it as a second provider, which the owner had not asked for.
+  of this design added it as a second provider, which the owner had not asked for. The Chat
+  frontend draws the provider rows, and frontend 0.1.51 still draws Claude's. Until a frontend
+  release drops it, the host keeps that row working (`CHAT_SETUP_PROVIDERS` lists Claude Code):
+  a row the host doesn't list fails with nothing on screen.
 - **Codex runs in Cyclotron's own Chat**, signed in through its own ChatGPT sign-in in the
   browser. That keeps one chat, with the project's Blender connection, approvals and the
   model picker. OpenAI's separate extension is not on this screen.
