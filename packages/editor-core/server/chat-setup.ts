@@ -13,11 +13,12 @@ export interface ChatSetupAction {
   command: string;
 }
 
-/** The agents the Chat welcome offers by the plan people pay for (docs/CHAT-WELCOME.md), each with the
- *  vendor's own npm package: Codex from OpenAI, Claude Code from Anthropic. */
+/** The one agent the Chat welcome installs and signs in, with the vendor's own npm package: Codex, by Sign in with
+ *  ChatGPT (docs/CHAT-WELCOME.md). Any other agent already on this machine is used as it is, never offered for
+ *  install (the owner's ruling, 2026-10-07: "sign in with chat gpt or use whatever we're already signed into
+ *  locally"). */
 export const CHAT_SETUP_PROVIDERS: Readonly<Record<string, { provider: 'openai' | 'anthropic'; npmPackage: string }>> = {
   codex: { provider: 'openai', npmPackage: '@openai/codex' },
-  'claude-code': { provider: 'anthropic', npmPackage: '@anthropic-ai/claude-code' },
 };
 
 /** One row per agent the welcome can show: what is installed and signed in. No credentials. Supercode's

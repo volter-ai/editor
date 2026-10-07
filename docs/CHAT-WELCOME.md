@@ -25,15 +25,17 @@ the behavior rules. Open it in a browser; it is one self-contained file.
 
 ## Decisions
 
-- **The analogy is a "Continue with Google / Continue with Apple" screen.** Each provider
-  gets one button, named for the account people pay for (ChatGPT, Claude), not for the
-  program behind it.
+- **Sign in with ChatGPT, or whatever is already signed in here.** The owner's ruling
+  (2026-10-07): "the point was sign in with chat gpt or use whatever we're already signed into
+  locally". An agent already signed in on this machine (Claude Code, Codex or another) is used
+  as it is, with no welcome. With none, the welcome offers one button, named for the account
+  people pay for: **Sign in with ChatGPT**. There is no "Sign in with Claude"; an earlier draft
+  of this design added it as a second provider, which the owner had not asked for.
 - **Codex runs in Cyclotron's own Chat**, signed in through its own ChatGPT sign-in in the
   browser. That keeps one chat, with the project's Blender connection, approvals and the
   model picker. OpenAI's separate extension is not on this screen.
-- **A missing agent is installed by the same button, then signed in, in one click.** The
-  install comes from the vendor's official package: Codex from OpenAI, Claude Code from
-  Anthropic.
+- **Codex missing: the same button installs it, then signs in, in one click.** The
+  install comes from OpenAI's official package, `@openai/codex`.
 - **Detection is live, so there is no "Check again".** The button shows progress, and the
   chat opens by itself when sign-in lands, including a sign-in finished in a terminal.
 - **No internal names anywhere:** no Supercode, harness, local agents, extension or runtime.
@@ -53,10 +55,10 @@ the behavior rules. Open it in a browser; it is one self-contained file.
 - **One agent ready:** the chat opens on it, with no welcome and no picker. This is
   already how it works today.
 - **Two or more ready:** the last one used opens. The others are one step away in New chat,
-  which lists every agent, signed in or not.
+  which lists every agent on this machine, plus Sign in with ChatGPT when Codex isn't signed in.
 - **Button states:** Sign in → Installing (only when the agent is missing) → Waiting for the
   browser → signed in. A busy button is disabled with a spinner, and the view's progress
-  bar runs; the other provider's button stays usable. The line under each button is one
+  bar runs. The line under each button is one
   slot: the caption, then "Cancel", then the error. Nothing below it moves.
 - **Cancel and failure:** Cancel returns the button to its start, with no error. If install
   or sign-in ends without a signed-in account, the line reads "Sign-in didn't finish." and
