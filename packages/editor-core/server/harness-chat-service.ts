@@ -271,6 +271,8 @@ export type ChatRuntimeActivity =
   | 'turn-resumed'
   | 'turn-ended'
   | 'narration'
+  /** The agent called a tool: the turn has a next step, where a steered line lands inside it. */
+  | 'tool'
   | 'waiting'
   | 'answered'
   | 'other';
@@ -1271,9 +1273,10 @@ export class HarnessChatService {
       case 'request_resolved':
         this.pendingRuntimeRequests.delete(runtimeRequestKey(event, 'request_resolved'));
         return 'answered';
+      case 'tool':
+        return this.reopenOnActivity() ?? 'tool';
       case 'output_delta':
       case 'reasoning_delta':
-      case 'tool':
         // NOT a reason to clear a pending approval: in Claude Code a subagent
         // can stream while the main thread waits on the person's decision.
         // An ask ends only on its own `request_resolved`, a turn boundary,

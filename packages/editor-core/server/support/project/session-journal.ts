@@ -181,12 +181,14 @@ export type SessionJournalEvent =
    * turn; `no-turn` — no AI turn was running, so nobody was there to hear it
    * (the crossing's own row and the terminal banner remain its record) or it
    * was waiting on the person; `capped` — this turn already heard its one
-   * line; `failed` — the harness refused the steer, with its reason.
+   * line; `not-working` — the turn had called no tool and saved no file, so a
+   * steer would land only after it ended, as a new prompt the person never
+   * sees; `failed` — the harness refused the steer, with its reason.
    */
   | {
       readonly kind: 'tripwire-nudge';
       readonly tripwire: AnyTripwireName;
-      readonly outcome: 'steered' | 'no-turn' | 'capped' | 'failed';
+      readonly outcome: 'steered' | 'no-turn' | 'capped' | 'not-working' | 'failed';
       readonly error?: string;
     }
   /**

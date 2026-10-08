@@ -566,6 +566,15 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'capped' });
       return;
     }
+    // ONLY A WORKING TURN. A steered line reaches the agent at its next step. A turn that has called no tool and
+    // saved nothing (a question answered in words, a story) has no next step before it ends, so the line arrived
+    // after it as a new prompt and the agent answered it in the person's Chat, the nudge itself unseen (measured
+    // 2026-10-08: "unplayed for 5m" into a no-tools story, answered "I haven't started Play…"). Such a turn is not
+    // building, which is what every line here is about; the terminal and the journal keep the crossing.
+    if (!turnWorking) {
+      journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'not-working' });
+      return;
+    }
     // Claimed BEFORE the steer resolves, so two crossings in one tick cannot
     // both pass the cap; released if the line never landed.
     chatNudgedThisTurn = true;
@@ -620,6 +629,10 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
   let turnWaitingOnPerson = false;
   /** Has this turn already heard a tripwire line? See `nudgeChatAgent`. */
   let chatNudgedThisTurn = false;
+  /** Has this turn called a tool or saved a project file? Only such a turn hears a line (`nudgeChatAgent`). */
+  let turnWorking = false;
+  /** `turnWorking` as the last stopped clock left it, for a `turn-resumed`. */
+  let previousTurnWorking = false;
   /** `chatNudgedThisTurn` as the last stopped clock left it. */
   let previousTurnNudged = false;
   /** A turn END was the last boundary seen: until a turn (re)starts, stray
@@ -658,6 +671,8 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     // Remembered for a `turn-resumed`: the same real turn keeps its spent line.
     previousTurnNudged = chatNudgedThisTurn;
     chatNudgedThisTurn = false;
+    previousTurnWorking = turnWorking;
+    turnWorking = false;
     turnWaitingOnPerson = false;
   }
 
@@ -682,8 +697,10 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       // Read before the restart: `startTurnClock` stops the clock first, and
       // a stop records the (already-cleared) flag over it.
       const spent = turnClock ? chatNudgedThisTurn : previousTurnNudged;
+      const working = turnClock ? turnWorking : previousTurnWorking;
       startTurnClock();
       chatNudgedThisTurn = spent;
+      turnWorking = working;
       chatTurnEnded = false;
       return;
     }
@@ -698,6 +715,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       startTurnClock();
     }
     if (activity === 'narration' || activity === 'answered') noteVisibleChange();
+    if (activity === 'tool') turnWorking = true;
   }
 
   /** `null` when `promise` has not settled within `ms` — a hung runtime read
@@ -840,6 +858,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     // validation result, because it must fire whether the save was valid or
     // not: a broken save is not a reason to go quiet about the last 40
     // minutes.
+    if (turnClock) turnWorking = true; // a file landed during the turn: it is working
     announceBuildDisciplineTripwires();
     const rel = relKey(absPath);
     const result = await validateProjectFile(absPath, kind, { engineRoot });
