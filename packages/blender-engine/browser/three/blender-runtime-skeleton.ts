@@ -193,6 +193,8 @@ export class RuntimeSkeletons {
       return world.invert();
     });
     mesh.updateWorldMatrix(true, false);
+    // A re-export rebinds the same mesh: its old skeleton's bone texture goes with it.
+    (skinned.skeleton as THREE.Skeleton | undefined)?.dispose();
     skinned.bind(new THREE.Skeleton(bones, inverses), mesh.matrixWorld.clone());
     return skinned;
   }

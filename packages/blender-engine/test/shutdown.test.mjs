@@ -292,19 +292,19 @@ test('browser unload is guarded while calls or failed saves remain, not after pe
 });
 
 
-test('rig continuations own the queue, then accepted edits drain before the close barrier', async t => {
+test('a continued request owns the queue, then accepted edits drain before the close barrier', async t => {
   fakeWorker(t);
   const runtime = new BlenderRuntime({ present: () => ({}) });
   const worker = FakeWorker.latest;
   const start = runtime.start('/project'); await tick(); worker.reply(worker.messages[0]); await start;
-  const rig = runtime.rig(); await tick();
+  const clip = runtime.actionClip({ object: 'Armature' }); await tick();
   const edit = runtime.execute('accepted'); await tick();
-  assert.deepEqual(worker.messages.map(m => m.op), ['start', 'rig']);
-  worker.reply(worker.messages[1], { load: 'continue', token: 'rig:1', phase: 'rig-weights' });
+  assert.deepEqual(worker.messages.map(m => m.op), ['start', 'action-clip']);
+  worker.reply(worker.messages[1], { load: 'continue', token: 'clip:1', phase: 'clip-bake' });
   await tick(); assert.equal(worker.messages[2].op, 'load-next');
   const stopping = runtime.stop(); await tick();
   assert.equal(worker.messages.length, 3);
-  worker.reply(worker.messages[2], { load: 'done', value: { rigs: [] } }); await rig;
+  worker.reply(worker.messages[2], { load: 'done', value: { tracks: [] } }); await clip;
   await tick(); assert.equal(worker.messages[3].op, 'execute');
   const failed = assert.rejects(edit, /disk full/); worker.fail(worker.messages[3]); await failed;
   await tick(); assert.equal(worker.messages[4].op, 'flush-document');
@@ -317,11 +317,11 @@ test('a worker failure rejects queued operations instead of posting to a dead wo
   const runtime = new BlenderRuntime({ present: () => ({}) });
   const worker = FakeWorker.latest;
   const start = runtime.start('/project'); await tick(); worker.reply(worker.messages[0]); await start;
-  const first = runtime.rig(), second = runtime.execute('queued'); await tick();
+  const first = runtime.actionClip({ object: 'Armature' }), second = runtime.execute('queued'); await tick();
   const rejected = Promise.all([assert.rejects(first, /worker failed/), assert.rejects(second, /terminated/)]);
   worker.onerror({ message: 'fixture worker died' });
   await rejected;
-  assert.deepEqual(worker.messages.map(m => m.op), ['start', 'rig']);
+  assert.deepEqual(worker.messages.map(m => m.op), ['start', 'action-clip']);
   assert.equal(worker.terminations, 1);
 });
 
