@@ -96,6 +96,13 @@ export interface ProductIdentity {
    * may tell a person to run it. Optional: a product that says nothing has none.
    */
   readonly upgrade?: boolean;
+  /**
+   * `volter.product.adapterRequired: true` — a project this product opens must have its own
+   * adapter module (`editor/volter.adapter.ts`), because the product's layout and document
+   * finders are declared there and the native default shows none of them. Such a product refuses
+   * a project without one. Optional: a product that says nothing opens it on the native default.
+   */
+  readonly adapterRequired?: boolean;
   /** Its package root, absolute. */
   readonly dir: string;
   /**
@@ -163,7 +170,7 @@ interface ProductManifestShape {
   name?: unknown;
   version?: unknown;
   bin?: unknown;
-  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown; install?: unknown; upgrade?: unknown } };
+  volter?: { product?: { entry?: unknown; colorTheme?: unknown; workbench?: unknown; displayName?: unknown; install?: unknown; upgrade?: unknown; adapterRequired?: unknown } };
 }
 
 const PRODUCT_COLOR_THEMES: readonly ProductColorTheme[] = ['dark', 'light'];
@@ -240,6 +247,7 @@ export function readProductManifest(packageDir: string): ProductIdentity | null 
     command: commands[0]!,
     displayName,
     upgrade: declared.upgrade === true,
+    adapterRequired: declared.adapterRequired === true,
     dir: packageDir,
     entry,
     colorTheme: colorTheme as ProductColorTheme,

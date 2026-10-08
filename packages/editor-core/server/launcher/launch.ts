@@ -43,7 +43,7 @@ export interface LaunchingProduct {
 }
 
 /** The command line's form of {@link projectAdapterRefusal}: one sentence, thrown. */
-function refuseProjectWithoutAdapter(project: string, product: { readonly name: string }): void {
+function refuseProjectWithoutAdapter(project: string, product: { readonly name: string; readonly adapterRequired?: boolean }): void {
   const refusal = projectAdapterRefusal(project, product);
   if (refusal !== null) throw new Error(refusal);
 }
