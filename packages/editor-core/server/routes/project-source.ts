@@ -21,7 +21,7 @@ import { globToRegExp } from '@volter/sdk/session/source-glob';
 import type { Request, Response } from 'express';
 import { resolveManifestPath } from '@volter/project/manifest/locate';
 import { projectRegionEntriesFromSources } from '@volter/sdk/kit/asset-workflow/project-source-index';
-import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 import { foldDataFileText } from '../data-file-serialize';
 import type { EditorServerRouter } from '../editor-server';
 import { buildScopedGameStyles } from '@volter/sdk/session/scoped-game-css';

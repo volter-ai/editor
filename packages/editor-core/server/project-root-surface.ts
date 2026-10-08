@@ -9,8 +9,8 @@ import type {
 import { resolveFileRegion } from '@volter/sdk/kit/ui-source/file-region-resolver';
 import type { DeclaredRootSurface, SourceDialectEvidence } from '@volter/sdk/source-authoring';
 import { sourceDialectEvidence, sourceProvesR3f } from './source-analysis';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 import {
-  ADAPTER_MODULE_FILENAME,
   adapterRegionIncludes,
   resetAdapterRegionIncludesCacheForTest,
 } from './adapter-region-includes';

@@ -13,7 +13,7 @@ import {
   projectRootEntries,
   reportUnreadableRegions,
 } from '@volter/sdk/kit/asset-workflow/project-source-index';
-import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 
 /**
  * ABSENT resolves `null`; every OTHER failure rejects — the contract
