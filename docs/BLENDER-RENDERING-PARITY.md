@@ -203,6 +203,21 @@ Blender file or a scene-specific lighting bake. Diffuse sky quadrature is
 normalized to retain the unoccluded constant-world control; specular visibility
 uses a finite weighted approximation. This is not indirect light transport.
 
+**The atlas is off in every view** (`WORLD_VISIBILITY` in
+`blender-runtime-view.ts`), so environment lighting is unoccluded again. Each
+tile spans the whole scene: Canyon Comet's 360 m floor gets about a metre per
+texel, and every lookup is one nearest texel answering yes or no. Its faceted
+rocks and karts occluded their own sky at scattered pixels, which read as
+static over every polygon in Rendered and Play, and glossy surfaces flashed as
+the camera moved the specular lobe from one direction to the next. The closed
+room it was measured in is a few metres across. It returns when its lookups are
+filtered and its resolution follows the scene; the measurements below are for
+the atlas, not for what the viewport draws now.
+
+Two-sided materials keep three's back-face shadow pass (`shadowSide`
+`BackSide`). A two-sided depth pass draws every lit face into its own shadow
+map, and the normal offset does not hold that off at grazing light.
+
 The first-draw sun fit also updates the light and target's world matrices before
 fitting shadow bounds. Newly composed lights previously fitted in stale axes;
 their first photograph could illuminate the foreground while later viewport
