@@ -17,9 +17,9 @@ import { isContainedRelativePath } from '@volter/sdk/session/relative-path-guard
 
 export async function installProjectDependencies(projectPath: string): Promise<void> {
   await new Promise<void>((resolveInstall, rejectInstall) => {
+    // One command line (constants only): arguments beside `shell` print Node's DEP0190 warning.
     const child = spawn(
-      'npm',
-      ['install', '--prefer-offline', '--no-audit', '--no-fund', '--loglevel=error'],
+      'npm install --prefer-offline --no-audit --no-fund --loglevel=error',
       {
         windowsHide: true,
         cwd: projectPath,

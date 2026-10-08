@@ -1024,7 +1024,9 @@ const runNpmLink: NpmLinkRunner = (projectDir, packageDirs) => {
   // shell believing it was this checkout's).
   mkdirSync(join(prefix, 'lib', 'node_modules'), { recursive: true });
   mkdirSync(join(prefix, 'bin'), { recursive: true });
-  const result = spawnSync('npm', ['link', '--no-save', ...packageDirs], {
+  // One command line, each directory double-quoted: a checkout path may hold a space, and arguments beside `shell`
+  // print Node's DEP0190 warning.
+  const result = spawnSync(['npm link --no-save', ...packageDirs.map((dir) => `"${dir}"`)].join(' '), {
     windowsHide: true,
     cwd: projectDir,
     stdio: 'inherit',
@@ -1216,7 +1218,7 @@ export function checkoutPackageSpec(name: string, monoRoot: string): string | nu
 export type PackageBuildRunner = (packageDir: string) => void;
 
 const runPackageBuild: PackageBuildRunner = (packageDir) => {
-  const result = spawnSync('npm', ['run', 'build'], {
+  const result = spawnSync('npm run build', {
     windowsHide: true,
     cwd: packageDir,
     stdio: 'inherit',
