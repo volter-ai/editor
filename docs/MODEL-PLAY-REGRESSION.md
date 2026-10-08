@@ -37,7 +37,7 @@ does not close these checks.
 4. **Project saves preserve the editor page and Chat.** Record the editor load ID, active
    Chat conversation/native resource and an unsent composer draft. With Play stopped and
    the UI board closed, save each starter-owned file in turn: `src/ui/game.tsx` (also its
-   `race-hud.tsx` dependency), `src/models/track.play.ts`, and `src/models/track.py`. Use a
+   `race-hud.tsx` dependency), `src/models/canyon.play.ts`, and `src/models/canyon.py`. Use a
    valid visible change, then a temporary syntax/import error, then repair it. After every
    save, wait for story discovery/update completion: the load ID, conversation, draft,
    panel layout and second view must remain unchanged. Repeat while playing; the relevant
@@ -49,7 +49,7 @@ does not close these checks.
    over 60 seconds before a second broken HUD edit: the old stale-chunk recovery throttle
    could conceal the reload defect for a minute. Capture each failure and repair and read
    the load ID independently. A project exception must remain reportable, not be swallowed
-   as a deployment error. `track.py` is a source file, not a Vite JS module: saving it alone
+   as a deployment error. `canyon.py` is a source file, not a Vite JS module: saving it alone
    need not regenerate the blend or change the running scene.
 
    In a separately authorized disposable deployment check, remove a genuinely lazy hashed
@@ -61,7 +61,7 @@ does not close these checks.
 
 5. **Registry-installed tools share the host SDK.** In a fresh directory outside any
    checkout, use the normal registry and the release's README create command with
-   `--template playable`; no workspace links. Confirm Track opens, then Play must
+   `--template playable`; no workspace links. Confirm Canyon opens, then Play must
    move the camera, mount the HUD and accept driving input; Escape must restore the
    editing view. Inspect the dependency cache: no SDK subpath may be an optimized
    entry or have its implementation inlined into another dependency's prebundle.

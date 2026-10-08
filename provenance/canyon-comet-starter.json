@@ -1,0 +1,183 @@
+{
+  "repository": "https://github.com/volter-ai/sites",
+  "revision": "52a097167ade053d7557ad3a4db5f0281f7c328a",
+  "project": "Canyon Comet (cycle-17), authored in Cyclotron by Volter's agent; the game shown on cyclotron.videogame.ai",
+  "note": "Every shipped file is source this project wrote: bpy scripts that build the scene from primitives, TypeScript, React, and textures generate.py makes from a seeded NumPy noise field. No third-party asset is included.",
+  "files": [
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/cube.blend",
+      "path": "packages/cyclotron/starter/playable/src/models/canyon.blend",
+      "sourceSha256": "31f75c6510d40880010bea76b5718eb854879ac35d89e78ef1b715e4d73a0e91",
+      "sha256": "7820789a831e59b907da47ea809a0f42375a61c70d0795d816b3049eb8ae1e49",
+      "change": "Renamed. Opened in the editor's Blender 5.2 session and saved there after removing the authoring scaffolding: the \"Kart reference • composition\" image Empty and its packed kart-reference.png, the \"Build Notes\" text, its text object and the \"Authoring board\", and the References and Notes collections. Nothing is packed: the two textures are Images that reference //../textures/asphalt.png and //../textures/sandstone.png, the PNGs beside it in the project, loaded fresh so no byte of the authoring machine's paths remains. scenery_ao.py then baked ambient occlusion into the static scenery in the same session (the desert floor's top face became a 4 m grid; mesas, arch, floor, track, shoulders and racing edges gained a scenery_ao colour attribute, and their materials multiply it, through scenery copies of the two a kart or a shelf also wears). The 1490 objects are otherwise unchanged; the karts are untouched, and canyon.py rebuilds the same objects."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/cube.py",
+      "path": "packages/cyclotron/starter/playable/src/models/canyon.py",
+      "sourceSha256": "0d8eb428788bb50e4f97246090467f405936d6e16dbce18df0509b41d470f8c9",
+      "sha256": "969a6468dbbbbfbaef4cb3b99c99f5ad223450de0a13afcddf2899085e7084e3",
+      "change": "Renamed (the authoring entry). Licence header covers all the bpy scripts; steps run in their own namespaces (each sets its own ROOT, so the rebuild stopped at the second step); prepare_reference.py is no longer run; scenery_ao.py runs last."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/canyon.py",
+      "path": "packages/cyclotron/starter/playable/src/models/circuit.py",
+      "sourceSha256": "b50fcf978d257d999b49e82cd2c270055baf9f62da9cd9d04b8c57096e095b81",
+      "sha256": "3954621494c69685500442c82ff10c6172327fa48614fabac3ee80449d2be4fc",
+      "change": "Renamed (milestone 1). Saves src/models/canyon.blend; the lines writing the Build Notes text and board, and moving the reference image, are removed."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/environment.py",
+      "path": "packages/cyclotron/starter/playable/src/models/environment.py",
+      "sourceSha256": "0422f7806d531626485d16dd6cc29e7fbec6ac860f248d097ed80d1b84fdf763",
+      "sha256": "67278e9c13d85685c875b06523062230a2d7e42bd2aacc9eb34841f9dd3fa68a",
+      "change": "Saves src/models/canyon.blend; the lines writing the Build Notes text and board, and moving the reference image, are removed."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/refine.py",
+      "path": "packages/cyclotron/starter/playable/src/models/refine.py",
+      "sourceSha256": "49d2409223c8f23dd9848491ea31481f21bedb37e7d7a4dd144e0dc083fe2c5c",
+      "sha256": "c0a4744cc7594eb1ed955525caf1a690216f5b5a7bf0fc111cf2b295acbb9e98",
+      "change": "Saves src/models/canyon.blend; the lines writing the Build Notes text and board, and moving the reference image, are removed. Loads the textures by reference, relative to the .blend, instead of packing them."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/polish.py",
+      "path": "packages/cyclotron/starter/playable/src/models/polish.py",
+      "sourceSha256": "62b99d206990ec44233234d73e753bfa26d32a6aee4eb9abe6a14e34959acab9",
+      "sha256": "a527b2eff3a3c5a1a9f6cd76c8a6f6f9f2b53325506c150bbbbbd13e09b259b0",
+      "change": "Saves src/models/canyon.blend; the lines writing the Build Notes text and board, and moving the reference image, are removed."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/detail.py",
+      "path": "packages/cyclotron/starter/playable/src/models/detail.py",
+      "sourceSha256": "c2f7dd018db3c2ef15d3a44d762d359b672803e415391cb5a107eab158b7bef4",
+      "sha256": "c75e432c590973bf05b386c9f6e3c16229460b1267c8e12bc8e7b6ab4c991511",
+      "change": "Saves src/models/canyon.blend."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/complete_environment.py",
+      "path": "packages/cyclotron/starter/playable/src/models/complete_environment.py",
+      "sourceSha256": "c531da4732acd11c815a8e4514214bad945e2e82e05e0e057f89ffb824558352",
+      "sha256": "76edd6e5ab39196dc427ce7f25489c5878ad252e3b02f0769dd0c16e1a3d1482",
+      "change": "Saves src/models/canyon.blend; the lines writing the Build Notes text and board, and moving the reference image, are removed."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/kart_finish.py",
+      "path": "packages/cyclotron/starter/playable/src/models/kart_finish.py",
+      "sourceSha256": "1cf2a85870d3eb19631588cba8e6b7256dd771c291b721e3f5a75d1c74b90820",
+      "sha256": "c34a77f7d191de4b0d6275f436b8a92bb14a43710ce9482bf919f903be1d19c2",
+      "change": "Saves src/models/canyon.blend."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/driver_details.py",
+      "path": "packages/cyclotron/starter/playable/src/models/driver_details.py",
+      "sourceSha256": "812fbf2ba3f1215ce0f05450f17f2bad4b0a217ed2da55b10942d494d548755d",
+      "sha256": "177bd3d5aecd3ff90fcb32883a5784a4a81bbced4e23cb71f549ea6702aef386",
+      "change": "Saves src/models/canyon.blend."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/finish_scene.py",
+      "path": "packages/cyclotron/starter/playable/src/models/finish_scene.py",
+      "sourceSha256": "84ca4f80568ebf434f19005f96f1ebb48e156aae9df812b38da95789c3836a38",
+      "sha256": "0dc2325e2a73ec5af346257cf71b30ea33bcb51d68ae3ec2aea6d9ec4b510cbd",
+      "change": "Saves src/models/canyon.blend; the lines writing the Build Notes text and board, and moving the reference image, are removed."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/scene_helpers.py",
+      "path": "packages/cyclotron/starter/playable/src/models/scene_helpers.py",
+      "sourceSha256": "d6db31946b09f9c534a9be82da2b9dfc69285c336b0c4af74f363800fa731526",
+      "sha256": "6d1372552c5b3833ea4bfff5b62a11f630ae2788af3eea5146773d6dae23d2bc",
+      "change": "Copyright line and a one-line description."
+    },
+    {
+      "source": null,
+      "path": "packages/cyclotron/starter/playable/src/models/scenery_ao.py",
+      "sourceSha256": null,
+      "sha256": "0656031924141cf3366718e4f04a420ac435dc7a9e0ebe1d9221e12da1f29dc0",
+      "change": "New, written for this starter: the last step canyon.py runs. Bakes ambient occlusion into a scenery_ao colour attribute on the static scenery (desert floor, track, shoulders and racing edges, mesas, the arch) with fixed rays against a BVH of the static scenery, and multiplies it into their Base Color; karts and anything that moves are neither baked nor occluders."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/cube.play.ts",
+      "path": "packages/cyclotron/starter/playable/src/models/canyon.play.ts",
+      "sourceSha256": "72e7292d7f005a3cff158d7fc4e7ce1bddc0b2f23cdc72784db2ab2013c39b19",
+      "sha256": "7355c24c34d59db3fa09e143bc84c89969c3960e9d8d5e722499ef1827febefc",
+      "change": "Renamed. No longer hides the removed authoring objects; offers the Game panel's Autoplay a `race` bot and writes race events with play.log."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/course.ts",
+      "path": "packages/cyclotron/starter/playable/src/models/course.ts",
+      "sourceSha256": "2b1714f5a788ba24e7acd1738ea6cf3761d72d532392badffce7386d336942ab",
+      "sha256": "2d8f05b72d45811ff4d3ed27366aa927b304aab5f9cc8a191d1a74bf05e44de9",
+      "change": "Copyright line."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/race-state.ts",
+      "path": "packages/cyclotron/starter/playable/src/models/race-state.ts",
+      "sourceSha256": "943308e41efbedef7a7b599e8aaeca4beeb4afa2333cddce7463f9c5ad0e57c3",
+      "sha256": "b8172ee8e50a46d571c2e3226e5859f61ba1844c360a4ea707bf71d1d0206bc7",
+      "change": "Copyright line."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/textures/generate.py",
+      "path": "packages/cyclotron/starter/playable/src/textures/generate.py",
+      "sourceSha256": "4770a8ac6bdd084dc5372f3d15b5b832b9c2821142452c1113233a5eb34427e5",
+      "sha256": "189d0459e3bb2c9c0bf402e51b48507e574c9f1432c00ccb8f943c9422dcb16b",
+      "change": "Copyright line."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/textures/asphalt.png",
+      "path": "packages/cyclotron/starter/playable/src/textures/asphalt.png",
+      "sourceSha256": "abfbe21746a5ad284fedcdfaf50e912ed9e5d96eb6c5985b302d4c20738dad4f",
+      "sha256": "abfbe21746a5ad284fedcdfaf50e912ed9e5d96eb6c5985b302d4c20738dad4f",
+      "change": "Unchanged; canyon.blend references it. Regenerated byte for byte by generate.py (numpy 2.5.3, Pillow 12.3.0)."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/textures/sandstone.png",
+      "path": "packages/cyclotron/starter/playable/src/textures/sandstone.png",
+      "sourceSha256": "ee13a8ab9a9a377f7cd87161926096ac24b2e7901c1185e917962d340afb7bab",
+      "sha256": "ee13a8ab9a9a377f7cd87161926096ac24b2e7901c1185e917962d340afb7bab",
+      "change": "Unchanged; canyon.blend references it. Regenerated byte for byte by generate.py (numpy 2.5.3, Pillow 12.3.0)."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/ui/game.tsx",
+      "path": "packages/cyclotron/starter/playable/src/ui/game.tsx",
+      "sourceSha256": "ab5e0259d9520d8c5ceee8f75910a49303db5c15e2d0dc529467f9ee17694f24",
+      "sha256": "df840143330b07ee207483ca4d064e23afc2b1d0d01c5a96548caa380a958f13",
+      "change": "Copyright line."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/ui/race-hud.tsx",
+      "path": "packages/cyclotron/starter/playable/src/ui/race-hud.tsx",
+      "sourceSha256": "f7e4ca36115c27b67d4be72112ec8415ba3de5dcd80ba16c3ef34080f54ba23e",
+      "sha256": "26cf9a28a781f80654e53feeda4c80d6a5fa2d4257d078c6237008ee7174aeb5",
+      "change": "Copyright line."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/ui/race-widgets.tsx",
+      "path": "packages/cyclotron/starter/playable/src/ui/race-widgets.tsx",
+      "sourceSha256": "ed48b48e094dc353dd93e1368d552b3d3cdd741a73adc5d809050052ef403bbc",
+      "sha256": "037727b65f51821f6fb7ef7dff7020b5de5c6682de5ae0dbfe0f1d54a1e6cc0b",
+      "change": "Copyright line."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/ui/game.stories.tsx",
+      "path": "packages/cyclotron/starter/playable/src/ui/game.stories.tsx",
+      "sourceSha256": "9c2e1fa0c675175c98686d797aa2e289981aa531b367e75855b47ca789e0f0c2",
+      "sha256": "4fbc0840584adcd2a2602d77f3c9660e14ebba917ead86fbcbf8c837caf3a6b3",
+      "change": "Copyright line."
+    }
+  ],
+  "excluded": [
+    {
+      "source": "model-editor/examples/canyon-comet/references/kart-reference.png",
+      "reason": "The authoring reference image: ChatGPT gpt-image output (its C2PA manifest is signed by OpenAI and declares trainedAlgorithmicMedia). Not ours to publish; also removed from the .blend, where it was packed."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/src/models/prepare_reference.py",
+      "reason": "Loads and packs that reference image and creates the Build Notes board."
+    },
+    {
+      "source": "model-editor/examples/canyon-comet/{package.json,volter.project.json,volter.adapter.ts,tsconfig.json,.gitignore}",
+      "reason": "create.ts writes a project's own; PLAYABLE carries their values (resolution 1672x941, default document, dependencies)."
+    }
+  ]
+}
