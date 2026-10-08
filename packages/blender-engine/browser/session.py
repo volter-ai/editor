@@ -3853,6 +3853,13 @@ def rna_context(object_name=None, collection_path=None):
 # list longer than _OUTLINER_PAGE answers its first page and says how many more
 # there are, so a scene of 20,000 objects cannot turn one read into a
 # 20,000-row payload.
+#
+# AND THE READ COSTS WHAT IT SHOWS, not what the scene holds: an object's row
+# and its expansion are built only once the page has kept its place
+# (`rna_outliner`). The ids do not move for it. An id's ordinal is the number of
+# rows that claimed the same address before it in the WHOLE tree's order, kept
+# rows or not, and `_OutlinerScope` answers that count for a kept object's rows
+# from what every earlier object would have claimed.
 
 _OUTLINER_PAGE = 64
 
@@ -4189,6 +4196,60 @@ def _outliner_object(obj, view_layer, seen, chosen, active):
                                       "OUTLINER_COLLECTION", seen, struct="Collection"))
     row["children"] = children
     return row
+
+
+def _outliner_preorder(row, out):
+    """A built row and everything under it, IN THE ORDER THEY CLAIMED THEIR IDS:
+    every builder above makes a row before its children, and its children in
+    list order, so the claim order is the tree's pre-order."""
+    out.append(row)
+    for child in row["children"]:
+        _outliner_preorder(child, out)
+    return out
+
+
+class _OutlinerScope:
+    """THE COUNTS ONE KEPT OBJECT'S ROWS CLAIM AGAINST, in `_outliner_unique`'s
+    own `seen` shape (`get`, item assignment).
+
+    Every address an object's expansion claims is one of three kinds, and two
+    of them never need the rows that came before to be built:
+
+      - under the OBJECT's own address (`.animation_data`, `.pose`, its pose
+        bones, `.constraints`, `.modifiers`, `.particle_systems`,
+        `.vertex_groups`): only that object's expansions claim it, so the
+        count before is how many times the object was expanded before;
+      - under its DATA's or the data's shape keys' address (the data row,
+        key blocks, bones, bone collections): only expansions of that data
+        claim it -- bones only outside Pose Mode -- so the count before is
+        how many times the data was expanded before;
+      - anything else (the object row itself, materials, a modifier's linked
+        object or node group, an instanced collection) is shared with any
+        row in the tree, and its count is the tree's own, in `seen`."""
+
+    def __init__(self, seen, scopes):
+        self.seen = seen
+        # (prefix, exact address, count before), most specific first.
+        self.scopes = scopes
+        self.local = {}
+
+    def _before(self, path):
+        if path is not None:
+            for prefix, address, before in self.scopes:
+                if path == address or path.startswith(prefix):
+                    return before
+        return None
+
+    def get(self, path, default=0):
+        if path in self.local:
+            return self.local[path]
+        before = self._before(path)
+        return self.seen.get(path, default) if before is None else before
+
+    def __setitem__(self, path, count):
+        self.local[path] = count
+        if self._before(path) is None:
+            self.seen[path] = count
 
 
 # ---- the node editor's tree ------------------------------------------------
@@ -5092,10 +5153,16 @@ def rna_outliner(selected=None):
     engine_active = view_layer.objects.active
     active = engine_active.name if engine_active is not None else None
     seen = {}
-    # Every object row, with the row it sits under and the COLLECTION row it
+    # Every object's PLACE, with the row it sits under and the COLLECTION row it
     # belongs to -- what `ObjectsChildrenBuilder`'s map holds, and what the
-    # parent walk below moves.
+    # parent walk below moves. A place is not a row yet: `{"place": obj,
+    # "name", "children"}`, where `children` are the child objects the fold
+    # hangs under it. The page decides which places become rows.
     placements = {}
+    # Every place, in the order the whole tree's rows claim their ids: each
+    # collection's row, its child collections, then its objects, depth first.
+    occurrences = []
+    collections = []
 
     def place(obj, row, collection_row):
         placements.setdefault(obj.name, []).append([row, collection_row, collection_row])
@@ -5122,10 +5189,12 @@ def rna_outliner(selected=None):
             # Fold parenting before paging: a parent may follow its children in
             # collection order, and must not disappear behind the flat cap.
             for obj in collection.objects:
-                object_row = _outliner_object(obj, view_layer, seen, chosen, active)
-                place(obj, object_row, row)
-                children.append(object_row)
+                spot = {"place": obj, "name": obj.name, "children": []}
+                occurrences.append(spot)
+                place(obj, spot, row)
+                children.append(spot)
         row["children"] = children
+        collections.append(row)
         return row
 
     scene_collection = _outliner_row(
@@ -5138,10 +5207,12 @@ def rna_outliner(selected=None):
                                              child.collection.name))
                 for child in root.children]
     for obj in root.collection.objects:
-        object_row = _outliner_object(obj, view_layer, seen, chosen, active)
-        place(obj, object_row, scene_collection)
-        children.append(object_row)
+        spot = {"place": obj, "name": obj.name, "children": []}
+        occurrences.append(spot)
+        place(obj, spot, scene_collection)
+        children.append(spot)
     scene_collection["children"] = children
+    collections.append(scene_collection)
 
     # `ObjectsChildrenBuilder::make_object_parent_hierarchy_collections`, parents
     # before children: a child object is MOVED out of its collection's row and
@@ -5159,8 +5230,15 @@ def rna_outliner(selected=None):
             placed.add(obj.name)
             ordered.append(obj)
 
-    for name in list(placements):
-        order(bpy.data.objects[name])
+    # The placed object itself, not `bpy.data.objects[name]`: a lookup by name is
+    # a walk of the whole ID list, and one per object made this loop quadratic
+    # (43 ms of a 1,490-object read).
+    for entries in list(placements.values()):
+        order(entries[0][0]["place"])
+    # A move takes the place out of its collection's list; the lists are
+    # filtered once below rather than searched once per move (`list.remove`).
+    moved = set()
+    duplicates = []
     for obj in ordered:
         if obj.parent is None:
             continue
@@ -5169,24 +5247,25 @@ def rna_outliner(selected=None):
         if not parents or not mine:
             continue
         for parent_row, _parent_owner, parent_collection in parents:
-            moved = False
+            moved_here = False
             for entry in mine:
                 row, owner, _collection = entry
                 if owner is not parent_collection:
                     continue
-                owner["children"].remove(row)
+                moved.add(id(row))
                 parent_row["children"].append(row)
                 entry[1] = parent_row
-                moved = True
+                moved_here = True
                 break
-            if moved:
+            if moved_here:
                 continue
-            duplicate = _outliner_row(
-                _rna_address(obj), obj.name, "TSE_SOME_ID", _outliner_object_icon(obj), seen,
-                struct="Object", objectType=obj.type, object=obj.name,
-                selected=obj.name in chosen, active=obj.name == active, notInCollection=True)
+            duplicate = {"place": obj, "name": obj.name, "children": [], "duplicate": True}
+            duplicates.append(duplicate)
             parent_row["children"].append(duplicate)
             mine.append([duplicate, parent_row, parent_collection])
+    if moved:
+        for row in collections:
+            row["children"] = [child for child in row["children"] if id(child) not in moved]
 
     # THE SELECTION KEEPS ITS ROWS PAST THE PAGE. A row is how the editor
     # addresses an object -- the viewport's outline and gizmo, the Properties
@@ -5196,18 +5275,20 @@ def rna_outliner(selected=None):
     # page of the selection, so selecting everything cannot turn one read back
     # into the whole tree the page exists to keep out (Canyon Comet, 1,493
     # objects selected: 1.77 MB a read uncapped, 142 KB capped).
+    # The caller's choice comes before the rest of the engine's selection: a click
+    # onto a selection already larger than a page keeps the object just clicked.
     wanted = [active] if active is not None else []
-    wanted += [o.name for o in view_layer.objects if o.select_get(view_layer=view_layer)]
     wanted += sorted(chosen)
+    wanted += [o.name for o in view_layer.objects if o.select_get(view_layer=view_layer)]
     kept = set()
     for name in wanted:
-        if len(kept) > _OUTLINER_PAGE:
+        if len(kept) >= _OUTLINER_PAGE:
             break
         kept.add(name)
     holding = set()
 
     def hold(row):
-        inside = row.get("struct") == "Object" and row.get("object") in kept
+        inside = "place" in row and row["name"] in kept
         for child in row.get("children", []):
             inside = hold(child) or inside
         if inside:
@@ -5216,13 +5297,36 @@ def rna_outliner(selected=None):
 
     hold(scene_collection)
 
+    # A PLACE THE PAGE KEEPS BECOMES ITS ROW: the object's own row and the
+    # expansion `TreeElementIDObject::expand` hangs under it, then the child
+    # objects the fold put there, in that order. Its ids are claimed below, in
+    # the whole tree's order; `claims` is the expansion's own claim order.
+    scratch = {}
+
+    def kept_row(spot):
+        if "place" not in spot:
+            return spot
+        obj = spot["place"]
+        if spot.get("duplicate"):
+            row = _outliner_row(
+                _rna_address(obj), obj.name, "TSE_SOME_ID", _outliner_object_icon(obj), scratch,
+                struct="Object", objectType=obj.type, object=obj.name,
+                selected=obj.name in chosen, active=obj.name == active, notInCollection=True)
+            spot["claims"] = [row]
+        else:
+            row = _outliner_object(obj, view_layer, scratch, chosen, active)
+            spot["claims"] = _outliner_preorder(row, [])
+        row["children"] = row["children"] + spot["children"]
+        spot["row"] = row
+        return row
+
     # Cap the hierarchy's visible child lists, not the collection's flat input.
     # Every parent participates in folding even when its child list needs a page.
     def page_tree(row):
         members = row.get("children", [])
         children, more = _outliner_page(members)
         beyond = [child for child in members[len(children):] if id(child) in holding]
-        children = children + beyond
+        children = [kept_row(child) for child in children + beyond]
         row["children"] = children
         if more - len(beyond):
             row["more"] = more - len(beyond)
@@ -5230,6 +5334,90 @@ def rna_outliner(selected=None):
             page_tree(child)
 
     page_tree(scene_collection)
+
+    # THE IDS, CLAIMED IN THE WHOLE TREE'S ORDER as if every object had been
+    # built: a kept object's rows claim through `_OutlinerScope`; an object the
+    # page left behind adds only what it would have claimed that a later row
+    # can share -- its own address, its materials, its modifiers' linked
+    # datablocks, its instanced collection -- and one more expansion of itself
+    # and of its data. Data with no address of its own claims its rows the
+    # long way, every one in the shared count.
+    addresses = {}
+
+    def address(datablock):
+        key = datablock.as_pointer()
+        if key not in addresses:
+            addresses[key] = _rna_address(datablock)
+        return addresses[key]
+
+    def bump(path):
+        seen[path] = seen.get(path, 0) + 1
+
+    expanded = {}
+    data_expanded = {}
+    bones_expanded = {}
+    for spot in occurrences:
+        obj = spot["place"]
+        object_key = obj.as_pointer()
+        object_path = address(obj)
+        data = obj.data
+        exact = object_path is None
+        scopes = [] if exact else [(object_path + ".", None, expanded.get(object_key, 0))]
+        data_key = bones = None
+        if data is not None:
+            data_key = data.as_pointer()
+            data_path = address(data)
+            keys = getattr(data, "shape_keys", None)
+            keys_path = address(keys) if keys is not None else None
+            exact = exact or data_path is None or (keys is not None and keys_path is None)
+            bones = isinstance(data, bpy.types.Armature) and obj.mode != "POSE"
+            if not exact:
+                before = data_expanded.get(data_key, 0)
+                scopes += [(data_path + ".bones[", None, bones_expanded.get(data_key, 0)),
+                           (data_path + ".", data_path, before)]
+                if keys_path is not None:
+                    scopes.append((keys_path + ".", keys_path, before))
+        if exact:
+            scopes = []
+        row = spot.get("row")
+        if row is not None or exact:
+            # Built rows, or the long way for data the scopes cannot name.
+            scope = _OutlinerScope(seen, scopes)
+            if row is None:
+                _outliner_object(obj, view_layer, scope, chosen, active)
+            else:
+                for claimed in spot["claims"]:
+                    claimed["id"] = _outliner_unique(claimed["path"], scope)
+        else:
+            bump(object_path)
+            if data is not None:
+                for material in getattr(data, "materials", ()) or ():
+                    if material is not None:
+                        bump(address(material))
+            for slot in obj.material_slots:
+                if slot.material is not None:
+                    bump(address(slot.material))
+            for md in obj.modifiers:
+                for member in ("object", "node_group"):
+                    linked = getattr(md, member, None)
+                    if linked is None:
+                        continue
+                    linked_path = address(linked)
+                    if linked_path:
+                        bump(linked_path)
+                    break
+            if obj.instance_collection is not None and obj.instance_type == "COLLECTION":
+                bump(address(obj.instance_collection))
+        expanded[object_key] = expanded.get(object_key, 0) + 1
+        if data_key is not None:
+            data_expanded[data_key] = data_expanded.get(data_key, 0) + 1
+            if bones:
+                bones_expanded[data_key] = bones_expanded.get(data_key, 0) + 1
+    # The fold's duplicates claim after every collection's objects, as they are made.
+    for spot in duplicates:
+        claimed = _outliner_unique(address(spot["place"]), seen)
+        if "row" in spot:
+            spot["row"]["id"] = claimed
 
     return {
         "scene": scene_path,
