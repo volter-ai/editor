@@ -41,7 +41,7 @@
       "workbench.layoutControl.enabled": false,
       "workbench.navigationControl.enabled": false,
       "window.commandCenter": true,
-      "workbench.editor.showTabs": "none",
+      "workbench.editor.showTabs": "multiple",
       "window.density.editorTab": "compact",
       "workbench.editor.tabSizing": "shrink",
       "breadcrumbs.enabled": false,
