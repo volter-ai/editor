@@ -126,6 +126,7 @@ import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,
   activeWorkspaceDocumentViewId,
+  openWorkspaceDocuments,
 } from '@volter/sdk/kit/workspace-document-registry';
 
 /** The active document's mounted content element — what the `document`,
@@ -163,6 +164,7 @@ const SCOPE_NAMES: readonly DocumentProbeScope[] = [
   'content',
   'utility',
   'menubar',
+  'area',
 ];
 
 /** The two scopes that are VS Code views: the part id the contribution hands
@@ -246,6 +248,30 @@ function resolveUtilityScope(): Scope {
   return { container: showing, name: 'utility', id, title: id };
 }
 
+/** THE WORKSPACE'S AREAS: every open document a workspace placed in an area (`descriptor.area`),
+ *  as it is on screen. The Model workspace's bottom area is one (the Timeline and its Action and
+ *  NLA editors, or the Game panel); a person clicks there every session, and no other scope
+ *  reaches it, because an area is neither the active centre document nor a VS Code view. */
+function resolveAreaScope(): Scope {
+  const shown = openWorkspaceDocuments()
+    .filter((open) => open.descriptor.area)
+    .flatMap((open) =>
+      Array.from(document.querySelectorAll<HTMLElement>('[data-workspace-document-id]')).filter(
+        (element) => element.dataset['workspaceDocumentId'] === open.descriptor.id,
+      ),
+    )
+    .filter((element) => {
+      const box = element.getBoundingClientRect();
+      return box.width > 0 && box.height > 0;
+    });
+  const [first, ...rest] = shown;
+  if (!first) {
+    throw new Error("No workspace area is showing, so scope 'area' has nothing to reach.");
+  }
+  const id = first.dataset['workspaceDocumentId'] ?? '';
+  return { container: first, extraRoots: rest, name: 'area', id, title: 'workspace areas' };
+}
+
 /** The application menu bar, by the stamp `ApplicationMenus` writes on its own root. The menus
  *  its triggers open are portaled, and {@link scopeRoots} reaches them through their anchors. */
 function resolveMenubarScope(): Scope {
@@ -259,6 +285,7 @@ function resolveMenubarScope(): Scope {
 function resolveScope(name: DocumentProbeScope): Scope {
   if (name === 'utility') return resolveUtilityScope();
   if (name === 'menubar') return resolveMenubarScope();
+  if (name === 'area') return resolveAreaScope();
   const view =
     name === 'rail' || name === 'outliner' || name === 'content' ? VIEW_SCOPES[name] : null;
   if (view) {
