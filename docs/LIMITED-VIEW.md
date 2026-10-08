@@ -149,10 +149,26 @@ Three limits:
 and `waitlist`. A tool loop in the page, for the Chat view: it posts each model call to the host's
 `/api/ai/responses` (the Responses API, used statelessly; the host holds the key and decides the
 model, who may call and what it costs), and runs the model's tool calls here: list, read, search,
-write, edit and delete over the project's files, Python in the tab's Blender, and any command of
-the editor through the relay above. `account` and `waitlist` pass on the host's `/api/account` and
+write, edit and delete over the project's files, Python in the tab's Blender, Play's controls, and
+a named list of the editor's commands through the relay above (`AGENT_COMMANDS` in `tools.ts`, and
+every `blender-…` verb). `account` and `waitlist` pass on the host's `/api/account` and
 `/api/waitlist`. A host with neither is a view with no AI, and the Chat says so. The agent reads
 text only; it cannot see the screen.
+
+What the agent cannot do, and why. What a model reads can try to steer it (a file someone
+imported, the text of a scene), and the page holds a signed-in person's session with the host. So:
+
+- It runs only the listed commands. `document-script` (a function body run in the page) and
+  `run-command` (any workbench command) are not on the list; Play's six controls are reached
+  through a tool that builds the command id itself.
+- Its replies are shown with image syntax neutralised, because an image is fetched when drawn and
+  its address could carry text out without a click.
+- One message stops after using a fifth of the day's allowance, by the host's count, and says so.
+- A long conversation drops its oldest exchanges and tells the model it did.
+
+What this does NOT close: `blender_python` is arbitrary Python in the tab's Blender, and whether
+that Python can reach the page's network or script has not been established. The list above is a
+limit on the editor's command door, not a sandbox around the agent.
 
 **Reports a session collects, accepted and dropped:** `state`, `heartbeat`, `tab/*`,
 `page-error`, `play-phase`, `console-entries`, `console-resolved`, `console/ack`,

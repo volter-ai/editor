@@ -3,8 +3,14 @@
  *
  * Files are the page's one set of bytes (`project-store.ts`): a write here is the write the
  * workbench's folder and every `/__editor/*` file route see. Everything else is a command of the
- * editor, run through the page's own relay (`command-relay.ts`) exactly as a terminal runs one
- * against a session, so the agent has the verbs the tab has: Blender's, the viewport's, the kit's.
+ * editor, run through the page's own relay (`command-relay.ts`) as a terminal runs one against a
+ * session.
+ *
+ * NOT EVERY COMMAND. What the model reads (a file someone imported, a scene's text) can try to
+ * steer it, and this page holds a signed-in person's session with the host. So the agent gets a
+ * NAMED LIST of verbs ({@link AGENT_COMMANDS}, {@link PLAY_ACTIONS}), and the two that run script
+ * in this page are not on it: `document-script` (a function body) and `run-command` (any command
+ * of the workbench). A verb not listed is refused by name.
  *
  * Every result is text, bounded: a model call is priced by its size.
  */
@@ -77,10 +83,26 @@ export const AGENT_TOOLS: readonly AgentToolDeclaration[] = [
   },
   {
     type: 'function', name: 'editor_command', strict: true,
-    description: 'Run one command of the editor in this tab. arguments_json is a JSON object of the command\'s own fields.',
+    description: 'Run one command of the editor in this tab: any "blender-…" command, or one of open, select, select-multiple, inspect, hierarchy, current-view, document-table, present-view, undo, redo, set-inspection-field, focus-entity, frame-entity, focus-selection, view-preset, set-camera, document-frame, set-shading-mode, model-play-log. arguments_json is a JSON object of the command\'s own fields.',
     parameters: object({ type: text('The command, such as "blender-scene-info" or "open".'), arguments_json: text('A JSON object of the command\'s fields; "{}" for none.') }),
   },
+  {
+    type: 'function', name: 'play', strict: true,
+    description: 'Control Play for the open model\'s game: state, play, stop, pause, resume or restart. Answers the game\'s state.',
+    parameters: object({ action: { type: 'string', enum: ['state', 'play', 'stop', 'pause', 'resume', 'restart'] } }),
+  },
 ];
+
+/** The editor's verbs the agent may run, besides Blender's own (`blender-…`). None runs script in the page. */
+export const AGENT_COMMANDS: ReadonlySet<string> = new Set([
+  'open', 'select', 'select-multiple', 'inspect', 'hierarchy', 'current-view', 'document-table', 'present-view',
+  'undo', 'redo', 'set-inspection-field', 'focus-entity', 'frame-entity', 'focus-selection', 'view-preset',
+  'set-camera', 'document-frame', 'set-shading-mode', 'model-play-log',
+]);
+/** Play's controls: `volter.model-play.<action>`, the one family of workbench commands the agent reaches. */
+export const PLAY_ACTIONS: ReadonlySet<string> = new Set(['state', 'play', 'stop', 'pause', 'resume', 'restart']);
+
+const agentMayRun = (type: string): boolean => AGENT_COMMANDS.has(type) || /^blender-[a-z-]+$/.test(type);
 
 function bounded(value: string): string {
   return value.length <= RESULT_LIMIT ? value : `${value.slice(0, RESULT_LIMIT)}\n… (${value.length - RESULT_LIMIT} more characters not shown)`;
@@ -166,7 +188,15 @@ export async function runAgentTool(services: AgentToolServices, name: string, ar
       case 'editor_command': {
         const fields = JSON.parse(typeof args['arguments_json'] === 'string' && args['arguments_json'] !== '' ? args['arguments_json'] : '{}') as unknown;
         if (!fields || typeof fields !== 'object' || Array.isArray(fields)) return 'arguments_json must be a JSON object.';
-        return bounded(commandText(await command({ ...(fields as Record<string, unknown>), type: String(args['type']) })));
+        const type = String(args['type']);
+        if (!agentMayRun(type)) return `'${type}' is not a command you can run here. Use a "blender-…" command or one of: ${[...AGENT_COMMANDS].join(', ')}.`;
+        return bounded(commandText(await command({ ...(fields as Record<string, unknown>), type })));
+      }
+      case 'play': {
+        const action = String(args['action']);
+        if (!PLAY_ACTIONS.has(action)) return `Play has no '${action}'. Use one of: ${[...PLAY_ACTIONS].join(', ')}.`;
+        // The command id is built here from the fixed list, never taken from the model.
+        return bounded(commandText(await command({ type: 'run-command', commandId: `volter.model-play.${action}`, args: {} })));
       }
       default:
         return `There is no tool named ${name}.`;
