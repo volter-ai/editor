@@ -57,6 +57,9 @@ export interface UpgradingProduct {
   readonly dir: string;
   /** The names this product replaced: a project declaring one is moved onto this product. */
   readonly replaces?: readonly RetiredProduct[];
+  /** This project's `node_modules` is linked by the product after the upgrade (the game editor's runtime image),
+   *  even where no link stands yet: it is never told to `npm install`, and no lockfile is rewritten. */
+  readonly linksNodeModules?: boolean;
 }
 
 /** The ONE line that moves a project onto `product`, from any version — including a project on a
@@ -310,10 +313,16 @@ function jsonLayout(raw: string): (value: unknown) => string {
 /** `npm view <spec> version dependencies --json`, parsed. */
 function npmView(spec: string): Promise<Release> {
   return new Promise((done, fail) => {
-    // npm is npm.cmd on Windows, and node refuses to spawn a .cmd without a shell (EINVAL).
-    const child = spawn('npm', ['view', spec, 'version', 'dependencies', '--json'], {
-      windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32',
-    });
+    // npm is npm.cmd on Windows, and node refuses to spawn a .cmd without a shell (EINVAL). The shell gets one
+    // command line (arguments beside `shell` print Node's DEP0190 warning), so the spec, which carries the version
+    // the person typed, is a package name and a version or tag, nothing a shell reads.
+    if (!/^@?[\w.-]+(?:\/[\w.-]+)?@[\w.+-]+$/.test(spec)) {
+      fail(new Error(`${spec} is not a package and a version or tag.`));
+      return;
+    }
+    const child = process.platform === 'win32'
+      ? spawn(`npm view ${spec} version dependencies --json`, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], shell: true })
+      : spawn('npm', ['view', spec, 'version', 'dependencies', '--json'], { stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
     let err = '';
     child.stdout.on('data', (chunk: Buffer) => { out += chunk.toString('utf8'); });
@@ -590,7 +599,8 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
 
   // A checkout's project links the checkout's own install, which already holds every kit
   // package; `npm install` there would write into the checkout (`add-play`'s same rule).
-  const linked = (() => { try { return lstatSync(join(project, 'node_modules')).isSymbolicLink(); } catch { return false; } })();
+  const linked = product.linksNodeModules === true
+    || (() => { try { return lstatSync(join(project, 'node_modules')).isSymbolicLink(); } catch { return false; } })();
   const locks = packagesChanged && !linked
     ? (await Promise.all([join(project, 'package-lock.json'), join(project, 'node_modules', '.package-lock.json')]
       .map(lockWithoutVolter))).filter((lock): lock is NonNullable<typeof lock> => lock !== null)

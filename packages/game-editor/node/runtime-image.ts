@@ -12,7 +12,7 @@
  * `$VOLTER_HOME/images/...`). A checkout's image is its own root install.
  */
 import { spawn } from 'node:child_process';
-import { existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, symlinkSync, writeFileSync } from 'node:fs';
+import { existsSync, lstatSync, mkdirSync, readFileSync, readlinkSync, rmdirSync, symlinkSync, unlinkSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 
@@ -63,11 +63,12 @@ export async function ensureRuntimeImage(productRoot: string, version: string): 
   );
   console.error(`Installing the Volter Game Editor ${version} runtime image (once per version) into ${dir}`);
   await new Promise<void>((done, fail) => {
-    const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install', '--no-audit', '--no-fund'], {
-      windowsHide: true,
-      cwd: dir,
-      stdio: 'inherit',
-    });
+    // Windows starts a .cmd only through a shell: without one, current Node refuses it with EINVAL, and create
+    // stopped there on every Windows machine (read on volter-desktop with the released 0.5.202). The shell gets one
+    // command line: arguments passed beside `shell` print Node's DEP0190 warning on every install.
+    const child = process.platform === 'win32'
+      ? spawn('npm install --no-audit --no-fund', { windowsHide: true, cwd: dir, stdio: 'inherit', shell: true })
+      : spawn('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit' });
     child.once('error', fail);
     child.once('exit', (code) => (code === 0 ? done() : fail(new Error(`The runtime image did not install (${code}); retry creating the project.`))));
   });
@@ -88,6 +89,22 @@ export function linkRuntimeImage(projectDir: string, imageNodeModules: string): 
   // A directory symlink on Windows needs Developer Mode or an administrator (EPERM otherwise); a junction needs
   // neither, and Node reads it back as a symbolic link to the same absolute path, so the checks above hold for it.
   symlinkSync(imageNodeModules, link, process.platform === 'win32' ? 'junction' : 'dir');
+}
+
+/**
+ * After `upgrade`: point a game's `node_modules` at `imageNodeModules` when it links another version's image. A real
+ * directory is left alone (`linkRuntimeImage` names it); a link already there is replaced, never its target touched.
+ * Whether the link moved.
+ */
+export function relinkRuntimeImage(projectDir: string, imageNodeModules: string): boolean {
+  const link = join(projectDir, 'node_modules');
+  if (isDanglingLink(link) || (existsSync(link) && lstatSync(link).isSymbolicLink())) {
+    if (existsSync(link) && resolve(projectDir, readlinkSync(link)) === resolve(imageNodeModules)) return false;
+    // Only the link goes: unlink removes a symlink, and rmdir a Windows junction, without reading into its target.
+    try { unlinkSync(link); } catch { rmdirSync(link); }
+  }
+  linkRuntimeImage(projectDir, imageNodeModules);
+  return true;
 }
 
 function isDanglingLink(path: string): boolean {

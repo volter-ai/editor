@@ -42,6 +42,7 @@
     "product": {
       "entry": "./src/index.ts",
       "displayName": "Volter Game Editor",
+      "upgrade": true,
       "install": "npx @volter/game-editor create my-game",
       "colorTheme": "dark",
       "workbench": {

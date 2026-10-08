@@ -5,6 +5,8 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import productPackage from '../package.json';
 import { createGameProject, presets } from './create';
+import { upgradeGameProject } from './upgrade';
+import { UPGRADE_USAGE } from '@volter/sdk/session/project-upgrade';
 import { isScaffoldAddition, SCAFFOLD_ADDITIONS, type ScaffoldAddition } from './scaffold/additions';
 import { launch, prepareSession, VIEW_BUILD_USAGE, viewBuild, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
@@ -50,6 +52,7 @@ try {
   } else if (values.help) {
     console.log(`Volter Game Editor
   volter-game-editor create <folder> [--template ${Object.keys(presets.templates).join('|')}] [--with ${SCAFFOLD_ADDITIONS.join(',')}] [--workbench <dir>]
+  volter-game-editor ${UPGRADE_USAGE}
   volter-game-editor prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  volter-game-editor edit [folder] [--workbench <dir>] [--no-open] [--port <n>]
   volter-game-editor status | console [--all] | close
   volter-game-editor console ack <id> --reason <text>
@@ -103,6 +106,9 @@ try {
   } else if (verb === 'sessions' || verb === 'project' || verb === 'projects') {
     if (positionals.length > 1) throw new Error(`Usage: volter-game-editor ${verb}`);
     await (verb === 'sessions' ? listSessions() : verb === 'project' ? showProject() : listRecentProjects());
+  } else if (verb === 'upgrade') {
+    if (positionals.length > 2) throw new Error(`Usage: volter-game-editor ${UPGRADE_USAGE}`);
+    await upgradeGameProject(positionals[1]);
   } else if (verb === 'prepare') {
     if (positionals.length > 2) throw new Error('Usage: volter-game-editor prepare [folder]');
     await prepareSession(folder, PRODUCT);
