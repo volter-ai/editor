@@ -178,6 +178,8 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
   navigator.serviceWorker.startMessages();
   announce();
 
+  // The brand mark from this view's own files (`brandLogoUrl` in the SDK reads this).
+  if (config.product.logo) (globalThis as Record<string, unknown>)['__volterBrandLogo'] = config.product.logo;
   installQuietSessionSockets();
   installProjectFetch();
   (globalThis as Record<string, unknown>)['__volterLimitedView'] = { files: store, folder: config.project.name };
@@ -203,6 +205,17 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
       tooltip: `A limited view of ${config.project.name}. It works on this tab's copy of the project; saving and git are in the local editor: ${config.product.install}`,
     },
     // Code-OSS's chat tips advertise agent features this view's chat cannot run.
-    configurationDefaults: { 'workbench.startupEditor': 'none', 'chat.tips.enabled': false },
+    // A view reaches no origin but its own (its host may send a content security policy saying
+    // so): the workbench's features that fetch from elsewhere are off rather than left to fail
+    // loudly. The web build has no extensions gallery at all (`scripts/workbench/overlay.mjs`).
+    configurationDefaults: {
+      'workbench.startupEditor': 'none',
+      'chat.tips.enabled': false,
+      'typescript.disableAutomaticTypeAcquisition': true,
+      'json.schemaDownload.enable': false,
+      'extensions.autoUpdate': false,
+      'extensions.autoCheckUpdates': false,
+      'extensions.ignoreRecommendations': true,
+    },
   });
 }

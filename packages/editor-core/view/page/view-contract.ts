@@ -52,7 +52,14 @@ export function isLiveModulePath(path: string): boolean {
 
 /** The project-relative path a request for a project module names, or null: `/src/…` as a relative
  *  import reaches it, or `/@fs/<neutral project root>/src/…` as the editor imports an entry. */
-export function liveModulePathOf(pathname: string): string | null {
+export function liveModulePathOf(rawPathname: string): string | null {
+  let pathname: string;
+  try {
+    pathname = decodeURIComponent(rawPathname);
+  } catch {
+    // A malformed percent sequence names no project file.
+    return null;
+  }
   const path = pathname.startsWith('/src/') ? pathname.slice(1) : (/^\/@fs\/+volter-view\/[^/]+\/(src\/.+)$/.exec(pathname)?.[1] ?? null);
   return path !== null && isLiveModulePath(path) ? path : null;
 }
@@ -75,6 +82,9 @@ export interface LimitedViewConfig {
     readonly colorTheme: 'dark' | 'light';
     /** `volter.product.install`. */
     readonly install: string;
+    /** The brand mark as a file of this view (`/__view/…`), when the build could fetch it: the
+     *  page shows it from here, so the view needs no image from another origin. */
+    readonly logo?: string;
   };
   readonly project: {
     /** The root the session reported (`/__editor/project`'s `project.path`), which every
@@ -120,7 +130,10 @@ export interface LimitedViewProjectIndex {
 export const MOUNT_SENTINEL = 'volterviewmount';
 
 /** Cache busters the editor appends that change nothing about the module served. */
-const BUSTER_KEYS = new Set(['t', 'volter-source', 'volter-reload']);
+// `volter-live-module` is a document's rebuild counter (`liveModuleImportUrl`): a fresh address for
+// the browser, the same module for the build. Kept in the key, a Play script imported without a
+// mount id found no recording and failed to load.
+const BUSTER_KEYS = new Set(['t', 'volter-source', 'volter-reload', 'volter-live-module']);
 /** A script module's own source: Vite's `?import` marker changes nothing about how one is
  *  compiled (it matters for assets and JSON, which keep it). */
 export const SCRIPT_SOURCE = /\.(?:[cm]?[jt]sx?)$/;

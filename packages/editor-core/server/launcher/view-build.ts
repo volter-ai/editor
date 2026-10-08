@@ -47,6 +47,7 @@ import { builtFrameBridgeModule, readBuiltProductEntry } from '../frame-bridge';
 import { waitForOwnEditorServer } from './editor-boot';
 import { computePackageContributionCrawlEntries } from '../project-optimize-deps-entries';
 import { productServingModules, productViewServingModules } from '../session-product';
+import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
 import { selectProjectFiles } from './view-files';
 import { PathNeutralizer, scanForLocalPaths } from './view-paths';
 import {
@@ -489,9 +490,21 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
       cpSync(join(project, ...file.path.split('/')), target);
     }
     writeFileSync(join(out, VIEW_DIR, 'files.json'), JSON.stringify({ files }));
+    // The brand mark, as a file of the view: a view's host may admit no other origin, and the
+    // editor's startup screen shows the mark. The repository bundles no brand art, so it is
+    // fetched here, at build time, as a page's own build fetches its brand files.
+    let logo: string | undefined;
+    try {
+      const mark = await fetch(EDITOR_BRAND.logo, { signal: AbortSignal.timeout(15_000) });
+      if (!mark.ok || !(mark.headers.get('content-type') ?? '').includes('image/svg')) throw new Error(`answered ${mark.status}`);
+      writeFileSync(join(out, VIEW_DIR, 'brand-logo.svg'), Buffer.from(await mark.arrayBuffer()));
+      logo = `/${VIEW_DIR}/brand-logo.svg`;
+    } catch (error) {
+      log(`  WARNING: the brand mark could not be fetched (${error instanceof Error ? error.message : String(error)}); the view will ask ${new URL(EDITOR_BRAND.logo).origin} for it, which a host's content security policy may refuse.`);
+    }
     const config: LimitedViewConfig = {
       version: 1,
-      product: { name: product.name, displayName: product.displayName, colorTheme: product.colorTheme, install: product.install },
+      product: { name: product.name, displayName: product.displayName, colorTheme: product.colorTheme, install: product.install, ...(logo ? { logo } : {}) },
       project: { root: neutral, name: basename(project) },
       builtAt: new Date().toISOString(),
     };

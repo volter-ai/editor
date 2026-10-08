@@ -97,7 +97,12 @@ export function createLiveModules(config: LimitedViewConfig, store: SeededProjec
 
   return {
     async answer(url) {
-      const pathname = decodeURIComponent(url.pathname).replace(/^\/@fs\/+/, '/@fs/');
+      let pathname: string;
+      try {
+        pathname = decodeURIComponent(url.pathname).replace(/^\/@fs\/+/, '/@fs/');
+      } catch {
+        return null;
+      }
       const path = pathname.startsWith(fsPrefix) ? pathname.slice(fsPrefix.length) : pathname.slice(1);
       if (!isLiveModulePath(path)) return null;
       const mountId = url.searchParams.get('volter-mount');
