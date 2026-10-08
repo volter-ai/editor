@@ -1982,7 +1982,7 @@ class Session:
         `18-riverside-bridge`, `19-tram-stop` and `20-rigged-courier` each got
         ZERO calls, refused inside `blender-start` -- `bind_document` opened
         the document the previous model wrote, whose textures live OUTSIDE the
-        project (`/Volumes/PeakSSD/volter-work/blender-scene-battery/...`) and
+        project (another folder of the machine that wrote it) and
         are in no fresh worker's filesystem.
 
         THE PRESENTER'S REFUSAL IS RIGHT AND STAYS. It answers "the record says
@@ -2236,11 +2236,11 @@ class Session:
         `relative_remap` is described as remapping RELATIVE paths so they stay
         valid from a new location; on this build it also rewrites ABSOLUTE
         ones. MEASURED 2026-09-18 in the tab, four cells, one image loaded from
-        `/Volumes/PeakSSD/volter-work/wsh-outside/textures/wsh_abs.png`:
+        an absolute path outside the project, `/outside/wsh-outside/textures/wsh_abs.png`:
 
           relative_remap  use_relative_paths  img.filepath after the save
-          False           True                /Volumes/.../wsh_abs.png
-          False           False               /Volumes/.../wsh_abs.png
+          False           True                /outside/.../wsh_abs.png
+          False           False               /outside/.../wsh_abs.png
           True            False               //../../../wsh-outside/.../wsh_abs.png
           True            True                //../../../wsh-outside/.../wsh_abs.png
 

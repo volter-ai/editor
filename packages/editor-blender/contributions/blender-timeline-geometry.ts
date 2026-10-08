@@ -4,8 +4,8 @@
  * own frame (5.2.1 on this box, `scripts/blender-reference-frames.py`).
  *
  * This is the first unit of the inspection arc with a sighted read behind it.
- * I1-I5 each recorded "`/Volumes/PeakSSD` was not mounted, so this is graded
- * against Blender's SOURCE alone"; Blender is installed here, the script above
+ * I1-I5 each recorded that the reference frames were not at hand, so each was graded
+ * against Blender's SOURCE alone; Blender is installed here, the script above
  * drives its real GUI, and the numbers below carry three things each: the
  * source that defines them, the pixel that confirms them, and what we draw.
  *
