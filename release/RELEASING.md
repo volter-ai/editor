@@ -22,7 +22,12 @@ On the exact commit to be promoted, from a clean worktree:
    enough: only a new conversation's first message meets the start of the path every person takes first.
 5. The refusals the release claims: a folder with the product but no `editor/volter.adapter.ts` is refused by name;
    a game build that imports from `editor/` fails.
-6. Whatever the release's own changes claim, read through the doors a person uses.
+6. **Upgrade, before anything is published:** a project made by the previous release (and by the oldest release
+   people are known to be on), upgraded with the candidate's own `upgrade` from the packed install, reports each
+   move and leaves nothing it names as kept that the release refuses; after `npm install` it opens, plays and
+   passes step 4. Where the candidate's version is not on the registry yet, upgrade to the newest published one
+   with the candidate's command, and read the move itself; the open, Play and Chat follow after the promotion.
+7. Whatever the release's own changes claim, read through the doors a person uses.
 
 Say in the report which platforms were read and which could not be reached. Step 4 needs a coding agent already
 signed in on the machine that reads it, and nobody starts a ChatGPT or Claude sign-in for it without the owner's
@@ -32,7 +37,7 @@ yes: a platform with no signed-in agent could not be reached, and the report say
 
 - Read every package of the release on the registry: its version, and that it is not npm's staged stub. A new
   name can read as the stub for some minutes.
-- `upgrade` on a project made by the previous release, then step 4 again in it.
+- `upgrade` to the new release on the project step 6 upgraded, then open, Play and step 4 again in it.
 
 ## Pinning a workbench
 

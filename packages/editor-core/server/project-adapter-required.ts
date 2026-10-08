@@ -12,6 +12,7 @@
  */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 import { ProjectCompatibilityError } from '@volter/sdk/session/editor-compatibility';
 
@@ -23,6 +24,30 @@ interface AdapterRequirement {
 export function assertProjectAdapter(projectRoot: string, product: AdapterRequirement | null): void {
   if (product === null || product.adapterRequired !== true) return;
   if (existsSync(join(projectRoot, ADAPTER_MODULE_FILENAME))) return;
+  // A project made before 0.5.203 keeps its adapter at its root. It is a project, so it is told to upgrade (the
+  // release's own `upgrade` moves the adapter and the kit's package names), never to make another.
+  if (existsSync(join(projectRoot, 'volter.adapter.ts'))) {
+    throw new ProjectCompatibilityError(
+      `${projectRoot} keeps its adapter at its root (volter.adapter.ts), where projects made before 0.5.203 kept it; ` +
+        `this editor reads ${ADAPTER_MODULE_FILENAME}.`,
+      {
+        kind: 'use-compatible-editor',
+        title: 'Use a compatible editor',
+        guidance: `To move it: npx ${product.name}@latest upgrade, in the project folder. It moves the adapter into editor/ and the kit's packages to their current names; then npm install, and open the project again.`,
+        summary: 'adapter at the project root',
+      },
+    );
+  }
+  // A project with no adapter anywhere (made before projects had one) is still a project: it is told what file it
+  // lacks and where one comes from, not to start over.
+  if (existsSync(join(projectRoot, MANIFEST_FILENAME))) {
+    throw new ProjectCompatibilityError(`${projectRoot} is a project with no ${ADAPTER_MODULE_FILENAME}.`, {
+      kind: 'use-compatible-editor',
+      title: 'Use a compatible editor',
+      guidance: `Add one: a project made by npx ${product.name} create <another folder> has an ${ADAPTER_MODULE_FILENAME} to copy into this project's editor/ folder; then open this project again.`,
+      summary: 'no adapter',
+    });
+  }
   throw new ProjectCompatibilityError(`${projectRoot} has no ${ADAPTER_MODULE_FILENAME}.`, {
     kind: 'make-project',
     title: 'Make a project',

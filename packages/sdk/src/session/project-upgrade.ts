@@ -32,8 +32,8 @@
  */
 import { spawn } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
-import { readFile, rename, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve } from 'node:path';
 import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { hasManifest } from '@volter/project/manifest/locate';
 import { compareSemver } from './editor-compatibility';
@@ -88,6 +88,51 @@ export function retiredProjectError(product: Pick<UpgradingProduct, 'packageName
 /** The files `create` writes that name the product's package or command, project-relative. */
 const RENAMED_PRODUCT_FILES = ['.mcp.json', '.codex/config.toml', 'AGENTS.md', 'CLAUDE.md'] as const;
 
+/** The kit packages 0.5.203 renamed (#284), old name first. */
+const RENAMED_KIT_PACKAGES = [
+  ['@volter/editor-project', '@volter/project'],
+  ['@volter/editor-sdk', '@volter/sdk'],
+  ['@volter/editor-live', '@volter/live'],
+  ['@volter/editor-model-play', '@volter/play'],
+] as const;
+
+/** A project's own source that may import the kit: its adapter, wherever it is, and `editor/` and `src/`. */
+async function projectSourceFiles(project: string): Promise<string[]> {
+  const files: string[] = [];
+  const walk = async (dir: string): Promise<void> => {
+    let entries: import('node:fs').Dirent[];
+    try { entries = await readdir(dir, { withFileTypes: true }); } catch { return; }
+    for (const entry of entries) {
+      if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+      const path = join(dir, entry.name);
+      if (entry.isDirectory()) await walk(path);
+      else if (/\.(?:[cm]?[jt]sx?)$/.test(entry.name)) files.push(path);
+    }
+  };
+  if (existsSync(join(project, 'volter.adapter.ts'))) files.push(join(project, 'volter.adapter.ts'));
+  await walk(join(project, 'editor'));
+  await walk(join(project, 'src'));
+  return files;
+}
+
+/** `text` with every import of a renamed kit package (the package itself or a subpath) under its current name. */
+function renameKitSpecifiers(text: string): string {
+  let out = text;
+  for (const [from, to] of RENAMED_KIT_PACKAGES) {
+    out = out.replace(new RegExp(`(['"\`])${from.replace('/', '\\/')}(?=[/'"\`])`, 'g'), `$1${to}`);
+  }
+  return out;
+}
+
+/** `text`, a module moving from `fromDir` to `toDir`, with each relative import still naming the same file. */
+function rebaseRelativeSpecifiers(text: string, fromDir: string, toDir: string): string {
+  return text.replace(/(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])(\.{1,2}\/[^'"]*)\2/g, (_whole, lead: string, quote: string, spec: string) => {
+    let next = relative(toDir, resolve(fromDir, spec)).split('\\').join('/');
+    if (!next.startsWith('.')) next = `./${next}`;
+    return `${lead}${quote}${next}${quote}`;
+  });
+}
+
 /** `text` as a whole word — not part of a longer command, package or name it is the start or the
  *  end of (`<command>-x`, a name's plural). A path after it (`<package>/package.json`) or
  *  punctuation (a name's `'s`) still ends the word. */
@@ -128,7 +173,7 @@ function declaredVersion(spec: string | undefined): string | null {
  * one after the other, so a failure on the second left a project with new packages and the old
  * pin — exactly the mismatch this verb exists to end.
  */
-async function writeAll(files: readonly { readonly path: string; readonly content: string; readonly original: string }[]): Promise<void> {
+async function writeAll(files: readonly { readonly path: string; readonly content: string; readonly original: string; readonly created?: boolean }[]): Promise<void> {
   const temp = (path: string) => `${path}.upgrade-${process.pid}.tmp`;
   try {
     for (const file of files) await writeFile(temp(file.path), file.content);
@@ -140,7 +185,8 @@ async function writeAll(files: readonly { readonly path: string; readonly conten
   try {
     for (const file of files) { await rename(temp(file.path), file.path); moved.push(file); }
   } catch (error) {
-    for (const file of moved) await writeFile(file.path, file.original).catch(() => {});
+    // A file this upgrade made is removed again; any other gets its old content back.
+    for (const file of moved) await (file.created ? rm(file.path, { force: true }) : writeFile(file.path, file.original)).catch(() => {});
     await Promise.all(files.map(file => rm(temp(file.path), { force: true })));
     throw new Error(`The upgrade could not be put in place, and what had moved was put back: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -249,7 +295,8 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   // the new kit version. Any other @volter package is the author's choice and is named, not moved.
   const packageRaw = await readFile(packagePath, 'utf8');
   const pkg = JSON.parse(packageRaw) as PackageJson;
-  const previousKit = pkg.devDependencies?.['@volter/project'] ?? pkg.dependencies?.['@volter/project'];
+  const previousKit = pkg.devDependencies?.['@volter/project'] ?? pkg.dependencies?.['@volter/project']
+    ?? pkg.devDependencies?.['@volter/editor-project'] ?? pkg.dependencies?.['@volter/editor-project'];
   // Read before a retired name is moved below: a project on a retired name declares none of
   // this product, and its direction is then read by its engine pin.
   const currentProduct = declaredVersion(pkg.dependencies?.[product.packageName] ?? pkg.devDependencies?.[product.packageName]);
@@ -272,7 +319,7 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   // 0. A RETIRED NAME becomes this product, where it stood and at the release — a project that
   // already declares this product as well just loses the old row.
   const retired = declaredRetiredProduct(product, project);
-  const textFiles: { path: string; content: string; original: string }[] = [];
+  const textFiles: { path: string; content: string; original: string; created?: boolean }[] = [];
   if (retired !== null) {
     const declaresProduct = pkg.dependencies?.[product.packageName] !== undefined || pkg.devDependencies?.[product.packageName] !== undefined;
     for (const section of ['dependencies', 'devDependencies'] as const) {
@@ -316,6 +363,48 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
       changed.push(`${file}: names ${product.packageName} and \`${product.command}\``);
     }
   }
+  // 0b. THE KIT'S OLD NAMES AND THE EDITOR FOLDER (0.5.203: #284 renamed the runtime packages, #286 moved a
+  // project's editor side into `editor/`). A project made before 0.5.203 declares the kit under its old names and
+  // keeps its adapter at its root, and the release names neither; left alone, the upgraded project was refused on
+  // its next open ("has no editor/volter.adapter.ts"). The names move where they stand, in package.json and in
+  // the project's own source, and the adapter moves into `editor/`.
+  for (const section of ['dependencies', 'devDependencies'] as const) {
+    const declared = pkg[section];
+    if (declared === undefined) continue;
+    for (const [from, to] of RENAMED_KIT_PACKAGES) {
+      const current = declared[from];
+      if (current === undefined) continue;
+      if (declared[to] !== undefined) {
+        delete declared[from];
+        changed.push(`package.json ${section}: ${from} removed (${to} is already declared)`);
+      } else {
+        pkg[section] = renameKey(pkg[section]!, from, to, current);
+        changed.push(`package.json ${section}: ${from} -> ${to}`);
+      }
+      packagesChanged = true;
+    }
+  }
+  const rootAdapter = join(project, 'volter.adapter.ts');
+  const editorAdapter = join(project, 'editor', 'volter.adapter.ts');
+  const movesAdapter = existsSync(rootAdapter) && !existsSync(editorAdapter);
+  for (const path of await projectSourceFiles(project)) {
+    const original = await readFile(path, 'utf8');
+    let content = renameKitSpecifiers(original);
+    const moving = movesAdapter && path === rootAdapter;
+    if (moving) content = rebaseRelativeSpecifiers(content, project, join(project, 'editor'));
+    if (moving) {
+      textFiles.push({ path: editorAdapter, content, original: '', created: true });
+      changed.push('volter.adapter.ts -> editor/volter.adapter.ts (the editor side of a project lives in editor/)');
+    } else if (content !== original) {
+      textFiles.push({ path, content, original });
+      changed.push(`${relative(project, path).split('\\').join('/')}: imports the kit's current package names`);
+    }
+  }
+  for (const folder of ['contributions', 'tools']) {
+    if (existsSync(join(project, folder)))
+      kept.push(`${folder}/ stays where it is: the editor reads it from editor/${folder}/ now; move it there by hand`);
+  }
+
   for (const section of ['dependencies', 'devDependencies'] as const) {
     const declared = pkg[section];
     if (!declared) continue;
@@ -370,12 +459,15 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     : [];
   if (locks.length > 0) changed.push('package-lock.json: the old @volter rows dropped, so npm install resolves the new ones');
 
+  if (movesAdapter) await mkdir(join(project, 'editor'), { recursive: true });
   await writeAll([
     ...(packagesChanged ? [{ path: packagePath, content: jsonLayout(packageRaw)(pkg), original: packageRaw }] : []),
     ...(pinChanged ? [{ path: manifestPath, content: jsonLayout(manifestRaw)(manifest), original: manifestRaw }] : []),
     ...textFiles,
     ...locks,
   ]);
+  // The adapter's new copy is in place; only then does the old one go.
+  if (movesAdapter) await rm(rootAdapter);
   for (const line of warnings) console.warn(`! ${line}`);
 
   console.log(changed.length > 0

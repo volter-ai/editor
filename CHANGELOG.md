@@ -23,6 +23,13 @@ listed session with that id for the project's folder) and the likely reasons, in
 The repository also pins the Chat frontend back to 0.1.51, so a workbench cut from it bundles the Chat
 0.5.204 ships.
 
+`upgrade` now takes a project made before 0.5.203 the whole way: the kit packages 0.5.203 renamed
+(`@volter/editor-project`, `editor-sdk`, `editor-live` and `editor-model-play` become `@volter/project`, `sdk`,
+`live` and `play`) move in package.json and in the project's own imports, and a root `volter.adapter.ts` moves
+to `editor/volter.adapter.ts`. Run it with the new release's command, since a project's own older command does
+not know the new names: `npx @volter/cyclotron@latest upgrade` in the project folder, then `npm install`.
+Opening a project that still has its adapter at the root says to run that, not to make a new project.
+
 ## 0.5.203 — the starter's commands never fetch
 
 From `@volter/game-editor` 0.5.203, the starter a new game is made from prints
