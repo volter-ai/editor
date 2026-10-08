@@ -1,8 +1,8 @@
 /** The modeling composition belongs to this product, including its starter files. */
 import { spawn } from 'node:child_process';
-import { existsSync, symlinkSync } from 'node:fs';
-import { mkdir, writeFile, copyFile, readFile } from 'node:fs/promises';
-import { resolve, join, dirname } from 'node:path';
+import { constants, existsSync, symlinkSync } from 'node:fs';
+import { mkdir, writeFile, copyFile, readFile, readdir } from 'node:fs/promises';
+import { resolve, join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { GameManifestSchema } from '@volter/editor-project/manifest/schema';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
@@ -29,17 +29,16 @@ export const UPGRADING: UpgradingProduct = {
 };
 
 /**
- * WHAT "PLAYABLE" ADDS TO A MODELS PROJECT, declared once. `writeProject`'s
+ * WHAT PLAY AND A REACT UI NEED IN A MODELS PROJECT, declared once. `writeProject`'s
  * `playable` template scaffolds from it, and `add-play` (`add-play.ts`) merges
  * the same rows into a project that started as `models` — so a project made
- * playable later declares exactly what one created playable does, and a change
- * to the template (a React bump, a second root) reaches both doors at once.
- *
- * The example is ONE SET, not seven files: `track.play.ts` drives the objects
- * `track.blend` names (`Cube`, `Track`, the wheels), publishes `race-state.ts`,
- * and `src/ui/game.tsx` — the manifest root's entry — reads that state.
+ * playable later declares the dependencies, root and story region one created
+ * playable does, and a change to them (a React bump, a second root) reaches both
+ * doors at once. What each door adds beside them differs: `playable` brings
+ * Canyon Comet ({@link PLAYABLE}), `add-play` a first play script for the
+ * project's own model (`starter/add-play/`).
  */
-export const PLAYABLE = {
+export const PLAY_SCAFFOLD = {
   uiRoot: { id: 'ui', adapter: 'dom', entry: 'src/ui/game.tsx', zOrder: 1 },
   resolution: { width: 1280, height: 720 },
   dependencies: { react: '~19.2.4', 'react-dom': '~19.2.4', three: '^0.180.0' } as Record<string, string>,
@@ -47,13 +46,26 @@ export const PLAYABLE = {
   devDependencies: (kit: string): Record<string, string> => ({ '@volter/editor-model-play': kit, '@volter/editor-ui': kit, '@volter/editor-react': kit }),
   /** The adapter line that lets the UI board discover `src/ui` stories. */
   regionIncludes: "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n",
-  defaultDocument: 'model:src/models/track.blend',
-  /** Starter file → project path. */
-  example: [
-    ['track.blend', 'src/models/track.blend'], ['track.py', 'src/models/track.py'],
-    ['track.play.ts', 'src/models/track.play.ts'], ['race-state.ts', 'src/models/race-state.ts'],
-    ['ui/game.tsx', 'src/ui/game.tsx'], ['ui/race-hud.tsx', 'src/ui/race-hud.tsx'], ['ui/game.stories.tsx', 'src/ui/game.stories.tsx'],
-  ] as const,
+} as const;
+
+/**
+ * THE `playable` TEMPLATE: the scaffold above and Canyon Comet, a three-lap kart
+ * race against five rivals through a desert canyon.
+ *
+ * The example is ONE TREE, copied whole: `starter/playable/` mirrors the
+ * project. `src/models/canyon.blend` is the saved scene and `canyon.py` with the
+ * step scripts beside it the bpy that built it (the steps load
+ * `src/textures/`, which `generate.py` there made). `canyon.play.ts` drives the
+ * six `Kart.N` objects the scene names around `course.ts`'s circuit and
+ * publishes `race-state.ts`, which `src/ui/game.tsx` — the manifest root's
+ * entry — reads. The resolution is the scene camera's (`circuit.py`).
+ */
+export const PLAYABLE = {
+  ...PLAY_SCAFFOLD,
+  resolution: { width: 1672, height: 941 },
+  defaultDocument: 'model:src/models/canyon.blend',
+  /** The folder under `starter/` that is copied onto the new project. */
+  example: 'playable',
 } as const;
 
 /** The compiler configuration every Cyclotron project starts with (see `writeProject`). */
@@ -78,7 +90,7 @@ export const declaration: ProductCreateDeclaration = {
   product: '@volter/cyclotron',
   templates: [
     { id: 'models', name: 'Models', description: 'Blender modeling with a starter cube.' },
-    { id: 'playable', name: 'Playable', description: 'A cube circuit with a model play script and React HUD.' },
+    { id: 'playable', name: 'Playable', description: 'Canyon Comet: a three-lap kart race with a model play script and React HUD.' },
   ],
   async create(request) {
     const result = await writeProject(request);
@@ -193,8 +205,17 @@ ${playable ? PLAYABLE.regionIncludes : ''}  editor: { Layout: ModelLayout, style
     for (const file of ['AGENTS.md', 'CLAUDE.md'])
       await copyFile(join(productRoot, 'starter', file), join(target, file));
     if (playable) {
-      await mkdir(join(target, 'src/ui'));
-      for (const [from, to] of PLAYABLE.example) await copyFile(join(productRoot, 'starter', from), join(target, to));
+      // The example tree, file by file and exclusively, into the folder this call just
+      // made: nothing is there to replace, and a file that were would be an error rather
+      // than overwritten. (`fs.cp`'s `errorOnExist` refuses the existing folders too.)
+      const example = join(productRoot, 'starter', PLAYABLE.example);
+      for (const entry of await readdir(example, { recursive: true, withFileTypes: true })) {
+        if (!entry.isFile()) continue;
+        const from = join(entry.parentPath, entry.name);
+        const to = join(target, relative(example, from));
+        await mkdir(dirname(to), { recursive: true });
+        await copyFile(from, to, constants.COPYFILE_EXCL);
+      }
     } else {
       for (const file of ['cube.blend', 'cube.py'])
         await copyFile(join(productRoot, 'starter', file), join(target, 'src/models', file));
