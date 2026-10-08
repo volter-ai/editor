@@ -254,6 +254,12 @@ export class VolterDocuments extends Disposable {
 			main = this.editorGroupsService.addGroup(this.group, opposite[area.place]);
 			created = true;
 		}
+		// THE DOCUMENTS' GROUP SHOWS ITS TABS. A document a person drags into an area (the Game
+		// panel's group below the viewport) makes that group the one holding it, so it is bound
+		// here as the main group; left as the area hid it, the tab row was gone and opening the
+		// document again did not bring it back (measured on the ec1e0e84 cut, 2026-10-08). The
+		// pass below moves the area's own document back out to a fresh area group.
+		main.setTabsHidden(false);
 		if (main === this.group) { return false; }
 		this.group = main;
 		this.appliedActiveId = null;
