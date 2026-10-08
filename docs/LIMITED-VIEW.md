@@ -120,9 +120,16 @@ store as well:
 The person's own layers start empty and live only in that page: user settings, user state and user
 themes. A view must not carry its builder's.
 
+**The command relay, in the page (`view/page/command-relay.ts`):** `POST /__editor/command` runs a
+command in this tab and answers with the session's shapes. The page hands it to the tab's own
+command listener as the `editor-command` event the session's relay would send, and answers when the
+listener posts `command-result`; `contributed-commands` supplies each contributed verb's budget.
+Every verb the tab has runs this way: the kit's, Blender's (`blender-execute` and the rest), the
+viewport's. A caller in the page or in a workbench extension uses it as a terminal uses a session.
+
 **Reports a session collects, accepted and dropped:** `state`, `heartbeat`, `tab/*`,
 `page-error`, `play-phase`, `console-entries`, `console-resolved`, `console/ack`,
-`command-result`, `command-received`, `command-listener`, `contributed-commands`,
+`command-received`, `command-listener`,
 `log-session`, `log-entries`, `server-log`, `collaboration/presence`. `events` answers 204, so an
 EventSource does not reconnect. `tab-heartbeat.js` is a no-op worker. `gameplay-sessions` answers an
 empty catalog (`{ sessions: [] }`).
@@ -147,7 +154,6 @@ These are the routes that need the person's machine or account:
 | `configurations/*/{start,build,stop}` | Running the project's own server or build |
 | `open-project`, `create-project`, `inspect-project`, `adapt-project`, `browse-folder`, `reveal`, `recent-projects`, `launcher-settings`, `templates`, `examples`, `save-thumbnail` | A view is one project |
 | `download`, `export` | No build to export |
-| `command` | Terminal control of a session |
 | `/__ui-source/*`, `/__ingest-source/*` (outside `/__editor/`) | Writing edits back into the project's source needs the session's source-authoring routes. The recorded `/__editor/project` says `sourceWrite: false` and `ingestSourceWrite: false`. |
 
 ## What a limited view is not
