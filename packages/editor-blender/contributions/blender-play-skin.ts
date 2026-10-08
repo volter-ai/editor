@@ -158,7 +158,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const layersOf = (armature: Armature): PoseLayer[] | null => {
     const layers: PoseLayer[] = [];
     let waiting = false;
-    /** Whether any strip is evaluated now: what places the active action, as in Blender. */
+    /** Whether an enabled track has strips (or a game's track plays): what places the active action. */
     let evaluated = false;
     const take = (layer: PoseLayer | null | undefined): void => {
       if (layer === undefined) waiting = true;
@@ -191,7 +191,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       evaluated = true;
     }
     // THE ACTIVE ACTION as Blender places it: not at all under a soloed track, alone and whole when
-    // no strip is evaluated now, else at its influence and blend type over them.
+    // no enabled track has strips, else at its influence and blend type over them.
     const nla = !!animation?.useNla;
     const strips = nla && evaluated;
     for (const played of nla && solo ? [] : armature.line)

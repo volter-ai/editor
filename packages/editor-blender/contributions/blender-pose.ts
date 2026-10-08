@@ -234,11 +234,10 @@ export function curveAt(curve: PoseCurve, frame: number): number {
 
 
 /**
- * THE ACTIVE ACTION'S LAYER at a scene frame, placed as `animsys_calculate_nla` places it: when no
- * strip is evaluated at this frame (none exist, all are muted or past their extrapolation, or the
- * NLA is off) it is evaluated alone, whole, at full influence (`is_action_track_evaluated_without_nla`);
- * over evaluated strips it is one more strip spanning its own range, at its influence and blend
- * type, holding or not past that range as its extrapolation says; and a soloed track leaves it out.
+ * THE ACTIVE ACTION'S LAYER at a scene frame, placed as `animsys_calculate_nla` places it: a soloed
+ * track leaves it out; when no enabled track has strips (or the NLA is off) it is evaluated alone,
+ * whole, at full influence; otherwise it is one more strip spanning its own range, at its influence
+ * and blend type, holding or not past that range as its extrapolation says.
  */
 export function actionLayer(animation: BlenderArmatureAnimation | undefined, clip: PoseClip, frame: number,
   stripsEvaluated: boolean): PoseLayer | null {
@@ -311,7 +310,7 @@ function stripInfluence(strip: BlenderNlaStrip, time: number): number {
 /**
  * The NLA's layers at a scene frame, bottom to top, as Blender evaluates them. `waiting` says a
  * clip it needs is still being baked; `skipped` names what plays in Blender and not here;
- * `evaluated` says Blender evaluates some strip at this frame (what places the active action).
+ * `evaluated` says an enabled track has strips (what places the active action over the NLA).
  */
 export function nlaLayers(animation: BlenderArmatureAnimation | undefined, frame: number, clips: ClipSource,
   tracks?: (name: string) => boolean): { layers: PoseLayer[]; waiting: boolean; skipped: string[]; evaluated: boolean } {
@@ -323,11 +322,11 @@ export function nlaLayers(animation: BlenderArmatureAnimation | undefined, frame
   const solo = animation.tracks.some((track) => track.solo);
   for (const track of animation.tracks) {
     if (track.mute || (solo && !track.solo) || (tracks && !tracks(track.name))) continue;
+    // AN ENABLED TRACK WITH STRIPS places the active action over the NLA, whether or not the frame
+    // falls on one of them (`animsys_evaluate_nla_for_flush`'s `has_strips`; measured in 5.2).
+    if (track.strips.length) evaluated = true;
     const hit = stripAt(track.strips, frame);
     if (!hit) continue;
-    // ANY STRIP THE FRAME FALLS ON counts as evaluated, whatever its influence: measured in Blender
-    // 5.2 (a strip keyed to influence 0 still puts the active action at its influence over the NLA).
-    evaluated = true;
     const influence = stripInfluence(hit.strip, hit.time);
     if (hit.strip.type !== 'CLIP' || !hit.strip.action) {
       skipped.push(`the ${hit.strip.type.toLowerCase()} strip "${hit.strip.name}" on track "${track.name}"`);
