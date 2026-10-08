@@ -2,7 +2,7 @@
 // modules. Inputs are build-produced module lists/metafiles, never a dependency
 // manifest guessed to represent what survived bundling. See release/NOTICES.md.
 import {existsSync,readFileSync,readdirSync,statSync,writeFileSync} from 'node:fs';
-import {dirname,join,relative,resolve} from 'node:path';
+import {dirname,join,relative,resolve,sep} from 'node:path';
 import {createHash} from 'node:crypto';
 const root=process.cwd();
 const read=path=>JSON.parse(readFileSync(path,'utf8'));
@@ -44,8 +44,10 @@ for(const [owner,files] of Object.entries(groups)){
   const dependencies=new Map();
   for(let file of files){
     if(file.startsWith('\0'))continue;
-    file=file.split('?')[0];
-    if(!file.startsWith(root+'/'))continue;
+    // Bundlers record inputs with forward slashes on every platform; `root` is the platform's own. On Windows the
+    // two never matched, so every module was skipped and a Windows build wrote empty notices.
+    file=resolve(file.split('?')[0]);
+    if(!file.startsWith(root+sep))continue;
     let dir=dirname(file);
     while(dir!==root && dir!==dirname(dir)){
       const manifestPath=join(dir,'package.json');
@@ -74,7 +76,7 @@ for(const [owner,files] of Object.entries(groups)){
       if(sha(bytes)!==fallback.sha256)throw new Error(`Changed pinned notice: ${file}`);
       notices.push({file,bytes,source:[`https://github.com/${fallback.repository}/blob/${fallback.revision}/${fallback.path}`,
         ...(fallback.url?[fallback.url]:[])].join(' ; ')});
-    }else for(const name of paths)notices.push({file:relative(root,join(dir,name)),bytes:readFileSync(join(dir,name))});
+    }else for(const name of paths)notices.push({file:relative(root,join(dir,name)).split(sep).join('/'),bytes:readFileSync(join(dir,name))});
     // Where the bundled code's source is — MPL-2.0 requires saying so, and it
     // is the same answer for every license: the unmodified published package.
     const repository=typeof manifest.repository==='string'?manifest.repository:manifest.repository?.url;
