@@ -1,0 +1,11 @@
+{
+  "name": "volter-game-editor",
+  "version": "0.0.1",
+  "description": "The game editor is @volter/game-editor.",
+  "license": "MIT",
+  "author": "Volter AI, Inc.",
+  "homepage": "https://www.npmjs.com/package/@volter/game-editor",
+  "repository": { "type": "git", "url": "git+https://github.com/volter-ai/editor.git", "directory": "npm-names/volter-game-editor" },
+  "bin": { "volter-game-editor": "cli.js" },
+  "files": ["cli.js"]
+}
