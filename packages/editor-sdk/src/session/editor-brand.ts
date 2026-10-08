@@ -34,8 +34,12 @@ export function editorDocumentTitle(subject?: string | null, brand?: string | nu
  * brand.volter.ai, so it ships the file and names it. `productLogo` is the running product's own.
  */
 export function brandLogoUrl(productLogo?: string): string {
+  // A product that names its own logo keeps it: the host serves the KIT's mark, which is not a
+  // stand-in for another product's. (Such a product's logo is still fetched from the brand's
+  // address; a host that admits no other origin would need that file too.)
+  if (productLogo) return productLogo;
   const hosted = (globalThis as { __volterBrandLogo?: unknown }).__volterBrandLogo;
-  return typeof hosted === 'string' && hosted.startsWith('/') ? hosted : (productLogo ?? EDITOR_BRAND.logo);
+  return typeof hosted === 'string' && hosted.startsWith('/') ? hosted : EDITOR_BRAND.logo;
 }
 
 /** The mark as markup for server-owned and fallback pages. */
