@@ -607,6 +607,8 @@ export const frameSchema = z
     actions: z.record(z.string(), z.number().int().nonnegative()).default({}),
     /** The scene's frame range and rate (`session.py`), beside `frame`. */
     clock: z.object({ start: z.number().int(), end: z.number().int(), fps: z.number().finite().positive() }).strict().optional(),
+    /** Actions with no user and no fake user, which the next save drops. */
+    unkeptActions: z.array(z.string()).default([]),
     /** The active object's active vertex group, per vertex
      *  (`blender-runtime-weights.ts`); null when nothing is painted. */
     weights: weightsSchema.nullable().default(null),
@@ -1126,6 +1128,8 @@ export class BlenderRuntimeView {
   animationFacts(): {
     frame: number;
     clock: { start: number; end: number; fps: number } | null;
+    /** Actions the next save drops: no user and no fake user. */
+    unkept: readonly string[];
     active: string | null;
     actions: Readonly<Record<string, number>>;
     /** Each armature as the frame describes it: bones (rest, channels, constraints, Blender's own
@@ -1137,6 +1141,7 @@ export class BlenderRuntimeView {
     return {
       frame: frame?.frame ?? 0,
       clock: frame?.clock ?? null,
+      unkept: frame?.unkeptActions ?? [],
       active: frame?.active ?? null,
       actions: frame?.actions ?? {},
       armatures: frame?.armatures ?? {},

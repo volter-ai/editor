@@ -243,8 +243,8 @@ export function curveAt(curve: PoseCurve, frame: number): number {
 export function actionLayer(animation: BlenderArmatureAnimation | undefined, clip: PoseClip, frame: number,
   stripsEvaluated: boolean): PoseLayer | null {
   const nla = animation?.useNla ?? true;
+  if (nla && animation!.tracks.some((track) => track.solo)) return null;
   if (!nla || !stripsEvaluated) return { clip, frame, influence: 1, blend: 'REPLACE' };
-  if (animation!.tracks.some((track) => track.solo)) return null;
   const extrapolation = animation!.extrapolation;
   let at = frame;
   if (frame < clip.start) {
@@ -310,29 +310,37 @@ function stripInfluence(strip: BlenderNlaStrip, time: number): number {
 
 /**
  * The NLA's layers at a scene frame, bottom to top, as Blender evaluates them. `waiting` says a
- * clip it needs is still being baked; `skipped` names what plays in Blender and not here.
+ * clip it needs is still being baked; `skipped` names what plays in Blender and not here;
+ * `evaluated` says Blender evaluates some strip at this frame (what places the active action).
  */
 export function nlaLayers(animation: BlenderArmatureAnimation | undefined, frame: number, clips: ClipSource,
-  tracks?: (name: string) => boolean): { layers: PoseLayer[]; waiting: boolean; skipped: string[] } {
+  tracks?: (name: string) => boolean): { layers: PoseLayer[]; waiting: boolean; skipped: string[]; evaluated: boolean } {
   const layers: PoseLayer[] = [];
   const skipped: string[] = [];
   let waiting = false;
-  if (!animation || !animation.useNla) return { layers, waiting, skipped };
+  let evaluated = false;
+  if (!animation || !animation.useNla) return { layers, waiting, skipped, evaluated };
   const solo = animation.tracks.some((track) => track.solo);
   for (const track of animation.tracks) {
     if (track.mute || (solo && !track.solo) || (tracks && !tracks(track.name))) continue;
     const hit = stripAt(track.strips, frame);
     if (!hit) continue;
-    if (hit.strip.type !== 'CLIP' || !hit.strip.action) {
+    // A STRIP AT NO INFLUENCE, or a clip strip with no action, is not evaluated at all
+    // (`nlastrips_ctime_get_strip`), so it does not count as a strip played at this frame.
+    const influence = stripInfluence(hit.strip, hit.time);
+    if (influence <= 0 || (hit.strip.type === 'CLIP' && !hit.strip.action)) continue;
+    if (hit.strip.type !== 'CLIP') {
       skipped.push(`the ${hit.strip.type.toLowerCase()} strip "${hit.strip.name}" on track "${track.name}"`);
+      evaluated = true;
       continue;
     }
-    const clip = clips(hit.strip.action);
+    evaluated = true;
+    const clip = clips(hit.strip.action!);
     if (clip === undefined) waiting = true;
     if (!clip) continue;
-    layers.push({ clip, frame: stripFrame(hit.strip, hit.time), influence: stripInfluence(hit.strip, hit.time), blend: hit.strip.blendType });
+    layers.push({ clip, frame: stripFrame(hit.strip, hit.time), influence, blend: hit.strip.blendType });
   }
-  return { layers, waiting, skipped };
+  return { layers, waiting, skipped, evaluated };
 }
 
 type Values = Record<Channel, number[]>;

@@ -1757,6 +1757,9 @@ class Session:
         # THE SCENE'S CLOCK beside the frame number: what a Timeline draws and a mixer maps time by.
         frame["clock"] = {"start": int(scene.frame_start), "end": int(scene.frame_end),
                           "fps": float(scene.render.fps) / float(scene.render.fps_base or 1.0)}
+        # ACTIONS NOTHING KEEPS: no user and no fake user, so the next save drops them (Blender's own
+        # rule). A game that plays one is told before it vanishes.
+        frame["unkeptActions"] = sorted(a.name for a in bpy.data.actions if a.users == 0 and not a.use_fake_user)
         frame["weights"] = _weights(scene, view_layer, frame, self._known)
         warnings = list(frame.get("warnings", ()))
         warnings.extend(_WARNINGS)
