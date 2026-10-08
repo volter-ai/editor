@@ -532,10 +532,14 @@ export interface BlenderUvLayout {
  * channels (`location`, `rotation_quaternion` as w,x,y,z, `rotation_euler`, `rotation_axis_angle`
  * as angle,x,y,z, `scale`), with everything `fcurve_eval_keyframes` reads to evaluate it.
  */
-export interface BlenderClipTrack {
+export interface BlenderClipTrack extends BlenderClipCurve {
   readonly bone: string;
   readonly property: 'location' | 'rotation_quaternion' | 'rotation_euler' | 'rotation_axis_angle' | 'scale';
   readonly index: number;
+}
+
+/** An F-Curve's body: everything Blender evaluates it from, wherever it lives. */
+export interface BlenderClipCurve {
   /** `FCurve.extrapolation`: `CONSTANT` or `LINEAR`. */
   readonly extrapolation: string;
   /** Per key, how the segment after it interpolates: 0 constant, 1 linear, 2 Bezier. */
@@ -625,5 +629,8 @@ export interface BlenderActionClip {
   readonly sampled?: number;
   /** Bones the action names that the armature does not have. */
   readonly unplayedBones?: readonly string[];
+  /** What the action keys besides bone channels (the object's own transform, a property),
+   *  which plays only in Blender. */
+  readonly unsupported?: readonly string[];
   readonly reason?: string;
 }

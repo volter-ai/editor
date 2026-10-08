@@ -21,7 +21,7 @@
  * interpolation, extrapolation and Cycles modifiers, evaluated as `fcurve_eval_keyframes` and
  * `fcm_cycles_time` evaluate them, so a pose is Blender's at any frame, whole or fractional.
  */
-import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
+import type { BlenderActionClip, BlenderClipCurve } from '@volter/blender-engine/browser/rna';
 import type {
   BlenderArmature,
   BlenderArmatureAnimation,
@@ -86,10 +86,15 @@ export function poseClip(clip: BlenderActionClip): PoseClip | null {
     if (!entry) channels.set(key, entry = { bone: track.bone, channel: track.property, mask: 0, stride, curves: Array.from({ length: stride }, () => null) });
     if (track.index < 0 || track.index >= stride) continue;
     entry.mask |= 1 << track.index;
-    entry.curves[track.index] = { extrapolation: track.extrapolation, interpolation: track.interpolation, keys: float32Of(track.keysBase64), cycles: track.cycles ?? null };
+    entry.curves[track.index] = poseCurve(track);
     for (const thing of track.unsupported ?? []) unsupported.add(`${clip.action}'s ${thing}`);
   }
+  for (const thing of clip.unsupported ?? []) unsupported.add(`${clip.action}'s ${thing}`);
   return { action: clip.action, start: clip.clipStart, end: clip.clipEnd, cyclic: clip.cyclic ?? false, channels: [...channels.values()], unsupported: [...unsupported] };
+}
+
+function poseCurve(curve: Pick<BlenderClipCurve, 'extrapolation' | 'interpolation' | 'keysBase64'> & { readonly cycles?: BlenderClipCurve['cycles'] | undefined }): PoseCurve {
+  return { extrapolation: curve.extrapolation, interpolation: curve.interpolation, keys: float32Of(curve.keysBase64), cycles: curve.cycles ?? null };
 }
 
 /** `BKE_fcurve_correct_bezpart`: shorten handles that overlap in time, so the curve is a function. */
@@ -141,9 +146,10 @@ function keyframesAt(curve: PoseCurve, frame: number): number {
   const y = (i: number): number => k[i * 6 + 1]!;
   if (count === 1) return y(0);
   const last = count - 1;
+  // PAST AN END, a Linear curve leaves along the end key's own interpolation: its handle when it is
+  // a Bezier key, the segment beside it when Linear, and not at all when Constant.
   if (frame <= x(0)) {
-    if (curve.extrapolation !== 'LINEAR' || frame === x(0)) return y(0);
-    // The first key's left handle gives the slope when it is a Bezier key, else the first segment.
+    if (curve.extrapolation !== 'LINEAR' || frame === x(0) || curve.interpolation[0] === 0) return y(0);
     const dx = x(0) - frame;
     if (curve.interpolation[0] === 2) {
       const fac = x(0) - k[2]!;
@@ -153,9 +159,9 @@ function keyframesAt(curve: PoseCurve, frame: number): number {
     return fac !== 0 ? y(0) - ((y(1) - y(0)) / fac) * dx : y(0);
   }
   if (frame >= x(last)) {
-    if (curve.extrapolation !== 'LINEAR' || frame === x(last)) return y(last);
+    if (curve.extrapolation !== 'LINEAR' || frame === x(last) || curve.interpolation[last] === 0) return y(last);
     const dx = frame - x(last);
-    if (curve.interpolation[last - 1] === 2) {
+    if (curve.interpolation[last] === 2) {
       const fac = k[last * 6 + 4]! - x(last);
       return fac !== 0 ? y(last) + ((k[last * 6 + 5]! - y(last)) / fac) * dx : y(last);
     }
@@ -226,6 +232,29 @@ export function curveAt(curve: PoseCurve, frame: number): number {
 }
 
 
+/**
+ * THE ACTIVE ACTION'S LAYER at a scene frame, placed as `animsys_calculate_nla` places it: with no
+ * NLA strips (or the NLA off) it is evaluated alone, whole, at full influence; over strips it is
+ * one more strip spanning its own range, at its influence and blend type, holding or not past
+ * that range as its extrapolation says; and a soloed track leaves it out.
+ */
+export function actionLayer(animation: BlenderArmatureAnimation | undefined, clip: PoseClip, frame: number): PoseLayer | null {
+  const nla = animation?.useNla ?? true;
+  const strips = nla && (animation?.tracks.some((track) => track.strips.length) ?? false);
+  if (!strips) return { clip, frame, influence: 1, blend: 'REPLACE' };
+  if (animation!.tracks.some((track) => track.solo)) return null;
+  const extrapolation = animation!.extrapolation;
+  let at = frame;
+  if (frame < clip.start) {
+    if (extrapolation !== 'HOLD') return null;
+    at = clip.start;
+  } else if (frame > clip.end) {
+    if (extrapolation === 'NOTHING') return null;
+    at = clip.end;
+  }
+  return { clip, frame: at, influence: animation!.influence, blend: animation!.blendType };
+}
+
 /** One layer of the stack: an action at a frame of its own, an influence, a blend type. */
 export interface PoseLayer {
   readonly clip: PoseClip;
@@ -260,9 +289,18 @@ function stripFrame(strip: BlenderNlaStrip, time: number): number {
   return atWholeEnd ? strip.actionEnd : strip.actionStart + into;
 }
 
-/** A strip's influence at `time` (`nlastrip_get_influence`, or its own when it is animated). */
+const influenceCurves = new WeakMap<object, PoseCurve>();
+
+/** A strip's influence at `time`: its keyed curve when it is animated (`nlastrip_evaluate_controls`),
+ *  else from its blend in and out (`nlastrip_get_influence`). */
 function stripInfluence(strip: BlenderNlaStrip, time: number): number {
-  if (strip.animatedInfluence) return strip.influence;
+  if (strip.animatedInfluence) {
+    const keyed = strip.influenceCurve;
+    if (!keyed) return strip.influence;
+    let curve = influenceCurves.get(keyed);
+    if (!curve) influenceCurves.set(keyed, curve = poseCurve(keyed));
+    return Math.max(0, Math.min(1, curveAt(curve, time)));
+  }
   if (strip.blendIn > 0 && time >= strip.start && time <= strip.start + strip.blendIn) return (time - strip.start) / strip.blendIn;
   if (strip.blendOut > 0 && time >= strip.end - strip.blendOut && time <= strip.end) return (strip.end - time) / strip.blendOut;
   return 1;
@@ -314,19 +352,6 @@ const quatPow = (q: readonly number[], k: number): number[] => {
   const s = Math.sin(angle);
   return length > 0 ? [Math.cos(angle), (q[1]! / length) * s, (q[2]! / length) * s, (q[3]! / length) * s] : [Math.cos(angle), 0, 0, 0];
 };
-const axisAngleToQuat = (v: readonly number[]): number[] => {
-  const length = Math.hypot(v[1]!, v[2]!, v[3]!) || 1;
-  const half = v[0]! / 2;
-  const s = Math.sin(half);
-  return [Math.cos(half), (v[1]! / length) * s, (v[2]! / length) * s, (v[3]! / length) * s];
-};
-const quatToAxisAngle = (q: readonly number[]): number[] => {
-  const n = quatNormal(q);
-  const angle = 2 * Math.acos(Math.max(-1, Math.min(1, n[0]!)));
-  const s = Math.hypot(n[1]!, n[2]!, n[3]!);
-  return s > 1e-9 ? [angle, n[1]! / s, n[2]! / s, n[3]! / s] : [0, 0, 1, 0];
-};
-
 /** One layer blended into the values (`nla_blend_value`, `nla_combine_value`, `nla_combine_quaternion`). */
 function blendLayer(values: Map<string, Values>, touched: Map<string, Record<Channel, number>>, layer: PoseLayer): void {
   const k = Math.max(0, Math.min(1, layer.influence));
@@ -341,13 +366,9 @@ function blendLayer(values: Map<string, Values>, touched: Map<string, Record<Cha
     for (let i = 0; i < channel.stride; i++) if (channel.mask & (1 << i) && !(marks[channel.channel] & (1 << i))) out[i] = DEFAULTS[channel.channel][i]!;
     marks[channel.channel] |= channel.mask;
     const sample = channel.curves.map((curve) => (curve ? curveAt(curve, frame) : 0));
-    if (layer.blend === 'COMBINE' && (channel.channel === 'rotation_quaternion' || channel.channel === 'rotation_axis_angle')) {
-      const quaternion = channel.channel === 'rotation_quaternion';
-      const lower = quaternion ? quatNormal(out) : axisAngleToQuat(out);
-      const upper = quaternion ? quatNormal(sample) : axisAngleToQuat(sample);
-      const result = quatMul(lower, quatPow(upper, k));
-      const written = quaternion ? result : quatToAxisAngle(result);
-      for (let i = 0; i < channel.stride; i++) if (channel.mask & (1 << i)) out[i] = written[i]!;
+    if (layer.blend === 'COMBINE' && channel.channel === 'rotation_quaternion') {
+      const result = quatMul(quatNormal(out), quatPow(quatNormal(sample), k));
+      for (let i = 0; i < channel.stride; i++) if (channel.mask & (1 << i)) out[i] = result[i]!;
       continue;
     }
     for (let i = 0; i < channel.stride; i++) {

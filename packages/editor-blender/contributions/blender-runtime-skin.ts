@@ -44,7 +44,7 @@ import type { BlenderArmature } from '@volter/blender-engine/browser/three/blend
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import { editorHost, type StageTransportHandle } from '@volter/editor-sdk/host';
 import { blenderRnaSet } from '../host/blender-runtime-host';
-import { ArmaturePose, nlaLayers, poseClip, poseDivergence, type PoseClip, type PoseLayer } from './blender-pose';
+import { actionLayer, ArmaturePose, nlaLayers, poseClip, poseDivergence, type PoseClip, type PoseLayer } from './blender-pose';
 
 /** How the director reads the engine: the Timeline's subject (its keys, the scene's range) and
  *  one action baked for one armature. */
@@ -61,9 +61,8 @@ export function sceneLayers(armature: BlenderArmature, frame: number,
   if (action) {
     const clip = clips(action);
     if (clip === undefined) stack.waiting = true;
-    const outside = clip && armature.animation?.extrapolation === 'NOTHING' && (frame < clip.start || frame > clip.end) && !clip.cyclic;
-    if (clip && !outside)
-      stack.layers.push({ clip, frame, influence: armature.animation?.influence ?? 1, blend: armature.animation?.blendType ?? 'REPLACE' });
+    const layer = clip ? actionLayer(armature.animation, clip, frame) : null;
+    if (layer) stack.layers.push(layer);
   }
   return stack;
 }

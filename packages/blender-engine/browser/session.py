@@ -1392,6 +1392,17 @@ def _bone_constraints(pchan):
     return {"constraints": stack} if stack else {}
 
 
+def _strip_influence_curve(strip):
+    """A strip's keyed influence (`NlaStrip.fcurves`, data path `influence`), whole, so the
+    presenter evaluates it at every frame as `nlastrip_evaluate_controls` does."""
+    if not strip.use_animated_influence:
+        return {}
+    for fcurve in strip.fcurves:
+        if fcurve.data_path == "influence":
+            return {"influenceCurve": _curve_body(fcurve)}
+    return {}
+
+
 def _armature_animation(obj):
     """THE ARMATURE'S ANIMATION STACK as Blender evaluates it (`BKE_animsys_evaluate_animdata`):
     its NLA tracks bottom to top, then the active action over them, each with its influence and
@@ -1410,6 +1421,7 @@ def _armature_animation(obj):
                 "actionStart": float(strip.action_frame_start), "actionEnd": float(strip.action_frame_end),
                 "scale": float(strip.scale), "repeat": float(strip.repeat),
                 "influence": float(strip.influence), "animatedInfluence": bool(strip.use_animated_influence),
+                **_strip_influence_curve(strip),
                 "animatedTime": bool(strip.use_animated_time),
                 "blendIn": float(strip.blend_in), "blendOut": float(strip.blend_out),
                 "blendType": strip.blend_type, "extrapolation": strip.extrapolation,
@@ -5107,9 +5119,13 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
     header["clipStart"] = first
     header["clipEnd"] = last
     channels = {}
+    others = set()
     for fcurve in curves:
         match = _BONE_PATH.match(fcurve.data_path)
         if match is None:
+            # NOT A BONE'S CHANNEL: the armature object's own transform (root motion), a custom
+            # property, a bone channel this door does not read. Named, so it is never dropped quietly.
+            others.add(fcurve.data_path)
             continue
         bone, prop = match.group(1), match.group(2)
         channels.setdefault((bone, prop), {})[int(fcurve.array_index)] = fcurve
@@ -5126,6 +5142,8 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
             continue
         for index, fcurve in sorted(channels[(bone, prop)].items()):
             tracks.append(_curve(bone, prop, index, fcurve))
+    if others:
+        header["unsupported"] = ["its curves on %s" % ", ".join(sorted(others))]
     header.update({
         "tracks": tracks,
         "duration": (last - first) / fps,
@@ -5146,6 +5164,11 @@ _CYCLE_MODE = {"NONE": 0, "REPEAT": 1, "REPEAT_OFFSET": 2, "MIRROR": 3}
 
 
 def _curve(bone, prop, index, fcurve):
+    """One bone channel's F-Curve: its address and its body (`_curve_body`)."""
+    return {"bone": bone, "property": prop, "index": index, **_curve_body(fcurve)}
+
+
+def _curve_body(fcurve):
     """ONE F-CURVE, whole: its keys and handles, how each segment interpolates, its extrapolation
     and its Cycles modifier, which is everything `fcurve_eval_keyframes` and `fcm_cycles_time` read
     to evaluate it. The presenter evaluates it as they do, at any frame, fractional or not.
@@ -5174,9 +5197,6 @@ def _curve(bone, prop, index, fcurve):
         else:
             unsupported.append("its %s modifier" % modifier.type.lower())
     out = {
-        "bone": bone,
-        "property": prop,
-        "index": index,
         "extrapolation": fcurve.extrapolation,
         "interpolation": interpolation,
         "keysBase64": base64.b64encode(keys.tobytes()).decode("ascii"),

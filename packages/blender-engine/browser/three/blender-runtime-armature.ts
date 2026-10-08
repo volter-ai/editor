@@ -90,6 +90,14 @@ export const nlaStripSchema = z.object({
   repeat: scalar,
   influence: scalar,
   animatedInfluence: z.boolean(),
+  /** The keyed influence's F-Curve, when `animatedInfluence`. */
+  influenceCurve: z.object({
+    extrapolation: z.string(),
+    interpolation: z.array(z.number()),
+    keysBase64: z.string(),
+    cycles: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
+    unsupported: z.array(z.string()).optional(),
+  }).strict().optional(),
   animatedTime: z.boolean(),
   blendIn: scalar,
   blendOut: scalar,
