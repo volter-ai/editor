@@ -211,7 +211,11 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
     configurationDefaults: {
       'workbench.startupEditor': 'none',
       'chat.tips.enabled': false,
+      // Type acquisition, by each of the three names the fork's TypeScript extension declares at
+      // its pin (the web one is what a view's extension host reads).
       'typescript.disableAutomaticTypeAcquisition': true,
+      'typescript.tsserver.web.typeAcquisition.enabled': false,
+      'js/ts.tsserver.automaticTypeAcquisition.enabled': false,
       'json.schemaDownload.enable': false,
       'extensions.autoUpdate': false,
       'extensions.autoCheckUpdates': false,
