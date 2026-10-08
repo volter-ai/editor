@@ -93,6 +93,7 @@ import {
   refreshProjectStories,
   subscribeProjectStoryModules,
 } from '@volter/sdk/kit/stories/story-registry';
+import { subscribeProjectModuleChange } from '@volter/sdk/kit/project-module-changes';
 import { domStoryBoardMembers } from '@volter/editor-threejs/kit/stories/three-story-model';
 import { getDesignTokens } from '@volter/sdk/kit/ui-source/inspect';
 import { tierSourceWriteBackend } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
@@ -685,8 +686,19 @@ function storyMembershipSignature(): string {
  * both rather than two firing on the same publish: the content rule is
  * the MEMBERSHIP of the story set: nothing adds a frame to a mounted board by
  * itself, so a board re-projects when which stories exist changes. A CONTENT
- * change does not re-project — the session's frames re-render through
+ * change does not re-project WHERE the session's frames re-render through
  * react-refresh.
+ *
+ * ## AND WHERE NOTHING DOES (2026-10-08)
+ *
+ * The packaged editor's page carries no react-refresh runtime (`$RefreshReg$` is
+ * undefined there), so a component edit is a `volter:restart-required` and no
+ * frame re-renders: the registry re-imported the story module and the edited
+ * component with fresh stamps and published, the membership was unchanged, and
+ * the board kept the old text until a reload (measured on Heck Plungers' HUD,
+ * editor main b9417ddf). So a source write with no react-refresh in the page
+ * marks the next ready publish, and that publish re-projects like a membership
+ * change does.
  */
 export function reprojectWhenStoriesRepublish(invalidate: () => void): () => void {
   // The module set the board was last mounted from, and — separately — the
@@ -696,6 +708,12 @@ export function reprojectWhenStoriesRepublish(invalidate: () => void): () => voi
     : null;
   let mountedMembership = mountedModules === null ? null : storyMembershipSignature();
   let timer: ReturnType<typeof setTimeout> | null = null;
+  let contentWritten = false;
+  const stopWrites = subscribeProjectModuleChange((changed) => {
+    if (!/(?:^|\/)src\/.+\.(?:[cm]?tsx?|jsx?)$/.test(changed.replaceAll('\\', '/'))) return;
+    const page = globalThis as { $RefreshReg$?: unknown };
+    if (typeof page.$RefreshReg$ !== 'function') contentWritten = true;
+  });
   const stop = subscribeProjectStoryModules(() => {
     if (!projectStoriesReady()) return;
     const modules = getProjectStoryModules();
@@ -707,9 +725,11 @@ export function reprojectWhenStoriesRepublish(invalidate: () => void): () => voi
       return;
     }
     const membershipChanged = membership !== mountedMembership;
+    const contentChanged = contentWritten && modules !== mountedModules;
     mountedModules = modules;
     mountedMembership = membership;
-    if (!membershipChanged) return;
+    if (!membershipChanged && !contentChanged) return;
+    contentWritten = false;
     if (timer !== null) clearTimeout(timer);
     timer = setTimeout(() => {
       timer = null;
@@ -730,5 +750,6 @@ export function reprojectWhenStoriesRepublish(invalidate: () => void): () => voi
     if (timer !== null) clearTimeout(timer);
     timer = null;
     stop();
+    stopWrites();
   };
 }
