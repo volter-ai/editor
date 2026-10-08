@@ -112,7 +112,7 @@ cd my-race
 npm run dev
 ```
 
-From the project directory, `npx cyclotron` provides:
+From the project directory, `npx --no-install cyclotron` provides (the unscoped npm package `cyclotron` is not ours; `--no-install` runs the project's own copy):
 
 - `edit` opens the project;
 - `status` reports the session;
