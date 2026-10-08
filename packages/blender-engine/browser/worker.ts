@@ -197,7 +197,7 @@ async function saveDocument(): Promise<void> {
     ms[phase] = Math.round(now - mark);
     mark = now;
   };
-  let answer: { saved?: boolean; path?: string; size?: number; reason?: string };
+  let answer: { saved?: boolean; path?: string; size?: number; reason?: string; holds?: string };
   try {
     answer = (await engine.request({ op: 'save-document' })) as typeof answer;
     lap('save');
@@ -206,11 +206,13 @@ async function saveDocument(): Promise<void> {
     // is a named condition in the editor's console, not a debug line.
     throw new Error(`The Blender document ${relative} could not be saved: ${describeThrown(error)}`);
   }
-  // BLENDER HOLDS A NEW UNTITLED FILE (`read_homefile`), not this document's model, so the
-  // session wrote nothing (`session.py::follow_open_file`). Nothing is at risk and nothing is
-  // owed: the document on disk is still the last one saved.
-  if (answer?.saved === false && answer.reason === 'untitled') {
+  // BLENDER HOLDS ANOTHER FILE'S MODEL (`session.py::loaded`), so the session wrote nothing over
+  // the document. Said each time an edit goes unsaved, where the person looks: the document on
+  // disk is the last one saved, and what they see now is not being kept.
+  if (answer?.saved === false && answer.reason === 'not-the-document') {
     setDocumentDirty(false);
+    log('warn', `@@VOLTER-WARN ${relative} is not being saved: Blender holds ${answer.holds ?? 'another file'}, ` +
+      `not its model. Save As a .blend under src/models to keep this as a document of its own, or open ${relative} again to return to it.`);
     return;
   }
   if (!answer?.saved || typeof answer.path !== 'string')
