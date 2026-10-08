@@ -1,6 +1,6 @@
 # Cyclotron by VideoGame AI
 
-![A cube on wheels jumping a ramp in Cyclotron, with the outliner and properties panels beside the viewport and a lap timer over it](docs/media/model-play-race.png)
+![Canyon Comet in Cyclotron: six karts racing through a desert canyon, with the race HUD over the viewport and the outliner and properties panels beside it](docs/media/model-play-race.png)
 
 A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
 
@@ -25,26 +25,30 @@ curl -fsSL https://cyclotron.videogame.ai/install.sh | sh
   [Building from source](#building-from-source).
 - To try it without installing, open [cyclotron-web.videogame.ai](https://cyclotron-web.videogame.ai/):
   the editor with Blender and Play in your browser, without Chat.
-- Opens a race circuit modelled in the editor. Press **Play** in the viewport header: the
-  camera moves from your editing view to the game's, and you drive with the arrow keys or
-  WASD. Escape moves it back and returns the untouched model. A lap is about 30 seconds.
-- `src/models/track.py` is the bpy script that built the scene, `src/models/track.play.ts`
-  is the script Play runs, and `src/ui/` is the React interface drawn over it.
+- Opens Canyon Comet, a kart race through a desert canyon modelled in the editor. Press
+  **Play** in the viewport header: the camera moves from your editing view to the chase camera
+  behind your kart. Press **RACE!** (or Enter, or an arrow key) and, after a three-second
+  countdown, race five rivals over three laps: arrow keys or W/S to drive, Space to drift,
+  Shift to boost with collected coins. **AUTO** lets the game drive your kart. Escape moves the
+  camera back and returns the untouched model. A lap is about 15 seconds.
+- `src/models/canyon.blend` is the scene and `src/models/canyon.py`, with the step scripts
+  beside it, the bpy that built it; `src/models/canyon.play.ts` is the script Play runs, and
+  `src/ui/` is the React interface drawn over it.
 - In the Chat pane, one click opens Sign in with ChatGPT, or Chat runs the coding agent you
   already have (Codex or Claude Code; others from its agent picker). The editor adds no
   account and bills nothing.
 - Three first things to ask the agent, one per file:
 
   ```text
-  Edit src/models/track.py to add a second Ramp.* wedge and three Crate.* boxes after the first corner. Open Track, rerun the script through the project's Blender MCP, and save track.blend.
+  Write src/models/palms.py to plant five palm trees on the sand outside the start straight, clear of the road. Open Canyon, run the script through the project's Blender MCP, and save canyon.blend.
   ```
 
   ```text
-  Edit src/models/track.play.ts so holding either Shift key boosts forward top speed from 30 to 45 metres per second. Keep braking unchanged.
+  Edit src/models/canyon.play.ts so a coin boost lasts 2 seconds instead of 1.4 and raises top speed to 38 metres per second instead of 33. Keep drift boosts unchanged.
   ```
 
   ```text
-  Edit src/ui/race-hud.tsx to move the speed panel to the bottom right and show JUMP instead of AIR while airborne. Keep the lap timer at the top left.
+  Edit src/ui/race-hud.tsx to show your speed in km/h at the bottom centre, above the controls line. Keep the circuit map on the right.
   ```
 - `npx @volter/cyclotron create my-models` makes a plain modelling project with a cube.
 
