@@ -5183,21 +5183,20 @@ def _action_key_range(action, first, last):
         for strip in getattr(layer, "strips", ()):
             for bag in (getattr(strip, "channelbags", None) or ()):
                 curves.extend(bag.fcurves)
+    # A curve's keys and its last modifier count independently: a keyless curve carrying a
+    # Generator or Noise still opens the range, as in Blender.
+    limits = []
     for fcurve in curves:
         points = fcurve.keyframe_points
-        if not len(points):
-            continue
-        frames = [float(key.co[0]) for key in points]
-        low = min(frames) if low is None else min(low, min(frames))
-        high = max(frames) if high is None else max(high, max(frames))
+        if len(points):
+            frames = [float(key.co[0]) for key in points]
+            low = min(frames) if low is None else min(low, min(frames))
+            high = max(frames) if high is None else max(high, max(frames))
         if not len(fcurve.modifiers):
             continue
         modifier = fcurve.modifiers[-1]
         if modifier.type == "LIMITS":
-            if modifier.use_min_x:
-                low = min(low, float(modifier.min_x))
-            if modifier.use_max_x:
-                high = max(high, float(modifier.max_x))
+            limits.append(modifier)
         elif modifier.type == "CYCLES":
             opened_low = opened_low or modifier.mode_before != "NONE"
             opened_high = opened_high or modifier.mode_after != "NONE"
@@ -5205,6 +5204,11 @@ def _action_key_range(action, first, last):
             opened_low = opened_high = True
     if low is None:
         low, high = first, last
+    for modifier in limits:
+        if modifier.use_min_x:
+            low = min(low, float(modifier.min_x))
+        if modifier.use_max_x:
+            high = max(high, float(modifier.max_x))
     return (None if opened_low else low), (None if opened_high else high)
 
 
