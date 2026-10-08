@@ -23,7 +23,7 @@
  *
  * When this game grows something else the native bindings do not cover, state it
  * HERE rather than letting the host guess; see
- * `packages/game-editor/template/volter.adapter.ts` for the worked `defineAdapter`
+ * `packages/game-editor/template/editor/volter.adapter.ts` for the worked `defineAdapter`
  * shape. Unknown keys are rejected by name — this file is validated the moment
  * it is evaluated, so a typo fails here rather than becoming silence in the
  * editor.
