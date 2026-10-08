@@ -9,7 +9,7 @@
     "editor/tools",
     "editor/contributions",
     // `scripts/play-perspective.ts` is the entry both run configurations start
-    // (`npx tsx`) — Node code like the tools, and checked here for the same
+    // (`npx --no-install tsx`) — Node code like the tools, and checked here for the same
     // reason. The other scripts beside it are `.mjs` and have no program.
     "scripts/**/*.ts"
   ],

@@ -43,13 +43,13 @@
       "id": "first-person",
       "kind": "process",
       "entry": "scripts/play-perspective.ts",
-      "command": "npx tsx scripts/play-perspective.ts first"
+      "command": "npx --no-install tsx scripts/play-perspective.ts first"
     },
     {
       "id": "third-person",
       "kind": "process",
       "entry": "scripts/play-perspective.ts",
-      "command": "npx tsx scripts/play-perspective.ts third"
+      "command": "npx --no-install tsx scripts/play-perspective.ts third"
     }
   ]
 }

@@ -5,7 +5,7 @@ import { basename, dirname, extname, join, resolve, sep } from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 // ---------------------------------------------------------------------------
-// Usage: npx tsx check-idioms.ts [folder] [--strict]
+// Usage: npx --no-install tsx check-idioms.ts [folder] [--strict]
 //
 // A dependency-free static drift scanner for the "idiomatic engine usage"
 // checklist shipped alongside this file as IDIOMS.md — read that first, it's
