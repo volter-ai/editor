@@ -268,8 +268,10 @@ function resolveAreaScope(): Scope {
   if (!first) {
     throw new Error("No workspace area is showing, so scope 'area' has nothing to reach.");
   }
-  const id = first.dataset['workspaceDocumentId'] ?? '';
-  return { container: first, extraRoots: rest, name: 'area', id, title: 'workspace areas' };
+  // Every area the scope covers is named, so a reader of the answer never takes one area's id
+  // for where a match was when several are showing.
+  const ids = shown.map((element) => element.dataset['workspaceDocumentId'] ?? '');
+  return { container: first, extraRoots: rest, name: 'area', id: ids.join(', '), title: ids.length > 1 ? `${ids.length} workspace areas` : 'workspace area' };
 }
 
 /** The application menu bar, by the stamp `ApplicationMenus` writes on its own root. The menus
