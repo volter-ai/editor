@@ -61,9 +61,11 @@ function installLines(product) {
 }
 
 /** The ways on when Volter's AI is not available to this person right now. */
-function waysOn(stream, product, { waitlisted }) {
+function waysOn(stream, product, { waitlisted, quiet }) {
 	stream.markdown(['', '', `**Keep going on your own machine.** The local ${product.displayName} runs your own coding agent, with no daily limit from us:`, '', ...installLines(product), ''].join('\n'));
 	stream.button({ command: 'volter.viewChat.copyInstall', title: 'Copy install command' });
+	// `quiet`: nobody is signed in, so there is no one to put on the list or to tell they are on it.
+	if (quiet) return;
 	if (waitlisted) stream.markdown('\n\nYou are on the list for the **Volter plan** ($19.99/month). We will email you when it opens.');
 	else stream.button({ command: 'volter.viewChat.joinWaitlist', title: 'Volter plan, $19.99/month: join the waitlist' });
 }
@@ -94,8 +96,16 @@ async function activate(context) {
 			stream.button({ command: 'volter.viewChat.copyInstall', title: 'Copy install command' });
 			return {};
 		}
+		// Signed out and no AI to sign in for: say that, not an invitation that leads to "off".
+		if (account.signedIn !== true && account.ai?.state === 'off') {
+			stream.markdown('**Volter AI is off right now.**');
+			waysOn(stream, product, { waitlisted: true, quiet: true });
+			return {};
+		}
 		if (account.signedIn !== true) {
-			stream.markdown(`**Sign in with Volter to use the assistant here.** A Volter account includes ${dollars(account.ai?.dailyLimit ?? 5_000_000)} of AI a day in the browser. Sign-in opens in a new tab; come back here and send your message again.\n\n`);
+			// What an account includes is the host's to say; with no number from it, none is quoted.
+			const included = typeof account.ai?.dailyLimit === 'number' ? ` A Volter account includes ${dollars(account.ai.dailyLimit)} of AI a day in the browser.` : '';
+			stream.markdown(`**Sign in with Volter to use the assistant here.**${included} Sign-in opens in a new tab; come back here and send your message again.\n\n`);
 			stream.button({ command: 'volter.viewChat.signIn', title: 'Sign in with Volter' });
 			stream.markdown(['', '', `Or run ${product.displayName} on your own machine, with your own agent:`, '', ...installLines(product)].join('\n'));
 			stream.button({ command: 'volter.viewChat.copyInstall', title: 'Copy install command' });
@@ -148,9 +158,16 @@ async function activate(context) {
 					if (event.code === 'signed_out') {
 						stream.markdown('\n\n**You are signed out.** Sign in again and send your message once more.\n\n');
 						stream.button({ command: 'volter.viewChat.signIn', title: 'Sign in with Volter' });
-					} else {
+					} else if (event.code === 'account_allowance_exhausted' || event.code === 'global_ceiling_reached') {
+						// The day's allowance: when it comes back, and the ways on meanwhile.
 						stream.markdown(`\n\n**${event.message}**${event.resetsAt ? ` It resets at 00:00 UTC, ${resetIn(event.resetsAt)}.` : ''}`);
 						waysOn(stream, product, account);
+					} else if (event.code === 'paid_ai_off' || event.code === 'no_ai') {
+						stream.markdown(`\n\n**${event.message}**`);
+						waysOn(stream, product, account);
+					} else {
+						// A request the host did not take, or a provider failure: nothing to wait for or buy.
+						stream.markdown(`\n\n**${event.message}**`);
 					}
 				}
 			}
@@ -164,18 +181,17 @@ async function activate(context) {
 	});
 	participant.iconPath = new vscode.ThemeIcon('chat-sparkle');
 	// What the empty Chat view says before anyone types (the `defaultChatParticipant` proposal's
-	// welcome).
-	const welcome = new vscode.MarkdownString([
+	// welcome). It promises a sign-in only where the host has one and an AI to sign in for.
+	const host = await page('account').catch(() => ({ available: false }));
+	const hasAssistant = host.available === true && host.ai?.state !== 'off' && (host.signedIn === true || host.signIn !== 'unavailable');
+	const welcome = new vscode.MarkdownString((hasAssistant ? [
 		`**${product.displayName} in your browser.** Ask the assistant to change the model, the game or its UI. It works on this tab's copy of the project; nothing is saved when the tab closes.`,
 		'',
-		'The assistant needs a Volter account. [Sign in with Volter](command:volter.viewChat.signIn)',
-		'',
+		...(host.signedIn === true ? [] : ['The assistant needs a Volter account. [Sign in with Volter](command:volter.viewChat.signIn)', '']),
 		`To keep your work and use your own agent, install ${product.displayName}:`,
-		'',
-		...installLines(product),
-		'',
-		'[Copy install command](command:volter.viewChat.copyInstall)',
-	].join('\n'));
+	] : [
+		`**This is a limited view.** Chat runs in the local version of ${product.displayName}. Install it and start a project:`,
+	]).concat(['', ...installLines(product), '', '[Copy install command](command:volter.viewChat.copyInstall)']).join('\n'));
 	welcome.isTrusted = { enabledCommands: ['volter.viewChat.copyInstall', 'volter.viewChat.signIn'] };
 	participant.additionalWelcomeMessage = welcome;
 	context.subscriptions.push(participant);
