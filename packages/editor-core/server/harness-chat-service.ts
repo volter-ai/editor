@@ -1126,24 +1126,43 @@ export class HarnessChatService {
    * harness refuses the steer, so the caller can record why.
    */
   async steerRunningTurn(text: string): Promise<boolean> {
+    return (await this.steerInto(text, true)) === 'queued';
+  }
+
+  /**
+   * A PERSON'S prompt for the running turn (`cyclotron chat send` while a turn runs): the same
+   * door, but not recorded as this service's own steer, so its echo and the turn it resumes are
+   * the person's (a new request resets the tripwire's per-turn allowance as any prompt does).
+   * Answers what happened: queued into the running turn, or why not ('idle' when no turn runs,
+   * so the caller sends it as an ordinary prompt; 'waiting' when the turn waits on the person).
+   */
+  async queuePersonPrompt(text: string): Promise<'queued' | 'idle' | 'waiting'> {
+    return this.steerInto(text, false);
+  }
+
+  private async steerInto(text: string, own: boolean): Promise<'queued' | 'idle' | 'waiting'> {
     const generation = this.runtimeTurnGeneration;
-    if ((await this.chatTurnState()) !== 'running') return false;
+    const state = await this.chatTurnState();
+    if (state !== 'running') return state === 'waiting' ? 'waiting' : 'idle';
     // Re-checked AFTER the await, immediately before the steer: a turn that
     // ended while its state was being read must not be steered, because a
     // steer into an idle runtime can START a turn nobody asked for.
     // The open/closed bit gates only a runtime that reports turn starts; one
     // that never does (Claude Code's native stream) falls back to the
     // descriptor's `turn_state` busy, read just above.
-    if (generation !== this.runtimeTurnGeneration) return false;
-    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return false;
-    this.lastSteer = { text, at: Date.now() };
+    if (generation !== this.runtimeTurnGeneration) return 'idle';
+    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return 'idle';
+    if (own) this.lastSteer = { text, at: Date.now() };
     const runtime = this.managedRuntime;
     if (runtime && !runtime.closed) {
       await runtime.steer(text);
-      return true;
+      return 'queued';
     }
+    // NO MANAGED RUNTIME (a conversation this service did not start): the harness host's own
+    // steer is the only door, and for a Claude Code turn whose start it never saw it refuses
+    // ("There is no active turn to steer"); that refusal is thrown to the caller as is.
     await this.actIntent({ action: 'steer', text });
-    return true;
+    return 'queued';
   }
 
   /** Dispatch the package-owned messenger intent without translating it into

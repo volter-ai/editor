@@ -48,11 +48,21 @@ export async function chat(args: string[]): Promise<unknown> {
       },
       body: JSON.stringify({ text: prompt }),
     });
-    if (!response.ok) {
-      const said = (await response.json().catch(() => null)) as { error?: string } | null;
-      throw new Error(`Chat has a running turn and did not take the prompt into it: ${said?.error ?? `HTTP ${response.status}`}`);
+    const said = (await response.json().catch(() => null)) as { queued?: boolean; state?: string; error?: string } | null;
+    if (response.ok && said?.queued) {
+      return {
+        queued: true,
+        sessionId: connection?.sessionId,
+        note: 'Queued into the running turn: the agent reads it at its next step. Nothing confirms delivery; the Chat shows it when it lands.',
+      };
     }
-    return { steered: true, sessionId: connection?.sessionId };
+    if (said?.state === 'waiting') {
+      throw new Error('Chat is waiting on an approval in the editor. Answer it there (or use chat stop), then send.');
+    }
+    // The turn ended between the reading above and the server's: the prompt is an ordinary send.
+    if (said?.state !== 'idle') {
+      throw new Error(`Chat did not take the prompt into its running turn: ${said?.error ?? `HTTP ${response.status}`}`);
+    }
   }
   // Keep a visible New Chat draft and its selected agent/model. Revealing the
   // host's previous active conversation here would discard that choice.
