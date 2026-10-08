@@ -11,4 +11,13 @@ const result = await build({
   bundle: true, platform: 'node', format: 'esm', target: 'node22',
 });
 
+// AND NO ENTRY MAY START IT. External, an import of `typescript` would no longer crash the CLI; it
+// would load all of TypeScript on every command, `--help` included. Said here, by name, at build time.
+const startsTypeScript = Object.entries(result.metafile.outputs)
+  .filter(([, output]) => output.imports.some((imported) => imported.path === 'typescript'))
+  .map(([file]) => file);
+if (startsTypeScript.length > 0) {
+  throw new Error(`The CLI imports typescript on its start path (${startsTypeScript.join(', ')}). Take what it needs from a module that does not import typescript (as #296 did with @volter/sdk/kit/adapter-module).`);
+}
+
 if (process.env["VOLTER_BUILD_METAFILE"]) await writeFile(process.env["VOLTER_BUILD_METAFILE"], JSON.stringify(result.metafile, null, 2));
