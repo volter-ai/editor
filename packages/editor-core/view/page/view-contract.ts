@@ -98,7 +98,7 @@ export interface LimitedViewConfig {
 
 /** One answer the view ships as bytes. */
 export interface LimitedViewRouteEntry {
-  /** Under `__view/r/`. */
+  /** Under `__view/r/`, named by the hash of its bytes: a name never comes to hold other bytes. */
   readonly file: string;
   readonly type: string;
   readonly status: number;
