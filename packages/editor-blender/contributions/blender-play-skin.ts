@@ -121,6 +121,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     armature.clips.set(action, undefined);
     void bake(armature.rig.armature, action).then((baked) => {
       const clip = baked ? poseClip(baked) : null;
+      for (const thing of clip?.unsupported ?? []) warnings.push(`${armature.rig.armature}: ${thing} plays only in Blender, not in a game.`);
       if (clip) armature.clips.set(action, clip);
       else fail(armature, action, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
     }, (error: unknown) => fail(armature, action, `it could not be read: ${error instanceof Error ? error.message : String(error)}`));

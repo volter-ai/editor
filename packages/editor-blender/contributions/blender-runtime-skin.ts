@@ -44,7 +44,7 @@ import type { BlenderArmature } from '@volter/blender-engine/browser/three/blend
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import { editorHost, type StageTransportHandle } from '@volter/editor-sdk/host';
 import { blenderRnaSet } from '../host/blender-runtime-host';
-import { ArmaturePose, clipFrame, nlaLayers, poseClip, poseDivergence, type PoseClip, type PoseLayer } from './blender-pose';
+import { ArmaturePose, nlaLayers, poseClip, poseDivergence, type PoseClip, type PoseLayer } from './blender-pose';
 
 /** How the director reads the engine: the Timeline's subject (its keys, the scene's range) and
  *  one action baked for one armature. */
@@ -63,7 +63,7 @@ export function sceneLayers(armature: BlenderArmature, frame: number,
     if (clip === undefined) stack.waiting = true;
     const outside = clip && armature.animation?.extrapolation === 'NOTHING' && (frame < clip.start || frame > clip.end) && !clip.cyclic;
     if (clip && !outside)
-      stack.layers.push({ clip, frame: clipFrame(clip, frame), influence: armature.animation?.influence ?? 1, blend: armature.animation?.blendType ?? 'REPLACE' });
+      stack.layers.push({ clip, frame, influence: armature.animation?.influence ?? 1, blend: armature.animation?.blendType ?? 'REPLACE' });
   }
   return stack;
 }
@@ -304,7 +304,7 @@ export class BlenderSkinDirector {
     for (const [name, pose] of this.#poses) {
       const armature = facts.armatures[name];
       if (!armature) continue;
-      const unsupported = pose.unsupported();
+      const unsupported = [...pose.unsupported(), ...this.#clipsOf(name).flatMap((clip) => clip.unsupported)];
       if (unsupported.length) {
         const said = `${name} plays ${unsupported.join(', ')} only in Blender, not in the Timeline or a game. Bake it into the action (Pose ▸ Animation ▸ Bake Action, Visual Keying), or aim with a Damped Track constraint.`;
         warnings.push(said);
@@ -322,6 +322,13 @@ export class BlenderSkinDirector {
       }
     }
     this.#warnings = warnings;
+  }
+
+  /** The clips baked so far for one armature. */
+  #clipsOf(armature: string): PoseClip[] {
+    const out: PoseClip[] = [];
+    for (const [key, entry] of this.#baked) if (key.startsWith(`${armature} `) && entry.clip) out.push(entry.clip);
+    return out;
   }
 
   /** THE FIDELITY CHECK at Blender's own frame: the evaluator's pose against Blender's. */

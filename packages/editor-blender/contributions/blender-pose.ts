@@ -17,8 +17,9 @@
  *   `BKE_constraints_solve` blends them. Damped Track is evaluated (`damptrack_do_transform`).
  *   Any other type is not, and is named (`unsupported`): its effect is Blender's alone.
  *
- * A clip holds Blender's own channel values per integer frame (`session.py`'s `rna_action_clip`),
- * so between whole frames the values are linear: exact at every frame, linear in between.
+ * A clip holds an action's F-Curves whole (`session.py`'s `rna_action_clip`): keys, handles,
+ * interpolation, extrapolation and Cycles modifiers, evaluated as `fcurve_eval_keyframes` and
+ * `fcm_cycles_time` evaluate them, so a pose is Blender's at any frame, whole or fractional.
  */
 import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
 import type {
@@ -47,7 +48,16 @@ function float32Of(base64: string): Float32Array {
   return new Float32Array(bytes.buffer, bytes.byteOffset, bytes.byteLength >> 2);
 }
 
-/** One action baked for one armature: its channels' values per integer frame. */
+/** One F-Curve, as Blender evaluates it. */
+interface PoseCurve {
+  readonly extrapolation: string;
+  readonly interpolation: readonly number[];
+  /** Six per key: `co`, `handle_left`, `handle_right`. */
+  readonly keys: Float32Array;
+  readonly cycles: readonly [number, number, number, number] | null;
+}
+
+/** One action read for one armature: its F-Curves, by bone and channel, one per component. */
 export interface PoseClip {
   readonly action: string;
   readonly start: number;
@@ -58,36 +68,163 @@ export interface PoseClip {
     readonly channel: Channel;
     readonly mask: number;
     readonly stride: number;
-    readonly frames: Float32Array;
-    readonly values: Float32Array;
+    readonly curves: readonly (PoseCurve | null)[];
   }[];
+  /** What its curves do in Blender that is not played. */
+  readonly unsupported: readonly string[];
 }
 
-/** The clip door's bake as a clip, or null when it holds nothing a pose can take. */
+/** The clip door's curves as a clip, or null when it holds nothing a pose can take. */
 export function poseClip(clip: BlenderActionClip): PoseClip | null {
   if (!clip.action || clip.clipStart === undefined || clip.clipEnd === undefined || !clip.tracks.length) return null;
-  return {
-    action: clip.action,
-    start: clip.clipStart,
-    end: clip.clipEnd,
-    cyclic: clip.cyclic ?? false,
-    channels: clip.tracks.map((track) => ({
-      bone: track.bone,
-      channel: track.property,
-      mask: track.mask,
-      stride: track.stride,
-      frames: float32Of(track.timeBase64),
-      values: float32Of(track.valueBase64),
-    })),
-  };
+  const channels = new Map<string, { bone: string; channel: Channel; mask: number; stride: number; curves: (PoseCurve | null)[] }>();
+  const unsupported = new Set<string>();
+  for (const track of clip.tracks) {
+    const key = `${track.bone}\u0000${track.property}`;
+    const stride = DEFAULTS[track.property].length;
+    let entry = channels.get(key);
+    if (!entry) channels.set(key, entry = { bone: track.bone, channel: track.property, mask: 0, stride, curves: Array.from({ length: stride }, () => null) });
+    if (track.index < 0 || track.index >= stride) continue;
+    entry.mask |= 1 << track.index;
+    entry.curves[track.index] = { extrapolation: track.extrapolation, interpolation: track.interpolation, keys: float32Of(track.keysBase64), cycles: track.cycles ?? null };
+    for (const thing of track.unsupported ?? []) unsupported.add(`${clip.action}'s ${thing}`);
+  }
+  return { action: clip.action, start: clip.clipStart, end: clip.clipEnd, cyclic: clip.cyclic ?? false, channels: [...channels.values()], unsupported: [...unsupported] };
 }
 
-/** A frame of the action as Blender plays it past its range: repeated when cyclic, else held. */
-export function clipFrame(clip: PoseClip, frame: number): number {
-  const length = clip.end - clip.start;
-  if (clip.cyclic && length > 0) return clip.start + ((((frame - clip.start) % length) + length) % length);
-  return Math.min(clip.end, Math.max(clip.start, frame));
+/** `BKE_fcurve_correct_bezpart`: shorten handles that overlap in time, so the curve is a function. */
+function correctBezpart(v1: number[], v2: number[], v3: number[], v4: number[]): void {
+  const h1 = [v1[0]! - v2[0]!, v1[1]! - v2[1]!];
+  const h2 = [v4[0]! - v3[0]!, v4[1]! - v3[1]!];
+  const length = v4[0]! - v1[0]!;
+  const len1 = Math.abs(h1[0]!);
+  const len2 = Math.abs(h2[0]!);
+  if (len1 + len2 === 0) return;
+  if (len1 + len2 > length) {
+    const fac = length / (len1 + len2);
+    v2[0] = v1[0]! - fac * h1[0]!;
+    v2[1] = v1[1]! - fac * h1[1]!;
+    v3[0] = v4[0]! - fac * h2[0]!;
+    v3[1] = v4[1]! - fac * h2[1]!;
+  }
 }
+
+/** The Bezier segment's value at `x` (`findzero` then `berekeny`): x(t) is monotonic once
+ *  corrected, so its one root in [0, 1] is found by Newton steps kept inside a bisection. */
+function bezierAt(x: number, v1: readonly number[], v2: readonly number[], v3: readonly number[], v4: readonly number[]): number {
+  const cubic = (a: number, b: number, c: number, d: number, t: number): number => {
+    const u = 1 - t;
+    return u * u * u * a + 3 * u * u * t * b + 3 * u * t * t * c + t * t * t * d;
+  };
+  let lo = 0;
+  let hi = 1;
+  let t = (x - v1[0]!) / ((v4[0]! - v1[0]!) || 1);
+  for (let i = 0; i < 60; i++) {
+    const at = cubic(v1[0]!, v2[0]!, v3[0]!, v4[0]!, t) - x;
+    if (Math.abs(at) < 1e-9) break;
+    if (at < 0) lo = t;
+    else hi = t;
+    const u = 1 - t;
+    const slope = 3 * u * u * (v2[0]! - v1[0]!) + 6 * u * t * (v3[0]! - v2[0]!) + 3 * t * t * (v4[0]! - v3[0]!);
+    const next = slope !== 0 ? t - at / slope : (lo + hi) / 2;
+    t = next > lo && next < hi ? next : (lo + hi) / 2;
+  }
+  return cubic(v1[1]!, v2[1]!, v3[1]!, v4[1]!, t);
+}
+
+/** `fcurve_eval_keyframes`: the curve's own value at a frame, extrapolated past its keys. */
+function keyframesAt(curve: PoseCurve, frame: number): number {
+  const k = curve.keys;
+  const count = k.length / 6;
+  if (count === 0) return 0;
+  const x = (i: number): number => k[i * 6]!;
+  const y = (i: number): number => k[i * 6 + 1]!;
+  if (count === 1) return y(0);
+  const last = count - 1;
+  if (frame <= x(0)) {
+    if (curve.extrapolation !== 'LINEAR' || frame === x(0)) return y(0);
+    // The first key's left handle gives the slope when it is a Bezier key, else the first segment.
+    const dx = x(0) - frame;
+    if (curve.interpolation[0] === 2) {
+      const fac = x(0) - k[2]!;
+      return fac !== 0 ? y(0) - ((y(0) - k[3]!) / fac) * dx : y(0);
+    }
+    const fac = x(1) - x(0);
+    return fac !== 0 ? y(0) - ((y(1) - y(0)) / fac) * dx : y(0);
+  }
+  if (frame >= x(last)) {
+    if (curve.extrapolation !== 'LINEAR' || frame === x(last)) return y(last);
+    const dx = frame - x(last);
+    if (curve.interpolation[last - 1] === 2) {
+      const fac = k[last * 6 + 4]! - x(last);
+      return fac !== 0 ? y(last) + ((k[last * 6 + 5]! - y(last)) / fac) * dx : y(last);
+    }
+    const fac = x(last) - x(last - 1);
+    return fac !== 0 ? y(last) + ((y(last) - y(last - 1)) / fac) * dx : y(last);
+  }
+  let lo = 0;
+  let hi = last;
+  while (hi - lo > 1) {
+    const mid = (lo + hi) >> 1;
+    if (x(mid) <= frame) lo = mid;
+    else hi = mid;
+  }
+  if (frame === x(lo)) return y(lo);
+  const mode = curve.interpolation[lo] ?? 1;
+  if (mode === 0) return y(lo);
+  if (mode === 1) return y(lo) + ((y(hi) - y(lo)) * (frame - x(lo))) / (x(hi) - x(lo));
+  const v1 = [x(lo), y(lo)];
+  const v2 = [k[lo * 6 + 4]!, k[lo * 6 + 5]!];
+  const v3 = [k[hi * 6 + 2]!, k[hi * 6 + 3]!];
+  const v4 = [x(hi), y(hi)];
+  const flat = 1.1920929e-7;
+  if (Math.abs(v1[1]! - v4[1]!) < flat && Math.abs(v2[1]! - v3[1]!) < flat && Math.abs(v3[1]! - v4[1]!) < flat) return v1[1]!;
+  correctBezpart(v1, v2, v3, v4);
+  return bezierAt(frame, v1, v2, v3, v4);
+}
+
+/** The curve at a frame, through its Cycles modifier as `fcm_cycles_time` maps it. */
+export function curveAt(curve: PoseCurve, frame: number): number {
+  const cycles = curve.cycles;
+  const k = curve.keys;
+  const count = k.length / 6;
+  if (!cycles || count < 2) return keyframesAt(curve, frame);
+  const firstX = k[0]!;
+  const firstY = k[1]!;
+  const lastX = k[(count - 1) * 6]!;
+  const lastY = k[(count - 1) * 6 + 1]!;
+  let side = 0;
+  let mode = 0;
+  let limit = 0;
+  let ofs = 0;
+  if (frame < firstX && cycles[0]) { side = -1; mode = cycles[0]; limit = cycles[1]; ofs = firstX; }
+  else if (frame > lastX && cycles[2]) { side = 1; mode = cycles[2]; limit = cycles[3]; ofs = lastX; }
+  if (side === 0 || mode === 0) return keyframesAt(curve, frame);
+  const cycdx = lastX - firstX;
+  const cycdy = lastY - firstY;
+  if (cycdx === 0) return keyframesAt(curve, frame);
+  const cycle = (side * (frame - ofs)) / cycdx;
+  if (limit && cycle >= limit) {
+    // Past its count the curve holds where its last cycle ends.
+    const odd = mode === 3 && limit % 2 === 1;
+    const time = side === 1 ? (odd ? firstX : lastX) : (odd ? lastX : firstX);
+    return keyframesAt(curve, time) + (mode === 2 ? cycdy * limit * side : 0);
+  }
+  const cyct = (frame - ofs) % cycdx;
+  const offset = mode === 2 ? (side < 0 ? Math.floor((frame - ofs) / cycdx) : Math.ceil((frame - ofs) / cycdx)) * cycdy : 0;
+  let time: number;
+  if (cyct === 0) {
+    time = side === 1 ? lastX : firstX;
+    if (mode === 3 && Math.trunc(cycle) % 2) time = side === 1 ? firstX : lastX;
+  } else if (mode === 3 && Math.trunc(cycle + 1) % 2) {
+    time = side < 0 ? firstX - cyct : lastX - cyct;
+  } else {
+    time = (side < 0 ? lastX : firstX) + cyct;
+  }
+  if (time < firstX) time += cycdx;
+  return keyframesAt(curve, time) + offset;
+}
+
 
 /** One layer of the stack: an action at a frame of its own, an influence, a blend type. */
 export interface PoseLayer {
@@ -194,7 +331,7 @@ const quatToAxisAngle = (q: readonly number[]): number[] => {
 function blendLayer(values: Map<string, Values>, touched: Map<string, Record<Channel, number>>, layer: PoseLayer): void {
   const k = Math.max(0, Math.min(1, layer.influence));
   if (k === 0) return;
-  const frame = clipFrame(layer.clip, layer.frame);
+  const frame = layer.frame;
   for (const channel of layer.clip.channels) {
     const bone = values.get(channel.bone);
     if (!bone) continue;
@@ -203,7 +340,7 @@ function blendLayer(values: Map<string, Values>, touched: Map<string, Record<Cha
     // A COMPONENT AN ACTION ANIMATES starts from the property's default, as Blender's NLA does.
     for (let i = 0; i < channel.stride; i++) if (channel.mask & (1 << i) && !(marks[channel.channel] & (1 << i))) out[i] = DEFAULTS[channel.channel][i]!;
     marks[channel.channel] |= channel.mask;
-    const sample = sampleChannel(channel, frame);
+    const sample = channel.curves.map((curve) => (curve ? curveAt(curve, frame) : 0));
     if (layer.blend === 'COMBINE' && (channel.channel === 'rotation_quaternion' || channel.channel === 'rotation_axis_angle')) {
       const quaternion = channel.channel === 'rotation_quaternion';
       const lower = quaternion ? quatNormal(out) : axisAngleToQuat(out);
@@ -228,23 +365,6 @@ function blendLayer(values: Map<string, Values>, touched: Map<string, Record<Cha
       }
     }
   }
-}
-
-function sampleChannel(channel: PoseClip['channels'][number], frame: number): number[] {
-  const { frames, values, stride } = channel;
-  const last = frames.length - 1;
-  let i = 0;
-  if (frame <= frames[0]!) i = 0;
-  else if (frame >= frames[last]!) i = last;
-  else while (i < last && frames[i + 1]! <= frame) i++;
-  const out: number[] = [];
-  if (i >= last || frame <= frames[0]!) {
-    for (let c = 0; c < stride; c++) out.push(values[i * stride + c]!);
-    return out;
-  }
-  const t = (frame - frames[i]!) / (frames[i + 1]! - frames[i]!);
-  for (let c = 0; c < stride; c++) out.push(values[i * stride + c]! * (1 - t) + values[(i + 1) * stride + c]! * t);
-  return out;
 }
 
 /** `BKE_pchan_to_mat4`: the channels as the bone's basis matrix, rotation by its own mode. */
@@ -347,7 +467,8 @@ export class ArmaturePose {
     return this.#armature;
   }
 
-  /** What this armature does in Blender that the evaluator does not: each named once. */
+  /** What this armature does in Blender that the evaluator does not, besides its clips' own
+   *  (`PoseClip.unsupported`): each named once. */
   unsupported(): string[] {
     const out: string[] = [];
     for (const bone of this.#bones) {
@@ -453,7 +574,9 @@ export function poseDivergence(evaluated: ReadonlyMap<string, THREE.Matrix4>, ar
     ours.decompose(p0, q0, s0);
     matrixOf(bone.matrix).decompose(p1, q1, s1);
     const degrees = THREE.MathUtils.radToDeg(q0.angleTo(q1));
-    const offset = p0.distanceTo(p1) / Math.max(bone.length, 1e-3);
+    // Relative to the bone, but never to less than a tenth of a metre: a fingertip bone a
+    // centimetre long is not off by a tenth of a millimetre's float noise.
+    const offset = p0.distanceTo(p1) / Math.max(bone.length, 0.1);
     const score = Math.max(degrees / 0.1, offset / 1e-3);
     if (score > 1 && (!worst || score > worst.score)) worst = { bone: bone.name, degrees, offset, score };
   }

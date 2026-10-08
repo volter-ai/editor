@@ -5052,8 +5052,12 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
     adt = arm_obj.animation_data if arm_obj is not None else None
     assigned = adt.action if adt is not None else None
     if arm_obj is None or (assigned is None and not action_name):
-        header["reason"] = ("Nothing here carries an action: the Timeline draws the scene range "
-                            "and an empty summary row, which is Blender's own empty state.")
+        # NLA STRIPS PLAY WITHOUT AN ACTIVE ACTION, and the Timeline's summary row draws only the
+        # active action's keys, as Blender's does; so the empty state is said only when nothing plays.
+        strips = adt is not None and any(len(track.strips) for track in adt.nla_tracks)
+        if not strips:
+            header["reason"] = ("Nothing here carries an action: the Timeline draws the scene range "
+                                "and an empty summary row, which is Blender's own empty state.")
         return header
     action = assigned
     slot = getattr(adt, "action_slot", None) if adt is not None else None
@@ -5120,28 +5124,11 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
         if arm_obj.pose.bones.get(bone) is None:
             unplayed.append(bone)
             continue
-        group = channels[(bone, prop)]
-        stride = 4 if prop in ("rotation_quaternion", "rotation_axis_angle") else 3
-        mask = 0
-        for index in group:
-            if 0 <= index < stride:
-                mask |= 1 << index
-        values = []
-        for frame in range(first, last + 1):
-            for index in range(stride):
-                fcurve = group.get(index)
-                values.append(float(fcurve.evaluate(frame)) if fcurve is not None else 0.0)
-        tracks.extend(_track(bone, prop, list(range(first, last + 1)), values, stride, mask))
-    # CYCLIC when Blender would repeat it past its keys: every curve carries a Cycles modifier, or
-    # the action is marked cyclic over its manual range (`Action.use_cyclic`).
-    bone_curves = [fc for fc in curves if _BONE_PATH.match(fc.data_path) is not None]
-    cyclic = bool(getattr(action, "use_cyclic", False) and getattr(action, "use_frame_range", False)) or (
-        bool(bone_curves) and all(any(m.type == "CYCLES" for m in fc.modifiers) for fc in bone_curves))
-    header["cyclic"] = cyclic
+        for index, fcurve in sorted(channels[(bone, prop)].items()):
+            tracks.append(_curve(bone, prop, index, fcurve))
     header.update({
         "tracks": tracks,
         "duration": (last - first) / fps,
-        "sampled": last - first + 1,
         "unplayedBones": unplayed,
     })
     return header
@@ -5154,38 +5141,51 @@ _KEY_TYPE_RANK = {"JITTER": 1, "GENERATED": 2, "MOVING_HOLD": 3, "BREAKDOWN": 4,
                   "KEYFRAME": 5, "EXTREME": 6}
 
 
-def _track(bone, prop, times, values, stride, mask):
-    """One channel's samples at every integer frame (`times` are FRAMES), or two keys when nothing
-    moves. `mask` says which components the action keys: the others are left to whatever lies
-    under it, as Blender leaves a component no F-Curve drives.
+_INTERPOLATION = {"CONSTANT": 0, "LINEAR": 1, "BEZIER": 2}
+_CYCLE_MODE = {"NONE": 0, "REPEAT": 1, "REPEAT_OFFSET": 2, "MIRROR": 3}
 
-    The arrays cross as base64 Float32 (`timeBase64`, `valueBase64`), the shape
-    every large payload in this file takes."""
-    count = len(times)
-    constant = True
-    for i in range(1, count):
-        for c in range(stride):
-            if abs(values[i * stride + c] - values[c]) > 1e-6:
-                constant = False
-                break
-        if not constant:
-            break
-    if constant:
-        if count == 0:
-            return []
-        times = [times[0], times[-1]]
-        values = values[0:stride] * 2
-    return [{
+
+def _curve(bone, prop, index, fcurve):
+    """ONE F-CURVE, whole: its keys and handles, how each segment interpolates, its extrapolation
+    and its Cycles modifier, which is everything `fcurve_eval_keyframes` and `fcm_cycles_time` read
+    to evaluate it. The presenter evaluates it as they do, at any frame, fractional or not.
+
+    The keys cross as base64 Float32, six per key: `co`, `handle_left`, `handle_right`
+    (frame, value each). A segment whose interpolation is one of the easing types (Back, Bounce,
+    Elastic, Sine, ...) and any modifier other than Cycles are named rather than played."""
+    keys = array.array("f")
+    interpolation = []
+    unsupported = []
+    for key in fcurve.keyframe_points:
+        keys.extend((key.co[0], key.co[1], key.handle_left[0], key.handle_left[1],
+                     key.handle_right[0], key.handle_right[1]))
+        code = _INTERPOLATION.get(key.interpolation)
+        if code is None:
+            unsupported.append("%s interpolation" % key.interpolation.lower())
+            code = 1
+        interpolation.append(code)
+    cycles = None
+    for modifier in fcurve.modifiers:
+        if modifier.mute:
+            continue
+        if modifier.type == "CYCLES" and not modifier.use_restricted_range and not modifier.use_influence:
+            cycles = [_CYCLE_MODE.get(modifier.mode_before, 0), int(modifier.cycles_before),
+                      _CYCLE_MODE.get(modifier.mode_after, 0), int(modifier.cycles_after)]
+        else:
+            unsupported.append("its %s modifier" % modifier.type.lower())
+    out = {
         "bone": bone,
         "property": prop,
-        "mask": mask,
-        "stride": stride,
-        "count": len(times),
-        "constant": constant,
-        "timeBase64": base64.b64encode(array.array("f", times).tobytes()).decode("ascii"),
-        "valueBase64": base64.b64encode(array.array("f", values).tobytes()).decode("ascii"),
-    }]
-
+        "index": index,
+        "extrapolation": fcurve.extrapolation,
+        "interpolation": interpolation,
+        "keysBase64": base64.b64encode(keys.tobytes()).decode("ascii"),
+    }
+    if cycles is not None:
+        out["cycles"] = cycles
+    if unsupported:
+        out["unsupported"] = sorted(set(unsupported))
+    return out
 
 def rna_outliner(selected=None):
     """BLENDER'S VIEW LAYER TREE for the session's scene.
