@@ -12,6 +12,11 @@
  * Both elements sit OUTSIDE the document's box, in its theme root: a capture photographs the
  * document, so a second photograph taken while the first is still showing cannot contain it.
  * They start only after the capture resolved, so the photograph never holds its own flash.
+ *
+ * The editor-chrome capture (`cyclotron capture`) shows it too. Its `page` region photographs the
+ * whole page, corner included, so it puts away what is showing first (`withdrawPhotograph`). A
+ * capture can be named (`cyclotron capture --name "aim up"`); the name is the picture's caption,
+ * so a person watching knows what each one was for.
  */
 
 import { activeDocumentContainer } from '@volter/editor-sdk/kit/editor-document-probe';
@@ -23,8 +28,17 @@ const FLASH_MS = 350;
 const SLIDE_MS = 240;
 
 let showing: HTMLElement | null = null;
+let flashing: HTMLElement | null = null;
 
-export function announcePhotograph(base64: string): void {
+/** Take the corner picture and the flash off the page at once, before the page is photographed. */
+export function withdrawPhotograph(): void {
+  showing?.remove();
+  showing = null;
+  flashing?.remove();
+  flashing = null;
+}
+
+export function announcePhotograph(base64: string, name?: string): void {
   if (typeof document === 'undefined') return;
   const id = activeWorkspaceDocumentId();
   const box = id === null ? null : activeDocumentContainer(id);
@@ -48,18 +62,23 @@ export function announcePhotograph(base64: string): void {
       pointerEvents: 'none',
       zIndex: 'var(--volter-z-toast)',
     });
+    flashing?.remove();
+    flashing = flash;
     root.append(flash);
     flash
       .animate([{ opacity: 0.85 }, { opacity: 0 }], { duration: FLASH_MS, easing: 'ease-out' })
-      .finished.finally(() => flash.remove());
+      .finished.finally(() => {
+        flash.remove();
+        if (flashing === flash) flashing = null;
+      });
   }
 
   showing?.remove();
   const card = document.createElement('button');
   card.type = 'button';
   card.dataset['testid'] = 'photograph-notice';
-  card.title = 'Photograph taken. Click to put it away.';
-  card.setAttribute('aria-label', 'Photograph taken');
+  card.title = `${name ? `${name}: photograph` : 'Photograph'} taken. Click to put it away.`;
+  card.setAttribute('aria-label', name ? `Photograph taken: ${name}` : 'Photograph taken');
   Object.assign(card.style, {
     position: 'fixed',
     right: 'var(--volter-space-4)',
@@ -79,6 +98,21 @@ export function announcePhotograph(base64: string): void {
   image.alt = 'The photograph just taken of the document';
   Object.assign(image.style, { display: 'block', width: '100%', height: 'auto' });
   card.append(image);
+  if (name) {
+    const caption = document.createElement('div');
+    caption.dataset['testid'] = 'photograph-name';
+    caption.textContent = name;
+    Object.assign(caption.style, {
+      padding: 'var(--volter-space-1) var(--volter-space-2)',
+      font: 'var(--volter-font-ui-sm, 12px system-ui)',
+      color: 'var(--volter-text)',
+      textAlign: 'left',
+      whiteSpace: 'nowrap',
+      overflow: 'hidden',
+      textOverflow: 'ellipsis',
+    });
+    card.append(caption);
+  }
   root.append(card);
   showing = card;
 

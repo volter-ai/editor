@@ -76,7 +76,7 @@ import {
   nextHierarchyPanelSnapshot,
   serializeHierarchyPanel,
 } from './hierarchy-panel-view';
-import { announcePhotograph } from '@volter/editor-sdk/kit/photograph-notice';
+import { announcePhotograph, withdrawPhotograph } from '@volter/editor-sdk/kit/photograph-notice';
 import type { HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
 import {
   anyLiveSessionMounted,
@@ -1587,11 +1587,18 @@ export async function handleCommand(
       if (region !== undefined && region !== 'page' && region !== 'document' && region !== 'play') {
         return { ok: false, error: 'capture-editor-chrome: "region" is "page", "document" or "play".' };
       }
+      const name = cmd['name'];
+      if (name !== undefined && (typeof name !== 'string' || name.trim() === '' || name.length > 80)) {
+        return { ok: false, error: 'capture-editor-chrome: "name" is a few words saying what the photograph is of (1 to 80 characters).' };
+      }
       try {
+        // The whole page holds the corner picture; a document or play region never does.
+        if (region === undefined || region === 'page') withdrawPhotograph();
         const capture = await captureEditorChrome(store, {
           ...(scale === undefined ? {} : { scale: scale as number }),
           ...(region === undefined ? {} : { region }),
         });
+        announcePhotograph(capture.base64, typeof name === 'string' ? name.trim() : undefined);
         return { ok: true, data: { ...capture } };
       } catch (error) {
         return { ok: false, error: error instanceof Error ? error.message : String(error) };

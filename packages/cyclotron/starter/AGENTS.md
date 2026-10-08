@@ -418,8 +418,8 @@ Common commands, all through `npx --no-install cyclotron`:
 view in Blender metres, Z up. In eval, `editor.present({ version: 1, viewport:
 { camera } })` takes stage space, Y up: a Blender point (x, y, z) is
 `{ x, y: z, z: -y }`, so prefer the `camera` command, which converts for you.
-`capture --region document|play [--out file.png [--force]]` saves what the person sees (default under
-`.volter/captures/`); `add-play` makes a models project playable; `play-log`
+`capture --region document|play [--name <words>] [--out file.png [--force]]` saves what the person sees (default under
+`.volter/captures/`) and shows it in the editor's corner; `--name` says what it is of ("aim up"), captioning it there and naming the file; `add-play` makes a models project playable; `play-log`
 reads the running game's log. The Game panel's controls, each printing its state:
 `play autoplay on <behaviour> [--for <seconds>]` runs one of the game's bot behaviours for at most that many simulation seconds (300 by default), and `play autoplay off` stops it (the Game panel's Autoplay toggle);
 `play pause` holds the game (no `update` calls; its clock stops);
