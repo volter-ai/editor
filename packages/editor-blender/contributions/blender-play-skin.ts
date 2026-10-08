@@ -156,6 +156,35 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const READ_ATTEMPTS = 3;
   const attempts = new Map<string, number>();
   const baking = new Map<string, Promise<void>>();
+  /**
+   * ONE BAKE PER ACTION AND SKELETON. A bake depends on the action, the armature's bones and the
+   * action slot Blender picks for it (`rna_action_clip`), never on the armature otherwise; each
+   * read holds the Blender worker for about 1.5 s. Read per armature, fifteen enemies placed from
+   * one piece baked the same clip fifteen times, and an action the game switched one to waited
+   * behind all of them: measured on Heck Plungers, half the characters still unposed 20 s in with
+   * Blender idle. So armatures with the same bones share a read, unless the slot is this
+   * armature's own (named for it) or Blender had to choose among several (its `reason` says so):
+   * then the next armature asks for its own.
+   */
+  const shared = new Map<string, Promise<BlenderActionClip | null>>();
+  /** A clip whose slot Blender picked for its own armature: never another armature's answer. */
+  const ownSlot = (clip: BlenderActionClip | null): boolean => !!clip && (clip.slot === clip.armature || /object slots/.test(clip.reason ?? ''));
+  const readClip = (armature: Armature, action: string): Promise<BlenderActionClip | null> => {
+    const name = armature.rig.armature;
+    const skeleton = armature.facts.bones.map((bone) => bone.name).sort().join('\u0001');
+    const key = `${action}\u0000${skeleton}`;
+    const known = shared.get(key);
+    if (known) return known.then((clip) => (ownSlot(clip) && clip!.armature !== name ? bake(name, action) : clip));
+    const read = bake(name, action).then((clip) => {
+      if (ownSlot(clip)) shared.delete(key);
+      return clip;
+    }, (error: unknown) => {
+      shared.delete(key);
+      throw error;
+    });
+    shared.set(key, read);
+    return read;
+  };
   const clipOf = (armature: Armature, action: string): PoseClip | null | undefined => {
     if (armature.clips.has(action)) return armature.clips.get(action);
     void bakeClip(armature, action);
@@ -167,7 +196,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     if (running) return running;
     if (armature.clips.has(action) && armature.clips.get(action) !== undefined) return Promise.resolve();
     armature.clips.set(action, undefined);
-    const done = bake(armature.rig.armature, action).then((baked) => {
+    const done = readClip(armature, action).then((baked) => {
       // A clip that cannot be posed is that clip's failure, named like the others; it never
       // rejects the bake, so the loading phase that awaits it always settles.
       try {

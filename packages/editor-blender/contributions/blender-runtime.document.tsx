@@ -941,7 +941,7 @@ function BlenderViewportArea({
         const clips = (names: readonly string[]): string => `${names.length} clip${names.length === 1 ? '' : 's'}`;
         const say = window.setInterval(() => {
           const pending = loaded.pending();
-          if (pending.length > 0) loading.textContent = `Loading… waiting on Blender for ${clips(pending)}: ${pending.join(', ')}`;
+          if (pending.length > 0) loading.textContent = `Loading… waiting on Blender for ${clips(pending)}: ${pending.slice(0, 6).join(', ')}${pending.length > 6 ? ` and ${pending.length - 6} more` : ''}`;
         }, LOADING_SAY);
         let limit = 0;
         const outcome = await Promise.race([
