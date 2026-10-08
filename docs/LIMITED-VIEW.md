@@ -36,7 +36,7 @@ The kit's workbench code runs unchanged:
 ## What `view build` does
 
 1. It starts the project's own packaged session headless: no workbench, no tab, and an ephemeral identity. The modules are therefore compiled by the same Vite instance and plugins `edit` uses (`server/packaged.ts`, `project-serving-plugins.ts`).
-2. It records what that session serves into `__view/routes.json` and `__view/r/`:
+2. It records what that session serves into `__view/routes.json` and `__view/r/`. Each body in `__view/r/` is named by the SHA-256 of its published bytes (20 hex characters and an extension), the view's own stand-ins among them, so a host may let browsers keep those files for good: a later build names a changed answer anew, and nothing still asks for the old name. `routes.json` maps each URL to its file, type, status and mount flag, and two URLs with the same bytes share a file. What is recorded:
    - The kit's fixed answers: `compatibility`, `project` (the session identity is scrubbed), `project-verbs`, `project-components`, `project-tools`, `project-attribution`, `story-files`, `scoped-game-css`, `configurations`, `project-thumbnail`, `tab-bootstrap.js`. The play-session catalog is not recorded: it comes from the project's `logs/`, which a view does not publish.
    - Each composed integration's `viewSnapshotRoutes()`. For Blender these are the WebAssembly engine files.
    - Every project module and everything it imports, crawled from the project's source files, its packages' contributions and the kit's module doorways. Each project module is also recorded under a sentinel mount id. The worker puts the page's real `?volter-mount=<id>` back into the URL and body, so per-mount module instances still work.

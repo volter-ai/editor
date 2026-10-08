@@ -30,7 +30,7 @@
 
 import { type ChildProcess, spawn, spawnSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
-import { cpSync, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
+import { cpSync, createReadStream, createWriteStream, existsSync, mkdirSync, readdirSync, readFileSync, realpathSync, renameSync, rmSync, writeFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { createServer } from 'node:net';
 import { tmpdir } from 'node:os';
@@ -158,6 +158,7 @@ function prepareOut(final: string): { final: string; staging: string } {
   const staging = `${final}.building-${process.pid}`;
   rmSync(staging, { recursive: true, force: true, maxRetries: 3 });
   mkdirSync(join(staging, VIEW_DIR, 'r'), { recursive: true });
+  mkdirSync(join(staging, VIEW_DIR, RECORDING_DIR), { recursive: true });
   return { final, staging };
 }
 
@@ -217,6 +218,20 @@ function realOrNearest(path: string): string {
 function fsUrl(absolute: string): string {
   const posix = absolute.split(sep).join('/');
   return posix.startsWith('/') ? `/@fs${posix}` : `/@fs/${posix}`;
+}
+
+/** Where answers are kept while they are recorded, under the view's directory. Nothing of it is
+ *  published: each answer moves to `r/` under the name of its final bytes ({@link contentName}). */
+const RECORDING_DIR = 'recording';
+
+/**
+ * The name a body is published under in `__view/r/`: its own bytes, hashed. A host may tell a
+ * browser to keep these files for good, so a name must never come to mean other bytes: a view
+ * built later names a changed answer anew, and an unchanged one the same. Two URLs that answer
+ * with the same bytes share one file. The name tells nothing of the URL it answers.
+ */
+function contentName(digest: string, extension: string): string {
+  return `${digest.slice(0, 20)}${extension}`;
 }
 
 function extensionFor(type: string): string {
@@ -322,6 +337,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
 
       // ---- 2. what it serves.
       await initLexer;
+      let recordings = 0;
       const record = async (url: string, options: { modulesOnly: boolean }): Promise<string | null> => {
         const response = await fetch(`${serverUrl}${url}`, { headers: { accept: '*/*' } });
         const type = (response.headers.get('content-type') ?? 'application/octet-stream').split(';')[0]!.trim();
@@ -329,8 +345,9 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
           await response.body?.cancel();
           return null;
         }
-        const file = `${createHash('sha1').update(url).digest('hex').slice(0, 20)}.${extensionFor(type)}`;
-        const target = join(out, VIEW_DIR, 'r', file);
+        // A working name; the published name comes from the final bytes (2b).
+        const file = `${recordings++}.${extensionFor(type)}`;
+        const target = join(out, VIEW_DIR, RECORDING_DIR, file);
         let text: string | null = null;
         if (/javascript|json|^text\//.test(type)) {
           text = await response.text();
@@ -348,7 +365,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
       // machine that built it.
       const projectAnswer = entries['/__editor/project'];
       if (projectAnswer) {
-        const path = join(out, VIEW_DIR, 'r', projectAnswer.file);
+        const path = join(out, VIEW_DIR, RECORDING_DIR, projectAnswer.file);
         const answer = JSON.parse(readFileSync(path, 'utf8')) as { project?: { path?: string }; session?: unknown; engine?: unknown; sourceWrite?: boolean; ingestSourceWrite?: boolean };
         if (answer.project?.path) sessionRoot = answer.project.path;
         answer.session = { pid: 0, lease: 'page', ephemeral: true, sessionId: 'limited-view', repositoryId: null, worktreeId: null, worktreeRoot: null, projectRelativePath: null, branch: null, headCommit: null, baseCommit: null };
@@ -361,7 +378,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
       }
       // A heartbeat worker with nobody to beat to.
       const heartbeat = 'tab-heartbeat.js';
-      writeFileSync(join(out, VIEW_DIR, 'r', heartbeat), 'self.onmessage = () => {};\n');
+      writeFileSync(join(out, VIEW_DIR, RECORDING_DIR, heartbeat), 'self.onmessage = () => {};\n');
       entries['/__editor/tab-heartbeat.js'] = { file: heartbeat, type: 'text/javascript', status: 200 };
 
       for (const file of productServingModules(product)) {
@@ -371,7 +388,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
           const text = await record(url, { modulesOnly: false });
           const recorded = entries[url];
           if (text !== null && recorded && module.viewSnapshotScrub) {
-            writeFileSync(join(out, VIEW_DIR, 'r', recorded.file), module.viewSnapshotScrub(url, text));
+            writeFileSync(join(out, VIEW_DIR, RECORDING_DIR, recorded.file), module.viewSnapshotScrub(url, text));
           }
         }
       }
@@ -447,7 +464,7 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     for (const [key, entry] of recordedEntries) {
       paths.learn(key);
       if (/javascript|json|^text\//.test(entry.type)) {
-        const text = readFileSync(join(out, VIEW_DIR, 'r', entry.file), 'utf8');
+        const text = readFileSync(join(out, VIEW_DIR, RECORDING_DIR, entry.file), 'utf8');
         textOf.set(entry.file, text);
         paths.learn(text);
       }
@@ -455,28 +472,27 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     for (const key of Object.keys(entries)) delete entries[key];
     for (const [key, entry] of recordedEntries) {
       const published = paths.rewrite(key);
-      // A recording is named for its PUBLISHED url: named for the session's, a guessed home path could
-      // be confirmed against the file names offline.
-      const file = `${createHash('sha1').update(published).digest('hex').slice(0, 20)}${entry.file.slice(entry.file.lastIndexOf('.'))}`;
+      const extension = entry.file.slice(entry.file.lastIndexOf('.'));
       const text = textOf.get(entry.file);
+      let file: string;
       if (text !== undefined) {
         // Vite's inline source maps carry every original source and its absolute path, base64'd
         // where no scan reads them; a view ships none.
         const stripped = paths.rewrite(text).replace(/\n?\/\/# sourceMappingURL=[^\n]*/g, '').replace(/\/\*# sourceMappingURL=[\s\S]*?\*\//g, '');
+        file = contentName(createHash('sha256').update(stripped).digest('hex'), extension);
         writeFileSync(join(out, VIEW_DIR, 'r', file), stripped);
-        if (file !== entry.file) rmSync(join(out, VIEW_DIR, 'r', entry.file), { force: true });
-      } else if (file !== entry.file) {
-        renameSync(join(out, VIEW_DIR, 'r', entry.file), join(out, VIEW_DIR, 'r', file));
+      } else {
+        const hash = createHash('sha256');
+        for await (const chunk of createReadStream(join(out, VIEW_DIR, RECORDING_DIR, entry.file))) hash.update(chunk as Buffer);
+        file = contentName(hash.digest('hex'), extension);
+        renameSync(join(out, VIEW_DIR, RECORDING_DIR, entry.file), join(out, VIEW_DIR, 'r', file));
       }
       entries[published] = { ...entry, file };
     }
+    rmSync(join(out, VIEW_DIR, RECORDING_DIR), { recursive: true, force: true, maxRetries: 3 });
 
     // ---- 3. the view.
     log('Writing the view…');
-    const vite = 'vite-client.js';
-    entries['/@vite/client'] = { file: vite, type: 'text/javascript', status: 200 };
-    writeFileSync(join(out, VIEW_DIR, 'routes.json'), JSON.stringify({ mountSentinel: MOUNT_SENTINEL, entries }));
-
     // The product's production build, minus its build manifest (a fact for the session, not a page).
     // No source maps in a published view: they carry sources and their paths.
     cpSync(distPath, out, { recursive: true, filter: (source) => !source.includes(`${sep}.vite`) && !source.endsWith('.map') });
@@ -530,7 +546,14 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     // The page's compiler for modules edited in the view, loaded on the first edit (`live-modules.ts`).
     // It carries the TypeScript compiler, whose Node-only requires are never reached in a browser.
     await esbuild.build({ ...common, entryPoints: [join(pageDir, 'live-compiler.ts')], format: 'esm', outfile: join(out, VIEW_DIR, 'live-compiler.js'), external: ['fs', 'path', 'os', 'crypto', 'inspector', 'perf_hooks', 'module', 'source-map-support', 'node:*'] });
-    await esbuild.build({ ...common, entryPoints: [join(pageDir, 'vite-client.ts')], format: 'esm', outfile: join(out, VIEW_DIR, 'r', vite) });
+    // The view's stand-in for Vite's client sits among the recordings, so it is named as they are.
+    const vite = await esbuild.build({ ...common, entryPoints: [join(pageDir, 'vite-client.ts')], format: 'esm', write: false });
+    const viteClient = vite.outputFiles?.[0];
+    if (!viteClient) fail('the view\'s stand-in for Vite\'s client did not build.');
+    const viteFile = contentName(createHash('sha256').update(viteClient.contents).digest('hex'), '.js');
+    writeFileSync(join(out, VIEW_DIR, 'r', viteFile), viteClient.contents);
+    entries['/@vite/client'] = { file: viteFile, type: 'text/javascript', status: 200 };
+    writeFileSync(join(out, VIEW_DIR, 'routes.json'), JSON.stringify({ mountSentinel: MOUNT_SENTINEL, entries }));
 
     writeFileSync(join(out, 'index.html'), indexHtml(config));
     writeFileSync(join(out, '_headers'), HEADERS_FILE);
