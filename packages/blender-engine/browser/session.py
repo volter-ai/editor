@@ -2287,6 +2287,14 @@ class Session:
         `BLENDER`). Blender reads either back, so nothing was broken; what was
         wrong is that the BYTES of a file the project commits depended on a
         per-machine preference. A document states its own format.
+
+        THE FORMAT IT STATES IS COMPRESSED (Zstandard, Blender's own). Measured
+        2026-10-08 on a character with a 43-clip library (1.3 million keys): the
+        uncompressed write was 101.9 MB, compressed 12.8 MB, and the save itself
+        took the same time (0.07-0.17 s against 0.10-0.14 s). A game scene with
+        that character was 120 MB uncompressed, past GitHub's 100 MB file limit,
+        and 17 MB compressed. Blender reads both, and nothing here reads the
+        bytes.
         """
         self.save_due = False
         if self.document is None:
@@ -2317,7 +2325,7 @@ class Session:
             except OSError:
                 pass
         bpy.ops.wm.save_as_mainfile(
-            filepath=self.document, compress=False, relative_remap=False, copy=True)
+            filepath=self.document, compress=True, relative_remap=False, copy=True)
         return {"saved": True, "path": self.document,
                 "document": self.document_relative,
                 "size": os.path.getsize(self.document),
