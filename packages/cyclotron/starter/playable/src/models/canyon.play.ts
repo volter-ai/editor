@@ -10,7 +10,8 @@ export default function play(ctx:ModelPlayContext){
  const initialPositions=[[0,0],[-6.2,2.7],[4.8,6],[-1.5,24],[1,31],[7,41]];
  const names=['Pip','Miso','Nova','Sprig','Mica','Rook'];
  let state:RaceState={...initialState,events:[],racers:[]};let events:RaceEvent[]=[];let simTime=0,frame=0,clock=0,accumulator=0,previousKeys=new Set<string>(),endTime:number|null=null;let lastManual='';
- const log=(kind:string,detail:Record<string,unknown>={})=>{events.push({time:+simTime.toFixed(3),frame,kind,...detail});if(events.length>1200)events.shift()};
+ // Each race event is kept for the HUD's race state and written to the editor's play log (`cyclotron play-log`).
+ const log=(kind:string,detail:Record<string,unknown>={})=>{events.push({time:+simTime.toFixed(3),frame,kind,...detail});if(events.length>1200)events.shift();ctx.log(kind,detail)};
  const cars:Car[]=initialPositions.map(([x,y],id)=>{const object=ctx.find('Kart.'+id);if(!object)throw new Error('Missing authored Kart.'+id);const n=nearest(x,y);return {id,name:names[id],object,x,y,s:n.s,distance:n.s,heading:0,speed:0,progress:n.s/length,lap:1,finished:false,finishTime:null,coins:id===0?8:4,boost:0,checkpoint:1,lane:[0,-4.6,4.6,-2.2,1.8,3.7][id],parked:false,boostCooldown:0,drift:0,drifting:false,offroad:false,collisionCooldown:0,lastDecision:-1}});
  ctx.root.traverse((o:any)=>{if(o.isDirectionalLight){o.shadow.mapSize.set(4096,4096);o.shadow.map?.dispose();o.shadow.map=null}});
  const pickups=new THREE.Group();pickups.name='Race coin pickups';ctx.root.add(pickups);
@@ -68,7 +69,7 @@ export default function play(ctx:ModelPlayContext){
   simTime+=dt;frame++;
   if(state.phase==='countdown'){state={...state,countdown:Math.max(0,state.countdown-dt)};if(state.countdown===0){state={...state,phase:'racing'};log('phase',{phase:'racing'});}return;}
   const k=ctx.keys,manual:Inputs={throttle:k.has('ArrowUp')||k.has('KeyW')?1:0,brake:k.has('ArrowDown')||k.has('KeyS'),steer:(k.has('ArrowRight')?1:0)-(k.has('ArrowLeft')?1:0),drift:k.has('Space'),boost:k.has('ShiftLeft')||k.has('ShiftRight')};
-  const manualString=JSON.stringify(manual);if(!state.autoplay&&manualString!==lastManual){lastManual=manualString;log('manual-input',{inputs:manual});}
+  const manualString=JSON.stringify(manual);if(!state.autoplay&&!botNow&&manualString!==lastManual){lastManual=manualString;log('manual-input',{inputs:manual});}
   for(const c of cars)drive(c,c.id===0&&!state.autoplay&&!c.finished?manual:controller(c),dt);
   for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){
    const a=cars[i],b=cars[j];if(a.finished||b.finished)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.hypot(dx,dy);if(d>0&&d<2){const push=(2-d)*.51;a.x-=dx/d*push;a.y-=dy/d*push;b.x+=dx/d*push;b.y+=dy/d*push;if(a.collisionCooldown===0&&b.collisionCooldown===0){a.speed*=.85;b.speed*=.85;log('kart-contact',{a:i,b:j,object:'Kart.'+j,x:a.x,y:a.y});a.collisionCooldown=b.collisionCooldown=.5}}
@@ -76,8 +77,25 @@ export default function play(ctx:ModelPlayContext){
   for(const coin of coins){coin.mesh.visible=simTime>=coin.ready;if(!coin.mesh.visible)continue;coin.mesh.rotation.z=simTime*2;for(const c of cars){if(c.finished)continue;if(Math.hypot(c.x-coin.x,c.y-coin.y)<1.5){c.coins++;coin.ready=simTime+6;coin.mesh.visible=false;log('pickup',{racer:c.id,object:'Coin.'+coin.id,coins:c.coins});break}}}
   cars.forEach((c,i)=>{const f=flames[i];f.visible=c.boost>0&&!c.parked;f.position.set(c.x-Math.sin(c.heading)*1.8,c.y-Math.cos(c.heading)*1.8,.38);f.rotation.set(Math.PI/2,0,-c.heading);f.scale.setScalar(.8+.25*Math.sin(simTime*42));});
  }
+ // THE GAME PANEL'S AUTOPLAY (`play autoplay on race`): a bot that drives Pip with the keys a person
+ // holds, through the manual code above, steering as the race's own AUTO does (`controller`, which logs
+ // its decisions). Steering keys are pulsed so their average follows that steer; while the bot drives,
+ // those key changes are not logged as manual input.
+ let botDriving=false,botNow=false,steerDebt=0;
+ ctx.autoplay({race:()=>{
+  botDriving=true;const c=cars[0];
+  if(state.paused)return {keys:[],state:'race paused'};
+  if(state.phase==='ready')return {keys:['ArrowUp'],state:'starting the race'};
+  if(state.phase==='countdown')return {keys:[],state:'waiting for the countdown'};
+  if(c.finished)return {keys:[],state:'finished; Pip parks past the line'};
+  const input=controller(c),keys:string[]=[];steerDebt+=input.steer;
+  if(steerDebt>=.5){keys.push('ArrowRight');steerDebt-=1}else if(steerDebt<=-.5){keys.push('ArrowLeft');steerDebt+=1}
+  if(input.throttle)keys.push('ArrowUp');if(input.brake)keys.push('ArrowDown');if(input.drift)keys.push('Space');if(input.boost)keys.push('ShiftLeft');
+  return {keys,state:`racing lap ${c.lap} of 3`};
+ }});
  reset(false);
  return {update(dt:number){
+  botNow=botDriving;botDriving=false;
   const keyCommands:[string,Command][]=[['Enter','start'],['KeyA','auto'],['KeyP','pause'],['KeyR','restart']];
   const commands=consumeCommands();for(const [key,cmd]of keyCommands)if(ctx.keys.has(key)&&!previousKeys.has(key))commands.push(cmd);
   for(const cmd of commands)command(cmd);
