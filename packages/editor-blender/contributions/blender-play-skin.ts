@@ -190,12 +190,19 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     return done;
   };
 
-  /** Each armature's assigned action and its NLA strips' actions: the clips it starts on. */
+  /**
+   * Each armature's assigned action and the strips' actions of the NLA tracks it plays (enabled as
+   * `layersOf` reads them: NLA on, under a solo only the soloed track, else the unmuted ones): the
+   * clips it starts on. A muted track's strips are a clip library, baked when the game asks.
+   */
   const startingClips = (): { armature: Armature; action: string }[] => [...armatures.values()].flatMap((armature) => {
     const names = new Set<string>();
     if (armature.facts.action) names.add(armature.facts.action);
-    for (const track of armature.facts.animation?.tracks ?? [])
-      for (const strip of track.strips) if (strip.action) names.add(strip.action);
+    const animation = armature.facts.animation;
+    const solo = animation?.tracks.some((track) => track.solo) ?? false;
+    for (const track of animation && animation.useNla ? animation.tracks : [])
+      if (solo ? track.solo : !track.mute)
+        for (const strip of track.strips) if (strip.action) names.add(strip.action);
     return [...names].filter((name) => name in facts.actions).map((action) => ({ armature, action }));
   });
 
