@@ -32,6 +32,7 @@ import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/bl
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
 import type * as THREE from 'three';
 import { ArmaturePose, nlaLayers, poseClip, type ConstraintOverride, type PoseClip, type PoseLayer } from './blender-pose';
+import { editorHost } from '@volter/editor-sdk/host';
 import { remedy } from './blender-runtime-skin';
 
 export interface PlayActionOptions {
@@ -157,6 +158,8 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const layersOf = (armature: Armature): PoseLayer[] | null => {
     const layers: PoseLayer[] = [];
     let waiting = false;
+    /** Whether an enabled track has strips (or a game's track plays): what places the active action. */
+    let evaluated = false;
     const take = (layer: PoseLayer | null | undefined): void => {
       if (layer === undefined) waiting = true;
       else if (layer) layers.push(layer);
@@ -173,22 +176,25 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
         const blend = track.strips[0]?.blendType ?? 'REPLACE';
         if (set.previous) take(playedLayer(armature, set.previous, influence, blend));
         take(playedLayer(armature, set.action, influence, blend));
+        evaluated = true;
         continue;
       }
       const stack = nlaLayers({ ...animation!, tracks: [{ ...track, mute: false, solo: false }] }, frame, (action) => clipOf(armature, action));
       if (stack.waiting) waiting = true;
+      if (stack.evaluated) evaluated = true;
       for (const layer of stack.layers) layers.push({ ...layer, influence: layer.influence * influence });
     }
     for (const set of armature.tracks.values()) {
       if (!set.own || set.mute || !set.action) continue;
       if (set.previous) take(playedLayer(armature, set.previous, set.influence.weight, 'REPLACE'));
       take(playedLayer(armature, set.action, set.influence.weight, 'REPLACE'));
+      evaluated = true;
     }
-    // THE ACTIVE ACTION as Blender places it: alone and whole when no strip is evaluated now, else
-    // at its influence and blend type over them, and not at all under a soloed track.
-    const strips = !!animation?.useNla && layers.length > 0;
-    const over = !strips || !solo;
-    for (const played of over ? armature.line : [])
+    // THE ACTIVE ACTION as Blender places it: not at all under a soloed track, alone and whole when
+    // no enabled track has strips, else at its influence and blend type over them.
+    const nla = !!animation?.useNla;
+    const strips = nla && evaluated;
+    for (const played of nla && solo ? [] : armature.line)
       take(playedLayer(armature, played, strips ? animation!.influence : 1, strips ? animation!.blendType : 'REPLACE'));
     return waiting ? null : layers;
   };
@@ -215,6 +221,15 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     action, from: time, loop: options.loop ?? true, speed: options.speed ?? 1, weight,
   });
   const ok = (armature: Armature): Answer => ({ ok: true, armature: armature.rig.armature });
+  const warned = new Set<string>();
+  /** An action nothing keeps (no user, no fake user) vanishes on the file's next save: said once. */
+  const kept = (action: string): void => {
+    if (!facts.unkept.includes(action) || warned.has(action)) return;
+    warned.add(action);
+    const said = `The game plays "${action}", which nothing in the file uses and has no fake user, so Blender drops it the next time the file saves. Give it a fake user (action.use_fake_user = True) or assign it.`;
+    warnings.push(said);
+    editorHost().console.warn(said, 'blender-animation');
+  };
   const none = (object: THREE.Object3D): Answer => ({ ok: false, why: `${object.name || 'this object'} has no armature` });
 
   return {
@@ -225,6 +240,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       if (!armature) return none(object);
       const refused = refusal(armature, action);
       if (refused) return { ok: false, why: refused };
+      kept(action);
       const current = armature.line.at(-1);
       if (current?.action === action && current.weight.target > 0) {
         if (options.restart) armature.line[armature.line.length - 1] = { ...current, from: time };
@@ -258,6 +274,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       if (options.action) {
         const refused = refusal(armature, options.action);
         if (refused) return { ok: false, why: refused };
+        kept(options.action);
       } else if (!inFile && !set) {
         return { ok: false, why: `${armature.rig.armature} has no NLA track "${name}"; give it an \`action\` to make one` };
       }
