@@ -1280,7 +1280,11 @@ export function blenderOutlinerAuthoringFor(
       // is the other end of the same seam `hierarchy.node` already normalizes.
       // An id that resolves to no row is DROPPED rather than stored: a row id
       // is this provider's whole currency and a foreign one is not a selection.
-      selected = ids.map(rowIdFor).filter((id): id is string => id !== null);
+      // The WRITE below still names a presented object that has no row yet.
+      // One row lookup per id: `rowIdForObject` scans the object rows, and a marquee over a
+      // large scene passes every object it covers.
+      const rowIds = ids.map(rowIdFor);
+      selected = rowIds.filter((id): id is string => id !== null);
       publishPresentation();
       // AND IT WRITES BLENDER'S (see {@link writeBlenderSelection}). The
       // subject is the OWNING OBJECT of each selected row, which is Blender's
@@ -1294,14 +1298,37 @@ export function blenderOutlinerAuthoringFor(
       // its object selection, and a person who clicked one and saw the
       // Properties rail keep the last object deserves the sentence.
       const table = rows();
+      const view = presented();
       const names: string[] = [];
       const ownerless: string[] = [];
-      for (const id of selected) {
-        const row = table.get(id);
-        const name = row?.object;
-        if (name === undefined) ownerless.push(row?.name ?? id);
+      const unnamed: string[] = [];
+      ids.forEach((id, index) => {
+        const rowId = rowIds[index]!;
+        if (rowId !== null) {
+          const row = table.get(rowId);
+          const name = row?.object;
+          if (name === undefined) ownerless.push(row?.name ?? rowId);
+          else if (!names.includes(name)) names.push(name);
+          return;
+        }
+        // A PRESENTED OBJECT PAST THE TREE'S PAGE IS STILL BLENDER'S. `rna_outliner`
+        // answers the first `_OUTLINER_PAGE` rows of every child list, so in a larger
+        // scene the viewport picks objects that have no row yet (Canyon Comet: 1,146 rows
+        // under its one collection, 64 answered, all six karts among the rest). The view
+        // names the object by identity; the tree read for the frame this write presents
+        // keeps the selection's rows (`page_tree`), and `syncFromEngine` takes the row up.
+        const object = threeObject(defaultAdapter.hierarchy, id);
+        const name = object === null ? null : (view?.blenderObjectName(object) ?? null);
+        if (name === null) unnamed.push(id);
         else if (!names.includes(name)) names.push(name);
-      }
+      });
+      // Said, not swallowed: a picked object the view can't name is a selection Blender never gets.
+      if (unnamed.length > 0)
+        editorHost().console.warn(
+          `No Blender object answers to ${unnamed.join(', ')}, so Blender's selection leaves ` +
+            `${unnamed.length === 1 ? 'it' : 'them'} out.`,
+          'blender-outliner',
+        );
       if (ownerless.length > 0)
         editorHost().console.warn(
           `${ownerless.join(', ')} ${ownerless.length === 1 ? 'is' : 'are'} not an object, so ` +
