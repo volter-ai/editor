@@ -60,7 +60,7 @@ import {
 import type { SessionJournalEvent } from './support/project/session-journal';
 import type { ChatRuntimeActivity, ChatTurnState } from './harness-chat-service';
 import type { ProjectComponentEntry } from '@volter/sdk/kit/asset-workflow/project-content';
-import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 import { EDITOR_DIR } from '@volter/sdk/session/tool-contribution-convention';
 import { canonicalProjectRoot } from './canonical-path';
 import type { AgentAuthorLease } from './collaboration-attribution';

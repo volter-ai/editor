@@ -190,6 +190,37 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
   });
 
   /**
+   * A prompt for the Chat's RUNNING turn, from `cyclotron chat send` while a turn runs: steered in
+   * by the same door the editor's own tripwire uses (`steerRunningTurn`), which reads the turn
+   * first and then uses the managed runtime's own steer.
+   * 409 with `state` 'idle' (no turn running: send it as a prompt), 'waiting' (the turn waits
+   * on the person) or 'unknown' (the turn could not be read; nothing was sent).
+   */
+  router.post('/__editor/harness-chat/steer', async (req: Request, res: Response) => {
+    if (!requireLocalOwner(req, res)) return;
+    if (!validControlSecret(req)) {
+      res.status(403).json({ error: 'Editor session control authorization required.' });
+      return;
+    }
+    const text = (req.body as { text?: unknown } | undefined)?.text;
+    if (typeof text !== 'string' || !text.trim()) {
+      res.status(400).json({ error: 'A prompt to steer is required.' });
+      return;
+    }
+    try {
+      const queued = await harnessChat.queuePersonPrompt(text);
+      if (queued === 'queued') res.json({ queued: true });
+      else res.status(409).json({
+        state: queued,
+        error: queued === 'waiting' ? 'The turn is waiting on an approval in the editor.'
+          : queued === 'unknown' ? "The Chat's turn could not be read; nothing was sent." : 'No turn is running.',
+      });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  /**
    * A delegated task, arriving from the editor that created this worktree
    * (`remoteHarnessIntent`). Owner-local, and gated on this session's control secret: the
    * delegating editor read it from the session registry, which only the owner's processes see.

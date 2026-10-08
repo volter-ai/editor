@@ -25,10 +25,8 @@ import ts from 'typescript';
 import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { resolveRelativeSpecifier } from '../resolve-relative-specifier';
 import type { StorageBackend } from '@volter/sdk/kit/storage-types';
-import {
-  ADAPTER_MODULE_FILENAME,
-  parseAdapterRegionIncludes,
-} from '../ui-source/adapter-region-includes';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
+import { parseAdapterRegionIncludes } from '../ui-source/adapter-region-includes';
 import type { ImportersOf, RegionBinding, RegionSurface } from '../ui-source/file-region-resolver';
 import { resolveFileRegion } from '../ui-source/file-region-resolver';
 import { componentContractAnalyzer } from '@volter/sdk/source-analysis';

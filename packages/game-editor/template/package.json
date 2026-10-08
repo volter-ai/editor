@@ -15,9 +15,9 @@
     "preview": "vite preview",
     "postinstall": "node scripts/patch-drei-stats-gl.mjs",
     "typecheck": "tsc --noEmit && tsc --noEmit -p tsconfig.tools.json && tsc --noEmit -p tsconfig.node.json && tsc --noEmit -p server/tsconfig.json",
-    "validate-manifest": "npx tsx validate-manifest.ts volter.project.json",
-    "check-idioms": "npx tsx check-idioms.ts .",
-    "server": "npx tsx --tsconfig server/tsconfig.json server/main.ts"
+    "validate-manifest": "tsx validate-manifest.ts volter.project.json",
+    "check-idioms": "tsx check-idioms.ts .",
+    "server": "tsx --tsconfig server/tsconfig.json server/main.ts"
   },
   "dependencies": {
     "@colyseus/schema": "^4.0.14",

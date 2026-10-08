@@ -103,7 +103,7 @@ The General MIDI SoundFont is a sketch palette. For the finished sound, VS Chamb
 Community Edition (CC0) builds into one bank per instrument, once per machine:
 
 ```bash
-npx tsx node_modules/@volter/editor-dawproject/scripts/vsco2-ce.ts   # fetches 1.8 GB of samples, builds 218 MB of banks
+npx --no-install tsx node_modules/@volter/editor-dawproject/scripts/vsco2-ce.ts   # fetches 1.8 GB of samples, builds 218 MB of banks
 ln -sfn ~/.volter/banks/vsco2-ce/vsco2 sounds/vsco2                   # never commit the banks
 ```
 
@@ -181,7 +181,7 @@ Literal `<Note>`s are WRITTEN: the person drags, adds, deletes and reshapes them
 Use code for material that follows a rule (a pad over the chord table), literals for what a
 person will shape (melodies, bass lines). When they want to shape generated material, the clip
 editor's Freeze writes it out, or run
-`npx tsx node_modules/@volter/editor-dawproject/scripts/freeze-clip.ts src/music/<piece>.tsx --track <name> --clip <n>`
+`npx --no-install tsx node_modules/@volter/editor-dawproject/scripts/freeze-clip.ts src/music/<piece>.tsx --track <name> --clip <n>`
 (`--scene <name>` instead of `--clip` for that track's launcher slot in a scene).
 
 Before rewriting a section, read what the person changed (`git diff`, `git log -p`): change
@@ -202,7 +202,7 @@ worth more than many that differ a little.
 
 After every stage, and fix what they report:
 
-- `npx tsx node_modules/@volter/editor-dawproject/scripts/check-piece.ts src/music/<piece>.tsx`:
+- `npx --no-install tsx node_modules/@volter/editor-dawproject/scripts/check-piece.ts src/music/<piece>.tsx`:
   the problems first (clip bounds, whole bars, instrument ranges, a note no sample of its bank
   plays, parallel fifths and octaves, re-struck notes, too many tracks for the channels, a send
   to no bus, a marker that makes no section, an equalizer band the mix skips), then the analysis:
@@ -216,7 +216,7 @@ After every stage, and fix what they report:
     repeat an earlier bar exactly or transposed, and the variety of its four-interval figures;
   - the share of its melodic figures each other piece in `src/music/` already uses: a new piece
     that shares much with another is saying the same thing again.
-- `npx tsx node_modules/@volter/editor-dawproject/scripts/view-piece.ts src/music/<piece>.tsx --bars 5-8`:
+- `npx --no-install tsx node_modules/@volter/editor-dawproject/scripts/view-piece.ts src/music/<piece>.tsx --bars 5-8`:
   every part beat by beat; read the voicing and the cadences you planned (`~` marks generated notes).
 
 Say what the numbers show; never claim how something sounds.
@@ -233,7 +233,7 @@ npm run --silent volter -- eval 'return await tools.run("project.music.render", 
 ```
 
 The answer's `data.report` is the render's `report.json`. For a draft you only want to measure,
-`npx tsx node_modules/@volter/editor-dawproject/scripts/render-piece.ts . src/music/theme.tsx --out out/theme`
+`npx --no-install tsx node_modules/@volter/editor-dawproject/scripts/render-piece.ts . src/music/theme.tsx --out out/theme`
 renders the same files outside `public/`, unrecorded.
 
 - The folder gets the whole piece as a seamless loop (`theme.ogg`; `theme.wav` carries a

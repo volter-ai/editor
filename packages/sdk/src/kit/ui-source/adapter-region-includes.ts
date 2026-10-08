@@ -69,9 +69,6 @@ const UNREADABLE_REGION_INCLUDES: AdapterRegionIncludes = {
   unreadable: true,
 };
 
-/** The game's adapter module lives beside `volter.project.json`, by contract. */
-export const ADAPTER_MODULE_FILENAME = 'editor/volter.adapter.ts';
-
 function stringLiteralOf(node: ts.Node | undefined): string | undefined {
   return node && ts.isStringLiteralLike(node) ? node.text : undefined;
 }

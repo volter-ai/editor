@@ -122,8 +122,7 @@ import {
   subscribeToolContributions,
 } from './tool-loader';
 
-/** The game's adapter module lives beside `volter.project.json`, by contract. */
-export const ADAPTER_MODULE_FILENAME = 'editor/volter.adapter.ts';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 
 /** The resolved scene table — the adapter's declarations plus what its own
  *  finder selections found. */

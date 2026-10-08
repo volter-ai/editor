@@ -27,6 +27,7 @@
  */
 
 import { type ChildProcess, spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { join } from 'node:path';
 import { workbenchProductId } from '@volter/sdk/session/product-locator';
@@ -192,9 +193,26 @@ export async function startFrameWorkbench(options: {
   // A win32 release's server bin is `code-server-oss.cmd`, which node will not spawn without a
   // shell (EINVAL) and which only runs the release's own node.exe on out/server-main.js — so
   // that pair is spawned directly, with no shell to quote the project path through.
+  // A win32 CHECKOUT's launcher is `scripts/code-server.sh`, which Windows cannot spawn (EFTYPE);
+  // what it runs in the end is node on `scripts/code-server.js` in development mode, so that is
+  // spawned here, on this node. The checkout's native modules were built for the fork's `.nvmrc`
+  // major, so another major is refused by name here rather than failing later inside the server.
+  const sourcesOnWindows = process.platform === 'win32' && workbench.kind === 'sources';
+  if (sourcesOnWindows) {
+    const wanted = readFileSync(join(workbench.cwd, '.nvmrc'), 'utf8').trim().replace(/^v/, '').split('.')[0];
+    const running = process.versions.node.split('.')[0];
+    if (wanted && wanted !== running) {
+      throw new Error(
+        `The fork checkout ${workbench.dir} is built for node ${wanted} (its .nvmrc), and this editor runs on ` +
+          `node ${running}. Start the editor on node ${wanted} to serve that checkout.`,
+      );
+    }
+  }
   const [command, entry]: [string, string[]] = process.platform === 'win32' && workbench.serverBin.endsWith('.cmd')
     ? [join(workbench.cwd, 'node.exe'), [join(workbench.cwd, 'out', 'server-main.js')]]
-    : [workbench.serverBin, []];
+    : sourcesOnWindows
+      ? [process.execPath, [join(workbench.cwd, 'scripts', 'code-server.js')]]
+      : [workbench.serverBin, []];
   const reh = spawn(
     command,
     [
@@ -213,7 +231,7 @@ export async function startFrameWorkbench(options: {
       // the server forks (its extension host) would open a visible window; see launch.ts.
       detached: process.platform !== 'win32',
       windowsHide: true,
-      env: { ...process.env, ...options.env },
+      env: { ...process.env, ...(sourcesOnWindows ? { NODE_ENV: 'development', VSCODE_DEV: '1' } : {}), ...options.env },
     },
   );
   let proxy: { close(): Promise<void> } | null = null;

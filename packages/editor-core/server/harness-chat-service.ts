@@ -44,6 +44,7 @@ import {
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { effectiveChat } from './harness-effective';
+import { sessionProduct } from './session-product';
 import { ChatSessionCatalog } from './chat-session-catalog';
 import { CHAT_SETUP_PROVIDERS, chatExecutable, chatProcessEnvironment, chatSetupActions, chatSetupAgents, signInPath } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
@@ -1125,24 +1126,47 @@ export class HarnessChatService {
    * harness refuses the steer, so the caller can record why.
    */
   async steerRunningTurn(text: string): Promise<boolean> {
+    return (await this.steerInto(text, true)) === 'queued';
+  }
+
+  /**
+   * A PERSON'S prompt for the running turn (`cyclotron chat send` while a turn runs): the same
+   * door, but not recorded as this service's own steer, so its echo and the turn it resumes are
+   * the person's (a new request resets the tripwire's per-turn allowance as any prompt does).
+   * Answers what happened: queued into the running turn, or why not ('idle' when no turn runs,
+   * so the caller sends it as an ordinary prompt; 'waiting' when the turn waits on the person;
+   * 'unknown' when the turn's state could not be read, or a turn ended while it was read and
+   * another may have begun: then nothing is sent, because a turn may be running).
+   */
+  async queuePersonPrompt(text: string): Promise<'queued' | 'idle' | 'waiting' | 'unknown'> {
+    return this.steerInto(text, false);
+  }
+
+  private async steerInto(text: string, own: boolean): Promise<'queued' | 'idle' | 'waiting' | 'unknown'> {
     const generation = this.runtimeTurnGeneration;
-    if ((await this.chatTurnState()) !== 'running') return false;
+    const state = await this.chatTurnState();
+    if (state !== 'running') return state === 'waiting' || state === 'unknown' ? state : 'idle';
     // Re-checked AFTER the await, immediately before the steer: a turn that
     // ended while its state was being read must not be steered, because a
     // steer into an idle runtime can START a turn nobody asked for.
     // The open/closed bit gates only a runtime that reports turn starts; one
     // that never does (Claude Code's native stream) falls back to the
     // descriptor's `turn_state` busy, read just above.
-    if (generation !== this.runtimeTurnGeneration) return false;
-    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return false;
-    this.lastSteer = { text, at: Date.now() };
+    if (generation !== this.runtimeTurnGeneration) return 'unknown';
+    // The descriptor said running and the runtime's own turn bit says closed: the two disagree, so
+    // it is not a clean reading of idle either.
+    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return 'unknown';
+    if (own) this.lastSteer = { text, at: Date.now() };
     const runtime = this.managedRuntime;
     if (runtime && !runtime.closed) {
       await runtime.steer(text);
-      return true;
+      return 'queued';
     }
+    // NO MANAGED RUNTIME (a conversation this service did not start): the harness host's own
+    // steer is the only door, and for a Claude Code turn whose start it never saw it refuses
+    // ("There is no active turn to steer"); that refusal is thrown to the caller as is.
     await this.actIntent({ action: 'steer', text });
-    return true;
+    return 'queued';
   }
 
   /** Dispatch the package-owned messenger intent without translating it into
@@ -1478,7 +1502,22 @@ export class HarnessChatService {
     this.capture();
     const entry = this.chatCatalog.sessions.get(id);
     const session = this.lastSnapshot.sessions.find(s => s.nativeId === nativeId && s.harness === entry?.selection.harness && s.cwd && resolve(s.cwd) === resolve(this.options.getProjectRoot()));
-    if (!entry || !session) throw new Error('The harness has not persisted this conversation yet.');
+    if (!entry) throw new Error('This chat is no longer in the editor\'s list of conversations, so it could not be linked. Start a new chat.');
+    // What the host knows here is only that the harness's list has no session with this id, harness and folder. It does
+    // not see the message, so it says nothing about the message's fate. A new conversation is listed once its first
+    // message has run, so a Chat that links before sending can never be matched (0.5.199 to 0.5.203's workbench Chat
+    // did); the folder spelling (a link, a junction, a drive letter's case) and a list read just before the harness saved
+    // the session are other ways to miss.
+    if (!session) {
+      const product = sessionProduct(this.options.getProjectRoot());
+      throw new Error(
+        `This chat could not be linked to its ${entry.selection.harness} conversation: the harness lists no session ` +
+          `${nativeId} for this project's folder. It may not be saved yet (a new conversation is saved once its first ` +
+          'message has run) or may be listed under another spelling of the folder. If no reply has appeared, check the ' +
+          "conversation before sending again. If a new chat's first message gets this every time, the Chat may link a " +
+          `conversation before sending it: update the editor${product ? ` (npx --no-install ${product.command} upgrade)` : ''}.`,
+      );
+    }
     // A saved identity the harness no longer lists (an earlier runtime home's; see openChat) binds nothing: the chat
     // takes the conversation it now has instead of refusing every New Chat that lands on it.
     if (entry.identity && entry.identity !== session.identity && this.lastSnapshot.sessions.some(s => s.identity === entry.identity)) {

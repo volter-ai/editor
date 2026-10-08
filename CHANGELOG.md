@@ -5,6 +5,52 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.204 — Chat starts a new conversation again
+
+From `@volter/cyclotron` 0.5.199 to 0.5.203, the editor Chat refused the first message of a new
+conversation with "The harness has not persisted this conversation yet." and no turn ran; a conversation
+already under way kept working. The Chat frontend those releases' workbench bundles
+(`supercode-frontend-vscode` 0.1.52) asks the editor to link a new conversation before its first message
+is sent, and the editor refuses to link a conversation the harness has not saved yet. 0.5.204 pins the
+workbench back to the cut with 0.1.51 (`cyclotron-f16dc165c0df-2d5aeb1b4cd7`), where a first message runs.
+What that gives up until a fixed frontend is pinned: the Chat no longer restores a running prompt and a
+pending approval after a page reload. The boot splash is the same in both.
+
+The first `cyclotron` after upgrading installs that workbench unless this machine already has it.
+
+When the editor cannot link a chat to the harness's conversation, its message now says what it found (no
+listed session with that id for the project's folder) and the likely reasons, in place of the sentence above.
+The repository also pins the Chat frontend back to 0.1.51, so a workbench cut from it bundles the Chat
+0.5.204 ships.
+
+`upgrade` now takes a project made before 0.5.203 the whole way: the kit packages 0.5.203 renamed
+(`@volter/editor-project`, `editor-sdk`, `editor-live` and `editor-model-play` become `@volter/project`, `sdk`,
+`live` and `play`) move in package.json and in the project's own imports, and what 0.5.203 moved into
+`editor/` moves there: a root `volter.adapter.ts`, and `src/contributions` and `src/tools` (with their
+`volter.tools` registrations), each file's relative imports rebased. The files that name those places follow
+them: the project's instructions (`AGENTS.md`, `IDIOMS.md`, the agent skills), its TypeScript configs and the
+game editor's catalog records. A file whose destination already exists stays and is named. Run it with the new
+release's command, since a project's own older command does not know the new names, in the project folder:
+`npx @volter/cyclotron@latest upgrade`, then `npm install`; or `npx @volter/game-editor@latest upgrade`,
+which also links the game to the new release's runtime image.
+Opening a project that still has its adapter at the root says to run that, not to make a new project.
+
+## 0.5.203 — the starter's commands never fetch
+
+From `@volter/game-editor` 0.5.203, the starter a new game is made from prints
+`npx --no-install volter-game-editor …` and `npx --no-install tsx …` (in `AGENTS.md`, `IDIOMS.md` and the
+agent skills), and its npm scripts call `tsx` by name. Inside the project these run the project's own
+installed copy, as before; where it is missing they stop with an error instead of fetching whatever holds
+the name on npm.
+`volter-game-editor` is a bin of `@volter/game-editor`, not a package of its own, so a plain
+`npx volter-game-editor` outside an installed project would fetch a stranger's package. Projects made
+from an earlier starter keep the old lines; change `npx volter-game-editor` to
+`npx --no-install volter-game-editor` in them.
+
+The same holds for what `upgrade` prints when an editor still refuses a project: open it with
+`npx --no-install <command> edit .` in the project. A bare `npx cyclotron` outside the project would fetch
+an unrelated package that holds that name on npm.
+
 ## 0.5.190 — the editor serves from its own host
 
 From `@volter/model-editor` and `@volter/game-editor` 0.5.190, and in every `@volter/cyclotron`

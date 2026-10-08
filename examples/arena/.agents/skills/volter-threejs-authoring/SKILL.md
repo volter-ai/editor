@@ -322,9 +322,7 @@ is `volter-game-editor screenshot`, and the module lane is the asset loop:
 > run from the checkout root; it boots and tears down its own server. Point
 > it at your own builder with `capture.mjs file --module
 > /<repo-relative-path>.ts --export <fn>`, add `--zooms full,top,detail`
-> (detail takes `--focus x,y,z`) for close-ups, and `npx biome check --write
-> <your-file>.ts` before finishing, since unformatted engine files block the
-> repo's lint for everyone.
+> (detail takes `--focus x,y,z`) for close-ups.
 
 ## Run the refinement loop
 

@@ -207,6 +207,7 @@ def _load_post(_arg):
     # The DOOR resets its own revision table on LOAD_POST (it holds ID pointers
     # into the Main that just went away); this is the session's half.
     SESSION.forget()
+    SESSION.loaded()
     # Factory reset reloads add-ons. Preserve native Cycles and re-register
     # only the headless GPU presenters we own.
     ENGINES[:], UNAVAILABLE_ENGINES[:] = _register_engine()
@@ -1589,6 +1590,13 @@ class Session:
         # The OUTSIDE-THE-PROJECT file Blender was last found holding, once said
         # (`follow_open_file`): the refusal is told once per file, not per call.
         self._outside_file = None
+        # BLENDER HOLDS ANOTHER FILE'S MODEL (`loaded`): a load that was not the session's own
+        # open of its document -- `read_homefile`, `read_factory_settings`, `open_mainfile` of
+        # some other file. Until Blender holds the document again, or a project file the session
+        # follows, the model in memory is not the document's and is never saved over it.
+        self._foreign = False
+        self._foreign_said = False
+        self._binding = False
         # WHAT THE PRESENTER LAST REPORTED HOLDING, as an instrument: the
         # `(session, revision)` it held BEFORE the last frame, None when it
         # held nothing, and the string "unreported" for a presenter that does
@@ -1725,6 +1733,16 @@ class Session:
                     "metallic": float(material.metallic),
                 }
         graph = depsgraph if depsgraph is not None else bpy.context.evaluated_depsgraph_get()
+        # ONE NAME, TWO OBJECTS: Blender tells a linked object from a local one (or from another
+        # file's) by its library as well as its name; the presenter knows them by name alone and
+        # refuses the frame. Say which object and which files, so the clash can be renamed.
+        names = [row["name"] for row in frame["objects"]]
+        if len(set(names)) != len(names):
+            for name in sorted({n for n in names if names.count(n) > 1}):
+                files = [o.library.filepath if o.library is not None else "this file"
+                         for o in bpy.data.objects if o.name == name]
+                warn("%r is the name of objects from %s; the editor needs one object per name, "
+                     "so rename one (in its own file when it is linked)" % (name, ", ".join(files)))
         frame["instances"] = _depsgraph_placements(frame, graph)
         frame["world"] = draw_world(scene)
         frame["cameras"] = {
@@ -2127,6 +2145,8 @@ class Session:
         """
         self.document_relative = relative_path
         self.document = os.path.join(self.project, relative_path)
+        self._foreign = False
+        self._foreign_said = False
         if not os.path.exists(self.document):
             return {"document": relative_path, "opened": False}
         _asked({"checkpoint": "document-open"})
@@ -2134,9 +2154,15 @@ class Session:
         checkpointed_read = hasattr(_blender_web, "set_read_checkpoint")
         if checkpointed_read:
             _blender_web.set_read_checkpoint(lambda: _asked({"checkpoint": "file-read"}))
+        self._binding = True
         try:
             bpy.ops.wm.open_mainfile(filepath=self.document)
+        except BaseException:
+            # The document was not read, so what Blender holds is not its model.
+            self._foreign = True
+            raise
         finally:
+            self._binding = False
             if checkpointed_read:
                 _blender_web.set_read_checkpoint(None)
         _mark("open:after")
@@ -2155,6 +2181,18 @@ class Session:
         return {"document": relative_path, "opened": True,
                 "objects": len(bpy.data.objects),
                 "size": size}
+
+    def loaded(self):
+        """A FILE WAS LOADED (`_load_post`). The session's own open of its document is the one
+        load that leaves the document's model in memory; any other replaces it with another
+        file's (`read_homefile` is Blender's File > New), and the session used to save that over
+        the document: a script that ran `read_homefile` on its own, meaning to Save As a new
+        piece next, emptied the open level on disk. MEASURED 2026-10-08 in the editor's Blender:
+        a document with four objects was saved with none."""
+        if self._binding:
+            return
+        self._foreign = True
+        self._foreign_said = False
 
     def mark_changed(self):
         """A request that can change the model ran: the next present carries
@@ -2190,11 +2228,14 @@ class Session:
         holds a file outside the project: the editor has no document there, so
         the session keeps its own and keeps saving to it.
         """
-        if self.document is None or not bpy.data.filepath:
+        if self.document is None:
             return None
+        if not bpy.data.filepath:
+            return self._not_saving("a new, untitled file")
         current = os.path.normpath(os.path.abspath(bpy.data.filepath))
         if current == os.path.normpath(self.document):
             self._outside_file = None
+            self._foreign = False
             return None
         root = os.path.normpath(self.project)
         relative = current[len(root) + 1:] if current.startswith(root + "/") else None
@@ -2205,14 +2246,29 @@ class Session:
             self.document = current
             self.document_relative = relative
             self._outside_file = None
+            self._foreign = False
             # The file Blender wrote sits only in the engine's filesystem until the
             # session's own save carries it to the project.
             self.save_due = True
             return {"moved": True, "from": previous, "document": relative}
+        if self._foreign:
+            return self._not_saving(current)
         if current == self._outside_file:
             return None
         self._outside_file = current
         return {"moved": False, "from": self.document_relative, "outside": current}
+
+    def _not_saving(self, holds):
+        """The answer, once per load, that the document is no longer being saved."""
+        if not self._foreign or self._foreign_said:
+            return None
+        self._foreign_said = True
+        return {"moved": False, "from": self.document_relative, "notSaving": True,
+                "note": "Blender now holds %s, not %s's model, so %s is no longer saved: "
+                        "save_as_mainfile(filepath=<project>/src/models/<name>.blend) makes this a "
+                        "document of its own, and opening %s again in the editor returns to it"
+                        % (holds, self.document_relative, self.document_relative,
+                           self.document_relative)}
 
     def save_document(self):
         """Write the document -- Blender's own format, by Blender's own operator.
@@ -2306,6 +2362,10 @@ class Session:
         self.save_due = False
         if self.document is None:
             return {"saved": False, "reason": "no-document"}
+        if self._foreign:
+            # Not the document's model (`loaded`): writing it would replace the file with another.
+            return {"saved": False, "reason": "not-the-document", "document": self.document_relative,
+                    "holds": bpy.data.filepath or "a new, untitled file"}
         # `bpy.data.is_dirty` IS NOT A PREDICATE HERE, and this is the measurement
         # rather than a preference. Before native undo initialization it stayed
         # False even after a script built fourteen objects; with explicit undo
@@ -5121,6 +5181,11 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
                 header["reason"] = ("%r has %d object slots and none named for %r; the first, %r, is played."
                                     % (action.name, len(slots), arm_obj.name, getattr(slot, "identifier", "?")))
     curves, shape = _action_channelbag(action, getattr(slot, "handle", None))
+    # HOW MANY OBJECT SLOTS THE ACTION HAS: with one (or a legacy action, none) every armature
+    # reads the same curves, so a reader may share the clip across armatures with the same bones;
+    # with several, which one plays depends on the armature, so it may not.
+    header["objectSlots"] = len([one for one in getattr(action, "slots", ())
+                                 if getattr(one, "target_id_type", "OBJECT") == "OBJECT"])
     header.update({
         "action": action.name,
         "slot": getattr(slot, "name_display", None),

@@ -39,13 +39,16 @@
  *    `*.utility.tsx`, the Profiler, State Watch…).
  *  - `menubar` — the application menus (Edit, View, Window…) and the menus
  *    their triggers open: the one place a person chooses Edit › Undo.
+ *  - `area` — the workspace's areas beside the centre document (the Model
+ *    workspace's bottom area: the Timeline, the Action Editor, the NLA editor,
+ *    the Game panel), each a document of its own that the workspace opened.
  *
- * `rail`, `outliner`, `content`, `utility` and `menubar` are EDITOR CHROME and do not belong to the active
+ * `rail`, `outliner`, `content`, `utility`, `menubar` and `area` are EDITOR CHROME and do not belong to the active
  * document, so they stay reachable while the Game document is active — the
  * Game refusal is about driving a game through synthetic gestures, and reading
  * the panel that reports its selection is not that.
  */
-export type DocumentProbeScope = 'document' | 'header' | 'shelf' | 'rail' | 'outliner' | 'content' | 'utility' | 'menubar';
+export type DocumentProbeScope = 'document' | 'header' | 'shelf' | 'rail' | 'outliner' | 'content' | 'utility' | 'menubar' | 'area';
 
 /** Keep an explicit key hold within the SDK's bounded command deadline. */
 export const MAX_DOCUMENT_KEY_HOLD_MS = 120_000;

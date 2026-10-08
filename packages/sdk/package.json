@@ -2,7 +2,7 @@
   "name": "@volter/sdk",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
-  "version": "0.5.202",
+  "version": "0.5.204",
   "publishConfig": {
     "access": "public"
   },
@@ -77,6 +77,7 @@
     "./kit/mount-failure-report": "./src/kit/mount-failure-report.ts",
     "./kit/module-fetch-diagnosis": "./src/kit/module-fetch-diagnosis.ts",
     "./kit/product-command": "./src/kit/product-command.ts",
+    "./kit/adapter-module": "./src/kit/adapter-module.ts",
     "./kit/stories-scope": "./src/kit/stories-scope.ts",
     "./kit/story-document-openers": "./src/kit/story-document-openers.ts",
     "./kit/transient-hint": "./src/kit/transient-hint.ts",
@@ -486,7 +487,7 @@
     "@fortawesome/react-fontawesome": "^3.2.0",
     "@storybook/react": "10.6.0",
     "@types/node": "^22.0.0",
-    "@volter/project": "0.5.202",
+    "@volter/project": "0.5.204",
     "mediabunny": "1.56.2",
     "postcss": "8.5.28",
     "rrweb": "2.1.6",

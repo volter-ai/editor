@@ -178,7 +178,7 @@ function npmVersion(): string {
   // This one failed SILENTLY — the status check below turns ENOENT into the
   // string 'unknown', so on Windows the cache key was a constant, not a
   // version, and nothing ever said so.
-  const r = spawnSync('npm', ['--version'], { windowsHide: true, encoding: 'utf8', shell: true });
+  const r = spawnSync('npm --version', { windowsHide: true, encoding: 'utf8', shell: true });
   return r.status === 0 ? (r.stdout ?? '').trim() : 'unknown';
 }
 

@@ -245,15 +245,15 @@ before proceeding. Self-reports ("the topology is correct", "tests pass")
 are not visual evidence; only a render is.
 
 **Everything below happens inside YOUR project directory.** The one command
-is `npx volter-game-editor screenshot`, and the module lane is the asset loop:
+is `npx --no-install volter-game-editor screenshot`, and the module lane is the asset loop:
 
-1. Look at a builder: `npx volter-game-editor screenshot src/models/<thing>.ts` runs that
+1. Look at a builder: `npx --no-install volter-game-editor screenshot src/models/<thing>.ts` runs that
    module's default export headlessly in Node, exports the `Object3D` it
    returns to an in-memory GLB, and photographs it in your live editor
    session. `--export <fn>` picks a non-default export. Nothing is written
    under `public/` and no provenance record is created — a look is not an
-   export. (It needs a live session for this project: `npx volter-game-editor edit .`.)
-2. Look at a baked file: `npx volter-game-editor screenshot <path.glb>` — front/right/top/
+   export. (It needs a live session for this project: `npx --no-install volter-game-editor edit .`.)
+2. Look at a baked file: `npx --no-install volter-game-editor screenshot <path.glb>` — front/right/top/
    3-quarter plus a contact sheet, through the Asset Lab.
 3. Ask for canonical angles rather than ad-hoc ones: `--shots <set>`
    resolves the registered `project.<set>.previewShots` tool, and a lib that
@@ -267,7 +267,7 @@ is `npx volter-game-editor screenshot`, and the module lane is the asset loop:
    the camera. The corollary is a real blind spot: an asset lane auto-frames
    its subject, so it can NEVER show you a wrong origin, a floating contact
    plane, or a scale that disagrees with the world. Only a scene shot can —
-   `npx volter-game-editor screenshot` with no target (play mode, whole stack) or `volter-game-editor
+   `npx --no-install volter-game-editor screenshot` with no target (play mode, whole stack) or `volter-game-editor
    screenshot <entityId>` (one entity where it stands, under the scene's own
    lighting).
 
@@ -277,9 +277,7 @@ is `npx volter-game-editor screenshot`, and the module lane is the asset loop:
 > run from the checkout root; it boots and tears down its own server. Point
 > it at your own builder with `capture.mjs file --module
 > /<repo-relative-path>.ts --export <fn>`, add `--zooms full,top,detail`
-> (detail takes `--focus x,y,z`) for close-ups, and `npx biome check --write
-> <your-file>.ts` before finishing, since unformatted engine files block the
-> repo's lint for everyone.
+> (detail takes `--focus x,y,z`) for close-ups.
 
 ## Run the refinement loop
 

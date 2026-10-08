@@ -1,6 +1,6 @@
 /**
  * The entry both of this project's run configurations start:
- * `npx tsx scripts/play-perspective.ts first|third`.
+ * `npx --no-install tsx scripts/play-perspective.ts first|third`.
  *
  * ── Why a script and not a manifest field ─────────────────────────────────
  * MEASURED before it was written (2026-09-20). A run configuration is one of
@@ -50,7 +50,7 @@ function requestedPerspective(): Perspective {
   throw new Error(
     `play-perspective: expected one of ${PERSPECTIVES.map((p) => `'${p}'`).join(', ')}, ` +
       `got ${argument === undefined ? 'no argument' : JSON.stringify(argument)}. ` +
-      'Usage: npx tsx scripts/play-perspective.ts first|third',
+      'Usage: npx --no-install tsx scripts/play-perspective.ts first|third',
   );
 }
 

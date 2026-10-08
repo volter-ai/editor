@@ -20,7 +20,9 @@
  * The file's own NLA strips play on the game's clock as scene frames, looping the scene's range as
  * Blender's own playback does. Every
  * clip is baked once per action, the first time it is wanted; until the clips a pose needs are
- * baked, the armature keeps the pose it has.
+ * baked, the armature keeps the pose it has. The clips each character STARTS on are baked before
+ * the game starts (`prepare`), and a bake that could not be read is tried again, so a slow or
+ * failed read at Play's start does not leave a character frozen for the run.
  *
  * THE GAME'S CLOCK DRIVES IT: the runner advances it by each update's `dt`
  * (`@volter/play`'s `play-script.ts`), so pause, step, speed and Restart hold for
@@ -74,6 +76,22 @@ export interface PlayAnimation {
   track(object: THREE.Object3D, name: string, options: PlayTrackOptions | null): Answer;
   constraint(object: THREE.Object3D, bone: string, name: string, options: PlayConstraintOptions): Answer;
   update(dt: number): void;
+  /**
+   * THE LOADING PHASE: bakes every clip a character starts on (its assigned action and its NLA
+   * strips' actions) before the game's first update, so no character stands frozen while Blender
+   * answers. Resolves with what could not be loaded; clips the game asks for later still bake on
+   * first use.
+   */
+  prepare(): Promise<{ readonly failed: readonly string[] }>;
+  /** The starting clips `prepare` is still waiting on Blender for, as `armature / action`. */
+  pending(): readonly string[];
+  /**
+   * THE CLIP LIBRARY, read in the background once the game runs: every action on each armature's
+   * NLA strips, muted tracks included (a game's clip library), most-shared first, one read at a
+   * time and only while no other read is waiting, so a clip the game asks for waits behind at most
+   * one. Without it the first switch to a library clip stood the character still for a read.
+   */
+  prefetch(): void;
   /** What each character is playing now, bottom layer first: the animation editors' live view. */
   live(): readonly LiveArmature[];
   /** The frames an action keys, per bone, for one armature (empty until it was baked). */
@@ -141,17 +159,88 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     armature.failed.set(action, why);
     warnings.push(`${armature.rig.armature} / ${action}: ${why}`);
   };
+  /** Reads that failed (Blender busy, the call refused) per clip: tried again up to this many times. */
+  const READ_ATTEMPTS = 3;
+  const attempts = new Map<string, number>();
+  const baking = new Map<string, Promise<void>>();
+  /**
+   * ONE BAKE PER ACTION AND SKELETON. A bake depends on the action, the armature's bones and the
+   * action slot Blender picks for it (`rna_action_clip`), never on the armature otherwise; each
+   * read holds the Blender worker for about 1.5 s. Read per armature, fifteen enemies placed from
+   * one piece baked the same clip fifteen times, and an action the game switched one to waited
+   * behind all of them: measured on Heck Plungers, half the characters still unposed 20 s in with
+   * Blender idle. So armatures with the same bones share a read when the action has at most one
+   * object slot (`objectSlots`, from Blender): with several, which slot plays depends on the
+   * armature, and each armature reads its own.
+   */
+  const shared = new Map<string, Promise<BlenderActionClip | null>>();
+  /** A clip whose slot Blender picked for its armature among several: never another armature's answer. */
+  const ownSlot = (clip: BlenderActionClip | null): boolean => !!clip && (clip.objectSlots ?? 2) > 1;
+  const readClip = (armature: Armature, action: string): Promise<BlenderActionClip | null> => {
+    const name = armature.rig.armature;
+    const skeleton = armature.facts.bones.map((bone) => bone.name).sort().join('\u0001');
+    const key = `${action}\u0000${skeleton}`;
+    const known = shared.get(key);
+    if (known) return known.then((clip) => (ownSlot(clip) && clip!.armature !== name ? bake(name, action) : clip));
+    const read = bake(name, action).then((clip) => {
+      if (ownSlot(clip)) shared.delete(key);
+      return clip;
+    }, (error: unknown) => {
+      shared.delete(key);
+      throw error;
+    });
+    shared.set(key, read);
+    return read;
+  };
   const clipOf = (armature: Armature, action: string): PoseClip | null | undefined => {
     if (armature.clips.has(action)) return armature.clips.get(action);
-    armature.clips.set(action, undefined);
-    void bake(armature.rig.armature, action).then((baked) => {
-      const clip = baked ? poseClip(baked) : null;
-      for (const thing of clip?.unsupported ?? []) warnings.push(`${armature.rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
-      if (clip) armature.clips.set(action, clip);
-      else fail(armature, action, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
-    }, (error: unknown) => fail(armature, action, `it could not be read: ${error instanceof Error ? error.message : String(error)}`));
+    void bakeClip(armature, action);
     return undefined;
   };
+  const bakeClip = (armature: Armature, action: string): Promise<void> => {
+    const key = `${armature.rig.armature}\u0000${action}`;
+    const running = baking.get(key);
+    if (running) return running;
+    if (armature.clips.has(action) && armature.clips.get(action) !== undefined) return Promise.resolve();
+    armature.clips.set(action, undefined);
+    const done = readClip(armature, action).then((baked) => {
+      // A clip that cannot be posed is that clip's failure, named like the others; it never
+      // rejects the bake, so the loading phase that awaits it always settles.
+      try {
+        const clip = baked ? poseClip(baked) : null;
+        for (const thing of clip?.unsupported ?? []) warnings.push(`${armature.rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
+        if (clip) armature.clips.set(action, clip);
+        else fail(armature, action, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
+      } catch (error) {
+        fail(armature, action, `it could not be posed: ${error instanceof Error ? error.message : String(error)}`);
+      }
+    }, (error: unknown) => {
+      const tried = (attempts.get(key) ?? 0) + 1;
+      attempts.set(key, tried);
+      const why = `it could not be read: ${error instanceof Error ? error.message : String(error)}`;
+      // A READ THAT FAILED is not the clip's answer: the next pose asks again, up to READ_ATTEMPTS.
+      if (tried < READ_ATTEMPTS && !disposed) armature.clips.delete(action);
+      else fail(armature, action, why);
+    }).finally(() => baking.delete(key));
+    baking.set(key, done);
+    return done;
+  };
+
+  /**
+   * Each armature's assigned action and the strips' actions of the NLA tracks it plays (enabled as
+   * `layersOf` reads them: NLA on, under a solo only the soloed track, else the unmuted ones): the
+   * clips it starts on. A muted track's strips are a clip library, baked when the game asks.
+   */
+  const startingClips = (): { armature: Armature; action: string }[] => [...armatures.values()].flatMap((armature) => {
+    const names = new Set<string>();
+    if (armature.facts.action) names.add(armature.facts.action);
+    const animation = armature.facts.animation;
+    const solo = animation?.tracks.some((track) => track.solo) ?? false;
+    for (const track of animation && animation.useNla ? animation.tracks : [])
+      if (solo ? track.solo : !track.mute)
+        for (const strip of track.strips) if (strip.action) names.add(strip.action);
+    return [...names].filter((name) => name in facts.actions).map((action) => ({ armature, action }));
+  });
 
   for (const rig of view.skeletons.rigs()) {
     const entry = facts.armatures[rig.armature];
@@ -330,6 +419,43 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       const key = `${bone}\u0000${name}`;
       armature.constraints.set(key, { ...armature.constraints.get(key), ...options });
       return ok(armature);
+    },
+    async prepare() {
+      const wanted = startingClips();
+      for (let round = 0; round < READ_ATTEMPTS && !disposed; round += 1) {
+        const open = wanted.filter(({ armature, action }) => armature.clips.get(action) === undefined);
+        if (open.length === 0) break;
+        await Promise.all(open.map(({ armature, action }) => bakeClip(armature, action)));
+      }
+      const failed = wanted
+        .filter(({ armature, action }) => armature.clips.get(action) == null && armature.failed.has(action) && !/animates none/.test(armature.failed.get(action) ?? ''))
+        .map(({ armature, action }) => `${armature.rig.armature} / ${action}: ${armature.failed.get(action)}`);
+      return { failed };
+    },
+    prefetch() {
+      const users = new Map<string, Armature[]>();
+      for (const armature of armatures.values()) {
+        const names = new Set<string>();
+        if (armature.facts.action) names.add(armature.facts.action);
+        for (const track of armature.facts.animation?.tracks ?? [])
+          for (const strip of track.strips) if (strip.action) names.add(strip.action);
+        for (const action of names) if (action in facts.actions) users.set(action, [...(users.get(action) ?? []), armature]);
+      }
+      const queue = [...users].sort((a, b) => b[1].length - a[1].length)
+        .flatMap(([action, list]) => list.map((armature) => ({ armature, action })));
+      void (async () => {
+        while (!disposed) {
+          if (baking.size > 0) { await Promise.allSettled([...baking.values()]); continue; }
+          const next = queue.find(({ armature, action }) => !armature.clips.has(action));
+          if (!next) return;
+          await bakeClip(next.armature, next.action);
+        }
+      })();
+    },
+    pending() {
+      return startingClips()
+        .filter(({ armature, action }) => armature.clips.get(action) === undefined && !armature.failed.has(action))
+        .map(({ armature, action }) => `${armature.rig.armature} / ${action}`);
     },
     update(dt) {
       if (disposed) return;

@@ -9,8 +9,8 @@ for `volter-3d-models` (bpy through the Blender MCP).
 
 **Add a capability before you look for its source.** Everything under
 `src/lib/` below is a CAPABILITY, not scaffold contents — a fresh project has
-no `src/lib/` directory at all. Run `npx volter-game-editor add <id>` to copy the source in as
-ordinary project files you own and edit; bare `npx volter-game-editor add` lists every
+no `src/lib/` directory at all. Run `npx --no-install volter-game-editor add <id>` to copy the source in as
+ordinary project files you own and edit; bare `npx --no-install volter-game-editor add` lists every
 capability and marks what is already present.
 
 
