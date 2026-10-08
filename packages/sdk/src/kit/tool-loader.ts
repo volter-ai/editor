@@ -1910,8 +1910,9 @@ function teachingNote(message: string): void {
 }
 
 if (hot) {
-  hot.on('volter:script-update', (data: { file: string }) => {
-    if (!isEditorLanePath(data.file)) return;
+  // `path` is the file's place in the project; `file` is its absolute path.
+  hot.on('volter:script-update', (data: { file: string; path: string }) => {
+    if (!isEditorLanePath(data.path)) return;
     void refreshProjectToolContributions();
   });
 }

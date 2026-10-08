@@ -49,6 +49,8 @@ import {
 import { sessionCreatePresets } from '../product-presets';
 import { readProjectView } from '../project-view';
 import { escapeAppleScriptString } from '../server-utils';
+import { assertProjectAdapter } from '../project-adapter-required';
+import { sessionProduct } from '../session-product';
 import type { RouteContext } from './context';
 
 export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: RouteContext): void {
@@ -363,6 +365,7 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
       const compatibility = compatibilityIdentity();
       assertEditorCompatibility(compatibility);
       assertProjectCompatibility(config, compatibility);
+      assertProjectAdapter(absPath, sessionProduct(absPath));
     } catch (error) {
       if (error instanceof ProjectCompatibilityError) {
         res.status(409).json({ error: error.message, recovery: error.recovery });

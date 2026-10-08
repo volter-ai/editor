@@ -952,7 +952,7 @@ function checkDeterminismRng(): void {
 
 function checkUnconfiguredProjectTools(): void {
   const sentinel = /\bVOLTER_STUB_UNIMPLEMENTED\b/g;
-  const toolFiles = srcFiles.filter((file) => /^(src\/tools|src\/contributions)\//.test(relPath(file)));
+  const toolFiles = codeFiles.filter((file) => /^editor\/(tools|contributions)\//.test(relPath(file)));
   for (const file of toolFiles) {
     const { rawLines, blanked } = readFileText(file);
     for (const match of blanked.matchAll(sentinel)) {

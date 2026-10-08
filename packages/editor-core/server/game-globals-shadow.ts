@@ -72,8 +72,14 @@ export function ingestGameShadowRoots(editorSrcRoot: string): string[] {
  * accident of their path.
  */
 export function isShadowableModulePath(file: string): boolean {
-  if (file.includes('/node_modules/') || isEditorLanePath(file)) return false;
+  if (file.includes('/node_modules/')) return false;
   return /\.(ts|tsx|js|jsx)$/.test(file) && file.includes('/src/');
+}
+
+/** Whether `file`, which is inside `root`, is in that project's editor lane (`editor/tools/`,
+ *  `editor/contributions/`): tooling, never game code or game CSS. */
+function inEditorLaneOf(root: string, file: string): boolean {
+  return isEditorLanePath(path.relative(path.resolve(root), path.resolve(file)));
 }
 
 /**
@@ -86,14 +92,14 @@ export function shouldShadowGameGlobals(file: string, roots: Iterable<string>): 
   // Containment, not a string prefix: a bare `startsWith` shadows every module
   // of the SIBLING project `<root>-old/src/…` as if it belonged to `<root>`.
   for (const root of roots) {
-    if (isPathInside(root, file)) return true;
+    if (isPathInside(root, file)) return !inEditorLaneOf(root, file);
   }
   return false;
 }
 
 /** A project (or ingest-fixture) stylesheet, not a dependency. */
 export function isGameCssPath(file: string): boolean {
-  return file.endsWith('.css') && !file.includes('/node_modules/') && !isEditorLanePath(file);
+  return file.endsWith('.css') && !file.includes('/node_modules/');
 }
 
 /**
@@ -107,7 +113,7 @@ export function isGameCssPath(file: string): boolean {
 export function shouldScopeGameCss(file: string, roots: Iterable<string>): boolean {
   if (!isGameCssPath(file)) return false;
   for (const root of roots) {
-    if (isPathInside(root, file)) return true;
+    if (isPathInside(root, file)) return !inEditorLaneOf(root, file);
   }
   return false;
 }

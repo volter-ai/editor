@@ -347,6 +347,11 @@ export function recordReactBoundary(file: string, source: string): void {
   if (/\.[jt]sx$/.test(file)) lastSeenBoundary.set(file, reactRefreshBoundaryExports(source));
 }
 
+/** A file's place in its project, with forward slashes: what a page compares to project paths. */
+function projectRelativePath(projectRoot: string, file: string): string {
+  return relative(projectRoot, file).replaceAll('\\', '/');
+}
+
 /**
  * Record this source's boundary status and downgrade a `react` classification
  * to `restart` unless BOTH the previous and the incoming source are Fast
@@ -516,6 +521,7 @@ function handleProjectFileAppearance(
     event: kind === 'tool' ? 'volter:script-update' : 'volter:restart-required',
     data: {
       file: file.replaceAll('\\', '/'),
+      path: projectRelativePath(args.projectRoot, file),
       type: args.type,
       affected: affectedProjectFiles(server.moduleGraph, file, args.projectRoot),
     },
@@ -617,6 +623,7 @@ export function handleProjectScriptHotUpdate(
       event: 'volter:script-update',
       data: {
         file: file.replaceAll('\\', '/'),
+        path: projectRelativePath(projectRoot, file),
         affected: affectedProjectFiles(server.moduleGraph, file, projectRoot),
       },
     });
