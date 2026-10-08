@@ -75,7 +75,11 @@ Replace unused scaffold placeholders as the requested result calls for.
   (terrain, mountains, rocks, scatter). Each piece with its own identity, such
   as a character, creature, vehicle, building or key prop, is its own `.blend`
   with one collection and object names of its own (named for the piece),
-  linked into the level rather than copied, as in a Blender production. Link
+  linked into the level rather than copied, as in a Blender production. Make
+  a piece's file as Blender does, in one script:
+  `bpy.ops.wm.read_homefile(use_empty=True)`, build it, then
+  `bpy.ops.wm.save_as_mainfile(filepath=<project>/src/models/<piece>.blend)`.
+  It opens as its own document; open the level again to link it. Link
   its collection (`bpy.data.libraries.load(path, link=True, relative=True)`:
   relative, so the link still resolves when the project moves) and place it as
   a collection instance. A piece that animates or that the level changes is
