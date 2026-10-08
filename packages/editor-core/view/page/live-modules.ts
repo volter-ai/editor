@@ -15,13 +15,17 @@
  *     (`@volter/editor-sdk/kit/project-module-changes`): Play remounts the script and its UI under
  *     a fresh mount, which imports every project module anew.
  *
+ * A MODULE IMPORTED WITHOUT A MOUNT ID is kept by the browser under its URL for the life of the
+ * page, and nothing a server answers later changes that. So an importer that asks for an entry
+ * under an address it has used before keeps the copy it has; one that asks under a fresh address
+ * gets the current file and, through it, current neighbours (`revision` below).
+ *
  * Only the project's game modules are compiled: scripts under `src/` outside the editor's own
  * lanes (`src/contributions`, `src/tools`). Anything else keeps its recording.
  */
 
-import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
 import type { SeededProjectStore } from './project-store';
-import { type LimitedViewConfig, type LimitedViewRoutes, SCRIPT_SOURCE, VIEW_DIR } from './view-contract';
+import { isLiveModulePath, type LimitedViewConfig, type LimitedViewRoutes, VIEW_DIR } from './view-contract';
 
 type Compiler = typeof import('./live-compiler');
 type ChangeListener = (path: string, affected?: readonly string[], type?: 'create' | 'update' | 'delete') => void;
@@ -32,11 +36,6 @@ const ISOLATION: Record<string, string> = {
 };
 const script = (body: string): Response =>
   new Response(body, { status: 200, headers: { ...ISOLATION, 'Content-Type': 'text/javascript', 'Cache-Control': 'no-store' } });
-
-/** A project-relative path this page compiles when it changes. */
-export function isLiveModulePath(path: string): boolean {
-  return path.startsWith('src/') && SCRIPT_SOURCE.test(path) && !isEditorLanePath(path) && !path.split('/').includes('node_modules');
-}
 
 export interface LiveModules {
   /** The compiled module for `url` when its file changed in this page; null when the recording stands. */
@@ -50,6 +49,9 @@ export function createLiveModules(config: LimitedViewConfig, store: SeededProjec
   const fsPrefix = root.startsWith('/') ? `/@fs${root}/` : `/@fs/${root}/`;
   /** Paths written or removed since the page loaded. */
   const changed = new Set<string>();
+  /** How many changes there have been: the stamp a module imported WITHOUT a mount id is told to
+   *  import its neighbours by, so the browser does not hand back the copy it already holds. */
+  let revision = 0;
   let compiler: Promise<Compiler> | null = null;
   let recorded: Promise<readonly string[]> | null = null;
 
@@ -65,7 +67,7 @@ export function createLiveModules(config: LimitedViewConfig, store: SeededProjec
 
   const compile = async (path: string, mountId: string | null): Promise<string> => {
     const [{ compileLiveModule }, urls] = await Promise.all([load(), recordedUrls()]);
-    return compileLiveModule({ path, source: await store.read(path), mountId, recorded: urls, exists: async (candidate) => (await store.stat(candidate))?.type === 'file' });
+    return compileLiveModule({ path, source: await store.read(path), mountId, revision, recorded: urls, exists: async (candidate) => (await store.stat(candidate))?.type === 'file' });
   };
 
   // Tell the editor once per burst of writes: an agent's turn, or a save of several files.
@@ -87,6 +89,7 @@ export function createLiveModules(config: LimitedViewConfig, store: SeededProjec
     const path = event.path;
     if (!isLiveModulePath(path)) return;
     changed.add(path);
+    revision += 1;
     pending = { path, type: event.type === 'remove' ? 'delete' : event.type === 'create' ? 'create' : 'update' };
     clearTimeout(timer);
     timer = setTimeout(announce, 300);
@@ -96,10 +99,17 @@ export function createLiveModules(config: LimitedViewConfig, store: SeededProjec
     async answer(url) {
       const pathname = decodeURIComponent(url.pathname).replace(/^\/@fs\/+/, '/@fs/');
       const path = pathname.startsWith(fsPrefix) ? pathname.slice(fsPrefix.length) : pathname.slice(1);
-      if (!changed.has(path) || !isLiveModulePath(path)) return null;
+      if (!isLiveModulePath(path)) return null;
+      const mountId = url.searchParams.get('volter-mount');
+      // Under a mount every module is imported anew, so only a changed file needs compiling and
+      // the recording serves the rest. With NO mount id the browser keeps each module by its URL
+      // for the life of the page: once anything has changed, every game module asked for this way
+      // is compiled here, so that each imports its neighbours under the current revision and none
+      // reaches a changed file through a copy the browser already holds.
+      if (!changed.has(path) && (mountId !== null || revision === 0)) return null;
       try {
         if ((await store.stat(path))?.type !== 'file') throw new Error(`${path} was deleted, and something still imports it.`);
-        return script(await compile(path, url.searchParams.get('volter-mount')));
+        return script(await compile(path, mountId));
       } catch (error) {
         // A module that fails in words, where the game's own error reporting shows it.
         return script(`throw new Error(${JSON.stringify(error instanceof Error ? error.message : String(error))});\n`);

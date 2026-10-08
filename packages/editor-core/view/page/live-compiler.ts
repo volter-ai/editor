@@ -34,6 +34,9 @@ export interface LiveCompileRequest {
   readonly source: string;
   /** The `?volter-mount=<id>` the module was asked for under, if any. */
   readonly mountId: string | null;
+  /** How many changes the page has seen: with no mount id, project imports carry it as `?t=`, the
+   *  cache-buster the session's Vite uses (the worker's recorded lookup ignores it). */
+  readonly revision: number;
   /** Whether a project-relative path is a file now. */
   exists(path: string): Promise<boolean>;
   /** Every URL the view recorded (`__view/routes.json`'s keys). */
@@ -169,7 +172,7 @@ export async function compileLiveModule(request: LiveCompileRequest): Promise<st
     const candidates = [start, ...CODE_EXTENSIONS.map((extension) => `${start}${extension}`), ...(stem === start ? [] : CODE_EXTENSIONS.map((extension) => `${stem}${extension}`)), ...CODE_EXTENSIONS.map((extension) => `${start}/index${extension}`)];
     for (const candidate of candidates) {
       if (!(await request.exists(candidate))) continue;
-      if (CODE.test(candidate)) return `/${candidate}${mountId === null ? '' : `?volter-mount=${mountId}`}`;
+      if (CODE.test(candidate)) return `/${candidate}${mountId !== null ? `?volter-mount=${mountId}` : request.revision > 0 ? `?t=${request.revision}` : ''}`;
       // JSON, CSS, an asset: only as the build compiled it.
       const built = recorded.find((url) => pathnameOf(url) === `/${candidate}`);
       if (built) return built;
@@ -203,6 +206,31 @@ export async function compileLiveModule(request: LiveCompileRequest): Promise<st
       continue;
     }
     const statement = code.slice(found.ss, found.se);
+    // `export … from` a package: by URL when the recorded module has the names; for a prebundled
+    // CommonJS package (its one export is `default`) each name is read off the module object.
+    if (!own && /^export\b/.test(statement)) {
+      if (![...(await recordedExports(url))].every((name) => name === 'default')) {
+        out += code.slice(cursor, found.s) + url;
+        cursor = found.e;
+        continue;
+      }
+      const listed = /^export\s*\{([\s\S]*)\}\s*from\s*["']/.exec(statement);
+      if (!listed) throw new LiveCompileError(`${path} re-exports everything from '${specifier}', a package this view holds as one object. Name what you re-export: export { a, b } from '${specifier}'.`);
+      const whole = `__volter_cjs_${interop++}`;
+      const lines = [`import ${whole} from ${JSON.stringify(url)};`];
+      const names: string[] = [];
+      for (const part of listed[1]!.split(',').map((piece) => piece.trim()).filter(Boolean)) {
+        const pair = /^([A-Za-z_$][\w$]*)(?:\s+as\s+([A-Za-z_$][\w$]*))?$/.exec(part);
+        if (!pair) throw new LiveCompileError(`${path}: this view cannot compile the re-export '${part}' from '${specifier}'.`);
+        const local = `${whole}_${names.length}`;
+        lines.push(`const ${local} = ${pair[1] === 'default' ? `(${whole} && ${whole}.__esModule ? ${whole}.default : ${whole})` : `${whole}[${JSON.stringify(pair[1])}]`};`);
+        names.push(`${local} as ${pair[2] ?? pair[1]!}`);
+      }
+      lines.push(`export { ${names.join(', ')} }`);
+      out += code.slice(cursor, found.ss) + lines.join(' ');
+      cursor = found.se;
+      continue;
+    }
     const clause = own ? null : clauseOf(statement);
     const needsInterop = clause !== null && (clause.named.length > 0 || clause.namespace !== null || clause.defaultName !== null)
       && [...(await recordedExports(url))].every((name) => name === 'default');
