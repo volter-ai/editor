@@ -89,7 +89,12 @@ async function activate(context) {
 	}));
 
 	const participant = vscode.chat.createChatParticipant('volter.viewChat', async (request, chatContext, stream, token) => {
-		const account = await page('account').catch(() => ({ available: false }));
+		const account = await page('account').catch(() => ({ available: 'unknown' }));
+		// The page or the host did not answer: that is not "no assistant here".
+		if (account.available !== true && account.available !== false) {
+			stream.markdown('The assistant could not be reached just now. Send your message again in a moment.');
+			return {};
+		}
 		// A host with no account service, or one where nobody can sign in: this view has no AI of its own.
 		if (account.available !== true || (account.signedIn !== true && account.signIn === 'unavailable')) {
 			stream.markdown([`**Chat runs in the local version of ${product.displayName}.**`, '', 'This view has no assistant of its own. You can look around and try edits here; the agent needs the editor on your own machine:', '', ...installLines(product)].join('\n'));
@@ -193,10 +198,12 @@ async function activate(context) {
 		participant.additionalWelcomeMessage = welcome;
 	};
 	const refreshWelcome = async () => {
-		const host = await page('account').catch(() => ({ available: false }));
-		// Only a host with no account service at all cannot lead to the assistant; every other
-		// variant carries the caution, whatever the host says about sign-in or the AI today.
-		if (host.available !== true) {
+		const host = await page('account').catch(() => ({ available: 'unknown' }));
+		// A read that failed says nothing about the host: the neutral welcome, with the caution, stays.
+		if (host.available !== true && host.available !== false) return;
+		// Only a host that answered and has no account service cannot lead to the assistant; every
+		// other variant carries the caution, whatever the host says about sign-in or the AI today.
+		if (host.available === false) {
 			setWelcome([`**This is a limited view.** Chat runs in the local version of ${product.displayName}. Install it and start a project:`]);
 			return;
 		}

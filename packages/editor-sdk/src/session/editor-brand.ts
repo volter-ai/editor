@@ -27,7 +27,18 @@ export function editorDocumentTitle(subject?: string | null, brand?: string | nu
   return normalized ? `${normalized} — ${name}` : name;
 }
 
+/**
+ * Where the mark is fetched from on this page. The brand's own address, unless the page's host
+ * serves the mark itself and says where (`__volterBrandLogo`, a same-origin path): a host whose
+ * content security policy admits no other origin (a limited view) cannot show an image from
+ * brand.volter.ai, so it ships the file and names it. `productLogo` is the running product's own.
+ */
+export function brandLogoUrl(productLogo?: string): string {
+  const hosted = (globalThis as { __volterBrandLogo?: unknown }).__volterBrandLogo;
+  return typeof hosted === 'string' && hosted.startsWith('/') ? hosted : (productLogo ?? EDITOR_BRAND.logo);
+}
+
 /** The mark as markup for server-owned and fallback pages. */
-export function editorMarkImg(logo: string = EDITOR_BRAND.logo): string {
+export function editorMarkImg(logo: string = brandLogoUrl()): string {
   return `<img src="${logo}" alt="${EDITOR_BRAND.shortName}" width="160" height="160">`;
 }

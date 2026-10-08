@@ -214,6 +214,14 @@ export async function compileLiveModule(request: LiveCompileRequest): Promise<st
         cursor = found.e;
         continue;
       }
+      // `export * as ns from`: the module object itself, under that name.
+      const named = /^export\s*\*\s*as\s+([A-Za-z_$][\w$]*)\s+from\s*["']/.exec(statement);
+      if (named) {
+        const object = `__volter_cjs_${interop++}`;
+        out += `${code.slice(cursor, found.ss)}import ${object} from ${JSON.stringify(url)}; export { ${object} as ${named[1]!} }`;
+        cursor = found.se;
+        continue;
+      }
       const listed = /^export\s*\{([\s\S]*)\}\s*from\s*["']/.exec(statement);
       if (!listed) throw new LiveCompileError(`${path} re-exports everything from '${specifier}', a package this view holds as one object. Name what you re-export: export { a, b } from '${specifier}'.`);
       const whole = `__volter_cjs_${interop++}`;

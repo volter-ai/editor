@@ -1214,7 +1214,10 @@ function patchProduct(checkout, target) {
 	product.trustedExtensionPublishers = ['openai'];
 	// Open VSX's Code-OSS adapter, including resources for web extensions.
 	// https://github.com/eclipse-openvsx/openvsx/wiki/Using-Open-VSX-in-VS-Code
-	product.extensionsGallery = {
+	// The web target has NO gallery: a limited view reaches no origin but its own (its host may
+	// send a content security policy saying so), and nobody installs an extension into a static page.
+	if (target === 'web') delete product.extensionsGallery;
+	else product.extensionsGallery = {
 		serviceUrl: 'https://open-vsx.org/vscode/gallery',
 		itemUrl: 'https://open-vsx.org/vscode/item',
 		resourceUrlTemplate: 'https://open-vsx.org/vscode/unpkg/{publisher}/{name}/{version}/{path}',

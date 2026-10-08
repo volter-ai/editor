@@ -125,7 +125,9 @@ script as `?volter-live-module=<n>`) is kept by the browser under its URL for th
 page. Once anything has changed, the page compiles every game module asked for that way and has
 each import its neighbours under the current revision (`?t=<n>`), so a fresh entry address reaches
 current files; an entry asked for again under an address already used keeps the copy the browser
-holds, which nothing served later can change.
+holds, which nothing served later can change. A consequence to expect: after an edit, a
+mount-less Play compiles files nobody touched, so an error from the page's compiler (syntax it does
+not handle, a path alias) can name a file the person never edited.
 
 **The host's own server, `/api/` and `/auth/`:** the worker does not answer these (`HOST_PREFIXES`,
 `view/page/view-contract.ts`). The browser sends each as it would with no worker, so a host that runs
@@ -234,7 +236,7 @@ These are the routes that need the person's machine or account:
 
 ## What a limited view is not
 
-- **Only game scripts recompile, and not everything a session does to them.** An edit to a script under `src/` takes effect (above). Not reproduced for an edited file: the creation-site and animation stamps (the inspector's source address for objects it creates), `import.meta.env`, hot acceptance (every change remounts), and an import of CSS, JSON or an asset the build did not already compile. An edited file cannot import a package the build did not record: there is no installer in a tab. `export * from` a package the view holds as one object (a prebundled CommonJS package) is refused with the fix; named re-exports work. Editor-lane code (`src/contributions`, `src/tools`, `volter.adapter.ts`) and data files keep what the build compiled.
+- **Only game scripts recompile, and not everything a session does to them.** An edit to a script under `src/` takes effect (above). Not reproduced for an edited file: the creation-site and animation stamps (the inspector's source address for objects it creates), `import.meta.env`, hot acceptance (every change remounts), and an import of CSS, JSON or an asset the build did not already compile. An edited file cannot import a package the build did not record: there is no installer in a tab. `export * from` a package the view holds as one object (a prebundled CommonJS package) is refused with the fix; named re-exports and `export * as name from` work. Editor-lane code (`src/contributions`, `src/tools`, `volter.adapter.ts`) and data files keep what the build compiled.
 - **Edits stay in memory.** A reload starts over from the shipped files. "Download project" is not built yet.
 - **No git, no accounts, no sharing.**
 - **Webviews do not render.** Code-OSS loads them from `vscode-cdn.net`, which a cross-origin-isolated static page cannot embed. The editor's own panels do not use webviews.
@@ -263,6 +265,7 @@ Hosting rules:
 - **Origin root.** Serve the view from the root of an origin, because the editor's URLs are root-relative.
 - **Secure context.** Serve it over https, or from localhost; service workers need a secure context.
 - **Cross-origin isolation.** It is required for Blender's threads. `_headers` states it for hosts that read one (Netlify, Cloudflare Pages). On any other host the view's worker adds the headers, after at most one reload.
+- **A host's content security policy.** A view needs no origin but its own: its brand mark is a file of the view (`__view/brand-logo.svg`, fetched at `view build`; the SDK's `brandLogoUrl` shows it from there), the web workbench has no extensions gallery (`scripts/workbench/overlay.mjs`), and type acquisition, JSON schema downloads and extension update checks are off (`boot.ts`). So a host can send a policy that admits only `'self'`, with `data:` and `blob:` for images, `blob:` for workers, `'wasm-unsafe-eval'` for Blender, and inline styles (the workbench builds its style sheets in script). The view's worker puts the policy the host sends on the worker's own script onto every answer it builds itself (a recorded module, one compiled in the page, a file from the page's store), because a worker is governed by the policy on its own script's response; it reads that policy from the host, not the cache, each time the view's document is opened. What no policy closes: a script can still open or go to an outside address that carries text in its URL.
 - **Embedding.** The parent page must send `Cross-Origin-Opener-Policy: same-origin` and `Cross-Origin-Embedder-Policy: credentialless`, and its iframe must allow `cross-origin-isolated`. The view announces that it holds the project whether it is a standalone page or an iframe; extension-host frames do not hold project files. A document the host itself answers under `/api/` or `/auth/` does not pass through the view's worker, so it gets no isolation headers from it: a host that shows such a document inside the embed must send them itself. One opened as its own tab (a sign-in) needs none.
 - **Lifetime.** The recorded project identity reports `session.lease: 'page'`. The server-process watchdog stops for this explicit page-owned lifetime; a quiet control socket or delayed request cannot establish that a nonexistent local server died. Ordinary server sessions retain their watchdog.
 - **File sizes.** Blender's recorded engine files are stored uncompressed, around 100 MB together. Hosts with a per-file cap (Cloudflare Pages: 25 MiB) cannot serve them; Netlify and most object stores can.

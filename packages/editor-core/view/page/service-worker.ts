@@ -32,6 +32,7 @@ import {
   type LimitedViewRoutes,
   MOUNT_SENTINEL,
   recordedKey,
+  SERVICE_WORKER_FILE,
   STATIC_PREFIXES,
   VIEW_DIR,
   VIEW_MISS_HEADER,
@@ -85,6 +86,42 @@ function isolated(response: Response, extra: Record<string, string> = {}): Respo
   const headers = new Headers(response.headers);
   for (const [key, value] of Object.entries({ ...ISOLATION, ...extra })) headers.set(key, value);
   return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+}
+
+/**
+ * THE HOST'S CONTENT SECURITY POLICY, ON EVERYTHING THIS WORKER ANSWERS.
+ *
+ * A host may send a policy (which origins a page of this view may reach) on the documents and
+ * scripts it serves. An answer this worker BUILDS (a recorded module, one compiled in the page, a
+ * file from the page's store) never passed through the host, so it would carry no policy; and a
+ * worker is governed by the policy on its own script's response, so a script answered here could
+ * start a worker under no policy at all. Every answer built here therefore carries the policy the
+ * host sends on this worker's own script: read from the host, not the HTTP cache, and read again
+ * whenever the view's document is opened, so a host that changes its policy is followed.
+ * An answer that already has a policy (the host's own, passed through) keeps it.
+ */
+const POLICY_HEADERS = ['Content-Security-Policy', 'Content-Security-Policy-Report-Only', 'Reporting-Endpoints'] as const;
+let hostPolicy: Promise<[string, string][]> | null = null;
+function policyOfHost(): Promise<[string, string][]> {
+  hostPolicy ??= fetch(`/${SERVICE_WORKER_FILE}`, { cache: 'no-store' })
+    .then((response) => POLICY_HEADERS.flatMap((name): [string, string][] => {
+      const value = response.headers.get(name);
+      return value === null ? [] : [[name, value]];
+    }))
+    .catch(() => {
+      hostPolicy = null;
+      return [];
+    });
+  return hostPolicy;
+}
+
+async function withHostPolicy(response: Response): Promise<Response> {
+  if (POLICY_HEADERS.slice(0, 2).some((name) => response.headers.has(name))) return response;
+  const policy = await policyOfHost();
+  if (policy.length === 0) return response;
+  const headers = new Headers(response.headers);
+  for (const [name, value] of policy) headers.set(name, value);
+  return new Response(response.status === 204 || response.status === 304 ? null : response.body, { status: response.status, statusText: response.statusText, headers });
 }
 
 let routes: Promise<LimitedViewRoutes> | null = null;
@@ -191,7 +228,10 @@ async function handle(event: FetchLike): Promise<Response> {
   if (request.mode === 'navigate') {
     // A new page may load a replacement build while this same worker remains
     // alive. Its memoized table must not keep the previous build's Vite hashes.
-    if (url.pathname === '/' || url.pathname === '/index.html') routes = null;
+    if (url.pathname === '/' || url.pathname === '/index.html') {
+      routes = null;
+      hostPolicy = null;
+    }
     return isolated(await fetch(request), { 'Cross-Origin-Resource-Policy': 'cross-origin' });
   }
   // A game script may have changed in the page since the view was built: the page is asked first,
@@ -200,7 +240,7 @@ async function handle(event: FetchLike): Promise<Response> {
   // (`isLiveModulePath`), so a package's module and the editor's lanes skip the round trip.
   if (
     request.method === 'GET' &&
-    liveModulePathOf(decodeURIComponent(url.pathname)) !== null &&
+    liveModulePathOf(url.pathname) !== null &&
     !url.searchParams.has('raw') &&
     (request.destination === 'script' || url.searchParams.has('import') || url.searchParams.has('volter-mount'))
   ) {
@@ -257,7 +297,7 @@ self.addEventListener('fetch', (event) => {
   // to the page buffers a streamed answer whole.
   if (HOST_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return;
   event.respondWith(
-    handle(event).catch(
+    handle(event).then(withHostPolicy).catch(
       (error: unknown) =>
         new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
           status: 502,

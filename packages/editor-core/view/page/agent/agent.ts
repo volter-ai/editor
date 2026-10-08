@@ -271,8 +271,9 @@ export function createViewAgent(
       return;
     }
     if (!before) {
-      const account = await host(ACCOUNT_ROUTE, 'GET').then((response) => response.json() as Promise<{ available?: boolean; signedIn?: boolean }>).catch(() => ({ available: false, signedIn: false }));
-      if (account.available !== true) emit(running, { kind: 'refused', code: 'no_ai', message: 'This view has no AI of its own.' });
+      const account = await host(ACCOUNT_ROUTE, 'GET', running.abort.signal).then((response) => response.json() as Promise<{ available?: boolean | 'unknown'; signedIn?: boolean }>).catch(() => ({ available: 'unknown' as const, signedIn: false }));
+      if (account.available === false) emit(running, { kind: 'refused', code: 'no_ai', message: 'This view has no AI of its own.' });
+      else if (account.available === 'unknown') emit(running, { kind: 'error', message: 'The assistant could not be reached, so it did not start. Try again in a moment.' });
       else if (account.signedIn !== true) emit(running, { kind: 'refused', code: 'signed_out', message: 'Sign in with Volter first.' });
       else emit(running, { kind: 'error', message: 'Today\'s allowance could not be read, so the assistant did not start. Try again in a moment.' });
       flush(running);
@@ -339,13 +340,16 @@ export function createViewAgent(
   };
 
   /** A host route's JSON answer, passed on; a host with none answers `{ available: false }`. */
-  const host = async (route: string, method: 'GET' | 'POST'): Promise<Response> => {
+  /** `available` is true (the host answered JSON), false (it has no such route), or 'unknown' (it
+   *  could not be asked in time): a failed read is not a host without an assistant. */
+  const host = async (route: string, method: 'GET' | 'POST', stop?: AbortSignal): Promise<Response> => {
     try {
-      const response = await fetch(route, { method, headers: { Accept: 'application/json' } });
+      const signal = AbortSignal.any([...(stop ? [stop] : []), AbortSignal.timeout(COUNT_TIMEOUT_MS)]);
+      const response = await fetch(route, { method, headers: { Accept: 'application/json' }, signal });
       if (!(response.headers.get('Content-Type') ?? '').includes('application/json')) return json({ available: false });
       return json({ available: true, status: response.status, ...((await response.json()) as Record<string, unknown>) });
     } catch {
-      return json({ available: false });
+      return json({ available: 'unknown' });
     }
   };
 
