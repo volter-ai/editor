@@ -19,4 +19,4 @@
  * it is read by both.
  */
 
-export type { PreparedSourceEdit, SourceEditRequest, StructReparentContext } from '@volter/editor-sdk/source-authoring';
+export type { PreparedSourceEdit, SourceEditRequest, StructReparentContext } from '@volter/sdk/source-authoring';

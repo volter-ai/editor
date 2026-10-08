@@ -8,14 +8,14 @@ import {
   Stack,
   Text,
   Tooltip,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
 import {
   setThreeViewportProjection,
   subscribeThreeViewportPresentation,
   threeViewportPresentation,
-} from '@volter/editor-sdk/kit/three-viewport-presentation';
+} from '@volter/sdk/kit/three-viewport-presentation';
 import {
   object3DDocumentSession,
   object3DDocumentSessionsVersion,

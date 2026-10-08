@@ -2,7 +2,7 @@
 
 Blender modeling documents, inspectors, commands, layouts and presentation for
 Volter Editor. The integration talks to the independent Blender engine over its
-worker wire and contributes its editing surfaces through the editor SDK.
+worker wire and contributes its editing surfaces through the SDK.
 
 The package uses the project contracts and shared Three rendering/capture
 utilities. It imports no editor-core internals and no game runtime. Its

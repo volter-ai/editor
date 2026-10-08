@@ -127,7 +127,7 @@ async function respondTo(
  * This plugin's Vite name — the ONE spelling, so a host can ask its own
  * resolved plugin list whether it serves `/__ingest-source/*` instead of
  * declaring the same fact a second time. `SOURCE_WRITE_ROUTES_PLUGIN`
- * (`@volter/editor-sdk/session/project-serving`) is the sibling.
+ * (`@volter/sdk/session/project-serving`) is the sibling.
  */
 export const CREATION_SITE_WRITE_PLUGIN_NAME = 'volter-creation-site-write';
 

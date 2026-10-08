@@ -149,11 +149,11 @@ export const KIT_DECLARED_PACKAGES = [
   '@volter/editor-blender',
   '@volter/blender-engine',
   '@volter/editor-core',
-  '@volter/editor-sdk',
+  '@volter/sdk',
   '@volter/game-runtime',
-  '@volter/editor-live',
+  '@volter/live',
   '@volter/game-live',
-  '@volter/editor-project',
+  '@volter/project',
   '@volter/threejs-runtime',
 ] as const;
 
@@ -571,7 +571,7 @@ export function adapterSourceFor(additions: ReadonlySet<ScaffoldAddition>): stri
     finders.length > 0
       ? `\n  documents: {\n    find: [${finders.map((f) => `\n      ${f},`).join('')}\n    ],\n  },\n`
       : '';
-  return `import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
+  return `import { defineAdapter } from '@volter/project/adapter/adapter-module';
 
 export default defineAdapter({${regions}${documents}});
 `;

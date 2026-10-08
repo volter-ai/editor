@@ -11,7 +11,7 @@
  * degrade, never a throw.
  */
 
-import { setViewportEditorControls, type ViewportEditorControls } from '@volter/editor-sdk/kit/viewport-editor-controls';
+import { setViewportEditorControls, type ViewportEditorControls } from '@volter/sdk/kit/viewport-editor-controls';
 import type * as THREE from 'three';
 
 export interface ViewportPickContext {

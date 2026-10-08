@@ -5,7 +5,7 @@
  * stage is bound (`components/stage-keyboard.tsx`), and they act on that
  * stage's own store: the same stage its keys drive (`viewport-hotkeys.ts`).
  */
-import type { ActionContribution, ContributedAction } from '@volter/editor-sdk/chrome';
+import type { ActionContribution, ContributedAction } from '@volter/sdk/chrome';
 import {
   alignCameraToViewport,
   cameraAuthoringPresentation,
@@ -16,16 +16,16 @@ import {
   toggleCameraPreviewPin,
   viewThroughCamera,
 } from './camera-authoring';
-import { registerContributedActions } from '@volter/editor-sdk/kit/chrome-registry';
+import { registerContributedActions } from '@volter/sdk/kit/chrome-registry';
 import type { EditorShellStore } from './editor-shell-store';
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
-import { requestTransformMode } from '@volter/editor-sdk/kit/transform-mode-request';
-import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { requestTransformMode } from '@volter/sdk/kit/transform-mode-request';
+import { activeWorkspaceDocumentId } from '@volter/sdk/kit/workspace-document-registry';
 import {
   setViewGridVisible,
   viewGridVisible,
   viewPresentationBinding,
-} from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/viewport-presentation';
 
 function cameraActions(): ContributedAction[] {
   const presentation = cameraAuthoringPresentation();

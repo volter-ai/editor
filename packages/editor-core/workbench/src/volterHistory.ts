@@ -13,7 +13,7 @@
  *  1. PUSHES every edit the Volter editor records as an undo element on the workbench's
  *     `IUndoRedoService`, keyed on the FILE it changed — `IResourceUndoRedoElement` for one
  *     file, `IWorkspaceUndoRedoElement` for a transaction spanning several. The editor hands
- *     over project-relative paths (`@volter/editor-sdk/host`'s `history` door) and this file
+ *     over project-relative paths (`@volter/sdk/host`'s `history` door) and this file
  *     resolves them against the open workspace folder, so a gizmo drag on `cube.ts`'s model
  *     lands on exactly the URI Monaco holds for `cube.ts` — which is the whole one-stack
  *     property. Monaco's own text edits push there through `editStack.ts`; nothing about that

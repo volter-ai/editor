@@ -12,7 +12,7 @@
 import { execFileSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
-import { findProjectRootFrom } from '@volter/editor-live';
+import { findProjectRootFrom } from '@volter/live';
 import { installRoot, productRoot } from './create';
 import { usesRuntimeImage } from './runtime-image';
 import {

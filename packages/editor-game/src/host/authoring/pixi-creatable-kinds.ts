@@ -3,7 +3,7 @@
  * tree (every one of them is a Container) and a line on what each is, from Pixi's API reference.
  */
 
-import type { CreatableKind } from '@volter/editor-project/adapter';
+import type { CreatableKind } from '@volter/project/adapter';
 
 export const PIXI_CREATABLE_KINDS: readonly CreatableKind[] = [
   {

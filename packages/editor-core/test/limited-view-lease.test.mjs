@@ -5,7 +5,7 @@ import { build } from 'esbuild';
 
 const { outputFiles } = await build({
   stdin: {
-    contents: 'export { pollEditorLeaseIdentity } from "../../editor-sdk/src/kit/api/project-state.ts";',
+    contents: 'export { pollEditorLeaseIdentity } from "../../sdk/src/kit/api/project-state.ts";',
     resolveDir: new URL('.', import.meta.url).pathname,
   },
   bundle: true, write: false, platform: 'browser', format: 'iife', globalName: 'leaseApi',

@@ -6,23 +6,23 @@
  */
 
 import { measureAdapterReach } from '../host/adapter-reach';
-import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
+import { setActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
+import { setActiveSystems } from '@volter/sdk/kit/authoring/active-systems';
 import {
   addMountFailureReport,
   clearMountFailureReports,
   formatMountFailureMessage,
-} from '@volter/editor-sdk/kit/mount-failure-report';
-import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
+} from '@volter/sdk/kit/mount-failure-report';
+import { makeNoAuthoringAdapter } from '@volter/sdk/kit/authoring/no-authoring-adapter';
 import { resolveAllRoots } from '../host/binding-resolver';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { fetchGameManifest } from '@volter/sdk/kit/manifest-project';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
 import type { GameSession, RootMountSpec } from '../runtime/create-runtime';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { declaredRoots, ingestRoots } from '@volter/editor-project/adapter/manifest-interpreter';
-import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
+import type { AuthoringAdapter } from '@volter/project/adapter';
+import { declaredRoots, ingestRoots } from '@volter/project/adapter/manifest-interpreter';
+import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/project/manifest/load';
 
 interface ModuleSession {
   store: EditorShellStore;
@@ -214,9 +214,9 @@ export async function tryManifestModuleRoute(store: EditorShellStore): Promise<b
   return true;
 }
 
-import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/sdk/kit/live-document';
 // THE MODULE LANE, as the host sees it (`live-session-registry.ts`).
-import { registerLiveSession } from '@volter/editor-sdk/kit/live-session-registry';
+import { registerLiveSession } from '@volter/sdk/kit/live-session-registry';
 
 registerLiveSession({
   id: 'module',

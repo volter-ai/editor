@@ -11,8 +11,8 @@
  * door photographs the build itself (`framed-document-capture.ts`).
  */
 
-import type { ToolContributionProps } from '@volter/editor-sdk/contributions';
-import { registerFramedCapture } from '@volter/editor-sdk/kit/framed-document-capture';
+import type { ToolContributionProps } from '@volter/sdk/contributions';
+import { registerFramedCapture } from '@volter/sdk/kit/framed-document-capture';
 import { useSyncExternalStore } from 'react';
 import { BUILD_PLAYER_URL, buildRunCount, subscribeBuildRuns } from '../src/build/build-session';
 

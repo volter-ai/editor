@@ -12,12 +12,5 @@
  "kit-internal  packages/game-editor/src/index.ts -> @volter/editor-core/frame/product",
  "kit-internal  packages/game-editor/vite.config.ts -> @volter/editor-core/build/product-contributions",
  "kit-internal  packages/game-editor/vite.config.ts -> @volter/editor-core/build/shared-react",
- "kit-internal  packages/game-editor/vite.config.ts -> @volter/editor-core/build/shared-three",
- "runtime-editor  packages/threejs-runtime/src/adapter/first-party-navigation-system.ts -> @volter/editor-project/adapter/system-adapter",
- "runtime-editor  packages/threejs-runtime/src/adapter/object3d-authoring-subject.ts -> @volter/editor-project/adapter/authoring",
- "runtime-editor  packages/threejs-runtime/src/adapter/rapier-physics-adapter.ts -> @volter/editor-project/adapter/system-adapter",
- "runtime-editor  packages/threejs-runtime/src/adapter/rapier-physics-adapter.ts -> @volter/editor-project/adapter/transform",
- "runtime-editor  packages/threejs-runtime/src/adapter/renderer-config.ts -> @volter/editor-project/adapter/renderer-config",
- "runtime-editor  packages/threejs-runtime/src/animation/animation-clock.ts -> @volter/editor-project/core/system-phase",
- "runtime-editor  packages/threejs-runtime/src/animation/xstate-animation-binding.ts -> @volter/editor-project/core/system-phase"
+ "kit-internal  packages/game-editor/vite.config.ts -> @volter/editor-core/build/shared-three"
 ]

@@ -7,11 +7,11 @@ import {
   startSelectedRunConfiguration,
   stopStartedRunConfiguration,
 } from '../play/run-selection';
-import { isGameplayExportActive, subscribeGameplayExport } from '@volter/editor-sdk/kit/gameplay-export-state';
+import { isGameplayExportActive, subscribeGameplayExport } from '@volter/sdk/kit/gameplay-export-state';
 import { PLAY_CONTROL_TEST_ID } from '../host/play-control-hook';
 import type { IconDefinition } from '@fortawesome/fontawesome-svg-core';
 import { faChevronDown } from '@fortawesome/free-solid-svg-icons';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import {
   AnchoredMenu,
   Button,
@@ -22,7 +22,7 @@ import {
   MenuItem,
   Text,
   ToolbarDivider,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import type React from 'react';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { isIngestActive } from '../ingest/active-ingest';

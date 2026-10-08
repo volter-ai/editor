@@ -17,9 +17,9 @@ import {
   type TimeSpentRow,
   timeSpentRows,
 } from '../host/components/frame-debugger-model';
-import { isJsHeapReading, readJsHeap } from '@volter/editor-sdk/kit/js-heap';
+import { isJsHeapReading, readJsHeap } from '@volter/sdk/kit/js-heap';
 import { useActivePerformanceSource } from '../host/use-active-performance-source';
-import { editorHost, useHostAvailabilitySelector } from '@volter/editor-sdk/host';
+import { editorHost, useHostAvailabilitySelector } from '@volter/sdk/host';
 import {
   Button,
   EditorBadge,
@@ -29,7 +29,7 @@ import {
   fontSizeVar,
   spaceVar,
   themeVars,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { buildChromeTrace } from '../runtime/dev/chrome-trace';
 import type {
   PerformanceFrame,

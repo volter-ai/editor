@@ -2,7 +2,7 @@ import type {
   ProviderCredentialId,
   ProviderCredentialStatus,
   ProviderCredentialTestResult,
-} from '@volter/editor-sdk/account';
+} from '@volter/sdk/account';
 import {
   type CredentialPersistence,
   createNativeCredentialStore,

@@ -1,10 +1,10 @@
 /**
  * `@volter/editor-blender`'s server half (`package.json#volter.serving`, the project-serving door in
- * `@volter/editor-sdk/session/project-serving`): the routes the Blender in the tab reads and
+ * `@volter/sdk/session/project-serving`): the routes the Blender in the tab reads and
  * writes through.
  */
 
-import type { ProjectServingModule } from '@volter/editor-sdk/session/project-serving';
+import type { ProjectServingModule } from '@volter/sdk/session/project-serving';
 import { blenderRoutesPlugin } from './blender-routes';
 import { BLENDER_WALI_ARTIFACT, BLENDER_WASM_FILES, blenderWasmStatus } from './blender-wasm-artifact';
 

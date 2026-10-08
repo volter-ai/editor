@@ -15,7 +15,7 @@
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import type { MeasuredLoop } from '../host/same-realm-loop-gate';
 import type { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
+import type { AuthoringAdapter } from '@volter/project/adapter/authoring';
 import type { IngestMount } from './authoring/ingest-root-adapter';
 import type { SiblingMount } from './ingest-siblings';
 import type { MountCoverageInputs } from './mount-coverage';
@@ -192,7 +192,7 @@ export function serializeEntry<T>(run: () => Promise<T>): Promise<T> {
   return result;
 }
 
-import { registerLiveSession } from '@volter/editor-sdk/kit/live-session-registry';
+import { registerLiveSession } from '@volter/sdk/kit/live-session-registry';
 // THE INGEST LANE, as the host sees it (`live-session-registry.ts`). Playing
 // is the host play-control latch, never an inferred loop
 // (`editor-session-mode.ts` records why); a deferred-ingest play counts.

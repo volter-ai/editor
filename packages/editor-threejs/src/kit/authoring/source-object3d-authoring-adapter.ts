@@ -21,7 +21,7 @@ import type {
   SelectionProvider,
   Transform,
   TransformProvider,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import { object3DAuthoringSubjectOf } from '@volter/editor-threejs/adapter/object3d-authoring-subject';
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';

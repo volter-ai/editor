@@ -35,7 +35,7 @@ import {
   ownOidOf,
   rendersSameSourceElement,
 } from '@volter/editor-threejs/kit/authoring/component-instance-root';
-import { beginLiveGesture, endLiveGesture } from '@volter/editor-sdk/kit/live-gesture-lock';
+import { beginLiveGesture, endLiveGesture } from '@volter/sdk/kit/live-gesture-lock';
 import { createStructWritePipe, type StructOpOptions } from '../../host/authoring/struct-write-pipe';
 import {
   CollapsedHierarchyView,
@@ -50,16 +50,16 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-sdk/kit/write-pipe';
-import { componentStatesProvider } from '@volter/editor-sdk/kit/component-states-registry';
-import { openProjectToolDocument } from '@volter/editor-sdk/kit/components/project-tool-documents';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+} from '@volter/sdk/kit/write-pipe';
+import { componentStatesProvider } from '@volter/sdk/kit/component-states-registry';
+import { openProjectToolDocument } from '@volter/sdk/kit/components/project-tool-documents';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import {
   replaceProjectSource,
   withProjectSourceHistory,
-} from '@volter/editor-sdk/kit/history/source-history-backend';
-import { warnGuessedFromText } from '@volter/editor-sdk/kit/inference-diagnostics';
+} from '@volter/sdk/kit/history/source-history-backend';
+import { warnGuessedFromText } from '@volter/sdk/kit/inference-diagnostics';
 import {
   extractedHint,
   extractNoBackendHint,
@@ -80,8 +80,8 @@ import {
   sourceOidIdentity,
   ThreeProjector,
 } from '@volter/editor-threejs/kit/projection/three';
-import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+import { getStorageBackend } from '@volter/sdk/kit/storage/index';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
 import {
   type ComponentPropSpec,
   lineColToOffset,
@@ -100,7 +100,7 @@ import type { ReparentChannel, ReparentRebase } from '@volter/editor-react/sourc
 import type {
   SourceWriteBackend,
   StructReparentContext,
-} from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+} from '@volter/sdk/kit/ui-source/source-write-backend';
 import {
   analyzeJsxAttributes,
   type DuplicateRewrite,
@@ -110,8 +110,8 @@ import {
   type JsxAttrInfo,
   offsetSnippetPositions,
 } from '@volter/editor-react/source/writer';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import { activateWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
+import { activateWorkspaceDocument } from '@volter/sdk/kit/workspace-document-registry';
 import type {
   AssetDropContext,
   AssetDropProvider,
@@ -139,7 +139,7 @@ import type {
   TransformProvider,
   TruthProvider,
   WriteAnchorKind,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import { object3DAuthoringSubjectOf } from '@volter/threejs-runtime/adapter/object3d-authoring-subject';
 import { getUserData } from '@volter/threejs-runtime/ecs/user-data';

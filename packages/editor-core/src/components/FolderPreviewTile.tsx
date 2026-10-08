@@ -17,21 +17,21 @@
  */
 
 import { faFolder, faFolderOpen } from '@fortawesome/free-solid-svg-icons';
-import { EditorIcon } from '@volter/editor-sdk/widgets';
+import { EditorIcon } from '@volter/sdk/widgets';
 import { useEffect, useState } from 'react';
-import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
+import { assetCapabilities } from '@volter/sdk/kit/asset-capabilities';
 import {
   type FolderPreviewItem,
   type FolderPreviewSummary,
   getFolderPreview,
 } from '../asset-workflow/folder-preview';
-import { type AssetRootId, assetRootServingUrl } from '@volter/editor-sdk/kit/project-asset-roots';
+import { type AssetRootId, assetRootServingUrl } from '@volter/sdk/kit/project-asset-roots';
 import {
   AssetIcon,
   FOLDER_CELL_THUMBNAIL_PRIORITY,
   TypedAssetThumbnail,
   useModelThumbnailSource,
-} from '@volter/editor-sdk/kit/components/asset-thumbnails';
+} from '@volter/sdk/kit/components/asset-thumbnails';
 
 /** Root-relative preview item path → the URL its root serves it at. */
 function folderItemUrl(root: AssetRootId, item: FolderPreviewItem): string {

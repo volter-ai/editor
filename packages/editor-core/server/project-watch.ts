@@ -31,8 +31,8 @@ import { type Dirent, existsSync, statSync } from 'node:fs';
 import { readdir } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
 import chokidar, { type FSWatcher } from 'chokidar';
-import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
 import {
   advancePersistedTripwireGate,
   advanceTripwireGate,
@@ -59,8 +59,8 @@ import {
 } from './support/project/build-discipline';
 import type { SessionJournalEvent } from './support/project/session-journal';
 import type { ChatRuntimeActivity, ChatTurnState } from './harness-chat-service';
-import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
-import { ADAPTER_MODULE_FILENAME } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
+import type { ProjectComponentEntry } from '@volter/sdk/kit/asset-workflow/project-content';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
 import { canonicalProjectRoot } from './canonical-path';
 import type { AgentAuthorLease } from './collaboration-attribution';
 import { filesystemMutationAuthor } from './collaboration-attribution';

@@ -8,7 +8,7 @@
  * adapter's private business (`authoring-inversion-guard.test.ts` is the tripwire).
  */
 
-import type { ViewportTab } from '@volter/editor-sdk';
+import type { ViewportTab } from '@volter/sdk';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
 import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import type { WorldRendererConfig } from '@volter/editor-threejs/adapter/renderer-config';
@@ -18,8 +18,8 @@ import * as THREE from 'three';
 import type { BatchedRenderer } from 'three.quarks';
 import { findEntityLod } from './entity-lod';
 import { entityIdOf } from './entity-object';
-import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-export type { NotifyScope, PlayEditRegime } from '@volter/editor-sdk/kit/shell-store';
+import { ShellStore } from '@volter/sdk/kit/shell-store';
+export type { NotifyScope, PlayEditRegime } from '@volter/sdk/kit/shell-store';
 import { withSceneFogNeutralized } from './scene-view-fog';
 
 /** The store's persistence collaborator — installed by the shell, never
@@ -47,7 +47,7 @@ export interface EditorStatePersistence {
  * Which member a STAGE is born with is its presentation's (`interaction.bootTool`,
  * `kit/viewport-presentation`); arming one is always a click in the shelf.
  */
-export type { GizmoAnchor, PivotMode, TransformMode, TransformSpace } from '@volter/editor-sdk/kit/shell-store';
+export type { GizmoAnchor, PivotMode, TransformMode, TransformSpace } from '@volter/sdk/kit/shell-store';
 
 export type ShadingMode = ViewportShadingMode;
 
@@ -91,13 +91,13 @@ const OBJECT_MAP_MEMBERSHIP_HISTORY = 256;
 
 
 /** The two viewport tabs, Edit · Play. Defined ONCE, in the SDK's shared
- *  vocabulary (`@volter/editor-sdk`), because the control API speaks it too;
+ *  vocabulary (`@volter/sdk`), because the control API speaks it too;
  *  re-exported here so editor modules keep one import site. */
 export type { ViewportTab };
 
-export type { HelperVisibility } from '@volter/editor-sdk/kit/shell-store';
+export type { HelperVisibility } from '@volter/sdk/kit/shell-store';
 
-export type { ViewportAction } from '@volter/editor-sdk/kit/shell-store';
+export type { ViewportAction } from '@volter/sdk/kit/shell-store';
 
 export class EditorShellStore {
   /** Made by `threeStateOf`, once per shell store. */
@@ -570,7 +570,7 @@ export class EditorShellStore {
     if (!this._renderer || !this._scene || !this._camera) return null;
     // A number is a SQUARE of that size — the default shape; `{width, height}`
     // renders the buffer and the camera at that aspect so a shaped look needs
-    // no crop (`@volter/editor-sdk`'s `CaptureDimensions`).
+    // no crop (`@volter/sdk`'s `CaptureDimensions`).
     const width = typeof size === 'number' ? size : size.width;
     const height = typeof size === 'number' ? size : size.height;
     // The same floor `authoring/object3d-document-session.ts`'s `captureImage`

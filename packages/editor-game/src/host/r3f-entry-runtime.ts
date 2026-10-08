@@ -16,9 +16,9 @@ import {
   extend,
   flushSync,
 } from '@react-three/fiber';
-import type { RootAdapter, ThreeHostContext } from '@volter/editor-project/adapter';
-import { R3F_RUNTIME_PATH } from '@volter/editor-sdk/host';
-import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
+import type { RootAdapter, ThreeHostContext } from '@volter/project/adapter';
+import { R3F_RUNTIME_PATH } from '@volter/sdk/host';
+import { isPackagedRuntime } from '@volter/sdk/kit/packaged-runtime';
 import { Component, createElement, Fragment, useEffect } from 'react';
 import { FiberProvider } from 'its-fine';
 import type * as THREE from 'three';

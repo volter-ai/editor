@@ -1,5 +1,5 @@
 /** Drive the same native Chat the person sees, through the editor's command door. */
-import { connect } from '@volter/editor-live';
+import { connect } from '@volter/live';
 
 export const CHAT_USAGE = 'chat status | chat send <prompt> | chat stop';
 

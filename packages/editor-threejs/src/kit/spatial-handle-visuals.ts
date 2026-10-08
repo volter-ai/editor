@@ -4,7 +4,7 @@ import type {
   SpatialDragHandle,
   SpatialHandleGuide,
   SpatialHandleLayer,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
 import * as THREE from 'three';
 

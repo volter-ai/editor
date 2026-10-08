@@ -10,7 +10,7 @@
  * and no Build button at all.
  */
 
-import type { ToolContributionProps } from '@volter/editor-sdk/contributions';
+import type { ToolContributionProps } from '@volter/sdk/contributions';
 import { BuildProfilesPanel } from '../src/build/BuildProfilesPanel';
 
 export const point = 'workspace.document';

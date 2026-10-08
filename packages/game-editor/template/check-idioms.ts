@@ -1070,7 +1070,7 @@ interface RegionSurfaces {
 
 function loadRegionSurfaces(): RegionSurfaces | null {
   const mapped = resolvePackageModule(
-    '@volter/editor-sdk',
+    '@volter/sdk',
     'src/kit/asset-workflow/project-source-index.ts',
   );
   if (!mapped) return null;
@@ -1128,7 +1128,7 @@ function checkAuthoringWarnings(): void {
       'warn',
       'authoring-warnings-zero',
       'the R3F authoring analyzer could not be loaded, so authoring warnings were NOT checked — this run says nothing about them. It resolves from the installed `@volter/editor-react` package.',
-      'Install the project\'s dependencies (`npm install`): the analyzer is `@volter/editor-react`\'s source and the region resolver `@volter/editor-sdk`\'s. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
+      'Install the project\'s dependencies (`npm install`): the analyzer is `@volter/editor-react`\'s source and the region resolver `@volter/sdk`\'s. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
     );
     return;
   }
@@ -1141,7 +1141,7 @@ function checkAuthoringWarnings(): void {
       'warn',
       'authoring-warnings-zero',
       "the region resolver could not be loaded, so no file could be attributed to this project's `three` region and authoring warnings were NOT checked — this run says nothing about them.",
-      'Install the project\'s dependencies (`npm install`): the analyzer is `@volter/editor-react`\'s source and the region resolver `@volter/editor-sdk`\'s. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
+      'Install the project\'s dependencies (`npm install`): the analyzer is `@volter/editor-react`\'s source and the region resolver `@volter/sdk`\'s. `npm run volter -- status` reports the same counts from the live editor meanwhile.',
     );
     return;
   }

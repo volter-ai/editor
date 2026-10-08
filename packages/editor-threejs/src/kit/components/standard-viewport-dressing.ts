@@ -31,21 +31,21 @@
  * where the rest of the dressing is plain scene-graph work.
  */
 
-import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
+import { invalidateStages } from '@volter/sdk/kit/stage-invalidation';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
 import { loadEnvironmentImage, type StandardEnvironment } from '@volter/editor-threejs/viewport/environment';
 import { setUserData } from '@volter/editor-threejs/ecs/user-data';
 import * as THREE from 'three';
-import { environmentImage } from '@volter/editor-sdk/kit/environment-images';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { environmentImage } from '@volter/sdk/kit/environment-images';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import {
   studioPreset,
   type StudioLight,
   type SceneTakeover,
   type StudioPreset,
   type ViewportPresentation,
-} from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/viewport-presentation';
 
 /**
  * Front-right three-quarter view for project-owned R3F components. Their
@@ -374,7 +374,7 @@ export function applyStandardViewportDressing(
 
 /**
  * THE STAGE'S LIGHTING, FROM ITS PRESENTATION — the Three half of
- * `@volter/editor-sdk/kit/viewport-presentation`. A 3D document stage owns one rig; it draws
+ * `@volter/sdk/kit/viewport-presentation`. A 3D document stage owns one rig; it draws
  * the view's `studio` lighting (a preset's lights, world-fixed or camera-locked, and its
  * ambient), sets the renderer's tone mapper and exposure, and answers the image-based light's
  * strength. It replaces the lights that were fixed in code: the dressing's key and the

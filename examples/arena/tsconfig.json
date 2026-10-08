@@ -30,8 +30,8 @@
     ],
     "baseUrl": ".",
     "paths": {
-      "@volter/editor-project/*": [
-        "../../node_modules/@volter/editor-project/src/*"
+      "@volter/project/*": [
+        "../../node_modules/@volter/project/src/*"
       ],
       "@volter/threejs-runtime/*": [
         "../../node_modules/@volter/threejs-runtime/src/*"

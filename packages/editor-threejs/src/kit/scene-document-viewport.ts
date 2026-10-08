@@ -1,12 +1,12 @@
 /**
- * THE SCENE'S VIEWPORT (`@volter/editor-sdk/kit/document-viewports`): the world
+ * THE SCENE'S VIEWPORT (`@volter/sdk/kit/document-viewports`): the world
  * stage draws the Scene through the session store's own camera, shading and
  * grid, and frames the shell's selection. It keeps no selection of its own, so a
  * view's selection is the shell's.
  */
-import type { DocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
+import type { DocumentViewport } from '@volter/sdk/kit/document-viewports';
 import type { EditorShellStore } from './editor-shell-store';
-import { viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
+import { viewGridVisible } from '@volter/sdk/kit/viewport-presentation';
 
 type ShadingMode = Parameters<EditorShellStore['setShadingMode']>[0];
 

@@ -31,8 +31,8 @@
 
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import * as THREE from 'three';
-import { isRootHidden } from '@volter/editor-sdk/kit/authoring/world-session-state';
-import { isThreejsSurfaceVisible, resolveThreeViewportRootId } from '@volter/editor-sdk/kit/authoring/three-root';
+import { isRootHidden } from '@volter/sdk/kit/authoring/world-session-state';
+import { isThreejsSurfaceVisible, resolveThreeViewportRootId } from '@volter/sdk/kit/authoring/three-root';
 
 export { isThreejsSurfaceVisible, resolveThreeViewportRootId };
 

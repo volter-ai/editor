@@ -26,7 +26,7 @@
 
 import { init, parse } from 'es-module-lexer';
 import ts from 'typescript';
-import { gameGlobalsPrelude } from '@volter/editor-sdk/kit/game-globals-prelude';
+import { gameGlobalsPrelude } from '@volter/sdk/kit/game-globals-prelude';
 
 export interface LiveCompileRequest {
   /** Project-relative path of the module, `/`-separated. */

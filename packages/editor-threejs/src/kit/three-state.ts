@@ -1,8 +1,8 @@
 /** A shell store's Three half (`threeStateOf`, beside the half in `editor-shell-store.ts`). */
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
 import { type EditorShellStore, threeStateOf } from './editor-shell-store';
-import { useEditorStore, useOptionalEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { onShellStore, shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
+import { useEditorStore, useOptionalEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { onShellStore, shellStoreForHost } from '@volter/sdk/kit/shell-store-door';
 
 export { threeStateOf };
 

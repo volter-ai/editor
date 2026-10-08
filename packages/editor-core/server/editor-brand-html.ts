@@ -2,8 +2,8 @@ import {
   EDITOR_BRAND,
   editorMarkImg,
   editorDocumentTitle,
-} from '@volter/editor-sdk/session/editor-brand';
-import { productNames } from '@volter/editor-sdk/kit/product-command';
+} from '@volter/sdk/session/editor-brand';
+import { productNames } from '@volter/sdk/kit/product-command';
 
 /** The running product's display name ("Volter Cyclotron"), which the server learns at start
  *  (packaged.ts `setProductNames`); the platform's name when it has none. */

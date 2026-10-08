@@ -8,7 +8,7 @@ import test from 'node:test';
 import ts from 'typescript';
 
 const require = createRequire(import.meta.url);
-const source = fs.readFileSync(new URL('../../editor-sdk/src/session/workbench-locator.ts', import.meta.url), 'utf8');
+const source = fs.readFileSync(new URL('../../sdk/src/session/workbench-locator.ts', import.meta.url), 'utf8');
 const js = ts.transpileModule(source, { compilerOptions: { module: ts.ModuleKind.CommonJS } }).outputText;
 const token = 'fake-workbench-token';
 const tag = 'test-workbench';

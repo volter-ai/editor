@@ -1,6 +1,6 @@
 /**
  * THE OBJECT3D MODEL DOCUMENT'S INSPECTOR SECTIONS
- * (`@volter/editor-sdk/services`, a `workspace.service` contribution): the
+ * (`@volter/sdk/services`, a `workspace.service` contribution): the
  * Source / Geometry / Materials / Animation rail a loaded three model shows,
  * and the per-node sections inside it.
  *

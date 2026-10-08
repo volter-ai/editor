@@ -16,11 +16,11 @@ const stubs = {
     export const sendToClientHandle=(id,event,command)=>{probe.command=command;return {};};`,
   '../play-stall': `export const playStallDiagnosis=({base})=>({message:base,phase:null,phaseAgeMs:null}),
     playStallConsoleMessage=()=>"timeout", acceptPagePhase=(_,next)=>next;`,
-  '../server-utils': `export {relayCommandTimeoutMs} from '@volter/editor-sdk/session/command-table';
+  '../server-utils': `export {relayCommandTimeoutMs} from '@volter/sdk/session/command-table';
     export const CONTROLLER_DISCONNECTED_MESSAGE="disconnected", DESKTOP_FRAME_ORIGIN="",
       RELAY_DELIVERY_ACK_MS=8000, RELAY_DELIVERY_MAX_WAIT_MS=45000,
       commandListenerHealth=()=>null, isAllowedEditorOrigin=()=>true, editorAllowedHosts=()=>[], unacknowledgedCommandMessage=()=>"no receipt";
-    import {relayCommandTimeoutMs} from '@volter/editor-sdk/session/command-table';
+    import {relayCommandTimeoutMs} from '@volter/sdk/session/command-table';
     export const relayCommandAckDeadlineMs=type=>relayCommandTimeoutMs(type)>8000?8000:null;`,
   '../session-registry': 'export const processSessionId="test-session";',
   '../tab-presence': 'export const tabAbsenceMessage=()=>"absent", tabUnresponsiveMessage=()=>"unresponsive", tabWaitingMessage=()=>"present";',

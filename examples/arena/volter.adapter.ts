@@ -32,7 +32,7 @@
 import {
   defineAdapter,
   EXPORTED_COMPOSITION_REGIONS,
-} from '@volter/editor-project/adapter/adapter-module';
+} from '@volter/project/adapter/adapter-module';
 
 export default defineAdapter({
   regions: 'manifest-roots',

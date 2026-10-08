@@ -10,7 +10,7 @@
  * is about the DRAWING.
  *
  * WHAT DRIVES IT IS NOT A SESSION VERB. U8's ruling 1 (2026-09-19): every view
- * publishes `volter.<view>.<verb>` commands through `@volter/editor-sdk/views`, one
+ * publishes `volter.<view>.<verb>` commands through `@volter/sdk/views`, one
  * table behind the frame's command service and standalone `cyclotron edit`'s
  * session verb — so this view adds no `blender-*` verb of its own.
  *

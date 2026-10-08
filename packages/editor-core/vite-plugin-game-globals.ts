@@ -23,15 +23,15 @@
  * besides.
  */
 
-import { GAME_CSS_SCOPE_SELECTOR } from '@volter/editor-sdk/session/game-css-scope';
+import { GAME_CSS_SCOPE_SELECTOR } from '@volter/sdk/session/game-css-scope';
 import type { Plugin } from 'vite';
 import { shouldScopeGameCss, shouldShadowGameGlobals } from './server/game-globals-shadow';
 import { mountIdOf } from './server/project-module-instance';
-import { scopeGameCss } from '@volter/editor-sdk/session/scoped-game-css';
+import { scopeGameCss } from '@volter/sdk/session/scoped-game-css';
 // The DOM-free prelude module, NOT `src/gated-globals.ts`: this file is reachable
 // from `tsconfig.server.json` (via `server/dev.ts`), which compiles without the
 // DOM lib and so cannot see `window`/`document`/`EventListenerOrEventListenerObject`.
-import { GAME_GLOBALS_PRELUDE_START, gameGlobalsPrelude } from '@volter/editor-sdk/kit/game-globals-prelude';
+import { GAME_GLOBALS_PRELUDE_START, gameGlobalsPrelude } from '@volter/sdk/kit/game-globals-prelude';
 import { EDITOR_TREE_QUERY } from './vite-plugin-shared-react';
 
 /**

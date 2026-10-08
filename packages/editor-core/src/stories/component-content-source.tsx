@@ -29,20 +29,20 @@ import type {
   ContentEntrySource,
   ContentEntrySourceContext,
   ContentEntryThumbnailProps,
-} from '@volter/editor-sdk/kit/content-entry-source-registry';
-import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
-import type { WorkspaceStateStore } from '@volter/editor-sdk/kit/workspace-document-restore';
+} from '@volter/sdk/kit/content-entry-source-registry';
+import { openRegisteredDocument } from '@volter/sdk/kit/document-open-registry';
+import type { WorkspaceStateStore } from '@volter/sdk/kit/workspace-document-restore';
 import { StoryComponentThumbnail } from './StoryComponentThumbnail';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   THREE_STORY_DOCUMENT_OPENER,
-} from '@volter/editor-sdk/kit/story-document-openers';
+} from '@volter/sdk/kit/story-document-openers';
 import {
   getProjectStoryModules,
   type ProjectPreviewStory,
   pickComponentPreviewStory,
   subscribeProjectStoryModules,
-} from '@volter/editor-sdk/kit/stories/story-registry';
+} from '@volter/sdk/kit/stories/story-registry';
 
 /** What this source carries on each row: the story that admitted the
  *  component, which is also its picture and its open address. */

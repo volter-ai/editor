@@ -5,7 +5,7 @@
  * the same thing — a multiplayer game's `play + server` brings its room server up either way.
  */
 
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import {
   type ConfigurationStatus,
   listConfigurations,

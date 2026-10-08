@@ -10,7 +10,7 @@
  * asset set and no Asset Budget tab.
  */
 
-import type { ToolContributionProps } from '@volter/editor-sdk/contributions';
+import type { ToolContributionProps } from '@volter/sdk/contributions';
 import { AssetBudgetPanel } from '../src/asset-budget/AssetBudgetPanel';
 
 export const point = 'workspace.document';

@@ -1,8 +1,8 @@
 /**
- * The three.js story thumbnail capture (`@volter/editor-sdk/kit/story-thumbnails`): a prefab
+ * The three.js story thumbnail capture (`@volter/sdk/kit/story-thumbnails`): a prefab
  * story in an offscreen R3F stage. Loads its renderer on first use.
  */
-import { registerStoryThumbnailCapture, StoryMediumMismatch } from '@volter/editor-sdk/kit/story-thumbnails';
+import { registerStoryThumbnailCapture, StoryMediumMismatch } from '@volter/sdk/kit/story-thumbnails';
 
 /** The three.js leg needs WebGL; jsdom (the component tests) has none. */
 function supportsThreeCapture(): boolean {

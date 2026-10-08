@@ -20,7 +20,7 @@
  * host imports (`validate-editor-closure.mjs`), the first package to reach
  * that destination, and a token NAME is the published contract while the
  * handle object is the host's own sugar. The widget kit's move to
- * `@volter/editor-sdk/widgets` is deferred (WORK.md §Skews as packages, item 5);
+ * `@volter/sdk/widgets` is deferred (WORK.md §Skews as packages, item 5);
  * until it lands, a package styling inline writes the `var()`.
  *
  * Nothing before a project is open (there is no version to tell the truth
@@ -33,7 +33,7 @@
  * only the version, and the host's counters are untouched.
  */
 
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import { useSyncExternalStore } from 'react';
 
 export const point = 'workspace.status';

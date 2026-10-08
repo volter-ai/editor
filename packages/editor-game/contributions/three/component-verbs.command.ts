@@ -1,6 +1,6 @@
 /**
  * THE COMPONENT-VERB commands of the session wire
- * (`@volter/editor-sdk/commands`, a `workspace.command` contribution):
+ * (`@volter/sdk/commands`, a `workspace.command` contribution):
  * `extract-component` and `fork-component`.
  *
  * These are the same two operations the hierarchy row's menu items perform
@@ -24,11 +24,11 @@
  * the two cannot drift.
  */
 
-import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { getActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { canExtractNode, isExtractedHint } from '../../src/host/instance-extract-actions';
 import { canForkInstance, isForkedHint } from '../../src/host/instance-fork-actions';
-import type { CommandContribution } from '@volter/editor-sdk/commands';
+import type { CommandContribution } from '@volter/sdk/commands';
 import { instanceExtractSourceFor } from '../../src/three/component-verbs/extract-menu';
 import { instanceForkSourceFor } from '../../src/three/component-verbs/fork-menu';
 import { threeStoreForHost } from '@volter/editor-threejs/kit/three-state';

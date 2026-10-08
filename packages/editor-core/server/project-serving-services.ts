@@ -1,5 +1,5 @@
 /**
- * The kit's side of the project-serving door (`@volter/editor-sdk/session/project-serving`):
+ * The kit's side of the project-serving door (`@volter/sdk/session/project-serving`):
  * the server capabilities a serving module may use, built from the kit's own region decision,
  * write recording and collaboration record, and the loader that asks each composed
  * package's `volter.serving` module for its plugins.
@@ -13,7 +13,7 @@ import type {
   ProjectServingModule,
   ProjectServingServices,
   ServingCollaboration,
-} from '@volter/editor-sdk/session/project-serving';
+} from '@volter/sdk/session/project-serving';
 import { CollaborationConflictError, collaborationSession } from './collaboration-session';
 import {
   importersFromModuleGraph,

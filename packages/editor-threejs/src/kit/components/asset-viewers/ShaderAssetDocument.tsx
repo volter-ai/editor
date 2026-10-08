@@ -1,12 +1,12 @@
 import { faCode, faSliders, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import { Checkbox, ColorInput, NumberInput, Select, themeVars } from '@volter/editor-sdk/widgets';
+import { Checkbox, ColorInput, NumberInput, Select, themeVars } from '@volter/sdk/widgets';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
-import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
-import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
-import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
-import { AssetEditorShell } from '@volter/editor-sdk/kit/components/AssetEditorShell';
-import { subscribeProjectAsset } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
+import { readProjectTextFile } from '@volter/sdk/kit/editor-api';
+import type { InspectionSection } from '@volter/sdk/kit/inspection-model';
+import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '@volter/sdk/kit/inspection-model';
+import { AssetEditorShell } from '@volter/sdk/kit/components/AssetEditorShell';
+import { subscribeProjectAsset } from '@volter/sdk/kit/components/asset-editor-persistence';
 import {
   FALLBACK_FRAGMENT_SHADER,
   FALLBACK_VERTEX_SHADER,
@@ -18,7 +18,7 @@ import {
   type ShaderUniformDescriptor,
   shaderCompanionPath,
   shaderStageFromPath,
-} from '@volter/editor-sdk/kit/components/asset-viewers/shader-source';
+} from '@volter/sdk/kit/components/asset-viewers/shader-source';
 
 type PreviewGeometry = 'sphere' | 'box' | 'plane';
 type UniformPreviewValue = number | boolean | string | number[];

@@ -3,7 +3,7 @@
  * Profiler, through the action point.
  */
 import { profilerView } from '../src/host/components/utility-view-state';
-import type { ActionContribution } from '@volter/editor-sdk/chrome';
+import type { ActionContribution } from '@volter/sdk/chrome';
 
 export const point = 'workspace.action';
 

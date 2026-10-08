@@ -1,11 +1,11 @@
 /**
  * BLENDER'S WORLD STUDIO LIGHTS: the eight HDRIs Blender ships for Material Preview
  * (`datafiles/studiolights/world`, copied from Blender 5.2), registered as environment images
- * (`@volter/editor-sdk/kit/environment-images`) so a view can light by one and draw it behind
+ * (`@volter/sdk/kit/environment-images`) so a view can light by one and draw it behind
  * the scene. Material Preview opens on Forest. All CC0, by Greg Zaal (Poly Haven); the terms
  * and each original are in `studiolights/world/license.txt`.
  */
-import type { EnvironmentImageSet } from '@volter/editor-sdk/kit/environment-images';
+import type { EnvironmentImageSet } from '@volter/sdk/kit/environment-images';
 import city from './studiolights/world/city.exr?url';
 import courtyard from './studiolights/world/courtyard.exr?url';
 import forest from './studiolights/world/forest.exr?url';

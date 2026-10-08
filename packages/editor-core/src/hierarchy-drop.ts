@@ -10,8 +10,8 @@
  * Rule zero: roots are resolved by ASKING the composite (`groupNodeId`/
  * `ownerOf`), never by decoding adapter-minted id strings here.
  */
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import type { AuthoringAdapter } from '@volter/project/adapter';
+import { CompositeAuthoringAdapter } from '@volter/sdk/kit/authoring/composite-authoring-adapter';
 
 /** The world that owns `nodeId` for drop purposes: the owning child's
  *  `worldId` for an ordinary row, the world itself for its synthetic

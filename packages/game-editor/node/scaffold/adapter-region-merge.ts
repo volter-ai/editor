@@ -21,8 +21,8 @@
  * WHY A TEXT SPLICE AND NOT A REWRITE. `volter.adapter.ts` is project-owned
  * source with the project's comments in it, and the adapter contract requires
  * its top level to stay a STATICALLY EVALUABLE binding table
- * (`@volter/editor-project/adapter/adapter-module`). So this locates the exact array with the
- * TypeScript AST — the same read `packages/editor-sdk/src/kit/ui-source/
+ * (`@volter/project/adapter/adapter-module`). So this locates the exact array with the
+ * TypeScript AST — the same read `packages/sdk/src/kit/ui-source/
  * adapter-region-includes.ts` performs — and inserts the missing string
  * literals there, touching nothing else. Anything it cannot locate literally is
  * reported as `unreadable`, never guessed at: a silently dropped declaration is

@@ -3,7 +3,7 @@
  * the CLI already did.
  *
  * the editor's `edit` command resolves the product from the project's own dependencies
- * (`@volter/editor-sdk/session/product-locator`) so a bad or missing declaration
+ * (`@volter/sdk/session/product-locator`) so a bad or missing declaration
  * is named before a server exists, then hands the directory over in
  * `VOLTER_PRODUCT_DIR`, beside `VOLTER_WORKBENCH_DIR`. The session reads it back
  * for the two things only it can do: SERVE the product's entry through
@@ -23,7 +23,7 @@ import {
   type ProductIdentity,
   readProductManifest,
   resolveProductForProject,
-} from '@volter/editor-sdk/session/product-locator';
+} from '@volter/sdk/session/product-locator';
 
 /** The product directory the CLI resolved and handed over. */
 export const PRODUCT_DIR_ENV = 'VOLTER_PRODUCT_DIR';
@@ -57,7 +57,7 @@ export function sessionProduct(projectPath: string | null): ProductIdentity | nu
 export {
   productComposedPackages,
   resolveProductForProject,
-} from '@volter/editor-sdk/session/product-locator';
+} from '@volter/sdk/session/product-locator';
 
 /**
  * EVERY CONTRIBUTION MODULE THE PRODUCT COMPOSES, as absolute files — what
@@ -135,7 +135,7 @@ export function productPackageRoots(product: ProductIdentity): string[] {
  * EVERY SERVING MODULE THE PRODUCT COMPOSES — each composed package's
  * `package.json#volter.serving`, as an absolute file: the server half of an integration,
  * whose Vite plugins take part in serving the project's own modules
- * (`@volter/editor-sdk/session/project-serving`). Read from the same composition
+ * (`@volter/sdk/session/project-serving`). Read from the same composition
  * {@link productContributionFiles} reads, so the kit names no package.
  */
 export function productServingModules(product: ProductIdentity): string[] {
@@ -167,7 +167,7 @@ export function productServingModules(product: ProductIdentity): string[] {
  * EVERY LIMITED-VIEW ROUTE MODULE THE PRODUCT COMPOSES — each composed package's
  * `package.json#volter.viewServing`, as an absolute file: the BROWSER module whose
  * `viewRoutes(services)` answers that integration's own routes in a limited view
- * (`@volter/editor-sdk/session/limited-view`). `view build` bundles them into the view's page.
+ * (`@volter/sdk/session/limited-view`). `view build` bundles them into the view's page.
  */
 export function productViewServingModules(product: ProductIdentity): string[] {
   const resolveFrom = createRequire(pathToFileURL(join(product.dir, 'package.json')));

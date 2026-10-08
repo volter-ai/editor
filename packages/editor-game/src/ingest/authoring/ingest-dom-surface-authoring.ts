@@ -4,7 +4,7 @@
  * only AuthoringAdapter/CompositeAuthoringAdapter currency.
  */
 
-import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import { CompositeAuthoringAdapter } from '@volter/sdk/kit/authoring/composite-authoring-adapter';
 import {
   findCanvasUiElements,
   findPrimaryCanvas,
@@ -12,15 +12,15 @@ import {
 } from '../../host/coverage/capability-coverage';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { authoringJournal } from '../../host/history/json-history-resource';
-import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
 import { DomAuthoringAdapter, type DomElementLike } from '../../react/dom-authoring-adapter';
 import {
   type OidElementLike,
   ReactRootAuthoringAdapter,
   walkOidTree,
 } from '../../react/react-world-authoring-adapter';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import type { VolterGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { AuthoringAdapter } from '@volter/project/adapter';
+import type { VolterGameContract } from '@volter/project/adapter/ingest/game-contract';
 
 type ReadableDomRoot = OverlayElement & DomElementLike & { readonly ownerDocument?: Document };
 

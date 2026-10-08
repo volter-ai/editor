@@ -23,10 +23,10 @@
  * `volter:script-update` listener.
  */
 
-import { connectToolFileEvents } from '@volter/editor-sdk/kit/asset-events';
-import { onProjectChange } from '@volter/editor-sdk/kit/project-manager';
-import { refreshProjectToolContributions } from '@volter/editor-sdk/kit/tool-loader';
-import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
+import { connectToolFileEvents } from '@volter/sdk/kit/asset-events';
+import { onProjectChange } from '@volter/sdk/kit/project-manager';
+import { refreshProjectToolContributions } from '@volter/sdk/kit/tool-loader';
+import { waitForFirstViewportFrame } from '@volter/sdk/kit/viewport-activation-timings';
 
 async function refreshAfterOpeningViewport(): Promise<void> {
   // Contribution modules are executable UI, not an index. A plain startup

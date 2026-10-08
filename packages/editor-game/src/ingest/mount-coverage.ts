@@ -13,7 +13,7 @@
  */
 
 import type { AdapterReach } from '../host/adapter-reach';
-import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
+import { getActiveSystems } from '@volter/sdk/kit/authoring/active-systems';
 import { ingestDataWriterNow } from '../host/authoring/ingest-data-writer';
 import { ingestOwnershipNow } from '../host/authoring/ingest-source-persistence';
 import {
@@ -26,8 +26,8 @@ import {
   type SystemAdapterMeasurement,
   type WriteReachFacts,
 } from '../host/coverage/capability-coverage';
-import { inspectSystemAdapterSeam } from '@volter/editor-sdk/kit/system-seam-evidence';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { inspectSystemAdapterSeam } from '@volter/sdk/kit/system-seam-evidence';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import {
   type MeasuredLoop,
   measuredLoop,
@@ -37,8 +37,8 @@ import {
   type ContractSurface,
   projectContractSystemAdapters,
 } from '../runtime/adapter/ingest/contract-system-adapters';
-import type { VolterGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
-import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+import type { VolterGameContract } from '@volter/project/adapter/ingest/game-contract';
+import type { SystemAdapters } from '@volter/project/adapter/system-adapter';
 import { activeIngest } from './active-ingest';
 import type { IngestMount } from './authoring/ingest-root-adapter';
 import { activeIngestContract } from './ingest-play-control';

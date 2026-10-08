@@ -19,7 +19,7 @@ import {
   type ContractScenesStories,
   isContractScenesStories,
 } from '../host/authoring/contract-scenes-stories';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
+import type { AuthoringAdapter } from '@volter/project/adapter/authoring';
 import { activeIngest } from './active-ingest';
 
 export function activeContractScenes(): ContractScenesStories | null {

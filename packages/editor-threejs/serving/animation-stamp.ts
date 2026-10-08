@@ -14,7 +14,7 @@ import ts from 'typescript';
 import type { Plugin } from 'vite';
 import { ANIMATION_LIVE_MODULE_ID, animationLiveModuleSource } from './animation-live-module';
 
-/** The kit services this plugin reads (`@volter/editor-sdk/session/project-serving`), by shape. */
+/** The kit services this plugin reads (`@volter/sdk/session/project-serving`), by shape. */
 export interface AnimationServingServices {
   readonly projectRoots: () => ReadonlySet<string>;
   readonly currentProjectRoot: () => string | undefined;

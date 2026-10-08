@@ -1,6 +1,6 @@
 /**
  * The game runtime's extension of the shared host contexts: the `game` handle
- * a host hands a root it mounts. `@volter/editor-project`'s host contexts carry
+ * a host hands a root it mounts. `@volter/project`'s host contexts carry
  * only surfaces; this product-specific execution handle belongs here, beside
  * the `Game` it names, so the shared project contract never imports this
  * runtime.
@@ -9,7 +9,7 @@ import type {
   CanvasHostContext,
   DomHostContext,
   ThreeHostContext,
-} from '@volter/editor-project/adapter/host-context';
+} from '@volter/project/adapter/host-context';
 import type { AssetCache } from '@volter/threejs-runtime/assets';
 import type * as THREE from 'three';
 import type { Game } from './game';

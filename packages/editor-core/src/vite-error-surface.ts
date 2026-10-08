@@ -37,8 +37,8 @@
  * needs nothing here: this module holds no state to clear.
  */
 
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { showConsoleUtility } from '@volter/editor-sdk/kit/workspace-utility-commands';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { showConsoleUtility } from '@volter/sdk/kit/workspace-utility-commands';
 
 /** The `err` half of Vite's `vite:error` HMR payload — only the fields read
  *  here, so a Vite version that adds more does not need this type updated. */

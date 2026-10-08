@@ -51,7 +51,7 @@
  * create/delete/reparent is not meaningfully re-expressible against it.
  */
 
-import { getActiveNetworking, getActivePhysics } from '@volter/editor-sdk/kit/authoring/active-systems';
+import { getActiveNetworking, getActivePhysics } from '@volter/sdk/kit/authoring/active-systems';
 import {
   authoringOidOf,
   isComponentInstanceRoot,
@@ -76,19 +76,19 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-sdk/kit/write-pipe';
-import { componentStatesProvider } from '@volter/editor-sdk/kit/component-states-registry';
+} from '@volter/sdk/kit/write-pipe';
+import { componentStatesProvider } from '@volter/sdk/kit/component-states-registry';
 import {
   type ChannelValue,
   type CreationSiteLiteralReport,
   channelFor,
-} from '@volter/editor-sdk/kit/creation-site-edit';
+} from '@volter/sdk/kit/creation-site-edit';
 import {
   creationSiteAnchor,
   instancesAtSite,
   NO_OBJECT_REASON,
-} from '@volter/editor-sdk/kit/creation-site-registry';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+} from '@volter/sdk/kit/creation-site-registry';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../../host/history/json-history-resource';
 import {
@@ -101,7 +101,7 @@ import {
   ThreeProjector,
   type ThreeWalkStats,
 } from '@volter/editor-threejs/kit/projection/three';
-import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/sdk/kit/ui-source/source-write-backend';
 import type {
   AuthoringAdapter,
   AuthoringCapabilities,
@@ -128,8 +128,8 @@ import type {
   TransformSourceCommitProvider,
   TruthProvider,
   WriteAnchorKind,
-} from '@volter/editor-project/adapter';
-import { emptyWriteAnchorKindCounts, physicsOwnerOf } from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
+import { emptyWriteAnchorKindCounts, physicsOwnerOf } from '@volter/project/adapter';
 import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import { bodyOwningNode } from '@volter/threejs-runtime/adapter/body-marks';
 import { colorMaterialOf } from '@volter/threejs-runtime/adapter/ingest/structural-ids';

@@ -1,5 +1,5 @@
 /**
- * THE INGEST LANE, started (`@volter/editor-sdk/services`, a
+ * THE INGEST LANE, started (`@volter/sdk/services`, a
  * `workspace.service` contribution).
  *
  * Three jobs, and the order matters:
@@ -40,10 +40,10 @@
  * `mount-ingest-root.ts` binds itself on — read at launch time rather than
  * captured, so neither ordering can leave the launch holding `null`.
  */
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import { importIngestAdapterModule, ingestAdapterModulePath } from '../src/host/ingest/registry';
-import { registerAdapterDefinitionSource } from '@volter/editor-sdk/kit/project-adapter';
-import { editorHost } from '@volter/editor-sdk/host';
+import { registerAdapterDefinitionSource } from '@volter/sdk/kit/project-adapter';
+import { editorHost } from '@volter/sdk/host';
 import { autoLaunchIngest } from '../src/ingest/mount-ingest-root';
 import { threeStoreForHost } from '@volter/editor-threejs/kit/three-state';
 

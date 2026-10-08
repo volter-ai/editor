@@ -30,7 +30,7 @@
  */
 
 import type { BlenderUvLayout } from '@volter/blender-engine/browser/rna';
-import { registerViewVerbs } from '@volter/editor-sdk/views';
+import { registerViewVerbs } from '@volter/sdk/views';
 import { useCallback, useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
 import {
   blenderRnaVersion,

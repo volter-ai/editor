@@ -28,10 +28,10 @@
  * lazily, inside the pipe, by the lane's own planner).
  */
 
-import type { WriteAck, WriteAnchorKind } from '@volter/editor-project/adapter';
-import type { ChannelValue } from '@volter/editor-sdk/kit/creation-site-edit';
+import type { WriteAck, WriteAnchorKind } from '@volter/project/adapter';
+import type { ChannelValue } from '@volter/sdk/kit/creation-site-edit';
 import type { SourcePersistenceBackend, SourceWriteSubject } from './source-persistence-backend';
-import { resolvesLiveOnly, runWritePipe, type WriteResolution } from '@volter/editor-sdk/kit/write-pipe';
+import { resolvesLiveOnly, runWritePipe, type WriteResolution } from '@volter/sdk/kit/write-pipe';
 
 /** The one-property-per-gesture refusal, spelled once — it is the persistence
  *  pipeline's own rule, not any substrate's voice. */

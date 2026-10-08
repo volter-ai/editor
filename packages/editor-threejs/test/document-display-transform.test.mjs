@@ -8,7 +8,7 @@ const built=await build({stdin:{contents:`
   export {HalfFloatType, PerspectiveCamera} from 'three';`,
   resolveDir:fileURLToPath(new URL('../src/kit/authoring/',import.meta.url)),loader:'ts'},
   bundle:true,platform:'node',format:'esm',write:false,
-  alias:Object.fromEntries(['editor-sdk','editor-project','editor-threejs'].map(name=>[
+  alias:Object.fromEntries(['sdk','project','editor-threejs'].map(name=>[
     '@volter/'+name,fileURLToPath(new URL('../../'+name+'/src',import.meta.url)),
   ]))});
 const {Object3DDocumentSession,HalfFloatType,PerspectiveCamera}=await import('data:text/javascript;base64,'+Buffer.from(built.outputFiles[0].contents).toString('base64'));

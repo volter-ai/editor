@@ -1,6 +1,6 @@
-import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
+import { onAssetReload } from '@volter/sdk/kit/project-asset-refresh';
 import { evictDreiCaches } from '../three/drei-asset-caches';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 
 /**
  * Play-mode orchestrator.
@@ -15,45 +15,45 @@ import { editorHost } from '@volter/editor-sdk/host';
  */
 
 import { installAdapterRuntimeBindings } from '../host/adapter-runtime-bindings';
-import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { getAuthoringOverride, setActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
 import {
   getActiveNetworking,
   inspectedInstanceId,
   setActiveSystems,
   setInspectedInstance,
   updateInstanceSystems,
-} from '@volter/editor-sdk/kit/authoring/active-systems';
-import { BoundaryAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
+} from '@volter/sdk/kit/authoring/active-systems';
+import { BoundaryAuthoringAdapter } from '@volter/sdk/kit/authoring/boundary-authoring-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
-} from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+} from '@volter/sdk/kit/authoring/composite-authoring-adapter';
 import { createEphemeralPersistence } from '../host/authoring/ephemeral-persistence';
 import {
   EPHEMERAL_DESTINATION,
   resolvesLiveOnly,
   runWritePipe,
   type WriteAck,
-} from '@volter/editor-sdk/kit/write-pipe';
+} from '@volter/sdk/kit/write-pipe';
 import { resolveAllRootEntries } from '../host/binding-resolver';
-import type { LogEntry } from '@volter/editor-sdk/kit/editor-api';
-import { endLogSession, flushLogEntries, startLogSession } from '@volter/editor-sdk/kit/editor-api';
-import type { ConsoleEntry } from '@volter/editor-sdk/kit/editor-console';
+import type { LogEntry } from '@volter/sdk/kit/editor-api';
+import { endLogSession, flushLogEntries, startLogSession } from '@volter/sdk/kit/editor-api';
+import type { ConsoleEntry } from '@volter/sdk/kit/editor-console';
 import {
   editorConsole,
   formatConsoleArgs,
   resumeEditorConsoleCapture,
   suspendEditorConsoleCapture,
-} from '@volter/editor-sdk/kit/editor-console';
-import { EDITOR_PARTICIPANT_ID, sendControl } from '@volter/editor-sdk/kit/editor-presence';
+} from '@volter/sdk/kit/editor-console';
+import { EDITOR_PARTICIPANT_ID, sendControl } from '@volter/sdk/kit/editor-presence';
 import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,
-} from '@volter/editor-sdk/kit/editor-presentation-activity';
+} from '@volter/sdk/kit/editor-presentation-activity';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import { reclaimGameRealm } from '../host/game-realm-reclaim';
-import { toolContributionRecording } from '@volter/editor-sdk/kit/gameplay-sessions';
+import { toolContributionRecording } from '@volter/sdk/kit/gameplay-sessions';
 import {
   clearGameSurface,
   currentGameRealmMountId,
@@ -61,40 +61,40 @@ import {
   setGameInputGate,
   setGameSurface,
 } from '../host/gated-globals';
-import { hierarchyProjectionFromProjectConfig } from '@volter/editor-sdk/kit/hierarchy-projection';
+import { hierarchyProjectionFromProjectConfig } from '@volter/sdk/kit/hierarchy-projection';
 import { type JournalSubject, playJournal } from '../host/history/json-history-resource';
-import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { projectBootstrapSettled } from '@volter/editor-sdk/kit/initial-project';
-import { registerGameNullSubject } from '@volter/editor-sdk/kit/inspection/game-subject';
-import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
-import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
+import { isEditableTarget, setActiveScope } from '@volter/sdk/kit/hotkeys';
+import { projectBootstrapSettled } from '@volter/sdk/kit/initial-project';
+import { registerGameNullSubject } from '@volter/sdk/kit/inspection/game-subject';
+import { fetchGameManifest } from '@volter/sdk/kit/manifest-project';
+import { registerPerformanceSource } from '@volter/sdk/kit/performance-sources';
 import {
   beginPlayBoot,
   endPlayBoot,
   markPlayBootPhase,
   type PlayBootPhase,
-} from '@volter/editor-sdk/kit/play-boot-phase';
-import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+} from '@volter/sdk/kit/play-boot-phase';
+import { presentationSurface } from '@volter/sdk/kit/presentation-surface';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
 import {
   beginProjectModuleSplitWatch,
   clearProjectModuleSplitReports,
   endProjectModuleSplitWatch,
   formatProjectModuleSplitMessage,
-} from '@volter/editor-sdk/kit/project-module-split';
-import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
+} from '@volter/sdk/kit/project-module-split';
+import { clearRootReadiness, recordRootReadiness } from '@volter/sdk/kit/readiness';
 import { mountedStoryHasPixiContent } from '../host/stories/pixi-story-model';
 import { domHasRenderableContent, threeSceneHasRenderableContent } from '../host/surface-content';
-import { surfaceHoldsKeyboard } from '@volter/editor-sdk/kit/surface-keyboard';
-import { publishToolContributionPlay } from '@volter/editor-sdk/kit/tool-contribution-play';
+import { surfaceHoldsKeyboard } from '@volter/sdk/kit/surface-keyboard';
+import { publishToolContributionPlay } from '@volter/sdk/kit/tool-contribution-play';
 import { liveWorldId, presentThreeRoots } from '../host/viewport-root-presentation';
 import {
   cancelPendingWorkspacePlayUtilities,
   revealWorkspacePlayUtilities,
-} from '@volter/editor-sdk/kit/workspace-play-utilities';
-import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
-import type { EntrypointSelectionOverride } from '@volter/editor-sdk/session/project-module-url';
-import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
+} from '@volter/sdk/kit/workspace-play-utilities';
+import { markGameCssScope } from '@volter/sdk/session/game-css-scope';
+import type { EntrypointSelectionOverride } from '@volter/sdk/session/project-module-url';
+import { isEditorLanePath } from '@volter/sdk/session/tool-contribution-convention';
 import { getSeededRandom, type SeededRandom } from '../runtime/core/seeded-random';
 import { _engineLogActive } from '../runtime/dev/logger';
 import type { PerformanceProfiler } from '../runtime/dev/performance-profiler';
@@ -112,10 +112,10 @@ import {
   type InspectorProvider,
   nodeKeyedPhysics,
   type TransformProvider,
-} from '@volter/editor-project/adapter';
-import { physicsOwnerOf } from '@volter/editor-project/adapter';
-import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
-import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
+} from '@volter/project/adapter';
+import { physicsOwnerOf } from '@volter/project/adapter';
+import { assertNever } from '@volter/project/adapter/adapter-surface';
+import { declaredRoots, rootById } from '@volter/project/adapter/manifest-interpreter';
 import { readOidSourceAnchors } from '../three/authoring/oid-source-persistence';
 import { oidThree, structuralThree } from '../three/authoring/three-authoring-adapter';
 import type * as THREE from 'three';
@@ -129,7 +129,7 @@ import { bindPlayRecordingStop, endPlayRecording } from './play-recording';
 import { createReactPlayAuthoringAdapter } from './react-play-live-authoring';
 import { onThreeStore } from '@volter/editor-threejs/kit/three-state';
 import { presentViewportRoots } from '@volter/editor-threejs/viewport-door';
-import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
+import { markGameSurface } from '@volter/sdk/kit/game-surface-defaults';
 
 /** Context needed by the orchestrator (passed from the world root's stage). */
 export interface PlayModeContext {
@@ -870,7 +870,7 @@ let _pendingEntries: LogEntry[] = [];
 let _lastPersistedDebugEventSeq = 0;
 
 /**
- * The per-entry half of a play log's identity (`@volter/editor-sdk`'s
+ * The per-entry half of a play log's identity (`@volter/sdk`'s
  * `play/log-format.ts` owns the format; the run's session/project/name/start
  * are a header line the server writes once, and are deliberately NOT repeated
  * here).
@@ -1137,7 +1137,7 @@ export function gameRootSurfaceFacts(): readonly GameRootSurfaceFact[] {
 
 /**
  * #140 — the live play-mode game canvas, for `command-listener.ts`'s
- * `bridge-screenshot` relay op (`RelayTransport.screenshot` in `@volter/editor-live`).
+ * `bridge-screenshot` relay op (`RelayTransport.screenshot` in `@volter/live`).
  * The universal host mounts its root surfaces into `editorHost().workspace.liveDocument.container()`;
  * querying it for the bottom canvas avoids a surface-specific session alias.
  * `null` when not in play mode or no canvas surface is mounted.
@@ -1307,7 +1307,7 @@ export function resizeGame(width: number, height: number, pixelRatio?: number): 
  * size exceeded` — not a hypothetical). In the field this window is entered
  * whenever a caller re-issues `play` before the browser has acked the first
  * (a slow scene boot outliving the relay's/SDK's own `play.start` timeout is
- * the documented trigger — `packages/editor-sdk/src/transport.ts`'s
+ * the documented trigger — `packages/sdk/src/transport.ts`'s
  * `PLAY_START_TIMEOUT_MS`/`editor-server.ts`'s `PLAY_COMMAND_TIMEOUT_MS` —
  * and `play.start`'s own contract is explicitly "start (or restart)", so a
  * caller retrying after a timeout is using the API as documented, not

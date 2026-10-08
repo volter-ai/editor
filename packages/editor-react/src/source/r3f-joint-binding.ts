@@ -12,8 +12,8 @@
 import ts from 'typescript';
 import { enclosingScope, numericLiteral, refIdentifier } from './ts-ast';
 
-import type { R3fJointBinding, R3fJointHook, R3fJointLiteral, R3fJointLiteralRange } from '@volter/editor-sdk/source-authoring';
-export type { R3fJointBinding, R3fJointHook, R3fJointLiteral, R3fJointLiteralRange } from '@volter/editor-sdk/source-authoring';
+import type { R3fJointBinding, R3fJointHook, R3fJointLiteral, R3fJointLiteralRange } from '@volter/sdk/source-authoring';
+export type { R3fJointBinding, R3fJointHook, R3fJointLiteral, R3fJointLiteralRange } from '@volter/sdk/source-authoring';
 
 const JOINT_HOOKS = new Set<R3fJointHook>([
   'useFixedJoint',

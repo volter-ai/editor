@@ -5,7 +5,7 @@
  * ── Why a script and not a manifest field ─────────────────────────────────
  * MEASURED before it was written (2026-09-20). A run configuration is one of
  * the project's ENTRYPOINTS and the registry has exactly two run-role kinds,
- * `process` and `compound` (`@volter/editor-project/manifest/configuration-kinds`); the
+ * `process` and `compound` (`@volter/project/manifest/configuration-kinds`); the
  * host starts `process` and nothing else, and there is NO seam anywhere from a
  * configuration id to the game the host then mounts — `build`-role kinds can
  * name a project TOOL, `run`-role kinds have no equivalent. So a configuration

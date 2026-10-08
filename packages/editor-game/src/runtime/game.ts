@@ -5,15 +5,15 @@
  * RootInstance retains its own mounted surface and optional capabilities.
  */
 
-import type { AdapterSurface as AdapterSurfaceLeaf } from '@volter/editor-project/adapter/adapter-surface';
-import type { RootBinding } from '@volter/editor-project/adapter/binding';
+import type { AdapterSurface as AdapterSurfaceLeaf } from '@volter/project/adapter/adapter-surface';
+import type { RootBinding } from '@volter/project/adapter/binding';
 import {
   formatAudioGateMessage,
   formatLoopGateMessage,
-} from '@volter/editor-project/adapter/loop-gate-report';
-import type { MountedRoot } from '@volter/editor-project/adapter/root-adapter';
-import type { AudioAdapter, SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
-import { bindScopedSystem } from '@volter/editor-project/adapter/system-slot';
+} from '@volter/project/adapter/loop-gate-report';
+import type { MountedRoot } from '@volter/project/adapter/root-adapter';
+import type { AudioAdapter, SystemAdapters } from '@volter/project/adapter/system-adapter';
+import { bindScopedSystem } from '@volter/project/adapter/system-slot';
 import type { AssetCache } from '@volter/threejs-runtime/assets';
 import { hasUserData } from '@volter/threejs-runtime/ecs/user-data';
 import type { CollisionSystem } from '@volter/threejs-runtime/physics/collision-system';

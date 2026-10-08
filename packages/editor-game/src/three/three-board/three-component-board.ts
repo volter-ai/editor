@@ -9,15 +9,15 @@
  * when it does not.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-sdk/kit/component-board-registry';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { commandLine } from '@volter/sdk/kit/product-command';
+import type { ComponentBoard, ComponentBoardContext } from '@volter/sdk/kit/component-board-registry';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import {
   getStoryMediaPresence,
   subscribeStoryMediaPresence,
 } from '../../host/stories/story-media-presence';
-import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/sdk/kit/stories/story-registry';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
 
 /** The tab reads `3D`, the peer of `Scene` and `UI` in the center strip. */
 const THREE_COMPONENTS_TITLE = '3D';

@@ -48,7 +48,7 @@
  * evaluated, so a typo fails here rather than becoming silence in the editor.
  */
 
-import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
+import { defineAdapter } from '@volter/project/adapter/adapter-module';
 
 export default defineAdapter({
   regionIncludes: {

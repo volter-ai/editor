@@ -10,12 +10,12 @@
  *   last fired is marked, and their events and context are listed. Nothing in the game names them.
  */
 
-import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
+import { handleProjectMutationFailure } from '@volter/sdk/kit/source-conflict';
 import {
   setCollaborationRevision,
   sourceMutationAttribution,
-} from '@volter/editor-sdk/kit/editor-session-attribution';
-import { themeVars } from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/kit/editor-session-attribution';
+import { themeVars } from '@volter/sdk/widgets';
 import { type CSSProperties, type ReactNode, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { liveActors, type LiveActor, useLiveActorsVersion } from './live-actors';
 import { edgeText, layoutMachine, type MachineLayout, machineTitle, stateLines } from './machine-layout';

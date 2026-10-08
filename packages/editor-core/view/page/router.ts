@@ -16,7 +16,7 @@
  *    talks to.
  *  - REPORTS the page sends a session (tab presence, console and play reports, command
  *    acknowledgements), accepted and dropped: nothing in a static page reads them.
- *  - THE INTEGRATIONS' ROUTES (`volter.viewServing`, `@volter/editor-sdk/session/limited-view`).
+ *  - THE INTEGRATIONS' ROUTES (`volter.viewServing`, `@volter/sdk/session/limited-view`).
  *  - EVERYTHING ELSE under `/__editor/` is a refusal by name ({@link unavailableFeature}).
  *
  * Fixed answers recorded at build time (`/__editor/project`, `/__editor/project-tools`, compiled
@@ -29,10 +29,10 @@ import {
   limitedViewUnavailableBody,
   type ViewRoute,
   type ViewServingServices,
-} from '@volter/editor-sdk/session/limited-view';
-import { globToRegExp } from '@volter/editor-sdk/session/source-glob';
-import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
-import { parseEditorSettings } from '@volter/editor-project/settings/schema';
+} from '@volter/sdk/session/limited-view';
+import { globToRegExp } from '@volter/sdk/session/source-glob';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
+import { parseEditorSettings } from '@volter/project/settings/schema';
 import { foldDataFileText } from '../../server/data-file-serialize';
 import { createViewAgent } from './agent/agent';
 import { createPageCommandRelay } from './command-relay';

@@ -1,7 +1,7 @@
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { useEffect, useState } from 'react';
-import { useEditorStats } from '@volter/editor-sdk/kit/editor-runtime';
-import { latestTabCensus } from '@volter/editor-sdk/kit/tab-census';
+import { useEditorStats } from '@volter/sdk/kit/editor-runtime';
+import { latestTabCensus } from '@volter/sdk/kit/tab-census';
 
 export function StatsOverlay() {
   const stats = useEditorStats();

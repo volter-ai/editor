@@ -5,11 +5,11 @@
  * the person is looking at (`focusedStageStore`, ARCHITECTURE-CORE §One stage
  * unit 4), with an Object3D document's own presentation where it has one.
  */
-import { editorHost } from '@volter/editor-sdk/host';
-import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { editorHost } from '@volter/sdk/host';
+import { activeWorkspaceDocumentId } from '@volter/sdk/kit/workspace-document-registry';
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
-import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
-import { viewGridVisible } from '@volter/editor-sdk/kit/viewport-presentation';
+import { focusedStageStore } from '@volter/sdk/kit/stage-context';
+import { viewGridVisible } from '@volter/sdk/kit/viewport-presentation';
 import { threeStoreForHost } from './three-state';
 import { threeStateOf } from './three-state';
 

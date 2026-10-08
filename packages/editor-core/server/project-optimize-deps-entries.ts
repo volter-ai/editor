@@ -6,12 +6,12 @@
 import { type Dirent, existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import { dirname, isAbsolute, join, relative, sep } from 'node:path';
-import { EDITOR_LANE_DIRS } from '@volter/editor-sdk/session/tool-contribution-convention';
+import { EDITOR_LANE_DIRS } from '@volter/sdk/session/tool-contribution-convention';
 import { isDynamicPattern } from 'tinyglobby';
-import { loadGameManifestDir } from '@volter/editor-project/manifest/load-file';
+import { loadGameManifestDir } from '@volter/project/manifest/load-file';
 import { doorwayModuleSource, PACKAGED_MODULE_DOORWAYS } from '../vite-plugin-module-doorways';
 import { isToolContributionModule, projectStorySourceDirs } from './server-utils';
-import { ADAPTER_MODULE_FILENAME } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
 
 /**
  * SERVER-ONLY packages that must never be crawled INTO during the client
@@ -234,11 +234,11 @@ function browserStoryEntries(projectRoot: string): string[] {
  * The editor dynamic-imports a project's tool CONTRIBUTIONS (`src/contributions/
  * *.utility.tsx` cockpit cells, `*.document.tsx`, `*.inspector.tsx`, …) into
  * the browser, and those pull ordinary siblings (`src/tools/
- * dev-cockpit.utility.tsx` → `./tuning` → `@volter/editor-sdk/tools/registry`). None of that
+ * dev-cockpit.utility.tsx` → `./tuning` → `@volter/sdk/tools/registry`). None of that
  * hangs off any `roots[].entry`, so scoping the crawl to world entries alone
- * left `@volter/editor-sdk/tools/registry` undiscovered until the first cockpit mount —
+ * left `@volter/sdk/tools/registry` undiscovered until the first cockpit mount —
  * measured 2026-08-09 on a live session: "✨ new dependencies optimized:
- * @volter/editor-sdk/tools/registry" → "optimized dependencies changed. reloading", a full
+ * @volter/sdk/tools/registry" → "optimized dependencies changed. reloading", a full
  * editor reload minutes into authoring, which dropped the in-flight play
  * command (the exact class the C3 entries-scoping exists to prevent).
  *
@@ -319,7 +319,7 @@ function browserToolEntries(projectRoot: string): string[] {
  *
  * The specials come from the ROOT segment of the path, not from the parts this
  * module builds, so spelling every under-root entry root-RELATIVE removes them
- * from the string Vite tests: `resolve(root, 'node_modules/@volter/editor-project/src/
+ * from the string Vite tests: `resolve(root, 'node_modules/@volter/project/src/
  * loader.ts')` is the same file with no pattern syntax in the entry at all.
  * Entries outside the Vite root (the dev server's project entries) keep their
  * absolute spelling — Vite accepts absolute non-glob entries — because a
@@ -465,7 +465,7 @@ export const EDITOR_RUNTIME_MODULE_SPECIFIERS: readonly string[] = [
  * one-singleton reason the crawl-entry doc below states.
  */
 export const RUNTIME_PACKAGE_NAMES = [
-  '@volter/editor-project',
+  '@volter/project',
   '@volter/editor-threejs',
   '@volter/threejs-runtime',
   '@volter/game-runtime',

@@ -1,22 +1,22 @@
-import { fontSizeVar, text } from '@volter/editor-sdk/widgets';
-import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
+import { fontSizeVar, text } from '@volter/sdk/widgets';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { useEffect, useRef, useState } from 'react';
-import { listProjectSourceFiles, readProjectSourceText } from '@volter/editor-sdk/kit/api/project-source';
+import { listProjectSourceFiles, readProjectSourceText } from '@volter/sdk/kit/api/project-source';
 import {
   loadProjectThumbnailManifest,
   resetProjectThumbnailManifestCache,
   THUMBNAIL_MANIFEST_PATH,
   ThumbnailJobQueue,
-} from '@volter/editor-sdk/kit/asset-workflow/thumbnail-system';
+} from '@volter/sdk/kit/asset-workflow/thumbnail-system';
 import {
   DOCUMENT_PREVIEW_HEIGHT,
   DOCUMENT_PREVIEW_RECIPE,
   DOCUMENT_PREVIEW_WIDTH,
   type DocumentPreviewSource,
-} from '@volter/editor-sdk/kit/document-preview-source';
-import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
-import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
-import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
+} from '@volter/sdk/kit/document-preview-source';
+import { projectFiles } from '@volter/sdk/kit/files/project-files';
+import { getCurrentProject } from '@volter/sdk/kit/project-manager';
+import { getStorageBackend } from '@volter/sdk/kit/storage/index';
 
 interface CaptureJob {
   readonly run: () => Promise<string>;

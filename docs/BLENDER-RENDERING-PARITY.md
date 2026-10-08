@@ -55,7 +55,7 @@ Regenerate GPU shader/data assets with `test/generate-display-shaders.py`,
 OpenColorIO 2.5.0 and NumPy, passing `config.ocio` and `browser/three` as arguments.
 The configuration and table hashes are recorded; tests reject mismatched or
 truncated data. `test/display-transform.browser.ts` runs the real GPU check
-through a temporary project command contribution and the public editor SDK.
+through a temporary project command contribution and the public SDK.
 
 ## Render evaluation: measured
 

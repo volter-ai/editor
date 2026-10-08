@@ -246,7 +246,7 @@ export function registerLogRoutes(router: EditorServerRouter, ctx: RouteContext)
   });
 
   // ---- External-tool narration relay ----
-  // A tool driving this session (a `@volter/editor-live` client, say) fires
+  // A tool driving this session (a `@volter/live` client, say) fires
   // best-effort lifecycle lines at this route so they land in the
   // SAME live editor console the `server-log` SSE event feeds
   // (see `runFileValidation`'s `broadcast('server-log', …)` calls above) — a

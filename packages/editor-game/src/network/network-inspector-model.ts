@@ -20,7 +20,7 @@ import type {
   NetworkingAdapter,
   ReplicationStats,
   RoomInfo,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 
 /**
  * The three headline readings the inspector's header shows.

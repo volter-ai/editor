@@ -63,8 +63,8 @@
 import ts from 'typescript';
 import { enclosingScope, refIdentifier } from './ts-ast';
 
-import type { PhysicsChannel, R3fPhysicsBinding } from '@volter/editor-sdk/source-authoring';
-export type { PhysicsChannel, R3fPhysicsBinding } from '@volter/editor-sdk/source-authoring';
+import type { PhysicsChannel, R3fPhysicsBinding } from '@volter/sdk/source-authoring';
+export type { PhysicsChannel, R3fPhysicsBinding } from '@volter/sdk/source-authoring';
 
 /** What an element carrying a binding looks like to a writer. Structural rather
  *  than the whole `OidEntry`, so this stays the browser-safe half. */
@@ -81,7 +81,7 @@ export interface PhysicsBoundElement {
 /**
  * Is this element's `channel` PLACED BY A SIMULATED BODY — the fact that makes
  * an edit here a `physics-binding` write rather than an ordinary `source-prop`
- * one, in `WriteAnchorKind`'s vocabulary (`@volter/editor-project/adapter`'s `authoring.ts`).
+ * one, in `WriteAnchorKind`'s vocabulary (`@volter/project/adapter`'s `authoring.ts`).
  *
  * Two shapes, and both are the same question ("does a body read this value?")
  * asked of the two places a body can be attached, which is why they answer from

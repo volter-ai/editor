@@ -24,9 +24,9 @@ import {
   Tooltip,
   text,
   themeVars,
-} from '@volter/editor-sdk/widgets';
-import type { AuthoringAdapter, AuthoringAssetSubject } from '@volter/editor-project/adapter';
-import type { DocumentEntry } from '@volter/editor-project/adapter/adapter-module';
+} from '@volter/sdk/widgets';
+import type { AuthoringAdapter, AuthoringAssetSubject } from '@volter/project/adapter';
+import type { DocumentEntry } from '@volter/project/adapter/adapter-module';
 import {
   useCallback,
   useEffect,
@@ -36,17 +36,17 @@ import {
   useState,
   useSyncExternalStore,
 } from 'react';
-import { clearSelectedAsset, getSelectedAsset, setSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
+import { clearSelectedAsset, getSelectedAsset, setSelectedAsset } from '@volter/sdk/kit/asset-selection';
 import {
   type AssetCapabilityKind,
   assetCapabilities,
   assetDocumentKind,
-} from '@volter/editor-sdk/kit/asset-capabilities';
+} from '@volter/sdk/kit/asset-capabilities';
 import { confirmAssetAction } from '../asset-workflow/asset-workflow-quality';
-import { previewAssetAudio, stopAssetAudioPreview } from '@volter/editor-sdk/kit/asset-workflow/audio-preview-player';
+import { previewAssetAudio, stopAssetAudioPreview } from '@volter/sdk/kit/asset-workflow/audio-preview-player';
 import { invalidateFolderPreviews } from '../asset-workflow/folder-preview';
-import { PROJECT_ASSET_COMMANDS } from '@volter/editor-sdk/kit/asset-workflow/project-asset-commands';
-import { projectLocalSection, writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-state';
+import { PROJECT_ASSET_COMMANDS } from '@volter/sdk/kit/asset-workflow/project-asset-commands';
+import { projectLocalSection, writeProjectLocalSection } from '@volter/sdk/kit/project-local-state';
 
 /** The browser's view state is the project's own (`kit/project-local-state`), like its layout. */
 const CONTENT_BROWSER_SECTION = 'contentBrowser';
@@ -58,7 +58,7 @@ import {
   assetRootServingUrl,
   projectAssetPath,
   REFERENCE_ROOT,
-} from '@volter/editor-sdk/kit/project-asset-roots';
+} from '@volter/sdk/kit/project-asset-roots';
 import {
   collectProjectContentAssets,
   expandSpritesheetContentAssets,
@@ -69,56 +69,56 @@ import {
   projectComponentPriority,
   projectContentAssetFacet,
   projectContentAssetPriority,
-} from '@volter/editor-sdk/kit/asset-workflow/project-content';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
-import { contributedMenuItems } from '@volter/editor-sdk/kit/chrome-registry';
+} from '@volter/sdk/kit/asset-workflow/project-content';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
+import { resolvePanelAuthoring } from '@volter/sdk/kit/authoring/panel-authoring';
+import { contributedMenuItems } from '@volter/sdk/kit/chrome-registry';
 import {
   type ContentEntry,
   type ContentEntrySource,
   contentEntrySourceRegistryVersion,
   contentEntrySources,
   subscribeContentEntrySources,
-} from '@volter/editor-sdk/kit/content-entry-source-registry';
-import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
-import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '@volter/editor-sdk/kit/editor-api';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { useEditorStore, useHistoryService } from '@volter/editor-sdk/kit/editor-runtime';
-import type { AssetKind as DocumentAssetKind } from '@volter/editor-sdk/kit/asset-selection';
-import { hierarchyNodesBreadthFirst } from '@volter/editor-sdk/kit/hierarchy-walk';
-import { isEditableTarget, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { assetThumbnailRenderer } from '@volter/editor-sdk/kit/asset-thumbnails';
-import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
-import { documentViewport } from '@volter/editor-sdk/kit/document-viewports';
-import { getStorageBackend } from '@volter/editor-sdk/kit/storage/index';
-import { getGlobalToolContributions, subscribeToolContributions } from '@volter/editor-sdk/kit/tool-loader';
-import { reportUnacceptedAssetDrop, showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+} from '@volter/sdk/kit/content-entry-source-registry';
+import { openRegisteredDocument } from '@volter/sdk/kit/document-open-registry';
+import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '@volter/sdk/kit/editor-api';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { useEditorStore, useHistoryService } from '@volter/sdk/kit/editor-runtime';
+import type { AssetKind as DocumentAssetKind } from '@volter/sdk/kit/asset-selection';
+import { hierarchyNodesBreadthFirst } from '@volter/sdk/kit/hierarchy-walk';
+import { isEditableTarget, setActiveScope } from '@volter/sdk/kit/hotkeys';
+import { assetThumbnailRenderer } from '@volter/sdk/kit/asset-thumbnails';
+import { object3DDocumentWritePolicy } from '@volter/sdk/kit/object3d-document-write-policy';
+import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/sdk/kit/project-adapter';
+import { documentViewport } from '@volter/sdk/kit/document-viewports';
+import { getStorageBackend } from '@volter/sdk/kit/storage/index';
+import { getGlobalToolContributions, subscribeToolContributions } from '@volter/sdk/kit/tool-loader';
+import { reportUnacceptedAssetDrop, showTransientHint } from '@volter/sdk/kit/transient-hint';
 import {
   type AvailableWorkspaceDocument,
   availableWorkspaceDocuments,
   openAvailableWorkspaceDocument,
   subscribeAvailableWorkspaceDocuments,
-} from '@volter/editor-sdk/kit/workspace-available-documents';
-import { planSceneDocument } from '@volter/editor-sdk/kit/scene-document-plan';
+} from '@volter/sdk/kit/workspace-available-documents';
+import { planSceneDocument } from '@volter/sdk/kit/scene-document-plan';
 import {
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { openAssetDocument, openAuthoringAssetDocument } from '@volter/editor-sdk/kit/components/asset-documents';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { openAssetDocument, openAuthoringAssetDocument } from '@volter/sdk/kit/components/asset-documents';
 import {
   type AssetGlyphKind,
   AssetIcon,
   AudioAssetThumb,
   ModelThumbnail,
   TypedAssetThumbnail,
-} from '@volter/editor-sdk/kit/components/asset-thumbnails';
-import { SpritesheetSpriteView } from '@volter/editor-sdk/kit/components/asset-viewers/SpritesheetSpriteView';
+} from '@volter/sdk/kit/components/asset-thumbnails';
+import { SpritesheetSpriteView } from '@volter/sdk/kit/components/asset-viewers/SpritesheetSpriteView';
 import { DocumentThumbnail } from './DocumentThumbnail';
 import { FolderPreviewTile } from './FolderPreviewTile';
-import { openKindDocument, uneditedKindAssetKind } from '@volter/editor-sdk/kit/components/kind-documents';
-import { openSceneTableEntry } from '@volter/editor-sdk/kit/components/scene-documents';
+import { openKindDocument, uneditedKindAssetKind } from '@volter/sdk/kit/components/kind-documents';
+import { openSceneTableEntry } from '@volter/sdk/kit/components/scene-documents';
 
 // --- Helpers ---
 
@@ -2788,7 +2788,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
             >
               Copy path
             </MenuItem>
-            {/* A package's own items on this asset (`@volter/editor-sdk/chrome`,
+            {/* A package's own items on this asset (`@volter/sdk/chrome`,
                 menu `asset`): invoked with the asset's project path. `Open in
                 Asset Budget` is one of them (`@volter/editor-game`'s
                 `asset-budget-asset.menu.ts`) — it was a built-in row here

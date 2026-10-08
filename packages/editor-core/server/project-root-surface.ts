@@ -1,13 +1,13 @@
 import { readFileSync } from 'node:fs';
 import { dirname, join, relative, resolve, sep } from 'node:path';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
 import type {
   FileRegionAnswer,
   ImportersOf,
   RegionBinding,
-} from '@volter/editor-sdk/kit/ui-source/file-region-resolver';
-import { resolveFileRegion } from '@volter/editor-sdk/kit/ui-source/file-region-resolver';
-import type { DeclaredRootSurface, SourceDialectEvidence } from '@volter/editor-sdk/source-authoring';
+} from '@volter/sdk/kit/ui-source/file-region-resolver';
+import { resolveFileRegion } from '@volter/sdk/kit/ui-source/file-region-resolver';
+import type { DeclaredRootSurface, SourceDialectEvidence } from '@volter/sdk/source-authoring';
 import { sourceDialectEvidence, sourceProvesR3f } from './source-analysis';
 import {
   ADAPTER_MODULE_FILENAME,
@@ -37,7 +37,7 @@ import {
  * spelling fails `RootAdapterSchema` loudly at load, naming the canonical
  * value — so there is nothing for this probe to translate.
  *
- * Deliberately dependency-light (no Zod, no `@volter/editor-project/manifest/load`) — same
+ * Deliberately dependency-light (no Zod, no `@volter/project/manifest/load`) — same
  * bar a vite-config-time file holds: a best-effort identity probe, not
  * manifest validation. A malformed manifest never crashes a transform/HMR
  * hook; it degrades to "no declared regions", which the resolver answers as
@@ -234,7 +234,7 @@ function regionOfEntry(file: string, projectRoot?: string): RegionBinding | unde
 }
 
 /** Re-exported so this tier's callers keep ONE import for the graph seam. */
-export type { ImportersOf } from '@volter/editor-sdk/kit/ui-source/file-region-resolver';
+export type { ImportersOf } from '@volter/sdk/kit/ui-source/file-region-resolver';
 
 /** Structural (not imported) shape of Vite's `ModuleGraph`. */
 interface ModuleNodeLike {

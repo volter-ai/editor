@@ -5,7 +5,7 @@
  * `tool:profiler.utility` (`profilerView.open` names it).
  */
 import { profilerView } from '../src/host/components/utility-view-state';
-import type { MenuContribution } from '@volter/editor-sdk/chrome';
+import type { MenuContribution } from '@volter/sdk/chrome';
 
 export const point = 'workspace.menu';
 

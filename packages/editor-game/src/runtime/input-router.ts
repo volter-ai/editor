@@ -25,7 +25,7 @@ import {
   type ClaimEntry,
   resolveClaimingRoot,
   stackOrder,
-} from '@volter/editor-project/adapter/root-stacking';
+} from '@volter/project/adapter/root-stacking';
 
 /** The DOM-wiring inputs — one real canvas per world. */
 export interface RouterAdapterRoot extends ClaimEntry {

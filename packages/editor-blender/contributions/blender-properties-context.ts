@@ -1,6 +1,6 @@
 /** Blender's Properties context remains inspectable without a selection.
  * Reuse the same RNA sections and Properties projection as selected objects. */
-import { registerNullSubjectProvider } from '@volter/editor-sdk/kit/inspection/null-subject';
+import { registerNullSubjectProvider } from '@volter/sdk/kit/inspection/null-subject';
 import { blenderOutlinerState } from './blender-outliner-model';
 import { blenderOutlinerKind } from './blender-outliner-authoring';
 import {

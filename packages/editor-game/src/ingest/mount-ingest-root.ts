@@ -23,27 +23,27 @@
  * path is therefore its catch block.
  */
 
-import { getAuthoringOverride, setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { getAuthoringOverride, setActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
 import {
   CompositeAuthoringAdapter,
   type CompositeChild,
-} from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+} from '@volter/sdk/kit/authoring/composite-authoring-adapter';
 import {
   addMountFailureReport,
   clearMountFailureReports,
   formatMountFailureMessage,
   getMountFailureReports,
   type MountFailureReport,
-} from '@volter/editor-sdk/kit/mount-failure-report';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+} from '@volter/sdk/kit/mount-failure-report';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
-import { liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
-import { fetchGameManifest, isManifestAbsence } from '@volter/editor-sdk/kit/manifest-project';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
-import { ingestRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
-import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
-import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
+import { registerEditorStateFacet } from '@volter/sdk/kit/editor-state-facets';
+import { liveDocumentContainer } from '@volter/sdk/kit/live-document';
+import { fetchGameManifest, isManifestAbsence } from '@volter/sdk/kit/manifest-project';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
+import { ingestRoots, rootById } from '@volter/project/adapter/manifest-interpreter';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
+import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/project/manifest/load';
 import { activeIngest, attachIngestSiblings } from './active-ingest';
 import { captureWaitStatus } from './capture-wait-report';
 import { resetIngestPlaySurface } from './ingest-play-control';
@@ -719,7 +719,7 @@ if (import.meta.env.DEV && typeof window !== 'undefined') {
     isActive: () => activeIngest()?.kind === 'dom',
   };
   // Headless-readable mount outcomes —
-  // `packages/editor-sdk/src/kit/mount-failure-report.ts`'s multi-entry
+  // `packages/sdk/src/kit/mount-failure-report.ts`'s multi-entry
   // list is otherwise only ever read by the status bar's `mount-failure`
   // contribution (a React component), invisible to `page.evaluate()`. This is
   // a plain function returning the LIVE list — a probe's browser

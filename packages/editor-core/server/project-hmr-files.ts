@@ -1,5 +1,5 @@
 import path from 'node:path';
-import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
+import { isEditorLanePath } from '@volter/sdk/session/tool-contribution-convention';
 import ts from 'typescript';
 import type { ImportersOf } from './project-root-surface';
 import { resolveOidSurface } from './project-root-surface';

@@ -20,7 +20,7 @@
  * `volter.viewServing` modules to {@link startLimitedView}.
  */
 
-import type { ViewServingModule } from '@volter/editor-sdk/session/limited-view';
+import type { ViewServingModule } from '@volter/sdk/session/limited-view';
 import { createLiveModules } from './live-modules';
 import { SeededProjectStore } from './project-store';
 import { createLimitedViewRouter, viewServingServices } from './router';
@@ -104,7 +104,7 @@ function installQuietSessionSockets(): void {
  * Project code's `fetch` does not reach the host's own routes (`/api/`, `/auth/`): a game has no
  * business with the person's account, and a module written in the view (by the person or the
  * agent) runs in this page with that account's session. The game-globals prelude routes every
- * project module's `fetch` through this hook (`@volter/editor-sdk/kit/game-globals-prelude`).
+ * project module's `fetch` through this hook (`@volter/sdk/kit/game-globals-prelude`).
  *
  * DEFENCE IN DEPTH, NOT A SANDBOX: project code is JavaScript in this origin and can find other
  * ways to make a request. What bounds those is the host, and a content security policy if it

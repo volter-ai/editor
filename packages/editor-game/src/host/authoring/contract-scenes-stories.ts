@@ -1,6 +1,6 @@
 /**
  * Projects an ingested game's declared SCENES (`window.volterGame.scenes`, see
- * `@volter/editor-project/adapter/ingest/game-contract`) onto the ordinary
+ * `@volter/project/adapter/ingest/game-contract`) onto the ordinary
  * {@link StoriesProvider} the editor's story picker already reads — the sibling
  * of `contract-hierarchy-authoring.ts`, which does the same job for the
  * contract's `hierarchy` member.
@@ -27,11 +27,11 @@ import type {
   LiveSceneSwitch,
   LiveSceneSwitchSettled,
   LiveSceneTable,
-} from '@volter/editor-sdk/host';
-import type { StoriesProvider, StoryRef } from '@volter/editor-project/adapter';
-import type { VolterGameContract, VolterGameScene } from '@volter/editor-project/adapter/ingest/game-contract';
-import { readGameScenes } from '@volter/editor-project/adapter/ingest/game-contract';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+} from '@volter/sdk/host';
+import type { StoriesProvider, StoryRef } from '@volter/project/adapter';
+import type { VolterGameContract, VolterGameScene } from '@volter/project/adapter/ingest/game-contract';
+import { readGameScenes } from '@volter/project/adapter/ingest/game-contract';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 
 function assertScenes(value: unknown): VolterGameScene[] {
   if (!Array.isArray(value)) throw new Error('scenes.list() did not return an array');

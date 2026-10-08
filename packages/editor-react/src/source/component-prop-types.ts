@@ -42,7 +42,7 @@
 import { statSync } from 'node:fs';
 import { dirname, resolve } from 'node:path';
 import ts from 'typescript';
-import type { ComponentPropSpec } from '@volter/editor-sdk/source-authoring';
+import type { ComponentPropSpec } from '@volter/sdk/source-authoring';
 
 export type { ComponentPropSpec };
 

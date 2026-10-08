@@ -1,13 +1,13 @@
 /**
  * THE PLAY ENTRY CAMERA FLIGHT — the Three integration's half of Play's immersive entry
- * (`@volter/editor-sdk/kit/play-camera-flight`). The kit's transition owns the phases and the
+ * (`@volter/sdk/kit/play-camera-flight`). The kit's transition owns the phases and the
  * chrome; this owns the camera: the editor viewport flies along a Catmull-Rom spline from its
  * preview pose to the AUTHORED game camera's pose, retargets to the game's live camera once it
  * boots so the cross-fade is pixel-continuous, and restores the preview pose when Play ends. The
  * flight reads the authored viewport's rig through the viewport door and rides its frame hook, so
  * flight pacing rides the editor's own frame clock.
  */
-import { registerPlayCameraFlight, type LiveCameraLookup } from '@volter/editor-sdk/kit/play-camera-flight';
+import { registerPlayCameraFlight, type LiveCameraLookup } from '@volter/sdk/kit/play-camera-flight';
 import { onViewportFrame, viewportRig } from '../viewport-door';
 import * as THREE from 'three';
 import { threeStoreForHost } from './three-state';

@@ -8,16 +8,16 @@
  */
 
 import { useEffect, useSyncExternalStore } from 'react';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { dismissNotification, notify } from '@volter/editor-sdk/kit/editor-notifications';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { dismissNotification, notify } from '@volter/sdk/kit/editor-notifications';
 import {
   clearEditorPresentationNotice,
   editorPresentationNotice,
   editorPresentationNoticeVersion,
   subscribeEditorPresentationNotice,
-} from '@volter/editor-sdk/kit/editor-presentation-notice';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { presentEditorView } from '@volter/editor-sdk/kit/editor-view-presentation';
+} from '@volter/sdk/kit/editor-presentation-notice';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { presentEditorView } from '@volter/sdk/kit/editor-view-presentation';
 
 const NOTIFICATION_ID = 'agent-presented-view';
 

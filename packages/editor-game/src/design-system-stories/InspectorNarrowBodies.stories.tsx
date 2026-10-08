@@ -35,13 +35,13 @@ import * as THREE from 'three';
 // Side-effect: registers the model-asset section contributions (Geometry,
 // Animation, Materials, Source) into the inspector-section registry.
 import '../three/authoring/model-asset-inspector-section';
-import { ingestCoverageSection } from '@volter/editor-sdk/kit/CapabilityCoverageSection';
-import { InspectionProjectionView } from '@volter/editor-sdk/kit/components/InspectionProjection';
-import { AuthoringInspectorSurface } from '@volter/editor-sdk/kit/components/Inspector';
+import { ingestCoverageSection } from '@volter/sdk/kit/CapabilityCoverageSection';
+import { InspectionProjectionView } from '@volter/sdk/kit/components/InspectionProjection';
+import { AuthoringInspectorSurface } from '@volter/sdk/kit/components/Inspector';
 import { deriveCapabilityCoverage } from '../host/coverage/capability-coverage';
 import { createAuthoringFixture } from '../host/design-system-stories/fixtures/authoring';
 import { StoryEditorRuntime, storyThreeStore } from '../host/design-system-stories/fixtures/editor-runtime';
-import type { InspectionSection, InspectionSubject } from '@volter/editor-sdk/kit/inspection-model';
+import type { InspectionSection, InspectionSubject } from '@volter/sdk/kit/inspection-model';
 import {
   AlignmentGrid,
   type AlignmentValue,
@@ -61,7 +61,7 @@ import {
   type ShadowValue,
   uniformBorder,
   uniformRadius,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 
 /** The narrow column's target width. `overflow: hidden` so a body that was
  *  built wider than the rail SPILLS visibly instead of scrolling. */

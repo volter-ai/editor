@@ -33,14 +33,14 @@ import {
   serializeAssetLedger,
   sourceHashFromSha256,
   upsertAssetLedgerEntry,
-} from '@volter/editor-sdk/kit/asset-workflow/asset-ledger';
+} from '@volter/sdk/kit/asset-workflow/asset-ledger';
 import {
   createSerializer,
   type ExclusiveLockIO,
   type ExclusiveLockOptions,
   removeIfHeldByTakeover,
   withExclusiveLock,
-} from '@volter/editor-sdk/kit/asset-workflow/ledger-write-lock';
+} from '@volter/sdk/kit/asset-workflow/ledger-write-lock';
 
 export function assetLedgerFile(projectRoot: string): string {
   return join(projectRoot, ...ASSET_LEDGER_PATH.split('/'));

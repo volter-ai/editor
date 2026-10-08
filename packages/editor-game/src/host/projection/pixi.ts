@@ -10,9 +10,9 @@
  */
 
 import type { AuthoringAdapter2D, EditorNode2D } from '../../runtime/pixi/authoring';
-import type { DOMRectLike, FrameCorners } from '@volter/editor-project/adapter';
+import type { DOMRectLike, FrameCorners } from '@volter/project/adapter';
 import type { Container, PointData } from 'pixi.js';
-import type { ProjectedNode, Projection } from '@volter/editor-sdk/kit/projection-types';
+import type { ProjectedNode, Projection } from '@volter/sdk/kit/projection-types';
 
 export type PixiNode = ProjectedNode<Container>;
 

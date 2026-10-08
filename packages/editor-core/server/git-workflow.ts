@@ -2,14 +2,14 @@ import { execFile, execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, readFileSync } from 'node:fs';
 import { isAbsolute, join, resolve } from 'node:path';
-import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
+import { isContainedRelativePath } from '@volter/sdk/session/relative-path-guard';
 // The wire types live in the leaf module both sides of the route import.
 import type {
   GitChangedPath,
   GitDiffHunk,
   GitHistoryCommit,
   GitWorkflowStatus,
-} from '@volter/editor-sdk/kit/api-git-wire';
+} from '@volter/sdk/kit/api-git-wire';
 import { resolveWorktreeIdentity } from './worktree-identity';
 export type { GitChangedPath, GitDiffHunk, GitHistoryCommit, GitWorkflowStatus };
 

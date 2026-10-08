@@ -12,7 +12,7 @@ import { statSync } from 'node:fs';
 import {
   contributedKindModulePaths,
   registerKindModule,
-} from '@volter/editor-project/manifest/kind-modules';
+} from '@volter/project/manifest/kind-modules';
 import type { ProjectModuleLoader } from './project-tools';
 
 let loader: ProjectModuleLoader | null = null;

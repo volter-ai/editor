@@ -44,12 +44,12 @@
  *   `events()` is empty — accurate, not a stub.
  */
 
-import type { ObservationDeclaration } from '@volter/editor-project/adapter/adapter-module';
+import type { ObservationDeclaration } from '@volter/project/adapter/adapter-module';
 import type {
   DebugAdapter,
   DebugCommandInfo,
   TickStampedEvent,
-} from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter/system-adapter';
 import { DebugError } from '../../debug-registry';
 
 /**

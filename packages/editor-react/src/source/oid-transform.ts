@@ -23,8 +23,8 @@ import { particleBindingsByElement, type R3fParticleBinding } from './r3f-partic
 import { physicsBindingsByElement, type R3fPhysicsBinding } from './r3f-physics-binding';
 import { parseAuthoringTsx, refIdentifier } from './ts-ast';
 
-import type { DeclaredRootSurface, OidEntry, R3fComponentContract, R3fTransformProp, SourceDialectEvidence } from '@volter/editor-sdk/source-authoring';
-export type { ComponentPropSpec, DeclaredRootSurface, OidEntry, R3fAuthoringDiagnostic, R3fComponentContract, R3fTransformProp, SourceDialectEvidence } from '@volter/editor-sdk/source-authoring';
+import type { DeclaredRootSurface, OidEntry, R3fComponentContract, R3fTransformProp, SourceDialectEvidence } from '@volter/sdk/source-authoring';
+export type { ComponentPropSpec, DeclaredRootSurface, OidEntry, R3fAuthoringDiagnostic, R3fComponentContract, R3fTransformProp, SourceDialectEvidence } from '@volter/sdk/source-authoring';
 
 export type {
   R3fEnvironmentBinding,

@@ -3,8 +3,8 @@
 import ts from 'typescript';
 import { jsxAttribute, numericLiteral } from './ts-ast';
 
-import type { R3fLodBinding, R3fLodNumberBinding } from '@volter/editor-sdk/source-authoring';
-export type { R3fLodBinding, R3fLodNumberBinding } from '@volter/editor-sdk/source-authoring';
+import type { R3fLodBinding, R3fLodNumberBinding } from '@volter/sdk/source-authoring';
+export type { R3fLodBinding, R3fLodNumberBinding } from '@volter/sdk/source-authoring';
 
 function detailedNames(sf: ts.SourceFile): Set<string> {
   const names = new Set<string>();

@@ -20,17 +20,17 @@
 // `entries[id].adapter` (the caller's own module graph built it), so no
 // surface's library is pulled into a game that has no world on it.
 
-import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
-import type { RootDeclaration } from '@volter/editor-project/adapter/binding';
-import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
-import type { RootAdapter } from '@volter/editor-project/adapter/root-adapter';
+import { assertNever } from '@volter/project/adapter/adapter-surface';
+import type { RootDeclaration } from '@volter/project/adapter/binding';
+import { declaredRoots } from '@volter/project/adapter/manifest-interpreter';
+import type { RootAdapter } from '@volter/project/adapter/root-adapter';
 // Value-imported from the implementer's OWN path, not the type-only
 // `../adapter` barrel (P-6).
 import {
   loadGameManifest,
   type ResolvedAdapterRoot,
   type ResolvedGameManifest,
-} from '@volter/editor-project/manifest/load';
+} from '@volter/project/manifest/load';
 import { createGameRuntime, type GameSession, type RootMountSpec } from './create-runtime';
 import { type DebugBridgeWindowTarget, maybeInstallDebugBridge } from './debug-bridge';
 import { getDebugRegistry } from './debug-registry';

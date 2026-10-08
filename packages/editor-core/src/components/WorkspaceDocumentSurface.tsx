@@ -1,34 +1,34 @@
 import {
   stageTransformsVersion,
   subscribeStageTransforms,
-} from '@volter/editor-sdk/contributions';
-import type { EditorMaterialId } from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/contributions';
+import type { EditorMaterialId } from '@volter/sdk/widgets';
 import { Suspense, useSyncExternalStore } from 'react';
 import { createPortal } from 'react-dom';
 import {
   documentAreasVersion,
   documentSecondArea,
   subscribeDocumentAreas,
-} from '@volter/editor-sdk/kit/document-areas';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+} from '@volter/sdk/kit/document-areas';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
 import {
   documentPlaying,
   subscribeDocumentPlayExtensions,
-} from '@volter/editor-sdk/kit/document-play-extension';
+} from '@volter/sdk/kit/document-play-extension';
 import {
   documentViewport,
   documentViewportsVersion,
   subscribeDocumentViewports,
-} from '@volter/editor-sdk/kit/document-viewports';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { useViewportChrome } from '@volter/editor-sdk/kit/native-selection-style';
-import { chromeRegionsKey, subscribeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
+} from '@volter/sdk/kit/document-viewports';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { useViewportChrome } from '@volter/sdk/kit/native-selection-style';
+import { chromeRegionsKey, subscribeChromeRegions } from '@volter/sdk/kit/workspace-regions';
 import type {
   WorkspaceDocumentDescriptor,
   WorkspaceDocumentKind,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { assetDocumentSpec } from '@volter/editor-sdk/kit/components/asset-documents';
-import { SurfaceCrashBoundary } from '@volter/editor-sdk/kit/components/SurfaceCrashBoundary';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { assetDocumentSpec } from '@volter/sdk/kit/components/asset-documents';
+import { SurfaceCrashBoundary } from '@volter/sdk/kit/components/SurfaceCrashBoundary';
 import { DocumentHeaderStrip } from './DocumentHeaderStrip';
 import { DocumentShelfRail } from './DocumentShelfRail';
 
@@ -103,7 +103,7 @@ export function WorkspaceDocumentSurface({
   // editor viewport's gizmo, so they follow the GIZMO arm and never appear
   // over a stage that transforms through its own modal door.
   // What the host's transform tools drive, and the tools themselves, are the
-  // STAGE's answer for this document (`@volter/editor-sdk/kit/document-viewports`):
+  // STAGE's answer for this document (`@volter/sdk/kit/document-viewports`):
   // a three stage draws its gizmo's strip and wells, a stage that transforms
   // through its own door takes the modal arm, and a document with no stage has
   // none.

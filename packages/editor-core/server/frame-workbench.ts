@@ -22,19 +22,19 @@
  *
  * WHERE THE WORKBENCH IS comes from the project's own declaration
  * (`.volter/workbench.json`) or the editor's `edit --workbench <dir>` command; the CLI resolves it
- * once to refuse early and passes the directory here. `@volter/editor-sdk/session/
+ * once to refuse early and passes the directory here. `@volter/sdk/session/
  * workbench-locator` is the one resolver and the one set of refusal texts.
  */
 
 import { type ChildProcess, spawn } from 'node:child_process';
 import { createConnection } from 'node:net';
 import { join } from 'node:path';
-import { workbenchProductId } from '@volter/editor-sdk/session/product-locator';
+import { workbenchProductId } from '@volter/sdk/session/product-locator';
 import {
   resolveWorkbench,
   type WorkbenchIdentity,
   workbenchUrl,
-} from '@volter/editor-sdk/session/workbench-locator';
+} from '@volter/sdk/session/workbench-locator';
 import { startFrameProxy } from './frame-proxy';
 import { stopProcess } from './process-shutdown';
 import { sessionProduct } from './session-product';

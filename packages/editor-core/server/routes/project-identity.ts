@@ -17,8 +17,8 @@
 import { readFile, stat } from 'node:fs/promises';
 import { join, resolve } from 'node:path';
 import type { Request, Response } from 'express';
-import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
 import {
   deriveProjectAttributionReport,
   emptyProjectProvenanceDocument,

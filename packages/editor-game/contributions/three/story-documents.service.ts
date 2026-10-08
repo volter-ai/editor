@@ -1,5 +1,5 @@
 /**
- * THE THREE STORY TURNTABLE (`@volter/editor-sdk/services`, a
+ * THE THREE STORY TURNTABLE (`@volter/sdk/services`, a
  * `workspace.service` contribution): the center document a portable CSF story
  * whose medium is `three` opens as — the story's R3F world mounted on the
  * kit's Object3D stage, with its `Story Args` Inspector section.

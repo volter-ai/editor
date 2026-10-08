@@ -23,7 +23,7 @@
 
 import { beatAt, beatsPerBarOf, formatAt } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceMarker, PieceTrack } from '@volter/dawproject/piece';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { type CSSProperties, Fragment, type KeyboardEvent as ReactKeyboardEvent, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import ts from 'typescript';
 import { AutomationLane, LANE_H as TEMPO_H } from './AutomationLane';

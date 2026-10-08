@@ -46,20 +46,20 @@ import type {
   ContractSystemEmptySlot,
   ContractSystemMalformedSlot,
   ContractSystemSlot,
-} from '@volter/editor-project/adapter/ingest/contract-system-slots';
-import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter/ingest/contract-system-slots';
+import type { SystemAdapters } from '@volter/project/adapter/system-adapter';
 
 export type {
   ContractSystemEmptySlot,
   ContractSystemMalformedSlot,
-} from '@volter/editor-project/adapter/ingest/contract-system-slots';
+} from '@volter/project/adapter/ingest/contract-system-slots';
 
 import type {
   VolterGameSystemAdapters,
   VolterGameSystemEmpty,
   VolterGameSystems,
-} from '@volter/editor-project/adapter/ingest/game-contract';
-import { GAME_SYSTEM_ADAPTERS_SHAPE } from '@volter/editor-project/adapter/ingest/game-contract-seams';
+} from '@volter/project/adapter/ingest/game-contract';
+import { GAME_SYSTEM_ADAPTERS_SHAPE } from '@volter/project/adapter/ingest/game-contract-seams';
 import {
   AUDIO_ADAPTER_SHAPE,
   CAMERA_ADAPTER_SHAPE,
@@ -67,11 +67,11 @@ import {
   NETWORKING_ADAPTER_SHAPE,
   PHYSICS_ADAPTER_SHAPE,
   RENDER_DEBUG_ADAPTER_SHAPE,
-} from '@volter/editor-project/adapter/system-seam-contract';
+} from '@volter/project/adapter/system-seam-contract';
 
 /** The slots a game may declare through the contract (`debug` is projected from
  *  `commands`/`state` instead — see {@link VolterGameSystemAdapters}). */
-export type { ContractSystemSlot } from '@volter/editor-project/adapter/ingest/contract-system-slots';
+export type { ContractSystemSlot } from '@volter/project/adapter/ingest/contract-system-slots';
 
 /**
  * The members each slot's interface makes NON-optional. A declaration missing

@@ -6,7 +6,7 @@
  * `@pixi/react` load only for a project that declares a canvas root.
  */
 
-import { registerDesignTimeMount } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
+import { registerDesignTimeMount } from '@volter/sdk/kit/authoring/design-time-mount-registry';
 
 export const point = 'workspace.service';
 

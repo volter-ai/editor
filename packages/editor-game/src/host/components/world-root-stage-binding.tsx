@@ -10,29 +10,29 @@
  * `StageOverlays`, which the host renders beside this.
  */
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
 import {
   getMountFailureReports,
   subscribeToMountFailures,
-} from '@volter/editor-sdk/kit/mount-failure-report';
+} from '@volter/sdk/kit/mount-failure-report';
 import {
   object3DDocumentSessionsVersion,
   subscribeObject3DDocumentSessions,
 } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
-import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
-import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
+import { RootSelectionOverlay } from '@volter/sdk/kit/components/RootSelectionOverlay';
+import { SurfaceStateOverlay } from '@volter/sdk/kit/components/SurfaceStateOverlay';
 import type {
   WorldRootOverlayProps,
   WorldRootStageBinding,
 } from '@volter/editor-threejs/kit/components/world-root-binding';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
-import { documentStageContext } from '@volter/editor-sdk/kit/stage-context';
-import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
+import { readinessFacet, subscribeRootReadiness } from '@volter/sdk/kit/readiness';
+import { documentStageContext } from '@volter/sdk/kit/stage-context';
+import { explainSurface } from '@volter/sdk/kit/surface-state';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
+} from '@volter/sdk/kit/workspace-document-registry';
 import { useMemo, useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
 import { threeSceneHasRenderableContent } from '../surface-content';

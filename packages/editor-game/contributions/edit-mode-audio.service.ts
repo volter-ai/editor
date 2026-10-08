@@ -1,5 +1,5 @@
 /**
- * EDIT-TIME AUDIO (`@volter/editor-sdk/services`, a `workspace.service`
+ * EDIT-TIME AUDIO (`@volter/sdk/services`, a `workspace.service`
  * contribution): the first-party Three/Web Audio graph the editor inspects
  * while nothing is playing, so Stop falls back to a real adapter instead of
  * making audio disappear.

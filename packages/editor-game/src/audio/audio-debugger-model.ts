@@ -11,7 +11,7 @@
  * SQ-4-gated and has no surface here.
  */
 
-import type { AudioAdapter, AudioDebugEvent } from '@volter/editor-project/adapter';
+import type { AudioAdapter, AudioDebugEvent } from '@volter/project/adapter';
 
 /** Which optional introspection capabilities the active adapter provides —
  *  the degradation ladder's per-section verdict. `null` input (no adapter =

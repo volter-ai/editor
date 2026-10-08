@@ -7,7 +7,7 @@ import type {
   SpatialHandlesProvider,
   SpatialPoint3,
   StructuralWriteOutcome,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import type * as THREE from 'three';
 import {
   positionalAudioEditFromWorld,

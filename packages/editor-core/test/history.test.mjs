@@ -8,7 +8,7 @@ const bundled = await build({
     contents: `export { HistoryService } from './history-service';
       export { setHistoryDelegate, emitHistoryElement, recordedHistoryElements,
         invalidateHistoryResources, onHistoryInvalidated, notifyHistoryDelegateChanged } from './history-delegate';`,
-    resolveDir: fileURLToPath(new URL('../../editor-sdk/src/kit/history/', import.meta.url)),
+    resolveDir: fileURLToPath(new URL('../../sdk/src/kit/history/', import.meta.url)),
     loader: 'ts',
   },
   bundle: true, platform: 'node', format: 'esm', write: false,

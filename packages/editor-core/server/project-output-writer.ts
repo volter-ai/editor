@@ -12,9 +12,9 @@ import { createHash, randomUUID } from 'node:crypto';
 import { createReadStream } from 'node:fs';
 import { mkdir, readdir, readFile, rename, rm, stat, writeFile } from 'node:fs/promises';
 import { dirname, extname, posix, relative, resolve, sep } from 'node:path';
-import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
-import type { GenerationJob } from '@volter/editor-sdk/generations';
-import { normalizeProjectOutputPath } from '@volter/editor-sdk/project/output-roots';
+import { isContainedRelativePath } from '@volter/sdk/session/relative-path-guard';
+import type { GenerationJob } from '@volter/sdk/generations';
+import { normalizeProjectOutputPath } from '@volter/sdk/project/output-roots';
 import {
   emptyProjectProvenanceDocument,
   PROJECT_ATTEST_OPERATION,
@@ -29,8 +29,8 @@ import type {
   ProjectOutputFile,
   ProjectOutputProvenanceContext,
   ProjectOutputWriter,
-} from '@volter/editor-sdk/tools/types';
-import { withExclusiveLock } from '@volter/editor-sdk/kit/asset-workflow/ledger-write-lock';
+} from '@volter/sdk/tools/types';
+import { withExclusiveLock } from '@volter/sdk/kit/asset-workflow/ledger-write-lock';
 import { ledgerLockIo } from './asset-ledger-store';
 import { readGenerationJobs } from './generation-jobs';
 import { consumeGenerativeExecutions } from './generative-execution-context';
@@ -108,7 +108,7 @@ async function withGenerationBilling(
  * Project-relative, contained, and under one of the writable output roots —
  * `public/` (shipped game assets) or `references/` (reference material the
  * editor's Content panel indexes but no export copies). The root rule itself
- * lives in `@volter/editor-sdk/project/output-roots` because provider boundaries enforce the
+ * lives in `@volter/sdk/project/output-roots` because provider boundaries enforce the
  * same one; `isContainedRelativePath` stays here as the host's own escape
  * check, which knows about absolute Windows paths and NUL bytes.
  */

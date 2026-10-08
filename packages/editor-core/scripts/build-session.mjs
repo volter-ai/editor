@@ -10,11 +10,11 @@ await build({
   // undici's CommonJS requires Node built-ins, which an ESM bundle cannot inline.
   // `launcher/view-build` reaches the session's toolchain; TypeScript's CommonJS cannot be inlined
   // into an ESM bundle, and esbuild resolves its own binary. Both stay the installed packages.
-  external: ['@volter/editor-live', 'undici', 'ws', 'typescript', 'esbuild'],
+  external: ['@volter/live', 'undici', 'ws', 'typescript', 'esbuild'],
 });
 
 await build({
-  entryPoints: [fileURLToPath(new URL('../editor-sdk/src/session/hosted-attachment.ts', root))],
+  entryPoints: [fileURLToPath(new URL('../sdk/src/session/hosted-attachment.ts', root))],
   outfile: fileURLToPath(new URL('dist/server/hosted-attachment-client.js', root)),
   bundle: true, platform: 'browser', target: 'es2022', format: 'esm',
 });

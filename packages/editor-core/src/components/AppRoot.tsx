@@ -23,30 +23,30 @@
  * is readable.
  */
 
-import { commandLine, commandSequence, loadProductNames, productNames } from '@volter/editor-sdk/kit/product-command';
+import { commandLine, commandSequence, loadProductNames, productNames } from '@volter/sdk/kit/product-command';
 import {
   clearStartupFailure,
   reportStartupFailure,
   type StartupFailureNotice,
-} from '@volter/editor-sdk/kit/startup-failure';
-import { editorDocumentTitle } from '@volter/editor-sdk/session/editor-brand';
+} from '@volter/sdk/kit/startup-failure';
+import { editorDocumentTitle } from '@volter/sdk/session/editor-brand';
 import {
   ProjectCompatibilityError,
   type StartupRecovery,
-} from '@volter/editor-sdk/session/editor-compatibility';
+} from '@volter/sdk/session/editor-compatibility';
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
-import { startAccountActivity } from '@volter/editor-sdk/kit/account-client';
+import { startAccountActivity } from '@volter/sdk/kit/account-client';
 import {
   decideProjectDetectionRecovery,
   ProjectDetectionTimeoutError,
   ServerProjectDetectionError,
   type ServerProjectFailureReport,
-} from '@volter/editor-sdk/kit/boot-routing';
+} from '@volter/sdk/kit/boot-routing';
 import { EditorProvider } from '../EditorContext';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { connectTabPresence, reportTabRoute } from '@volter/editor-sdk/kit/editor-presence';
-import { type ActiveProject, detectProject } from '@volter/editor-sdk/kit/project-manager';
-import { onTabAdopt } from '@volter/editor-sdk/kit/tab-lifecycle-client';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { connectTabPresence, reportTabRoute } from '@volter/sdk/kit/editor-presence';
+import { type ActiveProject, detectProject } from '@volter/sdk/kit/project-manager';
+import { onTabAdopt } from '@volter/sdk/kit/tab-lifecycle-client';
 import { DefaultEditorLayout } from './DefaultEditorLayout';
 import { EditorLeaseGuard } from './EditorLeaseGuard';
 import { StartupErrorScreen } from './StartupErrorScreen';
@@ -227,7 +227,7 @@ function noProjectMessage(): string {
 }
 
 /** This tree's own startup failures, under one source in the page's registry
- *  (`@volter/editor-sdk/kit/startup-failure`, which the frame's cover hears). */
+ *  (`@volter/sdk/kit/startup-failure`, which the frame's cover hears). */
 const STARTUP_SOURCE = 'editor';
 
 function publishStartupFailure(notice: StartupFailureNotice | null): void {

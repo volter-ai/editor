@@ -22,8 +22,8 @@
 
 import { measureAdapterReach } from '../host/adapter-reach';
 import { nextPaint } from '../host/after-paint';
-import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
+import { setActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
+import { setActiveSystems } from '@volter/sdk/kit/authoring/active-systems';
 import { BabylonAuthoringAdapter } from '../host/authoring/babylon-authoring-adapter';
 import {
   type BabylonRealmLike,
@@ -35,7 +35,7 @@ import {
   type ContractScenesStories,
   createContractScenesStories,
 } from '../host/authoring/contract-scenes-stories';
-import { clearMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
+import { clearMountFailureReports } from '@volter/sdk/kit/mount-failure-report';
 import { PhaserLiveAuthoringAdapter } from '../host/authoring/phaser-live-authoring-adapter';
 import { PixiAuthoringAdapter } from '../host/authoring/pixi-authoring-adapter';
 import { createCreationSiteCanvasWriteTarget } from '../host/authoring/pixi-creation-site-write-target';
@@ -44,7 +44,7 @@ import {
   capturePixiDisplayObjectThumbnail,
   registerPresentedPixiApps,
 } from '../host/canvas-preview-frames';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../host/game-realm-page';
 import {
@@ -54,9 +54,9 @@ import {
   setGameSurface,
 } from '../host/gated-globals';
 import { authoringJournal } from '../host/history/json-history-resource';
-import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
-import { recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/sdk/kit/live-document';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
+import { recordRootReadiness } from '@volter/sdk/kit/readiness';
 import type { MeasuredLoop } from '../host/same-realm-loop-gate';
 import { projectContractSystemAdapters } from '../runtime/adapter/ingest/contract-system-adapters';
 import type { RenderDebugWiring } from '../runtime/dev/render-debug-adapter';
@@ -69,10 +69,10 @@ import {
   createPhysicsAdapter2D,
   type PhysicsAdapter2D,
 } from '../runtime/pixi/system-adapters';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter/authoring';
-import { readGameReady } from '@volter/editor-project/adapter/ingest/game-contract';
-import { displayKeyedPhysics } from '@volter/editor-project/adapter/system-adapter';
-import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
+import type { AuthoringAdapter } from '@volter/project/adapter/authoring';
+import { readGameReady } from '@volter/project/adapter/ingest/game-contract';
+import { displayKeyedPhysics } from '@volter/project/adapter/system-adapter';
+import type { ResolvedAdapterRoot } from '@volter/project/manifest/load';
 import type { Application, Container } from 'pixi.js';
 import { serializeEntry, setActiveIngest } from './active-ingest';
 import { withDetectedDomSurface } from './authoring/ingest-dom-surface-authoring';
@@ -89,7 +89,7 @@ import { LOOP_PROBE_ABSENT, recordMountCoverage } from './mount-coverage';
 import { resolveIngest2DDescriptor } from './resolve-canvas';
 import { getIngestGame2D } from './surface-canvas';
 import { exitActiveIngest } from './unmount-ingest-root';
-import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
+import { markGameSurface } from '@volter/sdk/kit/game-surface-defaults';
 
 /** How this mount reached the game's runtime, in the words a capability
  *  warning hands the reader. Mechanism only — never a grade. */
@@ -471,11 +471,11 @@ async function mountCanvasIngestRootInner(
   // sizing never loaded on the canvas lane, leaving the game a default
   // 300x150 canvas in the pane corner (2026-08-28).
   {
-    const { markGameCssScope } = await import('@volter/editor-sdk/session/game-css-scope');
+    const { markGameCssScope } = await import('@volter/sdk/session/game-css-scope');
     markGameCssScope(hostEl);
     const scopedCssProject = getCurrentProject();
     if (scopedCssProject) {
-      const { ensureScopedGameStyles } = await import('@volter/editor-sdk/kit/scoped-game-css');
+      const { ensureScopedGameStyles } = await import('@volter/sdk/kit/scoped-game-css');
       await ensureScopedGameStyles(scopedCssProject.rootPath);
     }
   }

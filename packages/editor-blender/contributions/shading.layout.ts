@@ -52,7 +52,7 @@
  * contribution exists because the node view does.
  */
 
-import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
+import type { WorkspaceLayoutContribution } from '@volter/sdk/looks';
 import { BLENDER_REGIONS } from '../src/regions';
 
 export const point = 'workspace.layout';

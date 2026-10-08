@@ -1,14 +1,14 @@
 /**
- * THE HOST DOOR, installed: what `@volter/editor-sdk/host` hands a package's
+ * THE HOST DOOR, installed: what `@volter/sdk/host` hands a package's
  * contribution is this editor's own session state — the inspected system
  * adapters (`authoring/active-systems.ts`), the shared availability tick and
  * the dock's utility reveal. The SDK owns the door's SHAPE; this module is
  * the one place the editor fills it (ARCHITECTURE-CORE §The workbench,
  * "direction": the host imports no package; a package imports the SDK).
  */
-import { type EditorHostOutput, registerEditorHost } from '@volter/editor-sdk/host';
-import { onProjectChange } from '@volter/editor-sdk/kit/active-project';
-import { stageTransport, subscribeStageTransports } from '@volter/editor-sdk/kit/animation/stage-transport';
+import { type EditorHostOutput, registerEditorHost } from '@volter/sdk/host';
+import { onProjectChange } from '@volter/sdk/kit/active-project';
+import { stageTransport, subscribeStageTransports } from '@volter/sdk/kit/animation/stage-transport';
 import {
   activeAudioVersion,
   getInspectedAudio,
@@ -17,26 +17,26 @@ import {
   subscribeActiveAudio,
   subscribeActiveNavigation,
   subscribeActiveNetworking,
-} from '@volter/editor-sdk/kit/authoring/active-systems';
-import { activeDocumentSourcePath, activeSaveDestination } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
-import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
-import { setWorkerCallMeter } from '@volter/editor-sdk/kit/worker-call-metrics';
-import { beginPageWork } from '@volter/editor-sdk/kit/play-boot-phase';
-import { onCommandDispatched } from '@volter/editor-sdk/kit/command-dispatch';
-import { openToolDocument } from '@volter/editor-sdk/kit/components/tool-documents';
-import { onSessionSample } from '@volter/editor-sdk/kit/coverage/session-vitals';
+} from '@volter/sdk/kit/authoring/active-systems';
+import { activeDocumentSourcePath, activeSaveDestination } from '@volter/sdk/kit/authoring/shell-document-ops';
+import { availabilityTickVersion, subscribeAvailabilityTick } from '@volter/sdk/kit/availability-tick';
+import { setWorkerCallMeter } from '@volter/sdk/kit/worker-call-metrics';
+import { beginPageWork } from '@volter/sdk/kit/play-boot-phase';
+import { onCommandDispatched } from '@volter/sdk/kit/command-dispatch';
+import { openToolDocument } from '@volter/sdk/kit/components/tool-documents';
+import { onSessionSample } from '@volter/sdk/kit/coverage/session-vitals';
 import {
   documentContextFor,
   notifyDocumentContextChanged,
   waitForDocumentContext,
-} from '@volter/editor-sdk/kit/document-context-registry';
-import { openRegisteredDocumentAsync } from '@volter/editor-sdk/kit/document-open-registry';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { resolvedProjectDocumentTable } from '@volter/editor-sdk/kit/project-adapter';
-import { notify } from '@volter/editor-sdk/kit/editor-notifications';
-import { registerEditorStateFacet } from '@volter/editor-sdk/kit/editor-state-facets';
-import { setFilesProvider } from '@volter/editor-sdk/kit/files/file-provider';
-import { projectFiles } from '@volter/editor-sdk/kit/files/project-files';
+} from '@volter/sdk/kit/document-context-registry';
+import { openRegisteredDocumentAsync } from '@volter/sdk/kit/document-open-registry';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { resolvedProjectDocumentTable } from '@volter/sdk/kit/project-adapter';
+import { notify } from '@volter/sdk/kit/editor-notifications';
+import { registerEditorStateFacet } from '@volter/sdk/kit/editor-state-facets';
+import { setFilesProvider } from '@volter/sdk/kit/files/file-provider';
+import { projectFiles } from '@volter/sdk/kit/files/project-files';
 import {
   onHistoryElement,
   invalidateHistoryResources,
@@ -47,14 +47,14 @@ import {
   setHistoryDelegate,
   setHistoryDocumentResolver,
   subscribeHistoryDelegate,
-} from '@volter/editor-sdk/kit/history/history-delegate';
+} from '@volter/sdk/kit/history/history-delegate';
 import {
   invokeKeyAction,
   keyActionsVersion,
   registeredKeyActions,
   subscribeKeyActions,
-} from '@volter/editor-sdk/kit/key-actions';
-import { bindKeyActions } from '@volter/editor-sdk/kit/editor-hotkeys';
+} from '@volter/sdk/kit/key-actions';
+import { bindKeyActions } from '@volter/sdk/kit/editor-hotkeys';
 import {
   activeEditorKeymap,
   editorKeymaps,
@@ -62,7 +62,7 @@ import {
   keymapTable,
   shortcutFor,
   subscribeEditorKeymap,
-} from '@volter/editor-sdk/kit/keymap-presets';
+} from '@volter/sdk/kit/keymap-presets';
 import {
   acquireLiveDocument,
   liveDocumentContainer,
@@ -71,7 +71,7 @@ import {
   releaseLiveDocument,
   releaseLiveDocumentContainer,
   setLiveDocumentContainer,
-} from '@volter/editor-sdk/kit/live-document';
+} from '@volter/sdk/kit/live-document';
 import {
   anyLiveSessionMounted,
   anyLiveSessionPlaying,
@@ -89,37 +89,37 @@ import {
   restartLiveSession,
   snapshotLiveFrame,
   subscribeLiveSessions,
-} from '@volter/editor-sdk/kit/live-session-registry';
+} from '@volter/sdk/kit/live-session-registry';
 import {
   beginLiveTransition,
   endPlayTransition,
   notifyPlayTransitionGameReady,
   onPlayTransitionSettled,
   playTransitionPhase,
-} from '@volter/editor-sdk/kit/live-transition';
+} from '@volter/sdk/kit/live-transition';
 import {
   projectLocalSection,
   projectLocalStateReady,
   writeProjectLocalSection,
-} from '@volter/editor-sdk/kit/project-local-state';
-import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
-import { onProjectReady } from '@volter/editor-sdk/kit/project-ready';
-import { projectMounts } from '@volter/editor-sdk/kit/project-shape';
-import { onSessionEndedChange } from '@volter/editor-sdk/kit/session-tombstone';
-import { onBeforeSessionClose } from '@volter/editor-sdk/kit/session-close';
-import { setSettingsProvider, subscribeSettingsProvider } from '@volter/editor-sdk/kit/settings/settings-provider';
-import { getSetting, inspectSetting, setSetting, subscribeSettings } from '@volter/editor-sdk/kit/settings-store';
-import { onShellStoreChange, shellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
-import { captureActiveEditorDocument } from '@volter/editor-sdk/kit/editor-view-presentation';
-import { focusedStageContext } from '@volter/editor-sdk/kit/stage-context';
-import { GAME_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+} from '@volter/sdk/kit/project-local-state';
+import { getCurrentProject } from '@volter/sdk/kit/project-manager';
+import { onProjectReady } from '@volter/sdk/kit/project-ready';
+import { projectMounts } from '@volter/sdk/kit/project-shape';
+import { onSessionEndedChange } from '@volter/sdk/kit/session-tombstone';
+import { onBeforeSessionClose } from '@volter/sdk/kit/session-close';
+import { setSettingsProvider, subscribeSettingsProvider } from '@volter/sdk/kit/settings/settings-provider';
+import { getSetting, inspectSetting, setSetting, subscribeSettings } from '@volter/sdk/kit/settings-store';
+import { onShellStoreChange, shellStoreForHost } from '@volter/sdk/kit/shell-store-door';
+import { captureActiveEditorDocument } from '@volter/sdk/kit/editor-view-presentation';
+import { focusedStageContext } from '@volter/sdk/kit/stage-context';
+import { GAME_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
   activeWorkspaceDocumentId,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { showWorkspaceUtility } from '@volter/sdk/kit/workspace-host-commands';
 
 /**
  * THE ACTIVE DOCUMENT'S OWN INTERACTION MODE, if it has one.
@@ -404,7 +404,7 @@ export function installEditorHostDoor(): void {
     // THE SETTINGS, for the Code-OSS frame (ARCHITECTURE-CORE §The core is
     // Code-OSS: "the settings layers and settings UI → the configuration
     // service"). Keys are the flat `volter.*` names the settings schema derives
-    // (`@volter/editor-project/settings/keys`), the same spelling `.vscode/settings.json`
+    // (`@volter/project/settings/keys`), the same spelling `.vscode/settings.json`
     // and the Settings editor use — never a second one the frame translates.
     // `inspect` is the member that carries the ADAPTER layer, which is the
     // service's own MEMORY target under the frame and this project's `volter

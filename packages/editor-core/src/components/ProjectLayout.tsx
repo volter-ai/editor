@@ -5,33 +5,33 @@ import {
   EditorFrame,
   EditorHeader,
   Workspace as HostWorkspace,
-} from '@volter/editor-sdk/layouts';
+} from '@volter/sdk/layouts';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
-import { activeProjectKey } from '@volter/editor-sdk/kit/active-project';
+import { activeProjectKey } from '@volter/sdk/kit/active-project';
 import {
   adapterEditorConfiguration,
   subscribeAdapterEditorConfiguration,
-} from '@volter/editor-sdk/kit/adapter-editor-config';
+} from '@volter/sdk/kit/adapter-editor-config';
 import {
   documentViewport,
   documentViewportsVersion,
   subscribeDocumentViewports,
-} from '@volter/editor-sdk/kit/document-viewports';
-import { openRegisteredDocumentAsync } from '@volter/editor-sdk/kit/document-open-registry';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
+} from '@volter/sdk/kit/document-viewports';
+import { openRegisteredDocumentAsync } from '@volter/sdk/kit/document-open-registry';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
 import {
   projectAdapterWaitNarration,
   subscribeProjectAdapter,
   waitForProjectAdapter,
-} from '@volter/editor-sdk/kit/project-adapter';
+} from '@volter/sdk/kit/project-adapter';
 import {
   activateWorkspaceDocument,
   closeWorkspaceDocument,
   openWorkspaceDocuments,
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { openAssetDocument } from '@volter/editor-sdk/kit/components/asset-documents';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { openAssetDocument } from '@volter/sdk/kit/components/asset-documents';
 import { WorkspaceDocumentSurface } from './WorkspaceDocumentSurface';
 
 const documentOwners = new Map<
@@ -135,7 +135,7 @@ export function DocumentView({
   }, [id, active]);
   useEffect(() => {
     if (!id) return;
-    // The document's stage answers for it (`@volter/editor-sdk/kit/document-viewports`).
+    // The document's stage answers for it (`@volter/sdk/kit/document-viewports`).
     const stage = documentViewport(id);
     if (!stage || readySession.current === stage) return;
     readySession.current = stage;

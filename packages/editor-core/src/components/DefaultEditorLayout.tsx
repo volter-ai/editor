@@ -1,24 +1,24 @@
 import { lazy, Suspense, use, useEffect, useSyncExternalStore } from 'react';
-import { connectAssetEvents } from '@volter/editor-sdk/kit/asset-events';
-import { installAssetSelectionAutoClear } from '@volter/editor-sdk/kit/asset-selection';
-import { registerEditorShellHotkeys } from '@volter/editor-sdk/kit/editor-hotkeys';
+import { connectAssetEvents } from '@volter/sdk/kit/asset-events';
+import { installAssetSelectionAutoClear } from '@volter/sdk/kit/asset-selection';
+import { registerEditorShellHotkeys } from '@volter/sdk/kit/editor-hotkeys';
 import {
   useEditorInit,
   useEditorStore,
   useHistoryCommands,
   useHistoryService,
-} from '@volter/editor-sdk/kit/editor-runtime';
-import { installAuxiliaryEvents } from '@volter/editor-sdk/kit/workspace-aux-commands';
-import { installUtilityAutoOpen } from '@volter/editor-sdk/kit/workspace-utility-commands';
+} from '@volter/sdk/kit/editor-runtime';
+import { installAuxiliaryEvents } from '@volter/sdk/kit/workspace-aux-commands';
+import { installUtilityAutoOpen } from '@volter/sdk/kit/workspace-utility-commands';
 import { AgentPresentationNotice } from './AgentPresentationNotice';
 import { useCenterDocuments } from './CenterDocuments';
-import { ensureCoreUtilitiesRegistered } from '@volter/editor-sdk/kit/components/core-utilities';
-import { installKindDocumentRefresh } from '@volter/editor-sdk/kit/components/kind-documents';
+import { ensureCoreUtilitiesRegistered } from '@volter/sdk/kit/components/core-utilities';
+import { installKindDocumentRefresh } from '@volter/sdk/kit/components/kind-documents';
 import { ProjectLayout } from './ProjectLayout';
 import { PaletteActionPublisher } from './palette-action-publisher';
-import { ensureCoreStatusContributionsRegistered } from '@volter/editor-sdk/kit/components/status-contributions';
-import { installStandingToolDocuments } from '@volter/editor-sdk/kit/components/tool-documents';
-import { setWorkspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
+import { ensureCoreStatusContributionsRegistered } from '@volter/sdk/kit/components/status-contributions';
+import { installStandingToolDocuments } from '@volter/sdk/kit/components/tool-documents';
+import { setWorkspaceHistoryService } from '@volter/sdk/kit/components/workspace-history';
 
 // Session discovery remains alive even when every document tab is closed.
 const ProjectAuthoringBootstrap = lazy(async () => {

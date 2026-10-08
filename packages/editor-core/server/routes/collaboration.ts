@@ -16,12 +16,12 @@ import type {
   CollaborationPresence,
   CollaborationRole,
   ParticipantKind,
-} from '@volter/editor-sdk/session/collaboration-types';
+} from '@volter/sdk/session/collaboration-types';
 import {
   isCollaborationAgentMention,
   isCollaborationCameraPose,
   TEAM_MESSAGE_LIMITS,
-} from '@volter/editor-sdk/session/collaboration-types';
+} from '@volter/sdk/session/collaboration-types';
 import type { Request, Response } from 'express';
 import { type HarnessChatSnapshot, harnessChatUiState } from '../../src/harness-chat-types';
 import { parseTeamMessageReferences } from '../collaboration-session';

@@ -5175,8 +5175,8 @@ src/performance-profiler.ts was imported from the Apache-2.0
 contains its text. This timing collector does not execute gameplay.
 src/animation/animation-clock.ts was imported from the Apache-2.0
 @volter/threejs-runtime package and retains that license.
-The built plugins also include the Apache-2.0 editor-sdk contribution naming
-constants; their source remains owned by editor-sdk.
+The built plugins also include the Apache-2.0 @volter/sdk contribution naming
+constants; their source remains owned by @volter/sdk.
 
 Original source revisions and file hashes are recorded in the repository's
 provenance/editor-host.json and provenance/editor-session.json, provenance/editor-server.json and
@@ -5880,14 +5880,14 @@ The files in this package were imported from volter-ai/volter-engine at commit
 
 src/host/sdk/tools.ts was imported from src/tools.ts of the Apache-2.0 SDK
 package of volter-ai/volter-engine, and retains that license. It re-exports the
-Apache-2.0 tool contract of @volter/editor-sdk.
+Apache-2.0 tool contract of @volter/sdk.
 
 
-@volter/editor-project@0.5.155
+@volter/project@0.5.155
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/editor-project@0.5.155, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/project@0.5.155, from https://github.com/volter-ai/editor.git
 
---- packages/editor-project/LICENSE ---
+--- packages/project/LICENSE ---
 
 
                                  Apache License
@@ -6770,11 +6770,11 @@ The files in this package were imported from volter-ai/volter-engine at commit
 09c2749ce. LICENSE contains the AGPL-3.0-only license they retain.
 
 
-@volter/editor-sdk@0.5.155
+@volter/sdk@0.5.155
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/editor-sdk@0.5.155, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/sdk@0.5.155, from https://github.com/volter-ai/editor.git
 
---- packages/editor-sdk/LICENSE ---
+--- packages/sdk/LICENSE ---
 
 
                                  Apache License
@@ -6980,7 +6980,7 @@ Source: the unmodified npm package @volter/editor-sdk@0.5.155, from https://gith
    limitations under the License.
 
 
---- packages/editor-sdk/NOTICE ---
+--- packages/sdk/NOTICE ---
 
 Copyright 2026 Volter AI, Inc.
 

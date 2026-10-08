@@ -1,5 +1,5 @@
 /**
- * EDIT-TIME NETWORKING (`@volter/editor-sdk/services`, a `workspace.service`
+ * EDIT-TIME NETWORKING (`@volter/sdk/services`, a `workspace.service`
  * contribution): the networking adapter the editor inspects while nothing is
  * playing, bound to the open project's own Colyseus client/room exports.
  *
@@ -12,7 +12,7 @@
  * that always was, and the shell no longer names it (WORK.md §The workbench,
  * P3b).
  */
-import { onProjectChange } from '@volter/editor-sdk/kit/active-project';
+import { onProjectChange } from '@volter/sdk/kit/active-project';
 import { installEditModeNetworking } from '../src/edit-mode/edit-mode-networking';
 
 export const point = 'workspace.service';

@@ -1,5 +1,5 @@
 /**
- * THE GAME DOCUMENT's content, registered (`@volter/editor-sdk/services`, a
+ * THE GAME DOCUMENT's content, registered (`@volter/sdk/services`, a
  * `workspace.service` contribution). The host owns the live document's
  * LIFETIME — `workspace:game` opens when a lane acquires it and closes on the
  * playing → stopped edge (`live-document.ts`) — and this package owns what it
@@ -12,7 +12,7 @@
  * pass — a build that drops `@volter/editor-game` leaves the host with no live content
  * and the door's own `NoLiveContent` placeholder, which is the honest state.
  */
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import { GameDocumentContent, GameDocumentToolbar } from '../src/game-document/GameDocument';
 
 export const point = 'workspace.service';

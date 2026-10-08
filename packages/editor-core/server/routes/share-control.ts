@@ -12,7 +12,7 @@
  */
 
 import { timingSafeEqual } from 'node:crypto';
-import type { CollaborationRole } from '@volter/editor-sdk/session/collaboration-types';
+import type { CollaborationRole } from '@volter/sdk/session/collaboration-types';
 import type { Request, Response } from 'express';
 import { type EditorServerRouter, setGatewayParticipantRole } from '../editor-server';
 import {

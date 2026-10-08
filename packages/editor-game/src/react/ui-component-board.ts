@@ -12,15 +12,15 @@
  * whose verdict is `'present'`.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import type { ComponentBoard, ComponentBoardContext } from '@volter/editor-sdk/kit/component-board-registry';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { commandLine } from '@volter/sdk/kit/product-command';
+import type { ComponentBoard, ComponentBoardContext } from '@volter/sdk/kit/component-board-registry';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import {
   getStoryMediaPresence,
   subscribeStoryMediaPresence,
 } from '../host/stories/story-media-presence';
-import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
-import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/sdk/kit/stories/story-registry';
+import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
 import { UI_COMPONENTS_TITLE } from './ui-board-title';
 
 export const uiComponentBoard: ComponentBoard = {

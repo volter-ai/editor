@@ -5,7 +5,7 @@
  */
 
 import type { IngestGame2D } from '../runtime/pixi/ingest';
-import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
+import type { ResolvedAdapterRoot } from '@volter/project/manifest/load';
 import { composeIngestLoad } from './entry-load';
 import { ingestModuleLoaders } from './resolve-three';
 

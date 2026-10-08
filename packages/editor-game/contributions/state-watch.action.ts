@@ -3,8 +3,8 @@
  * State Watch. The host lists a contributed action unconditionally, so the
  * reveal is a no-op while nothing registers the tab (`available` gates it).
  */
-import type { ActionContribution } from '@volter/editor-sdk/chrome';
-import { editorHost } from '@volter/editor-sdk/host';
+import type { ActionContribution } from '@volter/sdk/chrome';
+import { editorHost } from '@volter/sdk/host';
 
 export const point = 'workspace.action';
 

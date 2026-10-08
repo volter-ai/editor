@@ -160,7 +160,7 @@ npm run --silent volter -- projects         # List recent projects
 ```
 
 `open` / `project` / `projects` stay first-class for a concrete reason: project
-management lives on `EditorClient` and was never lifted onto `@volter/editor-live`'s
+management lives on `EditorClient` and was never lifted onto `@volter/live`'s
 `editor`, so there is no `eval` equivalent to point them at.
 
 ### Play Control
@@ -353,10 +353,10 @@ starts one, and fails with a clear "run `npx volter-game-editor edit` first" rat
 booting a second editor. Top-level `editor` / `game` / `page` / `tools`
 singletons are also exported for one-liners.
 
-`@volter/editor-sdk`'s `EditorClient` is the lower layer underneath, and remains
+`@volter/sdk`'s `EditorClient` is the lower layer underneath, and remains
 the right import for editor-only automation that has no game running — plus the
 handful of project-management calls (`createProject()`, `openProject()`,
-`getProject()`, `listRecentProjects()`) that `@volter/editor-live` does not re-expose.
+`getProject()`, `listRecentProjects()`) that `@volter/live` does not re-expose.
 
 Run `npm run --silent volter -- eval --list` for the current member list on every binding.
 It walks the live objects at runtime, so it is accurate in a way this page

@@ -1,9 +1,9 @@
 /**
  * `cyclotron play-log`: Model Play's log, read from the running session
- * (`editor.modelPlayLog()`, the `model-play-log` verb `@volter/editor-model-play` contributes).
+ * (`editor.modelPlayLog()`, the `model-play-log` verb `@volter/play` contributes).
  * One line per entry — simulation seconds, frame, kind, facts — or the whole reading as JSON.
  */
-import { connect } from '@volter/editor-live';
+import { connect } from '@volter/live';
 
 export const PLAY_LOG_USAGE = 'play-log [--since <simTime>] [--kind <kind>] [--document <id>] [--json]';
 

@@ -3,7 +3,7 @@
  * (`ProjectServingServices.registerModelConverter`): what the asset library runs to turn a
  * staged source model into the runtime GLB it imports.
  */
-import type { ModelConverter } from '@volter/editor-sdk/session/project-serving';
+import type { ModelConverter } from '@volter/sdk/session/project-serving';
 
 const converters: ModelConverter[] = [];
 

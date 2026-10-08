@@ -1,10 +1,10 @@
 /**
- * The animation stamp's status facet (`@volter/editor-sdk/services`, a `workspace.service`
+ * The animation stamp's status facet (`@volter/sdk/services`, a `workspace.service`
  * contribution): the editor's `status` command reports the mixers the running world's own code made, with the
  * clips it has played through each and the objects each animates, so "the timeline found
  * nothing" is answerable from the session.
  */
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import { liveMixers } from '../src/animation/live-mixers';
 
 export const point = 'workspace.service';

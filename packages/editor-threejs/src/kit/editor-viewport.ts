@@ -1,14 +1,14 @@
 import type { SparkRenderer } from '@sparkjsdev/spark';
-import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
+import { invalidateStages } from '@volter/sdk/kit/stage-invalidation';
 import { StagePresentationRig } from './components/standard-viewport-dressing';
 import {
   bindViewPresentation,
   subscribeViewportPresentation,
   type ViewportOverlays,
   viewPresentation,
-} from '@volter/editor-sdk/kit/viewport-presentation';
-import { themeVars, zIndex } from '@volter/editor-sdk/widgets';
-import type { AssetDropContext, AuthoringAdapter } from '@volter/editor-project/adapter';
+} from '@volter/sdk/kit/viewport-presentation';
+import { themeVars, zIndex } from '@volter/sdk/widgets';
+import type { AssetDropContext, AuthoringAdapter } from '@volter/project/adapter';
 import {
   EDITOR_CAMERA_FAR,
   EDITOR_CAMERA_NEAR,
@@ -45,14 +45,14 @@ import {
   endAuthoringTransformEdit,
   setAuthoringSelection,
   spatialHandlesForAdapter,
-} from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { beginLiveGesture, endLiveGesture } from '@volter/editor-sdk/kit/live-gesture-lock';
-import { drillIntoSelectionScope, pickAcrossScopeExit } from '@volter/editor-sdk/kit/authoring/selection-scope';
+} from '@volter/sdk/kit/authoring/consumer-actions';
+import { beginLiveGesture, endLiveGesture } from '@volter/sdk/kit/live-gesture-lock';
+import { drillIntoSelectionScope, pickAcrossScopeExit } from '@volter/sdk/kit/authoring/selection-scope';
 import { setViewportPickContext } from './authoring/viewport-pick-context';
-import { isRootHidden } from '@volter/editor-sdk/kit/authoring/world-session-state';
+import { isRootHidden } from '@volter/sdk/kit/authoring/world-session-state';
 import type { CameraViewMode } from './camera-authoring';
 import { type ConstraintControl, ConstraintHelper } from './constraint-helper';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from './editor-shell-store';
 import { findEntityLod } from './entity-lod';
 import { entityIdOf, entityObject3D } from './entity-object';
@@ -69,8 +69,8 @@ import {
   nativeViewportSelectionBox,
   nativeViewportWire,
   subscribeNativeSelectionTheme,
-} from '@volter/editor-sdk/kit/native-selection-style';
-import { presentationRegionBasis } from '@volter/editor-sdk/kit/presentation-surface';
+} from '@volter/sdk/kit/native-selection-style';
+import { presentationRegionBasis } from '@volter/sdk/kit/presentation-surface';
 import { ReflectionProbeHelper } from './reflection-probe-helper';
 import { frameableContentBounds, seededViewShowsWorld, viewFromGameCamera } from './scene-framing';
 import {
@@ -86,9 +86,9 @@ import { perspectiveDistanceToFitBox } from './three-viewport/camera-fit';
 import { SelectionBrackets } from './three-viewport/selection-brackets';
 import { collectThreeSelectionOutlineTargets } from './three-viewport/selection-outline';
 import { toneMappedSourceColor } from './three-viewport/source-color';
-import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
-import { activeKeymapNavigation, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
+import type { ThreeViewportProjection } from '@volter/sdk/kit/three-viewport-presentation';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
+import { activeKeymapNavigation, subscribeEditorKeymap } from '@volter/sdk/kit/keymap-presets';
 import { TriggerVolumeHelper } from './trigger-volume-helper';
 import { viewportAuthoringPolicy } from './viewport-authoring-policy';
 import { ensureThreeIntegration } from './three-integration';

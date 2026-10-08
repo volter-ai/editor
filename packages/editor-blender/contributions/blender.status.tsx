@@ -22,9 +22,9 @@
  * about THIS editor, so the labels are read from this editor's own contract,
  * never transcribed from the reference:
  *
- *   - the KEYMAP (`keymap-presets.ts`, `@volter/editor-sdk/looks`) binds no
+ *   - the KEYMAP (`keymap-presets.ts`, `@volter/sdk/looks`) binds no
  *     mouse buttons and structurally cannot: a `KeyChord` is
- *     `{ key, code?, mod?, shift?, alt? }` (`editor-sdk/src/looks.ts:76-82`)
+ *     `{ key, code?, mod?, shift?, alt? }` (`sdk/src/looks.ts:76-82`)
  *     with no button field, so no keymap — the Blender one included — can
  *     move a mouse binding. Nothing to read there.
  *   - so the source is the VIEWPORT's own mouse contract:

@@ -36,12 +36,12 @@ import { measureAdapter } from '../host/adapter-reach';
 import {
   type MountedRootSubject,
   mountedRootSubjects,
-} from '@volter/editor-sdk/kit/authoring/mounted-root-subjects';
+} from '@volter/sdk/kit/authoring/mounted-root-subjects';
 import {
   type CapabilityCoverageReport,
   deriveCapabilityCoverage,
 } from '../host/coverage/capability-coverage';
-import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
+import type { AdapterSurface } from '@volter/project/adapter/adapter-surface';
 
 /** One root's report. `surface` rides along because it is what decides which
  *  absences were excused, and a reader must be able to check that. */

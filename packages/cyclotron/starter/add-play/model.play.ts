@@ -10,7 +10,7 @@
  * Positions under `root` are Blender's metres, Z up. Make it your game.
  */
 import * as THREE from 'three';
-import type { ModelPlayContext, ModelPlayGame } from '@volter/editor-model-play/play-script';
+import type { ModelPlayContext, ModelPlayGame } from '@volter/play/play-script';
 import { publishGameState } from './game-state';
 
 const SPEED = 4;

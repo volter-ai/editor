@@ -1,4 +1,4 @@
-import { Checkbox, TextInput, themeVars } from '@volter/editor-sdk/widgets';
+import { Checkbox, TextInput, themeVars } from '@volter/sdk/widgets';
 
 /**
  * Story DOCUMENTS (W2 — inventory row B9): a selected CSF story opens as a
@@ -40,44 +40,44 @@ import { Checkbox, TextInput, themeVars } from '@volter/editor-sdk/widgets';
 // `@editor/active-project` and not `@editor/project-manager`: the same
 // function, re-exported, without dragging the whole project-open/storage
 // estate into this package's program.
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
 import { type Resolution, ResolutionPicker } from '../../host/components/ResolutionPicker';
-import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
-import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { SurfaceStateOverlay } from '@volter/sdk/kit/components/SurfaceStateOverlay';
+import { registerDocumentOpener } from '@volter/sdk/kit/document-open-registry';
+import { createHmrRegistrationGroup } from '@volter/sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
   STORY_ARGS_SECTION_ID,
   STORY_ARGS_SECTION_TITLE,
-} from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
-import type { ComposedProjectStory } from '@volter/editor-sdk/kit/stories/compose-project-stories';
-import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
-import { mountIsolatedStory, runStoryPlay } from '@volter/editor-sdk/kit/stories/StoryPreviewMount';
-import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
+} from '@volter/sdk/kit/inspection-model';
+import { registerInspectorSections } from '@volter/sdk/kit/inspector-section-registry';
+import type { ComposedProjectStory } from '@volter/sdk/kit/stories/compose-project-stories';
+import { getProjectStoryRegions } from '@volter/sdk/kit/stories/project-story-regions';
+import { mountIsolatedStory, runStoryPlay } from '@volter/sdk/kit/stories/StoryPreviewMount';
+import { declaredStoryMedium } from '@volter/sdk/kit/stories/story-declared-medium';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   STORY_DOCS_DOCUMENT_OPENER,
   type StoryDocumentOpenRequest,
-} from '@volter/editor-sdk/kit/story-document-openers';
+} from '@volter/sdk/kit/story-document-openers';
 import {
   getProjectStoryModules,
   refreshProjectStories,
   subscribeProjectStoryModules,
   whenProjectStoriesReady,
-} from '@volter/editor-sdk/kit/stories/story-registry';
+} from '@volter/sdk/kit/stories/story-registry';
 import { domHasRenderableContent } from '../../host/surface-content';
-import { explainSurface, type SurfaceContentState } from '@volter/editor-sdk/kit/surface-state';
-import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
+import { explainSurface, type SurfaceContentState } from '@volter/sdk/kit/surface-state';
+import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/sdk/kit/workspace-core-utilities';
 import {
   activeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
-import { registerWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-utility-registry';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { registerWorkspaceDocumentRestorer } from '@volter/sdk/kit/workspace-document-restore';
+import { registerWorkspaceUtility } from '@volter/sdk/kit/workspace-utility-registry';
 import { fitPresentation } from '../../runtime/presentation';
-import { Button, fontMono, fontSizeVar, spaceVar } from '@volter/editor-sdk/widgets';
+import { Button, fontMono, fontSizeVar, spaceVar } from '@volter/sdk/widgets';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { STORY_ARGS_SECTION_ICON } from './story-args-section';
 

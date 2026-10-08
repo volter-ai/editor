@@ -24,12 +24,12 @@
  * header for the measured black-panel defect a second owner produces.
  */
 
-import { fsImportPath } from '@volter/editor-sdk/session/project-module-url';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { fsImportPath } from '@volter/sdk/session/project-module-url';
+import { themeVars } from '@volter/sdk/widgets';
 import { useEffect, useRef, useState } from 'react';
-import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
+import type { DocumentPreviewCaptureRequest } from '@volter/sdk/kit/document-preview-source';
 import { captureAuthoredThreeScenePreview } from '../document-preview-three';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
 import {
   type MountedStoryViewportSource,
   mountedStoryViewportSource,
@@ -40,7 +40,7 @@ import {
   type StoryPreviewComponent,
 } from '../stories/story-three-preview';
 import { takeNamedExport } from '../take-named-export';
-import type { WorkspaceDocumentContentProps } from '@volter/editor-sdk/kit/workspace-document-registry';
+import type { WorkspaceDocumentContentProps } from '@volter/sdk/kit/workspace-document-registry';
 import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
 
 export interface ThreeIsolationSceneState {

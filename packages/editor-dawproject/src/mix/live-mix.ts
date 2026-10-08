@@ -16,7 +16,7 @@
  * and disconnects only its own nodes. A change that is only a level is applied to the sounding
  * graph in place (`apply`): rebuilding would cut the reverb's tail and reset the dynamics.
  */
-import { projectModuleUrl } from '@volter/editor-sdk/contributions';
+import { projectModuleUrl } from '@volter/sdk/contributions';
 import { audioSegments, envelopeAt } from '../comp';
 import { everyClip } from '../launches';
 import { readWav } from '../wav';

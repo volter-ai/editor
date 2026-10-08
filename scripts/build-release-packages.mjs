@@ -53,7 +53,7 @@ const steps=[
     run('@volter/editor-core','build:session');
     run('@volter/editor-core','build:server','server-bundle-meta.json');
   }],
-  ['@volter/editor-live',()=>run('@volter/editor-live','build')],
+  ['@volter/live',()=>run('@volter/live','build')],
   ['@volter/game-runtime',()=>run('@volter/game-runtime','build')],
   ['@volter/game-live',()=>run('@volter/game-live','build')],
   ['@volter/editor-game',()=>run('@volter/editor-game','build')],

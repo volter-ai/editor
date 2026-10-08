@@ -27,53 +27,53 @@
 
 import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
 import type { SourceDocumentAuthoringFactory } from '@volter/editor-threejs/kit/components/StageHost';
-import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
+import { SurfaceStateOverlay } from '@volter/sdk/kit/components/SurfaceStateOverlay';
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-threejs/kit/components/standard-viewport-dressing';
-import { registerDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { registerDocumentOpener } from '@volter/sdk/kit/document-open-registry';
+import { createHmrRegistrationGroup } from '@volter/sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
   STORY_ARGS_SECTION_ID,
   STORY_ARGS_SECTION_TITLE,
-} from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
-import type { ComposedProjectStory } from '@volter/editor-sdk/kit/stories/compose-project-stories';
+} from '@volter/sdk/kit/inspection-model';
+import { registerInspectorSections } from '@volter/sdk/kit/inspector-section-registry';
+import type { ComposedProjectStory } from '@volter/sdk/kit/stories/compose-project-stories';
 import {
   type MountedStoryViewportSource,
   mountedStoryViewportSource,
 } from '../../host/stories/mounted-story-viewport-source';
-import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
+import { getProjectStoryRegions } from '@volter/sdk/kit/stories/project-story-regions';
 import { storyArgPropertyDescriptors } from '../../host/stories/story-arg-descriptors';
-import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
+import { declaredStoryMedium } from '@volter/sdk/kit/stories/story-declared-medium';
 import {
   type StoryDocumentOpenRequest,
   THREE_STORY_DOCUMENT_OPENER,
-} from '@volter/editor-sdk/kit/story-document-openers';
+} from '@volter/sdk/kit/story-document-openers';
 import {
   getProjectStoryModules,
   subscribeProjectStoryModules,
-} from '@volter/editor-sdk/kit/stories/story-registry';
+} from '@volter/sdk/kit/stories/story-registry';
 import {
   disposeStoryObject3D,
   mountStoryObject3D,
   type StoryPreviewComponent,
 } from '../../host/stories/story-three-preview';
 import { mountedStoryHasThreeContent } from '@volter/editor-threejs/kit/stories/three-story-model';
-import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
-import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
+import { explainSurface } from '@volter/sdk/kit/surface-state';
+import { sourceWriteBackendIfPrimed } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
 import {
   activeWorkspaceDocument,
   closeWorkspaceDocument,
   openWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { registerWorkspaceDocumentRestorer } from '@volter/editor-sdk/kit/workspace-document-restore';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { registerWorkspaceDocumentRestorer } from '@volter/sdk/kit/workspace-document-restore';
 import { STORY_ARGS_SECTION_ICON } from '../../react/story-documents/story-args-section';
 import {
   prepareStoryDocumentRestore,
   storyDocumentId,
 } from '../../react/story-documents/story-documents';
-import { Checkbox, TextInput, themeVars } from '@volter/editor-sdk/widgets';
+import { Checkbox, TextInput, themeVars } from '@volter/sdk/widgets';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import { R3fSourceAuthoringAdapter } from '../authoring/r3f-source-authoring-adapter';
 

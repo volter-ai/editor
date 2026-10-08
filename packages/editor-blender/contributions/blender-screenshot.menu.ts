@@ -6,9 +6,9 @@
  * goes to the project's `screenshots/` folder and the console says which file it is. Like every
  * photograph of the document it flashes the document and shows itself in the corner.
  */
-import type { MenuContribution } from '@volter/editor-sdk/chrome';
-import { editorHost } from '@volter/editor-sdk/host';
-import { announcePhotograph } from '@volter/editor-sdk/kit/photograph-notice';
+import type { MenuContribution } from '@volter/sdk/chrome';
+import { editorHost } from '@volter/sdk/host';
+import { announcePhotograph } from '@volter/sdk/kit/photograph-notice';
 
 export const point = 'workspace.menu';
 

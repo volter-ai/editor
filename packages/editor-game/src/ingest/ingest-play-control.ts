@@ -9,10 +9,10 @@
  */
 
 import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence';
-import { recordLiveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { activateLiveDocument } from '@volter/editor-sdk/kit/live-document';
-import type { VolterGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
+import { recordLiveSeamEvidence } from '@volter/sdk/kit/live-seam-evidence';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { activateLiveDocument } from '@volter/sdk/kit/live-document';
+import type { VolterGameContract } from '@volter/project/adapter/ingest/game-contract';
 import { activeIngest, type IngestLifecycleControl } from './active-ingest';
 import { readIngestGameContract } from './game-contract-realm';
 

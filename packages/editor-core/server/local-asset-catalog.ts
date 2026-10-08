@@ -3,14 +3,14 @@ import { existsSync } from 'node:fs';
 import { readFile, stat } from 'node:fs/promises';
 import { extname, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { assetCapabilities } from '@volter/editor-sdk/kit/asset-capabilities';
+import { assetCapabilities } from '@volter/sdk/kit/asset-capabilities';
 import {
   type AssetCatalog,
   type AssetFamily,
   type AssetFile,
   type AssetVariant,
   parseAssetCatalog,
-} from '@volter/editor-sdk/kit/asset-workflow/asset-types';
+} from '@volter/sdk/kit/asset-workflow/asset-types';
 import { assertNoRemovedAssetCatalogV1 } from './asset-catalog-v2';
 import { isPathInside } from './server-utils';
 

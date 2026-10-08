@@ -22,9 +22,9 @@ import {
   ListPromptsRequestSchema,
   ListToolsRequestSchema,
 } from '@modelcontextprotocol/sdk/types.js';
-import { EditorClient, type EditorView } from '@volter/editor-sdk';
+import { EditorClient, type EditorView } from '@volter/sdk';
 import blenderBundle from '@volter/blender-engine/wasm/BUNDLE.json';
-import { projectOutputRootOf } from '@volter/editor-sdk/project/output-roots';
+import { projectOutputRootOf } from '@volter/sdk/project/output-roots';
 import blenderDefaults from './blender-mcp-defaults.json';
 import blenderTools from './blender-mcp-tools.json';
 
@@ -266,7 +266,7 @@ class TabSession {
     if (!this.#connecting) {
       this.#connecting = (async () => {
         await this.ensureEditor();
-        const { resolveSession } = await import('@volter/editor-live');
+        const { resolveSession } = await import('@volter/live');
         const session = await resolveSession(this.project);
         this.#port = session.port;
         this.#origin = `http://127.0.0.1:${session.port}`;

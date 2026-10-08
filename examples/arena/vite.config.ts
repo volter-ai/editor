@@ -12,7 +12,7 @@ export default defineConfig({
   plugins: [manifestEntryModulesPlugin(manifest)],
   resolve: {
     alias: {
-      '@volter/editor-project': packageSource('@volter/editor-project'),
+      '@volter/project': packageSource('@volter/project'),
       '@volter/threejs-runtime': packageSource('@volter/threejs-runtime'),
       '@volter/game-runtime': packageSource('@volter/game-runtime'),
     },

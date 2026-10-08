@@ -47,13 +47,13 @@
  */
 
 import type { DeclaredSystemAbsence } from '../../runtime/game';
-import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+import type { SystemAdapters } from '@volter/project/adapter/system-adapter';
 import {
   SYSTEM_ADAPTER_SLOTS,
   type SystemAdapterMeasurement,
   type SystemAdapterSlot,
 } from './capability-coverage';
-import { inspectSystemAdapterSeam } from '@volter/editor-sdk/kit/system-seam-evidence';
+import { inspectSystemAdapterSeam } from '@volter/sdk/kit/system-seam-evidence';
 
 /** What the native derivation needs to know that the live registry cannot tell
  *  it. Both facts are read off things that already exist; neither is a guess. */

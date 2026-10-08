@@ -1,5 +1,5 @@
 /**
- * THE REACT/DOM INSPECTOR (`@volter/editor-sdk/services`, a `workspace.service`
+ * THE REACT/DOM INSPECTOR (`@volter/sdk/services`, a `workspace.service`
  * contribution): the rich CSS/layout section that stands in for the shell's
  * generic property grid on a node owned by a react or DOM adapter — borders,
  * radii, shadows, gradients, filters, fonts, alignment, the breakpoint strip

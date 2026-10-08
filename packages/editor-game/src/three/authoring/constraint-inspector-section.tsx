@@ -1,8 +1,8 @@
 import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
 import { instanceStampOf } from '@volter/editor-threejs/kit/authoring/component-instance-root';
-import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
-import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
+import { setAuthoringSelection } from '@volter/sdk/kit/authoring/consumer-actions';
+import type { InspectorSectionProps } from '@volter/sdk/kit/inspector-section-registry';
+import type { AuthoringAdapter, EditorNode } from '@volter/project/adapter';
 import {
   type ConstraintMark,
   type ConstraintSnapshot,
@@ -15,7 +15,7 @@ import {
   FieldRow,
   Text,
   themeVars,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import type * as THREE from 'three';
 import { useThreeEditorStore } from '@volter/editor-threejs/kit/three-state';
 

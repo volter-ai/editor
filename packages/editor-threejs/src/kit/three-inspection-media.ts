@@ -1,6 +1,6 @@
 /**
  * THE THREE.JS ANSWER TO "what does this node look like"
- * (`@volter/editor-sdk/kit/inspection-node-media`): a selected node the shell's
+ * (`@volter/sdk/kit/inspection-node-media`): a selected node the shell's
  * Three store resolves to a live `Object3D` is previewed as an isolated live
  * view of that object, a camera has no Preview section (its view is the
  * viewport's), an instanced mesh names its units, and a node in the object map
@@ -10,12 +10,12 @@
 import {
   type InspectionNodeMedia,
   registerInspectionNodeMedia,
-} from '@volter/editor-sdk/kit/inspection-node-media';
+} from '@volter/sdk/kit/inspection-node-media';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import { createElement, lazy } from 'react';
 import type * as THREE from 'three';
-import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
-import { InspectorPreviewBody } from '@volter/editor-sdk/kit/components/inspector-preview-section';
+import { openRegisteredDocument } from '@volter/sdk/kit/document-open-registry';
+import { InspectorPreviewBody } from '@volter/sdk/kit/components/inspector-preview-section';
 import { entityObject3D } from './entity-object';
 import { describeInstancedPresentation } from './instanced-presentation';
 import { threeStoreForHost } from './three-state';

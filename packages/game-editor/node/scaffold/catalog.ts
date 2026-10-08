@@ -17,7 +17,7 @@ import {
   writeFileSync,
 } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
 import { type FinderAddition, mergeAdapterFinders, mergeAdapterRegionIncludes, type RegionIncludeAddition } from './adapter-region-merge.js';
 
 export const PROJECT_CATALOG_DIR = join('.volter', 'catalog');
@@ -27,7 +27,7 @@ export const DEFAULT_THREEJS_CAPABILITIES = [] as const;
 
 /**
  * One library binary a capability's SOURCE reads at runtime, in the exact shape
- * `asset-manifest.json` declares (`packages/editor-sdk/src/kit/asset-workflow/asset-pack-manifest.ts`).
+ * `asset-manifest.json` declares (`packages/sdk/src/kit/asset-workflow/asset-pack-manifest.ts`).
  *
  * Why a capability declares this at all: a capability is source, and source can
  * be copied. Its reference BINARIES cannot — they are 7 MB library objects that
@@ -200,7 +200,7 @@ function stringArray(value: unknown, field: string, manifestPath: string): strin
  * Capability ids that were RENAMED, mapped to what they are called now.
  *
  * A renamed id is read by NOTHING. Its only job is this error message — the
- * `volter.game.json` precedent exactly (`packages/editor-project/src/manifest/filename.ts`):
+ * `volter.game.json` precedent exactly (`packages/project/src/manifest/filename.ts`):
  * the removed spelling REJECTS LOUDLY with the one-line fix spelled out, and is
  * deliberately never silently mapped onto the new one, because a second
  * accepted name is the defect rather than the convenience. Both get written,
@@ -330,7 +330,7 @@ function readRegions(
 }
 
 /**
- * The GLOB DIALECT the region resolver reads (`packages/editor-sdk/src/kit/ui-source/
+ * The GLOB DIALECT the region resolver reads (`packages/sdk/src/kit/ui-source/
  * file-region-resolver.ts`'s `globToRegExp`), restated here because this
  * package deliberately depends on neither the editor nor a glob library, and
  * the check below has to agree with the reader that will consume what we write.

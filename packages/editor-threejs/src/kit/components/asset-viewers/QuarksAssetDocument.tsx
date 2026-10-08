@@ -1,10 +1,10 @@
 import type { ToolObject3DDocumentAuthoringFactory } from '../../../object3d-contributions';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import type {
   AuthoringAdapter,
   InspectorProvider,
   PropertyDescriptor,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import { resolveUrl } from '@volter/editor-threejs/loader';
 import {
   ColorGeneratorFromJSON,
@@ -16,7 +16,7 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import type * as THREE from 'three';
 import { type ParticleSystem, QuarksLoader } from 'three.quarks';
 import { quarksParticleSystems } from '../../authoring/quarks-particle-systems';
-import { projectOutputPath } from '@volter/editor-sdk/kit/project-provenance';
+import { projectOutputPath } from '@volter/sdk/kit/project-provenance';
 import { Object3DDocumentViewport } from '../StageHost';
 import { threeObject } from '../../../adapter/three-contract';
 

@@ -1,5 +1,5 @@
 /**
- * THE PLAY ENTRY THAT IS NOT A CLICK (`@volter/editor-sdk/services`, a
+ * THE PLAY ENTRY THAT IS NOT A CLICK (`@volter/sdk/services`, a
  * `workspace.service` contribution): `?play=1`, the URL asking this session to
  * open playing.
  *
@@ -15,8 +15,8 @@
  * It reports its failure to the editor console — `volter-game-editor console` is what reads
  * it — rather than leaving a stopped surface with no reason on it.
  */
-import { onShellStore } from '@volter/editor-sdk/kit/shell-store-door';
-import { editorHost } from '@volter/editor-sdk/host';
+import { onShellStore } from '@volter/sdk/kit/shell-store-door';
+import { editorHost } from '@volter/sdk/host';
 import { enterPlayMode } from '../src/play/play-mode';
 
 export const point = 'workspace.service';

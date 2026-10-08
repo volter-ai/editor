@@ -74,8 +74,9 @@ import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { EDITOR_LANE_DIRS } from '@volter/editor-sdk/session/tool-contribution-convention';
+import { EDITOR_LANE_DIRS } from '@volter/sdk/session/tool-contribution-convention';
 import type { Plugin } from 'vite';
+import { siblingSdkSource } from './vite-plugin-shared-sdk';
 
 const realPaths = new Map<string, string>();
 /** A file's real path (links resolved), cached; the path itself when it cannot be read. */
@@ -111,7 +112,7 @@ interface DepsOptimizer {
  * project's name nowhere in the stack.
  *
  * `@fortawesome/react-fontawesome` is here because it is the ONLY such module
- * `@volter/editor-sdk/widgets` reaches (measured: the kit's whole transitive bare-import
+ * `@volter/sdk/widgets` reaches (measured: the kit's whole transitive bare-import
  * closure is `react`, `react-dom`, `@fortawesome/free-solid-svg-icons` — pure
  * path DATA, no React — and this). `SectionHeader` renders its
  * `DisclosureIcon` unconditionally, so before this entry existed every project
@@ -557,7 +558,7 @@ export interface SharedReactScope {
  * resolved id is marked and its own imports inherit the scope. Bare
  * dependencies are deliberately NOT marked: they are prebundled, and a
  * prebundled chunk's React is decided at prebundle time, not here.
- * `@volter/editor-sdk/widgets` is the one dependency that must therefore be kept
+ * `@volter/sdk/widgets` is the one dependency that must therefore be kept
  * OUT of `optimizeDeps` (`packaged.ts` excludes it) — it renders in the editor's tree
  * and has to be source-served for this scope to reach it.
  *
@@ -574,7 +575,7 @@ export function sharedReactPlugin({
   projectRoots,
 }: SharedReactScope): Plugin {
   const editorSrc = path.join(editorPackageRoot, 'src');
-  const layoutSdkSrc = path.resolve(editorPackageRoot, '../editor-sdk/src');
+  const layoutSdkSrc = siblingSdkSource(editorPackageRoot);
   const inEditorTree = (importer: string | undefined): boolean => {
     if (!importer) return false;
     if (importer.includes(EDITOR_TREE_QUERY)) return true;

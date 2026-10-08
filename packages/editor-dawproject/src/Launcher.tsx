@@ -17,7 +17,7 @@
  */
 
 import type { Piece, PieceScene, PieceSlot, PieceTrack } from '@volter/dawproject/piece';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { type CSSProperties, type KeyboardEvent as ReactKeyboardEvent, useEffect, useRef, useState } from 'react';
 import { type ArrangerWrites, trackColor } from './Arranger';
 import { type Launches, launchAt } from './launches';

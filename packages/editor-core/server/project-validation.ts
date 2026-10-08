@@ -19,7 +19,7 @@
 import { readFile } from 'node:fs/promises';
 import { transform } from 'esbuild';
 import { ZodError } from 'zod';
-import { loadGameManifest } from '@volter/editor-project/manifest/load';
+import { loadGameManifest } from '@volter/project/manifest/load';
 import { sourceAuthoringDiagnostics } from './source-analysis';
 import { oidSurfaceSourceConflicts, resolveProjectFileRegion } from './project-root-surface';
 import { findVendoredTarget } from './vendored-lock-recorder';

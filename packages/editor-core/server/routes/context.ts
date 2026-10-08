@@ -23,15 +23,15 @@ import type {
   CollaborationParticipantLocation,
   CollaborationRole,
   SourceRevision,
-} from '@volter/editor-sdk/session/collaboration-types';
-import type { EditorServerCompatibility } from '@volter/editor-sdk/session/editor-compatibility';
+} from '@volter/sdk/session/collaboration-types';
+import type { EditorServerCompatibility } from '@volter/sdk/session/editor-compatibility';
 import type { Request, Response } from 'express';
 import type { TripwireGate } from '../support/project/build-discipline';
 import type {
   SessionJournal,
   SessionJournalEvent,
 } from '../support/project/session-journal';
-import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
+import type { ProjectComponentEntry } from '@volter/sdk/kit/asset-workflow/project-content';
 import type { HarnessChatSnapshot } from '../../src/harness-chat-types';
 import type { EditorAccountService } from '../account-service';
 import type { CollaborationSession } from '../collaboration-session';

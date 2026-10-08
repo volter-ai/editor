@@ -1,5 +1,5 @@
 import { threeStateOf } from '../../three-state';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { liveMixerFor } from '@volter/editor-threejs/animation/live-mixers';
 import { useCallback, useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
@@ -8,7 +8,7 @@ import {
   createAssetPreviewSnapshot,
   disposeAssetPreviewSnapshot,
 } from '../../asset-preview';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
 import { Object3DDocumentViewport } from '../StageHost';
 
 function entityClips(source: THREE.Object3D): THREE.AnimationClip[] {

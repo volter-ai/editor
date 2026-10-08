@@ -1,6 +1,6 @@
 import { basename, posix } from 'node:path';
 import { renderPieceInChildProcess } from '@volter/editor-dawproject/render-piece';
-import { defineTool } from '@volter/editor-sdk/tools/registry';
+import { defineTool } from '@volter/sdk/tools/registry';
 import { z } from 'zod';
 
 const relativePath = (path: string): boolean =>

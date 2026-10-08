@@ -34,7 +34,7 @@ export interface IngestStatusFacet {
    *
    * Never inferred from the manifest — and now structurally unable to be: the
    * manifest declares the SAME two words as an author's intent
-   * (`@volter/editor-project/manifest/schema`'s `loop`), so a bare string here left a
+   * (`@volter/project/manifest/schema`'s `loop`), so a bare string here left a
    * declaration and a measurement indistinguishable to every reader of this
    * facet. Evidence is producible only by the probe.
    */

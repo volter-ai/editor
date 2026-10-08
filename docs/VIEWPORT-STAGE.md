@@ -70,7 +70,7 @@ Neither is accepted until Unreal's column is measured.
 
 ## Where it stands (2026-09-25)
 
-Built (`@volter/editor-sdk/kit/viewport-presentation`, `StagePresentationRig` in `standard-viewport-dressing.ts`):
+Built (`@volter/sdk/kit/viewport-presentation`, `StagePresentationRig` in `standard-viewport-dressing.ts`):
 - document stages (`StageHost`) and the game world's stage (`EditorViewport.bindPresentation`) are lit and dressed by their view's presentation;
 - studio presets are data: the kit's own (the stage before the Blender fit), the reserved `document` preset (a document's own view-locked studio: Blender's four Solid-mode lights, which the Blender engine builds), and the world stage's (its old rig, unchanged);
 - the preview source draws Godot's preview sun and procedural sky; the backdrop sources `color`, `environment` and `transparent` replace the stage's own;
@@ -79,7 +79,7 @@ Built (`@volter/editor-sdk/kit/viewport-presentation`, `StagePresentationRig` in
 - overlays: the selection marks (outline, wire, box, in any combination), the grid's major step and which world axis lines show; the look states the grid's line widths and major contrast, the axis lines' colours and width, and the box's form and frame (the material's `stage`);
 - the transform tool's extra handles (scale, view-axis ring, free move) are the view's (`interaction.transformHandles`); the move arrows' length and head are the look's;
 - the preview sky is a float strip with Godot's sun in it (disc and 30° glow on a 0.15 curve), so a sun brighter than white stays bright, and may carry a cloud layer (cover, opacity, scale) thinning into the horizon;
-- environment images: a registered panorama (`@volter/editor-sdk/kit/environment-images`, contributed by `*.environment.ts`) in place of the sky, drawn and lit by, turned by the environment's rotation; `@volter/editor-blender` ships Blender's eight world studio lights (CC0). A preview may leave the scene's own lights out (`sceneLights`);
+- environment images: a registered panorama (`@volter/sdk/kit/environment-images`, contributed by `*.environment.ts`) in place of the sky, drawn and lit by, turned by the environment's rotation; `@volter/editor-blender` ships Blender's eight world studio lights (CC0). A preview may leave the scene's own lights out (`sceneLights`);
 - a floor under a document's content (`overlays.floor`), at its lowest point, taking the preview sun's shadow, as Unreal's asset editors place their preview floor;
 - the grid in an axis-aligned orthographic view (Front, Right, Top and their opposites) lies in that view's plane, behind the geometry, around the view's centre and reaching its corners, with Blender's zoom-dependent level (`EditorViewport.alignGridToView`, from `overlay_grid.hh`); other views draw the floor. The level's fade is a linear reading of Blender's, not its per-level pixel fade. Seen on Blender's stage only;
 - `editor.presentation(documentId, layer?)` reads and records a view's presentation, and reports what its last draw was lit by.

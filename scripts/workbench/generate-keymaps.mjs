@@ -15,12 +15,12 @@
  *
  *  WHAT IT READS, and why THIS way. Three files of the volter-engine checkout it is pointed at:
  *
- *    packages/editor-sdk/src/kit/keymap-presets.ts        the `volter` table — the editor's own chords
+ *    packages/sdk/src/kit/keymap-presets.ts        the `volter` table — the editor's own chords
  *    packages/<pkg>/contributions/*.keymap.ts     each package's keymap (`@volter/editor-blender`'s G/R/S)
- *    packages/editor-sdk/src/kit/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
+ *    packages/sdk/src/kit/editor-hotkeys.ts        each action's SCOPE, from its `bind()` call
  *
  *  It reads them STATICALLY, with the TypeScript compiler API, rather than importing them
- *  through the SDK-facing door the bridge uses (`@volter/editor-sdk/host`'s `keyboard`). That
+ *  through the SDK-facing door the bridge uses (`@volter/sdk/host`'s `keyboard`). That
  *  door is the right one at RUNTIME and the wrong one at build time: reaching it means
  *  mounting the editor in a browser against a live session, because the action table is
  *  filled as a side effect of `registerEditorShellHotkeys`/`StageHost` mounting. `tsx` is no
@@ -440,8 +440,8 @@ async function main() {
 	const ts = await loadTypeScript();
 	const apis = await loadForkKeyApis(args.checkout);
 
-	const presetsFile = join(REPO_ROOT, 'packages/editor-sdk/src/kit/keymap-presets.ts');
-	const hotkeysFile = join(REPO_ROOT, 'packages/editor-sdk/src/kit/editor-hotkeys.ts');
+	const presetsFile = join(REPO_ROOT, 'packages/sdk/src/kit/keymap-presets.ts');
+	const hotkeysFile = join(REPO_ROOT, 'packages/sdk/src/kit/editor-hotkeys.ts');
 	const packagesDir = join(REPO_ROOT, 'packages');
 	// Every keymap a PACKAGE of this engine contributes. A capability's copied
 	// `src/contributions/*.keymap.ts` is deliberately not here: once copied it is the

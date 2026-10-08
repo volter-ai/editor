@@ -33,7 +33,7 @@
  */
 
 import type { Transform2DValue } from '../../runtime/pixi/authoring';
-import type { Transform } from '@volter/editor-project/adapter';
+import type { Transform } from '@volter/project/adapter';
 
 /** Quaternion (xyzw) about Z ⇄ scalar radians — the one mapping both canvas
  *  adapters use. */

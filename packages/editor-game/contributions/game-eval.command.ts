@@ -1,5 +1,5 @@
 /**
- * The STEP verbs of the session wire (`@volter/editor-sdk/commands`, a
+ * The STEP verbs of the session wire (`@volter/sdk/commands`, a
  * `workspace.command` contribution): `game-eval`, the module lane behind
  * `volter-game-editor eval`'s `game.run(...)`, and `page-script`, the in-page Playwright
  * shim behind `page(...)`. Both carry a step function's own SOURCE over the
@@ -25,7 +25,7 @@ import type {
   CommandContribution,
   EditorCommandMessage,
   EditorCommandResult,
-} from '@volter/editor-sdk/commands';
+} from '@volter/sdk/commands';
 import { notPlayingResult } from '../src/command-results';
 import { isIngestActive } from '../src/ingest/active-ingest';
 import { focusedInstanceId, getGameContainer, isPlayModeActive } from '../src/play/play-mode';
@@ -135,7 +135,7 @@ async function handleGameEval(cmd: EditorCommandMessage): Promise<EditorCommandR
  * walks THAT switch, and must never need to know about this op.
  *
  * `cmd['src']` is a UI-automation step's `Function.prototype.toString()`
- * source (`@volter/editor-live`'s `RelayTransport.runPageScript` — see that file's
+ * source (`@volter/live`'s `RelayTransport.runPageScript` — see that file's
  * doc comment for the client-facing half of the wire contract). Reconstructed
  * here with `new Function` and run against a fresh `createPageShim` rooted at
  * the SAME game container `bridge-screenshot`'s composite capture uses

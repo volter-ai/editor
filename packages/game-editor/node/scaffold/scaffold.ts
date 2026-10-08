@@ -30,12 +30,12 @@ import {
 } from 'node:fs';
 import { basename, dirname, join, relative, resolve } from 'node:path';
 import { type ParseError, parse as parseJsonc, printParseErrorCode } from 'jsonc-parser';
-// The manifest FILENAME has ONE owner (`@volter/editor-project`'s
+// The manifest FILENAME has ONE owner (`@volter/project`'s
 // manifest/filename.ts + its filesystem half, manifest/locate.ts). Reaching for
 // `locate` rather than `load-file` is deliberate: `locate.ts` is the Zod-free
 // half, so this predicate does not drag the manifest SCHEMA (and Zod) into the
 // scaffolder's bundle.
-import { hasManifest, resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { hasManifest, resolveManifestPath } from '@volter/project/manifest/locate';
 import {
   adapterSourceFor,
   closeAdditions,
@@ -143,7 +143,7 @@ export interface ScaffoldOptions {
  * the dependency block, the shared-version pins, the tsconfig `paths`.
  */
 export const RUNTIME_PACKAGES = [
-  { name: '@volter/editor-project', dir: 'editor-project' },
+  { name: '@volter/project', dir: 'project' },
   { name: '@volter/threejs-runtime', dir: 'threejs-runtime' },
   { name: '@volter/game-runtime', dir: 'game-runtime' },
 ] as const;
@@ -327,7 +327,7 @@ export function pinSharedDependencyVersions(
       // The runtime packages' own `@volter/*` dependencies are specified by
       // `engineDependencySpec`, one rule for every `@volter/*` package: an
       // exact pin here beside a caret there installs two copies of
-      // `@volter/editor-project` the day a newer release exists.
+      // `@volter/project` the day a newer release exists.
       if (!engineDeps.has(name) || name.startsWith('@volter/')) continue;
       const installedVersion = readInstalledVersionWithFallback(monoRoot, fallbackDir, name);
       if (!installedVersion) continue;
@@ -346,7 +346,7 @@ export function pinSharedDependencyVersions(
  * reach, because neither is one of the game runtime's OWN dependencies and its
  * `engineDeps` loop therefore never sees them:
  *
- * - `@playwright/test` — `@volter/editor-live`'s peerDependency. Pinning to the
+ * - `@playwright/test` — `@volter/live`'s peerDependency. Pinning to the
  *   checkout's exact resolved version keeps the project's copy and the
  *   checkout's identical, which is what makes a single physical
  *   `@playwright/test` instance possible under copy semantics (`.npmrc`'s
@@ -474,7 +474,7 @@ function readEngineDependencyNames(engineDir: string): Set<string> | undefined {
  * Read `packageName`'s installed version from `<monoRoot>/node_modules`.
  * Exported (not just an internal helper) so a template re-sync's CLI call site
  * (`packages/volter-cli/src/index.ts`) can default `currentEngineVersion` from
- * `readInstalledVersion(monoRoot, '@volter/editor-project')` — the SAME resolution
+ * `readInstalledVersion(monoRoot, '@volter/project')` — the SAME resolution
  * `rewriteGameManifest`/`pinSharedDependencyVersions` use at scaffold time —
  * rather than a second, possibly-diverging lookup.
  */
@@ -731,16 +731,16 @@ function rewritePackageJson(
   pkg.dependencies = pkg.dependencies ?? {};
   for (const runtime of RUNTIME_PACKAGES)
     pkg.dependencies[runtime.name] = engineDependencySpec(monoRoot, runtime.name);
-  // `@volter/editor-live`, `@volter/game-live`, `@volter/editor-sdk` and
+  // `@volter/live`, `@volter/game-live`, `@volter/sdk` and
   // `@volter/editor-threejs`: devDependencies the template declares at a range.
   // Rewritten to this distribution's own version like every runtime package:
-  // both live clients depend on `@volter/editor-sdk`, and capability source
-  // (`src/tools/*.tool.ts`, editor contributions) imports `@volter/editor-sdk`
+  // both live clients depend on `@volter/sdk`, and capability source
+  // (`src/tools/*.tool.ts`, editor contributions) imports `@volter/sdk`
   // and Three's contribution types directly, so they are declared together.
   for (const name of [
-    '@volter/editor-live',
+    '@volter/live',
     '@volter/game-live',
-    '@volter/editor-sdk',
+    '@volter/sdk',
     '@volter/editor-threejs',
   ] as const) {
     if (pkg.devDependencies?.[name] !== undefined) {
@@ -787,13 +787,13 @@ export function resolvePackageRoots(): {
   engineRelPath: string;
   editorRelPath: string;
   liveRelPath: string;
-  editorSdkRelPath: string;
+  sdkRelPath: string;
 } {
   return {
     engineRelPath: 'node_modules/@volter/game-runtime',
     editorRelPath: 'node_modules/@volter/editor-core',
-    liveRelPath: 'node_modules/@volter/editor-live',
-    editorSdkRelPath: 'node_modules/@volter/editor-sdk',
+    liveRelPath: 'node_modules/@volter/live',
+    sdkRelPath: 'node_modules/@volter/sdk',
   };
 }
 
@@ -857,7 +857,7 @@ function rewriteGameManifest(
   monoRoot: string,
 ): JsonRecord {
   const manifestPath = join(targetDir, 'volter.project.json');
-  const engineVersion = readInstalledVersion(monoRoot, '@volter/editor-project');
+  const engineVersion = readInstalledVersion(monoRoot, '@volter/project');
 
   let manifest: JsonRecord;
   if (existsSync(manifestPath)) {
@@ -877,7 +877,7 @@ function rewriteGameManifest(
 
   manifest['name'] = name;
   manifest['manifestVersion'] = 2;
-  manifest['$schema'] = './node_modules/@volter/editor-project/schemas/volter-project.schema.json';
+  manifest['$schema'] = './node_modules/@volter/project/schemas/volter-project.schema.json';
   manifest['appId'] = `com.example.${slug.replace(/[^a-zA-Z0-9]/g, '')}`;
   if (additions) {
     // The empty project declares nothing; each addition declares its own
@@ -910,7 +910,7 @@ function rewriteGameManifest(
 
 /**
  * Step 5 (post-install): re-pin `engine.version` from the PROJECT's own
- * installed `@volter/editor-project`.
+ * installed `@volter/project`.
  *
  * `rewriteGameManifest` stamps the pin BEFORE the project's `npm install`
  * runs, from the CLI checkout's engine — the only version that exists at
@@ -929,7 +929,7 @@ function rewriteGameManifest(
  * scaffold-time stamp stays, being the best value known).
  */
 export function repinEngineAfterInstall(targetDir: string): { from: string; to: string } | null {
-  const installed = readInstalledVersion(targetDir, '@volter/editor-project');
+  const installed = readInstalledVersion(targetDir, '@volter/project');
   if (!installed) return null;
   const manifestPath = resolveManifestPath(targetDir);
   let manifest: JsonRecord;
@@ -1148,7 +1148,7 @@ export function planCheckoutLink(projectDir: string, monoRoot: string): Checkout
  * {@link linkCheckoutPackages} points `node_modules` at one step later.
  *
  * IT IS EVERY CHECKOUT-OWNED PACKAGE, not only the private ones (widened
- * 2026-09-21, when the engine split into `@volter/editor-project`,
+ * 2026-09-21, when the engine split into `@volter/project`,
  * `@volter/threejs-runtime` and `@volter/game-runtime`). `private: true` was a
  * PROXY for "the registry cannot serve it", and the proxy broke the first time
  * a checkout grew a public package the registry had never seen: the scaffold's
@@ -1536,11 +1536,11 @@ function rewriteTemplateVariantFiles(
  * (the T3.6 bug: previously copied verbatim from the template, breaking
  * `tsc` in every project not scaffolded at the template's exact depth).
  *
- * `@volter/editor-live` itself gets no mapping — it resolves off `node_modules` like
+ * `@volter/live` itself gets no mapping — it resolves off `node_modules` like
  * any other devDependency. Its TRANSITIVE reach does need one, though: the
  * project's tools and logic tests import `GameClient` from it, its emitted
- * `.d.ts` names `@volter/editor-sdk` types, and `@volter/editor-sdk` is a
- * SOURCE export whose own files import `@volter/editor-project/manifest/load` etc. A single `tsc` program
+ * `.d.ts` names `@volter/sdk` types, and `@volter/sdk` is a
+ * SOURCE export whose own files import `@volter/project/manifest/load` etc. A single `tsc` program
  * resolves every reachable file under ITS OWN compilerOptions, and
  * a runtime package's export map points at extensionless `./src/*` — which
  * `tsc` cannot follow to a `.ts`. All three are therefore mapped here for the
@@ -1589,7 +1589,7 @@ function rewriteTsconfig(targetDir: string, engineRelPath: string, editorRelPath
   // authoring analyzer `check-idioms.ts` loads. The mapping makes both
   // typecheck in the scaffolded project (at runtime the editor's own Vite
   // server resolves the alias instead). The WIDGET KIT is not one of them: a
-  // contribution imports `@volter/editor-sdk/widgets`, an ordinary package
+  // contribution imports `@volter/sdk/widgets`, an ordinary package
   // export that needs no mapping.
   if (editorRelPath) {
     tsconfig.compilerOptions.paths['@editor/*'] = [`${editorRelPath}/src/*`];
@@ -1797,7 +1797,7 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
   // rewritten files (package.json, tsconfig.json, vite.config.ts,
   // volter.project.json, ...) are recorded at their FINAL post-rewrite content,
   // not the template's pre-rewrite copy.
-  const engineVersion = readInstalledVersion(monoRoot, '@volter/editor-project') ?? '0.0.0';
+  const engineVersion = readInstalledVersion(monoRoot, '@volter/project') ?? '0.0.0';
   writeScaffoldBaseline(targetDir, engineVersion, engineDir);
 
   return { targetDir, slug, manifest };

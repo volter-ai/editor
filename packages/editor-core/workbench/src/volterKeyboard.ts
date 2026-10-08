@@ -45,7 +45,7 @@ import { CommandsRegistry } from '../../../../platform/commands/common/commands.
 import { IContextKey, IContextKeyService, RawContextKey } from '../../../../platform/contextkey/common/contextkey.js';
 import { CARRIED_ACTION_IDS, CARRIED_KEYMAP_IDS } from './volterGeneratedKeymaps.js';
 
-// ---- What the bridge hands over. The Volter editor's own door (`@volter/editor-sdk/host`'s
+// ---- What the bridge hands over. The Volter editor's own door (`@volter/sdk/host`'s
 // `keyboard` member) reshaped by `bridge.tsx` into the facts this frame needs, so this file
 // imports nothing of the editor.
 

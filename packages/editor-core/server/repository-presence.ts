@@ -4,7 +4,7 @@ import {
   collaborationParticipantColor,
   type ParticipantKind,
   type ParticipantStatus,
-} from '@volter/editor-sdk/session/collaboration-types';
+} from '@volter/sdk/session/collaboration-types';
 import type { EditorSession } from './session-registry';
 
 export interface RepositoryParticipantPresence {

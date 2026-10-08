@@ -38,7 +38,7 @@ import type {
   FrameCapture,
   FrameCaptureDrawCall,
   FrameCaptureEntryPoint,
-} from '@volter/editor-project/adapter/frame-capture';
+} from '@volter/project/adapter/frame-capture';
 
 export type {
   DrawAnnotation,
@@ -46,7 +46,7 @@ export type {
   FrameCapture,
   FrameCaptureDrawCall,
   FrameCaptureEntryPoint,
-} from '@volter/editor-project/adapter/frame-capture';
+} from '@volter/project/adapter/frame-capture';
 
 export interface WebGLFrameCaptureOptions {
   /** Injected clock for `capturedAt`; defaults to `Date.now`. Injectable so a

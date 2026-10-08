@@ -5,7 +5,7 @@ import { runInNewContext } from 'node:vm';
 import { fileURLToPath } from 'node:url';
 
 const stubs = {
-  '@volter/editor-sdk/host': 'export const editorHost = () => ({console: {error: (...args) => probe.errors.push(args)}});',
+  '@volter/sdk/host': 'export const editorHost = () => ({console: {error: (...args) => probe.errors.push(args)}});',
   '@volter/editor-threejs/adapter/three-contract': 'export const threeObject = () => null;',
   '@volter/editor-threejs/viewport-door': 'export const viewportStages = () => [];',
   '../host/blender-runtime-host': `export const blenderExecute = code => probe.execute(code);

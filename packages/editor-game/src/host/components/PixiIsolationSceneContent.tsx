@@ -4,8 +4,8 @@
  * scene table registry must not make a Three project evaluate Pixi authoring.
  */
 
-import { isolationImportUrl } from '@volter/editor-sdk/session/project-module-url';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { isolationImportUrl } from '@volter/sdk/session/project-module-url';
+import { themeVars } from '@volter/sdk/widgets';
 import { createPhysics2DRegistry } from '../../runtime/pixi/physics-registry';
 import { createPhysicsAdapter2D } from '../../runtime/pixi/system-adapters';
 import { useEffect, useRef, useState } from 'react';
@@ -16,21 +16,21 @@ import {
 } from '../authoring/mount-isolated-pixi-screen';
 import { PixiAuthoringAdapter } from '../authoring/pixi-authoring-adapter';
 import { createCreationSiteCanvasWriteTarget } from '../authoring/pixi-creation-site-write-target';
-import { installCanvasSceneNavigation } from '@volter/editor-sdk/kit/authoring/react-canvas-navigation';
-import { createRootViewController } from '@volter/editor-sdk/kit/world-pan-state';
+import { installCanvasSceneNavigation } from '@volter/sdk/kit/authoring/react-canvas-navigation';
+import { createRootViewController } from '@volter/sdk/kit/world-pan-state';
 import { capturePixiDisplayObjectThumbnail } from '../canvas-preview-frames';
-import type { DocumentPreviewCaptureRequest } from '@volter/editor-sdk/kit/document-preview-source';
+import type { DocumentPreviewCaptureRequest } from '@volter/sdk/kit/document-preview-source';
 import { authoringJournal } from '../history/json-history-resource';
-import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { setActiveScope } from '@volter/sdk/kit/hotkeys';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
 import { takeNamedExport } from '../take-named-export';
-import { registerWorkspaceDocumentSelection } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { registerWorkspaceDocumentSelection } from '@volter/sdk/kit/workspace-document-registry';
 import {
   CANVAS_SCENE_BACKGROUND,
   CanvasSceneBackdrop,
   CanvasSceneControls,
-} from '@volter/editor-sdk/kit/components/CanvasSceneViewport';
-import { RootSelectionOverlay } from '@volter/editor-sdk/kit/components/RootSelectionOverlay';
+} from '@volter/sdk/kit/components/CanvasSceneViewport';
+import { RootSelectionOverlay } from '@volter/sdk/kit/components/RootSelectionOverlay';
 import { useThreeEditorStore } from '@volter/editor-threejs/kit/three-state';
 
 export interface PixiIsolationSceneContentProps {

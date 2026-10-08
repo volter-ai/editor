@@ -1,5 +1,5 @@
 import type { ToolObject3DPreviewContext, ToolObject3DPreviewExtension } from '../../../object3d-contributions';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { useEffect, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
@@ -12,12 +12,12 @@ import {
   type NativeObjectPreviewSource,
   type OwnedObjectPreviewSnapshot,
 } from '../../asset-preview';
-import { registerPreviewResource } from '@volter/editor-sdk/kit/asset-workflow/preview-resource-lifetime';
-import { registerDesignTimeSurface } from '@volter/editor-sdk/kit/coverage/design-time-surfaces';
+import { registerPreviewResource } from '@volter/sdk/kit/asset-workflow/preview-resource-lifetime';
+import { registerDesignTimeSurface } from '@volter/sdk/kit/coverage/design-time-surfaces';
 import {
   isEditorPresentationActive,
   subscribeEditorPresentationActivity,
-} from '@volter/editor-sdk/kit/editor-presentation-activity';
+} from '@volter/sdk/kit/editor-presentation-activity';
 import {
   createModelPreviewSource,
   loadModelThumbnailObject,

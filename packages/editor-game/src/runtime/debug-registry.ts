@@ -23,7 +23,7 @@ import type {
   DebugAdapter,
   DebugCommandInfo,
   TickStampedEvent,
-} from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter/system-adapter';
 import { z } from 'zod';
 import { createGameScopedSlot } from './core/game-scoped-slot';
 import type { GameLoopLiveness } from './core/types';
