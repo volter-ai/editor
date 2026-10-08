@@ -1363,9 +1363,19 @@ export interface EditorChromeCapture extends ViewportCapture {
   flatness?: { degenerate: boolean; warning?: string };
 }
 
-/** How many output pixels one CSS pixel of the editor page becomes; defaults
- *  to the page's own `devicePixelRatio`, at most 4. */
+/** What an editor-chrome capture photographs, and at what scale. */
 export interface EditorChromeCaptureOptions {
+  /**
+   * Output pixels per CSS pixel, at most 4. Defaults to the page's own
+   * `devicePixelRatio`, so the default frame is the pixels the display holds.
+   *
+   * A stroke weight, a 1 px border or a glyph edge cannot be judged below the
+   * resolution it is being compared against — on a DPR-1 monitor the default
+   * is 1 and a reference captured at 2x is only comparable if this is asked
+   * for explicitly. It scales the DOM leg by rasterizing it through a viewBox
+   * (crisp at any factor); canvases are limited by their own backing store and
+   * are upscaled past it.
+   */
   readonly scale?: number;
   /** `page` (the default): the whole editor. `document`: the active document's own box as the
    *  person sees it, overlays included (a viewport's navigation gizmo, its readouts). The door

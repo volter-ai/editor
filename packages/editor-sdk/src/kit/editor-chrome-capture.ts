@@ -32,7 +32,7 @@
  * panel from a missing one.
  */
 
-import type { EditorView } from '@volter/editor-sdk';
+import type { EditorChromeCaptureOptions, EditorView } from '@volter/editor-sdk';
 import { renderedCanvasFrame } from '@volter/editor-sdk/kit/canvas-frames';
 import { type CompositeCapture, capturePlayComposite } from '@volter/editor-sdk/kit/composite-screenshot';
 import { currentEditorView } from './editor-current-view';
@@ -53,26 +53,8 @@ export interface EditorChromeCapture extends CompositeCapture {
   scale: number;
 }
 
-export interface EditorChromeCaptureOptions {
-  /** What this photograph is of, in a few words ("aim up"): shown under the corner picture and
-   *  used in the CLI's file name. It does not change the pixels. */
-  name?: string;
-  /**
-   * Output pixels per CSS pixel. Defaults to the page's own
-   * `devicePixelRatio`, so the default frame is the pixels the display holds.
-   *
-   * A stroke weight, a 1 px border or a glyph edge cannot be judged below the
-   * resolution it is being compared against — on a DPR-1 monitor the default
-   * is 1 and a reference captured at 2x is only comparable if this is asked
-   * for explicitly. It scales the DOM leg by rasterizing it through a viewBox
-   * (crisp at any factor); canvases are limited by their own backing store and
-   * are upscaled past it.
-   */
-  scale?: number;
-  /** `page`: the whole editor; `document`: the active document with authoring overlays;
-   * `play`: the document's live frame, world and UI together, without letterboxing. */
-  region?: 'page' | 'document' | 'play';
-}
+/** The capture's options: the SDK's public type, so the client and this kit cannot drift. */
+export type { EditorChromeCaptureOptions };
 
 /** A data URL as something `drawImage` accepts. */
 /**
