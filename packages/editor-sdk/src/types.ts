@@ -1373,6 +1373,9 @@ export interface EditorChromeCaptureOptions {
    * `play`: the active document's live world and UI frame, excluding authoring chrome
    * and surrounding letterboxing. Refused when the document has no live frame. */
   readonly region?: 'page' | 'document' | 'play';
+  /** What the photograph is of, in a few words ("aim up"): the corner picture's caption and the
+   *  CLI's file name. It does not change the pixels. */
+  readonly name?: string;
 }
 
 export interface ActiveDocumentCapture extends ViewportCapture {
