@@ -1,5 +1,5 @@
 /**
- * The `prefabsFromStories` FINDER — the name a project's `volter.adapter.ts`
+ * The `prefabsFromStories` FINDER — the name a project's `editor/volter.adapter.ts`
  * selects, registered beside the story registry it reads.
  *
  * WHY IT READS ITS OWN LEDGER. The algorithm used to be an ENGINE finder

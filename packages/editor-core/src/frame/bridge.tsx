@@ -280,7 +280,7 @@ export interface VolterFilesHandle {
  * WHAT THE FRAME GETS OF THE SETTINGS — the editor's own door
  * (`@volter/sdk/host`'s `settings`) in the one direction the frame drives
  * it, plus the ONE fact only the editor knows: what the open project's
- * `volter.adapter.ts` DECLARES. Its counterpart is `volterSettings.ts`'s
+ * `editor/volter.adapter.ts` DECLARES. Its counterpart is `volterSettings.ts`'s
  * `VolterSettingsBridge`, declared there so that no file under `src/vs/` imports
  * an editor module.
  *

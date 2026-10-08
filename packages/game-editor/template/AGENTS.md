@@ -82,7 +82,7 @@ request needs.
 - **Keep game data in typed `src/data/` modules named for the mechanic or content.**
   Editor panels read that data; they do not determine its storage shape.
 - Use the real audio adapter even when the game is silent.
-- Contributions live in `src/contributions/`. Use `use-game-modules.ts` for live
+- Contributions live in `editor/contributions/`. Use `use-game-modules.ts` for live
   state and the selected Gameplay Session for Analytics. Implementation details
   are in the project manual's Studio surfaces section.
 - **Game-level feature arcs live in `ROADMAP.md` — one file.** Task one
@@ -146,7 +146,7 @@ endless rewrite cycle. Playtest live; the play log is the receipt.
 
 1. Run `check-idioms`, `typecheck`, and `validate-manifest`.
    **`npm run typecheck` is the gate, never bare `tsc`** (bare `tsc`
-   skips `src/tools`).
+   skips `editor/tools`).
 2. The ONLY approved slice test is LIVE: a REPL-style manual session in
    the editor-owned tab — set up, enter Play, advance sim time, inspect,
    act one step at a time. Keep the probe disposable (never a spec,
@@ -180,7 +180,7 @@ npm run --silent volter -- restart       # remount after init-time edits
 npm run --silent volter -- screenshot    # visible evidence
 npm run --silent volter -- eval '<js>'   # THE door onto the running game
 npm run check-idioms          # every slice
-npm run typecheck             # THE gate: src + src/tools + server
+npm run typecheck             # THE gate: src + editor/tools + server
 npm run dev:standalone        # EXPORTED builds only
 ```
 

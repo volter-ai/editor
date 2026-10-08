@@ -5,6 +5,7 @@ import { createRequire } from 'node:module';
 import { mkdirSync, openSync, closeSync, realpathSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { resolveProductForProject } from '@volter/sdk/session/product-locator';
+import { projectAdapterRefusal } from '../project-adapter-required';
 import { resolveWorkbenchForProject, workbenchUrl } from '@volter/sdk/session/workbench-locator';
 import { announceEditorLaunch, waitForPendingEditorLaunch } from '@volter/sdk/session/registry-format';
 import { allocateWorktreeEditorPort, resolveEditorPortPreference } from './project-editor-port';
@@ -41,10 +42,17 @@ export interface LaunchingProduct {
   readonly command: string;
 }
 
+/** The command line's form of {@link projectAdapterRefusal}: one sentence, thrown. */
+function refuseProjectWithoutAdapter(project: string, product: { readonly name: string; readonly adapterRequired?: boolean }): void {
+  const refusal = projectAdapterRefusal(project, product);
+  if (refusal !== null) throw new Error(refusal);
+}
+
 export async function launch(folder: string, launching: LaunchingProduct, options: { workbench?: string; noOpen?: boolean; port?: number } = {}): Promise<void> {
   const project = realpathSync(resolve(folder));
   const product = resolveProductForProject(project);
   if (product.name !== launching.packageName) throw new Error(`${project} declares ${product.name}, not ${launching.displayName}.`);
+  refuseProjectWithoutAdapter(project, product);
   const port = resolveEditorPortPreference(project, options.port, process.env['VOLTER_EDITOR_PORT']);
   await waitForPendingEditorLaunch(project);
   const sessions = await verifiedSessions(port);
@@ -123,6 +131,7 @@ export async function prepareSession(folder: string, launching: LaunchingProduct
   const project = realpathSync(resolve(folder));
   const product = resolveProductForProject(project);
   if (product.name !== launching.packageName) throw new Error(`${project} declares ${product.name}, not ${launching.displayName}.`);
+  refuseProjectWithoutAdapter(project, product);
   const entry = createRequire(join(product.dir, 'package.json')).resolve('@volter/editor-core/server/packaged');
   const code = await new Promise<number | null>((done, fail) => {
     const child = spawn(process.execPath, [entry], {

@@ -952,11 +952,11 @@ if (import.meta.hot) {
     );
     warnRestartRequired(`Restart required: ${file} changed while playing.`);
   });
-  import.meta.hot.on('volter:script-update', async (data: { file: string }) => {
+  import.meta.hot.on('volter:script-update', async (data: { file: string; path: string }) => {
     // Project-tool source belongs to editor chrome. The tool contribution
     // store re-imports and remounts it; no game root can become stale from an
     // editor-only document changing.
-    if (isEditorLanePath(data.file)) return;
+    if (isEditorLanePath(data.path)) return;
     const project = getCurrentProject();
     if (!project) return;
     if (!_instance.session || !_ctx) return;

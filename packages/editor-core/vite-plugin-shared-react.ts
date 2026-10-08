@@ -15,7 +15,7 @@
  * Anything the project contributes that renders INSIDE the editor's React tree
  * therefore called hooks from a different React than the one reconciling it.
  * Measured on a fresh scaffold against the published 0.5.17 packaged editor:
- * all four dev-tools inspector facets (`src/tools/game-*.inspector.tsx`)
+ * all four dev-tools inspector facets (`editor/tools/game-*.inspector.tsx`)
  * REGISTERED (`editor.inspect()` listed them) and then threw
  * `Invalid hook call … more than one copy of React in the same app` instead of
  * drawing — and so did every other project contribution that renders (the
@@ -545,14 +545,14 @@ export interface SharedReactScope {
  * ## How the scope is decided
  *
  * An importer is in the editor tree when it is:
- *  - a project's `src/contributions/**` or `src/tools/**` module (the editor
+ *  - a project's `editor/contributions/**` or `editor/tools/**` module (the editor
  *    lanes shared with the contribution loader),
  *  - a file under the installed editor package's own `src/` (what `@editor/*`
  *    aliases to — the widget kit contributions build their panels from), or
  *  - anything already MARKED, which is how the scope propagates.
  *
  * Propagation is what makes this cover the real graph rather than one folder:
- * `src/tools/data-tables.document.tsx` renders React components that live in
+ * `editor/tools/data-tables.document.tsx` renders React components that live in
  * `src/lib/data-tables/`, and a contribution may reach any project module. So
  * when an editor-tree module imports another PROJECT-OWNED source file, the
  * resolved id is marked and its own imports inherit the scope. Bare
@@ -590,7 +590,7 @@ export function sharedReactPlugin({
     const packageRoot = contributionPackageRoot(file);
     if (packageRoot !== null && isUnder(file, path.join(packageRoot, 'contributions'))) return true;
     for (const root of projectRoots()) {
-      if (file === path.join(root, 'volter.adapter.ts')) return true;
+      if (file === path.join(root, 'editor/volter.adapter.ts')) return true;
       if (EDITOR_LANE_DIRS.some((dir) => isUnder(file, path.join(root, dir)))) return true;
     }
     return false;

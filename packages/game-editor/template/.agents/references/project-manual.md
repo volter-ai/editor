@@ -169,14 +169,14 @@ log.
 
 ## Studio surfaces
 
-`src/contributions/` contains this game's editor panels. Contributions are ordinary
+`editor/contributions/` contains this game's editor panels. Contributions are ordinary
 TSX discovered by filename (`*.inspector.tsx`, `*.document.tsx`,
 `*.utility.tsx`, `*.analytics.tsx`). They export a contribution `point`, a
 `title`, and a default React component. There is no registry, declaration API,
 generated form, command vocabulary, or required section layout.
 
 Live contributions read the running mount through
-`src/contributions/use-game-modules.ts`. Never directly import a live gameplay module
+`editor/contributions/use-game-modules.ts`. Never directly import a live gameplay module
 from a contribution; that would create a second module instance under the
 editor importer. Hand-type the narrow slice the surface uses and call the
 same exported functions the developer reaches through `game.run`.

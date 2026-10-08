@@ -231,9 +231,9 @@ function browserStoryEntries(projectRoot: string): string[] {
  * The project's BROWSER-LOADED tool contribution modules — the second
  * discovery root the world-entry crawl cannot reach.
  *
- * The editor dynamic-imports a project's tool CONTRIBUTIONS (`src/contributions/
+ * The editor dynamic-imports a project's tool CONTRIBUTIONS (`editor/contributions/
  * *.utility.tsx` cockpit cells, `*.document.tsx`, `*.inspector.tsx`, …) into
- * the browser, and those pull ordinary siblings (`src/tools/
+ * the browser, and those pull ordinary siblings (`editor/tools/
  * dev-cockpit.utility.tsx` → `./tuning` → `@volter/sdk/tools/registry`). None of that
  * hangs off any `roots[].entry`, so scoping the crawl to world entries alone
  * left `@volter/sdk/tools/registry` undiscovered until the first cockpit mount —
@@ -247,7 +247,7 @@ function browserStoryEntries(projectRoot: string): string[] {
  * list, so "what the browser loads" stays one fact rather than a filename
  * rule kept in lockstep by hand. A negation (everything except `*.tool.ts`)
  * was measured wrong in the opposite direction: it swept each example's
- * `src/contributions/module-source.ts` — a NODE module importing `node:fs`, and
+ * `editor/contributions/module-source.ts` — a NODE module importing `node:fs`, and
  * reachable only from a server-executed tool definition — into the browser
  * crawl, which is exactly the server-only import chain this file's scoping
  * exists to keep out. Walked recursively for the same reason

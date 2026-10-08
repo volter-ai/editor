@@ -1,4 +1,4 @@
-# `src/contributions/` — what this game adds to the editor
+# `editor/contributions/` — what this game adds to the editor
 
 These files are this game's editor plugin. They are ordinary React/TSX, found
 by filename:

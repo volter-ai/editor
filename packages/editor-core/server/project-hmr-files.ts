@@ -178,6 +178,7 @@ export function classifyProjectHotUpdate(
     return 'outside';
   }
   if (relative === 'volter.project.json') return 'restart';
+  if (isEditorLanePath(relative) && /\.(ts|tsx|js|jsx)$/.test(relative)) return 'tool';
   if (!relative.startsWith('src/')) return 'ignore';
   if (/\.data\.json$/.test(relative)) return 'stock-data';
   if (!/\.(ts|tsx|js|jsx)$/.test(relative)) return 'ignore';

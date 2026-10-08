@@ -211,7 +211,7 @@ export function openSceneTableEntry(id: string): SceneOpenResult {
           error:
             `open: "${id}" is reached by story "${plan.storyId}", and nothing in this editor ` +
             "opened it — either this project's story registry does not hold that id, or its " +
-            'module declares no medium (declare it via `volter.adapter.ts` regionIncludes or a ' +
+            'module declares no medium (declare it via `editor/volter.adapter.ts` regionIncludes or a ' +
             'manifest root entry). The session console names which.',
         };
       }

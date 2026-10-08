@@ -695,7 +695,7 @@ export interface EditorHostSettingsInspection {
   readonly default: unknown;
   /** `~/.volter/settings.json` standalone; the USER target under the frame. */
   readonly user: unknown;
-  /** What `volter.adapter.ts` DECLARES (`editor: { style, keymap }`); the
+  /** What `editor/volter.adapter.ts` DECLARES (`editor: { style, keymap }`); the
    *  MEMORY target under the frame. */
   readonly adapter: unknown;
   /** `<project>/.volter/settings.json` standalone; the WORKSPACE (and folder)

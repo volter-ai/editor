@@ -54,6 +54,7 @@
       "install": "npx @volter/cyclotron create my-game",
       "colorTheme": "dark",
       "upgrade": true,
+      "adapterRequired": true,
       "workbench": {
         "darwin-arm64": {
           "release": "cyclotron-f16dc165c0df-28b19dec3e1a-darwin-arm64",

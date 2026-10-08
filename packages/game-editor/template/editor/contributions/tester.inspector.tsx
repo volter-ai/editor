@@ -32,7 +32,7 @@
  * second copy); hand-type the slice of each module you read. Human controls
  * call the same ordinary exported functions an agent reaches through
  * `game.run(({ modules }) => ...)`. The worked reference is the
- * datacenter-tycoon game's `src/tools/`.
+ * datacenter-tycoon game's `editor/tools/`.
  */
 import type {
   ToolContributionNode,
@@ -54,7 +54,7 @@ export function match(
 // Module-scope on purpose: fires the moment the editor loads this game's
 // contributions, so the demand is visible before anyone opens the panel.
 const unfinished =
-  "VOLTER_STUB_UNIMPLEMENTED: src/contributions/tester.inspector.tsx — imagine this game's tester helper surface and rewrite the file whole (its header says how).";
+  "VOLTER_STUB_UNIMPLEMENTED: editor/contributions/tester.inspector.tsx — imagine this game's tester helper surface and rewrite the file whole (its header says how).";
 
 // biome-ignore lint/suspicious/noConsole: unopened starter obligations remain visible in the editor console
 console.error(unfinished);

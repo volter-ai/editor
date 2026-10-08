@@ -25,7 +25,7 @@ export const title = 'Data';
 
 // Module-scope on purpose — the demand is visible from editor boot.
 const unfinished =
-  "VOLTER_STUB_UNIMPLEMENTED: src/contributions/data.document.tsx — render this game's data (src/data/) with its derived columns, or delete this file if the game truly has no content tables (its header says how).";
+  "VOLTER_STUB_UNIMPLEMENTED: editor/contributions/data.document.tsx — render this game's data (src/data/) with its derived columns, or delete this file if the game truly has no content tables (its header says how).";
 
 // biome-ignore lint/suspicious/noConsole: unopened starter obligations remain visible in the editor console
 console.error(unfinished);

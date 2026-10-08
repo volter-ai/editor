@@ -444,7 +444,7 @@ async function main() {
 	const hotkeysFile = join(REPO_ROOT, 'packages/sdk/src/kit/editor-hotkeys.ts');
 	const packagesDir = join(REPO_ROOT, 'packages');
 	// Every keymap a PACKAGE of this engine contributes. A capability's copied
-	// `src/contributions/*.keymap.ts` is deliberately not here: once copied it is the
+	// `editor/contributions/*.keymap.ts` is deliberately not here: once copied it is the
 	// PROJECT's file to edit, so its chords are not build-time data of this fork.
 	const contributionFiles = readdirSync(packagesDir)
 		.map(pkg => join(packagesDir, pkg, 'contributions'))

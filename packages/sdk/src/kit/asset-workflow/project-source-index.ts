@@ -351,7 +351,7 @@ function readFailure(filename: string, error: unknown): string {
 
 /**
  * The project's regions as the resolver reads them: the manifest's roots joined
- * to whatever `include` globs its `volter.adapter.ts` declares for them.
+ * to whatever `include` globs its `editor/volter.adapter.ts` declares for them.
  *
  * ABSENT AND UNREADABLE ARE DIFFERENT ANSWERS, and only the reader knows which
  * one its backend just gave — Node rejects ENOENT, a `StorageBackend` rejects
@@ -359,7 +359,7 @@ function readFailure(filename: string, error: unknown): string {
  * permissions error or a corrupt handle. So the callbacks say it in the return
  * type: resolve `null` for "this file is not there" (a missing adapter is the
  * DECLARED native default — pure reach — exactly as an absent
- * `volter.adapter.ts` means `nativeAdapter()`), and REJECT for a read that
+ * `editor/volter.adapter.ts` means `nativeAdapter()`), and REJECT for a read that
  * failed. A rejection used to be swallowed into the same empty string as an
  * absent file, which reported the loss as a declaration.
  */

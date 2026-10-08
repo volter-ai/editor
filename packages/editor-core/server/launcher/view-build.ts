@@ -48,6 +48,7 @@ import { waitForOwnEditorServer } from './editor-boot';
 import { computePackageContributionCrawlEntries } from '../project-optimize-deps-entries';
 import { productServingModules, productViewServingModules } from '../session-product';
 import { EDITOR_BRAND } from '@volter/sdk/session/editor-brand';
+import { projectAdapterRefusal } from '../project-adapter-required';
 import { selectProjectFiles } from './view-files';
 import { PathNeutralizer, scanForLocalPaths } from './view-paths';
 import {
@@ -264,6 +265,8 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
   const project = realpathSync(resolve(folder));
   const product = resolveProductForProject(project);
   if (product.name !== building.packageName) fail(`${project} declares ${product.name}, not ${building.displayName}.`);
+  const withoutAdapter = projectAdapterRefusal(project, product);
+  if (withoutAdapter !== null) fail(withoutAdapter);
   const workbench = checkWorkbench(options.workbench, product);
   const distPath = join(product.dir, 'dist');
   // The product's production build is what the page runs; without it there is nothing to frame.

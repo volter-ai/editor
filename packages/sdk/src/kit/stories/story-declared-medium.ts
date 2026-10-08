@@ -111,7 +111,7 @@ export function reportUndeclaredStoryMedium(modulePath: string, reason?: string)
     `[story-media] ${key} has no declared medium` +
       (reason ? ` — ${reason}` : '') +
       '. It is not a candidate on any board. Declare it via ' +
-      '`volter.adapter.ts` regionIncludes or a manifest root entry.',
+      '`editor/volter.adapter.ts` regionIncludes or a manifest root entry.',
   );
 }
 

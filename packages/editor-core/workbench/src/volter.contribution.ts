@@ -170,7 +170,7 @@ function offerPart(id: PartId, element: HTMLElement): void {
  * A SESSION ON THIS FOLDER IS THE TRUST DECISION, already made (owner,
  * 2026-09-21, on their own first open: *"wait why do I have to click that?"*).
  * the editor's `edit <folder>` command starts a session that RUNS THE FOLDER'S OWN CODE — its
- * dev server executes the project's `volter.adapter.ts`, its contributions load
+ * dev server executes the project's `editor/volter.adapter.ts`, its contributions load
  * from the project's `node_modules` — before this page exists at all, by the
  * person's own command. Workspace trust exists to gate exactly that, and
  * finding a live session for THIS folder is finding the decision already taken
@@ -771,7 +771,7 @@ registerAction2(class extends Action2 {
 					// AND THE SETTINGS (volterSettings.ts, U7). The bridge has already told the editor
 					// the frame owns them; this is where the PROVIDER — `IConfigurationService` — is
 					// installed, and where the ADAPTER LAYER starts being applied: each key the open
-					// project's `volter.adapter.ts` declares is written to the service's own MEMORY
+					// project's `editor/volter.adapter.ts` declares is written to the service's own MEMORY
 					// target unless the workspace already answers it, and re-evaluated on every
 					// configuration change. That is "project over adapter over user" with no layer
 					// added to the service (ARCHITECTURE-CORE §The core is Code-OSS, U7).

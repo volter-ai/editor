@@ -83,7 +83,7 @@ export interface CatalogEntry {
   regions?: Partial<Record<CatalogSurface, string[]>>;
   /**
    * THE DOCUMENT FINDERS THIS CAPABILITY'S DOCUMENTS NEED, selected in the project's
-   * `volter.adapter.ts` document table (`documents.find`) when it is added. Same reason as
+   * `editor/volter.adapter.ts` document table (`documents.find`) when it is added. Same reason as
    * `regions`: the copied source works only once the adapter declares it, and a declaration
    * left to the person was a step every project missed (music's pieces opened nowhere).
    */
@@ -121,7 +121,7 @@ export function capabilityStampPath(entry: CatalogEntry): string {
     .map((file) => file.split('/').slice(0, 3).join('/'))[0];
   return libDir
     ? `${libDir}/${CAPABILITY_STAMP_FILENAME}`
-    : `src/tools/${entry.id}.${CAPABILITY_STAMP_FILENAME}`;
+    : `editor/tools/${entry.id}.${CAPABILITY_STAMP_FILENAME}`;
 }
 
 export interface AddCapabilitiesOptions {
@@ -220,8 +220,8 @@ export function renamedCapabilityIdMessage(where: string, oldId: string, newId: 
     `\`${newId}\`, because a second accepted name is the defect.\n` +
     `Fix: in this project, rename the file — \`git mv .volter/catalog/${oldId}.json ` +
     `.volter/catalog/${newId}.json\` — and change its \`"id"\` to \`"${newId}"\`. ` +
-    `If a stamp file names the old id, rename that too (\`src/tools/${oldId}.*\` -> ` +
-    `\`src/tools/${newId}.*\`). Then \`volter-game-editor outdated\` will report against the ` +
+    `If a stamp file names the old id, rename that too (\`editor/tools/${oldId}.*\` -> ` +
+    `\`editor/tools/${newId}.*\`). Then \`volter-game-editor outdated\` will report against the ` +
     `current entry. Nothing else about the capability changed.`
   );
 }
@@ -372,7 +372,7 @@ function globToRegExp(glob: string): RegExp {
  * the symptom (`OID001` at boot in somebody else's fresh project) is nowhere
  * near the commit that caused it.
  *
- * `src/contributions/**` and `src/tools/**` are exempt: an editor contribution is React DOM by contract —
+ * `editor/contributions/**` and `editor/tools/**` are exempt: an editor contribution is React DOM by contract —
  * it renders into the editor's own panels, never into a game root — so its
  * `data-oid` default is already the right stamp and there is no project root to
  * declare it onto.
@@ -384,8 +384,8 @@ function assertJsxSurfacesDeclared(manifest: CatalogEntry, manifestPath: string)
   const undeclared = manifest.files.filter(
     (file) =>
       file.endsWith('.tsx') &&
-      !file.startsWith('src/tools/') &&
-      !file.startsWith('src/contributions/') &&
+      !file.startsWith('editor/tools/') &&
+      !file.startsWith('editor/contributions/') &&
       !globs.some((pattern) => pattern.test(file)),
   );
   if (undeclared.length > 0) {
@@ -875,7 +875,7 @@ function mergedAssetManifest(
 }
 
 /** The game's adapter module lives beside `volter.project.json`, by contract. */
-const ADAPTER_MODULE_FILE = 'volter.adapter.ts';
+const ADAPTER_MODULE_FILE = 'editor/volter.adapter.ts';
 
 /** Root id -> the surface it renders on, read off `volter.project.json`'s
  *  `roots[]`. `adapter` is the sole discriminator: a builtin adapter names the
@@ -916,7 +916,7 @@ export interface UnplacedCapabilityRegion {
 
 /**
  * Declare every added capability's `regions` in the project's own
- * `volter.adapter.ts` — see `adapter-region-merge.ts` for why the capability
+ * `editor/volter.adapter.ts` — see `adapter-region-merge.ts` for why the capability
  * states the surface and the project states the root.
  *
  * A surface with exactly ONE root in `volter.project.json` is unambiguous and
@@ -1002,7 +1002,7 @@ function mergedAdapterModule(
 }
 
 /**
- * Select every added capability's `documents` finders in the project's own `volter.adapter.ts`,
+ * Select every added capability's `documents` finders in the project's own `editor/volter.adapter.ts`,
  * over what the region merge produced (`regionMerge`), so both land as one write.
  */
 function mergedAdapterFinders(
@@ -1154,7 +1154,7 @@ export function addCapabilities(options: AddCapabilitiesOptions): CatalogAddRepo
       };
     }
     const isContribution = (file: PlannedFile) =>
-      file.relativePath.replaceAll('\\', '/').startsWith('src/contributions/');
+      file.relativePath.replaceAll('\\', '/').startsWith('editor/contributions/');
     const write = (file: { relativePath: string; bytes: Buffer }) => {
       const target = join(projectDir, file.relativePath);
       mkdirSync(dirname(target), { recursive: true });
@@ -1452,7 +1452,7 @@ export function removeCapabilities(options: RemoveCapabilitiesOptions): CatalogR
 
 export interface CatalogToolProvider {
   capabilityId: string;
-  /** The manifest's volter.tools entry path, e.g. `./src/tools/humanoid-bake.tool.ts` — the registration identity in a project's package.json. */
+  /** The manifest's volter.tools entry path, e.g. `./editor/tools/humanoid-bake.tool.ts` — the registration identity in a project's package.json. */
   entry: string;
 }
 

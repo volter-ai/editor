@@ -1590,7 +1590,7 @@ export function uiOidPlugin(
       // W1 — R3F-dialect files get ` userData-oid` (fiber pierces it into
       // `object.userData.oid`); react-dom files keep ` data-oid` unchanged.
       // WHICH REGION owns this exact file decides: a declaration the project
-      // made (an `include` glob or a `mounts` entry in `volter.adapter.ts`), the
+      // made (an `include` glob or a `mounts` entry in `editor/volter.adapter.ts`), the
       // manifest root whose `entry` it is, or reach from one through the live
       // import graph. Nothing is inferred from the file's own bytes; a file
       // nothing places gets the documented `data-oid` default, said out loud.

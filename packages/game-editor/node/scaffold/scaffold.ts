@@ -735,7 +735,7 @@ function rewritePackageJson(
   // `@volter/editor-threejs`: devDependencies the template declares at a range.
   // Rewritten to this distribution's own version like every runtime package:
   // both live clients depend on `@volter/sdk`, and capability source
-  // (`src/tools/*.tool.ts`, editor contributions) imports `@volter/sdk`
+  // (`editor/tools/*.tool.ts`, editor contributions) imports `@volter/sdk`
   // and Three's contribution types directly, so they are declared together.
   for (const name of [
     '@volter/live',
@@ -1463,11 +1463,12 @@ function rewriteTemplateVariantFiles(
     for (const relative of THREE_OWNED_PATHS) {
       rmSync(join(targetDir, relative), { recursive: true, force: true });
     }
-    writeFileSync(join(targetDir, 'volter.adapter.ts'), adapterSourceFor(additions), 'utf-8');
+    mkdirSync(join(targetDir, 'editor'), { recursive: true });
+    writeFileSync(join(targetDir, 'editor/volter.adapter.ts'), adapterSourceFor(additions), 'utf-8');
   } else {
     // The template's adapter keeps its scene and prefab finders; the finders
     // the other additions bring join them.
-    const adapterPath = join(targetDir, 'volter.adapter.ts');
+    const adapterPath = join(targetDir, 'editor/volter.adapter.ts');
     const source = joinAdditionFinders(readFileSync(adapterPath, 'utf-8'), additions);
     writeFileSync(adapterPath, source, 'utf-8');
   }
@@ -1578,14 +1579,14 @@ function rewriteTsconfig(targetDir: string, engineRelPath: string, editorRelPath
       ]),
     ),
     // `@volter/editor-blender`'s two VALUE exports — the look and the layout a models
-    // project's `volter.adapter.ts` imports. Spelled entry by entry rather than
+    // project's `editor/volter.adapter.ts` imports. Spelled entry by entry rather than
     // as a wildcard because the package's `exports` names them individually;
     // both entries are inert for a project that never declares the package.
     '@volter/editor-blender/looks': ['node_modules/@volter/editor-blender/src/looks.ts'],
     '@volter/editor-blender/layouts': ['node_modules/@volter/editor-blender/src/layouts.tsx'],
   };
   // `@editor/*`: the editor's own deep specifiers a project still names —
-  // `@editor/game-module-access` in `src/contributions/`, and the R3F
+  // `@editor/game-module-access` in `editor/contributions/`, and the R3F
   // authoring analyzer `check-idioms.ts` loads. The mapping makes both
   // typecheck in the scaffolded project (at runtime the editor's own Vite
   // server resolves the alias instead). The WIDGET KIT is not one of them: a
@@ -1753,7 +1754,7 @@ export function scaffoldProject(opts: ScaffoldOptions): ScaffoldResult {
       resolveScaffoldStarterDir(productDir),
     );
     if (additions.has('canvas')) applyCanvasAddition(targetDir, productDir);
-    const adapterPath = join(targetDir, 'volter.adapter.ts');
+    const adapterPath = join(targetDir, 'editor/volter.adapter.ts');
     writeFileSync(
       adapterPath,
       withEditorDeclaration(readFileSync(adapterPath, 'utf-8'), composition.editor),

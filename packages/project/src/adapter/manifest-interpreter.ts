@@ -7,7 +7,7 @@
  * `packages/engine/test/manifest-sole-interpreter.test.ts`).
  *
  * Why a doorway and not a convention: one deriver means one direction of
- * truth (manifest → adapter → host). When the project's own `volter.adapter.ts`
+ * truth (manifest → adapter → host). When the project's own `editor/volter.adapter.ts`
  * later interposes on a derivation, every host path that asked the
  * interpreter gets the project's answer for free; a path that read the raw
  * field would silently keep the mechanical one.

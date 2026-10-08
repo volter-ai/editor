@@ -55,7 +55,7 @@ export function registerFinder<S extends FinderSelectionEnvelope, I>(
 
 /**
  * What a CONTRIBUTION exports to register a finder (ARCHITECTURE-CORE §The
- * project model): a plain object a project module `src/contributions/<name>.finder.ts`
+ * project model): a plain object a project module `editor/contributions/<name>.finder.ts`
  * exports as `finder`, handed by the HOST to {@link registerContributedFinder}.
  * A selection may carry `include` globs; the host then supplies the matching
  * project sources on `input.sources`, which is how a finder reads the

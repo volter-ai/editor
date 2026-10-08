@@ -473,7 +473,7 @@ line inside it. `check-piece` adds an analysis (keys, half-bar chords and degree
 and loop seams, voicing, line statistics, figures shared with the folder's other pieces);
 on Harbor and Tidewatch its chords match the pieces' own chord tables in every bar.
 Walked in a fresh game created from the checkout: `add music` copies the player and the render
-tool and selects the piece finder in `volter.adapter.ts`; a worked piece from the package's
+tool and selects the piece finder in `editor/volter.adapter.ts`; a worked piece from the package's
 `examples/` opens in the same running session; `project.music.render` with sections wrote 32
 files under `public/music/harbor` (no problems, −18 LUFS, seam 0.177) with each recorded in
 `.volter/provenance.json`, rendering in its own process (the editor answered in about 270 ms

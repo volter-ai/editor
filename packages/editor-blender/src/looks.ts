@@ -1,6 +1,6 @@
 /**
  * The Blender skew's LOOK and BINDINGS as importable values — `@volter/editor-blender/looks`,
- * the public surface a project's `volter.adapter.ts` declares them from
+ * the public surface a project's `editor/volter.adapter.ts` declares them from
  * (ARCHITECTURE-CORE §Adapters and contributions are code, not configs):
  *
  *     editor: { Layout: ModelLayout, style: blenderStyle, keymap: blenderKeymap }

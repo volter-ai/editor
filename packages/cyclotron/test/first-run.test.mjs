@@ -26,7 +26,7 @@ test('bare launch creates a saved cube project, then reopens it without resettin
   const create = async request => { creations++; return writeProject(request); };
   const folder = await startupProject(create, options);
   assert.equal(folder, join(options.home, 'Documents', 'Volter Models', 'Untitled Model'));
-  const adapter = await readFile(join(folder, 'volter.adapter.ts'), 'utf8');
+  const adapter = await readFile(join(folder, 'editor/volter.adapter.ts'), 'utf8');
   assert.match(adapter, /default: 'model:src\/models\/cube.blend'/);
   assert.ok((await readFile(join(folder, 'src/models/cube.blend'))).length > 0);
   const mcp = JSON.parse(await readFile(join(folder, '.mcp.json'), 'utf8'));

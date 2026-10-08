@@ -48,10 +48,10 @@
   },
   "include": [
     "src",
-    "volter.adapter.ts"
+    "editor/volter.adapter.ts"
   ],
   "exclude": [
-    "src/tools",
-    "src/contributions"
+    "editor/tools",
+    "editor/contributions"
   ]
 }

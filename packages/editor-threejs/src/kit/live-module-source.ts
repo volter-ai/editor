@@ -1,7 +1,7 @@
 /**
  * The module→`Object3D` step, IN THE BROWSER — the live twin of the bake
  * lane's Node-side `module-source.ts`
- * (`catalog/project-source/src/tools/module-source.ts`), and deliberately the
+ * (`catalog/project-source/editor/tools/module-source.ts`), and deliberately the
  * SAME contract: a project TypeScript module whose export builds a native
  * `THREE.Object3D`. `project.bake.module` / `project.bake.preview` /
  * the editor's `screenshot <module>` command already define that contract; the live modeling
@@ -100,7 +100,7 @@ export function pickLiveModuleExport(
 
 /**
  * THE TWO SHAPES A MODEL MODULE MAY PRODUCE — the same pair the Node twin
- * normalizes (`catalog/project-source/src/tools/module-source.ts`'s
+ * normalizes (`catalog/project-source/editor/tools/module-source.ts`'s
  * `asModuleBuild`), because a module that bakes must open and a module that
  * opens must bake:
  *

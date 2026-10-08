@@ -331,7 +331,7 @@ A character is two jobs, in this order: how it looks, then how it moves.
   DOM root is `src/ui/game.tsx`; the playable template includes the required
   React/UI tools and manifest root. Existing projects need `react`, `react-dom`,
   `@volter/editor-ui` and `@volter/editor-react`, with compatible project versions.
-  Declare the UI story region in `volter.adapter.ts` (the playable template uses
+  Declare the UI story region in `editor/volter.adapter.ts` (the playable template uses
   `regionIncludes.ui` for `src/ui/**/*.tsx`). Preserve the project's other content.
 - Add `.stories.tsx` states and open them in the UI canvas: representative
   states such as normal, empty, error and active, with their captures and

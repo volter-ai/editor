@@ -27,7 +27,7 @@
  *    target file" hole, closed for declared refs — see
  *    `collectDeclaredRefFields`/`findMissingRefTargets` in `data-check-core.ts`).
  * 3. **Tools never ship** (`generateBundle`): no emitted chunk may contain a
- *    module from `src/contributions/`, `src/tools/` or a `*.tool.*` file (§4: tester serves and
+ *    module from `editor/contributions/`, `editor/tools/` or a `*.tool.*` file (§4: tester serves and
  *    standalone builds strip tools entirely; W4 made this true by
  *    construction — nothing imports tools — and this check PINS it against
  *    the day some game module imports a tool "just for a helper").

@@ -49,6 +49,12 @@ export type StartupRecovery =
       verbs: readonly [`upgrade ${string}`];
       /** As on `use-compatible-editor`. */
       summary?: string;
+    }
+  | {
+      /** The folder is not a project this product can open; `guidance` says how to make one. */
+      kind: 'make-project';
+      title: 'Make a project';
+      guidance: string;
     };
 
 export class ProjectCompatibilityError extends Error {
@@ -86,6 +92,7 @@ export function isStartupRecovery(value: unknown): value is StartupRecovery {
     case 'restart-editor':
       return verbs === 'edit .' || verbs === 'close | edit .';
     case 'use-compatible-editor':
+    case 'make-project':
       return candidate['verbs'] === undefined;
     case 'upgrade-project':
       return verbs !== null && /^upgrade \S+$/.test(verbs);

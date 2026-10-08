@@ -482,7 +482,7 @@ export function collectState(
     // that it happened at all.
     moduleSplits: getProjectModuleSplitReports().map((s) => ({ path: s.path, urls: [...s.urls] })),
     // The project's own ADAPTER, resolved (project-adapter.ts): which module
-    // supplied the binding table (`volter.adapter.ts`, or the declared native
+    // supplied the binding table (`editor/volter.adapter.ts`, or the declared native
     // default), the regions derived for it, and its scene table. `null` means
     // NOBODY HAS LOOKED YET — deliberately distinct from a loaded adapter with
     // an empty table, which is a real (and gradable) answer.
@@ -2000,7 +2000,7 @@ export function connectCommandListener(
   // already re-POSTs through `reportPresence`'s `visibilitychange` listener.
   // Same reason again, for the project's ADAPTER: it loads asynchronously at
   // editor init and on project switches, outside any store notification. The
-  // adapter facet is the proof that a project's `volter.adapter.ts` (or the
+  // adapter facet is the proof that a project's `editor/volter.adapter.ts` (or the
   // declared native default) loaded at all, so a snapshot that predates the
   // load would answer "no adapter" for one that is loaded and live.
   const unsubscribeAdapterReport = subscribeProjectAdapter(reportExternalChange);

@@ -412,7 +412,7 @@ export function installNativeDebugBindings(
 // projection the ingest realm uses (`ingest/contract-system-adapters.ts`), so
 // there is one shape law, not two. This door is what retires
 // `ctx.registerSystemAdapter` from component code (ARCHITECTURE-CORE §System
-// adapters: "a project's `volter.adapter.ts` binds app-owned systems through
+// adapters: "a project's `editor/volter.adapter.ts` binds app-owned systems through
 // declared native exports … Components never call `registerSystemAdapter`").
 //
 // Native-realm difference from ingest: a malformed slot THROWS (this is our

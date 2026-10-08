@@ -159,9 +159,9 @@ export const KIT_DECLARED_PACKAGES = [
 
 /** Optional development surfaces; absent from the prototype preset. */
 export const STUDIO_OWNED_PATHS = [
-  'src/contributions/data.document.tsx',
-  'src/contributions/tester.inspector.tsx',
-  'src/contributions/analytics.analytics.tsx',
+  'editor/contributions/data.document.tsx',
+  'editor/contributions/tester.inspector.tsx',
+  'editor/contributions/analytics.analytics.tsx',
 ] as const;
 
 /** A React-only project must be genuinely React-only: dormant scene
@@ -399,7 +399,7 @@ export function withEditorDeclaration(
   declaration: ScaffoldEditorDeclaration,
 ): string {
   if (!source.includes('defineAdapter({'))
-    throw new Error('Starter volter.adapter.ts must call defineAdapter({ ... }).');
+    throw new Error('Starter editor/volter.adapter.ts must call defineAdapter({ ... }).');
   const look = [
     declaration.style ? `, style: ${declaration.style.name}` : '',
     declaration.keymap ? `, keymap: ${declaration.keymap.name}` : '',
@@ -520,7 +520,7 @@ export function withAgentsContract(
 }
 
 /** The finder selections the additions bring, as the adapter source spells
- *  them (`volter.adapter.ts` `documents.find`). */
+ *  them (`editor/volter.adapter.ts` `documents.find`). */
 export const PAGES_FINDER_SELECTION =
   "{ finder: 'pagesFromUiModules', include: ['src/ui/**/*page.tsx'] }";
 export const MODELS_FINDER_SELECTION =

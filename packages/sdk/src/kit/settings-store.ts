@@ -4,7 +4,7 @@
  * four layers with named homes"):
  *
  *   user     ~/.volter/settings.json            every project, this person
- *   adapter  <project>/volter.adapter.ts        this project's own CODE
+ *   adapter  <project>/editor/volter.adapter.ts        this project's own CODE
  *   project  <project>/.volter/settings.json    this project, everyone (committed)
  *
  * `effectiveSettings()` is project over adapter over user, key by key.

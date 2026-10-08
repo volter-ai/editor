@@ -61,6 +61,7 @@ import type { SessionJournalEvent } from './support/project/session-journal';
 import type { ChatRuntimeActivity, ChatTurnState } from './harness-chat-service';
 import type { ProjectComponentEntry } from '@volter/sdk/kit/asset-workflow/project-content';
 import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
+import { EDITOR_DIR } from '@volter/sdk/session/tool-contribution-convention';
 import { canonicalProjectRoot } from './canonical-path';
 import type { AgentAuthorLease } from './collaboration-attribution';
 import { filesystemMutationAuthor } from './collaboration-attribution';
@@ -1121,7 +1122,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     // ---- Second watcher: <project>/src (W6a) ----
     //
     // The watcher above is scoped to `host.publicRoot()` (`<project>/public`) only —
-    // it never sees `src/tools/*.tool.tsx` or `src/**/*.stories.tsx`, so a
+    // it never sees `editor/tools/*.tool.tsx` or `src/**/*.stories.tsx`, so a
     // NEW file there never showed up without a full editor reload (spec §7
     // W4 field note c). Vite's own HMR (`volter-script-hmr` in dev.ts, and
     // `tool-loader.ts`'s listener on it) only fires on `change`, and the
@@ -1164,7 +1165,7 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
       sourceValidationDirs = watchDirs;
       // #131: same polling decision as the host.publicRoot() watcher above (env
       // contract matches dev.ts's poller; auto-on for drvfs projects).
-      srcWatcher = chokidar.watch(watchDirs, {
+      srcWatcher = chokidar.watch([...watchDirs, join(host.projectRoot(), EDITOR_DIR)], {
         ignoreInitial: true,
         ignored: path => projectDotPath(host.projectRoot(), path),
         ...pollOptions,

@@ -329,7 +329,7 @@ export type LoadedToolContribution =
   | GenerationResultToolContribution
   | StatusToolContribution;
 
-const TEMPLATE_EXAMPLE = 'src/contributions/my-tool.document.tsx';
+const TEMPLATE_EXAMPLE = 'editor/contributions/my-tool.document.tsx';
 
 /**
  * Every point a contribution module may declare — the whole vocabulary, and
@@ -378,7 +378,7 @@ export function readToolPresentations(mod: unknown): ToolPresentation[] | undefi
   return presentations;
 }
 
-/** `src/contributions/humanoid-builder.document.tsx` -> `humanoid-builder.document`. */
+/** `editor/contributions/humanoid-builder.document.tsx` -> `humanoid-builder.document`. */
 function contributionIdFromPath(entryPath: string): string {
   const base = entryPath.split(/[\\/]/).pop() ?? entryPath;
   return base.replace(/\.[jt]sx?$/, '');
@@ -1785,7 +1785,7 @@ async function runContributionRefresh(): Promise<void> {
             'which another contribution already uses. ' +
             (packaged
               ? 'This one ships in a package the project declares; if the other is a copy under ' +
-                'src/contributions/ from before that capability became a package, delete the copy. '
+                'editor/contributions/ from before that capability became a package, delete the copy. '
               : 'Rename one of them. ') +
             'Skipped.',
         );
@@ -1910,8 +1910,9 @@ function teachingNote(message: string): void {
 }
 
 if (hot) {
-  hot.on('volter:script-update', (data: { file: string }) => {
-    if (!isEditorLanePath(data.file)) return;
+  // `path` is the file's place in the project; `file` is its absolute path.
+  hot.on('volter:script-update', (data: { file: string; path: string }) => {
+    if (!isEditorLanePath(data.path)) return;
     void refreshProjectToolContributions();
   });
 }

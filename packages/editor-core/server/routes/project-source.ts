@@ -515,7 +515,7 @@ export function registerProjectSourceRoutes(router: EditorServerRouter, ctx: Rou
   //
   // Conventional `*.stories.tsx` / `*.stories.ts` files, colocated anywhere
   // under the project's `src/` (Storybook's own convention — unlike
-  // `src/contributions/`/`src/data/`, stories are not confined to one folder). Same
+  // `editor/contributions/`/`src/data/`, stories are not confined to one folder). Same
   // D3 physics as every other editor list here: a live folder scan, never a
   // cached manifest — add/remove a `*.stories.tsx` and the next refresh sees
   // it. Paths only: the CSF MODULE itself is loaded client-side through

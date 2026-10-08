@@ -73,7 +73,7 @@ interface CachedManifestRoots {
     readonly adapter?: unknown;
   }>;
   /** The project's regions in the resolver's vocabulary: one per declared
-   *  root, carrying whatever `include` globs its `volter.adapter.ts` states. */
+   *  root, carrying whatever `include` globs its `editor/volter.adapter.ts` states. */
   readonly regions: readonly RegionBinding[];
   /** The adapter declares a `regions` binding this tier could not read
    *  statically — reported, never read as "declares nothing". */
@@ -98,7 +98,7 @@ const manifestRootsCache = new Map<string, CachedManifestRoots | null>();
  * editor's in-tree registry while the game it mounts is vendored at
  * `vendor/games/racing-game/src/`, six levels away — measured, no
  * `volter.project.json` is an ancestor of ANY of that game's 45 `.tsx` files, so
- * the walk answers "no project" and every declaration in its `volter.adapter.ts`
+ * the walk answers "no project" and every declaration in its `editor/volter.adapter.ts`
  * is unreadable for exactly the files it is about.
  *
  * The claim is read from the manifest, not guessed: a root's `entry` (and an
@@ -173,7 +173,7 @@ function nearestManifestRoots(dir: string): CachedManifestRoots | null {
 }
 
 /** Join the manifest's roots to the `include` globs the project's own
- *  `volter.adapter.ts` declares for them — the resolver's region vocabulary. */
+ *  `editor/volter.adapter.ts` declares for them — the resolver's region vocabulary. */
 function cachedRoots(dir: string, roots: CachedManifestRoots['roots']): CachedManifestRoots {
   const declared = adapterRegionIncludes(dir);
   const regions: RegionBinding[] = [];

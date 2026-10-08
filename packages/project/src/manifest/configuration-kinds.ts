@@ -44,7 +44,7 @@ export interface ConfigurationKindRegistration<
  * What a CONTRIBUTION exports to register a kind — a plain object, so a
  * project module (evaluated with the project's own copy of the engine)
  * hands it to the HOST, which registers it in the host's registry. A module
- * `src/contributions/<name>.kind.ts` exports it as `kind`.
+ * `editor/contributions/<name>.kind.ts` exports it as `kind`.
  */
 export type ConfigurationKindContribution = ConfigurationKindRegistration;
 

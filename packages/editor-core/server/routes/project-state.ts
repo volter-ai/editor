@@ -25,6 +25,8 @@ import type { EditorServerRouter } from '../editor-server';
 import { clientCount } from '../editor-sse';
 import { readProjectView } from '../project-view';
 import { commandResponseFor } from '../server-utils';
+import { assertProjectAdapter } from '../project-adapter-required';
+import { sessionProduct } from '../session-product';
 import type { RouteContext } from './context';
 import { writeJsonFile } from './settings';
 import type { ControlPlane } from './control-plane';
@@ -131,6 +133,7 @@ export function registerProjectStateRoutes(
         const identity = compatibilityIdentity();
         assertEditorCompatibility(identity);
         assertProjectCompatibility(view, identity);
+        assertProjectAdapter(ctx.projectRoot, sessionProduct(ctx.projectRoot));
         return null;
       } catch (error) {
         if (error instanceof ProjectCompatibilityError) {

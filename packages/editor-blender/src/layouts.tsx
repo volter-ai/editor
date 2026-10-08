@@ -1,6 +1,6 @@
 /**
  * The BLENDER layout — the composition a models project's adapter declares
- * (`volter.adapter.ts`: `editor: { Layout: ModelLayout }`, the door
+ * (`editor/volter.adapter.ts`: `editor: { Layout: ModelLayout }`, the door
  * `@volter/sdk/layouts` documents). `ModelArrangement` names the Model
  * workspace and the chrome regions it shows; Sculpt and Texture open on it too
  * — their reserved panels (the brush rail, the layer stack) ship WITH their

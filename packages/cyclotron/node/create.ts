@@ -168,7 +168,8 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
     // shared compiler configuration before Vite starts, so the first check does
     // not have to create a tsconfig and reload the person's live editor.
     await write('tsconfig.json', PROJECT_TSCONFIG);
-    await write('volter.adapter.ts', `import { defineAdapter } from '@volter/project/adapter/adapter-module';
+    await mkdir(join(target, 'editor'));
+    await write('editor/volter.adapter.ts', `import { defineAdapter } from '@volter/project/adapter/adapter-module';
 import { ModelLayout } from '@volter/editor-blender/layouts';
 import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 

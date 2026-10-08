@@ -58,7 +58,7 @@ const manifestModules = import.meta.glob('./games/*/volter.project.json', {
  * the editor's realm. `.d.ts` is excluded: an ambient declaration file
  * is not a module and must never become a dynamic-import chunk.
  *
- * `volter.adapter.ts` is excluded too, and for a different reason: it is not a
+ * `editor/volter.adapter.ts` is excluded too, and for a different reason: it is not a
  * GAME module at all. It is host-realm DECLARATION (see {@link adapterModules}),
  * read without booting anything, and a manifest that named it as an `entry` or
  * a `contractShim` would be nonsense — so it is not in the set those fields
@@ -68,15 +68,15 @@ export const entryModules = import.meta.glob([
   './games/*/*.js',
   './games/*/*.ts',
   '!./games/*/*.d.ts',
-  '!./games/*/volter.adapter.ts',
+  '!./games/*/editor/volter.adapter.ts',
 ]) as Record<string, () => Promise<unknown>>;
 
 /**
- * THE ADAPTER GLOB — one `volter.adapter.ts` per ingest game, keyed by game id.
+ * THE ADAPTER GLOB — one `editor/volter.adapter.ts` per ingest game, keyed by game id.
  *
  * ARCHITECTURE-CORE §The editor protocol: "Placement follows REALM: game-realm
  * code (a shim that runs inside the game) lives with the game's bundle;
- * host-realm declaration (`volter.adapter.ts`) lives where the host can import it
+ * host-realm declaration (`editor/volter.adapter.ts`) lives where the host can import it
  * as a real module — a repo-vendored bundle's adapter file lives in the host's
  * in-tree registry, never inside the verbatim-served bundle." This directory IS
  * that registry, so it holds BOTH populations:
@@ -98,18 +98,18 @@ export const entryModules = import.meta.glob([
  * be used to fix that file"). Vite resolves the glob statically in dev and in
  * a production build alike, so no generated dispatch table is needed.
  */
-const adapterModules = import.meta.glob('./games/*/volter.adapter.ts') as Record<
+const adapterModules = import.meta.glob('./games/*/editor/volter.adapter.ts') as Record<
   string,
   () => Promise<unknown>
 >;
 
 /** The adapter module's filename — the contract's ONE spelling, host side. */
-const ADAPTER_FILENAME = 'volter.adapter.ts';
+const ADAPTER_FILENAME = 'editor/volter.adapter.ts';
 
 /** This directory's repo path, so a published `modulePath` names a real file. */
 const REGISTRY_REPO_DIR = 'packages/editor/src/ingest/games';
 
-const ADAPTER_KEY_RE = /^\.\/games\/([^/]+)\/volter\.adapter\.ts$/;
+const ADAPTER_KEY_RE = /^\.\/games\/([^/]+)\/editor\/volter\.adapter\.ts$/;
 
 /**
  * THE LOOKUP KEY IS THE GAME ID; THE STORAGE KEY IS THE FOLDER NAME. What makes

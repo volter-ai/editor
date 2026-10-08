@@ -110,7 +110,7 @@ has no answer.
 
 **Edits that take effect (`view/page/live-modules.ts`, `live-compiler.ts`):** the page tracks
 every write to the project's files after load. For a script under `src/` outside the editor's
-lanes (`src/contributions`, `src/tools`), the worker asks the page before its recording; an
+lanes (`editor/contributions`, `editor/tools`), the worker asks the page before its recording; an
 unchanged file answers a miss, and a changed one is compiled in the page: TypeScript and JSX to
 JavaScript, each import rewritten to the URL the recorded modules use for the same thing (so there
 is one React, one three, and one instance of each project module per mount), the game-globals
@@ -236,7 +236,7 @@ These are the routes that need the person's machine or account:
 
 ## What a limited view is not
 
-- **Only game scripts recompile, and not everything a session does to them.** An edit to a script under `src/` takes effect (above). Not reproduced for an edited file: the creation-site and animation stamps (the inspector's source address for objects it creates), `import.meta.env`, hot acceptance (every change remounts), and an import of CSS, JSON or an asset the build did not already compile. An edited file cannot import a package the build did not record: there is no installer in a tab. `export * from` a package the view holds as one object (a prebundled CommonJS package) is refused with the fix; named re-exports and `export * as name from` work. Editor-lane code (`src/contributions`, `src/tools`, `volter.adapter.ts`) and data files keep what the build compiled.
+- **Only game scripts recompile, and not everything a session does to them.** An edit to a script under `src/` takes effect (above). Not reproduced for an edited file: the creation-site and animation stamps (the inspector's source address for objects it creates), `import.meta.env`, hot acceptance (every change remounts), and an import of CSS, JSON or an asset the build did not already compile. An edited file cannot import a package the build did not record: there is no installer in a tab. `export * from` a package the view holds as one object (a prebundled CommonJS package) is refused with the fix; named re-exports and `export * as name from` work. Editor-lane code (`editor/contributions`, `editor/tools`, `editor/volter.adapter.ts`) and data files keep what the build compiled.
 - **Edits stay in memory.** A reload starts over from the shipped files. "Download project" is not built yet.
 - **No git, no accounts, no sharing.**
 - **Webviews do not render.** Code-OSS loads them from `vscode-cdn.net`, which a cross-origin-isolated static page cannot embed. The editor's own panels do not use webviews.

@@ -21,7 +21,7 @@
  * gets the current file and, through it, current neighbours (`revision` below).
  *
  * Only the project's game modules are compiled: scripts under `src/` outside the editor's own
- * lanes (`src/contributions`, `src/tools`). Anything else keeps its recording.
+ * lanes (`editor/contributions`, `editor/tools`). Anything else keeps its recording.
  */
 
 import type { SeededProjectStore } from './project-store';

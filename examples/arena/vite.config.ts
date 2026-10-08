@@ -1,6 +1,6 @@
 import path from 'node:path';
 import { createRequire } from 'node:module';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 import { manifestEntryModulesPlugin } from './manifest-entry-modules-plugin';
 import manifest from './volter.project.json';
 
@@ -8,8 +8,35 @@ import manifest from './volter.project.json';
 const packageSource = (name: string) =>
   path.join(path.dirname(createRequire(import.meta.url).resolve(`${name}/package.json`)), 'src');
 
+/**
+ * The game's build holds the game. A project's `editor/` folder (its adapter, contributions and
+ * tools) extends the editor and runs inside it, under the editor packages' licenses; none of it
+ * may be bundled into what the game ships. A module from that folder reaching this build fails it,
+ * naming the file that imported it.
+ */
+function editorBoundaryPlugin(): Plugin {
+  const editorDir = `${path.resolve(import.meta.dirname, 'editor')}${path.sep}`;
+  const fold = (file: string) => (process.platform === 'win32' ? file.toLowerCase() : file);
+  return {
+    name: 'volter-editor-boundary',
+    apply: 'build',
+    enforce: 'pre',
+    load(id) {
+      const file = path.resolve(id.split('?')[0]!);
+      if (!fold(file).startsWith(fold(editorDir))) return null;
+      const importers = this.getModuleInfo(id)?.importers ?? [];
+      this.error(
+        `${path.relative(import.meta.dirname, file)} is in this project's editor/ folder and may not be part of the game's build. ` +
+          (importers.length > 0
+            ? `It is imported by ${importers.map((importer) => path.relative(import.meta.dirname, importer.split('?')[0]!)).join(', ')}.`
+            : 'It is an entry of this build.'),
+      );
+    },
+  };
+}
+
 export default defineConfig({
-  plugins: [manifestEntryModulesPlugin(manifest)],
+  plugins: [manifestEntryModulesPlugin(manifest), editorBoundaryPlugin()],
   resolve: {
     alias: {
       '@volter/project': packageSource('@volter/project'),

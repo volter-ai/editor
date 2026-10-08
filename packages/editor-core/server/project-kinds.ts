@@ -1,7 +1,7 @@
 /**
  * The editor server's intake of a project's CONFIGURATION-KIND
  * CONTRIBUTIONS (ARCHITECTURE-CORE §The project model): every
- * `src/contributions/*.kind.ts` is evaluated through the same Vite SSR loader the
+ * `editor/contributions/*.kind.ts` is evaluated through the same Vite SSR loader the
  * operation catalog uses, and its `kind` export is registered in THIS
  * process's engine registry before the manifest is read. Memoized on the
  * modules' paths and mtimes, so a route pays nothing until a kind file

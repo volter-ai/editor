@@ -24,7 +24,7 @@
  *    `isIngestActive()` is answered by a mount this hook already made.
  *
  * 3. REGISTERING THIS LANE'S ADAPTER DECLARATIONS. A repo-vendored game does
- *    not ship its own `volter.adapter.ts` — by the REALM rule its host-realm
+ *    not ship its own `editor/volter.adapter.ts` — by the REALM rule its host-realm
  *    declaration lives in the in-tree registry (`@editor/ingest/registry`),
  *    which the host used to import directly and therefore carried in every
  *    editor boot, a `models` build that mounts no unmodified game included.
