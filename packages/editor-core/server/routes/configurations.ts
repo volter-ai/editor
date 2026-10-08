@@ -341,13 +341,24 @@ export function registerConfigurationRoutes(router: EditorServerRouter, ctx: Rou
     }
     const script = (configuration['script'] as string | undefined) ?? 'build';
     const args = (configuration['args'] as readonly string[] | undefined) ?? [];
+    // npm is npm.cmd on Windows and starts only through a shell, which reads one command line. The script name and
+    // its arguments come from the project's configuration, so they reach that line only as plain words: a quote,
+    // a space or a shell character (`& | ; < > $ % ^` …) in one would run as shell syntax, not as an argument.
+    const unsafe = [script, ...args].find((word) => typeof word !== 'string' || !/^[\w@+=:,./-]+$/.test(word));
+    if (unsafe !== undefined) {
+      res.status(400).json({
+        error: `Configuration "${id}" passes ${JSON.stringify(unsafe)} to npm run; a script name and its arguments may hold only letters, digits and @ + = : , . / - _ (no spaces, quotes or shell characters).`,
+      });
+      return;
+    }
     res.writeHead(200, {
       'Content-Type': 'text/event-stream',
       'Cache-Control': 'no-cache',
       Connection: 'keep-alive',
     });
     res.write(':ok\n\n');
-    const child = spawn('npm', ['run', script, ...(args.length > 0 ? ['--', ...args] : [])], {
+    // One command line, of the words checked above: arguments beside `shell` print Node's DEP0190 warning.
+    const child = spawn(['npm', 'run', script, ...(args.length > 0 ? ['--', ...args] : [])].join(' '), {
       windowsHide: true,
       cwd: ctx.projectRoot,
       // The editor runs in development mode. A bundled artifact must compile
