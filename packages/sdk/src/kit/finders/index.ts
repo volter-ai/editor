@@ -16,7 +16,7 @@
  *
  * Dependency direction is one-way: finders import their parameter types from
  * `../adapter-module`, and `adapter-module.ts` imports nothing from here. That
- * is what keeps a game's `volter.adapter.ts` free of finder implementations.
+ * is what keeps a game's `editor/volter.adapter.ts` free of finder implementations.
  */
 
 import {

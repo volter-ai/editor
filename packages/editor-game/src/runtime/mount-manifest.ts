@@ -341,7 +341,7 @@ function buildRootMountSpec(
     zOrder: world.zOrder,
     pausable: world.pausable,
     // `root` is this file's own resolved manifest record; the rest — the
-    // parsed `volter.adapter.ts`, the entry namespace, the entry's declared
+    // parsed `editor/volter.adapter.ts`, the entry namespace, the entry's declared
     // debug/systems bindings — only the caller who loaded the entry can know.
     ...(entry?.declaration === undefined
       ? {}

@@ -250,7 +250,7 @@ remake. **It is not in your project until you add it** — `volter-game-editor a
 (invoking one of its registered tools through the CLI also adds it, loudly,
 but reading its source is not an invocation). It adds its
 required capabilities, copies transparent source into `src/lib/` and
-`src/contributions/` and `src/tools/`, and registers the project tools without overwriting existing
+`editor/contributions/` and `editor/tools/`, and registers the project tools without overwriting existing
 files. Restart `volter-game-editor edit .`, open **Tools → Walking Castle Builder**,
 validate, and bake. Never import the premade from the engine checkout at
 runtime.

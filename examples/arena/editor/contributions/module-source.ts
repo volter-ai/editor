@@ -2,7 +2,7 @@
  * The module→Object3D step, shared by every tool that turns a project TS
  * module's exported builder into a live `THREE.Object3D`.
  *
- * EXTRACTED VERBATIM from `src/tools/bake-module.tool.ts` (the typed error
+ * EXTRACTED VERBATIM from `editor/tools/bake-module.tool.ts` (the typed error
  * definitions, `resolveProjectModule`, `buildFromModule` and
  * `computeMeshStats` were private there) when `project.bake.preview` needed
  * the identical front half without the bake. Nothing about the behavior
@@ -13,7 +13,7 @@
  * It lives beside the tools rather than under `src/lib/bake/` because it is
  * NODE-ONLY (`node:fs/promises`, `node:url`, a dynamic `import()` of project
  * source). A project's own `tsconfig.json` compiles `src` for the browser and
- * excludes `src/tools` precisely so tool code can reach for Node; a helper
+ * excludes `editor/tools` precisely so tool code can reach for Node; a helper
  * this shape under `src/lib/` reds every shipped project's typecheck.
  */
 

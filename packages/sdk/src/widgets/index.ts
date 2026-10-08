@@ -8,7 +8,7 @@
  * project may draw a panel without taking the host's AGPL.
  *
  * Import it from a package contribution or a project's own
- * `src/contributions/my-tool.document.tsx`:
+ * `editor/contributions/my-tool.document.tsx`:
  *
  * ```tsx
  * import { Inline, NumberInput, SectionHeader, themeVars } from '@volter/sdk/widgets';

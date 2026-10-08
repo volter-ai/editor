@@ -150,7 +150,7 @@ const SERVER_COMMAND_TIMEOUT_MS = 10_000;
 
 /** The virtual-input surface the debug bridge (`runtime/debug-bridge.ts`)
  *  actuates through: a root's input door — its entry's `debug.input`
- *  (`adapter/native-debug-module.ts`) or a `volter.adapter.ts` input binding
+ *  (`adapter/native-debug-module.ts`) or a `editor/volter.adapter.ts` input binding
  *  (`host/adapter-runtime-bindings.ts`), wired once per root when its bindings
  *  install, at the same spot as `setInputActionsSource` — absent until then. */
 export interface DebugVirtualInputTarget {

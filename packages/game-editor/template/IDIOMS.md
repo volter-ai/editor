@@ -52,14 +52,14 @@ Legend: **ERROR** fails every run; **WARN** prints but fails only with
 - Every mechanic exports the functions and readings needed to arrange and
   judge it. The developer calls the running instance directly through
   `game.run(({ modules }) => ...)`; contributions read the same instances
-  through `src/tools/use-game-modules.ts`. There is no command registry or
+  through `editor/tools/use-game-modules.ts`. There is no command registry or
   prescribed vocabulary. **LOOK**
 - The resident QA tester is game code. It receives intent-level goals, runs at
   simulation speed, and actuates only the game's normal input store. Setup
   functions may arrange an expensive situation; they do not perform the
   behavior being judged. The tester's repertoire grows in the slice that adds
   each mechanic. **LOOK**
-- `src/tools/` is literal contribution TSX. The unfinished Tester/Data/Analytics stubs
+- `editor/tools/` is literal contribution TSX. The unfinished Tester/Data/Analytics stubs
   emit `VOLTER_STUB_UNIMPLEMENTED`; replacing or honestly deleting the relevant
   stub is required before completion. **ERROR E6**
 - Tester holds live QA state, controller ownership, goals/mind, setup cheats,

@@ -10,8 +10,8 @@ import {
   NOT_AN_OBJECT3D_ERROR,
   PATH_ESCAPES_PROJECT_ERROR,
 } from '../contributions/module-source';
-import { bakeObject3DSource } from '../lib/bake/object3d-bake';
-import { disposeObject3D } from '../lib/bake/object3d-lifecycle';
+import { bakeObject3DSource } from '../../src/lib/bake/object3d-bake';
+import { disposeObject3D } from '../../src/lib/bake/object3d-lifecycle';
 
 // The module-loading step and its typed errors live in `module-source.ts`
 // so `project.bake.preview` refuses an identical module for an identical reason.

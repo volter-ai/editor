@@ -8,7 +8,7 @@ editor panels read the data without determining how it is organized.
 - **Reading:** import the literal and read fields directly from the
   mechanic that cares. Read per frame if you want live edits to land.
 - **Live dials:** write an ordinary editor contribution over the module
-  (`src/contributions/use-game-modules.ts` is the hook; writes on the running
+  (`editor/contributions/use-game-modules.ts` is the hook; writes on the running
   module's object are live for the play).
 - **Committing a number:** edit the file. Vite HMR delivers it.
 

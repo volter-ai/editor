@@ -10,13 +10,15 @@
 
 /**
  * The two editor-side folders of a project (ARCHITECTURE-CORE §The project
- * model): `src/contributions/` — what the project adds to the editor
+ * model): `editor/contributions/` — what the project adds to the editor
  * (documents, inspectors, utilities, analytics, kinds, finders) — and
- * `src/tools/` — the tools a person or an agent invokes (`*.tool.ts`).
+ * `editor/tools/` — the tools a person or an agent invokes (`*.tool.ts`).
  * Neither is bundled at Play; both reload the editor, never the game.
  */
-export const CONTRIBUTIONS_DIR = 'src/contributions';
-export const TOOLS_DIR = 'src/tools';
+/** A project's editor side: the adapter, and the two folders below. The game is `src/`. */
+export const EDITOR_DIR = 'editor';
+export const CONTRIBUTIONS_DIR = `${EDITOR_DIR}/contributions`;
+export const TOOLS_DIR = `${EDITOR_DIR}/tools`;
 export const EDITOR_LANE_DIRS = [CONTRIBUTIONS_DIR, TOOLS_DIR] as const;
 
 /** Whether a project-relative (or absolute, `/`-normalized) path sits in the editor's lane. */

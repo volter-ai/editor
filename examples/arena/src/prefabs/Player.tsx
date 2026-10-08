@@ -1232,7 +1232,7 @@ export function Player({
 //
 // Ordinary exported functions over the live `<Player>`, reached from the REPL as
 // `game.run(async ({ modules }) => (await modules('src/prefabs/Player.tsx')).arenaPlayerState())`
-// and from any editor contribution this game writes (`src/tools/`).
+// and from any editor contribution this game writes (`editor/tools/`).
 //
 // What `arenaPlayerState()` carries that the first-person camera CANNOT show
 // you: from inside the helmet there is no body to watch, so `shotCooldown`

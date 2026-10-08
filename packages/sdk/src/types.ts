@@ -1042,7 +1042,7 @@ export interface EditorState {
   /**
    * The open project's ADAPTER, resolved (ARCHITECTURE-CORE §The editor
    * protocol). `source` names WHOSE declaration is running: `'project'` = the
-   * project's own `volter.adapter.ts` supplied the binding table (and it always
+   * project's own `editor/volter.adapter.ts` supplied the binding table (and it always
    * outranks the registry); `'registry'` = the HOST's in-tree ingest registry
    * supplied it, matched on this project's ingest root id, with `modulePath`
    * naming the repo file — a binding the project did not ship, stated rather

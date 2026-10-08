@@ -108,7 +108,7 @@ npm run --silent volter -- eval 'await editor.grid(false)' # the editor half, sa
 `--list` walks the live binding objects themselves rather than a written list,
 so it cannot go stale — ask it rather than trusting any prose, including this
 page. The game's own source tells you which module functions exist; the
-template's `src/tools/use-game-modules.ts` shows how a literal contribution
+template's `editor/tools/use-game-modules.ts` shows how a literal contribution
 reads the exact same running instances.
 
 **NEVER pilot a realtime game from the developer REPL, with synthetic key

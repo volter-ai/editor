@@ -16,7 +16,7 @@
  * `Object3DDocumentViewport` re-runs its whole lifetime effect — renderer,
  * scene, camera, adapter — whenever the `build` callback's IDENTITY changes.
  * That is how the parametric Builder documents rebuild
- * (`catalog/project-source/src/tools/builder-document.tsx`: a param edit makes
+ * (`catalog/project-source/editor/tools/builder-document.tsx`: a param edit makes
  * a new `build`, the viewport tears down and stands back up), and it is
  * exactly why those documents snap the camera back to `cameraDirection` on
  * every slider nudge. A modeling loop cannot do that: the whole point is to

@@ -651,7 +651,7 @@ export interface AudioAdapter {
    * reports — means the export writes a video-only file and says `audio:
    * false` in its result. A live Web Audio graph cannot be re-rendered
    * offline by a bus wrapper; a world that wants export audio owns a
-   * deterministic score and binds this through `volter.adapter.ts` (with the
+   * deterministic score and binds this through `editor/volter.adapter.ts` (with the
    * `music` capability that is one line over `renderToneOffline`).
    */
   renderOffline?: OfflineAudioRenderer;

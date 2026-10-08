@@ -14,7 +14,7 @@ import { readGenerationJobs } from './generation-jobs';
  * registry.
  *
  * CALLABLES are enumerated (`volter.tools`); the project's own CONTRIBUTION
- * MODULES are found by walking `src/contributions/` for the naming convention
+ * MODULES are found by walking `editor/contributions/` for the naming convention
  * (`isToolContributionModule`); a DEPENDENCY's contribution modules are the
  * ones it enumerates under its own `package.json#volter.contributions`
  * (`packageContributionModules`). They are still separate browser modules and
@@ -33,6 +33,7 @@ import type {
   ProjectToolLoadError,
 } from '@volter/sdk/project-tool-catalog';
 import { noProjectModuleHostError } from '@volter/sdk/project-tool-catalog';
+import { CONTRIBUTIONS_DIR } from '@volter/sdk/session/tool-contribution-convention';
 import type { ToolDefinition, ToolOutcome } from '@volter/sdk/tools/registry';
 import { ToolRegistry } from '@volter/sdk/tools/registry';
 import { applyGenerationContribution } from './generation-jobs';
@@ -117,9 +118,9 @@ async function scanContributionModules(directory: string): Promise<string[]> {
   return found;
 }
 
-/** Project-source contributions: `src/contributions/`, project-relative paths. */
+/** Project-source contributions: `editor/contributions/`, project-relative paths. */
 async function projectContributionModules(projectRoot: string): Promise<ProjectToolContribution[]> {
-  const found = await scanContributionModules(resolve(projectRoot, 'src', 'contributions'));
+  const found = await scanContributionModules(resolve(projectRoot, CONTRIBUTIONS_DIR));
   return found
     .map((absolute) => ({ entryPath: relative(projectRoot, absolute).split(sep).join('/') }))
     .sort((a, b) => a.entryPath.localeCompare(b.entryPath));

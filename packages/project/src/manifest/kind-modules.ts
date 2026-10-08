@@ -1,7 +1,7 @@
 /**
  * Where a project's CONFIGURATION-KIND CONTRIBUTIONS live and how a host
  * takes them in (ARCHITECTURE-CORE §The project model). A module named
- * `src/contributions/<name>.kind.ts` (or `.tsx`) exports `kind`, a plain
+ * `editor/contributions/<name>.kind.ts` (or `.tsx`) exports `kind`, a plain
  * `ConfigurationKindContribution`; the HOST that loads the manifest — the
  * editor server through Vite's SSR loader, a project's own validate script
  * through tsx — imports each and registers it in its own registry through
@@ -43,7 +43,7 @@ export function contributedKindModulePaths(projectDir: string): string[] {
       else if (isConfigurationKindModule(name)) found.push(absolute);
     }
   };
-  walk(join(projectDir, 'src', 'contributions'));
+  walk(join(projectDir, 'editor', 'contributions'));
   return found.sort();
 }
 

@@ -17,10 +17,10 @@ import {
 
 /** Cache: project directory -> its adapter's region includes. Same
  *  no-invalidation bar as the manifest-roots cache beside it — editing
- *  `volter.adapter.ts` already restarts the dev session. */
+ *  `editor/volter.adapter.ts` already restarts the dev session. */
 const cache = new Map<string, AdapterRegionIncludes>();
 
-/** Region includes declared by the `volter.adapter.ts` beside `manifestDir`. A
+/** Region includes declared by the `editor/volter.adapter.ts` beside `manifestDir`. A
  *  project with no adapter module gets the native default: no includes. */
 export function adapterRegionIncludes(manifestDir: string): AdapterRegionIncludes {
   const cached = cache.get(manifestDir);

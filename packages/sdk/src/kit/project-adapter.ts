@@ -1,11 +1,11 @@
 /**
- * THE ADAPTER LOADER — the host half of `volter.adapter.ts`.
+ * THE ADAPTER LOADER — the host half of `editor/volter.adapter.ts`.
  *
  * ARCHITECTURE-CORE §The editor protocol: every game supplies a SERVER — its
  * adapter — and the editor is a universal CLIENT of it. This module is where a
  * project's adapter becomes a live binding table:
  *
- *   1. the project has `volter.adapter.ts` ⇒ **the project's own file wins,
+ *   1. the project has `editor/volter.adapter.ts` ⇒ **the project's own file wins,
  *      always**. It is imported through the SAME door every other
  *      project-owned module goes through (`project-module-url.ts`'s
  *      `fsImportPath` — the ONE owner of `/@fs/` urls for project code, PD-3)
@@ -19,7 +19,7 @@
  *      holds, and it shipped none of its own ⇒ that module is the adapter.
  *      Placement follows REALM (ARCHITECTURE-CORE §The editor protocol): a
  *      vendored game's bytes are served verbatim, so its host-realm declaration
- *      lives in `ingest/games/<id>/volter.adapter.ts` and is imported through the
+ *      lives in `ingest/games/<id>/editor/volter.adapter.ts` and is imported through the
  *      registry glob, never through the project's file routes. **This branch is
  *      REACHABLE only because the step-1 probe can answer "no"**: the realm
  *      rule keeps a vendored game's adapter out of its served bundle, but
@@ -123,7 +123,7 @@ import {
 } from './tool-loader';
 
 /** The game's adapter module lives beside `volter.project.json`, by contract. */
-export const ADAPTER_MODULE_FILENAME = 'volter.adapter.ts';
+export const ADAPTER_MODULE_FILENAME = 'editor/volter.adapter.ts';
 
 /** The resolved scene table — the adapter's declarations plus what its own
  *  finder selections found. */
@@ -157,7 +157,7 @@ export interface ProjectAdapterFacet {
    * WHOSE declaration is running — the one field that answers it, because
    * "a module loaded" never did.
    *
-   * - `project` — the project's own `volter.adapter.ts` supplied the table.
+   * - `project` — the project's own `editor/volter.adapter.ts` supplied the table.
    * - `registry` — the HOST's in-tree ingest registry supplied it, matched on
    *   this project's ingest root id. The project did not ship this
    *   declaration; a reader must be able to see that without pattern-matching
@@ -170,7 +170,7 @@ export interface ProjectAdapterFacet {
   /**
    * Where the loaded module came from, or `null` for the native default:
    * project-relative for a project that owns its own file, and the REPO path
-   * (`packages/editor/src/ingest/games/<id>/volter.adapter.ts`) for a registry
+   * (`packages/editor/src/ingest/games/<id>/editor/volter.adapter.ts`) for a registry
    * binding, whose adapter is host-realm by the placement rule and therefore
    * has no project-relative home to name.
    */
@@ -194,7 +194,7 @@ export interface ProjectAdapterFacet {
    * means the project's OWN adapter did not load, and what stood in is
    * whatever {@link source} says: a registry binding, or the declared native
    * default. Never swallowed, because the editor still opening on a broken
-   * `volter.adapter.ts` is only acceptable while it SAYS the file is broken.
+   * `editor/volter.adapter.ts` is only acceptable while it SAYS the file is broken.
    */
   readonly error: string | null;
 }
@@ -320,7 +320,7 @@ export function __resetProjectAdapterForTest(): void {
 
 /**
  * Import the project's own adapter module. Cache-busted like every other
- * design-time project load, because a saved `volter.adapter.ts` must be readable
+ * design-time project load, because a saved `editor/volter.adapter.ts` must be readable
  * without restarting the editor.
  *
  * The url is built by `fsImportPath` (project-module-url.ts) and NOT by
@@ -548,7 +548,7 @@ export interface ResolvedAdapterChoice {
   readonly error: string | null;
 }
 
-/** The project's own `volter.adapter.ts` probe, as data — the live loader and
+/** The project's own `editor/volter.adapter.ts` probe, as data — the live loader and
  *  the headless run answer this the same way, from different IO. */
 export type ProjectAdapterProbe =
   | { readonly kind: 'present'; readonly module: unknown }
@@ -794,7 +794,7 @@ export function projectAdapterTableFrom(
  * (the dev server's SPA fallback; `docs/DEPLOY.md` §Surface 3 for hosted).
  * Ordering a can't-say-no probe ahead of the registry made the registry branch
  * unreachable — every vendored game lost its scene table to a fabricated
- * "volter.adapter.ts did not load". The probe now discriminates by CONTENT (an
+ * "editor/volter.adapter.ts did not load". The probe now discriminates by CONTENT (an
  * HTML document is the fallback, not the file) and reports "could not tell" as
  * an answer of its own.
  *

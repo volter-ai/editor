@@ -15,7 +15,7 @@
  * optional, and reading a member off the unawaited promise throws a message
  * saying so. `modules.loaded` lists the paths the running mount can hand you.
  * There is no registry, no declaration call, and no prescribed sections.
- * The worked reference is the datacenter-tycoon game's `src/tools/`.
+ * The worked reference is the datacenter-tycoon game's `editor/tools/`.
  *
  * Why the hook exists at all: contributions load under the EDITOR's
  * importer while the game's modules load under the mount's stamped URLs —

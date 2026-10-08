@@ -49,12 +49,12 @@ What a project is written against, without shipping it:
 and a Game Editor project's `.volter/tracker/` files import it. A game's own
 code stays the game author's, under whatever terms they choose.
 
-**A project is more than its game.** Its adapter (`volter.adapter.ts`), its
-contributions (`src/contributions/`) and its tools (`src/tools/`) extend the
+**A project is more than its game.** Its adapter (`editor/volter.adapter.ts`), its
+contributions (`editor/contributions/`) and its tools (`editor/tools/`) extend the
 editor and run inside it. They import editor packages under those packages'
 own licenses, and the Apache-2.0 claim above does not reach them:
 
-- the project `cyclotron create` writes has a `volter.adapter.ts` that imports
+- the project `cyclotron create` writes has a `editor/volter.adapter.ts` that imports
   `@volter/editor-blender` (AGPL and GPL), and it depends on `@volter/cyclotron`
   and `@volter/editor-blender` to be edited;
 - a Game Editor project's tools and contributions may import

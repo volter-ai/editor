@@ -16,7 +16,7 @@ gesture they make rewrites the literal it touched in this same file.
 1. `npm run --silent volter -- add music`: adds `@volter/dawproject` (the elements) and
    `@volter/editor-dawproject` (the document, the renderer, the checks), copies
    `src/lib/music/music-player.ts` and the render tool, and selects the piece finder in
-   `volter.adapter.ts` (`documents.find`: `{ finder: 'piecesFromModules', include:
+   `editor/volter.adapter.ts` (`documents.find`: `{ finder: 'piecesFromModules', include:
    ['src/music/**/*.tsx'] }`), so every piece under `src/music/` opens as a document. When the
    adapter is not a literal `defineAdapter({ … })` table it cannot edit, it says so and prints
    the selection to add by hand.

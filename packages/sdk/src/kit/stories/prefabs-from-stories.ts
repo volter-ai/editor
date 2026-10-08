@@ -12,7 +12,7 @@
  * and the host fills nothing: `FinderInput.stories` is gone with it.
  *
  * The finder NAME is unchanged, because it is a project's own declaration
- * (`{ finder: 'prefabsFromStories' }` in every `volter.adapter.ts`). A build
+ * (`{ finder: 'prefabsFromStories' }` in every `editor/volter.adapter.ts`). A build
  * without this package leaves that selection unregistered, which the host
  * already reports as a standing note rather than a throw.
  *

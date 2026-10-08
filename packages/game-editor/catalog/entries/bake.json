@@ -12,13 +12,13 @@
     "src/lib/bake/use-model.ts",
     "src/lib/bake/params.ts",
     "src/lib/bake/rest-relative-animation.ts",
-    "src/tools/bake-module.tool.ts",
-    "src/tools/bake-preview.tool.ts",
-    "src/contributions/builder-document.tsx",
-    "src/contributions/builder-state.ts",
-    "src/contributions/builder-ui.tsx",
-    "src/contributions/module-source.ts",
-    "src/contributions/bake.kind.ts"
+    "editor/tools/bake-module.tool.ts",
+    "editor/tools/bake-preview.tool.ts",
+    "editor/contributions/builder-document.tsx",
+    "editor/contributions/builder-state.ts",
+    "editor/contributions/builder-ui.tsx",
+    "editor/contributions/module-source.ts",
+    "editor/contributions/bake.kind.ts"
   ],
   "id": "bake",
   "packageJson": {
@@ -26,7 +26,7 @@
       "three-bvh-csg": "^0.0.18",
       "three-mesh-bvh": "^0.9.12"
     },
-    "volterTools": ["./src/tools/bake-module.tool.ts", "./src/tools/bake-preview.tool.ts"]
+    "volterTools": ["./editor/tools/bake-module.tool.ts", "./editor/tools/bake-preview.tool.ts"]
   },
   "requires": [],
   "skills": [],

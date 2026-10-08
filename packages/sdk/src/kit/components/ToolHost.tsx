@@ -118,7 +118,7 @@ export class ToolErrorBoundary extends Component<ToolErrorBoundaryProps, ToolErr
  * own `react-dom/client`, the same React the contribution's modules import.
  *
  * That agreement is the whole contract, and it is easy to break from the other
- * side. Under the packaged runtime a project's `src/contributions/**` module has its
+ * side. Under the packaged runtime a project's `editor/contributions/**` module has its
  * `react` resolved to the SHELL's own chunk (`vite-plugin-shared-react.ts` —
  * the doorway that made inspector contributions render at all), while this
  * mount used to create its root from the PROJECT's `react-dom/client`

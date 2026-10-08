@@ -12,7 +12,7 @@
  * the TypeScript mesh kit was the modeling engine while Blender could not run
  * in the tab; it now does, and a model is Blender data).
  *
- * Select it in `volter.adapter.ts`:
+ * Select it in `editor/volter.adapter.ts`:
  *
  *   documents: { find: [{ finder: 'modelsFromBlendFiles', include: ['src/models/**\/*.blend'] }] }
  *

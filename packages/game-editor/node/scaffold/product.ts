@@ -21,7 +21,7 @@
 
 import { isScaffoldAddition, type ScaffoldAddition } from './additions.js';
 
-/** A value the generated `volter.adapter.ts` imports by name from a package. */
+/** A value the generated `editor/volter.adapter.ts` imports by name from a package. */
 export interface ImportedValue {
   /** The exported binding — `GameLayout`, `blenderStyle`. */
   readonly name: string;

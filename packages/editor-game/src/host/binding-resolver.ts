@@ -4,7 +4,7 @@
  *
  * A game is a native program plus a declaration of itself; the editor is a
  * universal client of that declaration. This module is where the declaration
- * is READ: the manifest root, the project's parsed `volter.adapter.ts`, and the
+ * is READ: the manifest root, the project's parsed `editor/volter.adapter.ts`, and the
  * entry module's own static surface, resolved against ONE realm
  * (`realm-services.ts` — dev or packaged).
  *
@@ -85,7 +85,7 @@ export interface ResolveRootBindingOptions {
  * Resolve one manifest root against one realm.
  *
  * `adapterDef` is an INPUT, never something this function goes and fetches:
- * `volter.adapter.ts` loading stays in `project-adapter.ts`, and the binding is
+ * `editor/volter.adapter.ts` loading stays in `project-adapter.ts`, and the binding is
  * the hand-off's shape rather than a second loader.
  */
 export async function resolveRootBinding(
@@ -276,7 +276,7 @@ interface ResolvedComposition {
  * resolvers would give each root its own generation, which is the defect.
  *
  * The COMPOSITION level is likewise where the project's two ambient inputs are
- * fetched — the realm's services and the parsed `volter.adapter.ts` — because
+ * fetched — the realm's services and the parsed `editor/volter.adapter.ts` — because
  * both are properties of the open project rather than of any one root, and
  * asking once per composition is what keeps every root of a game bound to the
  * same declaration. `resolveRootBinding` itself still fetches neither: it is

@@ -62,7 +62,7 @@ export default defineConfig({
   // Build-path validation (build-only): every
   // registered data asset must still parse through its schema (the EXACT
   // parse defineData runs at load), every `"file#key"` ref must resolve, and
-  // no `src/tools/` module may reach the shipped bundle (§4: tools are
+  // no `editor/tools/` module may reach the shipped bundle (§4: tools are
   // editor-only — never serve testers a build with dev/cheat surfaces).
   // The AUTOMATIC JSX runtime, set here rather than left to tsconfig.
   //

@@ -23,8 +23,8 @@ npm run build             # production game bundle
 
 The `studio` addition (`game-editor create <name> --with studio`, or `--template full`)
 brings three development contributions; no other preset does. The files are:
-`src/contributions/tester.inspector.tsx`, `src/contributions/data.document.tsx` and
-`src/contributions/analytics.analytics.tsx`. They emit
+`editor/contributions/tester.inspector.tsx`, `editor/contributions/data.document.tsx` and
+`editor/contributions/analytics.analytics.tsx`. They emit
 `VOLTER_STUB_UNIMPLEMENTED`, so the editor console and `check-idioms` remain red
 until the game supplies its own Tester, Data and Analytics surfaces (or deletes
 Data because it genuinely has no authored content tables). Analytics must provide

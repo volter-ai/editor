@@ -181,7 +181,7 @@ export interface VolterSettingsBridge {
 	/** Install the frame's settings provider on `EditorHost.settings`. Called once, after the
 	 *  mount, because the services it needs exist only inside the command's own invocation. */
 	setProvider(provider: VolterSettingsProvider): void;
-	/** What the open project's `volter.adapter.ts` DECLARES, as dotted `volter.*` keys. The editor
+	/** What the open project's `editor/volter.adapter.ts` DECLARES, as dotted `volter.*` keys. The editor
 	 *  derives it from the adapter object; the frame never parses the adapter itself. */
 	adapterValues(): readonly (readonly [string, unknown])[];
 	/** VS CODE'S OWN keys whose value the active LOOK answers — today only the top bar's height

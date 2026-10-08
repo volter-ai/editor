@@ -1075,7 +1075,7 @@ export function sourceProvesR3f(evidence: SourceDialectEvidence): boolean {
  *    for a file it could not place, silently, and being wrong that way is
  *    indistinguishable from being right. Zero inference (ARCHITECTURE-CORE
  *    §The editor protocol) makes the fix a declaration — an `include` glob or
- *    a `mounts` entry in `volter.adapter.ts` — not a better heuristic.
+ *    a `mounts` entry in `editor/volter.adapter.ts` — not a better heuristic.
  *
  * Nothing about a file's own bytes outranks the region — not even a file that
  * renders THREE host elements while its region says `dom`. That disagreement is

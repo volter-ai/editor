@@ -38,8 +38,8 @@ import {
   NOT_AN_OBJECT3D_ERROR,
   PATH_ESCAPES_PROJECT_ERROR,
 } from '../contributions/module-source';
-import { exportObject3DToGlb, installNodeThreePolyfills } from '../lib/bake/gltf-bake';
-import { disposeObject3D } from '../lib/bake/object3d-lifecycle';
+import { exportObject3DToGlb, installNodeThreePolyfills } from '../../src/lib/bake/gltf-bake';
+import { disposeObject3D } from '../../src/lib/bake/object3d-lifecycle';
 
 const LIVE_MODULE = '@volter/live';
 

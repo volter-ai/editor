@@ -194,7 +194,7 @@ export async function addPlay(folder: string): Promise<void> {
   // into a project with no Play script yet, and only whole (see the header). Every
   // target is checked with `lstat` (see `occupied`), its folders too, before any
   // of it is written.
-  const adapterPath = join(project, 'volter.adapter.ts');
+  const adapterPath = join(project, 'editor/volter.adapter.ts');
   const adapterSource = existsSync(adapterPath) ? await readFile(adapterPath, 'utf8') : null;
   let model: string | null = null;
   let example: { to: string; content: string }[] | null = null;
@@ -251,16 +251,16 @@ export async function addPlay(folder: string): Promise<void> {
   // Its default document stays the author's: the first Play script plays it.
   let adapter: { original: string; next: string } | null = null;
   if (adapterSource === null) {
-    kept.push(`volter.adapter.ts not found; a playable adapter declares ${PLAY_SCAFFOLD.regionIncludes.trim()}`);
+    kept.push(`editor/volter.adapter.ts not found; a playable adapter declares ${PLAY_SCAFFOLD.regionIncludes.trim()}`);
   } else {
     let next = adapterSource;
     if (next.includes('regionIncludes')) {
-      kept.push(`volter.adapter.ts already declares regionIncludes; it needs ui: { include: ['src/ui/**/*.tsx'] } for UI stories`);
+      kept.push(`editor/volter.adapter.ts already declares regionIncludes; it needs ui: { include: ['src/ui/**/*.tsx'] } for UI stories`);
     } else if (/defineAdapter\(\{\r?\n/.test(next)) {
       next = next.replace(/defineAdapter\(\{\r?\n/, match => match + PLAY_SCAFFOLD.regionIncludes);
-      added.push(`volter.adapter.ts: ${PLAY_SCAFFOLD.regionIncludes.trim()}`);
+      added.push(`editor/volter.adapter.ts: ${PLAY_SCAFFOLD.regionIncludes.trim()}`);
     } else {
-      kept.push(`volter.adapter.ts has a shape this command does not edit; add ${PLAY_SCAFFOLD.regionIncludes.trim()} to its defineAdapter({ … })`);
+      kept.push(`editor/volter.adapter.ts has a shape this command does not edit; add ${PLAY_SCAFFOLD.regionIncludes.trim()} to its defineAdapter({ … })`);
     }
     adapter = { original: adapterSource, next };
   }

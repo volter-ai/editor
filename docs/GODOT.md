@@ -221,7 +221,7 @@ skips the frame or unmounts the game.
    (`7c3f0e5d`); and a reachability phase between emit and materialize keeps the compat modules
    the game's own files reach (`5260df45`).
    Merged with `main` (2026-09-28, `841f2c07`): `vgai` is retired and every name is Volter
-   (`volter.project.json`, `volter.adapter.ts`, `.volter/`, `VOLTER_*`, the `volter-game-editor`
+   (`volter.project.json`, `editor/volter.adapter.ts`, `.volter/`, `VOLTER_*`, the `volter-game-editor`
    CLI). The rename changed the bound exporter's source, so the 4.7 exporter is rebuilt from the
    pinned `5b4e0cb0` tree and re-pinned: exporter source `9e93aa85…`, executable `5fba713d…`,
    stored at `<godot-work>/tools/godot-4.7-bound-exporter-volter/` (the old `c8034e90…`

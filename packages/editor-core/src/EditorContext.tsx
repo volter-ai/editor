@@ -69,7 +69,7 @@ export function EditorProvider({ children }: { children: ReactNode }) {
   useEffect(() => startProjectToolContributionDiscovery(), []);
   useEffect(() => startProjectToolCatalog(), []);
 
-  // The project's own adapter (`volter.adapter.ts`, or the declared native
+  // The project's own adapter (`editor/volter.adapter.ts`, or the declared native
   // default when it has none) — a PROJECT capability, loaded at init and on
   // every project switch, exactly like the discoveries above.
   useEffect(() => startProjectAdapterLoad(), []);

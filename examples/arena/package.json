@@ -69,8 +69,8 @@
   },
   "volter": {
     "tools": [
-      "./src/tools/bake-module.tool.ts",
-      "./src/tools/bake-preview.tool.ts"
+      "./editor/tools/bake-module.tool.ts",
+      "./editor/tools/bake-preview.tool.ts"
     ]
   }
 }

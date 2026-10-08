@@ -41,7 +41,7 @@ import { fileURLToPath } from 'node:url';
 //         two, the engine-src permanent scan and the examples/ burn-down
 //         scan, live in the engine repo's own test suite; see
 //         packages/engine/test/gameplay-rng-ban.test.ts).
-//     E6. `TOOL_NOT_CONFIGURED` remains anywhere in src/tools/** — this is
+//     E6. `TOOL_NOT_CONFIGURED` remains anywhere in editor/tools/** — this is
 //         the starter's explicit unfinished-work sentinel, so a completion
 //         check containing it cannot be green.
 //         is absent after the project claimed that capability through its
@@ -837,7 +837,7 @@ function checkDetachedComponentInitialization(): void {
 // ---------------------------------------------------------------------------
 
 /** The files that ARE the game, for slice-proxy measurements (W9). Deliberately
- *  NOT all of src/ — churn in src/ui/, src/tools/ or src/data/ is not by
+ *  NOT all of src/ — churn in src/ui/, editor/tools/ or src/data/ is not by
  *  itself a gameplay slice. */
 const GAMEPLAY_PATHS = [
   'src/components',
@@ -1078,7 +1078,7 @@ function checkDeterminismRng(): void {
 
 function checkUnconfiguredProjectTools(): void {
   const sentinel = /\bTOOL_NOT_CONFIGURED\b/g;
-  const toolFiles = srcFiles.filter((file) => relPath(file).startsWith('src/tools/'));
+  const toolFiles = srcFiles.filter((file) => relPath(file).startsWith('editor/tools/'));
   for (const file of toolFiles) {
     const { rawLines, blanked } = readFileText(file);
     for (const match of blanked.matchAll(sentinel)) {
@@ -1212,7 +1212,7 @@ function loadR3fAnalyzer(): R3fAnalyzer | null {
  */
 interface RegionSurfaces {
   surfaces: ReadonlyMap<string, string>;
-  /** This project's `volter.adapter.ts` declares a `regions` binding the static
+  /** This project's `editor/volter.adapter.ts` declares a `regions` binding the static
    *  reader could not evaluate, so its `include` globs were not consulted.
    *  Carried rather than dropped: the editor's own loader EVALUATES that module
    *  and would honor those globs, so silence here means the two readers
@@ -1249,7 +1249,7 @@ function loadRegionSurfaces(): RegionSurfaces | null {
         m: string,
         a: string,
       ) => { regions: unknown[]; unreadable: boolean }
-    )(read('volter.project.json'), read('volter.adapter.ts'));
+    )(read('volter.project.json'), read('editor/volter.adapter.ts'));
     const sources = srcFiles.map((file) => ({
       path: relPath(file),
       source: readFileSync(file, 'utf-8'),
@@ -1303,7 +1303,7 @@ function checkAuthoringWarnings(): void {
       'E9',
       'warn',
       'authoring-warnings-zero',
-      "volter.adapter.ts declares a `regions` binding that cannot be read statically, so its `include` globs were NOT consulted — any file those globs place is missing from this run, while the editor's own loader still honors them.",
+      "editor/volter.adapter.ts declares a `regions` binding that cannot be read statically, so its `include` globs were NOT consulted — any file those globs place is missing from this run, while the editor's own loader still honors them.",
       'Write the regions as an array of object literals passed directly to defineAdapter({…}), with literal `id` and `include` values (not a hoisted const, not a spread).',
     );
   }

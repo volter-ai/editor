@@ -10,7 +10,7 @@ export type ToolContributionPoint =
 /**
  * One contribution module, FOUND BY SCANNING — never listed anywhere.
  *
- * Nothing enumerates these. `src/tools/` in project source and `src/` in every
+ * Nothing enumerates these. `editor/tools/` in project source and `src/` in every
  * `volter`-declaring dependency are walked for the naming convention
  * (`*.document.tsx`, `*.inspector.tsx`, `*.asset-inspector.tsx`,
  * `*.result.tsx`, `*.utility.tsx`, `*.analytics.tsx`), and the module itself declares everything
@@ -22,7 +22,7 @@ export interface ProjectToolContribution {
   /** Project-relative or package-absolute browser module path. */
   entryPath: string;
   /** The dependency that declared it (`package.json#volter.contributions`),
-   *  absent for the project's own `src/contributions/` modules. */
+   *  absent for the project's own `editor/contributions/` modules. */
   package?: string;
   /** The module's file, for a bundled package's entry (listed by specifier): what the
    *  page loads when its bundle carries no loader for it, as a checkout's bundle does

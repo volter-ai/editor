@@ -32,7 +32,7 @@
  * already use for exactly this kind of question (volter has `typescript`; it does
  * NOT have @babel/*). It is a HOST-SIDE-ONLY dependency: finders are importable
  * only by the adapter loader, `adapter-module.ts` imports nothing from this
- * directory, and a game's `volter.adapter.ts` therefore never pulls a parser into
+ * directory, and a game's `editor/volter.adapter.ts` therefore never pulls a parser into
  * its own bundle.
  */
 

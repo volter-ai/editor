@@ -24,7 +24,7 @@
  *   - `volter:restart-required` — a plain `.ts`, or a `.tsx` that is not a Fast
  *     Refresh boundary. THE COMMON CASE for a model module, whose export is a
  *     lowercase builder function.
- *   - `volter:script-update` — the file is in the editor's lane (`src/contributions/`, `src/tools/`).
+ *   - `volter:script-update` — the file is in the editor's lane (`editor/contributions/`, `editor/tools/`).
  *   - `volter:r3f-entry-update` — the file is R3F-dialect.
  * A `.tsx` that IS a Fast Refresh boundary rides stock Vite HMR instead and
  * sends none of these, so `vite:afterUpdate` is taken as well: Vite stamped

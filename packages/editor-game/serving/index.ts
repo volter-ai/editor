@@ -1,7 +1,7 @@
 /**
  * `@volter/editor-game`'s server half (`package.json#volter.serving`): the one deep specifier a
  * game's own contributions name, `@editor/game-module-access` (the template's
- * `src/contributions/use-game-modules.ts`), resolved to this package's module. The page
+ * `editor/contributions/use-game-modules.ts`), resolved to this package's module. The page
  * bundle maps the same specifier for its own copy (`src/host/served-bundle-runtime-modules.ts`);
  * a contribution the session's Vite serves needs the file.
  */

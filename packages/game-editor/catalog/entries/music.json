@@ -1,5 +1,5 @@
 {
-  "description": "Music composed as code with the editor's DAW, delivered as mastered audio. Adds @volter/dawproject (a piece is a React component of DAWproject elements) and @volter/editor-dawproject (the piece document, the renderer and the checks), the volter-music skill, and src/lib/music/music-player.ts, which plays a render's loops, section loops switched on the bar line, stems and stingers through the game's own Web Audio graph. Selects the piece finder (src/music/**/*.tsx) in volter.adapter.ts.",
+  "description": "Music composed as code with the editor's DAW, delivered as mastered audio. Adds @volter/dawproject (a piece is a React component of DAWproject elements) and @volter/editor-dawproject (the piece document, the renderer and the checks), the volter-music skill, and src/lib/music/music-player.ts, which plays a render's loops, section loops switched on the bar line, stems and stingers through the game's own Web Audio graph. Selects the piece finder (src/music/**/*.tsx) in editor/volter.adapter.ts.",
   "documents": [
     {
       "finder": "piecesFromModules",
@@ -10,7 +10,7 @@
   ],
   "files": [
     "src/lib/music/music-player.ts",
-    "src/tools/music-render.tool.ts"
+    "editor/tools/music-render.tool.ts"
   ],
   "id": "music",
   "packageJson": {
@@ -19,7 +19,7 @@
       "@volter/editor-dawproject": "0.5.202"
     },
     "volterTools": [
-      "./src/tools/music-render.tool.ts"
+      "./editor/tools/music-render.tool.ts"
     ]
   },
   "requires": [],

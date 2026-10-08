@@ -281,7 +281,7 @@ export function workspaceApplies(id: EditorWorkspaceId): boolean {
  * The workspace a project opens in when this checkout has none recorded, in
  * order of who said it:
  *
- *  1. THE PROJECT — its `editor.workspace` in `volter.adapter.ts`, or an imported
+ *  1. THE PROJECT — its `editor.workspace` in `editor/volter.adapter.ts`, or an imported
  *     arrangement's id, when the project's shape meets it;
  *  2. THE PRODUCT — `frame/product.ts`'s `workspace`. A product is
  *     composition-scoped (ARCHITECTURE-CORE §The target shape, rule 3), and

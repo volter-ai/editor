@@ -116,7 +116,7 @@ import { readSharedSdkUrls } from '../vite-plugin-shared-sdk';
  *     `createRoot` reconciled a component whose hooks came from the project's
  *     react; and
  *  2. every project TOOL CONTRIBUTION — the four dev-tools inspector facets
- *     (`src/contributions/game-*.inspector.tsx`), the builder inspectors, the World
+ *     (`editor/contributions/game-*.inspector.tsx`), the builder inspectors, the World
  *     Labs asset inspector, the data-tables document — REGISTERED and then
  *     rendered as a crash box: `Invalid hook call … more than one copy of
  *     React in the same app`. Those render INSIDE the editor's own tree, so
@@ -949,7 +949,7 @@ async function main(): Promise<void> {
       // deliberately cannot resolve. Import analysis then hands each of those
       // URLs to `warmupRequest`, which resolves them against the project root,
       // fails, and logs a formatted `Pre-transform error` — measured on a fresh
-      // scaffold: 64 of them from ONE `src/contributions/*.inspector.tsx` request,
+      // scaffold: 64 of them from ONE `editor/contributions/*.inspector.tsx` request,
       // because nothing caches a failed warmup and each import site retries it.
       //
       // The plugin already opts out of Vite's dependency SCAN for exactly this

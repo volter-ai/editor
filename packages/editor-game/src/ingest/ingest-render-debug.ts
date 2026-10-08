@@ -272,7 +272,7 @@ export function wireIngestSystems(opts: {
   );
   const { adapter: debug, collisions } = mergeDebugAdapters([
     { label: "the game's own contract (window.volterGame.systems)", adapter: contractDebug },
-    { label: "its adapter's observation table (volter.adapter.ts)", adapter: observationDebug },
+    { label: "its adapter's observation table (editor/volter.adapter.ts)", adapter: observationDebug },
   ]);
   const declared = projectContractSystemAdapters(opts.contractSystems, opts.surface);
   const renderDebug = opts.runtime

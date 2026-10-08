@@ -100,7 +100,7 @@ export const WEAPON_PICKUP_AMMO: Record<WeaponKind, number> = {
 // Ordinary exported functions over this module's own store, reached from the
 // REPL as
 // `game.run(async ({ modules }) => (await modules('src/arena-state.ts')).holdFire())`
-// and from any editor contribution this game writes (`src/tools/`). Module
+// and from any editor contribution this game writes (`editor/tools/`). Module
 // scope, because they set up the MATCH, not any one component's mount.
 //
 // The two readings worth pulling out of `getArenaState()` are `respawnRemaining`

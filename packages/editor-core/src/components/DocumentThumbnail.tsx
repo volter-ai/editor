@@ -65,7 +65,7 @@ async function projectDependencyFingerprint(): Promise<string> {
   dependencyFingerprint ??= Promise.all([
     listProjectSourceFiles([
       MANIFEST_FILENAME,
-      'volter.adapter.ts',
+      'editor/volter.adapter.ts',
       '.storybook/**/*',
       'src/**/*.ts',
       'src/**/*.tsx',
@@ -96,7 +96,7 @@ function subscribeProjectDependencies(listener: () => void): () => void {
     if (
       !/^(src|public|\.storybook)\//.test(event.path) &&
       event.path !== MANIFEST_FILENAME &&
-      event.path !== 'volter.adapter.ts'
+      event.path !== 'editor/volter.adapter.ts'
     )
       return;
     dependencyFingerprint = null;
