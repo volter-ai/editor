@@ -1172,6 +1172,7 @@ export class EditorClient {
       type: 'capture-editor-chrome',
       ...(options?.scale === undefined ? {} : { scale: options.scale }),
       ...(options?.region === undefined ? {} : { region: options.region }),
+      ...(options?.name === undefined ? {} : { name: options.name }),
     });
   }
 

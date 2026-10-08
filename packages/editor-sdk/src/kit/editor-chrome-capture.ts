@@ -54,6 +54,9 @@ export interface EditorChromeCapture extends CompositeCapture {
 }
 
 export interface EditorChromeCaptureOptions {
+  /** What this photograph is of, in a few words ("aim up"): shown under the corner picture and
+   *  used in the CLI's file name. It does not change the pixels. */
+  name?: string;
   /**
    * Output pixels per CSS pixel. Defaults to the page's own
    * `devicePixelRatio`, so the default frame is the pixels the display holds.

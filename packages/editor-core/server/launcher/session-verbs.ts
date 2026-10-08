@@ -432,9 +432,9 @@ async function sessionLook(client: EditorClient, projectRoot: string): Promise<v
 // ---------------------------------------------------------------------------
 
 /** `parseArgs` option declarations for {@link capture}'s flags. */
-export const CAPTURE_OPTIONS = { region: { type: 'string' }, out: { type: 'string' }, force: { type: 'boolean' } } as const;
+export const CAPTURE_OPTIONS = { region: { type: 'string' }, name: { type: 'string' }, out: { type: 'string' }, force: { type: 'boolean' } } as const;
 
-export const CAPTURE_USAGE = 'capture [--region document|play|page] [--out <file.png> [--force]]';
+export const CAPTURE_USAGE = 'capture [--region document|play|page] [--name <words>] [--out <file.png> [--force]]';
 
 const CAPTURE_REGIONS = ['document', 'play', 'page'] as const;
 
@@ -458,8 +458,11 @@ const CAPTURE_REGIONS = ['document', 'play', 'page'] as const;
  * capture destroys the very thing it was going to be compared with. The check
  * runs before the capture, so a refusal costs nothing; the write itself is
  * exclusive too, so a file appearing in between is refused rather than lost.
+ *
+ * `--name` says what the photograph is of ("aim up"): the editor shows it under the corner
+ * picture, and the default file is named after it.
  */
-export async function capture(options: { region?: string | undefined; out?: string | undefined; force?: boolean | undefined }): Promise<void> {
+export async function capture(options: { region?: string | undefined; name?: string | undefined; out?: string | undefined; force?: boolean | undefined }): Promise<void> {
   const region = options.region ?? 'document';
   if (!(CAPTURE_REGIONS as readonly string[]).includes(region))
     throw new Error(`--region must be one of ${CAPTURE_REGIONS.join(', ')}; got ${region}.`);
@@ -468,10 +471,13 @@ export async function capture(options: { region?: string | undefined; out?: stri
   const named = options.out === undefined ? null : resolve(process.cwd(), options.out);
   if (named !== null && options.force !== true && existsSync(named))
     throw new Error(`${named} already exists; pass --force to replace it, or choose another --out.`);
+  const name = options.name?.trim();
+  if (options.name !== undefined && (!name || name.length > 80)) throw new Error('--name is a few words saying what the capture is of (1 to 80 characters).');
   const session = await sessionClient();
-  const shot = await session.client.captureEditorChrome({ region: region as (typeof CAPTURE_REGIONS)[number] });
+  const shot = await session.client.captureEditorChrome({ region: region as (typeof CAPTURE_REGIONS)[number], ...(name ? { name } : {}) });
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
-  const outPath = named ?? join(session.projectRoot, '.volter', 'captures', `${region}-${stamp}.png`);
+  const slug = name ? name.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '').slice(0, 48) : '';
+  const outPath = named ?? join(session.projectRoot, '.volter', 'captures', `${slug ? `${slug}-` : ''}${region}-${stamp}.png`);
   mkdirSync(dirname(outPath), { recursive: true });
   writeFileSync(outPath, Buffer.from(shot.base64, 'base64'), { flag: options.force === true ? 'w' : 'wx' });
   console.log(outPath);
