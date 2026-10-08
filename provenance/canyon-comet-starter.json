@@ -8,15 +8,15 @@
       "source": "model-editor/examples/canyon-comet/src/models/cube.blend",
       "path": "packages/cyclotron/starter/playable/src/models/canyon.blend",
       "sourceSha256": "31f75c6510d40880010bea76b5718eb854879ac35d89e78ef1b715e4d73a0e91",
-      "sha256": "d35f89e6099803ea80c459fa8165ad542c661baf560897ae07a7fae039e1d03a",
-      "change": "Renamed. Opened in the editor's Blender 5.2 session and saved there after removing the authoring scaffolding: the \"Kart reference • composition\" image Empty and its packed kart-reference.png, the \"Build Notes\" text, its text object and the \"Authoring board\", and the References and Notes collections. Nothing is packed: the two textures are Images that reference //../textures/asphalt.png and //../textures/sandstone.png, the PNGs beside it in the project, loaded fresh so no byte of the authoring machine's paths remains. The 1490 game objects are unchanged, and canyon.py rebuilds the same 1490 (names, parents, transforms, vertex counts, materials, modifiers)."
+      "sha256": "7820789a831e59b907da47ea809a0f42375a61c70d0795d816b3049eb8ae1e49",
+      "change": "Renamed. Opened in the editor's Blender 5.2 session and saved there after removing the authoring scaffolding: the \"Kart reference • composition\" image Empty and its packed kart-reference.png, the \"Build Notes\" text, its text object and the \"Authoring board\", and the References and Notes collections. Nothing is packed: the two textures are Images that reference //../textures/asphalt.png and //../textures/sandstone.png, the PNGs beside it in the project, loaded fresh so no byte of the authoring machine's paths remains. scenery_ao.py then baked ambient occlusion into the static scenery in the same session (the desert floor's top face became a 4 m grid; mesas, arch, floor, track, shoulders and racing edges gained a scenery_ao colour attribute, and their materials multiply it, through scenery copies of the two a kart or a shelf also wears). The 1490 objects are otherwise unchanged; the karts are untouched, and canyon.py rebuilds the same objects."
     },
     {
       "source": "model-editor/examples/canyon-comet/src/models/cube.py",
       "path": "packages/cyclotron/starter/playable/src/models/canyon.py",
       "sourceSha256": "0d8eb428788bb50e4f97246090467f405936d6e16dbce18df0509b41d470f8c9",
-      "sha256": "2c4681e3e18700e9048535cd399dff35caec57d69c8416b85155b02c44e61fa9",
-      "change": "Renamed (the authoring entry). Licence header covers all the bpy scripts; steps run in their own namespaces (each sets its own ROOT, so the rebuild stopped at the second step); prepare_reference.py is no longer run."
+      "sha256": "969a6468dbbbbfbaef4cb3b99c99f5ad223450de0a13afcddf2899085e7084e3",
+      "change": "Renamed (the authoring entry). Licence header covers all the bpy scripts; steps run in their own namespaces (each sets its own ROOT, so the rebuild stopped at the second step); prepare_reference.py is no longer run; scenery_ao.py runs last."
     },
     {
       "source": "model-editor/examples/canyon-comet/src/models/canyon.py",
@@ -87,6 +87,13 @@
       "sourceSha256": "d6db31946b09f9c534a9be82da2b9dfc69285c336b0c4af74f363800fa731526",
       "sha256": "6d1372552c5b3833ea4bfff5b62a11f630ae2788af3eea5146773d6dae23d2bc",
       "change": "Copyright line and a one-line description."
+    },
+    {
+      "source": null,
+      "path": "packages/cyclotron/starter/playable/src/models/scenery_ao.py",
+      "sourceSha256": null,
+      "sha256": "0656031924141cf3366718e4f04a420ac435dc7a9e0ebe1d9221e12da1f29dc0",
+      "change": "New, written for this starter: the last step canyon.py runs. Bakes ambient occlusion into a scenery_ao colour attribute on the static scenery (desert floor, track, shoulders and racing edges, mesas, the arch) with fixed rays against a BVH of the static scenery, and multiplies it into their Base Color; karts and anything that moves are neither baked nor occluders."
     },
     {
       "source": "model-editor/examples/canyon-comet/src/models/cube.play.ts",

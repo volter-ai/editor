@@ -33,7 +33,8 @@ The saved `canyon.blend` is the document, and it is authoritative: this script
 never rebuilds existing artwork. Run on a file without the `Canyon Comet`
 collection, it runs the milestone scripts beside it in order (the circuit,
 six karts and chase camera, then the canyon, textures from `src/textures/`,
-polish and details), each saving `src/models/canyon.blend`.
+polish and details, and last `scenery_ao.py`, which bakes ambient occlusion
+into the static scenery), each saving `src/models/canyon.blend`.
 
 Run it through the session's Blender, from this project:
 
@@ -49,6 +50,6 @@ if bpy.data.collections.get('Canyon Comet'):
     print('Canyon Comet is already authored. Existing geometry and manual edits preserved.')
 else:
     # Each step runs in its own namespace: they all name their own ROOT and helpers.
-    for step in ['circuit','environment','refine','polish','detail','complete_environment','kart_finish','driver_details','finish_scene']:
+    for step in ['circuit','environment','refine','polish','detail','complete_environment','kart_finish','driver_details','finish_scene','scenery_ao']:
         source=ROOT/'src'/'models'/(step+'.py')
         exec(compile(source.read_text(),step+'.py','exec'),{'__name__':'__main__','__file__':str(source)})
