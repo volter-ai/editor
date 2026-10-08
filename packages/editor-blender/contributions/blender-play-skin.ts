@@ -184,9 +184,9 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       if (set.previous) take(playedLayer(armature, set.previous, set.influence.weight, 'REPLACE'));
       take(playedLayer(armature, set.action, set.influence.weight, 'REPLACE'));
     }
-    // THE ACTIVE ACTION as Blender places it: alone and whole without strips, else at its influence
-    // and blend type over them, and not at all under a soloed track.
-    const strips = !!animation?.useNla && animation.tracks.some((track) => track.strips.length);
+    // THE ACTIVE ACTION as Blender places it: alone and whole when no strip is evaluated now, else
+    // at its influence and blend type over them, and not at all under a soloed track.
+    const strips = !!animation?.useNla && layers.length > 0;
     const over = !strips || !solo;
     for (const played of over ? armature.line : [])
       take(playedLayer(armature, played, strips ? animation!.influence : 1, strips ? animation!.blendType : 'REPLACE'));

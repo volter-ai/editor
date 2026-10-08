@@ -61,7 +61,7 @@ export function sceneLayers(armature: BlenderArmature, frame: number,
   if (action) {
     const clip = clips(action);
     if (clip === undefined) stack.waiting = true;
-    const layer = clip ? actionLayer(armature.animation, clip, frame) : null;
+    const layer = clip ? actionLayer(armature.animation, clip, frame, stack.layers.length + stack.skipped.length > 0) : null;
     if (layer) stack.layers.push(layer);
   }
   return stack;

@@ -37,7 +37,8 @@ const DEFAULTS: Record<Channel, readonly number[]> = {
   location: [0, 0, 0],
   rotation_quaternion: [1, 0, 0, 0],
   rotation_euler: [0, 0, 0],
-  rotation_axis_angle: [0, 0, 1, 0],
+  // Blender's NLA default for an axis-angle channel is all zeros (`anim_sys.cc`, zero_v4).
+  rotation_axis_angle: [0, 0, 0, 0],
   scale: [1, 1, 1],
 };
 
@@ -233,15 +234,16 @@ export function curveAt(curve: PoseCurve, frame: number): number {
 
 
 /**
- * THE ACTIVE ACTION'S LAYER at a scene frame, placed as `animsys_calculate_nla` places it: with no
- * NLA strips (or the NLA off) it is evaluated alone, whole, at full influence; over strips it is
- * one more strip spanning its own range, at its influence and blend type, holding or not past
- * that range as its extrapolation says; and a soloed track leaves it out.
+ * THE ACTIVE ACTION'S LAYER at a scene frame, placed as `animsys_calculate_nla` places it: when no
+ * strip is evaluated at this frame (none exist, all are muted or past their extrapolation, or the
+ * NLA is off) it is evaluated alone, whole, at full influence (`is_action_track_evaluated_without_nla`);
+ * over evaluated strips it is one more strip spanning its own range, at its influence and blend
+ * type, holding or not past that range as its extrapolation says; and a soloed track leaves it out.
  */
-export function actionLayer(animation: BlenderArmatureAnimation | undefined, clip: PoseClip, frame: number): PoseLayer | null {
+export function actionLayer(animation: BlenderArmatureAnimation | undefined, clip: PoseClip, frame: number,
+  stripsEvaluated: boolean): PoseLayer | null {
   const nla = animation?.useNla ?? true;
-  const strips = nla && (animation?.tracks.some((track) => track.strips.length) ?? false);
-  if (!strips) return { clip, frame, influence: 1, blend: 'REPLACE' };
+  if (!nla || !stripsEvaluated) return { clip, frame, influence: 1, blend: 'REPLACE' };
   if (animation!.tracks.some((track) => track.solo)) return null;
   const extrapolation = animation!.extrapolation;
   let at = frame;
