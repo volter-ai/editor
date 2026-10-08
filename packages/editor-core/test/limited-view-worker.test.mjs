@@ -48,7 +48,7 @@ function worker({ embedded = true, announced = true, owner = true, recordedEntri
     deliveries,
     request(clientId, navigation = false, pathname = '/__editor/assets') {
       let response;
-      const request = navigation ? { url: `${origin}/`, mode: 'navigate', method: 'GET' } : new Request(`${origin}${pathname}`);
+      const request = navigation ? { url: `${origin}${pathname.startsWith('/__editor/') ? '/' : pathname}`, mode: 'navigate', method: 'GET' } : new Request(`${origin}${pathname}`);
       listeners.fetch({ request, clientId, resultingClientId: '', respondWith: value => { response = value; } });
       return response;
     },
@@ -67,6 +67,8 @@ test("the host's own routes are left to the browser", () => {
   const view = worker();
   assert.equal(view.request('editor', false, '/api/account'), undefined);
   assert.equal(view.request('editor', false, '/auth/start'), undefined);
+  // A sign-in is a navigation, and it too is the browser's.
+  assert.equal(view.request('editor', true, '/auth/start'), undefined);
 });
 
 test('the view document opts in to cross-origin embedding after worker control', async () => {

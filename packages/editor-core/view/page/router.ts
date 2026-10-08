@@ -3,7 +3,7 @@
  *
  * The editor calls the same routes it calls in a session; the view's service worker hands each
  * one here (`service-worker.ts`), and this answers it against the project's files in memory
- * (`project-store.ts`). Five kinds of answer, and docs/LIMITED-VIEW.md lists every route:
+ * (`project-store.ts`). Six kinds of answer, and docs/LIMITED-VIEW.md lists every route:
  *
  *  - FILE ROUTES, over the store, with the session's request and response shapes
  *    (`server/routes/project-source.ts`, `project-identity.ts`, `project-state.ts`,
@@ -12,6 +12,8 @@
  *    empty and live in this page: a view must not carry its builder's.
  *  - THE COMMAND RELAY (`command-relay.ts`): `/__editor/command` reaches this tab's own command
  *    listener, as the session's relay does.
+ *  - THE VIEW'S AGENT (`agent/agent.ts`): `/__editor/view-agent/*`, the tool loop the Chat view
+ *    talks to.
  *  - REPORTS the page sends a session (tab presence, console and play reports, command
  *    acknowledgements), accepted and dropped: nothing in a static page reads them.
  *  - THE INTEGRATIONS' ROUTES (`volter.viewServing`, `@volter/editor-sdk/session/limited-view`).
@@ -32,6 +34,7 @@ import { globToRegExp } from '@volter/editor-sdk/session/source-glob';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { parseEditorSettings } from '@volter/editor-project/settings/schema';
 import { foldDataFileText } from '../../server/data-file-serialize';
+import { createViewAgent } from './agent/agent';
 import { createPageCommandRelay } from './command-relay';
 import type { SeededProjectStore } from './project-store';
 import { type LimitedViewConfig, VIEW_DIR, VIEW_MISS_HEADER } from './view-contract';
@@ -56,7 +59,7 @@ const ok = (): Response => json({ ok: true });
 /** What a refused family of routes is called, in a person's words. */
 const UNAVAILABLE_FEATURES: readonly [RegExp, string][] = [
   [/^\/__editor\/(account|twin)/, 'Your Volter account'],
-  [/^\/__editor\/(harness-chat|worktrees|project-work|repository-presence)/, 'Chat and agents'],
+  [/^\/__editor\/(harness-chat|worktrees|project-work|repository-presence)/, 'The local editor\'s agents and worktrees'],
   [/^\/__editor\/(git|share-control)/, 'Git, publishing and sharing'],
   [/^\/__editor\/collaboration/, 'Collaboration'],
   [/^\/__editor\/recording/, 'Recording'],
@@ -198,9 +201,12 @@ export function createLimitedViewRouter(options: LimitedViewRouterOptions): (req
     });
   };
 
+  const relay = createPageCommandRelay(json);
   const kit: ViewRoute[] = [
     // `command`, `command-result`, `contributed-commands`: the session's relay, in the page.
-    ...createPageCommandRelay(json),
+    ...relay.routes,
+    // `view-agent/*`: the agent that runs in this page, for the Chat view.
+    ...createViewAgent(config, { store, command: relay.run }, json),
     {
       method: 'GET',
       match: /^\/__editor\/served-modules$/,

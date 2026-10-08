@@ -176,7 +176,7 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
     initialColorTheme: { themeType: config.product.colorTheme },
     windowIndicator: {
       label: '$(eye) Limited view',
-      tooltip: `A limited view of ${config.project.name}. Chat, git and code changes run in the local editor: ${config.product.install}`,
+      tooltip: `A limited view of ${config.project.name}. It works on this tab's copy of the project; saving and git are in the local editor: ${config.product.install}`,
     },
     // Code-OSS's chat tips advertise agent features this view's chat cannot run.
     configurationDefaults: { 'workbench.startupEditor': 'none', 'chat.tips.enabled': false },

@@ -1,10 +1,16 @@
-// The limited view's chat stand-in (docs/LIMITED-VIEW.md). A web extension, plain JavaScript,
-// no build step: the release packages it as a built-in extension through vsce's file list.
+// The limited view's Chat (docs/LIMITED-VIEW.md). A web extension, plain JavaScript, no build
+// step: the release packages it as a built-in extension through vsce's file list.
 //
-// Chat needs the agent runtime the local editor starts, and a limited view is a static page, so
-// every request is answered here, in the Chat view, with the product's install command. The
-// command comes from the product's own declaration (`volter.product.install`), which the overlay
-// writes into `view-product.json` beside this file.
+// A session's Chat drives a coding agent on the person's machine. A view has no machine, so its
+// agent is a tool loop in the page (`view/page/agent/agent.ts`) on a model the view's HOST
+// provides, and this is that loop's face in the Chat view: it sends the person's message to the
+// page, shows what the loop says and does, and says in place what stands between the person and
+// an answer (signing in, a day's allowance used, a host with no AI) with the way on.
+//
+// It talks to the page over `/__editor/view-agent/*`, which the view's service worker forwards
+// to the page whole; a turn's events are read by asking again. The product's name and install
+// command come from the product's own declaration, which the overlay writes into
+// `view-product.json` beside this file.
 //
 // The participant is the workbench's default one, and it registers NO language model: with none
 // in the build, the workbench hands every request straight to the default participant
@@ -14,6 +20,8 @@
 const vscode = require('vscode');
 
 const FALLBACK = { displayName: 'the editor', install: 'npx @volter/cyclotron create my-game' };
+/** The page this view runs in: the extension host is a worker of the same origin. */
+const ORIGIN = globalThis.location.origin;
 
 async function readProduct(context) {
 	try {
@@ -28,46 +36,147 @@ async function readProduct(context) {
 	}
 }
 
-function message(product) {
-	return [
-		`**Chat runs in the local version of ${product.displayName}.**`,
-		'',
-		'This is a limited view: it shows this project the way the editor does, and you can look around and try edits here, but the agent needs the editor running on your own machine. Install it and start a project:',
-		'',
-		'```sh',
-		product.install,
-		'```',
-	].join('\n');
+/** One of the page's agent routes, answered as JSON; `{}` when the page gave none. */
+async function page(route, method = 'GET', body) {
+	const response = await fetch(`${ORIGIN}/__editor/view-agent/${route}`, {
+		method,
+		...(body === undefined ? {} : { headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(body) }),
+	});
+	try {
+		return { status: response.status, ...(await response.json()) };
+	} catch {
+		return { status: response.status };
+	}
+}
+
+const dollars = (micros) => `$${(micros / 1_000_000).toFixed(2)}`;
+
+function resetIn(resetsAt) {
+	const minutes = Math.max(1, Math.round((Date.parse(resetsAt) - Date.now()) / 60_000));
+	return minutes >= 60 ? `in about ${Math.round(minutes / 60)} h` : `in ${minutes} min`;
+}
+
+function installLines(product) {
+	return ['```sh', product.install, '```'];
+}
+
+/** The ways on when Volter's AI is not available to this person right now. */
+function waysOn(stream, product, { waitlisted }) {
+	stream.markdown(['', '', `**Keep going on your own machine.** The local ${product.displayName} runs your own coding agent, with no daily limit from us:`, '', ...installLines(product), ''].join('\n'));
+	stream.button({ command: 'volter.viewChat.copyInstall', title: 'Copy install command' });
+	if (waitlisted) stream.markdown('\n\nYou are on the list for the **Volter plan** ($19.99/month). We will email you when it opens.');
+	else stream.button({ command: 'volter.viewChat.joinWaitlist', title: 'Volter plan, $19.99/month: join the waitlist' });
 }
 
 async function activate(context) {
 	const product = await readProduct(context);
-	const text = message(product);
 
 	context.subscriptions.push(vscode.commands.registerCommand('volter.viewChat.copyInstall', async () => {
 		await vscode.env.clipboard.writeText(product.install);
 		vscode.window.showInformationMessage(`Copied: ${product.install}`);
 	}));
+	// Sign-in is a tab of its own: the view runs framed, and a sign-in page does not.
+	context.subscriptions.push(vscode.commands.registerCommand('volter.viewChat.signIn', async () => {
+		await vscode.env.openExternal(vscode.Uri.parse(`${ORIGIN}/auth/start`));
+	}));
+	context.subscriptions.push(vscode.commands.registerCommand('volter.viewChat.joinWaitlist', async () => {
+		const joined = await page('waitlist', 'POST').catch(() => ({}));
+		if (joined.waitlisted === true) vscode.window.showInformationMessage('You are on the list for the Volter plan. We will email you when it opens.');
+		else if (joined.code === 'signed_out') vscode.window.showWarningMessage('Sign in with Volter first, so we know who to tell.');
+		else vscode.window.showWarningMessage('The waitlist could not be reached. Try again in a moment.');
+	}));
 
-	const participant = vscode.chat.createChatParticipant('volter.viewChat', (_request, _context, stream) => {
-		stream.markdown(text);
-		stream.button({ command: 'volter.viewChat.copyInstall', title: 'Copy install command' });
+	const participant = vscode.chat.createChatParticipant('volter.viewChat', async (request, chatContext, stream, token) => {
+		const account = await page('account').catch(() => ({ available: false }));
+		// A host with no account service, or one where nobody can sign in: this view has no AI of its own.
+		if (account.available !== true || (account.signedIn !== true && account.signIn === 'unavailable')) {
+			stream.markdown([`**Chat runs in the local version of ${product.displayName}.**`, '', 'This view has no assistant of its own. You can look around and try edits here; the agent needs the editor on your own machine:', '', ...installLines(product)].join('\n'));
+			stream.button({ command: 'volter.viewChat.copyInstall', title: 'Copy install command' });
+			return {};
+		}
+		if (account.signedIn !== true) {
+			stream.markdown(`**Sign in with Volter to use the assistant here.** A Volter account includes ${dollars(account.ai?.dailyLimit ?? 5_000_000)} of AI a day in the browser. Sign-in opens in a new tab; come back here and send your message again.\n\n`);
+			stream.button({ command: 'volter.viewChat.signIn', title: 'Sign in with Volter' });
+			stream.markdown(['', '', `Or run ${product.displayName} on your own machine, with your own agent:`, '', ...installLines(product)].join('\n'));
+			stream.button({ command: 'volter.viewChat.copyInstall', title: 'Copy install command' });
+			return {};
+		}
+		if (account.ai?.state === 'off') {
+			stream.markdown('**Volter AI is off right now.**');
+			waysOn(stream, product, account);
+			return {};
+		}
+
+		const started = await page('turn', 'POST', { text: request.prompt, fresh: chatContext.history.length === 0 });
+		if (typeof started.turn !== 'string') {
+			stream.markdown(started.code === 'turn_running' ? 'The assistant is still working on your last message. Stop it or wait for it to finish.' : `The assistant could not start: ${started.error ?? 'the page did not answer'}.`);
+			return {};
+		}
+		token.onCancellationRequested(() => { void page('stop', 'POST').catch(() => {}); });
+
+		// Events are read by asking again. Text grows in place, so each ask says how many events and
+		// how much of the last one's text it already has.
+		let after = 0;
+		let seen = 0;
+		for (;;) {
+			let batch;
+			try {
+				batch = await page(`events?turn=${encodeURIComponent(started.turn)}&after=${after}&seen=${seen}`);
+			} catch {
+				stream.markdown('\n\nThe page stopped answering. Reload the view to start again.');
+				return {};
+			}
+			if (batch.status !== 200) {
+				stream.markdown('\n\nThe page lost this turn. Send your message again.');
+				return {};
+			}
+			if (typeof batch.more === 'string') {
+				stream.markdown(batch.more);
+				seen += batch.more.length;
+			}
+			for (const event of batch.events ?? []) {
+				after += 1;
+				seen = 0;
+				if (event.kind === 'text') {
+					stream.markdown(event.text);
+					seen = event.text.length;
+				} else if (event.kind === 'tool') {
+					stream.progress(event.label);
+				} else if (event.kind === 'error') {
+					stream.markdown(`\n\n**That did not finish.** ${event.message}`);
+				} else if (event.kind === 'refused') {
+					if (event.code === 'signed_out') {
+						stream.markdown('\n\n**You are signed out.** Sign in again and send your message once more.\n\n');
+						stream.button({ command: 'volter.viewChat.signIn', title: 'Sign in with Volter' });
+					} else {
+						stream.markdown(`\n\n**${event.message}**${event.resetsAt ? ` It resets at 00:00 UTC, ${resetIn(event.resetsAt)}.` : ''}`);
+						waysOn(stream, product, account);
+					}
+				}
+			}
+			if (batch.done === true && (batch.events ?? []).length === 0 && typeof batch.more !== 'string') break;
+		}
+		const left = await page('account').catch(() => ({}));
+		if (left.signedIn === true && left.ai && typeof left.ai.remaining === 'number') {
+			stream.markdown(`\n\n---\n*${dollars(left.ai.remaining)} of today's ${dollars(left.ai.dailyLimit)} left.*`);
+		}
 		return {};
 	});
 	participant.iconPath = new vscode.ThemeIcon('chat-sparkle');
 	// What the empty Chat view says before anyone types (the `defaultChatParticipant` proposal's
-	// welcome): the same fact and command, with a button the overlay's welcome patch draws for a
-	// standalone trusted command link.
+	// welcome).
 	const welcome = new vscode.MarkdownString([
-		`**This is a limited view.** Chat runs in the local version of ${product.displayName}. Install it and start a project:`,
+		`**${product.displayName} in your browser.** Ask the assistant to change the model, the game or its UI. It works on this tab's copy of the project; nothing is saved when the tab closes.`,
 		'',
-		'```sh',
-		product.install,
-		'```',
+		'The assistant needs a Volter account. [Sign in with Volter](command:volter.viewChat.signIn)',
+		'',
+		`To keep your work and use your own agent, install ${product.displayName}:`,
+		'',
+		...installLines(product),
 		'',
 		'[Copy install command](command:volter.viewChat.copyInstall)',
 	].join('\n'));
-	welcome.isTrusted = { enabledCommands: ['volter.viewChat.copyInstall'] };
+	welcome.isTrusted = { enabledCommands: ['volter.viewChat.copyInstall', 'volter.viewChat.signIn'] };
 	participant.additionalWelcomeMessage = welcome;
 	context.subscriptions.push(participant);
 }

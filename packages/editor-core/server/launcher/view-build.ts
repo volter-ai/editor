@@ -281,10 +281,10 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
       .map((file) => file.path)
       .filter((path) => HOST_PREFIXES.some((prefix) => `/${path}`.startsWith(prefix) || `/${path}`.startsWith(`/public${prefix}`)));
     if (shadowed.length > 0) {
-      log(`  WARNING: ${shadowed.length} project file(s) sit where the view's host answers (${HOST_PREFIXES.join(', ')}) and will not load in the view:`);
+      log(`  WARNING: ${shadowed.length} project file(s) have URLs under ${HOST_PREFIXES.join(' or ')}, which the view leaves to its host. The editor still opens them; the URL, and any import that resolves to it, fails in the view:`);
       for (const path of shadowed.slice(0, 20)) log(`    ${path}`);
       if (shadowed.length > 20) log(`    … and ${shadowed.length - 20} more`);
-      log('  Move them (code under src/, assets elsewhere under public/) for the view to serve them.');
+      log('  Move them (code under src/, assets elsewhere under public/) for those URLs to work in the view.');
     }
 
     // ---- 1. the project's own session, headless.
@@ -422,6 +422,13 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
       // ends, so the crawl is re-run until nothing new arrived.
       while (queue.length > 0) await Promise.all(Array.from({ length: CRAWL_CONCURRENCY }, worker));
       log(`  ${recorded} modules compiled by the session`);
+      // A compiled module the published files do not list (one .gitignore leaves out, imported by
+      // committed code) can sit there too; the recording is where it shows.
+      const shadowedModules = Object.keys(entries).filter((url) => HOST_PREFIXES.some((prefix) => url.startsWith(prefix)));
+      if (shadowedModules.length > 0) {
+        log(`  WARNING: ${shadowedModules.length} compiled module(s) are recorded under ${HOST_PREFIXES.join(' or ')}, which the view leaves to its host; importing them fails in the view:`);
+        for (const url of shadowedModules.slice(0, 20)) log(`    ${url}`);
+      }
     } finally {
       stopSession(child);
       logFile.end();

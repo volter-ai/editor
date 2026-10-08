@@ -17,7 +17,8 @@ import type { ViewRoute } from '@volter/editor-sdk/session/limited-view';
 import { COMMAND_RESULT_RECEIPT_EVENT } from '@volter/editor-sdk/session/editor-control-protocol';
 import { relayCommandTimeoutMs } from '@volter/editor-sdk/session/command-table';
 
-interface CommandResult {
+/** What a command answered: the session's `{ ok, error?, data? }`, and whether its budget ran out. */
+export interface PageCommandResult {
   readonly ok: boolean;
   readonly error?: string;
   readonly data?: Record<string, unknown>;
@@ -41,35 +42,46 @@ async function readObject(request: Request): Promise<Record<string, unknown> | n
   }
 }
 
-export function createPageCommandRelay(json: (body: unknown, status?: number) => Response): readonly ViewRoute[] {
-  const pending = new Map<string, (result: CommandResult) => void>();
+export interface PageCommandRelay {
+  /** The relay's routes, for the page's router. */
+  readonly routes: readonly ViewRoute[];
+  /** Run one command from this page itself, with no request through the service worker. */
+  run(command: Record<string, unknown>): Promise<PageCommandResult>;
+}
+
+export function createPageCommandRelay(json: (body: unknown, status?: number) => Response): PageCommandRelay {
+  const pending = new Map<string, (result: PageCommandResult) => void>();
   /** The budgets the tab's contributed verbs declared (`/__editor/contributed-commands`). */
   const contributedTimeouts = new Map<string, number>();
 
-  return [
+  const run = async (command: Record<string, unknown>): Promise<PageCommandResult> => {
+    const source = controlSource();
+    if (!source) return { ok: false, timedOut: true, error: 'Command timed out — no editor connected.' };
+    const type = String(command['type']);
+    const requestId = crypto.randomUUID();
+    const budget = contributedTimeouts.get(type) ?? relayCommandTimeoutMs(type, command);
+    return new Promise<PageCommandResult>((resolve) => {
+      const timer = setTimeout(() => {
+        pending.delete(requestId);
+        resolve({ ok: false, timedOut: true, error: `The editor did not answer '${type}' within ${budget} ms.` });
+      }, budget);
+      pending.set(requestId, (answered) => {
+        clearTimeout(timer);
+        pending.delete(requestId);
+        resolve(answered);
+      });
+      source.dispatchEvent(new MessageEvent('editor-command', { data: JSON.stringify({ ...command, _requestId: requestId }) }));
+    });
+  };
+
+  const routes: ViewRoute[] = [
     {
       method: 'POST',
       match: /^\/__editor\/command$/,
       handle: async (request) => {
         const command = await readObject(request);
         if (!command || typeof command['type'] !== 'string') return json({ ok: false, error: 'A command is a JSON object with a type.' }, 400);
-        const source = controlSource();
-        if (!source) return json({ ok: false, error: 'Command timed out — no editor connected.' }, 504);
-        const type = command['type'];
-        const requestId = crypto.randomUUID();
-        const budget = contributedTimeouts.get(type) ?? relayCommandTimeoutMs(type, command);
-        const result = await new Promise<CommandResult>((resolve) => {
-          const timer = setTimeout(() => {
-            pending.delete(requestId);
-            resolve({ ok: false, timedOut: true, error: `The editor did not answer '${type}' within ${budget} ms.` });
-          }, budget);
-          pending.set(requestId, (answered) => {
-            clearTimeout(timer);
-            pending.delete(requestId);
-            resolve(answered);
-          });
-          source.dispatchEvent(new MessageEvent('editor-command', { data: JSON.stringify({ ...command, _requestId: requestId }) }));
-        });
+        const result = await run(command);
         // `commandResponseFor` (`server/server-utils.ts`), without the console ledger a view does not keep.
         if (result.ok) return json({ ok: true, ...(result.data ?? {}) });
         if (result.timedOut) return json({ ok: false, error: result.error }, 504);
@@ -115,4 +127,5 @@ export function createPageCommandRelay(json: (body: unknown, status?: number) =>
       },
     },
   ];
+  return { routes, run };
 }
