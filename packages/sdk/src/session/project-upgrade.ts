@@ -187,10 +187,16 @@ function jsonLayout(raw: string): (value: unknown) => string {
 /** `npm view <spec> version dependencies --json`, parsed. */
 function npmView(spec: string): Promise<Release> {
   return new Promise((done, fail) => {
-    // npm is npm.cmd on Windows, and node refuses to spawn a .cmd without a shell (EINVAL).
-    const child = spawn('npm', ['view', spec, 'version', 'dependencies', '--json'], {
-      windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], shell: process.platform === 'win32',
-    });
+    // npm is npm.cmd on Windows, and node refuses to spawn a .cmd without a shell (EINVAL). The shell gets one
+    // command line (arguments beside `shell` print Node's DEP0190 warning), so the spec, which carries the version
+    // the person typed, is a package name and a version or tag, nothing a shell reads.
+    if (!/^@?[\w.-]+(?:\/[\w.-]+)?@[\w.+-]+$/.test(spec)) {
+      fail(new Error(`${spec} is not a package and a version or tag.`));
+      return;
+    }
+    const child = process.platform === 'win32'
+      ? spawn(`npm view ${spec} version dependencies --json`, { windowsHide: true, stdio: ['ignore', 'pipe', 'pipe'], shell: true })
+      : spawn('npm', ['view', spec, 'version', 'dependencies', '--json'], { stdio: ['ignore', 'pipe', 'pipe'] });
     let out = '';
     let err = '';
     child.stdout.on('data', (chunk: Buffer) => { out += chunk.toString('utf8'); });

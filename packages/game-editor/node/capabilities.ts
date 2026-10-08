@@ -9,7 +9,7 @@
  * The mechanism is the scaffolder's (`./scaffold/catalog.ts`), the same code
  * `create` uses to add a template's capabilities.
  */
-import { execFileSync } from 'node:child_process';
+import { execFileSync, execSync } from 'node:child_process';
 import { existsSync } from 'node:fs';
 import { join, resolve } from 'node:path';
 import { findProjectRootFrom } from '@volter/live';
@@ -132,10 +132,12 @@ export function runCapabilityCommand(verb: CapabilityVerb, ids: string[], option
         return;
       }
       if (!json) log(`Installing dependencies: ${dependencyNames.join(', ')}`);
-      execFileSync('npm', ['install', '--prefer-offline', '--no-audit', '--no-fund', '--loglevel=error'], {
-        windowsHide: true,
-        cwd: projectDir, stdio: json ? 'ignore' : 'inherit', shell: process.platform === 'win32',
-      });
+      // npm is npm.cmd on Windows, started only through a shell, which gets one command line: arguments beside
+      // `shell` print Node's DEP0190 warning.
+      const install = ['install', '--prefer-offline', '--no-audit', '--no-fund', '--loglevel=error'];
+      const options = { windowsHide: true, cwd: projectDir, stdio: json ? 'ignore' as const : 'inherit' as const };
+      if (process.platform === 'win32') execSync(`npm ${install.join(' ')}`, options);
+      else execFileSync('npm', install, options);
       // That install re-resolved the project's packages from the registry;
       // re-apply the checkout link `create` made, as `create` does.
       linkCheckoutPackages(projectDir, monoRoot);
