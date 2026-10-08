@@ -176,7 +176,7 @@ sees:
 | `volter.model-play.step` | `{ count?: 1–600 }`, while paused |
 | `volter.model-play.speed` | `{ speed: 0.25 \| 0.5 \| 1 \| 2 \| 4 }` |
 | `volter.model-play.restart` | — |
-| `volter.model-play.mode` | `{ mode?: 'game' \| 'movie' }` |
+| `volter.model-play.mode` | `{ mode?: 'game' \| 'animation' }` |
 | `volter.model-play.autoplay` | `{ on: boolean }` — the game's bot drives, or the person does |
 
 Each takes an optional `document` (the model document's id) and otherwise acts on the model

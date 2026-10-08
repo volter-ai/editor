@@ -367,8 +367,9 @@ diagnosing a problem. Do not call `editor.reloadPage()` to reveal new
 files, boards, references or scripts: a reload interrupts the editor and its
 chat, so reserve it for an explicit request or a diagnosed problem.
 
-The bottom area has two layouts, Game (the Game panel) and Movie (the
-Timeline); they arrange the editor and do not change what plays. Play is
+The bottom area has two views, Game (the Game panel) and Animation (Blender's
+Timeline, Action Editor and NLA editor); they arrange the editor and do not
+change what plays, and a running game keeps running in either. Play is
 running the game.
 
 Commands, all through `npx --no-install cyclotron`:
@@ -393,9 +394,11 @@ Commands, all through `npx --no-install cyclotron`:
   `update` calls; the game's clock stops) and `play resume`; `play step
   [count]` (one 1/60 s update of a paused game each); `play speed
   0.25|0.5|1|2|4` (scales the `dt` the script is handed); `play restart` (a
-  fresh copy of the model, clock at zero); `play mode game|movie` (the layout).
+  fresh copy of the model, clock at zero); `play mode game|animation` (the view).
 - Timeline: `eval 'return await editor.command("volter.timeline.frame", { frame: 24 })'`
-  moves the playhead.
+  moves the playhead; `volter.timeline.editor` with `{ editor: "action" }` shows the
+  Action Editor (the clip an armature plays, its keys) and `{ editor: "nla" }` the
+  NLA editor (its tracks). While a game runs they show what it is animating.
 
 If the project uses a Volter World, run app and test commands through that World.
 

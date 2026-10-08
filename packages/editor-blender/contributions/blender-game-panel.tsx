@@ -7,12 +7,12 @@
  * ## One Play, here
  *
  * The confusion it ends was two Plays on one screen: the header's (the play script) and the
- * Timeline's (the file's animation). A mode now chooses which one exists. In Movie mode the
- * Timeline's transport is the only one; in Game mode this panel's Play is the only one, and the
- * Timeline is not mounted. The 3D viewport's header carries neither (`blender-header-menus.tsx`
+ * Timeline's (the file's animation). A mode now chooses which one is shown. In Animation mode the
+ * Timeline's transport is the one shown; in Game mode this panel's Play is, and the Timeline is
+ * not mounted. A game started in Game mode keeps running in Animation mode. The 3D viewport's header carries neither (`blender-header-menus.tsx`
  * is its menus alone). Escape still stops a game, from the stage, as before.
  *
- * ## The Game | Movie switch is the bottom area's own
+ * ## The Game | Animation switch is the bottom area's own
  *
  * Switching modes swaps this area and nothing else, so the switch stands at the leading edge of
  * the area's header row, in place of its title — in this panel and in the Timeline alike
@@ -24,7 +24,7 @@
  *
  * Blender's Timeline strip (`model.layout.ts`'s measured 0.0719 — 63 px of an 880-px column)
  * showed this panel's play log as one clipped line. So Game mode asks the area for
- * {@link GAME_PANEL_RATIO} (`setWorkspaceAreaRatio`, by the bottom area's document) and Movie
+ * {@link GAME_PANEL_RATIO} (`setWorkspaceAreaRatio`, by the bottom area's document) and Animation
  * mode gives Blender's back: each switch stands the area up at its mode's size, as a workspace
  * switch does, and the sash stays the person's in between.
  *
@@ -89,6 +89,7 @@ import {
   type ModelPlayMode,
   modelDocumentSource,
   modelPlayMode,
+  playModeOf,
   playModeVersion,
   servedModelDocument,
   setChosenPlayMode,
@@ -112,12 +113,11 @@ function extension(): DocumentPlayExtension | null {
 }
 
 /**
- * FLIP A DOCUMENT BETWEEN GAME AND MOVIE, and leave nothing running that the new mode has no
- * control for: a game playing when Movie is chosen is stopped (Movie has no Stop), and the
- * file's animation playing when Game is chosen is paused (Game has no Timeline).
+ * FLIP A DOCUMENT BETWEEN GAME AND ANIMATION. A running game keeps running when Animation is
+ * chosen: the animation editors then show what it animates. The file's animation playing in the
+ * Timeline when Game is chosen is paused (Game has no Timeline transport).
  */
 export function switchPlayMode(documentId: string, mode: ModelPlayMode): void {
-  if (mode === 'movie' && extension()?.playing(documentId)) extension()?.setPlaying(documentId, false);
   if (mode === 'game' && blenderSkin.transport?.snapshot().playbackState === 'playing') blenderSkin.transport.pause();
   setChosenPlayMode(documentId, mode);
 }
@@ -220,8 +220,9 @@ registerViewVerbs({
         const documentId = verbDocument(args);
         const mode = args?.['mode'] ?? args?.['to'];
         if (mode !== undefined) {
-          if (mode !== 'game' && mode !== 'movie') throw new Error(`mode is \`game\` or \`movie\`; got ${String(mode)}.`);
-          switchPlayMode(documentId, mode);
+          const asked = playModeOf(mode);
+          if (asked === null) throw new Error(`mode is \`game\` or \`animation\`; got ${String(mode)}.`);
+          switchPlayMode(documentId, asked);
         }
         return gameState(documentId);
       },
@@ -232,9 +233,9 @@ registerViewVerbs({
       run: (args) => { const documentId = verbDocument(args); switchPlayMode(documentId, 'game'); return gameState(documentId); },
     },
     {
-      id: 'movie-mode',
-      title: 'Game: Switch to Movie Mode',
-      run: (args) => { const documentId = verbDocument(args); switchPlayMode(documentId, 'movie'); return gameState(documentId); },
+      id: 'animation-mode',
+      title: 'Game: Switch to Animation Mode',
+      run: (args) => { const documentId = verbDocument(args); switchPlayMode(documentId, 'animation'); return gameState(documentId); },
     },
     {
       // PLAY IS GAME MODE'S CONTROL, so asking for it puts the document in Game mode: the person
@@ -439,9 +440,9 @@ export function PlayModeSwitch({ title }: { readonly title: string }) {
     </GameButton>
   );
   return (
-    <div role="group" aria-label="Game or Movie mode" data-testid="model-play-mode" style={{ display: 'flex' }}>
-      {cell('game', 'Game', 'Game mode: this area is the Game panel, with Play, pause, step, speed, restart and autoplay')}
-      {cell('movie', 'Movie', 'Movie mode: this area is the Timeline, playing the file’s animation')}
+    <div role="group" aria-label="Game or Animation" data-testid="model-play-mode" style={{ display: 'flex' }}>
+      {cell('game', 'Game', 'Game: this area is the Game panel, with Play, pause, step, speed, restart and autoplay')}
+      {cell('animation', 'Animation', 'Animation: this area is Blender’s animation editors (Timeline, Action Editor, NLA); a running game keeps running and they show what it animates')}
     </div>
   );
 }

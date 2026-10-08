@@ -370,6 +370,40 @@ export class BlenderSkinDirector {
     this.#pose();
   }
 
+  // ------------------------------------------------------------ what the animation editors read
+
+  /** The armature the editors describe (the active object's, else the one with an action). */
+  get subject(): string | null {
+    return this.#armature;
+  }
+
+  /** Every action in the file, by name: what the Action Editor's selector offers. */
+  actionNames(): string[] {
+    return Object.keys(this.#view?.animationFacts().actions ?? {}).sort((a, b) => a.localeCompare(b));
+  }
+
+  /** The Action Editor's channels: the subject's active action, per bone, the frames it keys. */
+  channels(): { bone: string; keys: number[] }[] {
+    const bones = new Map<string, Set<number>>();
+    for (const track of this.#clip?.tracks ?? []) {
+      const raw = atob(track.keysBase64);
+      const bytes = new Uint8Array(raw.length);
+      for (let i = 0; i < raw.length; i++) bytes[i] = raw.charCodeAt(i);
+      const keys = new Float32Array(bytes.buffer, 0, bytes.length >> 2);
+      let frames = bones.get(track.bone);
+      if (!frames) bones.set(track.bone, frames = new Set());
+      for (let i = 0; i < keys.length; i += 6) frames.add(Math.round(keys[i]! * 1000) / 1000);
+    }
+    return [...bones].map(([bone, frames]) => ({ bone, keys: [...frames].sort((a, b) => a - b) }));
+  }
+
+  /** Every armature with its NLA stack and active action, as the frame describes them. */
+  stacks(): { armature: string; action: string | null; animation: BlenderArmature['animation'] }[] {
+    const facts = this.#view?.animationFacts();
+    if (!facts) return [];
+    return Object.entries(facts.armatures).map(([armature, entry]) => ({ armature, action: entry.action ?? null, animation: entry.animation }));
+  }
+
   /** The scene's name, for the one address the Timeline writes to. */
   get scene(): string | null {
     return this.#clip?.scene ?? null;

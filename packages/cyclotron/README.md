@@ -30,9 +30,9 @@ and Chat ready. Later launches reopen that starter and preserve your edits.
 | UI | React — `src/ui/` |
 | 3D modelling | Blender 5.2 compiled to WebAssembly |
 
-## Game and Movie
+## Game and Animation
 
-The Game | Movie switch at the left of the bottom panel's header chooses what that panel is for.
+The Game | Animation switch at the left of the bottom panel's header chooses what that panel is for.
 **Game** (the default for a model with a `*.play.ts` beside its `.blend`) shows the Game
 panel: Play / Stop, Pause / Resume, Step one tick, Restart, speed (0.25× to 4×) and the
 game's clock — simulation time and tick. Beside them, the **Autoplay** toggle lets the game's
@@ -41,8 +41,10 @@ who is driving, and the play log as it is written, filterable by kind. Autoplay 
 Play and Restart, and any key or click in the game hands control back to you. A bot exists
 only once the game runs, so the panel says "Available once the game is running" while stopped
 (pressing Autoplay then arms it for the next Play) and "No autoplay — this game doesn't
-provide a bot" for a game without one. **Movie** (the default otherwise) shows Blender's
-Timeline, playing the file's animation. Each model keeps your choice for the session.
+provide a bot" for a game without one. **Animation** (the default otherwise) shows Blender's
+animation editors: the Timeline, the Dope Sheet's Action Editor (pick the clip an armature
+plays) and the NLA editor. Switching to Animation leaves a running game running, and the
+editors then show what it animates. Each model keeps your choice for the session.
 
 ## Your agent
 

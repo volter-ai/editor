@@ -1,12 +1,16 @@
 /**
- * GAME OR MOVIE — what a model document's bottom area and transport are for (owner, 2026-10-06:
- * "it's very confusing that the timeline at the bottom has a play button AND there's a play
- * button at the top … allow the user to flip between game and movie mode").
+ * GAME OR ANIMATION — what a model document's bottom area shows (owner, 2026-10-06: "allow the
+ * user to flip between game and movie mode"; renamed 2026-10-08: "game/animation … so it's clear
+ * the bottom panel is not mutually exclusive, since animation can be used for games too").
  *
- * - **Movie** is Blender's own Layout screen: the Timeline at the bottom, its transport playing
- *   the file's animation, and no game Play anywhere.
- * - **Game** replaces the Timeline with the Game panel (`../contributions/blender-game-panel.tsx`):
- *   the ONE Play, and the run's pause, step, speed, restart and clock.
+ * - **Animation** is Blender's animation editors: the Timeline, the Dope Sheet's Action Editor and
+ *   the NLA editor (`../contributions/blender-animation-editors.tsx`). While a game runs they show
+ *   what the game is animating, read-only.
+ * - **Game** is the Game panel (`../contributions/blender-game-panel.tsx`): the ONE Play, and the
+ *   run's pause, step, speed, restart and clock.
+ *
+ * They are two views of one bottom area, not two exclusive states: switching to Animation leaves a
+ * running game running.
  *
  * The switch is the bottom area's own, at the leading edge of its header row in the Game panel
  * and the Timeline alike (`PlayModeSwitch`, `blender-game-panel.tsx`); this module is the state
@@ -28,7 +32,12 @@ import {
   subscribeDocumentPlayExtensions,
 } from '@volter/editor-sdk/kit/document-play-extension';
 
-export type ModelPlayMode = 'game' | 'movie';
+export type ModelPlayMode = 'game' | 'animation';
+
+/** A mode as asked for: `movie` is the earlier name of `animation`, still accepted. */
+export function playModeOf(value: unknown): ModelPlayMode | null {
+  return value === 'game' ? 'game' : value === 'animation' || value === 'movie' ? 'animation' : null;
+}
 
 const STORAGE_PREFIX = 'volter.blender.play-mode:';
 const listeners = new Set<() => void>();
@@ -47,7 +56,7 @@ function publish(): void {
 function stored(documentId: string): ModelPlayMode | null {
   try {
     const value = globalThis.sessionStorage?.getItem(STORAGE_PREFIX + documentId);
-    return value === 'game' || value === 'movie' ? value : null;
+    return playModeOf(value);
   } catch {
     return null;
   }
@@ -103,18 +112,18 @@ export function modelDocumentSource(documentId: string): string | undefined {
 }
 
 /**
- * THE MODE A DOCUMENT IS IN: Movie whenever no Play tool is installed (there is no game to
+ * THE MODE A DOCUMENT IS IN: Animation whenever no Play tool is installed (there is no game to
  * switch to), else the person's pick, else Game exactly when the model has a play script. A
  * script not yet looked for counts as none, so a document opens on the Timeline and turns to
  * the Game panel when the answer arrives.
  */
 export function modelPlayMode(documentId: string): ModelPlayMode {
   const extension = documentPlayExtension('model');
-  if (extension === null) return 'movie';
+  if (extension === null) return 'animation';
   const pick = chosenPlayMode(documentId);
   if (pick !== null) return pick;
   const blend = sources.get(documentId);
-  return blend !== undefined && extension.hasScript?.(blend) === true ? 'game' : 'movie';
+  return blend !== undefined && extension.hasScript?.(blend) === true ? 'game' : 'animation';
 }
 
 export function playModeVersion(): number {

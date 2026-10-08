@@ -74,8 +74,26 @@ export interface PlayAnimation {
   track(object: THREE.Object3D, name: string, options: PlayTrackOptions | null): Answer;
   constraint(object: THREE.Object3D, bone: string, name: string, options: PlayConstraintOptions): Answer;
   update(dt: number): void;
+  /** What each character is playing now, bottom layer first: the animation editors' live view. */
+  live(): readonly LiveArmature[];
+  /** The frames an action keys, per bone, for one armature (empty until it was baked). */
+  channels(armature: string, action: string): { bone: string; keys: number[] }[];
   readonly warnings: readonly string[];
   dispose(): void;
+}
+
+/** One character's animation at the game's last update. */
+export interface LiveArmature {
+  readonly armature: string;
+  /** The layers it was posed from, bottom first: each clip, its frame, influence and blend. */
+  readonly layers: readonly {
+    /** Where the layer comes from: an NLA track's name, or `null` for the active action. */
+    readonly track: string | null;
+    readonly action: string;
+    readonly frame: number;
+    readonly influence: number;
+    readonly blend: string;
+  }[];
 }
 
 /** A weight that moves toward its target at a rate (a crossfade). */
@@ -101,6 +119,8 @@ interface Armature {
   line: Playing[];
   readonly tracks: Map<string, Track>;
   readonly constraints: Map<string, ConstraintOverride>;
+  /** The layers of the last pose, for `live`. */
+  posed: LiveArmature['layers'];
 }
 
 /** The copy's animation. `bake` reads one action of one armature through the clip door. */
@@ -114,6 +134,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const armatures = new Map<string, Armature>();
   let time = 0;
   let disposed = false;
+  const lastSources = new Map<Armature, (string | null)[]>();
 
   const fail = (armature: Armature, action: string, why: string): void => {
     armature.clips.set(action, null);
@@ -138,7 +159,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     const pose = new ArmaturePose(rig);
     pose.facts(entry);
     for (const thing of pose.unsupported()) warnings.push(`${rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
-    const armature: Armature = { rig, pose, facts: entry, clips: new Map(), failed: new Map(), line: [], tracks: new Map(), constraints: new Map() };
+    const armature: Armature = { rig, pose, facts: entry, clips: new Map(), failed: new Map(), line: [], tracks: new Map(), constraints: new Map(), posed: [] };
     // EACH ARMATURE STARTS ON ITS ASSIGNED ACTION, as Blender's viewport plays it.
     if (entry.action) armature.line = [{ action: entry.action, from: 0, loop: true, speed: 1, weight: ramp(1, 1, 0) }];
     armatures.set(rig.armature, armature);
@@ -157,12 +178,15 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   /** Every layer of one armature now, bottom to top; null while a clip it needs is being baked. */
   const layersOf = (armature: Armature): PoseLayer[] | null => {
     const layers: PoseLayer[] = [];
+    /** Each layer's source, by index: a track's name, or null for the active action. */
+    const sources: (string | null)[] = [];
+    let source: string | null = null;
     let waiting = false;
     /** Whether an enabled track has strips (or a game's track plays): what places the active action. */
     let evaluated = false;
     const take = (layer: PoseLayer | null | undefined): void => {
       if (layer === undefined) waiting = true;
-      else if (layer) layers.push(layer);
+      else if (layer) { layers.push(layer); sources.push(source); }
     };
     const animation = armature.facts.animation;
     // THE SCENE FRAME, wrapping at the scene's end as Blender's playback wraps.
@@ -173,6 +197,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       // ENABLED as Blender says: under a solo only the soloed track, muted or not.
       if (solo ? !track.solo : (set ? set.mute : track.mute)) continue;
       const influence = set ? set.influence.weight : 1;
+      source = track.name;
       if (set?.action) {
         const blend = track.strips[0]?.blendType ?? 'REPLACE';
         if (set.previous) take(playedLayer(armature, set.previous, influence, blend));
@@ -183,10 +208,11 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       const stack = nlaLayers({ ...animation!, tracks: [{ ...track, mute: false, solo: false }] }, frame, (action) => clipOf(armature, action));
       if (stack.waiting) waiting = true;
       if (stack.evaluated) evaluated = true;
-      for (const layer of stack.layers) layers.push({ ...layer, influence: layer.influence * influence });
+      for (const layer of stack.layers) { layers.push({ ...layer, influence: layer.influence * influence }); sources.push(track.name); }
     }
-    for (const set of armature.tracks.values()) {
+    for (const [name, set] of armature.tracks) {
       if (!set.own || set.mute || !set.action) continue;
+      source = name;
       if (set.previous) take(playedLayer(armature, set.previous, set.influence.weight, 'REPLACE'));
       take(playedLayer(armature, set.action, set.influence.weight, 'REPLACE'));
       evaluated = true;
@@ -195,8 +221,10 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     // no enabled track has strips, else at its influence and blend type over them.
     const nla = !!animation?.useNla;
     const strips = nla && evaluated;
+    source = null;
     for (const played of nla && solo ? [] : armature.line)
       take(playedLayer(armature, played, strips ? animation!.influence : 1, strips ? animation!.blendType : 'REPLACE'));
+    lastSources.set(armature, sources);
     return waiting ? null : layers;
   };
 
@@ -321,12 +349,26 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
         }
         const layers = layersOf(armature);
         if (!layers) continue;
+        const sources = lastSources.get(armature) ?? [];
+        armature.posed = layers.map((layer, i) => ({ track: sources[i] ?? null, action: layer.clip.action, frame: layer.frame, influence: layer.influence, blend: layer.blend }));
         armature.pose.apply(layers, {
           object: (name) => view.objectForBlenderName(name),
           override: (bone, name) => armature.constraints.get(`${bone}\u0000${name}`),
         });
       }
     },
+    channels(name, action) {
+      const clip = armatures.get(name)?.clips.get(action);
+      if (!clip) return [];
+      const bones = new Map<string, Set<number>>();
+      for (const channel of clip.channels) {
+        let frames = bones.get(channel.bone);
+        if (!frames) bones.set(channel.bone, frames = new Set());
+        for (const curve of channel.curves) if (curve) for (let i = 0; i < curve.keys.length; i += 6) frames.add(Math.round(curve.keys[i]! * 1000) / 1000);
+      }
+      return [...bones].map(([bone, frames]) => ({ bone, keys: [...frames].sort((a, b) => a - b) }));
+    },
+    live: () => [...armatures.values()].map((armature) => ({ armature: armature.rig.armature, layers: armature.posed })),
     dispose() {
       disposed = true;
       armatures.clear();

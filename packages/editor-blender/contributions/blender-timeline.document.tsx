@@ -65,6 +65,7 @@ import {
 } from '../src/timeline-view-state';
 import { blenderSkin, blenderSkinVersion, subscribeBlenderSkin } from './blender-runtime-skin';
 import { BlenderGamePanel, GAME_PANEL_RATIO, PlayModeSwitch } from './blender-game-panel';
+import { AnimationEditorMenu, BlenderActionEditor, BlenderNlaEditor } from './blender-animation-editors';
 import { setWorkspaceAreaRatio } from '@volter/editor-sdk/kit/workspace-areas';
 import { modelPlayMode, playModeVersion, servedModelDocument, subscribePlayMode } from '../src/play-mode';
 import {
@@ -216,6 +217,7 @@ function report(): unknown {
     size: view.size,
     refusal: view.refusal,
     drawn: view.drawn,
+    editor: view.editor,
   };
 }
 
@@ -249,6 +251,18 @@ registerViewVerbs({
   title,
   verbs: [
     { id: 'state', run: () => report() },
+    {
+      // BLENDER'S EDITOR-TYPE MENU for this area: the Timeline, the Action Editor or the NLA.
+      id: 'editor',
+      title: 'Animation: Show Editor',
+      run: (args) => {
+        const editor = args?.['editor'] ?? args?.['to'];
+        if (editor !== 'timeline' && editor !== 'action' && editor !== 'nla')
+          return refuse('editor is `timeline`, `action` (the Action Editor) or `nla`.');
+        setTimelineViewState({ editor });
+        return report();
+      },
+    },
     {
       id: 'frame',
       title: 'Timeline: Set Frame',
@@ -364,7 +378,8 @@ registerViewVerbs({
 const BOTTOM_AREA = 'timeline';
 
 /**
- * THE BOTTOM AREA IS THE TIMELINE IN MOVIE MODE AND THE GAME PANEL IN GAME MODE
+ * THE BOTTOM AREA IS BLENDER'S ANIMATION EDITORS IN ANIMATION MODE (the Timeline, the Action
+ * Editor or the NLA, by the editor-type menu) AND THE GAME PANEL IN GAME MODE
  * (`../src/play-mode.ts`, for the model document on screen). Same area: the
  * layout's `areas` entry names this document either way. NOT THE SAME SIZE:
  * Blender's measured Timeline strip (`model.layout.ts`) left the Game panel's
@@ -378,11 +393,19 @@ const BOTTOM_AREA = 'timeline';
  */
 export default function BlenderBottomArea() {
   useSyncExternalStore(subscribePlayMode, playModeVersion, playModeVersion);
+  useSyncExternalStore(subscribeTimelineView, timelineViewVersion, timelineViewVersion);
   const documentId = servedModelDocument();
   const game = documentId !== null && modelPlayMode(documentId) === 'game';
-  useEffect(() => setWorkspaceAreaRatio(BOTTOM_AREA, game ? GAME_PANEL_RATIO : null), [game]);
+  const { editor } = timelineViewState();
+  // The Timeline keeps Blender's strip; the Action Editor and NLA list channels, so they take the
+  // Game panel's share, as a person would drag the area up to read them.
+  const tall = game || editor !== 'timeline';
+  useEffect(() => setWorkspaceAreaRatio(BOTTOM_AREA, tall ? GAME_PANEL_RATIO : null), [tall]);
   useEffect(() => () => setWorkspaceAreaRatio(BOTTOM_AREA, null), []);
-  return game ? <BlenderGamePanel /> : <BlenderTimeline />;
+  if (game) return <BlenderGamePanel />;
+  if (editor === 'action') return <BlenderActionEditor />;
+  if (editor === 'nla') return <BlenderNlaEditor />;
+  return <BlenderTimeline />;
 }
 
 function BlenderTimeline() {
@@ -923,9 +946,10 @@ function TimelineHeader() {
         borderBottom: `1px solid ${TIMELINE_CHROME.rule}`,
       }}
     >
-      {/* GAME | MOVIE in place of the title, as in the Game panel, so the person switches back
+      {/* GAME | ANIMATION in place of the title, as in the Game panel, so the person switches back
           from either (`blender-game-panel.tsx`); without a Play tool or a model, the title. */}
       <PlayModeSwitch title="Timeline" />
+      <AnimationEditorMenu />
       <TimelineViewMenu />
       {/* TWO SPACERS, which is what CENTRES the transport. Blender's Timeline
           header is three clusters: the menus at the leading edge, the
