@@ -63,6 +63,12 @@ test('an embedded editor answers its own project requests', async () => {
   assert.deepEqual(view.deliveries, ['editor']);
 });
 
+test("the host's own routes are left to the browser", () => {
+  const view = worker();
+  assert.equal(view.request('editor', false, '/api/account'), undefined);
+  assert.equal(view.request('editor', false, '/auth/start'), undefined);
+});
+
 test('the view document opts in to cross-origin embedding after worker control', async () => {
   const response = await worker().request('editor', true);
   assert.equal(response.headers.get('Cross-Origin-Resource-Policy'), 'cross-origin');

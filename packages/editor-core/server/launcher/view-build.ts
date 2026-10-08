@@ -50,6 +50,7 @@ import { productServingModules, productViewServingModules } from '../session-pro
 import { selectProjectFiles } from './view-files';
 import { PathNeutralizer, scanForLocalPaths } from './view-paths';
 import {
+  HOST_PREFIXES,
   type LimitedViewConfig,
   type LimitedViewRouteEntry,
   MOUNT_SENTINEL,
@@ -274,6 +275,17 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     const published = selectProjectFiles(project);
     log(`Publishing ${published.files.length} project files.`);
     for (const [rule, count] of published.excluded) log(`  left out: ${count} × ${rule}`);
+    // The view leaves `/api/` and `/auth/` to its host (`HOST_PREFIXES`), so a project file whose URL
+    // falls under one is never served in the view: its bytes, and its compiled module if it is code.
+    const shadowed = published.files
+      .map((file) => file.path)
+      .filter((path) => HOST_PREFIXES.some((prefix) => `/${path}`.startsWith(prefix) || `/${path}`.startsWith(`/public${prefix}`)));
+    if (shadowed.length > 0) {
+      log(`  WARNING: ${shadowed.length} project file(s) sit where the view's host answers (${HOST_PREFIXES.join(', ')}) and will not load in the view:`);
+      for (const path of shadowed.slice(0, 20)) log(`    ${path}`);
+      if (shadowed.length > 20) log(`    … and ${shadowed.length - 20} more`);
+      log('  Move them (code under src/, assets elsewhere under public/) for the view to serve them.');
+    }
 
     // ---- 1. the project's own session, headless.
     const port = await freePort();
