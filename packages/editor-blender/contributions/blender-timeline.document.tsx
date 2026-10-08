@@ -65,6 +65,8 @@ import {
 } from '../src/timeline-view-state';
 import { blenderSkin, blenderSkinVersion, subscribeBlenderSkin } from './blender-runtime-skin';
 import { BlenderGamePanel, GAME_PANEL_RATIO, PlayModeSwitch } from './blender-game-panel';
+import { AnimationEditorMenu, BlenderActionEditor, BlenderNlaEditor } from './blender-animation-editors';
+import { liveAnimation, subscribeLiveAnimation } from '../src/play-live';
 import { setWorkspaceAreaRatio } from '@volter/sdk/kit/workspace-areas';
 import { modelPlayMode, playModeVersion, servedModelDocument, subscribePlayMode } from '../src/play-mode';
 import {
@@ -114,6 +116,7 @@ const REFUSALS = {
 
 /** The scene clock is available with or without an action. Only a missing
  * scene/transport prevents timeline navigation. */
+const GAME_RUNNING = 'A game is running; the Timeline is read-only until it stops (Stop in the Game panel).';
 const NOT_PLAYABLE =
   'No scene transport is attached yet; open the model document first.';
 
@@ -216,6 +219,7 @@ function report(): unknown {
     size: view.size,
     refusal: view.refusal,
     drawn: view.drawn,
+    editor: view.editor,
   };
 }
 
@@ -237,6 +241,7 @@ function report(): unknown {
  *  are fixed by this one guard: `frame`, `jump-start`, `jump-end`,
  *  `next-keyframe`, `prev-keyframe`. */
 function scrubTo(frame: number): unknown {
+  if (liveAnimation() !== null) return refuse(GAME_RUNNING);
   if (!blenderSkin.playable) return refuse(NOT_PLAYABLE);
   const handle = transport();
   if (!handle) return refuse('No stage transport is attached yet; open the model document first.');
@@ -249,6 +254,18 @@ registerViewVerbs({
   title,
   verbs: [
     { id: 'state', run: () => report() },
+    {
+      // BLENDER'S EDITOR-TYPE MENU for this area: the Timeline, the Action Editor or the NLA.
+      id: 'editor',
+      title: 'Animation: Show Editor',
+      run: (args) => {
+        const editor = args?.['editor'] ?? args?.['to'];
+        if (editor !== 'timeline' && editor !== 'action' && editor !== 'nla')
+          return refuse('editor is `timeline`, `action` (the Action Editor) or `nla`.');
+        setTimelineViewState({ editor });
+        return report();
+      },
+    },
     {
       id: 'frame',
       title: 'Timeline: Set Frame',
@@ -263,6 +280,7 @@ registerViewVerbs({
       id: 'play',
       title: 'Timeline: Play',
       run: () => {
+        if (liveAnimation() !== null) throw new Error(GAME_RUNNING);
         if (!blenderSkin.playable) throw new Error(NOT_PLAYABLE);
         const handle = transport();
         if (!handle)
@@ -364,7 +382,8 @@ registerViewVerbs({
 const BOTTOM_AREA = 'timeline';
 
 /**
- * THE BOTTOM AREA IS THE TIMELINE IN MOVIE MODE AND THE GAME PANEL IN GAME MODE
+ * THE BOTTOM AREA IS BLENDER'S ANIMATION EDITORS IN ANIMATION MODE (the Timeline, the Action
+ * Editor or the NLA, by the editor-type menu) AND THE GAME PANEL IN GAME MODE
  * (`../src/play-mode.ts`, for the model document on screen). Same area: the
  * layout's `areas` entry names this document either way. NOT THE SAME SIZE:
  * Blender's measured Timeline strip (`model.layout.ts`) left the Game panel's
@@ -378,11 +397,19 @@ const BOTTOM_AREA = 'timeline';
  */
 export default function BlenderBottomArea() {
   useSyncExternalStore(subscribePlayMode, playModeVersion, playModeVersion);
+  useSyncExternalStore(subscribeTimelineView, timelineViewVersion, timelineViewVersion);
   const documentId = servedModelDocument();
   const game = documentId !== null && modelPlayMode(documentId) === 'game';
-  useEffect(() => setWorkspaceAreaRatio(BOTTOM_AREA, game ? GAME_PANEL_RATIO : null), [game]);
+  const { editor } = timelineViewState();
+  // The Timeline keeps Blender's strip; the Action Editor and NLA list channels, so they take the
+  // Game panel's share, as a person would drag the area up to read them.
+  const tall = game || editor !== 'timeline';
+  useEffect(() => setWorkspaceAreaRatio(BOTTOM_AREA, tall ? GAME_PANEL_RATIO : null), [tall]);
   useEffect(() => () => setWorkspaceAreaRatio(BOTTOM_AREA, null), []);
-  return game ? <BlenderGamePanel /> : <BlenderTimeline />;
+  if (game) return <BlenderGamePanel />;
+  if (editor === 'action') return <BlenderActionEditor />;
+  if (editor === 'nla') return <BlenderNlaEditor />;
+  return <BlenderTimeline />;
 }
 
 function BlenderTimeline() {
@@ -562,7 +589,7 @@ function BlenderTimeline() {
   const scrubFromPointer = useCallback(
     (clientX: number) => {
       const element = canvas.current;
-      if (!element) return;
+      if (!element || liveAnimation() !== null) return;
       const box = element.getBoundingClientRect();
       transport()?.seekFrame(Math.round(toFrame(clientX - box.left)));
     },
@@ -878,14 +905,17 @@ function TimelineHeader() {
   useSyncExternalStore(subscribeTimelineView, timelineViewVersion, timelineViewVersion);
   const play = blenderSkin.state();
   const unit = TIMELINE_CHROME.unit;
+  // WHILE A GAME RUNS the transport is held: the game owns its copy, and moving the document's
+  // frame under it would put two clocks on one picture.
+  const gameRunning = useSyncExternalStore(subscribeLiveAnimation, liveAnimation, () => null) !== null;
   // Static scenes have a timeline too. Disable only while its scene/transport
   // is unavailable, using the same condition as the command door.
-  const playable = blenderSkin.playable;
+  const playable = blenderSkin.playable && !gameRunning;
   const button = (key: string, glyph: ReactNode, onClick: () => void, label: string) => (
     <button
       key={key}
       type="button"
-      title={playable ? label : `${label} — ${NOT_PLAYABLE}`}
+      title={playable ? label : `${label} — ${gameRunning ? GAME_RUNNING : NOT_PLAYABLE}`}
       aria-label={label}
       disabled={!playable}
       onClick={onClick}
@@ -923,9 +953,10 @@ function TimelineHeader() {
         borderBottom: `1px solid ${TIMELINE_CHROME.rule}`,
       }}
     >
-      {/* GAME | MOVIE in place of the title, as in the Game panel, so the person switches back
+      {/* GAME | ANIMATION in place of the title, as in the Game panel, so the person switches back
           from either (`blender-game-panel.tsx`); without a Play tool or a model, the title. */}
       <PlayModeSwitch title="Timeline" />
+      <AnimationEditorMenu />
       <TimelineViewMenu />
       {/* TWO SPACERS, which is what CENTRES the transport. Blender's Timeline
           header is three clusters: the menus at the leading edge, the
