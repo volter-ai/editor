@@ -17,7 +17,8 @@
  * - `constraint` sets a bone constraint's influence, or the object it aims at. A constraint aims
  *   at the game's copy of its target, so moving that object in the game moves the look.
  *
- * The file's own NLA strips play on the game's clock as scene frames from the scene's start. Every
+ * The file's own NLA strips play on the game's clock as scene frames, looping the scene's range as
+ * Blender's own playback does. Every
  * clip is baked once per action, the first time it is wanted; until the clips a pose needs are
  * baked, the armature keeps the pose it has.
  *
@@ -107,6 +108,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const actions = Object.keys(facts.actions);
   const fps = facts.clock?.fps || 24;
   const sceneStart = facts.clock?.start ?? 1;
+  const sceneLength = Math.max(1, (facts.clock?.end ?? sceneStart + 249) - sceneStart + 1);
   const armatures = new Map<string, Armature>();
   let time = 0;
   let disposed = false;
@@ -159,7 +161,8 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       else if (layer) layers.push(layer);
     };
     const animation = armature.facts.animation;
-    const frame = sceneStart + time * fps;
+    // THE SCENE FRAME, wrapping at the scene's end as Blender's playback wraps.
+    const frame = sceneStart + ((time * fps) % sceneLength);
     const solo = animation?.tracks.some((track) => track.solo) ?? false;
     for (const track of animation && animation.useNla ? animation.tracks : []) {
       const set = armature.tracks.get(track.name);
