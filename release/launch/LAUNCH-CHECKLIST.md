@@ -40,6 +40,21 @@
 ## Held for after the release (owner: "that should be after cyclotron releases")
 - [ ] volter.ai remake (sites #65): company page, brands one line each, fellowship, packages as links; headline "Software that builds itself."; Stoneguard capture left off. Reviewed (PASS); the videogame.ai link waits on www.videogame.ai naming Cyclotron
 
+## Unfinished work, and where it lives (update when you start, park or finish anything)
+
+Nothing here lives only on one machine. Parking work means: push it to a branch, open a draft PR that says what is left, and add a line below.
+
+| Work | Where | State | Next |
+|---|---|---|---|
+| Opening: the card pull, with the machine in collectible settings | editor #323 (draft), `design/opening/` | built as a prototype on 2026-10-07, half lost, recovered | card art from setting renders, the collecting, wire into the boot cover, owner looks |
+| Chat hears a tripwire only in a working turn (t_1f2b8dca) | editor #321 | open; not read live | a reading with a `not-working` and a `steered` entry |
+| Browser trial on the renamed packages | sites #48 | open; pins wrong (0.5.202) | re-pin to the release, rebuild the trial |
+| volter.ai remake | sites main eaaaff59 | merged, not live | deploy through the World on the Mac |
+| www.videogame.ai replacement | sites `videogame-ai/` | never published | owner looks at the copy, then the World |
+| "Ask for approval" | supercode #1363, then the editor | supercode draft | editor passes the per-chat mode once published |
+| Chat restart fix | supercode #1360 | Windows reading PASS | npm, then the frontend pin before the next workbench cut |
+| tabnode 0.8.0 pin | browser-substrate `t_04cae039-pin` | pushed, no PR | catalog re-bind and PR (t_04cae039) |
+
 ## The launch, in three stages (decided 2026-10-08, 22:40 UTC)
 
 ### Stage 1 — everything in place
