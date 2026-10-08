@@ -24,7 +24,7 @@ surface it is on (the 2026-09-20 one-tier ruling holds). The only difference is 
 | Project folder | `vscode-remote:` over the disk | `volter-view:`, the page's in-memory store (`view/workbench/src/volterView.contribution.ts`) |
 | `/__editor/*` | The session's Express routes | A service worker that hands each request to the page's router (`view/page/`) |
 | Project modules | The project-rooted Vite, live | The same Vite and plugins, recorded once at `view build` time |
-| Chat | supercode chat + harness runtime | `volter-view-chat`: answers with the product's install command and a copy button |
+| Chat | supercode chat + harness runtime | `volter-view-chat`: the face of an agent that runs in the page on the host's model (below); on a host with no AI it answers with the product's install command |
 
 The kit's workbench code runs unchanged:
 
@@ -132,6 +132,27 @@ command listener as the `editor-command` event the session's relay would send, a
 listener posts `command-result`; `contributed-commands` supplies each contributed verb's budget.
 Every verb the tab has runs this way: the kit's, Blender's (`blender-execute` and the rest), the
 viewport's. A caller in the page or in a workbench extension uses it as a terminal uses a session.
+Three limits:
+
+- **Same origin only.** The route is answered inside the page, for requests the view's own worker
+  hands it; no other site can reach it.
+- **120 seconds over HTTP.** Every `fetch` of the route, a page script's included, passes through
+  the view's worker, which gives the page 120 s to answer. A verb with a longer budget
+  (`blender-execute`: 30 minutes) keeps running past that, but its caller gets a 502. The view's own
+  agent does not use the route: it calls the relay in the page directly and waits the verb's whole
+  budget.
+- **Two tabs.** A request from a worker or an extension host carries no tab, so it runs in the
+  focused tab of the view, then a visible one. With one view open in two tabs, the Chat of one can
+  act on the other. Use one tab.
+
+**The view's agent (`view/page/agent/`):** `/__editor/view-agent/turn`, `events`, `stop`, `account`
+and `waitlist`. A tool loop in the page, for the Chat view: it posts each model call to the host's
+`/api/ai/responses` (the Responses API, used statelessly; the host holds the key and decides the
+model, who may call and what it costs), and runs the model's tool calls here: list, read, search,
+write, edit and delete over the project's files, Python in the tab's Blender, and any command of
+the editor through the relay above. `account` and `waitlist` pass on the host's `/api/account` and
+`/api/waitlist`. A host with neither is a view with no AI, and the Chat says so. The agent reads
+text only; it cannot see the screen.
 
 **Reports a session collects, accepted and dropped:** `state`, `heartbeat`, `tab/*`,
 `page-error`, `play-phase`, `console-entries`, `console-resolved`, `console/ack`,
@@ -151,7 +172,7 @@ These are the routes that need the person's machine or account:
 | Refused | Why |
 | --- | --- |
 | `account/*`, `twin*` | No account is signed in on a static page |
-| `harness-chat/*`, `worktrees/*`, `project-work*`, `repository-presence` | Agents run in the local editor's runtime; the Chat view says so in place |
+| `harness-chat/*`, `worktrees/*`, `project-work*`, `repository-presence` | The local editor's agents and worktrees; the view's own agent is `view-agent/*` |
 | `git/*`, `share-control/*` | No repository and no sharing host |
 | `collaboration/*` (its `presence` reports are accepted and dropped) | No session to collaborate in |
 | `gameplay-sessions/*` | The recorded play sessions are the builder's, from `logs/`. The catalog itself answers empty. |
@@ -164,7 +185,7 @@ These are the routes that need the person's machine or account:
 
 ## What a limited view is not
 
-- **Code changes do not recompile.** The modules are the ones compiled at `view build`. A source edit lives in the page's memory and shows in the workbench, but the running game keeps the compiled module. Data edits behave the same way.
+- **Code changes do not recompile.** The modules are the ones compiled at `view build`. A source edit, a person's or the agent's, lives in the page's memory and shows in the workbench, but the running game keeps the compiled module. Data edits behave the same way. Blender edits do take effect: Blender runs in the tab.
 - **Edits stay in memory.** A reload starts over from the shipped files. "Download project" is not built yet.
 - **No git, no accounts, no sharing.**
 - **Webviews do not render.** Code-OSS loads them from `vscode-cdn.net`, which a cross-origin-isolated static page cannot embed. The editor's own panels do not use webviews.
@@ -202,7 +223,7 @@ Hosting rules:
 
 - **The module crawl is best effort.** Anything the editor imports by a URL that is neither crawled nor reducible by the worker's key rule gets the page's raw file or a 404. The worker's key rule drops `t`, `volter-source` and `volter-reload`, and maps `volter-mount`. Watch the network panel on the first walk.
 - **The product's chunks shadow `public/assets/`.** The product's production build is served at `/assets/…`, and the static host answers it before the page's router sees the request. So a project file at `public/assets/<same name>` would not be the one served. Real chunk names are content-hashed, so this is latent.
-- **The host's routes shadow a project's `api/` and `auth/`.** Nothing of the project is served at `/api/…` or `/auth/…`: those paths go to the host. That covers a file under `public/api/` or `public/auth/`, a file in a root-level `api/` or `auth/` folder (root-relative paths are served from `public/` first, then the file itself), and the compiled module of source kept in such a root-level folder, which is recorded at `/<path>`: importing it fails in the view. `view build` warns, naming the files. A project that keeps its source under `src/` is unaffected.
+- **The host's routes shadow a project's `api/` and `auth/`.** Nothing of the project is served at `/api/…` or `/auth/…`: those paths go to the host. That covers a file under `public/api/` or `public/auth/`, a file in a root-level `api/` or `auth/` folder (root-relative paths are served from `public/` first, then the file itself), and the compiled module of source kept in such a root-level folder, which is recorded at `/<path>`: importing it fails in the view. `view build` warns, naming the files, and names any compiled module recorded there that the published files do not list (one `.gitignore` leaves out, imported by committed code). A project that keeps its source under `src/` is unaffected.
 - **Imported ignored files are still compiled.** A committed module that imports a gitignored one is compiled with it, as the session serves it. Only the ignored file's own source is left out of the published files.
 - **One page holds the files.** A request from an announced editor page goes back to that page. Requests from workers and extension-host frames prefer a focused announced editor, then a visible one, then the one that announced last. A restarted worker asks open windows to announce again. Two tabs of one view are two separate projects; worker requests still cannot be attributed to their owning tab when several are open.
 - **Synchronous XHR would deadlock.** A synchronous XHR to a forwarded route would block the page that has to answer it. None is known.
