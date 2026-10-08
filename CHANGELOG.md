@@ -5,6 +5,17 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.203 — the starter's commands never fetch
+
+From `@volter/game-editor` 0.5.203, the starter a new game is made from prints
+`npx --no-install volter-game-editor …` and `npx --no-install tsx …` (in `AGENTS.md`, `IDIOMS.md` and the
+agent skills), and its npm scripts call `tsx` by name. Inside the project these run the project's own installed copy, as before;
+where it is missing they stop with an error instead of fetching whatever holds the name on npm.
+`volter-game-editor` is a bin of `@volter/game-editor`, not a package of its own, so a plain
+`npx volter-game-editor` outside an installed project would fetch a stranger's package. Projects made
+from an earlier starter keep the old lines; change `npx volter-game-editor` to
+`npx --no-install volter-game-editor` in them.
+
 ## 0.5.190 — the editor serves from its own host
 
 From `@volter/model-editor` and `@volter/game-editor` 0.5.190, and in every `@volter/cyclotron`

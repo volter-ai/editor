@@ -1212,14 +1212,14 @@ Refusal counts at the stop (first refusal per script): basic-scene 8, fps 46, ma
 
 **Resuming the evidence refresh.**
 - `GODOT_OFFICIAL_4_7=<Godot binary> GODOT_BOUND_EXPORTER_4_7=<exporter> npm run
-  godot-evidence-refresh -w packages/gd-analyze` (15–20 minutes); `npx tsx src/cli.ts liveness`
+  godot-evidence-refresh -w packages/gd-analyze` (15–20 minutes); `npx --no-install tsx src/cli.ts liveness`
   (seconds) says whether any claim is stale.
 - Never edit compat or the translator while a refresh runs (it hashes them). After a rebase that
   conflicts on authority JSON, take upstream's and refresh.
 - Push only with the re-measure in the same push, after liveness is live and the platformer gate
   passes: `cli.ts import packages/gd-analyze/test/fixtures/platformer-3d-godot4 <out>
   --bound-exporter-binary … --official-binary …`, then `cli.ts run <out> --frames 120` (0 thrown,
-  stepped physics frames). Live reading: `npm ci` in `<out>`, `npx volter-game-editor edit .`,
+  stepped physics frames). Live reading: `npm ci` in `<out>`, `npx --no-install volter-game-editor edit .`,
   `play`, and drive it through `game.input.set/tap` (the game's `debug.input` door).
 
 ## Resumed (2026-09-27, second machine)

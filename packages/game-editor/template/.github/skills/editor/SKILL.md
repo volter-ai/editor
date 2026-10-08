@@ -24,7 +24,7 @@ a bare global `volter` command, which may come from a different checkout.
 ## Verify the loop
 
 - Use `play`, `stop`, `status`, and `screenshot` to observe work — selection,
-  focus, and panels go through the eval door (`npx volter-game-editor eval
+  focus, and panels go through the eval door (`npx --no-install volter-game-editor eval
   'editor.select("<id>")'` / `editor.focus()` / `editor.showPanel(...)`);
   edit project source directly when that is the simplest authoring path.
 - Use `restart` after init-time registrations, listeners, resources, or
@@ -37,16 +37,16 @@ a bare global `volter` command, which may come from a different checkout.
   satisfied. The play log is the receipt.
 - Read persisted Play logs and visible pixels as well as state. Screenshots
   must make the result being claimed legible.
-- **Every `npx volter-game-editor play` records video automatically** — the ack prints the
+- **Every `npx --no-install volter-game-editor play` records video automatically** — the ack prints the
   recording path (`.volter/recordings/play-latest.webm`, replaced by the next
-  play; `npx volter-game-editor play --record <name>` keeps a clip forever), play auto-stops
+  play; `npx --no-install volter-game-editor play --record <name>` keeps a clip forever), play auto-stops
   after 2 minutes with no PLAYER input (agent commands, `eval` included, do not count),
   every recording stops at a 10-minute length cap (play continues unrecorded), and
   stopping finalizes the WebM. A claim about
   MOTION (an effect, an animation, a stutter, anything that lives between
   frames) is judged from that clip: find the moment via the play log's
   event timestamps against the recording's start time, then examine at
-  least 10 frames within a ≤5-second span around it. `npx volter-game-editor screenshot`
+  least 10 frames within a ≤5-second span around it. `npx --no-install volter-game-editor screenshot`
   while play is running refuses and points at the clip; screenshots are for
   static states.
 

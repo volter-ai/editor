@@ -17,7 +17,7 @@
       "id": "server",
       "kind": "process",
       "entry": "server/main.ts",
-      "command": "npx tsx --tsconfig server/tsconfig.json server/main.ts",
+      "command": "npx --no-install tsx --tsconfig server/tsconfig.json server/main.ts",
       "port": 2567,
       "env": { "VOLTER_ROOM_MONITOR": "1" }
     },
