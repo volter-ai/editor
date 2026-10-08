@@ -504,8 +504,9 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
       textFiles.push({ path, content, original });
       changed.push(`${projectPath(path)}: names the kit's current packages and the moved files where they now are`);
       // 0.5.203 fails a game build that reaches into editor/ (src/ is the game): a game file that imported one of
-      // the moved files now does, and is named so the person moves what it needs out of editor/.
-      if (path.startsWith(join(project, 'src') + sep) && /(['"`])(?:\.{1,2}\/)+[^'"`]*\beditor\//.test(content) && !/(['"`])(?:\.{1,2}\/)+[^'"`]*\beditor\//.test(original))
+      // the moved files now does, and is named so the person moves what it needs out of editor/. A file left behind
+      // because its destination exists is already named, and is not read.
+      if (path.startsWith(join(project, 'src') + sep) && !stranded.includes(path) && /(['"`])(?:\.{1,2}\/)+[^'"`]*\beditor\//.test(content) && !/(['"`])(?:\.{1,2}\/)+[^'"`]*\beditor\//.test(original))
         kept.push(`${projectPath(path)} now imports from editor/, which a game build refuses from 0.5.203: move what it uses out of editor/ (src/ is the game)`);
     }
   }
