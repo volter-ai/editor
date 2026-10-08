@@ -1216,11 +1216,16 @@ def _depsgraph_placements(frame, depsgraph):
             continue
         if not instance.show_self:
             continue
+        # AN UNSUPPORTED PLACEMENT IS LEFT OUT, NAMED ONCE (`warn`): raising here
+        # lost the whole frame, so one odd instance kept the entire scene from
+        # opening. The native exporter skips the same duplis.
         if (instance.instance_object is not None and instance.object.data != instance.instance_object.data and
                 (instance.object.data is None or geometry.get(source.name) != instance.object.data.as_pointer())):
-            raise NotImplementedError("Depsgraph instance geometry differs from its native source: %s" % source.name)
+            warn("Depsgraph instances of %r are not drawn: their geometry differs from the exported source" % source.name)
+            continue
         if row is None or (source.type == "MESH" and row["mesh"] is None):
-            raise NotImplementedError("Depsgraph instance source has no native exported geometry: %s" % source.name)
+            warn("Depsgraph instances of %r are not drawn: the source has no exported geometry" % source.name)
+            continue
         if row["mesh"] is None:
             if source.type not in ("EMPTY", "CAMERA"):
                 warn("Depsgraph instance %r of type %s is not drawn" % (source.name, source.type))
@@ -1228,7 +1233,8 @@ def _depsgraph_placements(frame, depsgraph):
         owner = instance.parent.original if instance.parent is not None else None
         owner_row = by_name.get(owner.name) if owner is not None else None
         if owner is not None and owner_row is None:
-            raise NotImplementedError("Depsgraph instance owner is not exported: %s" % owner.name)
+            warn("Depsgraph instances owned by %r are not drawn: the owner is not exported" % owner.name)
+            continue
         persistent = list(instance.persistent_id)
         particle_index = persistent[0]
         psys = instance.particle_system
@@ -1687,7 +1693,11 @@ class Session:
             for row in frame["objects"]:
                 if not any(m in graphs for m in row["materials"] if m is not None):
                     continue
-                obj = by_name.get(row["name"])
+                # An instance source from a collection outside the scene is exported
+                # too (`instance_sources`) and shares these graphs; its Object Info
+                # and Particle Info inputs come from the file's own objects. Only
+                # those few rows miss the scene's map.
+                obj = by_name.get(row["name"]) or bpy.data.objects.get(row["name"])
                 if obj is not None:
                     row["object_info"] = {
                         "color": [float(v) for v in obj.color],

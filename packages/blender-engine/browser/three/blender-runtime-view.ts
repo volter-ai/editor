@@ -27,7 +27,7 @@ import {
   worldSchema,
 } from './blender-runtime-lighting';
 import { fitModelDirectionalShadow, visibleShadowReceivers } from './blender-runtime-shadows';
-import {BlenderWorldVisibility,bindWorldVisibility} from './blender-world-visibility';
+import {BlenderWorldVisibility,WORLD_VISIBILITY,bindWorldVisibility} from './blender-world-visibility';
 import { volumeMesh, volumeSchema } from './blender-runtime-volume';
 import { applyPhysicalMaterial, applyWorldExtinction, physicalMaterialSchema } from './blender-physical-material';
 import { prepareGraphGeometry, setMaterialGraph } from './blender-graph-material';
@@ -58,16 +58,6 @@ const SAVED_SHADING = {
   MATERIAL: 'preview',
   RENDERED: 'rendered',
 } as const;
-/** SKY-LIGHT OCCLUSION (`blender-world-visibility.ts`) IS OFF IN EVERY VIEW. Its
- *  sixteen 512-square tiles each span the whole scene, so a 360 m level gets
- *  about a metre per texel, and each lookup is one nearest texel answering
- *  yes or no. Faceted surfaces then occlude their own sky at random pixels --
- *  static on every polygon in Rendered and Play -- and narrow specular lobes,
- *  dominated by a few of the sixteen directions, plausibly flash as the camera
- *  moves. It measured right in a closed room a few metres across. Turn it back
- *  on once its lookups are filtered and its resolution follows the scene's size
- *  (docs/BLENDER-RENDERING-PARITY.md lists the rest). */
-const WORLD_VISIBILITY = false;
 const scalar = z.number().finite();
 const point = z.tuple([scalar, scalar, scalar]);
 const edge = z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]);

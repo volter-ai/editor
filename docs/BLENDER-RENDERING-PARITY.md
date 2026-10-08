@@ -204,7 +204,10 @@ normalized to retain the unoccluded constant-world control; specular visibility
 uses a finite weighted approximation. This is not indirect light transport.
 
 **The atlas is off in every view** (`WORLD_VISIBILITY` in
-`blender-runtime-view.ts`), so environment lighting is unoccluded again. Each
+`blender-world-visibility.ts`), so environment lighting is unoccluded again. Off,
+it is compiled out of physical materials too: its three samplers would otherwise
+count against a material's sixteen, and a texture-heavy graph that fitted
+before 0.5.194 could fail to link and fall back to constants. Each
 tile spans the whole scene: Canyon Comet's 360 m floor gets about a metre per
 texel, and every lookup is one nearest texel answering yes or no. The atlas has
 receiver-plane slope correction, but at that resolution one binary lookup can
