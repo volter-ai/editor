@@ -191,6 +191,26 @@ const MAPPING = {
   // gizmos carry all three (`gizmo.*`).
   'viewport.selection': rgb('space_view3d.select'),
   'viewport.active': rgb('space_view3d.active'),
+  // The box-select rectangle is not themed in Blender at all: `wm_gesture_draw_rect`
+  // (`source/blender/windowmanager/intern/wm_gesture.cc`) states its colours as literals, so
+  // each is held with that citation. Its dash (8 framebuffer px at `udash_factor` 0.5) is the
+  // style's `stage.marqueeDash`.
+  'viewport.marqueeLine': held(
+    '#666666',
+    "`wm_gesture_draw_rect`'s dashed outline, `immUniform4f(\"color\", 0.4f, 0.4f, 0.4f, 1.0f)` " +
+      '— the first half of each dash period. A literal in `wm_gesture.cc`, not a theme member.',
+  ),
+  'viewport.marqueeGap': held(
+    '#ffffff',
+    'the same outline\'s `immUniform4f("color2", 1.0f, 1.0f, 1.0f, 1.0f)` — the second half of ' +
+      'each period (`colors_len` 2, so the gap is drawn rather than discarded).',
+  ),
+  'viewport.marqueeFill': held(
+    'rgba(255,255,255,0.05)',
+    "`wm_gesture_draw_rect`'s fill, `immUniformColor4f(1.0f, 1.0f, 1.0f, 0.05f)` under " +
+      '`GPU_BLEND_ALPHA`. Not the accent: `.tui.wcol_regular.inner_sel` is opaque, and as the ' +
+      'fill it drew the band as a solid blue square.',
+  ),
 
   // The transform gizmo draws the theme's axis colours as they are
   // (`transform_gizmo_3d.cc`, `gizmo_get_axis_color`), and so does the navigation gizmo, mixed

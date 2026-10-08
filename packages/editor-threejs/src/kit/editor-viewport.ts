@@ -65,6 +65,7 @@ import {
   nativeViewportGizmoSize,
   nativeViewportLook,
   nativeViewportGrid,
+  nativeViewportMarqueeDash,
   nativeViewportSelectionBox,
   nativeViewportWire,
   subscribeNativeSelectionTheme,
@@ -849,6 +850,36 @@ function createFloorGrid(extent: number): THREE.Mesh<THREE.PlaneGeometry, THREE.
   const mesh = new THREE.Mesh(geometry, material);
   mesh.name = 'editor-floor-grid';
   return mesh;
+}
+
+/**
+ * THE BOX-SELECT RECTANGLE'S PAINT, every value the look's (ARCHITECTURE.md rule 7): its
+ * colours are `themeVars.viewport.marquee*`, which are the palette's accent wherever it names
+ * no marquee, and its dash is the look's `stage.marqueeDash` in device pixels.
+ *
+ * Without a dash it is the editor's own band, a one-pixel solid outline over the fill. With one
+ * it is Blender's two-colour line (`wm_gesture_draw_rect`): `dash` device pixels of the line's
+ * colour, then as many of the gap's, round all four sides. A CSS border can neither alternate
+ * two colours nor set its dash, so the outline is four one-pixel gradient strips over a
+ * transparent border of the same width, which keeps the box exactly where the solid band's is.
+ */
+function marqueeStyle(dash: number | null): Partial<CSSStyleDeclaration> {
+  const { marqueeLine: line, marqueeFill: fill, marqueeGap: gap } = themeVars.viewport;
+  if (dash === null) return { border: `1px solid ${line}`, background: fill };
+  const length = dash / (window.devicePixelRatio || 1);
+  const strip = (angle: string, place: string, size: string): string =>
+    `repeating-linear-gradient(${angle}, ${line} 0 ${length}px, ${gap} ${length}px ${2 * length}px) ` +
+    `${place} / ${size} no-repeat border-box`;
+  return {
+    border: '1px solid transparent',
+    background: [
+      strip('90deg', 'left top', '100% 1px'),
+      strip('90deg', 'left bottom', '100% 1px'),
+      strip('180deg', 'left top', '1px 100%'),
+      strip('180deg', 'right top', '1px 100%'),
+      fill,
+    ].join(', '),
+  };
 }
 
 export class EditorViewport {
@@ -6169,8 +6200,6 @@ export class EditorViewport {
         // retain their distinct higher tier.
         Object.assign(this._marqueeDiv.style, {
           position: 'fixed',
-          border: `1px solid ${themeVars.accent.default}`,
-          background: themeVars.accent.muted,
           pointerEvents: 'none',
           zIndex: zIndex.sticky,
         });
@@ -6184,6 +6213,10 @@ export class EditorViewport {
           this._marqueeDiv,
         );
       }
+      // Painted as each band starts rather than once at creation: a look switched between two
+      // drags is the next band's. Its colours would follow anyway, being variables; its dash is
+      // a number read off the look.
+      Object.assign(this._marqueeDiv.style, marqueeStyle(nativeViewportMarqueeDash(this._canvas)));
     }
 
     if (this._marqueeActive && this._marqueeDiv) {

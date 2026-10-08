@@ -242,6 +242,8 @@ export interface EditorStage {
     readonly outlineHidden?: boolean;
     readonly wireOpacity?: number;
     readonly selectionBoxWidth?: number;
+    /** `StageContribution.marqueeDash`: the box-select outline's dash length in device px. */
+    readonly marqueeDash?: number;
     /** `StageContribution.chrome`: which overlay controls the stage carries and where. */
     readonly chrome?: {
       readonly bar?: 'strip' | 'pills';
@@ -776,6 +778,23 @@ export interface EditorTheme {
       readonly wire?: string;
       readonly selection: string;
       readonly active: string;
+      /**
+       * THE BOX-SELECT RECTANGLE (the rubber band a left-drag over the stage draws): its outline
+       * and its fill. Each optional beside the all-or-nothing group, and each emitted as the
+       * colour it painted before it existed when absent — the outline the palette's
+       * `accent.default`, the fill its `accent.muted` — so every palette that names neither
+       * draws exactly what it drew.
+       *
+       * Blender's is not its accent. `wm_gesture_draw_rect` (`windowmanager/intern/
+       * wm_gesture.cc`) fills the box with WHITE AT 5% and outlines it with a one-pixel line
+       * dashed in two colours, 0.4 grey and white. Its accent, `.tui.wcol_regular.inner_sel`,
+       * is an opaque blue, and as the fill it drew the band as a solid blue square.
+       */
+      readonly marqueeLine?: string;
+      readonly marqueeFill?: string;
+      /** The colour BETWEEN the outline's dashes (Blender's second dash colour, white), where
+       *  the look dashes it (`stage.marqueeDash`). Absent, the gaps are clear. */
+      readonly marqueeGap?: string;
     };
     /**
      * THE GIZMOS' COLOURS — the transform gizmo's handles and the navigation gizmo's axes, named
@@ -1672,6 +1691,15 @@ export const themeVars = {
     active: 'var(--volter-neutral-active)',
   },
   scrim: 'var(--volter-scrim)',
+  /** The 3D viewport's DOM-drawn furniture. Its WebGL-drawn colours are read off the same
+   *  emitted tokens by `native-selection-style.ts`, since a canvas cannot consume a variable. */
+  viewport: {
+    /** The box-select rectangle: never empty, the accent where the palette names none. */
+    marqueeLine: 'var(--volter-viewport-marquee-line)',
+    marqueeFill: 'var(--volter-viewport-marquee-fill)',
+    /** Between the outline's dashes; `transparent` where the palette names none. */
+    marqueeGap: 'var(--volter-viewport-marquee-gap)',
+  },
   typography: {
     sans: 'var(--volter-font-sans)',
     mono: 'var(--volter-font-mono)',
@@ -2629,6 +2657,14 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     '--volter-viewport-axis-line-width': numberToken(theme.stage?.axisLineWidth),
     '--volter-viewport-selection': theme.color.viewport?.selection ?? '',
     '--volter-viewport-active': theme.color.viewport?.active ?? '',
+    // THE BOX-SELECT RECTANGLE. Never empty: a palette that names no marquee draws the band in
+    // its accent, as the band always drew, so the default is derived here (the one place that
+    // knows what the palette said) rather than in a `var(…, …)` fallback, which an emitted
+    // empty token would never reach. Its dash is the look's `stage.marqueeDash`.
+    '--volter-viewport-marquee-line': theme.color.viewport?.marqueeLine ?? theme.color.accent.default,
+    '--volter-viewport-marquee-fill': theme.color.viewport?.marqueeFill ?? theme.color.accent.muted,
+    '--volter-viewport-marquee-gap': theme.color.viewport?.marqueeGap ?? 'transparent',
+    '--volter-viewport-marquee-dash': numberToken(theme.stage?.marqueeDash),
     '--volter-gizmo-x': theme.color.gizmo?.x ?? '',
     '--volter-gizmo-y': theme.color.gizmo?.y ?? '',
     '--volter-gizmo-z': theme.color.gizmo?.z ?? '',
