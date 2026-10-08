@@ -170,7 +170,8 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     const solo = animation?.tracks.some((track) => track.solo) ?? false;
     for (const track of animation && animation.useNla ? animation.tracks : []) {
       const set = armature.tracks.get(track.name);
-      if ((set ? set.mute : track.mute) || (solo && !track.solo)) continue;
+      // ENABLED as Blender says: under a solo only the soloed track, muted or not.
+      if (solo ? !track.solo : (set ? set.mute : track.mute)) continue;
       const influence = set ? set.influence.weight : 1;
       if (set?.action) {
         const blend = track.strips[0]?.blendType ?? 'REPLACE';

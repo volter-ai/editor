@@ -63,6 +63,9 @@ export interface PoseClip {
   readonly action: string;
   readonly start: number;
   readonly end: number;
+  /** Where Blender holds the active action over NLA strips; infinite where Cycles repeats it. */
+  readonly keysStart: number;
+  readonly keysEnd: number;
   readonly cyclic: boolean;
   readonly channels: readonly {
     readonly bone: string;
@@ -91,7 +94,11 @@ export function poseClip(clip: BlenderActionClip): PoseClip | null {
     for (const thing of track.unsupported ?? []) unsupported.add(`${clip.action}'s ${thing}`);
   }
   for (const thing of clip.unsupported ?? []) unsupported.add(`${clip.action}'s ${thing}`);
-  return { action: clip.action, start: clip.clipStart, end: clip.clipEnd, cyclic: clip.cyclic ?? false, channels: [...channels.values()], unsupported: [...unsupported] };
+  return {
+    action: clip.action, start: clip.clipStart, end: clip.clipEnd,
+    keysStart: clip.keysStart === null ? -Infinity : clip.keysStart ?? clip.clipStart,
+    keysEnd: clip.keysEnd === null ? Infinity : clip.keysEnd ?? clip.clipEnd,
+    cyclic: clip.cyclic ?? false, channels: [...channels.values()], unsupported: [...unsupported] };
 }
 
 function poseCurve(curve: Pick<BlenderClipCurve, 'extrapolation' | 'interpolation' | 'keysBase64'> & { readonly cycles?: BlenderClipCurve['cycles'] | undefined }): PoseCurve {
@@ -246,12 +253,12 @@ export function actionLayer(animation: BlenderArmatureAnimation | undefined, cli
   if (!nla || !stripsEvaluated) return { clip, frame, influence: 1, blend: 'REPLACE' };
   const extrapolation = animation!.extrapolation;
   let at = frame;
-  if (frame < clip.start) {
+  if (frame < clip.keysStart) {
     if (extrapolation !== 'HOLD') return null;
-    at = clip.start;
-  } else if (frame > clip.end) {
+    at = clip.keysStart;
+  } else if (frame > clip.keysEnd) {
     if (extrapolation === 'NOTHING') return null;
-    at = clip.end;
+    at = clip.keysEnd;
   }
   return { clip, frame: at, influence: animation!.influence, blend: animation!.blendType };
 }
@@ -321,7 +328,8 @@ export function nlaLayers(animation: BlenderArmatureAnimation | undefined, frame
   if (!animation || !animation.useNla) return { layers, waiting, skipped, evaluated };
   const solo = animation.tracks.some((track) => track.solo);
   for (const track of animation.tracks) {
-    if (track.mute || (solo && !track.solo) || (tracks && !tracks(track.name))) continue;
+    // ENABLED as `BKE_nlatrack_is_enabled` says: under a solo only the soloed track, muted or not.
+    if ((solo ? !track.solo : track.mute) || (tracks && !tracks(track.name))) continue;
     // AN ENABLED TRACK WITH STRIPS places the active action over the NLA, whether or not the frame
     // falls on one of them (`animsys_evaluate_nla_for_flush`'s `has_strips`; measured in 5.2).
     if (track.strips.length) evaluated = true;
@@ -506,6 +514,7 @@ export class ArmaturePose {
       if (bone.inherit?.length) out.push(`bone "${bone.name}"'s parenting (${bone.inherit.join(', ')})`);
     }
     for (const bone of this.#armature?.animation?.drivers ?? []) out.push(`the drivers on bone "${bone}"`);
+    if (this.#armature?.animation?.tweak) out.push('the NLA in tweak mode (leave it with Tab in the NLA editor)');
     for (const track of this.#armature?.animation?.tracks ?? [])
       for (const strip of track.strips)
         if (!strip.mute && strip.animatedTime) out.push(`the animated strip time of "${strip.name}"`);
