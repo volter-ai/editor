@@ -118,6 +118,15 @@ prelude and the mount stamp. The page then reports the change on the bus a sessi
 saves on, and Play remounts the script and its UI. A file that does not compile is served as a
 module that throws the compiler's message.
 
+The worker asks the page only about the paths the page compiles (`isLiveModulePath` in
+`view-contract.ts`), so a package's module and the editor's lanes are served from the recording
+with no round trip. A module imported WITHOUT a mount id (Play with no UI layer imports its
+script as `?volter-live-module=<n>`) is kept by the browser under its URL for the life of the
+page. Once anything has changed, the page compiles every game module asked for that way and has
+each import its neighbours under the current revision (`?t=<n>`), so a fresh entry address reaches
+current files; an entry asked for again under an address already used keeps the copy the browser
+holds, which nothing served later can change.
+
 **The host's own server, `/api/` and `/auth/`:** the worker does not answer these (`HOST_PREFIXES`,
 `view/page/view-contract.ts`). The browser sends each as it would with no worker, so a host that runs
 a server beside the view (an account's sign-in, an API) gets the request as it was made: redirects,
@@ -225,7 +234,7 @@ These are the routes that need the person's machine or account:
 
 ## What a limited view is not
 
-- **Only game scripts recompile, and not everything a session does to them.** An edit to a script under `src/` takes effect (above). Not reproduced for an edited file: the creation-site and animation stamps (the inspector's source address for objects it creates), `import.meta.env`, hot acceptance (every change remounts), and an import of CSS, JSON or an asset the build did not already compile. An edited file cannot import a package the build did not record: there is no installer in a tab. Editor-lane code (`src/contributions`, `src/tools`, `volter.adapter.ts`) and data files keep what the build compiled.
+- **Only game scripts recompile, and not everything a session does to them.** An edit to a script under `src/` takes effect (above). Not reproduced for an edited file: the creation-site and animation stamps (the inspector's source address for objects it creates), `import.meta.env`, hot acceptance (every change remounts), and an import of CSS, JSON or an asset the build did not already compile. An edited file cannot import a package the build did not record: there is no installer in a tab. `export * from` a package the view holds as one object (a prebundled CommonJS package) is refused with the fix; named re-exports work. Editor-lane code (`src/contributions`, `src/tools`, `volter.adapter.ts`) and data files keep what the build compiled.
 - **Edits stay in memory.** A reload starts over from the shipped files. "Download project" is not built yet.
 - **No git, no accounts, no sharing.**
 - **Webviews do not render.** Code-OSS loads them from `vscode-cdn.net`, which a cross-origin-isolated static page cannot embed. The editor's own panels do not use webviews.

@@ -27,11 +27,11 @@ import { LIMITED_VIEW_HEADER } from '@volter/editor-sdk/session/limited-view';
 import {
   HOST_PREFIXES,
   LIVE_MODULE_HEADER,
+  liveModulePathOf,
   type LimitedViewRouteEntry,
   type LimitedViewRoutes,
   MOUNT_SENTINEL,
   recordedKey,
-  SCRIPT_SOURCE,
   STATIC_PREFIXES,
   VIEW_DIR,
   VIEW_MISS_HEADER,
@@ -194,13 +194,13 @@ async function handle(event: FetchLike): Promise<Response> {
     if (url.pathname === '/' || url.pathname === '/index.html') routes = null;
     return isolated(await fetch(request), { 'Cross-Origin-Resource-Policy': 'cross-origin' });
   }
-  // A project script module may have changed in the page since the view was built: the page is
-  // asked first, and answers a miss for one that did not (`live-modules.ts`). Asked every time,
-  // because this worker remembers nothing a restart would not lose.
+  // A game script may have changed in the page since the view was built: the page is asked first,
+  // and answers a miss for one that did not (`live-modules.ts`). Asked every time, because this
+  // worker remembers nothing a restart would not lose; asked only for the paths the page compiles
+  // (`isLiveModulePath`), so a package's module and the editor's lanes skip the round trip.
   if (
     request.method === 'GET' &&
-    SCRIPT_SOURCE.test(url.pathname) &&
-    (url.pathname.startsWith('/src/') || url.pathname.startsWith('/@fs/volter-view/')) &&
+    liveModulePathOf(decodeURIComponent(url.pathname)) !== null &&
     !url.searchParams.has('raw') &&
     (request.destination === 'script' || url.searchParams.has('import') || url.searchParams.has('volter-mount'))
   ) {

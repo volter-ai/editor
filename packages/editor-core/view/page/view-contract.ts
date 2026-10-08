@@ -16,6 +16,8 @@
  * Nothing here imports Node or the DOM beyond `URL`, so both halves compile it.
  */
 
+import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
+
 /** The directory every file the view itself owns lives under. */
 export const VIEW_DIR = '__view';
 /** The vscode-web package, copied whole. Its `out/` is `_VSCODE_FILE_ROOT`. */
@@ -38,6 +40,22 @@ export const STATIC_PREFIXES = [
  *  as it would with no worker, so a sign-in's redirects, its cookies and a streamed answer arrive
  *  untouched. A host with no such server answers them as any missing file. */
 export const HOST_PREFIXES = ['/api/', '/auth/'] as const;
+
+/**
+ * A project-relative path the page compiles when it changes (`live-modules.ts`): a script under
+ * `src/`, outside the editor's own lanes and outside any `node_modules`. The worker asks the page
+ * about exactly these, so every other module is answered from the recording with no round trip.
+ */
+export function isLiveModulePath(path: string): boolean {
+  return path.startsWith('src/') && SCRIPT_SOURCE.test(path) && !isEditorLanePath(path) && !path.split('/').includes('node_modules');
+}
+
+/** The project-relative path a request for a project module names, or null: `/src/…` as a relative
+ *  import reaches it, or `/@fs/<neutral project root>/src/…` as the editor imports an entry. */
+export function liveModulePathOf(pathname: string): string | null {
+  const path = pathname.startsWith('/src/') ? pathname.slice(1) : (/^\/@fs\/+volter-view\/[^/]+\/(src\/.+)$/.exec(pathname)?.[1] ?? null);
+  return path !== null && isLiveModulePath(path) ? path : null;
+}
 
 /** The header the service worker puts on a request that asks the page one thing only: is this
  *  project module one that changed since the view was built, and if so, what is it now
