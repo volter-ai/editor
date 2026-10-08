@@ -26,6 +26,7 @@ import { SeededProjectStore } from './project-store';
 import { createLimitedViewRouter, viewServingServices } from './router';
 import type { ForwardedRequest, ForwardedResponse } from './service-worker';
 import {
+  HOST_PREFIXES,
   type LimitedViewConfig,
   type LimitedViewProjectIndex,
   SERVICE_WORKER_FILE,
@@ -99,6 +100,26 @@ function installQuietSessionSockets(): void {
   window.WebSocket = quiet;
 }
 
+/**
+ * Project code's `fetch` does not reach the host's own routes (`/api/`, `/auth/`): a game has no
+ * business with the person's account, and a module written in the view (by the person or the
+ * agent) runs in this page with that account's session. The game-globals prelude routes every
+ * project module's `fetch` through this hook (`@volter/editor-sdk/kit/game-globals-prelude`).
+ *
+ * DEFENCE IN DEPTH, NOT A SANDBOX: project code is JavaScript in this origin and can find other
+ * ways to make a request. What bounds those is the host, and a content security policy if it
+ * sends one.
+ */
+function installProjectFetch(): void {
+  (globalThis as Record<string, unknown>)['__volterProjectFetch'] = (input: RequestInfo | URL, init?: RequestInit): Promise<Response> => {
+    const target = new URL(input instanceof Request ? input.url : String(input), location.href);
+    if (target.origin === location.origin && HOST_PREFIXES.some((prefix) => target.pathname.startsWith(prefix))) {
+      return Promise.reject(new TypeError(`Project code cannot call ${target.pathname}: it belongs to the site that hosts this view.`));
+    }
+    return fetch(input, init);
+  };
+}
+
 export async function startLimitedView(integrations: readonly ViewServingModule[]): Promise<void> {
   say('Starting the limited view…');
   if (!(await controlledByWorker())) {
@@ -158,6 +179,7 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
   announce();
 
   installQuietSessionSockets();
+  installProjectFetch();
   (globalThis as Record<string, unknown>)['__volterLimitedView'] = { files: store, folder: config.project.name };
 
   say('Opening the workbench…');

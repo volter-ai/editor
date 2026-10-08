@@ -178,6 +178,14 @@ imported, the text of a scene), and the page holds a signed-in person's session 
 - One message stops after using a fifth of the day's allowance, by the host's count, and says so.
 - A long conversation drops its oldest exchanges and tells the model it did.
 
+**An agent that edits running code acts with the person's session in that tab.** A game script
+the agent writes is compiled and run in this page (below), in the view's origin, where the host's
+`/api/` and `/auth/` are one request away. The view gives project code a `fetch` that refuses those
+two prefixes (`boot.ts`, `installProjectFetch`), which stops the ordinary case. It is defence in
+depth, not a sandbox: JavaScript in an origin has other ways to make a request. What bounds the
+rest is the host (what its routes can do for a signed-in person, and any content security policy
+it sends), so a host that puts an account behind a view should keep those routes' powers small.
+
 What this does NOT close: `blender_python` is arbitrary Python in the tab's Blender, and whether
 that Python can reach the page's network or script has not been established. The list above is a
 limit on the editor's command door, not a sandbox around the agent.
