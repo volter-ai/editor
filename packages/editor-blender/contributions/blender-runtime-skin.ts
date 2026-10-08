@@ -67,6 +67,18 @@ export function sceneLayers(armature: BlenderArmature, frame: number,
   return stack;
 }
 
+/** What to do about what plays only in Blender, by kind. */
+export function remedy(unsupported: readonly string[]): string {
+  const out: string[] = [];
+  if (unsupported.some((thing) => thing.includes(' constraint ') || thing.includes('drivers')))
+    out.push('Bake a constraint or driver into the action (Pose ▸ Animation ▸ Bake Action, Visual Keying), or aim with a Damped Track.');
+  if (unsupported.some((thing) => thing.includes('curves on ')))
+    out.push("Key the motion on a bone (the root bone) instead of the armature object, or move the object from the game.");
+  if (unsupported.some((thing) => thing.includes('interpolation') || thing.includes(' modifier')))
+    out.push('Use Bezier, Linear or Constant keys and the Cycles modifier only, or bake the curves (Key ▸ Bake Keyframes).');
+  return out.length ? ` ${out.join(' ')}` : '';
+}
+
 /** True when an armature has anything to evaluate: an action, or NLA strips. */
 export function animated(armature: BlenderArmature): boolean {
   return !!armature.action || !!armature.animation?.tracks.some((track) => track.strips.length);
@@ -305,7 +317,7 @@ export class BlenderSkinDirector {
       if (!armature) continue;
       const unsupported = [...pose.unsupported(), ...this.#clipsOf(name).flatMap((clip) => clip.unsupported)];
       if (unsupported.length) {
-        const said = `${name} plays ${unsupported.join(', ')} only in Blender, not in the Timeline or a game. Bake it into the action (Pose ▸ Animation ▸ Bake Action, Visual Keying), or aim with a Damped Track constraint.`;
+        const said = `${name} plays ${unsupported.join(', ')} only in Blender, not in the Timeline or a game.${remedy(unsupported)}`;
         warnings.push(said);
         this.#say(`unsupported:${name}:${unsupported.join('|')}`, said);
       }

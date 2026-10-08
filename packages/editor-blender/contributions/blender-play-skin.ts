@@ -32,6 +32,7 @@ import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/bl
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
 import type * as THREE from 'three';
 import { ArmaturePose, nlaLayers, poseClip, type ConstraintOverride, type PoseClip, type PoseLayer } from './blender-pose';
+import { remedy } from './blender-runtime-skin';
 
 export interface PlayActionOptions {
   /** Seconds to crossfade from what played before (default 0.2). */
@@ -123,7 +124,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     armature.clips.set(action, undefined);
     void bake(armature.rig.armature, action).then((baked) => {
       const clip = baked ? poseClip(baked) : null;
-      for (const thing of clip?.unsupported ?? []) warnings.push(`${armature.rig.armature}: ${thing} plays only in Blender, not in a game.`);
+      for (const thing of clip?.unsupported ?? []) warnings.push(`${armature.rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
       if (clip) armature.clips.set(action, clip);
       else fail(armature, action, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
     }, (error: unknown) => fail(armature, action, `it could not be read: ${error instanceof Error ? error.message : String(error)}`));
@@ -135,7 +136,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     if (!entry) continue;
     const pose = new ArmaturePose(rig);
     pose.facts(entry);
-    for (const thing of pose.unsupported()) warnings.push(`${rig.armature}: ${thing} plays only in Blender, not in a game.`);
+    for (const thing of pose.unsupported()) warnings.push(`${rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
     const armature: Armature = { rig, pose, facts: entry, clips: new Map(), failed: new Map(), line: [], tracks: new Map(), constraints: new Map() };
     // EACH ARMATURE STARTS ON ITS ASSIGNED ACTION, as Blender's viewport plays it.
     if (entry.action) armature.line = [{ action: entry.action, from: 0, loop: true, speed: 1, weight: ramp(1, 1, 0) }];

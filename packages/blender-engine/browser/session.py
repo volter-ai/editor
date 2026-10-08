@@ -5143,7 +5143,7 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
         for index, fcurve in sorted(channels[(bone, prop)].items()):
             tracks.append(_curve(bone, prop, index, fcurve))
     if others:
-        header["unsupported"] = ["its curves on %s" % ", ".join(sorted(others))]
+        header["unsupported"] = ["curves on %s" % ", ".join(sorted(others))]
     header.update({
         "tracks": tracks,
         "duration": (last - first) / fps,
@@ -5195,7 +5195,7 @@ def _curve_body(fcurve):
             cycles = [_CYCLE_MODE.get(modifier.mode_before, 0), int(modifier.cycles_before),
                       _CYCLE_MODE.get(modifier.mode_after, 0), int(modifier.cycles_after)]
         else:
-            unsupported.append("its %s modifier" % modifier.type.lower())
+            unsupported.append("%s modifier" % modifier.type.lower())
     out = {
         "extrapolation": fcurve.extrapolation,
         "interpolation": interpolation,
