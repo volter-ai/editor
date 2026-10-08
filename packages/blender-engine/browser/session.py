@@ -1725,6 +1725,16 @@ class Session:
                     "metallic": float(material.metallic),
                 }
         graph = depsgraph if depsgraph is not None else bpy.context.evaluated_depsgraph_get()
+        # ONE NAME, TWO OBJECTS: Blender tells a linked object from a local one (or from another
+        # file's) by its library as well as its name; the presenter knows them by name alone and
+        # refuses the frame. Say which object and which files, so the clash can be renamed.
+        names = [row["name"] for row in frame["objects"]]
+        if len(set(names)) != len(names):
+            for name in sorted({n for n in names if names.count(n) > 1}):
+                files = [o.library.filepath if o.library is not None else "this file"
+                         for o in bpy.data.objects if o.name == name]
+                warn("%r is the name of objects from %s; the editor needs one object per name, "
+                     "so rename one (in its own file when it is linked)" % (name, ", ".join(files)))
         frame["instances"] = _depsgraph_placements(frame, graph)
         frame["world"] = draw_world(scene)
         frame["cameras"] = {
