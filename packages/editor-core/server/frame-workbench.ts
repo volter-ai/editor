@@ -27,6 +27,7 @@
  */
 
 import { type ChildProcess, spawn } from 'node:child_process';
+import { readFileSync } from 'node:fs';
 import { createConnection } from 'node:net';
 import { join } from 'node:path';
 import { workbenchProductId } from '@volter/sdk/session/product-locator';
@@ -194,8 +195,19 @@ export async function startFrameWorkbench(options: {
   // that pair is spawned directly, with no shell to quote the project path through.
   // A win32 CHECKOUT's launcher is `scripts/code-server.sh`, which Windows cannot spawn (EFTYPE);
   // what it runs in the end is node on `scripts/code-server.js` in development mode, so that is
-  // spawned here, on this node (the fork's `.nvmrc` major, which `scripts/workbench/dev.mjs` holds).
+  // spawned here, on this node. The checkout's native modules were built for the fork's `.nvmrc`
+  // major, so another major is refused by name here rather than failing later inside the server.
   const sourcesOnWindows = process.platform === 'win32' && workbench.kind === 'sources';
+  if (sourcesOnWindows) {
+    const wanted = readFileSync(join(workbench.cwd, '.nvmrc'), 'utf8').trim().replace(/^v/, '').split('.')[0];
+    const running = process.versions.node.split('.')[0];
+    if (wanted && wanted !== running) {
+      throw new Error(
+        `The fork checkout ${workbench.dir} is built for node ${wanted} (its .nvmrc), and this editor runs on ` +
+          `node ${running}. Start the editor on node ${wanted} to serve that checkout.`,
+      );
+    }
+  }
   const [command, entry]: [string, string[]] = process.platform === 'win32' && workbench.serverBin.endsWith('.cmd')
     ? [join(workbench.cwd, 'node.exe'), [join(workbench.cwd, 'out', 'server-main.js')]]
     : sourcesOnWindows
