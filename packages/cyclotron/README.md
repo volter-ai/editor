@@ -6,6 +6,10 @@ A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled
 npx @volter/cyclotron create my-race --template playable
 ```
 
+The starter game is Canyon Comet: a three-lap kart race against five rivals through a desert
+canyon, with its Blender scene, the bpy scripts that built it, a TypeScript play script and a
+React HUD.
+
 Node.js 24. Without it, the one-line install at
 [cyclotron.videogame.ai](https://cyclotron.videogame.ai/#install) sets up everything and opens
 the same starter game.
@@ -14,7 +18,7 @@ For a model, run `npx @volter/cyclotron` without arguments. It opens the current
 project, or prepares `~/Documents/Volter Models/Untitled Model` with a saved cube
 and Chat ready. Later launches reopen that starter and preserve your edits.
 
-![A cube on wheels jumping a ramp in the editor, with the outliner and properties panels beside the viewport and a lap timer over it](https://raw.githubusercontent.com/volter-ai/editor/main/docs/media/model-play-race.png)
+![Canyon Comet playing in the editor: karts racing under a sandstone arch with the race HUD over the viewport, the outliner and properties beside it, and the Game panel's Autoplay and play log below](https://raw.githubusercontent.com/volter-ai/editor/main/docs/media/model-play-race.png)
 
 ## What it's made of
 
@@ -22,7 +26,7 @@ and Chat ready. Later launches reopen that starter and preserve your edits.
 | --- | --- |
 | Editor shell | VS Code (Code-OSS) |
 | Rendering | three.js |
-| Gameplay | TypeScript — `src/models/track.play.ts` |
+| Gameplay | TypeScript — `src/models/canyon.play.ts` |
 | UI | React — `src/ui/` |
 | 3D modelling | Blender 5.2 compiled to WebAssembly |
 
@@ -65,7 +69,7 @@ Run from the project folder with `npx --no-install cyclotron <command>`;
 | --- | --- |
 | `create <folder> [--template models\|playable]` | A new project. |
 | `upgrade [version]` | Moves the project's `@volter` packages and its engine pin to one release (default: latest). From a project on any earlier version, run it as `npx @volter/cyclotron upgrade`. Prints what changed and what to run next. |
-| `add-play [folder]` | Makes a `models` project playable: adds the Play and React UI dependencies, the manifest's UI root and resolution, the adapter's `regionIncludes.ui`, and — when the project has no `*.play.ts` yet — the example `track.blend` + `track.play.ts` + `race-state.ts` + `src/ui/`. Never overwrites a file; prints what it added, what it left and the next step (`npm install` when dependencies changed, then reload the editor). |
+| `add-play [folder]` | Makes a `models` project playable: adds the Play and React UI dependencies, the manifest's UI root and resolution, the adapter's `regionIncludes.ui`, and — when the project has no `*.play.ts` yet — a first play script for the project's own model (its default `.blend`, or its only one): `<model>.play.ts` moves the model's first object with the arrow keys or WASD and offers Autoplay a `wander` behaviour, `game-state.ts` beside it holds what it publishes, and `src/ui/game.tsx` draws that over Play. It does not copy Canyon Comet, the `playable` template's game. Never overwrites a file; prints what it added, what it left and the next step (`npm install` when dependencies changed, then reload the editor). |
 | `status` \| `console` | The editor's state, and its unresolved console entries. Entries print to stderr; the command exits 1 only for an unresolved **error** — warnings alone exit 0. `eval` ends by the same rule. |
 | `eval <JavaScript>` \| `eval --list` | Runs code against the live editor; `--list` prints what is in scope and a few common tasks. |
 | `camera --position x,y,z --target x,y,z [--fov n]` | Poses the current document's viewport camera. Coordinates are Blender's: metres, Z up (the command converts them to the stage's Y up). `--fov` is the vertical field of view in degrees. |

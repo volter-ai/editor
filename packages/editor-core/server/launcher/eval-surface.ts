@@ -102,7 +102,7 @@ const COMMON_TASKS: readonly (readonly [task: string, code: string])[] = [
   ['', 'stage space: metres, Y up; a Blender point (x, y, z) is { x, y: z, z: -y }. Read it: return (await editor.currentView()).viewport'],
   ['Capture to a file', "const shot = await editor.captureEditorChrome({ region: 'play' }); (await import('node:fs')).writeFileSync('shot.png', Buffer.from(shot.base64, 'base64'))"],
   ['', "region 'document': the document as the person sees it, overlays included; 'play': the live Play frame and its UI"],
-  ['Open a model', "return await editor.open('model:src/models/track.blend')"],
+  ['Open a model', "return await editor.open('model:src/models/canyon.blend')"],
   ['Hold a key in Play', "return await editor.document.key('w', { code: 'KeyW', holdMs: 1500 })"],
   ['Read game state', "return await editor.document.query('[aria-label]', { limit: 20 })"],
   ['', "the running document's DOM, its HUD included: show the state you need to read there (text or data-* attributes)"],

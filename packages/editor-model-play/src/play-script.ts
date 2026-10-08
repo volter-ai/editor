@@ -3,7 +3,7 @@
  * plays (`model-play.ts`).
  *
  * It is an ordinary project file beside the `.blend`, as the bpy script that authored it is:
- * `src/models/track.blend` plays `src/models/track.play.ts`. Its default export is called once
+ * `src/models/canyon.blend` plays `src/models/canyon.play.ts`. Its default export is called once
  * with the play context and answers the game:
  *
  *     export default (play: ModelPlayContext): ModelPlayGame => ({
