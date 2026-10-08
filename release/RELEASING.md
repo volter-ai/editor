@@ -24,21 +24,38 @@ On the exact commit to be promoted, from a clean worktree:
    a game build that imports from `editor/` fails.
 6. **Upgrade, before anything is published:** a project made by the previous release (and by the oldest release
    people are known to be on), upgraded with the candidate's own `upgrade` from the packed install, reports each
-   move and leaves nothing it names as kept that the release refuses; after `npm install` it opens, plays and
-   passes step 4. The candidate is not on the registry yet, so upgrade to the newest published release with the
-   candidate's command (that reads the move), then install the candidate's packed tarballs from step 1 over the
-   upgraded project, and open, Play and step 4 there, all before the promotion.
+   move and leaves nothing it names as kept that the release refuses; once its packages are installed (`npm
+   install`, or for a game on the runtime image the link `upgrade` makes) it opens, plays and passes step 4. The
+   candidate is not on the registry yet, so upgrade to the newest published release with the candidate's command
+   (that reads the move), then install the candidate's packed tarballs from step 1 over the upgraded project, and
+   open, Play and step 4 there, all before the promotion. Install them so the project declares only what it
+   declared: each `@volter` package it names points at its tarball, and an `overrides` entry per tarball sends every
+   other `@volter` package there too (installing all the tarballs by name declares packages the project never
+   declares, and the editor then serves and crawls them: a false failure). The tarballs carry main's pre-release
+   versions, one below what the upgrade pinned, so set the project's `engine.version` to the candidate's own version
+   for this reading; the published release matches its pin.
 7. Whatever the release's own changes claim, read through the doors a person uses.
 
 Say in the report which platforms were read and which could not be reached. Step 4 needs a coding agent already
 signed in on the machine that reads it, and nobody starts a ChatGPT or Claude sign-in for it without the owner's
 yes: a platform with no signed-in agent could not be reached, and the report says that was why.
 
+## The promotion
+
+A release writes its version commit back to `publish` only. Before the next promotion, that commit is merged into
+main (a "Reconcile published <version> versions" pull request, as #274 and #315 did): without it, main's packages
+still read the last release's numbers, the push to `publish` is not a fast-forward and is rejected, and autorelease
+would try to publish a version npm already has. Merge it into the measured commit itself (the merge changes only
+versions, the lockfile's version fields and the release's pinned files; read that it does), land that merge on main,
+and push that same commit to `publish`. 0.5.204's push was refused because 0.5.203's version commit was never merged.
+
 ## After the promotion
 
 - Read every package of the release on the registry: its version, and that it is not npm's staged stub. A new
   name can read as the stub for some minutes.
 - `upgrade` to the new release on the project step 6 upgraded, then open, Play and step 4 again in it.
+- Merge this release's version commit from `publish` into main now (the reconcile pull request above), so the next
+  promotion is not refused.
 
 ## Pinning a workbench
 

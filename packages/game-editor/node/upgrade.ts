@@ -26,17 +26,23 @@ export async function upgradeGameProject(requested?: string, cwd = process.cwd()
     if (parent === project) { project = null; break; }
     project = parent;
   }
-  // A game that installs its own dependencies (a real node_modules) keeps them and is told to `npm install`; one
-  // linked to an image, or with none (a create that stopped before it linked), is linked to the new version's image,
-  // and `npm install` there would write into the image every game of that version shares.
-  const links = project !== null && (!existsSync(join(project, 'node_modules')) || usesRuntimeImage(project));
+  // A game that installs its own dependencies keeps them and is told to `npm install`; one linked to an image, or with
+  // none (a create that stopped before it linked), is linked to the new version's image, and `npm install` there
+  // would write into the image every game of that version shares. A game with no node_modules yet but its own
+  // package-lock.json (one that installs its own, just cloned) installs its own too: `create` writes no lockfile
+  // for a game on the image.
+  const links = project !== null && (usesRuntimeImage(project)
+    || (!existsSync(join(project, 'node_modules')) && !existsSync(join(project, 'package-lock.json'))));
   await upgradeProject({ ...UPGRADING, linksNodeModules: links }, requested, cwd);
   if (project === null || !links) return;
   const packagePath = join(project, 'package.json');
   if (!existsSync(packagePath)) return;
   const pkg = JSON.parse(readFileSync(packagePath, 'utf8')) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
   const version = pkg.devDependencies?.[UPGRADING.packageName] ?? pkg.dependencies?.[UPGRADING.packageName];
-  if (!version || !/^\d+\.\d+\.\d+$/.test(version)) return;
+  if (!version || !/^\d+\.\d+\.\d+$/.test(version)) {
+    console.log(`The game's node_modules was not linked to a runtime image: package.json declares ${UPGRADING.packageName} as ${version ?? 'nothing'}, not one exact version. Name one (npx ${UPGRADING.packageName}@latest upgrade <version>), or run npm install for a game that installs its own dependencies.`);
+    return;
+  }
   const image = await ensureRuntimeImage(productRoot, version);
   if (relinkRuntimeImage(project, image)) console.log(`The game's node_modules now links the ${version} runtime image (${image}).`);
 }
