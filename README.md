@@ -1,8 +1,8 @@
-# Cyclotron by VideoGame AI
+# Cyclotron by videogame.ai
 
 ![Canyon Comet playing in Cyclotron: karts racing under a sandstone arch with the race HUD over the viewport, the outliner and properties beside it, and the Game panel's Autoplay and play log below](docs/media/model-play-race.png)
 
-A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
+A free, open-source game editor by videogame.ai, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
 
 On Windows, open PowerShell and paste:
 
