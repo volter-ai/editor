@@ -1804,7 +1804,11 @@ export class BlenderRuntimeView {
     if (this.frame?.session === next.session && next.revision < this.frame.revision)
       throw new Error('The runtime frame is older than the displayed model');
     const ids = new Set(next.objects.map((obj) => obj.id));
-    if (ids.size !== next.objects.length) throw new Error('Runtime object IDs must be unique');
+    if (ids.size !== next.objects.length) {
+      const seen = new Set<string>();
+      const twice = [...new Set(next.objects.map((obj) => obj.id).filter((id) => seen.has(id) || !seen.add(id)))];
+      throw new Error(`Runtime object IDs must be unique; more than one object is named ${twice.map((id) => JSON.stringify(id)).join(', ')}`);
+    }
     const byId = new Map(next.objects.map((obj) => [obj.id, obj]));
     for (const obj of next.objects) {
       if (obj.mesh !== null && !next.meshes[obj.mesh])
