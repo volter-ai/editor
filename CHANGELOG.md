@@ -27,8 +27,12 @@ The repository also pins the Chat frontend back to 0.1.51, so a workbench cut fr
 (`@volter/editor-project`, `editor-sdk`, `editor-live` and `editor-model-play` become `@volter/project`, `sdk`,
 `live` and `play`) move in package.json and in the project's own imports, and what 0.5.203 moved into
 `editor/` moves there: a root `volter.adapter.ts`, and `src/contributions` and `src/tools` (with their
-`volter.tools` registrations), each file's relative imports rebased. Run it with the new release's command,
-since a project's own older command does not know the new names: `npx @volter/cyclotron@latest upgrade` in the project folder, then `npm install`.
+`volter.tools` registrations), each file's relative imports rebased. The files that name those places follow
+them: the project's instructions (`AGENTS.md`, `IDIOMS.md`, the agent skills), its TypeScript configs and the
+game editor's catalog records. A file whose destination already exists stays and is named. Run it with the new
+release's command, since a project's own older command does not know the new names, in the project folder:
+`npx @volter/cyclotron@latest upgrade`, then `npm install`; or `npx @volter/game-editor@latest upgrade`,
+which also links the game to the new release's runtime image.
 Opening a project that still has its adapter at the root says to run that, not to make a new project.
 
 ## 0.5.203 — the starter's commands never fetch

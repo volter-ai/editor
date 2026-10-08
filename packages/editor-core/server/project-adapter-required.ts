@@ -19,6 +19,8 @@ import { ProjectCompatibilityError } from '@volter/sdk/session/editor-compatibil
 interface AdapterRequirement {
   readonly name: string;
   readonly adapterRequired?: boolean;
+  /** `volter.product.upgrade`: the product's command has `upgrade`, so the refusal can name it. */
+  readonly upgrade?: boolean;
 }
 
 export function assertProjectAdapter(projectRoot: string, product: AdapterRequirement | null): void {
@@ -33,7 +35,9 @@ export function assertProjectAdapter(projectRoot: string, product: AdapterRequir
       {
         kind: 'bring-project-up-to-date',
         title: 'Bring this project up to date',
-        guidance: `To move it: npx ${product.name}@latest upgrade, in the project folder. It moves the adapter into editor/ and the kit's packages to their current names; then npm install, and open the project again.`,
+        guidance: product.upgrade === true
+          ? `To move it: npx ${product.name}@latest upgrade, in the project folder. It moves the adapter into editor/ and the kit's packages to their current names; then npm install, and open the project again.`
+          : `To move it: put volter.adapter.ts, src/contributions and src/tools into editor/, and rename the kit's packages (@volter/editor-project, editor-sdk, editor-live and editor-model-play are @volter/project, sdk, live and play); then npm install, and open the project again.`,
         summary: 'adapter at the project root',
       },
     );
