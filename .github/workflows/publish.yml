@@ -9,7 +9,7 @@
 # approves it with 2FA (`npm stage list|approve`); a staged version isn't on
 # the registry. The last step reads every published version back and fails
 # the run, naming each one npm doesn't serve. The log keeps npm publish's own
-# output, and the served checks wait (backoff, up to 20 min) before saying a
+# output, and the served checks wait (backoff, up to 20 min before a dependent publishes, 75 min at the end) before saying a
 # version npm accepted is not served yet, so a slow registry never reads as a
 # lost release.
 name: publish
@@ -27,7 +27,7 @@ jobs:
   publish:
     if: github.ref == 'refs/heads/publish'
     runs-on: ubuntu-latest
-    timeout-minutes: 60
+    timeout-minutes: 130
     env:
       LOCKSTEP: '0.5'
       PIN_FILES: packages/game-editor/catalog/entries/blender.json packages/game-editor/catalog/entries/music.json

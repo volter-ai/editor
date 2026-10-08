@@ -20,7 +20,10 @@ import { spawnSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 
-const WAIT_MS = 20 * 60_000;
+// The final check (--served) waits longest: on 2026-10-07 npm listed @volter/cyclotron@0.5.196 56 minutes after
+// accepting it, and 0.5.197 about 24, so a 20-minute bound marked two good releases failed. Before a dependent is
+// published, the bound stays short: a dependency npm doesn't serve should stop the run early.
+const WAIT_MS = (process.argv[2] === '--served' ? 75 : 20) * 60_000;
 // The first check is soon; then each wait doubles, up to a minute between checks.
 const FIRST_POLL_MS = 5_000;
 const MAX_POLL_MS = 60_000;
