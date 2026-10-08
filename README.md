@@ -145,12 +145,14 @@ edit, even one that fails part-way, so use the inspection tools for read-only qu
 To move a project to a new release, from whichever version it is on, run this in its folder:
 
 ```bash
-npx @volter/cyclotron upgrade
+npx @volter/cyclotron@latest upgrade
 ```
 
 It moves the project's `@volter` packages and `volter.project.json`'s `engine.version`
 together, and prints what to run next (`npm install`, then reopen the editor). The product
-then downloads the matching workbench.
+then downloads the matching workbench. Name `@latest`: in a project, a plain `npx @volter/cyclotron`
+runs the project's own installed version, and a project made before 0.5.203 needs the newest
+release's `upgrade` to move it to the renamed packages and the `editor/` folder.
 
 ## Package map
 

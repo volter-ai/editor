@@ -51,6 +51,17 @@ export type StartupRecovery =
       summary?: string;
     }
   | {
+      /**
+       * A project this product can open once it is brought up to date by the newest release's own `upgrade`
+       * or by hand (a project made before 0.5.203 keeps its adapter at its root); `guidance` says how.
+       */
+      kind: 'bring-project-up-to-date';
+      title: 'Bring this project up to date';
+      guidance: string;
+      /** As on `use-compatible-editor`. */
+      summary?: string;
+    }
+  | {
       /** The folder is not a project this product can open; `guidance` says how to make one. */
       kind: 'make-project';
       title: 'Make a project';
@@ -92,6 +103,7 @@ export function isStartupRecovery(value: unknown): value is StartupRecovery {
     case 'restart-editor':
       return verbs === 'edit .' || verbs === 'close | edit .';
     case 'use-compatible-editor':
+    case 'bring-project-up-to-date':
     case 'make-project':
       return candidate['verbs'] === undefined;
     case 'upgrade-project':

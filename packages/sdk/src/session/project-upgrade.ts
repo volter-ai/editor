@@ -33,12 +33,12 @@
 import { spawn } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
 import { mkdir, readdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, relative, resolve } from 'node:path';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { hasManifest } from '@volter/project/manifest/locate';
 import { compareSemver } from './editor-compatibility';
 
-export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter packages and its engine pin to one release (default: latest)";
+export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter packages and its engine pin to one release (default: latest); from a project made before 0.5.203, run the newest release's own: npx <package>@latest upgrade";
 
 /** A product name that is no longer published, as a project still spells it. */
 export interface RetiredProduct {
@@ -62,7 +62,7 @@ export interface UpgradingProduct {
 /** The ONE line that moves a project onto `product`, from any version — including a project on a
  *  name `product` replaced, whose own installed command does not know `product` exists. */
 export function upgradeLine(product: Pick<UpgradingProduct, 'packageName'>): string {
-  return `npx ${product.packageName} upgrade`;
+  return `npx ${product.packageName}@latest upgrade`;
 }
 
 /** The retired product a project's `package.json` still declares, or null. */
@@ -96,22 +96,54 @@ const RENAMED_KIT_PACKAGES = [
   ['@volter/editor-model-play', '@volter/play'],
 ] as const;
 
-/** A project's own source that may import the kit: its adapter, wherever it is, and `editor/` and `src/`. */
+/**
+ * What 0.5.203 (#286) moved from where a project kept it to `editor/`: the adapter from the project's root, and the
+ * project's contributions and tools from `src/` (`tool-contribution-convention` read `src/contributions` and
+ * `src/tools` until then). Project-relative, from and to.
+ */
+const MOVED_TO_EDITOR = [
+  ['volter.adapter.ts', 'editor/volter.adapter.ts'],
+  ['src/contributions', 'editor/contributions'],
+  ['src/tools', 'editor/tools'],
+] as const;
+
+/** Every file under `path` (or `path` itself, a file); none when it is gone. */
+async function allFiles(path: string): Promise<string[]> {
+  let entries: import('node:fs').Dirent[];
+  try { entries = await readdir(path, { withFileTypes: true }); } catch { return existsSync(path) ? [path] : []; }
+  const files: string[] = [];
+  for (const entry of entries) {
+    const child = join(path, entry.name);
+    if (entry.isDirectory()) files.push(...await allFiles(child));
+    else files.push(child);
+  }
+  return files;
+}
+
+/** Every script file under `dir`, skipping `node_modules` and dot-folders. */
+async function scriptFiles(dir: string): Promise<string[]> {
+  const files: string[] = [];
+  let entries: import('node:fs').Dirent[];
+  try { entries = await readdir(dir, { withFileTypes: true }); } catch { return files; }
+  for (const entry of entries) {
+    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...await scriptFiles(path));
+    else if (/\.(?:[cm]?[jt]sx?)$/.test(entry.name)) files.push(path);
+  }
+  return files;
+}
+
+/** A project's own source that may import the kit: its root script files (the adapter, `vite.config.ts`),
+ *  and everything under `editor/`, `src/` and `scripts/`. */
 async function projectSourceFiles(project: string): Promise<string[]> {
   const files: string[] = [];
-  const walk = async (dir: string): Promise<void> => {
-    let entries: import('node:fs').Dirent[];
-    try { entries = await readdir(dir, { withFileTypes: true }); } catch { return; }
-    for (const entry of entries) {
-      if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
-      const path = join(dir, entry.name);
-      if (entry.isDirectory()) await walk(path);
-      else if (/\.(?:[cm]?[jt]sx?)$/.test(entry.name)) files.push(path);
+  try {
+    for (const entry of await readdir(project, { withFileTypes: true })) {
+      if (entry.isFile() && /\.(?:[cm]?[jt]sx?)$/.test(entry.name)) files.push(join(project, entry.name));
     }
-  };
-  if (existsSync(join(project, 'volter.adapter.ts'))) files.push(join(project, 'volter.adapter.ts'));
-  await walk(join(project, 'editor'));
-  await walk(join(project, 'src'));
+  } catch { /* an unreadable project root is refused before this */ }
+  for (const folder of ['editor', 'src', 'scripts']) files.push(...await scriptFiles(join(project, folder)));
   return files;
 }
 
@@ -124,13 +156,22 @@ function renameKitSpecifiers(text: string): string {
   return out;
 }
 
-/** `text`, a module moving from `fromDir` to `toDir`, with each relative import still naming the same file. */
-function rebaseRelativeSpecifiers(text: string, fromDir: string, toDir: string): string {
-  return text.replace(/(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+)(['"])(\.{1,2}\/[^'"]*)\2/g, (_whole, lead: string, quote: string, spec: string) => {
-    let next = relative(toDir, resolve(fromDir, spec)).split('\\').join('/');
-    if (!next.startsWith('.')) next = `./${next}`;
-    return `${lead}${quote}${next}${quote}`;
-  });
+/**
+ * `text`, a module moving from `fromDir` to `toDir` while the files in `moved` (old path to new) move too, with each
+ * relative specifier still naming the same file: `from`, `import`, `import()`, `require()`, `new URL()` and
+ * `import.meta.glob()`, and a bare `.` or `..`.
+ */
+function rebaseRelativeSpecifiers(text: string, fromDir: string, toDir: string, moved: (path: string) => string): string {
+  return text.replace(
+    /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*|\bnew\s+URL\s*\(\s*|\bimport\.meta\.glob\s*\(\s*)(['"`])(\.{1,2}(?:\/[^'"`]*)?)\2/g,
+    (_whole, lead: string, quote: string, spec: string) => {
+      let next = relative(toDir, moved(resolve(fromDir, spec))).split('\\').join('/');
+      if (next === '') next = '.';
+      if (!next.startsWith('.')) next = `./${next}`;
+      if (spec.endsWith('/') && !next.endsWith('/')) next = `${next}/`;
+      return `${lead}${quote}${next}${quote}`;
+    },
+  );
 }
 
 /** `text` as a whole word — not part of a longer command, package or name it is the start or the
@@ -371,9 +412,10 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   }
   // 0b. THE KIT'S OLD NAMES AND THE EDITOR FOLDER (0.5.203: #284 renamed the runtime packages, #286 moved a
   // project's editor side into `editor/`). A project made before 0.5.203 declares the kit under its old names and
-  // keeps its adapter at its root, and the release names neither; left alone, the upgraded project was refused on
-  // its next open ("has no editor/volter.adapter.ts"). The names move where they stand, in package.json and in
-  // the project's own source, and the adapter moves into `editor/`.
+  // keeps its editor side where #286 moved it from (the adapter at its root, contributions and tools in `src/`),
+  // and the release names neither; left alone, the upgraded project was refused on its next open, or opened
+  // without its tools. The names move where they stand, in package.json and in the project's own source, and what
+  // #286 moved moves into `editor/`, each file with its relative imports rebased.
   for (const section of ['dependencies', 'devDependencies'] as const) {
     const declared = pkg[section];
     if (declared === undefined) continue;
@@ -390,25 +432,53 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
       packagesChanged = true;
     }
   }
-  const rootAdapter = join(project, 'volter.adapter.ts');
-  const editorAdapter = join(project, 'editor', 'volter.adapter.ts');
-  const movesAdapter = existsSync(rootAdapter) && !existsSync(editorAdapter);
+  const projectPath = (path: string) => relative(project, path).split('\\').join('/');
+  // Each move is taken only where its destination is free; a destination already there is said, and its source left.
+  const moves: { from: string; to: string }[] = [];
+  for (const [from, to] of MOVED_TO_EDITOR) {
+    const source = join(project, from);
+    if (!existsSync(source)) continue;
+    if (existsSync(join(project, to))) {
+      kept.push(`${from} stays where it is and is not read: this editor reads ${to}, which this project already has`);
+      continue;
+    }
+    moves.push({ from: source, to: join(project, to) });
+  }
+  const movedPath = (path: string): string => {
+    for (const move of moves) {
+      if (path === move.from) return move.to;
+      if (path.startsWith(move.from + sep)) return move.to + path.slice(move.from.length);
+    }
+    return path;
+  };
+  const leftBehind: string[] = [];
   for (const path of await projectSourceFiles(project)) {
     const original = await readFile(path, 'utf8');
-    let content = renameKitSpecifiers(original);
-    const moving = movesAdapter && path === rootAdapter;
-    if (moving) content = rebaseRelativeSpecifiers(content, project, join(project, 'editor'));
-    if (moving) {
-      textFiles.push({ path: editorAdapter, content, original: '', created: true });
-      changed.push('volter.adapter.ts -> editor/volter.adapter.ts (the editor side of a project lives in editor/)');
+    const destination = movedPath(path);
+    const content = rebaseRelativeSpecifiers(renameKitSpecifiers(original), dirname(path), dirname(destination), movedPath);
+    if (destination !== path) {
+      textFiles.push({ path: destination, content, original: '', created: true });
+      leftBehind.push(path);
     } else if (content !== original) {
       textFiles.push({ path, content, original });
-      changed.push(`${relative(project, path).split('\\').join('/')}: imports the kit's current package names`);
+      changed.push(`${projectPath(path)}: its imports name the kit's current packages and the moved files where they now are`);
     }
   }
-  for (const folder of ['contributions', 'tools']) {
-    if (existsSync(join(project, folder)))
-      kept.push(`${folder}/ stays where it is: the editor reads it from editor/${folder}/ now; move it there by hand`);
+  for (const move of moves) changed.push(`${projectPath(move.from)} -> ${projectPath(move.to)} (a project's editor side lives in editor/ from 0.5.203)`);
+  // A tool is registered in package.json by its path (`volter.tools`); a registration into a moved folder follows it.
+  const volter = pkg['volter'];
+  const tools = volter !== null && typeof volter === 'object' && !Array.isArray(volter) ? (volter as { tools?: unknown }).tools : undefined;
+  if (Array.isArray(tools)) {
+    const rewritten = tools.map((registration: unknown) => {
+      const entry = typeof registration === 'string' ? registration : (registration as { entry?: unknown } | null)?.entry;
+      if (typeof entry !== 'string' || !entry.startsWith('./')) return registration;
+      const next = `./${projectPath(movedPath(join(project, entry.slice(2))))}`;
+      if (next === entry) return registration;
+      changed.push(`package.json volter.tools: ${entry} -> ${next}`);
+      packagesChanged = true;
+      return typeof registration === 'string' ? next : { ...(registration as object), entry: next };
+    });
+    (volter as { tools: unknown[] }).tools = rewritten;
   }
 
   for (const section of ['dependencies', 'devDependencies'] as const) {
@@ -425,7 +495,9 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
       if (current === target) continue;
       declared[name] = target;
       packagesChanged = true;
-      changed.push(`package.json ${section}: ${name} ${current} -> ${target}`);
+      changed.push(current.startsWith('file:')
+        ? `package.json ${section}: ${name} was the local tarball ${current}; it is now ${target} from the registry`
+        : `package.json ${section}: ${name} ${current} -> ${target}`);
     }
   }
 
@@ -466,15 +538,29 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     : [];
   if (locks.length > 0) changed.push('package-lock.json: the old @volter rows dropped, so npm install resolves the new ones');
 
-  if (movesAdapter) await mkdir(join(project, 'editor'), { recursive: true });
+  for (const file of textFiles) if (file.created) await mkdir(dirname(file.path), { recursive: true });
   await writeAll([
     ...(packagesChanged ? [{ path: packagePath, content: jsonLayout(packageRaw)(pkg), original: packageRaw }] : []),
     ...(pinChanged ? [{ path: manifestPath, content: jsonLayout(manifestRaw)(manifest), original: manifestRaw }] : []),
     ...textFiles,
     ...locks,
   ]);
-  // The adapter's new copy is in place; only then does the old one go.
-  if (movesAdapter) await rm(rootAdapter);
+  // The moved scripts' new copies are in place; only then do the old ones go, and a moved folder's other files
+  // (data, a capability stamp) follow as they are. The project is upgraded by now, so a file that cannot be moved or
+  // removed (open in another program) is said, not thrown.
+  const failed: string[] = [];
+  const leftover = (path: string, error: unknown) => (failed.push(path),
+    kept.push(`${projectPath(path)} could not be removed (${error instanceof Error ? error.message : String(error)}); the editor does not read it, so delete it by hand`));
+  for (const path of leftBehind) await rm(path).catch((error: unknown) => leftover(path, error));
+  for (const move of moves) {
+    for (const path of await allFiles(move.from)) {
+      if (leftBehind.includes(path)) continue;
+      const to = movedPath(path);
+      await mkdir(dirname(to), { recursive: true });
+      await rename(path, to).catch((error: unknown) => leftover(path, error));
+    }
+    if (!move.from.endsWith('.ts') && !failed.some(path => path.startsWith(move.from + sep))) await rm(move.from, { recursive: true, force: true }).catch(() => undefined);
+  }
   for (const line of warnings) console.warn(`! ${line}`);
 
   console.log(changed.length > 0

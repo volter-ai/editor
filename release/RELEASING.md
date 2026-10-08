@@ -25,8 +25,9 @@ On the exact commit to be promoted, from a clean worktree:
 6. **Upgrade, before anything is published:** a project made by the previous release (and by the oldest release
    people are known to be on), upgraded with the candidate's own `upgrade` from the packed install, reports each
    move and leaves nothing it names as kept that the release refuses; after `npm install` it opens, plays and
-   passes step 4. Where the candidate's version is not on the registry yet, upgrade to the newest published one
-   with the candidate's command, and read the move itself; the open, Play and Chat follow after the promotion.
+   passes step 4. The candidate is not on the registry yet, so upgrade to the newest published release with the
+   candidate's command (that reads the move), then install the candidate's packed tarballs from step 1 over the
+   upgraded project, and open, Play and step 4 there, all before the promotion.
 7. Whatever the release's own changes claim, read through the doors a person uses.
 
 Say in the report which platforms were read and which could not be reached. Step 4 needs a coding agent already

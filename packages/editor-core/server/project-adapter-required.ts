@@ -31,8 +31,8 @@ export function assertProjectAdapter(projectRoot: string, product: AdapterRequir
       `${projectRoot} keeps its adapter at its root (volter.adapter.ts), where projects made before 0.5.203 kept it; ` +
         `this editor reads ${ADAPTER_MODULE_FILENAME}.`,
       {
-        kind: 'use-compatible-editor',
-        title: 'Use a compatible editor',
+        kind: 'bring-project-up-to-date',
+        title: 'Bring this project up to date',
         guidance: `To move it: npx ${product.name}@latest upgrade, in the project folder. It moves the adapter into editor/ and the kit's packages to their current names; then npm install, and open the project again.`,
         summary: 'adapter at the project root',
       },
@@ -42,8 +42,8 @@ export function assertProjectAdapter(projectRoot: string, product: AdapterRequir
   // lacks and where one comes from, not to start over.
   if (existsSync(join(projectRoot, MANIFEST_FILENAME))) {
     throw new ProjectCompatibilityError(`${projectRoot} is a project with no ${ADAPTER_MODULE_FILENAME}.`, {
-      kind: 'use-compatible-editor',
-      title: 'Use a compatible editor',
+      kind: 'bring-project-up-to-date',
+      title: 'Bring this project up to date',
       guidance: `Add one: a project made by npx ${product.name} create <another folder> has an ${ADAPTER_MODULE_FILENAME} to copy into this project's editor/ folder; then open this project again.`,
       summary: 'no adapter',
     });
