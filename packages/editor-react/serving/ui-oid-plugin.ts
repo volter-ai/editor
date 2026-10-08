@@ -155,7 +155,13 @@ const SDK_ROOT = ((): string | null => {
   try {
     const entry = realpathSync(createRequire(import.meta.url).resolve('@volter/sdk'));
     return `${dirname(dirname(entry)).replace(/\\/g, '/')}/`;
-  } catch {
+  } catch (error) {
+    // Said once, when this module loads: without the folder, the SDK's own source in a workspace is
+    // not told apart from a game's and would be stamped as editable UI.
+    console.warn(
+      `[volter] @volter/sdk does not resolve from ${import.meta.url} (${error instanceof Error ? error.message : String(error)}); ` +
+        "the SDK's source folder is not excluded from UI source stamping.",
+    );
     return null;
   }
 })();

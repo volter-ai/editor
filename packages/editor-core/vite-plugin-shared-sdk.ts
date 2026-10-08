@@ -71,6 +71,17 @@ export function sharedSdkBuildHooks(): Pick<Plugin, 'moduleParsed' | 'generateBu
       }));
     },
     generateBundle() {
+      // A composition always reaches the SDK. Finding none of its modules means this build did not
+      // recognise the SDK's folder, and an empty manifest would give every project tool a private
+      // copy of the host's registries, with nothing said.
+      if (entries.size === 0) {
+        this.error(
+          `No @volter/sdk module was found in this build, so ${manifestFile} would be empty. ` +
+            (sdkSource === null
+              ? '@volter/sdk does not resolve from the editor package, and no module came from node_modules/@volter/sdk/src/.'
+              : `The SDK's source was looked for in ${sdkSource} and in node_modules/@volter/sdk/src/.`),
+        );
+      }
       const files = Object.fromEntries([...entries].map(([name, reference]) => [name, this.getFileName(reference)]));
       this.emitFile({ type: 'asset', fileName: manifestFile, source: JSON.stringify(files, null, 2) + '\n' });
     },
