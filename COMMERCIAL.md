@@ -51,5 +51,5 @@ other terms. It cannot offer other terms for Blender, for anything derived from
 Blender, or for any third-party code: that copyright is its authors', and no
 commercial license from Volter AI, Inc. reaches it.
 
-To ask about other terms, write to Volter AI, Inc., the copyright holder named
-in each package's `NOTICE`.
+To ask about other terms, write to Volter AI, Inc. at
+[contact@videogame.ai](mailto:contact@videogame.ai).
