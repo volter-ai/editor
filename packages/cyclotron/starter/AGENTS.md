@@ -351,6 +351,11 @@ For a behavior-only repair, preserve the established appearance.
 - In a play script, `play.setAction(object, name)` sets the action an object
   plays, crossfading from the last; `play.actions(object)` lists them. Check
   the result in captures.
+- Different motions on different parts of a body (legs run, arms aim) are
+  layers: `setAction`/`play.blend` with `{ layer, from: <bone> }`. Poses in
+  between authored ones (aim up, level, down) are `play.blend` weights; a bone
+  turned toward something only the game knows is `play.lookAt`. Author the
+  poses as actions in Blender; a game does not run Blender's constraints or IK.
 
 ## React UI
 
