@@ -348,14 +348,18 @@ For a behavior-only repair, preserve the established appearance.
 - Look in the asset library for rigged and animated assets before authoring
   your own: `GET <editor>/__editor/asset-library/search?source=local&type=model&q=<words>`
   at the editor's address, then import the result through Blender.
-- In a play script, `play.setAction(object, name)` sets the action an object
-  plays, crossfading from the last; `play.actions(object)` lists them. Check
-  the result in captures.
-- Different motions on different parts of a body (legs run, arms aim) are
-  layers: `setAction`/`play.blend` with `{ layer, from: <bone> }`. Poses in
-  between authored ones (aim up, level, down) are `play.blend` weights; a bone
-  turned toward something only the game knows is `play.lookAt`. Author the
-  poses as actions in Blender; a game does not run Blender's constraints or IK.
+- Animate as you would in Blender; the Timeline and a game play it as Blender
+  does: NLA tracks, then the active action, then Damped Track constraints.
+  Layer motions with NLA tracks (an action keyed only on the upper body, on a
+  track over a run, aims while the legs run), and aim a bone with a Damped
+  Track at an Empty the game moves. Other constraints and IK play only in
+  Blender: bake them into the action. The console names any difference from
+  Blender's own pose.
+- In a play script, `play.setAction(object, name)` sets the active action,
+  crossfading from the last; `play.setTrack(object, track, { action,
+  influence })` sets an NLA track; `play.setConstraint(object, bone, name,
+  { influence })` a constraint; `play.actions(object)` lists the actions.
+  Check the result in captures.
 
 ## React UI
 

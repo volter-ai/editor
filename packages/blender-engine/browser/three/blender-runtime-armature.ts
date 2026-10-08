@@ -33,6 +33,7 @@ import { LineSegmentsGeometry } from 'three/addons/lines/LineSegmentsGeometry.js
 import { z } from 'zod';
 
 const scalar = z.number().finite();
+const matrixSchema = z.array(z.tuple([scalar, scalar, scalar, scalar])).length(4);
 
 /** ONE BONE, as `session.py`'s `_armature_bones` answers it. */
 export const boneSchema = z
@@ -49,8 +50,73 @@ export const boneSchema = z
     select: z.boolean(),
     active: z.boolean(),
     lockedWeight: z.boolean(),
+    /** `Bone.matrix_local`, the rest matrix in the armature's space. */
+    rest: matrixSchema.optional(),
+    /** The channels' own values: what a channel no action animates keeps. */
+    channels: z.object({
+      mode: z.string(),
+      location: z.array(scalar).length(3),
+      rotation_quaternion: z.array(scalar).length(4),
+      rotation_euler: z.array(scalar).length(3),
+      rotation_axis_angle: z.array(scalar).length(4),
+      scale: z.array(scalar).length(3),
+    }).strict().optional(),
+    /** Parenting flags that are not Blender's default, by name. */
+    inherit: z.array(z.string()).optional(),
+    /** The bone's constraint stack, in order. */
+    constraints: z.array(z.object({
+      name: z.string(),
+      type: z.string(),
+      enabled: z.boolean(),
+      influence: scalar,
+      target: z.string().optional(),
+      subtarget: z.string().optional(),
+      trackAxis: z.string().optional(),
+      headTail: scalar.optional(),
+    }).strict()).optional(),
   })
   .strict();
+
+/** One NLA strip, as `session.py`'s `_armature_animation` answers it. */
+export const nlaStripSchema = z.object({
+  name: z.string(),
+  type: z.string(),
+  action: z.string().nullable(),
+  start: scalar,
+  end: scalar,
+  actionStart: scalar,
+  actionEnd: scalar,
+  scale: scalar,
+  repeat: scalar,
+  influence: scalar,
+  animatedInfluence: z.boolean(),
+  /** The keyed influence's F-Curve, when `animatedInfluence`. */
+  influenceCurve: z.object({
+    extrapolation: z.string(),
+    interpolation: z.array(z.number()),
+    keysBase64: z.string(),
+    cycles: z.tuple([z.number(), z.number(), z.number(), z.number()]).optional(),
+    unsupported: z.array(z.string()).optional(),
+  }).strict().optional(),
+  animatedTime: z.boolean(),
+  blendIn: scalar,
+  blendOut: scalar,
+  blendType: z.string(),
+  extrapolation: z.string(),
+  reversed: z.boolean(),
+  mute: z.boolean(),
+}).strict();
+
+/** An armature's animation stack: NLA tracks bottom to top, then the active action over them. */
+export const armatureAnimationSchema = z.object({
+  useNla: z.boolean(),
+  influence: scalar,
+  blendType: z.string(),
+  extrapolation: z.string(),
+  tracks: z.array(z.object({ name: z.string(), mute: z.boolean(), solo: z.boolean(), strips: z.array(nlaStripSchema) }).strict()),
+  /** Bones whose channels a driver sets. */
+  drivers: z.array(z.string()).optional(),
+}).strict();
 
 export const armatureSchema = z
   .object({
@@ -63,10 +129,14 @@ export const armatureSchema = z
     bones: z.array(boneSchema),
     /** `animation_data.action`, the action it plays (`session.py` `_armatures`). */
     action: z.string().nullable().optional(),
+    animation: armatureAnimationSchema.optional(),
   })
   .strict();
 
 export type BlenderArmature = z.infer<typeof armatureSchema>;
+export type BlenderArmatureBone = z.infer<typeof boneSchema>;
+export type BlenderArmatureAnimation = z.infer<typeof armatureAnimationSchema>;
+export type BlenderNlaStrip = z.infer<typeof nlaStripSchema>;
 type Bone = z.infer<typeof boneSchema>;
 
 /**

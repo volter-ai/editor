@@ -528,22 +528,29 @@ export interface BlenderUvLayout {
 }
 
 /**
- * ONE TRACK of {@link BlenderActionClip}: a bone's LOCAL `position`,
- * `quaternion` or `scale` sampled at every integer frame.
- *
- * `constant` says the door found every sample equal to the first and shipped
- * two keys instead of N — which is most of a rig, most of the time.
+ * ONE F-CURVE of {@link BlenderActionClip}, whole: one component (`index`) of one of a bone's
+ * channels (`location`, `rotation_quaternion` as w,x,y,z, `rotation_euler`, `rotation_axis_angle`
+ * as angle,x,y,z, `scale`), with everything `fcurve_eval_keyframes` reads to evaluate it.
  */
-export interface BlenderClipTrack {
+export interface BlenderClipTrack extends BlenderClipCurve {
   readonly bone: string;
-  readonly property: 'position' | 'quaternion' | 'scale';
-  readonly stride: number;
-  readonly count: number;
-  readonly constant: boolean;
-  /** Float32 seconds, `count` of them, zero at `clipStart`. */
-  readonly timeBase64: string;
-  /** Float32, `count * stride`. */
-  readonly valueBase64: string;
+  readonly property: 'location' | 'rotation_quaternion' | 'rotation_euler' | 'rotation_axis_angle' | 'scale';
+  readonly index: number;
+}
+
+/** An F-Curve's body: everything Blender evaluates it from, wherever it lives. */
+export interface BlenderClipCurve {
+  /** `FCurve.extrapolation`: `CONSTANT` or `LINEAR`. */
+  readonly extrapolation: string;
+  /** Per key, how the segment after it interpolates: 0 constant, 1 linear, 2 Bezier. */
+  readonly interpolation: readonly number[];
+  /** Float32, six per key: `co`, `handle_left`, `handle_right` (frame, value each). */
+  readonly keysBase64: string;
+  /** A Cycles modifier: [mode before, cycles before, mode after, cycles after]; mode 0 none,
+   *  1 repeat, 2 repeat with offset, 3 mirror. */
+  readonly cycles?: readonly [number, number, number, number];
+  /** What this curve does in Blender that is not played (an easing type, another modifier). */
+  readonly unsupported?: readonly string[];
 }
 
 /** One column of the Timeline's summary row: a frame at which SOMETHING is
@@ -616,9 +623,14 @@ export interface BlenderActionClip {
   readonly tracks: readonly BlenderClipTrack[];
   readonly clipStart?: number;
   readonly clipEnd?: number;
+  /** Blender repeats it past its range (Cycles modifiers on its curves, or `use_cyclic`). */
+  readonly cyclic?: boolean;
   readonly duration?: number;
   readonly sampled?: number;
   /** Bones the action names that the armature does not have. */
   readonly unplayedBones?: readonly string[];
+  /** What the action keys besides bone channels (the object's own transform, a property),
+   *  which plays only in Blender. */
+  readonly unsupported?: readonly string[];
   readonly reason?: string;
 }

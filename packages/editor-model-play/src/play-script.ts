@@ -160,70 +160,64 @@ export interface ModelPlayContext {
   autoplay(bot: ModelPlayAutoplayController | Readonly<Record<string, ModelPlayAutoplayController>> | null): void;
   /**
    * Set the action an object's armature plays, as Blender's `animation_data.action` does: any
-   * action in the file that animates that armature's bones, by name. `object` is the armature, its
-   * skinned mesh, or an object above or below them, or its name. Each armature starts a run playing
-   * the action the file assigns it. Setting another crossfades over `fade` seconds (0.2), loops
-   * unless `loop: false` (which holds the last frame), and plays at `speed`; setting the action
-   * already playing does nothing, so a script may set it every update from the character's state.
-   * `null` fades it out. Actions run on the game's clock. Each change is an `action` entry in the
-   * play log; a name the armature lacks is `action-unknown` once and returns false.
+   * action in the file, by name. `object` is the armature, its skinned mesh, or an object above or
+   * below them, or its name. Each armature starts a run playing the action the file assigns it.
+   * Setting another crossfades over `fade` seconds (0.2), repeats unless `loop: false` (which
+   * holds the last frame), and plays at `speed`; setting the action already playing does nothing,
+   * so a script may set it every update from the character's state. `null` fades it out. Each
+   * change is an `action` entry in the play log; a name the file lacks is `action-unknown` once
+   * and returns false.
    *
-   * LAYERS: an action plays on the `base` layer, every bone, unless `layer` names another. A named
-   * layer plays from one bone down (`from`, given the first time) and takes those bones from the
-   * base, so the legs can run while the upper body does something else. Blender has no layers at
-   * run time; its NLA tracks are the nearest thing, and they are not read here.
+   * The armature plays as Blender plays it: its NLA tracks, then this action over them, then its
+   * bone constraints, all as the file sets them (and as the Timeline shows them).
    *
    *     play.setAction('Hero', moving ? 'Run' : 'Idle');
-   *     play.setAction('Hero', 'Wave', { layer: 'upper', from: 'spine_01' });
    */
   setAction(object: THREE.Object3D | string, action: string | null, options?: ModelPlayActionOptions): boolean;
   /**
-   * Play several actions on one layer at once, at weights (0 to 1), blended: poses between authored
-   * ones, such as aiming up, level and down by the aim's angle. An action left out fades to nothing.
-   * Weights take effect at once unless `fade` is given, so a script may set them every update.
-   * Returns false, with `action-unknown` in the log, as `setAction` does.
+   * Set one of the armature's NLA tracks, by name: the `action` it plays from now (a track the
+   * file lacks is made, over the file's), its `influence` (0 to 1, reached over `fade`), or
+   * `mute`. `null` gives the track back to the file. As in Blender, an action changes only the
+   * bones it keys: an action keyed on the upper body, on a track over a running action, is an
+   * upper body that aims while the legs run. Influences set every update blend poses between
+   * authored ones (aim up, level and down by the aim's angle).
    *
-   *     const up = Math.max(0, pitch), down = Math.max(0, -pitch);
-   *     play.blend('Hero', { Aim_Up: up, Aim_Level: 1 - up - down, Aim_Down: down }, { layer: 'upper', from: 'spine_01' });
+   *     play.setTrack('Hero', 'Aim', { action: 'Aim_Upper' });
+   *     play.setTrack('Hero', 'AimUp', { action: 'Aim_Up_Upper', influence: Math.max(0, pitch) });
    */
-  blend(object: THREE.Object3D | string, weights: Readonly<Record<string, number>>, options?: ModelPlayActionOptions): boolean;
+  setTrack(object: THREE.Object3D | string, track: string, options: ModelPlayTrackOptions | null): boolean;
   /**
-   * Turn one bone of an object's armature toward a world point or an object, every update after
-   * its actions, until set to `null`. It is the game's own: Blender's constraints and IK are not run
-   * in a game (an action holds what they made); this aims at what exists only while the game runs.
-   * What points at it is the bone's forward: the way it faced when the character faced its
-   * armature's -Y (Blender's front) in the file, so a head looks with its face. `axis` names one
-   * of the bone's own axes instead (`y` runs along a Blender bone). `weight` is how far (1),
-   * `limit` the most it turns from the animated pose (75 degrees).
+   * Set one bone constraint the file gives the armature, by bone and constraint name: its
+   * `influence`, or the `target` object it aims at. A constraint aims at the game's copy of its
+   * file target, so moving that object in the game moves the aim with no call at all. A game
+   * plays Damped Track; another type is refused with the reason.
    *
-   *     play.lookAt('Hero', 'head', player);
+   *     play.setConstraint('Hero', 'Head', 'Look', { influence: alert ? 1 : 0 });
    */
-  lookAt(object: THREE.Object3D | string, bone: string, target: THREE.Object3D | THREE.Vector3 | null, options?: ModelPlayLookAtOptions): boolean;
+  setConstraint(object: THREE.Object3D | string, bone: string, constraint: string, options: ModelPlayConstraintOptions): boolean;
   /** The actions an object's armature can play, by name (empty without an armature). */
   actions(object: THREE.Object3D | string): readonly string[];
 }
 
 export interface ModelPlayActionOptions {
-  /** The layer: `base` (every bone, the default) or a name of the script's choosing. */
-  readonly layer?: string;
-  /** A named layer's first bone: it plays on that bone and every bone below it. */
-  readonly from?: string;
   readonly loop?: boolean;
   readonly fade?: number;
   readonly speed?: number;
-  /** Start again from the first frame when this clip is already playing. */
+  /** Start again from the first frame when this action is already playing. */
   readonly restart?: boolean;
 }
 
-export interface ModelPlayLookAtOptions {
-  readonly weight?: number;
-  readonly axis?: 'forward' | 'x' | 'y' | 'z' | '-x' | '-y' | '-z';
-  readonly limit?: number;
+export interface ModelPlayTrackOptions extends ModelPlayActionOptions {
+  /** The action the track plays from now; absent, what the file gives it. */
+  readonly action?: string;
+  readonly influence?: number;
+  readonly mute?: boolean;
 }
 
-/** Weights as a log shows them: two decimals. */
-function rounded(weights: Readonly<Record<string, number>>): Record<string, number> {
-  return Object.fromEntries(Object.entries(weights).map(([name, weight]) => [name, Math.round(weight * 100) / 100]));
+export interface ModelPlayConstraintOptions {
+  readonly influence?: number;
+  /** The object it aims at (or its name) instead of the file's target. */
+  readonly target?: THREE.Object3D | string | null;
 }
 
 /** What the bot is handed before each `update` it drives. */
@@ -445,6 +439,8 @@ export function runPlayScript(options: {
     if (!options_.animation) return { ok: unknown('this document lends no animation') };
     return { ok: true as const, target, animation: options_.animation, unknown };
   };
+  /** What each NLA track was last set to, so the log says a change once. */
+  const tracks = new Map<string, string>();
   const contextFor = (alive: Script): ModelPlayContext => ({
     root,
     find(name) {
@@ -474,36 +470,46 @@ export function runPlayScript(options: {
       const found = animated(alive, object, action, 'setAction');
       if (!found.ok) return false;
       const { target, animation } = found;
-      const layer = options?.layer ?? 'base';
-      const before = animation.playing(target, layer);
+      const before = animation.playing(target);
       if (action === null) {
-        animation.stop(target, options?.fade, layer);
-        if (before !== null) run.append('play', 'action', { object: target.name, layer, action: null, from: before });
+        animation.stop(target, options?.fade);
+        if (before !== null) run.append('play', 'action', { object: target.name, action: null, from: before });
         return true;
       }
       const answer = animation.play(target, action, options);
       if (!answer.ok) return found.unknown(answer.why);
-      if (before !== action || options?.restart) run.append('play', 'action', { armature: answer.armature, layer, action, from: before });
+      if (before !== action || options?.restart) run.append('play', 'action', { armature: answer.armature, action, from: before });
       return true;
     },
-    blend(object, weights, options) {
-      const found = animated(alive, object, Object.keys(weights).join('+'), 'blend');
+    setTrack(object, track, options) {
+      const found = animated(alive, object, track, 'setTrack');
       if (!found.ok) return false;
-      const { target, animation } = found;
-      const layer = options?.layer ?? 'base';
-      const before = animation.playing(target, layer);
-      const answer = animation.blend(target, weights, options);
+      const answer = found.animation.track(found.target, track, options);
       if (!answer.ok) return found.unknown(answer.why);
-      // Weights change every update; the log keeps only a change of the action that leads.
-      const now = animation.playing(target, layer);
-      if (before !== now) run.append('play', 'action', { armature: answer.armature, layer, action: now, from: before, blend: rounded(weights) });
+      // Influences change every update; the log keeps what the track plays and whether it is muted.
+      const key = `${answer.armature} ${track}`;
+      const now = options === null ? 'file' : JSON.stringify([options.action ?? null, options.mute ?? false]);
+      if (tracks.get(key) !== now) {
+        tracks.set(key, now);
+        run.append('play', 'track', { armature: answer.armature, track, ...(options === null ? { file: true } : { action: options.action ?? null, mute: options.mute ?? false }) });
+      }
       return true;
     },
-    lookAt(object, bone, at, options) {
-      const found = animated(alive, object, bone, 'lookAt');
+    setConstraint(object, bone, constraint, options) {
+      const found = animated(alive, object, `${bone}/${constraint}`, 'setConstraint');
       if (!found.ok) return false;
-      const answer = found.animation.lookAt(found.target, bone, at, options);
-      return answer.ok || found.unknown(answer.why);
+      let aim: THREE.Object3D | null | undefined = undefined;
+      if (typeof options.target === 'string') {
+        aim = root.getObjectByName(options.target) ?? null;
+        if (!aim) return found.unknown(`the model has no object "${options.target}" to aim at`);
+      } else aim = options.target;
+      const answer = found.animation.constraint(found.target, bone, constraint, {
+        ...(options.influence === undefined ? {} : { influence: options.influence }),
+        ...(aim === undefined ? {} : { target: aim }),
+      });
+      if (!answer.ok) return found.unknown(answer.why);
+      if (aim !== undefined) run.append('play', 'constraint', { armature: answer.armature, bone, constraint, target: aim?.name ?? null });
+      return true;
     },
     actions(object) {
       const target = typeof object === 'string' ? root.getObjectByName(object) ?? null : object;

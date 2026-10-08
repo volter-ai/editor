@@ -1332,8 +1332,113 @@ def _armature_bones(obj, locked_groups):
             # (`overlay_armature.cc:2059-2084`); it shades both the solid and
             # the wire toward `bone_locked_weight`.
             "lockedWeight": bone.name in locked_groups,
+            # WHAT THE PRESENTER EVALUATES THE POSE FROM, the same inputs `BKE_pose_where_is` takes:
+            # the rest matrix (`Bone.matrix_local`, armature space), the channels' own values (what
+            # a channel no action animates keeps), and the bone's constraints.
+            "rest": _matrix_rows(bone.matrix_local),
+            "channels": _bone_channels(pchan),
+            **_bone_inherit(bone),
+            **_bone_constraints(pchan),
         })
     return bones
+
+
+def _bone_channels(pchan):
+    """A pose bone's channel VALUES as Blender stores them (`PoseBone.location`,
+    `rotation_*`, `scale`), every rotation property and the mode that chooses among them, so the
+    presenter blends them exactly as the NLA does, per channel, before building the matrix."""
+    return {
+        "mode": pchan.rotation_mode,
+        "location": [float(v) for v in pchan.location],
+        "rotation_quaternion": [float(v) for v in pchan.rotation_quaternion],
+        "rotation_euler": [float(v) for v in pchan.rotation_euler],
+        "rotation_axis_angle": [float(v) for v in pchan.rotation_axis_angle],
+        "scale": [float(v) for v in pchan.scale],
+    }
+
+
+def _bone_inherit(bone):
+    """The parenting flags, only when one is not Blender's default (the presenter composes the
+    default chain `parent @ rest @ basis`, and names a bone that asks for another)."""
+    flags = []
+    if not bone.use_inherit_rotation:
+        flags.append("use_inherit_rotation=False")
+    if bone.inherit_scale != "FULL":
+        flags.append("inherit_scale=%s" % bone.inherit_scale)
+    if not bone.use_local_location:
+        flags.append("use_local_location=False")
+    if getattr(bone, "use_relative_parent", False):
+        flags.append("use_relative_parent=True")
+    return {"inherit": flags} if flags else {}
+
+
+def _bone_constraints(pchan):
+    """A pose bone's constraint stack, in order. Every constraint is named with its type; the ones
+    the presenter evaluates (Damped Track) carry what it needs."""
+    stack = []
+    for con in pchan.constraints:
+        entry = {"name": con.name, "type": con.type, "enabled": bool(con.enabled),
+                 "influence": float(con.influence)}
+        target = getattr(con, "target", None)
+        if target is not None:
+            entry["target"] = target.name
+            subtarget = getattr(con, "subtarget", "")
+            if subtarget:
+                entry["subtarget"] = subtarget
+        if con.type == "DAMPED_TRACK":
+            entry["trackAxis"] = con.track_axis
+            entry["headTail"] = float(con.head_tail)
+        stack.append(entry)
+    return {"constraints": stack} if stack else {}
+
+
+def _strip_influence_curve(strip):
+    """A strip's keyed influence (`NlaStrip.fcurves`, data path `influence`), whole, so the
+    presenter evaluates it at every frame as `nlastrip_evaluate_controls` does."""
+    if not strip.use_animated_influence:
+        return {}
+    for fcurve in strip.fcurves:
+        if fcurve.data_path == "influence":
+            return {"influenceCurve": _curve_body(fcurve)}
+    return {}
+
+
+def _armature_animation(obj):
+    """THE ARMATURE'S ANIMATION STACK as Blender evaluates it (`BKE_animsys_evaluate_animdata`):
+    its NLA tracks bottom to top, then the active action over them, each with its influence and
+    blend type. Strip timing is Blender's own (`nlastrip_get_frame`), so it is sent whole."""
+    adt = obj.animation_data
+    if adt is None:
+        return {}
+    tracks = []
+    for track in adt.nla_tracks:
+        strips = []
+        for strip in track.strips:
+            strips.append({
+                "name": strip.name, "type": strip.type,
+                "action": strip.action.name if strip.action is not None else None,
+                "start": float(strip.frame_start), "end": float(strip.frame_end),
+                "actionStart": float(strip.action_frame_start), "actionEnd": float(strip.action_frame_end),
+                "scale": float(strip.scale), "repeat": float(strip.repeat),
+                "influence": float(strip.influence), "animatedInfluence": bool(strip.use_animated_influence),
+                **_strip_influence_curve(strip),
+                "animatedTime": bool(strip.use_animated_time),
+                "blendIn": float(strip.blend_in), "blendOut": float(strip.blend_out),
+                "blendType": strip.blend_type, "extrapolation": strip.extrapolation,
+                "reversed": bool(strip.use_reverse), "mute": bool(strip.mute),
+            })
+        tracks.append({"name": track.name, "mute": bool(track.mute), "solo": bool(track.is_solo),
+                       "strips": strips})
+    drivers = sorted({match.group(1) for match in (_BONE_PATH.match(fc.data_path) for fc in adt.drivers)
+                      if match is not None})
+    return {"animation": {
+        "useNla": bool(adt.use_nla),
+        "influence": float(adt.action_influence),
+        "blendType": adt.action_blend_type,
+        "extrapolation": adt.action_extrapolation,
+        "tracks": tracks,
+        **({"drivers": drivers} if drivers else {}),
+    }}
 
 
 def _locked_weight_groups(view_layer):
@@ -1378,6 +1483,7 @@ def _armatures(view_layer):
             "action": (obj.animation_data.action.name
                        if obj.animation_data is not None and obj.animation_data.action is not None
                        else None),
+            **_armature_animation(obj),
         }
     return armatures
 
@@ -4958,8 +5064,12 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
     adt = arm_obj.animation_data if arm_obj is not None else None
     assigned = adt.action if adt is not None else None
     if arm_obj is None or (assigned is None and not action_name):
-        header["reason"] = ("Nothing here carries an action: the Timeline draws the scene range "
-                            "and an empty summary row, which is Blender's own empty state.")
+        # NLA STRIPS PLAY WITHOUT AN ACTIVE ACTION, and the Timeline's summary row draws only the
+        # active action's keys, as Blender's does; so the empty state is said only when nothing plays.
+        strips = adt is not None and any(len(track.strips) for track in adt.nla_tracks)
+        if not strips:
+            header["reason"] = ("Nothing here carries an action: the Timeline draws the scene range "
+                                "and an empty summary row, which is Blender's own empty state.")
         return header
     action = assigned
     slot = getattr(adt, "action_slot", None) if adt is not None else None
@@ -4998,16 +5108,24 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
     if not bake:
         return header
     frames = sorted(columns)
-    first = int(math.floor(frames[0]))
-    last = int(math.ceil(frames[-1]))
+    # THE ACTION'S OWN RANGE (`Action.frame_range`: its keys, or its manual range) with its keys:
+    # what a strip or the action line plays, sampled through `FCurve.evaluate`, which applies the
+    # curves' extrapolation and modifiers (a Cycles modifier repeats them) as Blender does.
+    span = getattr(action, "frame_range", None)
+    first = int(math.floor(min(frames[0], span[0] if span is not None else frames[0])))
+    last = int(math.ceil(max(frames[-1], span[1] if span is not None else frames[-1])))
     if last <= first:
         last = first + 1
     header["clipStart"] = first
     header["clipEnd"] = last
     channels = {}
+    others = set()
     for fcurve in curves:
         match = _BONE_PATH.match(fcurve.data_path)
         if match is None:
+            # NOT A BONE'S CHANNEL: the armature object's own transform (root motion), a custom
+            # property, a bone channel this door does not read. Named, so it is never dropped quietly.
+            others.add(fcurve.data_path)
             continue
         bone, prop = match.group(1), match.group(2)
         channels.setdefault((bone, prop), {})[int(fcurve.array_index)] = fcurve
@@ -5016,61 +5134,19 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
                             "door does not play (object transform, shape keys, a material). The "
                             "Timeline still draws its keys." % (action.name,))
         return header
-    rest_relative = {}
-    for pchan in _pose_bones_parents_first(arm_obj):
-        local = pchan.bone.matrix_local
-        parent = pchan.parent
-        rest_relative[pchan.name] = (parent.bone.matrix_local.inverted_safe() @ local
-                                     if parent is not None else local.copy())
-    times = [(frame - first) / fps for frame in range(first, last + 1)]
     tracks = []
     unplayed = []
-    for bone in sorted({name for name, _ in channels}):
-        pchan = arm_obj.pose.bones.get(bone)
-        if pchan is None:
+    for (bone, prop) in sorted(channels):
+        if arm_obj.pose.bones.get(bone) is None:
             unplayed.append(bone)
             continue
-        rest = rest_relative[bone]
-        rotation_mode = pchan.rotation_mode
-        positions, quaternions, scales = [], [], []
-        previous = None
-        for frame in range(first, last + 1):
-            location = _sample(channels.get((bone, "location")), pchan.location, frame)
-            scale = _sample(channels.get((bone, "scale")), pchan.scale, frame, default=1.0)
-            if rotation_mode == "QUATERNION":
-                quat = mathutils.Quaternion(
-                    _sample(channels.get((bone, "rotation_quaternion")),
-                            pchan.rotation_quaternion, frame, size=4, default=None,
-                            identity=(1.0, 0.0, 0.0, 0.0)))
-            elif rotation_mode == "AXIS_ANGLE":
-                raw = _sample(channels.get((bone, "rotation_axis_angle")),
-                              pchan.rotation_axis_angle, frame, size=4, default=None,
-                              identity=(0.0, 0.0, 1.0, 0.0))
-                quat = mathutils.Quaternion(raw[1:4], raw[0])
-            else:
-                quat = mathutils.Euler(
-                    _sample(channels.get((bone, "rotation_euler")), pchan.rotation_euler, frame),
-                    rotation_mode).to_quaternion()
-            basis = mathutils.Matrix.LocRotScale(mathutils.Vector(location), quat,
-                                                 mathutils.Vector(scale))
-            position, rotation, scaling = (rest @ basis).decompose()
-            # QUATERNION CONTINUITY, and it is not cosmetic: three's
-            # `QuaternionLinearInterpolant` takes the shorter arc between
-            # NEIGHBOURING samples, so one sign flip in the middle of a bake
-            # spins the bone the long way round for a frame.
-            if previous is not None and rotation.dot(previous) < 0.0:
-                rotation.negate()
-            previous = rotation.copy()
-            positions.extend((position.x, position.y, position.z))
-            quaternions.extend((rotation.x, rotation.y, rotation.z, rotation.w))
-            scales.extend((scaling.x, scaling.y, scaling.z))
-        tracks.extend(_track(bone, "position", times, positions, 3))
-        tracks.extend(_track(bone, "quaternion", times, quaternions, 4))
-        tracks.extend(_track(bone, "scale", times, scales, 3))
+        for index, fcurve in sorted(channels[(bone, prop)].items()):
+            tracks.append(_curve(bone, prop, index, fcurve))
+    if others:
+        header["unsupported"] = ["curves on %s" % ", ".join(sorted(others))]
     header.update({
         "tracks": tracks,
         "duration": (last - first) / fps,
-        "sampled": len(times),
         "unplayedBones": unplayed,
     })
     return header
@@ -5083,52 +5159,53 @@ _KEY_TYPE_RANK = {"JITTER": 1, "GENERATED": 2, "MOVING_HOLD": 3, "BREAKDOWN": 4,
                   "KEYFRAME": 5, "EXTREME": 6}
 
 
-def _sample(group, current, frame, size=3, default=0.0, identity=None):
-    """One channel's value at `frame`: each component's own F-Curve where there
-    is one, and the pose channel's CURRENT value where there is not -- which is
-    what Blender does too (an unkeyed component simply keeps its value)."""
-    fallback = list(identity) if identity is not None else [
-        (current[i] if current is not None and i < len(current) else default) for i in range(size)]
-    if identity is not None and current is not None and group is not None:
-        fallback = [float(v) for v in current]
-    if group is None:
-        return fallback
-    out = list(fallback)
-    for index, fcurve in group.items():
-        if 0 <= index < len(out):
-            out[index] = float(fcurve.evaluate(frame))
+_INTERPOLATION = {"CONSTANT": 0, "LINEAR": 1, "BEZIER": 2}
+_CYCLE_MODE = {"NONE": 0, "REPEAT": 1, "REPEAT_OFFSET": 2, "MIRROR": 3}
+
+
+def _curve(bone, prop, index, fcurve):
+    """One bone channel's F-Curve: its address and its body (`_curve_body`)."""
+    return {"bone": bone, "property": prop, "index": index, **_curve_body(fcurve)}
+
+
+def _curve_body(fcurve):
+    """ONE F-CURVE, whole: its keys and handles, how each segment interpolates, its extrapolation
+    and its Cycles modifier, which is everything `fcurve_eval_keyframes` and `fcm_cycles_time` read
+    to evaluate it. The presenter evaluates it as they do, at any frame, fractional or not.
+
+    The keys cross as base64 Float32, six per key: `co`, `handle_left`, `handle_right`
+    (frame, value each). A segment whose interpolation is one of the easing types (Back, Bounce,
+    Elastic, Sine, ...) and any modifier other than Cycles are named rather than played."""
+    keys = array.array("f")
+    interpolation = []
+    unsupported = []
+    for key in fcurve.keyframe_points:
+        keys.extend((key.co[0], key.co[1], key.handle_left[0], key.handle_left[1],
+                     key.handle_right[0], key.handle_right[1]))
+        code = _INTERPOLATION.get(key.interpolation)
+        if code is None:
+            unsupported.append("%s interpolation" % key.interpolation.lower())
+            code = 1
+        interpolation.append(code)
+    cycles = None
+    for modifier in fcurve.modifiers:
+        if modifier.mute:
+            continue
+        if modifier.type == "CYCLES" and not modifier.use_restricted_range and not modifier.use_influence:
+            cycles = [_CYCLE_MODE.get(modifier.mode_before, 0), int(modifier.cycles_before),
+                      _CYCLE_MODE.get(modifier.mode_after, 0), int(modifier.cycles_after)]
+        else:
+            unsupported.append("%s modifier" % modifier.type.lower())
+    out = {
+        "extrapolation": fcurve.extrapolation,
+        "interpolation": interpolation,
+        "keysBase64": base64.b64encode(keys.tobytes()).decode("ascii"),
+    }
+    if cycles is not None:
+        out["cycles"] = cycles
+    if unsupported:
+        out["unsupported"] = sorted(set(unsupported))
     return out
-
-
-def _track(bone, prop, times, values, stride):
-    """One three.js keyframe track, or two keys when nothing moves.
-
-    The arrays cross as base64 Float32 (`timeBase64`, `valueBase64`), the shape
-    every large payload in this file takes."""
-    count = len(times)
-    constant = True
-    for i in range(1, count):
-        for c in range(stride):
-            if abs(values[i * stride + c] - values[c]) > 1e-6:
-                constant = False
-                break
-        if not constant:
-            break
-    if constant:
-        if count == 0:
-            return []
-        times = [times[0], times[-1]]
-        values = values[0:stride] * 2
-    return [{
-        "bone": bone,
-        "property": prop,
-        "stride": stride,
-        "count": len(times),
-        "constant": constant,
-        "timeBase64": base64.b64encode(array.array("f", times).tobytes()).decode("ascii"),
-        "valueBase64": base64.b64encode(array.array("f", values).tobytes()).decode("ascii"),
-    }]
-
 
 def rna_outliner(selected=None):
     """BLENDER'S VIEW LAYER TREE for the session's scene.
