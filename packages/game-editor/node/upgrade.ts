@@ -20,21 +20,23 @@ export const UPGRADING: UpgradingProduct = {
 };
 
 export async function upgradeGameProject(requested?: string, cwd = process.cwd()): Promise<void> {
-  await upgradeProject(UPGRADING, requested, cwd);
-  let project = resolve(cwd);
+  let project: string | null = resolve(cwd);
   while (!hasManifest(project)) {
     const parent = dirname(project);
-    if (parent === project) return;
+    if (parent === project) { project = null; break; }
     project = parent;
   }
-  // A game that installs its own dependencies (a real node_modules) keeps them; one linked to an image, or with none
-  // (a create that stopped before it linked), is linked to the new version's image.
-  if (existsSync(join(project, 'node_modules')) && !usesRuntimeImage(project)) return;
+  // A game that installs its own dependencies (a real node_modules) keeps them and is told to `npm install`; one
+  // linked to an image, or with none (a create that stopped before it linked), is linked to the new version's image,
+  // and `npm install` there would write into the image every game of that version shares.
+  const links = project !== null && (!existsSync(join(project, 'node_modules')) || usesRuntimeImage(project));
+  await upgradeProject({ ...UPGRADING, linksNodeModules: links }, requested, cwd);
+  if (project === null || !links) return;
   const packagePath = join(project, 'package.json');
   if (!existsSync(packagePath)) return;
   const pkg = JSON.parse(readFileSync(packagePath, 'utf8')) as { dependencies?: Record<string, string>; devDependencies?: Record<string, string> };
   const version = pkg.devDependencies?.[UPGRADING.packageName] ?? pkg.dependencies?.[UPGRADING.packageName];
   if (!version || !/^\d+\.\d+\.\d+$/.test(version)) return;
   const image = await ensureRuntimeImage(productRoot, version);
-  if (relinkRuntimeImage(project, image)) console.log(`  + node_modules now links the ${version} runtime image (${image})`);
+  if (relinkRuntimeImage(project, image)) console.log(`The game's node_modules now links the ${version} runtime image (${image}).`);
 }

@@ -57,6 +57,9 @@ export interface UpgradingProduct {
   readonly dir: string;
   /** The names this product replaced: a project declaring one is moved onto this product. */
   readonly replaces?: readonly RetiredProduct[];
+  /** This project's `node_modules` is linked by the product after the upgrade (the game editor's runtime image),
+   *  even where no link stands yet: it is never told to `npm install`, and no lockfile is rewritten. */
+  readonly linksNodeModules?: boolean;
 }
 
 /** The ONE line that moves a project onto `product`, from any version — including a project on a
@@ -363,7 +366,8 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
 
   // A checkout's project links the checkout's own install, which already holds every kit
   // package; `npm install` there would write into the checkout (`add-play`'s same rule).
-  const linked = (() => { try { return lstatSync(join(project, 'node_modules')).isSymbolicLink(); } catch { return false; } })();
+  const linked = product.linksNodeModules === true
+    || (() => { try { return lstatSync(join(project, 'node_modules')).isSymbolicLink(); } catch { return false; } })();
   const locks = packagesChanged && !linked
     ? (await Promise.all([join(project, 'package-lock.json'), join(project, 'node_modules', '.package-lock.json')]
       .map(lockWithoutVolter))).filter((lock): lock is NonNullable<typeof lock> => lock !== null)
