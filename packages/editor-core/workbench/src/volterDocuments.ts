@@ -280,6 +280,10 @@ export class VolterDocuments extends Disposable {
 		const adjacent = this.editorGroupsService.findGroup({ direction: AREA_DIRECTION[area.place] }, this.group);
 		const restored = adjacent?.editors.some(editor => editor instanceof VolterDocumentInput && editor.documentId === documentId) ? adjacent : undefined;
 		if (!this.areaGroups.has(area.id) && restored) {
+			// AN AREA HAS NO TAB. It is one of the workspace's surfaces (the Timeline under the
+			// viewport), never a set of documents to pick between, so where the product shows
+			// document tabs the area's group keeps its whole height and nothing to close.
+			restored.setTabsHidden(true);
 			this.areaGroups.set(area.id, restored);
 			this.areaDocuments.set(restored.id, documentId);
 			this.areaRatios.set(restored.id, area.ratio);
@@ -290,6 +294,7 @@ export class VolterDocuments extends Disposable {
 		const group = neighbour && neighbour !== this.group && (known !== undefined || neighbour.count === 0)
 			? neighbour
 			: this.editorGroupsService.addGroup(this.group, AREA_DIRECTION[area.place]);
+		group.setTabsHidden(true);
 		this.areaGroups.set(area.id, group);
 		// A STAND-UP IS A NEW DOCUMENT IN THE AREA, or a new job for the one there: the first
 		// open, every workspace switch that puts a different document there (the Shading
