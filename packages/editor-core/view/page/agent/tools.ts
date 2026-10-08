@@ -8,7 +8,7 @@
  *
  * NOT EVERY COMMAND. What the model reads (a file someone imported, a scene's text) can try to
  * steer it, and this page holds a signed-in person's session with the host. So the agent gets a
- * NAMED LIST of verbs ({@link AGENT_COMMANDS}, {@link PLAY_ACTIONS}), and the two that run script
+ * NAMED LIST of verbs ({@link AGENT_COMMANDS}, {@link PLAY_ACTIONS}), Blender's included, and the two that run script
  * in this page are not on it: `document-script` (a function body) and `run-command` (any command
  * of the workbench). A verb not listed is refused by name.
  *
@@ -85,7 +85,7 @@ export const AGENT_TOOLS: readonly AgentToolDeclaration[] = [
   },
   {
     type: 'function', name: 'editor_command', strict: true,
-    description: 'Run one command of the editor in this tab: any "blender-…" command, or one of open, select, select-multiple, inspect, hierarchy, current-view, document-table, present-view, undo, redo, set-inspection-field, focus-entity, frame-entity, focus-selection, view-preset, set-camera, document-frame, set-shading-mode, model-play-log. arguments_json is a JSON object of the command\'s own fields.',
+    description: 'Run one command of the editor in this tab. The commands: blender-status, blender-start, blender-execute, blender-scene-info, blender-object-info, blender-rna, blender-rna-context, blender-rna-set, blender-outliner, blender-outliner-set, blender-node-tree, blender-node-view, blender-uv-layout, blender-action-clip, blender-list-files, open, select, select-multiple, inspect, hierarchy, current-view, document-table, present-view, undo, redo, focus-entity, frame-entity, focus-selection, view-preset, set-camera, document-frame, set-shading-mode, model-play-log. arguments_json is a JSON object of the command\'s own fields.',
     parameters: object({ type: text('The command, such as "blender-scene-info" or "open".'), arguments_json: text('A JSON object of the command\'s fields; "{}" for none.') }),
   },
   {
@@ -95,16 +95,26 @@ export const AGENT_TOOLS: readonly AgentToolDeclaration[] = [
   },
 ];
 
-/** The editor's verbs the agent may run, besides Blender's own (`blender-…`). None runs script in the page. */
+/**
+ * The editor's verbs the agent may run. Every one is NAMED: a verb added to the editor later is
+ * not the agent's until someone reads what it does and adds it here. None runs script in the page.
+ * Left out on purpose: `document-script` and `run-command` (page script); the capture and preview
+ * verbs (the agent reads text only); `blender-read-file` and `blender-write-file` (the file tools
+ * act on the same bytes); and `set-inspection-field`, whose every field has not been traced to
+ * show none makes the page fetch an address.
+ */
 export const AGENT_COMMANDS: ReadonlySet<string> = new Set([
   'open', 'select', 'select-multiple', 'inspect', 'hierarchy', 'current-view', 'document-table', 'present-view',
-  'undo', 'redo', 'set-inspection-field', 'focus-entity', 'frame-entity', 'focus-selection', 'view-preset',
+  'undo', 'redo', 'focus-entity', 'frame-entity', 'focus-selection', 'view-preset',
   'set-camera', 'document-frame', 'set-shading-mode', 'model-play-log',
+  'blender-status', 'blender-start', 'blender-execute', 'blender-scene-info', 'blender-object-info', 'blender-rna',
+  'blender-rna-context', 'blender-rna-set', 'blender-outliner', 'blender-outliner-set', 'blender-node-tree',
+  'blender-node-view', 'blender-uv-layout', 'blender-action-clip', 'blender-list-files',
 ]);
 /** Play's controls: `volter.model-play.<action>`, the one family of workbench commands the agent reaches. */
 export const PLAY_ACTIONS: ReadonlySet<string> = new Set(['state', 'play', 'stop', 'pause', 'resume', 'restart']);
 
-const agentMayRun = (type: string): boolean => AGENT_COMMANDS.has(type) || /^blender-[a-z-]+$/.test(type);
+const agentMayRun = (type: string): boolean => AGENT_COMMANDS.has(type);
 
 function bounded(value: string): string {
   return value.length <= RESULT_LIMIT ? value : `${value.slice(0, RESULT_LIMIT)}\n… (${value.length - RESULT_LIMIT} more characters not shown)`;
@@ -197,7 +207,7 @@ export async function runAgentTool(services: AgentToolServices, name: string, ar
         const fields = JSON.parse(typeof args['arguments_json'] === 'string' && args['arguments_json'] !== '' ? args['arguments_json'] : '{}') as unknown;
         if (!fields || typeof fields !== 'object' || Array.isArray(fields)) return 'arguments_json must be a JSON object.';
         const type = String(args['type']);
-        if (!agentMayRun(type)) return `'${type}' is not a command you can run here. Use a "blender-…" command or one of: ${[...AGENT_COMMANDS].join(', ')}.`;
+        if (!agentMayRun(type)) return `That is not a command you can run here. Use one of: ${[...AGENT_COMMANDS].join(', ')}.`;
         return bounded(commandText(await command({ ...(fields as Record<string, unknown>), type })));
       }
       case 'play': {

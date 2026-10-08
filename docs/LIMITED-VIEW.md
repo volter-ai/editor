@@ -162,8 +162,9 @@ and `waitlist`. A tool loop in the page, for the Chat view: it posts each model 
 `/api/ai/responses` (the Responses API, used statelessly; the host holds the key and decides the
 model, who may call and what it costs), and runs the model's tool calls here: list, read, search,
 write, edit and delete over the project's files, Python in the tab's Blender, Play's controls, and
-a named list of the editor's commands through the relay above (`AGENT_COMMANDS` in `tools.ts`, and
-every `blender-…` verb). `account` and `waitlist` pass on the host's `/api/account` and
+a named list of the editor's commands through the relay above (`AGENT_COMMANDS` in `tools.ts`:
+every verb is named there, Blender's included, so a verb added later is not the agent's until it is
+read and listed). `account` and `waitlist` pass on the host's `/api/account` and
 `/api/waitlist`. A host with neither is a view with no AI, and the Chat says so. The agent reads
 text only; it cannot see the screen.
 
@@ -175,7 +176,10 @@ imported, the text of a scene), and the page holds a signed-in person's session 
   through a tool that builds the command id itself.
 - Its replies are shown with image syntax neutralised, because an image is fetched when drawn and
   its address could carry text out without a click.
+- Every line it shows (replies, progress lines, refusals) has image syntax neutralised, and a
+  progress line names only values from the agent's own lists or plain path characters.
 - One message stops after using a fifth of the day's allowance, by the host's count, and says so.
+  If that count cannot be read, the message does not start, or stops where it is.
 - A long conversation drops its oldest exchanges and tells the model it did.
 
 **An agent that edits running code acts with the person's session in that tab.** A game script
