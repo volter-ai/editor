@@ -159,6 +159,9 @@ const THEME_STRING_PATHS = [
   'color.viewport.wire',
   'color.viewport.selection',
   'color.viewport.active',
+  'color.viewport.marqueeLine',
+  'color.viewport.marqueeFill',
+  'color.viewport.marqueeGap',
   'color.gizmo.x',
   'color.gizmo.y',
   'color.gizmo.z',
@@ -204,6 +207,9 @@ const POST_V3_OPTIONAL_STRING_PATHS: ReadonlySet<string> = new Set([
   'color.viewport.wire',
   'color.viewport.selection',
   'color.viewport.active',
+  'color.viewport.marqueeLine',
+  'color.viewport.marqueeFill',
+  'color.viewport.marqueeGap',
   'color.gizmo.x',
   'color.gizmo.y',
   'color.gizmo.z',
@@ -373,6 +379,12 @@ function reconstructEditorPalette(value: unknown): EditorPalette {
   // `axisZ` is optional beside the all-or-nothing group: a Z-up world's floor pair is X and Y.
   const viewportAxisZ = valueAtPath(value, 'color.viewport.axisZ') as string | undefined;
   const viewportWire = valueAtPath(value, 'color.viewport.wire') as string | undefined;
+  // The box-select rectangle's colours, optional the same way. A document saved before they
+  // existed carries none and projects onto the emitter's default, the palette's own accent —
+  // which is what its band drew when it was saved.
+  const viewportMarquee = (['marqueeLine', 'marqueeFill', 'marqueeGap'] as const)
+    .map((key) => [key, valueAtPath(value, `color.viewport.${key}`) as string | undefined] as const)
+    .filter((entry): entry is readonly ['marqueeLine' | 'marqueeFill' | 'marqueeGap', string] => entry[1] !== undefined);
   const viewport =
     viewportPresent === viewportKeys.length
       ? (Object.fromEntries(
@@ -380,6 +392,7 @@ function reconstructEditorPalette(value: unknown): EditorPalette {
             ...viewportKeys.map((key, index) => [key, viewportValues[index] as string] as const),
             ...(viewportAxisZ === undefined ? [] : [['axisZ', viewportAxisZ] as const]),
             ...(viewportWire === undefined ? [] : [['wire', viewportWire] as const]),
+            ...viewportMarquee,
           ],
         ) as unknown as NonNullable<EditorPalette['color']['viewport']>)
       : undefined;

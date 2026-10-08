@@ -51,7 +51,10 @@
         "axisX": "#cb293f",
         "axisY": "#69aa15",
         "selection": "#ed5700",
-        "active": "#ffa028"
+        "active": "#ffa028",
+        "marqueeLine": "#666666",
+        "marqueeGap": "#ffffff",
+        "marqueeFill": "rgba(255,255,255,0.05)"
       },
       "gizmo": {
         "x": "#ff3352",

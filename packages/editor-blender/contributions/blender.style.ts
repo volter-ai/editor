@@ -205,6 +205,13 @@ export const style: StyleContribution = {
       gridLineWidth: 1.5,
       gridMajorWidth: 2.25,
       gridMajorContrast: 39 / 21,
+      // BLENDER'S BOX-SELECT OUTLINE IS DASHED in two colours, 4 device pixels of each:
+      // `wm_gesture_draw_rect` (`wm_gesture.cc`) sets `dash_width` 8 at `udash_factor` 0.5, and
+      // the dashed-line shader measures that in framebuffer pixels
+      // (`gpu_shader_3D_line_dashed_uniform_color_vert.glsl`), so it does not grow with the UI
+      // scale the way the line's width does. Its colours are the palette's
+      // `color.viewport.marqueeLine` and `marqueeGap`.
+      marqueeDash: 4,
     },
   },
   icons,

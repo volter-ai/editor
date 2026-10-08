@@ -358,6 +358,15 @@ export interface StageContribution {
    *  `SceneVisExVisible.png`). Its colour is the palette's `color.viewport.wire`. */
   readonly wireOpacity?: number;
   readonly selectionBoxWidth?: number;
+  /**
+   * THE BOX-SELECT OUTLINE'S DASH, in device pixels: each dash this long in the palette's
+   * `color.viewport.marqueeLine`, each gap as long in its `marqueeGap`. Absent draws the
+   * editor's own solid line. Blender's is 4: `wm_gesture_draw_rect` (`wm_gesture.cc`) draws the
+   * box with a `dash_width` of 8 framebuffer pixels at a `udash_factor` of 0.5, the first half
+   * of each period in its `color` and the second in its `color2`. What a box drag selects is
+   * the view's (`interaction.boxSelect`), never the look's.
+   */
+  readonly marqueeDash?: number;
   /** THE STAGE'S OWN CHROME: which overlay controls the viewport carries and where. See
    *  {@link StageChromeContribution}; absent keeps the editor's own set. */
   readonly chrome?: StageChromeContribution;

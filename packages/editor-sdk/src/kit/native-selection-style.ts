@@ -276,6 +276,14 @@ export function nativeViewportGizmoSize(element?: Element | null): number | null
   return Number.isFinite(value) && value > 0 ? value : null;
 }
 
+/** THE BOX-SELECT OUTLINE'S DASH the look states (`EditorTheme.stage.marqueeDash`), in device
+ *  pixels, or `null` for the editor's own solid line. Its colours need no reader: the rectangle
+ *  is DOM, so it paints `themeVars.viewport.marquee*` directly. */
+export function nativeViewportMarqueeDash(element?: Element | null): number | null {
+  const value = Number.parseFloat(themeToken(themeRoot(element), '--volter-viewport-marquee-dash'));
+  return Number.isFinite(value) && value > 0 ? value : null;
+}
+
 /** THE FLOOR GRID'S LINES the look states (`EditorTheme.stage.gridLineWidth` and
  *  its siblings), in device pixels, with the editor's own hairline floor for any it leaves out:
  *  one level, one pixel, the major lines drawn like the minor. */
