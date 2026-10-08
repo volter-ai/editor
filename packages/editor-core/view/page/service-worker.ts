@@ -85,41 +85,65 @@ const PAGE_TIMEOUT_MS = 120_000;
 function isolated(response: Response, extra: Record<string, string> = {}): Response {
   const headers = new Headers(response.headers);
   for (const [key, value] of Object.entries({ ...ISOLATION, ...extra })) headers.set(key, value);
-  return new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  const answer = new Response(response.body, { status: response.status, statusText: response.statusText, headers });
+  // Every caller hands this a response it just fetched from the host: its policy is the host's own.
+  fromHost.add(answer);
+  return answer;
 }
 
 /**
  * THE HOST'S CONTENT SECURITY POLICY, ON EVERYTHING THIS WORKER ANSWERS.
  *
- * A host may send a policy (which origins a page of this view may reach) on the documents and
- * scripts it serves. An answer this worker BUILDS (a recorded module, one compiled in the page, a
- * file from the page's store) never passed through the host, so it would carry no policy; and a
- * worker is governed by the policy on its own script's response, so a script answered here could
- * start a worker under no policy at all. Every answer built here therefore carries the policy the
- * host sends on this worker's own script: read from the host, not the HTTP cache, and read again
- * whenever the view's document is opened, so a host that changes its policy is followed.
- * An answer that already has a policy (the host's own, passed through) keeps it.
+ * A host may send a policy (which origins a page of this view may reach) on what it serves. A
+ * worker is governed by the policy on its own script's response, and a framed document by its own,
+ * so an answer that reaches the page with no policy, or a weaker one, is a way out.
+ *
+ * WHO IS TRUSTED TO STATE THE POLICY: the host, and nobody else. An answer this worker fetched
+ * from the host itself ({@link isolated} marks it) keeps the policy the host put on it (a
+ * document's carries its own script hashes). EVERY other answer gets the host's policy, REPLACING
+ * whatever was there: a recorded module, the "not compiled" module, this worker's own error, and
+ * above all an answer from the page. Project code runs in the page and can reply to a forwarded
+ * request itself, so a page's answer is never believed about its policy.
+ *
+ * The host's policy is what it sends on this worker's own script, read from the host (not the
+ * HTTP cache) and read again whenever the view's document is opened, so a host that changes its
+ * policy is followed. A host that answers and sends none has none, and nothing is added.
+ *
+ * FAIL CLOSED: if that read fails, the answer is not served bare. It gets the strict policy below
+ * (this origin only), and the read is tried again on the next answer.
  */
 const POLICY_HEADERS = ['Content-Security-Policy', 'Content-Security-Policy-Report-Only', 'Reporting-Endpoints'] as const;
+const FALLBACK_POLICY: [string, string][] = [[
+  'Content-Security-Policy',
+  "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; " +
+    "img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' blob: data:; " +
+    "frame-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'",
+]];
+/** Answers this worker fetched from the host itself. */
+const fromHost = new WeakSet<Response>();
 let hostPolicy: Promise<[string, string][]> | null = null;
 function policyOfHost(): Promise<[string, string][]> {
   hostPolicy ??= fetch(`/${SERVICE_WORKER_FILE}`, { cache: 'no-store' })
-    .then((response) => POLICY_HEADERS.flatMap((name): [string, string][] => {
-      const value = response.headers.get(name);
-      return value === null ? [] : [[name, value]];
-    }))
+    .then((response) => {
+      if (!response.ok) throw new Error(`the host answered ${response.status} for the worker's own script`);
+      return POLICY_HEADERS.flatMap((name): [string, string][] => {
+        const value = response.headers.get(name);
+        return value === null ? [] : [[name, value]];
+      });
+    })
     .catch(() => {
+      // Not remembered: the next answer asks the host again.
       hostPolicy = null;
-      return [];
+      return FALLBACK_POLICY;
     });
   return hostPolicy;
 }
 
 async function withHostPolicy(response: Response): Promise<Response> {
-  if (POLICY_HEADERS.slice(0, 2).some((name) => response.headers.has(name))) return response;
+  if (fromHost.has(response) && POLICY_HEADERS.slice(0, 2).some((name) => response.headers.has(name))) return response;
   const policy = await policyOfHost();
-  if (policy.length === 0) return response;
   const headers = new Headers(response.headers);
+  for (const name of POLICY_HEADERS) headers.delete(name);
   for (const [name, value] of policy) headers.set(name, value);
   return new Response(response.status === 204 || response.status === 304 ? null : response.body, { status: response.status, statusText: response.statusText, headers });
 }
@@ -297,12 +321,15 @@ self.addEventListener('fetch', (event) => {
   // to the page buffers a streamed answer whole.
   if (HOST_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return;
   event.respondWith(
-    handle(event).then(withHostPolicy).catch(
-      (error: unknown) =>
-        new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
-          status: 502,
-          headers: { ...ISOLATION, 'Content-Type': 'application/json' },
-        }),
-    ),
+    handle(event)
+      .catch(
+        (error: unknown) =>
+          new Response(JSON.stringify({ error: error instanceof Error ? error.message : String(error) }), {
+            status: 502,
+            headers: { ...ISOLATION, 'Content-Type': 'application/json' },
+          }),
+      )
+      // After the error is made an answer, so that it too carries the host's policy.
+      .then(withHostPolicy),
   );
 });

@@ -236,6 +236,8 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
       'typescript.tsserver.web.typeAcquisition.enabled': false,
       'js/ts.tsserver.automaticTypeAcquisition.enabled': false,
       'json.schemaDownload.enable': false,
+      // The npm extension looks packages up on the registry when a package.json is hovered.
+      'npm.fetchOnlinePackageInfo': false,
       'extensions.autoUpdate': false,
       'extensions.autoCheckUpdates': false,
       'extensions.ignoreRecommendations': true,
