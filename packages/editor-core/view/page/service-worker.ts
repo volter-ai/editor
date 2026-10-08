@@ -110,14 +110,20 @@ function isolated(response: Response, extra: Record<string, string> = {}): Respo
  * policy is followed. A host that answers and sends none has none, and nothing is added.
  *
  * FAIL CLOSED: if that read fails, the answer is not served bare. It gets the strict policy below
- * (this origin only), and the read is tried again on the next answer.
+ * (this origin only, reporting where the host's policy last said to), and the read is tried again
+ * on the next answer.
  */
 const POLICY_HEADERS = ['Content-Security-Policy', 'Content-Security-Policy-Report-Only', 'Reporting-Endpoints'] as const;
-const FALLBACK_POLICY: [string, string][] = [[
+/** Where the host takes reports of what a policy blocked: what its last readable policy named, and
+ *  until one has been read, the address a view's host is expected to take them at. */
+let reportAddress = '/api/csp-report';
+/** The strict policy for when the host's cannot be read. It reports where the host's would, so
+ *  what it blocks is seen rather than dropped. */
+const fallbackPolicy = (): [string, string][] => [[
   'Content-Security-Policy',
   "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; " +
     "img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' blob: data:; " +
-    "frame-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'",
+    `frame-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'; report-uri ${reportAddress}`,
 ]];
 /** Answers this worker fetched from the host itself. */
 const fromHost = new WeakSet<Response>();
@@ -126,15 +132,19 @@ function policyOfHost(): Promise<[string, string][]> {
   hostPolicy ??= fetch(`/${SERVICE_WORKER_FILE}`, { cache: 'no-store' })
     .then((response) => {
       if (!response.ok) throw new Error(`the host answered ${response.status} for the worker's own script`);
-      return POLICY_HEADERS.flatMap((name): [string, string][] => {
+      const policy = POLICY_HEADERS.flatMap((name): [string, string][] => {
         const value = response.headers.get(name);
         return value === null ? [] : [[name, value]];
       });
+      // Only a same-origin path is remembered: the fallback must not report anywhere else.
+      const named = /(?:^|;)\s*report-uri\s+(\/[^\s;]*)/.exec(policy.map(([, value]) => value).join(';'))?.[1];
+      if (named && !named.startsWith('//')) reportAddress = named;
+      return policy;
     })
     .catch(() => {
       // Not remembered: the next answer asks the host again.
       hostPolicy = null;
-      return FALLBACK_POLICY;
+      return fallbackPolicy();
     });
   return hostPolicy;
 }
