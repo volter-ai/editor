@@ -1436,6 +1436,7 @@ def _armature_animation(obj):
         "influence": float(adt.action_influence),
         "blendType": adt.action_blend_type,
         "extrapolation": adt.action_extrapolation,
+        "tweak": bool(adt.use_tweak_mode),
         "tracks": tracks,
         **({"drivers": drivers} if drivers else {}),
     }}
@@ -5121,6 +5122,13 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
         last = first + 1
     header["clipStart"] = first
     header["clipEnd"] = last
+    # THE RANGE BLENDER PLACES THE ACTIVE ACTION OVER over NLA strips (`calc_action_range` with
+    # modifiers): its keys, opened to either side a Cycles modifier repeats into (null: unbounded).
+    # A manual frame range does not enter it. Measured: a cycling action is not held at its end.
+    keys = [float(key.co[0]) for fc in curves for key in fc.keyframe_points]
+    cycles = [m for fc in curves for m in fc.modifiers if m.type == "CYCLES" and not m.mute]
+    header["keysStart"] = None if any(m.mode_before != "NONE" for m in cycles) else (min(keys) if keys else first)
+    header["keysEnd"] = None if any(m.mode_after != "NONE" for m in cycles) else (max(keys) if keys else last)
     channels = {}
     others = set()
     for fcurve in curves:

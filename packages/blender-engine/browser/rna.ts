@@ -623,6 +623,10 @@ export interface BlenderActionClip {
   readonly tracks: readonly BlenderClipTrack[];
   readonly clipStart?: number;
   readonly clipEnd?: number;
+  /** The range Blender places the action over NLA strips in: its keys, null on a side a Cycles
+   *  modifier repeats into. */
+  readonly keysStart?: number | null;
+  readonly keysEnd?: number | null;
   /** Blender repeats it past its range (Cycles modifiers on its curves, or `use_cyclic`). */
   readonly cyclic?: boolean;
   readonly duration?: number;

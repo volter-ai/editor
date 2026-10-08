@@ -113,6 +113,8 @@ export const armatureAnimationSchema = z.object({
   influence: scalar,
   blendType: z.string(),
   extrapolation: z.string(),
+  /** The NLA is in tweak mode (`use_tweak_mode`), which the presenter does not play. */
+  tweak: z.boolean().optional(),
   tracks: z.array(z.object({ name: z.string(), mute: z.boolean(), solo: z.boolean(), strips: z.array(nlaStripSchema) }).strict()),
   /** Bones whose channels a driver sets. */
   drivers: z.array(z.string()).optional(),
