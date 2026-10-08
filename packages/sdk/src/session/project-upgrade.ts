@@ -190,13 +190,15 @@ function renameKitSpecifiers(text: string): string {
 /**
  * `text`, a module moving from `fromDir` to `toDir` while the files in `moved` (old path to new) move too, with each
  * relative specifier still naming the same file: `from`, `import`, `import()`, `require()`, `new URL()` and
- * `import.meta.glob()`, and a bare `.` or `..`.
+ * `import.meta.glob()`, and a bare `.` or `..`. A specifier whose module and target both stay is left as written.
  */
 function rebaseRelativeSpecifiers(text: string, fromDir: string, toDir: string, moved: (path: string) => string): string {
   return text.replace(
     /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*|\bnew\s+URL\s*\(\s*|\bimport\.meta\.glob\s*\(\s*)(['"`])(\.{1,2}(?:\/[^'"`]*)?)\2/g,
-    (_whole, lead: string, quote: string, spec: string) => {
-      let next = relative(toDir, moved(resolve(fromDir, spec))).split('\\').join('/');
+    (whole: string, lead: string, quote: string, spec: string) => {
+      const target = resolve(fromDir, spec);
+      if (fromDir === toDir && moved(target) === target) return whole;
+      let next = relative(toDir, moved(target)).split('\\').join('/');
       if (next === '') next = '.';
       if (!next.startsWith('.')) next = `./${next}`;
       if (spec.endsWith('/') && !next.endsWith('/')) next = `${next}/`;
