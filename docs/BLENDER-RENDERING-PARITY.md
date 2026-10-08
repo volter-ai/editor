@@ -211,8 +211,9 @@ receiver-plane slope correction, but at that resolution one binary lookup can
 still land on another facet. Faceted rocks and karts occluded their own sky at
 scattered pixels, which read as static over every polygon in Rendered and Play.
 Glossy surfaces also flashed as the camera moved. Narrow specular lobes are
-dominated by a few of the sixteen directions, which makes that plausible, but
-no capture isolates it yet. The oracle it was measured against was a native
+dominated by a few of the sixteen directions, which makes that plausible; the
+motion capture below shows the flashes on 0.5.197 and gone with the atlas off,
+though it does not isolate the specular term from the diffuse one. The oracle it was measured against was a native
 Cycles closed room a few metres across: 512 samples, 32×32 output,
 centre-pixel readouts, `fullSceneGate: false`. It returns when its lookups are
 filtered (PCF keeping per-tap plane correction within each tile), its
@@ -227,6 +228,18 @@ added in crevices and under the karts goes too, which is the 0.5.189 look
 ([frames: before / atlas off / atlas off plus `shadowSide`](media/canyon-render-ab-20261008.jpg),
 [the arch](media/canyon-render-ab-arch-20261008.jpg)). A scene that wants that
 depth today bakes ambient occlusion into its static scenery.
+
+The same patched bundles also ran an Autoplay race, recorded at the 15 fps
+screencast limit
+([six consecutive frames of the player's kart, 0.5.197 above, #243 below](media/canyon-render-ab-motion-20261008.jpg)).
+On 0.5.197 a specular glint on the kart's body appears and vanishes from one
+frame to the next, and its dark patches move. With the atlas off, its shading
+holds from frame to frame. On the player-kart region, the largest one-frame
+colour deviation from the mean of its neighbours was 6.6 levels on 0.5.197 and
+2.5 with the atlas off. The race's own counter advanced about 25 ticks a second
+on 0.5.197 and 54 with the atlas off, in the same tab on the same machine
+minutes apart. That machine had under 1 GB free memory, so the rates are a
+comparison, not a benchmark.
 
 Two-sided materials keep three's back-face shadow pass (`shadowSide`
 `BackSide`) as containment. A two-sided depth pass draws every lit face into its
