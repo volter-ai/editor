@@ -29,8 +29,9 @@
  * knows nothing about how (see `ingest/ingest-frame-snapshot.ts`).
  *
  * Active EDITOR documents use the same compositor with
- * `includeDocumentStyles`: their document container and accessible CSSOM ride
- * the detached clone, so design-system chrome photographs as it appears. Game
+ * `includeDocumentStyles`: their document container and the accessible CSSOM
+ * rules that can style it ride the detached clone (`subjectStylesCssText`), so
+ * design-system chrome photographs as it appears. Game
  * capture leaves that option off and therefore never imports editor styling.
  */
 
@@ -392,10 +393,6 @@ function sheetsCssText(document: Document, sheets: Iterable<CSSStyleSheet>): str
   return Array.from(sheets, read).filter(Boolean).join('\n');
 }
 
-function documentStylesCssText(document: Document): string {
-  return sheetsCssText(document, Array.from(document.styleSheets));
-}
-
 /** The project's own module stylesheets as Vite serves them: a sheet whose
  *  owner carries `data-vite-dev-id` naming a source file outside `node_modules`
  *  (and under `projectRoot`, when given). See {@link CaptureOptions.projectRoot}. */
@@ -412,48 +409,414 @@ function projectModuleStylesCssText(document: Document, projectRoot: string | un
   return sheets.length === 0 ? '' : sheetsCssText(document, sheets);
 }
 
-/** SVG images cannot fetch external fonts, even ones already loaded by the page.
- * Carry the bytes with the capture so provider and toolbar glyphs remain legible. */
-const embeddedStylesByDocument = new WeakMap<Document, { css: string; embedded: Promise<string> }>();
+/*
+ * THE SUBJECT'S STYLESHEET, NOT THE DOCUMENT'S.
+ *
+ * An editor-document capture used to inline EVERY rule in the document — the
+ * whole Code-OSS workbench sheet among them. Measured 2026-10-07 on a live
+ * Cyclotron page: 23 sheets, 11,565 style rules, 2.2 MB of CSS, of which a few
+ * hundred rules can match anything inside `#editor-chrome-root`. The SVG
+ * image that carries the clone is parsed, styled, laid out and rasterized ON
+ * THE PAGE'S MAIN THREAD (`image.decode()` and the `drawImage` of an SVG are
+ * not off-thread work in Chromium), so every capture made the browser build a
+ * cascade of 11.5k rules and match it against the clone in one long task the
+ * running game's frame loop could not interrupt — and that task grows with
+ * both the rule count and the DOM the subject holds. Serializing the 2.2 MB
+ * from the CSSOM was another 30-70 ms on the same thread before anything was
+ * drawn.
+ *
+ * A rule whose selector matches nothing in the subject cannot style the clone
+ * — the clone IS that subtree, detached — so it is left out. The test is the
+ * browser's own selector matching against the LIVE subtree (`matches` /
+ * `querySelector`, which see the subject's real ancestors), with every
+ * judgement that could disagree with the clone resolved towards KEEPING a
+ * rule: a pseudo-element is tested on its originating element; form-state
+ * attributes the clone writes (`checked`, `selected`, `value`) are not
+ * required; a selector that answers for the document root keeps its rule; an
+ * `@scope` block is kept whole. Before that test a cheap index refuses a
+ * selector whose subject — or an ancestor compound leading to it — names a
+ * class, id or tag that neither the subtree nor its ancestors carry, which is
+ * the bulk of the workbench sheet, so the browser is asked about the rules
+ * that might apply rather than about all of them.
+ */
 
-async function embeddedDocumentStyles(document: Document): Promise<string> {
-  await document.fonts.ready;
-  const css = documentStylesCssText(document);
-  const previous = embeddedStylesByDocument.get(document);
-  if (previous?.css === css) return previous.embedded;
-  // Read the live CSSOM each time so style edits invalidate this snapshot.
-  // Reuse font bytes/encoding for unchanged styles, including simultaneous
-  // document and page captures; retain only the latest snapshot per document.
-  const entry = { css, embedded: embedStylesFonts(css) };
-  embeddedStylesByDocument.set(document, entry);
-  try {
-    return await entry.embedded;
-  } catch (error) {
-    if (embeddedStylesByDocument.get(document) === entry) embeddedStylesByDocument.delete(document);
-    throw error;
-  }
+/** One selector of a style rule's list, prepared for the subject test. */
+interface SelectorAlternative {
+  /** The selector with pseudo-elements and clone-written attributes removed —
+   *  what `matches` / `querySelector` can answer for a live element. */
+  readonly test: string;
+  /** Tokens (`tag`, `.class`, `#id`) the selector's ancestor chain requires;
+   *  `null` keeps the rule unconditionally. */
+  readonly requires: readonly string[] | null;
 }
 
-async function embedStylesFonts(css: string): Promise<string> {
+interface PreparedSelector {
+  readonly selectorText: string;
+  readonly alternatives: readonly SelectorAlternative[];
+}
+
+/** Prepared once per rule object; a rule whose selector changes re-prepares. */
+const preparedSelectors = new WeakMap<CSSStyleRule, PreparedSelector>();
+
+/** Attributes the clone writes from live element state (`carryFormStateInClone`),
+ *  so a live element can lack an attribute its clone has. */
+const CLONE_WRITTEN_ATTRIBUTES = new Set(['checked', 'selected', 'value']);
+
+/** CSS2 pseudo-elements still accepted with a single colon. */
+const LEGACY_PSEUDO_ELEMENTS = new Set(['before', 'after', 'first-line', 'first-letter']);
+
+const HEX_DIGIT = /[0-9a-fA-F]/;
+const IDENTIFIER_CHAR = /[\w\-\u00a0-\uffff]/;
+const IDENTIFIER_START = /^[a-zA-Z\\\u00a0-\uffff]/;
+
+/** Index just past the escape that starts at `at` (a backslash). */
+function escapeEnd(text: string, at: number): number {
+  let index = at + 1;
+  if (index < text.length && HEX_DIGIT.test(text[index]!)) {
+    const limit = Math.min(text.length, index + 6);
+    while (index < limit && HEX_DIGIT.test(text[index]!)) index += 1;
+    if (index < text.length && /\s/.test(text[index]!)) index += 1;
+    return index;
+  }
+  return Math.min(text.length, index + 1);
+}
+
+/** Index just past the bracket group or string that opens at `at`. */
+function groupEnd(text: string, at: number): number {
+  const opener = text[at];
+  if (opener === '"' || opener === "'") {
+    for (let index = at + 1; index < text.length; index += 1) {
+      if (text[index] === '\\') index = escapeEnd(text, index) - 1;
+      else if (text[index] === opener) return index + 1;
+    }
+    return text.length;
+  }
+  let depth = 0;
+  for (let index = at; index < text.length; index += 1) {
+    const char = text[index]!;
+    if (char === '\\') index = escapeEnd(text, index) - 1;
+    else if (char === '"' || char === "'") index = groupEnd(text, index) - 1;
+    else if (char === '(' || char === '[') depth += 1;
+    else if (char === ')' || char === ']') {
+      depth -= 1;
+      if (depth === 0) return index + 1;
+    }
+  }
+  return text.length;
+}
+
+/** An identifier starting at `at`, unescaped, and the index past it. */
+function readIdentifier(text: string, at: number): { name: string; end: number } {
+  let name = '';
+  let index = at;
+  while (index < text.length) {
+    const char = text[index]!;
+    if (char === '\\') {
+      const end = escapeEnd(text, index);
+      const body = text.slice(index + 1, end).trim();
+      name += /^[0-9a-fA-F]+$/.test(body) ? String.fromCodePoint(Number.parseInt(body, 16) || 0xfffd) : body;
+      index = end;
+    } else if (IDENTIFIER_CHAR.test(char)) {
+      name += char;
+      index += 1;
+    } else break;
+  }
+  return { name, end: index };
+}
+
+/** Split a selector list at its top-level commas. */
+function selectorList(text: string): string[] {
+  const parts: string[] = [];
+  let start = 0;
+  for (let index = 0; index < text.length; index += 1) {
+    const char = text[index]!;
+    if (char === '\\') index = escapeEnd(text, index) - 1;
+    else if (char === '(' || char === '[' || char === '"' || char === "'") index = groupEnd(text, index) - 1;
+    else if (char === ',') {
+      parts.push(text.slice(start, index));
+      start = index + 1;
+    }
+  }
+  parts.push(text.slice(start));
+  return parts.map((part) => part.trim()).filter(Boolean);
+}
+
+/** The tag, classes and id a compound selector names outside its functional
+ *  pseudo-classes — what every element it matches must carry. */
+function compoundTokens(compound: string): string[] {
+  const text = compound.trim();
+  const tokens: string[] = [];
+  let at = 0;
+  if (IDENTIFIER_START.test(text)) {
+    const tag = readIdentifier(text, 0);
+    if (text[tag.end] !== '|' && tag.name) tokens.push(tag.name.toLowerCase());
+    at = Math.max(tag.end, 1);
+  }
+  while (at < text.length) {
+    const char = text[at]!;
+    if (char === '\\') at = escapeEnd(text, at);
+    else if (char === '.' || char === '#') {
+      const identifier = readIdentifier(text, at + 1);
+      if (identifier.name) tokens.push(`${char}${identifier.name}`);
+      at = Math.max(identifier.end, at + 1);
+    } else if (char === '(' || char === '[' || char === '"' || char === "'") at = groupEnd(text, at);
+    else if (char === ':') at = Math.max(readIdentifier(text, at + 1).end, at + 1);
+    else at += 1;
+  }
+  return tokens;
+}
+
+/** One selector, rewritten for a live-element test, with its chain's tokens. */
+function prepareAlternative(selector: string): SelectorAlternative {
+  let test = '';
+  const compounds: { text: string; before: 'ancestor' | 'sibling' | null }[] = [];
+  let compoundStart = 0;
+  let combinatorBefore: 'ancestor' | 'sibling' | null = null;
+  let index = 0;
+  while (index < selector.length) {
+    const char = selector[index]!;
+    if (char === '\\') {
+      const end = escapeEnd(selector, index);
+      test += selector.slice(index, end);
+      index = end;
+    } else if (char === '[') {
+      const end = groupEnd(selector, index);
+      const attribute = readIdentifier(selector, index + 1 + (/^\s*/.exec(selector.slice(index + 1))?.[0].length ?? 0));
+      if (!CLONE_WRITTEN_ATTRIBUTES.has(attribute.name.toLowerCase())) test += selector.slice(index, end);
+      index = end;
+    } else if (char === '(' || char === '"' || char === "'") {
+      const end = groupEnd(selector, index);
+      test += selector.slice(index, end);
+      index = end;
+    } else if (char === ':') {
+      const doubled = selector[index + 1] === ':';
+      const name = readIdentifier(selector, index + (doubled ? 2 : 1));
+      let end = Math.max(name.end, index + 1);
+      if (selector[end] === '(') end = groupEnd(selector, end);
+      // A pseudo-element styles its ORIGINATING element: test that element.
+      if (!doubled && !LEGACY_PSEUDO_ELEMENTS.has(name.name.toLowerCase())) test += selector.slice(index, end);
+      index = end;
+    } else if (/[\s>+~]/.test(char)) {
+      let end = index;
+      while (end < selector.length && /[\s>+~]/.test(selector[end]!)) end += 1;
+      compounds.push({ text: test.slice(compoundStart), before: combinatorBefore });
+      combinatorBefore = /[+~]/.test(selector.slice(index, end)) ? 'sibling' : 'ancestor';
+      test += selector.slice(index, end);
+      compoundStart = test.length;
+      index = end;
+    } else {
+      test += char;
+      index += 1;
+    }
+  }
+  compounds.push({ text: test.slice(compoundStart), before: combinatorBefore });
+  test = test.trim();
+  // An empty remainder (`::selection`) styles everything; a document-root
+  // selector answers in the SVG image for its own root, not for the subject.
+  if (!test || /:(root|scope|host)\b/i.test(test)) return { test, requires: null };
+  // The subject compound and every compound reached from it through
+  // descendant/child combinators name elements in the subject or among its
+  // ancestors. Left of a sibling combinator an element may be neither.
+  const requires: string[] = [];
+  for (let at = compounds.length - 1; at >= 0; at -= 1) {
+    const compound = compounds[at]!;
+    requires.push(...compoundTokens(compound.text));
+    if (compound.before !== 'ancestor') break;
+  }
+  return { test, requires };
+}
+
+/**
+ * A nested rule's selector, resolved against its parent's: `&` stands for the
+ * parent, and a selector without one is relative to it (a descendant, or the
+ * combinator it starts with). `:is()` only asks whether the parent can match.
+ */
+function resolvedNestedSelector(parent: string, selector: string): string {
+  return selectorList(selector)
+    .map((alternative) =>
+      alternative.includes('&') ? alternative.replaceAll('&', `:is(${parent})`) : `:is(${parent}) ${alternative}`,
+    )
+    .join(', ');
+}
+
+function preparedSelector(rule: CSSStyleRule, selectorText: string): PreparedSelector {
+  const cached = preparedSelectors.get(rule);
+  if (cached && cached.selectorText === selectorText) return cached;
+  const prepared = { selectorText, alternatives: selectorList(selectorText).map(prepareAlternative) };
+  preparedSelectors.set(rule, prepared);
+  return prepared;
+}
+
+interface SubjectContext {
+  readonly container: Element;
+  /** Tags, classes and ids of the subject, its descendants and its ancestors. */
+  readonly tokens: ReadonlySet<string>;
+  readonly seen: Set<CSSStyleSheet>;
+}
+
+/** Every tag, class and id present in the subject, its descendants and its
+ *  ancestors (a selector's leading compounds may name those). A canvas or
+ *  video the clone replaces with an `<img>` also stands for `img`. */
+function subjectTokens(container: Element): ReadonlySet<string> {
+  const tokens = new Set<string>();
+  const add = (element: Element): void => {
+    tokens.add(element.localName.toLowerCase());
+    if (element.id) tokens.add(`#${element.id}`);
+    for (const name of Array.from(element.classList)) tokens.add(`.${name}`);
+  };
+  for (const element of Array.from(container.querySelectorAll('*'))) add(element);
+  for (let element: Element | null = container; element; element = element.parentElement) add(element);
+  if (tokens.has('canvas') || tokens.has('video')) tokens.add('img');
+  return tokens;
+}
+
+function selectorReachesSubject(prepared: PreparedSelector, context: SubjectContext): boolean {
+  return prepared.alternatives.some(({ test, requires }) => {
+    if (requires === null) return true;
+    if (!requires.every((token) => context.tokens.has(token))) return false;
+    try {
+      return context.container.matches(test) || context.container.querySelector(test) !== null;
+    } catch {
+      // A selector this test cannot phrase is kept, never guessed away.
+      return true;
+    }
+  });
+}
+
+/** Whether a style rule — or any rule nested inside it — can match in the subject. */
+function styleRuleReachesSubject(rule: CSSStyleRule, selectorText: string, context: SubjectContext): boolean {
+  if (selectorReachesSubject(preparedSelector(rule, selectorText), context)) return true;
+  const nested = (rule as CSSStyleRule & { readonly cssRules?: CSSRuleList }).cssRules;
+  return nested !== undefined && nestedRulesReachSubject(nested, selectorText, context);
+}
+
+function nestedRulesReachSubject(rules: CSSRuleList, parent: string, context: SubjectContext): boolean {
+  for (const rule of Array.from(rules)) {
+    if (rule.type === CSSRule.STYLE_RULE) {
+      const style = rule as CSSStyleRule;
+      if (styleRuleReachesSubject(style, resolvedNestedSelector(parent, style.selectorText), context)) return true;
+      continue;
+    }
+    const inner = (rule as CSSRule & { readonly cssRules?: CSSRuleList }).cssRules;
+    if (inner && nestedRulesReachSubject(inner, parent, context)) return true;
+  }
+  return false;
+}
+
+/** The CSS of `rules` that can style the subject, in cascade order. A kept
+ *  style rule is kept whole, nested rules and all. */
+function subjectRulesCssText(rules: CSSRuleList, sheet: CSSStyleSheet, context: SubjectContext): string {
+  const kept: string[] = [];
+  for (const rule of Array.from(rules)) {
+    const imported = (rule as CSSImportRule).styleSheet;
+    if (imported) {
+      const css = subjectSheetCssText(imported, context);
+      if (css) kept.push(css);
+      continue;
+    }
+    if (rule.type === CSSRule.STYLE_RULE) {
+      const style = rule as CSSStyleRule;
+      if (styleRuleReachesSubject(style, style.selectorText, context)) kept.push(rule.cssText);
+      continue;
+    }
+    // A detached SVG has no stylesheet URL against which to resolve fonts.
+    if (rule.type === CSSRule.FONT_FACE_RULE) {
+      kept.push(
+        rule.cssText.replace(/url\((['"]?)(.*?)\1\)/g, (_match, _quote, url) =>
+          `url("${new URL(url, sheet.href ?? context.container.ownerDocument.baseURI).href}")`,
+        ),
+      );
+      continue;
+    }
+    // The clone freezes every animation (`buildOverlaySvg`'s freeze sheet).
+    if (rule.type === CSSRule.KEYFRAMES_RULE) continue;
+    const grouping = (rule as CSSRule & { readonly cssRules?: CSSRuleList }).cssRules;
+    const isScope = typeof CSSScopeRule !== 'undefined' && rule instanceof CSSScopeRule;
+    if (grouping && !isScope) {
+      // @media, @supports, @container, @layer and the like: the same test
+      // inside, under the rule's own prelude.
+      const inner = subjectRulesCssText(grouping, sheet, context);
+      const prelude = rule.cssText.slice(0, rule.cssText.indexOf('{')).trim();
+      // An empty @layer block still states its layer's place in the order.
+      if (inner || prelude.startsWith('@layer')) kept.push(`${prelude} {\n${inner}\n}`);
+      continue;
+    }
+    kept.push(rule.cssText);
+  }
+  return kept.join('\n');
+}
+
+function subjectSheetCssText(sheet: CSSStyleSheet, context: SubjectContext): string {
+  if (context.seen.has(sheet) || sheet.disabled) return '';
+  context.seen.add(sheet);
+  let rules: CSSRuleList;
+  try {
+    rules = sheet.cssRules;
+  } catch {
+    // Cross-origin sheets refuse `cssRules`; skipping those preserves the
+    // normal browser security boundary instead of making capture itself fail.
+    return '';
+  }
+  return subjectRulesCssText(rules, sheet, context);
+}
+
+/** Every readable rule in the document that can style `container` or anything
+ *  inside it, in document cascade order. */
+function subjectStylesCssText(container: Element): string {
+  const context: SubjectContext = { container, tokens: subjectTokens(container), seen: new Set() };
+  return Array.from(container.ownerDocument.styleSheets, (sheet) => subjectSheetCssText(sheet, context))
+    .filter(Boolean)
+    .join('\n');
+}
+
+/** SVG images cannot fetch external fonts, even ones already loaded by the page.
+ * Carry the bytes with the capture so provider and toolbar glyphs remain legible.
+ * Each font file is fetched and encoded ONCE per document — a page and a
+ * document capture share them — and a failed fetch is forgotten so the next
+ * capture asks again. */
+const embeddedFontsByDocument = new WeakMap<Document, Map<string, Promise<string>>>();
+
+async function embeddedSubjectStyles(container: Element): Promise<string> {
+  const document = container.ownerDocument;
+  await document.fonts.ready;
+  const css = subjectStylesCssText(container);
+  let fonts = embeddedFontsByDocument.get(document);
+  if (!fonts) {
+    fonts = new Map();
+    embeddedFontsByDocument.set(document, fonts);
+  }
+  const known = fonts;
   const urls = new Set<string>();
   for (const face of css.matchAll(/@font-face\s*\{[^}]*\}/g)) {
     for (const match of face[0].matchAll(/url\("([^"]+)"\)/g)) {
       if (!match[1]!.startsWith('data:')) urls.add(match[1]!);
     }
   }
-  await Promise.all(Array.from(urls, async (url) => {
+  const encoded = await Promise.all(Array.from(urls, async (url) => [url, await fontDataUrl(known, url)] as const));
+  let embedded = css;
+  for (const [url, dataUrl] of encoded) embedded = embedded.replaceAll(`url("${url}")`, `url("${dataUrl}")`);
+  return embedded;
+}
+
+function fontDataUrl(fonts: Map<string, Promise<string>>, url: string): Promise<string> {
+  const known = fonts.get(url);
+  if (known) return known;
+  const pending = (async () => {
     const response = await fetch(url, { signal: AbortSignal.timeout(10_000) });
     if (!response.ok) throw new Error(`Capture font could not be loaded (${response.status}): ${url}`);
     const blob = await response.blob();
-    const dataUrl = await new Promise<string>((resolve, reject) => {
+    return new Promise<string>((resolve, reject) => {
       const reader = new FileReader();
       reader.onload = () => resolve(String(reader.result));
       reader.onerror = () => reject(reader.error);
       reader.readAsDataURL(blob);
     });
-    css = css.replaceAll(`url("${url}")`, `url("${dataUrl}")`);
-  }));
-  return css;
+  })();
+  fonts.set(url, pending);
+  pending.catch(() => {
+    if (fonts.get(url) === pending) fonts.delete(url);
+  });
+  return pending;
 }
 
 /** Carry the effective theme across the detached-foreignObject boundary.
@@ -852,7 +1215,7 @@ export function buildOverlaySvg(
     wrapper.setAttribute(GAME_CSS_SCOPE_ATTRIBUTE, '');
   }
   if (includeDocumentStyles) {
-    const css = options?.documentCssText ?? documentStylesCssText(container.ownerDocument);
+    const css = options?.documentCssText ?? subjectStylesCssText(container);
     if (css) {
       const documentStyles = container.ownerDocument.createElement('style');
       documentStyles.textContent = css;
@@ -1812,7 +2175,7 @@ export async function drawPlayCompositeFrame(
     } else {
       const buildStart = performance.now();
       const documentCssText = options?.includeDocumentStyles
-        ? await embeddedDocumentStyles(container.ownerDocument)
+        ? await embeddedSubjectStyles(container)
         : undefined;
       timings.documentStylesMs = performance.now() - buildStart;
       const overlayStarted = performance.now();
