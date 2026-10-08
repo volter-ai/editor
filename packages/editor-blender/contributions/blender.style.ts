@@ -9,7 +9,7 @@
  * shadow, and only menus and popovers cast one (`menu_shadow_fac` 0.5 over
  * `menu_shadow_width` 4). The `large` radius is our reading — Blender rounds
  * its popovers the same as its menus. The density is measured from Blender
- * 5.2's own frames at 1x (`/Volumes/PeakSSD/volter-work/blender-reference`):
+ * 5.2's own frames at 1x:
  * 26px top bar and area headers, 24px status bar, and — re-measured against
  * the frames widget by widget — EVERY widget 20px tall, button/field/toggle
  * alike, so all three control sizes are 20 rather than a 18/20/24 ramp
