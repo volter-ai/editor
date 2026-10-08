@@ -1,0 +1,80 @@
+# A probe, run by hand: does one commit install and compile? It installs with
+# `npm ci`, runs the playable release build, and says what either step changed
+# in the tree. It publishes nothing, reads no secret, and no merge waits on it.
+# The answers are the two logs and the shared-SDK manifest, kept as an artifact.
+name: compile check
+on:
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: The commit to check (a full 40-character SHA)
+        required: true
+        type: string
+permissions:
+  contents: read
+jobs:
+  compile:
+    name: compile (${{ matrix.os }})
+    strategy:
+      fail-fast: false
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    defaults:
+      run:
+        shell: bash
+    env:
+      REF: ${{ inputs.ref }}
+    steps:
+      - name: Check the input
+        run: |
+          [[ "$REF" =~ ^[0-9a-f]{40}$ ]] || { echo "::error::ref must be a full 40-character commit SHA"; exit 1; }
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ inputs.ref }}
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+      # A checkout on Windows may differ from the index in file modes alone.
+      - run: git config core.fileMode false
+      - name: Install (npm ci)
+        run: |
+          set -o pipefail
+          mkdir -p "$RUNNER_TEMP/compile-check"
+          npm ci 2>&1 | tee "$RUNNER_TEMP/compile-check/npm-ci.log"
+      - name: What the install changed in the tree
+        if: always()
+        run: |
+          git status --short | tee "$RUNNER_TEMP/compile-check/status-after-install.txt"
+          [[ -s "$RUNNER_TEMP/compile-check/status-after-install.txt" ]] || echo "nothing: the tree is as checked out"
+      - name: Build (npm run build:playable)
+        run: |
+          set -o pipefail
+          npm run build:playable 2>&1 | tee "$RUNNER_TEMP/compile-check/build-playable.log"
+      - name: What the build changed in the tree
+        if: always()
+        run: |
+          git status --short | tee "$RUNNER_TEMP/compile-check/status-after-build.txt"
+          [[ -s "$RUNNER_TEMP/compile-check/status-after-build.txt" ]] || echo "nothing: the tree is as checked out"
+      - name: The shared-SDK manifests the build wrote
+        if: always()
+        run: |
+          mkdir -p "$RUNNER_TEMP/compile-check/manifests"
+          found=0
+          while IFS= read -r file; do
+            found=$((found + 1))
+            entries=$(node -p 'Object.keys(JSON.parse(require("fs").readFileSync(process.argv[1], "utf8"))).length' "$file")
+            echo "$file: $entries entries"
+            mkdir -p "$RUNNER_TEMP/compile-check/manifests/$(dirname "$file")"
+            cp "$file" "$RUNNER_TEMP/compile-check/manifests/$file"
+          done < <(find . -name volter-shared-sdk.json -not -path '*/node_modules/*' | sed 's|^\./||')
+          echo "$found shared-SDK manifest(s) found"
+      - name: Keep the logs and the manifests
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: compile-check-${{ matrix.os }}-${{ inputs.ref }}
+          path: ${{ runner.temp }}/compile-check
+          if-no-files-found: warn
+          retention-days: 14
