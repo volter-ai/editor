@@ -1153,7 +1153,9 @@ export class HarnessChatService {
     // that never does (Claude Code's native stream) falls back to the
     // descriptor's `turn_state` busy, read just above.
     if (generation !== this.runtimeTurnGeneration) return 'unknown';
-    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return 'idle';
+    // The descriptor said running and the runtime's own turn bit says closed: the two disagree, so
+    // it is not a clean reading of idle either.
+    if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return 'unknown';
     if (own) this.lastSteer = { text, at: Date.now() };
     const runtime = this.managedRuntime;
     if (runtime && !runtime.closed) {
