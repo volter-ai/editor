@@ -12,7 +12,9 @@ it does not replace package or third-party licenses.
 | Blender engine | [GPL-3.0-or-later and third-party notices](packages/blender-engine/LICENSE) |
 | Shared Three.js code | [License texts](packages/editor-threejs/LICENSE), [source ownership](packages/editor-threejs/NOTICE) |
 | Editor SDK | [Apache-2.0](packages/editor-sdk/LICENSE), [NOTICE](packages/editor-sdk/NOTICE) |
-| Project contracts | [Apache-2.0](packages/editor-project/LICENSE) |
+| Project contracts | [Apache-2.0](packages/editor-project/LICENSE), [NOTICE](packages/editor-project/NOTICE) |
+| Model Play (the play-script API) | [Apache-2.0](packages/editor-model-play/LICENSE), [NOTICE](packages/editor-model-play/NOTICE) |
+| Game runtimes | [Apache-2.0](packages/game-runtime/LICENSE), [NOTICE](packages/game-runtime/NOTICE); [Apache-2.0](packages/threejs-runtime/LICENSE), [NOTICE](packages/threejs-runtime/NOTICE) |
 | Automation client | [Apache-2.0](packages/editor-live/LICENSE) |
 
 The Blender and Code-OSS forks remain separate. Their pinned sources, build
@@ -22,7 +24,9 @@ release review. Workbench theme assets carry their own notices under
 ships in the pinned Code-OSS fork's `ThirdPartyNotices.txt`.
 
 Transfers and original revisions are recorded under [provenance/](provenance/).
-Relocating source does not relicense it. A package's `NOTICE` identifies files
+Relocating source does not relicense it; where Volter AI, Inc. has relicensed its own
+work, the package's `NOTICE` says so. [COMMERCIAL.md](COMMERCIAL.md) states which
+license reaches what. A package's `NOTICE` identifies files
 with a different source license from the surrounding package.
 
 Bundled code retains additional notices in the [product](packages/cyclotron/BUNDLED_NOTICES),
