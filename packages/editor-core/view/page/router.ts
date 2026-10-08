@@ -37,7 +37,8 @@ import { foldDataFileText } from '../../server/data-file-serialize';
 import { createViewAgent } from './agent/agent';
 import { createPageCommandRelay } from './command-relay';
 import type { SeededProjectStore } from './project-store';
-import { type LimitedViewConfig, VIEW_DIR, VIEW_MISS_HEADER } from './view-contract';
+import type { LiveModules } from './live-modules';
+import { type LimitedViewConfig, LIVE_MODULE_HEADER, VIEW_DIR, VIEW_MISS_HEADER } from './view-contract';
 
 /** The id the Code-OSS contribution looks for (`server/routes/served-modules.ts`). */
 const FRAME_BRIDGE_MODULE_ID = 'vscode-bridge';
@@ -126,6 +127,8 @@ export interface LimitedViewRouterOptions {
   readonly store: SeededProjectStore;
   /** The routes each composed integration's `volter.viewServing` module returned. */
   readonly integrations?: readonly ViewRoute[];
+  /** The project modules that changed in this page, compiled (`live-modules.ts`). */
+  readonly liveModules?: LiveModules;
 }
 
 /** The services an integration's view routes are handed. */
@@ -206,7 +209,7 @@ export function createLimitedViewRouter(options: LimitedViewRouterOptions): (req
     // `command`, `command-result`, `contributed-commands`: the session's relay, in the page.
     ...relay.routes,
     // `view-agent/*`: the agent that runs in this page, for the Chat view.
-    ...createViewAgent(config, { store, command: relay.run }, json),
+    ...createViewAgent(config, { store, command: relay.run, ...(options.liveModules ? { check: options.liveModules.check } : {}) }, json),
     {
       method: 'GET',
       match: /^\/__editor\/served-modules$/,
@@ -485,6 +488,12 @@ export function createLimitedViewRouter(options: LimitedViewRouterOptions): (req
   return async (request: Request): Promise<Response> => {
     const url = new URL(request.url);
     const method = request.method.toUpperCase();
+    // The worker's one question about a project module: did it change here? Only a changed
+    // module is an answer; anything else is a miss, so the recording is served.
+    if (request.headers.has(LIVE_MODULE_HEADER)) {
+      const live = await options.liveModules?.answer(url).catch(() => null);
+      return live ?? respond('Not changed in this limited view.', 404, 'text/plain', { [VIEW_MISS_HEADER]: '1' });
+    }
     const route = routes.find(
       (candidate) => (candidate.method === method || (method === 'HEAD' && candidate.method === 'GET')) && candidate.match.test(url.pathname),
     );

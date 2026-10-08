@@ -66,6 +66,7 @@ function instructions(config: LimitedViewConfig): string {
     '- Models and scenes are Blender documents, src/models/*.blend, with the *.py scripts that built them beside them. Editing a .py alone changes nothing: run it with blender_python.',
     '- Gameplay is src/models/*.play.ts. The game\'s UI is React, under src/ui/.',
     '- There is no terminal, no npm, no git and no network for you here. Do not ask the person to run commands. A package the project does not already use cannot be added in the browser.',
+    '- An edit to a script under src/ takes effect: the game remounts with it. Your write tools tell you when a file no longer compiles; fix it before going on.',
     '- Nothing is saved when the tab closes. If the person wants to keep working on their own machine, the local editor is installed with: ' + config.product.install,
     '',
     'How to work:',

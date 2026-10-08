@@ -187,6 +187,8 @@ async function activate(context) {
 	const welcome = new vscode.MarkdownString((hasAssistant ? [
 		`**${product.displayName} in your browser.** Ask the assistant to change the model, the game or its UI. It works on this tab's copy of the project; nothing is saved when the tab closes.`,
 		'',
+		'The assistant edits code that then runs in this tab, signed in as you. Ask it only for changes to this project, and be wary of files from people you do not know.',
+		'',
 		...(host.signedIn === true ? [] : ['The assistant needs a Volter account. [Sign in with Volter](command:volter.viewChat.signIn)', '']),
 		`To keep your work and use your own agent, install ${product.displayName}:`,
 	] : [

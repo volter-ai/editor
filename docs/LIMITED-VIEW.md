@@ -51,6 +51,7 @@ __view/files.json   the project's files: path, size, mtime
 __view/project/…    their bytes, fetched by the page on first read
 __view/routes.json  recorded answers  →  __view/r/…
 __view/boot.js      the page, with each integration's volter.viewServing routes compiled in
+__view/live-compiler.js  the page's compiler for modules edited in the view, loaded on the first edit
 __view/frame-bridge.js
 ```
 
@@ -102,9 +103,20 @@ view moves into `--out` only once it is whole and clean.
 
 ## The routes the page answers
 
-The worker checks four things in order: the recorded answers, then the static host (`/__view/`,
-`/workbench/`, `/assets/`), then the page's router (`view/page/router.ts`), then back to the
-static host if the router has no answer.
+The worker checks five things in order: for a project script module, whether the page says it
+changed since the build (below); the recorded answers; the static host (`/__view/`, `/workbench/`,
+`/assets/`); the page's router (`view/page/router.ts`); then back to the static host if the router
+has no answer.
+
+**Edits that take effect (`view/page/live-modules.ts`, `live-compiler.ts`):** the page tracks
+every write to the project's files after load. For a script under `src/` outside the editor's
+lanes (`src/contributions`, `src/tools`), the worker asks the page before its recording; an
+unchanged file answers a miss, and a changed one is compiled in the page: TypeScript and JSX to
+JavaScript, each import rewritten to the URL the recorded modules use for the same thing (so there
+is one React, one three, and one instance of each project module per mount), the game-globals
+prelude and the mount stamp. The page then reports the change on the bus a session's Vite reports
+saves on, and Play remounts the script and its UI. A file that does not compile is served as a
+module that throws the compiler's message.
 
 **The host's own server, `/api/` and `/auth/`:** the worker does not answer these (`HOST_PREFIXES`,
 `view/page/view-contract.ts`). The browser sends each as it would with no worker, so a host that runs
@@ -166,6 +178,14 @@ imported, the text of a scene), and the page holds a signed-in person's session 
 - One message stops after using a fifth of the day's allowance, by the host's count, and says so.
 - A long conversation drops its oldest exchanges and tells the model it did.
 
+**An agent that edits running code acts with the person's session in that tab.** A game script
+the agent writes is compiled and run in this page (below), in the view's origin, where the host's
+`/api/` and `/auth/` are one request away. The view gives project code a `fetch` that refuses those
+two prefixes (`boot.ts`, `installProjectFetch`), which stops the ordinary case. It is defence in
+depth, not a sandbox: JavaScript in an origin has other ways to make a request. What bounds the
+rest is the host (what its routes can do for a signed-in person, and any content security policy
+it sends), so a host that puts an account behind a view should keep those routes' powers small.
+
 What this does NOT close: `blender_python` is arbitrary Python in the tab's Blender, and whether
 that Python can reach the page's network or script has not been established. The list above is a
 limit on the editor's command door, not a sandbox around the agent.
@@ -201,7 +221,7 @@ These are the routes that need the person's machine or account:
 
 ## What a limited view is not
 
-- **Code changes do not recompile.** The modules are the ones compiled at `view build`. A source edit, a person's or the agent's, lives in the page's memory and shows in the workbench, but the running game keeps the compiled module. Data edits behave the same way. Blender edits do take effect: Blender runs in the tab.
+- **Only game scripts recompile, and not everything a session does to them.** An edit to a script under `src/` takes effect (above). Not reproduced for an edited file: the creation-site and animation stamps (the inspector's source address for objects it creates), `import.meta.env`, hot acceptance (every change remounts), and an import of CSS, JSON or an asset the build did not already compile. An edited file cannot import a package the build did not record: there is no installer in a tab. Editor-lane code (`src/contributions`, `src/tools`, `volter.adapter.ts`) and data files keep what the build compiled.
 - **Edits stay in memory.** A reload starts over from the shipped files. "Download project" is not built yet.
 - **No git, no accounts, no sharing.**
 - **Webviews do not render.** Code-OSS loads them from `vscode-cdn.net`, which a cross-origin-isolated static page cannot embed. The editor's own panels do not use webviews.

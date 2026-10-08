@@ -39,6 +39,11 @@ export const STATIC_PREFIXES = [
  *  untouched. A host with no such server answers them as any missing file. */
 export const HOST_PREFIXES = ['/api/', '/auth/'] as const;
 
+/** The header the service worker puts on a request that asks the page one thing only: is this
+ *  project module one that changed since the view was built, and if so, what is it now
+ *  (`live-modules.ts`)? Any other answer is a miss, and the recording is served. */
+export const LIVE_MODULE_HEADER = 'x-volter-view-live-module';
+
 /** The header a page-router miss carries, so the service worker tries the static host instead. */
 export const VIEW_MISS_HEADER = 'x-volter-view-miss';
 
