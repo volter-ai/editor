@@ -68,20 +68,11 @@ export type WorkerRequest =
    *  Given no `object`, the view layer's active object answers. READ ONLY:
    *  pinning, unwrapping and selecting are edits. */
   | { id: number; op: 'uv-layout'; object?: string; uvLayer?: string }
-  /** ONE MESH'S SKIN BINDING (`session.py`'s `rna_rig`) — the armature's bones
-   *  with their rest AND bind matrices, plus up to four weighted influences
-   *  per Blender vertex as base64 typed-array bytes. The BIND pose is the
-   *  pose the exported columns were evaluated at, which is what lets three.js
-   *  own playback without Blender's frame ever moving. READ ONLY. */
-  | { id: number; op: 'rig'; object?: string }
   /** ONE ACTION AS A THREE.JS CLIP (`session.py`'s `rna_action_clip`) — per
    *  bone, the LOCAL transform at every integer frame of the action's range,
    *  plus the scene's frame range/fps and the summary row's key columns.
    *  READ ONLY: keying, moving a key and setting a range are edits. */
   | { id: number; op: 'action-clip'; object?: string; bake?: boolean; action?: string }
-  /** EVERY ARMATURE AND THE ACTIONS THAT CAN PLAY ON IT (`session.py`'s `rna_armature_actions`):
-   *  each action that animates one of its pose bones, assigned or not. READ ONLY. */
-  | { id: number; op: 'armature-actions' }
   /** ONE RESTRICTION COLUMN, written (`session.py`'s `outliner_set`). A column
    *  Blender draws on no row of that type is refused by name. */
   | { id: number; op: 'outliner-set'; path: string; column: string; value: boolean }

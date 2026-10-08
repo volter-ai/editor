@@ -1372,6 +1372,12 @@ def _armatures(view_layer):
             # `ARM_DRAW_MODE_*` switch, `:906-936`).
             "mode": obj.mode,
             "bones": _armature_bones(obj, locked),
+            # THE ACTION IT PLAYS (`animation_data.action`): what the presenter's mixer plays on
+            # this armature's skeleton, baked through the clip door at the revision the frame's
+            # `actions` names for it.
+            "action": (obj.animation_data.action.name
+                       if obj.animation_data is not None and obj.animation_data.action is not None
+                       else None),
         }
     return armatures
 
@@ -1642,6 +1648,9 @@ class Session:
             "scale_length": float(scene.unit_settings.scale_length),
         }
         frame["armatures"] = _armatures(view_layer)
+        # THE SCENE'S CLOCK beside the frame number: what a Timeline draws and a mixer maps time by.
+        frame["clock"] = {"start": int(scene.frame_start), "end": int(scene.frame_end),
+                          "fps": float(scene.render.fps) / float(scene.render.fps_base or 1.0)}
         frame["weights"] = _weights(scene, view_layer, frame, self._known)
         warnings = list(frame.get("warnings", ()))
         warnings.extend(_WARNINGS)
@@ -4617,31 +4626,6 @@ def _matrix_rows(matrix):
     return [[float(v) for v in row] for row in matrix]
 
 
-def rna_rig(object_name=None):
-    """EVERY SKIN BINDING THE SCENE NEEDS -- or one named mesh's.
-
-    A LIST, not a singleton, and that is what the PRESENTER's question is: a
-    presented frame carries every object at once, and the presenter has to know
-    which of its meshes are `THREE.SkinnedMesh`es before it builds them. Asking
-    per object would be one round trip per mesh; asking by NAME stays available
-    for a `cyclotron eval` that wants to read one.
-    """
-    scene_frame = int(bpy.context.scene.frame_current)
-    if object_name:
-        obj = bpy.data.objects.get(object_name)
-        if obj is None:
-            raise ValueError("The engine holds no object named %r" % (object_name,))
-        subjects = [obj]
-    else:
-        subjects = [obj for obj in bpy.context.view_layer.objects
-                    if obj.type == "MESH" and obj.data is not None
-                    and obj.find_armature() is not None]
-    rigs = []
-    for obj in subjects:
-        _asked({"checkpoint": "rig-object"})
-        rigs.append(_rig_of(obj))
-    return {"frame": scene_frame, "named": object_name, "rigs": rigs}
-
 
 def _rig_of(obj):
     """ONE MESH'S SKIN BINDING: the armature's bones, and up to four weighted
@@ -4839,50 +4823,6 @@ def _summary_objects():
             "keyframes": [columns[frame] for frame in sorted(columns)],
         })
     return out
-
-
-def rna_armature_actions():
-    """EVERY ARMATURE AND THE ACTIONS THAT CAN PLAY ON IT -- what a game picks its clips from.
-
-    An action can play on an armature when it animates at least one of that armature's pose bones
-    (`pose.bones["<name>"]...` on a bone the armature has). Read off each action's F-Curves through
-    `_action_channelbag`, every channelbag, so an action assigned to nothing (a clip library: Idle,
-    Run, Attack beside each other in the file) is offered as well as the one each armature plays now.
-    READ ONLY."""
-    out = []
-    for arm in bpy.data.objects:
-        if arm.type != "ARMATURE" or arm.pose is None:
-            continue
-        bones = {pchan.name for pchan in arm.pose.bones}
-        current = arm.animation_data.action.name if (arm.animation_data and arm.animation_data.action) else None
-        names = []
-        keys, total = 0, 0.0
-        for action in bpy.data.actions:
-            curves = []
-            legacy = getattr(action, "fcurves", None)
-            if legacy is not None:
-                curves = list(legacy)
-            else:
-                for layer in getattr(action, "layers", ()):
-                    for strip in getattr(layer, "strips", ()):
-                        for bag in (getattr(strip, "channelbags", None) or ()):
-                            curves.extend(bag.fcurves)
-            if any((m := _BONE_PATH.match(fc.data_path)) is not None and m.group(1) in bones for fc in curves):
-                names.append(action.name)
-                # A CHEAP SIGNATURE of the keys, so a reader can tell a key edit from no change
-                # without baking: the count and the sum of every key's frame and value.
-                for fc in curves:
-                    for key in fc.keyframe_points:
-                        keys += 1
-                        total += float(key.co[0]) * 7.0 + float(key.co[1])
-        out.append({"armature": arm.name, "current": current, "actions": sorted(names),
-                    "keys": "%d:%.6f" % (keys, total)})
-    scene = bpy.context.scene
-    # THE SCENE'S CLOCK TOO: a reader that skips a re-bind on an unchanged listing must still see
-    # the playhead and range move when an agent sets them.
-    return {"armatures": out, "scene": {"frameCurrent": int(scene.frame_current),
-                                        "frameStart": int(scene.frame_start), "frameEnd": int(scene.frame_end),
-                                        "fps": float(scene.render.fps) / float(scene.render.fps_base or 1.0)}}
 
 
 def rna_action_clip(object_name=None, bake=True, action_name=None):
@@ -5511,12 +5451,8 @@ def _dispatch(request):
     # THE RIG AND CLIP DOORS (the Timeline): both READS, so neither presents
     # and neither owes a derivation. There is deliberately no writer beside
     # them -- keying, moving a key and setting a range are edits.
-    if op == "rig":
-        return rna_rig(request.get("object"))
     if op == "action-clip":
         return rna_action_clip(request.get("object"), request.get("bake", True), request.get("action"))
-    if op == "armature-actions":
-        return rna_armature_actions()
     if op == "outliner":
         return rna_outliner(request.get("selected"))
     if op == "outliner-set":

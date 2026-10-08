@@ -796,11 +796,6 @@ async function handle(request: WorkerRequest): Promise<unknown> {
     // reason is a measured defect: I4's Collection tab simply did not stand
     // because `collection` crossed `runtime.ts` and `session.py` and never
     // this switch, with no error anywhere.
-    case 'rig':
-      return pullWork('rig', () => ask({
-        op: 'rig',
-        ...(request.object === undefined ? {} : { object: request.object }),
-      }));
     case 'action-clip':
       return ask({
         op: 'action-clip',
@@ -808,8 +803,6 @@ async function handle(request: WorkerRequest): Promise<unknown> {
         ...(request.bake === undefined ? {} : { bake: request.bake }),
         ...(request.action === undefined ? {} : { action: request.action }),
       });
-    case 'armature-actions':
-      return ask({ op: 'armature-actions' });
     case 'outliner-set':
       return ask({
         op: 'outliner-set',

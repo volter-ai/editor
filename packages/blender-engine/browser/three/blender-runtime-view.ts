@@ -8,6 +8,7 @@ import { z } from 'zod';
 import { onPresenterChange, presenterChanged } from './blender-presenter-change';
 import { bytesFromBase64 } from './blender-base64';
 import { ArmatureOverlay, armatureSchema } from './blender-runtime-armature';
+import { type FrameSkin, RuntimeSkeletons, skinGeometry } from './blender-runtime-skeleton';
 import { UNKNOWN_GEOMETRY, UNKNOWN_IMAGE } from './blender-runtime-frame';
 import {
   drawArraysFromColumns,
@@ -129,6 +130,38 @@ const attributeSchema = z.discriminatedUnion('type', [
   z.object({ ...attributeFields, type: z.literal('BOOLEAN'), data: z.array(z.boolean()) }).strict(),
   z.object({ ...attributeFields, type: z.literal('STRING'), data: z.array(z.string()) }).strict(),
 ]);
+/** The door's skin block (`bpy_web_export.cc` `write_skin`): per EXPORTED vertex, four deform
+ *  groups and their weights, for the armature that deforms the mesh. */
+const frameSkinSchema = z
+  .object({
+    armature: z.string(),
+    groups: z.array(z.string()),
+    columns: z.object({ joints: z.instanceof(Uint16Array), weights: z.instanceof(Float32Array) }).strict(),
+  })
+  .strict();
+/** The same skin per DRAWN vertex, as a copy of a presented frame carries it (`fullFrame`). */
+const drawnSkinSchema = z
+  .object({
+    armature: z.string(),
+    groups: z.array(z.string()),
+    index: z.instanceof(Uint16Array),
+    weight: z.instanceof(Float32Array),
+  })
+  .strict();
+/** An exported mesh's geometry with its skin laid over its drawn vertices (`skinGeometry`). */
+function withFrameSkin(geometry: THREE.BufferGeometry, skin: FrameSkin | undefined): THREE.BufferGeometry {
+  if (skin) skinGeometry(geometry, skin);
+  return geometry;
+}
+/** A drawn mesh's geometry with the per-drawn-vertex skin a copy carried (`fullFrame`). */
+function withDrawnSkin(geometry: THREE.BufferGeometry,
+  skin: { armature: string; groups: string[]; index: Uint16Array; weight: Float32Array } | undefined): THREE.BufferGeometry {
+  if (!skin) return geometry;
+  geometry.setAttribute('skinIndex', new THREE.Uint16BufferAttribute(skin.index, 4));
+  geometry.setAttribute('skinWeight', new THREE.Float32BufferAttribute(skin.weight, 4));
+  geometry.userData['blenderSkin'] = { armature: skin.armature, groups: [...skin.groups] };
+  return geometry;
+}
 const drawArraysSchema = z
   .object({
     positions: z.instanceof(Float32Array),
@@ -149,6 +182,7 @@ const drawArraysSchema = z
     ),
     /** The draw's vertex map (`DrawArrays.sourceVertex`), kept by a copy that plays (skins bind over it). */
     sourceVertex: z.instanceof(Uint32Array).optional(),
+    skin: drawnSkinSchema.optional(),
     hash: z.string(),
   })
   .strict();
@@ -224,6 +258,7 @@ const columnAttributeSchema = z
   .strict();
 const exportedMeshSchema = z
   .object({
+    skin: frameSkinSchema.optional(),
     columns: columnsSchema,
     attributes: z.array(columnAttributeSchema),
     activeUv: z.string().nullable(),
@@ -567,6 +602,11 @@ export const frameSchema = z
      * `show_in_front`. `blender-runtime-armature.ts` is the drawing.
      */
     armatures: z.record(z.string(), armatureSchema).default({}),
+    /** Every action and its revision (`bpy_web_export.cc`): a clip is baked again exactly when its
+     *  action's revision moves. */
+    actions: z.record(z.string(), z.number().int().nonnegative()).default({}),
+    /** The scene's frame range and rate (`session.py`), beside `frame`. */
+    clock: z.object({ start: z.number().int(), end: z.number().int(), fps: z.number().finite().positive() }).strict().optional(),
     /** The active object's active vertex group, per vertex
      *  (`blender-runtime-weights.ts`); null when nothing is painted. */
     weights: weightsSchema.nullable().default(null),
@@ -663,8 +703,24 @@ export interface PhotographRecord {
   render: { width: number; height: number; fov: number; orthographic: boolean };
 }
 
+/** A skinned mesh as the plain mesh it is again (its geometry kept), when its skin went away. */
+function plainMesh(skinned: THREE.Mesh): THREE.Mesh {
+  const plain = new THREE.Mesh(skinned.geometry, skinned.material);
+  plain.name = skinned.name;
+  plain.matrixAutoUpdate = skinned.matrixAutoUpdate;
+  plain.matrix.copy(skinned.matrix);
+  plain.matrix.decompose(plain.position, plain.quaternion, plain.scale);
+  plain.userData = skinned.userData;
+  return plain;
+}
+
 export class BlenderRuntimeView {
   readonly root = new THREE.Group();
+  /** Every armature's bones as the frame poses them, and the skins bound to them
+   *  (`blender-runtime-skeleton.ts`). A reader plays clips on `skeletons.rig(name).bones`. */
+  readonly skeletons = new RuntimeSkeletons();
+  /** The geometry and rig each skinned mesh was bound with, so it is bound again only when either changes. */
+  private skinBinds = new WeakMap<THREE.Object3D, { geometry: THREE.BufferGeometry; rig: object }>();
   private readonly instances = new BlenderRuntimeInstances(this.root);
   private readonly materialRanges = new BlenderMaterialRanges();
   private readonly transparentInstances = new BlenderTransparentInstances(this.root);
@@ -1061,6 +1117,35 @@ export class BlenderRuntimeView {
    *  needs it — its rows come from the engine by name, and every one that our
    *  viewport can select has to find its way back to a three object through
    *  the frame's own table, never through `object.name`. */
+  /**
+   * WHAT THE LAST FRAME SAYS ABOUT ANIMATION, for a reader that plays clips on `skeletons`: the
+   * scene's current frame and clock, every action's revision, each armature's assigned action, the
+   * active object, and which armature a mesh object's skin is bound to. Read off the frame the view
+   * holds, never the engine.
+   */
+  animationFacts(): {
+    frame: number;
+    clock: { start: number; end: number; fps: number } | null;
+    active: string | null;
+    actions: Readonly<Record<string, number>>;
+    armatures: Readonly<Record<string, { action: string | null }>>;
+    skinArmature(object: string): string | null;
+  } {
+    const frame = this.frame;
+    return {
+      frame: frame?.frame ?? 0,
+      clock: frame?.clock ?? null,
+      active: frame?.active ?? null,
+      actions: frame?.actions ?? {},
+      armatures: Object.fromEntries(Object.entries(frame?.armatures ?? {}).map(([name, armature]) => [name, { action: armature.action ?? null }])),
+      skinArmature: (name) => {
+        const object = this.objectForBlenderName(name) as THREE.Mesh | null;
+        const skin = object?.geometry?.userData['blenderSkin'] as { armature: string } | undefined;
+        return skin?.armature ?? null;
+      },
+    };
+  }
+
   objectForBlenderName(name: string): THREE.Object3D | null {
     const entry = this.frame?.objects.find((o) => o.name === name);
     return entry === undefined ? null : (this.objects.get(entry.id) ?? null);
@@ -1671,9 +1756,11 @@ export class BlenderRuntimeView {
       const data = exportedMeshSchema.parse(part.piece);
       if (staged.meshes.has(part.mesh)) throw new Error('Duplicate Blender mesh piece');
       const signature = `revision:${data.revision}`;
-      staged.meshes.set(part.mesh, { signature, geometry: geometryFromDrawArrays(drawArraysFromColumns({
+      const geometry = geometryFromDrawArrays(drawArraysFromColumns({
         ...data.columns, attributes: data.attributes as never, activeUv: data.activeUv, renderUv: data.renderUv,
-      }, signature)) });
+      }, signature));
+      if (data.skin) skinGeometry(geometry, data.skin);
+      staged.meshes.set(part.mesh, { signature, geometry });
     } else if (part.image !== undefined) {
       if (staged.images.has(part.image)) throw new Error('Duplicate Blender image piece');
       staged.images.set(part.image, frameImageSchema.parse(part.piece));
@@ -1791,7 +1878,7 @@ export class BlenderRuntimeView {
         prepared.set(id, {
           signature,
           geometry: exported
-            ? geometryFromDrawArrays(
+            ? withFrameSkin(geometryFromDrawArrays(
                 drawArraysFromColumns(
                   {
                     ...data.columns,
@@ -1801,9 +1888,9 @@ export class BlenderRuntimeView {
                   },
                   signature,
                 ),
-              )
+              ), data.skin)
             : drawn
-              ? geometryFromDrawArrays(data)
+              ? withDrawnSkin(geometryFromDrawArrays(data), data.skin)
               : drawRuntimeGeometry(data),
         });
       }
@@ -2180,6 +2267,26 @@ export class BlenderRuntimeView {
         this.lights.delete(id);
       }
     this.root.updateMatrixWorld(true);
+    // THE SKINS, once the graph stands (a bind reads world matrices): every armature's bones as
+    // Blender posed them, and every mesh whose exported geometry carries a skin bound to them. A
+    // mesh is bound again only when its geometry or its rig was rebuilt; one whose geometry lost
+    // its skin draws as the plain mesh it is.
+    const named = new Map(next.objects.map((obj) => [obj.name, this.objects.get(obj.id) ?? null]));
+    this.skeletons.apply(next.armatures, (name) => named.get(name) ?? null);
+    for (const obj of next.objects) {
+      if (obj.mesh === null || obj.volume) continue;
+      const object = this.objects.get(obj.id) as THREE.Mesh | undefined;
+      if (!object?.isMesh) continue;
+      const skin = object.geometry.userData['blenderSkin'] as { armature: string } | undefined;
+      const rig = skin ? this.skeletons.rig(skin.armature) : null;
+      const held = this.skinBinds.get(object);
+      if (rig && held?.geometry === object.geometry && held.rig === rig) continue;
+      const bound = rig ? this.skeletons.bind(object) : null;
+      const replacement = bound ?? ((object as THREE.SkinnedMesh).isSkinnedMesh ? plainMesh(object) : null);
+      if (replacement && replacement !== object) this.replacePresentedObject(object, replacement);
+      if (bound && rig) this.skinBinds.set(bound, { geometry: bound.geometry, rig });
+    }
+    this.root.updateMatrixWorld(true);
     // Keep the frame's identity and object table, not its geometry payloads:
     // a presented mesh is already resident as its BufferGeometry, and the
     // nested number arrays it arrived as cost ~15x their JSON (the blower's
@@ -2256,7 +2363,8 @@ export class BlenderRuntimeView {
     // Inspection overlays are not render content. In particular weight-paint
     // overlays reference source vertices, which the evaluated draw no longer
     // needs and a render snapshot deliberately does not copy.
-    const frame: Frame = structuredClone({ ...source, images: {}, armatures: {}, weights: null });
+    // A copy that plays keeps the armatures its skins bind to; a render snapshot draws no bones.
+    const frame: Frame = structuredClone({ ...source, images: {}, armatures: options.sourceVertices ? source.armatures : {}, weights: null });
     for (const [id, { signature, geometry }] of this.meshes) {
       const attribute = (name: string): Float32Array<ArrayBuffer> | null => {
         const value = geometry.getAttribute(name);
@@ -2297,6 +2405,14 @@ export class BlenderRuntimeView {
         // needs none.
         ...(options.sourceVertices && geometry.getAttribute('blenderVertex')
           ? { sourceVertex: new Uint32Array((geometry.getAttribute('blenderVertex') as THREE.BufferAttribute).array) }
+          : {}),
+        // A COPY THAT PLAYS keeps its skin too, per drawn vertex, so its own skeletons bind it.
+        ...(options.sourceVertices && geometry.userData['blenderSkin'] && geometry.getAttribute('skinIndex')
+          ? { skin: {
+              ...(geometry.userData['blenderSkin'] as { armature: string; groups: string[] }),
+              index: new Uint16Array((geometry.getAttribute('skinIndex') as THREE.BufferAttribute).array),
+              weight: new Float32Array((geometry.getAttribute('skinWeight') as THREE.BufferAttribute).array),
+            } }
           : {}),
       };
     }
@@ -2507,6 +2623,8 @@ export class BlenderRuntimeView {
   }
 
   private clear() {
+    this.skeletons.dispose();
+    this.skinBinds = new WeakMap();
     this.worldVisibility.dispose();
     this.objectInfoMaterials.clear();
     this.materialRanges.clear();
