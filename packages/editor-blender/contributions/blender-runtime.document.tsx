@@ -26,7 +26,7 @@
 
 // How the `model` stage this document builds behaves (its starting presentation).
 import './blender-properties-context';
-import { setLiveAnimation } from '../src/play-live';
+import { liveAnimation, setLiveAnimation } from '../src/play-live';
 import { blenderViewFieldOfView } from '../src/presentation';
 import {
   type BlenderRuntimeView,
@@ -975,7 +975,8 @@ function BlenderViewportArea({
       stopPrepareFrames?.();
       window.removeEventListener('keydown', onEscape, true);
       stopScript?.();
-      setLiveAnimation(null);
+      // Only this run's animation is cleared: a restart's new run may already hold the slot.
+      if (liveAnimation() === animation) setLiveAnimation(null);
       animation?.dispose();
       animation = null;
       layers.remove();

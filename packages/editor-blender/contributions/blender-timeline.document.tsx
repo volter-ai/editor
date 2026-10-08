@@ -66,6 +66,7 @@ import {
 import { blenderSkin, blenderSkinVersion, subscribeBlenderSkin } from './blender-runtime-skin';
 import { BlenderGamePanel, GAME_PANEL_RATIO, PlayModeSwitch } from './blender-game-panel';
 import { AnimationEditorMenu, BlenderActionEditor, BlenderNlaEditor } from './blender-animation-editors';
+import { liveAnimation, subscribeLiveAnimation } from '../src/play-live';
 import { setWorkspaceAreaRatio } from '@volter/editor-sdk/kit/workspace-areas';
 import { modelPlayMode, playModeVersion, servedModelDocument, subscribePlayMode } from '../src/play-mode';
 import {
@@ -115,6 +116,7 @@ const REFUSALS = {
 
 /** The scene clock is available with or without an action. Only a missing
  * scene/transport prevents timeline navigation. */
+const GAME_RUNNING = 'A game is running; the Timeline is read-only until it stops (Stop in the Game panel).';
 const NOT_PLAYABLE =
   'No scene transport is attached yet; open the model document first.';
 
@@ -239,6 +241,7 @@ function report(): unknown {
  *  are fixed by this one guard: `frame`, `jump-start`, `jump-end`,
  *  `next-keyframe`, `prev-keyframe`. */
 function scrubTo(frame: number): unknown {
+  if (liveAnimation() !== null) return refuse(GAME_RUNNING);
   if (!blenderSkin.playable) return refuse(NOT_PLAYABLE);
   const handle = transport();
   if (!handle) return refuse('No stage transport is attached yet; open the model document first.');
@@ -277,6 +280,7 @@ registerViewVerbs({
       id: 'play',
       title: 'Timeline: Play',
       run: () => {
+        if (liveAnimation() !== null) throw new Error(GAME_RUNNING);
         if (!blenderSkin.playable) throw new Error(NOT_PLAYABLE);
         const handle = transport();
         if (!handle)
@@ -585,7 +589,7 @@ function BlenderTimeline() {
   const scrubFromPointer = useCallback(
     (clientX: number) => {
       const element = canvas.current;
-      if (!element) return;
+      if (!element || liveAnimation() !== null) return;
       const box = element.getBoundingClientRect();
       transport()?.seekFrame(Math.round(toFrame(clientX - box.left)));
     },
@@ -901,14 +905,17 @@ function TimelineHeader() {
   useSyncExternalStore(subscribeTimelineView, timelineViewVersion, timelineViewVersion);
   const play = blenderSkin.state();
   const unit = TIMELINE_CHROME.unit;
+  // WHILE A GAME RUNS the transport is held: the game owns its copy, and moving the document's
+  // frame under it would put two clocks on one picture.
+  const gameRunning = useSyncExternalStore(subscribeLiveAnimation, liveAnimation, () => null) !== null;
   // Static scenes have a timeline too. Disable only while its scene/transport
   // is unavailable, using the same condition as the command door.
-  const playable = blenderSkin.playable;
+  const playable = blenderSkin.playable && !gameRunning;
   const button = (key: string, glyph: ReactNode, onClick: () => void, label: string) => (
     <button
       key={key}
       type="button"
-      title={playable ? label : `${label} — ${NOT_PLAYABLE}`}
+      title={playable ? label : `${label} — ${gameRunning ? GAME_RUNNING : NOT_PLAYABLE}`}
       aria-label={label}
       disabled={!playable}
       onClick={onClick}

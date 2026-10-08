@@ -1,7 +1,6 @@
 /**
- * GAME OR ANIMATION — what a model document's bottom area shows (owner, 2026-10-06: "allow the
- * user to flip between game and movie mode"; renamed 2026-10-08: "game/animation … so it's clear
- * the bottom panel is not mutually exclusive, since animation can be used for games too").
+ * GAME OR ANIMATION — what a model document's bottom area shows. It is not mutually exclusive:
+ * animation is used by games too.
  *
  * - **Animation** is Blender's animation editors: the Timeline, the Dope Sheet's Action Editor and
  *   the NLA editor (`../contributions/blender-animation-editors.tsx`). While a game runs they show
@@ -16,7 +15,7 @@
  * and the Timeline alike (`PlayModeSwitch`, `blender-game-panel.tsx`); this module is the state
  * both sides read. A document opens as a
  * Game when its model has a play script (`*.play.ts` beside the `.blend`, as the Play tool finds
- * it — `DocumentPlayExtension.hasScript`) and as a Movie otherwise, and the person's own pick
+ * it — `DocumentPlayExtension.hasScript`) and in Animation otherwise, and the person's own pick
  * then stands for that document for the browser session, kept the way `area-split.ts` keeps the
  * split, per document id — in session storage rather than local, because the default is what a
  * fresh session should start from.
@@ -34,9 +33,9 @@ import {
 
 export type ModelPlayMode = 'game' | 'animation';
 
-/** A mode as asked for: `movie` is the earlier name of `animation`, still accepted. */
+/** A mode as asked for, or null for anything else. */
 export function playModeOf(value: unknown): ModelPlayMode | null {
-  return value === 'game' ? 'game' : value === 'animation' || value === 'movie' ? 'animation' : null;
+  return value === 'game' || value === 'animation' ? value : null;
 }
 
 const STORAGE_PREFIX = 'volter.blender.play-mode:';
@@ -137,7 +136,7 @@ export function playModeVersion(): number {
  * takes (`useSyncExternalStore(subscribePlayMode, playModeVersion)`): a script found after the
  * first render, a run starting or stopping, a restart. Handing the tool's publications straight to
  * the reader's listener re-ran a snapshot that had not changed, so React kept the old render — a
- * document with a play script stayed in Movie, and the Game panel kept showing Stop after the game
+ * document with a play script stayed in Animation, and the Game panel kept showing Stop after the game
  * had stopped. One subscription to the tool's registry, held while anything reads this store,
  * bumps the version and then tells the readers.
  */

@@ -196,6 +196,8 @@ export function BlenderActionEditor() {
   const play = blenderSkin.state();
   const armature = blenderSkin.subject ?? play.armature;
   const running = live?.live().find((one) => one.armature === armature) ?? null;
+  // READ-ONLY WHILE ANY GAME RUNS: the game owns its copy, and the document is not edited under it.
+  const gameRunning = live !== null;
   const top = running?.layers.at(-1) ?? null;
   const action = running ? top?.action ?? null : play.action;
   const channels = useMemo(
@@ -214,11 +216,12 @@ export function BlenderActionEditor() {
   const summary = [...new Set(frames)].sort((a, b) => a - b);
 
   const pick = async (name: string) => {
-    if (!armature || running) return;
+    if (!armature || gameRunning) return;
     setRefusal(null);
+    // ONE WRITE, as Blender's own selector makes it: assigning the action lets Blender choose the
+    // slot that fits this armature (measured: `OBArmature` for a UAL1 clip on a renamed rig).
     try {
       await blenderRnaSet(address(armature), 'action', `bpy.data.actions[${JSON.stringify(name)}]`);
-      await blenderRnaSet(address(armature), 'action_slot', `bpy.data.actions[${JSON.stringify(name)}].slots[0]`);
     } catch (error) {
       setRefusal(`${name} could not be assigned to ${armature}: ${error instanceof Error ? error.message : String(error)}`);
     }
@@ -231,8 +234,8 @@ export function BlenderActionEditor() {
         aria-label="Action"
         data-testid="action-editor-action"
         value={action ?? ''}
-        disabled={!armature || running !== null}
-        title={running ? 'The game is playing this; it chooses the clip while it runs' : 'The action this armature plays (animation_data.action)'}
+        disabled={!armature || gameRunning}
+        title={gameRunning ? 'A game is running; it chooses the clips while it runs' : 'The action this armature plays (animation_data.action)'}
         onChange={(event) => void pick(event.target.value)}
         style={{
           height: TIMELINE_CHROME.unit,
@@ -271,10 +274,10 @@ export function BlenderActionEditor() {
           <svg
             width={width}
             height={height}
-            style={{ display: 'block', cursor: running ? 'default' : 'ew-resize' }}
+            style={{ display: 'block', cursor: gameRunning ? 'default' : 'ew-resize' }}
             aria-label="Action Editor"
             onPointerDown={(event) => {
-              if (running) return;
+              if (gameRunning) return;
               const box = event.currentTarget.getBoundingClientRect();
               blenderSkin.transport?.seekFrame(Math.round(toFrame(event.clientX - box.left)));
             }}
@@ -328,7 +331,7 @@ export function BlenderNlaEditor() {
   const height = SCRUB_HEIGHT + CHANNEL_HEIGHT * (rows.length + 1);
   const header = (
     <Header>
-      {running ? <span data-testid="nla-live" style={{ color: TIMELINE_THEME.playhead }}>● game running: the playing tracks show their frame and influence</span> : null}
+      {running ? <span data-testid="nla-live" style={{ color: TIMELINE_THEME.playhead }}>● game running: each playing track shows the game's frame and influence; the strips are the file's layout</span> : null}
     </Header>
   );
   return (
@@ -367,7 +370,8 @@ export function BlenderNlaEditor() {
                     width={Math.max(2, toX(strip.end) - toX(strip.start))}
                     height={CHANNEL_HEIGHT - 4}
                     rx={2}
-                    fill={strip.mute || row.mute ? '#4a4a4a' : row.live ? '#5a7fb8' : '#7b7b7b'}
+                    fill={strip.mute || row.mute ? '#4a4a4a' : running ? (row.live ? '#5a7fb8' : '#555555') : '#7b7b7b'}
+                    opacity={running ? 0.6 : 1}
                     stroke="#1a1a1a"
                   />
                   <text x={toX(strip.start) + 4} y={y + CHANNEL_HEIGHT - 7} fill="#ffffff" fontSize={10}>{strip.name}</text>
