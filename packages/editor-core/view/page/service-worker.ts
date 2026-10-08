@@ -98,10 +98,11 @@ function isolated(response: Response, extra: Record<string, string> = {}): Respo
  * worker is governed by the policy on its own script's response, and a framed document by its own,
  * so an answer that reaches the page with no policy, or a weaker one, is a way out.
  *
- * WHO IS TRUSTED TO STATE THE POLICY: the host, and nobody else. An answer this worker fetched
- * from the host itself ({@link isolated} marks it) keeps the policy the host put on it (a
- * document's carries its own script hashes). EVERY other answer gets the host's policy, REPLACING
- * whatever was there: a recorded module, the "not compiled" module, this worker's own error, and
+ * WHO IS TRUSTED TO STATE THE POLICY: the host, and nobody else. A DOCUMENT this worker fetched
+ * from the host itself ({@link isolated} marks it) keeps the policy the host put on it, which
+ * carries that document's script hashes. EVERY other answer gets the host's current policy,
+ * REPLACING whatever was there: a file of the host's that the browser cached with an older policy
+ * or with none, a recorded module, the "not compiled" module, this worker's own error, and
  * above all an answer from the page. Project code runs in the page and can reply to a forwarded
  * request itself, so a page's answer is never believed about its policy.
  *
@@ -109,7 +110,7 @@ function isolated(response: Response, extra: Record<string, string> = {}): Respo
  * HTTP cache) and read again whenever the view's document is opened, so a host that changes its
  * policy is followed. A host that answers and sends none has none, and nothing is added.
  *
- * FAIL CLOSED: if that read fails, the answer is not served bare. It gets the strict policy below
+ * FAIL CLOSED: if that read fails, the answer is not served bare. It gets the built-in policy below
  * (this origin only, reporting where the host's policy last said to), and the read is tried again
  * on the next answer.
  */
@@ -117,7 +118,7 @@ const POLICY_HEADERS = ['Content-Security-Policy', 'Content-Security-Policy-Repo
 /** Where the host takes reports of what a policy blocked: what its last readable policy named, and
  *  until one has been read, the address a view's host is expected to take them at. */
 let reportAddress = '/api/csp-report';
-/** The strict policy for when the host's cannot be read. It reports where the host's would, so
+/** The policy for when the host's cannot be read: this origin only. It reports where the host's would, so
  *  what it blocks is seen rather than dropped. */
 const fallbackPolicy = (): [string, string][] => [[
   'Content-Security-Policy',
@@ -152,7 +153,13 @@ function policyOfHost(): Promise<[string, string][]> {
 }
 
 async function withHostPolicy(response: Response): Promise<Response> {
-  if (fromHost.has(response) && POLICY_HEADERS.slice(0, 2).some((name) => response.headers.has(name))) return response;
+  // A DOCUMENT the host answered keeps the host's own policy: it names that document's inline
+  // scripts. Everything else the host answered (a script, a worker's script, JSON, a style sheet)
+  // gets the policy the host sends NOW, in place of whatever came with it: a browser keeps a file's
+  // headers with its bytes, so a copy cached before the host had a policy has none, and one cached
+  // under an older policy has that one, and a worker runs under its own script's.
+  const isDocument = (response.headers.get('Content-Type') ?? '').toLowerCase().includes('text/html');
+  if (isDocument && fromHost.has(response) && POLICY_HEADERS.slice(0, 2).some((name) => response.headers.has(name))) return response;
   const policy = await policyOfHost();
   const headers = new Headers(response.headers);
   for (const name of POLICY_HEADERS) headers.delete(name);

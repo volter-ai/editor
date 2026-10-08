@@ -1358,7 +1358,14 @@ export async function handleBlenderCommand(cmd: {
           requestedDocument !== undefined
             ? requestedDocument
             : (shown ?? DEFAULT_BLENDER_DOCUMENT);
-        return { ok: true, data: { ...(await session.start(project!, document)) } };
+        try {
+          return { ok: true, data: { ...(await session.start(project!, document)) } };
+        } catch (error) {
+          // As the document's own open does: a session whose start failed is discarded, so the
+          // next `blender-start` makes a new one instead of awaiting the same failure.
+          if (session.startFailed && runtime === session) terminateBlenderRuntime();
+          throw error;
+        }
       }
       case 'blender-execute': {
         // THROUGH THE IN-PAGE DOOR, not `session.execute` beside it — the same
