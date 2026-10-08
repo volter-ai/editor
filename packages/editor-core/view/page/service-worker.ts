@@ -121,7 +121,8 @@ let reportAddress = '/api/csp-report';
  *  what it blocks is seen rather than dropped. */
 const fallbackPolicy = (): [string, string][] => [[
   'Content-Security-Policy',
-  "default-src 'self'; script-src 'self' 'wasm-unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; " +
+  // 'unsafe-eval' as the host's own policy has it: Blender and the workbench do not run without it.
+  "default-src 'self'; script-src 'self' 'wasm-unsafe-eval' 'unsafe-eval'; style-src 'self' 'unsafe-inline'; worker-src 'self' blob:; " +
     "img-src 'self' data: blob:; font-src 'self' data:; media-src 'self' data: blob:; connect-src 'self' blob: data:; " +
     `frame-src 'self'; form-action 'self'; base-uri 'self'; object-src 'none'; report-uri ${reportAddress}`,
 ]];
