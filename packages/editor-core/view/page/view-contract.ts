@@ -33,6 +33,12 @@ export const STATIC_PREFIXES = [
   '/favicon.ico',
 ] as const;
 
+/** Paths that belong to the host's own server when it has one (an account's sign-in under `/auth/`,
+ *  its API under `/api/`). The service worker does not answer them at all: the browser sends each
+ *  as it would with no worker, so a sign-in's redirects, its cookies and a streamed answer arrive
+ *  untouched. A host with no such server answers them as any missing file. */
+export const HOST_PREFIXES = ['/api/', '/auth/'] as const;
+
 /** The header a page-router miss carries, so the service worker tries the static host instead. */
 export const VIEW_MISS_HEADER = 'x-volter-view-miss';
 
