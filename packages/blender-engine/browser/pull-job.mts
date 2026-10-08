@@ -10,8 +10,26 @@ export class PullJob<T> {
   private expected: string | null = null;
   private resume: (() => void) | null = null;
   private waiter: { resolve: (value: PullResult<T>) => void; reject: (error: unknown) => void } | null = null;
+  /**
+   * How the work ended, when it ended while nobody was waiting on a step. Work normally ends only
+   * while a step waits, but work that races something against a checkpoint (an engine compiling
+   * beside an import) can fail in the gap after a `continue` was handed out. The outcome is kept
+   * for the step that comes next, so the caller is told what actually happened. Before this, the
+   * failure was thrown at nobody and the next step answered "Invalid or replayed load
+   * continuation", which named the protocol instead of the fault (measured 2026-10-08: a Blender
+   * start refused by a content security policy showed only that message, on every retry).
+   */
+  private ended: { readonly value: T } | { readonly error: unknown } | null = null;
+  /** True once the work has ended in failure: a load that failed may be started again. */
+  get failed(): boolean { return this.hasFailed; }
+  private hasFailed = false;
   constructor(private readonly work: (checkpoint: (phase: string) => Promise<void>) => Promise<T>) {}
   step(token?: string): Promise<PullResult<T>> {
+    if (this.ended && !this.waiter && token === this.expected) {
+      const ended = this.ended;
+      this.ended = null; this.expected = null; this.resume = null;
+      return 'error' in ended ? Promise.reject(ended.error) : Promise.resolve({ load: 'done', value: ended.value });
+    }
     if (this.finished || this.waiter || (this.started ? token !== this.expected || !this.resume : token !== undefined))
       return Promise.reject(new Error('Invalid or replayed load continuation'));
     const answer = new Promise<PullResult<T>>((resolve, reject) => { this.waiter = { resolve, reject }; });
@@ -24,12 +42,14 @@ export class PullJob<T> {
         waiter.resolve({ load: 'continue', token: this.expected, phase });
       }))).then(value => {
         this.finished = true;
-        const waiter = this.waiter!; this.waiter = null;
-        waiter.resolve({ load: 'done', value });
+        const waiter = this.waiter; this.waiter = null;
+        if (waiter) waiter.resolve({ load: 'done', value });
+        else this.ended = { value };
       }, error => {
-        this.finished = true;
-        const waiter = this.waiter!; this.waiter = null;
-        waiter.reject(error);
+        this.finished = true; this.hasFailed = true;
+        const waiter = this.waiter; this.waiter = null;
+        if (waiter) waiter.reject(error);
+        else this.ended = { error };
       });
     } else {
       const resume = this.resume!; this.resume = null; this.expected = null; resume();
