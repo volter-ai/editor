@@ -1589,6 +1589,12 @@ class Session:
         # The OUTSIDE-THE-PROJECT file Blender was last found holding, once said
         # (`follow_open_file`): the refusal is told once per file, not per call.
         self._outside_file = None
+        # Whether Blender has held the document's own file in this session (it was opened from
+        # disk, or a Save As moved to it), and whether it now holds a NEW UNTITLED file instead
+        # (`read_homefile`, `read_factory_settings`): then the model in memory is not the
+        # document's, and the save must not write it there (`follow_open_file`).
+        self._held = False
+        self._untitled = False
         # WHAT THE PRESENTER LAST REPORTED HOLDING, as an instrument: the
         # `(session, revision)` it held BEFORE the last frame, None when it
         # held nothing, and the string "unreported" for a presenter that does
@@ -2127,6 +2133,8 @@ class Session:
         """
         self.document_relative = relative_path
         self.document = os.path.join(self.project, relative_path)
+        self._held = False
+        self._untitled = False
         if not os.path.exists(self.document):
             return {"document": relative_path, "opened": False}
         _asked({"checkpoint": "document-open"})
@@ -2149,6 +2157,7 @@ class Session:
         # raising the heap's high-water mark by the file's size (307 MB for the Stoneguard file).
         # The worker still holds the host's stamp for it, so it is not staged in again.
         os.remove(self.document)
+        self._held = True
         self.present()
         # The load did not dirty anything: what is in memory IS the file.
         self.save_due = False
@@ -2190,11 +2199,30 @@ class Session:
         holds a file outside the project: the editor has no document there, so
         the session keeps its own and keeps saving to it.
         """
-        if self.document is None or not bpy.data.filepath:
+        if self.document is None:
             return None
+        # A NEW UNTITLED FILE where the document was. `read_homefile` (Blender's File > New)
+        # leaves `bpy.data.filepath` empty, and the session used to save that empty scene over
+        # the document it was bound to: an agent that sent `read_homefile` on its own, meaning to
+        # Save As a new piece next, emptied the open level on disk (measured 2026-10-08: a
+        # scratch document went from four objects to none). So the document is not saved while
+        # Blender holds an untitled file; a Save As into the project makes that file a document of
+        # its own, and opening the document again resumes it. A session bound to a document that
+        # does not exist yet holds an untitled file from the start, and saves it there as before.
+        if not bpy.data.filepath:
+            if not self._held or self._untitled:
+                return None
+            self._untitled = True
+            return {"moved": False, "from": self.document_relative, "untitled": True,
+                    "note": "Blender now holds a new, unsaved file, so %s is no longer saved: "
+                            "save_as_mainfile(filepath=<a .blend under the project>) makes this file "
+                            "a document of its own, and opening %s again returns to it"
+                            % (self.document_relative, self.document_relative)}
         current = os.path.normpath(os.path.abspath(bpy.data.filepath))
         if current == os.path.normpath(self.document):
             self._outside_file = None
+            self._held = True
+            self._untitled = False
             return None
         root = os.path.normpath(self.project)
         relative = current[len(root) + 1:] if current.startswith(root + "/") else None
@@ -2205,6 +2233,8 @@ class Session:
             self.document = current
             self.document_relative = relative
             self._outside_file = None
+            self._held = True
+            self._untitled = False
             # The file Blender wrote sits only in the engine's filesystem until the
             # session's own save carries it to the project.
             self.save_due = True
@@ -2306,6 +2336,9 @@ class Session:
         self.save_due = False
         if self.document is None:
             return {"saved": False, "reason": "no-document"}
+        if self._untitled and not bpy.data.filepath:
+            # Not the document's model (`follow_open_file`): writing it would empty the file.
+            return {"saved": False, "reason": "untitled", "document": self.document_relative}
         # `bpy.data.is_dirty` IS NOT A PREDICATE HERE, and this is the measurement
         # rather than a preference. Before native undo initialization it stayed
         # False even after a script built fourteen objects; with explicit undo

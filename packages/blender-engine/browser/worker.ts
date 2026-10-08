@@ -197,7 +197,7 @@ async function saveDocument(): Promise<void> {
     ms[phase] = Math.round(now - mark);
     mark = now;
   };
-  let answer: { saved?: boolean; path?: string; size?: number };
+  let answer: { saved?: boolean; path?: string; size?: number; reason?: string };
   try {
     answer = (await engine.request({ op: 'save-document' })) as typeof answer;
     lap('save');
@@ -205,6 +205,13 @@ async function saveDocument(): Promise<void> {
     // A document that cannot be written is the session's work at risk, so it
     // is a named condition in the editor's console, not a debug line.
     throw new Error(`The Blender document ${relative} could not be saved: ${describeThrown(error)}`);
+  }
+  // BLENDER HOLDS A NEW UNTITLED FILE (`read_homefile`), not this document's model, so the
+  // session wrote nothing (`session.py::follow_open_file`). Nothing is at risk and nothing is
+  // owed: the document on disk is still the last one saved.
+  if (answer?.saved === false && answer.reason === 'untitled') {
+    setDocumentDirty(false);
+    return;
   }
   if (!answer?.saved || typeof answer.path !== 'string')
     throw new Error(`Blender did not save the document ${relative}`);
