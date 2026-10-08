@@ -32,7 +32,7 @@ import type {
   DebugAdapter,
   DebugCommandInfo,
   TickStampedEvent,
-} from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter/system-adapter';
 import { DebugError } from '../../debug-registry';
 
 /** One feeder, with the words a collision message names it by. */

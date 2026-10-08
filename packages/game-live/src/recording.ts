@@ -16,7 +16,7 @@ import type {
   GameplayRecordingOptions,
   GameplayRecordingStarted,
   GameplayReplayCapture,
-} from '@volter/editor-sdk';
+} from '@volter/sdk';
 
 export interface GameplayRecordingResult extends GameplayRecordingStarted {
   /** Absolute path to the standard WebM written on stop. */

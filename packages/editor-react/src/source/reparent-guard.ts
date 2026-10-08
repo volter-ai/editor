@@ -44,8 +44,8 @@ import {
   writePropChange,
 } from './writer';
 
-import type { ReparentChannel, ReparentRebase } from '@volter/editor-sdk/source-authoring';
-export type { ReparentChannel, ReparentRebase } from '@volter/editor-sdk/source-authoring';
+import type { ReparentChannel, ReparentRebase } from '@volter/sdk/source-authoring';
+export type { ReparentChannel, ReparentRebase } from '@volter/sdk/source-authoring';
 
 const CHANNELS: readonly ReparentChannel[] = ['position', 'rotation', 'scale'];
 const NUMBER_RE = /^-?\d+(\.\d+)?$/;

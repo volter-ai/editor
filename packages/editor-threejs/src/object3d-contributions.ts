@@ -7,12 +7,12 @@
  * the Three integration registers what renders them (`kit/three-integration.ts`).
  */
 
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import type { AuthoringAdapter } from '@volter/project/adapter';
 import type {
   DocumentPersistenceBinding,
   DocumentPersistenceResource,
-} from '@volter/editor-sdk/kit/authoring/object3d-document-persistence';
-import type { PresentationLayer } from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/authoring/object3d-document-persistence';
+import type { PresentationLayer } from '@volter/sdk/kit/viewport-presentation';
 import type { ComponentType } from 'react';
 import type {
   AnimationClip,
@@ -213,7 +213,7 @@ export interface ToolObject3DAuthoringProps {
   /** Per-document overrides of the standard viewport dressing. */
   readonly dressing?: ToolViewportDressing;
   /** The kind of stage this view is, for its starting presentation
-   *  (`@volter/editor-sdk/kit/viewport-presentation`): the document's own kind (`'model'`).
+   *  (`@volter/sdk/kit/viewport-presentation`): the document's own kind (`'model'`).
    *  Without it the kind is read off the document id's prefix. */
   readonly stageKind?: string;
   /** How far the OPENING view stands back from a fit of the content: `1` fills the view (the
@@ -494,7 +494,7 @@ export interface ToolDocumentSourceBinding {
   readonly serialize: (document: ToolObject3DDocumentState) => string | null;
 }
 
-declare module '@volter/editor-sdk/contributions' {
+declare module '@volter/sdk/contributions' {
   interface ToolContributionSurfaces {
     readonly Object3DPreview: ComponentType<ToolObject3DPreviewProps>;
     readonly Object3DAuthoring: ComponentType<ToolObject3DAuthoringProps>;

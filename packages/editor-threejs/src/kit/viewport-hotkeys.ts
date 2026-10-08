@@ -6,12 +6,12 @@
  * what each action does, and the active KEYMAP decides which keys land on it —
  * W/E/R under `volter`, G/R/S under `blender`.
  */
-import { editorHost } from '@volter/editor-sdk/host';
-import { getActiveScope, installHotkeys, setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+import { editorHost } from '@volter/sdk/host';
+import { getActiveScope, installHotkeys, setActiveScope } from '@volter/sdk/kit/hotkeys';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
 import type { EditorShellStore, TransformMode } from './editor-shell-store';
 import type { EditorViewport } from './editor-viewport';
-import { requestTransformMode } from '@volter/editor-sdk/kit/transform-mode-request';
+import { requestTransformMode } from '@volter/sdk/kit/transform-mode-request';
 
 export function registerViewportHotkeys(
   store: EditorShellStore,

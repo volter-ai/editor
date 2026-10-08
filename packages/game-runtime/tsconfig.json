@@ -22,7 +22,7 @@
     "types": ["vite/client"],
     "baseUrl": ".",
     "paths": {
-      "@volter/editor-project/*": ["../editor-project/src/*"],
+      "@volter/project/*": ["../project/src/*"],
       "@volter/threejs-runtime/*": ["../threejs-runtime/src/*"],
       "@volter/game-runtime/*": ["src/*"]
     }

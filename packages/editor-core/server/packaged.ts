@@ -34,7 +34,7 @@ import { readSharedSdkUrls } from '../vite-plugin-shared-sdk';
  * adapter conformance kit against an arbitrary external folder, adapted for
  * live editing (HMR/watch on) instead of a one-shot SSR run.
  *
- * The project's runtime packages — `@volter/editor-project`, `@volter/threejs-runtime`
+ * The project's runtime packages — `@volter/project`, `@volter/threejs-runtime`
  * and `@volter/game-runtime` — resolve to the PROJECT's own installed copies,
  * not copies baked into this package's tarball. A project pinning
  * `@volter/game-runtime@0.3.0` must be served ITS 0.3.0 source, so each is
@@ -128,7 +128,7 @@ import { readSharedSdkUrls } from '../vite-plugin-shared-sdk';
  * chunks, and `sharedReactPlugin` below resolves those specifiers — for
  * the EDITOR TREE only — to those chunks' URLs, the same URLs the shell's
  * bundle already imports, so the browser's module map hands both graphs one
- * instance. `@volter/editor-sdk/widgets` moves out of `optimizeDeps.include` and into
+ * instance. `@volter/sdk/widgets` moves out of `optimizeDeps.include` and into
  * `exclude` for the same reason: a prebundled chunk's React is decided at
  * prebundle time, where a source-level redirect cannot reach it.
  *
@@ -203,7 +203,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { ProductIdentity } from '@volter/editor-sdk/session/product-locator';
+import type { ProductIdentity } from '@volter/sdk/session/product-locator';
 import express from 'express';
 import {
   createServer as createViteServer,
@@ -216,12 +216,12 @@ import {
   DEFAULT_EDITOR_PORT,
   editorHmrPort,
   editorOrigin,
-} from '@volter/editor-project/manifest/editor-port';
+} from '@volter/project/manifest/editor-port';
 import { servesIngestSourceRoutes } from '../vite-plugin-creation-site-write';
 import { PACKAGED_MODULE_DOORWAYS } from '../vite-plugin-module-doorways';
 import { readSharedReactManifest, sharedReactUrls } from '../vite-plugin-shared-react';
 import { readSharedThreeManifest, sharedThreeUrl } from '../vite-plugin-shared-three';
-import { SOURCE_WRITE_ROUTES_PLUGIN } from '@volter/editor-sdk/session/project-serving';
+import { SOURCE_WRITE_ROUTES_PLUGIN } from '@volter/sdk/session/project-serving';
 import { canonicalProjectRoot } from './canonical-path';
 import { createEditorServer, type EditorServerRouter } from './editor-server';
 import { productContributionsPlugin } from '../vite-plugin-product-contributions';
@@ -268,7 +268,7 @@ import {
 } from './server-utils';
 import { createProjectServingServices, loadServingPlugins } from './project-serving-services';
 import { productPackageRoots, productServingModules, resolveProductForProject, sessionProduct } from './session-product';
-import { setProductNames } from '@volter/editor-sdk/kit/product-command';
+import { setProductNames } from '@volter/sdk/kit/product-command';
 import { registerSession, unregisterSession } from './session-registry';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
@@ -829,7 +829,7 @@ async function main(): Promise<void> {
         // plugin like any other editor-tree module. (It is listed with the
         // SDK's other doors below for the same reason; the name is here
         // because the kit is the one a PROJECT's own contributions import.)
-        '@volter/editor-sdk/widgets',
+        '@volter/sdk/widgets',
         // THIS LIST IS THE KIT'S, AND A PRODUCT ADDS NOTHING TO IT (measured
         // 2026-09-21, WORK.md step 3 P1). This instance is rooted at the
         // PROJECT and prebundles what the PROJECT's graph reaches: a package
@@ -849,18 +849,18 @@ async function main(): Promise<void> {
         // take the shell's React like the package's own contributions do
         // (`packageContributionCrawl.editorTree`).
         ...packageContributionCrawl.editorTree,
-        '@volter/editor-sdk/layouts',
-        '@volter/editor-sdk/layout-arrangements',
+        '@volter/sdk/layouts',
+        '@volter/sdk/layout-arrangements',
         // The SDK's OTHER doors, same rule: each holds module state or calls
         // React hooks, and a prebundled copy would carry the PROJECT's React
         // into the editor's tree — measured 2026-09-17 as "Cannot read
         // properties of null (reading 'useSyncExternalStore')" from a package
-        // contribution's status item, whose `@volter/editor-sdk/host` had been
+        // contribution's status item, whose `@volter/sdk/host` had been
         // prebundled with `.vite/deps/react.js` inside it.
-        '@volter/editor-sdk/host',
-        '@volter/editor-sdk/contributions',
-        '@volter/editor-sdk/commands',
-        '@volter/editor-sdk/looks',
+        '@volter/sdk/host',
+        '@volter/sdk/contributions',
+        '@volter/sdk/commands',
+        '@volter/sdk/looks',
         // Engine imports this project cannot resolve — the guard that lets the
         // engine-source crawl entries above be safe. An unresolvable bare
         // import makes Vite's discovery THROW ("imported but could not be
@@ -896,7 +896,7 @@ async function main(): Promise<void> {
       // installed source when it resolves; dedupe is the remaining collapse
       // for a nested copy that alias resolution still walks into.
       dedupe: [
-        '@volter/editor-sdk',
+        '@volter/sdk',
         ...RUNTIME_PACKAGE_NAMES,
         'react',
         'react-dom',
@@ -911,7 +911,7 @@ async function main(): Promise<void> {
         // names — `@editor/game-module-access`, and the R3F analyzer a
         // project's `check-idioms` loads (the scaffolder writes the matching
         // tsconfig path). The widget kit is NOT among them any more: it is
-        // `@volter/editor-sdk/widgets`, an ordinary package export. In checkout
+        // `@volter/sdk/widgets`, an ordinary package export. In checkout
         // mode the root Vite config supplies this alias; this project-rooted
         // packaged Vite instance has no configFile, so it must reconstruct
         // the runtime half from its own package root.

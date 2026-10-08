@@ -23,8 +23,8 @@
 
 import { mkdir, writeFile } from 'node:fs/promises';
 import { basename, join } from 'node:path';
-import { ToolError } from '@volter/editor-sdk/tools/errors';
-import { defineTool, type ToolErrorDefinition } from '@volter/editor-sdk/tools/registry';
+import { ToolError } from '@volter/sdk/tools/errors';
+import { defineTool, type ToolErrorDefinition } from '@volter/sdk/tools/registry';
 import * as THREE from 'three';
 import { z } from 'zod';
 import {
@@ -41,7 +41,7 @@ import {
 import { exportObject3DToGlb, installNodeThreePolyfills } from '../lib/bake/gltf-bake';
 import { disposeObject3D } from '../lib/bake/object3d-lifecycle';
 
-const LIVE_MODULE = '@volter/editor-live';
+const LIVE_MODULE = '@volter/live';
 
 export const NO_EDITOR_SESSION_ERROR: ToolErrorDefinition = {
   code: 'NO_EDITOR_SESSION',
@@ -214,7 +214,7 @@ export const BakePreviewResultSchema = z.object({
     .describe('Size of the in-memory GLB that was photographed. It was never written to disk.'),
 });
 
-/** A `@volter/editor-live` session, narrowed to the one call this tool makes. Declared
+/** A `@volter/live` session, narrowed to the one call this tool makes. Declared
  *  structurally so the capability takes no build-time dependency on the
  *  session client. */
 interface LivePreviewCapture {

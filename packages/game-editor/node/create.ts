@@ -15,7 +15,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import type { ProductCreateDeclaration, ProductCreateRequest, ProductCreateResult } from '@volter/editor-sdk/session/product-create';
+import type { ProductCreateDeclaration, ProductCreateRequest, ProductCreateResult } from '@volter/sdk/session/product-create';
 import { closeAdditions, type ScaffoldAddition } from './scaffold/additions';
 import { assertScaffoldComposition, type ProductCreateDeclaration as ScaffoldPresets } from './scaffold/product';
 import { repinEngineAfterInstall, scaffoldProject, type ScaffoldResult } from './scaffold/scaffold';
@@ -64,7 +64,7 @@ export const presets: ScaffoldPresets = {
     const studio = additions.has('studio');
     // The editor's own layouts come from the SDK; a package's layout would
     // come from that package.
-    const layouts = '@volter/editor-sdk/layouts';
+    const layouts = '@volter/sdk/layouts';
     const design = additions.has('ui') && !world;
     return {
       // THE PRODUCT THIS PROJECT OPENS IN, and the game lane beside it:
@@ -84,8 +84,8 @@ export const presets: ScaffoldPresets = {
  *  repository root in a checkout, the installation root otherwise. */
 export function installRoot(): string {
   for (let dir = productRoot; ; dir = dirname(dir)) {
-    if (existsSync(join(dir, 'node_modules', '@volter', 'editor-project', 'package.json'))) return dir;
-    if (dirname(dir) === dir) throw new Error(`Cannot scaffold: @volter/editor-project is not installed above ${productRoot}.`);
+    if (existsSync(join(dir, 'node_modules', '@volter', 'project', 'package.json'))) return dir;
+    if (dirname(dir) === dir) throw new Error(`Cannot scaffold: @volter/project is not installed above ${productRoot}.`);
   }
 }
 

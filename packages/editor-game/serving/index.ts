@@ -7,7 +7,7 @@
  */
 
 import { fileURLToPath } from 'node:url';
-import type { ProjectServingServices } from '@volter/editor-sdk/session/project-serving';
+import type { ProjectServingServices } from '@volter/sdk/session/project-serving';
 
 const GAME_MODULE_ACCESS = '@editor/game-module-access';
 /** The kit's `@editor/*` alias runs before any plugin and rewrites the specifier to the kit's

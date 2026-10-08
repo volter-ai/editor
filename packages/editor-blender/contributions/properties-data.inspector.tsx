@@ -31,7 +31,7 @@
  * It stands when: `buttons_context_path_data` — the object HAS data (an Empty
  * usually has none).
  */
-import type { ToolContributionNode } from '@volter/editor-sdk/contributions';
+import type { ToolContributionNode } from '@volter/sdk/contributions';
 import { blenderPropertiesState, resolveBlenderSubject } from './blender-properties-model';
 import { blenderPropertiesTabMatch, blenderPropertiesTabSection } from './blender-properties-tab';
 import type { BlenderCuratedPanel } from './blender-properties-view';

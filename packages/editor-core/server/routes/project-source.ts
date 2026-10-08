@@ -16,15 +16,15 @@
 import { type Dirent, existsSync, readFileSync } from 'node:fs';
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join, relative, resolve, sep } from 'node:path';
-import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
-import { globToRegExp } from '@volter/editor-sdk/session/source-glob';
+import { isContainedRelativePath } from '@volter/sdk/session/relative-path-guard';
+import { globToRegExp } from '@volter/sdk/session/source-glob';
 import type { Request, Response } from 'express';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
-import { projectRegionEntriesFromSources } from '@volter/editor-sdk/kit/asset-workflow/project-source-index';
-import { ADAPTER_MODULE_FILENAME } from '@volter/editor-sdk/kit/ui-source/adapter-region-includes';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
+import { projectRegionEntriesFromSources } from '@volter/sdk/kit/asset-workflow/project-source-index';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
 import { foldDataFileText } from '../data-file-serialize';
 import type { EditorServerRouter } from '../editor-server';
-import { buildScopedGameStyles } from '@volter/editor-sdk/session/scoped-game-css';
+import { buildScopedGameStyles } from '@volter/sdk/session/scoped-game-css';
 import {
   isCanonicalPathInside,
   isPathInside,

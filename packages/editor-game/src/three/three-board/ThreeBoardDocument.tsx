@@ -1,5 +1,5 @@
 import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
-import { registerAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
+import { registerAvailableWorkspaceDocument } from '@volter/sdk/kit/workspace-available-documents';
 /**
  * The 3D COMPONENTS board — a generated, never-persisted 3D scene laying out
  * every qualifying `three` story's mounted `Object3D` at TRUE SCALE, so a
@@ -56,42 +56,42 @@ import { registerAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/works
 import { object3DDocumentSession } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
 import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '@volter/editor-threejs/kit/components/standard-viewport-dressing';
-import { threeBoardBuildingCopy } from '@volter/editor-sdk/kit/viewport-surface-status';
-import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
-import { listProjectComponents } from '@volter/editor-sdk/kit/editor-api';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
-import { CONTRIBUTED_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
+import { threeBoardBuildingCopy } from '@volter/sdk/kit/viewport-surface-status';
+import { openRegisteredDocument } from '@volter/sdk/kit/document-open-registry';
+import { listProjectComponents } from '@volter/sdk/kit/editor-api';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { createHmrRegistrationGroup } from '@volter/sdk/kit/hmr-registration-group';
+import { CONTRIBUTED_SECTION_ORDER } from '@volter/sdk/kit/inspection-model';
 import {
   type InspectorSectionProps,
   registerInspectorSections,
-} from '@volter/editor-sdk/kit/inspector-section-registry';
-import { type ClipboardWriter, runInstanceSourceAction } from '@volter/editor-sdk/kit/instance-source-actions';
-import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
-import { declaredStoryMedium } from '@volter/editor-sdk/kit/stories/story-declared-medium';
-import { THREE_STORY_DOCUMENT_OPENER } from '@volter/editor-sdk/kit/story-document-openers';
+} from '@volter/sdk/kit/inspector-section-registry';
+import { type ClipboardWriter, runInstanceSourceAction } from '@volter/sdk/kit/instance-source-actions';
+import { getProjectStoryRegions } from '@volter/sdk/kit/stories/project-story-regions';
+import { declaredStoryMedium } from '@volter/sdk/kit/stories/story-declared-medium';
+import { THREE_STORY_DOCUMENT_OPENER } from '@volter/sdk/kit/story-document-openers';
 import {
   getProjectStoryModules,
   type ProjectStoryModule,
   subscribeProjectStoryModules,
   whenProjectStoriesReady,
-} from '@volter/editor-sdk/kit/stories/story-registry';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+} from '@volter/sdk/kit/stories/story-registry';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
 import {
   beginViewportBreakdown,
   cancelViewportBreakdown,
   markViewportBoardReady,
   markViewportReactActive,
   markViewportSegment,
-} from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+} from '@volter/sdk/kit/viewport-activation-timings';
+import { THREE_COMPONENTS_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
 import {
   activeWorkspaceDocument,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import type { WorkspaceStateStore } from '@volter/editor-sdk/kit/workspace-document-restore';
+} from '@volter/sdk/kit/workspace-document-registry';
+import type { WorkspaceStateStore } from '@volter/sdk/kit/workspace-document-restore';
 import { faCircleInfo } from '@fortawesome/free-solid-svg-icons';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import {
@@ -815,7 +815,7 @@ const threeBoardPreview = {
   revision: () => JSON.stringify(getProjectStoryModules().map((module_) => module_.modulePath)),
   subscribe: subscribeProjectStoryModules,
   capture: async (
-    request: import('@volter/editor-sdk/kit/document-preview-source').DocumentPreviewCaptureRequest,
+    request: import('@volter/sdk/kit/document-preview-source').DocumentPreviewCaptureRequest,
   ) => {
     await whenProjectStoriesReady();
     const regions = getProjectStoryRegions();

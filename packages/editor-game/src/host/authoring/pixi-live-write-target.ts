@@ -30,7 +30,7 @@
  * moved, and the persistence parameter is what this unit added.
  */
 
-import { physicsOwnerOf } from '@volter/editor-project/adapter';
+import { physicsOwnerOf } from '@volter/project/adapter';
 import type {
   AuthoringAdapter2D,
   Overlay2D,
@@ -47,11 +47,11 @@ import type {
   PropertyDescriptor,
   TransformChannel,
   TransformEditability,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import type { Container } from 'pixi.js';
-import type { ChannelValue, CreationSiteLiteralReport } from '@volter/editor-sdk/kit/creation-site-edit';
-import { creationSiteAnchor, instancesAtSite } from '@volter/editor-sdk/kit/creation-site-registry';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import type { ChannelValue, CreationSiteLiteralReport } from '@volter/sdk/kit/creation-site-edit';
+import { creationSiteAnchor, instancesAtSite } from '@volter/sdk/kit/creation-site-registry';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import { JsonHistoryResource } from '../history/json-history-resource';
 import { createEphemeralPersistence } from './ephemeral-persistence';
 import { multiChannelRefusal, persistChannelWrite } from './gesture-persist';
@@ -65,7 +65,7 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-sdk/kit/write-pipe';
+} from '@volter/sdk/kit/write-pipe';
 
 interface PixiLiveHistoryState {
   overlay: Overlay2D;

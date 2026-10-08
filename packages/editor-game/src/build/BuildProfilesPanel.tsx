@@ -8,11 +8,11 @@
  * build takes real seconds and a modal would block the viewport.
  */
 
-import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
-import { getDownloadUrl, readProjectTextFile, saveFile } from '@volter/editor-sdk/kit/editor-api';
-import { getProjectFileHistory } from '@volter/editor-sdk/kit/history/project-file-history';
+import { workspaceHistoryService } from '@volter/sdk/kit/components/workspace-history';
+import { getDownloadUrl, readProjectTextFile, saveFile } from '@volter/sdk/kit/editor-api';
+import { getProjectFileHistory } from '@volter/sdk/kit/history/project-file-history';
 import { faGlobe } from '@fortawesome/free-solid-svg-icons';
-import type { BuildReport } from '@volter/editor-sdk/session/build-report';
+import type { BuildReport } from '@volter/sdk/session/build-report';
 import {
   accent,
   Button,
@@ -28,7 +28,7 @@ import {
   success,
   TextInput,
   text,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { useCallback, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   type BuildTarget,

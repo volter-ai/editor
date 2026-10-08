@@ -30,15 +30,15 @@
  * active; on Stop, `getActiveNetworking()` falls back to this one.
  */
 
-import { setEditModeNetworking } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { setEditModeNetworking } from '@volter/sdk/kit/authoring/active-systems';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
 import type {
   ConnectionState,
   NetPeer,
   NetServerConfig,
   NetworkingAdapter,
   ReplicationStats,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 
 /**
  * The endpoint a project gets when its manifest declares none — the SCAFFOLD

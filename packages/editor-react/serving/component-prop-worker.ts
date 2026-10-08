@@ -19,7 +19,7 @@
  */
 import { parentPort } from 'node:worker_threads';
 import { ComponentPropResolver } from '../src/source/component-prop-types';
-import type { ComponentPropSpec } from '@volter/editor-sdk/source-authoring';
+import type { ComponentPropSpec } from '@volter/sdk/source-authoring';
 
 interface PropRequest {
   key: string;

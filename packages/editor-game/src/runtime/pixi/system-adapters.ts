@@ -1,4 +1,4 @@
-import type { PhysicsAdapter2D as PhysicsAdapter2DSeam } from '@volter/editor-project/adapter/physics-adapter-2d';
+import type { PhysicsAdapter2D as PhysicsAdapter2DSeam } from '@volter/project/adapter/physics-adapter-2d';
 import type { Container } from 'pixi.js';
 import type { Physics2DRegistry } from './physics-registry';
 

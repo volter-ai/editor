@@ -58,7 +58,7 @@
 
 import type { BlenderOutlinerRow } from '@volter/blender-engine/browser/rna';
 import type { ToolObject3DDocumentAuthoringFactory } from '@volter/editor-threejs/object3d-contributions';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import type {
   AuthoringAdapter,
   AuthoringCapabilities,
@@ -73,7 +73,7 @@ import type {
   Transform,
   TransformProvider,
   WriteAck,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import type * as THREE from 'three';
 import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
 import { viewportStages } from '@volter/editor-threejs/viewport-door';
@@ -340,7 +340,7 @@ function blenderWorldMatrixRows(object: THREE.Object3D, root: THREE.Object3D): n
  * gesture that cannot complete (the shape B6 set for Set Origin ▸ Origin to 3D
  * Cursor). Blender's Image ▸ Reference/Background/Mesh Plane and Volume ▸
  * Import OpenVDB open a FILE BROWSER; this editor has no door to open one
- * through — `EditorHost.files` (`@volter/editor-sdk/host`) reads and writes
+ * through — `EditorHost.files` (`@volter/sdk/host`) reads and writes
  * project-relative paths and has no "pick a file" member at all — so those
  * rows carry {@link BlenderCreatableKind.refusal} instead. Measured at the
  * engine on 2026-09-21: `object.empty_image_add` answers "poll() failed,
@@ -383,7 +383,7 @@ export interface BlenderCreatableKind {
 function needsAFilePicker(what: string, blenderSaid: string): string {
   return (
     `${what} needs a file, and this editor has no door to ask for one: the host's file ` +
-    `door (\`EditorHost.files\`, \`@volter/editor-sdk/host\`) reads and writes ` +
+    `door (\`EditorHost.files\`, \`@volter/sdk/host\`) reads and writes ` +
     `project-relative paths and has no file-picker member, so there is nothing to open ` +
     `the workbench's own dialog through. Blender's row opens a file browser; run without ` +
     `one, the engine answers "${blenderSaid}".`

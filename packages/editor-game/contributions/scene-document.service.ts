@@ -1,5 +1,5 @@
 /**
- * THE SCENE DOCUMENT (`@volter/editor-sdk/services`, a `workspace.service`
+ * THE SCENE DOCUMENT (`@volter/sdk/services`, a `workspace.service`
  * contribution). The kit routes every three root's edit document to
  * `workspace:scene` and no longer synthesizes it: what that document shows is
  * the project's world, mounted by the game runtime this package carries, so
@@ -7,11 +7,11 @@
  *
  * The session store arrives after the contribution pass, and a project switch
  * brings a new one, so the document binds on each store's ARRIVAL
- * (`@volter/editor-sdk/kit/shell-store-door`'s `onShellStore`, as Play's
+ * (`@volter/sdk/kit/shell-store-door`'s `onShellStore`, as Play's
  * autoplay entry does) and unbinds the previous store's binding first.
  */
-import { unregisterAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
-import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+import { unregisterAvailableWorkspaceDocument } from '@volter/sdk/kit/workspace-available-documents';
+import { SCENE_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
 import { bindSceneDocument } from '../src/host/components/scene-document';
 import { onThreeStore } from '@volter/editor-threejs/kit/three-state';
 

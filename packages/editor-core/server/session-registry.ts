@@ -16,10 +16,10 @@ import {
   isEditorSessionEntry,
   normalizeEditorSessionEntry,
   pidAlive,
-} from '@volter/editor-sdk/session/registry-format';
+} from '@volter/sdk/session/registry-format';
 
-export type { EditorSessionEntry as EditorSession } from '@volter/editor-sdk/session/registry-format';
-export { pidAlive } from '@volter/editor-sdk/session/registry-format';
+export type { EditorSessionEntry as EditorSession } from '@volter/sdk/session/registry-format';
+export { pidAlive } from '@volter/sdk/session/registry-format';
 
 import { randomBytes, randomUUID } from 'node:crypto';
 import {

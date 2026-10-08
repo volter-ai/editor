@@ -3,14 +3,23 @@
  * Each entry is the original module, so Rollup and the browser share its
  * registries, project state and callbacks rather than copying implementations.
  */
-import { existsSync, readFileSync } from 'node:fs';
-import { join } from 'node:path';
+import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { createRequire } from 'node:module';
+import { dirname, join } from 'node:path';
 import type { Plugin } from 'vite';
 
 const manifestFile = 'volter-shared-sdk.json';
+/** The SDK's source folder as this process resolves it (a workspace checkout or an install),
+ *  found from its entry module (`src/index.ts`) and spelled with forward slashes. A project may
+ *  have a `sdk/src` of its own; only this one is the SDK. */
+const sdkSource = `${dirname(realpathSync(createRequire(import.meta.url).resolve('@volter/sdk'))).replaceAll('\\', '/')}/`;
+const INSTALLED_SDK = /\/node_modules\/@volter\/sdk\/src\//;
 function sdkModule(id: string): string | null {
   const file = id.split('?')[0]!.replaceAll('\\', '/');
-  const match = /\/editor-sdk\/src\/(.+)\.[cm]?[jt]sx?$/.exec(file);
+  const installed = INSTALLED_SDK.exec(file);
+  const start = file.startsWith(sdkSource) ? sdkSource.length : installed ? installed.index + installed[0].length : -1;
+  if (start < 0) return null;
+  const match = /^(.+)\.[cm]?[jt]sx?$/.exec(file.slice(start));
   return match?.[1] ?? null;
 }
 
@@ -69,12 +78,12 @@ export function sharedSdkPlugin(urls: Record<string, string>): Plugin {
       // from other dependencies' prebundles too. Keep this with the redirect,
       // not a host's partial list of known SDK doors. The changed exclude list
       // also invalidates Vite's existing optimizer cache on the next start.
-      return { optimizeDeps: { exclude: ['@volter/editor-sdk'] } };
+      return { optimizeDeps: { exclude: ['@volter/sdk'] } };
     },
     async resolveId(source, importer, options) {
       // These URLs identify the browser composition, never Node tool modules.
       if (options.ssr || (options as { scan?: boolean }).scan) return;
-      if (!source.startsWith('@volter/editor-sdk') && !(source.startsWith('.') && importer && sdkModule(importer))) return;
+      if (!source.startsWith('@volter/sdk') && !(source.startsWith('.') && importer && sdkModule(importer))) return;
       const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
       const name = resolved && sdkModule(resolved.id);
       // This door must retain Vite's import.meta.hot. Its page-wide event bus

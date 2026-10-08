@@ -1,12 +1,12 @@
 /**
  * The MODEL workspace — Blender-shaped modeling: a dominant document, outliner
- * above properties (`@volter/editor-sdk/looks`, a `workspace.layout`
+ * above properties (`@volter/sdk/looks`, a `workspace.layout`
  * contribution). Its arrangement carries Blender 5.2's own MODELING-workspace
  * proportions; `../src/layouts.tsx` states the measurement and the host's
  * fixed-pane clamp that bounds it.
  */
 
-import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
+import type { WorkspaceLayoutContribution } from '@volter/sdk/looks';
 import { BLENDER_REGIONS } from '../src/regions';
 
 export const point = 'workspace.layout';

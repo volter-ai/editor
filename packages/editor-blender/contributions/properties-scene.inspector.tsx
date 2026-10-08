@@ -36,7 +36,7 @@
 import { blenderPropertiesTabMatch, blenderPropertiesTabSection } from './blender-properties-tab';
 import type { BlenderCuratedPanel } from './blender-properties-view';
 import { resolveBlenderSubject } from './blender-properties-model';
-import type { ToolContributionNode } from '@volter/editor-sdk/contributions';
+import type { ToolContributionNode } from '@volter/sdk/contributions';
 
 /** `properties_scene.py`, panel by panel. Line numbers are that file's. */
 const CURATED: readonly BlenderCuratedPanel[] = [

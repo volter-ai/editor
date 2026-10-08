@@ -2,7 +2,7 @@
  * The BLENDER style bundle — Blender's greys and widget blue as a palette
  * document (`blender.palette.json`, the same v3 shape a person imports), its
  * own opaque material, and Blender's chrome regions
- * (`@volter/editor-sdk/looks`, a `workspace.style` contribution).
+ * (`@volter/sdk/looks`, a `workspace.style` contribution).
  *
  * The material transcribes Blender's default theme: widgets round at 0.2 of
  * their height (4px on a 20px widget), areas and panels are flat with no
@@ -37,7 +37,7 @@
  * A glyph is EDITED in `blender-icons.source.mjs` and the JSON re-emitted by
  * running it; a path `d` is not a thing a person edits by hand.
  */
-import type { IconSetContribution, StyleContribution } from '@volter/editor-sdk/looks';
+import type { IconSetContribution, StyleContribution } from '@volter/sdk/looks';
 import iconsJson from './blender.icons.json';
 import palette from './blender.palette.json';
 

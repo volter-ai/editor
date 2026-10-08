@@ -1,5 +1,5 @@
 {
-  "$schema": "./node_modules/@volter/editor-project/schemas/volter-project.schema.json",
+  "$schema": "./node_modules/@volter/project/schemas/volter-project.schema.json",
   "manifestVersion": 2,
   "name": "My Game",
   "appId": "com.example.mygame",

@@ -37,7 +37,7 @@
  * every consumer uses, and it takes the `Object3D` this index resolves.
  */
 
-import type { EditorNode } from '@volter/editor-project/adapter';
+import type { EditorNode } from '@volter/project/adapter';
 import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import { constraintsOf } from '@volter/editor-threejs/adapter/constraint';
 import {
@@ -52,9 +52,9 @@ import { authoringOidOf, occurrenceId } from '../authoring/component-instance-ro
 import { raycastCandidates, raycastPick } from '../authoring/viewport-raycast';
 import type { EditorShellStore } from '../editor-shell-store';
 import { entityIdOf, stampEntityId } from '../entity-object';
-import type { ProjectedNode, Projection } from '@volter/editor-sdk/kit/projection-types';
+import type { ProjectedNode, Projection } from '@volter/sdk/kit/projection-types';
 
-export type { ProjectedNode, Projection } from '@volter/editor-sdk/kit/projection-types';
+export type { ProjectedNode, Projection } from '@volter/sdk/kit/projection-types';
 
 /** One projected authoring node over a live three graph. */
 export type ThreeNode = ProjectedNode<THREE.Object3D>;

@@ -28,12 +28,12 @@ import { pipeline } from 'node:stream/promises';
 import type { Router } from 'express';
 import express from 'express';
 import { ProjectProvenanceDocumentSchema } from './support/project/provenance';
-import { assetKey } from '@volter/editor-sdk/kit/asset-workflow/asset-ledger';
+import { assetKey } from '@volter/sdk/kit/asset-workflow/asset-ledger';
 import {
   type CloudAssetRecord,
   cloudAssetMatchesType,
   cloudAssetSlug,
-} from '@volter/editor-sdk/kit/asset-workflow/cloud-asset-client';
+} from '@volter/sdk/kit/asset-workflow/cloud-asset-client';
 import { AssetHistorySnapshots } from './asset-history-snapshots';
 import { recordAssetMaterialization } from './asset-ledger-store';
 import {
@@ -59,7 +59,7 @@ import {
   requireLocalAssetThumbnail,
   searchLocalCatalog,
 } from './local-asset-catalog';
-import { assetImportSettingsSchema } from '@volter/editor-sdk/kit/asset-workflow/import-contract';
+import { assetImportSettingsSchema } from '@volter/sdk/kit/asset-workflow/import-contract';
 import { modelConverterFor } from './model-converters';
 import { commitStagedProjectDirectory } from './project-output-writer';
 import { isAllowedAssetHost, isAllowedAssetSource, isPathInside } from './server-utils';
@@ -71,7 +71,7 @@ import { isAllowedAssetHost, isAllowedAssetSource, isPathInside } from './server
 // The asset-library wire is declared ONCE, on the CLIENT side of its own
 // route (`../src/api/assets.ts`) — this producer imports the contract it
 // must satisfy, so the two sides of `/__editor/assets/*` cannot drift.
-import type { AssetFileOption, OnlineAsset } from '@volter/editor-sdk/kit/api-asset-library-wire';
+import type { AssetFileOption, OnlineAsset } from '@volter/sdk/kit/api-asset-library-wire';
 
 const LOCAL_ASSET_LAB_FORMATS = new Set([
   'glb',

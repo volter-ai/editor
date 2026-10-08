@@ -8,8 +8,8 @@ import type {
   ShareParticipant,
   ShareStatus,
   ShareTunnelHealth,
-} from '@volter/editor-sdk/share';
-import { editorHmrPort } from '@volter/editor-project/manifest/editor-port';
+} from '@volter/sdk/share';
+import { editorHmrPort } from '@volter/project/manifest/editor-port';
 import type { EditorAccountService } from './account-service';
 import {
   createCollaborationAccountHandoff,
@@ -33,7 +33,7 @@ export type {
   CreatedShareInvitation,
   ShareInvitationRecord,
   ShareTunnelHealth,
-} from '@volter/editor-sdk/share';
+} from '@volter/sdk/share';
 export type { ShareTunnel, ShareTunnelProvider, ShareTunnelStarter } from './share-tunnel';
 
 export type ShareTunnelHealthProbe = (publicUrl: string) => Promise<ShareTunnelHealth>;

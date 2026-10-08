@@ -5,7 +5,7 @@
  * bytes it produced reach the project (a shipped output, the session's `.blend`). They were
  * the kit's own routes; the kit now names no Blender, and reaches these only because the
  * product that composes this package declares its serving module. Writes go through the kit's
- * services (`@volter/editor-sdk/session/project-serving`), so they are attributed and recorded
+ * services (`@volter/sdk/session/project-serving`), so they are attributed and recorded
  * like every other project write.
  */
 
@@ -16,9 +16,9 @@ import type { IncomingMessage, ServerResponse } from 'node:http';
 import { tmpdir } from 'node:os';
 import { dirname, join } from 'node:path';
 import { createBrotliDecompress } from 'node:zlib';
-import { projectOutputRootOf } from '@volter/editor-sdk/project/output-roots';
-import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
-import type { ProjectServingServices } from '@volter/editor-sdk/session/project-serving';
+import { projectOutputRootOf } from '@volter/sdk/project/output-roots';
+import { isContainedRelativePath } from '@volter/sdk/session/relative-path-guard';
+import type { ProjectServingServices } from '@volter/sdk/session/project-serving';
 import type { Plugin } from 'vite';
 import {
   BLENDER_WALI_ARTIFACT,

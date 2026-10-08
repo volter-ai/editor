@@ -4,7 +4,7 @@
  * mounted live (`src/live-piece.ts`), drawn as an arrangement and a note editor, played, and
  * edited in its own source (`src/PieceEditor.tsx`).
  */
-import type { ToolContributionProps } from '@volter/editor-sdk/contributions';
+import type { ToolContributionProps } from '@volter/sdk/contributions';
 import { PieceEditor } from '../src/PieceEditor';
 
 export const point = 'workspace.document';

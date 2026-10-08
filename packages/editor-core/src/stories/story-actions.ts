@@ -1,7 +1,7 @@
 /**
  * OPEN STORY — one palette action per composed portable story.
  *
- * A LIVE SET (`@volter/editor-sdk/chrome`): `actions` is read whenever the
+ * A LIVE SET (`@volter/sdk/chrome`): `actions` is read whenever the
  * palette lists, and `subscribe` re-lists it when the project's story modules
  * compose. That is why it is a chrome registration rather than a line in
  * `action-registry.ts`'s static table — the set changes after the palette's
@@ -12,15 +12,15 @@
  * document under either medium's address.
  */
 
-import type { ActionContribution } from '@volter/editor-sdk/chrome';
-import { editorHost } from '@volter/editor-sdk/host';
-import { hasDocumentOpener } from '@volter/editor-sdk/kit/document-open-registry';
+import type { ActionContribution } from '@volter/sdk/chrome';
+import { editorHost } from '@volter/sdk/host';
+import { hasDocumentOpener } from '@volter/sdk/kit/document-open-registry';
 import {
   ISOLATED_STORY_DOCUMENT_OPENER,
   THREE_STORY_DOCUMENT_OPENER,
-} from '@volter/editor-sdk/kit/story-document-openers';
+} from '@volter/sdk/kit/story-document-openers';
 import { STORY_DOCUMENT_OPENER } from './story-opener';
-import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
+import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/sdk/kit/stories/story-registry';
 
 export const storyPaletteActions: ActionContribution = {
   actions: () => {

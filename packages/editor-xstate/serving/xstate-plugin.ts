@@ -15,7 +15,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import { createHash } from 'node:crypto';
 import { isAbsolute, relative, resolve, sep } from 'node:path';
 import type { IncomingMessage, ServerResponse } from 'node:http';
-import type { ProjectServingServices } from '@volter/editor-sdk/session/project-serving';
+import type { ProjectServingServices } from '@volter/sdk/session/project-serving';
 import type { Plugin } from 'vite';
 import { applyMachineEdit } from '../src/machine-edits';
 import type { MachineEdit } from '../src/machine-model';

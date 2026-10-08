@@ -1,8 +1,8 @@
 /** DOM roots offered to playing stages, independent of a product or game loop. */
-import { registerProjectPlayLayers } from '@volter/editor-sdk/kit/project-play-layers';
+import { registerProjectPlayLayers } from '@volter/sdk/kit/project-play-layers';
 import { resolveDomAdapter } from '@volter/editor-game/host/roots/react-root';
 import { activeRealmServices } from '@volter/editor-game/host/realm-services';
-import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
+import { fetchGameManifest } from '@volter/sdk/kit/manifest-project';
 export const point = 'workspace.service';
 export function start(): () => void {
   return registerProjectPlayLayers(async ({ projectRoot, epoch, container, onEntries }) => {

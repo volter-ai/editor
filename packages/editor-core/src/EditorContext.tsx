@@ -1,28 +1,28 @@
 import { type ReactNode, useEffect, useRef } from 'react';
 import { SHELL_OBJECT3D_DOCUMENT_WRITE_POLICY } from './authoring/shell-object3d-document-write-policy';
 
-import { connectCommandListener } from '@volter/editor-sdk/kit/command-listener';
-import { startSceneDocuments } from '@volter/editor-sdk/kit/components/scene-documents';
-import { reportTabCensus } from '@volter/editor-sdk/kit/editor-presence';
-import { EditorRuntimeProvider, type EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
-import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
-import { bootstrapProject } from '@volter/editor-sdk/kit/initial-project';
-import { installObject3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { startProjectAdapterLoad } from '@volter/editor-sdk/kit/project-adapter';
+import { connectCommandListener } from '@volter/sdk/kit/command-listener';
+import { startSceneDocuments } from '@volter/sdk/kit/components/scene-documents';
+import { reportTabCensus } from '@volter/sdk/kit/editor-presence';
+import { EditorRuntimeProvider, type EditorStats } from '@volter/sdk/kit/editor-runtime';
+import { ShellStore } from '@volter/sdk/kit/shell-store';
+import { EditorSession } from '@volter/sdk/kit/history/editor-session';
+import { bootstrapProject } from '@volter/sdk/kit/initial-project';
+import { installObject3DDocumentWritePolicy } from '@volter/sdk/kit/object3d-document-write-policy';
+import { startProjectAdapterLoad } from '@volter/sdk/kit/project-adapter';
 import { startProjectDeclarationRefresh } from './project-declaration-refresh';
-import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
+import { getCurrentProject } from '@volter/sdk/kit/project-manager';
 import { startProjectSessionReset } from './project-session-reset';
 import { startProjectToolContributionDiscovery } from './project-tool-discovery';
-import { startProjectToolCatalog } from '@volter/editor-sdk/kit/project-tools';
-import { registerShellStoreForHost } from '@volter/editor-sdk/kit/shell-store-door';
-import { startTabCensus } from '@volter/editor-sdk/kit/tab-census';
+import { startProjectToolCatalog } from '@volter/sdk/kit/project-tools';
+import { registerShellStoreForHost } from '@volter/sdk/kit/shell-store-door';
+import { startTabCensus } from '@volter/sdk/kit/tab-census';
 
 export function EditorProvider({ children }: { children: ReactNode }) {
   const storeRef = useRef<ShellStore | null>(null);
   if (!storeRef.current) {
     storeRef.current = new ShellStore({ followsWorkspaceFocus: true });
-    // The host door (`@volter/editor-sdk/host`, `session`) reads this store.
+    // The host door (`@volter/sdk/host`, `session`) reads this store.
     registerShellStoreForHost(storeRef.current);
   }
 

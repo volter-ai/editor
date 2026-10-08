@@ -1,5 +1,5 @@
 /**
- * THE ISOLATED STORY DOCUMENT (`@volter/editor-sdk/services`, a
+ * THE ISOLATED STORY DOCUMENT (`@volter/sdk/services`, a
  * `workspace.service` contribution): the center document a portable CSF story
  * opens as on the DOM/canvas surface, with its `Story Args` Inspector section
  * and its `Actions`/`Interactions`/`Accessibility` utilities, plus the

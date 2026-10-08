@@ -14,7 +14,7 @@
  * the generic inspector's JSON widget is for.
  */
 
-import type { PropertyDescriptor } from '@volter/editor-project/adapter';
+import type { PropertyDescriptor } from '@volter/project/adapter';
 
 /**
  * Descriptors for one composed story's args, under `pathPrefix`.

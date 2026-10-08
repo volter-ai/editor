@@ -12,8 +12,8 @@
  */
 
 import type RAPIER from '@dimforge/rapier3d-compat';
-import type { PhysicsAdapter } from '@volter/editor-project/adapter/system-adapter';
-import type { Transform, TransformOwner } from '@volter/editor-project/adapter/transform';
+import type { PhysicsAdapter } from '@volter/project/adapter/system-adapter';
+import type { Transform, TransformOwner } from '@volter/project/adapter/transform';
 import type * as THREE from 'three';
 import type { PhysicsRegistry } from '../physics/physics-registry';
 import type { PhysicsContext } from '../setup/setup-physics';

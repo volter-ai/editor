@@ -25,7 +25,7 @@
  */
 
 import { type IngestEntry, ingestEntriesOnSurface } from '../host/ingest/registry';
-import type { ResolvedGameManifest } from '@volter/editor-project/manifest/load';
+import type { ResolvedGameManifest } from '@volter/project/manifest/load';
 
 declare const __VOLTER_ENGINE_ROOT__: string;
 

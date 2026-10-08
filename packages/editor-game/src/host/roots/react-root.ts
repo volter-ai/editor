@@ -17,10 +17,10 @@
 
 import type { MountedReactGame, ReactRootAdapter } from '../../runtime/create-runtime';
 import type { GameDomHostContext } from '../../runtime/host-context';
-import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
+import type { ResolvedAdapterRoot } from '@volter/project/manifest/load';
 import type { ComponentType } from 'react';
 import type { RealmServices } from '../realm-services';
-import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
+import { markGameCssScope } from '@volter/sdk/session/game-css-scope';
 
 /**
  * The shape a react world's `entry` module must satisfy: default-export a

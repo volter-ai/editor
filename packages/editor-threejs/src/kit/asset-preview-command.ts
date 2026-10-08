@@ -4,8 +4,8 @@
  * against a reference GLB and the live scene stage. Registered with the
  * viewport's relay verbs (`viewport-commands.ts`).
  */
-import type { EditorCommandMessage, EditorCommandResult } from '@volter/editor-sdk/commands';
-import { parseForwardVector } from '@volter/editor-sdk/kit/asset-compare-core';
+import type { EditorCommandMessage, EditorCommandResult } from '@volter/sdk/commands';
+import { parseForwardVector } from '@volter/sdk/kit/asset-compare-core';
 import { captureEntityComparePreview, captureModelComparePreview } from './asset-compare';
 import {
   type AssetPreviewBackground,
@@ -20,8 +20,8 @@ import {
   captureSourceReviewShotSetModelPreview,
   parseShotSetDefinition,
 } from './asset-preview';
-import { activeDocumentAuthoring } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
-import { parseCameraChoice, parsePoseChoice } from '@volter/editor-sdk/kit/capture-camera-pose';
+import { activeDocumentAuthoring } from '@volter/sdk/kit/authoring/shell-document-ops';
+import { parseCameraChoice, parsePoseChoice } from '@volter/sdk/kit/capture-camera-pose';
 import type { EditorShellStore } from './editor-shell-store';
 import { entityObject3D } from './entity-object';
 

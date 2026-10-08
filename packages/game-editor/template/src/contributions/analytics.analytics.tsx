@@ -10,7 +10,7 @@
  * derive this contribution's analysis from the selected session and cursor
  * supplied through gameplaySessions, never from live simulation state.
  */
-import type { ToolAnalyticsContributionProps } from '@volter/editor-sdk/contributions';
+import type { ToolAnalyticsContributionProps } from '@volter/sdk/contributions';
 
 export const point = 'workspace.analytics';
 export const title = 'Analytics';

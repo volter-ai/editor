@@ -1,7 +1,7 @@
 import { dirname, resolve } from 'node:path';
 import { fileURLToPath, pathToFileURL } from 'node:url';
-import { contributedKindModulePaths, registerKindModule } from '@volter/editor-project/manifest/kind-modules';
-import { loadGameManifestFile } from '@volter/editor-project/manifest/load-file';
+import { contributedKindModulePaths, registerKindModule } from '@volter/project/manifest/kind-modules';
+import { loadGameManifestFile } from '@volter/project/manifest/load-file';
 
 // ---------------------------------------------------------------------------
 // Usage: npx tsx validate-manifest.ts [manifestPath...]

@@ -4,9 +4,9 @@
  * shows, every mounted stage, and the one verb that swaps the viewport's subject for a live
  * instance's roots (Play's adoption of the running scene).
  */
-import type { MountedRoot } from '@volter/editor-project/adapter/root-adapter';
+import type { MountedRoot } from '@volter/project/adapter/root-adapter';
 import type * as THREE from 'three';
-import type { StageFrameCostReading } from '@volter/editor-sdk';
+import type { StageFrameCostReading } from '@volter/sdk';
 
 /** A live instance's roots, presented as the authored viewport's subject. */
 export interface ViewportPresentation {

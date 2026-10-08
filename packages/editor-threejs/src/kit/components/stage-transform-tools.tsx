@@ -1,20 +1,20 @@
 /**
  * A THREE STAGE'S TRANSFORM TOOLS, as the stage contributes them to its
- * document's chrome (`@volter/editor-sdk/kit/document-viewports`): what the
+ * document's chrome (`@volter/sdk/kit/document-viewports`): what the
  * host's transform tools drive on it (`stage-context.ts`'s one answer), the tool
  * strip on its shelf and the gizmo's header wells. Every tool writes THIS
  * stage's own store (`stage-store-registry.ts`); the world root's stage runs on
  * the session store, so the Scene document is unchanged either way.
  */
-import { stageTransformDoor } from '@volter/editor-sdk/contributions';
-import { type ViewportInteraction, viewPresentation } from '@volter/editor-sdk/kit/viewport-presentation';
+import { stageTransformDoor } from '@volter/sdk/contributions';
+import { type ViewportInteraction, viewPresentation } from '@volter/sdk/kit/viewport-presentation';
 import { useEffect, useSyncExternalStore } from 'react';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
 import { threeStageTransformDriver } from './stage-transform-chrome';
-import { stageStore, stageStoresVersion, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
+import { stageStore, stageStoresVersion, subscribeStageStores } from '@volter/sdk/kit/stage-store-registry';
 import { threeStateOf } from '../three-state';
-import { ToolStrip, TransformHeaderControls } from '@volter/editor-sdk/kit/components/Toolbar';
+import { ToolStrip, TransformHeaderControls } from '@volter/sdk/kit/components/Toolbar';
 
 /**
  * THE VIEWS WHOSE SHELF HAS ALREADY OPENED, per store — keyed by the VIEW as well, because

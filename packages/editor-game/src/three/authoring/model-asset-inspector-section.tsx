@@ -12,26 +12,26 @@ import {
   modelSelectionObjects,
   type Object3DNodeInspection,
 } from '@volter/editor-threejs/kit/asset-workflow/model-inspection';
-import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/sdk/kit/authoring/consumer-actions';
 import { SourceObject3DAuthoringAdapter } from '@volter/editor-threejs/kit/authoring/source-object3d-authoring-adapter';
-import { openToolDocument } from '@volter/editor-sdk/kit/components/tool-documents';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
+import { openToolDocument } from '@volter/sdk/kit/components/tool-documents';
+import { createHmrRegistrationGroup } from '@volter/sdk/kit/hmr-registration-group';
 import {
   CONTRIBUTED_SECTION_ORDER,
   type InspectionSection,
   PROPERTIES_SECTION_ID,
-} from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
+} from '@volter/sdk/kit/inspection-model';
+import { registerInspectorSections } from '@volter/sdk/kit/inspector-section-registry';
 import {
   type ProjectOutputProvenance,
   provenanceForProjectAsset,
-} from '@volter/editor-sdk/kit/project-provenance';
+} from '@volter/sdk/kit/project-provenance';
 import {
   getDocumentToolContributions,
   getGlobalToolContributions,
   subscribeToolContributions,
-} from '@volter/editor-sdk/kit/tool-loader';
-import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
+} from '@volter/sdk/kit/tool-loader';
+import type { AuthoringAdapter, EditorNode } from '@volter/project/adapter';
 import { object3DAuthoringSubjectOf } from '@volter/threejs-runtime/adapter/object3d-authoring-subject';
 import { getUserData } from '@volter/threejs-runtime/ecs/user-data';
 import {
@@ -55,7 +55,7 @@ import {
   StateSurface,
   Text,
   TextInput,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { useEffect, useState, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 

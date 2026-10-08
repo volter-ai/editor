@@ -13,16 +13,16 @@
 import {
   getMountFailureReports,
   subscribeToMountFailures,
-} from '@volter/editor-sdk/kit/mount-failure-report';
-import { SurfaceStateOverlay } from '@volter/editor-sdk/kit/components/SurfaceStateOverlay';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
-import { readinessFacet, subscribeRootReadiness } from '@volter/editor-sdk/kit/readiness';
+} from '@volter/sdk/kit/mount-failure-report';
+import { SurfaceStateOverlay } from '@volter/sdk/kit/components/SurfaceStateOverlay';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { getCurrentProject, onProjectChange } from '@volter/sdk/kit/active-project';
+import { readinessFacet, subscribeRootReadiness } from '@volter/sdk/kit/readiness';
 import { domHasRenderableContent } from '../host/surface-content';
-import { explainSurface } from '@volter/editor-sdk/kit/surface-state';
-import { editorHost } from '@volter/editor-sdk/host';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { explainSurface } from '@volter/sdk/kit/surface-state';
+import { editorHost } from '@volter/sdk/host';
+import { themeVars } from '@volter/sdk/widgets';
 import {
   fitPresentation,
   type PresentedSize,

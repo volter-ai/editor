@@ -4,7 +4,7 @@
  *
  * This is intentionally a browser primitive, not a CLI workflow. The page
  * owns `MediaRecorder` and the live pixels/audio, streams bounded chunks to
- * the project server, and `@volter/editor-live` merely starts/stops it through the
+ * the project server, and `@volter/live` merely starts/stops it through the
  * existing session wire.
  *
  * KNOWN, MEASURED LIMIT — THE HUD LAYER IS INTERMITTENT, AND THIS FILE CANNOT
@@ -29,30 +29,30 @@
 import type {
   ToolContributionRecordingFrame,
   ToolContributionRecordingSnapshot,
-} from '@volter/editor-sdk/contributions';
-import type { AudioRecordingHandle } from '@volter/editor-project/adapter';
+} from '@volter/sdk/contributions';
+import type { AudioRecordingHandle } from '@volter/project/adapter';
 import type {
   CaptureOptions,
   CompositeFrame,
   ImageSnapshotCache,
   OverlayFrameCache,
-} from '@volter/editor-sdk/kit/composite-screenshot';
+} from '@volter/sdk/kit/composite-screenshot';
 import {
   createImageSnapshotCache,
   createOverlayFrameCache,
   drawPlayCompositeFrame,
   isRootCanvas,
-} from '@volter/editor-sdk/kit/composite-screenshot';
+} from '@volter/sdk/kit/composite-screenshot';
 import {
   abortGameplayRecordingSink,
   appendGameplayRecordingChunk,
   beginGameplayRecordingSink,
   finishGameplayRecordingSink,
   type GameplayRecordingSink,
-} from '@volter/editor-sdk/kit/editor-api';
-import { type GameplayDomRecording, startGameplayDomRecording } from '@volter/editor-sdk/kit/gameplay-dom-recording';
-import { publishToolContributionRecording } from '@volter/editor-sdk/kit/gameplay-sessions';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+} from '@volter/sdk/kit/editor-api';
+import { type GameplayDomRecording, startGameplayDomRecording } from '@volter/sdk/kit/gameplay-dom-recording';
+import { publishToolContributionRecording } from '@volter/sdk/kit/gameplay-sessions';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import { holdIngestFrameCopy } from '../ingest/ingest-frame-snapshot';
 import { createRecordingPreviewEncoder } from './recording-preview';
 

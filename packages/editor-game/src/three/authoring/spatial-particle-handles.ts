@@ -4,7 +4,7 @@ import type {
   QuarksEmitterShape,
   R3fParticleBinding,
 } from '@volter/editor-react/source/r3f-particle-binding';
-import type { SpatialHandleLayer, SpatialPoint3 } from '@volter/editor-project/adapter';
+import type { SpatialHandleLayer, SpatialPoint3 } from '@volter/project/adapter';
 import * as THREE from 'three';
 
 const PARTICLE_COLOR = '#ff9f43';

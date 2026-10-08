@@ -43,13 +43,13 @@
  * mount ends — which is also when the edits themselves expire.
  */
 
-import { numericStyleValue } from '@volter/editor-sdk/css-numeric-style';
+import { numericStyleValue } from '@volter/sdk/css-numeric-style';
 import { createEphemeralPersistence } from '../host/authoring/ephemeral-persistence';
-import { LIVE_ONLY_DESTINATION } from '@volter/editor-sdk/kit/write-pipe';
+import { LIVE_ONLY_DESTINATION } from '@volter/sdk/kit/write-pipe';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { type JournalSubject, JsonHistoryResource } from '../host/history/json-history-resource';
 import { DomProjector, structuralDomIdentity } from '../host/projection/dom';
-import { browserOrInlineResolver, getComputedStyleValue } from '@volter/editor-sdk/kit/ui-source/inspect';
+import { browserOrInlineResolver, getComputedStyleValue } from '@volter/sdk/kit/ui-source/inspect';
 import type {
   AssetSubjectProvider,
   AuthoringAdapter,
@@ -67,7 +67,7 @@ import type {
   PropertyDescriptor,
   RectProvider,
   SelectionProvider,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import { cssColorToHex, mapBoxEditPatchKey, styleProp } from './react-world-authoring-adapter';
 
 /**

@@ -37,21 +37,21 @@
 import {
   beginProjectMountEpoch,
   type EntrypointSelectionOverride,
-} from '@volter/editor-sdk/session/project-module-url';
+} from '@volter/sdk/session/project-module-url';
 import {
   nativeDebugBindingFromEntryModule,
   nativeSystemsBindingFromEntryModule,
 } from '../runtime/adapter/native-debug-module';
 import type { RootMountSpec } from '../runtime/create-runtime';
 import type { MountEntry } from '../runtime/mount-manifest';
-import type { SurfaceAdapter } from '@volter/editor-project/adapter';
-import type { AdapterDefinition } from '@volter/editor-project/adapter/adapter-module';
-import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
-import type { RootDeclaration } from '@volter/editor-project/adapter/binding';
-import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
-import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
+import type { SurfaceAdapter } from '@volter/project/adapter';
+import type { AdapterDefinition } from '@volter/project/adapter/adapter-module';
+import { assertNever } from '@volter/project/adapter/adapter-surface';
+import type { RootDeclaration } from '@volter/project/adapter/binding';
+import { declaredRoots } from '@volter/project/adapter/manifest-interpreter';
+import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/project/manifest/load';
 import { adjudicateThreeEntry } from './entry-adjudication';
-import { projectAdapterDefinition } from '@volter/editor-sdk/kit/project-adapter';
+import { projectAdapterDefinition } from '@volter/sdk/kit/project-adapter';
 import { activeRealmServices, type RealmServices } from './realm-services';
 import { resolveModuleAdapter } from './roots/module-root';
 import { resolveDomAdapter, resolveIngestReactAdapter } from './roots/react-root';

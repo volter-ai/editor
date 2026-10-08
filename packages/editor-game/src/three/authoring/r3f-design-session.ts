@@ -1,4 +1,4 @@
-import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
+import { onAssetReload } from '@volter/sdk/kit/project-asset-refresh';
 
 /**
  * R3F design session (W4) — mounts an entry-based R3F three world at DESIGN
@@ -61,41 +61,41 @@ import { onAssetReload } from '@volter/editor-sdk/kit/project-asset-refresh';
  *    published), and the returned disposer.
  */
 
-import { setActiveSystems, updateInstanceSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
+import { setActiveSystems, updateInstanceSystems } from '@volter/sdk/kit/authoring/active-systems';
 import {
   BoundaryAuthoringAdapter,
   type BoundaryRootInfo,
-} from '@volter/editor-sdk/kit/authoring/boundary-authoring-adapter';
-import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+} from '@volter/sdk/kit/authoring/boundary-authoring-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/sdk/kit/authoring/composite-authoring-adapter';
 import {
   collaborationSnapshot,
   subscribeCollaborationRevision,
-} from '@volter/editor-sdk/kit/collaboration-client';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+} from '@volter/sdk/kit/collaboration-client';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import {
   describeModuleFetch,
   diagnoseModuleFetch,
   failedImportEntry,
-} from '@volter/editor-sdk/kit/module-fetch-diagnosis';
+} from '@volter/sdk/kit/module-fetch-diagnosis';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { withObservedPhysics } from '../../host/adapter-runtime-bindings';
 import { whenRapierWorldMounts } from '../../services/game-physics';
 import { adjudicateThreeEntry } from '../../host/entry-adjudication';
-import { onPlayTransitionSettled } from '@volter/editor-sdk/kit/live-transition';
-import { fetchRawGameManifest } from '@volter/editor-sdk/kit/manifest-project';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { onPlayTransitionSettled } from '@volter/sdk/kit/live-transition';
+import { fetchRawGameManifest } from '@volter/sdk/kit/manifest-project';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
 import { activeRealmServices } from '../../host/realm-services';
 import { pickGameCamera } from '@volter/editor-threejs/kit/scene-framing';
-import { tierSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
+import { tierSourceWriteBackend } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
 import type {
   MountedThreeRoot,
   RootAdapter,
   SystemAdapters,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import type { GameThreeHostContext } from '../../runtime/host-context';
 import type { ThreeMountedRoot } from '@volter/editor-threejs/adapter/three-contract';
-import { nodeKeyedPhysics } from '@volter/editor-project/adapter';
-import { declaredRoots, rootById } from '@volter/editor-project/adapter/manifest-interpreter';
+import { nodeKeyedPhysics } from '@volter/project/adapter';
+import { declaredRoots, rootById } from '@volter/project/adapter/manifest-interpreter';
 import {
   installNativeDebugBindings,
   installNativeSystemsBindings,
@@ -111,7 +111,7 @@ import { createGame, type GameInternal } from '../../runtime/game';
 import {
   beginProjectMountEpoch,
   viteUpdateImportPath,
-} from '@volter/editor-sdk/session/project-module-url';
+} from '@volter/sdk/session/project-module-url';
 import * as THREE from 'three';
 import { createDesignTimeRenderer } from './design-time-renderer';
 
@@ -139,13 +139,13 @@ import {
   type EditModeRootSpec,
   parseEditModeManifest,
   queueEditModeRebuild,
-} from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
-import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
+} from '@volter/sdk/kit/authoring/edit-mode-authoring';
+import { liveGestureActive, whenLiveGestureIdle } from '@volter/sdk/kit/live-gesture-lock';
 import {
   addMountFailureReport,
   clearMountFailureReport,
   formatMountFailureMessage,
-} from '@volter/editor-sdk/kit/mount-failure-report';
+} from '@volter/sdk/kit/mount-failure-report';
 import { SelectionRemountHandoff } from '../../host/authoring/selection-remount-handoff';
 import {
   type RefreshSource,

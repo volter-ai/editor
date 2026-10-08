@@ -18,7 +18,7 @@
  * A game with genuinely NO content tables deletes this file — the
  * deletion, visible in git, is the honest declaration.
  */
-import type { ToolContributionProps } from '@volter/editor-sdk/contributions';
+import type { ToolContributionProps } from '@volter/sdk/contributions';
 
 export const point = 'workspace.document';
 export const title = 'Data';

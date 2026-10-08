@@ -5,7 +5,7 @@ Read this when building or updating dependencies for a release.
 `npm run build` builds the modeling release and `npm run build:game` the game
 release. Each records retained Rollup modules and esbuild inputs, then writes
 `BUNDLED_NOTICES` for the packages that ship bundles: `editor`, `editor-core`
-and `editor-live`, and for the game release also `game-editor`. It includes
+and `@volter/live`, and for the game release also `game-editor`. It includes
 other Volter packages when their code is incorporated into a bundle. Their
 licenses do not disappear when the bundler removes the import boundary. Every
 entry names its source: the unmodified npm package and its repository, which
@@ -18,7 +18,7 @@ and `npm run check:packed-imports:game` separately check literal import
 declarations; they are not a license audit.
 
 The playable Cyclotron skew uses `release/playable.json`: the eight modeling
-packages plus `editor-model-play`, `editor-ui`, `editor-react`, `editor-game`,
+packages plus `@volter/play`, `editor-ui`, `editor-react`, `editor-game`,
 `game-runtime` and `threejs-runtime` (14 total). The UI tool currently imports DOM
 authoring from `editor-game`; that package declares the two runtimes. These are
 installation dependencies, not a Game Editor product or a registered game transport.

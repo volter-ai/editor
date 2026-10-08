@@ -33,7 +33,7 @@
 
 import type { IncomingMessage } from 'node:http';
 import type { WebSocket } from 'ws';
-import type { TabStallMetrics, WorkerCallTabMetrics } from '@volter/editor-sdk/project/tab-census';
+import type { TabStallMetrics, WorkerCallTabMetrics } from '@volter/sdk/project/tab-census';
 import type { RawSocketRoute } from './editor-control-socket';
 import type { TabBeat, TabCensus, TabCloseBeacon, TabVisibility } from './tab-presence';
 

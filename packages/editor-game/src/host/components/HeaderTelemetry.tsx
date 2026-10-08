@@ -1,22 +1,22 @@
 import { faVolumeHigh, faVolumeXmark } from '@fortawesome/free-solid-svg-icons';
-import { userLocalSection, writeUserLocalSection } from '@volter/editor-sdk/kit/user-local-state';
-import { AnchoredMenu, Button, EditorIcon, Inline, MenuItem } from '@volter/editor-sdk/widgets';
+import { userLocalSection, writeUserLocalSection } from '@volter/sdk/kit/user-local-state';
+import { AnchoredMenu, Button, EditorIcon, Inline, MenuItem } from '@volter/sdk/widgets';
 import type { PerformanceSnapshot } from '../../runtime/dev/performance-profiler';
-import type { AudioAdapter, AudioMeterFrame } from '@volter/editor-project/adapter';
+import type { AudioAdapter, AudioMeterFrame } from '@volter/project/adapter';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import {
   activeAudioVersion,
   getAllActiveAudio,
   getInspectedAudio,
   subscribeActiveAudio,
-} from '@volter/editor-sdk/kit/authoring/active-systems';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
+} from '@volter/sdk/kit/authoring/active-systems';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
 import { useActivePerformanceSource } from '../use-active-performance-source';
 import {
   activeChromeRegions,
   chromeRegionsKey,
   subscribeChromeRegions,
-} from '@volter/editor-sdk/kit/workspace-regions';
+} from '@volter/sdk/kit/workspace-regions';
 import {
   AUDIO_METER_SEGMENTS,
   audioMeterSegmentCount,

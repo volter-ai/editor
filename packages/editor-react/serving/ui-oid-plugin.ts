@@ -21,7 +21,7 @@
  * `defaultProjectScopeInclude` widens to PROJECT scope, not repo-global: any `.tsx`
  * file outside `node_modules`, EXCEPT the Volter tooling/engine source trees this repo
  * itself is built from (`packages/engine/src`, `packages/create-volter-project`,
- * `packages/volter-cli`, `packages/editor-sdk`, and `packages/editor/src` generally —
+ * `packages/volter-cli`, `packages/sdk`, and `packages/editor/src` generally —
  * carving OUT `ui-editor/editable-components` so the existing UI-edit-mode surface
  * keeps working unchanged). This does NOT depend on which project happens to be
  * open — `fs.allow` already bounds what Vite can even reach, and this predicate
@@ -81,12 +81,12 @@ import {
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { Worker } from 'node:worker_threads';
 import type { Plugin, ViteDevServer } from 'vite';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
 import {
   type ProjectServingServices,
   SOURCE_WRITE_ROUTES_PLUGIN,
-} from '@volter/editor-sdk/session/project-serving';
-import { cssTextForStyleValue } from '@volter/editor-sdk/css-numeric-style';
+} from '@volter/sdk/session/project-serving';
+import { cssTextForStyleValue } from '@volter/sdk/css-numeric-style';
 import {
   type ComponentPropSpec,
   lineColToOffset,
@@ -146,7 +146,7 @@ import {
 export { applyStyleWriteRequest, oidAttributeForSurface };
 
 const NODE_MODULES_RE = /\/node_modules\//;
-const TOOLING_SRC_RE = /\/packages\/(engine\/src|create-volter-project|volter-cli|editor-sdk)\//;
+const TOOLING_SRC_RE = /\/packages\/(engine\/src|create-volter-project|volter-cli|sdk)\//;
 const EDITOR_SRC_RE = /\/packages\/editor\/src\//;
 const EDITABLE_COMPONENTS_RE = /\/ui-editor\/editable-components\/.*\.tsx$/;
 /** Track N, D-N4 item 2 — see the module doc comment's "Vendored-tree exclusion". */
@@ -176,7 +176,7 @@ const VENDORED_GAME_SRC_RE = /\/vendor\/games\/[^/]+\//;
  *  Defensive against
  *  any shape (never trusts the manifest is even an object) — this is a
  *  best-effort identity probe for a WRITE-BACK BAN, not manifest validation
- *  (the real Zod schema/loader is `@volter/editor-project/manifest/load`, not reachable
+ *  (the real Zod schema/loader is `@volter/project/manifest/load`, not reachable
  *  from this vite-config-time, dependency-light file by design). */
 function manifestDeclaresIngestReactWorld(parsed: unknown): boolean {
   if (!parsed || typeof parsed !== 'object') return false;
@@ -693,7 +693,7 @@ export function __oidIndexEnrichStateForTest(): { queued: boolean; hasEnriched: 
  * stops matching its lock.
  */
 /** The kit's server capabilities this plugin was constructed with
- *  (`@volter/editor-sdk/session/project-serving`). */
+ *  (`@volter/sdk/session/project-serving`). */
 let servingServices: ProjectServingServices | null = null;
 
 function serving(): ProjectServingServices {

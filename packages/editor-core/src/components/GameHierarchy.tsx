@@ -9,8 +9,8 @@ import {
   ThemeRootPortal,
   themeVars,
   zIndex,
-} from '@volter/editor-sdk/widgets';
-import { authoringAdapterKey } from '@volter/editor-sdk/kit/authoring/adapter-key';
+} from '@volter/sdk/widgets';
+import { authoringAdapterKey } from '@volter/sdk/kit/authoring/adapter-key';
 
 /**
  * GameHierarchy — the ONE hierarchy panel (A2). Replaces the former pair of
@@ -20,7 +20,7 @@ import { authoringAdapterKey } from '@volter/editor-sdk/kit/authoring/adapter-ke
  * Every row affordance is gated on the PRESENCE of a provider or a reserved
  * inspector path, never on which concrete adapter is active.
  *
- * Rule zero (spec §0): this file imports ONLY from `@volter/editor-project/adapter` types
+ * Rule zero (spec §0): this file imports ONLY from `@volter/project/adapter` types
  * and editor-shell modules — no private first-party entity type, no direct
  * 3D-library value import, no first-party document-format string literal.
  * First-party-only affordances not yet contract-expressible live behind
@@ -72,7 +72,7 @@ import {
   faPuzzlePiece,
   faTriangleExclamation,
 } from '@fortawesome/free-solid-svg-icons';
-import type { CollaborationSnapshot } from '@volter/editor-sdk/session/collaboration-types';
+import type { CollaborationSnapshot } from '@volter/sdk/session/collaboration-types';
 import {
   clampRectToViewport,
   DisclosureIcon,
@@ -82,14 +82,14 @@ import {
   lineHeightVar,
   Panel,
   spaceVar,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import type {
   AuthoringAdapter,
   AuthoringProvenance,
   EditorNode,
   EditorNodeRole,
   HierarchyProvider,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import {
   memo,
   useCallback,
@@ -107,8 +107,8 @@ import {
   activeAuthoringVersion,
   hasAuthoringOverride,
   subscribeActiveAuthoring,
-} from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+} from '@volter/sdk/kit/authoring/active-adapter';
+import { CompositeAuthoringAdapter } from '@volter/sdk/kit/authoring/composite-authoring-adapter';
 import {
   copyAuthoringNodes,
   createAuthoringNode,
@@ -123,21 +123,21 @@ import {
   ungroupAuthoringNode,
   unwrapAuthoringNode,
   wrapAuthoringNode,
-} from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { enterInstanceRow } from '@volter/editor-sdk/kit/authoring/instance-source-menu';
-import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
+} from '@volter/sdk/kit/authoring/consumer-actions';
+import { enterInstanceRow } from '@volter/sdk/kit/authoring/instance-source-menu';
+import { resolvePanelAuthoring } from '@volter/sdk/kit/authoring/panel-authoring';
 import {
   authoringDestination,
   provenanceForNode,
   unavailableReason,
-} from '@volter/editor-sdk/kit/authoring/provenance';
+} from '@volter/sdk/kit/authoring/provenance';
 import {
   selectionScopeStack,
   selectionScopeVersion,
   setSelectionScope,
   subscribeSelectionScope,
-} from '@volter/editor-sdk/kit/authoring/selection-scope';
-import { resolveThreeViewportRootId } from '@volter/editor-sdk/kit/authoring/three-root';
+} from '@volter/sdk/kit/authoring/selection-scope';
+import { resolveThreeViewportRootId } from '@volter/sdk/kit/authoring/three-root';
 import {
   isRootHidden,
   isRootInteractive,
@@ -145,18 +145,18 @@ import {
   toggleRootHidden,
   toggleRootInteractive,
   toggleRootPickLock,
-} from '@volter/editor-sdk/kit/authoring/world-session-state';
-import { collaborationSnapshot, connectCollaboration } from '@volter/editor-sdk/kit/collaboration-client';
-import { openRegisteredDocument } from '@volter/editor-sdk/kit/document-open-registry';
-import { deleteSelection, duplicateSelection } from '@volter/editor-sdk/kit/editor-hotkeys';
-import { EDITOR_PARTICIPANT_ID } from '@volter/editor-sdk/kit/editor-presence';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
+} from '@volter/sdk/kit/authoring/world-session-state';
+import { collaborationSnapshot, connectCollaboration } from '@volter/sdk/kit/collaboration-client';
+import { openRegisteredDocument } from '@volter/sdk/kit/document-open-registry';
+import { deleteSelection, duplicateSelection } from '@volter/sdk/kit/editor-hotkeys';
+import { EDITOR_PARTICIPANT_ID } from '@volter/sdk/kit/editor-presence';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
 import {
   applyComponentRootExpansionDefaults,
   componentMarkView,
   type MarkedTreeSource,
   NO_MARKS,
-} from '@volter/editor-sdk/kit/hierarchy-component-marks';
+} from '@volter/sdk/kit/hierarchy-component-marks';
 import { hierarchyDropRefusal, isSameRootDrop } from '../hierarchy-drop';
 import {
   clearHierarchyExpansionPreferences,
@@ -164,7 +164,7 @@ import {
   setHierarchyExpansionPreferences,
 } from '../hierarchy-expansion-state';
 import { hierarchyHeaderSlot, subscribeHierarchyHeaderSlot } from '../hierarchy-header-slot';
-import { applyRevealExpansionDefaults, internalsProjection } from '@volter/editor-sdk/kit/hierarchy-internals';
+import { applyRevealExpansionDefaults, internalsProjection } from '@volter/sdk/kit/hierarchy-internals';
 import {
   hierarchyKindIcon,
   isDatablockKind,
@@ -172,20 +172,20 @@ import {
   OUTLINER_EXCLUDE_ON,
   OUTLINER_RENDER_OFF,
   OUTLINER_RENDER_ON,
-} from '@volter/editor-sdk/kit/hierarchy-kind-icon';
-import { getHierarchyMenuItems } from '@volter/editor-sdk/kit/hierarchy-menu-registry';
+} from '@volter/sdk/kit/hierarchy-kind-icon';
+import { getHierarchyMenuItems } from '@volter/sdk/kit/hierarchy-menu-registry';
 import {
   flattenHierarchyRows,
   type HierarchyNodeRow,
   hierarchyRowKey,
   hierarchyRowWindow,
   patchUniqueHierarchyRows,
-} from '@volter/editor-sdk/kit/hierarchy-node-rows';
+} from '@volter/sdk/kit/hierarchy-node-rows';
 import {
   clearHierarchyPanelSnapshot,
   type HierarchyPanelSnapshot,
   publishHierarchyPanelSnapshot,
-} from '@volter/editor-sdk/kit/hierarchy-panel-view';
+} from '@volter/sdk/kit/hierarchy-panel-view';
 import {
   ancestorPathKeys,
   HierarchyRowCache,
@@ -202,26 +202,26 @@ import {
   rowIdentity,
   TransformLockCache,
   UNLOCKED,
-} from '@volter/editor-sdk/kit/hierarchy-row-model';
-import { CHILD_CAP } from '@volter/editor-sdk/kit/hierarchy-rows';
-import { setActiveScope } from '@volter/editor-sdk/kit/hotkeys';
-import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
-import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
-import { editorPaintedRegions, subscribeEditorTheme } from '@volter/editor-sdk/kit/theme-preference';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+} from '@volter/sdk/kit/hierarchy-row-model';
+import { CHILD_CAP } from '@volter/sdk/kit/hierarchy-rows';
+import { setActiveScope } from '@volter/sdk/kit/hotkeys';
+import { getCurrentProject } from '@volter/sdk/kit/project-manager';
+import { focusedStageStore } from '@volter/sdk/kit/stage-context';
+import { editorPaintedRegions, subscribeEditorTheme } from '@volter/sdk/kit/theme-preference';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
+} from '@volter/sdk/kit/workspace-document-registry';
 import {
   activeChromeRegions,
   type ChromeRegions,
   chromeRegionsKey,
   subscribeChromeRegions,
-} from '@volter/editor-sdk/kit/workspace-regions';
-import { activateRootDocument } from '@volter/editor-sdk/kit/world-document-routing';
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { hierarchyRowMedia, subscribeHierarchyRowMedia } from '@volter/editor-sdk/kit/hierarchy-row-media';
+} from '@volter/sdk/kit/workspace-regions';
+import { activateRootDocument } from '@volter/sdk/kit/world-document-routing';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
+import { hierarchyRowMedia, subscribeHierarchyRowMedia } from '@volter/sdk/kit/hierarchy-row-media';
 
 const ASSET_MIME = 'application/x-editor-asset';
 const REORDER_MIME = 'application/x-hierarchy-reorder';
@@ -3568,7 +3568,7 @@ export function GameHierarchySurface({ store, adapter }: GameHierarchySurfacePro
             path: string;
             kind: string;
             name?: string;
-            component?: import('@volter/editor-project/adapter').AssetDropContext['item'];
+            component?: import('@volter/project/adapter').AssetDropContext['item'];
           };
           if (data.kind === 'scene') return; // scene-file drop: A4/deferred, not this shell's job
           const context = {

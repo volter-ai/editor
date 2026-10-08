@@ -50,7 +50,7 @@
  * (`transform`/`filter` also create the containing block but force a compositing layer and,
  * on the ADOPTED element itself, are exactly the stamp {@link claimHostSurfaceBox} exists to
  * clear). The inherited text defaults are `markGameSurface`'s
- * (`@volter/editor-sdk/kit/game-surface-defaults`), at zero specificity so the game's own
+ * (`@volter/sdk/kit/game-surface-defaults`), at zero specificity so the game's own
  * page rules win.
  */
 export const GAME_SURFACE_CONTAINMENT_CSS = 'contain: layout; visibility: visible;';
@@ -85,7 +85,7 @@ let gameCssScoper: Promise<(css: string) => string> | null = null;
 export function loadGameCssScoper(): Promise<(css: string) => string> {
   gameCssScoper ??= Promise.all([
     import('./game-css-scope-transform'),
-    import('@volter/editor-sdk/session/game-css-scope'),
+    import('@volter/sdk/session/game-css-scope'),
   ]).then(
     ([{ scopeGameCss }, { GAME_CSS_SCOPE_SELECTOR }]) =>
       (css: string) =>

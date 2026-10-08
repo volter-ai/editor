@@ -4,7 +4,7 @@
  * the Code-OSS frame, item 6). Its thirteen verbs are
  * `../contributions/blender.command.ts`, a `workspace.command` contribution;
  * what it needs of the running editor it asks THROUGH THE DOOR,
- * `@volter/editor-sdk/host` — the document context it
+ * `@volter/sdk/host` — the document context it
  * presents into, the session it lives and dies with. It imports no host module
  * (WORKBENCH.md §The invariants, "Direction": a package imports only the SDK
  * and other packages' exports), which is what lets this lane ship against a
@@ -43,9 +43,9 @@ import type {
 } from '@volter/blender-engine/browser/rna';
 import { createBlenderDisplayTransform, blenderDisplaySettingsForRender } from '@volter/blender-engine/browser/three/blender-display-transform';
 import { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
-import type { EditorCommandResult } from '@volter/editor-sdk/commands';
-import { editorHost } from '@volter/editor-sdk/host';
-import { invokeViewVerb, type ViewVerbContribution } from '@volter/editor-sdk/views';
+import type { EditorCommandResult } from '@volter/sdk/commands';
+import { editorHost } from '@volter/sdk/host';
+import { invokeViewVerb, type ViewVerbContribution } from '@volter/sdk/views';
 import {
   captureSceneImage,
   captureSceneLinear,

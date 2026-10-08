@@ -14,7 +14,7 @@
  * attached AND ungated.
  */
 
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import { disposeGameRealm } from './gated-globals';
 
 /**

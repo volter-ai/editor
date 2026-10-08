@@ -16,11 +16,11 @@
  * one (a helper `Object3D` has one parent, so it is set per stage).
  *
  * Until the lanes move, the host's own lanes import this registry directly; a
- * package reads `@volter/editor-sdk/host`'s `viewport` member, which is this.
+ * package reads `@volter/sdk/host`'s `viewport` member, which is this.
  */
 
 import type { ViewportDoor, ViewportPresentation, ViewportRig, ViewportRoot, ViewportStage } from './viewport-api';
-import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { activeWorkspaceDocumentId } from '@volter/sdk/kit/workspace-document-registry';
 
 type Presenter = (roots: readonly ViewportRoot[]) => ViewportPresentation | null;
 /** An editor-only helper object, typed by the host door it is shown through. */
@@ -204,7 +204,7 @@ export function viewportStages(): readonly ViewportStage[] {
 
 /**
  * WHICH HELPER KINDS A STAGE IS HOLDING — the kinds something has actually
- * shown on it through `setHelper` (`@volter/editor-sdk/host`,
+ * shown on it through `setHelper` (`@volter/sdk/host`,
  * `ViewportStage.setHelper`), cleared ones excluded.
  *
  * It exists because a 3D document's own OVERLAYS MENU must follow what the

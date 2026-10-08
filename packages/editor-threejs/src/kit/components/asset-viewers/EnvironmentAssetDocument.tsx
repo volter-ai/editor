@@ -1,14 +1,14 @@
 import { faCloudSun, faSliders } from '@fortawesome/free-solid-svg-icons';
-import { NumberInput, themeVars } from '@volter/editor-sdk/widgets';
+import { NumberInput, themeVars } from '@volter/sdk/widgets';
 import { useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { OrbitControls } from 'three/addons/controls/OrbitControls.js';
 import { EXRLoader } from 'three/addons/loaders/EXRLoader.js';
 import { HDRLoader } from 'three/addons/loaders/HDRLoader.js';
-import type { InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
-import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '@volter/editor-sdk/kit/inspection-model';
-import { AssetEditorShell } from '@volter/editor-sdk/kit/components/AssetEditorShell';
-import { subscribeProjectAsset } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
+import type { InspectionSection } from '@volter/sdk/kit/inspection-model';
+import { CONTRIBUTED_SECTION_ORDER, PROPERTIES_SECTION_ORDER } from '@volter/sdk/kit/inspection-model';
+import { AssetEditorShell } from '@volter/sdk/kit/components/AssetEditorShell';
+import { subscribeProjectAsset } from '@volter/sdk/kit/components/asset-editor-persistence';
 
 interface EnvironmentImage {
   readonly texture: THREE.DataTexture;

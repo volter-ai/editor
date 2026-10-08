@@ -239,7 +239,7 @@ product; the served product's command and display name come from its own
 `package.json` and name every message; the stage host takes a package's
 world-root binding; project roots are served through the globals shadow and
 mount isolation; the game runtimes are known runtime packages; doorway
-addresses live on `@volter/editor-sdk/host`; the eval scope takes product
+addresses live on `@volter/sdk/host`; the eval scope takes product
 additions.
 
 Walked live over a sources workbench on fresh projects of every preset:
@@ -342,7 +342,7 @@ Remaining:
    the Outliner eye hides and reveals it; the state survives a full editor reopen; closing the
    Model document unbinds it from the engine and returns its renderer to the pool. The game
    editor's Scene edit and Play were walked on the same code. The adapter contract names no
-   medium: `@volter/editor-project` states the `three` surface's scene, camera, renderer,
+   medium: `@volter/project` states the `three` surface's scene, camera, renderer,
    hierarchy objects, physics debug draw and navigation mesh opaquely (generic parameters or
    `unknown`), `@volter/editor-threejs/adapter/three-contract` names them as three.js objects for
    the editor, and each runtime names its own (the Pixi mounted root and 2D physics key are
@@ -613,12 +613,12 @@ no migration started.
 
 ## Play on the Model document
 
-The `playable` Cyclotron template declares `editor-model-play`, `editor-ui` and
+The `playable` Cyclotron template declares `@volter/play`, `editor-ui` and
 `editor-react` on its project; the base `models` template declares none of them. The Play
 tool contributes header/View controls through `kit/document-play-extension`; Blender
 lends its detached Rendered stage. Stop/Escape disposes it and returns to the saved model.
 The UI tool mounts the declared `dom` root through `kit/project-play-layers`, sharing one
-mount epoch with the script (`editor-model-play/src/play-script.ts`), so its plain race
+mount epoch with the script (`play/src/play-script.ts`), so its plain race
 store has one instance. The existing UI board opens the HUD's CSF stories beside Track.
 State: walked in source and built sessions of Volter Cyclotron, built on Blender;
 fresh `create --template playable` ships the built circuit, script and React HUD, while
@@ -1330,7 +1330,7 @@ path. Do not move a live recorder's directory underneath its open writes.
 Cycle 7 exposed two source-opening problems in the public editor doors. The
 generic asset opener previously allowed a `.blend` when an explicit asset kind
 was supplied, bypassing its Model document. The SDK now refuses that form too,
-and starter guidance uses `editor.open('model:<path>')`. The editor-live build
+and starter guidance uses `editor.open('model:<path>')`. The @volter/live build
 passes. An idle disposable fixture verified refusal without changing its
 document, selection or camera, then opened the suggested Model ID successfully.
 That fixture's existing No default agent startup error was retained; its public
@@ -1341,7 +1341,7 @@ Object3D builder, producing an invalid hook call. Source opening now consults
 the actual manifest root entries and loaded adapter region declarations before
 calling a candidate model builder. Declared DOM/canvas files remain readable
 source; unplaced modules retain the Object3D contract. The model browser build
-passes in 31.76 seconds and the editor-sdk TypeScript check passes. A separate manual public SDK walk opened a DOM root
+passes in 31.76 seconds and the @volter/sdk TypeScript check passes. A separate manual public SDK walk opened a DOM root
 using useSyncExternalStore, a declared include using useState outside the UI
 folder, and an ordinary Three Object3D builder. Both components showed their
 source, the builder showed its cube and model inspector, and all three had zero

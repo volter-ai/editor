@@ -1,5 +1,5 @@
 /**
- * THE THREE SURFACE'S DESIGN-TIME AUTHORING (`@volter/editor-sdk/services`, a
+ * THE THREE SURFACE'S DESIGN-TIME AUTHORING (`@volter/sdk/services`, a
  * `workspace.service` contribution): the two registrations that make a `three`
  * root editable, and the reason the kit names no medium.
  *
@@ -25,9 +25,9 @@
  * product that composes this package pays for it.
  */
 
-import { setBaseAuthoringFactory } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { registerDesignTimeMount } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
-import { queueEditModeRebuild } from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
+import { setBaseAuthoringFactory } from '@volter/sdk/kit/authoring/active-adapter';
+import { registerDesignTimeMount } from '@volter/sdk/kit/authoring/design-time-mount-registry';
+import { queueEditModeRebuild } from '@volter/sdk/kit/authoring/edit-mode-authoring';
 import { authoringJournal } from '../../src/host/history/json-history-resource';
 import { oidThree } from '../../src/three/authoring/three-authoring-adapter';
 import type { WorldRootSessionContext } from '../../src/host/components/world-root-stage';

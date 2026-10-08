@@ -2,9 +2,9 @@ import { createHash } from 'node:crypto';
 import { mkdirSync, readFileSync, writeFileSync, rmSync, existsSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { EditorClient } from '@volter/editor-sdk/client';
-import { LiveEditor, LiveTools } from '@volter/editor-live';
-import { connectHostedAttachment, HOSTED_ATTACHMENT_FRAGMENT, HOSTED_ATTACHMENT_PATH, hostedSocketUrl, type HostedAttachment } from '@volter/editor-sdk/session/hosted-attachment';
+import { EditorClient } from '@volter/sdk/client';
+import { LiveEditor, LiveTools } from '@volter/live';
+import { connectHostedAttachment, HOSTED_ATTACHMENT_FRAGMENT, HOSTED_ATTACHMENT_PATH, hostedSocketUrl, type HostedAttachment } from '@volter/sdk/session/hosted-attachment';
 import { openBrowserUrl } from '../open-browser';
 import { control } from './control';
 

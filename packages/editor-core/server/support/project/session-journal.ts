@@ -39,7 +39,7 @@ import type {
   RecordedTabCensus,
   TabStallMetrics,
   WorkerCallTabMetrics,
-} from '@volter/editor-sdk/project/tab-census';
+} from '@volter/sdk/project/tab-census';
 
 /** `editor-` + an ISO instant with `:`/`.` flattened + `.jsonl` — the same
  *  lexicographic-order-is-chronological-order shape `play-*.jsonl` uses. */

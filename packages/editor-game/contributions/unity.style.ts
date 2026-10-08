@@ -11,7 +11,7 @@
  * lines, which is its view's presentation (`overlays.axes` all off), not this look's.
  * Light, skybox and overlays are the VIEW's presentation, not this look's.
  */
-import type { StyleContribution } from '@volter/editor-sdk/looks';
+import type { StyleContribution } from '@volter/sdk/looks';
 import palette from './unity.palette.json';
 
 export const point = 'workspace.style';

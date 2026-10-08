@@ -55,7 +55,7 @@ import type {
 } from '@volter/blender-engine/browser/rna';
 import { useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import { faLock, faLockOpen } from '@fortawesome/free-solid-svg-icons';
-import { ColorPicker, EditorIcon, hexToRgb, parseAlpha, toHex } from '@volter/editor-sdk/widgets';
+import { ColorPicker, EditorIcon, hexToRgb, parseAlpha, toHex } from '@volter/sdk/widgets';
 import {
   type BlenderSubject,
   blenderPropertiesState,

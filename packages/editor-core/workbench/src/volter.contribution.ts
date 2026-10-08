@@ -707,7 +707,7 @@ registerAction2(class extends Action2 {
 					// purpose: Dismiss shows the editor's error screen, and its Retry — after the
 					// fix — finishes this same open rather than mounting a second editor.
 					// ANY STARTUP FAILURE, not only the pin's: since 2026-10-06 every part of the boot
-					// publishes into the same door (`@volter/editor-sdk/kit/startup-failure`) — a
+					// publishes into the same door (`@volter/sdk/kit/startup-failure`) — a
 					// project that cannot be read, a page with no project, a crashed surface, a
 					// Blender worker that could not open the model.
 					if (mount.startup) {
@@ -903,7 +903,7 @@ for (const { id, wholeGroup } of [
  * door.
  *
  * WHAT DECIDES: the open folder carries a `volter.project.json`. That file is the
- * project's own statement that it IS one (`@volter/editor-project`'s manifest is spelled
+ * project's own statement that it IS one (`@volter/project`'s manifest is spelled
  * in exactly one place and this is its name), so a folder that is not a volter
  * project opens as an ordinary workbench and nothing of ours runs.
  *

@@ -1,33 +1,33 @@
 import { faBorderAll, faLightbulb } from '@fortawesome/free-solid-svg-icons';
-import { EditorIcon, FloatingToolbar, IconButton, Tooltip } from '@volter/editor-sdk/widgets';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import { EditorIcon, FloatingToolbar, IconButton, Tooltip } from '@volter/sdk/widgets';
+import type { AuthoringAdapter } from '@volter/project/adapter';
 import { memo, useEffect, useId, useMemo, useReducer, useState, useSyncExternalStore } from 'react';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
 import {
   object3DDocumentSession,
   object3DDocumentSessionsVersion,
   subscribeObject3DDocumentSessions,
 } from '../authoring/object3d-document-session-registry';
-import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
+import { resolvePanelAuthoring } from '@volter/sdk/kit/authoring/panel-authoring';
 import type { EditorShellStore } from '../editor-shell-store';
-import { activeLightCount } from '@volter/editor-sdk/kit/light-explorer-model';
-import { CORE_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
+import { activeLightCount } from '@volter/sdk/kit/light-explorer-model';
+import { CORE_WORKSPACE_UTILITIES } from '@volter/sdk/kit/workspace-core-utilities';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { showWorkspaceUtility } from '@volter/editor-sdk/kit/workspace-host-commands';
-import { ViewportOverlaysMenu } from '@volter/editor-sdk/kit/components/ViewportOverlaysMenu';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { showWorkspaceUtility } from '@volter/sdk/kit/workspace-host-commands';
+import { ViewportOverlaysMenu } from '@volter/sdk/kit/components/ViewportOverlaysMenu';
 import {
   setViewGridVisible,
   subscribeViewportPresentation,
   viewGridVisible,
   viewportPresentationVersion,
-} from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/viewport-presentation';
 import { ViewportShadingMenu } from './ViewportShadingMenu';
 import type { ViewportShadingMode } from '@volter/editor-threejs/render/viewport-shading';
 import { ViewportViewMenu } from './ViewportViewMenu';
-import { useViewportChrome, useViewportWords } from '@volter/editor-sdk/kit/native-selection-style';
+import { useViewportChrome, useViewportWords } from '@volter/sdk/kit/native-selection-style';
 import { createPortal } from 'react-dom';
 import { stageViewName } from './stage-view-name';
 

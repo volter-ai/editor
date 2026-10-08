@@ -19,7 +19,7 @@ import {
   assertEditorCompatibility,
   assertProjectCompatibility,
   ProjectCompatibilityError,
-} from '@volter/editor-sdk/session/editor-compatibility';
+} from '@volter/sdk/session/editor-compatibility';
 import type { Request, Response } from 'express';
 import type { EditorServerRouter } from '../editor-server';
 import { clientCount } from '../editor-sse';

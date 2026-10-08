@@ -38,7 +38,7 @@
  * disagrees with the walk is the "one id, three answers" defect.
  */
 
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import type { AuthoringAdapter } from '@volter/project/adapter';
 import { getUserData, setUserData } from '@volter/editor-threejs/ecs/user-data';
 import type * as THREE from 'three';
 import { threeObject } from '../adapter/three-contract';

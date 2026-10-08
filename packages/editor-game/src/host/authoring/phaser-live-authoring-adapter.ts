@@ -16,7 +16,7 @@ import type {
   EditorNode,
   PropertyDescriptor,
   Transform,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { createEphemeralPersistence } from './ephemeral-persistence';
 

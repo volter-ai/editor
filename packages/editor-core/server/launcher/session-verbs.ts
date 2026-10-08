@@ -9,10 +9,10 @@
 import { existsSync, mkdirSync, readFileSync, statSync, writeFileSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
 import { setTimeout as delay } from 'node:timers/promises';
-import { resolveSession } from '@volter/editor-live';
-import { EditorClient } from '@volter/editor-sdk/client';
-import { relayCommandTimeoutMs } from '@volter/editor-sdk/session/command-table';
-import type { AssetPreviewShotSetDefinition, AssetPreviewSource, EditorState } from '@volter/editor-sdk';
+import { resolveSession } from '@volter/live';
+import { EditorClient } from '@volter/sdk/client';
+import { relayCommandTimeoutMs } from '@volter/sdk/session/command-table';
+import type { AssetPreviewShotSetDefinition, AssetPreviewSource, EditorState } from '@volter/sdk';
 import { currentPageErrors, startupRefusals } from './launch';
 import {
   fetchEditorState,

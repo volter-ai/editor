@@ -5,7 +5,7 @@ import { fileURLToPath } from 'node:url';
 import { runInNewContext } from 'node:vm';
 
 const bundle = await build({
-  entryPoints: [fileURLToPath(new URL('../../editor-sdk/src/kit/session-close.ts', import.meta.url))],
+  entryPoints: [fileURLToPath(new URL('../../sdk/src/kit/session-close.ts', import.meta.url))],
   bundle: true, platform: 'node', format: 'esm', write: false,
 });
 const { onBeforeSessionClose, prepareSessionClose } = await import(
@@ -38,7 +38,7 @@ const cli = await build({
   entryPoints: [fileURLToPath(new URL('../server/launcher/control.ts', import.meta.url))],
   bundle: true, platform: 'node', format: 'cjs', write: false,
   plugins: [{ name: 'session-fixture', setup(builder) {
-    builder.onResolve({ filter: /^@volter\/editor-live$|^@volter\/editor-sdk\/client$|^\.\/(editor-sessions|hosted)$/ }, args => ({ path: args.path, namespace: 'fixture' }));
+    builder.onResolve({ filter: /^@volter\/live$|^@volter\/sdk\/client$|^\.\/(editor-sessions|hosted)$/ }, args => ({ path: args.path, namespace: 'fixture' }));
     builder.onLoad({ filter: /.*/, namespace: 'fixture' }, args => ({ contents: args.path === './hosted'
       ? 'export const HOSTED_USAGE = "hosted"; export function hostedControl() { throw Error("Not a local-close operation"); }' : `
       export const connect = globalThis.fixture.connect;

@@ -3,11 +3,11 @@ Bundled license notices
 These notices accompany code incorporated into this package. Separate npm dependencies retain their own licenses.
 
 
-@volter/editor-sdk@0.5.155
+@volter/sdk@0.5.155
 Declared license: Apache-2.0
-Source: the unmodified npm package @volter/editor-sdk@0.5.155, from https://github.com/volter-ai/editor.git
+Source: the unmodified npm package @volter/sdk@0.5.155, from https://github.com/volter-ai/editor.git
 
---- packages/editor-sdk/LICENSE ---
+--- packages/sdk/LICENSE ---
 
 
                                  Apache License
@@ -213,7 +213,7 @@ Source: the unmodified npm package @volter/editor-sdk@0.5.155, from https://gith
    limitations under the License.
 
 
---- packages/editor-sdk/NOTICE ---
+--- packages/sdk/NOTICE ---
 
 Copyright 2026 Volter AI, Inc.
 

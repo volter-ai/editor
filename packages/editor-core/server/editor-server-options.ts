@@ -7,8 +7,8 @@
  * inside it so the differences can be read in one place.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import type { EditorState } from '@volter/editor-sdk/index';
+import { commandLine } from '@volter/sdk/kit/product-command';
+import type { EditorState } from '@volter/sdk/index';
 import type { CollaborationAccountSession } from './account-service';
 import type { EditorBootTimings } from './boot-timings';
 import type { ProjectModuleLoader } from './project-tools';
@@ -26,7 +26,7 @@ export interface EditorServerOptions {
    * game's own source or is honestly live-only
    * (`src/ui-source/tier-source-write-backend.ts`). Hosts that boot a Vite
    * instance derive it from their own resolved plugin list
-   * (`SOURCE_WRITE_ROUTES_PLUGIN`, `@volter/editor-sdk/session/project-serving`) rather than declaring it,
+   * (`SOURCE_WRITE_ROUTES_PLUGIN`, `@volter/sdk/session/project-serving`) rather than declaring it,
    * so the flag cannot drift from the registration it describes.
    *
    * Defaults to `false`: a bare router with no Vite in front of it carries no

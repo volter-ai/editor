@@ -312,27 +312,27 @@
       ]
     },
     {
-      "name": "@volter/editor-project",
+      "name": "@volter/project",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-project/LICENSE",
+          "file": "packages/project/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         }
       ]
     },
     {
-      "name": "@volter/editor-sdk",
+      "name": "@volter/sdk",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-sdk/LICENSE",
+          "file": "packages/sdk/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         },
         {
-          "file": "packages/editor-sdk/NOTICE",
+          "file": "packages/sdk/NOTICE",
           "sha256": "86a2db0f2ec179ff34ccaf9a7484d3cb25dd97a60bcde1f4a7e9a45c3900f16f"
         }
       ]
@@ -614,27 +614,27 @@
   ],
   "editor-core": [
     {
-      "name": "@volter/editor-project",
+      "name": "@volter/project",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-project/LICENSE",
+          "file": "packages/project/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         }
       ]
     },
     {
-      "name": "@volter/editor-sdk",
+      "name": "@volter/sdk",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-sdk/LICENSE",
+          "file": "packages/sdk/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         },
         {
-          "file": "packages/editor-sdk/NOTICE",
+          "file": "packages/sdk/NOTICE",
           "sha256": "86a2db0f2ec179ff34ccaf9a7484d3cb25dd97a60bcde1f4a7e9a45c3900f16f"
         }
       ]
@@ -752,29 +752,29 @@
       ]
     }
   ],
-  "editor-live": [
+  "live": [
     {
-      "name": "@volter/editor-project",
+      "name": "@volter/project",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-project/LICENSE",
+          "file": "packages/project/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         }
       ]
     },
     {
-      "name": "@volter/editor-sdk",
+      "name": "@volter/sdk",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-sdk/LICENSE",
+          "file": "packages/sdk/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         },
         {
-          "file": "packages/editor-sdk/NOTICE",
+          "file": "packages/sdk/NOTICE",
           "sha256": "86a2db0f2ec179ff34ccaf9a7484d3cb25dd97a60bcde1f4a7e9a45c3900f16f"
         }
       ]
@@ -782,16 +782,16 @@
   ],
   "game-live": [
     {
-      "name": "@volter/editor-sdk",
+      "name": "@volter/sdk",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-sdk/LICENSE",
+          "file": "packages/sdk/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         },
         {
-          "file": "packages/editor-sdk/NOTICE",
+          "file": "packages/sdk/NOTICE",
           "sha256": "86a2db0f2ec179ff34ccaf9a7484d3cb25dd97a60bcde1f4a7e9a45c3900f16f"
         }
       ]
@@ -1416,12 +1416,12 @@
       ]
     },
     {
-      "name": "@volter/editor-project",
+      "name": "@volter/project",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-project/LICENSE",
+          "file": "packages/project/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         }
       ]
@@ -1442,16 +1442,16 @@
       ]
     },
     {
-      "name": "@volter/editor-sdk",
+      "name": "@volter/sdk",
       "version": "0.5.155",
       "license": "Apache-2.0",
       "notices": [
         {
-          "file": "packages/editor-sdk/LICENSE",
+          "file": "packages/sdk/LICENSE",
           "sha256": "f36a26f67dd333fc611eb40ab1747ca0b7e693e19e591edbcff98c7f7e49ad8b"
         },
         {
-          "file": "packages/editor-sdk/NOTICE",
+          "file": "packages/sdk/NOTICE",
           "sha256": "86a2db0f2ec179ff34ccaf9a7484d3cb25dd97a60bcde1f4a7e9a45c3900f16f"
         }
       ]

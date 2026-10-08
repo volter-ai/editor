@@ -50,8 +50,8 @@
  * recorder's stream never sees, so nothing about the evidence changes.
  */
 
-import { isRootCanvas } from '@volter/editor-sdk/kit/composite-screenshot';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { isRootCanvas } from '@volter/sdk/kit/composite-screenshot';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import {
   GAMEPLAY_RECORDING_MAX_MS,
   type GameplayRecordingCapture,
@@ -61,7 +61,7 @@ import {
   startGameplayRecording,
   stopGameplayRecording,
 } from '../host/gameplay-recording';
-import type { AudioRecordingHandle } from '@volter/editor-project/adapter';
+import type { AudioRecordingHandle } from '@volter/project/adapter';
 
 /**
  * How long a play run may go with NO player input before it stops itself and

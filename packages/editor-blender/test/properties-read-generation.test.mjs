@@ -9,7 +9,7 @@ const bundle=await build({
   bundle:true,platform:'node',format:'cjs',write:false,
   plugins:[{name:'engine-boundaries',setup(build){
     build.onResolve({filter:/.*/},args=>args.kind==='entry-point'?undefined:{path:args.path,namespace:'stub'});
-    build.onLoad({filter:/.*/,namespace:'stub'},args=>({contents:args.path==='@volter/editor-sdk/host'
+    build.onLoad({filter:/.*/,namespace:'stub'},args=>({contents:args.path==='@volter/sdk/host'
       ? 'export const editorHost=()=>({documents:{context:()=>probe.view ?? null,contextChanged(){}}});'
       : args.path==='./blender-outliner-model'
         ? 'export const blenderOutlinerState=()=>({byId:new Map()});'

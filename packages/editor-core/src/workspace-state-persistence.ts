@@ -1,7 +1,7 @@
 import {
   openAvailableWorkspaceDocument,
   requestAvailableWorkspaceDocument,
-} from '@volter/editor-sdk/kit/workspace-available-documents';
+} from '@volter/sdk/kit/workspace-available-documents';
 /**
  * PERSISTED WORKSPACE STATE: which named workspace the project was left in,
  * which documents were open, which one was in front, and each kind's own
@@ -70,24 +70,24 @@ import {
  * subscription install is time-boxed, not the restore itself.
  */
 
-import { editorViewFromUrl } from '@volter/editor-sdk';
+import { editorViewFromUrl } from '@volter/sdk';
 import {
   type PresentationLayer,
   restoreViewPresentation,
   subscribeViewportPresentation,
   viewPresentationSnapshot,
-} from '@volter/editor-sdk/kit/viewport-presentation';
-import { projectAdapterFacet, waitForProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
+} from '@volter/sdk/kit/viewport-presentation';
+import { projectAdapterFacet, waitForProjectAdapter } from '@volter/sdk/kit/project-adapter';
 import {
   preloadProjectLocalState,
   projectLocalSection,
   projectLocalStateReady,
   writeProjectLocalSection,
-} from '@volter/editor-sdk/kit/project-local-state';
-import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
-import { refreshProjectToolContributions } from '@volter/editor-sdk/kit/tool-loader';
-import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
-import { PINNED_ASYNC_DOCUMENT_IDS } from '@volter/editor-sdk/kit/workspace-document-ids';
+} from '@volter/sdk/kit/project-local-state';
+import { getCurrentProject } from '@volter/sdk/kit/project-manager';
+import { refreshProjectToolContributions } from '@volter/sdk/kit/tool-loader';
+import { liveDocumentHeld } from '@volter/sdk/kit/live-document';
+import { PINNED_ASYNC_DOCUMENT_IDS } from '@volter/sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocumentId,
@@ -95,13 +95,13 @@ import {
   openWorkspaceDocuments,
   restorePinnedWorkspaceDocumentActivation,
   subscribeWorkspaceDocuments,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
+} from '@volter/sdk/kit/workspace-document-registry';
 import {
   type WorkspaceStateStore,
   workspaceDocumentRestorerEntries,
   workspaceDocumentRestorers,
-} from '@volter/editor-sdk/kit/workspace-document-restore';
-import { isWorkspacePersistenceSuppressed } from '@volter/editor-sdk/kit/workspace-persistence-gate';
+} from '@volter/sdk/kit/workspace-document-restore';
+import { isWorkspacePersistenceSuppressed } from '@volter/sdk/kit/workspace-persistence-gate';
 import {
   activeEditorWorkspace,
   defaultEditorWorkspace,
@@ -110,7 +110,7 @@ import {
   isEditorWorkspaceId,
   setEditorWorkspace,
   workspaceApplies,
-} from '@volter/editor-sdk/kit/workspace-presets';
+} from '@volter/sdk/kit/workspace-presets';
 
 interface WorkspaceRestoreEpoch {
   readonly generation: number;

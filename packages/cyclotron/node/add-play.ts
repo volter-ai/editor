@@ -28,8 +28,8 @@
 import { existsSync, lstatSync, realpathSync, statSync } from 'node:fs';
 import { mkdir, readFile, readdir, rm, rmdir, writeFile } from 'node:fs/promises';
 import { dirname, isAbsolute, join, posix, relative, resolve } from 'node:path';
-import { GameManifestSchema } from '@volter/editor-project/manifest/schema';
-import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
+import { GameManifestSchema } from '@volter/project/manifest/schema';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { PLAY_SCAFFOLD, PROJECT_TSCONFIG, productRoot, productVersions } from './create';
 
 export const ADD_PLAY_USAGE = 'add-play [folder]    # make a models project playable: Play deps, UI root, a first Play script for its model';
@@ -319,7 +319,7 @@ export async function addPlay(folder: string): Promise<void> {
   // every kit package; `npm install` there would write into the checkout.
   const linked = (() => { try { return lstatSync(join(project, 'node_modules')).isSymbolicLink(); } catch { return false; } })();
   if (dependenciesChanged && !linked) console.log(`  npm install    # in ${project}; installs the dependencies added above`);
-  if (dependenciesChanged) console.log('  Reload the editor (eval "await editor.reloadPage()", or reopen the project) so it loads @volter/editor-model-play.');
+  if (dependenciesChanged) console.log('  Reload the editor (eval "await editor.reloadPage()", or reopen the project) so it loads @volter/play.');
   const play = model ?? scripts[0]?.replace(/\.play\.ts$/, '.blend');
   if (play) console.log(`  Open model:${play} and press Play (Play runs <model>.play.ts beside its .blend).`);
   else console.log('  Write src/models/<name>.play.ts beside src/models/<name>.blend; Play runs it on that model.');

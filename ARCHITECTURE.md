@@ -11,16 +11,20 @@ through adapters and contributions. The rulings this follows were made on
 
 | Row | Here | Knows |
 | --- | --- | --- |
-| Kit | `@volter/editor-core` (host, session server, workbench tier), `@volter/editor-sdk` (the one API integrations import), `@volter/editor-project` (the project contract) | documents, views, selection, history, source writing, stories as portable CSF, the session. No tool, no product, no purpose. |
-| Integration | `@volter/editor-blender`, `@volter/editor-threejs`, `@volter/editor-react`, `@volter/editor-xstate`, `@volter/editor-model-play`, `@volter/editor-ui`; a canvas lane is due | one tool made a document kind: its adapters, inspectors, instruments, looks, template fragment. No purpose. |
+| Kit | `@volter/editor-core` (host, session server, workbench tier), `@volter/sdk` (the one API integrations import), `@volter/project` (the project contract) | documents, views, selection, history, source writing, stories as portable CSF, the session. No tool, no product, no purpose. |
+| Integration | `@volter/editor-blender`, `@volter/editor-threejs`, `@volter/editor-react`, `@volter/editor-xstate`, `@volter/play`, `@volter/editor-ui`; a canvas lane is due | one tool made a document kind: its adapters, inspectors, instruments, looks, template fragment. No purpose. |
 | Product | `@volter/cyclotron`, `@volter/game-editor` | templates and composition for a purpose. The base model template composes Blender and Three; its playable template declares model Play and React UI tools on the project. Tools meet through SDK doors and are available to any composition (owner ruling, 2026-10-03). |
 | Shipped twin | `@volter/threejs-runtime`, `@volter/game-runtime` | helpers a project's own code may call that return the library's own objects. Apache. |
+
+A package's name tells its side of the license line: `editor-*`, `blender-*`, `cyclotron` and
+`game-editor` are the editor (AGPL, with GPL where Blender is involved); every other `@volter/*`
+package is Apache-2.0 ([COMMERCIAL.md](COMMERCIAL.md)).
 
 Rules:
 
 1. The kit names no integration and no product.
 2. A package imports another package's exports, never kit internals: an integration reaches
-   the kit through `@volter/editor-sdk` only.
+   the kit through `@volter/sdk` only.
 3. Dependencies point down: product → integration → kit/SDK → project contract.
 4. **The code side is unopinionated.** A game's own modules (its world, scenes, prefabs,
    components) are plain library code and import nothing of the editor. What the editor
@@ -53,7 +57,7 @@ Rules:
    whoever builds the thing (a workspace, a stage's starting values, a document) beneath the
    person's own choices, and a style switch never changes it (owner ruling, 2026-09-25). The
    armed tool, what a box drag selects and the world's up axis (and so the gizmos' axis naming)
-   are a stage's presentation (`interaction`, `world` in `@volter/editor-sdk/kit/viewport-presentation`):
+   are a stage's presentation (`interaction`, `world` in `@volter/sdk/kit/viewport-presentation`):
    `@volter/editor-blender` states select, touch and Z-up as the `model` stage's starting values.
    Which chrome regions show is a workspace's (`@volter/editor-blender/src/regions.ts`); a style
    bundle carries none.
@@ -64,15 +68,15 @@ Rules:
   services), mounted by the product that composes it.
 - `package.json#volter.serving`: an integration's server half, a built Node module whose
   `servingPlugins(services)` joins the project's Vite. `services` are the kit's region decision,
-  recorded writes and collaboration record (`@volter/editor-sdk/session/project-serving`); the
+  recorded writes and collaboration record (`@volter/sdk/session/project-serving`); the
   module may also answer the kit's source questions (dialect evidence, authoring diagnostics,
   component contracts). `@volter/editor-react` is the first.
-- `@volter/editor-sdk/source-authoring` and `/source-analysis`: the contract types and the
+- `@volter/sdk/source-authoring` and `/source-analysis`: the contract types and the
   browser-side analyzer registry shared by the kit and a source-authoring integration.
 
 A product skew is a template and the tool packages its project declares, mounted in the
 same contribution pass as the product's packages. The `models` template declares no Play
-or UI tool. The `playable` template declares `editor-model-play`, `editor-ui` and
+or UI tool. The `playable` template declares `@volter/play`, `editor-ui` and
 `editor-react`; it retains the Model layout and Blender look. A document lends its detached
 stage through `kit/document-play-extension`; the UI tool offers project DOM roots through
 `kit/project-play-layers`. One mount epoch identifies the script and HUD module graph.
@@ -96,7 +100,7 @@ no Game Editor product code or transport contributions are registered by the UI 
   read actors a game had to register.
 - `@volter/editor-game` imports nothing from `@volter/editor-core` (156 files did before this
   work) and no longer depends on it. What it reaches of the kit is the SDK's published door,
-  `@volter/editor-sdk/kit/*`, where the kit's shared modules live and the kit imports them from:
+  `@volter/sdk/kit/*`, where the kit's shared modules live and the kit imports them from:
   registries, ids, types, codecs, the console, the session's HTTP clients, the shell store,
   history, the composite authoring adapter, the project boot and adapter, the tool loader and
   tool host, the story registry and capture, the Inspector, the command listener. Measured per
@@ -135,7 +139,7 @@ this repository's measured corrections at its head. Units, in order:
 3. **The viewport unit:** the assembled Three viewport, its SDK contracts, its callers and the
    three-way split of `EditorShellStore` move together into `@volter/editor-threejs`; Blender's
    defaults become `@volter/editor-blender`'s specialization; the Three-typed adapter contract
-   leaves `@volter/editor-project`; the kit's Blender server pieces (the WASM route, the verb
+   leaves `@volter/project`; the kit's Blender server pieces (the WASM route, the verb
    relay, tab metrics) and the injected model document leave the kit. Acceptance: the kit
    constructs no viewport; Cyclotron's closure carries no game or React Three Fiber
    code; a composition without Three carries none.

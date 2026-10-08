@@ -20,7 +20,7 @@
 
 import { readFile } from 'node:fs/promises';
 import { join } from 'node:path';
-import { loadGameManifestDir } from '@volter/editor-project/manifest/load-file';
+import { loadGameManifestDir } from '@volter/project/manifest/load-file';
 
 export interface ProjectVerbRootFact {
   readonly id: string;

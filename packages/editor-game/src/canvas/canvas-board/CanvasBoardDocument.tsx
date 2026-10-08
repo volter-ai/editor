@@ -44,38 +44,38 @@
  * thing would be.
  */
 
-import { installReactCanvasNavigation } from '@volter/editor-sdk/kit/authoring/react-canvas-navigation';
+import { installReactCanvasNavigation } from '@volter/sdk/kit/authoring/react-canvas-navigation';
 import {
   REACT_DESIGN_CANVAS_COLOR,
   REACT_DESIGN_CANVAS_DOT,
-} from '@volter/editor-sdk/kit/authoring/react-design-canvas-style';
+} from '@volter/sdk/kit/authoring/react-design-canvas-style';
 import {
   createReactStoryBoard,
   type ReactStoryBoard,
   type ReactStoryBoardStory,
-} from '@volter/editor-sdk/kit/authoring/react-story-board';
+} from '@volter/sdk/kit/authoring/react-story-board';
 import {
   getRootPan,
   panRootBy,
   panTransformValue,
   subscribeRootPan,
-} from '@volter/editor-sdk/kit/world-pan-state';
+} from '@volter/sdk/kit/world-pan-state';
 import { registerPresentedPixiApps } from '../../host/canvas-preview-frames';
-import { ReactCanvasControls } from '@volter/editor-sdk/kit/components/ReactCanvasControls';
-import { themeVars } from '@volter/editor-sdk/widgets';
-import { listProjectComponents } from '@volter/editor-sdk/kit/api/assets';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { publishDocumentInspectionSubject } from '@volter/editor-sdk/kit/inspection/document-subject';
-import { CANVAS_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import { registerAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
+import { ReactCanvasControls } from '@volter/sdk/kit/components/ReactCanvasControls';
+import { themeVars } from '@volter/sdk/widgets';
+import { listProjectComponents } from '@volter/sdk/kit/api/assets';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { publishDocumentInspectionSubject } from '@volter/sdk/kit/inspection/document-subject';
+import { CANVAS_COMPONENTS_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
+import { registerAvailableWorkspaceDocument } from '@volter/sdk/kit/workspace-available-documents';
 import {
   registerWorkspaceDocumentSelection,
   type WorkspaceDocumentContentProps,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { storyBoardPresentation } from '@volter/editor-sdk/kit/stories/story-presentation';
-import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { storyBoardPresentation } from '@volter/sdk/kit/stories/story-presentation';
+import { getProjectStoryModules, subscribeProjectStoryModules } from '@volter/sdk/kit/stories/story-registry';
 import { useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
-import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
+import type { AuthoringAdapter, EditorNode } from '@volter/project/adapter';
 import {
   buildCanvasBoard,
   type CanvasBoard,
@@ -246,7 +246,7 @@ function presentCanvasBoard(
     },
     // The substrate is host chrome's and does not import portable CSF; the
     // lane that mounts a board supplies how its frames are organized and
-    // sized (`@volter/editor-sdk/kit/authoring/story-board-presentation.ts`).
+    // sized (`@volter/sdk/kit/authoring/story-board-presentation.ts`).
     storyBoardPresentation(rows),
   );
 

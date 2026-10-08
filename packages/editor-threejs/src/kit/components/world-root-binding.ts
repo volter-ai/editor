@@ -13,7 +13,7 @@
 import type { ComponentType, RefObject } from 'react';
 import type * as THREE from 'three';
 import type { EditorShellStore } from '../editor-shell-store';
-import type { EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
+import type { EditorStats } from '@volter/sdk/kit/editor-runtime';
 import type { EditorViewport } from '../editor-viewport';
 import type { ViewportPresentation, ViewportRoot } from '../../viewport-api';
 

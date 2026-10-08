@@ -11,9 +11,9 @@
 import type { DawNode } from '@volter/dawproject/render';
 import { createPieceRoot } from '@volter/dawproject/render';
 import { type Piece, readPiece } from '@volter/dawproject/piece';
-import { projectModuleUrl } from '@volter/editor-sdk/contributions';
-import { subscribeCollaborationRevision } from '@volter/editor-sdk/kit/collaboration-client';
-import { subscribeProjectModuleChange } from '@volter/editor-sdk/kit/project-module-changes';
+import { projectModuleUrl } from '@volter/sdk/contributions';
+import { subscribeCollaborationRevision } from '@volter/sdk/kit/collaboration-client';
+import { subscribeProjectModuleChange } from '@volter/sdk/kit/project-module-changes';
 import type { ComponentType } from 'react';
 import { useEffect, useState } from 'react';
 

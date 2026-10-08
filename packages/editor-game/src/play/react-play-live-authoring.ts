@@ -45,13 +45,13 @@
  */
 
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/sdk/kit/ui-source/source-write-backend';
 import {
   type OidElementLike,
   ReactRootAuthoringAdapter,
   walkOidTree,
 } from '../react/react-world-authoring-adapter';
-import type { AuthoringProvenance } from '@volter/editor-project/adapter';
+import type { AuthoringProvenance } from '@volter/project/adapter';
 
 /** Disclosed up front on the adapter, alongside `capabilities.persist: false` and
  *  the ephemeral `persistence.destination` play-mode's own wrapper installs — the

@@ -27,8 +27,8 @@
 
 import type * as Fiber from '@react-three/fiber';
 import type { RootState } from '@react-three/fiber';
-import type { MountedThreeRoot, RootAdapter } from '@volter/editor-project/adapter';
-import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+import type { MountedThreeRoot, RootAdapter } from '@volter/project/adapter';
+import type { SystemAdapters } from '@volter/project/adapter/system-adapter';
 import {
   type RenderVitalsRegistration,
   registerRenderVitals,

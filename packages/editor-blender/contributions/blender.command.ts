@@ -1,5 +1,5 @@
 /**
- * THE BLENDER VERBS of the session wire (`@volter/editor-sdk/commands`, a
+ * THE BLENDER VERBS of the session wire (`@volter/sdk/commands`, a
  * `workspace.command` contribution): `blender-start`, `blender-stop`,
  * `blender-execute`, `blender-scene-info`, `blender-object-info`,
  * `blender-screenshot-view`, `blender-read-file`, `blender-write-file`,
@@ -26,13 +26,13 @@
  * `@editor/shell-store-door` to hand to the runtime host, which needed it for
  * one call — presenting the Model document — and that call is now
  * `host.workspace.open`, an address the door routes. A handler's whole context
- * is the command it is given plus `@volter/editor-sdk/host`.
+ * is the command it is given plus `@volter/sdk/host`.
  */
 import type {
   CommandContribution,
   CommandDerivedRefresh,
   CommandSpec,
-} from '@volter/editor-sdk/commands';
+} from '@volter/sdk/commands';
 import { handleBlenderCommand } from '../host/blender-runtime-host';
 
 export const point = 'workspace.command';

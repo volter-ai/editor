@@ -14,7 +14,7 @@
  */
 
 import { CaptureHistoryModel } from '../host/components/frame-debugger-model';
-import type { RenderDebugAdapter } from '@volter/editor-project/adapter';
+import type { RenderDebugAdapter } from '@volter/project/adapter';
 
 let history = new CaptureHistoryModel();
 let boundAdapter: RenderDebugAdapter | null = null;

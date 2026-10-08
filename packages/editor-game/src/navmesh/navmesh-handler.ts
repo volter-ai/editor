@@ -1,6 +1,6 @@
-import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { editorHost } from '@volter/editor-sdk/host';
-import type { NavigationAdapter } from '@volter/editor-project/adapter';
+import { getActiveSystems } from '@volter/sdk/kit/authoring/active-systems';
+import { editorHost } from '@volter/sdk/host';
+import type { NavigationAdapter } from '@volter/project/adapter';
 import { getUserData } from '@volter/threejs-runtime/ecs/user-data';
 import * as THREE from 'three';
 import { NAVMESH_BAKE_EVENT, NAVMESH_CLEAR_EVENT } from './navmesh-actions';

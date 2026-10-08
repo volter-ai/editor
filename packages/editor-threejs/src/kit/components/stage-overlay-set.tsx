@@ -2,26 +2,26 @@
  * hints and statistics. Package documents supply their own chrome. */
 
 import { useSyncExternalStore } from 'react';
-import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
+import { activeAuthoringVersion, subscribeActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
 import {
   object3DDocumentSessionsVersion,
   subscribeObject3DDocumentSessions,
 } from '../authoring/object3d-document-session-registry';
 import type { EditorShellStore } from '../editor-shell-store';
 import type { EditorViewport } from '../editor-viewport';
-import { documentStageContext, type StageChrome, threeSelectionToolsApply } from '@volter/editor-sdk/kit/stage-context';
+import { documentStageContext, type StageChrome, threeSelectionToolsApply } from '@volter/sdk/kit/stage-context';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
+} from '@volter/sdk/kit/workspace-document-registry';
 import {
   subscribeViewportPresentation,
   viewPresentation,
   viewportPresentationVersion,
-} from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/viewport-presentation';
 import { CameraInfo } from './CameraInfo';
 import { StatsOverlay } from './StatsOverlay';
-import { TransientHintOverlay } from '@volter/editor-sdk/kit/components/TransientHint';
+import { TransientHintOverlay } from '@volter/sdk/kit/components/TransientHint';
 import { ViewportOverlay } from './ViewportOverlay';
 
 /** What the HOST hands over about the stage itself — its own store, the

@@ -1,6 +1,6 @@
 import { readFileSync } from 'node:fs';
 import { basename, join } from 'node:path';
-import type { ProductIdentity } from '@volter/editor-sdk/session/product-locator';
+import type { ProductIdentity } from '@volter/sdk/session/product-locator';
 
 /**
  * WHERE THE EDITOR'S FRAME ENTRY POINT IS — and it is the PRODUCT's, not the
@@ -16,7 +16,7 @@ import type { ProductIdentity } from '@volter/editor-sdk/session/product-locator
  * There is no constant here to spell it, and that is the point: which file it
  * is depends on WHICH PRODUCT the project resolved, so the one source is the
  * product's own `package.json#volter.product.entry`
- * (`@volter/editor-sdk/session/product-locator`). Three readers agree through it:
+ * (`@volter/sdk/session/product-locator`). Three readers agree through it:
  * the dev host builds a Vite URL from it, the packaged host finds it in the
  * product's production build manifest by it, and
  * `packages/editor/vite-product-build.ts` makes it that build's rollup input.
@@ -24,7 +24,7 @@ import type { ProductIdentity } from '@volter/editor-sdk/session/product-locator
 
 /** The entry as a path relative to `fromDir`, POSIX — which is what a Vite
  *  manifest key is, and what a dev-server URL is built from. */
-export { productEntryPath } from '@volter/editor-sdk/session/product-locator';
+export { productEntryPath } from '@volter/sdk/session/product-locator';
 
 /**
  * The URL the packaged host serves the built product entry's CSS-loading

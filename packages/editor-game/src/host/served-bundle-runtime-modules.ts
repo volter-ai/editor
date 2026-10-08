@@ -22,7 +22,7 @@
  *
  * THREE FAMILIES, one resolver ({@link servedBundleRuntimeModuleLoader}):
  *   - the explicit table below (packages and package subpaths);
- *   - every RUNTIME-PACKAGE module, by glob — `@volter/editor-project/<path>`,
+ *   - every RUNTIME-PACKAGE module, by glob — `@volter/project/<path>`,
  *     `@volter/threejs-runtime/<path>` and `@volter/game-runtime/<path>` resolve
  *     to the editor's own source, minus each package's Node-only modules;
  *   - three's two spellings of one file (`three/addons/*` ≡
@@ -107,7 +107,7 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
     import('@volter/threejs-runtime/adapter/first-party-navigation-system'),
   '@volter/threejs-runtime/adapter/hierarchy-marks': () =>
     import('@volter/threejs-runtime/adapter/hierarchy-marks'),
-  '@volter/editor-project/adapter/system-adapter': () => import('@volter/editor-project/adapter/system-adapter'),
+  '@volter/project/adapter/system-adapter': () => import('@volter/project/adapter/system-adapter'),
   '@volter/threejs-runtime/ai/navigation': () => import('@volter/threejs-runtime/ai/navigation'),
   '@volter/threejs-runtime/animation/animation-clock': () =>
     import('@volter/threejs-runtime/animation/animation-clock'),
@@ -138,14 +138,14 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // a second copy carrying its own THREE would break `instanceof`.
   'three-bvh-csg': () => import('three-bvh-csg'),
   'three-mesh-bvh': () => import('three-mesh-bvh'),
-  // `@volter/editor-project/adapter` is TYPE-ONLY since P-6, so a project importing it emits
+  // `@volter/project/adapter` is TYPE-ONLY since P-6, so a project importing it emits
   // nothing and never reaches this table; the entry stays as a harmless
   // backstop. The seam's IMPLEMENTERS now live at their own paths, and a
   // project that calls one needs that path registered — top-down-strategy's
   // `use-squad.ts` calls `createNavigationAdapter`. Caught by
   // `browser-bundle-runtime-modules.test.ts`, which regenerates the real
   // bundle; without this, hosted Play throws "not a registered runtime module".
-  '@volter/editor-project/adapter': () => import('@volter/editor-project/adapter'),
+  '@volter/project/adapter': () => import('@volter/project/adapter'),
   // feature-scenes' WaterSurface loads its detail normal map via the shared cache:
   '@volter/threejs-runtime/asset-loaders': () => import('@volter/threejs-runtime/asset-loaders'),
   '@volter/threejs-runtime/ecs/scene-query': () => import('@volter/threejs-runtime/ecs/scene-query'),
@@ -179,14 +179,14 @@ export const BUNDLE_RUNTIME_MODULE_LOADERS: Record<string, () => Promise<unknown
   // so these must resolve to the editor's LIVE modules — a second copy of the
   // contributions SDK would register into a registry nothing reads, exactly
   // the two-reconcilers failure `@pixi/react` documents above.
-  '@volter/editor-sdk': () => import('@volter/editor-sdk'),
-  '@volter/editor-sdk/layouts': () => import('@volter/editor-sdk/layouts'),
-  '@volter/editor-sdk/layout-arrangements': () => import('@volter/editor-sdk/layout-arrangements'),
-  '@volter/editor-sdk/contributions': () => import('@volter/editor-sdk/contributions'),
-  '@volter/editor-sdk/widgets': () => import('@volter/editor-sdk/widgets'),
+  '@volter/sdk': () => import('@volter/sdk'),
+  '@volter/sdk/layouts': () => import('@volter/sdk/layouts'),
+  '@volter/sdk/layout-arrangements': () => import('@volter/sdk/layout-arrangements'),
+  '@volter/sdk/contributions': () => import('@volter/sdk/contributions'),
+  '@volter/sdk/widgets': () => import('@volter/sdk/widgets'),
   '@editor/game-module-access': () => import('./game-module-access'),
-  '@volter/editor-sdk/tools': () => import('./sdk/tools'),
-  '@volter/editor-sdk/generations': () => import('@volter/editor-sdk/generations'),
+  '@volter/sdk/tools': () => import('./sdk/tools'),
+  '@volter/sdk/generations': () => import('@volter/sdk/generations'),
   // Project stories usually import `@storybook/react` types only (erased),
   // but a value import must be the SAME csf-tools instance the editor's
   // story registry composes with.
@@ -235,8 +235,8 @@ export const REGISTERED_BUNDLE_SPECIFIERS: readonly string[] = Object.keys(
  * is assembled from its browser-safe halves there, and the explicit table wins.
  */
 const PROJECT_SOURCE_MODULES = import.meta.glob([
-  '../../../editor-project/src/**/*.ts',
-  '../../../editor-project/src/**/*.tsx',
+  '../../../project/src/**/*.ts',
+  '../../../project/src/**/*.tsx',
   '!**/*.d.ts',
   '!**/manifest/load-file.ts',
   '!**/manifest/locate.ts',
@@ -267,7 +267,7 @@ const RUNTIME_PACKAGE_SOURCES: readonly (readonly [
   string,
   Record<string, () => Promise<unknown>>,
 ])[] = [
-  ['@volter/editor-project', '../../../editor-project/src/', PROJECT_SOURCE_MODULES],
+  ['@volter/project', '../../../project/src/', PROJECT_SOURCE_MODULES],
   ['@volter/threejs-runtime', '../../../threejs-runtime/src/', THREEJS_RUNTIME_SOURCE_MODULES],
   ['@volter/game-runtime', '../../../game-runtime/src/', GAME_RUNTIME_SOURCE_MODULES],
 ];

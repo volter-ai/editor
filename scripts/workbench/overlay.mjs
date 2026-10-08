@@ -1366,7 +1366,7 @@ function treeHash(dirs) {
 /**
  * The chat stand-in's product facts, written beside it: what it says the product is called and
  * the one line that installs it (`volter.product.install`, defaulting the way
- * `@volter/editor-sdk/session/product-locator` does).
+ * `@volter/sdk/session/product-locator` does).
  */
 function writeViewChatProduct(checkout, productManifest) {
 	const declared = productManifest.volter?.product ?? {};
@@ -1506,7 +1506,7 @@ function main() {
 
 	// THE MARKER IS WHAT MAKES A SOURCES WORKBENCH SELF-DESCRIBING. A release says what it is in
 	// `BUILD.json`; a checkout has no such file, and "which product is this workbench" is not a
-	// question `git rev-parse` can answer. `@volter/editor-sdk/session/workbench-locator` reads it
+	// question `git rev-parse` can answer. `@volter/sdk/session/workbench-locator` reads it
 	// and refuses a workbench built for another product than the project's own.
 	writeFileSync(join(checkout, MARKER), `${JSON.stringify({
 		product,

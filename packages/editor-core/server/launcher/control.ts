@@ -1,5 +1,5 @@
-import { connect, unconnectedBindings, withEditorMemberHints, type LiveSession } from '@volter/editor-live';
-import { EditorClient } from '@volter/editor-sdk/client';
+import { connect, unconnectedBindings, withEditorMemberHints, type LiveSession } from '@volter/live';
+import { EditorClient } from '@volter/sdk/client';
 import { verifiedSessions, terminateEditorSession } from './editor-sessions';
 import { formatSurface } from './eval-surface';
 import { CONTROLLER_DISCONNECTED_MESSAGE } from '../server-utils';

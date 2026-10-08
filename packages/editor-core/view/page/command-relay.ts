@@ -3,7 +3,7 @@
  *
  * In a session a caller posts a command to the server, the server hands it to the tab over the
  * control channel as an `editor-command` event, the tab's listener runs it
- * (`@volter/editor-sdk` `kit/command-listener.ts`) and reports `command-result`, and the server
+ * (`@volter/sdk` `kit/command-listener.ts`) and reports `command-result`, and the server
  * answers the caller (`server/routes/relay.ts`, `control-plane.ts`).
  *
  * A limited view has the tab and its listener and no server, so the page is both ends: this
@@ -13,9 +13,9 @@
  * contributed verb run unchanged; the request and response shapes are the session's.
  */
 
-import type { ViewRoute } from '@volter/editor-sdk/session/limited-view';
-import { COMMAND_RESULT_RECEIPT_EVENT } from '@volter/editor-sdk/session/editor-control-protocol';
-import { relayCommandTimeoutMs } from '@volter/editor-sdk/session/command-table';
+import type { ViewRoute } from '@volter/sdk/session/limited-view';
+import { COMMAND_RESULT_RECEIPT_EVENT } from '@volter/sdk/session/editor-control-protocol';
+import { relayCommandTimeoutMs } from '@volter/sdk/session/command-table';
 
 /** What a command answered: the session's `{ ok, error?, data? }`, and whether its budget ran out. */
 export interface PageCommandResult {

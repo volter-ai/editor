@@ -53,11 +53,11 @@ import type { Application, Container } from 'pixi.js';
 import { createElement } from 'react';
 import type { Root } from 'react-dom/client';
 import { withApplicationCollector } from '../canvas-preview-frames';
-import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
+import { CrashNullBoundary } from '@volter/sdk/kit/crash-null-boundary';
 import { mountedStoryHasPixiContent } from './pixi-story-model';
-import { resolveStoryDomRuntime } from '@volter/editor-sdk/kit/stories/story-dom-runtime';
-import { runInStoryMountTurn } from '@volter/editor-sdk/kit/stories/story-mount-turn';
-import type { StoryPreviewComponent } from '@volter/editor-sdk/kit/stories/story-preview-component';
+import { resolveStoryDomRuntime } from '@volter/sdk/kit/stories/story-dom-runtime';
+import { runInStoryMountTurn } from '@volter/sdk/kit/stories/story-mount-turn';
+import type { StoryPreviewComponent } from '@volter/sdk/kit/stories/story-preview-component';
 
 /**
  * How long the mount waits for the story's `Application` to finish initializing

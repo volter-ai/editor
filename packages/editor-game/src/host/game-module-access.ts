@@ -1,4 +1,4 @@
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { commandLine } from '@volter/sdk/kit/product-command';
 /**
  * THE MODULE LANE of `volter-game-editor eval` — reach the RUNNING mount's own module
  * instances, by served path, using URLs retained by their owning realm.

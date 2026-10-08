@@ -1,4 +1,4 @@
-import { announceDocumentStage } from '@volter/editor-sdk/kit/document-viewports';
+import { announceDocumentStage } from '@volter/sdk/kit/document-viewports';
 import { lazy, Suspense, useEffect } from 'react';
 import type { ToolObject3DAuthoringProps, ToolObject3DPreviewProps } from '../../object3d-contributions';
 

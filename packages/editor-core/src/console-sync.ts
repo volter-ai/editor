@@ -1,5 +1,5 @@
-import { type ConsoleEntry, editorConsole, installEditorConsoleCapture } from '@volter/editor-sdk/kit/editor-console';
-import { EDITOR_CLIENT_ID, sendControl } from '@volter/editor-sdk/kit/editor-presence';
+import { type ConsoleEntry, editorConsole, installEditorConsoleCapture } from '@volter/sdk/kit/editor-console';
+import { EDITOR_CLIENT_ID, sendControl } from '@volter/sdk/kit/editor-presence';
 
 /**
  * Push every console ERROR and WARNING this page sees to the server's

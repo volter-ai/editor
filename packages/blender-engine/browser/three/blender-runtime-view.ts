@@ -749,7 +749,7 @@ export class BlenderRuntimeView {
    * visibility belongs to the viewport's Helpers menu rather than to this
    * presenter, and the door for that is the host's own — a document hands
    * each group to its stage's `setHelper(kind, object)`
-   * (`@volter/editor-sdk/host`, `EditorHostStage`), which marks it
+   * (`@volter/sdk/host`, `EditorHostStage`), which marks it
    * `editorHelper`, keeps it out of the hierarchy and the raycast, and turns
    * it on and off with the kind's checkbox. `blender-runtime.document.tsx`
    * is where they are handed over.

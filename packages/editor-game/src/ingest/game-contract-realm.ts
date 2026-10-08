@@ -2,7 +2,7 @@ import { gameRealmForMountId } from '../host/gated-globals';
 import {
   readGameContract,
   type VolterGameContract,
-} from '@volter/editor-project/adapter/ingest/game-contract';
+} from '@volter/project/adapter/ingest/game-contract';
 
 /**
  * The browser realm used by the singleton ingest routes.

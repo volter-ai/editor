@@ -13,7 +13,7 @@ import { type Dirent, readFileSync } from 'node:fs';
 import { readdir, readFile, stat, unlink } from 'node:fs/promises';
 import type { IncomingMessage } from 'node:http';
 import { join, relative, sep } from 'node:path';
-import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
+import { isContainedRelativePath } from '@volter/sdk/session/relative-path-guard';
 
 export async function installProjectDependencies(projectPath: string): Promise<void> {
   await new Promise<void>((resolveInstall, rejectInstall) => {

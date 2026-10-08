@@ -2507,7 +2507,7 @@ g(
  *    glyph — and an explicit site tone wins by contract. A tone there would
  *    never paint.
  */
-/** The union `IconCategoryTone` declares (`@volter/editor-sdk/looks`), and the
+/** The union `IconCategoryTone` declares (`@volter/sdk/looks`), and the
  *  reason `blender.style.ts` may narrow this JSON with an assertion: a tone
  *  outside it never reaches the artifact. */
 const TONES = ['object', 'modifier', 'material', 'tool', 'operator', 'data', 'scene', 'collection', 'select'];

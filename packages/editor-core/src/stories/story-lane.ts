@@ -28,7 +28,7 @@
  * directly, so deferring the discovery scan alone would move no file out of
  * the closure and would only make the install order harder to read.
  *
- * WHAT IS NOT HERE, and why. `@volter/editor-project/adapter`'s `StoriesProvider` is the
+ * WHAT IS NOT HERE, and why. `@volter/project/adapter`'s `StoriesProvider` is the
  * CONTRACT — an adapter says which named states a node has, in its own
  * vocabulary, and answers `unavailable()` itself — so it and
  * `components/InspectorStoriesSection.tsx` (the section that DRAWS a contract)
@@ -38,18 +38,18 @@
  * namespace.
  */
 
-import { registerContributedActions } from '@volter/editor-sdk/kit/chrome-registry';
-import { registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
-import { registerComponentStatesSource } from '@volter/editor-sdk/kit/component-states-registry';
-import { registerContentEntrySource } from '@volter/editor-sdk/kit/content-entry-source-registry';
-import { refreshProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
+import { registerContributedActions } from '@volter/sdk/kit/chrome-registry';
+import { registerContributedCommands } from '@volter/sdk/kit/command-registry';
+import { registerComponentStatesSource } from '@volter/sdk/kit/component-states-registry';
+import { registerContentEntrySource } from '@volter/sdk/kit/content-entry-source-registry';
+import { refreshProjectAdapter } from '@volter/sdk/kit/project-adapter';
 import { storyComponentContentSource } from './component-content-source';
 import { componentStatesSource } from './component-states-source';
 import { startProjectStoryDiscovery } from './project-story-discovery';
 import { storyPaletteActions } from './story-actions';
 import { STORY_CAPTURE_COMMAND_SOURCE, storyCaptureCommands } from './story-capture-command';
 import { registerStoryOpener } from './story-opener';
-import { subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
+import { subscribeProjectStoryModules } from '@volter/sdk/kit/stories/story-registry';
 
 /** Install the whole lane. Returns the teardown, in reverse order. */
 export function installStoryLane(): () => void {

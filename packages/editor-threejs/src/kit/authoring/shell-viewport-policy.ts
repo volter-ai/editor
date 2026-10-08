@@ -14,11 +14,11 @@
  */
 
 import type { ViewportAuthoringPolicy } from '../viewport-authoring-policy';
-import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
-import { pickTopmost } from '@volter/editor-sdk/kit/authoring/layered-pick';
-import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
-import { isViewportToolContextVisible, resolveViewportToolContext } from '@volter/editor-sdk/kit/authoring/viewport-tool-context';
+import { getActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
+import { CompositeAuthoringAdapter } from '@volter/sdk/kit/authoring/composite-authoring-adapter';
+import { pickTopmost } from '@volter/sdk/kit/authoring/layered-pick';
+import { resolvePanelAuthoring } from '@volter/sdk/kit/authoring/panel-authoring';
+import { isViewportToolContextVisible, resolveViewportToolContext } from '@volter/sdk/kit/authoring/viewport-tool-context';
 import {
   applyRootHiddenVisibility,
   isThreejsSurfaceVisible,

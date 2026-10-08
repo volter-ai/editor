@@ -59,7 +59,7 @@
  * and source-served runtime import separate copies against the same Three.
  */
 
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import { installAudioPoseGuard as installSharedAudioPoseGuard } from '../runtime/audio/pose-guard';
 
 export { audioPoseUpdatesDropped } from '../runtime/audio/pose-guard';

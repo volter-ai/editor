@@ -12,16 +12,16 @@ import { PlayBar } from '../play-bar/PlayBar';
  */
 
 import { ResolutionPicker } from '../host/components/ResolutionPicker';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { getCurrentProject, onProjectChange } from '@volter/editor-sdk/kit/active-project';
-import type { LiveDocumentContentProps } from '@volter/editor-sdk/host';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { getCurrentProject, onProjectChange } from '@volter/sdk/kit/active-project';
+import type { LiveDocumentContentProps } from '@volter/sdk/host';
 import {
   AnchoredMenu,
   Button,
   DisclosureIcon,
   MenuItem,
   themeVars,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { useRef, useState, useSyncExternalStore } from 'react';
 import { crowdDebugEnabled, setCrowdDebugEnabled } from './crowd-debug';
 import { DevicePresetPicker } from './DevicePresetPicker';

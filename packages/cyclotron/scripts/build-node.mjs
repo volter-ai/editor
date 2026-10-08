@@ -5,7 +5,7 @@ const result = await build({
   metafile: true,
   entryPoints: ['create', 'cli'].map(name => fileURLToPath(new URL(`../node/${name}.ts`, import.meta.url))),
   outdir: fileURLToPath(new URL('../dist-node', import.meta.url)),
-  external: ['@volter/editor-live', '@modelcontextprotocol/sdk', 'undici'],
+  external: ['@volter/live', '@modelcontextprotocol/sdk', 'undici'],
   bundle: true, platform: 'node', format: 'esm', target: 'node22',
 });
 

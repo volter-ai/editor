@@ -11,7 +11,7 @@
  * #00ff00, #0000ff. The fill is black, what an Unreal level with no sky shows.
  * Light, sky and overlays are the VIEW's presentation, not this look's.
  */
-import type { StyleContribution } from '@volter/editor-sdk/looks';
+import type { StyleContribution } from '@volter/sdk/looks';
 import palette from './unreal.palette.json';
 
 export const point = 'workspace.style';

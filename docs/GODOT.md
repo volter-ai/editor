@@ -629,7 +629,7 @@ handwritten translator ported twelve games that booted. Since then, nothing real
 
 **`godot-runtime` is the runtime framework rule 4 retires.** It exports
 `createGodotSceneScheduler`, `createGodotSharedRuntime`, the input map, a game random stream and
-physics and audio system slots, and it imports `@volter/editor-project`'s adapter seams. The
+physics and audio system slots, and it imports `@volter/project`'s adapter seams. The
 production path never copies it: the snapshot selects only `godot-compat` and what it requires.
 
 **One corpus game is eligible.** Of the twelve pinned games, six are Godot 3, refused until a

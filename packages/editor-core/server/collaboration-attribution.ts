@@ -8,7 +8,7 @@
  * closed, so a later idle snapshot cannot re-open it.
  */
 
-import type { CollaborationRole } from '@volter/editor-sdk/session/collaboration-types';
+import type { CollaborationRole } from '@volter/sdk/session/collaboration-types';
 import type { CollaborationSession } from './collaboration-session';
 import type { ShareHost } from './share-host';
 import { isShareRole } from './share-session-gateway';

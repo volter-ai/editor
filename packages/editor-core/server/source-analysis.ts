@@ -1,16 +1,16 @@
 /**
  * The source questions the kit asks of a source-authoring integration on the server, answered
  * by whichever composed package's `volter.serving` module provides them
- * (`@volter/editor-sdk/session/project-serving`). With none composed, a source proves no dialect
+ * (`@volter/sdk/session/project-serving`). With none composed, a source proves no dialect
  * and carries no authoring diagnostics: a product with no such integration authors no JSX.
  */
 
 import type {
   R3fAuthoringDiagnostic,
   SourceDialectEvidence,
-} from '@volter/editor-sdk/source-authoring';
-import { registerComponentContractAnalyzer } from '@volter/editor-sdk/source-analysis';
-import type { ProjectServingModule } from '@volter/editor-sdk/session/project-serving';
+} from '@volter/sdk/source-authoring';
+import { registerComponentContractAnalyzer } from '@volter/sdk/source-analysis';
+import type { ProjectServingModule } from '@volter/sdk/session/project-serving';
 
 const NO_EVIDENCE: SourceDialectEvidence = { reconcilerImport: false, r3fOnlyTags: [], domOnlyTags: [] };
 

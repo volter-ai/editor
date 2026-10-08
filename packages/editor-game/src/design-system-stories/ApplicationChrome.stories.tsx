@@ -1,13 +1,13 @@
-import { ensureCoreUtilitiesRegistered } from '@volter/editor-sdk/kit/components/core-utilities';
-import { ProjectHeader } from '@volter/editor-sdk/kit/components/ProjectHeader';
-import { ensureCoreStatusContributionsRegistered } from '@volter/editor-sdk/kit/components/status-contributions';
+import { ensureCoreUtilitiesRegistered } from '@volter/sdk/kit/components/core-utilities';
+import { ProjectHeader } from '@volter/sdk/kit/components/ProjectHeader';
+import { ensureCoreStatusContributionsRegistered } from '@volter/sdk/kit/components/status-contributions';
 import {
   installStoryWorkspaceUtilityController,
   StoryEditorRuntime,
 } from '../host/design-system-stories/fixtures/editor-runtime';
 import { DesignSystemPage, StorySection } from '../host/design-system-stories/StoryLayout';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { getCurrentProject, setActiveProject } from '@volter/editor-sdk/kit/active-project';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { getCurrentProject, setActiveProject } from '@volter/sdk/kit/active-project';
 import type { Meta, StoryObj } from '@storybook/react';
 import { useLayoutEffect, useState } from 'react';
 // The transport is `@volter/editor-game`'s; this gallery story shows its view over

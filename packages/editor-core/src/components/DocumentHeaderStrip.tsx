@@ -2,15 +2,15 @@ import {
   documentViewport,
   documentViewportsVersion,
   subscribeDocumentViewports,
-} from '@volter/editor-sdk/kit/document-viewports';
+} from '@volter/sdk/kit/document-viewports';
 import {
   bindDocumentSecondAreaHeader,
   documentAreasVersion,
   documentSecondArea,
   subscribeDocumentAreas,
-} from '@volter/editor-sdk/kit/document-areas';
+} from '@volter/sdk/kit/document-areas';
 import { type ReactNode, Suspense, useCallback, useSyncExternalStore } from 'react';
-import { chromeRegionsKey, subscribeChromeRegions } from '@volter/editor-sdk/kit/workspace-regions';
+import { chromeRegionsKey, subscribeChromeRegions } from '@volter/sdk/kit/workspace-regions';
 
 /**
  * THE DOCUMENT HEADER STRIP — the one region every document's header lives
@@ -26,11 +26,11 @@ import { chromeRegionsKey, subscribeChromeRegions } from '@volter/editor-sdk/kit
  *  - the controls the document's stage adds to its header (a three.js
  *    stage's frame, camera, shading, environment and preview capture) for
  *    ANY document whose stage registered a viewport
- *    (`@volter/editor-sdk/kit/document-viewports`), so no descriptor has to
+ *    (`@volter/sdk/kit/document-viewports`), so no descriptor has to
  *    declare them. A chromeless mount (an inspector preview) registers none
  *    and gets no strip.
  *
- * AFTER THEM, THE HEADER OF THE DOCUMENT'S SECOND AREA (`@volter/editor-sdk/kit/document-areas`):
+ * AFTER THEM, THE HEADER OF THE DOCUMENT'S SECOND AREA (`@volter/sdk/kit/document-areas`):
  * an empty region as wide as the document asked, which it draws that area's header into, so a
  * document split into areas side by side has one header over each, as Blender's areas do.
  *

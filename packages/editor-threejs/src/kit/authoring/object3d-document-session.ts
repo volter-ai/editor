@@ -1,7 +1,7 @@
-import { createPerformanceProfiler } from '@volter/editor-sdk/kit/performance-profiler';
-import { resetViewPresentation, setViewPresentation, type ViewportXray } from '@volter/editor-sdk/kit/viewport-presentation';
-import { invalidateStages } from '@volter/editor-sdk/kit/stage-invalidation';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import { createPerformanceProfiler } from '@volter/sdk/kit/performance-profiler';
+import { resetViewPresentation, setViewPresentation, type ViewportXray } from '@volter/sdk/kit/viewport-presentation';
+import { invalidateStages } from '@volter/sdk/kit/stage-invalidation';
+import type { AuthoringAdapter } from '@volter/project/adapter';
 import { viewportCaptureOutputPass } from '@volter/editor-threejs/capture/output-pass';
 import { resolveSceneLinearSize } from '@volter/editor-threejs/capture/linear-resolve';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
@@ -17,10 +17,10 @@ import { DepthDrawMaterials } from '../../render/depth-draw-materials';
 import type { DocumentDisplayTransform } from '../../render/document-display-transform';
 import { threeObject } from '../../adapter/three-contract';
 import { axisViewName, cameraPresetDirection, type ModelCameraPreset } from '../asset-workflow/model-inspection';
-import { activeKeymapNavigation } from '@volter/editor-sdk/kit/keymap-presets';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { activeKeymapNavigation } from '@volter/sdk/kit/keymap-presets';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import { type EditorViewport } from '../editor-viewport';
-import { nativeSelectionColors, subscribeNativeSelectionTheme } from '@volter/editor-sdk/kit/native-selection-style';
+import { nativeSelectionColors, subscribeNativeSelectionTheme } from '@volter/sdk/kit/native-selection-style';
 import { BoneSelectionHighlight } from '../three-viewport/bone-selection-highlight';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
 import {
@@ -31,7 +31,7 @@ import {
 } from '../three-viewport/selection-outline';
 import { styleEditorSkeletonHelper } from '../three-viewport/skeleton-helper';
 import { isEditorViewportShadingTarget } from '../viewport-shading-boundary';
-import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/sdk/kit/authoring/consumer-actions';
 import type { ToolCameraView, ToolCameraViewSource } from '../../object3d-contributions';
 
 export type Object3DDocumentViewMode = ViewportShadingMode | 'uv' | 'vertex-colors';
@@ -1959,7 +1959,7 @@ export {
 /**
  * OBJECT ORIGINS: a dot at the origin of each selected object, drawn over everything at a fixed
  * pixel size — Blender's "Origins" overlay (`overlays.selection.origins` in
- * `@volter/editor-sdk/kit/viewport-presentation`). Blender draws it one pixel wider than its
+ * `@volter/sdk/kit/viewport-presentation`). Blender draws it one pixel wider than its
  * Object Origin Size (default 6; `overlay_instance.cc`: `obcenter_dia + 1`) with a one-pixel
  * dark rim, and in the active object's
  * colour for the active object; the kit's rule for the active colour stands in for that: a lone

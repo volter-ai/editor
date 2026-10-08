@@ -67,7 +67,7 @@ export function viewBackgroundFor(theme: IColorTheme, utilityId: string): Color 
 /*---------------------------------------------------------------------------------------------
  *  THE 3D VIEWPORT'S COLOURS ARE THEME COLOURS TOO — U8's ruling (2) carried to the stage.
  *
- *  A look's palette names them (`color.viewport`, `color.gizmo`, `@volter/editor-sdk`'s
+ *  A look's palette names them (`color.viewport`, `color.gizmo`, `@volter/sdk`'s
  *  `EditorTheme`), and the editor hands them to the frame as colour customizations
  *  (`volterSettings.ts`, the look's own layer); the workbench emits each as `--vscode-<id>` and
  *  the stage reads that first (`native-selection-style.ts`). So a person's own

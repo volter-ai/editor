@@ -204,7 +204,7 @@ import {
   REACT_WORLD_RUNTIME_PATH,
   STORY_RUNTIME_PATH,
   THREE_INGEST_RUNTIME_PATH,
-} from '@volter/editor-sdk/host';
+} from '@volter/sdk/host';
 import type { Plugin } from 'vite';
 
 /** One `from '<specifier>'` line of a doorway's synthetic module body. */
@@ -240,8 +240,8 @@ export {
   REACT_WORLD_RUNTIME_PATH,
   THREE_INGEST_RUNTIME_PATH,
 };
-/** The dynamic-import-facing URL `@volter/editor-sdk/kit/stories/story-dom-runtime` imports. Its
- *  one spelling is `@volter/editor-sdk/host`, because a reader reaches a host
+/** The dynamic-import-facing URL `@volter/sdk/kit/stories/story-dom-runtime` imports. Its
+ *  one spelling is `@volter/sdk/host`, because a reader reaches a host
  *  fact through the published door and never through this build tier; this
  *  plugin still owns WHAT is served at that address, below. */
 export { STORY_RUNTIME_PATH };

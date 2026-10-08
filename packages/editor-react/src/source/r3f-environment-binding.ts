@@ -10,8 +10,8 @@
 import ts from 'typescript';
 import { jsxAttribute, numericLiteral } from './ts-ast';
 
-import type { R3fEnvironmentBinding, R3fEnvironmentNumberBinding, R3fEnvironmentStringBinding } from '@volter/editor-sdk/source-authoring';
-export type { R3fEnvironmentBinding, R3fEnvironmentNumberBinding, R3fEnvironmentStringBinding } from '@volter/editor-sdk/source-authoring';
+import type { R3fEnvironmentBinding, R3fEnvironmentNumberBinding, R3fEnvironmentStringBinding } from '@volter/sdk/source-authoring';
+export type { R3fEnvironmentBinding, R3fEnvironmentNumberBinding, R3fEnvironmentStringBinding } from '@volter/sdk/source-authoring';
 
 function attributeString(attribute: ts.JsxAttribute | undefined): string | undefined {
   const initializer = attribute?.initializer;

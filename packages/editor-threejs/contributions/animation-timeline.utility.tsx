@@ -5,9 +5,9 @@
  * this is where a person scrubs and plays them in Edit, as Unity's Animation window does beside
  * its Scene view. While Play drives time the strip goes read-only and says why.
  */
-import { editorHost } from '@volter/editor-sdk/host';
-import { TransportStrip } from '@volter/editor-sdk/kit/transport-strip';
-import { Text } from '@volter/editor-sdk/widgets';
+import { editorHost } from '@volter/sdk/host';
+import { TransportStrip } from '@volter/sdk/kit/transport-strip';
+import { Text } from '@volter/sdk/widgets';
 import { useCallback, useSyncExternalStore } from 'react';
 
 export const point = 'workspace.utility';

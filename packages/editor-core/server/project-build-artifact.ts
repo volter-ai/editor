@@ -11,9 +11,9 @@ import {
   type BuildReport,
   type BuildReportFile,
   webBuildArtifactName,
-} from '@volter/editor-sdk/session/build-report';
+} from '@volter/sdk/session/build-report';
 import { zipSync } from 'fflate';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
 
 interface OutputFile extends BuildReportFile {
   readonly absolutePath: string;

@@ -30,18 +30,18 @@
  * ingest keeps its own lifecycle).
  */
 
-import { activateLiveDocument } from '@volter/editor-sdk/kit/live-document';
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import { queueEditModeRebuild } from '@volter/editor-sdk/kit/authoring/edit-mode-authoring';
+import { activateLiveDocument } from '@volter/sdk/kit/live-document';
+import { commandLine } from '@volter/sdk/kit/product-command';
+import { queueEditModeRebuild } from '@volter/sdk/kit/authoring/edit-mode-authoring';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import { fetchGameManifest } from '@volter/editor-sdk/kit/manifest-project';
+import { fetchGameManifest } from '@volter/sdk/kit/manifest-project';
 import {
   type ProjectAdapterFacet,
   projectAdapterFacet,
   subscribeProjectAdapter,
-} from '@volter/editor-sdk/kit/project-adapter';
-import { sceneTabRow } from '@volter/editor-sdk/kit/scene-document-plan';
-import { ingestRoots } from '@volter/editor-project/adapter/manifest-interpreter';
+} from '@volter/sdk/kit/project-adapter';
+import { sceneTabRow } from '@volter/sdk/kit/scene-document-plan';
+import { ingestRoots } from '@volter/project/adapter/manifest-interpreter';
 import { activeIngest } from './active-ingest';
 import {
   beginDeferredIngestPlaySession,

@@ -24,15 +24,15 @@ import {
   type AdapterInputValue,
   type AdapterInputValueType,
   type ObservationDeclaration,
-} from '@volter/editor-project/adapter/adapter-module';
-import type { ObservationBinding } from '@volter/editor-project/adapter/binding';
-import { adapterInputBinding, adapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
+} from '@volter/project/adapter/adapter-module';
+import type { ObservationBinding } from '@volter/project/adapter/binding';
+import { adapterInputBinding, adapterObservations } from '@volter/sdk/kit/adapter-observation';
 import { observedGameAudio } from '../services/game-audio';
 import { observedGameNetwork } from '../services/game-network';
 import { observedRapierPhysics, rapierContextFor } from '../services/game-physics';
 import { projectDependencyNames, projectVerbFacts } from '../coverage/live-project-verbs';
 import type * as THREE from 'three';
-import type { NativeSystemsBinding } from '@volter/editor-project/adapter/native-entry-surface';
+import type { NativeSystemsBinding } from '@volter/project/adapter/native-entry-surface';
 
 const ADAPTER_REGISTRATION_ID = '__adapter__';
 const installedGames = new WeakSet<Game>();

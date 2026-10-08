@@ -9,7 +9,7 @@
  */
 
 import express, { type Request, type Response } from 'express';
-import { ProviderCredentialIdSchema } from '@volter/editor-sdk/account';
+import { ProviderCredentialIdSchema } from '@volter/sdk/account';
 import { editorBrandName, escapeHtml as escapeBrandHtml, renderEditorBrandPage } from '../editor-brand-html';
 import type { EditorServerRouter } from '../editor-server';
 import type { RouteContext } from './context';

@@ -4,10 +4,10 @@ import { constants, existsSync, symlinkSync } from 'node:fs';
 import { mkdir, writeFile, copyFile, readFile, readdir } from 'node:fs/promises';
 import { resolve, join, dirname, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { GameManifestSchema } from '@volter/editor-project/manifest/schema';
-import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
-import type { ProductCreateDeclaration } from '@volter/editor-sdk/session/product-create';
-import type { UpgradingProduct } from '@volter/editor-sdk/session/project-upgrade';
+import { GameManifestSchema } from '@volter/project/manifest/schema';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
+import type { ProductCreateDeclaration } from '@volter/sdk/session/product-create';
+import type { UpgradingProduct } from '@volter/sdk/session/project-upgrade';
 import productPackage from '../package.json';
 
 export const productRoot = resolve(dirname(fileURLToPath(import.meta.url)), '..');
@@ -43,7 +43,7 @@ export const PLAY_SCAFFOLD = {
   resolution: { width: 1280, height: 720 },
   dependencies: { react: '~19.2.4', 'react-dom': '~19.2.4', three: '^0.180.0' } as Record<string, string>,
   /** The kit packages Play and the DOM root need, at the kit version this product was released against. */
-  devDependencies: (kit: string): Record<string, string> => ({ '@volter/editor-model-play': kit, '@volter/editor-ui': kit, '@volter/editor-react': kit }),
+  devDependencies: (kit: string): Record<string, string> => ({ '@volter/play': kit, '@volter/editor-ui': kit, '@volter/editor-react': kit }),
   /** The adapter line that lets the UI board discover `src/ui` stories. */
   regionIncludes: "  regionIncludes: { ui: { include: ['src/ui/**/*.tsx'] } },\n",
 } as const;
@@ -83,7 +83,7 @@ export const PROJECT_TSCONFIG = JSON.stringify({
  *  editor-core's: that is the version the editor reports as running. */
 export async function productVersions(): Promise<{ product: { version: string; dependencies: Record<string, string> }; kit: string }> {
   const product = JSON.parse(await readFile(join(productRoot, 'package.json'), 'utf8')) as { version: string; dependencies: Record<string, string> };
-  return { product, kit: product.dependencies['@volter/editor-project']! };
+  return { product, kit: product.dependencies['@volter/project']! };
 }
 
 export const declaration: ProductCreateDeclaration = {
@@ -123,7 +123,7 @@ function checkoutNodeModules(): string | null {
   for (let dir = productRoot; dirname(dir) !== dir; dir = dirname(dir)) {
     if (existsSync(join(dir, 'packages', 'cyclotron', 'package.json'))) {
       const nodeModules = join(dir, 'node_modules');
-      return existsSync(join(nodeModules, '@volter', 'editor-project', 'package.json')) ? nodeModules : null;
+      return existsSync(join(nodeModules, '@volter', 'project', 'package.json')) ? nodeModules : null;
     }
   }
   return null;
@@ -159,7 +159,7 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
       ...(playable ? { dependencies: PLAYABLE.dependencies } : {}),
       devDependencies: {
         '@volter/cyclotron': product.version,
-        '@volter/editor-project': kit,
+        '@volter/project': kit,
         '@volter/editor-blender': product.dependencies['@volter/editor-blender'],
         ...(playable ? PLAYABLE.devDependencies(kit) : {}),
       },
@@ -168,7 +168,7 @@ export async function writeProject({ name, targetDir, template }: Parameters<Pro
     // shared compiler configuration before Vite starts, so the first check does
     // not have to create a tsconfig and reload the person's live editor.
     await write('tsconfig.json', PROJECT_TSCONFIG);
-    await write('volter.adapter.ts', `import { defineAdapter } from '@volter/editor-project/adapter/adapter-module';
+    await write('volter.adapter.ts', `import { defineAdapter } from '@volter/project/adapter/adapter-module';
 import { ModelLayout } from '@volter/editor-blender/layouts';
 import { blenderStyle, blenderKeymap } from '@volter/editor-blender/looks';
 

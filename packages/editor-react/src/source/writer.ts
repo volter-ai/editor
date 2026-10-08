@@ -9,8 +9,8 @@
 
 import { UTILITY_CLASSES_UNPROVEN, type UtilityClassSupport } from './utility-class-support';
 
-import type { DuplicateRewrite } from '@volter/editor-sdk/source-authoring';
-export type { DuplicateRewrite } from '@volter/editor-sdk/source-authoring';
+import type { DuplicateRewrite } from '@volter/sdk/source-authoring';
+export type { DuplicateRewrite } from '@volter/sdk/source-authoring';
 
 export interface StyleProperty {
   name: string;

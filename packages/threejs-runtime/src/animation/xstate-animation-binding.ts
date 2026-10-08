@@ -1,4 +1,4 @@
-import type { SystemFn, SystemOptions, SystemPhaseName } from '@volter/editor-project/core/system-phase';
+import type { SystemFn, SystemOptions, SystemPhaseName } from '@volter/project/core/system-phase';
 import * as THREE from 'three';
 import type { AnyStateMachine } from 'xstate';
 import {

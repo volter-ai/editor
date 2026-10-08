@@ -15,9 +15,9 @@
  * every editor bundle, including one opening a three-only project.
  */
 
-import type { RootAdapter } from '@volter/editor-project/adapter';
-import { CANVAS_RUNTIME_PATH } from '@volter/editor-sdk/host';
-import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
+import type { RootAdapter } from '@volter/project/adapter';
+import { CANVAS_RUNTIME_PATH } from '@volter/sdk/host';
+import { isPackagedRuntime } from '@volter/sdk/kit/packaged-runtime';
 import type * as PIXI from 'pixi.js';
 import { createElement, Fragment, useEffect, useLayoutEffect } from 'react';
 import { type CanvasRuntime, resolveCanvasEntryAdapter } from './roots/canvas-root';

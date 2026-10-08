@@ -167,7 +167,7 @@ function applyFrozenDependencyDeclarations(
  */
 const TEMPLATE_PACKAGES_NOT_CARRIED = ['@colyseus/schema', '@colyseus/sdk', '@colyseus/ws-transport', 'colyseus', 'zod'] as const;
 /** The template's packages only the editor's files use (`volter.adapter.ts`, `vite.config.ts`): development dependencies. */
-const EDITOR_FILE_PACKAGES = ['@volter/editor-project'] as const;
+const EDITOR_FILE_PACKAGES = ['@volter/project'] as const;
 
 function plannedPackageManifest(
   project: BoundGodotProject,
@@ -324,7 +324,7 @@ export function planDirectGodotProjectData(
         worldModule: worldModule(composition),
         ...(controls ? { uiModule: { targetPath: 'src/ui.tsx', sourcePaths: worldModule(composition).sourcePaths } } : {}),
         manifest: {
-          $schema: './node_modules/@volter/editor-project/schemas/volter-project.schema.json',
+          $schema: './node_modules/@volter/project/schemas/volter-project.schema.json',
           manifestVersion: 2,
           name: project.projectName,
           appId: appId(project.projectName),

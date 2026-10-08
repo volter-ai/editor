@@ -23,13 +23,13 @@ import { type ChildProcess, spawn } from 'node:child_process';
 import net from 'node:net';
 import { join } from 'node:path';
 import type { Request, Response } from 'express';
-import type { DeclaredConfiguration } from '@volter/editor-project/manifest/configuration-kinds';
+import type { DeclaredConfiguration } from '@volter/project/manifest/configuration-kinds';
 import {
   configurationKind,
   PLAY_CONFIGURATION_ID,
-} from '@volter/editor-project/manifest/configuration-kinds';
-import { loadGameManifestDir } from '@volter/editor-project/manifest/load-file';
-import { nodeRuntimeIssue } from '@volter/editor-project/manifest/runtime-environment';
+} from '@volter/project/manifest/configuration-kinds';
+import { loadGameManifestDir } from '@volter/project/manifest/load-file';
+import { nodeRuntimeIssue } from '@volter/project/manifest/runtime-environment';
 import type { EditorServerRouter } from '../editor-server';
 import { packageProjectWebBuild } from '../project-build-artifact';
 import { ensureProjectConfigurationKinds, kindModuleLoader } from '../project-kinds';

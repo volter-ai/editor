@@ -1,15 +1,15 @@
 import { createHash, randomBytes, timingSafeEqual } from 'node:crypto';
 import { createServer, request as httpRequest, type Server } from 'node:http';
-import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
+import { EDITOR_BRAND } from '@volter/sdk/session/editor-brand';
 import type {
   ShareAccount,
   ShareAuditEvent,
   ShareCapability,
   ShareParticipant,
   ShareRole,
-} from '@volter/editor-sdk/share';
+} from '@volter/sdk/share';
 import { WebSocket, WebSocketServer } from 'ws';
-import { editorHmrPort } from '@volter/editor-project/manifest/editor-port';
+import { editorHmrPort } from '@volter/project/manifest/editor-port';
 import {
   isServableFsExtension,
   isServableFsPath,
@@ -24,7 +24,7 @@ const CALLBACK_PATH = '/__volter_share/callback';
 const COMPLETE_PATH = '/__volter_share/complete';
 const HEALTH_PATH = '/__volter_share/health';
 
-export type { ShareCapability, ShareRole } from '@volter/editor-sdk/share';
+export type { ShareCapability, ShareRole } from '@volter/sdk/share';
 
 const ROLE_CAPABILITIES: Record<ShareRole, readonly ShareCapability[]> = {
   viewer: ['view'],

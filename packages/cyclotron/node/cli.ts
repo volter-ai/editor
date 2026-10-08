@@ -3,7 +3,7 @@ import { parseArgs } from 'node:util';
 import { resolve, dirname } from 'node:path';
 import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
-import { hasManifest } from '@volter/editor-project/manifest/locate';
+import { hasManifest } from '@volter/project/manifest/locate';
 import productPackage from '../package.json';
 import { declaration, UPGRADING } from './create';
 import { startupProject } from './startup';
@@ -15,8 +15,8 @@ import { play, PLAY_USAGE } from './play';
 import { launch, prepareSession, VIEW_BUILD_USAGE, viewBuild, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { capture, CAPTURE_OPTIONS, CAPTURE_USAGE, listRecentProjects, listSessions, openProject, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
-import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
-import { declaredRetiredProduct, retiredProjectError, upgradeProject, UPGRADE_USAGE } from '@volter/editor-sdk/session/project-upgrade';
+import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/sdk/session/workbench-locator';
+import { declaredRetiredProduct, retiredProjectError, upgradeProject, UPGRADE_USAGE } from '@volter/sdk/session/project-upgrade';
 
 // The command and the name a person sees are the package's own declarations
 // (`bin`, `volter.product.displayName`), the same ones the session reads.
@@ -95,7 +95,7 @@ try {
     // MCP must answer initialization immediately. Only a scene request opens
     // an editor; launcher output goes to stderr so stdout remains JSON-RPC.
     await serveBlenderMcp(project, async () => {
-      const { resolveSession } = await import('@volter/editor-live');
+      const { resolveSession } = await import('@volter/live');
       if (values['existing-session']) {
         // Propagate attachment failures without the ordinary lazy editor launch.
         await resolveSession(project);

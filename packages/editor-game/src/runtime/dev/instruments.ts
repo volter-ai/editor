@@ -49,7 +49,7 @@
  * collider instruments only drive state that `Game` already owns.
  */
 
-import { nodeKeyedPhysics } from '@volter/editor-project/adapter/system-adapter';
+import { nodeKeyedPhysics } from '@volter/project/adapter/system-adapter';
 import { z } from 'zod';
 import { clampTimeScale, TIME_SCALE_RANGE } from '../core/frame-pacing';
 import { getDebugRegistry } from '../debug-registry';

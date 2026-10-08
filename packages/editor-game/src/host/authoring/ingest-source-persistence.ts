@@ -24,20 +24,20 @@
  * property that cannot be honestly source-anchored presents as live-only.
  */
 
-import type { NodeCreationSite } from '@volter/editor-project/adapter';
-import { base64ToBytes, bytesToBase64, sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
+import type { NodeCreationSite } from '@volter/project/adapter';
+import { base64ToBytes, bytesToBase64, sha256Hex } from '@volter/sdk/kit/bytes-codec';
 import type {
   ChannelValue,
   CreationSiteLiteralReport,
   CreationSiteSurface,
   CreationSiteWriteScope,
-} from '@volter/editor-sdk/kit/creation-site-edit';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
-import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
-import { projectSourceAppliedChange } from '@volter/editor-sdk/kit/history/source-history-backend';
-import type { ResourceDriver, ResourceKey } from '@volter/editor-sdk/kit/history-types';
-import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+} from '@volter/sdk/kit/creation-site-edit';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { editorIsAuthoring } from '@volter/sdk/kit/editor-session-mode';
+import type { HistoryService } from '@volter/sdk/kit/history/history-service';
+import { projectSourceAppliedChange } from '@volter/sdk/kit/history/source-history-backend';
+import type { ResourceDriver, ResourceKey } from '@volter/sdk/kit/history-types';
+import type { SourceWriteBackend } from '@volter/sdk/kit/ui-source/source-write-backend';
 import {
   type DataEditPlan,
   dataPlacementRefusal,

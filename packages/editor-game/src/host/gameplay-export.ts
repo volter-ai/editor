@@ -1,4 +1,4 @@
-import type { OfflineAudioRenderer } from '@volter/editor-project/adapter';
+import type { OfflineAudioRenderer } from '@volter/project/adapter';
 import {
   AudioBufferSource,
   BufferTarget,
@@ -9,8 +9,8 @@ import {
   Quality,
   WebMOutputFormat,
 } from 'mediabunny';
-import type { CaptureOptions } from '@volter/editor-sdk/kit/composite-screenshot';
-import { createImageSnapshotCache, drawPlayCompositeFrame } from '@volter/editor-sdk/kit/composite-screenshot';
+import type { CaptureOptions } from '@volter/sdk/kit/composite-screenshot';
+import { createImageSnapshotCache, drawPlayCompositeFrame } from '@volter/sdk/kit/composite-screenshot';
 
 /** RMS and peak over all channels and samples: evidence the track is sound, not an all-zero
  *  buffer. */

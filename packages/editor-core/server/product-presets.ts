@@ -15,7 +15,7 @@
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { assertProductCreateDeclaration, type ProductCreateDeclaration } from '@volter/editor-sdk/session/product-create';
+import { assertProductCreateDeclaration, type ProductCreateDeclaration } from '@volter/sdk/session/product-create';
 import { sessionProduct } from './session-product';
 
 /**
@@ -48,7 +48,7 @@ export async function sessionCreatePresets(
     throw new Error(
       `${product.name} declares no create presets (${source} is missing), so this session cannot ` +
         'create a project. A product owns its own compositions — see ' +
-        '@volter/editor-sdk/session/product-create for its executable declaration.',
+        '@volter/sdk/session/product-create for its executable declaration.',
     );
   const module = (await import(pathToFileURL(source).href)) as { default?: unknown };
   return { declaration: assertProductCreateDeclaration(module.default, source), source };

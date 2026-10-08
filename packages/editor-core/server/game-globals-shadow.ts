@@ -17,7 +17,7 @@
  * for its entire mount regardless of editor focus.
  */
 import path from 'node:path';
-import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
+import { isEditorLanePath } from '@volter/sdk/session/tool-contribution-convention';
 import { isPathInside } from './server-utils';
 
 /**
@@ -101,7 +101,7 @@ export function isGameCssPath(file: string): boolean {
  * `html`/`body`/`*` rules cannot restyle the editor document. The sibling
  * of {@link shouldShadowGameGlobals} for stylesheets: first-party worlds
  * `import './style.css'`, which Vite injects as a page sheet unless this
- * transform contains it the same way `@volter/editor-sdk/session/scoped-game-css` contains
+ * transform contains it the same way `@volter/sdk/session/scoped-game-css` contains
  * a declared ingest stylesheet.
  */
 export function shouldScopeGameCss(file: string, roots: Iterable<string>): boolean {

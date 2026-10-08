@@ -15,7 +15,7 @@
  */
 
 import type { BlenderOutlinerRow, BlenderOutlinerTree } from '@volter/blender-engine/browser/rna';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import type * as THREE from 'three';
 import {
   blenderOutliner,

@@ -1,8 +1,8 @@
-import { commandLine, productCommand } from '@volter/editor-sdk/kit/product-command';
+import { commandLine, productCommand } from '@volter/sdk/kit/product-command';
 import { execFile, execFileSync } from 'node:child_process';
 import { existsSync, realpathSync } from 'node:fs';
 import { basename, dirname, join, resolve } from 'node:path';
-import { resolveManifestPath } from '@volter/editor-project/manifest/load-file';
+import { resolveManifestPath } from '@volter/project/manifest/load-file';
 import type { RepositorySessionPresence } from './repository-presence';
 import { resolveWorktreeIdentity, worktreeIdForRoot } from './worktree-identity';
 import {

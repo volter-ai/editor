@@ -64,7 +64,7 @@ test('an occupied starter folder is preserved and creation failures remain failu
 const chatBundle = await build({ entryPoints: [fileURLToPath(new URL('../node/chat.ts', import.meta.url))],
   bundle: true, platform: 'node', format: 'cjs', write: false,
   plugins: [{ name: 'live-fixture', setup(builder) {
-    builder.onResolve({ filter: /^@volter\/editor-live$/ }, () => ({ path: 'live', namespace: 'fixture' }));
+    builder.onResolve({ filter: /^@volter\/live$/ }, () => ({ path: 'live', namespace: 'fixture' }));
     builder.onLoad({ filter: /.*/, namespace: 'fixture' }, () => ({ contents: 'export const connect = globalThis.connect;' }));
   } }] });
 

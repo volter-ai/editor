@@ -1,6 +1,6 @@
 /**
  * THE COMPONENT-INSTANCE VERBS of an R3F world's hierarchy row
- * (`@volter/editor-sdk/services`, a `workspace.service` contribution):
+ * (`@volter/sdk/services`, a `workspace.service` contribution):
  * "Extract Component…", "Fork Component…" and "Reveal / Hide Internals".
  *
  * ## Why this is a package and not the host's

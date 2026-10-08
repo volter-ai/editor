@@ -1,10 +1,10 @@
-import { assertNever } from '@volter/editor-project/adapter/adapter-surface';
+import { assertNever } from '@volter/project/adapter/adapter-surface';
 import {
   createRootBinding,
   type RootBinding,
   type RootDeclaration,
-} from '@volter/editor-project/adapter/binding';
-import type { DomHostContext } from '@volter/editor-project/adapter/host-context';
+} from '@volter/project/adapter/binding';
+import type { DomHostContext } from '@volter/project/adapter/host-context';
 import type {
   GameCanvasHostContext,
   GameDomHostContext,
@@ -17,8 +17,8 @@ import type {
   MountedThreeRoot,
   RootAdapter,
   SurfaceAdapter,
-} from '@volter/editor-project/adapter/root-adapter';
-import { stackOrder } from '@volter/editor-project/adapter/root-stacking';
+} from '@volter/project/adapter/root-adapter';
+import { stackOrder } from '@volter/project/adapter/root-stacking';
 import { createAssetCache } from '@volter/threejs-runtime/assets';
 import { createHostRenderer } from '@volter/threejs-runtime/setup/setup-renderer';
 import * as THREE from 'three';

@@ -1,4 +1,4 @@
-import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
+import { EDITOR_BRAND } from '@volter/sdk/session/editor-brand';
 /**
  * StartupErrorScreen — the boot-failure surface.
  *
@@ -23,10 +23,10 @@ import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
  * that it now selects a page with no launcher in it.
  */
 
-import type { ServerProjectFailureReport } from '@volter/editor-sdk/kit/boot-routing';
-import { BUNDLED_EDITOR_VERSION, BUNDLED_ENGINE_VERSION } from '@volter/editor-sdk/kit/build-identity';
+import type { ServerProjectFailureReport } from '@volter/sdk/kit/boot-routing';
+import { BUNDLED_EDITOR_VERSION, BUNDLED_ENGINE_VERSION } from '@volter/sdk/kit/build-identity';
 import { ErrorBanner, type ScreenError } from './ErrorBanner';
-import { VolterLogo } from '@volter/editor-sdk/kit/components/VolterLogo';
+import { VolterLogo } from '@volter/sdk/kit/components/VolterLogo';
 
 export interface StartupErrorScreenProps {
   error: ScreenError;

@@ -23,12 +23,12 @@
  *   emitted), not a stub standing in for a missing feature.
  */
 
-import type { VolterGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameSystems } from '@volter/project/adapter/ingest/game-contract';
 import type {
   DebugAdapter,
   DebugCommandInfo,
   TickStampedEvent,
-} from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter/system-adapter';
 import { DebugError } from '../../debug-registry';
 
 /**

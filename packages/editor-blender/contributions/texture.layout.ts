@@ -4,7 +4,7 @@
  * layer stack (see `sculpt.layout.ts` for why).
  */
 
-import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
+import type { WorkspaceLayoutContribution } from '@volter/sdk/looks';
 
 export const point = 'workspace.layout';
 export const layout: WorkspaceLayoutContribution = {

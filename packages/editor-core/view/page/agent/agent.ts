@@ -19,7 +19,7 @@
  * asking again: each `events` call waits a while for something new.
  */
 
-import type { ViewRoute } from '@volter/editor-sdk/session/limited-view';
+import type { ViewRoute } from '@volter/sdk/session/limited-view';
 import type { LimitedViewConfig } from '../view-contract';
 import { AGENT_COMMANDS, AGENT_TOOLS, type AgentToolServices, PLAY_ACTIONS, runAgentTool } from './tools';
 

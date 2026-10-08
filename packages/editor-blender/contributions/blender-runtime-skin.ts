@@ -42,7 +42,7 @@
 import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
 import type { BlenderArmature } from '@volter/blender-engine/browser/three/blender-runtime-armature';
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
-import { editorHost, type StageTransportHandle } from '@volter/editor-sdk/host';
+import { editorHost, type StageTransportHandle } from '@volter/sdk/host';
 import { blenderRnaSet } from '../host/blender-runtime-host';
 import { actionLayer, ArmaturePose, nlaLayers, poseClip, poseDivergence, type PoseClip, type PoseLayer } from './blender-pose';
 

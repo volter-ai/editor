@@ -35,8 +35,8 @@
  * THE QUERY KEY MAY NEVER BE `v` — see {@link ServedModuleAnswer.url}.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import { PRODUCT_INSTALL_LINES } from '@volter/editor-sdk/session/product-locator';
+import { commandLine } from '@volter/sdk/kit/product-command';
+import { PRODUCT_INSTALL_LINES } from '@volter/sdk/session/product-locator';
 import type { Request, Response } from 'express';
 import type { EditorServerRouter } from '../editor-server';
 import type { RouteContext } from './context';

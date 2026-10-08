@@ -19,7 +19,7 @@ below where they differ:
 
 - **The adapter contract is editor-side.** A game is idiomatic code in its own libraries and
   the editor and its adapters make it the engine (owner ruling 2026-09-24). The Three-typed
-  half of `@volter/editor-project`'s adapter contract (`root-adapter`, `authoring`,
+  half of `@volter/project`'s adapter contract (`root-adapter`, `authoring`,
   `system-adapter`, `host-context`, `asset-cache`) moves to `@volter/editor-threejs`, not to a
   shipped runtime. The shipped runtimes keep helpers that return the library's own objects;
   their framework a game is written against (`createRuntime`, `input-manager`, system
@@ -148,7 +148,7 @@ three, R3F, quarks or `@volter/editor-threejs`. Those 44 import 35 neutral kit
 modules, and 54 other kit modules import them.
 
 - **Licensing.** `editor-core` code is AGPL-3.0-only, imported from `@volter/editor-core`
-  (`provenance/editor-host.json`), and `@volter/editor-sdk` is Apache-2.0. Kit
+  (`provenance/editor-host.json`), and `@volter/sdk` is Apache-2.0. Kit
   modules therefore do not move into the SDK. The SDK gains contracts (new
   interfaces and host doors), and core implements them.
 - **The hub is `StageHost.tsx`.** It takes 20 of the 35 neutral doors: stage store and
@@ -263,7 +263,7 @@ from a timeout, a global active-document variable, or a React unmount alone.
   not instructions to reconcile two independently owned tab sets.
 - `src/frame/bridge.tsx`, `WorkspaceDocumentSurface.tsx`: attach views and route
   focus. Do not create a hidden substitute Content component when a slot vanishes.
-- `editor-sdk/src/host.ts`: replace universal stage/rig/Object3D doors with the
+- `sdk/src/host.ts`: replace universal stage/rig/Object3D doors with the
   neutral document/view operations actually needed. Move Three stage/capture
   contracts to the existing Three integration exports. Generic commands receive view context;
   Three commands use their own typed implementation. Unsupported capabilities

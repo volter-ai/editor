@@ -4,8 +4,8 @@
  * verbs the transport's picker uses.
  */
 
-import { assertEditorServerResponse, editorServerJson } from '@volter/editor-sdk/kit/editor-server-response';
-import { BASE } from '@volter/editor-sdk/kit/api-base';
+import { assertEditorServerResponse, editorServerJson } from '@volter/sdk/kit/editor-server-response';
+import { BASE } from '@volter/sdk/kit/api-base';
 
 export interface ConfigurationStatus {
   readonly id: string;

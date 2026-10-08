@@ -54,9 +54,9 @@
  * no game-side flag is involved.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { commandLine } from '@volter/sdk/kit/product-command';
 import { useEffect, useRef, useState } from 'react';
-import { pollEditorLeaseIdentity } from '@volter/editor-sdk/kit/editor-api';
+import { pollEditorLeaseIdentity } from '@volter/sdk/kit/editor-api';
 import {
   DEFAULT_LEASE_FAILURE_THRESHOLD,
   decideLeaseRecovery,
@@ -70,12 +70,12 @@ import {
   type LeaseVoidReason,
   type LeaseWatchState,
   reduceLeasePoll,
-} from '@volter/editor-sdk/kit/editor-lease';
-import { publishEditorLeaseView } from '@volter/editor-sdk/kit/editor-lease-view';
-import { dismissNotification, notify } from '@volter/editor-sdk/kit/editor-notifications';
-import { connectEvents, readControlChannelState } from '@volter/editor-sdk/kit/editor-presence';
+} from '@volter/sdk/kit/editor-lease';
+import { publishEditorLeaseView } from '@volter/sdk/kit/editor-lease-view';
+import { dismissNotification, notify } from '@volter/sdk/kit/editor-notifications';
+import { connectEvents, readControlChannelState } from '@volter/sdk/kit/editor-presence';
 import { clearSessionOrphanRecord, writeSessionOrphanRecord } from '../session-orphan-record';
-import { clearSessionEnded, markSessionEnded } from '@volter/editor-sdk/kit/session-tombstone';
+import { clearSessionEnded, markSessionEnded } from '@volter/sdk/kit/session-tombstone';
 
 /** The last path segment of a project root, for user-facing copy. */
 function projectName(path: string | null): string | null {
@@ -94,7 +94,7 @@ function projectName(path: string | null): string | null {
  */
 async function tearDownVoidLease(): Promise<void> {
   try {
-    const { stopAllLiveSessions } = await import('@volter/editor-sdk/kit/live-session-registry');
+    const { stopAllLiveSessions } = await import('@volter/sdk/kit/live-session-registry');
     stopAllLiveSessions();
   } catch {
     /* the overlay is raised regardless — see above */

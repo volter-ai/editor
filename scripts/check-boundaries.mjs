@@ -12,7 +12,7 @@ import { join, relative } from 'node:path';
 const root = process.cwd();
 const BASELINE = 'release/boundary-baseline.json';
 const SKIP = new Set(['node_modules', 'dist', 'dist-node', 'dist-server', '.artifacts', 'template', 'catalog', 'starter']);
-const KIT = ['packages/editor-core', 'packages/editor-sdk', 'packages/editor-project'];
+const KIT = ['packages/editor-core', 'packages/sdk', 'packages/project'];
 const RUNTIMES = ['packages/game-runtime', 'packages/threejs-runtime'];
 const MEDIA = /^(three(\/|$)|@react-three\/|pixi\.js|@pixi\/|@volter\/(editor-threejs|blender-engine|editor-blender|threejs-runtime|game-runtime|editor-game|editor-react|editor-xstate|cyclotron|game-editor)(\/|$))/;
 

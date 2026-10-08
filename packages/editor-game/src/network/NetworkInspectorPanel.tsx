@@ -24,7 +24,7 @@
  * diagnostics reveals that ONE utility.
  */
 
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import { NETWORK_AUTOSTART_SECTION } from '../services/game-network';
 import {
   Button,
@@ -36,7 +36,7 @@ import {
   spaceVar,
   TextInput,
   themeVars,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import type {
   ConnectionState,
   NetConditioning,
@@ -45,7 +45,7 @@ import type {
   NetServerInspection,
   NetTypeTraffic,
   NetworkingAdapter,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import { memo, useEffect, useReducer, useRef, useState } from 'react';
 import {
   deriveNetworkCapabilities,

@@ -9,7 +9,7 @@ export default defineConfig({
   root,
   resolve: {
     alias: { '@editor': fileURLToPath(new URL('../editor-core/src', import.meta.url)) },
-    dedupe: ['react', 'react-dom', 'three', '@volter/editor-sdk', '@volter/editor-project'],
+    dedupe: ['react', 'react-dom', 'three', '@volter/sdk', '@volter/project'],
   },
   plugins: [productContributionsPlugin(), sharedReactBuildPlugin(root), sharedThreeBuildPlugin(root)],
   worker: { format: 'es' },

@@ -16,9 +16,9 @@ import {
   pidAlive,
   readLiveRegisteredSessions,
   servedProjectAnswer,
-} from '@volter/editor-sdk/session/registry-format';
+} from '@volter/sdk/session/registry-format';
 
-export type { EditorSessionEntry as EditorSession } from '@volter/editor-sdk/session/registry-format';
+export type { EditorSessionEntry as EditorSession } from '@volter/sdk/session/registry-format';
 
 import { execFileSync } from 'node:child_process';
 import { readFileSync, realpathSync, statSync } from 'node:fs';

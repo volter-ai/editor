@@ -58,7 +58,7 @@ const loaded = new Set(
 );
 
 // Resolved by the table's own glob family, not by entries.
-const RUNTIME_PACKAGES = new Set(['@volter/editor-project', '@volter/threejs-runtime', '@volter/game-runtime']);
+const RUNTIME_PACKAGES = new Set(['@volter/project', '@volter/threejs-runtime', '@volter/game-runtime']);
 // Imported by project code that never runs in a served bundle: the dev server,
 // the game's own Node server, the editor product and its tooling.
 const NOT_SERVED = new Set([
@@ -70,7 +70,7 @@ const NOT_SERVED = new Set([
 
 const missing = [...imported].filter((name) => !loaded.has(name) && !RUNTIME_PACKAGES.has(name) && !NOT_SERVED.has(name));
 const unused = [...loaded].filter(
-  (name) => !imported.has(name) && !typeOnly.has(name) && !name.startsWith('@volter/editor-sdk') && name !== '@editor/game-module-access',
+  (name) => !imported.has(name) && !typeOnly.has(name) && !name.startsWith('@volter/sdk') && name !== '@editor/game-module-access',
 );
 if (missing.length || unused.length) {
   if (missing.length) console.error(`served-bundle table lacks what projects import: ${missing.sort().join(', ')}`);

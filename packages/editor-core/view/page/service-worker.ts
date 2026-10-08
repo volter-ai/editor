@@ -23,7 +23,7 @@
  * Built to `<out>/view-sw.js` by `server/view/view-build.ts`.
  */
 
-import { LIMITED_VIEW_HEADER } from '@volter/editor-sdk/session/limited-view';
+import { LIMITED_VIEW_HEADER } from '@volter/sdk/session/limited-view';
 import {
   HOST_PREFIXES,
   LIVE_MODULE_HEADER,

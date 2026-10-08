@@ -9,9 +9,9 @@ import { isScaffoldAddition, SCAFFOLD_ADDITIONS, type ScaffoldAddition } from '.
 import { launch, prepareSession, VIEW_BUILD_USAGE, viewBuild, type LaunchingProduct } from '@volter/editor-core/server/launcher/launch';
 import { control, hostedControl, HOSTED_USAGE } from '@volter/editor-core/server/launcher/control';
 import { listRecentProjects, listSessions, openProject, restart, screenshot, showProject, SCREENSHOT_OPTIONS, SCREENSHOT_USAGE } from '@volter/editor-core/server/launcher/session-verbs';
-import { hasManifest } from '@volter/editor-project/manifest/locate';
+import { hasManifest } from '@volter/project/manifest/locate';
 import { CAPABILITY_OPTIONS, runCapabilityCommand } from './capabilities';
-import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
+import { resolveWorkbench, writeWorkbenchDeclaration } from '@volter/sdk/session/workbench-locator';
 
 // The command and the name a person sees are the package's own declarations
 // (`bin`, `volter.product.displayName`), the same ones the session reads.
@@ -20,8 +20,8 @@ const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'game-
 /** `play` and `stop` are `@volter/editor-game`'s contributed session verbs
  *  (`contributions/play.command.ts`), relayed over the session's command wire. */
 async function playVerb(verb: 'play' | 'stop'): Promise<void> {
-  const { connect } = await import('@volter/editor-live');
-  const { EditorClient } = await import('@volter/editor-sdk/client');
+  const { connect } = await import('@volter/live');
+  const { EditorClient } = await import('@volter/sdk/client');
   const live = await connect();
   const client = new EditorClient({ url: `http://127.0.0.1:${live.session.port}` });
   const result: unknown = verb === 'play' ? await client.play() : await client.stop();
@@ -80,7 +80,7 @@ try {
     // MCP must answer initialization immediately. Only a scene request opens
     // an editor; launcher output goes to stderr so stdout remains JSON-RPC.
     await serveBlenderMcp(project, async () => {
-      const { resolveSession } = await import('@volter/editor-live');
+      const { resolveSession } = await import('@volter/live');
       try { await resolveSession(project); return; } catch { /* launch diagnoses stale sessions */ }
       await new Promise<void>((done, fail) => {
         const child = spawn(process.execPath, [fileURLToPath(import.meta.url), 'edit', project], {

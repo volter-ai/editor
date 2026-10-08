@@ -20,7 +20,7 @@
 import { pack, unpack } from '@colyseus/msgpackr';
 import { type DataChange, decode, encode, type Iterator } from '@colyseus/schema';
 import { SchemaSerializer } from '@colyseus/sdk';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import { getPlayStartedAt, isPlayModeActive } from '../play/play-mode';
 import type {
   ConnectionState,
@@ -32,7 +32,7 @@ import type {
   NetworkingAdapter,
   ReplicationStats,
   RoomInfo,
-} from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter/system-adapter';
 
 /** Colyseus's wire codes (`@colyseus/shared-types`' `Protocol`). */
 const JOIN_ROOM = 10;

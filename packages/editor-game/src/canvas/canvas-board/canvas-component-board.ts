@@ -1,6 +1,6 @@
 /**
  * THE `2D` BOARD's registration — one medium's answer to
- * `@volter/editor-sdk/kit/component-board-registry`.
+ * `@volter/sdk/kit/component-board-registry`.
  *
  * The board stays behind a dynamic `import()`: the 2D board is the only board
  * whose renderer initializes Pixi,
@@ -8,14 +8,14 @@
  * asynchronous `install` contract exists for exactly this board.
  */
 
-import type { ComponentBoard } from '@volter/editor-sdk/kit/component-board-registry';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { CANVAS_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+import type { ComponentBoard } from '@volter/sdk/kit/component-board-registry';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { CANVAS_COMPONENTS_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
 import {
   getStoryMediaPresence,
   subscribeStoryMediaPresence,
 } from '../../host/stories/story-media-presence';
-import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
+import { projectStoriesReady, subscribeProjectStoryModules } from '@volter/sdk/kit/stories/story-registry';
 
 /** The tab reads `2D`, the peer of `Scene` and `UI` in the center strip. */
 const CANVAS_COMPONENTS_TITLE = '2D';

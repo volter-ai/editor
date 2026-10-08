@@ -4,7 +4,7 @@
  * formats to runtime GLB for the asset library's imports.
  */
 
-import type { ProjectServingServices } from '@volter/editor-sdk/session/project-serving';
+import type { ProjectServingServices } from '@volter/sdk/session/project-serving';
 import { animationStampPlugin } from './animation-stamp';
 import { threeModelConverter } from './model-import-conversion';
 

@@ -37,9 +37,9 @@ import {
 } from 'node:fs';
 import { dirname, isAbsolute, join, relative, resolve, win32 } from 'node:path';
 import { z } from 'zod';
-import { ToolError } from '@volter/editor-sdk/tools/errors';
-import type { ToolErrorDefinition } from '@volter/editor-sdk/tools/registry';
-import type { ToolContext } from '@volter/editor-sdk/tools/types';
+import { ToolError } from '@volter/sdk/tools/errors';
+import type { ToolErrorDefinition } from '@volter/sdk/tools/registry';
+import type { ToolContext } from '@volter/sdk/tools/types';
 
 // ---------------------------------------------------------------------------
 // Project-root resolution

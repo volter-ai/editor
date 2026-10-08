@@ -8,14 +8,14 @@
  * record says who changed the piece.
  */
 
-import { editorHost } from '@volter/editor-sdk/host';
-import { sha256Hex } from '@volter/editor-sdk/kit/bytes-codec';
-import type { OidEntry } from '@volter/editor-sdk/source-authoring';
-import { handleProjectMutationFailure } from '@volter/editor-sdk/kit/source-conflict';
+import { editorHost } from '@volter/sdk/host';
+import { sha256Hex } from '@volter/sdk/kit/bytes-codec';
+import type { OidEntry } from '@volter/sdk/source-authoring';
+import { handleProjectMutationFailure } from '@volter/sdk/kit/source-conflict';
 import {
   setCollaborationRevision,
   sourceMutationAttribution,
-} from '@volter/editor-sdk/kit/editor-session-attribution';
+} from '@volter/sdk/kit/editor-session-attribution';
 
 import { elementAt, insertElement, parseSource } from './source-notes';
 

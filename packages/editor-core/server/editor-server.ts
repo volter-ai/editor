@@ -10,14 +10,14 @@ import { existsSync, readFileSync } from 'node:fs';
 import { mkdir, readFile, rename, stat, writeFile } from 'node:fs/promises';
 import type { Server as HttpServer } from 'node:http';
 import { basename, dirname, extname, join, relative, resolve, sep } from 'node:path';
-import type { EditorServerCompatibility } from '@volter/editor-sdk/session/editor-compatibility';
-import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
+import type { EditorServerCompatibility } from '@volter/sdk/session/editor-compatibility';
+import { isContainedRelativePath } from '@volter/sdk/session/relative-path-guard';
 import chokidar, { type FSWatcher } from 'chokidar';
 import type { Request, Response, Router } from 'express';
 import express from 'express';
-import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
-import { GAME_MANIFEST_VERSION } from '@volter/editor-project/manifest/schema';
+import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
+import { GAME_MANIFEST_VERSION } from '@volter/project/manifest/schema';
 import type { TripwireGate } from './support/project/build-discipline';
 import {
   openSessionJournal,
@@ -1372,7 +1372,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     if (pathname.startsWith('/node_modules')) return next();
 
     // Serve the RAW manifest (no view synthesis — the browser-side adapter
-    // resolver parses it itself via the pure `@volter/editor-project/manifest/load` half;
+    // resolver parses it itself via the pure `@volter/project/manifest/load` half;
     // T3.3 slice 2 part C) from the project root, not public/. 404s (falls
     // through to `next()`, same as any other missing project-root file) for
     // folders without a valid manifest.

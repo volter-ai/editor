@@ -17,17 +17,17 @@
  * asking the composite directly would ask the wrong object.
  */
 
-import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { instanceSourceLocatorFor } from '@volter/editor-sdk/kit/authoring/instance-source-menu';
+import { getActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
+import { instanceSourceLocatorFor } from '@volter/sdk/kit/authoring/instance-source-menu';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
-import { registerHierarchyMenuItems } from '@volter/editor-sdk/kit/hierarchy-menu-registry';
+import { registerHierarchyMenuItems } from '@volter/sdk/kit/hierarchy-menu-registry';
 import {
   canForkInstance,
   FORK_COMPONENT_LABEL,
   type InstanceForkSource,
 } from '../../host/instance-fork-actions';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
+import type { AuthoringAdapter } from '@volter/project/adapter';
 import { threeStateOf } from '@volter/editor-threejs/kit/three-state';
 
 /** The fork surface for `nodeId`, or `null` — the host's own owner walk. */

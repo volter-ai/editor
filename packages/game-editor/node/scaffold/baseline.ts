@@ -48,7 +48,7 @@ export interface EngineSourceState {
 }
 
 export interface ScaffoldBaseline {
-  /** The `@volter/editor-project` version this project was scaffolded/last-upgraded against. */
+  /** The `@volter/project` version this project was scaffolded/last-upgraded against. */
   engineVersion: string;
   /**
    * The engine checkout's git state at scaffold/last-upgrade time. Absent

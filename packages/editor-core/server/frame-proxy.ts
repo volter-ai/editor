@@ -63,7 +63,7 @@ import { basename } from 'node:path';
 import type { Transform } from 'node:stream';
 import { pipeline } from 'node:stream/promises';
 import { createBrotliCompress, createGzip, constants as zlibConstants } from 'node:zlib';
-import { workbenchUrl } from '@volter/editor-sdk/session/workbench-locator';
+import { workbenchUrl } from '@volter/sdk/session/workbench-locator';
 import { JS_PROFILING_POLICY_HEADER, JS_PROFILING_POLICY_VALUE } from './js-profiling-policy';
 
 export interface FrameProxyOptions {
@@ -77,7 +77,7 @@ export interface FrameProxyOptions {
   readonly projectRoot: string;
   /**
    * Which way round the PRODUCT paints, from its own declaration
-   * (`package.json#volter.product.colorTheme`, `@volter/editor-sdk/session/
+   * (`package.json#volter.product.colorTheme`, `@volter/sdk/session/
    * product-locator`), or `null` when this session could not resolve a product
    * — in which case the page keeps the workbench's own web default and the
    * `served-modules` door is what says why there is no product.
@@ -297,7 +297,7 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
     // the workbench page is ALSO the Volter editor's page, and the editor's boot
     // refuses `?project=` on a session-backed surface by name — "project
     // identity does NOT live in the URL on a local editor"
-    // (`assertNoRemovedBootParams`, packages/editor-sdk/src/kit/boot-routing.ts). The
+    // (`assertNoRemovedBootParams`, packages/sdk/src/kit/boot-routing.ts). The
     // redirect hands the page a url both halves accept.
     if (pathname === '/') {
       const id = url.searchParams.get('project');

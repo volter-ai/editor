@@ -1,7 +1,7 @@
 import { randomBytes, randomUUID, timingSafeEqual } from 'node:crypto';
 import type { IncomingMessage, ServerResponse } from 'node:http';
 import { WebSocket, WebSocketServer } from 'ws';
-import { HOSTED_ATTACHMENT_PATH, HOSTED_MESSAGE_BYTES, isHostedRequest } from '@volter/editor-sdk/session/hosted-attachment';
+import { HOSTED_ATTACHMENT_PATH, HOSTED_MESSAGE_BYTES, isHostedRequest } from '@volter/sdk/session/hosted-attachment';
 
 interface Lease {
   id: string;

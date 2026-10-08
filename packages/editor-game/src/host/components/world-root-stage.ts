@@ -25,11 +25,11 @@ import {
   registerStartingPresentation,
   registerStudioPreset,
   type StudioPreset,
-} from '@volter/editor-sdk/kit/viewport-presentation';
-import { themeVars } from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/kit/viewport-presentation';
+import { themeVars } from '@volter/sdk/widgets';
 import { createPerformanceProfiler } from '../../runtime/dev/performance-profiler';
 import { createWebGLGpuTimer } from '../../runtime/dev/webgl-gpu-timer';
-import type { AuthoringAdapter, Transform } from '@volter/editor-project/adapter';
+import type { AuthoringAdapter, Transform } from '@volter/project/adapter';
 import { markHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import { applyWorldRendererConfig } from '@volter/threejs-runtime/adapter/renderer-config';
 import { getUserData } from '@volter/threejs-runtime/ecs/user-data';
@@ -50,15 +50,15 @@ import {
   type Pass,
 } from 'postprocessing';
 import * as THREE from 'three';
-import { getActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import type { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
+import { getActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
+import type { CompositeAuthoringAdapter } from '@volter/sdk/kit/authoring/composite-authoring-adapter';
 import {
   applyAuthoringTransform,
   beginAuthoringTransformEdit,
   endAuthoringTransformEdit,
-} from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { designTimeMountFor } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
-import { attachProjectAuthoringStage } from '@volter/editor-sdk/kit/authoring/project-authoring-session';
+} from '@volter/sdk/kit/authoring/consumer-actions';
+import { designTimeMountFor } from '@volter/sdk/kit/authoring/design-time-mount-registry';
+import { attachProjectAuthoringStage } from '@volter/sdk/kit/authoring/project-authoring-session';
 import {
   isThreejsSurfaceVisible,
   resolveThreeViewportRootId,
@@ -71,11 +71,11 @@ import {
   installCameraAuthoringHost,
 } from '@volter/editor-threejs/kit/camera-authoring';
 import { registerPresentedCanvasFrame } from '../canvas-preview-frames';
-import { collectState } from '@volter/editor-sdk/kit/command-listener';
-import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/editor-sdk/kit/editor-api';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { isEditorPresentationActive } from '@volter/editor-sdk/kit/editor-presentation-activity';
-import type { EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
+import { collectState } from '@volter/sdk/kit/command-listener';
+import { getDownloadedAssetPath, getOnlineAssetFiles, reportEditorState } from '@volter/sdk/kit/editor-api';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { isEditorPresentationActive } from '@volter/sdk/kit/editor-presentation-activity';
+import type { EditorStats } from '@volter/sdk/kit/editor-runtime';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { EditorViewport, type OnlineAssetDrop } from '@volter/editor-threejs/kit/editor-viewport';
 import { entityObject3D } from '@volter/editor-threejs/kit/entity-object';
@@ -83,12 +83,12 @@ import {
   nativeSelectionColors,
   nativeViewportLook,
   subscribeNativeSelectionTheme,
-} from '@volter/editor-sdk/kit/native-selection-style';
-import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
+} from '@volter/sdk/kit/native-selection-style';
+import { registerPerformanceSource } from '@volter/sdk/kit/performance-sources';
 import { drawSceneUnlessRefused } from '../scene-view-drawability';
 import { withSceneFogNeutralized } from '@volter/editor-threejs/kit/scene-view-fog';
 import { connectServerLogs } from '../server-log-bridge';
-import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
+import { focusedStageStore } from '@volter/sdk/kit/stage-context';
 import {
   acquireThreeSelectionOutline,
   releaseThreeSelectionOutline,
@@ -99,12 +99,12 @@ import {
   setThreeViewportProjection,
   subscribeThreeViewportPresentation,
   threeViewportPresentation,
-} from '@volter/editor-sdk/kit/three-viewport-presentation';
-import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
+} from '@volter/sdk/kit/three-viewport-presentation';
+import { recordViewportFirstFrame } from '@volter/sdk/kit/viewport-activation-timings';
 import { savedViewportPose, saveViewportPose } from '../viewport-pose-memory';
 import { presentThreeRoots } from '../viewport-root-presentation';
 import { isEditorViewportShadingTarget } from '@volter/editor-threejs/kit/viewport-shading-boundary';
-import { downloadOnlineAssetWithHistory } from '@volter/editor-sdk/kit/components/asset-editor-persistence';
+import { downloadOnlineAssetWithHistory } from '@volter/sdk/kit/components/asset-editor-persistence';
 import { bindStagePresenceMarkers } from '@volter/editor-threejs/kit/components/stage-presence-markers';
 import type { ViewportPresentation, ViewportRoot } from '@volter/editor-threejs/viewport-api';
 

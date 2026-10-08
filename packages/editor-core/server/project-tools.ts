@@ -1,7 +1,7 @@
 import {
   type ProviderModeResolver,
   withProviderExecution,
-} from '@volter/editor-sdk/tools/provider-execution';
+} from '@volter/sdk/tools/provider-execution';
 import type { EditorAccountService } from './account-service';
 import { readGenerationJobs } from './generation-jobs';
 /**
@@ -23,18 +23,18 @@ import { readGenerationJobs } from './generation-jobs';
 
 import { readdir, readFile, realpath, stat } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
-import type { ProductIdentity } from '@volter/editor-sdk/session/product-locator';
+import type { ProductIdentity } from '@volter/sdk/session/product-locator';
 import type { z } from 'zod';
-import type { GenerationJob, GenerationToolContribution } from '@volter/editor-sdk/generations';
+import type { GenerationJob, GenerationToolContribution } from '@volter/sdk/generations';
 import type {
   ProjectToolCatalog,
   ProjectToolCatalogEntry,
   ProjectToolContribution,
   ProjectToolLoadError,
-} from '@volter/editor-sdk/project-tool-catalog';
-import { noProjectModuleHostError } from '@volter/editor-sdk/project-tool-catalog';
-import type { ToolDefinition, ToolOutcome } from '@volter/editor-sdk/tools/registry';
-import { ToolRegistry } from '@volter/editor-sdk/tools/registry';
+} from '@volter/sdk/project-tool-catalog';
+import { noProjectModuleHostError } from '@volter/sdk/project-tool-catalog';
+import type { ToolDefinition, ToolOutcome } from '@volter/sdk/tools/registry';
+import { ToolRegistry } from '@volter/sdk/tools/registry';
 import { applyGenerationContribution } from './generation-jobs';
 import { runWithGenerativeExecutionCapture } from './generative-execution-context';
 import {
@@ -50,7 +50,7 @@ export type {
   ProjectToolCatalogEntry,
   ProjectToolContribution,
   ToolContributionPoint,
-} from '@volter/editor-sdk/project-tool-catalog';
+} from '@volter/sdk/project-tool-catalog';
 
 interface LoadedCatalog extends ProjectToolCatalog {
   definitions: Map<string, ToolDefinition>;
@@ -450,7 +450,7 @@ async function loadCatalog(
       const definition = imported?.['tool'];
       if (!operationShape(definition)) {
         throw new Error(
-          'does not export a complete `tool` definition; export `tool = defineTool({...})` from @volter/editor-sdk/tools/registry',
+          'does not export a complete `tool` definition; export `tool = defineTool({...})` from @volter/sdk/tools/registry',
         );
       }
       if (!definition.name.startsWith('project.')) {

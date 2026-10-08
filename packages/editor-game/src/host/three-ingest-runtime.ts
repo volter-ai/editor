@@ -15,8 +15,8 @@
 import * as shellThree from 'three';
 import { EffectComposer } from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import { CSS3DRenderer } from 'three/examples/jsm/renderers/CSS3DRenderer.js';
-import { THREE_INGEST_RUNTIME_PATH } from '@volter/editor-sdk/host';
-import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
+import { THREE_INGEST_RUNTIME_PATH } from '@volter/sdk/host';
+import { isPackagedRuntime } from '@volter/sdk/kit/packaged-runtime';
 
 /**
  * THE three of the graph an ingested game's modules resolve — the project's

@@ -3,7 +3,7 @@
  * `machine` table entry opens in (`machines.finder.ts`). The module is the document; its
  * machines are drawn, edited in source and watched live by `src/MachineEditor.tsx`.
  */
-import type { ToolContributionProps } from '@volter/editor-sdk/contributions';
+import type { ToolContributionProps } from '@volter/sdk/contributions';
 import { MachineEditor } from '../src/MachineEditor';
 
 export const point = 'workspace.document';

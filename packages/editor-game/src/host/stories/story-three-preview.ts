@@ -100,13 +100,13 @@ import { Component, type ReactNode } from 'react';
 import * as THREE from 'three';
 import { captureObjectAssetPreview } from '@volter/editor-threejs/kit/asset-preview';
 import { settleDesignWorld } from '@volter/editor-threejs/kit/authoring/design-time-settle';
-import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
+import { CrashNullBoundary } from '@volter/sdk/kit/crash-null-boundary';
 import {
   resolveStoryThreePreviewRuntime,
   type StoryThreePreviewRuntime,
 } from '../story-three-preview-runtime';
-import { viewportTimingsEnabled } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { runInStoryMountTurn } from '@volter/editor-sdk/kit/stories/story-mount-turn';
+import { viewportTimingsEnabled } from '@volter/sdk/kit/viewport-activation-timings';
+import { runInStoryMountTurn } from '@volter/sdk/kit/stories/story-mount-turn';
 
 /** Last mount's phase split — only written when timings are on. The board
  *  reads this after each attempt so a per-story row can name load vs fiber
@@ -127,7 +127,7 @@ export function lastStoryMountPhaseTiming(): StoryMountPhaseTiming | null {
 /** A composed portable story is a callable React component; Storybook attaches
  *  an optional `.load()` when the CSF export declares `loaders`. A plain React
  *  component (no `.load`) is accepted too — the load step is simply skipped. */
-import type { StoryPreviewComponent } from '@volter/editor-sdk/kit/stories/story-preview-component';
+import type { StoryPreviewComponent } from '@volter/sdk/kit/stories/story-preview-component';
 export type { StoryPreviewComponent };
 
 export interface MountedStoryObject3D {
@@ -756,10 +756,10 @@ export interface StoryThumbnailOptions {
   readonly props?: Record<string, unknown>;
   /** Free capture camera, forwarded to `captureObjectAssetPreview` — one view
    *  from the chosen angle instead of the default perspective view. */
-  readonly camera?: import('@volter/editor-sdk').AssetPreviewCameraChoice;
+  readonly camera?: import('@volter/sdk').AssetPreviewCameraChoice;
   /** Clip pose, forwarded to `captureObjectAssetPreview` — sample a named
    *  clip at a time on the capture snapshot before framing. */
-  readonly pose?: import('@volter/editor-sdk').AssetPreviewPose;
+  readonly pose?: import('@volter/sdk').AssetPreviewPose;
 }
 
 /**

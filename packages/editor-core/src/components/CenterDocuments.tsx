@@ -3,9 +3,9 @@
  * does not synthesize a Scene tab or own a game's root evaluator.
  */
 import { useEffect } from 'react';
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { bindLiveDocument, syncLiveDocumentPlayState } from '@volter/editor-sdk/kit/live-document';
-import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
+import { bindLiveDocument, syncLiveDocumentPlayState } from '@volter/sdk/kit/live-document';
+import { closeAllWorkspaceDocuments } from '@volter/sdk/kit/workspace-document-registry';
 
 export function useCenterDocuments(store: ShellStore): void {
   useEffect(() => {

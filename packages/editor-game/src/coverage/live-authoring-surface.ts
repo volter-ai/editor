@@ -9,12 +9,12 @@ import {
   type CapabilityCoverageReport,
   deriveCapabilityCoverage,
 } from '../host/coverage/capability-coverage';
-import { projectAdapterFacet } from '@volter/editor-sdk/kit/project-adapter';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
-import { authoringSurfaceFromTable } from '@volter/editor-sdk/kit/scene-document-plan';
-import { projectStoriesReady } from '@volter/editor-sdk/kit/stories/story-registry';
-import { availableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-available-documents';
-import { openWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { projectAdapterFacet } from '@volter/sdk/kit/project-adapter';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
+import { authoringSurfaceFromTable } from '@volter/sdk/kit/scene-document-plan';
+import { projectStoriesReady } from '@volter/sdk/kit/stories/story-registry';
+import { availableWorkspaceDocuments } from '@volter/sdk/kit/workspace-available-documents';
+import { openWorkspaceDocuments } from '@volter/sdk/kit/workspace-document-registry';
 
 export function authoringSurfaceCoverage(): CapabilityCoverageReport | null {
   const facet = projectAdapterFacet();
