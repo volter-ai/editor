@@ -18,13 +18,13 @@ changed source and apply `LOCKSTEP=1`:
 
 | Package (@volter/) | Manifest / npm latest before preparation | Old workflow target | Prepared target |
 | --- | --- | --- | --- |
-| project | 0.5.157 | 0.5.158 | 0.5.158 |
-| sdk | 0.5.157 | 0.5.158 | 0.5.158 |
+| editor-project | 0.5.157 | 0.5.158 | 0.5.158 |
+| editor-sdk | 0.5.157 | 0.5.158 | 0.5.158 |
 | editor-threejs | 0.5.157 | 0.5.158 | 0.5.158 |
 | blender-engine | 0.1.95 | 0.1.96 | 0.1.96 |
 | editor-blender | 0.1.97 | 0.1.98 | 0.1.98 |
 | editor-core | 0.5.157 | 0.5.158 | 0.5.158 |
-| live | 0.5.157 | 0.5.158 | 0.5.158 |
+| editor-live | 0.5.157 | 0.5.158 | 0.5.158 |
 | model-editor | 0.5.157 | 0.5.158 | 0.5.158 |
 | threejs-runtime | 0.5.157 | 0.5.158 | 0.5.158 |
 | game-runtime | 0.5.157 | 0.5.158 | 0.5.158 |
@@ -35,7 +35,7 @@ changed source and apply `LOCKSTEP=1`:
 | dawproject | 0.5.157 | 0.5.158 | 0.5.158 |
 | editor-dawproject | 0.5.157 | 0.5.158 | 0.5.158 |
 | game-editor | 0.5.157 | 0.5.158 | 0.5.158 |
-| play | 0.5.157 / unpublished (404) | omitted | 0.5.158 |
+| editor-model-play | 0.5.157 / unpublished (404) | omitted | 0.5.158 |
 | editor-ui | 0.5.157 / unpublished (404) | omitted | 0.5.158 |
 
 The old workflow would build the Game list, check its manifest/packed imports,

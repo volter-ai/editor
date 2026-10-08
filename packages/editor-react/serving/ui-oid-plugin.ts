@@ -71,6 +71,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import {
   existsSync,
   mkdirSync,
@@ -146,7 +147,24 @@ import {
 export { applyStyleWriteRequest, oidAttributeForSurface };
 
 const NODE_MODULES_RE = /\/node_modules\//;
-const TOOLING_SRC_RE = /\/packages\/(engine\/src|create-volter-project|volter-cli|sdk)\//;
+const TOOLING_SRC_RE = /\/packages\/(engine\/src|create-volter-project|volter-cli)\//;
+/** The SDK's own folder, where a workspace keeps its source: tooling, never a game's UI. Named by
+ *  where `@volter/sdk` resolves from here (its entry module is `src/index.ts`), with forward
+ *  slashes; `null` when it does not resolve. A project's own `packages/sdk` is not this folder. */
+const SDK_ROOT = ((): string | null => {
+  try {
+    const entry = realpathSync(createRequire(import.meta.url).resolve('@volter/sdk'));
+    return `${dirname(dirname(entry)).replace(/\\/g, '/')}/`;
+  } catch {
+    return null;
+  }
+})();
+/** Windows names one file with either case of its drive letter and folders. */
+const foldCase = (file: string): string => (process.platform === 'win32' ? file.toLowerCase() : file);
+/** `clean` is a file with forward slashes. */
+function isToolingSource(clean: string): boolean {
+  return TOOLING_SRC_RE.test(clean) || (SDK_ROOT !== null && foldCase(clean).startsWith(foldCase(SDK_ROOT)));
+}
 const EDITOR_SRC_RE = /\/packages\/editor\/src\//;
 const EDITABLE_COMPONENTS_RE = /\/ui-editor\/editable-components\/.*\.tsx$/;
 /** Track N, D-N4 item 2 — see the module doc comment's "Vendored-tree exclusion". */
@@ -246,7 +264,7 @@ export function isEditableCssFile(id: string): boolean {
   if (!clean.endsWith('.css')) return false;
   if (NODE_MODULES_RE.test(clean)) return false;
   if (VENDOR_RE.test(clean)) return false;
-  if (TOOLING_SRC_RE.test(clean)) return false;
+  if (isToolingSource(clean)) return false;
   if (EDITOR_SRC_RE.test(clean)) return false;
   return true;
 }
@@ -738,7 +756,7 @@ export function defaultProjectScopeInclude(id: string): boolean {
   // inspector; refusing it here is what used to make a vendored game
   // permanently unauthorable.
   if (VENDOR_RE.test(clean) && !VENDORED_GAME_SRC_RE.test(clean)) return false;
-  if (TOOLING_SRC_RE.test(clean)) return false;
+  if (isToolingSource(clean)) return false;
   if (EDITOR_SRC_RE.test(clean) && !EDITABLE_COMPONENTS_RE.test(clean)) return false;
   if (nearestManifestExcludesIngestReact(dirname(clean))) return false;
   return true;

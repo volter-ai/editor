@@ -84,9 +84,9 @@
 		"sources": {
 			"packages/sdk/src/kit/keymap-presets.ts": "3d649285a7d48bad72f030aabfe7a3ab6a419b79d566dcce83567b6908de8210",
 			"packages/sdk/src/kit/editor-hotkeys.ts": "7e779dc4663c599c4901d3f16f707a2d042e120554b03df6789951a80e047f5f",
-			"packages/sdk/src/kit/components/canvas-scene-hotkeys.ts": "80ed8ee711ccbfa605e54fd8cae11c0bd88e1a46759e8f43fb61877052d0015a",
+			"packages/sdk/src/kit/components/canvas-scene-hotkeys.ts": "808efb5a4fec515da0b0ff74e226adf529aa00c5b5f5af2f3c87208f27486f29",
 			"packages/editor-threejs/src/kit/viewport-hotkeys.ts": "b7a7bea8f3419cfe3f999369a77042ee7009b731899f8a72ee9fd95e6f270d15",
-			"packages/editor-blender/contributions/blender.keymap.ts": "74f52b05d29b516fbb0ea7fa73a02d7056021c4e409c8ff23f7eb5bd83f9471d"
+			"packages/editor-blender/contributions/blender.keymap.ts": "2c34d9dbf909a1f9be4fdde27e121df81a3bf9ade9979920d77f943ef5b290a3"
 		}
 	},
 	"contributes": {

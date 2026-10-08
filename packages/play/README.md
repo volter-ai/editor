@@ -1,4 +1,4 @@
-# Volter Model Play
+# Play
 
 Play scripts on detached model documents. Play (the Game panel's, in Cyclotron) runs
 `src/models/<name>.play.ts` beside `src/models/<name>.blend` on a detached copy

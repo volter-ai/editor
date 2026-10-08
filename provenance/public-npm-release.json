@@ -66,12 +66,12 @@
    "shasum": "763ca2f7b76f47158dc2472c7ff55f79ab7c6cca",
    "live": true
   },
-  "@volter/live": {
+  "@volter/editor-live": {
    "version": "0.5.68",
    "shasum": "0a44a483a3c1cc831aeee40371864ecb36dbd3d4",
    "live": true
   },
-  "@volter/project": {
+  "@volter/editor-project": {
    "version": "0.5.68",
    "shasum": "ed8e95d12ece49f7e1008093a768d28cc0ae0229",
    "live": true
@@ -81,7 +81,7 @@
    "shasum": "89013b761f06384c1b3b46b422eb4a8f5d9cbafd",
    "live": true
   },
-  "@volter/sdk": {
+  "@volter/editor-sdk": {
    "version": "0.5.68",
    "shasum": "db2bdb7103cd862e035f5c3e1c98250dcaa4e80c",
    "live": true

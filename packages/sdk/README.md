@@ -1,4 +1,4 @@
-# Editor SDK
+# SDK
 
 Extension, contribution and editor-session APIs for Volter Editor. This package
 depends on the project contracts, not the editor implementation or game runtime.

@@ -17,8 +17,8 @@ through adapters and contributions. The rulings this follows were made on
 | Shipped twin | `@volter/threejs-runtime`, `@volter/game-runtime` | helpers a project's own code may call that return the library's own objects. Apache. |
 
 A package's name tells its side of the license line: `editor-*`, `blender-*`, `cyclotron` and
-`game-editor` are the editor (AGPL, with GPL where Blender is involved); every other `@volter/*`
-package is Apache-2.0 ([COMMERCIAL.md](COMMERCIAL.md)).
+`game-editor` are the editor (AGPL, with GPL where Blender is involved); every other `@volter`
+package this repository publishes is Apache-2.0 ([COMMERCIAL.md](COMMERCIAL.md)).
 
 Rules:
 

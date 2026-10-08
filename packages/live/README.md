@@ -1,4 +1,4 @@
-# Volter Editor live client
+# Live client
 
 Attach to an existing editor session and drive its documents, Blender commands,
 inspection, history and registered project tools. This package never starts a

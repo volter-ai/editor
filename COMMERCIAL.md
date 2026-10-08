@@ -9,8 +9,8 @@ The owner's words it rests on: "the runtime should be apache, the editor is
 agpl". Which packages are the runtime is the reading below.
 
 **The name tells the side.** A package named `editor-*`, `blender-*`,
-`cyclotron` or `game-editor` is the editor. Every other `@volter/*` package is
-Apache-2.0.
+`cyclotron` or `game-editor` is the editor. Every other `@volter` package this
+repository publishes is Apache-2.0.
 
 ## The editor is AGPL
 

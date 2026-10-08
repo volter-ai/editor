@@ -76,6 +76,7 @@ import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 import { EDITOR_LANE_DIRS } from '@volter/sdk/session/tool-contribution-convention';
 import type { Plugin } from 'vite';
+import { siblingSdkSource } from './vite-plugin-shared-sdk';
 
 const realPaths = new Map<string, string>();
 /** A file's real path (links resolved), cached; the path itself when it cannot be read. */
@@ -574,7 +575,7 @@ export function sharedReactPlugin({
   projectRoots,
 }: SharedReactScope): Plugin {
   const editorSrc = path.join(editorPackageRoot, 'src');
-  const layoutSdkSrc = path.resolve(editorPackageRoot, '../sdk/src');
+  const layoutSdkSrc = siblingSdkSource(editorPackageRoot);
   const inEditorTree = (importer: string | undefined): boolean => {
     if (!importer) return false;
     if (importer.includes(EDITOR_TREE_QUERY)) return true;

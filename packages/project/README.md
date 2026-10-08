@@ -1,4 +1,4 @@
-# Editor project contracts
+# Project contracts
 
 Project manifests, adapter surfaces, authoring contracts and settings schemas
 for Volter Editor. This package declares the contract; it does not import an

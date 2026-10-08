@@ -5,19 +5,41 @@
  */
 import { existsSync, readFileSync, realpathSync } from 'node:fs';
 import { createRequire } from 'node:module';
-import { dirname, join } from 'node:path';
+import { dirname, join, resolve } from 'node:path';
 import type { Plugin } from 'vite';
 
 const manifestFile = 'volter-shared-sdk.json';
-/** The SDK's source folder as this process resolves it (a workspace checkout or an install),
- *  found from its entry module (`src/index.ts`) and spelled with forward slashes. A project may
- *  have a `sdk/src` of its own; only this one is the SDK. */
-const sdkSource = `${dirname(realpathSync(createRequire(import.meta.url).resolve('@volter/sdk'))).replaceAll('\\', '/')}/`;
+
+/** The SDK's source folder beside an editor package: a workspace checkout and an install both lay
+ *  `sdk` next to `editor-core`. In this platform's own spelling. */
+export function siblingSdkSource(editorPackageRoot: string): string {
+  return resolve(editorPackageRoot, '../sdk/src');
+}
+
+/** The SDK's source folder where no editor root is at hand: wherever `@volter/sdk` resolves from
+ *  here (its entry module is `src/index.ts`), or `null` when it does not resolve. */
+function resolvedSdkSource(): string | null {
+  try {
+    return dirname(realpathSync(createRequire(import.meta.url).resolve('@volter/sdk')));
+  } catch {
+    return null;
+  }
+}
+
+/** Windows names one file with either case of its drive letter and folders. */
+const foldCase = (file: string): string => (process.platform === 'win32' ? file.toLowerCase() : file);
 const INSTALLED_SDK = /\/node_modules\/@volter\/sdk\/src\//;
-function sdkModule(id: string): string | null {
+
+/**
+ * A module's path inside the SDK's source (`kit/project-module-changes`), or `null` for any other
+ * file. The SDK is the folder `sdkSource` names, or an install under `node_modules/@volter/sdk`:
+ * a project may have a `sdk/src` of its own, and that one is not the SDK.
+ */
+function sdkModule(id: string, sdkSource: string | null): string | null {
   const file = id.split('?')[0]!.replaceAll('\\', '/');
+  const root = sdkSource === null ? null : `${sdkSource.replaceAll('\\', '/')}/`;
   const installed = INSTALLED_SDK.exec(file);
-  const start = file.startsWith(sdkSource) ? sdkSource.length : installed ? installed.index + installed[0].length : -1;
+  const start = root !== null && foldCase(file).startsWith(foldCase(root)) ? root.length : installed ? installed.index + installed[0].length : -1;
   if (start < 0) return null;
   const match = /^(.+)\.[cm]?[jt]sx?$/.exec(file.slice(start));
   return match?.[1] ?? null;
@@ -26,20 +48,21 @@ function sdkModule(id: string): string | null {
 /** Hooks used by the universal composition build plugin, not by a product. */
 export function sharedSdkBuildHooks(): Pick<Plugin, 'moduleParsed' | 'generateBundle' | 'outputOptions'> {
   const entries = new Map<string, string>();
+  const sdkSource = resolvedSdkSource();
   return {
     // Registries have cyclic imports inside the SDK. Keep their initialization
     // in one chunk; publishing entries must not turn those into chunk cycles.
     outputOptions(options) {
       const previous = options.manualChunks;
       return { ...options, manualChunks(id, context) {
-        if (sdkModule(id)) return 'volter-sdk';
+        if (sdkModule(id, sdkSource)) return 'volter-sdk';
         if (typeof previous === 'function') return previous(id, context);
         if (previous) return Object.entries(previous).find(([, ids]) => ids.includes(id))?.[0];
         return undefined;
       } };
     },
     moduleParsed(module) {
-      const name = sdkModule(module.id);
+      const name = sdkModule(module.id, sdkSource);
       if (!name || entries.has(name) || !module.exports?.length) return;
       entries.set(name, this.emitFile({
         type: 'chunk', id: module.id,
@@ -66,7 +89,9 @@ export function readSharedSdkUrls(dist: string): Record<string, string> | null {
  * Dependency scanning keeps filesystem identities; browser serving uses the
  * exact URLs the bundled editor imports, as the React/Three doors do.
  */
-export function sharedSdkPlugin(urls: Record<string, string>): Plugin {
+/** `editorPackageRoot` is the editor package serving the project; the SDK is the folder beside it. */
+export function sharedSdkPlugin(urls: Record<string, string>, editorPackageRoot: string): Plugin {
+  const sdkSource = siblingSdkSource(editorPackageRoot);
   return {
     name: 'volter-shared-sdk', enforce: 'pre',
     config() {
@@ -83,9 +108,9 @@ export function sharedSdkPlugin(urls: Record<string, string>): Plugin {
     async resolveId(source, importer, options) {
       // These URLs identify the browser composition, never Node tool modules.
       if (options.ssr || (options as { scan?: boolean }).scan) return;
-      if (!source.startsWith('@volter/sdk') && !(source.startsWith('.') && importer && sdkModule(importer))) return;
+      if (!source.startsWith('@volter/sdk') && !(source.startsWith('.') && importer && sdkModule(importer, sdkSource))) return;
       const resolved = await this.resolve(source, importer, { ...options, skipSelf: true });
-      const name = resolved && sdkModule(resolved.id);
+      const name = resolved && sdkModule(resolved.id, sdkSource);
       // This door must retain Vite's import.meta.hot. Its page-wide event bus
       // joins served listeners to bundled consumers without owning tool state.
       if (name === 'kit/project-module-changes') return resolved;
