@@ -21,7 +21,7 @@
 
 import type { ViewRoute } from '@volter/editor-sdk/session/limited-view';
 import type { LimitedViewConfig } from '../view-contract';
-import { AGENT_TOOLS, type AgentToolServices, runAgentTool } from './tools';
+import { AGENT_COMMANDS, AGENT_TOOLS, type AgentToolServices, PLAY_ACTIONS, runAgentTool } from './tools';
 
 const MODEL_ROUTE = '/api/ai/responses';
 const ACCOUNT_ROUTE = '/api/account';
@@ -105,6 +105,10 @@ async function* streamed(body: ReadableStream<Uint8Array>): AsyncGenerator<Recor
 
 const sleep = (ms: number) => new Promise<void>((resolve) => setTimeout(resolve, ms));
 
+/** A value the model supplied, as it may appear in a progress line: plain characters only, and short.
+ *  The Chat view may render a progress line as markdown, where an address would be fetched unasked. */
+const plain = (value: unknown): string => (typeof value === 'string' ? value : '').replace(/[^A-Za-z0-9 _./-]/g, '').slice(0, 80);
+
 function toolLabel(name: string, argumentsJson: string): string {
   let args: Record<string, unknown> = {};
   try {
@@ -112,19 +116,20 @@ function toolLabel(name: string, argumentsJson: string): string {
   } catch {
     /* the tool itself reports unreadable arguments */
   }
-  const path = typeof args['path'] === 'string' ? args['path'] : typeof args['dir'] === 'string' ? args['dir'] || 'the project' : '';
+  const path = plain(args['path'] ?? args['dir']) || 'the project';
   switch (name) {
     case 'list_files': return `Listing ${path}`;
     case 'read_file': return `Reading ${path}`;
-    case 'search_files': return `Searching for "${String(args['query'] ?? '')}"`;
+    case 'search_files': return 'Searching the project';
     case 'write_file': return `Writing ${path}`;
     case 'edit_file': return `Editing ${path}`;
     case 'delete_file': return `Deleting ${path}`;
     // Said where the person sees it: stopping the turn does not reach into Blender.
     case 'blender_python': return 'Running Python in Blender (a script runs to its end even if you press Stop)';
-    case 'play': return `Play: ${String(args['action'] ?? '')}`;
-    case 'editor_command': return `Running ${String(args['type'] ?? 'a command')}`;
-    default: return name;
+    // Only a command or action on the agent's own lists is named; anything else is refused by the tool.
+    case 'play': return PLAY_ACTIONS.has(String(args['action'])) ? `Play: ${String(args['action'])}` : 'Play';
+    case 'editor_command': return AGENT_COMMANDS.has(String(args['type'])) ? `Running ${String(args['type'])}` : 'Running a command';
+    default: return 'Working';
   }
 }
 
@@ -137,17 +142,34 @@ export function createViewAgent(
   let conversation: unknown[] = [];
   let turn: Turn | null = null;
 
+  /** Show a `!` that was held back, with a break after it, and wake whoever waits. */
+  const flush = (running: Turn): void => {
+    if (!running.heldBang) return;
+    running.heldBang = false;
+    const last = running.events.at(-1);
+    if (last?.kind === 'text') running.events[running.events.length - 1] = { kind: 'text', text: `${last.text}!\u200b` };
+    else running.events.push({ kind: 'text', text: '!\u200b' });
+    for (const wake of running.wake.splice(0)) wake();
+  };
+
   const emit = (running: Turn, shown: AgentEvent): void => {
     // The Chat view renders markdown, and an image is fetched as soon as it is drawn: an address
     // the model was talked into writing would carry text out with no click. `![` never reaches
     // the view as image syntax; a `!` ending one piece of text waits for the next.
-    let event = shown;
+    // Every kind of event is neutralised, not only replies: a label or a message is drawn too.
+    const unimage = (value: string): string => value.replaceAll('![', '!\u200b[');
+    let event: AgentEvent;
     if (shown.kind === 'text') {
       const text = (running.heldBang ? '!' : '') + shown.text;
       running.heldBang = text.endsWith('!');
-      const safe = (running.heldBang ? text.slice(0, -1) : text).replaceAll('![', '!\u200b[');
+      const safe = unimage(running.heldBang ? text.slice(0, -1) : text);
       if (safe === '') return;
       event = { kind: 'text', text: safe };
+    } else {
+      // A held `!` is shown before anything else is, followed by a break so that no later text
+      // can complete it into an image.
+      flush(running);
+      event = shown.kind === 'tool' ? { kind: 'tool', label: unimage(shown.label) } : { ...shown, message: unimage(shown.message) };
     }
     const last = running.events.at(-1);
     // Text arrives a few characters at a time; one event per reply keeps the list short.
@@ -236,9 +258,21 @@ export function createViewAgent(
   };
 
   const run = async (running: Turn, text: string): Promise<void> => {
+    // The per-message limit rests on the host's count. With no count there is no limit, so there
+    // is no turn: nothing is sent to the model.
+    const before = await used();
+    if (!before) {
+      const account = await host(ACCOUNT_ROUTE, 'GET').then((response) => response.json() as Promise<{ available?: boolean; signedIn?: boolean }>).catch(() => ({ available: false, signedIn: false }));
+      if (account.available !== true) emit(running, { kind: 'refused', code: 'no_ai', message: 'This view has no AI of its own.' });
+      else if (account.signedIn !== true) emit(running, { kind: 'refused', code: 'signed_out', message: 'Sign in with Volter first.' });
+      else emit(running, { kind: 'error', message: 'Today\'s allowance could not be read, so the assistant did not start. Try again in a moment.' });
+      flush(running);
+      running.done = true;
+      for (const wake of running.wake.splice(0)) wake();
+      return;
+    }
     let turnStart = conversation.length;
     conversation.push({ role: 'user', content: text });
-    const before = await used();
     try {
       for (let step = 0; step < MAX_STEPS; step++) {
         turnStart = trim(turnStart);
@@ -247,8 +281,12 @@ export function createViewAgent(
           return;
         }
         // One message may use a share of the day, not the day: a loop that does not converge stops here.
-        const now = step > 0 && before ? await used() : null;
-        if (before && now && now.used - before.used >= before.dailyLimit * TURN_SHARE) {
+        const now = step > 0 ? await used() : before;
+        if (!now) {
+          emit(running, { kind: 'error', message: 'Today\'s allowance could not be read, so the assistant stopped here. Say "continue" to go on.' });
+          return;
+        }
+        if (now.used - before.used >= before.dailyLimit * TURN_SHARE) {
           emit(running, { kind: 'text', text: `\n\n(Stopped: this message has used $${((now.used - before.used) / 1_000_000).toFixed(2)} of today's allowance. Say "continue" to go on.)` });
           return;
         }
@@ -275,6 +313,7 @@ export function createViewAgent(
       for (const item of [...conversation] as { type?: unknown; call_id?: unknown }[]) {
         if (item.type === 'function_call' && !answered.has(item.call_id)) conversation.push({ type: 'function_call_output', call_id: item.call_id, output: 'Not run: the person stopped the turn.' });
       }
+      flush(running);
       running.done = true;
       for (const wake of running.wake.splice(0)) wake();
     }

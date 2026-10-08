@@ -173,6 +173,7 @@ async function activate(context) {
 			}
 			if (batch.done === true && (batch.events ?? []).length === 0 && typeof batch.more !== 'string') break;
 		}
+		void refreshWelcome();
 		const left = await page('account').catch(() => ({}));
 		if (left.signedIn === true && left.ai && typeof left.ai.remaining === 'number') {
 			stream.markdown(`\n\n---\n*${dollars(left.ai.remaining)} of today's ${dollars(left.ai.dailyLimit)} left.*`);
@@ -181,21 +182,34 @@ async function activate(context) {
 	});
 	participant.iconPath = new vscode.ThemeIcon('chat-sparkle');
 	// What the empty Chat view says before anyone types (the `defaultChatParticipant` proposal's
-	// welcome). It promises a sign-in only where the host has one and an AI to sign in for.
-	const host = await page('account').catch(() => ({ available: false }));
-	const hasAssistant = host.available === true && host.ai?.state !== 'off' && (host.signedIn === true || host.signIn !== 'unavailable');
-	const welcome = new vscode.MarkdownString((hasAssistant ? [
-		`**${product.displayName} in your browser.** Ask the assistant to change the model, the game or its UI. It works on this tab's copy of the project; nothing is saved when the tab closes.`,
-		'',
-		'The assistant edits code that then runs in this tab, signed in as you. Ask it only for changes to this project, and be wary of files from people you do not know.',
-		'',
-		...(host.signedIn === true ? [] : ['The assistant needs a Volter account. [Sign in with Volter](command:volter.viewChat.signIn)', '']),
-		`To keep your work and use your own agent, install ${product.displayName}:`,
-	] : [
-		`**This is a limited view.** Chat runs in the local version of ${product.displayName}. Install it and start a project:`,
-	]).concat(['', ...installLines(product), '', '[Copy install command](command:volter.viewChat.copyInstall)']).join('\n'));
-	welcome.isTrusted = { enabledCommands: ['volter.viewChat.copyInstall', 'volter.viewChat.signIn'] };
-	participant.additionalWelcomeMessage = welcome;
+	// welcome). It promises a sign-in only where the host has one and an AI to sign in for, and it
+	// is worked out again whenever that may have changed: when a sign-in tab reports back, and
+	// after every message.
+	const refreshWelcome = async () => {
+		const host = await page('account').catch(() => ({ available: false }));
+		const hasAssistant = host.available === true && host.ai?.state !== 'off' && (host.signedIn === true || host.signIn !== 'unavailable');
+		const welcome = new vscode.MarkdownString((hasAssistant ? [
+			`**${product.displayName} in your browser.** Ask the assistant to change the model, the game or its UI. It works on this tab's copy of the project; nothing is saved when the tab closes.`,
+			'',
+			'The assistant edits code that then runs in this tab, signed in as you. Ask it only for changes to this project, and be wary of files from people you do not know.',
+			'',
+			...(host.signedIn === true ? [] : ['The assistant needs a Volter account. [Sign in with Volter](command:volter.viewChat.signIn)', '']),
+			`To keep your work and use your own agent, install ${product.displayName}:`,
+		] : [
+			`**This is a limited view.** Chat runs in the local version of ${product.displayName}. Install it and start a project:`,
+		]).concat(['', ...installLines(product), '', '[Copy install command](command:volter.viewChat.copyInstall)']).join('\n'));
+		welcome.isTrusted = { enabledCommands: ['volter.viewChat.copyInstall', 'volter.viewChat.signIn'] };
+		participant.additionalWelcomeMessage = welcome;
+	};
+	await refreshWelcome();
+	// The sign-in tab says what happened on this channel (the host's `/auth/callback` page).
+	try {
+		const channel = new BroadcastChannel('volter-account');
+		channel.onmessage = () => { void refreshWelcome(); };
+		context.subscriptions.push({ dispose: () => channel.close() });
+	} catch {
+		/* no channel: the welcome is still refreshed after each message */
+	}
 	context.subscriptions.push(participant);
 }
 
