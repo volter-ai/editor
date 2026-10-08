@@ -26,6 +26,7 @@
 
 // How the `model` stage this document builds behaves (its starting presentation).
 import './blender-properties-context';
+import { liveAnimation, setLiveAnimation } from '../src/play-live';
 import { blenderViewFieldOfView } from '../src/presentation';
 import {
   type BlenderRuntimeView,
@@ -914,6 +915,7 @@ function BlenderViewportArea({
       void view.prepareRendered(stage.rig().drawCamera(), 'render').then(() => {
         if (stopped) return;
         animation = playAnimation(view, (armature, action) => blenderActionClip({ object: armature, action }));
+        setLiveAnimation(animation);
         stopScript = documentPlayExtension('model')?.run({
           ...(animation ? { animation } : {}),
           documentId: modelId,
@@ -973,6 +975,8 @@ function BlenderViewportArea({
       stopPrepareFrames?.();
       window.removeEventListener('keydown', onEscape, true);
       stopScript?.();
+      // Only this run's animation is cleared: a restart's new run may already hold the slot.
+      if (liveAnimation() === animation) setLiveAnimation(null);
       animation?.dispose();
       animation = null;
       layers.remove();

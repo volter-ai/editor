@@ -90,7 +90,12 @@ export interface TimelineViewState {
    * object regardless, in Blender and here.
    */
   readonly onlySelected: boolean;
+  /** Which of Blender's animation editors the bottom area shows in Animation mode: the
+   *  Timeline, the Dope Sheet's Action Editor, or the NLA editor (Blender's editor-type menu). */
+  readonly editor: AnimationEditor;
 }
+
+export type AnimationEditor = 'timeline' | 'action' | 'nla';
 
 const INITIAL: TimelineViewState = {
   transform: { startFrame: -5, pixelsPerFrame: 8 },
@@ -99,6 +104,7 @@ const INITIAL: TimelineViewState = {
   framedAt: 0,
   drawn: null,
   onlySelected: true,
+  editor: 'timeline',
 };
 
 let state: TimelineViewState = INITIAL;

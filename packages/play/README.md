@@ -164,7 +164,7 @@ The tool registers the `model` document Play extension
   whether it exists, so a layout can open a model with a script as a game.
 
 In Cyclotron these are drawn by the Game panel (`@volter/editor-blender`): the Game /
-Movie switch at the left of the bottom area's header puts it there in place of the Timeline. The panel's controls
+Animation switch at the left of the bottom area's header puts it there in place of the Timeline. The panel's controls
 are also commands, `volter.model-play.<verb>`, so an agent drives the same run the person
 sees:
 
@@ -176,7 +176,7 @@ sees:
 | `volter.model-play.step` | `{ count?: 1–600 }`, while paused |
 | `volter.model-play.speed` | `{ speed: 0.25 \| 0.5 \| 1 \| 2 \| 4 }` |
 | `volter.model-play.restart` | — |
-| `volter.model-play.mode` | `{ mode?: 'game' \| 'movie' }` |
+| `volter.model-play.mode` | `{ mode?: 'game' \| 'animation' }` |
 | `volter.model-play.autoplay` | `{ on: boolean }` — the game's bot drives, or the person does |
 
 Each takes an optional `document` (the model document's id) and otherwise acts on the model
