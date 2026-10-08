@@ -194,7 +194,8 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
    * by the same door the editor's own tripwire uses (`steerRunningTurn`), which reads the turn
    * first and then uses the managed runtime's own steer. The harness host's raw `steer` intent
    * answers "no active turn" for a Claude Code turn whose start it never saw, so it is not used.
-   * 409 when no turn is running or the turn waits on the person.
+   * 409 with `state` 'idle' (no turn running: send it as a prompt) or 'waiting' (the turn waits
+   * on the person).
    */
   router.post('/__editor/harness-chat/steer', async (req: Request, res: Response) => {
     if (!requireLocalOwner(req, res)) return;
@@ -208,8 +209,12 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
       return;
     }
     try {
-      if (await harnessChat.steerRunningTurn(text)) res.json({ steered: true });
-      else res.status(409).json({ error: 'No turn is running, or the turn is waiting on an approval in the editor.' });
+      const queued = await harnessChat.queuePersonPrompt(text);
+      if (queued === 'queued') res.json({ queued: true });
+      else res.status(409).json({
+        state: queued,
+        error: queued === 'waiting' ? 'The turn is waiting on an approval in the editor.' : 'No turn is running.',
+      });
     } catch (error) {
       res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
     }
