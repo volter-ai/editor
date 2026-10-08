@@ -63,10 +63,13 @@ export async function ensureRuntimeImage(productRoot: string, version: string): 
   );
   console.error(`Installing the Volter Game Editor ${version} runtime image (once per version) into ${dir}`);
   await new Promise<void>((done, fail) => {
+    // Windows starts a .cmd only through a shell: without one, current Node refuses it with EINVAL, and create
+    // stopped there on every Windows machine (read on volter-desktop with the released 0.5.202).
     const child = spawn(process.platform === 'win32' ? 'npm.cmd' : 'npm', ['install', '--no-audit', '--no-fund'], {
       windowsHide: true,
       cwd: dir,
       stdio: 'inherit',
+      shell: process.platform === 'win32',
     });
     child.once('error', fail);
     child.once('exit', (code) => (code === 0 ? done() : fail(new Error(`The runtime image did not install (${code}); retry creating the project.`))));
