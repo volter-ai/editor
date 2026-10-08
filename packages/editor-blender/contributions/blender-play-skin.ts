@@ -176,19 +176,19 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
         const blend = track.strips[0]?.blendType ?? 'REPLACE';
         if (set.previous) take(playedLayer(armature, set.previous, influence, blend));
         take(playedLayer(armature, set.action, influence, blend));
-        if (influence > 0) evaluated = true;
+        evaluated = true;
         continue;
       }
       const stack = nlaLayers({ ...animation!, tracks: [{ ...track, mute: false, solo: false }] }, frame, (action) => clipOf(armature, action));
       if (stack.waiting) waiting = true;
-      if (stack.evaluated && influence > 0) evaluated = true;
+      if (stack.evaluated) evaluated = true;
       for (const layer of stack.layers) layers.push({ ...layer, influence: layer.influence * influence });
     }
     for (const set of armature.tracks.values()) {
       if (!set.own || set.mute || !set.action) continue;
       if (set.previous) take(playedLayer(armature, set.previous, set.influence.weight, 'REPLACE'));
       take(playedLayer(armature, set.action, set.influence.weight, 'REPLACE'));
-      if (set.influence.weight > 0) evaluated = true;
+      evaluated = true;
     }
     // THE ACTIVE ACTION as Blender places it: not at all under a soloed track, alone and whole when
     // no strip is evaluated now, else at its influence and blend type over them.

@@ -325,17 +325,15 @@ export function nlaLayers(animation: BlenderArmatureAnimation | undefined, frame
     if (track.mute || (solo && !track.solo) || (tracks && !tracks(track.name))) continue;
     const hit = stripAt(track.strips, frame);
     if (!hit) continue;
-    // A STRIP AT NO INFLUENCE, or a clip strip with no action, is not evaluated at all
-    // (`nlastrips_ctime_get_strip`), so it does not count as a strip played at this frame.
+    // ANY STRIP THE FRAME FALLS ON counts as evaluated, whatever its influence: measured in Blender
+    // 5.2 (a strip keyed to influence 0 still puts the active action at its influence over the NLA).
+    evaluated = true;
     const influence = stripInfluence(hit.strip, hit.time);
-    if (influence <= 0 || (hit.strip.type === 'CLIP' && !hit.strip.action)) continue;
-    if (hit.strip.type !== 'CLIP') {
+    if (hit.strip.type !== 'CLIP' || !hit.strip.action) {
       skipped.push(`the ${hit.strip.type.toLowerCase()} strip "${hit.strip.name}" on track "${track.name}"`);
-      evaluated = true;
       continue;
     }
-    evaluated = true;
-    const clip = clips(hit.strip.action!);
+    const clip = clips(hit.strip.action);
     if (clip === undefined) waiting = true;
     if (!clip) continue;
     layers.push({ clip, frame: stripFrame(hit.strip, hit.time), influence, blend: hit.strip.blendType });
