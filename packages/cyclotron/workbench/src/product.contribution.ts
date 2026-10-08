@@ -38,7 +38,6 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { registerViewBackground } from '../../volter/browser/volterColors.js';
 import { registerVolterProduct, type VolterProductCover, type VolterProductCoverContext, type VolterProductMountContext } from '../../volter/browser/volterProduct.js';
-import { CYCLOTRON_MACHINE } from './cyclotronMachine.js';
 
 // BLENDER'S OWN UI FONT (Inter, OFL), lifted from the Blender payload's datafiles/fonts. It is
 // loaded through `FileAccess.asBrowserUri` off the APP ROOT, which is what makes the look
@@ -161,30 +160,25 @@ registerVolterProduct({
 	// first painted frame is already this.
 	cover(host: HTMLElement, context: VolterProductCoverContext): VolterProductCover {
 		const root = $('.volter-model-cover');
-		// THE MARK: the machine from the home page, this product's mascot (`cyclotronMachine.ts`),
-		// built as ELEMENTS. Not `innerHTML` — the page carries a Trusted Types policy and the
-		// workbench's own code never assigns markup — and not a file either, because an image to
-		// fetch is a frame to wait for. Each part is one path the stylesheet plots in turn
-		// (`--part` is its place in the reassembly order), then the machine floats.
-		const machine = $.SVG<SVGElement>('svg', { class: 'volter-model-cover-mark', viewBox: '0 0 240 240', 'aria-hidden': 'true' });
-		CYCLOTRON_MACHINE.forEach(({ accent, d }, index) => {
-			const part = $.SVG<SVGElement>('path', {
-				class: accent ? 'volter-model-cover-part volter-model-cover-accent' : 'volter-model-cover-part',
-				// One unit long, so the dash that plots it is the same for every part.
-				pathLength: '1',
-				d,
-			});
-			// Through the CSSOM, not a `style` attribute, which the page's policy treats as markup.
-			part.style.setProperty('--part', String(index));
-			machine.append(part);
-		});
+		// THE MARK: Blender's three viewport axes, built as ELEMENTS. Not `innerHTML` — the
+		// page carries a Trusted Types policy and the workbench's own code never assigns
+		// markup — and not a file either, because an image to fetch is a frame to wait for.
+		const axes = $.SVG<SVGElement>('svg', { class: 'volter-model-cover-mark', viewBox: '0 0 48 48', 'aria-hidden': 'true' });
+		const group = $.SVG<SVGElement>('g', { fill: 'none', 'stroke-width': '3', 'stroke-linecap': 'round' });
+		// `viewport.axisX` / `axisY` and the Z blue Blender uses in the same gizmo.
+		group.append(
+			$.SVG<SVGElement>('path', { d: 'M24 28 L8 37', stroke: '#cb293f' }),
+			$.SVG<SVGElement>('path', { d: 'M24 28 L40 37', stroke: '#69aa15' }),
+			$.SVG<SVGElement>('path', { d: 'M24 28 L24 10', stroke: '#4772b3' }),
+		);
+		axes.append(group, $.SVG<SVGElement>('circle', { cx: '24', cy: '28', r: '3.2', fill: '#e6e6e6' }));
 		const title = $('.volter-model-cover-title');
 		title.textContent = localize('volterModelCoverTitle', "Cyclotron");
 		const folder = $('.volter-model-cover-folder');
 		folder.textContent = context.folderName;
 		const state = $('.volter-model-cover-state');
 		state.textContent = localize('volterModelCoverStarting', "Starting Blender…");
-		root.append(machine, title, folder, $('.volter-model-cover-rail'), state);
+		root.append(axes, title, folder, $('.volter-model-cover-rail'), state);
 		host.appendChild(root);
 		splash = { say: (text: string) => { state.textContent = text; } };
 		return {
