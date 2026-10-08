@@ -5,7 +5,7 @@
 - [CLI invocation](#cli-invocation--use-the-project-local-cli)
 - [Quick start](#quick-start)
 - [Connection precondition](#precondition-most-verbs-need-a-connected-browser-tab-not-just-volter-edit-running)
-- [**Drive the running game — `npx volter-game-editor eval`**](#drive-the-running-game--volter-eval-the-general-door)
+- [**Drive the running game — `npx --no-install volter-game-editor eval`**](#drive-the-running-game--volter-eval-the-general-door)
 - [CLI reference](#cli-reference)
 - [Entity IDs](#entity-ids)
 - [Typical workflows](#typical-workflows)
@@ -14,7 +14,7 @@
 Use the `volter` CLI to create projects, launch the editor, and control it programmatically. The editor is a browser-based WebGL app; the CLI sends commands to it over HTTP.
 
 **Driving a running GAME is a different question from driving the editor**, and
-it has one answer: `npx volter-game-editor eval`. Read that section before the verb list — the
+it has one answer: `npx --no-install volter-game-editor eval`. Read that section before the verb list — the
 verbs cover the editor, and a game's own commands are never verbs.
 
 ## CLI invocation — use the project-local CLI
@@ -44,32 +44,32 @@ DIFFERENT project's already-running editor — if one is already open
 elsewhere, this one starts a second instance on a fresh free port and prints
 that URL instead (use `--switch` to retarget the existing one on purpose).
 If you might have another volter-game-editor project's tab open in the browser already,
-don't assume it's this project: read the URL `npx volter-game-editor edit` actually prints
-(check `npx volter-game-editor sessions` to see every live session's port → project), or pass
-`npx volter-game-editor edit --port <n>` to pin an explicit port for this project so a stale
+don't assume it's this project: read the URL `npx --no-install volter-game-editor edit` actually prints
+(check `npx --no-install volter-game-editor sessions` to see every live session's port → project), or pass
+`npx --no-install volter-game-editor edit --port <n>` to pin an explicit port for this project so a stale
 tab from a different project can't be mistaken for this session.
 
-## Precondition: most verbs need a connected browser tab, not just `npx volter-game-editor edit` running
+## Precondition: most verbs need a connected browser tab, not just `npx --no-install volter-game-editor edit` running
 
-`npx volter-game-editor edit` starts the dev server and prints a URL — it does **not** by
+`npx --no-install volter-game-editor edit` starts the dev server and prints a URL — it does **not** by
 itself give the CLI anything to talk to. Every control verb (`play`,
 `select`, `focus`, `show`, `status`, ...) is relayed over HTTP/SSE to an
 actual browser tab that has the editor page open and running; the dev
-server just serves that page. Running `npx volter-game-editor edit` and then immediately
-calling `npx volter-game-editor status` with **no tab ever opened** does not error — it
+server just serves that page. Running `npx --no-install volter-game-editor edit` and then immediately
+calling `npx --no-install volter-game-editor status` with **no tab ever opened** does not error — it
 returns the last **cached** state from a previous session (or an empty
 default), and prints a prominent multi-line `STALE SNAPSHOT` banner to
 stderr (with the snapshot's age, if known) instead of a hard error, so
 scripts that legitimately want last-known state still get it. Read that
 banner: it means the JSON below it is stale, not live. Before trusting
-`npx volter-game-editor status` (or issuing `play`/`select`/etc. and expecting them to do
+`npx --no-install volter-game-editor status` (or issuing `play`/`select`/etc. and expecting them to do
 anything), make sure a tab is actually open on the printed URL — a real
 browser, or a Playwright/Puppeteer page you navigated to it yourself.
 
 **`--no-open`: skip the browser auto-open.** Only for contexts where NO
 human could possibly be watching (unattended CI). On WSL the auto-open
 reaches the WINDOWS browser, so headless WSL is not a reason to pass this —
-let `npx volter-game-editor edit` auto-open and tell the user the printed URL instead. The
+let `npx --no-install volter-game-editor edit` auto-open and tell the user the printed URL instead. The
 one legitimate case is a fully unattended CI job that then drives the
 editor itself, e.g. via Playwright:
 
@@ -86,14 +86,14 @@ await page.goto('http://localhost:5173', { waitUntil: 'load' });
 ```
 
 Once that page has loaded, it registers as a connected client and `volter-game-editor
-status`/`npx volter-game-editor play`/etc. from another shell will reach it for real.
+status`/`npx --no-install volter-game-editor play`/etc. from another shell will reach it for real.
 
-## Drive the running game — `npx volter-game-editor eval`, the general door
+## Drive the running game — `npx --no-install volter-game-editor eval`, the general door
 
 **This is the section to read before the verb list below.** A first-party
 game's control and readout surface is its own ordinary exported modules. There
 is no command registry, provider registry, or fixed game vocabulary to learn.
-`npx volter-game-editor eval` runs literal JS against this project's live session with
+`npx --no-install volter-game-editor eval` runs literal JS against this project's live session with
 `{ editor, game, page, tools, session }` from `@volter/game-live` already in scope:
 
 ```bash
@@ -116,7 +116,7 @@ events, rAF loops, wall-clock sleeps, or direct `window.__volter*`/scene-graph
 reads.** Arrange expensive preconditions with exported setup functions, then
 hire the resident tester to act through the game's real input store.
 `waitSimTime` advances deterministically even while the editor tab is HIDDEN.
-`npx volter-game-editor status` reports the tab's own
+`npx --no-install volter-game-editor status` reports the tab's own
 visibility MEASUREMENTS (`visibilityReport` — the reported value, its age,
 and a live tick probe when the loop looks stopped) instead of letting
 `connected: true` read as usable — and instead of asserting a story:
@@ -173,7 +173,7 @@ npm run --silent volter -- restart          # Dispose + remount every game root 
 npm run --silent volter -- stop             # Exit play mode
 ```
 
-`pause` / `resume` / `step` were REMOVED — `npx volter-game-editor eval 'editor.pause()'`,
+`pause` / `resume` / `step` were REMOVED — `npx --no-install volter-game-editor eval 'editor.pause()'`,
 `editor.resume()`, `editor.step(1)`.
 
 Component-source HMR swaps class prototypes onto live instances. That keeps
@@ -184,7 +184,7 @@ behavior. The same action is always available in the Play bar; when the editor
 knows a source change is structurally unsafe it highlights the button with the
 reason.
 
-### Navigation, Panels, and Display — REMOVED, use `npx volter-game-editor eval`
+### Navigation, Panels, and Display — REMOVED, use `npx --no-install volter-game-editor eval`
 
 Every verb in this group was a 1:1 wrapper over a method `eval` already
 exposes, so they were deleted rather than kept as aliases. Typing one now
@@ -262,7 +262,7 @@ The playtest loop (exported setup/read functions, the tester's repertoire, and
 sim-time budgets) is documented in the sibling
 `.agents/references/project-manual.md`.
 
-Reading and driving the game's own modules is **`npx volter-game-editor eval`'s job,
+Reading and driving the game's own modules is **`npx --no-install volter-game-editor eval`'s job,
 permanently**, not a gap waiting on more CLI verbs. A game names its own
 functions, which is exactly why the door is general.
 
@@ -281,7 +281,7 @@ keyed on the OID its source carries — stable across reloads). To find one:
 1. `npm run --silent volter -- eval 'return editor.hierarchy()'` — the hierarchy panel's
    rows as data, each with its `id` and label
 2. Use that id with `editor.select("<id>")` / `editor.focus("<id>")` through
-   `npx volter-game-editor eval`
+   `npx --no-install volter-game-editor eval`
 
 ## Typical Workflows
 
@@ -326,7 +326,7 @@ npm run --silent volter -- eval 'await editor.view("top"); await editor.shading(
 
 ## SDK (Programmatic Access)
 
-For TypeScript automation, use **`@volter/game-live`** — the same surface `npx volter-game-editor eval`
+For TypeScript automation, use **`@volter/game-live`** — the same surface `npx --no-install volter-game-editor eval`
 binds, so anything you prototyped at the command line moves into a script
 unchanged:
 
@@ -348,8 +348,8 @@ const player = await game.run(async ({ modules }) => {
 });
 ```
 
-`connect()` ATTACHES to a session `npx volter-game-editor edit` is already serving — it never
-starts one, and fails with a clear "run `npx volter-game-editor edit` first" rather than silently
+`connect()` ATTACHES to a session `npx --no-install volter-game-editor edit` is already serving — it never
+starts one, and fails with a clear "run `npx --no-install volter-game-editor edit` first" rather than silently
 booting a second editor. Top-level `editor` / `game` / `page` / `tools`
 singletons are also exported for one-liners.
 

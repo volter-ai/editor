@@ -8,7 +8,7 @@ verbatim, with nothing added, to one reviewer. Change this file only by the owne
 ## How to run it
 
 1. Commit the change. Emit a game from it:
-   `npx tsx packages/gd-analyze/src/cli.ts import packages/gd-analyze/test/fixtures/platformer-3d-godot4 <new dir> --bound-exporter-binary … --official-binary …`.
+   `npx --no-install tsx packages/gd-analyze/src/cli.ts import packages/gd-analyze/test/fixtures/platformer-3d-godot4 <new dir> --bound-exporter-binary … --official-binary …`.
 2. Start one fresh agent that has not seen the change being made. Give it only the text under
    §The brief, with `<commit>`, `<previous>` and `<emitted>` filled in. Tell it nothing else:
    not what the change is for, not why it is shaped as it is, not what the author thinks of it.
