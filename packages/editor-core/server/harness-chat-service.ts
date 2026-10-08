@@ -1134,23 +1134,25 @@ export class HarnessChatService {
    * door, but not recorded as this service's own steer, so its echo and the turn it resumes are
    * the person's (a new request resets the tripwire's per-turn allowance as any prompt does).
    * Answers what happened: queued into the running turn, or why not ('idle' when no turn runs,
-   * so the caller sends it as an ordinary prompt; 'waiting' when the turn waits on the person).
+   * so the caller sends it as an ordinary prompt; 'waiting' when the turn waits on the person;
+   * 'unknown' when the turn's state could not be read, or a turn ended while it was read and
+   * another may have begun: then nothing is sent, because a turn may be running).
    */
-  async queuePersonPrompt(text: string): Promise<'queued' | 'idle' | 'waiting'> {
+  async queuePersonPrompt(text: string): Promise<'queued' | 'idle' | 'waiting' | 'unknown'> {
     return this.steerInto(text, false);
   }
 
-  private async steerInto(text: string, own: boolean): Promise<'queued' | 'idle' | 'waiting'> {
+  private async steerInto(text: string, own: boolean): Promise<'queued' | 'idle' | 'waiting' | 'unknown'> {
     const generation = this.runtimeTurnGeneration;
     const state = await this.chatTurnState();
-    if (state !== 'running') return state === 'waiting' ? 'waiting' : 'idle';
+    if (state !== 'running') return state === 'waiting' || state === 'unknown' ? state : 'idle';
     // Re-checked AFTER the await, immediately before the steer: a turn that
     // ended while its state was being read must not be steered, because a
     // steer into an idle runtime can START a turn nobody asked for.
     // The open/closed bit gates only a runtime that reports turn starts; one
     // that never does (Claude Code's native stream) falls back to the
     // descriptor's `turn_state` busy, read just above.
-    if (generation !== this.runtimeTurnGeneration) return 'idle';
+    if (generation !== this.runtimeTurnGeneration) return 'unknown';
     if (this.runtimeReportsTurnStarts && this.runtimeTurnOpen === false) return 'idle';
     if (own) this.lastSteer = { text, at: Date.now() };
     const runtime = this.managedRuntime;
