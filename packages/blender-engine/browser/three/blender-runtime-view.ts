@@ -62,10 +62,11 @@ const SAVED_SHADING = {
  *  sixteen 512-square tiles each span the whole scene, so a 360 m level gets
  *  about a metre per texel, and each lookup is one nearest texel answering
  *  yes or no. Faceted surfaces then occlude their own sky at random pixels --
- *  static on every polygon in Rendered and Play -- and the narrow specular lobe
- *  flips reflections between one direction and the next as the camera moves.
- *  It measured right in a closed room a few metres across. Turn it back on once
- *  its lookups are filtered and its resolution follows the scene's size. */
+ *  static on every polygon in Rendered and Play -- and narrow specular lobes,
+ *  dominated by a few of the sixteen directions, plausibly flash as the camera
+ *  moves. It measured right in a closed room a few metres across. Turn it back
+ *  on once its lookups are filtered and its resolution follows the scene's size
+ *  (docs/BLENDER-RENDERING-PARITY.md lists the rest). */
 const WORLD_VISIBILITY = false;
 const scalar = z.number().finite();
 const point = z.tuple([scalar, scalar, scalar]);
