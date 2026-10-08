@@ -33,6 +33,11 @@ export default function firstPlay(play: ModelPlayContext): ModelPlayGame {
   let jumpHeld = false;
   const eye = new THREE.Vector3();
   const target = new THREE.Vector3();
+  // Play lights the model with its own lamps; the starter cube has none, so it gets a sky light.
+  let lit = false;
+  play.root.traverse((object) => { lit ||= (object as THREE.Light).isLight === true; });
+  const sky = lit ? null : new THREE.HemisphereLight('#ffffff', '#4d5a66', 2.5);
+  if (sky) play.root.add(sky);
 
   // The bot holds keys exactly as a person would; the Game panel's Autoplay switches it on.
   play.autoplay({
@@ -58,12 +63,15 @@ export default function firstPlay(play: ModelPlayContext): ModelPlayGame {
       if (height === 0) rise = 0;
       player.position.z = ground + height;
       // Chase from behind and above. `root` turns Blender's Z up into the stage's Y up.
-      play.root.localToWorld(eye.set(player.position.x, player.position.y - 8, ground + 4));
+      play.root.localToWorld(eye.set(player.position.x, player.position.y - 6, ground + 3));
       play.root.localToWorld(target.copy(player.position));
       play.camera.position.copy(eye);
       play.camera.up.set(0, 1, 0);
       play.camera.lookAt(target);
       publishGameState({ x: player.position.x, y: player.position.y, height, jumps });
+    },
+    dispose() {
+      sky?.removeFromParent();
     },
   };
 }
