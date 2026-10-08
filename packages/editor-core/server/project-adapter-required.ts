@@ -12,7 +12,7 @@
  */
 import { existsSync } from 'node:fs';
 import { join } from 'node:path';
-import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 import { ProjectCompatibilityError } from '@volter/sdk/session/editor-compatibility';
 
 interface AdapterRequirement {
