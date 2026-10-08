@@ -192,9 +192,15 @@ export async function startFrameWorkbench(options: {
   // A win32 release's server bin is `code-server-oss.cmd`, which node will not spawn without a
   // shell (EINVAL) and which only runs the release's own node.exe on out/server-main.js — so
   // that pair is spawned directly, with no shell to quote the project path through.
+  // A win32 CHECKOUT's launcher is `scripts/code-server.sh`, which Windows cannot spawn (EFTYPE);
+  // what it runs in the end is node on `scripts/code-server.js` in development mode, so that is
+  // spawned here, on this node (the fork's `.nvmrc` major, which `scripts/workbench/dev.mjs` holds).
+  const sourcesOnWindows = process.platform === 'win32' && workbench.kind === 'sources';
   const [command, entry]: [string, string[]] = process.platform === 'win32' && workbench.serverBin.endsWith('.cmd')
     ? [join(workbench.cwd, 'node.exe'), [join(workbench.cwd, 'out', 'server-main.js')]]
-    : [workbench.serverBin, []];
+    : sourcesOnWindows
+      ? [process.execPath, [join(workbench.cwd, 'scripts', 'code-server.js')]]
+      : [workbench.serverBin, []];
   const reh = spawn(
     command,
     [
@@ -213,7 +219,7 @@ export async function startFrameWorkbench(options: {
       // the server forks (its extension host) would open a visible window; see launch.ts.
       detached: process.platform !== 'win32',
       windowsHide: true,
-      env: { ...process.env, ...options.env },
+      env: { ...process.env, ...(sourcesOnWindows ? { NODE_ENV: 'development', VSCODE_DEV: '1' } : {}), ...options.env },
     },
   );
   let proxy: { close(): Promise<void> } | null = null;

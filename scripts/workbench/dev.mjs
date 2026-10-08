@@ -74,7 +74,8 @@ function assertNodeMajor(checkout) {
 
 function run(command, args, cwd) {
 	console.log(`+ ${command} ${args.join(' ')}`);
-	const result = spawnSync(command, args, { cwd, stdio: 'inherit' });
+	// npm is `npm.cmd` on Windows, which node spawns only through a shell (it answered `null`).
+	const result = spawnSync(command, args, { cwd, stdio: 'inherit', shell: process.platform === 'win32' && command === 'npm' });
 	if (result.status !== 0) { fail(`${command} ${args.join(' ')} exited ${result.status}`); }
 }
 
