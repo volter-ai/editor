@@ -58,6 +58,15 @@ const SAVED_SHADING = {
   MATERIAL: 'preview',
   RENDERED: 'rendered',
 } as const;
+/** SKY-LIGHT OCCLUSION (`blender-world-visibility.ts`) IS OFF IN EVERY VIEW. Its
+ *  sixteen 512-square tiles each span the whole scene, so a 360 m level gets
+ *  about a metre per texel, and each lookup is one nearest texel answering
+ *  yes or no. Faceted surfaces then occlude their own sky at random pixels --
+ *  static on every polygon in Rendered and Play -- and the narrow specular lobe
+ *  flips reflections between one direction and the next as the camera moves.
+ *  It measured right in a closed room a few metres across. Turn it back on once
+ *  its lookups are filtered and its resolution follows the scene's size. */
+const WORLD_VISIBILITY = false;
 const scalar = z.number().finite();
 const point = z.tuple([scalar, scalar, scalar]);
 const edge = z.tuple([z.number().int().nonnegative(), z.number().int().nonnegative()]);
@@ -799,7 +808,7 @@ export class BlenderRuntimeView {
    *  (`blender-workbench-material.ts`) over their viewport display. */
   private workbench = false;
   private readonly workbenchMaterials = new Map<string, THREE.Material>();
-  private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72, side: THREE.DoubleSide });
+  private readonly fallback = new THREE.MeshPhysicalMaterial({ color: 0xb9bec6, roughness: 0.72, side: THREE.DoubleSide, shadowSide: THREE.BackSide });
   /** Base Color images, by image name -- ONE texture per image however many
    *  materials read it, and the cache OWNS it: a material points at one and
    *  never disposes it. Held with the size and revision the resident bytes
@@ -1429,13 +1438,15 @@ export class BlenderRuntimeView {
       // objects. Fit shadows for that draw, rather than the camera's pose
       // when Rendered shading was first entered. Captures use this path too.
       if (this.rendered) this.applyShadows(true, camera);
-      this.worldVisibility.sync(this.objects.values(),this.world.lightingTexture(),this.root,this.rendered);
-      for(const material of [...this.materials.values(),this.fallback])bindWorldVisibility(material,this.worldVisibility);
-      for(const object of this.objects.values()) {
-        const mesh=object as THREE.Mesh;if(!mesh.isMesh)continue;
-        for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material])bindWorldVisibility(material,this.worldVisibility);
+      if (WORLD_VISIBILITY) {
+        this.worldVisibility.sync(this.objects.values(),this.world.lightingTexture(),this.root,this.rendered);
+        for(const material of [...this.materials.values(),this.fallback])bindWorldVisibility(material,this.worldVisibility);
+        for(const object of this.objects.values()) {
+          const mesh=object as THREE.Mesh;if(!mesh.isMesh)continue;
+          for(const material of Array.isArray(mesh.material)?mesh.material:[mesh.material])bindWorldVisibility(material,this.worldVisibility);
+        }
+        if(options?.renderer)this.worldVisibility.prepare(options.renderer);
       }
-      if(options?.renderer)this.worldVisibility.prepare(options.renderer);
       const opaqueDone = performance.now();
       const motion = this.motionGeometry.prepare(camera, !this.rendered && (this.mode ?? this.frame?.mode) === 'OBJECT' &&
         options?.interactive === true, options?.height ?? 0);
@@ -1995,7 +2006,11 @@ export class BlenderRuntimeView {
     for (const [id, data] of Object.entries(next.materials)) {
       // Cycles intersects and shades both faces, including an arcade viewed
       // from underneath. Three's front-face default drops those surfaces.
-      const material = this.materials.get(id) ?? new THREE.MeshPhysicalMaterial({ side: THREE.DoubleSide });
+      // The shadow map keeps the back faces a front-faced material draws
+      // there: a two-sided depth pass puts every lit face into its own map, and
+      // the normal offset cannot hold that off at grazing light.
+      const material = this.materials.get(id) ??
+        new THREE.MeshPhysicalMaterial({ side: THREE.DoubleSide, shadowSide: THREE.BackSide });
       material.name = data.name;
       // A LINKED BASE COLOUR REPLACES THE SOCKET'S VALUE, it does not multiply
       // it. Python's `_reduce` fills `color` from the Base Color socket's
