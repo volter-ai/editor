@@ -1,6 +1,6 @@
 # Cyclotron by VideoGame AI
 
-![Canyon Comet in Cyclotron: six karts racing through a desert canyon, with the race HUD over the viewport and the outliner and properties panels beside it](docs/media/model-play-race.png)
+![Canyon Comet playing in Cyclotron: karts racing under a sandstone arch with the race HUD over the viewport, the outliner and properties beside it, and the Game panel's Autoplay and play log below](docs/media/model-play-race.png)
 
 A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
 
@@ -26,11 +26,12 @@ curl -fsSL https://cyclotron.videogame.ai/install.sh | sh
 - To try it without installing, open [cyclotron-web.videogame.ai](https://cyclotron-web.videogame.ai/):
   the editor with Blender and Play in your browser, without Chat.
 - Opens Canyon Comet, a kart race through a desert canyon modelled in the editor. Press
-  **Play** in the viewport header: the camera moves from your editing view to the chase camera
-  behind your kart. Press **RACE!** (or Enter, or an arrow key) and, after a three-second
+  **Play** in the Game panel below the viewport: the camera moves from your editing view to the
+  chase camera behind your kart. Press **RACE!** (or Enter, or an arrow key) and, after a three-second
   countdown, race five rivals over three laps: arrow keys or W/S to drive, Space to drift,
-  Shift to boost with collected coins. **AUTO** lets the game drive your kart. Escape moves the
-  camera back and returns the untouched model. A lap is about 15 seconds.
+  Shift to boost with collected coins. **AUTO** in the HUD, or **Autoplay** in the Game panel,
+  lets a bot drive your kart. Escape moves the camera back and returns the untouched model. A
+  lap takes about 12 seconds.
 - `src/models/canyon.blend` is the scene and `src/models/canyon.py`, with the step scripts
   beside it, the bpy that built it; `src/models/canyon.play.ts` is the script Play runs, and
   `src/ui/` is the React interface drawn over it.

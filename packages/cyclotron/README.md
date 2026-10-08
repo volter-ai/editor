@@ -18,7 +18,7 @@ For a model, run `npx @volter/cyclotron` without arguments. It opens the current
 project, or prepares `~/Documents/Volter Models/Untitled Model` with a saved cube
 and Chat ready. Later launches reopen that starter and preserve your edits.
 
-![Canyon Comet in the editor: six karts racing through a desert canyon, with the race HUD over the viewport and the outliner and properties panels beside it](https://raw.githubusercontent.com/volter-ai/editor/main/docs/media/model-play-race.png)
+![Canyon Comet playing in the editor: karts racing under a sandstone arch with the race HUD over the viewport, the outliner and properties beside it, and the Game panel's Autoplay and play log below](https://raw.githubusercontent.com/volter-ai/editor/main/docs/media/model-play-race.png)
 
 ## What it's made of
 
