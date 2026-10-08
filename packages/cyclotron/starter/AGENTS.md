@@ -71,6 +71,17 @@ Replace unused scaffold placeholders as the requested result calls for.
   and the intended viewpoints; add cameras when the requested shot needs them.
   A game-like reference can describe a static scene. Implement playable behavior
   when the user asks for a working game or interactive mechanics.
+- **A level and its pieces:** the level's `.blend` is the environment
+  (terrain, mountains, rocks, scatter). Each piece with its own identity, such
+  as a character, creature, vehicle, building or key prop, is its own `.blend`
+  with one collection named for it, linked into the level rather than copied,
+  as in a Blender production. Link its collection
+  (`bpy.data.libraries.load(path, link=True)`) and place it as a collection
+  instance. A piece that animates or that the level changes is then made a
+  library override (`bpy.ops.object.make_override_library()` with the instance
+  active): its names stay the same for the play script, and actions and NLA
+  tracks can still be added in the level. Edits to the piece's own file reach
+  every level that links it.
 - **A character or an animation:** see Characters and Animation below; check
   motion in the Timeline at representative and extreme poses.
 - **An interactive model:** implement the requested interaction, preview it in
