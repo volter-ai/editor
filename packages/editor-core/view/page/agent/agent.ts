@@ -36,6 +36,8 @@ const TURN_SHARE = 0.2;
  *  one message's own work may not pass. Both well under what the host accepts. */
 const TRIM_ABOVE = 120_000;
 const TURN_LIMIT = 200_000;
+/** How long the host is given to say what the person has used. */
+const COUNT_TIMEOUT_MS = 10_000;
 const DROPPED_NOTE = '(Earlier parts of this conversation were dropped to save space.)';
 
 /** What a turn tells the Chat view, in order. */
@@ -225,10 +227,12 @@ export function createViewAgent(
     return output;
   };
 
-  /** What the person has used of today's allowance, by the host's count; null when it does not say. */
-  const used = async (): Promise<{ used: number; dailyLimit: number } | null> => {
+  /** What the person has used of today's allowance, by the host's count; null when it does not say
+   *  in time. Stop cancels the read, and a host that hangs is given up on. */
+  const used = async (stop: AbortSignal): Promise<{ used: number; dailyLimit: number } | null> => {
     try {
-      const account = (await (await fetch(ACCOUNT_ROUTE, { headers: { Accept: 'application/json' } })).json()) as { ai?: { used?: unknown; dailyLimit?: unknown } };
+      const signal = AbortSignal.any([stop, AbortSignal.timeout(COUNT_TIMEOUT_MS)]);
+      const account = (await (await fetch(ACCOUNT_ROUTE, { headers: { Accept: 'application/json' }, signal })).json()) as { ai?: { used?: unknown; dailyLimit?: unknown } };
       return typeof account.ai?.used === 'number' && typeof account.ai.dailyLimit === 'number' ? { used: account.ai.used, dailyLimit: account.ai.dailyLimit } : null;
     } catch {
       return null;
@@ -260,7 +264,12 @@ export function createViewAgent(
   const run = async (running: Turn, text: string): Promise<void> => {
     // The per-message limit rests on the host's count. With no count there is no limit, so there
     // is no turn: nothing is sent to the model.
-    const before = await used();
+    const before = await used(running.abort.signal);
+    if (!before && running.abort.signal.aborted) {
+      running.done = true;
+      for (const wake of running.wake.splice(0)) wake();
+      return;
+    }
     if (!before) {
       const account = await host(ACCOUNT_ROUTE, 'GET').then((response) => response.json() as Promise<{ available?: boolean; signedIn?: boolean }>).catch(() => ({ available: false, signedIn: false }));
       if (account.available !== true) emit(running, { kind: 'refused', code: 'no_ai', message: 'This view has no AI of its own.' });
@@ -281,7 +290,8 @@ export function createViewAgent(
           return;
         }
         // One message may use a share of the day, not the day: a loop that does not converge stops here.
-        const now = step > 0 ? await used() : before;
+        const now = step > 0 ? await used(running.abort.signal) : before;
+        if (running.abort.signal.aborted) return;
         if (!now) {
           emit(running, { kind: 'error', message: 'Today\'s allowance could not be read, so the assistant stopped here. Say "continue" to go on.' });
           return;
