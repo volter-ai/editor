@@ -355,6 +355,9 @@ For a behavior-only repair, preserve the established appearance.
   Track at an Empty the game moves. Other constraints and IK play only in
   Blender: bake them into the action. The console names any difference from
   Blender's own pose.
+- Give every action a game or track may play a fake user
+  (`action.use_fake_user = True`): Blender drops an action nothing uses when
+  the file saves, so an unassigned clip library vanishes on the next save.
 - In a play script, `play.setAction(object, name)` sets the active action,
   crossfading from the last; `play.setTrack(object, track, { action,
   influence })` sets an NLA track; `play.setConstraint(object, bone, name,
