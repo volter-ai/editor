@@ -56,15 +56,33 @@ export function gameGlobalsPrelude(mountId?: string): string {
   return PRELUDE_HEAD.replace('__VOLTER_REALM__', realm);
 }
 
+/**
+ * The page's real global object, as an expression that names no identifier a project can shadow
+ * and compiles no code from a string.
+ *
+ * A module may itself declare `globalThis` (the prelude does), so reading the host through that
+ * identifier before its declaration would hit the declaration's TDZ. The expression instead puts
+ * a getter on `Object.prototype` for a moment and reads it as a bare name: a bare name that no
+ * scope declares is looked up on the global object, which inherits from `Object.prototype`, so the
+ * getter runs with the global object as `this`. It is the published `globalThis` polyfill
+ * (mathiasbynens.be/notes/globalthis), with `Object` itself reached through a literal.
+ *
+ * It replaced a call of the Function constructor on the string 'return globalThis', which a
+ * content security policy without 'unsafe-eval' refuses: under such a policy every project module
+ * failed on its first line.
+ *
+ * This is lifecycle instrumentation, not a security sandbox: arbitrary same-realm code can reach
+ * the same object, which is why the architecture does not claim a browsing-context boundary.
+ */
+export const HOST_GLOBAL_EXPRESSION =
+  "(()=>{const O=({}).constructor;O.defineProperty(O.prototype,'__volterHostOf',{get(){return this},configurable:true});" +
+  'try{return __volterHostOf}finally{delete O.prototype.__volterHostOf}})()';
+
+/** How every prelude begins: the text a transform looks for to know a module already has one. */
+export const GAME_GLOBALS_PRELUDE_START = `const __volterHost=${HOST_GLOBAL_EXPRESSION},`;
+
 const PRELUDE_HEAD =
-  // A module may itself declare `globalThis`, so reading the host through that
-  // identifier before our declaration would hit the declaration's TDZ. A
-  // function constructor reached through literal syntax resolves in the real
-  // global environment without introducing another identifier a project can
-  // shadow. This is lifecycle instrumentation, not a security sandbox:
-  // arbitrary same-realm code can reach the same constructor, which is why
-  // the architecture does not claim a browsing-context boundary.
-  "const __volterHost=({}).constructor.constructor('return globalThis')()," +
+  GAME_GLOBALS_PRELUDE_START +
   '__volterR=__VOLTER_REALM__,' +
   '__volterGlobal=((__volterR&&__volterR.globalThis)||__volterHost.__volterGameWindow||__volterHost),' +
   'globalThis=__volterGlobal,' +

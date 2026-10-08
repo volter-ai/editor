@@ -31,7 +31,7 @@ import { scopeGameCss } from '@volter/editor-sdk/session/scoped-game-css';
 // The DOM-free prelude module, NOT `src/gated-globals.ts`: this file is reachable
 // from `tsconfig.server.json` (via `server/dev.ts`), which compiles without the
 // DOM lib and so cannot see `window`/`document`/`EventListenerOrEventListenerObject`.
-import { gameGlobalsPrelude } from '@volter/editor-sdk/kit/game-globals-prelude';
+import { GAME_GLOBALS_PRELUDE_START, gameGlobalsPrelude } from '@volter/editor-sdk/kit/game-globals-prelude';
 import { EDITOR_TREE_QUERY } from './vite-plugin-shared-react';
 
 /**
@@ -63,7 +63,7 @@ export function gameGlobalsShadowPlugin(
       // whole-string check would re-prepend for every mounted module and
       // shadow the shadow (`const` redeclaration in one scope is a SyntaxError
       // besides, which is how the original check earned its comment).
-      if (code.startsWith("const __volterHost=({}).constructor.constructor('return globalThis')()"))
+      if (code.startsWith(GAME_GLOBALS_PRELUDE_START))
         return null;
       // Bake the module's own mount id in, so its game globals resolve to the
       // realm of the INSTANCE it belongs to. No id selects the default realm

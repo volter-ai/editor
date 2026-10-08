@@ -28,6 +28,7 @@
  * own), and silences that `init();`. Play still loads the unstamped entry.
  */
 import type { Plugin } from 'vite';
+import { HOST_GLOBAL_EXPRESSION } from '@volter/editor-sdk/kit/game-globals-prelude';
 import { rewriteEntrypointSelectionKey } from '@volter/editor-sdk/session/entrypoint-selection-source';
 import { shouldShadowGameGlobals } from './server/game-globals-shadow';
 import {
@@ -106,7 +107,7 @@ function applyMountIsolationTransform(
       if (!shadowed) {
         // Capture the realm before top-level await. A late completion must
         // not recreate an instance that Stop already disposed.
-        next = `const ${realm}=({}).constructor.constructor('return globalThis')().__volterGameRealm?.(${JSON.stringify(mountId)});\n${next}`;
+        next = `const ${realm}=${HOST_GLOBAL_EXPRESSION}.__volterGameRealm?.(${JSON.stringify(mountId)});\n${next}`;
       }
       next += marker;
     }
