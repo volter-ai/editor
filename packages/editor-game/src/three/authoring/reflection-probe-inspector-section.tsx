@@ -1,8 +1,8 @@
 import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
-import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
-import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
+import type { InspectorSectionProps } from '@volter/sdk/kit/inspector-section-registry';
+import type { AuthoringAdapter, EditorNode } from '@volter/project/adapter';
 import { type ReflectionProbeSnapshot, reflectionProbeOf } from '@volter/threejs-runtime/adapter/reflection-probe';
-import { Button, EditorBanner, FieldGroup, FieldRow, Text } from '@volter/editor-sdk/widgets';
+import { Button, EditorBanner, FieldGroup, FieldRow, Text } from '@volter/sdk/widgets';
 import { useSyncExternalStore } from 'react';
 import { useThreeEditorStore } from '@volter/editor-threejs/kit/three-state';
 

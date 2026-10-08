@@ -11,7 +11,7 @@
  */
 
 import type { Piece, PieceDevice, PieceTrack } from '@volter/dawproject/piece';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { type CSSProperties, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import { Modulators } from './Modulators';
 import { createElement, type Literal, setProps, setRefusal, type SourceIndex } from './source-index';

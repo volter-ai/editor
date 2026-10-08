@@ -1,6 +1,6 @@
 /**
  * THE PROJECT'S FILES IN A LIMITED VIEW — the SDK's in-memory `StorageBackend`
- * (`@volter/editor-sdk/kit/storage/mem-storage`), seeded from the files the view shipped.
+ * (`@volter/sdk/kit/storage/mem-storage`), seeded from the files the view shipped.
  *
  * Seeding is LAZY: the view's index (`__view/files.json`) says which files exist, with their
  * sizes, and a file's bytes are fetched from `__view/project/<path>` the first time something
@@ -13,9 +13,9 @@
  * and the `/__editor/*` router both stand on it.
  */
 
-import { MemStorage } from '@volter/editor-sdk/kit/storage/mem-storage';
-import { dirAndBase, normalize } from '@volter/editor-sdk/kit/storage/paths';
-import type { DirEntry, Stat, StorageBackend, WatchCallback, WatchEvent } from '@volter/editor-sdk/kit/storage-types';
+import { MemStorage } from '@volter/sdk/kit/storage/mem-storage';
+import { dirAndBase, normalize } from '@volter/sdk/kit/storage/paths';
+import type { DirEntry, Stat, StorageBackend, WatchCallback, WatchEvent } from '@volter/sdk/kit/storage-types';
 import { type LimitedViewProjectFile, VIEW_DIR } from './view-contract';
 
 const within = (path: string, dir: string): boolean => dir === '' || path === dir || path.startsWith(`${dir}/`);

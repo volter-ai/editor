@@ -15,10 +15,10 @@
  * dispatched through the same `navmesh-actions.ts` events as always.
  */
 
-import { getActiveAssetEditorContext } from '@volter/editor-sdk/kit/asset-editor-context';
-import { documentInspectionSubject } from '@volter/editor-sdk/kit/inspection/document-subject';
-import { registerNullSubjectProvider } from '@volter/editor-sdk/kit/inspection/null-subject';
-import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { getActiveAssetEditorContext } from '@volter/sdk/kit/asset-editor-context';
+import { documentInspectionSubject } from '@volter/sdk/kit/inspection/document-subject';
+import { registerNullSubjectProvider } from '@volter/sdk/kit/inspection/null-subject';
+import { activeWorkspaceDocumentId } from '@volter/sdk/kit/workspace-document-registry';
 
 /**
  * An open asset document's empty state: the DOCUMENT itself. Pick a part

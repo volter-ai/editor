@@ -1,5 +1,5 @@
 /**
- * THE THREE MEDIUM'S COMPONENT BOARD (`@volter/editor-sdk/services`, a
+ * THE THREE MEDIUM'S COMPONENT BOARD (`@volter/sdk/services`, a
  * `workspace.service` contribution): `@volter/editor-game` tells the host's component
  * board registry that this project's `three` stories have a `3D` board.
  *
@@ -14,7 +14,7 @@
  * the same question as "do you want three?".
  */
 
-import { registerComponentBoard } from '@volter/editor-sdk/kit/component-board-registry';
+import { registerComponentBoard } from '@volter/sdk/kit/component-board-registry';
 import { threeComponentBoard } from '../../src/three/three-board/three-component-board';
 
 export const point = 'workspace.service';

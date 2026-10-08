@@ -1,5 +1,5 @@
 /**
- * The Three-typed half of the adapter contract. `@volter/editor-project`
+ * The Three-typed half of the adapter contract. `@volter/project`
  * states the `three` surface with its medium objects opaque (a scene, a
  * camera, a renderer, a hierarchy's scene objects, navigation's debug mesh);
  * this module names them as three.js objects for the editor side that renders
@@ -15,8 +15,8 @@ import type {
   NavigationAdapter,
   PhysicsAdapter,
   ThreeHostContext,
-} from '@volter/editor-project/adapter';
-import type { NavBakeParams } from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter';
+import type { NavBakeParams } from '@volter/project/adapter/system-adapter';
 import type * as THREE from 'three';
 
 /** Shared GLTF/texture cache a `three` host hands its roots. */

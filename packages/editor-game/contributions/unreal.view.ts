@@ -5,10 +5,10 @@
  * handles, axes, world, grid off) is read from `default-interface.png`; the sky, cloud and floor
  * values are FITTED to `level-editor.png` (sampled pixel colours and a side-by-side), not
  * transcribed from Unreal's own BP_Sky_Sphere or floor material.
- * A named view (`@volter/editor-sdk/kit/viewport-presentation` `ViewPreset`): what the view does
+ * A named view (`@volter/sdk/kit/viewport-presentation` `ViewPreset`): what the view does
  * and how it is lit, never its look — pair it with the Unreal style for the whole target.
  */
-import type { ViewPreset } from '@volter/editor-sdk/kit/viewport-presentation';
+import type { ViewPreset } from '@volter/sdk/kit/viewport-presentation';
 
 export const point = 'workspace.view';
 export const view: ViewPreset = {

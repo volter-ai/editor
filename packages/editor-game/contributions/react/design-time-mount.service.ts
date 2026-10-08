@@ -1,5 +1,5 @@
 /**
- * THE DOM MEDIUM'S DESIGN-TIME MOUNT (`@volter/editor-sdk/services`, a
+ * THE DOM MEDIUM'S DESIGN-TIME MOUNT (`@volter/sdk/services`, a
  * `workspace.service` contribution): `@volter/editor-game` tells the host's design-time
  * mount registry how a `dom` world mounts at design time, and when its
  * mounted layers go stale.
@@ -21,7 +21,7 @@
  * the build's eager graph.
  */
 
-import { registerDesignTimeMount } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
+import { registerDesignTimeMount } from '@volter/sdk/kit/authoring/design-time-mount-registry';
 
 export const point = 'workspace.service';
 

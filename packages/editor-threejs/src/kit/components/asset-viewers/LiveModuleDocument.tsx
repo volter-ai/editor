@@ -51,8 +51,8 @@
  * live view when the module compiles.
  */
 
-import { beginLiveModuleRevision } from '@volter/editor-sdk/session/project-module-url';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { beginLiveModuleRevision } from '@volter/sdk/session/project-module-url';
+import { themeVars } from '@volter/sdk/widgets';
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import * as THREE from 'three';
 import { disposeProjectAssetModel } from '../../asset-preview';
@@ -60,7 +60,7 @@ import {
   object3DDocumentSession,
   registerObject3DDocumentPreparation,
 } from '../../authoring/object3d-document-session-registry';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import {
   buildLiveModuleObject3D,
   LiveModuleError,
@@ -71,8 +71,8 @@ import {
   projectModuleChangeMatches,
   projectModuleTransformError,
   subscribeProjectModuleChange,
-} from '@volter/editor-sdk/kit/project-module-changes';
-import { notifyWorkspaceDocumentSelectionChanged } from '@volter/editor-sdk/kit/workspace-document-registry';
+} from '@volter/sdk/kit/project-module-changes';
+import { notifyWorkspaceDocumentSelectionChanged } from '@volter/sdk/kit/workspace-document-registry';
 import { Object3DDocumentViewport } from '../Object3DDocumentViewport';
 import { STANDARD_COMPONENT_CAMERA_DIRECTION } from '../standard-viewport-dressing';
 

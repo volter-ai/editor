@@ -66,12 +66,12 @@ import type {
   TransformProvider,
   TruthProvider,
   WriteAck,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import type { Container, Graphics, Matrix, PointData, Sprite, Text, Texture } from 'pixi.js';
 import * as shellPixi from 'pixi.js';
 import type { CanvasPixiNamespace } from '../canvas-entry-runtime';
-import { componentStatesProvider } from '@volter/editor-sdk/kit/component-states-registry';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { componentStatesProvider } from '@volter/sdk/kit/component-states-registry';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import type { JournalSubject } from '../history/json-history-resource';
 import { PixiProjector } from '../projection/pixi';
@@ -84,8 +84,8 @@ import {
 import { CanvasStructureHistory } from './pixi-structure-history';
 import { PIXI_CREATABLE_KINDS } from './pixi-creatable-kinds';
 import { fromNeutralTransform, toNeutralTransform } from './pixi-transform-channels';
-import { resolvesLiveOnly, runWritePipe } from '@volter/editor-sdk/kit/write-pipe';
-import { editorHost } from '@volter/editor-sdk/host';
+import { resolvesLiveOnly, runWritePipe } from '@volter/sdk/kit/write-pipe';
+import { editorHost } from '@volter/sdk/host';
 
 /**
  * What a write target is handed at construction — the live view it edits

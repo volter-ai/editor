@@ -16,8 +16,8 @@
 import { formatAt, formatDuration, formatPitch, midiOf, spelledFlat } from '@volter/dawproject/notation';
 import type { Piece, PieceClip, PieceNote } from '@volter/dawproject/piece';
 import type { DawNode } from '@volter/dawproject/render';
-import { editorHost } from '@volter/editor-sdk/host';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { editorHost } from '@volter/sdk/host';
+import { themeVars } from '@volter/sdk/widgets';
 import { type CSSProperties, type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import { AutomationLane } from './AutomationLane';
 import { type FreezeTarget, freezeClip } from './freeze-clip';

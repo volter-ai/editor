@@ -1,7 +1,7 @@
 /** Server-side editor view of the single v2 project configuration. */
 
-import { hasRootOnSurface } from '@volter/editor-project/adapter/manifest-interpreter';
-import { loadGameManifestDir } from '@volter/editor-project/manifest/load-file';
+import { hasRootOnSurface } from '@volter/project/adapter/manifest-interpreter';
+import { loadGameManifestDir } from '@volter/project/manifest/load-file';
 import { ensureProjectConfigurationKinds } from './project-kinds';
 import { errorsFor } from './project-validation';
 
@@ -22,7 +22,7 @@ export type ProjectViewResult = { ok: true; view: ProjectView } | { ok: false; e
  * The reason is rendered by `project-validation.ts`'s `errorsFor` — the same
  * `path.to.field: message` form the watcher's terminal/console/the editor's `status` command
  * legs already print — because this string is read by people and by agents:
- * the editor's startup-error screen, the editor's `sessions` command, and `@volter/editor-live`'s
+ * the editor's startup-error screen, the editor's `sessions` command, and `@volter/live`'s
  * refusal all quote it. A bare `ZodError.message` is a pretty-printed JSON
  * array of issue objects; it contains the failing key and hides it.
  */

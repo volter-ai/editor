@@ -3,9 +3,9 @@ import { existsSync } from 'node:fs';
 import { readFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
-import { hasManifest } from '@volter/editor-project/manifest/locate';
-import type { ProductCreateDeclaration } from '@volter/editor-sdk/session/product-create';
-import { declaredRetiredProduct, retiredProjectError } from '@volter/editor-sdk/session/project-upgrade';
+import { hasManifest } from '@volter/project/manifest/locate';
+import type { ProductCreateDeclaration } from '@volter/sdk/session/product-create';
+import { declaredRetiredProduct, retiredProjectError } from '@volter/sdk/session/project-upgrade';
 import { UPGRADING } from './create';
 
 export async function startupProject(

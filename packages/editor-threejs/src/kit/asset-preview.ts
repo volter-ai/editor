@@ -10,7 +10,7 @@ import type {
   ShotSetPoseStep,
   ShotSetPoseTranslation,
   ShotSetShot,
-} from '@volter/editor-sdk';
+} from '@volter/sdk';
 import { EDITOR_LAYER, isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import { markHostRenderer } from '@volter/editor-threejs/viewport/renderer-ownership';
 import { isBuiltInternal } from '@volter/editor-threejs/adapter/hierarchy-marks';
@@ -18,7 +18,7 @@ import { loadSplat } from '@volter/editor-threejs/asset-loaders';
 import { hasUserData } from '@volter/editor-threejs/ecs/user-data';
 import { gltfLoader } from '@volter/editor-threejs/loader';
 import * as THREE from 'three';
-import { forwardYawRadians, parseForwardVector } from '@volter/editor-sdk/kit/asset-compare-core';
+import { forwardYawRadians, parseForwardVector } from '@volter/sdk/kit/asset-compare-core';
 import {
   ASSET_PREVIEW_PADDING,
   boneZoomCenter,
@@ -39,7 +39,7 @@ import {
   turntableViewBasis,
   unionOrthographicFrames,
 } from './asset-preview-framing';
-import { drawBitmapLabel, measureBitmapLabel } from '@volter/editor-sdk/kit/bitmap-label';
+import { drawBitmapLabel, measureBitmapLabel } from '@volter/sdk/kit/bitmap-label';
 import {
   applyStudioEnvironment,
   disposeStudioEnvironment,
@@ -124,8 +124,8 @@ export interface AssetPreviewFraming {
 }
 
 /**
- * The shot-set contract is declared ONCE, in `@volter/editor-sdk`
- * (`packages/editor-sdk/src/types.ts`), because it crosses the editor relay:
+ * The shot-set contract is declared ONCE, in `@volter/sdk`
+ * (`packages/sdk/src/types.ts`), because it crosses the editor relay:
  * a capability tool authors a set, the CLI carries it over, and THIS module is
  * the generic capture engine that renders it. Importing rather than
  * re-declaring is what makes `parseShotSetDefinition`'s return annotation
@@ -142,7 +142,7 @@ export type {
   ShotSetPoseStep,
   ShotSetPoseTranslation,
   ShotSetShot,
-} from '@volter/editor-sdk';
+} from '@volter/sdk';
 
 /** Definitions cross the editor relay as untyped JSON from project-registered
  *  tools; capped so one capture stays within the relay's request budget. */

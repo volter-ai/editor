@@ -17,7 +17,7 @@
 
 import { type Performance, perform } from '@volter/dawproject/perform';
 import type { Piece, PieceTrack } from '@volter/dawproject/piece';
-import { projectModuleUrl } from '@volter/editor-sdk/contributions';
+import { projectModuleUrl } from '@volter/sdk/contributions';
 import { WorkletSynthesizer } from 'spessasynth_lib';
 import { type NotePatch, notePatches } from './articulations';
 import { type Launch, type Launches, launchedPiece, slotClip } from './launches';

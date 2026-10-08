@@ -28,8 +28,8 @@
  * own), and silences that `init();`. Play still loads the unstamped entry.
  */
 import type { Plugin } from 'vite';
-import { HOST_GLOBAL_EXPRESSION } from '@volter/editor-sdk/kit/game-globals-prelude';
-import { rewriteEntrypointSelectionKey } from '@volter/editor-sdk/session/entrypoint-selection-source';
+import { HOST_GLOBAL_EXPRESSION } from '@volter/sdk/kit/game-globals-prelude';
+import { rewriteEntrypointSelectionKey } from '@volter/sdk/session/entrypoint-selection-source';
 import { shouldShadowGameGlobals } from './server/game-globals-shadow';
 import {
   initLexer,

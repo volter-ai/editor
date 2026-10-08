@@ -3,9 +3,9 @@
  * same predicate the drawer tab's own `available` gate reads. `disabled` is
  * asked at render, so it follows the session.
  */
-import { getActiveDebug } from '@volter/editor-sdk/kit/authoring/active-systems';
-import type { MenuContribution } from '@volter/editor-sdk/chrome';
-import { editorHost } from '@volter/editor-sdk/host';
+import { getActiveDebug } from '@volter/sdk/kit/authoring/active-systems';
+import type { MenuContribution } from '@volter/sdk/chrome';
+import { editorHost } from '@volter/sdk/host';
 
 export const point = 'workspace.menu';
 

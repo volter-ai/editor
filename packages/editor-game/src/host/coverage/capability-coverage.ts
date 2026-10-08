@@ -44,17 +44,17 @@
  * `ingest/mount-coverage.ts` assembles the facts from the live singletons.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { commandLine } from '@volter/sdk/kit/product-command';
 import type {
   AuthoringProviderKey,
   SeamEvidenceVerdict,
   WriteAnchorKind,
-} from '@volter/editor-project/adapter';
-import { WRITE_ANCHOR_KINDS } from '@volter/editor-project/adapter';
-import type { AdapterSurface } from '@volter/editor-project/adapter/adapter-surface';
-import type { VolterGameContract } from '@volter/editor-project/adapter/ingest/game-contract';
-import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
-import { SYSTEM_ADAPTERS_SHAPE } from '@volter/editor-project/adapter/system-seam-contract';
+} from '@volter/project/adapter';
+import { WRITE_ANCHOR_KINDS } from '@volter/project/adapter';
+import type { AdapterSurface } from '@volter/project/adapter/adapter-surface';
+import type { VolterGameContract } from '@volter/project/adapter/ingest/game-contract';
+import type { SystemAdapters } from '@volter/project/adapter/system-adapter';
+import { SYSTEM_ADAPTERS_SHAPE } from '@volter/project/adapter/system-seam-contract';
 import {
   type AdapterReach,
   AUTHORING_PROVIDER_KEYS,
@@ -86,7 +86,7 @@ export {
  * The seams a report can speak about.
  *
  * The `editor.*` family is GENERATED — it is the `AuthoringAdapter` provider
- * vocabulary (`@volter/editor-project/adapter/authoring`'s `AUTHORING_PROVIDER_KEYS`, which
+ * vocabulary (`@volter/project/adapter/authoring`'s `AUTHORING_PROVIDER_KEYS`, which
  * the compiler pins to the interface) plus the one non-provider fact,
  * `editor.capture`. A capability nobody remembered to enumerate therefore still
  * gets a row.

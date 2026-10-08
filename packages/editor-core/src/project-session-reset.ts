@@ -1,4 +1,4 @@
-import { resetAvailableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-available-documents';
+import { resetAvailableWorkspaceDocuments } from '@volter/sdk/kit/workspace-available-documents';
 /**
  * What must NOT survive a project switch.
  *
@@ -28,14 +28,14 @@ import { resetAvailableWorkspaceDocuments } from '@volter/editor-sdk/kit/workspa
  * round trip.
  */
 
-import { clearSelectedAsset } from '@volter/editor-sdk/kit/asset-selection';
-import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { resetActiveSystemsForNewProject } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { resetSessionVitalsForNewProject } from '@volter/editor-sdk/kit/coverage/session-vitals';
-import { stopAllLiveSessions } from '@volter/editor-sdk/kit/live-session-registry';
-import { onProjectSessionEnd } from '@volter/editor-sdk/kit/project-manager';
-import { resetViewportActivationTimingsForNewProject } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import { closeAllWorkspaceDocuments } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { clearSelectedAsset } from '@volter/sdk/kit/asset-selection';
+import { setActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
+import { resetActiveSystemsForNewProject } from '@volter/sdk/kit/authoring/active-systems';
+import { resetSessionVitalsForNewProject } from '@volter/sdk/kit/coverage/session-vitals';
+import { stopAllLiveSessions } from '@volter/sdk/kit/live-session-registry';
+import { onProjectSessionEnd } from '@volter/sdk/kit/project-manager';
+import { resetViewportActivationTimingsForNewProject } from '@volter/sdk/kit/viewport-activation-timings';
+import { closeAllWorkspaceDocuments } from '@volter/sdk/kit/workspace-document-registry';
 
 /**
  * Register the project-session resets. Called once at editor init

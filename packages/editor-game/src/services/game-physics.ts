@@ -22,8 +22,8 @@
  */
 
 import { _roots as shellRoots } from '@react-three/fiber';
-import { R3F_RUNTIME_PATH } from '@volter/editor-sdk/host';
-import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
+import { R3F_RUNTIME_PATH } from '@volter/sdk/host';
+import { isPackagedRuntime } from '@volter/sdk/kit/packaged-runtime';
 import type { RapierContext, RapierRigidBody } from '@react-three/rapier';
 import type {
   PhysicsAdapter,
@@ -31,7 +31,7 @@ import type {
   PhysicsColliderSnapshot,
   PhysicsJointSnapshot,
   PhysicsJointType,
-} from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter/system-adapter';
 import {
   createRapierBodyEditing,
   type RapierBodyLookup,

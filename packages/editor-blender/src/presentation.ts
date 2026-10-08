@@ -1,5 +1,5 @@
 /**
- * HOW THE BLENDER STAGE BEHAVES, as its starting presentation (`@volter/editor-sdk/kit/
+ * HOW THE BLENDER STAGE BEHAVES, as its starting presentation (`@volter/sdk/kit/
  * viewport-presentation`): this package builds the `model` stage, so it states the stage's
  * function there, beneath every person's choice and never in the look (ARCHITECTURE.md rule 7).
  */
@@ -7,7 +7,7 @@ import {
   DOCUMENT_STUDIO_PRESET,
   registerStartingPresentation,
   type ViewportCamera,
-} from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/viewport-presentation';
 
 /**
  * A 3D View's field of view for its lens, as Blender computes it (`BKE_camera_params_from_view3d`,

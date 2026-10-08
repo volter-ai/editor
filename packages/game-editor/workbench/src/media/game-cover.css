@@ -6,7 +6,7 @@
    the page config's `initialColorTheme` — so a splash written against `--vscode-*` would wear
    the workbench's default dark for exactly the seconds it exists instead of this product's
    look. Classic is the editor's own Graphite and it ships no theme extension at all, so these
-   values come from `@volter/editor-sdk`'s `widgets/theme.ts`, named beside them:
+   values come from `@volter/sdk`'s `widgets/theme.ts`, named beside them:
 
      #1a1a1a  GRAPHITE_BG[0]        surface.shell — the window's outermost band
      #242424  GRAPHITE_BG[1]        surface.panel

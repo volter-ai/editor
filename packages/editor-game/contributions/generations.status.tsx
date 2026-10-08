@@ -9,9 +9,9 @@
  * concern).
  */
 
-import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/editor-sdk/kit/workspace-core-utilities';
-import { editorHost } from '@volter/editor-sdk/host';
-import { Button } from '@volter/editor-sdk/widgets';
+import { CONTRIBUTED_WORKSPACE_UTILITIES } from '@volter/sdk/kit/workspace-core-utilities';
+import { editorHost } from '@volter/sdk/host';
+import { Button } from '@volter/sdk/widgets';
 import { useSyncExternalStore } from 'react';
 import {
   generationJobIsActive,

@@ -1,7 +1,7 @@
 /**
  * `applyWorldRendererConfig` — the three.js half of the renderer-config seam.
  *
- * The SHAPE is the project contract's (`@volter/editor-project/adapter/renderer-config`,
+ * The SHAPE is the project contract's (`@volter/project/adapter/renderer-config`,
  * whose header states the rule and the three load-bearing properties); this
  * file is what writes it onto a live `WebGLRenderer` and hands back the
  * restore. A mounted three root declares it (`MountedThreeRoot.rendererConfig`)
@@ -13,7 +13,7 @@ import type {
   WorldRendererConfig,
   WorldShadowMapType,
   WorldToneMapping,
-} from '@volter/editor-project/adapter/renderer-config';
+} from '@volter/project/adapter/renderer-config';
 import type * as THREE from 'three';
 
 export type {
@@ -21,7 +21,7 @@ export type {
   WorldRendererConfig,
   WorldShadowMapType,
   WorldToneMapping,
-} from '@volter/editor-project/adapter/renderer-config';
+} from '@volter/project/adapter/renderer-config';
 
 /**
  * Apply `config` to `renderer`, returning the restore function that puts back what was there.

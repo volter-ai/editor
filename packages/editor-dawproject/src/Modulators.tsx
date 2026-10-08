@@ -5,7 +5,7 @@
  */
 
 import type { Piece, PieceLfo, PieceTrack } from '@volter/dawproject/piece';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { type CSSProperties, type ReactNode, useEffect, useState } from 'react';
 import { createElement, type Literal, setProps, setRefusal, type SourceIndex } from './source-index';
 

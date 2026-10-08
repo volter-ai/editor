@@ -91,7 +91,7 @@ test('the attachment rejects arbitrary destinations, oversized inputs and wrong 
 test('EditorClient uses the attachment for both status and command/screenshot envelopes', async t => {
   const output = await mkdtemp(fileURLToPath(new URL('./.hosted-sdk-', import.meta.url)));
   t.after(() => rm(output, { recursive: true, force: true }));
-  await build({ entryPoints: [fileURLToPath(new URL('../../editor-sdk/src/client.ts', import.meta.url))],
+  await build({ entryPoints: [fileURLToPath(new URL('../../sdk/src/client.ts', import.meta.url))],
     outfile: `${output}/client.mjs`, bundle: true, platform: 'node', format: 'esm', external: ['undici'] });
   const { EditorClient } = await import(pathToFileURL(`${output}/client.mjs`).href);
   const f = await fixture(t); const created = await f.create(); const page = browser(created); t.after(() => page.close());

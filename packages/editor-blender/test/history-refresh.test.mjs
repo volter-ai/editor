@@ -16,7 +16,7 @@ const stubs = {
     get presented() { return probe.presented ?? null; }
     present() { probe.presents = (probe.presents ?? 0) + 1; return Promise.resolve(); }
   }`,
-  '@volter/editor-sdk/host': `export const editorHost = () => ({...probe.host, documents: {activeId: () => null, ...probe.host.documents}});`,
+  '@volter/sdk/host': `export const editorHost = () => ({...probe.host, documents: {activeId: () => null, ...probe.host.documents}});`,
   '../contributions/blender-outliner-model': `
     export const blenderEngineSelection = () => ({selected: ['Restored Cube'], active: 'Restored Cube'});
     export const refreshBlenderOutliner = names => { probe.reads.push(names); return probe.refreshed; };
@@ -39,7 +39,7 @@ const bundle = await build({
 });
 
 const contextBundle = await build({
-  entryPoints: [fileURLToPath(new URL('../../editor-sdk/src/kit/document-context-registry.ts', import.meta.url))],
+  entryPoints: [fileURLToPath(new URL('../../sdk/src/kit/document-context-registry.ts', import.meta.url))],
   bundle: true, platform: 'node', format: 'cjs', write: false,
   plugins: [{name: 'context-viewport-boundary', setup(build) {
     build.onResolve({filter: /document-viewports$/}, () => ({path: 'viewports', namespace: 'stub'}));

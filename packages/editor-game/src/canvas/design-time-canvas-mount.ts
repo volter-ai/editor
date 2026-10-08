@@ -3,17 +3,17 @@
  * registry asks for it — the layer-shaped wrapper around
  * `canvas-design-mount.ts`, registered by
  * `contributions/canvas/design-time-mount.service.ts`. The design-time layer
- * stack (`@volter/editor-sdk/kit/authoring/design-time-layers`) owns the
+ * stack (`@volter/sdk/kit/authoring/design-time-layers`) owns the
  * failure, teardown and Play lifecycle for every medium.
  */
 
 import type {
   DesignTimeRootDescriptor,
   LayerMountResult,
-} from '@volter/editor-sdk/kit/authoring/design-time-layers';
-import type { DesignTimeMountContext } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
-import { connectSourceFileEvents } from '@volter/editor-sdk/kit/asset-events';
-import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
+} from '@volter/sdk/kit/authoring/design-time-layers';
+import type { DesignTimeMountContext } from '@volter/sdk/kit/authoring/design-time-mount-registry';
+import { connectSourceFileEvents } from '@volter/sdk/kit/asset-events';
+import { recordViewportFirstFrame } from '@volter/sdk/kit/viewport-activation-timings';
 import { threeStoreForHost } from '@volter/editor-threejs/kit/three-state';
 
 /**

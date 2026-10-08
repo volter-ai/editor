@@ -1,7 +1,7 @@
 import type {
   ToolContributionProps,
   ToolObject3DPreviewSource,
-} from '@volter/editor-sdk/contributions';
+} from '@volter/sdk/contributions';
 import { type ComponentType, useCallback, useSyncExternalStore } from 'react';
 import type { BuilderState } from './builder-state';
 

@@ -38,7 +38,7 @@ import type {
   ToolContributionNode,
   ToolInspectorContributionMatchContext,
   ToolInspectorContributionProps,
-} from '@volter/editor-sdk/contributions';
+} from '@volter/sdk/contributions';
 
 export const point = 'selection.inspector';
 export const title = 'Tester';

@@ -19,7 +19,7 @@
  * game whose systems declare no `audio` (`play-mode.ts`).
  */
 
-import type { AudioAdapter, AudioGraphNode } from '@volter/editor-project/adapter/system-adapter';
+import type { AudioAdapter, AudioGraphNode } from '@volter/project/adapter/system-adapter';
 
 const tracked = new Set<WeakRef<AudioContext>>();
 

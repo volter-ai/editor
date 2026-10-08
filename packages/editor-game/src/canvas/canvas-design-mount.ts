@@ -41,7 +41,7 @@
  * this module's disposer is what calls it.
  */
 
-import { setActiveSystems, updateInstanceSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
+import { setActiveSystems, updateInstanceSystems } from '@volter/sdk/kit/authoring/active-systems';
 import {
   BabylonAuthoringAdapter,
   type BabylonEngineLike,
@@ -57,7 +57,7 @@ import { createCreationSitePersistence } from '../host/authoring/source-persiste
 import {
   type RootViewController,
   sharedRootViewController,
-} from '@volter/editor-sdk/kit/world-pan-state';
+} from '@volter/sdk/kit/world-pan-state';
 import {
   resolveCanvasEntryAdapterForEditor,
   resolveCanvasPixiForEditor,
@@ -66,14 +66,14 @@ import {
   capturePixiDisplayObjectThumbnail,
   withApplicationCollector,
 } from '../host/canvas-preview-frames';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { authoringJournal } from '../host/history/json-history-resource';
-import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
-import { beginProjectMountEpoch } from '@volter/editor-sdk/session/project-module-url';
+import { getCurrentProject } from '@volter/sdk/kit/project-manager';
+import { beginProjectMountEpoch } from '@volter/sdk/session/project-module-url';
 import { activeRealmServices } from '../host/realm-services';
-import { tierSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
-import type { AuthoringAdapter, MountedCanvasRoot } from '@volter/editor-project/adapter';
+import { tierSourceWriteBackend } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
+import type { AuthoringAdapter, MountedCanvasRoot } from '@volter/project/adapter';
 import {
   installNativeDebugBindings,
   installNativeSystemsBindings,

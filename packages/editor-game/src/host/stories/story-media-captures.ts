@@ -1,8 +1,8 @@
 /**
  * The captures the kit's canvas medium provides: story thumbnails
- * (`@volter/editor-sdk/kit/story-thumbnails`) for a canvas story in an
+ * (`@volter/sdk/kit/story-thumbnails`) for a canvas story in an
  * offscreen Pixi application (the three.js leg is `three-story-captures.ts`), and
- * Pixi's same-frame canvas pixels (`@volter/editor-sdk/kit/canvas-frames`), for
+ * Pixi's same-frame canvas pixels (`@volter/sdk/kit/canvas-frames`), for
  * the canvases its live surfaces present and the ones a photographed mount
  * creates. Each loads its renderer on first use.
  */
@@ -10,8 +10,8 @@ import {
   type CanvasFrame,
   registerCanvasFrameSource,
   registerCanvasMountObserver,
-} from '@volter/editor-sdk/kit/canvas-frames';
-import { registerStoryThumbnailCapture } from '@volter/editor-sdk/kit/story-thumbnails';
+} from '@volter/sdk/kit/canvas-frames';
+import { registerStoryThumbnailCapture } from '@volter/sdk/kit/story-thumbnails';
 
 export function registerStoryMediaCaptures(): () => void {
   const stopCanvas = registerStoryThumbnailCapture('canvas', async (component, options) => {

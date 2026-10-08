@@ -13,7 +13,7 @@
  * copy of its stores.
  */
 
-import type { VolterGameSystemAdapters } from '@volter/editor-project/adapter/ingest/game-contract';
+import type { VolterGameSystemAdapters } from '@volter/project/adapter/ingest/game-contract';
 import type {
   NativeCommandEntry,
   NativeDebugBinding,
@@ -22,8 +22,8 @@ import type {
   NativeInputValueType,
   NativeSystemsBinding,
   NativeTable,
-} from '@volter/editor-project/adapter/native-entry-surface';
-import { NATIVE_INPUT_VALUE_TYPES } from '@volter/editor-project/adapter/native-entry-surface';
+} from '@volter/project/adapter/native-entry-surface';
+import { NATIVE_INPUT_VALUE_TYPES } from '@volter/project/adapter/native-entry-surface';
 import {
   DebugError,
   type DebugRegistry,
@@ -45,8 +45,8 @@ export type {
   NativeInputValueType,
   NativeSystemsBinding,
   NativeTable,
-} from '@volter/editor-project/adapter/native-entry-surface';
-export { NATIVE_INPUT_VALUE_TYPES } from '@volter/editor-project/adapter/native-entry-surface';
+} from '@volter/project/adapter/native-entry-surface';
+export { NATIVE_INPUT_VALUE_TYPES } from '@volter/project/adapter/native-entry-surface';
 
 type NativeInputBinding = NonNullable<NativeDebugModule['input']>;
 

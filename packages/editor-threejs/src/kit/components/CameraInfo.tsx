@@ -1,6 +1,6 @@
-import { EditorSurface, Inline, Text } from '@volter/editor-sdk/widgets';
+import { EditorSurface, Inline, Text } from '@volter/sdk/widgets';
 import { useEffect, useRef, useState } from 'react';
-import { useEditorStats } from '@volter/editor-sdk/kit/editor-runtime';
+import { useEditorStats } from '@volter/sdk/kit/editor-runtime';
 
 function fmt(n: number): string {
   return n.toFixed(2);

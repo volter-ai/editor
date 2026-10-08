@@ -25,7 +25,7 @@
  * is not adjudicated here.
  */
 
-import type { RootAdapter } from '@volter/editor-project/adapter';
+import type { RootAdapter } from '@volter/project/adapter';
 import { resolveR3FEntryAdapterForEditor } from './r3f-entry-runtime';
 
 /**

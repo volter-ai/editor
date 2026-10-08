@@ -19,12 +19,12 @@ import type {
   TeamMessage,
   TeamMessageReference,
   TeamPlaytest,
-} from '@volter/editor-sdk/session/collaboration-types';
+} from '@volter/sdk/session/collaboration-types';
 import {
   collaborationParticipantColor,
   isCollaborationAgentMention,
   TEAM_MESSAGE_LIMITS,
-} from '@volter/editor-sdk/session/collaboration-types';
+} from '@volter/sdk/session/collaboration-types';
 import { canonicalProjectRoot } from './canonical-path';
 
 export type {
@@ -39,7 +39,7 @@ export type {
   TeamMessage,
   TeamMessageReference,
   TeamPlaytest,
-} from '@volter/editor-sdk/session/collaboration-types';
+} from '@volter/sdk/session/collaboration-types';
 
 const MAX_MESSAGES = 500;
 const MAX_REVISIONS = 1_000;

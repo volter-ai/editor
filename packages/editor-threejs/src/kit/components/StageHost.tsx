@@ -1,10 +1,10 @@
 import { optionalThreeStateOf, threeStateOf } from '../three-state';
-import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import { ShellStore } from '@volter/sdk/kit/shell-store';
 import type { ToolObject3DAuthoringProps, ToolObject3DDocumentAuthoring, ToolObject3DPreviewSource, ToolViewportDressing } from '../../object3d-contributions';
-import { invalidateStages, stageGeneration } from '@volter/editor-sdk/kit/stage-invalidation';
-import type { StageTransportSnapshot } from '@volter/editor-sdk/host';
-import { EditorIcon, editorIcons, IconButton, themeVars } from '@volter/editor-sdk/widgets';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
+import { invalidateStages, stageGeneration } from '@volter/sdk/kit/stage-invalidation';
+import type { StageTransportSnapshot } from '@volter/sdk/host';
+import { EditorIcon, editorIcons, IconButton, themeVars } from '@volter/sdk/widgets';
+import type { AuthoringAdapter } from '@volter/project/adapter';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import { isInEditorOwnedSubtree } from '@volter/editor-threejs/viewport/editor-layers';
 import { createStandardEnvironment } from '@volter/editor-threejs/viewport/environment';
@@ -25,9 +25,9 @@ import {
 } from 'react';
 import * as THREE from 'three';
 import { DocumentScene } from '../../render/document-scene';
-import { registerStageTransport, StageTransport } from '@volter/editor-sdk/kit/animation/stage-transport';
+import { registerStageTransport, StageTransport } from '@volter/sdk/kit/animation/stage-transport';
 import { scanClipSubjects } from '../animation/three-clips-subject';
-import { liveGestureActive, whenLiveGestureIdle } from '@volter/editor-sdk/kit/live-gesture-lock';
+import { liveGestureActive, whenLiveGestureIdle } from '@volter/sdk/kit/live-gesture-lock';
 import {
   type Object3DDocumentPresentationState,
   Object3DDocumentSession,
@@ -37,39 +37,39 @@ import {
 } from '../authoring/object3d-document-session-registry';
 import { Object3DGestureController } from '../authoring/object3d-gesture-controller';
 import { SourceObject3DAuthoringAdapter } from '../authoring/source-object3d-authoring-adapter';
-import { registerDesignTimeSurface } from '@volter/editor-sdk/kit/coverage/design-time-surfaces';
-import { DocumentRendererSession } from '@volter/editor-sdk/kit/document-renderer-session';
-import { useOptionalEditorStats, useOptionalEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
+import { registerDesignTimeSurface } from '@volter/sdk/kit/coverage/design-time-surfaces';
+import { DocumentRendererSession } from '@volter/sdk/kit/document-renderer-session';
+import { useOptionalEditorStats, useOptionalEditorStore } from '@volter/sdk/kit/editor-runtime';
 import type { EditorShellStore } from '../editor-shell-store';
 import { EditorViewport } from '../editor-viewport';
 import {
   lookDeclaresViewportColors,
   nativeViewportLook,
   subscribeNativeSelectionTheme,
-} from '@volter/editor-sdk/kit/native-selection-style';
+} from '@volter/sdk/kit/native-selection-style';
 import {
   type Object3DDocumentPersistenceSession,
   object3DDocumentWritePolicy,
-} from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { registerPerformanceSource } from '@volter/editor-sdk/kit/performance-sources';
+} from '@volter/sdk/kit/object3d-document-write-policy';
+import { registerPerformanceSource } from '@volter/sdk/kit/performance-sources';
 import {
   assetSubjectApplies,
   documentStageContext,
   focusedStageStore,
   identityRowApplies,
   studioStageApplies,
-} from '@volter/editor-sdk/kit/stage-context';
-import { registerStageStore } from '@volter/editor-sdk/kit/stage-store-registry';
-import { announceDocumentStage, registerDocumentViewport } from '@volter/editor-sdk/kit/document-viewports';
+} from '@volter/sdk/kit/stage-context';
+import { registerStageStore } from '@volter/sdk/kit/stage-store-registry';
+import { announceDocumentStage, registerDocumentViewport } from '@volter/sdk/kit/document-viewports';
 import { sceneDocumentViewport } from '../scene-document-viewport';
 import { threeStageTransformChrome } from './stage-transform-chrome';
-import { RetainedDocumentStates } from '@volter/editor-sdk/kit/retained-document-states';
+import { RetainedDocumentStates } from '@volter/sdk/kit/retained-document-states';
 import { perspectiveDistanceToFitBox } from '../three-viewport/camera-fit';
 import {
   acquireInteractiveViewportRenderer,
   type InteractiveViewportRendererLease,
 } from '../three-viewport/interactive-renderer';
-import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
+import type { ThreeViewportProjection } from '@volter/sdk/kit/three-viewport-presentation';
 import {
   activeViewportBreakdownDocumentId,
   markViewportConstructReady,
@@ -79,7 +79,7 @@ import {
   markViewportReactActive,
   markViewportSegment,
   recordViewportFirstFrame,
-} from '@volter/editor-sdk/kit/viewport-activation-timings';
+} from '@volter/sdk/kit/viewport-activation-timings';
 import { bindViewportRig, runViewportFrame } from '../../viewport-door';
 import type { StageFrameCost } from '../../viewport-api';
 import {
@@ -87,11 +87,11 @@ import {
   openWorkspaceDocuments,
   registerWorkspaceDocumentSelection,
   subscribeWorkspaceDocuments,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { AssetEditorShell } from '@volter/editor-sdk/kit/components/AssetEditorShell';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { AssetEditorShell } from '@volter/sdk/kit/components/AssetEditorShell';
 import { StageOverlays } from './StageOverlays';
 import type { WorldRootStageBinding } from './world-root-binding';
-import { TransportStrip } from '@volter/editor-sdk/kit/transport-strip';
+import { TransportStrip } from '@volter/sdk/kit/transport-strip';
 
 // The stage's own keyboard actions, behind the same lazy boundary as the
 // overlays and for the same reason — a bounded host pays for neither
@@ -108,8 +108,8 @@ import {
   watchPaletteBackdrop,
 } from './standard-viewport-dressing';
 import { ViewportFurniture } from './ViewportFurniture';
-import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from '@volter/editor-sdk/kit/viewport-surface-status';
-import { workspaceHistoryService } from '@volter/editor-sdk/kit/components/workspace-history';
+import { OBJECT3D_SURFACE_BUILDING, ViewportSurfaceStatus } from '@volter/sdk/kit/viewport-surface-status';
+import { workspaceHistoryService } from '@volter/sdk/kit/components/workspace-history';
 import {
   bindViewPresentation,
   DOCUMENT_STUDIO_PRESET,
@@ -123,8 +123,8 @@ import {
   viewPresentation,
   viewPresentationSnapshot,
   type ViewportDrawMode,
-} from '@volter/editor-sdk/kit/viewport-presentation';
-import { subscribeEnvironmentImages } from '@volter/editor-sdk/kit/environment-images';
+} from '@volter/sdk/kit/viewport-presentation';
+import { subscribeEnvironmentImages } from '@volter/sdk/kit/environment-images';
 import { StagePresentationRig } from './standard-viewport-dressing';
 import { threeStoreForHost } from '../three-state';
 import { threeObject } from '../../adapter/three-contract';
@@ -230,7 +230,7 @@ export interface Object3DDocumentViewportProps
   readonly sourcePath?: string;
   /** See {@link Object3DDocumentContent}. Default `{ kind: 'build' }`. */
   readonly content?: Object3DDocumentContent;
-  /** See `@volter/editor-sdk`'s `ToolObject3DAuthoringProps.audit`. */
+  /** See `@volter/sdk`'s `ToolObject3DAuthoringProps.audit`. */
   readonly audit?: boolean;
   /** Reuse the canonical Asset Lab viewport with NONE of the document chrome —
    *  no toolbar, no animation widget, no workspace-document registration —
@@ -293,7 +293,7 @@ export interface Object3DDocumentViewportProps
   /** Multiplies the opening fit distance; `1` fills the view. */
   readonly openingFit?: number;
   /** The kind of stage this view is, for its starting presentation
-   *  (`@volter/editor-sdk/kit/viewport-presentation`): the document's own kind (`'model'`).
+   *  (`@volter/sdk/kit/viewport-presentation`): the document's own kind (`'model'`).
    *  Without it the kind is read off the document id's prefix. */
   readonly stageKind?: string;
 }

@@ -23,14 +23,14 @@ import type {
   RenderMemoryEntry,
   RenderMemorySnapshot,
   RenderMemoryUnestimated,
-} from '@volter/editor-project/adapter/render-memory';
+} from '@volter/project/adapter/render-memory';
 import * as THREE from 'three';
 
 export type {
   RenderMemoryEntry,
   RenderMemorySnapshot,
   RenderMemoryUnestimated,
-} from '@volter/editor-project/adapter/render-memory';
+} from '@volter/project/adapter/render-memory';
 
 const TOP_N = 10;
 

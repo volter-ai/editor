@@ -7,14 +7,14 @@
  * diagnostic-rendering graph during a plain Scene boot. The class remains the
  * native session type; this module owns only its live identities.
  */
-import { startingPresentation, viewGridVisible, viewPresentationBinding } from '@volter/editor-sdk/kit/viewport-presentation';
+import { startingPresentation, viewGridVisible, viewPresentationBinding } from '@volter/sdk/kit/viewport-presentation';
 import {
   type DocumentViewport,
   registerDocumentViewport,
-} from '@volter/editor-sdk/kit/document-viewports';
+} from '@volter/sdk/kit/document-viewports';
 import { lazy } from 'react';
 import type { Object3DDocumentSession } from './object3d-document-session';
-import { registerDocumentStageSession } from '@volter/editor-sdk/kit/document-stage-sessions';
+import { registerDocumentStageSession } from '@volter/sdk/kit/document-stage-sessions';
 
 // The document header's shading, helpers and capture menus. Behind `lazy()`, so
 // this registry stays the light read it is for every other caller.
@@ -66,7 +66,7 @@ export function registerObject3DDocumentSession(
 const xyz = ([x, y, z]: readonly [number, number, number]) => ({ x, y, z });
 
 /** An Object3D document's own viewport: its session's camera, view mode, grid,
- *  framing, selection and photograph (`@volter/editor-sdk/kit/document-viewports`). */
+ *  framing, selection and photograph (`@volter/sdk/kit/document-viewports`). */
 function object3DDocumentViewport(session: Object3DDocumentSession): DocumentViewport {
   type Preset = Parameters<Object3DDocumentSession['setViewPreset']>[0];
   type Mode = Parameters<Object3DDocumentSession['setMode']>[0];

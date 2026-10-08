@@ -18,8 +18,8 @@ import {
   type GenerationExecutionRoute,
   type ProviderCredentialId,
   type ProviderCredentialTestResult,
-} from '@volter/editor-sdk/account';
-import type { ProviderExecutionMode } from '@volter/editor-sdk/tools/provider-execution';
+} from '@volter/sdk/account';
+import type { ProviderExecutionMode } from '@volter/sdk/tools/provider-execution';
 import {
   type AccountCredential,
   type AccountCredentialStore,

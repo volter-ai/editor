@@ -34,20 +34,20 @@ import {
 } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import { ownedSurfaceMaterial } from '@volter/blender-engine/browser/three/blender-physical-material';
 import { createBlenderDisplayTransform, type BlenderDisplayTransform } from '@volter/blender-engine/browser/three/blender-display-transform';
-import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/editor-sdk/contributions';
-import { editorHost } from '@volter/editor-sdk/host';
+import type { ToolContributionProps, ToolDocumentToolbar } from '@volter/sdk/contributions';
+import { editorHost } from '@volter/sdk/host';
 import {
   documentViewport,
   documentViewportsVersion,
   subscribeDocumentViewports,
-} from '@volter/editor-sdk/kit/document-viewports';
+} from '@volter/sdk/kit/document-viewports';
 import {
   DOCUMENT_STUDIO_PRESET,
   setViewPresentation,
   subscribeViewportPresentation,
   viewPresentation,
   viewPresentationSnapshot,
-} from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/viewport-presentation';
 import {
   type MouseEvent as ReactMouseEvent,
   type PointerEvent as ReactPointerEvent,
@@ -80,13 +80,13 @@ import { blenderSkin } from './blender-runtime-skin';
 import { playAnimation, type PlayAnimation } from './blender-play-skin';
 import { areaSplit, subscribeAreaSplit } from '../src/area-split';
 import { noteModelDocument } from '../src/play-mode';
-import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/editor-sdk/kit/document-play-extension';
-import { notifyWorkspaceDocumentSelectionChanged } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { documentPlayExtension, subscribeDocumentPlayExtensions } from '@volter/sdk/kit/document-play-extension';
+import { notifyWorkspaceDocumentSelectionChanged } from '@volter/sdk/kit/workspace-document-registry';
 import {
   documentSecondAreaHeader,
   setDocumentSecondArea,
   subscribeDocumentAreas,
-} from '@volter/editor-sdk/kit/document-areas';
+} from '@volter/sdk/kit/document-areas';
 import { createPortal } from 'react-dom';
 import { onViewportStages, viewportStages } from '@volter/editor-threejs/viewport-door';
 import {
@@ -94,13 +94,13 @@ import {
   subscribeObject3DDocumentSessions,
 } from '@volter/editor-threejs/kit/authoring/object3d-document-session-registry';
 import type { ToolObject3DAuthoringProps } from '@volter/editor-threejs/object3d-contributions';
-import { stageStore, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
-import { surfaceAcceptsKey } from '@volter/editor-sdk/kit/surface-keyboard';
+import { stageStore, subscribeStageStores } from '@volter/sdk/kit/stage-store-registry';
+import { surfaceAcceptsKey } from '@volter/sdk/kit/surface-keyboard';
 import { BlenderModelOpening } from './blender-model-opening';
 import { modelOpeningErrorMessage } from '../src/model-opening-error';
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import { fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
-import { clearStartupFailure, reportStartupFailure } from '@volter/editor-sdk/kit/startup-failure';
+import { commandLine } from '@volter/sdk/kit/product-command';
+import { fontSizeVar, spaceVar, themeVars } from '@volter/sdk/widgets';
+import { clearStartupFailure, reportStartupFailure } from '@volter/sdk/kit/startup-failure';
 
 /** This document's model open, as a source in the page's startup-failure registry. */
 const MODEL_OPEN_STARTUP_SOURCE = 'blender-model-open';
@@ -720,7 +720,7 @@ function BlenderModelViewport(props: ToolContributionProps) {
  * THE SECOND AREA'S OWN HEADER AND SHELF, as each of Blender's areas has them.
  *
  * The area is declared to the host as the document's second area
- * (`@volter/editor-sdk/kit/document-areas`). Its HEADER stands in the document's header row over
+ * (`@volter/sdk/kit/document-areas`). Its HEADER stands in the document's header row over
  * this area: the host reserves this area's width at the row's trailing edge, so the first area's
  * header ends where the first area does, and this renders into the region it draws there: the
  * editor menus (their View ▸ Area ▸ Close Area closes this area), then THIS area's view, shading

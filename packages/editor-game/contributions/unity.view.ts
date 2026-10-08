@@ -2,10 +2,10 @@
  * UNITY'S DEFAULT SCENE VIEW: its procedural sky with a narrow horizon band (colours fitted to
  * `NewEmptyScene_01.png`, not transcribed), the grid, no axis lines, the outline alone, the Move
  * tool without a free-move centre.
- * A named view (`@volter/editor-sdk/kit/viewport-presentation` `ViewPreset`): what the view does
+ * A named view (`@volter/sdk/kit/viewport-presentation` `ViewPreset`): what the view does
  * and how it is lit, never its look — pair it with the Unity style for the whole target.
  */
-import type { ViewPreset } from '@volter/editor-sdk/kit/viewport-presentation';
+import type { ViewPreset } from '@volter/sdk/kit/viewport-presentation';
 
 export const point = 'workspace.view';
 export const view: ViewPreset = {

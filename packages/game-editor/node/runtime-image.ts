@@ -21,8 +21,8 @@ const PRODUCT = '@volter/game-editor';
 /** Where this product's packages resolve from: a checkout's root, or an install's. */
 function installRootOf(productRoot: string): string {
   for (let dir = productRoot; ; dir = dirname(dir)) {
-    if (existsSync(join(dir, 'node_modules', '@volter', 'editor-project', 'package.json'))) return dir;
-    if (dirname(dir) === dir) throw new Error(`@volter/editor-project is not installed above ${productRoot}.`);
+    if (existsSync(join(dir, 'node_modules', '@volter', 'project', 'package.json'))) return dir;
+    if (dirname(dir) === dir) throw new Error(`@volter/project is not installed above ${productRoot}.`);
   }
 }
 

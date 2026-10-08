@@ -215,7 +215,7 @@ behavior-only repair preserves the established appearance.
   `npx --no-install cyclotron add-play` (it never overwrites files). Its
   `src/models/*.play.ts` scripts implement gameplay; Play runs them on a
   detached copy of the model. When extending an existing model-based project,
-  declare `@volter/editor-model-play` and the React/UI dependencies with
+  declare `@volter/play` and the React/UI dependencies with
   compatible project versions, and add the UI root as needed.
 - Register your bot as named behaviours, one per outcome worth checking:
   `play.autoplay({ win: …, lose: … })`, at least one that plays to win and one

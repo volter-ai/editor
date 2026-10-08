@@ -29,7 +29,7 @@ import type { Duplex } from 'node:stream';
 import {
   type EditorControlLifecycle,
   parseEditorControlLifecycle,
-} from '@volter/editor-sdk/session/editor-control-lifecycle';
+} from '@volter/sdk/session/editor-control-lifecycle';
 import { type WebSocket, WebSocketServer } from 'ws';
 import type { EditorSocketClient } from './editor-sse';
 

@@ -46,7 +46,7 @@
  *
  *  ONE RELEASE IS ONE PRODUCT. The kit's workbench half and exactly one product's are compiled
  *  into the bundle together, so `BUILD.json` names the product and the tarball carries it in
- *  its name. `@volter/editor-sdk/session/workbench-locator` refuses a release built for a product
+ *  its name. `@volter/sdk/session/workbench-locator` refuses a release built for a product
  *  other than the one the project declares — the mismatch is otherwise invisible, because the
  *  page mounts and what differs is the title, the look and the commands.
  *
@@ -204,7 +204,7 @@ function directoryBytes(dir) {
 /**
  * PUBLISH A CUT RELEASE — the tarball and its BUILD.json, as a GitHub Release on the fork's
  * own repository, so a product can fetch its workbench with nothing on the machine but the
- * product itself (`@volter/editor-sdk/session/workbench-locator` is the fetching half).
+ * product itself (`@volter/sdk/session/workbench-locator` is the fetching half).
  *
  * A RELEASE IS IMMUTABLE. Re-running on a tag that exists refuses by name rather than
  * uploading a second asset beside the first: a product pins `tarballSha256`, and a tag whose

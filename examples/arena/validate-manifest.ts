@@ -1,6 +1,6 @@
 import { resolve } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { loadGameManifestFile } from '@volter/editor-project/manifest/load-file';
+import { loadGameManifestFile } from '@volter/project/manifest/load-file';
 
 // ---------------------------------------------------------------------------
 // Usage: npx tsx validate-manifest.ts [manifestPath...]

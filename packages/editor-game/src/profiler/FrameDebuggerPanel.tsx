@@ -27,8 +27,8 @@ import {
   groupDrawCallsByTarget,
   summarizeCapture,
 } from '../host/components/frame-debugger-model';
-import { editorHost, useHostAvailabilitySelector } from '@volter/editor-sdk/host';
-import { Button, themeVars } from '@volter/editor-sdk/widgets';
+import { editorHost, useHostAvailabilitySelector } from '@volter/sdk/host';
+import { Button, themeVars } from '@volter/sdk/widgets';
 import type {
   FrameCapture,
   FrameCaptureDrawCall,

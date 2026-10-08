@@ -21,16 +21,16 @@
  * CONDITION on writing, not a second writer of that field.
  */
 
-import type { CollaborationParticipant } from '@volter/editor-sdk/session/collaboration-types';
-import { EDITOR_THEME_CLASS, graphiteDarkEditorTheme } from '@volter/editor-sdk/widgets';
+import type { CollaborationParticipant } from '@volter/sdk/session/collaboration-types';
+import { EDITOR_THEME_CLASS, graphiteDarkEditorTheme } from '@volter/sdk/widgets';
 import { contentWorldBounds } from '@volter/editor-threejs/viewport/content-bounds';
 import * as THREE from 'three';
-import { collaborationSnapshot } from '@volter/editor-sdk/kit/collaboration-client';
-import { reportCollaborationPresence } from '@volter/editor-sdk/kit/collaboration-presence';
-import { EDITOR_PARTICIPANT_ID } from '@volter/editor-sdk/kit/editor-presence';
+import { collaborationSnapshot } from '@volter/sdk/kit/collaboration-client';
+import { reportCollaborationPresence } from '@volter/sdk/kit/collaboration-presence';
+import { EDITOR_PARTICIPANT_ID } from '@volter/sdk/kit/editor-presence';
 import type { EditorShellStore } from '../editor-shell-store';
 import type { EditorViewport } from '../editor-viewport';
-import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { activeWorkspaceDocumentId } from '@volter/sdk/kit/workspace-document-registry';
 
 interface RemoteCameraMarker {
   camera: THREE.PerspectiveCamera;

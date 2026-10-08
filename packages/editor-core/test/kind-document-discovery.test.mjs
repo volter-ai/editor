@@ -7,25 +7,25 @@ import { fileURLToPath } from 'node:url';
 const stubs = {
   'react/jsx-runtime': 'export const jsx = () => null, jsxs = () => null;',
   react: 'export const useSyncExternalStore = () => {};',
-  '@volter/editor-sdk/widgets': 'export const themeVars = {};',
-  '@volter/editor-sdk/kit/asset-selection': 'export const setSelectedAsset = asset => probe.selected.push(asset);',
-  '@volter/editor-sdk/kit/asset-capabilities': 'export const assetCapabilities = () => ({kind: "model"});',
-  '@volter/editor-sdk/kit/document-context-registry': 'export const awaitAnnouncedObject3DDocumentSession = () => {}, waitForContributedDocumentMount = () => {};',
-  '@volter/editor-sdk/kit/document-open-registry': 'export const registerDocumentOpener = () => {};',
-  '@volter/editor-sdk/kit/project-adapter': `export const projectAdapterFacet = () => probe.facet;
+  '@volter/sdk/widgets': 'export const themeVars = {};',
+  '@volter/sdk/kit/asset-selection': 'export const setSelectedAsset = asset => probe.selected.push(asset);',
+  '@volter/sdk/kit/asset-capabilities': 'export const assetCapabilities = () => ({kind: "model"});',
+  '@volter/sdk/kit/document-context-registry': 'export const awaitAnnouncedObject3DDocumentSession = () => {}, waitForContributedDocumentMount = () => {};',
+  '@volter/sdk/kit/document-open-registry': 'export const registerDocumentOpener = () => {};',
+  '@volter/sdk/kit/project-adapter': `export const projectAdapterFacet = () => probe.facet;
     export const subscribeProjectAdapter = fn => {probe.listeners.add(fn); return () => probe.listeners.delete(fn);};`,
-  '@volter/editor-sdk/kit/tool-loader': `export const documentContributionForKind = kind => kind === 'model' ? {file: 'model-tool'} : undefined;
+  '@volter/sdk/kit/tool-loader': `export const documentContributionForKind = kind => kind === 'model' ? {file: 'model-tool'} : undefined;
     export const getGlobalToolContributions = () => [], subscribeToolContributions = () => () => {};`,
-  '@volter/editor-sdk/kit/wait-until': 'export const waitUntil = () => {};',
-  '@volter/editor-sdk/kit/active-project': 'export const getCurrentProject = () => "project";',
-  '@volter/editor-sdk/kit/workspace-document-registry': `export const openWorkspaceDocuments = () => probe.open;
+  '@volter/sdk/kit/wait-until': 'export const waitUntil = () => {};',
+  '@volter/sdk/kit/active-project': 'export const getCurrentProject = () => "project";',
+  '@volter/sdk/kit/workspace-document-registry': `export const openWorkspaceDocuments = () => probe.open;
     export const openWorkspaceDocument = (descriptor, options) => {probe.opened.push({descriptor, options}); probe.open.push({descriptor});};`,
-  '@volter/editor-sdk/kit/workspace-document-restore': 'export const registerWorkspaceDocumentRestorer = restorer => {probe.restorer = restorer;};',
-  '@volter/editor-sdk/kit/components/asset-documents': 'export const openAssetDocument = () => {};',
-  '@volter/editor-sdk/kit/components/ToolHost': 'export const ToolHost = () => null;',
+  '@volter/sdk/kit/workspace-document-restore': 'export const registerWorkspaceDocumentRestorer = restorer => {probe.restorer = restorer;};',
+  '@volter/sdk/kit/components/asset-documents': 'export const openAssetDocument = () => {};',
+  '@volter/sdk/kit/components/ToolHost': 'export const ToolHost = () => null;',
 };
 const bundle = await build({
-  entryPoints: [fileURLToPath(new URL('../../editor-sdk/src/kit/components/kind-documents.tsx', import.meta.url))],
+  entryPoints: [fileURLToPath(new URL('../../sdk/src/kit/components/kind-documents.tsx', import.meta.url))],
   bundle: true, platform: 'node', format: 'cjs', write: false,
   plugins: [{name: 'discovery-boundaries', setup(build) {
     build.onResolve({filter: /.*/}, args => args.kind === 'entry-point' ? undefined : {path: args.path, namespace: 'stub'});

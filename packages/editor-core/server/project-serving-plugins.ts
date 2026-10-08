@@ -193,7 +193,7 @@ function scriptHmrPlugin(options: ScriptHmrServingOptions): Plugin {
 export function createProjectServingPlugins(options: ProjectServingPluginOptions): PluginOption[] {
   const { projectRoots, currentProjectRoot, packagedOnly, scriptHmr, contributed = [] } = options;
   return [
-    ...(packagedOnly?.sharedSdkUrls ? [sharedSdkPlugin(packagedOnly.sharedSdkUrls)] : []),
+    ...(packagedOnly?.sharedSdkUrls ? [sharedSdkPlugin(packagedOnly.sharedSdkUrls, packagedOnly.editorPackageRoot)] : []),
     ...(packagedOnly?.sharedReactUrls
       ? [
           sharedReactPlugin({

@@ -1,4 +1,4 @@
-import type { GenerationJob } from '@volter/editor-sdk/generations';
+import type { GenerationJob } from '@volter/sdk/generations';
 import type { EditorAccountService } from './account-service';
 import { readGenerationJobs, recordGenerationPollFailure } from './generation-jobs';
 import { reconcileAcceptedGenerationProvenance } from './project-output-writer';

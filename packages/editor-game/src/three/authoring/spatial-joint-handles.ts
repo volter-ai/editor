@@ -1,7 +1,7 @@
 /** Native Rapier impulse-joint anchors projected onto generic viewport guides. */
 
 import type { R3fJointBinding, R3fJointLiteral } from '@volter/editor-react/source/r3f-joint-binding';
-import type { PhysicsJointSnapshot, SpatialHandleLayer, SpatialPoint3 } from '@volter/editor-project/adapter';
+import type { PhysicsJointSnapshot, SpatialHandleLayer, SpatialPoint3 } from '@volter/project/adapter';
 import * as THREE from 'three';
 
 const JOINT_COLOR = '#ffb020';

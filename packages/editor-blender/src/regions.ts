@@ -3,7 +3,7 @@
  * which regions exist and what a hierarchy row spells are function, the workspace's, never the
  * look's). Each of this package's layouts spreads these beneath its own.
  */
-import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
+import type { WorkspaceLayoutContribution } from '@volter/sdk/looks';
 
 export const BLENDER_REGIONS: NonNullable<WorkspaceLayoutContribution['regions']> = {
   workspaceTabs: 'shown',

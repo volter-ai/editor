@@ -36,8 +36,8 @@ import {
 } from '../host/staged-projects';
 import { extractUpstreamPin } from '../runtime/adapter/ingest/upstream-pin';
 import type { IngestGame2D } from '../runtime/pixi/ingest';
-import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
-import { loadGameManifest } from '@volter/editor-project/manifest/load';
+import { declaredRoots } from '@volter/project/adapter/manifest-interpreter';
+import { loadGameManifest } from '@volter/project/manifest/load';
 import { composeIngestLoad, ingestDataWriter } from './entry-load';
 import { servedEntryLoader, servedModuleLoader } from './served-bundle';
 import type { IngestGame } from './types';

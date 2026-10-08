@@ -19,16 +19,16 @@
  */
 
 import { measureAdapterReach } from '../host/adapter-reach';
-import { setActiveAuthoring } from '@volter/editor-sdk/kit/authoring/active-adapter';
-import { setActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
+import { setActiveAuthoring } from '@volter/sdk/kit/authoring/active-adapter';
+import { setActiveSystems } from '@volter/sdk/kit/authoring/active-systems';
 import { withContractHierarchy } from '../host/authoring/contract-hierarchy-authoring';
-import { clearMountFailureReports } from '@volter/editor-sdk/kit/mount-failure-report';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { clearMountFailureReports } from '@volter/sdk/kit/mount-failure-report';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { gameLoopGate, setGameInputGate } from '../host/gated-globals';
-import { acquireLiveDocument, liveDocumentContainer } from '@volter/editor-sdk/kit/live-document';
+import { acquireLiveDocument, liveDocumentContainer } from '@volter/sdk/kit/live-document';
 import { pickGameCamera } from '@volter/editor-threejs/kit/scene-framing';
-import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
+import type { ResolvedAdapterRoot } from '@volter/project/manifest/load';
 import type { CaptureMechanism } from '@volter/threejs-runtime/adapter/ingest/scene-capture';
 import { type IngestSession, serializeEntry, setActiveIngest } from './active-ingest';
 import { withDetectedDomSurface } from './authoring/ingest-dom-surface-authoring';

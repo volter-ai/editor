@@ -31,7 +31,7 @@ test('upgraded native story ordering accepts the current index shape', () => {
 });
 
 test('editor grouping retains explicit and automatic Storybook titles', async () => {
-  const result = await build({entryPoints: [fileURLToPath(new URL('../../editor-sdk/src/kit/stories/story-grouping.ts', import.meta.url))],
+  const result = await build({entryPoints: [fileURLToPath(new URL('../../sdk/src/kit/stories/story-grouping.ts', import.meta.url))],
     bundle: true, platform: 'node', format: 'esm', write: false});
   const {deriveStoryGroupPath} = await import('data:text/javascript;base64,' + Buffer.from(result.outputFiles[0].contents).toString('base64'));
   assert.deepEqual(deriveStoryGroupPath({modulePath: 'src/ui/Button.stories.tsx', title: 'Controls/Button'}),

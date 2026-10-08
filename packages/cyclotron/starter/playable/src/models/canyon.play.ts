@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 // Copyright 2026 Volter AI, Inc.
 import * as THREE from 'three';
-import type {ModelPlayContext} from '@volter/editor-model-play/play-script';
+import type {ModelPlayContext} from '@volter/play/play-script';
 import {initialState,publishRaceState,consumeCommands,type Racer,type RaceState,type RaceEvent,type Command} from './race-state';
 import {at,nearest,length,wrap,angle,leftWidth} from './course';
 type Car=Racer & {object:THREE.Object3D;s:number;distance:number;checkpoint:number;lane:number;parked:boolean;boostCooldown:number;drift:number;drifting:boolean;offroad:boolean;collisionCooldown:number;lastDecision:number};

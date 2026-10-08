@@ -76,7 +76,7 @@ export interface LoopEvidence {
  *
  * `'gated'` and `'self-driven'` are also an AUTHOR'S INTENT WORD — the manifest
  * declares `loop: 'gated' | 'self-driven'` per root
- * (`@volter/editor-project/manifest/schema`). While status and coverage emitted the bare
+ * (`@volter/project/manifest/schema`). While status and coverage emitted the bare
  * string, a declared intent and a measured verdict were the same two bytes, and
  * two mount routes duly asserted `'gated'` with no probe behind them: the report
  * printed `loop ✓ gated` about games nothing had ever held.

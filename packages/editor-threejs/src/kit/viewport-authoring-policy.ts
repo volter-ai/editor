@@ -40,13 +40,13 @@
  * defaults.
  */
 
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { adapterOnlyToolOwner, type ViewportToolOwner } from '@volter/editor-sdk/kit/authoring/viewport-tool-owner';
+import type { AuthoringAdapter } from '@volter/project/adapter';
+import { adapterOnlyToolOwner, type ViewportToolOwner } from '@volter/sdk/kit/authoring/viewport-tool-owner';
 
 export { adapterOnlyToolOwner, type ViewportToolOwner };
 import type * as THREE from 'three';
-import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import { makeNoAuthoringAdapter } from '@volter/sdk/kit/authoring/no-authoring-adapter';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
 
 
 export interface ViewportAuthoringPolicy {

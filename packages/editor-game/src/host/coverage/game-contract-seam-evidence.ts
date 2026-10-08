@@ -5,18 +5,18 @@ import {
   inspectSeamShape,
   type SeamEvidenceReceipt,
   type SeamEvidenceVerdict,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import type {
   VolterGameContract,
   VolterGameLifecycle,
   VolterGameSystems,
-} from '@volter/editor-project/adapter/ingest/game-contract';
+} from '@volter/project/adapter/ingest/game-contract';
 import {
   GAME_CONTRACT_SHAPE,
   GAME_LIFECYCLE_SHAPE,
   GAME_SYSTEMS_SHAPE,
-} from '@volter/editor-project/adapter/ingest/game-contract-seams';
-import { liveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
+} from '@volter/project/adapter/ingest/game-contract-seams';
+import { liveSeamEvidence } from '@volter/sdk/kit/live-seam-evidence';
 
 const EPOCHS = new WeakMap<object, string>();
 let nextEpoch = 1;

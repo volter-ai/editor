@@ -53,7 +53,7 @@
  * (`docs/f13-bloom-composer-proof/record-fixed.mjs`).
  */
 
-import type { WorldAdoptionEvent } from '@volter/editor-sdk/kit/world-adoption-event';
+import type { WorldAdoptionEvent } from '@volter/sdk/kit/world-adoption-event';
 import type * as THREE from 'three';
 import {
   type CaptureWaitOptions,
@@ -135,7 +135,7 @@ export interface SceneCaptureOptions {
    * render-to-texture warm-up that happens to draw first is adopted as the game
    * forever, and the real world that renders one frame later reaches no reader
    * at all. This is that reader. It never changes which world is adopted — it
-   * makes the ambiguity a recorded fact (`packages/editor-sdk/src/kit/world-adoption.ts`
+   * makes the ambiguity a recorded fact (`packages/sdk/src/kit/world-adoption.ts`
    * publishes it to the editor's `status` command).
    *
    * Post-processing games legitimately render several (scene, camera) pairs per

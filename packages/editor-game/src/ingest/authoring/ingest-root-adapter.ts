@@ -19,34 +19,34 @@
 
 import { authoringOidOf } from '@volter/editor-threejs/kit/authoring/component-instance-root';
 import { setIngestDataWriter } from '../../host/authoring/ingest-data-writer';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { GAME_SURFACE_CONTAINMENT_CSS } from '../../host/game-realm-page';
 import { clearGameSurface, gameLoopGate, setGameSurface } from '../../host/gated-globals';
 import { authoringJournal } from '../../host/history/json-history-resource';
-import { clearPresentationSurface, recordPresentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
-import { clearRootReadiness, recordRootReadiness } from '@volter/editor-sdk/kit/readiness';
+import { clearPresentationSurface, recordPresentationSurface } from '@volter/sdk/kit/presentation-surface';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
+import { clearRootReadiness, recordRootReadiness } from '@volter/sdk/kit/readiness';
 import {
   type SameRealmLoopGate,
   type SameRealmLoopVerdict,
   verifySameRealmLoopControl,
 } from '../../host/same-realm-loop-gate';
-import { ensureScopedGameStyles } from '@volter/editor-sdk/kit/scoped-game-css';
+import { ensureScopedGameStyles } from '@volter/sdk/kit/scoped-game-css';
 import { resolveThreeIngestRuntimeForEditor } from '../../host/three-ingest-runtime';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
-import { createHttpSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
-import { serverRecordsSourceWrites } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
-import { clearWorldAdoption, worldAdoptionRecorder } from '@volter/editor-sdk/kit/world-adoption';
-import { markGameCssScope } from '@volter/editor-sdk/session/game-css-scope';
-import type { MountedThreeRoot } from '@volter/editor-project/adapter';
+import { createHttpSourceWriteBackend } from '@volter/sdk/kit/ui-source/source-write-backend';
+import { serverRecordsSourceWrites } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
+import { clearWorldAdoption, worldAdoptionRecorder } from '@volter/sdk/kit/world-adoption';
+import { markGameCssScope } from '@volter/sdk/session/game-css-scope';
+import type { MountedThreeRoot } from '@volter/project/adapter';
 import {
   readGamePresentation,
   readGameReady,
   readGameWorld,
-} from '@volter/editor-project/adapter/ingest/game-contract';
-import { describeMountFailure } from '@volter/editor-project/adapter/ingest/mount-readiness';
-import { formatLoopGateMessage } from '@volter/editor-project/adapter/loop-gate-report';
+} from '@volter/project/adapter/ingest/game-contract';
+import { describeMountFailure } from '@volter/project/adapter/ingest/mount-readiness';
+import { formatLoopGateMessage } from '@volter/project/adapter/loop-gate-report';
 import {
   oidSourceThree,
   structuralThree,
@@ -72,7 +72,7 @@ import { claimHostSurfaceBox, hostSurfaceBackingSize } from '../host-surface-box
 import { clearIngestFrameSource } from '../ingest-frame-snapshot';
 import { wireIngestSystems } from '../ingest-render-debug';
 import type { IngestGame } from '../types';
-import { markGameSurface } from '@volter/editor-sdk/kit/game-surface-defaults';
+import { markGameSurface } from '@volter/sdk/kit/game-surface-defaults';
 
 export interface MountIngestOptions {
   /**

@@ -16,7 +16,7 @@
  * Nothing here imports Node or the DOM beyond `URL`, so both halves compile it.
  */
 
-import { isEditorLanePath } from '@volter/editor-sdk/session/tool-contribution-convention';
+import { isEditorLanePath } from '@volter/sdk/session/tool-contribution-convention';
 
 /** The directory every file the view itself owns lives under. */
 export const VIEW_DIR = '__view';

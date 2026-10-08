@@ -24,21 +24,21 @@
  * described the asset browser's selection while the box described a scene node.
  */
 
-import { zIndex } from '@volter/editor-sdk/widgets';
+import { zIndex } from '@volter/sdk/widgets';
 import { useCallback, useState, useSyncExternalStore } from 'react';
 import {
   assetSelectionVersion,
   clearSelectedAsset,
   subscribeAssetSelection,
-} from '@volter/editor-sdk/kit/asset-selection';
-import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
-import { resolvePanelAuthoring } from '@volter/editor-sdk/kit/authoring/panel-authoring';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { useActiveInspection } from '@volter/editor-sdk/kit/inspection/use-active-inspection';
+} from '@volter/sdk/kit/asset-selection';
+import { setAuthoringSelection } from '@volter/sdk/kit/authoring/consumer-actions';
+import { resolvePanelAuthoring } from '@volter/sdk/kit/authoring/panel-authoring';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { useActiveInspection } from '@volter/sdk/kit/inspection/use-active-inspection';
 import {
   subscribeWorkspaceDocuments,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
+} from '@volter/sdk/kit/workspace-document-registry';
 import {
   resolveViewportOverlayPlacement,
   subscribeWorkspaceViewportRect,
@@ -47,9 +47,9 @@ import {
   workspaceViewportRect,
   workspaceViewportRectVersion,
 } from '../workspace-viewport-rect';
-import { CompactInspectorHostProvider } from '@volter/editor-sdk/kit/components/CompactInspectorShell';
-import { InspectorPill } from '@volter/editor-sdk/kit/components/InspectionProjection';
-import { Inspector } from '@volter/editor-sdk/kit/components/Inspector';
+import { CompactInspectorHostProvider } from '@volter/sdk/kit/components/CompactInspectorShell';
+import { InspectorPill } from '@volter/sdk/kit/components/InspectionProjection';
+import { Inspector } from '@volter/sdk/kit/components/Inspector';
 
 /**
  * The compact inspector BOX's physical size family. It is size only — WHERE

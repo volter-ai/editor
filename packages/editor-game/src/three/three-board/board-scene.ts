@@ -73,17 +73,17 @@
  * only way it comes back.
  */
 
-import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
+import { getProjectStoryRegions } from '@volter/sdk/kit/stories/project-story-regions';
 import {
   declaredStoryMedium,
   reportUndeclaredStoryMedium,
-} from '@volter/editor-sdk/kit/stories/story-declared-medium';
+} from '@volter/sdk/kit/stories/story-declared-medium';
 import {
   deriveStoryGroupPath,
   formatStoryGroupPath,
   storyGroupKey,
-} from '@volter/editor-sdk/kit/stories/story-grouping';
-import { type ProjectStoryModule, pickComponentPreviewStory } from '@volter/editor-sdk/kit/stories/story-registry';
+} from '@volter/sdk/kit/stories/story-grouping';
+import { type ProjectStoryModule, pickComponentPreviewStory } from '@volter/sdk/kit/stories/story-registry';
 import {
   lastStoryMountPhaseTiming,
   type MountedStoryObject3D,
@@ -96,7 +96,7 @@ import {
   markViewportSegment,
   noteViewportBreakdownCounts,
   recordViewportStoryMount,
-} from '@volter/editor-sdk/kit/viewport-activation-timings';
+} from '@volter/sdk/kit/viewport-activation-timings';
 import { collectContentNodeRecords } from '@volter/editor-threejs/viewport/content-bounds';
 import { EDITOR_LAYER } from '@volter/editor-threejs/viewport/editor-layers';
 import { setUserData } from '@volter/threejs-runtime/ecs/user-data';

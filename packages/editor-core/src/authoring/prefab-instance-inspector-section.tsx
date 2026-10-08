@@ -9,22 +9,22 @@ import {
   FieldRow,
   Text,
   themeVars,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import type {
   AuthoringAdapter,
   ComponentInstanceOverride,
   EditorNode,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import { useEffect, useState } from 'react';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
-import { GROUP_SECTION_ORDER, type InspectionSection } from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+import { createHmrRegistrationGroup } from '@volter/sdk/kit/hmr-registration-group';
+import { GROUP_SECTION_ORDER, type InspectionSection } from '@volter/sdk/kit/inspection-model';
+import { registerInspectorSections } from '@volter/sdk/kit/inspector-section-registry';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
 import {
   applyAuthoringInstanceToComponent,
   openAuthoringComponent,
   revertAuthoringInstance,
-} from '@volter/editor-sdk/kit/authoring/consumer-actions';
+} from '@volter/sdk/kit/authoring/consumer-actions';
 import { matchesPrefabInstance, prefabInstanceStoryAction } from './prefab-instance-section-model';
 
 function display(value: unknown): string {

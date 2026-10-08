@@ -44,9 +44,9 @@
  * wires this to sockets, the opener and a tick lives in `tab-lifecycle.ts`.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { commandLine } from '@volter/sdk/kit/product-command';
 import type { SessionJournalEvent } from './support/project/session-journal';
-import type { TabCensus } from '@volter/editor-sdk/project/tab-census';
+import type { TabCensus } from '@volter/sdk/project/tab-census';
 
 /** What the page last told its worker about itself. */
 export type TabVisibility = 'visible' | 'hidden';
@@ -90,7 +90,7 @@ export type TabSurface = 'editor' | 'vscode';
 
 /**
  * THE RESOURCE CENSUS — what the tab was holding, sampled by the page and
- * carried on the beat. Declared in `@volter/editor-sdk/project/tab-census` (the one package
+ * carried on the beat. Declared in `@volter/sdk/project/tab-census` (the one package
  * every unit that speaks this shape already depends on) and re-exported here,
  * because this file is where the server's readers look for it.
  *

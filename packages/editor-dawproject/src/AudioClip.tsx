@@ -11,7 +11,7 @@
  */
 import { formatAt } from '@volter/dawproject/notation';
 import type { Piece, PieceAudio, PieceClip } from '@volter/dawproject/piece';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { type KeyboardEvent as ReactKeyboardEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import ts from 'typescript';
 import { applySource, readSource, recordStructWrite, type SourceIndex, setProps, setRefusal } from './source-index';

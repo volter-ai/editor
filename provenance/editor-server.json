@@ -599,7 +599,7 @@
     },
     {
       "source": "packages/editor/server/scoped-game-css.ts",
-      "path": "packages/editor-sdk/src/session/scoped-game-css.ts",
+      "path": "packages/sdk/src/session/scoped-game-css.ts",
       "sha256": "94b2375f84928441cadfe0cf7c710358588892ae3b732b8c9a07c2e1d3a14979"
     },
     {
@@ -706,7 +706,7 @@
       "sha256": "0e551e203b3d70234b369b83d775c10e7225ddefefd7970bfd6fbdc6ce7947f0"
     },
     {
-      "path": "packages/editor-sdk/src/tools/provider-execution.ts",
+      "path": "packages/sdk/src/tools/provider-execution.ts",
       "sha256": "d28ad82f4e7ca50cd6f2fbf9a103a718839373cd3a721555c2a01167aa14a4c3"
     },
     {
@@ -726,15 +726,15 @@
       "sha256": "571817a6d617ce45d7374b5309ff5d479b5021d9a726bd9b3f15d171970f74ce"
     },
     {
-      "path": "packages/editor-sdk/src/project/output-roots.ts",
+      "path": "packages/sdk/src/project/output-roots.ts",
       "sha256": "bfbd0b4861ba296fdd8cb95e304badf81336d44c5610d09edb8051fe1d1e26cd"
     },
     {
-      "path": "packages/editor-sdk/src/tools/registry.ts",
+      "path": "packages/sdk/src/tools/registry.ts",
       "sha256": "ab1064aa1b9d48cf528478b2b0eeb75b2353965c7189f11f9dc0fdd7c15e78e8"
     },
     {
-      "path": "packages/editor-sdk/src/tools/types.ts",
+      "path": "packages/sdk/src/tools/types.ts",
       "sha256": "1d9e8d8c862d1227c6c954aeb35b698b9261f0a16b94fa9b739cb08906d7aee4"
     },
     {
@@ -750,7 +750,7 @@
       "sha256": "f4a95389003d2b7a4aa8239c3744c06ec47078cb61bf605ee923786e535da5c7"
     },
     {
-      "path": "packages/editor-sdk/src/tools/errors.ts",
+      "path": "packages/sdk/src/tools/errors.ts",
       "sha256": "4e73ec542cb5e5470a2f950d283278fb2d395761a9741e0d09aa4b1ed928254c"
     },
     {

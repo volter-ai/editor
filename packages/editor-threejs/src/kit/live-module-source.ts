@@ -25,7 +25,7 @@
  * else falls back to the ordinary source viewer.
  */
 
-import { liveModuleImportUrl } from '@volter/editor-sdk/session/project-module-url';
+import { liveModuleImportUrl } from '@volter/sdk/session/project-module-url';
 import type * as THREE from 'three';
 
 /** Why this module is not a live model module — the sentence the document

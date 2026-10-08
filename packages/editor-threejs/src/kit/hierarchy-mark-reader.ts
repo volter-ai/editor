@@ -13,11 +13,11 @@
  * non-three surface pays nothing and renders byte-identically.
  */
 
-import type { HierarchyProvider } from '@volter/editor-project/adapter';
+import type { HierarchyProvider } from '@volter/project/adapter';
 import { componentRootName, isBuiltInternal } from '@volter/editor-threejs/adapter/hierarchy-marks';
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import { isComponentInstanceRoot } from './authoring/component-instance-root';
-import { NO_MARKS, type NodeMarkReader, type NodeMarks } from '@volter/editor-sdk/kit/hierarchy-component-marks';
+import { NO_MARKS, type NodeMarkReader, type NodeMarks } from '@volter/sdk/kit/hierarchy-component-marks';
 import { threeObject } from '../adapter/three-contract';
 
 /** Project-local R3F source already carries its component ownership on the

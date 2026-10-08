@@ -20,27 +20,27 @@ import {
   activeDocumentSourcePath,
   activeSaveDestination,
   activeSaveState,
-} from '@volter/editor-sdk/kit/authoring/shell-document-ops';
+} from '@volter/sdk/kit/authoring/shell-document-ops';
 import { Object3DDocumentViewport } from '@volter/editor-threejs/kit/components/Object3DDocumentViewport';
-import type { DocumentPreviewSource } from '@volter/editor-sdk/kit/document-preview-source';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import type { DocumentPreviewSource } from '@volter/sdk/kit/document-preview-source';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore, ViewportTab } from '@volter/editor-threejs/kit/editor-shell-store';
-import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/editor-sdk/kit/project-adapter';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
-import { isolationTabsReplaceGenericScene, sceneTabRow } from '@volter/editor-sdk/kit/scene-document-plan';
+import { projectAdapterFacet, subscribeProjectAdapter } from '@volter/sdk/kit/project-adapter';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
+import { isolationTabsReplaceGenericScene, sceneTabRow } from '@volter/sdk/kit/scene-document-plan';
 import {
   registerAvailableWorkspaceDocument,
   unregisterAvailableWorkspaceDocument,
-} from '@volter/editor-sdk/kit/workspace-available-documents';
-import { SCENE_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
+} from '@volter/sdk/kit/workspace-available-documents';
+import { SCENE_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocumentId,
   setWorkspaceDocumentDirty,
   type WorkspaceDocumentContentProps,
   type WorkspaceDocumentDescriptor,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { Button, themeVars } from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { Button, themeVars } from '@volter/sdk/widgets';
 import { Component, type ErrorInfo, type ReactNode, useEffect, useState } from 'react';
 import { scheduleAfterPaint } from '../after-paint';
 

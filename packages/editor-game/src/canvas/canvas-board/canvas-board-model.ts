@@ -48,21 +48,21 @@
  * out of turn.
  */
 
-import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
-import { getProjectStoryRegions } from '@volter/editor-sdk/kit/stories/project-story-regions';
+import type { ProjectComponentEntry } from '@volter/sdk/kit/asset-workflow/project-content';
+import { getProjectStoryRegions } from '@volter/sdk/kit/stories/project-story-regions';
 import {
   declaredStoryMedium,
   reportUndeclaredStoryMedium,
-} from '@volter/editor-sdk/kit/stories/story-declared-medium';
-import type { StoryPreviewComponent } from '@volter/editor-sdk/kit/stories/story-preview-component';
+} from '@volter/sdk/kit/stories/story-declared-medium';
+import type { StoryPreviewComponent } from '@volter/sdk/kit/stories/story-preview-component';
 import { mountedStoryHasPixiContent } from '../../host/stories/pixi-story-model';
-import { deriveStoryGroupPath, storyGroupKey } from '@volter/editor-sdk/kit/stories/story-grouping';
+import { deriveStoryGroupPath, storyGroupKey } from '@volter/sdk/kit/stories/story-grouping';
 import {
   type MountedStoryPixi,
   type PixiStoryMountInTurn,
   withPixiStoryMountTurn,
 } from '../../host/stories/story-pixi-preview';
-import { type ProjectStoryModule, pickComponentPreviewStory } from '@volter/editor-sdk/kit/stories/story-registry';
+import { type ProjectStoryModule, pickComponentPreviewStory } from '@volter/sdk/kit/stories/story-registry';
 
 /** The district every ghost slot belongs to, so the storyless components
  *  gather in one trailing block instead of scattering through the museum. */

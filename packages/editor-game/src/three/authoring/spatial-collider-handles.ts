@@ -5,7 +5,7 @@ import type {
   PhysicsColliderSnapshot,
   SpatialHandleLayer,
   SpatialPoint3,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import * as THREE from 'three';
 
 const COLLIDER_COLOR = '#00e58a';

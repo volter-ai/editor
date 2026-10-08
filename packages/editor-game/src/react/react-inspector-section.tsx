@@ -1,4 +1,4 @@
-import { setAuthoringSelection } from '@volter/editor-sdk/kit/authoring/consumer-actions';
+import { setAuthoringSelection } from '@volter/sdk/kit/authoring/consumer-actions';
 import { faBookBookmark, faCode, faPalette } from '@fortawesome/free-solid-svg-icons';
 import {
   Button,
@@ -7,7 +7,7 @@ import {
   Select,
   TextArea,
   TextInput,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 
 /**
  * React-world inspector section (C2, spec 27 §5 C2) — the "wire the widgets"
@@ -52,25 +52,25 @@ import {
   activeBreakpoint,
   setActiveBreakpoint,
   subscribeBreakpoint,
-} from '@volter/editor-sdk/kit/breakpoint-state';
-import { CompositeAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/composite-authoring-adapter';
-import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@volter/editor-sdk/css-numeric-style';
-import { beginEyedropperSession } from '@volter/editor-sdk/kit/eyedropper-session';
-import { groupProperties } from '@volter/editor-sdk/kit/inspector-property-grouping';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
-import { createHmrRegistrationGroup } from '@volter/editor-sdk/kit/hmr-registration-group';
-import { groupIcon } from '@volter/editor-sdk/kit/inspection/compose';
+} from '@volter/sdk/kit/breakpoint-state';
+import { CompositeAuthoringAdapter } from '@volter/sdk/kit/authoring/composite-authoring-adapter';
+import { numericStyleValue, UNITLESS_NUMBER_PROPS } from '@volter/sdk/css-numeric-style';
+import { beginEyedropperSession } from '@volter/sdk/kit/eyedropper-session';
+import { groupProperties } from '@volter/sdk/kit/inspector-property-grouping';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { createHmrRegistrationGroup } from '@volter/sdk/kit/hmr-registration-group';
+import { groupIcon } from '@volter/sdk/kit/inspection/compose';
 import {
   GROUP_SECTION_ORDER,
   groupSectionId,
   type InspectionSection,
   PROPERTIES_SECTION_ID,
   PROPERTIES_SECTION_ORDER,
-} from '@volter/editor-sdk/kit/inspection-model';
-import { registerInspectorSections } from '@volter/editor-sdk/kit/inspector-section-registry';
-import { effectiveColorFromChain, getAvailableFonts } from '@volter/editor-sdk/kit/ui-source/inspect';
+} from '@volter/sdk/kit/inspection-model';
+import { registerInspectorSections } from '@volter/sdk/kit/inspector-section-registry';
+import { effectiveColorFromChain, getAvailableFonts } from '@volter/sdk/kit/ui-source/inspect';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
-import type { AuthoringAdapter, EditorNode, PropertyDescriptor } from '@volter/editor-project/adapter';
+import type { AuthoringAdapter, EditorNode, PropertyDescriptor } from '@volter/project/adapter';
 import {
   AlignmentGrid,
   type AlignmentValue,
@@ -104,7 +104,7 @@ import {
   spaceVar,
   TextShadowEditor,
   THEME,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { createElement, useMemo, useState, useSyncExternalStore } from 'react';
 import { DomAuthoringAdapter } from './dom-authoring-adapter';
 import { cssColorToHex, ReactRootAuthoringAdapter } from './react-world-authoring-adapter';

@@ -50,26 +50,26 @@ import {
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-sdk/kit/write-pipe';
+} from '@volter/sdk/kit/write-pipe';
 import type { CanvasPixiNamespace } from '../canvas-entry-runtime';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { withProjectSourceHistory } from '@volter/editor-sdk/kit/history/source-history-backend';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { withProjectSourceHistory } from '@volter/sdk/kit/history/source-history-backend';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
 import {
   type ComponentPropSpec,
   lineColToOffset,
   type OidEntry,
 } from '@volter/editor-react/source/oid-transform';
 import { relativeImportSpecifier } from '@volter/editor-react/source/relative-import-specifier';
-import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/sdk/kit/ui-source/source-write-backend';
 import {
   analyzeJsxAttributes,
   findElementEnd,
   findTagEnd,
   type JsxAttrInfo,
 } from '@volter/editor-react/source/writer';
-import { CANVAS_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import { activateWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { CANVAS_COMPONENTS_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
+import { activateWorkspaceDocument } from '@volter/sdk/kit/workspace-document-registry';
 import type {
   AssetDropProvider,
   ComponentInstanceApplyResult,
@@ -81,9 +81,9 @@ import type {
   StructureProvider,
   TransformChannel,
   TransformEditability,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 import type { AuthoringAdapter2D, Transform2DValue } from '../../runtime/pixi/authoring';
-import { getComponentPreviewStories } from '@volter/editor-sdk/kit/stories/story-registry';
+import { getComponentPreviewStories } from '@volter/sdk/kit/stories/story-registry';
 import type { Container, Matrix } from 'pixi.js';
 import * as shellPixi from 'pixi.js';
 

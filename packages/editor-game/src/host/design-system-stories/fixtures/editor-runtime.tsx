@@ -1,18 +1,18 @@
 import { type ReactNode, useEffect, useLayoutEffect, useState } from 'react';
-import { resetProjectThumbnailManifestCache } from '@volter/editor-sdk/kit/asset-workflow/thumbnail-system';
-import { type EditorRuntime, EditorRuntimeProvider, type EditorStats } from '@volter/editor-sdk/kit/editor-runtime';
+import { resetProjectThumbnailManifestCache } from '@volter/sdk/kit/asset-workflow/thumbnail-system';
+import { type EditorRuntime, EditorRuntimeProvider, type EditorStats } from '@volter/sdk/kit/editor-runtime';
 import { type EditorShellStore, threeStateOf } from '@volter/editor-threejs/kit/editor-shell-store';
-import { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { EditorSession } from '@volter/editor-sdk/kit/history/editor-session';
-import { getStorageBackend, MemStorage, setStorageBackend } from '@volter/editor-sdk/kit/storage/index';
+import { ShellStore } from '@volter/sdk/kit/shell-store';
+import { EditorSession } from '@volter/sdk/kit/history/editor-session';
+import { getStorageBackend, MemStorage, setStorageBackend } from '@volter/sdk/kit/storage/index';
 import {
   activeWorkspaceUtility,
   installWorkspaceHostCommands,
   setActiveWorkspaceUtility,
   setWorkspaceUtilityTabs,
   workspaceUtilityTabs,
-} from '@volter/editor-sdk/kit/workspace-host-commands';
-import { availableWorkspaceUtilities } from '@volter/editor-sdk/kit/workspace-utility-registry';
+} from '@volter/sdk/kit/workspace-host-commands';
+import { availableWorkspaceUtilities } from '@volter/sdk/kit/workspace-utility-registry';
 
 const ZERO_STATS: EditorStats = {
   fps: 60,

@@ -1,5 +1,5 @@
 /**
- * THE NAVMESH SESSION HANDLER (`@volter/editor-sdk/services`, a
+ * THE NAVMESH SESSION HANDLER (`@volter/sdk/services`, a
  * `workspace.service` contribution): the listener behind Debug ▸ Bake /
  * Clear NavMesh (`navmesh.menu.ts`), which bakes the authoring scene's
  * walkable-tagged meshes through the mounted game's `NavigationAdapter` and

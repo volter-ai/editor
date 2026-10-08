@@ -3,7 +3,7 @@ import {test} from 'node:test';
 import {build} from 'esbuild';
 import {fileURLToPath} from 'node:url';
 import {runInNewContext} from 'node:vm';
-const bundle=await build({entryPoints:[fileURLToPath(new URL('../../editor-sdk/src/kit/play-boot-phase.ts',import.meta.url))],bundle:true,platform:'node',format:'esm',write:false});
+const bundle=await build({entryPoints:[fileURLToPath(new URL('../../sdk/src/kit/play-boot-phase.ts',import.meta.url))],bundle:true,platform:'node',format:'esm',write:false});
 const api=await import('data:text/javascript;base64,'+Buffer.from(bundle.outputFiles[0].contents).toString('base64'));
 test('overlapping equal labels cannot clear newer work; ending child restores parent',()=>{
   api.__resetPlayBootPhaseForTest();

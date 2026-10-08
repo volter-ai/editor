@@ -15,10 +15,10 @@
  * loud server-side throw still looked like a fresh launcher in a screenshot).
  */
 
-import { commandSequence } from '@volter/editor-sdk/kit/product-command';
+import { commandSequence } from '@volter/sdk/kit/product-command';
 import { faCheck, faCopy, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import type { StartupRecovery } from '@volter/editor-sdk/session/editor-compatibility';
-import { Button, EditorIcon } from '@volter/editor-sdk/widgets';
+import type { StartupRecovery } from '@volter/sdk/session/editor-compatibility';
+import { Button, EditorIcon } from '@volter/sdk/widgets';
 import { useEffect, useState } from 'react';
 
 export interface ScreenError {

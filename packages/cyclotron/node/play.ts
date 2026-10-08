@@ -5,7 +5,7 @@
  * Nothing here is a second implementation. Each verb is one command,
  * `volter.model-play.<verb>`, which the Game panel's own package publishes as a view verb
  * (`@volter/editor-blender`'s `blender-game-panel.tsx`) over the Play tool's run
- * (`@volter/editor-model-play`), so an agent pausing a game and a person pausing it are the same
+ * (`@volter/play`), so an agent pausing a game and a person pausing it are the same
  * call, and `eval` reaches it as `await editor.command('volter.model-play.pause')`. Every verb
  * prints the panel's state afterwards; a control lands on the next drawn frame, so `play state`
  * again reads its effect (a step's tick, a resumed clock).
@@ -16,7 +16,7 @@
  * on lets the game's own bot (`play.autoplay` in its play script) drive until a person presses a
  * key or clicks in the game; it is off at every Play and Restart.
  */
-import { connect } from '@volter/editor-live';
+import { connect } from '@volter/live';
 
 export const PLAY_USAGE = 'play [state] | play play|stop|pause|resume|restart | play step [count] | play speed <0.25|0.5|1|2|4> | play mode [game|animation] | play autoplay on [<behaviour>] [--for <seconds>] | play autoplay off  [--document <id>]';
 

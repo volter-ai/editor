@@ -13,16 +13,16 @@ import {
   getActiveSystems,
   InstanceResolutionError,
   systemsForInstance,
-} from '@volter/editor-sdk/kit/authoring/active-systems';
-import { collectPlayRunPageErrors } from '@volter/editor-sdk/kit/command-listener';
+} from '@volter/sdk/kit/authoring/active-systems';
+import { collectPlayRunPageErrors } from '@volter/sdk/kit/command-listener';
 import { gameContractEpoch } from '../host/coverage/game-contract-seam-evidence';
-import { recordLiveSeamEvidence } from '@volter/editor-sdk/kit/live-seam-evidence';
-import { systemAdapterEpoch } from '@volter/editor-sdk/kit/system-seam-evidence';
+import { recordLiveSeamEvidence } from '@volter/sdk/kit/live-seam-evidence';
+import { systemAdapterEpoch } from '@volter/sdk/kit/system-seam-evidence';
 import {
   HOLD_STARVED_NO_DRIVER_REASON,
   waitForHoldBudget,
 } from '../runtime/debug-bridge';
-import type { SystemAdapters } from '@volter/editor-project/adapter';
+import type { SystemAdapters } from '@volter/project/adapter';
 import { activeIngestContract } from '../ingest/ingest-play-control';
 import { getPlayRuntimeAccess } from '../play/play-mode';
 
@@ -116,7 +116,7 @@ function recordContractSystemUse(member: string, value: unknown, name?: string):
  * `gameplay.command.ts` verbs (`list-gameplay-state`/`inject-input`/`run-ticks`)
  * already use. This is what makes the
  * `bridge-call` relay op (below) a session-generic primitive rather than a
- * test-specific one — any client of the live session (the `@volter/editor-live`
+ * test-specific one — any client of the live session (the `@volter/live`
  * `RelayTransport`, a future one-shot `volter game state/call/hold` REPL) can
  * issue `{method, callArgs}` against it with no dependency on a proof run's
  * own lifecycle/env, and get byte-identical dispatch to the page-transport's

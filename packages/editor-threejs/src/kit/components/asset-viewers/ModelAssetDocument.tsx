@@ -1,4 +1,4 @@
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { useCallback, useEffect, useState } from 'react';
 import type * as THREE from 'three';
 import {

@@ -1,6 +1,6 @@
 /**
  * `@volter/game-live` — `{ editor, game, page, tools, session }` over a game
- * project's editor session. `@volter/editor-live` owns the session and the
+ * project's editor session. `@volter/live` owns the session and the
  * editor/tools half and stays game-free; this package adds the GAME half on
  * the same resolved session: the game client (`game`), the page step bound
  * to it (`page(step)`, plus `page.reload()`), and `editor.recording`.
@@ -21,8 +21,8 @@
  * `async (page) => {...}` and inline every value it needs.
  */
 import { join } from 'node:path';
-import { connect as connectEditor, type LiveEditor, type LiveTools, type ResolvedSession, type SessionResolutionDeps } from '@volter/editor-live';
-import { EditorClient } from '@volter/editor-sdk/client';
+import { connect as connectEditor, type LiveEditor, type LiveTools, type ResolvedSession, type SessionResolutionDeps } from '@volter/live';
+import { EditorClient } from '@volter/sdk/client';
 import { createLiveGame, type LiveGame } from './game.js';
 import type { GameClient } from './game-client/index.js';
 import { lazyChainProxy } from './lazy-proxy.js';
@@ -39,7 +39,7 @@ export { LiveGameplayRecording } from './recording.js';
  *  navigates destroys the channel its own result would return on. */
 export type PageStep = GameClient['page'] & { reload: GameClient['reloadPage'] };
 
-/** `@volter/editor-live`'s editor plus `recording`, the gameplay-recording door. */
+/** `@volter/live`'s editor plus `recording`, the gameplay-recording door. */
 export type GameLiveEditor = LiveEditor & { readonly recording: LiveGameplayRecording };
 
 /** The game half, bound to one session. */

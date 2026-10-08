@@ -6,11 +6,11 @@
  * Three half saves. The kit constructs none of it; the integration installs it once, and every
  * Three surface asks for it before it mounts (`ensureThreeIntegration`).
  */
-import { registerContributedCommands } from '@volter/editor-sdk/kit/command-registry';
-import { saveThumbnail } from '@volter/editor-sdk/kit/editor-api';
+import { registerContributedCommands } from '@volter/sdk/kit/command-registry';
+import { saveThumbnail } from '@volter/sdk/kit/editor-api';
 import { registerHostHierarchyObjects } from '../host-hierarchy-objects';
-import { registerContributionSurfaces } from '@volter/editor-sdk/kit/contribution-surfaces';
-import { registerRendererResourceCounts } from '@volter/editor-sdk/kit/renderer-resource-counts';
+import { registerContributionSurfaces } from '@volter/sdk/kit/contribution-surfaces';
+import { registerRendererResourceCounts } from '@volter/sdk/kit/renderer-resource-counts';
 import { interactiveViewportRendererCounts } from './three-viewport/interactive-renderer';
 import { inspectorPreviewRendererCounts } from '../viewport/preview-renderer';
 import { liveHostRendererCount } from '../viewport/renderer-ownership';
@@ -20,8 +20,8 @@ import { Object3DAuthoringSurface, Object3DPreviewSurface } from './components/o
 import { registerThreeAssetViewers } from './components/asset-viewers/three-asset-viewers';
 import type { EditorStatePersistence } from './editor-shell-store';
 import { registerModelThumbnails } from './model-thumbnail';
-import { writeProjectLocalSection } from '@volter/editor-sdk/kit/project-local-state';
-import { onShellStore } from '@volter/editor-sdk/kit/shell-store-door';
+import { writeProjectLocalSection } from '@volter/sdk/kit/project-local-state';
+import { onShellStore } from '@volter/sdk/kit/shell-store-door';
 import { registerThreeCanvasRender } from './three-canvas-render';
 import { registerThreeHierarchyRowMedia } from './three-hierarchy-row-media';
 import { registerThreePlayCameraFlight } from './play-camera-flight';

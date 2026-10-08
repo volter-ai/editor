@@ -1,4 +1,4 @@
-import { defineTool } from '@volter/editor-sdk/tools/registry';
+import { defineTool } from '@volter/sdk/tools/registry';
 import { z } from 'zod';
 import {
   assertRenderableGeometry,

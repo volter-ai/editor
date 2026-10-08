@@ -28,7 +28,7 @@ export function createStandardEnvironment(renderer: THREE.WebGLRenderer): Standa
 }
 
 /**
- * An environment image (`@volter/editor-sdk/kit/environment-images`) as an equirectangular
+ * An environment image (`@volter/sdk/kit/environment-images`) as an equirectangular
  * texture in scene-referred light. Read as half float: a sun past white stays bright, and half
  * float filters linearly where full float cannot (phones).
  */

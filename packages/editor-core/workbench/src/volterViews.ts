@@ -19,7 +19,7 @@
  *  packages rather than build-time data.
  *
  *  Nothing under `src/vs/` imports an editor module: what arrives is `VolterViewsBridge`, the
- *  SDK's `@volter/editor-sdk/views` registry reshaped into the facts a command needs. Its
+ *  SDK's `@volter/sdk/views` registry reshaped into the facts a command needs. Its
  *  counterpart is `bridge.tsx`'s `VolterViewsHandle`.
  *--------------------------------------------------------------------------------------------*/
 

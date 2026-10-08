@@ -13,7 +13,7 @@ const bundle=await build({
     export {default as SceneSection, railDefault} from './properties-scene.inspector';`,resolveDir:directory},
   bundle:true,platform:'node',format:'cjs',write:false,external:['react','react/jsx-runtime','@fortawesome/free-solid-svg-icons'],
   plugins:[{name:'live-rna-fixture',setup(build){
-    build.onResolve({filter:/blender-properties-model$|^@volter\/editor-sdk\/widgets$/},args=>({path:args.path,namespace:'fixture'}));
+    build.onResolve({filter:/blender-properties-model$|^@volter\/sdk\/widgets$/},args=>({path:args.path,namespace:'fixture'}));
     build.onLoad({filter:/.*/,namespace:'fixture'},args=>({contents:args.path.includes('widgets')
       ? `import {createElement} from 'react';
          export const EditorIcon=({icon})=>createElement('span',{'data-icon':icon.iconName});

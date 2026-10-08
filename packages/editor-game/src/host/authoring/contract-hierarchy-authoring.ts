@@ -6,12 +6,12 @@
  * under one explicitly named folder.
  */
 
-import type { AuthoringAdapter, EditorNode, HierarchyProvider } from '@volter/editor-project/adapter';
+import type { AuthoringAdapter, EditorNode, HierarchyProvider } from '@volter/project/adapter';
 import type {
   VolterGameHierarchyGroup,
   VolterGameHierarchyProvider,
-} from '@volter/editor-project/adapter/ingest/game-contract';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+} from '@volter/project/adapter/ingest/game-contract';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 
 const GROUP_PREFIX = 'contract-hierarchy:group:';
 const RENDER_TREE_ID = 'contract-hierarchy:render-tree';

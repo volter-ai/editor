@@ -43,27 +43,27 @@
 import {
   addMountFailureReport,
   formatMountFailureMessage,
-} from '@volter/editor-sdk/kit/mount-failure-report';
+} from '@volter/sdk/kit/mount-failure-report';
 import { withStoreSelection } from '../host/authoring/mounted-authoring';
-import { makeNoAuthoringAdapter } from '@volter/editor-sdk/kit/authoring/no-authoring-adapter';
+import { makeNoAuthoringAdapter } from '@volter/sdk/kit/authoring/no-authoring-adapter';
 import { PixiAuthoringAdapter } from '../host/authoring/pixi-authoring-adapter';
 import { createLiveCanvasWriteTarget } from '../host/authoring/pixi-live-write-target';
 import { resolveCanvasPixiForEditor } from '../host/canvas-entry-runtime';
-import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { CrashNullBoundary } from '@volter/sdk/kit/crash-null-boundary';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import type { EditorShellStore } from '@volter/editor-threejs/kit/editor-shell-store';
 import { authoringJournal } from '../host/history/json-history-resource';
 import { activeRealmServices } from '../host/realm-services';
 import { resolveReactAdapterRootComponent } from '../host/roots/react-root';
-import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
 import { DomAuthoringAdapter } from '../react/dom-authoring-adapter';
 import { ReactRootAuthoringAdapter, walkOidTree } from '../react/react-world-authoring-adapter';
-import { beginProjectMountEpoch } from '@volter/editor-sdk/session/project-module-url';
+import { beginProjectMountEpoch } from '@volter/sdk/session/project-module-url';
 import { createPhysics2DRegistry } from '../runtime/pixi/physics-registry';
 import { createPhysicsAdapter2D } from '../runtime/pixi/system-adapters';
-import type { AuthoringAdapter } from '@volter/editor-project/adapter';
-import { declaredRoots } from '@volter/editor-project/adapter/manifest-interpreter';
-import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/editor-project/manifest/load';
+import type { AuthoringAdapter } from '@volter/project/adapter';
+import { declaredRoots } from '@volter/project/adapter/manifest-interpreter';
+import type { ResolvedAdapterRoot, ResolvedGameManifest } from '@volter/project/manifest/load';
 import { structuralThree } from '../three/authoring/three-authoring-adapter';
 import { createElement } from 'react';
 import { flushSync } from 'react-dom';

@@ -20,4 +20,4 @@ The files in this package were imported from volter-ai/volter-engine at commit
 
 src/host/sdk/tools.ts was imported from src/tools.ts of the Apache-2.0 SDK
 package of volter-ai/volter-engine, and retains that license. It re-exports the
-Apache-2.0 tool contract of @volter/editor-sdk.
+Apache-2.0 tool contract of @volter/sdk.

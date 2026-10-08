@@ -6,17 +6,17 @@
  * `@editor/*` alias until those modules move too. Nothing here is host API.
  */
 
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
+import { commandLine } from '@volter/sdk/kit/product-command';
 import {
   type CaptureFlatness,
   CaptureLayerError,
   capturePlayComposite,
   sampleFlatness,
-} from '@volter/editor-sdk/kit/composite-screenshot';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { presentationSurface } from '@volter/editor-sdk/kit/presentation-surface';
-import type { EditorCommandMessage, EditorCommandResult } from '@volter/editor-sdk/commands';
+} from '@volter/sdk/kit/composite-screenshot';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { presentationSurface } from '@volter/sdk/kit/presentation-surface';
+import type { EditorCommandMessage, EditorCommandResult } from '@volter/sdk/commands';
 import { notPlayingResult, structuredErrorResult } from '../command-results';
 import { isIngestActive } from '../ingest/active-ingest';
 import {
@@ -41,7 +41,7 @@ import { captureLiveCanvasFrame } from './live-frames';
  *  or a rasterization failure), it degrades to the original canvas-only
  *  `toDataURL` capture, marked
  *  honestly with `composite: false`. A caller (`RelayTransport.screenshot`
- *  in `@volter/editor-live`) writes the PNG to disk — this relay op stays a pure
+ *  in `@volter/live`) writes the PNG to disk — this relay op stays a pure
  *  "hand back the pixels" primitive, matching `bridge-call`'s own
  *  session-generic, run-lifecycle-free shape.
  *
@@ -283,7 +283,7 @@ export async function handleBridgeScreenshot(
     // Same seam as the composite leg, for the same reason: a game's own canvas
     // is unreadable this late, so ask for a same-frame copy first and fall back
     // to reading the canvas itself.
-    const frameModule = await import('@volter/editor-sdk/kit/live-canvas-frame');
+    const frameModule = await import('@volter/sdk/kit/live-canvas-frame');
     const readable =
       frameModule.readablePngSource(await frameModule.liveCanvasFrame(canvas)) ?? canvas;
     const dataUrl = readable.toDataURL('image/png');

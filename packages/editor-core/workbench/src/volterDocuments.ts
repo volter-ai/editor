@@ -128,7 +128,7 @@ export class VolterDocuments extends Disposable {
 	private readonly areaDocuments = new Map<number, string>();
 	/** The ratio each area GROUP was last stood up at, keyed as `areaDocuments` is. A new ratio
 	 *  for the same document is a stand-up too: the document changed its job and asked for the
-	 *  size the new one needs (`@volter/editor-sdk/kit/workspace-areas`' `setWorkspaceAreaRatio`
+	 *  size the new one needs (`@volter/sdk/kit/workspace-areas`' `setWorkspaceAreaRatio`
 	 *  — the model workspace's bottom area is the Timeline in Movie mode and the Game panel in
 	 *  Game mode). The same ratio keeps the person's drag. */
 	private readonly areaRatios = new Map<number, number>();

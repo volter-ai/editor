@@ -1,6 +1,6 @@
 /**
  * THE TEAM PLAYTEST — a collaborator with the `test` capability starts a
- * playtest, and this editor joins it (`@volter/editor-sdk/services`, a
+ * playtest, and this editor joins it (`@volter/sdk/services`, a
  * `workspace.service` contribution): the snapshot's `activePlaytest` decides
  * whether this tab enters play with the team's seed and room key, and the
  * playtest's presence row reports the play and networking states back.
@@ -11,10 +11,10 @@
  * through the `@editor/*` alias.
  */
 
-import { getActiveNetworking, subscribeActiveNetworking } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { connectCollaboration } from '@volter/editor-sdk/kit/collaboration-client';
-import { reportCollaborationPresence } from '@volter/editor-sdk/kit/collaboration-presence';
-import { EDITOR_PARTICIPANT_ID } from '@volter/editor-sdk/kit/editor-presence';
+import { getActiveNetworking, subscribeActiveNetworking } from '@volter/sdk/kit/authoring/active-systems';
+import { connectCollaboration } from '@volter/sdk/kit/collaboration-client';
+import { reportCollaborationPresence } from '@volter/sdk/kit/collaboration-presence';
+import { EDITOR_PARTICIPANT_ID } from '@volter/sdk/kit/editor-presence';
 import { activePlaytest, enterPlayMode, exitPlayMode } from '../src/play/play-mode';
 
 export const point = 'workspace.service';

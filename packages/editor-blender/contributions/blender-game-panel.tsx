@@ -31,8 +31,8 @@
  * ## What it drives is the Play tool's own run
  *
  * Every control here is a call on the Play tool's door (`DocumentPlayExtension` and its
- * `transport`, `@volter/editor-sdk/kit/document-play-extension`), the same calls the runner
- * reads every frame (`@volter/editor-model-play`'s `model-play.ts`), so Pause freezes the
+ * `transport`, `@volter/sdk/kit/document-play-extension`), the same calls the runner
+ * reads every frame (`@volter/play`'s `model-play.ts`), so Pause freezes the
  * simulation itself — the `dt` the script is handed — and the clock drawn here is that
  * simulation's: the seconds the script was given and the updates it ran. The verbs below are
  * the same calls behind command ids (`volter.model-play.<verb>`), which is how an agent drives
@@ -64,7 +64,7 @@
  * playhead's blue, which is Blender's own selected-widget colour in the same theme.
  */
 import { blenderSkin } from './blender-runtime-skin';
-import { registerViewVerbs } from '@volter/editor-sdk/views';
+import { registerViewVerbs } from '@volter/sdk/views';
 import {
   type DocumentPlayAutoplay,
   type DocumentPlayClock,
@@ -73,7 +73,7 @@ import {
   type DocumentPlayTransport,
   documentPlayExtension,
   subscribeDocumentPlayExtensions,
-} from '@volter/editor-sdk/kit/document-play-extension';
+} from '@volter/sdk/kit/document-play-extension';
 import {
   type MouseEvent,
   type ReactNode,
@@ -138,9 +138,9 @@ function verbDocument(args: Record<string, unknown> | undefined): string {
 function verbExtension(): DocumentPlayExtension & { transport: NonNullable<DocumentPlayExtension['transport']> } {
   const found = extension();
   if (found === null)
-    throw new Error('This project has no Play tool: `cyclotron add-play` adds @volter/editor-model-play.');
+    throw new Error('This project has no Play tool: `cyclotron add-play` adds @volter/play.');
   if (found.transport === undefined)
-    throw new Error('The installed Play tool has no pause, step, speed or restart; update @volter/editor-model-play.');
+    throw new Error('The installed Play tool has no pause, step, speed or restart; update @volter/play.');
   return found as DocumentPlayExtension & { transport: NonNullable<DocumentPlayExtension['transport']> };
 }
 
@@ -327,7 +327,7 @@ registerViewVerbs({
         const found = verbExtension();
         const { transport } = found;
         if (transport.setAutoplay === undefined)
-          throw new Error('The installed Play tool has no autoplay; update @volter/editor-model-play.');
+          throw new Error('The installed Play tool has no autoplay; update @volter/play.');
         // Refused with the reason, stopped or no bot, as `play state`'s `autoplay.why` gives it.
         const why = on ? autoplayWhy(found.playing(documentId), transport.clock(documentId), transport.autoplay?.(documentId) ?? NO_BOT) : null;
         if (why !== null) throw new Error(why);

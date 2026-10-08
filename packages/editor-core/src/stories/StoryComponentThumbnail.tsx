@@ -12,11 +12,11 @@
  */
 
 import { useEffect, useState } from 'react';
-import type { ProjectComponentEntry } from '@volter/editor-sdk/kit/asset-workflow/project-content';
-import { TypedAssetThumbnail } from '@volter/editor-sdk/kit/components/asset-thumbnails';
-import { waitForFirstViewportFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import type { ProjectPreviewStory } from '@volter/editor-sdk/kit/stories/story-registry';
-import { type StoryThumbnailOptions, storyThumbnailCapture } from '@volter/editor-sdk/kit/story-thumbnails';
+import type { ProjectComponentEntry } from '@volter/sdk/kit/asset-workflow/project-content';
+import { TypedAssetThumbnail } from '@volter/sdk/kit/components/asset-thumbnails';
+import { waitForFirstViewportFrame } from '@volter/sdk/kit/viewport-activation-timings';
+import type { ProjectPreviewStory } from '@volter/sdk/kit/stories/story-registry';
+import { type StoryThumbnailOptions, storyThumbnailCapture } from '@volter/sdk/kit/story-thumbnails';
 
 /**
  * The in-memory thumbnail cache key: the story's identity plus the identity of
@@ -138,7 +138,7 @@ function requestPreview(
         : 'padded';
     const options = { ...size, props: story.args, layout };
     // The medium the component renders in captures it
-    // (`@volter/editor-sdk/kit/story-thumbnails`).
+    // (`@volter/sdk/kit/story-thumbnails`).
     const capture = storyThumbnailCapture(surface === 'canvas' ? 'canvas' : 'three');
     if (!capture) throw new Error(`No ${surface} story capture is registered.`);
     return capture(story.Component, options);

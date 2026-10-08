@@ -1,13 +1,13 @@
 /**
  * The Three set's canvases, rendered at a caller's scale
- * (`@volter/editor-sdk/kit/canvas-frames`): the Scene viewport's presented frame
+ * (`@volter/sdk/kit/canvas-frames`): the Scene viewport's presented frame
  * or a fresh render of it, and an Object3D document's presented frame or an
  * offscreen render of its subject. The editor-chrome photograph asks here, so a
  * 2x capture of a viewport gets a 2x render rather than a 1x one stretched.
  */
-import { registerCanvasRender } from '@volter/editor-sdk/kit/canvas-frames';
+import { registerCanvasRender } from '@volter/sdk/kit/canvas-frames';
 import { allObject3DDocumentSessions } from './authoring/object3d-document-session-registry';
-import { liveCanvasFrame } from '@volter/editor-sdk/kit/live-canvas-frame';
+import { liveCanvasFrame } from '@volter/sdk/kit/live-canvas-frame';
 import { threeStoreForHost } from './three-state';
 
 async function imageOf(dataUrl: string): Promise<HTMLImageElement> {

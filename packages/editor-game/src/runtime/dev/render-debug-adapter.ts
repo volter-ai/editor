@@ -25,7 +25,7 @@
  * unchanged either way; only the names beside the draws go away.
  */
 
-import type { RenderDebugAdapter } from '@volter/editor-project/adapter/system-adapter';
+import type { RenderDebugAdapter } from '@volter/project/adapter/system-adapter';
 import type * as THREE from 'three';
 import type { RenderMemorySnapshot } from './render-memory';
 import type { DrawAnnotation, FrameCapture, WebGLFrameCapture } from './webgl-frame-capture';

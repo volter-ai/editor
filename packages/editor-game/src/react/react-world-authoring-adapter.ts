@@ -27,32 +27,32 @@
  * unavailable via a loud console warning instead of silently no-op'ing).
  */
 
-import { activeBreakpoint } from '@volter/editor-sdk/kit/breakpoint-state';
+import { activeBreakpoint } from '@volter/sdk/kit/breakpoint-state';
 import {
   cssTextForStyleValue,
   numericStyleValue,
   preserveNumericStyleUnit,
-} from '@volter/editor-sdk/css-numeric-style';
-import { WORLD_SCOPE_NODE_ID } from '@volter/editor-sdk/kit/stories-scope';
+} from '@volter/sdk/css-numeric-style';
+import { WORLD_SCOPE_NODE_ID } from '@volter/sdk/kit/stories-scope';
 import { createStructWritePipe, type StructOpOptions } from '../host/authoring/struct-write-pipe';
-import { getRootPan } from '@volter/editor-sdk/kit/world-pan-state';
+import { getRootPan } from '@volter/sdk/kit/world-pan-state';
 import {
   resolvesLiveOnly,
   runWritePipe,
   type WriteAck,
   type WriteResolution,
-} from '@volter/editor-sdk/kit/write-pipe';
-import { guideClientEdges } from '@volter/editor-sdk/kit/components/board-guides';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import { withProjectSourceHistory } from '@volter/editor-sdk/kit/history/source-history-backend';
+} from '@volter/sdk/kit/write-pipe';
+import { guideClientEdges } from '@volter/sdk/kit/components/board-guides';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
+import { withProjectSourceHistory } from '@volter/sdk/kit/history/source-history-backend';
 import { DomProjector, oidDomIdentity, projectOidDom } from '../host/projection/dom';
 import { storyArgPropertyDescriptors } from '../host/stories/story-arg-descriptors';
-import { storyDiscoveryUnavailable } from '@volter/editor-sdk/kit/stories/story-discovery';
-import { deriveStoryGroupPath, formatStoryGroupPath } from '@volter/editor-sdk/kit/stories/story-grouping';
-import type { StoryPresentationIndex } from '@volter/editor-sdk/kit/stories/story-presentation';
-import { subscribeProjectStoryModules } from '@volter/editor-sdk/kit/stories/story-registry';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
+import { storyDiscoveryUnavailable } from '@volter/sdk/kit/stories/story-discovery';
+import { deriveStoryGroupPath, formatStoryGroupPath } from '@volter/sdk/kit/stories/story-grouping';
+import type { StoryPresentationIndex } from '@volter/sdk/kit/stories/story-presentation';
+import { subscribeProjectStoryModules } from '@volter/sdk/kit/stories/story-registry';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
 import {
   browserOrInlineResolver,
   type ComputedStyleResolver,
@@ -68,19 +68,19 @@ import {
   getMatchedCssRules,
   getReactComponentName,
   type MatchableElement,
-} from '@volter/editor-sdk/kit/ui-source/inspect';
+} from '@volter/sdk/kit/ui-source/inspect';
 import type { ComponentPropSpec, OidEntry } from '@volter/editor-react/source/oid-transform';
 import { relativeImportSpecifier } from '@volter/editor-react/source/relative-import-specifier';
-import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
-import { writeCsfStory, writeNamedStyle } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
+import type { SourceWriteBackend } from '@volter/sdk/kit/ui-source/source-write-backend';
+import { writeCsfStory, writeNamedStyle } from '@volter/sdk/kit/ui-source/source-write-backend';
 import {
   type CssRuleTarget,
   namedStyleRuleFor,
   pickCssRuleTarget,
   tokenReferenceGuardText,
 } from '@volter/editor-react/source/writer';
-import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/editor-sdk/kit/workspace-document-ids';
-import { activateWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-document-registry';
+import { UI_COMPONENTS_DOCUMENT_ID } from '@volter/sdk/kit/workspace-document-ids';
+import { activateWorkspaceDocument } from '@volter/sdk/kit/workspace-document-registry';
 import type {
   AssetDropContext,
   AssetDropProvider,
@@ -110,7 +110,7 @@ import type {
   TextProvider,
   TruthProvider,
   WriteAnchorKind,
-} from '@volter/editor-project/adapter';
+} from '@volter/project/adapter';
 
 /**
  * The minimal structural shape this adapter needs from a live DOM element —

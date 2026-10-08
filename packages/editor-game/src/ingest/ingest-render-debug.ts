@@ -55,7 +55,7 @@
  * notice.
  */
 
-import { adapterObservations } from '@volter/editor-sdk/kit/adapter-observation';
+import { adapterObservations } from '@volter/sdk/kit/adapter-observation';
 import { createContractDebugAdapter } from '../runtime/adapter/ingest/contract-debug-adapter';
 import {
   type ContractSurface,
@@ -71,9 +71,9 @@ import {
 import { collectRenderMemory } from '../runtime/dev/render-memory';
 import { createWebGLFrameCapture } from '../runtime/dev/webgl-frame-capture';
 import { pixiRenderingContext } from '../runtime/pixi/render-pass-bracket';
-import type { ObservationDeclaration } from '@volter/editor-project/adapter/adapter-module';
-import type { VolterGameSystems } from '@volter/editor-project/adapter/ingest/game-contract';
-import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+import type { ObservationDeclaration } from '@volter/project/adapter/adapter-module';
+import type { VolterGameSystems } from '@volter/project/adapter/ingest/game-contract';
+import type { SystemAdapters } from '@volter/project/adapter/system-adapter';
 import type { RenderPassHooks } from '@volter/threejs-runtime/adapter/ingest/scene-capture';
 import type * as THREE from 'three';
 import { ingestGameRealmWindow } from './game-contract-realm';

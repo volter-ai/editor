@@ -104,8 +104,8 @@ export class RelayTransport implements BridgeTransport {
 
   /**
    * Deliberately NOT guarded against a page-fallback answer the way the browser
-   * (`packages/editor-sdk/src/kit/editor-server-response.ts`) and the CLI client
-   * (`@volter/editor-sdk`'s `EditorClient.readJson`) are. Those two can be pointed
+   * (`packages/sdk/src/kit/editor-server-response.ts`) and the CLI client
+   * (`@volter/sdk`'s `EditorClient.readJson`) are. Those two can be pointed
    * at an arbitrary URL — a share tunnel, a static host — where a `200
    * text/html` for an unserved route is real. This `baseUrl` is
    * `http://127.0.0.1:<port>` and nothing else, and `session.ts` has already

@@ -8,7 +8,7 @@ import {
   MenuSeparator,
   Tooltip,
   themeVars,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import type { ViewportShadingMode } from '@volter/editor-threejs/render/viewport-shading';
 import { type ReactNode, useMemo, useRef, useState } from 'react';
 

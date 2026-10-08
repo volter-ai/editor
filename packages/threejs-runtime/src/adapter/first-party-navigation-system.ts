@@ -14,7 +14,7 @@ import type {
   NavBakeParams,
   NavigationAdapter,
   NavPoint,
-} from '@volter/editor-project/adapter/system-adapter';
+} from '@volter/project/adapter/system-adapter';
 import type * as THREE from 'three';
 import type { NavMeshManager } from '../ai/navigation';
 

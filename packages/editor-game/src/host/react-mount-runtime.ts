@@ -23,8 +23,8 @@ import {
 } from 'react';
 import { flushSync } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import { REACT_WORLD_RUNTIME_PATH } from '@volter/editor-sdk/host';
-import { isPackagedRuntime } from '@volter/editor-sdk/kit/packaged-runtime';
+import { REACT_WORLD_RUNTIME_PATH } from '@volter/sdk/host';
+import { isPackagedRuntime } from '@volter/sdk/kit/packaged-runtime';
 
 /**
  * The pieces of "react itself" a react-world mount needs: `createElement`/`createRoot`

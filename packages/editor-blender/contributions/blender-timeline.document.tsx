@@ -38,8 +38,8 @@
  * you are looking.
  */
 
-import type { StageTransportHandle } from '@volter/editor-sdk/host';
-import { registerViewVerbs } from '@volter/editor-sdk/views';
+import type { StageTransportHandle } from '@volter/sdk/host';
+import { registerViewVerbs } from '@volter/sdk/views';
 import {
   type ReactNode,
   useCallback,
@@ -67,7 +67,7 @@ import { blenderSkin, blenderSkinVersion, subscribeBlenderSkin } from './blender
 import { BlenderGamePanel, GAME_PANEL_RATIO, PlayModeSwitch } from './blender-game-panel';
 import { AnimationEditorMenu, BlenderActionEditor, BlenderNlaEditor } from './blender-animation-editors';
 import { liveAnimation, subscribeLiveAnimation } from '../src/play-live';
-import { setWorkspaceAreaRatio } from '@volter/editor-sdk/kit/workspace-areas';
+import { setWorkspaceAreaRatio } from '@volter/sdk/kit/workspace-areas';
 import { modelPlayMode, playModeVersion, servedModelDocument, subscribePlayMode } from '../src/play-mode';
 import {
   CHANNEL_HEIGHT,

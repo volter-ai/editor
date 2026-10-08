@@ -1,4 +1,4 @@
-import { EditorBadge } from '@volter/editor-sdk/widgets';
+import { EditorBadge } from '@volter/sdk/widgets';
 import type { CSSProperties, ReactNode } from 'react';
 
 export function DesignSystemPage({

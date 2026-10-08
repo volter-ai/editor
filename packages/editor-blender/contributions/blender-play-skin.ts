@@ -23,7 +23,7 @@
  * baked, the armature keeps the pose it has.
  *
  * THE GAME'S CLOCK DRIVES IT: the runner advances it by each update's `dt`
- * (`@volter/editor-model-play`'s `play-script.ts`), so pause, step, speed and Restart hold for
+ * (`@volter/play`'s `play-script.ts`), so pause, step, speed and Restart hold for
  * animation exactly as they do for the script.
  */
 import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
@@ -32,7 +32,7 @@ import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/bl
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
 import type * as THREE from 'three';
 import { ArmaturePose, nlaLayers, poseClip, type ConstraintOverride, type PoseClip, type PoseLayer } from './blender-pose';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import { remedy } from './blender-runtime-skin';
 
 export interface PlayActionOptions {

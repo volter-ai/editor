@@ -23,7 +23,7 @@ import {
   Text,
   TextInput,
   Tooltip,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { useRef, useState, useSyncExternalStore } from 'react';
 import { captureModelAssetPreview, captureObjectAssetPreview } from '../asset-preview';
 import {
@@ -40,10 +40,10 @@ import {
   contributedChromeVersion,
   contributedHeaderItems,
   subscribeContributedChrome,
-} from '@volter/editor-sdk/kit/chrome-registry';
-import type { HelperVisibility } from '@volter/editor-sdk/kit/shell-store';
-import { object3DDocumentWritePolicy } from '@volter/editor-sdk/kit/object3d-document-write-policy';
-import { stageStore, stageStoresVersion, subscribeStageStores } from '@volter/editor-sdk/kit/stage-store-registry';
+} from '@volter/sdk/kit/chrome-registry';
+import type { HelperVisibility } from '@volter/sdk/kit/shell-store';
+import { object3DDocumentWritePolicy } from '@volter/sdk/kit/object3d-document-write-policy';
+import { stageStore, stageStoresVersion, subscribeStageStores } from '@volter/sdk/kit/stage-store-registry';
 import { viewportStageHelperKinds } from '../../viewport-door';
 import {
   type PresentationLayer,
@@ -60,8 +60,8 @@ import {
   subscribeViewportPresentation,
   viewPresentation,
   viewportPresentationVersion,
-} from '@volter/editor-sdk/kit/viewport-presentation';
-import { ViewportOverlaysGlyph, ViewportOverlaysMenu } from '@volter/editor-sdk/kit/components/ViewportOverlaysMenu';
+} from '@volter/sdk/kit/viewport-presentation';
+import { ViewportOverlaysGlyph, ViewportOverlaysMenu } from '@volter/sdk/kit/components/ViewportOverlaysMenu';
 import {
   type ViewportDisplayModeChoice,
   ViewportDisplayModeMenu,
@@ -329,7 +329,7 @@ export function Object3DDocumentToolbar({
             </IconButton>
           </Tooltip>
         ) : null}
-        {/* A package's own controls on this document (`@volter/editor-sdk/chrome`,
+        {/* A package's own controls on this document (`@volter/sdk/chrome`,
             `placement: 'object3d-document'`): handed the document's id; the
             contribution resolves its subject through its own integration. */}
         {contributedHeaderItems('object3d-document').map(({ id, Component }) => (

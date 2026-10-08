@@ -2,7 +2,7 @@
  * THE THREE VIEWPORT'S RELAY VERBS — framing, the camera, view presets, the
  * open Object3D document's orbit/turntable/frame, the viewport photograph and
  * the display and transform toggles. They are the Three viewport's, so they
- * reach the relay as a command contribution (`@volter/editor-sdk/commands`,
+ * reach the relay as a command contribution (`@volter/sdk/commands`,
  * `command-registry.ts`) rather than as rows of the kit's own table: a
  * composition with no Three viewport has none of them. Each budget travelled
  * with its verb from `command-table.ts`.
@@ -13,23 +13,23 @@ import type {
   CommandSpec,
   EditorCommandMessage,
   EditorCommandResult,
-} from '@volter/editor-sdk/commands';
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
-import { activeWorkspaceDocumentId } from '@volter/editor-sdk/kit/workspace-document-registry';
+} from '@volter/sdk/commands';
+import { commandLine } from '@volter/sdk/kit/product-command';
+import { activeWorkspaceDocumentId } from '@volter/sdk/kit/workspace-document-registry';
 import { object3DDocumentSession } from './authoring/object3d-document-session-registry';
-import { activeDocumentAuthoring } from '@volter/editor-sdk/kit/authoring/shell-document-ops';
+import { activeDocumentAuthoring } from '@volter/sdk/kit/authoring/shell-document-ops';
 import { handleAssetPreviewCommand } from './asset-preview-command';
-import { captureSizeFromCommand } from '@volter/editor-sdk/kit/capture-size';
+import { captureSizeFromCommand } from '@volter/sdk/kit/capture-size';
 import type { EditorShellStore, HelperVisibility } from './editor-shell-store';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import { entityObject3D } from './entity-object';
 import { VIEWPORT_SHADING_MODES } from '../render/viewport-shading';
-import { focusedStageStore } from '@volter/editor-sdk/kit/stage-context';
+import { focusedStageStore } from '@volter/sdk/kit/stage-context';
 import {
   setViewGridVisible,
   startingPresentation,
   viewPresentationBinding,
-} from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/viewport-presentation';
 import { threeStoreForHost } from './three-state';
 import { viewportStages } from '../viewport-door';
 import { threeStateOf } from './three-state';

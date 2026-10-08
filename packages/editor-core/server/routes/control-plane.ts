@@ -22,7 +22,7 @@
  * here, so the two transports cannot answer differently.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { commandLine } from '@volter/sdk/kit/product-command';
 import { randomUUID } from 'node:crypto';
 import type { Server as HttpServer } from 'node:http';
 import {
@@ -30,9 +30,9 @@ import {
   type EditorControlLifecycle,
   editorControlLifecycleMismatch,
   parseEditorControlLifecycle,
-} from '@volter/editor-sdk/session/editor-control-lifecycle';
-import { COMMAND_RESULT_RECEIPT_EVENT } from '@volter/editor-sdk/session/editor-control-protocol';
-import { isRelayCommandType } from '@volter/editor-sdk/session/command-table';
+} from '@volter/sdk/session/editor-control-lifecycle';
+import { COMMAND_RESULT_RECEIPT_EVENT } from '@volter/sdk/session/editor-control-protocol';
+import { isRelayCommandType } from '@volter/sdk/session/command-table';
 import type { Request, Response } from 'express';
 import {
   ABNORMAL_SOCKET_CLOSE,

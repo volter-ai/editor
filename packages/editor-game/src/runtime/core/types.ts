@@ -1,11 +1,11 @@
 /**
  * The game loop's own types. The PHASE VOCABULARY is not here: `SystemPhase`,
  * `PHASE_ORDER`, `SystemPhaseName`, `SystemFn` and `SystemOptions` live in the
- * project contract (`@volter/editor-project/core/system-phase`) because the three.js
+ * project contract (`@volter/project/core/system-phase`) because the three.js
  * twin's animation clock orders its evaluators by the same `PHASE_ORDER`, and
  * a vocabulary two shipped twins both read may not be one twin's.
  */
-import type { SystemFn, SystemPhaseName } from '@volter/editor-project/core/system-phase';
+import type { SystemFn, SystemPhaseName } from '@volter/project/core/system-phase';
 
 export {
   PHASE_ORDER,
@@ -13,7 +13,7 @@ export {
   type SystemOptions,
   SystemPhase,
   type SystemPhaseName,
-} from '@volter/editor-project/core/system-phase';
+} from '@volter/project/core/system-phase';
 
 export interface SystemRunObserver {
   beginSystem(scope: string, phase: SystemPhaseName, name: string): void;

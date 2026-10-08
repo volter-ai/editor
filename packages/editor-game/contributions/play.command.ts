@@ -1,5 +1,5 @@
 /**
- * THE PLAY VERBS of the session wire (`@volter/editor-sdk/commands`, a
+ * THE PLAY VERBS of the session wire (`@volter/sdk/commands`, a
  * `workspace.command` contribution): `play`, `stop`, `pause`, `resume`,
  * `step`, and the paused run's `bridge-recording-export`.
  *
@@ -18,7 +18,7 @@
  * Host internals Play still holds are reached through the `@editor/*` alias
  * the editor's Vite serves to every contribution (precedent:
  * `instances.command.ts`); the doors a lane is meant to use are
- * `@volter/editor-sdk/host`.
+ * `@volter/sdk/host`.
  *
  * `play-recording.ts` is Play's own (`../src/play/`): its idle watchdog counts
  * only a person's input (trusted DOM input events and held gamepads) — relayed
@@ -29,13 +29,13 @@
  * it, and no contribution point injects a panel's header component.
  */
 
-import { getActiveSystems } from '@volter/editor-sdk/kit/authoring/active-systems';
-import { setGameplayExportActive } from '@volter/editor-sdk/kit/gameplay-export-state';
+import { getActiveSystems } from '@volter/sdk/kit/authoring/active-systems';
+import { setGameplayExportActive } from '@volter/sdk/kit/gameplay-export-state';
 import { stopGameplayRecording } from '../src/host/gameplay-recording';
-import { liveInstanceContainer } from '@volter/editor-sdk/kit/live-session-registry';
-import type { CommandContribution } from '@volter/editor-sdk/commands';
-import { editorHost } from '@volter/editor-sdk/host';
-import type { OfflineAudioRenderer } from '@volter/editor-project/adapter';
+import { liveInstanceContainer } from '@volter/sdk/kit/live-session-registry';
+import type { CommandContribution } from '@volter/sdk/commands';
+import { editorHost } from '@volter/sdk/host';
+import type { OfflineAudioRenderer } from '@volter/project/adapter';
 import { flushSync } from 'react-dom';
 import { notPlayingResult, structuredErrorResult } from '../src/command-results';
 import {
@@ -57,7 +57,7 @@ export const point = 'workspace.command';
 async function captureLiveCanvasFrame(
   canvas: HTMLCanvasElement,
 ): Promise<CanvasImageSource | null> {
-  const { liveCanvasFrame } = await import('@volter/editor-sdk/kit/live-canvas-frame');
+  const { liveCanvasFrame } = await import('@volter/sdk/kit/live-canvas-frame');
   return liveCanvasFrame(canvas);
 }
 
@@ -310,7 +310,7 @@ export const commands: CommandContribution['commands'] = {
           appendGameplayRecordingChunk,
           finishGameplayRecordingSink,
           abortGameplayRecordingSink,
-        } = await import('@volter/editor-sdk/kit/editor-api');
+        } = await import('@volter/sdk/kit/editor-api');
         controller.signal.throwIfAborted();
         const sink = await beginGameplayRecordingSink(
           {

@@ -20,8 +20,8 @@
 import { realpath } from 'node:fs/promises';
 import { resolve, sep } from 'node:path';
 import { pathToFileURL } from 'node:url';
-import { ToolError } from '@volter/editor-sdk/tools/errors';
-import type { ToolErrorDefinition } from '@volter/editor-sdk/tools/registry';
+import { ToolError } from '@volter/sdk/tools/errors';
+import type { ToolErrorDefinition } from '@volter/sdk/tools/registry';
 import * as THREE from 'three';
 import { z } from 'zod';
 
@@ -29,7 +29,7 @@ import { z } from 'zod';
 // Typed error codes — every real failure mode of `buildFromModule` /
 // `resolveProjectModule`, mirroring the `ToolErrorDefinition` + `ToolError`
 // pattern the SDK's own `project.*` operations use (e.g.
-// `PATH_OUTSIDE_PROJECT_ERROR` in `@volter/editor-sdk`'s `project/shared.ts`).
+// `PATH_OUTSIDE_PROJECT_ERROR` in `@volter/sdk`'s `project/shared.ts`).
 // ---------------------------------------------------------------------------
 
 export const MODULE_NOT_FOUND_ERROR: ToolErrorDefinition = {

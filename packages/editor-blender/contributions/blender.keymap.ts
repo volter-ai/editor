@@ -1,5 +1,5 @@
 /**
- * The BLENDER keymap (`@volter/editor-sdk/looks`, a `workspace.keymap`
+ * The BLENDER keymap (`@volter/sdk/looks`, a `workspace.keymap`
  * contribution). Only the chords that differ from the editor's own are
  * declared; the host fills the rest from its default table.
  *
@@ -7,7 +7,7 @@
  * `scripts/presets/keyconfig/keymap_data/blender_default.py` at the engine's
  * pin (v5.2.0) — the file that IS the "Blender" keyconfig.
  */
-import type { KeymapContribution } from '@volter/editor-sdk/looks';
+import type { KeymapContribution } from '@volter/sdk/looks';
 
 export const point = 'workspace.keymap';
 export const keymap: KeymapContribution = {

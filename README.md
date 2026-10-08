@@ -160,9 +160,9 @@ The npm scope is `@volter`. Install one product; its supporting packages come wi
 | --- | --- |
 | `@volter/cyclotron` | Cyclotron and its `cyclotron` command |
 | `@volter/editor-core` | Shared editor host and Code-OSS integration |
-| `@volter/editor-sdk` | Extension and contribution APIs |
-| `@volter/editor-live` | Session automation client |
-| `@volter/editor-project` | Project manifest and adapter contracts |
+| `@volter/sdk` | Extension and contribution APIs |
+| `@volter/live` | Session automation client |
+| `@volter/project` | Project manifest and adapter contracts |
 | `@volter/editor-threejs` | Shared three.js editor functionality |
 | `@volter/editor-blender` | Blender documents, tools and presentation |
 | `@volter/blender-engine` | Blender WebAssembly engine and worker |

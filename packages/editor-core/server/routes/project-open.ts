@@ -14,7 +14,7 @@
  * explicit action with its own consent boundary.
  */
 
-import { writeWorkbenchDeclaration } from '@volter/editor-sdk/session/workbench-locator';
+import { writeWorkbenchDeclaration } from '@volter/sdk/session/workbench-locator';
 import { execFile, spawn } from 'node:child_process';
 import { mkdir, readFile, writeFile } from 'node:fs/promises';
 import { homedir, platform } from 'node:os';
@@ -23,12 +23,12 @@ import {
   assertEditorCompatibility,
   assertProjectCompatibility,
   ProjectCompatibilityError,
-} from '@volter/editor-sdk/session/editor-compatibility';
+} from '@volter/sdk/session/editor-compatibility';
 import {
   createIngestManifest,
   inspectProject,
   type SuggestedAdapterSurface,
-} from '@volter/editor-project/inspection';
+} from '@volter/project/inspection';
 import type { Request, Response } from 'express';
 import { IDLE_TRIPWIRE_GATE } from '../support/project/build-discipline';
 import { nodeProjectInspectionReader } from '../support/project/inspection-node';

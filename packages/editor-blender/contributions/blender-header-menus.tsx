@@ -46,7 +46,7 @@
  * because switching modes swaps that area and nothing here.
  */
 
-import type { ToolNotice } from '@volter/editor-sdk/contributions';
+import type { ToolNotice } from '@volter/sdk/contributions';
 import {
   AnchoredMenu,
   EditorToolbar,
@@ -54,7 +54,7 @@ import {
   MenuSeparator,
   MenuSubmenu,
   MenuTrigger,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { type ReactNode, type RefObject, useRef, useState, useSyncExternalStore } from 'react';
 import {
   type BlenderCreatableKind,

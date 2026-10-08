@@ -29,7 +29,7 @@
 import {
   documentPlayExtension,
   subscribeDocumentPlayExtensions,
-} from '@volter/editor-sdk/kit/document-play-extension';
+} from '@volter/sdk/kit/document-play-extension';
 
 export type ModelPlayMode = 'game' | 'animation';
 

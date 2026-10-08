@@ -7,8 +7,8 @@
  * When the managed services return from the tag, this file goes back with
  * them.
  */
-import type { AccountSnapshot, AccountSpendPolicy, AccountUsageEntry } from '@volter/editor-sdk/account';
-import { AccountSpendPolicySchema } from '@volter/editor-sdk/account';
+import type { AccountSnapshot, AccountSpendPolicy, AccountUsageEntry } from '@volter/sdk/account';
+import { AccountSpendPolicySchema } from '@volter/sdk/account';
 
 interface FetcherLike {
   fetch(request: Request): Promise<Response>;

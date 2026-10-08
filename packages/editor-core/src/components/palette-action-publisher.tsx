@@ -16,23 +16,23 @@
  * items for an unchanged list would be churn the frame can see.
  */
 import { useEffect, useMemo, useRef, useSyncExternalStore } from 'react';
-import { buildEntityActions, buildStaticActions, type EditorAction } from '@volter/editor-sdk/kit/action-registry';
+import { buildEntityActions, buildStaticActions, type EditorAction } from '@volter/sdk/kit/action-registry';
 import { buildBoardOpenActions } from '../board-open-actions';
 import {
   contributedActions,
   contributedChromeVersion,
   contributedMenuItems,
   subscribeContributedChrome,
-} from '@volter/editor-sdk/kit/chrome-registry';
-import { showTransientHint } from '@volter/editor-sdk/kit/transient-hint';
-import { publishPaletteActions } from '@volter/editor-sdk/kit/editor-commands';
-import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/editor-sdk/kit/editor-runtime';
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
-import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/editor-sdk/kit/history/history-commands';
-import { editorKeymapsVersion, shortcutFor, subscribeEditorKeymap } from '@volter/editor-sdk/kit/keymap-presets';
-import { subscribeWorkspaceStyles, workspaceStylesVersion } from '@volter/editor-sdk/kit/workspace-style';
-import { buildProjectToolActions } from '@volter/editor-sdk/kit/components/project-tool-documents';
-import { buildToolActions } from '@volter/editor-sdk/kit/components/tool-documents';
+} from '@volter/sdk/kit/chrome-registry';
+import { showTransientHint } from '@volter/sdk/kit/transient-hint';
+import { publishPaletteActions } from '@volter/sdk/kit/editor-commands';
+import { useEditorStore, useHistoryCommandSnapshot, useHistoryCommands } from '@volter/sdk/kit/editor-runtime';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
+import type { HistoryCommandSnapshot, HistoryCommands } from '@volter/sdk/kit/history/history-commands';
+import { editorKeymapsVersion, shortcutFor, subscribeEditorKeymap } from '@volter/sdk/kit/keymap-presets';
+import { subscribeWorkspaceStyles, workspaceStylesVersion } from '@volter/sdk/kit/workspace-style';
+import { buildProjectToolActions } from '@volter/sdk/kit/components/project-tool-documents';
+import { buildToolActions } from '@volter/sdk/kit/components/tool-documents';
 
 /**
  * Every action the palette would list, in the order it groups them. Reads
@@ -55,7 +55,7 @@ export function buildPaletteActions(
     ...buildToolActions(),
   ];
   const entities = buildEntityActions(store);
-  // A package's actions (`@volter/editor-sdk/chrome`), beside the editor's own.
+  // A package's actions (`@volter/sdk/chrome`), beside the editor's own.
   const contributed: EditorAction[] = contributedActions().map((action) => ({
     id: action.id,
     label: action.label,

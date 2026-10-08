@@ -12,7 +12,7 @@
  *     (`live-compiler.ts`). The worker keeps nothing, so a restarted worker cannot serve a stale
  *     module.
  *  3. THE EDITOR IS TOLD, on the bus a session's Vite reports saves on
- *     (`@volter/editor-sdk/kit/project-module-changes`): Play remounts the script and its UI under
+ *     (`@volter/sdk/kit/project-module-changes`): Play remounts the script and its UI under
  *     a fresh mount, which imports every project module anew.
  *
  * A MODULE IMPORTED WITHOUT A MOUNT ID is kept by the browser under its URL for the life of the

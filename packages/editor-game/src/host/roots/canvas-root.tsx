@@ -44,8 +44,8 @@
  */
 
 import type * as PixiReact from '@pixi/react';
-import type { MountedCanvasRoot, MountedCanvasSubstrate, RootAdapter } from '@volter/editor-project/adapter';
-import type { SystemAdapters } from '@volter/editor-project/adapter/system-adapter';
+import type { MountedCanvasRoot, MountedCanvasSubstrate, RootAdapter } from '@volter/project/adapter';
+import type { SystemAdapters } from '@volter/project/adapter/system-adapter';
 import { getDebugRegistry } from '../../runtime/debug-registry';
 import type { GameCanvasHostContext } from '../../runtime/host-context';
 import type * as PIXI from 'pixi.js';

@@ -8,8 +8,8 @@ src/performance-profiler.ts was imported from the Apache-2.0
 contains its text. This timing collector does not execute gameplay.
 src/animation/animation-clock.ts was imported from the Apache-2.0
 @volter/threejs-runtime package and retains that license.
-The built plugins also include the Apache-2.0 editor-sdk contribution naming
-constants; their source remains owned by editor-sdk.
+The built plugins also include the Apache-2.0 @volter/sdk contribution naming
+constants; their source remains owned by @volter/sdk.
 
 Original source revisions and file hashes are recorded in the repository's
 provenance/editor-host.json and provenance/editor-session.json, provenance/editor-server.json and

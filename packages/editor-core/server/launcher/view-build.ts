@@ -40,14 +40,14 @@ import { pipeline } from 'node:stream/promises';
 import type { ReadableStream as WebReadableStream } from 'node:stream/web';
 import { pathToFileURL } from 'node:url';
 import { init as initLexer, parse as parseImports } from 'es-module-lexer';
-import type { ProjectServingModule } from '@volter/editor-sdk/session/project-serving';
-import { type ProductIdentity, resolveProductForProject } from '@volter/editor-sdk/session/product-locator';
+import type { ProjectServingModule } from '@volter/sdk/session/project-serving';
+import { type ProductIdentity, resolveProductForProject } from '@volter/sdk/session/product-locator';
 import { PACKAGED_MODULE_DOORWAYS } from '../../vite-plugin-module-doorways';
 import { builtFrameBridgeModule, readBuiltProductEntry } from '../frame-bridge';
 import { waitForOwnEditorServer } from './editor-boot';
 import { computePackageContributionCrawlEntries } from '../project-optimize-deps-entries';
 import { productServingModules, productViewServingModules } from '../session-product';
-import { EDITOR_BRAND } from '@volter/editor-sdk/session/editor-brand';
+import { EDITOR_BRAND } from '@volter/sdk/session/editor-brand';
 import { selectProjectFiles } from './view-files';
 import { PathNeutralizer, scanForLocalPaths } from './view-paths';
 import {

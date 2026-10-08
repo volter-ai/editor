@@ -33,7 +33,7 @@ const bundles={
   'cyclotron':()=>[...read('.artifacts/product-bundle-inputs.json'),...metafileInputs('node-bundle-meta.json','cyclotron')],
   'editor-core':()=>[...metafileInputs('server-bundle-meta.json','editor-core'),
     ...sourceMapInputs('packages/editor-core/dist/build'),...sourceMapInputs('packages/editor-core/dist/server')],
-  'editor-live':()=>sourceMapInputs('packages/editor-live/dist'),
+  'live':()=>sourceMapInputs('packages/live/dist'),
   'game-live':()=>sourceMapInputs('packages/game-live/dist'),
   'game-editor':()=>[...read('.artifacts/game-editor-bundle-inputs.json'),...metafileInputs('game-editor-node-bundle-meta.json','game-editor')],
 };

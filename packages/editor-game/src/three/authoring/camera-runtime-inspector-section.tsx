@@ -10,16 +10,16 @@
  */
 
 import { threeObject } from '@volter/editor-threejs/adapter/three-contract';
-import { getActiveCamera } from '@volter/editor-sdk/kit/authoring/active-systems';
-import type { InspectorSectionProps } from '@volter/editor-sdk/kit/inspector-section-registry';
+import { getActiveCamera } from '@volter/sdk/kit/authoring/active-systems';
+import type { InspectorSectionProps } from '@volter/sdk/kit/inspector-section-registry';
 import type {
   AuthoringAdapter,
   CameraAdapter,
   CameraRuntimeCamera,
   CameraRuntimeSnapshot,
   EditorNode,
-} from '@volter/editor-project/adapter';
-import { EditorBanner, FieldGroup, FieldRow, Text } from '@volter/editor-sdk/widgets';
+} from '@volter/project/adapter';
+import { EditorBanner, FieldGroup, FieldRow, Text } from '@volter/sdk/widgets';
 import { useEffect, useReducer } from 'react';
 import type * as THREE from 'three';
 

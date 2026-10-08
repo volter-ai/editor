@@ -18,8 +18,8 @@
  * were stage space: a camera under the floor. So the conversion happens here,
  * once, and the answer prints both spellings.
  */
-import { connect } from '@volter/editor-live';
-import type { EditorCameraState } from '@volter/editor-sdk';
+import { connect } from '@volter/live';
+import type { EditorCameraState } from '@volter/sdk';
 
 export const CAMERA_USAGE = 'camera --position x,y,z --target x,y,z [--fov <degrees>]    # Blender metres, Z up';
 

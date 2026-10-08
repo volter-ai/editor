@@ -9,13 +9,13 @@
  */
 
 import { faFile, faFileLines, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
-import type { GenerationJob } from '@volter/editor-sdk/generations';
+import type { GenerationJob } from '@volter/sdk/generations';
 import { useState, useSyncExternalStore } from 'react';
 import './GenerationGallery.css';
-import { assetCapabilities, assetDocumentKind } from '@volter/editor-sdk/kit/asset-capabilities';
-import { openAssetDocument } from '@volter/editor-sdk/kit/components/asset-documents';
-import { AudioAssetThumb, ModelThumbnail } from '@volter/editor-sdk/kit/components/asset-thumbnails';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+import { assetCapabilities, assetDocumentKind } from '@volter/sdk/kit/asset-capabilities';
+import { openAssetDocument } from '@volter/sdk/kit/components/asset-documents';
+import { AudioAssetThumb, ModelThumbnail } from '@volter/sdk/kit/components/asset-thumbnails';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import { modelThumbnailFormat } from '@volter/editor-threejs/kit/model-thumbnail';
 import {
   Button,
@@ -27,7 +27,7 @@ import {
   StateSurface,
   type StateSurfaceTone,
   Text,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { openGenerationCreateDocument, openGenerationDocument } from './generation-documents';
 import {
   acceptGenerationJob,

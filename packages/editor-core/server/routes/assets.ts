@@ -11,7 +11,7 @@
 
 import { readdir, readFile, stat } from 'node:fs/promises';
 import { join } from 'node:path';
-import { isContainedRelativePath } from '@volter/editor-sdk/session/relative-path-guard';
+import { isContainedRelativePath } from '@volter/sdk/session/relative-path-guard';
 import type { Request, Response } from 'express';
 import type { EditorServerRouter } from '../editor-server';
 import { projectBuildArtifactName, projectBuildArtifactPath } from '../project-build-artifact';

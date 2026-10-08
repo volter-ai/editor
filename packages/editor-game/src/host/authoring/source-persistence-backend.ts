@@ -40,24 +40,24 @@
  * the JSX callsite the OID stamp names is the object's real source address.
  */
 
-import type { NodeCreationSite, WriteAnchorKind } from '@volter/editor-project/adapter';
+import type { NodeCreationSite, WriteAnchorKind } from '@volter/project/adapter';
 import type {
   ChannelValue,
   CreationSiteLiteralReport,
   CreationSiteSurface,
   CreationSiteWriteScope,
-} from '@volter/editor-sdk/kit/creation-site-edit';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
-import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
-import { ingestSourceWritesRecordedIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
+} from '@volter/sdk/kit/creation-site-edit';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { editorIsAuthoring } from '@volter/sdk/kit/editor-session-mode';
+import type { HistoryService } from '@volter/sdk/kit/history/history-service';
+import { ingestSourceWritesRecordedIfPrimed } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
 import type { IngestInspectRequest } from './ingest-source-persistence';
 import {
   IngestSourcePersistence,
   ingestOwnershipNow,
   reportIngestSourceRefusal,
 } from './ingest-source-persistence';
-import { LIVE_ONLY_DESTINATION } from '@volter/editor-sdk/kit/write-pipe';
+import { LIVE_ONLY_DESTINATION } from '@volter/sdk/kit/write-pipe';
 
 /**
  * The adapter's own channel read/write, handed to a backend so the live half of

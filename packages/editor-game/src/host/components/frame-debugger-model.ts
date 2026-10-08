@@ -21,7 +21,7 @@ import type {
   FrameCapture,
   FrameCaptureDrawCall,
 } from '../../runtime/dev/webgl-frame-capture';
-import type { RenderDebugAdapter } from '@volter/editor-project/adapter';
+import type { RenderDebugAdapter } from '@volter/project/adapter';
 
 /** Which optional render-debug capabilities the active adapter provides — the
  *  degradation ladder's per-section verdict. `null` input (no adapter = no

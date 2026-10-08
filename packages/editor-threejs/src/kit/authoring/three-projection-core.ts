@@ -27,12 +27,12 @@
  * would be inventing a third, not extracting a shared one.
  */
 
-import type { EditorNode, Transform } from '@volter/editor-project/adapter';
+import type { EditorNode, Transform } from '@volter/project/adapter';
 import { isEditorOwnedObject } from '@volter/editor-threejs/viewport/editor-layers';
 import { object3DAuthoringSubjectOf } from '@volter/editor-threejs/adapter/object3d-authoring-subject';
 import { getUserData } from '@volter/editor-threejs/ecs/user-data';
 import type * as THREE from 'three';
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
 import { nativeKindOf, type ThreeProjector } from '../projection/three';
 import { localTransformOf } from './live-object-transform';
 

@@ -15,7 +15,7 @@ import {
   Inline,
   Text,
   Tooltip,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { type RefObject, useEffect, useRef, useState, useSyncExternalStore } from 'react';
 import type * as THREE from 'three';
 import {

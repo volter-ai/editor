@@ -5,7 +5,7 @@
  * chrome); it keeps its OWN persisted layout the moment a person touches it.
  */
 
-import type { WorkspaceLayoutContribution } from '@volter/editor-sdk/looks';
+import type { WorkspaceLayoutContribution } from '@volter/sdk/looks';
 import { BLENDER_REGIONS } from '../src/regions';
 
 export const point = 'workspace.layout';

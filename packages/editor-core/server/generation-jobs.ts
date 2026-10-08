@@ -8,7 +8,7 @@ import {
   GenerationJobsDocumentSchema,
   type GenerationJobUpdate,
   type GenerationToolContribution,
-} from '@volter/editor-sdk/generations';
+} from '@volter/sdk/generations';
 import { sanitizeRecordedValue } from './redact-secrets';
 
 export const PROJECT_GENERATIONS_PATH = '.volter/generations.json';

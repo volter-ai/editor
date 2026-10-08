@@ -14,7 +14,7 @@ import { PLYLoader } from 'three/addons/loaders/PLYLoader.js';
 import { STLLoader } from 'three/addons/loaders/STLLoader.js';
 import { TDSLoader } from 'three/addons/loaders/TDSLoader.js';
 import { mergeVertices } from 'three/addons/utils/BufferGeometryUtils.js';
-import type { ModelConverter, ModelImportSettings } from '@volter/editor-sdk/session/project-serving';
+import type { ModelConverter, ModelImportSettings } from '@volter/sdk/session/project-serving';
 
 /** three.js's conversion of the source formats its loaders read, as the asset library's
  *  model converter (`ProjectServingServices.registerModelConverter`). */

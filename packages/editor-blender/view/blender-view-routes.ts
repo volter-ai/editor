@@ -1,6 +1,6 @@
 /**
  * `@volter/editor-blender`'s routes in a LIMITED VIEW (`package.json#volter.viewServing`,
- * `@volter/editor-sdk/session/limited-view`): the same requests the Blender in the tab makes of
+ * `@volter/sdk/session/limited-view`): the same requests the Blender in the tab makes of
  * its session (`serving/blender-routes.ts`), answered in the page against the project's files in
  * memory. The engine's own bytes are not here: they are fixed for a build, so the serving module
  * declares them (`viewSnapshotRoutes`) and the view ships what the session answered.
@@ -10,7 +10,7 @@
  * memory, readable by the editor and the workbench like any other file, gone on reload.
  */
 
-import type { ViewRoute, ViewServingModule, ViewServingServices } from '@volter/editor-sdk/session/limited-view';
+import type { ViewRoute, ViewServingModule, ViewServingServices } from '@volter/sdk/session/limited-view';
 
 /** The largest chunk a document save sends (`document-chunks.mts`'s cut bound). */
 const DOCUMENT_CHUNK_MAX = 4 * 1024 * 1024;

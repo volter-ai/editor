@@ -21,7 +21,7 @@
  * `defaultProjectScopeInclude` widens to PROJECT scope, not repo-global: any `.tsx`
  * file outside `node_modules`, EXCEPT the Volter tooling/engine source trees this repo
  * itself is built from (`packages/engine/src`, `packages/create-volter-project`,
- * `packages/volter-cli`, `packages/editor-sdk`, and `packages/editor/src` generally —
+ * `packages/volter-cli`, `packages/sdk`, and `packages/editor/src` generally —
  * carving OUT `ui-editor/editable-components` so the existing UI-edit-mode surface
  * keeps working unchanged). This does NOT depend on which project happens to be
  * open — `fs.allow` already bounds what Vite can even reach, and this predicate
@@ -71,6 +71,7 @@
  */
 
 import { createHash } from 'node:crypto';
+import { createRequire } from 'node:module';
 import {
   existsSync,
   mkdirSync,
@@ -81,12 +82,12 @@ import {
 import { basename, dirname, isAbsolute, join, relative, resolve, sep } from 'node:path';
 import { Worker } from 'node:worker_threads';
 import type { Plugin, ViteDevServer } from 'vite';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
 import {
   type ProjectServingServices,
   SOURCE_WRITE_ROUTES_PLUGIN,
-} from '@volter/editor-sdk/session/project-serving';
-import { cssTextForStyleValue } from '@volter/editor-sdk/css-numeric-style';
+} from '@volter/sdk/session/project-serving';
+import { cssTextForStyleValue } from '@volter/sdk/css-numeric-style';
 import {
   type ComponentPropSpec,
   lineColToOffset,
@@ -146,7 +147,24 @@ import {
 export { applyStyleWriteRequest, oidAttributeForSurface };
 
 const NODE_MODULES_RE = /\/node_modules\//;
-const TOOLING_SRC_RE = /\/packages\/(engine\/src|create-volter-project|volter-cli|editor-sdk)\//;
+const TOOLING_SRC_RE = /\/packages\/(engine\/src|create-volter-project|volter-cli)\//;
+/** The SDK's own folder, where a workspace keeps its source: tooling, never a game's UI. Named by
+ *  where `@volter/sdk` resolves from here (its entry module is `src/index.ts`), with forward
+ *  slashes; `null` when it does not resolve. A project's own `packages/sdk` is not this folder. */
+const SDK_ROOT = ((): string | null => {
+  try {
+    const entry = realpathSync(createRequire(import.meta.url).resolve('@volter/sdk'));
+    return `${dirname(dirname(entry)).replace(/\\/g, '/')}/`;
+  } catch {
+    return null;
+  }
+})();
+/** Windows names one file with either case of its drive letter and folders. */
+const foldCase = (file: string): string => (process.platform === 'win32' ? file.toLowerCase() : file);
+/** `clean` is a file with forward slashes. */
+function isToolingSource(clean: string): boolean {
+  return TOOLING_SRC_RE.test(clean) || (SDK_ROOT !== null && foldCase(clean).startsWith(foldCase(SDK_ROOT)));
+}
 const EDITOR_SRC_RE = /\/packages\/editor\/src\//;
 const EDITABLE_COMPONENTS_RE = /\/ui-editor\/editable-components\/.*\.tsx$/;
 /** Track N, D-N4 item 2 — see the module doc comment's "Vendored-tree exclusion". */
@@ -176,7 +194,7 @@ const VENDORED_GAME_SRC_RE = /\/vendor\/games\/[^/]+\//;
  *  Defensive against
  *  any shape (never trusts the manifest is even an object) — this is a
  *  best-effort identity probe for a WRITE-BACK BAN, not manifest validation
- *  (the real Zod schema/loader is `@volter/editor-project/manifest/load`, not reachable
+ *  (the real Zod schema/loader is `@volter/project/manifest/load`, not reachable
  *  from this vite-config-time, dependency-light file by design). */
 function manifestDeclaresIngestReactWorld(parsed: unknown): boolean {
   if (!parsed || typeof parsed !== 'object') return false;
@@ -246,7 +264,7 @@ export function isEditableCssFile(id: string): boolean {
   if (!clean.endsWith('.css')) return false;
   if (NODE_MODULES_RE.test(clean)) return false;
   if (VENDOR_RE.test(clean)) return false;
-  if (TOOLING_SRC_RE.test(clean)) return false;
+  if (isToolingSource(clean)) return false;
   if (EDITOR_SRC_RE.test(clean)) return false;
   return true;
 }
@@ -693,7 +711,7 @@ export function __oidIndexEnrichStateForTest(): { queued: boolean; hasEnriched: 
  * stops matching its lock.
  */
 /** The kit's server capabilities this plugin was constructed with
- *  (`@volter/editor-sdk/session/project-serving`). */
+ *  (`@volter/sdk/session/project-serving`). */
 let servingServices: ProjectServingServices | null = null;
 
 function serving(): ProjectServingServices {
@@ -738,7 +756,7 @@ export function defaultProjectScopeInclude(id: string): boolean {
   // inspector; refusing it here is what used to make a vendored game
   // permanently unauthorable.
   if (VENDOR_RE.test(clean) && !VENDORED_GAME_SRC_RE.test(clean)) return false;
-  if (TOOLING_SRC_RE.test(clean)) return false;
+  if (isToolingSource(clean)) return false;
   if (EDITOR_SRC_RE.test(clean) && !EDITABLE_COMPONENTS_RE.test(clean)) return false;
   if (nearestManifestExcludesIngestReact(dirname(clean))) return false;
   return true;

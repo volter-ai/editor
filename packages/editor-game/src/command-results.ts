@@ -11,7 +11,7 @@
  * matches on by code.
  */
 
-import type { EditorCommandResult } from '@volter/editor-sdk/commands';
+import type { EditorCommandResult } from '@volter/sdk/commands';
 
 /** The genuinely-no-live-world answer: a structured failure, never a
  *  fabricated success. */

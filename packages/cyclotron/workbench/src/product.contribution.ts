@@ -120,7 +120,7 @@ let documents: DocumentsSource | undefined;
  * IT IS NOT A DEADLINE ANY MORE (#147 review). This used to reject at 90 s, which turned a slow
  * but healthy boot (a cold page cache, a busy box, a large file) into the cover's refusal. A
  * Blender that cannot open the model says so itself — the Model document publishes its failure
- * to the cover (`@volter/editor-sdk/kit/startup-failure`) — and so does an editor whose
+ * to the cover (`@volter/sdk/kit/startup-failure`) — and so does an editor whose
  * contributions failed to load with no document open (`bridge.tsx`'s no-document dead end), so
  * the wait here only narrates; the kit's cover offers Dismiss once it has been long.
  */

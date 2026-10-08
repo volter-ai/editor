@@ -15,7 +15,7 @@
  * The user file's home is `VOLTER_USER_SETTINGS_PATH` when set (the same
  * override idiom as `VOLTER_ACCOUNT_PATH`), else `~/.volter/settings.json`.
  *
- * Beside it, the person's own UI STATE (`@volter/editor-sdk/kit/user-local-state`):
+ * Beside it, the person's own UI STATE (`@volter/sdk/kit/user-local-state`):
  *
  *   GET/POST /__editor/user-state         ~/.volter/editor-state.json
  *
@@ -31,7 +31,7 @@ import { mkdir, readFile, rename, rm, writeFile } from 'node:fs/promises';
 import { homedir } from 'node:os';
 import { dirname, join, resolve } from 'node:path';
 import type { Request, Response } from 'express';
-import { type EditorSettings, parseEditorSettings } from '@volter/editor-project/settings/schema';
+import { type EditorSettings, parseEditorSettings } from '@volter/project/settings/schema';
 import type { EditorServerRouter } from '../editor-server';
 import type { RouteContext } from './context';
 

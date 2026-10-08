@@ -38,7 +38,7 @@
  */
 
 import type { BlenderNode, BlenderNodeTree } from '@volter/blender-engine/browser/rna';
-import { registerViewVerbs } from '@volter/editor-sdk/views';
+import { registerViewVerbs } from '@volter/sdk/views';
 import { useCallback, useEffect, useMemo, useRef, useState, useSyncExternalStore } from 'react';
 import {
   blenderNodeTree,

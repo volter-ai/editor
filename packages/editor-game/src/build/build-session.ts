@@ -15,10 +15,10 @@ import {
   listConfigurations,
   startBuild as startBuildConfiguration,
 } from '../host/api/configurations';
-import type { EditorHostOutputDiagnostic } from '@volter/editor-sdk/host';
-import { editorHost } from '@volter/editor-sdk/host';
-import { BASE } from '@volter/editor-sdk/kit/api-base';
-import type { BuildReport } from '@volter/editor-sdk/session/build-report';
+import type { EditorHostOutputDiagnostic } from '@volter/sdk/host';
+import { editorHost } from '@volter/sdk/host';
+import { BASE } from '@volter/sdk/kit/api-base';
+import type { BuildReport } from '@volter/sdk/session/build-report';
 import { useEffect, useState } from 'react';
 import { formatBytes } from './format-bytes';
 

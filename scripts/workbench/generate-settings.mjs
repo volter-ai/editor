@@ -7,9 +7,9 @@
  *  drifts from the one the editor reads — which is invisible rather than loud, because a
  *  missing declaration simply means the key is not listed.
  *
- *  WHAT IT READS: `packages/editor-project/schemas/volter-settings.schema.json` — the JSON Schema
+ *  WHAT IT READS: `packages/project/schemas/volter-settings.schema.json` — the JSON Schema
  *  `npm run generate-schema` already commits from that Zod document, and the SAME derivation
- *  `@volter/editor-project/settings/keys` walks at runtime to build the editor's own key table. So this
+ *  `@volter/project/settings/keys` walks at runtime to build the editor's own key table. So this
  *  generator adds no second notion of what a settings key is; it re-spells one that exists,
  *  and the engine's own pre-commit hook is what keeps the schema honest against the Zod.
  *
@@ -42,9 +42,9 @@ import { fileURLToPath } from 'node:url';
 
 const REPO_ROOT = resolve(dirname(fileURLToPath(import.meta.url)), '../..');
 const OUT_PATH = join(REPO_ROOT, 'packages/editor-core/workbench/src/volterGeneratedSettings.ts');
-const SCHEMA_RELATIVE = 'packages/editor-project/schemas/volter-settings.schema.json';
+const SCHEMA_RELATIVE = 'packages/project/schemas/volter-settings.schema.json';
 
-/** The namespace every key carries. `@volter/editor-project/settings/keys`'s SETTINGS_KEY_PREFIX. */
+/** The namespace every key carries. `@volter/project/settings/keys`'s SETTINGS_KEY_PREFIX. */
 const PREFIX = 'volter';
 
 function fail(message) {
@@ -115,7 +115,7 @@ function main() {
  *  Every volter settings key, as the \`configuration\` contribution VS Code's Settings editor
  *  reads. Derived from \`${SCHEMA_RELATIVE}\`, which
  *  \`npm run generate-schema\` writes from the Zod settings document and
- *  \`@volter/editor-project/settings/keys\` walks at runtime — so the keys the editor READS and the keys
+ *  \`@volter/project/settings/keys\` walks at runtime — so the keys the editor READS and the keys
  *  a person can SEE are one derivation, not two lists.
  *
  *  SCOPE is WINDOW for every key: the layers are the person's (USER) and the project's

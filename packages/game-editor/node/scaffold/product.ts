@@ -25,7 +25,7 @@ import { isScaffoldAddition, type ScaffoldAddition } from './additions.js';
 export interface ImportedValue {
   /** The exported binding — `GameLayout`, `blenderStyle`. */
   readonly name: string;
-  /** The module specifier it is imported from — `@volter/editor-sdk/layouts`. */
+  /** The module specifier it is imported from — `@volter/sdk/layouts`. */
   readonly from: string;
 }
 

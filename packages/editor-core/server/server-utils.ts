@@ -8,12 +8,12 @@
  * isolation.
  */
 
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+import { commandLine } from '@volter/sdk/kit/product-command';
 import { existsSync } from 'node:fs';
 import { realpath } from 'node:fs/promises';
 import { createRequire } from 'node:module';
 import { dirname, join, resolve, sep } from 'node:path';
-import { type CommandResult, relayCommandTimeoutMs } from '@volter/editor-sdk/session/command-table';
+import { type CommandResult, relayCommandTimeoutMs } from '@volter/sdk/session/command-table';
 import type { UnresolvedConsoleSummary } from './console-ledger';
 
 // ---------------------------------------------------------------------------
@@ -628,18 +628,18 @@ export function validateManifestWrite(
  * the live proof: a `-document` suffix would sweep it in. Only the dotted form
  * counts.
  */
-// The convention itself lives in `@volter/editor-sdk/session/
+// The convention itself lives in `@volter/sdk/session/
 // tool-contribution-convention` so every program that asks shares the ONE
 // definition; re-exported here so server importers keep their import site.
 export {
   isToolContributionModule,
   TOOL_CONTRIBUTION_SUFFIXES,
-} from '@volter/editor-sdk/session/tool-contribution-convention';
+} from '@volter/sdk/session/tool-contribution-convention';
 
 import {
   isEditorLanePath,
   isToolContributionModule,
-} from '@volter/editor-sdk/session/tool-contribution-convention';
+} from '@volter/sdk/session/tool-contribution-convention';
 
 /**
  * Which editor list a `src/**` add/unlink invalidates, or `null` if it's

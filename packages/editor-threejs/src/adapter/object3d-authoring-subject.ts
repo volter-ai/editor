@@ -13,7 +13,7 @@
  * owning TS/TSX or ecosystem artifact.
  */
 
-import type { PropertyDescriptor } from '@volter/editor-project/adapter/authoring';
+import type { PropertyDescriptor } from '@volter/project/adapter/authoring';
 import type * as THREE from 'three';
 import { deleteUserData, getUserData, setUserData } from '../ecs/user-data';
 

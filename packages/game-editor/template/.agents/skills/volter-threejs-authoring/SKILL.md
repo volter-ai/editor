@@ -295,7 +295,7 @@ For every meaningful iteration:
 7. Make the smallest source change that tests the diagnosis.
 8. Repeat until the pixels are visibly better.
 
-When the project has `@volter/editor-live`, make the shared editor view the evidence
+When the project has `@volter/live`, make the shared editor view the evidence
 boundary instead of taking an unrelated page screenshot:
 
 ```ts

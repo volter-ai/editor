@@ -37,19 +37,19 @@
 
 import { reportIngestSourceRefusal } from '../../host/authoring/ingest-source-persistence';
 import type { SourcePersistenceBackend } from '../../host/authoring/source-persistence-backend';
-import { LIVE_ONLY_DESTINATION } from '@volter/editor-sdk/kit/write-pipe';
-import type { ChannelValue } from '@volter/editor-sdk/kit/creation-site-edit';
-import { channelFor } from '@volter/editor-sdk/kit/creation-site-edit';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { editorIsAuthoring } from '@volter/editor-sdk/kit/editor-session-mode';
-import type { HistoryService } from '@volter/editor-sdk/kit/history/history-service';
-import { withProjectSourceHistory } from '@volter/editor-sdk/kit/history/source-history-backend';
-import { getCurrentProject } from '@volter/editor-sdk/kit/active-project';
+import { LIVE_ONLY_DESTINATION } from '@volter/sdk/kit/write-pipe';
+import type { ChannelValue } from '@volter/sdk/kit/creation-site-edit';
+import { channelFor } from '@volter/sdk/kit/creation-site-edit';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { editorIsAuthoring } from '@volter/sdk/kit/editor-session-mode';
+import type { HistoryService } from '@volter/sdk/kit/history/history-service';
+import { withProjectSourceHistory } from '@volter/sdk/kit/history/source-history-backend';
+import { getCurrentProject } from '@volter/sdk/kit/active-project';
 import type { OidEntry } from '@volter/editor-react/source/oid-transform';
 import { bodyPlacedChannel, physicsRefusal } from '@volter/editor-react/source/r3f-physics-binding';
-import type { SourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/source-write-backend';
-import { sourceWriteBackendIfPrimed } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
-import type { NodeCreationSite, WriteAck } from '@volter/editor-project/adapter';
+import type { SourceWriteBackend } from '@volter/sdk/kit/ui-source/source-write-backend';
+import { sourceWriteBackendIfPrimed } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
+import type { NodeCreationSite, WriteAck } from '@volter/project/adapter';
 
 /** What `AuthoringAdapter.persistence.destination` reports once this backend is
  *  actually able to write. */

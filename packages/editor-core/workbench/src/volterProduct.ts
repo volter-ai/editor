@@ -105,7 +105,7 @@ export interface VolterProduct {
 	readonly title: string;
 	/**
 	 * The command a person types for this product (`cyclotron`) — its package.json
-	 * `bin`, which `@volter/editor-sdk/kit/product-command` reads on the editor's side. The frame
+	 * `bin`, which `@volter/sdk/kit/product-command` reads on the editor's side. The frame
 	 * needs it BEFORE any session exists (the cover's "no live session, start one with …"), so it
 	 * cannot ask one; a message that names a command must name the one the person has, never a
 	 * generic `volter-editor` (2026-10-06 audit: Cyclotron's own timeout told people to

@@ -2,17 +2,17 @@
 
 import { readdir, readFile, stat, writeFile } from 'node:fs/promises';
 import { basename, resolve } from 'node:path';
-import { resolveManifestPath } from '@volter/editor-project/manifest/locate';
+import { resolveManifestPath } from '@volter/project/manifest/locate';
 import {
   createIngestManifest,
   inspectProject,
   type ProjectInspection,
   type ProjectInspectionReader,
   type SuggestedAdapterSurface,
-} from '@volter/editor-project/inspection';
+} from '@volter/project/inspection';
 import { resolveProjectPath } from './shared.js';
 
-export type { SuggestedAdapterSurface } from '@volter/editor-project/inspection';
+export type { SuggestedAdapterSurface } from '@volter/project/inspection';
 
 export function nodeProjectInspectionReader(root: string): ProjectInspectionReader {
   return {

@@ -57,33 +57,33 @@
 import type {
   DesignTimeRootDescriptor,
   LayerMountResult,
-} from '@volter/editor-sdk/kit/authoring/design-time-layers';
+} from '@volter/sdk/kit/authoring/design-time-layers';
 import {
   rememberedPortableStory,
   rememberPortableStory,
-} from '@volter/editor-sdk/kit/authoring/design-time-layers';
-import type { DesignTimeMountContext } from '@volter/editor-sdk/kit/authoring/design-time-mount-registry';
-import { formatMountFailureMessage } from '@volter/editor-sdk/kit/mount-failure-report';
-import type { ReactStoryBoardSelectionIntent } from '@volter/editor-sdk/kit/authoring/react-story-board';
-import { createReactStoryBoard } from '@volter/editor-sdk/kit/authoring/react-story-board';
+} from '@volter/sdk/kit/authoring/design-time-layers';
+import type { DesignTimeMountContext } from '@volter/sdk/kit/authoring/design-time-mount-registry';
+import { formatMountFailureMessage } from '@volter/sdk/kit/mount-failure-report';
+import type { ReactStoryBoardSelectionIntent } from '@volter/sdk/kit/authoring/react-story-board';
+import { createReactStoryBoard } from '@volter/sdk/kit/authoring/react-story-board';
 import {
   getRootCanvasViewport,
   setRootCanvasViewport,
-} from '@volter/editor-sdk/kit/world-canvas-viewport-state';
-import { recordAuthoringConsumerUse } from '@volter/editor-sdk/kit/authoring-seam-evidence';
-import { CrashNullBoundary } from '@volter/editor-sdk/kit/crash-null-boundary';
-import { readProjectTextFile } from '@volter/editor-sdk/kit/editor-api';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
+} from '@volter/sdk/kit/world-canvas-viewport-state';
+import { recordAuthoringConsumerUse } from '@volter/sdk/kit/authoring-seam-evidence';
+import { CrashNullBoundary } from '@volter/sdk/kit/crash-null-boundary';
+import { readProjectTextFile } from '@volter/sdk/kit/editor-api';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
 import { resolveReactRootMountRuntime } from '../host/react-mount-runtime';
 import { activeRealmServices } from '../host/realm-services';
 import { resolveReactAdapterRootComponent } from '../host/roots/react-root';
-import { scopedGameStylesState } from '@volter/editor-sdk/kit/scoped-game-css';
-import { componentIdentityName } from '@volter/editor-sdk/kit/stories/compose-project-stories';
-import { mountIsolatedStory } from '@volter/editor-sdk/kit/stories/StoryPreviewMount';
+import { scopedGameStylesState } from '@volter/sdk/kit/scoped-game-css';
+import { componentIdentityName } from '@volter/sdk/kit/stories/compose-project-stories';
+import { mountIsolatedStory } from '@volter/sdk/kit/stories/StoryPreviewMount';
 import {
   createStoryPresentationIndex,
   storyBoardPresentation,
-} from '@volter/editor-sdk/kit/stories/story-presentation';
+} from '@volter/sdk/kit/stories/story-presentation';
 import {
   getComponentPreviewStory,
   getProjectPreviewStories,
@@ -92,13 +92,13 @@ import {
   projectStoriesReady,
   refreshProjectStories,
   subscribeProjectStoryModules,
-} from '@volter/editor-sdk/kit/stories/story-registry';
+} from '@volter/sdk/kit/stories/story-registry';
 import { domStoryBoardMembers } from '@volter/editor-threejs/kit/stories/three-story-model';
-import { getDesignTokens } from '@volter/editor-sdk/kit/ui-source/inspect';
-import { tierSourceWriteBackend } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
-import { recordViewportFirstFrame } from '@volter/editor-sdk/kit/viewport-activation-timings';
-import type { ResolvedAdapterRoot } from '@volter/editor-project/manifest/load';
-import { beginProjectMountEpoch } from '@volter/editor-sdk/session/project-module-url';
+import { getDesignTokens } from '@volter/sdk/kit/ui-source/inspect';
+import { tierSourceWriteBackend } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
+import { recordViewportFirstFrame } from '@volter/sdk/kit/viewport-activation-timings';
+import type { ResolvedAdapterRoot } from '@volter/project/manifest/load';
+import { beginProjectMountEpoch } from '@volter/sdk/session/project-module-url';
 import type { ComponentType } from 'react';
 import { type OidElementLike, ReactRootAuthoringAdapter } from './react-world-authoring-adapter';
 import { paintedContentBounds } from './story-paint-bounds';
@@ -168,7 +168,7 @@ async function seedRootViewportFromManifest(): Promise<void> {
  * honest "this is a native default-react world" values.
  *
  * `loop: 'gated'` here is the MANIFEST's declared-intent vocabulary
- * (`ResolvedAdapterRoot.loop`, `@volter/editor-project/manifest/load`), and specifically the
+ * (`ResolvedAdapterRoot.loop`, `@volter/project/manifest/load`), and specifically the
  * schema's own `.default('gated')` — not a verdict about anything. It is safe as
  * a declaration precisely because nothing projects it: the only consumer of this
  * stub is `resolveEntryComponent` below, the stub never reaches

@@ -1,6 +1,6 @@
 /**
  * THE THREE.JS ASSET LAB VIEWERS, registered by route
- * (`@volter/editor-sdk/kit/asset-viewers`): a glTF model, an environment map, a
+ * (`@volter/sdk/kit/asset-viewers`): a glTF model, an environment map, a
  * LUT, a shader, a live modeling module and a live entity's model. Each loads on
  * first use, so a document that never opens one never pays for three.js.
  */
@@ -10,7 +10,7 @@ import {
   type JsonContentViewer,
   registerAssetViewer,
   registerJsonContentViewer,
-} from '@volter/editor-sdk/kit/asset-viewers';
+} from '@volter/sdk/kit/asset-viewers';
 import { type ComponentType, lazy } from 'react';
 
 const viewers: Readonly<Record<AssetViewerRoute, ComponentType<AssetViewerProps>>> = {

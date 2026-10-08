@@ -34,7 +34,7 @@
  */
 
 import type { BlenderRnaContext, BlenderRnaView } from '@volter/blender-engine/browser/rna';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import type * as THREE from 'three';
 import {
   blenderPresentationDocumentId,
@@ -192,7 +192,7 @@ function publish(next: Partial<BlenderPropertiesState>, tabsMayHaveChanged = fal
   for (const listener of [...listeners]) listener();
   // THE TAB RAIL IS THE SECTION LIST, and section matching is the host's
   // composition — which no store of ours can move. This is the one door that
-  // re-derives it (`@volter/editor-sdk/host`, `documents.contextChanged`).
+  // re-derives it (`@volter/sdk/host`, `documents.contextChanged`).
   if (tabsMayHaveChanged) editorHost().documents.contextChanged(blenderPresentationDocumentId());
 }
 

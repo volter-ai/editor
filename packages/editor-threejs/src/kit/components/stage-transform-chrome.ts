@@ -1,11 +1,11 @@
 /**
  * What a three stage adds to its document's viewport
- * (`@volter/editor-sdk/kit/document-viewports`): the transform-tool driver, read
+ * (`@volter/sdk/kit/document-viewports`): the transform-tool driver, read
  * synchronously, and the shelf strip and header wells behind `lazy()`, so a
  * bounded host that mounts a stage never loads the editor's toolbar.
  */
 import { lazy } from 'react';
-import { documentStageContext, type StageTransformDriver, stageTransformDriver } from '@volter/editor-sdk/kit/stage-context';
+import { documentStageContext, type StageTransformDriver, stageTransformDriver } from '@volter/sdk/kit/stage-context';
 import { threeStoreForHost } from '../three-state';
 
 /** What the host's transform tools drive on this document's stage. */

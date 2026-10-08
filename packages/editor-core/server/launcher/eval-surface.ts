@@ -94,7 +94,7 @@ export function surfaceMembers(target: unknown): SurfaceMember[] {
  * surface. The examples are the editor façade's own calls (every product binds
  * `editor`), so they hold for every product that prints this listing; the
  * camera names the façade does not have are refused with a pointer to the same
- * call (`@volter/editor-live`'s `member-hints.ts`). An empty task continues the
+ * call (`@volter/live`'s `member-hints.ts`). An empty task continues the
  * line above it.
  */
 const COMMON_TASKS: readonly (readonly [task: string, code: string])[] = [

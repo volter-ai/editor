@@ -14,7 +14,7 @@
 
 import { formatAt } from '@volter/dawproject/notation';
 import type { Piece, PiecePoint, PiecePoints } from '@volter/dawproject/piece';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import { themeVars } from '@volter/sdk/widgets';
 import { type MouseEvent as ReactMouseEvent, type PointerEvent as ReactPointerEvent, useEffect, useRef, useState } from 'react';
 import { createElement, formatNumber, recordStructWrite, setProps, setRefusal, type SourceIndex, writeStruct } from './source-index';
 

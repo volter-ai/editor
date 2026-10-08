@@ -26,12 +26,12 @@ import {
   spaceVar,
   Tooltip,
   themeVars,
-} from '@volter/editor-sdk/widgets';
+} from '@volter/sdk/widgets';
 import { Fragment, type PointerEvent as ReactPointerEvent, useCallback, useEffect, useState, useSyncExternalStore } from 'react';
 import * as THREE from 'three';
 import { axisViewName } from '../asset-workflow/model-inspection';
 import type { Object3DDocumentSession } from '../authoring/object3d-document-session';
-import type { ShellStore } from '@volter/editor-sdk/kit/shell-store';
+import type { ShellStore } from '@volter/sdk/kit/shell-store';
 import {
   COMPASS_CENTER_RIGHT_PX,
   COMPASS_CLUSTER_TOP_PX,
@@ -44,15 +44,15 @@ import {
   subscribeViewportPresentation,
   viewPresentation,
   viewportPresentationVersion,
-} from '@volter/editor-sdk/kit/viewport-presentation';
+} from '@volter/sdk/kit/viewport-presentation';
 import { ViewportViewMenu } from './ViewportViewMenu';
 import {
   lookDeclaresViewportColors,
   lookPaintsLightViewport,
   subscribeNativeSelectionTheme,
   useViewportChrome,
-} from '@volter/editor-sdk/kit/native-selection-style';
-import type { ThreeViewportProjection } from '@volter/editor-sdk/kit/three-viewport-presentation';
+} from '@volter/sdk/kit/native-selection-style';
+import type { ThreeViewportProjection } from '@volter/sdk/kit/three-viewport-presentation';
 
 /** The cluster sits 8px under the compass — one number, owned by the
  *  compass's own box (`editor-viewport.ts`, measured against Blender's

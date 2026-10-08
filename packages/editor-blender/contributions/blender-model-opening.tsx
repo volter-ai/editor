@@ -1,8 +1,8 @@
 import type { ModelDocumentPreview } from '../src/model-document-preview';
 import { modelOpeningErrorMessage } from '../src/model-opening-error';
-import { Button, StateSurface, fontMono, fontSizeVar, spaceVar, themeVars } from '@volter/editor-sdk/widgets';
-import type { AuthoringAdapter, EditorNode } from '@volter/editor-project/adapter';
-import { AssetEditorSubject } from '@volter/editor-sdk/kit/components/AssetEditorShell';
+import { Button, StateSurface, fontMono, fontSizeVar, spaceVar, themeVars } from '@volter/sdk/widgets';
+import type { AuthoringAdapter, EditorNode } from '@volter/project/adapter';
+import { AssetEditorSubject } from '@volter/sdk/kit/components/AssetEditorShell';
 import { useMemo } from 'react';
 
 /** A loading/error surface has no authoring stage and publishes no model. */

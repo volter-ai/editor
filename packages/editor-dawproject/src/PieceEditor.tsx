@@ -15,8 +15,8 @@
  */
 
 import type { Piece } from '@volter/dawproject/piece';
-import type { ToolNotice } from '@volter/editor-sdk/contributions';
-import { themeVars } from '@volter/editor-sdk/widgets';
+import type { ToolNotice } from '@volter/sdk/contributions';
+import { themeVars } from '@volter/sdk/widgets';
 import { type CSSProperties, useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { Arranger, TransportBar, trackColor } from './Arranger';
 import { useLivePiece } from './live-piece';
@@ -31,7 +31,7 @@ import { applySource, readSource, readSourceIndex, recordStructWrite, type Sourc
 import { KEY_SEMITONES, type TakeNote, writeTake } from './recorder';
 import { type AudioCapture, captureInput, takesPerPass, takeWav, writeAudioTake } from './audio-take';
 import { perform } from '@volter/dawproject/perform';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 
 const small: CSSProperties = { fontSize: 11, color: themeVars.content.muted };
 const button: CSSProperties = {

@@ -10,7 +10,7 @@
  *
  * Everything below is the real editor: AppRoot → EditorProvider →
  * DefaultEditorLayout → ProjectLayout → the project's ModelLayout, unchanged. The
- * one thing swapped is `@volter/editor-sdk/layouts`' LayoutHost: the adapter's
+ * one thing swapped is `@volter/sdk/layouts`' LayoutHost: the adapter's
  * `<EditorHeader/>`, `<Workspace/>` and `<EditorFooter/>` render through THIS host,
  * which portals ProjectHeader and the active document surface + hierarchy + inspector
  * into the VS Code parts the contribution hands over (title bar, editor pane, two
@@ -30,22 +30,22 @@
  * half of every host door, and each handle's own comment names the contribution
  * that consumes it.
  */
-import { setFramePartShown } from '@volter/editor-sdk/kit/frame/frame-parts';
-import { setWorkspaceStorageProvider, type WorkspaceStorageProvider } from '@volter/editor-sdk/kit/workspace-storage';
-import { preloadUserLocalState } from '@volter/editor-sdk/kit/user-local-state';
-import { loadProductNames, productDisplayName } from '@volter/editor-sdk/kit/product-command';
+import { setFramePartShown } from '@volter/sdk/kit/frame/frame-parts';
+import { setWorkspaceStorageProvider, type WorkspaceStorageProvider } from '@volter/sdk/kit/workspace-storage';
+import { preloadUserLocalState } from '@volter/sdk/kit/user-local-state';
+import { loadProductNames, productDisplayName } from '@volter/sdk/kit/product-command';
 import '../editor-styles.css';
 import '../authoring/instance-source-menu-register';
-import { activeProduct } from '@volter/editor-sdk/kit/active-product';
+import { activeProduct } from '@volter/sdk/kit/active-product';
 import '../authoring/prefab-instance-inspector-section';
 import '../authoring/null-inspection-subjects';
-import { editorHost } from '@volter/editor-sdk/host';
+import { editorHost } from '@volter/sdk/host';
 import {
   type LayoutFrameProps,
   registerLayoutHost,
   type WorkspaceProps,
-} from '@volter/editor-sdk/layouts';
-import { invokeViewVerb, subscribeViewVerbs, viewVerbContributions } from '@volter/editor-sdk/views';
+} from '@volter/sdk/layouts';
+import { invokeViewVerb, subscribeViewVerbs, viewVerbContributions } from '@volter/sdk/views';
 import {
   Fragment,
   type ReactNode,
@@ -57,52 +57,52 @@ import {
 } from 'react';
 import { createPortal } from 'react-dom';
 import { createRoot } from 'react-dom/client';
-import { subscribeAdapterEditorConfiguration } from '@volter/editor-sdk/kit/adapter-editor-config';
+import { subscribeAdapterEditorConfiguration } from '@volter/sdk/kit/adapter-editor-config';
 import { AppRoot } from '../components/AppRoot';
 import {
   clearStartupFailure,
   reportStartupFailure,
   subscribeStartupFailure,
   type StartupFailureNotice,
-} from '@volter/editor-sdk/kit/startup-failure';
+} from '@volter/sdk/kit/startup-failure';
 import {
   getDocumentToolContributions,
   getToolContributionLoadFailures,
   subscribeToolContributions,
   toolContributionsPublished,
-} from '@volter/editor-sdk/kit/tool-loader';
+} from '@volter/sdk/kit/tool-loader';
 import { CompactInspectorCard } from '../components/CompactInspectorCard';
 import { GameHierarchy } from '../components/GameHierarchy';
-import { Inspector, InspectorShownAsCard } from '@volter/editor-sdk/kit/components/Inspector';
-import { ProjectHeader } from '@volter/editor-sdk/kit/components/ProjectHeader';
+import { Inspector, InspectorShownAsCard } from '@volter/sdk/kit/components/Inspector';
+import { ProjectHeader } from '@volter/sdk/kit/components/ProjectHeader';
 import { DocumentView } from '../components/ProjectLayout';
 import { WorkspaceDocumentSurface } from '../components/WorkspaceDocumentSurface';
 import { WorkspaceUtilitySurface } from '../components/WorkspaceUtilitySurface';
 import { WorkspaceStaticPanelSurface } from '../components/workspace-static-panel-registry';
 import { installEditorConsoleReporting } from '../console-sync';
-import { installSessionVitals } from '@volter/editor-sdk/kit/coverage/session-vitals';
+import { installSessionVitals } from '@volter/sdk/kit/coverage/session-vitals';
 import {
   invokePaletteAction,
   paletteActions,
   setCommandExecutor,
   setPaletteOpener,
   subscribePaletteActions,
-} from '@volter/editor-sdk/kit/editor-commands';
-import { editorConsole } from '@volter/editor-sdk/kit/editor-console';
-import { commandLine } from '@volter/editor-sdk/kit/product-command';
+} from '@volter/sdk/kit/editor-commands';
+import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { commandLine } from '@volter/sdk/kit/product-command';
 import { installEditorHostDoor, setOutputProvider } from '../editor-host-door';
-import { getProjectDefinePath } from '@volter/editor-sdk/kit/editor-mode';
-import { type EditorNotification, setNotificationDelegate } from '@volter/editor-sdk/kit/editor-notifications';
-import { useEditorStore } from '@volter/editor-sdk/kit/editor-runtime';
+import { getProjectDefinePath } from '@volter/sdk/kit/editor-mode';
+import { type EditorNotification, setNotificationDelegate } from '@volter/sdk/kit/editor-notifications';
+import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
 import { clearHierarchyHeaderSlot, setHierarchyHeaderSlot } from '../hierarchy-header-slot';
-import { useActiveInspection } from '@volter/editor-sdk/kit/inspection/use-active-inspection';
-import { installLayoutPolicy } from '@volter/editor-sdk/kit/layout-policy';
+import { useActiveInspection } from '@volter/sdk/kit/inspection/use-active-inspection';
+import { installLayoutPolicy } from '@volter/sdk/kit/layout-policy';
 import {
   installPlayTransitionDock,
   reconcilePlayPresentationPolicy,
   usesImmersivePlayPresentation,
-} from '@volter/editor-sdk/kit/live-transition';
-import { getCurrentProject } from '@volter/editor-sdk/kit/project-manager';
+} from '@volter/sdk/kit/live-transition';
+import { getCurrentProject } from '@volter/sdk/kit/project-manager';
 import {
   describeSessionOrphan,
   sessionOrphanIsWorthReporting,
@@ -113,21 +113,21 @@ import {
   effectiveSettings,
   preloadSettings,
   subscribeSettings,
-} from '@volter/editor-sdk/kit/settings-store';
+} from '@volter/sdk/kit/settings-store';
 import { useSharedViewRestore } from '../shared-view-restore';
 import { installStaleChunkRecovery } from '../stale-chunk-recovery';
 import { installStoryLane } from '../stories/story-lane';
-import { setSurfaceKeyboardProbe } from '@volter/editor-sdk/kit/surface-keyboard';
-import { preloadEditorThemeLibrary } from '@volter/editor-sdk/kit/theme-library';
+import { setSurfaceKeyboardProbe } from '@volter/sdk/kit/surface-keyboard';
+import { preloadEditorThemeLibrary } from '@volter/sdk/kit/theme-library';
 import {
   editorPaletteSnapshot,
   installEditorTheme,
   subscribeEditorTheme,
-} from '@volter/editor-sdk/kit/theme-preference';
+} from '@volter/sdk/kit/theme-preference';
 import { lookColorCustomizations } from './look-colors';
-import { primeSourceWriteRuntime } from '@volter/editor-sdk/kit/ui-source/tier-source-write-backend';
+import { primeSourceWriteRuntime } from '@volter/sdk/kit/ui-source/tier-source-write-backend';
 import { installViteErrorSurface } from '../vite-error-surface';
-import { activeWorkspaceAreas, subscribeWorkspaceAreas } from '@volter/editor-sdk/kit/workspace-areas';
+import { activeWorkspaceAreas, subscribeWorkspaceAreas } from '@volter/sdk/kit/workspace-areas';
 import {
   activateWorkspaceDocument,
   activeWorkspaceDocument,
@@ -138,36 +138,36 @@ import {
   subscribeWorkspaceDocuments,
   type WorkspaceDocumentDescriptor,
   workspaceDocumentRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-document-registry';
-import { liveDocumentHeld } from '@volter/editor-sdk/kit/live-document';
-import { reopenKindDocument } from '@volter/editor-sdk/kit/components/kind-documents';
-import { requestAvailableWorkspaceDocument } from '@volter/editor-sdk/kit/workspace-available-documents';
+} from '@volter/sdk/kit/workspace-document-registry';
+import { liveDocumentHeld } from '@volter/sdk/kit/live-document';
+import { reopenKindDocument } from '@volter/sdk/kit/components/kind-documents';
+import { requestAvailableWorkspaceDocument } from '@volter/sdk/kit/workspace-available-documents';
 import {
   installWorkspaceHostCommands,
   setActiveWorkspaceStaticPanel,
-} from '@volter/editor-sdk/kit/workspace-host-commands';
-import { notifyEditorWorkspaceApplied, setEditorWorkspace } from '@volter/editor-sdk/kit/workspace-presets';
+} from '@volter/sdk/kit/workspace-host-commands';
+import { notifyEditorWorkspaceApplied, setEditorWorkspace } from '@volter/sdk/kit/workspace-presets';
 import {
   installWorkspaceStatePersistence,
   waitForWorkspaceStateRestore,
 } from '../workspace-state-persistence';
-import { WORKSPACE_STATIC_PANELS } from '@volter/editor-sdk/kit/workspace-static-panels';
+import { WORKSPACE_STATIC_PANELS } from '@volter/sdk/kit/workspace-static-panels';
 import {
   subscribeWorkspaceStatus,
   workspaceStatusContributions,
   workspaceStatusRegistryVersion,
-} from '@volter/editor-sdk/kit/workspace-status-registry';
+} from '@volter/sdk/kit/workspace-status-registry';
 import {
   availableUtilityFingerprint,
   availableWorkspaceUtilities,
   subscribeWorkspaceUtilities,
-} from '@volter/editor-sdk/kit/workspace-utility-registry';
-import { subscribeAvailabilityTick } from '@volter/editor-sdk/kit/availability-tick';
+} from '@volter/sdk/kit/workspace-utility-registry';
+import { subscribeAvailabilityTick } from '@volter/sdk/kit/availability-tick';
 import { setWorkspaceViewportRect } from '../workspace-viewport-rect';
 
 /**
  * WHAT THE FRAME GETS OF THE KEYBOARD — the editor's own door
- * (`@volter/editor-sdk/host`'s `keyboard`) reshaped into exactly the facts the
+ * (`@volter/sdk/host`'s `keyboard`) reshaped into exactly the facts the
  * contribution's context keys need, so no file under `src/vs/` imports an
  * editor module. Its counterpart is `volterKeyboard.ts`'s `VolterKeyboardBridge`.
  *
@@ -212,7 +212,7 @@ export interface VolterKeyboardHandle {
  */
 /**
  * WHAT THE FRAME GETS OF THE EDITOR'S HISTORY — the editor's own door
- * (`@volter/editor-sdk/host`'s `history`) reshaped into exactly what the
+ * (`@volter/sdk/host`'s `history`) reshaped into exactly what the
  * contribution needs, so no file under `src/vs/` imports an editor module. Its
  * counterpart is `volterHistory.ts`'s `VolterHistoryBridge`.
  *
@@ -252,7 +252,7 @@ export interface VolterHistoryElementHandle {
 
 /**
  * WHAT THE FRAME GETS OF THE PROJECT'S FILES — the editor's own door
- * (`@volter/editor-sdk/host`'s `files`) in the one direction the frame drives
+ * (`@volter/sdk/host`'s `files`) in the one direction the frame drives
  * it: the frame INSTALLS a provider, and from then on every volter read and
  * write of the project's files is the workbench's own `IFileService` /
  * `ITextFileService` call. Its counterpart is `volterFiles.ts`'s
@@ -278,7 +278,7 @@ export interface VolterFilesHandle {
 
 /**
  * WHAT THE FRAME GETS OF THE SETTINGS — the editor's own door
- * (`@volter/editor-sdk/host`'s `settings`) in the one direction the frame drives
+ * (`@volter/sdk/host`'s `settings`) in the one direction the frame drives
  * it, plus the ONE fact only the editor knows: what the open project's
  * `volter.adapter.ts` DECLARES. Its counterpart is `volterSettings.ts`'s
  * `VolterSettingsBridge`, declared there so that no file under `src/vs/` imports
