@@ -4,6 +4,20 @@
  * directional quadrature, not indirect light transport. */
 import * as THREE from 'three';
 
+/** SKY-LIGHT OCCLUSION IS OFF IN EVERY VIEW, and compiled out of every material. Its
+ *  sixteen 512-square tiles each span the whole scene, so a 360 m level gets
+ *  about a metre per texel, and each lookup is one nearest texel answering
+ *  yes or no. Faceted surfaces then occlude their own sky at random pixels --
+ *  static on every polygon in Rendered and Play -- and narrow specular lobes,
+ *  dominated by a few of the sixteen directions, plausibly flash as the camera
+ *  moves. It measured right in a closed room a few metres across. Turn it back
+ *  on once its lookups are filtered and its resolution follows the scene's size
+ *  (docs/BLENDER-RENDERING-PARITY.md lists the rest). Off, the view neither
+ *  syncs nor draws the atlas (`blender-runtime-view.ts`), and physical
+ *  materials declare none of its samplers (`blender-physical-material.ts`):
+ *  three of them counted against a material's sixteen even while unused. */
+export const WORLD_VISIBILITY = false;
+
 const SAMPLE_COUNT=16, TILES=4, TILE_SIZE=512;
 type Segment={mesh:THREE.Mesh; geometry:THREE.BufferGeometry; position:THREE.BufferAttribute|THREE.InterleavedBufferAttribute;
  index:THREE.BufferAttribute|null; positionVersion:number; indexVersion:number; start:number; count:number;
