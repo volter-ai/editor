@@ -5181,6 +5181,11 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
                 header["reason"] = ("%r has %d object slots and none named for %r; the first, %r, is played."
                                     % (action.name, len(slots), arm_obj.name, getattr(slot, "identifier", "?")))
     curves, shape = _action_channelbag(action, getattr(slot, "handle", None))
+    # HOW MANY OBJECT SLOTS THE ACTION HAS: with one (or a legacy action, none) every armature
+    # reads the same curves, so a reader may share the clip across armatures with the same bones;
+    # with several, which one plays depends on the armature, so it may not.
+    header["objectSlots"] = len([one for one in getattr(action, "slots", ())
+                                 if getattr(one, "target_id_type", "OBJECT") == "OBJECT"])
     header.update({
         "action": action.name,
         "slot": getattr(slot, "name_display", None),
