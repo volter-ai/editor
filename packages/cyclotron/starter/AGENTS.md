@@ -21,7 +21,8 @@ Your first minute:
 3. Put the plan beside the work (`Build Notes`, below) with the current step.
 4. Check what the person sees: `npx --no-install cyclotron capture --region document`.
 
-Only then read packages or write scripts. Throughout:
+Only then read packages or write scripts. Research the project as you need it,
+but keep it short between visible steps. Throughout:
 
 - Show before you change: open and frame the document before editing it, keep
   that view visible while you edit source or run Blender operations, and show
@@ -49,9 +50,12 @@ Only then read packages or write scripts. Throughout:
   the actual output (`hide_render` alone does not exclude an object from every
   path).
 - Check what they actually see in captures: framing, the reference and the
-  notes visible together before the first substantial build, and text legible
-  at normal size. Fix what is cut off, tilted, cramped or unreadable. Do not
-  claim progress or completion before the result is verified.
+  notes visible together before the first substantial build and again before
+  each substantial step, and text legible at normal size (adjust its size,
+  framing and contrast). When the target camera excludes the reference and
+  notes, use a second authoring view for them, keep the working view framed on
+  the asset, and keep that arrangement while comparing the clean target shot.
+  Do not claim progress or completion before the result is verified.
 
 ## Match the requested result
 
@@ -69,6 +73,8 @@ Replace unused scaffold placeholders as the requested result calls for.
   when the user asks for a working game or interactive mechanics.
 - **A character or an animation:** see Characters and Animation below; check
   motion in the Timeline at representative and extreme poses.
+- **An interactive model:** implement the requested interaction, preview it in
+  the editor, and verify the requested controls and transitions.
 - **A working game:** follow Working games below, including Play, autoplay and
   manual controls. Match the mechanics and success/failure behavior to the
   requested game.
@@ -88,9 +94,8 @@ Apply this section to models, scenes and the Blender parts of games.
   not update the document.
 - Look in the asset library before authoring an asset from nothing:
   `GET <editor>/__editor/asset-library/search?source=local&type=model&q=<words>`
-  at the editor's address (its port: `npx --no-install cyclotron eval 'return
-  session.port'`). Results carry `tags` (`animated`, `humanoid`, `creature`), a
-  license and attribution; fetch one with `POST <editor>/__editor/asset-library/download`,
+  at the editor's address (the one `cyclotron edit` printed). Results carry
+  `tags` (such as `animated`), a license and attribution; fetch one with `POST <editor>/__editor/asset-library/download`,
   import it through Blender, and record the asset and its license in the project.
 - Inspect the open scene with `get_scene_info` and `get_object_info` before
   changing it. Rerunning a script that clears the scene replaces existing work;
@@ -145,6 +150,10 @@ Apply this section to models, scenes and the Blender parts of games.
 - A still image does not prove controls, collisions, unseen geometry or rules.
   Infer conventions from the kind of result, verify them in the editor, and do
   not promise an unseen feature from an image.
+- Read written constraints, and use reasonable assumptions for gaps that do
+  not prevent progress. A stylized reference still has a specific visual style.
+- Reuse relevant existing references when continuing a project, and extract
+  useful frames from video references for side-by-side comparison.
 - New visual work with no image reference: generate one from the requested
   appearance when an image-generation tool is available; otherwise tell the
   user and work from their description (for a character, a design sheet; see
@@ -155,6 +164,11 @@ Apply this section to models, scenes and the Blender parts of games.
   editor overlays: they show in `capture --region document`, not in the MCP's
   `get_viewport_screenshot`, which is for clean 3D views. For UI work, also
   open the reference as an image document beside the UI canvas.
+- Choose capture scope deliberately and label evidence by it: `page` is the
+  whole editor, `document` the document with its overlays, `play` the running
+  game with its React HUD (a raw game-canvas capture omits the UI). An editor
+  capture reconstructs DOM and canvas pixels; it is not a browser or desktop
+  screenshot.
 
 ## Establish the visual match first
 
@@ -180,8 +194,9 @@ behavior-only repair preserves the established appearance.
 - Before gameplay, save a comparison of the reference and the static scene
   with UI at matching crop and resolution, and record its largest remaining
   differences in Build Notes as measured observations (landmark positions,
-  regional colors), not categories. Saving a comparison proves a capture, not a
-  match: keep the visual pass open, and keep correcting geometry, framing,
+  regional colors), not categories. Track capture, comparison and visual match
+  as separate results: saving a comparison proves a capture, not a match. Keep
+  gameplay behind this gate, and keep the visual pass open, and keep correcting geometry, framing,
   materials and UI, until those differences are resolved or a renderer
   limitation is shown with a focused reproduction and reported. Recheck the
   reference view after behavior is added.
@@ -195,7 +210,7 @@ behavior-only repair preserves the established appearance.
 
 - Complete the visual pass before implementing gameplay for a new game.
 - Implement and run the game inside the editor. Continue an existing game's
-  runtime and source organization. For a new model-based game, use the
+  runtime and source organization, and preserve its models, source and settings. For a new model-based game, use the
   `playable` template; in an existing models-only project run
   `npx --no-install cyclotron add-play` (it never overwrites files). Its
   `src/models/*.play.ts` scripts implement gameplay; Play runs them on a
@@ -231,10 +246,12 @@ behavior-only repair preserves the established appearance.
   explain them: phase changes and restarts; autoplay's decisions and the inputs
   it held; manual inputs that start an action; contacts that matter (by object
   name); checkpoints, pickups, score and inventory; deaths, failures and
-  finishes with cause and position. Logging must not change timing, inputs or
+  finishes with cause and position. Log transitions rather than every frame,
+  so a full run stays readable; logging must not change timing, inputs or
   state. Read it with `npx --no-install cyclotron play-log [--since <simTime>]
   [--kind <kind>]` during and after each run, and explain what happened from it
-  before changing code. `console.log` does not reach the console feed (only
+  before changing code: where autoplay stalled or died and why, and whether
+  that is a level, physics or controller problem. `console.log` does not reach the console feed (only
   warnings and errors do).
 - Animate characters from the play script: `play.setAction(object, name)` sets
   the active action, crossfading from the last; `play.setTrack(object, track,
@@ -249,7 +266,8 @@ behavior-only repair preserves the established appearance.
   actions. Inspect runtime errors and game state with captures; a still image
   alone does not verify gameplay. Use public controls and observable state, not
   private state writes that skip the behavior being checked.
-- Observe a complete session through every participant's terminal state, then
+- Observe a complete session through every participant's terminal state,
+  including finish, failure and post-finish clearance as applicable, then
   use the actual Restart control and complete another, checking that every
   entity's position, movement, progression, inventory, effects and terminal
   state reset. Stop/Play alone does not verify restart.
@@ -294,7 +312,9 @@ A character is two jobs, in this order: how it looks, then how it moves.
   rig is the only change. Its actions are bone rotations, which break when
   bones move. No rig fits: build an armature and key a few short loops.
 - Build the character in its own style. Do not shape it from the library's
-  body mesh, which carries that body's proportions and topology; hide it.
+  body mesh, which carries that body's proportions and topology; once its
+  weights are transferred, delete it (hiding does not keep it out of every
+  render, export or Play path).
 - Set weights mechanically, never by hand: a hard piece (a plate, a helmet, a
   prop) is rigid on the one bone it sits on; a part that bends across a joint
   (an undersuit, cloth) takes its weights from the library body with a Data
@@ -342,7 +362,8 @@ Open a model with `editor.open("model:src/models/example.blend")`; `openAsset`
 opens generic assets such as images and audio, and its `"model"` kind does not
 make a `.blend` the live Blender document. Closing the editor also ends its
 hosted AI runtime and can abort your own turn; recover a document or page
-through its scoped controls. Do not call `editor.reloadPage()` to reveal new
+through its scoped controls, and preserve the active conversation when
+diagnosing a problem. Do not call `editor.reloadPage()` to reveal new
 files, boards, references or scripts: a reload interrupts the editor and its
 chat, so reserve it for an explicit request or a diagnosed problem.
 
@@ -354,7 +375,8 @@ Commands, all through `npx --no-install cyclotron`:
 
 - `status`, `console [--all]`, `chat status`: the editor, its console and its
   AI session. `chat send "<prompt>"` sends to the visible conversation and
-  `chat stop` stops its turn; a dispatch receipt does not mean an edit is done.
+  `chat stop` stops its turn. Inspect the transcript and pending requests for
+  the outcome; a dispatch receipt does not mean an edit is done.
 - `eval '<JavaScript>'`: `return` what you need; `eval --list` lists what is
   available.
 - `camera --position x,y,z --target x,y,z [--fov n]`: the open document's view,
@@ -367,10 +389,11 @@ Commands, all through `npx --no-install cyclotron`:
   active document with its overlays; `play` is the running game with its HUD.
 - `add-play`: make a models project playable. `play-log`: the running game's log.
 - The Game panel's controls, each printing its state: `play autoplay on
-  <behaviour> [--for <seconds>]` and `play autoplay off`; `play pause`, `play
-  resume`, `play step [count]` (one 1/60 s update each), `play speed
-  0.25|0.5|1|2|4`, `play restart` (a fresh copy, clock at zero), and `play mode
-  game|movie` (the layout).
+  <behaviour> [--for <seconds>]` and `play autoplay off`; `play pause` (no
+  `update` calls; the game's clock stops) and `play resume`; `play step
+  [count]` (one 1/60 s update of a paused game each); `play speed
+  0.25|0.5|1|2|4` (scales the `dt` the script is handed); `play restart` (a
+  fresh copy of the model, clock at zero); `play mode game|movie` (the layout).
 - Timeline: `eval 'return await editor.command("volter.timeline.frame", { frame: 24 })'`
   moves the playhead.
 
