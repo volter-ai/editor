@@ -146,6 +146,26 @@ async function writeAll(files: readonly { readonly path: string; readonly conten
   }
 }
 
+/**
+ * THE LOCK FORGETS THE OLD @volter FAMILY (2026-10-08). Its packages pin one another exactly
+ * (`editor-blender` has a peer `editor-sdk@<its release>`), and npm checks a new member's pins
+ * against the old members the lock still holds before it replaces them, so the `npm install`
+ * this verb prints refused every installed project with ERESOLVE. Dropping the `@volter/` rows
+ * from `package-lock.json` and npm's hidden `node_modules/.package-lock.json` lets npm resolve
+ * the family again from package.json; every other package keeps its locked version.
+ */
+async function lockWithoutVolter(path: string): Promise<{ path: string; content: string; original: string } | null> {
+  let raw: string;
+  let lock: { packages?: Record<string, unknown>; dependencies?: Record<string, unknown> };
+  try { raw = await readFile(path, 'utf8'); lock = JSON.parse(raw); } catch { return null; }
+  let dropped = 0;
+  for (const key of Object.keys(lock.packages ?? {}))
+    if (/(^|\/)node_modules\/@volter\//.test(key)) { delete lock.packages![key]; dropped++; }
+  for (const key of Object.keys(lock.dependencies ?? {}))
+    if (key.startsWith('@volter/')) { delete lock.dependencies![key]; dropped++; }
+  return dropped > 0 ? { path, content: jsonLayout(raw)(lock), original: raw } : null;
+}
+
 /** An exact release — a range would leave the pin and the install free to disagree again. */
 const EXACT_VERSION = /^\d+\.\d+\.\d+(?:-[0-9A-Za-z.-]+)?$/;
 
@@ -341,10 +361,20 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     changed.push(`${MANIFEST_FILENAME} engine.version: ${typeof pinned === 'string' ? pinned : '(none)'} -> ${engine}`);
   }
 
+  // A checkout's project links the checkout's own install, which already holds every kit
+  // package; `npm install` there would write into the checkout (`add-play`'s same rule).
+  const linked = (() => { try { return lstatSync(join(project, 'node_modules')).isSymbolicLink(); } catch { return false; } })();
+  const locks = packagesChanged && !linked
+    ? (await Promise.all([join(project, 'package-lock.json'), join(project, 'node_modules', '.package-lock.json')]
+      .map(lockWithoutVolter))).filter((lock): lock is NonNullable<typeof lock> => lock !== null)
+    : [];
+  if (locks.length > 0) changed.push('package-lock.json: the old @volter rows dropped, so npm install resolves the new ones');
+
   await writeAll([
     ...(packagesChanged ? [{ path: packagePath, content: jsonLayout(packageRaw)(pkg), original: packageRaw }] : []),
     ...(pinChanged ? [{ path: manifestPath, content: jsonLayout(manifestRaw)(manifest), original: manifestRaw }] : []),
     ...textFiles,
+    ...locks,
   ]);
   for (const line of warnings) console.warn(`! ${line}`);
 
@@ -364,9 +394,6 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   if (retired !== null)
     console.log(`This project now opens in ${product.packageName}. Its command is ${product.command}: from the project folder, \`npx --no-install ${product.command} <command>\`.`);
   console.log('Next:');
-  // A checkout's project links the checkout's own install, which already holds every kit
-  // package; `npm install` there would write into the checkout (`add-play`'s same rule).
-  const linked = (() => { try { return lstatSync(join(project, 'node_modules')).isSymbolicLink(); } catch { return false; } })();
   if (packagesChanged && !linked) console.log(`  npm install    # in ${project}; installs the versions above`);
   // A running session keeps the editor it started with: new packages need a new session, while a
   // pin that moved alone is read again by the page's Retry.
