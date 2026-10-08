@@ -20,7 +20,9 @@
  * The file's own NLA strips play on the game's clock as scene frames, looping the scene's range as
  * Blender's own playback does. Every
  * clip is baked once per action, the first time it is wanted; until the clips a pose needs are
- * baked, the armature keeps the pose it has.
+ * baked, the armature keeps the pose it has. The clips each character STARTS on are baked before
+ * the game starts (`prepare`), and a bake that could not be read is tried again, so a busy
+ * Blender at Play's start does not leave a character frozen for the run.
  *
  * THE GAME'S CLOCK DRIVES IT: the runner advances it by each update's `dt`
  * (`@volter/play`'s `play-script.ts`), so pause, step, speed and Restart hold for
@@ -74,6 +76,13 @@ export interface PlayAnimation {
   track(object: THREE.Object3D, name: string, options: PlayTrackOptions | null): Answer;
   constraint(object: THREE.Object3D, bone: string, name: string, options: PlayConstraintOptions): Answer;
   update(dt: number): void;
+  /**
+   * THE LOADING PHASE: bakes every clip a character starts on (its assigned action and its NLA
+   * strips' actions) before the game's first update, so no character stands frozen while Blender
+   * answers. Resolves with what could not be loaded; clips the game asks for later still bake on
+   * first use.
+   */
+  prepare(): Promise<{ readonly failed: readonly string[] }>;
   /** What each character is playing now, bottom layer first: the animation editors' live view. */
   live(): readonly LiveArmature[];
   /** The frames an action keys, per bone, for one armature (empty until it was baked). */
@@ -141,16 +150,36 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     armature.failed.set(action, why);
     warnings.push(`${armature.rig.armature} / ${action}: ${why}`);
   };
+  /** Reads that failed (Blender busy, the call refused) per clip: tried again up to this many times. */
+  const READ_ATTEMPTS = 3;
+  const attempts = new Map<string, number>();
+  const baking = new Map<string, Promise<void>>();
   const clipOf = (armature: Armature, action: string): PoseClip | null | undefined => {
     if (armature.clips.has(action)) return armature.clips.get(action);
+    void bakeClip(armature, action);
+    return undefined;
+  };
+  const bakeClip = (armature: Armature, action: string): Promise<void> => {
+    const key = `${armature.rig.armature} ${action}`;
+    const running = baking.get(key);
+    if (running) return running;
+    if (armature.clips.has(action) && armature.clips.get(action) !== undefined) return Promise.resolve();
     armature.clips.set(action, undefined);
-    void bake(armature.rig.armature, action).then((baked) => {
+    const done = bake(armature.rig.armature, action).then((baked) => {
       const clip = baked ? poseClip(baked) : null;
       for (const thing of clip?.unsupported ?? []) warnings.push(`${armature.rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
       if (clip) armature.clips.set(action, clip);
       else fail(armature, action, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
-    }, (error: unknown) => fail(armature, action, `it could not be read: ${error instanceof Error ? error.message : String(error)}`));
-    return undefined;
+    }, (error: unknown) => {
+      const tried = (attempts.get(key) ?? 0) + 1;
+      attempts.set(key, tried);
+      const why = `it could not be read: ${error instanceof Error ? error.message : String(error)}`;
+      // A READ THAT FAILED is not the clip's answer: the next pose asks again, up to READ_ATTEMPTS.
+      if (tried < READ_ATTEMPTS && !disposed) armature.clips.delete(action);
+      else fail(armature, action, why);
+    }).finally(() => baking.delete(key));
+    baking.set(key, done);
+    return done;
   };
 
   for (const rig of view.skeletons.rigs()) {
@@ -330,6 +359,25 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       const key = `${bone}\u0000${name}`;
       armature.constraints.set(key, { ...armature.constraints.get(key), ...options });
       return ok(armature);
+    },
+    async prepare() {
+      const starting = (armature: Armature): string[] => {
+        const names = new Set<string>();
+        if (armature.facts.action) names.add(armature.facts.action);
+        for (const track of armature.facts.animation?.tracks ?? [])
+          for (const strip of track.strips) if (strip.action) names.add(strip.action);
+        return [...names].filter((name) => name in facts.actions);
+      };
+      const wanted = [...armatures.values()].flatMap((armature) => starting(armature).map((action) => ({ armature, action })));
+      for (let round = 0; round < READ_ATTEMPTS && !disposed; round += 1) {
+        const open = wanted.filter(({ armature, action }) => armature.clips.get(action) === undefined);
+        if (open.length === 0) break;
+        await Promise.all(open.map(({ armature, action }) => bakeClip(armature, action)));
+      }
+      const failed = wanted
+        .filter(({ armature, action }) => armature.clips.get(action) == null && armature.failed.has(action) && !/animates none/.test(armature.failed.get(action) ?? ''))
+        .map(({ armature, action }) => `${armature.rig.armature} / ${action}: ${armature.failed.get(action)}`);
+      return { failed };
     },
     update(dt) {
       if (disposed) return;
