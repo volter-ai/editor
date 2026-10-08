@@ -47,7 +47,8 @@
   },
   "files": [
     "src",
-    "schemas"
+    "schemas",
+    "NOTICE"
   ],
   "engines": {
     "node": ">=22.0.0"

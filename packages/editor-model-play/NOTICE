@@ -1,4 +1,12 @@
 Copyright 2026 Volter AI, Inc.
 
-This package is developed in the public volter-ai/editor repository.
-LICENSE contains its AGPL-3.0-only license.
+This package is developed in the public volter-ai/editor repository and is
+Volter AI, Inc.'s own work. It was first published under AGPL-3.0-only and is
+licensed under Apache-2.0 from this notice on. The owner's sentence is "the
+runtime should be apache, the editor is agpl"; that this package is runtime
+(the play-script API a game's gameplay is written against) is the reading
+recorded as ruling D336 on board task t_b315eb39 and in COMMERCIAL.md at the
+repository root. LICENSE contains the Apache-2.0 text.
+
+A play script is written against `src/play-script.ts`. The package imports
+`@volter/editor-sdk` (Apache-2.0), three and React, and nothing of Blender.
