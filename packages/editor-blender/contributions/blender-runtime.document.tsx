@@ -914,9 +914,12 @@ function BlenderViewportArea({
       // (`blender-play-skin.ts`). Nothing is read before the game starts.
       // A LOADING PHASE, said on screen: the game starts only once its stage is drawn and every
       // character's starting clips are baked (`PlayAnimation.prepare`). Started before them, a
-      // character whose clip Blender had not answered yet (Blender busy, say with the Chat's
-      // scripts) stood frozen in its rest pose, and a clip whose read failed stayed frozen for
-      // the whole run: "sometimes none of the animations work".
+      // character whose clip Blender had not answered yet stood frozen in its rest pose, and a
+      // clip whose read failed stayed frozen for the whole run. That is the suspected cause of
+      // "sometimes none of the animations work" (a busy Blender was measured to delay the clips).
+      // THE WAIT IS BOUNDED AND SAID: after LOADING_SAY the overlay names the clips still
+      // awaited; at LOADING_LIMIT the game starts without them and the console names them (each
+      // still plays once Blender answers). A thrown `prepare` is named too; the game always starts.
       const loading = window.document.createElement('div');
       loading.dataset['testid'] = 'model-play-loading';
       loading.textContent = 'Loading…';
@@ -927,12 +930,34 @@ function BlenderViewportArea({
       layers.appendChild(loading);
       void view.prepareRendered(stage.rig().drawCamera(), 'render').then(async () => {
         if (stopped) return;
-        animation = playAnimation(view, (armature, action) => blenderActionClip({ object: armature, action }));
-        const { failed } = await animation.prepare();
+        // No session answers null: a read that failed, asked again, not a clip that animates nothing.
+        const loaded = playAnimation(view, async (armature, action) => {
+          const clip = await blenderActionClip({ object: armature, action });
+          if (clip === null) throw new Error("Blender's session is not started");
+          return clip;
+        });
+        animation = loaded;
+        const LOADING_SAY = 3_000, LOADING_LIMIT = 20_000;
+        const clips = (names: readonly string[]): string => `${names.length} clip${names.length === 1 ? '' : 's'}`;
+        const say = window.setInterval(() => {
+          const pending = loaded.pending();
+          if (pending.length > 0) loading.textContent = `Loading… waiting on Blender for ${clips(pending)}: ${pending.join(', ')}`;
+        }, LOADING_SAY);
+        let limit = 0;
+        const outcome = await Promise.race([
+          loaded.prepare().then(({ failed }) => ({ failed, waiting: [] as readonly string[] }), (error: unknown) => ({ failed: [`the loading phase failed: ${error instanceof Error ? error.message : String(error)}`], waiting: [] as readonly string[] })),
+          new Promise<{ failed: readonly string[]; waiting: readonly string[] }>((resolve) => {
+            limit = window.setTimeout(() => resolve({ failed: [], waiting: loaded.pending() }), LOADING_LIMIT);
+          }),
+        ]);
+        window.clearInterval(say);
+        window.clearTimeout(limit);
         loading.remove();
         if (stopped) return;
-        if (failed.length > 0)
-          editorHost().console.warn(`The game started without ${failed.length} clip${failed.length === 1 ? '' : 's'} it starts on: ${failed.join('; ')}`, 'blender-animation');
+        if (outcome.failed.length > 0)
+          editorHost().console.warn(`The game started without ${clips(outcome.failed)} it starts on: ${outcome.failed.join('; ')}`, 'blender-animation');
+        if (outcome.waiting.length > 0)
+          editorHost().console.warn(`The game started after ${LOADING_LIMIT / 1000} s still waiting on Blender for ${clips(outcome.waiting)}; each plays once Blender answers: ${outcome.waiting.join(', ')}`, 'blender-animation');
         setLiveAnimation(animation);
         stopScript = documentPlayExtension('model')?.run({
           ...(animation ? { animation } : {}),
