@@ -99,8 +99,8 @@
       "source": "model-editor/examples/canyon-comet/src/models/cube.play.ts",
       "path": "packages/cyclotron/starter/playable/src/models/canyon.play.ts",
       "sourceSha256": "72e7292d7f005a3cff158d7fc4e7ce1bddc0b2f23cdc72784db2ab2013c39b19",
-      "sha256": "7355c24c34d59db3fa09e143bc84c89969c3960e9d8d5e722499ef1827febefc",
-      "change": "Renamed. No longer hides the removed authoring objects; offers the Game panel's Autoplay a `race` bot and writes race events with play.log."
+      "sha256": "59b68f4c3bf53bed061ff67a578237284f513d397437a3660daafd7f61797a5d",
+      "change": "Renamed. No longer hides the removed authoring objects; offers the Game panel's Autoplay a `race` bot and writes race events with play.log. WASD drive in full (A and D steer beside the arrows); the AUTO toggle moved from A to O, so steering left with A no longer switches autopilot on."
     },
     {
       "source": "model-editor/examples/canyon-comet/src/models/course.ts",
@@ -148,8 +148,8 @@
       "source": "model-editor/examples/canyon-comet/src/ui/race-hud.tsx",
       "path": "packages/cyclotron/starter/playable/src/ui/race-hud.tsx",
       "sourceSha256": "f7e4ca36115c27b67d4be72112ec8415ba3de5dcd80ba16c3ef34080f54ba23e",
-      "sha256": "26cf9a28a781f80654e53feeda4c80d6a5fa2d4257d078c6237008ee7174aeb5",
-      "change": "Copyright line."
+      "sha256": "bfffee0b1313e405dcb414a7cd89897bcc5bbbae929e68ee260826b4960dcb61",
+      "change": "Copyright line. The controls hint names W, S, A, D and O beside the arrows."
     },
     {
       "source": "model-editor/examples/canyon-comet/src/ui/race-widgets.tsx",

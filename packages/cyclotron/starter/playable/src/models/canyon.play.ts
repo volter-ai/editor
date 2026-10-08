@@ -68,7 +68,7 @@ export default function play(ctx:ModelPlayContext){
   if(state.phase==='ready'||state.paused||cars.every(c=>c.parked))return;
   simTime+=dt;frame++;
   if(state.phase==='countdown'){state={...state,countdown:Math.max(0,state.countdown-dt)};if(state.countdown===0){state={...state,phase:'racing'};log('phase',{phase:'racing'});}return;}
-  const k=ctx.keys,manual:Inputs={throttle:k.has('ArrowUp')||k.has('KeyW')?1:0,brake:k.has('ArrowDown')||k.has('KeyS'),steer:(k.has('ArrowRight')?1:0)-(k.has('ArrowLeft')?1:0),drift:k.has('Space'),boost:k.has('ShiftLeft')||k.has('ShiftRight')};
+  const k=ctx.keys,manual:Inputs={throttle:k.has('ArrowUp')||k.has('KeyW')?1:0,brake:k.has('ArrowDown')||k.has('KeyS'),steer:(k.has('ArrowRight')||k.has('KeyD')?1:0)-(k.has('ArrowLeft')||k.has('KeyA')?1:0),drift:k.has('Space'),boost:k.has('ShiftLeft')||k.has('ShiftRight')};
   const manualString=JSON.stringify(manual);if(!state.autoplay&&!botNow&&manualString!==lastManual){lastManual=manualString;log('manual-input',{inputs:manual});}
   for(const c of cars)drive(c,c.id===0&&!state.autoplay&&!c.finished?manual:controller(c),dt);
   for(let i=0;i<cars.length;i++)for(let j=i+1;j<cars.length;j++){
@@ -96,10 +96,10 @@ export default function play(ctx:ModelPlayContext){
  reset(false);
  return {update(dt:number){
   botNow=botDriving;botDriving=false;
-  const keyCommands:[string,Command][]=[['Enter','start'],['KeyA','auto'],['KeyP','pause'],['KeyR','restart']];
+  const keyCommands:[string,Command][]=[['Enter','start'],['KeyO','auto'],['KeyP','pause'],['KeyR','restart']];
   const commands=consumeCommands();for(const [key,cmd]of keyCommands)if(ctx.keys.has(key)&&!previousKeys.has(key))commands.push(cmd);
   for(const cmd of commands)command(cmd);
-  const moving=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyS'].some(k=>ctx.keys.has(k));
+  const moving=['ArrowUp','ArrowDown','ArrowLeft','ArrowRight','KeyW','KeyA','KeyS','KeyD'].some(k=>ctx.keys.has(k));
   if(moving&&!state.paused&&!cars[0].finished){if(state.autoplay){state={...state,autoplay:false};log('autoplay',{enabled:false,cause:'manual takeover'})}start()}
   previousKeys=new Set(ctx.keys);if(!state.paused){accumulator+=Math.min(dt,.1);while(accumulator>=1/60){physics(1/60);accumulator-=1/60}}else accumulator=0;
   camera();clock+=dt;if(clock>.075||commands.length){publish();clock=0;}
