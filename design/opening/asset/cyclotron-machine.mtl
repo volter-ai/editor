@@ -1,0 +1,19 @@
+newmtl body
+Kd 0.9686 0.9647 0.9451
+Ns 200
+
+
+newmtl trim
+Kd 0.0863 0.1451 0.1725
+Ns 200
+
+
+newmtl accent
+Kd 0.8471 0.9216 0.4157
+Ns 200
+Ke 0.8471 0.9216 0.4157
+
+newmtl metal
+Kd 0.6039 0.6392 0.6588
+Ns 200
+Pm 1
