@@ -1055,7 +1055,10 @@ function BlenderViewportArea({
   useEffect(() => {
     if (!documentId || !main) return;
     let live = true;
-    void blenderSkin.sync(view, { clip: (armature) => blenderActionClip({ object: armature }) }).catch((thrown: unknown) => {
+    void blenderSkin.sync(view, {
+      clip: (armature) => blenderActionClip({ object: armature }),
+      bake: (armature, action) => blenderActionClip({ object: armature, action }),
+    }).catch((thrown: unknown) => {
       if (live) editorHost().console.warn(`This file's action could not be read: ${thrown instanceof Error ? thrown.message : String(thrown)}`, 'blender-skin');
     });
     return () => { live = false; };

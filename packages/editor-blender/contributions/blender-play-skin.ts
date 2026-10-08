@@ -1,61 +1,103 @@
 /**
- * ANIMATION IN A GAME: actions played on the skeletons of the game's copy of the model.
+ * ANIMATION IN A GAME: Blender's own animation stack, evaluated on the game's copy of the model.
  *
  * The copy binds its own skins (`BlenderRuntimeView.detach` keeps each skinned mesh's weights and
- * the frame's armatures, and its view's `skeletons` builds and binds them exactly as the editing
- * view does), so nothing here binds or reads a rig. What a game plays is Blender's: each armature
- * starts on the action the file assigns it (`animation_data.action`), and a script sets another by
- * name (`play.setAction`), as Blender's own assignment does. Any action in the file may be set; one
- * that animates none of an armature's bones refuses, with the reason, once.
+ * the frame's armatures), and every armature is posed by the same evaluator the Timeline uses
+ * (`blender-pose.ts`): its NLA tracks bottom to top, then its active action over them, blended as
+ * Blender blends them, then its Damped Track constraints. So a game shows what Blender shows, and
+ * what a game changes is Blender's own data, by Blender's names:
  *
- * A CLIP IS BAKED ONCE PER ACTION, through the clip door, the first time it is wanted. The copy's
- * frame is the frame it was detached from, so its revisions hold for the run. Until a bake lands
- * the armature keeps what it showed before (at first, the pose Blender exported).
+ * - `play` sets the ACTIVE ACTION (`animation_data.action`), crossfaded from the last; each
+ *   armature starts on the one the file assigns it. A game's actions run from when they are set
+ *   and repeat unless told not to.
+ * - `track` sets an NLA TRACK by name: an action for it (over the tracks the file has, or as a
+ *   new track over them), its influence, or its mute. An action that keys only some bones covers
+ *   only those, so an upper-body action on a track over a running action is an upper body that
+ *   aims while the legs run, as in Blender.
+ * - `constraint` sets a bone constraint's influence, or the object it aims at. A constraint aims
+ *   at the game's copy of its target, so moving that object in the game moves the look.
  *
- * LAYERS, BLENDS AND LOOK-AT: each armature has a layered mixer (`blender-play-mixer.ts`), so a
- * game plays actions on parts of a body, at weights, and turns a bone toward what only it knows.
+ * The file's own NLA strips play on the game's clock as scene frames from the scene's start. Every
+ * clip is baked once per action, the first time it is wanted; until the clips a pose needs are
+ * baked, the armature keeps the pose it has.
  *
- * THE GAME'S CLOCK DRIVES IT: the runner advances the mixers by each update's `dt`
+ * THE GAME'S CLOCK DRIVES IT: the runner advances it by each update's `dt`
  * (`@volter/editor-model-play`'s `play-script.ts`), so pause, step, speed and Restart hold for
  * animation exactly as they do for the script.
  */
 import type { BlenderActionClip } from '@volter/blender-engine/browser/rna';
+import type { BlenderArmature } from '@volter/blender-engine/browser/three/blender-runtime-armature';
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
-import * as THREE from 'three';
-import { clipTracks } from './blender-runtime-skin';
-import { LayeredMixer, type LayerOptions, type LookAtOptions } from './blender-play-mixer';
+import type * as THREE from 'three';
+import { ArmaturePose, nlaLayers, poseClip, type ConstraintOverride, type PoseClip, type PoseLayer } from './blender-pose';
 
-export type PlayAnimateOptions = LayerOptions;
+export interface PlayActionOptions {
+  /** Seconds to crossfade from what played before (default 0.2). */
+  readonly fade?: number;
+  /** Repeat until something else plays (default true); `false` plays once and holds the end. */
+  readonly loop?: boolean;
+  /** Playback rate, 1 is the action's own. */
+  readonly speed?: number;
+  /** Start again from the first frame when this action is already playing. */
+  readonly restart?: boolean;
+}
+
+export interface PlayTrackOptions extends PlayActionOptions {
+  /** The action the track plays from now; absent, the track plays what the file gives it. */
+  readonly action?: string;
+  /** The track's influence, 0 to 1, reached over `fade` (default 0, at once). */
+  readonly influence?: number;
+  readonly mute?: boolean;
+}
+
+export interface PlayConstraintOptions {
+  readonly influence?: number;
+  /** The object it aims at instead of the file's target. */
+  readonly target?: THREE.Object3D | null;
+}
 
 type Answer = { ok: true; armature: string } | { ok: false; why: string };
 
-/** The game's door to its characters' actions (`ModelPlayContext.setAction`, `blend`, `lookAt`). */
+/** The game's door to its characters' animation (`ModelPlayContext.setAction`, `setTrack`, `setConstraint`). */
 export interface PlayAnimation {
-  /** The actions in the file, which an object's armature may be set to play. */
+  /** The actions in the file, which an object's armature may play. */
   clips(object: THREE.Object3D): readonly string[];
-  /** Play one action on a layer of an object's armature; the reason when it cannot. */
-  play(object: THREE.Object3D, clip: string, options?: PlayAnimateOptions): Answer;
-  /** Set a layer's actions at weights. */
-  blend(object: THREE.Object3D, weights: Readonly<Record<string, number>>, options?: PlayAnimateOptions): Answer;
-  /** Fade out what a layer plays. */
-  stop(object: THREE.Object3D, fade?: number, layer?: string): void;
-  /** The action that weighs most on a layer, as last set, or null. */
-  playing(object: THREE.Object3D, layer?: string): string | null;
-  /** Turn one of an object's bones toward a point (or object) every update, until `null`. */
-  lookAt(object: THREE.Object3D, bone: string, target: THREE.Vector3 | THREE.Object3D | null, options?: LookAtOptions): Answer;
+  play(object: THREE.Object3D, action: string, options?: PlayActionOptions): Answer;
+  stop(object: THREE.Object3D, fade?: number): void;
+  /** The active action, as last set. */
+  playing(object: THREE.Object3D): string | null;
+  /** Set an NLA track; `null` gives it back to the file (a track the game made goes). */
+  track(object: THREE.Object3D, name: string, options: PlayTrackOptions | null): Answer;
+  constraint(object: THREE.Object3D, bone: string, name: string, options: PlayConstraintOptions): Answer;
   update(dt: number): void;
   readonly warnings: readonly string[];
   dispose(): void;
 }
 
+/** A weight that moves toward its target at a rate (a crossfade). */
+interface Ramp { weight: number; target: number; rate: number }
+const ramp = (weight: number, target: number, fade: number): Ramp => ({ weight, target, rate: fade > 0 ? 1 / fade : 0 });
+const step = (r: Ramp, dt: number): void => {
+  r.weight = r.rate <= 0 ? r.target : r.weight < r.target ? Math.min(r.target, r.weight + dt * r.rate) : Math.max(r.target, r.weight - dt * r.rate);
+};
+
+/** An action a game set, on its own clock from when it was set. */
+interface Playing { readonly action: string; readonly from: number; readonly loop: boolean; readonly speed: number; readonly weight: Ramp }
+
+interface Track { action: Playing | null; previous: Playing | null; readonly influence: Ramp; mute: boolean; readonly own: boolean }
+
 interface Armature {
   readonly rig: ArmatureRig;
-  readonly mixer: LayeredMixer;
-  readonly clips: Map<string, THREE.AnimationClip>;
-  readonly baking: Set<string>;
-  /** Actions with nothing this armature can play: asked once, never re-baked every update. */
+  readonly pose: ArmaturePose;
+  readonly facts: BlenderArmature;
+  /** Baked clips by action: the clip, undefined while baking, null when it plays nothing. */
+  readonly clips: Map<string, PoseClip | null | undefined>;
   readonly failed: Map<string, string>;
+  /** The active action and the ones fading out under it, oldest first. */
+  line: Playing[];
+  readonly tracks: Map<string, Track>;
+  readonly constraints: Map<string, ConstraintOverride>;
 }
 
 /** The copy's animation. `bake` reads one action of one armature through the clip door. */
@@ -63,49 +105,83 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   const warnings: string[] = [];
   const facts = view.animationFacts();
   const actions = Object.keys(facts.actions);
+  const fps = facts.clock?.fps || 24;
+  const sceneStart = facts.clock?.start ?? 1;
   const armatures = new Map<string, Armature>();
+  let time = 0;
   let disposed = false;
 
-  const refuse = (armature: Armature, clip: string, why: string): void => {
-    armature.failed.set(clip, why);
-    warnings.push(`${armature.rig.armature} / ${clip}: ${why}`);
+  const fail = (armature: Armature, action: string, why: string): void => {
+    armature.clips.set(action, null);
+    armature.failed.set(action, why);
+    warnings.push(`${armature.rig.armature} / ${action}: ${why}`);
   };
-
-  /** The clip the mixer asks for: baked, or baked now (once) and given on a later update. */
-  const clipFor = (armature: Armature, clip: string): THREE.AnimationClip | null => {
-    const held = armature.clips.get(clip);
-    if (held || disposed || armature.failed.has(clip) || armature.baking.has(clip)) return held ?? null;
-    armature.baking.add(clip);
-    void bake(armature.rig.armature, clip).then((baked) => {
-      armature.baking.delete(clip);
-      const tracks = baked && baked.clipStart !== undefined && baked.clipEnd !== undefined
-        ? clipTracks(baked, armature.rig.bones, warnings) : [];
-      if (!baked || !tracks.length) {
-        refuse(armature, clip, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
-        return;
-      }
-      const duration = baked.duration ?? (baked.clipEnd! - baked.clipStart!) / baked.fps;
-      armature.clips.set(clip, new THREE.AnimationClip(clip, duration, tracks));
-    }, (error: unknown) => {
-      armature.baking.delete(clip);
-      refuse(armature, clip, `it could not be read: ${error instanceof Error ? error.message : String(error)}`);
-    });
-    return null;
+  const clipOf = (armature: Armature, action: string): PoseClip | null | undefined => {
+    if (armature.clips.has(action)) return armature.clips.get(action);
+    armature.clips.set(action, undefined);
+    void bake(armature.rig.armature, action).then((baked) => {
+      const clip = baked ? poseClip(baked) : null;
+      if (clip) armature.clips.set(action, clip);
+      else fail(armature, action, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
+    }, (error: unknown) => fail(armature, action, `it could not be read: ${error instanceof Error ? error.message : String(error)}`));
+    return undefined;
   };
 
   for (const rig of view.skeletons.rigs()) {
-    const armature: Armature = {
-      rig, clips: new Map(), baking: new Set(), failed: new Map(),
-      mixer: new LayeredMixer(rig.object, rig.bones, (clip) => clipFor(armature, clip)),
-    };
+    const entry = facts.armatures[rig.armature];
+    if (!entry) continue;
+    const pose = new ArmaturePose(rig);
+    pose.facts(entry);
+    for (const thing of pose.unsupported()) warnings.push(`${rig.armature}: ${thing} plays only in Blender, not in a game.`);
+    const armature: Armature = { rig, pose, facts: entry, clips: new Map(), failed: new Map(), line: [], tracks: new Map(), constraints: new Map() };
+    // EACH ARMATURE STARTS ON ITS ASSIGNED ACTION, as Blender's viewport plays it.
+    if (entry.action) armature.line = [{ action: entry.action, from: 0, loop: true, speed: 1, weight: ramp(1, 1, 0) }];
     armatures.set(rig.armature, armature);
   }
 
-  // EACH ARMATURE STARTS ON ITS ASSIGNED ACTION, as Blender's viewport plays it.
-  for (const armature of armatures.values()) {
-    const assigned = facts.armatures[armature.rig.armature]?.action;
-    if (assigned) armature.mixer.set(assigned, { fade: 0 });
-  }
+  /** A game's action as a layer now: its frame on its own clock, repeated or held at its end. */
+  const playedLayer = (armature: Armature, played: Playing, influence: number, blend: string): PoseLayer | null | undefined => {
+    const clip = clipOf(armature, played.action);
+    if (!clip) return clip;
+    const length = clip.end - clip.start;
+    const elapsed = (time - played.from) * fps * played.speed;
+    const frame = length > 0 && played.loop ? clip.start + (((elapsed % length) + length) % length) : Math.min(clip.end, clip.start + elapsed);
+    return { clip, frame, influence: influence * played.weight.weight, blend };
+  };
+
+  /** Every layer of one armature now, bottom to top; null while a clip it needs is being baked. */
+  const layersOf = (armature: Armature): PoseLayer[] | null => {
+    const layers: PoseLayer[] = [];
+    let waiting = false;
+    const take = (layer: PoseLayer | null | undefined): void => {
+      if (layer === undefined) waiting = true;
+      else if (layer) layers.push(layer);
+    };
+    const animation = armature.facts.animation;
+    const frame = sceneStart + time * fps;
+    const solo = animation?.tracks.some((track) => track.solo) ?? false;
+    for (const track of animation && animation.useNla ? animation.tracks : []) {
+      const set = armature.tracks.get(track.name);
+      if ((set ? set.mute : track.mute) || (solo && !track.solo)) continue;
+      const influence = set ? set.influence.weight : 1;
+      if (set?.action) {
+        const blend = track.strips[0]?.blendType ?? 'REPLACE';
+        if (set.previous) take(playedLayer(armature, set.previous, influence, blend));
+        take(playedLayer(armature, set.action, influence, blend));
+        continue;
+      }
+      const stack = nlaLayers({ ...animation!, tracks: [{ ...track, mute: false, solo: false }] }, frame, (action) => clipOf(armature, action));
+      if (stack.waiting) waiting = true;
+      for (const layer of stack.layers) layers.push({ ...layer, influence: layer.influence * influence });
+    }
+    for (const set of armature.tracks.values()) {
+      if (!set.own || set.mute || !set.action) continue;
+      if (set.previous) take(playedLayer(armature, set.previous, set.influence.weight, 'REPLACE'));
+      take(playedLayer(armature, set.action, set.influence.weight, 'REPLACE'));
+    }
+    for (const played of armature.line) take(playedLayer(armature, played, animation?.influence ?? 1, animation?.blendType ?? 'REPLACE'));
+    return waiting ? null : layers;
+  };
 
   /** The armature that animates `object`: its own, the one its skin is bound to, or the nearest
    *  armature among its ancestors and descendants (a character's root holds its armature). */
@@ -123,46 +199,109 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     object.traverse((child) => { if (!found) found = own(child); });
     return found;
   };
-
-  /** The armature, after checking every action named is one it can play. */
-  const resolve = (object: THREE.Object3D, clips: readonly string[]): Armature | { why: string } => {
-    const armature = armatureOf(object);
-    if (!armature) return { why: `${object.name || 'this object'} has no armature` };
-    for (const clip of clips) {
-      if (!(clip in facts.actions)) return { why: `the file has no action "${clip}"` };
-      const failed = armature.failed.get(clip);
-      if (failed) return { why: failed };
-    }
-    return armature;
-  };
-  const answer = (armature: Armature, refused: string | null): Answer =>
-    refused ? { ok: false, why: refused } : { ok: true, armature: armature.rig.armature };
+  const refusal = (armature: Armature, action: string): string | null =>
+    !(action in facts.actions) ? `the file has no action "${action}"` : armature.failed.get(action) ?? null;
+  const start = (action: string, options: PlayActionOptions, weight: Ramp): Playing => ({
+    action, from: time, loop: options.loop ?? true, speed: options.speed ?? 1, weight,
+  });
+  const ok = (armature: Armature): Answer => ({ ok: true, armature: armature.rig.armature });
+  const none = (object: THREE.Object3D): Answer => ({ ok: false, why: `${object.name || 'this object'} has no armature` });
 
   return {
     warnings,
     clips: (object) => (armatureOf(object) ? actions : []),
-    play(object, clip, options = {}) {
-      const armature = resolve(object, [clip]);
-      return 'why' in armature ? { ok: false, why: armature.why } : answer(armature, armature.mixer.set(clip, options));
-    },
-    blend(object, weights, options = {}) {
-      const armature = resolve(object, Object.keys(weights));
-      return 'why' in armature ? { ok: false, why: armature.why } : answer(armature, armature.mixer.blend(weights, options));
-    },
-    stop(object, fade = 0.2, layer) {
-      armatureOf(object)?.mixer.stop({ fade, ...(layer ? { layer } : {}) });
-    },
-    // What was last set, so a script setting the same action every update while it bakes asks once.
-    playing: (object, layer) => armatureOf(object)?.mixer.playing(layer) ?? null,
-    lookAt(object, bone, target, options = {}) {
+    play(object, action, options = {}) {
       const armature = armatureOf(object);
-      if (!armature) return { ok: false, why: `${object.name || 'this object'} has no armature` };
-      return answer(armature, armature.mixer.lookAt(bone, target, options));
+      if (!armature) return none(object);
+      const refused = refusal(armature, action);
+      if (refused) return { ok: false, why: refused };
+      const current = armature.line.at(-1);
+      if (current?.action === action && current.weight.target > 0) {
+        if (options.restart) armature.line[armature.line.length - 1] = { ...current, from: time };
+        return ok(armature);
+      }
+      const fade = Math.max(0, options.fade ?? 0.2);
+      // A CROSSFADE is the new action over the old at a rising influence; the old goes once covered.
+      armature.line = current && fade > 0 ? [...armature.line, start(action, options, ramp(0, 1, fade))] : [start(action, options, ramp(1, 1, 0))];
+      return ok(armature);
     },
-    update(dt) { for (const armature of armatures.values()) armature.mixer.update(dt); },
+    stop(object, fade = 0.2) {
+      const armature = armatureOf(object);
+      if (!armature) return;
+      if (fade <= 0) armature.line = [];
+      else for (const played of armature.line) Object.assign(played.weight, ramp(played.weight.weight, 0, fade));
+    },
+    playing: (object) => {
+      const current = armatureOf(object)?.line.at(-1);
+      return current && current.weight.target > 0 ? current.action : null;
+    },
+    track(object, name, options) {
+      const armature = armatureOf(object);
+      if (!armature) return none(object);
+      const inFile = armature.facts.animation?.tracks.some((track) => track.name === name) ?? false;
+      const set = armature.tracks.get(name);
+      if (options === null) {
+        if (set?.own) Object.assign(set.influence, ramp(set.influence.weight, 0, 0.2));
+        else armature.tracks.delete(name);
+        return ok(armature);
+      }
+      if (options.action) {
+        const refused = refusal(armature, options.action);
+        if (refused) return { ok: false, why: refused };
+      } else if (!inFile && !set) {
+        return { ok: false, why: `${armature.rig.armature} has no NLA track "${name}"; give it an \`action\` to make one` };
+      }
+      const track: Track = set ?? { action: null, previous: null, influence: ramp(1, 1, 0), mute: false, own: !inFile };
+      if (options.influence !== undefined)
+        Object.assign(track.influence, ramp(track.influence.weight, Math.max(0, Math.min(1, options.influence)), Math.max(0, options.fade ?? 0)));
+      if (options.mute !== undefined) track.mute = options.mute;
+      if (options.action && (track.action?.action !== options.action || options.restart)) {
+        const crossfade = Math.max(0, options.fade ?? 0.2);
+        track.previous = track.action && crossfade > 0 ? track.action : null;
+        track.action = start(options.action, options, ramp(track.previous ? 0 : 1, 1, crossfade));
+      }
+      armature.tracks.set(name, track);
+      return ok(armature);
+    },
+    constraint(object, bone, name, options) {
+      const armature = armatureOf(object);
+      if (!armature) return none(object);
+      const declared = armature.facts.bones.find((one) => one.name === bone);
+      if (!declared) return { ok: false, why: `${armature.rig.armature} has no bone "${bone}"` };
+      const constraint = declared.constraints?.find((one) => one.name === name);
+      if (!constraint) return { ok: false, why: `bone "${bone}" has no constraint "${name}"; it has ${(declared.constraints ?? []).map((one) => `"${one.name}"`).join(', ') || 'none'}` };
+      if (constraint.type !== 'DAMPED_TRACK') return { ok: false, why: `"${name}" is a ${constraint.type} constraint, which plays only in Blender; a game plays Damped Track` };
+      const key = `${bone}\u0000${name}`;
+      armature.constraints.set(key, { ...armature.constraints.get(key), ...options });
+      return ok(armature);
+    },
+    update(dt) {
+      if (disposed) return;
+      time += dt;
+      for (const armature of armatures.values()) {
+        for (const played of armature.line) step(played.weight, dt);
+        // What the newest action covers whole is gone; so is what has faded to nothing.
+        let covering = -1;
+        armature.line.forEach((played, index) => { if (played.weight.weight >= 1) covering = index; });
+        if (covering > 0) armature.line = armature.line.slice(covering);
+        armature.line = armature.line.filter((played) => played.weight.weight > 0 || played.weight.target > 0);
+        for (const [name, track] of armature.tracks) {
+          step(track.influence, dt);
+          if (track.action) step(track.action.weight, dt);
+          if (track.previous && track.action && track.action.weight.weight >= 1) track.previous = null;
+          if (track.own && track.influence.weight === 0 && track.influence.target === 0) armature.tracks.delete(name);
+        }
+        const layers = layersOf(armature);
+        if (!layers) continue;
+        armature.pose.apply(layers, {
+          object: (name) => view.objectForBlenderName(name),
+          override: (bone, name) => armature.constraints.get(`${bone}\u0000${name}`),
+        });
+      }
+    },
     dispose() {
       disposed = true;
-      for (const armature of armatures.values()) armature.mixer.dispose();
+      armatures.clear();
     },
   };
 }

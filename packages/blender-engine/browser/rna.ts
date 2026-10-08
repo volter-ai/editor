@@ -528,19 +528,22 @@ export interface BlenderUvLayout {
 }
 
 /**
- * ONE TRACK of {@link BlenderActionClip}: a bone's LOCAL `position`,
- * `quaternion` or `scale` sampled at every integer frame.
+ * ONE TRACK of {@link BlenderActionClip}: one of a bone's CHANNELS, Blender's own property values
+ * (`PoseBone.location`, `rotation_quaternion` as w,x,y,z, `rotation_euler`, `rotation_axis_angle`
+ * as angle,x,y,z, `scale`), sampled at every integer frame. `mask` names the components the action
+ * keys (bit i for component i); the others are left to what lies beneath, as in Blender.
  *
  * `constant` says the door found every sample equal to the first and shipped
  * two keys instead of N — which is most of a rig, most of the time.
  */
 export interface BlenderClipTrack {
   readonly bone: string;
-  readonly property: 'position' | 'quaternion' | 'scale';
+  readonly property: 'location' | 'rotation_quaternion' | 'rotation_euler' | 'rotation_axis_angle' | 'scale';
+  readonly mask: number;
   readonly stride: number;
   readonly count: number;
   readonly constant: boolean;
-  /** Float32 seconds, `count` of them, zero at `clipStart`. */
+  /** Float32 FRAMES, `count` of them. */
   readonly timeBase64: string;
   /** Float32, `count * stride`. */
   readonly valueBase64: string;
@@ -616,6 +619,8 @@ export interface BlenderActionClip {
   readonly tracks: readonly BlenderClipTrack[];
   readonly clipStart?: number;
   readonly clipEnd?: number;
+  /** Blender repeats it past its range (Cycles modifiers on its curves, or `use_cyclic`). */
+  readonly cyclic?: boolean;
   readonly duration?: number;
   readonly sampled?: number;
   /** Bones the action names that the armature does not have. */

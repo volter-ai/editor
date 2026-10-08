@@ -1332,8 +1332,101 @@ def _armature_bones(obj, locked_groups):
             # (`overlay_armature.cc:2059-2084`); it shades both the solid and
             # the wire toward `bone_locked_weight`.
             "lockedWeight": bone.name in locked_groups,
+            # WHAT THE PRESENTER EVALUATES THE POSE FROM, the same inputs `BKE_pose_where_is` takes:
+            # the rest matrix (`Bone.matrix_local`, armature space), the channels' own values (what
+            # a channel no action animates keeps), and the bone's constraints.
+            "rest": _matrix_rows(bone.matrix_local),
+            "channels": _bone_channels(pchan),
+            **_bone_inherit(bone),
+            **_bone_constraints(pchan),
         })
     return bones
+
+
+def _bone_channels(pchan):
+    """A pose bone's channel VALUES as Blender stores them (`PoseBone.location`,
+    `rotation_*`, `scale`), every rotation property and the mode that chooses among them, so the
+    presenter blends them exactly as the NLA does, per channel, before building the matrix."""
+    return {
+        "mode": pchan.rotation_mode,
+        "location": [float(v) for v in pchan.location],
+        "rotation_quaternion": [float(v) for v in pchan.rotation_quaternion],
+        "rotation_euler": [float(v) for v in pchan.rotation_euler],
+        "rotation_axis_angle": [float(v) for v in pchan.rotation_axis_angle],
+        "scale": [float(v) for v in pchan.scale],
+    }
+
+
+def _bone_inherit(bone):
+    """The parenting flags, only when one is not Blender's default (the presenter composes the
+    default chain `parent @ rest @ basis`, and names a bone that asks for another)."""
+    flags = []
+    if not bone.use_inherit_rotation:
+        flags.append("use_inherit_rotation=False")
+    if bone.inherit_scale != "FULL":
+        flags.append("inherit_scale=%s" % bone.inherit_scale)
+    if not bone.use_local_location:
+        flags.append("use_local_location=False")
+    if getattr(bone, "use_relative_parent", False):
+        flags.append("use_relative_parent=True")
+    return {"inherit": flags} if flags else {}
+
+
+def _bone_constraints(pchan):
+    """A pose bone's constraint stack, in order. Every constraint is named with its type; the ones
+    the presenter evaluates (Damped Track) carry what it needs."""
+    stack = []
+    for con in pchan.constraints:
+        entry = {"name": con.name, "type": con.type, "enabled": bool(con.enabled),
+                 "influence": float(con.influence)}
+        target = getattr(con, "target", None)
+        if target is not None:
+            entry["target"] = target.name
+            subtarget = getattr(con, "subtarget", "")
+            if subtarget:
+                entry["subtarget"] = subtarget
+        if con.type == "DAMPED_TRACK":
+            entry["trackAxis"] = con.track_axis
+            entry["headTail"] = float(con.head_tail)
+        stack.append(entry)
+    return {"constraints": stack} if stack else {}
+
+
+def _armature_animation(obj):
+    """THE ARMATURE'S ANIMATION STACK as Blender evaluates it (`BKE_animsys_evaluate_animdata`):
+    its NLA tracks bottom to top, then the active action over them, each with its influence and
+    blend type. Strip timing is Blender's own (`nlastrip_get_frame`), so it is sent whole."""
+    adt = obj.animation_data
+    if adt is None:
+        return {}
+    tracks = []
+    for track in adt.nla_tracks:
+        strips = []
+        for strip in track.strips:
+            strips.append({
+                "name": strip.name, "type": strip.type,
+                "action": strip.action.name if strip.action is not None else None,
+                "start": float(strip.frame_start), "end": float(strip.frame_end),
+                "actionStart": float(strip.action_frame_start), "actionEnd": float(strip.action_frame_end),
+                "scale": float(strip.scale), "repeat": float(strip.repeat),
+                "influence": float(strip.influence), "animatedInfluence": bool(strip.use_animated_influence),
+                "animatedTime": bool(strip.use_animated_time),
+                "blendIn": float(strip.blend_in), "blendOut": float(strip.blend_out),
+                "blendType": strip.blend_type, "extrapolation": strip.extrapolation,
+                "reversed": bool(strip.use_reverse), "mute": bool(strip.mute),
+            })
+        tracks.append({"name": track.name, "mute": bool(track.mute), "solo": bool(track.is_solo),
+                       "strips": strips})
+    drivers = sorted({match.group(1) for match in (_BONE_PATH.match(fc.data_path) for fc in adt.drivers)
+                      if match is not None})
+    return {"animation": {
+        "useNla": bool(adt.use_nla),
+        "influence": float(adt.action_influence),
+        "blendType": adt.action_blend_type,
+        "extrapolation": adt.action_extrapolation,
+        "tracks": tracks,
+        **({"drivers": drivers} if drivers else {}),
+    }}
 
 
 def _locked_weight_groups(view_layer):
@@ -1378,6 +1471,7 @@ def _armatures(view_layer):
             "action": (obj.animation_data.action.name
                        if obj.animation_data is not None and obj.animation_data.action is not None
                        else None),
+            **_armature_animation(obj),
         }
     return armatures
 
@@ -4998,8 +5092,12 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
     if not bake:
         return header
     frames = sorted(columns)
-    first = int(math.floor(frames[0]))
-    last = int(math.ceil(frames[-1]))
+    # THE ACTION'S OWN RANGE (`Action.frame_range`: its keys, or its manual range) with its keys:
+    # what a strip or the action line plays, sampled through `FCurve.evaluate`, which applies the
+    # curves' extrapolation and modifiers (a Cycles modifier repeats them) as Blender does.
+    span = getattr(action, "frame_range", None)
+    first = int(math.floor(min(frames[0], span[0] if span is not None else frames[0])))
+    last = int(math.ceil(max(frames[-1], span[1] if span is not None else frames[-1])))
     if last <= first:
         last = first + 1
     header["clipStart"] = first
@@ -5016,61 +5114,34 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
                             "door does not play (object transform, shape keys, a material). The "
                             "Timeline still draws its keys." % (action.name,))
         return header
-    rest_relative = {}
-    for pchan in _pose_bones_parents_first(arm_obj):
-        local = pchan.bone.matrix_local
-        parent = pchan.parent
-        rest_relative[pchan.name] = (parent.bone.matrix_local.inverted_safe() @ local
-                                     if parent is not None else local.copy())
-    times = [(frame - first) / fps for frame in range(first, last + 1)]
     tracks = []
     unplayed = []
-    for bone in sorted({name for name, _ in channels}):
-        pchan = arm_obj.pose.bones.get(bone)
-        if pchan is None:
+    for (bone, prop) in sorted(channels):
+        if arm_obj.pose.bones.get(bone) is None:
             unplayed.append(bone)
             continue
-        rest = rest_relative[bone]
-        rotation_mode = pchan.rotation_mode
-        positions, quaternions, scales = [], [], []
-        previous = None
+        group = channels[(bone, prop)]
+        stride = 4 if prop in ("rotation_quaternion", "rotation_axis_angle") else 3
+        mask = 0
+        for index in group:
+            if 0 <= index < stride:
+                mask |= 1 << index
+        values = []
         for frame in range(first, last + 1):
-            location = _sample(channels.get((bone, "location")), pchan.location, frame)
-            scale = _sample(channels.get((bone, "scale")), pchan.scale, frame, default=1.0)
-            if rotation_mode == "QUATERNION":
-                quat = mathutils.Quaternion(
-                    _sample(channels.get((bone, "rotation_quaternion")),
-                            pchan.rotation_quaternion, frame, size=4, default=None,
-                            identity=(1.0, 0.0, 0.0, 0.0)))
-            elif rotation_mode == "AXIS_ANGLE":
-                raw = _sample(channels.get((bone, "rotation_axis_angle")),
-                              pchan.rotation_axis_angle, frame, size=4, default=None,
-                              identity=(0.0, 0.0, 1.0, 0.0))
-                quat = mathutils.Quaternion(raw[1:4], raw[0])
-            else:
-                quat = mathutils.Euler(
-                    _sample(channels.get((bone, "rotation_euler")), pchan.rotation_euler, frame),
-                    rotation_mode).to_quaternion()
-            basis = mathutils.Matrix.LocRotScale(mathutils.Vector(location), quat,
-                                                 mathutils.Vector(scale))
-            position, rotation, scaling = (rest @ basis).decompose()
-            # QUATERNION CONTINUITY, and it is not cosmetic: three's
-            # `QuaternionLinearInterpolant` takes the shorter arc between
-            # NEIGHBOURING samples, so one sign flip in the middle of a bake
-            # spins the bone the long way round for a frame.
-            if previous is not None and rotation.dot(previous) < 0.0:
-                rotation.negate()
-            previous = rotation.copy()
-            positions.extend((position.x, position.y, position.z))
-            quaternions.extend((rotation.x, rotation.y, rotation.z, rotation.w))
-            scales.extend((scaling.x, scaling.y, scaling.z))
-        tracks.extend(_track(bone, "position", times, positions, 3))
-        tracks.extend(_track(bone, "quaternion", times, quaternions, 4))
-        tracks.extend(_track(bone, "scale", times, scales, 3))
+            for index in range(stride):
+                fcurve = group.get(index)
+                values.append(float(fcurve.evaluate(frame)) if fcurve is not None else 0.0)
+        tracks.extend(_track(bone, prop, list(range(first, last + 1)), values, stride, mask))
+    # CYCLIC when Blender would repeat it past its keys: every curve carries a Cycles modifier, or
+    # the action is marked cyclic over its manual range (`Action.use_cyclic`).
+    bone_curves = [fc for fc in curves if _BONE_PATH.match(fc.data_path) is not None]
+    cyclic = bool(getattr(action, "use_cyclic", False) and getattr(action, "use_frame_range", False)) or (
+        bool(bone_curves) and all(any(m.type == "CYCLES" for m in fc.modifiers) for fc in bone_curves))
+    header["cyclic"] = cyclic
     header.update({
         "tracks": tracks,
         "duration": (last - first) / fps,
-        "sampled": len(times),
+        "sampled": last - first + 1,
         "unplayedBones": unplayed,
     })
     return header
@@ -5083,25 +5154,10 @@ _KEY_TYPE_RANK = {"JITTER": 1, "GENERATED": 2, "MOVING_HOLD": 3, "BREAKDOWN": 4,
                   "KEYFRAME": 5, "EXTREME": 6}
 
 
-def _sample(group, current, frame, size=3, default=0.0, identity=None):
-    """One channel's value at `frame`: each component's own F-Curve where there
-    is one, and the pose channel's CURRENT value where there is not -- which is
-    what Blender does too (an unkeyed component simply keeps its value)."""
-    fallback = list(identity) if identity is not None else [
-        (current[i] if current is not None and i < len(current) else default) for i in range(size)]
-    if identity is not None and current is not None and group is not None:
-        fallback = [float(v) for v in current]
-    if group is None:
-        return fallback
-    out = list(fallback)
-    for index, fcurve in group.items():
-        if 0 <= index < len(out):
-            out[index] = float(fcurve.evaluate(frame))
-    return out
-
-
-def _track(bone, prop, times, values, stride):
-    """One three.js keyframe track, or two keys when nothing moves.
+def _track(bone, prop, times, values, stride, mask):
+    """One channel's samples at every integer frame (`times` are FRAMES), or two keys when nothing
+    moves. `mask` says which components the action keys: the others are left to whatever lies
+    under it, as Blender leaves a component no F-Curve drives.
 
     The arrays cross as base64 Float32 (`timeBase64`, `valueBase64`), the shape
     every large payload in this file takes."""
@@ -5122,6 +5178,7 @@ def _track(bone, prop, times, values, stride):
     return [{
         "bone": bone,
         "property": prop,
+        "mask": mask,
         "stride": stride,
         "count": len(times),
         "constant": constant,

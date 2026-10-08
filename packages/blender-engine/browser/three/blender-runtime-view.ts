@@ -7,7 +7,7 @@ import * as THREE from 'three';
 import { z } from 'zod';
 import { onPresenterChange, presenterChanged } from './blender-presenter-change';
 import { bytesFromBase64 } from './blender-base64';
-import { ArmatureOverlay, armatureSchema } from './blender-runtime-armature';
+import { ArmatureOverlay, armatureSchema, type BlenderArmature } from './blender-runtime-armature';
 import { type FrameSkin, RuntimeSkeletons, skinGeometry } from './blender-runtime-skeleton';
 import { UNKNOWN_GEOMETRY, UNKNOWN_IMAGE } from './blender-runtime-frame';
 import {
@@ -1128,7 +1128,9 @@ export class BlenderRuntimeView {
     clock: { start: number; end: number; fps: number } | null;
     active: string | null;
     actions: Readonly<Record<string, number>>;
-    armatures: Readonly<Record<string, { action: string | null }>>;
+    /** Each armature as the frame describes it: bones (rest, channels, constraints, Blender's own
+     *  pose), its action and its NLA stack. */
+    armatures: Readonly<Record<string, BlenderArmature>>;
     skinArmature(object: string): string | null;
   } {
     const frame = this.frame;
@@ -1137,7 +1139,7 @@ export class BlenderRuntimeView {
       clock: frame?.clock ?? null,
       active: frame?.active ?? null,
       actions: frame?.actions ?? {},
-      armatures: Object.fromEntries(Object.entries(frame?.armatures ?? {}).map(([name, armature]) => [name, { action: armature.action ?? null }])),
+      armatures: frame?.armatures ?? {},
       skinArmature: (name) => {
         const object = this.objectForBlenderName(name) as THREE.Mesh | null;
         const skin = object?.geometry?.userData['blenderSkin'] as { armature: string } | undefined;

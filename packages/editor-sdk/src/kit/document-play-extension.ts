@@ -31,28 +31,31 @@ export interface DocumentPlayStage {
    *  objects stand in their exported pose. */
   readonly animation?: DocumentPlayAnimation;
 }
-/** Where an action plays on an armature: the `base` layer (every bone), or a named layer from one
- *  bone down, which takes those bones from the base. */
-export interface DocumentPlayLayerOptions {
-  readonly layer?: string;
-  readonly from?: string;
-  readonly loop?: boolean;
+export type DocumentPlayAnswer = { ok: true; armature: string } | { ok: false; why: string };
+
+export interface DocumentPlayActionOptions {
   readonly fade?: number;
+  readonly loop?: boolean;
   readonly speed?: number;
   readonly restart?: boolean;
+}
+
+export interface DocumentPlayTrackOptions extends DocumentPlayActionOptions {
+  readonly action?: string;
+  readonly influence?: number;
+  readonly mute?: boolean;
 }
 /** A document's animation, lent to a runner. Objects are the runner's own (`root`'s descendants). */
 export interface DocumentPlayAnimation {
   clips(object: unknown): readonly string[];
-  play(object: unknown, clip: string, options?: DocumentPlayLayerOptions): { ok: true; armature: string } | { ok: false; why: string };
-  /** A layer's actions at weights; one left out fades to nothing. */
-  blend(object: unknown, weights: Readonly<Record<string, number>>, options?: DocumentPlayLayerOptions):
-    { ok: true; armature: string } | { ok: false; why: string };
-  stop(object: unknown, fade?: number, layer?: string): void;
-  playing(object: unknown, layer?: string): string | null;
-  /** Turn a bone toward a world point or object every update, after the actions; `null` ends it. */
-  lookAt(object: unknown, bone: string, target: unknown, options?: { weight?: number; axis?: 'forward' | 'x' | 'y' | 'z' | '-x' | '-y' | '-z'; limit?: number }):
-    { ok: true; armature: string } | { ok: false; why: string };
+  /** The active action (`animation_data.action`), crossfaded from the last. */
+  play(object: unknown, action: string, options?: DocumentPlayActionOptions): DocumentPlayAnswer;
+  stop(object: unknown, fade?: number): void;
+  playing(object: unknown): string | null;
+  /** An NLA track by name: an action for it, its influence, its mute; `null` gives it back. */
+  track(object: unknown, name: string, options: DocumentPlayTrackOptions | null): DocumentPlayAnswer;
+  /** A bone constraint's influence, or the object it aims at. */
+  constraint(object: unknown, bone: string, name: string, options: { influence?: number; target?: unknown }): DocumentPlayAnswer;
   update(dt: number): void;
   readonly warnings: readonly string[];
   dispose(): void;
