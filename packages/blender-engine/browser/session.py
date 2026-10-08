@@ -5125,10 +5125,7 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
     # THE RANGE BLENDER PLACES THE ACTIVE ACTION OVER over NLA strips (`calc_action_range` with
     # modifiers): its keys, opened to either side a Cycles modifier repeats into (null: unbounded).
     # A manual frame range does not enter it. Measured: a cycling action is not held at its end.
-    keys = [float(key.co[0]) for fc in curves for key in fc.keyframe_points]
-    cycles = [m for fc in curves for m in fc.modifiers if m.type == "CYCLES" and not m.mute]
-    header["keysStart"] = None if any(m.mode_before != "NONE" for m in cycles) else (min(keys) if keys else first)
-    header["keysEnd"] = None if any(m.mode_after != "NONE" for m in cycles) else (max(keys) if keys else last)
+    header["keysStart"], header["keysEnd"] = _action_key_range(action, first, last)
     channels = {}
     others = set()
     for fcurve in curves:
@@ -5172,6 +5169,43 @@ _KEY_TYPE_RANK = {"JITTER": 1, "GENERATED": 2, "MOVING_HOLD": 3, "BREAKDOWN": 4,
 
 _INTERPOLATION = {"CONSTANT": 0, "LINEAR": 1, "BEZIER": 2}
 _CYCLE_MODE = {"NONE": 0, "REPEAT": 1, "REPEAT_OFFSET": 2, "MIRROR": 3}
+
+
+def _action_key_range(action, first, last):
+    """`Action::get_frame_range_of_keys(true)` (`action.cc`, `get_frame_range_of_fcurves`): every
+    F-Curve of the WHOLE action (every layer, strip and slot) widens the range by its keys, and only
+    its LAST modifier counts: Limits widens it by its set X limits, Cycles opens each side its mode
+    repeats into, any other type opens both sides. Mute is not read. None is an open side."""
+    low, high = None, None
+    opened_low = opened_high = False
+    curves = list(getattr(action, "fcurves", None) or ())
+    for layer in getattr(action, "layers", ()):
+        for strip in getattr(layer, "strips", ()):
+            for bag in (getattr(strip, "channelbags", None) or ()):
+                curves.extend(bag.fcurves)
+    for fcurve in curves:
+        points = fcurve.keyframe_points
+        if not len(points):
+            continue
+        frames = [float(key.co[0]) for key in points]
+        low = min(frames) if low is None else min(low, min(frames))
+        high = max(frames) if high is None else max(high, max(frames))
+        if not len(fcurve.modifiers):
+            continue
+        modifier = fcurve.modifiers[-1]
+        if modifier.type == "LIMITS":
+            if modifier.use_min_x:
+                low = min(low, float(modifier.min_x))
+            if modifier.use_max_x:
+                high = max(high, float(modifier.max_x))
+        elif modifier.type == "CYCLES":
+            opened_low = opened_low or modifier.mode_before != "NONE"
+            opened_high = opened_high or modifier.mode_after != "NONE"
+        else:
+            opened_low = opened_high = True
+    if low is None:
+        low, high = first, last
+    return (None if opened_low else low), (None if opened_high else high)
 
 
 def _curve(bone, prop, index, fcurve):
