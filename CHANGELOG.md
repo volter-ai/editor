@@ -16,6 +16,10 @@ where it is missing they stop with an error instead of fetching whatever holds t
 from an earlier starter keep the old lines; change `npx volter-game-editor` to
 `npx --no-install volter-game-editor` in them.
 
+The same holds for what `upgrade` prints when an editor still refuses a project: open it with
+`npx --no-install <command> edit .` in the project. A bare `npx cyclotron` outside the project would fetch
+an unrelated package that holds that name on npm.
+
 ## 0.5.190 — the editor serves from its own host
 
 From `@volter/model-editor` and `@volter/game-editor` 0.5.190, and in every `@volter/cyclotron`

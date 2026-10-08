@@ -388,7 +388,7 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     // NOTHING TO MOVE, YET AN EDITOR REFUSED: then the editor that refused is not this project's
     // own installation (an older global install, another checkout), and saying "already on"
     // alone left the person with no next step (#146 review).
-    console.log(`If an editor still refuses this project, it is running from another installation: open it with this project's own, \`npx ${product.command} edit .\` in ${project}.`);
+    console.log(`If an editor still refuses this project, it is running from another installation: open it with this project's own, \`npx --no-install ${product.command} edit .\` in ${project}.`);
     return;
   }
   if (retired !== null)

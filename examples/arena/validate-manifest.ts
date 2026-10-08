@@ -3,7 +3,7 @@ import { fileURLToPath } from 'node:url';
 import { loadGameManifestFile } from '@volter/project/manifest/load-file';
 
 // ---------------------------------------------------------------------------
-// Usage: npx tsx validate-manifest.ts [manifestPath...]
+// Usage: npx --no-install tsx validate-manifest.ts [manifestPath...]
 //
 // Single source of truth for game-manifest validation, shipped IN the
 // project template so every scaffolded game
