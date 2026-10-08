@@ -77,6 +77,7 @@
     "./kit/mount-failure-report": "./src/kit/mount-failure-report.ts",
     "./kit/module-fetch-diagnosis": "./src/kit/module-fetch-diagnosis.ts",
     "./kit/product-command": "./src/kit/product-command.ts",
+    "./kit/adapter-module": "./src/kit/adapter-module.ts",
     "./kit/stories-scope": "./src/kit/stories-scope.ts",
     "./kit/story-document-openers": "./src/kit/story-document-openers.ts",
     "./kit/transient-hint": "./src/kit/transient-hint.ts",
