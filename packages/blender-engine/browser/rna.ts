@@ -602,6 +602,8 @@ export interface BlenderActionClip {
   readonly armature: string | null;
   readonly action: string | null;
   readonly slot: string | null;
+  /** The action's object slots: at most one means every armature reads the same curves. */
+  readonly objectSlots?: number;
   /** `layered` at this pin — an `Action` has no `.fcurves`; they live at
    *  `layers[0].strips[0].channelbags[0].fcurves`. `legacy` is the branch for
    *  a build where the old attribute is still there. */

@@ -85,6 +85,13 @@ export interface PlayAnimation {
   prepare(): Promise<{ readonly failed: readonly string[] }>;
   /** The starting clips `prepare` is still waiting on Blender for, as `armature / action`. */
   pending(): readonly string[];
+  /**
+   * THE CLIP LIBRARY, read in the background once the game runs: every action on each armature's
+   * NLA strips, muted tracks included (a game's clip library), most-shared first, one read at a
+   * time and only while no other read is waiting, so a clip the game asks for waits behind at most
+   * one. Without it the first switch to a library clip stood the character still for a read.
+   */
+  prefetch(): void;
   /** What each character is playing now, bottom layer first: the animation editors' live view. */
   live(): readonly LiveArmature[];
   /** The frames an action keys, per bone, for one armature (empty until it was baked). */
@@ -162,13 +169,13 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
    * read holds the Blender worker for about 1.5 s. Read per armature, fifteen enemies placed from
    * one piece baked the same clip fifteen times, and an action the game switched one to waited
    * behind all of them: measured on Heck Plungers, half the characters still unposed 20 s in with
-   * Blender idle. So armatures with the same bones share a read, unless the slot is this
-   * armature's own (named for it) or Blender had to choose among several (its `reason` says so):
-   * then the next armature asks for its own.
+   * Blender idle. So armatures with the same bones share a read when the action has at most one
+   * object slot (`objectSlots`, from Blender): with several, which slot plays depends on the
+   * armature, and each armature reads its own.
    */
   const shared = new Map<string, Promise<BlenderActionClip | null>>();
-  /** A clip whose slot Blender picked for its own armature: never another armature's answer. */
-  const ownSlot = (clip: BlenderActionClip | null): boolean => !!clip && (clip.slot === clip.armature || /object slots/.test(clip.reason ?? ''));
+  /** A clip whose slot Blender picked for its armature among several: never another armature's answer. */
+  const ownSlot = (clip: BlenderActionClip | null): boolean => !!clip && (clip.objectSlots ?? 2) > 1;
   const readClip = (armature: Armature, action: string): Promise<BlenderActionClip | null> => {
     const name = armature.rig.armature;
     const skeleton = armature.facts.bones.map((bone) => bone.name).sort().join('\u0001');
@@ -424,6 +431,26 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
         .filter(({ armature, action }) => armature.clips.get(action) == null && armature.failed.has(action) && !/animates none/.test(armature.failed.get(action) ?? ''))
         .map(({ armature, action }) => `${armature.rig.armature} / ${action}: ${armature.failed.get(action)}`);
       return { failed };
+    },
+    prefetch() {
+      const users = new Map<string, Armature[]>();
+      for (const armature of armatures.values()) {
+        const names = new Set<string>();
+        if (armature.facts.action) names.add(armature.facts.action);
+        for (const track of armature.facts.animation?.tracks ?? [])
+          for (const strip of track.strips) if (strip.action) names.add(strip.action);
+        for (const action of names) if (action in facts.actions) users.set(action, [...(users.get(action) ?? []), armature]);
+      }
+      const queue = [...users].sort((a, b) => b[1].length - a[1].length)
+        .flatMap(([action, list]) => list.map((armature) => ({ armature, action })));
+      void (async () => {
+        while (!disposed) {
+          if (baking.size > 0) { await Promise.allSettled([...baking.values()]); continue; }
+          const next = queue.find(({ armature, action }) => !armature.clips.has(action));
+          if (!next) return;
+          await bakeClip(next.armature, next.action);
+        }
+      })();
     },
     pending() {
       return startingClips()

@@ -959,6 +959,7 @@ function BlenderViewportArea({
         if (outcome.waiting.length > 0)
           editorHost().console.warn(`The game started after ${LOADING_LIMIT / 1000} s still waiting on Blender for ${clips(outcome.waiting)}; each plays once Blender answers: ${outcome.waiting.join(', ')}`, 'blender-animation');
         setLiveAnimation(animation);
+        loaded.prefetch();
         stopScript = documentPlayExtension('model')?.run({
           ...(animation ? { animation } : {}),
           documentId: modelId,
