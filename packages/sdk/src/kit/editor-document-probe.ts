@@ -270,7 +270,7 @@ function resolveAreaScope(): Scope {
   }
   // Every area the scope covers is named, so a reader of the answer never takes one area's id
   // for where a match was when several are showing.
-  const ids = shown.map((element) => element.dataset['workspaceDocumentId'] ?? '');
+  const ids = [...new Set(shown.map((element) => element.dataset['workspaceDocumentId'] ?? ''))];
   return { container: first, extraRoots: rest, name: 'area', id: ids.join(', '), title: ids.length > 1 ? `${ids.length} workspace areas` : 'workspace area' };
 }
 
