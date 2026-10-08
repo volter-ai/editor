@@ -3,13 +3,15 @@
  *
  * The editor calls the same routes it calls in a session; the view's service worker hands each
  * one here (`service-worker.ts`), and this answers it against the project's files in memory
- * (`project-store.ts`). Four kinds of answer, and docs/LIMITED-VIEW.md lists every route:
+ * (`project-store.ts`). Five kinds of answer, and docs/LIMITED-VIEW.md lists every route:
  *
  *  - FILE ROUTES, over the store, with the session's request and response shapes
  *    (`server/routes/project-source.ts`, `project-identity.ts`, `project-state.ts`,
  *    `settings.ts`, `themes.ts`, `assets.ts`), so an edit made in the view is visible to every
  *    later read in it. The person's own layers (user settings, user state, user themes) start
  *    empty and live in this page: a view must not carry its builder's.
+ *  - THE COMMAND RELAY (`command-relay.ts`): `/__editor/command` reaches this tab's own command
+ *    listener, as the session's relay does.
  *  - REPORTS the page sends a session (tab presence, console and play reports, command
  *    acknowledgements), accepted and dropped: nothing in a static page reads them.
  *  - THE INTEGRATIONS' ROUTES (`volter.viewServing`, `@volter/editor-sdk/session/limited-view`).
@@ -30,6 +32,7 @@ import { globToRegExp } from '@volter/editor-sdk/session/source-glob';
 import { MANIFEST_FILENAME } from '@volter/editor-project/manifest/filename';
 import { parseEditorSettings } from '@volter/editor-project/settings/schema';
 import { foldDataFileText } from '../../server/data-file-serialize';
+import { createPageCommandRelay } from './command-relay';
 import type { SeededProjectStore } from './project-store';
 import { type LimitedViewConfig, VIEW_DIR, VIEW_MISS_HEADER } from './view-contract';
 
@@ -61,7 +64,6 @@ const UNAVAILABLE_FEATURES: readonly [RegExp, string][] = [
   [/^\/__editor\/configurations/, 'Running and building the project'],
   [/^\/__editor\/(open-project|create-project|inspect-project|adapt-project|browse-folder|reveal|recent-projects|launcher-settings|templates|examples|save-thumbnail)/, 'Opening and creating projects'],
   [/^\/__editor\/(download|export)/, 'Exporting a build'],
-  [/^\/__editor\/command$/, 'Driving the editor from a terminal'],
   [/^\/__editor\/gameplay-sessions\//, 'Opening a recorded play session'],
   [/^\/__editor\/source-conflict\/resolve/, 'Resolving a source conflict'],
   // The source-authoring integrations' write routes live outside `/__editor/`; a view's recorded
@@ -76,8 +78,8 @@ export function unavailableFeature(pathname: string): string {
 /** Reports a session collects and a static page has nobody to read: accepted, dropped. */
 const DROPPED_REPORTS = new RegExp(
   '^/__editor/(state|heartbeat|tab/(ensure|route|claim|expect-restart|close)|page-error|play-phase|' +
-    'console-entries|console-resolved|console/ack|command-result|command-received|command-listener|' +
-    'contributed-commands|log-session|log-entries|server-log|collaboration/presence)$',
+    'console-entries|console-resolved|console/ack|command-received|command-listener|' +
+    'log-session|log-entries|server-log|collaboration/presence)$',
 );
 
 /** A project-relative path the routes may touch: no traversal, no absolute path, no backslash. */
@@ -197,6 +199,8 @@ export function createLimitedViewRouter(options: LimitedViewRouterOptions): (req
   };
 
   const kit: ViewRoute[] = [
+    // `command`, `command-result`, `contributed-commands`: the session's relay, in the page.
+    ...createPageCommandRelay(json),
     {
       method: 'GET',
       match: /^\/__editor\/served-modules$/,
