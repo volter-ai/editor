@@ -166,6 +166,12 @@ function declaredVersion(spec: string | undefined): string | null {
   return bare !== undefined && EXACT_VERSION.test(bare) ? bare : null;
 }
 
+/** The version a kit package is declared at, for telling which packages move together: an exact spec's, or a
+ *  local tarball's (`file:…/volter-play-0.5.202.tgz`, how a project built from a checkout declares the kit). */
+function kitVersion(spec: string | undefined): string | null {
+  return declaredVersion(spec) ?? spec?.match(/^file:.*-(\d+\.\d+\.\d+)\.tgz$/)?.[1] ?? null;
+}
+
 /**
  * Write every planned file, or none: each to a temp file beside it first, then all renamed into
  * place. A failure while writing leaves the project as it was; a failure between the renames
@@ -410,7 +416,8 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     if (!declared) continue;
     for (const [name, current] of Object.entries(declared)) {
       if (!name.startsWith('@volter/')) continue;
-      const target = name === product.packageName ? release.version : release.dependencies[name] ?? (current === previousKit ? kit : undefined);
+      const target = name === product.packageName ? release.version : release.dependencies[name]
+        ?? (current === previousKit || (kitVersion(current) !== null && kitVersion(current) === kitVersion(previousKit)) ? kit : undefined);
       if (target === undefined) {
         kept.push(`package.json keeps ${name}@${current}: ${product.packageName}@${release.version} does not name it`);
         continue;
