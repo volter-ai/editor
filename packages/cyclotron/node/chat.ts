@@ -59,6 +59,9 @@ export async function chat(args: string[]): Promise<unknown> {
     if (said?.state === 'waiting') {
       throw new Error('Chat is waiting on an approval in the editor. Answer it there (or use chat stop), then send.');
     }
+    if (said?.state === 'unknown') {
+      throw new Error("Chat's turn could not be read, so the prompt was not sent (a turn may be running). Run chat status, then send again.");
+    }
     // The turn ended between the reading above and the server's: the prompt is an ordinary send.
     if (said?.state !== 'idle') {
       throw new Error(`Chat did not take the prompt into its running turn: ${said?.error ?? `HTTP ${response.status}`}`);
