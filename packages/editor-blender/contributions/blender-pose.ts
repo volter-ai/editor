@@ -20,6 +20,13 @@
  * A clip holds an action's F-Curves whole (`session.py`'s `rna_action_clip`): keys, handles,
  * interpolation, extrapolation and Cycles modifiers, evaluated as `fcurve_eval_keyframes` and
  * `fcm_cycles_time` evaluate them, so a pose is Blender's at any frame, whole or fractional.
+ *
+ * LICENCE. This file follows Blender's source (the functions named above), so it is a derivative
+ * work of Blender and is GPL-3.0-or-later, not the AGPL the package's own code carries
+ * (`../LICENSE`). Blender, Copyright (C) Blender Authors, GPL-2.0-or-later. It must not be
+ * copied into an Apache-2.0 or MIT package.
+ *
+ * SPDX-License-Identifier: GPL-3.0-or-later
  */
 import type { BlenderActionClip, BlenderClipCurve } from '@volter/blender-engine/browser/rna';
 import type {
