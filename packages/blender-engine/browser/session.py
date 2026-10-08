@@ -2293,8 +2293,15 @@ class Session:
         uncompressed write was 101.9 MB, compressed 12.8 MB, and the save itself
         took the same time (0.07-0.17 s against 0.10-0.14 s). A game scene with
         that character was 120 MB uncompressed, past GitHub's 100 MB file limit,
-        and 17 MB compressed. Blender reads both, and nothing here reads the
-        bytes.
+        and 17 MB compressed. Blender reads both.
+
+        THE SAVE'S CHUNKED TRANSPORT READS THE BYTES (`document-chunks.mts`): it
+        sends the server only the chunks it lacks, and that reuse was measured
+        on uncompressed files. Measured again with compression, same character,
+        one small edit per save after the first: uncompressed sent 4.19 MB (one
+        chunk) in about 1.4 s end to end; compressed sent 2.31 MB in about
+        0.26 s. Zstandard compresses in independent blocks, so an edit still
+        changes part of the file, not all of it.
         """
         self.save_due = False
         if self.document is None:
