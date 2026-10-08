@@ -49,8 +49,8 @@ function Menu({ documentId, onClose }: DocumentPlayControlProps) {
 }
 
 /**
- * WHETHER A MODEL HAS A PLAY SCRIPT — `src/models/track.blend` has one when
- * `src/models/track.play.ts` exists (`playScriptPath`), the same file Play imports. Asked once
+ * WHETHER A MODEL HAS A PLAY SCRIPT — `src/models/canyon.blend` has one when
+ * `src/models/canyon.play.ts` exists (`playScriptPath`), the same file Play imports. Asked once
  * per path through the project's files door and then kept, corrected by that door's change
  * events, so a layout can open a model with a script as a game and one without as a model. A
  * project switch forgets every answer.

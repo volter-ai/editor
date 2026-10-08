@@ -400,6 +400,9 @@ Commands, all through `npx --no-install cyclotron`:
 If the project uses a Volter World, run app and test commands through that World.
 
 Keep the project clean. Once the real document exists, remove the template
-placeholder (`cube.blend`, `cube.py`) unless the person is using it. Put your
+placeholder unless the person is using it: `cube.blend` and `cube.py` in a
+models project; in a playable one, the Canyon Comet example (`src/models/canyon.*`
+with the step scripts beside it, `course.ts`, `race-state.ts`, `src/textures/`
+and the race UI in `src/ui/`). Put your
 own helper scripts and evidence images under `.volter/scratch/`, not in the
 project's source folders, and do not leave them behind as project files.
