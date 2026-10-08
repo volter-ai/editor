@@ -30,6 +30,8 @@ export interface AgentToolDeclaration {
 export interface AgentToolServices {
   readonly store: SeededProjectStore;
   readonly command: (command: Record<string, unknown>) => Promise<PageCommandResult>;
+  /** What stops a project module from compiling as it now is, or null (`live-modules.ts`). */
+  readonly check?: (path: string) => Promise<string | null>;
 }
 
 /** The most text one tool result carries back to the model. */
@@ -118,6 +120,12 @@ function projectPath(value: unknown, allowRoot = false): string {
   return path;
 }
 
+/** The agent cannot see the game fail, so a module that will not compile is said where it was written. */
+async function compiles(services: AgentToolServices, path: string): Promise<string> {
+  const problem = await services.check?.(path).catch(() => null);
+  return problem ? `\nIt does not compile, so the game will fail to load it: ${problem}` : '';
+}
+
 /** A command's answer as the model reads it: its data, without the bulk no reader of text can use. */
 function commandText(result: PageCommandResult): string {
   if (!result.ok) return `The editor refused: ${result.error ?? 'no reason given'}`;
@@ -166,7 +174,7 @@ export async function runAgentTool(services: AgentToolServices, name: string, ar
         const path = projectPath(args['path']);
         if (typeof args['content'] !== 'string') return 'Give the whole file as content.';
         await store.write(path, args['content']);
-        return `Wrote ${path} (${args['content'].length} characters).`;
+        return `Wrote ${path} (${args['content'].length} characters).${await compiles(services, path)}`;
       }
       case 'edit_file': {
         const path = projectPath(args['path']);
@@ -175,7 +183,7 @@ export async function runAgentTool(services: AgentToolServices, name: string, ar
         const count = oldText === '' ? 0 : before.split(oldText).length - 1;
         if (count !== 1) return `old_text occurs ${count} times in ${path}; it must occur exactly once. Read the file and give a longer, exact passage.`;
         await store.write(path, before.replace(oldText, () => (typeof args['new_text'] === 'string' ? args['new_text'] : '')));
-        return `Edited ${path}.`;
+        return `Edited ${path}.${await compiles(services, path)}`;
       }
       case 'delete_file': {
         const path = projectPath(args['path']);

@@ -514,6 +514,9 @@ export async function viewBuild(folder: string, building: ViewBuildingProduct, o
     const common = { bundle: true, minify: true, platform: 'browser' as const, target: 'es2022', logLevel: 'warning' as const, define: { 'process.env.NODE_ENV': '"production"' } };
     await esbuild.build({ ...common, stdin: { contents: entry, resolveDir: pageDir, sourcefile: 'limited-view-entry.ts', loader: 'ts' }, format: 'esm', outfile: join(out, VIEW_DIR, 'boot.js') });
     await esbuild.build({ ...common, entryPoints: [join(pageDir, 'service-worker.ts')], format: 'iife', outfile: join(out, SERVICE_WORKER_FILE) });
+    // The page's compiler for modules edited in the view, loaded on the first edit (`live-modules.ts`).
+    // It carries the TypeScript compiler, whose Node-only requires are never reached in a browser.
+    await esbuild.build({ ...common, entryPoints: [join(pageDir, 'live-compiler.ts')], format: 'esm', outfile: join(out, VIEW_DIR, 'live-compiler.js'), external: ['fs', 'path', 'os', 'crypto', 'inspector', 'perf_hooks', 'module', 'source-map-support', 'node:*'] });
     await esbuild.build({ ...common, entryPoints: [join(pageDir, 'vite-client.ts')], format: 'esm', outfile: join(out, VIEW_DIR, 'r', vite) });
 
     writeFileSync(join(out, 'index.html'), indexHtml(config));

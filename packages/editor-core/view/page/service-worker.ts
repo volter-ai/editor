@@ -8,12 +8,15 @@
  *  1. A NAVIGATION is the static host's page, re-served with cross-origin isolation
  *     (COOP `same-origin`, COEP `credentialless`), so a host that cannot set headers still runs
  *     Blender's threads. The page reloads itself once when it was not isolated on first load.
- *  2. A GET recorded at build time (`__view/routes.json`): a compiled project module, a fixed
+ *  2. A project script module that CHANGED in the page since the build: the page compiles it
+ *     (`live-modules.ts`). The page is asked first for every project script module and answers a
+ *     miss for an unchanged one.
+ *  3. A GET recorded at build time (`__view/routes.json`): a compiled project module, a fixed
  *     answer of the session, an integration's engine bytes. Looked up by the exact URL, then by
  *     {@link recordedKey} (cache busters dropped, the mount id swapped for the sentinel and put
  *     back into the body).
- *  3. The view's own files, the workbench and the product's chunks: the static host.
- *  4. Everything else goes to THE PAGE, whose router answers it against the project's files in
+ *  4. The view's own files, the workbench and the product's chunks: the static host.
+ *  5. Everything else goes to THE PAGE, whose router answers it against the project's files in
  *     memory (`router.ts`). The files live in the page because a worker's memory does not last:
  *     the browser stops an idle worker whenever it likes.
  *
@@ -23,10 +26,12 @@
 import { LIMITED_VIEW_HEADER } from '@volter/editor-sdk/session/limited-view';
 import {
   HOST_PREFIXES,
+  LIVE_MODULE_HEADER,
   type LimitedViewRouteEntry,
   type LimitedViewRoutes,
   MOUNT_SENTINEL,
   recordedKey,
+  SCRIPT_SOURCE,
   STATIC_PREFIXES,
   VIEW_DIR,
   VIEW_MISS_HEADER,
@@ -152,7 +157,7 @@ async function serveRecorded(entry: LimitedViewRouteEntry, mount: string | null)
   return new Response(stored.body, { status: entry.status, headers });
 }
 
-async function forward(event: FetchLike): Promise<Response> {
+async function forward(event: FetchLike, extraHeaders: readonly [string, string][] = []): Promise<Response> {
   const page = await pageFor(event);
   if (!page) {
     return new Response(JSON.stringify({ error: 'The limited view page is not open, so nothing holds the project.' }), {
@@ -170,7 +175,7 @@ async function forward(event: FetchLike): Promise<Response> {
       resolve(message.data as ForwardedResponse);
     };
   });
-  const message: ForwardedRequest = { type: 'volter-view:request', url: request.url, method: request.method, headers: [...request.headers], body };
+  const message: ForwardedRequest = { type: 'volter-view:request', url: request.url, method: request.method, headers: [...request.headers, ...extraHeaders], body };
   page.postMessage(message, body ? [channel.port2, body] : [channel.port2]);
   const answer = await reply;
   return new Response(answer.status === 204 || answer.status === 304 ? null : answer.body, { status: answer.status, headers: answer.headers });
@@ -188,6 +193,19 @@ async function handle(event: FetchLike): Promise<Response> {
     // alive. Its memoized table must not keep the previous build's Vite hashes.
     if (url.pathname === '/' || url.pathname === '/index.html') routes = null;
     return isolated(await fetch(request), { 'Cross-Origin-Resource-Policy': 'cross-origin' });
+  }
+  // A project script module may have changed in the page since the view was built: the page is
+  // asked first, and answers a miss for one that did not (`live-modules.ts`). Asked every time,
+  // because this worker remembers nothing a restart would not lose.
+  if (
+    request.method === 'GET' &&
+    SCRIPT_SOURCE.test(url.pathname) &&
+    (url.pathname.startsWith('/src/') || url.pathname.startsWith('/@fs/volter-view/')) &&
+    !url.searchParams.has('raw') &&
+    (request.destination === 'script' || url.searchParams.has('import') || url.searchParams.has('volter-mount'))
+  ) {
+    const live = await forward(event, [[LIVE_MODULE_HEADER, '1']]).catch(() => null);
+    if (live?.status === 200) return live;
   }
   if (request.method === 'GET' || request.method === 'HEAD') {
     const table = await recorded();

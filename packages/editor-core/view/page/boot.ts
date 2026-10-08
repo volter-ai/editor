@@ -21,6 +21,7 @@
  */
 
 import type { ViewServingModule } from '@volter/editor-sdk/session/limited-view';
+import { createLiveModules } from './live-modules';
 import { SeededProjectStore } from './project-store';
 import { createLimitedViewRouter, viewServingServices } from './router';
 import type { ForwardedRequest, ForwardedResponse } from './service-worker';
@@ -117,6 +118,7 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
   const router = createLimitedViewRouter({
     config,
     store,
+    liveModules: createLiveModules(config, store),
     integrations: integrations.flatMap((module) => module.viewRoutes(services)),
   });
 
