@@ -190,6 +190,32 @@ export function registerWorktreeRoutes(router: EditorServerRouter, ctx: RouteCon
   });
 
   /**
+   * A prompt for the Chat's RUNNING turn, from `cyclotron chat send` while a turn runs: steered in
+   * by the same door the editor's own tripwire uses (`steerRunningTurn`), which reads the turn
+   * first and then uses the managed runtime's own steer. The harness host's raw `steer` intent
+   * answers "no active turn" for a Claude Code turn whose start it never saw, so it is not used.
+   * 409 when no turn is running or the turn waits on the person.
+   */
+  router.post('/__editor/harness-chat/steer', async (req: Request, res: Response) => {
+    if (!requireLocalOwner(req, res)) return;
+    if (!validControlSecret(req)) {
+      res.status(403).json({ error: 'Editor session control authorization required.' });
+      return;
+    }
+    const text = (req.body as { text?: unknown } | undefined)?.text;
+    if (typeof text !== 'string' || !text.trim()) {
+      res.status(400).json({ error: 'A prompt to steer is required.' });
+      return;
+    }
+    try {
+      if (await harnessChat.steerRunningTurn(text)) res.json({ steered: true });
+      else res.status(409).json({ error: 'No turn is running, or the turn is waiting on an approval in the editor.' });
+    } catch (error) {
+      res.status(400).json({ error: error instanceof Error ? error.message : String(error) });
+    }
+  });
+
+  /**
    * A delegated task, arriving from the editor that created this worktree
    * (`remoteHarnessIntent`). Owner-local, and gated on this session's control secret: the
    * delegating editor read it from the session registry, which only the owner's processes see.

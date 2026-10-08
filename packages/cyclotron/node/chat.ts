@@ -1,5 +1,6 @@
 /** Drive the same native Chat the person sees, through the editor's command door. */
 import { connect } from '@volter/live';
+import { readLiveRegisteredSessions } from '@volter/sdk/session/registry-format';
 
 export const CHAT_USAGE = 'chat status | chat send <prompt> | chat stop';
 
@@ -14,7 +15,7 @@ export async function chat(args: string[]): Promise<unknown> {
   const [action, prompt] = args;
   if (!['status', 'send', 'stop'].includes(action ?? '') || args.length !== (action === 'send' ? 2 : 1) ||
       (action === 'send' && !prompt?.trim())) throw new Error(`Usage: cyclotron ${CHAT_USAGE}`);
-  const { editor } = await connect();
+  const { editor, session } = await connect();
   const state = await editor.command('supercode.frontend.status', true) as ChatState;
   const view = await editor.command('volter.chat.inspect') as { sessionResource?: string };
   if (action === 'status') return { ...state, focusedSessionResource: view.sessionResource };
@@ -27,8 +28,31 @@ export async function chat(args: string[]): Promise<unknown> {
   if ((!connection && !draft) || (!connection && state.setupHandoff?.complete !== true)) {
     throw new Error('Chat is not ready. Open Chat in the editor and choose an agent or complete its sign-in, then run chat status.');
   }
-  if (action === 'send' && (state.busy || connection?.pendingRequests?.length)) {
-    throw new Error('Chat has an active turn or a pending request. Finish it in the editor or use chat stop before sending another prompt.');
+  if (action === 'send' && connection?.pendingRequests?.length) {
+    throw new Error('Chat is waiting on an approval in the editor. Answer it there (or use chat stop), then send.');
+  }
+  // A RUNNING TURN TAKES THE PROMPT TOO: it is steered into the turn, landing between the agent's
+  // tool calls where the person sees it in the Chat, which is how a person's own message and the
+  // editor's tripwire reach a running agent (`harness-chat-service.ts` `steerRunningTurn`; the
+  // collaboration routes send or steer by the same rule). It used to refuse, so a second request
+  // could only wait for the turn to end.
+  if (action === 'send' && state.busy) {
+    const entry = readLiveRegisteredSessions().find((s) => s.port === session.port);
+    const origin = `http://127.0.0.1:${session.port}`;
+    const response = await fetch(`${origin}/__editor/harness-chat/steer`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        Origin: origin,
+        ...(entry?.controlSecret ? { 'x-volter-editor-control': entry.controlSecret } : {}),
+      },
+      body: JSON.stringify({ text: prompt }),
+    });
+    if (!response.ok) {
+      const said = (await response.json().catch(() => null)) as { error?: string } | null;
+      throw new Error(`Chat has a running turn and did not take the prompt into it: ${said?.error ?? `HTTP ${response.status}`}`);
+    }
+    return { steered: true, sessionId: connection?.sessionId };
   }
   // Keep a visible New Chat draft and its selected agent/model. Revealing the
   // host's previous active conversation here would discard that choice.
