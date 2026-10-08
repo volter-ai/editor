@@ -65,7 +65,9 @@ export function gameGlobalsPrelude(mountId?: string): string {
  * a getter on `Object.prototype` for a moment and reads it as a bare name: a bare name that no
  * scope declares is looked up on the global object, which inherits from `Object.prototype`, so the
  * getter runs with the global object as `this`. It is the published `globalThis` polyfill
- * (mathiasbynens.be/notes/globalthis), with `Object` itself reached through a literal.
+ * (mathiasbynens.be/notes/globalthis), with `Object` itself reached through a literal. When
+ * `Object.prototype` will not take the getter (a project froze it), the global is read as `self`
+ * or `global` instead, so one project's freeze does not break every module that loads after it.
  *
  * It replaced a call of the Function constructor on the string 'return globalThis', which a
  * content security policy without 'unsafe-eval' refuses: under such a policy every project module
@@ -75,8 +77,15 @@ export function gameGlobalsPrelude(mountId?: string): string {
  * the same object, which is why the architecture does not claim a browsing-context boundary.
  */
 export const HOST_GLOBAL_EXPRESSION =
-  "(()=>{const O=({}).constructor;O.defineProperty(O.prototype,'__volterHostOf',{get(){return this},configurable:true});" +
-  'try{return __volterHostOf}finally{delete O.prototype.__volterHostOf}})()';
+  "(()=>{const O=({}).constructor;try{O.defineProperty(O.prototype,'__volterHostOf',{get(){return this},configurable:true});" +
+  'try{return __volterHostOf}finally{delete O.prototype.__volterHostOf}}' +
+  // A project may have frozen Object.prototype, and then the getter cannot be put there. The
+  // global is then read by a name the prelude itself does not declare: `self` (a window or a
+  // worker), then `global` (Node). Each is tried alone, because a project that declares the
+  // name makes even `typeof` of it throw until its declaration runs. `window` and `globalThis`
+  // are not tried: the prelude declares both in this same statement.
+  "catch(d){try{if(typeof self!=='undefined')return self}catch(s){}" +
+  "try{if(typeof global!=='undefined')return global}catch(g){}throw d}})()";
 
 /** How every prelude begins: the text a transform looks for to know a module already has one. */
 export const GAME_GLOBALS_PRELUDE_START = `const __volterHost=${HOST_GLOBAL_EXPRESSION},`;
