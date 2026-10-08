@@ -206,17 +206,34 @@ uses a finite weighted approximation. This is not indirect light transport.
 **The atlas is off in every view** (`WORLD_VISIBILITY` in
 `blender-runtime-view.ts`), so environment lighting is unoccluded again. Each
 tile spans the whole scene: Canyon Comet's 360 m floor gets about a metre per
-texel, and every lookup is one nearest texel answering yes or no. Its faceted
-rocks and karts occluded their own sky at scattered pixels, which read as
-static over every polygon in Rendered and Play, and glossy surfaces flashed as
-the camera moved the specular lobe from one direction to the next. The closed
-room it was measured in is a few metres across. It returns when its lookups are
-filtered and its resolution follows the scene; the measurements below are for
-the atlas, not for what the viewport draws now.
+texel, and every lookup is one nearest texel answering yes or no. The atlas has
+receiver-plane slope correction, but at that resolution one binary lookup can
+still land on another facet. Faceted rocks and karts occluded their own sky at
+scattered pixels, which read as static over every polygon in Rendered and Play.
+Glossy surfaces also flashed as the camera moved. Narrow specular lobes are
+dominated by a few of the sixteen directions, which makes that plausible, but
+no capture isolates it yet. The oracle it was measured against was a native
+Cycles closed room a few metres across: 512 samples, 32×32 output,
+centre-pixel readouts, `fullSceneGate: false`. It returns when its lookups are
+filtered (PCF keeping per-tap plane correction within each tile), its
+resolution follows the scene, narrow lobes sample more directions, and its
+opaque-only and skin/morph caster scope is decided. The measurements below are
+for the atlas, not for what the viewport draws now.
+
+An A/B on Canyon Comet 0.5.197 used the same Play start-grid camera with the
+installed engine bundle patched. Sun shadows are unchanged with the atlas off,
+and the static and the dark blotches under the arch go with it. The darkening it
+added in crevices and under the karts goes too, which is the 0.5.189 look
+([frames: before / atlas off / atlas off plus `shadowSide`](media/canyon-render-ab-20261008.jpg),
+[the arch](media/canyon-render-ab-arch-20261008.jpg)). A scene that wants that
+depth today bakes ambient occlusion into its static scenery.
 
 Two-sided materials keep three's back-face shadow pass (`shadowSide`
-`BackSide`). A two-sided depth pass draws every lit face into its own shadow
-map, and the normal offset does not hold that off at grazing light.
+`BackSide`) as containment. A two-sided depth pass draws every lit face into its
+own shadow map, and the normal offset does not hold that off at grazing light.
+It is not a general two-sided shadow answer: a thin or open surface whose lit
+face is culled in the depth pass casts no shadow for that light. In the A/B
+above it made no visible difference.
 
 The first-draw sun fit also updates the light and target's world matrices before
 fitting shadow bounds. Newly composed lights previously fitted in stale axes;
