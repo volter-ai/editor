@@ -190,8 +190,8 @@ async function activate(context) {
 	// welcome). It promises a sign-in only where the host has one and an AI to sign in for, and it
 	// is worked out again whenever that may have changed: when a sign-in tab reports back, and
 	// after every message.
-	/** What an assistant that edits running code means for the person, said wherever the view can lead to it. */
-	const CAUTION = 'The assistant edits code that then runs in this tab, signed in as you. Ask it only for changes to this project, and be wary of files from people you do not know.';
+	/** What an assistant that edits running code means for the person, said wherever the assistant can be reached. */
+	const CAUTION = 'Code the assistant writes runs in this tab as you on this site: it can use your daily AI allowance, add you to the waitlist or sign you out, and it can send what it can see (this project and your display name) to another site. Ask only for changes to this project, and be wary of files from people you do not know.';
 	const setWelcome = (lines) => {
 		const welcome = new vscode.MarkdownString(lines.concat(['', ...installLines(product), '', '[Copy install command](command:volter.viewChat.copyInstall)']).join('\n'));
 		welcome.isTrusted = { enabledCommands: ['volter.viewChat.copyInstall', 'volter.viewChat.signIn'] };
@@ -201,19 +201,22 @@ async function activate(context) {
 		const host = await page('account').catch(() => ({ available: 'unknown' }));
 		// A read that failed says nothing about the host: the neutral welcome, with the caution, stays.
 		if (host.available !== true && host.available !== false) return;
-		// Only a host that answered and has no account service cannot lead to the assistant; every
-		// other variant carries the caution, whatever the host says about sign-in or the AI today.
 		if (host.available === false) {
 			setWelcome([`**This is a limited view.** Chat runs in the local version of ${product.displayName}. Install it and start a project:`]);
 			return;
 		}
 		const ready = host.ai?.state !== 'off' && (host.signedIn === true || host.signIn !== 'unavailable');
+		// With no assistant to reach there is nothing to caution about: the fact, and the way on.
+		if (!ready) {
+			setWelcome([`**${product.displayName} in your browser.** The assistant is not available here right now.`, '', `To use your own agent, install ${product.displayName}:`]);
+			return;
+		}
 		setWelcome([
-			`**${product.displayName} in your browser.** ${ready ? 'Ask the assistant to change the model, the game or its UI.' : 'The assistant is not available here right now.'} It works on this tab's copy of the project; nothing is saved when the tab closes.`,
+			`**${product.displayName} in your browser.** Ask the assistant to change the model, the game or its UI. It works on this tab's copy of the project; nothing is saved when the tab closes.`,
 			'',
 			CAUTION,
 			'',
-			...(ready && host.signedIn !== true ? ['The assistant needs a Volter account. [Sign in with Volter](command:volter.viewChat.signIn)', ''] : []),
+			...(host.signedIn !== true ? ['The assistant needs a Volter account. [Sign in with Volter](command:volter.viewChat.signIn)', ''] : []),
 			`To keep your work and use your own agent, install ${product.displayName}:`,
 		]);
 	};
