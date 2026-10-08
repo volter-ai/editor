@@ -15,7 +15,7 @@ Measured from the engines' own sources, 2026-09-25. Colours are sRGB; a fourth v
 | Axis colours | X `#ff3352`, Y `#8bdc00`, Z `#2890ff` | X `(0.96, 0.20, 0.32)`, Y `(0.53, 0.84, 0.01)`, Z `(0.16, 0.55, 0.96)` | X `(219, 62, 29)`, Y `(154, 243, 72)`, Z `(58, 122, 248)`, each alpha 0.93; centre `(0.8, 0.8, 0.8)` | an axis triad in the corner, Z up |
 | Selection | selected `#ed5700`, active `#ffa028`, outline width 1 | selection BOX (the AABB's corners) `(1.0, 0.5, 0)`; no mesh outline | outline `#ff6600`; selected children `(94, 119, 155)`; wireframe selected `(94, 119, 155, 64)` | a thick yellow-orange outline |
 
-Unreal is not installed on this box and its documentation does not state these defaults, so its column is read from the documentation's own frames (`/Volumes/PeakSSD/volter-work/engine-reference`, with the other engines' frames and their sources); its values are observations, not measured numbers.
+Unreal is not installed on this box and its documentation does not state these defaults, so its column is read from the documentation's own frames (`<work>/engine-reference`, with the other engines' frames and their sources); its values are observations, not measured numbers.
 
 ## What a look can declare today
 
@@ -150,4 +150,4 @@ Blender's Material Preview is the Blender stage's `preview` mode (`@volter/edito
 
 Blender's Rendered is the Blender stage's `rendered` mode (`src/presentation.ts`). It is not a path tracer: it is the same rasterized drawing of the scene's lights and World that a render here photographs, so the viewport and a render agree by construction, and neither is Cycles or EEVEE. Seen on `cube.blend` with a point lamp: the cube is lit by the lamp over the World's backdrop, and a change to the lamp re-lights the viewport with no mode switch. It follows the camera the stage draws with, orthographic included. Known limits: a World in Window coordinates and the shadow receivers' fit are taken for the camera as it was at the last engine frame, so a perspective orbit leaves them stale until the next one.
 
-Not yet accepted: Unreal's capability row. The reference frames are in `/Volumes/PeakSSD/volter-work/engine-reference`; the world stage is compiled but not yet seen on a project with a world.
+Not yet accepted: Unreal's capability row. The reference frames are in `<work>/engine-reference`; the world stage is compiled but not yet seen on a project with a world.

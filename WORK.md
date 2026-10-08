@@ -191,9 +191,9 @@ the original replay calls, Vite output and tab-reload ledger. Do not describe
 the first export as a clean or faithful replay.
 
 Recording/replay audit: the reusable Abrams capture workflow is retained in
-`/Users/yueranyuan/volter/media-creation/model-comparison/README.md`, and the
+`<work>/media-creation/model-comparison/README.md`, and the
 Supercode development workflow is in
-`/Users/yueranyuan/volter/supercode-chair-replay-20261005/docs/guides/editor-replay.md`.
+`<work>/supercode-chair-replay-20261005/docs/guides/editor-replay.md`.
 Full-page capture plus native transcripts is available. The installed Supercode
 CLI rejects `replay`; the retained `feat/replay` binary's help works. The pinned
 frontend 0.1.31 ignores connection-handoff arguments to `supercode.frontend.connect`,
@@ -601,7 +601,7 @@ browser build or Code-OSS compile-client. No live failure/retry acceptance claim
 
 Replace `editor-react`'s custom OID/edit planning (`serving/ui-oid-plugin.ts`, `src/source`)
 with Volter's `@retrace/core`, `@retrace/element` and `@retrace/format-tsx-babel`
-([Retrace](https://github.com/volter-ai/retrace); local checkout `/Users/yueranyuan/volter/retrace`).
+([Retrace](https://github.com/volter-ai/retrace); local checkout `<work>/retrace`).
 State: the editor names Retrace nowhere; its three central stamping/writer/plugin files total
 5,626 lines, including shared R3F work. Retrace's element lane parses TSX and plans literal,
 structural and import edits; stamping, OID compatibility, persistence and stale-write guards
@@ -1306,7 +1306,7 @@ parent selector and its resulting static clip remain in the evidence.
 Cycle 6's full editor recording ended with 666 sparse images and 20 capture
 errors. Original timing includes the shared-capacity pause and renderer-loss gap;
 the 1x export decodes completely and differs from source timing by 2.7 ms. Older
-closed cycles' frame archives were moved to PeakSSD only after full byte/SHA256
+closed cycles' frame archives were moved to the archive drive only after full byte/SHA256
 verification, with logical paths preserved. No other actor's files were removed.
 
 Cycle 7 now runs a fresh native author from the private typed-starter snapshot.
@@ -1318,7 +1318,7 @@ lighting, canyon-shape, camera and UI-preview gaps.
 
 The shared-capacity peer paused Cycle 7's owned screenshot consumer at
 09:16:51.989 UTC. The native author and editor remained live. Completed Cycle
-2/4/6 media was copied to PeakSSD and every file's byte count, SHA256 and inventory
+2/4/6 media was copied to the archive drive and every file's byte count, SHA256 and inventory
 verified before original paths became symlinks. Cycle 2's shared image hardlinks
 were preserved. Actual local free space recovered to 22 GiB and the owner resumed
 the exact recorder PID through the World; frame receipts preserve a 216.911-second
@@ -1381,7 +1381,7 @@ returned to a fresh manual grid and its public close completed gracefully.
 
 Cycle 8 is prepared from a private all-package snapshot of the compiled generic
 source guards and all earlier fixes. Its frames directory was allocated directly
-on PeakSSD before any capture, with the logical project path retained. It has not
+on the archive drive before any capture, with the logical project path retained. It has not
 yet been opened or dispatched. The author prompt includes precise visual feedback;
 the parent still does not write cycle game code.
 
@@ -1570,7 +1570,7 @@ row. Read WORK.md and split-play-stop-fixed/REVIEW.md for evidence/limits.
 C11 fresh native author dispatched at 1791306898637, original unchanged prompt.
 Project cycle-11/project; URL http://127.0.0.1:20414/?project=project. Native
 01a11232-d954-7f62-9c88-1e938fec2999, connection
-2f829fb9-6240-4e42-b708-f9d019edd7ac. Immutable private snapshot on PeakSSD
+2f829fb9-6240-4e42-b708-f9d019edd7ac. Immutable private snapshot on the archive drive
 source-snapshot-visible-authoring-scoped-client-20261006 and private pinned
 0.3.66 scoped-index candidate; runtime-candidate.json owns paths/hashes.
 No periodic full-page recorder. Baseline and opening-author PNGs directly viewed;
@@ -1648,7 +1648,7 @@ for visual comparisons. Fresh Models/Playable exact defaults/shared CLAUDE impor
 verified without editor or AI via visible-authoring-defaults-play-frame/receipt,
 SHA5f13ce8cd07d46dccf9c354d486f6add3dd2895893422a270bd1800322c1febf.
 Prepared fresh20-package immutable snapshot source-snapshot-composed-frame-visible-
-gate-20261006 on PeakSSD for C12. Original18-word prompt/reference unchanged;
+gate-20261006 on the archive drive for C12. Original18-word prompt/reference unchanged;
 no source/game/transcript from C11 carried into its project.
 
 2026-10-06 later continuation: C12 original native Codex dispatched18:09:31.080Z,
@@ -1705,7 +1705,7 @@ Cycle 13 remains the exact original native editor session, one page epoch. Indep
 
 Owning defect identified: public diagnostic material was accepted despite the API vocabulary preview. The diagnostic renderer indexed variants by the invalid name, temporarily assigning undefined draw materials; the author image-Empty diagnosis was incorrect. Public presentEditorView now rejects invalid diagnostics before any view mutation, and Object3D setMode guards its own state. URL diagnostics share the published list (also restores clay/matcap parsing). Temporary pre-draw instrumentation removed. SDK/Three typechecks, browser build14.88s and diff check passed. Actual fresh public editor fixture rejects material with camera/shading/grid unchanged; valid preview/text/packed image Empty, clay/matcap/Solid/Rendered captures pass with epoch1/no new frame errors. Directly viewed image/cube/notes capture. The first two image checks were invalid (image outside mounted project); retained and corrected in probe-diagnostic-validation-image/review. Report: probe-diagnostic-validation/REVIEW.md. All parent fixtures closed. No shadow quality fix landed; zero-bias experiment remains restored/rejected.
 
-Default starter instruction refinement checks silhouette curvature/proportions/surface detail instead of object coverage; leaves visual milestone pending for remaining authorable differences; checks actual note words/contrast at normal view size. Both fresh models/playable defaults match SHA252b2c75c4ab77edf159a05e6eccd3a712771199581b6887dc4a474e70f7e653 and CLAUDE imports shared AGENTS. Prompt/ref unchanged. Cycle14 baseline prepared (12 files; original cube/reference), not yet launched/dispatched. Immutable snapshot /Volumes/PeakSSD/model-editor-kart-evidence-20261006/source-snapshot-diagnostic-validation-fidelity-gate-20261006 contains compiled diagnostic fix; unverified SC frontend warning candidate excluded. Ledger: 13 started,11 completed,0 accepted. Existing videos retained.
+Default starter instruction refinement checks silhouette curvature/proportions/surface detail instead of object coverage; leaves visual milestone pending for remaining authorable differences; checks actual note words/contrast at normal view size. Both fresh models/playable defaults match SHA252b2c75c4ab77edf159a05e6eccd3a712771199581b6887dc4a474e70f7e653 and CLAUDE imports shared AGENTS. Prompt/ref unchanged. Cycle14 baseline prepared (12 files; original cube/reference), not yet launched/dispatched. Immutable snapshot `<archive>/model-editor-kart-evidence-20261006/source-snapshot-diagnostic-validation-fidelity-gate-20261006` contains compiled diagnostic fix; unverified SC frontend warning candidate excluded. Ledger: 13 started,11 completed,0 accepted. Existing videos retained.
 
 ### 2026-10-06 — cycle 13 completed and independently reviewed
 

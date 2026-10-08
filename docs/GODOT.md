@@ -224,7 +224,7 @@ skips the frame or unmounts the game.
    (`volter.project.json`, `volter.adapter.ts`, `.volter/`, `VOLTER_*`, the `volter-game-editor`
    CLI). The rename changed the bound exporter's source, so the 4.7 exporter is rebuilt from the
    pinned `5b4e0cb0` tree and re-pinned: exporter source `9e93aa85…`, executable `5fba713d…`,
-   stored at `/Volumes/GodotWork/tools/godot-4.7-bound-exporter-volter/` (the old `c8034e90…`
+   stored at `<godot-work>/tools/godot-4.7-bound-exporter-volter/` (the old `c8034e90…`
    binary no longer matches). The 4.6 row was already stale, and its binary still speaks the
    retired `vgai.*` protocol, so its re-pin is open. `main` publishes every push (`38bfb751`), so
    landing `godot` on `main` publishes the public packages whose files differ from `main`'s
@@ -648,7 +648,7 @@ exporter-source digest. The restored source matched `-current`, `-full` and `-mu
 the committed build script built the modules-off variant. The script now builds with every module
 enabled. `source-authority.ts` pins the build by executable, exporter-source, engine-tree and
 build-option identity, and the toolchain snapshot refuses any other build by name. The pinned
-build is `/Volumes/PeakSSD/volter-work/tools/godot-4.7-bound-exporter-seal`, rebuilt from this
+build is `<work>/tools/godot-4.7-bound-exporter-seal`, rebuilt from this
 repository's module (`scripts/build-godot-bound-exporter.mjs`). The official Godot 4.7-stable
 binary is the native oracle the evidence records cite (`445c6f95…`).
 
@@ -1227,7 +1227,7 @@ Refusal counts at the stop (first refusal per script): basic-scene 8, fps 46, ma
 > Superseded in part by §The lane's law (2026-09-27): a record from before the rulings; its refresh and liveness steps are void.
 
 The lane moved to a second machine the same day. Tools live in an APFS sparse image on its
-external drive (`Backup Driv/volter/godot-work.sparsebundle`, mounted at `/Volumes/GodotWork`:
+external drive (`godot-work.sparsebundle`, mounted as `<godot-work>`:
 `tools/`, `src/`, `tmp/`, and the `godot` worktree `editor-godot/`). The drive itself is exFAT,
 which has no symlinks or Unix modes, so npm and scons cannot run on it directly. Its USB
 throughput makes `node_modules` trees slow there: an import's output directory belongs on the
