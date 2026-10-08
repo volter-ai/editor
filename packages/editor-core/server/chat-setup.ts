@@ -1,6 +1,6 @@
 /** Host data for Supercode's native Chat setup. Credentials stay with the harness. */
 import { execFile } from 'node:child_process';
-import { accessSync, constants, existsSync, mkdirSync, statSync, writeFileSync } from 'node:fs';
+import { accessSync, constants, existsSync, mkdirSync, rmSync, statSync, writeFileSync } from 'node:fs';
 import { homedir } from 'node:os';
 import { delimiter, dirname, isAbsolute, join, resolve } from 'node:path';
 import { promisify } from 'node:util';
@@ -134,14 +134,40 @@ export function agentInstallPrefix(globalPrefix: string, home = homedir()): stri
  *  an agent installed any other way, PATH is unchanged. */
 export function signInPath(path: string, prefix: string | undefined, command: string, home = homedir()): string {
   if (process.platform !== 'win32' || !prefix) return path;
+  if (!writeAgentShim(prefix, command, home)) return path;
+  const dir = agentShimDir(home);
+  return path.split(delimiter).includes(dir) ? path : dir + delimiter + path;
+}
+
+/** Where the Windows agent shims live: a folder holding only `<command>.cmd` files that call npm's own shims. */
+export function agentShimDir(home = homedir()): string { return join(home, '.volter', 'sign-in-shims'); }
+
+/** Write `<command>.cmd` into the shim folder when npm installed `command` into `prefix` (its extensionless script
+ *  beside its `.cmd`). True when the shim is there. */
+function writeAgentShim(prefix: string, command: string, home: string): boolean {
   const shim = join(prefix, `${command}.cmd`);
-  if (!existsSync(join(prefix, command)) || !existsSync(shim)) return path;
-  const dir = join(home, '.volter', 'sign-in-shims');
+  if (!existsSync(join(prefix, command)) || !existsSync(shim)) return false;
   try {
-    mkdirSync(dir, { recursive: true });
-    writeFileSync(join(dir, `${command}.cmd`), ['@echo off', `call "${shim}" %*`, ''].join('\r\n'));
-  } catch { return path; }
-  return dir + delimiter + path;
+    mkdirSync(agentShimDir(home), { recursive: true });
+    writeFileSync(join(agentShimDir(home), `${command}.cmd`), ['@echo off', `call "${shim}" %*`, ''].join('\r\n'));
+    return true;
+  } catch { return false; }
+}
+
+/** THE PROBE NEEDS THE SHIMS TOO, not only the sign-in terminal. Supercode decides whether an agent is signed in by
+ *  running its native status (`codex login status`) through the same bare-name-first lookup, so on Windows the
+ *  inventory started npm's shell script, got os error 193, and never saw a sign-in that had succeeded: the login
+ *  ended with exit code 0 and the welcome still said "Sign-in didn't finish." (0.5.197, 2026-10-08). The shim folder
+ *  comes first on the long-lived probe's PATH from the start, so a shim written later (at sign-in) is found by the
+ *  next inventory, and shims for agents npm already installed are written now. */
+function withAgentShims(path: string, prefixes: readonly string[], home = homedir()): string {
+  if (process.platform !== 'win32') return path;
+  for (const { command } of Object.values(CHAT_SETUP_PROVIDERS)) {
+    if (prefixes.some((prefix) => writeAgentShim(prefix, command, home))) continue;
+    // An agent no longer installed in these prefixes leaves no shim that would look installed and fail.
+    try { rmSync(join(agentShimDir(home), `${command}.cmd`), { force: true }); } catch { /* nothing to remove */ }
+  }
+  return agentShimDir(home) + delimiter + path;
 }
 
 function prefixBin(prefix: string): string { return process.platform === 'win32' ? prefix : join(prefix, 'bin'); }
@@ -166,6 +192,7 @@ export async function chatProcessEnvironment(cwd: string): Promise<{ env: { PATH
     // An agent Chat installed into its own prefix comes first, so an older copy in the root-owned prefix (or anywhere
     // else on PATH) doesn't shadow it.
     if (installPrefix !== prefix) env.PATH = prefixBin(installPrefix) + delimiter + env.PATH;
+    env.PATH = withAgentShims(env.PATH, installPrefix === prefix ? [prefix] : [installPrefix, prefix]);
     return { env, npm, npmArgs, npmPrefix: installPrefix };
   } catch (error) {
     return { env, installError: `Cannot resolve npm's install directory: ${error instanceof Error ? error.message : String(error)}` };
