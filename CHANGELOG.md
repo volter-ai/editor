@@ -9,13 +9,18 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 
 From `@volter/cyclotron` 0.5.199 to 0.5.203, the editor Chat refused the first message of a new
 conversation with "The harness has not persisted this conversation yet." and no turn ran; a conversation
-already under way kept working. The cause was the Chat frontend those releases' workbench bundles
-(`supercode-frontend-vscode` 0.1.52). 0.5.204 pins the workbench back to the cut with 0.1.51
+already under way kept working. The Chat frontend those releases' workbench bundles
+(`supercode-frontend-vscode` 0.1.52) asks the editor to link a new conversation before its first message is
+sent, and the editor refuses a link to a conversation the harness has not saved yet. 0.5.204 pins the workbench back to the cut with 0.1.51
 (`cyclotron-f16dc165c0df-2d5aeb1b4cd7`), where a first message runs. What that gives up until a fixed
 frontend is pinned: the Chat no longer restores a running prompt and a pending approval after a page
 reload. The boot splash is the same in both.
 
 The first `cyclotron` after upgrading installs that workbench unless this machine already has it.
+
+The editor's refusal, when a Chat asks it to link a conversation the harness has not saved, now says the message was
+not sent and what to do, in place of "The harness has not persisted this conversation yet." The repository pins the
+Chat frontend back to 0.1.51 too, so a workbench cut from it bundles the Chat 0.5.204 ships.
 
 ## 0.5.203 — the starter's commands never fetch
 

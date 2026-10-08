@@ -44,6 +44,7 @@ import {
 } from './frontend-handoff';
 import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
 import { effectiveChat } from './harness-effective';
+import { sessionProduct } from './session-product';
 import { ChatSessionCatalog } from './chat-session-catalog';
 import { CHAT_SETUP_PROVIDERS, chatExecutable, chatProcessEnvironment, chatSetupActions, chatSetupAgents, signInPath } from './chat-setup';
 import { projectMcpServers } from './project-mcp-servers';
@@ -1478,7 +1479,18 @@ export class HarnessChatService {
     this.capture();
     const entry = this.chatCatalog.sessions.get(id);
     const session = this.lastSnapshot.sessions.find(s => s.nativeId === nativeId && s.harness === entry?.selection.harness && s.cwd && resolve(s.cwd) === resolve(this.options.getProjectRoot()));
-    if (!entry || !session) throw new Error('The harness has not persisted this conversation yet.');
+    if (!entry) throw new Error('This chat is no longer in the editor\'s list of conversations. Start a new chat and send the message again.');
+    // The harness lists a conversation once it has a saved session, which a new conversation has only after its first
+    // message runs. A Chat that binds a new conversation before sending that message waits for a row that cannot come
+    // (0.5.199 to 0.5.203's workbench Chat did), so say what happened and what moves it, not that something is unsaved.
+    if (!session) {
+      throw new Error(
+        `Your message was not sent: ${entry.selection.harness} has no saved conversation ${nativeId} for this project yet, ` +
+          'and a new conversation is saved only after its first message runs. Start a new chat and send it again; if this ' +
+          `repeats, update the editor (npx --no-install ${sessionProduct(this.options.getProjectRoot())?.command ?? 'cyclotron'} upgrade), since this Chat build links a new conversation ` +
+          'before sending its first message.',
+      );
+    }
     // A saved identity the harness no longer lists (an earlier runtime home's; see openChat) binds nothing: the chat
     // takes the conversation it now has instead of refusing every New Chat that lands on it.
     if (entry.identity && entry.identity !== session.identity && this.lastSnapshot.sessions.some(s => s.identity === entry.identity)) {
