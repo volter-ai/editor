@@ -5275,12 +5275,14 @@ def rna_outliner(selected=None):
     # page of the selection, so selecting everything cannot turn one read back
     # into the whole tree the page exists to keep out (Canyon Comet, 1,493
     # objects selected: 1.77 MB a read uncapped, 142 KB capped).
+    # The caller's choice comes before the rest of the engine's selection: a click
+    # onto a selection already larger than a page keeps the object just clicked.
     wanted = [active] if active is not None else []
-    wanted += [o.name for o in view_layer.objects if o.select_get(view_layer=view_layer)]
     wanted += sorted(chosen)
+    wanted += [o.name for o in view_layer.objects if o.select_get(view_layer=view_layer)]
     kept = set()
     for name in wanted:
-        if len(kept) > _OUTLINER_PAGE:
+        if len(kept) >= _OUTLINER_PAGE:
             break
         kept.add(name)
     holding = set()
