@@ -120,6 +120,24 @@ function installProjectFetch(): void {
   };
 }
 
+/**
+ * WebRTC is the one way out of a page that a content security policy does not govern: a peer
+ * connection can carry text to any address. Nothing in a view uses it, so its constructors are
+ * taken off this window before any project code runs.
+ *
+ * BEST EFFORT, and said so: a script can make a new same-origin frame and find them on that
+ * frame's window. It raises the cost of the ordinary case; it is not a boundary.
+ */
+function removeWebRtc(): void {
+  for (const name of ['RTCPeerConnection', 'webkitRTCPeerConnection', 'RTCDataChannel', 'RTCSessionDescription', 'RTCIceCandidate', 'RTCRtpSender', 'RTCRtpReceiver']) {
+    try {
+      Object.defineProperty(globalThis, name, { value: undefined, configurable: false, writable: false });
+    } catch {
+      /* already fixed in place by the browser: left as it is */
+    }
+  }
+}
+
 export async function startLimitedView(integrations: readonly ViewServingModule[]): Promise<void> {
   say('Starting the limited view…');
   if (!(await controlledByWorker())) {
@@ -182,6 +200,7 @@ export async function startLimitedView(integrations: readonly ViewServingModule[
   if (config.product.logo) (globalThis as Record<string, unknown>)['__volterBrandLogo'] = config.product.logo;
   installQuietSessionSockets();
   installProjectFetch();
+  removeWebRtc();
   (globalThis as Record<string, unknown>)['__volterLimitedView'] = { files: store, folder: config.project.name };
 
   say('Opening the workbench…');
