@@ -1,6 +1,6 @@
 import { createRequire } from 'node:module';
 import path from 'node:path';
-import { defineConfig } from 'vite';
+import { defineConfig, type Plugin } from 'vite';
 // Config-relative TS imports get bundled the same way — that is what lets the
 // project's executable Zod schemas reach the build-time check below.
 import { manifestEntryModulesPlugin } from './manifest-entry-modules-plugin';
@@ -58,12 +58,40 @@ function resolveAllowedHosts(): { allowedHosts?: true | string[] } {
   return hosts ? { allowedHosts: hosts } : {};
 }
 
+/**
+ * The game's build holds the game. A project's `editor/` folder (its adapter, contributions and
+ * tools) extends the editor and runs inside it, under the editor packages' licenses; none of it
+ * may be bundled into what the game ships. A module from that folder reaching this build fails it,
+ * naming the file that imported it.
+ */
+function editorBoundaryPlugin(): Plugin {
+  const editorDir = `${path.resolve(import.meta.dirname, 'editor')}${path.sep}`;
+  const fold = (file: string) => (process.platform === 'win32' ? file.toLowerCase() : file);
+  return {
+    name: 'volter-editor-boundary',
+    apply: 'build',
+    enforce: 'pre',
+    load(id) {
+      const file = path.resolve(id.split('?')[0]!);
+      if (!fold(file).startsWith(fold(editorDir))) return null;
+      const importers = this.getModuleInfo(id)?.importers ?? [];
+      this.error(
+        `${path.relative(import.meta.dirname, file)} is in this project's editor/ folder and may not be part of the game's build. ` +
+          (importers.length > 0
+            ? `It is imported by ${importers.map((importer) => path.relative(import.meta.dirname, importer.split('?')[0]!)).join(', ')}.`
+            : 'It is an entry of this build.'),
+      );
+    },
+  };
+}
+
 export default defineConfig({
   // Build-path validation (build-only): every
   // registered data asset must still parse through its schema (the EXACT
-  // parse defineData runs at load), every `"file#key"` ref must resolve, and
-  // no `editor/tools/` module may reach the shipped bundle (§4: tools are
-  // editor-only — never serve testers a build with dev/cheat surfaces).
+  // parse defineData runs at load) and every `"file#key"` ref must resolve.
+  // No module of the project's `editor/` folder may reach the shipped bundle
+  // (tools are editor-only — never serve testers a build with dev/cheat
+  // surfaces): `editorBoundaryPlugin` above fails the build on one.
   // The AUTOMATIC JSX runtime, set here rather than left to tsconfig.
   //
   // This project has no `@vitejs/plugin-react`; Vite's built-in esbuild does
@@ -74,7 +102,7 @@ export default defineConfig({
   // bare `React.createElement` calls into a module that never imports React.
   // The scaffold's game page died on `ReferenceError: React is not defined`.
   esbuild: { jsx: 'automatic' },
-  plugins: [manifestEntryModulesPlugin(manifest)],
+  plugins: [manifestEntryModulesPlugin(manifest), editorBoundaryPlugin()],
   resolve: {
     alias: {
       '@volter/project': packageSource('@volter/project'),
