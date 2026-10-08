@@ -32,13 +32,13 @@
  */
 import { spawn } from 'node:child_process';
 import { existsSync, lstatSync, readFileSync } from 'node:fs';
-import { readFile, rename, rm, writeFile } from 'node:fs/promises';
-import { dirname, join, resolve } from 'node:path';
+import { mkdir, readdir, readFile, rename, rm, rmdir, writeFile } from 'node:fs/promises';
+import { dirname, join, relative, resolve, sep } from 'node:path';
 import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { hasManifest } from '@volter/project/manifest/locate';
 import { compareSemver } from './editor-compatibility';
 
-export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter packages and its engine pin to one release (default: latest)";
+export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter packages and its engine pin to one release (default: latest); from a project made before 0.5.203, run the newest release's own: npx <package>@latest upgrade";
 
 /** A product name that is no longer published, as a project still spells it. */
 export interface RetiredProduct {
@@ -62,7 +62,7 @@ export interface UpgradingProduct {
 /** The ONE line that moves a project onto `product`, from any version — including a project on a
  *  name `product` replaced, whose own installed command does not know `product` exists. */
 export function upgradeLine(product: Pick<UpgradingProduct, 'packageName'>): string {
-  return `npx ${product.packageName} upgrade`;
+  return `npx ${product.packageName}@latest upgrade`;
 }
 
 /** The retired product a project's `package.json` still declares, or null. */
@@ -87,6 +87,125 @@ export function retiredProjectError(product: Pick<UpgradingProduct, 'packageName
 
 /** The files `create` writes that name the product's package or command, project-relative. */
 const RENAMED_PRODUCT_FILES = ['.mcp.json', '.codex/config.toml', 'AGENTS.md', 'CLAUDE.md'] as const;
+
+/** The kit packages 0.5.203 renamed (#284), old name first. */
+const RENAMED_KIT_PACKAGES = [
+  ['@volter/editor-project', '@volter/project'],
+  ['@volter/editor-sdk', '@volter/sdk'],
+  ['@volter/editor-live', '@volter/live'],
+  ['@volter/editor-model-play', '@volter/play'],
+] as const;
+
+/**
+ * What 0.5.203 (#286) moved from where a project kept it to `editor/`: the adapter from the project's root, and the
+ * project's contributions and tools from `src/` (`tool-contribution-convention` read `src/contributions` and
+ * `src/tools` until then). Project-relative, from and to.
+ */
+const MOVED_TO_EDITOR = [
+  ['volter.adapter.ts', 'editor/volter.adapter.ts'],
+  ['src/contributions', 'editor/contributions'],
+  ['src/tools', 'editor/tools'],
+] as const;
+
+/** Every file under `path` (or `path` itself, a file); none when it is gone. */
+async function allFiles(path: string): Promise<string[]> {
+  let entries: import('node:fs').Dirent[];
+  try { entries = await readdir(path, { withFileTypes: true }); } catch { return existsSync(path) ? [path] : []; }
+  const files: string[] = [];
+  for (const entry of entries) {
+    const child = join(path, entry.name);
+    if (entry.isDirectory()) files.push(...await allFiles(child));
+    else files.push(child);
+  }
+  return files;
+}
+
+/** Every script file under `dir`, skipping `node_modules` and dot-folders. */
+async function scriptFiles(dir: string): Promise<string[]> {
+  const files: string[] = [];
+  let entries: import('node:fs').Dirent[];
+  try { entries = await readdir(dir, { withFileTypes: true }); } catch { return files; }
+  for (const entry of entries) {
+    if (entry.name === 'node_modules' || entry.name.startsWith('.')) continue;
+    const path = join(dir, entry.name);
+    if (entry.isDirectory()) files.push(...await scriptFiles(path));
+    else if (/\.(?:[cm]?[jt]sx?)$/.test(entry.name)) files.push(path);
+  }
+  return files;
+}
+
+/** A project's own source that may import the kit: its root script files (the adapter, `vite.config.ts`),
+ *  and everything under `editor/`, `src/` and `scripts/`. */
+async function projectSourceFiles(project: string): Promise<string[]> {
+  const files: string[] = [];
+  try {
+    for (const entry of await readdir(project, { withFileTypes: true })) {
+      if (entry.isFile() && /\.(?:[cm]?[jt]sx?)$/.test(entry.name)) files.push(join(project, entry.name));
+    }
+  } catch { /* an unreadable project root is refused before this */ }
+  for (const folder of ['editor', 'src', 'scripts']) files.push(...await scriptFiles(join(project, folder)));
+  return files;
+}
+
+/**
+ * `text` naming what 0.5.203 moved where it now is: `src/contributions` and `src/tools` as path segments, and the
+ * root adapter (`volter.adapter.ts` not already under `editor/`). For the instructions and the catalog records a
+ * project carries, and the path strings in its own scripts (`check-idioms.ts` names both folders).
+ */
+function rewriteMovedPaths(text: string): string {
+  return text
+    .replace(/(^|[^\w./-])(\.\/)?src\/(contributions|tools)(?=$|[/'"`\s),;:\]]|\.$)/gm, '$1$2editor/$3')
+    .replace(/(^|[^\w./-])(\.\/)?volter\.adapter\.ts\b/gm, '$1$2editor/volter.adapter.ts');
+}
+
+/** The text files that name a project's places in words or as data: the instructions `create` wrote (any root
+ *  Markdown, and the agent skills under `.claude/`, `.agents/` and `.github/`), the root TypeScript configs (their
+ *  `include`, `exclude` and `paths`) and the catalog's records (`.volter/`, its JSON). Never `node_modules`. */
+async function projectTextFiles(project: string): Promise<string[]> {
+  const files: string[] = [];
+  try {
+    for (const entry of await readdir(project, { withFileTypes: true })) {
+      if (entry.isFile() && /(?:\.md|^tsconfig(?:\.[\w-]+)?\.json)$/i.test(entry.name)) files.push(join(project, entry.name));
+    }
+  } catch { /* an unreadable project root is refused before this */ }
+  const under = async (dir: string, pattern: RegExp): Promise<void> => {
+    for (const path of await allFiles(dir)) if (!path.includes(`${sep}node_modules${sep}`) && pattern.test(path)) files.push(path);
+  };
+  for (const folder of ['.claude', '.agents', '.github']) await under(join(project, folder), /\.md$/i);
+  await under(join(project, '.volter', 'catalog'), /\.json$/i);
+  if (existsSync(join(project, '.volter', 'scaffold-baseline.json'))) files.push(join(project, '.volter', 'scaffold-baseline.json'));
+  return files;
+}
+
+/** `text` with every import of a renamed kit package (the package itself or a subpath) under its current name, and
+ *  every path that names its installed folder (`node_modules/@volter/editor-project/src/*`, a tsconfig's `paths`). */
+function renameKitSpecifiers(text: string): string {
+  let out = text;
+  for (const [from, to] of RENAMED_KIT_PACKAGES) {
+    out = out.replace(new RegExp(`(['"\`]|node_modules\\/)${from.replace('/', '\\/')}(?=[/'"\`])`, 'g'), `$1${to}`);
+  }
+  return out;
+}
+
+/**
+ * `text`, a module moving from `fromDir` to `toDir` while the files in `moved` (old path to new) move too, with each
+ * relative specifier still naming the same file: `from`, `import`, `import()`, `require()`, `new URL()` and
+ * `import.meta.glob()`, and a bare `.` or `..`. A specifier whose module and target both stay is left as written.
+ */
+function rebaseRelativeSpecifiers(text: string, fromDir: string, toDir: string, moved: (path: string) => string): string {
+  return text.replace(
+    /(\bfrom\s*|\bimport\s*\(\s*|\bimport\s+|\brequire\s*\(\s*|\bnew\s+URL\s*\(\s*|\bimport\.meta\.glob\s*\(\s*)(['"`])(\.{1,2}(?:\/[^'"`]*)?)\2/g,
+    (whole: string, lead: string, quote: string, spec: string) => {
+      const target = resolve(fromDir, spec);
+      if (fromDir === toDir && moved(target) === target) return whole;
+      let next = relative(toDir, moved(target)).split('\\').join('/');
+      if (next === '') next = '.';
+      if (!next.startsWith('.')) next = `./${next}`;
+      if (spec.endsWith('/') && !next.endsWith('/')) next = `${next}/`;
+      return `${lead}${quote}${next}${quote}`;
+    },
+  );
+}
 
 /** `text` as a whole word — not part of a longer command, package or name it is the start or the
  *  end of (`<command>-x`, a name's plural). A path after it (`<package>/package.json`) or
@@ -121,6 +240,12 @@ function declaredVersion(spec: string | undefined): string | null {
   return bare !== undefined && EXACT_VERSION.test(bare) ? bare : null;
 }
 
+/** The version a kit package is declared at, for telling which packages move together: an exact spec's, or a
+ *  local tarball's (`file:…/volter-play-0.5.202.tgz`, how a project built from a checkout declares the kit). */
+function kitVersion(spec: string | undefined): string | null {
+  return declaredVersion(spec) ?? spec?.match(/^file:.*-(\d+\.\d+\.\d+)\.tgz$/)?.[1] ?? null;
+}
+
 /**
  * Write every planned file, or none: each to a temp file beside it first, then all renamed into
  * place. A failure while writing leaves the project as it was; a failure between the renames
@@ -128,7 +253,7 @@ function declaredVersion(spec: string | undefined): string | null {
  * one after the other, so a failure on the second left a project with new packages and the old
  * pin — exactly the mismatch this verb exists to end.
  */
-async function writeAll(files: readonly { readonly path: string; readonly content: string; readonly original: string }[]): Promise<void> {
+async function writeAll(files: readonly { readonly path: string; readonly content: string; readonly original: string; readonly created?: boolean }[]): Promise<void> {
   const temp = (path: string) => `${path}.upgrade-${process.pid}.tmp`;
   try {
     for (const file of files) await writeFile(temp(file.path), file.content);
@@ -140,7 +265,8 @@ async function writeAll(files: readonly { readonly path: string; readonly conten
   try {
     for (const file of files) { await rename(temp(file.path), file.path); moved.push(file); }
   } catch (error) {
-    for (const file of moved) await writeFile(file.path, file.original).catch(() => {});
+    // A file this upgrade made is removed again; any other gets its old content back.
+    for (const file of moved) await (file.created ? rm(file.path, { force: true }) : writeFile(file.path, file.original)).catch(() => {});
     await Promise.all(files.map(file => rm(temp(file.path), { force: true })));
     throw new Error(`The upgrade could not be put in place, and what had moved was put back: ${error instanceof Error ? error.message : String(error)}`);
   }
@@ -249,7 +375,8 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   // the new kit version. Any other @volter package is the author's choice and is named, not moved.
   const packageRaw = await readFile(packagePath, 'utf8');
   const pkg = JSON.parse(packageRaw) as PackageJson;
-  const previousKit = pkg.devDependencies?.['@volter/project'] ?? pkg.dependencies?.['@volter/project'];
+  const previousKit = pkg.devDependencies?.['@volter/project'] ?? pkg.dependencies?.['@volter/project']
+    ?? pkg.devDependencies?.['@volter/editor-project'] ?? pkg.dependencies?.['@volter/editor-project'];
   // Read before a retired name is moved below: a project on a retired name declares none of
   // this product, and its direction is then read by its engine pin.
   const currentProduct = declaredVersion(pkg.dependencies?.[product.packageName] ?? pkg.devDependencies?.[product.packageName]);
@@ -272,7 +399,7 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   // 0. A RETIRED NAME becomes this product, where it stood and at the release — a project that
   // already declares this product as well just loses the old row.
   const retired = declaredRetiredProduct(product, project);
-  const textFiles: { path: string; content: string; original: string }[] = [];
+  const textFiles: { path: string; content: string; original: string; created?: boolean }[] = [];
   if (retired !== null) {
     const declaresProduct = pkg.dependencies?.[product.packageName] !== undefined || pkg.devDependencies?.[product.packageName] !== undefined;
     for (const section of ['dependencies', 'devDependencies'] as const) {
@@ -316,12 +443,110 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
       changed.push(`${file}: names ${product.packageName} and \`${product.command}\``);
     }
   }
+  // 0b. THE KIT'S OLD NAMES AND THE EDITOR FOLDER (0.5.203: #284 renamed the runtime packages, #286 moved a
+  // project's editor side into `editor/`). A project made before 0.5.203 declares the kit under its old names and
+  // keeps its editor side where #286 moved it from (the adapter at its root, contributions and tools in `src/`),
+  // and the release names neither; left alone, the upgraded project was refused on its next open, or opened
+  // without its tools. The names move where they stand, in package.json and in the project's own source, and what
+  // #286 moved moves into `editor/`, each file with its relative imports rebased.
+  for (const section of ['dependencies', 'devDependencies'] as const) {
+    const declared = pkg[section];
+    if (declared === undefined) continue;
+    for (const [from, to] of RENAMED_KIT_PACKAGES) {
+      const current = declared[from];
+      if (current === undefined) continue;
+      if (declared[to] !== undefined) {
+        delete declared[from];
+        changed.push(`package.json ${section}: ${from} removed (${to} is already declared)`);
+      } else {
+        pkg[section] = renameKey(pkg[section]!, from, to, current);
+        changed.push(`package.json ${section}: ${from} -> ${to}`);
+      }
+      packagesChanged = true;
+    }
+  }
+  const projectPath = (path: string) => relative(project, path).split('\\').join('/');
+  // FILE BY FILE, so a second run finishes what a first left: each file of a moved folder (or the adapter) moves
+  // unless a file is already at its destination, which is said and left. A destination folder that exists (empty,
+  // or holding what a first run moved) is merged into, not taken as a reason to skip the move.
+  const moves: { from: string; to: string }[] = [];
+  for (const [from, to] of MOVED_TO_EDITOR) {
+    const source = join(project, from);
+    if (existsSync(source)) moves.push({ from: source, to: join(project, to) });
+  }
+  const movedPath = (path: string): string => {
+    for (const move of moves) {
+      if (path === move.from) return move.to;
+      if (path.startsWith(move.from + sep)) return move.to + path.slice(move.from.length);
+      // The adapter imported without its extension, or as the `.js` a build would emit.
+      const bare = move.from.replace(/\.ts$/, '');
+      if (bare !== move.from && (path === bare || path === `${bare}.js`)) return move.to.replace(/\.ts$/, '') + path.slice(bare.length);
+    }
+    return path;
+  };
+  const collides = (path: string) => movedPath(path) !== path && existsSync(movedPath(path));
+  const stranded: string[] = [];
+  for (const move of moves) for (const path of await allFiles(move.from)) if (collides(path)) stranded.push(path);
+  for (const path of stranded)
+    kept.push(`${projectPath(path)} stays where it is and is not read: ${projectPath(movedPath(path))} already exists; keep one of the two by hand`);
+  const willMove = (path: string) => movedPath(path) !== path && !stranded.includes(path);
+  const leftBehind: string[] = [];
+  for (const path of await projectSourceFiles(project)) {
+    const original = await readFile(path, 'utf8');
+    const destination = willMove(path) ? movedPath(path) : path;
+    const content = rewriteMovedPaths(
+      rebaseRelativeSpecifiers(renameKitSpecifiers(original), dirname(path), dirname(destination), (p) => (willMove(p) ? movedPath(p) : p)),
+    );
+    if (destination !== path) {
+      textFiles.push({ path: destination, content, original: '', created: true });
+      leftBehind.push(path);
+    } else if (content !== original) {
+      textFiles.push({ path, content, original });
+      changed.push(`${projectPath(path)}: names the kit's current packages and the moved files where they now are`);
+      // 0.5.203 fails a game build that reaches into editor/ (src/ is the game): a game file that imported one of
+      // the moved files now does, and is named so the person moves what it needs out of editor/. A file left behind
+      // because its destination exists is already named, and is not read.
+      if (path.startsWith(join(project, 'src') + sep) && !stranded.includes(path) && /(['"`])(?:\.{1,2}\/)+[^'"`]*\beditor\//.test(content) && !/(['"`])(?:\.{1,2}\/)+[^'"`]*\beditor\//.test(original))
+        kept.push(`${projectPath(path)} now imports from editor/, which a game build refuses from 0.5.203: move what it uses out of editor/ (src/ is the game)`);
+    }
+  }
+  for (const move of moves) {
+    if ((await allFiles(move.from)).some((path) => !stranded.includes(path)))
+      changed.push(`${projectPath(move.from)} -> ${projectPath(move.to)} (a project's editor side lives in editor/ from 0.5.203)`);
+  }
+  // THE FILES THAT NAME THE OLD PLACES IN WORDS OR AS DATA: the instructions `create` wrote (AGENTS.md, IDIOMS.md,
+  // CLAUDE.md, the agent skills), the TypeScript configs (the tools' program includes `src/tools`; left, it found no
+  // files and `typecheck` failed) and the game editor's catalog records (`.volter/`), which name the files it wrote.
+  for (const path of await projectTextFiles(project)) {
+    const original = await readFile(path, 'utf8');
+    const content = rewriteMovedPaths(renameKitSpecifiers(original));
+    if (content === original) continue;
+    textFiles.push({ path, content, original });
+    changed.push(`${projectPath(path)}: names the moved files and the kit's packages where they now are`);
+  }
+  // A tool is registered in package.json by its path (`volter.tools`); a registration into a moved folder follows it.
+  const volter = pkg['volter'];
+  const tools = volter !== null && typeof volter === 'object' && !Array.isArray(volter) ? (volter as { tools?: unknown }).tools : undefined;
+  if (Array.isArray(tools)) {
+    const rewritten = tools.map((registration: unknown) => {
+      const entry = typeof registration === 'string' ? registration : (registration as { entry?: unknown } | null)?.entry;
+      if (typeof entry !== 'string' || !entry.startsWith('./')) return registration;
+      const next = `./${projectPath(movedPath(join(project, entry.slice(2))))}`;
+      if (next === entry) return registration;
+      changed.push(`package.json volter.tools: ${entry} -> ${next}`);
+      packagesChanged = true;
+      return typeof registration === 'string' ? next : { ...(registration as object), entry: next };
+    });
+    (volter as { tools: unknown[] }).tools = rewritten;
+  }
+
   for (const section of ['dependencies', 'devDependencies'] as const) {
     const declared = pkg[section];
     if (!declared) continue;
     for (const [name, current] of Object.entries(declared)) {
       if (!name.startsWith('@volter/')) continue;
-      const target = name === product.packageName ? release.version : release.dependencies[name] ?? (current === previousKit ? kit : undefined);
+      const target = name === product.packageName ? release.version : release.dependencies[name]
+        ?? (current === previousKit || (kitVersion(current) !== null && kitVersion(current) === kitVersion(previousKit)) ? kit : undefined);
       if (target === undefined) {
         kept.push(`package.json keeps ${name}@${current}: ${product.packageName}@${release.version} does not name it`);
         continue;
@@ -329,7 +554,9 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
       if (current === target) continue;
       declared[name] = target;
       packagesChanged = true;
-      changed.push(`package.json ${section}: ${name} ${current} -> ${target}`);
+      changed.push(current.startsWith('file:')
+        ? `package.json ${section}: ${name} was the local tarball ${current}; it is now ${target} from the registry`
+        : `package.json ${section}: ${name} ${current} -> ${target}`);
     }
   }
 
@@ -370,12 +597,41 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     : [];
   if (locks.length > 0) changed.push('package-lock.json: the old @volter rows dropped, so npm install resolves the new ones');
 
-  await writeAll([
-    ...(packagesChanged ? [{ path: packagePath, content: jsonLayout(packageRaw)(pkg), original: packageRaw }] : []),
-    ...(pinChanged ? [{ path: manifestPath, content: jsonLayout(manifestRaw)(manifest), original: manifestRaw }] : []),
-    ...textFiles,
-    ...locks,
-  ]);
+  // The folders this run makes for the moved files are removed again if the write fails, so nothing of it is left.
+  const madeDirs: string[] = [];
+  for (const file of textFiles) {
+    if (!file.created) continue;
+    const chain: string[] = [];
+    for (let dir = dirname(file.path); !existsSync(dir) && dir !== dirname(dir); dir = dirname(dir)) chain.unshift(dir);
+    for (const dir of chain) { await mkdir(dir); madeDirs.push(dir); }
+  }
+  try {
+    await writeAll([
+      ...(packagesChanged ? [{ path: packagePath, content: jsonLayout(packageRaw)(pkg), original: packageRaw }] : []),
+      ...(pinChanged ? [{ path: manifestPath, content: jsonLayout(manifestRaw)(manifest), original: manifestRaw }] : []),
+      ...textFiles,
+      ...locks,
+    ]);
+  } catch (error) {
+    for (const dir of madeDirs.reverse()) await rmdir(dir).catch(() => undefined);
+    throw error;
+  }
+  // The moved scripts' new copies are in place; only then do the old ones go, and a moved folder's other files
+  // (data, a capability stamp) follow as they are. The project is upgraded by now, so a file that cannot be moved or
+  // removed (open in another program) is said, not thrown.
+  const failed: string[] = [];
+  const leftover = (path: string, error: unknown) => (failed.push(path),
+    kept.push(`${projectPath(path)} could not be removed (${error instanceof Error ? error.message : String(error)}); the editor does not read it, so delete it by hand`));
+  for (const path of leftBehind) await rm(path).catch((error: unknown) => leftover(path, error));
+  for (const move of moves) {
+    for (const path of await allFiles(move.from)) {
+      if (leftBehind.includes(path) || stranded.includes(path)) continue;
+      const to = movedPath(path);
+      await mkdir(dirname(to), { recursive: true });
+      await rename(path, to).catch((error: unknown) => leftover(path, error));
+    }
+    if (!move.from.endsWith('.ts') && ![...failed, ...stranded].some(path => path.startsWith(move.from + sep))) await rm(move.from, { recursive: true, force: true }).catch(() => undefined);
+  }
   for (const line of warnings) console.warn(`! ${line}`);
 
   console.log(changed.length > 0

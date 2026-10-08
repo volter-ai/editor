@@ -176,7 +176,7 @@ async function refuseIncompatibleProject(serverUrl: string, command: string, noO
   // restart in flight, which the tab wait below already rides out; a deadline here turned a slow
   // healthy restart into a failed `edit` (#147 review).
   const kind = refusal.recovery?.kind;
-  if (kind !== 'use-compatible-editor' && kind !== 'upgrade-project') return;
+  if (kind !== 'use-compatible-editor' && kind !== 'upgrade-project' && kind !== 'bring-project-up-to-date') return;
   const message = refusal.error as string;
   const guidance = typeof refusal.recovery?.guidance === 'string' ? refusal.recovery.guidance : null;
   const verbs: unknown = refusal.recovery?.verbs;
