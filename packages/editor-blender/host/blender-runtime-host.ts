@@ -362,6 +362,13 @@ async function openBoundModelDocument(
   try {
     publish();
     await started;
+  } catch (error) {
+    // A session whose start failed keeps that failure and never starts. Discard it, so that
+    // "Retry opening" makes a new session and a new worker; without this every retry awaited the
+    // same failed start. A refusal that is not a failed start (another document holds the
+    // session) leaves the session alone: it is someone else's.
+    if (session.startFailed && runtime === session) terminateBlenderRuntime();
+    throw error;
   } finally {
     if (modelStartup === starting) modelStartup = null;
   }

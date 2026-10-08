@@ -273,13 +273,25 @@ export class BlenderRuntime {
       );
     this.#project = project;
     this.#document ??= document ?? 'models/model.blend';
-    this.#started ??= this.#request({
+    this.#started ??= (this.#request({
       op: 'start',
       project,
       ...(document === undefined ? {} : { document }),
-    }) as Promise<RuntimeStart>;
+    }) as Promise<RuntimeStart>).catch((error: unknown) => {
+      this.#startFailed = true;
+      throw error;
+    });
     return this.#started;
   }
+
+  /**
+   * True once THIS session's own start has failed (not a refusal to start, such as a file another
+   * document holds). A start is asked for once and its outcome kept, and the worker that failed may
+   * hold a half-started engine, so such a session never starts: its owner discards it and makes a
+   * new one, with a new worker, for the next attempt.
+   */
+  get startFailed(): boolean { return this.#startFailed; }
+  #startFailed = false;
 
   #ready(): Promise<RuntimeStart> {
     if (this.#project === null)
