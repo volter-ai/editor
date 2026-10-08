@@ -518,8 +518,8 @@ export interface EditorTheme {
        * paints every seam `boundary.default`, exactly as before this member
        * existed, so no other skin moves by a pixel.
        *
-       * Blender 5.2 factory startup, measured on the native 2x frames in
-       * `/Volumes/PeakSSD/volter-work/blender-reference` (halved here):
+       * Blender 5.2 factory startup, measured on the native 2x reference frames
+       * (halved here):
        *
        *  - `modeling.png`, the seam between the Outliner and the Properties
        *    editor, median over x 2900..3400: rows 419..425 are (21,21,21) —
@@ -2372,8 +2372,8 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
   // was, `--volter-widget-regular-hover` rendered #686868.
   //
   // HONEST LABEL: #656565 is the only number here that is NOT measurable
-  // from the reference frames — none of the eighteen captures in
-  // /Volumes/PeakSSD/volter-work/blender-reference holds a widget under the
+  // from the reference frames — none of the eighteen captures
+  // holds a widget under the
   // pointer, and a search of every frame for a #656565 REGION finds only
   // scattered viewport-gradient pixels. It is the target this file's own
   // docblock has carried; the solve against it is exact, the target is
@@ -2540,8 +2540,7 @@ export function editorThemeVariables(theme: EditorTheme): Record<EditorThemeVari
     // average `A*p + B*(1-p)`, so `p = (B - target) / (B - A)`. The three
     // solves, with the Blender palette's own channel values (grey, so one
     // channel states all three) and the coordinate the target was read at in
-    // `/Volumes/PeakSSD/volter-work/blender-reference` (1728x1052 factory
-    // startup captured at 2x):
+    // the reference frames (1728x1052 factory startup captured at 2x):
     //
     //  header  A=panel  0x2f=47, B=raised  0x54=84,  target 0x34=52
     //          p = (84-52)/(84-47)   = 32/37   = 86.49%  → 86.5%
