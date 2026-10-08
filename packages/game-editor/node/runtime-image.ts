@@ -85,7 +85,9 @@ export function linkRuntimeImage(projectDir: string, imageNodeModules: string): 
     if (resolve(projectDir, readlinkSync(link)) === resolve(imageNodeModules)) return;
     throw new Error(`${link} already links ${readlinkSync(link)}; remove it to link the runtime image.`);
   }
-  symlinkSync(imageNodeModules, link, 'dir');
+  // A directory symlink on Windows needs Developer Mode or an administrator (EPERM otherwise); a junction needs
+  // neither, and Node reads it back as a symbolic link to the same absolute path, so the checks above hold for it.
+  symlinkSync(imageNodeModules, link, process.platform === 'win32' ? 'junction' : 'dir');
 }
 
 function isDanglingLink(path: string): boolean {
