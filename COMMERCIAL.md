@@ -5,6 +5,9 @@ Volter Editor is three kinds of code under three kinds of license. Each package'
 lists them. This page says which is which and what Volter AI, Inc. can offer
 other terms for.
 
+The owner's sentence it rests on: "the runtime should be apache, the editor is
+agpl". Which packages are the runtime is the reading below.
+
 ## The editor is AGPL
 
 The editor and its products are AGPL-3.0-only: `@volter/editor-core`,
@@ -12,13 +15,14 @@ The editor and its products are AGPL-3.0-only: `@volter/editor-core`,
 `@volter/editor-xstate`, `@volter/editor-game`, `@volter/editor-dawproject`, and
 Volter's own code in `@volter/editor-blender`, `@volter/cyclotron` and
 `@volter/game-editor`. Some of these carry Apache-2.0 or GPL parts beside the
-AGPL code; their `NOTICE` names the files.
+AGPL code; the package's `NOTICE`, or its `LICENSE` where it has no `NOTICE`
+(`@volter/editor-blender`), names the files.
 
 ## The runtime is Apache-2.0
 
-What a game made in the editor is written against, and what it ships, is
-Apache-2.0. A game's own code stays the game author's, under whatever terms they
-choose.
+The runtime is what a game ships and runs: the packages its gameplay code
+imports and that go out with it. Those are Apache-2.0. A game's own code stays
+the game author's, under whatever terms they choose.
 
 | Package | What it is to a game |
 | --- | --- |
@@ -29,17 +33,30 @@ choose.
 | `@volter/editor-sdk` | the API a project's own contributions and tools import |
 
 `@volter/game-live`, `@volter/editor-live` and `@volter/dawproject` are also
-Apache-2.0.
+Apache-2.0. So is `@volter/ztrack`, which is published from another repository
+and which a Game Editor project's `.volter/tracker/` files import.
 
-A Cyclotron game's own files import three and React, and nothing of Volter's
-except, optionally, the types of `@volter/editor-model-play`. Play runs a play
-script inside the editor.
+**A project is more than its game.** Its adapter (`volter.adapter.ts`), its
+contributions (`src/contributions/`) and its tools (`src/tools/`) extend the
+editor and run inside it. They import editor packages under those packages'
+own licenses, and the Apache-2.0 claim above does not reach them:
+
+- the project `cyclotron create` writes has a `volter.adapter.ts` that imports
+  `@volter/editor-blender` (AGPL and GPL), and it depends on `@volter/cyclotron`
+  and `@volter/editor-blender` to be edited;
+- a Game Editor project's tools and contributions may import
+  `@volter/editor-dawproject` and `@volter/editor-threejs` (AGPL).
+
+A Cyclotron game's gameplay files (`*.play.ts`, `src/ui/`) import three and
+React, and of Volter's only, optionally, the types of
+`@volter/editor-model-play`. Play runs a play script inside the editor.
 
 ## Blender, and anything derived from it, is GPL
 
 `@volter/blender-engine` is Blender compiled to WebAssembly and is
 GPL-3.0-or-later in whole. Blender's icon artwork traced into
-`@volter/editor-blender` and the workbench theme, and any file that follows
+`@volter/editor-blender` and the workbench theme, and
+`@volter/editor-blender`'s `contributions/blender-pose.ts`, which follows
 Blender's own source, are GPL-3.0-or-later; the `LICENSE` beside them names
 them. None of it is part of the runtime: no Apache-2.0 package contains or
 imports it.
