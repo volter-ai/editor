@@ -10,24 +10,26 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 From `@volter/cyclotron` 0.5.199 to 0.5.203, the editor Chat refused the first message of a new
 conversation with "The harness has not persisted this conversation yet." and no turn ran; a conversation
 already under way kept working. The Chat frontend those releases' workbench bundles
-(`supercode-frontend-vscode` 0.1.52) asks the editor to link a new conversation before its first message is
-sent, and the editor refuses a link to a conversation the harness has not saved yet. 0.5.204 pins the workbench back to the cut with 0.1.51
-(`cyclotron-f16dc165c0df-2d5aeb1b4cd7`), where a first message runs. What that gives up until a fixed
-frontend is pinned: the Chat no longer restores a running prompt and a pending approval after a page
-reload. The boot splash is the same in both.
+(`supercode-frontend-vscode` 0.1.52) asks the editor to link a new conversation before its first message
+is sent, and the editor refuses to link a conversation the harness has not saved yet. 0.5.204 pins the
+workbench back to the cut with 0.1.51 (`cyclotron-f16dc165c0df-2d5aeb1b4cd7`), where a first message runs.
+What that gives up until a fixed frontend is pinned: the Chat no longer restores a running prompt and a
+pending approval after a page reload. The boot splash is the same in both.
 
 The first `cyclotron` after upgrading installs that workbench unless this machine already has it.
 
-The editor's refusal, when a Chat asks it to link a conversation the harness has not saved, now says the message was
-not sent and what to do, in place of "The harness has not persisted this conversation yet." The repository pins the
-Chat frontend back to 0.1.51 too, so a workbench cut from it bundles the Chat 0.5.204 ships.
+When the editor cannot link a chat to the harness's conversation, its message now says what it found (no
+listed session with that id for the project's folder) and the likely reasons, in place of the sentence above.
+The repository also pins the Chat frontend back to 0.1.51, so a workbench cut from it bundles the Chat
+0.5.204 ships.
 
 ## 0.5.203 — the starter's commands never fetch
 
 From `@volter/game-editor` 0.5.203, the starter a new game is made from prints
 `npx --no-install volter-game-editor …` and `npx --no-install tsx …` (in `AGENTS.md`, `IDIOMS.md` and the
-agent skills), and its npm scripts call `tsx` by name. Inside the project these run the project's own installed copy, as before;
-where it is missing they stop with an error instead of fetching whatever holds the name on npm.
+agent skills), and its npm scripts call `tsx` by name. Inside the project these run the project's own
+installed copy, as before; where it is missing they stop with an error instead of fetching whatever holds
+the name on npm.
 `volter-game-editor` is a bin of `@volter/game-editor`, not a package of its own, so a plain
 `npx volter-game-editor` outside an installed project would fetch a stranger's package. Projects made
 from an earlier starter keep the old lines; change `npx volter-game-editor` to
