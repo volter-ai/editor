@@ -20,9 +20,6 @@ export class PullJob<T> {
    * start refused by a content security policy showed only that message, on every retry).
    */
   private ended: { readonly value: T } | { readonly error: unknown } | null = null;
-  /** True once the work has ended in failure: a load that failed may be started again. */
-  get failed(): boolean { return this.hasFailed; }
-  private hasFailed = false;
   constructor(private readonly work: (checkpoint: (phase: string) => Promise<void>) => Promise<T>) {}
   step(token?: string): Promise<PullResult<T>> {
     if (this.ended && !this.waiter && token === this.expected) {
@@ -46,10 +43,14 @@ export class PullJob<T> {
         if (waiter) waiter.resolve({ load: 'done', value });
         else this.ended = { value };
       }, error => {
-        this.finished = true; this.hasFailed = true;
+        this.finished = true;
         const waiter = this.waiter; this.waiter = null;
         if (waiter) waiter.reject(error);
-        else this.ended = { error };
+        else {
+          this.ended = { error };
+          // Said now as well: if the owner never asks for the next step, nobody would collect it.
+          console.warn('A Blender load failed between steps; the next step reports it:', error);
+        }
       });
     } else {
       const resume = this.resume!; this.resume = null; this.expected = null; resume();
