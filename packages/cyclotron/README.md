@@ -1,6 +1,6 @@
-# Cyclotron by VideoGame AI
+# Cyclotron by videogame.ai
 
-A free, open-source game editor by VideoGame AI, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
+A free, open-source game editor by videogame.ai, built from Blender 5.2 compiled to WebAssembly, Code-OSS, three.js, TypeScript and React.
 
 ```bash
 npx @volter/cyclotron create my-race --template playable
