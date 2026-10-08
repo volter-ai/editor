@@ -138,7 +138,8 @@ function policyOfHost(): Promise<[string, string][]> {
       });
       // Only a same-origin path is remembered: the fallback must not report anywhere else.
       const named = /(?:^|;)\s*report-uri\s+(\/[^\s;]*)/.exec(policy.map(([, value]) => value).join(';'))?.[1];
-      if (named && !named.startsWith('//')) reportAddress = named;
+      // `//host` and `/\host` both read as another host.
+      if (named && !/^\/[/\\]/.test(named)) reportAddress = named;
       return policy;
     })
     .catch(() => {
