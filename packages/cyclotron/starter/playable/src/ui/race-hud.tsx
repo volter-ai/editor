@@ -19,7 +19,7 @@ export function RaceHud(s: RaceState & {
  </svg>
  <div style={{ position: 'absolute', left: '2.6%', top: '2.7%', fontWeight: 900, letterSpacing: 2, fontSize: 'clamp(11px,1.15cqw,18px)', textShadow: '0 2px 4px #243537' }}>{s.phase === 'ready' ? 'CANYON COMET' : `${s.place} / 6  ·  ${Math.floor(raceTime / 60)}:${(raceTime % 60).toFixed(1).padStart(4, '0')}`}</div>
  <div style={{ position: 'absolute', right: '2.5%', bottom: '3.4%' }}><RaceControls state={s} onAction={act}/></div>
- <div style={{ position: 'absolute', left: '50%', bottom: '1%', transform: 'translateX(-50%)', font: '600 10px system-ui', textShadow: '0 1px 3px black', opacity: .88, whiteSpace: 'nowrap' }}>↑ accelerate · ↓ brake / reverse · ← → steer · Space drift · Shift boost</div>
+ <div style={{ position: 'absolute', left: '50%', bottom: '1%', transform: 'translateX(-50%)', font: '600 10px system-ui', textShadow: '0 1px 3px black', opacity: .88, whiteSpace: 'nowrap' }}>↑ W accelerate · ↓ S brake / reverse · ← → A D steer · Space drift · Shift boost · O auto</div>
  {(s.paused || s.phase === 'finished') && <div style={{ position: 'absolute', inset: 0, display: 'grid', placeItems: 'center', background: '#253a3cbb' }}><RaceMenu state={s} onAction={act}/></div>}
  {s.phase === 'countdown' && <div style={{ position: 'absolute', left: '50%', top: '38%', fontSize: '9cqw', fontWeight: 900, color: '#ffc92e' }}>{Math.ceil(s.countdown)}</div>}
  <div style={{ position: 'absolute', left: '2.5%', top: '13%', transform: 'scale(.65)', transformOrigin: 'left top' }}><BoostMeter value={s.boost > 0 ? 8 : 5}/></div>
