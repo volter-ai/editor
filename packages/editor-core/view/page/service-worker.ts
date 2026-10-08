@@ -2,7 +2,8 @@
  * THE LIMITED VIEW'S SERVICE WORKER — the transport behind `/__editor/*` when there is no session.
  *
  * The editor and the workbench make the same requests they make against a session; this worker
- * decides who answers each one, in order:
+ * decides who answers each one, in order (the host's own `/api/` and `/auth/`, `HOST_PREFIXES`,
+ * never reach it: the browser sends those itself):
  *
  *  1. A NAVIGATION is the static host's page, re-served with cross-origin isolation
  *     (COOP `same-origin`, COEP `credentialless`), so a host that cannot set headers still runs
@@ -21,6 +22,7 @@
 
 import { LIMITED_VIEW_HEADER } from '@volter/editor-sdk/session/limited-view';
 import {
+  HOST_PREFIXES,
   type LimitedViewRouteEntry,
   type LimitedViewRoutes,
   MOUNT_SENTINEL,
@@ -230,7 +232,12 @@ self.addEventListener('message', (event) => {
 self.addEventListener('fetch', (event) => {
   // Another origin's request is left to the browser: a worker that re-fetches it changes its mode
   // and credentials, and a brand image from a CDN came back "Failed to fetch" (measured).
-  if (new URL(event.request.url).origin !== (globalThis as unknown as { location: { origin: string } }).location.origin) return;
+  const url = new URL(event.request.url);
+  if (url.origin !== (globalThis as unknown as { location: { origin: string } }).location.origin) return;
+  // The host's own server (`HOST_PREFIXES`) is left to the browser too, navigations included: a
+  // worker that re-fetches a sign-in cannot hand back its redirect, and one that forwards a POST
+  // to the page buffers a streamed answer whole.
+  if (HOST_PREFIXES.some((prefix) => url.pathname.startsWith(prefix))) return;
   event.respondWith(
     handle(event).catch(
       (error: unknown) =>
