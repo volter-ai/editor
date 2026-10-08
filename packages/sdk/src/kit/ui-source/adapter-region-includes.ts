@@ -69,9 +69,6 @@ const UNREADABLE_REGION_INCLUDES: AdapterRegionIncludes = {
   unreadable: true,
 };
 
-import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
-export { ADAPTER_MODULE_FILENAME };
-
 function stringLiteralOf(node: ts.Node | undefined): string | undefined {
   return node && ts.isStringLiteralLike(node) ? node.text : undefined;
 }

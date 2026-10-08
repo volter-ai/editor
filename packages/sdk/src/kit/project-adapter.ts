@@ -123,7 +123,6 @@ import {
 } from './tool-loader';
 
 import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
-export { ADAPTER_MODULE_FILENAME };
 
 /** The resolved scene table — the adapter's declarations plus what its own
  *  finder selections found. */

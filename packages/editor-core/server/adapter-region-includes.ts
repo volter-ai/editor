@@ -1,8 +1,8 @@
 import { readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { AdapterRegionIncludes } from '@volter/sdk/kit/ui-source/adapter-region-includes';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 import {
-  ADAPTER_MODULE_FILENAME,
   EMPTY_REGION_INCLUDES,
   parseAdapterRegionIncludes,
 } from '@volter/sdk/kit/ui-source/adapter-region-includes';
@@ -44,4 +44,3 @@ export function resetAdapterRegionIncludesCacheForTest(): void {
   cache.clear();
 }
 
-export { ADAPTER_MODULE_FILENAME };

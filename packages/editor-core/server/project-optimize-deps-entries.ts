@@ -11,7 +11,7 @@ import { isDynamicPattern } from 'tinyglobby';
 import { loadGameManifestDir } from '@volter/project/manifest/load-file';
 import { doorwayModuleSource, PACKAGED_MODULE_DOORWAYS } from '../vite-plugin-module-doorways';
 import { isToolContributionModule, projectStorySourceDirs } from './server-utils';
-import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/ui-source/adapter-region-includes';
+import { ADAPTER_MODULE_FILENAME } from '@volter/sdk/kit/adapter-module';
 
 /**
  * SERVER-ONLY packages that must never be crawled INTO during the client
