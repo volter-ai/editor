@@ -101,7 +101,10 @@ run(['install', '--no-audit', '--no-fund'], project);
 const stale = [];
 for (const [name, { version, file }] of packed) {
   const installed = join(project, 'node_modules', ...name.split('/'), 'package.json');
-  if (!existsSync(installed)) { stale.push(`${name}: not installed`); continue; }
+  // A list package this project neither declares nor pulls in is not installed, and need not be
+  // (release/game.json names game-editor packages a playable project never uses).
+  const declared = Boolean(pkg.dependencies?.[name] ?? pkg.devDependencies?.[name]);
+  if (!existsSync(installed)) { if (declared) stale.push(`${name}: declared but not installed`); continue; }
   const got = JSON.parse(readFileSync(installed, 'utf8')).version;
   if (got !== version) stale.push(`${name}: installed ${got}, packed ${version}`);
   const inTarball = tarballFile(join(out, file), 'package/package.json');
