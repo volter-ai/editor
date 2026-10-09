@@ -136,7 +136,7 @@ function behaviorsOf(script: Script | undefined): string[] {
 /**
  * THE UPDATES THIS DRAWN FRAME RUNS, as the `dt` each is handed: none while paused, one nominal
  * frame for a Step, and otherwise the frame's seconds times the speed, split into equal parts of
- * at most {@link MAX_UPDATE_SECONDS}.
+ * at most a tenth of a second (`splitUpdateSeconds`).
  */
 function frameUpdates(documentId: string, frameSeconds: number): number[] {
   const clock = modelPlayClock(documentId);
