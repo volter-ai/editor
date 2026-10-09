@@ -54,6 +54,7 @@
  *--------------------------------------------------------------------------------------------*/
 
 import { Disposable, MutableDisposable, toDisposable } from '../../../../base/common/lifecycle.js';
+import { IConfigurationService } from '../../../../platform/configuration/common/configuration.js';
 import { EditorCloseContext } from '../../../common/editor.js';
 import { GroupDirection, GroupsOrder, IEditorGroup, IEditorGroupsService } from '../../../services/editor/common/editorGroupsService.js';
 import { IEditorService } from '../../../services/editor/common/editorService.js';
@@ -62,6 +63,9 @@ import { IEditorService } from '../../../services/editor/common/editorService.js
 // dependency checker fails on (see `volterDocumentInput.ts`'s header).
 import { VolterDocumentInput } from './volterDocumentInput.js';
 import { documentView, VolterDocumentView } from './volterDocumentViews.js';
+
+/** Where the workbench draws editor actions; `hidden` leaves a group's tab row holding only its tabs. */
+const EDITOR_ACTIONS_LOCATION = 'workbench.editor.editorActionsLocation';
 
 /** The workspace AREA one document fills — `WorkspaceAreaContribution`'s own three fields,
  *  reshaped so that no file under `src/vs/` imports an editor module. `place` is relative to
@@ -153,6 +157,7 @@ export class VolterDocuments extends Disposable {
 		private readonly bridge: VolterDocumentsBridge,
 		@IEditorService private readonly editorService: IEditorService,
 		@IEditorGroupsService private readonly editorGroupsService: IEditorGroupsService,
+		@IConfigurationService private readonly configurationService: IConfigurationService,
 	) {
 		super();
 		// Native restoration owns the group grid, including intentionally empty splits.
@@ -167,7 +172,15 @@ export class VolterDocuments extends Disposable {
 		this.reportActiveEditor();
 		this._register(toDisposable(this.bridge.subscribe(() => this.schedule())));
 		this._register(this.editorService.onDidActiveEditorChange(() => this.reportActiveEditor()));
+		// Any editor opened, closed or moved anywhere can change how many tabs there are, and the
+		// actions setting decides whether the row holds anything else (`syncTabRow`).
+		this._register(this.editorService.onDidEditorsChange(() => this.syncTabRow()));
+		this._register(this.configurationService.onDidChangeConfiguration(event => {
+			if (event.affectsConfiguration(EDITOR_ACTIONS_LOCATION)) { this.syncTabRow(); }
+		}));
 		this._register(this.editorGroupsService.onDidChangeActiveGroup(() => this.reportActiveEditor()));
+		// From the mount on, not from the first pass's end: a restored single document has no row to lose.
+		this.syncTabRow();
 		// A BLENDER AREA IS RESIZED OR JOINED, NEVER CLOSED. If a person closes the area's
 		// group the map must forget it (its `IEditorGroup` is dead) and the next reconcile
 		// re-creates it — which is this schedule, because the registry has no reason to
@@ -254,19 +267,24 @@ export class VolterDocuments extends Disposable {
 			main = this.editorGroupsService.addGroup(this.group, opposite[area.place]);
 			created = true;
 		}
-		// THE DOCUMENTS' GROUP SHOWS ITS TABS. A document a person drags into an area (the Game
-		// panel's group below the viewport) makes that group the one holding it, so it is bound
-		// here as the main group; left as the area hid it, the tab row was gone and opening the
-		// document again did not bring it back (measured on the ec1e0e84 cut, 2026-10-08). The
-		// pass below moves the area's own document back out to a fresh area group.
-		main.setTabsHidden(false);
-		if (main === this.group) { return false; }
-		this.group = main;
-		this.appliedActiveId = null;
-		this.watchGroup();
+		// The documents' group is never an area, even when `liveGroup` fell back to one.
 		for (const [id, group] of this.areaGroups) {
 			if (group === main) { this.areaGroups.delete(id); }
 		}
+		if (main === this.group) { return false; }
+		// THE DOCUMENTS' GROUP SHOWS ITS TABS when there is more than one (`syncTabRow`, at the
+		// end of this pass). A document a person drags into an area (the Game panel's group
+		// below the viewport) makes that group the one holding it, so it is bound here as the
+		// main group; left as the area hid it, the tab row was gone and opening the document
+		// again did not bring it back (measured on the ec1e0e84 cut, 2026-10-08). The pass below
+		// moves the area's own document back out to a fresh area group. The group given up gets
+		// its row back (`syncTabRow` manages only the bound group and may have hidden this one):
+		// what it still holds is a person's split, or an area's document that `groupForArea`
+		// hides again below.
+		if (![...this.areaGroups.values()].includes(this.group)) { this.group.setTabsHidden(false); }
+		this.group = main;
+		this.appliedActiveId = null;
+		this.watchGroup();
 		return created;
 	}
 
@@ -493,8 +511,37 @@ export class VolterDocuments extends Disposable {
 			}
 		} finally {
 			this.applying = false;
+			this.syncTabRow();
 			this.reportActiveEditor();
 		}
+	}
+
+	/**
+	 * ONE TAB IN ALL, NO TAB ROW (the owner, 2026-10-09: "if there is only 1 tab total, we
+	 * don't need a row"). A row holding the only tab repeats the name of what is on screen, and
+	 * it takes its height from the viewport. A second editor in this window outside the areas
+	 * (another document, a source file) brings the row back, since then there is something to
+	 * switch between; closing back down to one hides it again. Areas never count: they have no
+	 * tabs (`groupForArea`). Nor does the overlay Settings opens in: `getPart` is this window's
+	 * own editor area, and `groups` across every part would count Settings as a second tab and
+	 * show the row behind it.
+	 *
+	 * ONLY A ROW THAT IS JUST THE TAB. Cyclotron hides editor actions
+	 * (`workbench.editor.editorActionsLocation: hidden`), so its row holds the tab and nothing
+	 * else. With `default` the actions live in that row (Split Editor, the "…" menu), and a
+	 * group without tabs builds no toolbar, so there the row stays; `titleBar` keeps it too,
+	 * which costs a row and loses nothing.
+	 *
+	 * Not while a pass runs: a pass opens the document beside the bootstrap editor before it
+	 * closes the bootstrap, and the row showing for that moment is a flicker at every boot.
+	 */
+	private syncTabRow(): void {
+		if (this.applying || this.groupGone) { return; }
+		const areas = new Set(this.areaGroups.values());
+		const tabs = this.editorGroupsService.getPart(this.group).groups
+			.reduce((sum, group) => areas.has(group) ? sum : sum + group.count, 0);
+		const onlyTheTab = this.configurationService.getValue<string>(EDITOR_ACTIONS_LOCATION) === 'hidden';
+		this.group.setTabsHidden(onlyTheTab && tabs <= 1);
 	}
 
 	private groupContaining(input: VolterDocumentInput): IEditorGroup | undefined {
