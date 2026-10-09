@@ -37,6 +37,7 @@ import { dirname, join, relative, resolve, sep } from 'node:path';
 import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { hasManifest } from '@volter/project/manifest/locate';
 import { EDITOR_SESSION_DISCOVERY_TIMEOUT_MS, HttpSessionDiscovery } from './discovery';
+import { readLiveRegisteredSessions } from './registry-format';
 import { compareSemver } from './editor-compatibility';
 
 export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter packages and its engine pin to one release (default: latest); from a project made before 0.5.203, run the newest release's own: npx <package>@latest upgrade";
@@ -358,21 +359,27 @@ async function readRelease(product: UpgradingProduct, requested: string | undefi
 
 /** Whether an editor session is open on `project` now (the same folder on disk, however it was typed).
  *  The Next lines close one first; with none open, `close` runs the project's OLD install, whose
- *  refusal before 0.5.210 was a wall about other sessions and exit 1. A question nobody could answer
- *  keeps the close line. */
+ *  refusal before 0.5.210 was a wall about other sessions and exit 1. The registry names each live
+ *  editor's project; a registered editor that did not answer may be this one, and a question nobody
+ *  could answer keeps the close line. */
 async function editorOpenOn(project: string): Promise<boolean> {
   try {
     const here = statSync(project, { bigint: true });
-    const sessions = await new HttpSessionDiscovery().listSessions(EDITOR_SESSION_DISCOVERY_TIMEOUT_MS);
-    return sessions.some((session) => {
-      if (session.project === null) return false;
+    const isHere = (path: string | null): boolean => {
+      if (path === null) return false;
       try {
-        const there = statSync(session.project, { bigint: true });
+        const there = statSync(path, { bigint: true });
         return there.dev === here.dev && there.ino === here.ino;
       } catch {
         return false;
       }
-    });
+    };
+    const registered = readLiveRegisteredSessions();
+    if (registered.length === 0) return false;
+    if (registered.some((session) => isHere(session.project))) return true;
+    const answered = await new HttpSessionDiscovery().listSessions(EDITOR_SESSION_DISCOVERY_TIMEOUT_MS);
+    // listSessions drops a session whose probe failed, and throws only when none answered.
+    return answered.length < registered.length || answered.some((session) => isHere(session.project));
   } catch {
     return true;
   }
