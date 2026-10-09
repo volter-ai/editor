@@ -111,7 +111,10 @@ function sceneCamera(view: BlenderRuntimeView, name: string | null, aspect: numb
 export async function bootWebPlayer(options: WebPlayerOptions): Promise<WebPlayer> {
   const { container, manifest } = options;
   const aspect = manifest.resolution ? manifest.resolution.width / manifest.resolution.height : null;
-  Object.assign(container.style, { position: 'relative', overflow: 'hidden', background: '#000' });
+  // The stage is placed inside the container; a container the page left static is made its
+  // positioning parent, and one the page already placed (fixed, absolute) keeps its own place.
+  if (getComputedStyle(container).position === 'static') container.style.position = 'relative';
+  Object.assign(container.style, { overflow: 'hidden', background: '#000' });
   // THE STAGE: the game's frame, centred and as large as the window allows at its aspect.
   const stage = element('div', { position: 'absolute', overflow: 'hidden' }, container);
   stage.dataset['testid'] = 'export-stage';

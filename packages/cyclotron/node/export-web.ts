@@ -223,6 +223,10 @@ export async function exportWeb(folder: string, options: ExportWebOptions = {}):
       target: 'es2022',
       chunkSizeWarningLimit: 8192,
       reportCompressedSize: false,
+      rollupOptions: {
+        // A dependency's misplaced `@__PURE__` comment is its own; it changes nothing here.
+        onwarn(warning, warn) { if (warning.code !== 'INVALID_ANNOTATION') warn(warning); },
+      },
     },
   });
   mkdirSync(join(out, DATA_DIR), { recursive: true });
