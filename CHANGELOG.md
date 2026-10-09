@@ -22,6 +22,11 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   manual mode (`--permission-mode default`), so a call that needs approval waits in the Chat for Allow or
   Deny. Before, Claude Code could start in its own auto mode and approve its calls itself, and Ask
   never asked. Auto approve answers the same requests by itself, as it did.
+- **Safari** (#346). Safari can't run the editor yet (it lacks the cross-origin isolation Blender's worker
+  needs). On a Mac whose default browser is Safari, the editor now opens in an installed Chrome, Edge, Brave,
+  Arc or Chromium; any other default browser is kept. Opened in Safari anyway, the editor's address shows a
+  page saying why, with the address to open elsewhere, and `cyclotron edit` says so in the terminal if the page
+  never arrives.
 - **Document tabs** (#292). Each open document has a tab; the workspace's areas have none.
 - **Build tripwires reach the Chat agent only while one of its tool calls is out** (#321). A line
   steered into a talk-only turn used to arrive after it as a new prompt, and the agent answered it in
