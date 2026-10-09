@@ -81,7 +81,13 @@ import {
   subscribeContentEntrySources,
 } from '@volter/sdk/kit/content-entry-source-registry';
 import { openRegisteredDocument } from '@volter/sdk/kit/document-open-registry';
-import { type AssetEntry, listAssets, listProjectComponents, revealInFinder } from '@volter/sdk/kit/editor-api';
+import {
+  type AssetEntry,
+  fileManagerName,
+  listAssets,
+  listProjectComponents,
+  revealInFinder,
+} from '@volter/sdk/kit/editor-api';
 import { editorConsole } from '@volter/sdk/kit/editor-console';
 import { useEditorStore, useHistoryService } from '@volter/sdk/kit/editor-runtime';
 import type { AssetKind as DocumentAssetKind } from '@volter/sdk/kit/asset-selection';
@@ -2826,7 +2832,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
                 setContextMenu(null);
               }}
             >
-              Reveal in Finder
+              Reveal in {fileManagerName()}
             </MenuItem>
             <MenuItem
               type="button"
@@ -2838,7 +2844,9 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
                 setContextMenu(null);
               }}
             >
-              Delete <kbd>⌫</kbd>
+              {/* Delete and Backspace both delete (the key handler above); the hint names the one
+                this keyboard calls Delete. */}
+              Delete <kbd>{fileManagerName() === 'Finder' ? '⌫' : 'Del'}</kbd>
             </MenuItem>
           </Menu>
         </ThemeRootPortal>
