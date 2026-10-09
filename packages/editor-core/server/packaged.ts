@@ -200,6 +200,7 @@ import { readSharedSdkUrls } from '../vite-plugin-shared-sdk';
  */
 
 import { existsSync, readFileSync } from 'node:fs';
+import { createServer as createHttpServer, type Server as HttpServer } from 'node:http';
 import { createRequire } from 'node:module';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
@@ -290,6 +291,31 @@ const HMR_PORT = Number(process.env['VOLTER_HMR_PORT']) || editorHmrPort(PORT);
 const HMR_CLIENT_PORT = Number(process.env['VOLTER_HMR_CLIENT_PORT']) || HMR_PORT;
 // S3: bind to loopback by default; opt-in to a wider interface via env.
 const HOST = resolveBindHost();
+/**
+ * VITE'S HMR SOCKET, ON LOOPBACK ONLY. Given only a port, Vite's socket listens on every interface,
+ * and on Windows a program's first listener on every interface is a Firewall prompt ("allow Node.js
+ * JavaScript Runtime on public and private networks?"): measured in the 0.5.207 blind walk, a first
+ * run with Node.js just downloaded met it on `:::<HMR port>`. This server is the socket's own, bound
+ * to the session's host; a twin on `::1` hands its upgrades over, because a browser may resolve
+ * `*.localhost` to the IPv6 loopback (`frame-proxy.ts` binds both for the same reason). A host wider
+ * than loopback (WSL, VOLTER_EDITOR_HOST) keeps Vite's own listener.
+ */
+function loopbackHmrServer(): HttpServer | undefined {
+  if (HOST !== '127.0.0.1') return undefined;
+  const upgradeOnly = (_req: unknown, res: { writeHead(code: number): void; end(): void }): void => {
+    res.writeHead(426);
+    res.end();
+  };
+  const server = createHttpServer(upgradeOnly);
+  server.on('error', (error) => console.warn(`HMR: the live-update socket did not listen on ${HOST}:${HMR_PORT} (${error.message})`));
+  server.listen(HMR_PORT, HOST);
+  const ipv6 = createHttpServer(upgradeOnly);
+  ipv6.on('upgrade', (req, socket, head) => server.emit('upgrade', req, socket, head));
+  ipv6.on('error', (error) => console.warn(`HMR: no IPv6 loopback listener (${error.message}); live updates need one if the browser resolves *.localhost to ::1`));
+  ipv6.listen(HMR_PORT, '::1');
+  return server;
+}
+const HMR_SERVER = loopbackHmrServer();
 // Same rule as dev.ts: every URL this process prints or opens names the host it
 // actually bound, never `localhost` (see `editorOrigin`).
 const EDITOR_ORIGIN = editorOrigin(PORT, HOST);
@@ -940,7 +966,7 @@ async function main(): Promise<void> {
       // overlay only — HMR itself (and therefore `volter-script-hmr`'s WebSocket
       // delivery, which the header note above says `hmr: false` would kill)
       // stays fully on.
-      hmr: { port: HMR_PORT, clientPort: HMR_CLIENT_PORT, overlay: false },
+      hmr: { ...(HMR_SERVER ? { server: HMR_SERVER } : {}), port: HMR_PORT, clientPort: HMR_CLIENT_PORT, overlay: false },
       // OFF because the shared-React doorway makes it structurally broken in
       // THIS instance — see `vite-plugin-shared-react.ts`. Every editor-tree
       // module's `react`/`react/jsx-runtime` import is resolved to the prebuilt
