@@ -7,6 +7,10 @@ Do not read any source, do not fix anything, run no tests, never submit a form, 
 ChatGPT or Claude): a step that reaches one stops there and says so. The sign-in and the first real AI call on the
 browser version are stage 3's, made by a person.
 
+**Look, don't read the markup.** Judge every web page and the editor from screenshots, as a person sees them: take one,
+look at it, act (click, scroll, type), take the next. Never read a page through its source, its accessibility tree,
+innerText or a fetch. A wall of text, or the same thing said twice, is a finding, never a pass.
+
 Walk it in Chrome, Edge and Firefox on a computer, and in Safari on a Mac. Use a **new browser profile** for each
 browser (not a private window: a private window forgets its storage when it closes, and the returning run needs it).
 
