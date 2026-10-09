@@ -57,8 +57,8 @@ import {
   type TabRoute,
   type TabSurface,
   tabArriving,
-  tabLeftSilently,
   tabEndAcknowledged,
+  tabLeftSilently,
   tabNeedsProbe,
   tabPresenceReport,
   tabState,
@@ -442,10 +442,9 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       // open a second one on top of it, which is the duplicate the bijection
       // exists to forbid. The heal above is the door for a present tab that
       // cannot run; waiting is the answer once it has been used.
-      // …and a tab that said goodbye is not present either, for the reason the
-      // blessed branch above states: `tabPresent` keeps a closed tab for its
-      // whole grace, which is the same window that made the editor's `edit` command report a
-      // tab it did not have.
+      // …and a tab that said goodbye, or left without one, is not present either, for the reason
+      // the blessed branch above states: `tabPresent` keeps a closed tab for its whole grace, which
+      // is the same window that made the editor's `edit` command report a tab it did not have.
       if (presentTabs(state, at, config).some((tab) => !gone(tab))) return 'arriving';
       if (!open || !maintain) return 'noop';
       // An explicit the editor's `edit` command is the ONLY thing that opens a tab. Nothing in

@@ -188,6 +188,10 @@ export interface EditorTabHealth {
    *  a competing one. */
   unresponsive: boolean;
   route: string | null;
+  /** The page's control channel (`tab-presence.ts`'s report): `'down'` is a row the table still
+   *  holds for a page with no channel, such as a tab closed without a goodbye. `null` from a
+   *  server that predates the field. */
+  channel: 'open' | 'down' | null;
 }
 
 export type EditorSourceCompatibility =
@@ -327,6 +331,7 @@ export async function fetchEditorState(
             typeof tab['commandListener'] === 'string' ? tab['commandListener'] : null,
           unresponsive: tab['unresponsive'] === true,
           route: typeof tab['route'] === 'string' ? tab['route'] : null,
+          channel: tab['channel'] === 'open' || tab['channel'] === 'down' ? tab['channel'] : null,
         };
       }),
     };
@@ -687,8 +692,11 @@ export async function waitForVerifiedEditorOpen(
     if (ready > 0) {
       return { status: 'connected', connectedCount: ready };
     }
+    // A row with its channel down is not a browser that arrived: the table keeps a tab closed
+    // without a goodbye for its grace, and counting it waited the full budget and blamed the old
+    // page's errors when the browser never opened a new one.
     if (
-      snapshot.tabs.length > 0 ||
+      snapshot.tabs.some((tab) => tab.channel !== 'down') ||
       (snapshot.lastIndexRequestAt !== null && snapshot.lastIndexRequestAt >= openAttemptAt)
     ) {
       browserArrived = true;
