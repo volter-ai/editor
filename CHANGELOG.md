@@ -23,7 +23,8 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   stayed present for the hidden grace (30 s), so `edit` refocused a page that was gone and failed after 101 s
   ("Editor page arrived but did not become ready"), as the 0.5.206 blind walk's "come back" step found. A tab
   with no control channel and no beat for longer than a visible tab's grace (3 s) is now gone to `edit`, which
-  opens a new one; `cyclotron status` calls it crashed; and a browser that never opens ends in "did not arrive" after 15 s.
+  opens a new one; `cyclotron status` calls it crashed; and a browser that never opens ends in "did not
+  arrive" after 15 s.
 - **The status bar's Play state follows Cyclotron's Play** (#357). It read the game editor's Play only, so it
   said "Play stopped" while the race ran; it now says Playing while any open document plays, and Paused when
   those playing are paused.
