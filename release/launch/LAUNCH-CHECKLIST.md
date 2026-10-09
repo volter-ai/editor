@@ -1,4 +1,30 @@
-# Cyclotron launch checklist (updated 2026-10-08, 22:40 UTC)
+# Cyclotron launch checklist (updated 2026-10-09, 02:30 UTC)
+
+## The launch, end to end (2026-10-09, 02:30 UTC)
+
+What the launch must prove, by decision 0047 and 0048. The published build completes the four first-user goals
+with no FAIL: the race before signing in; a model, driving and HUD changed with the agent, then a second task by
+New Chat; return to saved work with the conversation intact, including during a pending approval; and model,
+save, undo and redo without an account. The posts lead with the browser trial once a stranger can start it from
+the page. They claim a platform only where its fresh install passed, and they are measured (`ref` links, the
+page counted, sign-ins and waitlist collected).
+
+**The critical path, in order:**
+
+| # | Step | Who | State |
+|---|---|---|---|
+| 1 | **0.5.205**: win32 and linux workbench (card pull, Chat 0.1.55), Ask for approval, then RELEASING's end-of-coding run, the promotion and the merge-back | volter-10 | cuts running at d0e6c475; Ask is being reworked onto Claude Code's own `--permission-mode` launch flag (no supercode upgrade), because goal 3's pending approval cannot happen while Claude Code approves its own calls |
+| 2 | **darwin workbench**, then its pin | the Mac, on the owner's word | blocked on that word (t_a2bd2a5f) |
+| 3 | **Browser trial on the current release** | the Mac's sites World | release `model-editor-browser-trial-20261008-3` built and read locally; deploy waits on the World |
+| 4 | **Blind walks** on the published build (stage 2) | volter-10 on Windows (walks 1, 3, 4, 5 in Chrome/Edge/Firefox, 6, 7); the Mac (2, 5 in Safari, 7); walk 8 after Discord | Windows runsheet and first-time environment merged (#335); a FAIL is fixed, released and walked again |
+| 5 | **Measurement** | frontline (t_04b1fcba, blocked 154 h) and the owner | sign-ins export live (`id.volter.ai/export/signins` answers 401); the page's analytics beacon names the old `volter-ai.github.io` site, so its token needs the owner's Cloudflare dashboard; the waitlist Worker was never deployed (`waitlist.volter.ai` does not resolve) and the page's waitlist is a `mailto:` for now; `ref` links are the posts' |
+| 6 | **Pages**: www.videogame.ai replacement; the Discord link on the Cyclotron page | the owner's look at the copy (D352), then the World | the Cyclotron page's install line and scripts take `@latest` and state Windows |
+| 7 | **Discord** | the owner creates the server, guided page by page | not started |
+| 8 | **Stage 3**: the trial's security policy enforced and robots; the first real AI call on the trial by a person; the posts (claims only where walks passed); the timing | sites; a person; the media lane; the owner | after 1 to 7 |
+
+**Only the owner can:** give the Mac its word for the 0.5.205 Mac workbench cut; look at the www.videogame.ai
+copy; create the Discord server; set the Cyclotron page's analytics token in Cloudflare; make (or watch) the first
+real AI call on the trial; approve the posts' copy; and choose the time.
 
 ## Live now
 - [x] Editor 0.5.200, 0.5.201, 0.5.202 on npm: rendering fixes, browser-AI editor half, Blender retry, content-named recordings (returning-visitor fix)
@@ -33,12 +59,9 @@
 - [x] Editor 0.5.204 on npm (all 19 at `latest`; cut 5cc93da2, promoted b915c4d2, run 37843833336). Read after publishing: upgrade of a 0.5.202 project, Play, Chat first message in a new conversation, game editor create on Windows (runtime image installed). Version commit merged back (#320)
 
 ## Sites (consolidated 2026-10-08: the sites README is the per-site record; 66 branches to 5, 9 checkouts to 1)
-- [ ] volter.ai remake merged (#65, eaaaff59), link to cyclotron.videogame.ai; deploy through the World on the Mac (manager, owner's choice)
+- [x] volter.ai remake merged (#65, eaaaff59), link to cyclotron.videogame.ai; live
 - [ ] www.videogame.ai: final = main's `videogame-ai/` (never published); owner reviews its copy, then it replaces the old landing build
-- [ ] Browser trial rebuild on 0.5.204 with #48 (pins to the release)
-
-## Held for after the release (owner: "that should be after cyclotron releases")
-- [ ] volter.ai remake (sites #65): company page, brands one line each, fellowship, packages as links; headline "Software that builds itself."; Stoneguard capture left off. Reviewed (PASS); the videogame.ai link waits on www.videogame.ai naming Cyclotron
+- [x] Browser trial rebuilt with #48: release `model-editor-browser-trial-20261008-3` (deploy: critical path 3)
 
 ## Unfinished work, and where it lives (update when you start, park or finish anything)
 
