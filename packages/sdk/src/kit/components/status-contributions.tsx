@@ -62,6 +62,12 @@ import {
   subscribeEditorLeaseView,
 } from '../editor-lease-view';
 import { useEditorStore } from '@volter/sdk/kit/editor-runtime';
+import { documentPlayState, subscribeDocumentPlayState } from '@volter/sdk/kit/document-play-extension';
+import {
+  openWorkspaceDocuments,
+  subscribeWorkspaceDocuments,
+  workspaceDocumentRegistryVersion,
+} from '@volter/sdk/kit/workspace-document-registry';
 import { createHmrRegistrationGroup, type HmrRegistrationContext } from '@volter/sdk/kit/hmr-registration-group';
 import { useProjectMounts } from '../project-shape';
 import { getStorageBackend } from '@volter/sdk/kit/storage/index';
@@ -211,6 +217,19 @@ export function AssetMaterializationStatus() {
   );
 }
 
+/** The open documents' own Play, as one word: playing if any plays, else paused if any is paused. */
+function openDocumentsPlayState(): 'playing' | 'paused' | 'stopped' {
+  let paused = false;
+  for (const document of openWorkspaceDocuments()) {
+    const state = documentPlayState(document.descriptor.id);
+    if (state === 'playing') return 'playing';
+    if (state === 'paused') paused = true;
+  }
+  return paused ? 'paused' : 'stopped';
+}
+
+const stoppedOnServer = (): 'stopped' => 'stopped';
+
 /** §4.1 play state ("Play stopped" quiet; running/paused colored). */
 export function PlayStateStatus() {
   // EVERY hook above the first early return. This component rendered one hook
@@ -222,8 +241,14 @@ export function PlayStateStatus() {
   const mounts = useProjectMounts();
   const store = useEditorStore();
   useSyncExternalStore(store.subscribe, store.getShellSnapshot ?? store.getSnapshot);
+  // A DOCUMENT'S OWN PLAY is Play too. Cyclotron's Play runs a model's play script through the
+  // document Play tool, not the store's game, so this said "Play stopped" while the race ran (the
+  // 0.5.206 blind walk). Any open document counts, not only the active one: a source file opened
+  // beside a running race does not stop it. The store's game wins when it runs.
+  useSyncExternalStore(subscribeWorkspaceDocuments, workspaceDocumentRegistryVersion, workspaceDocumentRegistryVersion);
+  const documentPlay = useSyncExternalStore(subscribeDocumentPlayState, openDocumentsPlayState, stoppedOnServer);
   if (!mounts) return null;
-  const state = store.playState;
+  const state = store.playState === 'stopped' ? documentPlay : store.playState;
   const view = {
     stopped: { label: 'Play stopped', tone: undefined },
     playing: { label: 'Playing', tone: 'success' },
