@@ -7,6 +7,11 @@ the next step that does not depend on it. Do not read the editor's source or doc
 tests, never submit a form, and never start a ChatGPT or Claude sign-in: a step that reaches a sign-in screen
 stops there and says so.
 
+**Look, don't read the markup.** Judge every web page and the editor from screenshots, as a person sees them: take one,
+look at it, act (click, scroll, type), take the next. Never read a page through its source, its accessibility tree,
+innerText or a fetch. A wall of text, or the same thing said twice, is a finding, never a pass.
+Terminal output is read as printed.
+
 Walk it on a Mac with Apple Silicon as the Mac is (Node, Claude Code signed in): the same goals as Windows walk 1.
 
 Record: the date, the published `@volter/cyclotron` version it installed, and the time from pressing Return on the

@@ -6,6 +6,11 @@ first FAIL, copy the exact text on screen and save a screenshot. Do not read the
 anything, run no tests, never submit a form, and never start a ChatGPT or Claude sign-in: a step that reaches a
 sign-in screen stops there and says so.
 
+**Look, don't read the markup.** Judge every web page and the editor from screenshots, as a person sees them: take one,
+look at it, act (click, scroll, type), take the next. Never read a page through its source, its accessibility tree,
+innerText or a fetch. A wall of text, or the same thing said twice, is a finding, never a pass.
+Terminal output is read as printed.
+
 Walk it on Windows and on a Mac, once per starting release: 0.5.202 and 0.5.203 (from before the package rename),
 0.5.204, and 0.5.205 (the previous release). The starting state is made before the walk by whoever sets it up, not
 by you: a playable project created with `npx @volter/cyclotron@<release> create my-race --template playable`,
