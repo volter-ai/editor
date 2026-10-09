@@ -64,7 +64,7 @@ export type ProductColorTheme = 'dark' | 'light';
  * single one of them is extracted. Both come out of that script's own
  * `BUILD.json`, and it prints this block to paste.
  *
- * A machine that has already fetched it keeps it in `~/.volter/workbenches/<tag>`
+ * An account that has already fetched it keeps it in `~/.volter/workbenches/<tag>`
  * and a project that has one names it in `.volter/workbench.json`, so this is
  * consulted exactly once per account per release — see
  * `workbench-locator.ts`'s `resolveWorkbenchForProject`.

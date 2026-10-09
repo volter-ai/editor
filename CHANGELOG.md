@@ -10,8 +10,8 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 - **No Windows Firewall prompt on a first run** (#363). The editor's live-update (HMR) socket listened on every
   network interface, and on Windows a program's first such listener asks "allow Node.js JavaScript Runtime on
   public and private networks?" (the 0.5.207 blind walk met it with Node.js just downloaded). The socket now
-  listens on 127.0.0.1 and ::1 only, like the rest of the editor; WSL and an explicit `VOLTER_EDITOR_HOST` keep
-  their wider host.
+  listens on 127.0.0.1 and ::1 only, like the rest of the editor. On WSL, or with `VOLTER_EDITOR_HOST` (or
+  `EDITOR_HOST`) naming another host, the socket stays on Vite's own listener on every interface, as in 0.5.207.
 - **`edit` waits for a browser showing its own first-run screen, and says why** (#364). A fresh browser profile
   opened on its welcome and sign-in screen, and 15 s later `edit` said the editor page did not arrive, although
   it arrived once that screen was closed. From a terminal `edit` now gives a browser three minutes and at 15 s
