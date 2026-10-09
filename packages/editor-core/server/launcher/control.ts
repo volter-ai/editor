@@ -1,4 +1,4 @@
-import { connect, unconnectedBindings, withEditorMemberHints, type LiveSession } from '@volter/live';
+import { connect, NO_SESSION_FOR_PROJECT, unconnectedBindings, withEditorMemberHints, type LiveSession } from '@volter/live';
 import { EditorClient } from '@volter/sdk/client';
 import { verifiedSessions, terminateEditorSession } from './editor-sessions';
 import { formatSurface } from './eval-surface';
@@ -15,7 +15,19 @@ export async function control(command: string, verb: string, argument?: string, 
     console.log(formatSurface(command, { ...unconnected, ...scope?.(unconnected) }));
     return;
   }
-  const live = attachment?.live ?? await connect();
+  let live: LiveSession;
+  try {
+    live = attachment?.live ?? await connect();
+  } catch (error) {
+    // `close` asks for a state, and an editor that is not open for this project is already in it:
+    // refusing sent a person following upgrade's Next lines a wall about other projects' sessions
+    // and an exit code that read as failure (the 0.5.209 end-of-coding run).
+    if (verb === 'close' && error instanceof Error && (error as { code?: unknown }).code === NO_SESSION_FOR_PROJECT) {
+      console.log('No editor is open for this project, so there is nothing to close.');
+      return;
+    }
+    throw error;
+  }
   const client = attachment?.client ?? new EditorClient({ url: `http://127.0.0.1:${live.session.port}` });
   if (verb === 'close') {
     const session = (await verifiedSessions(live.session.port)).find(s => s.port === live.session.port && s.project === live.session.projectRoot && s.registered);
