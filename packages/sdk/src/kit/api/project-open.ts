@@ -202,6 +202,20 @@ export async function revealInFinder(targetPath: string): Promise<void> {
   assertEditorServerResponse(res, `Could not reveal ${targetPath}`);
 }
 
+/**
+ * The file manager `revealInFinder` opens, named for the menus that offer it: Finder on a Mac,
+ * File Explorer on Windows (`explorer /select,`), the desktop's file manager elsewhere (`xdg-open`
+ * on the containing folder). `/__editor/reveal` is never shared (`NEVER_SHARE_PATHS`), so the
+ * person who can use it is at the host and the browser's platform is the host's — WSL aside,
+ * where the label is only a word.
+ */
+export function fileManagerName(): string {
+  const platform = typeof navigator === 'undefined' ? '' : navigator.platform;
+  if (platform.includes('Mac')) return 'Finder';
+  if (platform.startsWith('Win')) return 'File Explorer';
+  return 'File Manager';
+}
+
 /** Save a viewport thumbnail for the current project — background bookkeeping
  *  for the recent-projects list, not a user-facing promise. */
 export async function saveThumbnail(dataUrl: string): Promise<boolean> {

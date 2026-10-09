@@ -349,7 +349,7 @@ export function keymapTable(id: EditorKeymapId): EditorKeymapTable {
 // Display
 // ---------------------------------------------------------------------------
 
-function isMacPlatform(): boolean {
+export function isMacPlatform(): boolean {
   return typeof navigator !== 'undefined' && navigator.platform.includes('Mac');
 }
 

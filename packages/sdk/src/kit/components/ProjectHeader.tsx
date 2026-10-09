@@ -24,7 +24,7 @@ import {
   contributedHeaderItems,
   subscribeContributedChrome,
 } from '@volter/sdk/kit/chrome-registry';
-import { revealInFinder } from '@volter/sdk/kit/editor-api';
+import { fileManagerName, revealInFinder } from '@volter/sdk/kit/editor-api';
 import { getCurrentProject, onProjectChange } from '@volter/sdk/kit/project-manager';
 import {
   activeEditorWorkspace,
@@ -212,7 +212,7 @@ export function ProjectHeader({
                     revealInFinder(projectPath);
                   }}
                 >
-                  Show in Finder
+                  Show in {fileManagerName()}
                 </MenuItem>
               )}
               <MenuItem
