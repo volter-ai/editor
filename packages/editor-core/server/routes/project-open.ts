@@ -269,11 +269,14 @@ export function registerProjectOpenRoutes(router: EditorServerRouter, ctx: Route
   // ---- Reveal in file manager ----
   router.post('/__editor/reveal', (req: Request, res: Response) => {
     const body = req.body as { path: string };
-    const targetPath = body.path;
-    if (!targetPath) {
+    if (!body.path) {
       res.status(400).json({ error: 'Missing path.' });
       return;
     }
+    // The asset browser names a project-relative path (`public/x.png`); the project menu an absolute
+    // one. Spawned with no cwd, a relative path resolved against wherever the server was started, so an
+    // asset's reveal opened the wrong folder, or nothing.
+    const targetPath = resolve(ctx.projectRoot, body.path);
 
     const os = platform();
     if (os === 'darwin') {
