@@ -657,7 +657,8 @@ export const frameSchema = z
       .optional(),
   })
   .strict();
-type Frame = z.infer<typeof frameSchema>;
+/** One presented frame, as `applyFrame` takes it (`frameSchema`). */
+export type Frame = z.infer<typeof frameSchema>;
 
 /** `BKE_scene_find_marker_name`: the list walked from both ends at once, the front one asked
  *  first, so of several markers on one frame the answer is not simply the first. */
@@ -2520,6 +2521,18 @@ export class BlenderRuntimeView {
         detached.root.removeFromParent();
       },
     };
+  }
+
+  /**
+   * EVERYTHING A GAME NEEDS TO PLAY THIS MODEL WITHOUT BLENDER: the frame `detach` builds its copy
+   * from, as one self-contained value of plain data and typed arrays — every mesh's resident
+   * geometry with its skin and draw-vertex map, the armatures with their NLA, the materials and
+   * their node graphs, every image's bytes, the lights, cameras and World. A web export writes it
+   * (`cyclotron export web`), and its page builds the game's copy with `applyFrame`, as `detach`
+   * does. The caller owns it; nothing in it refers back to this view.
+   */
+  exportFrame(): Frame {
+    return this.fullFrame({ sourceVertices: true });
   }
 
   captureSnapshot() {

@@ -34,8 +34,7 @@ import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/bl
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
 import type * as THREE from 'three';
 import { ArmaturePose, nlaLayers, poseClip, type ConstraintOverride, type PoseClip, type PoseLayer } from './blender-pose';
-import { editorHost } from '@volter/sdk/host';
-import { remedy } from './blender-runtime-skin';
+import { remedy } from './blender-remedy';
 
 export interface PlayActionOptions {
   /** Seconds to crossfade from what played before (default 0.2). */
@@ -145,7 +144,17 @@ interface Armature {
 /** Reads that outlive one Play: a document's next Play reuses them (see `shared` below). */
 export type PlayClipCache = Map<string, Promise<BlenderActionClip | null>>;
 
-export function playAnimation(view: BlenderRuntimeView, bake: (armature: string, action: string) => Promise<BlenderActionClip | null>, cache: PlayClipCache = new Map()): PlayAnimation {
+/** Where the animation says what a person should hear at once (beside `warnings`): the editor's
+ *  console in the editor, the page's console in a web export. Absent, only `warnings` keeps it. */
+export interface PlayAnimationOptions {
+  readonly warn?: (message: string) => void;
+}
+
+/**
+ * The game's copy animated. It imports no editor host and no Blender (only `blender-pose.ts` and
+ * three), so a web export plays it too, with `bake` answering clips baked when it was exported.
+ */
+export function playAnimation(view: BlenderRuntimeView, bake: (armature: string, action: string) => Promise<BlenderActionClip | null>, cache: PlayClipCache = new Map(), options: PlayAnimationOptions = {}): PlayAnimation {
   const warnings: string[] = [];
   const facts = view.animationFacts();
   const actions = Object.keys(facts.actions);
@@ -351,7 +360,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     warned.add(action);
     const said = `The game plays "${action}", which nothing in the file uses and has no fake user, so Blender drops it the next time the file saves. Give it a fake user (action.use_fake_user = True) or assign it.`;
     warnings.push(said);
-    editorHost().console.warn(said, 'blender-animation');
+    options.warn?.(said);
   };
   const none = (object: THREE.Object3D): Answer => ({ ok: false, why: `${object.name || 'this object'} has no armature` });
 
