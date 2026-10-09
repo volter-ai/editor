@@ -345,7 +345,7 @@ function resolveSources(dir: string): ResolvedWorkbench {
 const RELEASE_REPO = 'volter-ai/code-oss';
 
 /**
- * WHERE FETCHED BYTES LIVE — one directory per release tag, per machine.
+ * WHERE FETCHED BYTES LIVE — one directory per release tag, per account (`~/.volter/workbenches`).
  *
  * Keyed by the TAG and nothing else, because that is what makes it a cache and
  * not a decision: two projects on the same release share one 723 MB directory,
@@ -365,7 +365,7 @@ export interface ProjectWorkbench extends ResolvedWorkbench {
   /** The release tag these bytes are, when the product's declaration found them. */
   readonly tag: string | null;
   /** True when THIS call downloaded them — the launch line says `fetched from
-   *  <tag>` exactly once per machine per release, and never again. */
+   *  <tag>` exactly once per account per release, and never again. */
   readonly fetched: boolean;
 }
 

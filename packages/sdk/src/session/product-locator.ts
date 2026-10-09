@@ -66,7 +66,7 @@ export type ProductColorTheme = 'dark' | 'light';
  *
  * A machine that has already fetched it keeps it in `~/.volter/workbenches/<tag>`
  * and a project that has one names it in `.volter/workbench.json`, so this is
- * consulted exactly once per machine per release — see
+ * consulted exactly once per account per release — see
  * `workbench-locator.ts`'s `resolveWorkbenchForProject`.
  */
 export interface ProductWorkbench {

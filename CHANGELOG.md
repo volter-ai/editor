@@ -5,6 +5,23 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.208 — a first run on Windows without a Firewall prompt, and a browser given time to arrive
+
+- **No Windows Firewall prompt on a first run** (#363). The editor's live-update (HMR) socket listened on every
+  network interface, and on Windows a program's first such listener asks "allow Node.js JavaScript Runtime on
+  public and private networks?" (the 0.5.207 blind walk met it with Node.js just downloaded). The socket now
+  listens on 127.0.0.1 and ::1 only, like the rest of the editor; WSL and an explicit `VOLTER_EDITOR_HOST` keep
+  their wider host.
+- **`edit` waits for a browser showing its own first-run screen, and says why** (#364). A fresh browser profile
+  opened on its welcome and sign-in screen, and 15 s later `edit` said the editor page did not arrive, although
+  it arrived once that screen was closed. From a terminal `edit` now gives a browser three minutes and at 15 s
+  says that it may be showing its own welcome or sign-in screen, with the address to open by hand (and, on a
+  Mac, the Safari hint). Without a terminal (an agent's command) the answer at 15 s is as before.
+- **Wording** (#365): the workbench download says "once for this account on this computer", and a window whose
+  server stopped says to reopen it in the project's folder with `npx --no-install cyclotron edit .`.
+- **Model Play's Escape** (#362): Escape that frees a game's mouse look no longer stops Play, and a game that
+  claims Escape for its own pause keeps it.
+
 ## 0.5.207 — one document, no tab row, and pasting the install line again reopens the editor
 
 - **One tab in all, no tab row** (#350), in Cyclotron on Windows and Linux. With one document open, the row
