@@ -1,0 +1,34 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Cyclotron opening</title>
+<!-- The product's own splash stylesheet and its own module (opening.js, built by build.mjs), so
+     this is the cover as the workbench draws it. Open it straight from disk. Click to pull again.
+     ?at=<ms> holds one moment; ?new=1 shows the NEW tag; ?folder=<name> names the project. -->
+<link rel="stylesheet" href="../../../packages/cyclotron/workbench/src/media/model-cover.css">
+<style>
+@font-face { font-family: 'Inter'; src: url(../../../packages/cyclotron/workbench/src/media/Inter.woff2) format('woff2'); font-weight: 100 900; }
+html, body { margin: 0; height: 100%; background: #141414; font-family: Inter, "Segoe UI", system-ui, sans-serif; overflow: hidden; }
+#host { position: absolute; inset: 0; }
+</style>
+</head>
+<body>
+<div id="host"></div>
+<script src="opening.js"></script>
+<script>
+const params = new URLSearchParams(location.search);
+const setting = { id: 'canyon', name: 'Canyon', art: '../../../packages/cyclotron/workbench/src/media/settings/canyon.jpg', stars: 5 };
+const host = document.getElementById('host');
+let opening;
+function pull() {
+	opening?.dispose();
+	const at = params.has('at') ? Number(params.get('at')) : undefined;
+	opening = VolterOpening.mountOpening(host, setting, params.get('new') === '1', 'Opening ' + (params.get('folder') || 'my-model') + '…', at);
+}
+host.addEventListener('click', pull);
+pull();
+</script>
+</body>
+</html>
