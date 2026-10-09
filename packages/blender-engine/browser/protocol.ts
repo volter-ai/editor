@@ -73,6 +73,9 @@ export type WorkerRequest =
    *  plus the scene's frame range/fps and the summary row's key columns.
    *  READ ONLY: keying, moving a key and setting a range are edits. */
   | { id: number; op: 'action-clip'; object?: string; bake?: boolean; action?: string; summary?: boolean }
+  /** THE SCENE'S MOVIE (`session.py`'s `rna_scene_movie`): its range, markers and cameras, and every
+   *  object's own transform stack, curves whole, for a game's cutscene. READ ONLY. */
+  | { id: number; op: 'scene-movie' }
   /** ONE RESTRICTION COLUMN, written (`session.py`'s `outliner_set`). A column
    *  Blender draws on no row of that type is refused by name. */
   | { id: number; op: 'outliner-set'; path: string; column: string; value: boolean }

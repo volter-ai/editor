@@ -18,6 +18,7 @@ import type {
 } from './protocol';
 import type {
   BlenderActionClip,
+  BlenderSceneMovie,
   BlenderNodeTree,
   BlenderOutlinerTree,
   BlenderOutlinerWrite,
@@ -433,6 +434,13 @@ export class BlenderRuntime {
       ...(options?.action === undefined ? {} : { action: options.action }),
       ...(options?.summary === undefined ? {} : { summary: options.summary }),
     })) as BlenderActionClip;
+  }
+
+
+  /** THE SCENE'S MOVIE (`./rna.ts`, `BlenderSceneMovie`): what a game's cutscene plays. */
+  async sceneMovie(): Promise<BlenderSceneMovie> {
+    await this.#ready();
+    return (await this.#request({ op: 'scene-movie' })) as BlenderSceneMovie;
   }
 
 

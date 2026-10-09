@@ -125,6 +125,84 @@ Whether it drives is the editor's:
 
 Each change is a play-log entry, `autoplay-on` or `autoplay-off`, with `by`.
 
+## Cutscenes
+
+A scene's own animation — what the Animation side of the bottom area (the Timeline) plays —
+also plays inside a game. `play.cutscene(span?, options?)` plays it for a span of scene frames
+on the game's clock, and hands control back to the script when it ends:
+
+```ts
+export default (play: ModelPlayContext): ModelPlayGame => {
+  let mode: 'intro' | 'play' = 'intro';
+  const intro = play.cutscene('Intro', { end: 'Gameplay', blend: 0.6, onDone: () => { mode = 'play'; } });
+  return {
+    update(dt) {
+      if (mode === 'intro') {
+        if (play.keys.has('Space')) intro.stop();   // a skip: the scene lands on its last frame
+        return;                                      // the movie owns the camera meanwhile
+      }
+      // ... the game, stating its own camera every frame
+    },
+  };
+};
+```
+
+What plays is what Blender's playback shows:
+
+- **Every keyed object and camera**, sampled by Blender at every scene frame and played on
+  three.js's `AnimationMixer`: its location, rotation and scale (deltas and
+  `matrix_parent_inverse` included), its keyed render visibility, its active action (else its top
+  NLA strip); Damped Track and Track To constraints. A camera's lens, sensor, sensor fit,
+  orthographic scale, shift and clip range come from its data, keyed or not.
+- **Every armature** on the file's own stack at the scene frame: its NLA strips and the
+  action the file assigns it, whatever the game set with `setAction` / `setTrack`. The game's
+  actions keep their own clock meanwhile and take over again when the cutscene ends.
+- **The camera** is Blender's: the camera of the last marker at or before the frame that is
+  bound to one (Marker ▸ Bind Camera to Markers; a camera disabled in renders is skipped),
+  else the earliest bound marker's, else the scene camera. `options.camera` names one camera
+  for the whole span instead. The sensor is fitted to the game's own shape.
+
+`play.sequence(span?, options?)` is the same movie scoped and placed, for what happens inside the
+game: `collection` (only its objects and characters move), `at` (a game object its anchor is carried
+to, the anchor an Empty, `anchor`, default `<collection>.Anchor`) and `camera` (`false`, the default:
+the script keeps its camera; `true`: the marker cuts; or a camera's name). Its markers are its events:
+
+```ts
+play.sequence('ult', { collection: 'Ult.Orbital', at: player, end: 'ult_end',
+  onMarker: (m) => { if (m.name === 'ult_hit') blast(player.position); } });
+```
+
+`span` is a marker's name or a frame to start at (it runs to the scene's end, or to
+`options.end`), `{ start, end }` with a marker name or a frame each, or nothing for the scene's
+whole range. The last frame is shown for one frame's time before it ends. `options.speed` scales
+the rate (1 is the scene's fps).
+
+While it runs the script's `update` is still called with the person's `keys`, so the script
+decides a skip and holds its own player input. The camera is the movie's: what the script
+states is overwritten after its update. When it ends, the camera's own settings (field of
+view, near and far) and pose come back, and the camera blends from the movie's last shot to
+the pose the script states over `options.blend` seconds (0.5; 0 cuts). Objects keep the
+movie's last pose, so a door the cutscene opened stays open.
+
+The handle answers `frame` (the scene frame now, fractional), `playing`, `marker` (the last
+marker reached) and `done` (a promise of `{ skipped, frame }`, as `onDone` is called);
+`stop()` ends it on its last frame, `stop('here')` where it is. One cutscene runs at a time:
+starting another ends the first where it is. A cutscene goes with the script that started it.
+
+`play.markers()` lists the Timeline's markers by frame, `{ name, frame, camera }`, and
+`options.onMarker(marker)` is called as the cutscene reaches each marker in its span (its
+start's own included), so a script can show its own subtitles at markers. Sound and
+subtitles themselves are not played.
+
+The play log says each `cutscene` event: `{ event: 'start', from, to, fps, camera, span }`,
+`{ event: 'cut', camera, frame }` at each camera change (with `missing: true` when the model
+has no such camera), `{ event: 'marker', marker, frame }`, `{ event: 'end', frame, skipped }`,
+and `{ event: 'refused', span, why }` for an unknown marker or a document with no movie.
+
+What plays only in Blender is named once in the console (`blender-animation`): other object
+constraints, drivers on an object's transform, a parent that is a bone or a vertex (the
+offset it has when Play starts is held), keyed delta transforms and custom properties.
+
 ## Time
 
 `update(dt)` is the only clock a play script is given, and the editor decides it:
