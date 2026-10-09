@@ -1,0 +1,326 @@
+{
+ "source": "sites-home/model-editor/src/assembly/scene.mjs, poster (assembled) state",
+ "upAxis": "Y",
+ "units": "site units",
+ "verticalStretch": 1.4,
+ "bounds": {
+  "min": [
+   -2.59,
+   -2.226,
+   -2.59
+  ],
+  "max": [
+   3.215,
+   8.715,
+   2.59
+  ]
+ },
+ "materials": {
+  "body": "#f7f6f1",
+  "trim": "#16252c",
+  "accent": "#d8eb6a",
+  "metal": "#9aa3a8"
+ },
+ "roles": {
+  "body": 83,
+  "metal": 81,
+  "trim": 57,
+  "accent": 18
+ },
+ "assemblyOrder": [
+  "01",
+  "12",
+  "16",
+  "02",
+  "03",
+  "11",
+  "10",
+  "09",
+  "08",
+  "07",
+  "06",
+  "05",
+  "04",
+  "19",
+  "23",
+  "24",
+  "25",
+  "26",
+  "27",
+  "18",
+  "17",
+  "14",
+  "13",
+  "15",
+  "22",
+  "21",
+  "20",
+  "34",
+  "33",
+  "32",
+  "30",
+  "29",
+  "28",
+  "41",
+  "36",
+  "35",
+  "43"
+ ],
+ "parts": {
+  "10": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Piston + rod 7",
+   "module": "modifiers",
+   "status": "STOCK"
+  },
+  "11": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Piston + rod 8",
+   "module": "modifiers",
+   "status": "STOCK"
+  },
+  "12": {
+   "accent": false,
+   "meshes": 26,
+   "name": "Cylinder heads",
+   "module": "makesdna",
+   "status": "STOCK"
+  },
+  "13": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Head gaskets",
+   "module": "makesrna",
+   "status": "STOCK"
+  },
+  "14": {
+   "accent": false,
+   "meshes": 10,
+   "name": "ECU + harness",
+   "module": "python / bpy",
+   "status": "STOCK"
+  },
+  "15": {
+   "accent": false,
+   "meshes": 4,
+   "name": "Fuel rails",
+   "module": "blenloader / .blend",
+   "status": "STOCK"
+  },
+  "16": {
+   "accent": false,
+   "meshes": 14,
+   "name": "Bellhousing",
+   "module": "nodes / functions / geometry",
+   "status": "STOCK"
+  },
+  "17": {
+   "accent": false,
+   "meshes": 7,
+   "name": "Oil pan",
+   "module": "blenlib",
+   "status": "STOCK"
+  },
+  "18": {
+   "accent": false,
+   "meshes": 2,
+   "name": "Oil pump",
+   "module": "guardedalloc",
+   "status": "STOCK"
+  },
+  "19": {
+   "accent": false,
+   "meshes": 4,
+   "name": "Timing gears + belt",
+   "module": "BLI tasks / oneTBB",
+   "status": "STOCK"
+  },
+  "20": {
+   "accent": false,
+   "meshes": 2,
+   "name": "Spark plugs",
+   "module": "bmesh",
+   "status": "STOCK"
+  },
+  "21": {
+   "accent": false,
+   "meshes": 2,
+   "name": "Injectors",
+   "module": "io: PLY / STL / OBJ",
+   "status": "STOCK"
+  },
+  "22": {
+   "accent": false,
+   "meshes": 2,
+   "name": "Sensor",
+   "module": "imbuf",
+   "status": "STOCK"
+  },
+  "23": {
+   "accent": false,
+   "meshes": 1,
+   "name": "Seal",
+   "module": "generic hardware",
+   "status": "STOCK"
+  },
+  "24": {
+   "accent": false,
+   "meshes": 2,
+   "name": "Flywheel",
+   "module": "OpenSubdiv",
+   "status": "STOCK"
+  },
+  "25": {
+   "accent": false,
+   "meshes": 2,
+   "name": "Alternator",
+   "module": "render registry",
+   "status": "STOCK"
+  },
+  "26": {
+   "accent": false,
+   "meshes": 1,
+   "name": "Hose",
+   "module": "generic hardware",
+   "status": "STOCK"
+  },
+  "27": {
+   "accent": false,
+   "meshes": 2,
+   "name": "Coil pack",
+   "module": "windowmanager",
+   "status": "STOCK"
+  },
+  "28": {
+   "accent": true,
+   "meshes": 36,
+   "name": "Intake",
+   "module": "GHOST → Code-OSS",
+   "status": "REPLACED"
+  },
+  "29": {
+   "accent": true,
+   "meshes": 6,
+   "name": "Valve covers",
+   "module": "interface → React",
+   "status": "REPLACED"
+  },
+  "30": {
+   "accent": true,
+   "meshes": 4,
+   "name": "Headers",
+   "module": "draw / GPU → three.js",
+   "status": "REPLACED"
+  },
+  "32": {
+   "accent": false,
+   "meshes": 4,
+   "name": "Bolts",
+   "module": "generic hardware",
+   "status": "STOCK"
+  },
+  "33": {
+   "accent": false,
+   "meshes": 4,
+   "name": "Washers",
+   "module": "generic hardware",
+   "status": "STOCK"
+  },
+  "34": {
+   "accent": false,
+   "meshes": 1,
+   "name": "Hose clamp",
+   "module": "generic hardware",
+   "status": "STOCK"
+  },
+  "35": {
+   "accent": false,
+   "meshes": 15,
+   "name": "Render engines",
+   "status": "REPLACED"
+  },
+  "36": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Color",
+   "status": "REPLACED"
+  },
+  "41": {
+   "accent": false,
+   "meshes": 11,
+   "name": "Translation",
+   "status": "REMOVED"
+  },
+  "43": {
+   "accent": false,
+   "meshes": 16,
+   "name": "Animation playback",
+   "status": "REPLACED"
+  },
+  "01": {
+   "accent": false,
+   "meshes": 16,
+   "name": "Block",
+   "module": "blenkernel",
+   "status": "STOCK"
+  },
+  "02": {
+   "accent": false,
+   "meshes": 4,
+   "name": "Crankshaft",
+   "module": "depsgraph",
+   "status": "STOCK"
+  },
+  "03": {
+   "accent": false,
+   "meshes": 11,
+   "name": "Camshaft",
+   "module": "animation / animrig",
+   "status": "STOCK"
+  },
+  "09": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Piston + rod 6",
+   "module": "modifiers",
+   "status": "STOCK"
+  },
+  "08": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Piston + rod 5",
+   "module": "modifiers",
+   "status": "STOCK"
+  },
+  "07": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Piston + rod 4",
+   "module": "modifiers",
+   "status": "STOCK"
+  },
+  "06": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Piston + rod 3",
+   "module": "modifiers",
+   "status": "STOCK"
+  },
+  "05": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Piston + rod 2",
+   "module": "modifiers",
+   "status": "STOCK"
+  },
+  "04": {
+   "accent": false,
+   "meshes": 3,
+   "name": "Piston + rod 1",
+   "module": "modifiers",
+   "status": "STOCK"
+  }
+ }
+}

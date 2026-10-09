@@ -18,7 +18,6 @@
 
 import './media/blender-look.css';
 import './media/model-cover.css';
-import { $ } from '../../../../base/browser/dom.js';
 import { mainWindow } from '../../../../base/browser/window.js';
 import { FileAccess } from '../../../../base/common/network.js';
 import { basename, joinPath } from '../../../../base/common/resources.js';
@@ -38,6 +37,7 @@ import { IViewsService } from '../../../services/views/common/viewsService.js';
 import { REVEAL_IN_EXPLORER_COMMAND_ID } from '../../files/browser/fileConstants.js';
 import { registerViewBackground } from '../../volter/browser/volterColors.js';
 import { registerVolterProduct, type VolterProductCover, type VolterProductCoverContext, type VolterProductMountContext } from '../../volter/browser/volterProduct.js';
+import { mountOpening, pullSetting, type OpeningSetting } from './opening.js';
 
 // BLENDER'S OWN UI FONT (Inter, OFL), lifted from the Blender payload's datafiles/fonts. It is
 // loaded through `FileAccess.asBrowserUri` off the APP ROOT, which is what makes the look
@@ -130,6 +130,21 @@ const MODEL_OPEN_NARRATE_AFTER_MS = 30_000;
  *  the cover it drew. Set by `cover`, cleared by the handle's `dispose`. */
 let splash: { say(text: string): void } | undefined;
 
+/**
+ * THE SETTINGS A BOOT CAN PULL (`opening.ts`): renders of the machine standing somewhere, each
+ * a card. The art lives in this product's media, under the app root like the font, so it is
+ * `'self'` under the workbench's CSP; its sources are design/opening/asset (the canyon:
+ * `build_canyon.py`, rendered in Blender, resized to 600 x 800 for a 300 x 420 card at 2x).
+ */
+const OPENING_SETTINGS: readonly [OpeningSetting, ...OpeningSetting[]] = [
+	{
+		id: 'canyon',
+		name: localize('volterOpeningCanyon', "Canyon"),
+		art: FileAccess.asBrowserUri('vs/workbench/contrib/volterProduct/browser/media/settings/canyon.jpg').toString(true),
+		stars: 5,
+	},
+];
+
 registerVolterProduct({
 	id: 'cyclotron',
 	layout: {
@@ -155,36 +170,22 @@ registerVolterProduct({
 	// to claim for both products.
 	trustSentence: localize('volterModelTrustRequest', "Volter Cyclotron runs this project's own code — its editor contributions, its dev server, and Blender itself in this tab. Trust this folder to open it."),
 	// THIS PRODUCT'S OWN SPLASH (F4). The kit owns the cover's mechanism — when it goes up,
-	// that it comes away whole, what a refusal looks like; this is the picture inside it, in
-	// Blender's own palette and this product's own words, drawn with no image to fetch so the
-	// first painted frame is already this.
+	// that it comes away whole, what a refusal looks like; this is the picture inside it: the
+	// opening's card pull (`opening.ts`), one setting of the machine per boot, with this
+	// product's narration under it.
 	cover(host: HTMLElement, context: VolterProductCoverContext): VolterProductCover {
-		const root = $('.volter-model-cover');
-		// THE MARK: Blender's three viewport axes, built as ELEMENTS. Not `innerHTML` — the
-		// page carries a Trusted Types policy and the workbench's own code never assigns
-		// markup — and not a file either, because an image to fetch is a frame to wait for.
-		const axes = $.SVG<SVGElement>('svg', { class: 'volter-model-cover-mark', viewBox: '0 0 48 48', 'aria-hidden': 'true' });
-		const group = $.SVG<SVGElement>('g', { fill: 'none', 'stroke-width': '3', 'stroke-linecap': 'round' });
-		// `viewport.axisX` / `axisY` and the Z blue Blender uses in the same gizmo.
-		group.append(
-			$.SVG<SVGElement>('path', { d: 'M24 28 L8 37', stroke: '#cb293f' }),
-			$.SVG<SVGElement>('path', { d: 'M24 28 L40 37', stroke: '#69aa15' }),
-			$.SVG<SVGElement>('path', { d: 'M24 28 L24 10', stroke: '#4772b3' }),
-		);
-		axes.append(group, $.SVG<SVGElement>('circle', { cx: '24', cy: '28', r: '3.2', fill: '#e6e6e6' }));
-		const title = $('.volter-model-cover-title');
-		title.textContent = localize('volterModelCoverTitle', "Cyclotron");
-		const folder = $('.volter-model-cover-folder');
-		folder.textContent = context.folderName;
-		const state = $('.volter-model-cover-state');
-		state.textContent = localize('volterModelCoverStarting', "Starting Blender…");
-		root.append(axes, title, folder, $('.volter-model-cover-rail'), state);
-		host.appendChild(root);
-		splash = { say: (text: string) => { state.textContent = text; } };
+		const { setting, isNew, remember } = pullSetting(OPENING_SETTINGS);
+		const opening = mountOpening(host, {
+			setting,
+			isNew,
+			firstLine: localize('volterModelCoverOpening', "Opening {0}…", context.folderName),
+			onShown: remember,
+		});
+		splash = { say: (text: string) => opening.say(text) };
 		return {
 			dispose: () => {
 				splash = undefined;
-				root.remove();
+				opening.dispose();
 			},
 		};
 	},
