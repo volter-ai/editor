@@ -1,7 +1,7 @@
 {
   "name": "@volter/cyclotron",
   "author": "Volter AI, Inc.",
-  "version": "0.5.206",
+  "version": "0.5.207",
   "publishConfig": {
     "access": "public"
   },
@@ -72,13 +72,13 @@
     }
   },
   "dependencies": {
-    "@volter/editor-core": "0.5.206",
-    "@volter/editor-blender": "0.1.145",
-    "@volter/editor-threejs": "0.5.206",
-    "@volter/blender-engine": "0.1.143",
-    "@volter/project": "0.5.206",
-    "@volter/sdk": "0.5.206",
-    "@volter/live": "0.5.206",
+    "@volter/editor-core": "0.5.207",
+    "@volter/editor-blender": "0.1.146",
+    "@volter/editor-threejs": "0.5.207",
+    "@volter/blender-engine": "0.1.144",
+    "@volter/project": "0.5.207",
+    "@volter/sdk": "0.5.207",
+    "@volter/live": "0.5.207",
     "@modelcontextprotocol/sdk": "1.32.1",
     "typescript": "5.9.3",
     "undici": "7.29.1"
