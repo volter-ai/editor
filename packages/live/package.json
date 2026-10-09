@@ -1,7 +1,7 @@
 {
   "name": "@volter/live",
   "author": "Volter AI, Inc.",
-  "version": "0.5.210",
+  "version": "0.5.211",
   "publishConfig": {
     "access": "public"
   },
@@ -30,8 +30,8 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@volter/sdk": "0.5.210",
-    "@volter/project": "0.5.210",
+    "@volter/sdk": "0.5.211",
+    "@volter/project": "0.5.211",
     "undici": "^7.28.0"
   },
   "devDependencies": {
