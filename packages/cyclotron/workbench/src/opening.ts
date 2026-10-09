@@ -39,6 +39,9 @@ export interface OpeningSetting {
 export interface Opening {
 	/** The cover's narration, the line under the rail. */
 	say(text: string): void;
+	/** Resolves once the card is on the page with its stars and name (at once for a held frame), so the cover can
+	 *  stay up until then. A timer backs it, since a hidden tab runs no animation frames, and dispose resolves it. */
+	readonly landed: Promise<void>;
 	dispose(): void;
 }
 
@@ -106,6 +109,8 @@ const NAME_AT = STARS_AT + 5 * STAR_STEP + 60;
 const UNDER_AT = STARS_AT + 5 * STAR_STEP + 300;
 /** After this the card holds its pose and the loop stops. */
 const SETTLED_MS = UNDER_AT + 900;
+/** The card has its name and a moment to be read: the cover may come down from here. */
+const LANDED_MS = NAME_AT + 700;
 /** How long the pull waits for the card art to decode before it starts anyway. */
 const ART_WAIT_MS = 400;
 /** The card's travel inside the back's scan, in px (its height less the inner margin). */
@@ -164,6 +169,8 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 	const context = sparks.getContext('2d');
 	let width = 0, height = 0;
 	let shown = false;
+	let land = () => { };
+	const landed = new Promise<void>((resolve) => { land = resolve; });
 
 	function frame(t: number): void {
 		// READS FIRST, then writes, so a frame costs one layout: the stage is never transformed
@@ -260,6 +267,7 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 		name.style.transform = `translateY(${((1 - outExpo(named)) * 10).toFixed(1)}px)`;
 		if (badge) { badge.style.opacity = ease(named).toFixed(3); }
 		if (!shown && t >= NAME_AT && root.isConnected) { shown = true; onShown?.(); }
+		if (t >= LANDED_MS && root.isConnected) { land(); }
 
 		// IMPACT: a short shake of the whole cover at the burst; then the narration comes up.
 		const hit = clamp((t - FLIP - 150) / 260);
@@ -346,13 +354,18 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 		art.decode().then(play, play);
 		wait = mainWindow.setTimeout(play, ART_WAIT_MS);
 	}
+	// The backstop for `landed`: a hidden tab runs no animation frames, and a cover must not wait on them forever.
+	const backstop = mainWindow.setTimeout(land, held !== undefined ? 2000 : ART_WAIT_MS + LANDED_MS + 1500);
 
 	return {
 		say: (text: string) => { state.textContent = text; },
+		landed,
 		dispose: () => {
 			disposed = true;
 			if (animation !== undefined) { mainWindow.cancelAnimationFrame(animation); }
 			if (wait !== undefined) { mainWindow.clearTimeout(wait); }
+			mainWindow.clearTimeout(backstop);
+			land();
 			root.remove();
 		},
 	};
