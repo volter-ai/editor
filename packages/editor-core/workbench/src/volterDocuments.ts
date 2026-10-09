@@ -528,8 +528,9 @@ export class VolterDocuments extends Disposable {
 	 *
 	 * ONLY A ROW THAT IS JUST THE TAB. Cyclotron hides editor actions
 	 * (`workbench.editor.editorActionsLocation: hidden`), so its row holds the tab and nothing
-	 * else. Where the actions show they live in that row (Split Editor, the "…" menu), and a
-	 * group without tabs builds no toolbar, so there the row stays.
+	 * else. With `default` the actions live in that row (Split Editor, the "…" menu), and a
+	 * group without tabs builds no toolbar, so there the row stays; `titleBar` keeps it too,
+	 * which costs a row and loses nothing.
 	 *
 	 * Not while a pass runs: a pass opens the document beside the bootstrap editor before it
 	 * closes the bootstrap, and the row showing for that moment is a flicker at every boot.
