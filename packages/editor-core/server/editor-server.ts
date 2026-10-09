@@ -744,8 +744,8 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
       journal: journalEvent,
       probeTabs: (tabIds) => heartbeat.probe(tabIds),
       sendToTab: (tabId, event, data) => {
-        // Whoever is told to leave is leaving: what its page-loads report from here on
-        // (their own shutdown) is not the project's, so the console ledger retires it.
+        // Whoever is told to leave is leaving: a condition only its page-loads report from
+        // here on (their own shutdown) is not the project's, so the console ledger retires it.
         const departing = event === 'tab-yield' ? clientIdsForTab(tabId) : [];
         const delivered = sendToTab(tabId, event, {
           ...(typeof data === 'object' && data !== null ? data : {}),
