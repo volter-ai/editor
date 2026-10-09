@@ -1054,7 +1054,8 @@ function partitionEligible(
   const tabs = new Map(state.tabs);
   const eligible: TabRecord[] = [];
   for (const tab of present) {
-    // Present only by the hidden grace, with nothing of it left: not a holder (`tabLeftSilently`).
+    // Present only by the hidden grace, with nothing of it left (`tabLeftSilently`): not eligible;
+    // a lone holder keeps the blessing (`chooseBlessed`).
     if (tabLeftSilently(tab, now, config)) continue;
     if (!tabUnresponsive(tab, now, config)) {
       eligible.push(tab);
@@ -1163,8 +1164,13 @@ export function reconcile(
   // tab it exists to keep, and `ensure`'s heal (`tab-reload`, the one message a
   // page with no module graph can still act on) never got the chance: the yield
   // fires on the reconcile TICK, before any the editor's `edit` command can reach the heal.
+  // …and a holder that left silently, kept only because nothing else is eligible, does not really
+  // hold it either: a page beside it that is still loading is not an extra to send away.
+  const holder = present.find((tab) => tab.tabId === blessedTabId);
+  const deadHolder =
+    holder !== undefined && partition.eligible.length === 0 && tabLeftSilently(holder, now, config);
   const yieldTabIds =
-    blessedTabId === null
+    blessedTabId === null || deadHolder
       ? []
       : present.filter((tab) => tab.tabId !== blessedTabId).map((tab) => tab.tabId);
 
