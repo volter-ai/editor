@@ -397,10 +397,14 @@ running the game.
 
 Commands, all through `npx --no-install cyclotron`:
 
-- `status`, `console [--all]`, `chat status`: the editor, its console and its
-  AI session. `chat send "<prompt>"` sends to the visible conversation and
-  `chat stop` stops its turn. Inspect the transcript and pending requests for
-  the outcome; a dispatch receipt does not mean an edit is done.
+- `status`, `console [--all]`: the editor and its console.
+- `chat status`, `chat send "<prompt>"`, `chat stop`: drive the editor's Chat
+  from outside it (a terminal, or an agent beside the editor). `chat send`
+  enters the visible conversation as the person's own message. If you are the
+  agent in that Chat, your replies already reach the person: never `chat send`
+  (it comes back to you as their message) or `chat stop` (it ends your turn).
+  From outside, check the transcript and pending requests for the outcome; a
+  dispatch receipt does not mean an edit is done.
 - `eval '<JavaScript>'`: `return` what you need; `eval --list` lists what is
   available.
 - `camera --position x,y,z --target x,y,z [--fov n]`: the open document's view,
