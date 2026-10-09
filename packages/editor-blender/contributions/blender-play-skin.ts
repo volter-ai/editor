@@ -142,7 +142,10 @@ interface Armature {
 }
 
 /** The copy's animation. `bake` reads one action of one armature through the clip door. */
-export function playAnimation(view: BlenderRuntimeView, bake: (armature: string, action: string) => Promise<BlenderActionClip | null>): PlayAnimation {
+/** Reads that outlive one Play: a document's next Play reuses them (see `shared` below). */
+export type PlayClipCache = Map<string, Promise<BlenderActionClip | null>>;
+
+export function playAnimation(view: BlenderRuntimeView, bake: (armature: string, action: string) => Promise<BlenderActionClip | null>, cache: PlayClipCache = new Map()): PlayAnimation {
   const warnings: string[] = [];
   const facts = view.animationFacts();
   const actions = Object.keys(facts.actions);
@@ -173,13 +176,15 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
    * object slot (`objectSlots`, from Blender): with several, which slot plays depends on the
    * armature, and each armature reads its own.
    */
-  const shared = new Map<string, Promise<BlenderActionClip | null>>();
+  // KEPT ACROSS PLAYS by the caller (`cache`): keyed by the action's REVISION too, so an action
+  // edited between Plays is read again and an unchanged one is not read twice.
+  const shared = cache;
   /** A clip whose slot Blender picked for its armature among several: never another armature's answer. */
   const ownSlot = (clip: BlenderActionClip | null): boolean => !!clip && (clip.objectSlots ?? 2) > 1;
   const readClip = (armature: Armature, action: string): Promise<BlenderActionClip | null> => {
     const name = armature.rig.armature;
     const skeleton = armature.facts.bones.map((bone) => bone.name).sort().join('\u0001');
-    const key = `${action}\u0000${skeleton}`;
+    const key = `${facts.actions[action] ?? ''}\u0000${action}\u0000${skeleton}`;
     const known = shared.get(key);
     if (known) return known.then((clip) => (ownSlot(clip) && clip!.armature !== name ? bake(name, action) : clip));
     const read = bake(name, action).then((clip) => {
