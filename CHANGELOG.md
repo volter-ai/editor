@@ -9,11 +9,14 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 
 - **The opening.** While Blender boots, Cyclotron's cover is a card pull. The card rises, flips with
   a burst, prints in a render of the machine standing in a setting (the canyon first), and lands its
-  stars and the setting's name. The line under it says what the editor is waiting for. Each boot
+  stars and the setting's name, and the cover stays up until it has (about five seconds; Blender is
+  still preparing underneath). The line under it says what the editor is waiting for. Each boot
   pulls the first setting this browser has not seen, then the next in turn, and a first sighting wears
-  a NEW tag. With reduced motion the settled card shows at once.
-- **Chat 0.1.55** (supercode #1360). A completed turn no longer saves the same conversation to the
-  editor a second time, and it checks the editor's binding before trusting its own record of the save.
+  a NEW tag. With reduced motion the settled card shows at once. On Windows and Linux; macOS keeps the
+  previous workbench (the axes splash and Chat 0.1.51) until its own cut is made.
+- **Chat 0.1.55** (supercode #1360), on Windows and Linux. A completed turn no longer saves the same
+  conversation to the editor a second time, and it checks the editor's binding before trusting its own
+  record of the save.
 - **Document tabs** (#292). Each open document has a tab; the workspace's areas have none.
 - **Build tripwires reach the Chat agent only while one of its tool calls is out** (#321). A line
   steered into a talk-only turn used to arrive after it as a new prompt, and the agent answered it in
