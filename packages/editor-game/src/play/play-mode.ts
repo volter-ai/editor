@@ -853,9 +853,20 @@ function exitPlayRootAuthoring(store: EditorShellStore): void {
  * means "cancel this edit", not "stop play") must not stop play.
  * Exported for unit testing with synthetic KeyboardEvents.
  */
+/** When the page last left a pointer lock: the Escape that frees a game's mouse look is the
+ *  person taking their mouse back, not asking Play to stop (a playtester lost a mission to it). */
+let lastPointerUnlockAt = -Infinity;
+if (typeof document !== 'undefined') {
+  document.addEventListener('pointerlockchange', () => {
+    if (!document.pointerLockElement) lastPointerUnlockAt = performance.now();
+  });
+}
+
 export function shouldEscapeStopPlay(e: KeyboardEvent): boolean {
   if (e.defaultPrevented) return false;
   if (isEditableTarget(e.target)) return false;
+  if (typeof document !== 'undefined' && document.pointerLockElement) return false;
+  if (performance.now() - lastPointerUnlockAt < 500) return false;
   return true;
 }
 

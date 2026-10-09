@@ -1517,7 +1517,9 @@ export function Object3DDocumentViewport({
             // events, which have no browser-owned active pointer and therefore
             // cannot be captured. Hardware pointers still take capture so a
             // gesture can leave the viewport without getting stranded.
-            if (event.isTrusted) canvas.setPointerCapture?.(event.pointerId);
+            // Nor can a pointer be captured while the document holds a pointer lock (a game's
+            // mouse look): the browser throws InvalidStateError on every click in Play.
+            if (event.isTrusted && !canvas.ownerDocument.pointerLockElement) canvas.setPointerCapture?.(event.pointerId);
           };
           pointerMoveListener = (event) => {
             if (!gestureController?.hasActiveGesture()) return;
