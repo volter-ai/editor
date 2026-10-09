@@ -245,7 +245,7 @@ var VolterOpening = (() => {
       if (badge) {
         badge.style.opacity = ease(named).toFixed(3);
       }
-      if (!shown && t >= NAME_AT) {
+      if (!shown && t >= NAME_AT && root.isConnected) {
         shown = true;
         onShown?.();
       }
@@ -340,13 +340,18 @@ var VolterOpening = (() => {
     };
     const held = at !== void 0 ? clamp(at, 0, SETTLED_MS) : mainWindow.matchMedia("(prefers-reduced-motion: reduce)").matches ? SETTLED_MS : void 0;
     if (held !== void 0) {
-      frame(held);
-      animation = mainWindow.requestAnimationFrame(() => {
+      let tries = 0;
+      const hold = () => {
         animation = void 0;
-        if (!disposed) {
-          frame(held);
+        if (disposed) {
+          return;
         }
-      });
+        frame(held);
+        if ((!root.isConnected || !width) && ++tries < 120) {
+          animation = mainWindow.requestAnimationFrame(hold);
+        }
+      };
+      hold();
     } else {
       frame(0);
       art.decode().then(play, play);

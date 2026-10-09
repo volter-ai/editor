@@ -259,7 +259,7 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 		name.style.opacity = ease(named).toFixed(3);
 		name.style.transform = `translateY(${((1 - outExpo(named)) * 10).toFixed(1)}px)`;
 		if (badge) { badge.style.opacity = ease(named).toFixed(3); }
-		if (!shown && t >= NAME_AT) { shown = true; onShown?.(); }
+		if (!shown && t >= NAME_AT && root.isConnected) { shown = true; onShown?.(); }
 
 		// IMPACT: a short shake of the whole cover at the burst; then the narration comes up.
 		const hit = clamp((t - FLIP - 150) / 260);
@@ -327,13 +327,20 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 		};
 		animation = mainWindow.requestAnimationFrame(tick);
 	};
-	// A held frame (reduced motion, or the preview's `at`) is drawn once the cover is attached
-	// and measured: `cover` runs before the kit puts the host on the page.
+	// A held frame (reduced motion, or the preview's `at`) is drawn again on each animation frame
+	// until the cover is on the page and measured: `cover` runs before the kit attaches the host,
+	// and the card only counts as shown (`onShown`) once it is on the page.
 	const held = at !== undefined ? clamp(at, 0, SETTLED_MS)
 		: mainWindow.matchMedia('(prefers-reduced-motion: reduce)').matches ? SETTLED_MS : undefined;
 	if (held !== undefined) {
-		frame(held);
-		animation = mainWindow.requestAnimationFrame(() => { animation = undefined; if (!disposed) { frame(held); } });
+		let tries = 0;
+		const hold = () => {
+			animation = undefined;
+			if (disposed) { return; }
+			frame(held);
+			if ((!root.isConnected || !width) && ++tries < 120) { animation = mainWindow.requestAnimationFrame(hold); }
+		};
+		hold();
 	} else {
 		frame(0);
 		art.decode().then(play, play);
