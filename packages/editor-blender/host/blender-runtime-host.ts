@@ -565,11 +565,11 @@ let movie: {
   readonly height: number;
   readonly fps: number;
   readonly codec: 'V_VP8' | 'V_VP9';
+  /** The photographs of the frames rendered and not yet encoded, in order (base64 PNG). */
+  readonly photographs: string[];
   count: number;
   error: string | null;
 } | null = null;
-/** Where the frames are written in Blender's own filesystem (never the project: nothing to mirror). */
-const MOVIE_DIR = '/tmp/volter-movie';
 
 async function movieBegin(width: number, height: number, fps: number): Promise<{ codec: string }> {
   if (typeof VideoEncoder === 'undefined') throw new Error('This browser has no WebCodecs VideoEncoder, which render-movie encodes with.');
@@ -579,7 +579,7 @@ async function movieBegin(width: number, height: number, fps: number): Promise<{
   const vp9 = await VideoEncoder.isConfigSupported({ ...base, codec: 'vp09.00.10.08' }).catch(() => ({ supported: false }));
   const codec = vp9.supported ? 'vp09.00.10.08' : 'vp8';
   const frames: WebmFrame[] = [];
-  const state = { encoder: null as unknown as VideoEncoder, frames, width: w, height: h, fps, codec: (vp9.supported ? 'V_VP9' : 'V_VP8') as 'V_VP8' | 'V_VP9', count: 0, error: null as string | null };
+  const state = { encoder: null as unknown as VideoEncoder, frames, width: w, height: h, fps, codec: (vp9.supported ? 'V_VP9' : 'V_VP8') as 'V_VP8' | 'V_VP9', photographs: [] as string[], count: 0, error: null as string | null };
   state.encoder = new VideoEncoder({
     output: (chunk) => {
       const data = new Uint8Array(chunk.byteLength);
@@ -597,26 +597,19 @@ async function movieBegin(width: number, height: number, fps: number): Promise<{
 async function movieFrames(numbers: readonly number[]): Promise<{ encoded: number; timing: { executeMs: number; stageMs: number; applyMs: number; photoMs: number; encodeMs: number } }> {
   const film = movie;
   if (!film) throw new Error('No film is being rendered: blender-movie-begin first.');
-  // ONE CALL RENDERS THE CHUNK, the scene's engine and output put back after, so the file is as it was.
+  // ONE CALL TAKES THE CHUNK: each frame set, then photographed as the viewport presents it through
+  // the scene camera (session.py's `photograph_frame`): the present ships only what moved.
   const code = `
-import bpy, os, glob
-os.makedirs(${JSON.stringify(MOVIE_DIR)}, exist_ok=True)
-for old in glob.glob(${JSON.stringify(MOVIE_DIR + '/*.png')}):
-    os.remove(old)
+import bpy, sys
+photograph = next(m.photograph_frame for m in list(sys.modules.values()) if hasattr(m, "photograph_frame"))
 s = bpy.context.scene
-r = s.render
-kept = (r.engine, r.filepath, r.image_settings.file_format, r.resolution_x, r.resolution_y, r.resolution_percentage, s.frame_current)
+kept = s.frame_current
 try:
-    r.engine = 'VOLTER_THREE'
-    r.image_settings.file_format = 'PNG'
-    r.resolution_x, r.resolution_y, r.resolution_percentage = ${film.width}, ${film.height}, 100
     for f in ${JSON.stringify(numbers)}:
         s.frame_set(f)
-        r.filepath = ${JSON.stringify(MOVIE_DIR)} + '/f%05d.png' % f
-        bpy.ops.render.render(write_still=True)
+        photograph(${film.width}, ${film.height})
 finally:
-    r.engine, r.filepath, r.image_settings.file_format, r.resolution_x, r.resolution_y, r.resolution_percentage = kept[:6]
-    s.frame_set(kept[6])
+    s.frame_set(kept)
 `;
   const timedFrom = renderTimings.length;
   const executeAt = performance.now();
@@ -625,9 +618,11 @@ finally:
   const taken = renderTimings.slice(timedFrom);
   const encodeAt = performance.now();
   if (!answer.executed) throw new Error(`Blender could not render frames ${numbers[0]}-${numbers.at(-1)}: ${answer.error}`);
-  const session = blenderRuntime();
-  for (const f of numbers) {
-    const png = await session.readFile(`${MOVIE_DIR}/f${String(f).padStart(5, '0')}.png`);
+  const shots = film.photographs.splice(0);
+  if (shots.length !== numbers.length) throw new Error(`Blender rendered ${numbers.length} frames and ${shots.length} photographs were taken.`);
+  for (const shot of shots) {
+    const binary = atob(shot);
+    const png = Uint8Array.from(binary, (c) => c.charCodeAt(0));
     const bitmap = await createImageBitmap(new Blob([png as BlobPart], { type: 'image/png' }));
     const at = (film.count * 1_000_000) / film.fps;
     const frame = new VideoFrame(bitmap, { timestamp: at, duration: 1_000_000 / film.fps });
@@ -1301,6 +1296,9 @@ export function blenderRuntime(): BlenderRuntime {
         });
         const photoAt = performance.now();
         const display = await photographSnapshot(scene, renderCamera, snapshot, render, assertBinding);
+        // A FILM BEING RENDERED keeps each photograph as it is taken: the encoder reads it here,
+        // never back out of Blender's filesystem (that round trip cost 3.5 s a frame).
+        if (movie) movie.photographs.push(display.base64);
         if (rendering) {
           renderTimings.push({ stageMs: renderStagedAt === null ? 0 : applyAt - renderStagedAt, applyMs: appliedAt - applyAt, photoMs: performance.now() - photoAt });
           if (renderTimings.length > 64) renderTimings.shift();
