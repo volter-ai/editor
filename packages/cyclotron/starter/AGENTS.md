@@ -292,6 +292,10 @@ behavior-only repair preserves the established appearance.
   effects and inventory, that input while paused preserves it, and that resume
   restores normal controls. Presenting another editor document can stop Play;
   it does not verify an in-game pause.
+- The game's camera is the script's, projection included: Play starts it at a
+  0.1 m near plane and stops fitting its clip planes to the file, so a set far
+  from the level cannot hide what is next to the camera. Set `near`, `far` and
+  `fov` yourself when the game needs other values.
 - Make meaningful game state observable through the HUD or a read-only
   inspection surface: phase, simulation time, participants' positions and
   signed movement, progression, terminal states and inventory as applicable.
