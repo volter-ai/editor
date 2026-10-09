@@ -33,12 +33,12 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 - **Play loads before it starts** (#316): every character's starting animation clips are baked first, so
   the first frame of Play is not a character in its rest pose.
 - **Run configurations** (#318): npm and a configuration's script run as one quoted command line, and a
-  configuration whose script or arguments are not plain words (letters, digits and `@+=:,./-`) is refused
+  configuration whose script or arguments are not plain words (letters, digits and `_@+=:,./-`) is refused
   with a 400 before anything runs.
-- **Game projects** (#317, #319): `volter-game-editor upgrade` links a game on the runtime image to the new
-  version's image, or says why it did not (a version that is not one exact number), and replaces an
-  untouched `check-idioms.ts` with this release's. Windows builds now write the bundled license notices
-  they used to leave empty.
+- **Game projects** (#317, #319): `volter-game-editor upgrade` links a game on the runtime image (or one
+  with no `node_modules` and no `package-lock.json`) to the new version's image, or says why it did not (a
+  version that is not one exact number); a game with its own lockfile keeps installing its own. It also
+  replaces an untouched `check-idioms.ts` with this release's.
 
 ## 0.5.204 — Chat starts a new conversation again
 
