@@ -38,6 +38,6 @@
     "storybook": "10.6.0",
     "@storybook/react": "10.6.0",
     "@dimforge/rapier3d-compat": "0.19.2",
-    "@volter/supercode-client": "0.3.69"
+    "@volter/supercode-client": "0.3.66"
   }
 }

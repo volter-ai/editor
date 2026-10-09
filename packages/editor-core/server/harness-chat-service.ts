@@ -83,9 +83,8 @@ type HeadlessAction =
   | { type: 'refresh'; autoObserve?: boolean; silent?: boolean }
   | { type: 'observe'; sessionKey: string }
   | { type: 'loadEarlier' }
-  /** `permissionMode`: the native Claude Code mode to start or resume in (`runtimePermission`), from supercode-client 0.3.69. */
-  | { type: 'start'; harness: string; permissionMode?: string }
-  | { type: 'resume'; sessionKey: string; permissionMode?: string }
+  | { type: 'start'; harness: string }
+  | { type: 'resume'; sessionKey: string }
   | { type: 'attach'; sessionKey: string; baseUrl?: string }
   | { type: 'branch'; sessionKey: string; targetHarness?: string }
   | { type: 'reduce'; sessionKey: string; targetHarness?: string }
@@ -201,21 +200,6 @@ type ChatProcessContext = Awaited<ReturnType<typeof chatProcessEnvironment>> & {
 
 /** Use the native harness's default permission policy for Chat and terminal launches. */
 const RUNTIME_POLICY = 'default' as const;
-
-/**
- * "ASK FOR APPROVAL" ASKS (t_8ea14bad). The Chat's own setting decides whether it answers the runtime's approval
- * requests itself (Auto approve) or shows them to the person (Ask), but it can only answer the requests the runtime
- * raises. A Claude Code started with no mode named keeps its native default, and from Claude Code 2.1.285 an SDK
- * session can start in `auto`, where it approves its own calls and raises nothing: read on Windows, a Bash call
- * accepted with source config, reasonType classifier, and Ask never asked. `RUNTIME_POLICY` cannot help, since
- * `default` there means keep the harness's own. So every Claude Code conversation starts and resumes in its native
- * manual mode (`default`), where a call that needs approval raises a request, and Auto approve answers it as before.
- * The controller carries the mode from supercode-client 0.3.69 on, to a service that advertises it
- * (`@volter/supercode` 0.5.298 on, the optional dependency this package pins).
- */
-function runtimePermission(harness: string): { permissionMode?: string } {
-  return harness === 'claude-code' ? { permissionMode: 'default' } : {};
-}
 
 /**
  * WHICH AGENT FILLS THE CHAT VIEW: whichever one supercode says can run here. Supercode
@@ -1668,28 +1652,6 @@ export class HarnessChatService {
     return true;
   }
 
-  /**
-   * Start or resume a Chat runtime in its permission mode (`runtimePermission`). A service older than the mode
-   * (an explicit SUPERCODE_BIN, or a supercode found on PATH when the optional dependency was left out) refuses it
-   * by name before opening anything; the conversation then starts as it did before, without the mode, and the
-   * console says that Ask cannot hold there, rather than the Chat refusing to start at all.
-   */
-  private async dispatchRuntime(
-    controller: HeadlessController,
-    action: Extract<HeadlessAction, { type: 'start' | 'resume' }>,
-    harness: string,
-  ): Promise<HeadlessSnapshot> {
-    const permission = runtimePermission(harness);
-    if (!permission.permissionMode) return controller.dispatch(action);
-    try {
-      return await controller.dispatch({ ...action, ...permission });
-    } catch (error) {
-      if ((error as { code?: unknown } | null)?.code !== 'permission_mode_unsupported') throw error;
-      console.warn(`[chat] ${errorMessage(error)} This conversation starts without it, so "Ask for approval" cannot stop a call here; update supercode (the editor pins @volter/supercode).`);
-      return controller.dispatch(action);
-    }
-  }
-
   /** `freshFor`: start a new conversation for that saved chat, whose own conversation is gone, rather than a new chat. */
   private async selectChat(selection: ChatSelection, resumeId?: string, freshFor?: string) {
     if (this.selectingChat) throw new Error('A chat selection is already being applied.');
@@ -1739,7 +1701,7 @@ export class HarnessChatService {
         if (!restored) throw new Error('The saved conversation could not be rediscovered after closing its previous runtime.');
         action = {type:'resume', sessionKey:restored.id};
       }
-      const result = await this.dispatchRuntime(this.controller!, action, selection.harness);
+      const result = await this.controller!.dispatch(action);
       if (result.error) throw new Error(result.error.message);
       activated = true;
       if (resumeId) { this.chatCatalog.active = resumeId; this.chatCatalog.save(); }
@@ -1852,12 +1814,10 @@ export class HarnessChatService {
             : this.lastSnapshot.sessions.find((s) => s.id === resumable)?.harness;
         if (!harness) throw new Error('The session to resume names no harness.');
         this.chatSelection = { ...this.chatSelection, harness };
-        await this.dispatchRuntime(
-          controller,
+        await controller.dispatch(
           resumable === null
             ? { type: 'start', harness }
             : { type: 'resume', sessionKey: resumable },
-          harness,
         );
         this.capture();
       }
