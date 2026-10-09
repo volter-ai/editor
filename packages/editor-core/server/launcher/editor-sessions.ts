@@ -627,12 +627,13 @@ export async function waitForEditorStateAfter(
  * - `connected` — a tab reported its command listener attached. Can
  *   happen at any point, even before `initialTimeoutMs`.
  * - `never-arrived` — no index-page request was observed by
- *   `initialTimeoutMs` (default 15s): the auto-open itself likely failed,
- *   exactly the case the old flat timeout was built for. Reported
- *   immediately — no reason to wait the full budget for a browser that
- *   never showed up at all.
+ *   `arrivalTimeoutMs` (default: `initialTimeoutMs`, 15s): the auto-open itself likely failed,
+ *   exactly the case the old flat timeout was built for. A caller may give a browser longer
+ *   (`launch.ts` does: a browser on its own first-run screen loads the page only once that screen
+ *   is dismissed, measured in the 0.5.207 blind walks), and `onSlowArrival` fires once at
+ *   `initialTimeoutMs` so the person hears why it is still waiting.
  * - `stuck` — a browser DID request the index page within the initial
- *   window (so the hand-off worked) but never SSE-connected even by
+ *   window, or by `arrivalTimeoutMs` (so the hand-off worked) but never SSE-connected even by
  *   `totalTimeoutMs` (default 120s) — a real problem (console error, stuck
  *   build) worth naming distinctly from "never arrived".
  *
@@ -650,7 +651,7 @@ export async function waitForEditorStateAfter(
  * `openBrowser(...)` — only an index request AT OR AFTER that instant counts
  * as "arrived for this attempt" (an old request from a previous session).
  * `onProgress(elapsedMs)` fires at most once per `progressIntervalMs`
- * (default 20s) once a browser has arrived but not yet connected, so a human
+ * (default 20s) once a browser has arrived but not yet connected (or once `onSlowArrival` has fired), so a human
  * watching a cold Vite boot sees intermittent proof of life instead of
  * silence. `fetchImpl`/short custom timeouts make this fully unit-testable
  * without a real browser or a 2-minute test.
@@ -670,6 +671,11 @@ export async function waitForVerifiedEditorOpen(
     progressIntervalMs?: number;
     fetchImpl?: typeof fetch;
     onProgress?: (elapsedMs: number) => void;
+    /** How long to wait for a browser to arrive at all; the default, `initialTimeoutMs`, says
+     *  `never-arrived` at that mark. A caller that gives a browser longer (one showing its own
+     *  first-run screen) passes more, and `onSlowArrival` once the first mark passes. */
+    arrivalTimeoutMs?: number;
+    onSlowArrival?: () => void;
   },
 ): Promise<VerifiedEditorOpenOutcome> {
   const {
@@ -680,10 +686,17 @@ export async function waitForVerifiedEditorOpen(
     progressIntervalMs = 20_000,
     fetchImpl = fetch,
     onProgress,
+    arrivalTimeoutMs = initialTimeoutMs,
+    onSlowArrival,
   } = opts;
   const initialDeadline = openAttemptAt + initialTimeoutMs;
-  const totalDeadline = openAttemptAt + totalTimeoutMs;
+  const arrivalDeadline = openAttemptAt + Math.max(initialTimeoutMs, arrivalTimeoutMs);
+  // The page's own budget to come up (`totalTimeoutMs - initialTimeoutMs`, never ending before
+  // `totalTimeoutMs` from the open) runs from when it arrived after a slow start: a browser that
+  // sat on its first-run screen for a minute has not used the page's time.
+  let totalDeadline = openAttemptAt + totalTimeoutMs;
   let browserArrived = false;
+  let toldSlow = false;
   let lastProgressAt = openAttemptAt;
 
   for (;;) {
@@ -700,6 +713,7 @@ export async function waitForVerifiedEditorOpen(
       snapshot.tabs.some((tab) => tab.state !== 'crashed' && tab.state !== 'closed' && tab.state !== 'ended') ||
       (snapshot.lastIndexRequestAt !== null && snapshot.lastIndexRequestAt >= openAttemptAt)
     ) {
+      if (!browserArrived && toldSlow) totalDeadline = Math.max(totalDeadline, Date.now() + totalTimeoutMs - initialTimeoutMs);
       browserArrived = true;
     }
 
@@ -708,9 +722,14 @@ export async function waitForVerifiedEditorOpen(
     // (`tab-presence.ts`'s `listenerBudgetMs`), and it has just spent it. Say
     // so now rather than sit out a second clock that measures the same thing.
     if (unresponsiveTab(snapshot) !== null) return { status: 'stuck' };
-    if (!browserArrived && now >= initialDeadline) return { status: 'never-arrived' };
+    if (!browserArrived && now >= initialDeadline && !toldSlow && now < arrivalDeadline) {
+      toldSlow = true;
+      lastProgressAt = now;
+      onSlowArrival?.();
+    }
+    if (!browserArrived && now >= arrivalDeadline) return { status: 'never-arrived' };
     if (browserArrived && now >= totalDeadline) return { status: 'stuck' };
-    if (browserArrived && onProgress && now - lastProgressAt >= progressIntervalMs) {
+    if ((browserArrived || toldSlow) && onProgress && now - lastProgressAt >= progressIntervalMs) {
       lastProgressAt = now;
       onProgress(now - openAttemptAt);
     }

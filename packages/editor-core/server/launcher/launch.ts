@@ -62,12 +62,13 @@ export async function launch(folder: string, launching: LaunchingProduct, option
     const running = await waitForSessionWorkbench(serverUrl);
     if (running.product !== launching.id) throw new Error(`This project is open in ${running.product}; close that session before opening ${launching.displayName}.`);
     const state = await fetch(`${serverUrl}/__editor/state`, { signal: AbortSignal.timeout(5000) }).then(r => r.json());
-    if (typeof state.workbenchUrl !== 'string') {
-      // The proxy port is reserved by project identity, just like the server.
-      console.log(workbenchUrl(allocateWorktreeEditorPort(project, undefined, 'frame-proxy'), project));
-    } else console.log(state.workbenchUrl);
+    // The proxy port is reserved by project identity, just like the server.
+    const pageUrl = typeof state.workbenchUrl === 'string'
+      ? state.workbenchUrl
+      : workbenchUrl(allocateWorktreeEditorPort(project, undefined, 'frame-proxy'), project);
+    console.log(pageUrl);
     await refuseIncompatibleProject(serverUrl, launching.command, !!options.noOpen);
-    await ensureTab(serverUrl, !!options.noOpen);
+    await ensureTab(serverUrl, !!options.noOpen, pageUrl);
     return;
   }
   if (verdict.kind === 'unreachable') throw new Error(`This project's session is ${verdict.reason}; refusing to launch a duplicate.`);
@@ -114,10 +115,11 @@ export async function launch(folder: string, launching: LaunchingProduct, option
       onProgress: ms => console.log(`Starting ${launching.displayName} (${Math.round(ms / 1000)}s); logs: ${logPath}`) });
     if (outcome.status !== 'ready') throw new Error(describeEditorBootFailure(outcome, { serverUrl, project, port, timeoutMs: DEFAULT_EDITOR_BOOT_TIMEOUT_MS, logPath, command: launching.command }));
     await waitForSessionWorkbench(serverUrl);
-    console.log(`${launching.displayName}: ${workbenchUrl(proxyPort, project)}`);
+    const pageUrl = workbenchUrl(proxyPort, project);
+    console.log(`${launching.displayName}: ${pageUrl}`);
     console.log(`Logs: ${logPath}`);
     await refuseIncompatibleProject(serverUrl, launching.command, !!options.noOpen);
-    await ensureTab(serverUrl, !!options.noOpen);
+    await ensureTab(serverUrl, !!options.noOpen, pageUrl);
   } finally { clearLaunch(); }
 }
 
@@ -194,7 +196,10 @@ async function refuseIncompatibleProject(serverUrl: string, command: string, noO
   ].join('\n\n'));
 }
 
-async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
+/** How long `edit` waits for a browser to arrive at all before saying the page did not arrive. */
+const BROWSER_ARRIVAL_TIMEOUT_MS = 180_000;
+
+async function ensureTab(serverUrl: string, noOpen: boolean, pageUrl: string): Promise<void> {
   const openAttemptAt = Date.now();
   const result = await requestEditorTabEnsure(serverUrl, !noOpen);
   if (result === 'unsupported') throw new Error(`Session ${serverUrl} could not ensure its tab.`);
@@ -211,6 +216,12 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   // A PAGE THAT HAS REFUSED IS AN ANSWER, not a page still loading: a refused startup never
   // attaches its command listener, so the wait below would sit out its whole budget (two
   // minutes) before saying what the page said in its first second.
+  // On a Mac with no Chromium browser the editor opens in Safari, which cannot run it and is shown a
+  // page saying so (frame-proxy.ts) instead of the editor; the terminal says the same, at the slow
+  // mark and at the end, so this is not a mystery there.
+  const safari = process.platform === 'darwin'
+    ? ' If it opened in Safari: Safari can\'t run Cyclotron yet; open the printed URL in Chrome, Edge, Brave or Arc.'
+    : '';
   let settled = false;
   const refusal = (async (): Promise<string[]> => {
     while (!settled) {
@@ -224,7 +235,18 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
   })();
   const outcome = await Promise.race([
     waitForVerifiedEditorOpen(serverUrl, { openAttemptAt,
-      onProgress: ms => console.log(`Waiting for the editor page (${Math.round(ms / 1000)}s)…`) }),
+      onProgress: ms => console.log(`Waiting for the editor page (${Math.round(ms / 1000)}s)…`),
+      // A BROWSER ON ITS OWN FIRST-RUN SCREEN loads the editor only once that screen is dismissed:
+      // measured in the 0.5.207 blind walks, a fresh Chrome profile showed "Sign in" / "Stay
+      // signed out", the page arrived 37 s after it was closed, and this had already said the
+      // editor did not open at 15 s. Say why it may be waiting, and give it three minutes.
+      // A person at a terminal gets the long wait; an agent's command (no terminal) keeps the old
+      // answer at 15 s, which a tool's own timeout would otherwise outlast.
+      ...(process.stdout.isTTY ? { arrivalTimeoutMs: BROWSER_ARRIVAL_TIMEOUT_MS } : {}),
+      onSlowArrival: () => console.log(
+        `The browser hasn't opened the editor yet. If it is showing its own welcome or sign-in screen, finish or close ` +
+          `that screen and the editor opens next; or open ${pageUrl} yourself in Chrome, Edge, Brave or Arc.${safari}`,
+      ) }),
     refusal.then((refused) => (refused.length > 0 ? { status: 'refused' as const, refused } : new Promise<never>(() => {}))),
   ]).finally(() => { settled = true; });
   if (outcome.status === 'refused')
@@ -233,14 +255,10 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
     // A page that arrived and refused to start says why in the session's console ledger (a pinned
     // engine version, a failed startup): print that, not only where to look.
     const said = outcome.status === 'never-arrived' ? [] : await currentPageErrors(serverUrl);
-    // On a Mac with no Chromium browser the editor opened in Safari, which cannot run it and is shown
-    // a page saying so (frame-proxy.ts); the terminal says the same, so this is not a mystery there.
-    const safari = process.platform === 'darwin' && outcome.status === 'never-arrived'
-      ? ' If it opened in Safari: Safari can\'t run Cyclotron yet; open the printed URL in Chrome, Edge, Brave or Arc.'
-      : '';
+    const safariAtEnd = outcome.status === 'never-arrived' ? safari : '';
     throw new Error(
       `Editor page ${outcome.status === 'never-arrived' ? 'did not arrive' : 'arrived but did not become ready'}` +
-        (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : `; open the printed workbench URL and inspect the session log.${safari}`),
+        (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : `; open the printed workbench URL and inspect the session log.${safariAtEnd}`),
     );
   }
 }
