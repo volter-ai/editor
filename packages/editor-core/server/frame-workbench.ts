@@ -27,7 +27,8 @@
  */
 
 import { type ChildProcess, spawn } from 'node:child_process';
-import { readFileSync } from 'node:fs';
+import { mkdirSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { createConnection } from 'node:net';
 import { join } from 'node:path';
 import { workbenchProductId } from '@volter/sdk/session/product-locator';
@@ -213,10 +214,21 @@ export async function startFrameWorkbench(options: {
     : sourcesOnWindows
       ? [process.execPath, [join(workbench.cwd, 'scripts', 'code-server.js')]]
       : [workbench.serverBin, []];
+  // THE WORKBENCH'S OWN EXTENSIONS FOLDER. Unnamed, Code-OSS's server reads
+  // `~/.vscode-server-oss/extensions`, which every Code-OSS server on the machine shares, so an
+  // extension a person installed for some other remote session ran inside this editor too
+  // (measured 2026-10-08: the OpenAI ChatGPT extension there threw "navigator is now a global
+  // in nodejs" into every Cyclotron session). The product's own extensions ship in the release
+  // (`extensions/`), so a folder per product, empty unless something installs into it, is all
+  // the server needs.
+  const extensionsDir = join(homedir(), '.volter', 'workbench-extensions', product === null ? 'default' : workbenchProductId(product.name));
+  mkdirSync(extensionsDir, { recursive: true });
   const reh = spawn(
     command,
     [
       ...entry,
+      '--extensions-dir',
+      extensionsDir,
       '--host',
       '127.0.0.1',
       '--port',

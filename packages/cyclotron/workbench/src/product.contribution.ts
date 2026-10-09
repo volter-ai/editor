@@ -128,7 +128,7 @@ const MODEL_OPEN_NARRATE_AFTER_MS = 30_000;
 
 /** This product's splash while it is opening, so `ready` below can narrate its own wait into
  *  the cover it drew. Set by `cover`, cleared by the handle's `dispose`. */
-let splash: { say(text: string): void } | undefined;
+let splash: { say(text: string): void; readonly landed: Promise<void> } | undefined;
 
 /**
  * THE SETTINGS A BOOT CAN PULL (`opening.ts`): renders of the machine standing somewhere, each
@@ -181,7 +181,7 @@ registerVolterProduct({
 			firstLine: localize('volterModelCoverOpening', "Opening {0}…", context.folderName),
 			onShown: remember,
 		});
-		splash = { say: (text: string) => opening.say(text) };
+		splash = { say: (text: string) => opening.say(text), landed: opening.landed };
 		return {
 			dispose: () => {
 				splash = undefined;
@@ -195,11 +195,16 @@ registerVolterProduct({
 	// yet (0 registered)" is what a person watched in that window. So the cover stays up over
 	// it, narrating, and lifts onto the model itself.
 	async ready(context: VolterProductMountContext): Promise<void> {
+		// AND THE CARD HAS LANDED. The Model document registers about three seconds into a warm boot,
+		// while Blender is still preparing (its pane says so), and the cover lifting then cut the
+		// opening's pull off before its stars and name: read on the 9a813b17 workbench. So the cover
+		// also waits for the card (`Opening.landed`, about 5.5 s; at once under reduced motion).
+		const landed = splash?.landed;
 		const registry = context.mount['documents'] as DocumentsSource | undefined;
 		// A BRIDGE WITHOUT THE DOOR IS A MISSING DOOR, never a crash and never a wait that
 		// cannot end: with nothing to watch, the mount resolving IS the answer, which is what
 		// this product did before `ready` existed.
-		if (!registry?.subscribe || !registry.list || !registry.activeId) { return; }
+		if (!registry?.subscribe || !registry.list || !registry.activeId) { await landed; return; }
 		const open = (): boolean => openDocument(registry);
 		if (!open()) {
 			splash?.say(localize('volterModelCoverWaiting', "Opening the first model…"));
@@ -226,6 +231,7 @@ registerVolterProduct({
 				if (open()) { stop(); resolve(); }
 			});
 		}
+		await landed;
 		// DRAWN, not merely registered. The pane paints the active document on the frame after
 		// the registry names it, so the cover comes off one frame later — otherwise it lifts
 		// onto the empty pane it was covering and the person sees the gap anyway.
