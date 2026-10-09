@@ -5,7 +5,7 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
-## 0.5.207 — one document, no tab row
+## 0.5.207 — pasting the install line again reopens the editor
 
 - **One tab in all, no tab row** (#350), in Cyclotron on Windows and Linux. With one document open, the row
   above the viewport only repeated its name; it now shows once there is a second editor (another document, a
@@ -18,6 +18,18 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   while it shut down (Code-OSS lifecycle lines, storage and the Chat's session store failing to write) were
   kept as unresolved, so `cyclotron console` exited 1 until the next page load. They are now retired, and a
   condition any other page reported is kept as before.
+- **Pasting the install line again reopens the editor after its tab closed without a goodbye** (#356). A tab
+  that ends with no close beacon (a crash, a killed renderer, a machine asleep, a tab closed by automation)
+  stayed present for its hidden grace (30 s), so `edit` refocused a page that was gone and failed after 101 s
+  ("Editor page arrived but did not become ready"), as the 0.5.206 blind walk's "come back" step found. A tab
+  with no control channel and no beat for longer than a visible tab's grace is now gone to `edit`, which opens
+  a new one; `status` calls it crashed; and a browser that never opens ends in "did not arrive" after 15 s.
+- **The status bar's Play state follows Cyclotron's Play** (#357). It read the game editor's Play only, so it
+  said "Play stopped" while the race ran; it now says Playing or Paused while any open document plays.
+- **Reveal names this platform's file manager** (#354, #355): "Show in File Explorer" and "Reveal in File
+  Explorer" on Windows (Finder on a Mac, File Manager elsewhere), the asset menu's shortcuts read Ctrl+D and Del
+  off a Mac, and an asset's reveal opens its folder in the project rather than relative to wherever the server
+  started.
 
 ## 0.5.206 — the opening's card pull, and a Chat that saves a conversation once
 
