@@ -27,11 +27,14 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   Arc or Chromium; any other default browser is kept. Opened in Safari anyway, the editor's address shows a
   page saying why, with the address to open elsewhere, and `cyclotron edit` says so in the terminal if the page
   never arrives.
+- **Document tabs survive a document moved into an area** (#328), on Windows and Linux. Before, moving the
+  open document into the bottom area (dragging its tab onto the Game panel) lost the tab row, and opening the
+  document again did not bring it back.
 
 ## 0.5.205 — a tab per document, and tripwires that wait for a tool call
 
-Its workbench, on Windows, macOS and Linux, is the cut from editor ec1e0e84: a tab per document, with the boot
-splash and Chat 0.1.51 of 0.5.204.
+Its workbench, on Windows, macOS and Linux, is the cut from editor ec1e0e84 (`cyclotron-4782d9a281ef-ec1e0e845c3a`):
+a tab per document, with 0.5.204's boot splash and Chat 0.1.51.
 
 - **Document tabs** (#292). Each open document has a tab; the workspace's areas have none.
 - **Build tripwires reach the Chat agent only while one of its tool calls is out** (#321). A line
@@ -52,13 +55,17 @@ splash and Chat 0.1.51 of 0.5.204.
   replaces an untouched `check-idioms.ts` with this release's.
 - **The workbench server reads its own extensions folder** (#336), `~/.volter/workbench-extensions/<product>`, in
   place of `~/.vscode-server-oss/extensions`, which every Code-OSS server on the machine shares. An extension
-  installed there for another app no longer throws its error into every Cyclotron session.
+  installed there for another Code-OSS session no longer loads in Cyclotron.
 - **A project's agent guidance follows the installed editor** (#337). At `edit`, an `AGENTS.md` that is still
   the starter's (same first line) and differs from the installed starter is replaced; the old copy is kept as
   `.volter/AGENTS.previous.md` and the change is printed. An `AGENTS.md` the author wrote is never touched.
-- **Play** (#338): a `playAnimation` setup that throws is named in the console and the game starts without
-  animation; before, the loading overlay stayed up and the script never ran. Clip reads are kept across Plays
+- **Play starts without animation when its setup fails** (#338): a `playAnimation` setup that throws is named in
+  the console; before, the loading overlay stayed up and the script never ran. Clip reads are kept across Plays
   for each model document and read again when an action changes.
+- **Clip reads for Play skip the Timeline's summary row** (#331): one read of a character's clip took about 700 ms
+  on a level with 23 armatures and now takes about 10 ms, so a character no longer stands still on its first walk.
+- **The UI board** (#329, #330) shows a component's edit without a reload, and a session whose last view was the
+  board reopens on it once the board registers; before, the restore logged an error and showed the model.
 - **Diagnosis** (#339): `editor.document.run` runs on a document that publishes no context, such as the UI
   board, with `ctx` null and `info.context` false. `capture --region page` no longer prints the flat-surface
   warning, which the editor's dark interface set off on almost every page capture.
