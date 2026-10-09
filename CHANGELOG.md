@@ -5,6 +5,14 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.209 — printed commands run as typed
+
+- **Every printed command runs as typed, in any shell** (#370, #371). `upgrade`'s Next lines, the page's "Run
+  from the project folder" card, a closed window's reopen line and the launcher's hints now print
+  `npx --no-install cyclotron …` (`npx.cmd` on Windows), one command per line. `upgrade` closes the old
+  session before `npm install`.
+- **A stalled model open says so** (#368): after 3 minutes it shows the wait and offers Retry opening.
+
 ## 0.5.208 — a first run on Windows without a Firewall prompt, and a browser given time to arrive
 
 - **No Windows Firewall prompt on a first run** (#363). The editor's live-update (HMR) socket listened on every
