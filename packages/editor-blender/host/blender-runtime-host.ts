@@ -676,6 +676,8 @@ export async function blenderActionClip(options?: {
   bake?: boolean;
   /** A named action baked against `object`'s armature, assigned or not. */
   action?: string;
+  /** `false` skips the Timeline's summary row, which a reader that only plays the clip never draws. */
+  summary?: boolean;
 }): Promise<BlenderActionClip | null> {
   if (!blenderSessionStarted()) return null;
   return blenderRuntime().actionClip(options);

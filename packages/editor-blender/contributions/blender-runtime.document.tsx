@@ -932,7 +932,7 @@ function BlenderViewportArea({
         if (stopped) return;
         // No session answers null: a read that failed, asked again, not a clip that animates nothing.
         const loaded = playAnimation(view, async (armature, action) => {
-          const clip = await blenderActionClip({ object: armature, action });
+          const clip = await blenderActionClip({ object: armature, action, summary: false });
           if (clip === null) throw new Error("Blender's session is not started");
           return clip;
         });
@@ -1106,7 +1106,7 @@ function BlenderViewportArea({
     let live = true;
     void blenderSkin.sync(view, {
       clip: (armature) => blenderActionClip({ object: armature }),
-      bake: (armature, action) => blenderActionClip({ object: armature, action }),
+      bake: (armature, action) => blenderActionClip({ object: armature, action, summary: false }),
     }).catch((thrown: unknown) => {
       if (live) editorHost().console.warn(`This file's action could not be read: ${thrown instanceof Error ? thrown.message : String(thrown)}`, 'blender-skin');
     });

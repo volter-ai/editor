@@ -61,6 +61,7 @@ import { recordViewportFirstFrame } from '@volter/sdk/kit/viewport-activation-ti
 import {
   CANVAS_SCENE_DOCUMENT_ID,
   GAME_DOCUMENT_ID,
+  PINNED_ASYNC_DOCUMENT_IDS,
   SCENE_DOCUMENT_ID,
 } from '@volter/sdk/kit/workspace-document-ids';
 import {
@@ -456,6 +457,13 @@ export function installRootDocuments(
       if (open.some((document) => document.descriptor.id === documentId)) return null;
       const board = componentBoardForDocument(documentId);
       if (board) return board.presence() === 'absent' ? board.absentReason() : null;
+      // A BOARD NOT REGISTERED YET is no verdict either. Its package installs it after
+      // the session's restore has already asked for it (the UI board waits on story
+      // discovery, which waits on the first model frame), so answering "named nothing"
+      // here failed a restored board view at every start (measured 2026-10-08: "Could
+      // not restore shared editor view: No workspace document is named
+      // "workspace:ui-components"", then the board opened a few seconds later).
+      if (PINNED_ASYNC_DOCUMENT_IDS.has(documentId)) return null;
       return (
         `No workspace document is named "${documentId}". Open in this session: ` +
         `${open.map((document) => document.descriptor.id).join(', ') || '(none)'}. A component ` +

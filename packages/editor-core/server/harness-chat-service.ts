@@ -134,6 +134,9 @@ type ObservedChatRuntimeEvent = {
   role?: string;
   text?: string | null;
   requestId?: unknown;
+  /** A `tool` event's call, and whether it is still out (`pending`) or back (`completed`, `error`). */
+  callId?: unknown;
+  status?: unknown;
   raw?: { payload?: unknown };
 };
 type HeadlessManagedRuntime = {
@@ -271,6 +274,8 @@ export type ChatRuntimeActivity =
   | 'turn-resumed'
   | 'turn-ended'
   | 'narration'
+  /** A tool call went out or came back (`chatToolOut` says whether one is still out). */
+  | 'tool'
   | 'waiting'
   | 'answered'
   | 'other';
@@ -302,6 +307,26 @@ function isNarration(event: ObservedChatRuntimeEvent): boolean {
     | undefined;
   const delta = (payload?.event ?? payload?.stream_event ?? payload)?.delta;
   return String(delta?.type ?? '').toLowerCase() === 'text_delta';
+}
+
+/**
+ * The tool calls a Claude Code stream record sends out or gets back, by call id: the `assistant` record's
+ * `tool_use` blocks send them, the `user` record's `tool_result` blocks bring them back. The SDK reduces these
+ * records to `message` and `native`, never `tool`: on a Claude Code turn (measured 2026-10-09, four shell calls)
+ * no `tool` event arrived at all, so the turn did not reopen, after the previous turn's end, until the agent's
+ * closing words. `null` for any other event.
+ */
+function claudeToolSteps(event: ObservedChatRuntimeEvent): { out: string[]; back: string[] } | null {
+  const payload = event.raw?.payload as { type?: unknown; message?: { content?: unknown } } | undefined;
+  const content = payload?.message?.content;
+  if (!Array.isArray(content)) return null;
+  const blocks = content as Array<{ type?: unknown; id?: unknown; tool_use_id?: unknown } | null>;
+  const ids = (type: string, key: 'id' | 'tool_use_id') =>
+    blocks.filter((block) => block?.type === type).map((block) => String(block?.[key] ?? ''));
+  const steps = payload?.type === 'assistant' ? { out: ids('tool_use', 'id'), back: [] }
+    : payload?.type === 'user' ? { out: [], back: ids('tool_result', 'tool_use_id') }
+    : null;
+  return steps && (steps.out.length || steps.back.length) ? steps : null;
 }
 
 /**
@@ -933,6 +958,8 @@ export class HarnessChatService {
   private managedRuntime: HeadlessManagedRuntime | null = null;
   /** Runtime requests (approvals, questions) the person has not answered. */
   private readonly pendingRuntimeRequests = new Set<string>();
+  /** The open turn's tool calls whose results are not back yet, by call id. */
+  private readonly runtimeToolsOut = new Set<string>();
   /** Whether the Chat runtime's current turn is open, from its own boundary
    *  events and the synthetic reopen: `null` before any runtime is observed,
    *  `false` when a new one is. */
@@ -1110,9 +1137,19 @@ export class HarnessChatService {
     // turn is `waiting` and nothing is steered onto it.
     if (!busy) {
       this.pendingRuntimeRequests.clear();
+      this.runtimeToolsOut.clear();
       return 'idle';
     }
     return this.pendingRuntimeRequests.size > 0 ? 'waiting' : 'running';
+  }
+
+  /**
+   * Is one of the running turn's tool calls still out, its result not back? Then the agent has a next step
+   * (reading that result), and a line steered now lands inside the turn. Once every result is back the agent may
+   * only be writing its closing words, and a line then arrives after the turn as a new prompt.
+   */
+  chatToolOut(): boolean {
+    return this.runtimeToolsOut.size > 0;
   }
 
   /**
@@ -1209,6 +1246,7 @@ export class HarnessChatService {
     this.managedRuntime = runtime;
     this.observedModel = null;
     this.pendingRuntimeRequests.clear();
+    this.runtimeToolsOut.clear();
     // A fresh runtime starts CLOSED, so its first activity is a (synthetic)
     // turn start — the watcher arms nothing after a turn end until one.
     this.runtimeTurnOpen = false;
@@ -1249,7 +1287,8 @@ export class HarnessChatService {
    * A Claude Code runtime's native stream ends its turn with `result` →
    * `turn_completed` and streams `stream_event` content-block deltas, where
    * the SDK labels TOOL-INPUT deltas (`input_json_delta`) `output_delta` too —
-   * which is why narration below reads the delta's own type there.
+   * which is why narration below reads the delta's own type there. Its tool
+   * calls arrive as records, not `tool` events (`claudeToolSteps`).
    */
   private runtimeActivity(event: ObservedChatRuntimeEvent): ChatRuntimeActivity {
     switch (event.type) {
@@ -1271,27 +1310,49 @@ export class HarnessChatService {
       case 'request_resolved':
         this.pendingRuntimeRequests.delete(runtimeRequestKey(event, 'request_resolved'));
         return 'answered';
+      case 'tool': {
+        // Tracked after the reopen, which starts the turn's calls afresh.
+        const reopened = this.reopenOnActivity();
+        // A call with no id could never be matched back (Codex's own app-server deltas carry `itemId`, read as
+        // none), and one left out forever would hold the gate open to the turn's end: it is not counted.
+        const call = String(event.callId ?? '');
+        if (event.status === 'pending' && call) this.runtimeToolsOut.add(call);
+        else this.runtimeToolsOut.delete(call);
+        return reopened ?? 'tool';
+      }
       case 'output_delta':
       case 'reasoning_delta':
-      case 'tool':
         // NOT a reason to clear a pending approval: in Claude Code a subagent
         // can stream while the main thread waits on the person's decision.
         // An ask ends only on its own `request_resolved`, a turn boundary,
         // or a successful idle reading in `chatTurnState` — never silence.
         return this.reopenOnActivity() ?? (isNarration(event) ? 'narration' : 'other');
-      case 'message':
+      case 'message': {
         // This editor's own steer echoing back is not a new turn.
         if (event.role === 'user' && this.isOwnSteerEcho(event)) return 'other';
-        // A new user message, or the agent speaking, after a turn ended is
-        // the next turn beginning.
-        if (event.role === 'user' || isNarration(event)) {
-          const reopened = this.reopenOnActivity();
-          if (reopened) return reopened;
-        }
-        return isNarration(event) ? 'narration' : 'other';
-      default:
-        return 'other';
+        // A new user message, the agent speaking, or the agent calling a tool
+        // after a turn ended is the next turn beginning.
+        const steps = claudeToolSteps(event);
+        const reopened = event.role === 'user' || isNarration(event) || steps ? this.reopenOnActivity() : null;
+        this.trackToolSteps(steps);
+        if (reopened) return reopened;
+        if (isNarration(event)) return 'narration';
+        return steps ? 'tool' : 'other';
+      }
+      default: {
+        const steps = claudeToolSteps(event);
+        if (!steps) return 'other';
+        const reopened = this.reopenOnActivity();
+        this.trackToolSteps(steps);
+        return reopened ?? 'tool';
+      }
     }
+  }
+
+  /** Claude Code's calls going out and coming back (`claudeToolSteps`), into `runtimeToolsOut`. */
+  private trackToolSteps(steps: { out: string[]; back: string[] } | null): void {
+    for (const call of steps?.out ?? []) if (call) this.runtimeToolsOut.add(call);
+    for (const call of steps?.back ?? []) this.runtimeToolsOut.delete(call);
   }
 
   /**
@@ -1318,9 +1379,10 @@ export class HarnessChatService {
     return Boolean(sent && seen && (seen.includes(sent) || sent.includes(seen)));
   }
 
-  /** A runtime turn boundary: any open ask belongs to the turn it ended. */
+  /** A runtime turn boundary: any open ask, and any call still out, belongs to the turn it ended. */
   private openRuntimeTurn(open: boolean): void {
     this.pendingRuntimeRequests.clear();
+    this.runtimeToolsOut.clear();
     this.runtimeTurnOpen = open;
     this.runtimeTurnGeneration++;
   }

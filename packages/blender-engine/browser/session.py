@@ -5081,7 +5081,7 @@ def _summary_objects():
     return out
 
 
-def rna_action_clip(object_name=None, bake=True, action_name=None):
+def rna_action_clip(object_name=None, bake=True, action_name=None, summary=True):
     """ONE ACTION AS A THREE.JS CLIP: per bone, the LOCAL transform it has at
     every integer frame of the action's own range.
 
@@ -5148,7 +5148,10 @@ def rna_action_clip(object_name=None, bake=True, action_name=None):
         # (`show_keys_from_selected_only`) and the view is what decides which
         # side of that filter it is on, so the door answers both halves even
         # when the subject below turns out to be nothing at all.
-        "summary": _summary_objects(),
+        # `summary=False` for a reader that plays the clip (a game's clip library): the row walks
+        # every animated object in the view layer, which was ~690 of a ~700 ms read on a level of
+        # 23 armatures (measured 2026-10-08), and nothing that plays a clip draws it.
+        "summary": _summary_objects() if summary else [],
     }
     adt = arm_obj.animation_data if arm_obj is not None else None
     assigned = adt.action if adt is not None else None
@@ -5887,7 +5890,8 @@ def _dispatch(request):
     # and neither owes a derivation. There is deliberately no writer beside
     # them -- keying, moving a key and setting a range are edits.
     if op == "action-clip":
-        return rna_action_clip(request.get("object"), request.get("bake", True), request.get("action"))
+        return rna_action_clip(request.get("object"), request.get("bake", True), request.get("action"),
+                               request.get("summary", True))
     if op == "outliner":
         return rna_outliner(request.get("selected"))
     if op == "outliner-set":

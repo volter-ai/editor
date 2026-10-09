@@ -811,6 +811,7 @@ async function handle(request: WorkerRequest): Promise<unknown> {
         ...(request.object === undefined ? {} : { object: request.object }),
         ...(request.bake === undefined ? {} : { bake: request.bake }),
         ...(request.action === undefined ? {} : { action: request.action }),
+        ...(request.summary === undefined ? {} : { summary: request.summary }),
       });
     case 'outliner-set':
       return ask({

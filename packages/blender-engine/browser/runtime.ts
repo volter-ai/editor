@@ -424,13 +424,14 @@ export class BlenderRuntime {
    *  false` answers the header and the summary row's key columns without the
    *  sampled tracks, which is what a Timeline that only needs to DRAW asks
    *  for. */
-  async actionClip(options?: { object?: string; bake?: boolean; action?: string }): Promise<BlenderActionClip> {
+  async actionClip(options?: { object?: string; bake?: boolean; action?: string; summary?: boolean }): Promise<BlenderActionClip> {
     await this.#ready();
     return (await this.#request({
       op: 'action-clip',
       ...(options?.object === undefined ? {} : { object: options.object }),
       ...(options?.bake === undefined ? {} : { bake: options.bake }),
       ...(options?.action === undefined ? {} : { action: options.action }),
+      ...(options?.summary === undefined ? {} : { summary: options.summary }),
     })) as BlenderActionClip;
   }
 

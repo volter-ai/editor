@@ -841,6 +841,7 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
     readProjectManifest,
     chatTurnState: () => harnessChat.chatTurnState(),
     steerChatTurn: (text) => harnessChat.steerRunningTurn(text),
+    chatToolOut: () => harnessChat.chatToolOut(),
   });
   const startWatcher = watch.start;
   // ---- Editor command relay + state ----

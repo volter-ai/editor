@@ -328,6 +328,12 @@ A character is two jobs, in this order: how it looks, then how it moves.
   (a big helmet, bulky armor). Do not move the rig's bones; scaling the whole
   rig is the only change. Its actions are bone rotations, which break when
   bones move. No rig fits: build an armature and key a few short loops.
+  The library's rigs are tagged `rig-base` (search `q=rig-base`); their tags
+  say what to choose by: the skeleton (`ue-mannequin-skeleton`,
+  `mixamo-skeleton`, `quaternius-skeleton`), `fingers`, a face rig
+  (`face-rig`), the body (`jointed-body` or `continuous-skin`) and the clips
+  (`43-clips`). The Tunable Humans carry a full face rig; the mannequins carry
+  the most clips.
 - Build the character in its own style. Do not shape it from the library's
   body mesh, which carries that body's proportions and topology; once its
   weights are transferred, delete it (hiding does not keep it out of every
