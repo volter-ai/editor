@@ -54,7 +54,7 @@
  * no game-side flag is involved.
  */
 
-import { commandLine } from '@volter/sdk/kit/product-command';
+import { commandLine, productCommand } from '@volter/sdk/kit/product-command';
 import { useEffect, useRef, useState } from 'react';
 import { pollEditorLeaseIdentity } from '@volter/sdk/kit/editor-api';
 import {
@@ -76,6 +76,14 @@ import { dismissNotification, notify } from '@volter/sdk/kit/editor-notification
 import { connectEvents, readControlChannelState } from '@volter/sdk/kit/editor-presence';
 import { clearSessionOrphanRecord, writeSessionOrphanRecord } from '../session-orphan-record';
 import { clearSessionEnded, markSessionEnded } from '@volter/sdk/kit/session-tombstone';
+
+/** How a person reopens this project's editor: from its folder, through the project's own install.
+ *  A bare `cyclotron edit <name>` worked only from the folder above the project and only where the
+ *  command is on PATH, which an install line or npx never puts it (the 0.5.207 blind walk). */
+function reopenLine(): string {
+  const command = productCommand();
+  return command === null ? commandLine('edit .') : `\`npx --no-install ${command} edit .\``;
+}
 
 /** The last path segment of a project root, for user-facing copy. */
 function projectName(path: string | null): string | null {
@@ -361,7 +369,7 @@ export function EditorLeaseGuard() {
       detail:
         view.reason === 'taken-over'
           ? `${name ? `${name}'s` : "This project's"} editor is now running in another window. This one has yielded.`
-          : `This window's editor server has stopped — nothing here is saved, and a running game has left its room. Reopen with ${commandLine(`edit ${name ?? '<project>'}`)}${name ? `, or leave this window open: it reloads by itself when ${name}'s editor is served here again.` : '.'}`,
+          : `This window's editor server has stopped — nothing here is saved, and a running game has left its room. Reopen it in the project's folder with ${reopenLine()}${name ? `, or leave this window open: it reloads by itself when ${name}'s editor is served here again.` : '.'}`,
       onDismiss: () => {
         if (!dismissedRef.current) dismiss();
       },
