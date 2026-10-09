@@ -54,7 +54,7 @@
  * no game-side flag is involved.
  */
 
-import { commandLine, productCommand } from '@volter/sdk/kit/product-command';
+import { commandLine, projectCommandLine } from '@volter/sdk/kit/product-command';
 import { useEffect, useRef, useState } from 'react';
 import { pollEditorLeaseIdentity } from '@volter/sdk/kit/editor-api';
 import {
@@ -81,8 +81,8 @@ import { clearSessionEnded, markSessionEnded } from '@volter/sdk/kit/session-tom
  *  A bare `cyclotron edit <name>` worked only from the folder above the project, and only where the
  *  command is on PATH, where neither the install line nor npx puts it (the 0.5.207 blind walk). */
 function reopenLine(): string {
-  const command = productCommand();
-  return command === null ? commandLine('edit .') : `\`npx --no-install ${command} edit .\``;
+  const line = projectCommandLine('edit .');
+  return line === null ? commandLine('edit .') : `\`${line}\``;
 }
 
 /** The last path segment of a project root, for user-facing copy. */

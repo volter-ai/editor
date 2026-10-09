@@ -52,14 +52,36 @@ export function commandLine(verb: string): string {
 }
 
 /**
- * Several verbs run in order, as one line a person can paste:
- * `volter-game-editor close && volter-game-editor edit .`. Before the identity
- * is known: ``the editor's `close`, then `edit .` ``.
+ * The npx a person types on this machine. Windows PowerShell's script policy
+ * refuses the bare `npx` (its `.ps1` shim) where `npx.cmd` runs in every shell
+ * (the 0.5.208 blind walk's returning user).
+ */
+function npx(): string {
+  const windows =
+    typeof navigator !== 'undefined'
+      ? navigator.platform.startsWith('Win')
+      : (globalThis as { process?: { platform?: string } }).process?.platform === 'win32';
+  return windows ? 'npx.cmd' : 'npx';
+}
+
+/**
+ * One verb as a person runs it from the project folder, through the project's
+ * own install: `npx --no-install cyclotron edit .`. The bare command is on no
+ * PATH the install line or npx sets. `null` before the identity is known.
+ */
+export function projectCommandLine(verb: string): string | null {
+  return names ? `${npx()} --no-install ${names.command} ${verb}` : null;
+}
+
+/**
+ * Several verbs run in order from the project folder, one line each so the
+ * paste runs in any shell (`&&` is not Windows PowerShell 5.1's):
+ * `npx --no-install cyclotron close` then `npx --no-install cyclotron edit .`.
+ * Before the identity is known: ``the editor's `close`, then `edit .` ``.
  */
 export function commandSequence(verbs: readonly string[]): string {
-  const known = names;
-  return known
-    ? verbs.map((verb) => `${known.command} ${verb}`).join(' && ')
+  return names
+    ? verbs.map((verb) => projectCommandLine(verb)).join('\n')
     : `the editor's ${verbs.map((verb) => `\`${verb}\``).join(', then ')}`;
 }
 

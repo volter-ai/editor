@@ -172,11 +172,14 @@ export function describeEditorBootFailure(
   ctx: EditorBootFailureContext,
 ): string {
   const logs = ctx.logPath ? ` Editor logs: ${ctx.logPath}.` : '';
+  // Through the project's own install, as typed in any shell: the bare command is on no PATH, and
+  // PowerShell's script policy refuses a bare `npx`.
+  const npx = `${process.platform === 'win32' ? 'npx.cmd' : 'npx'} --no-install ${ctx.command}`;
   const occupied =
     outcome.occupant === null
       ? ''
       : ` Port ${ctx.port} is being served by an editor for ${outcome.occupant} — close it ` +
-        `(run \`${ctx.command} close\` from that project's directory), or launch on another port.`;
+        `(run \`${npx} close\` from that project's directory), or launch on another port.`;
 
   if (outcome.status === 'exited') {
     const how =
@@ -194,7 +197,7 @@ export function describeEditorBootFailure(
     `${Math.round(ctx.timeoutMs / 1000)}s, and its process is still running.${occupied}` +
     " A project's FIRST editor boot is the slow one — it pays Vite's cold dependency " +
     `optimization into ${ctx.project}/node_modules/.vite-editor, and later boots reuse it. ` +
-    `Re-run \`${ctx.command} edit ${ctx.project}\`: the retry starts from whatever that first boot ` +
+    `From ${ctx.project}, re-run \`${npx} edit .\`: the retry starts from whatever that first boot ` +
     `already cached.${logs}`
   );
 }

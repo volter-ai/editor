@@ -642,6 +642,8 @@
   font-family: var(--volter-font-mono);
   font-size: var(--volter-shell-font-sm);
   overflow-wrap: anywhere;
+  /* A sequence is one command per line (`commandSequence`). */
+  white-space: pre-line;
 }
 
 .volter-shell .volter-error-card-actions {
