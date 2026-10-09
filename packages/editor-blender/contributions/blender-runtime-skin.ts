@@ -13,8 +13,9 @@
  * exported vertex (`bpy_web_export.cc` `write_skin`), the frame names every bone's
  * rest, channels, constraints and pose and each armature's NLA stack, and the presenter
  * builds the skeletons (`blender-runtime-skeleton.ts`). This director poses EVERY armature
- * at the scene frame with Blender's own evaluation (`blender-pose.ts`): its NLA tracks and
- * active action, blended as Blender blends them, and its Damped Track constraints. Every scrub
+ * at the scene frame on three.js's own `AnimationMixer` (`blender-mixer-pose.ts`): each action
+ * sampled once by Blender, its NLA tracks and active action placed as Blender places them
+ * (`blender-pose.ts`) and blended by the mixer, and its Damped Track constraints. Every scrub
  * and every played frame costs ZERO calls into Blender; an action is baked again exactly when
  * the frame says its revision moved.
  *
@@ -31,10 +32,9 @@
  * ## The fidelity check, and what is not played
  *
  * At Blender's own frame, standing still, the picture IS Blender's pose (the frame's), and the
- * evaluator's answer for that frame is compared with it bone by bone (`poseDivergence`). A bone
- * further off than a tenth of a degree is said in the console with what would explain it, so a
- * difference between this Timeline (and a game, which uses the same evaluator) and Blender is
- * never silent. What the evaluator does not play — a constraint other than Damped Track, a
+ * mixer's answer for that frame is compared with it bone by bone (`poseDivergence`). A bone
+ * further off than a degree is said in the console with what would explain it, so a difference
+ * between this Timeline (and a game, which plays the same clips) and Blender is never silent. What the evaluator does not play — a constraint other than Damped Track, a
  * driver, non-default parenting — is named once as well. Anything Blender's depsgraph does to
  * GEOMETRY per frame (shape keys, a Displace or Cloth modifier) does not follow the bones.
  */
@@ -44,7 +44,8 @@ import type { BlenderArmature } from '@volter/blender-engine/browser/three/blend
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import { editorHost, type StageTransportHandle } from '@volter/sdk/host';
 import { blenderRnaSet } from '../host/blender-runtime-host';
-import { actionLayer, ArmaturePose, nlaLayers, poseClip, poseDivergence, type PoseClip, type PoseLayer } from './blender-pose';
+import { actionLayer, nlaLayers, type PoseLayer } from './blender-pose';
+import { MixerPose, mixerClip, poseDivergence, type MixerClip } from './blender-mixer-pose';
 
 /** How the director reads the engine: the Timeline's subject (its keys, the scene's range) and
  *  one action baked for one armature. */
@@ -55,7 +56,7 @@ export interface SkinReader {
 
 /** An armature's layers at a scene frame: its NLA, then its active action over them. */
 export function sceneLayers(armature: BlenderArmature, frame: number,
-  clips: (action: string) => PoseClip | null | undefined): { layers: PoseLayer[]; waiting: boolean; skipped: string[] } {
+  clips: (action: string) => MixerClip | null | undefined): { layers: PoseLayer[]; waiting: boolean; skipped: string[] } {
   const stack = nlaLayers(armature.animation, frame, clips);
   const action = armature.action ?? null;
   if (action) {
@@ -101,8 +102,8 @@ export class BlenderSkinDirector {
   #clipKey: string | null = null;
   #clip: BlenderActionClip | null = null;
   /** Each posed armature's evaluator, and every action baked for it, at the revision baked. */
-  #poses = new Map<string, ArmaturePose>();
-  #baked = new Map<string, { revision: number | null; clip: PoseClip | null | undefined }>();
+  #poses = new Map<string, MixerPose>();
+  #baked = new Map<string, { revision: number | null; clip: MixerClip | null | undefined }>();
   /** The frame the last SEEK asked for — see {@link frame}. */
   #seeked: number | null = null;
   /** The stage transport this skin is attached to, or null before `attachTo`.
@@ -229,15 +230,16 @@ export class BlenderSkinDirector {
           ? names.find((name) => facts.armatures[name]!.action)! : null);
     // EVERY ARMATURE'S EVALUATOR, over the rig the presenter holds for it now.
     for (const [name, pose] of [...this.#poses])
-      if (!facts.armatures[name] || view.skeletons.rig(name) !== pose.rig) this.#poses.delete(name);
+      if (!facts.armatures[name] || view.skeletons.rig(name) !== pose.rig) { pose.dispose(); this.#poses.delete(name); }
     for (const [name, entry] of Object.entries(facts.armatures)) {
       const rig = view.skeletons.rig(name);
       if (!rig || !animated(entry)) {
+        this.#poses.get(name)?.dispose();
         this.#poses.delete(name);
         continue;
       }
       let pose = this.#poses.get(name);
-      if (!pose) this.#poses.set(name, pose = new ArmaturePose(rig));
+      if (!pose) this.#poses.set(name, pose = new MixerPose(rig));
       pose.facts(entry);
     }
     // A BAKE IS GOOD FOR ITS ACTION'S REVISION; a new revision bakes it again when next needed.
@@ -254,7 +256,7 @@ export class BlenderSkinDirector {
       if (armature) {
         this.#engineCalls++;
         clip = await read.clip(armature);
-        if (clip?.action && clip.armature) this.#baked.set(`${clip.armature}\u0000${clip.action}`, { revision: facts.actions[clip.action] ?? null, clip: poseClip(clip) });
+        if (clip?.action && clip.armature) this.#baked.set(`${clip.armature}\u0000${clip.action}`, { revision: facts.actions[clip.action] ?? null, clip: mixerClip(clip) });
       }
       const previous = this.#clip;
       const rangeChanged = clip?.frameStart !== previous?.frameStart ||
@@ -274,18 +276,18 @@ export class BlenderSkinDirector {
   }
 
   /** One action of one armature: baked, or being baked now (once), or null when it plays nothing. */
-  #clipOf(armature: string, action: string): PoseClip | null | undefined {
+  #clipOf(armature: string, action: string): MixerClip | null | undefined {
     const key = `${armature}\u0000${action}`;
     const held = this.#baked.get(key);
     if (held) return held.clip;
     const reader = this.#reader;
     const revision = this.#view?.animationFacts().actions[action] ?? null;
     if (!reader) return null;
-    const entry: { revision: number | null; clip: PoseClip | null | undefined } = { revision, clip: undefined };
+    const entry: { revision: number | null; clip: MixerClip | null | undefined } = { revision, clip: undefined };
     this.#baked.set(key, entry);
     this.#engineCalls++;
     void reader.bake(armature, action).then((baked) => {
-      entry.clip = baked ? poseClip(baked) : null;
+      entry.clip = baked ? mixerClip(baked) : null;
       if (this.#baked.get(key) !== entry) return;
       this.#pose();
       this.#publish();
@@ -325,9 +327,9 @@ export class BlenderSkinDirector {
       for (const skipped of stack.skipped) this.#say(`skipped:${name}:${skipped}`, `${name}: ${skipped} plays only in Blender, not in the Timeline or a game.`);
       if (stack.waiting) continue;
       if (atBlender && !playing) {
+        this.#check(name, pose, armature, stack.layers, world, unsupported);
         view.skeletons.restorePose(name);
         pose.rig.object.updateMatrixWorld(true);
-        this.#check(name, pose, armature, stack.layers, world, unsupported);
       } else {
         pose.apply(stack.layers, world);
       }
@@ -336,16 +338,16 @@ export class BlenderSkinDirector {
   }
 
   /** The clips baked so far for one armature. */
-  #clipsOf(armature: string): PoseClip[] {
-    const out: PoseClip[] = [];
+  #clipsOf(armature: string): MixerClip[] {
+    const out: MixerClip[] = [];
     for (const [key, entry] of this.#baked) if (key.startsWith(`${armature} `) && entry.clip) out.push(entry.clip);
     return out;
   }
 
   /** THE FIDELITY CHECK at Blender's own frame: the evaluator's pose against Blender's. */
-  #check(name: string, pose: ArmaturePose, armature: BlenderArmature, layers: readonly PoseLayer[],
+  #check(name: string, pose: MixerPose, armature: BlenderArmature, layers: readonly PoseLayer[],
     world: { object(name: string): ReturnType<BlenderRuntimeView['objectForBlenderName']> }, unsupported: readonly string[]): void {
-    const off = poseDivergence(pose.apply(layers, world, false), armature);
+    const off = poseDivergence(pose.apply(layers, world), armature);
     if (!off) return;
     const frame = this.#clip?.frameCurrent ?? this.frame();
     const why = unsupported.length
@@ -506,7 +508,7 @@ export class BlenderSkinDirector {
     this.#detach?.();
     this.#clip = null;
     this.#seeked = null;
-    for (const name of this.#poses.keys()) this.#view?.skeletons.restorePose(name);
+    for (const [name, pose] of this.#poses) { pose.dispose(); this.#view?.skeletons.restorePose(name); }
     this.#poses.clear();
     this.#baked.clear();
     this.#armature = null;

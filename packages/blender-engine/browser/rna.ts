@@ -539,6 +539,23 @@ export interface BlenderClipTrack extends BlenderClipCurve {
 }
 
 /** An F-Curve's body: everything Blender evaluates it from, wherever it lives. */
+/** One sampled column of a {@link BlenderClipBone}: `count` samples (one when it never changes),
+ *  base64 Float32. */
+export interface BlenderClipColumn {
+  readonly count: number;
+  readonly base64: string;
+}
+
+/** One bone of an action as three.js plays it: its local position, quaternion (x, y, z, w) and
+ *  scale per integer frame of the clip's range, and the frames it is keyed on. */
+export interface BlenderClipBone {
+  readonly bone: string;
+  readonly keys: readonly number[];
+  readonly position: BlenderClipColumn;
+  readonly quaternion: BlenderClipColumn;
+  readonly scale: BlenderClipColumn;
+}
+
 export interface BlenderClipCurve {
   /** `FCurve.extrapolation`: `CONSTANT` or `LINEAR`. */
   readonly extrapolation: string;
@@ -635,6 +652,9 @@ export interface BlenderActionClip {
   readonly sampled?: number;
   /** Bones the action names that the armature does not have. */
   readonly unplayedBones?: readonly string[];
+  /** THE ACTION AS THREE.JS PLAYS IT (`session.py`'s `_three_bones`): per bone it keys, the bone's
+   *  local transform at every integer frame from `clipStart` to `clipEnd`, sampled by Blender. */
+  readonly bones?: readonly BlenderClipBone[];
   /** What the action keys besides bone channels (the object's own transform, a property),
    *  which plays only in Blender. */
   readonly unsupported?: readonly string[];

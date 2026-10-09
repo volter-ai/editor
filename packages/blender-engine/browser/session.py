@@ -5247,10 +5247,88 @@ def rna_action_clip(object_name=None, bake=True, action_name=None, summary=True)
         header["unsupported"] = ["curves on %s" % ", ".join(sorted(others))]
     header.update({
         "tracks": tracks,
+        "bones": _three_bones(arm_obj, channels, first, last),
         "duration": (last - first) / fps,
         "unplayedBones": unplayed,
     })
     return header
+
+
+def _three_bones(arm_obj, channels, first, last):
+    """THE ACTION AS THREE.JS PLAYS IT: per bone it keys, the bone's LOCAL transform (relative to
+    its parent bone, as a `THREE.Bone` carries it) at every integer frame from `first` to `last`.
+
+    Blender evaluates every channel (`FCurve.evaluate`: its keys, handles, interpolation, easing,
+    extrapolation and modifiers); a component the action does not key keeps the bone's own value.
+    The basis is composed by the bone's rotation mode and placed by its rest relative to its
+    parent's rest, `local = (parent.matrix_local^-1 @ bone.matrix_local) @ basis`, so a clip moves
+    a bone exactly as Blender's pose does at every frame, and three.js interpolates between them.
+
+    Each column crosses as base64 Float32: `position` three per frame, `quaternion` four (x, y, z,
+    w, as three reads them, kept on one hemisphere so a slerp never turns the long way), `scale`
+    three. A column whose every sample equals its first crosses as that one sample."""
+    frames = list(range(first, last + 1))
+    by_bone = {}
+    for (bone, prop), components in channels.items():
+        by_bone.setdefault(bone, {})[prop] = components
+    out = []
+    for name in sorted(by_bone):
+        pbone = arm_obj.pose.bones.get(name)
+        if pbone is None:
+            continue
+        rest = pbone.bone.matrix_local
+        parent = pbone.bone.parent
+        rest_relative = (parent.matrix_local.inverted() @ rest) if parent is not None else rest.copy()
+        props = by_bone[name]
+        mode = pbone.rotation_mode
+        own = {
+            "location": list(pbone.location),
+            "rotation_quaternion": list(pbone.rotation_quaternion),
+            "rotation_euler": list(pbone.rotation_euler),
+            "rotation_axis_angle": list(pbone.rotation_axis_angle),
+            "scale": list(pbone.scale),
+        }
+        position = array.array("f")
+        quaternion = array.array("f")
+        scale = array.array("f")
+        last_q = None
+        keys = set()
+        for components in props.values():
+            for fcurve in components.values():
+                for point in fcurve.keyframe_points:
+                    keys.add(round(float(point.co[0]), 3))
+        for frame in frames:
+            values = {prop: list(value) for prop, value in own.items()}
+            for prop, components in props.items():
+                for index, fcurve in components.items():
+                    if index < len(values[prop]):
+                        values[prop][index] = fcurve.evaluate(frame)
+            if mode == "QUATERNION":
+                rotation = mathutils.Quaternion(values["rotation_quaternion"]).normalized()
+            elif mode == "AXIS_ANGLE":
+                angle, x, y, z = values["rotation_axis_angle"]
+                axis = mathutils.Vector((x, y, z))
+                rotation = mathutils.Quaternion(axis.normalized() if axis.length > 0 else (0.0, 1.0, 0.0), angle)
+            else:
+                rotation = mathutils.Euler(values["rotation_euler"], mode).to_quaternion()
+            basis = mathutils.Matrix.LocRotScale(mathutils.Vector(values["location"]), rotation,
+                                                 mathutils.Vector(values["scale"]))
+            loc, rot, size = (rest_relative @ basis).decompose()
+            if last_q is not None and last_q.dot(rot) < 0:
+                rot.negate()
+            last_q = rot
+            position.extend((loc.x, loc.y, loc.z))
+            quaternion.extend((rot.x, rot.y, rot.z, rot.w))
+            scale.extend((size.x, size.y, size.z))
+
+        def column(samples, stride):
+            if len(samples) > stride and all(abs(samples[i] - samples[i % stride]) < 1e-7 for i in range(len(samples))):
+                samples = samples[:stride]
+            return {"count": len(samples) // stride, "base64": base64.b64encode(samples.tobytes()).decode("ascii")}
+
+        out.append({"bone": name, "keys": sorted(keys), "position": column(position, 3),
+                    "quaternion": column(quaternion, 4), "scale": column(scale, 3)})
+    return out
 
 
 # `Keyframe.type`'s significance order, mirrored from the `KEYFRAME_STATE`
