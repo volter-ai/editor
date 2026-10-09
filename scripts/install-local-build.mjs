@@ -18,6 +18,21 @@ import { execFileSync } from 'node:child_process';
 import { createHash } from 'node:crypto';
 import { existsSync, mkdirSync, readdirSync, readFileSync, rmSync, writeFileSync } from 'node:fs';
 import { join, relative, resolve } from 'node:path';
+import { gunzipSync } from 'node:zlib';
+
+/** One file out of an npm tarball, read here rather than by a `tar` binary (Git Bash's GNU tar
+ *  reads `C:` in a Windows path as a remote host). */
+function tarballFile(tarball, wantedPath) {
+  const data = gunzipSync(readFileSync(tarball));
+  for (let at = 0; at + 512 <= data.length;) {
+    const name = data.toString('utf8', at, at + 100).replace(/\0.*$/s, '');
+    if (!name) break;
+    const size = parseInt(data.toString('utf8', at + 124, at + 136).replace(/\0.*$/s, '').trim() || '0', 8);
+    if (name === wantedPath) return data.toString('utf8', at + 512, at + 512 + size);
+    at += 512 + Math.ceil(size / 512) * 512;
+  }
+  throw new Error(`${tarball} has no ${wantedPath}`);
+}
 
 const [projectArg, manifestArg = 'release/playable.json'] = process.argv.slice(2);
 if (!projectArg) {
@@ -89,7 +104,7 @@ for (const [name, { version, file }] of packed) {
   if (!existsSync(installed)) { stale.push(`${name}: not installed`); continue; }
   const got = JSON.parse(readFileSync(installed, 'utf8')).version;
   if (got !== version) stale.push(`${name}: installed ${got}, packed ${version}`);
-  const inTarball = execFileSync('tar', ['-xzOf', join(out, file), 'package/package.json'], { encoding: 'utf8' });
+  const inTarball = tarballFile(join(out, file), 'package/package.json');
   if (JSON.parse(inTarball).version !== got || readFileSync(installed, 'utf8').trim() !== inTarball.trim()) {
     stale.push(`${name}: installed package.json differs from ${file}`);
   }
