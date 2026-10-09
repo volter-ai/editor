@@ -33,7 +33,8 @@ import type { BlenderArmature } from '@volter/blender-engine/browser/three/blend
 import type { BlenderRuntimeView } from '@volter/blender-engine/browser/three/blender-runtime-view';
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
 import type * as THREE from 'three';
-import { ArmaturePose, nlaLayers, poseClip, type ConstraintOverride, type PoseClip, type PoseLayer } from './blender-pose';
+import { nlaLayers, type PoseLayer } from './blender-pose';
+import { MixerPose, mixerClip, type ConstraintOverride, type MixerClip } from './blender-mixer-pose';
 import { editorHost } from '@volter/sdk/host';
 import { remedy } from './blender-runtime-skin';
 
@@ -128,10 +129,10 @@ interface Track { action: Playing | null; previous: Playing | null; readonly inf
 
 interface Armature {
   readonly rig: ArmatureRig;
-  readonly pose: ArmaturePose;
+  readonly pose: MixerPose;
   readonly facts: BlenderArmature;
   /** Baked clips by action: the clip, undefined while baking, null when it plays nothing. */
-  readonly clips: Map<string, PoseClip | null | undefined>;
+  readonly clips: Map<string, MixerClip | null | undefined>;
   readonly failed: Map<string, string>;
   /** The active action and the ones fading out under it, oldest first. */
   line: Playing[];
@@ -197,7 +198,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     shared.set(key, read);
     return read;
   };
-  const clipOf = (armature: Armature, action: string): PoseClip | null | undefined => {
+  const clipOf = (armature: Armature, action: string): MixerClip | null | undefined => {
     if (armature.clips.has(action)) return armature.clips.get(action);
     void bakeClip(armature, action);
     return undefined;
@@ -212,7 +213,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
       // A clip that cannot be posed is that clip's failure, named like the others; it never
       // rejects the bake, so the loading phase that awaits it always settles.
       try {
-        const clip = baked ? poseClip(baked) : null;
+        const clip = baked ? mixerClip(baked) : null;
         for (const thing of clip?.unsupported ?? []) warnings.push(`${armature.rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
         if (clip) armature.clips.set(action, clip);
         else fail(armature, action, baked?.reason ?? `it animates none of ${armature.rig.armature}'s bones`);
@@ -250,7 +251,7 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
   for (const rig of view.skeletons.rigs()) {
     const entry = facts.armatures[rig.armature];
     if (!entry) continue;
-    const pose = new ArmaturePose(rig);
+    const pose = new MixerPose(rig);
     pose.facts(entry);
     for (const thing of pose.unsupported()) warnings.push(`${rig.armature}: ${thing} plays only in Blender, not in a game.${remedy([thing])}`);
     const armature: Armature = { rig, pose, facts: entry, clips: new Map(), failed: new Map(), line: [], tracks: new Map(), constraints: new Map(), posed: [] };
@@ -491,17 +492,12 @@ export function playAnimation(view: BlenderRuntimeView, bake: (armature: string,
     channels(name, action) {
       const clip = armatures.get(name)?.clips.get(action);
       if (!clip) return [];
-      const bones = new Map<string, Set<number>>();
-      for (const channel of clip.channels) {
-        let frames = bones.get(channel.bone);
-        if (!frames) bones.set(channel.bone, frames = new Set());
-        for (const curve of channel.curves) if (curve) for (let i = 0; i < curve.keys.length; i += 6) frames.add(Math.round(curve.keys[i]! * 1000) / 1000);
-      }
-      return [...bones].map(([bone, frames]) => ({ bone, keys: [...frames].sort((a, b) => a - b) }));
+      return [...clip.bones].map(([bone, sampled]) => ({ bone, keys: [...sampled.keys].sort((a, b) => a - b) }));
     },
     live: () => [...armatures.values()].map((armature) => ({ armature: armature.rig.armature, layers: armature.posed })),
     dispose() {
       disposed = true;
+      for (const armature of armatures.values()) armature.pose.dispose();
       armatures.clear();
     },
   };
