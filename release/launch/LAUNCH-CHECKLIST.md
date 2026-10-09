@@ -46,25 +46,22 @@ Nothing here lives only on one machine. Parking work means: push it to a branch,
 
 | Work | Where | State | Next |
 |---|---|---|---|
-| Opening: the card pull, with the machine in collectible settings | editor #323 (draft), `design/opening/` | built as a prototype on 2026-10-07, half lost, recovered | card art from setting renders, the collecting, wire into the boot cover, owner looks |
-| Chat hears a tripwire only in a working turn (t_1f2b8dca) | editor #321 | open; not read live | a reading with a `not-working` and a `steered` entry |
-| Browser trial on the renamed packages | sites #48 | open; pins wrong (0.5.202) | re-pin to the release, rebuild the trial |
-| volter.ai remake | sites main eaaaff59 | merged, not live | deploy through the World on the Mac |
+| 0.5.205 workbench: the opening's card pull (#323) and Chat 0.1.55 with supercode #1360 (#332) | code-oss runs 37870744040 (win32) and 37870747078 (linux), editor 9a813b17 | cutting on runners; darwin needs the Mac (asked on t_b36c660b); 0.1.55 already read PASS on the 0d68186f win32 cut | Chat reading and splash look on the win32 cut, the darwin cut, then the pin in `packages/cyclotron/package.json` |
+| Browser trial on the renamed packages | sites release `model-editor-browser-trial-20261008-3` (#48 merged) | built; read locally: it opens and Play runs | deploy through the World on the Mac |
 | www.videogame.ai replacement | sites `videogame-ai/` | never published | owner looks at the copy, then the World |
-| "Ask for approval" | supercode #1363, then the editor | supercode draft | editor passes the per-chat mode once published |
-| Chat restart fix | supercode #1360 | Windows reading PASS | npm, then the frontend pin before the next workbench cut |
-| tabnode 0.8.0 pin | browser-substrate `t_04cae039-pin` | pushed, no PR | catalog re-bind and PR (t_04cae039) |
+| "Ask for approval" (t_8ea14bad) | supercode #1363 merged; client 0.3.69 and SDK 0.3.87 published | blocked: no published `@volter/supercode` carries #1363's native half (0.5.296's binary has no `permission_modes`) | a supercode release with 535c367c's native half; then the editor pins it and client 0.3.69, and passes `permissionMode` on start and resume |
+| Cyclotron Bridge reopen on the Mac (t_c92f341b) | browser-substrate main (tabnode 0.9.0, 58a06eea) | the pin half is on main; my 0.8.0 pin branch was superseded and deleted | the reopen read on the Mac |
 
 ## The launch, in three stages (decided 2026-10-08, 22:40 UTC)
 
 ### Stage 1 — everything in place
-- [ ] **volter.ai** remake live through the World on the Mac (#65 merged, eaaaff59)
+- [x] **volter.ai** remake live (main's `volter/` as of #66, as the sites README records)
 - [ ] **www.videogame.ai** replacement (main's `videogame-ai/`) live after the owner's look at its copy
 - [ ] **cyclotron.videogame.ai**: install line for the current release, Windows stated, Discord link
-- [ ] **Browser trial** rebuilt on the current release (#48 re-pinned), fresh and returning browsers checked
+- [ ] **Browser trial** rebuilt on the current release (#48 re-pinned; release `model-editor-browser-trial-20261008-3` built), deployed, fresh and returning browsers checked
 - [ ] **Measurement** (decision 0047's second item): `ref` links for posts, analytics collector, sign-in and waitlist counters
 - [ ] **Discord** (t_be8c9eea): owner creates the server, guided; invite on the three pages, the editor's Help menu and the README
-- [ ] **0.5.205** with the walk blockers fixed: Chat restart/reveal (supercode #1360, read PASS on Windows), "Ask for approval" (supercode #1363 + the editor half), plus #312-#319, #316 (animations), the tripwire reply (t_1f2b8dca); the workbench cut bundles the fixed Chat frontend
+- [ ] **0.5.205** with the walk blockers fixed: Chat restart/reveal (supercode #1360 in Chat 0.1.55, #332, read PASS on Windows), the tripwire reply (t_1f2b8dca, #321 merged after live readings), the opening's card pull (#323), plus #312-#319, #316 (animations), #292 (tabs); the workbench cut and pin. "Ask for approval" (supercode #1363 + the editor half) waits on a supercode native release and may ship afters the fixed Chat frontend
 
 ### Stage 2 — blind walks (a fresh agent, a one-page runsheet, the published build, PASS/FAIL per step)
 Decision 0047's goals: try the race before signing in; change a model, driving and HUD with the agent, then a second task by New Chat; return to saved work with the conversation intact, including a pending approval; model/save/undo-redo without an account.
