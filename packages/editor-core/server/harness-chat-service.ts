@@ -307,6 +307,20 @@ function isNarration(event: ObservedChatRuntimeEvent): boolean {
 }
 
 /**
+ * Is this a step of a tool call in Claude Code's native stream? The `assistant` record holding a `tool_use` block,
+ * or the `user` record holding its `tool_result`. The SDK reduces them to `message` and `native`, never `tool`: on
+ * a Claude Code turn (measured 2026-10-09, two shell calls) no `tool` event arrived at all, so the turn read as
+ * not working and, after the previous turn's end, did not reopen until the agent's closing words.
+ */
+function isToolStep(event: ObservedChatRuntimeEvent): boolean {
+  const payload = event.raw?.payload as { type?: unknown; message?: { content?: unknown } } | undefined;
+  const block = payload?.type === 'assistant' ? 'tool_use' : payload?.type === 'user' ? 'tool_result' : null;
+  const content = payload?.message?.content;
+  return block !== null && Array.isArray(content)
+    && content.some((part) => (part as { type?: unknown } | null)?.type === block);
+}
+
+/**
  * The key one runtime request is tracked under, the same on both of its
  * events. From the wire payload the runtime sent — `payload.request.id` on a
  * `request`, `payload.request_id` on its `request_resolved` (the bundled Chat
@@ -1251,7 +1265,8 @@ export class HarnessChatService {
    * A Claude Code runtime's native stream ends its turn with `result` →
    * `turn_completed` and streams `stream_event` content-block deltas, where
    * the SDK labels TOOL-INPUT deltas (`input_json_delta`) `output_delta` too —
-   * which is why narration below reads the delta's own type there.
+   * which is why narration below reads the delta's own type there. Its tool
+   * calls arrive as records, not `tool` events (`isToolStep`).
    */
   private runtimeActivity(event: ObservedChatRuntimeEvent): ChatRuntimeActivity {
     switch (event.type) {
@@ -1291,9 +1306,10 @@ export class HarnessChatService {
           const reopened = this.reopenOnActivity();
           if (reopened) return reopened;
         }
-        return isNarration(event) ? 'narration' : 'other';
+        if (isNarration(event)) return 'narration';
+        return isToolStep(event) ? this.reopenOnActivity() ?? 'tool' : 'other';
       default:
-        return 'other';
+        return isToolStep(event) ? this.reopenOnActivity() ?? 'tool' : 'other';
     }
   }
 
