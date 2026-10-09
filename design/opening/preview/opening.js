@@ -18,7 +18,7 @@ var VolterOpening = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // ../editor-opening/packages/cyclotron/workbench/src/opening.ts
+  // packages/cyclotron/workbench/src/opening.ts
   var opening_exports = {};
   __export(opening_exports, {
     mountOpening: () => mountOpening,
@@ -44,7 +44,7 @@ var VolterOpening = (() => {
   // shim:nls.js
   var localize = (key, message, ...args) => message.replace(/\{(\d+)\}/g, (_, i) => String(args[i]));
 
-  // ../editor-opening/packages/cyclotron/workbench/src/opening.ts
+  // packages/cyclotron/workbench/src/opening.ts
   var STORAGE_KEY = "volter.cyclotron.opening";
   function pullSetting(settings) {
     let seen = [];
@@ -87,6 +87,7 @@ var VolterOpening = (() => {
   var NAME_AT = STARS_AT + 5 * STAR_STEP + 60;
   var UNDER_AT = STARS_AT + 5 * STAR_STEP + 300;
   var SETTLED_MS = UNDER_AT + 900;
+  var LANDED_MS = NAME_AT + 700;
   var ART_WAIT_MS = 400;
   var BACK_SCAN = 392;
   var clamp = (x, low = 0, high = 1) => Math.max(low, Math.min(high, x));
@@ -162,6 +163,11 @@ var VolterOpening = (() => {
     const context = sparks.getContext("2d");
     let width = 0, height = 0;
     let shown = false;
+    let land = () => {
+    };
+    const landed = new Promise((resolve) => {
+      land = resolve;
+    });
     function frame(t) {
       const box = root.getBoundingClientRect();
       const stageBox = stage.getBoundingClientRect();
@@ -249,6 +255,9 @@ var VolterOpening = (() => {
         shown = true;
         onShown?.();
       }
+      if (t >= LANDED_MS && root.isConnected) {
+        land();
+      }
       const hit = clamp((t - FLIP - 150) / 260);
       const amp = t > FLIP + 150 && hit < 1 ? (1 - hit) * 7 : 0;
       root.style.transform = amp ? `translate(${(Math.sin(t * 0.9) * amp).toFixed(2)}px,${(Math.cos(t * 1.3) * amp * 0.7).toFixed(2)}px)` : "";
@@ -321,6 +330,7 @@ var VolterOpening = (() => {
     let started = false;
     let animation;
     let wait;
+    let backstop;
     const play = () => {
       if (disposed || started) {
         return;
@@ -329,6 +339,7 @@ var VolterOpening = (() => {
       if (wait !== void 0) {
         mainWindow.clearTimeout(wait);
       }
+      backstop = mainWindow.setTimeout(land, LANDED_MS + 1500);
       let start;
       const tick = (now) => {
         start ??= now;
@@ -340,6 +351,7 @@ var VolterOpening = (() => {
     };
     const held = at !== void 0 ? clamp(at, 0, SETTLED_MS) : mainWindow.matchMedia("(prefers-reduced-motion: reduce)").matches ? SETTLED_MS : void 0;
     if (held !== void 0) {
+      backstop = mainWindow.setTimeout(land, 2e3);
       let tries = 0;
       const hold = () => {
         animation = void 0;
@@ -361,6 +373,7 @@ var VolterOpening = (() => {
       say: (text) => {
         state.textContent = text;
       },
+      landed,
       dispose: () => {
         disposed = true;
         if (animation !== void 0) {
@@ -369,6 +382,10 @@ var VolterOpening = (() => {
         if (wait !== void 0) {
           mainWindow.clearTimeout(wait);
         }
+        if (backstop !== void 0) {
+          mainWindow.clearTimeout(backstop);
+        }
+        land();
         root.remove();
       }
     };
