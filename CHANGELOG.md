@@ -30,11 +30,13 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 - **Document tabs survive a document moved into an area** (#328), on Windows and Linux. Before, moving the
   open document into the bottom area (dragging its tab onto the Game panel) lost the tab row, and opening the
   document again did not bring it back.
+- **The agent guidance refresh ignores line endings** (#349). On Windows, where git checks `AGENTS.md` out with
+  CRLF line endings, `edit` no longer replaces an up-to-date copy and says it updated it.
 
 ## 0.5.205 — a tab per document, and tripwires that wait for a tool call
 
-Its workbench, on Windows, macOS and Linux, is the cut from editor ec1e0e84 (`cyclotron-4782d9a281ef-ec1e0e845c3a`):
-a tab per document, with 0.5.204's boot splash and Chat 0.1.51.
+Its workbench, on Windows, macOS and Linux, is the cut from editor ec1e0e84
+(`cyclotron-4782d9a281ef-ec1e0e845c3a`): a tab per document, with 0.5.204's boot splash and Chat 0.1.51.
 
 - **Document tabs** (#292). Each open document has a tab; the workspace's areas have none.
 - **Build tripwires reach the Chat agent only while one of its tool calls is out** (#321). A line
