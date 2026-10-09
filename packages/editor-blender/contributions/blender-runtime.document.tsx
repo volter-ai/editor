@@ -1026,14 +1026,25 @@ function BlenderViewportArea({
     waitForDraw();
     const stopStages = onViewportStages(waitForDraw);
     const onEscape = (event: KeyboardEvent): void => {
-      if (event.key === 'Escape' && surfaceAcceptsKey(event)) {
+      if (event.key !== 'Escape' || !surfaceAcceptsKey(event)) return;
+      // Decided once the event has finished dispatching: a play script that claims Escape (a
+      // game's pause, registered after this listener) prevents its default, and the Escape that
+      // frees a game's mouse look is the person taking their mouse back. Both used to stop Play
+      // (three playtests of a Cyclotron game lost a mission each to it).
+      if (globalThis.document.pointerLockElement || performance.now() - lastPointerUnlockAt < 500) return;
+      setTimeout(() => {
+        if (event.defaultPrevented) return;
         const extension = documentPlayExtension('model');
         if (extension?.escape) extension.escape(modelId);
         else extension?.setPlaying(modelId, false);
-      }
+      }, 0);
     };
+    let lastPointerUnlockAt = -Infinity;
+    const onLockChange = (): void => { if (!globalThis.document.pointerLockElement) lastPointerUnlockAt = performance.now(); };
+    globalThis.document.addEventListener('pointerlockchange', onLockChange);
     window.addEventListener('keydown', onEscape, true);
     return () => {
+      globalThis.document.removeEventListener('pointerlockchange', onLockChange);
       stopped = true;
       stopStages();
       stopPrepareFrames?.();
