@@ -650,26 +650,29 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   for (const line of changed) console.log(`  + ${line}`);
   if (kept.length > 0) console.log('Left as it was:');
   for (const line of kept) console.log(`  = ${line}`);
+  // Every printed command runs as typed in any shell from the project folder: `&&` is not Windows
+  // PowerShell 5.1's, an inline `#` comment is an argument to cmd, the product's bare command is on
+  // no PATH an install line or npx sets, and PowerShell's script policy refuses a bare `npx`/`npm`
+  // (their `.ps1` shims) where the `.cmd` names run (the 0.5.208 blind walk's returning user).
+  const [npm, npx] = process.platform === 'win32' ? ['npm.cmd', 'npx.cmd'] : ['npm', 'npx'];
   if (changed.length === 0) {
     // NOTHING TO MOVE, YET AN EDITOR REFUSED: then the editor that refused is not this project's
     // own installation (an older global install, another checkout), and saying "already on"
     // alone left the person with no next step (#146 review).
-    console.log(`If an editor still refuses this project, it is running from another installation: open it with this project's own, \`npx --no-install ${product.command} edit .\` in ${project}.`);
+    console.log(`If an editor still refuses this project, it is running from another installation: open it with this project's own, \`${npx} --no-install ${product.command} edit .\` in ${project}.`);
     return;
   }
   if (retired !== null)
-    console.log(`This project now opens in ${product.packageName}. Its command is ${product.command}: from the project folder, \`npx --no-install ${product.command} <command>\`.`);
-  console.log('Next:');
-  if (packagesChanged && !linked) console.log(`  npm install    # in ${project}; installs the versions above`);
+    console.log(`This project now opens in ${product.packageName}. Its command is ${product.command}: from the project folder, \`${npx} --no-install ${product.command} <command>\`.`);
+  console.log(`Next, in ${project}, one line at a time:`);
   // A running session keeps the editor it started with: new packages need a new session, while a
-  // pin that moved alone is read again by the page's Retry.
-  // One command per line, each runnable as typed in any shell from the project folder: `&&` is not
-  // Windows PowerShell 5.1's, and the product's bare command is on no PATH an install line or npx
-  // sets (the 0.5.208 blind walk's returning user met both).
+  // pin that moved alone is read again by the page's Retry. The old session is closed before
+  // `npm install` replaces the packages under it, and by the command it was started with.
   if (packagesChanged) {
-    console.log(`  npx --no-install ${product.command} close    # in ${project}; ends the session on the old install`);
-    console.log(`  npx --no-install ${product.command} edit .   # opens it on the new one`);
+    console.log(`  ${npx} --no-install ${linked ? product.command : retired?.command ?? product.command} close`);
+    if (!linked) console.log(`  ${npm} install`);
+    console.log(`  ${npx} --no-install ${product.command} edit .`);
   } else {
-    console.log(`  Press Retry on the editor page that refused the project, or run \`npx --no-install ${product.command} edit .\` in ${project}.`);
+    console.log(`  Press Retry on the editor page that refused the project, or run: ${npx} --no-install ${product.command} edit .`);
   }
 }
