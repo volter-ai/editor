@@ -40,6 +40,7 @@
 import * as THREE from 'three';
 import { createStandardEnvironment, type StandardEnvironment } from './environment';
 import { markHostRenderer } from './renderer-ownership';
+import { configureDepth, DEPTH_RENDERER_OPTIONS } from '../render/reversed-depth';
 
 /** How many renderers the lane keeps alive between selections. */
 const POOL_CAPACITY = 2;
@@ -80,7 +81,7 @@ function createEntry(): PreviewRendererEntry {
   canvas.style.height = '100%';
   canvas.style.display = 'block';
   const renderer = markHostRenderer(
-    new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true }),
+    configureDepth(new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, ...DEPTH_RENDERER_OPTIONS })),
   );
   const entry: PreviewRendererEntry = {
     canvas,

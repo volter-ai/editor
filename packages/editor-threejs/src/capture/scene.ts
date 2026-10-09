@@ -5,6 +5,7 @@ import { acquireInspectorPreviewRenderer } from '../viewport/preview-renderer';
 import { viewportCaptureOutputPass } from './output-pass';
 import type { DocumentDisplayTransform } from '../render/document-display-transform';
 import {resolveSceneLinearSize} from './linear-resolve';
+import { floatDepthTexture, rendererReversedDepth } from '../render/reversed-depth';
 
 export interface SceneCaptureOptions {
   width: number;
@@ -83,8 +84,13 @@ function capture(
   let completed = false;
   let finishDraw:(()=>void)|void=undefined;
   try {
-    hdr = new THREE.WebGLRenderTarget(renderWidth, renderHeight, { type: THREE.HalfFloatType });
-    if (options.effect) hdr.depthTexture = new THREE.DepthTexture(renderWidth, renderHeight);
+    // Float depth wherever depth is reversed (`render/reversed-depth.ts`), and for an effect that reads it.
+    const reversed = rendererReversedDepth(renderer);
+    hdr = new THREE.WebGLRenderTarget(renderWidth, renderHeight, {
+      type: THREE.HalfFloatType,
+      ...(reversed ? { depthTexture: floatDepthTexture(renderWidth, renderHeight) } : {}),
+    });
+    if (options.effect && !reversed) hdr.depthTexture = new THREE.DepthTexture(renderWidth, renderHeight);
     renderer.shadowMap.enabled = true;
     renderer.shadowMap.type = THREE.PCFSoftShadowMap;
     renderer.outputColorSpace = THREE.SRGBColorSpace;

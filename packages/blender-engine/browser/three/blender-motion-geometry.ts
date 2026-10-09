@@ -1,6 +1,7 @@
 import * as THREE from 'three';
 import {instanceObjectShown} from './blender-runtime-instances';
 import type {MotionMeshRequest, MotionMeshResponse} from './blender-motion-worker';
+import { reversedDepthOf } from './reversed-depth';
 
 const CACHE_BYTES = 64 * 1024 * 1024;
 const QUIET_MS = 150;
@@ -316,7 +317,7 @@ export class BlenderMotionGeometry {
     }
     if (now - this.movedAt > QUIET_MS) return false;
     this.projection.multiplyMatrices(camera.projectionMatrix, camera.matrixWorldInverse);
-    this.frustum.setFromProjectionMatrix(this.projection);
+    this.frustum.setFromProjectionMatrix(this.projection, THREE.WebGLCoordinateSystem, reversedDepthOf(camera));
     let tooClose = 0;
     for (const [source, levels] of this.cache) {
       // The copy carries the ORIGINAL bounds derived during its yielding
