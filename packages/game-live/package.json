@@ -1,7 +1,7 @@
 {
   "name": "@volter/game-live",
   "author": "Volter AI, Inc.",
-  "version": "0.5.207",
+  "version": "0.5.208",
   "publishConfig": {
     "access": "public"
   },
@@ -29,8 +29,8 @@
     "node": ">=22"
   },
   "dependencies": {
-    "@volter/live": "0.5.207",
-    "@volter/sdk": "0.5.207",
+    "@volter/live": "0.5.208",
+    "@volter/sdk": "0.5.208",
     "undici": "^7.28.0"
   },
   "peerDependencies": {
