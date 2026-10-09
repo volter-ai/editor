@@ -43,6 +43,21 @@ export function selectedChatLaunch(selection: ChatSelection, launch: { program: 
   return { ...launch, arguments: args };
 }
 
+/**
+ * "ASK FOR APPROVAL" ASKS (t_8ea14bad). The Chat's own setting decides whether it answers the runtime's approval
+ * requests itself (Auto approve) or shows them to the person (Ask), but it can answer only the requests the runtime
+ * raises. A Claude Code launched with no mode keeps its own default, and from Claude Code 2.1.285 an SDK session can
+ * start in `auto`, where it approves its own calls and raises nothing: read on Windows, a Bash call accepted with
+ * source config, reasonType classifier, and Ask never asked. So a Claude Code launch names its manual mode,
+ * `--permission-mode default`, where a call that needs approval raises a request; Auto approve answers it as before.
+ * The flag rides the launch the editor already shapes (`selectedChatLaunch`), so it needs nothing newer than the
+ * pinned supercode. A launch that already names a mode, or skips permissions, is left as it is.
+ */
+export function withManualApproval(launch: { program: string; arguments: string[]; env?: Record<string, string> }) {
+  if (launch.arguments.some((arg) => arg === '--permission-mode' || arg.startsWith('--permission-mode=') || arg === '--dangerously-skip-permissions')) return launch;
+  return { ...launch, arguments: [...launch.arguments, '--permission-mode', 'default'] };
+}
+
 export class FrontendControls {
   private server: Server | undefined;
   private readonly secret = randomBytes(32).toString('hex');
