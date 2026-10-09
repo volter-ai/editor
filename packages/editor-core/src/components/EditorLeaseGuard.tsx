@@ -78,8 +78,8 @@ import { clearSessionOrphanRecord, writeSessionOrphanRecord } from '../session-o
 import { clearSessionEnded, markSessionEnded } from '@volter/sdk/kit/session-tombstone';
 
 /** How a person reopens this project's editor: from its folder, through the project's own install.
- *  A bare `cyclotron edit <name>` worked only from the folder above the project and only where the
- *  command is on PATH, which an install line or npx never puts it (the 0.5.207 blind walk). */
+ *  A bare `cyclotron edit <name>` worked only from the folder above the project, and only where the
+ *  command is on PATH, where neither the install line nor npx puts it (the 0.5.207 blind walk). */
 function reopenLine(): string {
   const command = productCommand();
   return command === null ? commandLine('edit .') : `\`npx --no-install ${command} edit .\``;
