@@ -44,6 +44,16 @@ import { ApplicationMenus } from './ApplicationMenus';
 import { ChromeSlot } from './ChromeSlot';
 import { WorktreeSwitcher } from './WorktreeSwitcher';
 
+/** The menu names the file manager `/__editor/reveal` opens. It runs only for the person at the
+ *  host (the share gateway keeps it local), so the browser's platform is the host's: a Windows
+ *  person read "Show in Finder" for a File Explorer window. */
+function revealLabel(): string {
+  const platform = typeof navigator === 'undefined' ? '' : navigator.platform;
+  if (platform.includes('Mac')) return 'Show in Finder';
+  if (platform.startsWith('Win')) return 'Show in File Explorer';
+  return 'Show in Files';
+}
+
 export function ProjectHeader({
   transport,
 }: {
@@ -212,7 +222,7 @@ export function ProjectHeader({
                     revealInFinder(projectPath);
                   }}
                 >
-                  Show in Finder
+                  {revealLabel()}
                 </MenuItem>
               )}
               <MenuItem
