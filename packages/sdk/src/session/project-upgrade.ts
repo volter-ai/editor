@@ -663,7 +663,13 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   if (packagesChanged && !linked) console.log(`  npm install    # in ${project}; installs the versions above`);
   // A running session keeps the editor it started with: new packages need a new session, while a
   // pin that moved alone is read again by the page's Retry.
-  console.log(packagesChanged
-    ? `  ${product.command} close && ${product.command} edit .    # restart the session on the new install`
-    : `  Press Retry on the editor page that refused the project, or run ${product.command} edit .`);
+  // One command per line, each runnable as typed in any shell from the project folder: `&&` is not
+  // Windows PowerShell 5.1's, and the product's bare command is on no PATH an install line or npx
+  // sets (the 0.5.208 blind walk's returning user met both).
+  if (packagesChanged) {
+    console.log(`  npx --no-install ${product.command} close    # in ${project}; ends the session on the old install`);
+    console.log(`  npx --no-install ${product.command} edit .   # opens it on the new one`);
+  } else {
+    console.log(`  Press Retry on the editor page that refused the project, or run \`npx --no-install ${product.command} edit .\` in ${project}.`);
+  }
 }
