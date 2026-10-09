@@ -216,6 +216,12 @@ async function ensureTab(serverUrl: string, noOpen: boolean, pageUrl: string): P
   // A PAGE THAT HAS REFUSED IS AN ANSWER, not a page still loading: a refused startup never
   // attaches its command listener, so the wait below would sit out its whole budget (two
   // minutes) before saying what the page said in its first second.
+  // On a Mac with no Chromium browser the editor opens in Safari, which cannot run it and is shown a
+  // page saying so (frame-proxy.ts) instead of the editor; the terminal says the same, at the slow
+  // mark and at the end, so this is not a mystery there.
+  const safari = process.platform === 'darwin'
+    ? ' If it opened in Safari: Safari can\'t run Cyclotron yet; open the printed URL in Chrome, Edge, Brave or Arc.'
+    : '';
   let settled = false;
   const refusal = (async (): Promise<string[]> => {
     while (!settled) {
@@ -234,10 +240,12 @@ async function ensureTab(serverUrl: string, noOpen: boolean, pageUrl: string): P
       // measured in the 0.5.207 blind walks, a fresh Chrome profile showed "Sign in" / "Stay
       // signed out", the page arrived 37 s after it was closed, and this had already said the
       // editor did not open at 15 s. Say why it may be waiting, and give it three minutes.
-      arrivalTimeoutMs: BROWSER_ARRIVAL_TIMEOUT_MS,
+      // A person at a terminal gets the long wait; an agent's command (no terminal) keeps the old
+      // answer at 15 s, which a tool's own timeout would otherwise outlast.
+      ...(process.stdout.isTTY ? { arrivalTimeoutMs: BROWSER_ARRIVAL_TIMEOUT_MS } : {}),
       onSlowArrival: () => console.log(
         `The browser hasn't opened the editor yet. If it is showing its own welcome or sign-in screen, finish or close ` +
-          `that screen and the editor opens next; or open ${pageUrl} yourself in Chrome, Edge, Brave or Arc.`,
+          `that screen and the editor opens next; or open ${pageUrl} yourself in Chrome, Edge, Brave or Arc.${safari}`,
       ) }),
     refusal.then((refused) => (refused.length > 0 ? { status: 'refused' as const, refused } : new Promise<never>(() => {}))),
   ]).finally(() => { settled = true; });
@@ -247,14 +255,10 @@ async function ensureTab(serverUrl: string, noOpen: boolean, pageUrl: string): P
     // A page that arrived and refused to start says why in the session's console ledger (a pinned
     // engine version, a failed startup): print that, not only where to look.
     const said = outcome.status === 'never-arrived' ? [] : await currentPageErrors(serverUrl);
-    // On a Mac with no Chromium browser the editor opened in Safari, which cannot run it and is shown
-    // a page saying so (frame-proxy.ts); the terminal says the same, so this is not a mystery there.
-    const safari = process.platform === 'darwin' && outcome.status === 'never-arrived'
-      ? ' If it opened in Safari: Safari can\'t run Cyclotron yet; open the printed URL in Chrome, Edge, Brave or Arc.'
-      : '';
+    const safariAtEnd = outcome.status === 'never-arrived' ? safari : '';
     throw new Error(
       `Editor page ${outcome.status === 'never-arrived' ? 'did not arrive' : 'arrived but did not become ready'}` +
-        (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : `; open the printed workbench URL and inspect the session log.${safari}`),
+        (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : `; open the printed workbench URL and inspect the session log.${safariAtEnd}`),
     );
   }
 }
