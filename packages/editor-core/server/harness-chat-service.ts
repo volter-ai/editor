@@ -42,7 +42,7 @@ import {
   FRONTEND_UNAVAILABLE_ENV,
   mintFrontendHandoff,
 } from './frontend-handoff';
-import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, type ChatSelection } from './frontend-controls';
+import { FrontendControls, DEFAULT_CHAT_SELECTION, chatModels, selectedChatLaunch, validateChatSelection, withManualApproval, type ChatSelection } from './frontend-controls';
 import { effectiveChat } from './harness-effective';
 import { sessionProduct } from './session-product';
 import { ChatSessionCatalog } from './chat-session-catalog';
@@ -2012,12 +2012,20 @@ export class HarnessChatService {
         (harness) => this.harnessReadiness(harness, workspace),
       );
       const configured = this.chatSelection;
-      if (params && typeof params === 'object' && (params as { harness?: string }).harness === configured.harness && (configured.model || configured.effort)) {
+      const harness = params && typeof params === 'object' ? (params as { harness?: string }).harness : undefined;
+      const configures = harness !== undefined && harness === configured.harness && Boolean(configured.model || configured.effort);
+      // Every Claude Code start and resume names its manual mode (`withManualApproval`): "Ask for approval" (t_8ea14bad).
+      if (configures || harness === 'claude-code') {
         const client = this.discoveryClient as SupercodeClient & { supportReport(): Promise<{ harnesses: Array<{ id: string; runtime: { default_launch: { program: string; arguments: string[]; env?: Record<string, string> } | null } }> }> };
         const report = await client.supportReport();
-        const launch = (params as { launch?: { program: string; arguments: string[]; env?: Record<string, string> } }).launch ?? report.harnesses.find(h => h.id === configured.harness)?.runtime.default_launch;
-        if (!launch) throw new Error('This harness exposes no configurable launch.');
-        params = { ...params, launch: selectedChatLaunch(configured, launch) };
+        let launch = (params as { launch?: { program: string; arguments: string[]; env?: Record<string, string> } }).launch ?? report.harnesses.find(h => h.id === harness)?.runtime.default_launch;
+        if (!launch) {
+          if (configures) throw new Error('This harness exposes no configurable launch.');
+        } else {
+          if (configures) launch = selectedChatLaunch(configured, launch);
+          if (harness === 'claude-code') launch = withManualApproval(launch);
+          params = { ...(params as object), launch };
+        }
       }
       // THE PROJECT'S OWN MCP SERVERS ride the start, because discovery cannot reach them:
       // a `--print` runtime has no trust dialog, and Claude Code loads a project `.mcp.json`
