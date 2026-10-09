@@ -31,11 +31,12 @@
  * `AGENTS.md`, `CLAUDE.md`), so the project's agent servers and instructions keep working.
  */
 import { spawn } from 'node:child_process';
-import { existsSync, lstatSync, readFileSync } from 'node:fs';
+import { existsSync, lstatSync, readFileSync, statSync } from 'node:fs';
 import { mkdir, readdir, readFile, rename, rm, rmdir, writeFile } from 'node:fs/promises';
 import { dirname, join, relative, resolve, sep } from 'node:path';
 import { MANIFEST_FILENAME } from '@volter/project/manifest/filename';
 import { hasManifest } from '@volter/project/manifest/locate';
+import { EDITOR_SESSION_DISCOVERY_TIMEOUT_MS, HttpSessionDiscovery } from './discovery';
 import { compareSemver } from './editor-compatibility';
 
 export const UPGRADE_USAGE = "upgrade [version]    # move this project's @volter packages and its engine pin to one release (default: latest); from a project made before 0.5.203, run the newest release's own: npx <package>@latest upgrade";
@@ -352,6 +353,28 @@ async function readRelease(product: UpgradingProduct, requested: string | undefi
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
     throw new Error(`Could not read ${spec} from the registry (${reason}). Name a published version: ${projectLine(product.command, 'upgrade <version>')}.`);
+  }
+}
+
+/** Whether an editor session is open on `project` now (the same folder on disk, however it was typed).
+ *  The Next lines close one first; with none open, `close` runs the project's OLD install, whose
+ *  refusal before 0.5.210 was a wall about other sessions and exit 1. A question nobody could answer
+ *  keeps the close line. */
+async function editorOpenOn(project: string): Promise<boolean> {
+  try {
+    const here = statSync(project, { bigint: true });
+    const sessions = await new HttpSessionDiscovery().listSessions(EDITOR_SESSION_DISCOVERY_TIMEOUT_MS);
+    return sessions.some((session) => {
+      if (session.project === null) return false;
+      try {
+        const there = statSync(session.project, { bigint: true });
+        return there.dev === here.dev && there.ino === here.ino;
+      } catch {
+        return false;
+      }
+    });
+  } catch {
+    return true;
   }
 }
 
@@ -675,7 +698,8 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   // pin that moved alone is read again by the page's Retry. The old session is closed before
   // `npm install` replaces the packages under it, and by the command it was started with.
   if (packagesChanged) {
-    console.log(`  ${npx} --no-install ${linked ? product.command : retired?.command ?? product.command} close`);
+    if (await editorOpenOn(project))
+      console.log(`  ${npx} --no-install ${linked ? product.command : retired?.command ?? product.command} close`);
     if (!linked) console.log(`  ${npm} install`);
     console.log(`  ${npx} --no-install ${product.command} edit .`);
   } else {
