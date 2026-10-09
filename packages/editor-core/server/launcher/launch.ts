@@ -233,9 +233,14 @@ async function ensureTab(serverUrl: string, noOpen: boolean): Promise<void> {
     // A page that arrived and refused to start says why in the session's console ledger (a pinned
     // engine version, a failed startup): print that, not only where to look.
     const said = outcome.status === 'never-arrived' ? [] : await currentPageErrors(serverUrl);
+    // On a Mac with no Chromium browser the editor opened in Safari, which cannot run it and is shown
+    // a page saying so (frame-proxy.ts); the terminal says the same, so this is not a mystery there.
+    const safari = process.platform === 'darwin' && outcome.status === 'never-arrived'
+      ? ' If it opened in Safari: Safari can\'t run Cyclotron yet; open the printed URL in Chrome, Edge, Brave or Arc.'
+      : '';
     throw new Error(
       `Editor page ${outcome.status === 'never-arrived' ? 'did not arrive' : 'arrived but did not become ready'}` +
-        (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : '; open the printed workbench URL and inspect the session log.'),
+        (said.length > 0 ? `:\n${said.map((message) => `  ${message}`).join('\n')}` : `; open the printed workbench URL and inspect the session log.${safari}`),
     );
   }
 }
