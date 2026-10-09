@@ -569,6 +569,24 @@ function fileCensus(
 }
 
 /**
+ * DID THIS TAB LEAVE WITHOUT SAYING GOODBYE? Nothing of it is left: no control channel, and no
+ * beat for longer than a VISIBLE tab's grace. `tabPresent` keeps a hidden tab for `hiddenGraceMs`
+ * (30 s) because a hidden tab's beats can be throttled, but a throttled tab still holds its
+ * channel; a closed one does not, and a page mid-reload beats under its new load.
+ *
+ * Measured in the 0.5.206 blind walk: the tab closed with no close beacon (socket 1006 at
+ * 06:45:26). For the next 30 s it stayed present, eligible and blessed, so the install line run
+ * again 8 s later got `focused` for it (`tab-lifecycle.ts`'s `ensure`), refocused nothing, and the
+ * editor's `edit` command waited 101 s and failed ("Editor page arrived but did not become
+ * ready"). A tab this answers true for is not eligible to hold the session, and `ensure` opens a
+ * tab rather than refocusing it. A frozen tab that wakes after a new one opened is the duplicate
+ * the bijection yields.
+ */
+export function tabLeftSilently(tab: TabRecord, now: number, config: TabPresenceConfig): boolean {
+  return !tab.connected && tab.beatEver && now - tab.lastBeatAt >= config.graceMs;
+}
+
+/**
  * A tab whose PAGE never came up this page-load, past the budget for the
  * stage it is stuck at.
  *
@@ -1034,6 +1052,8 @@ function partitionEligible(
   const tabs = new Map(state.tabs);
   const eligible: TabRecord[] = [];
   for (const tab of present) {
+    // Present only by the hidden grace, with nothing of it left: not a holder (`tabLeftSilently`).
+    if (tabLeftSilently(tab, now, config)) continue;
     if (!tabUnresponsive(tab, now, config)) {
       eligible.push(tab);
       continue;
