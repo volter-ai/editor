@@ -12,7 +12,7 @@ export { LiveEditorDocument } from './editor-document.js';
 export type { DocumentGestureOptions, DocumentKeyOptions, DocumentPasteOptions } from './editor-document.js';
 export { LiveTools } from './tools.js';
 export { editorMemberHint, withEditorMemberHints } from './member-hints.js';
-export { resolveSession, findProjectRootFrom } from './session.js';
+export { resolveSession, findProjectRootFrom, NO_SESSION_FOR_PROJECT } from './session.js';
 export type { ResolvedSession, SessionResolutionDeps, SessionListingTransport, ProjectSessionHint } from './session.js';
 export type { ActiveDocumentCapture, EditorView, PresentedEditorView } from '@volter/sdk';
 

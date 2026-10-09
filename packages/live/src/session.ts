@@ -166,6 +166,10 @@ function manifestRefusal(projectRoot: string, manifestError: string): Error {
  *
  * Each branch prescribes only what its own state supports.
  */
+/** The code a refusal carries when the registry was read and no session opens the project: the
+ *  one state in which "no editor is open here" is a fact, which `close` answers as done. */
+export const NO_SESSION_FOR_PROJECT = 'VOLTER_NO_SESSION_FOR_PROJECT';
+
 function noMatchingSessionRefusal(
   projectRoot: string,
   canon: string,
@@ -181,16 +185,16 @@ function noMatchingSessionRefusal(
     );
   }
   if (sessions.length === 0) {
-    return new Error(
+    return Object.assign(new Error(
       `@volter/live: the editor session registry is readable and lists NO live sessions, so none ` +
         `covers ${projectRoot}. @volter/live only attaches to an already-running session — it ` +
         `never starts one — so run ${editCommandFor(projectRoot)} in that project first, then retry.`,
-    );
+    ), { code: NO_SESSION_FOR_PROJECT });
   }
   const listed = sessions
     .map((s) => `    port ${s.port} → ${s.project === null ? '(no project)' : s.project}`)
     .join('\n');
-  return new Error(
+  return Object.assign(new Error(
     `@volter/live: ${sessions.length} live editor session(s) are running, but none of them opens ` +
       `${projectRoot}. @volter/live never silently attaches to a different project.\n` +
       `  looking for (resolved): ${canon}\n` +
@@ -199,7 +203,7 @@ function noMatchingSessionRefusal(
       'the usual cause is a git worktree or a symlink, where the session was opened through a ' +
       `different path to the same files. Run ${editCommandFor(projectRoot)} from THIS path, or use the path the ` +
       'session lists.',
-  );
+  ), { code: NO_SESSION_FOR_PROJECT });
 }
 
 export async function resolveSession(
