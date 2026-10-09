@@ -5,7 +5,7 @@ import { spawn } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
 import { hasManifest } from '@volter/project/manifest/locate';
 import productPackage from '../package.json';
-import { declaration, UPGRADING } from './create';
+import { declaration, refreshStarterGuidance, UPGRADING } from './create';
 import { startupProject } from './startup';
 import { chat, CHAT_USAGE } from './chat';
 import { playLog, PLAY_LOG_USAGE } from './play-log';
@@ -157,6 +157,7 @@ try {
     }
     const project = verb === 'edit' && positionals.length < 2 ? await startupProject(declaration.create) : folder;
     console.log(`Opening Cyclotron for ${resolve(project)}…`);
+    await refreshStarterGuidance(resolve(project));
     await launch(project, PRODUCT, {
       ...(values.workbench ? { workbench: values.workbench } : {}),
       ...(values['no-open'] ? { noOpen: true } : {}),

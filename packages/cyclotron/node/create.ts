@@ -223,3 +223,25 @@ ${playable ? PLAYABLE.regionIncludes : ''}  editor: { Layout: ModelLayout, style
     }
     return { targetDir: target, manifest };
 }
+
+/**
+ * THE STARTER'S GUIDANCE FOLLOWS THE INSTALLED EDITOR. `create` copies `AGENTS.md` once, so a
+ * project made by an older release kept that release's guidance for good: an agent in it read a
+ * library list and workflow the editor had since replaced (measured 2026-10-08 on Heck Plungers,
+ * whose AGENTS.md predated the rig-base tag). At `edit`, a project whose AGENTS.md is still the
+ * starter's own file (its first line is the starter's) and differs from the installed starter
+ * gets the installed one; the previous copy is kept in `.volter/` and the change is printed. An
+ * AGENTS.md the author replaced with their own is never touched.
+ */
+export async function refreshStarterGuidance(projectDir: string, log: (line: string) => void = console.log): Promise<void> {
+  const target = join(projectDir, 'AGENTS.md');
+  let current: string;
+  try { current = await readFile(target, 'utf8'); } catch { return; }
+  const starter = await readFile(join(productRoot, 'starter', 'AGENTS.md'), 'utf8');
+  const firstLine = (text: string): string => text.split(/\r?\n/, 1)[0] ?? '';
+  if (current === starter || firstLine(current) !== firstLine(starter)) return;
+  await mkdir(join(projectDir, '.volter'), { recursive: true });
+  await writeFile(join(projectDir, '.volter', 'AGENTS.previous.md'), current);
+  await writeFile(target, starter);
+  log('AGENTS.md updated to the installed editor guidance (the previous copy is .volter/AGENTS.previous.md).');
+}
