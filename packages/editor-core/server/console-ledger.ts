@@ -171,6 +171,8 @@ export type ConsoleLedgerJournalEvent =
  * genuine fix is visible on the next command.
  */
 export const LOAD_SETTLE_MS = 4_000;
+/** How many yielded loads the ledger remembers (`noteDeparted`). */
+const MAX_DEPARTED_LOADS = 256;
 
 /** Distinct conditions retained. Occurrences of a retained condition are
  *  unbounded (they are a counter); it is the number of DIFFERENT messages that
@@ -340,6 +342,9 @@ export interface ConsoleLedger {
   /** A page-load became the current one (its command listener attached). Starts
    *  the settle window that retires conditions the previous load owned. */
   noteLoad(loadId: string, at?: number): void;
+  /** A page-load the editor told to leave (its tab was yielded to another). What it reports
+   *  from then on is that page going away, so the sweep retires it with the older loads'. */
+  noteDeparted(loadId: string): void;
   /** Acknowledge by id, with who and why. `null` when no such entry. */
   ack(id: string, ack: { by: string; reason: string; at?: number }): ConsoleLedgerEntry | null;
   /**
@@ -379,6 +384,8 @@ export function createConsoleLedger(options?: {
   const entries = new Map<string, MutableEntry>();
   let currentLoadId: string | null = null;
   let currentLoadAt = 0;
+  /** Loads told to leave, newest last; bounded, since a long session yields many tabs. */
+  const departedLoads = new Set<string>();
   let dropped = 0;
 
   /** Retire what condition (a) covers: last seen in an older page-load, and the
@@ -394,7 +401,16 @@ export function createConsoleLedger(options?: {
       // fresh boot error, or a guest tab that can never attach. Retiring it
       // would silence a live condition forever, because the page-side delta
       // bookkeeping never re-reports an occurrence it already sent.
-      if (entry.lastAt >= currentLoadAt) continue;
+      //
+      // …UNLESS that page was told to leave. A tab left open on a session that
+      // ended is yielded when `edit` opens the project again, and while it
+      // unloads, after the new load began, it reports its own shutdown (Code-OSS's
+      // `[lifecycle] Long running operations during shutdown are unsupported in
+      // the web`, the Chat's session store failing to write): measured on the
+      // 0.5.206 candidate, four errors that `console` exited 1 on until the next
+      // load. Nothing it says is about the project, and a real condition is
+      // re-raised by the current load under its own id.
+      if (entry.lastAt >= currentLoadAt && !departedLoads.has(entry.lastLoadId)) continue;
       // An acked entry is an audit record; retiring it would erase the reason.
       if (entry.acked !== null) continue;
       entries.delete(entry.id);
@@ -508,6 +524,14 @@ export function createConsoleLedger(options?: {
       if (loadId === currentLoadId) return;
       currentLoadId = loadId;
       currentLoadAt = at ?? now();
+    },
+
+    noteDeparted(loadId: string): void {
+      departedLoads.delete(loadId);
+      departedLoads.add(loadId);
+      if (departedLoads.size > MAX_DEPARTED_LOADS) {
+        departedLoads.delete(departedLoads.values().next().value as string);
+      }
     },
 
     ack(id: string, ack: { by: string; reason: string; at?: number }): ConsoleLedgerEntry | null {

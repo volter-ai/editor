@@ -743,11 +743,17 @@ export function createEditorServer(options: EditorServerOptions): EditorServerRo
           })),
       journal: journalEvent,
       probeTabs: (tabIds) => heartbeat.probe(tabIds),
-      sendToTab: (tabId, event, data) =>
-        sendToTab(tabId, event, {
+      sendToTab: (tabId, event, data) => {
+        // Whoever is told to leave is leaving: what its page-loads report from here on
+        // (their own shutdown) is not the project's, so the console ledger retires it.
+        const departing = event === 'tab-yield' ? clientIdsForTab(tabId) : [];
+        const delivered = sendToTab(tabId, event, {
           ...(typeof data === 'object' && data !== null ? data : {}),
           participantId,
-        }),
+        });
+        if (delivered) for (const clientId of departing) consoleLedger.noteDeparted(clientId);
+        return delivered;
+      },
       // The HOST lifecycle owns no participant, so its session-end
       // broadcast is genuinely everyone; a per-participant lifecycle
       // stays inside its own participant's connections.
