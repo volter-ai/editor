@@ -167,6 +167,8 @@ export class VolterDocuments extends Disposable {
 		this.reportActiveEditor();
 		this._register(toDisposable(this.bridge.subscribe(() => this.schedule())));
 		this._register(this.editorService.onDidActiveEditorChange(() => this.reportActiveEditor()));
+		// Any editor opened, closed or moved anywhere can change how many tabs there are (`syncTabRow`).
+		this._register(this.editorService.onDidEditorsChange(() => this.syncTabRow()));
 		this._register(this.editorGroupsService.onDidChangeActiveGroup(() => this.reportActiveEditor()));
 		// A BLENDER AREA IS RESIZED OR JOINED, NEVER CLOSED. If a person closes the area's
 		// group the map must forget it (its `IEditorGroup` is dead) and the next reconcile
@@ -254,13 +256,15 @@ export class VolterDocuments extends Disposable {
 			main = this.editorGroupsService.addGroup(this.group, opposite[area.place]);
 			created = true;
 		}
-		// THE DOCUMENTS' GROUP SHOWS ITS TABS. A document a person drags into an area (the Game
-		// panel's group below the viewport) makes that group the one holding it, so it is bound
-		// here as the main group; left as the area hid it, the tab row was gone and opening the
-		// document again did not bring it back (measured on the ec1e0e84 cut, 2026-10-08). The
-		// pass below moves the area's own document back out to a fresh area group.
-		main.setTabsHidden(false);
 		if (main === this.group) { return false; }
+		// THE DOCUMENTS' GROUP SHOWS ITS TABS when there is more than one (`syncTabRow`, at the
+		// end of this pass). A document a person drags into an area (the Game panel's group
+		// below the viewport) makes that group the one holding it, so it is bound here as the
+		// main group; left as the area hid it, the tab row was gone and opening the document
+		// again did not bring it back (measured on the ec1e0e84 cut, 2026-10-08). The pass below
+		// moves the area's own document back out to a fresh area group. The group given up keeps
+		// its row: whatever it still holds is a person's split, not an area.
+		if (!this.groupGone && ![...this.areaGroups.values()].includes(this.group)) { this.group.setTabsHidden(false); }
 		this.group = main;
 		this.appliedActiveId = null;
 		this.watchGroup();
@@ -493,8 +497,27 @@ export class VolterDocuments extends Disposable {
 			}
 		} finally {
 			this.applying = false;
+			this.syncTabRow();
 			this.reportActiveEditor();
 		}
+	}
+
+	/**
+	 * ONE TAB IN ALL, NO TAB ROW (the owner, 2026-10-09: "if there is only 1 tab total, we
+	 * don't need a row"). A row holding the only tab repeats the name of what is on screen, and
+	 * it takes its height from the viewport. A second editor anywhere outside the areas (another
+	 * document, a source file, the document split beside itself) brings the row back, since then
+	 * there is something to switch between; closing back down to one hides it again. Areas never
+	 * count: they have no tabs (`groupForArea`).
+	 *
+	 * Not while a pass runs: a pass opens the document beside the bootstrap editor before it
+	 * closes the bootstrap, and the row showing for that moment is a flicker at every boot.
+	 */
+	private syncTabRow(): void {
+		if (this.applying || this.groupGone) { return; }
+		const areas = new Set(this.areaGroups.values());
+		const tabs = this.editorGroupsService.groups.reduce((sum, group) => areas.has(group) ? sum : sum + group.count, 0);
+		this.group.setTabsHidden(tabs <= 1);
 	}
 
 	private groupContaining(input: VolterDocumentInput): IEditorGroup | undefined {
