@@ -3,7 +3,7 @@
  * then consult the shared registry. Never fall back to another project.
  * Storage identifiers move with the server in the coordinated migration. */
 
-import { existsSync, readFileSync, realpathSync } from 'node:fs';
+import { existsSync, readFileSync, realpathSync, statSync } from 'node:fs';
 import { dirname, join, resolve } from 'node:path';
 import { resolveManifestPath } from '@volter/project/manifest/locate';
 import { resolveProductForProject } from '@volter/sdk/session/product-locator';
@@ -62,6 +62,22 @@ function canonicalPath(path: string): string {
     return resolve(path);
   }
 }
+
+/** Whether two paths are the same folder on disk, which `canonicalPath` alone misses on Windows
+ *  (it keeps the letter case typed, and short names and `subst` drives unexpanded). */
+function sameDirectory(a: string, b: string): boolean {
+  try {
+    const x = statSync(a, { bigint: true });
+    const y = statSync(b, { bigint: true });
+    return x.dev === y.dev && x.ino === y.ino;
+  } catch {
+    return false;
+  }
+}
+
+/** The code a refusal carries when the registry was read and no session opens the project: the
+ *  one state in which "no editor is open here" is a fact, which `close` answers as done. */
+export const NO_SESSION_FOR_PROJECT = 'VOLTER_NO_SESSION_FOR_PROJECT';
 
 function readProjectSession(projectRoot: string): ProjectSessionHint | null {
   try {
@@ -166,10 +182,6 @@ function manifestRefusal(projectRoot: string, manifestError: string): Error {
  *
  * Each branch prescribes only what its own state supports.
  */
-/** The code a refusal carries when the registry was read and no session opens the project: the
- *  one state in which "no editor is open here" is a fact, which `close` answers as done. */
-export const NO_SESSION_FOR_PROJECT = 'VOLTER_NO_SESSION_FOR_PROJECT';
-
 function noMatchingSessionRefusal(
   projectRoot: string,
   canon: string,
@@ -194,6 +206,9 @@ function noMatchingSessionRefusal(
   const listed = sessions
     .map((s) => `    port ${s.port} → ${s.project === null ? '(no project)' : s.project}`)
     .join('\n');
+  // A listed session that is this same folder under another spelling is not "nothing open here":
+  // it keeps the refusal, so `close` does not report done while that editor runs on.
+  const thisFolderElsewhere = sessions.some((s) => s.project !== null && sameDirectory(s.project, projectRoot));
   return Object.assign(new Error(
     `@volter/live: ${sessions.length} live editor session(s) are running, but none of them opens ` +
       `${projectRoot}. @volter/live never silently attaches to a different project.\n` +
@@ -203,7 +218,7 @@ function noMatchingSessionRefusal(
       'the usual cause is a git worktree or a symlink, where the session was opened through a ' +
       `different path to the same files. Run ${editCommandFor(projectRoot)} from THIS path, or use the path the ` +
       'session lists.',
-  ), { code: NO_SESSION_FOR_PROJECT });
+  ), thisFolderElsewhere ? {} : { code: NO_SESSION_FOR_PROJECT });
 }
 
 export async function resolveSession(

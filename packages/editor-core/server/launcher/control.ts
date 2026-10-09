@@ -22,7 +22,7 @@ export async function control(command: string, verb: string, argument?: string, 
     // `close` asks for a state, and an editor that is not open for this project is already in it:
     // refusing sent a person following upgrade's Next lines a wall about other projects' sessions
     // and an exit code that read as failure (the 0.5.209 end-of-coding run).
-    if (verb === 'close' && (error as { code?: unknown }).code === NO_SESSION_FOR_PROJECT) {
+    if (verb === 'close' && error instanceof Error && (error as { code?: unknown }).code === NO_SESSION_FOR_PROJECT) {
       console.log('No editor is open for this project, so there is nothing to close.');
       return;
     }
