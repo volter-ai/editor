@@ -7,11 +7,12 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 
 ## 0.5.207 — one document, no tab row
 
-- **One tab in all, no tab row** (#350), on Windows and Linux. With one document open, the row above the
-  viewport only repeated its name; it now shows once there is a second editor (another document, a source
-  file) and hides again when you are back to one. Settings opening over the editor does not count. The
-  workbench is the cut from editor 5b6840f8 (`cyclotron-4782d9a281ef-5b6840f8c154`); Chat is 0.1.55, as in
-  0.5.206. macOS keeps its workbench until its own cut is made.
+- **One tab in all, no tab row** (#350), in Cyclotron on Windows and Linux. With one document open, the row
+  above the viewport only repeated its name; it now shows once there is a second editor (another document, a
+  source file) and hides again when you are back to one. Settings opening over the editor does not count.
+  The workbench is the cut from editor 5b6840f8 (`cyclotron-4782d9a281ef-5b6840f8c154`); Chat is 0.1.55, as
+  in 0.5.206. macOS keeps 0.5.205's workbench (`ec1e0e845c3a`, where the row always shows) until its own cut
+  is made.
 - **A tab told to leave no longer fills the console** (#351). Reopening a project over a tab left open on a
   session that ended can open a second tab, and the editor yields one of them; the errors that page reported
   while it shut down (Code-OSS lifecycle lines, storage and the Chat's session store failing to write) were
