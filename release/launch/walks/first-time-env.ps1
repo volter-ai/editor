@@ -7,14 +7,18 @@
 #
 # -NoNode        PATH loses every entry that holds node.exe, and nvm's and npm's global folders, so neither
 #                `node` nor `npx` nor an npm-installed CLI resolves.
-# -EmptyProfile  The home folders (USERPROFILE, HOME, APPDATA, LOCALAPPDATA) point at an empty profile under
-#                -ProfileRoot, so no agent's credentials (~/.claude, ~/.codex), no ~/.volter and no npm cache are
-#                found: what a person who never signed in sees. Agent CLIs already on PATH stay installed, signed out.
-#                A walk goes as far as the sign-in screen and starts no sign-in (the owner's standing rule).
-# -Fresh         Empties -ProfileRoot first, so the walk starts from nothing. Without it, a second run is the
-#                returning user.
+# -EmptyProfile  The home folders (USERPROFILE, HOME, HOMEDRIVE/HOMEPATH, APPDATA, LOCALAPPDATA) and CODEX_HOME
+#                point at an empty profile under -ProfileRoot, and every ANTHROPIC_*, CLAUDE*, OPENAI_*, CODEX_*,
+#                SUPERCODE_* and XDG_* variable is dropped, so no agent's credentials (~/.claude, ~/.codex, an API
+#                key), no ~/.volter and no npm cache are found: what a person who never signed in sees. Agent CLIs
+#                already on PATH stay installed, signed out. A walk goes as far as the sign-in screen and starts no
+#                sign-in (the owner's standing rule).
+# -Fresh         Deletes -ProfileRoot first, so the walk starts from nothing; only a folder this script made (its
+#                marker is inside) and never a drive root or a real profile, TEMP or system folder. Without it, a
+#                run is the returning user.
 #
-# It changes nothing outside -ProfileRoot: the variables live only in the child process it starts.
+# Started with `powershell -File`, it changes nothing outside -ProfileRoot: the variables live only in this process
+# and the child it starts. The browser's own storage is the browser's, and -Fresh does not reach it.
 param(
 	[Parameter(Mandatory = $true)][string]$Command,
 	[switch]$NoNode,
@@ -29,22 +33,44 @@ $env:Path = (($env:Path -split ';') | Where-Object {
 	if (-not $NoNode) { return $true }
 	$dir = [Environment]::ExpandEnvironmentVariables($_)
 	if ($dir -match '(?i)\\(nvm|nvm4w|npm|volta|fnm)(\\|$)' -or $_ -match '(?i)%NVM_') { return $false }
-	-not (Test-Path -LiteralPath (Join-Path $dir 'node.exe'))
+	-not (Test-Path -LiteralPath "$dir\node.exe")
 }) -join ';'
 
 if ($EmptyProfile) {
-	if ($Fresh -and (Test-Path -LiteralPath $ProfileRoot)) { Remove-Item -LiteralPath $ProfileRoot -Recurse -Force }
-	$roaming = Join-Path $ProfileRoot 'AppData\Roaming'
-	$local = Join-Path $ProfileRoot 'AppData\Local'
-	New-Item -ItemType Directory -Force -Path $roaming, $local | Out-Null
-	$env:USERPROFILE = $ProfileRoot
-	$env:HOME = $ProfileRoot
+	# The profile is only ever a folder this script made (its marker inside), and never a drive root, the real
+	# profile, TEMP itself, or a folder above one of them: -Fresh deletes it.
+	$root = [IO.Path]::GetFullPath($ProfileRoot).TrimEnd('\')
+	$marker = Join-Path $root '.cyclotron-first-time'
+	$guarded = @([Environment]::GetFolderPath('UserProfile'), $env:USERPROFILE, $env:TEMP, $env:LOCALAPPDATA, $env:APPDATA, $env:SystemRoot) |
+		Where-Object { $_ } | ForEach-Object { [IO.Path]::GetFullPath($_).TrimEnd('\') }
+	if ($root -eq [IO.Path]::GetPathRoot($root).TrimEnd('\') -or ($guarded | Where-Object { $_ -eq $root -or $_.StartsWith("$root\", [StringComparison]::OrdinalIgnoreCase) })) {
+		throw "first-time-env: $root cannot be the empty profile (a drive root, or a real profile, TEMP or system folder, or above one)."
+	}
+	if ($Fresh -and (Test-Path -LiteralPath $root)) {
+		if ((Get-ChildItem -LiteralPath $root -Force | Measure-Object).Count -and -not (Test-Path -LiteralPath $marker)) {
+			throw "first-time-env: $root is not empty and was not made by this script; refusing to delete it."
+		}
+		# Not Remove-Item -Recurse, which in Windows PowerShell 5.1 can follow a junction out of the folder.
+		[IO.Directory]::Delete($root, $true)
+	}
+	$roaming = Join-Path $root 'AppData\Roaming'
+	$local = Join-Path $root 'AppData\Local'
+	$codex = Join-Path $root '.codex'
+	New-Item -ItemType Directory -Force -Path $roaming, $local, $codex | Out-Null
+	Set-Content -LiteralPath $marker -Value 'An empty first-time profile made by release/launch/walks/first-time-env.ps1.'
+	# Every agent's and supercode's own settings and credentials from the environment, then the home folders.
+	Get-ChildItem Env: | Where-Object { $_.Name -match '^(ANTHROPIC_|CLAUDE|OPENAI_|CODEX_|SUPERCODE_|XDG_)' } |
+		ForEach-Object { Remove-Item -LiteralPath "Env:$($_.Name)" }
+	foreach ($name in 'npm_config_cache', 'npm_config_prefix') { Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue }
+	$env:USERPROFILE = $root
+	$env:HOME = $root
+	$env:HOMEDRIVE = [IO.Path]::GetPathRoot($root).TrimEnd('\')
+	$env:HOMEPATH = $root.Substring($env:HOMEDRIVE.Length)
 	$env:APPDATA = $roaming
 	$env:LOCALAPPDATA = $local
+	# Codex finds its home through Windows itself, not USERPROFILE: it is named outright.
+	$env:CODEX_HOME = $codex
 	$env:TEMP = $env:TMP = (New-Item -ItemType Directory -Force -Path (Join-Path $local 'Temp')).FullName
-	foreach ($name in 'CLAUDE_CONFIG_DIR', 'CODEX_HOME', 'SUPERCODE_HOME', 'SUPERCODE_BIN', 'XDG_CONFIG_HOME', 'npm_config_cache', 'npm_config_prefix') {
-		Remove-Item -LiteralPath "Env:$name" -ErrorAction SilentlyContinue
-	}
 }
 
 Write-Host "first-time-env: NoNode=$NoNode EmptyProfile=$EmptyProfile home=$env:USERPROFILE"
