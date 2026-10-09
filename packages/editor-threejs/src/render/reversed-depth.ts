@@ -12,6 +12,7 @@
  * projection by hand; each such place asks `reversedDepthOf` and answers for both mappings.
  */
 import * as THREE from 'three';
+import { FullScreenQuad } from 'three/addons/postprocessing/Pass.js';
 
 /** The renderer options every scene renderer is made with. Where the GPU lacks `EXT_clip_control`,
  *  three keeps the ordinary mapping and `reversedDepthOf` answers false. */
@@ -55,11 +56,64 @@ const opaqueByDistance = (a: RenderItem, b: RenderItem): number =>
 const transparentByDistance = (a: RenderItem, b: RenderItem): number =>
   a.groupOrder - b.groupOrder || a.renderOrder - b.renderOrder || a.z - b.z || a.id - b.id;
 
+/**
+ * A CAMERA REVERSED BEFORE ITS FIRST DRAW. three flips a camera to reversed depth lazily, inside the
+ * draw (`setProgram`), after it has already culled, sorted and built the shadow matrices from the
+ * ordinary projection: a fresh camera's first frame (every photograph's only frame) came out wrong.
+ * This flips it, and every shadow-casting light's shadow camera in the scene, before three looks.
+ */
+export function adoptReversedDepth(camera: THREE.Camera): void {
+  const flag = camera as THREE.Camera & { _reversedDepth?: boolean; updateProjectionMatrix?: () => void };
+  if (flag._reversedDepth === true) return;
+  flag._reversedDepth = true;
+  flag.updateProjectionMatrix?.();
+}
+
+function adoptScene(scene: THREE.Object3D, camera: THREE.Camera): void {
+  adoptReversedDepth(camera);
+  scene.traverseVisible((object) => {
+    const light = object as THREE.Light & { shadow?: THREE.LightShadow };
+    if (light.isLight && light.castShadow && light.shadow?.camera) adoptReversedDepth(light.shadow.camera);
+  });
+}
+
 /** A scene renderer, set up for the depth it draws with: where it is reversed, its sorts by distance. */
 export function configureDepth(renderer: THREE.WebGLRenderer): THREE.WebGLRenderer {
   if (renderer.capabilities.reversedDepthBuffer === true) {
     renderer.setOpaqueSort(opaqueByDistance as unknown as (a: unknown, b: unknown) => number);
     renderer.setTransparentSort(transparentByDistance as unknown as (a: unknown, b: unknown) => number);
+    const draw = renderer.render.bind(renderer);
+    renderer.render = (scene, camera) => { adoptScene(scene, camera); draw(scene, camera); };
   }
   return renderer;
+}
+
+/**
+ * AN ORTHOGRAPHIC RAY FROM A REVERSED CAMERA. three r180's `Raycaster.setFromCamera` puts an
+ * orthographic ray's origin at NDC z = (near + far) / (near - far), the camera plane under the
+ * ordinary mapping; reversed, that point lies beyond the far plane and every pick missed (clicks in an
+ * axis view, the view cube). Reversed, the camera plane is at z = far / (far - near).
+ */
+const setFromCamera = THREE.Raycaster.prototype.setFromCamera;
+THREE.Raycaster.prototype.setFromCamera = function (this: THREE.Raycaster, coords: THREE.Vector2, camera: THREE.Camera): void {
+  const ortho = camera as THREE.OrthographicCamera;
+  if (!ortho.isOrthographicCamera || !reversedDepthOf(ortho)) { setFromCamera.call(this, coords, camera); return; }
+  this.ray.origin.set(coords.x, coords.y, ortho.far / (ortho.far - ortho.near)).unproject(ortho);
+  this.ray.direction.set(0, 0, -1).transformDirection(ortho.matrixWorld);
+  this.camera = ortho;
+};
+
+let copyQuad: FullScreenQuad | null = null;
+/** A target's pixels put on `output` (the canvas when null) exactly as they are: no tone mapping, no
+ *  colour conversion, no blending. For a target three drew as it draws the screen. */
+export function copyToOutput(renderer: THREE.WebGLRenderer, source: THREE.WebGLRenderTarget, output: THREE.WebGLRenderTarget | null): void {
+  copyQuad ??= new FullScreenQuad(new THREE.ShaderMaterial({
+    uniforms: { source: { value: null } },
+    vertexShader: 'varying vec2 vUv; void main() { vUv = uv; gl_Position = vec4(position.xy, 0.0, 1.0); }',
+    fragmentShader: 'uniform sampler2D source; varying vec2 vUv; void main() { gl_FragColor = texture2D(source, vUv); }',
+    blending: THREE.NoBlending, depthTest: false, depthWrite: false, toneMapped: false,
+  }));
+  (copyQuad.material as THREE.ShaderMaterial).uniforms['source']!.value = source.texture;
+  renderer.setRenderTarget(output);
+  copyQuad.render(renderer);
 }
