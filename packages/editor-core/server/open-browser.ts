@@ -10,6 +10,7 @@
  * only).
  */
 
+import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
 import { spawnOpener } from './spawn-opener';
 
@@ -83,13 +84,58 @@ export interface OpenBrowserUrlOptions {
   readonly background?: boolean;
 }
 
-/** Best-effort open of `browserUrl` in the platform default browser. */
+/**
+ * SAFARI CANNOT RUN THE EDITOR YET, and it is many Macs' default browser. The editor needs
+ * cross-origin isolation for Blender's worker, served as COEP `credentialless`, which WebKit
+ * has not implemented; a Mac that opened the editor in Safari showed a person a page that cannot
+ * start (frame-proxy.ts serves Safari a page that says so). So when the default browser is
+ * Safari (or cannot be read) and a Chromium browser is installed, the editor opens there. Any
+ * other default (Firefox, Chrome, Edge…) is the person's choice and is kept.
+ */
+const MAC_EDITOR_BROWSERS = ['Google Chrome', 'Microsoft Edge', 'Brave Browser', 'Arc', 'Chromium'];
+
+/** The Chromium browser to open the editor in on this Mac, or undefined to use the default. */
+export function macEditorBrowser(
+  home = process.env['HOME'] ?? '',
+  readHttpsHandler: () => string | null | undefined = () => macHttpsHandler(home),
+  exists: (path: string) => boolean = existsSync,
+): string | undefined {
+  const handler = readHttpsHandler();
+  if (handler && handler.toLowerCase() !== 'com.apple.safari') return undefined;
+  for (const name of MAC_EDITOR_BROWSERS) {
+    for (const root of ['/Applications', `${home}/Applications`]) {
+      const app = `${root}/${name}.app`;
+      if (exists(app)) return app;
+    }
+  }
+  return undefined;
+}
+
+/** The bundle id LaunchServices opens https links with; null when none is set (Safari, the
+ *  system default), undefined when it cannot be read. */
+function macHttpsHandler(home: string): string | null | undefined {
+  try {
+    const plist = `${home}/Library/Preferences/com.apple.LaunchServices/com.apple.launchservices.secure.plist`;
+    if (!existsSync(plist)) return null;
+    const json = JSON.parse(execFileSync('plutil', ['-convert', 'json', '-o', '-', plist], { encoding: 'utf8', timeout: 3000 })) as {
+      LSHandlers?: Array<{ LSHandlerURLScheme?: unknown; LSHandlerRoleAll?: unknown }>;
+    };
+    const entry = (json.LSHandlers ?? []).find((handler) => handler.LSHandlerURLScheme === 'https');
+    return typeof entry?.LSHandlerRoleAll === 'string' ? entry.LSHandlerRoleAll : null;
+  } catch {
+    return undefined;
+  }
+}
+
+/** Best-effort open of `browserUrl` in the platform default browser (on a Mac whose default is
+ *  Safari, in an installed Chromium browser: `macEditorBrowser`). */
 export function openBrowserUrl(browserUrl: string, options?: OpenBrowserUrlOptions): void {
   if (process.platform === 'darwin') {
     // `-g` = do not bring the opened application to the foreground. The tab
     // still opens, still loads, and still registers with the bijection — it
     // just does not seize the display.
-    spawnOpener('open', options?.background === true ? ['-g', browserUrl] : [browserUrl]);
+    const app = macEditorBrowser();
+    spawnOpener('open', [...(options?.background === true ? ['-g'] : []), ...(app ? ['-a', app] : []), browserUrl]);
   } else if (process.platform === 'win32') {
     // `start` is a cmd builtin, not an executable — it needs cmd itself.
     spawnOpener('cmd', ['/c', 'start', '', browserUrl]);

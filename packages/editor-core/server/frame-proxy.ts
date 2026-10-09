@@ -122,6 +122,14 @@ const encodeAttr = (value: string): string =>
     .replaceAll('<', '&lt;')
     .replaceAll('>', '&gt;');
 
+/** Safari itself, not a browser that borrows its user-agent words: Chrome, Edge, Opera and Firefox
+ *  (on every platform, iOS included) name themselves, and Safari is what carries `Version/…` and
+ *  `Safari/…` with none of them. */
+export function isSafari(userAgent: string | string[] | undefined): boolean {
+  const ua = Array.isArray(userAgent) ? userAgent[0] ?? '' : userAgent ?? '';
+  return /\bVersion\/[\d.]+.*\bSafari\//.test(ua) && !/\b(?:Chrome|Chromium|CriOS|Edg|EdgiOS|EdgA|OPR|Firefox|FxiOS)\//.test(ua);
+}
+
 /**
  * Which encoding the browser asked for, in this proxy's order of preference.
  * `null` means "send it as it is" — no `accept-encoding`, or none we write.
@@ -274,9 +282,53 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
     );
   };
 
+  /**
+   * SAFARI CANNOT RUN THE EDITOR YET: Blender's worker needs cross-origin isolation, served here as
+   * COEP `credentialless` (above), which WebKit has not implemented, so in Safari the workbench
+   * opens on an editor that cannot start. A person who lands here in Safari (a Mac whose default
+   * browser it is, with no Chromium browser for the opener to prefer, open-browser.ts) gets this
+   * page: why, the exact address to open in Chrome, Edge, Brave or Arc, and where to get one. Its
+   * last link opens the editor in Safari anyway (`volter-safari`), for the day WebKit can.
+   */
+  const sendSafariNotice = (res: ServerResponse, url: URL): void => {
+    const address = new URL(url);
+    address.searchParams.delete('volter-safari');
+    const anyway = new URL(url);
+    anyway.searchParams.set('volter-safari', '1');
+    const href = encodeAttr(address.toString());
+    sendText(
+      res,
+      200,
+      `<!doctype html><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">` +
+        `<title>Open Cyclotron in Chrome or Edge</title>` +
+        `<body style="margin:0;background:#141414;color:#e6e6e6;font:15px/1.5 system-ui,-apple-system,sans-serif">` +
+        `<main style="max-width:560px;margin:12vh auto;padding:0 24px">` +
+        `<h1 style="font-size:24px;margin:0 0 12px">Open Cyclotron in Chrome or Edge</h1>` +
+        `<p>Cyclotron runs Blender inside a browser tab, and Safari can't do that yet. Your project is ready; ` +
+        `open this address in Chrome, Edge, Brave or Arc:</p>` +
+        `<p style="display:flex;gap:8px;align-items:center"><code id="address" style="flex:1;padding:10px 12px;` +
+        `background:#1f1f22;border:1px solid #3d3d3d;border-radius:6px;overflow-wrap:anywhere">${href}</code>` +
+        `<button id="copy" style="padding:10px 14px;border:0;border-radius:6px;background:#d8eb6a;color:#141414;` +
+        `font:600 14px system-ui;cursor:pointer">Copy</button></p>` +
+        `<p>No Chromium browser yet? Get <a style="color:#d8eb6a" href="https://www.google.com/chrome/">Chrome</a> ` +
+        `or <a style="color:#d8eb6a" href="https://www.microsoft.com/edge/download">Edge</a>, then open the address there. ` +
+        `Next time, Cyclotron opens in it by itself.</p>` +
+        `<p style="color:#969696;font-size:13px;margin-top:32px"><a style="color:#969696" href="${encodeAttr(anyway.toString())}">` +
+        `Open it in Safari anyway</a> (it will not start until Safari supports what it needs).</p>` +
+        `<script>document.getElementById('copy').addEventListener('click',function(){` +
+        `navigator.clipboard&&navigator.clipboard.writeText(${JSON.stringify(address.toString())}).then(function(){` +
+        `document.getElementById('copy').textContent='Copied'})})</script></main>`,
+      'text/html; charset=utf-8',
+    );
+  };
+
   const handleRequest = (req: IncomingMessage, res: ServerResponse): void => {
     const url = new URL(req.url ?? '/', selfOrigin);
     const pathname = url.pathname;
+    if (pathname === '/' && req.method === 'GET' && isSafari(req.headers['user-agent']) && !url.searchParams.has('volter-safari')) {
+      sendSafariNotice(res, url);
+      return;
+    }
     // Old links and manually opened loopback aliases must land on the same
     // project host as the CLI. Redirect the document before VS Code reads
     // cookies, without deleting credentials belonging to another local app.
