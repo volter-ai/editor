@@ -501,9 +501,13 @@ print(json.dumps({"start": s.frame_start, "end": s.frame_end, "fps": r.fps / (r.
   const began = Date.now();
   for (let f = first; f <= last; f += chunk) {
     const frames = Array.from({ length: Math.min(chunk, last - f + 1) }, (_, i) => f + i);
-    const { encoded } = await tab.command<{ encoded: number }>('blender-movie-frames', { frames });
+    const { encoded, timing } = await tab.command<{ encoded: number; timing: { executeMs: number; stageMs: number; applyMs: number; photoMs: number; encodeMs: number } }>('blender-movie-frames', { frames });
     const seconds = (Date.now() - began) / 1000;
-    console.error(`  ${encoded}/${count} frames (${(seconds / encoded).toFixed(1)} s a frame)`);
+    const ms = (n: number) => `${(n / 1000).toFixed(2)} s`;
+    // WHERE A FRAME'S TIME GOES: Blender's render call (its evaluation and export, and the tab's part
+    // inside it), and of the tab's part the transfer, the build into the photograph view and the picture.
+    console.error(`  ${encoded}/${count} frames (${(seconds / encoded).toFixed(1)} s a frame: render call ${ms(timing.executeMs)} = transfer ${ms(timing.stageMs)}`
+      + ` + build ${ms(timing.applyMs)} + photograph ${ms(timing.photoMs)} + Blender's own ${ms(Math.max(0, timing.executeMs - timing.stageMs - timing.applyMs - timing.photoMs))}; encode ${ms(timing.encodeMs)})`);
   }
   const transferId = randomUUID();
   const done = await tab.command<{ bytes: number; frames: number; codec: string }>('blender-movie-end', { transferId });

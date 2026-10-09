@@ -551,6 +551,12 @@ export async function blenderExecute(code: string, history = true, label = 'Blen
 
 // ---------------------------------------------------------------- a film, rendered
 
+/** WHERE A RENDER'S TIME GOES, one record per photograph: the frame's transfer (from its first staged
+ *  part to its present), building it into the photograph view, and the photograph itself. Read by
+ *  `render-movie` beside Blender's own time, so a slow film says which side is slow. */
+const renderTimings: { stageMs: number; applyMs: number; photoMs: number }[] = [];
+let renderStagedAt: number | null = null;
+
 /** The film being encoded (`blender-movie-*`), one at a time. */
 let movie: {
   readonly encoder: VideoEncoder;
@@ -588,7 +594,7 @@ async function movieBegin(width: number, height: number, fps: number): Promise<{
   return { codec };
 }
 
-async function movieFrames(numbers: readonly number[]): Promise<{ encoded: number }> {
+async function movieFrames(numbers: readonly number[]): Promise<{ encoded: number; timing: { executeMs: number; stageMs: number; applyMs: number; photoMs: number; encodeMs: number } }> {
   const film = movie;
   if (!film) throw new Error('No film is being rendered: blender-movie-begin first.');
   // ONE CALL RENDERS THE CHUNK, the scene's engine and output put back after, so the file is as it was.
@@ -612,7 +618,12 @@ finally:
     r.engine, r.filepath, r.image_settings.file_format, r.resolution_x, r.resolution_y, r.resolution_percentage = kept[:6]
     s.frame_set(kept[6])
 `;
+  const timedFrom = renderTimings.length;
+  const executeAt = performance.now();
   const answer = await blenderExecute(code, false, 'render-movie');
+  const executeMs = performance.now() - executeAt;
+  const taken = renderTimings.slice(timedFrom);
+  const encodeAt = performance.now();
   if (!answer.executed) throw new Error(`Blender could not render frames ${numbers[0]}-${numbers.at(-1)}: ${answer.error}`);
   const session = blenderRuntime();
   for (const f of numbers) {
@@ -627,7 +638,9 @@ finally:
     while (film.encoder.encodeQueueSize > 4) await new Promise((done) => film.encoder.addEventListener('dequeue', done, { once: true }));
     if (film.error) throw new Error(`The video encoder failed: ${film.error}`);
   }
-  return { encoded: film.count };
+  const mean = (pick: (t: (typeof taken)[number]) => number): number => (taken.length ? taken.reduce((n, t) => n + pick(t), 0) / taken.length : 0);
+  const per = numbers.length || 1;
+  return { encoded: film.count, timing: { executeMs: executeMs / per, stageMs: mean((t) => t.stageMs), applyMs: mean((t) => t.applyMs), photoMs: mean((t) => t.photoMs), encodeMs: (performance.now() - encodeAt) / per } };
 }
 
 async function movieEnd(transferId: string): Promise<{ bytes: number; frames: number; codec: string }> {
@@ -1119,6 +1132,7 @@ export function blenderRuntime(): BlenderRuntime {
       if (part.evaluation === 'render') {
         if (!renderFrame) {
           if (part.mesh !== undefined || part.image !== undefined) throw new Error('Render resource arrived before its frame');
+          renderStagedAt = performance.now();
           const detached = BlenderRuntimeView.forPhotograph();
           view.root.updateWorldMatrix(true, false);
           detached.root.matrix.copy(view.root.matrixWorld);
@@ -1174,10 +1188,12 @@ export function blenderRuntime(): BlenderRuntime {
       // A document that answers `applyFrame` without one reports no `held` at
       // all, rather than a wrong `null`.
       const endApply = beginBlenderWork('applying frame to Model');
+      const applyAt = performance.now();
       const applied = (() => {
         try { return presenter.applyFrame(frame) as { held?: unknown } | null | undefined; }
         finally { endApply(); }
       })();
+      const appliedAt = performance.now();
       streamedFrame = null;
       const reports = typeof applied === 'object' && applied !== null && 'held' in applied;
       const held = reports ? (applied.held as { session: string; revision: number } | null) : null;
@@ -1283,7 +1299,13 @@ export function blenderRuntime(): BlenderRuntime {
             orthographic: render.orthographic,
           },
         });
+        const photoAt = performance.now();
         const display = await photographSnapshot(scene, renderCamera, snapshot, render, assertBinding);
+        if (rendering) {
+          renderTimings.push({ stageMs: renderStagedAt === null ? 0 : applyAt - renderStagedAt, applyMs: appliedAt - applyAt, photoMs: performance.now() - photoAt });
+          if (renderTimings.length > 64) renderTimings.shift();
+          renderStagedAt = null;
+        }
         return answer({ ...display, camera: photographedFrom });
       } finally {
         photographing = false;
