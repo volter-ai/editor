@@ -134,6 +134,29 @@ export function registerServedModuleRoutes(router: EditorServerRouter, ctx: Rout
       });
       return;
     }
-    res.json({ modules: [{ id: FRAME_BRIDGE_MODULE_ID, url }], refusals: [] });
+    res.json({ modules: [{ id: FRAME_BRIDGE_MODULE_ID, url: `/__editor/frame-entry?entry=${encodeURIComponent(url)}` }], refusals: [] });
+  });
+  // Code-OSS catches a failed mount and shows its own notification. Report
+  // that failure to the page bootstrap too, so the session's status/console
+  // doors can explain a boot with no command listener.
+  router.get('/__editor/frame-entry', (req: Request, res: Response) => {
+    res.set('Cache-Control', 'no-store');
+    const target = ctx.options.frameBridgeUrl?.();
+    if (!target) { res.status(503).send('No product entry is served.'); return; }
+    if (req.query['entry'] !== target) {
+      res.status(409).send('The served product entry changed; request served-modules again.');
+      return;
+    }
+    res.type('application/javascript').send(`
+      export async function mountVolter(...args) {
+        try {
+          const product = await import(${JSON.stringify(target)});
+          return await product.mountVolter(...args);
+        } catch (error) {
+          queueMicrotask(() => { throw error; });
+          throw error;
+        }
+      }
+    `);
   });
 }
