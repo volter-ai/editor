@@ -5,6 +5,41 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.205 — the opening's card pull, and a Chat that saves a conversation once
+
+- **The opening.** While Blender boots, Cyclotron's cover is a card pull. The card rises, flips with
+  a burst, prints in a render of the machine standing in the canyon, and lands its stars and the
+  setting's name, and the cover stays up until it has (about five and a half seconds of the pull;
+  Blender is still preparing underneath). The line under it says what the editor is waiting for. The
+  canyon is the one setting so far, and its first sighting in a browser wears a NEW tag; as settings
+  are added, each boot pulls the first one that browser has not seen, then the next in turn. With
+  reduced motion the settled card shows at once. On Windows and Linux; macOS keeps the previous
+  workbench (the axes splash and Chat 0.1.51) until its own cut is made.
+- **Chat 0.1.55** (supercode #1360), on Windows and Linux. A completed turn no longer saves the same
+  conversation to the editor a second time, and it checks the editor's binding before trusting its own
+  record of the save.
+- **"Ask for approval" asks** (#334). A Claude Code conversation now starts and resumes in Claude Code's
+  manual mode (`--permission-mode default`), so a call that needs approval waits in the Chat for Allow or
+  Deny. Before, Claude Code could start in its own auto mode and approve its calls itself, and Ask
+  never asked. Auto approve answers the same requests by itself, as it did.
+- **Document tabs** (#292). Each open document has a tab; the workspace's areas have none.
+- **Build tripwires reach the Chat agent only while one of its tool calls is out** (#321). A line
+  steered into a talk-only turn used to arrive after it as a new prompt, and the agent answered it in
+  the person's Chat. Such a crossing is now kept in the terminal and the session journal, where the
+  `tripwire-nudge` event has a new outcome: `no-call-out`.
+- **`chat send`** (#312, #313, #314) says when it queued its prompt into a running turn. A turn that has
+  just ended takes the prompt as a new send, and a turn that cannot be read cleanly as idle gets nothing
+  sent: only a clean idle reading sends.
+- **Play loads before it starts** (#316): every character's starting animation clips are baked first, so
+  the first frame of Play is not a character in its rest pose.
+- **Run configurations** (#318): npm and a configuration's script run as one quoted command line, and a
+  configuration whose script or arguments are not plain words (letters, digits and `_@+=:,./-`) is refused
+  with a 400 before anything runs.
+- **Game projects** (#317, #319): `volter-game-editor upgrade` links a game on the runtime image (or one
+  with no `node_modules` and no `package-lock.json`) to the new version's image, or says why it did not (a
+  version that is not one exact number); a game with its own lockfile keeps installing its own. It also
+  replaces an untouched `check-idioms.ts` with this release's.
+
 ## 0.5.204 — Chat starts a new conversation again
 
 From `@volter/cyclotron` 0.5.199 to 0.5.203, the editor Chat refused the first message of a new
