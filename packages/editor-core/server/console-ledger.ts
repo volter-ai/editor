@@ -171,6 +171,8 @@ export type ConsoleLedgerJournalEvent =
  * genuine fix is visible on the next command.
  */
 export const LOAD_SETTLE_MS = 4_000;
+/** How many yielded loads the ledger remembers (`noteDeparted`). */
+const MAX_DEPARTED_LOADS = 256;
 
 /** Distinct conditions retained. Occurrences of a retained condition are
  *  unbounded (they are a counter); it is the number of DIFFERENT messages that
@@ -340,6 +342,10 @@ export interface ConsoleLedger {
   /** A page-load became the current one (its command listener attached). Starts
    *  the settle window that retires conditions the previous load owned. */
   noteLoad(loadId: string, at?: number): void;
+  /** A page-load the editor told to leave (its tab was yielded to another). A condition only
+   *  ever reported by such a load after it was told is that page going away, so the sweep
+   *  retires it with the older loads'. */
+  noteDeparted(loadId: string): void;
   /** Acknowledge by id, with who and why. `null` when no such entry. */
   ack(id: string, ack: { by: string; reason: string; at?: number }): ConsoleLedgerEntry | null;
   /**
@@ -379,6 +385,12 @@ export function createConsoleLedger(options?: {
   const entries = new Map<string, MutableEntry>();
   let currentLoadId: string | null = null;
   let currentLoadAt = 0;
+  /** Loads told to leave, newest last; bounded, since a long session yields many tabs. */
+  const departedLoads = new Set<string>();
+  /** Conditions every report of which came from a load already told to leave. One entry covers
+   *  a condition from every page, so a real error the staying tab reported is never in here,
+   *  whichever page reported it last. Beside the entries, not in them: `all()` serves those. */
+  const leavingOnly = new Set<string>();
   let dropped = 0;
 
   /** Retire what condition (a) covers: last seen in an older page-load, and the
@@ -394,10 +406,21 @@ export function createConsoleLedger(options?: {
       // fresh boot error, or a guest tab that can never attach. Retiring it
       // would silence a live condition forever, because the page-side delta
       // bookkeeping never re-reports an occurrence it already sent.
-      if (entry.lastAt >= currentLoadAt) continue;
+      //
+      // …UNLESS only a page told to leave ever reported it, and only after it was
+      // told. With a tab left open on a session that ended, `edit` opens a second
+      // one and the editor yields one of them; while that page unloads, after the
+      // new load began, it reports its own shutdown (Code-OSS's `[lifecycle] Long
+      // running operations during shutdown are unsupported in the web`, the Chat's
+      // session store failing to write): measured on the 0.5.206 candidate, errors
+      // that `console` exited 1 on until the next load. A condition any other page
+      // reported, the staying tab's own boot error included, is not in
+      // `leavingOnly` and keeps the guard above.
+      if (entry.lastAt >= currentLoadAt && !leavingOnly.has(entry.id)) continue;
       // An acked entry is an audit record; retiring it would erase the reason.
       if (entry.acked !== null) continue;
       entries.delete(entry.id);
+      leavingOnly.delete(entry.id);
       journal({
         kind: 'console-retired',
         id: entry.id,
@@ -432,8 +455,10 @@ export function createConsoleLedger(options?: {
           : reported;
       const added = Math.max(1, Math.trunc(observation.occurrences ?? 1));
       const id = consoleEntryId(observation.severity, message);
+      const leaving = departedLoads.has(observation.loadId);
       const existing = entries.get(id);
       if (existing) {
+        if (!leaving) leavingOnly.delete(id);
         // The id names the normalized condition; retain the newest raw detail
         // so UUID/timestamp normalization never makes the human-facing record
         // stale or vague.
@@ -476,6 +501,7 @@ export function createConsoleLedger(options?: {
           [...entries.values()].sort((a, b) => a.lastAt - b.lastAt)[0];
         if (victim) {
           entries.delete(victim.id);
+          leavingOnly.delete(victim.id);
           if (counts(victim)) dropped++;
         }
       }
@@ -492,6 +518,8 @@ export function createConsoleLedger(options?: {
         acked: null,
       };
       entries.set(id, entry);
+      if (leaving) leavingOnly.add(id);
+      else leavingOnly.delete(id);
       journal({
         kind: 'console-entry',
         id,
@@ -505,9 +533,19 @@ export function createConsoleLedger(options?: {
     },
 
     noteLoad(loadId: string, at?: number): void {
-      if (loadId === currentLoadId) return;
+      // A page told to leave that attaches in the moment before it goes is not the load
+      // everything else is re-tested against.
+      if (loadId === currentLoadId || departedLoads.has(loadId)) return;
       currentLoadId = loadId;
       currentLoadAt = at ?? now();
+    },
+
+    noteDeparted(loadId: string): void {
+      departedLoads.delete(loadId);
+      departedLoads.add(loadId);
+      if (departedLoads.size > MAX_DEPARTED_LOADS) {
+        departedLoads.delete(departedLoads.values().next().value as string);
+      }
     },
 
     ack(id: string, ack: { by: string; reason: string; at?: number }): ConsoleLedgerEntry | null {
@@ -539,6 +577,7 @@ export function createConsoleLedger(options?: {
         const entry = entries.get(id);
         if (!entry || entry.acked !== null) continue;
         entries.delete(id);
+        leavingOnly.delete(id);
         retired.push(id);
         journal({
           kind: 'console-resolved',
