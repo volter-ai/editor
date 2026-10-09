@@ -3,7 +3,11 @@ import { modelOpeningErrorMessage } from '../src/model-opening-error';
 import { Button, StateSurface, fontMono, fontSizeVar, spaceVar, themeVars } from '@volter/sdk/widgets';
 import type { AuthoringAdapter, EditorNode } from '@volter/project/adapter';
 import { AssetEditorSubject } from '@volter/sdk/kit/components/AssetEditorShell';
-import { useMemo } from 'react';
+import { useEffect, useMemo, useState } from 'react';
+
+/** How long an open may run before the surface says it may have stalled and offers a retry. A
+ *  limited view's first open downloads the engine and the project, so this is generous. */
+const STALL_AFTER_MS = 180_000;
 
 /** A loading/error surface has no authoring stage and publishes no model. */
 export function BlenderModelOpening({ documentId, path, error, preview, retry, returnToPreview, preparingView = false, note = null }: {
@@ -18,6 +22,18 @@ export function BlenderModelOpening({ documentId, path, error, preview, retry, r
   readonly note?: string | null;
 }) {
   const title = error ? 'Could not open model' : preparingView ? 'Preparing model view' : 'Opening model';
+  // A STALLED OPEN SAYS SO: a playtester waited twenty minutes on "Preparing Blender" with no error,
+  // no progress and no way out but reloading the page. After STALL_AFTER_MS the surface names the
+  // wait and offers the same retry an error does.
+  const [startedAt] = useState(() => Date.now());
+  const [now, setNow] = useState(() => Date.now());
+  useEffect(() => {
+    if (error) return;
+    const timer = setInterval(() => setNow(Date.now()), 5_000);
+    return () => clearInterval(timer);
+  }, [error]);
+  const waited = now - startedAt;
+  const stalled = !error && waited >= STALL_AFTER_MS;
   // This document has not published an authoring stage yet. Its panels still
   // belong to it, rather than the empty project's "Declare a root" fallback.
   // A boundary row is informational; no old model objects remain editable.
@@ -49,13 +65,16 @@ export function BlenderModelOpening({ documentId, path, error, preview, retry, r
             {/* THE CAUSE, VERBATIM, where the person is looking: the sentence above is a
                 category, and "details are available in the console" sent people to a console
                 they could not see (2026-10-06 audit). Selectable, so it can be copied. */}
+            {stalled && <div data-testid="blender-model-opening-stalled" style={{ marginTop: spaceVar[3], color: themeVars.content.primary }}>
+              Still opening after {Math.floor(waited / 60_000)} minutes. It may have stalled: retry opening, or reload the page.
+            </div>}
             {!error && note && <div data-testid="blender-model-opening-note" style={{ marginTop: spaceVar[3], color: themeVars.content.muted, userSelect: 'text' }}>{note}</div>}
             {error && <div data-testid="blender-model-opening-detail"
               style={{ marginTop: spaceVar[3], fontFamily: fontMono, fontSize: fontSizeVar.sm, color: themeVars.content.muted, whiteSpace: 'pre-wrap', userSelect: 'text', textAlign: 'left' }}>
               {error}
             </div>}
           </>}
-          action={error ? <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: spaceVar[3] }}>
+          action={error || stalled ? <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: spaceVar[3] }}>
             {preview && <Button onClick={returnToPreview}>Return to previous model</Button>}
             <Button variant="secondary" onClick={retry}>Retry opening</Button>
           </div> : <progress aria-label={`Opening ${path}`} style={{ width: 'min(100%, 18rem)', accentColor: themeVars.accent.default }} />}
