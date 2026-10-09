@@ -4,7 +4,8 @@ You are a first-time user. You know only what the Cyclotron page tells you. Do e
 person uses (the page, the install line, the editor in the browser, its Chat), write PASS or FAIL beside it with
 what you saw, and stop a step at its first FAIL: copy the exact text on screen, save a screenshot, and go on to
 the next step that does not depend on it. Do not read the editor's source or docs, do not fix anything, run no
-tests, and never start a ChatGPT or Claude sign-in: a step that reaches a sign-in screen stops there and says so.
+tests, never submit a form, and never start a ChatGPT or Claude sign-in: a step that reaches a sign-in screen
+stops there and says so.
 
 Run the commands below from a checkout of volter-ai/editor (the script's path is relative to it).
 
@@ -33,12 +34,13 @@ pressing Enter on the install line to the first model on screen.
 5. **Goal 2 (walk 1): build with the agent.** In the Chat, ask in one message for three changes: the kart a new
    colour, a higher top speed, and the lap time shown on screen. Check each in Play. Then start a New Chat and ask
    for a second, unrelated change. PASS: all four changes are visible in Play, and the second chat started clean.
+   Then choose "Ask for approval" from the permission control under the Chat's input and ask for one more change.
+   PASS: it waits for Allow, and Deny stops it. Ask for it once more and leave that approval unanswered for step 7.
 6. **Walk 4: the Chat with no agent.** Open the Chat. PASS: it says plainly what is missing and offers a way to
    sign in. Stop this step there; do not start the sign-in.
 7. **Goal 3: come back.** Close the editor's tab and its terminal. Paste the install line again (the page says it
    reopens). PASS: the same project opens with step 4's saved change, and, on walk 1, the Chat shows the
-   conversation from step 5 intact. (A pending approval surviving the reopen is part of goal 3 once "Ask for
-   approval" ships; until then, note it as not tested.)
+   conversation from step 5 intact, including one left waiting on an approval before closing (0.5.205 on).
 
 ## Report
 
