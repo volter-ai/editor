@@ -327,10 +327,12 @@ export function playMovie(view: BlenderRuntimeView, data: BlenderSceneMovie): Pl
         perspective.filmOffset = 0;
         perspective.view = null;
       }
+      // (built by hand, so the reversed depth three keeps on the camera is passed on)
+      const reversed = (camera as THREE.Camera & { reversedDepth?: boolean }).reversedDepth === true;
       if (orthographic)
-        camera.projectionMatrix.makeOrthographic(centerX - halfWidth, centerX + halfWidth, centerY + halfHeight, centerY - halfHeight, near, far);
+        camera.projectionMatrix.makeOrthographic(centerX - halfWidth, centerX + halfWidth, centerY + halfHeight, centerY - halfHeight, near, far, THREE.WebGLCoordinateSystem, reversed);
       else
-        camera.projectionMatrix.makePerspective((centerX - halfWidth) * near, (centerX + halfWidth) * near, (centerY + halfHeight) * near, (centerY - halfHeight) * near, near, far);
+        camera.projectionMatrix.makePerspective((centerX - halfWidth) * near, (centerX + halfWidth) * near, (centerY + halfHeight) * near, (centerY - halfHeight) * near, near, far, THREE.WebGLCoordinateSystem, reversed);
       camera.projectionMatrixInverse.copy(camera.projectionMatrix).invert();
       return true;
     },
