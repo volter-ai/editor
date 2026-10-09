@@ -12,6 +12,7 @@
 
 import { execFileSync } from 'node:child_process';
 import { existsSync, readFileSync } from 'node:fs';
+import { homedir } from 'node:os';
 import { spawnOpener } from './spawn-opener';
 
 function isWSL(): boolean {
@@ -96,12 +97,14 @@ const MAC_EDITOR_BROWSERS = ['Google Chrome', 'Microsoft Edge', 'Brave Browser',
 
 /** The Chromium browser to open the editor in on this Mac, or undefined to use the default. */
 export function macEditorBrowser(
-  home = process.env['HOME'] ?? '',
+  home = homedir(),
   readHttpsHandler: () => string | null | undefined = () => macHttpsHandler(home),
   exists: (path: string) => boolean = existsSync,
 ): string | undefined {
   const handler = readHttpsHandler();
-  if (handler && handler.toLowerCase() !== 'com.apple.safari') return undefined;
+  // Unreadable (undefined): the person's default is unknown, and it stays theirs.
+  if (handler === undefined) return undefined;
+  if (handler !== null && handler.toLowerCase() !== 'com.apple.safari') return undefined;
   for (const name of MAC_EDITOR_BROWSERS) {
     for (const root of ['/Applications', `${home}/Applications`]) {
       const app = `${root}/${name}.app`;
@@ -134,8 +137,11 @@ export function openBrowserUrl(browserUrl: string, options?: OpenBrowserUrlOptio
     // `-g` = do not bring the opened application to the foreground. The tab
     // still opens, still loads, and still registers with the bijection — it
     // just does not seize the display.
+    const background = options?.background === true ? ['-g'] : [];
     const app = macEditorBrowser();
-    spawnOpener('open', [...(options?.background === true ? ['-g'] : []), ...(app ? ['-a', app] : []), browserUrl]);
+    // An app that will not open (blocked, half-installed) falls back to the default browser.
+    if (app) spawnOpener('open', [...background, '-a', app, browserUrl], () => spawnOpener('open', [...background, browserUrl]));
+    else spawnOpener('open', [...background, browserUrl]);
   } else if (process.platform === 'win32') {
     // `start` is a cmd builtin, not an executable — it needs cmd itself.
     spawnOpener('cmd', ['/c', 'start', '', browserUrl]);

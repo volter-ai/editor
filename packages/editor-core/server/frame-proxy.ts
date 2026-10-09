@@ -315,9 +315,13 @@ export async function startFrameProxy(options: FrameProxyOptions): Promise<Frame
         `Next time, Cyclotron opens in it by itself.</p>` +
         `<p style="color:#969696;font-size:13px;margin-top:32px"><a style="color:#969696" href="${encodeAttr(anyway.toString())}">` +
         `Open it in Safari anyway</a> (it will not start until Safari supports what it needs).</p>` +
-        `<script>document.getElementById('copy').addEventListener('click',function(){` +
-        `navigator.clipboard&&navigator.clipboard.writeText(${JSON.stringify(address.toString())}).then(function(){` +
-        `document.getElementById('copy').textContent='Copied'})})</script></main>`,
+        // Copy where the clipboard can be written; otherwise (or if it refuses) the address is
+        // selected, so a person's own Copy takes it.
+        `<script>(function(){var b=document.getElementById('copy'),a=document.getElementById('address');` +
+        `function select(){var r=document.createRange();r.selectNodeContents(a);var s=getSelection();s.removeAllRanges();s.addRange(r);` +
+        `b.textContent='Selected: press \\u2318C'}` +
+        `b.addEventListener('click',function(){if(!navigator.clipboard){select();return}` +
+        `navigator.clipboard.writeText(${JSON.stringify(address.toString())}).then(function(){b.textContent='Copied'},select)})})()</script></main>`,
       'text/html; charset=utf-8',
     );
   };
