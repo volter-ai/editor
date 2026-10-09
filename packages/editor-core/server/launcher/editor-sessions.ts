@@ -188,6 +188,10 @@ export interface EditorTabHealth {
    *  a competing one. */
   unresponsive: boolean;
   route: string | null;
+  /** The SERVER's one-word verdict on this tab (`tab-presence.ts`'s `tabState`): `crashed`,
+   *  `closed` and `ended` are rows the table still holds for a page that is gone, a tab closed
+   *  without a goodbye among them. `null` from a server that predates the field. */
+  state: string | null;
 }
 
 export type EditorSourceCompatibility =
@@ -327,6 +331,7 @@ export async function fetchEditorState(
             typeof tab['commandListener'] === 'string' ? tab['commandListener'] : null,
           unresponsive: tab['unresponsive'] === true,
           route: typeof tab['route'] === 'string' ? tab['route'] : null,
+          state: typeof tab['state'] === 'string' ? tab['state'] : null,
         };
       }),
     };
@@ -687,8 +692,12 @@ export async function waitForVerifiedEditorOpen(
     if (ready > 0) {
       return { status: 'connected', connectedCount: ready };
     }
+    // A row the server calls gone is not a browser that arrived: the table keeps a tab closed
+    // without a goodbye for its grace, and counting it waited the full budget and blamed the old
+    // page's errors when the browser never opened a new one. A page beating without a channel yet
+    // is not gone, and still counts.
     if (
-      snapshot.tabs.length > 0 ||
+      snapshot.tabs.some((tab) => tab.state !== 'crashed' && tab.state !== 'closed' && tab.state !== 'ended') ||
       (snapshot.lastIndexRequestAt !== null && snapshot.lastIndexRequestAt >= openAttemptAt)
     ) {
       browserArrived = true;

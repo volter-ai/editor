@@ -58,6 +58,7 @@ import {
   type TabSurface,
   tabArriving,
   tabEndAcknowledged,
+  tabLeftSilently,
   tabNeedsProbe,
   tabPresenceReport,
   tabState,
@@ -384,8 +385,12 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
         const verdict = tabState(tab, at, config).state;
         return verdict === 'closed' || verdict === 'ended';
       };
+      // …and so is a tab that went without saying goodbye (`tabLeftSilently`): measured in the
+      // 0.5.206 blind walk, `focused` for a closed tab made the install line's second run wait
+      // 101 s and fail.
+      const gone = (tab: TabRecord): boolean => saidGoodbye(tab) || tabLeftSilently(tab, at, config);
       const blessedRecord = blessed === null ? undefined : state.tabs.get(blessed);
-      if (blessed !== null && !(blessedRecord !== undefined && saidGoodbye(blessedRecord))) {
+      if (blessed !== null && !(blessedRecord !== undefined && gone(blessedRecord))) {
         const record = blessedRecord;
         if (record?.route === 'no-project') {
           // The tab is live but on the launcher: retarget THAT tab instead of
@@ -437,11 +442,10 @@ export function createTabLifecycle(options: TabLifecycleOptions): TabLifecycleCo
       // open a second one on top of it, which is the duplicate the bijection
       // exists to forbid. The heal above is the door for a present tab that
       // cannot run; waiting is the answer once it has been used.
-      // …and a tab that said goodbye is not present either, for the reason the
-      // blessed branch above states: `tabPresent` keeps a closed tab for its
-      // whole grace, which is the same window that made the editor's `edit` command report a
-      // tab it did not have.
-      if (presentTabs(state, at, config).some((tab) => !saidGoodbye(tab))) return 'arriving';
+      // …and a tab that said goodbye, or left without one, is not present either, for the reason
+      // the blessed branch above states: `tabPresent` keeps a closed tab for its whole grace, which
+      // is the same window that made the editor's `edit` command report a tab it did not have.
+      if (presentTabs(state, at, config).some((tab) => !gone(tab))) return 'arriving';
       if (!open || !maintain) return 'noop';
       // An explicit the editor's `edit` command is the ONLY thing that opens a tab. Nothing in
       // the reconcile loop opens one: a tab you closed stays closed.

@@ -569,6 +569,26 @@ function fileCensus(
 }
 
 /**
+ * DID THIS TAB LEAVE WITHOUT SAYING GOODBYE? Nothing of it is left: no control channel, and no
+ * beat for longer than a VISIBLE tab's grace. `tabPresent` keeps a hidden tab for `hiddenGraceMs`
+ * (30 s) because a hidden tab's beats can be throttled, but a throttled tab still holds its
+ * channel (and its heartbeat worker posts every second when its socket is down); a closed one
+ * does not. A hidden tab between a reload's unload and its new load's first beat can look like
+ * this for a moment, so a lone holder keeps the blessing (`chooseBlessed`).
+ *
+ * Measured in the 0.5.206 blind walk: the tab closed with no close beacon (socket 1006 at
+ * 06:45:26). For the next 30 s it stayed present, eligible and blessed, so the install line run
+ * again 8 s later got `focused` for it (`tab-lifecycle.ts`'s `ensure`), refocused nothing, and the
+ * editor's `edit` command waited 101 s and failed ("Editor page arrived but did not become
+ * ready"). A tab this answers true for is not eligible to hold the session, and `ensure` opens a
+ * tab rather than refocusing it. A frozen tab that wakes after a new one opened is the duplicate
+ * the bijection yields.
+ */
+export function tabLeftSilently(tab: TabRecord, now: number, config: TabPresenceConfig): boolean {
+  return !tab.connected && tab.beatEver && now - tab.lastBeatAt >= config.graceMs;
+}
+
+/**
  * A tab whose PAGE never came up this page-load, past the budget for the
  * stage it is stuck at.
  *
@@ -1034,6 +1054,9 @@ function partitionEligible(
   const tabs = new Map(state.tabs);
   const eligible: TabRecord[] = [];
   for (const tab of present) {
+    // Present only by the hidden grace, with nothing of it left (`tabLeftSilently`): not eligible;
+    // a lone holder keeps the blessing (`chooseBlessed`).
+    if (tabLeftSilently(tab, now, config)) continue;
     if (!tabUnresponsive(tab, now, config)) {
       eligible.push(tab);
       continue;
@@ -1068,8 +1091,15 @@ function chooseBlessed(
 ): TabPresenceState {
   let blessedTabId = state.blessedTabId;
   let blessedAt = state.blessedAt;
-  const holderEligible = eligible.some((tab) => tab.tabId === blessedTabId);
-  const holderPresent = present.some((tab) => tab.tabId === blessedTabId);
+  const holderRecord = present.find((tab) => tab.tabId === blessedTabId);
+  // A holder that left silently is released only for an eligible successor: alone, it may be a
+  // hidden tab between a reload's unload and its new load's first beat, and a command sent then is
+  // held for the new page rather than refused. `ensure` still opens a tab for it (`tabLeftSilently`),
+  // and that tab takes the blessing.
+  const holderEligible =
+    eligible.some((tab) => tab.tabId === blessedTabId) ||
+    (holderRecord !== undefined && eligible.length === 0 && tabLeftSilently(holderRecord, now, config));
+  const holderPresent = holderRecord !== undefined;
   const dwelling = blessedAt !== null && now - blessedAt < config.blessDwellMs;
   const claimHold = state.blessedByClaim === true && blessedAt !== null && now - blessedAt < (config.claimHoldMs ?? 10_000);
   if (blessedTabId !== null && !holderEligible && !(holderPresent && dwelling) && !claimHold) {
@@ -1134,8 +1164,13 @@ export function reconcile(
   // tab it exists to keep, and `ensure`'s heal (`tab-reload`, the one message a
   // page with no module graph can still act on) never got the chance: the yield
   // fires on the reconcile TICK, before any the editor's `edit` command can reach the heal.
+  // …and a holder that left silently, kept only because nothing else is eligible, does not really
+  // hold it either: a page beside it that is still loading is not an extra to send away.
+  const holder = present.find((tab) => tab.tabId === blessedTabId);
+  const deadHolder =
+    holder !== undefined && partition.eligible.length === 0 && tabLeftSilently(holder, now, config);
   const yieldTabIds =
-    blessedTabId === null
+    blessedTabId === null || deadHolder
       ? []
       : present.filter((tab) => tab.tabId !== blessedTabId).map((tab) => tab.tabId);
 
@@ -1291,7 +1326,9 @@ export function tabState(
     };
   }
 
-  if (!beating) {
+  // A tab that left without saying goodbye is `crashed` here too, so `status` says what `ensure`
+  // and the table already act on (`tabLeftSilently`) for the rest of its hidden grace.
+  if (!beating || tabLeftSilently(tab, now, config)) {
     const age = beatAge ?? 0;
     return {
       state: 'crashed',
