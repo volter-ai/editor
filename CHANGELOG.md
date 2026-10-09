@@ -5,11 +5,12 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
-## 0.5.210 — close with nothing open is done
+## 0.5.210 — an upgrade's Next lines with no editor open
 
-- **`close` with no editor open says so and succeeds** (#373). It printed a list of other projects' sessions,
-  or "run `edit` first", and exited 1, which read as the upgrade's Next lines failing. A session open on the
-  same folder under another spelling still refuses.
+- **Upgrade's Next lines name `close` only when an editor is open on the project** (#376). That line runs the
+  project's old install, which with nothing open listed other projects' sessions and exited 1.
+- **`close` with no editor open for the project says so and exits 0** (#373). An editor on the same folder
+  under another spelling still refuses.
 
 ## 0.5.209 — printed commands that run as typed
 

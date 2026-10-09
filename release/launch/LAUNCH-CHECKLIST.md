@@ -1,6 +1,6 @@
-# Cyclotron launch checklist (updated 2026-10-09, 12:20 UTC)
+# Cyclotron launch checklist (updated 2026-10-09, 12:40 UTC)
 
-## The launch, end to end (2026-10-09, 12:20 UTC)
+## The launch, end to end (2026-10-09, 12:40 UTC)
 
 What the launch must prove, by decision 0047 and 0048. The published build completes the four first-user goals
 with no FAIL: the race before signing in; a model, driving and HUD changed with the agent, then a second task by
@@ -13,10 +13,10 @@ page counted, sign-ins and waitlist collected).
 
 | # | Step | Who | State |
 |---|---|---|---|
-| 1 | **0.5.209** (on npm 12:03 UTC from d1c494c1, run 37924734286; merged back by #374) | volter-10 | end-of-coding PASS on Windows (real key presses through the browser controller); after publishing, a 0.5.208 project upgraded from npm, its printed Next lines run as typed in PowerShell 5.1, then played and ran a new Chat; next: cut 0.5.210 (#373) |
+| 1 | **0.5.209** (on npm 12:03 UTC from d1c494c1, run 37924734286; merged back by #374) | volter-10 | end-of-coding PASS on Windows (real key presses through the browser controller); after publishing, a 0.5.208 project upgraded from npm, its printed Next lines run as typed in PowerShell 5.1, then played and ran a new Chat; next: cut 0.5.210 (#373, #376) |
 | 2 | **darwin workbench**, then its pin | the Mac, on the owner's word | blocked on that word (t_a2bd2a5f); the revision to cut is editor 5b6840f8 (#350's merge; the card's body still names 9a813b17) |
 | 3 | **Browser trial on the current release** | the Mac's sites World | release `model-editor-browser-trial-20261008-3` built and read locally; deploy waits on the World |
-| 4 | **Blind walks** on the published build (stage 2) | volter-10 on Windows (walks 1, 3, 4, 5 in Chrome/Edge/Firefox, 6, 7); the Mac (2, 5 in Safari, 7); walk 8 after Discord | walks 1R, 3 and 4 on 0.5.208: every product step PASS. Walk 6 redone from screenshots only, on the owner's videogame.ai (sites #14, merging on t_d87e8d80), volter.ai main and Cyclotron's trimmed page (sites #77, merged, not deployed): 4 of 7 personas PASS. Open: the phone's first screen hides the tools line (fix rendered and sent for #14), the browser trial offers an AI that is not launched (with the account manager), volter.ai's first screen shows no tool (owner's copy). Chat-frontend findings are supercode's (D228), sent to the manager |
+| 4 | **Blind walks** on the published build (stage 2) | volter-10 on Windows (walks 1, 3, 4, 5 in Chrome/Edge/Firefox, 6, 7); the Mac (2, 5 in Safari, 7); walk 8 after Discord | walks 1R, 3 and 4 on 0.5.208: every product step PASS. Walk 6 redone from screenshots only, on the owner's videogame.ai (sites #14, merged as 4a58f0bb, not deployed), volter.ai main and Cyclotron's trimmed page (sites #77, merged, not deployed): 4 of 7 personas PASS. Open: the phone's first screen hides the tools line (fix rendered and sent for #14), the browser trial offers an AI that is not launched (with the account manager), volter.ai's first screen shows no tool (owner's copy). Chat-frontend findings are supercode's (D228), sent to the manager |
 | 5 | **Measurement** | frontline (t_04b1fcba, blocked 154 h) and the owner | sign-ins export live (`id.volter.ai/export/signins` answers 401); the page's analytics beacon names the old `volter-ai.github.io` site, so its token needs the owner's Cloudflare dashboard; the waitlist Worker was never deployed (`waitlist.volter.ai` does not resolve) and the page's waitlist is a `mailto:` for now; `ref` links are the posts' |
 | 6 | **Pages**: www.videogame.ai replacement; the Discord link on the Cyclotron page | the owner's look at the copy (D352), then the World | the Cyclotron page's install line and scripts take `@latest` and state Windows |
 | 7 | **Discord** | the owner, with the Mac's sessions (t_be8c9eea) | the owner's order: lucarne's input automation first (lucarne #104, draft), then Discord; the server's design is m-89b54b0e; nothing is registered with Discord without his word |
