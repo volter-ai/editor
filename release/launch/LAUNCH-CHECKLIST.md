@@ -1,6 +1,6 @@
-# Cyclotron launch checklist (updated 2026-10-09, 02:30 UTC)
+# Cyclotron launch checklist (updated 2026-10-09, 03:00 UTC)
 
-## The launch, end to end (2026-10-09, 02:30 UTC)
+## The launch, end to end (2026-10-09, 03:00 UTC)
 
 What the launch must prove, by decision 0047 and 0048. The published build completes the four first-user goals
 with no FAIL: the race before signing in; a model, driving and HUD changed with the agent, then a second task by
@@ -14,12 +14,12 @@ page counted, sign-ins and waitlist collected).
 | # | Step | Who | State |
 |---|---|---|---|
 | 1 | **0.5.205**: win32 and linux workbench (card pull, Chat 0.1.55), Ask for approval, then RELEASING's end-of-coding run, the promotion and the merge-back | volter-10 | win32 and linux pinned at the d0e6c475 cuts (the Chat's new conversation, follow-up and reopen read PASS on win32; the cover holds until the card lands, sampled 1.39 s to 6.95 s); Ask for approval merged (#334, read live); next: the end-of-coding run on the measured main |
-| 2 | **darwin workbench**, then its pin | the Mac, on the owner's word | blocked on that word (t_a2bd2a5f) |
+| 2 | **darwin workbench**, then its pin | the Mac, on the owner's word | blocked on that word (t_a2bd2a5f); the revision to cut is editor d0e6c475 (the card's body still names 9a813b17) |
 | 3 | **Browser trial on the current release** | the Mac's sites World | release `model-editor-browser-trial-20261008-3` built and read locally; deploy waits on the World |
 | 4 | **Blind walks** on the published build (stage 2) | volter-10 on Windows (walks 1, 3, 4, 5 in Chrome/Edge/Firefox, 6, 7); the Mac (2, 5 in Safari, 7); walk 8 after Discord | Windows runsheet and first-time environment merged (#335); a FAIL is fixed, released and walked again |
 | 5 | **Measurement** | frontline (t_04b1fcba, blocked 154 h) and the owner | sign-ins export live (`id.volter.ai/export/signins` answers 401); the page's analytics beacon names the old `volter-ai.github.io` site, so its token needs the owner's Cloudflare dashboard; the waitlist Worker was never deployed (`waitlist.volter.ai` does not resolve) and the page's waitlist is a `mailto:` for now; `ref` links are the posts' |
 | 6 | **Pages**: www.videogame.ai replacement; the Discord link on the Cyclotron page | the owner's look at the copy (D352), then the World | the Cyclotron page's install line and scripts take `@latest` and state Windows |
-| 7 | **Discord** | the owner creates the server, guided page by page | not started |
+| 7 | **Discord** | the owner, with the Mac's sessions (t_be8c9eea) | the owner's order: lucarne's input automation first (lucarne #104, draft), then Discord; the server's design is m-89b54b0e; nothing is registered with Discord without his word |
 | 8 | **Stage 3**: the trial's security policy enforced and robots; the first real AI call on the trial by a person; the posts (claims only where walks passed); the timing | sites; a person; the media lane; the owner | after 1 to 7 |
 
 **Only the owner can:** give the Mac its word for the 0.5.205 Mac workbench cut; look at the www.videogame.ai
@@ -83,7 +83,7 @@ Nothing here lives only on one machine. Parking work means: push it to a branch,
 - [ ] **Browser trial** rebuilt on the current release (#48 re-pinned; release `model-editor-browser-trial-20261008-3` built), deployed, fresh and returning browsers checked
 - [ ] **Measurement** (decision 0047's second item): `ref` links for posts, analytics collector, sign-in and waitlist counters
 - [ ] **Discord** (t_be8c9eea): owner creates the server, guided; invite on the three pages, the editor's Help menu and the README
-- [ ] **0.5.205** with the walk blockers fixed: Chat restart/reveal (supercode #1360 in Chat 0.1.55, #332, read PASS on Windows), the tripwire reply (t_1f2b8dca, #321 merged after live readings), the opening's card pull (#323), plus #312-#319, #316 (animations), #292 (tabs); the workbench cut and pin. "Ask for approval" (#334) follows its supercode rollout decision
+- [ ] **0.5.205** with the walk blockers fixed: Chat restart/reveal (supercode #1360 in Chat 0.1.55, #332, read PASS on Windows), the tripwire reply (t_1f2b8dca, #321 merged after live readings), the opening's card pull (#323), plus #312-#319, #316 (animations), #292 (tabs); the workbench cut and pin. "Ask for approval" (#334, merged: Claude Code's own `--permission-mode default`, read live)
 
 ### Stage 2 — blind walks (a fresh agent, a one-page runsheet, the published build, PASS/FAIL per step)
 Decision 0047's goals: try the race before signing in; change a model, driving and HUD with the agent, then a second task by New Chat; return to saved work with the conversation intact, including a pending approval; model/save/undo-redo without an account.
@@ -108,7 +108,7 @@ A FAIL is fixed, the next release published, and the walk run again.
 - [ ] Discord staffed for launch day; the timing is the owner's
 
 ## Found in the 0.5.204 run, owned elsewhere (filed)
-- [ ] "Ask for approval" stops nothing: Claude Code runs in its own `auto` mode (t_534d9249, supercode)
+- [x] "Ask for approval" stops nothing: Claude Code ran in its own `auto` mode (t_534d9249); fixed in the editor by #334
 - [ ] Chat after an editor restart opens the stock agent view with the last prompt in the box (t_d33aaa14, supercode)
 - [ ] A queued `chat send` prompt and its answer don't show in the Chat until reopen (t_9add690d)
 - [ ] Game editor has no win32 workbench, so a game can't open on Windows (t_d68566c5)

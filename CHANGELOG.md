@@ -8,12 +8,13 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 ## 0.5.205 — the opening's card pull, and a Chat that saves a conversation once
 
 - **The opening.** While Blender boots, Cyclotron's cover is a card pull. The card rises, flips with
-  a burst, prints in a render of the machine standing in a setting (the canyon first), and lands its
-  stars and the setting's name, and the cover stays up until it has (about five seconds; Blender is
-  still preparing underneath). The line under it says what the editor is waiting for. Each boot
-  pulls the first setting this browser has not seen, then the next in turn, and a first sighting wears
-  a NEW tag. With reduced motion the settled card shows at once. On Windows and Linux; macOS keeps the
-  previous workbench (the axes splash and Chat 0.1.51) until its own cut is made.
+  a burst, prints in a render of the machine standing in the canyon, and lands its stars and the
+  setting's name, and the cover stays up until it has (about five and a half seconds of the pull;
+  Blender is still preparing underneath). The line under it says what the editor is waiting for. The
+  canyon is the one setting so far, and its first sighting in a browser wears a NEW tag; as settings
+  are added, each boot pulls the first one that browser has not seen, then the next in turn. With
+  reduced motion the settled card shows at once. On Windows and Linux; macOS keeps the previous
+  workbench (the axes splash and Chat 0.1.51) until its own cut is made.
 - **Chat 0.1.55** (supercode #1360), on Windows and Linux. A completed turn no longer saves the same
   conversation to the editor a second time, and it checks the editor's binding before trusting its own
   record of the save.
@@ -26,8 +27,18 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   steered into a talk-only turn used to arrive after it as a new prompt, and the agent answered it in
   the person's Chat. Such a crossing is now kept in the terminal and the session journal, where the
   `tripwire-nudge` event has a new outcome: `no-call-out`.
-- **Windows.** The editor runs npm and a configuration's scripts as one quoted command line, and
-  `upgrade` replaces an untouched `check-idioms.ts` with this release's (#317, #318, #319).
+- **`chat send`** (#312, #313, #314) says when it queued its prompt into a running turn. A turn that has
+  just ended takes the prompt as a new send, and a turn that cannot be read cleanly as idle gets nothing
+  sent: only a clean idle reading sends.
+- **Play loads before it starts** (#316): every character's starting animation clips are baked first, so
+  the first frame of Play is not a character in its rest pose.
+- **Run configurations** (#318): npm and a configuration's script run as one quoted command line, and a
+  configuration whose script or arguments are not plain words (letters, digits and `@+=:,./-`) is refused
+  with a 400 before anything runs.
+- **Game projects** (#317, #319): `volter-game-editor upgrade` links a game on the runtime image to the new
+  version's image, or says why it did not (a version that is not one exact number), and replaces an
+  untouched `check-idioms.ts` with this release's. Windows builds now write the bundled license notices
+  they used to leave empty.
 
 ## 0.5.204 — Chat starts a new conversation again
 
