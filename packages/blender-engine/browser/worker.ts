@@ -813,6 +813,8 @@ async function handle(request: WorkerRequest): Promise<unknown> {
         ...(request.action === undefined ? {} : { action: request.action }),
         ...(request.summary === undefined ? {} : { summary: request.summary }),
       });
+    case 'scene-movie':
+      return ask({ op: 'scene-movie' });
     case 'outliner-set':
       return ask({
         op: 'outliner-set',

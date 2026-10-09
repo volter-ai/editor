@@ -69,8 +69,9 @@ React, and of Volter's only, optionally, the types of `@volter/play`.
 `@volter/blender-engine` is Blender compiled to WebAssembly and is
 GPL-3.0-or-later in whole. Blender's icon artwork traced into
 `@volter/editor-blender` and the workbench theme, and
-`@volter/editor-blender`'s `contributions/blender-pose.ts`, which follows
-Blender's own source, are GPL-3.0-or-later; the `LICENSE` beside them names
+`@volter/editor-blender`'s `contributions/blender-pose.ts` and
+`contributions/blender-play-movie.ts`, which follow Blender's own source, are
+GPL-3.0-or-later; the `LICENSE` beside them names
 them. None of it is part of the runtime: no Apache-2.0 package contains or
 imports it.
 

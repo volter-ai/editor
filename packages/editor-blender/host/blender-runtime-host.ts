@@ -33,6 +33,7 @@ import {
 import type { RenderRequest } from '@volter/blender-engine/browser/protocol';
 import type {
   BlenderActionClip,
+  BlenderSceneMovie,
   BlenderNodeTree,
   BlenderOutlinerTree,
   BlenderOutlinerWrite,
@@ -681,6 +682,14 @@ export async function blenderActionClip(options?: {
 }): Promise<BlenderActionClip | null> {
   if (!blenderSessionStarted()) return null;
   return blenderRuntime().actionClip(options);
+}
+
+
+/** THE SCENE'S MOVIE, in-page: what a game's cutscene plays (`session.py`'s `rna_scene_movie`).
+ *  Read once per Play, never per frame. Same rule as the doors above: it never starts the engine. */
+export async function blenderSceneMovie(): Promise<BlenderSceneMovie | null> {
+  if (!blenderSessionStarted()) return null;
+  return blenderRuntime().sceneMovie();
 }
 
 

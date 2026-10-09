@@ -5,6 +5,17 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.211 — a Blender cutscene inside a game
+
+- **`play.cutscene` plays the file's own animation inside Model Play** and hands control back to the play
+  script: keyed objects and cameras (actions and NLA strips, a camera's lens and sensor), armatures on the
+  file's NLA strips and assigned action, and camera cuts at markers bound to cameras, else the scene camera,
+  on the game's clock. The handle answers `frame`, `playing`, `marker`, `done` and `stop()`; when it ends the
+  camera blends back to the script's. `play.markers()` lists the Timeline's markers, and the play log has a
+  `cutscene` entry per start, cut, marker and end (`packages/play/README.md`, `docs/CUTSCENES.md`).
+- **A new Blender door, `scene-movie`** (`rna_scene_movie`), reads the scene's movie once per Play. The clip
+  door no longer lists an action's object-transform curves as playing only in Blender.
+
 ## 0.5.210 — an upgrade's Next lines with no editor open
 
 - **Upgrade's Next lines name `close` only when an editor is open on the project** (#376). That line runs the

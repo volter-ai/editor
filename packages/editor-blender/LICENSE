@@ -34,16 +34,19 @@ ARTWORK is not.
   be copied into an Apache-2.0 or MIT part of this repository —
   `packages/editor`'s own icon set included.
 
-  ONE SOURCE FILE FOLLOWS BLENDER'S OWN CODE.
+  TWO SOURCE FILES FOLLOW BLENDER'S OWN CODE.
 
   `contributions/blender-pose.ts` evaluates a pose as Blender does, and is
   written from Blender's source: its damped-track constraint follows
   `damptrack_do_transform` statement by statement, and its NLA stack, channel
   blending, bone matrices and F-Curve evaluation follow the Blender functions
-  its header names. It is a derivative work of GPL-2.0-or-later code and,
-  exercising Blender's "or later", is conveyed under the GNU General Public
-  License, version 3 or later, not the AGPL. The file says so in its header.
-  It may not be copied into an Apache-2.0 or MIT part of this repository.
+  its header names. `contributions/blender-play-movie.ts` evaluates an
+  object's transform, its Track To constraint (`trackto_evaluate`, `vectomat`)
+  and the camera a marker cuts to (`BKE_scene_camera_switch_find`) the same
+  way. Each is a derivative work of GPL-2.0-or-later code and, exercising
+  Blender's "or later", is conveyed under the GNU General Public License,
+  version 3 or later, not the AGPL. Each file says so in its header. Neither
+  may be copied into an Apache-2.0 or MIT part of this repository.
 
 THE COMBINATION, AND WHY THIS PACKAGE CARRIES TWO LICENCES. Our own code in
 this package is licensed under the GNU Affero General Public License,

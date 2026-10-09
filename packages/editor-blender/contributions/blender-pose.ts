@@ -38,7 +38,7 @@ import type {
 import type { ArmatureRig } from '@volter/blender-engine/browser/three/blender-runtime-skeleton';
 import * as THREE from 'three';
 
-type Channel = 'location' | 'rotation_quaternion' | 'rotation_euler' | 'rotation_axis_angle' | 'scale';
+export type Channel = 'location' | 'rotation_quaternion' | 'rotation_euler' | 'rotation_axis_angle' | 'scale';
 const CHANNELS: readonly Channel[] = ['location', 'rotation_quaternion', 'rotation_euler', 'rotation_axis_angle', 'scale'];
 const DEFAULTS: Record<Channel, readonly number[]> = {
   location: [0, 0, 0],
@@ -108,7 +108,7 @@ export function poseClip(clip: BlenderActionClip): PoseClip | null {
     cyclic: clip.cyclic ?? false, channels: [...channels.values()], unsupported: [...unsupported] };
 }
 
-function poseCurve(curve: Pick<BlenderClipCurve, 'extrapolation' | 'interpolation' | 'keysBase64'> & { readonly cycles?: BlenderClipCurve['cycles'] | undefined }): PoseCurve {
+export function poseCurve(curve: Pick<BlenderClipCurve, 'extrapolation' | 'interpolation' | 'keysBase64'> & { readonly cycles?: BlenderClipCurve['cycles'] | undefined }): PoseCurve {
   return { extrapolation: curve.extrapolation, interpolation: curve.interpolation, keys: float32Of(curve.keysBase64), cycles: curve.cycles ?? null };
 }
 
@@ -355,7 +355,7 @@ export function nlaLayers(animation: BlenderArmatureAnimation | undefined, frame
   return { layers, waiting, skipped, evaluated };
 }
 
-type Values = Record<Channel, number[]>;
+export type Values = Record<Channel, number[]>;
 
 const quatMul = (a: readonly number[], b: readonly number[]): number[] => [
   a[0]! * b[0]! - a[1]! * b[1]! - a[2]! * b[2]! - a[3]! * b[3]!,
@@ -410,8 +410,8 @@ function blendLayer(values: Map<string, Values>, touched: Map<string, Record<Cha
   }
 }
 
-/** `BKE_pchan_to_mat4`: the channels as the bone's basis matrix, rotation by its own mode. */
-function basisMatrix(mode: string, values: Values): THREE.Matrix4 {
+/** The rotation channels by their mode (`BKE_pchan_rot_to_mat3`, `BKE_object_rot_to_mat3`). */
+export function rotationOf(mode: string, values: Values): THREE.Quaternion {
   const rotation = new THREE.Quaternion();
   if (mode === 'QUATERNION') {
     const q = quatNormal(values.rotation_quaternion);
@@ -425,16 +425,34 @@ function basisMatrix(mode: string, values: Values): THREE.Matrix4 {
     const e = values.rotation_euler;
     rotation.setFromEuler(new THREE.Euler(e[0], e[1], e[2], mode.split('').reverse().join('') as THREE.EulerOrder));
   }
+  return rotation;
+}
+
+/** `BKE_pchan_to_mat4`: the channels as the bone's basis matrix, rotation by its own mode. */
+function basisMatrix(mode: string, values: Values): THREE.Matrix4 {
+  const rotation = rotationOf(mode, values);
   const [x, y, z] = values.location;
   const [sx, sy, sz] = values.scale;
   return new THREE.Matrix4().compose(new THREE.Vector3(x, y, z), rotation, new THREE.Vector3(sx, sy, sz));
+}
+
+/**
+ * AN OBJECT'S OWN CHANNELS UNDER ITS STACK: the same blend a bone's channels get (`blendLayer`),
+ * for an owner whose clips address it with an empty bone name (`session.py`'s `rna_scene_movie`).
+ * A component no layer animates keeps `own`; one that is animated starts from its default.
+ */
+export function blendOwnChannels(own: Readonly<Record<Channel, readonly number[]>>, layers: readonly PoseLayer[]): Values {
+  const values = new Map<string, Values>([['', Object.fromEntries(CHANNELS.map((channel) => [channel, [...own[channel]]])) as Values]]);
+  const touched = new Map<string, Record<Channel, number>>([['', { location: 0, rotation_quaternion: 0, rotation_euler: 0, rotation_axis_angle: 0, scale: 0 }]]);
+  for (const layer of layers) blendLayer(values, touched, layer);
+  return values.get('')!;
 }
 
 const TRACK_AXES = ['TRACK_X', 'TRACK_Y', 'TRACK_Z', 'TRACK_NEGATIVE_X', 'TRACK_NEGATIVE_Y', 'TRACK_NEGATIVE_Z'];
 const TRACK_VECTORS = [[1, 0, 0], [0, 1, 0], [0, 0, 1], [-1, 0, 0], [0, -1, 0], [0, 0, -1]] as const;
 
 /** `damptrack_do_transform`: the smallest rotation that points the owner's axis at the target. */
-function dampedTrack(owner: THREE.Matrix4, target: THREE.Vector3, axis: string): THREE.Matrix4 {
+export function dampedTrack(owner: THREE.Matrix4, target: THREE.Vector3, axis: string): THREE.Matrix4 {
   const flag = Math.max(0, TRACK_AXES.indexOf(axis));
   const basis = new THREE.Matrix3().setFromMatrix4(owner);
   const obvec = new THREE.Vector3(...TRACK_VECTORS[flag]!).applyMatrix3(basis);
@@ -461,7 +479,7 @@ function dampedTrack(owner: THREE.Matrix4, target: THREE.Vector3, axis: string):
 }
 
 /** `interp_m4_m4m4`: a constraint's result taken by its influence. */
-function blendMatrix(before: THREE.Matrix4, after: THREE.Matrix4, k: number): THREE.Matrix4 {
+export function blendMatrix(before: THREE.Matrix4, after: THREE.Matrix4, k: number): THREE.Matrix4 {
   if (k >= 1) return after;
   const [p0, q0, s0] = [new THREE.Vector3(), new THREE.Quaternion(), new THREE.Vector3()];
   const [p1, q1, s1] = [new THREE.Vector3(), new THREE.Quaternion(), new THREE.Vector3()];
