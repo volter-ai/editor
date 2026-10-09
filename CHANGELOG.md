@@ -5,6 +5,19 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.207 — one document, no tab row
+
+- **One tab in all, no tab row** (#350), on Windows and Linux. With one document open, the row above the
+  viewport only repeated its name; it now shows once there is a second editor (another document, a source
+  file) and hides again when you are back to one. Settings opening over the editor does not count. The
+  workbench is the cut from editor 5b6840f8 (`cyclotron-4782d9a281ef-5b6840f8c154`); Chat is 0.1.55, as in
+  0.5.206. macOS keeps its workbench until its own cut is made.
+- **A tab told to leave no longer fills the console** (#351). Reopening a project over a tab left open on a
+  session that ended can open a second tab, and the editor yields one of them; the errors that page reported
+  while it shut down (Code-OSS lifecycle lines, storage and the Chat's session store failing to write) were
+  kept as unresolved, so `cyclotron console` exited 1 until the next page load. They are now retired, and a
+  condition any other page reported is kept as before.
+
 ## 0.5.206 — the opening's card pull, and a Chat that saves a conversation once
 
 - **The opening.** While Blender boots, Cyclotron's cover is a card pull. The card rises, flips with
