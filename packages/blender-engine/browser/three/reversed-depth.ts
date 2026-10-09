@@ -43,6 +43,27 @@ const opaqueByDistance = (a: RenderItem, b: RenderItem): number =>
 const transparentByDistance = (a: RenderItem, b: RenderItem): number =>
   a.groupOrder - b.groupOrder || a.renderOrder - b.renderOrder || a.z - b.z || a.id - b.id;
 
+/**
+ * A FRESH CAMERA, REVERSED BEFORE ITS FIRST DRAW. three flips a camera lazily inside the draw, after it
+ * has sorted the scene and built the shadow matrices from the ordinary projection, so a camera's only
+ * frame (a photograph) came out missorted with its shadows misplaced. A draw that uses a new camera
+ * calls this first. (Never by wrapping `renderer.render`: the editor's scene capture traps that
+ * property, and a wrapper there recursed until the stack overflowed.)
+ */
+export function adoptReversedDepth(renderer: THREE.WebGLRenderer, scene: THREE.Object3D, camera: THREE.Camera): void {
+  if (renderer.capabilities.reversedDepthBuffer !== true) return;
+  const adopt = (c: THREE.Camera & { _reversedDepth?: boolean; updateProjectionMatrix?: () => void }): void => {
+    if (c._reversedDepth === true) return;
+    c._reversedDepth = true;
+    c.updateProjectionMatrix?.();
+  };
+  adopt(camera);
+  scene.traverseVisible((object) => {
+    const light = object as THREE.Light & { shadow?: THREE.LightShadow };
+    if (light.isLight && light.castShadow && light.shadow?.camera) adopt(light.shadow.camera);
+  });
+}
+
 /** A scene renderer, set up for the depth it draws with: where it is reversed, its sorts by distance. */
 export function configureDepth(renderer: THREE.WebGLRenderer): THREE.WebGLRenderer {
   if (renderer.capabilities.reversedDepthBuffer === true) {
