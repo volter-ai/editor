@@ -314,6 +314,24 @@ behavior-only repair preserves the established appearance.
   Blender drops an action nothing uses when the file saves, so an unassigned
   clip library vanishes on the next save.
 
+## Cutscenes and films
+
+- A moment inside the game (a launch, a set piece, an ultimate, an emote) plays
+  live in the game. Author it on the Timeline in a collection of its own (keyed
+  objects and cameras, markers bound to cameras, marker names for its events)
+  and play it from the script with `play.cutscene(...)` (it takes the camera) or
+  `play.sequence(..., { collection, at, camera })` (only that collection moves,
+  placed at a game object). Watch it with `play-log --kind cutscene`.
+- A film as a file (an intro, a trailer) is rendered, not captured:
+  `npx --no-install cyclotron render-movie --from <marker> --to <marker> --out <file>.webm`
+  renders the span through Blender's Render Animation on the three.js engine,
+  a frame at a time at the scene's resolution and frame rate, and encodes it.
+- Never assemble footage from `capture` or `play step` loops, or with an
+  external encoder: a capture is evidence of what the person sees, and a loop
+  of them holds the person's editor for hours.
+- Light a film's set with emissive materials and the scene's own light; a
+  point lamp is lit on every surface of a game's level in every frame.
+
 ## Characters
 
 A character is two jobs, in this order: how it looks, then how it moves.

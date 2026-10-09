@@ -20,6 +20,7 @@ import { declaredRetiredProduct, retiredProjectError, upgradeProject, UPGRADE_US
 
 // The command and the name a person sees are the package's own declarations
 // (`bin`, `volter.product.displayName`), the same ones the session reads.
+const RENDER_MOVIE_USAGE = 'render-movie --out <file>.webm [--from <marker|frame>] [--to <marker|frame>] [--width <px>]';
 const PRODUCT: LaunchingProduct = { packageName: productPackage.name, id: 'cyclotron', displayName: productPackage.volter.product.displayName, command: Object.keys(productPackage.bin)[0]! };
 
 /** A project still on a name this product replaced opens nowhere but `upgrade`, which moves it. */
@@ -42,6 +43,7 @@ try {
     port: { type: 'string' }, version: { type: 'boolean', short: 'v' }, help: { type: 'boolean', short: 'h' }, list: { type: 'boolean' }, all: { type: 'boolean' },
     'existing-session': { type: 'boolean' },
     since: { type: 'string' }, kind: { type: 'string' }, document: { type: 'string' }, json: { type: 'boolean' }, for: { type: 'string' },
+    from: { type: 'string' }, to: { type: 'string' },
     ...SCREENSHOT_OPTIONS, ...CAPTURE_OPTIONS, ...CAMERA_OPTIONS,
   } });
   const [verb = 'edit', folder = '.'] = positionals;
@@ -50,7 +52,7 @@ try {
   if (values.all && verb !== 'console') throw new Error('--all belongs to console.');
   if (values['existing-session'] && verb !== 'blender-mcp') throw new Error('--existing-session belongs to blender-mcp.');
   for (const key of Object.keys(SCREENSHOT_OPTIONS) as (keyof typeof SCREENSHOT_OPTIONS)[])
-    if (values[key] !== undefined && verb !== 'screenshot') throw new Error(`--${key} belongs to screenshot.`);
+    if (values[key] !== undefined && verb !== 'screenshot' && !(key === 'width' && verb === 'render-movie')) throw new Error(`--${key} belongs to screenshot.`);
   for (const key of ['since', 'kind', 'json'] as const)
     if (values[key] !== undefined && verb !== 'play-log') throw new Error(`--${key} belongs to play-log.`);
   if (values.document !== undefined && verb !== 'play-log' && verb !== 'play') throw new Error('--document belongs to play-log and play.');
@@ -58,7 +60,9 @@ try {
   for (const [owner, options] of [['capture', CAPTURE_OPTIONS], ['camera', CAMERA_OPTIONS]] as const)
     for (const key of Object.keys(options) as (keyof typeof options)[])
       // `--out` is also view build's: where the static view is written.
-      if (values[key] !== undefined && verb !== owner && !(key === 'out' && verb === 'view')) throw new Error(`--${key} belongs to ${owner}.`);
+      if (values[key] !== undefined && verb !== owner && !(key === 'out' && (verb === 'view' || verb === 'render-movie'))) throw new Error(`--${key} belongs to ${owner}.`);
+  for (const key of ['from', 'to'] as const)
+    if (values[key] !== undefined && verb !== 'render-movie') throw new Error(`--${key} belongs to render-movie.`);
   if (!values.help && !values.version && verb !== 'create' && verb !== 'upgrade') {
     // The project a verb acts on: the folder it names, or the one around the working directory —
     // and for `open <path>` and `view build <folder>`, the project that owns that path as well.
@@ -69,7 +73,7 @@ try {
   if (values.version) {
     console.log(verb === 'blender-mcp' ? `BlenderMCP ${(await import('@volter/editor-blender/mcp')).BLENDER_MCP_VERSION}` : productPackage.version);
   } else if (values.help) {
-    console.log(`Volter Cyclotron\n  cyclotron                 # open this project, or prepare your starter model\n  cyclotron create <folder> [--template models|playable] [--workbench <dir>]\n  cyclotron ${ADD_PLAY_USAGE}\n  cyclotron ${UPGRADE_USAGE}\n  cyclotron prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  cyclotron edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  cyclotron ${CHAT_USAGE}\n  cyclotron status | console [--all] | close    # exit 1 for an unresolved console error; warnings print, exit 0; --all prints every retained entry\n  cyclotron console ack <id> --reason <text>\n  cyclotron eval <JavaScript> | --list\n  cyclotron ${PLAY_LOG_USAGE}    # what the running model play script logged\n  cyclotron ${SCREENSHOT_USAGE}\n  cyclotron ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  cyclotron ${CAMERA_USAGE}\n  cyclotron ${PLAY_USAGE}    # the Game panel's controls\n  cyclotron ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)
+    console.log(`Volter Cyclotron\n  cyclotron                 # open this project, or prepare your starter model\n  cyclotron create <folder> [--template models|playable] [--workbench <dir>]\n  cyclotron ${ADD_PLAY_USAGE}\n  cyclotron ${UPGRADE_USAGE}\n  cyclotron prepare [folder]    # run the session's dependency optimizer ahead of time (an image build's step)\n  cyclotron edit [folder] [--workbench <dir>] [--no-open] [--port <n>]\n  cyclotron ${CHAT_USAGE}\n  cyclotron status | console [--all] | close    # exit 1 for an unresolved console error; warnings print, exit 0; --all prints every retained entry\n  cyclotron console ack <id> --reason <text>\n  cyclotron eval <JavaScript> | --list\n  cyclotron ${PLAY_LOG_USAGE}    # what the running model play script logged\n  cyclotron ${SCREENSHOT_USAGE}\n  cyclotron ${CAPTURE_USAGE}    # the editor as seen, to .volter/captures/ by default\n  cyclotron ${RENDER_MOVIE_USAGE}    # a film of the Timeline: Blender's render on the three.js engine, encoded to WebM\n  cyclotron ${CAMERA_USAGE}\n  cyclotron ${PLAY_USAGE}    # the Game panel's controls\n  cyclotron ${VIEW_BUILD_USAGE}    # a static limited view of the project (docs/LIMITED-VIEW.md)
   cyclotron ${HOSTED_USAGE}\n  cyclotron sessions | project | projects\n  cyclotron open <path>\n  cyclotron blender-mcp [--existing-session]    # stdio MCP; optionally refuse editor startup`);
   } else if (verb === 'play') {
     console.log(JSON.stringify(await play(positionals.slice(1), values.document, values.for), null, 2));
@@ -123,6 +127,17 @@ try {
   } else if (verb === 'camera') {
     if (positionals.length > 1) throw new Error(`Usage: cyclotron ${CAMERA_USAGE}`);
     await camera(values);
+  } else if (verb === 'render-movie') {
+    // A FILM OF THE TIMELINE: Blender's own render on the three.js engine, encoded by the editor tab
+    // (never a loop of captures: a capture is evidence of what the person sees, not footage).
+    if (positionals.length > 1 || !values.out || !/\.webm$/i.test(values.out)) throw new Error(`Usage: cyclotron ${RENDER_MOVIE_USAGE}`);
+    const { resolveSession } = await import('@volter/live');
+    const session = await resolveSession(process.cwd());
+    const { renderMovie } = await import('@volter/editor-blender/mcp');
+    await renderMovie(session.projectRoot, {
+      out: resolve(process.cwd(), values.out), from: values.from, to: values.to,
+      ...(values.width ? { width: Number(values.width) } : {}),
+    });
   } else if (verb === 'capture') {
     if (positionals.length > 1) throw new Error(`Usage: cyclotron ${CAPTURE_USAGE}`);
     await capture(values);

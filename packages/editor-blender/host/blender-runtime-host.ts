@@ -54,6 +54,7 @@ import {
   type LinearCaptureFrame,
 } from '@volter/editor-threejs/capture/scene';
 import {blenderRenderCamera} from '@volter/blender-engine/browser/three/blender-render-camera';
+import { writeWebm, type WebmFrame } from './webm-writer';
 import * as THREE from 'three';
 import { blenderEngineSelection, refreshBlenderOutliner } from '../contributions/blender-outliner-model';
 import {
@@ -546,6 +547,102 @@ export async function blenderExecute(code: string, history = true, label = 'Blen
     result: failed === null ? text.replace(/^Code executed successfully: ?/, '') : '',
     error: failed === null ? null : text.replace(/^Error executing code: ?/, ''),
   };
+}
+
+// ---------------------------------------------------------------- a film, rendered
+
+/** The film being encoded (`blender-movie-*`), one at a time. */
+let movie: {
+  readonly encoder: VideoEncoder;
+  readonly frames: WebmFrame[];
+  readonly width: number;
+  readonly height: number;
+  readonly fps: number;
+  readonly codec: 'V_VP8' | 'V_VP9';
+  count: number;
+  error: string | null;
+} | null = null;
+/** Where the frames are written in Blender's own filesystem (never the project: nothing to mirror). */
+const MOVIE_DIR = '/tmp/volter-movie';
+
+async function movieBegin(width: number, height: number, fps: number): Promise<{ codec: string }> {
+  if (typeof VideoEncoder === 'undefined') throw new Error('This browser has no WebCodecs VideoEncoder, which render-movie encodes with.');
+  // (VP9 and VP8 want even sides)
+  const w = Math.max(2, Math.round(width / 2) * 2), h = Math.max(2, Math.round(height / 2) * 2);
+  const base = { width: w, height: h, framerate: fps, bitrate: Math.round(w * h * fps * 0.12) };
+  const vp9 = await VideoEncoder.isConfigSupported({ ...base, codec: 'vp09.00.10.08' }).catch(() => ({ supported: false }));
+  const codec = vp9.supported ? 'vp09.00.10.08' : 'vp8';
+  const frames: WebmFrame[] = [];
+  const state = { encoder: null as unknown as VideoEncoder, frames, width: w, height: h, fps, codec: (vp9.supported ? 'V_VP9' : 'V_VP8') as 'V_VP8' | 'V_VP9', count: 0, error: null as string | null };
+  state.encoder = new VideoEncoder({
+    output: (chunk) => {
+      const data = new Uint8Array(chunk.byteLength);
+      chunk.copyTo(data);
+      frames.push({ data, ms: chunk.timestamp / 1000, key: chunk.type === 'key' });
+    },
+    error: (error) => { state.error = error.message; },
+  });
+  state.encoder.configure({ ...base, codec });
+  movie?.encoder.close();
+  movie = state;
+  return { codec };
+}
+
+async function movieFrames(numbers: readonly number[]): Promise<{ encoded: number }> {
+  const film = movie;
+  if (!film) throw new Error('No film is being rendered: blender-movie-begin first.');
+  // ONE CALL RENDERS THE CHUNK, the scene's engine and output put back after, so the file is as it was.
+  const code = `
+import bpy, os, glob
+os.makedirs(${JSON.stringify(MOVIE_DIR)}, exist_ok=True)
+for old in glob.glob(${JSON.stringify(MOVIE_DIR + '/*.png')}):
+    os.remove(old)
+s = bpy.context.scene
+r = s.render
+kept = (r.engine, r.filepath, r.image_settings.file_format, r.resolution_x, r.resolution_y, r.resolution_percentage, s.frame_current)
+try:
+    r.engine = 'VOLTER_THREE'
+    r.image_settings.file_format = 'PNG'
+    r.resolution_x, r.resolution_y, r.resolution_percentage = ${film.width}, ${film.height}, 100
+    for f in ${JSON.stringify(numbers)}:
+        s.frame_set(f)
+        r.filepath = ${JSON.stringify(MOVIE_DIR)} + '/f%05d.png' % f
+        bpy.ops.render.render(write_still=True)
+finally:
+    r.engine, r.filepath, r.image_settings.file_format, r.resolution_x, r.resolution_y, r.resolution_percentage = kept[:6]
+    s.frame_set(kept[6])
+`;
+  const answer = await blenderExecute(code, false, 'render-movie');
+  if (!answer.executed) throw new Error(`Blender could not render frames ${numbers[0]}-${numbers.at(-1)}: ${answer.error}`);
+  const session = blenderRuntime();
+  for (const f of numbers) {
+    const png = await session.readFile(`${MOVIE_DIR}/f${String(f).padStart(5, '0')}.png`);
+    const bitmap = await createImageBitmap(new Blob([png as BlobPart], { type: 'image/png' }));
+    const at = (film.count * 1_000_000) / film.fps;
+    const frame = new VideoFrame(bitmap, { timestamp: at, duration: 1_000_000 / film.fps });
+    film.encoder.encode(frame, { keyFrame: film.count % Math.max(1, Math.round(film.fps * 2)) === 0 });
+    frame.close();
+    bitmap.close();
+    film.count += 1;
+    while (film.encoder.encodeQueueSize > 4) await new Promise((done) => film.encoder.addEventListener('dequeue', done, { once: true }));
+    if (film.error) throw new Error(`The video encoder failed: ${film.error}`);
+  }
+  return { encoded: film.count };
+}
+
+async function movieEnd(transferId: string): Promise<{ bytes: number; frames: number; codec: string }> {
+  const film = movie;
+  if (!film) throw new Error('No film is being rendered.');
+  movie = null;
+  await film.encoder.flush();
+  film.encoder.close();
+  if (film.error) throw new Error(`The video encoder failed: ${film.error}`);
+  const bytes = writeWebm({ codec: film.codec, width: film.width, height: film.height, durationMs: (film.count * 1000) / film.fps }, film.frames);
+  const posted = await fetch(`/__editor/blender-file?id=${encodeURIComponent(transferId)}`, {
+    method: 'POST', headers: { 'content-type': 'video/webm' }, body: new Blob([bytes as BlobPart]),
+  });
+  if (!posted.ok) throw new Error(`Transfer ${transferId} was refused: ${posted.status}`);
+  return { bytes: bytes.length, frames: film.count, codec: film.codec };
 }
 
 /**
@@ -1256,6 +1353,12 @@ const string = (cmd: Record<string, unknown>, key: string): string => {
     throw new Error(`${String(cmd['type'])} requires a string "${key}"`);
   return value;
 };
+const number = (cmd: Record<string, unknown>, key: string): number => {
+  const value = cmd[key];
+  if (typeof value !== 'number' || !Number.isFinite(value))
+    throw new Error(`${String(cmd['type'])} requires a number "${key}"`);
+  return value;
+};
 
 /**
  * The project-relative path of the `.blend` the SESSION'S PYTHON currently
@@ -1552,6 +1655,17 @@ export async function handleBlenderCommand(cmd: {
           return { ok: false, error: `Transfer ${transfer} was refused: ${posted.status}` };
         return { ok: true, data: { bytes: bytes.length } };
       }
+      // A FILM, RENDERED (`cyclotron render-movie`): the Timeline's frames through Blender's own render
+      // on the three.js engine (VOLTER_THREE), each PNG read back and handed to the browser's video
+      // encoder, the WebM written here and spooled to the CLI as a file is (`blender-read-file`).
+      case 'blender-movie-begin':
+        return { ok: true, data: await movieBegin(number(cmd, 'width'), number(cmd, 'height'), number(cmd, 'fps')) };
+      case 'blender-movie-frames': {
+        const frames = (cmd['frames'] as unknown[]).map((f) => Number(f));
+        return { ok: true, data: await movieFrames(frames) };
+      }
+      case 'blender-movie-end':
+        return { ok: true, data: await movieEnd(string(cmd, 'transferId')) };
       case 'blender-write-file': {
         const binary = atob(string(cmd, 'base64'));
         const bytes = Uint8Array.from(binary, (char) => char.charCodeAt(0));

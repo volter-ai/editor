@@ -487,6 +487,28 @@ export async function capture(options: { region?: string | undefined; name?: str
   // grid it read as one surface in nearly every capture (2026-10-08: "~92% one flat surface" on
   // page captures of a full UI board), so a warning there told a reader nothing.
   if (region !== 'page' && shot.flatness?.degenerate === true && shot.flatness.warning !== undefined) console.error(`warning — ${shot.flatness.warning}`);
+  noticeFootageLoop(session.projectRoot, region);
+}
+
+/**
+ * A CAPTURE IS EVIDENCE, NOT FOOTAGE. Play captured again and again in a short time is someone
+ * assembling a film a screenshot at a time (2026-10-09: an agent stepped Play and captured the page
+ * for each frame of a cutscene, 14 frames in the time a film should have rendered, holding the
+ * editor the person was using). Said once per run of captures, on the third within two minutes.
+ */
+function noticeFootageLoop(projectRoot: string, region: string): void {
+  if (region !== 'play') return;
+  const file = join(projectRoot, '.volter', 'captures', '.recent-play.json');
+  const now = Date.now();
+  let recent: number[] = [];
+  try { recent = (JSON.parse(readFileSync(file, 'utf8')) as number[]).filter((t) => now - t < 120_000); } catch { /* none yet */ }
+  recent.push(now);
+  try { mkdirSync(dirname(file), { recursive: true }); writeFileSync(file, JSON.stringify(recent)); } catch { /* the notice is a courtesy */ }
+  if (recent.length === 3) {
+    console.error('notice — three Play captures in two minutes. A capture is evidence of what the person sees, not footage: '
+      + 'to make a film of a Timeline span, render it (`cyclotron render-movie --from <marker> --to <marker> --out <file>.webm`: '
+      + "Blender's Render Animation on the three.js engine, encoded by the editor), and to watch a cutscene play, read `play-log --kind cutscene`.");
+  }
 }
 
 /** Refuse a target that reads BOTH as a file and as a live entity. */
