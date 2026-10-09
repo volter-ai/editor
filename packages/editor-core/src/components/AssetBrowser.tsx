@@ -89,6 +89,7 @@ import {
   revealInFinder,
 } from '@volter/sdk/kit/editor-api';
 import { editorConsole } from '@volter/sdk/kit/editor-console';
+import { formatChord, isMacPlatform } from '@volter/sdk/kit/keymap-presets';
 import { useEditorStore, useHistoryService } from '@volter/sdk/kit/editor-runtime';
 import type { AssetKind as DocumentAssetKind } from '@volter/sdk/kit/asset-selection';
 import { hierarchyNodesBreadthFirst } from '@volter/sdk/kit/hierarchy-walk';
@@ -2765,7 +2766,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
                 setContextMenu(null);
               }}
             >
-              Duplicate <kbd>⌘D</kbd>
+              Duplicate <kbd>{formatChord({ key: 'd', mod: true })}</kbd>
             </MenuItem>
             <MenuItem
               type="button"
@@ -2846,7 +2847,7 @@ export function AssetBrowser({ services = DEFAULT_ASSET_BROWSER_SERVICES }: Asse
             >
               {/* Delete and Backspace both delete (the key handler above); the hint names the one
                 this keyboard calls Delete. */}
-              Delete <kbd>{fileManagerName() === 'Finder' ? '⌫' : 'Del'}</kbd>
+              Delete <kbd>{isMacPlatform() ? '⌫' : 'Del'}</kbd>
             </MenuItem>
           </Menu>
         </ThemeRootPortal>
