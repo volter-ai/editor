@@ -22,6 +22,7 @@
     "LICENSE-MCP",
     "serving",
     "view",
+    "web-export",
     "dist-node"
   ],
   "exports": {
@@ -29,6 +30,7 @@
     "./looks": "./src/looks.ts",
     "./layouts": "./src/layouts.tsx",
     "./mcp": "./node/blender-mcp.ts",
+    "./web-export/*": "./web-export/*",
     "./package.json": "./package.json"
   },
   "volter": {
@@ -40,6 +42,7 @@
       "./contributions/blender-screenshot.menu.ts",
       "./contributions/blender-version.status.tsx",
       "./contributions/blender.command.ts",
+      "./contributions/blender-export.command.ts",
       "./contributions/blender.environment.ts",
       "./contributions/blender.keymap.ts",
       "./contributions/blender.status.tsx",
