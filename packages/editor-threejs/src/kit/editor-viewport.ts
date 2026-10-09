@@ -1399,6 +1399,15 @@ export class EditorViewport {
 
     // OrbitControls: the editor's own mouse is right-drag to orbit, middle-drag to pan and the
     // wheel to zoom; a keymap may orbit on the middle button instead (`applyKeymapNavigation`).
+    // OrbitControls captures the pointer on every pointerdown; while a game holds a pointer lock
+    // (its mouse look) the browser refuses capture with an uncaught InvalidStateError on each
+    // click. Capture is meaningless under a lock (every move already comes to the locked
+    // element), so it is skipped then.
+    const capture = interactionElement.setPointerCapture.bind(interactionElement);
+    interactionElement.setPointerCapture = (pointerId: number) => {
+      if (interactionElement.ownerDocument.pointerLockElement) return;
+      capture(pointerId);
+    };
     this.orbitControls = new OrbitControls(this.camera, interactionElement);
     this.orbitControls.enableDamping = true;
     this.orbitControls.dampingFactor = 0.1;

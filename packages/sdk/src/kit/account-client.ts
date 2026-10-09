@@ -15,6 +15,7 @@ import {
   generationAccountProjection,
   ProviderCredentialTestResultSchema,
 } from '@volter/sdk/account';
+import { LIMITED_VIEW_HEADER } from '@volter/sdk/session/limited-view';
 import { assertEditorServerAnswered } from '@volter/sdk/kit/editor-server-response';
 import { COLLABORATION_REMOTE_SHARE } from '@volter/sdk/kit/editor-session-attribution';
 
@@ -88,9 +89,14 @@ export function subscribeAccount(listener: () => void): () => void {
   listeners.add(listener);
   return () => listeners.delete(listener);
 }
+/** A limited view has no account service and says so once (`x-volter-limited-view: unavailable`);
+ *  asking again every 30 s only fills the page's network log with 503s. */
+let accountUnavailable = false;
 export async function refreshAccount(): Promise<EditorAccountSnapshot> {
   try {
-    const next = await responseSnapshot(await fetch('/__editor/account'), 'Account read failed');
+    const response = await fetch('/__editor/account');
+    if (response.headers.get(LIMITED_VIEW_HEADER) === 'unavailable') accountUnavailable = true;
+    const next = await responseSnapshot(response, 'Account read failed');
     publish(next);
     return next;
   } catch (cause) {
@@ -328,6 +334,6 @@ export function startAccountActivity(): () => void {
   } else {
     void refreshAccount().catch(() => undefined);
   }
-  const timer = window.setInterval(() => void refreshAccount().catch(() => undefined), 30_000);
+  const timer = window.setInterval(() => { if (!accountUnavailable) void refreshAccount().catch(() => undefined); }, 30_000);
   return () => window.clearInterval(timer);
 }
