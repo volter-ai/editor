@@ -208,6 +208,32 @@ export function subscribeDocumentPlayExtensions(listener: () => void): () => voi
   registry.listeners.add(listener);
   return () => { registry.listeners.delete(listener); };
 }
+/** Whether a document's own Play runs, and whether it is paused: what a status line says. */
+export function documentPlayState(documentId: string): 'playing' | 'paused' | 'stopped' {
+  for (const extension of registry.extensions.values()) {
+    if (!extension.playing(documentId)) continue;
+    return extension.transport?.clock(documentId).paused ? 'paused' : 'playing';
+  }
+  return 'stopped';
+}
+/** Every Play start and stop, and every tool's clock (a pause is a clock change). The clock moves
+ *  every played frame, so this is for a reader whose snapshot changes rarely. */
+export function subscribeDocumentPlayState(listener: () => void): () => void {
+  let clocks: (() => void)[] = [];
+  const rebind = (): void => {
+    for (const stop of clocks) stop();
+    clocks = [...registry.extensions.values()].flatMap((extension) =>
+      extension.transport ? [extension.transport.subscribeClock(listener)] : []);
+  };
+  const onRegistry = (): void => { rebind(); listener(); };
+  registry.listeners.add(onRegistry);
+  rebind();
+  return () => {
+    registry.listeners.delete(onRegistry);
+    for (const stop of clocks) stop();
+    clocks = [];
+  };
+}
 export function registerDocumentPlayExtension(kind: string, extension: DocumentPlayExtension): () => void {
   if (registry.extensions.has(kind)) throw new Error(`A Play tool already owns ${kind} documents.`);
   registry.extensions.set(kind, extension);
