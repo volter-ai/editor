@@ -2014,16 +2014,30 @@ export class HarnessChatService {
       const configured = this.chatSelection;
       const harness = params && typeof params === 'object' ? (params as { harness?: string }).harness : undefined;
       const configures = harness !== undefined && harness === configured.harness && Boolean(configured.model || configured.effort);
-      // Every Claude Code start and resume names its manual mode (`withManualApproval`): "Ask for approval" (t_8ea14bad).
-      if (configures || harness === 'claude-code') {
-        const client = this.discoveryClient as SupercodeClient & { supportReport(): Promise<{ harnesses: Array<{ id: string; runtime: { default_launch: { program: string; arguments: string[]; env?: Record<string, string> } | null } }> }> };
-        const report = await client.supportReport();
-        let launch = (params as { launch?: { program: string; arguments: string[]; env?: Record<string, string> } }).launch ?? report.harnesses.find(h => h.id === harness)?.runtime.default_launch;
+      // Every Claude Code start and resume names its manual mode (`withManualApproval`): "Ask for approval"
+      // (t_8ea14bad). Not an attach (`base_url`): a process already running cannot take a new mode.
+      const asks = harness === 'claude-code' && (params as { base_url?: unknown }).base_url === undefined;
+      if (configures || asks) {
+        type Launch = { program: string; arguments: string[]; env?: Record<string, string> };
+        let launch = (params as { launch?: Launch }).launch;
+        if (!launch) {
+          // The harness's own launch, only when the call names none. For the mode alone a failed read keeps the
+          // start working without it, and says Ask cannot hold there; a chosen model or effort still needs it.
+          try {
+            const client = this.discoveryClient as (SupercodeClient & { supportReport(): Promise<{ harnesses: Array<{ id: string; runtime: { default_launch: Launch | null } }> }> }) | null;
+            if (!client) throw new Error('the harness is still being discovered');
+            launch = (await client.supportReport()).harnesses.find(h => h.id === harness)?.runtime.default_launch ?? undefined;
+          } catch (error) {
+            if (configures) throw error;
+            console.warn(`[chat] Claude Code's launch could not be read (${errorMessage(error)}), so this conversation starts without its manual mode and "Ask for approval" cannot stop a call in it.`);
+          }
+        }
         if (!launch) {
           if (configures) throw new Error('This harness exposes no configurable launch.');
+          if (asks) console.warn('[chat] Claude Code reports no launch to add its manual mode to, so "Ask for approval" cannot stop a call in this conversation.');
         } else {
           if (configures) launch = selectedChatLaunch(configured, launch);
-          if (harness === 'claude-code') launch = withManualApproval(launch);
+          if (asks) launch = withManualApproval(launch);
           params = { ...(params as object), launch };
         }
       }
