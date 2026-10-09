@@ -5,6 +5,23 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.205 — the opening's card pull, and a Chat that saves a conversation once
+
+- **The opening.** While Blender boots, Cyclotron's cover is a card pull. The card rises, flips with
+  a burst, prints in a render of the machine standing in a setting (the canyon first), and lands its
+  stars and the setting's name. The line under it says what the editor is waiting for. Each boot
+  pulls the first setting this browser has not seen, then the next in turn, and a first sighting wears
+  a NEW tag. With reduced motion the settled card shows at once.
+- **Chat 0.1.55** (supercode #1360). A completed turn no longer saves the same conversation to the
+  editor a second time, and it checks the editor's binding before trusting its own record of the save.
+- **Document tabs** (#292). Each open document has a tab; the workspace's areas have none.
+- **Build tripwires reach the Chat agent only while one of its tool calls is out** (#321). A line
+  steered into a talk-only turn used to arrive after it as a new prompt, and the agent answered it in
+  the person's Chat. Such a crossing is now kept in the terminal and the session journal, where the
+  `tripwire-nudge` event has a new outcome: `no-call-out`.
+- **Windows.** The editor runs npm and a configuration's scripts as one quoted command line, and
+  `upgrade` replaces an untouched `check-idioms.ts` with this release's (#317, #318, #319).
+
 ## 0.5.204 — Chat starts a new conversation again
 
 From `@volter/cyclotron` 0.5.199 to 0.5.203, the editor Chat refused the first message of a new
