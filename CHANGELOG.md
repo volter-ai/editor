@@ -7,11 +7,10 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
 
 ## 0.5.211 — the Chat's agent speaks in its replies only
 
-- **The Chat's agent no longer sends notes to itself.** The starter's `AGENTS.md` said `chat send` "sends to the
-  visible conversation", so the agent in the Chat posted its status lines with it; each came back into its own turn as
-  the person's message, which it then answered (the 0.5.210 Mac walk). The guidance now says `chat send` drives the
-  Chat from outside it, and that the agent in the Chat never uses it. A project's `AGENTS.md` follows at its next
-  `edit`, as starter guidance does.
+- **The starter's guidance no longer has the Chat's agent use `chat send`.** It said `chat send` "sends to the visible
+  conversation", so the agent in the Chat posted status lines with it, and each came back into its own turn as the
+  person's message (the 0.5.210 Mac walk). `AGENTS.md` now says the chat commands drive the Chat from outside it; a
+  project's starter `AGENTS.md` follows at its next `edit`.
 - **`upgrade` with nothing to move says why its hint is there.** "If an editor still refuses this project…" read as
   a failure after "already on"; it now reads "If you ran this because an editor refused the project…".
 
