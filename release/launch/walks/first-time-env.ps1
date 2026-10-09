@@ -52,7 +52,9 @@ if ($EmptyProfile) {
 	}
 	if ($Fresh -and (Test-Path -LiteralPath $root)) {
 		# Not Remove-Item -Recurse, which in Windows PowerShell 5.1 can follow a junction out of the folder.
-		[IO.Directory]::Delete($root, $true)
+		# Through the \\?\ prefix: a walk's profile holds paths over 260 characters (npm's cache, a
+		# PowerShell module, 265 measured), which Windows PowerShell 5.1's .NET cannot delete otherwise.
+		[IO.Directory]::Delete("\\?\$root", $true)
 	}
 	$roaming = Join-Path $root 'AppData\Roaming'
 	$local = Join-Path $root 'AppData\Local'
