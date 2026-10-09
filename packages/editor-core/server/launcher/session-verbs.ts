@@ -482,7 +482,11 @@ export async function capture(options: { region?: string | undefined; name?: str
   writeFileSync(outPath, Buffer.from(shot.base64, 'base64'), { flag: options.force === true ? 'w' : 'wx' });
   console.log(outPath);
   console.error(`${region}: ${shot.size.width}x${shot.size.height} at ${shot.scale}x (${shot.layers.canvases} canvas, ${shot.layers.domOverlays} DOM layer${shot.layers.domOverlays === 1 ? '' : 's'})`);
-  if (shot.flatness?.degenerate === true && shot.flatness.warning !== undefined) console.error(`warning — ${shot.flatness.warning}`);
+  // THE FLAT-FRAME WARNING IS ABOUT A VIEW (a wall, an empty scene, a buried camera). The whole
+  // page is the editor's own chrome, dark panels around whatever is shown, and on the sampling
+  // grid it read as one surface in nearly every capture (2026-10-08: "~92% one flat surface" on
+  // page captures of a full UI board), so a warning there told a reader nothing.
+  if (region !== 'page' && shot.flatness?.degenerate === true && shot.flatness.warning !== undefined) console.error(`warning — ${shot.flatness.warning}`);
 }
 
 /** Refuse a target that reads BOTH as a file and as a live entity. */

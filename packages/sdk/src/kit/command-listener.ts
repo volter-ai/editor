@@ -765,17 +765,11 @@ async function handleDocumentScript(cmd: EditorCommand): Promise<CommandResult> 
       data: { code: 'DOCUMENT_SCRIPT_UNAVAILABLE', documentId },
     };
   }
-  if (context === undefined) {
-    return {
-      ok: false,
-      error:
-        `document-script: the active document (${documentId}) publishes no context to run ` +
-        'against — a document opts in through its `publishContext` prop (the mesh document ' +
-        'publishes its session).',
-      data: { code: 'DOCUMENT_SCRIPT_UNAVAILABLE', documentId },
-    };
-  }
-  let step: (ctx: unknown, info: { documentId: string }) => unknown;
+  // A DOCUMENT WITH NO CONTEXT STILL HAS A PAGE. The step runs with `ctx` null and
+  // `info.context` false, so it can read what the page holds (a registry, the module-change bus,
+  // resource timing) while the UI board is the active document; refusing left no in-page door at
+  // all on that board (2026-10-08, diagnosing its hot reload). The result says it ran context-less.
+  let step: (ctx: unknown, info: { documentId: string; context: boolean }) => unknown;
   try {
     step = new Function('ctx', 'info', `return (${src})(ctx, info)`) as typeof step;
   } catch (err) {
@@ -788,8 +782,11 @@ async function handleDocumentScript(cmd: EditorCommand): Promise<CommandResult> 
     };
   }
   try {
-    const result = await step(context, { documentId });
-    return { ok: true, data: { result: result === undefined ? null : result } };
+    const result = await step(context ?? null, { documentId, context: context !== undefined });
+    return {
+      ok: true,
+      data: { result: result === undefined ? null : result, ...(context === undefined ? { context: false } : {}) },
+    };
   } catch (err) {
     return {
       ok: false,
