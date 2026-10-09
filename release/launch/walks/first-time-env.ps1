@@ -46,10 +46,11 @@ if ($EmptyProfile) {
 	if ($root -eq [IO.Path]::GetPathRoot($root).TrimEnd('\') -or ($guarded | Where-Object { $_ -eq $root -or $_.StartsWith("$root\", [StringComparison]::OrdinalIgnoreCase) })) {
 		throw "first-time-env: $root cannot be the empty profile (a drive root, or a real profile, TEMP or system folder, or above one)."
 	}
+	# On every run, not only -Fresh: the marker is written below, and a folder marked once is one -Fresh may delete.
+	if ((Test-Path -LiteralPath $root) -and (Get-ChildItem -LiteralPath $root -Force | Measure-Object).Count -and -not (Test-Path -LiteralPath $marker)) {
+		throw "first-time-env: $root is not empty and was not made by this script; refusing to use it as the empty profile."
+	}
 	if ($Fresh -and (Test-Path -LiteralPath $root)) {
-		if ((Get-ChildItem -LiteralPath $root -Force | Measure-Object).Count -and -not (Test-Path -LiteralPath $marker)) {
-			throw "first-time-env: $root is not empty and was not made by this script; refusing to delete it."
-		}
 		# Not Remove-Item -Recurse, which in Windows PowerShell 5.1 can follow a junction out of the folder.
 		[IO.Directory]::Delete($root, $true)
 	}
