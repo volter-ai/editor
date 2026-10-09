@@ -13,7 +13,7 @@ page counted, sign-ins and waitlist collected).
 
 | # | Step | Who | State |
 |---|---|---|---|
-| 1 | **0.5.205**: win32 and linux workbench (card pull, Chat 0.1.55), Ask for approval, then RELEASING's end-of-coding run, the promotion and the merge-back | volter-10 | cuts running at d0e6c475; Ask for approval (#334) reworked onto Claude Code's own `--permission-mode default` launch flag (no supercode upgrade) and read live on Windows: Ask waits, Deny stops, Allow runs, Auto runs, default model and Sonnet/low; under review. Goal 3's pending approval needs it |
+| 1 | **0.5.205**: win32 and linux workbench (card pull, Chat 0.1.55), Ask for approval, then RELEASING's end-of-coding run, the promotion and the merge-back | volter-10 | win32 and linux pinned at the d0e6c475 cuts (the Chat's new conversation, follow-up and reopen read PASS on win32; the cover holds until the card lands, sampled 1.39 s to 6.95 s); Ask for approval merged (#334, read live); next: the end-of-coding run on the measured main |
 | 2 | **darwin workbench**, then its pin | the Mac, on the owner's word | blocked on that word (t_a2bd2a5f) |
 | 3 | **Browser trial on the current release** | the Mac's sites World | release `model-editor-browser-trial-20261008-3` built and read locally; deploy waits on the World |
 | 4 | **Blind walks** on the published build (stage 2) | volter-10 on Windows (walks 1, 3, 4, 5 in Chrome/Edge/Firefox, 6, 7); the Mac (2, 5 in Safari, 7); walk 8 after Discord | Windows runsheet and first-time environment merged (#335); a FAIL is fixed, released and walked again |
@@ -72,7 +72,6 @@ Nothing here lives only on one machine. Parking work means: push it to a branch,
 | darwin workbench for the card pull and Chat 0.1.55 | card t_a2bd2a5f (the Mac), editor d0e6c475 | blocked: the Mac cuts and publishes only on the owner's own word for this cut | the owner's word to the Mac; then the darwin pin in `packages/cyclotron/package.json` (0.5.205 pins win32 and linux, darwin keeps ec1e0e845c3a) |
 | Browser trial on the renamed packages | sites release `model-editor-browser-trial-20261008-3` (#48 merged) | built; read locally: it opens and Play runs | deploy through the World on the Mac |
 | www.videogame.ai replacement | sites `videogame-ai/` | never published | owner looks at the copy, then the World |
-| "Ask for approval" (t_8ea14bad) | editor #334 (head 1d55bbb2) | `--permission-mode default` on every Claude Code launch; read live on Windows (all four cases, both launch paths); no supercode upgrade | its review, then merge into 0.5.205 |
 | Cyclotron Bridge reopen on the Mac (t_c92f341b) | browser-substrate main (tabnode 0.9.0, 58a06eea) | the pin half is on main; my 0.8.0 pin branch was superseded and deleted | the reopen read on the Mac |
 
 ## The launch, in three stages (decided 2026-10-08, 22:40 UTC)

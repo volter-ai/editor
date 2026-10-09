@@ -61,12 +61,12 @@
           "tarballSha256": "2a57c0cbc8baa64114d727fe9be00e849f5b8257a8416b50189017f247982c55"
         },
         "linux-x64": {
-          "release": "cyclotron-4782d9a281ef-9a813b17c0a3-linux-x64",
-          "tarballSha256": "f29f964ff1665abd75355dbf343549badc8b7577dc84ca8bbd18ec656fc42a64"
+          "release": "cyclotron-4782d9a281ef-d0e6c47516b8-linux-x64",
+          "tarballSha256": "8d16470335a099962e09c7a232521f1a9f2d67bd6707bf537e4b150167b03fab"
         },
         "win32-x64": {
-          "release": "cyclotron-4782d9a281ef-ec1e0e845c3a-win32-x64",
-          "tarballSha256": "3eecc57767a754cb839ff81fd107db5a524c06ca164a1e3757602d62844967e4"
+          "release": "cyclotron-4782d9a281ef-d0e6c47516b8-win32-x64",
+          "tarballSha256": "cefdd8402eeb2ea3aa903424f0247b89538c95e615d5740fb8f46781d886d3dc"
         }
       }
     }
