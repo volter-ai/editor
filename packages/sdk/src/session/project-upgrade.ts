@@ -351,8 +351,14 @@ async function readRelease(product: UpgradingProduct, requested: string | undefi
     return await npmView(spec);
   } catch (error) {
     const reason = error instanceof Error ? error.message : String(error);
-    throw new Error(`Could not read ${spec} from the registry (${reason}). Name a published version: ${product.command} upgrade <version>.`);
+    throw new Error(`Could not read ${spec} from the registry (${reason}). Name a published version: ${projectLine(product.command, 'upgrade <version>')}.`);
   }
+}
+
+/** A verb as a person runs it from the project folder, through its own install and in any shell (the Next lines
+ *  at the end of `upgradeProject` say why). */
+function projectLine(command: string, verb: string): string {
+  return `${process.platform === 'win32' ? 'npx.cmd' : 'npx'} --no-install ${command} ${verb}`;
 }
 
 export async function upgradeProject(product: UpgradingProduct, requested?: string, cwd = process.cwd()): Promise<void> {
@@ -401,7 +407,7 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
   if (pkg.workspaces !== undefined) {
     const members = Array.isArray(pkg.workspaces) ? pkg.workspaces
       : Array.isArray((pkg.workspaces as { packages?: unknown }).packages) ? (pkg.workspaces as { packages: unknown[] }).packages : [];
-    kept.push(`workspace members${members.length > 0 ? ` (${members.map(String).join(', ')})` : ''} are not upgraded: run ${product.command} upgrade in each member that is a project`);
+    kept.push(`workspace members${members.length > 0 ? ` (${members.map(String).join(', ')})` : ''} are not upgraded: run ${projectLine(product.command, 'upgrade')} in each member that is a project`);
   }
 
   let packagesChanged = false;
@@ -588,7 +594,7 @@ export async function upgradeProject(product: UpgradingProduct, requested?: stri
     if (requested === undefined)
       throw new Error(
         `${product.packageName}@latest is ${release.version} (engine ${engine}), older than the ${backwards} this project is on, so upgrading to it would move the project backwards. ` +
-          `Nothing was changed. To go back on purpose, name the version: ${product.command} upgrade ${release.version}.`,
+          `Nothing was changed. To go back on purpose, name the version: ${projectLine(product.command, `upgrade ${release.version}`)}.`,
       );
     warnings.push(`This moves the project BACKWARDS, from ${backwards} to ${product.packageName}@${release.version} (engine ${engine}), because that version was named.`);
   }

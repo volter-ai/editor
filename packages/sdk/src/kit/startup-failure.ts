@@ -22,7 +22,7 @@
 export interface StartupFailureNotice {
   readonly message: string;
   readonly guidance: string | null;
-  /** The recovery as one pasteable line (`commandSequence`), when it has one. */
+  /** The recovery to paste, one command per line (`commandSequence`), when it has one. */
   readonly command: string | null;
   /**
    * STILL TRYING, not refused: a slow start that may yet succeed (detection that keeps being
