@@ -238,8 +238,11 @@ export async function refreshStarterGuidance(projectDir: string, log: (line: str
   let current: string;
   try { current = await readFile(target, 'utf8'); } catch { return; }
   const starter = await readFile(join(productRoot, 'starter', 'AGENTS.md'), 'utf8');
-  const firstLine = (text: string): string => text.split(/\r?\n/, 1)[0] ?? '';
-  if (current === starter || firstLine(current) !== firstLine(starter)) return;
+  // Compared without line endings: git checks the starter out with CRLF on Windows, and a byte
+  // comparison replaced an up-to-date AGENTS.md at every edit of every Windows checkout.
+  const normal = (text: string): string => text.replace(/\r\n/g, '\n');
+  const firstLine = (text: string): string => normal(text).split('\n', 1)[0] ?? '';
+  if (normal(current) === normal(starter) || firstLine(current) !== firstLine(starter)) return;
   await mkdir(join(projectDir, '.volter'), { recursive: true });
   await writeFile(join(projectDir, '.volter', 'AGENTS.previous.md'), current);
   await writeFile(target, starter);
