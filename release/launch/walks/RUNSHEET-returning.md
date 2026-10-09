@@ -6,10 +6,10 @@ first FAIL, copy the exact text on screen and save a screenshot. Do not read the
 anything, run no tests, never submit a form, and never start a ChatGPT or Claude sign-in: a step that reaches a
 sign-in screen stops there and says so.
 
-Walk it on Windows and on a Mac, once per starting release: 0.5.202 and 0.5.203 (from before the package rename)
-and 0.5.204 (the previous release). The starting state is made before the walk by whoever sets it up, not by you:
-a playable project created with `npx @volter/cyclotron@<release> create my-race --template playable`, opened once,
-its race played, one change made with the Chat and saved, and the editor closed.
+Walk it on Windows and on a Mac, once per starting release: 0.5.202 and 0.5.203 (from before the package rename),
+0.5.204, and 0.5.205 (the previous release). The starting state is made before the walk by whoever sets it up, not
+by you: a playable project created with `npx @volter/cyclotron@<release> create my-race --template playable`,
+opened once, its race played, one change made with the Chat and saved, and the editor closed.
 
 ## Steps
 

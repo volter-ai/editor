@@ -5,7 +5,7 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
-## 0.5.205 — the opening's card pull, and a Chat that saves a conversation once
+## 0.5.206 — the opening's card pull, and a Chat that saves a conversation once
 
 - **The opening.** While Blender boots, Cyclotron's cover is a card pull. The card rises, flips with
   a burst, prints in a render of the machine standing in the canyon, and lands its stars and the
@@ -13,8 +13,8 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   Blender is still preparing underneath). The line under it says what the editor is waiting for. The
   canyon is the one setting so far, and its first sighting in a browser wears a NEW tag; as settings
   are added, each boot pulls the first one that browser has not seen, then the next in turn. With
-  reduced motion the settled card shows at once. On Windows and Linux; macOS keeps the previous
-  workbench (the axes splash and Chat 0.1.51) until its own cut is made.
+  reduced motion the settled card shows at once. On Windows and Linux; macOS keeps 0.5.205's workbench
+  (the earlier splash and Chat 0.1.51) until its own cut is made.
 - **Chat 0.1.55** (supercode #1360), on Windows and Linux. A completed turn no longer saves the same
   conversation to the editor a second time, and it checks the editor's binding before trusting its own
   record of the save.
@@ -27,6 +27,17 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   Arc or Chromium; any other default browser is kept. Opened in Safari anyway, the editor's address shows a
   page saying why, with the address to open elsewhere, and `cyclotron edit` says so in the terminal if the page
   never arrives.
+- **Document tabs survive a document moved into an area** (#328), on Windows and Linux. Before, moving the
+  open document into the bottom area (dragging its tab onto the Game panel) lost the tab row, and opening the
+  document again did not bring it back.
+- **The agent guidance refresh ignores line endings** (#349). On Windows, where git checks `AGENTS.md` out with
+  CRLF line endings, `edit` no longer replaces an up-to-date copy and says it updated it.
+
+## 0.5.205 — a tab per document, and tripwires that wait for a tool call
+
+Its workbench, on Windows, macOS and Linux, is the cut from editor ec1e0e84
+(`cyclotron-4782d9a281ef-ec1e0e845c3a`): a tab per document, with 0.5.204's boot splash and Chat 0.1.51.
+
 - **Document tabs** (#292). Each open document has a tab; the workspace's areas have none.
 - **Build tripwires reach the Chat agent only while one of its tool calls is out** (#321). A line
   steered into a talk-only turn used to arrive after it as a new prompt, and the agent answered it in
@@ -44,6 +55,22 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   with no `node_modules` and no `package-lock.json`) to the new version's image, or says why it did not (a
   version that is not one exact number); a game with its own lockfile keeps installing its own. It also
   replaces an untouched `check-idioms.ts` with this release's.
+- **The workbench server reads its own extensions folder** (#336), `~/.volter/workbench-extensions/<product>`, in
+  place of `~/.vscode-server-oss/extensions`, which every Code-OSS server on the machine shares. An extension
+  installed there for another Code-OSS session no longer loads in Cyclotron.
+- **A project's agent guidance follows the installed editor** (#337). At `edit`, an `AGENTS.md` that is still
+  the starter's (same first line) and differs from the installed starter is replaced; the old copy is kept as
+  `.volter/AGENTS.previous.md` and the change is printed. An `AGENTS.md` the author wrote is never touched.
+- **Play starts without animation when its setup fails** (#338): a `playAnimation` setup that throws is named in
+  the console; before, the loading overlay stayed up and the script never ran. Clip reads are kept across Plays
+  for each model document and read again when an action changes.
+- **Clip reads for Play skip the Timeline's summary row** (#331): one read of a character's clip took about 700 ms
+  on a level with 23 armatures and now takes about 10 ms, so a character no longer stands still on its first walk.
+- **The UI board** (#329, #330) shows a component's edit without a reload, and a session whose last view was the
+  board reopens on it once the board registers; before, the restore logged an error and showed the model.
+- **Diagnosis** (#339): `editor.document.run` runs on a document that publishes no context, such as the UI
+  board, with `ctx` null and `info.context` false. `capture --region page` no longer prints the flat-surface
+  warning, which the editor's dark interface set off on almost every page capture.
 
 ## 0.5.204 — Chat starts a new conversation again
 

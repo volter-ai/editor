@@ -35,12 +35,13 @@ pressing Enter on the install line to the first model on screen.
    colour, a higher top speed, and the lap time shown on screen. Check each in Play. Then start a New Chat and ask
    for a second, unrelated change. PASS: all four changes are visible in Play, and the second chat started clean.
    Then choose "Ask for approval" from the permission control under the Chat's input and ask for one more change.
-   PASS: it waits for Allow, and Deny stops it. Ask for it once more and leave that approval unanswered for step 7.
+   PASS: it waits for Allow, and Deny stops it (0.5.206 on). Ask for it once more and leave that approval
+   unanswered for step 7.
 6. **Walk 4: the Chat with no agent.** Open the Chat. PASS: it says plainly what is missing and offers a way to
    sign in. Stop this step there; do not start the sign-in.
 7. **Goal 3: come back.** Close the editor's tab and its terminal. Paste the install line again (the page says it
    reopens). PASS: the same project opens with step 4's saved change, and, on walk 1, the Chat shows the
-   conversation from step 5 intact, including one left waiting on an approval before closing (0.5.205 on).
+   conversation from step 5 intact, including one left waiting on an approval before closing (0.5.206 on).
 
 ## Report
 

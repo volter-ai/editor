@@ -1,6 +1,6 @@
-# Cyclotron launch checklist (updated 2026-10-09, 03:00 UTC)
+# Cyclotron launch checklist (updated 2026-10-09, 04:02 UTC)
 
-## The launch, end to end (2026-10-09, 03:00 UTC)
+## The launch, end to end (2026-10-09, 04:02 UTC)
 
 What the launch must prove, by decision 0047 and 0048. The published build completes the four first-user goals
 with no FAIL: the race before signing in; a model, driving and HUD changed with the agent, then a second task by
@@ -13,7 +13,7 @@ page counted, sign-ins and waitlist collected).
 
 | # | Step | Who | State |
 |---|---|---|---|
-| 1 | **0.5.205**: win32 and linux workbench (card pull, Chat 0.1.55), Ask for approval, then RELEASING's end-of-coding run, the promotion and the merge-back | volter-10 | win32 and linux pinned at the d0e6c475 cuts (the Chat's new conversation, follow-up and reopen read PASS on win32; the cover holds until the card lands, sampled 1.39 s to 6.95 s); Ask for approval merged (#334, read live); next: the end-of-coding run on the measured main |
+| 1 | **0.5.206**: win32 and linux workbench (card pull, Chat 0.1.55), Ask for approval, then RELEASING's end-of-coding run, the promotion and the merge-back | volter-10 | win32 and linux pinned at the d0e6c475 cuts (the Chat's new conversation, follow-up and reopen read PASS on win32; the cover holds until the card lands, sampled 1.39 s to 6.95 s); Ask for approval merged (#334, read live); 0.5.205 was cut from 467ffdac before these merged (publish run 37875783809 started 02:41 UTC; on npm 03:05 UTC), so it carries the ec1e0e84 workbench everywhere; next: 0.5.206's end-of-coding run on the measured main |
 | 2 | **darwin workbench**, then its pin | the Mac, on the owner's word | blocked on that word (t_a2bd2a5f); the revision to cut is editor d0e6c475 (the card's body still names 9a813b17) |
 | 3 | **Browser trial on the current release** | the Mac's sites World | release `model-editor-browser-trial-20261008-3` built and read locally; deploy waits on the World |
 | 4 | **Blind walks** on the published build (stage 2) | volter-10 on Windows (walks 1, 3, 4, 5 in Chrome/Edge/Firefox, 6, 7); the Mac (2, 5 in Safari, 7); walk 8 after Discord | Windows runsheet and first-time environment merged (#335); a FAIL is fixed, released and walked again |
@@ -22,7 +22,7 @@ page counted, sign-ins and waitlist collected).
 | 7 | **Discord** | the owner, with the Mac's sessions (t_be8c9eea) | the owner's order: lucarne's input automation first (lucarne #104, draft), then Discord; the server's design is m-89b54b0e; nothing is registered with Discord without his word |
 | 8 | **Stage 3**: the trial's security policy enforced and robots; the first real AI call on the trial by a person; the posts (claims only where walks passed); the timing | sites; a person; the media lane; the owner | after 1 to 7 |
 
-**Only the owner can:** give the Mac its word for the 0.5.205 Mac workbench cut; look at the www.videogame.ai
+**Only the owner can:** give the Mac its word for the 0.5.206 Mac workbench cut; look at the www.videogame.ai
 copy; create the Discord server; set the Cyclotron page's analytics token in Cloudflare; make (or watch) the first
 real AI call on the trial; approve the posts' copy; and choose the time.
 
@@ -56,6 +56,7 @@ real AI call on the trial; approve the posts' copy; and choose the time.
 - [x] #317 Windows license notices, game upgrade link rules, release steps; #318 npm shell lines; #319 upgrade refreshes check-idioms.ts
 
 ## Released
+- [x] Editor 0.5.205 on npm (`latest`; cut 467ffdac, run 37875783809, on npm 03:05 UTC): document tabs (#292) on the ec1e0e84 workbench for all three platforms (Chat 0.1.51), tripwires only while a tool call is out (#321), `chat send` (#312-#314), Play loading, guards and clip reads (#316, #338, #331), the UI board (#329, #330), run configurations (#318), game upgrades (#317, #319), the workbench's own extensions folder (#336), refreshed agent guidance (#337), `document.run` without a context and no flat-surface warning on page captures (#339). Version commit merged back (#345)
 - [x] Editor 0.5.204 on npm (all 19 at `latest`; cut 5cc93da2, promoted b915c4d2, run 37843833336). Read after publishing: upgrade of a 0.5.202 project, Play, Chat first message in a new conversation, game editor create on Windows (runtime image installed). Version commit merged back (#320)
 
 ## Sites (consolidated 2026-10-08: the sites README is the per-site record; 66 branches to 5, 9 checkouts to 1)
@@ -69,7 +70,7 @@ Nothing here lives only on one machine. Parking work means: push it to a branch,
 
 | Work | Where | State | Next |
 |---|---|---|---|
-| darwin workbench for the card pull and Chat 0.1.55 | card t_a2bd2a5f (the Mac), editor d0e6c475 | blocked: the Mac cuts and publishes only on the owner's own word for this cut | the owner's word to the Mac; then the darwin pin in `packages/cyclotron/package.json` (0.5.205 pins win32 and linux, darwin keeps ec1e0e845c3a) |
+| darwin workbench for the card pull and Chat 0.1.55 | card t_a2bd2a5f (the Mac), editor d0e6c475 | blocked: the Mac cuts and publishes only on the owner's own word for this cut | the owner's word to the Mac; then the darwin pin in `packages/cyclotron/package.json` (0.5.206 pins win32 and linux, darwin keeps ec1e0e845c3a) |
 | Browser trial on the renamed packages | sites release `model-editor-browser-trial-20261008-3` (#48 merged) | built; read locally: it opens and Play runs | deploy through the World on the Mac |
 | www.videogame.ai replacement | sites `videogame-ai/` | never published | owner looks at the copy, then the World |
 | Cyclotron Bridge reopen on the Mac (t_c92f341b) | browser-substrate main (tabnode 0.9.0, 58a06eea) | the pin half is on main; my 0.8.0 pin branch was superseded and deleted | the reopen read on the Mac |
@@ -83,7 +84,7 @@ Nothing here lives only on one machine. Parking work means: push it to a branch,
 - [ ] **Browser trial** rebuilt on the current release (#48 re-pinned; release `model-editor-browser-trial-20261008-3` built), deployed, fresh and returning browsers checked
 - [ ] **Measurement** (decision 0047's second item): `ref` links for posts, analytics collector, sign-in and waitlist counters
 - [ ] **Discord** (t_be8c9eea): owner creates the server, guided; invite on the three pages, the editor's Help menu and the README
-- [ ] **0.5.205** with the walk blockers fixed: Chat restart/reveal (supercode #1360 in Chat 0.1.55, #332, read PASS on Windows), the tripwire reply (t_1f2b8dca, #321 merged after live readings), the opening's card pull (#323), plus #312-#319, #316 (animations), #292 (tabs); the workbench cut and pin. "Ask for approval" (#334, merged: Claude Code's own `--permission-mode default`, read live)
+- [ ] **0.5.206** with the remaining walk blockers fixed: Chat restart/reveal (supercode #1360 in Chat 0.1.55, #332, read PASS on Windows) and the opening's card pull (#323, #341), in the d0e6c475 workbench pin for win32 and linux (#342), which also keeps tabs through a move into an area (#328); "Ask for approval" (#334, merged: Claude Code's own `--permission-mode default`, read live); Safari (#346). The tripwire reply (t_1f2b8dca, #321), #312-#319, #316 (animations) and #292 (tabs) shipped in 0.5.205.
 
 ### Stage 2 — blind walks (a fresh agent, a one-page runsheet, the published build, PASS/FAIL per step)
 Decision 0047's goals: try the race before signing in; change a model, driving and HUD with the agent, then a second task by New Chat; return to saved work with the conversation intact, including a pending approval; model/save/undo-redo without an account.
@@ -96,7 +97,7 @@ Decision 0047's goals: try the race before signing in; change a model, driving a
 | 4 | same | Windows, empty agent profile | no agent signed in (walked to the sign-in screen; no sign-in started) | 1 and 4 |
 | 5 | browser trial | Chrome, Edge, Firefox; Safari on a Mac | fresh, then returning | 1 and 4, and what the page says about its AI (the Volter sign-in and the first AI call are stage 3's, by a person) |
 | 6 | www.videogame.ai, and www.volter.ai → Cyclotron page, as seven personas (RUNSHEET-discovery.md) | any, and a phone | fresh | find it and start it |
-| 7 | a project from 0.5.202, 0.5.203 and 0.5.204 | Windows and Mac | returning user | upgrade, then goal 3 |
+| 7 | a project from 0.5.202, 0.5.203, 0.5.204 and 0.5.205 | Windows and Mac | returning user | upgrade, then goal 3 |
 | 8 | Discord invite | any | stuck partway | the help path |
 
 A FAIL is fixed, the next release published, and the walk run again. Each walk's one page is in `release/launch/walks/`.
