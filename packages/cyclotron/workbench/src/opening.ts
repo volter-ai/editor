@@ -39,8 +39,9 @@ export interface OpeningSetting {
 export interface Opening {
 	/** The cover's narration, the line under the rail. */
 	say(text: string): void;
-	/** Resolves once the card is on the page with its stars and name (at once for a held frame), so the cover can
-	 *  stay up until then. A timer backs it, since a hidden tab runs no animation frames, and dispose resolves it. */
+	/** Resolves once the card is on the page with its stars and name (under reduced motion, on its first attached
+	 *  frame), so the cover can stay up until then. A timer backs it, since a hidden tab runs no animation frames,
+	 *  and dispose resolves it. */
 	readonly landed: Promise<void>;
 	dispose(): void;
 }
@@ -322,10 +323,14 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 	let started = false;
 	let animation: number | undefined;
 	let wait: number | undefined;
+	// The backstop for `landed`: a hidden tab runs no animation frames, and a cover must not wait on them forever.
+	let backstop: number | undefined;
 	const play = () => {
 		if (disposed || started) { return; }
 		started = true;
 		if (wait !== undefined) { mainWindow.clearTimeout(wait); }
+		// Counted from the pull's start, so a main thread busy just after mount cannot land it before its name.
+		backstop = mainWindow.setTimeout(land, LANDED_MS + 1500);
 		let start: number | undefined;
 		const tick = (now: number) => {
 			start ??= now;
@@ -341,6 +346,7 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 	const held = at !== undefined ? clamp(at, 0, SETTLED_MS)
 		: mainWindow.matchMedia('(prefers-reduced-motion: reduce)').matches ? SETTLED_MS : undefined;
 	if (held !== undefined) {
+		backstop = mainWindow.setTimeout(land, 2000);
 		let tries = 0;
 		const hold = () => {
 			animation = undefined;
@@ -354,9 +360,6 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 		art.decode().then(play, play);
 		wait = mainWindow.setTimeout(play, ART_WAIT_MS);
 	}
-	// The backstop for `landed`: a hidden tab runs no animation frames, and a cover must not wait on them forever.
-	const backstop = mainWindow.setTimeout(land, held !== undefined ? 2000 : ART_WAIT_MS + LANDED_MS + 1500);
-
 	return {
 		say: (text: string) => { state.textContent = text; },
 		landed,
@@ -364,7 +367,7 @@ export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onS
 			disposed = true;
 			if (animation !== undefined) { mainWindow.cancelAnimationFrame(animation); }
 			if (wait !== undefined) { mainWindow.clearTimeout(wait); }
-			mainWindow.clearTimeout(backstop);
+			if (backstop !== undefined) { mainWindow.clearTimeout(backstop); }
 			land();
 			root.remove();
 		},

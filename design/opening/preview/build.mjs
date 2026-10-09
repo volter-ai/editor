@@ -28,6 +28,8 @@ const shims = {
 	'nls.js': String.raw`export const localize = (key, message, ...args) => message.replace(/\{(\d+)\}/g, (_, i) => String(args[i]));`,
 };
 await esbuild.build({
+	// Paths in the bundle's comments are relative to the repository, whichever checkout builds it.
+	absWorkingDir: repo,
 	entryPoints: [join(repo, 'packages/cyclotron/workbench/src/opening.ts')],
 	bundle: true,
 	format: 'iife',

@@ -18,7 +18,7 @@ var VolterOpening = (() => {
   };
   var __toCommonJS = (mod) => __copyProps(__defProp({}, "__esModule", { value: true }), mod);
 
-  // ../editor-landed/packages/cyclotron/workbench/src/opening.ts
+  // packages/cyclotron/workbench/src/opening.ts
   var opening_exports = {};
   __export(opening_exports, {
     mountOpening: () => mountOpening,
@@ -44,7 +44,7 @@ var VolterOpening = (() => {
   // shim:nls.js
   var localize = (key, message, ...args) => message.replace(/\{(\d+)\}/g, (_, i) => String(args[i]));
 
-  // ../editor-landed/packages/cyclotron/workbench/src/opening.ts
+  // packages/cyclotron/workbench/src/opening.ts
   var STORAGE_KEY = "volter.cyclotron.opening";
   function pullSetting(settings) {
     let seen = [];
@@ -330,6 +330,7 @@ var VolterOpening = (() => {
     let started = false;
     let animation;
     let wait;
+    let backstop;
     const play = () => {
       if (disposed || started) {
         return;
@@ -338,6 +339,7 @@ var VolterOpening = (() => {
       if (wait !== void 0) {
         mainWindow.clearTimeout(wait);
       }
+      backstop = mainWindow.setTimeout(land, LANDED_MS + 1500);
       let start;
       const tick = (now) => {
         start ??= now;
@@ -349,6 +351,7 @@ var VolterOpening = (() => {
     };
     const held = at !== void 0 ? clamp(at, 0, SETTLED_MS) : mainWindow.matchMedia("(prefers-reduced-motion: reduce)").matches ? SETTLED_MS : void 0;
     if (held !== void 0) {
+      backstop = mainWindow.setTimeout(land, 2e3);
       let tries = 0;
       const hold = () => {
         animation = void 0;
@@ -366,7 +369,6 @@ var VolterOpening = (() => {
       art.decode().then(play, play);
       wait = mainWindow.setTimeout(play, ART_WAIT_MS);
     }
-    const backstop = mainWindow.setTimeout(land, held !== void 0 ? 2e3 : ART_WAIT_MS + LANDED_MS + 1500);
     return {
       say: (text) => {
         state.textContent = text;
@@ -380,7 +382,9 @@ var VolterOpening = (() => {
         if (wait !== void 0) {
           mainWindow.clearTimeout(wait);
         }
-        mainWindow.clearTimeout(backstop);
+        if (backstop !== void 0) {
+          mainWindow.clearTimeout(backstop);
+        }
         land();
         root.remove();
       }
