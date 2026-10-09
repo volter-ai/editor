@@ -1,6 +1,6 @@
 {
   "name": "@volter/play",
-  "version": "0.5.207",
+  "version": "0.5.208",
   "author": "Volter AI, Inc.",
   "license": "Apache-2.0",
   "type": "module",
@@ -28,7 +28,7 @@
     ]
   },
   "dependencies": {
-    "@volter/sdk": "0.5.207"
+    "@volter/sdk": "0.5.208"
   },
   "peerDependencies": {
     "react": "^19.0.0",
