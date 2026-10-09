@@ -108,6 +108,9 @@ export interface ProjectWatchHost {
   /** Put a line into the Chat's running turn; `false` when none is running
    *  or the turn is waiting on the person. */
   readonly steerChatTurn: (text: string) => Promise<boolean>;
+  /** Is one of the Chat turn's tool calls still out, its result not back? Only then does a steered line land
+   *  inside the turn (`nudgeChatAgent`). */
+  readonly chatToolOut: () => boolean;
 }
 
 export interface ProjectWatch {
@@ -564,6 +567,16 @@ export function createProjectWatch(host: ProjectWatchHost): ProjectWatch {
     }
     if (chatNudgedThisTurn) {
       journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'capped' });
+      return;
+    }
+    // ONLY WHILE A TOOL CALL IS OUT. A steered line reaches the agent at its next step, and only a call whose
+    // result is not back promises one. A turn with none out (a question answered in words, a story, or the closing
+    // words after its last call) can end before any step, and the line then arrived after it as a new prompt that
+    // the agent answered in the person's Chat, the nudge itself unseen (measured 2026-10-08: "unplayed for 5m" into
+    // a no-tools story, answered "I haven't started Play…"). The terminal and the journal keep the crossing, and
+    // the turn's one line stays unspent for a later crossing.
+    if (!host.chatToolOut()) {
+      journalEvent({ kind: 'tripwire-nudge', tripwire, outcome: 'no-call-out' });
       return;
     }
     // Claimed BEFORE the steer resolves, so two crossings in one tick cannot
