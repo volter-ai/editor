@@ -4,11 +4,10 @@ You are a first-time user. You know only what the Cyclotron page tells you. Do e
 person uses (the page, the install line, the editor in the browser, its Chat), write PASS or FAIL beside it with
 what you saw, and stop a step at its first FAIL: copy the exact text on screen, save a screenshot, and go on to
 the next step that does not depend on it. Do not read the editor's source or docs, do not fix anything, run no
-tests, and never start a ChatGPT or Claude sign-in: a step that reaches a sign-in screen stops there and says so.
+tests, never submit a form, and never start a ChatGPT or Claude sign-in: a step that reaches a sign-in screen
+stops there and says so.
 
-Walk it on a Mac with Apple Silicon as the Mac is (Node, Claude Code signed in): steps 1, 2, 3, 4, 5 and 7, the
-same goals as Windows walk 1. A Mac first-time walk (no Node, no agent signed in) runs in a fresh macOS user
-account that the Mac's owner makes; you do not make one.
+Walk it on a Mac with Apple Silicon as the Mac is (Node, Claude Code signed in): the same goals as Windows walk 1.
 
 Record: the date, the published `@volter/cyclotron` version it installed, and the time from pressing Return on the
 install line to the first model on screen.
@@ -25,8 +24,10 @@ install line to the first model on screen.
    undo, redo. PASS: each does what it says. (Step 7 checks that the saved change survives a reopen.)
 5. **Goal 2: build with the agent.** In the Chat, ask in one message for three changes: the kart a new colour, a
    higher top speed, and the lap time shown on screen. Check each in Play. Then start a New Chat and ask for a
-   second, unrelated change. PASS: all four changes are visible in Play, and the second chat started clean. With
-   "Ask for approval" chosen, a change waits for Allow; Deny stops it.
+   second, unrelated change. PASS: all four changes are visible in Play, and the second chat started clean. Then
+   choose "Ask for approval" from the permission control under the Chat's input and ask for one more change.
+   PASS: it waits for Allow, and Deny stops it. Ask for it once more and leave that approval unanswered for step 7.
+6. (Windows walk 4 only; there is no step 6 on the Mac.)
 7. **Goal 3: come back.** Close the editor's tab and its Terminal window. Paste the install line again. PASS: the
    same project opens with step 4's saved change, and the Chat shows step 5's conversation intact, including one
    left waiting on an approval before closing.

@@ -12,7 +12,7 @@ Each persona starts at **www.videogame.ai** unless its row says otherwise, and e
 |---|---|---|---|
 | A | An indie developer who wants to make a game with AI | a Windows computer, Chrome | Cyclotron's install line for Windows, copied, with what it needs understood |
 | B | A Mac owner who uses Safari | a Mac, Safari | knows the browser trial needs Chrome or Edge, and has the Mac install line |
-| C | Someone who saw a post on their phone | a phone | has sent themselves the link for their computer |
+| C | Someone who saw a post on their phone | a phone | has the link for their computer drafted in a mail to themselves (do not send) |
 | D | A person with no ChatGPT or Claude subscription | any computer | knows what Cyclotron does without one (model, play, UI) and what the AI needs |
 | E | A Blender artist curious about AI modelling | any computer | understands Blender runs inside Cyclotron and their work saves as `.blend` |
 | F | A studio or publisher | any computer | has the way to contact the studio (do not send) |
@@ -28,6 +28,10 @@ Each persona starts at **www.videogame.ai** unless its row says otherwise, and e
    what it costs, and what you need (computer, browser, AI subscription).
 4. **Reach "Done"** for your row. PASS: as the row says, with no dead link, no contradiction between pages, and no
    claim you could not act on.
+5. **Start it** (on a computer). Open the browser version from Cyclotron's page in Chrome or Edge and wait for the
+   first model, or, where your persona would install, have the install line for your computer open and copied (do
+   not run it here; walks 1 to 4 do). PASS: the first model appears, or the line is in hand with what it needs.
+   The phone persona is N/A here.
 
 ## Report
 

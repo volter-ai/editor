@@ -94,12 +94,12 @@ Decision 0047's goals: try the race before signing in; change a model, driving a
 | 2 | same | Mac | same | all four |
 | 3 | same | Windows, Node removed from PATH | no Node | install up to the first model |
 | 4 | same | Windows, empty agent profile | no agent signed in (walked to the sign-in screen; no sign-in started) | 1 and 4 |
-| 5 | browser trial | Chrome, Safari, Firefox | fresh, then returning | 1, sign-in, first AI call |
-| 6 | volter.ai → videogame.ai → Cyclotron page | any | fresh | find it and start it |
-| 7 | a project from 0.5.202 / 0.5.203 | Windows and Mac | returning user | upgrade, then goal 3 |
+| 5 | browser trial | Chrome, Edge, Firefox; Safari on a Mac | fresh, then returning | 1 and 4, and what the page says about its AI (the Volter sign-in and the first AI call are stage 3's, by a person) |
+| 6 | www.videogame.ai, and www.volter.ai → Cyclotron page, as seven personas (RUNSHEET-discovery.md) | any, and a phone | fresh | find it and start it |
+| 7 | a project from 0.5.202, 0.5.203 and 0.5.204 | Windows and Mac | returning user | upgrade, then goal 3 |
 | 8 | Discord invite | any | stuck partway | the help path |
 
-A FAIL is fixed, the next release published, and the walk run again.
+A FAIL is fixed, the next release published, and the walk run again. Each walk's one page is in `release/launch/walks/`.
 
 ### Stage 3 — the launch
 - [ ] Posts lead with the browser trial only once a stranger can do it from the launch page (decision 0048); a platform is claimed only where its walk passed
