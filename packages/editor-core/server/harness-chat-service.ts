@@ -1313,8 +1313,10 @@ export class HarnessChatService {
       case 'tool': {
         // Tracked after the reopen, which starts the turn's calls afresh.
         const reopened = this.reopenOnActivity();
+        // A call with no id could never be matched back (Codex's own app-server deltas carry `itemId`, read as
+        // none), and one left out forever would hold the gate open to the turn's end: it is not counted.
         const call = String(event.callId ?? '');
-        if (event.status === 'pending') this.runtimeToolsOut.add(call);
+        if (event.status === 'pending' && call) this.runtimeToolsOut.add(call);
         else this.runtimeToolsOut.delete(call);
         return reopened ?? 'tool';
       }
@@ -1349,7 +1351,7 @@ export class HarnessChatService {
 
   /** Claude Code's calls going out and coming back (`claudeToolSteps`), into `runtimeToolsOut`. */
   private trackToolSteps(steps: { out: string[]; back: string[] } | null): void {
-    for (const call of steps?.out ?? []) this.runtimeToolsOut.add(call);
+    for (const call of steps?.out ?? []) if (call) this.runtimeToolsOut.add(call);
     for (const call of steps?.back ?? []) this.runtimeToolsOut.delete(call);
   }
 
