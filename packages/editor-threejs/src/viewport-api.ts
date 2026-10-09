@@ -34,6 +34,9 @@ export interface ViewportRig {
    */
   frameCost?(frames: number, quality?: 'full' | 'navigation'): StageFrameCost;
   readonly orbit: { readonly target: THREE.Vector3; enabled: boolean; update(): void };
+  /** While `owned`, the stage leaves the camera's projection (its clip planes) to whoever drives it:
+   *  a running game. Absent on a stage that never fits its planes. */
+  readonly projection?: { owned: boolean };
   /** The editor's own scene (helpers live on its editor layer). */
   readonly scene: THREE.Scene;
 }

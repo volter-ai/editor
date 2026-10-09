@@ -890,6 +890,13 @@ export class EditorViewport {
   readonly camera: THREE.PerspectiveCamera;
   readonly orthographicCamera: THREE.OrthographicCamera;
   readonly orbitControls: OrbitControls;
+  /**
+   * WHO OWNS THE CAMERA'S PROJECTION. The editor fits the clip planes to the content each frame
+   * (`clip-planes.ts`), pushing `near` out as the world grows; a running game owns its camera, and
+   * the fit must not reach it (2026-10-09: a file with film sets 3 km away put a third-person
+   * game's near plane at 11.6 m, and its character and the ground near it were never drawn).
+   */
+  readonly projectionOwner = { owned: false };
   readonly transformControls: TransformControls;
   /** The rotate/scale halves of the 'combined' gizmo (Unity's Transform
    *  tool). Constructed always, shown only in combined mode — three's
@@ -3560,6 +3567,7 @@ export class EditorViewport {
    * the planes actually move, one `updateProjectionMatrix`.
    */
   private _updateClipPlanes(): void {
+    if (this.projectionOwner.owned) return;
     const box = this._contentBounds();
     let distance = 0;
     let radius = 0;
