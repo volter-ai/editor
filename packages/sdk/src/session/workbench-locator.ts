@@ -621,7 +621,7 @@ async function fetchDeclaredRelease(
 
     io.log(
       `Fetching the ${productId} workbench ${tag} from ${RELEASE_REPO} — ` +
-        `${megabytes(tarball.size)} MB, once per machine.`,
+        `${megabytes(tarball.size)} MB, once for this account on this computer.`,
     );
     const tarballPath = join(partial, tarball.name);
     let announced = 0;
