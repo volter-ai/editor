@@ -63,12 +63,17 @@ var VolterOpening = (() => {
     } catch {
     }
     const fresh = settings.find((candidate) => !seen.includes(candidate.id));
-    const setting = fresh ?? settings[(settings.findIndex((candidate) => candidate.id === last) + 1) % settings.length];
-    try {
-      mainWindow.localStorage.setItem(STORAGE_KEY, JSON.stringify({ seen: fresh ? [...seen, fresh.id] : seen, last: setting.id }));
-    } catch {
-    }
-    return { setting, isNew: fresh !== void 0 };
+    const setting = fresh ?? settings[(settings.findIndex((candidate) => candidate.id === last) + 1) % settings.length] ?? settings[0];
+    return {
+      setting,
+      isNew: fresh !== void 0,
+      remember: () => {
+        try {
+          mainWindow.localStorage.setItem(STORAGE_KEY, JSON.stringify({ seen: fresh ? [...seen, fresh.id] : seen, last: setting.id }));
+        } catch {
+        }
+      }
+    };
   }
   var SILHOUETTE = "M120.6 7.1l2.5 0 1.8 .8 .2 .5 0 11.2 2.3 .8 .2-1.5 .8-.8 2-.5 2.2 .3 1 .5 .5 .7 0 4 1.8 1.8 .7 1.5 0 2 4 2 2.5 1.7 2.5 2.8 1 2.2 1 3.5 .3 2.8-1.3 3.2 0 6-1 1.8 2.5 2 0 19.2 4 1.3 6 2.7 7 4.5 4.5 5 1.5 3.3 1.3 3.2 .2 5-2.5 7-1.5 1.8 .3 4.7 1.2 2 2.3 5.5 .2 5-2.5 7-4.2 5-5 3.8-7 3.5-2.3 .7 0 3.8-1.7 1.5 1.7 1.5 0 4.2-3.5 3 0 10-1.5 1.8 0 6-1.7 3.2-2.3 1.8 0 6.5 .5 .5 3.8 1.2 2.5 2 0 10.5-3 2.8 5 2 2.5 2 0 10.2-3.8 3.3-9.7 6-1.5 .2-10-3.7-2.8-2.3-.2-7.7-2.5 .5-5 0-.3 6-4.2 3.5-9.8 6-.5 0-10.5-4-2.5-2 0-10.5 3-2.8-5-2-2.5-2 0-10.2 3-2.8 8.3-5 0-8.2-2.5-2.3-1.5-2.7 0-6.3-1-2 0-2-.5-1 0-8.5-1-.7-6.8-2.5-2.2-2 0-9.5-7.3-4.8-3-3.2-1-1.3-3-6.7-.2-5 2.5-7 1.5-1.8-.3-4.7-1-1.5-2.5-6-.2-5 2.5-7 4.2-5 5-3.8 7-3.5 5.8-2 0-22.7 1.5-1.5 0-5-1-2-.3-2.8 1.8-5.7 2.7-3.5 2-1.5 4.8-2.5 0-2 .7-1.3 0-8 .5-.5 1.5-.5 2.3 0 1.5 .5 .5 .5 .2 3.8 3.5-1 4.5-.5 0-11z";
   var CHARGE = 450;
@@ -104,7 +109,7 @@ var VolterOpening = (() => {
   var BURST = Array.from({ length: 110 }, () => ({ a: random() * Math.PI * 2, v: 0.25 + random() * 0.75, life: 700 + random() * 900, size: 0.8 + random() * 2.4, lime: random() < 0.7 }));
   var STAR_SPARK = Array.from({ length: 14 }, (_, i) => ({ a: i / 14 * Math.PI * 2 + random() * 0.3, v: 0.6 + random() * 0.6 }));
   var GLINTS = Array.from({ length: 16 }, () => ({ x: random(), y: random(), period: 2200 + random() * 2600, phase: random() * 4e3 }));
-  function mountOpening(host, setting, isNew, firstLine, at) {
+  function mountOpening(host, { setting, isNew, firstLine, onShown, at }) {
     const halo = $(".volter-opening-halo");
     const rays = $(".volter-opening-rays");
     const ring = $(".volter-opening-ring");
@@ -156,6 +161,7 @@ var VolterOpening = (() => {
     host.appendChild(root);
     const context = sparks.getContext("2d");
     let width = 0, height = 0;
+    let shown = false;
     function frame(t) {
       const box = root.getBoundingClientRect();
       const stageBox = stage.getBoundingClientRect();
@@ -239,11 +245,15 @@ var VolterOpening = (() => {
       if (badge) {
         badge.style.opacity = ease(named).toFixed(3);
       }
+      if (!shown && t >= NAME_AT) {
+        shown = true;
+        onShown?.();
+      }
       const hit = clamp((t - FLIP - 150) / 260);
       const amp = t > FLIP + 150 && hit < 1 ? (1 - hit) * 7 : 0;
       root.style.transform = amp ? `translate(${(Math.sin(t * 0.9) * amp).toFixed(2)}px,${(Math.cos(t * 1.3) * amp * 0.7).toFixed(2)}px)` : "";
       under.style.opacity = clamp((t - UNDER_AT) / 600).toFixed(3);
-      if (!context) {
+      if (!context || !width || !height) {
         return;
       }
       context.clearRect(0, 0, width, height);
@@ -328,10 +338,15 @@ var VolterOpening = (() => {
       };
       animation = mainWindow.requestAnimationFrame(tick);
     };
-    if (at !== void 0) {
-      frame(clamp(at, 0, SETTLED_MS));
-    } else if (mainWindow.matchMedia("(prefers-reduced-motion: reduce)").matches) {
-      frame(SETTLED_MS);
+    const held = at !== void 0 ? clamp(at, 0, SETTLED_MS) : mainWindow.matchMedia("(prefers-reduced-motion: reduce)").matches ? SETTLED_MS : void 0;
+    if (held !== void 0) {
+      frame(held);
+      animation = mainWindow.requestAnimationFrame(() => {
+        animation = void 0;
+        if (!disposed) {
+          frame(held);
+        }
+      });
     } else {
       frame(0);
       art.decode().then(play, play);

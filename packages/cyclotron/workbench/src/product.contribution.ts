@@ -136,7 +136,7 @@ let splash: { say(text: string): void } | undefined;
  * `'self'` under the workbench's CSP; its sources are design/opening/asset (the canyon:
  * `build_canyon.py`, rendered in Blender, resized to 600 x 800 for a 300 x 420 card at 2x).
  */
-const OPENING_SETTINGS: readonly OpeningSetting[] = [
+const OPENING_SETTINGS: readonly [OpeningSetting, ...OpeningSetting[]] = [
 	{
 		id: 'canyon',
 		name: localize('volterOpeningCanyon', "Canyon"),
@@ -174,8 +174,13 @@ registerVolterProduct({
 	// opening's card pull (`opening.ts`), one setting of the machine per boot, with this
 	// product's narration under it.
 	cover(host: HTMLElement, context: VolterProductCoverContext): VolterProductCover {
-		const { setting, isNew } = pullSetting(OPENING_SETTINGS);
-		const opening = mountOpening(host, setting, isNew, localize('volterModelCoverOpening', "Opening {0}…", context.folderName));
+		const { setting, isNew, remember } = pullSetting(OPENING_SETTINGS);
+		const opening = mountOpening(host, {
+			setting,
+			isNew,
+			firstLine: localize('volterModelCoverOpening', "Opening {0}…", context.folderName),
+			onShown: remember,
+		});
 		splash = { say: (text: string) => opening.say(text) };
 		return {
 			dispose: () => {

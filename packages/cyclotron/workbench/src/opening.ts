@@ -46,10 +46,13 @@ const STORAGE_KEY = 'volter.cyclotron.opening';
 
 /**
  * WHICH SETTING THIS BOOT PULLS: the first one this browser has not been shown, else the one
- * after the last shown. Remembered in this browser's storage; with none (a private window, a
- * refused write) every boot is a first boot, which is still a card.
+ * after the last shown. `remember` records it as shown, and the cover calls it only once the
+ * card has been revealed: the kit raises the cover for any folder, and takes it down at once for
+ * one that is not a project or a refused trust prompt, which shows no card. Remembered in this
+ * browser's storage; with none (a private window, a refused write) every boot is a first boot,
+ * which is still a card.
  */
-export function pullSetting(settings: readonly OpeningSetting[]): { readonly setting: OpeningSetting; readonly isNew: boolean } {
+export function pullSetting(settings: readonly [OpeningSetting, ...OpeningSetting[]]): { readonly setting: OpeningSetting; readonly isNew: boolean; remember(): void } {
 	let seen: string[] = [];
 	let last: string | undefined;
 	try {
@@ -63,13 +66,31 @@ export function pullSetting(settings: readonly OpeningSetting[]): { readonly set
 		// Nothing remembered.
 	}
 	const fresh = settings.find((candidate) => !seen.includes(candidate.id));
-	const setting = fresh ?? settings[(settings.findIndex((candidate) => candidate.id === last) + 1) % settings.length];
-	try {
-		mainWindow.localStorage.setItem(STORAGE_KEY, JSON.stringify({ seen: fresh ? [...seen, fresh.id] : seen, last: setting.id }));
-	} catch {
-		// Not remembered: the same card next time.
-	}
-	return { setting, isNew: fresh !== undefined };
+	const setting = fresh ?? settings[(settings.findIndex((candidate) => candidate.id === last) + 1) % settings.length] ?? settings[0];
+	return {
+		setting,
+		isNew: fresh !== undefined,
+		remember: () => {
+			try {
+				mainWindow.localStorage.setItem(STORAGE_KEY, JSON.stringify({ seen: fresh ? [...seen, fresh.id] : seen, last: setting.id }));
+			} catch {
+				// Not remembered: the same card next time.
+			}
+		},
+	};
+}
+
+export interface OpeningOptions {
+	readonly setting: OpeningSetting;
+	/** A first sighting of this setting: the card wears a NEW tag. */
+	readonly isNew: boolean;
+	/** The narration's first line. */
+	readonly firstLine: string;
+	/** Called once, when the card has been revealed with its name. */
+	readonly onShown?: () => void;
+	/** Hold the pull at this moment instead of playing it (design/opening/preview steps through
+	 *  frames with it; the product never passes it). */
+	readonly at?: number;
 }
 
 /** The machine's silhouette for the card's back, in a 240-unit box (design/opening/silhouette.txt). */
@@ -103,9 +124,7 @@ const BURST = Array.from({ length: 110 }, () => ({ a: random() * Math.PI * 2, v:
 const STAR_SPARK = Array.from({ length: 14 }, (_, i) => ({ a: i / 14 * Math.PI * 2 + random() * .3, v: .6 + random() * .6 }));
 const GLINTS = Array.from({ length: 16 }, () => ({ x: random(), y: random(), period: 2200 + random() * 2600, phase: random() * 4000 }));
 
-/** `at` holds the pull at that moment instead of playing it (design/opening/preview steps
- *  through frames with it; the product never passes it). */
-export function mountOpening(host: HTMLElement, setting: OpeningSetting, isNew: boolean, firstLine: string, at?: number): Opening {
+export function mountOpening(host: HTMLElement, { setting, isNew, firstLine, onShown, at }: OpeningOptions): Opening {
 	const halo = $('.volter-opening-halo');
 	const rays = $('.volter-opening-rays');
 	const ring = $('.volter-opening-ring');
@@ -144,6 +163,7 @@ export function mountOpening(host: HTMLElement, setting: OpeningSetting, isNew: 
 
 	const context = sparks.getContext('2d');
 	let width = 0, height = 0;
+	let shown = false;
 
 	function frame(t: number): void {
 		// READS FIRST, then writes, so a frame costs one layout: the stage is never transformed
@@ -239,6 +259,7 @@ export function mountOpening(host: HTMLElement, setting: OpeningSetting, isNew: 
 		name.style.opacity = ease(named).toFixed(3);
 		name.style.transform = `translateY(${((1 - outExpo(named)) * 10).toFixed(1)}px)`;
 		if (badge) { badge.style.opacity = ease(named).toFixed(3); }
+		if (!shown && t >= NAME_AT) { shown = true; onShown?.(); }
 
 		// IMPACT: a short shake of the whole cover at the burst; then the narration comes up.
 		const hit = clamp((t - FLIP - 150) / 260);
@@ -247,8 +268,9 @@ export function mountOpening(host: HTMLElement, setting: OpeningSetting, isNew: 
 		under.style.opacity = clamp((t - UNDER_AT) / 600).toFixed(3);
 
 		// SPARKS: drawn in from the dark as it charges, a burst at the flip, glints, and a ring
-		// of them round each star as it lands.
-		if (!context) { return; }
+		// of them round each star as it lands. Not before the cover has a size: the kit draws it
+		// before attaching it, and a canvas never sized draws on its default 300 x 150 surface.
+		if (!context || !width || !height) { return; }
 		context.clearRect(0, 0, width, height);
 		for (const p of INBOUND) {
 			const k = (t - p.start) / p.life;
@@ -305,10 +327,13 @@ export function mountOpening(host: HTMLElement, setting: OpeningSetting, isNew: 
 		};
 		animation = mainWindow.requestAnimationFrame(tick);
 	};
-	if (at !== undefined) {
-		frame(clamp(at, 0, SETTLED_MS));
-	} else if (mainWindow.matchMedia('(prefers-reduced-motion: reduce)').matches) {
-		frame(SETTLED_MS);
+	// A held frame (reduced motion, or the preview's `at`) is drawn once the cover is attached
+	// and measured: `cover` runs before the kit puts the host on the page.
+	const held = at !== undefined ? clamp(at, 0, SETTLED_MS)
+		: mainWindow.matchMedia('(prefers-reduced-motion: reduce)').matches ? SETTLED_MS : undefined;
+	if (held !== undefined) {
+		frame(held);
+		animation = mainWindow.requestAnimationFrame(() => { animation = undefined; if (!disposed) { frame(held); } });
 	} else {
 		frame(0);
 		art.decode().then(play, play);

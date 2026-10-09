@@ -25,7 +25,7 @@ let opening;
 function pull() {
 	opening?.dispose();
 	const at = params.has('at') ? Number(params.get('at')) : undefined;
-	opening = VolterOpening.mountOpening(host, setting, params.get('new') === '1', 'Opening ' + (params.get('folder') || 'my-model') + '…', at);
+	opening = VolterOpening.mountOpening(host, { setting, isNew: params.get('new') === '1', firstLine: 'Opening ' + (params.get('folder') || 'my-model') + '…', at });
 }
 host.addEventListener('click', pull);
 pull();
