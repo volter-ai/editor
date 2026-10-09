@@ -30,6 +30,9 @@ request, under the 0.5 release-line version it ships in (the editor packages sha
   Explorer" on Windows (Finder on a Mac, File Manager elsewhere), the asset menu's shortcuts read Ctrl+D and Del
   off a Mac, and an asset's reveal opens its folder in the project rather than relative to wherever the server
   started.
+- **Play input under pointer lock** (#358). A game whose mouse look holds a pointer lock no longer throws
+  `InvalidStateError` from pointer capture (20-120 a session in playtests); Esc pressed to free the mouse no
+  longer stops Play; and a limited view stops polling the account it cannot answer.
 
 ## 0.5.206 — the opening's card pull, and a Chat that saves a conversation once
 
