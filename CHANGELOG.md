@@ -5,6 +5,16 @@ The publish workflow versions and publishes packages by itself (`.github/workflo
 a change that alters an address, a command or a file format adds its note here in the same pull
 request, under the 0.5 release-line version it ships in (the editor packages share one version).
 
+## 0.5.211 — the Chat's agent speaks in its replies only
+
+- **The Chat's agent no longer sends notes to itself.** The starter's `AGENTS.md` said `chat send` "sends to the
+  visible conversation", so the agent in the Chat posted its status lines with it; each came back into its own turn as
+  the person's message, which it then answered (the 0.5.210 Mac walk). The guidance now says `chat send` drives the
+  Chat from outside it, and that the agent in the Chat never uses it. A project's `AGENTS.md` follows at its next
+  `edit`, as starter guidance does.
+- **`upgrade` with nothing to move says why its hint is there.** "If an editor still refuses this project…" read as
+  a failure after "already on"; it now reads "If you ran this because an editor refused the project…".
+
 ## 0.5.210 — an upgrade's Next lines with no editor open
 
 - **Upgrade's Next lines name `close` only when an editor is open on the project** (#376). That line runs the
